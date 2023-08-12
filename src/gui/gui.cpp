@@ -4108,6 +4108,8 @@ bool FurnaceGUI::loop() {
             }
             ImGui::Checkbox("loop",&zsmExportLoop);
             ImGui::SameLine();
+            ImGui::Checkbox("optimize size",&zsmExportOptimize);
+            ImGui::SameLine();
             if (ImGui::Button("Begin Export")) {
               openFileDialog(GUI_FILE_EXPORT_ZSM);
               ImGui::CloseCurrentPopup();
@@ -5071,7 +5073,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_ZSM: {
-              SafeWriter* w=e->saveZSM(zsmExportTickRate,zsmExportLoop);
+              SafeWriter* w=e->saveZSM(zsmExportTickRate,zsmExportLoop,zsmExportOptimize);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -6803,6 +6805,7 @@ FurnaceGUI::FurnaceGUI():
   displayExporting(false),
   vgmExportLoop(true),
   zsmExportLoop(true),
+  zsmExportOptimize(true),
   vgmExportPatternHints(false),
   vgmExportDirectStream(false),
   displayInsTypeList(false),
