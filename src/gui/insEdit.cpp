@@ -4515,6 +4515,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("%s",noteNames[60+i]);
                   ImGui::TableNextColumn();
                   if (sampleMap.map<0 || sampleMap.map>=e->song.sampleLen) {
@@ -4524,6 +4525,7 @@ void FurnaceGUI::drawInsEdit() {
                     sName=fmt::sprintf("%3d##SM%d",sampleMap.map,i);
                   }
                   ImGui::PushFont(patFont);
+                  ImGui::AlignTextToFramePadding();
                   ImGui::SetNextItemWidth(ImGui::CalcTextSize("00000").x);
                   ImGui::Selectable(sName.c_str(),(sampleMapWaitingInput && sampleMapColumn==0 && i>=sampleMapMin && i<=sampleMapMax));
                   if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -4574,6 +4576,7 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   sName+=fmt::sprintf("##SN%d",i);
                   ImGui::PushFont(patFont);
+                  ImGui::AlignTextToFramePadding();
                   ImGui::SetNextItemWidth(ImGui::CalcTextSize("00000").x);
                   ImGui::Selectable(sName.c_str(),(sampleMapWaitingInput && sampleMapColumn==1 && i>=sampleMapMin && i<=sampleMapMax));
                   if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -4618,9 +4621,25 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::PopFont();
 
                   ImGui::TableNextColumn();
+                  String prevName="---";
                   if (sampleMap.map>=0 && sampleMap.map<e->song.sampleLen) {
-                    ImGui::TextUnformatted(e->song.sample[sampleMap.map]->name.c_str());
+                    prevName=e->song.sample[sampleMap.map]->name;
                   }
+                  ImGui::PushID(i+2);
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::BeginCombo("##SMSample",prevName.c_str())) {
+                    if (ImGui::Selectable("---")) {
+                      sampleMap.map=-1;
+                    }
+                    for (int k=0; k<e->song.sampleLen; k++) {
+                      String itemName=fmt::sprintf("%d: %s",k,e->song.sample[k]->name);
+                      if (ImGui::Selectable(itemName.c_str())) {
+                        sampleMap.map=k;
+                      }
+                    }
+                    ImGui::EndCombo();
+                  }
+                  ImGui::PopID();
                 }
                 ImGui::PopStyleColor(2);
                 ImGui::EndTable();
