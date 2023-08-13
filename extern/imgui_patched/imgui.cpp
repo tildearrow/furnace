@@ -9522,6 +9522,8 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
         }
         else if (e->Type == ImGuiInputEventType_MouseButton)
         {
+            bool trickle_fast_inputs = true; // forcing trickle for MouseButton event
+
             // Trickling Rule: Stop processing queued events if we got multiple action on the same button
             const ImGuiMouseButton button = e->MouseButton.Button;
             IM_ASSERT(button >= 0 && button < ImGuiMouseButton_COUNT);
@@ -9549,6 +9551,8 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
         }
         else if (e->Type == ImGuiInputEventType_Key)
         {
+            bool trickle_fast_inputs = true; // forcing trickle for Key event
+
             // Trickling Rule: Stop processing queued events if we got multiple action on the same button
             ImGuiKey key = e->Key.Key;
             IM_ASSERT(key != ImGuiKey_None);
@@ -9570,6 +9574,10 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
         }
         else if (e->Type == ImGuiInputEventType_Text)
         {
+            // forcing trickle for Text event, but only when interacting with keydown or mouse button
+            if ((key_changed && trickle_interleaved_keys_and_text) || mouse_button_changed != 0)
+                break;
+
             // Trickling Rule: Stop processing queued events if keys/mouse have been interacted with
             if (trickle_fast_inputs && ((key_changed && trickle_interleaved_keys_and_text) || mouse_button_changed != 0 || mouse_moved || mouse_wheeled))
                 break;

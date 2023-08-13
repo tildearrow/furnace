@@ -3287,19 +3287,6 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   if (dragMobileEditButton) {
     dragMobileEditButton=false;
   }
-  if (selecting) {
-    if (!selectingFull) cursor=selEnd;
-    finishSelection();
-    if (!mobileUI) {
-      demandScrollX=true;
-      if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
-          cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
-        if (!settings.cursorMoveNoScroll) {
-          updateScroll(cursor.y);
-        }
-      }
-    }
-  }
 }
 
 void FurnaceGUI::pointMotion(int x, int y, int xrel, int yrel) {
@@ -4556,6 +4543,21 @@ bool FurnaceGUI::loop() {
       MEASURE(regView,drawRegView());
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
+    }
+
+    // release selection if mouse released
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && selecting) {
+      if (!selectingFull) cursor=selEnd;
+      finishSelection();
+      if (!mobileUI) {
+        demandScrollX=true;
+        if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
+            cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
+          if (!settings.cursorMoveNoScroll) {
+            updateScroll(cursor.y);
+          }
+        }
+      }
     }
 
     for (int i=0; i<e->getTotalChannelCount(); i++) {
