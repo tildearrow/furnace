@@ -15,3 +15,7 @@ Furnace also has a five channel version of this chip, but it only exists for Def
 - `20xx`: **set PCM frequency.**
   - `xx` is a 256th fraction of 31250Hz.
   - this effect exists mostly for DefleMask compatibility; it is otherwise recommended to use Sample type instruments.
+
+# info
+
+this chip uses the [SegaPCM](../4-instrument/segapcm.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

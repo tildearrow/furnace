@@ -59,12 +59,18 @@ class DivPlatformOPLL: public DivDispatch {
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
+    bool drumActivated[5];
+    
+    // -1: undefined
+    // 0: snare/tom
+    // 1: hi-hat/top
+    signed char lastFreqSH, lastFreqTT;
 
     unsigned char regPool[256];
 
     bool useYMFM;
-    bool drums;
-    bool properDrums, properDrumsSys, noTopHatFreq;
+    bool crapDrums;
+    bool properDrums, properDrumsSys, noTopHatFreq, fixedAll;
     bool vrc7;
 
     unsigned char patchSet;
@@ -75,6 +81,7 @@ class DivPlatformOPLL: public DivDispatch {
     int octave(int freq);
     int toFreq(int freq);
     void commitState(int ch, DivInstrument* ins);
+    void switchMode(bool mode);
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);

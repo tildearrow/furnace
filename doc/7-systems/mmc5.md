@@ -10,3 +10,7 @@ additionally, it offers an 8-bit DAC which can be used to play samples. only one
 
 - `12xx`: **set duty cycle or noise mode of channel.**
   - may be `0` through `3` for the pulse channels.
+
+# info
+
+this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

@@ -115,7 +115,7 @@ const unsigned char dacLogTableAY[256]={
 
 void DivPlatformAY8910::runDAC() {
   for (int i=0; i<3; i++) {
-    if (chan[i].active && chan[i].curPSGMode.dac && chan[i].dac.sample!=-1) {
+    if (chan[i].active && (chan[i].curPSGMode.val&8) && chan[i].dac.sample!=-1) {
       chan[i].dac.period+=chan[i].dac.rate;
       bool end=false;
       bool changed=false;
@@ -243,7 +243,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
     if (chan[i].std.vol.had) {
       chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
       if (chan[i].outVol<0) chan[i].outVol=0;
-      if (!chan[i].nextPSGMode.dac) {
+      if (!(chan[i].nextPSGMode.val&8)) {
         if (isMuted[i]) {
           rWrite(0x08+i,0);
         } else if (intellivision && (chan[i].nextPSGMode.getEnvelope())) {
@@ -265,7 +265,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
       rWrite(0x06,31-chan[i].std.duty.val);
     }
     if (chan[i].std.wave.had) {
-      if (!chan[i].nextPSGMode.dac) {
+      if (!(chan[i].nextPSGMode.val&8)) {
         chan[i].nextPSGMode.val=(chan[i].std.wave.val+1)&7;
         if (chan[i].active) {
           chan[i].curPSGMode.val=chan[i].nextPSGMode.val;
@@ -290,7 +290,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
     }
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
-        if (chan[i].nextPSGMode.dac) {
+        if (chan[i].nextPSGMode.val&8) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
           if (chan[i].dac.sample<0 || chan[i].dac.sample>=parent->song.sampleLen) {
             if (dumpWrites) {
@@ -340,7 +340,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
         //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
-        if (!chan[i].nextPSGMode.dac) {
+        if (!(chan[i].nextPSGMode.val&8)) {
           chan[i].curPSGMode.val=chan[i].nextPSGMode.val;
         }
       }
@@ -396,11 +396,11 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AY);
       if (!parent->song.disableSampleMacro && (ins->type==DIV_INS_AMIGA || ins->amiga.useSample)) {
-        chan[c.chan].nextPSGMode.dac=true;
+        chan[c.chan].nextPSGMode.val|=8;
       } else if (chan[c.chan].dac.furnaceDAC) {
-        chan[c.chan].nextPSGMode.dac=false;
+        chan[c.chan].nextPSGMode.val&=~8;
       }
-      if (chan[c.chan].nextPSGMode.dac) {
+      if (chan[c.chan].nextPSGMode.val&8) {
         if (skipRegisterWrites) break;
         if (!parent->song.disableSampleMacro && (ins->type==DIV_INS_AMIGA || ins->amiga.useSample)) {
           if (c.value!=DIV_NOTE_NULL) {
@@ -452,7 +452,8 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
           }
           chan[c.chan].dac.furnaceDAC=false;
         }
-        chan[c.chan].curPSGMode.dac=chan[c.chan].nextPSGMode.dac;
+        chan[c.chan].curPSGMode.val&=~8;
+        chan[c.chan].curPSGMode.val|=chan[c.chan].nextPSGMode.val&8;
         break;
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -466,7 +467,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
-      if (!chan[c.chan].nextPSGMode.dac) {
+      if (!(chan[c.chan].nextPSGMode.val&8)) {
         if (isMuted[c.chan]) {
           rWrite(0x08+c.chan,0);
         } else if (intellivision && (chan[c.chan].nextPSGMode.getEnvelope())) {
@@ -480,7 +481,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].dac.sample=-1;
       if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-      chan[c.chan].nextPSGMode.dac=false;
+      chan[c.chan].nextPSGMode.val&=~8;
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
       chan[c.chan].macroInit(NULL);
@@ -494,7 +495,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      if (!chan[c.chan].nextPSGMode.dac) {
+      if (!(chan[c.chan].nextPSGMode.val&8)) {
         if (isMuted[c.chan]) {
           rWrite(0x08+c.chan,0);
         } else {
@@ -553,7 +554,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      if (!chan[c.chan].nextPSGMode.dac) {
+      if (!(chan[c.chan].nextPSGMode.val&8)) {
         if (c.value<16) {
           chan[c.chan].nextPSGMode.val=(c.value+1)&7;
           if (chan[c.chan].active) {
@@ -578,11 +579,11 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       ayEnvMode=c.value>>4;
       rWrite(0x0d,ayEnvMode);
       if (c.value&15) {
-        chan[c.chan].nextPSGMode.envelope|=1;
+        chan[c.chan].nextPSGMode.val|=4;
       } else {
-        chan[c.chan].nextPSGMode.envelope&=~1;
+        chan[c.chan].nextPSGMode.val&=~4;
       }
-      if (!chan[c.chan].nextPSGMode.dac && chan[c.chan].active) {
+      if (!(chan[c.chan].nextPSGMode.val&8) && chan[c.chan].active) {
         chan[c.chan].curPSGMode.val=chan[c.chan].nextPSGMode.val;
       }
       if (isMuted[c.chan]) {
@@ -628,9 +629,14 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       immWrite(14+(c.value?1:0),(c.value?portBVal:portAVal));
       break;
     case DIV_CMD_SAMPLE_MODE:
-      chan[c.chan].nextPSGMode.dac=(c.value>0)?1:0;
+      if (c.value>0) {
+        chan[c.chan].nextPSGMode.val|=8;
+      } else {
+        chan[c.chan].nextPSGMode.val&=~8;
+      }
       if (chan[c.chan].active) {
-        chan[c.chan].curPSGMode.dac=chan[c.chan].nextPSGMode.dac;
+        chan[c.chan].curPSGMode.val&=~8;
+        chan[c.chan].curPSGMode.val|=chan[c.chan].nextPSGMode.val&8;
       }
       break;
     case DIV_CMD_SAMPLE_BANK:
@@ -673,7 +679,7 @@ void DivPlatformAY8910::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (isMuted[ch]) {
     rWrite(0x08+ch,0);
-  } else if (chan[ch].active && chan[ch].nextPSGMode.dac) {
+  } else if (chan[ch].active && (chan[ch].nextPSGMode.val&8)) {
     rWrite(0x08+ch,chan[ch].dac.out);
   } else {
     if (intellivision && (chan[ch].nextPSGMode.getEnvelope()) && chan[ch].active) {

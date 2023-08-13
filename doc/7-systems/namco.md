@@ -8,3 +8,7 @@ everything starts with Namco WSG, which is a simple 3-channel wavetable with no 
 
 - `10xx`: **change waveform.**
 - `11xx`: **toggle noise mode.** _warning:_ only on C30.
+
+# info
+
+this chip uses the [Namco WSG](../4-instrument/namco.md) instrument editor.

@@ -566,6 +566,10 @@ bool DivPlatformC64::getWantPreNote() {
   return true;
 }
 
+bool DivPlatformC64::isVolGlobal() {
+  return true;
+}
+
 float DivPlatformC64::getPostAmp() {
   return (sidCore==1)?3.0f:1.0f;
 }

@@ -18,5 +18,9 @@ furthermore, it has some PCM and LFO!
   - `03`: LFO enabled, shift 8.
   - when LFO is enabled, channel 2 is muted and its output is passed to channel 1's frequency.
 - `13xx`: **set LFO speed.**
-- `17xx`: **toggle PCM mode.**
-  - _this effect is here for compatibility reasons_; it is otherwise recommended to use Sample type instruments (which automatically enable PCM mode when used).
+- `17xx`: **toggle LEGACY sample mode.**
+  - **this effect exists only for compatibility reasons! its use is NOT recommented. use Sample type instruments instead.**
+
+# info
+
+this chip uses the [PC Engine](../4-instrument/pce.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

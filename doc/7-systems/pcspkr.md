@@ -29,3 +29,7 @@ oh, and of course you also need the beeper to be present in your machine. some l
 # effects
 
 ha! effects...
+
+# info
+
+this chip uses the [Beeper](../4-instrument/beeper.md) instrument editor.

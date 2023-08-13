@@ -8,3 +8,7 @@ pitch range is limited as well, akin to that of SN76489, and volume control is g
 # effects
 
 none so far.
+
+# info
+
+this chip uses the [TED](../4-instrument/ted.md) instrument editor.

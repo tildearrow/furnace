@@ -29,9 +29,12 @@ Furnace isn't complete without this one...
 
 
 
-# tables
+# info
 
-pitch number can be used for absolute notes in arpeggio macros.
+this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
+
+
+- pitch number can be used for absolute notes in arpeggio macros.
 
 ## shape 1
 

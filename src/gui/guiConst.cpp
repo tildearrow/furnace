@@ -170,6 +170,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "K053260",
   "SCSP",
   "TED",
+  "C140",
   NULL
 };
 
@@ -191,7 +192,7 @@ const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "8-bit PCM",
   "BRR",
   "VOX",
-  NULL,
+  "8-bit µ-law PCM",
   NULL,
   NULL,
   NULL,
@@ -206,6 +207,32 @@ const char* resampleStrats[]={
   "blep synthesis",
   "sinc",
   "best possible"
+};
+
+const FurnaceGUIColors fxColorsSort[]={//used for sorting
+  GUI_COLOR_PATTERN_EFFECT_PITCH,
+  GUI_COLOR_PATTERN_EFFECT_SONG,
+  GUI_COLOR_PATTERN_EFFECT_TIME,
+  GUI_COLOR_PATTERN_EFFECT_SPEED,
+  GUI_COLOR_PATTERN_EFFECT_PANNING,
+  GUI_COLOR_PATTERN_EFFECT_VOLUME,
+  GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
+  GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,
+  GUI_COLOR_PATTERN_EFFECT_MISC,
+  GUI_COLOR_PATTERN_EFFECT_INVALID
+};
+
+const char* fxColorsNames[]={
+  "Pitch",
+  "Song",
+  "Time",
+  "Speed",
+  "Panning",
+  "Volume",
+  "System Primary",
+  "System Secondary",
+  "Miscellaneous",
+  "Invalid"
 };
 
 const FurnaceGUIColors fxColors[256]={
@@ -641,7 +668,6 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("INS_LIST_OPEN", "Open", 0),
   D("INS_LIST_OPEN_REPLACE", "Open (replace current)", 0),
   D("INS_LIST_SAVE", "Save", 0),
-  D("INS_LIST_SAVE_OLD", "Save (legacy .fui)", 0),
   D("INS_LIST_SAVE_DMP", "Save (.dmp)", 0),
   D("INS_LIST_MOVE_UP", "Move up", FURKMOD_SHIFT|SDLK_UP),
   D("INS_LIST_MOVE_DOWN", "Move down", FURKMOD_SHIFT|SDLK_DOWN),
@@ -803,6 +829,22 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_OSC_BORDER,"",ImVec4(0.4f,0.6f,0.95f,1.0f)),
   D(GUI_COLOR_OSC_WAVE,"",ImVec4(0.95f,0.95f,1.0f,1.0f)),
   D(GUI_COLOR_OSC_WAVE_PEAK,"",ImVec4(0.95f,0.95f,1.0f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH0,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH1,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH2,"",ImVec4(0.1f,0.5f,1.0f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH3,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH4,"",ImVec4(0.7f,0.2f,0.7f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH5,"",ImVec4(0.2f,1.0f,0.2f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH6,"",ImVec4(1.0f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH7,"",ImVec4(1.0f,0.5f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH8,"",ImVec4(0.9f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH9,"",ImVec4(0.8f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH10,"",ImVec4(0.7f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH11,"",ImVec4(0.6f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH12,"",ImVec4(0.5f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH13,"",ImVec4(0.4f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH14,"",ImVec4(0.3f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH15,"",ImVec4(0.2f,1.0f,0.1f,1.0f)),
   D(GUI_COLOR_OSC_REF,"",ImVec4(0.3,0.65f,1.0f,0.15f)),
   D(GUI_COLOR_OSC_GUIDE,"",ImVec4(0.3,0.65f,1.0f,0.13f)),
 
@@ -893,6 +935,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_K053260,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
   D(GUI_COLOR_INSTR_SCSP,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
   D(GUI_COLOR_INSTR_TED,"",ImVec4(0.7f,0.6f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_C140,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -1078,6 +1121,7 @@ const int availableSystems[]={
   DIV_SYSTEM_PV1000,
   DIV_SYSTEM_K053260,
   DIV_SYSTEM_TED,
+  DIV_SYSTEM_C140,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
@@ -1188,6 +1232,7 @@ const int chipsSample[]={
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_ES5506,
   DIV_SYSTEM_K053260,
+  DIV_SYSTEM_C140,
   0 // don't remove this last one!
 };
 

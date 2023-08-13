@@ -69,6 +69,7 @@ void FurnaceGUI::drawChannels() {
             if (dragItem->IsDataType("FUR_CHAN")) {
               if (chanToMove!=i && chanToMove>=0) {
                 e->swapChannelsP(chanToMove,i);
+                MARK_MODIFIED;
               }
               chanToMove=-1;
             }

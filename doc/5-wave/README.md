@@ -2,19 +2,19 @@
 
 Wavetable synthesizers, in context of Furnace, are sound sources that operate on extremely short n-bit PCM streams. By extremely short, no more than 256 bytes. This amount of space is nowhere near enough to store an actual sampled sound, it allows certain amount of freedom to define a waveform shape.
 
-Each chip has its own maximum size, shown in the following table. If a larger wave is defined for these chips, it will be squashed to fit within the constraints of the chips. Some hardware doesn't work well with the wavetable synthesizer (described below); these systems are marked in the "synth?" column.
+Each chip has its own maximum size, shown in the following table. If a larger wave is defined for these chips, it will be squashed to fit within the constraints of the chips. Some hardware doesn't work well with the wavetable synthesizer (described below); these systems are marked in the "notes" column.
 
-system              | width | height | synth?
+system              | width | height | notes
 --------------------|------:|:-------|:------
 Bubble System       |    32 | 16     | 
-Game Boy            |    32 | 16     | 
+Game Boy            |    32 | 16     | phase reset on waveform change (clicking)
 SM8521              |    32 | 16     | 
 Namco WSG           |    32 | 16     | RAM only
 WonderSwan          |    32 | 16     | 
-Namco 163           |  ≤128 | 16     | 
+Namco 163           |  ≤240 | 16     | limits differ depending on channel count 
 SNES                |  ≤256 | 16     | 
-PC Engine           |    32 | 32     | 
-Virtual Boy         |    32 | 64     | no
+PC Engine           |    32 | 32     | phase reset on waveform change (clicking)
+Virtual Boy         |    32 | 64     | wavesynth unsupported
 Famicom Disk System |    64 | 64     | 
 Konami SCC          |    32 | 256    | 
 Seta X1-010         |   128 | 256    | 

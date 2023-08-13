@@ -1440,8 +1440,8 @@ namespace IGFD
     SYSTEMTIME localTime;
     char timebuf[100];
 
-    infos.fileSize=dent.dwin_size;
-    if (FileTimeToSystemTime(&dent.dwin_mtime,&systemTime)==TRUE) {
+    infos.fileSize=dent->dwin_size;
+    if (FileTimeToSystemTime(&dent->dwin_mtime,&systemTime)==TRUE) {
       if (SystemTimeToTzSpecificLocalTime(NULL,&systemTime,&localTime)==TRUE) {
         snprintf(timebuf,99,"%d/%.2d/%.2d %.2d:%.2d",localTime.wYear,localTime.wMonth,localTime.wDay,localTime.wHour,localTime.wMinute);
       } else {
@@ -1730,9 +1730,9 @@ namespace IGFD
       //time_t    st_ctime;   /* time of last status change - not sure out of ntfs */
 
 #ifdef _WIN32
-      if (vInfos->fileType != 'd')
+      if (vInfos.fileType != 'd')
       {
-        vInfos->formatedFileSize = prFormatFileSize(vInfos->fileSize);
+        vInfos.formatedFileSize = prFormatFileSize(vInfos.fileSize);
       }
 #else
       std::string fpn;

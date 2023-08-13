@@ -107,7 +107,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xea:
       return "EAxx: Legato";
     case 0xeb:
-      return "EBxx: Set sample bank";
+      return "EBxx: Set LEGACY sample mode bank";
     case 0xec:
       return "ECxx: Note cut";
     case 0xed:
@@ -3113,6 +3113,8 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   song.ins.push_back(which);
   song.insLen=song.ins.size();
   checkAssetDir(song.insDir,song.ins.size());
+  checkAssetDir(song.waveDir,song.wave.size());
+  checkAssetDir(song.sampleDir,song.sample.size());
   saveLock.unlock();
   BUSY_END;
   return song.insLen;
