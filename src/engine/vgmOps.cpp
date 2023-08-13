@@ -586,13 +586,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       case DIV_SYSTEM_C140:
         for (int i=0; i<24; i++) {
           w->writeC(0xd4); // mute
-          w->writeS(baseAddr2S|(i<<4)|0);
+          w->writeS_BE(baseAddr2S|(i<<4)|0);
           w->writeC(0);
           w->writeC(0xd4);
-          w->writeS(baseAddr2S|(i<<4)|1);
+          w->writeS_BE(baseAddr2S|(i<<4)|1);
           w->writeC(0);
           w->writeC(0xd4); // keyoff
-          w->writeS(baseAddr2S|(i<<4)|5);
+          w->writeS_BE(baseAddr2S|(i<<4)|5);
           w->writeC(0);
         }
         break;
