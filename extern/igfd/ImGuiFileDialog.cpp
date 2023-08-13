@@ -192,7 +192,7 @@ namespace IGFD
 #define OverWriteDialogTitleString "Warning"
 #endif // OverWriteDialogTitleString
 #ifndef OverWriteDialogMessageString
-#define OverWriteDialogMessageString "The file you selected already exists? Would you like to overwrite it?"
+#define OverWriteDialogMessageString "The file you selected already exists! Would you like to overwrite it?"
 #endif // OverWriteDialogMessageString
 #ifndef OverWriteDialogConfirmButtonString
 #define OverWriteDialogConfirmButtonString "Yes"
@@ -3814,6 +3814,66 @@ namespace IGFD
     return escape;
   }
 
+  int IGFD::FileDialog::isFileNameValid(const char* n) {
+#ifdef _WIN32
+    char lower[6];
+    int len=strlen(n);
+
+    for (int i=0; i<6; i++) {
+      lower[i]=0;
+    }
+
+    if (len>=3) {
+      if (len>5) len=5;
+      for (int i=0; i<len; i++) {
+        if (n[i]>='A' && n[i]<='Z') {
+          lower[i]=n[i]+('a'-'A');
+        } else {
+          lower[i]=n[i];
+        }
+      }
+      if ((memcmp(lower,"con",3)==0 ||
+           memcmp(lower,"prn",3)==0 ||
+           memcmp(lower,"aux",3)==0 ||
+           memcmp(lower,"nul",3)==0) &&
+          (len==3 || lower[3]=='.')) {
+        return 2;
+      }
+      if (len>=4) {
+        if ((memcmp(lower,"com",3) ||
+             memcmp(lower,"lpt",3)) &&
+            (lower[3]>='1' && lower[3]<='9') &&
+            (len==4 || lower[4]=='.')) {
+          return 2;
+        }
+      }
+    }
+#endif
+    for (const char* i=n; *i; i++) {
+#ifdef _WIN32
+      if (*i<32) {
+        return 3;
+      }
+#endif
+
+      switch (*i) {
+#ifdef _WIN32
+        case '<':
+        case '>':
+        case ':':
+        case '"':
+        case '\\':
+        case '|':
+        case '?':
+        case '*':
+#endif
+        case '/':
+          return 1;
+      }
+    }
+    return 0;
+  }
+
   bool IGFD::FileDialog::prDrawFooter()
   {
     auto& fdFile = prFileDialogInternal.puFileManager;
@@ -3844,16 +3904,44 @@ namespace IGFD
     bool res = false;
 
     // OK Button
-    if (prFileDialogInternal.puCanWeContinue && strlen(fdFile.puFileNameBuffer))
+    bool notEmpty=strlen(fdFile.puFileNameBuffer);
+    int fileValid=isFileNameValid(fdFile.puFileNameBuffer);
+    if (!(prFileDialogInternal.puDLGflags&ImGuiFileDialogFlags_ConfirmOverwrite)) fileValid=0;
+    ImGui::BeginDisabled(!(prFileDialogInternal.puCanWeContinue && notEmpty && fileValid==0));
+    if (IMGUI_BUTTON(okButtonString "##validationdialog"))
     {
-      if (IMGUI_BUTTON(okButtonString "##validationdialog"))
-      {
-        prFileDialogInternal.puIsOk = true;
-        res = true;
-      }
-
-      ImGui::SameLine();
+      prFileDialogInternal.puIsOk = true;
+      res = true;
     }
+    if (!(prFileDialogInternal.puCanWeContinue && notEmpty && fileValid==0)) {
+      if (ImGui::IsItemHovered()) {
+        if (!notEmpty) {
+          if (prFileDialogInternal.puDLGflags&ImGuiFileDialogFlags_ConfirmOverwrite) {
+            ImGui::SetTooltip("file name is empty");
+          } else {
+            ImGui::SetTooltip("select a file");
+          }
+        } else if (!prFileDialogInternal.puCanWeContinue) {
+          ImGui::SetTooltip("we can't continue - this is most likely a bug!");
+        } else switch (fileValid) {
+          case 1:
+            ImGui::SetTooltip("invalid characters in file name\nmake sure there aren't any of these:\n  < > : \" / \\ | ? *");
+            break;
+          case 2:
+            ImGui::SetTooltip("this file name is reserved by the system");
+            break;
+          case 3:
+            ImGui::SetTooltip("non-printable characters in file name\nhow did you manage to type these?");
+            break;
+          default:
+            ImGui::SetTooltip("bug! how did you do this? please fill an issue report now...");
+            break;
+        }
+      }
+    }
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
 
     // Cancel Button
     if (IMGUI_BUTTON(cancelButtonString "##validationdialog") || 
