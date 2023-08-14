@@ -1,4 +1,4 @@
-# PSG instrument editor
+# Sega PSG instrument editor
 
 The instrument editor for Sega PSG (SMS, and other TI SN76489 derivatives) consists of these macros:
 
