@@ -619,6 +619,7 @@ void FurnaceGUI::drawMobileControls() {
             "Furnace Amiga emulator is working properly by\n"
             "comparing it with real Amiga output."
           );
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Directory");
           ImGui::SameLine();
           ImGui::InputText("##AVDPath",&workingDirROMExport);
@@ -717,6 +718,7 @@ void FurnaceGUI::drawEditControls() {
           e->setMetronome(metro);
         }
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Follow");
         ImGui::SameLine();
         unimportant(ImGui::Checkbox("Orders",&followOrders));
@@ -1063,6 +1065,7 @@ void FurnaceGUI::drawEditControls() {
 
       if (ImGui::Begin("Edit Controls",&editControlsOpen,globalWinFlags)) {
         ImGui::Columns(2);
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Octave");
         ImGui::SameLine();
         float cursor=ImGui::GetCursorPosX();
@@ -1078,6 +1081,7 @@ void FurnaceGUI::drawEditControls() {
           }
         }
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Step");
         ImGui::SameLine();
         ImGui::SetCursorPosX(cursor);

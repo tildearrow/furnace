@@ -244,6 +244,7 @@ void FurnaceGUI::drawMixer() {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
             ImGui::TableNextColumn();
             if (ImGui::Checkbox("Invert",&doInvert)) {

@@ -963,6 +963,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
         break;
       case DIV_INS_TED:
         break;
+      case DIV_INS_C140:
+        featureSM=true;
+        featureSL=true;
+        break;
       
       case DIV_INS_MAX:
         break;

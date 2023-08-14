@@ -11,21 +11,19 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Render backend**
   - changing this may help with performace issues.
 - **Late render clear**
-- **Power-saving mode**
-  - saves power by lowering the frame rate to 2fps when idle.
+- **Power-saving mode**: saves power by lowering the frame rate to 2fps when idle.
   - may cause issues under Mesa drivers!
-- **Disable threaded input (restart after changing!)**
-  - threaded input processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.
+- **Disable threaded input (restart after changing!)**: processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.
   - however, crashes have been reported when threaded input is on. enable this option if that is the case.
 - **Enable event delay**
   - may cause issues with high-polling-rate mice when previewing notes.
 
 ### File
 
-- **Use system file picker**: use native OS file dialog instead of Furnace's.
-- **Number of recent files**
+- **Use system file picker**: uses native OS file dialog instead of Furnace's.
+- **Number of recent files**: number of files to show in the _open recent..._ menu.
 - **Compress when saving**
-  - use zlib to compress saved songs.
+  - uses zlib to compress saved songs.
 - **Save unused patterns**
 - **Use new pattern format when saving**
 - **Don't apply compatibility flags when loading .dmf**
@@ -39,11 +37,11 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 - **Initial system**: the system of chips loaded on starting Furnace.
   - **Current system**: sets current chips as default.
-  - **Randomize**: set default to a random system.
+  - **Randomize**: sets default to a random system.
     - this will not choose a random system at each start.
   - **Reset to defaults**: sets default to "Sega Genesis/Mega Drive".
   - **Name**: name for the default system. may be set to any text.
-  - system configuration: same as in the [chip manager](../8-advanced/chip-manager.md) and [mixer](../8-advanced/mixer.md).
+  - **Configure:**: same as in the [chip manager](../8-advanced/chip-manager.md) and [mixer](../8-advanced/mixer.md).
 - **When creating new song**:
   - **Display system preset selector**
   - **Start with initial system**
@@ -70,12 +68,12 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Output
 
-- **Backend**: select SDL or JACK for audio output.
+- **Backend**: selects SDL or JACK for audio output.
   - only appears on Linux, or MacOS compiled with JACK support
 - **Driver**
 - **Device**: audio device for playback.
 - **Sample rate**
-- **Outputs**: select number of audio outputs created, up to 16.
+- **Outputs**: number of audio outputs created, up to 16.
   - only appears when Backend is JACK.
 - **Channels**: number of output channels to use.
 - **Buffer size**: size of buffer in both samples and milliseconds.
@@ -209,8 +207,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **Export**: writes current layout to a .ini file.
   - **Reset**: resets layout to default.
 - **Allow docking editors**
-- **Remember window position**
-  - remembers the window's last position on start-up.
+- **Remember window position**: remembers the window's last position on start-up.
 - **Only allow window movement when clicking on title bar**
 - **Play/edit controls layout:**
   - **Classic**
@@ -236,7 +233,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **No**
   - **Yes**
   - **Yes (while holding Ctrl only)**
-- **Toggle channel solo on:** select which interactions with a channel header will toggle solo for that channel.
+- **Toggle channel solo on:** selects which interactions with a channel header will toggle solo for that channel.
   - Right-click or double click
   - Right-click
   - Double-click
@@ -248,13 +245,15 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Pull delete affects entire channel row**
 - **Push value when overwriting instead of clearing it**: in the order list and pattern editors, typing into an already-filled value will shift digits instead of starting fresh.
   - if off: moving the cursor onto the value `A5` and typing a "B" results in `0B`.
-  - if on: with the cursor on the value `A5` and typing a "B" results in `5B`.
+  - if on: moving the cursor onto the value `A5` and typing a "B" results in `5B`.
 - **Effect input behavior:**
   - **Move down**
   - **Move to effect value (otherwise move down)**
   - **Move to effect value/next effect and wrap around**
 - **Delete effect value when deleting effect**
 - **Change current instrument when changing instrument column (absorb)**
+- **Remove instrument value when inserting note off/release**
+- **Remove volume value when inserting note off/release**
 
 
 ### Cursor movement
@@ -293,16 +292,17 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Scaling
 
-- **Automatic UI scaling factor**: automatically match the OS's UI scaling.
-- **UI scaling factor**: only if "Automatic UI scaling factor" is off.
+- **Automatic UI scaling factor**: automatically matches the OS's UI scaling.
+- **UI scaling factor**: only appears if "Automatic UI scaling factor" is off.
 - **Icon size**
 
 ### Text
 
-- **Main font**: if "Custom...", a file path selector will appear beneath.
-- **Size**
-- **Pattern font**: if "Custom...", a file path selector will appear beneath.
-- **Size**
+- **Main font**: overall interface font.\
+  **Header font**: font for section headers.\
+  **Pattern font** font for the pattern view, the order list, and related.
+  - if "Custom...", a file path selector will appear.
+  - **Size**: font size.
 - **Display Japanese characters**\
   **Display Chinese (Simplified) characters**\
   **Display Chinese (Traditional) characters**\
@@ -358,7 +358,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Channel
 
-- **Channel style:**
+- **Channel style:** sets the appearance of channel headers in pattern view.
   - **Classic**
   - **Line**
   - **Round**
@@ -391,9 +391,14 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Assets
 
-- **Unified instrument/wavetable/sample list**
-- **Horizontal instrument list**
+- **Unified instrument/wavetable/sample list**: combines all three types of assets into one list.
+  - the buttons act as appropriate to the currently selected asset or header.
+- **Horizontal instrument list**: when there are more instruments than there is room to display them...
+  - if on, scroll horizontally through multiple columns.
+  - if off, scroll vertically in one long column.
 - **Colorize instrument editor using instrument type**
+- **Display instrument type menu when adding instrument**
+  - if turned off, the menu can still be opened by right-clicking the add button.
 
 ### Macro Editor
 
@@ -428,11 +433,11 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **Between Decay and Sustain Rate**
   - **After Release Rate**
 - **Use separate colors for carriers/modulators in FM editor**
-- **Unsigned FM detune values**
+- **Unsigned FM detune values**: uses the internal representation of detune values, such that detune amounts of -1, -2, and -3 are shown as 5, 6, and 7.
 
 ### Statistics
 
-- **Chip memory usage unit:**
+- **Chip memory usage unit:** unit for displaying memory usage in the Statistics window.
   - **Bytes**
   - **Kilobytes**
 
@@ -440,15 +445,20 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 - **Rounded corners**
 - **Border**
-- **Fill entire window**
-- **Waveform goes out of bounds**
+- **Mono**: displays a single monaural waveform of all sound mixed together.
+  - if turned off, waves will be drawn on top of each other for each output channel. 
+  - all colors are configurable via _Settings > Color > Color scheme > Oscilloscope > Wave (non-mono)._
+- **Anti-aliased**: smoothes the lines of the waveform.
+  - slight performance cost and slightly buggy.
+- **Fill entire window**: removes the gap between the waveform and the edge of the window.
+- **Waveform goes out of bounds**: allows the waveform to draw past the top and bottom of the oscilloscope.
 
 ### Windows
 
 - **Rounded window corners**
 - **Rounded buttons**
 - **Rounded menu corners**
-- **Borders around widgets**
+- **Borders around widgets**: draws thin borders on buttons, checkboxes, text widgets, and the like.
 
 
 

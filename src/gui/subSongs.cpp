@@ -127,6 +127,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
       ImGui::SetTooltip("Remove");
     }
 
+    ImGui::AlignTextToFramePadding();
     ImGui::Text("Name");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);

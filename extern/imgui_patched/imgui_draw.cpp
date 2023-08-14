@@ -2224,9 +2224,21 @@ ImFont* ImFontAtlas::AddFontFromMemoryTTF(void* ttf_data, int ttf_size, float si
 
 ImFont* ImFontAtlas::AddFontFromMemoryCompressedTTF(const void* compressed_ttf_data, int compressed_ttf_size, float size_pixels, const ImFontConfig* font_cfg_template, const ImWchar* glyph_ranges)
 {
+    // workaround for big-endian
+#ifdef TA_BIG_ENDIAN
+    unsigned char* beData=(unsigned char*)IM_ALLOC(compressed_ttf_size);
+    for (int i=0; i<compressed_ttf_size; i++) {
+      beData[i]=compressed_ttf_data[i^3];
+    }
+    compressed_ttf_data=beData;
+#endif
     const unsigned int buf_decompressed_size = stb_decompress_length((const unsigned char*)compressed_ttf_data);
     unsigned char* buf_decompressed_data = (unsigned char*)IM_ALLOC(buf_decompressed_size);
     stb_decompress(buf_decompressed_data, (const unsigned char*)compressed_ttf_data, (unsigned int)compressed_ttf_size);
+
+#ifdef TA_BIG_ENDIAN
+    IM_FREE(beData);
+#endif
 
     ImFontConfig font_cfg = font_cfg_template ? *font_cfg_template : ImFontConfig();
     IM_ASSERT(font_cfg.FontData == NULL);

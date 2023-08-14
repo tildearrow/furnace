@@ -4264,6 +4264,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Waveform");
           ImGui::SameLine();
           pushToggleColors(ins->c64.triOn);
@@ -4348,6 +4349,7 @@ void FurnaceGUI::drawInsEdit() {
           P(CWSliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_TWO_THOUSAND_FORTY_SEVEN)); rightClickable
           P(CWSliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_FIFTEEN)); rightClickable
 
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Filter Mode");
           ImGui::SameLine();
           pushToggleColors(ins->c64.lp);
@@ -4411,7 +4413,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_ES5506 ||
             ins->type==DIV_INS_K007232 ||
             ins->type==DIV_INS_GA20 ||
-            ins->type==DIV_INS_K053260) {
+            ins->type==DIV_INS_K053260 ||
+            ins->type==DIV_INS_C140) {
           if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
             String sName;
             bool wannaOpenSMPopup=false;
@@ -4513,6 +4516,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("%s",noteNames[60+i]);
                   ImGui::TableNextColumn();
                   if (sampleMap.map<0 || sampleMap.map>=e->song.sampleLen) {
@@ -4522,6 +4526,7 @@ void FurnaceGUI::drawInsEdit() {
                     sName=fmt::sprintf("%3d##SM%d",sampleMap.map,i);
                   }
                   ImGui::PushFont(patFont);
+                  ImGui::AlignTextToFramePadding();
                   ImGui::SetNextItemWidth(ImGui::CalcTextSize("00000").x);
                   ImGui::Selectable(sName.c_str(),(sampleMapWaitingInput && sampleMapColumn==0 && i>=sampleMapMin && i<=sampleMapMax));
                   if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -4572,6 +4577,7 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   sName+=fmt::sprintf("##SN%d",i);
                   ImGui::PushFont(patFont);
+                  ImGui::AlignTextToFramePadding();
                   ImGui::SetNextItemWidth(ImGui::CalcTextSize("00000").x);
                   ImGui::Selectable(sName.c_str(),(sampleMapWaitingInput && sampleMapColumn==1 && i>=sampleMapMin && i<=sampleMapMax));
                   if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -4616,9 +4622,25 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::PopFont();
 
                   ImGui::TableNextColumn();
+                  String prevName="---";
                   if (sampleMap.map>=0 && sampleMap.map<e->song.sampleLen) {
-                    ImGui::TextUnformatted(e->song.sample[sampleMap.map]->name.c_str());
+                    prevName=e->song.sample[sampleMap.map]->name;
                   }
+                  ImGui::PushID(i+2);
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::BeginCombo("##SMSample",prevName.c_str())) {
+                    if (ImGui::Selectable("---")) {
+                      sampleMap.map=-1;
+                    }
+                    for (int k=0; k<e->song.sampleLen; k++) {
+                      String itemName=fmt::sprintf("%d: %s",k,e->song.sample[k]->name);
+                      if (ImGui::Selectable(itemName.c_str())) {
+                        sampleMap.map=k;
+                      }
+                    }
+                    ImGui::EndCombo();
+                  }
+                  ImGui::PopID();
                 }
                 ImGui::PopStyleColor(2);
                 ImGui::EndTable();
@@ -5250,6 +5272,7 @@ void FurnaceGUI::drawInsEdit() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
               ImGui::Text("Wave 1");
               ImGui::SameLine();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -5260,6 +5283,7 @@ void FurnaceGUI::drawInsEdit() {
               }
               if (isSingleWaveFX) {
                 ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
                 ImGui::Text("Wave 2");
                 ImGui::SameLine();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -5397,7 +5421,7 @@ void FurnaceGUI::drawInsEdit() {
             volMax=31;
           }
           if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_GA20) {
+              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140) {
             volMax=255;
           }
           if (ins->type==DIV_INS_QSOUND) {
@@ -5457,7 +5481,8 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_SEGAPCM ||
               ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
-              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000 || ins->type==DIV_INS_K053260) {
+              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000 || ins->type==DIV_INS_K053260 ||
+              ins->type==DIV_INS_C140) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -5565,6 +5590,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_K053260) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_TED) waveMax=0;
+          if (ins->type==DIV_INS_C140) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -5695,6 +5721,10 @@ void FurnaceGUI::drawInsEdit() {
             panMin=0;
             panMax=127;
           }
+          if (ins->type==DIV_INS_C140) {
+            panMin=0;
+            panMax=255;
+          }
           if (ins->type==DIV_INS_ES5506) {
             panMax=4095;
           }
@@ -5780,6 +5810,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_K007232 ||
               ins->type==DIV_INS_GA20 ||
               ins->type==DIV_INS_K053260 ||
+              ins->type==DIV_INS_C140 ||
               ins->type==DIV_INS_TED) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }

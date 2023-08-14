@@ -972,6 +972,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_EXTCH: {
       if (extSys) {
+        if (extMode==(bool)c.value) break;
         extMode=c.value;
         immWrite(0x27,extMode?0x40:0);
       }

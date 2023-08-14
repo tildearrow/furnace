@@ -3113,6 +3113,8 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   song.ins.push_back(which);
   song.insLen=song.ins.size();
   checkAssetDir(song.insDir,song.ins.size());
+  checkAssetDir(song.waveDir,song.wave.size());
+  checkAssetDir(song.sampleDir,song.sample.size());
   saveLock.unlock();
   BUSY_END;
   return song.insLen;

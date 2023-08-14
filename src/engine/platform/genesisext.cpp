@@ -144,6 +144,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
         opChan[ch].insChanged=true;
       }
       opChan[ch].ins=c.value;
+      chan[extChanOffs].ins=opChan[ch].ins;
       break;
     case DIV_CMD_PANNING: {
       if (c.value==0 && c.value2==0) {
@@ -219,8 +220,15 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_EXTCH: {
+      if (extMode==(bool)c.value) break;
       extMode=c.value;
       immWrite(0x27,extMode?0x40:0);
+      if (!extMode) {
+        for (int i=0; i<4; i++) {
+          opChan[i].insChanged=true;
+        }
+        chan[extChanOffs].insChanged=true;
+      }
       break;
     }
     case DIV_CMD_FM_LFO: {
@@ -431,17 +439,21 @@ void DivPlatformGenesisExt::muteChannel(int ch, bool mute) {
     return;
   }
   isOpMuted[ch-2]=mute;
-  
-  int ordch=orderedOps[ch-2];
-  unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-  DivInstrumentFM::Operator op=chan[2].state.op[ordch];
-  if (isOpMuted[ch-2] || !op.enable) {
-    rWrite(baseAddr+0x40,127);
-  } else {
-    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].outVol&0x7f,127));
-  }
 
-  rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch-2].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
+  DivPlatformGenesis::muteChannel(extChanOffs,IS_EXTCH_MUTED);
+  
+  if (extMode) {
+    int ordch=orderedOps[ch-2];
+    unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
+    DivInstrumentFM::Operator op=chan[2].state.op[ordch];
+    if (isOpMuted[ch-2] || !op.enable) {
+      rWrite(baseAddr+0x40,127);
+    } else {
+      rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].outVol&0x7f,127));
+    }
+
+    rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch-2].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
+  }
 }
 
 static int opChanOffsL[4]={

@@ -258,6 +258,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_K053260,
   GUI_COLOR_INSTR_SCSP,
   GUI_COLOR_INSTR_TED,
+  GUI_COLOR_INSTR_C140,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1324,7 +1325,7 @@ class FurnaceGUI {
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
@@ -1549,6 +1550,8 @@ class FurnaceGUI {
     int removeVolOff;
     int playOnLoad;
     int insTypeMenu;
+    int capitalMenuBar;
+    int centerPopup;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1712,6 +1715,8 @@ class FurnaceGUI {
       removeVolOff(0),
       playOnLoad(0),
       insTypeMenu(1),
+      capitalMenuBar(0),
+      centerPopup(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2136,6 +2141,8 @@ class FurnaceGUI {
   void prepareLayout();
   ImVec4 channelColor(int ch);
   ImVec4 channelTextColor(int ch);
+
+  void centerNextWindow(const char* name, float w, float h);
 
   void readOsc();
   void calcChanOsc();

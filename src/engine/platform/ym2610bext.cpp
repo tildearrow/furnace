@@ -137,6 +137,7 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
         opChan[ch].insChanged=true;
       }
       opChan[ch].ins=c.value;
+      chan[extChanOffs].ins=opChan[ch].ins;
       break;
     case DIV_CMD_PANNING: {
       if (c.value==0 && c.value2==0) {
@@ -196,8 +197,15 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_EXTCH: {
+      if (extMode==(bool)c.value) break;
       extMode=c.value;
       immWrite(0x27,extMode?0x40:0);
+      if (!extMode) {
+        for (int i=0; i<4; i++) {
+          opChan[i].insChanged=true;
+        }
+        chan[extChanOffs].insChanged=true;
+      }
       break;
     }
     case DIV_CMD_FM_LFO: {
@@ -625,16 +633,20 @@ void DivPlatformYM2610BExt::muteChannel(int ch, bool mute) {
   }
   isOpMuted[ch-extChanOffs]=mute;
   
-  int ordch=orderedOps[ch-extChanOffs];
-  unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
-  DivInstrumentFM::Operator op=chan[extChanOffs].state.op[ordch];
-  if (isOpMuted[ch-extChanOffs] || !op.enable) {
-    rWrite(baseAddr+0x40,127);
-  } else {
-    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-extChanOffs].outVol&0x7f,127));
-  }
+  DivPlatformYM2610B::muteChannel(extChanOffs,IS_EXTCH_MUTED);
+  
+  if (extMode) {
+    int ordch=orderedOps[ch-extChanOffs];
+    unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
+    DivInstrumentFM::Operator op=chan[extChanOffs].state.op[ordch];
+    if (isOpMuted[ch-extChanOffs] || !op.enable) {
+      rWrite(baseAddr+0x40,127);
+    } else {
+      rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-extChanOffs].outVol&0x7f,127));
+    }
 
-  rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch-extChanOffs].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+    rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch-extChanOffs].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+  }
 }
 
 void DivPlatformYM2610BExt::forceIns() {
