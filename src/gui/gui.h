@@ -1446,7 +1446,6 @@ class FurnaceGUI {
     int sysSeparators;
     int forceMono;
     int controlLayout;
-    int restartOnFlagChange;
     int statusDisplay;
     float dpiScale;
     int viewPrevPattern;
@@ -1612,7 +1611,6 @@ class FurnaceGUI {
       sysSeparators(1),
       forceMono(0),
       controlLayout(3),
-      restartOnFlagChange(1),
       statusDisplay(0),
       dpiScale(0.0f),
       viewPrevPattern(1),

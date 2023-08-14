@@ -24,7 +24,7 @@
 
 bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
-  bool restart=settings.restartOnFlagChange && modifyOnChange;
+  bool restart=modifyOnChange;
   bool supportsCustomRate=true;
 
   switch (type) {

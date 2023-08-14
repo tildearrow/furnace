@@ -674,11 +674,6 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
-        bool restartOnFlagChangeB=settings.restartOnFlagChange;
-        if (ImGui::Checkbox("Restart song when changing chip properties",&restartOnFlagChangeB)) {
-          settings.restartOnFlagChange=restartOnFlagChangeB;
-        }
-
         // SUBSECTION START-UP
         CONFIG_SUBSECTION("Start-up");
         ImGui::Text("Play intro on start-up:");
@@ -2954,7 +2949,6 @@ void FurnaceGUI::syncSettings() {
   settings.sysSeparators=e->getConfInt("sysSeparators",1);
   settings.forceMono=e->getConfInt("forceMono",0);
   settings.controlLayout=e->getConfInt("controlLayout",3);
-  settings.restartOnFlagChange=e->getConfInt("restartOnFlagChange",1);
   settings.statusDisplay=e->getConfInt("statusDisplay",0);
   settings.dpiScale=e->getConfFloat("dpiScale",0.0f);
   settings.viewPrevPattern=e->getConfInt("viewPrevPattern",1);
@@ -3327,7 +3321,6 @@ void FurnaceGUI::commitSettings() {
   e->setConf("sysSeparators",settings.sysSeparators);
   e->setConf("forceMono",settings.forceMono);
   e->setConf("controlLayout",settings.controlLayout);
-  e->setConf("restartOnFlagChange",settings.restartOnFlagChange);
   e->setConf("statusDisplay",settings.statusDisplay);
   e->setConf("dpiScale",settings.dpiScale);
   e->setConf("viewPrevPattern",settings.viewPrevPattern);
