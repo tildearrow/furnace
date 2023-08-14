@@ -298,7 +298,7 @@ const char* DivEngine::getSystemNameJ(DivSystem sys) {
 
 const char* DivEngine::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   if (sysDefs[sys]==NULL) return "Unknown";
-  if (strcmp("",sysDefs[sys]->partNumbers[0])==0) return DivEngine::getSystemName(sys); // if 1st PN is blank then it uses regular name
+  if (strcmp("",(sysDefs[sys]->partNumbers)[0])==0) return DivEngine::getSystemName(sys); // if 1st PN is blank then it uses regular name
   int partNumberNumber=0;
   switch (sys) {
     case DIV_SYSTEM_OPLL:
