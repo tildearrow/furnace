@@ -49,6 +49,27 @@ const double timeMultipliers[13]={
     _x+=_text; \
   }
 
+#define MAX_RATE(_name,_x) \
+   if (e->isPreviewingSample()) { \
+     if ((int)e->getSamplePreviewRate()>(int)(_x)) { \
+       SAMPLE_WARN(warnRate,fmt::sprintf("%s: maximum sample rate is %d",_name,(int)(_x))); \
+     } \
+   }
+
+#define MIN_RATE(_name,_x) \
+   if (e->isPreviewingSample()) { \
+     if ((int)e->getSamplePreviewRate()<(int)(_x)) { \
+       SAMPLE_WARN(warnRate,fmt::sprintf("%s: minimum sample rate is %d",_name,(int)(_x))); \
+     } \
+   }
+
+#define EXACT_RATE(_name,_x) \
+   if (e->isPreviewingSample()) { \
+     if ((int)e->getSamplePreviewRate()!=(int)(_x)) { \
+       SAMPLE_WARN(warnRate,fmt::sprintf("%s: sample rate must be %d",_name,(int)(_x))); \
+     } \
+   }
+
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
     sampleEditOpen=true;
@@ -173,7 +194,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Separator();
 
       String warnLoop, warnLoopMode, warnLoopPos;
-      String warnLength;
+      String warnLength, warnRate;
 
       bool isChipVisible[DIV_MAX_CHIPS];
       bool isTypeVisible[DIV_MAX_SAMPLE_TYPE];
@@ -185,6 +206,8 @@ void FurnaceGUI::drawSampleEdit() {
       memset(isMemWarning,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
 
       for (int i=0; i<e->song.systemLen; i++) {
+        DivDispatch* dispatch=e->getDispatch(i);
+
         // warnings
         switch (e->song.system[i]) {
           case DIV_SYSTEM_SNES:
@@ -192,6 +215,9 @@ void FurnaceGUI::drawSampleEdit() {
               if (sample->loopStart&15 || sample->loopEnd&15) {
                 SAMPLE_WARN(warnLoopPos,"SNES: loop must be a multiple of 16");
               }
+            }
+            if (dispatch!=NULL) {
+              MAX_RATE("SNES",dispatch->chipClock/8.0);
             }
             break;
           case DIV_SYSTEM_QSOUND:
@@ -226,6 +252,9 @@ void FurnaceGUI::drawSampleEdit() {
             if (sample->loop) {
               SAMPLE_WARN(warnLoop,"GA20: samples can't loop");
             }
+            if (dispatch!=NULL) {
+              MIN_RATE("GA20",dispatch->chipClock/1024);
+            }
             break;
           case DIV_SYSTEM_YM2608:
           case DIV_SYSTEM_YM2608_EXT:
@@ -250,6 +279,9 @@ void FurnaceGUI::drawSampleEdit() {
             if (sample->samples>2097152) {
               SAMPLE_WARN(warnLength,"YM2610: maximum ADPCM-A sample length is 2097152");
             }
+            if (dispatch!=NULL) {
+              EXACT_RATE("YM2610 (ADPCM-A)",dispatch->chipClock/432);
+            }
             break;
           case DIV_SYSTEM_AMIGA:
             if (sample->loop) {
@@ -265,6 +297,9 @@ void FurnaceGUI::drawSampleEdit() {
           case DIV_SYSTEM_SEGAPCM_COMPAT:
             if (sample->samples>65280) {
               SAMPLE_WARN(warnLength,"SegaPCM: maximum sample length is 65280");
+            }
+            if (dispatch!=NULL) {
+              MAX_RATE("SegaPCM",dispatch->chipClock/256);
             }
             break;
           case DIV_SYSTEM_K053260:
@@ -296,7 +331,6 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         // chips grid
-        DivDispatch* dispatch=e->getDispatch(i);
         if (dispatch==NULL) continue;
 
         for (int j=0; j<DIV_MAX_SAMPLE_TYPE; j++) {
@@ -1756,7 +1790,16 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::TableNextColumn();
           ImGui::TextUnformatted(statusBar.c_str());
           ImGui::TableNextColumn();
-          ImGui::TextUnformatted(statusBar2.c_str());
+          if (!warnRate.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_WARNING]);
+            ImGui::TextUnformatted(statusBar2.c_str());
+            ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("%s",warnRate.c_str());
+            }
+          } else {
+            ImGui::TextUnformatted(statusBar2.c_str());
+          }
           ImGui::TableNextColumn();
           if (!warnLength.empty()) {
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_WARNING]);
