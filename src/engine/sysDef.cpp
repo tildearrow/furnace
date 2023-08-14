@@ -298,18 +298,20 @@ const char* DivEngine::getSystemNameJ(DivSystem sys) {
 
 const char* DivEngine::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   if (sysDefs[sys]==NULL) return "Unknown";
-  if (strcmp("",sysDefs[sys]->partNumbers[0])==0) return DivEngine::getSystemName(sys); // if 1st PN is blank it uses regular name
+  if (strcmp("",sysDefs[sys]->partNumbers[0])==0) return DivEngine::getSystemName(sys); // if 1st PN is blank then it uses regular name
+  int partNumberNumber=0;
   switch (sys) {
     case DIV_SYSTEM_OPLL:
-    case DIV_SYSTEM_OPLL_DRUMS: { // OPLL PNs are determined by it's patch set
-      return sysDefs[sys]->partNumbers[flags.getInt("patchSet",0)];
+    case DIV_SYSTEM_OPLL_DRUMS: { // OPLL PNs are determined by their patch set
+      partNumberNumber=flags.getInt("patchSet",0);
       break;
     }
     default: {
-      return sysDefs[sys]->partNumbers[flags.getInt("chipType",0)];
+      partNumberNumber=flags.getInt("chipType",0);
       break;
     }
   }
+  return sysDefs[sys]->partNumbers[partNumberNumber];
 }
 
 const DivSysDef* DivEngine::getSystemDef(DivSystem sys) {
@@ -392,7 +394,7 @@ int DivEngine::minVGMVersion(DivSystem which) {
 //   {chanTypes, ...},
 //   {chanPreferInsType, ...},
 //   {chanPreferInsType2, ...}, (optional)
-//   {"Part Number", ...} (set 1st blank to falback to normal name)
+//   {"Part Number", ...} (set 1st blank to fallback to regular name)
 //   {{effect, {DIV_CMD_xx, "Description"}}, ...}, (effect handler, optional)
 //   {{effect, {DIV_CMD_xx, "Description"}}, ...} (post effect handler, optional)
 // );
