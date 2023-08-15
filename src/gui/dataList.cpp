@@ -72,7 +72,7 @@ const char* sampleNote[12]={
 
 void FurnaceGUI::insListItem(int i, int dir, int asset) {
   ImGui::PushID(i);
-  String name=ICON_FA_CIRCLE_O;
+  String name=(settings.insIconsStyle==0)?"":ICON_FA_CIRCLE_O;
   const char* insType="Bug!";
   if (i>=0 && i<e->song.insLen) {
     DivInstrument* ins=e->song.ins[i];
