@@ -62,7 +62,7 @@
 #define ICON_FUR_INS_SM8521 u8"\ue130"
 #define ICON_FUR_INS_PV1000 u8"\ue131"
 #define ICON_FUR_INS_K053260 u8"\ue132"
-#define ICON_FUR_INS_YMF292 u8"\ue133"
+#define ICON_FUR_INS_SCSP u8"\ue133"
 #define ICON_FUR_INS_TED u8"\ue134"
 #define ICON_FUR_INS_C140 u8"\ue135"
 

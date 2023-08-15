@@ -1385,6 +1385,7 @@ class FurnaceGUI {
 
   ImFont* mainFont;
   ImFont* iconFont;
+  ImFont* furIconFont;
   ImFont* patFont;
   ImFont* bigFont;
   ImFont* headFont;
@@ -1551,6 +1552,7 @@ class FurnaceGUI {
     int insTypeMenu;
     int capitalMenuBar;
     int centerPopup;
+    int insIconsStyle;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1715,6 +1717,7 @@ class FurnaceGUI {
       insTypeMenu(1),
       capitalMenuBar(0),
       centerPopup(1),
+      insIconsStyle(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

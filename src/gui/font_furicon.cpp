@@ -1,7 +1,8 @@
+#include "fonts.h"
 // File: 'icons.ttf' (25980 bytes)
 // Exported using binary_to_compressed_c.cpp
-static const unsigned int furIcons_compressed_size = 12613;
-static const unsigned int furIcons_compressed_data[12616/4] =
+const unsigned int furIcons_compressed_size = 12613;
+const unsigned int furIcons_compressed_data[12616/4] =
 {
     0x0000bc57, 0x00000000, 0x7c650000, 0x00000400, 0x00010037, 0x000e0000, 0x00030080, 0x54464660, 0xd753a24d, 0x650000e9, 0x28158260, 0x4544471c, 
     0x00150046, 0x200f8214, 0x2b0f8344, 0x322f534f, 0x6952fa8c, 0x68010000, 0x562c0f82, 0x70616d63, 0xb9c7ffcb, 0x48020000, 0xc82c1382, 0x20747663, 
