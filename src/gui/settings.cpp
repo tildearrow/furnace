@@ -3213,7 +3213,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.insTypeMenu,0,1);
   clampSetting(settings.capitalMenuBar,0,1);
   clampSetting(settings.centerPopup,0,1);
-  clampSetting(settings.insIconsStyle,0,1);
+  clampSetting(settings.insIconsStyle,0,2);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
