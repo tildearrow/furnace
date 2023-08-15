@@ -138,7 +138,7 @@ void DivZSM::writePSG(unsigned char a, unsigned char v) {
       // Pulse width on non-pulse waves is nonsense and wasteful
       // No need to preserve state here because the next write that
       // selects pulse will also set the pulse width in this register
-      v=v&0xc0;
+      v&=0xc0;
     }
   }
   if (psgState[psg_PREV][a]==v) {
