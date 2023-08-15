@@ -133,6 +133,14 @@ void DivZSM::writePSG(unsigned char a, unsigned char v) {
   } else if (a>=64) {
     return writePCM(a-64,v);
   }
+  if (optimize) {
+    if ((a&3)==3 && v>64) {
+      // Pulse width on non-pulse waves is nonsense and wasteful
+      // No need to preserve state here because the next write that
+      // selects pulse will also set the pulse width in this register
+      v&=0xc0;
+    }
+  }
   if (psgState[psg_PREV][a]==v) {
     if (psgState[psg_NEW][a]!=v) {
       // NEW value is being reset to the same as PREV value
@@ -148,7 +156,7 @@ void DivZSM::writePSG(unsigned char a, unsigned char v) {
   }
   psgState[psg_NEW][a]=v;
   // mark channel as used in the psgMask if volume is set>0.
-  if ((a%4==2) && (v&0x3f)) psgMask|=(1<<(a>>2));
+  if ((a&3)==2 && (v&0x3f)) psgMask|=(1<<(a>>2));
 }
 
 void DivZSM::writePCM(unsigned char a, unsigned char v) {
@@ -278,7 +286,7 @@ SafeWriter* DivZSM::finish() {
 void DivZSM::flushWrites() {
   logD("ZSM: flushWrites.... numwrites=%d ticks=%d ymwrites=%d pcmMeta=%d pcmCache=%d pcmData=%d syncCache=%d",numWrites,ticks,ymwrites.size(),pcmMeta.size(),pcmCache.size(),pcmData.size(),syncCache.size());
   if (numWrites==0) return;
-  flushTicks(); // only flush ticks if there are writes pending.
+  bool hasFlushed=false;
   for (unsigned char i=0; i<64; i++) {
     if (psgState[psg_NEW][i]==psgState[psg_PREV][i]) continue;
     // if optimize=true, suppress writes to PSG voices that are not audible (volume=0 or R+L=0)
@@ -287,11 +295,19 @@ void DivZSM::flushWrites() {
     if (optimize && (i&3)!=2 && (psgState[psg_NEW][(i&0x3c)+2]&0x3f)==0) continue; // vol
     if (optimize && (i&3)!=2 && (psgState[psg_NEW][(i&0x3c)+2]&0xc0)==0) continue; // R+L
     psgState[psg_PREV][i]=psgState[psg_NEW][i];
+    if (!hasFlushed) {
+      flushTicks();
+      hasFlushed=true;
+    }
     w->writeC(i);
     w->writeC(psgState[psg_NEW][i]);
   }
   int n=0; // n=completed YM writes. used to determine when to write the CMD byte...
   for (DivRegWrite& write: ymwrites) {
+    if (!hasFlushed) {
+      flushTicks();
+      hasFlushed=true;
+    }
     if (n%ZSM_YM_MAX_WRITES==0) {
       if (ymwrites.size()-n>ZSM_YM_MAX_WRITES) {
         w->writeC((unsigned char)(ZSM_YM_CMD+ZSM_YM_MAX_WRITES));
@@ -389,6 +405,10 @@ void DivZSM::flushWrites() {
     pcmMeta.clear();
   }
   if (extCmd0Len) { // we have some PCM events to write
+    if (!hasFlushed) {
+      flushTicks();
+      hasFlushed=true;
+    }
     w->writeC(ZSM_EXT);
     w->writeC(ZSM_EXT_PCM|(unsigned char)extCmd0Len);
     for (DivRegWrite& write: pcmMeta) {
@@ -403,6 +423,10 @@ void DivZSM::flushWrites() {
   }
   n=0;
   for (DivRegWrite& write: syncCache) {
+    if (!hasFlushed) {
+      flushTicks();
+      hasFlushed=true;
+    }
     if (n%ZSM_SYNC_MAX_WRITES==0) {
       w->writeC(ZSM_EXT);
       if (syncCache.size()-n>ZSM_SYNC_MAX_WRITES) {
