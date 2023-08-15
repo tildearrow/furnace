@@ -2201,6 +2201,7 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::TableNextColumn();
 
         if (e->song.ins.size()>0) {
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("##InsSelect","select one...")) {
             String name;
             for (size_t i=0; i<e->song.ins.size(); i++) {
@@ -2213,7 +2214,7 @@ void FurnaceGUI::drawInsEdit() {
             }
             ImGui::EndCombo();
           }
-          ImGui::SameLine();
+          ImGui::AlignTextToFramePadding();
           ImGui::TextUnformatted("or");
           ImGui::SameLine();
         }
