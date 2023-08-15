@@ -59,6 +59,9 @@ void FurnaceGUI::drawPalette() {
   case CMDPAL_TYPE_SAMPLES:
     hint="Search samples...";
     break;
+  case CMDPAL_TYPE_INSTRUMENT_CHANGE:
+    hint="Search instruments (to change to)...";
+    break;
   }
 
   if (ImGui::InputTextWithHint("##CommandPaletteSearch",hint,&paletteQuery) || paletteFirstFrame) {
@@ -83,6 +86,7 @@ void FurnaceGUI::drawPalette() {
       break;
 
     case CMDPAL_TYPE_INSTRUMENTS:
+    case CMDPAL_TYPE_INSTRUMENT_CHANGE:
       if (matchFuzzy("- None -",paletteQuery.c_str())) {
         paletteSearchResults.push_back(0);
       }
@@ -136,6 +140,7 @@ void FurnaceGUI::drawPalette() {
         s=recentFile.at(id).c_str();
         break;
       case CMDPAL_TYPE_INSTRUMENTS:
+      case CMDPAL_TYPE_INSTRUMENT_CHANGE:
         if (id==0) {
           s="- None -";
         } else {
@@ -192,6 +197,10 @@ void FurnaceGUI::drawPalette() {
 
       case CMDPAL_TYPE_SAMPLES:
         curSample=i;
+        break;
+
+      case CMDPAL_TYPE_INSTRUMENT_CHANGE:
+        doChangeIns(i-1);
         break;
 
       default:
