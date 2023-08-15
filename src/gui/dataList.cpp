@@ -534,9 +534,11 @@ void FurnaceGUI::drawInsList(bool asChild) {
       if (settings.unifiedDataView) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::Selectable(ICON_FA_TASKS " Instruments",lastAssetType==0)) {
+        if (ImGui::Selectable(ICON_FA_TASKS "##Instruments",lastAssetType==0)) {
           lastAssetType=0;
         }
+        ImGui::SameLine();
+        ImGui::Text("Instruments");
         ImGui::Indent();
       }
 
@@ -602,18 +604,22 @@ void FurnaceGUI::drawInsList(bool asChild) {
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::Selectable(ICON_FA_AREA_CHART " Wavetables",lastAssetType==1)) {
+        if (ImGui::Selectable(ICON_FA_AREA_CHART "##Wavetables",lastAssetType==1)) {
           lastAssetType=1;
         }
+        ImGui::SameLine();
+        ImGui::Text("Wavetables");
         ImGui::Indent();
         actualWaveList();
         ImGui::Unindent();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::Selectable(ICON_FA_VOLUME_UP " Samples",lastAssetType==2)) {
+        if (ImGui::Selectable(ICON_FA_VOLUME_UP "##Samples",lastAssetType==2)) {
           lastAssetType=2;
         }
+        ImGui::SameLine();
+        ImGui::Text("Samples");
         ImGui::Indent();
         actualSampleList();
         ImGui::Unindent();
