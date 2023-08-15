@@ -1385,6 +1385,7 @@ class FurnaceGUI {
 
   ImFont* mainFont;
   ImFont* iconFont;
+  ImFont* furIconFont;
   ImFont* patFont;
   ImFont* bigFont;
   ImFont* headFont;
@@ -1446,7 +1447,6 @@ class FurnaceGUI {
     int sysSeparators;
     int forceMono;
     int controlLayout;
-    int restartOnFlagChange;
     int statusDisplay;
     float dpiScale;
     int viewPrevPattern;
@@ -1552,6 +1552,7 @@ class FurnaceGUI {
     int insTypeMenu;
     int capitalMenuBar;
     int centerPopup;
+    int insIconsStyle;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1612,7 +1613,6 @@ class FurnaceGUI {
       sysSeparators(1),
       forceMono(0),
       controlLayout(3),
-      restartOnFlagChange(1),
       statusDisplay(0),
       dpiScale(0.0f),
       viewPrevPattern(1),
@@ -1717,6 +1717,7 @@ class FurnaceGUI {
       insTypeMenu(1),
       capitalMenuBar(0),
       centerPopup(1),
+      insIconsStyle(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

@@ -649,6 +649,7 @@ src/gui/font_proggyClean.cpp
 src/gui/font_ptMono.cpp
 src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
+src/gui/font_furicon.cpp
 src/gui/fonts.cpp
 
 src/gui/image_icon.cpp

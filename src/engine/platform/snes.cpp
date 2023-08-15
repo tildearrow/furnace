@@ -754,6 +754,8 @@ void DivPlatformSNES::initEcho() {
 }
 
 void DivPlatformSNES::reset() {
+  writes.clear();
+
   memcpy(sampleMem,copyOfSampleMem,65536);
   dsp.init(sampleMem);
   dsp.set_output(NULL,0);

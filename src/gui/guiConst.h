@@ -41,7 +41,7 @@ extern const char* noteNamesG[180];
 extern const char* noteNamesF[180];
 extern const char* noteNamesGF[180];
 extern const char* pitchLabel[11];
-extern const char* insTypes[];
+extern const char* insTypes[][3];
 extern const char* sampleLoopModes[];
 extern const char* sampleDepths[];
 extern const char* resampleStrats[];

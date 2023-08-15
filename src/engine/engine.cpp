@@ -4417,8 +4417,12 @@ void DivEngine::updateSysFlags(int system, bool restart) {
     saveLock.unlock();
   }
 
-  if (restart && isPlaying()) {
-    playSub(false);
+  if (restart) {
+    if (isPlaying()) {
+      playSub(false);
+    } else if (freelance) {
+      reset();
+    }
   }
   BUSY_END;
 }

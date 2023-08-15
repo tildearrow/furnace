@@ -2306,17 +2306,17 @@ void FurnaceGUI::drawInsEdit() {
           ins->type=(DivInstrumentType)insType;
         }
         */
-        if (ImGui::BeginCombo("##Type",insTypes[insType])) {
+        if (ImGui::BeginCombo("##Type",insTypes[insType][0])) {
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
-            for (int i=0; insTypes[i]; i++) {
+            for (int i=0; insTypes[i][0]; i++) {
               insTypeList.push_back((DivInstrumentType)i);
             }
           } else {
             insTypeList=e->getPossibleInsTypes();
           }
           for (DivInstrumentType i: insTypeList) {
-            if (ImGui::Selectable(insTypes[i],insType==i)) {
+            if (ImGui::Selectable(insTypes[i][0],insType==i)) {
               ins->type=i;
 
               // reset macro zoom

@@ -27,6 +27,7 @@
 #include "intConst.h"
 #include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 #include <imgui.h>
@@ -673,11 +674,6 @@ void FurnaceGUI::drawSettings() {
           settings.newSongBehavior=1;
         }
         ImGui::Unindent();
-
-        bool restartOnFlagChangeB=settings.restartOnFlagChange;
-        if (ImGui::Checkbox("Restart song when changing chip properties",&restartOnFlagChangeB)) {
-          settings.restartOnFlagChange=restartOnFlagChangeB;
-        }
 
         // SUBSECTION START-UP
         CONFIG_SUBSECTION("Start-up");
@@ -2317,6 +2313,19 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::EndDisabled();
 
+        ImGui::Text("Instrument list icon style:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("None##iis0",settings.insIconsStyle==0)) {
+          settings.insIconsStyle=0;
+        }
+        if (ImGui::RadioButton("Graphical icons##iis1",settings.insIconsStyle==1)) {
+          settings.insIconsStyle=1;
+        }
+        if (ImGui::RadioButton("Letter icons##iis2",settings.insIconsStyle==2)) {
+          settings.insIconsStyle=2;
+        }
+        ImGui::Unindent();
+
         bool insEditColorizeB=settings.insEditColorize;
         if (ImGui::Checkbox("Colorize instrument editor using instrument type",&insEditColorizeB)) {
           settings.insEditColorize=insEditColorizeB;
@@ -2954,7 +2963,6 @@ void FurnaceGUI::syncSettings() {
   settings.sysSeparators=e->getConfInt("sysSeparators",1);
   settings.forceMono=e->getConfInt("forceMono",0);
   settings.controlLayout=e->getConfInt("controlLayout",3);
-  settings.restartOnFlagChange=e->getConfInt("restartOnFlagChange",1);
   settings.statusDisplay=e->getConfInt("statusDisplay",0);
   settings.dpiScale=e->getConfFloat("dpiScale",0.0f);
   settings.viewPrevPattern=e->getConfInt("viewPrevPattern",1);
@@ -3067,6 +3075,7 @@ void FurnaceGUI::syncSettings() {
   settings.insTypeMenu=e->getConfInt("insTypeMenu",1);
   settings.capitalMenuBar=e->getConfInt("capitalMenuBar",0);
   settings.centerPopup=e->getConfInt("centerPopup",1);
+  settings.insIconsStyle=e->getConfInt("insIconsStyle",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3204,6 +3213,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.insTypeMenu,0,1);
   clampSetting(settings.capitalMenuBar,0,1);
   clampSetting(settings.centerPopup,0,1);
+  clampSetting(settings.insIconsStyle,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3327,7 +3337,6 @@ void FurnaceGUI::commitSettings() {
   e->setConf("sysSeparators",settings.sysSeparators);
   e->setConf("forceMono",settings.forceMono);
   e->setConf("controlLayout",settings.controlLayout);
-  e->setConf("restartOnFlagChange",settings.restartOnFlagChange);
   e->setConf("statusDisplay",settings.statusDisplay);
   e->setConf("dpiScale",settings.dpiScale);
   e->setConf("viewPrevPattern",settings.viewPrevPattern);
@@ -3441,6 +3450,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("insTypeMenu",settings.insTypeMenu);
   e->setConf("capitalMenuBar",settings.capitalMenuBar);
   e->setConf("centerPopup",settings.centerPopup);
+  e->setConf("insIconsStyle",settings.insIconsStyle);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -4203,6 +4213,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     static const ImWchar fontRangeIcon[]={ICON_MIN_FA,ICON_MAX_FA,0};
     if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc,fontRangeIcon))==NULL) {
       logE("could not load icon font!");
+    }
+
+    static const ImWchar fontRangeFurIcon[]={ICON_MIN_FUR,ICON_MAX_FUR,0};
+    if ((furIconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(furIcons_compressed_data,furIcons_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc,fontRangeFurIcon))==NULL) {
+      logE("could not load Furnace icons font!");
     }
 
     if (settings.mainFontSize==settings.patFontSize && settings.patFont<5 && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
