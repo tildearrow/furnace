@@ -13,11 +13,11 @@ To generate a new letter icon:
 - Delete the baseline.
 - If there's a line 2, repeat for the lower baseline, including deletion.
 - Select all.
-- Use `Element | Transformations | Transform...` to Scale Uniformly and Move as needed:
-  - One letter: 12000%, X -896, Y 60.5.
-  - Two letters: 10000%, X -896, Y 144.2.
-  - Three letters: 8000%, X -896, Y 228.
-  - Two lines: 8000%, X -896, Y 663.5.
+- Use `Element | Transformations | Transform...` to Scale Uniformly (from glyph origin) and Move as needed:
+  - One letter: 12000%, X 896, Y 15.5.
+  - Two letters: 10000%, X 896, Y 99.2.
+  - Three letters: 8000%, X 896, Y 183.
+  - Two lines: 8000%, X 896, Y 618.5.
 - If resulting glyph is too wide, repeat all steps starting with "IBM Plex Sans Condensed Medium" instead.
   - Remember to close the other IBM Plex font or select the proper one in the text dialog.
 
