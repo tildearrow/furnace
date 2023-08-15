@@ -2188,7 +2188,7 @@ void FurnaceGUI::drawInsEdit() {
   }
   if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curIns<0 || curIns>=(int)e->song.ins.size()) {
-      ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*3.0f)*0.5f);
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*(e->song.ins.size()>0 ? 3.0f : 2.0f))*0.5f);
       CENTER_TEXT("no instrument selected");
       ImGui::Text("no instrument selected");
       if (ImGui::BeginTable("noAssetCenter",3)) {
