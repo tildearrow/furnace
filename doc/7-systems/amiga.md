@@ -18,6 +18,8 @@ imported MOD files use this chip, and will set A-4 tuning to 436.
 
 # info
 
+this chip uses the [Generic Sample](../4-instrument/amiga.md) instrument editor.
+
 - the maximum rate for sample playback is technically 31469Hz but anything higher than 28867Hz will sound glitchy on hardware.
 - sample lengths and loop will be set to an even number.
 - samples can't be longer than 131070.

@@ -54,3 +54,7 @@ it has the following capabilities:
   - bit 0-6: speed
   - bit 7: up direction
 - `4xxx`: **set cutoff.** range is `0` to `FFF`.
+
+# info
+
+this chip uses the [Sound Unit](../4-instrument/soundunit.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

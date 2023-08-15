@@ -80,6 +80,7 @@
 #include "platform/pv1000.h"
 #include "platform/k053260.h"
 #include "platform/ted.h"
+#include "platform/c140.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -216,13 +217,6 @@ void DivDispatchContainer::clear() {
   if (dispatch->getDCOffRequired()) {
     dcOffCompensation=true;
   }
-  // run for one cycle to determine DC offset
-  // TODO: SAA1099 doesn't like that
-  /*dispatch->acquire(bbIn[0],bbIn[1],0,1);
-  temp[0]=bbIn[0][0];
-  temp[1]=bbIn[1][0];
-  prevSample[0]=temp[0];
-  prevSample[1]=temp[1];*/
 }
 
 void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags) {
@@ -479,7 +473,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_NAMCO:
       dispatch=new DivPlatformNamcoWSG;
-      // Pac-Man (TODO: support Pole Position?)
+      // Pac-Man
       ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(1);
       break;
     case DIV_SYSTEM_NAMCO_15XX:
@@ -510,6 +504,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_TED:
       dispatch=new DivPlatformTED;
+      break;
+    case DIV_SYSTEM_C140:
+      dispatch=new DivPlatformC140;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;

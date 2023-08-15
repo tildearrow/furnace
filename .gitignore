@@ -26,3 +26,4 @@ CMakePresets.json
 extern/imgui_patched/examples/
 src/asm/68k/amigatest/*.bin
 src/asm/68k/amigatest/player
+res/binary_to_compressed_c

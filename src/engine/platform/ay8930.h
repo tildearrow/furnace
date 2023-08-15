@@ -39,29 +39,25 @@ class DivPlatformAY8930: public DivDispatch {
       } envelope;
 
       struct PSGMode {
-        union {
-          struct {
-            unsigned char tone: 1;
-            unsigned char noise: 1;
-            unsigned char envelope: 1;
-            unsigned char dac: 1;
-          };
-          unsigned char val=1;
-        };
+        // bit 3: DAC
+        // bit 2: envelope
+        // bit 1: noise
+        // bit 0: tone
+        unsigned char val;
 
         unsigned char getTone() {
-          return dac?0:(tone<<0);
+          return (val&8)?0:(val&1);
         }
 
         unsigned char getNoise() {
-          return dac?0:(noise<<1);
+          return (val&8)?0:(val&2);
         }
 
         unsigned char getEnvelope() {
-          return dac?0:(envelope<<2);
+          return (val&8)?0:(val&4);
         }
 
-        PSGMode(unsigned char v=0):
+        PSGMode(unsigned char v=1):
           val(v) {}
       };
       PSGMode curPSGMode;
@@ -69,7 +65,7 @@ class DivPlatformAY8930: public DivDispatch {
 
       struct DAC {
         int sample, rate, period, pos, out;
-        unsigned char furnaceDAC: 1;
+        bool furnaceDAC;
 
         DAC():
           sample(-1),
@@ -77,7 +73,7 @@ class DivPlatformAY8930: public DivDispatch {
           period(0),
           pos(0),
           out(0),
-          furnaceDAC(0) {}
+          furnaceDAC(false) {}
       } dac;
 
       unsigned char autoEnvNum, autoEnvDen, duty;

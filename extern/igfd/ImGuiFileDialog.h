@@ -1261,6 +1261,11 @@ namespace IGFD
     bool IsOpened(const std::string& vKey) const;        // say if the key is opened
     bool IsOpened() const;                    // say if the dialog is opened somewhere
     std::string GetOpenedKey() const;              // return the dialog key who is opened, return nothing if not opened
+    // 0: valid
+    // 1: invalid chars
+    // 2: reserved name
+    // 3: non-printable chars
+    int isFileNameValid(const char* n);
 
     // get result
     bool IsOk() const;                      // true => Dialog Closed with Ok result / false : Dialog closed with cancel result

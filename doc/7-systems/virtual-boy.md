@@ -41,3 +41,7 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
 - `15xx`: **set modulation wave.**
   - `xx` points to a wavetable. range is `0` to `FF`.
   - this is an alternative to setting the modulation wave through the instrument.
+
+# info
+
+this chip uses the [Virtual Boy](../4-instrument/virtual-boy.md) instrument editor.

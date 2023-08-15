@@ -63,13 +63,14 @@ class DivZSM {
     std::vector<unsigned char> pcmData;
     std::vector<unsigned char> pcmCache;
     std::vector<S_pcmInst> pcmInsts;
-    std::vector<unsigned char> syncCache;
+    std::vector<DivRegWrite> syncCache;
     int loopOffset;
     int numWrites;
     int ticks;
     int tickRate;
     int ymMask;
     int psgMask;
+    bool optimize;
   public:
     DivZSM();
     ~DivZSM();
@@ -78,6 +79,8 @@ class DivZSM {
     void writeYM(unsigned char a, unsigned char v);
     void writePSG(unsigned char a, unsigned char v);
     void writePCM(unsigned char a, unsigned char v);
+    void writeSync(unsigned char a, unsigned char v);
+    void setOptimize(bool o);
     void tick(int numticks = 1);
     void setLoopPoint();
     SafeWriter* finish();

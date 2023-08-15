@@ -13,6 +13,7 @@ primary topics:
 - [play/edit controls](play-edit-controls.md)
 - [instrument/wavetable/sample list](asset-list.md)
 - [song information](song-info.md)
+- [effect list window](effect-list-window.md)
 - [pattern view](../3-pattern/README.md)
 - [instrument editor](../4-instrument/README.md)
 - [wavetable editor](../5-wave/README.md)

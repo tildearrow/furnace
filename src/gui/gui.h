@@ -152,6 +152,22 @@ enum FurnaceGUIColors {
   GUI_COLOR_OSC_BORDER,
   GUI_COLOR_OSC_WAVE,
   GUI_COLOR_OSC_WAVE_PEAK,
+  GUI_COLOR_OSC_WAVE_CH0,
+  GUI_COLOR_OSC_WAVE_CH1,
+  GUI_COLOR_OSC_WAVE_CH2,
+  GUI_COLOR_OSC_WAVE_CH3,
+  GUI_COLOR_OSC_WAVE_CH4,
+  GUI_COLOR_OSC_WAVE_CH5,
+  GUI_COLOR_OSC_WAVE_CH6,
+  GUI_COLOR_OSC_WAVE_CH7,
+  GUI_COLOR_OSC_WAVE_CH8,
+  GUI_COLOR_OSC_WAVE_CH9,
+  GUI_COLOR_OSC_WAVE_CH10,
+  GUI_COLOR_OSC_WAVE_CH11,
+  GUI_COLOR_OSC_WAVE_CH12,
+  GUI_COLOR_OSC_WAVE_CH13,
+  GUI_COLOR_OSC_WAVE_CH14,
+  GUI_COLOR_OSC_WAVE_CH15,
   GUI_COLOR_OSC_REF,
   GUI_COLOR_OSC_GUIDE,
 
@@ -242,6 +258,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_K053260,
   GUI_COLOR_INSTR_SCSP,
   GUI_COLOR_INSTR_TED,
+  GUI_COLOR_INSTR_C140,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -423,6 +440,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_CMDSTREAM_BINARY,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
+  GUI_FILE_LOAD_HEAD_FONT,
   GUI_FILE_LOAD_PAT_FONT,
   GUI_FILE_IMPORT_COLORS,
   GUI_FILE_IMPORT_KEYBINDS,
@@ -1315,7 +1333,7 @@ class FurnaceGUI {
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
@@ -1375,8 +1393,10 @@ class FurnaceGUI {
 
   ImFont* mainFont;
   ImFont* iconFont;
+  ImFont* furIconFont;
   ImFont* patFont;
   ImFont* bigFont;
+  ImFont* headFont;
   ImWchar* fontRange;
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
@@ -1395,7 +1415,7 @@ class FurnaceGUI {
   char emptyLabel2[32];
 
   struct Settings {
-    int mainFontSize, patFontSize, iconSize;
+    int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
     int audioChans;
@@ -1412,6 +1432,7 @@ class FurnaceGUI {
     String tg100Path;
     String mu5Path;
     int mainFont;
+    int headFont;
     int patFont;
     int audioRate;
     int audioBufSize;
@@ -1434,7 +1455,6 @@ class FurnaceGUI {
     int sysSeparators;
     int forceMono;
     int controlLayout;
-    int restartOnFlagChange;
     int statusDisplay;
     float dpiScale;
     int viewPrevPattern;
@@ -1466,6 +1486,8 @@ class FurnaceGUI {
     int oscTakesEntireWindow;
     int oscBorder;
     int oscEscapesBoundary;
+    int oscMono;
+    int oscAntiAlias;
     int separateFMColors;
     int insEditColorize;
     int metroVol;
@@ -1532,8 +1554,16 @@ class FurnaceGUI {
     int memUsageUnit;
     int cursorFollowsWheel;
     int noDMFCompat;
+    int removeInsOff;
+    int removeVolOff;
+    int playOnLoad;
+    int insTypeMenu;
+    int capitalMenuBar;
+    int centerPopup;
+    int insIconsStyle;
     unsigned int maxUndoSteps;
     String mainFontPath;
+    String headFontPath;
     String patFontPath;
     String audioDevice;
     String midiInDevice;
@@ -1552,6 +1582,7 @@ class FurnaceGUI {
     Settings():
       mainFontSize(18),
       patFontSize(18),
+      headFontSize(27),
       iconSize(16),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
@@ -1590,7 +1621,6 @@ class FurnaceGUI {
       sysSeparators(1),
       forceMono(0),
       controlLayout(3),
-      restartOnFlagChange(1),
       statusDisplay(0),
       dpiScale(0.0f),
       viewPrevPattern(1),
@@ -1622,6 +1652,8 @@ class FurnaceGUI {
       oscTakesEntireWindow(0),
       oscBorder(1),
       oscEscapesBoundary(0),
+      oscMono(1),
+      oscAntiAlias(1),
       separateFMColors(0),
       insEditColorize(0),
       metroVol(100),
@@ -1687,8 +1719,16 @@ class FurnaceGUI {
       memUsageUnit(1),
       cursorFollowsWheel(0),
       noDMFCompat(0),
+      removeInsOff(0),
+      removeVolOff(0),
+      playOnLoad(0),
+      insTypeMenu(1),
+      capitalMenuBar(0),
+      centerPopup(1),
+      insIconsStyle(1),
       maxUndoSteps(100),
       mainFontPath(""),
+      headFontPath(""),
       patFontPath(""),
       audioDevice(""),
       midiInDevice(""),
@@ -1736,7 +1776,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen, introMonOpen;
+  bool groovesOpen;
 
   bool basicMode, shortIntro;
   bool insListDir, waveListDir, sampleListDir;
@@ -1972,14 +2012,15 @@ class FurnaceGUI {
   ImVec2 subPortPos;
 
   // oscilloscope
-  int oscTotal;
-  float oscValues[512];
+  int oscTotal, oscWidth;
+  float* oscValues[DIV_MAX_OUTPUTS];
   float oscZoom;
   float oscWindowSize;
+  float oscInput, oscInput1;
   bool oscZoomSlider;
 
   // per-channel oscilloscope
-  int chanOscCols, chanOscColorX, chanOscColorY;
+  int chanOscCols, chanOscAutoColsType, chanOscColorX, chanOscColorY;
   float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify;
   bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize;
   String chanOscTextFormat;
@@ -2086,7 +2127,7 @@ class FurnaceGUI {
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
-  bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange);
+  bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
   void kvsConfig(DivInstrument* ins);
   void drawFMPreview(const ImVec2& size);
   void renderFMPreview(const DivInstrumentFM& params, int pos=0);
@@ -2110,6 +2151,8 @@ class FurnaceGUI {
   void prepareLayout();
   ImVec4 channelColor(int ch);
   ImVec4 channelTextColor(int ch);
+
+  void centerNextWindow(const char* name, float w, float h);
 
   void readOsc();
   void calcChanOsc();

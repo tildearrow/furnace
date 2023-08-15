@@ -9,3 +9,7 @@ the SCC+ fixes this issue though (while being compatible with SCC games).
 # effects
 
 - `10xx`: **change wave.**
+
+# info
+
+this chip uses the [Konami SCC/Bubble System WSG](../4-instrument/scc.md) instrument editor.

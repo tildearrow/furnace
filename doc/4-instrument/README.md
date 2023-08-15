@@ -15,7 +15,7 @@ depending on the instrument type, there are many different types of instrument e
 - [SAA1099](saa.md) - for use with Philips SAA1099 PSG sound source.
 - [TIA](tia.md) - for use with Atari 2600 chip.
 - [AY-3-8910](ay8910.md) - for use with AY-3-8910 PSG sound source and SSG portion in YM2610.
-- [Amiga / sample](amiga.md) for controlling Amiga and other sample based synthsizers like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
+- [Generic Sample](amiga.md) for controlling Amiga and other sample channels/chips like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
 - [Atari Lynx](lynx.md) - for use with Atari Lynx handheld console.
 - [VERA](vera.md) - for use with Commander X16 VERA.
 - [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
@@ -24,6 +24,7 @@ depending on the instrument type, there are many different types of instrument e
 - [Konami VRC6](vrc6.md) - for use with VRC6's PSG sound source.
 - [SNES](snes.md) - for use with SNES S-APU.
 - [Casio PV-1000](pv1000.md) - for use with Casio PV-1000.
+- [C140](c140.md) for use with Namco C140.
 
 
 # macros

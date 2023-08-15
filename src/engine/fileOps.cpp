@@ -2346,7 +2346,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
-    if (ds.version>=136) song.patchbayAuto=reader.readC();
+    if (ds.version>=136) ds.patchbayAuto=reader.readC();
 
     if (ds.version>=138) {
       ds.brokenPortaLegato=reader.readC();

@@ -143,8 +143,8 @@ size | description
      |   - 0x49: Neo Geo CD extended - 16 channels
      |   - 0x80: AY-3-8910 - 3 channels
      |   - 0x81: Amiga - 4 channels
-     |   - 0x82: YM2151 alone - 8 channels
-     |   - 0x83: YM2612 alone - 6 channels
+     |   - 0x82: YM2151 - 8 channels
+     |   - 0x83: YM2612 - 6 channels
      |   - 0x84: TIA - 2 channels
      |   - 0x85: VIC-20 - 4 channels
      |   - 0x86: PET - 1 channel
@@ -159,7 +159,7 @@ size | description
      |   - 0x8f: OPL (YM3526) - 9 channels
      |   - 0x90: OPL2 (YM3812) - 9 channels
      |   - 0x91: OPL3 (YMF262) - 18 channels
-     |   - 0x92: MultiPCM - 28 channels
+     |   - 0x92: MultiPCM - 28 channels (UNAVAILABLE)
      |   - 0x93: Intel 8253 (beeper) - 1 channel
      |   - 0x94: POKEY - 4 channels
      |   - 0x95: RF5C68 - 8 channels
@@ -187,8 +187,8 @@ size | description
      |   - 0xab: MSM6258 - 1 channel
      |   - 0xac: Commander X16 (VERA) - 17 channels
      |   - 0xad: Bubble System WSG - 2 channels
-     |   - 0xae: OPL4 (YMF278B) - 42 channels
-     |   - 0xaf: OPL4 drums (YMF278B) - 44 channels
+     |   - 0xae: OPL4 (YMF278B) - 42 channels (UNAVAILABLE)
+     |   - 0xaf: OPL4 drums (YMF278B) - 44 channels (UNAVAILABLE)
      |   - 0xb0: Seta/Allumer X1-010 - 16 channels
      |   - 0xb1: Ensoniq ES5506 - 32 channels
      |   - 0xb2: Yamaha Y8950 - 10 channels
@@ -199,26 +199,29 @@ size | description
      |   - 0xb7: YM2608 extended - 19 channels
      |   - 0xb8: YMZ280B - 8 channels
      |   - 0xb9: Namco WSG - 3 channels
-     |   - 0xba: Namco 15xx - 8 channels
-     |   - 0xbb: Namco CUS30 - 8 channels
+     |   - 0xba: Namco C15 - 8 channels
+     |   - 0xbb: Namco C30 - 8 channels
      |   - 0xbc: MSM5232 - 8 channels
-     |   - 0xbd: YM2612 extra features extended - 11 channels
-     |   - 0xbe: YM2612 extra features - 7 channels
+     |   - 0xbd: YM2612 DualPCM extended - 11 channels
+     |   - 0xbe: YM2612 DualPCM - 7 channels
      |   - 0xbf: T6W28 - 4 channels
      |   - 0xc0: PCM DAC - 1 channel
      |   - 0xc1: YM2612 CSM - 10 channels
-     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
-     |   - 0xc3: YM2203 CSM - 10 channels
-     |   - 0xc4: YM2608 CSM - 20 channels
-     |   - 0xc5: YM2610B CSM - 20 channels
+     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels (UNAVAILABLE)
+     |   - 0xc3: YM2203 CSM - 10 channels (UNAVAILABLE)
+     |   - 0xc4: YM2608 CSM - 20 channels (UNAVAILABLE)
+     |   - 0xc5: YM2610B CSM - 20 channels (UNAVAILABLE)
      |   - 0xc6: K007232 - 2 channels
      |   - 0xc7: GA20 - 4 channels
      |   - 0xc8: SM8521 - 3 channels
-     |   - 0xc9: M114S - 16 channels
+     |   - 0xc9: M114S - 16 channels (UNAVAILABLE)
      |   - 0xca: ZX Spectrum (beeper, QuadTone engine) - 5 channels
      |   - 0xcb: Casio PV-1000 - 3 channels
      |   - 0xcc: K053260 - 4 channels
      |   - 0xcd: TED - 2 channels
+     |   - 0xce: Namco C140 - 24 channels
+     |   - 0xcf: Namco C219 - 16 channels (UNAVAILABLE)
+     |   - 0xd0: Namco C352 - 32 channels (UNAVAILABLE)
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel
@@ -227,6 +230,8 @@ size | description
      |   - 0xff: reserved for development
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.
+     | - (UNAVAILABLE) means that the chip hasn't been implemented in Furnace
+     |   yet.
  32  | sound chip volumes (<135) or reserved
      | - signed char, 64=1.0, 127=~2.0
      | - as of version 135 these fields only exist for compatibility reasons.

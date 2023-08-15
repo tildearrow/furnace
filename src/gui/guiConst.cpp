@@ -21,6 +21,8 @@
 #include "gui.h"
 #include "guiConst.h"
 #include "../engine/song.h"
+#include "IconsFontAwesome4.h"
+#include "furIcons.h"
 
 const int opOrder[4]={
   0, 2, 1, 3
@@ -116,61 +118,63 @@ const int vgmVersions[7]={
   0x172
 };
 
-const char* insTypes[DIV_INS_MAX+1]={
-  "SN76489/Sega PSG",
-  "FM (OPN)",
-  "Game Boy",
-  "C64",
-  "Generic Sample",
-  "PC Engine",
-  "AY-3-8910/SSG",
-  "AY8930",
-  "TIA",
-  "SAA1099",
-  "VIC",
-  "PET",
-  "VRC6",
-  "FM (OPLL)",
-  "FM (OPL)",
-  "FDS",
-  "Virtual Boy",
-  "Namco 163",
-  "Konami SCC/Bubble System WSG",
-  "FM (OPZ)",
-  "POKEY",
-  "Beeper",
-  "WonderSwan",
-  "Atari Lynx",
-  "VERA",
-  "X1-010",
-  "VRC6 (saw)",
-  "ES5506",
-  "MultiPCM",
-  "SNES",
-  "Sound Unit",
-  "Namco WSG",
-  "OPL (drums)",
-  "FM (OPM)",
-  "NES",
-  "MSM6258",
-  "MSM6295",
-  "ADPCM-A",
-  "ADPCM-B",
-  "SegaPCM",
-  "QSound",
-  "YMZ280B",
-  "RF5C68",
-  "MSM5232",
-  "T6W28",
-  "K007232",
-  "GA20",
-  "Pokémon Mini/QuadTone",
-  "SM8521",
-  "PV-1000",
-  "K053260",
-  "SCSP",
-  "TED",
-  NULL
+// name, icon, letter icon
+const char* insTypes[DIV_INS_MAX+1][3]={
+  {"SN76489/Sega PSG",ICON_FA_AREA_CHART,ICON_FUR_INS_STD},
+  {"FM (OPN)",ICON_FA_BAR_CHART,ICON_FUR_INS_FM},
+  {"Game Boy",ICON_FA_GAMEPAD,ICON_FUR_INS_GB},
+  {"C64",ICON_FA_KEYBOARD_O,ICON_FUR_INS_C64},
+  {"Generic Sample",ICON_FA_VOLUME_UP,ICON_FUR_INS_AMIGA},
+  {"PC Engine",ICON_FA_ID_BADGE,ICON_FUR_INS_PCE},
+  {"AY-3-8910/SSG",ICON_FA_BAR_CHART,ICON_FUR_INS_AY},
+  {"AY8930",ICON_FA_BAR_CHART,ICON_FUR_INS_AY8930},
+  {"TIA",ICON_FA_BAR_CHART,ICON_FUR_INS_TIA},
+  {"SAA1099",ICON_FA_BAR_CHART,ICON_FUR_INS_SAA1099},
+  {"VIC",ICON_FA_BAR_CHART,ICON_FUR_INS_VIC},
+  {"PET",ICON_FA_SQUARE,ICON_FUR_INS_PET},
+  {"VRC6",ICON_FA_BAR_CHART,ICON_FUR_INS_VRC6},
+  {"FM (OPLL)",ICON_FA_AREA_CHART,ICON_FUR_INS_OPLL},
+  {"FM (OPL)",ICON_FA_AREA_CHART,ICON_FUR_INS_OPL},
+  {"FDS",ICON_FA_FLOPPY_O,ICON_FUR_INS_FDS},
+  {"Virtual Boy",ICON_FA_BINOCULARS,ICON_FUR_INS_VBOY},
+  {"Namco 163",ICON_FA_CALCULATOR,ICON_FUR_INS_N163},
+  {"Konami SCC/Bubble System WSG",ICON_FA_CALCULATOR,ICON_FUR_INS_SCC},
+  {"FM (OPZ)",ICON_FA_AREA_CHART,ICON_FUR_INS_OPZ},
+  {"POKEY",ICON_FA_BAR_CHART,ICON_FUR_INS_POKEY},
+  {"Beeper",ICON_FA_SQUARE,ICON_FUR_INS_BEEPER},
+  {"WonderSwan",ICON_FA_GAMEPAD,ICON_FUR_INS_SWAN},
+  {"Atari Lynx",ICON_FA_BAR_CHART,ICON_FUR_INS_MIKEY},
+  {"VERA",ICON_FA_KEYBOARD_O,ICON_FUR_INS_VERA},
+  {"X1-010",ICON_FA_BAR_CHART,ICON_FUR_INS_X1_010},
+  {"VRC6 (saw)",ICON_FA_BAR_CHART,ICON_FUR_INS_VRC6_SAW},
+  {"ES5506",ICON_FA_VOLUME_UP,ICON_FUR_INS_ES5506},
+  {"MultiPCM",ICON_FA_VOLUME_UP,ICON_FUR_INS_MULTIPCM},
+  {"SNES",ICON_FA_VOLUME_UP,ICON_FUR_INS_SNES},
+  {"Sound Unit",ICON_FA_MICROCHIP,ICON_FUR_INS_SU},
+  {"Namco WSG",ICON_FA_PIE_CHART,ICON_FUR_INS_NAMCO},
+  {"OPL (drums)",ICON_FA_COFFEE,ICON_FUR_INS_OPL_DRUMS},
+  {"FM (OPM)",ICON_FA_AREA_CHART,ICON_FUR_INS_OPM},
+  {"NES",ICON_FA_GAMEPAD,ICON_FUR_INS_NES},
+  {"MSM6258",ICON_FA_VOLUME_UP,ICON_FUR_INS_MSM6258},
+  {"MSM6295",ICON_FA_VOLUME_UP,ICON_FUR_INS_MSM6295},
+  {"ADPCM-A",ICON_FA_VOLUME_UP,ICON_FUR_INS_ADPCMA},
+  {"ADPCM-B",ICON_FA_VOLUME_UP,ICON_FUR_INS_ADPCMB},
+  {"SegaPCM",ICON_FA_VOLUME_UP,ICON_FUR_INS_SEGAPCM},
+  {"QSound",ICON_FA_VOLUME_UP,ICON_FUR_INS_QSOUND},
+  {"YMZ280B",ICON_FA_VOLUME_UP,ICON_FUR_INS_YMZ280B},
+  {"RF5C68",ICON_FA_VOLUME_UP,ICON_FUR_INS_RF5C68},
+  {"MSM5232",ICON_FA_BAR_CHART,ICON_FUR_INS_MSM5232},
+  {"T6W28",ICON_FA_BAR_CHART,ICON_FUR_INS_T6W28},
+  {"K007232",ICON_FA_BAR_CHART,ICON_FUR_INS_K007232},
+  {"GA20",ICON_FA_BAR_CHART,ICON_FUR_INS_GA20},
+  {"Pokémon Mini/QuadTone",ICON_FA_BAR_CHART,ICON_FUR_INS_POKEMINI},
+  {"SM8521",ICON_FA_GAMEPAD,ICON_FUR_INS_SM8521},
+  {"PV-1000",ICON_FA_GAMEPAD,ICON_FUR_INS_PV1000},
+  {"K053260",ICON_FA_BAR_CHART,ICON_FUR_INS_K053260},
+  {"SCSP",ICON_FA_QUESTION,ICON_FUR_INS_SCSP},
+  {"TED",ICON_FA_BAR_CHART,ICON_FUR_INS_TED},
+  {"C140",ICON_FA_VOLUME_UP,ICON_FUR_INS_C140},
+  {NULL,ICON_FA_QUESTION,ICON_FA_QUESTION}
 };
 
 const char* sampleLoopModes[DIV_SAMPLE_LOOP_MAX]={
@@ -191,7 +195,7 @@ const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "8-bit PCM",
   "BRR",
   "VOX",
-  NULL,
+  "8-bit µ-law PCM",
   NULL,
   NULL,
   NULL,
@@ -835,6 +839,22 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_OSC_BORDER,"",ImVec4(0.4f,0.6f,0.95f,1.0f)),
   D(GUI_COLOR_OSC_WAVE,"",ImVec4(0.95f,0.95f,1.0f,1.0f)),
   D(GUI_COLOR_OSC_WAVE_PEAK,"",ImVec4(0.95f,0.95f,1.0f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH0,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH1,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH2,"",ImVec4(0.1f,0.5f,1.0f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH3,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH4,"",ImVec4(0.7f,0.2f,0.7f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH5,"",ImVec4(0.2f,1.0f,0.2f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH6,"",ImVec4(1.0f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH7,"",ImVec4(1.0f,0.5f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH8,"",ImVec4(0.9f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH9,"",ImVec4(0.8f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH10,"",ImVec4(0.7f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH11,"",ImVec4(0.6f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH12,"",ImVec4(0.5f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH13,"",ImVec4(0.4f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH14,"",ImVec4(0.3f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH15,"",ImVec4(0.2f,1.0f,0.1f,1.0f)),
   D(GUI_COLOR_OSC_REF,"",ImVec4(0.3,0.65f,1.0f,0.15f)),
   D(GUI_COLOR_OSC_GUIDE,"",ImVec4(0.3,0.65f,1.0f,0.13f)),
 
@@ -925,6 +945,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_K053260,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
   D(GUI_COLOR_INSTR_SCSP,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
   D(GUI_COLOR_INSTR_TED,"",ImVec4(0.7f,0.6f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_C140,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -1110,6 +1131,7 @@ const int availableSystems[]={
   DIV_SYSTEM_PV1000,
   DIV_SYSTEM_K053260,
   DIV_SYSTEM_TED,
+  DIV_SYSTEM_C140,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
@@ -1220,6 +1242,7 @@ const int chipsSample[]={
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_ES5506,
   DIV_SYSTEM_K053260,
+  DIV_SYSTEM_C140,
   0 // don't remove this last one!
 };
 
@@ -1241,4 +1264,10 @@ const char* chipCategoryNames[]={
   "Special",
   "Sample",
   NULL
+};
+
+// NORMAL, LETTER,
+const char* insIcons[]={
+  ICON_FA_AREA_CHART,
+
 };
