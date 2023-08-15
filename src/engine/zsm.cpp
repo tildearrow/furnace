@@ -405,6 +405,10 @@ void DivZSM::flushWrites() {
     pcmMeta.clear();
   }
   if (extCmd0Len) { // we have some PCM events to write
+    if (!hasFlushed) {
+      flushTicks();
+      hasFlushed=true;
+    }
     w->writeC(ZSM_EXT);
     w->writeC(ZSM_EXT_PCM|(unsigned char)extCmd0Len);
     for (DivRegWrite& write: pcmMeta) {
@@ -419,6 +423,10 @@ void DivZSM::flushWrites() {
   }
   n=0;
   for (DivRegWrite& write: syncCache) {
+    if (!hasFlushed) {
+      flushTicks();
+      hasFlushed=true;
+    }
     if (n%ZSM_SYNC_MAX_WRITES==0) {
       w->writeC(ZSM_EXT);
       if (syncCache.size()-n>ZSM_SYNC_MAX_WRITES) {
