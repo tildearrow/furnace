@@ -396,6 +396,10 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Horizontal instrument list**: when there are more instruments than there is room to display them...
   - if on, scroll horizontally through multiple columns.
   - if off, scroll vertically in one long column.
+- **Instrument list icon style:**
+  - **None**
+  - **Graphical icons**
+  - **Letter icons**
 - **Colorize instrument editor using instrument type**
 - **Display instrument type menu when adding instrument**
   - if turned off, the menu can still be opened by right-clicking the add button.
