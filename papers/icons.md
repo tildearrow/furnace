@@ -2,7 +2,7 @@ To generate a new letter icon:
 
 - Open `icons.sfd` in FontForge.
 - Open "IBM Plex Sans Medium" to the side. Return to the icons font.
-- Copy char EFF0 (the one with just two baselines) to the new codepoint.
+- Copy char `E0F0` (the one with just two baselines) to the new codepoint.
 - Open the new codepoint.
 - Select the upper baseline.
 - Use `Element | Insert Text Outlines...` to place text:
@@ -14,13 +14,13 @@ To generate a new letter icon:
 - If there's a line 2, repeat for the lower baseline, including deletion.
 - Select all.
 - Use `Element | Transformations | Transform...` to Scale Uniformly and Move as needed:
-  - One letter: 12000%, X -896, Y 120.5.
-  - Two letters: 10000%, X -896, Y 204.2.
-  - Three letters: 8000%, X -896, Y 288.
-  - Two lines: 8000%, X -896, Y 723.5.
+  - One letter: 12000%, X -896, Y 60.5.
+  - Two letters: 10000%, X -896, Y 144.2.
+  - Three letters: 8000%, X -896, Y 228.
+  - Two lines: 8000%, X -896, Y 663.5.
 - If resulting glyph is too wide, repeat all steps starting with "IBM Plex Sans Condensed Medium" instead.
   - Remember to close the other IBM Plex font or select the proper one in the text dialog.
 
-Note: Codepoints EFF0 to EFF4 are for reference and shouldn't be used.
+Note: Codepoints `EFF0` to `EFF4` are for reference and shouldn't be used.
 
-Note: WSG icon (F01F) has been slightly kerned to fit.
+Note: WSG icon (`E11F`) has been slightly kerned to fit.
