@@ -200,9 +200,7 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
         return "Famicom Disk System";
       }
       if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_N163) {
-        String ret="Famicom + ";
-        ret+=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
-        return ret;
+        return "Famicom + Namco 163";
       }
       if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_MMC5) {
         return "Famicom + MMC5";
@@ -230,11 +228,7 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
   String ret="";
   for (int i=0; i<ds.systemLen; i++) {
     if (i>0) ret+=" + ";
-    if (ds.system[i]==DIV_SYSTEM_N163) {
-      ret+=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
-    } else {
-      ret+=getSystemName(ds.system[i]);
-    }
+    ret+=getSystemName(ds.system[i]);
   }
 
   return ret;
@@ -242,11 +236,6 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
 
 const char* DivEngine::getSystemName(DivSystem sys) {
   if (sysDefs[sys]==NULL) return "Unknown";
-  if (sys==DIV_SYSTEM_N163) {
-    String c1=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
-    strncpy(c163NameCS,c1.c_str(),1023);
-    return c163NameCS;
-  }
   return sysDefs[sys]->name;
 }
 
@@ -462,7 +451,7 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap fmOPN2EffectHandlerMap(fmEffectHandlerMap);
   fmOPN2EffectHandlerMap.insert({
-    {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+    {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}},
   });
 
@@ -692,15 +681,15 @@ void DivEngine::registerSystems() {
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
       {0x12, {DIV_CMD_PCE_LFO_MODE, "12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)"}},
       {0x13, {DIV_CMD_PCE_LFO_SPEED, "13xx: Set LFO speed"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}}
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}}
     }
   );
 
   sysDefs[DIV_SYSTEM_NES]=new DivSysDef(
     "NES (Ricoh 2A03)", NULL, 0x06, 0x06, 5, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_1BIT_DPCM)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
     "also known as Famicom in Japan, it's the most well-known game console of the '80's.",
-    {"Pulse 1", "Pulse 2", "Triangle", "Noise", "PCM"},
-    {"S1", "S2", "TR", "NO", "PCM"},
+    {"Pulse 1", "Pulse 2", "Triangle", "Noise", "DPCM"},
+    {"S1", "S2", "TR", "NO", "DMC"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_AMIGA},
     {},
@@ -712,7 +701,9 @@ void DivEngine::registerSystems() {
       {0x15, {DIV_CMD_NES_ENV_MODE, "15xx: Set envelope mode (0: envelope, 1: length, 2: looping, 3: constant)"}},
       {0x16, {DIV_CMD_NES_LENGTH, "16xx: Set length counter (refer to manual for a list of values)"}},
       {0x17, {DIV_CMD_NES_COUNT_MODE, "17xx: Set frame counter mode (0: 4-step, 1: 5-step)"}},
-      {0x18, {DIV_CMD_SAMPLE_MODE, "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)"}}
+      {0x18, {DIV_CMD_SAMPLE_MODE, "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)"}},
+      {0x19, {DIV_CMD_NES_LINEAR_LENGTH, "19xx: Set triangle linear counter (0 to 7F; 80 and higher halt)"}},
+      {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set DPCM frequency (0 to F)"}}
     }
   );
 
@@ -789,7 +780,7 @@ void DivEngine::registerSystems() {
     {"S1", "S2", "S3"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
-    {},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
     ayPostEffectHandlerMap
   );
@@ -870,7 +861,7 @@ void DivEngine::registerSystems() {
     {"S1", "S2", "S3"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_AY8930, DIV_INS_AY8930, DIV_INS_AY8930},
-    {},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
     ay8930PostEffectHandlerMap
   );
@@ -911,6 +902,8 @@ void DivEngine::registerSystems() {
       {0x1a, {DIV_CMD_SNES_ECHO_VOL_LEFT, "1Axx: Set left echo volume"}},
       {0x1b, {DIV_CMD_SNES_ECHO_VOL_RIGHT, "1Bxx: Set right echo volume"}},
       {0x1c, {DIV_CMD_SNES_ECHO_FEEDBACK, "1Cxx: Set echo feedback"}},
+      {0x1e, {DIV_CMD_SNES_GLOBAL_VOL_LEFT, "1Exx: Set dry output volume (left)"}},
+      {0x1f, {DIV_CMD_SNES_GLOBAL_VOL_RIGHT, "1Fxx: Set dry output volume (right)"}},
       {0x30, {DIV_CMD_SNES_ECHO_FIR, "30xx: Set echo filter coefficient 0",constVal<0>,effectVal}},
       {0x31, {DIV_CMD_SNES_ECHO_FIR, "31xx: Set echo filter coefficient 1",constVal<1>,effectVal}},
       {0x32, {DIV_CMD_SNES_ECHO_FIR, "32xx: Set echo filter coefficient 2",constVal<2>,effectVal}},
@@ -946,7 +939,7 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_NULL},
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle (pulse: 0 to 7)"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (pulse channel)"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     }
   );
 
@@ -994,7 +987,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_N163]=new DivSysDef(
-    "Namco 163/C163/129/160/106/whatever", NULL, 0x8c, 0, 8, false, true, 0, false, 0,
+    "Namco 163", NULL, 0x8c, 0, 8, false, true, 0, false, 0,
     "an expansion chip for the Famicom, with full wavetable.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1002,19 +995,16 @@ void DivEngine::registerSystems() {
     {DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163},
     {},
     {
+      {0x18, {DIV_CMD_N163_CHANNEL_LIMIT, "18xx: Change channel limits (0 to 7, x + 1)"}},
+      {0x20, {DIV_CMD_N163_GLOBAL_WAVE_LOAD, "20xx: Load a waveform into memory"}},
+      {0x21, {DIV_CMD_N163_GLOBAL_WAVE_LOADPOS, "21xx: Set position for wave load"}}
+    },
+    {
       {0x10, {DIV_CMD_WAVE, "10xx: Select waveform"}},
-      {0x11, {DIV_CMD_N163_WAVE_POSITION, "11xx: Set waveform position in RAM (single nibble unit)"}},
-      {0x12, {DIV_CMD_N163_WAVE_LENGTH, "12xx: Set waveform length in RAM (04 to FC, 4 nibble unit)"}},
-      {0x13, {DIV_CMD_N163_WAVE_MODE, "130x: Change waveform update mode (0: off; bit 0: update now; bit 1: update when every waveform changes)"}},
-      {0x14, {DIV_CMD_N163_WAVE_LOAD, "14xx: Select waveform for load to RAM"}},
-      {0x15, {DIV_CMD_N163_WAVE_LOADPOS, "15xx: Set waveform position for load to RAM (single nibble unit)"}},
-      {0x16, {DIV_CMD_N163_WAVE_LOADLEN, "16xx: Set waveform length for load to RAM (04 to FC, 4 nibble unit)"}},
-      {0x17, {DIV_CMD_N163_WAVE_LOADMODE, "170x: Change waveform load mode (0: off; bit 0: load now; bit 1: load when every waveform changes)"}},
-      {0x18, {DIV_CMD_N163_CHANNEL_LIMIT, "180x: Change channel limits (0 to 7, x + 1)"}},
-      {0x20, {DIV_CMD_N163_GLOBAL_WAVE_LOAD, "20xx: (Global) Select waveform for load to RAM"}},
-      {0x21, {DIV_CMD_N163_GLOBAL_WAVE_LOADPOS, "21xx: (Global) Set waveform position for load to RAM (single nibble unit)"}},
-      {0x22, {DIV_CMD_N163_GLOBAL_WAVE_LOADLEN, "22xx: (Global) Set waveform length for load to RAM (04 to FC, 4 nibble unit)"}},
-      {0x23, {DIV_CMD_N163_GLOBAL_WAVE_LOADMODE, "230x: (Global) Change waveform load mode (0: off; bit 0: load now; bit 1: load when every waveform changes)"}},
+      {0x11, {DIV_CMD_N163_WAVE_POSITION, "11xx: Set waveform position in RAM"}},
+      {0x12, {DIV_CMD_N163_WAVE_LENGTH, "12xx: Set waveform length in RAM (04 to FC in steps of 4)"}},
+      {0x15, {DIV_CMD_N163_WAVE_LOADPOS, "15xx: Set waveform load position"}},
+      {0x16, {DIV_CMD_N163_WAVE_LOADLEN, "16xx: Set waveform load length (04 to FC in steps of 4)"}},
     }
   );
 
@@ -1165,6 +1155,7 @@ void DivEngine::registerSystems() {
     {
       {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (0 to 7)"}},
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set AUDCTL"}},
+      {0x12, {DIV_CMD_STD_NOISE_FREQ, "12xx: Toggle two-tone mode"}},
     }
   );
 
@@ -1191,7 +1182,7 @@ void DivEngine::registerSystems() {
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)"}},
       {0x12, {DIV_CMD_WS_SWEEP_TIME, "12xx: Setup sweep period (0: disabled; 1-20: enabled/period)"}},
       {0x13, {DIV_CMD_WS_SWEEP_AMOUNT, "13xx: Set sweep amount"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     }
   );
 
@@ -1506,7 +1497,7 @@ void DivEngine::registerSystems() {
       {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
       {0x11, {DIV_CMD_X1_010_ENVELOPE_SHAPE, "11xx: Set envelope shape"}},
       {0x12, {DIV_CMD_X1_010_SAMPLE_BANK_SLOT, "12xx: Set sample bank slot (0 to 7)"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     },
     {
       {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set PCM frequency (1 to FF)"}},
@@ -1551,7 +1542,6 @@ void DivEngine::registerSystems() {
   );
 
   EffectHandlerMap es5506PreEffectHandlerMap={
-      {0x10, {DIV_CMD_WAVE, "10xx: Change waveform (00 to FF)",effectVal}},
       {0x11, {DIV_CMD_ES5506_FILTER_MODE, "11xx: Set filter mode (00 to 03)",effectValAnd<3>}},
       {0x14, {DIV_CMD_ES5506_FILTER_K1, "14xx: Set filter coefficient K1 low byte (00 to FF)",effectValShift<0>,constVal<0x00ff>}},
       {0x15, {DIV_CMD_ES5506_FILTER_K1, "15xx: Set filter coefficient K1 high byte (00 to FF)",effectValShift<8>,constVal<0xff00>}},
@@ -1830,7 +1820,67 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_SM8521, DIV_INS_SM8521, DIV_INS_SM8521},
     {},
-    namcoEffectHandlerMap
+    waveOnlyEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_PV1000]=new DivSysDef(
+    "Casio PV-1000", NULL, 0xcb, 0, 3, false, true, 0, false, 0,
+    "a game console with 3 channels of square wave. it's what happens after fusing TIA and VIC together.",
+    {"Square 1", "Square 2", "Square 3"},
+    {"S1", "S2", "S3"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
+    {DIV_INS_PV1000, DIV_INS_PV1000, DIV_INS_PV1000},
+    {},
+    {
+      {0x10, {DIV_CMD_STD_NOISE_MODE, "10xx: Set ring modulation (0: disable, 1: enable)"}}
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_SFX_BEEPER_QUADTONE]=new DivSysDef(
+    "ZX Spectrum Beeper (QuadTone Engine)", NULL, 0xca, 0, 5, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "another ZX Spectrum beeper system with full PWM pulses and 3-level volume per channel. it also has a pitchable overlay sample channel.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "PCM"},
+    {"CH1", "CH2", "CH3", "CH4", "PCM"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
+    {DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_AMIGA},
+    {},
+    {
+      {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set pulse width"}}
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_K053260]=new DivSysDef(
+    "Konami K053260", NULL, 0xcc, 0, 4, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "this PCM chip was widely used at Konami arcade boards in 1990-1992.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
+    {"CH1", "CH2", "CH3", "CH4"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_K053260, DIV_INS_K053260, DIV_INS_K053260, DIV_INS_K053260},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {
+      {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}}
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_TED]=new DivSysDef(
+    "MOS Technology TED", NULL, 0xcd, 0, 2, false, true, 0, false, 0,
+    "two square waves (one may be turned into noise). used in the Commodore Plus/4, 16 and 116.",
+    {"Channel 1", "Channel 2"},
+    {"CH1", "CH2"},
+    {DIV_CH_PULSE, DIV_CH_PULSE},
+    {DIV_INS_TED, DIV_INS_TED},
+    {}
+  );
+
+  sysDefs[DIV_SYSTEM_C140]=new DivSysDef(
+    "Namco C140", NULL, 0xce, 0, 24, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_MULAW)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Namco's first PCM chip from 1987.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24"},
+    {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {}
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

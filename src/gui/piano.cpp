@@ -100,6 +100,7 @@ void FurnaceGUI::drawPiano() {
         }
         if (ImGui::BeginPopupContextItem("PianoOptions",ImGuiPopupFlags_MouseButtonLeft)) {
           ImGui::Text("Key layout:");
+          ImGui::Indent();
           if (ImGui::RadioButton("Automatic",pianoView==PIANO_LAYOUT_AUTOMATIC)) {
             pianoView=PIANO_LAYOUT_AUTOMATIC;
           }
@@ -109,7 +110,9 @@ void FurnaceGUI::drawPiano() {
           if (ImGui::RadioButton("Continuous",pianoView==PIANO_LAYOUT_CONTINUOUS)) {
             pianoView=PIANO_LAYOUT_CONTINUOUS;
           }
+          ImGui::Unindent();
           ImGui::Text("Value input pad:");
+          ImGui::Indent();
           if (ImGui::RadioButton("Disabled",pianoInputPadMode==PIANO_INPUT_PAD_DISABLE)) {
             pianoInputPadMode=PIANO_INPUT_PAD_DISABLE;
           }
@@ -122,7 +125,9 @@ void FurnaceGUI::drawPiano() {
           if (ImGui::RadioButton("Split (always visible)",pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
             pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_VISIBLE;
           }
+          ImGui::Unindent();
           ImGui::Checkbox("Share play/edit offset/range",&pianoSharePosition);
+          ImGui::Checkbox("Read-only (can't input notes)",&pianoReadonly);
           ImGui::EndPopup();
         }
 
@@ -223,7 +228,7 @@ void FurnaceGUI::drawPiano() {
         //ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
         if (ImGui::ItemAdd(rect,ImGui::GetID("pianoDisplay"))) {
           bool canInput=false;
-          if (ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"))) {
+          if (!pianoReadonly && ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"))) {
             canInput=true;
             ImGui::InhibitInertialScroll();
           }
@@ -376,7 +381,6 @@ void FurnaceGUI::drawPiano() {
           pianoOptions=!pianoOptions;
         }
 
-        // TODO: wave and sample preview
         // first check released keys
         for (int i=0; i<180; i++) {
           int note=i-60;
@@ -415,10 +419,14 @@ void FurnaceGUI::drawPiano() {
                   e->previewSample(curSample,note);
                   break;
                 default:
-                  e->synchronized([this,note]() {
-                    e->autoNoteOn(-1,curIns,note);
-                  });
-                  if (edit && curWindow!=GUI_WINDOW_INS_LIST && curWindow!=GUI_WINDOW_INS_EDIT) noteInput(note,0);
+                  if (sampleMapWaitingInput) {
+                    alterSampleMap(true,note);
+                  } else {
+                    e->synchronized([this,note]() {
+                      e->autoNoteOn(-1,curIns,note);
+                    });
+                    if (edit && curWindow!=GUI_WINDOW_INS_LIST && curWindow!=GUI_WINDOW_INS_EDIT) noteInput(note,0);
+                  }
                   break;
               }
             }

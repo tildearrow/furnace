@@ -79,6 +79,11 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_GA20=46,
   DIV_INS_POKEMINI=47,
   DIV_INS_SM8521=48,
+  DIV_INS_PV1000=49,
+  DIV_INS_K053260=50,
+  // DIV_INS_YMF292=51,
+  DIV_INS_TED=52,
+  DIV_INS_C140=53,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -413,7 +418,7 @@ struct DivInstrumentAmiga {
       if (note>119) note=119;
       return noteMap[note].freq;
     }
-    return -1;
+    return note;
   }
 
   DivInstrumentAmiga():
@@ -422,8 +427,9 @@ struct DivInstrumentAmiga {
     useSample(false),
     useWave(false),
     waveLen(31) {
-    for (SampleMap& elem: noteMap) {
-      elem=SampleMap();
+    for (int i=0; i<120; i++) {
+      noteMap[i].map=-1;
+      noteMap[i].freq=i;
     }
   }
 };
@@ -443,6 +449,9 @@ struct DivInstrumentX1_010 {
 struct DivInstrumentN163 {
   int wave, wavePos, waveLen;
   unsigned char waveMode;
+  bool perChanPos;
+  int wavePosCh[8];
+  int waveLenCh[8];
 
   bool operator==(const DivInstrumentN163& other);
   bool operator!=(const DivInstrumentN163& other) {
@@ -453,7 +462,13 @@ struct DivInstrumentN163 {
     wave(-1),
     wavePos(0),
     waveLen(32),
-    waveMode(3) {}
+    waveMode(3),
+    perChanPos(false) {
+    for (int i=0; i<8; i++) {
+      wavePosCh[i]=(i&3)<<5;
+      waveLenCh[i]=32;
+    }
+  }
 };
 
 struct DivInstrumentFDS {

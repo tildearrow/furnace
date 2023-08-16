@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if(!skipRegisterWrites) {writes.emplace(a,v); if(dumpWrites) addWrite(a,v);}}
+#define rWrite(a,v) {if(!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if(dumpWrites) addWrite(a,v);}}
 
 #define CHIP_DIVIDER 64
 
@@ -34,7 +34,7 @@ const char* regCheatSheetK007232[]={
   "CHX_StartM", "X*6+3",
   "CHX_StartH", "X*6+4",
   "CHX_Keyon", "X*6+5",
-  "SLEV", "C", // external IO
+  "SLEV", "C", // external IO (Volume for Mono speaker)
   "Loop", "D",
   // off-chip
   "CHX_Volume", "X*2+10",
@@ -79,14 +79,14 @@ void DivPlatformK007232::acquire(short** buf, size_t len) {
       buf[0][h]=(lout[0]+lout[1])<<4;
       buf[1][h]=(rout[0]+rout[1])<<4;
       for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<4;
+        oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<3;
       }
     } else {
       const unsigned char vol=regPool[0xc];
       const signed int out[2]={(k007232.output(0)*(vol&0xf)),(k007232.output(1)*((vol>>4)&0xf))};
       buf[0][h]=(out[0]+out[1])<<4;
       for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<5;
+        oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<4;
       }
     }
   }
@@ -157,8 +157,7 @@ void DivPlatformK007232::tick(bool sysTick) {
           rWrite(0x10+i,(chan[i].lvol&0xf)|((chan[i].rvol&0xf)<<4));
           chan[i].prevPan=newPan;
         }
-      }
-      else {
+      } else {
         const unsigned char prevVolume=lastVolume;
         lastVolume=(lastVolume&~(0xf<<(i<<2)))|((chan[i].resVol&0xf)<<(i<<2));
         if (prevVolume!=lastVolume) {
@@ -274,7 +273,10 @@ int DivPlatformK007232::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:15;
-      if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].sample=ins->amiga.getSample(c.value);
+        c.value=ins->amiga.getFreq(c.value);
+      }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
       }
@@ -477,6 +479,7 @@ void DivPlatformK007232::setFlags(const DivConfig& flags) {
   rate=chipClock/4;
   stereo=flags.getBool("stereo",false);
   for (int i=0; i<2; i++) {
+    chan[i].volumeChanged=true;
     oscBuf[i]->rate=rate;
   }
 }

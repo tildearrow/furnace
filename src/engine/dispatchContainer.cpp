@@ -59,6 +59,7 @@
 #include "platform/lynx.h"
 #include "platform/pokey.h"
 #include "platform/zxbeeper.h"
+#include "platform/zxbeeperquadtone.h"
 #include "platform/bubsyswsg.h"
 #include "platform/n163.h"
 #include "platform/pet.h"
@@ -76,6 +77,10 @@
 #include "platform/k007232.h"
 #include "platform/ga20.h"
 #include "platform/sm8521.h"
+#include "platform/pv1000.h"
+#include "platform/k053260.h"
+#include "platform/ted.h"
+#include "platform/c140.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -170,6 +175,7 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
       if (bbIn[i]==NULL) continue;
       if (bb[i]==NULL) continue;
       for (size_t j=0; j<runtotal; j++) {
+        if (bbIn[i][j]==temp[i]) continue;
         temp[i]=bbIn[i][j];
         blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
         prevSample[i]=temp[i];
@@ -180,6 +186,7 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
       if (bbIn[i]==NULL) continue;
       if (bb[i]==NULL) continue;
       for (size_t j=0; j<runtotal; j++) {
+        if (bbIn[i][j]==temp[i]) continue;
         temp[i]=bbIn[i][j];
         blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
         prevSample[i]=temp[i];
@@ -210,13 +217,6 @@ void DivDispatchContainer::clear() {
   if (dispatch->getDCOffRequired()) {
     dcOffCompensation=true;
   }
-  // run for one cycle to determine DC offset
-  // TODO: SAA1099 doesn't like that
-  /*dispatch->acquire(bbIn[0],bbIn[1],0,1);
-  temp[0]=bbIn[0][0];
-  temp[1]=bbIn[1][0];
-  prevSample[0]=temp[0];
-  prevSample[1]=temp[1];*/
 }
 
 void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags) {
@@ -271,12 +271,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_C64_6581:
       dispatch=new DivPlatformC64;
-      ((DivPlatformC64*)dispatch)->setFP(eng->getConfInt("c64Core",1)==1);
+      ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64Core",0));
       ((DivPlatformC64*)dispatch)->setChipModel(true);
       break;
     case DIV_SYSTEM_C64_8580:
       dispatch=new DivPlatformC64;
-      ((DivPlatformC64*)dispatch)->setFP(eng->getConfInt("c64Core",1)==1);
+      ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64Core",0));
       ((DivPlatformC64*)dispatch)->setChipModel(false);
       break;
     case DIV_SYSTEM_YM2151:
@@ -388,6 +388,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SFX_BEEPER:
       dispatch=new DivPlatformZXBeeper;
       break;
+    case DIV_SYSTEM_SFX_BEEPER_QUADTONE:
+      dispatch=new DivPlatformZXBeeperQuadTone;
+      break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;
       break;
@@ -470,7 +473,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_NAMCO:
       dispatch=new DivPlatformNamcoWSG;
-      // Pac-Man (TODO: support Pole Position?)
+      // Pac-Man
       ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(1);
       break;
     case DIV_SYSTEM_NAMCO_15XX:
@@ -492,6 +495,18 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SM8521:
       dispatch=new DivPlatformSM8521;
+      break;
+    case DIV_SYSTEM_PV1000:
+      dispatch=new DivPlatformPV1000;
+      break;
+    case DIV_SYSTEM_K053260:
+      dispatch=new DivPlatformK053260;
+      break;
+    case DIV_SYSTEM_TED:
+      dispatch=new DivPlatformTED;
+      break;
+    case DIV_SYSTEM_C140:
+      dispatch=new DivPlatformC140;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;

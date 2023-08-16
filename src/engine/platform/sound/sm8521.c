@@ -5,6 +5,9 @@
 SM8521 sound emulator
 by cam900
 
+MODIFIED BY TILDEARROW
+THIS IS NOT THE ORIGINAL VERSION
+
 This file is licensed under zlib license.
 
 ============================================================================
@@ -69,7 +72,8 @@ void sm8521_noise_tick(struct sm8521_noise_t *noise, const int cycle)
 	noise->base.counter += cycle;
 	while (noise->base.counter >= (noise->base.t + 1))
 	{
-		noise->lfsr = rand() & 0x1; // unknown algorithm
+                // unknown algorithm, but don't use rand()
+		noise->lfsr = ( noise->lfsr>>1|(((noise->lfsr) ^ (noise->lfsr >> 5) ^ (noise->lfsr >> 8) ^ (noise->lfsr >> 13) ) & 1)<<31);
 		noise->base.counter -= (noise->base.t + 1);
 	}
 	noise->base.out = (((noise->lfsr & 0x1) ? 7 : -8) * noise->base.level) >> 1; // scale out to 8bit
@@ -125,7 +129,7 @@ void sm8521_reset(struct sm8521_t *sm8521)
 	sm8521->noise.base.level = 0;
 	sm8521->noise.base.out = 0;
 	sm8521->noise.base.counter = 0;
-	sm8521->noise.lfsr = 0;
+	sm8521->noise.lfsr = 0x89abcdef;
 	sm8521->out = 0;
 	sm8521->sgda = 0;
 	sm8521->sgc = 0;

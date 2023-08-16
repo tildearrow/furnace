@@ -173,16 +173,16 @@ enum DivDispatchCmds {
 
   DIV_CMD_N163_WAVE_POSITION,
   DIV_CMD_N163_WAVE_LENGTH,
-  DIV_CMD_N163_WAVE_MODE,
-  DIV_CMD_N163_WAVE_LOAD,
+  DIV_CMD_N163_WAVE_UNUSED1,
+  DIV_CMD_N163_WAVE_UNUSED2,
   DIV_CMD_N163_WAVE_LOADPOS,
   DIV_CMD_N163_WAVE_LOADLEN,
-  DIV_CMD_N163_WAVE_LOADMODE,
+  DIV_CMD_N163_WAVE_UNUSED3,
   DIV_CMD_N163_CHANNEL_LIMIT,
   DIV_CMD_N163_GLOBAL_WAVE_LOAD,
   DIV_CMD_N163_GLOBAL_WAVE_LOADPOS,
-  DIV_CMD_N163_GLOBAL_WAVE_LOADLEN,
-  DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,
+  DIV_CMD_N163_UNUSED4,
+  DIV_CMD_N163_UNUSED5,
 
   DIV_CMD_SU_SWEEP_PERIOD_LOW, // (which, val)
   DIV_CMD_SU_SWEEP_PERIOD_HIGH, // (which, val)
@@ -228,6 +228,15 @@ enum DivDispatchCmds {
   DIV_CMD_ES5506_ENVELOPE_K1RAMP, // (ramp, slowdown)
   DIV_CMD_ES5506_ENVELOPE_K2RAMP, // (ramp, slowdown)
   DIV_CMD_ES5506_PAUSE, // (value)
+
+  DIV_CMD_HINT_ARP_TIME, // (value)
+
+  DIV_CMD_SNES_GLOBAL_VOL_LEFT,
+  DIV_CMD_SNES_GLOBAL_VOL_RIGHT,
+
+  DIV_CMD_NES_LINEAR_LENGTH,
+
+  DIV_CMD_EXTERNAL, // (value)
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
@@ -277,20 +286,39 @@ struct DivRegWrite {
    *   - xx is the instance ID
    * - 0xffffxx03: set sample playback direction
    *   - x is the instance ID
+   * - 0xffffxx04: switch sample bank
+   *   - for use in VGM export
+   * - 0xffffxx05: set sample position
+   *   - xx is the instance ID
+   *   - data is the sample position
    * - 0xffffffff: reset
    */
   unsigned int addr;
-  unsigned short val;
-  DivRegWrite(unsigned int a, unsigned short v):
+  unsigned int val;
+  DivRegWrite():
+    addr(0), val(0) {}
+  DivRegWrite(unsigned int a, unsigned int v):
     addr(a), val(v) {}
 };
 
 struct DivDelayedWrite {
   int time;
   DivRegWrite write;
-  DivDelayedWrite(int t, unsigned int a, unsigned short v):
+  DivDelayedWrite(int t, unsigned int a, unsigned int v):
     time(t),
     write(a,v) {}
+};
+
+struct DivSamplePos {
+  int sample, pos, freq;
+  DivSamplePos(int s, int p, int f):
+    sample(s),
+    pos(p),
+    freq(f) {}
+  DivSamplePos():
+    sample(-1),
+    pos(0),
+    freq(0) {}
 };
 
 struct DivDispatchOscBuffer {
@@ -371,18 +399,29 @@ class DivDispatch {
 
     /**
      * get the state of a channel.
+     * @param chan the channel.
      * @return a pointer, or NULL.
      */
     virtual void* getChanState(int chan);
 
     /**
-     * get the DivMacroInt of a chanmel.
+     * get the DivMacroInt of a channel.
+     * @param chan the channel.
      * @return a pointer, or NULL.
      */
     virtual DivMacroInt* getChanMacroInt(int chan);
 
     /**
+     * get currently playing sample (and its position).
+     * @param chan the channel.
+     * @return a DivSamplePos. if sample is -1 then nothing is playing or the
+     * channel doesn't play samples.
+     */
+    virtual DivSamplePos getSamplePos(int chan);
+
+    /**
      * get an oscilloscope buffer for a channel.
+     * @param chan the channel.
      * @return a pointer to a DivDispatchOscBuffer, or NULL if not supported.
      */
     virtual DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -445,6 +484,12 @@ class DivDispatch {
      * @return whether it does.
      */
     virtual bool keyOffAffectsPorta(int ch);
+
+    /**
+     * test whether volume is global.
+     * @return whether it is.
+     */
+    virtual bool isVolGlobal();
 
     /**
      * get the lowest note in a portamento.

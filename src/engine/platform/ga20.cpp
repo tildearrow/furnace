@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if(!skipRegisterWrites) {writes.emplace(a,v); if(dumpWrites) addWrite(a,v);}}
+#define rWrite(a,v) {if(!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if(dumpWrites) addWrite(a,v);}}
 
 #define CHIP_DIVIDER 64
 
@@ -68,14 +68,19 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
         ga20.write(w.addr,w.val);
         regPool[w.addr]=w.val;
         writes.pop();
-        delay=w.delay;
+        delay=1;
       }
     }
-    short *buffer[4] = {&ga20Buf[0][h],&ga20Buf[1][h],&ga20Buf[2][h],&ga20Buf[3][h]};
-    ga20.sound_stream_update(buffer, 1);
+    short *buffer[4]={
+      &ga20Buf[0][h],
+      &ga20Buf[1][h],
+      &ga20Buf[2][h],
+      &ga20Buf[3][h]
+    };
+    ga20.sound_stream_update(buffer,1);
     buf[0][h]=(signed int)(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h])>>2;
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h];
+      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h]>>1;
     }
   }
 }
@@ -200,7 +205,10 @@ int DivPlatformGA20::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
-      if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].sample=ins->amiga.getSample(c.value);
+        c.value=ins->amiga.getFreq(c.value);
+      }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
       }
@@ -336,14 +344,24 @@ DivMacroInt* DivPlatformGA20::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivSamplePos DivPlatformGA20::getSamplePos(int ch) {
+  if (ch>=4) return DivSamplePos();
+  if (chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) return DivSamplePos();
+  if (!ga20.is_playing(ch)) return DivSamplePos();
+  unsigned char f=chan[ch].freq;
+  return DivSamplePos(
+    chan[ch].sample,
+    ga20.get_position(ch)-sampleOffGA20[chan[ch].sample],
+    chipClock/(4*(0x100-(int)f))
+  );
+}
+
 DivDispatchOscBuffer* DivPlatformGA20::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
 void DivPlatformGA20::reset() {
-  while (!writes.empty()) {
-    writes.pop();
-  }
+  writes.clear();
   memset(regPool,0,32);
   ga20.device_reset();
   delay=0;

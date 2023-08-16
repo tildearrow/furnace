@@ -22,7 +22,7 @@
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 64
 
@@ -58,9 +58,9 @@ void DivPlatformSM8521::acquire(short** buf, size_t len) {
     sm8521_sound_tick(&sm8521,8);
     buf[0][h]=sm8521.out<<6;
     for (int i=0; i<2; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=sm8521.sg[i].base.out<<6;
+      oscBuf[i]->data[oscBuf[i]->needle++]=sm8521.sg[i].base.out<<7;
     }
-    oscBuf[2]->data[oscBuf[2]->needle++]=sm8521.noise.base.out<<6;
+    oscBuf[2]->data[oscBuf[2]->needle++]=sm8521.noise.base.out<<7;
   }
 }
 
@@ -169,7 +169,7 @@ void DivPlatformSM8521::tick(bool sysTick) {
 int DivPlatformSM8521::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SM8521);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -263,7 +263,7 @@ int DivPlatformSM8521::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SM8521));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;

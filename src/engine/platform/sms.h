@@ -25,7 +25,7 @@
 extern "C" {
   #include "../../../extern/Nuked-PSG/ympsg.h"
 }
-#include <queue>
+#include "../fixedQueue.h"
 
 class DivPlatformSMS: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
@@ -42,6 +42,8 @@ class DivPlatformSMS: public DivDispatch {
   unsigned char lastPan;
   unsigned char oldValue; 
   unsigned char snNoiseMode;
+  unsigned char regPool[16];
+  unsigned char chanLatch;
   int divider=16;
   double toneDivider=64.0;
   double noiseDivider=64.0;
@@ -57,14 +59,16 @@ class DivPlatformSMS: public DivDispatch {
     unsigned short addr;
     unsigned char val;
     bool addrOrVal;
+    QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,128> writes;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   double NOTE_SN(int ch, int note);
   int snCalcFreq(int ch);
+  void poolWrite(unsigned short a, unsigned char v);
 
   void acquire_nuked(short** buf, size_t len);
   void acquire_mame(short** buf, size_t len);
@@ -74,6 +78,8 @@ class DivPlatformSMS: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

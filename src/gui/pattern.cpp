@@ -49,11 +49,11 @@ void _popPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
 }
 
 void FurnaceGUI::pushPartBlend() {
-  SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_ADD);
+  rend->setBlendMode(GUI_BLEND_MODE_ADD);
 }
 
 void FurnaceGUI::popPartBlend() {
-  SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
+  rend->setBlendMode(GUI_BLEND_MODE_BLEND);
 }
 
 // draw a pattern row
@@ -133,17 +133,20 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   }
   ImGui::PopStyleColor();
   // for each column
+  int mustSetXOf=0;
   for (int j=0; j<chans; j++) {
     // check if channel is not hidden
     if (!e->curSubSong->chanShow[j]) {
-      patChanX[j]=ImGui::GetCursorScreenPos().x;
       continue;
     }
     int chanVolMax=e->getMaxVolumeChan(j);
     if (chanVolMax<1) chanVolMax=1;
     const DivPattern* pat=patCache[j];
     ImGui::TableNextColumn();
-    patChanX[j]=ImGui::GetCursorScreenPos().x;
+    for (int k=mustSetXOf; k<=j; k++)  {
+      patChanX[k]=ImGui::GetCursorScreenPos().x;
+    }
+    mustSetXOf=j+1;
 
     // selection highlight flags
     int sel1XSum=sel1.xCoarse*32+sel1.xFine;
@@ -287,7 +290,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           if (pat->data[i][index]>0xff) {
             snprintf(id,63,"??##PE%d_%d_%d",k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-          } else if (pat->data[i][index]>0x10 || settings.oneDigitEffects==0) {
+          } else if (pat->data[i][index]>=0x10 || settings.oneDigitEffects==0) {
             const unsigned char data=pat->data[i][index];
             snprintf(id,63,"%.2X##PE%d_%d_%d",data,k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
@@ -358,7 +361,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     ImGui::PopStyleColor();
   }
   ImGui::TableNextColumn();
-  patChanX[chans]=ImGui::GetCursorScreenPos().x;
+  for (int k=mustSetXOf; k<=chans; k++)  {
+    patChanX[k]=ImGui::GetCursorScreenPos().x;
+  }
 }
 
 void FurnaceGUI::drawPattern() {
@@ -371,7 +376,6 @@ void FurnaceGUI::drawPattern() {
   if (!patternOpen) return;
 
   bool inhibitMenu=false;
-  float scrollX=0;
 
   if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) {
     cursor.y=oldRow+((pendingStepUpdate)?1:0);
@@ -408,7 +412,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   }
-  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0))) {
+  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|(settings.cursorFollowsWheel?ImGuiWindowFlags_NoScrollWithMouse:0))) {
     if (!mobileUI) {
       patWindowPos=ImGui::GetWindowPos();
       patWindowSize=ImGui::GetWindowSize();
@@ -416,9 +420,6 @@ void FurnaceGUI::drawPattern() {
     //char id[32];
     ImGui::PushFont(patFont);
     int ord=oldOrder;
-    if (followPattern) {
-      curOrder=e->getOrder();
-    }
     oldOrder=curOrder;
     int chans=e->getTotalChannelCount();
     int displayChans=0;
@@ -436,13 +437,13 @@ void FurnaceGUI::drawPattern() {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+centerOff);
       }
     }
-    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea)) {
+    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|(settings.cursorFollowsWheel?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
       int curRow=e->getRow();
       if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(curRow);
-      pendingStepUpdate=false;
+      if (--pendingStepUpdate<0) pendingStepUpdate=0;
       if (nextScroll>-0.5f) {
         ImGui::SetScrollY(nextScroll);
         nextScroll=-1.0f;
@@ -825,8 +826,6 @@ void FurnaceGUI::drawPattern() {
                 ImGui::GetColorU32(chanHeadBase)
               );
             }
-            keyHit1[i]-=0.2f;
-            if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
           }
         }
         
@@ -834,28 +833,9 @@ void FurnaceGUI::drawPattern() {
         if (extraChannelButtons==2) {
           DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][ord],true);
           ImGui::PushFont(mainFont);
-          if (patNameTarget==i) {
-            snprintf(chanID,2048,"##PatNameI%d_%d",i,ord);
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(8.0f*dpiScale));
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
-            ImGui::InputText(chanID,&pat->name);
-            if (wantPatName) {
-              wantPatName=false;
-              ImGui::SetItemDefaultFocus();
-              ImGui::SetKeyboardFocusHere(-1);
-            } else {
-              if (!ImGui::IsItemActive()) {
-                patNameTarget=-1;
-              }
-            }
-          } else {
-            snprintf(chanID,2048," %s##PatName%d",pat->name.c_str(),i);
-            if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
-              patNameTarget=i;
-              wantPatName=true;
-              snprintf(chanID,2048,"##PatNameI%d_%d",i,ord);
-              ImGui::SetActiveID(ImGui::GetID(chanID),ImGui::GetCurrentWindow());
-            }
+          snprintf(chanID,2048," %s##PatName%d",pat->name.c_str(),i);
+          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
+            editStr(&pat->name);
           }
           ImGui::PopFont();
         } else if (extraChannelButtons==1) {
@@ -953,6 +933,7 @@ void FurnaceGUI::drawPattern() {
           ImGui::TableNextColumn();
         }
       }
+
       ImGui::EndDisabled();
       ImGui::PopStyleVar();
       oldRow=curRow;
@@ -965,17 +946,27 @@ void FurnaceGUI::drawPattern() {
         }
         demandScrollX=false;
       }
-      scrollX=ImGui::GetScrollX();
+
+      // cursor follows wheel
+      if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+        if (wheelX!=0 || wheelY!=0) {
+          moveCursor(wheelX,wheelY,false);
+        }
+      }
 
       // overflow changes order
       // TODO: this is very unreliable and sometimes it can warp you out of the song
-      if (settings.scrollChangesOrder && !e->isPlaying() && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && !settings.cursorFollowsWheel) {
         if (wheelY!=0) {
           if (wheelY>0) {
             if (ImGui::GetScrollY()<=0) {
               if (haveHitBounds) {
                 if (curOrder>0) {
                   setOrder(curOrder-1);
+                  ImGui::SetScrollY(ImGui::GetScrollMaxY());
+                  updateScroll(e->curSubSong->patLen);
+                } else if (settings.scrollChangesOrder==2) {
+                  setOrder(e->curSubSong->ordersLen-1);
                   ImGui::SetScrollY(ImGui::GetScrollMaxY());
                   updateScroll(e->curSubSong->patLen);
                 }
@@ -991,6 +982,10 @@ void FurnaceGUI::drawPattern() {
               if (haveHitBounds) {
                 if (curOrder<(e->curSubSong->ordersLen-1)) {
                   setOrder(curOrder+1);
+                  ImGui::SetScrollY(0);
+                  updateScroll(0);
+                } else if (settings.scrollChangesOrder==2) {
+                  setOrder(0);
                   ImGui::SetScrollY(0);
                   updateScroll(0);
                 }
@@ -1138,6 +1133,8 @@ void FurnaceGUI::drawPattern() {
             break;
         }
 
+        if (!e->curSubSong->chanShow[i.chan]) continue;
+
         for (int j=0; j<num; j++) {
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i.chan]+fmod(rand(),width),
@@ -1194,8 +1191,8 @@ void FurnaceGUI::drawPattern() {
           }
 
           if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
-            ImVec2 tMin=ImVec2(off.x+patChanX[i]-scrollX,off.y+j);
-            ImVec2 tMax=ImVec2(off.x+patChanX[i+1]-scrollX,off.y+j+width*0.6);
+            ImVec2 tMin=ImVec2(off.x+patChanX[i],off.y+j);
+            ImVec2 tMax=ImVec2(off.x+patChanX[i+1],off.y+j+width*0.6);
             if (ch->portaNote<=ch->note) {
               arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,1.0-0.8));
               arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.0));

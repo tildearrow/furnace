@@ -37,6 +37,10 @@ DivMacroInt* DivDispatch::getChanMacroInt(int chan) {
   return NULL;
 }
 
+DivSamplePos DivDispatch::getSamplePos(int chan) {
+  return DivSamplePos();
+}
+
 DivDispatchOscBuffer* DivDispatch::getOscBuffer(int chan) {
   return NULL;
 }
@@ -79,6 +83,10 @@ bool DivDispatch::keyOffAffectsArp(int ch) {
 }
 
 bool DivDispatch::keyOffAffectsPorta(int ch) {
+  return false;
+}
+
+bool DivDispatch::isVolGlobal() {
   return false;
 }
 

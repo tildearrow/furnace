@@ -23,8 +23,7 @@
 #include "../engine/engine.h"
 #include "../engine/waveSynth.h"
 #include "imgui.h"
-#include "imgui_impl_sdl.h"
-#include "imgui_impl_sdlrenderer.h"
+#include "imgui_impl_sdl2.h"
 #include <SDL.h>
 #include <fftw3.h>
 #include <deque>
@@ -68,23 +67,72 @@
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
+#define FM_PREVIEW_SIZE 512
+
+enum FurnaceGUIRenderBackend {
+  GUI_BACKEND_SDL=0,
+  GUI_BACKEND_GL,
+  GUI_BACKEND_DX11
+};
+
+#ifdef HAVE_RENDER_DX11
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_DX11
+#define GUI_BACKEND_DEFAULT_NAME "DirectX 11"
+#else
+#ifdef HAVE_RENDER_GL
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_GL
+#define GUI_BACKEND_DEFAULT_NAME "OpenGL"
+#else
+#ifdef HAVE_RENDER_SDL
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
+#define GUI_BACKEND_DEFAULT_NAME "SDL"
+#else
+#error how did you manage to do that?
+#endif
+#endif
+#endif
+
 // TODO:
 // - add colors for FM envelope and waveform
 // - maybe add "alternate" color for FM modulators/carriers (a bit difficult)
 enum FurnaceGUIColors {
   GUI_COLOR_BACKGROUND=0,
   GUI_COLOR_FRAME_BACKGROUND,
+  GUI_COLOR_FRAME_BACKGROUND_CHILD,
+  GUI_COLOR_FRAME_BACKGROUND_POPUP,
   GUI_COLOR_MODAL_BACKDROP,
   GUI_COLOR_HEADER,
   GUI_COLOR_TEXT,
   GUI_COLOR_ACCENT_PRIMARY,
   GUI_COLOR_ACCENT_SECONDARY,
+  GUI_COLOR_TITLE_INACTIVE,
+  GUI_COLOR_TITLE_COLLAPSED,
+  GUI_COLOR_MENU_BAR,
   GUI_COLOR_BORDER,
   GUI_COLOR_BORDER_SHADOW,
+  GUI_COLOR_SCROLL_BACKGROUND,
+  GUI_COLOR_SCROLL,
+  GUI_COLOR_SCROLL_HOVER,
+  GUI_COLOR_SCROLL_ACTIVE,
+  GUI_COLOR_SEPARATOR,
+  GUI_COLOR_SEPARATOR_HOVER,
+  GUI_COLOR_SEPARATOR_ACTIVE,
+  GUI_COLOR_DOCKING_PREVIEW,
+  GUI_COLOR_DOCKING_EMPTY,
+  GUI_COLOR_TABLE_HEADER,
+  GUI_COLOR_TABLE_BORDER_HARD,
+  GUI_COLOR_TABLE_BORDER_SOFT,
+  GUI_COLOR_DRAG_DROP_TARGET,
+  GUI_COLOR_NAV_HIGHLIGHT,
+  GUI_COLOR_NAV_WIN_HIGHLIGHT,
+  GUI_COLOR_NAV_WIN_BACKDROP,
   GUI_COLOR_TOGGLE_OFF,
   GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
   GUI_COLOR_SONG_LOOP,
+  GUI_COLOR_DESTRUCTIVE,
+  GUI_COLOR_WARNING,
+  GUI_COLOR_ERROR,
 
   GUI_COLOR_FILE_DIR,
   GUI_COLOR_FILE_SONG_NATIVE,
@@ -104,6 +152,22 @@ enum FurnaceGUIColors {
   GUI_COLOR_OSC_BORDER,
   GUI_COLOR_OSC_WAVE,
   GUI_COLOR_OSC_WAVE_PEAK,
+  GUI_COLOR_OSC_WAVE_CH0,
+  GUI_COLOR_OSC_WAVE_CH1,
+  GUI_COLOR_OSC_WAVE_CH2,
+  GUI_COLOR_OSC_WAVE_CH3,
+  GUI_COLOR_OSC_WAVE_CH4,
+  GUI_COLOR_OSC_WAVE_CH5,
+  GUI_COLOR_OSC_WAVE_CH6,
+  GUI_COLOR_OSC_WAVE_CH7,
+  GUI_COLOR_OSC_WAVE_CH8,
+  GUI_COLOR_OSC_WAVE_CH9,
+  GUI_COLOR_OSC_WAVE_CH10,
+  GUI_COLOR_OSC_WAVE_CH11,
+  GUI_COLOR_OSC_WAVE_CH12,
+  GUI_COLOR_OSC_WAVE_CH13,
+  GUI_COLOR_OSC_WAVE_CH14,
+  GUI_COLOR_OSC_WAVE_CH15,
   GUI_COLOR_OSC_REF,
   GUI_COLOR_OSC_GUIDE,
 
@@ -190,6 +254,11 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_GA20,
   GUI_COLOR_INSTR_POKEMINI,
   GUI_COLOR_INSTR_SM8521,
+  GUI_COLOR_INSTR_PV1000,
+  GUI_COLOR_INSTR_K053260,
+  GUI_COLOR_INSTR_SCSP,
+  GUI_COLOR_INSTR_TED,
+  GUI_COLOR_INSTR_C140,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -343,13 +412,13 @@ enum FurnaceGUIMobileScenes {
 
 enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
+  GUI_FILE_OPEN_BACKUP,
   GUI_FILE_SAVE,
   GUI_FILE_SAVE_DMF,
   GUI_FILE_SAVE_DMF_LEGACY,
   GUI_FILE_INS_OPEN,
   GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
-  GUI_FILE_INS_SAVE_OLD,
   GUI_FILE_INS_SAVE_DMP,
   GUI_FILE_WAVE_OPEN,
   GUI_FILE_WAVE_OPEN_REPLACE,
@@ -361,14 +430,17 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_SAMPLE_OPEN_REPLACE,
   GUI_FILE_SAMPLE_OPEN_REPLACE_RAW,
   GUI_FILE_SAMPLE_SAVE,
+  GUI_FILE_SAMPLE_SAVE_RAW,
   GUI_FILE_EXPORT_AUDIO_ONE,
   GUI_FILE_EXPORT_AUDIO_PER_SYS,
   GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_ZSM,
   GUI_FILE_EXPORT_CMDSTREAM,
+  GUI_FILE_EXPORT_CMDSTREAM_BINARY,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
+  GUI_FILE_LOAD_HEAD_FONT,
   GUI_FILE_LOAD_PAT_FONT,
   GUI_FILE_IMPORT_COLORS,
   GUI_FILE_IMPORT_KEYBINDS,
@@ -379,6 +451,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_YRW801_ROM_OPEN,
   GUI_FILE_TG100_ROM_OPEN,
   GUI_FILE_MU5_ROM_OPEN,
+  GUI_FILE_CMDSTREAM_OPEN,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -411,6 +484,7 @@ enum FurnaceGUIFMAlgs {
 
 enum FurnaceGUIActions {
   GUI_ACTION_GLOBAL_MIN=0,
+  GUI_ACTION_NEW,
   GUI_ACTION_OPEN,
   GUI_ACTION_OPEN_BACKUP,
   GUI_ACTION_SAVE,
@@ -550,7 +624,6 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_OPEN,
   GUI_ACTION_INS_LIST_OPEN_REPLACE,
   GUI_ACTION_INS_LIST_SAVE,
-  GUI_ACTION_INS_LIST_SAVE_OLD,
   GUI_ACTION_INS_LIST_SAVE_DMP,
   GUI_ACTION_INS_LIST_MOVE_UP,
   GUI_ACTION_INS_LIST_MOVE_DOWN,
@@ -558,6 +631,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_EDIT,
   GUI_ACTION_INS_LIST_UP,
   GUI_ACTION_INS_LIST_DOWN,
+  GUI_ACTION_INS_LIST_DIR_VIEW,
   GUI_ACTION_INS_LIST_MAX,
 
   GUI_ACTION_WAVE_LIST_MIN,
@@ -574,6 +648,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WAVE_LIST_EDIT,
   GUI_ACTION_WAVE_LIST_UP,
   GUI_ACTION_WAVE_LIST_DOWN,
+  GUI_ACTION_WAVE_LIST_DIR_VIEW,
   GUI_ACTION_WAVE_LIST_MAX,
 
   GUI_ACTION_SAMPLE_LIST_MIN,
@@ -584,6 +659,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_LIST_OPEN_RAW,
   GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW,
   GUI_ACTION_SAMPLE_LIST_SAVE,
+  GUI_ACTION_SAMPLE_LIST_SAVE_RAW,
   GUI_ACTION_SAMPLE_LIST_MOVE_UP,
   GUI_ACTION_SAMPLE_LIST_MOVE_DOWN,
   GUI_ACTION_SAMPLE_LIST_DELETE,
@@ -592,6 +668,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_LIST_DOWN,
   GUI_ACTION_SAMPLE_LIST_PREVIEW,
   GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW,
+  GUI_ACTION_SAMPLE_LIST_DIR_VIEW,
   GUI_ACTION_SAMPLE_LIST_MAX,
 
   GUI_ACTION_SAMPLE_MIN,
@@ -714,6 +791,8 @@ enum NoteCtrl {
 struct SelectionPoint {
   int xCoarse, xFine;
   int y;
+  SelectionPoint(int xc, int xf, int yp):
+    xCoarse(xc), xFine(xf), y(yp) {}
   SelectionPoint():
     xCoarse(0), xFine(0), y(0) {}
 };
@@ -735,8 +814,15 @@ enum ActionType {
   GUI_UNDO_PATTERN_FLIP,
   GUI_UNDO_PATTERN_COLLAPSE,
   GUI_UNDO_PATTERN_EXPAND,
+  GUI_UNDO_PATTERN_COLLAPSE_SONG,
+  GUI_UNDO_PATTERN_EXPAND_SONG,
   GUI_UNDO_PATTERN_DRAG,
   GUI_UNDO_REPLACE
+};
+
+enum UndoOtherTarget {
+  GUI_UNDO_TARGET_SONG,
+  GUI_UNDO_TARGET_SUBSONG
 };
 
 struct UndoPatternData {
@@ -763,6 +849,19 @@ struct UndoOrderData {
     newVal(v2) {}
 };
 
+struct UndoOtherData {
+  UndoOtherTarget target;
+  int subtarget;
+  size_t off;
+  unsigned char oldVal, newVal;
+  UndoOtherData(UndoOtherTarget t, int st, size_t o, unsigned char v1, unsigned char v2):
+    target(t),
+    subtarget(st),
+    off(o),
+    oldVal(v1),
+    newVal(v2) {}
+};
+
 struct UndoStep {
   ActionType type;
   SelectionPoint cursor, selStart, selEnd;
@@ -772,6 +871,7 @@ struct UndoStep {
   int oldPatLen, newPatLen;
   std::vector<UndoOrderData> ord;
   std::vector<UndoPatternData> pat;
+  std::vector<UndoOtherData> other;
 };
 
 // -1 = any
@@ -998,6 +1098,31 @@ struct FurnaceGUISysCategory {
     description(NULL) {}
 };
 
+typedef std::function<void()> TutorialFunc;
+
+struct FurnaceGUITutorialStep {
+  const char* text;
+  int waitForTrigger;
+  TutorialFunc run;
+  TutorialFunc runBefore;
+  TutorialFunc runAfter;
+  
+  FurnaceGUITutorialStep(const char* t, int trigger=-1, TutorialFunc activeFunc=NULL, TutorialFunc beginFunc=NULL, TutorialFunc endFunc=NULL):
+    text(t),
+    waitForTrigger(trigger),
+    run(activeFunc),
+    runBefore(beginFunc),
+    runAfter(endFunc) {}
+};
+
+struct FurnaceGUITutorialDef {
+  const char* name;
+  std::vector<FurnaceGUITutorialStep> steps;
+  FurnaceGUITutorialDef():
+    name("Help!") {}
+  FurnaceGUITutorialDef(const char* n, std::initializer_list<FurnaceGUITutorialStep> step);
+};
+
 struct FurnaceGUIMacroDesc {
   DivInstrumentMacro* macro;
   int min, max;
@@ -1108,9 +1233,12 @@ struct FurnaceGUIQueryResult {
   }
 };
 
+class FurnaceGUITexture {
+};
+
 struct FurnaceGUIImage {
   unsigned char* data;
-  SDL_Texture* tex;
+  FurnaceGUITexture* tex;
   int width, height, ch;
 
   FurnaceGUIImage():
@@ -1121,15 +1249,64 @@ struct FurnaceGUIImage {
    ch(0) {}
 };
 
+struct FurnaceGUIPerfMetric {
+  const char* name;
+  int elapsed;
+  FurnaceGUIPerfMetric(const char* n, int t):
+    name(n),
+    elapsed(t) {}
+  FurnaceGUIPerfMetric():
+    name(NULL),
+    elapsed(0) {}
+};
+
+enum FurnaceGUIBlendMode {
+  GUI_BLEND_MODE_NONE=0,
+  GUI_BLEND_MODE_BLEND,
+  GUI_BLEND_MODE_ADD,
+  GUI_BLEND_MODE_MULTIPLY
+};
+
+class FurnaceGUIRender {
+  public:
+    virtual ImTextureID getTextureID(FurnaceGUITexture* which);
+    virtual bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
+    virtual bool unlockTexture(FurnaceGUITexture* which);
+    virtual bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
+    virtual FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    virtual bool destroyTexture(FurnaceGUITexture* which);
+    virtual void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
+    virtual void setBlendMode(FurnaceGUIBlendMode mode);
+    virtual void resized(const SDL_Event& ev);
+    virtual void clear(ImVec4 color);
+    virtual bool newFrame();
+    virtual void createFontsTexture();
+    virtual void destroyFontsTexture();
+    virtual void renderGUI();
+    virtual void wipe(float alpha);
+    virtual void present();
+    virtual bool getOutputSize(int& w, int& h);
+    virtual int getWindowFlags();
+    virtual void preInit();
+    virtual bool init(SDL_Window* win);
+    virtual void initGUI(SDL_Window* win);
+    virtual void quitGUI();
+    virtual bool quit();
+    virtual bool isDead();
+    virtual ~FurnaceGUIRender();
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
+  FurnaceGUIRenderBackend renderBackend;
+  FurnaceGUIRender* rend;
+
   SDL_Window* sdlWin;
-  SDL_Renderer* sdlRend;
   SDL_Haptic* vibrator;
   bool vibratorAvailable;
-
-  SDL_Texture* sampleTex;
+  
+  FurnaceGUITexture* sampleTex;
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
 
@@ -1139,20 +1316,23 @@ class FurnaceGUI {
   String workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
   String mmlStringW, mmlStringSNES, grooveString, grooveListString, mmlStringModTable;
+  String folderString;
 
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
   std::deque<String> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
   std::vector<String> availRenderDrivers;
+  std::vector<String> availAudioDrivers;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
-  bool portrait, injectBackUp, mobileMenuOpen;
+  bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
-  bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex;
+  bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
+  bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
+  bool killGraphics;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int vgmExportTrailingTicks;
@@ -1166,10 +1346,14 @@ class FurnaceGUI {
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;
   DivInstrumentFM opllPreview;
+  short fmPreview[FM_PREVIEW_SIZE];
+  bool updateFMPreview, fmPreviewOn, fmPreviewPaused;
+  void* fmPreviewOPN;
+  String* editString;
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
-  bool pendingRawSampleUnsigned, pendingRawSampleBigEndian, pendingRawSampleSwapNibbles;
+  bool pendingRawSampleUnsigned, pendingRawSampleBigEndian, pendingRawSampleSwapNibbles, pendingRawSampleReplace;
 
   ImGuiWindowFlags globalWinFlags;
 
@@ -1201,8 +1385,10 @@ class FurnaceGUI {
 
   ImFont* mainFont;
   ImFont* iconFont;
+  ImFont* furIconFont;
   ImFont* patFont;
   ImFont* bigFont;
+  ImFont* headFont;
   ImWchar* fontRange;
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
@@ -1221,7 +1407,7 @@ class FurnaceGUI {
   char emptyLabel2[32];
 
   struct Settings {
-    int mainFontSize, patFontSize, iconSize;
+    int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
     int audioChans;
@@ -1238,6 +1424,7 @@ class FurnaceGUI {
     String tg100Path;
     String mu5Path;
     int mainFont;
+    int headFont;
     int patFont;
     int audioRate;
     int audioBufSize;
@@ -1253,13 +1440,13 @@ class FurnaceGUI {
     int chipNames;
     int overflowHighlight;
     int partyTime;
+    int flatNotes;
     int germanNotation;
     int stepOnDelete;
     int scrollStep;
     int sysSeparators;
     int forceMono;
     int controlLayout;
-    int restartOnFlagChange;
     int statusDisplay;
     float dpiScale;
     int viewPrevPattern;
@@ -1291,6 +1478,8 @@ class FurnaceGUI {
     int oscTakesEntireWindow;
     int oscBorder;
     int oscEscapesBoundary;
+    int oscMono;
+    int oscAntiAlias;
     int separateFMColors;
     int insEditColorize;
     int metroVol;
@@ -1317,6 +1506,7 @@ class FurnaceGUI {
     int doubleClickColumn;
     int blankIns;
     int dragMovesSelection;
+    int cursorFollowsOrder;
     int unsignedDetune;
     int noThreadedInput;
     int saveWindowPos;
@@ -1330,7 +1520,10 @@ class FurnaceGUI {
     int channelFont;
     int channelTextCenter;
     int midiOutClock;
+    int midiOutTime;
+    int midiOutProgramChange;
     int midiOutMode;
+    int midiOutTimeRate;
     int maxRecentFile;
     int centerPattern;
     int ordersCursor;
@@ -1342,13 +1535,32 @@ class FurnaceGUI {
     int oneDigitEffects;
     int disableFadeIn;
     int alwaysPlayIntro;
+    int iCannotWait;
+    int orderButtonPos;
+    int compress;
+    int newPatternFormat;
+    int renderClearPos;
+    int insertBehavior;
+    int pullDeleteRow;
+    int newSongBehavior;
+    int memUsageUnit;
+    int cursorFollowsWheel;
+    int noDMFCompat;
+    int removeInsOff;
+    int removeVolOff;
+    int playOnLoad;
+    int insTypeMenu;
+    int capitalMenuBar;
+    int centerPopup;
+    int insIconsStyle;
     unsigned int maxUndoSteps;
     String mainFontPath;
+    String headFontPath;
     String patFontPath;
     String audioDevice;
     String midiInDevice;
     String midiOutDevice;
-    String c163Name;
+    String renderBackend;
     String renderDriver;
     String initialSysName;
     String noteOffLabel;
@@ -1356,11 +1568,13 @@ class FurnaceGUI {
     String macroRelLabel;
     String emptyLabel;
     String emptyLabel2;
+    String sdlAudioDriver;
     DivConfig initialSys;
 
     Settings():
       mainFontSize(18),
       patFontSize(18),
+      headFontSize(27),
       iconSize(16),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
@@ -1370,7 +1584,7 @@ class FurnaceGUI {
       snCore(0),
       nesCore(0),
       fdsCore(0),
-      c64Core(1),
+      c64Core(0),
       pokeyCore(1),
       opnCore(1),
       pcSpeakerOutMethod(0),
@@ -1399,7 +1613,6 @@ class FurnaceGUI {
       sysSeparators(1),
       forceMono(0),
       controlLayout(3),
-      restartOnFlagChange(1),
       statusDisplay(0),
       dpiScale(0.0f),
       viewPrevPattern(1),
@@ -1431,6 +1644,8 @@ class FurnaceGUI {
       oscTakesEntireWindow(0),
       oscBorder(1),
       oscEscapesBoundary(0),
+      oscMono(1),
+      oscAntiAlias(1),
       separateFMColors(0),
       insEditColorize(0),
       metroVol(100),
@@ -1457,6 +1672,7 @@ class FurnaceGUI {
       doubleClickColumn(1),
       blankIns(0),
       dragMovesSelection(1),
+      cursorFollowsOrder(1),
       unsignedDetune(0),
       noThreadedInput(0),
       clampSamples(0),
@@ -1469,7 +1685,10 @@ class FurnaceGUI {
       channelFont(1),
       channelTextCenter(1),
       midiOutClock(0),
+      midiOutTime(0),
+      midiOutProgramChange(0),
       midiOutMode(1),
+      midiOutTimeRate(0),
       maxRecentFile(10),
       centerPattern(0),
       ordersCursor(1),
@@ -1481,20 +1700,40 @@ class FurnaceGUI {
       oneDigitEffects(0),
       disableFadeIn(0),
       alwaysPlayIntro(0),
+      iCannotWait(0),
+      orderButtonPos(2),
+      compress(1),
+      newPatternFormat(1),
+      renderClearPos(0),
+      insertBehavior(1),
+      pullDeleteRow(1),
+      newSongBehavior(0),
+      memUsageUnit(1),
+      cursorFollowsWheel(0),
+      noDMFCompat(0),
+      removeInsOff(0),
+      removeVolOff(0),
+      playOnLoad(0),
+      insTypeMenu(1),
+      capitalMenuBar(0),
+      centerPopup(1),
+      insIconsStyle(1),
       maxUndoSteps(100),
       mainFontPath(""),
+      headFontPath(""),
       patFontPath(""),
       audioDevice(""),
       midiInDevice(""),
       midiOutDevice(""),
-      c163Name(""),
+      renderBackend(""),
       renderDriver(""),
       initialSysName("Sega Genesis/Mega Drive"),
       noteOffLabel("OFF"),
       noteRelLabel("==="),
       macroRelLabel("REL"),
       emptyLabel("..."),
-      emptyLabel2("..") {}
+      emptyLabel2(".."),
+      sdlAudioDriver("") {}
   } settings;
 
   struct Tutorial {
@@ -1515,29 +1754,32 @@ class FurnaceGUI {
   DivInstrument* prevInsData;
 
   int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan,orderEditMode, orderCursor;
-  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
+  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
-  int curGroove;
+  int curGroove, exitDisabledTimer;
   float soloTimeout;
 
   double exportFadeOut;
 
+  bool newSongFirstFrame;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen, introMonOpen;
+  bool groovesOpen;
 
   bool basicMode, shortIntro;
+  bool insListDir, waveListDir, sampleListDir;
 
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
   float clockMetroTick[16];
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
+  bool collapseWindow, demandScrollX, fancyPattern, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive, keepGrooveAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton, wantGrooveListFocus;
+  unsigned char lastAssetType;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
   float peak[DIV_MAX_OUTPUTS];
@@ -1555,7 +1797,7 @@ class FurnaceGUI {
 
   DivWaveSynth wavePreview;
   int wavePreviewLen, wavePreviewHeight;
-  bool wavePreviewInit;
+  bool wavePreviewInit, wavePreviewPaused;
 
   // bit 31: ctrl
   // bit 30: reserved for SDL scancode mask
@@ -1615,6 +1857,7 @@ class FurnaceGUI {
   std::vector<std::pair<DivInstrument*,bool>> pendingIns;
 
   std::vector<FurnaceGUISysCategory> sysCategories;
+  FurnaceGUITutorialDef tutorials[GUI_TUTORIAL_MAX];
 
   bool wavePreviewOn;
   SDL_Scancode wavePreviewKey;
@@ -1635,8 +1878,11 @@ class FurnaceGUI {
   std::vector<TouchPoint> pressedPoints;
   std::vector<TouchPoint> releasedPoints;
 
-  int arpMacroScroll;
-  int pitchMacroScroll;
+  int sampleMapSelStart;
+  int sampleMapSelEnd;
+  int sampleMapDigit;
+  int sampleMapColumn;
+  bool sampleMapFocused, sampleMapWaitingInput;
 
   ImVec2 macroDragStart;
   ImVec2 macroDragAreaSize;
@@ -1688,11 +1934,19 @@ class FurnaceGUI {
 
   int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
+  int drawTimeBegin, drawTimeEnd, drawTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
+
+  FurnaceGUIPerfMetric perfMetrics[64];
+  int perfMetricsLen;
+
+  FurnaceGUIPerfMetric perfMetricsLast[64];
+  int perfMetricsLastLen;
 
   std::map<FurnaceGUIImages,FurnaceGUIImage*> images;
 
   int chanToMove, sysToMove, sysToDelete, opToMove;
+  int assetToMove, dirToMove;
 
   ImVec2 patWindowPos, patWindowSize;
 
@@ -1701,9 +1955,10 @@ class FurnaceGUI {
   ImVec2 noteCellSize, insCellSize, volCellSize, effectCellSize, effectValCellSize;
   SelectionPoint sel1, sel2;
   int dummyRows, demandX;
-  int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax;
+  int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax, collapseAmount;
   float scaleMax;
-  bool fadeMode, randomMode, haveHitBounds, pendingStepUpdate;
+  bool fadeMode, randomMode, haveHitBounds;
+  signed char pendingStepUpdate;
 
   int oldOrdersLen;
   DivOrders oldOrders;
@@ -1723,6 +1978,9 @@ class FurnaceGUI {
   int sampleSelStart, sampleSelEnd;
   bool sampleInfo, sampleCompatRate;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
+  // 0: start
+  // 1: end
+  unsigned char sampleSelTarget;
   void* sampleDragTarget;
   ImVec2 sampleDragStart;
   ImVec2 sampleDragAreaSize;
@@ -1745,19 +2003,21 @@ class FurnaceGUI {
   ImVec2 subPortPos;
 
   // oscilloscope
-  int oscTotal;
-  float oscValues[512];
+  int oscTotal, oscWidth;
+  float* oscValues[DIV_MAX_OUTPUTS];
   float oscZoom;
   float oscWindowSize;
+  float oscInput, oscInput1;
   bool oscZoomSlider;
 
   // per-channel oscilloscope
-  int chanOscCols, chanOscColorX, chanOscColorY;
-  float chanOscWindowSize;
-  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad;
-  ImVec4 chanOscColor;
+  int chanOscCols, chanOscAutoColsType, chanOscColorX, chanOscColorY;
+  float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize;
+  String chanOscTextFormat;
+  ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
-  SDL_Texture* chanOscGradTex;
+  FurnaceGUITexture* chanOscGradTex;
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
   float chanOscVol[DIV_MAX_CHANS];
@@ -1809,8 +2069,12 @@ class FurnaceGUI {
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   float pianoKeyHit[180];
   bool pianoKeyPressed[180];
+  bool pianoReadonly;
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
+  
+  //effect sorting
+  bool effectsShow[10];
 
   // TX81Z
   bool hasACED;
@@ -1843,16 +2107,21 @@ class FurnaceGUI {
   double monitorPos;
   int mustClear;
   float initialScreenWipe;
-  bool introSkipDo;
+  bool introSkipDo, introStopped;
   ImVec2 introMin, introMax;
+
+  // tutorial
+  int curTutorial, curTutorialStep;
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
-  bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange);
+  bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
   void kvsConfig(DivInstrument* ins);
+  void drawFMPreview(const ImVec2& size);
+  void renderFMPreview(const DivInstrumentFM& params, int pos=0);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
@@ -1874,11 +2143,20 @@ class FurnaceGUI {
   ImVec4 channelColor(int ch);
   ImVec4 channelTextColor(int ch);
 
+  void centerNextWindow(const char* name, float w, float h);
+
   void readOsc();
   void calcChanOsc();
 
   void pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow);
   void popAccentColors();
+
+  void pushDestColor();
+  void popDestColor();
+  void pushWarningColor(bool warnCond, bool errorCond=false);
+  void popWarningColor();
+
+  void sameLineMaybe(float width=-1.0f);
 
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 
@@ -1886,17 +2164,26 @@ class FurnaceGUI {
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
+  void alterSampleMap(bool isNote, int val);
+
+  void drawOrderButtons();
 
   void actualWaveList();
   void actualSampleList();
+
+  void insListItem(int index, int dir, int asset);
+  void waveListItem(int index, float* wavePreview, int dir, int asset);
+  void sampleListItem(int index, int dir, int asset);
 
   void toggleMobileUI(bool enable, bool force=false);
 
   void pushToggleColors(bool status);
   void popToggleColors();
 
+  void highlightWindow(const char* winName);
+
   FurnaceGUIImage* getImage(FurnaceGUIImages image);
-  SDL_Texture* getTexture(FurnaceGUIImages image, SDL_BlendMode blendMode=SDL_BLENDMODE_BLEND);
+  FurnaceGUITexture* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode=GUI_BLEND_MODE_BLEND);
   void drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor);
 
   void drawMobileControls();
@@ -1932,7 +2219,7 @@ class FurnaceGUI {
   void drawNewSong();
   void drawLog();
   void drawEffectList();
-  void drawSubSongs();
+  void drawSubSongs(bool asChild=false);
   void drawFindReplace();
   void drawSpoiler();
   void drawClock();
@@ -1989,8 +2276,10 @@ class FurnaceGUI {
   void doScale(float top);
   void doRandomize(int bottom, int top, bool mode);
   void doFlip();
-  void doCollapse(int divider);
-  void doExpand(int multiplier);
+  void doCollapse(int divider, const SelectionPoint& sStart, const SelectionPoint& sEnd);
+  void doExpand(int multiplier, const SelectionPoint& sStart, const SelectionPoint& sEnd);
+  void doCollapseSong(int divider);
+  void doExpandSong(int multiplier);
   void doUndo();
   void doRedo();
   void doFind();
@@ -2024,13 +2313,17 @@ class FurnaceGUI {
   void openFileDialog(FurnaceGUIFileDialogs type);
   int save(String path, int dmfVersion);
   int load(String path);
+  int loadStream(String path);
   void pushRecentFile(String path);
   void exportAudio(String path, DivAudioExportModes mode);
+  void delFirstBackup(String name);
 
   bool parseSysEx(unsigned char* data, size_t len);
 
   void applyUISettings(bool updateFonts=true);
   void initSystemPresets();
+  void initTutorial();
+  void activateTutorial(FurnaceGUITutorials which);
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false, bool bit30=false);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);
@@ -2039,9 +2332,14 @@ class FurnaceGUI {
   String encodeKeyMap(std::map<int,int>& map);
   void decodeKeyMap(std::map<int,int>& map, String source);
 
+  bool initRender();
+  bool quitRender();
+
   const char* getSystemName(DivSystem which);
+  const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
 
   public:
+    void editStr(String* which);
     void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);
     String getLastError();
@@ -2055,11 +2353,12 @@ class FurnaceGUI {
     void runBackupThread();
     void pushPartBlend();
     void popPartBlend();
-    bool detectOutOfBoundsWindow();
+    bool detectOutOfBoundsWindow(SDL_Rect& failing);
     int processEvent(SDL_Event* ev);
     bool loop();
     bool finish();
     bool init();
+    void requestQuit();
     FurnaceGUI();
 };
 

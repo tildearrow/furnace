@@ -222,7 +222,8 @@ void DivPlatformX1_010::acquire(short** buf, size_t len) {
     if (stereo) buf[1][h]=tempR;
 
     for (int i=0; i<16; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))>>1;
+      int vo=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))<<2;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(vo,-32768,32767);
     }
   }
 }
@@ -540,7 +541,10 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].pcm=true;
           chan[c.chan].macroInit(ins);
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].sample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             if (isBanked) {
@@ -924,14 +928,14 @@ void DivPlatformX1_010::notifyInsDeletion(void* ins) {
 
 void DivPlatformX1_010::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
-    case 0: // 16MHz (earlier hardwares)
-      chipClock=16000000;
-      break;
     case 1: // 16.67MHz (later hardwares)
       chipClock=50000000.0/3.0;
       break;
+    case 2: // 14.32MHz (see https://github.com/mamedev/mame/blob/master/src/mame/taito/champbwl.cpp#L620)
+      chipClock=COLOR_NTSC*4.0;
+      break;
     // Other clock is used
-    default:
+    default: // 16MHz (earlier hardwares)
       chipClock=16000000;
       break;
   }

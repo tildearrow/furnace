@@ -85,9 +85,9 @@ void DivPlatformMMC5::acquire(short** buf, size_t len) {
 
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:((mmc5->S3.output*10)<<7);
-      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:((mmc5->S4.output*10)<<7);
-      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:((mmc5->pcm.output*2)<<6);
+      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:((mmc5->S3.output)<<11);
+      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:((mmc5->S4.output)<<11);
+      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:((mmc5->pcm.output)<<7);
     }
   }
 }
@@ -176,7 +176,10 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       if (c.chan==2) { // PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
         if (ins->type==DIV_INS_AMIGA) {
-          if (c.value!=DIV_NOTE_NULL) dacSample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            dacSample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);

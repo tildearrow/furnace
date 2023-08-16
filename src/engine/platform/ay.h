@@ -20,7 +20,7 @@
 #ifndef _AY_H
 #define _AY_H
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "sound/ay8910.h"
 
 class DivPlatformAY8910: public DivDispatch {
@@ -31,29 +31,25 @@ class DivPlatformAY8910: public DivDispatch {
     inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
     struct Channel: public SharedChannel<int> {
       struct PSGMode {
-        union {
-          struct {
-            unsigned char tone: 1;
-            unsigned char noise: 1;
-            unsigned char envelope: 1;
-            unsigned char dac: 1;
-          };
-          unsigned char val=1;
-        };
+        // bit 3: DAC
+        // bit 2: envelope
+        // bit 1: noise
+        // bit 0: tone
+        unsigned char val;
 
         unsigned char getTone() {
-          return dac?0:(tone<<0);
+          return (val&8)?0:(val&1);
         }
 
         unsigned char getNoise() {
-          return dac?0:(noise<<1);
+          return (val&8)?0:(val&2);
         }
 
         unsigned char getEnvelope() {
-          return dac?0:(envelope<<2);
+          return (val&8)?0:(val&4);
         }
 
-        PSGMode(unsigned char v=0):
+        PSGMode(unsigned char v=1):
           val(v) {}
       };
       PSGMode curPSGMode;
@@ -61,7 +57,7 @@ class DivPlatformAY8910: public DivDispatch {
 
       struct DAC {
         int sample, rate, period, pos, out;
-        unsigned char furnaceDAC: 1;
+        bool furnaceDAC;
 
         DAC():
           sample(-1),
@@ -69,7 +65,7 @@ class DivPlatformAY8910: public DivDispatch {
           period(0),
           pos(0),
           out(0),
-          furnaceDAC(0) {}
+          furnaceDAC(false) {}
       } dac;
 
       unsigned char autoEnvNum, autoEnvDen;
@@ -89,9 +85,10 @@ class DivPlatformAY8910: public DivDispatch {
       unsigned short addr;
       unsigned char val;
       bool addrOrVal;
+      QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    std::queue<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,128> writes;
     ay8910_device* ay;
     DivDispatchOscBuffer* oscBuf[3];
     unsigned char regPool[16];
@@ -104,7 +101,9 @@ class DivPlatformAY8910: public DivDispatch {
 
     bool extMode;
     unsigned int extClock;
+    int dacRate;
     unsigned char extDiv;
+    unsigned char dacRateDiv;
 
     bool stereo, sunsoft, intellivision, clockSel;
     bool ioPortA, ioPortB;
@@ -119,7 +118,6 @@ class DivPlatformAY8910: public DivDispatch {
     short* ayBuf[3];
     size_t ayBufLen;
 
-    void runDAC();
     void checkWrites();
     void updateOutSel(bool immediate=false);
   
@@ -127,6 +125,7 @@ class DivPlatformAY8910: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
   
   public:
+    void runDAC();
     void setExtClockDiv(unsigned int eclk=COLOR_NTSC, unsigned char ediv=8);
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
@@ -143,6 +142,7 @@ class DivPlatformAY8910: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     DivMacroInt* getChanMacroInt(int ch);
+    DivSamplePos getSamplePos(int ch);
     bool getDCOffRequired();
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
@@ -150,10 +150,11 @@ class DivPlatformAY8910: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    DivPlatformAY8910(bool useExtMode=false, unsigned int eclk=COLOR_NTSC, unsigned char ediv=8):
+    DivPlatformAY8910(bool useExtMode=false, unsigned int eclk=COLOR_NTSC, unsigned char ediv=8, unsigned char ddiv=24):
       DivDispatch(),
       extMode(useExtMode),
       extClock(eclk),
-      extDiv(ediv) {}
+      extDiv(ediv),
+      dacRateDiv(ddiv) {}
 };
 #endif

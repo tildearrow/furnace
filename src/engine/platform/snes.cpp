@@ -91,7 +91,7 @@ void DivPlatformSNES::acquire(short** buf, size_t len) {
       next=(next*254)/MAX(1,globalVolL+globalVolR);
       if (next<-32768) next=-32768;
       if (next>32767) next=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=next;
+      oscBuf[i]->data[oscBuf[i]->needle++]=next>>1;
     }
   }
 }
@@ -202,6 +202,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     }
   }
   for (int i=0; i<8; i++) {
+    // TODO: if wavetable length is higher than 32, we lose precision!
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
@@ -221,7 +222,7 @@ void DivPlatformSNES::tick(bool sysTick) {
           if (chan[i].audPos>0) {
             start=start+MIN(chan[i].audPos,s->lengthBRR-1)/16*9;
           }
-          if (s->loopStart>=0) {
+          if (s->isLoopable()) {
             loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
           }
         } else {
@@ -300,6 +301,11 @@ void DivPlatformSNES::tick(bool sysTick) {
     rWrite(0x4d,echoBits);
     writeEcho=false;
   }
+  if (writeDryVol) {
+    rWrite(0x0c,dryVolL);
+    rWrite(0x1c,dryVolR);
+    writeDryVol=false;
+  }
   for (int i=0; i<8; i++) {
     if (chan[i].shallWriteEnv) {
       writeEnv(i);
@@ -336,7 +342,10 @@ int DivPlatformSNES::dispatch(DivCommand c) {
         }
         chan[c.chan].ws.init(ins,chan[c.chan].wtLen,15,chan[c.chan].insChanged);
       } else {
-        if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          c.value=ins->amiga.getFreq(c.value);
+        }
         chan[c.chan].useWave=false;
       }
       if (chan[c.chan].useWave || chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
@@ -560,6 +569,14 @@ int DivPlatformSNES::dispatch(DivCommand c) {
         rWrite(0x3c,echoVolR);
       }
       break;
+    case DIV_CMD_SNES_GLOBAL_VOL_LEFT:
+      dryVolL=c.value;
+      writeDryVol=true;
+      break;
+    case DIV_CMD_SNES_GLOBAL_VOL_RIGHT:
+      dryVolR=c.value;
+      writeDryVol=true;
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
@@ -670,6 +687,7 @@ void DivPlatformSNES::forceIns() {
   writeNoise=true;
   writePitchMod=true;
   writeEcho=true;
+  writeDryVol=true;
   initEcho();
 }
 
@@ -679,6 +697,20 @@ void* DivPlatformSNES::getChanState(int ch) {
 
 DivMacroInt* DivPlatformSNES::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+DivSamplePos DivPlatformSNES::getSamplePos(int ch) {
+  if (ch>=8) return DivSamplePos();
+  if (!chan[ch].active) return DivSamplePos();
+  if (chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) return DivSamplePos();
+  const SPC_DSP::voice_t* v=dsp.get_voice(ch);
+  // TODO: fix?
+  if (sampleMem[v->brr_addr&0xffff]==0) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].sample,
+    ((v->brr_addr-sampleOff[chan[ch].sample])*16/9)+v->brr_offset,
+    (chan[ch].freq*125)/16
+  );
 }
 
 DivDispatchOscBuffer* DivPlatformSNES::getOscBuffer(int ch) {
@@ -701,6 +733,7 @@ int DivPlatformSNES::getRegisterPoolSize() {
 
 void DivPlatformSNES::initEcho() {
   unsigned char esa=0xf8-(echoDelay<<3);
+  unsigned char control=(noiseFreq&0x1f)|(echoOn?0:0x20);
   if (echoOn) {
     rWrite(0x6d,esa);
     rWrite(0x7d,echoDelay);
@@ -710,16 +743,19 @@ void DivPlatformSNES::initEcho() {
     for (int i=0; i<8; i++) {
       rWrite(0x0f+(i<<4),echoFIR[i]);
     }
+    rWrite(0x6c,control);
   } else {
-    rWrite(0x6d,0);
-    rWrite(0x7d,0);
     rWrite(0x2c,0);
     rWrite(0x3c,0);
+    rWrite(0x6c,control);
+    rWrite(0x7d,0);
+    rWrite(0x6d,0xff);
   }
-  writeControl=true;
 }
 
 void DivPlatformSNES::reset() {
+  writes.clear();
+
   memcpy(sampleMem,copyOfSampleMem,65536);
   dsp.init(sampleMem);
   dsp.set_output(NULL,0);
@@ -744,6 +780,10 @@ void DivPlatformSNES::reset() {
   writeNoise=false;
   writePitchMod=false;
   writeEcho=true;
+  writeDryVol=false;
+
+  dryVolL=127;
+  dryVolR=127;
 
   echoDelay=initEchoDelay;
   echoFeedback=initEchoFeedback;

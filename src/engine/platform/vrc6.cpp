@@ -22,7 +22,7 @@
 #include <cstddef>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(0x9000+(c<<12)+(a&3),v)
 
 const char* regCheatSheetVRC6[]={
@@ -87,7 +87,7 @@ void DivPlatformVRC6::acquire(short** buf, size_t len) {
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.pulse_out(i)<<10;
+        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.pulse_out(i)<<11;
       }
       oscBuf[2]->data[oscBuf[2]->needle++]=vrc6.sawtooth_out()<<10;
     }
@@ -179,8 +179,6 @@ void DivPlatformVRC6::tick(bool sysTick) {
       if (chan[i].std.phaseReset.val && chan[i].active) {
         if ((i!=2) && (!chan[i].pcm)) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
-          DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_VRC6);
-          chan[i].dacSample=ins->amiga.getSample(chan[i].note);
           if (chan[i].dacSample<0 || chan[i].dacSample>=parent->song.sampleLen) {
             if (dumpWrites) {
               chWrite(i,2,0x80);
@@ -242,7 +240,10 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
         if (chan[c.chan].pcm) {
           if (skipRegisterWrites) break;
           if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-            if (c.value!=DIV_NOTE_NULL) chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+            if (c.value!=DIV_NOTE_NULL) {
+              chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+              c.value=ins->amiga.getFreq(c.value);
+            }
             if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
               chan[c.chan].dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
@@ -446,6 +447,16 @@ void* DivPlatformVRC6::getChanState(int ch) {
 
 DivMacroInt* DivPlatformVRC6::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+DivSamplePos DivPlatformVRC6::getSamplePos(int ch) {
+  if (ch>=2) return DivSamplePos();
+  if (!chan[ch].pcm) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].dacSample,
+    chan[ch].dacPos,
+    chan[ch].dacRate
+  );
 }
 
 DivDispatchOscBuffer* DivPlatformVRC6::getOscBuffer(int ch) {

@@ -19,10 +19,11 @@
 
 #include "gb.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
-#define immWrite(a,v) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) {writes.push(QueuedWrite(a,v)); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 16
 
@@ -82,8 +83,12 @@ void DivPlatformGB::acquire(short** buf, size_t len) {
 void DivPlatformGB::updateWave() {
   rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
-    int nibble1=15-ws.output[((i<<1)+antiClickWavePos-1)&31];
-    int nibble2=15-ws.output[((1+(i<<1))+antiClickWavePos-1)&31];
+    int nibble1=ws.output[((i<<1)+antiClickWavePos)&31];
+    int nibble2=ws.output[((1+(i<<1))+antiClickWavePos)&31];
+    if (invertWave) {
+      nibble1^=15;
+      nibble2^=15;
+    }
     rWrite(0x30+i,(nibble1<<4)|nibble2);
   }
   antiClickWavePos&=31;
@@ -249,7 +254,7 @@ void DivPlatformGB::tick(bool sysTick) {
               chan[i].sweepChanged=true;
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_WAIT:
-              chan[i].hwSeqDelay=data+1;
+              chan[i].hwSeqDelay=(data+1)*parent->tickMult;
               leave=true;
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_WAIT_REL:
@@ -295,6 +300,7 @@ void DivPlatformGB::tick(bool sysTick) {
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave
+          rWrite(16+i*5,0x00);
           rWrite(16+i*5,0x80);
           rWrite(16+i*5+2,gbVolMap[chan[i].outVol]);
         } else {
@@ -315,7 +321,7 @@ void DivPlatformGB::tick(bool sysTick) {
         rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<64)<<6));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
-        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<63)<<6));
+        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||(chan[i].keyOff && i!=2))?0x80:0x00)|((chan[i].soundLen<63)<<6));
       }
       if (enoughAlready) { // more compat garbage
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
@@ -390,6 +396,14 @@ int DivPlatformGB::dispatch(DivCommand c) {
           chan[c.chan].vol=chan[c.chan].envVol;
           chan[c.chan].outVol=chan[c.chan].envVol;
         }
+      } else if (chan[c.chan].softEnv && c.chan!=2) {
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+          chan[c.chan].envVol=chan[c.chan].outVol;
+        }
+        chan[c.chan].envLen=0;
+        chan[c.chan].envDir=1;
+        chan[c.chan].soundLen=64;
       }
       if (c.chan==2 && chan[c.chan].softEnv) {
         chan[c.chan].soundLen=64;
@@ -459,7 +473,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (c.chan!=2) break;
       chan[c.chan].wave=c.value;
       ws.changeWave1(chan[c.chan].wave);
-      chan[c.chan].keyOn=true;
+      if (chan[c.chan].active) {
+        chan[c.chan].keyOn=true;
+      }
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
@@ -658,23 +674,29 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
       model=GB_MODEL_AGB;
       break;
   }
+  invertWave=flags.getBool("invertWave",true);
   enoughAlready=flags.getBool("enoughAlready",false);
-}
 
-int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   chipClock=4194304;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
-    isMuted[i]=false;
-    oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;
   }
+}
+
+int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   model=GB_MODEL_DMG_B;
   gb=new GB_gameboy_t;
+
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
+
   setFlags(flags);
   reset();
   return 4;

@@ -593,30 +593,33 @@ void FurnaceGUI::drawWaveEdit() {
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("Duty");
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                   if (CWSliderFloat("##WGDuty",&waveGenDuty,0.0f,1.0f)) {
                     doGenerateWave();
-                  }
+                  } rightClickable
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("Exponent");
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                   if (CWSliderInt("##WGExp",&waveGenPower,1,8)) {
                     doGenerateWave();
-                  }
+                  } rightClickable
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("XOR Point");
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                   if (CWSliderFloat("##WGXOR",&waveGenInvertPoint,0.0f,1.0f)) {
                     doGenerateWave();
-                  }
+                  } rightClickable
 
                   ImGui::EndTable();
                 }
@@ -630,13 +633,14 @@ void FurnaceGUI::drawWaveEdit() {
                     for (int i=0; i<16; i++) {
                       ImGui::TableNextRow();
                       ImGui::TableNextColumn();
+                      ImGui::AlignTextToFramePadding();
                       ImGui::Text("%d",i+1);
                       ImGui::TableNextColumn();
                       ImGui::PushID(140+i);
                       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                       if (CWSliderFloat("##WGAmp",&waveGenAmp[i],-1.0f,1.0f)) {
                         doGenerateWave();
-                      }
+                      } rightClickable
                       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
                         waveGenAmp[i]=0.0f;
                         doGenerateWave();
@@ -647,7 +651,7 @@ void FurnaceGUI::drawWaveEdit() {
                       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                       if (CWSliderFloat("##WGPhase",&waveGenPhase[i],0.0f,1.0f)) {
                         doGenerateWave();
-                      }
+                      } rightClickable
                       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
                         waveGenPhase[i]=0.0f;
                         doGenerateWave();
@@ -683,6 +687,7 @@ void FurnaceGUI::drawWaveEdit() {
                   for (int i=0; i<4; i++) {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
+                    ImGui::AlignTextToFramePadding();
                     ImGui::Text("%d",i+1);
 
                     ImGui::TableNextColumn();
@@ -690,7 +695,7 @@ void FurnaceGUI::drawWaveEdit() {
                     ImGui::PushID(i);
                     if (CWSliderFloat("##WGTL",&waveGenTL[i],0.0f,1.0f)) {
                       doGenerateWave();
-                    }
+                    } rightClickable
                     ImGui::PopID();
 
                     ImGui::TableNextColumn();
@@ -698,7 +703,7 @@ void FurnaceGUI::drawWaveEdit() {
                     ImGui::PushID(i);
                     if (CWSliderInt("##WGMULT",&waveGenMult[i],1,16)) {
                       doGenerateWave();
-                    }
+                    } rightClickable
                     ImGui::PopID();
 
                     ImGui::TableNextColumn();
@@ -706,7 +711,7 @@ void FurnaceGUI::drawWaveEdit() {
                     ImGui::PushID(i);
                     if (CWSliderInt("##WGFB",&waveGenFB[i],0,7)) {
                       doGenerateWave();
-                    }
+                    } rightClickable
                     
                     ImGui::PopID();
                   }
@@ -727,6 +732,7 @@ void FurnaceGUI::drawWaveEdit() {
                   for (int i=0; i<4; i++) {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
+                    ImGui::AlignTextToFramePadding();
                     ImGui::Text("%d",i+1);
 
                     ImGui::TableNextColumn();
@@ -760,6 +766,7 @@ void FurnaceGUI::drawWaveEdit() {
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("1");
                   ImGui::TableNextColumn();
                   if (ImGui::Checkbox("##ConO1",&waveGenFMCon0[0])) {
@@ -784,6 +791,7 @@ void FurnaceGUI::drawWaveEdit() {
                   
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("2");
                   ImGui::TableNextColumn();
                   if (ImGui::Checkbox("##Con11",&waveGenFMCon1[0])) {
@@ -808,6 +816,7 @@ void FurnaceGUI::drawWaveEdit() {
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("3");
                   ImGui::TableNextColumn();
                   if (ImGui::Checkbox("##Con21",&waveGenFMCon2[0])) {
@@ -832,6 +841,7 @@ void FurnaceGUI::drawWaveEdit() {
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("4");
                   ImGui::TableNextColumn();
                   if (ImGui::Checkbox("##Con31",&waveGenFMCon3[0])) {

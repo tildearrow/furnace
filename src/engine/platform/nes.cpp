@@ -130,9 +130,9 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
   for (size_t i=0; i<len; i++) {
     doPCM;
   
-    nes1_NP->Tick(1);
-    nes2_NP->TickFrameSequence(1);
-    nes2_NP->Tick(1);
+    nes1_NP->Tick(8);
+    nes2_NP->TickFrameSequence(8);
+    nes2_NP->Tick(8);
     nes1_NP->Render(out1);
     nes2_NP->Render(out2);
 
@@ -140,12 +140,12 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     buf[0][i]=sample;
-    if (++writeOscBuf>=32) {
+    if (++writeOscBuf>=4) {
       writeOscBuf=0;
       oscBuf[0]->data[oscBuf[0]->needle++]=nes1_NP->out[0]<<11;
       oscBuf[1]->data[oscBuf[1]->needle++]=nes1_NP->out[1]<<11;
       oscBuf[2]->data[oscBuf[2]->needle++]=nes2_NP->out[0]<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=nes2_NP->out[1]<<11;
+      oscBuf[3]->data[oscBuf[3]->needle++]=nes2_NP->out[1]<<12;
       oscBuf[4]->data[oscBuf[4]->needle++]=nes2_NP->out[2]<<8;
     }
   }
@@ -211,7 +211,7 @@ void DivPlatformNES::tick(bool sysTick) {
       chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (i==2) { // triangle
-        rWrite(0x4000+i*4,(chan[i].outVol==0)?0:255);
+        rWrite(0x4000+i*4,(chan[i].outVol==0)?0:linearCount);
         chan[i].freqChanged=true;
       } else {
         rWrite(0x4000+i*4,(chan[i].envMode<<4)|chan[i].outVol|((chan[i].duty&3)<<6));
@@ -262,7 +262,7 @@ void DivPlatformNES::tick(bool sysTick) {
         //rWrite(16+i*5,chan[i].sweep);
       }
     }
-    if (i<2) if (chan[i].std.phaseReset.had) {
+    if (i<3) if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].freqChanged=true;
         chan[i].prevFreq=-1;
@@ -332,19 +332,31 @@ void DivPlatformNES::tick(bool sysTick) {
       if (chan[4].keyOn) {
         if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
           unsigned int dpcmAddr=sampleOffDPCM[dacSample];
-          unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
+          unsigned int dpcmLen=parent->getSample(dacSample)->lengthDPCM>>4;
           if (dpcmLen>255) dpcmLen=255;
           goingToLoop=parent->getSample(dacSample)->isLoopable();
           // write DPCM
           rWrite(0x4015,15);
-          rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
+          if (nextDPCMFreq>=0) {
+            rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
+            nextDPCMFreq=-1;
+          } else {
+            rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
+          }
           rWrite(0x4012,(dpcmAddr>>6)&0xff);
           rWrite(0x4013,dpcmLen&0xff);
           rWrite(0x4015,31);
-          dpcmBank=dpcmAddr>>14;
+          if (dpcmBank!=(dpcmAddr>>14)) {
+            dpcmBank=dpcmAddr>>14;
+            logV("switching bank to %d",dpcmBank);
+            if (dumpWrites) addWrite(0xffff0004,dpcmBank);
+          }
         }
       } else {
-        if (dpcmMode) {
+        if (nextDPCMFreq>=0) {
+          rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
+          nextDPCMFreq=-1;
+        } else {
           rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
         }
       }
@@ -353,6 +365,8 @@ void DivPlatformNES::tick(bool sysTick) {
     if (chan[4].keyOn) chan[4].keyOn=false;
     chan[4].freqChanged=false;
   }
+
+  nextDPCMFreq=-1;
 }
 
 int DivPlatformNES::dispatch(DivCommand c) {
@@ -361,7 +375,10 @@ int DivPlatformNES::dispatch(DivCommand c) {
       if (c.chan==4) { // PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
         if (ins->type==DIV_INS_AMIGA) {
-          if (c.value!=DIV_NOTE_NULL) dacSample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            dacSample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
             if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);
@@ -398,16 +415,25 @@ int DivPlatformNES::dispatch(DivCommand c) {
           chan[c.chan].furnaceDac=false;
           if (dpcmMode && !skipRegisterWrites) {
             unsigned int dpcmAddr=sampleOffDPCM[dacSample];
-            unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
+            unsigned int dpcmLen=parent->getSample(dacSample)->lengthDPCM>>4;
             if (dpcmLen>255) dpcmLen=255;
             goingToLoop=parent->getSample(dacSample)->isLoopable();
             // write DPCM
             rWrite(0x4015,15);
-            rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
+            if (nextDPCMFreq>=0) {
+              rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
+              nextDPCMFreq=-1;
+            } else {
+              rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
+            }
             rWrite(0x4012,(dpcmAddr>>6)&0xff);
             rWrite(0x4013,dpcmLen&0xff);
             rWrite(0x4015,31);
-            dpcmBank=dpcmAddr>>14;
+            if (dpcmBank!=(dpcmAddr>>14)) {
+              dpcmBank=dpcmAddr>>14;
+              logV("switching bank to %d",dpcmBank);
+              if (dumpWrites) addWrite(0xffff0004,dpcmBank);
+            }
           }
         }
         break;
@@ -431,7 +457,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (c.chan==2) {
-        rWrite(0x4000+c.chan*4,0xff);
+        rWrite(0x4000+c.chan*4,linearCount);
       } else if (!parent->song.brokenOutVol2) {
         rWrite(0x4000+c.chan*4,(chan[c.chan].envMode<<4)|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
       }
@@ -463,7 +489,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
         }
         if (chan[c.chan].active) {
           if (c.chan==2) {
-            rWrite(0x4000+c.chan*4,0xff);
+            rWrite(0x4000+c.chan*4,linearCount);
           } else {
             rWrite(0x4000+c.chan*4,(chan[c.chan].envMode<<4)|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
           }
@@ -539,6 +565,16 @@ int DivPlatformNES::dispatch(DivCommand c) {
       countMode=c.value;
       rWrite(0x4017,countMode?0x80:0);
       break;
+    case DIV_CMD_NES_LINEAR_LENGTH:
+      if (c.chan==2) {
+        linearCount=c.value;
+        if (chan[c.chan].active) {
+          rWrite(0x4000+c.chan*4,(chan[c.chan].outVol==0)?0:linearCount);
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].prevFreq=-1;
+        }
+      }
+      break;
     case DIV_CMD_NES_DMC:
       rWrite(0x4011,c.value&0x7f);
       break;
@@ -552,6 +588,14 @@ int DivPlatformNES::dispatch(DivCommand c) {
       rWrite(0x4013,0);
       rWrite(0x4015,31);
       break;
+    case DIV_CMD_SAMPLE_FREQ: {
+      bool goingToLoop=parent->getSample(dacSample)->isLoopable();
+      if (dpcmMode) {
+        nextDPCMFreq=c.value&15;
+        rWrite(0x4010,(c.value&15)|(goingToLoop?0x40:0));
+      }
+      break;
+    }
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;
       if (sampleBank>(parent->song.sample.size()/12)) {
@@ -652,9 +696,11 @@ void DivPlatformNES::reset() {
   dacSample=-1;
   sampleBank=0;
   dpcmBank=0;
-  dpcmMode=false;
+  dpcmMode=dpcmModeDefault;
   goingToLoop=false;
   countMode=false;
+  nextDPCMFreq=-1;
+  linearCount=255;
 
   if (useNP) {
     nes1_NP->Reset();
@@ -703,9 +749,14 @@ void DivPlatformNES::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
-  for (int i=0; i<5; i++) {
-    oscBuf[i]->rate=rate/32;
+  if (useNP) {
+    rate/=8;
   }
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->rate=rate/(useNP?4:32);
+  }
+  
+  dpcmModeDefault=flags.getBool("dpcmMode",true);
 }
 
 void DivPlatformNES::notifyInsDeletion(void* ins) {
@@ -814,6 +865,7 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, const DivConfi
   dpcmMem=new unsigned char[262144];
   dpcmMemLen=0;
   dpcmBank=0;
+  if (dumpWrites) addWrite(0xffff0004,dpcmBank);
 
   init_nla_table(500,500);
   reset();

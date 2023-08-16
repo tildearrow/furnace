@@ -21,7 +21,7 @@
 #define _NAMCOWSG_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "../waveSynth.h"
 #include "sound/namco.h"
 
@@ -41,16 +41,20 @@ class DivPlatformNamcoWSG: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
   struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
+    unsigned short addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,256> writes;
 
   namco_audio_device* namco;
   int devType, chans;
+  bool newNoise;
+  bool romMode;
   unsigned char regPool[512];
   void updateWave(int ch);
+  void updateROMWaves();
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:

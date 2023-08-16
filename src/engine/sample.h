@@ -43,6 +43,7 @@ enum DivSampleDepth: unsigned char {
   DIV_SAMPLE_DEPTH_8BIT=8,
   DIV_SAMPLE_DEPTH_BRR=9,
   DIV_SAMPLE_DEPTH_VOX=10,
+  DIV_SAMPLE_DEPTH_MULAW=11,
   DIV_SAMPLE_DEPTH_16BIT=16,
   DIV_SAMPLE_DEPTH_MAX // boundary for sample depth
 };
@@ -61,10 +62,10 @@ struct DivSampleHistory {
   unsigned int length, samples;
   DivSampleDepth depth;
   int rate, centerRate, loopStart, loopEnd;
-  bool loop, brrEmphasis;
+  bool loop, brrEmphasis, dither;
   DivSampleLoopMode loopMode;
   bool hasSample;
-  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, DivSampleLoopMode lm):
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool di, DivSampleLoopMode lm):
     data((unsigned char*)d),
     length(l),
     samples(s),
@@ -75,9 +76,10 @@ struct DivSampleHistory {
     loopEnd(le),
     loop(lp),
     brrEmphasis(be),
+    dither(di),
     loopMode(lm),
     hasSample(true) {}
-  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, DivSampleLoopMode lm):
+  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool di, DivSampleLoopMode lm):
     data(NULL),
     length(0),
     samples(0),
@@ -88,6 +90,7 @@ struct DivSampleHistory {
     loopEnd(le),
     loop(lp),
     brrEmphasis(be),
+    dither(di),
     loopMode(lm),
     hasSample(false) {}
   ~DivSampleHistory();
@@ -106,9 +109,10 @@ struct DivSample {
   // - 8: 8-bit PCM
   // - 9: BRR (SNES)
   // - 10: VOX ADPCM
+  // - 11: 8-bit µ-law PCM
   // - 16: 16-bit PCM
   DivSampleDepth depth;
-  bool loop, brrEmphasis;
+  bool loop, brrEmphasis, dither;
   // valid values are:
   // - 0: Forward loop
   // - 1: Backward loop
@@ -128,8 +132,9 @@ struct DivSample {
   unsigned char* dataB; // 6
   unsigned char* dataBRR; // 9
   unsigned char* dataVOX; // 10
+  unsigned char* dataMuLaw; // 11
 
-  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX;
+  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX, lengthMuLaw;
 
   unsigned int samples;
 
@@ -188,11 +193,11 @@ struct DivSample {
   /**
    * @warning DO NOT USE - internal functions
    */
-  bool resampleNone(double rate);
-  bool resampleLinear(double rate);
-  bool resampleCubic(double rate);
-  bool resampleBlep(double rate);
-  bool resampleSinc(double rate);
+  bool resampleNone(double sRate, double tRate);
+  bool resampleLinear(double sRate, double tRate);
+  bool resampleCubic(double sRate, double tRate);
+  bool resampleBlep(double sRate, double tRate);
+  bool resampleSinc(double sRate, double tRate);
 
   /**
    * save this sample to a file.
@@ -200,6 +205,13 @@ struct DivSample {
    * @return whether saving succeeded or not.
    */
   bool save(const char* path);
+
+  /**
+   * save this sample to a file (raw).
+   * @param path a path.
+   * @return whether saving succeeded or not.
+   */
+  bool saveRaw(const char* path);
 
   /**
    * @warning DO NOT USE - internal function
@@ -255,11 +267,19 @@ struct DivSample {
   /**
    * change the sample rate.
    * @warning do not attempt to resample outside of a synchronized block!
-   * @param rate number of samples.
+   * @param sRate source rate.
+   * @param tRate target rate.
    * @param filter the interpolation filter.
    * @return whether it was successful.
    */
-  bool resample(double rate, int filter);
+  bool resample(double sRate, double tRate, int filter);
+
+  /**
+   * convert sample depth.
+   * @warning do not attempt to do this outside of a synchronized block!
+   * @param newDepth the new depth.
+   */
+  void convert(DivSampleDepth newDepth);
 
   /**
    * initialize the rest of sample formats for this sample.
@@ -308,6 +328,7 @@ struct DivSample {
     depth(DIV_SAMPLE_DEPTH_16BIT),
     loop(false),
     brrEmphasis(true),
+    dither(false),
     loopMode(DIV_SAMPLE_LOOP_FORWARD),
     data8(NULL),
     data16(NULL),
@@ -319,6 +340,7 @@ struct DivSample {
     dataB(NULL),
     dataBRR(NULL),
     dataVOX(NULL),
+    dataMuLaw(NULL),
     length8(0),
     length16(0),
     length1(0),
@@ -329,6 +351,7 @@ struct DivSample {
     lengthB(0),
     lengthBRR(0),
     lengthVOX(0),
+    lengthMuLaw(0),
     samples(0) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       for (int j=0; j<DIV_MAX_SAMPLE_TYPE; j++) {

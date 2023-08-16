@@ -58,6 +58,8 @@ void FurnaceGUI::drawDebug() {
       ImGui::SameLine();
       if (ImGui::Button("Pattern Advance")) e->haltWhen(DIV_HALT_PATTERN);
 
+      if (ImGui::Button("Play Command Stream")) openFileDialog(GUI_FILE_CMDSTREAM_OPEN);
+
       if (ImGui::Button("Panic")) e->syncReset();
       ImGui::SameLine();
       if (ImGui::Button("Abort")) {
@@ -378,12 +380,40 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
-    if (ImGui::TreeNode("Window Debug")) {
+    if (ImGui::TreeNodeEx("Window Debug",ImGuiTreeNodeFlags_DefaultOpen)) {
       ImGui::Text("Screen: %dx%d+%d+%d",scrW,scrH,scrX,scrY);
       ImGui::Text("Screen (Conf): %dx%d+%d+%d",scrConfW,scrConfH,scrConfX,scrConfY);
       ImGui::Text("Canvas: %dx%d",canvasW,canvasH);
       ImGui::Text("Maximized: %d",scrMax);
       ImGui::Text("System Managed Scale: %d",sysManagedScale);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Audio Debug")) {
+      TAAudioDesc& audioWant=e->getAudioDescWant();
+      TAAudioDesc& audioGot=e->getAudioDescGot();
+
+      ImGui::Text("want:");
+      ImGui::Text("- name: %s",audioWant.name.c_str());
+      ImGui::Text("- device name: %s",audioWant.deviceName.c_str());
+      ImGui::Text("- rate: %f",audioWant.rate);
+      ImGui::Text("- buffer size: %d",audioWant.bufsize);
+      ImGui::Text("- fragments: %d",audioWant.fragments);
+      ImGui::Text("- inputs: %d",audioWant.inChans);
+      ImGui::Text("- outputs: %d",audioWant.outChans);
+      ImGui::Text("- format: %d",audioWant.outFormat);
+
+      ImGui::Text("got:");
+      ImGui::Text("- name: %s",audioGot.name.c_str());
+      ImGui::Text("- device name: %s",audioGot.deviceName.c_str());
+      ImGui::Text("- rate: %f",audioGot.rate);
+      ImGui::Text("- buffer size: %d",audioGot.bufsize);
+      ImGui::Text("- fragments: %d",audioGot.fragments);
+      ImGui::Text("- inputs: %d",audioGot.inChans);
+      ImGui::Text("- outputs: %d",audioGot.outChans);
+      ImGui::Text("- format: %d",audioGot.outFormat);
+
+      ImGui::Text("last call to nextBuf(): in %d, out %d, size %d",e->lastNBIns,e->lastNBOuts,e->lastNBSize);
+
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Visualizer Debug")) {
@@ -456,6 +486,7 @@ void FurnaceGUI::drawDebug() {
         pgProgram.clear();
       }
       
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Address");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(100.0f*dpiScale);
@@ -519,6 +550,14 @@ void FurnaceGUI::drawDebug() {
       ImGui::InputFloat("maxRr",&maxRr);
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("FM Preview")) {
+      float asFloat[FM_PREVIEW_SIZE];
+      for (int i=0; i<FM_PREVIEW_SIZE; i++) {
+        asFloat[i]=(float)fmPreview[i]/8192.0f;
+      }
+      ImGui::PlotLines("##DebugFMPreview",asFloat,FM_PREVIEW_SIZE,0,"Preview",-1.0,1.0,ImVec2(300.0f*dpiScale,150.0f*dpiScale));
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("User Interface")) {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;
@@ -526,13 +565,31 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Spoiler")) {
         spoilerOpen=!spoilerOpen;
       }
+      if (ImGui::Button("Kill Graphics")) {
+        killGraphics=true;
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Performance")) {
       double perfFreq=SDL_GetPerformanceFrequency()/1000000.0;
+      int lastProcTime=(int)e->processTime/1000;
+      TAAudioDesc& audioGot=e->getAudioDescGot();
+
+      ImGui::Text("video frame: %.0fµs",ImGui::GetIO().DeltaTime*1000000.0);
+      ImGui::Text("audio frame: %.0fµs",1000000.0*(double)audioGot.bufsize/(double)audioGot.rate);
+      ImGui::Separator();
+
+      ImGui::Text("audio: %dµs",lastProcTime);
       ImGui::Text("render: %.0fµs",(double)renderTimeDelta/perfFreq);
+      ImGui::Text("draw: %.0fµs",(double)drawTimeDelta/perfFreq);
       ImGui::Text("layout: %.0fµs",(double)layoutTimeDelta/perfFreq);
       ImGui::Text("event: %.0fµs",(double)eventTimeDelta/perfFreq);
+      ImGui::Separator();
+
+      ImGui::Text("details:");
+      for (int i=0; i<perfMetricsLastLen; i++) {
+        ImGui::Text("%s: %.0fµs",perfMetricsLast[i].name,(double)perfMetricsLast[i].elapsed/perfFreq);
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Settings")) {

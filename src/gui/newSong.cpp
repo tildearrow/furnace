@@ -34,6 +34,8 @@ void FurnaceGUI::drawNewSong() {
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
   if (ImGui::BeginChild("sysPickerC",avail,false,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+    if (newSongFirstFrame)
+      ImGui::SetKeyboardFocusHere();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::InputTextWithHint("##SysSearch","Search...",&newSongQuery)) {
       String lowerCase=newSongQuery;
@@ -111,7 +113,35 @@ void FurnaceGUI::drawNewSong() {
             nextDescName=i.name;
             accepted=true;
           }
+          if (ImGui::IsItemHovered()) {
+            if (ImGui::BeginTooltip()) {
+              std::map<DivSystem,int> chipCounts;
+              std::vector<DivSystem> chips;
+              for (FurnaceGUISysDefChip chip: i.orig) {
+                if (chipCounts.find(chip.sys)==chipCounts.end()) {
+                  chipCounts[chip.sys]=1;
+                  chips.push_back(chip.sys);
+                } else {
+                  chipCounts[chip.sys]+=1;
+                }
+              }
+              for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) {
+                DivSystem chip=chips[chipIndex];
+                const DivSysDef* sysDef=e->getSystemDef(chip);
+                ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
+                ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
+                ImGui::Text("%s",sysDef->description);
+                ImGui::PopTextWrapPos();
+                if (chipIndex+1<chips.size()) {
+                  ImGui::Separator();
+                }
+              }
+
+              ImGui::EndTooltip();
+            }
+          }
         }
+
         ImGui::EndTable();
       }
 
@@ -138,7 +168,7 @@ void FurnaceGUI::drawNewSong() {
 
   ImGui::SameLine();
 
-  if (ImGui::Button("Cancel")) {
+  if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
     ImGui::CloseCurrentPopup();
   }
 
@@ -159,4 +189,6 @@ void FurnaceGUI::drawNewSong() {
     updateWindowTitle();
     ImGui::CloseCurrentPopup();
   }
+
+  newSongFirstFrame=false;
 }

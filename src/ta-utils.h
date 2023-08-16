@@ -66,4 +66,6 @@ struct TAParam {
     func(f) {}
 };
 
+void reportError(String what);
+
 #endif

@@ -23,8 +23,11 @@
 #include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
+#include "effect.h"
+#include "export.h"
 #include "dataErrors.h"
 #include "safeWriter.h"
+#include "cmdStream.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
 #include <atomic>
@@ -47,14 +50,19 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "0.6pre4-hotfix"
-#define DIV_ENGINE_VERSION 144
+#define EXTERN_BUSY_BEGIN e->softLocked=false; e->isBusy.lock();
+#define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
+#define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
+
+#define DIV_UNSTABLE
+
+#define DIV_VERSION "dev165"
+#define DIV_ENGINE_VERSION 165
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
-
-// "Namco C163"
-#define DIV_C163_DEFAULT_NAME "Namco 163"
+#define DIV_VERSION_S3M 0xff03
+#define DIV_VERSION_FTM 0xff04
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -97,7 +105,7 @@ struct DivChannelState {
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoPosGiant, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
-  unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR;
+  unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR, lastVibrato, lastPorta;
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp;
   bool wentThroughNote, goneThroughNote;
@@ -138,6 +146,8 @@ struct DivChannelState {
     panR(255),
     panRL(0),
     panRR(0),
+    lastVibrato(0),
+    lastPorta(0),
     doNote(false),
     legato(false),
     portaStop(false),
@@ -209,6 +219,25 @@ struct DivDispatchContainer {
     memset(bbIn,0,DIV_MAX_OUTPUTS*sizeof(short*));
     memset(bbInMapped,0,DIV_MAX_OUTPUTS*sizeof(short*));
     memset(bbOut,0,DIV_MAX_OUTPUTS*sizeof(short*));
+  }
+};
+
+struct DivEffectContainer {
+  DivEffect* effect;
+  float* in[DIV_MAX_OUTPUTS];
+  float* out[DIV_MAX_OUTPUTS];
+  size_t inLen, outLen;
+
+  void preAcquire(size_t count);
+  void acquire(size_t count);
+  bool init(DivEffectType effectType, DivEngine* eng, double rate, unsigned short version, const unsigned char* data, size_t len);
+  void quit();
+  DivEffectContainer():
+    effect(NULL),
+    inLen(0),
+    outLen(0) {
+    memset(in,0,DIV_MAX_OUTPUTS*sizeof(float*));
+    memset(out,0,DIV_MAX_OUTPUTS*sizeof(float*));
   }
 };
 
@@ -359,7 +388,10 @@ class DivEngine {
   bool systemsRegistered;
   bool hasLoadedSomething;
   bool midiOutClock;
+  bool midiOutTime;
+  bool midiOutProgramChange;
   int midiOutMode;
+  int midiOutTimeRate;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
@@ -367,8 +399,13 @@ class DivEngine {
   double divider;
   int cycles;
   double clockDrift;
+  int midiClockCycles;
+  double midiClockDrift;
+  int midiTimeCycles;
+  double midiTimeDrift;
   int stepPlay;
-  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
+  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
+  int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
   DivGroovePattern speeds;
   short tempoAccum;
@@ -393,9 +430,12 @@ class DivEngine {
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
+  std::vector<DivEffectContainer> effectInst;
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
+
+  DivCSPlayer* cmdStreamInt;
 
   struct SamplePreview {
     double rate;
@@ -403,6 +443,7 @@ class DivEngine {
     int wave;
     int pos;
     int pBegin, pEnd;
+    int rateMul, posSub;
     bool dir;
     SamplePreview():
       rate(0.0),
@@ -411,6 +452,8 @@ class DivEngine {
       pos(0),
       pBegin(-1),
       pEnd(-1),
+      rateMul(1),
+      posSub(0),
       dir(false) {}
   } sPreview;
 
@@ -418,7 +461,7 @@ class DivEngine {
   short tremTable[128];
   int reversePitchTable[4096];
   int pitchTable[4096];
-  char c163NameCS[1024];
+  short effectSlotMap[4096];
   int midiBaseChan;
   bool midiPoly;
   size_t midiAgeCounter;
@@ -441,11 +484,10 @@ class DivEngine {
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
 
-  int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
-  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, bool directStream);
+  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream);
   // returns true if end of song.
   bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
@@ -453,10 +495,15 @@ class DivEngine {
   void recalcChans();
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
+  void runMidiClock(int totalCycles=1);
+  void runMidiTime(int totalCycles=1);
+
+  void testFunction();
 
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
+  bool loadS3M(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len);
   bool loadFC(unsigned char* file, size_t len);
 
@@ -484,11 +531,31 @@ class DivEngine {
   void initSongWithDesc(const char* description, bool inBase64=true, bool oldVol=false);
 
   void exchangeIns(int one, int two);
+  void exchangeWave(int one, int two);
+  void exchangeSample(int one, int two);
+
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
+  // recalculate patchbay (UNSAFE)
+  void recalcPatchbay();
+
   // change song (UNSAFE)
   void changeSong(size_t songIndex);
+
+  // move an asset
+  void moveAsset(std::vector<DivAssetDir>& dir, int before, int after);
+
+  // remove an asset
+  void removeAsset(std::vector<DivAssetDir>& dir, int entry);
+
+  // read/write asset dir
+  void putAssetDirData(SafeWriter* w, std::vector<DivAssetDir>& dir);
+  DivDataErrors readAssetDirData(SafeReader& reader, std::vector<DivAssetDir>& dir);
+
+  // add every export method here
+  friend class DivROMExport;
+  friend class DivExportAmigaValidation;
 
   public:
     DivSong song;
@@ -504,6 +571,7 @@ class DivEngine {
     float oscSize;
     int oscReadPos, oscWritePos;
     int tickMult;
+    int lastNBIns, lastNBOuts, lastNBSize;
     std::atomic<size_t> processTime;
 
     void runExportThread();
@@ -519,14 +587,16 @@ class DivEngine {
     void createNewFromDefaults();
     // load a file.
     bool load(unsigned char* f, size_t length);
+    // play a binary command stream.
+    bool playStream(unsigned char* f, size_t length);
     // save as .dmf.
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
     // if notPrimary is true then the song will not be altered
-    SafeWriter* saveFur(bool notPrimary=false);
+    SafeWriter* saveFur(bool notPrimary=false, bool newPatternFormat=true);
     // build a ROM file (TODO).
     // specify system to build ROM for.
-    SafeWriter* buildROM(int sys);
+    std::vector<DivROMExportOutput> buildROM(DivROMExportOptions sys);
     // dump to VGM.
     // set trailingTicks to:
     // - 0 to add one tick of trailing
@@ -535,7 +605,7 @@ class DivEngine {
     // - -2 to add a whole loop of trailing
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1);
     // dump to ZSM.
-    SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true);
+    SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true, bool optimize=true);
     // dump command stream.
     SafeWriter* saveCommand(bool binary=false);
     // export to an audio file
@@ -549,6 +619,9 @@ class DivEngine {
     // notify wavetable change
     void notifyWaveChange(int wave);
 
+    // dispatch a command
+    int dispatchCmd(DivCommand c);
+
     // get system IDs
     static DivSystem systemFromFileFur(unsigned char val);
     static unsigned char systemToFileFur(DivSystem val);
@@ -558,6 +631,8 @@ class DivEngine {
     // convert old flags
     static void convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys);
 
+    // check whether an asset directory is complete (UNSAFE)
+    void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
 
     // benchmark (returns time in seconds)
     double benchmarkPlayback();
@@ -881,7 +956,7 @@ class DivEngine {
     void updateSysFlags(int system, bool restart);
 
     // set Hz
-    void setSongRate(float hz, bool pal);
+    void setSongRate(float hz);
 
     // set remaining loops. -1 means loop forever.
     void setLoops(int loops);
@@ -897,6 +972,9 @@ class DivEngine {
 
     // get macro interpreter
     DivMacroInt* getMacroInt(int chan);
+
+    // get sample position
+    DivSamplePos getSamplePos(int chan);
 
     // get osc buffer
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -976,6 +1054,9 @@ class DivEngine {
     // add subsong
     int addSubSong();
 
+    // duplicate subsong
+    int duplicateSubSong(int index);
+
     // remove subsong
     bool removeSubSong(int index);
 
@@ -997,6 +1078,12 @@ class DivEngine {
 
     // move system
     bool swapSystem(int src, int dest, bool preserveOrder=true);
+
+    // add effect
+    bool addEffect(DivEffectType which);
+
+    // remove effect
+    bool removeEffect(int index);
 
     // write to register on system
     void poke(int sys, unsigned int addr, unsigned short val);
@@ -1091,7 +1178,10 @@ class DivEngine {
       systemsRegistered(false),
       hasLoadedSomething(false),
       midiOutClock(false),
+      midiOutTime(false),
+      midiOutProgramChange(false),
       midiOutMode(DIV_MIDI_MODE_NOTE),
+      midiOutTimeRate(0),
       softLockCount(0),
       subticks(0),
       ticks(0),
@@ -1112,16 +1202,24 @@ class DivEngine {
       divider(60),
       cycles(0),
       clockDrift(0),
+      midiClockCycles(0),
+      midiClockDrift(0),
+      midiTimeCycles(0),
+      midiTimeDrift(0),
       stepPlay(0),
       changeOrd(-1),
       changePos(0),
       totalSeconds(0),
       totalTicks(0),
       totalTicksR(0),
+      curMidiClock(0),
+      curMidiTime(0),
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),
       globalPitch(0),
+      curMidiTimePiece(0),
+      curMidiTimeCode(0),
       extValue(0),
       pendingMetroTick(0),
       tempoAccum(0),
@@ -1130,6 +1228,7 @@ class DivEngine {
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
       exportFadeOut(0.0),
+      cmdStreamInt(NULL),
       midiBaseChan(0),
       midiPoly(true),
       midiAgeCounter(0),
@@ -1155,6 +1254,9 @@ class DivEngine {
       oscReadPos(0),
       oscWritePos(0),
       tickMult(1),
+      lastNBIns(0),
+      lastNBOuts(0),
+      lastNBSize(0),
       processTime(0),
       yrw801ROM(NULL),
       tg100ROM(NULL),
@@ -1168,6 +1270,7 @@ class DivEngine {
       memset(tremTable,0,128*sizeof(short));
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
+      memset(effectSlotMap,-1,4096*sizeof(short));
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));

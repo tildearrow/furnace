@@ -261,13 +261,14 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
       chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->amiga.useSample);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         if (chan[c.chan].pcm) {
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].sampleBaseFreq=NOTE_FREQUENCY(c.value);
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
           chan[c.chan].sampleAccum=0;
           chan[c.chan].samplePos=0;
         }
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
         chan[c.chan].actualNote=c.value;
@@ -413,6 +414,16 @@ void* DivPlatformLynx::getChanState(int ch) {
 
 DivMacroInt* DivPlatformLynx::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+DivSamplePos DivPlatformLynx::getSamplePos(int ch) {
+  if (ch>=4) return DivSamplePos();
+  if (!chan[ch].pcm) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].sample,
+    chan[ch].samplePos,
+    chan[ch].sampleFreq
+  );
 }
 
 DivDispatchOscBuffer* DivPlatformLynx::getOscBuffer(int ch) {

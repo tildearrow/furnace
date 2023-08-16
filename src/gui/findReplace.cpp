@@ -39,7 +39,7 @@ const char* queryReplaceModes[GUI_QUERY_REPLACE_MAX]={
   "set",
   "add",
   "add (overflow)",
-  "scale",
+  "scale %",
   "clear"
 };
 
@@ -595,6 +595,7 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.25);
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
               ImGui::Text("Note");
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -662,6 +663,7 @@ void FurnaceGUI::drawFindReplace() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
               ImGui::Text("Ins");
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -697,6 +699,7 @@ void FurnaceGUI::drawFindReplace() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
               ImGui::Text("Volume");
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -734,6 +737,7 @@ void FurnaceGUI::drawFindReplace() {
                 ImGui::PushID(0x1000+j);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
                 ImGui::Text("Effect");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -769,6 +773,7 @@ void FurnaceGUI::drawFindReplace() {
                 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
                 ImGui::Text("Value");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);

@@ -20,12 +20,14 @@
 #include "waveSynth.h"
 #include "engine.h"
 #include "instrument.h"
+#include "../ta-log.h"
 
 bool DivWaveSynth::activeChanged() {
   if (activeChangedB) {
     activeChangedB=false;
     return true;
   }
+  if (first) return true;
   return false;
 }
 

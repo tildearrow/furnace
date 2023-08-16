@@ -20,7 +20,7 @@
 #ifndef _VRC6_H
 #define _VRC6_H
 
-#include <queue>
+#include "../fixedQueue.h"
 #include "../dispatch.h"
 #include "vgsound_emu/src/vrcvi/vrcvi.hpp"
 
@@ -47,11 +47,12 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
   DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
   struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
+    unsigned short addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,64> writes;
   unsigned char sampleBank;
   unsigned char writeOscBuf;
   vrcvi_core vrc6;
@@ -65,6 +66,7 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

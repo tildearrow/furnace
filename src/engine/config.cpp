@@ -23,21 +23,54 @@
 #include "../fileutils.h"
 #include <fmt/printf.h>
 
-bool DivConfig::save(const char* path) {
+#define REDUNDANCY_NUM_ATTEMPTS 5
+#define CHECK_BUF_SIZE 8192
+
+bool DivConfig::save(const char* path, bool redundancy) {
+  if (redundancy) {
+    char oldPath[4096];
+    char newPath[4096];
+
+    if (fileExists(path)==1) {
+      logD("rotating config files...");
+      for (int i=4; i>=0; i--) {
+        if (i>0) {
+          snprintf(oldPath,4095,"%s.%d",path,i);
+        } else {
+          strncpy(oldPath,path,4095);
+        }
+        snprintf(newPath,4095,"%s.%d",path,i+1);
+
+        if (i>=4) {
+          logV("remove %s",oldPath);
+          deleteFile(oldPath);
+        } else {
+          logV("move %s to %s",oldPath,newPath);
+          moveFiles(oldPath,newPath);
+        }
+      }
+    }
+  }
+  logD("opening config for write: %s",path);
   FILE* f=ps_fopen(path,"wb");
   if (f==NULL) {
     logW("could not write config file! %s",strerror(errno));
+    reportError(fmt::sprintf("could not write config file! %s",strerror(errno)));
     return false;
   }
   for (auto& i: conf) {
     String toWrite=fmt::sprintf("%s=%s\n",i.first,i.second);
     if (fwrite(toWrite.c_str(),1,toWrite.size(),f)!=toWrite.size()) {
       logW("could not write config file! %s",strerror(errno));
+      reportError(fmt::sprintf("could not write config file! %s",strerror(errno)));
+      logV("removing config file");
       fclose(f);
+      deleteFile(path);
       return false;
     }
   }
   fclose(f);
+  logD("config file written successfully.");
   return true;
 }
 
@@ -63,6 +96,7 @@ void DivConfig::parseLine(const char* line) {
   String value="";
   bool keyOrValue=false;
   for (const char* i=line; *i; i++) {
+    if (*i=='\r') continue;
     if (*i=='\n') continue;
     if (keyOrValue) {
       value+=*i;
@@ -79,17 +113,98 @@ void DivConfig::parseLine(const char* line) {
   }
 }
 
-bool DivConfig::loadFromFile(const char* path, bool createOnFail) {
+bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundancy) {
   char line[4096];
-  FILE* f=ps_fopen(path,"rb");
-  if (f==NULL) {
-    if (createOnFail) {
-      logI("creating default config.");
-      return save(path);
-    } else {
-      return false;
+  logD("opening config for read: %s",path);
+
+  FILE* f=NULL;
+
+  if (redundancy) {
+    unsigned char* readBuf=new unsigned char[CHECK_BUF_SIZE];
+    size_t readBufLen=0;
+    for (int i=0; i<REDUNDANCY_NUM_ATTEMPTS; i++) {
+      bool viable=false;
+      if (i>0) {
+        snprintf(line,4095,"%s.%d",path,i);
+      } else {
+        strncpy(line,path,4095);
+      }
+      logV("trying: %s",line);
+
+      // try to open config
+      f=ps_fopen(line,"rb");
+      // check whether we could open it
+      if (f==NULL) {
+        logV("fopen(): %s",strerror(errno));
+        continue;
+      }
+
+      // check whether there's something
+      while (!feof(f)) {
+        readBufLen=fread(readBuf,1,CHECK_BUF_SIZE,f);
+        if (ferror(f)) {
+          logV("fread(): %s",strerror(errno));
+          break;
+        }
+
+        for (size_t j=0; j<readBufLen; j++) {
+          if (readBuf[j]==0) {
+            viable=false;
+            logW("a zero?");
+            break;
+          }
+          if (readBuf[j]!='\r' && readBuf[j]!='\n' && readBuf[j]!=' ') {
+            viable=true;
+          }
+        }
+
+        if (viable) break;
+      }
+
+      // there's something
+      if (viable) {
+        if (fseek(f,0,SEEK_SET)==-1) {
+          logV("fseek(): %s",strerror(errno));
+          viable=false;
+        } else {
+          break;
+        }
+      }
+      
+      // close it (because there's nothing)
+      fclose(f);
+      f=NULL;
+    }
+    delete[] readBuf;
+
+    // we couldn't read at all
+    if (f==NULL) {
+      logD("config does not exist");
+      if (createOnFail) {
+        logI("creating default config.");
+        //reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
+        return save(path,redundancy);
+      } else {
+        reportError(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno)));
+        return false;
+      }
+    }
+  } else {
+    f=ps_fopen(path,"rb");
+    if (f==NULL) {
+      logD("config does not exist");
+      if (createOnFail) {
+        logI("creating default config.");
+        //reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
+        return save(path);
+      } else {
+        reportError(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno)));
+        return false;
+      }
     }
   }
+
+
   logI("loading config.");
   while (!feof(f)) {
     if (fgets(line,4095,f)==NULL) {
@@ -97,6 +212,7 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail) {
     }
     parseLine(line);
   }
+  logD("end of file (%s)",strerror(errno));
   fclose(f);
   return true;
 }
@@ -121,67 +237,95 @@ bool DivConfig::loadFromBase64(const char* buf) {
 }
 
 bool DivConfig::getBool(String key, bool fallback) const {
-  try {
-    String val=conf.at(key);
-    if (val=="true") {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    if (val->second=="true") {
       return true;
-    } else if (val=="false") {
+    } else if (val->second=="false") {
       return false;
     }
-  } catch (std::out_of_range& e) {
   }
   return fallback;
 }
 
 int DivConfig::getInt(String key, int fallback) const {
-  try {
-    String val=conf.at(key);
-    int ret=std::stoi(val);
-    return ret;
-  } catch (std::out_of_range& e) {
-  } catch (std::invalid_argument& e) {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    try {
+      int ret=std::stoi(val->second);
+      return ret;
+    } catch (std::out_of_range& e) {
+    } catch (std::invalid_argument& e) {
+    }
   }
   return fallback;
 }
 
 float DivConfig::getFloat(String key, float fallback) const {
-  try {
-    String val=conf.at(key);
-    float ret=std::stof(val);
-    return ret;
-  } catch (std::out_of_range& e) {
-  } catch (std::invalid_argument& e) {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    try {
+      float ret=std::stof(val->second);
+      return ret;
+    } catch (std::out_of_range& e) {
+    } catch (std::invalid_argument& e) {
+    }
   }
   return fallback;
 }
 
 double DivConfig::getDouble(String key, double fallback) const {
-  try {
-    String val=conf.at(key);
-    double ret=std::stod(val);
-    return ret;
-  } catch (std::out_of_range& e) {
-  } catch (std::invalid_argument& e) {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    try {
+      double ret=std::stod(val->second);
+      return ret;
+    } catch (std::out_of_range& e) {
+    } catch (std::invalid_argument& e) {
+    }
   }
   return fallback;
 }
 
 String DivConfig::getString(String key, String fallback) const {
-  try {
-    String val=conf.at(key);
-    return val;
-  } catch (std::out_of_range& e) {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    return val->second;
+  }
+  return fallback;
+}
+
+std::vector<int> DivConfig::getIntList(String key, std::initializer_list<int> fallback) const {
+  String next;
+  std::vector<int> ret;
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    try {
+      for (char i: val->second) {
+        if (i==',') {
+          int num=std::stoi(next);
+          ret.push_back(num);
+          next="";
+        } else {
+          next+=i;
+        }
+      }
+      if (!next.empty()) {
+        int num=std::stoi(next);
+        ret.push_back(num);
+      }
+
+      return ret;
+    } catch (std::out_of_range& e) {
+    } catch (std::invalid_argument& e) {
+    }
   }
   return fallback;
 }
 
 bool DivConfig::has(String key) const {
-  try {
-    String test=conf.at(key);
-  } catch (std::out_of_range& e) {
-    return false;
-  }
-  return true;
+  auto val=conf.find(key);
+  return (val!=conf.cend());
 }
 
 void DivConfig::set(String key, bool value) {
@@ -210,6 +354,17 @@ void DivConfig::set(String key, const char* value) {
 
 void DivConfig::set(String key, String value) {
   conf[key]=value;
+}
+
+void DivConfig::set(String key, const std::vector<int>& value) {
+  String val;
+  bool comma=false;
+  for (int i: value) {
+    if (comma) val+=',';
+    val+=fmt::sprintf("%d",i);
+    comma=true;
+  }
+  conf[key]=val;
 }
 
 bool DivConfig::remove(String key) {

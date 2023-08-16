@@ -74,7 +74,7 @@ void DivPlatformRF5C68::acquire(short** buf, size_t len) {
     rf5c68.sound_stream_update(bufPtrs,chBufPtrs,blockLen);
     for (int i=0; i<8; i++) {
       for (size_t j=0; j<blockLen; j++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=bufC[i*2][j]+bufC[i*2+1][j];
+        oscBuf[i]->data[oscBuf[i]->needle++]=(bufC[i*2][j]+bufC[i*2+1][j])>>1;
       }
     }
     pos+=blockLen;
@@ -151,8 +151,8 @@ void DivPlatformRF5C68::tick(bool sysTick) {
         if (s->isLoopable()) {
           loop=start+s->loopStart;
         }
-        start=MIN(start,getSampleMemCapacity()-31);
-        loop=MIN(loop,getSampleMemCapacity()-31);
+        start=MIN(start,getSampleMemCapacity()-32);
+        loop=MIN(loop,getSampleMemCapacity()-32);
         rWrite(8,keyoff); // force keyoff first
         chWrite(i,6,start>>8);
         chWrite(i,4,loop&0xff);
@@ -182,7 +182,10 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
-      if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].sample=ins->amiga.getSample(c.value);
+        c.value=ins->amiga.getFreq(c.value);
+      }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
       }
@@ -307,6 +310,7 @@ void DivPlatformRF5C68::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     chan[i].sample=-1;
+    chWrite(i,1,isMuted[i]?0:chan[i].panning);
   }
 }
 
@@ -421,7 +425,7 @@ void DivPlatformRF5C68::renderSamples(int sysID) {
     }
 
     int length=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
-    int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-31,length);
+    int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-32,length);
     if (actualLength>0) {
       sampleOffRFC[i]=memPos;
       for (int j=0; j<actualLength; j++) {
@@ -431,8 +435,8 @@ void DivPlatformRF5C68::renderSamples(int sysID) {
         sampleMem[memPos++]=(val>0)?(val|0x80):(0-val);
       }
       // write end of sample marker
-      memset(&sampleMem[memPos],0xff,31);
-      memPos+=31;
+      memset(&sampleMem[memPos],0xff,32);
+      memPos+=32;
     }
     if (actualLength<length) {
       logW("out of RF5C68 PCM memory for sample %d!",i);

@@ -21,7 +21,7 @@
 #include "../engine.h"
 #include "../../ta-log.h"
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 1
 
@@ -35,6 +35,7 @@ const char* regCheatSheetPOKEY[]={
   "AUDF4", "6",
   "AUDC4", "7",
   "AUDCTL", "8",
+  "SKCTL", "F",
   NULL
 };
 
@@ -85,10 +86,10 @@ void DivPlatformPOKEY::acquireMZ(short* buf, size_t len) {
 
     if (++oscBufDelay>=14) {
       oscBufDelay=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=pokey.outvol_0<<11;
-      oscBuf[1]->data[oscBuf[1]->needle++]=pokey.outvol_1<<11;
-      oscBuf[2]->data[oscBuf[2]->needle++]=pokey.outvol_2<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=pokey.outvol_3<<11;
+      oscBuf[0]->data[oscBuf[0]->needle++]=pokey.outvol_0<<10;
+      oscBuf[1]->data[oscBuf[1]->needle++]=pokey.outvol_1<<10;
+      oscBuf[2]->data[oscBuf[2]->needle++]=pokey.outvol_2<<10;
+      oscBuf[3]->data[oscBuf[3]->needle++]=pokey.outvol_3<<10;
     }
   }
 }
@@ -154,9 +155,14 @@ void DivPlatformPOKEY::tick(bool sysTick) {
     }
   }
 
+  if (skctlChanged) {
+    skctlChanged=false;
+    rWrite(15,skctl);
+  }
+
   for (int i=0; i<4; i++) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,parent->song.linearPitch?chan[i].pitch:0,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,parent->song.linearPitch?chan[i].pitch2:0,chipClock,CHIP_DIVIDER);
 
       if ((i==0 && !(audctl&64)) || (i==2 && !(audctl&32)) || i==1 || i==3) {
         chan[i].freq/=7;
@@ -192,6 +198,11 @@ void DivPlatformPOKEY::tick(bool sysTick) {
 
       if (audctl&1 && !((i==0 && audctl&64) || (i==2 && audctl&32))) {
         chan[i].freq>>=2;
+      }
+
+      // non-linear pitch
+      if (parent->song.linearPitch==0) {
+        chan[i].freq-=chan[i].pitch;
       }
 
       if (--chan[i].freq<0) chan[i].freq=0;
@@ -315,6 +326,10 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
       audctl=c.value&0xff;
       audctlChanged=true;
       break;
+    case DIV_CMD_STD_NOISE_FREQ:
+      skctl=c.value?0x8b:0x03;
+      skctlChanged=true;
+      break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
       bool return2=false;
@@ -380,6 +395,7 @@ void DivPlatformPOKEY::forceIns() {
     chan[i].freqChanged=true;
   }
   audctlChanged=true;
+  skctlChanged=true;
 }
 
 void* DivPlatformPOKEY::getChanState(int ch) {
@@ -403,7 +419,7 @@ unsigned char* DivPlatformPOKEY::getRegisterPool() {
 }
 
 int DivPlatformPOKEY::getRegisterPoolSize() {
-  return 9;
+  return 16;
 }
 
 void DivPlatformPOKEY::reset() {
@@ -425,6 +441,8 @@ void DivPlatformPOKEY::reset() {
 
   audctl=0;
   audctlChanged=true;
+  skctl=3;
+  skctlChanged=true;
 }
 
 bool DivPlatformPOKEY::keyOffAffectsArp(int ch) {

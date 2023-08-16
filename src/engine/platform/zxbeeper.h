@@ -21,7 +21,6 @@
 #define _ZXBEEPER_H
 
 #include "../dispatch.h"
-#include <queue>
 
 class DivPlatformZXBeeper: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
@@ -35,12 +34,6 @@ class DivPlatformZXBeeper: public DivDispatch {
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
-  struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
-  };
-  std::queue<QueuedWrite> writes;
   unsigned char lastPan, ulaOut;
 
   int cycles, curChan, sOffTimer, delay, curSample, curSamplePeriod;

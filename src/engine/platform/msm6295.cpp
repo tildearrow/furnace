@@ -23,8 +23,8 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
-#define rWriteDelay(a,v,d) if (!skipRegisterWrites) {writes.emplace(a,v,d); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
+#define rWriteDelay(a,v,d) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v,d)); if (dumpWrites) {addWrite(a,v);} }
 
 const char** DivPlatformMSM6295::getRegisterSheet() {
   return NULL;
@@ -79,9 +79,8 @@ void DivPlatformMSM6295::acquire(short** buf, size_t len) {
 
     if (++updateOsc>=22) {
       updateOsc=0;
-      // TODO: per-channel osc
       for (int i=0; i<4; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=msm.voice_out(i)<<6;
+        oscBuf[i]->data[oscBuf[i]->needle++]=msm.voice_out(i)<<5;
       }
     }
   }

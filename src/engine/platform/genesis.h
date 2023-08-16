@@ -55,8 +55,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
       unsigned int dacPos;
       int dacSample;
       int dacDelay;
-      bool dacReady;
       bool dacDirection;
+      bool setPos;
       unsigned char sampleBank;
       signed char dacOutput;
       Channel():
@@ -68,8 +68,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
         dacPos(0),
         dacSample(-1),
         dacDelay(0),
-        dacReady(true),
         dacDirection(false),
+        setPos(false),
         sampleBank(0),
         dacOutput(0) {}
     };
@@ -84,8 +84,9 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     int softPCMTimer;
 
-    bool extMode, softPCM, noExtMacros, useYMFM;
+    bool extMode, softPCM, noExtMacros, useYMFM, canWriteDAC;
     unsigned char chipType;
+    short dacWrite;
   
     unsigned char dacVolTable[128];
   
@@ -105,6 +106,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

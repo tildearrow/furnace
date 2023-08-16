@@ -20,6 +20,7 @@
 #include "macroInt.h"
 #include "instrument.h"
 #include "engine.h"
+#include "../ta-log.h"
 
 #define ADSR_LOW source.val[0]
 #define ADSR_HIGH source.val[1]
@@ -52,6 +53,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
   }
   if (masked) {
     had=false;
+    has=false;
     return;
   }
   if (delay>0) {
@@ -246,8 +248,10 @@ void DivMacroInt::setEngine(DivEngine* eng) {
 }
 
 #define ADD_MACRO(m,s) \
-  macroList[macroListLen]=&m; \
-  macroSource[macroListLen++]=&s;
+  if (!m.masked) { \
+    macroList[macroListLen]=&m; \
+    macroSource[macroListLen++]=&s; \
+  }
 
 void DivMacroInt::init(DivInstrument* which) {
   ins=which;

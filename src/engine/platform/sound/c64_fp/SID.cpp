@@ -351,7 +351,7 @@ void SID::write(int offset, unsigned char value)
         break;
 
     case 0x04: // Voice #1 control register
-        voice[0]->writeCONTROL_REG(muted[0] ? 0 : value);
+        voice[0]->writeCONTROL_REG(value);
         break;
 
     case 0x05: // Voice #1 Attack and Decay length
@@ -379,7 +379,7 @@ void SID::write(int offset, unsigned char value)
         break;
 
     case 0x0b: // Voice #2 control register
-        voice[1]->writeCONTROL_REG(muted[1] ? 0 : value);
+        voice[1]->writeCONTROL_REG(value);
         break;
 
     case 0x0c: // Voice #2 Attack and Decay length
@@ -407,7 +407,7 @@ void SID::write(int offset, unsigned char value)
         break;
 
     case 0x12: // Voice #3 control register
-        voice[2]->writeCONTROL_REG(muted[2] ? 0 : value);
+        voice[2]->writeCONTROL_REG(value);
         break;
 
     case 0x13: // Voice #3 Attack and Decay length

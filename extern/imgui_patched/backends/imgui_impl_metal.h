@@ -6,7 +6,7 @@
 //  [X] Renderer: Large meshes support (64k+ vertices) with 16-bit indices.
 //  [X] Renderer: Multi-viewport support (multiple windows). Enable with 'io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable'.
 
-// You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this. 
+// You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
 // Prefer including the entire imgui/ repository into your project (either as a copy or as a submodule), and only build the backends you need.
 // If you are new to Dear ImGui, read documentation from the docs/ folder + read the top of imgui.cpp.
 // Read online: https://github.com/ocornut/imgui/tree/master/docs
@@ -45,9 +45,7 @@ IMGUI_IMPL_API void ImGui_ImplMetal_DestroyDeviceObjects();
 // More info about using Metal from C++: https://developer.apple.com/metal/cpp/
 
 #ifdef IMGUI_IMPL_METAL_CPP
-
 #include <Metal/Metal.hpp>
-
 #ifndef __OBJC__
 
 IMGUI_IMPL_API bool ImGui_ImplMetal_Init(MTL::Device* device);
@@ -64,5 +62,4 @@ IMGUI_IMPL_API bool ImGui_ImplMetal_CreateDeviceObjects(MTL::Device* device);
 IMGUI_IMPL_API void ImGui_ImplMetal_DestroyDeviceObjects();
 
 #endif
-
 #endif

@@ -30,7 +30,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
   const int depthScale=(15-outDepth);
   int output=0;
   for (size_t h=0; h<len; h++) {
-    if (!chan[0].active || isMuted) {
+    if (!chan[0].active) {
       buf[0][h]=0;
       buf[1][h]=0;
       oscBuf->data[oscBuf->needle++]=0;
@@ -42,12 +42,65 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
         while (chan[0].audSub>=0x10000) {
           chan[0].audSub-=0x10000;
           chan[0].audPos+=((!chan[0].useWave) && chan[0].audDir)?-1:1;
+          if (chan[0].audPos>=(int)chan[0].audLen) {
+            chan[0].audPos%=chan[0].audLen;
+            chan[0].audDir=false;
+          }
+          chan[0].audDat[0]=chan[0].audDat[1];
+          chan[0].audDat[1]=chan[0].audDat[2];
+          chan[0].audDat[2]=chan[0].audDat[3];
+          chan[0].audDat[3]=chan[0].audDat[4];
+          chan[0].audDat[4]=chan[0].audDat[5];
+          chan[0].audDat[5]=chan[0].audDat[6];
+          chan[0].audDat[6]=chan[0].audDat[7];
+          chan[0].audDat[7]=(chan[0].ws.output[chan[0].audPos]-0x80)<<8;
         }
-        if (chan[0].audPos>=(int)chan[0].audLen) {
-          chan[0].audPos%=chan[0].audLen;
-          chan[0].audDir=false;
+
+        const short s0=chan[0].audDat[0];
+        const short s1=chan[0].audDat[1];
+        const short s2=chan[0].audDat[2];
+        const short s3=chan[0].audDat[3];
+        const short s4=chan[0].audDat[4];
+        const short s5=chan[0].audDat[5];
+        const short s6=chan[0].audDat[6];
+        const short s7=chan[0].audDat[7];
+
+        switch (interp) {
+          case 1: // linear
+            output=s6+((s7-s6)*(chan[0].audSub&0xffff)>>16);
+            break;
+          case 2: { // cubic
+            float* cubicTable=DivFilterTables::getCubicTable();
+            float* t=&cubicTable[((chan[0].audSub&0xffff)>>6)<<2];
+            float result=(float)s4*t[0]+(float)s5*t[1]+(float)s6*t[2]+(float)s7*t[3];
+            if (result<-32768) result=-32768;
+            if (result>32767) result=32767;
+            output=result;
+            break;
+          }
+          case 3: { // sinc
+            float* sincTable=DivFilterTables::getSincTable8();
+            float* t1=&sincTable[(8191-((chan[0].audSub&0xffff)>>3))<<2];
+            float* t2=&sincTable[((chan[0].audSub&0xffff)>>3)<<2];
+            float result=(
+              s0*t2[3]+
+              s1*t2[2]+
+              s2*t2[1]+
+              s3*t2[0]+
+              s4*t1[0]+
+              s5*t1[1]+
+              s6*t1[2]+
+              s7*t1[3]
+            );
+            if (result<-32768) result=-32768;
+            if (result>32767) result=32767;
+            output=result;
+            break;
+          }
+          default: // none
+            output=s7;
+            break;
         }
-        output=(chan[0].ws.output[chan[0].audPos]-0x80)<<8;
       } else {
         DivSample* s=parent->getSample(chan[0].sample);
         if (s->samples>0) {
@@ -171,8 +224,12 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
         }
       }
     }
-    output=output*chan[0].vol*chan[0].envVol/16384;
-    oscBuf->data[oscBuf->needle++]=output;
+    if (isMuted) {
+      output=0;
+    } else {
+      output=output*chan[0].vol*chan[0].envVol/16384;
+    }
+    oscBuf->data[oscBuf->needle++]=output>>1;
     if (outStereo) {
       buf[0][h]=((output*chan[0].panL)>>(depthScale+8))<<depthScale;
       buf[1][h]=((output*chan[0].panR)>>(depthScale+8))<<depthScale;
@@ -267,7 +324,10 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
           }
         }
       } else {
-        if (c.value!=DIV_NOTE_NULL) chan[0].sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[0].sample=ins->amiga.getSample(c.value);
+          c.value=ins->amiga.getFreq(c.value);
+        }
         chan[0].useWave=false;
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -435,6 +495,15 @@ int DivPlatformPCMDAC::getOutputCount() {
 
 DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {
   return &chan[0].std;
+}
+
+DivSamplePos DivPlatformPCMDAC::getSamplePos(int ch) {
+  if (ch>=1) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].sample,
+    chan[ch].audPos,
+    chan[ch].freq
+  );
 }
 
 void DivPlatformPCMDAC::notifyInsChange(int ins) {

@@ -21,7 +21,7 @@
 #define _PCE_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "../waveSynth.h"
 #include "sound/pce_psg.h"
 
@@ -60,11 +60,12 @@ class DivPlatformPCE: public DivDispatch {
   bool antiClickEnabled;
   bool updateLFO;
   struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(9) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,512> writes;
   unsigned char lastPan;
 
   int cycles, curChan, delay;
@@ -81,6 +82,7 @@ class DivPlatformPCE: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

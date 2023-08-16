@@ -24,17 +24,13 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
 }
 
 void DivPlatformMSM6258::acquire(short** buf, size_t len) {
-  short* outs[2]={
-    &msmOut,
-    NULL
-  };
   for (size_t h=0; h<len; h++) {
     if (--msmClockCount<0) {
       if (--msmDividerCount<=0) {
@@ -71,7 +67,7 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
           }
         }
         
-        msm->sound_stream_update(outs,1);
+        msm->sound_stream_update(&msmOut,1);
         msmDividerCount=msmDivider;
       }
       msmClockCount=msmClock;
@@ -84,7 +80,7 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
     } else {
       buf[0][h]=(msmPan&2)?msmOut:0;
       buf[1][h]=(msmPan&1)?msmOut:0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?msmOut:0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?(msmOut>>1):0;
     }
   }
 }
@@ -390,6 +386,9 @@ int DivPlatformMSM6258::init(DivEngine* p, int channels, int sugRate, const DivC
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   msm=new okim6258_device(4000000);
+  msm->set_start_div(okim6258_device::FOSC_DIV_BY_1024);
+  msm->set_type(okim6258_device::TYPE_4BITS);
+  msm->set_outbits(okim6258_device::OUTPUT_12BITS);
   msm->device_start();
   setFlags(flags);
   reset();

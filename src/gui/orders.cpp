@@ -91,6 +91,122 @@ void FurnaceGUI::drawMobileOrderSel() {
   ImGui::End();
 }
 
+#define NEXT_BUTTON \
+  if (++buttonColumn>=buttonColumns) { \
+    buttonColumn=0; \
+  } else { \
+    ImGui::SameLine(); \
+  }
+
+void FurnaceGUI::drawOrderButtons() {
+  int buttonColumns=(settings.orderButtonPos==0)?8:1;
+  int buttonColumn=0;
+
+  while (buttonColumns<8 && ((8/buttonColumns)*ImGui::GetFrameHeightWithSpacing())>ImGui::GetContentRegionAvail().y) {
+    buttonColumns++;
+  }
+
+  if (ImGui::Button(ICON_FA_PLUS)) { handleUnimportant
+    // add order row (new)
+    doAction(GUI_ACTION_ORDERS_ADD);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Add new order");
+  }
+  NEXT_BUTTON;
+
+  if (ImGui::Button(ICON_FA_MINUS)) { handleUnimportant
+    // remove this order row
+    doAction(GUI_ACTION_ORDERS_REMOVE);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Remove order");
+  } 
+  NEXT_BUTTON;
+
+  if (ImGui::Button(ICON_FA_FILES_O)) { handleUnimportant
+    // duplicate order row
+    doAction(GUI_ACTION_ORDERS_DUPLICATE);
+  }
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+    doAction(GUI_ACTION_ORDERS_DEEP_CLONE);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Duplicate order (right-click to deep clone)");
+  }
+  NEXT_BUTTON;
+
+  if (ImGui::Button(ICON_FA_ANGLE_UP)) { handleUnimportant
+    // move order row up
+    doAction(GUI_ACTION_ORDERS_MOVE_UP);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Move order up");
+  }
+  NEXT_BUTTON;
+
+  if (ImGui::Button(ICON_FA_ANGLE_DOWN)) { handleUnimportant
+    // move order row down
+    doAction(GUI_ACTION_ORDERS_MOVE_DOWN);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Move order down");
+  }
+  NEXT_BUTTON;
+
+  if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) { handleUnimportant
+    // duplicate order row at end
+    doAction(GUI_ACTION_ORDERS_DUPLICATE_END);
+  }
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+    doAction(GUI_ACTION_ORDERS_DEEP_CLONE_END);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Duplicate order at end of song (right-click to deep clone)");
+  }
+  NEXT_BUTTON;
+
+  if (ImGui::Button(changeAllOrders?ICON_FA_LINK"##ChangeAll":ICON_FA_CHAIN_BROKEN"##ChangeAll")) { handleUnimportant
+    // whether to change one or all orders in a row
+    changeAllOrders=!changeAllOrders;
+  }
+  if (ImGui::IsItemHovered()) {
+    if (changeAllOrders) {
+      ImGui::SetTooltip("Order change mode: entire row");
+    } else {
+      ImGui::SetTooltip("Order change mode: one");
+    }
+  }
+  NEXT_BUTTON;
+
+  const char* orderEditModeLabel="?##OrderEditMode";
+  if (orderEditMode==3) {
+    orderEditModeLabel=ICON_FA_ARROWS_V "##OrderEditMode";
+  } else if (orderEditMode==2) {
+    orderEditModeLabel=ICON_FA_ARROWS_H "##OrderEditMode";
+  } else if (orderEditMode==1) {
+    orderEditModeLabel=ICON_FA_I_CURSOR "##OrderEditMode";
+  } else {
+    orderEditModeLabel=ICON_FA_MOUSE_POINTER "##OrderEditMode";
+  }
+  if (ImGui::Button(orderEditModeLabel)) { handleUnimportant
+    orderEditMode++;
+    if (orderEditMode>3) orderEditMode=0;
+    curNibble=false;
+  }
+  if (ImGui::IsItemHovered()) {
+    if (orderEditMode==3) {
+      ImGui::SetTooltip("Order edit mode: Select and type (scroll vertically)");
+    } else if (orderEditMode==2) {
+      ImGui::SetTooltip("Order edit mode: Select and type (scroll horizontally)");
+    } else if (orderEditMode==1) {
+      ImGui::SetTooltip("Order edit mode: Select and type (don't scroll)");
+    } else {
+      ImGui::SetTooltip("Order edit mode: Click to change");
+    }
+  }
+}
+
 void FurnaceGUI::drawOrders() {
   static char selID[4096];
   if (nextWindow==GUI_WINDOW_ORDERS) {
@@ -107,242 +223,189 @@ void FurnaceGUI::drawOrders() {
   } else {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin("Orders",&ordersOpen,globalWinFlags)) {
-    float regionX=ImGui::GetContentRegionAvail().x;
-    ImVec2 prevSpacing=ImGui::GetStyle().ItemSpacing;
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
-    ImGui::Columns(2,NULL,false);
-    ImGui::SetColumnWidth(-1,regionX-24.0f*dpiScale);
-    int displayChans=0;
-    for (int i=0; i<e->getTotalChannelCount(); i++) {
-      if (e->curSubSong->chanShow[i]) displayChans++;
-    }
-    ImGui::PushFont(patFont);
-    bool tooSmall=((displayChans+1)>((ImGui::GetContentRegionAvail().x)/(ImGui::CalcTextSize("AA").x+2.0*ImGui::GetStyle().ItemInnerSpacing.x)));
-    ImGui::PopFont();
-    if (ImGui::BeginTable("OrdersTable",1+displayChans,(tooSmall?ImGuiTableFlags_SizingFixedFit:ImGuiTableFlags_SizingStretchSame)|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
-      ImGui::PushFont(patFont);
-      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
-      ImGui::TableSetupScrollFreeze(1,1);
-      float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
-      if (e->isPlaying()) {
-        if (followOrders) {
-          ImGui::SetScrollY((e->getOrder()+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
-        }
+  if (ImGui::Begin("Orders",&ordersOpen,globalWinFlags|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
+    if (ImGui::BeginTable("OrdColumn",(settings.orderButtonPos==0)?1:2,ImGuiTableFlags_BordersInnerV)) {
+      if (settings.orderButtonPos==2) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+      } else if (settings.orderButtonPos==1) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
       }
-      ImGui::TableNextRow(0,lineHeight);
-      ImVec2 ra=ImGui::GetContentRegionAvail();
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
-      for (int i=0; i<e->getTotalChannelCount(); i++) {
-        if (!e->curSubSong->chanShow[i]) continue;
-        ImGui::TableNextColumn();
-        ImGui::Text("%s",e->getChannelShortName(i));
-      }
-      ImGui::PopStyleColor();
-      for (int i=0; i<e->curSubSong->ordersLen; i++) {
-        ImGui::TableNextRow(0,lineHeight);
-        if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_ACTIVE]));
-        ImGui::TableNextColumn();
-        if ((!followPattern && curOrder==i) || (followPattern && oldOrder1==i)) {
-          // draw a border
-          ImDrawList* dl=ImGui::GetWindowDrawList();
-          ImVec2 rBegin=ImGui::GetCursorScreenPos();
-          rBegin.y-=ImGui::GetStyle().CellPadding.y;
-          ImVec2 rEnd=ImVec2(rBegin.x+ra.x,rBegin.y+lineHeight);
-          dl->AddRect(rBegin,rEnd,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_SELECTED]),2.0f*dpiScale);
-        }
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
-        bool highlightLoop=(i>=loopOrder && i<=loopEnd);
-        if (highlightLoop) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]));
-        if (settings.orderRowsBase==1) {
-          snprintf(selID,4096,"%.2X##O_S%.2x",i,i);
-        } else {
-          snprintf(selID,4096,"%d##O_S%.2x",i,i);
-        }
-        if (ImGui::Selectable(selID)) {
-          setOrder(i);
-          curNibble=false;
-          orderCursor=-1;
 
-          if (orderEditMode==0) {
-            handleUnimportant;
+      ImVec2 prevSpacing=ImGui::GetStyle().ItemSpacing;
+      if (settings.orderButtonPos!=0) {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
+      }
+
+      ImGui::TableNextRow();
+
+      if (settings.orderButtonPos<2) {
+        ImGui::TableNextColumn();
+        drawOrderButtons();
+      }
+
+      if (settings.orderButtonPos==0) {
+        ImGui::TableNextRow();
+      }
+
+      ImGui::TableNextColumn();
+
+      int displayChans=0;
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
+        if (e->curSubSong->chanShow[i]) displayChans++;
+      }
+      ImGui::PushFont(patFont);
+      bool tooSmall=((displayChans+1)>((ImGui::GetContentRegionAvail().x)/(ImGui::CalcTextSize("AA").x+2.0*ImGui::GetStyle().ItemInnerSpacing.x)));
+      ImGui::PopFont();
+      if (ImGui::BeginTable("OrdersTable",1+displayChans,(tooSmall?ImGuiTableFlags_SizingFixedFit:ImGuiTableFlags_SizingStretchSame)|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
+        ImGui::PushFont(patFont);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
+        ImGui::TableSetupScrollFreeze(1,1);
+        float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
+        if (e->isPlaying()) {
+          if (followOrders) {
+            ImGui::SetScrollY((e->getOrder()+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
           }
         }
-        ImGui::PopStyleColor();
-        for (int j=0; j<e->getTotalChannelCount(); j++) {
-          if (!e->curSubSong->chanShow[j]) continue;
+        ImGui::TableNextRow(0,lineHeight);
+        ImVec2 ra=ImGui::GetContentRegionAvail();
+        ImGui::TableNextColumn();
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
+        for (int i=0; i<e->getTotalChannelCount(); i++) {
+          if (!e->curSubSong->chanShow[i]) continue;
           ImGui::TableNextColumn();
-          DivPattern* pat=e->curPat[j].getPattern(e->curOrders->ord[j][i],false);
-          /*if (!pat->name.empty()) {
-            snprintf(selID,4096,"%s##O_%.2x_%.2x",pat->name.c_str(),j,i);
-          } else {*/
-            snprintf(selID,4096,"%.2X##O_%.2x_%.2x",e->curOrders->ord[j][i],j,i);
-          //}
-
-          ImGui::PushStyleColor(ImGuiCol_Text,(curOrder==i || e->curOrders->ord[j][i]==e->curOrders->ord[j][curOrder])?uiColors[GUI_COLOR_ORDER_SIMILAR]:uiColors[GUI_COLOR_ORDER_INACTIVE]);
-          if (ImGui::Selectable(selID,settings.ordersCursor?(cursor.xCoarse==j && oldOrder1!=i):false)) {
-            if (curOrder==i) {
-              if (orderEditMode==0) {
-                prepareUndo(GUI_UNDO_CHANGE_ORDER);
-                e->lockSave([this,i,j]() {
-                  if (changeAllOrders) {
-                    for (int k=0; k<e->getTotalChannelCount(); k++) {
-                      if (e->curOrders->ord[k][i]<(unsigned char)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[k][i]++;
-                    }
-                  } else {
-                    if (e->curOrders->ord[j][i]<(unsigned char)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[j][i]++;
-                  }
-                });
-                e->walkSong(loopOrder,loopRow,loopEnd);
-                makeUndo(GUI_UNDO_CHANGE_ORDER);
-              } else {
-                orderCursor=j;
-                curNibble=false;
-              }
-            } else {
-              setOrder(i);
-              e->walkSong(loopOrder,loopRow,loopEnd);
-              if (orderEditMode!=0) {
-                orderCursor=j;
-                curNibble=false;
-              }
-            }
+          ImGui::Text("%s",e->getChannelShortName(i));
+        }
+        ImGui::PopStyleColor();
+        for (int i=0; i<e->curSubSong->ordersLen; i++) {
+          ImGui::TableNextRow(0,lineHeight);
+          if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_ACTIVE]));
+          ImGui::TableNextColumn();
+          if ((!followPattern && curOrder==i) || (followPattern && oldOrder1==i)) {
+            // draw a border
+            ImDrawList* dl=ImGui::GetWindowDrawList();
+            ImVec2 rBegin=ImGui::GetCursorScreenPos();
+            rBegin.y-=ImGui::GetStyle().CellPadding.y;
+            ImVec2 rEnd=ImVec2(rBegin.x+ra.x,rBegin.y+lineHeight);
+            dl->AddRect(rBegin,rEnd,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_SELECTED]),2.0f*dpiScale);
+          }
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
+          bool highlightLoop=(i>=loopOrder && i<=loopEnd);
+          if (highlightLoop) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]));
+          if (settings.orderRowsBase==1) {
+            snprintf(selID,4096,"%.2X##O_S%.2x",i,i);
+          } else {
+            snprintf(selID,4096,"%d##O_S%.2x",i,i);
+          }
+          if (ImGui::Selectable(selID)) {
+            setOrder(i);
+            curNibble=false;
+            orderCursor=-1;
 
             if (orderEditMode==0) {
               handleUnimportant;
             }
           }
           ImGui::PopStyleColor();
-          if (orderEditMode!=0 && curOrder==i && orderCursor==j) {
-            // draw a border
-            ImDrawList* dl=ImGui::GetWindowDrawList();
-            dl->AddRect(ImGui::GetItemRectMin(),ImGui::GetItemRectMax(),ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),2.0f*dpiScale);
-          }
-          if (!pat->name.empty() && ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s",pat->name.c_str());
-          }
-          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-            if (curOrder==i) {
-              if (orderEditMode==0) {
-                prepareUndo(GUI_UNDO_CHANGE_ORDER);
-                e->lockSave([this,i,j]() {
-                  if (changeAllOrders) {
-                    for (int k=0; k<e->getTotalChannelCount(); k++) {
-                      if (e->curOrders->ord[k][i]>0) e->curOrders->ord[k][i]--;
+          for (int j=0; j<e->getTotalChannelCount(); j++) {
+            if (!e->curSubSong->chanShow[j]) continue;
+            ImGui::TableNextColumn();
+            DivPattern* pat=e->curPat[j].getPattern(e->curOrders->ord[j][i],false);
+            /*if (!pat->name.empty()) {
+              snprintf(selID,4096,"%s##O_%.2x_%.2x",pat->name.c_str(),j,i);
+            } else {*/
+              snprintf(selID,4096,"%.2X##O_%.2x_%.2x",e->curOrders->ord[j][i],j,i);
+            //}
+
+            ImGui::PushStyleColor(ImGuiCol_Text,(curOrder==i || e->curOrders->ord[j][i]==e->curOrders->ord[j][curOrder])?uiColors[GUI_COLOR_ORDER_SIMILAR]:uiColors[GUI_COLOR_ORDER_INACTIVE]);
+            if (ImGui::Selectable(selID,settings.ordersCursor?(cursor.xCoarse==j && oldOrder1!=i):false)) {
+              if (curOrder==i) {
+                if (orderEditMode==0) {
+                  prepareUndo(GUI_UNDO_CHANGE_ORDER);
+                  e->lockSave([this,i,j]() {
+                    if (changeAllOrders) {
+                      for (int k=0; k<e->getTotalChannelCount(); k++) {
+                        if (e->curOrders->ord[k][i]<(unsigned char)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[k][i]++;
+                      }
+                    } else {
+                      if (e->curOrders->ord[j][i]<(unsigned char)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[j][i]++;
                     }
-                  } else {
-                    if (e->curOrders->ord[j][i]>0) e->curOrders->ord[j][i]--;
-                  }
-                });
-                e->walkSong(loopOrder,loopRow,loopEnd);
-                makeUndo(GUI_UNDO_CHANGE_ORDER);
+                  });
+                  e->walkSong(loopOrder,loopRow,loopEnd);
+                  makeUndo(GUI_UNDO_CHANGE_ORDER);
+                } else {
+                  orderCursor=j;
+                  curNibble=false;
+                }
               } else {
-                orderCursor=j;
-                curNibble=false;
+                setOrder(i);
+                e->walkSong(loopOrder,loopRow,loopEnd);
+                if (orderEditMode!=0) {
+                  orderCursor=j;
+                  curNibble=false;
+                }
               }
-            } else {
-              setOrder(i);
-              e->walkSong(loopOrder,loopRow,loopEnd);
-              if (orderEditMode!=0) {
-                orderCursor=j;
-                curNibble=false;
+
+              if (orderEditMode==0) {
+                handleUnimportant;
+              }
+            }
+            ImGui::PopStyleColor();
+            if (orderEditMode!=0 && curOrder==i && orderCursor==j) {
+              // draw a border
+              ImDrawList* dl=ImGui::GetWindowDrawList();
+              dl->AddRect(ImGui::GetItemRectMin(),ImGui::GetItemRectMax(),ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),2.0f*dpiScale);
+            }
+            if (!pat->name.empty() && ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("%s",pat->name.c_str());
+            }
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+              if (curOrder==i) {
+                if (orderEditMode==0) {
+                  prepareUndo(GUI_UNDO_CHANGE_ORDER);
+                  e->lockSave([this,i,j]() {
+                    if (changeAllOrders) {
+                      for (int k=0; k<e->getTotalChannelCount(); k++) {
+                        if (e->curOrders->ord[k][i]>0) e->curOrders->ord[k][i]--;
+                      }
+                    } else {
+                      if (e->curOrders->ord[j][i]>0) e->curOrders->ord[j][i]--;
+                    }
+                  });
+                  e->walkSong(loopOrder,loopRow,loopEnd);
+                  makeUndo(GUI_UNDO_CHANGE_ORDER);
+                } else {
+                  orderCursor=j;
+                  curNibble=false;
+                }
+              } else {
+                setOrder(i);
+                e->walkSong(loopOrder,loopRow,loopEnd);
+                if (orderEditMode!=0) {
+                  orderCursor=j;
+                  curNibble=false;
+                }
               }
             }
           }
         }
+        ImGui::PopStyleVar();
+        ImGui::PopFont();
+        ImGui::EndTable();
       }
-      ImGui::PopStyleVar();
-      ImGui::PopFont();
+
+      if (settings.orderButtonPos==2) {
+        ImGui::TableNextColumn();
+        drawOrderButtons();
+      }
+
+      if (settings.orderButtonPos!=0) {
+        ImGui::PopStyleVar();
+      }
+
       ImGui::EndTable();
     }
-    ImGui::NextColumn();
-    if (ImGui::Button(ICON_FA_PLUS)) { handleUnimportant
-      // add order row (new)
-      doAction(GUI_ACTION_ORDERS_ADD);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Add new order");
-    }
-    if (ImGui::Button(ICON_FA_MINUS)) { handleUnimportant
-      // remove this order row
-      doAction(GUI_ACTION_ORDERS_REMOVE);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Remove order");
-    } 
-    if (ImGui::Button(ICON_FA_FILES_O)) { handleUnimportant
-      // duplicate order row
-      doAction(GUI_ACTION_ORDERS_DUPLICATE);
-    }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      doAction(GUI_ACTION_ORDERS_DEEP_CLONE);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Duplicate order (right-click to deep clone)");
-    }
-    if (ImGui::Button(ICON_FA_ANGLE_UP)) { handleUnimportant
-      // move order row up
-      doAction(GUI_ACTION_ORDERS_MOVE_UP);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Move order up");
-    }
-    if (ImGui::Button(ICON_FA_ANGLE_DOWN)) { handleUnimportant
-      // move order row down
-      doAction(GUI_ACTION_ORDERS_MOVE_DOWN);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Move order down");
-    }
-    if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) { handleUnimportant
-      // duplicate order row at end
-      doAction(GUI_ACTION_ORDERS_DUPLICATE_END);
-    }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      doAction(GUI_ACTION_ORDERS_DEEP_CLONE_END);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Duplicate order at end of song (right-click to deep clone)");
-    }
-    if (ImGui::Button(changeAllOrders?ICON_FA_LINK"##ChangeAll":ICON_FA_CHAIN_BROKEN"##ChangeAll")) { handleUnimportant
-      // whether to change one or all orders in a row
-      changeAllOrders=!changeAllOrders;
-    }
-    if (ImGui::IsItemHovered()) {
-      if (changeAllOrders) {
-        ImGui::SetTooltip("Order change mode: entire row");
-      } else {
-        ImGui::SetTooltip("Order change mode: one");
-      }
-    }
-    const char* orderEditModeLabel="?##OrderEditMode";
-    if (orderEditMode==3) {
-      orderEditModeLabel=ICON_FA_ARROWS_V "##OrderEditMode";
-    } else if (orderEditMode==2) {
-      orderEditModeLabel=ICON_FA_ARROWS_H "##OrderEditMode";
-    } else if (orderEditMode==1) {
-      orderEditModeLabel=ICON_FA_I_CURSOR "##OrderEditMode";
-    } else {
-      orderEditModeLabel=ICON_FA_MOUSE_POINTER "##OrderEditMode";
-    }
-    if (ImGui::Button(orderEditModeLabel)) { handleUnimportant
-      orderEditMode++;
-      if (orderEditMode>3) orderEditMode=0;
-      curNibble=false;
-    }
-    if (ImGui::IsItemHovered()) {
-      if (orderEditMode==3) {
-        ImGui::SetTooltip("Order edit mode: Select and type (scroll vertically)");
-      } else if (orderEditMode==2) {
-        ImGui::SetTooltip("Order edit mode: Select and type (scroll horizontally)");
-      } else if (orderEditMode==1) {
-        ImGui::SetTooltip("Order edit mode: Select and type (don't scroll)");
-      } else {
-        ImGui::SetTooltip("Order edit mode: Click to change");
-      }
-    }
-    ImGui::PopStyleVar();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ORDERS;
   oldOrder1=e->getOrder();

@@ -21,8 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);}}
-#define postWrite(a,v) postDACWrites.emplace(a,v);
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);}}
+#define postWrite(a,v) postDACWrites.push(DivRegWrite(a,v));
 
 #define CHIP_DIVIDER 32
 
@@ -261,7 +261,10 @@ int DivPlatformSwan::dispatch(DivCommand c) {
           dacPos=0;
           dacPeriod=0;
           if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-            if (c.value!=DIV_NOTE_NULL) dacSample=ins->amiga.getSample(c.value);
+            if (c.value!=DIV_NOTE_NULL) {
+              dacSample=ins->amiga.getSample(c.value);
+              c.value=ins->amiga.getFreq(c.value);
+            }
             if (dacSample<0 || dacSample>=parent->song.sampleLen) {
               dacSample=-1;
               if (dumpWrites) postWrite(0xffff0002,0);
@@ -545,19 +548,25 @@ void DivPlatformSwan::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
-  parent=p;
-  dumpWrites=false;
-  skipRegisterWrites=false;
+void DivPlatformSwan::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16; // = 192000kHz, should be enough
   for (int i=0; i<4; i++) {
-    isMuted[i]=false;
-    oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;
   }
+}
+
+int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
+  parent=p;
+  dumpWrites=false;
+  skipRegisterWrites=false;
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
   ws=new WSwan();
+  setFlags(flags);
   reset();
   return 4;
 }

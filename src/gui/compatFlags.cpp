@@ -180,6 +180,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("behavior changed in 0.6pre4");
         }
+        ImGui::Checkbox("Broken macros in some FM chips after note off",&e->song.brokenFMOff);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6pre5");
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(".mod import")) {
@@ -195,6 +199,7 @@ void FurnaceGUI::drawCompatFlags() {
       }
       if (ImGui::BeginTabItem("Pitch/Playback")) {
         ImGui::Text("Pitch linearity:");
+        ImGui::Indent();
         if (ImGui::RadioButton("None",e->song.linearPitch==0)) {
           e->song.linearPitch=0;
         }
@@ -213,6 +218,7 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("like Impulse Tracker");
         }
+        ImGui::Unindent();
 
         if (e->song.linearPitch==2) {
           ImGui::SameLine();
@@ -224,6 +230,7 @@ void FurnaceGUI::drawCompatFlags() {
         }
 
         ImGui::Text("Loop modality:");
+        ImGui::Indent();
         if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
           e->song.loopModality=0;
         }
@@ -242,8 +249,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("select to not reset channels on loop.");
         }
+        ImGui::Unindent();
 
         ImGui::Text("Cut/delay effect policy:");
+        ImGui::Indent();
         if (ImGui::RadioButton("Strict",e->song.delayBehavior==0)) {
           e->song.delayBehavior=0;
         }
@@ -262,8 +271,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("no checks");
         }
+        ImGui::Unindent();
 
         ImGui::Text("Simultaneous jump (0B+0D) treatment:");
+        ImGui::Indent();
         if (ImGui::RadioButton("Normal",e->song.jumpTreatment==0)) {
           e->song.jumpTreatment=0;
         }
@@ -282,6 +293,7 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("only accept 0Dxx");
         }
+        ImGui::Unindent();
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Other")) {

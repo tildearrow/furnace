@@ -32,93 +32,17 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 162: Furnace 0.6pre7
+- 161: Furnace 0.6pre6
+- 158: Furnace 0.6pre5
+- 146: Furnace Pro (joke version)
 - 143: Furnace 0.6pre4
-- 142: Furnace dev142
 - 141: Furnace Tournament Edition (for intro tune contest)
-- 140: Furnace dev140
-- 139: Furnace dev139
-- 138: Furnace dev138
-- 137: Furnace dev137
-- 136: Furnace dev136
-- 135: Furnace dev135
-- 134: Furnace dev134
 - 133: Furnace 0.6pre3
 - 132: Furnace 0.6pre2
-- 131: Furnace dev131
-- 130: Furnace dev130
-- 129: Furnace dev129
-- 128: Furnace dev128
-- 127: Furnace dev127
-- 126: Furnace dev126
-- 125: Furnace dev125
-- 124: Furnace dev124
-- 123: Furnace dev123
-- 122: Furnace dev122
-- 121: Furnace dev121
-- 120: Furnace dev120
-- 119: Furnace dev119
-- 118: Furnace dev118
-- 117: Furnace dev117
 - 116: Furnace 0.6pre1.5
-- 115: Furnace dev115
-- 114: Furnace dev114
-- 113: Furnace dev113
-- 112: Furnace dev112
-- 111: Furnace dev111
-- 110: Furnace dev110
-- 109: Furnace dev109
-- 108: Furnace dev108
-- 107: Furnace dev107
-- 106: Furnace dev106
-- 105: Furnace dev105
-- 104: Furnace dev104
-- 103: Furnace dev103
-- 102: Furnace 0.6pre1 (dev102)
-- 101: Furnace 0.6pre1 (dev101)
 - 100: Furnace 0.6pre1
-- 99: Furnace dev99
-- 98: Furnace dev98
-- 97: Furnace dev97
-- 96: Furnace dev96
-- 95: Furnace dev95
-- 94: Furnace dev94
-- 93: Furnace dev93
-- 92: Furnace dev92
-- 91: Furnace dev91
-- 90: Furnace dev90
-- 89: Furnace dev89
-- 88: Furnace dev88
-- 87: Furnace dev87
-- 86: Furnace dev86
-- 85: Furnace dev85
-- 84: Furnace dev84
-- 83: Furnace dev83
-- 82: Furnace dev82
-- 81: Furnace dev81
-- 80: Furnace dev80
-- 79: Furnace dev79
-- 78: Furnace dev78
-- 77: Furnace dev77
-- 76: Furnace dev76
 - 75: Furnace dev75/April Fools' 0.6pre0
-- 74: Furnace dev74
-- 73: Furnace dev73
-- 72: Furnace dev72
-- 71: Furnace dev71
-- 70: Furnace dev70
-- 69: Furnace dev69
-- 68: Furnace dev68
-- 67: Furnace dev67
-- 66: Furnace dev66
-- 65: Furnace dev65
-- 64: Furnace dev64
-- 63: Furnace dev63
-- 62: Furnace dev62
-- 61: Furnace dev61
-- 60: Furnace dev60
-- 59: Furnace dev59
-- 58: Furnace dev58
-- 57: Furnace dev57
 
 - 54: Furnace 0.5.8
 - 53: Furnace 0.5.7
@@ -156,6 +80,8 @@ the format versions are:
 - 14: Furnace 0.2.2
 - 13: Furnace 0.2.1
 - 12: Furnace 0.2
+
+versions that do not appear in this list are `dev???` ones.
 
 # header
 
@@ -217,8 +143,8 @@ size | description
      |   - 0x49: Neo Geo CD extended - 16 channels
      |   - 0x80: AY-3-8910 - 3 channels
      |   - 0x81: Amiga - 4 channels
-     |   - 0x82: YM2151 alone - 8 channels
-     |   - 0x83: YM2612 alone - 6 channels
+     |   - 0x82: YM2151 - 8 channels
+     |   - 0x83: YM2612 - 6 channels
      |   - 0x84: TIA - 2 channels
      |   - 0x85: VIC-20 - 4 channels
      |   - 0x86: PET - 1 channel
@@ -233,7 +159,7 @@ size | description
      |   - 0x8f: OPL (YM3526) - 9 channels
      |   - 0x90: OPL2 (YM3812) - 9 channels
      |   - 0x91: OPL3 (YMF262) - 18 channels
-     |   - 0x92: MultiPCM - 28 channels
+     |   - 0x92: MultiPCM - 28 channels (UNAVAILABLE)
      |   - 0x93: Intel 8253 (beeper) - 1 channel
      |   - 0x94: POKEY - 4 channels
      |   - 0x95: RF5C68 - 8 channels
@@ -246,7 +172,7 @@ size | description
      |   - 0x9c: Virtual Boy - 6 channels
      |   - 0x9d: VRC7 - 6 channels
      |   - 0x9e: YM2610B - 16 channels
-     |   - 0x9f: ZX Spectrum (beeper) - 6 channels
+     |   - 0x9f: ZX Spectrum (beeper, tildearrow engine) - 6 channels
      |   - 0xa0: YM2612 extended - 9 channels
      |   - 0xa1: Konami SCC - 5 channels
      |   - 0xa2: OPL drums (YM3526) - 11 channels
@@ -261,8 +187,8 @@ size | description
      |   - 0xab: MSM6258 - 1 channel
      |   - 0xac: Commander X16 (VERA) - 17 channels
      |   - 0xad: Bubble System WSG - 2 channels
-     |   - 0xae: OPL4 (YMF278B) - 42 channels
-     |   - 0xaf: OPL4 drums (YMF278B) - 44 channels
+     |   - 0xae: OPL4 (YMF278B) - 42 channels (UNAVAILABLE)
+     |   - 0xaf: OPL4 drums (YMF278B) - 44 channels (UNAVAILABLE)
      |   - 0xb0: Seta/Allumer X1-010 - 16 channels
      |   - 0xb1: Ensoniq ES5506 - 32 channels
      |   - 0xb2: Yamaha Y8950 - 10 channels
@@ -273,21 +199,29 @@ size | description
      |   - 0xb7: YM2608 extended - 19 channels
      |   - 0xb8: YMZ280B - 8 channels
      |   - 0xb9: Namco WSG - 3 channels
-     |   - 0xba: Namco 15xx - 8 channels
-     |   - 0xbb: Namco CUS30 - 8 channels
+     |   - 0xba: Namco C15 - 8 channels
+     |   - 0xbb: Namco C30 - 8 channels
      |   - 0xbc: MSM5232 - 8 channels
-     |   - 0xbd: YM2612 extra features extended - 11 channels
-     |   - 0xbe: YM2612 extra features - 7 channels
+     |   - 0xbd: YM2612 DualPCM extended - 11 channels
+     |   - 0xbe: YM2612 DualPCM - 7 channels
      |   - 0xbf: T6W28 - 4 channels
      |   - 0xc0: PCM DAC - 1 channel
      |   - 0xc1: YM2612 CSM - 10 channels
-     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
-     |   - 0xc3: YM2203 CSM - 10 channels
-     |   - 0xc4: YM2608 CSM - 20 channels
-     |   - 0xc5: YM2610B CSM - 20 channels
+     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels (UNAVAILABLE)
+     |   - 0xc3: YM2203 CSM - 10 channels (UNAVAILABLE)
+     |   - 0xc4: YM2608 CSM - 20 channels (UNAVAILABLE)
+     |   - 0xc5: YM2610B CSM - 20 channels (UNAVAILABLE)
      |   - 0xc6: K007232 - 2 channels
      |   - 0xc7: GA20 - 4 channels
      |   - 0xc8: SM8521 - 3 channels
+     |   - 0xc9: M114S - 16 channels (UNAVAILABLE)
+     |   - 0xca: ZX Spectrum (beeper, QuadTone engine) - 5 channels
+     |   - 0xcb: Casio PV-1000 - 3 channels
+     |   - 0xcc: K053260 - 4 channels
+     |   - 0xcd: TED - 2 channels
+     |   - 0xce: Namco C140 - 24 channels
+     |   - 0xcf: Namco C219 - 16 channels (UNAVAILABLE)
+     |   - 0xd0: Namco C352 - 32 channels (UNAVAILABLE)
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel
@@ -296,10 +230,14 @@ size | description
      |   - 0xff: reserved for development
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.
- 32  | sound chip volumes
+     | - (UNAVAILABLE) means that the chip hasn't been implemented in Furnace
+     |   yet.
+ 32  | sound chip volumes (<135) or reserved
      | - signed char, 64=1.0, 127=~2.0
- 32  | sound chip panning
+     | - as of version 135 these fields only exist for compatibility reasons.
+ 32  | sound chip panning (<135) or reserved
      | - signed char, -128=left, 127=right
+     | - as of version 135 these fields only exist for compatibility reasons.
  128 | sound chip flag pointers (>=119) or sound chip flags
      | - before 118, these were 32-bit flags.
      | - for conversion details, see the "converting from old flags" section.
@@ -408,7 +346,8 @@ size | description
   1  | automatic patchbay (>=136)
  --- | **a couple more compat flags** (>=138)
   1  | broken portamento during legato
-  7  | reserved
+  1  | broken macro during note off in some FM chips (>=155)
+  6  | reserved
  --- | **speed pattern of first song** (>=139)
   1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
@@ -417,12 +356,16 @@ size | description
  ??? | groove entries. the format is:
      | - 1 byte: length of groove
      | - 16 bytes: groove pattern
+ --- | **pointers to asset directories** (>=156)
+  4  | instrument directories
+  4  | wavetable directories
+  4  | sample directories
 ```
 
 # patchbay
 
 Furnace dev135 adds a "patchbay" which allows for arbitrary connection of chip outputs to system outputs.
-it eventually will allow connecting outputs to effects and so on.
+it also allows connecting outputs to effects and so on.
 
 a connection is represented as an unsigned int in the following format:
 
@@ -506,6 +449,22 @@ flags are stored in text (`key=value`) format. for example:
 ```
 clock=4000000
 stereo=true
+```
+
+# asset directories (>=156)
+
+also known as "folder" in the user interface.
+
+```
+size | description
+-----|------------------------------------
+  4  | "ADIR" block ID
+  4  | size of this block
+  4  | number of directories
+ --- | **asset directory** (×numberOfDirs)
+ STR | name (if empty, this is the uncategorized directory)
+  2  | number of assets
+ 1?? | assets in this directory
 ```
 
 # instrument (>=127)
@@ -1191,7 +1150,8 @@ size | description
      | - 2: ping-pong
   1  | flags (>=129) or reserved
      | - 0: BRR emphasis
-  1  | reserved
+  1  | flags 2 (>=159) or reserved
+     | - 0: dither
   4  | loop start
      | - -1 means no loop
   4  | loop end
@@ -1239,7 +1199,58 @@ size | description
      | - version>=58 size is length
 ```
 
-# pattern
+# pattern (>=157)
+
+```
+size | description
+-----|------------------------------------
+  4  | "PATN" block ID
+  4  | size of this block
+  1  | subsong
+  1  | channel
+  2  | pattern index
+ STR | pattern name (>=51)
+ ??? | pattern data
+     | - read a byte per row.
+     | - if it is 0xff, end of pattern.
+     | - if bit 7 is set, then read bit 0-6 as "skip N+2 rows".
+     | - if bit 7 is clear, then:
+     |   - bit 0: note present
+     |   - bit 1: ins present
+     |   - bit 2: volume present
+     |   - bit 3: effect 0 present
+     |   - bit 4: effect value 0 present
+     |   - bit 5: other effects (0-3) present
+     |   - bit 6: other effects (4-7) present
+     | - if bit 5 is set, read another byte:
+     |   - bit 0: effect 0 present
+     |   - bit 1: effect value 0 present
+     |   - bit 2: effect 1 present
+     |   - bit 3: effect value 1 present
+     |   - bit 4: effect 2 present
+     |   - bit 5: effect value 2 present
+     |   - bit 6: effect 3 present
+     |   - bit 7: effect value 3 present
+     | - if bit 6 is set, read another byte:
+     |   - bit 0: effect 4 present
+     |   - bit 1: effect value 4 present
+     |   - bit 2: effect 5 present
+     |   - bit 3: effect value 5 present
+     |   - bit 4: effect 6 present
+     |   - bit 5: effect value 6 present
+     |   - bit 6: effect 7 present
+     |   - bit 7: effect value 7 present
+     | - then read note, ins, volume, effects and effect values depending on what is present.
+     | - for note:
+     |   - 0 is C-(-5)
+     |   - 179 is B-9
+     |   - 180 is note off
+     |   - 181 is note release
+     |   - 182 is macro release
+```
+
+
+# old pattern (<157)
 
 ```
 size | description
@@ -1269,8 +1280,8 @@ size | description
      |     - 12: C (of next octave)
      |       - this is actually a leftover of the .dmf format.
      |     - 100: note off
-     |     - 100: note release
-     |     - 100: macro release
+     |     - 101: note release
+     |     - 102: macro release
      |   - octave
      |     - this is an signed char stored in a short.
      |     - therefore octave value 255 is actually octave -1.

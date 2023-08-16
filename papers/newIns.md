@@ -114,8 +114,12 @@ the following instrument types are available:
 - 44: T6W28
 - 45: K007232
 - 46: GA20
-- 47: Pokémon Mini
+- 47: Pokémon Mini/QuadTone
 - 48: SM8521
+- 49: PV-1000
+- 50: K053260
+- 52: TED
+- 53: C140
 
 the following feature codes are recognized:
 
@@ -388,7 +392,7 @@ the sample map format:
 ```
 size | description
 -----|------------------------------------
-  2  | note to play
+  2  | note to play (>=152) or reserved
   2  | sample to play
 ```
 
@@ -467,6 +471,12 @@ size | description
   1  | wave pos
   1  | wave len
   1  | wave mode
+     | **extra info** (>=164)
+  1  | enable per channel wave pos/len
+  8  | per channel wave pos
+     | - only read if enabled.
+  8  | per channel wave len
+     | - only read if enabled.
 ```
 
 # FDS/Virtual Boy data (FD)

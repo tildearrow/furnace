@@ -22,7 +22,7 @@
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) \
   if (!skipRegisterWrites) { \
     if (curChan!=c) { \
@@ -101,7 +101,7 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
     pce->ResetTS(0);
 
     for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP((pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1,-32768,32767);
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1],-32768,32767);
     }
 
     tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
@@ -282,7 +282,10 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           chan[c.chan].furnaceDac=true;
           if (skipRegisterWrites) break;
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
@@ -505,6 +508,16 @@ DivMacroInt* DivPlatformPCE::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivSamplePos DivPlatformPCE::getSamplePos(int ch) {
+  if (ch>=6) return DivSamplePos();
+  if (!chan[ch].pcm) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].dacSample,
+    chan[ch].dacPos,
+    chan[ch].dacRate
+  );
+}
+
 DivDispatchOscBuffer* DivPlatformPCE::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -518,7 +531,7 @@ int DivPlatformPCE::getRegisterPoolSize() {
 }
 
 void DivPlatformPCE::reset() {
-  while (!writes.empty()) writes.pop();
+  writes.clear();
   memset(regPool,0,128);
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformPCE::Channel();

@@ -493,16 +493,6 @@ namespace xgm
     noise = 1;
     noise_tap = (1<<1);
 
-    if (option[OPT_RANDOMIZE_NOISE])
-    {
-        noise |= ::rand();
-        counter[1] = -(rand() & 511);
-    }
-    if (option[OPT_RANDOMIZE_TRI])
-    {
-        tphase = ::rand() & 31;
-        counter[0] = -(rand() & 2047);
-    }
 
     SetRate(rate);
   }
