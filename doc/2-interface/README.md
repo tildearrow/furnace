@@ -24,7 +24,7 @@ the default layout of Furnace is depicted below.
 - [wavetable editor](../5-wave/README.md)
 - [sample editor](../6-sample/README.md)
 
-## advanced windows
+## advanced topics
 
 - [mixer](../8-advanced/mixer.md)
 - [grooves](../8-advanced/grooves.md)
