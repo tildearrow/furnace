@@ -114,6 +114,7 @@ const char* aboutLine[]={
   "niffuM",
   "<nk>",
   "NyaongI",
+  "PichuMario",
   "potatoTeto",
   "psxdominator",
   "Raijin",
