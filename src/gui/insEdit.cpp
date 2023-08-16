@@ -2188,7 +2188,7 @@ void FurnaceGUI::drawInsEdit() {
   }
   if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curIns<0 || curIns>=(int)e->song.ins.size()) {
-      ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*2.0f)*0.5f);
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*(e->song.ins.empty()?2.0f:3.0f)+ImGui::GetStyle().ItemSpacing.y)*0.5f);
       CENTER_TEXT("no instrument selected");
       ImGui::Text("no instrument selected");
       if (ImGui::BeginTable("noAssetCenter",3)) {
@@ -2201,6 +2201,7 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::TableNextColumn();
 
         if (e->song.ins.size()>0) {
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("##InsSelect","select one...")) {
             String name;
             for (size_t i=0; i<e->song.ins.size(); i++) {
@@ -2213,7 +2214,7 @@ void FurnaceGUI::drawInsEdit() {
             }
             ImGui::EndCombo();
           }
-          ImGui::SameLine();
+          ImGui::AlignTextToFramePadding();
           ImGui::TextUnformatted("or");
           ImGui::SameLine();
         }
