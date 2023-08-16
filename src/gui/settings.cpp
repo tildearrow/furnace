@@ -2343,18 +2343,22 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::RadioButton("Unified##mel0",settings.macroLayout==0)) {
           settings.macroLayout=0;
         }
+        /*
         if (ImGui::RadioButton("Tabs##mel1",settings.macroLayout==1)) {
           settings.macroLayout=1;
         }
+        */
         if (ImGui::RadioButton("Grid##mel2",settings.macroLayout==2)) {
           settings.macroLayout=2;
         }
         if (ImGui::RadioButton("Single (with list)##mel3",settings.macroLayout==3)) {
           settings.macroLayout=3;
         }
+        /*
         if (ImGui::RadioButton("Single (combo box)##mel4",settings.macroLayout==4)) {
           settings.macroLayout=4;
         }
+        */
         ImGui::Unindent();
 
         bool oldMacroVSliderB=settings.oldMacroVSlider;
