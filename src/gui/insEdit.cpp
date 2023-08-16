@@ -1468,7 +1468,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       if (!i.isBitfield) {
         if (settings.oldMacroVSlider) {
           ImGui::SameLine(0.0f);
-          if (ImGui::VSliderInt("IMacroVScroll",ImVec2(20.0f*dpiScale,i.height*dpiScale),&i.macro->vScroll,0,(i.max-i.min)-i.macro->vZoom,"",ImGuiSliderFlags_NoInput)) {
+          if (ImGui::VSliderInt("##IMacroVScroll",ImVec2(20.0f*dpiScale,i.height*dpiScale),&i.macro->vScroll,0,(i.max-i.min)-i.macro->vZoom,"",ImGuiSliderFlags_NoInput)) {
             if (i.macro->vScroll<0) i.macro->vScroll=0;
             if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
           }
@@ -1494,7 +1494,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
           }
 
-          ImGuiID scrollbarID=ImGui::GetID("IMacroVScroll");
+          ImGuiID scrollbarID=ImGui::GetID("##IMacroVScroll");
           ImGui::KeepAliveID(scrollbarID);
           if (ImGui::ScrollbarEx(scrollbarPos,scrollbarID,ImGuiAxis_Y,&scrollV,availV,contentsV,0)) {
             i.macro->vScroll=(i.max-i.min-i.macro->vZoom)-scrollV;
@@ -1888,7 +1888,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
       break;
     }
     case 1: {
-      ImGui::Text("Mobile");
+      ImGui::Text("Tabs");
       break;
     }
     case 2: {
@@ -1980,8 +1980,37 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           FurnaceGUIMacroDesc& m=macros[state.selectedMacro];
           m.macro->open|=1;
 
-          m.height=ImGui::GetContentRegionAvail().y-ImGui::GetFontSize()-ImGui::GetFrameHeightWithSpacing()-12.0f*dpiScale-ImGui::GetStyle().ItemSpacing.y*3.0f;
-          if (m.macro->name=="arp") m.height-=12.0f*dpiScale;
+          float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
+          int totalFit=MIN(255,availableWidth/MAX(1,macroPointSize*dpiScale));
+          int scrollMax=0;
+          for (FurnaceGUIMacroDesc& i: macros) {
+            if (i.macro->len>scrollMax) scrollMax=i.macro->len;
+          }
+          scrollMax-=totalFit;
+          if (scrollMax<0) scrollMax=0;
+          if (macroDragScroll>scrollMax) {
+            macroDragScroll=scrollMax;
+          }
+          ImGui::BeginDisabled(scrollMax<1);
+          ImGui::SetNextItemWidth(availableWidth);
+          if (CWSliderInt("##MacroScroll",&macroDragScroll,0,scrollMax,"")) {
+            if (macroDragScroll<0) macroDragScroll=0;
+            if (macroDragScroll>scrollMax) macroDragScroll=scrollMax;
+          }
+          ImGui::EndDisabled();
+
+          ImGui::SameLine();
+          ImGui::Button(ICON_FA_SEARCH_PLUS "##MacroZoomB");
+          if (ImGui::BeginPopupContextItem("MacroZoomP",ImGuiPopupFlags_MouseButtonLeft)) {
+            ImGui::SetNextItemWidth(120.0f*dpiScale);
+            if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,16)) {
+              if (macroPointSize<1) macroPointSize=1;
+              if (macroPointSize>256) macroPointSize=256;
+            }
+            ImGui::EndPopup();
+          }
+
+          m.height=ImGui::GetContentRegionAvail().y-ImGui::GetFontSize()-ImGui::GetFrameHeightWithSpacing()-(m.bit30?28.0f:12.0f)*dpiScale-ImGui::GetStyle().ItemSpacing.y*3.0f;
           if (m.height<10.0f*dpiScale) m.height=10.0f*dpiScale;
           m.height/=dpiScale;
           drawMacroEdit(m,totalFit,availableWidth,index);
@@ -1999,7 +2028,25 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
               }
               ImGui::SameLine();
             }
-            BUTTON_TO_SET_PROPS(m);
+            ImGui::Text("StepLen");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(120.0f*dpiScale);
+            if (ImGui::InputScalar("##IMacroSpeed",ImGuiDataType_U8,&m.macro->speed,&_ONE,&_THREE)) {
+              if (m.macro->speed<1) m.macro->speed=1;
+              MARK_MODIFIED;
+            }
+            ImGui::SameLine();
+            ImGui::Text("Delay");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(120.0f*dpiScale);
+            if (ImGui::InputScalar("##IMacroDelay",ImGuiDataType_U8,&m.macro->delay,&_ONE,&_THREE)) {
+              MARK_MODIFIED;
+            }
+            ImGui::SameLine();
+            {
+              FurnaceGUIMacroDesc& i=m;
+              BUTTON_TO_SET_MODE(ImGui::Button);
+            }
             if (m.modeName!=NULL) {
               bool modeVal=m.macro->mode;
               String modeName=fmt::sprintf("%s##IMacroMode",m.modeName);

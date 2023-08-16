@@ -2343,7 +2343,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::RadioButton("Unified##mel0",settings.macroLayout==0)) {
           settings.macroLayout=0;
         }
-        if (ImGui::RadioButton("Mobile##mel1",settings.macroLayout==1)) {
+        if (ImGui::RadioButton("Tabs##mel1",settings.macroLayout==1)) {
           settings.macroLayout=1;
         }
         if (ImGui::RadioButton("Grid##mel2",settings.macroLayout==2)) {
