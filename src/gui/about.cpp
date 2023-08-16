@@ -93,6 +93,7 @@ const char* aboutLine[]={
   "freq-mod",
   "gtr3qq",
   "Hortus",
+  "ifrit05",
   "iyatemu",
   "JayBOB18",
   "Jimmy-DS",
