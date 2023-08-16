@@ -80,19 +80,18 @@ in there, you can modify certain data pertaining to your sample, such as the:
 - button to left of **Info**: collapses and expands the info bar.
 - **Type**: sample format. only 8-bit and 16-bit PCM samples are editable. selecting a format converts the sample data.
 - **BRR emphasis**: boosts higher frequencies to compensate for the SNES low-pass filter. should not be enabled for BRR-type samples.
-- **8-bit dither**: for samples that aren't 8-bit, this dithers the values to reduce aliasing noise when played via 8-bit PCM.
-  - ---
+
 - **Rate**: switches to normal rate values.
 - **Compat Rate**: switches to DefleMask-compatible rate values for sample mapping.
 - **Hz**: base frequency of sample played at `C-4`.
 - **Note**: note corresponding to Hz.
 - **Fine**: fine tuning. ranges from -64 to 63, which maps to -1 to almost +1 semitone.
-  - ---
+
 - **Loop**: enable or disable sample loop. only on supported chips.
 - **Mode**: direction of loop. backward and ping pong loops are only natively available on some chips; on others, loop will be automatically unrolled as needed.
 - **Start**: start of loop.
 - **End**: end of loop.
-  - ---
+
 - **Chips:** set assignment to chips and sample banks.
   - sample will only be uploaded to selected chips.
   - columns correspond to chips in use.
