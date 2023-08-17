@@ -821,6 +821,18 @@ void DivEngine::runExportThread() {
   size_t fadeOutSamples=got.rate*exportFadeOut;
   size_t curFadeOutSample=0;
   bool isFadingOut=false;
+
+  setConf("arcadeCore",getConfInt("arcadeCoreRender",0));
+  setConf("ym2612Core",getConfInt("ym2612CoreRender",0));
+  setConf("snCore",getConfInt("snCoreRender",0));
+  setConf("nesCore",getConfInt("nesCoreRender",0));
+  setConf("fdsCore",getConfInt("fdsCoreRender",0));
+  setConf("c64Core",getConfInt("c64CoreRender",0));
+  setConf("pokeyCore",getConfInt("pokeyCoreRender",0));
+  setConf("opnCore",getConfInt("opnCoreRender",0));
+
+  switchMaster(true);
+
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
       SNDFILE* sf;
@@ -1144,6 +1156,18 @@ void DivEngine::runExportThread() {
       break;
     }
   }
+
+  setConf("arcadeCore",getConfInt("arcadeCorePlayback",0));
+  setConf("ym2612Core",getConfInt("ym2612CorePlayback",0));
+  setConf("snCore",getConfInt("snCorePlayback",0));
+  setConf("nesCore",getConfInt("nesCorePlayback",0));
+  setConf("fdsCore",getConfInt("fdsCorePlayback",0));
+  setConf("c64Core",getConfInt("c64CorePlayback",0));
+  setConf("pokeyCore",getConfInt("pokeyCorePlayback",0));
+  setConf("opnCore",getConfInt("opnCorePlayback",0));
+
+  switchMaster(true);
+
   stopExport=false;
 }
 #else
