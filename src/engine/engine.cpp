@@ -831,7 +831,13 @@ void DivEngine::runExportThread() {
   setConf("pokeyCore",getConfInt("pokeyCoreRender",0));
   setConf("opnCore",getConfInt("opnCoreRender",0));
 
-  switchMaster(true);
+  if (switchMaster(true)) {
+    logI("successfully switched to render cores!");
+  } else {
+    logE("could not switch to render cores!");
+    exporting = false;
+    return;
+  }
 
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
@@ -1166,7 +1172,11 @@ void DivEngine::runExportThread() {
   setConf("pokeyCore",getConfInt("pokeyCorePlayback",0));
   setConf("opnCore",getConfInt("opnCorePlayback",0));
 
-  switchMaster(true);
+  if (switchMaster(true)) {
+    logI("successfully switched to playback cores!");
+  } else {
+    logE("could not switch to playback cores!");
+  }
 
   stopExport=false;
 }
