@@ -3374,14 +3374,14 @@ void FurnaceGUI::commitSettings() {
     settings.c64Core!=e->getConfInt("c64Core",0) ||
     settings.pokeyCore!=e->getConfInt("pokeyCore",1) ||
     settings.opnCore!=e->getConfInt("opnCore",1) ||
-    settings.arcadeCoreRender!=e->getConfInt("arcadeCore",0) ||
-    settings.ym2612CoreRender!=e->getConfInt("ym2612Core",0) ||
-    settings.snCoreRender!=e->getConfInt("snCore",0) ||
-    settings.nesCoreRender!=e->getConfInt("nesCore",0) ||
-    settings.fdsCoreRender!=e->getConfInt("fdsCore",0) ||
-    settings.c64CoreRender!=e->getConfInt("c64Core",0) ||
-    settings.pokeyCoreRender!=e->getConfInt("pokeyCore",1) ||
-    settings.opnCoreRender!=e->getConfInt("opnCore",1)
+    settings.arcadeCoreRender!=e->getConfInt("arcadeCoreRender",0) ||
+    settings.ym2612CoreRender!=e->getConfInt("ym2612CoreRender",0) ||
+    settings.snCoreRender!=e->getConfInt("snCoreRender",0) ||
+    settings.nesCoreRender!=e->getConfInt("nesCoreRender",0) ||
+    settings.fdsCoreRender!=e->getConfInt("fdsCoreRender",0) ||
+    settings.c64CoreRender!=e->getConfInt("c64CoreRender",0) ||
+    settings.pokeyCoreRender!=e->getConfInt("pokeyCoreRender",1) ||
+    settings.opnCoreRender!=e->getConfInt("opnCoreRender",1)
   );
 
   e->setConf("mainFontSize",settings.mainFontSize);
