@@ -636,13 +636,15 @@ void DivPlatformYM2610BExt::muteChannel(int ch, bool mute) {
   DivPlatformYM2610B::muteChannel(extChanOffs,IS_EXTCH_MUTED);
   
   if (extMode) {
-    int ordch=orderedOps[ch-extChanOffs];
-    unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
-    DivInstrumentFM::Operator op=chan[extChanOffs].state.op[ordch];
-    if (isOpMuted[ch-extChanOffs] || !op.enable) {
-      rWrite(baseAddr+0x40,127);
-    } else {
-      rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-extChanOffs].outVol&0x7f,127));
+    for (int i=0; i<4; i++) {
+      int ordch=orderedOps[i];
+      unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
+      DivInstrumentFM::Operator op=chan[extChanOffs].state.op[ordch];
+      if (isOpMuted[i] || !op.enable) {
+        rWrite(baseAddr+0x40,127);
+      } else {
+        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[i].outVol&0x7f,127));
+      }
     }
 
     rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch-extChanOffs].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
