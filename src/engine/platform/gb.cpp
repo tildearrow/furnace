@@ -458,7 +458,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         }
         chan[c.chan].envVol=chan[c.chan].outVol;
         
-        if (!chan[c.chan].keyOn) chan[c.chan].killIt=true;
+        if (!chan[c.chan].keyOn && chan[c.chan].active) chan[c.chan].killIt=true;
         chan[c.chan].freqChanged=true;
       }
       break;

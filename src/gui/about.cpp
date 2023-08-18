@@ -136,6 +136,7 @@ const char* aboutLine[]={
   "UserSniper",
   "Weeppiko",
   "Xan",
+  "YaIiya",
   "Yuzu4K",
   "Zaxolotl",
   "ZoomTen (Zumi)",
