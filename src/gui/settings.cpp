@@ -1189,78 +1189,116 @@ void FurnaceGUI::drawSettings() {
       CONFIG_SECTION("Emulation") {
         // SUBSECTION LAYOUT
         CONFIG_SUBSECTION("Cores");
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Arcade/YM2151 core");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
-        ImGui::SameLine();
-        ImGui::Combo("##ArcadeCoreRender",&settings.arcadeCoreRender,arcadeCores,2);
-        ImGui::PopItemWidth();
+        if (ImGui::BeginTable("##Cores",3)) {
+          ImGui::TableSetupColumn("##System",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("##RenderCores",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("System");
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Playback Core(s)");
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("playback cores are used in real-time, when the program's running");
+          }
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Render Core(s)");
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("render cores are used for audio exporting");
+          }
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Genesis/YM2612 core");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
-        ImGui::SameLine();
-        ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,2);
-        ImGui::PopItemWidth();
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Arcade/YM2151");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##ArcadeCoreRender",&settings.arcadeCoreRender,arcadeCores,2);
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("SN76489 core");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##SNCore",&settings.snCore,snCores,2);
-        ImGui::SameLine();
-        ImGui::Combo("##SNCoreRender",&settings.snCoreRender,snCores,2);
-        ImGui::PopItemWidth();
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Genesis/YM2612");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,2);
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("NES core");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##NESCore",&settings.nesCore,nesCores,2);
-        ImGui::SameLine();
-        ImGui::Combo("##NESCoreRender",&settings.nesCoreRender,nesCores,2);
-        ImGui::PopItemWidth();
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("SN76489");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##SNCore",&settings.snCore,snCores,2);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##SNCoreRender",&settings.snCoreRender,snCores,2);
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("FDS core");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2);
-        ImGui::SameLine();
-        ImGui::Combo("##FDSCoreRender",&settings.fdsCoreRender,nesCores,2);
-        ImGui::PopItemWidth();
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("NES");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##NESCore",&settings.nesCore,nesCores,2);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##NESCoreRender",&settings.nesCoreRender,nesCores,2);
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("SID core");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,3);
-        ImGui::SameLine();
-        ImGui::Combo("##C64CoreRender",&settings.c64CoreRender,c64Cores,3);
-        ImGui::PopItemWidth();
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("FDS");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##FDSCoreRender",&settings.fdsCoreRender,nesCores,2);
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("POKEY core");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2);
-        ImGui::SameLine();
-        ImGui::Combo("##POKEYCoreRender",&settings.pokeyCoreRender,pokeyCores,2);
-        ImGui::PopItemWidth();
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("SID");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,3);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##C64CoreRender",&settings.c64CoreRender,c64Cores,3);
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("OPN/OPNA/OPNB cores");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##OPNCore",&settings.opnCore,opnCores,2);
-        ImGui::SameLine();
-        ImGui::Combo("##OPNCoreRender",&settings.opnCoreRender,opnCores,2);
-        ImGui::PopItemWidth();
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("POKEY");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##POKEYCoreRender",&settings.pokeyCoreRender,pokeyCores,2);
 
+          ImGui::TableNextRow();
+          ImGui::TableSetColumnIndex(0);
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPN/OPNA/OPNB");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##OPNCore",&settings.opnCore,opnCores,2);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##OPNCoreRender",&settings.opnCoreRender,opnCores,2);
+          ImGui::EndTable();
+        }
         ImGui::Separator();
 
         ImGui::AlignTextToFramePadding();
