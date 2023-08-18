@@ -1419,14 +1419,6 @@ class FurnaceGUI {
     int c64Core;
     int pokeyCore;
     int opnCore;
-    int arcadeCorePlayback;
-    int ym2612CorePlayback;
-    int snCorePlayback;
-    int nesCorePlayback;
-    int fdsCorePlayback;
-    int c64CorePlayback;
-    int pokeyCorePlayback;
-    int opnCorePlayback;
     int arcadeCoreRender;
     int ym2612CoreRender;
     int snCoreRender;

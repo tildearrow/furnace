@@ -822,22 +822,8 @@ void DivEngine::runExportThread() {
   size_t curFadeOutSample=0;
   bool isFadingOut=false;
 
-  setConf("arcadeCore",getConfInt("arcadeCoreRender",0));
-  setConf("ym2612Core",getConfInt("ym2612CoreRender",0));
-  setConf("snCore",getConfInt("snCoreRender",0));
-  setConf("nesCore",getConfInt("nesCoreRender",0));
-  setConf("fdsCore",getConfInt("fdsCoreRender",0));
-  setConf("c64Core",getConfInt("c64CoreRender",0));
-  setConf("pokeyCore",getConfInt("pokeyCoreRender",0));
-  setConf("opnCore",getConfInt("opnCoreRender",0));
-
-  if (switchMaster(true)) {
-    logI("successfully switched to render cores!");
-  } else {
-    logE("could not switch to render cores!");
-    exporting = false;
-    return;
-  }
+  quitDispatch();
+  initDispatch(true);
 
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
@@ -1163,21 +1149,8 @@ void DivEngine::runExportThread() {
     }
   }
 
-  setConf("arcadeCore",getConfInt("arcadeCorePlayback",0));
-  setConf("ym2612Core",getConfInt("ym2612CorePlayback",0));
-  setConf("snCore",getConfInt("snCorePlayback",0));
-  setConf("nesCore",getConfInt("nesCorePlayback",0));
-  setConf("fdsCore",getConfInt("fdsCorePlayback",0));
-  setConf("c64Core",getConfInt("c64CorePlayback",0));
-  setConf("pokeyCore",getConfInt("pokeyCorePlayback",0));
-  setConf("opnCore",getConfInt("opnCorePlayback",0));
-
-  if (switchMaster(true)) {
-    logI("successfully switched to playback cores!");
-  } else {
-    logE("could not switch to playback cores!");
-  }
-
+  quitDispatch();
+  initDispatch(false);
   stopExport=false;
 }
 #else
@@ -4600,10 +4573,11 @@ void DivEngine::rescanAudioDevices() {
   }
 }
 
-void DivEngine::initDispatch() {
+void DivEngine::initDispatch(bool isRender) {
   BUSY_BEGIN;
+  if (isRender) logI("render cores set");
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i]);
+    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i],isRender);
     disCont[i].setRates(got.rate);
     disCont[i].setQuality(lowQuality);
   }

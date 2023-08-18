@@ -1193,7 +1193,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("Arcade/YM2151 core");
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##ArcadeCorePlayback",&settings.arcadeCorePlayback,arcadeCores,2);
+        ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
         ImGui::SameLine();
         ImGui::Combo("##ArcadeCoreRender",&settings.arcadeCoreRender,arcadeCores,2);
         ImGui::PopItemWidth();
@@ -1202,7 +1202,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("Genesis/YM2612 core");
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##YM2612CorePlayback",&settings.ym2612CorePlayback,ym2612Cores,2);
+        ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
         ImGui::SameLine();
         ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,2);
         ImGui::PopItemWidth();
@@ -1211,7 +1211,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("SN76489 core");
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##SNCorePlayback",&settings.snCorePlayback,snCores,2);
+        ImGui::Combo("##SNCore",&settings.snCore,snCores,2);
         ImGui::SameLine();
         ImGui::Combo("##SNCoreRender",&settings.snCoreRender,snCores,2);
         ImGui::PopItemWidth();
@@ -1220,7 +1220,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("NES core");
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##NESCorePlayback",&settings.nesCorePlayback,nesCores,2);
+        ImGui::Combo("##NESCore",&settings.nesCore,nesCores,2);
         ImGui::SameLine();
         ImGui::Combo("##NESCoreRender",&settings.nesCoreRender,nesCores,2);
         ImGui::PopItemWidth();
@@ -1229,7 +1229,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("FDS core");
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##FDSCorePlayback",&settings.fdsCorePlayback,nesCores,2);
+        ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2);
         ImGui::SameLine();
         ImGui::Combo("##FDSCoreRender",&settings.fdsCoreRender,nesCores,2);
         ImGui::PopItemWidth();
@@ -1238,7 +1238,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("SID core");
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##C64CorePlayback",&settings.c64CorePlayback,c64Cores,3);
+        ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,3);
         ImGui::SameLine();
         ImGui::Combo("##C64CoreRender",&settings.c64CoreRender,c64Cores,3);
         ImGui::PopItemWidth();
@@ -1247,7 +1247,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("POKEY core");
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##POKEYCorePlayback",&settings.pokeyCorePlayback,pokeyCores,2);
+        ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2);
         ImGui::SameLine();
         ImGui::Combo("##POKEYCoreRender",&settings.pokeyCoreRender,pokeyCores,2);
         ImGui::PopItemWidth();
@@ -1256,7 +1256,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("OPN/OPNA/OPNB cores");
         ImGui::SameLine();
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*0.4f);
-        ImGui::Combo("##OPNCorePlayback",&settings.opnCorePlayback,opnCores,2);
+        ImGui::Combo("##OPNCore",&settings.opnCore,opnCores,2);
         ImGui::SameLine();
         ImGui::Combo("##OPNCoreRender",&settings.opnCoreRender,opnCores,2);
         ImGui::PopItemWidth();
@@ -2962,22 +2962,14 @@ void FurnaceGUI::syncSettings() {
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
-  settings.arcadeCore=settings.arcadeCorePlayback;
-  settings.ym2612Core=settings.ym2612CorePlayback;
-  settings.snCore=settings.snCorePlayback;
-  settings.nesCore=settings.nesCorePlayback;
-  settings.fdsCore=settings.fdsCorePlayback;
-  settings.c64Core=settings.c64CorePlayback;
-  settings.pokeyCore=settings.pokeyCorePlayback;
-  settings.opnCore=settings.opnCorePlayback;
-  settings.arcadeCorePlayback=e->getConfInt("arcadeCorePlayback",0);
-  settings.ym2612CorePlayback=e->getConfInt("ym2612CorePlayback",0);
-  settings.snCorePlayback=e->getConfInt("snCorePlayback",0);
-  settings.nesCorePlayback=e->getConfInt("nesCorePlayback",0);
-  settings.fdsCorePlayback=e->getConfInt("fdsCorePlayback",0);
-  settings.c64CorePlayback=e->getConfInt("c64CorePlayback",0);
-  settings.pokeyCorePlayback=e->getConfInt("pokeyCorePlayback",1);
-  settings.opnCorePlayback=e->getConfInt("opnCorePlayback",1);
+  settings.arcadeCore=e->getConfInt("arcadeCore",0);
+  settings.ym2612Core=e->getConfInt("ym2612Core",0);
+  settings.snCore=e->getConfInt("snCore",0);
+  settings.nesCore=e->getConfInt("nesCore",0);
+  settings.fdsCore=e->getConfInt("fdsCore",0);
+  settings.c64Core=e->getConfInt("c64Core",0);
+  settings.pokeyCore=e->getConfInt("pokeyCore",1);
+  settings.opnCore=e->getConfInt("opnCore",1);
   settings.arcadeCoreRender=e->getConfInt("arcadeCoreRender",0);
   settings.ym2612CoreRender=e->getConfInt("ym2612CoreRender",0);
   settings.snCoreRender=e->getConfInt("snCoreRender",0);
@@ -3146,14 +3138,6 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.c64Core,0,2);
   clampSetting(settings.pokeyCore,0,1);
   clampSetting(settings.opnCore,0,1);
-  clampSetting(settings.arcadeCorePlayback,0,1);
-  clampSetting(settings.ym2612CorePlayback,0,1);
-  clampSetting(settings.snCorePlayback,0,1);
-  clampSetting(settings.nesCorePlayback,0,1);
-  clampSetting(settings.fdsCorePlayback,0,1);
-  clampSetting(settings.c64CorePlayback,0,2);
-  clampSetting(settings.pokeyCorePlayback,0,1);
-  clampSetting(settings.opnCorePlayback,0,1);
   clampSetting(settings.arcadeCoreRender,0,1);
   clampSetting(settings.ym2612CoreRender,0,1);
   clampSetting(settings.snCoreRender,0,1);
@@ -3344,14 +3328,14 @@ void FurnaceGUI::commitSettings() {
     settings.mu5Path!=e->getConfString("mu5Path","");
 
   bool coresChanged=(
-    settings.arcadeCorePlayback!=e->getConfInt("arcadeCore",0) ||
-    settings.ym2612CorePlayback!=e->getConfInt("ym2612Core",0) ||
-    settings.snCorePlayback!=e->getConfInt("snCore",0) ||
-    settings.nesCorePlayback!=e->getConfInt("nesCore",0) ||
-    settings.fdsCorePlayback!=e->getConfInt("fdsCore",0) ||
-    settings.c64CorePlayback!=e->getConfInt("c64Core",0) ||
-    settings.pokeyCorePlayback!=e->getConfInt("pokeyCore",1) ||
-    settings.opnCorePlayback!=e->getConfInt("opnCore",1) ||
+    settings.arcadeCore!=e->getConfInt("arcadeCore",0) ||
+    settings.ym2612Core!=e->getConfInt("ym2612Core",0) ||
+    settings.snCore!=e->getConfInt("snCore",0) ||
+    settings.nesCore!=e->getConfInt("nesCore",0) ||
+    settings.fdsCore!=e->getConfInt("fdsCore",0) ||
+    settings.c64Core!=e->getConfInt("c64Core",0) ||
+    settings.pokeyCore!=e->getConfInt("pokeyCore",1) ||
+    settings.opnCore!=e->getConfInt("opnCore",1) ||
     settings.arcadeCoreRender!=e->getConfInt("arcadeCore",0) ||
     settings.ym2612CoreRender!=e->getConfInt("ym2612Core",0) ||
     settings.snCoreRender!=e->getConfInt("snCore",0) ||
@@ -3384,14 +3368,6 @@ void FurnaceGUI::commitSettings() {
   e->setConf("c64Core",settings.c64Core);
   e->setConf("pokeyCore",settings.pokeyCore);
   e->setConf("opnCore",settings.opnCore);
-  e->setConf("arcadeCorePlayback",settings.arcadeCorePlayback);
-  e->setConf("ym2612CorePlayback",settings.ym2612CorePlayback);
-  e->setConf("snCorePlayback",settings.snCorePlayback);
-  e->setConf("nesCorePlayback",settings.nesCorePlayback);
-  e->setConf("fdsCorePlayback",settings.fdsCorePlayback);
-  e->setConf("c64CorePlayback",settings.c64CorePlayback);
-  e->setConf("pokeyCorePlayback",settings.pokeyCorePlayback);
-  e->setConf("opnCorePlayback",settings.opnCorePlayback);
   e->setConf("arcadeCoreRender",settings.arcadeCoreRender);
   e->setConf("ym2612CoreRender",settings.ym2612CoreRender);
   e->setConf("snCoreRender",settings.snCoreRender);
