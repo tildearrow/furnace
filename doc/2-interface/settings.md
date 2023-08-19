@@ -27,6 +27,10 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Save unused patterns**
 - **Use new pattern format when saving**
 - **Don't apply compatibility flags when loading .dmf**
+- **Play after opening song:**
+  - No
+  - Only if already playing
+  - Yes
 - **Audio export loop/fade out time:**
   - **Set to these values on start-up:**
     - **Loops**: number of additional times to play through `0Bxx` song loop.
@@ -41,7 +45,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
     - this will not choose a random system at each start.
   - **Reset to defaults**: sets default to "Sega Genesis/Mega Drive".
   - **Name**: name for the default system. may be set to any text.
-  - **Configure:**: same as in the [chip manager](../8-advanced/chip-manager.md) and [mixer](../8-advanced/mixer.md).
+  - **Configure**: same as in the [chip manager](../8-advanced/chip-manager.md) and [mixer](../8-advanced/mixer.md).
 - **When creating new song**:
   - **Display system preset selector**
   - **Start with initial system**
@@ -174,7 +178,10 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   **FDS core**\
   **SID core**\
   **POKEY core**\
-  **OPN/OPNA/OPNB cores**: all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
+  **OPN/OPNA/OPNB cores**:
+  - **Playback Core(s)**: core(s) to use for realtime playback.
+  - **Render Core(s)**: core(s) to use for exporting audio.
+  - all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
 
 - **PC Speaker strategy**: this is covered in the [PC speaker system doc](../7-systems/pcspkr.md).
 
@@ -209,6 +216,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Allow docking editors**
 - **Remember window position**: remembers the window's last position on start-up.
 - **Only allow window movement when clicking on title bar**
+- **Center pop-up windows**
 - **Play/edit controls layout:**
   - **Classic**
   - **Compact**
@@ -324,6 +332,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **File path**
   - **Cursor details or file path**
   - **Nothing**
+- **Capitalize menu bar**
 
 ### Orders
 
@@ -396,6 +405,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Horizontal instrument list**: when there are more instruments than there is room to display them...
   - if on, scroll horizontally through multiple columns.
   - if off, scroll vertically in one long column.
+  - only appears if "Unified instrument/wavetable/sample list" is off.
 - **Instrument list icon style:**
   - **None**
   - **Graphical icons**
