@@ -824,6 +824,7 @@ void DivEngine::runExportThread() {
 
   quitDispatch();
   initDispatch(true);
+  renderSamples();
 
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
@@ -837,6 +838,9 @@ void DivEngine::runExportThread() {
       sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
       if (sf==NULL) {
         logE("could not open file for writing! (%s)",sf_strerror(NULL));
+        quitDispatch();
+        initDispatch(false);
+        renderSamples();
         exporting=false;
         return;
       }
@@ -1151,6 +1155,7 @@ void DivEngine::runExportThread() {
 
   quitDispatch();
   initDispatch(false);
+  renderSamples();
   stopExport=false;
 }
 #else
