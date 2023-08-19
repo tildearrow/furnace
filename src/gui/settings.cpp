@@ -1194,7 +1194,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
           ImGui::TableSetupColumn("##RenderCores",ImGuiTableColumnFlags_WidthStretch);
           ImGui::TableNextRow();
-          ImGui::TableSetColumnIndex(0);
+          ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("System");
           ImGui::TableNextColumn();
@@ -1211,7 +1211,7 @@ void FurnaceGUI::drawSettings() {
           }
 
           ImGui::TableNextRow();
-          ImGui::TableSetColumnIndex(0);
+          ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("Arcade/YM2151");
           ImGui::TableNextColumn();
@@ -1222,7 +1222,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::Combo("##ArcadeCoreRender",&settings.arcadeCoreRender,arcadeCores,2);
 
           ImGui::TableNextRow();
-          ImGui::TableSetColumnIndex(0);
+          ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("Genesis/YM2612");
           ImGui::TableNextColumn();
@@ -1233,7 +1233,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,2);
 
           ImGui::TableNextRow();
-          ImGui::TableSetColumnIndex(0);
+          ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("SN76489");
           ImGui::TableNextColumn();
@@ -1244,7 +1244,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::Combo("##SNCoreRender",&settings.snCoreRender,snCores,2);
 
           ImGui::TableNextRow();
-          ImGui::TableSetColumnIndex(0);
+          ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("NES");
           ImGui::TableNextColumn();
@@ -1255,7 +1255,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::Combo("##NESCoreRender",&settings.nesCoreRender,nesCores,2);
 
           ImGui::TableNextRow();
-          ImGui::TableSetColumnIndex(0);
+          ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("FDS");
           ImGui::TableNextColumn();
@@ -1266,7 +1266,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::Combo("##FDSCoreRender",&settings.fdsCoreRender,nesCores,2);
 
           ImGui::TableNextRow();
-          ImGui::TableSetColumnIndex(0);
+          ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("SID");
           ImGui::TableNextColumn();
@@ -1277,7 +1277,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::Combo("##C64CoreRender",&settings.c64CoreRender,c64Cores,3);
 
           ImGui::TableNextRow();
-          ImGui::TableSetColumnIndex(0);
+          ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("POKEY");
           ImGui::TableNextColumn();
@@ -1288,7 +1288,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::Combo("##POKEYCoreRender",&settings.pokeyCoreRender,pokeyCores,2);
 
           ImGui::TableNextRow();
-          ImGui::TableSetColumnIndex(0);
+          ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("OPN/OPNA/OPNB");
           ImGui::TableNextColumn();
