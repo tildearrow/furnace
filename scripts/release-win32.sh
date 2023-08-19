@@ -34,6 +34,11 @@ cp -r ../../wavetables wavetables || exit 1
 
 i686-w64-mingw32-strip -s furnace.exe || exit 1
 
+# patch to remove GetTickCount64
+xxd -c 256 -ps furnace.exe | sed "s/4765745469636b436f756e743634/4765745469636b436f756e740000/g" | xxd -ps -r > furnace-patched.exe
+rm furnace.exe
+mv furnace-patched.exe furnace.exe
+
 zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers doc demos instruments wavetables
 
 furName=$(git describe --tags | sed "s/v0/0/")
