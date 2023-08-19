@@ -1193,21 +1193,18 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableSetupColumn("##System",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
           ImGui::TableSetupColumn("##RenderCores",ImGuiTableColumnFlags_WidthStretch);
-          ImGui::TableNextRow();
+          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
           ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
           ImGui::Text("System");
           ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
           ImGui::Text("Playback Core(s)");
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("playback cores are used in real-time, when the program's running");
+            ImGui::SetTooltip("used for playback");
           }
           ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
           ImGui::Text("Render Core(s)");
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("render cores are used for audio exporting");
+            ImGui::SetTooltip("used in audio export");
           }
 
           ImGui::TableNextRow();
@@ -3008,12 +3005,12 @@ void FurnaceGUI::syncSettings() {
   settings.c64Core=e->getConfInt("c64Core",0);
   settings.pokeyCore=e->getConfInt("pokeyCore",1);
   settings.opnCore=e->getConfInt("opnCore",1);
-  settings.arcadeCoreRender=e->getConfInt("arcadeCoreRender",0);
+  settings.arcadeCoreRender=e->getConfInt("arcadeCoreRender",1);
   settings.ym2612CoreRender=e->getConfInt("ym2612CoreRender",0);
   settings.snCoreRender=e->getConfInt("snCoreRender",0);
   settings.nesCoreRender=e->getConfInt("nesCoreRender",0);
-  settings.fdsCoreRender=e->getConfInt("fdsCoreRender",0);
-  settings.c64CoreRender=e->getConfInt("c64CoreRender",0);
+  settings.fdsCoreRender=e->getConfInt("fdsCoreRender",1);
+  settings.c64CoreRender=e->getConfInt("c64CoreRender",1);
   settings.pokeyCoreRender=e->getConfInt("pokeyCoreRender",1);
   settings.opnCoreRender=e->getConfInt("opnCoreRender",1);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);

@@ -300,7 +300,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_C64_6581:
       dispatch=new DivPlatformC64;
       if (isRender) {
-        ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64CoreRender",0));
+        ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64CoreRender",1));
       } else {
         ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64Core",0));
       }
@@ -309,7 +309,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_C64_8580:
       dispatch=new DivPlatformC64;
       if (isRender) {
-        ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64CoreRender",0));
+        ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64CoreRender",1));
       } else {
         ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64Core",0));
       }
@@ -318,7 +318,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_YM2151:
       dispatch=new DivPlatformArcade;
       if (isRender) {
-        ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCoreRender",0)==0);
+        ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCoreRender",1)==0);
       } else {
         ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCore",0)==0);
       }
@@ -369,7 +369,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_FDS:
       dispatch=new DivPlatformFDS;
       if (isRender) {
-        ((DivPlatformFDS*)dispatch)->setNSFPlay(eng->getConfInt("fdsCoreRender",0)==1);
+        ((DivPlatformFDS*)dispatch)->setNSFPlay(eng->getConfInt("fdsCoreRender",1)==1);
       } else {
         ((DivPlatformFDS*)dispatch)->setNSFPlay(eng->getConfInt("fdsCore",0)==1);
       }
