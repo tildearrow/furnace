@@ -3913,8 +3913,9 @@ namespace IGFD
       prFileDialogInternal.puIsOk = true;
       res = true;
     }
+    ImGui::EndDisabled();
     if (!(prFileDialogInternal.puCanWeContinue && notEmpty && fileValid==0)) {
-      if (ImGui::IsItemHovered()) {
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         if (!notEmpty) {
           if (prFileDialogInternal.puDLGflags&ImGuiFileDialogFlags_ConfirmOverwrite) {
             ImGui::SetTooltip("file name is empty");
@@ -3925,7 +3926,11 @@ namespace IGFD
           ImGui::SetTooltip("we can't continue - this is most likely a bug!");
         } else switch (fileValid) {
           case 1:
+#ifdef _WIN32
             ImGui::SetTooltip("invalid characters in file name\nmake sure there aren't any of these:\n  < > : \" / \\ | ? *");
+#else
+            ImGui::SetTooltip("invalid characters in file name\nmake sure there aren't any slashes (/)");
+#endif
             break;
           case 2:
             ImGui::SetTooltip("this file name is reserved by the system");
@@ -3939,7 +3944,6 @@ namespace IGFD
         }
       }
     }
-    ImGui::EndDisabled();
 
     ImGui::SameLine();
 
