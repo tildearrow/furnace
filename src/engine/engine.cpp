@@ -821,6 +821,10 @@ void DivEngine::runExportThread() {
   size_t fadeOutSamples=got.rate*exportFadeOut;
   size_t curFadeOutSample=0;
   bool isFadingOut=false;
+
+  quitDispatch();
+  initDispatch(true);
+
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
       SNDFILE* sf;
@@ -1144,6 +1148,9 @@ void DivEngine::runExportThread() {
       break;
     }
   }
+
+  quitDispatch();
+  initDispatch(false);
   stopExport=false;
 }
 #else
@@ -4566,10 +4573,11 @@ void DivEngine::rescanAudioDevices() {
   }
 }
 
-void DivEngine::initDispatch() {
+void DivEngine::initDispatch(bool isRender) {
   BUSY_BEGIN;
+  if (isRender) logI("render cores set");
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i]);
+    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i],isRender);
     disCont[i].setRates(got.rate);
     disCont[i].setQuality(lowQuality);
   }

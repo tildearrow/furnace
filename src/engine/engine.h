@@ -201,7 +201,7 @@ struct DivDispatchContainer {
   void flush(size_t count);
   void fillBuf(size_t runtotal, size_t offset, size_t size);
   void clear();
-  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags);
+  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags, bool isRender=false);
   void quit();
   DivDispatchContainer():
     dispatch(NULL),
@@ -1132,7 +1132,7 @@ class DivEngine {
     TAAudioDesc& getAudioDescGot();
 
     // init dispatch
-    void initDispatch();
+    void initDispatch(bool isRender=false);
 
     // quit dispatch
     void quitDispatch();

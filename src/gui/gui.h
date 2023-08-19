@@ -1419,6 +1419,14 @@ class FurnaceGUI {
     int c64Core;
     int pokeyCore;
     int opnCore;
+    int arcadeCoreRender;
+    int ym2612CoreRender;
+    int snCoreRender;
+    int nesCoreRender;
+    int fdsCoreRender;
+    int c64CoreRender;
+    int pokeyCoreRender;
+    int opnCoreRender;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
