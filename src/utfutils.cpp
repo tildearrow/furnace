@@ -88,7 +88,14 @@ WString utf8To16(const char* s) {
   p=0;
   while (s[p]!=0) {
     ch=decodeUTF8((const unsigned char*)&s[p],chs);
-    ret+=(unsigned short)ch;
+    // surrogates
+    if (ch>=0x10000) {
+      ch-=0x10000;
+      ret+=(unsigned short)(0xd800|((ch>>10)&0x3ff));
+      ret+=(unsigned short)(0xdc00|(ch&0x3ff));
+    } else if (ch<0xd800 || ch>0xdfff) {
+      ret+=(unsigned short)ch;
+    }
     p+=chs;
   }
   return ret;
@@ -96,16 +103,30 @@ WString utf8To16(const char* s) {
 
 String utf16To8(const wchar_t* s) {
   String ret;
+  unsigned int next=0;
   for (size_t i=0; i<wcslen(s); i++) {
-    if (s[i]<0x80) {
-      ret+=s[i];
-    } else if (s[i]<0x800) {
-      ret+=(0xc0+((s[i]>>6)&31));
-      ret+=(0x80+((s[i])&63));
+    if (s[i]>=0xd800 && s[i]<0xdc00) {
+      next=0x10000+((s[i]&0x3ff)<<10);
+      continue;
+    } else if (s[i]>=0xdc00 && s[i]<0xe000) {
+      next|=s[i]&0x3ff;
     } else {
-      ret+=(0xe0+((s[i]>>12)&15));
-      ret+=(0x80+((s[i]>>6)&63));
-      ret+=(0x80+((s[i])&63));
+      next=s[i];
+    }
+    if (next<0x80) {
+      ret+=next;
+    } else if (next<0x800) {
+      ret+=(0xc0+((next>>6)&31));
+      ret+=(0x80+((next)&63));
+    } else if (next<0x10000) {
+      ret+=(0xe0+((next>>12)&15));
+      ret+=(0x80+((next>>6)&63));
+      ret+=(0x80+((next)&63));
+    } else {
+      ret+=(0xf0+((next>>18)&7));
+      ret+=(0x80+((next>>12)&63));
+      ret+=(0x80+((next>>6)&63));
+      ret+=(0x80+((next)&63));
     }
   }
   return ret;
