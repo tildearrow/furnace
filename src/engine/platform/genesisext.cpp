@@ -772,6 +772,9 @@ void DivPlatformGenesisExt::forceIns() {
     chan[csmChan].freqChanged=true;
     chan[csmChan].keyOn=true;
   }
+  if (!extMode) {
+    immWrite(0x27,0x00);
+  }
 }
 
 void* DivPlatformGenesisExt::getChanState(int ch) {

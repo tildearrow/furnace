@@ -671,6 +671,9 @@ void DivPlatformYM2203Ext::forceIns() {
       opChan[i].freqChanged=true;
     }
   }
+  if (!extMode) {
+    immWrite(0x27,0x00);
+  }
 }
 
 void* DivPlatformYM2203Ext::getChanState(int ch) {
