@@ -1972,10 +1972,18 @@ void FurnaceGUI::drawSettings() {
           settings.cursorMoveNoScroll=cursorMoveNoScrollB;
         }
 
-        bool cursorFollowsWheelB=settings.cursorFollowsWheel;
-        if (ImGui::Checkbox("Move cursor with scroll wheel",&cursorFollowsWheelB)) {
-          settings.cursorFollowsWheel=cursorFollowsWheelB;
+        ImGui::Text("Move cursor with scroll wheel:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("No##csw0",settings.cursorFollowsWheel==0)) {
+          settings.cursorFollowsWheel=0;
         }
+        if (ImGui::RadioButton("Yes##csw1",settings.cursorFollowsWheel==1)) {
+          settings.cursorFollowsWheel=1;
+        }
+        if (ImGui::RadioButton("Inverted##csw2",settings.cursorFollowsWheel==2)) {
+          settings.cursorFollowsWheel=2;
+        }
+        ImGui::Unindent();
 
         END_SECTION;
       }
@@ -3292,7 +3300,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.pullDeleteRow,0,1);
   clampSetting(settings.newSongBehavior,0,1);
   clampSetting(settings.memUsageUnit,0,1);
-  clampSetting(settings.cursorFollowsWheel,0,1);
+  clampSetting(settings.cursorFollowsWheel,0,2);
   clampSetting(settings.noDMFCompat,0,1);
   clampSetting(settings.removeInsOff,0,1);
   clampSetting(settings.removeVolOff,0,1);

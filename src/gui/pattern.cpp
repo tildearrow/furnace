@@ -950,7 +950,7 @@ void FurnaceGUI::drawPattern() {
       // cursor follows wheel
       if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
         if (wheelX!=0 || wheelY!=0) {
-          moveCursor(wheelX,wheelY,false);
+          moveCursor(wheelX,(settings.cursorFollowsWheel==2)?wheelY:-wheelY,false);
         }
       }
 
