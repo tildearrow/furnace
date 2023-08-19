@@ -54,10 +54,10 @@
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-#define DIV_UNSTABLE
+//#define DIV_UNSTABLE
 
-#define DIV_VERSION "dev165"
-#define DIV_ENGINE_VERSION 165
+#define DIV_VERSION "0.6pre8"
+#define DIV_ENGINE_VERSION 166
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
