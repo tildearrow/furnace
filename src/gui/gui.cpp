@@ -5766,23 +5766,45 @@ bool FurnaceGUI::loop() {
         pendingRawSampleBigEndian=false;
       }
 
-      ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_8BIT && pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::AlignTextToFramePadding();
-      ImGui::Text("Channels");
-      ImGui::SameLine();
-      if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Channels");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(120.0f*dpiScale);
+        if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {
+        }
+        ImGui::Text("(will be mixed down to mono)");
+        ImGui::Checkbox("Unsigned",&pendingRawSampleUnsigned);
       }
-      ImGui::Text("(will be mixed down to mono)");
-      ImGui::Checkbox("Unsigned",&pendingRawSampleUnsigned);
-      ImGui::EndDisabled();
 
-      ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::Checkbox("Big endian",&pendingRawSampleBigEndian);
-      ImGui::EndDisabled();
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
+        ImGui::Checkbox("Big endian",&pendingRawSampleBigEndian);
+      }
 
-      ImGui::BeginDisabled(pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
-      ImGui::EndDisabled();
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_YMZ_ADPCM ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_ADPCM_A ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_ADPCM_B ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_VOX) {
+        ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
+      }
+
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_MULAW) {
+        ImGui::Text("Encoding:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("G.711",pendingRawSampleSwapNibbles==0)) {
+          pendingRawSampleSwapNibbles=0;
+        }
+        if (ImGui::RadioButton("Namco",pendingRawSampleSwapNibbles==1)) {
+          pendingRawSampleSwapNibbles=1;
+        }
+        ImGui::Unindent();
+      }
+
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_1BIT ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_1BIT_DPCM) {
+        ImGui::Checkbox("Reverse bit order",&pendingRawSampleSwapNibbles);
+      }
 
       if (ImGui::Button("OK")) {
         DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles);

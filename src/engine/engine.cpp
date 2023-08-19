@@ -3676,13 +3676,11 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     return NULL;
   }
   if (channels<1) {
-    lastError="invalid channel count";
-    return NULL;
+    channels=1;
   }
   if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) {
     if (channels!=1) {
-      lastError="channel count has to be 1 for non-8/16-bit format";
-      return NULL;
+      channels=1;
     }
   }
   BUSY_BEGIN;
@@ -3767,6 +3765,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
       samples=lenDivided*2;
       break;
     case DIV_SAMPLE_DEPTH_8BIT:
+    case DIV_SAMPLE_DEPTH_MULAW:
       samples=lenDivided;
       break;
     case DIV_SAMPLE_DEPTH_BRR:
@@ -3836,11 +3835,45 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
   }
   delete[] buf;
 
-  // swap nibbles if needed
   if (swapNibbles) {
     unsigned char* b=(unsigned char*)sample->getCurBuf();
-    for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
-      b[i]=(b[i]<<4)|(b[i]>>4);
+    switch (depth) {
+      case DIV_SAMPLE_DEPTH_1BIT:
+      case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+        // reverse bit order
+        for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
+          b[i]=(
+            ((b[i]&128)?1:0)|
+            ((b[i]&64)?2:0)|
+            ((b[i]&32)?4:0)|
+            ((b[i]&16)?8:0)|
+            ((b[i]&8)?16:0)|
+            ((b[i]&4)?32:0)|
+            ((b[i]&2)?64:0)|
+            ((b[i]&1)?128:0)
+          );
+        }
+        break;
+      case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+      case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
+      case DIV_SAMPLE_DEPTH_ADPCM_A:
+      case DIV_SAMPLE_DEPTH_ADPCM_B:
+      case DIV_SAMPLE_DEPTH_VOX:
+        // swap nibbles
+        for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
+          b[i]=(b[i]<<4)|(b[i]>>4);
+        }
+        break;
+      case DIV_SAMPLE_DEPTH_MULAW:
+        // Namco to G.711
+        // Namco: smmmmxxx
+        // G.711: sxxxmmmm (^0xff)
+        for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
+          b[i]=(((b[i]&7)<<4)|(((b[i]>>3)&15)^((b[i]&0x80)?15:0))|(b[i]&0x80))^0xff;
+        }
+        break;
+      default:
+        break;
     }
   }
 
