@@ -122,6 +122,7 @@ the following settings are available:
   - I suggest you use the same rate as the song's.
   - apparently ZSM doesn't support changing the rate mid-song.
 - **loop**: enables loop. if disabled, the song won't loop.
+- **optimize size**: removes unnecessary commands to reduce size.
 
 click on **Begin Export** to... you know.
 
