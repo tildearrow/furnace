@@ -1568,6 +1568,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Bottom");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1590,6 +1591,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Attack");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1609,6 +1611,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Hold");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1628,6 +1631,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Decay");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1650,6 +1654,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::TableNextColumn();
         
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Release");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1671,6 +1676,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Bottom");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1693,6 +1699,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Speed");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1711,6 +1718,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         } rightClickable
 
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Shape");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
