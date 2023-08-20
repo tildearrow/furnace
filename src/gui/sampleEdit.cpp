@@ -24,6 +24,7 @@
 #include <math.h>
 #include "../ta-log.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 #include "guiConst.h"
@@ -784,7 +785,7 @@ void FurnaceGUI::drawSampleEdit() {
       sameLineMaybe();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
-      ImGui::Button(ICON_FA_ARROWS_H "##SResize");
+      ImGui::Button(ICON_FUR_SAMPLE_RESIZE "##SResize");
       if (ImGui::IsItemClicked()) {
         resizeSize=sample->samples;
       }
@@ -819,7 +820,7 @@ void FurnaceGUI::drawSampleEdit() {
         resizeSize=sample->samples;
       }
       sameLineMaybe();
-      ImGui::Button(ICON_FA_EXPAND "##SResample");
+      ImGui::Button(ICON_FUR_SAMPLE_RESAMPLE "##SResample");
       if (ImGui::IsItemClicked()) {
         resampleTarget=targetRate;
       }
@@ -940,28 +941,28 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::EndPopup();
       }
       sameLineMaybe();
-      if (ImGui::Button(ICON_FA_ARROWS_V "##SNormalize")) {
+      if (ImGui::Button(ICON_FUR_SAMPLE_NORMALIZE "##SNormalize")) {
         doAction(GUI_ACTION_SAMPLE_NORMALIZE);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Normalize");
       }
       sameLineMaybe();
-      if (ImGui::Button(ICON_FA_ARROW_UP "##SFadeIn")) {
+      if (ImGui::Button(ICON_FUR_SAMPLE_FADEIN "##SFadeIn")) {
         doAction(GUI_ACTION_SAMPLE_FADE_IN);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Fade in");
       }
       sameLineMaybe();
-      if (ImGui::Button(ICON_FA_ARROW_DOWN "##SFadeOut")) {
+      if (ImGui::Button(ICON_FUR_SAMPLE_FADEOUT "##SFadeOut")) {
         doAction(GUI_ACTION_SAMPLE_FADE_OUT);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Fade out");
       }
       sameLineMaybe();
-      ImGui::Button(ICON_FA_ADJUST "##SInsertSilence");
+      ImGui::Button(ICON_FUR_SAMPLE_INSERT_SILENCE "##SInsertSilence");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Insert silence");
       }
@@ -992,7 +993,7 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::EndPopup();
       }
       sameLineMaybe();
-      if (ImGui::Button(ICON_FA_ERASER "##SSilence")) {
+      if (ImGui::Button(ICON_FUR_SAMPLE_APPLY_SILENCE "##SSilence")) {
         doAction(GUI_ACTION_SAMPLE_SILENCE);
       }
       if (ImGui::IsItemHovered()) {
@@ -1015,28 +1016,28 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
-      if (ImGui::Button(ICON_FA_BACKWARD "##SReverse")) {
+      if (ImGui::Button(ICON_FUR_SAMPLE_REVERSE "##SReverse")) {
         doAction(GUI_ACTION_SAMPLE_REVERSE);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Reverse");
       }
       sameLineMaybe();
-      if (ImGui::Button(ICON_FA_SORT_AMOUNT_ASC "##SInvert")) {
+      if (ImGui::Button(ICON_FUR_SAMPLE_INVERT "##SInvert")) {
         doAction(GUI_ACTION_SAMPLE_INVERT);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Invert");
       }
       sameLineMaybe();
-      if (ImGui::Button(ICON_FA_LEVEL_DOWN "##SSign")) {
+      if (ImGui::Button(ICON_FUR_SAMPLE_SIGN "##SSign")) {
         doAction(GUI_ACTION_SAMPLE_SIGN);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Signed/unsigned exchange");
       }
       sameLineMaybe();
-      ImGui::Button(ICON_FA_INDUSTRY "##SFilter");
+      ImGui::Button(ICON_FUR_SAMPLE_FILTER "##SFilter");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Apply filter");
       }

@@ -56,8 +56,8 @@
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev165"
-#define DIV_ENGINE_VERSION 165
+#define DIV_VERSION "dev166"
+#define DIV_ENGINE_VERSION 166
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -201,7 +201,7 @@ struct DivDispatchContainer {
   void flush(size_t count);
   void fillBuf(size_t runtotal, size_t offset, size_t size);
   void clear();
-  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags);
+  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags, bool isRender=false);
   void quit();
   DivDispatchContainer():
     dispatch(NULL),
@@ -1132,7 +1132,7 @@ class DivEngine {
     TAAudioDesc& getAudioDescGot();
 
     // init dispatch
-    void initDispatch();
+    void initDispatch(bool isRender=false);
 
     // quit dispatch
     void quitDispatch();

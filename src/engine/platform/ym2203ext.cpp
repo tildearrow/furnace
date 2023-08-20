@@ -606,13 +606,15 @@ void DivPlatformYM2203Ext::muteChannel(int ch, bool mute) {
   DivPlatformYM2203::muteChannel(extChanOffs,IS_EXTCH_MUTED);
   
   if (extMode) {
-    int ordch=orderedOps[ch-2];
-    unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-    DivInstrumentFM::Operator op=chan[2].state.op[ordch];
-    if (isOpMuted[ch-2] || !op.enable) {
-      rWrite(baseAddr+0x40,127);
-    } else {
-      rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].outVol&0x7f,127));
+    for (int i=0; i<4; i++) {
+      int ordch=orderedOps[i];
+      unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
+      DivInstrumentFM::Operator op=chan[2].state.op[ordch];
+      if (isOpMuted[i] || !op.enable) {
+        rWrite(baseAddr+0x40,127);
+      } else {
+        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[i].outVol&0x7f,127));
+      }
     }
   }
 }
@@ -668,6 +670,9 @@ void DivPlatformYM2203Ext::forceIns() {
       opChan[i].keyOn=true;
       opChan[i].freqChanged=true;
     }
+  }
+  if (!extMode) {
+    immWrite(0x27,0x00);
   }
 }
 

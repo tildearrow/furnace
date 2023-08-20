@@ -1428,6 +1428,14 @@ class FurnaceGUI {
     int c64Core;
     int pokeyCore;
     int opnCore;
+    int arcadeCoreRender;
+    int ym2612CoreRender;
+    int snCoreRender;
+    int nesCoreRender;
+    int fdsCoreRender;
+    int c64CoreRender;
+    int pokeyCoreRender;
+    int opnCoreRender;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -1596,6 +1604,14 @@ class FurnaceGUI {
       c64Core(0),
       pokeyCore(1),
       opnCore(1),
+      arcadeCoreRender(1),
+      ym2612CoreRender(0),
+      snCoreRender(0),
+      nesCoreRender(0),
+      fdsCoreRender(1),
+      c64CoreRender(1),
+      pokeyCoreRender(1),
+      opnCoreRender(1),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
