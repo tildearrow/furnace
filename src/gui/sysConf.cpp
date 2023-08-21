@@ -484,10 +484,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
-    case DIV_SYSTEM_NES:
-    case DIV_SYSTEM_VRC6:
-    case DIV_SYSTEM_FDS:
-    case DIV_SYSTEM_MMC5: {
+    case DIV_SYSTEM_NES: {
       int clockSel=flags.getInt("clockSel",0);
       bool dpcmMode=flags.getBool("dpcmMode",true);
 
@@ -525,6 +522,35 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("dpcmMode",dpcmMode);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_VRC6:
+    case DIV_SYSTEM_FDS:
+    case DIV_SYSTEM_MMC5: {
+      int clockSel=flags.getInt("clockSel",0);
+
+      ImGui::Text("Clock rate:");
+
+      ImGui::Indent();
+      if (ImGui::RadioButton("NTSC (1.79MHz)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("PAL (1.67MHz)",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Dendy (1.77MHz)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
         });
       }
       break;
