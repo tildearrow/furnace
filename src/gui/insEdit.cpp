@@ -19,6 +19,7 @@
 
 #define _USE_MATH_DEFINES
 #include "gui.h"
+#include "../ta-log.h"
 #include "imgui_internal.h"
 #include "../engine/macroInt.h"
 #include "IconsFontAwesome4.h"
@@ -1300,6 +1301,10 @@ void FurnaceGUI::kvsConfig(DivInstrument* ins) {
     }
   }
   if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+    fmPreviewOn=!fmPreviewOn;
+  }
+  if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+    NOTIFY_LONG_HOLD;
     fmPreviewOn=!fmPreviewOn;
   }
   if (!fmPreviewOn) {
