@@ -42,6 +42,7 @@ const unsigned char dtTableFMP[8]={
 void FurnaceGUI::renderFMPreviewOPN(const DivInstrumentFM& params, int pos) {
   if (fmPreviewOPN==NULL) {
     fmPreviewOPN=new ym3438_t;
+    pos=0;
   }
   short out[2];
   int aOut=0;
@@ -102,6 +103,7 @@ void FurnaceGUI::renderFMPreviewOPN(const DivInstrumentFM& params, int pos) {
 void FurnaceGUI::renderFMPreviewOPM(const DivInstrumentFM& params, int pos) {
   if (fmPreviewOPM==NULL) {
     fmPreviewOPM=new opm_t;
+    pos=0;
   }
   int out[2];
   int aOut=0;
@@ -129,7 +131,7 @@ void FurnaceGUI::renderFMPreviewOPM(const DivInstrumentFM& params, int pos) {
     }
     OPM_WRITE(0x20,(params.alg&7)|((params.fb&7)<<3)|0xc0);
     OPM_WRITE(0x38,((params.fms&7)<<4)|(params.ams&3));
-    OPM_WRITE(0x28,mult0?0x00:0x10); // frequency
+    OPM_WRITE(0x28,mult0?0x20:0x10); // frequency
     OPM_WRITE(0x30,0);
     OPM_WRITE(0x08,0x78); // key on
   }
@@ -137,10 +139,10 @@ void FurnaceGUI::renderFMPreviewOPM(const DivInstrumentFM& params, int pos) {
   // render
   for (int i=0; i<FM_PREVIEW_SIZE; i++) {
     aOut=0;
-    for (int j=0; j<24; j++) {
+    for (int j=0; j<32; j++) {
       OPM_Clock((opm_t*)fmPreviewOPM,out,NULL,NULL,NULL);
     }
-    aOut+=((opm_t*)fmPreviewOPM)->ch_out[0];
+    aOut+=out[0];
     if (aOut<-32768) aOut=-32768;
     if (aOut>32767) aOut=32767;
     fmPreview[i]=aOut;
