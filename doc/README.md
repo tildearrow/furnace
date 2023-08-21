@@ -12,7 +12,7 @@ this documentation is a work in progress! expect several sections to be incomple
 8. [advanced topics](8-advanced/README.md)
 9. [guides](9-guides/README.md)
 
-online documentation may reflect developments newer than the current release.
+
 
 # attribution
 
