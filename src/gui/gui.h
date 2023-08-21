@@ -1423,6 +1423,7 @@ class FurnaceGUI {
     int c64Core;
     int pokeyCore;
     int opnCore;
+    int enableMultiCore;
     int arcadeCoreRender;
     int ym2612CoreRender;
     int snCoreRender;

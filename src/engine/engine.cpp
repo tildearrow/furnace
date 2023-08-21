@@ -821,10 +821,11 @@ void DivEngine::runExportThread() {
   size_t fadeOutSamples=got.rate*exportFadeOut;
   size_t curFadeOutSample=0;
   bool isFadingOut=false;
-
-  quitDispatch();
-  initDispatch(true);
-  renderSamples();
+  if (getConfInt("enableMultiCore",0)==1) {
+    quitDispatch();
+    initDispatch(true);
+    renderSamples();
+  }
 
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
@@ -838,9 +839,11 @@ void DivEngine::runExportThread() {
       sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
       if (sf==NULL) {
         logE("could not open file for writing! (%s)",sf_strerror(NULL));
-        quitDispatch();
-        initDispatch(false);
-        renderSamples();
+        if (getConfInt("enableMultiCore",0)==1) {
+          quitDispatch();
+          initDispatch(false);
+          renderSamples();
+        }
         exporting=false;
         return;
       }
@@ -1153,9 +1156,11 @@ void DivEngine::runExportThread() {
     }
   }
 
-  quitDispatch();
-  initDispatch(false);
-  renderSamples();
+  if (getConfInt("enableMultiCore",0)==1) {
+    quitDispatch();
+    initDispatch(false);
+    renderSamples();
+  }
   stopExport=false;
 }
 #else

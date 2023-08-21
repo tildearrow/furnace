@@ -1189,6 +1189,17 @@ void FurnaceGUI::drawSettings() {
       CONFIG_SECTION("Emulation") {
         // SUBSECTION LAYOUT
         CONFIG_SUBSECTION("Cores");
+        bool isMultiCore=(settings.enableMultiCore==1);
+        if (ImGui::Checkbox("Use separate cores for exporting", &isMultiCore)) {
+          if (isMultiCore) {
+            settings.enableMultiCore=1;
+          } else {
+            settings.enableMultiCore=0;
+          }
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("EXPERIMENTAL!\nmay break some exports!");
+        }
         if (ImGui::BeginTable("##Cores",3)) {
           ImGui::TableSetupColumn("##System",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
@@ -1214,9 +1225,11 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
+          if (!isMultiCore) ImGui::BeginDisabled();
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##ArcadeCoreRender",&settings.arcadeCoreRender,arcadeCores,2);
+          if (!isMultiCore) ImGui::EndDisabled();
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -1225,9 +1238,11 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
+          if (!isMultiCore) ImGui::BeginDisabled();
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,2);
+          if (!isMultiCore) ImGui::EndDisabled();
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -1236,9 +1251,11 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##SNCore",&settings.snCore,snCores,2);
+          if (!isMultiCore) ImGui::BeginDisabled();
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##SNCoreRender",&settings.snCoreRender,snCores,2);
+          if (!isMultiCore) ImGui::EndDisabled();
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -1247,9 +1264,11 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##NESCore",&settings.nesCore,nesCores,2);
+          if (!isMultiCore) ImGui::BeginDisabled();
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##NESCoreRender",&settings.nesCoreRender,nesCores,2);
+          if (!isMultiCore) ImGui::EndDisabled();
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -1258,9 +1277,11 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2);
+          if (!isMultiCore) ImGui::BeginDisabled();
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##FDSCoreRender",&settings.fdsCoreRender,nesCores,2);
+          if (!isMultiCore) ImGui::EndDisabled();
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -1269,9 +1290,11 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,3);
+          if (!isMultiCore) ImGui::BeginDisabled();
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##C64CoreRender",&settings.c64CoreRender,c64Cores,3);
+          if (!isMultiCore) ImGui::EndDisabled();
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -1280,9 +1303,11 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2);
+          if (!isMultiCore) ImGui::BeginDisabled();
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##POKEYCoreRender",&settings.pokeyCoreRender,pokeyCores,2);
+          if (!isMultiCore) ImGui::EndDisabled();
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -1291,9 +1316,11 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##OPNCore",&settings.opnCore,opnCores,2);
+          if (!isMultiCore) ImGui::BeginDisabled();
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##OPNCoreRender",&settings.opnCoreRender,opnCores,2);
+          if (!isMultiCore) ImGui::EndDisabled();
           ImGui::EndTable();
         }
         ImGui::Separator();
@@ -3013,6 +3040,7 @@ void FurnaceGUI::syncSettings() {
   settings.c64Core=e->getConfInt("c64Core",0);
   settings.pokeyCore=e->getConfInt("pokeyCore",1);
   settings.opnCore=e->getConfInt("opnCore",1);
+  settings.enableMultiCore=e->getConfInt("enableMultiCore",0);
   settings.arcadeCoreRender=e->getConfInt("arcadeCoreRender",1);
   settings.ym2612CoreRender=e->getConfInt("ym2612CoreRender",0);
   settings.snCoreRender=e->getConfInt("snCoreRender",0);
@@ -3181,6 +3209,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.c64Core,0,2);
   clampSetting(settings.pokeyCore,0,1);
   clampSetting(settings.opnCore,0,1);
+  clampSetting(settings.enableMultiCore,0,1);
   clampSetting(settings.arcadeCoreRender,0,1);
   clampSetting(settings.ym2612CoreRender,0,1);
   clampSetting(settings.snCoreRender,0,1);
@@ -3386,7 +3415,8 @@ void FurnaceGUI::commitSettings() {
     settings.fdsCoreRender!=e->getConfInt("fdsCoreRender",0) ||
     settings.c64CoreRender!=e->getConfInt("c64CoreRender",0) ||
     settings.pokeyCoreRender!=e->getConfInt("pokeyCoreRender",1) ||
-    settings.opnCoreRender!=e->getConfInt("opnCoreRender",1)
+    settings.opnCoreRender!=e->getConfInt("opnCoreRender",1) || 
+    settings.enableMultiCore!=e->getConfInt("enableMultiCore",0)
   );
 
   e->setConf("mainFontSize",settings.mainFontSize);
@@ -3411,6 +3441,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("c64Core",settings.c64Core);
   e->setConf("pokeyCore",settings.pokeyCore);
   e->setConf("opnCore",settings.opnCore);
+  e->setConf("enableMultiCore",settings.enableMultiCore);
   e->setConf("arcadeCoreRender",settings.arcadeCoreRender);
   e->setConf("ym2612CoreRender",settings.ym2612CoreRender);
   e->setConf("snCoreRender",settings.snCoreRender);
