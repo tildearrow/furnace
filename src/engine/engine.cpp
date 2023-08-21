@@ -1194,9 +1194,9 @@ bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode,
     quitDispatch();
     initDispatch(true);
     renderSamplesP();
-    for (int i=0; i<tchans; i++) {
+    for (int i=0; i<chans; i++) {
       if (isMutedBefore[i]) {
-        muteChannels(i,true);
+        muteChannel(i,true);
       }
     }
   }
@@ -1228,9 +1228,9 @@ void DivEngine::finishAudioFile() {
     quitDispatch();
     initDispatch(false);
     renderSamplesP();
-    for (int i=0; i<tchans; i++) {
+    for (int i=0; i<chans; i++) {
       if (isMutedBefore[i]) {
-        muteChannels(i,true);
+        muteChannel(i,true);
       }
     }
   }
