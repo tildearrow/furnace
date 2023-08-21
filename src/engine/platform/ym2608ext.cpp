@@ -508,6 +508,17 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
       rWrite(0x22,lfoValue);
     }
 
+    if (opChan[i].std.panL.had) {
+      opChan[i].pan=opChan[i].std.panL.val&3;
+      if (parent->song.sharedExtStat) {
+        for (int j=0; j<4; j++) {
+          if (i==j) continue;
+          opChan[j].pan=opChan[i].pan;
+        }
+      }
+      rWrite(chanOffs[extChanOffs]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(opChan[i].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+    }
+
 
     // param macros
     unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[i]];

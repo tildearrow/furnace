@@ -293,6 +293,9 @@ void FurnaceGUI::drawSampleEdit() {
             if (sample->samples>131070) {
               SAMPLE_WARN(warnLength,"Amiga: maximum sample length is 131070");
             }
+            if (dispatch!=NULL) {
+              MAX_RATE("Amiga",31250.0);
+            }
             break;
           case DIV_SYSTEM_SEGAPCM:
           case DIV_SYSTEM_SEGAPCM_COMPAT:

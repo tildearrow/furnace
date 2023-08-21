@@ -822,9 +822,6 @@ void DivEngine::runExportThread() {
   size_t curFadeOutSample=0;
   bool isFadingOut=false;
 
-  quitDispatch();
-  initDispatch(true);
-
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
       SNDFILE* sf;
@@ -1149,14 +1146,17 @@ void DivEngine::runExportThread() {
     }
   }
 
-  quitDispatch();
-  initDispatch(false);
   stopExport=false;
 }
 #else
 void DivEngine::runExportThread() {
 }
 #endif
+
+bool DivEngine::shallSwitchCores() {
+  // TODO: detect whether we should
+  return true;
+}
 
 bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime) {
 #ifndef HAVE_SNDFILE
@@ -1187,6 +1187,20 @@ bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode,
   } else {
     remainingLoops=-1;
   }
+
+  if (shallSwitchCores()) {
+    bool isMutedBefore[DIV_MAX_CHANS];
+    memcpy(isMutedBefore,isMuted,DIV_MAX_CHANS*sizeof(bool));
+    quitDispatch();
+    initDispatch(true);
+    renderSamplesP();
+    for (int i=0; i<chans; i++) {
+      if (isMutedBefore[i]) {
+        muteChannel(i,true);
+      }
+    }
+  }
+
   exportLoopCount=loops;
   exportThread=new std::thread(_runExportThread,this);
   return true;
@@ -1202,7 +1216,24 @@ void DivEngine::waitAudioFile() {
 bool DivEngine::haltAudioFile() {
   stopExport=true;
   stop();
+  waitAudioFile();
+  finishAudioFile();
   return true;
+}
+
+void DivEngine::finishAudioFile() {
+  if (shallSwitchCores()) {
+    bool isMutedBefore[DIV_MAX_CHANS];
+    memcpy(isMutedBefore,isMuted,DIV_MAX_CHANS*sizeof(bool));
+    quitDispatch();
+    initDispatch(false);
+    renderSamplesP();
+    for (int i=0; i<chans; i++) {
+      if (isMutedBefore[i]) {
+        muteChannel(i,true);
+      }
+    }
+  }
 }
 
 void DivEngine::notifyInsChange(int ins) {

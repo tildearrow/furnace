@@ -20,8 +20,12 @@
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "../../extern/opn/ym3438.h"
+#include "../../extern/opm/opm.h"
+#include "../../extern/opl/opl3.h"
+#include "../../extern/Nuked-OPLL/opll.h"
+#include "../engine/platform/sound/ymfm/ymfm_opz.h"
 
-#define FM_WRITE(addr,val) \
+#define OPN_WRITE(addr,val) \
   OPN2_Write((ym3438_t*)fmPreviewOPN,0,(addr)); \
   do { \
     OPN2_Clock((ym3438_t*)fmPreviewOPN,out); \
@@ -35,7 +39,7 @@ const unsigned char dtTableFMP[8]={
   7,6,5,0,1,2,3,4
 };
 
-void FurnaceGUI::renderFMPreview(const DivInstrumentFM& params, int pos) {
+void FurnaceGUI::renderFMPreviewOPN(const DivInstrumentFM& params, int pos) {
   if (fmPreviewOPN==NULL) {
     fmPreviewOPN=new ym3438_t;
   }
@@ -57,19 +61,19 @@ void FurnaceGUI::renderFMPreview(const DivInstrumentFM& params, int pos) {
     for (int i=0; i<4; i++) {
       const DivInstrumentFM::Operator& op=params.op[i];
       unsigned short baseAddr=i*4;
-      FM_WRITE(baseAddr+0x40,op.tl);
-      FM_WRITE(baseAddr+0x30,(op.mult&15)|(dtTableFMP[op.dt&7]<<4));
-      FM_WRITE(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
-      FM_WRITE(baseAddr+0x60,(op.dr&31)|(op.am<<7));
-      FM_WRITE(baseAddr+0x70,op.d2r&31);
-      FM_WRITE(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
-      FM_WRITE(baseAddr+0x90,op.ssgEnv&15);
+      OPN_WRITE(baseAddr+0x40,op.tl);
+      OPN_WRITE(baseAddr+0x30,(op.mult&15)|(dtTableFMP[op.dt&7]<<4));
+      OPN_WRITE(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
+      OPN_WRITE(baseAddr+0x60,(op.dr&31)|(op.am<<7));
+      OPN_WRITE(baseAddr+0x70,op.d2r&31);
+      OPN_WRITE(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
+      OPN_WRITE(baseAddr+0x90,op.ssgEnv&15);
     }
-    FM_WRITE(0xb0,(params.alg&7)|((params.fb&7)<<3));
-    FM_WRITE(0xb4,0xc0|(params.fms&7)|((params.ams&3)<<4));
-    FM_WRITE(0xa4,mult0?0x1c:0x14); // frequency
-    FM_WRITE(0xa0,0);
-    FM_WRITE(0x28,0xf0); // key on
+    OPN_WRITE(0xb0,(params.alg&7)|((params.fb&7)<<3));
+    OPN_WRITE(0xb4,0xc0|(params.fms&7)|((params.ams&3)<<4));
+    OPN_WRITE(0xa4,mult0?0x1c:0x14); // frequency
+    OPN_WRITE(0xa0,0);
+    OPN_WRITE(0x28,0xf0); // key on
   }
 
   // render
@@ -82,5 +86,39 @@ void FurnaceGUI::renderFMPreview(const DivInstrumentFM& params, int pos) {
     if (aOut<-32768) aOut=-32768;
     if (aOut>32767) aOut=32767;
     fmPreview[i]=aOut;
+  }
+}
+
+void FurnaceGUI::renderFMPreviewOPM(const DivInstrumentFM& params, int pos) {
+}
+
+void FurnaceGUI::renderFMPreviewOPLL(const DivInstrumentFM& params, int pos) {
+}
+
+void FurnaceGUI::renderFMPreviewOPL(const DivInstrumentFM& params, int pos) {
+}
+
+void FurnaceGUI::renderFMPreviewOPZ(const DivInstrumentFM& params, int pos) {
+}
+
+void FurnaceGUI::renderFMPreview(const DivInstrument* ins, int pos) {
+  switch (ins->type) {
+    case DIV_INS_FM:
+      renderFMPreviewOPN(ins->fm,pos);
+      break;
+    case DIV_INS_OPM:
+      renderFMPreviewOPM(ins->fm,pos);
+      break;
+    case DIV_INS_OPLL:
+      renderFMPreviewOPLL(ins->fm,pos);
+      break;
+    case DIV_INS_OPL:
+      renderFMPreviewOPL(ins->fm,pos);
+      break;
+    case DIV_INS_OPZ:
+      renderFMPreviewOPZ(ins->fm,pos);
+      break;
+    default:
+      break;
   }
 }

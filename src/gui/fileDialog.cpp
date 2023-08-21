@@ -69,7 +69,7 @@ void _nfdThread(const NFDState state, std::atomic<bool>* ok, std::vector<String>
       (*errorOutput)=true;
       break;
     default:
-      logE("NFD unknown return code %d!\n",ret);
+      logE("NFD unknown return code %d!\n",(int)ret);
       break;
   }
   (*ok)=true;
