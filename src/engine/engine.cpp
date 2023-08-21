@@ -1215,8 +1215,8 @@ void DivEngine::waitAudioFile() {
 
 bool DivEngine::haltAudioFile() {
   stopExport=true;
-  waitAudioFile();
   stop();
+  waitAudioFile();
   finishAudioFile();
   return true;
 }
