@@ -497,6 +497,7 @@ class DivEngine {
   void playSub(bool preserveDrift, int goalRow=0);
   void runMidiClock(int totalCycles=1);
   void runMidiTime(int totalCycles=1);
+  bool shallSwitchCores();
 
   void testFunction();
 
@@ -614,6 +615,8 @@ class DivEngine {
     void waitAudioFile();
     // stop audio file export
     bool haltAudioFile();
+    // return back to playback cores if necessary
+    void finishAudioFile();
     // notify instrument parameter change
     void notifyInsChange(int ins);
     // notify wavetable change

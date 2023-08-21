@@ -822,10 +822,6 @@ void DivEngine::runExportThread() {
   size_t curFadeOutSample=0;
   bool isFadingOut=false;
 
-  quitDispatch();
-  initDispatch(true);
-  renderSamples();
-
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
       SNDFILE* sf;
@@ -838,9 +834,6 @@ void DivEngine::runExportThread() {
       sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
       if (sf==NULL) {
         logE("could not open file for writing! (%s)",sf_strerror(NULL));
-        quitDispatch();
-        initDispatch(false);
-        renderSamples();
         exporting=false;
         return;
       }
@@ -1153,15 +1146,17 @@ void DivEngine::runExportThread() {
     }
   }
 
-  quitDispatch();
-  initDispatch(false);
-  renderSamples();
   stopExport=false;
 }
 #else
 void DivEngine::runExportThread() {
 }
 #endif
+
+bool DivEngine::shallSwitchCores() {
+  // TODO: detect whether we should
+  return true;
+}
 
 bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime) {
 #ifndef HAVE_SNDFILE
@@ -1192,6 +1187,20 @@ bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode,
   } else {
     remainingLoops=-1;
   }
+
+  if (shallSwitchCores()) {
+    bool isMutedBefore[DIV_MAX_CHANS];
+    memcpy(isMutedBefore,isMuted,DIV_MAX_CHANS*sizeof(bool));
+    quitDispatch();
+    initDispatch(true);
+    renderSamplesP();
+    for (int i=0; i<tchans; i++) {
+      if (isMutedBefore[i]) {
+        muteChannels(i,true);
+      }
+    }
+  }
+
   exportLoopCount=loops;
   exportThread=new std::thread(_runExportThread,this);
   return true;
@@ -1206,8 +1215,25 @@ void DivEngine::waitAudioFile() {
 
 bool DivEngine::haltAudioFile() {
   stopExport=true;
+  waitAudioFile();
   stop();
+  finishAudioFile();
   return true;
+}
+
+void DivEngine::finishAudioFile() {
+  if (shallSwitchCores()) {
+    bool isMutedBefore[DIV_MAX_CHANS];
+    memcpy(isMutedBefore,isMuted,DIV_MAX_CHANS*sizeof(bool));
+    quitDispatch();
+    initDispatch(false);
+    renderSamplesP();
+    for (int i=0; i<tchans; i++) {
+      if (isMutedBefore[i]) {
+        muteChannels(i,true);
+      }
+    }
+  }
 }
 
 void DivEngine::notifyInsChange(int ins) {
