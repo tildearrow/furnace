@@ -5,7 +5,7 @@
 MODIFIED Namco C140 sound emulator - MODIFIED VERSION
 by cam900
 
-MODIFICATION by tildearrow - adds muting function
+MODIFICATION by tildearrow - adds muting function and fixes overflow
 THIS IS NOT THE ORIGINAL VERSION - you can find the original one in
 commit 72d04777c013988ed8cf6da27c62a9d784a59dff
 
@@ -99,8 +99,8 @@ void c140_voice_tick(struct c140_t *c140, const unsigned char v, const int cycle
 				s1 = c140->mulaw[(s1 >> 8) & 0xff];
 				s2 = c140->mulaw[(s2 >> 8) & 0xff];
 			}
-			// interpolate
-			signed int sample = s1 + (((voice->frac) * (s2 - s1)) >> 16);
+			// interpolate (originally was >>16, but I had to reduce it to 15 to prevent overflow)
+			signed int sample = s1 + (((voice->frac >> 1) * (s2 - s1)) >> 15);
 			voice->lout = sample * voice->lvol;
 			voice->rout = sample * voice->rvol;
 		}

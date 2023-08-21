@@ -1349,6 +1349,10 @@ class FurnaceGUI {
   short fmPreview[FM_PREVIEW_SIZE];
   bool updateFMPreview, fmPreviewOn, fmPreviewPaused;
   void* fmPreviewOPN;
+  void* fmPreviewOPM;
+  void* fmPreviewOPL;
+  void* fmPreviewOPLL;
+  void* fmPreviewOPZ;
   String* editString;
 
   String pendingRawSample;
@@ -2137,7 +2141,12 @@ class FurnaceGUI {
   bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
   void kvsConfig(DivInstrument* ins);
   void drawFMPreview(const ImVec2& size);
-  void renderFMPreview(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreview(const DivInstrument* ins, int pos=0);
+  void renderFMPreviewOPN(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreviewOPM(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreviewOPLL(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreviewOPL(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreviewOPZ(const DivInstrumentFM& params, int pos=0);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);

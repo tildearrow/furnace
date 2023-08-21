@@ -5262,6 +5262,7 @@ bool FurnaceGUI::loop() {
         }
       }
       if (!e->isExporting()) {
+        e->finishAudioFile();
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -6872,6 +6873,10 @@ FurnaceGUI::FurnaceGUI():
   fmPreviewOn(false),
   fmPreviewPaused(false),
   fmPreviewOPN(NULL),
+  fmPreviewOPM(NULL),
+  fmPreviewOPL(NULL),
+  fmPreviewOPLL(NULL),
+  fmPreviewOPZ(NULL),
   editString(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),

@@ -48,8 +48,10 @@ for other operating systems, you may [build the source](#developer-info).
     - Ricoh RF5C68 used in Sega CD and FM Towns
     - OKI MSM6258 and MSM6295
     - Konami K007232
+    - Konami K053260
     - Irem GA20
     - Ensoniq ES5506
+    - Namco C140
   - wavetable chips:
     - HuC6280 used in PC Engine
     - Konami Bubble System WSG
@@ -73,6 +75,7 @@ for other operating systems, you may [build the source](#developer-info).
     - QuadTone engine
   - Pokémon Mini
   - Commodore PET
+  - TED used in Commodore Plus/4
   - Casio PV-1000
   - TIA used in Atari 2600
   - POKEY used in Atari 8-bit computers
@@ -124,7 +127,7 @@ for other operating systems, you may [build the source](#developer-info).
 # quick references
 
 - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, the [official Revolt](https://rvlt.gg/GRPS6tmc) or the [official Discord server](https://discord.gg/EfrwT2wq7z).
-- **help**: check out the [documentation](doc/README.md). it's about 80% complete.
+- **help**: check out the [documentation](doc/README.md). it's about 90% complete.
 
 ## packages
 
