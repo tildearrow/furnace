@@ -518,6 +518,7 @@ src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
 src/engine/cmdStream.cpp
+src/engine/cmdStreamOps.cpp
 src/engine/config.cpp
 src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
@@ -535,6 +536,7 @@ src/engine/song.cpp
 src/engine/sysDef.cpp
 src/engine/wavetable.cpp
 src/engine/waveSynth.cpp
+src/engine/wavOps.cpp
 src/engine/vgmOps.cpp
 src/engine/zsmOps.cpp
 src/engine/zsm.cpp
