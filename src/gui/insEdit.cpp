@@ -1284,7 +1284,7 @@ inline bool enBit30(const int val) {
 
 
 void FurnaceGUI::kvsConfig(DivInstrument* ins) {
-  if (ins->type==DIV_INS_FM && fmPreviewOn) {
+  if (fmPreviewOn) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("left click to restart\nmiddle click to pause\nright click to see algorithm");
     }
@@ -1299,10 +1299,10 @@ void FurnaceGUI::kvsConfig(DivInstrument* ins) {
       ImGui::SetTooltip("left click to configure TL scaling\nright click to see FM preview");
     }
   }
-  if (ImGui::IsItemClicked(ImGuiMouseButton_Right) && ins->type==DIV_INS_FM) {
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
     fmPreviewOn=!fmPreviewOn;
   }
-  if (!fmPreviewOn || ins->type!=DIV_INS_FM) {
+  if (!fmPreviewOn) {
     int opCount=4;
     if (ins->type==DIV_INS_OPLL) opCount=2;
     if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
@@ -2289,7 +2289,7 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       if (updateFMPreview) {
-        renderFMPreview(ins->fm);
+        renderFMPreview(ins);
         updateFMPreview=false;
       }
       if (settings.insEditColorize) {
@@ -2477,10 +2477,10 @@ void FurnaceGUI::drawInsEdit() {
                   P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
                   P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
-                  if (ins->type==DIV_INS_FM && fmPreviewOn) {
+                  if (fmPreviewOn) {
                     drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
                     if (!fmPreviewPaused) {
-                      renderFMPreview(ins->fm,1);
+                      renderFMPreview(ins,1);
                       WAKE_UP;
                     }
                   } else {
@@ -2498,7 +2498,15 @@ void FurnaceGUI::drawInsEdit() {
                   P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
                   P(CWSliderScalar(FM_NAME(FM_AMS2),ImGuiDataType_U8,&ins->fm.ams2,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
-                  drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  if (fmPreviewOn) {
+                    drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                    if (!fmPreviewPaused) {
+                      renderFMPreview(ins,1);
+                      WAKE_UP;
+                    }
+                  } else {
+                    drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  }
                   kvsConfig(ins);
 
                   if (ImGui::Button("Request from TX81Z")) {
@@ -2532,7 +2540,15 @@ void FurnaceGUI::drawInsEdit() {
                     }
                   }
                   ImGui::TableNextColumn();
-                  drawAlgorithm(ins->fm.alg&algMax,fourOp?FM_ALGS_4OP_OPL:FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  if (fmPreviewOn) {
+                    drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                    if (!fmPreviewPaused) {
+                      renderFMPreview(ins,1);
+                      WAKE_UP;
+                    }
+                  } else {
+                    drawAlgorithm(ins->fm.alg&algMax,fourOp?FM_ALGS_4OP_OPL:FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  }
                   kvsConfig(ins);
                   break;
                 }
@@ -2557,7 +2573,15 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
-                  drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
+                  if (fmPreviewOn) {
+                    drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
+                    if (!fmPreviewPaused) {
+                      renderFMPreview(ins,1);
+                      WAKE_UP;
+                    }
+                  } else {
+                    drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
+                  }
 
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
