@@ -526,6 +526,7 @@ src/engine/engine.cpp
 src/engine/export.cpp
 src/engine/fileOps.cpp
 src/engine/fileOpsIns.cpp
+src/engine/fileOpsSample.cpp
 src/engine/filter.cpp
 src/engine/instrument.cpp
 src/engine/macroInt.cpp
