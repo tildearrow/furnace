@@ -212,7 +212,74 @@ void FurnaceGUI::renderFMPreviewOPLL(const DivInstrumentFM& params, int pos) {
   }
 }
 
+#define OPL_WRITE(addr,val) \
+  OPL3_WriteReg((opl3_chip*)fmPreviewOPL,(addr),(val)); \
+  OPL3_Generate4Ch((opl3_chip*)fmPreviewOPL,out);
+
+const unsigned char lPreviewSlots[4]={
+  0, 3, 8, 11
+};
+
+const unsigned char lOpMap[4]={
+  0, 2, 1, 3
+};
+
 void FurnaceGUI::renderFMPreviewOPL(const DivInstrumentFM& params, int pos) {
+  if (fmPreviewOPL==NULL) {
+    fmPreviewOPL=new opl3_chip;
+    pos=0;
+  }
+  short out[4];
+  bool mult0=false;
+
+  if (pos==0) {
+    OPL3_Reset((opl3_chip*)fmPreviewOPL,49716);
+
+    // set params
+    int ops=(params.ops==4)?4:2;
+    for (int i=0; i<ops; i++) {
+      if ((params.op[i].mult&15)==0) {
+        mult0=true;
+        break;
+      }
+    }
+
+    OPL_WRITE(0x01,0x20);
+    OPL_WRITE(0x105,1);
+    if (ops==4) {
+      OPL_WRITE(0x104,1);
+    }
+    for (int i=0; i<ops; i++) {
+      const DivInstrumentFM::Operator& op=params.op[(ops==4)?lOpMap[i]:i];
+      unsigned short baseAddr=lPreviewSlots[i];
+
+      OPL_WRITE(baseAddr+0x40,op.tl|(op.ksl<<6));
+      OPL_WRITE(baseAddr+0x20,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
+      OPL_WRITE(baseAddr+0x60,(op.ar<<4)|op.dr);
+      OPL_WRITE(baseAddr+0x80,(op.sl<<4)|op.rr);
+      OPL_WRITE(baseAddr+0xe0,op.ws&7);
+    }
+
+    OPL_WRITE(0xc0,(params.alg&1)|(params.fb<<1)|0x10);
+    if (ops==4) {
+      OPL_WRITE(0xc3,((params.alg>>1)&1)|(params.fb<<1)|0x10);
+    }
+    OPL_WRITE(0xa0,0);
+    if (ops==4) {
+      OPL_WRITE(0xa3,0);
+    }
+    OPL_WRITE(0xb0,mult0?0x2a:0x26);
+    if (ops==4) {
+      OPL_WRITE(0xb3,mult0?0x2a:0x26);
+    }
+  }
+
+  // render
+  for (int i=0; i<FM_PREVIEW_SIZE; i++) {
+    OPL3_Generate4Ch((opl3_chip*)fmPreviewOPL,out);
+    OPL3_Generate4Ch((opl3_chip*)fmPreviewOPL,out);
+    fmPreview[i]=CLAMP(out[0]*2,-32768,32767);
+  }
 }
 
 void FurnaceGUI::renderFMPreviewOPZ(const DivInstrumentFM& params, int pos) {
