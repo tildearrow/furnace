@@ -94,9 +94,11 @@ void FurnaceGUI::renderFMPreviewOPN(const DivInstrumentFM& params, int pos) {
   OPM_Write((opm_t*)fmPreviewOPM,0,(addr)); \
   do { \
     OPM_Clock((opm_t*)fmPreviewOPM,out,NULL,NULL,NULL); \
+    OPM_Clock((opm_t*)fmPreviewOPM,out,NULL,NULL,NULL); \
   } while (((opm_t*)fmPreviewOPM)->write_busy); \
   OPM_Write((opm_t*)fmPreviewOPM,1,(val)); \
   do { \
+    OPM_Clock((opm_t*)fmPreviewOPM,out,NULL,NULL,NULL); \
     OPM_Clock((opm_t*)fmPreviewOPM,out,NULL,NULL,NULL); \
   } while (((opm_t*)fmPreviewOPM)->write_busy);
 
@@ -131,8 +133,8 @@ void FurnaceGUI::renderFMPreviewOPM(const DivInstrumentFM& params, int pos) {
     }
     OPM_WRITE(0x20,(params.alg&7)|((params.fb&7)<<3)|0xc0);
     OPM_WRITE(0x38,((params.fms&7)<<4)|(params.ams&3));
-    OPM_WRITE(0x28,mult0?0x20:0x10); // frequency
-    OPM_WRITE(0x30,0);
+    OPM_WRITE(0x28,mult0?0x39:0x29); // frequency
+    OPM_WRITE(0x30,0xe6);
     OPM_WRITE(0x08,0x78); // key on
   }
 
