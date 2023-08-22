@@ -1342,6 +1342,7 @@ class FurnaceGUI {
   int waveEditStyle;
   int displayInsTypeListMakeInsSample;
   int mobileEditPage;
+  int wheelCalmDown;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;

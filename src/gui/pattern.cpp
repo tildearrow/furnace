@@ -437,7 +437,7 @@ void FurnaceGUI::drawPattern() {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+centerOff);
       }
     }
-    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|(settings.cursorFollowsWheel?ImGuiTableFlags_NoScrollWithMouse:0))) {
+    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
@@ -955,8 +955,8 @@ void FurnaceGUI::drawPattern() {
       }
 
       // overflow changes order
-      // TODO: this is very unreliable and sometimes it can warp you out of the song
-      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && !settings.cursorFollowsWheel) {
+      if (--wheelCalmDown<0) wheelCalmDown=0;
+      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && !settings.cursorFollowsWheel && !wheelCalmDown) {
         if (wheelY!=0) {
           if (wheelY>0) {
             if (ImGui::GetScrollY()<=0) {
@@ -965,10 +965,12 @@ void FurnaceGUI::drawPattern() {
                   setOrder(curOrder-1);
                   ImGui::SetScrollY(ImGui::GetScrollMaxY());
                   updateScroll(e->curSubSong->patLen);
+                  wheelCalmDown=2;
                 } else if (settings.scrollChangesOrder==2) {
                   setOrder(e->curSubSong->ordersLen-1);
                   ImGui::SetScrollY(ImGui::GetScrollMaxY());
                   updateScroll(e->curSubSong->patLen);
+                  wheelCalmDown=2;
                 }
                 haveHitBounds=false;
               } else {
@@ -984,10 +986,12 @@ void FurnaceGUI::drawPattern() {
                   setOrder(curOrder+1);
                   ImGui::SetScrollY(0);
                   updateScroll(0);
+                  wheelCalmDown=2;
                 } else if (settings.scrollChangesOrder==2) {
                   setOrder(0);
                   ImGui::SetScrollY(0);
                   updateScroll(0);
+                  wheelCalmDown=2;
                 }
                 haveHitBounds=false;
               } else {

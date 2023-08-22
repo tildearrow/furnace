@@ -6863,6 +6863,7 @@ FurnaceGUI::FurnaceGUI():
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
   mobileEditPage(0),
+  wheelCalmDown(0),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   mobileEditAnim(0.0f),
