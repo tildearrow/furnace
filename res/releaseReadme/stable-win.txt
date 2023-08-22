@@ -1,0 +1,5 @@
+# Furnace (chiptune tracker)
+
+thank you for downloading Furnace! I hope you enjoy using it.
+
+extract this archive, and run furnace.exe to get started.
