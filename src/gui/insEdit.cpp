@@ -2939,17 +2939,20 @@ void FurnaceGUI::drawInsEdit() {
                   op.ar&=maxArDr;
                   CENTER_VSLIDER;
                   P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
+                  TOOLTIP_TEXT(FM_NAME(FM_AR));
 
                   ImGui::TableNextColumn();
                   op.dr&=maxArDr;
                   CENTER_VSLIDER;
                   P(CWVSliderScalar("##DR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO)); rightClickable
+                  TOOLTIP_TEXT(FM_NAME(FM_DR));
 
                   if (settings.susPosition==0) {
                     ImGui::TableNextColumn();
                     op.sl&=15;
                     CENTER_VSLIDER;
                     P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
+                    TOOLTIP_TEXT(FM_NAME(FM_SL));
                   }
 
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
@@ -2957,18 +2960,21 @@ void FurnaceGUI::drawInsEdit() {
                     op.d2r&=31;
                     CENTER_VSLIDER;
                     P(CWVSliderScalar("##D2R",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO)); rightClickable
+                    TOOLTIP_TEXT(FM_NAME(FM_D2R));
                   }
 
                   ImGui::TableNextColumn();
                   op.rr&=15;
                   CENTER_VSLIDER;
                   P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO)); rightClickable
+                  TOOLTIP_TEXT(FM_NAME(FM_RR));
 
                   if (settings.susPosition==1) {
                     ImGui::TableNextColumn();
                     op.sl&=15;
                     CENTER_VSLIDER;
                     P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
+                    TOOLTIP_TEXT(FM_NAME(FM_SL));
                   }
 
                   ImGui::TableNextColumn();
@@ -2978,37 +2984,44 @@ void FurnaceGUI::drawInsEdit() {
                   op.tl&=maxTl;
                   CENTER_VSLIDER;
                   P(CWVSliderScalar("##TL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
+                  TOOLTIP_TEXT(FM_NAME(FM_TL));
 
                   ImGui::TableNextColumn();
                   CENTER_VSLIDER;
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     P(CWVSliderScalar("##RS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE)); rightClickable
+                    TOOLTIP_TEXT(FM_NAME(FM_RS));
                   } else {
                     int ksl=ins->type==DIV_INS_OPLL?op.ksl:kslMap[op.ksl&3];
                     if (CWVSliderInt("##KSL",ImVec2(20.0f*dpiScale,sliderHeight),&ksl,0,3)) {
                       op.ksl=(ins->type==DIV_INS_OPLL?ksl:kslMap[ksl&3]);
                       PARAMETER;
                     } rightClickable
+                    TOOLTIP_TEXT(FM_NAME(FM_KSL));
                   }
 
                   if (ins->type==DIV_INS_OPZ) {
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
                     P(CWVSliderScalar("##EGS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE)); rightClickable
+                    TOOLTIP_TEXT(FM_NAME(FM_EGS));
 
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
                     P(CWVSliderScalar("##REV",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dam,&_ZERO,&_SEVEN)); rightClickable
+                    TOOLTIP_TEXT(FM_NAME(FM_REV));
                   }
 
                   ImGui::TableNextColumn();
                   CENTER_VSLIDER;
                   P(CWVSliderScalar("##MULT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
+                  TOOLTIP_TEXT(FM_NAME(FM_MULT));
 
                   if (ins->type==DIV_INS_OPZ) {
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
                     P(CWVSliderScalar("##FINE",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN)); rightClickable
+                    TOOLTIP_TEXT(FM_NAME(FM_FINE));
                   }
 
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
@@ -3020,11 +3033,13 @@ void FurnaceGUI::drawInsEdit() {
                       if (detune>7) detune=7;
                       op.dt=detuneUnmap[settings.unsignedDetune?1:0][detune+3];
                     } rightClickable
+                    TOOLTIP_TEXT(FM_NAME(FM_DT));
 
                     if (ins->type!=DIV_INS_FM) {
                       ImGui::TableNextColumn();
                       CENTER_VSLIDER;
                       P(CWVSliderScalar("##DT2",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
+                      TOOLTIP_TEXT(FM_NAME(FM_DT2));
                     }
 
                     ImGui::TableNextColumn();
