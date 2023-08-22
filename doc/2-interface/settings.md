@@ -49,7 +49,6 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **When creating new song**:
   - **Display system preset selector**
   - **Start with initial system**
-- **Restart song when changing chip properties**
 
 ### Start-up
 
