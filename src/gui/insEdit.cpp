@@ -1767,6 +1767,10 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 \
       /* if ADSR/LFO, populate min/max */ \
       if (i.macro->open&6) { \
+        if ((i.macro->val[0]==0) & (i.macro->val[1]==0)) { \
+          i.macro->val[0]=i.min; \
+          i.macro->val[1]=i.max; \
+        } \
         i.macro->val[0]=(i.macro->val[0]<i.min ? i.min : (i.macro->val[0]>i.max ? i.max : i.macro->val[0])); \
         i.macro->val[1]=(i.macro->val[1]<i.min ? i.min : (i.macro->val[1]>i.max ? i.max : i.macro->val[1])); \
       } \
