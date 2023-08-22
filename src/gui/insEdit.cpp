@@ -1284,7 +1284,7 @@ inline bool enBit30(const int val) {
 }
 
 
-void FurnaceGUI::kvsConfig(DivInstrument* ins) {
+void FurnaceGUI::kvsConfig(DivInstrument* ins, bool supportsKVS) {
   if (fmPreviewOn) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("left click to restart\nmiddle click to pause\nright click to see algorithm");
@@ -1295,9 +1295,13 @@ void FurnaceGUI::kvsConfig(DivInstrument* ins) {
     if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
       fmPreviewPaused=!fmPreviewPaused;
     }
-  } else {
+  } else if (supportsKVS) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("left click to configure TL scaling\nright click to see FM preview");
+    }
+  } else {
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("right click to see FM preview");
     }
   }
   if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
@@ -1307,7 +1311,7 @@ void FurnaceGUI::kvsConfig(DivInstrument* ins) {
     NOTIFY_LONG_HOLD;
     fmPreviewOn=!fmPreviewOn;
   }
-  if (!fmPreviewOn) {
+  if (!fmPreviewOn && supportsKVS) {
     int opCount=4;
     if (ins->type==DIV_INS_OPLL) opCount=2;
     if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
@@ -2587,6 +2591,7 @@ void FurnaceGUI::drawInsEdit() {
                   } else {
                     drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
                   }
+                  kvsConfig(ins,false);
 
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 

@@ -22,7 +22,9 @@
 #include "../../extern/opn/ym3438.h"
 #include "../../extern/opm/opm.h"
 #include "../../extern/opl/opl3.h"
+extern "C" {
 #include "../../extern/Nuked-OPLL/opll.h"
+}
 #include "../engine/platform/sound/ymfm/ymfm_opz.h"
 
 #define OPN_WRITE(addr,val) \
@@ -151,7 +153,63 @@ void FurnaceGUI::renderFMPreviewOPM(const DivInstrumentFM& params, int pos) {
   }
 }
 
+#define OPLL_WRITE(addr,val) \
+  OPLL_Write((opll_t*)fmPreviewOPLL,0,(addr)); \
+  for (int _i=0; _i<3; _i++) { \
+    OPLL_Clock((opll_t*)fmPreviewOPLL,out); \
+  } \
+  OPLL_Write((opll_t*)fmPreviewOPLL,1,(val)); \
+  for (int _i=0; _i<21; _i++) { \
+    OPLL_Clock((opll_t*)fmPreviewOPLL,out); \
+  }
+
 void FurnaceGUI::renderFMPreviewOPLL(const DivInstrumentFM& params, int pos) {
+  if (fmPreviewOPLL==NULL) {
+    fmPreviewOPLL=new opm_t;
+    pos=0;
+  }
+  int out[2];
+  int aOut=0;
+  bool mult0=false;
+
+  if (pos==0) {
+    OPLL_Reset((opll_t*)fmPreviewOPLL,opll_type_ym2413);
+
+    // set params
+    const DivInstrumentFM::Operator& mod=params.op[0];
+    const DivInstrumentFM::Operator& car=params.op[1];
+    if (params.opllPreset==0) {
+      for (int i=0; i<2; i++) {
+        if ((params.op[i].mult&15)==0) {
+          mult0=true;
+          break;
+        }
+      }
+      OPLL_WRITE(0x00,(mod.am<<7)|(mod.vib<<6)|((mod.ssgEnv&8)<<2)|(mod.ksr<<4)|(mod.mult));
+      OPLL_WRITE(0x01,(car.am<<7)|(car.vib<<6)|((car.ssgEnv&8)<<2)|(car.ksr<<4)|(car.mult));
+      OPLL_WRITE(0x02,(mod.ksl<<6)|(mod.tl&63));
+      OPLL_WRITE(0x03,(car.ksl<<6)|((params.fms&1)<<4)|((params.ams&1)<<3)|(params.fb&7));
+      OPLL_WRITE(0x04,(mod.ar<<4)|(mod.dr));
+      OPLL_WRITE(0x05,(car.ar<<4)|(car.dr));
+      OPLL_WRITE(0x06,(mod.sl<<4)|(mod.rr));
+      OPLL_WRITE(0x07,(car.sl<<4)|(car.rr));
+    }
+    OPLL_WRITE(0x10,0);
+    OPLL_WRITE(0x30,(params.opllPreset<<4)|(car.tl&15));
+    OPLL_WRITE(0x20,(params.alg?0x20:0)|(mult0?0x15:0x13));
+  }
+
+  // render
+  for (int i=0; i<FM_PREVIEW_SIZE; i++) {
+    aOut=0;
+    for (int j=0; j<36; j++) {
+      OPLL_Clock((opll_t*)fmPreviewOPLL,out);
+      aOut+=out[0]<<4;
+    }
+    if (aOut<-32768) aOut=-32768;
+    if (aOut>32767) aOut=32767;
+    fmPreview[i]=aOut;
+  }
 }
 
 void FurnaceGUI::renderFMPreviewOPL(const DivInstrumentFM& params, int pos) {
