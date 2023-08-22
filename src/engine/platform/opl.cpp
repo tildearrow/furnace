@@ -436,7 +436,7 @@ void DivPlatformOPL::tick(bool sysTick) {
       }
 
       if (m.tl.had) {
-        op.tl=63-m.tl.val;
+        op.tl=m.tl.val&63;
       }
       if (m.ksl.had) {
         op.ksl=m.ksl.val;

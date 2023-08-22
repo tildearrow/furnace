@@ -549,7 +549,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
       rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
     }
     if (m.tl.had) {
-      op.tl=127-m.tl.val;
+      op.tl=m.tl.val;
       if (isOpMuted[i]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {

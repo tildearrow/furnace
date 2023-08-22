@@ -2261,6 +2261,13 @@ void DivInstrument::readFeatureOx(SafeReader& reader, int op, short version) {
         }
         break;
     }
+
+    // <167 TL macro compat
+    if (macroCode==6 && version<167) {
+      for (int i=0; i<target->len; i++) {
+        target->val[i]^=0x7f;
+      }
+    }
   }
 
   READ_FEAT_END;
@@ -3315,6 +3322,15 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
       }
       if ((std.arpMacro.loop>=std.arpMacro.len || (std.arpMacro.rel>std.arpMacro.loop && std.arpMacro.rel<std.arpMacro.len)) && std.arpMacro.len<255) {
         std.arpMacro.val[std.arpMacro.len++]=0;
+      }
+    }
+  }
+
+  // <167 TL macro compat
+  if (version<167) {
+    for (int i=0; i<4; i++) {
+      for (int j=0; j<std.opMacros[i].tlMacro.len; j++) {
+        std.opMacros[i].tlMacro.val[j]^=0x7f;
       }
     }
   }
