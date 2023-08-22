@@ -282,7 +282,59 @@ void FurnaceGUI::renderFMPreviewOPL(const DivInstrumentFM& params, int pos) {
   }
 }
 
+#define OPZ_WRITE(addr,val) \
+  ((ymfm::ym2414*)fmPreviewOPZ)->write(0,(addr)); \
+  ((ymfm::ym2414*)fmPreviewOPZ)->write(1,(val)); \
+  ((ymfm::ym2414*)fmPreviewOPZ)->generate(&out,1);
+
 void FurnaceGUI::renderFMPreviewOPZ(const DivInstrumentFM& params, int pos) {
+  if (fmPreviewOPZ==NULL) {
+    fmPreviewOPZInterface=new ymfm::ymfm_interface();
+    fmPreviewOPZ=new ymfm::ym2414(*(ymfm::ymfm_interface*)fmPreviewOPZInterface);
+    pos=0;
+  }
+  ymfm::ymfm_output<2> out;
+  int aOut=0;
+  bool mult0=false;
+
+  if (pos==0) {
+    ((ymfm::ym2414*)fmPreviewOPZ)->reset();
+
+    // set params
+    for (int i=0; i<4; i++) {
+      if ((params.op[i].mult&15)==0) {
+        mult0=true;
+        break;
+      }
+    }
+    for (int i=0; i<4; i++) {
+      const DivInstrumentFM::Operator& op=params.op[i];
+      unsigned short baseAddr=i*8;
+      OPZ_WRITE(baseAddr+0x40,(op.mult&15)|((op.egt?(op.dt&7):dtTableFMP[op.dt&7])<<4));
+      OPZ_WRITE(baseAddr+0x40,(op.dvb&15)|((op.ws&7)<<4)|0x80);
+      OPZ_WRITE(baseAddr+0x60,op.tl);
+      OPZ_WRITE(baseAddr+0x80,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
+      OPZ_WRITE(baseAddr+0xa0,(op.dr&31)|(op.am<<7));
+      OPZ_WRITE(baseAddr+0xc0,(op.d2r&31)|(op.dt2<<6));
+      OPZ_WRITE(baseAddr+0xc0,(op.dam&7)|(op.ksl<<6)|0x20);
+      OPZ_WRITE(baseAddr+0xe0,(op.rr&15)|(op.sl<<4));
+    }
+    OPZ_WRITE(0x38,((params.fms&7)<<4)|(params.ams&3));
+    OPZ_WRITE(0x38,((params.fms2&7)<<4)|(params.ams2&3)|0x84);
+    OPZ_WRITE(0x28,mult0?0x39:0x29); // frequency
+    OPZ_WRITE(0x30,0xe7);
+    OPZ_WRITE(0x20,(params.alg&7)|((params.fb&7)<<3)|0x40); // key on
+  }
+
+  // render
+  for (int i=0; i<FM_PREVIEW_SIZE; i++) {
+    aOut=0;
+    ((ymfm::ym2414*)fmPreviewOPZ)->generate(&out,1);
+    aOut+=out.data[0];
+    if (aOut<-32768) aOut=-32768;
+    if (aOut>32767) aOut=32767;
+    fmPreview[i]=aOut;
+  }
 }
 
 void FurnaceGUI::renderFMPreview(const DivInstrument* ins, int pos) {

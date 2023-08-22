@@ -1353,6 +1353,7 @@ class FurnaceGUI {
   void* fmPreviewOPL;
   void* fmPreviewOPLL;
   void* fmPreviewOPZ;
+  void* fmPreviewOPZInterface;
   String* editString;
 
   String pendingRawSample;
