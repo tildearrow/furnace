@@ -1208,8 +1208,26 @@ void DivEngine::nextRow() {
           if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
             wantPreNote=disCont[dispatchOfChan[i]].dispatch->getWantPreNote();
             if (wantPreNote) {
+              bool doPreparePreNote=true;
               int addition=0;
+
               for (int j=0; j<curPat[i].effectCols; j++) {
+                if (!song.preNoteNoEffect) {
+                  if (pat->data[curRow][4+(j<<1)]==0x03) {
+                    doPreparePreNote=false;
+                    break;
+                  }
+                  if (pat->data[curRow][4+(j<<1)]==0x06) {
+                    doPreparePreNote=false;
+                    break;
+                  }
+                  if (pat->data[curRow][4+(j<<1)]==0xea) {
+                    if (pat->data[curRow][5+(j<<1)]>0) {
+                      doPreparePreNote=false;
+                      break;
+                    }
+                  }
+                }
                 if (pat->data[curRow][4+(j<<1)]==0xed) {
                   if (pat->data[curRow][5+(j<<1)]>0) {
                     addition=pat->data[curRow][5+(j<<1)]&255;
@@ -1217,7 +1235,7 @@ void DivEngine::nextRow() {
                   }
                 }
               }
-              dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks+addition));
+              if (doPreparePreNote) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks+addition));
             }
           }
 
