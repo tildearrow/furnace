@@ -892,14 +892,10 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Preview");
+      ImGui::SetTooltip("Preview (right click to stop)");
     }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSampleL")) {
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
       doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Stop preview");
     }
     ImGui::SameLine();
     pushDestColor();
