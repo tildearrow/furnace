@@ -105,8 +105,10 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   bool insPressed=ImGui::IsItemActivated();
   if (insReleased || (!insListDir && insPressed)) {
     curIns=i;
-    wavePreviewInit=true;
-    updateFMPreview=true;
+    if (!insReleased || insListDir) {
+      wavePreviewInit=true;
+      updateFMPreview=true;
+    }
     lastAssetType=0;
     if (settings.insFocusesPattern && patternOpen)
       nextWindow=GUI_WINDOW_PATTERN;
