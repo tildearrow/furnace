@@ -476,6 +476,10 @@ DivMacroInt* DivPlatformSwan::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformSwan::getPan(int ch) {
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
 DivDispatchOscBuffer* DivPlatformSwan::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

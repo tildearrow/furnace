@@ -497,6 +497,10 @@ DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {
   return &chan[0].std;
 }
 
+unsigned short DivPlatformPCMDAC::getPan(int ch) {
+  return (chan[0].panL<<8)|chan[0].panR;
+}
+
 DivSamplePos DivPlatformPCMDAC::getSamplePos(int ch) {
   if (ch>=1) return DivSamplePos();
   return DivSamplePos(

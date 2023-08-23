@@ -33,6 +33,10 @@ void* DivDispatch::getChanState(int chan) {
   return NULL;
 }
 
+unsigned short DivDispatch::getPan(int chan) {
+  return 0;
+}
+
 DivMacroInt* DivDispatch::getChanMacroInt(int chan) {
   return NULL;
 }

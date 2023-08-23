@@ -740,6 +740,12 @@ DivMacroInt* DivPlatformYM2610Ext::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformYM2610Ext::getPan(int ch) {
+  if (ch>=4+extChanOffs) return DivPlatformYM2610::getPan(ch-3);
+  if (ch>=extChanOffs) return ((opChan[0].pan<<7)&1)|(opChan[0].pan&1);
+  return DivPlatformYM2610::getPan(ch);
+}
+
 DivDispatchOscBuffer* DivPlatformYM2610Ext::getOscBuffer(int ch) {
   if (ch>=(extChanOffs+4)) return oscBuf[ch-3];
   if (ch<(extChanOffs+1)) return oscBuf[ch];

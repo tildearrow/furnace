@@ -857,6 +857,10 @@ DivMacroInt* DivPlatformArcade::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformArcade::getPan(int ch) {
+  return (chan[ch].chVolL<<8)|(chan[ch].chVolR);
+}
+
 DivDispatchOscBuffer* DivPlatformArcade::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

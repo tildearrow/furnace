@@ -800,6 +800,12 @@ DivMacroInt* DivPlatformGenesisExt::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformGenesisExt::getPan(int ch) {
+  if (ch>=4+extChanOffs) return DivPlatformGenesis::getPan(ch-3);
+  if (ch>=extChanOffs) return ((opChan[0].pan<<7)&1)|(opChan[0].pan&1);
+  return DivPlatformGenesis::getPan(ch);
+}
+
 DivDispatchOscBuffer* DivPlatformGenesisExt::getOscBuffer(int ch) {
   if (ch>=6) return oscBuf[ch-3];
   if (ch<3) return oscBuf[ch];

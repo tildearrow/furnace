@@ -75,6 +75,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void setFlags(const DivConfig& flags);
