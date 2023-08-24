@@ -1,0 +1,23 @@
+# Atari POKEY instrument editor
+
+- **Volume**: Standard volume macro.
+- **Arpeggio**: Coarse pitch macro, in half steps.
+- **AUDCTL**: The POKEY's "AUDio ConTroL" register. This register is global, so other instruments can overwrite it.
+  - `POLY9`: Affects the period (length) of the noise waveform. Can be used for weird tonal sound effects.
+  - `HIGH1`: Forces the first channel to be set to a high pitch.
+  - `HIGH3`: Ditto, but for the third channel.
+  - `16-BIT 1+2`: Combines the first and second channel to make a channel with 16-bit pitch depth, rather than 8 bits.
+  - `16-BIT 3+4`: Ditto, but for the third and fourth channels instead.
+  - `FILTER 1+3`: Not a real filter, but rather it `XOR`s the first channel's output with the third channel's output, which can allow for things like PWM and some other weird sound effects.
+  - `FILTER 2+4`: Ditto, but for the second and fourth channels instead.
+  - `15KHZ`: Sets the clock divider to 15 kHz. Useful for bass tones, but it affects all channels, so it's not very useful for things like drums or melodies.
+- **Waveform**: Sets the waveform of the channel.
+  - 0: White noise (variation 1)
+  - 1: Square wave (variation 1)
+  - 2: Weird short noise (waveform and length changes with pitch)
+  - 3: Identical to waveform 1
+  - 4: White noise (pure, variation 0)
+  - 5: Square wave (pure, variation 0)
+  - 6: "Atari bass" (variation 1) wave (duty changes with pitch and channel)
+  - 7: "Atari bass" (variation 0) wave
+- **Pitch**: Fine pitch macro.
