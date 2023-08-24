@@ -303,7 +303,7 @@ void DivEngine::notifyWaveChange(int wave) {
 }
 
 int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret) {
-  ret = NULL;
+  ret=NULL;
   if (path.empty()) {
     return 0;
   }
@@ -358,7 +358,7 @@ int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& 
     return -1;
   }
   fclose(f);
-  ret = file;
+  ret=file;
   return 0;
 }
 
@@ -385,10 +385,10 @@ int DivEngine::loadSampleROMs() {
     delete[] mu5ROM;
     mu5ROM=NULL;
   }
-  int error = 0;
-  error += loadSampleROM(getConfString("yrw801Path",""), 0x200000, yrw801ROM);
-  error += loadSampleROM(getConfString("tg100Path",""), 0x200000, tg100ROM);
-  error += loadSampleROM(getConfString("mu5Path",""), 0x200000, mu5ROM);
+  int error=0;
+  error+=loadSampleROM(getConfString("yrw801Path",""), 0x200000, yrw801ROM);
+  error+=loadSampleROM(getConfString("tg100Path",""), 0x200000, tg100ROM);
+  error+=loadSampleROM(getConfString("mu5Path",""), 0x200000, mu5ROM);
   return error;
 }
 
@@ -1066,7 +1066,7 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
     swapList.reserve(song.systemLen);
     for (int i=0; i<song.systemLen; i++) {
       chanList.clear();
-      const int channelCount = getChannelCount(song.system[i]);
+      const int channelCount=getChannelCount(song.system[i]);
       chanList.reserve(channelCount);
       for (int j=0; j<channelCount; j++) {
         chanList.push_back(index);
