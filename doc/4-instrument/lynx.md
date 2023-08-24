@@ -5,7 +5,7 @@ The Lynx is capable of playing back samples on any channel, as each channel has 
 
 ## Macros tab
 - **Volume**: Standard volume macro. If `int` mode is turned on, the volume macro will be used as a filter strength register of sorts.
-- **Arpeggio**: Coarse pitch macro, in half steps.
+- **Arpeggio**: Coarse pitch macro, in semitones.
 - **Duty/Int**: Timbre macro.
   - The Atari Lynx uses an [LFSR](https://en.wikipedia.org/wiki/Linear-feedback_shift_register) to generate its waves. In fact, all the other Atari sound chips do. But the difference is, the Lynx allows you to adjust the bits that are used in the LFSR. You can use or abuse this feature to make some really weird wavetable-like sounds.
   - The `int` mode makes it so that when the Lynx inverts the channel to produce a click, this pop becomes interpolated, in a way. The strength of this interpolation filter is gauged via the volume macro.
