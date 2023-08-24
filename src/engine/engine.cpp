@@ -950,12 +950,13 @@ bool DivEngine::addSystem(DivSystem which) {
       unsigned int outs=disCont[i].dispatch->getOutputCount();
       if (outs>16) outs=16;
       if (outs<2) {
+        song.patchbay.reserve(DIV_MAX_OUTPUTS);
         for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
           song.patchbay.push_back((i<<20)|j);
         }
       } else {
+        song.patchbay.reserve(outs);
         for (unsigned int j=0; j<outs; j++) {
-
           song.patchbay.push_back((i<<20)|(j<<16)|j);
         }
       }
@@ -1062,9 +1063,12 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
 
     // prepare swap list
     int index=0;
+    swapList.reserve(song.systemLen);
     for (int i=0; i<song.systemLen; i++) {
       chanList.clear();
-      for (int j=0; j<getChannelCount(song.system[i]); j++) {
+      const int channelCount = getChannelCount(song.system[i]);
+      chanList.reserve(channelCount);
+      for (int j=0; j<channelCount; j++) {
         chanList.push_back(index);
         index++;
       }
@@ -1319,6 +1323,7 @@ void DivEngine::enableCommandStream(bool enable) {
 void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
   BUSY_BEGIN;
   where.clear();
+  where.reserve(cmdStream.size());
   for (DivCommand& i: cmdStream) {
     where.push_back(i);
   }
@@ -2822,23 +2827,26 @@ void DivEngine::autoPatchbay() {
     unsigned int outs=disCont[i].dispatch->getOutputCount();
     if (outs>16) outs=16;
     if (outs<2) {
+      song.patchbay.reserve(DIV_MAX_OUTPUTS);
       for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
         song.patchbay.push_back((i<<20)|j);
       }
     } else {
+      song.patchbay.reserve(outs);
       for (unsigned int j=0; j<outs; j++) {
-
         song.patchbay.push_back((i<<20)|(j<<16)|j);
       }
     }
   }
 
   // wave/sample preview
+  song.patchbay.reserve(DIV_MAX_OUTPUTS);
   for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
     song.patchbay.push_back(0xffd00000|j);
   }
 
   // metronome
+  song.patchbay.reserve(DIV_MAX_OUTPUTS);
   for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
     song.patchbay.push_back(0xffe00000|j);
   }
