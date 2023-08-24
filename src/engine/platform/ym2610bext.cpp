@@ -152,6 +152,7 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
         }
       }
       rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+      lastExtChPan=opChan[ch].pan;
       break;
     }
     case DIV_CMD_PITCH: {
@@ -695,7 +696,7 @@ void DivPlatformYM2610BExt::forceIns() {
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     if (i==extChanOffs) {
-      rWrite(chanOffs[i]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(opChan[0].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+      rWrite(chanOffs[i]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(lastExtChPan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     } else {
       rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
@@ -742,7 +743,13 @@ DivMacroInt* DivPlatformYM2610BExt::getChanMacroInt(int ch) {
 
 unsigned short DivPlatformYM2610BExt::getPan(int ch) {
   if (ch>=4+extChanOffs) return DivPlatformYM2610B::getPan(ch-3);
-  if (ch>=extChanOffs) return ((opChan[0].pan<<7)&1)|(opChan[0].pan&1);
+  if (ch>=extChanOffs) {
+    if (extMode) {
+      return ((lastExtChPan&2)<<7)|(lastExtChPan&1);
+    } else {
+      return DivPlatformYM2610B::getPan(extChanOffs);
+    }
+  }
   return DivPlatformYM2610B::getPan(ch);
 }
 
@@ -762,7 +769,9 @@ void DivPlatformYM2610BExt::reset() {
     opChan[i].outVol=127;
   }
 
-  // channel 2 mode
+  lastExtChPan=3;
+
+  // channel 3 mode
   immWrite(0x27,0x40);
   extMode=true;
 }

@@ -976,6 +976,9 @@ class DivEngine {
     // get macro interpreter
     DivMacroInt* getMacroInt(int chan);
 
+    // get channel panning
+    unsigned short getChanPan(int chan);
+
     // get sample position
     DivSamplePos getSamplePos(int chan);
 

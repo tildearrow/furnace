@@ -800,13 +800,14 @@ void FurnaceGUI::drawPattern() {
 
             if (e->isRunning()) {
               DivChannelState* cs=e->getChanState(i);
-              float stereoPan=(float)(e->convertPanSplitToLinearLR(cs->panL,cs->panR,256)-128)/128.0;
+              unsigned short chanPan=e->getChanPan(i);
+              float stereoPan=(float)(e->convertPanSplitToLinear(chanPan,8,256)-128)/128.0;
               switch (settings.channelVolStyle) {
                 case 1: // simple
-                  xRight=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.9+(keyHit1[i]*0.1f);
+                  xRight=((float)(cs->volume>>8)/(float)e->getMaxVolumeChan(i))*0.9+(keyHit1[i]*0.1f);
                   break;
                 case 2: { // stereo
-                  float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
+                  float amount=((float)(cs->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
                   xRight=0.5+amount*(1.0+MIN(0.0,stereoPan));
                   xLeft=0.5-amount*(1.0-MAX(0.0,stereoPan));
                   break;

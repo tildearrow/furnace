@@ -1423,7 +1423,7 @@ DivMacroInt* DivPlatformYM2610::getChanMacroInt(int ch) {
 
 unsigned short DivPlatformYM2610::getPan(int ch) {
   if (ch>=psgChanOffs && ch<adpcmAChanOffs) return 0;
-  return ((chan[ch].pan<<7)&1)|(chan[ch].pan&1);
+  return ((chan[ch].pan&2)<<7)|(chan[ch].pan&1);
 }
 
 DivDispatchOscBuffer* DivPlatformYM2610::getOscBuffer(int ch) {
