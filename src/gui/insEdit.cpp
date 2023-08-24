@@ -5701,6 +5701,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) waveMax=0;
           if (ins->type==DIV_INS_GA20) waveMax=0;
           if (ins->type==DIV_INS_K053260) waveMax=0;
+          if (ins->type==DIV_INS_BEEPER) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_TED) waveMax=0;
           if (ins->type==DIV_INS_C140) waveMax=0;
