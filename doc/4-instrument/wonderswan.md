@@ -8,7 +8,7 @@ This tab uses the GUI from the wavetable synth editor. This feature needs its ow
 
 ## Macros tab
 - **Volume**: Standard volume macro.
-- **Arpeggio**: Coarse tuning macro, in half steps.
+- **Arpeggio**: Coarse tuning macro, in semitones
 - **Noise**: Whether noise is enabled on this channel or not. (Only useful on the last channel, since it's the only one capable of playing white noise.)
 - **Waveform**: What wavetable to play on the current channel.
 - **Pitch**: Fine pitch macro.
