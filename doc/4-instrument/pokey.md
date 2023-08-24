@@ -1,7 +1,7 @@
 # Atari POKEY instrument editor
 
 - **Volume**: Standard volume macro.
-- **Arpeggio**: Coarse pitch macro, in half steps.
+- **Arpeggio**: Coarse pitch macro, in semitones
 - **AUDCTL**: The POKEY's "AUDio ConTroL" register. This register is global, so other instruments can overwrite it.
   - `POLY9`: Affects the period (length) of the noise waveform. Can be used for weird tonal sound effects.
   - `HIGH1`: Forces the first channel to be set to a high pitch.
