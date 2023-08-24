@@ -609,6 +609,14 @@ void FurnaceGUI::doAction(int what) {
       break;
 
     case GUI_ACTION_INS_LIST_ADD:
+      if (settings.insTypeMenu) {
+        makeInsTypeList=e->getPossibleInsTypes();
+        if (makeInsTypeList.size()>1) {
+          displayInsTypeList=true;
+          displayInsTypeListMakeInsSample=-1;
+          break;
+        }
+      }
       curIns=e->addInstrument(cursor.xCoarse);
       if (curIns==-1) {
         showError("too many instruments!");
@@ -1277,7 +1285,7 @@ void FurnaceGUI::doAction(int what) {
         } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (unsigned int i=start; i<end; i++) {
             sample->data8[i]=-sample->data8[i];
-            if (sample->data16[i]==-128) sample->data16[i]=127;
+            if (sample->data8[i]==-128) sample->data8[i]=127;
           }
         }
 
@@ -1388,7 +1396,8 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_ES5506 ||
             i==DIV_INS_K007232 ||
             i==DIV_INS_GA20 ||
-            i==DIV_INS_K053260) {
+            i==DIV_INS_K053260 ||
+            i==DIV_INS_C140) {
           makeInsTypeList.push_back(i);
         }
       }

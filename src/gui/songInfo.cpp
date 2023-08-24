@@ -36,6 +36,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Name");
       ImGui::TableNextColumn();
       float avail=ImGui::GetContentRegionAvail().x;
@@ -59,6 +60,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Author");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
@@ -68,6 +70,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Album");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
@@ -77,6 +80,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       if (!basicMode) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("System");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(MAX(16.0f*dpiScale,avail-autoButtonSize-ImGui::GetStyle().ItemSpacing.x));
@@ -112,6 +116,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Tuning (A-4)");
       ImGui::TableNextColumn();
       float tune=e->song.tuning;

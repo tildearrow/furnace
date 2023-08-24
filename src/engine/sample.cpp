@@ -269,6 +269,9 @@ int DivSample::getSampleOffset(int offset, int length, DivSampleDepth depth) {
       case DIV_SAMPLE_DEPTH_VOX:
         off=(offset+1)/2;
         break;
+      case DIV_SAMPLE_DEPTH_MULAW:
+        off=offset;
+        break;
       case DIV_SAMPLE_DEPTH_16BIT:
         off=offset*2;
         break;
@@ -315,6 +318,10 @@ int DivSample::getSampleOffset(int offset, int length, DivSampleDepth depth) {
       case DIV_SAMPLE_DEPTH_VOX:
         off=(offset+1)/2;
         len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_MULAW:
+        off=offset;
+        len=length;
         break;
       case DIV_SAMPLE_DEPTH_16BIT:
         off=offset*2;
@@ -364,6 +371,9 @@ int DivSample::getEndPosition(DivSampleDepth depth) {
       break;
     case DIV_SAMPLE_DEPTH_VOX:
       off=lengthVOX;
+      break;
+    case DIV_SAMPLE_DEPTH_MULAW:
+      off=lengthMuLaw;
       break;
     case DIV_SAMPLE_DEPTH_16BIT:
       off=length16;
@@ -537,6 +547,12 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       lengthVOX=(count+1)/2;
       dataVOX=new unsigned char[lengthVOX];
       memset(dataVOX,0,lengthVOX);
+      break;
+    case DIV_SAMPLE_DEPTH_MULAW: // 8-bit µ-law
+      if (dataMuLaw!=NULL) delete[] dataMuLaw;
+      lengthMuLaw=count;
+      dataMuLaw=new unsigned char[(count+4095)&(~0xfff)];
+      memset(dataMuLaw,0,(count+4095)&(~0xfff));
       break;
     case DIV_SAMPLE_DEPTH_16BIT: // 16-bit
       if (data16!=NULL) delete[] data16;
@@ -1112,6 +1128,11 @@ bool DivSample::resample(double sRate, double tRate, int filter) {
 
 #define NOT_IN_FORMAT(x) (depth!=x && formatMask&(1U<<(unsigned int)x))
 
+union IntFloat {
+  unsigned int i;
+  float f;
+};
+
 void DivSample::render(unsigned int formatMask) {
   // step 1: convert to 16-bit if needed
   if (depth!=DIV_SAMPLE_DEPTH_16BIT) {
@@ -1154,6 +1175,14 @@ void DivSample::render(unsigned int formatMask) {
         break;
       case DIV_SAMPLE_DEPTH_VOX: // VOX
         oki_decode(dataVOX,data16,samples);
+        break;
+      case DIV_SAMPLE_DEPTH_MULAW: // 8-bit µ-law PCM
+        for (unsigned int i=0; i<samples; i++) {
+          IntFloat s;
+          s.i=(dataMuLaw[i]^0xff);
+          s.i=0x3f800000+(((s.i<<24)&0x80000000)|((s.i&0x7f)<<19));
+          data16[i]=(short)(s.f*128.0f);
+        }
         break;
       default:
         return;
@@ -1233,6 +1262,17 @@ void DivSample::render(unsigned int formatMask) {
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
     oki_encode(data16,dataVOX,samples);
   }
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_MULAW)) { // µ-law
+    if (!initInternal(DIV_SAMPLE_DEPTH_MULAW,samples)) return;
+    for (unsigned int i=0; i<samples; i++) {
+      IntFloat s;
+      s.f=fabs(data16[i]);
+      s.f/=128.0f;
+      s.f+=1.0f;
+      s.i-=0x3f800000;
+      dataMuLaw[i]=(((data16[i]<0)?0x80:0)|(s.i&0x03f80000)>>19)^0xff;
+    }
+  }
 }
 
 void* DivSample::getCurBuf() {
@@ -1255,6 +1295,8 @@ void* DivSample::getCurBuf() {
       return dataBRR;
     case DIV_SAMPLE_DEPTH_VOX:
       return dataVOX;
+    case DIV_SAMPLE_DEPTH_MULAW:
+      return dataMuLaw;
     case DIV_SAMPLE_DEPTH_16BIT:
       return data16;
     default:
@@ -1283,6 +1325,8 @@ unsigned int DivSample::getCurBufLen() {
       return lengthBRR;
     case DIV_SAMPLE_DEPTH_VOX:
       return lengthVOX;
+    case DIV_SAMPLE_DEPTH_MULAW:
+      return lengthMuLaw;
     case DIV_SAMPLE_DEPTH_16BIT:
       return length16;
     default:
@@ -1392,4 +1436,5 @@ DivSample::~DivSample() {
   if (dataB) delete[] dataB;
   if (dataBRR) delete[] dataBRR;
   if (dataVOX) delete[] dataVOX;
+  if (dataMuLaw) delete[] dataMuLaw;
 }

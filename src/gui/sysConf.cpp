@@ -24,7 +24,7 @@
 
 bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
-  bool restart=settings.restartOnFlagChange && modifyOnChange;
+  bool restart=modifyOnChange;
   bool supportsCustomRate=true;
 
   switch (type) {
@@ -395,6 +395,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
       int patchSet=flags.getInt("patchSet",0);
       bool noTopHatFreq=flags.getBool("noTopHatFreq",false);
+      bool fixedAll=flags.getBool("fixedAll",false);
 
       ImGui::Text("Clock rate:");
       ImGui::Indent();
@@ -441,6 +442,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         if (ImGui::Checkbox("Ignore top/hi-hat frequency changes",&noTopHatFreq)) {
           altered=true;
         }
+        if (ImGui::Checkbox("Apply fixed frequency to all drums at once",&fixedAll)) {
+          altered=true;
+        }
       }
 
       if (altered) {
@@ -450,6 +454,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
             flags.set("patchSet",patchSet);
           }
           flags.set("noTopHatFreq",noTopHatFreq);
+          flags.set("fixedAll",fixedAll);
         });
       }
       break;
@@ -479,10 +484,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
-    case DIV_SYSTEM_NES:
-    case DIV_SYSTEM_VRC6:
-    case DIV_SYSTEM_FDS:
-    case DIV_SYSTEM_MMC5: {
+    case DIV_SYSTEM_NES: {
       int clockSel=flags.getInt("clockSel",0);
       bool dpcmMode=flags.getBool("dpcmMode",true);
 
@@ -520,6 +522,35 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("dpcmMode",dpcmMode);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_VRC6:
+    case DIV_SYSTEM_FDS:
+    case DIV_SYSTEM_MMC5: {
+      int clockSel=flags.getInt("clockSel",0);
+
+      ImGui::Text("Clock rate:");
+
+      ImGui::Indent();
+      if (ImGui::RadioButton("NTSC (1.79MHz)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("PAL (1.67MHz)",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Dendy (1.77MHz)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
         });
       }
       break;
@@ -1473,6 +1504,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_OPL3:
     case DIV_SYSTEM_OPL3_DRUMS: {
       int clockSel=flags.getInt("clockSel",0);
+      int chipType=flags.getInt("chipType",0);
       bool compatPan=flags.getBool("compatPan",false);
 
       ImGui::Text("Clock rate:");
@@ -1497,6 +1529,19 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=4;
         altered=true;
       }
+      if (ImGui::RadioButton("33.8688MHz (OPL3-L)",clockSel==5)) {
+        clockSel=5;
+        altered=true;
+      }
+      ImGui::Text("Chip type:");
+      if (ImGui::RadioButton("OPL3 (YMF262)",chipType==0)) {
+        chipType=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("OPL3-L (YMF289B)",chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
       ImGui::Unindent();
 
       if (ImGui::Checkbox("Compatible panning (0800)",&compatPan)) {
@@ -1506,6 +1551,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("chipType",chipType);
           flags.set("compatPan",compatPan);
         });
       }
@@ -2052,6 +2098,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_GA20:
     case DIV_SYSTEM_PV1000:
     case DIV_SYSTEM_VERA:
+    case DIV_SYSTEM_C140:
       break;
     case DIV_SYSTEM_YMU759:
       supportsCustomRate=false;

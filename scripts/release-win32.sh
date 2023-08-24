@@ -15,7 +15,7 @@ fi
 cd win32build
 
 # TODO: potential Arch-ism?
-i686-w64-mingw32-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Wno-cast-function-type -Werror" -DBUILD_SHARED_LIBS=OFF -DSUPPORT_XP=ON -DWITH_RENDER_DX11=OFF .. || exit 1
+i686-w64-mingw32-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Wno-cast-function-type -Werror" -DBUILD_SHARED_LIBS=OFF -DSUPPORT_XP=ON -DWITH_RENDER_DX11=ON .. || exit 1
 make -j8 || exit 1
 
 cd ..
@@ -33,6 +33,11 @@ cp -r ../../instruments instruments || exit 1
 cp -r ../../wavetables wavetables || exit 1
 
 i686-w64-mingw32-strip -s furnace.exe || exit 1
+
+# patch to remove GetTickCount64
+xxd -c 256 -ps furnace.exe | sed "s/4765745469636b436f756e743634/4765745469636b436f756e740000/g" | xxd -ps -r > furnace-patched.exe
+rm furnace.exe
+mv furnace-patched.exe furnace.exe
 
 zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers doc demos instruments wavetables
 

@@ -2025,6 +2025,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Namco System 2", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_C140, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     "Taito Arcade", {
       CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
     }
@@ -2334,6 +2340,22 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "Yamaha YMF289B (OPL3-L)", {
+      CH(DIV_SYSTEM_OPL3, 1.0f, 0, 
+         "clockSel=5\n"
+         "chipType=1\n"
+      )
+    }
+  );
+  ENTRY(
+    "Yamaha YMF289B (drums mode)", {
+      CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, 
+         "clockSel=5\n"
+         "chipType=1\n"
+      )
+    }
+  );
   if (settings.hiddenSystems) {
     ENTRY(
       "Yamaha YMU759 (MA-2)", {
@@ -2528,6 +2550,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Konami K053260", {
       CH(DIV_SYSTEM_K053260, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Namco C140", {
+      CH(DIV_SYSTEM_C140, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

@@ -402,7 +402,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
@@ -670,6 +670,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_EXTCH: {
       if (extSys) {
+        if (extMode==(bool)c.value) break;
         extMode=c.value;
         immWrite(0x27,extMode?0x40:0);
       }

@@ -138,6 +138,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
         opChan[ch].insChanged=true;
       }
       opChan[ch].ins=c.value;
+      chan[extChanOffs].ins=opChan[ch].ins;
       break;
     case DIV_CMD_PITCH: {
       opChan[ch].pitch=c.value;
@@ -182,8 +183,15 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_EXTCH: {
+      if (extMode==(bool)c.value) break;
       extMode=c.value;
       immWrite(0x27,extMode?0x40:0);
+      if (!extMode) {
+        for (int i=0; i<4; i++) {
+          opChan[i].insChanged=true;
+        }
+        chan[extChanOffs].insChanged=true;
+      }
       break;
     }
     case DIV_CMD_FM_FB: {
@@ -494,7 +502,7 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
     }
     if (m.tl.had) {
-      op.tl=127-m.tl.val;
+      op.tl=m.tl.val;
       if (isOpMuted[i]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
@@ -595,13 +603,19 @@ void DivPlatformYM2203Ext::muteChannel(int ch, bool mute) {
   }
   isOpMuted[ch-2]=mute;
   
-  int ordch=orderedOps[ch-2];
-  unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-  DivInstrumentFM::Operator op=chan[2].state.op[ordch];
-  if (isOpMuted[ch-2] || !op.enable) {
-    rWrite(baseAddr+0x40,127);
-  } else {
-    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].outVol&0x7f,127));
+  DivPlatformYM2203::muteChannel(extChanOffs,IS_EXTCH_MUTED);
+  
+  if (extMode) {
+    for (int i=0; i<4; i++) {
+      int ordch=orderedOps[i];
+      unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
+      DivInstrumentFM::Operator op=chan[2].state.op[ordch];
+      if (isOpMuted[i] || !op.enable) {
+        rWrite(baseAddr+0x40,127);
+      } else {
+        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[i].outVol&0x7f,127));
+      }
+    }
   }
 }
 
@@ -656,6 +670,9 @@ void DivPlatformYM2203Ext::forceIns() {
       opChan[i].keyOn=true;
       opChan[i].freqChanged=true;
     }
+  }
+  if (!extMode) {
+    immWrite(0x27,0x00);
   }
 }
 

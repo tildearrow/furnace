@@ -473,7 +473,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
@@ -972,6 +972,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_EXTCH: {
       if (extSys) {
+        if (extMode==(bool)c.value) break;
         extMode=c.value;
         immWrite(0x27,extMode?0x40:0);
       }
@@ -1271,6 +1272,11 @@ void* DivPlatformGenesis::getChanState(int ch) {
 
 DivMacroInt* DivPlatformGenesis::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformGenesis::getPan(int ch) {
+  if (ch>5) ch=5;
+  return ((chan[ch].pan&2)<<7)|(chan[ch].pan&1);
 }
 
 DivSamplePos DivPlatformGenesis::getSamplePos(int ch) {

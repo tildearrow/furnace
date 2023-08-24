@@ -1,6 +1,16 @@
 # instrument editor
 
-every instrument can be renamed and have its type changed.
+the instrument editor always starts with this section:
+
+![top of instrument editor](instrument-editor-top.png)
+
+- top-left numeric dropdown: instrument selector.
+- folder icon: open an instrument file.
+- save icon: save current instrument as a file.
+  - right-clicking gives the option to save a .dmp format DefleMask preset.
+- **Name**: instrument name.
+- **Type**: the system for which the instrument is intended.
+  - if changed, all applicable settings and macros will remain as they are. numbers will not be adjusted.
 
 depending on the instrument type, there are many different types of instrument editor:
 
@@ -15,7 +25,7 @@ depending on the instrument type, there are many different types of instrument e
 - [SAA1099](saa.md) - for use with Philips SAA1099 PSG sound source.
 - [TIA](tia.md) - for use with Atari 2600 chip.
 - [AY-3-8910](ay8910.md) - for use with AY-3-8910 PSG sound source and SSG portion in YM2610.
-- [Amiga / sample](amiga.md) for controlling Amiga and other sample based synthsizers like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
+- [Generic Sample](amiga.md) for controlling Amiga and other sample channels/chips like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
 - [Atari Lynx](lynx.md) - for use with Atari Lynx handheld console.
 - [VERA](vera.md) - for use with Commander X16 VERA.
 - [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
@@ -24,6 +34,7 @@ depending on the instrument type, there are many different types of instrument e
 - [Konami VRC6](vrc6.md) - for use with VRC6's PSG sound source.
 - [SNES](snes.md) - for use with SNES S-APU.
 - [Casio PV-1000](pv1000.md) - for use with Casio PV-1000.
+- [C140](c140.md) for use with Namco C140.
 
 
 # macros

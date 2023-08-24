@@ -82,7 +82,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
     int chipFreqBase, chipRateBase;
-    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank;
+    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank, totalOutputs;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -114,6 +114,7 @@ class DivPlatformOPL: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

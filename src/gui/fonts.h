@@ -40,6 +40,8 @@ extern const unsigned int font_unifont_compressed_size;
 extern const unsigned int font_unifont_compressed_data[];
 extern const unsigned int iconFont_compressed_size;
 extern const unsigned int iconFont_compressed_data[];
+extern const unsigned int furIcons_compressed_size;
+extern const unsigned int furIcons_compressed_data[];
 
 extern const unsigned int* builtinFont[];
 extern const unsigned int builtinFontLen[];

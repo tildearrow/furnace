@@ -183,6 +183,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.brokenPortaArp=false;
       ds.snNoLowPeriods=true;
       ds.disableSampleMacro=true;
+      ds.preNoteNoEffect=true;
       ds.delayBehavior=0;
       ds.jumpTreatment=2;
 
@@ -1844,6 +1845,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<155) {
       ds.brokenFMOff=true;
     }
+    if (ds.version<168) {
+      ds.preNoteNoEffect=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2355,7 +2359,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<6; i++) {
+      if (ds.version>=168) {
+        ds.preNoteNoEffect=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<5; i++) {
         reader.readC();
       }
     }
@@ -5383,7 +5392,9 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
 
   // even more compat flags
   w->writeC(song.brokenPortaLegato);
-  for (int i=0; i<7; i++) {
+  w->writeC(song.brokenFMOff);
+  w->writeC(song.preNoteNoEffect);
+  for (int i=0; i<5; i++) {
     w->writeC(0);
   }
 

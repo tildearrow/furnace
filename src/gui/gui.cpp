@@ -77,6 +77,14 @@ bool Particle::update(float frameTime) {
   return (life>0);
 }
 
+void FurnaceGUI::centerNextWindow(const char* name, float w, float h) {
+  if (ImGui::IsPopupOpen(name)) {
+    if (settings.centerPopup) {
+      ImGui::SetNextWindowPos(ImVec2(w*0.5,h*0.5),ImGuiCond_Always,ImVec2(0.5,0.5));
+    }
+  }
+}
+
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
   wavePreview.setEngine(e);
@@ -2783,6 +2791,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("values up (+16)",BIND_FOR(GUI_ACTION_PAT_VALUE_UP_COARSE))) doTranspose(16,opMaskTransposeValue);
   if (ImGui::MenuItem("values down (-16)",BIND_FOR(GUI_ACTION_PAT_VALUE_DOWN_COARSE)))  doTranspose(-16,opMaskTransposeValue);
   ImGui::Separator();
+  ImGui::AlignTextToFramePadding();
   ImGui::Text("transpose");
   ImGui::SameLine();
   ImGui::SetNextItemWidth(120.0f*dpiScale);
@@ -3277,19 +3286,6 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   }
   if (dragMobileEditButton) {
     dragMobileEditButton=false;
-  }
-  if (selecting) {
-    if (!selectingFull) cursor=selEnd;
-    finishSelection();
-    if (!mobileUI) {
-      demandScrollX=true;
-      if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
-          cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
-        if (!settings.cursorMoveNoScroll) {
-          updateScroll(cursor.y);
-        }
-      }
-    }
   }
 }
 
@@ -3918,7 +3914,7 @@ bool FurnaceGUI::loop() {
 
     if (!mobileUI) {
       ImGui::BeginMainMenuBar();
-      if (ImGui::BeginMenu("file")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"File":"file")) {
         if (ImGui::MenuItem("new...",BIND_FOR(GUI_ACTION_NEW))) {
           if (modified) {
             showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
@@ -4099,6 +4095,8 @@ bool FurnaceGUI::loop() {
             }
             ImGui::Checkbox("loop",&zsmExportLoop);
             ImGui::SameLine();
+            ImGui::Checkbox("optimize size",&zsmExportOptimize);
+            ImGui::SameLine();
             if (ImGui::Button("Begin Export")) {
               openFileDialog(GUI_FILE_EXPORT_ZSM);
               ImGui::CloseCurrentPopup();
@@ -4118,6 +4116,7 @@ bool FurnaceGUI::loop() {
               "Furnace Amiga emulator is working properly by\n"
               "comparing it with real Amiga output."
             );
+            ImGui::AlignTextToFramePadding();
             ImGui::Text("Directory");
             ImGui::SameLine();
             ImGui::InputText("##AVDPath",&workingDirROMExport);
@@ -4243,7 +4242,7 @@ bool FurnaceGUI::loop() {
       } else {
         exitDisabledTimer=0;
       }
-      if (ImGui::BeginMenu("edit")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Edit":"edit")) {
         ImGui::Text("...");
         ImGui::Separator();
         if (ImGui::MenuItem("undo",BIND_FOR(GUI_ACTION_UNDO))) doUndo();
@@ -4256,7 +4255,7 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("settings")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Settings":"settings")) {
   #ifndef IS_MOBILE
         if (ImGui::MenuItem("full screen",BIND_FOR(GUI_ACTION_FULLSCREEN),fullScreen)) {
           doAction(GUI_ACTION_FULLSCREEN);
@@ -4292,7 +4291,7 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("window")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Window":"window")) {
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
         if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
@@ -4334,7 +4333,7 @@ bool FurnaceGUI::loop() {
 
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("help")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Help":"help")) {
         if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
         if (ImGui::MenuItem("inspector",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) inspectorOpen=!inspectorOpen;
@@ -4429,6 +4428,10 @@ bool FurnaceGUI::loop() {
     }
 
     MEASURE(calcChanOsc,calcChanOsc());
+
+    if (followPattern) {
+      curOrder=e->getOrder();
+    }
 
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -4540,6 +4543,21 @@ bool FurnaceGUI::loop() {
       MEASURE(regView,drawRegView());
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
+    }
+
+    // release selection if mouse released
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && selecting) {
+      if (!selectingFull) cursor=selEnd;
+      finishSelection();
+      if (!mobileUI) {
+        demandScrollX=true;
+        if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
+            cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
+          if (!settings.cursorMoveNoScroll) {
+            updateScroll(cursor.y);
+          }
+        }
+      }
     }
 
     for (int i=0; i<e->getTotalChannelCount(); i++) {
@@ -5057,7 +5075,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_ZSM: {
-              SafeWriter* w=e->saveZSM(zsmExportTickRate,zsmExportLoop);
+              SafeWriter* w=e->saveZSM(zsmExportTickRate,zsmExportLoop,zsmExportOptimize);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -5235,6 +5253,7 @@ bool FurnaceGUI::loop() {
 
     MEASURE_BEGIN(popup);
 
+    centerNextWindow("Rendering...",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Rendering...",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Please wait...");
       if (ImGui::Button("Abort")) {
@@ -5243,6 +5262,7 @@ bool FurnaceGUI::loop() {
         }
       }
       if (!e->isExporting()) {
+        e->finishAudioFile();
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -5262,6 +5282,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    centerNextWindow("Error",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Error",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",errorString.c_str());
       if (ImGui::Button("OK")) {
@@ -5270,6 +5291,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    centerNextWindow("Warning",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Warning",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",warnString.c_str());
       switch (warnAction) {
@@ -5612,7 +5634,7 @@ bool FurnaceGUI::loop() {
     if (ImGui::BeginPopup("InsTypeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
       char temp[1024];
       for (DivInstrumentType& i: makeInsTypeList) {
-        strncpy(temp,insTypes[i],1023);
+        strncpy(temp,insTypes[i][0],1023);
         if (ImGui::MenuItem(temp)) {
           // create ins
           curIns=e->addInstrument(-1,i);
@@ -5628,6 +5650,19 @@ bool FurnaceGUI::loop() {
               wavePreviewInit=true;
               updateFMPreview=true;
             }
+
+            if (settings.blankIns) {
+              e->song.ins[curIns]->fm.fb=0;
+              for (int i=0; i<4; i++) {
+                e->song.ins[curIns]->fm.op[i]=DivInstrumentFM::Operator();
+                e->song.ins[curIns]->fm.op[i].ar=31;
+                e->song.ins[curIns]->fm.op[i].dr=31;
+                e->song.ins[curIns]->fm.op[i].rr=15;
+                e->song.ins[curIns]->fm.op[i].tl=127;
+                e->song.ins[curIns]->fm.op[i].dt=3;
+              }
+            }
+
             MARK_MODIFIED;
           }
         }
@@ -5638,11 +5673,13 @@ bool FurnaceGUI::loop() {
     // TODO:
     // - multiple selection
     // - replace instrument
+    centerNextWindow("Select Instrument",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Select Instrument",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       bool quitPlease=false;
       if (pendingInsSingle) {
         ImGui::Text("this is an instrument bank! select which one to use:");
       } else {
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("this is an instrument bank! select which ones to load:");
         ImGui::SameLine();
         if (ImGui::Button("All")) {
@@ -5715,6 +5752,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    centerNextWindow("Import Raw Sample",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Import Raw Sample",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Data type:");
       for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {
@@ -5729,22 +5767,45 @@ bool FurnaceGUI::loop() {
         pendingRawSampleBigEndian=false;
       }
 
-      ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_8BIT && pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::Text("Channels");
-      ImGui::SameLine();
-      if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Channels");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(120.0f*dpiScale);
+        if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {
+        }
+        ImGui::Text("(will be mixed down to mono)");
+        ImGui::Checkbox("Unsigned",&pendingRawSampleUnsigned);
       }
-      ImGui::Text("(will be mixed down to mono)");
-      ImGui::Checkbox("Unsigned",&pendingRawSampleUnsigned);
-      ImGui::EndDisabled();
 
-      ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::Checkbox("Big endian",&pendingRawSampleBigEndian);
-      ImGui::EndDisabled();
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
+        ImGui::Checkbox("Big endian",&pendingRawSampleBigEndian);
+      }
 
-      ImGui::BeginDisabled(pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
-      ImGui::EndDisabled();
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_YMZ_ADPCM ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_ADPCM_A ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_ADPCM_B ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_VOX) {
+        ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
+      }
+
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_MULAW) {
+        ImGui::Text("Encoding:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("G.711",pendingRawSampleSwapNibbles==0)) {
+          pendingRawSampleSwapNibbles=0;
+        }
+        if (ImGui::RadioButton("Namco",pendingRawSampleSwapNibbles==1)) {
+          pendingRawSampleSwapNibbles=1;
+        }
+        ImGui::Unindent();
+      }
+
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_1BIT ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_1BIT_DPCM) {
+        ImGui::Checkbox("Reverse bit order",&pendingRawSampleSwapNibbles);
+      }
 
       if (ImGui::Button("OK")) {
         DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles);
@@ -6769,6 +6830,7 @@ FurnaceGUI::FurnaceGUI():
   displayExporting(false),
   vgmExportLoop(true),
   zsmExportLoop(true),
+  zsmExportOptimize(true),
   vgmExportPatternHints(false),
   vgmExportDirectStream(false),
   displayInsTypeList(false),
@@ -6801,6 +6863,7 @@ FurnaceGUI::FurnaceGUI():
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
   mobileEditPage(0),
+  wheelCalmDown(0),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   mobileEditAnim(0.0f),
@@ -6811,6 +6874,11 @@ FurnaceGUI::FurnaceGUI():
   fmPreviewOn(false),
   fmPreviewPaused(false),
   fmPreviewOPN(NULL),
+  fmPreviewOPM(NULL),
+  fmPreviewOPL(NULL),
+  fmPreviewOPLL(NULL),
+  fmPreviewOPZ(NULL),
+  fmPreviewOPZInterface(NULL),
   editString(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
@@ -6844,6 +6912,7 @@ FurnaceGUI::FurnaceGUI():
   learning(-1),
   mainFont(NULL),
   iconFont(NULL),
+  furIconFont(NULL),
   patFont(NULL),
   bigFont(NULL),
   headFont(NULL),

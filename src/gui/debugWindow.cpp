@@ -308,6 +308,21 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Do Action")) {
+      char bindID[1024];
+      for (int j=0; j<GUI_ACTION_MAX; j++) {
+        if (strcmp(guiActions[j].friendlyName,"")==0) continue;
+        if (strstr(guiActions[j].friendlyName,"---")==guiActions[j].friendlyName) {
+          ImGui::TextUnformatted(guiActions[j].friendlyName);
+        } else {
+          snprintf(bindID,1024,"%s##DO_%d",guiActions[j].friendlyName,j);
+          if (ImGui::Button(bindID)) {
+            doAction(j);
+          }
+        }
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Pitch Table Calculator")) {
       ImGui::InputDouble("Clock",&ptcClock);
       ImGui::InputDouble("Divider/FreqBase",&ptcDivider);
@@ -486,6 +501,7 @@ void FurnaceGUI::drawDebug() {
         pgProgram.clear();
       }
       
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Address");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(100.0f*dpiScale);

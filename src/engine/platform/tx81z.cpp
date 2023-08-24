@@ -262,7 +262,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
@@ -963,6 +963,10 @@ void* DivPlatformTX81Z::getChanState(int ch) {
 
 DivMacroInt* DivPlatformTX81Z::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformTX81Z::getPan(int ch) {
+  return (chan[ch].chVolL<<8)|(chan[ch].chVolR);
 }
 
 DivDispatchOscBuffer* DivPlatformTX81Z::getOscBuffer(int ch) {
