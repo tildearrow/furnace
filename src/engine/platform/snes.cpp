@@ -699,6 +699,10 @@ DivMacroInt* DivPlatformSNES::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformSNES::getPan(int ch) {
+  return (chan[ch].panL<<8)|chan[ch].panR;
+}
+
 DivSamplePos DivPlatformSNES::getSamplePos(int ch) {
   if (ch>=8) return DivSamplePos();
   if (!chan[ch].active) return DivSamplePos();

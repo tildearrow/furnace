@@ -1057,6 +1057,10 @@ DivMacroInt* DivPlatformES5506::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformES5506::getPan(int ch) {
+  return ((chan[ch].lVol>>4)<<8)|(chan[ch].rVol>>4);
+}
+
 void DivPlatformES5506::reset() {
   while (!hostIntf32.empty()) hostIntf32.pop();
   while (!hostIntf8.empty()) hostIntf8.pop();

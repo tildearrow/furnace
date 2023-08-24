@@ -419,6 +419,10 @@ DivMacroInt* DivPlatformVB::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformVB::getPan(int ch) {
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
 DivDispatchOscBuffer* DivPlatformVB::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

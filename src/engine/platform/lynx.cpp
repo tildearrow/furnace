@@ -430,6 +430,10 @@ DivMacroInt* DivPlatformLynx::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformLynx::getPan(int ch) {
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
 DivSamplePos DivPlatformLynx::getSamplePos(int ch) {
   if (ch>=4) return DivSamplePos();
   if (!chan[ch].pcm) return DivSamplePos();

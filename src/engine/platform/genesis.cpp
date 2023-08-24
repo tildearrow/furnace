@@ -1274,6 +1274,11 @@ DivMacroInt* DivPlatformGenesis::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformGenesis::getPan(int ch) {
+  if (ch>5) ch=5;
+  return ((chan[ch].pan&2)<<7)|(chan[ch].pan&1);
+}
+
 DivSamplePos DivPlatformGenesis::getSamplePos(int ch) {
   if (!chan[5].dacMode) return DivSamplePos();
   if (ch<5) return DivSamplePos();

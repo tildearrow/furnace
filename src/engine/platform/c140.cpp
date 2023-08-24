@@ -344,6 +344,10 @@ DivMacroInt* DivPlatformC140::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformC140::getPan(int ch) {
+  return (chan[ch].chPanL<<8)|(chan[ch].chPanR);
+}
+
 DivDispatchOscBuffer* DivPlatformC140::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

@@ -1279,6 +1279,11 @@ DivChannelState* DivEngine::getChanState(int ch) {
   return &chan[ch];
 }
 
+unsigned short DivEngine::getChanPan(int ch) {
+  if (ch<0 || ch>=chans) return 0;
+  return disCont[dispatchOfChan[ch]].dispatch->getPan(dispatchChanOfChan[ch]);
+}
+
 void* DivEngine::getDispatchChanState(int ch) {
   if (ch<0 || ch>=chans) return NULL;
   return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);

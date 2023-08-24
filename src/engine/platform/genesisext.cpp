@@ -159,6 +159,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
         }
       }
       rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
+      lastExtChPan=opChan[ch].pan;
       break;
     }
     case DIV_CMD_PITCH: {
@@ -756,7 +757,7 @@ void DivPlatformGenesisExt::forceIns() {
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     if (i==2) {
-      rWrite(chanOffs[i]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(opChan[0].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+      rWrite(chanOffs[i]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(lastExtChPan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     } else {
       rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
@@ -800,6 +801,19 @@ DivMacroInt* DivPlatformGenesisExt::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformGenesisExt::getPan(int ch) {
+  if (ch==csmChan) return 0;
+  if (ch>=4+extChanOffs) return DivPlatformGenesis::getPan(ch-3);
+  if (ch>=extChanOffs) {
+    if (extMode) {
+      return ((lastExtChPan&2)<<7)|(lastExtChPan&1);
+    } else {
+      return DivPlatformGenesis::getPan(extChanOffs);
+    }
+  }
+  return DivPlatformGenesis::getPan(ch);
+}
+
 DivDispatchOscBuffer* DivPlatformGenesisExt::getOscBuffer(int ch) {
   if (ch>=6) return oscBuf[ch-3];
   if (ch<3) return oscBuf[ch];
@@ -815,6 +829,8 @@ void DivPlatformGenesisExt::reset() {
     opChan[i].vol=127;
     opChan[i].outVol=127;
   }
+
+  lastExtChPan=3;
 
   // channel 3 mode
   immWrite(0x27,0x40);

@@ -623,6 +623,10 @@ DivMacroInt* DivPlatformQSound::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformQSound::getPan(int ch) {
+  return parent->convertPanLinearToSplit(chan[ch].panning,8,32);
+}
+
 DivDispatchOscBuffer* DivPlatformQSound::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

@@ -1564,6 +1564,18 @@ DivMacroInt* DivPlatformOPL::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformOPL::getPan(int ch) {
+  if (totalOutputs<=1) return 0;
+  /*if (chan[ch&(~1)].fourOp) {
+    if (ch&1) {
+      return ((chan[ch-1].pan&2)<<7)|(chan[ch-1].pan&1);
+    } else {
+      return ((chan[ch+1].pan&2)<<7)|(chan[ch+1].pan&1);
+    }
+  }*/
+  return ((chan[ch].pan&1)<<8)|((chan[ch].pan&2)>>1);
+}
+
 DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
   if (oplType==759 || chipType==8950) {
     if (ch>=totalChans+1) return NULL;

@@ -282,6 +282,10 @@ DivMacroInt* DivPlatformMSM6258::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformMSM6258::getPan(int ch) {
+  return ((chan[ch].pan&2)<<7)|(chan[ch].pan&1);
+}
+
 DivDispatchOscBuffer* DivPlatformMSM6258::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

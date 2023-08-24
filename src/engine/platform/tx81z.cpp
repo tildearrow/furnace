@@ -965,6 +965,10 @@ DivMacroInt* DivPlatformTX81Z::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformTX81Z::getPan(int ch) {
+  return (chan[ch].chVolL<<8)|(chan[ch].chVolR);
+}
+
 DivDispatchOscBuffer* DivPlatformTX81Z::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
