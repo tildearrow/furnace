@@ -8,7 +8,7 @@
 
 ## Macros tab
 - **Volume**: Standard linear volume macro.
-- **Arpeggio**: Coarse pitch macro, in half steps.
+- **Arpeggio**: Coarse pitch macro, in semitones
 - **Waveform**: Select the waveform to use on this channel.
   - 0: Pulse
   - 1: Saw
