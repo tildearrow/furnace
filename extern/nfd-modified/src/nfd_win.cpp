@@ -61,7 +61,7 @@ class NFDWinEvents: public IFileDialogEvents {
       return ret;
     }
 
-    IFACEMETHODIMP OnFileOk(IFileDialog*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnFileOk(IFileDialog*) { return S_OK; }
     IFACEMETHODIMP OnFolderChange(IFileDialog*) { return E_NOTIMPL; }
     IFACEMETHODIMP OnFolderChanging(IFileDialog*, IShellItem*) { return E_NOTIMPL; }
     IFACEMETHODIMP OnOverwrite(IFileDialog*, IShellItem*, FDE_OVERWRITE_RESPONSE*) { return E_NOTIMPL; }
