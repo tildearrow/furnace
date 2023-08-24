@@ -10,7 +10,7 @@ The Generic Sample instrument editor consists of a sample selector and several m
 # Macros
 
 - **Volume**: volume sequence. does not apply to some chips.
-- **Arpeggio**: pitch sequence.
+- **Arpeggio**: coarse pitch macro, in semitones.
 - **Waveform**: waveform sequence.
 - **Panning (left)**: output level for left channel.
 - **Panning (right)**: output level for right channel.
