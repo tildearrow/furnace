@@ -3,7 +3,7 @@
 VERA instrument editor consists of these macros:
 
 - **Volume**: volume sequence
-- **Arpeggio**: pitch sequence in half steps.
+- **Arpeggio**: pitch sequence in semitones
 - **Duty**: pulse duty cycle sequence
 - **Waveform**: select the waveform used by instrument
   - 0: Pulse wave
