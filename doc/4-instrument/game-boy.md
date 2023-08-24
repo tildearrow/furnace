@@ -17,7 +17,7 @@ GB instrument editor consists of two tabs: one controlling envelope of sound cha
 ## Macros
 
 - **Volume**: volume sequence. _Note:_ This only appears if "Use software envelope" is checked.
-- **Arpeggio**: pitch in half-steps
+- **Arpeggio**: pitch in semitones
 - **Duty/Noise**: pulse wave duty cycle or noise mode sequence
 - **Waveform**: ch3 wavetable sequence
 - **Panning**: output for left and right channels
