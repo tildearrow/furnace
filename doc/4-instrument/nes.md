@@ -3,7 +3,7 @@
 The instrument editor for NES consists of these macros:
 
 - **Volume**: volume.
-- **Arpeggio**: pitch in half-steps.
+- **Arpeggio**: pitch in semitones.
 - **Duty**: duty cycle and noise mode.
   - pulse duty cycles:
     - `0`: 12.5%
