@@ -864,6 +864,7 @@ DivMacroInt* DivPlatformX1_010::getChanMacroInt(int ch) {
 }
 
 unsigned short DivPlatformX1_010::getPan(int ch) {
+  if (!stereo) return 0;
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
 }
 

@@ -444,6 +444,10 @@ DivMacroInt* DivPlatformVERA::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformVERA::getPan(int ch) {
+  return ((chan[ch].pan<<7)&1)|(chan[ch].pan&1);
+}
+
 DivDispatchOscBuffer* DivPlatformVERA::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
