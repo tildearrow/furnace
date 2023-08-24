@@ -5166,10 +5166,9 @@ void FurnaceGUI::drawInsEdit() {
               ins->snes.sus=3;
             }
           } else {
-            if (ImGui::BeginTable("SNESGainParams",3,ImGuiTableFlags_NoHostExtendX)) {
-              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+            if (ImGui::BeginTable("SNESGainParams",2,ImGuiTableFlags_NoHostExtendX)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -5178,9 +5177,6 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableNextColumn();
               CENTER_TEXT("Gain");
               ImGui::TextUnformatted("Gain");
-              ImGui::TableNextColumn();
-              CENTER_TEXT("Envelope");
-              ImGui::TextUnformatted("Envelope");
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -5210,10 +5206,10 @@ void FurnaceGUI::drawInsEdit() {
               if (ins->snes.gain>gainMax) ins->snes.gain=gainMax;
               P(CWVSliderScalar("##Gain",sliderSize,ImGuiDataType_U8,&ins->snes.gain,&_ZERO,&gainMax)); rightClickable
 
-              ImGui::TableNextColumn();
-              ImGui::Text("Envelope goes here...");
-
               ImGui::EndTable();
+            }
+            if (ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LINEAR || ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LOG) {
+              ImGui::TextWrapped("using decrease modes will not produce any sound at all, unless you know what you are doing.\nit is recommended to use the Gain macro for decrease instead.");
             }
           }
           ImGui::EndTabItem();
