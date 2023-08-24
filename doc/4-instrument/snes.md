@@ -26,7 +26,7 @@ if envelope is off, select gain mode as described below.
 # Macros
 
 - **Volume**: volume.
-- **Arpeggio**: pitch in half-steps.
+- **Arpeggio**: pitch in semitones
 - **Noise Freq**: preset frequency of noise generator.
 - **Waveform**: waveform.
 - **Panning (left)**: output level of left channel.
