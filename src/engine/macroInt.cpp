@@ -56,6 +56,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
     has=false;
     return;
   }
+  if (released && type==1) delay=0;
   if (delay>0) {
     delay--;
     if (!linger) had=false;
@@ -404,13 +405,16 @@ void DivMacroInt::init(DivInstrument* which) {
       if ((macroSource[i]->open&6)==4) {
         hasRelease=false;
       } else if ((macroSource[i]->open&6)==2) {
-        hasRelease=true;
+        if (macroSource[i]->val[8]>0) {
+          hasRelease=true;
+        }
       } else {
         hasRelease=(macroSource[i]->rel<macroSource[i]->len);
       }
     } else {
       hasRelease=false;
     }
+    if (hasRelease) break;
   }
 }
 
