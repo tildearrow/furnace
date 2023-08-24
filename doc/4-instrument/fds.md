@@ -11,7 +11,7 @@ wavetable synthesizer settings are here. since it's not a hardware feature, and 
 
 ## Macros tab:
 - **Volume**: the volume sequence.
-- **Arpeggio**: a pitch macro, but it deals with half-steps instead.
+- **Arpeggio**: a pitch macro, but it deals with semitones instead.
 - **Waveform**: what waveform to select.
 - **Pitch**: use this to change the fine pitch of the channel.
 - **Mod Depth**: described in the FDS tab section
