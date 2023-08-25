@@ -2342,6 +2342,7 @@ class FurnaceGUI {
   int load(String path);
   int loadStream(String path);
   void pushRecentFile(String path);
+  void pushRecentSys(const char* path);
   void exportAudio(String path, DivAudioExportModes mode);
   void delFirstBackup(String name);
 
