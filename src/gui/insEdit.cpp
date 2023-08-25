@@ -5321,14 +5321,14 @@ void FurnaceGUI::drawInsEdit() {
                 float wavePreview1[256];
                 float wavePreview2[256];
                 float wavePreview3[256];
-                for (int i=0; i<wave1->len; i++) {
+                for (int i=0; i<wave1->len+1; i++) {
                   if (wave1->data[i]>wave1->max) {
                     wavePreview1[i]=wave1->max;
                   } else {
                     wavePreview1[i]=wave1->data[i];
                   }
                 }
-                for (int i=0; i<wave2->len; i++) {
+                for (int i=0; i<wave2->len+1; i++) {
                   if (wave2->data[i]>wave2->max) {
                     wavePreview2[i]=wave2->max;
                   } else {
@@ -5337,13 +5337,10 @@ void FurnaceGUI::drawInsEdit() {
                 }
                 if (ins->ws.enabled && (!wavePreviewPaused || wavePreviewInit)) {
                   wavePreview.tick(true);
+                  WAKE_UP;
                 }
                 for (int i=0; i<wavePreviewLen; i++) {
-                  if (wave2->data[i]>wavePreviewHeight) {
-                    wavePreview3[i]=wavePreviewHeight;
-                  } else {
-                    wavePreview3[i]=wavePreview.output[i];
-                  }
+                  wavePreview3[i]=wavePreview.output[i];
                 }
 
                 float ySize=(isSingleWaveFX?96.0f:128.0f)*dpiScale;
