@@ -677,6 +677,21 @@ nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
         goto end;
     }
 
+    // Set a flag for no history
+    DWORD dwFlags;
+    result = fileSaveDialog->GetOptions(&dwFlags);
+    if ( !SUCCEEDED(result) )
+    {
+        NFDi_SetError("Could not get options.");
+        goto end;
+    }
+    result = fileSaveDialog->SetOptions(dwFlags | FOS_DONTADDTORECENT);
+    if ( !SUCCEEDED(result) )
+    {
+        NFDi_SetError("Could not set options.");
+        goto end;
+    }
+
     // Show the dialog.
     result = fileSaveDialog->Show(NULL);
     if ( SUCCEEDED(result) )
