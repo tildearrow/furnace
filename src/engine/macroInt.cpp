@@ -56,7 +56,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
     has=false;
     return;
   }
-  if (released && type==1) delay=0;
+  if (released && type==1 && lastPos<3) delay=0;
   if (delay>0) {
     delay--;
     if (!linger) had=false;
