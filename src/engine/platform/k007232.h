@@ -68,7 +68,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
   bool sampleLoaded[256];
 
   int delay;
-  unsigned char lastLoop, lastVolume;
+  unsigned char lastLoop, lastVolume, oscDivider;
   bool stereo;
 
   unsigned char* sampleMem;
