@@ -402,19 +402,14 @@ void DivMacroInt::init(DivInstrument* which) {
     if (macroSource[i]!=NULL) {
       macroList[i]->prepare(*macroSource[i],e);
       // check ADSR mode
-      if ((macroSource[i]->open&6)==4) {
-        hasRelease=false;
-      } else if ((macroSource[i]->open&6)==2) {
+      if ((macroSource[i]->open&6)==2) {
         if (macroSource[i]->val[8]>0) {
           hasRelease=true;
         }
-      } else {
-        hasRelease=(macroSource[i]->rel<macroSource[i]->len);
+      } else if (macroSource[i]->rel<macroSource[i]->len) {
+        hasRelease=true;
       }
-    } else {
-      hasRelease=false;
     }
-    if (hasRelease) break;
   }
 }
 
