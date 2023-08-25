@@ -1164,7 +1164,11 @@ void DivEngine::nextRow() {
     }
     if (haltOn==DIV_HALT_PATTERN) halted=true;
   } else if (playing) if (++curRow>=curSubSong->patLen) {
-    nextOrder();
+    if (shallStopSched) {
+      curRow=curSubSong->patLen-1;
+    } else {
+      nextOrder();
+    }
     if (haltOn==DIV_HALT_PATTERN) halted=true;
   }
 
