@@ -6,10 +6,10 @@ items in _italics_ don't appear in basic mode and are only available in advanced
 
 # file
 
-- **new...**: create a new song.
+- **new...**: creates a new song.
 - **open...**: opens the file picker, allowing you to select a song to open.
 - **open recent**: contains a list of the songs you've opened before.
-  - **clear history**: this option erases the file history.
+  - **clear history**: erases the file history.
 
 - **save**: saves the current song.
   - opens the file picker if this is a new song, or a backup.
@@ -33,9 +33,9 @@ items in _italics_ don't appear in basic mode and are only available in advanced
     - Neo Geo CD (DefleMask 1.0+)
   - only use this option if you really need it. there are features which DefleMask does not support, like some effects and FM macros, so these will be lost.
 
-- **export audio...**: export your song to a .wav file. see next section for more details.
-- **export VGM...**: export your song to a .vgm file. see next section for more details.
-- **export ZSM...**: export your song to a .zsm file. see next section for more details.
+- **export audio...**: opens the file picker, allowing you to export your song to a .wav file. see next section for more details.
+- **export VGM...**: opens the file picker, allowing you to export your song to a .vgm file. see next section for more details.
+- **export ZSM...**: opens the file picker, allowing you to export your song to a .zsm file. see next section for more details.
   - only available when there's a YM2151 and/or VERA.
 - **export command stream...**: export song data to a command stream file. see next section for more details.
   - this option is for developers.
@@ -48,7 +48,7 @@ items in _italics_ don't appear in basic mode and are only available in advanced
 - _**remove chip...**_: remove a chip.
   - **Preserve channel positions**: same thing as above.
 
-- **restore backup**: restore a previously saved backup.
+- **restore backup**: restores a previously saved backup.
   - Furnace keeps up to 5 backups of a song.
   - the backup directory is located in:
     - Windows: `%USERPROFILE%\AppData\Roaming\furnace\backups`
@@ -87,8 +87,8 @@ the following settings exist:
   - other versions may not support all chips.
   - use this option if you need to export for a quirky player or parser.
     - for example, RYMCast is picky with format versions. if you're going to use this player, select 1.60.
-- **loop**: writes loop. if disabled, the resulting file won't loop.
-- **loop trail**: this option allows you to set how much of the song is written after it loops.
+- **loop**: includes loop information. if disabled, the resulting file won't loop.
+- **loop trail**: sets how much of the song is written after it loops.
   - the reason this exists is to work around a VGM format limitation in where post-loop state isn't recorded at all.
   - this may change the song length as it appears on a player.
   - **auto-detect**: detect how much to write automatically.
@@ -136,6 +136,8 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **export (text)**: exports the command stream as a text file. only useful for analysis, really.
 
 # edit
+
+- **...**: does nothing except prevent accidental clicks on later menu items.
 
 - **undo**: reverts the last action.
 - **redo**: repeats what you undid previously.
