@@ -3329,8 +3329,14 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   // <167 TL macro compat
   if (version<167) {
     for (int i=0; i<4; i++) {
-      for (int j=0; j<std.opMacros[i].tlMacro.len; j++) {
-        std.opMacros[i].tlMacro.val[j]^=0x7f;
+      if (std.opMacros[i].tlMacro.open&6) {
+          for (int j=0; j<2; j++) {
+          std.opMacros[i].tlMacro.val[j]^=0x7f;
+        }
+      } else {
+        for (int j=0; j<std.opMacros[i].tlMacro.len; j++) {
+          std.opMacros[i].tlMacro.val[j]^=0x7f;
+        }
       }
     }
   }
