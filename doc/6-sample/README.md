@@ -75,7 +75,11 @@ in there, you can modify certain data pertaining to your sample, such as the:
 
 - top-left drop-down box: sample slot.
 - **Open**: replaces current sample.
+  - Right-clicking brings up a menu:
+    - **import raw...**: brings up a file selector, then presents a dialog to choose the format of the selected file.
 - **Save**: saves current sample to disk.
+  - Right-clicking brings up a menu:
+    - **save raw...**: brings up a file selector, then saves the sample as raw data.
 - **Name**: name in sample list.
 - button to left of **Info**: collapses and expands the info bar.
 - **Type**: sample format. only 8-bit and 16-bit PCM samples are editable. selecting a format converts the sample data.

@@ -29,10 +29,11 @@ Key layout:
 - **Standard**: Black keys are 2/3 length.
 - **Continuous**: Black keys are full length.
 
-Value input pad: (document this)
+Value input pad: applies to mobile UI only.
 - **Disabled**
 - **Replace piano**
 - **Split (automatic)**
 - **Split (always visible)**
 
-**Share play/edit offset/range**: (document this)
+**Share play/edit offset/range**: If disabled, the piano will keep different octave and range values for playback and non-playback states.
+**Read-only (can't input notes): Prevents note entry.
