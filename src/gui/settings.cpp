@@ -659,6 +659,7 @@ void FurnaceGUI::drawSettings() {
           settings.initialSys.remove(fmt::sprintf("flags%d",sysCount-1));
         }
 
+        pushAddColor();
         if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
           settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612));
           settings.initialSys.set(fmt::sprintf("vol%d",sysCount),1.0f);
@@ -666,6 +667,7 @@ void FurnaceGUI::drawSettings() {
           settings.initialSys.set(fmt::sprintf("fr%d",sysCount),0.0f);
           settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
         }
+        popAddColor();
 
         ImGui::Text("When creating new song:");
         ImGui::Indent();
@@ -978,9 +980,11 @@ void FurnaceGUI::drawSettings() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Actions:");
         ImGui::SameLine();
+        pushAddColor();
         if (ImGui::Button(ICON_FA_PLUS "##AddAction")) {
           midiMap.binds.push_back(MIDIBind());
         }
+        popAddColor();
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_EXTERNAL_LINK "##AddLearnAction")) {
           midiMap.binds.push_back(MIDIBind());

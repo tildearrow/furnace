@@ -70,6 +70,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
       ImGui::EndCombo();
     }
     ImGui::SameLine();
+    pushAddColor();
     if (ImGui::Button(ICON_FA_PLUS "##SubSongAdd")) {
       if (!e->addSubSong()) {
         showError("too many subsongs!");
@@ -88,6 +89,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
         MARK_MODIFIED;
       }
     }
+    popAddColor();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Add");
     }

@@ -4333,18 +4333,21 @@ void FurnaceGUI::drawInsEdit() {
                   MARK_MODIFIED;
                 }
                 ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_TIMES "##HWCmdDel")) {
+                pushDestColor();
+                if (ImGui::Button(ICON_FA_MINUS "##HWCmdDel")) {
                   for (int j=i; j<ins->gb.hwSeqLen-1; j++) {
                     ins->gb.hwSeq[j].cmd=ins->gb.hwSeq[j+1].cmd;
                     ins->gb.hwSeq[j].data=ins->gb.hwSeq[j+1].data;
                   }
                   ins->gb.hwSeqLen--;
                 }
+                popDestColor();
                 ImGui::PopID();
               }
               ImGui::EndTable();
             }
 
+            pushAddColor();
             if (ImGui::Button(ICON_FA_PLUS "##HWCmdAdd")) {
               if (ins->gb.hwSeqLen<255) {
                 ins->gb.hwSeq[ins->gb.hwSeqLen].cmd=0;
@@ -4352,6 +4355,7 @@ void FurnaceGUI::drawInsEdit() {
                 ins->gb.hwSeqLen++;
               }
             }
+            popAddColor();
           }
           ImGui::EndChild();
           ImGui::EndDisabled();

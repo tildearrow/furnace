@@ -106,10 +106,12 @@ void FurnaceGUI::drawOrderButtons() {
     buttonColumns++;
   }
 
+  pushAddColor();
   if (ImGui::Button(ICON_FA_PLUS)) { handleUnimportant
     // add order row (new)
     doAction(GUI_ACTION_ORDERS_ADD);
   }
+  popAddColor();
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Add new order");
   }
