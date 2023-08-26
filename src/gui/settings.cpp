@@ -3992,6 +3992,14 @@ void FurnaceGUI::popDestColor() {
   popAccentColors();
 }
 
+void FurnaceGUI::pushAddColor() {
+  pushAccentColors(uiColors[GUI_COLOR_ADDITIVE],uiColors[GUI_COLOR_ADDITIVE],uiColors[GUI_COLOR_ADDITIVE],ImVec4(0.0f,0.0f,0.0f,0.0f));
+}
+
+void FurnaceGUI::popAddColor() {
+  popAccentColors();
+}
+
 void FurnaceGUI::pushWarningColor(bool warnCond, bool errorCond) {
   if (warnColorPushed) {
     logE("warnColorPushed");

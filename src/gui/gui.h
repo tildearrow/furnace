@@ -2181,6 +2181,8 @@ class FurnaceGUI {
 
   void pushDestColor();
   void popDestColor();
+  void pushAddColor();
+  void popAddColor();
   void pushWarningColor(bool warnCond, bool errorCond=false);
   void popWarningColor();
 
