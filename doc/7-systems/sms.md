@@ -1,6 +1,8 @@
 # TI SN76489 (e.g. Sega Master System)
 
-a relatively simple sound chip made by Texas Instruments. a derivative of it is used in Sega's Master System, the predecessor to Genesis.
+a relatively simple sound chip made by Texas Instruments. a derivative of it is used in Sega's Master System, the predecessor to Genesis. It has three square wave channels and one noise channel... not really.
+
+Nominal mode of SN76489 has 3 quare wave channels, with noise channel having only 3 preset frequencies to use (absurdly low, very low, low). To use more pitches, one can enable mode, which "steals" pitch data from square wave channel 3. By doing that, SN76489 becomes effectively a 3 channel sound chip. In addition, periodic noise mode can be enabled, with same caveats.
 
 the original iteration of the SN76489 used in the TI-99/4A computer, the SN94624, could only produce tones as low as 100Hz, and was clocked at 447 KHz. all later versions (such as the one in the Master System and Genesis) had a clock divider but ran on a faster clock... except for the SN76494, which can play notes as low as 13.670 Hz (A -1). consequently, its pitch accuracy for higher notes is compromised.
 
