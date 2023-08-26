@@ -504,7 +504,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
     }
     ImGui::SameLine();
     pushDestColor();
-    if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
+    if (ImGui::Button(ICON_FA_MINUS "##InsDelete")) {
       if (settings.unifiedDataView) {
         switch (lastAssetType) {
           case 0:
@@ -749,7 +749,7 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     }
     ImGui::SameLine();
     pushDestColor();
-    if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
+    if (ImGui::Button(ICON_FA_MINUS "##WaveDelete")) {
       doAction(GUI_ACTION_WAVE_LIST_DELETE);
     }
     popDestColor();
@@ -901,7 +901,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     }
     ImGui::SameLine();
     pushDestColor();
-    if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
+    if (ImGui::Button(ICON_FA_MINUS "##SampleDelete")) {
       doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
     }
     popDestColor();
