@@ -5166,10 +5166,9 @@ void FurnaceGUI::drawInsEdit() {
               ins->snes.sus=3;
             }
           } else {
-            if (ImGui::BeginTable("SNESGainParams",3,ImGuiTableFlags_NoHostExtendX)) {
-              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+            if (ImGui::BeginTable("SNESGainParams",2,ImGuiTableFlags_NoHostExtendX)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -5178,9 +5177,6 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableNextColumn();
               CENTER_TEXT("Gain");
               ImGui::TextUnformatted("Gain");
-              ImGui::TableNextColumn();
-              CENTER_TEXT("Envelope");
-              ImGui::TextUnformatted("Envelope");
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -5210,10 +5206,10 @@ void FurnaceGUI::drawInsEdit() {
               if (ins->snes.gain>gainMax) ins->snes.gain=gainMax;
               P(CWVSliderScalar("##Gain",sliderSize,ImGuiDataType_U8,&ins->snes.gain,&_ZERO,&gainMax)); rightClickable
 
-              ImGui::TableNextColumn();
-              ImGui::Text("Envelope goes here...");
-
               ImGui::EndTable();
+            }
+            if (ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LINEAR || ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LOG) {
+              ImGui::TextWrapped("using decrease modes will not produce any sound at all, unless you know what you are doing.\nit is recommended to use the Gain macro for decrease instead.");
             }
           }
           ImGui::EndTabItem();
@@ -5322,15 +5318,18 @@ void FurnaceGUI::drawInsEdit() {
                   wavePreview.init(ins,wavePreviewLen,wavePreviewHeight,true);
                   wavePreviewInit=false;
                 }
-                float wavePreview1[256];
-                float wavePreview2[256];
-                float wavePreview3[256];
+                float wavePreview1[257];
+                float wavePreview2[257];
+                float wavePreview3[257];
                 for (int i=0; i<wave1->len; i++) {
                   if (wave1->data[i]>wave1->max) {
                     wavePreview1[i]=wave1->max;
                   } else {
                     wavePreview1[i]=wave1->data[i];
                   }
+                }
+                if (wave1->len>0) {
+                  wavePreview1[wave1->len]=wave1->data[wave1->len-1];
                 }
                 for (int i=0; i<wave2->len; i++) {
                   if (wave2->data[i]>wave2->max) {
@@ -5339,15 +5338,18 @@ void FurnaceGUI::drawInsEdit() {
                     wavePreview2[i]=wave2->data[i];
                   }
                 }
+                if (wave2->len>0) {
+                  wavePreview2[wave2->len]=wave2->data[wave2->len-1];
+                }
                 if (ins->ws.enabled && (!wavePreviewPaused || wavePreviewInit)) {
                   wavePreview.tick(true);
+                  WAKE_UP;
                 }
                 for (int i=0; i<wavePreviewLen; i++) {
-                  if (wave2->data[i]>wavePreviewHeight) {
-                    wavePreview3[i]=wavePreviewHeight;
-                  } else {
-                    wavePreview3[i]=wavePreview.output[i];
-                  }
+                  wavePreview3[i]=wavePreview.output[i];
+                }
+                if (wavePreviewLen>0) {
+                  wavePreview3[wavePreviewLen]=wavePreview3[wavePreviewLen-1];
                 }
 
                 float ySize=(isSingleWaveFX?96.0f:128.0f)*dpiScale;
@@ -5363,7 +5365,7 @@ void FurnaceGUI::drawInsEdit() {
                 }
                 ImGui::TableNextColumn();
                 ImVec2 size3=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
-                PlotNoLerp("##WaveformP3",wavePreview3,wavePreviewLen,0,"Result",0,wavePreviewHeight,size3);
+                PlotNoLerp("##WaveformP3",wavePreview3,wavePreviewLen+1,0,"Result",0,wavePreviewHeight,size3);
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -5701,6 +5703,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) waveMax=0;
           if (ins->type==DIV_INS_GA20) waveMax=0;
           if (ins->type==DIV_INS_K053260) waveMax=0;
+          if (ins->type==DIV_INS_BEEPER) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_TED) waveMax=0;
           if (ins->type==DIV_INS_C140) waveMax=0;

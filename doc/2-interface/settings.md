@@ -1,32 +1,27 @@
 # settings
 
-settings are saved when clicking the **OK** button at the bottom of the dialog.
-
-
+settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the dialog.
 
 ## General
 
 ### Program
 
-- **Render backend**
-  - changing this may help with performace issues.
-- **Late render clear**
+- **Render backend**: changing this may help with performace issues.
+- **Late render clear**: this option is only useful when using old versions of Mesa drivers. it force-waits for VBlank by clearing after present, reducing latency.
 - **Power-saving mode**: saves power by lowering the frame rate to 2fps when idle.
   - may cause issues under Mesa drivers!
 - **Disable threaded input (restart after changing!)**: processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.
   - however, crashes have been reported when threaded input is on. enable this option if that is the case.
-- **Enable event delay**
-  - may cause issues with high-polling-rate mice when previewing notes.
+- **Enable event delay**: may cause issues with high-polling-rate mice when previewing notes.
 
 ### File
 
 - **Use system file picker**: uses native OS file dialog instead of Furnace's.
-- **Number of recent files**: number of files to show in the _open recent..._ menu.
-- **Compress when saving**
-  - uses zlib to compress saved songs.
-- **Save unused patterns**
-- **Use new pattern format when saving**
-- **Don't apply compatibility flags when loading .dmf**
+- **Number of recent files**: number of files that will be remembered in the _open recent..._ menu.
+- **Compress when saving**: uses zlib to compress saved songs.
+- **Save unused patterns**: stores unused patterns in a saved song.
+- **Use new pattern format when saving**: stores patterns in the new, optimized and smaller format. only disable if you need to work with older versions of Furnace.
+- **Don't apply compatibility flags when loading .dmf**: does exactly what the option says. your .dmf songs may not play correctly after enabled.
 - **Play after opening song:**
   - No
   - Only if already playing
@@ -73,22 +68,24 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 - **Backend**: selects SDL or JACK for audio output.
   - only appears on Linux, or MacOS compiled with JACK support
-- **Driver**
+- **Driver**: select a different SDL audio driver if you're having problems with the default one.
 - **Device**: audio device for playback.
 - **Sample rate**
 - **Outputs**: number of audio outputs created, up to 16.
   - only appears when Backend is JACK.
 - **Channels**: number of output channels to use.
 - **Buffer size**: size of buffer in both samples and milliseconds.
+  - setting this to a low value may cause stuttering/glitches in playback (known as "underruns" or "xruns").
+  - setting this to a high value increases latency.
 - **Low-latency mode (experimental!)**: reduces latency by running the engine faster than the tick rate. useful for live playback/jam mode.
-  - _warning:_ experimental! may produce glitches. only enable if your buffer size is small (10ms or less).
-- **Force mono audio**
+  - only enable if your buffer size is small (10ms or less).
+- **Force mono audio**: use if you're unable to hear stereo audio (e.g. single speaker or hearing loss in one ear).
 - **want:** displays requested audio configuration.
 - **got:** displays actual audio configuration returned by audio backend.
 
 ### Mixing
 
-- **Quality**: selects quality of resampling. low quality reduces CPU load.
+- **Quality**: selects quality of resampling. low quality reduces CPU load by a small amount.
 - **Software clipping**: clips output to nominal range (-1.0 to 1.0) before passing it to the audio device.
   - this avoids activating Windows' built-in limiter.
 
@@ -96,32 +93,39 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 - **Metronome volume**
 
-
-
 ## MIDI
 
 ### MIDI input
 
 - **MIDI input**: input device.
-- **Note input**
-- **Velocity input**
-- **Map MIDI channels to direct channels**
-- **Map Yamaha FM voice data to instruments**
-- **Program change is instrument selection**
-- **Value input style**:
-  - **Disabled/custom**
-  - **Two octaves (0 is C-4, F is D#5)**
-  - **Raw (note number is value)**
-  - **Two octaves alternate (lower keys are 0-9, upper keys are A-F)**
-  - **Use dual control change (one for each nibble)**
-    - **CC of upper nibble**
-    - **CC of lower nibble**
-  - **Use 14-bit control change**
-    - **MSB CC**
-    - **LSB CC**
-  - **Use single control change**
-    - **Control**
-- **Per-column control change**
+- **Note input**: enables note input. disable if you intend to use this device only for binding actions.
+- **Velocity input**: enables velocity input when entering notes in the pattern.
+- **Map MIDI channels to direct channels**: when enabled, notes from MIDI channels will be mapped to channels rather than the cursor position.
+- **Map Yamaha FM voice data to instruments**: when enabled, Furnace will listen for any transmitted Yamaha SysEx patches.
+  - this option is only useful if you have a Yamaha FM synthesizer (e.g. TX81Z).
+  - selecting a voice or using the "Voice Transmit?" option will send a patch, and Furnace will create a new instrument with its data.
+  - this may also be triggered by clicking on "Receive from TX81Z" in the instrument editor (OPZ only).
+- **Program change is instrument selection**: changes the current instrument when a program change event is received.
+- **Value input style**: changes the way values are entered when the pattern cursor is not in the Note column. the following styles are available:
+  - **Disabled/custom**: no value input through MIDI.
+  - **Two octaves (0 is C-4, F is D#5)**: maps keys in two octaves to single nibble input. the layout is:
+    - ` - octave n -- octave n+1 -`
+    - ` 1 3   6 8 A   D F   # # # `
+    - `0 2 4 5 7 9 B C E # # # # #`
+  - **Raw (note number is value)**: the note number becomes the input value. not useful if you want to input anything above 7F.
+  - **Two octaves alternate (lower keys are 0-9, upper keys are A-F)**: maps keys in two octaves, but with a different layout:
+    - ` - octave n -- octave n+1 -`
+    - ` A B   C D E   F #   # # # `
+    - `0 1 2 3 4 5 6 7 8 9 # # # #`
+  - **Use dual control change (one for each nibble)**: maps two control change events to the nibbles of a value.
+    - **CC of upper nibble**: select the CC number that will change the upper nibble.
+    - **CC of lower nibble**: select the CC number that will change the lower nibble.
+  - **Use 14-bit control change**: maps two control change events that together form a single 14-bit CC. some MIDI controllers do these.
+    - **MSB CC**: select the CC containing the upper portion of the control.
+    - **LSB CC**: select the CC containing the lower portion of the control.
+  - **Use single control change**: maps one control change event. not useful if you want to input odd numbers.
+    - **Control**: select the CC number that will change the value.
+- **Per-column control change**: when enabled, you can map several control change events to a channel's columns.
   - **Instrument**\
     **Volume**\
     **Effect `x` type**\
@@ -135,36 +139,34 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
       - **LSB CC**
     - **Use single control change (imprecise)**
       - **Control**
-- **Volume curve**
-- **Actions:**
+- **Volume curve**: adjust the velocity to volume curve.
+- **Actions**: this allows you to bind note input and control change events to actions.
   - **`+`** button: adds a new action.
   - window-with-arrow button: new action with learning! press a button or move a slider/knob/something on your device.
   - each action has the following:
-    - **Type**
-    - **Channel**
-    - **Note/Control**
-    - **Velocity/Value**
-    - **Action**
-    - **Learn**
-    - **Remove**
+    - **Type**: type of event.
+    - **Channel**: channel of event.
+    - **Note/Control**: the note/control change number.
+    - **Velocity/Value**: the velocity or control value
+    - **Action**: the GUI action to perform.
+    - **Learn**: after clicking on this button, do something in your MIDI device and Furnace will map that to this action.
+    - **Remove**: remove this action.
 
 ### MIDI output
 
 - **MIDI output**: output device.
 - **Output mode:**
-  - **Off (use for TX81Z)**
-  - **Melodic**
-- **Send Program Change**
-- **Send MIDI clock**
-- **Send MIDI timecode**
-  - **Timecode frame rate:**
-    - **Closest to Tick Rate**
-    - **Film (24fps)**
-    - **PAL (25fps)**
-    - **NTSC drop (29.97fps)**
-    - **NTSC non-drop (30fps)**
-
-
+  - **Off (use for TX81Z)**: don't output anything. use if you plan to use Furnace as sync master, or the "Receive from TX81Z" button in the OPZ instrument editor.
+  - **Melodic**: output MIDI events.
+- **Send Program Change**: output program change events when instrument change commands occur.
+- **Send MIDI clock**: output MIDI beat clock.
+- **Send MIDI timecode**: output MIDI timecode.
+  - **Timecode frame rate**: sets the timing standard used for MIDI timecode.
+    - **Closest to Tick Rate**: automatically sets the rate based on the song's Tick Rate.
+    - **Film (24fps)**: output at 24 codes per second.
+    - **PAL (25fps)**: output at 25 codes per second.
+    - **NTSC drop (29.97fps)**: output at ~29.97 codes per second, skipping frames 0 and 1 of each minute that doesn't divide by 10.
+    - **NTSC non-drop (30fps)**: output at 30 codes per second.
 
 ## Emulation
 
@@ -183,13 +185,6 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
 
 - **PC Speaker strategy**: this is covered in the [PC speaker system doc](../7-systems/pcspkr.md).
-
-- **Sample ROMs:**
-  - **OPL4 YRW801 path**
-  - **MultiPCM TG100 path**
-  - **MultiPCM MU5 path**
-
-
 
 ## Keyboard
 
@@ -417,10 +412,8 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 - **Macro editor layout:**
   - **Unified**
-  - **Mobile**
   - **Grid**
   - **Single (with list)**
-  - **Single (combo box)**
 - **Use classic macro editor vertical slider**
 
 ### Wave Editor

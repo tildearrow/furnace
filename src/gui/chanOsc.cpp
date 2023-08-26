@@ -448,6 +448,7 @@ void FurnaceGUI::drawChanOsc() {
                 float maxLevel=-1.0f;
                 float dcOff=0.0f;
                 unsigned short needlePos=buf->needle;
+                //unsigned short needlePosOrig=needlePos;
                 for (int i=0; i<FURNACE_FFT_SIZE; i++) {
                   fft->inBuf[i]=(double)buf->data[(unsigned short)(needlePos-displaySize*2+((i*displaySize*2)/FURNACE_FFT_SIZE))]/32768.0;
                 }
@@ -475,10 +476,7 @@ void FurnaceGUI::drawChanOsc() {
                 }
                 chanOscPitch[ch]=(float)point/32.0f;
                 
-                /*
-                String cPhase=fmt::sprintf("%d cphase: %f vol: %f",point,phase,chanOscVol[ch]);
-                dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
-                */
+                
 
                 needlePos-=displaySize;
                 for (unsigned short i=0; i<precision; i++) {
@@ -496,6 +494,9 @@ void FurnaceGUI::drawChanOsc() {
                   y*=chanOscAmplify;
                   waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
                 }
+
+                //String cPhase=fmt::sprintf("%d cphase: %f\nvol: %f\nmin: %.2f\nmax: %.2f\ndcOff: %.2f\nneedles:\n- %d\n- %d\n- %d (%s)",point,phase,chanOscVol[ch],minLevel,maxLevel,dcOff,needlePosOrig,needlePos,(needlePos+displaySize),((needlePos+displaySize)>=needlePosOrig)?"WARN":"OK");
+                //dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
               }
               ImU32 color=ImGui::GetColorU32(chanOscColor);
               if (chanOscUseGrad) {

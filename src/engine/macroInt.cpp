@@ -56,6 +56,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
     has=false;
     return;
   }
+  if (released && type==1 && lastPos<3) delay=0;
   if (delay>0) {
     delay--;
     if (!linger) had=false;
@@ -401,15 +402,13 @@ void DivMacroInt::init(DivInstrument* which) {
     if (macroSource[i]!=NULL) {
       macroList[i]->prepare(*macroSource[i],e);
       // check ADSR mode
-      if ((macroSource[i]->open&6)==4) {
-        hasRelease=false;
-      } else if ((macroSource[i]->open&6)==2) {
+      if ((macroSource[i]->open&6)==2) {
+        if (macroSource[i]->val[8]>0) {
+          hasRelease=true;
+        }
+      } else if (macroSource[i]->rel<macroSource[i]->len) {
         hasRelease=true;
-      } else {
-        hasRelease=(macroSource[i]->rel<macroSource[i]->len);
       }
-    } else {
-      hasRelease=false;
     }
   }
 }
