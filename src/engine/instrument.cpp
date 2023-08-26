@@ -2264,15 +2264,13 @@ void DivInstrument::readFeatureOx(SafeReader& reader, int op, short version) {
 
     // <167 TL macro compat
     if (macroCode==6 && version<167) {
-      for (int i=0; i<4; i++) {
-        if (target->open&6) {
-            for (int j=0; j<2; j++) {
-            target->val[j]^=0x7f;
-          }
-        } else {
-          for (int j=0; j<target->len; j++) {
-            target->val[j]^=0x7f;
-          }
+      if (target->open&6) {
+        for (int j=0; j<2; j++) {
+          target->val[j]^=0x7f;
+        }
+      } else {
+        for (int j=0; j<target->len; j++) {
+          target->val[j]^=0x7f;
         }
       }
     }
