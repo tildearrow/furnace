@@ -758,7 +758,7 @@ void FurnaceGUI::drawSettings() {
               ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
             }
           }
-  
+
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
@@ -776,7 +776,7 @@ void FurnaceGUI::drawSettings() {
             }
             ImGui::EndCombo();
           }
-  
+
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
@@ -795,7 +795,7 @@ void FurnaceGUI::drawSettings() {
             SAMPLE_RATE_SELECTABLE(192000);
             ImGui::EndCombo();
           }
-  
+
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           if (isProAudio[settings.audioEngine]) {
@@ -820,7 +820,7 @@ void FurnaceGUI::drawSettings() {
               ImGui::EndCombo();
             }
           }
-  
+
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
@@ -2034,57 +2034,62 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION TEXT
         CONFIG_SUBSECTION("Text");
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Main font");
-        ImGui::SameLine();
-        ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,7);
-        ImGui::Indent();
-        if (settings.mainFont==6) {
-          ImGui::InputText("##MainFontPath",&settings.mainFontPath);
-          ImGui::SameLine();
-          if (ImGui::Button(ICON_FA_FOLDER "##MainFontLoad")) {
-            openFileDialog(GUI_FILE_LOAD_MAIN_FONT);
+        if (ImGui::BeginTable("##Text",2)) {
+          ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("##Combos",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Main font");
+          ImGui::TableNextColumn();
+          ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,7);
+          if (settings.mainFont==6) {
+            ImGui::InputText("##MainFontPath",&settings.mainFontPath);
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_FOLDER "##MainFontLoad")) {
+              openFileDialog(GUI_FILE_LOAD_MAIN_FONT);
+            }
           }
-        }
-        if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize)) {
-          if (settings.mainFontSize<3) settings.mainFontSize=3;
-          if (settings.mainFontSize>96) settings.mainFontSize=96;
-        }
-        ImGui::Unindent();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Header font");
-        ImGui::SameLine();
-        ImGui::Combo("##HeadFont",&settings.headFont,headFonts,7);
-        ImGui::Indent();
-        if (settings.headFont==6) {
-          ImGui::InputText("##HeadFontPath",&settings.headFontPath);
-          ImGui::SameLine();
-          if (ImGui::Button(ICON_FA_FOLDER "##HeadFontLoad")) {
-            openFileDialog(GUI_FILE_LOAD_HEAD_FONT);
+          if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize)) {
+            if (settings.mainFontSize<3) settings.mainFontSize=3;
+            if (settings.mainFontSize>96) settings.mainFontSize=96;
           }
-        }
-        if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize)) {
-          if (settings.headFontSize<3) settings.headFontSize=3;
-          if (settings.headFontSize>96) settings.headFontSize=96;
-        }
-        ImGui::Unindent();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Pattern font");
-        ImGui::SameLine();
-        ImGui::Combo("##PatFont",&settings.patFont,patFonts,7);
-        ImGui::Indent();
-        if (settings.patFont==6) {
-          ImGui::InputText("##PatFontPath",&settings.patFontPath);
-          ImGui::SameLine();
-          if (ImGui::Button(ICON_FA_FOLDER "##PatFontLoad")) {
-            openFileDialog(GUI_FILE_LOAD_PAT_FONT);
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Header font");
+          ImGui::TableNextColumn();
+          ImGui::Combo("##HeadFont",&settings.headFont,headFonts,7);
+          if (settings.headFont==6) {
+            ImGui::InputText("##HeadFontPath",&settings.headFontPath);
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_FOLDER "##HeadFontLoad")) {
+              openFileDialog(GUI_FILE_LOAD_HEAD_FONT);
+            }
           }
+          if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize)) {
+            if (settings.headFontSize<3) settings.headFontSize=3;
+            if (settings.headFontSize>96) settings.headFontSize=96;
+          }
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Pattern font");
+          ImGui::TableNextColumn();
+          ImGui::Combo("##PatFont",&settings.patFont,patFonts,7);
+          if (settings.patFont==6) {
+            ImGui::InputText("##PatFontPath",&settings.patFontPath);
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_FOLDER "##PatFontLoad")) {
+              openFileDialog(GUI_FILE_LOAD_PAT_FONT);
+            }
+          }
+          if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
+            if (settings.patFontSize<3) settings.patFontSize=3;
+            if (settings.patFontSize>96) settings.patFontSize=96;
+          }
+          ImGui::EndTable();
         }
-        if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
-          if (settings.patFontSize<3) settings.patFontSize=3;
-          if (settings.patFontSize>96) settings.patFontSize=96;
-        }
-        ImGui::Unindent();
 
         bool loadJapaneseB=settings.loadJapanese;
         if (ImGui::Checkbox("Display Japanese characters",&loadJapaneseB)) {
