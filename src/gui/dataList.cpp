@@ -793,9 +793,11 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     began=ImGui::Begin("Samples",&sampleListOpen,globalWinFlags);
   }
   if (began) {
+    pushAddColor();
     if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
+    popAddColor();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Add");
     }
