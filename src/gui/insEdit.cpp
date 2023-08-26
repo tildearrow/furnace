@@ -5318,22 +5318,28 @@ void FurnaceGUI::drawInsEdit() {
                   wavePreview.init(ins,wavePreviewLen,wavePreviewHeight,true);
                   wavePreviewInit=false;
                 }
-                float wavePreview1[256];
-                float wavePreview2[256];
-                float wavePreview3[256];
-                for (int i=0; i<wave1->len+1; i++) {
+                float wavePreview1[257];
+                float wavePreview2[257];
+                float wavePreview3[257];
+                for (int i=0; i<wave1->len; i++) {
                   if (wave1->data[i]>wave1->max) {
                     wavePreview1[i]=wave1->max;
                   } else {
                     wavePreview1[i]=wave1->data[i];
                   }
                 }
-                for (int i=0; i<wave2->len+1; i++) {
+                if (wave1->len>0) {
+                  wavePreview1[wave1->len]=wave1->data[wave1->len-1];
+                }
+                for (int i=0; i<wave2->len; i++) {
                   if (wave2->data[i]>wave2->max) {
                     wavePreview2[i]=wave2->max;
                   } else {
                     wavePreview2[i]=wave2->data[i];
                   }
+                }
+                if (wave2->len>0) {
+                  wavePreview2[wave2->len]=wave2->data[wave2->len-1];
                 }
                 if (ins->ws.enabled && (!wavePreviewPaused || wavePreviewInit)) {
                   wavePreview.tick(true);
@@ -5341,6 +5347,9 @@ void FurnaceGUI::drawInsEdit() {
                 }
                 for (int i=0; i<wavePreviewLen; i++) {
                   wavePreview3[i]=wavePreview.output[i];
+                }
+                if (wavePreviewLen>0) {
+                  wavePreview3[wavePreviewLen]=wavePreview3[wavePreviewLen-1];
                 }
 
                 float ySize=(isSingleWaveFX?96.0f:128.0f)*dpiScale;
@@ -5356,7 +5365,7 @@ void FurnaceGUI::drawInsEdit() {
                 }
                 ImGui::TableNextColumn();
                 ImVec2 size3=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
-                PlotNoLerp("##WaveformP3",wavePreview3,wavePreviewLen,0,"Result",0,wavePreviewHeight,size3);
+                PlotNoLerp("##WaveformP3",wavePreview3,wavePreviewLen+1,0,"Result",0,wavePreviewHeight,size3);
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
