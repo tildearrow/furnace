@@ -811,20 +811,29 @@ void FurnaceGUI::drawFindReplace() {
               }
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              if (ImGui::Button(ICON_FA_MINUS "##DelQuery")) {
+              pushDestColor();
+              if (ImGui::Button(ICON_FA_TRASH "##DelQuery")) {
                 eraseIndex=index;
+              }
+              popDestColor();
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Delete query");
               }
               ImGui::TableNextColumn();
               if (i.effectCount<8) {
+                pushAddColor();
                 if (ImGui::Button("Add effect")) {
                   i.effectCount++;
                 }
+                popAddColor();
               }
               ImGui::TableNextColumn();
               if (i.effectCount>0) {
+                pushDestColor();
                 if (ImGui::Button("Remove effect")) {
                   i.effectCount--;
                 }
+                popDestColor();
               }
               ImGui::EndTable();
             }
@@ -1097,15 +1106,19 @@ void FurnaceGUI::drawFindReplace() {
           ImGui::TableNextColumn();
           ImGui::TableNextColumn();
           if (queryReplaceEffectCount<8) {
+            pushAddColor();
             if (ImGui::Button("Add effect")) {
               queryReplaceEffectCount++;
             }
+            popAddColor();
           }
           ImGui::TableNextColumn();
           if (queryReplaceEffectCount>0) {
+            pushDestColor();
             if (ImGui::Button("Remove effect")) {
               queryReplaceEffectCount--;
             }
+            popDestColor();
           }
 
           ImGui::EndTable();
