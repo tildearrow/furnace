@@ -724,119 +724,119 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##Combo",ImGuiTableColumnFlags_WidthStretch);
 #ifdef HAVE_JACK
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Backend");
-        ImGui::TableNextColumn();
-        int prevAudioEngine=settings.audioEngine;
-        if (ImGui::Combo("##Backend",&settings.audioEngine,audioBackends,2)) {
-          if (settings.audioEngine!=prevAudioEngine) {
-            if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Backend");
+          ImGui::TableNextColumn();
+          int prevAudioEngine=settings.audioEngine;
+          if (ImGui::Combo("##Backend",&settings.audioEngine,audioBackends,2)) {
+            if (settings.audioEngine!=prevAudioEngine) {
+              if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
+            }
           }
-        }
 #endif
 
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        if (settings.audioEngine==DIV_AUDIO_SDL) {
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("Driver");
+          ImGui::TableNextRow();
           ImGui::TableNextColumn();
-          if (ImGui::BeginCombo("##SDLADriver",settings.sdlAudioDriver.empty()?"Automatic":settings.sdlAudioDriver.c_str())) {
-            if (ImGui::Selectable("Automatic",settings.sdlAudioDriver.empty())) {
-              settings.sdlAudioDriver="";
+          if (settings.audioEngine==DIV_AUDIO_SDL) {
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Driver");
+            ImGui::TableNextColumn();
+            if (ImGui::BeginCombo("##SDLADriver",settings.sdlAudioDriver.empty()?"Automatic":settings.sdlAudioDriver.c_str())) {
+              if (ImGui::Selectable("Automatic",settings.sdlAudioDriver.empty())) {
+                settings.sdlAudioDriver="";
+              }
+              for (String& i: availAudioDrivers) {
+                if (ImGui::Selectable(i.c_str(),i==settings.sdlAudioDriver)) {
+                  settings.sdlAudioDriver=i;
+                }
+              }
+              ImGui::EndCombo();
             }
-            for (String& i: availAudioDrivers) {
-              if (ImGui::Selectable(i.c_str(),i==settings.sdlAudioDriver)) {
-                settings.sdlAudioDriver=i;
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
+            }
+          }
+  
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Device");
+          ImGui::TableNextColumn();
+          String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
+          if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
+            if (ImGui::Selectable("<System default>",settings.audioDevice.empty())) {
+              settings.audioDevice="";
+            }
+            for (String& i: e->getAudioDevices()) {
+              if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
+                settings.audioDevice=i;
               }
             }
             ImGui::EndCombo();
           }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
-          }
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Device");
-        ImGui::TableNextColumn();
-        String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
-        if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
-          if (ImGui::Selectable("<System default>",settings.audioDevice.empty())) {
-            settings.audioDevice="";
-          }
-          for (String& i: e->getAudioDevices()) {
-            if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
-              settings.audioDevice=i;
-            }
-          }
-          ImGui::EndCombo();
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Sample rate");
-        ImGui::TableNextColumn();
-        String sr=fmt::sprintf("%d",settings.audioRate);
-        if (ImGui::BeginCombo("##SampleRate",sr.c_str())) {
-          SAMPLE_RATE_SELECTABLE(8000);
-          SAMPLE_RATE_SELECTABLE(16000);
-          SAMPLE_RATE_SELECTABLE(22050);
-          SAMPLE_RATE_SELECTABLE(32000);
-          SAMPLE_RATE_SELECTABLE(44100);
-          SAMPLE_RATE_SELECTABLE(48000);
-          SAMPLE_RATE_SELECTABLE(88200);
-          SAMPLE_RATE_SELECTABLE(96000);
-          SAMPLE_RATE_SELECTABLE(192000);
-          ImGui::EndCombo();
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        if (isProAudio[settings.audioEngine]) {
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("Outputs");
+  
+          ImGui::TableNextRow();
           ImGui::TableNextColumn();
-          if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,1)) {
-            if (settings.audioChans<1) settings.audioChans=1;
-            if (settings.audioChans>16) settings.audioChans=16;
-          }
-        } else {
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Channels");
+          ImGui::Text("Sample rate");
           ImGui::TableNextColumn();
-          String chStr=(settings.audioChans<1 || settings.audioChans>8)?"What?":nonProAudioOuts[settings.audioChans-1];
-          if (ImGui::BeginCombo("##AudioChans",chStr.c_str())) {
-            CHANS_SELECTABLE(1);
-            CHANS_SELECTABLE(2);
-            CHANS_SELECTABLE(4);
-            CHANS_SELECTABLE(6);
-            CHANS_SELECTABLE(8);
+          String sr=fmt::sprintf("%d",settings.audioRate);
+          if (ImGui::BeginCombo("##SampleRate",sr.c_str())) {
+            SAMPLE_RATE_SELECTABLE(8000);
+            SAMPLE_RATE_SELECTABLE(16000);
+            SAMPLE_RATE_SELECTABLE(22050);
+            SAMPLE_RATE_SELECTABLE(32000);
+            SAMPLE_RATE_SELECTABLE(44100);
+            SAMPLE_RATE_SELECTABLE(48000);
+            SAMPLE_RATE_SELECTABLE(88200);
+            SAMPLE_RATE_SELECTABLE(96000);
+            SAMPLE_RATE_SELECTABLE(192000);
             ImGui::EndCombo();
           }
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Buffer size");
-        ImGui::TableNextColumn();
-        String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
-        if (ImGui::BeginCombo("##BufferSize",bs.c_str())) {
-          BUFFER_SIZE_SELECTABLE(64);
-          BUFFER_SIZE_SELECTABLE(128);
-          BUFFER_SIZE_SELECTABLE(256);
-          BUFFER_SIZE_SELECTABLE(512);
-          BUFFER_SIZE_SELECTABLE(1024);
-          BUFFER_SIZE_SELECTABLE(2048);
-          ImGui::EndCombo();
-        }
-        ImGui::EndTable();
+  
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          if (isProAudio[settings.audioEngine]) {
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Outputs");
+            ImGui::TableNextColumn();
+            if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,1)) {
+              if (settings.audioChans<1) settings.audioChans=1;
+              if (settings.audioChans>16) settings.audioChans=16;
+            }
+          } else {
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Channels");
+            ImGui::TableNextColumn();
+            String chStr=(settings.audioChans<1 || settings.audioChans>8)?"What?":nonProAudioOuts[settings.audioChans-1];
+            if (ImGui::BeginCombo("##AudioChans",chStr.c_str())) {
+              CHANS_SELECTABLE(1);
+              CHANS_SELECTABLE(2);
+              CHANS_SELECTABLE(4);
+              CHANS_SELECTABLE(6);
+              CHANS_SELECTABLE(8);
+              ImGui::EndCombo();
+            }
+          }
+  
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Buffer size");
+          ImGui::TableNextColumn();
+          String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
+          if (ImGui::BeginCombo("##BufferSize",bs.c_str())) {
+            BUFFER_SIZE_SELECTABLE(64);
+            BUFFER_SIZE_SELECTABLE(128);
+            BUFFER_SIZE_SELECTABLE(256);
+            BUFFER_SIZE_SELECTABLE(512);
+            BUFFER_SIZE_SELECTABLE(1024);
+            BUFFER_SIZE_SELECTABLE(2048);
+            ImGui::EndCombo();
+          }
+          ImGui::EndTable();
         }
 
         bool lowLatencyB=settings.lowLatency;
