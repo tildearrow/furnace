@@ -127,10 +127,10 @@ void FurnaceGUI::drawGrooves() {
         if (ImGui::Button(grooveID.c_str())) {
           delGroove=index;
         }
+        popDestColor();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("remove");
         }
-        popDestColor();
 
         index++;
       }
