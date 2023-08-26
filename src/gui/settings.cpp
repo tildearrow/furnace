@@ -1303,6 +1303,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::SameLine();
         ImGui::Combo("##PCSOutMethod",&settings.pcSpeakerOutMethod,pcspkrOutMethods,5);
 
+        /*
         ImGui::Separator();
         ImGui::Text("Sample ROMs:");
 
@@ -1332,6 +1333,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Button(ICON_FA_FOLDER "##MU5Load")) {
           openFileDialog(GUI_FILE_MU5_ROM_OPEN);
         }
+        */
 
         END_SECTION;
       }
