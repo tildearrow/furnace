@@ -49,11 +49,40 @@ const char** DivPlatformC140::getRegisterSheet() {
   return regCheatSheetC140;
 }
 
-void DivPlatformC140::acquire(short** buf, size_t len) {
+void DivPlatformC140::acquire_219(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
-      c140_write(&c140, w.addr,w.val);
+      c219_write(&c219,w.addr,w.val);
+      regPool[w.addr&0x1ff]=w.val;
+      writes.pop();
+    }
+
+    c219_tick(&c219, 1);
+    // scale as 16bit
+    c219.lout >>= 10;
+    c219.rout >>= 10;
+
+    if (c219.lout<-32768) c219.lout=-32768;
+    if (c219.lout>32767) c219.lout=32767;
+
+    if (c219.rout<-32768) c219.rout=-32768;
+    if (c219.rout>32767) c219.rout=32767;
+  
+    buf[0][h]=c219.lout;
+    buf[1][h]=c219.rout;
+
+    for (int i=0; i<totalChans; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(c219.voice[i].lout+c219.voice[i].rout)>>10;
+    }
+  }
+}
+
+void DivPlatformC140::acquire_140(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
+    while (!writes.empty()) {
+      QueuedWrite w=writes.front();
+      c140_write(&c140,w.addr,w.val);
       regPool[w.addr&0x1ff]=w.val;
       writes.pop();
     }
@@ -72,14 +101,22 @@ void DivPlatformC140::acquire(short** buf, size_t len) {
     buf[0][h]=c140.lout;
     buf[1][h]=c140.rout;
 
-    for (int i=0; i<24; i++) {
+    for (int i=0; i<totalChans; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(c140.voice[i].lout+c140.voice[i].rout)>>10;
     }
   }
 }
 
+void DivPlatformC140::acquire(short** buf, size_t len) {
+  if (is219) {
+    acquire_219(buf,len);
+  } else {
+    acquire_140(buf,len);
+  }
+}
+
 void DivPlatformC140::tick(bool sysTick) {
-  for (int i=0; i<24; i++) {
+  for (int i=0; i<totalChans; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=(chan[i].vol*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
@@ -144,26 +181,47 @@ void DivPlatformC140::tick(bool sysTick) {
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
-      ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?0x08:0);
+      if (is219) {
+        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?1:0);
+      } else {
+        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?0x08:0);
+      }
       if (chan[i].keyOn) {
         unsigned int bank=0;
         unsigned int start=0;
         unsigned int loop=0;
         unsigned int end=0;
         if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-          bank=(sampleOff[chan[i].sample]>>16)&0xff;
-          start=sampleOff[chan[i].sample]&0xffff;
-          end=MIN(start+s->length8-1,65535);
+          if (is219) {
+            bank=(sampleOff[chan[i].sample]>>16)&0xff;
+            start=sampleOff[chan[i].sample]&0xffff;
+            end=MIN(start+(s->length8>>1)-1,65535);
+            logV("sampleOff[%d]=%d",chan[i].sample,sampleOff[chan[i].sample]);
+          } else {
+            bank=(sampleOff[chan[i].sample]>>16)&0xff;
+            start=sampleOff[chan[i].sample]&0xffff;
+            end=MIN(start+s->length8-1,65535);
+          }
         }
         if (chan[i].audPos>0) {
-          start=MIN(start+MIN(chan[i].audPos,s->length8),65535);
+          start=MIN(start+(MIN(chan[i].audPos,s->length8)>>1),65535);
         }
         if (s->isLoopable()) {
-          loop=MIN(start+s->loopStart,65535);
-          end=MIN(start+s->loopEnd-1,65535);
+          if (is219) {
+            loop=MIN(start+(s->loopStart>>1),65535);
+            end=MIN(start+(s->loopEnd>>1)-1,65535);
+          } else {
+            loop=MIN(start+s->loopStart,65535);
+            end=MIN(start+s->loopEnd-1,65535);
+          }
         }
         rWrite(0x05+(i<<4),0); // force keyoff first
-        rWrite(0x04+(i<<4),bank);
+        if (is219) {
+          // TODO; group banking 
+
+        } else {
+          rWrite(0x04+(i<<4),bank);
+        }
         rWrite(0x06+(i<<4),(start>>8)&0xff);
         rWrite(0x07+(i<<4),start&0xff);
         rWrite(0x08+(i<<4),(end>>8)&0xff);
@@ -323,11 +381,15 @@ int DivPlatformC140::dispatch(DivCommand c) {
 
 void DivPlatformC140::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  c140.voice[ch].muted=mute;
+  if (is219) {
+    c219.voice[ch].muted=mute;
+  } else {
+    c140.voice[ch].muted=mute;
+  }
 }
 
 void DivPlatformC140::forceIns() {
-  for (int i=0; i<24; i++) {
+  for (int i=0; i<totalChans; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     chan[i].volChangedL=true;
@@ -355,8 +417,12 @@ DivDispatchOscBuffer* DivPlatformC140::getOscBuffer(int ch) {
 void DivPlatformC140::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,512);
-  c140_reset(&c140);
-  for (int i=0; i<24; i++) {
+  if (is219) {
+    c219_reset(&c219);
+  } else {
+    c140_reset(&c140);
+  }
+  for (int i=0; i<totalChans; i++) {
     chan[i]=DivPlatformC140::Channel();
     chan[i].std.setEngine(parent);
     rWrite(0x05+(i<<4),0);
@@ -368,7 +434,7 @@ int DivPlatformC140::getOutputCount() {
 }
 
 void DivPlatformC140::notifyInsChange(int ins) {
-  for (int i=0; i<24; i++) {
+  for (int i=0; i<totalChans; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
@@ -381,7 +447,7 @@ void DivPlatformC140::notifyWaveChange(int wave) {
 }
 
 void DivPlatformC140::notifyInsDeletion(void* ins) {
-  for (int i=0; i<24; i++) {
+  for (int i=0; i<totalChans; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
@@ -437,53 +503,84 @@ void DivPlatformC140::renderSamples(int sysID) {
       continue;
     }
 
-    unsigned int length=s->length16;
-    // fit sample size to single bank size
-    if (length>(131072)) {
-      length=131072;
-    }
-    if ((memPos&0xfe0000)!=((memPos+length)&0xfe0000)) {
-      memPos=((memPos+0x1ffff)&0xfe0000);
-    }
-    if (memPos>=(getSampleMemCapacity())) {
-      logW("out of C140 memory for sample %d!",i);
-      break;
-    }
-    // why is C140 not G.711-compliant? this weird bit mangling had me puzzled for 3 hours...
-    if (memPos+length>=(getSampleMemCapacity())) {
-      if (s->depth==DIV_SAMPLE_DEPTH_MULAW) {
-        for (unsigned int i=0; i<(getSampleMemCapacity())-memPos; i++) {
-          if (i>=s->lengthMuLaw) break;
-          unsigned char x=s->dataMuLaw[i]^0xff;
-          if (x&0x80) x^=15;
-          unsigned char c140Mu=(x&0x80)|((x&15)<<3)|((x&0x70)>>4);
-          sampleMem[i+(memPos/sizeof(short))]=((c140Mu)<<8);
-        }
-      } else {
-        memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity())-memPos);
+    if (is219) { // C219 (8-bit)
+      unsigned int length=s->length8;
+      // fit sample size to single bank size
+      if (length>131072) {
+        length=131072;
       }
-      logW("out of C140 memory for sample %d!",i);
-    } else {
+      if (length&1) length++;
+      if ((memPos&0xfe0000)!=((memPos+length)&0xfe0000)) {
+        memPos=((memPos+0x1ffff)&0xfe0000);
+      }
+      if (memPos>=(getSampleMemCapacity())) {
+        logW("out of C219 memory for sample %d!",i);
+        break;
+      }
+      if (memPos+length>=(getSampleMemCapacity())) {
+        length=getSampleMemCapacity()-memPos;
+        logW("out of C219 memory for sample %d!",i);
+      }
       if (s->depth==DIV_SAMPLE_DEPTH_MULAW) {
         for (unsigned int i=0; i<length; i++) {
-          if (i>=s->lengthMuLaw) break;
-          unsigned char x=s->dataMuLaw[i]^0xff;
-          if (x&0x80) x^=15;
-          unsigned char c140Mu=(x&0x80)|((x&15)<<3)|((x&0x70)>>4);
-          sampleMem[i+(memPos/sizeof(short))]=((c140Mu)<<8);
+          if (i>=s->lengthMuLaw) {
+            sampleMem[i+memPos]=0;
+          } else {
+            unsigned char x=s->dataMuLaw[i]^0xff;
+            sampleMem[i+memPos]=x;
+          }
         }
       } else {
-        memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
+        for (unsigned int i=0; i<length; i++) {
+          if (i>=s->length8) {
+            sampleMem[memPos+i]=0;
+          } else {
+            sampleMem[memPos+i]=s->data8[i];
+          }
+        }
       }
+      sampleOff[i]=memPos>>1;
+      sampleLoaded[i]=true;
+      memPos+=length;
+    } else { // C140 (16-bit)
+      unsigned int length=s->length16;
+      // fit sample size to single bank size
+      if (length>(131072)) {
+        length=131072;
+      }
+      if ((memPos&0xfe0000)!=((memPos+length)&0xfe0000)) {
+        memPos=((memPos+0x1ffff)&0xfe0000);
+      }
+      if (memPos>=(getSampleMemCapacity())) {
+        logW("out of C140 memory for sample %d!",i);
+        break;
+      }
+      // why is C140 not G.711-compliant? this weird bit mangling had me puzzled for 3 hours...
+      if (memPos+length>=(getSampleMemCapacity())) {
+        length=getSampleMemCapacity()-memPos;
+        logW("out of C140 memory for sample %d!",i);
+      }
+      if (s->depth==DIV_SAMPLE_DEPTH_MULAW) {
+        for (unsigned int i=0; i<length; i+=2) {
+          if ((i>>1)>=s->lengthMuLaw) break;
+          unsigned char x=s->dataMuLaw[i>>1]^0xff;
+          if (x&0x80) x^=15;
+          unsigned char c140Mu=(x&0x80)|((x&15)<<3)|((x&0x70)>>4);
+          sampleMem[i+memPos]=0;
+          sampleMem[1+i+memPos]=c140Mu;
+        }
+      } else {
+        memcpy(sampleMem+memPos,s->data16,length);
+      }
+      sampleOff[i]=memPos>>1;
+      sampleLoaded[i]=true;
+      memPos+=length;
     }
-    sampleOff[i]=memPos>>1;
-    sampleLoaded[i]=true;
-    memPos+=length;
   }
   sampleMemLen=memPos+256;
 }
 
-void DivPlatformC219::set219(bool is_219) {
+void DivPlatformC140::set219(bool is_219) {
   is219=is_219;
   totalChans=is219?16:24;
 }
@@ -492,7 +589,7 @@ void DivPlatformC140::setFlags(const DivConfig& flags) {
   chipClock=32000*256; // 8.192MHz and 12.288MHz input, verified from Assault Schematics
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/192;
-  for (int i=0; i<24; i++) {
+  for (int i=0; i<totalChans; i++) {
     oscBuf[i]->rate=rate;
   }
 }
@@ -502,23 +599,28 @@ int DivPlatformC140::init(DivEngine* p, int channels, int sugRate, const DivConf
   dumpWrites=false;
   skipRegisterWrites=false;
 
-  for (int i=0; i<24; i++) {
+  for (int i=0; i<totalChans; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  sampleMem=new short[getSampleMemCapacity()>>1];
+  sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
-  c140_init(&c140);
-  c140.sample_mem=sampleMem;
+  if (is219) {
+    c219_init(&c219);
+    c219.sample_mem=(signed char*)sampleMem;
+  } else {
+    c140_init(&c140);
+    c140.sample_mem=(short*)sampleMem;
+  }
   setFlags(flags);
   reset();
 
-  return 24;
+  return totalChans;
 }
 
 void DivPlatformC140::quit() {
   delete[] sampleMem;
-  for (int i=0; i<24; i++) {
+  for (int i=0; i<totalChans; i++) {
     delete oscBuf[i];
   }
 }

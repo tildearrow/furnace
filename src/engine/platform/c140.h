@@ -56,7 +56,7 @@ class DivPlatformC140: public DivDispatch {
   bool is219;
   int totalChans;
 
-  signed short* sampleMem;
+  unsigned char* sampleMem;
   size_t sampleMemLen;
   struct QueuedWrite {
     unsigned short addr;
@@ -67,9 +67,13 @@ class DivPlatformC140: public DivDispatch {
   };
   FixedQueue<QueuedWrite,2048> writes;
   struct c140_t c140;
+  struct c219_t c219;
   unsigned char regPool[512];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+
+  void acquire_219(short** buf, size_t len);
+  void acquire_140(short** buf, size_t len);
 
   public:
     void acquire(short** buf, size_t len);

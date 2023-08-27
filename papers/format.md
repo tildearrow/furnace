@@ -222,7 +222,7 @@ size | description
      |   - 0xcc: K053260 - 4 channels
      |   - 0xcd: TED - 2 channels
      |   - 0xce: Namco C140 - 24 channels
-     |   - 0xcf: Namco C219 - 16 channels (UNAVAILABLE)
+     |   - 0xcf: Namco C219 - 16 channels
      |   - 0xd0: Namco C352 - 32 channels (UNAVAILABLE)
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
