@@ -123,7 +123,7 @@ void FurnaceGUI::drawGrooves() {
 
         ImGui::TableNextColumn();
         pushDestColor();
-        String grooveID=fmt::sprintf(ICON_FA_MINUS "##GRR%d",index);
+        String grooveID=fmt::sprintf(ICON_FA_TIMES "##GRR%d",index);
         if (ImGui::Button(grooveID.c_str())) {
           delGroove=index;
         }

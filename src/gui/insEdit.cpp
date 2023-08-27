@@ -4334,7 +4334,7 @@ void FurnaceGUI::drawInsEdit() {
                 }
                 ImGui::SameLine();
                 pushDestColor();
-                if (ImGui::Button(ICON_FA_MINUS "##HWCmdDel")) {
+                if (ImGui::Button(ICON_FA_TIMES "##HWCmdDel")) {
                   for (int j=i; j<ins->gb.hwSeqLen-1; j++) {
                     ins->gb.hwSeq[j].cmd=ins->gb.hwSeq[j+1].cmd;
                     ins->gb.hwSeq[j].data=ins->gb.hwSeq[j+1].data;

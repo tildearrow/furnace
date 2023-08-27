@@ -812,7 +812,7 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
               pushDestColor();
-              if (ImGui::Button(ICON_FA_TRASH "##DelQuery")) {
+              if (ImGui::Button(ICON_FA_MINUS "##DelQuery")) {
                 eraseIndex=index;
               }
               popDestColor();

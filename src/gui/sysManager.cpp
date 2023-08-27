@@ -103,7 +103,7 @@ void FurnaceGUI::drawSysManager() {
         ImGui::SameLine();
         ImGui::BeginDisabled(e->song.systemLen<=1);
         pushDestColor();
-        if (ImGui::Button(ICON_FA_MINUS "##SysRemove")) {
+        if (ImGui::Button(ICON_FA_TIMES "##SysRemove")) {
           sysToDelete=i;
           showWarning("Are you sure you want to remove this chip?",GUI_WARN_SYSTEM_DEL);
         }
