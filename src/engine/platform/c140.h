@@ -53,6 +53,8 @@ class DivPlatformC140: public DivDispatch {
   bool isMuted[24];
   unsigned int sampleOff[256];
   bool sampleLoaded[256];
+  bool is219;
+  int totalChans;
 
   signed short* sampleMem;
   size_t sampleMemLen;
@@ -95,6 +97,7 @@ class DivPlatformC140: public DivDispatch {
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
     void renderSamples(int chipID);
+    void set219(bool is_219);
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

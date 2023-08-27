@@ -483,6 +483,11 @@ void DivPlatformC140::renderSamples(int sysID) {
   sampleMemLen=memPos+256;
 }
 
+void DivPlatformC219::set219(bool is_219) {
+  is219=is_219;
+  totalChans=is219?16:24;
+}
+
 void DivPlatformC140::setFlags(const DivConfig& flags) {
   chipClock=32000*256; // 8.192MHz and 12.288MHz input, verified from Assault Schematics
   CHECK_CUSTOM_CLOCK;
