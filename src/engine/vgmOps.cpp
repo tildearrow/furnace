@@ -596,6 +596,19 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
+      case DIV_SYSTEM_C219:
+        for (int i=0; i<16; i++) {
+          w->writeC(0xd4); // mute
+          w->writeS_BE(baseAddr2S|(i<<4)|0);
+          w->writeC(0);
+          w->writeC(0xd4);
+          w->writeS_BE(baseAddr2S|(i<<4)|1);
+          w->writeC(0);
+          w->writeC(0xd4); // keyoff
+          w->writeS_BE(baseAddr2S|(i<<4)|5);
+          w->writeC(0);
+        }
+        break;
       default:
         break;
     }
@@ -1058,6 +1071,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.val&0xff);
       break;
     case DIV_SYSTEM_C140:
+      w->writeC(0xd4);
+      w->writeS_BE(baseAddr2S|(write.addr&0x1ff));
+      w->writeC(write.val&0xff);
+      break;
+    case DIV_SYSTEM_C219:
       w->writeC(0xd4);
       w->writeS_BE(baseAddr2S|(write.addr&0x1ff));
       w->writeC(write.val&0xff);
@@ -1788,6 +1806,22 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         if (!hasNamco) {
           // ?!?!?!
           hasNamco=disCont[i].dispatch->rate/2;
+          CHIP_VOL(40,1.0);
+          willExport[i]=true;
+          writeC140[0]=disCont[i].dispatch;
+        } else if (!(hasNamco&0x40000000)) {
+          isSecond[i]=true;
+          CHIP_VOL_SECOND(40,1.0);
+          willExport[i]=true;
+          writeC140[1]=disCont[i].dispatch;
+          hasNamco|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_C219:
+        if (!hasNamco) {
+          // ?!?!?!
+          hasNamco=disCont[i].dispatch->rate;
           CHIP_VOL(40,1.0);
           willExport[i]=true;
           writeC140[0]=disCont[i].dispatch;

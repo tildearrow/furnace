@@ -55,6 +55,7 @@
 #include "../engine/platform/pv1000.h"
 #include "../engine/platform/k053260.h"
 #include "../engine/platform/c140.h"
+#include "../engine/platform/c219.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -550,6 +551,13 @@ void putDispatchChip(void* data, int type) {
     case DIV_SYSTEM_C140: {
       DivPlatformC140* ch=(DivPlatformC140*)data;
       ImGui::Text("> C140");
+      COMMON_CHIP_DEBUG;
+      COMMON_CHIP_DEBUG_BOOL;
+      break;
+    }
+    case DIV_SYSTEM_C219: {
+      DivPlatformC219* ch=(DivPlatformC219*)data;
+      ImGui::Text("> C219");
       COMMON_CHIP_DEBUG;
       COMMON_CHIP_DEBUG_BOOL;
       break;
@@ -1090,6 +1098,27 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->volChangedL?colorOn:colorOff,">> VolChangedL");
       ImGui::TextColored(ch->volChangedR?colorOn:colorOff,">> VolChangedR");
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      break;
+    }
+    case DIV_SYSTEM_C219: {
+      DivPlatformC219::Channel* ch=(DivPlatformC219::Channel*)data;
+      ImGui::Text("> C219");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("* Sample: %d",ch->sample);
+      ImGui::Text(" - pos: %d",ch->audPos);
+      ImGui::Text("- chPanL: %.2x",ch->chPanL);
+      ImGui::Text("- chPanR: %.2x",ch->chPanR);
+      ImGui::Text("- chVolL: %.2x",ch->chVolL);
+      ImGui::Text("- chVolR: %.2x",ch->chVolR);
+      ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
+      ImGui::Text("- macroPanMul: %.2x",ch->macroPanMul);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->volChangedL?colorOn:colorOff,">> VolChangedL");
+      ImGui::TextColored(ch->volChangedR?colorOn:colorOff,">> VolChangedR");
+      ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      ImGui::TextColored(ch->noise?colorOn:colorOff,">> Noise");
+      ImGui::TextColored(ch->invLout?colorOn:colorOff,">> InvLout");
+      ImGui::TextColored(ch->invSign?colorOn:colorOff,">> InvSign");
       break;
     }
     default:

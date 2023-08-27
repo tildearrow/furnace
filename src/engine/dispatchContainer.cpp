@@ -81,6 +81,7 @@
 #include "platform/k053260.h"
 #include "platform/ted.h"
 #include "platform/c140.h"
+#include "platform/c219.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -587,6 +588,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_C140:
       dispatch=new DivPlatformC140;
+      break;
+    case DIV_SYSTEM_C219:
+      dispatch=new DivPlatformC219;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;
