@@ -206,6 +206,10 @@ void FurnaceGUI::doAction(int what) {
       displayPalette=true;
       curPaletteType=CMDPAL_TYPE_INSTRUMENT_CHANGE;
       break;
+    case GUI_ACTION_CMDPAL_ADD_CHIP:
+      displayPalette=true;
+      curPaletteType=CMDPAL_TYPE_ADD_CHIP;
+      break;
     case GUI_ACTION_WINDOW_EDIT_CONTROLS:
       nextWindow=GUI_WINDOW_EDIT_CONTROLS;
       break;

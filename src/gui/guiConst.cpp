@@ -567,6 +567,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("CMDPAL_INSTRUMENTS", "Instruments (Palette)", 0),
   D("CMDPAL_SAMPLES", "Samples (Palette)", 0),
   D("CMDPAL_INSTRUMENT_CHANGE", "Change instrument (Palette)", 0),
+  D("CMDPAL_ADD_CHIP", "Add chip (Palette)", 0),
   D("CMDPAL_MAX", "", NOT_AN_ACTION),
 
   D("WINDOW_EDIT_CONTROLS", "Edit Controls", 0),
