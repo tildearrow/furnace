@@ -507,7 +507,7 @@ src/engine/platform/sound/d65modified.c
 
 src/engine/platform/sound/ted-sound.c
 
-src/engine/platform/sound/c140.c
+src/engine/platform/sound/c140_c219.c
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp

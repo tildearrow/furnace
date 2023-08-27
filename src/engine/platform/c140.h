@@ -21,7 +21,7 @@
 #define _C140_H
 
 #include "../dispatch.h"
-#include "sound/c140.h"
+#include "sound/c140_c219.h"
 #include "../fixedQueue.h"
 
 class DivPlatformC140: public DivDispatch {
