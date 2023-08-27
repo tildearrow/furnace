@@ -3216,6 +3216,7 @@ void DivEngine::rescanAudioDevices() {
 
 void DivEngine::initDispatch(bool isRender) {
   BUSY_BEGIN;
+  logV("initializing dispatch...");
   if (isRender) logI("render cores set");
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i],isRender);
@@ -3233,6 +3234,7 @@ void DivEngine::initDispatch(bool isRender) {
 
 void DivEngine::quitDispatch() {
   BUSY_BEGIN;
+  logV("terminating dispatch...");
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].quit();
   }
@@ -3338,6 +3340,7 @@ bool DivEngine::initAudioBackend() {
       return false;
   }
 
+  logV("listing audio devices");
   audioDevs=output->listAudioDevices();
 
   want.deviceName=getConfString("audioDevice","");
@@ -3352,8 +3355,10 @@ bool DivEngine::initAudioBackend() {
   if (want.outChans<1) want.outChans=1;
   if (want.outChans>16) want.outChans=16;
 
+  logV("setting callback");
   output->setCallback(process,this);
 
+  logV("calling init");
   if (!output->init(want,got)) {
     logE("error while initializing audio!");
     delete output;
@@ -3362,6 +3367,7 @@ bool DivEngine::initAudioBackend() {
     return false;
   }
 
+  logV("allocating oscBuf...");
   for (int i=0; i<got.outChans; i++) {
     if (oscBuf[i]==NULL) {
       oscBuf[i]=new float[32768];
@@ -3369,6 +3375,7 @@ bool DivEngine::initAudioBackend() {
     memset(oscBuf[i],0,32768*sizeof(float));
   }
 
+  logI("initializing MIDI.");
   if (output->initMidi(false)) {
     midiIns=output->midiIn->listDevices();
     midiOuts=output->midiOut->listDevices();
@@ -3400,6 +3407,7 @@ bool DivEngine::initAudioBackend() {
     }
   }
 
+  logV("initAudioBackend done");
   return true;
 }
 
@@ -3443,6 +3451,13 @@ void DivEngine::preInit() {
   logI("Furnace version " DIV_VERSION ".");
   
   loadConf();
+
+#ifdef HAVE_SDL2
+  String audioDriver=getConfString("sdlAudioDriver","");
+  if (!audioDriver.empty()) {
+    SDL_SetHint("SDL_HINT_AUDIODRIVER",audioDriver.c_str());
+  }
+#endif
 }
 
 bool DivEngine::init() {
@@ -3480,6 +3495,8 @@ bool DivEngine::init() {
     haveAudio=true;
   }
 
+  logV("creating blip_buf");
+
   samp_bb=blip_new(32768);
   if (samp_bb==NULL) {
     logE("not enough memory!");
@@ -3493,6 +3510,8 @@ bool DivEngine::init() {
 
   metroBuf=new float[8192];
   metroBufLen=8192;
+
+  logV("setting blip rate of samp_bb (%f)",got.rate);
   
   blip_set_rates(samp_bb,44100,got.rate);
 
