@@ -118,7 +118,6 @@ void FurnaceGUI::drawSysManager() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();
-        pushAddColor();
         ImGui::Button(ICON_FA_PLUS "##SysAdd");
         if (ImGui::BeginPopupContextItem("SysPickerA",ImGuiPopupFlags_MouseButtonLeft)) {
           DivSystem picked=systemPicker();
@@ -136,7 +135,6 @@ void FurnaceGUI::drawSysManager() {
           }
           ImGui::EndPopup();
         }
-        popAddColor();
       }
       ImGui::EndTable();
     }

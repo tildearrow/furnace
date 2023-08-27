@@ -130,7 +130,6 @@ enum FurnaceGUIColors {
   GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
   GUI_COLOR_SONG_LOOP,
-  GUI_COLOR_ADDITIVE,
   GUI_COLOR_DESTRUCTIVE,
   GUI_COLOR_WARNING,
   GUI_COLOR_ERROR,
@@ -2181,8 +2180,6 @@ class FurnaceGUI {
 
   void pushDestColor();
   void popDestColor();
-  void pushAddColor();
-  void popAddColor();
   void pushWarningColor(bool warnCond, bool errorCond=false);
   void popWarningColor();
 

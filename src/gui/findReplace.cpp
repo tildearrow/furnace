@@ -821,11 +821,9 @@ void FurnaceGUI::drawFindReplace() {
               }
               ImGui::TableNextColumn();
               if (i.effectCount<8) {
-                pushAddColor();
                 if (ImGui::Button("Add effect")) {
                   i.effectCount++;
                 }
-                popAddColor();
               }
               ImGui::TableNextColumn();
               if (i.effectCount>0) {
@@ -1106,11 +1104,9 @@ void FurnaceGUI::drawFindReplace() {
           ImGui::TableNextColumn();
           ImGui::TableNextColumn();
           if (queryReplaceEffectCount<8) {
-            pushAddColor();
             if (ImGui::Button("Add effect")) {
               queryReplaceEffectCount++;
             }
-            popAddColor();
           }
           ImGui::TableNextColumn();
           if (queryReplaceEffectCount>0) {

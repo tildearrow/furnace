@@ -145,14 +145,12 @@ void FurnaceGUI::drawGrooves() {
       MARK_MODIFIED;
     }
 
-    pushAddColor();
     if (ImGui::Button(ICON_FA_PLUS "##AddGroove")) {
       e->lockEngine([this]() {
         e->song.grooves.push_back(DivGroovePattern());
       });
       MARK_MODIFIED;
     }
-    popAddColor();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
     curWindow=GUI_WINDOW_GROOVES;

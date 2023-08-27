@@ -4347,7 +4347,6 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::EndTable();
             }
 
-            pushAddColor();
             if (ImGui::Button(ICON_FA_PLUS "##HWCmdAdd")) {
               if (ins->gb.hwSeqLen<255) {
                 ins->gb.hwSeq[ins->gb.hwSeqLen].cmd=0;
@@ -4355,7 +4354,6 @@ void FurnaceGUI::drawInsEdit() {
                 ins->gb.hwSeqLen++;
               }
             }
-            popAddColor();
           }
           ImGui::EndChild();
           ImGui::EndDisabled();

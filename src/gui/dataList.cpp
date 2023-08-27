@@ -253,7 +253,6 @@ void FurnaceGUI::drawInsList(bool asChild) {
   }
   if (began) {
     if (settings.unifiedDataView) settings.horizontalDataView=0;
-    pushAddColor();
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
       if (settings.unifiedDataView) {
         switch (lastAssetType) {
@@ -271,7 +270,6 @@ void FurnaceGUI::drawInsList(bool asChild) {
         doAction(GUI_ACTION_INS_LIST_ADD);
       }
     }
-    popAddColor();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Add");
     }
@@ -659,11 +657,9 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     began=ImGui::Begin("Wavetables",&waveListOpen,globalWinFlags);
   }
   if (began) {
-    pushAddColor();
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       doAction(GUI_ACTION_WAVE_LIST_ADD);
     }
-    popAddColor();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Add");
     }
@@ -793,11 +789,9 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     began=ImGui::Begin("Samples",&sampleListOpen,globalWinFlags);
   }
   if (began) {
-    pushAddColor();
     if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
-    popAddColor();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Add");
     }

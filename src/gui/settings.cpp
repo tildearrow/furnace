@@ -659,7 +659,6 @@ void FurnaceGUI::drawSettings() {
           settings.initialSys.remove(fmt::sprintf("flags%d",sysCount-1));
         }
 
-        pushAddColor();
         if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
           settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612));
           settings.initialSys.set(fmt::sprintf("vol%d",sysCount),1.0f);
@@ -667,7 +666,6 @@ void FurnaceGUI::drawSettings() {
           settings.initialSys.set(fmt::sprintf("fr%d",sysCount),0.0f);
           settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
         }
-        popAddColor();
 
         ImGui::Text("When creating new song:");
         ImGui::Indent();
@@ -980,11 +978,9 @@ void FurnaceGUI::drawSettings() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Actions:");
         ImGui::SameLine();
-        pushAddColor();
         if (ImGui::Button(ICON_FA_PLUS "##AddAction")) {
           midiMap.binds.push_back(MIDIBind());
         }
-        popAddColor();
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_EXTERNAL_LINK "##AddLearnAction")) {
           midiMap.binds.push_back(MIDIBind());
@@ -2677,7 +2673,6 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
           UI_COLOR_CONFIG(GUI_COLOR_SONG_LOOP,"Song loop");
           UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
-          UI_COLOR_CONFIG(GUI_COLOR_ADDITIVE,"Additive hint");
           UI_COLOR_CONFIG(GUI_COLOR_DESTRUCTIVE,"Destructive hint");
           UI_COLOR_CONFIG(GUI_COLOR_WARNING,"Warning hint");
           UI_COLOR_CONFIG(GUI_COLOR_ERROR,"Error hint");
@@ -3993,14 +3988,6 @@ void FurnaceGUI::pushDestColor() {
 }
 
 void FurnaceGUI::popDestColor() {
-  popAccentColors();
-}
-
-void FurnaceGUI::pushAddColor() {
-  pushAccentColors(uiColors[GUI_COLOR_ADDITIVE],uiColors[GUI_COLOR_ADDITIVE],uiColors[GUI_COLOR_ADDITIVE],ImVec4(0.0f,0.0f,0.0f,0.0f));
-}
-
-void FurnaceGUI::popAddColor() {
   popAccentColors();
 }
 
