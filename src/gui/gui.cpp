@@ -3520,10 +3520,12 @@ bool FurnaceGUI::loop() {
             case SDL_DISPLAYEVENT_CONNECTED:
               logD("display %d connected!",ev.display.display);
               updateWindow=true;
+              shallDetectScale=16;
               break;
             case SDL_DISPLAYEVENT_DISCONNECTED:
               logD("display %d disconnected!",ev.display.display);
               updateWindow=true;
+              shallDetectScale=16;
               break;
             case SDL_DISPLAYEVENT_ORIENTATION:
               logD("display oriented to %d",ev.display.data1);
@@ -6115,6 +6117,14 @@ bool FurnaceGUI::loop() {
       willCommit=false;
     }
 
+    if (shallDetectScale) {
+      if (--shallDetectScale<1) {
+        if (settings.dpiScale<0.5f) {
+          applyUISettings();
+        }
+      }
+    }
+
     if (fontsFailed) {
       showError("it appears I couldn't load these fonts. any setting you can check?");
       logE("couldn't load fonts");
@@ -6889,6 +6899,7 @@ FurnaceGUI::FurnaceGUI():
   displayInsTypeListMakeInsSample(-1),
   mobileEditPage(0),
   wheelCalmDown(0),
+  shallDetectScale(0),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   mobileEditAnim(0.0f),

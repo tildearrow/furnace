@@ -29,6 +29,7 @@
 #include "IconsFontAwesome4.h"
 #include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include "scaling.h"
 #include <fmt/printf.h>
 #include <imgui.h>
 
@@ -4088,7 +4089,20 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   setupLabel(settings.emptyLabel.c_str(),emptyLabel,3);
   setupLabel(settings.emptyLabel2.c_str(),emptyLabel2,2);
 
-  if (settings.dpiScale>=0.5f) dpiScale=settings.dpiScale;
+  // get scale factor
+  const char* videoBackend=SDL_GetCurrentVideoDriver();
+  if (settings.dpiScale>=0.5f) {
+    logD("setting UI scale factor from config (%f).",settings.dpiScale);
+    dpiScale=settings.dpiScale;
+  } else {
+    logD("auto-detecting UI scale factor.");
+    dpiScale=getScaleFactor(videoBackend);
+    logD("scale factor: %f",dpiScale);
+    if (dpiScale<0.1f) {
+      logW("scale what?");
+      dpiScale=1.0f;
+    }
+  }
 
   // colors
   if (updateFonts) {

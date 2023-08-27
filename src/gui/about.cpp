@@ -203,6 +203,7 @@ const char* aboutLine[]={
   "",
   "greetings to:",
   "NEOART Costa Rica",
+  "Xenium Demoparty",
   "all members of Deflers of Noice!",
   "",
   "copyright © 2021-2023 tildearrow",

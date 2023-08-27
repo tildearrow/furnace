@@ -1343,6 +1343,7 @@ class FurnaceGUI {
   int displayInsTypeListMakeInsSample;
   int mobileEditPage;
   int wheelCalmDown;
+  int shallDetectScale;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;
