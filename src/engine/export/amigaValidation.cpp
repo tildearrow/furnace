@@ -266,6 +266,7 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   }
 
   // finish
+  ret.reserve(5);
   ret.push_back(DivROMExportOutput("sbook.bin",sbook));
   ret.push_back(DivROMExportOutput("wbook.bin",wbook));
   ret.push_back(DivROMExportOutput("sample.bin",sample));

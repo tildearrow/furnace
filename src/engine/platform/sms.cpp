@@ -452,6 +452,12 @@ DivMacroInt* DivPlatformSMS::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformSMS::getPan(int ch) {
+  if (!stereo) return 0;
+  unsigned char p=lastPan&(0x11<<ch);
+  return ((p&0xf0)?0x100:0)|((p&0x0f)?1:0);
+}
+
 DivDispatchOscBuffer* DivPlatformSMS::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

@@ -539,7 +539,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
@@ -1419,6 +1419,11 @@ void* DivPlatformYM2610::getChanState(int ch) {
 DivMacroInt* DivPlatformYM2610::getChanMacroInt(int ch) {
   if (ch>=psgChanOffs && ch<adpcmAChanOffs) return ay->getChanMacroInt(ch-psgChanOffs);
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformYM2610::getPan(int ch) {
+  if (ch>=psgChanOffs && ch<adpcmAChanOffs) return 0;
+  return ((chan[ch].pan&2)<<7)|(chan[ch].pan&1);
 }
 
 DivDispatchOscBuffer* DivPlatformYM2610::getOscBuffer(int ch) {

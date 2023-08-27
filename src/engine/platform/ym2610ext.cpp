@@ -152,6 +152,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
         }
       }
       rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+      lastExtChPan=opChan[ch].pan;
       break;
     }
     case DIV_CMD_PITCH: {
@@ -544,7 +545,7 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
       rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
     }
     if (m.tl.had) {
-      op.tl=127-m.tl.val;
+      op.tl=m.tl.val;
       if (isOpMuted[i]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
@@ -695,7 +696,7 @@ void DivPlatformYM2610Ext::forceIns() {
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     if (i==extChanOffs) {
-      rWrite(chanOffs[i]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(opChan[0].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+      rWrite(chanOffs[i]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(lastExtChPan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     } else {
       rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
@@ -740,6 +741,18 @@ DivMacroInt* DivPlatformYM2610Ext::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformYM2610Ext::getPan(int ch) {
+  if (ch>=4+extChanOffs) return DivPlatformYM2610::getPan(ch-3);
+  if (ch>=extChanOffs) {
+    if (extMode) {
+      return ((lastExtChPan&2)<<7)|(lastExtChPan&1);
+    } else {
+      return DivPlatformYM2610::getPan(extChanOffs);
+    }
+  }
+  return DivPlatformYM2610::getPan(ch);
+}
+
 DivDispatchOscBuffer* DivPlatformYM2610Ext::getOscBuffer(int ch) {
   if (ch>=(extChanOffs+4)) return oscBuf[ch-3];
   if (ch<(extChanOffs+1)) return oscBuf[ch];
@@ -755,6 +768,8 @@ void DivPlatformYM2610Ext::reset() {
     opChan[i].vol=127;
     opChan[i].outVol=127;
   }
+
+  lastExtChPan=3;
 
   // channel 2 mode
   immWrite(0x27,0x40);

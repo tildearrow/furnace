@@ -54,10 +54,10 @@
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-#define DIV_UNSTABLE
+//#define DIV_UNSTABLE
 
-#define DIV_VERSION "dev166"
-#define DIV_ENGINE_VERSION 166
+#define DIV_VERSION "0.6pre9"
+#define DIV_ENGINE_VERSION 169
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -497,6 +497,7 @@ class DivEngine {
   void playSub(bool preserveDrift, int goalRow=0);
   void runMidiClock(int totalCycles=1);
   void runMidiTime(int totalCycles=1);
+  bool shallSwitchCores();
 
   void testFunction();
 
@@ -614,6 +615,8 @@ class DivEngine {
     void waitAudioFile();
     // stop audio file export
     bool haltAudioFile();
+    // return back to playback cores if necessary
+    void finishAudioFile();
     // notify instrument parameter change
     void notifyInsChange(int ins);
     // notify wavetable change
@@ -972,6 +975,9 @@ class DivEngine {
 
     // get macro interpreter
     DivMacroInt* getMacroInt(int chan);
+
+    // get channel panning
+    unsigned short getChanPan(int chan);
 
     // get sample position
     DivSamplePos getSamplePos(int chan);

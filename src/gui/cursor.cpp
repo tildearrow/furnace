@@ -374,7 +374,9 @@ void FurnaceGUI::moveCursorNextChannel(bool overflow) {
 }
 
 void FurnaceGUI::moveCursorTop(bool select) {
-  finishSelection();
+  if (!select) {
+    finishSelection();
+  }
   curNibble=false;
   if (cursor.y==0) {
     DETERMINE_FIRST;
@@ -384,16 +386,18 @@ void FurnaceGUI::moveCursorTop(bool select) {
   } else {
     cursor.y=0;
   }
-  selStart=cursor;
   if (!select) {
-    selEnd=cursor;
+    selStart=cursor;
   }
+  selEnd=cursor;
   e->setMidiBaseChan(cursor.xCoarse);
   updateScroll(cursor.y);
 }
 
 void FurnaceGUI::moveCursorBottom(bool select) {
-  finishSelection();
+  if (!select) {
+    finishSelection();
+  }
   curNibble=false;
   if (cursor.y==e->curSubSong->patLen-1) {
     DETERMINE_LAST;

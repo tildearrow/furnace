@@ -2115,6 +2115,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
   pushRecentFile(path);
+  pushRecentSys(path.c_str());
   logD("save complete.");
   return 0;
 }
@@ -2231,6 +2232,13 @@ void FurnaceGUI::pushRecentFile(String path) {
   while (!recentFile.empty() && (int)recentFile.size()>settings.maxRecentFile) {
     recentFile.pop_back();
   }
+}
+
+void FurnaceGUI::pushRecentSys(const char* path) {
+#ifdef _WIN32
+  WString widePath=utf8To16(path);
+  SHAddToRecentDocs(SHARD_PATHW,widePath.c_str());
+#endif
 }
 
 void FurnaceGUI::delFirstBackup(String name) {
@@ -3523,10 +3531,12 @@ bool FurnaceGUI::loop() {
             case SDL_DISPLAYEVENT_CONNECTED:
               logD("display %d connected!",ev.display.display);
               updateWindow=true;
+              shallDetectScale=16;
               break;
             case SDL_DISPLAYEVENT_DISCONNECTED:
               logD("display %d disconnected!",ev.display.display);
               updateWindow=true;
+              shallDetectScale=16;
               break;
             case SDL_DISPLAYEVENT_ORIENTATION:
               logD("display oriented to %d",ev.display.data1);
@@ -4828,29 +4838,39 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_INS_SAVE:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song);
+                if (e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song)) {
+                  pushRecentSys(copyOfName.c_str());
+                }
               }
               break;
             case GUI_FILE_INS_SAVE_DMP:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
                 if (!e->song.ins[curIns]->saveDMP(copyOfName.c_str())) {
                   showError("error while saving instrument! make sure your instrument is compatible.");
+                } else {
+                  pushRecentSys(copyOfName.c_str());
                 }
               }
               break;
             case GUI_FILE_WAVE_SAVE:
               if (curWave>=0 && curWave<(int)e->song.wave.size()) {
-                e->song.wave[curWave]->save(copyOfName.c_str());
+                if (e->song.wave[curWave]->save(copyOfName.c_str())) {
+                  pushRecentSys(copyOfName.c_str());
+                }
               }
               break;
             case GUI_FILE_WAVE_SAVE_DMW:
               if (curWave>=0 && curWave<(int)e->song.wave.size()) {
-                e->song.wave[curWave]->saveDMW(copyOfName.c_str());
+                if (e->song.wave[curWave]->saveDMW(copyOfName.c_str())) {
+                  pushRecentSys(copyOfName.c_str());
+                }
               }
               break;
             case GUI_FILE_WAVE_SAVE_RAW:
               if (curWave>=0 && curWave<(int)e->song.wave.size()) {
-                e->song.wave[curWave]->saveRaw(copyOfName.c_str());
+                if (e->song.wave[curWave]->saveRaw(copyOfName.c_str())) {
+                  pushRecentSys(copyOfName.c_str());
+                }
               }
               break;
             case GUI_FILE_SAMPLE_OPEN: {
@@ -4914,6 +4934,8 @@ bool FurnaceGUI::loop() {
               if (curSample>=0 && curSample<(int)e->song.sample.size()) {
                 if (!e->song.sample[curSample]->save(copyOfName.c_str())) {
                   showError("could not save sample! open Log Viewer for more information.");
+                } else {
+                  pushRecentSys(copyOfName.c_str());
                 }
               }
               break;
@@ -4921,6 +4943,8 @@ bool FurnaceGUI::loop() {
               if (curSample>=0 && curSample<(int)e->song.sample.size()) {
                 if (!e->song.sample[curSample]->saveRaw(copyOfName.c_str())) {
                   showError("could not save sample! open Log Viewer for more information.");
+                } else {
+                  pushRecentSys(copyOfName.c_str());
                 }
               }
               break;
@@ -5070,6 +5094,7 @@ bool FurnaceGUI::loop() {
                 if (f!=NULL) {
                   fwrite(w->getFinalBuf(),1,w->size(),f);
                   fclose(f);
+                  pushRecentSys(copyOfName.c_str());
                 } else {
                   showError("could not open file!");
                 }
@@ -5090,6 +5115,7 @@ bool FurnaceGUI::loop() {
                 if (f!=NULL) {
                   fwrite(w->getFinalBuf(),1,w->size(),f);
                   fclose(f);
+                  pushRecentSys(copyOfName.c_str());
                 } else {
                   showError("could not open file!");
                 }
@@ -5116,6 +5142,7 @@ bool FurnaceGUI::loop() {
                 if (f!=NULL) {
                   fwrite(w->getFinalBuf(),1,w->size(),f);
                   fclose(f);
+                  pushRecentSys(copyOfName.c_str());
                 } else {
                   showError("could not open file!");
                 }
@@ -5280,6 +5307,7 @@ bool FurnaceGUI::loop() {
         }
       }
       if (!e->isExporting()) {
+        e->finishAudioFile();
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -6115,6 +6143,14 @@ bool FurnaceGUI::loop() {
       willCommit=false;
     }
 
+    if (shallDetectScale) {
+      if (--shallDetectScale<1) {
+        if (settings.dpiScale<0.5f) {
+          applyUISettings();
+        }
+      }
+    }
+
     if (fontsFailed) {
       showError("it appears I couldn't load these fonts. any setting you can check?");
       logE("couldn't load fonts");
@@ -6889,6 +6925,8 @@ FurnaceGUI::FurnaceGUI():
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
   mobileEditPage(0),
+  wheelCalmDown(0),
+  shallDetectScale(0),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   mobileEditAnim(0.0f),
@@ -6899,6 +6937,11 @@ FurnaceGUI::FurnaceGUI():
   fmPreviewOn(false),
   fmPreviewPaused(false),
   fmPreviewOPN(NULL),
+  fmPreviewOPM(NULL),
+  fmPreviewOPL(NULL),
+  fmPreviewOPLL(NULL),
+  fmPreviewOPZ(NULL),
+  fmPreviewOPZInterface(NULL),
   editString(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),

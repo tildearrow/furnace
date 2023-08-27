@@ -1,6 +1,16 @@
 # instrument editor
 
-every instrument can be renamed and have its type changed.
+the instrument editor always starts with this section:
+
+![top of instrument editor](instrument-editor-top.png)
+
+- top-left numeric dropdown: instrument selector.
+- folder icon: open an instrument file.
+- save icon: save current instrument as a file.
+  - right-clicking gives the option to save a .dmp format DefleMask preset.
+- **Name**: instrument name.
+- **Type**: the system for which the instrument is intended.
+  - if changed, all applicable settings and macros will remain as they are. numbers will not be adjusted.
 
 depending on the instrument type, there are many different types of instrument editor:
 

@@ -359,6 +359,10 @@ DivMacroInt* DivPlatformYMZ280B::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformYMZ280B::getPan(int ch) {
+  return parent->convertPanLinearToSplit(chan[ch].panning,8,15);
+}
+
 DivDispatchOscBuffer* DivPlatformYMZ280B::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

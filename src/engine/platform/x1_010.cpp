@@ -863,6 +863,11 @@ DivMacroInt* DivPlatformX1_010::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformX1_010::getPan(int ch) {
+  if (!stereo) return 0;
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
 DivDispatchOscBuffer* DivPlatformX1_010::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

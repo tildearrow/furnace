@@ -156,6 +156,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
         }
       }
       rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
+      lastExtChPan=opChan[ch].pan;
       break;
     }
     case DIV_CMD_PITCH: {
@@ -549,7 +550,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
       rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
     }
     if (m.tl.had) {
-      op.tl=127-m.tl.val;
+      op.tl=m.tl.val;
       if (isOpMuted[i]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
@@ -750,6 +751,18 @@ DivMacroInt* DivPlatformYM2608Ext::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformYM2608Ext::getPan(int ch) {
+  if (ch>=4+extChanOffs) return DivPlatformYM2608::getPan(ch-3);
+  if (ch>=extChanOffs) {
+    if (extMode) {
+      return ((lastExtChPan&2)<<7)|(lastExtChPan&1);
+    } else {
+      return DivPlatformYM2608::getPan(extChanOffs);
+    }
+  }
+  return DivPlatformYM2608::getPan(ch);
+}
+
 DivDispatchOscBuffer* DivPlatformYM2608Ext::getOscBuffer(int ch) {
   if (ch>=6) return oscBuf[ch-3];
   if (ch<3) return oscBuf[ch];
@@ -766,7 +779,9 @@ void DivPlatformYM2608Ext::reset() {
     opChan[i].outVol=127;
   }
 
-  // channel 2 mode
+  lastExtChPan=3;
+
+  // channel 3 mode
   immWrite(0x27,0x40);
   extMode=true;
 }

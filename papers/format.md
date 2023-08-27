@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 169: Furnace 0.6pre9
 - 166: Furnace 0.6pre8
 - 162: Furnace 0.6pre7
 - 161: Furnace 0.6pre6
@@ -348,7 +349,8 @@ size | description
  --- | **a couple more compat flags** (>=138)
   1  | broken portamento during legato
   1  | broken macro during note off in some FM chips (>=155)
-  6  | reserved
+  1  | pre note (C64) does not compensate for portamento or legato (>=168)
+  5  | reserved
  --- | **speed pattern of first song** (>=139)
   1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)

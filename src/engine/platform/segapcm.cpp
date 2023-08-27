@@ -394,6 +394,10 @@ DivMacroInt* DivPlatformSegaPCM::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformSegaPCM::getPan(int ch) {
+  return (chan[ch].chPanL<<8)|chan[ch].chPanR;
+}
+
 DivSamplePos DivPlatformSegaPCM::getSamplePos(int ch) {
   if (ch>=16) return DivSamplePos();
   if (chan[ch].pcm.sample<0 || chan[ch].pcm.sample>=parent->song.sampleLen) return DivSamplePos();

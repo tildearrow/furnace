@@ -322,6 +322,10 @@ DivMacroInt* DivPlatformRF5C68::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformRF5C68::getPan(int ch) {
+  return ((chan[ch].panning&15)<<8)|((chan[ch].panning&0xf0)>>4);
+}
+
 DivDispatchOscBuffer* DivPlatformRF5C68::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

@@ -370,6 +370,10 @@ DivMacroInt* DivPlatformK053260::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformK053260::getPan(int ch) {
+  return parent->convertPanLinearToSplit(chan[ch].panning,8,7);
+}
+
 DivDispatchOscBuffer* DivPlatformK053260::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

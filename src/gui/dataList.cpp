@@ -105,8 +105,10 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   bool insPressed=ImGui::IsItemActivated();
   if (insReleased || (!insListDir && insPressed)) {
     curIns=i;
-    wavePreviewInit=true;
-    updateFMPreview=true;
+    if (!insReleased || insListDir) {
+      wavePreviewInit=true;
+      updateFMPreview=true;
+    }
     lastAssetType=0;
     if (settings.insFocusesPattern && patternOpen)
       nextWindow=GUI_WINDOW_PATTERN;
@@ -892,14 +894,10 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Preview");
+      ImGui::SetTooltip("Preview (right click to stop)");
     }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSampleL")) {
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
       doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Stop preview");
     }
     ImGui::SameLine();
     pushDestColor();

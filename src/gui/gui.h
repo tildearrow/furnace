@@ -1351,6 +1351,8 @@ class FurnaceGUI {
   int waveEditStyle;
   int displayInsTypeListMakeInsSample;
   int mobileEditPage;
+  int wheelCalmDown;
+  int shallDetectScale;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;
@@ -1358,6 +1360,11 @@ class FurnaceGUI {
   short fmPreview[FM_PREVIEW_SIZE];
   bool updateFMPreview, fmPreviewOn, fmPreviewPaused;
   void* fmPreviewOPN;
+  void* fmPreviewOPM;
+  void* fmPreviewOPL;
+  void* fmPreviewOPLL;
+  void* fmPreviewOPZ;
+  void* fmPreviewOPZInterface;
   String* editString;
 
   String pendingRawSample;
@@ -2145,9 +2152,14 @@ class FurnaceGUI {
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
   bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
-  void kvsConfig(DivInstrument* ins);
+  void kvsConfig(DivInstrument* ins, bool supportsKVS=true);
   void drawFMPreview(const ImVec2& size);
-  void renderFMPreview(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreview(const DivInstrument* ins, int pos=0);
+  void renderFMPreviewOPN(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreviewOPM(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreviewOPLL(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreviewOPL(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreviewOPZ(const DivInstrumentFM& params, int pos=0);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
@@ -2343,6 +2355,7 @@ class FurnaceGUI {
   int loadStream(String path);
   void openRecentFile(String path);
   void pushRecentFile(String path);
+  void pushRecentSys(const char* path);
   void exportAudio(String path, DivAudioExportModes mode);
   void delFirstBackup(String name);
 

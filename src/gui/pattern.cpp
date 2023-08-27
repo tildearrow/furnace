@@ -437,7 +437,7 @@ void FurnaceGUI::drawPattern() {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+centerOff);
       }
     }
-    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|(settings.cursorFollowsWheel?ImGuiTableFlags_NoScrollWithMouse:0))) {
+    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
@@ -800,13 +800,14 @@ void FurnaceGUI::drawPattern() {
 
             if (e->isRunning()) {
               DivChannelState* cs=e->getChanState(i);
-              float stereoPan=(float)(e->convertPanSplitToLinearLR(cs->panL,cs->panR,256)-128)/128.0;
+              unsigned short chanPan=e->getChanPan(i);
+              float stereoPan=(float)(e->convertPanSplitToLinear(chanPan,8,256)-128)/128.0;
               switch (settings.channelVolStyle) {
                 case 1: // simple
-                  xRight=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.9+(keyHit1[i]*0.1f);
+                  xRight=((float)(cs->volume>>8)/(float)e->getMaxVolumeChan(i))*0.9+(keyHit1[i]*0.1f);
                   break;
                 case 2: { // stereo
-                  float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
+                  float amount=((float)(cs->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
                   xRight=0.5+amount*(1.0+MIN(0.0,stereoPan));
                   xLeft=0.5-amount*(1.0-MAX(0.0,stereoPan));
                   break;
@@ -955,8 +956,8 @@ void FurnaceGUI::drawPattern() {
       }
 
       // overflow changes order
-      // TODO: this is very unreliable and sometimes it can warp you out of the song
-      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && !settings.cursorFollowsWheel) {
+      if (--wheelCalmDown<0) wheelCalmDown=0;
+      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && !settings.cursorFollowsWheel && !wheelCalmDown) {
         if (wheelY!=0) {
           if (wheelY>0) {
             if (ImGui::GetScrollY()<=0) {
@@ -965,10 +966,12 @@ void FurnaceGUI::drawPattern() {
                   setOrder(curOrder-1);
                   ImGui::SetScrollY(ImGui::GetScrollMaxY());
                   updateScroll(e->curSubSong->patLen);
+                  wheelCalmDown=2;
                 } else if (settings.scrollChangesOrder==2) {
                   setOrder(e->curSubSong->ordersLen-1);
                   ImGui::SetScrollY(ImGui::GetScrollMaxY());
                   updateScroll(e->curSubSong->patLen);
+                  wheelCalmDown=2;
                 }
                 haveHitBounds=false;
               } else {
@@ -984,10 +987,12 @@ void FurnaceGUI::drawPattern() {
                   setOrder(curOrder+1);
                   ImGui::SetScrollY(0);
                   updateScroll(0);
+                  wheelCalmDown=2;
                 } else if (settings.scrollChangesOrder==2) {
                   setOrder(0);
                   ImGui::SetScrollY(0);
                   updateScroll(0);
+                  wheelCalmDown=2;
                 }
                 haveHitBounds=false;
               } else {

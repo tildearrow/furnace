@@ -127,6 +127,7 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
   ac.callback=taSDLProcess;
   ac.userdata=this;
 
+  logV("opening audio device...");
   ai=SDL_OpenAudioDevice(request.deviceName.empty()?NULL:request.deviceName.c_str(),0,&ac,&ar,0);
   if (ai==0) {
     logE("could not open audio device: %s",SDL_GetError());
@@ -146,6 +147,8 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
   desc.outChans=ar.channels;
   desc.bufsize=ar.samples;
   desc.fragments=1;
+
+  logV("got info: %d channels, %d bufsize",desc.outChans,desc.bufsize);
 
   if (desc.outChans>0) {
     outBufs=new float*[desc.outChans];

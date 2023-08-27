@@ -78,6 +78,7 @@ class DivPlatformPCMDAC: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
