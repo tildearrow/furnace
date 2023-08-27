@@ -46,7 +46,7 @@ if you need to use more samples, you may change the sample bank using effect `EB
 
 due to limitations in some of those sound chips, some restrictions exist:
 
-- Amiga: maximum frequency is 31,469Hz, but anything over 28,867 will sound glitchy on hardware. sample lengths and loop will be set to an even number, and your sample can't be longer than 131070.
+- Amiga: maximum frequency is 31469Hz, but anything over 28867 will sound glitchy on hardware. sample lengths and loop will be set to an even number, and your sample can't be longer than 131070.
 - NES: if on DPCM mode, only a limited selection of frequencies is available, and loop position isn't supported (only entire sample).
 - SegaPCM: your sample can't be longer than 65535, and the maximum frequency is 31.25KHz.
 - QSound: your sample can't be longer than 65535, and the loop length shall not be greater than 32767.
@@ -75,11 +75,16 @@ in there, you can modify certain data pertaining to your sample, such as the:
 
 - top-left drop-down box: sample slot.
 - **Open**: replaces current sample.
+  - Right-clicking brings up a menu:
+    - **import raw...**: brings up a file selector, then presents a dialog to choose the format of the selected file.
 - **Save**: saves current sample to disk.
+  - Right-clicking brings up a menu:
+    - **save raw...**: brings up a file selector, then saves the sample as raw data.
 - **Name**: name in sample list.
 - button to left of **Info**: collapses and expands the info bar.
 - **Type**: sample format. only 8-bit and 16-bit PCM samples are editable. selecting a format converts the sample data.
-- **BRR emphasis**: boosts higher frequencies to compensate for the SNES low-pass filter. should not be enabled for BRR-type samples.
+- **BRR emphasis**: boosts higher frequencies to compensate for the SNES low-pass filter. should not be enabled for BRR-type samples. only appears when applicable.
+- **8-bit dither**: applies dithering to samples meant to play back at 8-bit resolution. only appears when applicable.
 
 - **Rate**: switches to normal rate values.
 - **Compat Rate**: switches to DefleMask-compatible rate values for sample mapping.
