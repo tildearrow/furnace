@@ -137,7 +137,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 
 # edit
 
-- **...**: does nothing except prevent accidental clicks on later menu items.
+- **...**: does nothing except prevent accidental clicks on later menu items if the menu is too tall to fit on the program window.
 
 - **undo**: reverts the last action.
 - **redo**: repeats what you undid previously.

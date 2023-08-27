@@ -3,7 +3,7 @@
 ![instruments window](instruments.png)
 
 Buttons from left to right:
-- **Add**: pops up a menu to select which type of instrument to add.
+- **Add**: pops up a menu to select which type of instrument to add. if only one instrument type is available, the menu is skipped.
   - If the "Display instrument type menu when adding instrument" setting is disabled, this skips the menu and creates an instrument according to the chip under the cursor.
   - Right-clicking always brings up the menu.
 - **Duplicate**: Duplicates the currently selected instrument.
