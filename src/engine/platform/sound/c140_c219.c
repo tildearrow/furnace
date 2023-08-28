@@ -175,8 +175,8 @@ void c219_voice_tick(struct c219_t *c219, const unsigned char v, const int cycle
 				signed short s2 = c219->sample_mem[((unsigned int)(c219->bank[(v >> 2) & 3]) << 17) | ((voice->addr + 1) & 0x1ffff)];
 				if (voice->compressed)
 				{
-					s1 = c219->mulaw[s1];
-					s2 = c219->mulaw[s2];
+					s1 = c219->mulaw[s1&0xff];
+					s2 = c219->mulaw[s2&0xff];
 				}
 				else
 				{
