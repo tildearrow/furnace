@@ -1897,7 +1897,8 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
     {
-      {0x10, {DIV_CMD_STD_NOISE_MODE, "10xx: Set noise/invert mode (bit 0: noise; bit 1: invert left output; bit 2: invert output)"}}
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set noise mode"}},
+      {0x12, {DIV_CMD_SNES_INVERT, "12xy: Set invert mode (x: surround; y: invert)"}},
     }
   );
 

@@ -150,6 +150,15 @@ void DivPlatformC140::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (is219) {
+      if (chan[i].std.duty.had) {
+        chan[i].noise=chan[i].std.duty.val&1;
+        chan[i].invert=chan[i].std.duty.val&2;
+        chan[i].surround=chan[i].std.duty.val&4;
+        chan[i].freqChanged=true;
+        chan[i].writeCtrl=true;
+      }
+    }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
@@ -193,7 +202,6 @@ void DivPlatformC140::tick(bool sysTick) {
       chan[i].audPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      bool writeCtrl=false;
       DivSample* s=parent->getSample(chan[i].sample);
       unsigned char ctrl=0;
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
@@ -264,11 +272,11 @@ void DivPlatformC140::tick(bool sysTick) {
           chan[i].volChangedL=true;
           chan[i].volChangedR=true;
         }
-        writeCtrl=true;
+        chan[i].writeCtrl=true;
         chan[i].keyOn=false;
       }
       if (chan[i].keyOff) {
-        writeCtrl=true;
+        chan[i].writeCtrl=true;
         chan[i].keyOff=false;
       }
       if (chan[i].freqChanged) {
@@ -276,8 +284,9 @@ void DivPlatformC140::tick(bool sysTick) {
         rWrite(0x03+(i<<4),chan[i].freq&0xff);
         chan[i].freqChanged=false;
       }
-      if (writeCtrl) {
+      if (chan[i].writeCtrl) {
         rWrite(0x05+(i<<4),ctrl);
+        chan[i].writeCtrl=false;
       }
     }
   }
@@ -341,6 +350,17 @@ int DivPlatformC140::dispatch(DivCommand c) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
+      break;
+    case DIV_CMD_STD_NOISE_MODE:
+      if (!is219) break;
+      chan[c.chan].noise=c.value;
+      chan[c.chan].writeCtrl=true;
+      break;
+    case DIV_CMD_SNES_INVERT:
+      if (!is219) break;
+      chan[c.chan].invert=c.value&15;
+      chan[c.chan].surround=c.value>>4;
+      chan[c.chan].writeCtrl=true;
       break;
     case DIV_CMD_PANNING:
       chan[c.chan].chPanL=c.value;
