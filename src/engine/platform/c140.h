@@ -55,6 +55,7 @@ class DivPlatformC140: public DivDispatch {
   bool sampleLoaded[256];
   bool is219;
   int totalChans;
+  unsigned char groupBank[4];
 
   unsigned char* sampleMem;
   size_t sampleMemLen;

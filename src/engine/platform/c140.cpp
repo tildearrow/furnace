@@ -193,10 +193,9 @@ void DivPlatformC140::tick(bool sysTick) {
         unsigned int end=0;
         if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
           if (is219) {
-            bank=(sampleOff[chan[i].sample]>>16)&0xff;
+            bank=(sampleOff[chan[i].sample]>>16)&3;
             start=sampleOff[chan[i].sample]&0xffff;
             end=MIN(start+(s->length8>>1)-1,65535);
-            logV("sampleOff[%d]=%d",chan[i].sample,sampleOff[chan[i].sample]);
           } else {
             bank=(sampleOff[chan[i].sample]>>16)&0xff;
             start=sampleOff[chan[i].sample]&0xffff;
@@ -217,8 +216,10 @@ void DivPlatformC140::tick(bool sysTick) {
         }
         rWrite(0x05+(i<<4),0); // force keyoff first
         if (is219) {
-          // TODO; group banking 
-
+          if (groupBank[i>>2]!=bank) {
+            groupBank[i>>2]=bank;
+          }
+          rWrite(0x1f1+(((3+(i>>2))&3)<<1),groupBank[i>>2]);
         } else {
           rWrite(0x04+(i<<4),bank);
         }
@@ -426,6 +427,9 @@ void DivPlatformC140::reset() {
     chan[i]=DivPlatformC140::Channel();
     chan[i].std.setEngine(parent);
     rWrite(0x05+(i<<4),0);
+  }
+  for (int i=0; i<4; i++) {
+    groupBank[i]=0;
   }
 }
 
