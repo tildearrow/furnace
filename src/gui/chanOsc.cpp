@@ -149,6 +149,7 @@ void FurnaceGUI::drawChanOsc() {
           if (chanOscWindowSize>50.0f) chanOscWindowSize=50.0f;
         }
 
+        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Automatic columns");
