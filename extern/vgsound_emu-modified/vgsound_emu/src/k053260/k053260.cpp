@@ -83,7 +83,7 @@ void k053260_core::voice_t::tick(u32 cycle)
 		}
 
 		// calculate output
-		s32 output = (m_adpcm ? m_output : sign_ext<s32>(m_data, 8)) * s32(m_volume);
+		s32 output = (m_adpcm ? m_output : sign_ext_nomax<s32>(m_data, 8)) * s32(m_volume);
 		// use math for now; actually fomula unknown
 		m_out[0] = (output * m_host.pan_lut(m_pan, 0)) >> 7;
 		m_out[1] = (output * m_host.pan_lut(m_pan, 1)) >> 7;
