@@ -1173,7 +1173,7 @@ void DivEngine::nextRow() {
   }
 
   // new loop detection routine
-  if (!endOfSong && walked[((curOrder<<5)+(curRow>>3))&8191]&(1<<(curRow&7))) {
+  if (!endOfSong && walked[((curOrder<<5)+(curRow>>3))&8191]&(1<<(curRow&7)) && !shallStopSched) {
     logV("loop reached");
     endOfSong=true;
     memset(walked,0,8192);
