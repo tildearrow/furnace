@@ -199,7 +199,7 @@ const char* aboutLine[]={
   "vgsound_emu (second version, modified version) by cam900",
   "SM8521 emulator (modified version) by cam900",
   "D65010G031 emulator (modified version) by cam900",
-  "Namco C140 (modified version) emulator by cam900",
+  "Namco C140/C219 emulator (modified version) by cam900",
   "",
   "greetings to:",
   "NEOART Costa Rica",
