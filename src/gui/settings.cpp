@@ -738,9 +738,9 @@ void FurnaceGUI::drawSettings() {
           }
 #endif
 
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
           if (settings.audioEngine==DIV_AUDIO_SDL) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Driver");
             ImGui::TableNextColumn();
