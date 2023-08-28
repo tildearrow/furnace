@@ -3861,7 +3861,7 @@ void FurnaceGUI::resetColors() {
 }
 
 void FurnaceGUI::resetKeybinds() {
-  for (int i=0; i<GUI_COLOR_MAX; i++) {
+  for (int i=0; i<GUI_ACTION_MAX; i++) {
     if (guiActions[i].defaultBind==-1) continue;
     actionKeys[i]=guiActions[i].defaultBind;
   }
