@@ -639,10 +639,26 @@ void DivPlatformC140::set219(bool is_219) {
   totalChans=is219?16:24;
 }
 
+int DivPlatformC140::getClockRangeMin() {
+  if (is219) return 1000000;
+  return MIN_CUSTOM_CLOCK;
+}
+
+int DivPlatformC140::getClockRangeMax() {
+  if (is219) return 100000000;
+  return MAX_CUSTOM_CLOCK;
+}
+
 void DivPlatformC140::setFlags(const DivConfig& flags) {
-  chipClock=32000*256; // 8.192MHz and 12.288MHz input, verified from Assault Schematics
-  CHECK_CUSTOM_CLOCK;
-  rate=chipClock/192;
+  if (is219) {
+    chipClock=50113000; // 50.113MHz clock input in Namco NA-1/NA-2 PCB
+    CHECK_CUSTOM_CLOCK;
+    rate=chipClock/1136; // assumed as ~44100hz
+  } else {
+    chipClock=32000*256; // 8.192MHz and 12.288MHz input, verified from Assault Schematics
+    CHECK_CUSTOM_CLOCK;
+    rate=chipClock/192;
+  }
   for (int i=0; i<totalChans; i++) {
     oscBuf[i]->rate=rate;
   }

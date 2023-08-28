@@ -2099,6 +2099,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_PV1000:
     case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_C140:
+    case DIV_SYSTEM_C219:
       break;
     case DIV_SYSTEM_YMU759:
       supportsCustomRate=false;

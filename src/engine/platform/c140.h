@@ -106,6 +106,8 @@ class DivPlatformC140: public DivDispatch {
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
     void renderSamples(int chipID);
+    int getClockRangeMin();
+    int getClockRangeMax();
     void set219(bool is_219);
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
