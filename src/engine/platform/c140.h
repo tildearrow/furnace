@@ -28,7 +28,7 @@ class DivPlatformC140: public DivDispatch {
   struct Channel: public SharedChannel<int> {
     unsigned int audPos;
     int sample, wave;
-    bool setPos, volChangedL, volChangedR;
+    bool setPos, invert, surround, noise, volChangedL, volChangedR;
     int chPanL, chPanR;
     int chVolL, chVolR;
     int macroVolMul;
@@ -39,6 +39,9 @@ class DivPlatformC140: public DivDispatch {
       sample(-1),
       wave(-1),
       setPos(false),
+      invert(false),
+      surround(false),
+      noise(false),
       volChangedL(false),
       volChangedR(false),
       chPanL(255),

@@ -45,8 +45,27 @@ const char* regCheatSheetC140[]={
   NULL
 };
 
+const char* regCheatSheetC219[]={
+  "CHx_RVol", "00+x*10",
+  "CHx_LVol", "01+x*10",
+  "CHx_FreqH", "02+x*10",
+  "CHx_FreqL", "03+x*10",
+  "CHx_Ctrl", "05+x*10",
+  "CHx_StartH", "06+x*10",
+  "CHx_StartL", "07+x*10",
+  "CHx_EndH", "08+x*10",
+  "CHx_EndL", "09+x*10",
+  "CHx_LoopH", "0A+x*10",
+  "CHx_LoopL", "0B+x*10",
+  "BankA", "1F7",
+  "BankB", "1F1",
+  "BankC", "1F3",
+  "BankD", "1F5",
+  NULL
+};
+
 const char** DivPlatformC140::getRegisterSheet() {
-  return regCheatSheetC140;
+  return is219?regCheatSheetC219:regCheatSheetC140;
 }
 
 void DivPlatformC140::acquire_219(short** buf, size_t len) {
@@ -182,7 +201,7 @@ void DivPlatformC140::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (is219) {
-        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?1:0);
+        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?1:0)|(chan[i].invert?0x40:0)|(chan[i].surround?8:0)|(chan[i].noise?4:0);
       } else {
         ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?0x08:0);
       }
@@ -481,7 +500,7 @@ const void* DivPlatformC140::getSampleMem(int index) {
 }
 
 size_t DivPlatformC140::getSampleMemCapacity(int index) {
-  return index == 0 ? 16777216 : 0;
+  return index == 0 ? (is219?524288:16777216) : 0;
 }
 
 size_t DivPlatformC140::getSampleMemUsage(int index) {
