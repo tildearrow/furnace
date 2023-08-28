@@ -113,7 +113,7 @@ This tab appears for PC Engine, FDS, Namco WSG, and other wavetable-based instru
 
 ![wavetable tab](wavetable.png)
 
-When **Enable synthesizer** is off, the only option is to select a wavetable entry with the text entry box beneath the **Wave 1** preview.
+When **Enable synthesizer** is off, the wavetable used for the instrument may be selected by creating a Waveform macro with a single value.
 
 To use the wavetable synthesizer, refer to the bottom part of [the wavetable documentation](../5-wave/README.md).
 
