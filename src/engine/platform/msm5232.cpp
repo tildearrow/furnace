@@ -20,9 +20,9 @@
 #define _USE_MATH_DEFINES
 #include "msm5232.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
-//#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define NOTE_LINEAR(x) ((x)<<7)
@@ -49,6 +49,7 @@ void DivPlatformMSM5232::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
+      logV("%.2x = %.2x\n",w.addr,w.val);
       msm->write(w.addr,w.val);
       regPool[w.addr&0x0f]=w.val;
       writes.pop();
@@ -125,6 +126,10 @@ void DivPlatformMSM5232::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     if (updateGroup[i]) {
       rWrite(12+i,groupControl[i]);
+      // do not retrigger inactive channels
+      for (int j=i<<2; j<(i+1)<<2; j++) {
+        if (!chan[j].active) rWrite(j,0);
+      }
       updateGroup[i]=false;
     }
     if (updateGroupAR[i]) {
