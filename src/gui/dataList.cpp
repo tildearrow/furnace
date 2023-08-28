@@ -504,6 +504,18 @@ void FurnaceGUI::drawInsList(bool asChild) {
         ImGui::SetTooltip("New folder");
       }
     }
+    if (lastAssetType==2) {
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSampleL")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Preview (right click to stop)");
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
+      }
+    }
     ImGui::SameLine();
     pushDestColor();
     if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
