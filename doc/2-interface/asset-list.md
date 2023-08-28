@@ -43,6 +43,6 @@ Everything from the instrument list applies here also, with one major difference
 
 ![samples window](samples.png)
 
-Everything from the wavetables list applies here also, with the addition of two buttons before the Delete button:
+Everything from the wavetables list applies here also, with the addition of one button before the Delete button:
 - **Preview**: Plays the selected sample at its default note.
-- **Stop preview**: Stops the sample playback.
+  - Right-clicking stops the sample playback.
