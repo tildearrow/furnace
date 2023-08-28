@@ -145,7 +145,7 @@ void es5504_core::voice_t::tick(u8 voice)
 	if (m_alu.busy())
 	{
 		// Send to output
-		m_out = ((sign_ext<s32>(m_filter.o4_1(), 16) >> 3) * m_volume) >>
+		m_out = ((sign_ext_nomax<s32>(m_filter.o4_1(), 16) >> 3) * m_volume) >>
 				12;	 // Analog multiplied in real chip, 13/12 bit ladder DAC
 
 		// ALU execute
@@ -386,22 +386,22 @@ void es5504_core::regs_w(u8 page, u8 address, u16 data, bool cpu_access)
 				switch (address)
 				{
 					case 1:	 // O4(n-1) (Filter 4 Temp Register)
-						v.filter().set_o4_1(sign_ext<s32>(data, 16));
+						v.filter().set_o4_1(sign_ext_nomax<s32>(data, 16));
 						break;
 					case 2:	 // O3(n-2) (Filter 3 Temp Register #2)
-						v.filter().set_o3_2(sign_ext<s32>(data, 16));
+						v.filter().set_o3_2(sign_ext_nomax<s32>(data, 16));
 						break;
 					case 3:	 // O3(n-1) (Filter 3 Temp Register #1)
-						v.filter().set_o3_1(sign_ext<s32>(data, 16));
+						v.filter().set_o3_1(sign_ext_nomax<s32>(data, 16));
 						break;
 					case 4:	 // O2(n-2) (Filter 2 Temp Register #2)
-						v.filter().set_o2_2(sign_ext<s32>(data, 16));
+						v.filter().set_o2_2(sign_ext_nomax<s32>(data, 16));
 						break;
 					case 5:	 // O2(n-1) (Filter 2 Temp Register #1)
-						v.filter().set_o2_1(sign_ext<s32>(data, 16));
+						v.filter().set_o2_1(sign_ext_nomax<s32>(data, 16));
 						break;
 					case 6:	 // O1(n-1) (Filter 1 Temp Register)
-						v.filter().set_o1_1(sign_ext<s32>(data, 16));
+						v.filter().set_o1_1(sign_ext_nomax<s32>(data, 16));
 						break;
 				}
 			}

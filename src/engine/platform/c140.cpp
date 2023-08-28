@@ -239,6 +239,17 @@ void DivPlatformC140::tick(bool sysTick) {
             groupBank[i>>2]=bank;
           }
           rWrite(0x1f1+(((3+(i>>2))&3)<<1),groupBank[i>>2]);
+          // shut everyone else up
+          for (int j=0; j<4; j++) {
+            int ch=(i&(~3))|j;
+            if (chan[ch].active && (i&3)!=j) {
+              chan[ch].sample=-1;
+              chan[ch].active=false;
+              chan[ch].keyOff=true;
+              chan[ch].macroInit(NULL);
+              rWrite(0x05+(ch<<4),ctrl);
+            }
+          }
         } else {
           rWrite(0x04+(i<<4),bank);
         }
