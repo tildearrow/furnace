@@ -6361,11 +6361,7 @@ bool FurnaceGUI::init() {
   const FurnaceGUIImage* furIcon=getImage(GUI_IMAGE_ICON);
   SDL_Surface* icon=NULL;
   if (furIcon!=NULL) {
-#ifdef TA_BIG_ENDIAN
-    icon=SDL_CreateRGBSurfaceFrom(furIcon->data,furIcon->width,furIcon->height,32,256*4,0xff000000,0xff0000,0xff00,0xff);
-#else
     icon=SDL_CreateRGBSurfaceFrom(furIcon->data,furIcon->width,furIcon->height,32,256*4,0xff,0xff00,0xff0000,0xff000000);
-#endif
   } else {
     logE("furIcon is NULL!");
   }
