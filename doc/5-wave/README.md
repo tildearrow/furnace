@@ -87,6 +87,7 @@ these are useful editing tools to fine-tune the waveform:
 - **Amplify**. changes the volume of the waveform. it will clip at the top and bottom.
 - **Normalize**: stretches waveform to maximum within the wavetable height.
 - **Invert**: flips waveform vertically.
+- **Reverse**: flips waveform horizontally.
 - **Half**: halves the waveform's frequency by stretching its first half to fill the waveform length.
 - **Double**: doubles the waveform's frequency by squashing it to half length then repeating it.
 - **Convert Signed/Unsigned**. worth trying if an imported wave sounds corrupted.
@@ -110,6 +111,7 @@ input waveforms should match the size of the wavetable or unexpected results may
 - synthesizer type: selects the synthesis algorithm.
 - waveform displays.
 - **Wave 1**: selects input waveform.
+  - this will turn yellow to indicate that a Waveform macro is set; remove the macro to work with the synthesizer.
 - **Wave 2**: selects second input waveform. only appears when a dual-waveform synthesizer is selected.
 - **Pause preview**: toggles live waveform preview.
 - **Restart preview**: restarts preview from initial state.
