@@ -4169,70 +4169,76 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         ImGui::Separator();
-        if (ImGui::BeginMenu("add chip...")) {
-          exitDisabledTimer=1;
-          DivSystem picked=systemPicker();
-          if (picked!=DIV_SYSTEM_NULL) {
-            if (!e->addSystem(picked)) {
-              showError("cannot add chip! ("+e->getLastError()+")");
-            } else {
-              MARK_MODIFIED;
-            }
-            ImGui::CloseCurrentPopup();
-            if (e->song.autoSystem) {
-              autoDetectSystem();
-            }
-            updateWindowTitle();
+        if (!settings.classicChipOptions) {
+          if (ImGui::MenuItem("manage chips")) {
+            nextWindow=GUI_WINDOW_SYS_MANAGER;
           }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("configure chip...")) {
-          exitDisabledTimer=1;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true,true);
-              ImGui::TreePop();
-            }
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("change chip...")) {
-          exitDisabledTimer=1;
-          ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              DivSystem picked=systemPicker();
-              if (picked!=DIV_SYSTEM_NULL) {
-                e->changeSystem(i,picked,preserveChanPos);
-                MARK_MODIFIED;
-                if (e->song.autoSystem) {
-                  autoDetectSystem();
-                }
-                updateWindowTitle();
-                ImGui::CloseCurrentPopup();
-              }
-              ImGui::EndMenu();
-            }
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("remove chip...")) {
-          exitDisabledTimer=1;
-          ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              if (!e->removeSystem(i,preserveChanPos)) {
-                showError("cannot remove chip! ("+e->getLastError()+")");
+        } else {
+          if (ImGui::BeginMenu("add chip...")) {
+            exitDisabledTimer=1;
+            DivSystem picked=systemPicker();
+            if (picked!=DIV_SYSTEM_NULL) {
+              if (!e->addSystem(picked)) {
+                showError("cannot add chip! ("+e->getLastError()+")");
               } else {
                 MARK_MODIFIED;
               }
+              ImGui::CloseCurrentPopup();
               if (e->song.autoSystem) {
                 autoDetectSystem();
-                updateWindowTitle();
+              }
+              updateWindowTitle();
+            }
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("configure chip...")) {
+            exitDisabledTimer=1;
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true,true);
+                ImGui::TreePop();
               }
             }
+            ImGui::EndMenu();
           }
-          ImGui::EndMenu();
+          if (ImGui::BeginMenu("change chip...")) {
+            exitDisabledTimer=1;
+            ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                DivSystem picked=systemPicker();
+                if (picked!=DIV_SYSTEM_NULL) {
+                  e->changeSystem(i,picked,preserveChanPos);
+                  MARK_MODIFIED;
+                  if (e->song.autoSystem) {
+                    autoDetectSystem();
+                  }
+                  updateWindowTitle();
+                  ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndMenu();
+              }
+            }
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("remove chip...")) {
+            exitDisabledTimer=1;
+            ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                if (!e->removeSystem(i,preserveChanPos)) {
+                  showError("cannot remove chip! ("+e->getLastError()+")");
+                } else {
+                  MARK_MODIFIED;
+                }
+                if (e->song.autoSystem) {
+                  autoDetectSystem();
+                  updateWindowTitle();
+                }
+              }
+            }
+            ImGui::EndMenu();
+          }
         }
         ImGui::BeginDisabled(exitDisabledTimer);
         ImGui::Separator();

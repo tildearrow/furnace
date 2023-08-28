@@ -2199,6 +2199,11 @@ void FurnaceGUI::drawSettings() {
           settings.capitalMenuBar=capitalMenuBarB;
         }
 
+        bool classicChipOptionsB=settings.classicChipOptions;
+        if (ImGui::Checkbox("Display add/configure/change/remove chip menus in File menu",&classicChipOptionsB)) {
+          settings.classicChipOptions=classicChipOptionsB;
+        }
+
         // SUBSECTION ORDERS
         CONFIG_SUBSECTION("Orders");
         // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
@@ -3191,6 +3196,7 @@ void FurnaceGUI::syncSettings() {
   settings.capitalMenuBar=e->getConfInt("capitalMenuBar",0);
   settings.centerPopup=e->getConfInt("centerPopup",1);
   settings.insIconsStyle=e->getConfInt("insIconsStyle",1);
+  settings.classicChipOptions=e->getConfInt("classicChipOptions",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3337,6 +3343,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.capitalMenuBar,0,1);
   clampSetting(settings.centerPopup,0,1);
   clampSetting(settings.insIconsStyle,0,2);
+  clampSetting(settings.classicChipOptions,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3590,6 +3597,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("capitalMenuBar",settings.capitalMenuBar);
   e->setConf("centerPopup",settings.centerPopup);
   e->setConf("insIconsStyle",settings.insIconsStyle);
+  e->setConf("classicChipOptions",settings.classicChipOptions);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
