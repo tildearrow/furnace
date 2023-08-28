@@ -6513,10 +6513,12 @@ bool FurnaceGUI::init() {
     logW("could not list render drivers! %s",SDL_GetError());
   } else {
     SDL_RendererInfo ri;
+    logV("available render drivers:");
     for (int i=0; i<numDrivers; i++) {
       int r=SDL_GetRenderDriverInfo(i,&ri);
       if (r!=0) continue;
       availRenderDrivers.push_back(String(ri.name));
+      logV("- %s",ri.name);
     }
   }
 
@@ -6526,6 +6528,7 @@ bool FurnaceGUI::init() {
 
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
+    logE("it failed...");
     if (settings.renderBackend!="SDL") {
       settings.renderBackend="SDL";
       e->setConf("renderBackend","SDL");
@@ -6542,6 +6545,7 @@ bool FurnaceGUI::init() {
     }
     return false;
   }
+  logV("render backend started");
 
   // try acquiring the canvas size
   if (!rend->getOutputSize(canvasW,canvasH)) {
