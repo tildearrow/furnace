@@ -128,7 +128,7 @@ void FurnaceGUI::drawChanOsc() {
     bool centerSettingReset=false;
     ImDrawList* dl=ImGui::GetWindowDrawList();
     if (chanOscOptions) {
-      if (ImGui::BeginTable("ChanOscSettings",3)) {
+      if (ImGui::BeginTable("ChanOscSettings",2)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
@@ -149,11 +149,7 @@ void FurnaceGUI::drawChanOsc() {
           if (chanOscWindowSize>50.0f) chanOscWindowSize=50.0f;
         }
 
-        ImGui::TableNextColumn();
-        if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
-          centerSettingReset=true;
-        }
-
+        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Automatic columns");
@@ -167,6 +163,11 @@ void FurnaceGUI::drawChanOsc() {
             if (isSelected) ImGui::SetItemDefaultFocus();
           }
           ImGui::EndCombo();
+        }
+
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
+          centerSettingReset=true;
         }
         ImGui::EndTable();
       }
