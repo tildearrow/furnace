@@ -51,7 +51,9 @@ void FurnaceGUI::drawChannels() {
         ImGui::PushID(i);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Checkbox("##Visible",&e->curSubSong->chanShow[i]);
+        if (ImGui::Checkbox("##Visible",&e->curSubSong->chanShow[i])) {
+          MARK_MODIFIED;
+        }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROWS)) {
         }
@@ -78,10 +80,14 @@ void FurnaceGUI::drawChannels() {
         }
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::InputTextWithHint("##ChanName",e->getChannelName(i),&e->curSubSong->chanName[i]);
+        if (ImGui::InputTextWithHint("##ChanName",e->getChannelName(i),&e->curSubSong->chanName[i])) {
+          MARK_MODIFIED;
+        }
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::InputTextWithHint("##ChanShortName",e->getChannelShortName(i),&e->curSubSong->chanShortName[i]);
+        if (ImGui::InputTextWithHint("##ChanShortName",e->getChannelShortName(i),&e->curSubSong->chanShortName[i])) {
+          MARK_MODIFIED;
+        }
         ImGui::PopID();
       }
       ImGui::EndTable();

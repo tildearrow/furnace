@@ -22,6 +22,22 @@
 #include "instrument.h"
 #include "../ta-log.h"
 
+inline bool effectOnlyAltersOutput(unsigned char effect) {
+  switch (effect) {
+    case DIV_WS_NONE:
+    case DIV_WS_INVERT:
+    case DIV_WS_ADD:
+    case DIV_WS_SUBTRACT:
+    case DIV_WS_AVERAGE:
+      return true;
+      break;
+    default:
+      return false;
+      break;
+  }
+  return false;
+}
+
 bool DivWaveSynth::activeChanged() {
   if (activeChangedB) {
     activeChangedB=false;
@@ -211,19 +227,21 @@ void DivWaveSynth::setWidth(int val) {
   if (width>256) width=256;
 }
 
-void DivWaveSynth::changeWave1(int num) {
+#define SHALL_UPDATE_OUT (!state.enabled || force || (state.enabled && effectOnlyAltersOutput(state.effect)))
+
+void DivWaveSynth::changeWave1(int num, bool force) {
   DivWavetable* w1=e->getWave(num);
   if (width<1) return;
   for (int i=0; i<width; i++) {
     if (w1->max<1 || w1->len<1) {
       wave1[i]=0;
-      output[i]=0;
+      if (SHALL_UPDATE_OUT) output[i]=0;
     } else {
       int data=w1->data[i*w1->len/width]*height/w1->max;
       if (data<0) data=0;
       if (data>height) data=height;
       wave1[i]=data;
-      output[i]=data;
+      if (SHALL_UPDATE_OUT) output[i]=data;
     }
   }
   first=true;
@@ -280,9 +298,9 @@ void DivWaveSynth::init(DivInstrument* which, int w, int h, bool insChanged) {
     divCounter=0;
     subDivCounter=0;
 
-    changeWave1(state.wave1);
+    changeWave1(state.wave1,true);
     changeWave2(state.wave2);
-    tick(true);
+    //tick(true); // ???
     first=true;
   }
 }

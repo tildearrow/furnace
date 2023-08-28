@@ -184,6 +184,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("behavior changed in 0.6pre5");
         }
+        ImGui::Checkbox("Pre-note does not take effects into consideration",&e->song.preNoteNoEffect);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6pre9");
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(".mod import")) {
@@ -314,7 +318,7 @@ void FurnaceGUI::drawCompatFlags() {
         }
         ImGui::Checkbox("Continuous vibrato",&e->song.continuousVibrato);
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("when enabled, vibrato will not be reset on a new note.");
+          ImGui::SetTooltip("when enabled, vibrato phase/position will not be reset on a new note.");
         }
         InvCheckbox("Pitch macro is not linear",&e->song.pitchMacroIsLinear);
         if (ImGui::IsItemHovered()) {

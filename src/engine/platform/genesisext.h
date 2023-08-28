@@ -34,6 +34,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
     void forceIns();

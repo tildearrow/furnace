@@ -68,7 +68,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
   bool sampleLoaded[256];
 
   int delay;
-  unsigned char lastLoop, lastVolume;
+  unsigned char lastLoop, lastVolume, oscDivider;
   bool stereo;
 
   unsigned char* sampleMem;
@@ -85,6 +85,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

@@ -61,7 +61,7 @@ class NFDWinEvents: public IFileDialogEvents {
       return ret;
     }
 
-    IFACEMETHODIMP OnFileOk(IFileDialog*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnFileOk(IFileDialog*) { return S_OK; }
     IFACEMETHODIMP OnFolderChange(IFileDialog*) { return E_NOTIMPL; }
     IFACEMETHODIMP OnFolderChanging(IFileDialog*, IShellItem*) { return E_NOTIMPL; }
     IFACEMETHODIMP OnOverwrite(IFileDialog*, IShellItem*, FDE_OVERWRITE_RESPONSE*) { return E_NOTIMPL; }
@@ -674,6 +674,21 @@ nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
     // Set the default path
     if ( !SetDefaultPath( fileSaveDialog, defaultPath ) )
     {
+        goto end;
+    }
+
+    // Set a flag for no history
+    DWORD dwFlags;
+    result = fileSaveDialog->GetOptions(&dwFlags);
+    if ( !SUCCEEDED(result) )
+    {
+        NFDi_SetError("Could not get options.");
+        goto end;
+    }
+    result = fileSaveDialog->SetOptions(dwFlags | FOS_DONTADDTORECENT);
+    if ( !SUCCEEDED(result) )
+    {
+        NFDi_SetError("Could not set options.");
         goto end;
     }
 

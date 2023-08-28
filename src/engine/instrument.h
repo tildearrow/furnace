@@ -84,6 +84,7 @@ enum DivInstrumentType: unsigned short {
   // DIV_INS_YMF292=51,
   DIV_INS_TED=52,
   DIV_INS_C140=53,
+  DIV_INS_C219=54,
   DIV_INS_MAX,
   DIV_INS_NULL
 };

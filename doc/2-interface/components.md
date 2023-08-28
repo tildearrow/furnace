@@ -1,6 +1,35 @@
 # UI components
 
-the user interface consists of several components. this paper describes some of them.
+the user interface consists of several kinds of components, some of which benefit from explanation.
+
+## text fields
+
+text fields are able to hold... text.
+
+click on a text field to start editing, and click away to stop editing.
+
+the following keyboard shortcuts work while on a text field:
+
+- `Ctrl-X`: cut
+- `Ctrl-C`: copy
+- `Ctrl-V`: paste
+- `Ctrl-A`: select all
+
+(replace Ctrl with Command on macOS)
+
+## number input fields
+
+these work similar to text fields, but you may only input numbers.
+
+they also usually have `+` and `-` buttons which allow you to increase/decrease the amount when clicked (and rapidly do so when click-holding).
+
+## sliders
+
+sliders are used for controlling values in a quick manner by being dragged.
+
+using the scroll wheel while holding Ctrl will change the slider's value by small amounts.
+
+right-clicking or Ctrl-clicking or a slider (Command-click on macOS) will turn it into a number input field for a short period of time, allowing you to input precise values.
 
 ## windows
 
@@ -16,7 +45,7 @@ to resize a window, drag the bottom right corner (marked by a triangular tab) or
 to collapse a window, click on the triangle in the title bar.
 clicking again expands it.
 
-to close a window, click on the `X` at the top right corner.
+to close a window, click on the `X` at the top right corner, or select it from the "window" menu.
 
 ### arrangement and docking
 
@@ -55,30 +84,3 @@ selecting this option will hide the tab bar of that window.
 to bring it back, click on the top left corner.
 
 to undock a window, drag its tab away from where it is docked. then it will be floating again.
-
-## text fields
-
-text fields are able to hold... text.
-
-click on a text field to start editing, and click away to stop editing.
-
-the following keyboard shortcuts work while on a text field:
-
-- `Ctrl-X`: cut
-- `Ctrl-C`: copy
-- `Ctrl-V`: paste
-- `Ctrl-A`: select all
-
-(replace Ctrl with Command on macOS)
-
-## number input fields
-
-these work similar to text fields, but you may only input numbers.
-
-they also usually have two buttons which allow you to increase/decrease the amount when clicked (and rapidly do so when click-holding).
-
-## sliders
-
-sliders are used for controlling values in a quick manner by being dragged.
-
-alternatively, right-clicking or Ctrl-clicking or a slider (Command-click on macOS) will turn it into a number input field for a short period of time, allowing you to input fine values.

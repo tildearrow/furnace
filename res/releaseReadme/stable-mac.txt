@@ -1,0 +1,15 @@
+# Furnace (chiptune tracker)
+
+thank you for downloading Furnace! I hope you enjoy using it.
+
+move Furnace to Applications (or some other place).
+if you are using a recent version of macOS, you may get an error saying that Furnace is damaged.
+in that case, open Terminal, and type this:
+
+```
+xattr -d com.apple.quarantine /path/to/Furnace.app
+```
+
+(replace `/path/to/Furnace.app` with the path where Furnace.app is located, e.g. `/Applications/Furnace.app`)
+
+you may need to reboot after doing this before launching Furnace.

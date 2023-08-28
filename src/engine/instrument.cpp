@@ -967,6 +967,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
         featureSM=true;
         featureSL=true;
         break;
+      case DIV_INS_C219:
+        featureSM=true;
+        featureSL=true;
+        break;
       
       case DIV_INS_MAX:
         break;
@@ -2261,6 +2265,19 @@ void DivInstrument::readFeatureOx(SafeReader& reader, int op, short version) {
         }
         break;
     }
+
+    // <167 TL macro compat
+    if (macroCode==6 && version<167) {
+      if (target->open&6) {
+        for (int j=0; j<2; j++) {
+          target->val[j]^=0x7f;
+        }
+      } else {
+        for (int j=0; j<target->len; j++) {
+          target->val[j]^=0x7f;
+        }
+      }
+    }
   }
 
   READ_FEAT_END;
@@ -3315,6 +3332,21 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
       }
       if ((std.arpMacro.loop>=std.arpMacro.len || (std.arpMacro.rel>std.arpMacro.loop && std.arpMacro.rel<std.arpMacro.len)) && std.arpMacro.len<255) {
         std.arpMacro.val[std.arpMacro.len++]=0;
+      }
+    }
+  }
+
+  // <167 TL macro compat
+  if (version<167) {
+    for (int i=0; i<4; i++) {
+      if (std.opMacros[i].tlMacro.open&6) {
+          for (int j=0; j<2; j++) {
+          std.opMacros[i].tlMacro.val[j]^=0x7f;
+        }
+      } else {
+        for (int j=0; j<std.opMacros[i].tlMacro.len; j++) {
+          std.opMacros[i].tlMacro.val[j]^=0x7f;
+        }
       }
     }
   }

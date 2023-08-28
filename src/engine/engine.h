@@ -56,8 +56,8 @@
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev165"
-#define DIV_ENGINE_VERSION 165
+#define DIV_VERSION "dev169"
+#define DIV_ENGINE_VERSION 169
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -201,7 +201,7 @@ struct DivDispatchContainer {
   void flush(size_t count);
   void fillBuf(size_t runtotal, size_t offset, size_t size);
   void clear();
-  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags);
+  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags, bool isRender=false);
   void quit();
   DivDispatchContainer():
     dispatch(NULL),
@@ -497,6 +497,7 @@ class DivEngine {
   void playSub(bool preserveDrift, int goalRow=0);
   void runMidiClock(int totalCycles=1);
   void runMidiTime(int totalCycles=1);
+  bool shallSwitchCores();
 
   void testFunction();
 
@@ -614,6 +615,8 @@ class DivEngine {
     void waitAudioFile();
     // stop audio file export
     bool haltAudioFile();
+    // return back to playback cores if necessary
+    void finishAudioFile();
     // notify instrument parameter change
     void notifyInsChange(int ins);
     // notify wavetable change
@@ -973,6 +976,9 @@ class DivEngine {
     // get macro interpreter
     DivMacroInt* getMacroInt(int chan);
 
+    // get channel panning
+    unsigned short getChanPan(int chan);
+
     // get sample position
     DivSamplePos getSamplePos(int chan);
 
@@ -1132,7 +1138,7 @@ class DivEngine {
     TAAudioDesc& getAudioDescGot();
 
     // init dispatch
-    void initDispatch();
+    void initDispatch(bool isRender=false);
 
     // quit dispatch
     void quitDispatch();

@@ -458,7 +458,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         }
         chan[c.chan].envVol=chan[c.chan].outVol;
         
-        if (!chan[c.chan].keyOn) chan[c.chan].killIt=true;
+        if (!chan[c.chan].keyOn && chan[c.chan].active) chan[c.chan].killIt=true;
         chan[c.chan].freqChanged=true;
       }
       break;
@@ -576,6 +576,11 @@ void* DivPlatformGB::getChanState(int ch) {
 
 DivMacroInt* DivPlatformGB::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformGB::getPan(int ch) {
+  unsigned char p=lastPan&(0x11<<ch);
+  return ((p&0xf0)?0x100:0)|((p&0x0f)?1:0);
 }
 
 DivDispatchOscBuffer* DivPlatformGB::getOscBuffer(int ch) {

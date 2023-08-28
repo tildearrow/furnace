@@ -2,7 +2,7 @@
 
 ============================================================================
 
-MODIFIED Namco C140 sound emulator - MODIFIED VERSION
+MODIFIED Namco C140/C219 sound emulator - MODIFIED VERSION
 by cam900
 
 MODIFICATION by tildearrow - adds muting function
@@ -41,8 +41,8 @@ TODO:
 
 */
 
-#ifndef _C140_EMU_H
-#define _C140_EMU_H
+#ifndef _C140_C219_EMU_H
+#define _C140_C219_EMU_H
 
 #include <stdbool.h>
 
@@ -58,13 +58,16 @@ struct c140_voice_t
    bool keyon;                // key on flag
    unsigned short freq;       // sample frequency
    unsigned char bank;        // sample bank
-   unsigned short start_addr; // sample start address
-   unsigned short loop_addr;  // sample loop address
-   unsigned short end_addr;   // sample end address
+   unsigned int start_addr;   // sample start address
+   unsigned int loop_addr;    // sample loop address
+   unsigned int end_addr;     // sample end address
    int lvol, rvol;            // left/right volume
+   bool noise;                // noise flag
+   bool inv_lout;             // invert left output flag
+   bool inv_sign;             // invert sign bit flag
    bool compressed;           // compressed sample flag
    bool loop;                 // loop flag
-   unsigned short addr;       // sample address
+   unsigned int addr;         // sample address
    int frac;                  // frequency counter (.16 fixed point)
    int lout, rout;            // left/right output
 };
@@ -77,20 +80,42 @@ struct c140_t
    signed short *sample_mem;
 };
 
+struct c219_t
+{
+   struct c140_voice_t voice[16];
+   signed int lout, rout;
+   signed short mulaw[256];
+   unsigned short lfsr;
+   unsigned char bank[4];
+   signed char *sample_mem;
+};
+
 void c140_tick(struct c140_t *c140, const int cycle);
+
+void c219_tick(struct c219_t *c219, const int cycle);
 
 void c140_voice_tick(struct c140_t *c140, const unsigned char v, const int cycle);
 
+void c219_voice_tick(struct c219_t *c219, const unsigned char v, const int cycle);
+
 void c140_keyon(struct c140_voice_t *c140_voice);
+
+void c219_keyon(struct c140_voice_t *c140_voice);
 
 void c140_write(struct c140_t *c140, const unsigned short addr, const unsigned char data);
 
+void c219_write(struct c219_t *c219, const unsigned short addr, const unsigned char data);
+
 void c140_init(struct c140_t *c140);
 
+void c219_init(struct c219_t *c219);
+
 void c140_reset(struct c140_t *c140);
+
+void c219_reset(struct c219_t *c219);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // _C140_EMU_H
+#endif // _C140_C219_EMU_H

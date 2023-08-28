@@ -299,7 +299,7 @@ void DivPlatformArcade::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (!op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else if (KVS(i,j)) {
@@ -855,6 +855,10 @@ void* DivPlatformArcade::getChanState(int ch) {
 
 DivMacroInt* DivPlatformArcade::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformArcade::getPan(int ch) {
+  return (chan[ch].chVolL<<8)|(chan[ch].chVolR);
 }
 
 DivDispatchOscBuffer* DivPlatformArcade::getOscBuffer(int ch) {

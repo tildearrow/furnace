@@ -300,6 +300,10 @@ DivMacroInt* DivPlatformT6W28::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformT6W28::getPan(int ch) {
+  return (chan[ch].panL<<8)|chan[ch].panR;
+}
+
 DivDispatchOscBuffer* DivPlatformT6W28::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

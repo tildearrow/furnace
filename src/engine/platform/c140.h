@@ -21,14 +21,14 @@
 #define _C140_H
 
 #include "../dispatch.h"
-#include "sound/c140.h"
+#include "sound/c140_c219.h"
 #include "../fixedQueue.h"
 
 class DivPlatformC140: public DivDispatch {
   struct Channel: public SharedChannel<int> {
     unsigned int audPos;
     int sample, wave;
-    bool setPos, volChangedL, volChangedR;
+    bool setPos, invert, surround, noise, volChangedL, volChangedR;
     int chPanL, chPanR;
     int chVolL, chVolR;
     int macroVolMul;
@@ -39,6 +39,9 @@ class DivPlatformC140: public DivDispatch {
       sample(-1),
       wave(-1),
       setPos(false),
+      invert(false),
+      surround(false),
+      noise(false),
       volChangedL(false),
       volChangedR(false),
       chPanL(255),
@@ -53,8 +56,11 @@ class DivPlatformC140: public DivDispatch {
   bool isMuted[24];
   unsigned int sampleOff[256];
   bool sampleLoaded[256];
+  bool is219;
+  int totalChans;
+  unsigned char groupBank[4];
 
-  signed short* sampleMem;
+  unsigned char* sampleMem;
   size_t sampleMemLen;
   struct QueuedWrite {
     unsigned short addr;
@@ -65,15 +71,20 @@ class DivPlatformC140: public DivDispatch {
   };
   FixedQueue<QueuedWrite,2048> writes;
   struct c140_t c140;
+  struct c219_t c219;
   unsigned char regPool[512];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+
+  void acquire_219(short** buf, size_t len);
+  void acquire_140(short** buf, size_t len);
 
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -94,6 +105,7 @@ class DivPlatformC140: public DivDispatch {
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
     void renderSamples(int chipID);
+    void set219(bool is_219);
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

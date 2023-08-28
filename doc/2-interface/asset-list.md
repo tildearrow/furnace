@@ -3,10 +3,20 @@
 ![instruments window](instruments.png)
 
 Buttons from left to right:
-- **Add**: Creates a new, default instrument.
+- **Add**: pops up a menu to select which type of instrument to add. if only one instrument type is available, the menu is skipped.
+  - If the "Display instrument type menu when adding instrument" setting is disabled, this skips the menu and creates an instrument according to the chip under the cursor.
+  - Right-clicking always brings up the menu.
 - **Duplicate**: Duplicates the currently selected instrument.
 - **Open**: Brings up a file dialog to load a file as a new instrument at the end of the list.
-- **Save**: Brings up a file dialog to save the currently selected instrument.
+- **Save**: Brings up a file dialog to save the currently selected asset.
+  - Instruments are saved as Furnace instrument (.fui) files.
+  - Wavetables are saved as Furnace wavetable (.fuw) files. 
+  - Samples are saved as standard wave (.wav) files.
+  - Right-clicking brings up a menu with the applicable items from this list:
+    - **save instrument as .dmp...**: saves the selected instrument in DefleMask format.
+    - **save wavetable as .dmw...**: saves the selected wavetable in DefleMask format.
+    - **save raw wavetable...**: saves the selected wavetable as raw data.
+    - **save raw sample...**: saves the selected sample as raw data.
 - **Toggle folders/standard view**: Enables (and disables) folder view, explained below.
 - **Move up**: Moves the currently selected instrument up in the list. Pattern data will automatically be adjusted to match.
 - **Move down**: Same, but downward.

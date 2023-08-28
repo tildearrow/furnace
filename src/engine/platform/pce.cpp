@@ -508,6 +508,10 @@ DivMacroInt* DivPlatformPCE::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformPCE::getPan(int ch) {
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
 DivSamplePos DivPlatformPCE::getSamplePos(int ch) {
   if (ch>=6) return DivSamplePos();
   if (!chan[ch].pcm) return DivSamplePos();

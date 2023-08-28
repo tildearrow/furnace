@@ -412,6 +412,13 @@ class DivDispatch {
     virtual DivMacroInt* getChanMacroInt(int chan);
 
     /**
+     * get the stereo panning of a channel.
+     * @param chan the channel.
+     * @return a 16-bit number. left in top 8 bits and right in bottom 8 bits.
+     */
+    virtual unsigned short getPan(int chan);
+
+    /**
      * get currently playing sample (and its position).
      * @param chan the channel.
      * @return a DivSamplePos. if sample is -1 then nothing is playing or the

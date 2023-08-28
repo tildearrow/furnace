@@ -120,6 +120,7 @@ the following instrument types are available:
 - 50: K053260
 - 52: TED
 - 53: C140
+- 54: C219
 
 the following feature codes are recognized:
 
