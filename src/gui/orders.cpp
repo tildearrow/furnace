@@ -115,10 +115,12 @@ void FurnaceGUI::drawOrderButtons() {
   }
   NEXT_BUTTON;
 
+  pushDestColor();
   if (ImGui::Button(ICON_FA_MINUS)) { handleUnimportant
     // remove this order row
     doAction(GUI_ACTION_ORDERS_REMOVE);
   }
+  popDestColor();
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Remove order");
   } 

@@ -282,10 +282,12 @@ void FurnaceGUI::drawChanOsc() {
                   updateChanOscGradTex=true;
                 }
 
+                pushDestColor();
                 if (ImGui::Button("Remove")) {
                   removePoint=index;
                   ImGui::CloseCurrentPopup();
                 }
+                popDestColor();
 
                 ImGui::EndPopup();
               }

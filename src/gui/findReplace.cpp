@@ -811,8 +811,13 @@ void FurnaceGUI::drawFindReplace() {
               }
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              pushDestColor();
               if (ImGui::Button(ICON_FA_MINUS "##DelQuery")) {
                 eraseIndex=index;
+              }
+              popDestColor();
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Delete query");
               }
               ImGui::TableNextColumn();
               if (i.effectCount<8) {
@@ -822,9 +827,11 @@ void FurnaceGUI::drawFindReplace() {
               }
               ImGui::TableNextColumn();
               if (i.effectCount>0) {
+                pushDestColor();
                 if (ImGui::Button("Remove effect")) {
                   i.effectCount--;
                 }
+                popDestColor();
               }
               ImGui::EndTable();
             }
@@ -1103,9 +1110,11 @@ void FurnaceGUI::drawFindReplace() {
           }
           ImGui::TableNextColumn();
           if (queryReplaceEffectCount>0) {
+            pushDestColor();
             if (ImGui::Button("Remove effect")) {
               queryReplaceEffectCount--;
             }
+            popDestColor();
           }
 
           ImGui::EndTable();
