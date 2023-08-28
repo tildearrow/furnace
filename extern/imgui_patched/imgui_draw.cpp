@@ -2228,7 +2228,7 @@ ImFont* ImFontAtlas::AddFontFromMemoryCompressedTTF(const void* compressed_ttf_d
 #ifdef TA_BIG_ENDIAN
     unsigned char* beData=(unsigned char*)IM_ALLOC(compressed_ttf_size);
     for (int i=0; i<compressed_ttf_size; i++) {
-      beData[i]=compressed_ttf_data[i^3];
+      beData[i]=((unsigned char*)compressed_ttf_data)[i^3];
     }
     compressed_ttf_data=beData;
 #endif
