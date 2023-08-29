@@ -450,7 +450,7 @@ void DivPlatformC140::forceIns() {
   if (is219) {
     // restore banks
     for (int i=0; i<4; i++) {
-      rWrite(0x1f1+(((3+(i>>2))&3)<<1),groupBank[i>>2]);
+      rWrite(0x1f1+(((3+i)&3)<<1),groupBank[i]);
     }
   }
 }
