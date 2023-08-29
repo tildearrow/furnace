@@ -2249,7 +2249,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x8d);
-      unsigned short* mem=(unsigned short*)writeC219[i]->getSampleMem();
+      unsigned char* mem=(unsigned char*)writeC219[i]->getSampleMem();
       size_t memLen=writeC219[i]->getSampleMemUsage();
       w->writeI((memLen+8)|(i*0x80000000));
       w->writeI(writeC219[i]->getSampleMemCapacity());
