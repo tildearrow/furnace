@@ -113,6 +113,10 @@ void FurnaceGUI::drawPiano() {
           ImGui::Unindent();
           ImGui::Text("Value input pad:");
           ImGui::Indent();
+          if (!mobileUI) {
+            pianoInputPadMode=PIANO_INPUT_PAD_DISABLE;
+            ImGui::BeginDisabled();
+          }
           if (ImGui::RadioButton("Disabled",pianoInputPadMode==PIANO_INPUT_PAD_DISABLE)) {
             pianoInputPadMode=PIANO_INPUT_PAD_DISABLE;
           }
@@ -125,6 +129,7 @@ void FurnaceGUI::drawPiano() {
           if (ImGui::RadioButton("Split (always visible)",pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
             pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_VISIBLE;
           }
+          if (!mobileUI) ImGui::EndDisabled();
           ImGui::Unindent();
           ImGui::Checkbox("Share play/edit offset/range",&pianoSharePosition);
           ImGui::Checkbox("Read-only (can't input notes)",&pianoReadonly);
