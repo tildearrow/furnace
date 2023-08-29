@@ -49,20 +49,23 @@ void DivPlatformMSM5232::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
-      logV("%.2x = %.2x\n",w.addr,w.val);
       msm->write(w.addr,w.val);
       regPool[w.addr&0x0f]=w.val;
       writes.pop();
     }
 
     for (int i=0; i<8; i++) {
-      int o=(
-        ((regPool[12+(i>>2)]&1)?((msm->vo16[i]*partVolume[3+(i&4)])>>8):0)+
-        ((regPool[12+(i>>2)]&2)?((msm->vo8[i]*partVolume[2+(i&4)])>>8):0)+
-        ((regPool[12+(i>>2)]&4)?((msm->vo4[i]*partVolume[1+(i&4)])>>8):0)+
-        ((regPool[12+(i>>2)]&8)?((msm->vo2[i]*partVolume[i&4])>>8):0)
-      )<<2;
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(o,-32768,32767);
+      if (isMuted[i]) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+      } else {
+        int o=(
+          ((regPool[12+(i>>2)]&1)?((msm->vo16[i]*partVolume[3+(i&4)])>>8):0)+
+          ((regPool[12+(i>>2)]&2)?((msm->vo8[i]*partVolume[2+(i&4)])>>8):0)+
+          ((regPool[12+(i>>2)]&4)?((msm->vo4[i]*partVolume[1+(i&4)])>>8):0)+
+          ((regPool[12+(i>>2)]&8)?((msm->vo2[i]*partVolume[i&4])>>8):0)
+        )<<2;
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(o,-32768,32767);
+      }
     }
 
     clockDriftLFOPos+=clockDriftLFOSpeed;
