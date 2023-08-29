@@ -261,6 +261,9 @@ int DivSample::getSampleOffset(int offset, int length, DivSampleDepth depth) {
       case DIV_SAMPLE_DEPTH_ADPCM_B:
         off=(offset+1)/2;
         break;
+      case DIV_SAMPLE_DEPTH_ADPCM_K:
+        off=(offset+1)/2;
+        break;
       case DIV_SAMPLE_DEPTH_8BIT:
         off=offset;
         break;
@@ -308,6 +311,10 @@ int DivSample::getSampleOffset(int offset, int length, DivSampleDepth depth) {
         len=(length+1)/2;
         break;
       case DIV_SAMPLE_DEPTH_ADPCM_B:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_ADPCM_K:
         off=(offset+1)/2;
         len=(length+1)/2;
         break;
@@ -370,6 +377,9 @@ int DivSample::getEndPosition(DivSampleDepth depth) {
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_B:
       off=lengthB;
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_K:
+      off=lengthK;
       break;
     case DIV_SAMPLE_DEPTH_8BIT:
       off=length8;
@@ -539,6 +549,12 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       lengthB=(count+1)/2;
       dataB=new unsigned char[(lengthB+255)&(~0xff)];
       memset(dataB,0,(lengthB+255)&(~0xff));
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_K: // K05 ADPCM
+      if (dataK!=NULL) delete[] dataK;
+      lengthK=(count+1)/2;
+      dataK=new unsigned char[(lengthK+255)&(~0xff)];
+      memset(dataK,0,(lengthK+255)&(~0xff));
       break;
     case DIV_SAMPLE_DEPTH_8BIT: // 8-bit
       if (data8!=NULL) delete[] data8;
@@ -798,6 +814,9 @@ void DivSample::convert(DivSampleDepth newDepth) {
       setSampleCount((samples+1)&(~1));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_K: // K05 ADPCM
       setSampleCount((samples+1)&(~1));
       break;
     case DIV_SAMPLE_DEPTH_BRR: // BRR
@@ -1209,6 +1228,11 @@ void DivSample::render(unsigned int formatMask) {
       case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
         ymb_decode(dataB,data16,samples);
         break;
+      case DIV_SAMPLE_DEPTH_ADPCM_K: // K05 ADPCM
+        for (unsigned int i=0; i<samples; i++) {
+          // TODO: ADPCM-K
+        }
+        break;
       case DIV_SAMPLE_DEPTH_8BIT: // 8-bit PCM
         for (unsigned int i=0; i<samples; i++) {
           data16[i]=data8[i]<<8;
@@ -1281,6 +1305,10 @@ void DivSample::render(unsigned int formatMask) {
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_ADPCM_B)) { // ADPCM-B
     if (!initInternal(DIV_SAMPLE_DEPTH_ADPCM_B,samples)) return;
     ymb_encode(data16,dataB,(samples+511)&(~0x1ff));
+  }
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_ADPCM_K)) { // K05 ADPCM
+    if (!initInternal(DIV_SAMPLE_DEPTH_ADPCM_K,samples)) return;
+    // TODO: ADPCM-K
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_8BIT)) { // 8-bit PCM
     if (!initInternal(DIV_SAMPLE_DEPTH_8BIT,samples)) return;
@@ -1362,6 +1390,8 @@ void* DivSample::getCurBuf() {
       return dataA;
     case DIV_SAMPLE_DEPTH_ADPCM_B:
       return dataB;
+    case DIV_SAMPLE_DEPTH_ADPCM_K:
+      return dataK;
     case DIV_SAMPLE_DEPTH_8BIT:
       return data8;
     case DIV_SAMPLE_DEPTH_BRR:
@@ -1394,6 +1424,8 @@ unsigned int DivSample::getCurBufLen() {
       return lengthA;
     case DIV_SAMPLE_DEPTH_ADPCM_B:
       return lengthB;
+    case DIV_SAMPLE_DEPTH_ADPCM_K:
+      return lengthK;
     case DIV_SAMPLE_DEPTH_8BIT:
       return length8;
     case DIV_SAMPLE_DEPTH_BRR:
@@ -1511,6 +1543,7 @@ DivSample::~DivSample() {
   if (dataQSoundA) delete[] dataQSoundA;
   if (dataA) delete[] dataA;
   if (dataB) delete[] dataB;
+  if (dataK) delete[] dataK;
   if (dataBRR) delete[] dataBRR;
   if (dataVOX) delete[] dataVOX;
   if (dataMuLaw) delete[] dataMuLaw;

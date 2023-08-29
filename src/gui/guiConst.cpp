@@ -192,7 +192,7 @@ const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "QSound ADPCM",
   "ADPCM-A",
   "ADPCM-B",
-  NULL,
+  "K05 ADPCM",
   "8-bit PCM",
   "BRR",
   "VOX",

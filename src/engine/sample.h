@@ -40,6 +40,7 @@ enum DivSampleDepth: unsigned char {
   DIV_SAMPLE_DEPTH_QSOUND_ADPCM=4,
   DIV_SAMPLE_DEPTH_ADPCM_A=5,
   DIV_SAMPLE_DEPTH_ADPCM_B=6,
+  DIV_SAMPLE_DEPTH_ADPCM_K=7,
   DIV_SAMPLE_DEPTH_8BIT=8,
   DIV_SAMPLE_DEPTH_BRR=9,
   DIV_SAMPLE_DEPTH_VOX=10,
@@ -107,6 +108,7 @@ struct DivSample {
   // - 4: QSound ADPCM
   // - 5: ADPCM-A
   // - 6: ADPCM-B
+  // - 7: K053260 4-bit simple ADPCM
   // - 8: 8-bit PCM
   // - 9: BRR (SNES)
   // - 10: VOX ADPCM
@@ -132,12 +134,13 @@ struct DivSample {
   unsigned char* dataQSoundA; // 4
   unsigned char* dataA; // 5
   unsigned char* dataB; // 6
+  unsigned char* dataK; // 7
   unsigned char* dataBRR; // 9
   unsigned char* dataVOX; // 10
   unsigned char* dataMuLaw; // 11
   unsigned char* dataC219; // 12
 
-  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX, lengthMuLaw, lengthC219;
+  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthK, lengthBRR, lengthVOX, lengthMuLaw, lengthC219;
 
   unsigned int samples;
 
@@ -341,6 +344,7 @@ struct DivSample {
     dataQSoundA(NULL),
     dataA(NULL),
     dataB(NULL),
+    dataK(NULL),
     dataBRR(NULL),
     dataVOX(NULL),
     dataMuLaw(NULL),
@@ -353,6 +357,7 @@ struct DivSample {
     lengthQSoundA(0),
     lengthA(0),
     lengthB(0),
+    lengthK(0),
     lengthBRR(0),
     lengthVOX(0),
     lengthMuLaw(0),
