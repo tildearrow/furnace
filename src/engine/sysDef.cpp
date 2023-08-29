@@ -1888,7 +1888,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_C219]=new DivSysDef(
-    "Namco C219", NULL, 0xcf, 0, 16, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_MULAW)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Namco C219", NULL, 0xcf, 0, 16, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_C219)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
     "Namco's PCM chip used in their NA1/2 hardware.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},

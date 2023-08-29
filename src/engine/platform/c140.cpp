@@ -575,13 +575,12 @@ void DivPlatformC140::renderSamples(int sysID) {
         length=getSampleMemCapacity()-memPos;
         logW("out of C219 memory for sample %d!",i);
       }
-      if (s->depth==DIV_SAMPLE_DEPTH_MULAW) {
+      if (s->depth==DIV_SAMPLE_DEPTH_C219) {
         for (unsigned int i=0; i<length; i++) {
-          if (i>=s->lengthMuLaw) {
+          if (i>=s->lengthC219) {
             sampleMem[i+memPos]=0;
           } else {
-            unsigned char x=s->dataMuLaw[i]^0xff;
-            sampleMem[i+memPos]=x;
+            sampleMem[i+memPos]=s->dataC219[i];
           }
         }
       } else {
