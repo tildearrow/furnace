@@ -249,7 +249,7 @@ void DivPlatformC140::tick(bool sysTick) {
             // shut everyone else up
             for (int j=0; j<4; j++) {
               int ch=(i&(~3))|j;
-              if (chan[ch].active && (i&3)!=j) {
+              if (chan[ch].active && !chan[ch].keyOn && (i&3)!=j) {
                 chan[ch].sample=-1;
                 chan[ch].active=false;
                 chan[ch].keyOff=true;
@@ -446,6 +446,12 @@ void DivPlatformC140::forceIns() {
     chan[i].volChangedL=true;
     chan[i].volChangedR=true;
     chan[i].sample=-1;
+  }
+  if (is219) {
+    // restore banks
+    for (int i=0; i<4; i++) {
+      rWrite(0x1f1+(((3+(i>>2))&3)<<1),groupBank[i>>2]);
+    }
   }
 }
 
