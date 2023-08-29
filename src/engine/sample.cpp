@@ -1316,7 +1316,9 @@ void DivSample::render(unsigned int formatMask) {
     if (!initInternal(DIV_SAMPLE_DEPTH_MULAW,samples)) return;
     for (unsigned int i=0; i<samples; i++) {
       IntFloat s;
-      s.f=fabs(data16[i]);
+      s.f=data16[i];
+      s.i&=0x7fffffff;
+      if (s.f>32639.0f) s.f=32639.0f;
       s.f/=128.0f;
       s.f+=1.0f;
       s.i-=0x3f800000;
