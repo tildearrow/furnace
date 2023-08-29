@@ -1368,8 +1368,8 @@ void DivSample::render(unsigned int formatMask) {
         }*/
       }
 
-      out<<=4;
-      out|=next;
+      out>>=4;
+      out|=next<<4;
       accum+=adpcmKTable[next];
 
       if (i&1) {
