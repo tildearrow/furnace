@@ -442,7 +442,7 @@ void FurnaceGUI::drawPiano() {
   ImGui::End();
 
   // draw input pad if necessary
-  if (curWindow==GUI_WINDOW_PATTERN && ((pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_AUTO && cursor.xFine>0) || pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
+  if ((curWindow==GUI_WINDOW_PATTERN || !mobileUI) && ((pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_AUTO && cursor.xFine>0) || pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
     if (ImGui::Begin("Input Pad",NULL,ImGuiWindowFlags_NoTitleBar)) {
       ImGui::BeginDisabled(cursor.xFine==0);
       if (ImGui::BeginTable("InputPad",3,ImGuiTableFlags_Borders)) {
