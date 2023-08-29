@@ -131,21 +131,20 @@ void DivPlatformK053260::tick(bool sysTick) {
       chan[i].audPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      unsigned char keyon=regPool[0x28]|(1<<i);
-      unsigned char keyoff=keyon&~(17<<i);
-      unsigned char loopon=regPool[0x2a]|(1<<i);
-      unsigned char loopoff=loopon&~(1<<i);
-      double off=1.0;
       int sample=chan[i].sample;
+      DivSample* s=parent->getSample(sample);
+      unsigned char keyon=regPool[0x28]|(1<<i);
+      unsigned char keyoff=keyon&~(0x11<<i);
+      unsigned char loopoff=regPool[0x2a]&~(0x11<<i);
+      unsigned char loopon=loopoff|(s->isLoopable()?(1<<i):0)|(s->depth==DIV_SAMPLE_DEPTH_ADPCM_K?(0x10<<i):0);
+      double off=1.0;
       if (sample>=0 && sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(sample);
         if (s->centerRate<1) {
           off=1.0;
         } else {
           off=8363.0/s->centerRate;
         }
       }
-      DivSample* s=parent->getSample(sample);
       chan[i].freq=0x1000-(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
@@ -154,17 +153,26 @@ void DivPlatformK053260::tick(bool sysTick) {
         unsigned int length=0;
         if (sample>=0 && sample<parent->song.sampleLen) {
           start=sampleOffK053260[sample];
-          length=s->length8;
+          length=(s->depth==DIV_SAMPLE_DEPTH_ADPCM_K)?s->lengthK:s->length8;
           if (chan[i].reverse) {
             start+=length;
             keyon|=(16<<i);
           }
         }
         if (chan[i].audPos>0) {
-          if (chan[i].reverse) {
-            start=start-MIN(chan[i].audPos,s->length8);
+          if (s->depth==DIV_SAMPLE_DEPTH_ADPCM_K) {
+            chan[i].audPos>>=1;
+            if (chan[i].reverse) {
+              start=start-MIN(chan[i].audPos,s->lengthK);
+            } else {
+              start=start+MIN(chan[i].audPos,s->lengthK);
+            }
           } else {
-            start=start+MIN(chan[i].audPos,s->length8);
+            if (chan[i].reverse) {
+              start=start-MIN(chan[i].audPos,s->length8);
+            } else {
+              start=start+MIN(chan[i].audPos,s->length8);
+            }
           }
           length=MAX(1,length-chan[i].audPos);
         }
@@ -181,10 +189,8 @@ void DivPlatformK053260::tick(bool sysTick) {
           chan[i].outVol=chan[i].vol;
           chWrite(i,7,chan[i].outVol);
         }
+        rWrite(0x2a,loopon);
         rWrite(0x28,keyon);
-        if (s->isLoopable()) {
-          rWrite(0x2a,loopon);
-        }
         chan[i].keyOn=false;
       }
       if (chan[i].keyOff) {
@@ -473,14 +479,28 @@ void DivPlatformK053260::renderSamples(int sysID) {
       continue;
     }
 
-    int length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT));
-    int actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
-    if (actualLength>0) {
-      sampleOffK053260[i]=memPos-1;
-      for (int j=0; j<actualLength; j++) {
-        sampleMem[memPos++]=s->data8[j];
+    int length, actualLength;
+
+    if (s->depth==DIV_SAMPLE_DEPTH_ADPCM_K) {
+      length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_ADPCM_K));
+      actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
+      if (actualLength>0) {
+        sampleOffK053260[i]=memPos-1;
+        for (int j=0; j<actualLength; j++) {
+          sampleMem[memPos++]=s->dataK[j];
+        }
+        sampleMem[memPos++]=0; // Silence for avoid popping noise
       }
-      sampleMem[memPos++]=0; // Silence for avoid popping noise
+    } else {
+      length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT));
+      actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
+      if (actualLength>0) {
+        sampleOffK053260[i]=memPos-1;
+        for (int j=0; j<actualLength; j++) {
+          sampleMem[memPos++]=s->data8[j];
+        }
+        sampleMem[memPos++]=0; // Silence for avoid popping noise
+      }
     }
     if (actualLength<length) {
       logW("out of K053260 PCM memory for sample %d!",i);
