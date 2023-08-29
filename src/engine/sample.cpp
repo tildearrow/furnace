@@ -1328,16 +1328,20 @@ void DivSample::render(unsigned int formatMask) {
     for (unsigned int i=0; i<samples; i++) {
       short s=data16[i];
       unsigned char x=0;
-      if (s>0) {
-        if (s>17152) { // 100+
-          x=((s-17152)>>9)+100;
-        } else {
-          int b=bsr(s)&15;
-          x=(s>>c219ShiftToVal[b])+c219HighBitPos[b];
-        }
-      } else if (s<0) {
+      bool negate=s&0x8000;
+      if (negate) {
+        s^=0xffff;
       }
-      dataC219[i]=x;
+      if (s==0) {
+        x=0;
+      } else if (s>17152) { // 100+
+        x=((s-17152)>>9)+100;
+      } else {
+        int b=bsr(s)-1;
+        x=((s-(c219Table[c219HighBitPos[b]]))>>c219ShiftToVal[b])+c219HighBitPos[b];
+      }
+      if (x>127) x=127;
+      dataC219[i]=x|(negate?0x80:0);
     }
   }
 }
