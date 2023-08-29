@@ -1196,6 +1196,10 @@ unsigned char c219ShiftToVal[16]={
   5, 5, 5, 5, 5, 5, 5, 5, 5,  6,  7,  7,  8,  8,  8,  8
 };
 
+signed char adpcmKTable[16]={
+  0, 1, 2, 4, 8, 16, 32, 64, -128, -64, -32, -16, -8, -4, -2, -1
+};
+
 void DivSample::render(unsigned int formatMask) {
   // step 1: convert to 16-bit if needed
   if (depth!=DIV_SAMPLE_DEPTH_16BIT) {
@@ -1228,11 +1232,20 @@ void DivSample::render(unsigned int formatMask) {
       case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
         ymb_decode(dataB,data16,samples);
         break;
-      case DIV_SAMPLE_DEPTH_ADPCM_K: // K05 ADPCM
+      case DIV_SAMPLE_DEPTH_ADPCM_K: { // K05 ADPCM
+        signed char s=0;
         for (unsigned int i=0; i<samples; i++) {
-          // TODO: ADPCM-K
+          unsigned char nibble=dataK[i>>1];
+          if (i&1) { // TODO: is this right?
+            nibble>>=4;
+          } else {
+            nibble&=15;
+          }
+          s+=adpcmKTable[nibble];
+          data16[i]=s<<8;
         }
         break;
+      }
       case DIV_SAMPLE_DEPTH_8BIT: // 8-bit PCM
         for (unsigned int i=0; i<samples; i++) {
           data16[i]=data8[i]<<8;
@@ -1308,7 +1321,62 @@ void DivSample::render(unsigned int formatMask) {
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_ADPCM_K)) { // K05 ADPCM
     if (!initInternal(DIV_SAMPLE_DEPTH_ADPCM_K,samples)) return;
-    // TODO: ADPCM-K
+    signed char accum=0;
+    unsigned char out=0;
+    for (unsigned int i=0; i<samples; i++) {
+      signed char target=data16[i]>>8;
+      short delta=target-accum;
+      unsigned char next=0;
+
+      if (delta!=0) {
+        int b=bsr((delta>=0)?delta:-delta);
+        if (delta>=0) {
+          if (b>7) b=7;
+          next=b&15;
+
+          // test previous
+          if (next>1) {
+            const signed char t1=accum+adpcmKTable[next];
+            const signed char t2=accum+adpcmKTable[next-1];
+            const signed char d1=((t1-target)<0)?(target-t1):(t1-target);
+            const signed char d2=((t2-target)<0)?(target-t2):(t2-target);
+
+            if (d2<d1) next--;
+          }
+        } else {
+          if (b>8) b=8;
+          next=(16-b)&15;
+
+          // test next
+          if (next<15) {
+            const signed char t1=accum+adpcmKTable[next];
+            const signed char t2=accum+adpcmKTable[next+1];
+            const signed char d1=((t1-target)<0)?(target-t1):(t1-target);
+            const signed char d2=((t2-target)<0)?(target-t2):(t2-target);
+
+            if (d2<d1) next++;
+          }
+        }
+
+        /*if (accum+adpcmKTable[next]>=128 || accum+adpcmKTable[next]<-128) {
+          if (delta>=0) {
+            next--;
+          } else {
+            next++;
+            if (next>15) next=15;
+          }
+        }*/
+      }
+
+      out<<=4;
+      out|=next;
+      accum+=adpcmKTable[next];
+
+      if (i&1) {
+        dataK[i>>1]=out;
+        out=0;
+      }
+    }
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_8BIT)) { // 8-bit PCM
     if (!initInternal(DIV_SAMPLE_DEPTH_8BIT,samples)) return;

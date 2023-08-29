@@ -1854,7 +1854,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_K053260]=new DivSysDef(
-    "Konami K053260", NULL, 0xcc, 0, 4, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Konami K053260", NULL, 0xcc, 0, 4, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_K)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
     "this PCM chip was widely used at Konami arcade boards in 1990-1992.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
@@ -1889,7 +1889,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_C219]=new DivSysDef(
     "Namco C219", NULL, 0xcf, 0, 16, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_C219)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
-    "Namco's PCM chip used in their NA1/2 hardware.",
+    "Namco's PCM chip used in their NA-1/2 hardware.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
