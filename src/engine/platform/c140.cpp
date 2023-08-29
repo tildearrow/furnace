@@ -573,6 +573,7 @@ void DivPlatformC140::renderSamples(int sysID) {
       if ((memPos&0xfe0000)!=((memPos+length)&0xfe0000)) {
         memPos=((memPos+0x1ffff)&0xfe0000);
       }
+      logV("%d",length);
       if (memPos>=(getSampleMemCapacity())) {
         logW("out of C219 memory for sample %d!",i);
         break;
@@ -584,17 +585,17 @@ void DivPlatformC140::renderSamples(int sysID) {
       if (s->depth==DIV_SAMPLE_DEPTH_C219) {
         for (unsigned int i=0; i<length; i++) {
           if (i>=s->lengthC219) {
-            sampleMem[i+memPos]=0;
+            sampleMem[(memPos+i)^1]=0;
           } else {
-            sampleMem[i+memPos]=s->dataC219[i];
+            sampleMem[(memPos+i)^1]=s->dataC219[i];
           }
         }
       } else {
         for (unsigned int i=0; i<length; i++) {
           if (i>=s->length8) {
-            sampleMem[memPos+i]=0;
+            sampleMem[(memPos+i)^1]=0;
           } else {
-            sampleMem[memPos+i]=s->data8[i];
+            sampleMem[(memPos+i)^1]=s->data8[i];
           }
         }
       }
