@@ -1103,10 +1103,21 @@ void FurnaceGUI::setOrder(unsigned char order, bool forced) {
 }
 
 void FurnaceGUI::stop() {
+  bool wasPlaying=e->isPlaying();
   e->walkSong(loopOrder,loopRow,loopEnd);
   e->stop();
   curNibble=false;
   orderNibble=false;
+  if (followPattern && wasPlaying) {
+    nextScroll=-1.0f;
+    nextAddScroll=0.0f;
+    cursor.y=e->getRow();
+    if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
+      selStart=cursor;
+      selEnd=cursor;
+    }
+    updateScroll(cursor.y);
+  }
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
