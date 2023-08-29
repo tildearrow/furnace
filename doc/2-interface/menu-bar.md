@@ -39,14 +39,8 @@ items in _italics_ don't appear in basic mode and are only available in advanced
   - only available when there's a YM2151 and/or VERA.
 - **export command stream...**: export song data to a command stream file. see next section for more details.
   - this option is for developers.
-  
-- _**add chip...**:_ add a chip to the current song.
-- _**configure chip...**:_ set a chip's parameters.
-  - for a list of parameters, see [7-systems](../7-systems/README.md).
-- _**change chip...**:_ change a chip to another.
-  - **Preserve channel positions**: enable this option to make sure Furnace does not auto-arrange/delete channels to compensate for differing channel counts. this can be useful for doing ports, e.g. from Genesis to PC-98.
-- _**remove chip...**_: remove a chip.
-  - **Preserve channel positions**: same thing as above.
+
+- **manage chips**: opens the [Chip Manager](../8-advanced/chip-manager.md) dialog.
 
 - **restore backup**: restores a previously saved backup.
   - Furnace keeps up to 5 backups of a song.

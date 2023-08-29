@@ -193,7 +193,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Import**
 - **Export**
 - **Reset defaults**
-- several categories of keybinds...
+- [grouped list of keybinds...](keyboard.md)
   - click on a keybind then enter a key or key combination to change it
   - right-click to clear the keybind
 
@@ -327,6 +327,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - **Cursor details or file path**
   - **Nothing**
 - **Capitalize menu bar**
+- **Display add/configure/change/remove chip menus in File menu**: if enabled, the "manage chips" item in the file menu is split into the four listed items for quick access.
 
 ### Orders
 
