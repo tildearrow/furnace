@@ -378,7 +378,7 @@ void FurnaceGUI::drawPattern() {
   bool inhibitMenu=false;
 
   if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) {
-    cursor.y=e->getRow();
+    cursor.y=e->isStepping()?e->getRow():oldRow;
     if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
       selStart=cursor;
       selEnd=cursor;
