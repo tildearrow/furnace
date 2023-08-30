@@ -1231,7 +1231,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Arcade/YM2151");
+          ImGui::Text("YM2151");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
@@ -1242,7 +1242,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Genesis/YM2612");
+          ImGui::Text("YM2612");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
