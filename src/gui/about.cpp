@@ -160,6 +160,7 @@ const char* aboutLine[]={
   "libsndfile by Erik de Castro Lopo",
   "Portable File Dialogs by Sam Hocevar",
   "Native File Dialog by Frogtoss Games",
+  "PortAudio",
   "RtMidi by Gary P. Scavone",
   "FFTW by Matteo Frigo and Steven G. Johnson",
   "backward-cpp by Google",
