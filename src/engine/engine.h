@@ -73,6 +73,7 @@ enum DivStatusView {
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
   DIV_AUDIO_SDL=1,
+  DIV_AUDIO_PORTAUDIO=2,
 
   DIV_AUDIO_NULL=126,
   DIV_AUDIO_DUMMY=127

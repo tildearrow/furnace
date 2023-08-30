@@ -82,11 +82,13 @@ const char* patFonts[]={
 
 const char* audioBackends[]={
   "JACK",
-  "SDL"
+  "SDL",
+  "PortAudio"
 };
 
 const bool isProAudio[]={
   true,
+  false,
   false
 };
 
@@ -724,17 +726,27 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::BeginTable("##Output",2)) {
           ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##Combo",ImGuiTableColumnFlags_WidthStretch);
-#ifdef HAVE_JACK
+#if defined(HAVE_JACK) || defined(HAVE_PA)
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("Backend");
           ImGui::TableNextColumn();
           int prevAudioEngine=settings.audioEngine;
-          if (ImGui::Combo("##Backend",&settings.audioEngine,audioBackends,2)) {
+          if (ImGui::BeginCombo("##Backend",audioBackends[settings.audioEngine])) {
+            if (ImGui::Selectable("JACK",settings.audioEngine==DIV_AUDIO_JACK)) {
+              settings.audioEngine=DIV_AUDIO_JACK;
+            }
+            if (ImGui::Selectable("SDL",settings.audioEngine==DIV_AUDIO_SDL)) {
+              settings.audioEngine=DIV_AUDIO_SDL;
+            }
+            if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
+              settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+            }
             if (settings.audioEngine!=prevAudioEngine) {
               if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
             }
+            ImGui::EndCombo();
           }
 #endif
 
@@ -3045,6 +3057,13 @@ void FurnaceGUI::syncSettings() {
   settings.patFontSize=e->getConfInt("patFontSize",18);
   settings.iconSize=e->getConfInt("iconSize",16);
   settings.audioEngine=(e->getConfString("audioEngine","SDL")=="SDL")?1:0;
+  if (e->getConfString("audioEngine","SDL")=="PortAudio") {
+    settings.audioEngine=DIV_AUDIO_JACK;
+  } else if (e->getConfString("audioEngine","SDL")=="PortAudio") {
+    settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+  } else {
+    settings.audioEngine=DIV_AUDIO_SDL;
+  }
   settings.audioDevice=e->getConfString("audioDevice","");
   settings.audioChans=e->getConfInt("audioChans",2);
   settings.midiInDevice=e->getConfString("midiInDevice","");
@@ -3218,7 +3237,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.headFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
   clampSetting(settings.iconSize,2,48);
-  clampSetting(settings.audioEngine,0,1);
+  clampSetting(settings.audioEngine,0,2);
   clampSetting(settings.audioQuality,0,1);
   clampSetting(settings.audioBufSize,32,4096);
   clampSetting(settings.audioRate,8000,384000);
