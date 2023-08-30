@@ -56,8 +56,8 @@
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev169"
-#define DIV_ENGINE_VERSION 169
+#define DIV_VERSION "dev170"
+#define DIV_ENGINE_VERSION 170
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02

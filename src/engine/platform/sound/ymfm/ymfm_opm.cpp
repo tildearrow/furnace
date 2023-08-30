@@ -176,7 +176,7 @@ int32_t opm_registers::clock_noise_and_lfo()
 {
 	// base noise frequency is measured at 2x 1/2 FM frequency; this
 	// means each tick counts as two steps against the noise counter
-	uint32_t freq = noise_frequency();
+	uint32_t freq = noise_frequency() ^ 0x1f;
 	for (int rep = 0; rep < 2; rep++)
 	{
 		// evidence seems to suggest the LFSR is clocked continually and just
