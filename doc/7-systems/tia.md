@@ -184,7 +184,7 @@ this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
 |    30 |    32.7 |  C-1 |  0.0 |    32.5 |  C-1 |  -11
 |    31 |    31.7 |  B-0 |  +44 |    31.5 |  B-0 |  +33
 
-## shapes 8
+## shape 8
 
 | pitch |    NTSC | note | cent |    PAL  | note | cent
 |------:|--------:|:----:|-----:|--------:|:----:|-----:
