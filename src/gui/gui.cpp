@@ -3628,6 +3628,8 @@ bool FurnaceGUI::loop() {
       if (prevScrW!=scrW || prevScrH!=scrH) {
         logV("size change 2: %dx%d (from %dx%d)",scrW,scrH,prevScrW,prevScrH);
       }
+
+      ImGui::GetIO().InputScale=(float)canvasW/(float)scrW;
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;

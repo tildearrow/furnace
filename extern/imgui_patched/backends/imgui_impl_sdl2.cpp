@@ -322,14 +322,8 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
                 mouse_pos.y += window_y;
             }
             // Fix for high DPI mac/idevice/wayland
-            ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
-            if (!platform_io.Monitors.empty() && platform_io.Monitors[0].DpiScale > 1.0f)
-            {
-                // The Framebuffer is scaled by an integer ceiling of the actual ratio, so 2.0 not 1.685 on Mac!
-                //printf("multiply by %f\n",platform_io.Monitors[0].DpiScale);
-                mouse_pos.x *= std::ceil(platform_io.Monitors[0].DpiScale);
-                mouse_pos.y *= std::ceil(platform_io.Monitors[0].DpiScale);
-            }
+            mouse_pos.x *= io.InputScale;
+            mouse_pos.y *= io.InputScale;
             io.AddMouseSourceEvent(event->motion.which == SDL_TOUCH_MOUSEID ? ImGuiMouseSource_TouchScreen : ImGuiMouseSource_Mouse);
             io.AddMousePosEvent(mouse_pos.x, mouse_pos.y);
             return true;
@@ -627,13 +621,8 @@ static void ImGui_ImplSDL2_UpdateMouseData()
                 mouse_y -= window_y;
             }
             // Fix for high DPI mac/idevice/wayland
-            ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
-            if (!platform_io.Monitors.empty() && platform_io.Monitors[0].DpiScale > 1.0f)
-            {
-                // The Framebuffer is scaled by an integer ceiling of the actual ratio, so 2.0 not 1.685 on Mac!
-                mouse_x *= std::ceil(platform_io.Monitors[0].DpiScale);
-                mouse_y *= std::ceil(platform_io.Monitors[0].DpiScale);
-            }
+            mouse_x *= io.InputScale;
+            mouse_y *= io.InputScale;
             io.AddMousePosEvent((float)mouse_x, (float)mouse_y);
         }
     }
@@ -793,7 +782,7 @@ void ImGui_ImplSDL2_NewFrame()
         io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
         io.DisplaySize = ImVec2((float)display_w, (float)display_h);
         //printf("write %d/%d to DpiScale\n",display_w,w);
-        platform_io.Monitors[0].DpiScale=(float)display_w/(float)w;
+        io.InputScale=(float)display_w/(float)w;
     }
 
     // Setup time step (we don't use SDL_GetTicks() because it is using millisecond resolution)
