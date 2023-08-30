@@ -1802,7 +1802,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
   }
 
 #define BUTTON_TO_SET_PROPS(_x) \
+  pushToggleColors(_x.macro->speed!=1 || _x.macro->delay); \
   ImGui::Button(ICON_FA_ELLIPSIS_H "##IMacroSet"); \
+  popToggleColors(); \
   if (ImGui::IsItemHovered()) { \
     ImGui::SetTooltip("Delay/Step Length"); \
   } \
