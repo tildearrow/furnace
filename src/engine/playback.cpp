@@ -407,6 +407,38 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
   return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
 }
 
+bool DivEngine::perSystemPreEffect(int ch, unsigned char effect, unsigned char effectVal) {
+  DivSysDef* sysDef=sysDefs[sysOfChan[ch]];
+  if (sysDef==NULL) return false;
+  auto iter=sysDef->preEffectHandlers.find(effect);
+  if (iter==sysDef->preEffectHandlers.end()) return false;
+  EffectHandler handler=iter->second;
+  int val=0;
+  int val2=0;
+  try {
+    val=handler.val?handler.val(effect,effectVal):effectVal;
+    val2=handler.val2?handler.val2(effect,effectVal):0;
+  } catch (DivDoNotHandleEffect& e) {
+    return false;
+  }
+  // wouldn't this cause problems if it were to return 0?
+  return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
+}
+
+void DivEngine::processRowPre(int i) {
+  int whatOrder=curOrder;
+  int whatRow=curRow;
+  DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][whatOrder],false);
+  for (int j=0; j<curPat[i].effectCols; j++) {
+    short effect=pat->data[whatRow][4+(j<<1)];
+    short effectVal=pat->data[whatRow][5+(j<<1)];
+
+    if (effectVal==-1) effectVal=0;
+    effectVal&=255;
+    perSystemPreEffect(i,effect,effectVal);
+  }
+}
+
 void DivEngine::processRow(int i, bool afterDelay) {
   int whatOrder=afterDelay?chan[i].delayOrder:curOrder;
   int whatRow=afterDelay?chan[i].delayRow:curRow;
@@ -1133,6 +1165,11 @@ void DivEngine::nextRow() {
   if (!stepPlay) {
     prevOrder=curOrder;
     prevRow=curRow;
+  }
+
+  for (int i=0; i<chans; i++) {
+    // try to find pre effects
+    processRowPre(i);
   }
 
   for (int i=0; i<chans; i++) {
