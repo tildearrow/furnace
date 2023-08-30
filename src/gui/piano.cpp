@@ -228,7 +228,7 @@ void FurnaceGUI::drawPiano() {
         //ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
         if (ImGui::ItemAdd(rect,ImGui::GetID("pianoDisplay"))) {
           bool canInput=false;
-          if (!pianoReadonly && ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"))) {
+          if (!pianoReadonly && ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"),0)) {
             canInput=true;
             ImGui::InhibitInertialScroll();
           }

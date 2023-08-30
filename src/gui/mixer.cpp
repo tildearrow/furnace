@@ -105,7 +105,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
   bool hovered=false;
   bool active=false;
   if (visible) {
-    hovered=ImGui::ItemHoverable(rect,ImGui::GetID(portID.c_str()));
+    hovered=ImGui::ItemHoverable(rect,ImGui::GetID(portID.c_str()),0);
     active=(hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left));
 
     if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
