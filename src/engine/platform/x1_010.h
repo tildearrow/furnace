@@ -153,7 +153,6 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     bool isSampleLoaded(int index, int sample);
     void renderSamples(int chipID);
     const char** getRegisterSheet();
-    void setBanked(bool banked);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformX1_010():
