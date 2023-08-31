@@ -113,7 +113,7 @@ double getScaleFactor(const char* driverHint, void* windowHint) {
     if (windowHint!=NULL) {
       SDL_VERSION(&wmInfo.version)
       if (SDL_GetWindowWMInfo((SDL_Window*)windowHint,&wmInfo)==SDL_TRUE) {
-        nsWindow=wmInfo.cocoa.window;
+        nsWindow=wmInfo.info.cocoa.window;
       }
     }
     return getMacDPIScale(nsWindow,false);
@@ -123,7 +123,7 @@ double getScaleFactor(const char* driverHint, void* windowHint) {
     if (windowHint!=NULL) {
       SDL_VERSION(&wmInfo.version)
       if (SDL_GetWindowWMInfo((SDL_Window*)windowHint,&wmInfo)==SDL_TRUE) {
-        uiWindow=wmInfo.cocoa.window;
+        uiWindow=wmInfo.info.uikit.window;
       }
     }
     return getMacDPIScale(uiWindow,true);
