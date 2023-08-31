@@ -749,6 +749,7 @@ void FurnaceGUI::drawSettings() {
 #endif
             if (settings.audioEngine!=prevAudioEngine) {
               audioEngineChanged=true;
+              settings.audioDevice="";
               if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
             }
             ImGui::EndCombo();
