@@ -3491,6 +3491,7 @@ bool FurnaceGUI::loop() {
               scrX=ev.window.data1;
               scrY=ev.window.data2;
               updateWindow=true;
+              shallDetectScale=2;
               logV("window moved to %dx%d",scrX,scrY);
               break;
             case SDL_WINDOWEVENT_SIZE_CHANGED:
@@ -6140,7 +6141,38 @@ bool FurnaceGUI::loop() {
     if (shallDetectScale) {
       if (--shallDetectScale<1) {
         if (settings.dpiScale<0.5f) {
-          applyUISettings();
+          const char* videoBackend=SDL_GetCurrentVideoDriver();      
+          double newScale=getScaleFactor(videoBackend,sdlWin);
+          if (newScale<0.1f) {
+            logW("scale what?");
+            newScale=1.0f;
+          }
+
+          if (newScale!=dpiScale) {
+            logD("auto UI scale changed (%f != %f) - applying settings...",newScale,dpiScale);
+            ImGui::GetIO().Fonts->Clear();
+
+            applyUISettings();
+
+            if (rend) rend->destroyFontsTexture();
+            if (!ImGui::GetIO().Fonts->Build()) {
+              logE("error while building font atlas!");
+              showError("error while loading fonts! please check your settings.");
+              ImGui::GetIO().Fonts->Clear();
+              mainFont=ImGui::GetIO().Fonts->AddFontDefault();
+              patFont=mainFont;
+              bigFont=mainFont;
+              headFont=mainFont;
+              if (rend) rend->destroyFontsTexture();
+              if (!ImGui::GetIO().Fonts->Build()) {
+                logE("error again while building font atlas!");
+              } else {
+                rend->createFontsTexture();
+              }
+            } else {
+              rend->createFontsTexture();
+            }
+          }
         }
       }
     }
@@ -6368,7 +6400,7 @@ bool FurnaceGUI::init() {
     dpiScale=settings.dpiScale;
   } else {
     logD("auto-detecting UI scale factor.");
-    dpiScale=getScaleFactor(videoBackend);
+    dpiScale=getScaleFactor(videoBackend,sdlWin);
     logD("scale factor: %f",dpiScale);
     if (dpiScale<0.1f) {
       logW("scale what?");

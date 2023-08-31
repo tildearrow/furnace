@@ -4153,18 +4153,20 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   setupLabel(settings.emptyLabel.c_str(),emptyLabel,3);
   setupLabel(settings.emptyLabel2.c_str(),emptyLabel2,2);
 
-  // get scale factor
-  const char* videoBackend=SDL_GetCurrentVideoDriver();
-  if (settings.dpiScale>=0.5f) {
-    logD("setting UI scale factor from config (%f).",settings.dpiScale);
-    dpiScale=settings.dpiScale;
-  } else {
-    logD("auto-detecting UI scale factor.");
-    dpiScale=getScaleFactor(videoBackend);
-    logD("scale factor: %f",dpiScale);
-    if (dpiScale<0.1f) {
-      logW("scale what?");
-      dpiScale=1.0f;
+  if (updateFonts) {
+    // get scale factor
+    const char* videoBackend=SDL_GetCurrentVideoDriver();
+    if (settings.dpiScale>=0.5f) {
+      logD("setting UI scale factor from config (%f).",settings.dpiScale);
+      dpiScale=settings.dpiScale;
+    } else {
+      logD("auto-detecting UI scale factor.");
+      dpiScale=getScaleFactor(videoBackend,sdlWin);
+      logD("scale factor: %f",dpiScale);
+      if (dpiScale<0.1f) {
+        logW("scale what?");
+        dpiScale=1.0f;
+      }
     }
   }
 
