@@ -431,7 +431,7 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
       DivSample* s=parent->song.sample[i];
       int endPos=sampleOffVOX[i]+s->lengthVOX;
       for (int b=0; b<4; b++) {
-        unsigned int bankedAddr=(bankedPhrase[i].bank<<16)+(b<<8)+(bankedPhrase[i].phrase*8);
+        unsigned int bankedAddr=((unsigned int)bankedPhrase[i].bank<<16)+(b<<8)+(bankedPhrase[i].phrase*8);
         adpcmMem[bankedAddr]=b;
         adpcmMem[bankedAddr+1]=(sampleOffVOX[i]>>8)&0xff;
         adpcmMem[bankedAddr+2]=(sampleOffVOX[i])&0xff;
