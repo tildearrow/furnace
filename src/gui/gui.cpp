@@ -417,6 +417,7 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
   }
 
 bool FurnaceGUI::CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {
+  flags^=ImGuiSliderFlags_AlwaysClamp;
   if (ImGui::SliderScalar(label,data_type,p_data,p_min,p_max,format,flags)) {
     return true;
   }
@@ -453,6 +454,7 @@ bool FurnaceGUI::CWSliderScalar(const char* label, ImGuiDataType data_type, void
 }
 
 bool FurnaceGUI::CWVSliderScalar(const char* label, const ImVec2& size, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {
+  flags^=ImGuiSliderFlags_AlwaysClamp;
   if (ImGui::VSliderScalar(label,size,data_type,p_data,p_min,p_max,format,flags)) {
     return true;
   }
