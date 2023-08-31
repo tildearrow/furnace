@@ -55,10 +55,10 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "2A03";
       break;
     case DIV_SYSTEM_C64_6581:
-      return "MOS 6581";
+      return "6581";
       break;
     case DIV_SYSTEM_C64_8580:
-      return "MOS 8580";
+      return "8580";
       break;
     case DIV_SYSTEM_Y8950:
     case DIV_SYSTEM_Y8950_DRUMS:
@@ -137,8 +137,8 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
     case DIV_SYSTEM_YM2608_EXT:
       return "YM2608";
       break;
-    case DIV_SYSTEM_OPL:
-    case DIV_SYSTEM_OPL_DRUMS:{
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_OPLL_DRUMS:{
       int patchSet=flags.getInt("patchSet",0);
         if (patchSet==1) {
           return "YMF281";
@@ -210,9 +210,9 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
     case DIV_SYSTEM_YM2610_FULL_EXT:
       return "YM2610";
       break;
-    case DIV_SYSTEM_OPLL:
-    case DIV_SYSTEM_OPLL_DRUMS:
-      return "YM2413";
+    case DIV_SYSTEM_OPL:
+    case DIV_SYSTEM_OPL_DRUMS:
+      return "YM3526";
       break;
     case DIV_SYSTEM_QSOUND:
       return "QSound";
@@ -273,6 +273,9 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       break;
     case DIV_SYSTEM_C140:
       return "C140";
+      break;
+    case DIV_SYSTEM_C219:
+      return "C219";
       break;
     default:
       return FurnaceGUI::getSystemName(sys);
