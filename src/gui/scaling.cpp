@@ -130,8 +130,8 @@ double getScaleFactor(const char* driverHint, void* windowHint) {
       }
     }
     return getMacDPIScale(uiWindow,true);
-  }
 #endif
+  }
 #endif
 
 #if defined(__unix__) || defined(ANDROID)
