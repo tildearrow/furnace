@@ -1349,6 +1349,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_MSM6295: {
       int clockSel=flags.getInt("clockSel",0);
       bool rateSel=flags.getBool("rateSel",false);
+      bool isBanked=flags.getBool("isBanked",false);
 
       ImGui::Text("Clock rate:");
       ImGui::Indent();
@@ -1425,10 +1426,15 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       ImGui::Unindent();
 
+      if (ImGui::Checkbox("Bankswitched (NMK112)",&isBanked)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("rateSel",rateSel);
+          flags.set("isBanked",isBanked);
         });
       }
       break;

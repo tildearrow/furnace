@@ -49,7 +49,6 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     };
     FixedQueue<QueuedWrite,256> writes;
     msm6295_core msm;
-    unsigned char lastBusy;
 
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
@@ -58,7 +57,16 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
 
     int delay, updateOsc;
 
-    bool rateSel=false, rateSelInit=false;
+    bool rateSel=false, rateSelInit=false, isBanked=false;
+
+    unsigned int bank[4];
+    struct BankedPhrase {
+      unsigned char bank=0;
+      unsigned char phrase=0;
+      BankedPhrase():
+        bank(0),
+        phrase(0) {}
+    } bankedPhrase[256];
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);

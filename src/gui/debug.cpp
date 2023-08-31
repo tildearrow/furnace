@@ -55,6 +55,7 @@
 #include "../engine/platform/pv1000.h"
 #include "../engine/platform/k053260.h"
 #include "../engine/platform/c140.h"
+#include "../engine/platform/msm6295.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -552,6 +553,18 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("> C140");
       COMMON_CHIP_DEBUG;
       COMMON_CHIP_DEBUG_BOOL;
+      break;
+    }
+    case DIV_SYSTEM_MSM6295: {
+      DivPlatformMSM6295* ch=(DivPlatformMSM6295*)data;
+      ImGui::Text("> MSM6295");
+      COMMON_CHIP_DEBUG;
+      ImGui::Text("- delay: %d",ch->delay);
+      ImGui::Text("- updateOsc: %d",ch->updateOsc);
+      COMMON_CHIP_DEBUG_BOOL;
+      ImGui::TextColored(ch->rateSel?colorOn:colorOff,">> RateSel");
+      ImGui::TextColored(ch->rateSelInit?colorOn:colorOff,">> rateSelInit");
+      ImGui::TextColored(ch->isBanked?colorOn:colorOff,">> IsBanked");
       break;
     }
     default:
@@ -1090,6 +1103,15 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->volChangedL?colorOn:colorOff,">> VolChangedL");
       ImGui::TextColored(ch->volChangedR?colorOn:colorOff,">> VolChangedR");
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      break;
+    }
+    case DIV_SYSTEM_MSM6295: {
+      DivPlatformMSM6295::Channel* ch=(DivPlatformMSM6295::Channel*)data;
+      ImGui::Text("> MSM6295");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("* Sample: %d",ch->sample);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->furnacePCM?colorOn:colorOff,">> FurnacePCM");
       break;
     }
     default:
