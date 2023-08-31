@@ -82,11 +82,13 @@ const char* patFonts[]={
 
 const char* audioBackends[]={
   "JACK",
-  "SDL"
+  "SDL",
+  "PortAudio"
 };
 
 const bool isProAudio[]={
   true,
+  false,
   false
 };
 
@@ -724,17 +726,32 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::BeginTable("##Output",2)) {
           ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##Combo",ImGuiTableColumnFlags_WidthStretch);
-#ifdef HAVE_JACK
+#if defined(HAVE_JACK) || defined(HAVE_PA)
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text("Backend");
           ImGui::TableNextColumn();
           int prevAudioEngine=settings.audioEngine;
-          if (ImGui::Combo("##Backend",&settings.audioEngine,audioBackends,2)) {
+          if (ImGui::BeginCombo("##Backend",audioBackends[settings.audioEngine])) {
+#ifdef HAVE_JACK
+            if (ImGui::Selectable("JACK",settings.audioEngine==DIV_AUDIO_JACK)) {
+              settings.audioEngine=DIV_AUDIO_JACK;
+            }
+#endif
+            if (ImGui::Selectable("SDL",settings.audioEngine==DIV_AUDIO_SDL)) {
+              settings.audioEngine=DIV_AUDIO_SDL;
+            }
+#ifdef HAVE_PA
+            if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
+              settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+            }
+#endif
             if (settings.audioEngine!=prevAudioEngine) {
+              audioEngineChanged=true;
               if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
             }
+            ImGui::EndCombo();
           }
 #endif
 
@@ -765,17 +782,30 @@ void FurnaceGUI::drawSettings() {
           ImGui::AlignTextToFramePadding();
           ImGui::Text("Device");
           ImGui::TableNextColumn();
-          String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
-          if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
-            if (ImGui::Selectable("<System default>",settings.audioDevice.empty())) {
-              settings.audioDevice="";
-            }
-            for (String& i: e->getAudioDevices()) {
-              if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
-                settings.audioDevice=i;
+          if (audioEngineChanged) {
+            ImGui::BeginDisabled();
+            if (ImGui::BeginCombo("##AudioDevice","<click on OK or Apply first>")) {
+              ImGui::Text("ALERT - TRESPASSER DETECTED");
+              if (ImGui::IsItemHovered()) {
+                showError("you have been arrested for trying to engage with a disabled combo box.");
+                ImGui::CloseCurrentPopup();
               }
+              ImGui::EndCombo();
             }
-            ImGui::EndCombo();
+            ImGui::EndDisabled();
+          } else {
+            String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
+            if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
+              if (ImGui::Selectable("<System default>",settings.audioDevice.empty())) {
+                settings.audioDevice="";
+              }
+              for (String& i: e->getAudioDevices()) {
+                if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
+                  settings.audioDevice=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
           }
 
           ImGui::TableNextRow();
@@ -1231,7 +1261,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Arcade/YM2151");
+          ImGui::Text("YM2151");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
@@ -1242,7 +1272,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Genesis/YM2612");
+          ImGui::Text("YM2612");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
@@ -1376,6 +1406,7 @@ void FurnaceGUI::drawSettings() {
           KEYBIND_CONFIG_BEGIN("keysGlobal");
 
           UI_KEYBIND_CONFIG(GUI_ACTION_NEW);
+          UI_KEYBIND_CONFIG(GUI_ACTION_CLEAR);
           UI_KEYBIND_CONFIG(GUI_ACTION_OPEN);
           UI_KEYBIND_CONFIG(GUI_ACTION_OPEN_BACKUP);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAVE);
@@ -1401,6 +1432,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_ORDERS);
           UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_PATTERN);
           UI_KEYBIND_CONFIG(GUI_ACTION_FULLSCREEN);
+          UI_KEYBIND_CONFIG(GUI_ACTION_TX81Z_REQUEST);
           UI_KEYBIND_CONFIG(GUI_ACTION_PANIC);
 
           KEYBIND_CONFIG_END;
@@ -1409,33 +1441,38 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::TreeNode("Window activation")) {
           KEYBIND_CONFIG_BEGIN("keysWindow");
 
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EDIT_CONTROLS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ORDERS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_LIST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_EDIT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_FIND);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SETTINGS);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SONG_INFO);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SUBSONGS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PATTERN);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SPEED);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_LIST);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_LIST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_EDIT);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SAMPLE_LIST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SAMPLE_EDIT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ABOUT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SETTINGS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ORDERS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PATTERN);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_MIXER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_DEBUG);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_GROOVES);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CHANNELS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PAT_MANAGER);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SYS_MANAGER);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_COMPAT_FLAGS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_NOTES);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_EDIT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_EDIT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SAMPLE_EDIT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EDIT_CONTROLS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PIANO);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_OSCILLOSCOPE);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CHAN_OSC);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EFFECT_LIST);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_VOL_METER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_STATS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_COMPAT_FLAGS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PIANO);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_NOTES);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CHANNELS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CLOCK);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_REGISTER_VIEW);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_LOG);
-
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_STATS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EFFECT_LIST);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_DEBUG);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ABOUT);
           UI_KEYBIND_CONFIG(GUI_ACTION_COLLAPSE_WINDOW);
           UI_KEYBIND_CONFIG(GUI_ACTION_CLOSE_WINDOW);
 
@@ -1603,6 +1640,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_OPEN);
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_OPEN_REPLACE);
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_SAVE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_SAVE_DMP);
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_MOVE_UP);
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_MOVE_DOWN);
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DELETE);
@@ -1620,7 +1658,10 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_ADD);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DUPLICATE);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_OPEN);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_OPEN_REPLACE);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_SAVE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_SAVE_RAW);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_MOVE_UP);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DELETE);
@@ -1637,8 +1678,13 @@ void FurnaceGUI::drawSettings() {
 
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_ADD);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_CREATE_WAVE);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN);
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_SAVE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DELETE);
@@ -2197,6 +2243,11 @@ void FurnaceGUI::drawSettings() {
         bool capitalMenuBarB=settings.capitalMenuBar;
         if (ImGui::Checkbox("Capitalize menu bar",&capitalMenuBarB)) {
           settings.capitalMenuBar=capitalMenuBarB;
+        }
+
+        bool classicChipOptionsB=settings.classicChipOptions;
+        if (ImGui::Checkbox("Display add/configure/change/remove chip menus in File menu",&classicChipOptionsB)) {
+          settings.classicChipOptions=classicChipOptionsB;
         }
 
         // SUBSECTION ORDERS
@@ -2998,6 +3049,7 @@ void FurnaceGUI::drawSettings() {
     ImGui::SameLine();
     if (ImGui::Button("Cancel##SettingsCancel")) {
       settingsOpen=false;
+      audioEngineChanged=false;
       syncSettings();
     }
     ImGui::SameLine();
@@ -3024,6 +3076,13 @@ void FurnaceGUI::syncSettings() {
   settings.patFontSize=e->getConfInt("patFontSize",18);
   settings.iconSize=e->getConfInt("iconSize",16);
   settings.audioEngine=(e->getConfString("audioEngine","SDL")=="SDL")?1:0;
+  if (e->getConfString("audioEngine","SDL")=="JACK") {
+    settings.audioEngine=DIV_AUDIO_JACK;
+  } else if (e->getConfString("audioEngine","SDL")=="PortAudio") {
+    settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+  } else {
+    settings.audioEngine=DIV_AUDIO_SDL;
+  }
   settings.audioDevice=e->getConfString("audioDevice","");
   settings.audioChans=e->getConfInt("audioChans",2);
   settings.midiInDevice=e->getConfString("midiInDevice","");
@@ -3191,12 +3250,13 @@ void FurnaceGUI::syncSettings() {
   settings.capitalMenuBar=e->getConfInt("capitalMenuBar",0);
   settings.centerPopup=e->getConfInt("centerPopup",1);
   settings.insIconsStyle=e->getConfInt("insIconsStyle",1);
+  settings.classicChipOptions=e->getConfInt("classicChipOptions",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
   clampSetting(settings.iconSize,2,48);
-  clampSetting(settings.audioEngine,0,1);
+  clampSetting(settings.audioEngine,0,2);
   clampSetting(settings.audioQuality,0,1);
   clampSetting(settings.audioBufSize,32,4096);
   clampSetting(settings.audioRate,8000,384000);
@@ -3337,6 +3397,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.capitalMenuBar,0,1);
   clampSetting(settings.centerPopup,0,1);
   clampSetting(settings.insIconsStyle,0,2);
+  clampSetting(settings.classicChipOptions,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3590,6 +3651,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("capitalMenuBar",settings.capitalMenuBar);
   e->setConf("centerPopup",settings.centerPopup);
   e->setConf("insIconsStyle",settings.insIconsStyle);
+  e->setConf("classicChipOptions",settings.classicChipOptions);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3647,6 +3709,8 @@ void FurnaceGUI::commitSettings() {
   } else {
     rend->createFontsTexture();
   }
+
+  audioEngineChanged=false;
 }
 
 bool FurnaceGUI::importColors(String path) {

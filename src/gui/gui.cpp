@@ -1103,10 +1103,21 @@ void FurnaceGUI::setOrder(unsigned char order, bool forced) {
 }
 
 void FurnaceGUI::stop() {
+  bool wasPlaying=e->isPlaying();
   e->walkSong(loopOrder,loopRow,loopEnd);
   e->stop();
   curNibble=false;
   orderNibble=false;
+  if (followPattern && wasPlaying) {
+    nextScroll=-1.0f;
+    nextAddScroll=0.0f;
+    cursor.y=e->getRow();
+    if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
+      selStart=cursor;
+      selEnd=cursor;
+    }
+    updateScroll(cursor.y);
+  }
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
@@ -3617,6 +3628,8 @@ bool FurnaceGUI::loop() {
       if (prevScrW!=scrW || prevScrH!=scrH) {
         logV("size change 2: %dx%d (from %dx%d)",scrW,scrH,prevScrW,prevScrH);
       }
+
+      ImGui::GetIO().InputScale=(float)canvasW/(float)scrW;
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
@@ -4169,70 +4182,76 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         ImGui::Separator();
-        if (ImGui::BeginMenu("add chip...")) {
-          exitDisabledTimer=1;
-          DivSystem picked=systemPicker();
-          if (picked!=DIV_SYSTEM_NULL) {
-            if (!e->addSystem(picked)) {
-              showError("cannot add chip! ("+e->getLastError()+")");
-            } else {
-              MARK_MODIFIED;
-            }
-            ImGui::CloseCurrentPopup();
-            if (e->song.autoSystem) {
-              autoDetectSystem();
-            }
-            updateWindowTitle();
+        if (!settings.classicChipOptions) {
+          if (ImGui::MenuItem("manage chips")) {
+            nextWindow=GUI_WINDOW_SYS_MANAGER;
           }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("configure chip...")) {
-          exitDisabledTimer=1;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true,true);
-              ImGui::TreePop();
-            }
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("change chip...")) {
-          exitDisabledTimer=1;
-          ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              DivSystem picked=systemPicker();
-              if (picked!=DIV_SYSTEM_NULL) {
-                e->changeSystem(i,picked,preserveChanPos);
-                MARK_MODIFIED;
-                if (e->song.autoSystem) {
-                  autoDetectSystem();
-                }
-                updateWindowTitle();
-                ImGui::CloseCurrentPopup();
-              }
-              ImGui::EndMenu();
-            }
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("remove chip...")) {
-          exitDisabledTimer=1;
-          ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              if (!e->removeSystem(i,preserveChanPos)) {
-                showError("cannot remove chip! ("+e->getLastError()+")");
+        } else {
+          if (ImGui::BeginMenu("add chip...")) {
+            exitDisabledTimer=1;
+            DivSystem picked=systemPicker();
+            if (picked!=DIV_SYSTEM_NULL) {
+              if (!e->addSystem(picked)) {
+                showError("cannot add chip! ("+e->getLastError()+")");
               } else {
                 MARK_MODIFIED;
               }
+              ImGui::CloseCurrentPopup();
               if (e->song.autoSystem) {
                 autoDetectSystem();
-                updateWindowTitle();
+              }
+              updateWindowTitle();
+            }
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("configure chip...")) {
+            exitDisabledTimer=1;
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true,true);
+                ImGui::TreePop();
               }
             }
+            ImGui::EndMenu();
           }
-          ImGui::EndMenu();
+          if (ImGui::BeginMenu("change chip...")) {
+            exitDisabledTimer=1;
+            ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                DivSystem picked=systemPicker();
+                if (picked!=DIV_SYSTEM_NULL) {
+                  e->changeSystem(i,picked,preserveChanPos);
+                  MARK_MODIFIED;
+                  if (e->song.autoSystem) {
+                    autoDetectSystem();
+                  }
+                  updateWindowTitle();
+                  ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndMenu();
+              }
+            }
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("remove chip...")) {
+            exitDisabledTimer=1;
+            ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                if (!e->removeSystem(i,preserveChanPos)) {
+                  showError("cannot remove chip! ("+e->getLastError()+")");
+                } else {
+                  MARK_MODIFIED;
+                }
+                if (e->song.autoSystem) {
+                  autoDetectSystem();
+                  updateWindowTitle();
+                }
+              }
+            }
+            ImGui::EndMenu();
+          }
         }
         ImGui::BeginDisabled(exitDisabledTimer);
         ImGui::Separator();
@@ -4346,7 +4365,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu(settings.capitalMenuBar?"Help":"help")) {
         if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
-        if (ImGui::MenuItem("inspector",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) inspectorOpen=!inspectorOpen;
+        if (ImGui::MenuItem("inspector")) inspectorOpen=!inspectorOpen;
         if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
         if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
           aboutOpen=true;
@@ -4506,6 +4525,7 @@ bool FurnaceGUI::loop() {
       MEASURE(compatFlags,drawCompatFlags());
       MEASURE(stats,drawStats());
       MEASURE(chanOsc,drawChanOsc());
+      MEASURE(regView,drawRegView());
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -6894,6 +6914,8 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   mobileEdit(false),
   killGraphics(false),
+  audioEngineChanged(false),
+  settingsChanged(false),
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),
   drawHalt(10),

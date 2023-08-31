@@ -23,7 +23,7 @@
 #include <math.h>
 #include <map>
 
-#define CHIP_FREQBASE 12582912
+#define CHIP_FREQBASE (is219?74448896:12582912)
 
 #define rWrite(a,v) {if(!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if(dumpWrites) addWrite(a,v); }}
 
@@ -150,6 +150,15 @@ void DivPlatformC140::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (is219) {
+      if (chan[i].std.duty.had) {
+        chan[i].noise=chan[i].std.duty.val&1;
+        chan[i].invert=chan[i].std.duty.val&2;
+        chan[i].surround=chan[i].std.duty.val&4;
+        chan[i].freqChanged=true;
+        chan[i].writeCtrl=true;
+      }
+    }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
@@ -193,7 +202,6 @@ void DivPlatformC140::tick(bool sysTick) {
       chan[i].audPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      bool writeCtrl=false;
       DivSample* s=parent->getSample(chan[i].sample);
       unsigned char ctrl=0;
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
@@ -201,7 +209,7 @@ void DivPlatformC140::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (is219) {
-        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?1:0)|(chan[i].invert?0x40:0)|(chan[i].surround?8:0)|(chan[i].noise?4:0);
+        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_C219)?1:0)|(chan[i].invert?0x40:0)|(chan[i].surround?8:0)|(chan[i].noise?4:0);
       } else {
         ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?0x08:0);
       }
@@ -241,7 +249,7 @@ void DivPlatformC140::tick(bool sysTick) {
             // shut everyone else up
             for (int j=0; j<4; j++) {
               int ch=(i&(~3))|j;
-              if (chan[ch].active && (i&3)!=j) {
+              if (chan[ch].active && !chan[ch].keyOn && (i&3)!=j) {
                 chan[ch].sample=-1;
                 chan[ch].active=false;
                 chan[ch].keyOff=true;
@@ -264,11 +272,11 @@ void DivPlatformC140::tick(bool sysTick) {
           chan[i].volChangedL=true;
           chan[i].volChangedR=true;
         }
-        writeCtrl=true;
+        chan[i].writeCtrl=true;
         chan[i].keyOn=false;
       }
       if (chan[i].keyOff) {
-        writeCtrl=true;
+        chan[i].writeCtrl=true;
         chan[i].keyOff=false;
       }
       if (chan[i].freqChanged) {
@@ -276,8 +284,9 @@ void DivPlatformC140::tick(bool sysTick) {
         rWrite(0x03+(i<<4),chan[i].freq&0xff);
         chan[i].freqChanged=false;
       }
-      if (writeCtrl) {
+      if (chan[i].writeCtrl) {
         rWrite(0x05+(i<<4),ctrl);
+        chan[i].writeCtrl=false;
       }
     }
   }
@@ -341,6 +350,17 @@ int DivPlatformC140::dispatch(DivCommand c) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
+      break;
+    case DIV_CMD_STD_NOISE_MODE:
+      if (!is219) break;
+      chan[c.chan].noise=c.value;
+      chan[c.chan].writeCtrl=true;
+      break;
+    case DIV_CMD_SNES_INVERT:
+      if (!is219) break;
+      chan[c.chan].invert=c.value&15;
+      chan[c.chan].surround=c.value>>4;
+      chan[c.chan].writeCtrl=true;
       break;
     case DIV_CMD_PANNING:
       chan[c.chan].chPanL=c.value;
@@ -427,6 +447,12 @@ void DivPlatformC140::forceIns() {
     chan[i].volChangedR=true;
     chan[i].sample=-1;
   }
+  if (is219) {
+    // restore banks
+    for (int i=0; i<4; i++) {
+      rWrite(0x1f1+(((3+i)&3)<<1),groupBank[i]);
+    }
+  }
 }
 
 void* DivPlatformC140::getChanState(int ch) {
@@ -476,8 +502,7 @@ void DivPlatformC140::notifyInsChange(int ins) {
 }
 
 void DivPlatformC140::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
-  // TODO they probably won't be added unless the samples reside in RAM
+
 }
 
 void DivPlatformC140::notifyInsDeletion(void* ins) {
@@ -547,6 +572,7 @@ void DivPlatformC140::renderSamples(int sysID) {
       if ((memPos&0xfe0000)!=((memPos+length)&0xfe0000)) {
         memPos=((memPos+0x1ffff)&0xfe0000);
       }
+      logV("%d",length);
       if (memPos>=(getSampleMemCapacity())) {
         logW("out of C219 memory for sample %d!",i);
         break;
@@ -555,21 +581,20 @@ void DivPlatformC140::renderSamples(int sysID) {
         length=getSampleMemCapacity()-memPos;
         logW("out of C219 memory for sample %d!",i);
       }
-      if (s->depth==DIV_SAMPLE_DEPTH_MULAW) {
+      if (s->depth==DIV_SAMPLE_DEPTH_C219) {
         for (unsigned int i=0; i<length; i++) {
-          if (i>=s->lengthMuLaw) {
-            sampleMem[i+memPos]=0;
+          if (i>=s->lengthC219) {
+            sampleMem[(memPos+i)^1]=0;
           } else {
-            unsigned char x=s->dataMuLaw[i]^0xff;
-            sampleMem[i+memPos]=x;
+            sampleMem[(memPos+i)^1]=s->dataC219[i];
           }
         }
       } else {
         for (unsigned int i=0; i<length; i++) {
           if (i>=s->length8) {
-            sampleMem[memPos+i]=0;
+            sampleMem[(memPos+i)^1]=0;
           } else {
-            sampleMem[memPos+i]=s->data8[i];
+            sampleMem[(memPos+i)^1]=s->data8[i];
           }
         }
       }
@@ -619,10 +644,26 @@ void DivPlatformC140::set219(bool is_219) {
   totalChans=is219?16:24;
 }
 
+int DivPlatformC140::getClockRangeMin() {
+  if (is219) return 1000000;
+  return MIN_CUSTOM_CLOCK;
+}
+
+int DivPlatformC140::getClockRangeMax() {
+  if (is219) return 100000000;
+  return MAX_CUSTOM_CLOCK;
+}
+
 void DivPlatformC140::setFlags(const DivConfig& flags) {
-  chipClock=32000*256; // 8.192MHz and 12.288MHz input, verified from Assault Schematics
-  CHECK_CUSTOM_CLOCK;
-  rate=chipClock/192;
+  if (is219) {
+    chipClock=50113000; // 50.113MHz clock input in Namco NA-1/NA-2 PCB
+    CHECK_CUSTOM_CLOCK;
+    rate=chipClock/1136; // assumed as ~44100hz
+  } else {
+    chipClock=32000*256; // 8.192MHz and 12.288MHz input, verified from Assault Schematics
+    CHECK_CUSTOM_CLOCK;
+    rate=chipClock/192;
+  }
   for (int i=0; i<totalChans; i++) {
     oscBuf[i]->rate=rate;
   }

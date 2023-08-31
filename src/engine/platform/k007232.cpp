@@ -473,8 +473,6 @@ void DivPlatformK007232::notifyInsChange(int ins) {
 }
 
 void DivPlatformK007232::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
-  // TODO they probably won't be added unless the samples reside in RAM
 }
 
 void DivPlatformK007232::notifyInsDeletion(void* ins) {

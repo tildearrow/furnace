@@ -1107,8 +1107,6 @@ void DivPlatformES5506::notifyInsChange(int ins) {
 }
 
 void DivPlatformES5506::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
-  // TODO they probably won't be added unless the samples reside in RAM
 }
 
 void DivPlatformES5506::notifyInsDeletion(void* ins) {

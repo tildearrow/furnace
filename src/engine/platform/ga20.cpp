@@ -388,8 +388,6 @@ void DivPlatformGA20::notifyInsChange(int ins) {
 }
 
 void DivPlatformGA20::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
-  // TODO they probably won't be added unless the samples reside in RAM
 }
 
 void DivPlatformGA20::notifyInsDeletion(void* ins) {

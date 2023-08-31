@@ -134,7 +134,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
     if (chan[i].std.duty.had) {
       if (chan[i].std.duty.val>0) {
-        rWrite(0x0f,0x80|(0x20-chan[i].std.duty.val));
+        rWrite(0x0f,0x80|(chan[i].std.duty.val-1));
       } else {
         rWrite(0x0f,0);
       }
@@ -865,9 +865,9 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       if (c.chan!=7) break;
       if (c.value) {
         if (c.value>0x1f) {
-          rWrite(0x0f,0x80);
+          rWrite(0x0f,0x80|0x1f);
         } else {
-          rWrite(0x0f,0x80|(0x1f-c.value));
+          rWrite(0x0f,0x80|(c.value-1));
         }
       } else {
         rWrite(0x0f,0);

@@ -35,6 +35,7 @@
 // DISCLAIMER: modified with d3dcompiler patch (see https://github.com/ocornut/imgui/pull/638).
 
 #include "imgui.h"
+#ifndef IMGUI_DISABLE
 #include "imgui_impl_dx11.h"
 
 // DirectX
@@ -747,3 +748,7 @@ static void ImGui_ImplDX11_ShutdownPlatformInterface()
 {
     ImGui::DestroyPlatformWindows();
 }
+
+//-----------------------------------------------------------------------------
+
+#endif // #ifndef IMGUI_DISABLE

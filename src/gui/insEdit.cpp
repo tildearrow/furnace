@@ -272,6 +272,10 @@ const char* tedControlBits[3]={
   "square", "noise", NULL
 };
 
+const char* c219ControlBits[4]={
+  "noise", "invert", "surround", NULL
+};
+
 const char* x1_010EnvBits[8]={
   "enable", "oneshot", "split L/R", "HinvR", "VinvR", "HinvL", "VinvL", NULL
 };
@@ -1798,7 +1802,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
   }
 
 #define BUTTON_TO_SET_PROPS(_x) \
+  pushToggleColors(_x.macro->speed!=1 || _x.macro->delay); \
   ImGui::Button(ICON_FA_ELLIPSIS_H "##IMacroSet"); \
+  popToggleColors(); \
   if (ImGui::IsItemHovered()) { \
     ImGui::SetTooltip("Delay/Step Length"); \
   } \
@@ -4510,7 +4516,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_K007232 ||
             ins->type==DIV_INS_GA20 ||
             ins->type==DIV_INS_K053260 ||
-            ins->type==DIV_INS_C140) {
+            ins->type==DIV_INS_C140 ||
+            ins->type==DIV_INS_C219) {
           if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
             String sName;
             bool wannaOpenSMPopup=false;
@@ -5538,7 +5545,7 @@ void FurnaceGUI::drawInsEdit() {
             volMax=31;
           }
           if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140) {
+              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219) {
             volMax=255;
           }
           if (ins->type==DIV_INS_QSOUND) {
@@ -5583,6 +5590,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM5232) {
             dutyLabel="Group Ctrl";
             dutyMax=5;
+          }
+          if (ins->type==DIV_INS_C219) {
+            dutyLabel="Control";
+            dutyMax=3;
           }
           if (ins->type==DIV_INS_BEEPER || ins->type==DIV_INS_POKEMINI) {
             dutyLabel="Pulse Width";
@@ -5709,6 +5720,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_TED) waveMax=0;
           if (ins->type==DIV_INS_C140) waveMax=0;
+          if (ins->type==DIV_INS_C219) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -5839,7 +5851,7 @@ void FurnaceGUI::drawInsEdit() {
             panMin=0;
             panMax=127;
           }
-          if (ins->type==DIV_INS_C140) {
+          if (ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219) {
             panMin=0;
             panMax=255;
           }
@@ -5864,6 +5876,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,msm5232ControlBits));
             } else if (ins->type==DIV_INS_ES5506) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,dutyMin,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,&macroHoverES5506FilterMode));
+            } else if (ins->type==DIV_INS_C219) {
+              macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,120,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c219ControlBits));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,dutyMin,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }

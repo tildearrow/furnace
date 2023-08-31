@@ -1334,6 +1334,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool killGraphics;
+  bool audioEngineChanged, settingsChanged;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int vgmExportTrailingTicks;
@@ -1569,6 +1570,7 @@ class FurnaceGUI {
     int capitalMenuBar;
     int centerPopup;
     int insIconsStyle;
+    int classicChipOptions;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1742,6 +1744,7 @@ class FurnaceGUI {
       capitalMenuBar(0),
       centerPopup(1),
       insIconsStyle(1),
+      classicChipOptions(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

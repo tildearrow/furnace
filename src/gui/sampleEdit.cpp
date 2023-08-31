@@ -320,6 +320,22 @@ void FurnaceGUI::drawSampleEdit() {
             if (sample->samples>65535) {
               SAMPLE_WARN(warnLength,"C140: maximum sample length is 65535");
             }
+            if (dispatch!=NULL) {
+              MAX_RATE("C140",dispatch->rate);
+            }
+            break;
+          case DIV_SYSTEM_C219:
+            if (sample->loop) {
+              if (sample->loopStart&1 || sample->loopEnd&1) {
+                SAMPLE_WARN(warnLoopPos,"C219: loop must be a multiple of 2");
+              }
+            }
+            if (sample->samples>131072) {
+              SAMPLE_WARN(warnLength,"C219: maximum sample length is 131072");
+            }
+            if (dispatch!=NULL) {
+              MAX_RATE("C219",dispatch->rate);
+            }
             break;
           default:
             break;

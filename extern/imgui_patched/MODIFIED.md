@@ -1,5 +1,10 @@
 # modified version
 
-this is a modified version of Dear ImGui to fix UI scaling on macOS, which works in a really weird (but logical) way.
+this is a modified version of Dear ImGui (docking branch) to suit Furnace.
+the following changes have been made:
 
-further modifications may be made to suit Furnace.
+- fix UI scaling on macOS, Wayland and any other platform where HiDPI is implemented through logical pixels
+- gradients on frames
+- improved touch support (inertial scrolling in particular)
+- disable text input undo/redo by default
+- add ability to lock dockspace

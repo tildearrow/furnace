@@ -454,11 +454,10 @@ void DivEngine::registerSystems() {
     {0x18, {DIV_CMD_FM_EXTCH, "18xx: Toggle extended channel 3 mode"}},
   });
 
-  EffectHandlerMap fmOPN2EffectHandlerMap(fmExtChEffectHandlerMap);
-  fmOPN2EffectHandlerMap.insert({
+  EffectHandlerMap fmOPN2EffectHandlerMap={
     {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}},
-  });
+  };
 
   EffectHandlerMap fmOPLDrumsEffectHandlerMap(fmEffectHandlerMap);
   fmOPLDrumsEffectHandlerMap.insert({
@@ -773,8 +772,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    fmExtChEffectHandlerMap,
-    fmOPNAPostEffectHandlerMap
+    {},
+    fmOPNAPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_AY8910]=new DivSysDef(
@@ -1032,8 +1032,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
     {},
-    fmExtChEffectHandlerMap,
-    fmOPNPostEffectHandlerMap
+    {},
+    fmOPNPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2203_CSM]=new DivSysDef(
@@ -1044,8 +1045,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
     {},
-    fmExtChEffectHandlerMap,
-    fmOPNPostEffectHandlerMap
+    {},
+    fmOPNPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2608]=new DivSysDef(
@@ -1068,8 +1070,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMB},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
-    fmExtChEffectHandlerMap,
-    fmOPNAPostEffectHandlerMap
+    {},
+    fmOPNAPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2608_CSM]=new DivSysDef(
@@ -1080,8 +1083,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMB},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
-    fmExtChEffectHandlerMap,
-    fmOPNAPostEffectHandlerMap
+    {},
+    fmOPNAPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPL]=new DivSysDef(
@@ -1290,7 +1294,8 @@ void DivEngine::registerSystems() {
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
     fmOPN2EffectHandlerMap,
-    fmOPN2PostEffectHandlerMap
+    fmOPN2PostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2612_CSM]=new DivSysDef(
@@ -1302,7 +1307,8 @@ void DivEngine::registerSystems() {
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL},
     fmOPN2EffectHandlerMap,
-    fmOPN2PostEffectHandlerMap
+    fmOPN2PostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_SCC]=new DivSysDef(
@@ -1372,8 +1378,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMB},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    fmExtChEffectHandlerMap,
-    fmOPNAPostEffectHandlerMap
+    {},
+    fmOPNAPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2610_CSM]=new DivSysDef(
@@ -1384,8 +1391,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMB},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    fmExtChEffectHandlerMap,
-    fmOPNAPostEffectHandlerMap
+    {},
+    fmOPNAPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPLL_DRUMS]=new DivSysDef(
@@ -1461,8 +1469,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMB},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    fmExtChEffectHandlerMap,
-    fmOPNAPostEffectHandlerMap
+    {},
+    fmOPNAPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2610B_CSM]=new DivSysDef(
@@ -1473,8 +1482,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMB},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    fmExtChEffectHandlerMap,
-    fmOPNAPostEffectHandlerMap
+    {},
+    fmOPNAPostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM_COMPAT]=new DivSysDef(
@@ -1771,7 +1781,8 @@ void DivEngine::registerSystems() {
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AMIGA, DIV_INS_FM},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL, DIV_INS_NULL},
     fmOPN2EffectHandlerMap,
-    fmOPN2PostEffectHandlerMap
+    fmOPN2PostEffectHandlerMap,
+    fmExtChEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_T6W28]=new DivSysDef(
@@ -1854,7 +1865,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_K053260]=new DivSysDef(
-    "Konami K053260", NULL, 0xcc, 0, 4, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Konami K053260", NULL, 0xcc, 0, 4, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_K)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
     "this PCM chip was widely used at Konami arcade boards in 1990-1992.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
@@ -1888,8 +1899,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_C219]=new DivSysDef(
-    "Namco C219", NULL, 0xcf, 0, 16, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_MULAW)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
-    "Namco's PCM chip used in their NA1/2 hardware.",
+    "Namco C219", NULL, 0xcf, 0, 16, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_C219)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Namco's PCM chip used in their NA-1/2 hardware.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1897,7 +1908,8 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
     {
-      {0x10, {DIV_CMD_STD_NOISE_MODE, "10xx: Set noise/invert mode (bit 0: noise; bit 1: invert left output; bit 2: invert output)"}}
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set noise mode"}},
+      {0x12, {DIV_CMD_SNES_INVERT, "12xy: Set invert mode (x: surround; y: invert)"}},
     }
   );
 

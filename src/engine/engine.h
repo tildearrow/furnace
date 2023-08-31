@@ -56,8 +56,8 @@
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev169"
-#define DIV_ENGINE_VERSION 169
+#define DIV_VERSION "dev170"
+#define DIV_ENGINE_VERSION 170
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -73,6 +73,7 @@ enum DivStatusView {
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
   DIV_AUDIO_SDL=1,
+  DIV_AUDIO_PORTAUDIO=2,
 
   DIV_AUDIO_NULL=126,
   DIV_AUDIO_DUMMY=127
@@ -283,6 +284,7 @@ struct DivSysDef {
   DivInstrumentType chanInsType[DIV_MAX_CHANS][2];
   const EffectHandlerMap effectHandlers;
   const EffectHandlerMap postEffectHandlers;
+  const EffectHandlerMap preEffectHandlers;
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
     bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, const char* desc,
@@ -292,7 +294,8 @@ struct DivSysDef {
     std::initializer_list<DivInstrumentType> chInsType1,
     std::initializer_list<DivInstrumentType> chInsType2={},
     const EffectHandlerMap fxHandlers_={},
-    const EffectHandlerMap postFxHandlers_={}):
+    const EffectHandlerMap postFxHandlers_={},
+    const EffectHandlerMap preFxHandlers_={}):
     name(sysName),
     nameJ(sysNameJ),
     description(desc),
@@ -305,7 +308,8 @@ struct DivSysDef {
     vgmVersion(vgmVer),
     sampleFormatMask(formatMask),
     effectHandlers(fxHandlers_),
-    postEffectHandlers(postFxHandlers_) {
+    postEffectHandlers(postFxHandlers_),
+    preEffectHandlers(preFxHandlers_) {
     memset(chanNames,0,DIV_MAX_CHANS*sizeof(void*));
     memset(chanShortNames,0,DIV_MAX_CHANS*sizeof(void*));
     memset(chanTypes,0,DIV_MAX_CHANS*sizeof(int));
@@ -484,6 +488,7 @@ class DivEngine {
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
 
+  void processRowPre(int i);
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
@@ -492,6 +497,7 @@ class DivEngine {
   bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
+  bool perSystemPreEffect(int ch, unsigned char effect, unsigned char effectVal);
   void recalcChans();
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);

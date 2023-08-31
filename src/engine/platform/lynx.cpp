@@ -19,6 +19,7 @@
 
 #include "lynx.h"
 #include "../engine.h"
+#include "../bsr.h"
 #include <math.h>
 
 #define rWrite(a,v) {if (!skipRegisterWrites) {mikey->write(a,v); if (dumpWrites) {addWrite(a,v);}}}
@@ -35,48 +36,6 @@
 
 #define CHIP_DIVIDER 64
 #define CHIP_FREQBASE 16000000
-
-#if defined( _MSC_VER )
-
-#include <intrin.h>
-
-static int bsr(uint16_t v) {
-  unsigned long idx;
-  if (_BitScanReverse(&idx,(unsigned long)v)) {
-    return idx;
-  }
-  else {
-    return -1;
-  }
-}
-
-#elif defined( __GNUC__ )
-
-static int bsr(uint16_t v)
-{
-  if (v) {
-    return 32 - __builtin_clz(v);
-  }
-  else{
-    return -1;
-  }
-}
-
-#else
-
-static int bsr(uint16_t v)
-{
-  uint16_t mask = 0x8000;
-  for (int i = 15; i >= 0; --i) {
-    if (v&mask)
-      return (int)i;
-    mask>>=1;
-  }
-
-  return -1;
-}
-
-#endif
 
 static int32_t clamp(int32_t v, int32_t lo, int32_t hi)
 {
