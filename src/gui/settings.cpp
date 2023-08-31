@@ -872,16 +872,25 @@ void FurnaceGUI::drawSettings() {
         }
 
         bool lowLatencyB=settings.lowLatency;
-        if (ImGui::Checkbox("Low-latency mode (experimental!)",&lowLatencyB)) {
+        if (ImGui::Checkbox("Low-latency mode",&lowLatencyB)) {
           settings.lowLatency=lowLatencyB;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: experimental! may produce glitches.\nonly enable if your buffer size is small (10ms or less).");
+          ImGui::SetTooltip("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: nonly enable if your buffer size is small (10ms or less).");
         }
 
         bool forceMonoB=settings.forceMono;
         if (ImGui::Checkbox("Force mono audio",&forceMonoB)) {
           settings.forceMono=forceMonoB;
+        }
+
+        if (settings.audioEngine==DIV_AUDIO_PORTAUDIO) {
+          if (settings.audioDevice.find("[Windows WASAPI] ")==0) {
+            bool wasapiExB=settings.wasapiEx;
+            if (ImGui::Checkbox("Exclusive mode",&wasapiExB)) {
+              settings.wasapiEx=wasapiExB;
+            }
+          }
         }
 
         TAAudioDesc& audioWant=e->getAudioDescWant();
@@ -3252,6 +3261,7 @@ void FurnaceGUI::syncSettings() {
   settings.centerPopup=e->getConfInt("centerPopup",1);
   settings.insIconsStyle=e->getConfInt("insIconsStyle",1);
   settings.classicChipOptions=e->getConfInt("classicChipOptions",0);
+  settings.wasapiEx=e->getConfInt("wasapiEx",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3399,6 +3409,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.centerPopup,0,1);
   clampSetting(settings.insIconsStyle,0,2);
   clampSetting(settings.classicChipOptions,0,1);
+  clampSetting(settings.wasapiEx,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3653,6 +3664,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("centerPopup",settings.centerPopup);
   e->setConf("insIconsStyle",settings.insIconsStyle);
   e->setConf("classicChipOptions",settings.classicChipOptions);
+  e->setConf("wasapiEx",settings.wasapiEx);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

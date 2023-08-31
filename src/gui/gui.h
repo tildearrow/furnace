@@ -1571,6 +1571,7 @@ class FurnaceGUI {
     int centerPopup;
     int insIconsStyle;
     int classicChipOptions;
+    int wasapiEx;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1745,6 +1746,7 @@ class FurnaceGUI {
       centerPopup(1),
       insIconsStyle(1),
       classicChipOptions(0),
+      wasapiEx(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

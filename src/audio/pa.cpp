@@ -21,6 +21,9 @@
 #include <vector>
 #include "../ta-log.h"
 #include "pa.h"
+#ifdef _WIN32
+#include <pa_win_wasapi.h>
+#endif
 
 int taPAProcess(const void* in, void* out, unsigned long nframes, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags flags, void* inst) {
   TAAudioPA* instance=(TAAudioPA*)inst;
@@ -117,8 +120,18 @@ std::vector<String> TAAudioPA::listAudioDevices() {
     if (devInfo==NULL) continue;
     if (devInfo->maxOutputChannels<1) continue;
 
+    String devName;
+
+    const PaHostApiInfo* driverInfo=Pa_GetHostApiInfo(devInfo->hostApi);
+    if (driverInfo==NULL) {
+      devName+="[???] ";
+    } else {
+      devName+=fmt::sprintf("[%s] ",driverInfo->name);
+    }
+
     if (devInfo->name!=NULL) {
-      ret.push_back(String(devInfo->name));
+      devName+=devInfo->name;
+      ret.push_back(devName);
     }
   }
 
@@ -146,11 +159,15 @@ bool TAAudioPA::init(TAAudioDesc& request, TAAudioDesc& response) {
   desc.outFormat=TA_AUDIO_FORMAT_F32;
 
   const PaDeviceInfo* devInfo=NULL;
+  const PaHostApiInfo* driverInfo=NULL;
   int outDeviceID=0;
 
   if (desc.deviceName.empty()) {
     outDeviceID=Pa_GetDefaultOutputDevice();
     devInfo=Pa_GetDeviceInfo(outDeviceID);
+    if (devInfo!=NULL) {
+      driverInfo=Pa_GetHostApiInfo(devInfo->hostApi);
+    }
   } else {
     int count=Pa_GetDeviceCount();
     bool found=false;
@@ -164,12 +181,25 @@ bool TAAudioPA::init(TAAudioDesc& request, TAAudioDesc& response) {
       if (devInfo==NULL) continue;
       if (devInfo->maxOutputChannels<1) continue;
 
+      String devName;
+
+      driverInfo=Pa_GetHostApiInfo(devInfo->hostApi);
+      if (driverInfo==NULL) {
+        devName+="[???] ";
+      } else {
+        devName+=fmt::sprintf("[%s] ",driverInfo->name);
+      }
+
       if (devInfo->name!=NULL) {
-        if (strcmp(devInfo->name,desc.deviceName.c_str())==0) {
-          outDeviceID=i;
-          found=true;
-          break;
-        }
+        devName+=devInfo->name;
+      } else {
+        continue;
+      }
+
+      if (devName==desc.deviceName) {
+        outDeviceID=i;
+        found=true;
+        break;
       }
     }
     if (!found) {
@@ -189,6 +219,27 @@ bool TAAudioPA::init(TAAudioDesc& request, TAAudioDesc& response) {
   outParams.sampleFormat=paFloat32;
   outParams.suggestedLatency=(double)(desc.bufsize*desc.fragments)/desc.rate;
   outParams.hostApiSpecificStreamInfo=NULL;
+
+  if (driverInfo!=NULL) {
+    if (driverInfo->type==paWASAPI) {
+      logV("setting WASAPI-specific flags");
+      PaWasapiStreamInfo* wasapiInfo=new PaWasapiStreamInfo;
+      memset(wasapiInfo,0,sizeof(PaWasapiStreamInfo));
+      wasapiInfo->size=sizeof(PaWasapiStreamInfo);
+      wasapiInfo->hostApiType=paWASAPI;
+      wasapiInfo->version=1;
+      wasapiInfo->flags=paWinWasapiThreadPriority;
+      wasapiInfo->threadPriority=eThreadPriorityProAudio;
+      wasapiInfo->streamCategory=eAudioCategoryMedia;
+      wasapiInfo->streamOption=eStreamOptionRaw;
+
+      if (desc.wasapiEx) {
+        wasapiInfo->flags|=paWinWasapiExclusive;
+      }
+
+      outParams.hostApiSpecificStreamInfo=wasapiInfo;
+    }
+  }
 
   logV("opening audio device...");
   status=Pa_OpenStream(

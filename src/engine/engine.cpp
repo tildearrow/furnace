@@ -3370,6 +3370,7 @@ bool DivEngine::initAudioBackend() {
   want.inChans=0;
   want.outChans=getConfInt("audioChans",2);
   want.outFormat=TA_AUDIO_FORMAT_F32;
+  want.wasapiEx=getConfInt("wasapiEx",0);
   want.name="Furnace";
 
   if (want.outChans<1) want.outChans=1;
