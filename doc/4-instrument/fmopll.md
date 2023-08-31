@@ -22,7 +22,7 @@ These apply to the instrument as a whole:
     - Right-click returns to algorithm view.
 - **DC (half-sine carrier)**: Sets the waveform produced by carrier operator to half-sine
 - **DM (half-sine modulator)**: Sets the waveform produced by modulator operator to half-sine
-- preset dropdown: select OPLL preset instrument.
+- preset dropdown: selects OPLL preset instrument.
 
 These apply to each operator:
 - The crossed-arrows button can be dragged to rearrange operators.

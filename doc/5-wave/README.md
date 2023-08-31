@@ -111,7 +111,7 @@ input waveforms should match the size of the wavetable or unexpected results may
 - synthesizer type: selects the synthesis algorithm.
 - waveform displays.
 - **Wave 1**: selects input waveform.
-  - this will turn yellow to indicate that a Waveform macro is set; remove the macro to work with the synthesizer.
+  - this will turn yellow to indicate that a Waveform macro is set.
 - **Wave 2**: selects second input waveform. only appears when a dual-waveform synthesizer is selected.
 - **Pause preview**: toggles live waveform preview.
 - **Restart preview**: restarts preview from initial state.
