@@ -21,6 +21,7 @@
 #include "scaling.h"
 #include "../ta-log.h"
 #include <SDL.h>
+#include <SDL_syswm.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -110,7 +111,7 @@ double getScaleFactor(const char* driverHint, void* windowHint) {
     void* nsWindow=NULL;
     SDL_SysWMinfo wmInfo;
     if (windowHint!=NULL) {
-      SDL_VERSION(&info.version)
+      SDL_VERSION(&wmInfo.version)
       if (SDL_GetWindowWMInfo((SDL_Window*)windowHint,&wmInfo)==SDL_TRUE) {
         nsWindow=wmInfo.cocoa.window;
       }
@@ -120,7 +121,7 @@ double getScaleFactor(const char* driverHint, void* windowHint) {
     void* uiWindow=NULL;
     SDL_SysWMinfo wmInfo;
     if (windowHint!=NULL) {
-      SDL_VERSION(&info.version)
+      SDL_VERSION(&wmInfo.version)
       if (SDL_GetWindowWMInfo((SDL_Window*)windowHint,&wmInfo)==SDL_TRUE) {
         uiWindow=wmInfo.cocoa.window;
       }
