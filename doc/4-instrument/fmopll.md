@@ -22,11 +22,10 @@ These apply to the instrument as a whole:
     - Right-click returns to algorithm view.
 - **DC (half-sine carrier)**: Sets the waveform produced by carrier operator to half-sine
 - **DM (half-sine modulator)**: Sets the waveform produced by modulator operator to half-sine
-- preset dropdown: select OPLL preset instrument.
+- preset dropdown: selects OPLL preset instrument.
 
 These apply to each operator:
 - The crossed-arrows button can be dragged to rearrange operators.
-- The **OP1** and **OP2** buttons enable or disable those operators.
 - **Amplitude Modulation (AM)**: Makes the operator affected by LFO tremolo.
 - **Envelope generator sustain flag (EGS)**: When enabled, value of Sustain Level is in effect.
 - **Attack Rate (AR)**: determines the rising time for the sound. The bigger the value, the faster the attack. (0-15 range)

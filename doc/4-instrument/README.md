@@ -50,8 +50,9 @@ The very first numeric entry sets the visible width of the bars in sequence-type
 Each macro has two buttons on the left.
 - Macro type (explained below).
 - Timing editor, which pops up a small dialog:
-  - Step Length (ticks): Determines how many ticks pass before each change of value.
-  - Delay: Delays the start of the macro until this many ticks have passed.
+  - Step Length (ticks): Determines how many ticks pass before each change of value. Default is 1.
+  - Delay: Delays the start of the macro until this many ticks have passed. Default is 0.
+  - The button is highlighted if either of these is set differently from default.
 
 ## macro types
 

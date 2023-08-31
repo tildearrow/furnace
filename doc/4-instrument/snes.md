@@ -20,7 +20,7 @@ these tabs are unique to the editor for SNES instruments.
   - **Delayed (write R on release)**: after release, waits until A and D have completed before starting exponential decrease.
 
 if envelope is off:
-- **Gain Mode**: select gain mode.
+- **Gain Mode**: selects gain mode.
   - **Direct**: direct gain from 0 to 127
   - **Decrease (linear)**: linear gain from -0 to -31
   - **Decrease (logarithmic)**: exponential gain from -0 to -31
