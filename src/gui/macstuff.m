@@ -24,13 +24,15 @@ double getMacDPIScale(void* sysWin, unsigned char isUIKit) {
   NSScreen* screen=nil;
   if (sysWin!=NULL) {
     if (isUIKit) {
+      return 1.0;
+      /*
       UIWindow* win=(UIWindow*)sysWin;
       UIWindowScene* winScene=[win windowScene];
       if (winScene!=nil) {
         UIScreen* winScreen=[winScene screen];
         CGFloat ret=[winScreen scale];
         return (double)ret;
-      }
+      }*/
     } else {
       NSWindow* win=(NSWindow*)sysWin;
       screen=[win screen];
