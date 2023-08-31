@@ -108,6 +108,7 @@ double getScaleFactor(const char* driverHint, void* windowHint) {
   if (driverHint==NULL) {
     return getMacDPIScale(NULL,false);
   } else if (strcmp(driverHint,"cocoa")==0) {
+#ifdef SDL_VIDEO_DRIVER_COCOA
     void* nsWindow=NULL;
     SDL_SysWMinfo wmInfo;
     if (windowHint!=NULL) {
@@ -117,7 +118,9 @@ double getScaleFactor(const char* driverHint, void* windowHint) {
       }
     }
     return getMacDPIScale(nsWindow,false);
+#endif
   } else if (strcmp(driverHint,"uikit")==0) {
+#ifdef SDL_VIDEO_DRIVER_UIKIT
     void* uiWindow=NULL;
     SDL_SysWMinfo wmInfo;
     if (windowHint!=NULL) {
@@ -128,6 +131,7 @@ double getScaleFactor(const char* driverHint, void* windowHint) {
     }
     return getMacDPIScale(uiWindow,true);
   }
+#endif
 #endif
 
 #if defined(__unix__) || defined(ANDROID)
