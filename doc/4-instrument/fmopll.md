@@ -26,7 +26,6 @@ These apply to the instrument as a whole:
 
 These apply to each operator:
 - The crossed-arrows button can be dragged to rearrange operators.
-- The **OP1** and **OP2** buttons enable or disable those operators.
 - **Amplitude Modulation (AM)**: Makes the operator affected by LFO tremolo.
 - **Envelope generator sustain flag (EGS)**: When enabled, value of Sustain Level is in effect.
 - **Attack Rate (AR)**: determines the rising time for the sound. The bigger the value, the faster the attack. (0-15 range)
