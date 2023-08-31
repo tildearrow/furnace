@@ -734,15 +734,19 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           int prevAudioEngine=settings.audioEngine;
           if (ImGui::BeginCombo("##Backend",audioBackends[settings.audioEngine])) {
+#ifdef HAVE_JACK
             if (ImGui::Selectable("JACK",settings.audioEngine==DIV_AUDIO_JACK)) {
               settings.audioEngine=DIV_AUDIO_JACK;
             }
+#endif
             if (ImGui::Selectable("SDL",settings.audioEngine==DIV_AUDIO_SDL)) {
               settings.audioEngine=DIV_AUDIO_SDL;
             }
+#ifdef HAVE_PA
             if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
               settings.audioEngine=DIV_AUDIO_PORTAUDIO;
             }
+#endif
             if (settings.audioEngine!=prevAudioEngine) {
               audioEngineChanged=true;
               if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
