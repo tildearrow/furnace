@@ -221,6 +221,7 @@ bool TAAudioPA::init(TAAudioDesc& request, TAAudioDesc& response) {
   outParams.hostApiSpecificStreamInfo=NULL;
 
   if (driverInfo!=NULL) {
+#ifdef _WIN32
     if (driverInfo->type==paWASAPI) {
       logV("setting WASAPI-specific flags");
       PaWasapiStreamInfo* wasapiInfo=new PaWasapiStreamInfo;
@@ -239,6 +240,7 @@ bool TAAudioPA::init(TAAudioDesc& request, TAAudioDesc& response) {
 
       outParams.hostApiSpecificStreamInfo=wasapiInfo;
     }
+#endif
   }
 
   logV("opening audio device...");
