@@ -2080,8 +2080,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
 
     //logD("attempts: %d",attempts);
-    if (attempts>=(int)size) {
-      logE("hang detected! stopping! at %d seconds %d micro",totalSeconds,totalTicks);
+    if (attempts>=(int)(size+10)) {
+      logE("hang detected! stopping! at %d seconds %d micro (%d>=%d)",totalSeconds,totalTicks,attempts,(int)size);
       freelance=false;
       playing=false;
       extValuePresent=false;
