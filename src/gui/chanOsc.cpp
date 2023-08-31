@@ -478,8 +478,6 @@ void FurnaceGUI::drawChanOsc() {
                   needlePos-=phase;
                 }
                 chanOscPitch[ch]=(float)point/32.0f;
-                
-                
 
                 needlePos-=displaySize;
                 for (unsigned short i=0; i<precision; i++) {

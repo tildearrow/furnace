@@ -6914,6 +6914,8 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   mobileEdit(false),
   killGraphics(false),
+  audioEngineChanged(false),
+  settingsChanged(false),
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),
   drawHalt(10),

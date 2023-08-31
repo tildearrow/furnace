@@ -744,6 +744,7 @@ void FurnaceGUI::drawSettings() {
               settings.audioEngine=DIV_AUDIO_PORTAUDIO;
             }
             if (settings.audioEngine!=prevAudioEngine) {
+              audioEngineChanged=true;
               if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
             }
             ImGui::EndCombo();
@@ -777,17 +778,30 @@ void FurnaceGUI::drawSettings() {
           ImGui::AlignTextToFramePadding();
           ImGui::Text("Device");
           ImGui::TableNextColumn();
-          String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
-          if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
-            if (ImGui::Selectable("<System default>",settings.audioDevice.empty())) {
-              settings.audioDevice="";
-            }
-            for (String& i: e->getAudioDevices()) {
-              if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
-                settings.audioDevice=i;
+          if (audioEngineChanged) {
+            ImGui::BeginDisabled();
+            if (ImGui::BeginCombo("##AudioDevice","<click on OK or Apply first>")) {
+              ImGui::Text("ALERT - TRESPASSER DETECTED");
+              if (ImGui::IsItemHovered()) {
+                showError("you have been arrested for trying to engage with a disabled combo box.");
+                ImGui::CloseCurrentPopup();
               }
+              ImGui::EndCombo();
             }
-            ImGui::EndCombo();
+            ImGui::EndDisabled();
+          } else {
+            String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
+            if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
+              if (ImGui::Selectable("<System default>",settings.audioDevice.empty())) {
+                settings.audioDevice="";
+              }
+              for (String& i: e->getAudioDevices()) {
+                if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
+                  settings.audioDevice=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
           }
 
           ImGui::TableNextRow();
@@ -3031,6 +3045,7 @@ void FurnaceGUI::drawSettings() {
     ImGui::SameLine();
     if (ImGui::Button("Cancel##SettingsCancel")) {
       settingsOpen=false;
+      audioEngineChanged=false;
       syncSettings();
     }
     ImGui::SameLine();
@@ -3057,7 +3072,7 @@ void FurnaceGUI::syncSettings() {
   settings.patFontSize=e->getConfInt("patFontSize",18);
   settings.iconSize=e->getConfInt("iconSize",16);
   settings.audioEngine=(e->getConfString("audioEngine","SDL")=="SDL")?1:0;
-  if (e->getConfString("audioEngine","SDL")=="PortAudio") {
+  if (e->getConfString("audioEngine","SDL")=="JACK") {
     settings.audioEngine=DIV_AUDIO_JACK;
   } else if (e->getConfString("audioEngine","SDL")=="PortAudio") {
     settings.audioEngine=DIV_AUDIO_PORTAUDIO;
@@ -3690,6 +3705,8 @@ void FurnaceGUI::commitSettings() {
   } else {
     rend->createFontsTexture();
   }
+
+  audioEngineChanged=false;
 }
 
 bool FurnaceGUI::importColors(String path) {

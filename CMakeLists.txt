@@ -221,6 +221,8 @@ if (WITH_PORTAUDIO)
     message(STATUS "Using system-installed PortAudio")
   else()
     set(PA_BUILD_SHARED_LIBS OFF CACHE BOOL "Build dynamic library" FORCE)
+    # don't - Furnace has its own implementation
+    set(PA_USE_JACK OFF CACHE BOOL "Enable support for JACK Audio Connection Kit" FORCE)
     add_subdirectory(extern/portaudio EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES PortAudio)
     message(STATUS "Using vendored PortAudio")
