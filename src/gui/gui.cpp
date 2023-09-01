@@ -1567,7 +1567,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Open File",
         {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc",
          "all files", "*"},
-        "compatible files{.fur,.dmf,.mod,.fc13,.fc14,.smod,.fc},.*",
         workingDirSong,
         dpiScale
       );
@@ -1580,7 +1579,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Restore Backup",
         {"Furnace song", "*.fur"},
-        "Furnace song{.fur}",
         backupPath+String(DIR_SEPARATOR_STR),
         dpiScale
       );
@@ -1590,7 +1588,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save File",
         {"Furnace song", "*.fur"},
-        "Furnace song{.fur}",
         workingDirSong,
         dpiScale
       );
@@ -1600,7 +1597,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save File",
         {"DefleMask 1.1.3 module", "*.dmf"},
-        "DefleMask 1.1.3 module{.dmf}",
         workingDirSong,
         dpiScale
       );
@@ -1610,7 +1606,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save File",
         {"DefleMask 1.0/legacy module", "*.dmf"},
-        "DefleMask 1.0/legacy module{.dmf}",
         workingDirSong,
         dpiScale
       );
@@ -1627,8 +1622,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
-        // TODO supply loadable formats in a dynamic, scalable, "DRY" way.
-        // thank the author of IGFD for making things impossible
         {"all compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
          "Furnace instrument", "*.fui",
          "DefleMask preset", "*.dmp",
@@ -1646,7 +1639,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "Wohlstand WOPL bank", "*.wopl",
          "Wohlstand WOPN bank", "*.wopn",
          "all files", "*"},
-        "all compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.gyb,.opm,.wopl,.wopn},.*",
         workingDirIns,
         dpiScale,
         [this](const char* path) {
@@ -1681,7 +1673,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Instrument",
         {"Furnace instrument", "*.fui"},
-        "Furnace instrument{.fui}",
         workingDirIns,
         dpiScale
       );
@@ -1691,7 +1682,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Instrument",
         {"DefleMask preset", "*.dmp"},
-        "DefleMask preset{.dmp}",
         workingDirIns,
         dpiScale
       );
@@ -1703,7 +1693,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Load Wavetable",
         {"compatible files", "*.fuw *.dmw",
          "all files", "*"},
-        "compatible files{.fuw,.dmw},.*",
         workingDirWave,
         dpiScale,
         NULL, // TODO
@@ -1715,7 +1704,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Wavetable",
         {"Furnace wavetable", ".fuw"},
-        "Furnace wavetable{.fuw}",
         workingDirWave,
         dpiScale
       );
@@ -1725,7 +1713,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Wavetable",
         {"DefleMask wavetable", ".dmw"},
-        "DefleMask wavetable{.dmw}",
         workingDirWave,
         dpiScale
       );
@@ -1735,7 +1722,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Wavetable",
         {"raw data", ".raw"},
-        "raw data{.raw}",
         workingDirWave,
         dpiScale
       );
@@ -1747,7 +1733,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Load Sample",
         {"compatible files", "*.wav *.dmc *.brr",
          "all files", "*"},
-        "compatible files{.wav,.dmc,.brr},.*",
         workingDirSample,
         dpiScale,
         NULL, // TODO
@@ -1760,7 +1745,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load Raw Sample",
         {"all files", "*"},
-        ".*",
         workingDirSample,
         dpiScale
       );
@@ -1770,7 +1754,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Sample",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirSample,
         dpiScale
       );
@@ -1778,9 +1761,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_SAMPLE_SAVE_RAW:
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
       hasOpened=fileDialog->openSave(
-        "Load Raw Sample",
+        "Save Raw Sample",
         {"all files", "*"},
-        ".*",
         workingDirSample,
         dpiScale
       );
@@ -1790,7 +1772,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Audio",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirAudioExport,
         dpiScale
       );
@@ -1800,7 +1781,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Audio",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirAudioExport,
         dpiScale
       );
@@ -1810,7 +1790,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Audio",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirAudioExport,
         dpiScale
       );
@@ -1820,7 +1799,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export VGM",
         {"VGM file", "*.vgm"},
-        "VGM file{.vgm}",
         workingDirVGMExport,
         dpiScale
       );
@@ -1830,7 +1808,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export ZSM",
         {"ZSM file", "*.zsm"},
-        "ZSM file{.zsm}",
         workingDirZSMExport,
         dpiScale
       );
@@ -1840,7 +1817,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Command Stream",
         {"text file", "*.txt"},
-        "text file{.txt}",
         workingDirROMExport,
         dpiScale
       );
@@ -1850,7 +1826,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Command Stream",
         {"binary file", "*.bin"},
-        "binary file{.bin}",
         workingDirROMExport,
         dpiScale
       );
@@ -1863,7 +1838,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Font",
         {"compatible files", "*.ttf *.otf *.ttc"},
-        "compatible files{.ttf,.otf,.ttc}",
         workingDirFont,
         dpiScale
       );
@@ -1873,7 +1847,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Font",
         {"compatible files", "*.ttf *.otf *.ttc"},
-        "compatible files{.ttf,.otf,.ttc}",
         workingDirFont,
         dpiScale
       );
@@ -1883,7 +1856,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Font",
         {"compatible files", "*.ttf *.otf *.ttc"},
-        "compatible files{.ttf,.otf,.ttc}",
         workingDirFont,
         dpiScale
       );
@@ -1893,7 +1865,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Color File",
         {"configuration files", "*.cfgc"},
-        "configuration files{.cfgc}",
         workingDirColors,
         dpiScale
       );
@@ -1903,7 +1874,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Keybind File",
         {"configuration files", "*.cfgk"},
-        "configuration files{.cfgk}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1913,7 +1883,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Layout File",
         {".ini files", "*.ini"},
-        ".ini files{.ini}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1923,7 +1892,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Colors",
         {"configuration files", "*.cfgc"},
-        "configuration files{.cfgc}",
         workingDirColors,
         dpiScale
       );
@@ -1933,7 +1901,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Keybinds",
         {"configuration files", "*.cfgk"},
-        "configuration files{.cfgk}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1943,7 +1910,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Layout",
         {".ini files", "*.ini"},
-        ".ini files{.ini}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1956,7 +1922,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Load ROM",
         {"compatible files", "*.rom *.bin",
          "all files", "*"},
-        "compatible files{.rom,.bin},.*",
         workingDirROM,
         dpiScale
       );
@@ -1967,7 +1932,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Play Command Stream",
         {"command stream", "*.bin",
          "all files", "*"},
-        "command stream{.bin},.*",
         workingDirROM,
         dpiScale
       );
@@ -1979,7 +1943,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
          "all files", "*"},
-        "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
         [](const char* path) {
@@ -1998,7 +1961,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
          "all files", "*"},
-        "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
         [](const char* path) {
@@ -2017,7 +1979,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Save Test",
         {"Furnace song", "*.fur",
          "DefleMask module", "*.dmf"},
-        "Furnace song{.fur},DefleMask module{.dmf}",
         workingDirTest,
         dpiScale
       );
