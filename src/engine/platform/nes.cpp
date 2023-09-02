@@ -145,7 +145,7 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
       oscBuf[0]->data[oscBuf[0]->needle++]=nes1_NP->out[0]<<11;
       oscBuf[1]->data[oscBuf[1]->needle++]=nes1_NP->out[1]<<11;
       oscBuf[2]->data[oscBuf[2]->needle++]=nes2_NP->out[0]<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=nes2_NP->out[1]<<12;
+      oscBuf[3]->data[oscBuf[3]->needle++]=nes2_NP->out[1]<<11;
       oscBuf[4]->data[oscBuf[4]->needle++]=nes2_NP->out[2]<<8;
     }
   }
