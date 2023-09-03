@@ -583,8 +583,8 @@ void FurnaceGUI::drawChanOsc() {
                   }
                 }
 
-                String cPhase=fmt::sprintf("\n%.1f - %.2f (%.2f %.2f)",waveLen,phase,dft.imag(),dft.real());
-                dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
+                /*String cPhase=fmt::sprintf("\n%.1f - %.2f (%.2f %.2f)",waveLen,phase,dft.imag(),dft.real());
+                dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());*/
               }
               ImU32 color=ImGui::GetColorU32(chanOscColor);
               if (chanOscUseGrad) {
