@@ -2060,14 +2060,18 @@ class FurnaceGUI {
     double inBufPosFrac;
     unsigned short needle;
     fftw_complex* outBuf;
+    double* corrBuf;
     fftw_plan plan;
+    fftw_plan planI;
     ChanOscStatus():
       inBuf(NULL),
       inBufPos(0),
       inBufPosFrac(0.0f),
       needle(0),
       outBuf(NULL),
-      plan(NULL) {}
+      corrBuf(NULL),
+      plan(NULL),
+      planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];
 
   // visualizer

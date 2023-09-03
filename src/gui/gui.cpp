@@ -6273,7 +6273,8 @@ bool FurnaceGUI::init() {
   pianoView=e->getConfInt("pianoView",pianoView);
   pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
 
-  chanOscCols=e->getConfInt("chanOscCols",3);
+  //chanOscCols=e->getConfInt("chanOscCols",3);
+  chanOscCols=1;
   chanOscAutoColsType=e->getConfInt("chanOscAutoColsType",0);
   chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
   chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);

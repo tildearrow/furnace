@@ -1197,6 +1197,7 @@ void FurnaceGUI::drawSampleEdit() {
       sameLineMaybe(ImGui::CalcTextSize("Zoom").x+150.0f*dpiScale+ImGui::CalcTextSize("100%").x);
       double zoomPercent=100.0/sampleZoom;
       bool checkZoomLimit=false;
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Zoom");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(150.0f*dpiScale);
