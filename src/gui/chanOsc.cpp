@@ -23,7 +23,6 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "misc/cpp/imgui_stdlib.h"
-#include <complex>
 
 #define FURNACE_FFT_SIZE 4096
 #define FURNACE_FFT_RATE 80.0
@@ -422,6 +421,15 @@ void FurnaceGUI::drawChanOsc() {
               fft->corrBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
               fft->plan=fftw_plan_dft_r2c_1d(FURNACE_FFT_SIZE,fft->inBuf,fft->outBuf,FFTW_ESTIMATE);
               fft->planI=fftw_plan_dft_c2r_1d(FURNACE_FFT_SIZE,fft->outBuf,fft->corrBuf,FFTW_ESTIMATE);
+              if (fft->plan==NULL) {
+                logE("failed to create plan!");
+              }
+              if (fft->planI==NULL) {
+                logE("failed to create inverse plan!");
+              }
+              if (fft->inBuf==NULL || fft->outBuf==NULL || fft->corrBuf==NULL) {
+                logE("failed to create FFT buffers");
+              }
             }
 
             int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
@@ -465,20 +473,16 @@ void FurnaceGUI::drawChanOsc() {
                 float maxLevel=-1.0f;
                 float dcOff=0.0f;
                 unsigned short needlePos=buf->needle;
-                //unsigned short needlePosOrig=needlePos;
 
                 // first FFT
-                for (int j=0; j<(FURNACE_FFT_SIZE); j++) {
+                for (int j=0; j<FURNACE_FFT_SIZE; j++) {
                   fft->inBuf[j]=(double)buf->data[(unsigned short)(needlePos-displaySize*2+((j*displaySize*2)/(FURNACE_FFT_SIZE)))]/32768.0;
                   fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_FFT_SIZE>>1));
                 }
-                //memset(&fft->inBuf[FURNACE_FFT_SIZE>>1],0,sizeof(double)*(FURNACE_FFT_SIZE>>1));
                 fftw_execute(fft->plan);
 
                 // auto-correlation and second FFT
                 for (int j=0; j<FURNACE_FFT_SIZE; j++) {
-                  //fft->outBuf[j][0]-=fft->outBuf[0][0];
-                  //fft->outBuf[j][1]-=fft->outBuf[0][1];
                   fft->outBuf[j][0]/=FURNACE_FFT_SIZE;
                   fft->outBuf[j][1]/=FURNACE_FFT_SIZE;
                   fft->outBuf[j][0]=fft->outBuf[j][0]*fft->outBuf[j][0]+fft->outBuf[j][1]*fft->outBuf[j][1];
@@ -488,22 +492,14 @@ void FurnaceGUI::drawChanOsc() {
                 fft->outBuf[0][1]=0;
                 fft->outBuf[1][0]=0;
                 fft->outBuf[1][1]=0;
-                //memset(&fft->outBuf[FURNACE_FFT_SIZE],0,sizeof(fftw_complex)*FURNACE_FFT_SIZE);
                 fftw_execute(fft->planI);
-                
-                // high-pass
-                /*for (int j=1; j<(FURNACE_FFT_SIZE>>1); j++) {
-                  fft->corrBuf[j]-=fft->corrBuf[j-1];
-                }*/
 
                 // find size of period
-                double waveLen=FURNACE_FFT_SIZE;
+                double waveLen=FURNACE_FFT_SIZE-1;
                 double waveLenCandL=DBL_MAX;
                 double waveLenCandH=DBL_MIN;
                 int waveLenBottom=0;
-                /*
-                int waveLenTop=0;
-                double waveLenCandL2=DBL_MAX;*/
+
                 // find lowest point
                 for (int j=(FURNACE_FFT_SIZE>>1); j>2; j--) {
                   if (fft->corrBuf[j]<waveLenCandL) {
@@ -519,25 +515,21 @@ void FurnaceGUI::drawChanOsc() {
                     waveLen=j;
                   }
                 }
-                /*
-                // find next lowest point
-                for (int j=(FURNACE_FFT_SIZE>>1); j>waveLenTop; j--) {
-                  if (fft->corrBuf[j]<waveLenCandL2) {
-                    waveLenCandL2=fft->corrBuf[j];
-                    waveLen=j-waveLenTop;
-                  }
-                }*/
                 waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
 
                 // DFT of one period (x_1)
-                std::complex<double> dft(0,0);
+                double dft[2];
+                dft[0]=0.0;
+                dft[1]=0.0;
                 for (int j=0; j<waveLen; j++) {
-                  dft+=((double)buf->data[(unsigned short)(needlePos-waveLen+j)]/32768.0)*std::exp((-std::complex<double>(0.0,1.0)*2.0*M_PI/(double)waveLen)*(double)j);
+                  double one=((double)buf->data[(unsigned short)(needlePos-((int)waveLen)+j)&0xffff]/32768.0);
+                  double two=(double)j*(-2.0*M_PI)/waveLen;
+                  dft[0]+=one*cos(two);
+                  dft[1]+=one*sin(two);
                 }
 
                 // calculate and lock into phase
-                double phase=(0.5+(atan2(dft.imag(),dft.real())/(2.0*M_PI)));
-                //phase-=sin(4.0*phase*M_PI)/21.0;
+                double phase=(0.5+(atan2(dft[1],dft[0])/(2.0*M_PI)));
 
                 double maxavg=0.0;
                 for (unsigned short j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
@@ -549,7 +541,7 @@ void FurnaceGUI::drawChanOsc() {
 
                 if (chanOscWaveCorr) {
                   needlePos-=phase*waveLen;
-                  needlePos-=displaySize/waveLen;
+                  //needlePos-=displaySize/waveLen;
                 }
                 //chanOscPitch[ch]=(float)point/32.0f;
 
@@ -571,7 +563,7 @@ void FurnaceGUI::drawChanOsc() {
                 }
 
                 // FFT debug code!
-                if (debugFFT) {
+                /*if (debugFFT) {
                   for (unsigned short j=0; j<precision; j++) {
                     float x=(float)j/(float)precision;
                     float y=fft->corrBuf[(j*FURNACE_FFT_SIZE)/precision]*maxavg;
@@ -581,7 +573,7 @@ void FurnaceGUI::drawChanOsc() {
 
                     waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
                   }
-                }
+                }*/
 
                 /*String cPhase=fmt::sprintf("\n%.1f - %.2f (%.2f %.2f)",waveLen,phase,dft.imag(),dft.real());
                 dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());*/
