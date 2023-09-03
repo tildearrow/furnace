@@ -1334,7 +1334,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool killGraphics;
-  bool audioEngineChanged, settingsChanged;
+  bool audioEngineChanged, settingsChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int vgmExportTrailingTicks;
