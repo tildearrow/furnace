@@ -2060,8 +2060,10 @@ class FurnaceGUI {
     double* corrBuf;
     size_t inBufPos;
     double inBufPosFrac;
+    double waveLen;
+    int waveLenBottom, waveLenTop;
     unsigned short needle;
-    bool ready;
+    bool ready, loudEnough;
     fftw_plan plan;
     fftw_plan planI;
     ChanOscStatus():
@@ -2070,8 +2072,12 @@ class FurnaceGUI {
       corrBuf(NULL),
       inBufPos(0),
       inBufPosFrac(0.0f),
+      waveLen(0.0),
+      waveLenBottom(0),
+      waveLenTop(0),
       needle(0),
       ready(false),
+      loudEnough(false),
       plan(NULL),
       planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];

@@ -384,6 +384,13 @@ void FurnaceGUI::drawChanOsc() {
           int ch=oscChans[i];
 
           if (buf!=NULL) {
+            // prepare
+            if (centerSettingReset) {
+              buf->readNeedle=buf->needle;
+            }
+
+            int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
+
             // check FFT status existence
             if (!fft->ready) {
               logD("creating FFT plan for channel %d",ch);
@@ -416,22 +423,18 @@ void FurnaceGUI::drawChanOsc() {
 
               // initialization
               double phase=0.0;
-              float minLevel=1.0f;
-              float maxLevel=-1.0f;
-              float dcOff=0.0f;
-              bool loudEnough=false;
-
+              fft->loudEnough=false;
               fft->needle=buf->needle;
 
               // first FFT
               for (int j=0; j<FURNACE_FFT_SIZE; j++) {
                 fft->inBuf[j]=(double)buf->data[(unsigned short)(fft->needle-displaySize*2+((j*displaySize*2)/(FURNACE_FFT_SIZE)))]/32768.0;
-                if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) loudEnough=true;
+                if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) fft->loudEnough=true;
                 fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_FFT_SIZE>>1));
               }
 
               // only proceed if not quiet
-              if (loudEnough) {
+              if (fft->loudEnough) {
                 fftw_execute(fft->plan);
 
                 // auto-correlation and second FFT
@@ -453,43 +456,43 @@ void FurnaceGUI::drawChanOsc() {
                 }
 
                 // find size of period
-                double waveLen=FURNACE_FFT_SIZE-1;
                 double waveLenCandL=DBL_MAX;
                 double waveLenCandH=DBL_MIN;
-                int waveLenBottom=0;
-                int waveLenTop=0;
+                fft->waveLen=FURNACE_FFT_SIZE-1;
+                fft->waveLenBottom=0;
+                fft->waveLenTop=0;
 
                 // find lowest point
                 for (int j=(FURNACE_FFT_SIZE>>2); j>2; j--) {
                   if (fft->corrBuf[j]<waveLenCandL) {
                     waveLenCandL=fft->corrBuf[j];
-                    waveLenBottom=j;
+                    fft->waveLenBottom=j;
                   }
                 }
                 
                 // find highest point
-                for (int j=(FURNACE_FFT_SIZE>>1)-1; j>waveLenBottom; j--) {
+                for (int j=(FURNACE_FFT_SIZE>>1)-1; j>fft->waveLenBottom; j--) {
                   if (fft->corrBuf[j]>waveLenCandH) {
                     waveLenCandH=fft->corrBuf[j];
-                    waveLen=j;
+                    fft->waveLen=j;
                   }
                 }
-                waveLenTop=waveLen;
+                fft->waveLenTop=fft->waveLen;
 
                 // did we find the period size?
-                if (waveLen<(FURNACE_FFT_SIZE-32)) {
+                if (fft->waveLen<(FURNACE_FFT_SIZE-32)) {
                   // we got pitch
-                  chanOscPitch[ch]=pow(1.0-(waveLen/(double)(FURNACE_FFT_SIZE>>1)),4.0);
+                  chanOscPitch[ch]=pow(1.0-(fft->waveLen/(double)(FURNACE_FFT_SIZE>>1)),4.0);
                   
-                  waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
+                  fft->waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
 
                   // DFT of one period (x_1)
                   double dft[2];
                   dft[0]=0.0;
                   dft[1]=0.0;
-                  for (int j=fft->needle-1-(displaySize>>1)-(int)waveLen, k=0; k<waveLen; j++, k++) {
+                  for (int j=fft->needle-1-(displaySize>>1)-(int)fft->waveLen, k=0; k<fft->waveLen; j++, k++) {
                     double one=((double)buf->data[j&0xffff]/32768.0);
-                    double two=(double)k*(-2.0*M_PI)/waveLen;
+                    double two=(double)k*(-2.0*M_PI)/fft->waveLen;
                     dft[0]+=one*cos(two);
                     dft[1]+=one*sin(two);
                   }
@@ -498,67 +501,12 @@ void FurnaceGUI::drawChanOsc() {
                   phase=(0.5+(atan2(dft[1],dft[0])/(2.0*M_PI)));
 
                   if (chanOscWaveCorr) {
-                    fft->needle-=phase*waveLen;
+                    fft->needle-=phase*fft->waveLen;
                   }
-                }
-
-                // FFT debug code!
-                if (debugFFT) {
-                  double maxavg=0.0;
-                  for (unsigned short j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
-                    if (fabs(fft->corrBuf[j]>maxavg)) {
-                      maxavg=fabs(fft->corrBuf[j]);
-                    }
-                  }
-                  if (maxavg>0.0000001) maxavg=0.5/maxavg;
-
-                  for (unsigned short j=0; j<precision; j++) {
-                    float x=(float)j/(float)precision;
-                    float y=fft->corrBuf[(j*FURNACE_FFT_SIZE)/precision]*maxavg;
-                    if (j>=precision/2) {
-                      y=fft->inBuf[((j-(precision/2))*FURNACE_FFT_SIZE*2)/(precision)];
-                    }
-
-                    waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
-                  }
-                  String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)",waveLen,waveLenBottom,waveLenTop);
-                  dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
-
-                  dl->AddLine(
-                    ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenBottom/(double)FURNACE_FFT_SIZE,0.0)),
-                    ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenBottom/(double)FURNACE_FFT_SIZE,1.0)),
-                    0xffffff00
-                  );
-                  dl->AddLine(
-                    ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenTop/(double)FURNACE_FFT_SIZE,0.0)),
-                    ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenTop/(double)FURNACE_FFT_SIZE,1.0)),
-                    0xff00ff00
-                  );
-                }
-              } else {
-                if (debugFFT) {
-                  dl->AddText(inRect.Min,0xffffffff,"\nquiet");
                 }
               }
 
-              if (!debugFFT || !loudEnough) {
-                fft->needle-=displaySize;
-                for (unsigned short j=0; j<precision; j++) {
-                  float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
-                  if (minLevel>y) minLevel=y;
-                  if (maxLevel<y) maxLevel=y;
-                }
-                dcOff=(minLevel+maxLevel)*0.5f;
-                for (unsigned short j=0; j<precision; j++) {
-                  float x=(float)j/(float)precision;
-                  float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
-                  y-=dcOff;
-                  if (y<-0.5f) y=-0.5f;
-                  if (y>0.5f) y=0.5f;
-                  y*=chanOscAmplify;
-                  waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
-                }
-              }
+              fft->needle-=displaySize;
             }
           }
         }
@@ -613,12 +561,6 @@ void FurnaceGUI::drawChanOsc() {
             if (precision<1) precision=1;
             if (precision>1024) precision=1024;
 
-            if (centerSettingReset) {
-              buf->readNeedle=buf->needle;
-            }
-
-            int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
-
             ImGui::ItemSize(size,style.FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID("chOscDisplay"))) {
               if (!e->isRunning()) {
@@ -627,6 +569,68 @@ void FurnaceGUI::drawChanOsc() {
                   waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f));
                 }
               } else {
+                int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
+
+                float minLevel=1.0f;
+                float maxLevel=-1.0f;
+                float dcOff=0.0f;
+
+                if (debugFFT) {
+                  // FFT debug code!
+                  double maxavg=0.0;
+                  for (unsigned short j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
+                    if (fabs(fft->corrBuf[j]>maxavg)) {
+                      maxavg=fabs(fft->corrBuf[j]);
+                    }
+                  }
+                  if (maxavg>0.0000001) maxavg=0.5/maxavg;
+
+                  for (unsigned short j=0; j<precision; j++) {
+                    float x=(float)j/(float)precision;
+                    float y;
+                    if (j>=precision/2) {
+                      y=fft->inBuf[((j-(precision/2))*FURNACE_FFT_SIZE*2)/(precision)];
+                    } else {
+                      y=fft->corrBuf[(j*FURNACE_FFT_SIZE)/precision]*maxavg;
+                    }
+                    waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                  }
+                  if (fft->loudEnough) {
+                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)",fft->waveLen,fft->waveLenBottom,fft->waveLenTop);
+                    dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
+
+                    dl->AddLine(
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenBottom/(double)FURNACE_FFT_SIZE,0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenBottom/(double)FURNACE_FFT_SIZE,1.0)),
+                      0xffffff00
+                    );
+                    dl->AddLine(
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_FFT_SIZE,0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_FFT_SIZE,1.0)),
+                      0xff00ff00
+                    );
+                  } else {
+                    if (debugFFT) {
+                      dl->AddText(inRect.Min,0xffffffff,"\nquiet");
+                    }
+                  }
+                } else {
+                  for (unsigned short j=0; j<precision; j++) {
+                    float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
+                    if (minLevel>y) minLevel=y;
+                    if (maxLevel<y) maxLevel=y;
+                  }
+                  dcOff=(minLevel+maxLevel)*0.5f;
+                  for (unsigned short j=0; j<precision; j++) {
+                    float x=(float)j/(float)precision;
+                    float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
+                    y-=dcOff;
+                    if (y<-0.5f) y=-0.5f;
+                    if (y>0.5f) y=0.5f;
+                    y*=chanOscAmplify;
+                    waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                  }
+                }
               }
               ImU32 color=ImGui::GetColorU32(chanOscColor);
               if (chanOscUseGrad) {
