@@ -19,7 +19,15 @@ these tabs are unique to the editor for SNES instruments.
   - **Effective (exponential decrease)**: after release, volume decays exponentially. see [gain chart](../7-systems/snes.md).
   - **Delayed (write R on release)**: after release, waits until A and D have completed before starting exponential decrease.
 
-if envelope is off, select gain mode as described below.
+if envelope is off:
+- **Gain Mode**: selects gain mode.
+  - **Direct**: direct gain from 0 to 127
+  - **Decrease (linear)**: linear gain from -0 to -31
+  - **Decrease (logarithmic)**: exponential gain from -0 to -31
+  - **Increase (linear)**: linear gain from +0 to +31
+  - **Increase (bent line)**: exponential gain from +0 to +31
+  - _note:_ using decrease modes will not produce any sound unless a Gain macro is set. The first tick must be the initial gain, and the second tick must be the decrease gain value. gain values are as described in the Macros section below.
+- **Gain**: value of gain.
 
 
 

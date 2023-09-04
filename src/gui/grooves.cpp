@@ -47,13 +47,14 @@ void FurnaceGUI::drawGrooves() {
       ImGui::TableNextColumn();
       ImGui::Text("pattern");
       ImGui::TableNextColumn();
-      ImGui::Text("remove");
+      // ImGui::Text("remove"); removed because the text clips from the fixed width
 
       int index=0;
       for (DivGroovePattern& i: e->song.grooves) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::PushFont(patFont);
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("%.2X",index);
         ImGui::PopFont();
 
@@ -79,6 +80,7 @@ void FurnaceGUI::drawGrooves() {
             ImGui::SetKeyboardFocusHere();
           }
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::AlignTextToFramePadding();
           if (ImGui::InputText(grooveStr.c_str(),&grooveListString)) {
             decodeMMLStr(grooveListString,intVersion,intVersionLen,ignoredLoop,1,255,ignoredRel);
             if (intVersionLen<1) {
@@ -120,9 +122,14 @@ void FurnaceGUI::drawGrooves() {
         }
 
         ImGui::TableNextColumn();
+        pushDestColor();
         String grooveID=fmt::sprintf(ICON_FA_TIMES "##GRR%d",index);
         if (ImGui::Button(grooveID.c_str())) {
           delGroove=index;
+        }
+        popDestColor();
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("remove");
         }
 
         index++;

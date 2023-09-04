@@ -378,7 +378,7 @@ void FurnaceGUI::drawPattern() {
   bool inhibitMenu=false;
 
   if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) {
-    cursor.y=oldRow+((pendingStepUpdate)?1:0);
+    cursor.y=e->isStepping()?e->getRow():oldRow;
     if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
       selStart=cursor;
       selEnd=cursor;
@@ -623,7 +623,7 @@ void FurnaceGUI::drawPattern() {
           case 0: // classic
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
-              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 col=(hovered || (mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
               dl->AddRectFilled(rect.Min,rect.Max,col);
               dl->AddText(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
@@ -632,7 +632,7 @@ void FurnaceGUI::drawPattern() {
           case 1: { // line
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
-              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 fadeCol0=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
@@ -654,7 +654,7 @@ void FurnaceGUI::drawPattern() {
           case 2: { // round
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
-              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 fadeCol0=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
@@ -690,7 +690,7 @@ void FurnaceGUI::drawPattern() {
           case 4: { // square border
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
-              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
@@ -711,7 +711,7 @@ void FurnaceGUI::drawPattern() {
           case 5: { // round border
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
-              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,

@@ -252,6 +252,7 @@ Available options:
 | `USE_SNDFILE` | `ON` | Build with libsndfile (required in order to work with audio files) |
 | `USE_BACKWARD` | `ON` | Use backward-cpp to print a backtrace on crash/abort |
 | `WITH_JACK` | `ON` if system-installed JACK detected, otherwise `OFF` | Whether to build with JACK support. Auto-detects if JACK is available |
+| `WITH_PORTAUDIO` | `ON` | Whether to build with PortAudio. |
 | `SYSTEM_FFTW` | `OFF` | Use a system-installed version of FFTW instead of the vendored one |
 | `SYSTEM_FMT` | `OFF` | Use a system-installed version of fmt instead of the vendored one |
 | `SYSTEM_LIBSNDFILE` | `OFF` | Use a system-installed version of libsndfile instead of the vendored one |

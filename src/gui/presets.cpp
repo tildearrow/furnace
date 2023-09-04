@@ -2031,6 +2031,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Namco NA-1/2", {
+      CH(DIV_SYSTEM_C219, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     "Taito Arcade", {
       CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
     }
@@ -2096,7 +2101,10 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Seta 2", {
-      CH(DIV_SYSTEM_X1_010, 1.0f, 0, "clockSel=1")
+      CH(DIV_SYSTEM_X1_010, 1.0f, 0,
+         "clockSel=1\n"
+         "isBanked=true\n"
+      )
     }
   );
   ENTRY(
@@ -2555,6 +2563,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Namco C140", {
       CH(DIV_SYSTEM_C140, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Namco C219", {
+      CH(DIV_SYSTEM_C219, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

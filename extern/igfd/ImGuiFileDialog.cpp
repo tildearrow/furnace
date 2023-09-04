@@ -720,6 +720,7 @@ namespace IGFD
             auto arr = IGFD::Utils::SplitStringToVector(fs, ',', false);
             for (auto a : arr)
             {
+              infos.firstFilter=a;
               infos.collectionfilters.emplace(a);
             }
           }
@@ -1048,7 +1049,7 @@ namespace IGFD
       // check if current file extention is covered by current filter
       // we do that here, for avoid doing that during filelist display
       // for better fps
-      if (prSelectedFilter.exist(vTag) || prSelectedFilter.filter == ".*")
+      if (prSelectedFilter.exist(vTag) || prSelectedFilter.firstFilter == ".*")
       {
         return true;
       }

@@ -172,10 +172,12 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
     wavePreview[i]=wave->data[i];
   }
   if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
-  if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
+  ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0,0.5f));
+  if (ImGui::Selectable(fmt::sprintf(" %d##_WAVE%d\n",i,i).c_str(),curWave==i,0,ImVec2(0,23*dpiScale))) { // i didnt think that the 0 would work, but it does
     curWave=i;
     lastAssetType=1;
   }
+  ImGui::PopStyleVar();
   if (wantScrollList && curWave==i) ImGui::SetScrollHereY();
   if (ImGui::IsItemHovered()) {
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
@@ -500,6 +502,18 @@ void FurnaceGUI::drawInsList(bool asChild) {
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("New folder");
+      }
+    }
+    if (lastAssetType==2) {
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSampleL")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Preview (right click to stop)");
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
       }
     }
     ImGui::SameLine();

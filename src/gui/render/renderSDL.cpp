@@ -19,6 +19,7 @@
 
 #include "renderSDL.h"
 #include "backends/imgui_impl_sdlrenderer2.h"
+#include "../../ta-log.h"
 
 class FurnaceSDLTexture: public FurnaceGUITexture {
   public:
@@ -143,7 +144,9 @@ void FurnaceGUIRenderSDL::preInit() {
 }
 
 bool FurnaceGUIRenderSDL::init(SDL_Window* win) {
+  logV("creating SDL renderer...");
   sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
+  logV("(post creation)");
   return (sdlRend!=NULL);
 }
 

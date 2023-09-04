@@ -947,6 +947,7 @@ void DivPlatformX1_010::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/512;
   stereo=flags.getBool("stereo",false);
+  isBanked=flags.getBool("isBanked",false);
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -979,7 +980,7 @@ bool DivPlatformX1_010::isSampleLoaded(int index, int sample) {
 }
 
 void DivPlatformX1_010::renderSamples(int sysID) {
-  memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleMem,0,16777216);
   memset(sampleOffX1,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
@@ -1018,10 +1019,6 @@ void DivPlatformX1_010::renderSamples(int sysID) {
   sampleMemLen=memPos+256;
 }
 
-void DivPlatformX1_010::setBanked(bool banked) {
-  isBanked=banked;
-}
-
 int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
@@ -1032,7 +1029,7 @@ int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, const DivCo
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
-  sampleMem=new unsigned char[getSampleMemCapacity()];
+  sampleMem=new unsigned char[16777216];
   sampleMemLen=0;
   x1_010.reset();
   reset();

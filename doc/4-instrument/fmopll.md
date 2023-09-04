@@ -15,14 +15,17 @@ The OPLL synthesizer is two-operator, meaning it takes two oscillators to produc
 These apply to the instrument as a whole:
 - **Feedback (FB)**: Determines how many times operator 1 returns its output to itself. (0-7 range)
 - **Sustain (SUS)**: enables the sustain flag (sets the release rate to 5) 
+- algorithm: shows the connection of operators (though they are always connected the same way).
+  - Right-click to switch to a preview display of the waveform generated on a new note:
+    - Left-click restarts the preview.
+    - Middle-click pauses and unpauses the preview.
+    - Right-click returns to algorithm view.
 - **DC (half-sine carrier)**: Sets the waveform produced by carrier operator to half-sine
 - **DM (half-sine modulator)**: Sets the waveform produced by modulator operator to half-sine
-
-To the right, there is a drop down menu for OPLL preset instrument selection.
+- preset dropdown: selects OPLL preset instrument.
 
 These apply to each operator:
 - The crossed-arrows button can be dragged to rearrange operators.
-- The **OP1**, **OP2** buttons enable or disable those operators.
 - **Amplitude Modulation (AM)**: Makes the operator affected by LFO tremolo.
 - **Envelope generator sustain flag (EGS)**: When enabled, value of Sustain Level is in effect.
 - **Attack Rate (AR)**: determines the rising time for the sound. The bigger the value, the faster the attack. (0-15 range)

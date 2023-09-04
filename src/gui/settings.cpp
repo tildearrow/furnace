@@ -82,11 +82,13 @@ const char* patFonts[]={
 
 const char* audioBackends[]={
   "JACK",
-  "SDL"
+  "SDL",
+  "PortAudio"
 };
 
 const bool isProAudio[]={
   true,
+  false,
   false
 };
 
@@ -577,7 +579,7 @@ void FurnaceGUI::drawSettings() {
           float vol=fabs(sysVol);
           ImGui::PushID(i);
 
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Invert").x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x);
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Invert").x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
           if (ImGui::BeginCombo("##System",getSystemName(sysID))) {
             for (int j=0; availableSystems[j]; j++) {
               if (ImGui::Selectable(getSystemName((DivSystem)availableSystems[j]),sysID==availableSystems[j])) {
@@ -596,11 +598,13 @@ void FurnaceGUI::drawSettings() {
           }
           ImGui::SameLine();
           //ImGui::BeginDisabled(settings.initialSys.size()<=4);
+          pushDestColor();
           if (ImGui::Button(ICON_FA_MINUS "##InitSysRemove")) {
             doRemove=i;
           }
+          popDestColor();
           //ImGui::EndDisabled();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
           if (CWSliderFloat("Volume",&vol,0.0f,3.0f)) {
             if (doInvert) {
               if (vol<0.0001) vol=0.0001;
@@ -610,13 +614,13 @@ void FurnaceGUI::drawSettings() {
             sysVol=doInvert?-vol:vol;
             settings.initialSys.set(fmt::sprintf("vol%d",i),(float)sysVol);
           } rightClickable
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
           if (CWSliderFloat("Panning",&sysPan,-1.0f,1.0f)) {
             if (sysPan<-1.0f) sysPan=-1.0f;
             if (sysPan>1.0f) sysPan=1.0f;
             settings.initialSys.set(fmt::sprintf("pan%d",i),(float)sysPan);
           } rightClickable
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
           if (CWSliderFloat("Front/Rear",&sysPanFR,-1.0f,1.0f)) {
             if (sysPanFR<-1.0f) sysPanFR=-1.0f;
             if (sysPanFR>1.0f) sysPanFR=1.0f;
@@ -719,118 +723,174 @@ void FurnaceGUI::drawSettings() {
       CONFIG_SECTION("Audio") {
         // SUBSECTION OUTPUT
         CONFIG_SUBSECTION("Output");
+        if (ImGui::BeginTable("##Output",2)) {
+          ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("##Combo",ImGuiTableColumnFlags_WidthStretch);
+#if defined(HAVE_JACK) || defined(HAVE_PA)
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Backend");
+          ImGui::TableNextColumn();
+          int prevAudioEngine=settings.audioEngine;
+          if (ImGui::BeginCombo("##Backend",audioBackends[settings.audioEngine])) {
 #ifdef HAVE_JACK
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Backend");
-        ImGui::SameLine();
-        int prevAudioEngine=settings.audioEngine;
-        if (ImGui::Combo("##Backend",&settings.audioEngine,audioBackends,2)) {
-          if (settings.audioEngine!=prevAudioEngine) {
-            if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
+            if (ImGui::Selectable("JACK",settings.audioEngine==DIV_AUDIO_JACK)) {
+              settings.audioEngine=DIV_AUDIO_JACK;
+            }
+#endif
+            if (ImGui::Selectable("SDL",settings.audioEngine==DIV_AUDIO_SDL)) {
+              settings.audioEngine=DIV_AUDIO_SDL;
+            }
+#ifdef HAVE_PA
+            if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
+              settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+            }
+#endif
+            if (settings.audioEngine!=prevAudioEngine) {
+              audioEngineChanged=true;
+              settings.audioDevice="";
+              if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
+            }
+            ImGui::EndCombo();
           }
-        }
 #endif
 
-        if (settings.audioEngine==DIV_AUDIO_SDL) {
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("Driver");
-          ImGui::SameLine();
-          if (ImGui::BeginCombo("##SDLADriver",settings.sdlAudioDriver.empty()?"Automatic":settings.sdlAudioDriver.c_str())) {
-            if (ImGui::Selectable("Automatic",settings.sdlAudioDriver.empty())) {
-              settings.sdlAudioDriver="";
-            }
-            for (String& i: availAudioDrivers) {
-              if (ImGui::Selectable(i.c_str(),i==settings.sdlAudioDriver)) {
-                settings.sdlAudioDriver=i;
+          if (settings.audioEngine==DIV_AUDIO_SDL) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Driver");
+            ImGui::TableNextColumn();
+            if (ImGui::BeginCombo("##SDLADriver",settings.sdlAudioDriver.empty()?"Automatic":settings.sdlAudioDriver.c_str())) {
+              if (ImGui::Selectable("Automatic",settings.sdlAudioDriver.empty())) {
+                settings.sdlAudioDriver="";
               }
+              for (String& i: availAudioDrivers) {
+                if (ImGui::Selectable(i.c_str(),i==settings.sdlAudioDriver)) {
+                  settings.sdlAudioDriver=i;
+                }
+              }
+              ImGui::EndCombo();
             }
-            ImGui::EndCombo();
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
-          }
-        }
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Device");
-        ImGui::SameLine();
-        String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
-        if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
-          if (ImGui::Selectable("<System default>",settings.audioDevice.empty())) {
-            settings.audioDevice="";
-          }
-          for (String& i: e->getAudioDevices()) {
-            if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
-              settings.audioDevice=i;
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
             }
           }
-          ImGui::EndCombo();
-        }
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Sample rate");
-        ImGui::SameLine();
-        String sr=fmt::sprintf("%d",settings.audioRate);
-        if (ImGui::BeginCombo("##SampleRate",sr.c_str())) {
-          SAMPLE_RATE_SELECTABLE(8000);
-          SAMPLE_RATE_SELECTABLE(16000);
-          SAMPLE_RATE_SELECTABLE(22050);
-          SAMPLE_RATE_SELECTABLE(32000);
-          SAMPLE_RATE_SELECTABLE(44100);
-          SAMPLE_RATE_SELECTABLE(48000);
-          SAMPLE_RATE_SELECTABLE(88200);
-          SAMPLE_RATE_SELECTABLE(96000);
-          SAMPLE_RATE_SELECTABLE(192000);
-          ImGui::EndCombo();
-        }
-
-        if (isProAudio[settings.audioEngine]) {
-          ImGui::Text("Outputs");
-          ImGui::SameLine();
-          if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,1)) {
-            if (settings.audioChans<1) settings.audioChans=1;
-            if (settings.audioChans>16) settings.audioChans=16;
-          }
-        } else {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Channels");
-          ImGui::SameLine();
-          String chStr=(settings.audioChans<1 || settings.audioChans>8)?"What?":nonProAudioOuts[settings.audioChans-1];
-          if (ImGui::BeginCombo("##AudioChans",chStr.c_str())) {
-            CHANS_SELECTABLE(1);
-            CHANS_SELECTABLE(2);
-            CHANS_SELECTABLE(4);
-            CHANS_SELECTABLE(6);
-            CHANS_SELECTABLE(8);
+          ImGui::Text("Device");
+          ImGui::TableNextColumn();
+          if (audioEngineChanged) {
+            ImGui::BeginDisabled();
+            if (ImGui::BeginCombo("##AudioDevice","<click on OK or Apply first>")) {
+              ImGui::Text("ALERT - TRESPASSER DETECTED");
+              if (ImGui::IsItemHovered()) {
+                showError("you have been arrested for trying to engage with a disabled combo box.");
+                ImGui::CloseCurrentPopup();
+              }
+              ImGui::EndCombo();
+            }
+            ImGui::EndDisabled();
+          } else {
+            String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
+            if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
+              if (ImGui::Selectable("<System default>",settings.audioDevice.empty())) {
+                settings.audioDevice="";
+              }
+              for (String& i: e->getAudioDevices()) {
+                if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
+                  settings.audioDevice=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
+          }
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Sample rate");
+          ImGui::TableNextColumn();
+          String sr=fmt::sprintf("%d",settings.audioRate);
+          if (ImGui::BeginCombo("##SampleRate",sr.c_str())) {
+            SAMPLE_RATE_SELECTABLE(8000);
+            SAMPLE_RATE_SELECTABLE(16000);
+            SAMPLE_RATE_SELECTABLE(22050);
+            SAMPLE_RATE_SELECTABLE(32000);
+            SAMPLE_RATE_SELECTABLE(44100);
+            SAMPLE_RATE_SELECTABLE(48000);
+            SAMPLE_RATE_SELECTABLE(88200);
+            SAMPLE_RATE_SELECTABLE(96000);
+            SAMPLE_RATE_SELECTABLE(192000);
             ImGui::EndCombo();
           }
-        }
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Buffer size");
-        ImGui::SameLine();
-        String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
-        if (ImGui::BeginCombo("##BufferSize",bs.c_str())) {
-          BUFFER_SIZE_SELECTABLE(64);
-          BUFFER_SIZE_SELECTABLE(128);
-          BUFFER_SIZE_SELECTABLE(256);
-          BUFFER_SIZE_SELECTABLE(512);
-          BUFFER_SIZE_SELECTABLE(1024);
-          BUFFER_SIZE_SELECTABLE(2048);
-          ImGui::EndCombo();
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          if (isProAudio[settings.audioEngine]) {
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Outputs");
+            ImGui::TableNextColumn();
+            if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,1)) {
+              if (settings.audioChans<1) settings.audioChans=1;
+              if (settings.audioChans>16) settings.audioChans=16;
+            }
+          } else {
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Channels");
+            ImGui::TableNextColumn();
+            String chStr=(settings.audioChans<1 || settings.audioChans>8)?"What?":nonProAudioOuts[settings.audioChans-1];
+            if (ImGui::BeginCombo("##AudioChans",chStr.c_str())) {
+              CHANS_SELECTABLE(1);
+              CHANS_SELECTABLE(2);
+              CHANS_SELECTABLE(4);
+              CHANS_SELECTABLE(6);
+              CHANS_SELECTABLE(8);
+              ImGui::EndCombo();
+            }
+          }
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Buffer size");
+          ImGui::TableNextColumn();
+          String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
+          if (ImGui::BeginCombo("##BufferSize",bs.c_str())) {
+            BUFFER_SIZE_SELECTABLE(64);
+            BUFFER_SIZE_SELECTABLE(128);
+            BUFFER_SIZE_SELECTABLE(256);
+            BUFFER_SIZE_SELECTABLE(512);
+            BUFFER_SIZE_SELECTABLE(1024);
+            BUFFER_SIZE_SELECTABLE(2048);
+            ImGui::EndCombo();
+          }
+          ImGui::EndTable();
         }
 
         bool lowLatencyB=settings.lowLatency;
-        if (ImGui::Checkbox("Low-latency mode (experimental!)",&lowLatencyB)) {
+        if (ImGui::Checkbox("Low-latency mode",&lowLatencyB)) {
           settings.lowLatency=lowLatencyB;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: experimental! may produce glitches.\nonly enable if your buffer size is small (10ms or less).");
+          ImGui::SetTooltip("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: nonly enable if your buffer size is small (10ms or less).");
         }
 
         bool forceMonoB=settings.forceMono;
         if (ImGui::Checkbox("Force mono audio",&forceMonoB)) {
           settings.forceMono=forceMonoB;
+        }
+
+        if (settings.audioEngine==DIV_AUDIO_PORTAUDIO) {
+          if (settings.audioDevice.find("[Windows WASAPI] ")==0) {
+            bool wasapiExB=settings.wasapiEx;
+            if (ImGui::Checkbox("Exclusive mode",&wasapiExB)) {
+              settings.wasapiEx=wasapiExB;
+            }
+          }
         }
 
         TAAudioDesc& audioWant=e->getAudioDescWant();
@@ -1211,7 +1271,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Arcade/YM2151");
+          ImGui::Text("YM2151");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
@@ -1222,7 +1282,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Genesis/YM2612");
+          ImGui::Text("YM2612");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
@@ -1356,6 +1416,7 @@ void FurnaceGUI::drawSettings() {
           KEYBIND_CONFIG_BEGIN("keysGlobal");
 
           UI_KEYBIND_CONFIG(GUI_ACTION_NEW);
+          UI_KEYBIND_CONFIG(GUI_ACTION_CLEAR);
           UI_KEYBIND_CONFIG(GUI_ACTION_OPEN);
           UI_KEYBIND_CONFIG(GUI_ACTION_OPEN_BACKUP);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAVE);
@@ -1381,6 +1442,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_ORDERS);
           UI_KEYBIND_CONFIG(GUI_ACTION_FOLLOW_PATTERN);
           UI_KEYBIND_CONFIG(GUI_ACTION_FULLSCREEN);
+          UI_KEYBIND_CONFIG(GUI_ACTION_TX81Z_REQUEST);
           UI_KEYBIND_CONFIG(GUI_ACTION_PANIC);
 
           KEYBIND_CONFIG_END;
@@ -1389,40 +1451,45 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::TreeNode("Window activation")) {
           KEYBIND_CONFIG_BEGIN("keysWindow");
 
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EDIT_CONTROLS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ORDERS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_LIST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_EDIT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_FIND);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SETTINGS);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SONG_INFO);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SUBSONGS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PATTERN);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SPEED);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_LIST);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_LIST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_EDIT);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SAMPLE_LIST);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SAMPLE_EDIT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ABOUT);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SETTINGS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ORDERS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PATTERN);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_MIXER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_DEBUG);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_GROOVES);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CHANNELS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PAT_MANAGER);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SYS_MANAGER);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_COMPAT_FLAGS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_NOTES);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_EDIT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_WAVE_EDIT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_SAMPLE_EDIT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EDIT_CONTROLS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PIANO);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_OSCILLOSCOPE);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CHAN_OSC);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EFFECT_LIST);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_VOL_METER);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_STATS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_COMPAT_FLAGS);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_PIANO);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_NOTES);
-          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CHANNELS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_CLOCK);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_REGISTER_VIEW);
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_LOG);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_STATS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EFFECT_LIST);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_DEBUG);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ABOUT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_COLLAPSE_WINDOW);
+          UI_KEYBIND_CONFIG(GUI_ACTION_CLOSE_WINDOW);
 
           UI_KEYBIND_CONFIG(GUI_ACTION_COMMAND_PALETTE);
           UI_KEYBIND_CONFIG(GUI_ACTION_CMDPAL_RECENT);
           UI_KEYBIND_CONFIG(GUI_ACTION_CMDPAL_INSTRUMENTS);
           UI_KEYBIND_CONFIG(GUI_ACTION_CMDPAL_SAMPLES);
-
-          UI_KEYBIND_CONFIG(GUI_ACTION_COLLAPSE_WINDOW);
-          UI_KEYBIND_CONFIG(GUI_ACTION_CLOSE_WINDOW);
 
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
@@ -1588,6 +1655,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_OPEN);
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_OPEN_REPLACE);
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_SAVE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_SAVE_DMP);
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_MOVE_UP);
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_MOVE_DOWN);
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DELETE);
@@ -1605,7 +1673,10 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_ADD);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DUPLICATE);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_OPEN);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_OPEN_REPLACE);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_SAVE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+          UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_SAVE_RAW);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_MOVE_UP);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DELETE);
@@ -1622,8 +1693,13 @@ void FurnaceGUI::drawSettings() {
 
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_ADD);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_CREATE_WAVE);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN);
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_SAVE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DELETE);
@@ -2020,57 +2096,62 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION TEXT
         CONFIG_SUBSECTION("Text");
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Main font");
-        ImGui::SameLine();
-        ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,7);
-        ImGui::Indent();
-        if (settings.mainFont==6) {
-          ImGui::InputText("##MainFontPath",&settings.mainFontPath);
-          ImGui::SameLine();
-          if (ImGui::Button(ICON_FA_FOLDER "##MainFontLoad")) {
-            openFileDialog(GUI_FILE_LOAD_MAIN_FONT);
+        if (ImGui::BeginTable("##Text",2)) {
+          ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("##Combos",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Main font");
+          ImGui::TableNextColumn();
+          ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,7);
+          if (settings.mainFont==6) {
+            ImGui::InputText("##MainFontPath",&settings.mainFontPath);
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_FOLDER "##MainFontLoad")) {
+              openFileDialog(GUI_FILE_LOAD_MAIN_FONT);
+            }
           }
-        }
-        if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize)) {
-          if (settings.mainFontSize<3) settings.mainFontSize=3;
-          if (settings.mainFontSize>96) settings.mainFontSize=96;
-        }
-        ImGui::Unindent();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Header font");
-        ImGui::SameLine();
-        ImGui::Combo("##HeadFont",&settings.headFont,headFonts,7);
-        ImGui::Indent();
-        if (settings.headFont==6) {
-          ImGui::InputText("##HeadFontPath",&settings.headFontPath);
-          ImGui::SameLine();
-          if (ImGui::Button(ICON_FA_FOLDER "##HeadFontLoad")) {
-            openFileDialog(GUI_FILE_LOAD_HEAD_FONT);
+          if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize)) {
+            if (settings.mainFontSize<3) settings.mainFontSize=3;
+            if (settings.mainFontSize>96) settings.mainFontSize=96;
           }
-        }
-        if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize)) {
-          if (settings.headFontSize<3) settings.headFontSize=3;
-          if (settings.headFontSize>96) settings.headFontSize=96;
-        }
-        ImGui::Unindent();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Pattern font");
-        ImGui::SameLine();
-        ImGui::Combo("##PatFont",&settings.patFont,patFonts,7);
-        ImGui::Indent();
-        if (settings.patFont==6) {
-          ImGui::InputText("##PatFontPath",&settings.patFontPath);
-          ImGui::SameLine();
-          if (ImGui::Button(ICON_FA_FOLDER "##PatFontLoad")) {
-            openFileDialog(GUI_FILE_LOAD_PAT_FONT);
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Header font");
+          ImGui::TableNextColumn();
+          ImGui::Combo("##HeadFont",&settings.headFont,headFonts,7);
+          if (settings.headFont==6) {
+            ImGui::InputText("##HeadFontPath",&settings.headFontPath);
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_FOLDER "##HeadFontLoad")) {
+              openFileDialog(GUI_FILE_LOAD_HEAD_FONT);
+            }
           }
+          if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize)) {
+            if (settings.headFontSize<3) settings.headFontSize=3;
+            if (settings.headFontSize>96) settings.headFontSize=96;
+          }
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Pattern font");
+          ImGui::TableNextColumn();
+          ImGui::Combo("##PatFont",&settings.patFont,patFonts,7);
+          if (settings.patFont==6) {
+            ImGui::InputText("##PatFontPath",&settings.patFontPath);
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_FOLDER "##PatFontLoad")) {
+              openFileDialog(GUI_FILE_LOAD_PAT_FONT);
+            }
+          }
+          if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
+            if (settings.patFontSize<3) settings.patFontSize=3;
+            if (settings.patFontSize>96) settings.patFontSize=96;
+          }
+          ImGui::EndTable();
         }
-        if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
-          if (settings.patFontSize<3) settings.patFontSize=3;
-          if (settings.patFontSize>96) settings.patFontSize=96;
-        }
-        ImGui::Unindent();
 
         bool loadJapaneseB=settings.loadJapanese;
         if (ImGui::Checkbox("Display Japanese characters",&loadJapaneseB)) {
@@ -2177,6 +2258,11 @@ void FurnaceGUI::drawSettings() {
         bool capitalMenuBarB=settings.capitalMenuBar;
         if (ImGui::Checkbox("Capitalize menu bar",&capitalMenuBarB)) {
           settings.capitalMenuBar=capitalMenuBarB;
+        }
+
+        bool classicChipOptionsB=settings.classicChipOptions;
+        if (ImGui::Checkbox("Display add/configure/change/remove chip menus in File menu",&classicChipOptionsB)) {
+          settings.classicChipOptions=classicChipOptionsB;
         }
 
         // SUBSECTION ORDERS
@@ -2978,6 +3064,7 @@ void FurnaceGUI::drawSettings() {
     ImGui::SameLine();
     if (ImGui::Button("Cancel##SettingsCancel")) {
       settingsOpen=false;
+      audioEngineChanged=false;
       syncSettings();
     }
     ImGui::SameLine();
@@ -3004,6 +3091,13 @@ void FurnaceGUI::syncSettings() {
   settings.patFontSize=e->getConfInt("patFontSize",18);
   settings.iconSize=e->getConfInt("iconSize",16);
   settings.audioEngine=(e->getConfString("audioEngine","SDL")=="SDL")?1:0;
+  if (e->getConfString("audioEngine","SDL")=="JACK") {
+    settings.audioEngine=DIV_AUDIO_JACK;
+  } else if (e->getConfString("audioEngine","SDL")=="PortAudio") {
+    settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+  } else {
+    settings.audioEngine=DIV_AUDIO_SDL;
+  }
   settings.audioDevice=e->getConfString("audioDevice","");
   settings.audioChans=e->getConfInt("audioChans",2);
   settings.midiInDevice=e->getConfString("midiInDevice","");
@@ -3171,12 +3265,14 @@ void FurnaceGUI::syncSettings() {
   settings.capitalMenuBar=e->getConfInt("capitalMenuBar",0);
   settings.centerPopup=e->getConfInt("centerPopup",1);
   settings.insIconsStyle=e->getConfInt("insIconsStyle",1);
+  settings.classicChipOptions=e->getConfInt("classicChipOptions",0);
+  settings.wasapiEx=e->getConfInt("wasapiEx",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
   clampSetting(settings.iconSize,2,48);
-  clampSetting(settings.audioEngine,0,1);
+  clampSetting(settings.audioEngine,0,2);
   clampSetting(settings.audioQuality,0,1);
   clampSetting(settings.audioBufSize,32,4096);
   clampSetting(settings.audioRate,8000,384000);
@@ -3317,6 +3413,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.capitalMenuBar,0,1);
   clampSetting(settings.centerPopup,0,1);
   clampSetting(settings.insIconsStyle,0,2);
+  clampSetting(settings.classicChipOptions,0,1);
+  clampSetting(settings.wasapiEx,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3570,6 +3668,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("capitalMenuBar",settings.capitalMenuBar);
   e->setConf("centerPopup",settings.centerPopup);
   e->setConf("insIconsStyle",settings.insIconsStyle);
+  e->setConf("classicChipOptions",settings.classicChipOptions);
+  e->setConf("wasapiEx",settings.wasapiEx);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3627,6 +3727,8 @@ void FurnaceGUI::commitSettings() {
   } else {
     rend->createFontsTexture();
   }
+
+  audioEngineChanged=false;
 }
 
 bool FurnaceGUI::importColors(String path) {
@@ -3841,7 +3943,7 @@ void FurnaceGUI::resetColors() {
 }
 
 void FurnaceGUI::resetKeybinds() {
-  for (int i=0; i<GUI_COLOR_MAX; i++) {
+  for (int i=0; i<GUI_ACTION_MAX; i++) {
     if (guiActions[i].defaultBind==-1) continue;
     actionKeys[i]=guiActions[i].defaultBind;
   }
@@ -4069,18 +4171,20 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   setupLabel(settings.emptyLabel.c_str(),emptyLabel,3);
   setupLabel(settings.emptyLabel2.c_str(),emptyLabel2,2);
 
-  // get scale factor
-  const char* videoBackend=SDL_GetCurrentVideoDriver();
-  if (settings.dpiScale>=0.5f) {
-    logD("setting UI scale factor from config (%f).",settings.dpiScale);
-    dpiScale=settings.dpiScale;
-  } else {
-    logD("auto-detecting UI scale factor.");
-    dpiScale=getScaleFactor(videoBackend);
-    logD("scale factor: %f",dpiScale);
-    if (dpiScale<0.1f) {
-      logW("scale what?");
-      dpiScale=1.0f;
+  if (updateFonts) {
+    // get scale factor
+    const char* videoBackend=SDL_GetCurrentVideoDriver();
+    if (settings.dpiScale>=0.5f) {
+      logD("setting UI scale factor from config (%f).",settings.dpiScale);
+      dpiScale=settings.dpiScale;
+    } else {
+      logD("auto-detecting UI scale factor.");
+      dpiScale=getScaleFactor(videoBackend,sdlWin);
+      logD("scale factor: %f",dpiScale);
+      if (dpiScale<0.1f) {
+        logW("scale what?");
+        dpiScale=1.0f;
+      }
     }
   }
 

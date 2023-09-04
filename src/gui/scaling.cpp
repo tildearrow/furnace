@@ -21,6 +21,7 @@
 #include "scaling.h"
 #include "../ta-log.h"
 #include <SDL.h>
+#include <SDL_syswm.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -42,14 +43,23 @@ typedef int (*XDS)(void*);
 typedef int (*XDW)(void*,int);
 #endif
 
-double getScaleFactor(const char* driverHint) {
+double getScaleFactor(const char* driverHint, void* windowHint) {
   double ret=1.0;
 
   // Windows
 #ifdef _WIN32
   POINT nullPoint;
-  nullPoint.x=-1;
-  nullPoint.y=-1;
+  if (windowHint!=NULL) {
+    int px=0;
+    int py=0;
+
+    SDL_GetWindowPosition((SDL_Window*)windowHint,&px,&py);
+    nullPoint.x=px;
+    nullPoint.y=py;
+  } else {
+    nullPoint.x=-1;
+    nullPoint.y=-1;
+  }
   HMONITOR disp=MonitorFromPoint(nullPoint,MONITOR_DEFAULTTOPRIMARY);
 
   if (disp==NULL) {
@@ -93,12 +103,34 @@ double getScaleFactor(const char* driverHint) {
   return ret;
 #endif
 
-  // macOS - backingScaleFactor
+  // macOS
 #ifdef __APPLE__
   if (driverHint==NULL) {
-    return getMacDPIScale();
-  } else if (strcmp(driverHint,"cocoa")==0 || strcmp(driverHint,"uikit")==0) {
-    return getMacDPIScale();
+    return getMacDPIScale(NULL,false);
+  } else if (strcmp(driverHint,"cocoa")==0) {
+#ifdef SDL_VIDEO_DRIVER_COCOA
+    void* nsWindow=NULL;
+    SDL_SysWMinfo wmInfo;
+    if (windowHint!=NULL) {
+      SDL_VERSION(&wmInfo.version)
+      if (SDL_GetWindowWMInfo((SDL_Window*)windowHint,&wmInfo)==SDL_TRUE) {
+        nsWindow=wmInfo.info.cocoa.window;
+      }
+    }
+    return getMacDPIScale(nsWindow,false);
+#endif
+  } else if (strcmp(driverHint,"uikit")==0) {
+#ifdef SDL_VIDEO_DRIVER_UIKIT
+    void* uiWindow=NULL;
+    SDL_SysWMinfo wmInfo;
+    if (windowHint!=NULL) {
+      SDL_VERSION(&wmInfo.version)
+      if (SDL_GetWindowWMInfo((SDL_Window*)windowHint,&wmInfo)==SDL_TRUE) {
+        uiWindow=wmInfo.info.uikit.window;
+      }
+    }
+    return getMacDPIScale(uiWindow,true);
+#endif
   }
 #endif
 

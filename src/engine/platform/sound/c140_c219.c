@@ -2,7 +2,7 @@
 
 ============================================================================
 
-MODIFIED Namco C140 sound emulator - MODIFIED VERSION
+MODIFIED Namco C140/C219 sound emulator - MODIFIED VERSION
 by cam900
 
 MODIFICATION by tildearrow - adds muting function and fixes overflow
@@ -41,7 +41,7 @@ TODO:
 
 */
 
-#include "c140.h"
+#include "c140_c219.h"
 
 static int c140_max(int a, int b) { return (a > b) ? a : b; }
 static int c140_min(int a, int b) { return (a < b) ? a : b; }
@@ -58,6 +58,18 @@ void c140_tick(struct c140_t *c140, const int cycle)
 		c140_voice_tick(c140, i, cycle);
 		c140->lout += c140->voice[i].lout;
 		c140->rout += c140->voice[i].rout;
+	}
+}
+
+void c219_tick(struct c219_t *c219, const int cycle)
+{
+	c219->lout = 0;
+	c219->rout = 0;
+	for (int i = 0; i < 16; i++)
+	{
+		c219_voice_tick(c219, i, cycle);
+		c219->lout += c219->voice[i].lout;
+		c219->rout += c219->voice[i].rout;
 	}
 }
 
@@ -117,12 +129,98 @@ void c140_voice_tick(struct c140_t *c140, const unsigned char v, const int cycle
 	}
 }
 
+void c219_voice_tick(struct c219_t *c219, const unsigned char v, const int cycle)
+{
+	struct c140_voice_t *voice = &c219->voice[v];
+	if (voice->busy && voice->keyon)
+	{
+		for (int c = 0; c < cycle; c++)
+		{
+			voice->frac += voice->freq;
+			if (voice->frac > 0xffff)
+			{
+				voice->addr += voice->frac >> 16;
+				if ((voice->addr >> 1) > voice->end_addr)
+				{
+					if (voice->loop)
+					{
+						voice->addr = (voice->addr + (voice->loop_addr << 1)) - (voice->end_addr << 1);
+					}
+					else
+					{
+						voice->keyon = false;
+						voice->lout = 0;
+						voice->rout = 0;
+						return;
+					}
+				}
+				if (voice->noise)
+				{
+					c219->lfsr = (c219->lfsr >> 1) ^ ((-(c219->lfsr & 1)) & 0xfff6);
+				}
+				voice->frac &= 0xffff;
+			}
+		}
+		if (!voice->muted)
+		{
+			signed int sample = 0;
+			if (voice->noise)
+			{
+				sample = (signed int)((signed short)(c219->lfsr));
+			}
+			else
+			{
+				// fetch 8 bit sample
+				signed short s1 = c219->sample_mem[((unsigned int)(c219->bank[(v >> 2) & 3]) << 17) | (voice->addr^1)];
+				signed short s2 = c219->sample_mem[((unsigned int)(c219->bank[(v >> 2) & 3]) << 17) | (((voice->addr + 1) & 0x1ffff)^1)];
+				if (voice->compressed)
+				{
+					s1 = c219->mulaw[s1&0xff];
+					s2 = c219->mulaw[s2&0xff];
+				}
+				else
+				{
+					s1 = (signed short)((signed char)(s1) << 8);
+					s2 = (signed short)((signed char)(s2) << 8);
+				}
+				if (voice->inv_sign)
+				{
+					s1 = -s1;
+					s2 = -s2;
+				}
+				// interpolate (originally was >>16, but I had to reduce it to 15 to prevent overflow)
+				sample = s1 + (((voice->frac >> 1) * (s2 - s1)) >> 15);
+			}
+			voice->lout = (voice->inv_lout ? (-sample) : sample) * voice->lvol;
+			voice->rout = sample * voice->rvol;
+		}
+		else
+		{
+			voice->lout = 0;
+			voice->rout = 0;
+		}
+	}
+	else
+	{
+		voice->lout = 0;
+		voice->rout = 0;
+	}
+}
+
 void c140_keyon(struct c140_voice_t *c140_voice)
 {
 	c140_voice->busy = true;
 	c140_voice->keyon = true;
 	c140_voice->frac = 0;
 	c140_voice->addr = c140_voice->start_addr;
+}
+
+void c219_keyon(struct c140_voice_t *c140_voice)
+{
+	c140_voice->busy = true;
+	c140_voice->keyon = true;
+	c140_voice->frac = 0;
+	c140_voice->addr = c140_voice->start_addr << 1;
 }
 
 void c140_init(struct c140_t *c140)
@@ -149,6 +247,41 @@ void c140_init(struct c140_t *c140)
 	}
 }
 
+void c219_init(struct c219_t *c219)
+{
+	// u-law table verified from Wii Virtual Console Arcade Knuckle Heads
+	for (int i = 0; i < 128; i++)
+	{
+		signed int compressed_sample = 0;
+		if (i < 16)
+		{
+			compressed_sample = 0x20 * i;
+		}
+		else if (i < 24)
+		{
+			compressed_sample = (0x200 + (0x40 * i)) - 0x400;
+		}
+		else if (i < 48)
+		{
+			compressed_sample = (0x400 + (0x80 * i)) - 0xc00;
+		}
+		else if (i < 100)
+		{
+			compressed_sample = (0x1000 + (0x100 * i)) - 0x3000;
+		}
+		else
+		{
+			compressed_sample = (0x4400 + (0x200 * i)) - 0xc800;
+		}
+		c219->mulaw[i]       = compressed_sample;
+		c219->mulaw[i + 128] = (~compressed_sample) & 0xffe0;
+	}
+	for (int i = 0; i < 16; i++)
+	{
+		c219->voice[i].muted = false;
+	}
+}
+
 void c140_reset(struct c140_t *c140)
 {
 	for (int i = 0; i < 24; i++)
@@ -168,6 +301,35 @@ void c140_reset(struct c140_t *c140)
 		c140->voice[i].frac = 0;
 		c140->voice[i].lout = 0;
 		c140->voice[i].rout = 0;
+	}
+}
+
+void c219_reset(struct c219_t *c219)
+{
+	for (int i = 0; i < 16; i++)
+	{
+		c219->voice[i].busy = false;
+		c219->voice[i].keyon = false;
+		c219->voice[i].freq = 0;
+		c219->voice[i].start_addr = 0;
+		c219->voice[i].loop_addr = 0;
+		c219->voice[i].end_addr = 0;
+		c219->voice[i].lvol = 0;
+		c219->voice[i].rvol = 0;
+		c219->voice[i].noise = false;
+		c219->voice[i].inv_lout = false;
+		c219->voice[i].inv_sign = false;
+		c219->voice[i].compressed = false;
+		c219->voice[i].loop = false;
+		c219->voice[i].addr = 0;
+		c219->voice[i].frac = 0;
+		c219->voice[i].lout = 0;
+		c219->voice[i].rout = 0;
+	}
+	c219->lfsr = 0x1234;
+	for (int i = 0; i < 4; i++)
+	{
+		c219->bank[i] = 0;
 	}
 }
 
@@ -202,4 +364,48 @@ void c140_write(struct c140_t *c140, const unsigned short addr, const unsigned c
 		}
 	}
 	// Timer
+}
+
+void c219_write(struct c219_t *c219, const unsigned short addr, const unsigned char data)
+{
+	// voice register
+	if (addr < 0x180)
+	{
+		struct c140_voice_t *voice = &c219->voice[addr >> 4];
+		switch (addr & 0xf)
+		{
+			case 0x0: voice->rvol = data; break;
+			case 0x1: voice->lvol = data; break;
+			case 0x2: voice->freq = (voice->freq & ~0xff00) | (unsigned int)(data << 8); break;
+			case 0x3: voice->freq = (voice->freq & ~0x00ff) | data; break;
+			//case 0x4: break; // Unknown
+			case 0x5:
+				voice->compressed = c140_bit(data, 0);
+				voice->noise = c140_bit(data, 2);
+				voice->inv_lout = c140_bit(data, 3);
+				voice->loop = c140_bit(data, 4);
+				voice->inv_sign = c140_bit(data, 6);
+				if (data & 0x80)
+					c219_keyon(voice);
+				else
+					voice->busy = false;
+				break;
+			case 0x6: voice->start_addr = (voice->start_addr & ~0xff00) | (unsigned int)(data << 8); break;
+			case 0x7: voice->start_addr = (voice->start_addr & ~0x00ff) | data; break;
+			case 0x8: voice->end_addr = (voice->end_addr & ~0xff00) | (unsigned int)(data << 8); break;
+			case 0x9: voice->end_addr = (voice->end_addr & ~0x00ff) | data; break;
+			case 0xa: voice->loop_addr = (voice->loop_addr & ~0xff00) | (unsigned int)(data << 8); break;
+			case 0xb: voice->loop_addr = (voice->loop_addr & ~0x00ff) | data; break;
+			default: break;
+		}
+	}
+	// bank
+	else if (addr >= 0x1f0)
+	{
+		if (addr & 1)
+		{
+			const unsigned short bankaddr = (addr >> 1) & 3;
+			c219->bank[(bankaddr + 1) & 3] = (data & 3);
+		}
+	}
 }

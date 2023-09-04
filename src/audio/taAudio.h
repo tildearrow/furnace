@@ -58,13 +58,16 @@ struct TAAudioDesc {
   unsigned char inChans, outChans;
   TAAudioFormat outFormat;
 
+  bool wasapiEx;
+
   TAAudioDesc():
     rate(0.0),
     bufsize(0),
     fragments(0),
     inChans(0),
     outChans(0),
-    outFormat(TA_AUDIO_FORMAT_F32) {}
+    outFormat(TA_AUDIO_FORMAT_F32),
+    wasapiEx(false) {}
 };
 
 

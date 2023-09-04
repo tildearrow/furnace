@@ -20,7 +20,30 @@
 #include <Cocoa/Cocoa.h>
 #include "macstuff.h"
 
-double getMacDPIScale() {
-  CGFloat val=[[NSScreen mainScreen] backingScaleFactor];
+double getMacDPIScale(void* sysWin, unsigned char isUIKit) {
+  NSScreen* screen=nil;
+  if (sysWin!=NULL) {
+    if (isUIKit) {
+      return 1.0;
+      /*
+      UIWindow* win=(UIWindow*)sysWin;
+      UIWindowScene* winScene=[win windowScene];
+      if (winScene!=nil) {
+        UIScreen* winScreen=[winScene screen];
+        CGFloat ret=[winScreen scale];
+        return (double)ret;
+      }*/
+    } else {
+      NSWindow* win=(NSWindow*)sysWin;
+      screen=[win screen];
+    }
+  }
+  if (screen==nil) {
+    screen=[NSScreen mainScreen];
+  }
+  if (screen==nil) {
+    return 1.0;
+  }
+  CGFloat val=[screen backingScaleFactor];
   return (double)val;
 }

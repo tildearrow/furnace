@@ -66,17 +66,31 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 ### Output
 
-- **Backend**: selects SDL or JACK for audio output.
-  - only appears on Linux, or MacOS compiled with JACK support
-- **Driver**: select a different SDL audio driver if you're having problems with the default one.
+- **Backend**: selects a different backend for audio output.
+  - SDL: the default one.
+  - JACK: the JACK Audio Connection Kit (low-latency audio server). only appears on Linux, or MacOS compiled with JACK support.
+  - PortAudio: this may or may not perform better than the SDL backend.
+- **Driver**: select a different audio driver if you're having problems with the default one.
+  - only appears when Backend is SDL.
 - **Device**: audio device for playback.
-- **Sample rate**
+  - if using PortAudio backend, devices will be prefixed with the audio API that PortAudio is going to use:
+    - Windows WASAPI: a modern audio API available on Windows Vista and later, featuring an (optional) Exclusive Mode. be noted that your buffer size setting may be ignored.
+    - Windows WDM-KS: low-latency, direct to hardware output mechanism. may not work all the time and prevents your audio device from being used for anything else!
+    - Windows DirectSound: this is the worst choice. best to move on.
+    - MME: an old audio API. doesn't have Exclusive Mode.
+    - Core Audio: the only choice in macOS.
+    - ALSA: low-level audio output on Linux. may prevent other applications from using your audio device.
+- **Sample rate**: audio output rate.
+  - a lower rate decreases quality and isn't really beneficial.
+  - if using PortAudio backend, be careful about this value.
 - **Outputs**: number of audio outputs created, up to 16.
   - only appears when Backend is JACK.
-- **Channels**: number of output channels to use.
+- **Channels**: mono, stereo or something.
 - **Buffer size**: size of buffer in both samples and milliseconds.
   - setting this to a low value may cause stuttering/glitches in playback (known as "underruns" or "xruns").
   - setting this to a high value increases latency.
+- **Exclusive mode**: enables Exclusive Mode, which may offer latency improvements.
+  - only available on WASAPI devices in the PortAudio backend!
 - **Low-latency mode (experimental!)**: reduces latency by running the engine faster than the tick rate. useful for live playback/jam mode.
   - only enable if your buffer size is small (10ms or less).
 - **Force mono audio**: use if you're unable to hear stereo audio (e.g. single speaker or hearing loss in one ear).
@@ -88,6 +102,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Quality**: selects quality of resampling. low quality reduces CPU load by a small amount.
 - **Software clipping**: clips output to nominal range (-1.0 to 1.0) before passing it to the audio device.
   - this avoids activating Windows' built-in limiter.
+  - this option shall be enabled when using PortAudio backend with a DirectSound device.
 
 ### Metronome
 
@@ -193,7 +208,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Import**
 - **Export**
 - **Reset defaults**
-- several categories of keybinds...
+- [grouped list of keybinds...](keyboard.md)
   - click on a keybind then enter a key or key combination to change it
   - right-click to clear the keybind
 
@@ -327,6 +342,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - **Cursor details or file path**
   - **Nothing**
 - **Capitalize menu bar**
+- **Display add/configure/change/remove chip menus in File menu**: if enabled, the "manage chips" item in the file menu is split into the four listed items for quick access.
 
 ### Orders
 

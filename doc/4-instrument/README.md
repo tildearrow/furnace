@@ -50,8 +50,9 @@ The very first numeric entry sets the visible width of the bars in sequence-type
 Each macro has two buttons on the left.
 - Macro type (explained below).
 - Timing editor, which pops up a small dialog:
-  - Step Length (ticks): Determines how many ticks pass before each change of value.
-  - Delay: Delays the start of the macro until this many ticks have passed.
+  - Step Length (ticks): Determines how many ticks pass before each change of value. Default is 1.
+  - Delay: Delays the start of the macro until this many ticks have passed. Default is 0.
+  - The button is highlighted if either of these is set differently from default.
 
 ## macro types
 
@@ -113,7 +114,7 @@ This tab appears for PC Engine, FDS, Namco WSG, and other wavetable-based instru
 
 ![wavetable tab](wavetable.png)
 
-When **Enable synthesizer** is off, the only option is to select a wavetable entry with the text entry box beneath the **Wave 1** preview.
+When **Enable synthesizer** is off, the wavetable used for the instrument may be selected by creating a Waveform macro with a single value.
 
 To use the wavetable synthesizer, refer to the bottom part of [the wavetable documentation](../5-wave/README.md).
 

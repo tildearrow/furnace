@@ -102,7 +102,7 @@ void FurnaceGUI::drawOrderButtons() {
   int buttonColumns=(settings.orderButtonPos==0)?8:1;
   int buttonColumn=0;
 
-  while (buttonColumns<8 && ((8/buttonColumns)*ImGui::GetFrameHeightWithSpacing())>ImGui::GetContentRegionAvail().y) {
+  while (buttonColumns<8 && ((int)(8/buttonColumns)*ImGui::GetFrameHeightWithSpacing())>ImGui::GetContentRegionAvail().y) {
     buttonColumns++;
   }
 
@@ -115,10 +115,12 @@ void FurnaceGUI::drawOrderButtons() {
   }
   NEXT_BUTTON;
 
+  pushDestColor();
   if (ImGui::Button(ICON_FA_MINUS)) { handleUnimportant
     // remove this order row
     doAction(GUI_ACTION_ORDERS_REMOVE);
   }
+  popDestColor();
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Remove order");
   } 
@@ -258,6 +260,7 @@ void FurnaceGUI::drawOrders() {
       ImGui::PushFont(patFont);
       bool tooSmall=((displayChans+1)>((ImGui::GetContentRegionAvail().x)/(ImGui::CalcTextSize("AA").x+2.0*ImGui::GetStyle().ItemInnerSpacing.x)));
       ImGui::PopFont();
+      float yHeight=ImGui::GetContentRegionAvail().y;
       if (ImGui::BeginTable("OrdersTable",1+displayChans,(tooSmall?ImGuiTableFlags_SizingFixedFit:ImGuiTableFlags_SizingStretchSame)|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
         ImGui::PushFont(patFont);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
@@ -265,7 +268,7 @@ void FurnaceGUI::drawOrders() {
         float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
         if (e->isPlaying()) {
           if (followOrders) {
-            ImGui::SetScrollY((e->getOrder()+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
+            ImGui::SetScrollY((e->getOrder()+1)*lineHeight-((yHeight-(tooSmall?ImGui::GetStyle().ScrollbarSize:0.0f))/2.0f));
           }
         }
         ImGui::TableNextRow(0,lineHeight);

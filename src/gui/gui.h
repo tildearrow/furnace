@@ -259,6 +259,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_SCSP,
   GUI_COLOR_INSTR_TED,
   GUI_COLOR_INSTR_C140,
+  GUI_COLOR_INSTR_C219,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1343,6 +1344,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool killGraphics;
+  bool audioEngineChanged, settingsChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int vgmExportTrailingTicks;
@@ -1578,6 +1580,8 @@ class FurnaceGUI {
     int capitalMenuBar;
     int centerPopup;
     int insIconsStyle;
+    int classicChipOptions;
+    int wasapiEx;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1751,6 +1755,8 @@ class FurnaceGUI {
       capitalMenuBar(0),
       centerPopup(1),
       insIconsStyle(1),
+      classicChipOptions(0),
+      wasapiEx(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2065,14 +2071,18 @@ class FurnaceGUI {
     double inBufPosFrac;
     unsigned short needle;
     fftw_complex* outBuf;
+    double* corrBuf;
     fftw_plan plan;
+    fftw_plan planI;
     ChanOscStatus():
       inBuf(NULL),
       inBufPos(0),
       inBufPosFrac(0.0f),
       needle(0),
       outBuf(NULL),
-      plan(NULL) {}
+      corrBuf(NULL),
+      plan(NULL),
+      planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];
 
   // visualizer

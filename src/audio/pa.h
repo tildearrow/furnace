@@ -17,4 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-double getMacDPIScale(void* sysWin, unsigned char isUIKit);
+#include "taAudio.h"
+#include <portaudio.h>
+
+class TAAudioPA: public TAAudio {
+  PaStream* ac;
+  bool audioSysStarted;
+
+  public:
+    int onProcess(const void* in, void* out, unsigned long nframes, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags flags);
+
+    void* getContext();
+    bool quit();
+    bool setRun(bool run);
+    std::vector<String> listAudioDevices();
+    bool init(TAAudioDesc& request, TAAudioDesc& response);
+    TAAudioPA():
+      ac(NULL),
+      audioSysStarted(false) {}
+};

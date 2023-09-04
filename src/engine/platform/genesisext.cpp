@@ -732,10 +732,8 @@ void DivPlatformGenesisExt::forceIns() {
       if (i==2 && extMode) { // extended channel
         if (isOpMuted[orderedOps[j]] || !op.enable) {
           rWrite(baseAddr+0x40,127);
-        } else if (KVS(i,j)) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));
         } else {
-          rWrite(baseAddr+0x40,op.tl);
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));
         }
       } else {
         if (isMuted[i]) {

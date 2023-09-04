@@ -66,6 +66,14 @@ namespace vgsound_emu
 		return T(T(in) << len) >> len;
 	}
 
+  // get sign extended value, sign_ext<type>(input, len)
+	template<typename T>
+	static inline T sign_ext_nomax(T in, u8 len)
+	{
+		len = (8 * sizeof(T)) - len;
+		return T(T(in) << len) >> len;
+	}
+
 	// convert attenuation decibel value to gain
 	static inline f32 dB_to_gain(f32 attenuation) { return std::pow(10.0f, attenuation / 20.0f); }
 

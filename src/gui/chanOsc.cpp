@@ -128,7 +128,7 @@ void FurnaceGUI::drawChanOsc() {
     bool centerSettingReset=false;
     ImDrawList* dl=ImGui::GetWindowDrawList();
     if (chanOscOptions) {
-      if (ImGui::BeginTable("ChanOscSettings",3)) {
+      if (ImGui::BeginTable("ChanOscSettings",2)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
@@ -149,11 +149,7 @@ void FurnaceGUI::drawChanOsc() {
           if (chanOscWindowSize>50.0f) chanOscWindowSize=50.0f;
         }
 
-        ImGui::TableNextColumn();
-        if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
-          centerSettingReset=true;
-        }
-
+        ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Automatic columns");
@@ -167,6 +163,11 @@ void FurnaceGUI::drawChanOsc() {
             if (isSelected) ImGui::SetItemDefaultFocus();
           }
           ImGui::EndCombo();
+        }
+
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
+          centerSettingReset=true;
         }
         ImGui::EndTable();
       }
@@ -282,10 +283,12 @@ void FurnaceGUI::drawChanOsc() {
                   updateChanOscGradTex=true;
                 }
 
+                pushDestColor();
                 if (ImGui::Button("Remove")) {
                   removePoint=index;
                   ImGui::CloseCurrentPopup();
                 }
+                popDestColor();
 
                 ImGui::EndPopup();
               }
@@ -415,7 +418,18 @@ void FurnaceGUI::drawChanOsc() {
               logD("creating FFT plan for channel %d",ch);
               fft->inBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
               fft->outBuf=(fftw_complex*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(fftw_complex));
+              fft->corrBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
               fft->plan=fftw_plan_dft_r2c_1d(FURNACE_FFT_SIZE,fft->inBuf,fft->outBuf,FFTW_ESTIMATE);
+              fft->planI=fftw_plan_dft_c2r_1d(FURNACE_FFT_SIZE,fft->outBuf,fft->corrBuf,FFTW_ESTIMATE);
+              if (fft->plan==NULL) {
+                logE("failed to create plan!");
+              }
+              if (fft->planI==NULL) {
+                logE("failed to create inverse plan!");
+              }
+              if (fft->inBuf==NULL || fft->outBuf==NULL || fft->corrBuf==NULL) {
+                logE("failed to create FFT buffers");
+              }
             }
 
             int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
@@ -439,64 +453,166 @@ void FurnaceGUI::drawChanOsc() {
             ImGui::ItemSize(size,style.FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID("chOscDisplay"))) {
               if (!e->isRunning()) {
-                for (unsigned short i=0; i<precision; i++) {
-                  float x=(float)i/(float)precision;
-                  waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f));
+                for (unsigned short j=0; j<precision; j++) {
+                  float x=(float)j/(float)precision;
+                  waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f));
                 }
               } else {
+                // the STRATEGY
+                // 1. FFT of windowed signal
+                // 2. inverse FFT of auto-correlation
+                // 3. find size of one period
+                // 4. DFT of the fundamental of ONE PERIOD
+                // 5. now we can get phase information
+                //
+                // I have a feeling this could be simplified to two FFTs or even one...
+                // if you know how, please tell me
+
+                // initialization
+                double phase=0.0;
                 float minLevel=1.0f;
                 float maxLevel=-1.0f;
                 float dcOff=0.0f;
                 unsigned short needlePos=buf->needle;
-                //unsigned short needlePosOrig=needlePos;
-                for (int i=0; i<FURNACE_FFT_SIZE; i++) {
-                  fft->inBuf[i]=(double)buf->data[(unsigned short)(needlePos-displaySize*2+((i*displaySize*2)/FURNACE_FFT_SIZE))]/32768.0;
+                bool loudEnough=false;
+
+                // first FFT
+                for (int j=0; j<FURNACE_FFT_SIZE; j++) {
+                  fft->inBuf[j]=(double)buf->data[(unsigned short)(needlePos-displaySize*2+((j*displaySize*2)/(FURNACE_FFT_SIZE)))]/32768.0;
+                  if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) loudEnough=true;
+                  fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_FFT_SIZE>>1));
                 }
-                fftw_execute(fft->plan);
-                
-                // find origin frequency
-                int point=1;
-                double candAmp=0.0;
-                for (unsigned short i=1; i<512; i++) {
-                  fftw_complex& f=fft->outBuf[i];
-                  // AMPLITUDE
-                  double amp=sqrt(pow(f[0],2.0)+pow(f[1],2.0))/pow((double)i,0.8);
-                  if (amp>candAmp) {
-                    point=i;
-                    candAmp=amp;
+
+                // only proceed if not quiet
+                if (loudEnough) {
+                  fftw_execute(fft->plan);
+
+                  // auto-correlation and second FFT
+                  for (int j=0; j<FURNACE_FFT_SIZE; j++) {
+                    fft->outBuf[j][0]/=FURNACE_FFT_SIZE;
+                    fft->outBuf[j][1]/=FURNACE_FFT_SIZE;
+                    fft->outBuf[j][0]=fft->outBuf[j][0]*fft->outBuf[j][0]+fft->outBuf[j][1]*fft->outBuf[j][1];
+                    fft->outBuf[j][1]=0;
+                  }
+                  fft->outBuf[0][0]=0;
+                  fft->outBuf[0][1]=0;
+                  fft->outBuf[1][0]=0;
+                  fft->outBuf[1][1]=0;
+                  fftw_execute(fft->planI);
+
+                  // window
+                  for (int j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
+                    fft->corrBuf[j]*=1.0-((double)j/(double)(FURNACE_FFT_SIZE<<1));
+                  }
+
+                  // find size of period
+                  double waveLen=FURNACE_FFT_SIZE-1;
+                  double waveLenCandL=DBL_MAX;
+                  double waveLenCandH=DBL_MIN;
+                  int waveLenBottom=0;
+                  int waveLenTop=0;
+
+                  // find lowest point
+                  for (int j=(FURNACE_FFT_SIZE>>2); j>2; j--) {
+                    if (fft->corrBuf[j]<waveLenCandL) {
+                      waveLenCandL=fft->corrBuf[j];
+                      waveLenBottom=j;
+                    }
+                  }
+                  
+                  // find highest point
+                  for (int j=(FURNACE_FFT_SIZE>>1)-1; j>waveLenBottom; j--) {
+                    if (fft->corrBuf[j]>waveLenCandH) {
+                      waveLenCandH=fft->corrBuf[j];
+                      waveLen=j;
+                    }
+                  }
+                  waveLenTop=waveLen;
+
+                  // did we find the period size?
+                  if (waveLen<(FURNACE_FFT_SIZE-32)) {
+                    // we got pitch
+                    chanOscPitch[ch]=pow(1.0-(waveLen/(double)(FURNACE_FFT_SIZE>>1)),4.0);
+                    
+                    waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
+
+                    // DFT of one period (x_1)
+                    double dft[2];
+                    dft[0]=0.0;
+                    dft[1]=0.0;
+                    for (int j=needlePos-1-(displaySize>>1)-(int)waveLen, k=0; k<waveLen; j++, k++) {
+                      double one=((double)buf->data[j&0xffff]/32768.0);
+                      double two=(double)k*(-2.0*M_PI)/waveLen;
+                      dft[0]+=one*cos(two);
+                      dft[1]+=one*sin(two);
+                    }
+
+                    // calculate and lock into phase
+                    phase=(0.5+(atan2(dft[1],dft[0])/(2.0*M_PI)));
+
+                    if (chanOscWaveCorr) {
+                      needlePos-=phase*waveLen;
+                       //needlePos-=(2*waveLen-fmod(displaySize,waveLen*2))*0.5;
+                    }
+                  }
+
+                  // FFT debug code!
+                  if (debugFFT) {
+                    double maxavg=0.0;
+                    for (unsigned short j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
+                      if (fabs(fft->corrBuf[j]>maxavg)) {
+                        maxavg=fabs(fft->corrBuf[j]);
+                      }
+                    }
+                    if (maxavg>0.0000001) maxavg=0.5/maxavg;
+
+                    for (unsigned short j=0; j<precision; j++) {
+                      float x=(float)j/(float)precision;
+                      float y=fft->corrBuf[(j*FURNACE_FFT_SIZE)/precision]*maxavg;
+                      if (j>=precision/2) {
+                        y=fft->inBuf[((j-(precision/2))*FURNACE_FFT_SIZE*2)/(precision)];
+                      }
+
+                      waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                    }
+                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)",waveLen,waveLenBottom,waveLenTop);
+                    dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
+
+                    dl->AddLine(
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenBottom/(double)FURNACE_FFT_SIZE,0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenBottom/(double)FURNACE_FFT_SIZE,1.0)),
+                      0xffffff00
+                    );
+                    dl->AddLine(
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenTop/(double)FURNACE_FFT_SIZE,0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenTop/(double)FURNACE_FFT_SIZE,1.0)),
+                      0xff00ff00
+                    );
+                  }
+                } else {
+                  if (debugFFT) {
+                    dl->AddText(inRect.Min,0xffffffff,"\nquiet");
                   }
                 }
 
-                // PHASE
-                fftw_complex& candPoint=fft->outBuf[point];
-                double phase=((double)(displaySize*2)/(double)point)*(0.5+(atan2(candPoint[1],candPoint[0])/(M_PI*2)));
-
-                if (chanOscWaveCorr) {
-                  needlePos-=phase;
+                if (!debugFFT || !loudEnough) {
+                  needlePos-=displaySize;
+                  for (unsigned short j=0; j<precision; j++) {
+                    float y=(float)buf->data[(unsigned short)(needlePos+(j*displaySize/precision))]/32768.0f;
+                    if (minLevel>y) minLevel=y;
+                    if (maxLevel<y) maxLevel=y;
+                  }
+                  dcOff=(minLevel+maxLevel)*0.5f;
+                  for (unsigned short j=0; j<precision; j++) {
+                    float x=(float)j/(float)precision;
+                    float y=(float)buf->data[(unsigned short)(needlePos+(j*displaySize/precision))]/32768.0f;
+                    y-=dcOff;
+                    if (y<-0.5f) y=-0.5f;
+                    if (y>0.5f) y=0.5f;
+                    y*=chanOscAmplify;
+                    waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                  }
                 }
-                chanOscPitch[ch]=(float)point/32.0f;
-                
-                
-
-                needlePos-=displaySize;
-                for (unsigned short i=0; i<precision; i++) {
-                  float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/32768.0f;
-                  if (minLevel>y) minLevel=y;
-                  if (maxLevel<y) maxLevel=y;
-                }
-                dcOff=(minLevel+maxLevel)*0.5f;
-                for (unsigned short i=0; i<precision; i++) {
-                  float x=(float)i/(float)precision;
-                  float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/32768.0f;
-                  y-=dcOff;
-                  if (y<-0.5f) y=-0.5f;
-                  if (y>0.5f) y=0.5f;
-                  y*=chanOscAmplify;
-                  waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
-                }
-
-                //String cPhase=fmt::sprintf("%d cphase: %f\nvol: %f\nmin: %.2f\nmax: %.2f\ndcOff: %.2f\nneedles:\n- %d\n- %d\n- %d (%s)",point,phase,chanOscVol[ch],minLevel,maxLevel,dcOff,needlePosOrig,needlePos,(needlePos+displaySize),((needlePos+displaySize)>=needlePosOrig)?"WARN":"OK");
-                //dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
               }
               ImU32 color=ImGui::GetColorU32(chanOscColor);
               if (chanOscUseGrad) {
@@ -516,9 +632,9 @@ void FurnaceGUI::drawChanOsc() {
                 String text;
                 bool inFormat=false;
 
-                for (char i: chanOscTextFormat) {
+                for (char j: chanOscTextFormat) {
                   if (inFormat) {
-                    switch (i) {
+                    switch (j) {
                       case 'c':
                         text+=e->getChannelName(ch);
                         break;
@@ -559,7 +675,7 @@ void FurnaceGUI::drawChanOsc() {
                         break;
                       }
                       case 'p': {
-                        text+=FurnaceGUI::getSystemPartNumber(e->sysOfChan[ch], e->song.systemFlags[e->dispatchOfChan[ch]]);
+                        text+=FurnaceGUI::getSystemPartNumber(e->sysOfChan[ch],e->song.systemFlags[e->dispatchOfChan[ch]]);
                         break;
                       }
                       case 'S': {
@@ -600,19 +716,18 @@ void FurnaceGUI::drawChanOsc() {
                         break;
                       default:
                         text+='%';
-                        text+=i;
+                        text+=j;
                         break;
                     }
                     inFormat=false;
                   } else {
-                    if (i=='%') {
+                    if (j=='%') {
                       inFormat=true;
                     } else {
-                      text+=i;
+                      text+=j;
                     }
                   }
                 }
-
                 dl->AddText(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0f,0.0f)),ImGui::GetColorU32(chanOscTextColor),text.c_str());
               }
 

@@ -27,6 +27,7 @@ include(TestBigEndian)
 
 if (ANDROID)
   set(USE_RTMIDI_DEFAULT OFF)
+  set(WITH_PORTAUDIO_DEFAULT OFF)
   set(USE_BACKWARD_DEFAULT OFF)
   find_library(TERMUX rt)
   if (TERMUX)
@@ -34,6 +35,7 @@ if (ANDROID)
   endif()
 else()
   set(USE_RTMIDI_DEFAULT ON)
+  set(WITH_PORTAUDIO_DEFAULT ON)
   if (WIN32 OR APPLE)
     set(USE_BACKWARD_DEFAULT ON)
   else()
@@ -78,6 +80,7 @@ option(USE_SDL2 "Build with SDL2. Required to build with GUI." ${USE_SDL2_DEFAUL
 option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio files." ${USE_SNDFILE_DEFAULT})
 option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
+option(WITH_PORTAUDIO "Whether to build with PortAudio for audio output." ${WITH_PORTAUDIO_DEFAULT})
 option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." ${WITH_RENDER_SDL_DEFAULT})
 option(WITH_RENDER_OPENGL "Whether to build with the OpenGL render backend." ${WITH_RENDER_OPENGL_DEFAULT})
 option(WITH_RENDER_DX11 "Whether to build with the DirectX 11 render backend." ${WITH_RENDER_DX11_DEFAULT})
@@ -85,6 +88,7 @@ option(USE_GLES "Use OpenGL ES for the OpenGL render backend." ${USE_GLES_DEFAUL
 option(SYSTEM_FFTW "Use a system-installed version of FFTW instead of the vendored one" OFF)
 option(SYSTEM_FMT "Use a system-installed version of fmt instead of the vendored one" OFF)
 option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead of the vendored one" OFF)
+option(SYSTEM_PORTAUDIO "Use a system-installed version of PortAudio instead of the vendored one" OFF)
 option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the vendored one" OFF)
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
@@ -202,6 +206,27 @@ if (USE_SNDFILE)
   endif()
 else()
   message(STATUS "Not using libsndfile")
+endif()
+
+if (WITH_PORTAUDIO)
+  if (SYSTEM_PORTAUDIO)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PORTAUDIO REQUIRED portaudio)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS ${PORTAUDIO_INCLUDE_DIRS})
+    list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${PORTAUDIO_CFLAGS_OTHER})
+    list(APPEND DEPENDENCIES_LIBRARIES ${PORTAUDIO_LIBRARIES})
+    list(APPEND DEPENDENCIES_LIBRARY_DIRS ${PORTAUDIO_LIBRARY_DIRS})
+    list(APPEND DEPENDENCIES_LINK_OPTIONS ${PORTAUDIO_LDFLAGS_OTHER})
+    list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${PORTAUDIO_LDFLAGS})
+    message(STATUS "Using system-installed PortAudio")
+  else()
+    set(PA_BUILD_SHARED_LIBS OFF CACHE BOOL "Build dynamic library" FORCE)
+    # don't - Furnace has its own implementation
+    set(PA_USE_JACK OFF CACHE BOOL "Enable support for JACK Audio Connection Kit" FORCE)
+    add_subdirectory(extern/portaudio EXCLUDE_FROM_ALL)
+    list(APPEND DEPENDENCIES_LIBRARIES PortAudio)
+    message(STATUS "Using vendored PortAudio")
+  endif()
 endif()
 
 if (USE_RTMIDI)
@@ -343,6 +368,14 @@ if (WITH_JACK)
   message(STATUS "Building with JACK support")
 else()
   message(STATUS "Building without JACK support")
+endif()
+
+if (WITH_PORTAUDIO)
+  list(APPEND AUDIO_SOURCES src/audio/pa.cpp)
+  message(STATUS "Building with PortAudio")
+  list(APPEND DEPENDENCIES_DEFINES HAVE_PA)
+else()
+  message(STATUS "Building without PortAudio")
 endif()
 
 if (USE_RTMIDI)
@@ -507,7 +540,7 @@ src/engine/platform/sound/d65modified.c
 
 src/engine/platform/sound/ted-sound.c
 
-src/engine/platform/sound/c140.c
+src/engine/platform/sound/c140_c219.c
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp

@@ -32,6 +32,9 @@
 #ifdef HAVE_JACK
 #include "../audio/jack.h"
 #endif
+#ifdef HAVE_PA
+#include "../audio/pa.h"
+#endif
 #include <math.h>
 #include <float.h>
 #include <fmt/printf.h>
@@ -3279,6 +3282,8 @@ bool DivEngine::initAudioBackend() {
   if (audioEngine==DIV_AUDIO_NULL) {
     if (getConfString("audioEngine","SDL")=="JACK") {
       audioEngine=DIV_AUDIO_JACK;
+    } else if (getConfString("audioEngine","SDL")=="PortAudio") {
+      audioEngine=DIV_AUDIO_PORTAUDIO;
     } else {
       audioEngine=DIV_AUDIO_SDL;
     }
@@ -3324,6 +3329,21 @@ bool DivEngine::initAudioBackend() {
       output=new TAAudioJACK;
 #endif
       break;
+    case DIV_AUDIO_PORTAUDIO:
+#ifndef HAVE_PA
+      logE("Furnace was not compiled with PortAudio!");
+      setConf("audioEngine","SDL");
+      saveConf();
+#ifdef HAVE_SDL2
+      output=new TAAudioSDL;
+#else
+      logE("Furnace was not compiled with SDL support either!");
+      output=new TAAudio;
+#endif
+#else
+      output=new TAAudioPA;
+#endif
+      break;
     case DIV_AUDIO_SDL:
 #ifdef HAVE_SDL2
       output=new TAAudioSDL;
@@ -3350,6 +3370,7 @@ bool DivEngine::initAudioBackend() {
   want.inChans=0;
   want.outChans=getConfInt("audioChans",2);
   want.outFormat=TA_AUDIO_FORMAT_F32;
+  want.wasapiEx=getConfInt("wasapiEx",0);
   want.name="Furnace";
 
   if (want.outChans<1) want.outChans=1;

@@ -596,6 +596,19 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
+      case DIV_SYSTEM_C219:
+        for (int i=0; i<16; i++) {
+          w->writeC(0xd4); // mute
+          w->writeS_BE(baseAddr2S|(i<<4)|0);
+          w->writeC(0);
+          w->writeC(0xd4);
+          w->writeS_BE(baseAddr2S|(i<<4)|1);
+          w->writeC(0);
+          w->writeC(0xd4); // keyoff
+          w->writeS_BE(baseAddr2S|(i<<4)|5);
+          w->writeC(0);
+        }
+        break;
       default:
         break;
     }
@@ -1058,6 +1071,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.val&0xff);
       break;
     case DIV_SYSTEM_C140:
+    case DIV_SYSTEM_C219:
       w->writeC(0xd4);
       w->writeS_BE(baseAddr2S|(write.addr&0x1ff));
       w->writeC(write.val&0xff);
@@ -1151,7 +1165,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   int hasOKIM6295=0;
   int hasK051649=0;
   int hasPCE=0;
-  int hasNamco=0;
+  int hasC140=0;
+  int c140Type=0;
   int hasK053260=0;
   int hasPOKEY=0;
   int hasQSound=0;
@@ -1236,6 +1251,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   DivDispatch* writeGA20[2]={NULL,NULL};
   DivDispatch* writeK053260[2]={NULL,NULL};
   DivDispatch* writeC140[2]={NULL,NULL};
+  DivDispatch* writeC219[2]={NULL,NULL};
   DivDispatch* writeNES[2]={NULL,NULL};
   
   int writeNESIndex[2]={0,0};
@@ -1785,18 +1801,36 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         }
         break;
       case DIV_SYSTEM_C140:
-        if (!hasNamco) {
+        if (!hasC140) {
           // ?!?!?!
-          hasNamco=disCont[i].dispatch->rate/2;
+          hasC140=disCont[i].dispatch->rate/2;
           CHIP_VOL(40,1.0);
           willExport[i]=true;
           writeC140[0]=disCont[i].dispatch;
-        } else if (!(hasNamco&0x40000000)) {
+        } else if (!(hasC140&0x40000000)) {
           isSecond[i]=true;
           CHIP_VOL_SECOND(40,1.0);
           willExport[i]=true;
           writeC140[1]=disCont[i].dispatch;
-          hasNamco|=0x40000000;
+          hasC140|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_C219:
+        if (!hasC140) {
+          // ?!?!?!
+          hasC140=disCont[i].dispatch->rate/2;
+          CHIP_VOL(40,1.0);
+          willExport[i]=true;
+          writeC219[0]=disCont[i].dispatch;
+          c140Type=2;
+        } else if (!(hasC140&0x40000000)) {
+          isSecond[i]=true;
+          CHIP_VOL_SECOND(40,1.0);
+          willExport[i]=true;
+          writeC219[1]=disCont[i].dispatch;
+          hasC140|=0x40000000;
+          c140Type=2;
           howManyChips++;
         }
         break;
@@ -1895,13 +1929,13 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeI(hasOKIM6258);
     w->writeC(0); // flags
     w->writeC(0); // K flags
-    w->writeC(0); // C140 chip type
+    w->writeC(c140Type); // C140 chip type
     w->writeC(0); // reserved
     w->writeI(hasOKIM6295);
     w->writeI(hasK051649);
     w->writeI(hasK054539);
     w->writeI(hasPCE);
-    w->writeI(hasNamco);
+    w->writeI(hasC140);
     w->writeI(hasK053260);
     w->writeI(hasPOKEY);
     w->writeI(hasQSound);
@@ -2209,6 +2243,19 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(0);
       for (size_t i=0; i<memLen; i++) {
         w->writeC(mem[i]>>8);
+      }
+    }
+    if (writeC219[i]!=NULL && writeC219[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x8d);
+      unsigned char* mem=(unsigned char*)writeC219[i]->getSampleMem();
+      size_t memLen=writeC219[i]->getSampleMemUsage();
+      w->writeI((memLen+8)|(i*0x80000000));
+      w->writeI(writeC219[i]->getSampleMemCapacity());
+      w->writeI(0);
+      for (size_t i=0; i<memLen; i++) {
+        w->writeC(mem[i]);
       }
     }
   }

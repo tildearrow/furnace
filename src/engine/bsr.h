@@ -17,4 +17,45 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-double getMacDPIScale(void* sysWin, unsigned char isUIKit);
+#if defined( _MSC_VER )
+
+#include <intrin.h>
+
+static inline int bsr(unsigned short v) {
+  unsigned long idx;
+  if (_BitScanReverse(&idx,(unsigned long)v)) {
+    return idx;
+  }
+  else {
+    return -1;
+  }
+}
+
+#elif defined( __GNUC__ )
+
+static inline int bsr(unsigned short v)
+{
+  if (v) {
+    return 32 - __builtin_clz(v);
+  }
+  else{
+    return -1;
+  }
+}
+
+#else
+
+static inline int bsr(unsigned short v)
+{
+  unsigned short mask = 0x8000;
+  for (int i = 15; i >= 0; --i) {
+    if (v&mask)
+      return (int)i;
+    mask>>=1;
+  }
+
+  return -1;
+}
+
+#endif
+
