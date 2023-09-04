@@ -500,14 +500,20 @@ void FurnaceGUI::drawChanOsc() {
                   fft->outBuf[1][1]=0;
                   fftw_execute(fft->planI);
 
+                  // window
+                  for (int j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
+                    fft->corrBuf[j]*=1.0-((double)j/(double)(FURNACE_FFT_SIZE<<1));
+                  }
+
                   // find size of period
                   double waveLen=FURNACE_FFT_SIZE-1;
                   double waveLenCandL=DBL_MAX;
                   double waveLenCandH=DBL_MIN;
                   int waveLenBottom=0;
+                  int waveLenTop=0;
 
                   // find lowest point
-                  for (int j=(FURNACE_FFT_SIZE>>1); j>2; j--) {
+                  for (int j=(FURNACE_FFT_SIZE>>2); j>2; j--) {
                     if (fft->corrBuf[j]<waveLenCandL) {
                       waveLenCandL=fft->corrBuf[j];
                       waveLenBottom=j;
@@ -515,19 +521,20 @@ void FurnaceGUI::drawChanOsc() {
                   }
                   
                   // find highest point
-                  for (int j=(FURNACE_FFT_SIZE>>1); j>waveLenBottom; j--) {
+                  for (int j=(FURNACE_FFT_SIZE>>1)-1; j>waveLenBottom; j--) {
                     if (fft->corrBuf[j]>waveLenCandH) {
                       waveLenCandH=fft->corrBuf[j];
                       waveLen=j;
                     }
                   }
+                  waveLenTop=waveLen;
 
                   // did we find the period size?
                   if (waveLen<(FURNACE_FFT_SIZE-32)) {
-                    waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
-
                     // we got pitch
-                    chanOscPitch[ch]=1.0-pow(waveLen/(double)(FURNACE_FFT_SIZE>>1),2.0);
+                    chanOscPitch[ch]=pow(1.0-(waveLen/(double)(FURNACE_FFT_SIZE>>1)),4.0);
+                    
+                    waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
 
                     // DFT of one period (x_1)
                     double dft[2];
@@ -548,23 +555,63 @@ void FurnaceGUI::drawChanOsc() {
                        //needlePos-=(2*waveLen-fmod(displaySize,waveLen*2))*0.5;
                     }
                   }
+
+                  // FFT debug code!
+                  if (debugFFT) {
+                    double maxavg=0.0;
+                    for (unsigned short j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
+                      if (fabs(fft->corrBuf[j]>maxavg)) {
+                        maxavg=fabs(fft->corrBuf[j]);
+                      }
+                    }
+                    if (maxavg>0.0000001) maxavg=0.5/maxavg;
+
+                    for (unsigned short j=0; j<precision; j++) {
+                      float x=(float)j/(float)precision;
+                      float y=fft->corrBuf[(j*FURNACE_FFT_SIZE)/precision]*maxavg;
+                      if (j>=precision/2) {
+                        y=fft->inBuf[((j-(precision/2))*FURNACE_FFT_SIZE*2)/(precision)];
+                      }
+
+                      waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                    }
+                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)",waveLen,waveLenBottom,waveLenTop);
+                    dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
+
+                    dl->AddLine(
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenBottom/(double)FURNACE_FFT_SIZE,0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenBottom/(double)FURNACE_FFT_SIZE,1.0)),
+                      0xffffff00
+                    );
+                    dl->AddLine(
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenTop/(double)FURNACE_FFT_SIZE,0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)waveLenTop/(double)FURNACE_FFT_SIZE,1.0)),
+                      0xff00ff00
+                    );
+                  }
+                } else {
+                  if (debugFFT) {
+                    dl->AddText(inRect.Min,0xffffffff,"\nquiet");
+                  }
                 }
 
-                needlePos-=displaySize;
-                for (unsigned short j=0; j<precision; j++) {
-                  float y=(float)buf->data[(unsigned short)(needlePos+(j*displaySize/precision))]/32768.0f;
-                  if (minLevel>y) minLevel=y;
-                  if (maxLevel<y) maxLevel=y;
-                }
-                dcOff=(minLevel+maxLevel)*0.5f;
-                for (unsigned short j=0; j<precision; j++) {
-                  float x=(float)j/(float)precision;
-                  float y=(float)buf->data[(unsigned short)(needlePos+(j*displaySize/precision))]/32768.0f;
-                  y-=dcOff;
-                  if (y<-0.5f) y=-0.5f;
-                  if (y>0.5f) y=0.5f;
-                  y*=chanOscAmplify;
-                  waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                if (!debugFFT || !loudEnough) {
+                  needlePos-=displaySize;
+                  for (unsigned short j=0; j<precision; j++) {
+                    float y=(float)buf->data[(unsigned short)(needlePos+(j*displaySize/precision))]/32768.0f;
+                    if (minLevel>y) minLevel=y;
+                    if (maxLevel<y) maxLevel=y;
+                  }
+                  dcOff=(minLevel+maxLevel)*0.5f;
+                  for (unsigned short j=0; j<precision; j++) {
+                    float x=(float)j/(float)precision;
+                    float y=(float)buf->data[(unsigned short)(needlePos+(j*displaySize/precision))]/32768.0f;
+                    y-=dcOff;
+                    if (y<-0.5f) y=-0.5f;
+                    if (y>0.5f) y=0.5f;
+                    y*=chanOscAmplify;
+                    waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                  }
                 }
               }
               ImU32 color=ImGui::GetColorU32(chanOscColor);
@@ -692,9 +739,6 @@ void FurnaceGUI::drawChanOsc() {
 
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           chanOscOptions=!chanOscOptions;
-        }
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-          debugFFT=!debugFFT;
         }
       }
       ImGui::PopStyleVar();
