@@ -541,7 +541,7 @@ void FurnaceGUI::drawChanOsc() {
 
                 if (chanOscWaveCorr) {
                   needlePos-=phase*waveLen;
-                  //needlePos-=displaySize/waveLen;
+                  needlePos-=(2*waveLen-fmod(displaySize,waveLen*2))*0.5;
                 }
                 //chanOscPitch[ch]=(float)point/32.0f;
 
