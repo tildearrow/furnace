@@ -454,10 +454,11 @@ void DivEngine::registerSystems() {
     {0x18, {DIV_CMD_FM_EXTCH, "18xx: Toggle extended channel 3 mode"}},
   });
 
-  EffectHandlerMap fmOPN2EffectHandlerMap={
+  EffectHandlerMap fmOPN2EffectHandlerMap(fmEffectHandlerMap);
+  fmOPN2EffectHandlerMap.insert({
     {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}},
-  };
+  });
 
   EffectHandlerMap fmOPLDrumsEffectHandlerMap(fmEffectHandlerMap);
   fmOPLDrumsEffectHandlerMap.insert({
