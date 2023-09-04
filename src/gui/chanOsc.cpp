@@ -533,9 +533,9 @@ void FurnaceGUI::drawChanOsc() {
                     double dft[2];
                     dft[0]=0.0;
                     dft[1]=0.0;
-                    for (int j=0; j<waveLen; j++) {
-                      double one=((double)buf->data[(unsigned short)(needlePos-((int)waveLen)+j)&0xffff]/32768.0);
-                      double two=(double)j*(-2.0*M_PI)/waveLen;
+                    for (int j=needlePos-1-((displaySize+(int)waveLen)>>1), k=0; k<waveLen; j++, k++) {
+                      double one=((double)buf->data[j&0xffff]/32768.0);
+                      double two=(double)k*(-2.0*M_PI)/waveLen;
                       dft[0]+=one*cos(two);
                       dft[1]+=one*sin(two);
                     }
@@ -545,7 +545,7 @@ void FurnaceGUI::drawChanOsc() {
 
                     if (chanOscWaveCorr) {
                       needlePos-=phase*waveLen;
-                      needlePos-=(2*waveLen-fmod(displaySize,waveLen*2))*0.5;
+                       //needlePos-=(2*waveLen-fmod(displaySize,waveLen*2))*0.5;
                     }
                   }
                 }
