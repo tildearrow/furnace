@@ -540,7 +540,7 @@ void FurnaceGUI::drawChanOsc() {
                     double dft[2];
                     dft[0]=0.0;
                     dft[1]=0.0;
-                    for (int j=needlePos-1-((displaySize+(int)waveLen)>>1), k=0; k<waveLen; j++, k++) {
+                    for (int j=needlePos-1-(displaySize>>1)-(int)waveLen, k=0; k<waveLen; j++, k++) {
                       double one=((double)buf->data[j&0xffff]/32768.0);
                       double two=(double)k*(-2.0*M_PI)/waveLen;
                       dft[0]+=one*cos(two);
