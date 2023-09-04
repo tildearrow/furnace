@@ -2056,20 +2056,22 @@ class FurnaceGUI {
   unsigned short lastCorrPos[DIV_MAX_CHANS];
   struct ChanOscStatus {
     double* inBuf;
+    fftw_complex* outBuf;
+    double* corrBuf;
     size_t inBufPos;
     double inBufPosFrac;
     unsigned short needle;
-    fftw_complex* outBuf;
-    double* corrBuf;
+    bool ready;
     fftw_plan plan;
     fftw_plan planI;
     ChanOscStatus():
       inBuf(NULL),
+      outBuf(NULL),
+      corrBuf(NULL),
       inBufPos(0),
       inBufPosFrac(0.0f),
       needle(0),
-      outBuf(NULL),
-      corrBuf(NULL),
+      ready(false),
       plan(NULL),
       planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];
