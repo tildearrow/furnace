@@ -2016,6 +2016,10 @@ bool DivEngine::isPreviewingSample() {
   return (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size());
 }
 
+int DivEngine::getSamplePreviewSample() {
+  return sPreview.sample;
+}
+
 int DivEngine::getSamplePreviewPos() {
   return sPreview.pos;
 }

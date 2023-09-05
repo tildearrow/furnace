@@ -1676,7 +1676,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         dl->PushClipRect(rectMin,rectMax);
-        if (e->isPreviewingSample()) {
+        if (e->isPreviewingSample() && e->getSamplePreviewSample()==curSample) {
           if (!statusBar2.empty()) {
             statusBar2+=" | ";
           }

@@ -714,6 +714,7 @@ class DivEngine {
 
     // sample preview query
     bool isPreviewingSample();
+    int getSamplePreviewSample();
     int getSamplePreviewPos();
     double getSamplePreviewRate();
 
