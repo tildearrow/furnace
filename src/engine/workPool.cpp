@@ -64,10 +64,8 @@ bool DivWorkThread::assign(const std::function<void(void*)>& what, void* arg) {
   }
   tasks.push(DivPendingTask(what,arg));
   parent->busyCount++;
-  parent->notify.notify_one();
   isBusy=true;
   lock.unlock();
-  notify.notify_one();
   return true;
 }
 
@@ -93,21 +91,19 @@ void DivWorkThread::init(DivWorkPool* p) {
 }
 
 void DivWorkPool::push(const std::function<void(void*)>& what, void* arg) {
-  //logV("submitting work");
   // if no work threads, just execute
   if (!threaded) {
     what(arg);
     return;
   }
 
-  if (pos>=count) pos=0;
-
   for (unsigned int tryCount=0; tryCount<count; tryCount++) {
+    if (pos>=count) pos=0;
     if (workThreads[pos++].assign(what,arg)) return;
   }
 
   // all threads are busy
-  logV("all busy");
+  logW("DivWorkPool: all work threads busy!");
   what(arg);
 }
 
@@ -122,8 +118,17 @@ bool DivWorkPool::busy() {
 void DivWorkPool::wait() {
   if (!threaded) return;
   std::unique_lock<std::mutex> unique(selfLock);
+
+  // start running
+  for (unsigned int i=0; i<count; i++) {
+    workThreads[i].notify.notify_one();
+  }
+
+  // wait
   while (busyCount!=0) {
-    notify.wait_for(unique,std::chrono::milliseconds(100));
+    if (notify.wait_for(unique,std::chrono::milliseconds(100))==std::cv_status::timeout) {
+      logW("DivWorkPool: wait() timed out!");
+    }
   }
 }
 
