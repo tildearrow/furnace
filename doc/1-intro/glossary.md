@@ -69,6 +69,8 @@
 
 **macro**: a sequence of values automatically applied while a note plays.
 
+**noise bass**: the technique of using a PSG's periodic noise generator with a very short period to create low-frequency sounds.
+
 **normalize**: to adjust the volume of a sample so it is as loud as possible without adding distortion from clipping.
 
 **operator**: in FM, a single oscillator that interacts with other oscillators to generate sound.
@@ -77,9 +79,13 @@
 
 **PCM**: pulse code modulation. a stream of data that represents sound as a rapid sequence of amplitudes.
 - CD tracks and .WAV files are PCM.
-- .OGG and .MP3 are compressed differently from PCM. they must be converted to .WAV outside Furnace before they can be used as samples.
+- .FLAC files are compressed PCM that must be converted to .WAV outside Furnace before use.
+- .OGG and .MP3 are compressed differently from PCM. they must also be converted to .WAV before use.
 
 **period**: the length of a repeating waveform. as frequency rises, the period shortens.
+
+**periodic noise**: an approximation of random noise generated algorithmically.
+- the period is the number of values generated until the algorithm repeats itself.
 
 **phase reset**: to restart a waveform at its initial value.
 - for FM instruments, this restarts the volume envelope also.
@@ -101,8 +107,10 @@
 
 **register**: a memory location within a sound chip. "register view" shows all the relevant memory of all chips in use.
 
-**sample**: a digitally recorded sound. usually stored as some variant of PCM.
+**sample** (1): a digitally recorded sound. usually stored as some variant of PCM.
 - these can take up a lot of room depending on length and sample rate, thus older systems tend to use short, lower quality samples.
+
+**sample** (2): a single value taken from a digitally recorded sound. a sample(1) is made up of samples(2).
 
 **signed**: a digital representation of a number that may be negative or positive.
 - if an imported raw sample sounds recognizable but heavily distorted, it's likely to be unsigned interpreted as signed or vice-versa.
@@ -114,7 +122,7 @@
 **square wave**: a wave consisting of only two values, high and low, with equal durations within the wave's period.
 - this is equivalent to a pulse wave with a duty of 50%.
 
-**supersaw**: a sound made up of multiple saw waves at slightly different frequencies to achieve a flanged effect.
+**supersaw**: a sound made up of multiple saw waves at slightly different frequencies to achieve a chorusing effect.
 
 **tick rate**: the rate at which the software controlling a sound chip sends commands to it.
 - this usually corresponds to the frame rate the system uses for video, approximately 60 for NTSC and 50 for PAL.
@@ -127,6 +135,11 @@
 - different versions of the VGM format have different capabilities, with trade-offs. older versions may lack chips or features; newer versions may not be compatible with some software.
 - samples are stored uncompressed. PCM streams (such as DualPCM) can quickly take up a huge amount of space.
 
-**wavetable**: a very short looping sample.
+**waveform**: a very short period of repeating sound.
+- the most basic waveform is a sine wave. others include triangle, pulse, saw, and the like.
+
+**wavetable** (1): a very short looping sample.
+
+**wavetable** (2): an ordered group of wavetables(1) used in sequence within a single instrument.
 
 **ZSM**: a VGM-like file meant specifically for the Commander X16 computer.
