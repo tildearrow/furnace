@@ -1074,9 +1074,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::Text("Action");
           ImGui::TableNextColumn();
-          ImGui::Text("Learn");
           ImGui::TableNextColumn();
-          ImGui::Text("Remove");
 
           for (size_t i=0; i<midiMap.binds.size(); i++) {
             MIDIBind& bind=midiMap.binds[i];
@@ -1178,13 +1176,15 @@ void FurnaceGUI::drawSettings() {
             }
 
             ImGui::TableNextColumn();
-            if (ImGui::Button((learning==(int)i)?("waiting...##BLearn"):(ICON_FA_SQUARE_O "##BLearn"))) {
+            pushToggleColors(learning==(int)i);
+            if (ImGui::Button((learning==(int)i)?("waiting...##BLearn"):("Learn##BLearn"))) {
               if (learning==(int)i) {
                 learning=-1;
               } else {
                 learning=i;
               }
             }
+            popToggleColors();
 
             ImGui::TableNextColumn();
             if (ImGui::Button(ICON_FA_TIMES "##BRemove")) {
