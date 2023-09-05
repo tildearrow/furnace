@@ -28,15 +28,15 @@
 
 **DAC**: digital analog converter. this converts a digital representation of sound into actual output.
 
-**.DFI**: a DefleMask instrument file.
-
-**.DFM**: a DefleMask song file.
+**.DMF**: a DefleMask song file.
 - _Furnace:_ DFM files may be read, and compatibility flags will be set to make them play as accurately as possible, but there may still be glitches.
 - _Furnace:_ DFM files may be saved, but full compatibility isn't guaranteed and many features will be missing. this isn't recommended unless absolutely necessary.
 
-**.DFW**: a DefleMask wavetable file.
+**.DMP**: a DefleMask instrument file.
 
-**DPCM**: differential pulse code modulation. this is a variety of PCM that stores each amplitude as its difference from the previous.
+**.DMW**: a DefleMask wavetable file.
+
+**DPCM**: differential/delta pulse code modulation. this is a variety of PCM that stores each amplitude as its difference from the previous.
 
 **duty**: in a pulse wave, this represents the ratio of the "on" part of the wave.
 - a square wave is a pulse wave with a duty of 50%.
@@ -63,9 +63,9 @@
 - analogous to image antialiasing.
 - some sample-based chips can perform interpolation, but most cannot.
 
-**ladder effect**: an inaccurate yet common term for the DAC distortion that affects the YM2612 chip.
+**ladder effect**: an inaccurate yet common term for the DAC distortion that affects some Yamaha FM chips.
 
-**LFO**: low frequency oscillator. this is slow, often subsonic oscillator used to alter other sounds.
+**LFO**: low frequency oscillator. this is a slow, often subsonic oscillator used to alter other sounds.
 
 **macro**: a sequence of values automatically applied while a note plays.
 
@@ -76,8 +76,8 @@
 **oscillator**: a sine wave or other basic waveform used as sound or to alter sound.
 
 **PCM**: pulse code modulation. a stream of data that represents sound as a rapid sequence of amplitudes.
-- CD tracks and WAV files are PCM.
-- FLAC, OGG, and MP3 are compressed PCM. these must be uncompressed outside Furnace before they can be used as samples.
+- CD tracks and .WAV files are PCM.
+- .OGG and .MP3 are compressed differently from PCM. they must be converted to .WAV outside Furnace before they can be used as samples.
 
 **period**: the length of a repeating waveform. as frequency rises, the period shortens.
 
@@ -108,7 +108,7 @@
 - if an imported raw sample sounds recognizable but heavily distorted, it's likely to be unsigned interpreted as signed or vice-versa.
 
 **software mixing**: mixing multiple channels of sound down to a single stream to be sent to a PCM channel.
-- this puts a heavy load on the sound chip or the host system, so it was rarely used in games.
+- this puts a heavy load on the CPU of the host system, so it was rarely used in games.
 - _Furnace:_ this is used for DualPCM and QuadTone.
 
 **square wave**: a wave consisting of only two values, high and low, with equal durations within the wave's period.
