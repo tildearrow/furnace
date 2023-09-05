@@ -6685,6 +6685,9 @@ bool FurnaceGUI::init() {
   }
 #endif
 
+  cpuCores=SDL_GetCPUCount();
+  if (cpuCores<1) cpuCores=1;
+
   logI("done!");
   return true;
 }
@@ -6855,6 +6858,10 @@ bool FurnaceGUI::finish() {
 
   if (backupTask.valid()) {
     backupTask.get();
+  }
+
+  if (chanOscWorkPool!=NULL) {
+    delete chanOscWorkPool;
   }
 
   return true;
@@ -7281,6 +7288,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscTextColor(1.0f,1.0f,1.0f,0.75f),
   chanOscGrad(64,64),
   chanOscGradTex(NULL),
+  chanOscWorkPool(NULL),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),

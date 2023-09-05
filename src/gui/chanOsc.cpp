@@ -367,6 +367,12 @@ void FurnaceGUI::drawChanOsc() {
         ImGuiStyle& style=ImGui::GetStyle();
         ImVec2 waveform[1024];
 
+        // check work thread
+        if (chanOscWorkPool==NULL) {
+          logV("creating chan osc work pool");
+          chanOscWorkPool=new DivWorkPool(settings.chanOscThreads);
+        }
+
         // fill buffers
         for (int i=0; i<chans; i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);
@@ -379,137 +385,144 @@ void FurnaceGUI::drawChanOsc() {
 
         // process
         for (size_t i=0; i<oscBufs.size(); i++) {
-          DivDispatchOscBuffer* buf=oscBufs[i];
-          ChanOscStatus* fft=oscFFTs[i];
-          int ch=oscChans[i];
+          ChanOscStatus* fft_=oscFFTs[i];
 
-          if (buf!=NULL) {
+          fft_->relatedBuf=oscBufs[i];
+          fft_->relatedCh=oscChans[i];
+
+          if (fft_->relatedBuf!=NULL) {
             // prepare
             if (centerSettingReset) {
-              buf->readNeedle=buf->needle;
+              fft_->relatedBuf->readNeedle=fft_->relatedBuf->needle;
             }
-
-            int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
 
             // check FFT status existence
-            if (!fft->ready) {
-              logD("creating FFT plan for channel %d",ch);
-              fft->inBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
-              fft->outBuf=(fftw_complex*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(fftw_complex));
-              fft->corrBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
-              fft->plan=fftw_plan_dft_r2c_1d(FURNACE_FFT_SIZE,fft->inBuf,fft->outBuf,FFTW_ESTIMATE);
-              fft->planI=fftw_plan_dft_c2r_1d(FURNACE_FFT_SIZE,fft->outBuf,fft->corrBuf,FFTW_ESTIMATE);
-              if (fft->plan==NULL) {
+            if (!fft_->ready) {
+              logD("creating FFT plan for channel %d",fft_->relatedCh);
+              fft_->inBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
+              fft_->outBuf=(fftw_complex*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(fftw_complex));
+              fft_->corrBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
+              fft_->plan=fftw_plan_dft_r2c_1d(FURNACE_FFT_SIZE,fft_->inBuf,fft_->outBuf,FFTW_ESTIMATE);
+              fft_->planI=fftw_plan_dft_c2r_1d(FURNACE_FFT_SIZE,fft_->outBuf,fft_->corrBuf,FFTW_ESTIMATE);
+              if (fft_->plan==NULL) {
                 logE("failed to create plan!");
-              } else if (fft->planI==NULL) {
+              } else if (fft_->planI==NULL) {
                 logE("failed to create inverse plan!");
-              } else if (fft->inBuf==NULL || fft->outBuf==NULL || fft->corrBuf==NULL) {
+              } else if (fft_->inBuf==NULL || fft_->outBuf==NULL || fft_->corrBuf==NULL) {
                 logE("failed to create FFT buffers");
               } else {
-                fft->ready=true;
+                fft_->ready=true;
               }
             }
 
-            if (fft->ready && e->isRunning()) {
-              // the STRATEGY
-              // 1. FFT of windowed signal
-              // 2. inverse FFT of auto-correlation
-              // 3. find size of one period
-              // 4. DFT of the fundamental of ONE PERIOD
-              // 5. now we can get phase information
-              //
-              // I have a feeling this could be simplified to two FFTs or even one...
-              // if you know how, please tell me
+            if (fft_->ready && e->isRunning()) {
+              chanOscWorkPool->push([this](void* fft_v) {
+                ChanOscStatus* fft=(ChanOscStatus*)fft_v;
+                DivDispatchOscBuffer* buf=fft->relatedBuf;
+                int ch=fft->relatedCh;
 
-              // initialization
-              double phase=0.0;
-              fft->loudEnough=false;
-              fft->needle=buf->needle;
+                // the STRATEGY
+                // 1. FFT of windowed signal
+                // 2. inverse FFT of auto-correlation
+                // 3. find size of one period
+                // 4. DFT of the fundamental of ONE PERIOD
+                // 5. now we can get phase information
+                //
+                // I have a feeling this could be simplified to two FFTs or even one...
+                // if you know how, please tell me
 
-              // first FFT
-              for (int j=0; j<FURNACE_FFT_SIZE; j++) {
-                fft->inBuf[j]=(double)buf->data[(unsigned short)(fft->needle-displaySize*2+((j*displaySize*2)/(FURNACE_FFT_SIZE)))]/32768.0;
-                if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) fft->loudEnough=true;
-                fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_FFT_SIZE>>1));
-              }
+                // initialization
+                double phase=0.0;
+                int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
+                fft->loudEnough=false;
+                fft->needle=buf->needle;
 
-              // only proceed if not quiet
-              if (fft->loudEnough) {
-                fftw_execute(fft->plan);
-
-                // auto-correlation and second FFT
+                // first FFT
                 for (int j=0; j<FURNACE_FFT_SIZE; j++) {
-                  fft->outBuf[j][0]/=FURNACE_FFT_SIZE;
-                  fft->outBuf[j][1]/=FURNACE_FFT_SIZE;
-                  fft->outBuf[j][0]=fft->outBuf[j][0]*fft->outBuf[j][0]+fft->outBuf[j][1]*fft->outBuf[j][1];
-                  fft->outBuf[j][1]=0;
-                }
-                fft->outBuf[0][0]=0;
-                fft->outBuf[0][1]=0;
-                fft->outBuf[1][0]=0;
-                fft->outBuf[1][1]=0;
-                fftw_execute(fft->planI);
-
-                // window
-                for (int j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
-                  fft->corrBuf[j]*=1.0-((double)j/(double)(FURNACE_FFT_SIZE<<1));
+                  fft->inBuf[j]=(double)buf->data[(unsigned short)(fft->needle-displaySize*2+((j*displaySize*2)/(FURNACE_FFT_SIZE)))]/32768.0;
+                  if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) fft->loudEnough=true;
+                  fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_FFT_SIZE>>1));
                 }
 
-                // find size of period
-                double waveLenCandL=DBL_MAX;
-                double waveLenCandH=DBL_MIN;
-                fft->waveLen=FURNACE_FFT_SIZE-1;
-                fft->waveLenBottom=0;
-                fft->waveLenTop=0;
+                // only proceed if not quiet
+                if (fft->loudEnough) {
+                  fftw_execute(fft->plan);
 
-                // find lowest point
-                for (int j=(FURNACE_FFT_SIZE>>2); j>2; j--) {
-                  if (fft->corrBuf[j]<waveLenCandL) {
-                    waveLenCandL=fft->corrBuf[j];
-                    fft->waveLenBottom=j;
+                  // auto-correlation and second FFT
+                  for (int j=0; j<FURNACE_FFT_SIZE; j++) {
+                    fft->outBuf[j][0]/=FURNACE_FFT_SIZE;
+                    fft->outBuf[j][1]/=FURNACE_FFT_SIZE;
+                    fft->outBuf[j][0]=fft->outBuf[j][0]*fft->outBuf[j][0]+fft->outBuf[j][1]*fft->outBuf[j][1];
+                    fft->outBuf[j][1]=0;
                   }
-                }
-                
-                // find highest point
-                for (int j=(FURNACE_FFT_SIZE>>1)-1; j>fft->waveLenBottom; j--) {
-                  if (fft->corrBuf[j]>waveLenCandH) {
-                    waveLenCandH=fft->corrBuf[j];
-                    fft->waveLen=j;
-                  }
-                }
-                fft->waveLenTop=fft->waveLen;
+                  fft->outBuf[0][0]=0;
+                  fft->outBuf[0][1]=0;
+                  fft->outBuf[1][0]=0;
+                  fft->outBuf[1][1]=0;
+                  fftw_execute(fft->planI);
 
-                // did we find the period size?
-                if (fft->waveLen<(FURNACE_FFT_SIZE-32)) {
-                  // we got pitch
-                  chanOscPitch[ch]=pow(1.0-(fft->waveLen/(double)(FURNACE_FFT_SIZE>>1)),4.0);
+                  // window
+                  for (int j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
+                    fft->corrBuf[j]*=1.0-((double)j/(double)(FURNACE_FFT_SIZE<<1));
+                  }
+
+                  // find size of period
+                  double waveLenCandL=DBL_MAX;
+                  double waveLenCandH=DBL_MIN;
+                  fft->waveLen=FURNACE_FFT_SIZE-1;
+                  fft->waveLenBottom=0;
+                  fft->waveLenTop=0;
+
+                  // find lowest point
+                  for (int j=(FURNACE_FFT_SIZE>>2); j>2; j--) {
+                    if (fft->corrBuf[j]<waveLenCandL) {
+                      waveLenCandL=fft->corrBuf[j];
+                      fft->waveLenBottom=j;
+                    }
+                  }
                   
-                  fft->waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
-
-                  // DFT of one period (x_1)
-                  double dft[2];
-                  dft[0]=0.0;
-                  dft[1]=0.0;
-                  for (int j=fft->needle-1-(displaySize>>1)-(int)fft->waveLen, k=0; k<fft->waveLen; j++, k++) {
-                    double one=((double)buf->data[j&0xffff]/32768.0);
-                    double two=(double)k*(-2.0*M_PI)/fft->waveLen;
-                    dft[0]+=one*cos(two);
-                    dft[1]+=one*sin(two);
+                  // find highest point
+                  for (int j=(FURNACE_FFT_SIZE>>1)-1; j>fft->waveLenBottom; j--) {
+                    if (fft->corrBuf[j]>waveLenCandH) {
+                      waveLenCandH=fft->corrBuf[j];
+                      fft->waveLen=j;
+                    }
                   }
+                  fft->waveLenTop=fft->waveLen;
 
-                  // calculate and lock into phase
-                  phase=(0.5+(atan2(dft[1],dft[0])/(2.0*M_PI)));
+                  // did we find the period size?
+                  if (fft->waveLen<(FURNACE_FFT_SIZE-32)) {
+                    // we got pitch
+                    chanOscPitch[ch]=pow(1.0-(fft->waveLen/(double)(FURNACE_FFT_SIZE>>1)),4.0);
+                    
+                    fft->waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
 
-                  if (chanOscWaveCorr) {
-                    fft->needle-=phase*fft->waveLen;
+                    // DFT of one period (x_1)
+                    double dft[2];
+                    dft[0]=0.0;
+                    dft[1]=0.0;
+                    for (int j=fft->needle-1-(displaySize>>1)-(int)fft->waveLen, k=0; k<fft->waveLen; j++, k++) {
+                      double one=((double)buf->data[j&0xffff]/32768.0);
+                      double two=(double)k*(-2.0*M_PI)/fft->waveLen;
+                      dft[0]+=one*cos(two);
+                      dft[1]+=one*sin(two);
+                    }
+
+                    // calculate and lock into phase
+                    phase=(0.5+(atan2(dft[1],dft[0])/(2.0*M_PI)));
+
+                    if (chanOscWaveCorr) {
+                      fft->needle-=phase*fft->waveLen;
+                    }
                   }
                 }
-              }
 
-              fft->needle-=displaySize;
+                fft->needle-=displaySize;
+              },fft_);
             }
           }
         }
+        chanOscWorkPool->wait();
 
         // 0: none
         // 1: sqrt(chans)
@@ -644,7 +657,12 @@ void FurnaceGUI::drawChanOsc() {
               }
               ImGui::PushClipRect(inRect.Min,inRect.Max,false);
 
+              ImDrawListFlags prevFlags=dl->Flags;
+              //if (!settings.oscAntiAlias) {
+                dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
+              //}
               dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale);
+              dl->Flags=prevFlags;
 
               if (!chanOscTextFormat.empty()) {
                 String text;

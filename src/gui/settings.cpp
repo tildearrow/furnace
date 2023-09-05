@@ -400,6 +400,27 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip("may cause issues with high-polling-rate mice when previewing notes.");
         }
 
+        pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
+        if (ImGui::InputInt("Per-channel oscilloscope threads",&settings.chanOscThreads)) {
+          if (settings.chanOscThreads<0) settings.chanOscThreads=0;
+          if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
+          if (settings.chanOscThreads>256) settings.chanOscThreads=256;
+        }
+        if (settings.chanOscThreads>=(cpuCores*3)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("you're being silly, aren't you? that's enough.");
+          }
+        } else if (settings.chanOscThreads>(cpuCores*2)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("what are you doing? stop!");
+          }
+        } else if (settings.chanOscThreads>cpuCores) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("it is a bad idea to set this number higher than your CPU core count (%d)!",cpuCores);
+          }
+        }
+        popWarningColor();
+
         // SUBSECTION FILE
         CONFIG_SUBSECTION("File");
 
@@ -3262,6 +3283,7 @@ void FurnaceGUI::syncSettings() {
   settings.insIconsStyle=e->getConfInt("insIconsStyle",1);
   settings.classicChipOptions=e->getConfInt("classicChipOptions",0);
   settings.wasapiEx=e->getConfInt("wasapiEx",0);
+  settings.chanOscThreads=e->getConfInt("chanOscThreads",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3410,6 +3432,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.insIconsStyle,0,2);
   clampSetting(settings.classicChipOptions,0,1);
   clampSetting(settings.wasapiEx,0,1);
+  clampSetting(settings.chanOscThreads,0,256);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3665,6 +3688,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("insIconsStyle",settings.insIconsStyle);
   e->setConf("classicChipOptions",settings.classicChipOptions);
   e->setConf("wasapiEx",settings.wasapiEx);
+  e->setConf("chanOscThreads",settings.chanOscThreads);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -4181,6 +4205,12 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
         dpiScale=1.0f;
       }
     }
+  }
+  
+  // chan osc work pool
+  if (chanOscWorkPool!=NULL) {
+    delete chanOscWorkPool;
+    chanOscWorkPool=NULL;
   }
 
   // colors

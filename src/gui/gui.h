@@ -21,6 +21,7 @@
 #define _FUR_GUI_H
 
 #include "../engine/engine.h"
+#include "../engine/workPool.h"
 #include "../engine/waveSynth.h"
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
@@ -1346,6 +1347,7 @@ class FurnaceGUI {
   int mobileEditPage;
   int wheelCalmDown;
   int shallDetectScale;
+  int cpuCores;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;
@@ -1572,6 +1574,7 @@ class FurnaceGUI {
     int insIconsStyle;
     int classicChipOptions;
     int wasapiEx;
+    int chanOscThreads;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1747,6 +1750,7 @@ class FurnaceGUI {
       insIconsStyle(1),
       classicChipOptions(0),
       wasapiEx(0),
+      chanOscThreads(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2047,6 +2051,7 @@ class FurnaceGUI {
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
   FurnaceGUITexture* chanOscGradTex;
+  DivWorkPool* chanOscWorkPool;
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
   float chanOscVol[DIV_MAX_CHANS];
@@ -2058,10 +2063,11 @@ class FurnaceGUI {
     double* inBuf;
     fftw_complex* outBuf;
     double* corrBuf;
+    DivDispatchOscBuffer* relatedBuf;
     size_t inBufPos;
     double inBufPosFrac;
     double waveLen;
-    int waveLenBottom, waveLenTop;
+    int waveLenBottom, waveLenTop, relatedCh;
     unsigned short needle;
     bool ready, loudEnough;
     fftw_plan plan;
@@ -2070,11 +2076,13 @@ class FurnaceGUI {
       inBuf(NULL),
       outBuf(NULL),
       corrBuf(NULL),
+      relatedBuf(NULL),
       inBufPos(0),
       inBufPosFrac(0.0f),
       waveLen(0.0),
       waveLenBottom(0),
       waveLenTop(0),
+      relatedCh(0),
       needle(0),
       ready(false),
       loudEnough(false),
