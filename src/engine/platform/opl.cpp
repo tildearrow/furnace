@@ -549,6 +549,8 @@ void DivPlatformOPL::tick(bool sysTick) {
           chan[adpcmChan].freq=5461; // 4KHz
         }
       }
+      if (chan[adpcmChan].freq<0) chan[adpcmChan].freq=0;
+      if (chan[adpcmChan].freq>65535) chan[adpcmChan].freq=65535;
       immWrite(16,chan[adpcmChan].freq&0xff);
       immWrite(17,(chan[adpcmChan].freq>>8)&0xff);
       if (chan[adpcmChan].keyOn || chan[adpcmChan].keyOff) {

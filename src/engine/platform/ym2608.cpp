@@ -783,6 +783,8 @@ void DivPlatformYM2608::tick(bool sysTick) {
         chan[15].freq=0;
       }
     }
+    if (chan[adpcmBChanOffs].freq<0) chan[adpcmBChanOffs].freq=0;
+    if (chan[adpcmBChanOffs].freq>65535) chan[adpcmBChanOffs].freq=65535;
     immWrite(0x109,chan[15].freq&0xff);
     immWrite(0x10a,(chan[15].freq>>8)&0xff);
     hardResetElapsed+=2;
