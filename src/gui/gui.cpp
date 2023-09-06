@@ -4353,7 +4353,21 @@ bool FurnaceGUI::loop() {
           info="| Groove";
         }
 
-        info+=fmt::sprintf(" @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD),e->getOrder(),e->curSubSong->ordersLen,e->getRow(),e->curSubSong->patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+        info+=fmt::sprintf(" @ %gHz (%g BPM) ",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
+
+        if (settings.orderRowsBase) {
+          info+=fmt::sprintf("| Order %.2X/%.2X ",e->getOrder(),e->curSubSong->ordersLen-1);
+        } else {
+          info+=fmt::sprintf("| Order %d/%d ",e->getOrder(),e->curSubSong->ordersLen-1);
+        }
+
+        if (settings.patRowsBase) {
+          info+=fmt::sprintf("| Row %.2X/%.2X ",e->getRow(),e->curSubSong->patLen);
+        } else {
+          info+=fmt::sprintf("| Row %d/%d ",e->getRow(),e->curSubSong->patLen);
+        }
+
+        info+=fmt::sprintf("| %d:%.2d:%.2d.%.2d",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
 
         ImGui::TextUnformatted(info.c_str());
       } else {
