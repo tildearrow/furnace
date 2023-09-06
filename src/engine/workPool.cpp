@@ -43,11 +43,14 @@ void DivWorkThread::run() {
       if (setFuckingPromise) {
         parent->notify.set_value();
         setFuckingPromise=false;
+        std::this_thread::yield();
       }
       if (terminate) {
         break;
       }
-      notify.wait(unique);
+      if (notify.wait_for(unique,std::chrono::milliseconds(100))==std::cv_status::timeout) {
+        logE("this task timed out!");
+      }
       continue;
     } else {
       task=tasks.front();
@@ -128,7 +131,6 @@ bool DivWorkPool::busy() {
 
 void DivWorkPool::wait() {
   if (!threaded) return;
-  //std::unique_lock<std::mutex> unique(selfLock);
 
   if (busyCount==0) {
     logV("nothing to do");
@@ -141,6 +143,7 @@ void DivWorkPool::wait() {
   for (unsigned int i=0; i<count; i++) {
     workThreads[i].notify.notify_one();
   }
+  std::this_thread::yield();
 
   // wait
   logV("waiting on future");

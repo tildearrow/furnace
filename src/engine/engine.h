@@ -487,6 +487,7 @@ class DivEngine {
 
   size_t totalProcessed;
 
+  unsigned int renderPoolThreads;
   DivWorkPool* renderPool;
 
   // MIDI stuff
@@ -1264,6 +1265,8 @@ class DivEngine {
       metroAmp(0.0f),
       metroVol(1.0f),
       totalProcessed(0),
+      renderPoolThreads(0),
+      renderPool(NULL),
       curOrders(NULL),
       curPat(NULL),
       tempIns(NULL),

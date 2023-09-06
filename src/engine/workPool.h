@@ -71,7 +71,6 @@ struct DivWorkThread {
  */
 class DivWorkPool {
   bool threaded;
-  std::mutex selfLock;
   unsigned int count;
   unsigned int pos;
   DivWorkThread* workThreads;
