@@ -25,6 +25,7 @@
 #include <atomic>
 #include <functional>
 #include <condition_variable>
+#include <future>
 
 #include "fixedQueue.h"
 
@@ -75,7 +76,7 @@ class DivWorkPool {
   unsigned int pos;
   DivWorkThread* workThreads;
   public:
-    std::condition_variable notify;
+    std::promise<void> notify;
     std::atomic<int> busyCount;
     
     /**

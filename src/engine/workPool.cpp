@@ -21,6 +21,8 @@
 #include "../ta-log.h"
 #include <thread>
 
+#include <SDL.h>
+
 void* _workThread(void* inst) {
   ((DivWorkThread*)inst)->run();
   return NULL;
@@ -29,6 +31,7 @@ void* _workThread(void* inst) {
 void DivWorkThread::run() {
   std::unique_lock<std::mutex> unique(selfLock);
   DivPendingTask task;
+  bool setFuckingPromise=false;
 
   logV("running work thread");
 
@@ -37,7 +40,10 @@ void DivWorkThread::run() {
     if (tasks.empty()) {
       lock.unlock();
       isBusy=false;
-      parent->notify.notify_one();
+      if (setFuckingPromise) {
+        parent->notify.set_value();
+        setFuckingPromise=false;
+      }
       if (terminate) {
         break;
       }
@@ -50,10 +56,13 @@ void DivWorkThread::run() {
 
       task.func(task.funcArg);
 
-      if (--parent->busyCount<0) {
+      int busyCount=--parent->busyCount;
+      if (busyCount<0) {
         logE("oh no PROBLEM...");
       }
-      parent->notify.notify_one();
+      if (busyCount==0) {
+        setFuckingPromise=true;
+      }
     }
   }
 }
@@ -119,7 +128,14 @@ bool DivWorkPool::busy() {
 
 void DivWorkPool::wait() {
   if (!threaded) return;
-  std::unique_lock<std::mutex> unique(selfLock);
+  //std::unique_lock<std::mutex> unique(selfLock);
+
+  if (busyCount==0) {
+    logV("nothing to do");
+    return;
+  }
+
+  std::future<void> future=notify.get_future();
 
   // start running
   for (unsigned int i=0; i<count; i++) {
@@ -127,11 +143,13 @@ void DivWorkPool::wait() {
   }
 
   // wait
-  while (busyCount>0) {
-    if (notify.wait_for(unique,std::chrono::milliseconds(30))==std::cv_status::timeout) {
-      logW("DivWorkPool: wait() timed out!");
-    }
-  }
+  logV("waiting on future");
+  //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","waiting on future.",NULL);
+  future.wait();
+  //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","waited - reset promise.",NULL);
+
+  notify=std::promise<void>();
+  //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","YES",NULL);
 
   pos=0;
 }
