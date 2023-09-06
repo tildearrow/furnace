@@ -657,12 +657,10 @@ void FurnaceGUI::drawChanOsc() {
               }
               ImGui::PushClipRect(inRect.Min,inRect.Max,false);
 
-              ImDrawListFlags prevFlags=dl->Flags;
-              //if (!settings.oscAntiAlias) {
-                dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
-              //}
+              //ImDrawListFlags prevFlags=dl->Flags;
+              //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
               dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale);
-              dl->Flags=prevFlags;
+              //dl->Flags=prevFlags;
 
               if (!chanOscTextFormat.empty()) {
                 String text;
