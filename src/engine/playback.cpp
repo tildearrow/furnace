@@ -22,6 +22,7 @@
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
+#include "workPool.h"
 #include "../ta-log.h"
 #include <math.h>
 
@@ -1788,6 +1789,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   std::chrono::steady_clock::time_point ts_processBegin=std::chrono::steady_clock::now();
 
+  if (renderPool==NULL) {
+    // TODO: test this
+    renderPool=new DivWorkPool(0);
+  }
+
   // process MIDI events (TODO: everything)
   if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
     TAMidiMessage& msg=output->midiIn->queue.front();
@@ -2061,20 +2067,28 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         // 5. tick the clock and fill buffers as needed
         if (cycles<runLeftG) {
           for (int i=0; i<song.systemLen; i++) {
-            int total=(cycles*disCont[i].runtotal)/(size<<MASTER_CLOCK_PREC);
-            disCont[i].acquire(disCont[i].runPos,total);
-            disCont[i].runLeft-=total;
-            disCont[i].runPos+=total;
+            renderPool->push([this,size](void* d) {
+              DivDispatchContainer* dc=(DivDispatchContainer*)d;
+              int total=(cycles*dc->runtotal)/(size<<MASTER_CLOCK_PREC);
+              dc->acquire(dc->runPos,total);
+              dc->runLeft-=total;
+              dc->runPos+=total;
+            },&disCont[i]);
           }
+          renderPool->wait();
           runLeftG-=cycles;
           cycles=0;
         } else {
           cycles-=runLeftG;
           runLeftG=0;
           for (int i=0; i<song.systemLen; i++) {
-            disCont[i].acquire(disCont[i].runPos,disCont[i].runLeft);
-            disCont[i].runLeft=0;
+            renderPool->push([](void* d) {
+              DivDispatchContainer* dc=(DivDispatchContainer*)d;
+              dc->acquire(dc->runPos,dc->runLeft);
+              dc->runLeft=0;
+            },&disCont[i]);
           }
+          renderPool->wait();
         }
       }
     }

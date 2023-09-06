@@ -50,7 +50,9 @@ void DivWorkThread::run() {
 
       task.func(task.funcArg);
 
-      parent->busyCount--;
+      if (--parent->busyCount<0) {
+        logE("oh no PROBLEM...");
+      }
       parent->notify.notify_one();
     }
   }
@@ -125,8 +127,8 @@ void DivWorkPool::wait() {
   }
 
   // wait
-  while (busyCount!=0) {
-    if (notify.wait_for(unique,std::chrono::milliseconds(100))==std::cv_status::timeout) {
+  while (busyCount>0) {
+    if (notify.wait_for(unique,std::chrono::milliseconds(30))==std::cv_status::timeout) {
       logW("DivWorkPool: wait() timed out!");
     }
   }
