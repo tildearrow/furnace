@@ -29,7 +29,7 @@ void* _workThread(void* inst) {
 }
 
 void DivWorkThread::run() {
-  std::unique_lock<std::mutex> unique(selfLock);
+  //std::unique_lock<std::mutex> unique(selfLock);
   DivPendingTask task;
   bool setFuckingPromise=false;
 
@@ -48,9 +48,12 @@ void DivWorkThread::run() {
       if (terminate) {
         break;
       }
-      if (notify.wait_for(unique,std::chrono::milliseconds(100))==std::cv_status::timeout) {
-        logE("this task timed out!");
-      }
+      std::future<void> future=notify.get_future();
+      future.wait();
+      lock.lock();
+      notify=std::promise<void>();
+      promiseAlreadySet=false;
+      lock.unlock();
       continue;
     } else {
       task=tasks.front();
@@ -94,8 +97,8 @@ bool DivWorkThread::busy() {
 void DivWorkThread::finish() {
   lock.lock();
   terminate=true;
+  notify.set_value();
   lock.unlock();
-  notify.notify_one();
   thread->join();
 }
 
@@ -133,7 +136,6 @@ void DivWorkPool::wait() {
   if (!threaded) return;
 
   if (busyCount==0) {
-    logV("nothing to do");
     return;
   }
 
@@ -141,12 +143,21 @@ void DivWorkPool::wait() {
 
   // start running
   for (unsigned int i=0; i<count; i++) {
-    workThreads[i].notify.notify_one();
+    if (!workThreads[i].promiseAlreadySet) {
+      try {
+        workThreads[i].lock.lock();
+        workThreads[i].promiseAlreadySet=true;
+        workThreads[i].notify.set_value();
+        workThreads[i].lock.unlock();
+      } catch (std::exception& e) {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"EXCEPTION ON WAIT",e.what(),NULL);
+        abort();
+      }
+    }
   }
   std::this_thread::yield();
 
   // wait
-  logV("waiting on future");
   //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","waiting on future.",NULL);
   future.wait();
   //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","waited - reset promise.",NULL);
