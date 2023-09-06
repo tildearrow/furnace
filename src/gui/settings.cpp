@@ -3032,6 +3032,7 @@ void FurnaceGUI::drawSettings() {
         // "Debug" - toggles mobile UI
         // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/SoundUnit/Dummy)
         // "42 63" - enables all instrument types
+        // "4-bit FDS" - enables partial pitch linearity option
         // "????" - enables stuff
         CONFIG_SECTION("Cheat Codes") {
           // SUBSECTION ENTER CODE:
@@ -3219,6 +3220,7 @@ void FurnaceGUI::syncSettings() {
   settings.noMultiSystem=e->getConfInt("noMultiSystem",0);
   settings.oldMacroVSlider=e->getConfInt("oldMacroVSlider",0);
   settings.displayAllInsTypes=e->getConfInt("displayAllInsTypes",0);
+  settings.displayPartial=e->getConfInt("displayPartial",0);
   settings.noteCellSpacing=e->getConfInt("noteCellSpacing",0);
   settings.insCellSpacing=e->getConfInt("insCellSpacing",0);
   settings.volCellSpacing=e->getConfInt("volCellSpacing",0);
@@ -3377,6 +3379,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.noMultiSystem,0,1);
   clampSetting(settings.oldMacroVSlider,0,1);
   clampSetting(settings.displayAllInsTypes,0,1);
+  clampSetting(settings.displayPartial,0,1);
   clampSetting(settings.noteCellSpacing,0,32);
   clampSetting(settings.insCellSpacing,0,32);
   clampSetting(settings.volCellSpacing,0,32);
@@ -3625,6 +3628,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("noMultiSystem",settings.noMultiSystem);
   e->setConf("oldMacroVSlider",settings.oldMacroVSlider);
   e->setConf("displayAllInsTypes",settings.displayAllInsTypes);
+  e->setConf("displayPartial",settings.displayPartial);
   e->setConf("noteCellSpacing",settings.noteCellSpacing);
   e->setConf("insCellSpacing",settings.insCellSpacing);
   e->setConf("volCellSpacing",settings.volCellSpacing);
