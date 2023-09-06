@@ -132,6 +132,8 @@ void DivWorkPool::wait() {
       logW("DivWorkPool: wait() timed out!");
     }
   }
+
+  pos=0;
 }
 
 DivWorkPool::DivWorkPool(unsigned int threads):
