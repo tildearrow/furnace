@@ -57,7 +57,7 @@ struct DivWorkThread {
   bool busy();
   void finish();
 
-  void init(DivWorkPool* p);
+  bool init(DivWorkPool* p);
   DivWorkThread():
     parent(NULL),
     isBusy(false),

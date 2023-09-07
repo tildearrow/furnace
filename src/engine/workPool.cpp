@@ -100,9 +100,16 @@ void DivWorkThread::finish() {
   thread->join();
 }
 
-void DivWorkThread::init(DivWorkPool* p) {
+bool DivWorkThread::init(DivWorkPool* p) {
   parent=p;
-  thread=new std::thread(_workThread,this);
+  try {
+    thread=new std::thread(_workThread,this);
+  } catch (std::system_error& e) {
+    logE("could not start thread! %s",e.what());
+    thread=NULL;
+    return false;
+  }
+  return true;
 }
 
 void DivWorkPool::push(void (*what)(void*), void* arg) {
@@ -171,7 +178,16 @@ DivWorkPool::DivWorkPool(unsigned int threads):
   if (threaded) {
     workThreads=new DivWorkThread[threads];
     for (unsigned int i=0; i<count; i++) {
-      workThreads[i].init(this);
+      if (!workThreads[i].init(this)) { 
+        count=i;
+        break;
+      }
+    }
+    if (count<=0) {
+      logE("DivWorkPool: couldn't start any threads! falling back to non-threaded mode.");
+      delete[] workThreads;
+      threaded=false;
+      workThreads=NULL;
     }
   } else {
     workThreads=NULL;
