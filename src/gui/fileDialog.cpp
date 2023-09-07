@@ -87,15 +87,15 @@ void FurnaceGUIFileDialog::convertFilterList(std::vector<String>& filter) {
 
     if (filter[i+1]=="*") {
       ext=".*";
-    } else for (char i: filter[i+1]) {
-      switch (i) {
+    } else for (char j: filter[i+1]) {
+      switch (j) {
         case '*':
           break;
         case ' ':
           ext+=',';
           break;
         default:
-          ext+=i;
+          ext+=j;
           break;
       }
     }
