@@ -400,6 +400,27 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip("may cause issues with high-polling-rate mice when previewing notes.");
         }
 
+        pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
+        if (ImGui::InputInt("Per-channel oscilloscope threads",&settings.chanOscThreads)) {
+          if (settings.chanOscThreads<0) settings.chanOscThreads=0;
+          if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
+          if (settings.chanOscThreads>256) settings.chanOscThreads=256;
+        }
+        if (settings.chanOscThreads>=(cpuCores*3)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("you're being silly, aren't you? that's enough.");
+          }
+        } else if (settings.chanOscThreads>(cpuCores*2)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("what are you doing? stop!");
+          }
+        } else if (settings.chanOscThreads>cpuCores) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("it is a bad idea to set this number higher than your CPU core count (%d)!",cpuCores);
+          }
+        }
+        popWarningColor();
+
         // SUBSECTION FILE
         CONFIG_SUBSECTION("File");
 
@@ -871,12 +892,44 @@ void FurnaceGUI::drawSettings() {
           ImGui::EndTable();
         }
 
+        if (settings.showPool) {
+          bool renderPoolThreadsB=(settings.renderPoolThreads>0);
+          if (ImGui::Checkbox("Multi-threaded (EXPERIMENTAL)",&renderPoolThreadsB)) {
+            if (renderPoolThreadsB) {
+              settings.renderPoolThreads=2;
+            } else {
+              settings.renderPoolThreads=0;
+            }
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("runs chip emulation on separate threads.\nmay increase performance when using heavy emulation cores.\n\nwarnings:\n- experimental!\n- only useful on multi-chip songs.");
+          }
+
+          if (renderPoolThreadsB) {
+            pushWarningColor(settings.renderPoolThreads>cpuCores,settings.renderPoolThreads>cpuCores);
+            if (ImGui::InputInt("Number of threads",&settings.renderPoolThreads)) {
+              if (settings.renderPoolThreads<2) settings.renderPoolThreads=2;
+              if (settings.renderPoolThreads>32) settings.renderPoolThreads=32;
+            }
+            if (settings.renderPoolThreads>=DIV_MAX_CHIPS) {
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("that's the limit!");
+              }
+            } else if (settings.renderPoolThreads>cpuCores) {
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("it is a VERY bad idea to set this number higher than your CPU core count (%d)!",cpuCores);
+              }
+            }
+            popWarningColor();
+          }
+        }
+
         bool lowLatencyB=settings.lowLatency;
         if (ImGui::Checkbox("Low-latency mode",&lowLatencyB)) {
           settings.lowLatency=lowLatencyB;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: nonly enable if your buffer size is small (10ms or less).");
+          ImGui::SetTooltip("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: only enable if your buffer size is small (10ms or less).");
         }
 
         bool forceMonoB=settings.forceMono;
@@ -1053,9 +1106,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::Text("Action");
           ImGui::TableNextColumn();
-          ImGui::Text("Learn");
           ImGui::TableNextColumn();
-          ImGui::Text("Remove");
 
           for (size_t i=0; i<midiMap.binds.size(); i++) {
             MIDIBind& bind=midiMap.binds[i];
@@ -1157,13 +1208,15 @@ void FurnaceGUI::drawSettings() {
             }
 
             ImGui::TableNextColumn();
-            if (ImGui::Button((learning==(int)i)?("waiting...##BLearn"):(ICON_FA_SQUARE_O "##BLearn"))) {
+            pushToggleColors(learning==(int)i);
+            if (ImGui::Button((learning==(int)i)?("waiting...##BLearn"):("Learn##BLearn"))) {
               if (learning==(int)i) {
                 learning=-1;
               } else {
                 learning=i;
               }
             }
+            popToggleColors();
 
             ImGui::TableNextColumn();
             if (ImGui::Button(ICON_FA_TIMES "##BRemove")) {
@@ -3011,6 +3064,8 @@ void FurnaceGUI::drawSettings() {
         // "Debug" - toggles mobile UI
         // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/SoundUnit/Dummy)
         // "42 63" - enables all instrument types
+        // "4-bit FDS" - enables partial pitch linearity option
+        // "Power of the Chip" - enables options for multi-threaded audio
         // "????" - enables stuff
         CONFIG_SECTION("Cheat Codes") {
           // SUBSECTION ENTER CODE:
@@ -3040,6 +3095,14 @@ void FurnaceGUI::drawSettings() {
             if (checker==0xe888896b && checker1==0xbde) {
               mmlString[30]="enabled all instrument types";
               settings.displayAllInsTypes=!settings.displayAllInsTypes;
+            }
+            if (checker==0x3f88abcc && checker1==0xf4a6) {
+              mmlString[30]="OK, if I bring your Partial pitch linearity will you stop bothering me?";
+              settings.displayPartial=1;
+            }
+            if (checker==0x8537719f && checker1==0x17a1f34) {
+              mmlString[30]="unlocked audio multi-threading options!";
+              settings.showPool=1;
             }
 
             mmlString[31]="";
@@ -3198,6 +3261,7 @@ void FurnaceGUI::syncSettings() {
   settings.noMultiSystem=e->getConfInt("noMultiSystem",0);
   settings.oldMacroVSlider=e->getConfInt("oldMacroVSlider",0);
   settings.displayAllInsTypes=e->getConfInt("displayAllInsTypes",0);
+  settings.displayPartial=e->getConfInt("displayPartial",0);
   settings.noteCellSpacing=e->getConfInt("noteCellSpacing",0);
   settings.insCellSpacing=e->getConfInt("insCellSpacing",0);
   settings.volCellSpacing=e->getConfInt("volCellSpacing",0);
@@ -3262,6 +3326,9 @@ void FurnaceGUI::syncSettings() {
   settings.insIconsStyle=e->getConfInt("insIconsStyle",1);
   settings.classicChipOptions=e->getConfInt("classicChipOptions",0);
   settings.wasapiEx=e->getConfInt("wasapiEx",0);
+  settings.chanOscThreads=e->getConfInt("chanOscThreads",0);
+  settings.renderPoolThreads=e->getConfInt("renderPoolThreads",0);
+  settings.showPool=e->getConfInt("showPool",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3355,6 +3422,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.noMultiSystem,0,1);
   clampSetting(settings.oldMacroVSlider,0,1);
   clampSetting(settings.displayAllInsTypes,0,1);
+  clampSetting(settings.displayPartial,0,1);
   clampSetting(settings.noteCellSpacing,0,32);
   clampSetting(settings.insCellSpacing,0,32);
   clampSetting(settings.volCellSpacing,0,32);
@@ -3410,6 +3478,9 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.insIconsStyle,0,2);
   clampSetting(settings.classicChipOptions,0,1);
   clampSetting(settings.wasapiEx,0,1);
+  clampSetting(settings.chanOscThreads,0,256);
+  clampSetting(settings.renderPoolThreads,0,DIV_MAX_CHIPS);
+  clampSetting(settings.showPool,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3602,6 +3673,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("noMultiSystem",settings.noMultiSystem);
   e->setConf("oldMacroVSlider",settings.oldMacroVSlider);
   e->setConf("displayAllInsTypes",settings.displayAllInsTypes);
+  e->setConf("displayPartial",settings.displayPartial);
   e->setConf("noteCellSpacing",settings.noteCellSpacing);
   e->setConf("insCellSpacing",settings.insCellSpacing);
   e->setConf("volCellSpacing",settings.volCellSpacing);
@@ -3665,6 +3737,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("insIconsStyle",settings.insIconsStyle);
   e->setConf("classicChipOptions",settings.classicChipOptions);
   e->setConf("wasapiEx",settings.wasapiEx);
+  e->setConf("chanOscThreads",settings.chanOscThreads);
+  e->setConf("renderPoolThreads",settings.renderPoolThreads);
+  e->setConf("showPool",settings.showPool);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -4181,6 +4256,12 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
         dpiScale=1.0f;
       }
     }
+  }
+  
+  // chan osc work pool
+  if (chanOscWorkPool!=NULL) {
+    delete chanOscWorkPool;
+    chanOscWorkPool=NULL;
   }
 
   // colors

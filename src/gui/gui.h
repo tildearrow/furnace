@@ -21,6 +21,7 @@
 #define _FUR_GUI_H
 
 #include "../engine/engine.h"
+#include "../engine/workPool.h"
 #include "../engine/waveSynth.h"
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
@@ -1334,7 +1335,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool killGraphics;
-  bool audioEngineChanged, settingsChanged;
+  bool audioEngineChanged, settingsChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int vgmExportTrailingTicks;
@@ -1346,6 +1347,7 @@ class FurnaceGUI {
   int mobileEditPage;
   int wheelCalmDown;
   int shallDetectScale;
+  int cpuCores;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;
@@ -1515,6 +1517,7 @@ class FurnaceGUI {
     int noMultiSystem;
     int oldMacroVSlider;
     int displayAllInsTypes;
+    int displayPartial;
     int noteCellSpacing;
     int insCellSpacing;
     int volCellSpacing;
@@ -1572,6 +1575,9 @@ class FurnaceGUI {
     int insIconsStyle;
     int classicChipOptions;
     int wasapiEx;
+    int chanOscThreads;
+    int renderPoolThreads;
+    int showPool;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1691,6 +1697,7 @@ class FurnaceGUI {
       noMultiSystem(0),
       oldMacroVSlider(0),
       displayAllInsTypes(0),
+      displayPartial(0),
       noteCellSpacing(0),
       insCellSpacing(0),
       volCellSpacing(0),
@@ -1747,6 +1754,9 @@ class FurnaceGUI {
       insIconsStyle(1),
       classicChipOptions(0),
       wasapiEx(0),
+      chanOscThreads(0),
+      renderPoolThreads(0),
+      showPool(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2047,27 +2057,46 @@ class FurnaceGUI {
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
   FurnaceGUITexture* chanOscGradTex;
+  DivWorkPool* chanOscWorkPool;
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
   float chanOscVol[DIV_MAX_CHANS];
-  float chanOscPitch[DIV_MAX_CHANS];
   float chanOscBright[DIV_MAX_CHANS];
   unsigned short lastNeedlePos[DIV_MAX_CHANS];
   unsigned short lastCorrPos[DIV_MAX_CHANS];
   struct ChanOscStatus {
     double* inBuf;
+    fftw_complex* outBuf;
+    double* corrBuf;
+    DivDispatchOscBuffer* relatedBuf;
     size_t inBufPos;
     double inBufPosFrac;
+    double waveLen;
+    int waveLenBottom, waveLenTop, relatedCh;
+    float pitch, windowSize;
     unsigned short needle;
-    fftw_complex* outBuf;
+    bool ready, loudEnough, waveCorr;
     fftw_plan plan;
+    fftw_plan planI;
     ChanOscStatus():
       inBuf(NULL),
+      outBuf(NULL),
+      corrBuf(NULL),
+      relatedBuf(NULL),
       inBufPos(0),
       inBufPosFrac(0.0f),
+      waveLen(0.0),
+      waveLenBottom(0),
+      waveLenTop(0),
+      relatedCh(0),
+      pitch(0.0f),
+      windowSize(1.0f),
       needle(0),
-      outBuf(NULL),
-      plan(NULL) {}
+      ready(false),
+      loudEnough(false),
+      waveCorr(false),
+      plan(NULL),
+      planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];
 
   // visualizer

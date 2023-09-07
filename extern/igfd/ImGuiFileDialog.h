@@ -745,6 +745,7 @@ namespace IGFD
     {
     public:
       std::string filter;
+      std::string firstFilter;
       std::set<std::string> collectionfilters;
 
     public:

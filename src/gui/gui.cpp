@@ -614,6 +614,21 @@ void FurnaceGUI::updateWindowTitle() {
   }
 
   if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
+
+  if (e->song.insLen==1) {
+    unsigned int checker=0x11111111;
+    unsigned int checker1=0;
+    DivInstrument* ins=e->getIns(0);
+    if (ins->name.size()==15 && e->curSubSong->ordersLen==8) {
+      for (int i=0; i<15; i++) {
+        checker^=ins->name[i]<<i;
+        checker1+=ins->name[i];
+        checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
+        checker1<<=1;
+      }
+      if (checker==0x5ec4497d && checker1==0x6347ee) nonLatchNibble=true;
+    }
+  }
 }
 
 void FurnaceGUI::autoDetectSystem() {
@@ -1082,7 +1097,9 @@ float FurnaceGUI::calcBPM(const DivGroovePattern& speeds, float hz, int vN, int 
 
 void FurnaceGUI::play(int row) {
   memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
-  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    chanOscChan[i].pitch=0.0f;
+  }
   memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
   e->walkSong(loopOrder,loopRow,loopEnd);
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
@@ -1567,7 +1584,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Open File",
         {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc",
          "all files", "*"},
-        "compatible files{.fur,.dmf,.mod,.fc13,.fc14,.smod,.fc},.*",
         workingDirSong,
         dpiScale
       );
@@ -1580,7 +1596,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Restore Backup",
         {"Furnace song", "*.fur"},
-        "Furnace song{.fur}",
         backupPath+String(DIR_SEPARATOR_STR),
         dpiScale
       );
@@ -1590,7 +1605,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save File",
         {"Furnace song", "*.fur"},
-        "Furnace song{.fur}",
         workingDirSong,
         dpiScale
       );
@@ -1600,7 +1614,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save File",
         {"DefleMask 1.1.3 module", "*.dmf"},
-        "DefleMask 1.1.3 module{.dmf}",
         workingDirSong,
         dpiScale
       );
@@ -1610,7 +1623,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save File",
         {"DefleMask 1.0/legacy module", "*.dmf"},
-        "DefleMask 1.0/legacy module{.dmf}",
         workingDirSong,
         dpiScale
       );
@@ -1627,8 +1639,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
-        // TODO supply loadable formats in a dynamic, scalable, "DRY" way.
-        // thank the author of IGFD for making things impossible
         {"all compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
          "Furnace instrument", "*.fui",
          "DefleMask preset", "*.dmp",
@@ -1646,7 +1656,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "Wohlstand WOPL bank", "*.wopl",
          "Wohlstand WOPN bank", "*.wopn",
          "all files", "*"},
-        "all compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.gyb,.opm,.wopl,.wopn},.*",
         workingDirIns,
         dpiScale,
         [this](const char* path) {
@@ -1681,7 +1690,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Instrument",
         {"Furnace instrument", "*.fui"},
-        "Furnace instrument{.fui}",
         workingDirIns,
         dpiScale
       );
@@ -1691,7 +1699,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Instrument",
         {"DefleMask preset", "*.dmp"},
-        "DefleMask preset{.dmp}",
         workingDirIns,
         dpiScale
       );
@@ -1703,7 +1710,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Load Wavetable",
         {"compatible files", "*.fuw *.dmw",
          "all files", "*"},
-        "compatible files{.fuw,.dmw},.*",
         workingDirWave,
         dpiScale,
         NULL, // TODO
@@ -1715,7 +1721,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Wavetable",
         {"Furnace wavetable", ".fuw"},
-        "Furnace wavetable{.fuw}",
         workingDirWave,
         dpiScale
       );
@@ -1725,7 +1730,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Wavetable",
         {"DefleMask wavetable", ".dmw"},
-        "DefleMask wavetable{.dmw}",
         workingDirWave,
         dpiScale
       );
@@ -1735,7 +1739,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Wavetable",
         {"raw data", ".raw"},
-        "raw data{.raw}",
         workingDirWave,
         dpiScale
       );
@@ -1747,7 +1750,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Load Sample",
         {"compatible files", "*.wav *.dmc *.brr",
          "all files", "*"},
-        "compatible files{.wav,.dmc,.brr},.*",
         workingDirSample,
         dpiScale,
         NULL, // TODO
@@ -1760,7 +1762,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load Raw Sample",
         {"all files", "*"},
-        ".*",
         workingDirSample,
         dpiScale
       );
@@ -1770,7 +1771,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Sample",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirSample,
         dpiScale
       );
@@ -1778,9 +1778,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_SAMPLE_SAVE_RAW:
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
       hasOpened=fileDialog->openSave(
-        "Load Raw Sample",
+        "Save Raw Sample",
         {"all files", "*"},
-        ".*",
         workingDirSample,
         dpiScale
       );
@@ -1790,7 +1789,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Audio",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirAudioExport,
         dpiScale
       );
@@ -1800,7 +1798,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Audio",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirAudioExport,
         dpiScale
       );
@@ -1810,7 +1807,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Audio",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirAudioExport,
         dpiScale
       );
@@ -1820,7 +1816,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export VGM",
         {"VGM file", "*.vgm"},
-        "VGM file{.vgm}",
         workingDirVGMExport,
         dpiScale
       );
@@ -1830,7 +1825,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export ZSM",
         {"ZSM file", "*.zsm"},
-        "ZSM file{.zsm}",
         workingDirZSMExport,
         dpiScale
       );
@@ -1840,7 +1834,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Command Stream",
         {"text file", "*.txt"},
-        "text file{.txt}",
         workingDirROMExport,
         dpiScale
       );
@@ -1850,7 +1843,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Command Stream",
         {"binary file", "*.bin"},
-        "binary file{.bin}",
         workingDirROMExport,
         dpiScale
       );
@@ -1863,7 +1855,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Font",
         {"compatible files", "*.ttf *.otf *.ttc"},
-        "compatible files{.ttf,.otf,.ttc}",
         workingDirFont,
         dpiScale
       );
@@ -1873,7 +1864,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Font",
         {"compatible files", "*.ttf *.otf *.ttc"},
-        "compatible files{.ttf,.otf,.ttc}",
         workingDirFont,
         dpiScale
       );
@@ -1883,7 +1873,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Font",
         {"compatible files", "*.ttf *.otf *.ttc"},
-        "compatible files{.ttf,.otf,.ttc}",
         workingDirFont,
         dpiScale
       );
@@ -1893,7 +1882,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Color File",
         {"configuration files", "*.cfgc"},
-        "configuration files{.cfgc}",
         workingDirColors,
         dpiScale
       );
@@ -1903,7 +1891,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Keybind File",
         {"configuration files", "*.cfgk"},
-        "configuration files{.cfgk}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1913,7 +1900,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Layout File",
         {".ini files", "*.ini"},
-        ".ini files{.ini}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1923,7 +1909,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Colors",
         {"configuration files", "*.cfgc"},
-        "configuration files{.cfgc}",
         workingDirColors,
         dpiScale
       );
@@ -1933,7 +1918,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Keybinds",
         {"configuration files", "*.cfgk"},
-        "configuration files{.cfgk}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1943,7 +1927,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Layout",
         {".ini files", "*.ini"},
-        ".ini files{.ini}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1956,7 +1939,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Load ROM",
         {"compatible files", "*.rom *.bin",
          "all files", "*"},
-        "compatible files{.rom,.bin},.*",
         workingDirROM,
         dpiScale
       );
@@ -1967,7 +1949,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Play Command Stream",
         {"command stream", "*.bin",
          "all files", "*"},
-        "command stream{.bin},.*",
         workingDirROM,
         dpiScale
       );
@@ -1979,7 +1960,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
          "all files", "*"},
-        "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
         [](const char* path) {
@@ -1998,7 +1978,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
          "all files", "*"},
-        "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
         [](const char* path) {
@@ -2017,7 +1996,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Save Test",
         {"Furnace song", "*.fur",
          "DefleMask module", "*.dmf"},
-        "Furnace song{.fur},DefleMask module{.dmf}",
         workingDirTest,
         dpiScale
       );
@@ -3835,7 +3813,9 @@ bool FurnaceGUI::loop() {
     if (!e->isRunning()) {
       activeNotes.clear();
       memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
-      memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+      for (int i=0; i<DIV_MAX_CHANS; i++) {
+        chanOscChan[i].pitch=0.0f;
+      }
       memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
 
       e->synchronized([this]() {
@@ -4392,7 +4372,21 @@ bool FurnaceGUI::loop() {
           info="| Groove";
         }
 
-        info+=fmt::sprintf(" @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD),e->getOrder(),e->curSubSong->ordersLen,e->getRow(),e->curSubSong->patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+        info+=fmt::sprintf(" @ %gHz (%g BPM) ",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
+
+        if (settings.orderRowsBase) {
+          info+=fmt::sprintf("| Order %.2X/%.2X ",e->getOrder(),e->curSubSong->ordersLen-1);
+        } else {
+          info+=fmt::sprintf("| Order %d/%d ",e->getOrder(),e->curSubSong->ordersLen-1);
+        }
+
+        if (settings.patRowsBase) {
+          info+=fmt::sprintf("| Row %.2X/%.2X ",e->getRow(),e->curSubSong->patLen);
+        } else {
+          info+=fmt::sprintf("| Row %d/%d ",e->getRow(),e->curSubSong->patLen);
+        }
+
+        info+=fmt::sprintf("| %d:%.2d:%.2d.%.2d",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
 
         ImGui::TextUnformatted(info.c_str());
       } else {
@@ -6724,6 +6718,9 @@ bool FurnaceGUI::init() {
   }
 #endif
 
+  cpuCores=SDL_GetCPUCount();
+  if (cpuCores<1) cpuCores=1;
+
   logI("done!");
   return true;
 }
@@ -6896,6 +6893,10 @@ bool FurnaceGUI::finish() {
     backupTask.get();
   }
 
+  if (chanOscWorkPool!=NULL) {
+    delete chanOscWorkPool;
+  }
+
   return true;
 }
 
@@ -6950,6 +6951,7 @@ FurnaceGUI::FurnaceGUI():
   killGraphics(false),
   audioEngineChanged(false),
   settingsChanged(false),
+  debugFFT(false),
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),
   drawHalt(10),
@@ -7319,6 +7321,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscTextColor(1.0f,1.0f,1.0f,0.75f),
   chanOscGrad(64,64),
   chanOscGradTex(NULL),
+  chanOscWorkPool(NULL),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),
@@ -7418,7 +7421,9 @@ FurnaceGUI::FurnaceGUI():
   memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
   memset(chanOscLP1,0,sizeof(float)*DIV_MAX_CHANS);
   memset(chanOscVol,0,sizeof(float)*DIV_MAX_CHANS);
-  memset(chanOscPitch,0,sizeof(float)*DIV_MAX_CHANS);
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    chanOscChan[i].pitch=0.0f;
+  }
   memset(chanOscBright,0,sizeof(float)*DIV_MAX_CHANS);
   memset(lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
 

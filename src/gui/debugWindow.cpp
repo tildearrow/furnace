@@ -212,6 +212,7 @@ void FurnaceGUI::drawDebug() {
     }
     if (ImGui::TreeNode("Oscilloscope Debug")) {
       int c=0;
+      ImGui::Checkbox("FFT debug view",&debugFFT);
       for (int i=0; i<e->song.systemLen; i++) {
         DivSystem system=e->song.system[i];
         if (e->getChannelCount(system)>0) {

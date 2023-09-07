@@ -39,6 +39,8 @@
 #include <unordered_map>
 #include <deque>
 
+class DivWorkPool;
+
 #define addWarning(x) \
   if (warnings.empty()) { \
     warnings+=x; \
@@ -195,6 +197,10 @@ struct DivDispatchContainer {
   bool lowQuality, dcOffCompensation;
   double rateMemory;
 
+  // used in multi-thread
+  int cycles;
+  unsigned int size;
+
   void setRates(double gotRate);
   void setQuality(bool lowQual);
   void grow(size_t size);
@@ -213,7 +219,9 @@ struct DivDispatchContainer {
     lastAvail(0),
     lowQuality(false),
     dcOffCompensation(false),
-    rateMemory(0.0) {
+    rateMemory(0.0),
+    cycles(0),
+    size(0) {
     memset(bb,0,DIV_MAX_OUTPUTS*sizeof(blip_buffer_t*));
     memset(temp,0,DIV_MAX_OUTPUTS*sizeof(int));
     memset(prevSample,0,DIV_MAX_OUTPUTS*sizeof(int));
@@ -485,6 +493,9 @@ class DivEngine {
 
   size_t totalProcessed;
 
+  unsigned int renderPoolThreads;
+  DivWorkPool* renderPool;
+
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
 
@@ -714,6 +725,7 @@ class DivEngine {
 
     // sample preview query
     bool isPreviewingSample();
+    int getSamplePreviewSample();
     int getSamplePreviewPos();
     double getSamplePreviewRate();
 
@@ -1259,6 +1271,8 @@ class DivEngine {
       metroAmp(0.0f),
       metroVol(1.0f),
       totalProcessed(0),
+      renderPoolThreads(0),
+      renderPool(NULL),
       curOrders(NULL),
       curPat(NULL),
       tempIns(NULL),

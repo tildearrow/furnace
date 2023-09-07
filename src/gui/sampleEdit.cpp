@@ -262,7 +262,10 @@ void FurnaceGUI::drawSampleEdit() {
           case DIV_SYSTEM_YM2608_CSM:
             if (sample->loop) {
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
-                SAMPLE_WARN(warnLoopPos,"YM2608: loop point ignored on ADPCM-B (may only loop entire sample)");
+                SAMPLE_WARN(warnLoopPos,"YM2608: loop point ignored on ADPCM (may only loop entire sample)");
+              }
+              if (sample->samples&511) {
+                SAMPLE_WARN(warnLength,"YM2608: sample length will be padded to multiple of 512");
               }
             }
             break;
@@ -276,12 +279,25 @@ void FurnaceGUI::drawSampleEdit() {
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
                 SAMPLE_WARN(warnLoopPos,"YM2610: loop point ignored on ADPCM-B (may only loop entire sample)");
               }
+              if (sample->samples&511) {
+                SAMPLE_WARN(warnLength,"YM2610: sample length will be padded to multiple of 512");
+              }
             }
             if (sample->samples>2097152) {
               SAMPLE_WARN(warnLength,"YM2610: maximum ADPCM-A sample length is 2097152");
             }
             if (dispatch!=NULL) {
               EXACT_RATE("YM2610 (ADPCM-A)",dispatch->chipClock/432);
+            }
+            break;
+          case DIV_SYSTEM_Y8950:
+            if (sample->loop) {
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                SAMPLE_WARN(warnLoopPos,"Y8950: loop point ignored on ADPCM (may only loop entire sample)");
+              }
+              if (sample->samples&511) {
+                SAMPLE_WARN(warnLength,"Y8950: sample length will be padded to multiple of 512");
+              }
             }
             break;
           case DIV_SYSTEM_AMIGA:
@@ -1197,6 +1213,7 @@ void FurnaceGUI::drawSampleEdit() {
       sameLineMaybe(ImGui::CalcTextSize("Zoom").x+150.0f*dpiScale+ImGui::CalcTextSize("100%").x);
       double zoomPercent=100.0/sampleZoom;
       bool checkZoomLimit=false;
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Zoom");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(150.0f*dpiScale);
@@ -1675,7 +1692,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         dl->PushClipRect(rectMin,rectMax);
-        if (e->isPreviewingSample()) {
+        if (e->isPreviewingSample() && e->getSamplePreviewSample()==curSample) {
           if (!statusBar2.empty()) {
             statusBar2+=" | ";
           }

@@ -160,9 +160,9 @@ const int orderedOpsL[4]={
 #define ADDR_LR_FB_ALG 0xc0
 
 void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
-  static short o[4];
-  static int os[4];
-  static ymfm::ymfm_output<2> aOut;
+  thread_local short o[4];
+  thread_local int os[4];
+  thread_local ymfm::ymfm_output<2> aOut;
 
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0; os[2]=0; os[3]=0;
@@ -549,6 +549,8 @@ void DivPlatformOPL::tick(bool sysTick) {
           chan[adpcmChan].freq=5461; // 4KHz
         }
       }
+      if (chan[adpcmChan].freq<0) chan[adpcmChan].freq=0;
+      if (chan[adpcmChan].freq>65535) chan[adpcmChan].freq=65535;
       immWrite(16,chan[adpcmChan].freq&0xff);
       immWrite(17,(chan[adpcmChan].freq>>8)&0xff);
       if (chan[adpcmChan].keyOn || chan[adpcmChan].keyOff) {

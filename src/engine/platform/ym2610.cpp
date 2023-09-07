@@ -241,8 +241,8 @@ void DivPlatformYM2610::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
-  static int os[2];
-  static short ignored[2];
+  thread_local int os[2];
+  thread_local short ignored[2];
 
   ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
   ymfm::adpcm_a_engine* aae=fm->debug_adpcm_a_engine();
@@ -350,7 +350,7 @@ void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
 }
 
 void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   ymfm::ym2610::fm_engine* fme=fm->debug_fm_engine();
   ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
@@ -717,6 +717,8 @@ void DivPlatformYM2610::tick(bool sysTick) {
       } else {
         chan[adpcmBChanOffs].freq=0;
       }
+      if (chan[adpcmBChanOffs].freq<0) chan[adpcmBChanOffs].freq=0;
+      if (chan[adpcmBChanOffs].freq>65535) chan[adpcmBChanOffs].freq=65535;
       immWrite(0x19,chan[adpcmBChanOffs].freq&0xff);
       immWrite(0x1a,(chan[adpcmBChanOffs].freq>>8)&0xff);
       hardResetElapsed+=2;

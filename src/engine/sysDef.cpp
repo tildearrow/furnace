@@ -454,10 +454,11 @@ void DivEngine::registerSystems() {
     {0x18, {DIV_CMD_FM_EXTCH, "18xx: Toggle extended channel 3 mode"}},
   });
 
-  EffectHandlerMap fmOPN2EffectHandlerMap={
+  EffectHandlerMap fmOPN2EffectHandlerMap(fmEffectHandlerMap);
+  fmOPN2EffectHandlerMap.insert({
     {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}},
-  };
+  });
 
   EffectHandlerMap fmOPLDrumsEffectHandlerMap(fmEffectHandlerMap);
   fmOPLDrumsEffectHandlerMap.insert({
@@ -1179,7 +1180,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_SWAN]=new DivSysDef(
     "WonderSwan", NULL, 0x96, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "developed by the same team under the Game Boy and the Virtual Boy...",
+    "developed by the makers of the Game Boy and the Virtual Boy...",
     {"Wave", "Wave/PCM", "Wave", "Wave/Noise"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_WAVE, DIV_CH_PCM, DIV_CH_WAVE, DIV_CH_NOISE},
