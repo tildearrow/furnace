@@ -80,6 +80,7 @@ void FurnaceGUIFileDialog::convertFilterList(std::vector<String>& filter) {
   memset(noSysFilter,0,4096);
 
   String result;
+  char sprintfBuf[4096];
 
   for (size_t i=0; (i+1)<filter.size(); i+=2) {
     String label=filter[i];
@@ -101,7 +102,9 @@ void FurnaceGUIFileDialog::convertFilterList(std::vector<String>& filter) {
     }
 
     if (!result.empty()) result+=',';
-    result+=fmt::sprintf("%s{%s}",label,ext);
+    // what the heck? fmt::sprintf not working?!
+    snprintf(sprintfBuf,4095,"%s{%s}",label.c_str(),ext.c_str());
+    result+=sprintfBuf;
   }
 
   strncpy(noSysFilter,result.c_str(),4095);
