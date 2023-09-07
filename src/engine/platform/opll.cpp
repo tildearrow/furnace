@@ -43,8 +43,8 @@ const unsigned char visMapOPLL[9]={
 };
 
 void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
-  static int o[2];
-  static int os;
+  thread_local int o[2];
+  thread_local int os;
 
   for (size_t h=0; h<len; h++) {
     os=0;

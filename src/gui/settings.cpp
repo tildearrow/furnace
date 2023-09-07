@@ -902,7 +902,7 @@ void FurnaceGUI::drawSettings() {
             }
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("runs chip emulation on separate threads.\nmay increase performance on multi-core CPUs.\n\nwarnings:\n- experimental! currently broken/not working well.\n- only useful on multi-chip songs.");
+            ImGui::SetTooltip("runs chip emulation on separate threads.\nmay increase performance when using heavy emulation cores.\n\nwarnings:\n- experimental!\n- only useful on multi-chip songs.");
           }
 
           if (renderPoolThreadsB) {

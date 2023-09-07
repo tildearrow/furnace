@@ -52,7 +52,7 @@ const char** DivPlatformArcade::getRegisterSheet() {
 }
 
 void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
-  static int o[2];
+  thread_local int o[2];
 
   for (size_t h=0; h<len; h++) {
     for (int i=0; i<8; i++) {
@@ -92,7 +92,7 @@ void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
 }
 
 void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   ymfm::ym2151::fm_engine* fme=fm_ymfm->debug_engine();
 

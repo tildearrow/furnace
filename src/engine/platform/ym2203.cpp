@@ -165,8 +165,8 @@ void DivPlatformYM2203::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
-  static int os;
-  static short ignored[2];
+  thread_local int os;
+  thread_local short ignored[2];
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
@@ -241,7 +241,7 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
 }
 
 void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
-  static int os;
+  thread_local int os;
 
   ymfm::ym2203::fm_engine* fme=fm->debug_fm_engine();
 

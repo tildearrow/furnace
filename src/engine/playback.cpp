@@ -2115,8 +2115,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         logW("%d: size<lastAvail! %d<%d",i,size,disCont[i].lastAvail);
         continue;
       }
-      disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
+      renderPool->push([](void* d) {
+        DivDispatchContainer* dc=(DivDispatchContainer*)d;
+        dc->fillBuf(dc->runtotal,dc->lastAvail,dc->size-dc->lastAvail);
+      },&disCont[i]);
     }
+    renderPool->wait();
   }
 
   if (metroBufLen<size || metroBuf==NULL) {

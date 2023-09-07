@@ -41,7 +41,7 @@ void DivWorkThread::run() {
       if (setFuckingPromise) {
         parent->notify.set_value();
         setFuckingPromise=false;
-        std::this_thread::yield();
+        //std::this_thread::yield();
       }
       if (terminate) {
         break;
@@ -153,7 +153,7 @@ void DivWorkPool::wait() {
       }
     }
   }
-  std::this_thread::yield();
+  //std::this_thread::yield();
 
   // wait
   future.wait();

@@ -58,7 +58,7 @@ const char** DivPlatformTX81Z::getRegisterSheet() {
 }
 
 void DivPlatformTX81Z::acquire(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   ymfm::ym2414::fm_engine* fme=fm_ymfm->debug_engine();
 
