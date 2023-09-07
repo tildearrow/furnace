@@ -33,14 +33,13 @@
 - _Furnace:_ .dmf files may be read, and compatibility flags will be set to make them play as accurately as possible, but there may still be glitches.
 - _Furnace:_ .dmf files may be saved, but full compatibility isn't guaranteed and many features will be missing. this isn't recommended unless absolutely necessary.
 
-**.dmp**: DefleMask Preset. a file storing instrument data.
+**.dmp**: DefleMask Preset. an instrument file.
 
-**.dmw**: DefleMask Wavetable. a file storing wavetable data.
+**.dmw**: DefleMask Wavetable. a wavetable file.
 
 **DPCM**: differential/delta pulse code modulation. this is a variety of PCM that stores each amplitude as its difference from the previous.
 
-**duty**: in a pulse wave, this represents the ratio of the "on" part of the wave.
-- a square wave is a pulse wave with a duty of 50%.
+**duty cycle**: usually called _pulse width._ in a pulse wave, this is the ratio of the high part to the high and low combined.
 
 **feedback**: in FM instruments, this adds some of an operator's output into itself to create complex harmonics.
 - in the algorithm view, an operator with a circle around it is capable of feedback.
@@ -50,13 +49,13 @@
 
 **.fui**: a Furnace instrument file.
 
-**.fur**: a Furnace tracker file.
+**.fur**: a Furnace module file.
 
 **.fuw**: a Furnace wavetable file.
 
 **hard-pan**: sounds can only be panned all the way to one side or the other, not in-between.
 
-**Hz**: hertz (pronounced as "hurts"). a unit representing divisions of one second. 1 Hz means once per second; 100 Hz means one hundred times per second. also, _kHz_ (kilohertz, one thousand per second) and _MHz_ (megahertz, one million per second).
+**Hz**: hertz. a unit representing divisions of one second. 1 Hz means once per second; 100 Hz means one hundred times per second. also, _kHz_ (kilohertz, one thousand per second) and _MHz_ (megahertz, one million per second).
 
 **interpolate** (pattern): to fill in the area between two values with a smooth ramp of values in between.
 
@@ -94,8 +93,8 @@
 **PSG**: programmable sound generator. any sound chip is a PSG, though the term is often used to specifically refer to chips that produce only simple waveforms and noise.
 
 **pulse wave**: a waveform with a period consisting of only two amplitudes, high and low. also known as a rectangular wave.
-- the ratio of the durations of the high and low parts is known as the _duty_ or _pulse width_ of the wave.
-- a square wave is a pulse wave for which the ratio of high and low are exactly equal, having a duty of 50%.
+
+**pulse width**: sometimes called _duty cycle._ in a pulse wave, this is the ratio of the high part to the high and low combined.
 
 **release**: the part of a note that plays after it's no longer held, or the part of a macro the plays after it stops looping. usually applies at key off.
 
