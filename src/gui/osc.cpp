@@ -74,7 +74,7 @@ void FurnaceGUI::readOsc() {
         float delta=e->oscBuf[ch][posInt&0x7fff]-e->oscBuf[ch][(posInt-1)&0x7fff];
 
         for (int j=0; j<8; j++) {
-          if (i-j>0) {
+          if (i-j>=0) {
             oscValues[ch][i-j]+=t1[j]*-delta;
           }
           if (i+j+1<oscWidth) {
