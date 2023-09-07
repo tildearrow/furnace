@@ -58,10 +58,12 @@ void FurnaceGUI::readOsc() {
     float* sincITable=DivFilterTables::getSincIntegralTable();
 
     float posFrac=0.0;
-    int posInt=oscReadPos;
+    int posInt=oscReadPos-8;
     float factor=(float)oscWidth/(float)winSize;
-    for (int i=0; i<oscWidth; i++) {
-      oscValues[ch][i]+=e->oscBuf[ch][posInt&0x7fff];
+    for (int i=-8; i<oscWidth+8; i++) {
+      if (i>=0 && i<oscWidth) {
+        oscValues[ch][i]+=e->oscBuf[ch][posInt&0x7fff];
+      }
 
       posFrac+=1.0;
       while (posFrac>=1.0) {
