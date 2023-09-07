@@ -23,18 +23,19 @@
 - changing this may change aspects of how some chips work, most notably pitch.
 - some chips cannot operate at anything other than their designed clock rate.
 
-**cursor**: the marker of input focus. anything typed will happen at the cursor's location.
-- _Furnace:_ this always refers to the pattern view except when in a text entry box.
+**cursor (1)**: the marker of input focus. anything typed will happen at the cursor's location.
+
+**cursor (2)**: the pointer controlled by a mouse or similar input. clicking when the cursor(2) is in a valid area will place the cursor(1) there.
 
 **DAC**: digital analog converter. this converts a digital representation of sound into actual output.
 
-**.dmf**: a DefleMask song file.
-- _Furnace:_ DFM files may be read, and compatibility flags will be set to make them play as accurately as possible, but there may still be glitches.
-- _Furnace:_ DFM files may be saved, but full compatibility isn't guaranteed and many features will be missing. this isn't recommended unless absolutely necessary.
+**.dmf**: DefleMask Module File.
+- _Furnace:_ .dmf files may be read, and compatibility flags will be set to make them play as accurately as possible, but there may still be glitches.
+- _Furnace:_ .dmf files may be saved, but full compatibility isn't guaranteed and many features will be missing. this isn't recommended unless absolutely necessary.
 
-**.dmp**: a DefleMask instrument file.
+**.dmp**: DefleMask Preset. a file storing instrument data.
 
-**.dmw**: a DefleMask wavetable file.
+**.dmw**: DefleMask Wavetable. a file storing wavetable data.
 
 **DPCM**: differential/delta pulse code modulation. this is a variety of PCM that stores each amplitude as its difference from the previous.
 
@@ -90,10 +91,10 @@
 **phase reset**: to restart a waveform at its initial value.
 - for FM instruments, this restarts the volume envelope also.
 
-**PSG**: programmable sound generator. this refers to chips that produce only simple waveforms and noise.
+**PSG**: programmable sound generator. any sound chip is a PSG, though the term is often used to specifically refer to chips that produce only simple waveforms and noise.
 
 **pulse wave**: a waveform with a period consisting of only two amplitudes, high and low. also known as a rectangular wave.
-- the ratio of the durations of the high and low parts is known as the duty of the wave.
+- the ratio of the durations of the high and low parts is known as the _duty_ or _pulse width_ of the wave.
 - a square wave is a pulse wave for which the ratio of high and low are exactly equal, having a duty of 50%.
 
 **release**: the part of a note that plays after it's no longer held, or the part of a macro the plays after it stops looping. usually applies at key off.
@@ -124,13 +125,13 @@
 
 **supersaw**: a sound made up of multiple saw waves at slightly different frequencies to achieve a chorusing effect.
 
-**tick rate**: the rate at which the software controlling a sound chip sends commands to it.
+**tick rate**: the number of times per second that the sound engine moves forward. all notes and effects are quantized to this rate.
 - this usually corresponds to the frame rate the system uses for video, approximately 60 for NTSC and 50 for PAL.
 
 **unsigned**: a digital representation of a number that can only be positive.
 - if an imported raw sample sounds recognizable but heavily distorted, it's likely to be signed interpreted as unsigned or vice-versa.
 
-**.vgm**: a file containing the log of data sent to a soundchip during sound playback.
+**.vgm**: Video Game Music. a file containing the log of data sent to a sound chip during sound playback.
 - saving to a .vgm file may be compared to "converting text to outlines" or similar irreversible processes. the results cannot be loaded back into the tracker.
 - different versions of the VGM format have different capabilities, with trade-offs. older versions may lack chips or features; newer versions may not be compatible with some software.
 - samples are stored uncompressed. PCM streams (such as DualPCM) can quickly take up a huge amount of space.
@@ -142,4 +143,4 @@
 
 **wavetable** (2): an ordered group of wavetables(1) used in sequence within a single instrument.
 
-**.zsm**: a VGM-like file meant specifically for the Commander X16 computer.
+**.zsm**: ZSound Music. a VGM-like file meant specifically for the Commander X16 computer.
