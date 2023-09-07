@@ -2118,6 +2118,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         logW("%d: size<lastAvail! %d<%d",i,size,disCont[i].lastAvail);
         continue;
       }
+      disCont[i].size=size;
       renderPool->push([](void* d) {
         DivDispatchContainer* dc=(DivDispatchContainer*)d;
         dc->fillBuf(dc->runtotal,dc->lastAvail,dc->size-dc->lastAvail);
