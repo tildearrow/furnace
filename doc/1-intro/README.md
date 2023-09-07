@@ -12,7 +12,7 @@ Furnace uses hexadecimal (abbreviated as "hex") numbers frequently. see [this gu
 
 ## interface
 
-Furnace uses a music tracker interface. think of a table with music notes written on it. then that table scrolls up and plays the notes. even experienced tracker musicians might benefit from a quick review of [tracker concepts and terms](concepts.md) before using Furnace.
+Furnace uses a music tracker interface. think of a table with music notes written on it. then that table scrolls up and plays the notes. even experienced tracker musicians might benefit from a quick review of [tracker concepts and terms](concepts.md) before using Furnace. there's also a [glossary of common terms](glossary.md).
 
 due to its nature of being feature-packed, it may be technical and somewhat difficult to get around. therefore we added a basic mode, which hides several advanced features.
 
