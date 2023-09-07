@@ -57,15 +57,12 @@
 
 **Hz**: hertz. a unit representing divisions of one second. 1 Hz means once per second; 100 Hz means one hundred times per second. also, _kHz_ (kilohertz, one thousand per second) and _MHz_ (megahertz, one million per second).
 
-**interpolate** (pattern): to fill in the area between two values with a smooth ramp of values in between.
-
-**interpolation** (sample): filtering of sample output to remove unintended harmonics and achieve a smoother sound.
-- analogous to image antialiasing.
-- some sample-based chips can perform interpolation, but most cannot.
+**interpolate**: to fill in the area between two values with a smooth ramp of values in between.
+- some sample-based chips can interpolate, filtering out unwanted harmonics.
 
 **ladder effect**: an inaccurate yet common term for the DAC distortion that affects some Yamaha FM chips.
 
-**LFO**: low frequency oscillator. this is a slow, often subsonic oscillator used to alter other sounds.
+**LFO**: low frequency oscillator. a wave with a slow period (often below hearing range) used to alter other sounds.
 
 **macro**: a sequence of values automatically applied while a note plays.
 
@@ -78,9 +75,6 @@
 **oscillator**: a sine wave or other basic waveform used as sound or to alter sound.
 
 **PCM**: pulse code modulation. a stream of data that represents sound as a rapid sequence of amplitudes.
-- CD tracks and .wav files are PCM.
-- .flac files are compressed PCM that must be converted to .wav outside Furnace before use.
-- .ogg and .mp3 are compressed differently from PCM. they must also be converted to .wav before use.
 
 **period**: the length of a repeating waveform. as frequency rises, the period shortens.
 
