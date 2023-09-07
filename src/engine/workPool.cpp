@@ -21,8 +21,6 @@
 #include "../ta-log.h"
 #include <thread>
 
-#include <SDL.h>
-
 void* _workThread(void* inst) {
   ((DivWorkThread*)inst)->run();
   return NULL;
@@ -150,7 +148,7 @@ void DivWorkPool::wait() {
         workThreads[i].notify.set_value();
         workThreads[i].lock.unlock();
       } catch (std::exception& e) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"EXCEPTION ON WAIT",e.what(),NULL);
+        logE("ERROR IN THREAD SYNC! %s",e.what());
         abort();
       }
     }
@@ -158,12 +156,9 @@ void DivWorkPool::wait() {
   std::this_thread::yield();
 
   // wait
-  //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","waiting on future.",NULL);
   future.wait();
-  //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","waited - reset promise.",NULL);
 
   notify=std::promise<void>();
-  //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","YES",NULL);
 
   pos=0;
 }
