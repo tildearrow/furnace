@@ -141,7 +141,7 @@ void DivWorkPool::wait() {
 
   // start running
   for (unsigned int i=0; i<count; i++) {
-    if (!workThreads[i].promiseAlreadySet) {
+    if (!workThreads[i].promiseAlreadySet && !workThreads[i].tasks.empty()) {
       try {
         workThreads[i].lock.lock();
         workThreads[i].promiseAlreadySet=true;
