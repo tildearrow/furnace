@@ -60,7 +60,7 @@ void FurnaceGUI::readOsc() {
     float posFrac=0.0;
     int posInt=oscReadPos-8;
     float factor=(float)oscWidth/(float)winSize;
-    for (int i=-8; i<oscWidth+8; i++) {
+    for (int i=-8; i<oscWidth; i++) {
       if (i>=0 && i<oscWidth) {
         oscValues[ch][i]+=e->oscBuf[ch][posInt&0x7fff];
       }
@@ -76,10 +76,10 @@ void FurnaceGUI::readOsc() {
         float delta=e->oscBuf[ch][posInt&0x7fff]-e->oscBuf[ch][(posInt-1)&0x7fff];
 
         for (int j=0; j<8; j++) {
-          if (i-j>=0) {
+          if ((i-j)>=0 && (i-j)<oscWidth) {
             oscValues[ch][i-j]+=t1[j]*-delta;
           }
-          if (i+j+1<oscWidth) {
+          if ((i+j+1)>=0 && (i+j+1)<oscWidth) {
             oscValues[ch][i+j+1]+=t2[j]*delta;
           }
         }

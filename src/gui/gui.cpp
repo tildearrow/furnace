@@ -4521,6 +4521,8 @@ bool FurnaceGUI::loop() {
       MEASURE(log,drawLog());
       MEASURE(compatFlags,drawCompatFlags());
       MEASURE(stats,drawStats());
+      MEASURE(readOsc,readOsc());
+      MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
       MEASURE(regView,drawRegView());
     } else {
