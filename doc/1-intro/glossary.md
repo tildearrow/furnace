@@ -12,8 +12,8 @@
 
 **bitbang**: to achieve PCM sound by sending a rapid stream of volume commands to a non-PCM channel.
 
-**BRR**: a type of lossy ADPCM used by the SNES. it has a fixed compression ratio; groups of 32 bytes (16 samples) are encoded in 9 bytes each.
-- usually stored in .BRR files.
+**BRR**: a lossy sample format used by the SNES. it has a fixed compression ratio; groups of 32 bytes (16 samples) are encoded in 9 bytes each.
+- usually stored in .brr files.
 
 **clipping**: when a sample or playback stream exceeds the maximum or minimum values. this can cause audible distortion.
 - this often occurs when a sample is amplified too much.
@@ -28,13 +28,13 @@
 
 **DAC**: digital analog converter. this converts a digital representation of sound into actual output.
 
-**.DMF**: a DefleMask song file.
+**.dmf**: a DefleMask song file.
 - _Furnace:_ DFM files may be read, and compatibility flags will be set to make them play as accurately as possible, but there may still be glitches.
 - _Furnace:_ DFM files may be saved, but full compatibility isn't guaranteed and many features will be missing. this isn't recommended unless absolutely necessary.
 
-**.DMP**: a DefleMask instrument file.
+**.dmp**: a DefleMask instrument file.
 
-**.DMW**: a DefleMask wavetable file.
+**.dmw**: a DefleMask wavetable file.
 
 **DPCM**: differential/delta pulse code modulation. this is a variety of PCM that stores each amplitude as its difference from the previous.
 
@@ -47,11 +47,11 @@
 **FM**: frequency modulation. this is a method of generating sound that uses one operator's amplitude to modify another operator's frequency.
 - the FM in Yamaha chips is more accurately called _phase modulation,_ which uses a different method of computation to achieve similar results.
 
-**.FUI**: a Furnace instrument file.
+**.fui**: a Furnace instrument file.
 
-**.FUR**: a Furnace tracker file.
+**.fur**: a Furnace tracker file.
 
-**.FUW**: a Furnace wavetable file.
+**.fuw**: a Furnace wavetable file.
 
 **hard-pan**: sounds can only be panned all the way to one side or the other, not in-between.
 
@@ -78,9 +78,9 @@
 **oscillator**: a sine wave or other basic waveform used as sound or to alter sound.
 
 **PCM**: pulse code modulation. a stream of data that represents sound as a rapid sequence of amplitudes.
-- CD tracks and .WAV files are PCM.
-- .FLAC files are compressed PCM that must be converted to .WAV outside Furnace before use.
-- .OGG and .MP3 are compressed differently from PCM. they must also be converted to .WAV before use.
+- CD tracks and .wav files are PCM.
+- .flac files are compressed PCM that must be converted to .wav outside Furnace before use.
+- .ogg and .mp3 are compressed differently from PCM. they must also be converted to .wav before use.
 
 **period**: the length of a repeating waveform. as frequency rises, the period shortens.
 
@@ -130,8 +130,8 @@
 **unsigned**: a digital representation of a number that can only be positive.
 - if an imported raw sample sounds recognizable but heavily distorted, it's likely to be signed interpreted as unsigned or vice-versa.
 
-**.VGM**: a file containing the log of data sent to a soundchip during sound playback.
-- saving to a .VGM file may be compared to "converting text to outlines" or similar irreversible processes. the results cannot be loaded back into the tracker.
+**.vgm**: a file containing the log of data sent to a soundchip during sound playback.
+- saving to a .vgm file may be compared to "converting text to outlines" or similar irreversible processes. the results cannot be loaded back into the tracker.
 - different versions of the VGM format have different capabilities, with trade-offs. older versions may lack chips or features; newer versions may not be compatible with some software.
 - samples are stored uncompressed. PCM streams (such as DualPCM) can quickly take up a huge amount of space.
 
@@ -142,4 +142,4 @@
 
 **wavetable** (2): an ordered group of wavetables(1) used in sequence within a single instrument.
 
-**ZSM**: a VGM-like file meant specifically for the Commander X16 computer.
+**.zsm**: a VGM-like file meant specifically for the Commander X16 computer.
