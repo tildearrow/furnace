@@ -3096,6 +3096,14 @@ void FurnaceGUI::drawSettings() {
               mmlString[30]="enabled all instrument types";
               settings.displayAllInsTypes=!settings.displayAllInsTypes;
             }
+            if (checker==0x3f88abcc && checker1==0xf4a6) {
+              mmlString[30]="OK, if I bring your Partial pitch linearity will you stop bothering me?";
+              settings.displayPartial=1;
+            }
+            if (checker==0x8537719f && checker1==0x17a1f34) {
+              mmlString[30]="unlocked audio multi-threading options!";
+              settings.showPool=1;
+            }
 
             mmlString[31]="";
           }
