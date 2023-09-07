@@ -1797,7 +1797,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   std::chrono::steady_clock::time_point ts_processBegin=std::chrono::steady_clock::now();
 
   if (renderPool==NULL) {
-    renderPool=new DivWorkPool(renderPoolThreads);
+    unsigned int howManyThreads=song.systemLen;
+    if (howManyThreads<2) howManyThreads=0;
+    if (howManyThreads>renderPoolThreads) howManyThreads=renderPoolThreads;
+    renderPool=new DivWorkPool(howManyThreads);
   }
 
   // process MIDI events (TODO: everything)

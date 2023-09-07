@@ -3282,6 +3282,10 @@ void DivEngine::quitDispatch() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=0;
   }
+  if (renderPool!=NULL) {
+    delete renderPool;
+    renderPool=NULL;
+  }
   BUSY_END;
 }
 
