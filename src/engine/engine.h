@@ -197,6 +197,10 @@ struct DivDispatchContainer {
   bool lowQuality, dcOffCompensation;
   double rateMemory;
 
+  // used in multi-thread
+  int cycles;
+  unsigned int size;
+
   void setRates(double gotRate);
   void setQuality(bool lowQual);
   void grow(size_t size);
@@ -215,7 +219,9 @@ struct DivDispatchContainer {
     lastAvail(0),
     lowQuality(false),
     dcOffCompensation(false),
-    rateMemory(0.0) {
+    rateMemory(0.0),
+    cycles(0),
+    size(0) {
     memset(bb,0,DIV_MAX_OUTPUTS*sizeof(blip_buffer_t*));
     memset(temp,0,DIV_MAX_OUTPUTS*sizeof(int));
     memset(prevSample,0,DIV_MAX_OUTPUTS*sizeof(int));

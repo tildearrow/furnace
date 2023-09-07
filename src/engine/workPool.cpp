@@ -71,7 +71,7 @@ void DivWorkThread::run() {
   }
 }
 
-bool DivWorkThread::assign(const std::function<void(void*)>& what, void* arg) {
+bool DivWorkThread::assign(void (*what)(void*), void* arg) {
   lock.lock();
   if (tasks.size()>=30) {
     lock.unlock();
@@ -105,7 +105,7 @@ void DivWorkThread::init(DivWorkPool* p) {
   thread=new std::thread(_workThread,this);
 }
 
-void DivWorkPool::push(const std::function<void(void*)>& what, void* arg) {
+void DivWorkPool::push(void (*what)(void*), void* arg) {
   // if no work threads, just execute
   if (!threaded) {
     what(arg);

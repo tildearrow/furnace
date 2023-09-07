@@ -60,7 +60,7 @@ float FurnaceGUI::computeGradPos(int type, int chan) {
       return 1.0f;
       break;
     case GUI_OSCREF_FREQUENCY:
-      return chanOscPitch[chan];
+      return chanOscChan[chan].pitch;
       break;
     case GUI_OSCREF_VOLUME:
       return chanOscVol[chan];
@@ -416,10 +416,11 @@ void FurnaceGUI::drawChanOsc() {
             }
 
             if (fft_->ready && e->isRunning()) {
-              chanOscWorkPool->push([this](void* fft_v) {
+              fft_->windowSize=chanOscWindowSize;
+              fft_->waveCorr=chanOscWaveCorr;
+              chanOscWorkPool->push([](void* fft_v) {
                 ChanOscStatus* fft=(ChanOscStatus*)fft_v;
                 DivDispatchOscBuffer* buf=fft->relatedBuf;
-                int ch=fft->relatedCh;
 
                 // the STRATEGY
                 // 1. FFT of windowed signal
@@ -433,7 +434,7 @@ void FurnaceGUI::drawChanOsc() {
 
                 // initialization
                 double phase=0.0;
-                int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
+                int displaySize=(float)(buf->rate)*(fft->windowSize/1000.0f);
                 fft->loudEnough=false;
                 fft->needle=buf->needle;
 
@@ -493,7 +494,7 @@ void FurnaceGUI::drawChanOsc() {
                   // did we find the period size?
                   if (fft->waveLen<(FURNACE_FFT_SIZE-32)) {
                     // we got pitch
-                    chanOscPitch[ch]=pow(1.0-(fft->waveLen/(double)(FURNACE_FFT_SIZE>>1)),4.0);
+                    fft->pitch=pow(1.0-(fft->waveLen/(double)(FURNACE_FFT_SIZE>>1)),4.0);
                     
                     fft->waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
 
@@ -511,7 +512,7 @@ void FurnaceGUI::drawChanOsc() {
                     // calculate and lock into phase
                     phase=(0.5+(atan2(dft[1],dft[0])/(2.0*M_PI)));
 
-                    if (chanOscWaveCorr) {
+                    if (fft->waveCorr) {
                       fft->needle-=phase*fft->waveLen;
                     }
                   }

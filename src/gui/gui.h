@@ -2061,7 +2061,6 @@ class FurnaceGUI {
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
   float chanOscVol[DIV_MAX_CHANS];
-  float chanOscPitch[DIV_MAX_CHANS];
   float chanOscBright[DIV_MAX_CHANS];
   unsigned short lastNeedlePos[DIV_MAX_CHANS];
   unsigned short lastCorrPos[DIV_MAX_CHANS];
@@ -2074,8 +2073,9 @@ class FurnaceGUI {
     double inBufPosFrac;
     double waveLen;
     int waveLenBottom, waveLenTop, relatedCh;
+    float pitch, windowSize;
     unsigned short needle;
-    bool ready, loudEnough;
+    bool ready, loudEnough, waveCorr;
     fftw_plan plan;
     fftw_plan planI;
     ChanOscStatus():
@@ -2089,9 +2089,12 @@ class FurnaceGUI {
       waveLenBottom(0),
       waveLenTop(0),
       relatedCh(0),
+      pitch(0.0f),
+      windowSize(1.0f),
       needle(0),
       ready(false),
       loudEnough(false),
+      waveCorr(false),
       plan(NULL),
       planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];

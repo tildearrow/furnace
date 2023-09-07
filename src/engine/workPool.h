@@ -31,9 +31,9 @@
 class DivWorkPool;
 
 struct DivPendingTask {
-  std::function<void(void*)> func;
+  void (*func)(void*);
   void* funcArg;
-  DivPendingTask(std::function<void(void*)> f, void* arg):
+  DivPendingTask(void (*f)(void*), void* arg):
     func(f),
     funcArg(arg) {}
   DivPendingTask():
@@ -52,7 +52,7 @@ struct DivWorkThread {
   bool promiseAlreadySet;
 
   void run();
-  bool assign(const std::function<void(void*)>& what, void* arg);
+  bool assign(void (*what)(void*), void* arg);
   void wait();
   bool busy();
   void finish();
@@ -82,7 +82,7 @@ class DivWorkPool {
      * push a new job to this work pool.
      * if all work threads are busy, this will block until one is free.
      */
-    void push(const std::function<void(void*)>& what, void* arg);
+    void push(void (*what)(void*), void* arg);
     
     /**
      * check whether this work pool is busy.

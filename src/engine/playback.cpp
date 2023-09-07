@@ -1760,6 +1760,13 @@ void DivEngine::runMidiTime(int totalCycles) {
   }
 }
 
+void _runDispatch1(void* d) {
+}
+
+void _runDispatch2(void* d) {
+
+}
+
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
   lastNBIns=inChans;
   lastNBOuts=outChans;
@@ -2066,9 +2073,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         // 5. tick the clock and fill buffers as needed
         if (cycles<runLeftG) {
           for (int i=0; i<song.systemLen; i++) {
-            renderPool->push([this,size](void* d) {
+            disCont[i].cycles=cycles;
+            disCont[i].size=size;
+            renderPool->push([](void* d) {
               DivDispatchContainer* dc=(DivDispatchContainer*)d;
-              int total=(cycles*dc->runtotal)/(size<<MASTER_CLOCK_PREC);
+              int total=(dc->cycles*dc->runtotal)/(dc->size<<MASTER_CLOCK_PREC);
               dc->acquire(dc->runPos,total);
               dc->runLeft-=total;
               dc->runPos+=total;
