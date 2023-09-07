@@ -892,6 +892,36 @@ void FurnaceGUI::drawSettings() {
           ImGui::EndTable();
         }
 
+        bool renderPoolThreadsB=(settings.renderPoolThreads>0);
+        if (ImGui::Checkbox("Multi-threaded (EXPERIMENTAL)",&renderPoolThreadsB)) {
+          if (renderPoolThreadsB) {
+            settings.renderPoolThreads=2;
+          } else {
+            settings.renderPoolThreads=0;
+          }
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("runs chip emulation on separate threads.\nmay increase performance on multi-core CPUs.\n\nwarnings:\n- experimental! currently broken/not working well.\n- only useful on multi-chip songs.");
+        }
+
+        if (renderPoolThreadsB) {
+          pushWarningColor(settings.renderPoolThreads>cpuCores,settings.renderPoolThreads>cpuCores);
+          if (ImGui::InputInt("Number of threads",&settings.renderPoolThreads)) {
+            if (settings.renderPoolThreads<2) settings.renderPoolThreads=2;
+            if (settings.renderPoolThreads>32) settings.renderPoolThreads=32;
+          }
+          if (settings.renderPoolThreads>=DIV_MAX_CHIPS) {
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("that's the limit!");
+            }
+          } else if (settings.renderPoolThreads>cpuCores) {
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("it is a VERY bad idea to set this number higher than your CPU core count (%d)!",cpuCores);
+            }
+          }
+          popWarningColor();
+        }
+
         bool lowLatencyB=settings.lowLatency;
         if (ImGui::Checkbox("Low-latency mode",&lowLatencyB)) {
           settings.lowLatency=lowLatencyB;
@@ -3286,6 +3316,7 @@ void FurnaceGUI::syncSettings() {
   settings.classicChipOptions=e->getConfInt("classicChipOptions",0);
   settings.wasapiEx=e->getConfInt("wasapiEx",0);
   settings.chanOscThreads=e->getConfInt("chanOscThreads",0);
+  settings.renderPoolThreads=e->getConfInt("renderPoolThreads",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3436,6 +3467,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.classicChipOptions,0,1);
   clampSetting(settings.wasapiEx,0,1);
   clampSetting(settings.chanOscThreads,0,256);
+  clampSetting(settings.renderPoolThreads,0,256);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3693,6 +3725,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("classicChipOptions",settings.classicChipOptions);
   e->setConf("wasapiEx",settings.wasapiEx);
   e->setConf("chanOscThreads",settings.chanOscThreads);
+  e->setConf("renderPoolThreads",settings.renderPoolThreads);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

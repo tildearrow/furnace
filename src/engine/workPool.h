@@ -24,7 +24,7 @@
 #include <mutex>
 #include <atomic>
 #include <functional>
-#include <condition_variable>
+#include <future>
 
 #include "fixedQueue.h"
 
@@ -44,12 +44,12 @@ struct DivPendingTask {
 struct DivWorkThread {
   DivWorkPool* parent;
   std::mutex lock;
-  std::mutex selfLock;
   std::thread* thread;
-  std::condition_variable notify;
+  std::promise<void> notify;
   FixedQueue<DivPendingTask,32> tasks;
   std::atomic<bool> isBusy;
   bool terminate;
+  bool promiseAlreadySet;
 
   void run();
   bool assign(const std::function<void(void*)>& what, void* arg);
@@ -61,7 +61,8 @@ struct DivWorkThread {
   DivWorkThread():
     parent(NULL),
     isBusy(false),
-    terminate(false) {}
+    terminate(false),
+    promiseAlreadySet(false) {}
 };
 
 /**
@@ -70,12 +71,11 @@ struct DivWorkThread {
  */
 class DivWorkPool {
   bool threaded;
-  std::mutex selfLock;
   unsigned int count;
   unsigned int pos;
   DivWorkThread* workThreads;
   public:
-    std::condition_variable notify;
+    std::promise<void> notify;
     std::atomic<int> busyCount;
     
     /**

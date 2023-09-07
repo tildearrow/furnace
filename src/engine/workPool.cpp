@@ -21,14 +21,17 @@
 #include "../ta-log.h"
 #include <thread>
 
+#include <SDL.h>
+
 void* _workThread(void* inst) {
   ((DivWorkThread*)inst)->run();
   return NULL;
 }
 
 void DivWorkThread::run() {
-  std::unique_lock<std::mutex> unique(selfLock);
+  //std::unique_lock<std::mutex> unique(selfLock);
   DivPendingTask task;
+  bool setFuckingPromise=false;
 
   logV("running work thread");
 
@@ -37,11 +40,20 @@ void DivWorkThread::run() {
     if (tasks.empty()) {
       lock.unlock();
       isBusy=false;
-      parent->notify.notify_one();
+      if (setFuckingPromise) {
+        parent->notify.set_value();
+        setFuckingPromise=false;
+        std::this_thread::yield();
+      }
       if (terminate) {
         break;
       }
-      notify.wait(unique);
+      std::future<void> future=notify.get_future();
+      future.wait();
+      lock.lock();
+      notify=std::promise<void>();
+      promiseAlreadySet=false;
+      lock.unlock();
       continue;
     } else {
       task=tasks.front();
@@ -50,8 +62,13 @@ void DivWorkThread::run() {
 
       task.func(task.funcArg);
 
-      parent->busyCount--;
-      parent->notify.notify_one();
+      int busyCount=--parent->busyCount;
+      if (busyCount<0) {
+        logE("oh no PROBLEM...");
+      }
+      if (busyCount==0) {
+        setFuckingPromise=true;
+      }
     }
   }
 }
@@ -80,8 +97,8 @@ bool DivWorkThread::busy() {
 void DivWorkThread::finish() {
   lock.lock();
   terminate=true;
+  notify.set_value();
   lock.unlock();
-  notify.notify_one();
   thread->join();
 }
 
@@ -117,19 +134,38 @@ bool DivWorkPool::busy() {
 
 void DivWorkPool::wait() {
   if (!threaded) return;
-  std::unique_lock<std::mutex> unique(selfLock);
+
+  if (busyCount==0) {
+    return;
+  }
+
+  std::future<void> future=notify.get_future();
 
   // start running
   for (unsigned int i=0; i<count; i++) {
-    workThreads[i].notify.notify_one();
-  }
-
-  // wait
-  while (busyCount!=0) {
-    if (notify.wait_for(unique,std::chrono::milliseconds(100))==std::cv_status::timeout) {
-      logW("DivWorkPool: wait() timed out!");
+    if (!workThreads[i].promiseAlreadySet) {
+      try {
+        workThreads[i].lock.lock();
+        workThreads[i].promiseAlreadySet=true;
+        workThreads[i].notify.set_value();
+        workThreads[i].lock.unlock();
+      } catch (std::exception& e) {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"EXCEPTION ON WAIT",e.what(),NULL);
+        abort();
+      }
     }
   }
+  std::this_thread::yield();
+
+  // wait
+  //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","waiting on future.",NULL);
+  future.wait();
+  //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","waited - reset promise.",NULL);
+
+  notify=std::promise<void>();
+  //SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error","YES",NULL);
+
+  pos=0;
 }
 
 DivWorkPool::DivWorkPool(unsigned int threads):

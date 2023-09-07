@@ -23,6 +23,7 @@
 #include "engine.h"
 #include "instrument.h"
 #include "safeReader.h"
+#include "workPool.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
 #ifdef HAVE_SDL2
@@ -3123,6 +3124,10 @@ bool DivEngine::switchMaster(bool full) {
     quitDispatch();
     initDispatch();
   }
+  if (renderPool!=NULL) {
+    delete renderPool;
+    renderPool=NULL;
+  }
   if (initAudioBackend()) {
     for (int i=0; i<song.systemLen; i++) {
       disCont[i].setRates(got.rate);
@@ -3314,6 +3319,7 @@ bool DivEngine::initAudioBackend() {
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;
+  renderPoolThreads=getConfInt("renderPoolThreads",0);
 
   if (lowLatency) logI("using low latency mode.");
 

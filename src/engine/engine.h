@@ -39,6 +39,8 @@
 #include <unordered_map>
 #include <deque>
 
+class DivWorkPool;
+
 #define addWarning(x) \
   if (warnings.empty()) { \
     warnings+=x; \
@@ -484,6 +486,9 @@ class DivEngine {
   float metroVol;
 
   size_t totalProcessed;
+
+  unsigned int renderPoolThreads;
+  DivWorkPool* renderPool;
 
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
@@ -1260,6 +1265,8 @@ class DivEngine {
       metroAmp(0.0f),
       metroVol(1.0f),
       totalProcessed(0),
+      renderPoolThreads(0),
+      renderPool(NULL),
       curOrders(NULL),
       curPat(NULL),
       tempIns(NULL),
