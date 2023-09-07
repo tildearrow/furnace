@@ -929,7 +929,7 @@ void FurnaceGUI::drawSettings() {
           settings.lowLatency=lowLatencyB;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: nonly enable if your buffer size is small (10ms or less).");
+          ImGui::SetTooltip("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: only enable if your buffer size is small (10ms or less).");
         }
 
         bool forceMonoB=settings.forceMono;
