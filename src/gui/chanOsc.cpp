@@ -96,16 +96,16 @@ void FurnaceGUI::calcChanOsc() {
       // 30ms should be enough
       int displaySize=(float)(buf->rate)*0.03f;
       if (e->isRunning()) {
-        float minLevel=1.0f;
-        float maxLevel=-1.0f;
+        short minLevel=32767;
+        short maxLevel=-32768;
         unsigned short needlePos=buf->needle;
         needlePos-=displaySize;
         for (unsigned short i=0; i<512; i++) {
-          float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/32768.0f;
+          short y=buf->data[(unsigned short)(needlePos+(i*displaySize/512))];
           if (minLevel>y) minLevel=y;
           if (maxLevel<y) maxLevel=y;
         }
-        float estimate=pow(maxLevel-minLevel,0.5f);
+        float estimate=pow((float)(maxLevel-minLevel)/32768.0f,0.5f);
         if (estimate>1.0f) estimate=1.0f;
         chanOscVol[i]=MAX(chanOscVol[i]*0.87f,estimate);
       }
