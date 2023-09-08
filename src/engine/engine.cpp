@@ -396,13 +396,13 @@ int DivEngine::loadSampleROMs() {
   return error;
 }
 
-void DivEngine::renderSamplesP() {
+void DivEngine::renderSamplesP(int whichSample) {
   BUSY_BEGIN;
-  renderSamples();
+  renderSamples(whichSample);
   BUSY_END;
 }
 
-void DivEngine::renderSamples() {
+void DivEngine::renderSamples(int whichSample) {
   sPreview.sample=-1;
   sPreview.pos=0;
   sPreview.dir=false;
@@ -418,8 +418,12 @@ void DivEngine::renderSamples() {
   }
 
   // step 1: render samples
-  for (int i=0; i<song.sampleLen; i++) {
-    song.sample[i]->render(formatMask);
+  if (whichSample==-1) {
+    for (int i=0; i<song.sampleLen; i++) {
+      song.sample[i]->render(formatMask);
+    }
+  } else if (whichSample>=0 && whichSample<song.sampleLen) {
+    song.sample[whichSample]->render(formatMask);
   }
 
   // step 2: render samples to dispatch

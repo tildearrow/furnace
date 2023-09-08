@@ -1064,10 +1064,14 @@ class DivEngine {
     unsigned int getSampleFormatMask();
 
     // UNSAFE render samples - only execute when locked
-    void renderSamples();
+    void renderSamples(int whichSample=-1);
 
     // public render samples
-    void renderSamplesP();
+    // values for whichSample
+    // -2: don't render anything - just update chip sample memory
+    // -1: render all samples
+    // >=0: render specific sample
+    void renderSamplesP(int whichSample=-1);
 
     // public swap channels
     void swapChannelsP(int src, int dest);

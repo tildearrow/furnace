@@ -3254,7 +3254,7 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   if (sampleDragActive) {
     logD("stopping sample drag");
     if (sampleDragMode) {
-      e->renderSamplesP();
+      e->renderSamplesP(curSample);
     } else {
       if (sampleSelStart>sampleSelEnd) {
         sampleSelStart^=sampleSelEnd;

@@ -432,7 +432,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
           updateSampleTex=true;
           if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
-            e->renderSamplesP();
+            e->renderSamplesP(curSample);
           }
         }
         popWarningColor();
@@ -462,7 +462,7 @@ void FurnaceGUI::drawSampleEdit() {
                 sample->prepareUndo(true);
                 e->lockEngine([this,sample,i]() {
                   sample->convert((DivSampleDepth)i);
-                  e->renderSamples();
+                  e->renderSamples(curSample);
                 });
                 updateSampleTex=true;
                 MARK_MODIFIED;
@@ -483,7 +483,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (ImGui::Checkbox("BRR emphasis",&be)) {
               sample->prepareUndo(true);
               sample->brrEmphasis=be;
-              e->renderSamplesP();
+              e->renderSamplesP(curSample);
               updateSampleTex=true;
               MARK_MODIFIED;
             }
@@ -500,7 +500,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (ImGui::Checkbox("8-bit dither",&di)) {
               sample->prepareUndo(true);
               sample->dither=di;
-              e->renderSamplesP();
+              e->renderSamplesP(curSample);
               updateSampleTex=true;
               MARK_MODIFIED;
             }
@@ -631,7 +631,7 @@ void FurnaceGUI::drawSampleEdit() {
               if (ImGui::Selectable(sampleLoopModes[i])) {
                 sample->prepareUndo(true);
                 sample->loopMode=(DivSampleLoopMode)i;
-                e->renderSamplesP();
+                e->renderSamplesP(curSample);
                 updateSampleTex=true;
                 MARK_MODIFIED;
               }
@@ -657,7 +657,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             updateSampleTex=true;
             if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
-              e->renderSamplesP();
+              e->renderSamplesP(curSample);
             }
           }
           if (ImGui::IsItemActive()) {
@@ -683,7 +683,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             updateSampleTex=true;
             if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
-              e->renderSamplesP();
+              e->renderSamplesP(curSample);
             }
           }
           if (ImGui::IsItemActive()) {
@@ -752,7 +752,7 @@ void FurnaceGUI::drawSampleEdit() {
                   ImGui::PushStyleColor(ImGuiCol_CheckMark,baseColor);
 
                   if (ImGui::Checkbox(id,&sample->renderOn[i][j])) {
-                    e->renderSamplesP();
+                    e->renderSamplesP(curSample);
                   }
 
                   ImGui::PopStyleColor(4);
@@ -795,12 +795,6 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::EndTable();
       }
 
-      /*
-      if (ImGui::Button("Apply")) {
-        e->renderSamplesP();
-      }
-      ImGui::SameLine();
-      */
       ImGui::Separator();
 
       pushToggleColors(!sampleDragMode);
@@ -846,7 +840,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (!sample->resize(resizeSize)) {
               showError("couldn't resize! make sure your sample is 8 or 16-bit.");
             }
-            e->renderSamples();
+            e->renderSamples(curSample);
           });
           updateSampleTex=true;
           sampleSelStart=-1;
@@ -901,7 +895,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (!sample->resample(targetRate,resampleTarget,resampleStrat)) {
               showError("couldn't resample! make sure your sample is 8 or 16-bit.");
             }
-            e->renderSamples();
+            e->renderSamples(curSample);
           });
           updateSampleTex=true;
           sampleSelStart=-1;
@@ -972,7 +966,7 @@ void FurnaceGUI::drawSampleEdit() {
 
             updateSampleTex=true;
 
-            e->renderSamples();
+            e->renderSamples(curSample);
           });
           MARK_MODIFIED;
           ImGui::CloseCurrentPopup();
@@ -1021,7 +1015,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (!sample->insert(pos,silenceSize)) {
               showError("couldn't insert! make sure your sample is 8 or 16-bit.");
             }
-            e->renderSamples();
+            e->renderSamples(curSample);
           });
           updateSampleTex=true;
           sampleSelStart=pos;
@@ -1182,7 +1176,7 @@ void FurnaceGUI::drawSampleEdit() {
 
             updateSampleTex=true;
 
-            e->renderSamples();
+            e->renderSamples(curSample);
           });
           MARK_MODIFIED;
           ImGui::CloseCurrentPopup();
@@ -1869,7 +1863,7 @@ void FurnaceGUI::doUndoSample() {
   DivSample* sample=e->song.sample[curSample];
   e->lockEngine([this,sample]() {
     if (sample->undo()==2) {
-      e->renderSamples();
+      e->renderSamples(curSample);
       updateSampleTex=true;
     }
   });
@@ -1881,7 +1875,7 @@ void FurnaceGUI::doRedoSample() {
   DivSample* sample=e->song.sample[curSample];
   e->lockEngine([this,sample]() {
     if (sample->redo()==2) {
-      e->renderSamples();
+      e->renderSamples(curSample);
       updateSampleTex=true;
     }
   });
