@@ -38,6 +38,7 @@ _**Virtual Tempo**:_ Simulates any arbitrary tempo without altering the tick rat
 - Set the second virtual tempo number (denominator) to 150.
 - The track will play at 200 BPM.
 - The ratio doesn't have to match BPM numbers. Set the numerator to 4 and the denominator to 5, and the virtual BPM becomes 150 × 4/5 = 120.
+- Another way to accomplish this with more control over the results is to use grooves. See the page on [grooves](../8-advanced/grooves.md) for details.
 
 _**Divider**:_ Changes the effective tick rate. A tick rate of 60Hz and a divisor of 6 will result in ticks lasting a tenth of a second each!
 

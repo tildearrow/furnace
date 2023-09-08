@@ -242,7 +242,7 @@ the keys in the "Global hotkeys" section can be used in any window, though not w
 | Zoom out                                               | `Ctrl--`         |
 | Toggle auto-zoom                                       | `Ctrl-0`         |
 | Create instrument from sample                          | —                |
-| Set loop to selection                                  | `Ctrl-l`         |
+| Set loop to selection                                  | `Ctrl-L`         |
 
 ## note input
 
