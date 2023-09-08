@@ -434,7 +434,8 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::TableNextColumn();
         bool doLoop=(sample->loop);
         pushWarningColor(!warnLoop.empty());
-        if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
+        String loopCheckboxName=(doLoop && (sample->loopEnd-sample->loopStart)>0)?fmt::sprintf("Loop (length: %d)##Loop",sample->loopEnd-sample->loopStart):String("Loop");
+        if (ImGui::Checkbox(loopCheckboxName.c_str(),&doLoop)) { MARK_MODIFIED
           if (doLoop) {
             sample->loop=true;
             if (sample->loopStart<0) {
