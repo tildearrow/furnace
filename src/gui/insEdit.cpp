@@ -2531,10 +2531,12 @@ void FurnaceGUI::drawInsEdit() {
                   if (ImGui::Button("Request from TX81Z")) {
                     doAction(GUI_ACTION_TX81Z_REQUEST);
                   }
+                  /* 
                   ImGui::SameLine();
                   if (ImGui::Button("Send to TX81Z")) {
                     showError("Coming soon!");
                   }
+                  */
                   break;
                 case DIV_INS_OPL:
                 case DIV_INS_OPL_DRUMS: {
