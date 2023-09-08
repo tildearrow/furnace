@@ -189,7 +189,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 
 - _**find/replace**:_ shows [the Find/Replace window](../8-advanced/find-replace.md).
 
-- **clear**: allows you to mass-delete things like songs, instruments and the like.
+- **clear**: opens a window that allows you to mass-delete things like songs, unused instruments, and the like.
 
 # settings
 
