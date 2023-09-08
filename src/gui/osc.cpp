@@ -55,7 +55,7 @@ void FurnaceGUI::readOsc() {
       oscValues[ch]=new float[1024];
     }
     memset(oscValues[ch],0,1024*sizeof(float));
-    float* sincITable=DivFilterTables::getSincIntegralTable();
+    float* sincITable=DivFilterTables::getSincIntegralSmallTable();
 
     float posFrac=0.0;
     float factor=(float)oscWidth/(float)winSize;
@@ -67,11 +67,11 @@ void FurnaceGUI::readOsc() {
 
       posFrac+=1.0;
       while (posFrac>=1.0) {
-        unsigned int n=((unsigned int)(posFrac*8192.0))&8191;
+        unsigned int n=((unsigned int)(posFrac*32.0))&31;
         posFrac-=factor;
         posInt++;
 
-        float* t1=&sincITable[(8191-n)<<3];
+        float* t1=&sincITable[(31-n)<<3];
         float* t2=&sincITable[n<<3];
         float delta=e->oscBuf[ch][posInt&0x7fff]-e->oscBuf[ch][(posInt-1)&0x7fff];
 

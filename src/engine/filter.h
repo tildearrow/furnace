@@ -23,6 +23,7 @@ class DivFilterTables {
     static float* sincTable;
     static float* sincTable8;
     static float* sincIntegralTable;
+    static float* sincIntegralSmallTable;
 
     /**
      * get a 1024x4 cubic spline table.
@@ -47,4 +48,10 @@ class DivFilterTables {
      * @return the table.
      */
     static float* getSincIntegralTable();
+
+    /**
+     * get a 32x8 one-side sine-windowed sinc integral table.
+     * @return the table.
+     */
+    static float* getSincIntegralSmallTable();
 };
