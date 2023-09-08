@@ -883,6 +883,119 @@ void DivEngine::clearSubSongs() {
   BUSY_END;
 }
 
+void DivEngine::delUnusedIns() {
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  bool isUsed[256];
+  memset(isUsed,0,256*sizeof(bool));
+
+  // scan
+  for (int i=0; i<chans; i++) {
+    for (size_t j=0; j<song.subsong.size(); j++) {
+      for (int k=0; k<DIV_MAX_PATTERNS; k++) {
+        if (song.subsong[j]->pat[i].data[k]==NULL) continue;
+        for (int l=0; l<song.subsong[j]->patLen; l++) {
+          if (song.subsong[j]->pat[i].data[k]->data[l][2]>=0 && song.subsong[j]->pat[i].data[k]->data[l][2]<256) {
+            isUsed[song.subsong[j]->pat[i].data[k]->data[l][2]]=true;
+          }
+        }
+      }
+    }
+  }
+  
+  // delete
+  for (int i=0; i<song.insLen; i++) {
+    if (!isUsed[i]) {
+      delInstrumentUnsafe(i);
+      // rotate
+      for (int j=i; j<255; j++) {
+        isUsed[j]=isUsed[j+1];
+      }
+      isUsed[255]=true;
+      i--;
+    }
+  }
+
+  saveLock.unlock();
+  BUSY_END;
+}
+
+void DivEngine::delUnusedWaves() {
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  saveLock.unlock();
+  BUSY_END;
+}
+
+void DivEngine::delUnusedSamples() {
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  bool isUsed[256];
+  memset(isUsed,0,256*sizeof(bool));
+
+  // scan
+  for (DivInstrument* i: song.ins) {
+    if ((i->type==DIV_INS_PCE && i->amiga.useSample) ||
+        i->type==DIV_INS_MSM6258 ||
+        i->type==DIV_INS_MSM6295 ||
+        i->type==DIV_INS_ADPCMA ||
+        i->type==DIV_INS_ADPCMB ||
+        i->type==DIV_INS_SEGAPCM ||
+        i->type==DIV_INS_QSOUND ||
+        i->type==DIV_INS_YMZ280B ||
+        i->type==DIV_INS_RF5C68 ||
+        i->type==DIV_INS_AMIGA ||
+        i->type==DIV_INS_MULTIPCM ||
+        (i->type==DIV_INS_MIKEY && i->amiga.useSample) ||
+        (i->type==DIV_INS_X1_010 && i->amiga.useSample) ||
+        (i->type==DIV_INS_SWAN && i->amiga.useSample) ||
+        (i->type==DIV_INS_AY && i->amiga.useSample) ||
+        (i->type==DIV_INS_AY8930 && i->amiga.useSample) ||
+        (i->type==DIV_INS_VRC6 && i->amiga.useSample) ||
+        (i->type==DIV_INS_SU && i->amiga.useSample) ||
+        i->type==DIV_INS_SNES ||
+        i->type==DIV_INS_ES5506 ||
+        i->type==DIV_INS_K007232 ||
+        i->type==DIV_INS_GA20 ||
+        i->type==DIV_INS_K053260 ||
+        i->type==DIV_INS_C140 ||
+        i->type==DIV_INS_C219) {
+      if (i->amiga.initSample>=0 && i->amiga.initSample<song.sampleLen) {
+        isUsed[i->amiga.initSample]=true;
+      }
+      if (i->amiga.useNoteMap) {
+        for (int j=0; j<120; j++) {
+          if (i->amiga.noteMap[j].map>=0 && i->amiga.noteMap[j].map<song.sampleLen) {
+            isUsed[i->amiga.noteMap[j].map]=true;
+          }
+        }
+      }
+    }
+  }
+
+  // delete
+  for (int i=0; i<song.sampleLen; i++) {
+    if (!isUsed[i]) {
+      delSampleUnsafe(i,false);
+      // rotate
+      for (int j=i; j<255; j++) {
+        isUsed[j]=isUsed[j+1];
+      }
+      isUsed[255]=true;
+      i--;
+    }
+  }
+
+  // render
+  renderSamples();
+
+  saveLock.unlock();
+  BUSY_END;
+}
+
 void DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
   int chanCount=chans;
   quitDispatch();
@@ -2239,9 +2352,7 @@ void DivEngine::loadTempIns(DivInstrument* which) {
   BUSY_END;
 }
 
-void DivEngine::delInstrument(int index) {
-  BUSY_BEGIN;
-  saveLock.lock();
+void DivEngine::delInstrumentUnsafe(int index) {
   if (index>=0 && index<(int)song.ins.size()) {
     for (int i=0; i<song.systemLen; i++) {
       disCont[i].dispatch->notifyInsDeletion(song.ins[index]);
@@ -2264,6 +2375,12 @@ void DivEngine::delInstrument(int index) {
     removeAsset(song.insDir,index);
     checkAssetDir(song.insDir,song.ins.size());
   }
+}
+
+void DivEngine::delInstrument(int index) {
+  BUSY_BEGIN;
+  saveLock.lock();
+  delInstrumentUnsafe(index);
   saveLock.unlock();
   BUSY_END;
 }
@@ -2444,9 +2561,7 @@ DivWavetable* DivEngine::waveFromFile(const char* path, bool addRaw) {
   return wave;
 }
 
-void DivEngine::delWave(int index) {
-  BUSY_BEGIN;
-  saveLock.lock();
+void DivEngine::delWaveUnsafe(int index) {
   if (index>=0 && index<(int)song.wave.size()) {
     delete song.wave[index];
     song.wave.erase(song.wave.begin()+index);
@@ -2454,6 +2569,12 @@ void DivEngine::delWave(int index) {
     removeAsset(song.waveDir,index);
     checkAssetDir(song.waveDir,song.wave.size());
   }
+}
+
+void DivEngine::delWave(int index) {
+  BUSY_BEGIN;
+  saveLock.lock();
+  delWaveUnsafe(index);
   saveLock.unlock();
   BUSY_END;
 }
@@ -2498,12 +2619,10 @@ int DivEngine::addSamplePtr(DivSample* which) {
   return sampleCount;
 }
 
-void DivEngine::delSample(int index) {
-  BUSY_BEGIN;
+void DivEngine::delSampleUnsafe(int index, bool render) {
   sPreview.sample=-1;
   sPreview.pos=0;
   sPreview.dir=false;
-  saveLock.lock();
   if (index>=0 && index<(int)song.sample.size()) {
     delete song.sample[index];
     song.sample.erase(song.sample.begin()+index);
@@ -2527,8 +2646,14 @@ void DivEngine::delSample(int index) {
       }
     }
 
-    renderSamples();
+    if (render) renderSamples();
   }
+}
+
+void DivEngine::delSample(int index) {
+  BUSY_BEGIN;
+  saveLock.lock();
+  delSampleUnsafe(index);
   saveLock.unlock();
   BUSY_END;
 }

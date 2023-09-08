@@ -889,6 +889,7 @@ class DivEngine {
 
     // delete instrument
     void delInstrument(int index);
+    void delInstrumentUnsafe(int index);
 
     // add wavetable
     int addWave();
@@ -901,6 +902,7 @@ class DivEngine {
 
     // delete wavetable
     void delWave(int index);
+    void delWaveUnsafe(int index);
 
     // add sample
     int addSample();
@@ -916,6 +918,7 @@ class DivEngine {
 
     // delete sample
     void delSample(int index);
+    void delSampleUnsafe(int index, bool render=true);
 
     // add order
     void addOrder(int pos, bool duplicate, bool where);
@@ -1094,6 +1097,11 @@ class DivEngine {
 
     // clear all subsong data
     void clearSubSongs();
+
+    // optimize assets
+    void delUnusedIns();
+    void delUnusedWaves();
+    void delUnusedSamples();
 
     // change system
     void changeSystem(int index, DivSystem which, bool preserveOrder=true);

@@ -183,7 +183,7 @@ void FurnaceGUI::doAction(int what) {
       e->syncReset();
       break;
     case GUI_ACTION_CLEAR:
-      showWarning("Are you sure you want to clear... (cannot be undone!)",GUI_WARN_CLEAR);
+      showWarning("Select an option: (cannot be undone!)",GUI_WARN_CLEAR);
       break;
 
     case GUI_ACTION_WINDOW_EDIT_CONTROLS:

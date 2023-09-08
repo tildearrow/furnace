@@ -5521,90 +5521,144 @@ bool FurnaceGUI::loop() {
           }
           break;
         case GUI_WARN_CLEAR:
-          if (ImGui::Button("All subsongs")) {
-            stop();
-            e->clearSubSongs();
-            curOrder=0;
-            oldOrder=0;
-            oldOrder1=0;
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Current subsong")) {
-            stop();
-            e->lockEngine([this]() {
-              e->curSubSong->clearData();
-            });
-            e->setOrder(0);
-            curOrder=0;
-            oldOrder=0;
-            oldOrder1=0;
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Orders")) {
-            stop();
-            e->lockEngine([this]() {
-              memset(e->curOrders->ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
-              e->curSubSong->ordersLen=1;
-            });
-            e->setOrder(0);
-            curOrder=0;
-            oldOrder=0;
-            oldOrder1=0;
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Pattern")) {
-            stop();
-            e->lockEngine([this]() {
-              for (int i=0; i<e->getTotalChannelCount(); i++) {
-                DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
-                memset(pat->data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
-                for (int j=0; j<DIV_MAX_ROWS; j++) {
-                  pat->data[j][0]=0;
-                  pat->data[j][1]=0;
+          if (ImGui::BeginTable("EraseOpt",2,ImGuiTableFlags_BordersInnerV)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::PushFont(headFont);
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Erasing");
+            ImGui::PopFont();
+
+            if (ImGui::Button("All subsongs")) {
+              stop();
+              e->clearSubSongs();
+              curOrder=0;
+              oldOrder=0;
+              oldOrder1=0;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Current subsong")) {
+              stop();
+              e->lockEngine([this]() {
+                e->curSubSong->clearData();
+              });
+              e->setOrder(0);
+              curOrder=0;
+              oldOrder=0;
+              oldOrder1=0;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Orders")) {
+              stop();
+              e->lockEngine([this]() {
+                memset(e->curOrders->ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
+                e->curSubSong->ordersLen=1;
+              });
+              e->setOrder(0);
+              curOrder=0;
+              oldOrder=0;
+              oldOrder1=0;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Pattern")) {
+              stop();
+              e->lockEngine([this]() {
+                for (int i=0; i<e->getTotalChannelCount(); i++) {
+                  DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
+                  memset(pat->data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
+                  for (int j=0; j<DIV_MAX_ROWS; j++) {
+                    pat->data[j][0]=0;
+                    pat->data[j][1]=0;
+                  }
                 }
-              }
-            });
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Instruments")) {
-            stop();
-            e->lockEngine([this]() {
-              e->song.clearInstruments();
-            });
-            curIns=-1;
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Wavetables")) {
-            stop();
-            e->lockEngine([this]() {
-              e->song.clearWavetables();
-            });
-            curWave=0;
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Samples")) {
-            stop();
-            e->lockEngine([this]() {
-              e->song.clearSamples();
-            });
-            curSample=0;
-            ImGui::CloseCurrentPopup();
+              });
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Instruments")) {
+              stop();
+              e->lockEngine([this]() {
+                e->song.clearInstruments();
+              });
+              curIns=-1;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Wavetables")) {
+              stop();
+              e->lockEngine([this]() {
+                e->song.clearWavetables();
+              });
+              curWave=0;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Samples")) {
+              stop();
+              e->lockEngine([this]() {
+                e->song.clearSamples();
+              });
+              curSample=0;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::PushFont(headFont);
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Optimization");
+            ImGui::PopFont();
+
+            if (ImGui::Button("De-duplicate patterns")) {
+              stop();
+              e->lockEngine([this]() {
+                e->curSubSong->optimizePatterns();
+                e->curSubSong->rearrangePatterns();
+              });
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Remove unused instruments")) {
+              stop();
+              e->delUnusedIns();
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            /*
+            if (ImGui::Button("Remove unused wavetables")) {
+              stop();
+              e->delUnusedWaves();
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }*/
+            if (ImGui::Button("Remove unused samples")) {
+              stop();
+              e->delUnusedSamples();
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndTable();
           }
 
-          if (ImGui::Button("Wait! What am I doing? Cancel!") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-            ImGui::CloseCurrentPopup();
+          if (ImGui::BeginTable("EraseOptFooter",3)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TableNextColumn();
+            if (ImGui::Button("Never mind! Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::TableNextColumn();
+            ImGui::EndTable();
           }
           break;
         case GUI_WARN_SUBSONG_DEL:
