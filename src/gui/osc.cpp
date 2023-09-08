@@ -73,10 +73,23 @@ void FurnaceGUI::readOsc() {
         float* t2=&sincITable[n<<3];
         float delta=e->oscBuf[ch][posInt&0x7fff]-e->oscBuf[ch][(posInt-1)&0x7fff];
 
-        for (int j=0; j<8; j++) {
-          oscValues[ch][i-j]+=t1[j]*-delta;
-          oscValues[ch][i+j+1]+=t2[j]*delta;
-        }
+        oscValues[ch][i-7]+=t1[7]*-delta;
+        oscValues[ch][i-6]+=t1[6]*-delta;
+        oscValues[ch][i-5]+=t1[5]*-delta;
+        oscValues[ch][i-4]+=t1[4]*-delta;
+        oscValues[ch][i-3]+=t1[3]*-delta;
+        oscValues[ch][i-2]+=t1[2]*-delta;
+        oscValues[ch][i-1]+=t1[1]*-delta;
+        oscValues[ch][i]  +=t1[0]*-delta;
+
+        oscValues[ch][i+1]+=t2[0]*delta;
+        oscValues[ch][i+2]+=t2[1]*delta;
+        oscValues[ch][i+3]+=t2[2]*delta;
+        oscValues[ch][i+4]+=t2[3]*delta;
+        oscValues[ch][i+5]+=t2[4]*delta;
+        oscValues[ch][i+6]+=t2[5]*delta;
+        oscValues[ch][i+7]+=t2[6]*delta;
+        oscValues[ch][i+8]+=t2[7]*delta;
       }
     }
 
