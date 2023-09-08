@@ -52,36 +52,30 @@ void FurnaceGUI::readOsc() {
 
   for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
     if (oscValues[ch]==NULL) {
-      oscValues[ch]=new float[1024];
+      oscValues[ch]=new float[2048];
     }
-    memset(oscValues[ch],0,1024*sizeof(float));
+    memset(oscValues[ch],0,2048*sizeof(float));
     float* sincITable=DivFilterTables::getSincIntegralSmallTable();
 
     float posFrac=0.0;
     float factor=(float)oscWidth/(float)winSize;
     int posInt=oscReadPos-(8.0f/factor);
-    for (int i=-8; i<oscWidth; i++) {
-      if (i>=0 && i<oscWidth) {
-        oscValues[ch][i]+=e->oscBuf[ch][posInt&0x7fff];
-      }
+    for (int i=7; i<oscWidth-9; i++) {
+      oscValues[ch][i]+=e->oscBuf[ch][posInt&0x7fff];
 
       posFrac+=1.0;
       while (posFrac>=1.0) {
-        unsigned int n=((unsigned int)(posFrac*32.0))&31;
+        unsigned int n=((unsigned int)(posFrac*64.0))&63;
         posFrac-=factor;
         posInt++;
 
-        float* t1=&sincITable[(31-n)<<3];
+        float* t1=&sincITable[(63-n)<<3];
         float* t2=&sincITable[n<<3];
         float delta=e->oscBuf[ch][posInt&0x7fff]-e->oscBuf[ch][(posInt-1)&0x7fff];
 
         for (int j=0; j<8; j++) {
-          if ((i-j)>=0 && (i-j)<oscWidth) {
-            oscValues[ch][i-j]+=t1[j]*-delta;
-          }
-          if ((i+j+1)>=0 && (i+j+1)<oscWidth) {
-            oscValues[ch][i+j+1]+=t2[j]*delta;
-          }
+          oscValues[ch][i-j]+=t1[j]*-delta;
+          oscValues[ch][i+j+1]+=t2[j]*delta;
         }
       }
     }
@@ -161,7 +155,7 @@ void FurnaceGUI::drawOsc() {
     ImDrawList* dl=ImGui::GetWindowDrawList();
     ImGuiWindow* window=ImGui::GetCurrentWindow();
 
-    ImVec2 waveform[1024];
+    static ImVec2 waveform[2048];
     ImVec2 size=ImGui::GetContentRegionAvail();
 
     ImVec2 minArea=window->DC.CursorPos;
@@ -248,61 +242,63 @@ void FurnaceGUI::drawOsc() {
         dpiScale
       );
 
-      oscWidth=round(inRect.Max.x-inRect.Min.x);
-      if (oscWidth<1) oscWidth=1;
-      if (oscWidth>1024) oscWidth=1024;
+      oscWidth=round(inRect.Max.x-inRect.Min.x)+24;
+      if (oscWidth<17) oscWidth=17;
+      if (oscWidth>2048) oscWidth=2048;
 
       ImDrawListFlags prevFlags=dl->Flags;
       if (!settings.oscAntiAlias) {
         dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
       }
 
-      if (settings.oscMono) {
-        for (int i=0; i<oscWidth; i++) {
-          float x=(float)i/(float)oscWidth;
-          float avg=0;
-          for (int j=0; j<e->getAudioDescGot().outChans; j++) {
-            avg+=oscValues[j][i];
-          }
-          avg/=e->getAudioDescGot().outChans;
+      if ((oscWidth-24)>0) {
+        if (settings.oscMono) {
+          for (int i=0; i<oscWidth-24; i++) {
+            float x=(float)i/(float)(oscWidth-24);
+            float avg=0;
+            for (int j=0; j<e->getAudioDescGot().outChans; j++) {
+              avg+=oscValues[j][i+12];
+            }
+            avg/=e->getAudioDescGot().outChans;
 
-          float y=avg*oscZoom;
-          if (!settings.oscEscapesBoundary) {
-            if (y<-0.5f) y=-0.5f;
-            if (y>0.5f) y=0.5f;
-          }
-          waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
-        }
-        
-        if (settings.oscEscapesBoundary) {
-          dl->PushClipRectFullScreen();
-          dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale);
-          dl->PopClipRect();
-        } else {
-          dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale);
-        }
-      } else {
-        for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
-          for (int i=0; i<oscWidth; i++) {
-            float x=(float)i/(float)oscWidth;
-            float y=oscValues[ch][i]*oscZoom;
+            float y=avg*oscZoom;
             if (!settings.oscEscapesBoundary) {
               if (y<-0.5f) y=-0.5f;
               if (y>0.5f) y=0.5f;
             }
             waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
           }
-
-          if (!isClipping) {
-            color=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_WAVE_CH0+ch]);
-          }
           
           if (settings.oscEscapesBoundary) {
             dl->PushClipRectFullScreen();
-            dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale);
+            dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
             dl->PopClipRect();
           } else {
-            dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale);
+            dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+          }
+        } else {
+          for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
+            for (int i=0; i<oscWidth-24; i++) {
+              float x=(float)i/(float)(oscWidth-24);
+              float y=oscValues[ch][i+12]*oscZoom;
+              if (!settings.oscEscapesBoundary) {
+                if (y<-0.5f) y=-0.5f;
+                if (y>0.5f) y=0.5f;
+              }
+              waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+            }
+
+            if (!isClipping) {
+              color=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_WAVE_CH0+ch]);
+            }
+            
+            if (settings.oscEscapesBoundary) {
+              dl->PushClipRectFullScreen();
+              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+              dl->PopClipRect();
+            } else {
+              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+            }
           }
         }
       }

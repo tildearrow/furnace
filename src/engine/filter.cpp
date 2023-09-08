@@ -111,20 +111,20 @@ float* DivFilterTables::getSincIntegralTable() {
 float* DivFilterTables::getSincIntegralSmallTable() {
   if (sincIntegralSmallTable==NULL) {
     logD("initializing small sinc integral table.");
-    sincIntegralSmallTable=new float[256];
+    sincIntegralSmallTable=new float[512];
 
     sincIntegralSmallTable[0]=-0.5f;
-    for (int i=1; i<256; i++) {
-      int mapped=((i&31)<<3)|(i>>5);
-      int mappedPrev=(((i-1)&31)<<3)|((i-1)>>5);
-      double x=(double)i*M_PI/32.0;
+    for (int i=1; i<512; i++) {
+      int mapped=((i&63)<<3)|(i>>6);
+      int mappedPrev=(((i-1)&63)<<3)|((i-1)>>6);
+      double x=(double)i*M_PI/64.0;
       double sinc=sin(x)/x;
-      sincIntegralSmallTable[mapped]=sincIntegralSmallTable[mappedPrev]+(sinc/32.0);
+      sincIntegralSmallTable[mapped]=sincIntegralSmallTable[mappedPrev]+(sinc/64.0);
     }
 
-    for (int i=0; i<256; i++) {
-      int mapped=((i&31)<<3)|(i>>5);
-      sincIntegralSmallTable[mapped]*=pow(cos(M_PI*(double)i/512.0),2.0);
+    for (int i=0; i<512; i++) {
+      int mapped=((i&63)<<3)|(i>>6);
+      sincIntegralSmallTable[mapped]*=pow(cos(M_PI*(double)i/1024.0),2.0);
     }
   }
   return sincIntegralSmallTable;
