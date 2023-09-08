@@ -66,7 +66,7 @@ the YM2413 is equipped with the following features:
 
 # info
 
-this chip uses the [FM (OPLL)](../4-instrument/fm-opll.md) instrument editor.
+this chip uses the [FM (OPLL)](../4-instrument/fmopll.md) instrument editor.
 
 ## chip options
 
