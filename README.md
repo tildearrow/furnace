@@ -52,6 +52,7 @@ for other operating systems, you may [build the source](#developer-info).
     - Irem GA20
     - Ensoniq ES5506
     - Namco C140
+    - Namco C219
   - wavetable chips:
     - HuC6280 used in PC Engine
     - Konami Bubble System WSG
