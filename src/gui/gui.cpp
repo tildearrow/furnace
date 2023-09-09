@@ -1105,9 +1105,13 @@ void FurnaceGUI::play(int row) {
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (!followPattern) e->setOrder(curOrder);
   if (row>0) {
-    e->playToRow(row);
+    if (!e->playToRow(row)) {
+      showError("the song is over!");
+    }
   } else {
-    e->play();
+    if (!e->play()) {
+      showError("the song is over!");
+    }
   }
   curNibble=false;
   orderNibble=false;

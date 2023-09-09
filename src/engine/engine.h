@@ -708,11 +708,11 @@ class DivEngine {
     // find song loop position
     void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
 
-    // play
-    void play();
+    // play (returns whether successful)
+    bool play();
 
-    // play to row
-    void playToRow(int row);
+    // play to row (returns whether successful)
+    bool playToRow(int row);
 
     // play by one row
     void stepOne(int row);

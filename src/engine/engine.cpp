@@ -1701,7 +1701,7 @@ unsigned int DivEngine::convertPanLinearToSplit(int val, unsigned char bits, int
   return (panL<<bits)|panR;
 }
 
-void DivEngine::play() {
+bool DivEngine::play() {
   BUSY_BEGIN_SOFT;
   curOrder=prevOrder;
   sPreview.sample=-1;
@@ -1788,10 +1788,12 @@ void DivEngine::play() {
     }
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
   }
+  bool didItPlay=playing;
   BUSY_END;
+  return didItPlay;
 }
 
-void DivEngine::playToRow(int row) {
+bool DivEngine::playToRow(int row) {
   BUSY_BEGIN_SOFT;
   sPreview.sample=-1;
   sPreview.wave=-1;
@@ -1802,7 +1804,9 @@ void DivEngine::playToRow(int row) {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     keyHit[i]=false;
   }
+  bool didItPlay=playing;
   BUSY_END;
+  return didItPlay;
 }
 
 void DivEngine::stepOne(int row) {
