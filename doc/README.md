@@ -1,6 +1,8 @@
 # Furnace user manual
 
-this documentation is a work in progress! expect several sections to be incomplete.
+this is the manual for Furnace, the chiptune tracker.
+
+the index follows.
 
 1. [introduction](1-intro/README.md)
 2. [interface](2-interface/README.md)
@@ -12,16 +14,14 @@ this documentation is a work in progress! expect several sections to be incomple
 8. [advanced topics](8-advanced/README.md)
 9. [guides](9-guides/README.md)
 
-# attribution
+# authors
 
-writers:
-
-- tildearrow
-- freq-mod
-- nicco1690
-- DeMOSic
 - cam900
-- host12prog
-- WindowxDeveloper
-- polluks
+- DeMOSic
 - Electric Keet
+- freq-mod
+- host12prog
+- nicco1690
+- polluks
+- tildearrow
+- WindowxDeveloper
