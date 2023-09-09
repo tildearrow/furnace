@@ -424,7 +424,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
     }
     if (!insListDir) {
       ImGui::SameLine();
-      if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
+      if (ImGui::Button(ICON_FA_ARROW_UP "##InsUp")) {
         if (settings.unifiedDataView) {
           switch (lastAssetType) {
             case 0:
@@ -445,7 +445,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         ImGui::SetTooltip("Move up");
       }
       ImGui::SameLine();
-      if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
+      if (ImGui::Button(ICON_FA_ARROW_DOWN "##InsDown")) {
         if (settings.unifiedDataView) {
           switch (lastAssetType) {
             case 0:
@@ -729,14 +729,14 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     }
     if (!waveListDir) {
       ImGui::SameLine();
-      if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
+      if (ImGui::Button(ICON_FA_ARROW_UP "##WaveUp")) {
         doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Move up");
       }
       ImGui::SameLine();
-      if (ImGui::ArrowButton("WaveDown",ImGuiDir_Down)) {
+      if (ImGui::Button(ICON_FA_ARROW_DOWN "##WaveDown")) {
         doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
       }
       if (ImGui::IsItemHovered()) {
@@ -871,14 +871,14 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     }
     if (!sampleListDir) {
       ImGui::SameLine();
-      if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
+      if (ImGui::Button(ICON_FA_ARROW_UP "##SampleUp")) {
         doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Move up");
       }
       ImGui::SameLine();
-      if (ImGui::ArrowButton("SampleDown",ImGuiDir_Down)) {
+      if (ImGui::Button(ICON_FA_ARROW_DOWN "##SampleDown")) {
         doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
       }
       if (ImGui::IsItemHovered()) {
