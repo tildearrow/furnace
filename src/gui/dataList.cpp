@@ -172,12 +172,14 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
     wavePreview[i]=wave->data[i];
   }
   if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
-  ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0,0.5f));
-  if (ImGui::Selectable(fmt::sprintf(" %d##_WAVE%d\n",i,i).c_str(),curWave==i,0,ImVec2(0,23*dpiScale))) { // i didnt think that the 0 would work, but it does
+  ImVec2 curPos=ImGui::GetCursorPos();
+  ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign,ImVec2(0,0.5f));
+  if (ImGui::Selectable(fmt::sprintf(" %d##_WAVE%d\n",i,i).c_str(),curWave==i,0,ImVec2(0,ImGui::GetFrameHeight()))) {
     curWave=i;
     lastAssetType=1;
   }
   ImGui::PopStyleVar();
+  curPos.x+=ImGui::CalcTextSize("2222").x;
   if (wantScrollList && curWave==i) ImGui::SetScrollHereY();
   if (ImGui::IsItemHovered()) {
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
@@ -190,7 +192,8 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
     DRAG_TARGET(dir,asset,e->song.waveDir,"FUR_WAVEDIR");
   }
   ImGui::SameLine();
-  PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
+  ImGui::SetCursorPos(curPos);
+  PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetFrameHeight()));
 }
 
 void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
