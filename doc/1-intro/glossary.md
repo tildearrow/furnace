@@ -10,6 +10,8 @@
 - when two operators connect to the same point, their sounds are added together.
 - when two operators are connected left to right, the left is the modulator and the right is the carrier sound that is modified.
 
+**asset**: an instrument, wavetable or sample.
+
 **bitbang**: to achieve PCM sound by sending a rapid stream of volume commands to a non-PCM channel.
 
 **BRR**: a lossy sample format used by the SNES. it has a fixed compression ratio; groups of 32 bytes (16 samples) are encoded in 9 bytes each.
