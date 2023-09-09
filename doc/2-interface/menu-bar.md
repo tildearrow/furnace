@@ -2,7 +2,7 @@
 
 the menu bar allows you to select from five menus: file, edit, settings, window and help.
 
-items in _italics_ don't appear in basic mode and are only available in advanced mode.
+items in _italic_ don't appear in basic mode and are only available in advanced mode.
 
 # file
 
@@ -50,7 +50,7 @@ items in _italics_ don't appear in basic mode and are only available in advanced
     - Linux/other: `~/.config/furnace/backups`
   - this directory grows in size as you use Furnace. remember to delete old backups periodically to save space.
 
-- **exit**: I think you know what this does.
+- **exit**: closes Furnace.
 
 ## export audio
 

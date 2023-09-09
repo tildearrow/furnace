@@ -1,10 +1,8 @@
 # keyboard
 
-everything on this list can be configured in the "Keyboard" tab of the Settings dialog:
-- click on a keybind then enter a key or key combination to change it.
-- right-click to clear the keybind.
+everything on this list can be configured in the "Keyboard" tab of the Settings dialog.
 
-the keys in the "Global hotkeys" section can be used in any window, though not within text boxes.
+the keys in the "Global hotkeys" section can be used in any window, although not when a text field is activated.
 
 | action                                                 | default keybind  |
 |--------------------------------------------------------|------------------|
@@ -243,14 +241,3 @@ the keys in the "Global hotkeys" section can be used in any window, though not w
 | Toggle auto-zoom                                       | `Ctrl-0`         |
 | Create instrument from sample                          | —                |
 | Set loop to selection                                  | `Ctrl-L`         |
-
-## note input
-
-the settings for note input keybinds operate differently. each entry in the list of keybinds is made of the following:
-- **Key**: key assignment.
-- **Type**: type of note input. left-click cycles through "Note", "Note off", "Note release", and "Macro release".
-  - _note:_ the list is sorted by type. on changing a key's type, it will instantly move to its new sorting position!
-- **Value**: number of semitones above C at the current octave. only appears for note type binds.
-- **Remove**: removes the keybind from the list.
-
-below all the binds, select a key from the dropdown list to add it. it will appear at or near the top of the list as a note with value 0.

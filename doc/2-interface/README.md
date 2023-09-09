@@ -8,13 +8,13 @@ the default layout of Furnace is depicted below.
 
 ## general info
 
-- [UI components](components.md): recommended reading for all!
+- [UI components](components.md): read first!
 - [global keyboard shortcuts](keyboard.md)
 - [menu bar](menu-bar.md)
 
 ## primary windows
 
-- [order list](order-list.md)
+- [orders](order-list.md)
 - [play/edit controls](play-edit-controls.md)
 - [instrument/wavetable/sample list](asset-list.md)
 - [song information](song-info.md)
@@ -44,4 +44,4 @@ the default layout of Furnace is depicted below.
 ## other topics
 
 - [basic mode](basic-mode.md)
-- [settings](../2-interface/settings.md)
+- [settings](settings.md)
