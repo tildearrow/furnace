@@ -1,6 +1,6 @@
 # Amiga/PCM sound source instrument editor
 
-The Generic Sample instrument editor consists of a sample selector and several macros:
+the Generic Sample instrument editor consists of a sample selector and several macros:
 
 # Sample
 

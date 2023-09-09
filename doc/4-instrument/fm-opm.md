@@ -1,4 +1,4 @@
-# FM synthesis instrument editor
+# FM (OPM) instrument editor
 
 The FM editor is divided into 7 tabs:
 
@@ -16,7 +16,7 @@ The FM synthesizers Furnace supports are four-operator, meaning it takes four os
 
 These apply to the instrument as a whole:
 - **Feedback (FB)**: Determines how many times operator 1 returns its output to itself. (0-7 range)
-- **Algorithm (AL)**: Determines how operators are connected to each other. (0-7 range)
+- **Algorithm (ALG)**: Determines how operators are connected to each other. (0-7 range)
   - Left-click pops up a small "operators changes with volume?" dialog where each operator can be toggled to scale with volume level.
   - Right-click to switch to a preview display of the waveform generated on a new note:
     - Left-click restarts the preview.
@@ -30,7 +30,6 @@ These apply to each operator:
 - The crossed-arrows button can be dragged to rearrange operators.
 - The **OP1**, **OP2**, **OP3**, and **OP4** buttons enable or disable those operators.
 - **Amplitude Modulation (AM)**: Makes the operator affected by LFO.
-- **Hardware Envelope Generator (SSG-EG)**: Executes the built-in envelope, inherited from AY-3-8910 PSG. Speed of execution is controlled via Decay Rate. YM2610/YM2612 sound source only.
 - **Attack Rate (AR)**: determines the rising time for the sound. The bigger the value, the faster the attack. (0-31 range)
 - **Decay Rate (DR)**: Determines the diminishing time for the sound. The higher the value, the shorter the decay. It's the initial amplitude decay rate. (0-31 range)
 - **Sustain Level (SL)**: Determines the point at which the sound ceases to decay and changes to a sound having a constant level. The sustain level is expressed as a fraction of the maximum level. (0-15 range)
@@ -40,10 +39,10 @@ These apply to each operator:
 
 ![FM ADSR chart](FM-ADSRchart.png)
 
-- **Envelope Scale (KSR)**: Also known as "Key Scale". Determines the degree to which the envelope execution speed increases according to the pitch. (0-3 range)
+- **Envelope Scale (RS/KS)**: Also known as "Key Scale". Determines the degree to which the envelope execution speed increases according to the pitch. (0-3 range)
 - **Frequency Multiplier (MULT)**: Determines the operator frequency in relation to the pitch. (0-15 range)
 - **Fine Detune (DT)**: Shifts the pitch a little. (0-7 range)
-- **Coarse Detune (DT2)**: Shifts the pitch by tens of cents. (0-3 range) YM2151 sound source only.
+- **Coarse Detune (DT2)**: Shifts the pitch by tens of cents. (0-3 range)
 
 
 ## macros
@@ -52,8 +51,8 @@ Macros define the sequence of values passed to the given parameter. Via macro, a
 
 ## FM Macros
 
-- **AM Depth**: amplitude modulation depth. YM2151 sound source only.
-- **PM Depth**: pitch modulation depth. YM2151 sound source only.
+- **AM Depth**: amplitude modulation depth.
+- **PM Depth**: pitch modulation depth.
 - **LFO Speed**: LFO frequency.
 - **LFO Shape**: LFO shape. Choose between saw, square, triangle, and random.
 - **OpMask**: toggles each operator.

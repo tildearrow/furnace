@@ -22,7 +22,8 @@ These apply to the instrument as a whole:
     - Right-click returns to algorithm view.
 - **DC (half-sine carrier)**: Sets the waveform produced by carrier operator to half-sine
 - **DM (half-sine modulator)**: Sets the waveform produced by modulator operator to half-sine
-- preset dropdown: selects OPLL preset instrument.
+- **preset dropdown**: selects OPLL preset instrument.
+  - only one user-specified patch may be applied at a time!
 
 These apply to each operator:
 - The crossed-arrows button can be dragged to rearrange operators.
@@ -33,12 +34,14 @@ These apply to each operator:
 - **Sustain Level (SL)**: Determines the point at which the sound ceases to decay and changes to a sound having a constant level. The sustain level is expressed as a fraction of the maximum level. (0-15 range)
 - **Release Rate (RR)**: Determines the rate at which the sound disappears after KEY-OFF. The higher the value, the shorter the release. (0-15 range)
 - **Total Level (TL)**: Represents the envelope’s highest amplitude, with 0 being the largest and 63 (decimal) the smallest. A change of one unit is about 0.75 dB.
+  - in the case of the second operator, it goes from 0 to 15 instead.
+- **Key Scale Level (KSL)**: Also known as "Level Scale". Determines the degree to which the amplitude decreases according to the pitch.
 
 ![FM ADSR chart](FM-ADSRchart.png)
 
 - **Envelope Scale (KSR)**: Also known as "Key Scale". Determines the degree to which the envelope execution speed increases according to the pitch.
 - **Frequency Multiplier (MULT)**: Determines the operator frequency in relation to the pitch. (0-10, 12, 15 range)
-- **Pitch Modulation (VIB)**: Makes the operator affected by LFO vibrato.
+- **Vibrato (VIB)**: Makes the operator affected by LFO vibrato.
 
 ## macros
 

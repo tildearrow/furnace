@@ -14,13 +14,15 @@ the instrument editor always starts with this section:
 
 depending on the instrument type, there are many different types of instrument editor:
 
-- [FM synthesis](fm.md) - for use with YM2612, YM2151 and FM block portion of YM2610.
-- [PSG](psg.md) - for use with TI SN76489 and derivatives like Sega Master System's PSG.
+- [FM (OPN)](fm-opn.md) - for use with YM2612, YM2203, YM2608, YM2610 and YM2610B.
+- [FM (OPM)](fm-opm.md) - for use with YM2151.
+- [FM (OPZ)](fm-opz.md) - for use with YM2414.
+- [SN76489/Sega PSG](psg.md) - for use with TI SN76489 and derivatives like Sega Master System's PSG.
 - [NES](nes.md) - for use with NES.
 - [Game Boy](game-boy.md) - for use with Game Boy APU.
-- [PC Engine / TurboGrafx-16](pce.md) - for use with PC Engine's wavetable synthesizer.
+- [PC Engine/TurboGrafx-16](pce.md) - for use with PC Engine's wavetable synthesizer.
 - [WonderSwan](wonderswan.md) - for use with WonderSwan's wavetable synthesizer.
-- [AY8930](8930.md) - for use with Microchip AY8930 E-PSG sound source.
+- [AY8930](ay8930.md) - for use with Microchip AY8930 E-PSG sound source.
 - [Commodore 64](c64.md) - for use with Commodore 64 SID.
 - [SAA1099](saa.md) - for use with Philips SAA1099 PSG sound source.
 - [TIA](tia.md) - for use with Atari 2600 chip.
@@ -29,13 +31,12 @@ depending on the instrument type, there are many different types of instrument e
 - [Atari Lynx](lynx.md) - for use with Atari Lynx handheld console.
 - [VERA](vera.md) - for use with Commander X16 VERA.
 - [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
-- [Konami SCC / Bubble System WSG](scc.md) - for use with Konami SCC and Wavetable portion in Bubble System's sound hardware.
+- [Konami SCC/Bubble System WSG](scc.md) - for use with Konami SCC and Wavetable portion in Bubble System's sound hardware.
 - [Namco 163](n163.md) - for use with Namco 163.
 - [Konami VRC6](vrc6.md) - for use with VRC6's PSG sound source.
 - [SNES](snes.md) - for use with SNES S-APU.
 - [Casio PV-1000](pv1000.md) - for use with Casio PV-1000.
 - [C140](c140.md) for use with Namco C140.
-
 
 # macros
 
