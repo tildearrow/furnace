@@ -14,7 +14,7 @@ hovering over a pattern number will pop up a tooltip showing the name of that pa
 
 the buttons are:
 - **Add new order**: adds a new order.
-- **Remove order**: removes the currently sected order.
+- **Remove order**: removes the currently selected order.
 - **Duplicate order**: adds a new order with patterns matching the selected one directly below it.
   - right-click to "deep clone"; this copies all patterns involved to new ones.
 - **Move order up**: swaps the selected order with the one above it.
