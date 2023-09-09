@@ -1,5 +1,5 @@
 # compatibility flags
 
-The **Compatibility Flags** window contains several tabs full of settings that change aspects of tracking and playback. A new Furnace file will leave them all at their defaults (off), while opening a DefleMask, Amiga MOD, or earlier Furnace file will automatically set the appropriate options.
+the **Compatibility Flags** window contains several tabs full of settings that change aspects of tracking and playback. a new Furnace song will have these disabled, while opening a DefleMask module, .mod, or earlier Furnace file will automatically set the appropriate options.
 
-Hovering over most options will bring up additional info about them. It's not recommended to change any of these without clear reason. _There be dragons here._
+hovering over most options will bring up additional info about them. it is not recommended to change any of these, especially the ones in the DefleMask and Old Furnace sections.
