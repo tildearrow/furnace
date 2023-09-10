@@ -3393,6 +3393,7 @@ void DivEngine::quitDispatch() {
   playing=false;
   curSpeed=0;
   endOfSong=false;
+  stepPlay=0;
   ticks=0;
   tempoAccum=0;
   curRow=0;
