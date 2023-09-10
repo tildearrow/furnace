@@ -1,26 +1,26 @@
 # grooves
 
-Grooves are macros for speed.
+grooves are macros for speed.
 
-A **groove** is the equivalent of repeating `0Fxx` commands on each row to get a cycle of speeds. For example, a groove of "6 4 5 3" makes the first row 6 ticks long, the next row 4 ticks, then 5, 3, 6, 4, 5, 3...
+a **groove** is the equivalent of repeating `0Fxx` commands on each row to get a cycle of speeds. for example, a groove of "6 4 5 3" makes the first row 6 ticks long, the next row 4 ticks, then 5, 3, 6, 4, 5, 3...
 
 
 ![groove](groove.png)
 
-To set the song's groove:
-- Open the "Speed" window.
-- Click the "Speed" button so it becomes "Speeds" (effectively a groove of two speeds).
-- Click again so it becomes "Groove".
-- Enter a sequence of up to 16 speeds.
+to set the song's groove:
+- open the "Speed" window.
+- click the "Speed" button so it becomes "Speeds" (effectively a groove of two speeds).
+- click again so it becomes "Groove".
+- enter a sequence of up to 16 speeds.
 
 
 ![groove patterns](grooves.png)
 
-The "Grooves" window is for entering preset groove patterns.
-- The **`+`** button adds a new groove pattern; click in the pattern to edit it.
-- The **`×`** buttons remove them.
+the "Grooves" window is for entering preset groove patterns.
+- the **`+`** button adds a new groove pattern; click in the pattern to edit it.
+- the **`×`** buttons remove them.
 
-A single `09xx` command will switch to the matching numbered groove pattern.
+a single `09xx` command will switch to the matching numbered groove pattern.
 
 ## BPM
 
@@ -28,7 +28,7 @@ this is a non-exhaustive list of grooves and their equivalent BPM.
 
 _note:_ this table assumes a song's tick rate setting is left at its default value for the chosen engine speed: 60 for NTSC, or 50 for PAL.
 
-BPM NTSC | BPM PAL | groove                 | | BPM NTSC | BPM PAL | groove
+bPM NTSC | BPM PAL | groove                 | | BPM NTSC | BPM PAL | groove
 --------:|--------:|:-----------------------|-|---------:|--------:|:----------------------
   100.00 |   83.33 | 9                      | |   168.75 |  140.63 | 6, 5, 5
   102.86 |   85.71 | 9, 9, 9, 8             | |   171.43 |  142.86 | 6, 5, 5, 5

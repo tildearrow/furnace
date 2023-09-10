@@ -35,7 +35,7 @@ right-clicking within the view will change it to the configuration view shown ab
   - `%V`: volume (percentage)
   - `%b`: volume (hex)
   - `%%`: percent sign
-- The OK button returns from options view to the oscilloscopes.
+- the OK button returns from options view to the oscilloscopes.
 
 ## gradient
 
