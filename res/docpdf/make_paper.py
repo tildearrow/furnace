@@ -91,7 +91,7 @@ if __name__ == "__main__":
     # each file is its own section
     html +='<section id="%s">%s</section>' % (
       my_file.replace(os.path.sep, "__"),
-      markdown.markdown(data, extensions=[GithubFlavoredMarkdownExtension()])
+      markdown.markdown(data, extensions=['nl2br', GithubFlavoredMarkdownExtension()])
     )
 
   # build html
