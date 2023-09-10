@@ -314,7 +314,7 @@ int DivPlatformK053260::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
