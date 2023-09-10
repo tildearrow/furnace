@@ -20,7 +20,7 @@ the following instrument types are available:
 - [FM (OPN)](fm-opn.md) - for use with YM2612, YM2203, YM2608, YM2610 and YM2610B.
 - [Game Boy](game-boy.md) - for use with Game Boy APU.
 - [C64](c64.md) - for use with Commodore 64 SID.
-- [Generic Sample](amiga.md) for controlling Amiga and other sample channels/chips like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
+- [Generic Sample](sample.md) for controlling Amiga and other sample channels/chips like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
 - [PC Engine](pce.md) - for use with PC Engine's wavetable synthesizer.
 - [AY-3-8910/SSG](ay8910.md) - for use with AY-3-8910 PSG sound source and SSG portion in YM2610.
 - [AY8930](ay8930.md) - for use with Microchip AY8930 E-PSG sound source.
@@ -89,9 +89,9 @@ Each macro has two buttons on the left.
 
 Every macro can be defined though one of three methods, selectable with the leftmost button under the macro type label:
 
-- ![](macro-button-seq.png) **Sequence:** displayed as a bar graph, this is a sequence of numeric values.
-- ![](macro-button-ADSR.png) **ADSR:** this is a traditional ADSR envelope, defined by the rate of increase and decrease of value over time.
-- ![](macro-button-LFO.png) **LFO:** the Low Frequency Oscillator generates a repeating wave of values.
+- ![sequence](macro-button-seq.png) **Sequence:** displayed as a bar graph, this is a sequence of numeric values.
+- ![ADSR](macro-button-ADSR.png) **ADSR:** this is a traditional ADSR envelope, defined by the rate of increase and decrease of value over time.
+- ![LFO](macro-button-LFO.png) **LFO:** the Low Frequency Oscillator generates a repeating wave of values.
 
 Some macros are "bitmap" style. They represent a number of "bits" that can be toggled individually, and the values listed represent the sum of which bits are turned on.
 

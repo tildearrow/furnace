@@ -14,7 +14,7 @@ the index follows.
 8. [advanced topics](8-advanced/README.md)
 9. [guides](9-guides/README.md)
 
-# authors
+## authors
 
 - cam900
 - DeMOSic

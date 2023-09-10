@@ -212,21 +212,21 @@ all these menu items show or hide their associated windows.
 - [samples](../6-sample/README.md)
 - [orders](order-list.md)
 - [pattern](../3-pattern/README.md)
-- _[mixer](mixer.md)_
-- _[grooves](grooves.md)_
-- _[channels](channels.md)_
-- _[pattern manager](pat-manager.md)_
-- _[chip manager](chip-manager.md)_
-- _[compatibility flags](compat-flags.md)_
-- [song comments](comments.md)
+- _[mixer](../8-advanced/mixer.md)_
+- _[grooves](../8-advanced/grooves.md)_
+- _[channels](../8-advanced/channels.md)_
+- _[pattern manager](../8-advanced/pat-manager.md)_
+- _[chip manager](../8-advanced/chip-manager.md)_
+- _[compatibility flags](../8-advanced/compat-flags.md)_
+- [song comments](../8-advanced/comments.md)
 
-- [piano](piano.md)
-- [oscilloscope](osc.md)
-- [oscilloscopes (per-channel)](chanosc.md)
-- [clock](clock.md)
-- [register view](regview.md)
-- [log viewer](log-viewer.md)
-- [stats](stats.md)
+- [piano](../8-advanced/piano.md)
+- [oscilloscope](../8-advanced/osc.md)
+- [oscilloscopes (per-channel)](../8-advanced/chanosc.md)
+- [clock](../8-advanced/clock.md)
+- [register view](../8-advanced/regview.md)
+- [log viewer](../8-advanced/log-viewer.md)
+- [stats](../8-advanced/stats.md)
 
 # help
 
