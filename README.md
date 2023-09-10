@@ -137,7 +137,7 @@ for other operating systems, you may [build the source](#developer-info).
 some people have provided packages for Unix/Unix-like distributions. here's a list.
 
 - **Arch Linux**: [furnace](https://archlinux.org/packages/extra/x86_64/furnace/) is in the official repositories.
-- **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt (warning: 0.5.8!).
+- **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
 - **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
 - **openSUSE**: [a package](https://software.opensuse.org/package/furnace) is available, courtesy of fpesari.
 - **Void Linux**: [furnace](https://github.com/void-linux/void-packages/tree/master/srcpkgs/furnace) is available in the official repository.
