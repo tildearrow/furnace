@@ -131,6 +131,15 @@ if __name__ == "__main__":
           code {
             font-family: 'IBM Plex Mono';
           }
+          ul {
+            padding-left: 4pt;
+            margin-right: 4pt;
+            list-style-type: none;
+          }
+          li:before {
+            content: '-';
+            padding-right: 3pt;
+          }
           h1 {
             hyphens: none;
             text-align: left;
