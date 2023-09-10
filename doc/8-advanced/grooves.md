@@ -28,7 +28,7 @@ this is a non-exhaustive list of grooves and their equivalent BPM.
 
 _note:_ this table assumes a song's tick rate setting is left at its default value for the chosen engine speed: 60 for NTSC, or 50 for PAL.
 
-bPM NTSC | BPM PAL | groove                 | | BPM NTSC | BPM PAL | groove
+BPM NTSC | BPM PAL | groove                 | | BPM NTSC | BPM PAL | groove
 --------:|--------:|:-----------------------|-|---------:|--------:|:----------------------
   100.00 |   83.33 | 9                      | |   168.75 |  140.63 | 6, 5, 5
   102.86 |   85.71 | 9, 9, 9, 8             | |   171.43 |  142.86 | 6, 5, 5, 5

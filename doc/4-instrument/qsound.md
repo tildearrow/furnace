@@ -1,6 +1,6 @@
 # Capcom QSound instrument editor
 
-The QSound instrument editor contains three tabs: Sample and Macros.
+the QSound instrument editor contains three tabs: Sample and Macros.
 
 ## Sample
 

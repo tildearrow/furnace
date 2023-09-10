@@ -1,6 +1,6 @@
 # NES instrument editor
 
-The instrument editor for NES consists of these macros:
+the instrument editor for NES consists of these macros:
 
 - **Volume**: volume sequence.
 - **Arpeggio**: pitch sequence.

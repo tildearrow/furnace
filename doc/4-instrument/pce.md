@@ -1,6 +1,6 @@
 # NEC PC Engine instrument editor
 
-The PCE instrument editor contains three tabs: Sample, Wavetable and Macros.
+the PCE instrument editor contains three tabs: Sample, Wavetable and Macros.
 
 ## Sample
 

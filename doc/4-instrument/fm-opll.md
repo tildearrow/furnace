@@ -1,6 +1,6 @@
 # OPLL FM synthesis instrument editor
 
-The OPLL FM editor is divided into 5 tabs:
+the OPLL FM editor is divided into 5 tabs:
 
 - **FM**: for controlling the basic parameters of FM sound source.
 - **Macros (FM)**: for macros controlling algorithm, waveform and feedback.
@@ -16,10 +16,10 @@ however, unlike the other FM chips, only one custom patch may be set at a time, 
 but don't worry! there also are 15 preset patches that you may select at any time.
 
 these apply to the instrument as a whole:
-- **Feedback (FB)**: Determines how many times operator 1 returns its output to itself (0 to 7).
+- **Feedback (FB)**: determines how many times operator 1 returns its output to itself (0 to 7).
 - **Sustain (SUS)**: enables the sustain flag (sets the release rate to 5).
-- **DC (half-sine carrier)**: Sets the waveform produced by carrier operator to half-sine.
-- **DM (half-sine modulator)**: Sets the waveform produced by modulator operator to half-sine.
+- **DC (half-sine carrier)**: sets the waveform produced by carrier operator to half-sine.
+- **DM (half-sine modulator)**: sets the waveform produced by modulator operator to half-sine.
 - **preset dropdown**: selects OPLL preset instrument.
   - this is the selector for the preset patches I mentioned before.
   - once a preset patch is selected, only the volume is configurable.
@@ -28,35 +28,35 @@ these apply to the instrument as a whole:
 if you select the special Drums patch, you may use the instrument in Drums mode of OPLL. an extra setting also appears:
 - **Fixed frequency mode**: allows you to set a fixed frequency for the drum channels.
 
-These apply to each operator:
-- The crossed-arrows button can be dragged to rearrange operators.
-- **Amplitude Modulation (AM)**: Makes the operator affected by LFO tremolo.
-- **Envelope generator sustain flag (EGS)**: When enabled, value of Sustain Level is in effect.
-- **Attack Rate (AR)**: determines the rising time for the sound. The bigger the value, the faster the attack (0 to 15).
-- **Decay Rate (DR)**: Determines the diminishing time for the sound. The higher the value, the shorter the decay. It's the initial amplitude decay rate (0 to 15).
-- **Sustain Level (SL)**: Determines the point at which the sound ceases to decay and changes to a sound having a constant level. The sustain level is expressed as a fraction of the maximum level (0 to 15).
-- **Release Rate (RR)**: Determines the rate at which the sound disappears after note off. The higher the value, the shorter the release (0 to 15).
-- **Total Level (TL)**: Represents the envelope’s highest amplitude, with 0 being the largest and 63 (decimal) the smallest. A change of one unit is about 0.75 dB.
+these apply to each operator:
+- the crossed-arrows button can be dragged to rearrange operators.
+- **Amplitude Modulation (AM)**: makes the operator affected by LFO tremolo.
+- **Envelope generator sustain flag (EGS)**: when enabled, value of Sustain Level is in effect.
+- **Attack Rate (AR)**: determines the rising time for the sound. the bigger the value, the faster the attack (0 to 15).
+- **Decay Rate (DR)**: determines the diminishing time for the sound. the higher the value, the shorter the decay. it's the initial amplitude decay rate (0 to 15).
+- **Sustain Level (SL)**: determines the point at which the sound ceases to decay and changes to a sound having a constant level. the sustain level is expressed as a fraction of the maximum level (0 to 15).
+- **Release Rate (RR)**: determines the rate at which the sound disappears after note off. the higher the value, the shorter the release (0 to 15).
+- **Total Level (TL)**: represents the envelope’s highest amplitude, with 0 being the largest and 63 (decimal) the smallest. A change of one unit is about 0.75 dB.
   - in the case of the second operator, it goes from 0 to 15 instead.
-- **Key Scale Level (KSL)**: Also known as "Level Scale". Determines the degree to which the amplitude decreases according to the pitch.
+- **Key Scale Level (KSL)**: also known as "Level Scale". determines the degree to which the amplitude decreases according to the pitch.
 
 ![FM ADSR chart](FM-ADSRchart.png)
 
-- **Envelope Scale (KSR)**: Also known as "Key Scale". Determines the degree to which the envelope execution speed increases according to the pitch.
-- **Frequency Multiplier (MULT)**: Determines the operator frequency in relation to the pitch. (0-10, 12, 15 range)
-- **Vibrato (VIB)**: Makes the operator affected by LFO vibrato.
+- **Envelope Scale (KSR)**: also known as "Key Scale". determines the degree to which the envelope execution speed increases according to the pitch.
+- **Frequency Multiplier (MULT)**: determines the operator frequency in relation to the pitch. (0-10, 12, 15 range)
+- **Vibrato (VIB)**: makes the operator affected by LFO vibrato.
 
 ## macros
 
-Macros define the sequence of values passed to the given parameter. Via macro, along with the previously mentioned parameters, the following can be controlled:
+macros define the sequence of values passed to the given parameter. via macro, along with the previously mentioned parameters, the following can be controlled:
 
 ## FM Macros
 
-All parameters are listed above.
+all parameters are listed above.
 
 ## OP1-OP4 Macros
 
-All parameters are listed above.
+all parameters are listed above.
 
 ## Macros
 
@@ -70,4 +70,4 @@ All parameters are listed above.
 
 # links
 
-[FM instrument tutorial](https://www.youtube.com/watch?v=wS8edjurjDw): A great starting point to learn how create and work with FM sounds. This was made for DefleMask, but all the same principles apply.
+[FM instrument tutorial](https://www.youtube.com/watch?v=wS8edjurjDw): A great starting point to learn how create and work with FM sounds. this was made for DefleMask, but all the same principles apply.

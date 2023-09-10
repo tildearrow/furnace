@@ -27,7 +27,7 @@ if envelope is off:
   - **Direct**: direct gain from 0 to 127.
   - **Decrease (linear)**: linear gain from -0 to -31.
   - **Decrease (logarithmic)**: exponential gain from -0 to -31.
-    - note: using decrease modes will not produce any sound unless a Gain macro is set. The first tick must be the initial gain, and the second tick must be the decrease gain value. gain values are as described in the Macros section below.
+    - note: using decrease modes will not produce any sound unless a Gain macro is set. the first tick must be the initial gain, and the second tick must be the decrease gain value. gain values are as described in the Macros section below.
   - **Increase (linear)**: linear gain from +0 to +31.
   - **Increase (bent line)**: inverse exponential gain from +0 to +31.
 - **Gain**: value of gain.

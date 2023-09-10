@@ -1,6 +1,6 @@
 # VRC6 instrument editor
 
-The VRC6 (regular) instrument editor consists of two tabs.
+the VRC6 (regular) instrument editor consists of two tabs.
 
 ## Sample
 

@@ -27,7 +27,7 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
   - only in 4-op mode (OPL3).
 - `15xx`: **set operator 4 level.**
   - only in 4-op mode (OPL3).
-- `16xy`: **sSet multiplier of operator.**
+- `16xy`: **set multiplier of operator.**
   - `x` is the operator (1-4; last 2 operators only in 4-op mode).
   - `y` is the multiplier.
 - `17xx`: **set vibrato depth.**

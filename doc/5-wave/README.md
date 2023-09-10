@@ -49,7 +49,7 @@ controls across the bottom line:
 - `+` / `±`: toggle text input as unsigned/signed. also adjusts waveform display.
 - text input: waveform data as an editable numeric sequence. also called "MML stream".
 
-## waveform utilifies
+## waveform utilities
 
 these provide different ways of creating or altering a waveform.
 

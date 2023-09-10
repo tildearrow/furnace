@@ -7,8 +7,8 @@ however, effects are continuous, which means you only need to type it once and t
 ## volume
 
 - `0Axy`: **Volume slide.**
-  - If `x` is 0 then this slides volume down by `y` each tick.
-  - If `y` is 0 then this slides volume up by `x` each tick.
+  - if `x` is 0 then this slides volume down by `y` each tick.
+  - if `y` is 0 then this slides volume up by `x` each tick.
 - `FAxy`: **Fast volume slide.** same as `0Axy` above but 4× faster.
 - `F3xx`: **Fine volume slide up.** same as `0Ax0` but 64× slower.
 - `F4xx`: **Fine volume slide down.** same as `0A0x` but 64× slower.
@@ -16,8 +16,8 @@ however, effects are continuous, which means you only need to type it once and t
 - `F9xx`: **Single tick volume slide down.** subtracts `x` from volume on first tick only.
   - ---
 - `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed. `y` is the depth.
-  - Tremolo is downward only.
-  - Maximum tremolo depth is -60 volume steps.
+  - tremolo is downward only.
+  - maximum tremolo depth is -60 volume steps.
 
 ## pitch
 
@@ -38,11 +38,11 @@ however, effects are continuous, which means you only need to type it once and t
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
   - ---
 - `04xy`: **Vibrato.** changes pitch to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.
-  - Maximum vibrato depth is ±1 semitone.
+  - maximum vibrato depth is ±1 semitone.
 - `E3xx`: **Set vibrato direction.** `xx` may be one of the following:
-  - `00`: Up and down. default.
-  - `01`: Up only.
-  - `02`: Down only.
+  - `00`: up and down. default.
+  - `01`: up only.
+  - `02`: down only.
 - `E4xx`: **Set vibrato range** in 1/16th of a semitone. 
 
 ## panning
@@ -63,7 +63,7 @@ not all chips support these effects.
 
 ## time
 
-- `09xx`: **Set speed/groove.** if no grooves are defined, this sets speed. If alternating speeds are active, this sets the first speed.
+- `09xx`: **Set speed/groove.** if no grooves are defined, this sets speed. if alternating speeds are active, this sets the first speed.
 - `0Fxx`: **Set speed 2.** during alternating speeds or a groove, this sets the second speed.
   - ---
 - `Cxxx`: **Set tick rate.** changes tick rate to `xxx` Hz (ticks per second).
@@ -79,14 +79,14 @@ not all chips support these effects.
 ## note
 
 - `0Cxx`: **Retrigger.** repeats current note every `xx` ticks.
-  - This effect is not continuous; it must be entered on every row.
-- `ECxx`: **Note cut.** ends current note after `xx` ticks. For FM instruments, it's equivalent to a "key off".
+  - this effect is not continuous; it must be entered on every row.
+- `ECxx`: **Note cut.** ends current note after `xx` ticks. for FM instruments, it's equivalent to a "key off".
 - `EDxx`: **Note delay.** delays note by `x` ticks.
 
 ## other
 
 - `9xxx`: **Set sample position.** jumps current sample to position `xxx * 0x100`.
-  - Not all chips support this effect.
+  - not all chips support this effect.
 - `EBxx`: **Set LEGACY sample mode bank.** selects sample bank. used only for compatibility.
   - does not apply on Amiga.
 - `EExx`: **Send external command.**
