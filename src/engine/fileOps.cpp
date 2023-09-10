@@ -2792,6 +2792,11 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
             pat->data[j][4+(k<<1)]=reader.readS();
             pat->data[j][5+(k<<1)]=reader.readS();
           }
+          if (pat->data[j][0]==0 && pat->data[j][1]!=0) {
+            logD("what? %d:%d:%d note %d octave %d",chan,i,j,pat->data[j][0],pat->data[j][1]);
+            pat->data[j][0]=12;
+            pat->data[j][1]--;
+          }
         }
 
         if (ds.version>=51) {
