@@ -205,7 +205,7 @@ a list of keybinds is displayed.
 the settings for note input keybinds operate differently. each entry in the list of keybinds is made of the following:
 - **Key**: key assignment.
 - **Type**: type of note input. left-click cycles through "Note", "Note off", "Note release", and "Macro release".
-  - _note:_ the list is sorted by type. on changing a key's type, it will instantly move to its new sorting position!
+  - note: the list is sorted by type. on changing a key's type, it will instantly move to its new sorting position!
 - **Value**: number of semitones above C at the current octave. only appears for note type binds.
 - **Remove**: removes the keybind from the list.
 

@@ -1,6 +1,6 @@
 # Namco WSG instrument editor
 
-The Namco WSG/C15/C30 instrument editor consists of two tabs: Wavetable and Macros.
+the Namco WSG/C15/C30 instrument editor consists of two tabs: Wavetable and Macros.
 
 ## Wavetable
 

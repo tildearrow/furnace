@@ -31,7 +31,7 @@ also known as Famicom. it is a five-channel sound generator: first two channels 
   - `1`: length counter. volume represents output volume.
   - `2`: looping envelope. volume represents envelope duration.
   - `3`: constant volume. default value. volume represents output volume.
-  - Pulse and noise channels only.
+  - pulse and noise channels only.
   - you may need to apply a phase reset (using the macro) to make the envelope effective.
 - `16xx`: **set length counter.**
   - see table below for possible values.

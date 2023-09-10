@@ -45,7 +45,8 @@ _**Divider**:_ Changes the effective tick rate. a tick rate of 60Hz and a diviso
 **Highlight**: sets the pattern row highlights:
 - the first value represents the number of rows per beat.
 - the second value represents the number of rows per measure.
-- these don't have to line up with the music's actual beats and measures. set them as preferred for tracking. _Note:_ These values are used for the metronome and calculating BPM.
+- these don't have to line up with the music's actual beats and measures. set them as preferred for tracking.
+  - note: these values are used for the metronome and calculating BPM.
 
 **Pattern Length**: the length of each pattern in rows. this affects all patterns in the song, and every pattern must be the same length. (Individual patterns can be cut short by `0Bxx`, `0Dxx`, and `FFxx` commands.)
 

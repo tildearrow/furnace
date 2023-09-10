@@ -1,6 +1,6 @@
 # Commodore PET instrument editor
 
-The PET instrument editor consists of these macros:
+the PET instrument editor consists of these macros:
 
 - **Volume**: volume sequence (on/off).
 - **Arpeggio**: pitch sequence.

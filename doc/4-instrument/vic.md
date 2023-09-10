@@ -1,6 +1,6 @@
 # Commodore VIC instrument editor
 
-The VIC instrument editor consists of these macros:
+the VIC instrument editor consists of these macros:
 
 - **Volume**: volume sequence.
   - note: global! affects entire chip.

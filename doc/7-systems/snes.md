@@ -64,7 +64,7 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
   - all of these are signed numbers.
   - `00` to `7F` for 0 to 127.
   - `80` to `FF` for -128 to -1.
-  - _Note:_ be sure the sum of all coefficients is between -128 and 127. sums outside that may result in overflow and therefore clicking.
+  - note: be sure the sum of all coefficients is between -128 and 127. sums outside that may result in overflow and therefore clicking.
   - see [SnesLab](https://sneslab.net/wiki/FIR_Filter) for a full explanation and examples.
 
 # info
