@@ -67,7 +67,7 @@ All parameters are listed above.
 - **Panning**: toggles output on left and right channels.
 - **Pitch**: fine pitch.
   - **Relative**: when enabled, pitch changes are relative to the current pitch.
-- **Phase Reset**: Restarts all operators and resets the waveform to its start. Effectively the same as a `0Cxx` retrigger.
+- **Phase Reset**: Restarts all operators and resets the waveform to its start.
 
 
 # links
