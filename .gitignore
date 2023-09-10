@@ -29,3 +29,6 @@ src/asm/68k/amigatest/*.bin
 src/asm/68k/amigatest/player
 res/binary_to_compressed_c
 res/binary_to_compressed_c.exe
+res/docpdf/manual.html
+res/docpdf/manual.pdf
+res/docpdf/.venv
