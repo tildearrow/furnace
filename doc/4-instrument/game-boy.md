@@ -50,7 +50,7 @@ notes:
 
 - **Volume**: volume sequence.
   - note: this only appears if "Use software envelope" is checked.
-- **Arpeggio**: pitch in half-steps.
+- **Arpeggio**: pitch sequence.
 - **Duty/Noise**: pulse wave duty cycle or noise mode sequence.
 - **Waveform**: channel 3 wavetable sequence.
 - **Panning**: output for left and right channels.

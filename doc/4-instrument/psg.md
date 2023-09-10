@@ -2,8 +2,8 @@
 
 The instrument editor for Sega PSG (SMS, and other TI SN76489 derivatives) consists of these macros:
 
-- **Volume**: volume.
-- **Arpeggio**: pitch in half-steps.
+- **Volume**: volume sequence.
+- **Arpeggio**: pitch sequence.
 - **Duty**: noise mode.
   - `0`: short noise; preset frequencies.
   - `1`: long noise; preset frequencies.

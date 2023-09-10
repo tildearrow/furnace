@@ -3,16 +3,16 @@
 The FM editor is divided into 7 tabs:
 
 - **FM**: for controlling the basic parameters of FM sound source.
-- **Macros (FM)**: for macros controlling algorithm, feedback and LFO 
-- **Macros (OP1)**: for macros controlling FM parameters of operator 1
-- **Macros (OP2)**: for macros controlling FM parameters of operator 2
-- **Macros (OP3)**: for macros controlling FM parameters of operator 3
-- **Macros (OP4)**: for macros controlling FM parameters of operator 4
-- **Macros**: for miscellaneous macros controlling volume, arpeggio, and YM2151 noise generator.
+- **Macros (FM)**: for macros controlling algorithm, feedback and LFO.
+- **Macros (OP1)**: for macros controlling FM parameters of operator 1.
+- **Macros (OP2)**: for macros controlling FM parameters of operator 2.
+- **Macros (OP3)**: for macros controlling FM parameters of operator 3.
+- **Macros (OP4)**: for macros controlling FM parameters of operator 4.
+- **Macros**: for miscellaneous macros controlling volume, arpeggio, and noise generator.
 
 ## FM
 
-The FM synthesizers Furnace supports are four-operator, meaning it takes four oscillators to produce a single sound.
+OPM is four-operator, meaning it takes four oscillators to produce a single sound.
 
 These apply to the instrument as a whole:
 - **Feedback (FB)**: Determines how many times operator 1 returns its output to itself (0 to 7).
@@ -23,17 +23,18 @@ These apply to the instrument as a whole:
     - Middle-click pauses and unpauses the preview.
     - Right-click returns to algorithm view.
 
-- **LFO Frequency Sensitivity**: Determines the amount of LFO frequency changes (0 to 7).
-- **LFO Amplitude Sensitivity (AM)**: Determines the amount of LFO amplitude changes (0 to 3).
+- **LFO > Freq (FMS)**: Determines how much will LFO have an effect in frequency (0 to 7).
+- **LFO > Amp (AMS)**: Determines how much will LFO have an effect in volume (0 to 3).
+  - only applies to operators which have AM turned on.
 
 These apply to each operator:
 - The crossed-arrows button can be dragged to rearrange operators.
 - The **OP1**, **OP2**, **OP3**, and **OP4** buttons enable or disable those operators.
-- **Amplitude Modulation (AM)**: Makes the operator affected by LFO.
+- **Amplitude Modulation (AM)**: Makes the operator volume affected by LFO.
 - **Attack Rate (AR)**: determines the rising time for the sound. The bigger the value, the faster the attack (0 to 31).
 - **Decay Rate (DR)**: Determines the diminishing time for the sound. The higher the value, the shorter the decay. It's the initial amplitude decay rate (0 to 31).
 - **Sustain Level (SL)**: Determines the point at which the sound ceases to decay and changes to a sound having a constant level. The sustain level is expressed as a fraction of the maximum level (0 to 15).
-- **Secondary Decay Rate (DR2) / Sustain Rate (SR)**: Determines the diminishing time for the sound. The higher the value, the shorter the decay. This is the long "tail" of the sound that continues as long as the key is depressed (0 to 31).
+- **Decay Rate 2 (D2R) / Sustain Rate (SR)**: Determines the diminishing time for the sound. The higher the value, the shorter the decay. This is the long "tail" of the sound that continues as long as the key is depressed (0 to 31).
 - **Release Rate (RR)**: Determines the rate at which the sound disappears after KEY-OFF. The higher the value, the shorter the release (0 to 15).
 - **Total Level (TL)**: Represents the envelope’s highest amplitude, with 0 being the largest and 127 (decimal) the smallest. A change of one unit is about 0.75 dB.
 
@@ -63,13 +64,13 @@ All parameters are listed above.
 
 ## Macros
 
-- **Arpeggio**: Pitch change sequence in semitones.
+- **Arpeggio**: pitch sequence.
 - **Noise Frequency**: specifies the noise frequency.
   - this only applies to operator 4 of channel 8!
 - **Panning**: toggles output on left and right channels.
 - **Pitch**: fine pitch.
   - **Relative**: when enabled, pitch changes are relative to the current pitch.
-- **Phase Reset**: Restarts all operators and resets the waveform to its start. Effectively the same as a `0Cxx` retrigger.
+- **Phase Reset**: restarts all operators and resets the waveform to its start.
 
 
 # links

@@ -1,6 +1,6 @@
-# Namco C140 instrument editor
+# SegaPCM instrument editor
 
-The Namco C140 instrument editor contains three tabs: Sample and Macros.
+The SegaPCM instrument editor contains three tabs: Sample and Macros.
 
 ## Sample
 

@@ -1,6 +1,6 @@
-# Namco C140 instrument editor
+# ADPCM-B instrument editor
 
-The Namco C140 instrument editor contains three tabs: Sample and Macros.
+The ADPCM-B instrument editor contains three tabs: Sample and Macros.
 
 ## Sample
 
@@ -10,7 +10,6 @@ for sample settings, see [the Sample instrument editor](sample.md).
 
 - **Volume**: volume sequence.
 - **Arpeggio**: pitch sequence.
-- **Panning (left)**: output level for left channel.
-- **Panning (right)**: output level for right channel.
+- **Panning**: toggle left/right output.
 - **Pitch**: fine pitch.
 - **Phase Reset**: trigger restart of sample.

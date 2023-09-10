@@ -3,9 +3,9 @@
 The OPLL FM editor is divided into 5 tabs:
 
 - **FM**: for controlling the basic parameters of FM sound source.
-- **Macros (FM)**: for macros controlling algorithm, waveform and feedback
-- **Macros (OP1)**: for macros controlling FM parameters of operator 1
-- **Macros (OP2)**: for macros controlling FM parameters of operator 2
+- **Macros (FM)**: for macros controlling algorithm, waveform and feedback.
+- **Macros (OP1)**: for macros controlling FM parameters of operator 1.
+- **Macros (OP2)**: for macros controlling FM parameters of operator 2.
 - **Macros**: for miscellaneous macros controlling volume, arpeggio, and preset.
 
 ## FM
