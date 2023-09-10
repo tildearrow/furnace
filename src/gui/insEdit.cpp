@@ -4492,7 +4492,7 @@ void FurnaceGUI::drawInsEdit() {
             ins->std.dutyMacro.vZoom=-1;
             PARAMETER;
           }
-          P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
+          P(ImGui::Checkbox("Don't test before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_PCE ||
