@@ -37,7 +37,7 @@ These apply to each operator:
 - **Decay Rate (DR)**: Determines the diminishing time for the sound. The higher the value, the shorter the decay. It's the initial amplitude decay rate (0 to 31).
 - **Sustain Level (SL)**: Determines the point at which the sound ceases to decay and changes to a sound having a constant level. The sustain level is expressed as a fraction of the maximum level (0 to 15).
 - **Decay Rate 2 (D2R) / Sustain Rate (SR)**: Determines the diminishing time for the sound. The higher the value, the shorter the decay. This is the long "tail" of the sound that continues as long as the key is depressed (0 to 31).
-- **Release Rate (RR)**: Determines the rate at which the sound disappears after KEY-OFF. The higher the value, the shorter the release (0 to 15).
+- **Release Rate (RR)**: Determines the rate at which the sound disappears after note off. The higher the value, the shorter the release (0 to 15).
 - **Total Level (TL)**: Represents the envelope’s highest amplitude, with 0 being the largest and 127 (decimal) the smallest. A change of one unit is about 0.75 dB.
 
 ![FM ADSR chart](FM-ADSRchart.png)

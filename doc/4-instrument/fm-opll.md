@@ -35,7 +35,7 @@ These apply to each operator:
 - **Attack Rate (AR)**: determines the rising time for the sound. The bigger the value, the faster the attack (0 to 15).
 - **Decay Rate (DR)**: Determines the diminishing time for the sound. The higher the value, the shorter the decay. It's the initial amplitude decay rate (0 to 15).
 - **Sustain Level (SL)**: Determines the point at which the sound ceases to decay and changes to a sound having a constant level. The sustain level is expressed as a fraction of the maximum level (0 to 15).
-- **Release Rate (RR)**: Determines the rate at which the sound disappears after KEY-OFF. The higher the value, the shorter the release (0 to 15).
+- **Release Rate (RR)**: Determines the rate at which the sound disappears after note off. The higher the value, the shorter the release (0 to 15).
 - **Total Level (TL)**: Represents the envelope’s highest amplitude, with 0 being the largest and 63 (decimal) the smallest. A change of one unit is about 0.75 dB.
   - in the case of the second operator, it goes from 0 to 15 instead.
 - **Key Scale Level (KSL)**: Also known as "Level Scale". Determines the degree to which the amplitude decreases according to the pitch.
