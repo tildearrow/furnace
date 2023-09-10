@@ -11,7 +11,7 @@ the buttons at the left do the following:
 | move one octave down | move one octave up | open options |
 | fewer visible octaves | more visible octaves | swap buttons |
 
-when swapped, the bottons do the following:
+when swapped, the buttons do the following:
 
 |  |  |  |
 | :---: | :---: | :---: |
