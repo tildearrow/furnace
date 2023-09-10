@@ -328,6 +328,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("when enabled, the pitch macro of an instrument is in frequency/period space.");
         }
+        ImGui::Checkbox("Reset arpeggio phase on new note",&e->song.resetArpPhaseOnNewNote);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("when enabled, the arpeggio phase is reset on a new note."); // TODO: Better description
+        }
         ImGui::EndTabItem();
       }
       ImGui::EndTabBar();
