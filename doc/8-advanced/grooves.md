@@ -26,7 +26,7 @@ a single `09xx` command will switch to the matching numbered groove pattern.
 
 this is a non-exhaustive list of grooves and their equivalent BPM.
 
-_note:_ this table assumes a song's tick rate setting is left at its default value for the chosen engine speed: 60 for NTSC, or 50 for PAL.
+note: this table assumes a song's tick rate setting is left at its default value for the chosen engine speed: 60 for NTSC, or 50 for PAL.
 
 BPM NTSC | BPM PAL | groove                 | | BPM NTSC | BPM PAL | groove
 --------:|--------:|:-----------------------|-|---------:|--------:|:----------------------
