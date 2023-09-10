@@ -653,7 +653,7 @@ void FurnaceGUI::drawSettings() {
             String sysFlagsS=settings.initialSys.getString(fmt::sprintf("flags%d",i),"");
             DivConfig sysFlags;
             sysFlags.loadFromBase64(sysFlagsS.c_str());
-            if (drawSysConf(-1,sysID,sysFlags,false)) {
+            if (drawSysConf(-1,i,sysID,sysFlags,false)) {
               settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags.toBase64());
             }
             ImGui::TreePop();

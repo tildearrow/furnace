@@ -22,7 +22,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
-bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
+bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
   bool restart=modifyOnChange;
   bool supportsCustomRate=true;
@@ -1750,11 +1750,11 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
-      if (ImGui::InputText("##MMLWave",&mmlStringSNES)) {
+      if (ImGui::InputText("##MMLWave",&mmlStringSNES[sysPos])) {
         int actualData[256];
         int discardIt=0;
         memset(actualData,0,256*sizeof(int));
-        decodeMMLStrW(mmlStringSNES,actualData,discardIt,snesFilterHex?0:-128,snesFilterHex?255:127,snesFilterHex);
+        decodeMMLStrW(mmlStringSNES[sysPos],actualData,discardIt,snesFilterHex?0:-128,snesFilterHex?255:127,snesFilterHex);
         if (snesFilterHex) {
           for (int i=0; i<8; i++) {
             if (actualData[i]>=128) actualData[i]-=256;
@@ -1772,7 +1772,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
             actualData[i]=echoFilter[i];
           }
         }
-        encodeMMLStr(mmlStringSNES,actualData,8,-1,-1,snesFilterHex);
+        encodeMMLStr(mmlStringSNES[sysPos],actualData,8,-1,-1,snesFilterHex);
       }
 
       int filterSum=(
