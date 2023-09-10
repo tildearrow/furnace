@@ -1,6 +1,6 @@
 # PC Speaker
 
-40 years of one square beep - and still going! Single channel, no volume control...
+40 years of one square beep - and still going! single channel, no volume control...
 
 # real output
 

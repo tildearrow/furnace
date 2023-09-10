@@ -8,4 +8,4 @@ none.
 
 # info
 
-this chip uses the [Pokémon Mini/QuadTone](../4-instrument/quadtone.md) instrument editor.
+this chip uses the [Pokémon Mini/QuadTone](../4-instrument/pokemini.md) instrument editor.

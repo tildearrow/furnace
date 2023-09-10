@@ -13,13 +13,12 @@ it has 4 wavetable channels. some of them have additional capabilities:
 - `10xx`: **change wave**.
 - `11xx`: **setup noise mode.** channel 4 only.
   - 0: disable.
-  - 1-8: enable and set tap preset.
+  - 1-8: enable and set length.
 - `12xx`: **setup sweep period.** channel 3 only.
   - 0: disable.
   - 1-32: enable and set period.
 - `13xx`: **setup sweep amount.** channel 3 only.
-- `17xx`: **toggle PCM mode.** channel 2 only.
 
 # info
 
-this chip uses the [WonderSwan](../4-instrument/wonderswan.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+this chip uses the [WonderSwan](../4-instrument/wonderswan.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.

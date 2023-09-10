@@ -10,7 +10,7 @@ the original OPL (Yamaha YM3526) was present as an expansion for the Commodore 6
 its successor, the OPL2 (Yamaha YM3812), added 3 more waveforms and was one of the more popular chips because it was present on the AdLib card for PC.
 later Creative would borrow the chip to make the Sound Blaster, and totally destroyed AdLib's dominance.
 
-the OPL3 (Yamaha YMF262) added 9 more channels, 4 more waveforms, rudimentary 4-operator mode (pairing up to 12 channels to make up to six 4-operator channels), quadraphonic output (sadly Furnace only supports stereo) and some other things.
+the OPL3 (Yamaha YMF262) added 9 more channels, 4 more waveforms, rudimentary 4-operator mode (pairing up to 12 channels to make up to six 4-operator channels), quadraphonic output and some other things.
 
 afterwards everyone moved to Windows and software mixed PCM streaming...
 
@@ -81,4 +81,4 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
 
 # info
 
-this chip uses the [FM (OPL)](../4-instrument/fmopl.md) instrument editor.
+this chip uses the [FM (OPL)](../4-instrument/fm-opl.md) instrument editor.

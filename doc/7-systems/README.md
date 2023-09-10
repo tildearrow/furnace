@@ -1,8 +1,8 @@
 # systems
 
-this is a list of some of the systems that Furnace supports, as shown in the new file dialog. each chip links to a page with information and a list of supported effects.
+this is a list that contains some of the systems that Furnace supports, as shown in the New File dialog. each chip links to a page with information and a list of supported effects.
 
-some systems have alternate chips, such as the Sega Genesis having a YM2612, a YM3438, or YMF276 depending on the model. this list shows the default configuration.
+some systems have alternate chips, such as the Sega Genesis having a YM2612 or YM3438 depending on the model. this list shows the default configuration.
 
 - **Sega Genesis**: [YM3438](ym2612.md), [SN76489](sms.md)
 - **Sega Genesis (with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)

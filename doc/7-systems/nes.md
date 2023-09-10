@@ -59,7 +59,7 @@ also known as Famicom. it is a five-channel sound generator: first two channels 
 
 # info
 
-this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
 
 
 ## short noise frequencies (NTSC)
@@ -125,8 +125,6 @@ value | raw | NTSC  | PAL   | Dendy | NTSC 5-step | PAL 5-step | Dendy 5-step
 reference: [NESdev](https://www.nesdev.org/wiki/APU_Length_Counter)
 
 ## DPCM frequency table
-
-"value" is for DefleMask compatability.
 
 value | tracker | NTSC freq | NTSC pitch |  PAL freq | PAL pitch  
 -----:|:-------:|----------:|:----------:|----------:|:----------:

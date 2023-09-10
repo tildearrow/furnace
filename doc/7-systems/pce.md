@@ -1,8 +1,8 @@
 # PC Engine/TurboGrafx-16
 
 a console from NEC that, depending on a region:
-- attempted to enter the fierce battle between Nintendo and Sega, but because its capabilities are a mix of third and fourth generation, it failed to last long. (US and Europe)
--  was Nintendo's most fearsome rival, completely defeating Sega Mega Drive and defending itself against Super Famicom (Japan)
+- attempted to enter the fierce battle between Nintendo and Sega, but because its capabilities are a mix of third and fourth generation, it failed to last long (US and Europe), or
+- was Nintendo's most fearsome rival, completely defeating Sega Mega Drive and defending itself against Super Famicom (Japan).
 
 it has 6 wavetable channels and the last two ones also double as noise channels.
 furthermore, it has some PCM and LFO!
@@ -23,4 +23,4 @@ furthermore, it has some PCM and LFO!
 
 # info
 
-this chip uses the [PC Engine](../4-instrument/pce.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+this chip uses the [PC Engine](../4-instrument/pce.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.

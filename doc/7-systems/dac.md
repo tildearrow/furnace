@@ -10,4 +10,4 @@ none yet.
 
 # info
 
-this chip uses the [Generic Sample](../4-instrument/amiga.md) instrument editor.
+this chip uses the [Generic Sample](../4-instrument/sample.md) instrument editor.

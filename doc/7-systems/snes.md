@@ -8,7 +8,7 @@ this whole system itself is pretty much a separate computer that the main CPU ne
 Furnace communicates with the DSP directly and provides a full 64KB of memory. this memory might be reduced excessively on ROM export to make up for playback engine and pattern data. you can go to window > statistics to see how much memory your samples are using.
 
 some notable features of the DSP are:
-- pitch modulation, meaning that you can use 2 channels to make a basic FM synth without eating up too much memory.
+- pitch modulation.
 - a built in noise generator, useful for hi-hats, cymbals, rides, effects, among other things.
 - per-channel echo, which unfortunately eats up a lot of memory but can be used to save channels in songs.
 - an 8-tap FIR filter for the echo, which is basically a procedural low-pass filter that you can edit however you want.
@@ -18,7 +18,7 @@ some notable features of the DSP are:
 - 7-bit volume per channel.
 - sample interpolation, which is basically a low-pass filter that gets affected by the pitch of the channel.
 
-Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) in order to create more 'animated' sounds, using less memory than regular samples. this however is not a hardware feature, and might be difficult to implement on real hardware.
+Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) in order to create more 'animated' sounds, using less memory than regular samples.
 
 # effects
 
@@ -64,7 +64,7 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
   - all of these are signed numbers.
   - `00` to `7F` for 0 to 127.
   - `80` to `FF` for -128 to -1.
-  - _Note:_ Be sure the sum of all coefficients is between -128 and 127. sums outside that may result in overflow and therefore clicking.
+  - _Note:_ be sure the sum of all coefficients is between -128 and 127. sums outside that may result in overflow and therefore clicking.
   - see [SnesLab](https://sneslab.net/wiki/FIR_Filter) for a full explanation and examples.
 
 # info

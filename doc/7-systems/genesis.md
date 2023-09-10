@@ -44,7 +44,7 @@ this console is powered by two sound chips: the [Yamaha YM2612](ym2612.md) and [
 
 in ExtCh mode, channel 3 is split into one column for each of its four operators. feedback and LFO levels are shared. the frequency of each operator may be controlled independently with notes and effects. this can be used for more polyphony or more complex sounds.
 
-all four operators are still combined according to the algorithm in use. for example, algorithm 7 acts as four independent sine waves. algorithm 4 acts as two independent 2op sounds. even with algorithm 0, placing a note in any operator triggers that operator alone.
+all four operators are still combined according to the algorithm in use. for example, algorithm 7 acts as four independent sine waves. algorithm 4 acts as two independent 2-op sounds. even with algorithm 0, placing a note in any operator triggers that operator alone.
 
 ## CSM
 

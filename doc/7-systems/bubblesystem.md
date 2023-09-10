@@ -14,4 +14,4 @@ Furnace emulates this configuration as a "chip" with 32×16 wavetables.
 
 # info
 
-this chip uses the [Konami SCC/ Bubble System WSG](../4-instrument/scc.md) instrument editor.
+this chip uses the [Konami SCC/Bubble System WSG](../4-instrument/scc.md) instrument editor.

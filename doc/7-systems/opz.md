@@ -116,4 +116,4 @@ no plans have been made for TX81Z MIDI passthrough, because:
 
 # info
 
-this chip uses the [FM (OPZ)](../4-instrument/fm.md) instrument editor.
+this chip uses the [FM (OPZ)](../4-instrument/fm-opz.md) instrument editor.

@@ -1,8 +1,8 @@
 # Game Boy
 
-the Nintendo Game Boy is one of the most successful portable game systems ever made.
+the Game Boy is one of the most successful portable game systems ever made.
 
-with stereo sound, two pulse channels, a wave channel and a noise channel, it packed some serious punch.
+it has stereo sound, two pulse channels, a wave channel and a noise channel.
 
 # effects
 
@@ -24,7 +24,6 @@ with stereo sound, two pulse channels, a wave channel and a noise channel, it pa
 # info
 
 this chip uses the [Game Boy](../4-instrument/game-boy.md) instrument editor.
-
 
 # links
 
