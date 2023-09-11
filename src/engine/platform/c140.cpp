@@ -209,7 +209,7 @@ void DivPlatformC140::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (is219) {
-        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_C219)?1:0)|(chan[i].invert?0x40:0)|(chan[i].surround?8:0)|(chan[i].noise?4:0);
+        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable() || chan[i].noise)?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_C219)?1:0)|(chan[i].invert?0x40:0)|(chan[i].surround?8:0)|(chan[i].noise?4:0);
       } else {
         ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?0x08:0);
       }
@@ -228,11 +228,15 @@ void DivPlatformC140::tick(bool sysTick) {
             start=sampleOff[chan[i].sample]&0xffff;
             end=MIN(start+s->length8-1,65535);
           }
+        } else if (chan[i].noise && is219) {
+          bank=groupBank[i>>2];
+          start=0;
+          end=1;
         }
         if (chan[i].audPos>0) {
           start=MIN(start+(MIN(chan[i].audPos,s->length8)>>1),65535);
         }
-        if (s->isLoopable()) {
+        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen && s->isLoopable()) {
           if (is219) {
             loop=MIN(start+(s->loopStart>>1),65535);
             end=MIN(start+(s->loopEnd>>1)-1,65535);
@@ -240,6 +244,8 @@ void DivPlatformC140::tick(bool sysTick) {
             loop=MIN(start+s->loopStart,65535);
             end=MIN(start+s->loopEnd-1,65535);
           }
+        } else if (chan[i].noise && is219) {
+          loop=0;
         }
         rWrite(0x05+(i<<4),0); // force keyoff first
         if (is219) {
