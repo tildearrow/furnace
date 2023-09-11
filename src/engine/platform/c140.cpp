@@ -152,11 +152,18 @@ void DivPlatformC140::tick(bool sysTick) {
     }
     if (is219) {
       if (chan[i].std.duty.had) {
-        chan[i].noise=chan[i].std.duty.val&1;
-        chan[i].invert=chan[i].std.duty.val&2;
-        chan[i].surround=chan[i].std.duty.val&4;
-        chan[i].freqChanged=true;
-        chan[i].writeCtrl=true;
+        unsigned char singleByte=(
+          (chan[i].noise?1:0)|
+          (chan[i].invert?2:0)|
+          (chan[i].surround?4:0)
+        );
+        if (singleByte!=(chan[i].std.duty.val&7)) {
+          chan[i].noise=chan[i].std.duty.val&1;
+          chan[i].invert=chan[i].std.duty.val&2;
+          chan[i].surround=chan[i].std.duty.val&4;
+          chan[i].freqChanged=true;
+          chan[i].writeCtrl=true;
+        }
       }
     }
     if (chan[i].std.pitch.had) {
