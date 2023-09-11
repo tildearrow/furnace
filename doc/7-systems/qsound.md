@@ -10,7 +10,7 @@ the QSound chip also has a small echo buffer, somewhat similar to the SNES, alth
 
 there are also 3 ADPCM channels. ADPCM samples are fixed to 8012Hz.
 
-# effects
+## effects
 
 - `10xx`: **set echo feedback level.**
   - this effect will apply to all channels.
@@ -19,6 +19,6 @@ there are also 3 ADPCM channels. ADPCM samples are fixed to 8012Hz.
   - on by default.
 - `3xxx`: **set echo delay buffer length.**
 
-# info
+## info
 
 this chip uses the [QSound](../4-instrument/qsound.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.

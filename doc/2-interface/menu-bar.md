@@ -4,7 +4,7 @@ the menu bar allows you to select from five menus: file, edit, settings, window 
 
 items in _italic_ don't appear in basic mode and are only available in advanced mode.
 
-# file
+## file
 
 - **new...**: creates a new song.
 - **open...**: opens the file picker, allowing you to select a song to open.
@@ -52,7 +52,7 @@ items in _italic_ don't appear in basic mode and are only available in advanced 
 
 - **exit**: closes Furnace.
 
-## export audio
+### export audio
 
 this option allows you to export your song in .wav format. I know I know, no .mp3 or .ogg export yet, but you can use a converter.
 
@@ -70,7 +70,7 @@ and three export choices:
 - **multiple files (one per channel)**: exports the output of each channel to .wav files.
   - useful for usage with a channel visualizer such as corrscope.
 
-## export VGM
+### export VGM
 
 this option allows exporting to a VGM (Video Game Music) file. these can be played back with VGMPlay (for example).
 
@@ -104,7 +104,7 @@ the following settings exist:
 
 click on **click to export** to begin exporting.
 
-## export ZSM
+### export ZSM
 
 ZSM (ZSound Music) is a format designed for the Commander X16 to allow hardware playback.
 it may contain data for either YM2151 or VERA chips.
@@ -120,7 +120,7 @@ the following settings are available:
 
 click on **Begin Export** to... you know.
 
-## export command stream
+### export command stream
 
 this option exports a text or binary file which contains a dump of the internal command stream produced when playing the song.
 
@@ -129,7 +129,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **export (binary)**: exports in Furnace's own command stream format (FCS). see `export-tech.md` in `papers/` for details.
 - **export (text)**: exports the command stream as a text file. only useful for analysis, really.
 
-# edit
+## edit
 
 - **...**: does nothing except prevent accidental clicks on later menu items if the menu is too tall to fit on the program window.
 
@@ -191,7 +191,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 
 - **clear**: opens a window that allows you to mass-delete things like songs, unused instruments, and the like.
 
-# settings
+## settings
 
 - **full screen**: expands the Furnace window so it covers your screen.
 - **lock layout**: prevents you from dragging/resizing docked windows, or docking more.
@@ -200,7 +200,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **reset layout**: resets the workspace to its defaults.
 - **settings...**: shows the Settings window. these are detailed in [settings.md].
 
-# window
+## window
 
 all these menu items show or hide their associated windows.
 
@@ -228,7 +228,7 @@ all these menu items show or hide their associated windows.
 - [log viewer](../8-advanced/log-viewer.md)
 - [stats](../8-advanced/stats.md)
 
-# help
+## help
 
 - **effect list**: displays the effect list.
 - **debug menu**: this menu contains various debug utilities.

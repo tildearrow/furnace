@@ -65,7 +65,7 @@ due to limitations in some of those sound chips, some restrictions exist:
 
 furthermore, many of these chips have a limited amount of sample memory. check memory usage in window > statistics.
 
-# the sample editor
+## the sample editor
 
 you can edit your samples in Furnace's sample editor, which can be accessed by clicking on `window` (at the top of the screen) then clicking on `sample editor`, or by double-clicking a sample in the sample list.
 

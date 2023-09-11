@@ -68,7 +68,7 @@ the following instrument types are available:
 - [C140](c140.md) - for use with C140 sample chip.
 - [C219](c219.md) - for use with C219 sample chip.
 
-# macros
+## macros
 
 macros are incredibly versatile tools for automating instrument parameters.
 
@@ -139,7 +139,7 @@ finally, the sequence of values can be directly edited in the text box at the bo
 
 
 
-# wavetable
+## wavetable
 
 this tab appears for PC Engine, FDS, Namco WSG, and other wavetable-based instruments.
 
@@ -150,7 +150,7 @@ when **Enable synthesizer** is off, the wavetable used for the instrument may be
 to use the wavetable synthesizer, refer to [the wavetable synthesizer section](wavesynth.md).
 
 
-# sample
+## sample
 
 this tab appears for Generic PCM DAC, Amiga and SNES.
 

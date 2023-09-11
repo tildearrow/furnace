@@ -2,7 +2,7 @@
 
 Furnace has a powerful find-and-replace function that can take the repetitive work out of mass editing.
 
-# find
+## find
 
 ![find dialog](find-find.png)
 
@@ -44,7 +44,7 @@ the following options also are available:
   - the **order**, **row**, and **channel** columns are as they say.
   - the **go** column of buttons will take you to the location of the result.
 
-# replace
+## replace
 
 ![replace dialog](find-replace.png)
 

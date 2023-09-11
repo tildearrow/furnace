@@ -20,7 +20,7 @@ some notable features of the DSP are:
 
 Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) in order to create more 'animated' sounds, using less memory than regular samples.
 
-# effects
+## effects
 
 - `10xx`: **set waveform.**
 - `11xx`: **toggle noise mode.**
@@ -61,7 +61,7 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
   - note: be sure the sum of all coefficients is between -128 and 127. sums outside that may result in overflow and therefore clicking.
   - see [SnesLab](https://sneslab.net/wiki/FIR_Filter) for a full explanation and examples.
 
-# info
+## info
 
 this chip uses the [SNES](../4-instrument/snes.md) instrument editor.
 
@@ -167,8 +167,6 @@ value |  freq. | value |    freq.
 
 reference: [Super Famicom Development Wiki](https://wiki.superfamicom.org/spc700-reference#dsp-register:-flg-1318)
 
-
-
-# resources
+## resources
 
 - [SNES-format BRR samples](https://www.smwcentral.net/?p=stion&s=brrsamples) at SMW Central

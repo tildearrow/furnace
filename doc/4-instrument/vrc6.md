@@ -17,7 +17,7 @@ note that using samples on VRC6 is CPU expensive!
 - **Duty**: specifies duty cycle for pulse wave channels.
 - **Pitch**: fine pitch.
 
-# VRC6 (saw) instrument editor
+## VRC6 (saw) instrument editor
 
 this channel has its own instrument type, a one-of-a-kind thing in Furnace that was decided as a compromise during a debate.
 

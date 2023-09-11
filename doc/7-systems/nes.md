@@ -4,7 +4,7 @@ the console from Nintendo that plays Super Mario Bros. and helped revive the ago
 
 also known as Famicom. it is a five-channel sound generator: first two channels play pulse wave with three different duty cycles, third is a fixed-volume triangle channel, fourth is a noise channel (can work in both pseudo-random and periodic modes) and fifth is a (D)PCM sample channel.
 
-# effects
+## effects
 
 - `11xx`: **write to delta modulation counter.** range is `00` to `7F`.
   - this may be used to attenuate the triangle and noise channels; at `7F`, they will be at about 57% volume.
@@ -57,10 +57,9 @@ also known as Famicom. it is a five-channel sound generator: first two channels 
   - see table below for possible values.
 
 
-# info
+## info
 
 this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
-
 
 ## short noise frequencies (NTSC)
 

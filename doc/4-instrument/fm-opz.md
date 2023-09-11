@@ -97,6 +97,6 @@ most parameters are listed above.
 - **Phase Reset**: restarts all operators and resets the waveform to its start. effectively the same as a `0Cxx` retrigger.
 
 
-# links
+## links
 
 [FM instrument tutorial](https://www.youtube.com/watch?v=wS8edjurjDw): A great starting point to learn how create and work with FM sounds. this was made for DefleMask, but all the same principles apply.

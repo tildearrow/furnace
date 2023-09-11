@@ -22,7 +22,7 @@ Seta X1-010   |   128 | 256    |
 Amiga         |  ≤256 | 256    |
 
 
-# wavetable editor
+## wavetable editor
 
 ![wavetable editor](wave-editor.png)
 

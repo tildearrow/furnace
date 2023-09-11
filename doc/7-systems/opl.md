@@ -14,7 +14,7 @@ the OPL3 (Yamaha YMF262) added 9 more channels, 4 more waveforms, rudimentary 4-
 
 afterwards everyone moved to Windows and software mixed PCM streaming...
 
-# effects
+## effects
 
 - `10xx`: **set AM depth.** the following values are accepted:
   - `0`: 1dB (shallow)
@@ -79,6 +79,6 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
   - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` determines whether KSR is on.
 
-# info
+## info
 
 this chip uses the [FM (OPL)](../4-instrument/fm-opl.md) instrument editor.

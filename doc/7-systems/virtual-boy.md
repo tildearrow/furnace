@@ -8,7 +8,7 @@ its sound generation chip is called Virtual Sound Unit (VSU), a wavetable chip t
 
 additionally, channel 5 offers a modulation/sweep unit. the former is similar to FDS' but has much reduced speed control.
 
-# effects
+## effects
 
 - `10xx`: **set waveform.**
 - `11xx`: **set noise length.** range is `0` to `7`.
@@ -42,6 +42,6 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
   - `xx` points to a wavetable. range is `0` to `FF`.
   - this is an alternative to setting the modulation wave through the instrument.
 
-# info
+## info
 
 this chip uses the [Virtual Boy](../4-instrument/virtual-boy.md) instrument editor.

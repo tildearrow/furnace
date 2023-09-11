@@ -7,7 +7,7 @@ not really - very soon talented programmers found out ways to output much more t
 - a Follin/SFX-like engine with 6 channels of narrow pulse wave and click drums.
 - QuadTone: PWM-driven engine with 4ch of pulse wave with freely variable duty cycles and 1-bit PCM drums.
 
-# effects
+## effects
 
 - **`12xx`**: set pulse width.
 - **`17xx`**: trigger overlay drum.
@@ -15,6 +15,6 @@ not really - very soon talented programmers found out ways to output much more t
   - overlay drums are 1-bit and always play at 55930Hz (NTSC) or 55420Hz (PAL).
   - the maximum length is 2048!
 
-# info
+## info
 
 this chip uses the [Beeper](../4-instrument/beeper.md), [Generic Sample](../4-instrument/sample.md), and [Pokémon Mini/QuadTone](../4-instrument/pokemini.md) instrument editors.

@@ -20,7 +20,7 @@ SN7 was extremely popular due to low cost. therefore, it was cloned and copied t
 - NCR8496, different noise invert mask.
 - PSSJ3, literally identical to the former. it just swaps "high" and "low" signals in the output, which results in no audible difference.
 
-# effects
+## effects
 
 - `20xy`: **set noise mode.**
   - `x` controls whether to inherit frequency from channel 3.
@@ -31,6 +31,6 @@ SN7 was extremely popular due to low cost. therefore, it was cloned and copied t
     - `1`: noise.
 
 
-# info
+## info
 
 this chip uses the [SN76489/Sega PSG](../4-instrument/psg.md) instrument editor.

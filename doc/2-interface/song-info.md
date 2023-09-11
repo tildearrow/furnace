@@ -9,7 +9,7 @@ all of this metadata will be included in a VGM export. this isn't the case for a
 
 - _**Tuning (A-4)**_: set tuning based on the note A-4, which should be 440 in most cases. opening an Amiga MOD will set it to 436 for hardware compatibility. available only in advanced mode.
 
-# subsongs
+## subsongs
 
 this window allows one to create **subsongs** - multiple individual songs within a single file. each song has its own order list and patterns, but all songs within a file share the same chips, samples, and so forth.
 
@@ -19,7 +19,7 @@ this window allows one to create **subsongs** - multiple individual songs within
 - **Name**: title of the current subsong.
 - the box at the bottom can store any arbitrary text, like a separate "Comments" box for the current subsong.
 
-# speed
+## speed
 
 there are multiple ways to set the tempo of a song.
 

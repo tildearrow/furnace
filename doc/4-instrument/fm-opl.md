@@ -65,6 +65,6 @@ all parameters are listed above.
   - **Relative**: when enabled, pitch changes are relative to the current pitch.
 - **Phase Reset**: restarts all operators and resets the waveform to its start.
 
-# OPL (drums) instrument editor
+## OPL (drums) instrument editor
 
 this is similar to the OPL instrument editor, but sets the parameters of snare, tom, top and hi-hat directly once a drums instrument is activated.

@@ -5,7 +5,7 @@ it has 16 channels of pulse/triangle/saw/noise and one stereo PCM channel.
 
 currently Furnace does not support the PCM channel's stereo mode, though (except for panning).
 
-# effects
+## effects
 
 - `20xx`: **set waveform.**
   - `0`: pulse
@@ -17,6 +17,6 @@ currently Furnace does not support the PCM channel's stereo mode, though (except
 - `EExx`: **ZSM synchronization event.**
   - `xx` is the event payload. this has no effect in how the music is played in Furnace, but the ZSMKit library for the Commander X16 interprets these events inside ZSM files and optionally triggers a callback routine. this can be used, for instance, to cause game code to respond to beats or at certain points in the music.
 
-# info
+## info
 
 this chip uses the [VERA](../4-instrument/vera.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.

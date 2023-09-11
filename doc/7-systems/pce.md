@@ -7,7 +7,7 @@ a console from NEC that, depending on a region:
 it has 6 wavetable channels and the last two ones also double as noise channels.
 furthermore, it has some PCM and LFO!
 
-# effects
+## effects
 
 - `10xx`: **change wave.**
 - `11xx`: **toggle noise mode.** only available in the last two channels.
@@ -21,6 +21,6 @@ furthermore, it has some PCM and LFO!
 - `17xx`: **toggle LEGACY sample mode.**
   - **this effect exists only for compatibility reasons! its use is NOT recommented. use Sample type instruments instead.**
 
-# info
+## info
 
 this chip uses the [PC Engine](../4-instrument/pce.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
