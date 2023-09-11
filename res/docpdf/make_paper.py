@@ -146,14 +146,31 @@ if __name__ == "__main__":
           }
           h2 {
             hyphens: none;
-            text-align: left;
+            text-align: center;
             font-size: 36pt;
             margin: 0;
             padding: 0 0 4pt 10pt;
             border-style: none none double none;
             border-width: 0 0 6pt 0;
           }
-          h3,h4,h5,h6 {
+          h3 {
+            hyphens: none;
+            text-align: left;
+            font-size: 20pt;
+            margin: 0;
+            padding: 0 0 2pt 10pt;
+            border-style: none none solid none;
+            border-width: 0 0 2pt 0;
+            border-color: #999;
+          }
+          h4 {
+            hyphens: none;
+            text-align: left;
+            font-size: 15pt;
+            margin: 0;
+            padding: 0 0 2pt 4pt;
+          }
+          h5,h6 {
             hyphens: none;
             text-align: left;
           }
@@ -216,7 +233,7 @@ if __name__ == "__main__":
           }
           @page {
             size: a4;
-            margin: 14mm 2cm 3cm 2cm;
+            margin: 14mm 16mm 3cm 16mm;
           }
           @page:left {
             @bottom-left {
