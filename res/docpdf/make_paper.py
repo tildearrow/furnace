@@ -91,7 +91,7 @@ if __name__ == "__main__":
     # each file is its own section
     html +='<section id="%s">%s</section>' % (
       my_file.replace(os.path.sep, "__"),
-      markdown.markdown(data, extensions=['nl2br', GithubFlavoredMarkdownExtension()])
+      markdown.markdown(data, extensions=['nl2br', 'mdx_breakless_lists', GithubFlavoredMarkdownExtension()])
     )
 
   # build html
@@ -132,7 +132,7 @@ if __name__ == "__main__":
             font-family: 'IBM Plex Mono';
           }
           ul {
-            padding-left: 4pt;
+            padding-left: 10pt;
             margin-right: 4pt;
             list-style-type: none;
           }
@@ -208,6 +208,9 @@ if __name__ == "__main__":
           }
           pre {
             font-size: .8em;
+          }
+          li > p {
+            display: inline;
           }
           table {
             display: block;
