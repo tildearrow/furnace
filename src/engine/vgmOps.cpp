@@ -549,6 +549,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(8);
         w->writeC(0xff);
         break;
+      case DIV_SYSTEM_MSM6258:
+        w->writeC(0xb8); // stop
+        w->writeC(baseAddr2|0);
+        w->writeC(1);
+        break;
       case DIV_SYSTEM_MSM6295:
         w->writeC(0xb8); // disable all channels
         w->writeC(baseAddr2|0);
@@ -1055,6 +1060,12 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_MSM6258:
+      w->writeC(0xb7);
+      w->writeC(baseAddr2|(write.addr&0x7f));
+      w->writeC(write.val);
+      logV("MSM write to %.2x %.2x",write.addr,write.val);
+      break;
     case DIV_SYSTEM_MSM6295:
       w->writeC(0xb8);
       w->writeC(baseAddr2|(write.addr&0x7f));
@@ -1238,6 +1249,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   bool writeDACSamples=false;
   bool writeNESSamples=false;
   bool writePCESamples=false;
+  bool writeVOXSamples=false;
   DivDispatch* writeADPCM_OPNA[2]={NULL,NULL};
   DivDispatch* writeADPCM_OPNB[2]={NULL,NULL};
   DivDispatch* writeADPCM_Y8950[2]={NULL,NULL};
@@ -1746,6 +1758,21 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           writeRF5C68[0]=disCont[i].dispatch;
         }
         break;
+      case DIV_SYSTEM_MSM6258:
+        if (!hasOKIM6258) {
+          hasOKIM6258=disCont[i].dispatch->chipClock;
+          CHIP_VOL(23,0.65);
+          willExport[i]=true;
+          writeVOXSamples=true;
+        } else if (!(hasOKIM6258&0x40000000)) {
+          isSecond[i]=true;
+          CHIP_VOL_SECOND(23,0.65);
+          willExport[i]=true;
+          writeVOXSamples=true;
+          hasOKIM6258|=0x40000000;
+          howManyChips++;
+        }
+        break;
       case DIV_SYSTEM_MSM6295:
         if (!hasOKIM6295) {
           hasOKIM6295=disCont[i].dispatch->chipClock;
@@ -1927,7 +1954,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeI(hasMultiPCM);
     w->writeI(hasuPD7759);
     w->writeI(hasOKIM6258);
-    w->writeC(0); // flags
+    w->writeC(hasOKIM6258?10:0); // flags
     w->writeC(0); // K flags
     w->writeC(c140Type); // C140 chip type
     w->writeC(0); // reserved
@@ -2063,6 +2090,18 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeI(sample->length8);
     for (unsigned int j=0; j<sample->length8; j++) {
       w->writeC(((unsigned char)sample->data8[j]+0x80)>>3);
+    }
+  }
+
+  if (writeVOXSamples && !directStream) for (int i=0; i<song.sampleLen; i++) {
+    DivSample* sample=song.sample[i];
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(4);
+    w->writeI(sample->lengthVOX);
+    for (unsigned int j=0; j<sample->lengthVOX; j++) {
+      unsigned char actualData=(sample->dataVOX[j]>>4)|(sample->dataVOX[j]<<4);
+      w->writeC(actualData);
     }
   }
 
@@ -2342,6 +2381,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           w->writeC(0x92);
           w->writeC(streamID);
           w->writeI(24000); // default
+          streamID++;
+          break;
+        case DIV_SYSTEM_MSM6258:
+          w->writeC(0x90);
+          w->writeC(streamID);
+          w->writeC(isSecond[i]?0x97:0x17);
+          w->writeC(0); // port
+          w->writeC(1); // data input
+
+          w->writeC(0x91);
+          w->writeC(streamID);
+          w->writeC(4);
+          w->writeC(1);
+          w->writeC(0);
           streamID++;
           break;
         default:

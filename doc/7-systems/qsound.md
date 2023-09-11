@@ -21,4 +21,4 @@ there are also 3 ADPCM channels. ADPCM samples are fixed to 8012Hz.
 
 ## info
 
-this chip uses the [QSound](../4-instrument/qsound.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
+this chip uses the [QSound](../4-instrument/qsound.md) instrument editor.

@@ -5945,6 +5945,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_GA20 ||
               ins->type==DIV_INS_K053260 ||
               ins->type==DIV_INS_C140 ||
+              ins->type==DIV_INS_C219 ||
               ins->type==DIV_INS_TED) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }

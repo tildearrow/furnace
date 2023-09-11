@@ -50,12 +50,15 @@ class DivPlatformMSM6258: public DivDispatch {
 
     unsigned char sampleBank, msmPan, msmDivider, rateSel, msmClock, clockSel;
     signed char msmDividerCount, msmClockCount;
+    bool updateSampleFreq;
     short msmOut;
 
     int delay, updateOsc, sample, samplePos;
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
+
+    int calcVGMRate();
   
   public:
     void acquire(short** buf, size_t len);

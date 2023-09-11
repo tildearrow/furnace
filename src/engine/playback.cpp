@@ -2205,7 +2205,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       } else if (srcPortSet==0xffd) {
         // sample preview
         for (size_t j=0; j<size; j++) {
-          out[destSubPort][j]+=samp_bbOut[j]/32768.0;
+          out[destSubPort][j]+=previewVol*(samp_bbOut[j]/32768.0);
         }
       } else if (srcPortSet==0xffe && playing && !halted) {
         // metronome

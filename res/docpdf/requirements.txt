@@ -5,6 +5,7 @@ fonttools==4.39.3
 html5lib==1.1
 Markdown==3.4.3
 Pillow==9.4.0
+mdx-breakless-lists==1.0.1
 py-gfm==2.0.0
 pycparser==2.21
 pydyf==0.5.0

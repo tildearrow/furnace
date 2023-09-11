@@ -91,7 +91,7 @@ if __name__ == "__main__":
     # each file is its own section
     html +='<section id="%s">%s</section>' % (
       my_file.replace(os.path.sep, "__"),
-      markdown.markdown(data, extensions=['nl2br', GithubFlavoredMarkdownExtension()])
+      markdown.markdown(data, extensions=['nl2br', 'mdx_breakless_lists', GithubFlavoredMarkdownExtension()])
     )
 
   # build html
@@ -119,7 +119,7 @@ if __name__ == "__main__":
           }
           body {
             font-family: 'Exo 2';
-            line-height: 1.2;
+            line-height: 1.25;
             font-size: 11pt;
             color: #000;
           }
@@ -132,7 +132,7 @@ if __name__ == "__main__":
             font-family: 'IBM Plex Mono';
           }
           ul {
-            padding-left: 4pt;
+            padding-left: 10pt;
             margin-right: 4pt;
             list-style-type: none;
           }
@@ -184,13 +184,13 @@ if __name__ == "__main__":
           }
           a[href^='#']:after {
             content: target-counter(attr(href),page);
-            font-weight: regular;
+            font-weight: normal;
             font-size: 0.5em;
             color: #555;
           }
           a[href^='http']:after {
             content: ' (' attr(href) ') ';
-            font-weight: regular;
+            font-weight: normal;
             color: #555;
           }
           #cover {
@@ -209,10 +209,12 @@ if __name__ == "__main__":
           pre {
             font-size: .8em;
           }
+          li > p {
+            display: inline;
+          }
           table {
             display: block;
             width: 100%%;
-            width: max-content;
             max-width: 100%%;
             overflow: auto;
             border-collapse: collapse;
@@ -222,14 +224,17 @@ if __name__ == "__main__":
             border-top: 1pt solid #aaa;
           }
           th, td {
-            padding: 3pt 6pt;
+            padding: 2pt 3pt;
             border: 1pt solid #ccc;
           }
           th {
             hyphens: none;
             padding: 2pt 4pt;
             text-transform: uppercase;
-            font-size: .8em
+            font-size: .8em;
+          }
+          td {
+            font-size: 11pt;
           }
           @page {
             size: a4;

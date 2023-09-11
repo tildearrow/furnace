@@ -59,7 +59,7 @@ also known as Famicom. it is a five-channel sound generator: first two channels 
 
 ## info
 
-this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
+this chip uses the [NES](../4-instrument/nes.md) instrument editor.
 
 ## short noise frequencies (NTSC)
 

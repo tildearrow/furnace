@@ -8,4 +8,4 @@ none so far.
 
 ## info
 
-this chip uses the [RF5C68](../4-instrument/rf5c68.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
+this chip uses the [RF5C68](../4-instrument/rf5c68.md) instrument editor.

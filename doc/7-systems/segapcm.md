@@ -18,4 +18,4 @@ Furnace also has a five channel version of this chip, but it only exists for Def
 
 ## info
 
-this chip uses the [SegaPCM](../4-instrument/segapcm.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
+this chip uses the [SegaPCM](../4-instrument/segapcm.md) instrument editor.

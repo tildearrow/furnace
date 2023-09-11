@@ -1137,7 +1137,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_PCSPKR]=new DivSysDef(
     "PC Speaker", NULL, 0x93, 0, 1, false, true, 0, false, 0,
-    "good luck!",
+    "good luck! you get one square and no volume control.",
     {"Square"},
     {"SQ"},
     {DIV_CH_PULSE},
@@ -1146,7 +1146,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_PONG]=new DivSysDef(
     "Pong", NULL, 0xfc, 0, 1, false, true, 0, false, 0,
-    "LOL",
+    "please don't use this chip. it was added as a joke.",
     {"Square"},
     {"SQ"},
     {DIV_CH_PULSE},
@@ -1820,7 +1820,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_GA20]=new DivSysDef(
     "Irem GA20", NULL, 0xc7, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "yet another PCM chip from Irem.",
+    "yet another PCM chip from Irem. like Amiga, but less pitch resolution and no sample loop.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1890,7 +1890,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_C140]=new DivSysDef(
     "Namco C140", NULL, 0xce, 0, 24, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_MULAW)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
-    "Namco's first PCM chip from 1987.",
+    "Namco's first PCM chip from 1987. it's pretty good for being so.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1901,7 +1901,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_C219]=new DivSysDef(
     "Namco C219", NULL, 0xcf, 0, 16, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_C219)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
-    "Namco's PCM chip used in their NA-1/2 hardware.",
+    "Namco's PCM chip used in their NA-1/2 hardware.\nvery similar to C140, but has noise generator.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
