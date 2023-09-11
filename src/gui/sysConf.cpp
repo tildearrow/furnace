@@ -1338,6 +1338,64 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
       ImGui::Unindent();
+      
+      int chipClock=flags.getInt("customClock",0);
+      if (!chipClock) {
+        switch (clockSel) {
+          case 0:
+            chipClock=4000000;
+            break;
+          case 1:
+            chipClock=4096000;
+            break;
+          case 2:
+            chipClock=8000000;
+            break;
+          case 3:
+            chipClock=8192000;
+            break;
+        }
+      }
+
+      ImGui::Text("Sample rate table:");
+      if (ImGui::BeginTable("6258Rate",3)) {
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        ImGui::TableNextColumn();
+        ImGui::Text("divider \\ clock");
+        ImGui::TableNextColumn();
+        ImGui::Text("full");
+        ImGui::TableNextColumn();
+        ImGui::Text("half");
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("/512");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/512);
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/1024);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("/768");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/768);
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/1536);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("/1024");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/1024);
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/2048);
+
+        ImGui::EndTable();
+      }
 
       if (altered) {
         e->lockSave([&]() {
