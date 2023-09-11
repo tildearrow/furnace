@@ -2395,10 +2395,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           w->writeC(4);
           w->writeC(1);
           w->writeC(0);
-
-          w->writeC(0x92);
-          w->writeC(streamID);
-          w->writeI(1000); // safe value
           streamID++;
           break;
         default:
