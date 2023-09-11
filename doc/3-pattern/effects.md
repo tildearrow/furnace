@@ -91,8 +91,9 @@ not all chips support these effects.
   - does not apply on Amiga.
 - `EExx`: **Send external command.**
   - this effect is currently incomplete.
-- `F5xx`: **Disable macro.**\
-  `F6xx`: **Enable macro.** see macro table at the end of this document for possible values.
+- `F5xx`: **Disable macro.**
+- `F6xx`: **Enable macro.**
+  - see macro table at the end of this document for possible values.
 
 additionally, [each chip has its own effects](../7-systems/README.md).
 

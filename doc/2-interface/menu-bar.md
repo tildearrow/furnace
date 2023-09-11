@@ -244,6 +244,6 @@ at the end of the menu bar, more information may be shown:
   - instrument number and name.
   - volume in decimal, hex, and percentage.
   - effect type and description.
-- during playback, the current values of the following will be listed:\
-  > speed/groove @ tick rate (BPM) | order | row | elapsed time.
+- during playback, these values will be displayed:
+  - `speed/groove @ tick rate (BPM) | order | row | elapsed time`
 - if any changes or edits have been made but not yet saved, "modified" will appear.

@@ -37,33 +37,27 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
 - `16xx`: **set gain.** `00` to `7F` if direct, `00` to `1F` otherwise.
 - `18xx`: **enable echo buffer.**
 - `19xx`: **set echo delay.** range is `0` to `F`.
-- `1Axx`: **set left echo channel volume.**\
-  `1Bxx`: **set right echo channel volume.**\
-  `1Cxx`: **set echo feedback.**
+- `1Axx`: **set left echo channel volume.**
+- `1Bxx`: **set right echo channel volume.**
+- `1Cxx`: **set echo feedback.**
   - all of these are signed numbers.
   - `00` to `7F` for 0 to 127.
   - `80` to `FF` for -128 to -1.
-    - setting these to -128 is not recommended as it may cause echo output to overflow and therefore click.
+  - setting these to -128 is not recommended as it may cause echo output to overflow and therefore click.
 - `1Dxx`: **set noise generator frequency.** range is `00` to `1F`. see noise frequencies chart below.
-- `1Exx`: **set left dry / global volume.**\
-  `1Fxx`: **set right dry / global volume.**
+- `1Exx`: **set left dry / global volume.**
+- `1Fxx`: **set right dry / global volume.**
   - these do not affect echo.
-- `20xx`: **set attack.** range is `0` to `F`.\
-  `21xx`: **set decay.** range is `0` to `7`.\
-  `22xx`: **set sustain.** range is `0` to `7`.\
-  `23xx`: **set release.** range is `00` to `1F`.
+- `20xx`: **set attack.** range is `0` to `F`.
+- `21xx`: **set decay.** range is `0` to `7`.
+- `22xx`: **set sustain.** range is `0` to `7`.
+- `23xx`: **set release.** range is `00` to `1F`.
   - these four are only used in ADSR envelope mode. see ADSR chart below.
-- `30xx`: **set echo filter coefficient 0.**\
-  `31xx`: **set echo filter coefficient 1.**\
-  `32xx`: **set echo filter coefficient 2.**\
-  `33xx`: **set echo filter coefficient 3.**\
-  `34xx`: **set echo filter coefficient 4.**\
-  `35xx`: **set echo filter coefficient 5.**\
-  `36xx`: **set echo filter coefficient 6.**\
-  `37xx`: **set echo filter coefficient 7.**
-  - all of these are signed numbers.
-  - `00` to `7F` for 0 to 127.
-  - `80` to `FF` for -128 to -1.
+- `3xyy`: **set echo filter coefficient.**
+  - `x` is the coefficient from 0 to 7.
+  - `yy` is the value (signed number).
+    - `00` to `7F` for 0 to 127.
+    - `80` to `FF` for -128 to -1.
   - note: be sure the sum of all coefficients is between -128 and 127. sums outside that may result in overflow and therefore clicking.
   - see [SnesLab](https://sneslab.net/wiki/FIR_Filter) for a full explanation and examples.
 
