@@ -61,9 +61,11 @@ void DivEngine::initConfDir() {
     return;
   }
 #else
-  // TODO this should check XDG_CONFIG_HOME first
+  char* xdgConfigHome=getenv("XDG_CONFIG_HOME");
   char* home=getenv("HOME");
-  if (home==NULL) {
+  if (xdgConfigHome) {
+    configPath=xdgConfigHome;
+  } else if (home==NULL) {
     int uid=getuid();
     struct passwd* entry=getpwuid(uid);
     if (entry==NULL) {
@@ -79,8 +81,9 @@ void DivEngine::initConfDir() {
 #ifdef __APPLE__
   configPath+="/Library/Application Support";
 #else
-  // FIXME this doesn't honour XDG_CONFIG_HOME *at all*
-  configPath+="/.config";
+  if (xdgConfigHome==NULL) {
+    configPath+="/.config";
+  }
 #endif // __APPLE__
 #endif // __HAIKU__
 #ifdef __APPLE__
