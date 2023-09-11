@@ -1820,7 +1820,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_GA20]=new DivSysDef(
     "Irem GA20", NULL, 0xc7, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "yet another PCM chip from Irem.",
+    "yet another PCM chip from Irem. like Amiga, but less pitch resolution and no sample loop.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
