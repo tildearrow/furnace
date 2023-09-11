@@ -4,22 +4,22 @@ Furnace comes with a "basic mode" that can be toggled through the "settings" men
 
 among the features that cannot be accessed in this mode are:
 
-## edit menu
+### edit menu
 - paste special
 - operation masking
 - input latch
 - find and replace
 
-## speed window
+### speed window
 - virtual tempo
 - divider
 - song length
 
-## song info window
+### song info window
 - manual system naming
 - tuning options
 
-## pattern right-click menu
+### pattern right-click menu
 - gradient/fade
 - scale
 - randomize
@@ -28,7 +28,7 @@ among the features that cannot be accessed in this mode are:
 - collapse
 - expand
 
-## other windows
+### other windows
 - mixer
 - grooves
 - channels
