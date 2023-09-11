@@ -9,7 +9,7 @@ all of this metadata will be included in a VGM export. this isn't the case for a
 
 - _**Tuning (A-4)**_: set tuning based on the note A-4, which should be 440 in most cases. opening an Amiga MOD will set it to 436 for hardware compatibility. available only in advanced mode.
 
-# subsongs
+## subsongs
 
 this window allows one to create **subsongs** - multiple individual songs within a single file. each song has its own order list and patterns, but all songs within a file share the same chips, samples, and so forth.
 
@@ -19,7 +19,7 @@ this window allows one to create **subsongs** - multiple individual songs within
 - **Name**: title of the current subsong.
 - the box at the bottom can store any arbitrary text, like a separate "Comments" box for the current subsong.
 
-# speed
+## speed
 
 there are multiple ways to set the tempo of a song.
 
@@ -45,7 +45,8 @@ _**Divider**:_ Changes the effective tick rate. a tick rate of 60Hz and a diviso
 **Highlight**: sets the pattern row highlights:
 - the first value represents the number of rows per beat.
 - the second value represents the number of rows per measure.
-- these don't have to line up with the music's actual beats and measures. set them as preferred for tracking. _Note:_ These values are used for the metronome and calculating BPM.
+- these don't have to line up with the music's actual beats and measures. set them as preferred for tracking.
+  - note: these values are used for the metronome and calculating BPM.
 
 **Pattern Length**: the length of each pattern in rows. this affects all patterns in the song, and every pattern must be the same length. (Individual patterns can be cut short by `0Bxx`, `0Dxx`, and `FFxx` commands.)
 

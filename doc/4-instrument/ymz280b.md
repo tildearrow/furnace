@@ -1,6 +1,6 @@
 # YMZ280B instrument editor
 
-The YMZ280B instrument editor contains three tabs: Sample and Macros.
+the YMZ280B instrument editor contains three tabs: Sample and Macros.
 
 ## Sample
 

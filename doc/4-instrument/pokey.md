@@ -1,6 +1,6 @@
 # Atari POKEY instrument editor
 
-The instrument editor for POKEY consists of these macros:
+the instrument editor for POKEY consists of these macros:
 
 - **Volume**: volume sequence.
 - **Arpeggio**: pitch sequence.

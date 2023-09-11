@@ -1,6 +1,6 @@
 # SegaPCM instrument editor
 
-The SegaPCM instrument editor contains three tabs: Sample and Macros.
+the SegaPCM instrument editor contains three tabs: Sample and Macros.
 
 ## Sample
 

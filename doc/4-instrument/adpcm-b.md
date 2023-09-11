@@ -1,6 +1,6 @@
 # ADPCM-B instrument editor
 
-The ADPCM-B instrument editor contains three tabs: Sample and Macros.
+the ADPCM-B instrument editor contains three tabs: Sample and Macros.
 
 ## Sample
 

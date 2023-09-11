@@ -7,7 +7,7 @@ OPLL also spawned a few derivative chips, the best known of these is:
 - Yamaha YM2423, same chip as YM2413, just a different patch set...
 - Yamaha YMF281, ditto.....
 
-# technical specifications
+## technical specifications
 
 the YM2413 is equipped with the following features:
 
@@ -25,7 +25,7 @@ the YM2413 is equipped with the following features:
 - modulator and carrier key scaling
 - built-in hardware vibrato support
 
-# effects
+## effects
 
 - `11xx`: **set feedback of channel.**
 - `12xx`: **set operator 1 level.**
@@ -64,7 +64,7 @@ the YM2413 is equipped with the following features:
   - `x` is the operator, either 1 or 2. a value of `0` means "all operators".
   - `y` determines whether KSR is on.
 
-# info
+## info
 
 this chip uses the [FM (OPLL)](../4-instrument/fm-opll.md) instrument editor.
 

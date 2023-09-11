@@ -59,7 +59,7 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612 or Y
 
 
 
-# chips
+## chips
 
 this is the full list of chips that Furnace supports.
 

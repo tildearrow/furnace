@@ -1,6 +1,6 @@
 # Konami SCC/Bubble System WSG instrument editor
 
-The SCC/Bubble System WSG instrument editor consists of two tabs.
+the SCC/Bubble System WSG instrument editor consists of two tabs.
 
 ## Wavetable
 

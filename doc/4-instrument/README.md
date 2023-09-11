@@ -68,56 +68,56 @@ the following instrument types are available:
 - [C140](c140.md) - for use with C140 sample chip.
 - [C219](c219.md) - for use with C219 sample chip.
 
-# macros
+## macros
 
-Macros are incredibly versatile tools for automating instrument parameters.
+macros are incredibly versatile tools for automating instrument parameters.
 
-After creating an instrument, open the Instrument Editor and select the "Macros" tab. There may be multiple macro tabs to control individual FM operators and such.
+after creating an instrument, open the Instrument Editor and select the "Macros" tab. there may be multiple macro tabs to control individual FM operators and such.
 
 ![macro view](macroview.png)
 
-The very first numeric entry sets the visible width of the bars in sequence-type macros. The scrollbar affects the view of all macros at once. There's a matching scrollbar at the bottom underneath all the macros.
+the very first numeric entry sets the visible width of the bars in sequence-type macros. the scrollbar affects the view of all macros at once. there's a matching scrollbar at the bottom underneath all the macros.
 
-Each macro has two buttons on the left.
-- Macro type (explained below).
-- Timing editor, which pops up a small dialog:
-  - Step Length (ticks): Determines how many ticks pass before each change of value. Default is 1.
-  - Delay: Delays the start of the macro until this many ticks have passed. Default is 0.
-  - The button is highlighted if either of these is set differently from default.
+each macro has two buttons on the left.
+- macro type (explained below).
+- timing editor, which pops up a small dialog:
+  - **Step Length (ticks)**: determines how many ticks pass before each change of value. default is 1.
+  - **Delay**: delays the start of the macro until this many ticks have passed. default is 0.
+  - the button is highlighted if either of these is set differently from default.
 
 ## macro types
 
-Every macro can be defined though one of three methods, selectable with the leftmost button under the macro type label:
+every macro can be defined though one of three methods, selectable with the leftmost button under the macro type label:
 
 - ![sequence](macro-button-seq.png) **Sequence:** displayed as a bar graph, this is a sequence of numeric values.
 - ![ADSR](macro-button-ADSR.png) **ADSR:** this is a traditional ADSR envelope, defined by the rate of increase and decrease of value over time.
 - ![LFO](macro-button-LFO.png) **LFO:** the Low Frequency Oscillator generates a repeating wave of values.
 
-Some macros are "bitmap" style. They represent a number of "bits" that can be toggled individually, and the values listed represent the sum of which bits are turned on.
+some macros are "bitmap" style. they represent a number of "bits" that can be toggled individually, and the values listed represent the sum of which bits are turned on.
 
 ### sequence
 
 ![sequence macro editor](macro-seq.png)
 
-The number between the macro type label and the macro type button is the macro length in steps. The `-` and `+` buttons change the length of the macro. Start out by adding at least a few steps.
+the number between the macro type label and the macro type button is the macro length in steps. the `-` and `+` buttons change the length of the macro. start out by adding at least a few steps.
 
-The values of the macro can be drawn in the "bar graph" box.
+the values of the macro can be drawn in the "bar graph" box.
 
-Just beneath the box is a shorter bar that controls looping.
-- Click to set the start point of a loop; the end point is the last value or release point. It appears as half-height bars. Right-click to remove the loop.
-- Shift-click to set the release point. When played, the macro will hold here until the note is released. It appears as a full-height bar. Right-click to remove the release point.
+just beneath the box is a shorter bar that controls looping.
+- click to set the start point of a loop; the end point is the last value or release point. it appears as half-height bars. right-click to remove the loop.
+- shift-click to set the release point. when played, the macro will hold here until the note is released. it appears as a full-height bar. right-click to remove the release point.
 
-Finally, the sequence of values can be directly edited in the text box at the bottom.
-- The loop start is entered as a `|`.
-- The release point is entered as a `/`.
-- In arpeggio macros, a value starting with a `@` is an absolute note (instead of a relative shift). No matter the note entered in the pattern, `@` values will be played at that exact note. This is especially useful for noise instruments with preset periods.
+finally, the sequence of values can be directly edited in the text box at the bottom.
+- the loop start is entered as a `|`.
+- the release point is entered as a `/`.
+- in arpeggio macros, a value starting with a `@` is an absolute note (instead of a relative shift). no matter the note entered in the pattern, `@` values will be played at that exact note. this is especially useful for noise instruments with preset periods.
 
 ### ADSR
 
 ![ADSR macro editor](macro-ADSR.png)
 
 - **Bottom** and **Top** determine the range of outputs generated by the macro. (Bottom can be larger than Top to invert the envelope!) All outputs will be between these two values.
-- Attack, Decay, Sustain, SusDecay, and Release accept inputs between 0 to 255. These are scaled to the distance between Bottom and Top.
+- attack, Decay, Sustain, SusDecay, and Release accept inputs between 0 to 255. these are scaled to the distance between Bottom and Top.
 - **Attack** is how much the value moves toward Top with each tick.
 - **Hold** sets how many ticks to stay at Top before Decay.
 - **Decay** is how much the value moves to the Sustain level.
@@ -135,24 +135,24 @@ Finally, the sequence of values can be directly edited in the text box at the bo
 - **Bottom** and **Top** determine the range of values generated by the macro. (Bottom can be larger than Top to invert the waveform!)
 - **Speed** is how quickly the values change - the frequency of the oscillator.
 - **Phase** is which part of the waveform the macro will start at, measured in 1/1024 increments.
-- **Shape** is the waveform used. Triangle is the default, and Saw and Square are exactly as they say.
+- **Shape** is the waveform used. triangle is the default, and Saw and Square are exactly as they say.
 
 
 
-# wavetable
+## wavetable
 
-This tab appears for PC Engine, FDS, Namco WSG, and other wavetable-based instruments.
+this tab appears for PC Engine, FDS, Namco WSG, and other wavetable-based instruments.
 
 ![wavetable tab](wavetable.png)
 
-When **Enable synthesizer** is off, the wavetable used for the instrument may be selected by creating a Waveform macro with a single value.
+when **Enable synthesizer** is off, the wavetable used for the instrument may be selected by creating a Waveform macro with a single value.
 
-To use the wavetable synthesizer, refer to [the wavetable synthesizer section](wavesynth.md).
+to use the wavetable synthesizer, refer to [the wavetable synthesizer section](wavesynth.md).
 
 
-# sample
+## sample
 
-This tab appears for Generic PCM DAC, Amiga and SNES.
+this tab appears for Generic PCM DAC, Amiga and SNES.
 
 ![sample tab](sample-map.png)
 

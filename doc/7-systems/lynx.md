@@ -15,11 +15,11 @@ the Atari Lynx has a 6502-based CPU with a sound part (this chip is known as MIK
 - four 8-bit DACs (Digital to Analog Converter), one for each voice. this allows for sample playback (at the cost of CPU time and memory).
 - a variety of pitches to choose from, and they go from 32Hz to "above the range of human hearing", according to Atari.
 
-# effects
+## effects
 
 - `3xxx`: **load LFSR.** this is a bitmask with values ranging from `000` to `FFF`.
   - for it to work, duty macro in instrument editor must be set to some value. without it LFSR will not be fed with any bits.
 
-# info
+## info
 
 this chip uses the [Atari Lynx](../4-instrument/lynx.md) instrument editor.

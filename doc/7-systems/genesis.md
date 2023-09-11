@@ -4,7 +4,7 @@ a video game console that showed itself as the first true rival to Nintendo's vi
 
 this console is powered by two sound chips: the [Yamaha YM2612](ym2612.md) and [a derivative of the SN76489](sms.md).
 
-# effects
+## effects
 
 - `10xy`: **set LFO parameters.**
   - `x` toggles the LFO.
@@ -38,7 +38,7 @@ this console is powered by two sound chips: the [Yamaha YM2612](ym2612.md) and [
 
 
 
-# system modes
+## system modes
 
 ## extended channel 3
 

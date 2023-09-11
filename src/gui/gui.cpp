@@ -4886,7 +4886,7 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_SAMPLE_OPEN: {
-              String errs="there were some errors while loading wavetables:\n";
+              String errs="there were some errors while loading samples:\n";
               bool warn=false;
               for (String i: fileDialog->getFileName()) {
                 DivSample* s=e->sampleFromFile(i.c_str());

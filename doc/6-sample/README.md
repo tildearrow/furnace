@@ -65,7 +65,7 @@ due to limitations in some of those sound chips, some restrictions exist:
 
 furthermore, many of these chips have a limited amount of sample memory. check memory usage in window > statistics.
 
-# the sample editor
+## the sample editor
 
 you can edit your samples in Furnace's sample editor, which can be accessed by clicking on `window` (at the top of the screen) then clicking on `sample editor`, or by double-clicking a sample in the sample list.
 
@@ -81,10 +81,10 @@ in there, you can modify certain data pertaining to your sample, such as the:
 
 - top-left drop-down box: sample slot.
 - **Open**: replaces current sample.
-  - Right-clicking brings up a menu:
+  - right-clicking brings up a menu:
     - **import raw...**: brings up a file selector, then presents a dialog to choose the format of the selected file.
 - **Save**: saves current sample to disk.
-  - Right-clicking brings up a menu:
+  - right-clicking brings up a menu:
     - **save raw...**: brings up a file selector, then saves the sample as raw data.
 - **Name**: name in sample list.
 - button to left of **Info**: collapses and expands the info section.

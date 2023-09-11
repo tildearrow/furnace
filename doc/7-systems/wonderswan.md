@@ -8,7 +8,7 @@ it has 4 wavetable channels. some of them have additional capabilities:
 - the third one has hardware sweep
 - the fourth one also does noise
 
-# effects
+## effects
 
 - `10xx`: **change wave**.
 - `11xx`: **setup noise mode.** channel 4 only.
@@ -19,6 +19,6 @@ it has 4 wavetable channels. some of them have additional capabilities:
   - 1-32: enable and set period.
 - `13xx`: **setup sweep amount.** channel 3 only.
 
-# info
+## info
 
 this chip uses the [WonderSwan](../4-instrument/wonderswan.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.

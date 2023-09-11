@@ -1,6 +1,6 @@
 # Game Boy instrument editor
 
-Game Boy instrument editor consists of three tabs: one controlling envelope of sound channels, another for the wave synth and macro tab containing several macros.
+the Game Boy instrument editor consists of three tabs: one controlling envelope of sound channels, another for the wave synth and macro tab containing several macros.
 
 ## Game Boy
 
@@ -12,7 +12,7 @@ Game Boy instrument editor consists of three tabs: one controlling envelope of s
 - **Length**: envelope decay/attack duration (0 to 7)
 - **Sound Length**: cuts off channel after specified length, overriding the Length value.
 
-- **Direction**: Up makes the envelope an attack. Down makes it decay.
+- **Direction**: up makes the envelope an attack. down makes it decay.
   - note: for attack to have effect, start at a lower volume.
 
 - **Hardware Sequence**: this allows you to define a sequence of hardware envelope changes for creating complex envelopes. see the next section for more information.

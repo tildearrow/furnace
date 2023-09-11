@@ -22,7 +22,7 @@ Seta X1-010   |   128 | 256    |
 Amiga         |  ≤256 | 256    |
 
 
-# wavetable editor
+## wavetable editor
 
 ![wavetable editor](wave-editor.png)
 
@@ -49,7 +49,7 @@ controls across the bottom line:
 - `+` / `±`: toggle text input as unsigned/signed. also adjusts waveform display.
 - text input: waveform data as an editable numeric sequence. also called "MML stream".
 
-## waveform utilifies
+## waveform utilities
 
 these provide different ways of creating or altering a waveform.
 

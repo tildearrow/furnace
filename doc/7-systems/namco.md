@@ -4,11 +4,11 @@ a family of wavetable synth sound chips used by Namco in their arcade machines (
 
 everything starts with Namco WSG, which is a simple 3-channel wavetable with no extra frills. C15 is a much more advanced sound source with 8 channels, and C30 adds stereo output and noise mode.
 
-# effects
+## effects
 
 - `10xx`: **change waveform.**
 - `11xx`: **toggle noise mode.** _warning:_ only on C30.
 
-# info
+## info
 
 this chip uses the [Namco WSG](../4-instrument/wsg.md) instrument editor.

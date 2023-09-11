@@ -7,7 +7,7 @@
 
 the **[pattern view](../3-pattern/README.md)** is similar to spreadsheet that displays the following:
 - each labeled column represents a **channel** of sound provided by the chips in use.
-- each **note** starts a sound playing. Within a channel, only one note can play at a time.
+- each **note** starts a sound playing. within a channel, only one note can play at a time.
 - each note is assigned an **[instrument](../4-instrument/README.md)** which describes what it will sound like.
 - an **effect** is a command that changes some aspect of playback. it can alter note pitch, volume, timing, and more.
 - an instrument **macro** is an automated sequence of effects that applies to every note of that instrument.

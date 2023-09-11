@@ -24,6 +24,6 @@ see [2-interface](../2-interface/README.md) and [3-pattern](../3-pattern/README.
 
 once familiar with the tracker, look to [9-guides](../9-guides/README.md) for useful techniques.
 
-# tutorial?
+## tutorial?
 
 [Furnace Tutorials](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1): video tutorials created by Spinning Square Waves. be noted that these may not apply to the current version.

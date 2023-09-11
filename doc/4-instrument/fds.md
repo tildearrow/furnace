@@ -1,6 +1,6 @@
 # FDS instrument editor
 
-The FDS instrument editor contains three tabs: FDS, Wavetable and Macros.
+the FDS instrument editor contains three tabs: FDS, Wavetable and Macros.
 
 ## FDS
 

@@ -1,4 +1,8 @@
-# instrument list
+# asset list
+
+an "asset" refers to an instrument, wavetable or sample.
+
+## instrument list
 
 ![instruments window](instruments.png)
 
@@ -29,7 +33,7 @@ assets may be dragged from folder to folder and even rearranged within folders w
 
 right-clicking on a folder allows one to rename or delete it. deleting a folder does not remove the instruments in it.
 
-# wavetable list
+## wavetable list
 
 ![wavetables window](wavetables.png)
 
@@ -41,7 +45,7 @@ wavetables are saved as Furnace wavetable (.fuw) files.
   - **save wavetable as .dmw...**: saves the selected wavetable in DefleMask format.
   - **save raw wavetable...**: saves the selected wavetable as raw data.
 
-# sample list
+## sample list
 
 ![samples window](samples.png)
 

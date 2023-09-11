@@ -1,6 +1,6 @@
 # Virtual Boy instrument editor
 
-The Virtual Boy instrument editor contains three tabs: Virtual Boy, Wavetable and Macros.
+the Virtual Boy instrument editor contains three tabs: Virtual Boy, Wavetable and Macros.
 
 ## Virtual Boy
 

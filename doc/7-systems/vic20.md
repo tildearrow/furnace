@@ -17,6 +17,6 @@ these channels are not referred as "square" wave channels since a technique to p
 
 - `10xx`: **switch waveform.** range is `00` to `0F`.
 
-# info
+## info
 
 this chip uses the [VIC](../4-instrument/vic.md) instrument editor.

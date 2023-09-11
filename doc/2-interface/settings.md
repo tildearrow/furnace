@@ -173,17 +173,10 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 ### Cores
 
-- **Arcade/YM2151 core**\
-  **Genesis/YM2612 core**\
-  **SN76489 core**\
-  **NES core**\
-  **FDS core**\
-  **SID core**\
-  **POKEY core**\
-  **OPN/OPNA/OPNB cores**:
-  - **Playback Core(s)**: core(s) to use for playback.
-  - **Render Core(s)**: core(s) to use when exporting audio.
-  - all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
+- **Playback Core(s)**: core(s) to use for playback.
+- **Render Core(s)**: core(s) to use when exporting audio.
+
+all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
 
 - **PC Speaker strategy**: this is covered in the [PC speaker page](../7-systems/pcspkr.md).
 
@@ -205,7 +198,7 @@ a list of keybinds is displayed.
 the settings for note input keybinds operate differently. each entry in the list of keybinds is made of the following:
 - **Key**: key assignment.
 - **Type**: type of note input. left-click cycles through "Note", "Note off", "Note release", and "Macro release".
-  - _note:_ the list is sorted by type. on changing a key's type, it will instantly move to its new sorting position!
+  - note: the list is sorted by type. on changing a key's type, it will instantly move to its new sorting position!
 - **Value**: number of semitones above C at the current octave. only appears for note type binds.
 - **Remove**: removes the keybind from the list.
 
@@ -311,16 +304,12 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 
 ### Text
 
-- **Main font**: overall interface font.\
-  **Header font**: font for section headers.\
-  **Pattern font** font for the pattern view, the order list, and related.
+- **Main font**: overall interface font.
+- **Header font**: font for section headers.
+- **Pattern font** font for the pattern view, the order list, and related.
   - if "Custom...", a file path selector will appear.
   - **Size**: font size.
-- **Display Japanese characters**\
-  **Display Chinese (Simplified) characters**\
-  **Display Chinese (Traditional) characters**\
-  **Display Korean characters**
-  - only toggle these options if you have enough graphics memory.
+- **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
   - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
 
 ### Program
