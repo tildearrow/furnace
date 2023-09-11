@@ -490,6 +490,7 @@ class DivEngine {
   float metroFreq, metroPos;
   float metroAmp;
   float metroVol;
+  float previewVol;
 
   size_t totalProcessed;
 
@@ -728,6 +729,9 @@ class DivEngine {
     int getSamplePreviewSample();
     int getSamplePreviewPos();
     double getSamplePreviewRate();
+
+    // set sample preview volume (1.0 = 100%)
+    void setSamplePreviewVol(float vol);
 
     // trigger sample preview
     void previewSample(int sample, int note=-1, int pStart=-1, int pEnd=-1);
@@ -1282,6 +1286,7 @@ class DivEngine {
       metroPos(0),
       metroAmp(0.0f),
       metroVol(1.0f),
+      previewVol(1.0f),
       totalProcessed(0),
       renderPoolThreads(0),
       renderPool(NULL),

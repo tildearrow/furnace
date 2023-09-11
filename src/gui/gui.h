@@ -1503,6 +1503,7 @@ class FurnaceGUI {
     int separateFMColors;
     int insEditColorize;
     int metroVol;
+    int sampleVol;
     int pushNibble;
     int scrollChangesOrder;
     int oplStandardWaveNames;
@@ -1683,6 +1684,7 @@ class FurnaceGUI {
       separateFMColors(0),
       insEditColorize(0),
       metroVol(100),
+      sampleVol(50),
       pushNibble(0),
       scrollChangesOrder(0),
       oplStandardWaveNames(0),

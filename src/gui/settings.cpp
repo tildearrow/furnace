@@ -967,12 +967,23 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION METRONOME
         CONFIG_SUBSECTION("Metronome");
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Metronome volume");
+        ImGui::Text("Volume");
         ImGui::SameLine();
         if (ImGui::SliderInt("##MetroVol",&settings.metroVol,0,200,"%d%%")) {
           if (settings.metroVol<0) settings.metroVol=0;
           if (settings.metroVol>200) settings.metroVol=200;
           e->setMetronomeVol(((float)settings.metroVol)/100.0f);
+        }
+
+        // SUBSECTION SAMPLE PREVIEW
+        CONFIG_SUBSECTION("Sample preview");
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Volume");
+        ImGui::SameLine();
+        if (ImGui::SliderInt("##SampleVol",&settings.sampleVol,0,100,"%d%%")) {
+          if (settings.sampleVol<0) settings.sampleVol=0;
+          if (settings.sampleVol>100) settings.sampleVol=100;
+          e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
         }
 
         END_SECTION;
@@ -3246,6 +3257,7 @@ void FurnaceGUI::syncSettings() {
   settings.separateFMColors=e->getConfInt("separateFMColors",0);
   settings.insEditColorize=e->getConfInt("insEditColorize",0);
   settings.metroVol=e->getConfInt("metroVol",100);
+  settings.sampleVol=e->getConfInt("sampleVol",50);
   settings.pushNibble=e->getConfInt("pushNibble",0);
   settings.scrollChangesOrder=e->getConfInt("scrollChangesOrder",0);
   settings.oplStandardWaveNames=e->getConfInt("oplStandardWaveNames",0);
@@ -3407,6 +3419,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.separateFMColors,0,1);
   clampSetting(settings.insEditColorize,0,1);
   clampSetting(settings.metroVol,0,200);
+  clampSetting(settings.sampleVol,0,100);
   clampSetting(settings.pushNibble,0,1);
   clampSetting(settings.scrollChangesOrder,0,2);
   clampSetting(settings.oplStandardWaveNames,0,1);
@@ -3535,6 +3548,7 @@ void FurnaceGUI::syncSettings() {
 
   e->setMidiDirect(midiMap.directChannel);
   e->setMetronomeVol(((float)settings.metroVol)/100.0f);
+  e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
 }
 
 void FurnaceGUI::commitSettings() {
@@ -3656,6 +3670,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("separateFMColors",settings.separateFMColors);
   e->setConf("insEditColorize",settings.insEditColorize);
   e->setConf("metroVol",settings.metroVol);
+  e->setConf("sampleVol",settings.sampleVol);
   e->setConf("pushNibble",settings.pushNibble);
   e->setConf("scrollChangesOrder",settings.scrollChangesOrder);
   e->setConf("oplStandardWaveNames",settings.oplStandardWaveNames);
