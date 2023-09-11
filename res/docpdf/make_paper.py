@@ -119,7 +119,7 @@ if __name__ == "__main__":
           }
           body {
             font-family: 'Exo 2';
-            line-height: 1.2;
+            line-height: 1.25;
             font-size: 11pt;
             color: #000;
           }
