@@ -57,4 +57,4 @@ it has the following capabilities:
 
 ## info
 
-this chip uses the [Sound Unit](../4-instrument/su.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
+this chip uses the [Sound Unit](../4-instrument/su.md) instrument editor.

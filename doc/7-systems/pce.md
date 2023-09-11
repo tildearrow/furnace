@@ -23,4 +23,4 @@ furthermore, it has some PCM and LFO!
 
 ## info
 
-this chip uses the [PC Engine](../4-instrument/pce.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.
+this chip uses the [PC Engine](../4-instrument/pce.md) instrument editor.
