@@ -184,13 +184,13 @@ if __name__ == "__main__":
           }
           a[href^='#']:after {
             content: target-counter(attr(href),page);
-            font-weight: regular;
+            font-weight: normal;
             font-size: 0.5em;
             color: #555;
           }
           a[href^='http']:after {
             content: ' (' attr(href) ') ';
-            font-weight: regular;
+            font-weight: normal;
             color: #555;
           }
           #cover {
@@ -215,7 +215,6 @@ if __name__ == "__main__":
           table {
             display: block;
             width: 100%%;
-            width: max-content;
             max-width: 100%%;
             overflow: auto;
             border-collapse: collapse;
@@ -225,14 +224,17 @@ if __name__ == "__main__":
             border-top: 1pt solid #aaa;
           }
           th, td {
-            padding: 3pt 6pt;
+            padding: 2pt 3pt;
             border: 1pt solid #ccc;
           }
           th {
             hyphens: none;
             padding: 2pt 4pt;
             text-transform: uppercase;
-            font-size: .8em
+            font-size: .8em;
+          }
+          td {
+            font-size: 11pt;
           }
           @page {
             size: a4;
