@@ -22,5 +22,4 @@ the index follows.
 - freq-mod
 - host12prog
 - nicco1690
-- polluks
 - tildearrow

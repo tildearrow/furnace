@@ -340,7 +340,6 @@ if __name__ == "__main__":
               <li>freq-mod</li>
               <li>host12prog</li>
               <li>nicco1690</li>
-              <li>polluks</li>
               <li>tildearrow</li>
             </ul>
             <p>this manual is written for version 0.6 of Furnace.<br/>it may not necessarily apply to previous or future versions.</p>
