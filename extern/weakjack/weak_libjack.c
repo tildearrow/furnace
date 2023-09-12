@@ -19,6 +19,8 @@
 
 #include "weak_libjack.h"
 
+#define NDEBUG
+
 #ifndef USE_WEAK_JACK
 
 int have_libjack (void) {
