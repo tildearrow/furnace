@@ -332,7 +332,7 @@ if __name__ == "__main__":
           <div>
           </div>
           <div>
-            <h3>authors<h3>
+            <h3>authors</h3>
             <ul>
               <li>cam900</li>
               <li>DeMOSic</li>
