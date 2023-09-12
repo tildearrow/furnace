@@ -4,6 +4,7 @@
   
   <name>Furnace</name>
   <summary>Open-source chiptune tracker</summary>
+  <url type="homepage">https://github.com/tildearrow/furnace</url>
   
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0-or-later</project_license>
