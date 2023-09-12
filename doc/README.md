@@ -23,3 +23,14 @@ the index follows.
 - host12prog
 - nicco1690
 - tildearrow
+
+## information
+
+copyright © 2023 tildearrow and other authors.
+
+this documentation is under the [Creative Commons Attribution 3.0 Unported](https://creativecommons.org/licenses/by/3.0/) license.
+you may reproduce, modify and/or distribute this documentation provided this copyright notice (including license and attribution) is present and any necessary disclaimers whether modifications have been made.
+
+this documentation is provided as-is and without warranty of any kind. 
+
+
