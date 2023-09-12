@@ -82,15 +82,32 @@ if __name__ == "__main__":
   # perform sort
   file_list.sort(key=sort_func)
 
+  first = True
+
   for my_file in file_list:
+    pageLink = my_file.replace(os.path.sep, "__")
+
+    if pageLink.endswith("__doc__README.md"):
+      continue
+
     with open(my_file, 'r') as md:
       LOGGER.info("processing file %s" % my_file)
       data = md.read()
 
     # retrieve title
     pageTitle = data.partition('\n')[0].replace("# ","")
-    pageLink = my_file.replace(os.path.sep, "__"),
-    index += '<li><a href="#%s">%s</a></li>' % ( pageLink, pageTitle )
+
+    if pageLink.endswith("__README.md"):
+      if first:
+        first = False
+      else:
+        index += '</li></ol>'
+
+    index += '<li><a href="#%s" class="indexItemPre">%s</a><a href="#%s" class="indexItem"></a>' % ( pageLink, pageTitle, pageLink )
+    if pageLink.endswith("__README.md"):
+      index += '<ol>'
+    else:
+      index += '</li>'
     
     # perform link fixing
     data = re.sub(r'\[(.+?)\]\((.+?)\)', fix_links, data)
@@ -103,7 +120,7 @@ if __name__ == "__main__":
     )
 
   # finish index
-  index += '</ol>'
+  index += '</ol></li></ol>'
 
   # build html
   final_html = ('''
@@ -147,7 +164,7 @@ if __name__ == "__main__":
             margin-right: 4pt;
             list-style-type: none;
           }
-          li:before {
+          ul > li:before {
             content: '-';
             padding-right: 3pt;
           }
@@ -203,6 +220,23 @@ if __name__ == "__main__":
             content: ' (' attr(href) ') ';
             font-weight: normal;
             color: #555;
+          }
+          a.indexItemPre {
+            color: #000;
+            text-decoration: none;
+            letter-spacing: .01em;
+          }
+          a.indexItemPre[href^='#']:after {
+            content: '';
+          }
+          a.indexItem {
+            float: right;
+            overflow: hidden;
+          }
+          a.indexItem[href^='#']:after {
+            content: target-counter(attr(href),page);
+            color: #000;
+            font-size: 11pt;
           }
           #cover {
             height: 100%%;
