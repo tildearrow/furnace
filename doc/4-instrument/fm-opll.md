@@ -6,7 +6,7 @@ the OPLL FM editor is divided into 5 tabs:
 - **Macros (FM)**: for macros controlling algorithm, waveform and feedback.
 - **Macros (OP1)**: for macros controlling FM parameters of operator 1.
 - **Macros (OP2)**: for macros controlling FM parameters of operator 2.
-- **Macros**: for miscellaneous macros controlling volume, arpeggio, and preset.
+- **Macros**: for other macros (volume/arp/pitch/patch).
 
 ## FM
 
@@ -43,12 +43,13 @@ these apply to each operator:
 ![FM ADSR chart](FM-ADSRchart.png)
 
 - **Envelope Scale (KSR)**: also known as "Key Scale". determines the degree to which the envelope execution speed increases according to the pitch.
-- **Frequency Multiplier (MULT)**: determines the operator frequency in relation to the pitch. (0-10, 12, 15 range)
+- **Frequency Multiplier (MULT)**: sets the coarse pitch offset in relation to the note (0 to 15). 0 is -1 octave, 1 is 0 octaves, 2 is 1 octave, 3 is 1 octave 7 semitones, and so on.
+  - note that values 11, 13 and 14 behave as 10, 12 and 12 respectively.
 - **Vibrato (VIB)**: makes the operator affected by LFO vibrato.
 
 ## macros
 
-macros define the sequence of values passed to the given parameter. via macro, along with the previously mentioned parameters, the following can be controlled:
+these macros allow you to control several parameters of FM per tick.
 
 ## FM Macros
 
