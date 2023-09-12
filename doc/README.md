@@ -24,4 +24,3 @@ the index follows.
 - nicco1690
 - polluks
 - tildearrow
-- WindowxDeveloper

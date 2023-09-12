@@ -328,7 +328,22 @@ if __name__ == "__main__":
             <i>for version 0.6</i>
           </div>
         </section>
-        <section id="blank">
+        <section id="authors">
+          <div>
+          </div>
+          <div>
+            <h3>authors<h3>
+            <ul>
+              <li>cam900</li>
+              <li>DeMOSic</li>
+              <li>Electric Keet</li>
+              <li>freq-mod</li>
+              <li>host12prog</li>
+              <li>nicco1690</li>
+              <li>polluks</li>
+              <li>tildearrow</li>
+            </ul>
+            <p>this manual is written for version 0.6 of Furnace.<br/>it may not necessarily apply to previous or future versions.</p>
         </section>
         <section id="index">
           %s
