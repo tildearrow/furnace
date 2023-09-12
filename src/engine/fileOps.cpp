@@ -1058,6 +1058,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemFlags[0].set("keyPriority",false);
     }
 
+    // OPM broken pitch
+    if (ds.system[0]==DIV_SYSTEM_YM2151) {
+      ds.systemFlags[0].set("brokenPitch",true);
+    }
+
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
 
     if (active) quitDispatch();
@@ -2972,6 +2977,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       for (int i=0; i<ds.systemLen; i++) {
         if (ds.system[i]==DIV_SYSTEM_N163) {
           ds.systemFlags[i].set("lenCompensate",true);
+        }
+      }
+    }
+
+    // OPM/OPZ slide compat
+    if (ds.version<176) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_YM2151 ||
+            ds.system[i]==DIV_SYSTEM_OPZ) {
+          ds.systemFlags[i].set("brokenPitch",true);
         }
       }
     }
