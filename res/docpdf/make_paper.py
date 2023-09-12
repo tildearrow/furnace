@@ -73,6 +73,9 @@ if __name__ == "__main__":
     for file_ in filter(lambda x: x.lower().endswith('.md'), files):
       file_list.append(os.path.join(base_dir, file_))
 
+  #-- then, create the index --#
+  index = '<h2>contents</h2><ol>'
+
   #-- then, create the document --#
   html = ''
 
@@ -83,6 +86,11 @@ if __name__ == "__main__":
     with open(my_file, 'r') as md:
       LOGGER.info("processing file %s" % my_file)
       data = md.read()
+
+    # retrieve title
+    pageTitle = data.partition('\n')[0].replace("# ","")
+    pageLink = my_file.replace(os.path.sep, "__"),
+    index += '<li><a href="#%s">%s</a></li>' % ( pageLink, pageTitle )
     
     # perform link fixing
     data = re.sub(r'\[(.+?)\]\((.+?)\)', fix_links, data)
@@ -93,6 +101,9 @@ if __name__ == "__main__":
       my_file.replace(os.path.sep, "__"),
       markdown.markdown(data, extensions=['nl2br', 'mdx_breakless_lists', GithubFlavoredMarkdownExtension()])
     )
+
+  # finish index
+  index += '</ol>'
 
   # build html
   final_html = ('''
@@ -282,11 +293,16 @@ if __name__ == "__main__":
             <i>for version 0.6</i>
           </div>
         </section>
+        <section id="blank">
+        </section>
+        <section id="index">
+          %s
+        </section>
         %s
       </body>
     </html>
     ''' % (
-      html
+      index, html
     )
   )
   
