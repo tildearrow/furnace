@@ -227,7 +227,8 @@ if __name__ == "__main__":
             letter-spacing: .01em;
           }
           a.indexItemPre[href^='#']:after {
-            content: '';
+            content: ' ' leader('.') ' ';
+            font-size: 1em;
           }
           a.indexItem {
             float: right;
