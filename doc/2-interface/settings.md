@@ -105,7 +105,11 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 ### Metronome
 
-- **Metronome volume**: sets volume of metronome.
+- **Volume**: sets volume of metronome.
+
+### Sample preview
+
+- **Volume**: sets volume of sample preview.
 
 ## MIDI
 
