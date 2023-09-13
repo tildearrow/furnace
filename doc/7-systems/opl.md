@@ -29,7 +29,7 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
   - only in 4-op mode (OPL3).
 - `16xy`: **set multiplier of operator.**
   - `x` is the operator (1-4; last 2 operators only in 4-op mode).
-  - `y` is the new MULT value..
+  - `y` is the multiplier.
 - `17xx`: **set vibrato depth.**
   - `0`: normal
   - `1`: double

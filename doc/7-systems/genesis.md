@@ -16,7 +16,7 @@ this console is powered by two sound chips: the [Yamaha YM2612](ym2612.md) and [
 - `15xx`: **set operator 4 level.**
 - `16xy`: **set multiplier of operator.**
   - `x` is the operator (1-4).
-  - `y` is the new MULT value..
+  - `y` is the multiplier.
 - `17xx`: **enable PCM channel.**
   - this only works on channel 6.
   - _this effect is here for compatibility reasons!_ it is otherwise recommended to use Sample type instruments (which automatically enable PCM mode when used).

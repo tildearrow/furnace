@@ -33,7 +33,7 @@ no plans have been made for TX81Z MIDI passthrough, because:
 - `15xx`: **set operator 4 level.**
 - `16xy`: **set multiplier of operator.**
   - `x` is the operator (1-4).
-  - `y` is the new MULT value..
+  - `y` is the multiplier.
 - `17xx`: **set LFO speed.**
 - `18xx`: **set LFO waveform.** `xx` may be one of the following:
   - `00`: saw

@@ -32,7 +32,7 @@ the YM2413 is equipped with the following features:
 - `13xx`: **set operator 2 level.**
 - `16xy`: **set multiplier of operator.**
   - `x` is the operator, either 1 or 2.
-  - `y` is the new MULT value..
+  - `y` is the multiplier.
 - `18xx`: **toggle drums mode.**
   - `0` disables it and `1` enables it.
   - only in drums mode.
