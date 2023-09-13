@@ -1,4 +1,4 @@
-# FM (OPM) instrument editor
+# FM (OPZ) instrument editor
 
 the FM editor is divided into 7 tabs:
 
@@ -8,7 +8,7 @@ the FM editor is divided into 7 tabs:
 - **Macros (OP2)**: for macros controlling FM parameters of operator 2
 - **Macros (OP3)**: for macros controlling FM parameters of operator 3
 - **Macros (OP4)**: for macros controlling FM parameters of operator 4
-- **Macros**: for miscellaneous macros controlling volume, arpeggio, and YM2151 noise generator.
+- **Macros**: for other macros (volume/arp/pitch/noise).
 
 ## FM
 
@@ -43,7 +43,7 @@ these apply to each operator:
 ![FM ADSR chart](FM-ADSRchart.png)
 
 - **Envelope Scale (RS/KS)**: also known as "Rate Scale" or "Key Scale". determines the degree to which the envelope execution speed increases according to the pitch (0 to 3).
-- **Frequency Multiplier (MULT)**: determines the operator frequency in relation to the pitch (0 to 15).
+- **Frequency Multiplier (MULT)**: sets the coarse pitch offset in relation to the note (0 to 15). 0 is -1 octave, 1 is 0 octaves, 2 is 1 octave, 3 is 1 octave 7 semitones, and so on.
 - **Fine Frequency Multiplier (Fine)**: a fine control for MULT.
 - **Envelope Generator Shift (EGS)**: adds a "handicap" to the envelope. in other words, the minimum volume of the operator.
   - 0: no change
@@ -69,7 +69,7 @@ each operator has a Fixed Frequency mode. once enabled, the operator runs at the
 
 ## macros
 
-macros define the sequence of values passed to the given parameter. via macro, along with the previously mentioned parameters, the following can be controlled:
+these macros allow you to control several parameters of FM per tick.
 
 ## FM Macros
 
