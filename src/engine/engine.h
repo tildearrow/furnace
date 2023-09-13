@@ -37,7 +37,7 @@
 #include <mutex>
 #include <map>
 #include <unordered_map>
-#include <deque>
+#include "fixedQueue.h"
 
 class DivWorkPool;
 
@@ -176,14 +176,28 @@ struct DivChannelState {
 };
 
 struct DivNoteEvent {
-  int channel, ins, note, volume;
-  bool on;
+  signed char channel;
+  unsigned char ins;
+  signed char note, volume;
+  bool on, nop, pad1, pad2;
   DivNoteEvent(int c, int i, int n, int v, bool o):
     channel(c),
     ins(i),
     note(n),
     volume(v),
-    on(o) {}
+    on(o),
+    nop(false),
+    pad1(false),
+    pad2(false) {}
+  DivNoteEvent():
+    channel(-1),
+    ins(0),
+    note(0),
+    volume(0),
+    on(false),
+    nop(true),
+    pad1(false),
+    pad2(false) {}
 };
 
 struct DivDispatchContainer {
@@ -428,7 +442,7 @@ class DivEngine {
   DivAudioExportModes exportMode;
   double exportFadeOut;
   DivConfig conf;
-  std::deque<DivNoteEvent> pendingNotes;
+  FixedQueue<DivNoteEvent,8192> pendingNotes;
   // bitfield
   unsigned char walked[8192];
   bool isMuted[DIV_MAX_CHANS];

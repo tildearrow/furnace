@@ -1346,8 +1346,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         isOn[pendingNotes[i].channel]=true;
       } else {
         if (isOn[pendingNotes[i].channel]) {
-          logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
-          pendingNotes.erase(pendingNotes.begin()+i);
+          //logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
+          pendingNotes[i].nop=true;
         }
       }
     }
@@ -1355,7 +1355,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
   while (!pendingNotes.empty()) {
     DivNoteEvent& note=pendingNotes.front();
-    if (note.channel<0 || note.channel>=chans) {
+    if (note.nop || note.channel<0 || note.channel>=chans) {
       pendingNotes.pop_front();
       continue;
     }
@@ -1847,7 +1847,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       }
     }
-    logD("%.2x",msg.type);
+    //logD("%.2x",msg.type);
     output->midiIn->queue.pop();
   }
   
