@@ -21,7 +21,7 @@
 #define _SAA_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../../../extern/SAASound/src/SAASound.h"
 
 class DivPlatformSAA1099: public DivDispatch {

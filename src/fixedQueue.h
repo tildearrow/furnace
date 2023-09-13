@@ -21,7 +21,7 @@
 #define _FIXED_QUEUE_H
 
 #include <stdint.h>
-#include "../ta-log.h"
+#include "ta-log.h"
 
 template<typename T, size_t items> struct FixedQueue {
   size_t readPos, writePos;

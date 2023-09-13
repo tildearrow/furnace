@@ -24,7 +24,7 @@
 #include "defines.h"
 #include "safeWriter.h"
 #include "dataErrors.h"
-#include "fixedQueue.h"
+#include "../fixedQueue.h"
 
 enum DivSampleLoopMode: unsigned char {
   DIV_SAMPLE_LOOP_FORWARD=0,

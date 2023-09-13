@@ -21,7 +21,7 @@
 #define _N163_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../waveSynth.h"
 #include "vgsound_emu/src/n163/n163.hpp"
 

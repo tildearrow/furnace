@@ -21,7 +21,7 @@
 #define _MSM6295_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "vgsound_emu/src/msm6295/msm6295.hpp"
 
 class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {

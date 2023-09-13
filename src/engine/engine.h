@@ -37,7 +37,7 @@
 #include <mutex>
 #include <map>
 #include <unordered_map>
-#include "fixedQueue.h"
+#include "../fixedQueue.h"
 
 class DivWorkPool;
 

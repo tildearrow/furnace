@@ -22,7 +22,7 @@
 
 #include "../dispatch.h"
 #include "sound/c140_c219.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 class DivPlatformC140: public DivDispatch {
   struct Channel: public SharedChannel<int> {

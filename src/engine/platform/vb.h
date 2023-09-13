@@ -21,7 +21,7 @@
 #define _PLATFORM_VB_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../waveSynth.h"
 #include "sound/vsu.h"
 

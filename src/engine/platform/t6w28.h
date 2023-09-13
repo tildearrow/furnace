@@ -21,7 +21,7 @@
 #define _T6W28_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/t6w28/T6W28_Apu.h"
 
 class DivPlatformT6W28: public DivDispatch {

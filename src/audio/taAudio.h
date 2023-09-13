@@ -21,7 +21,7 @@
 #define _TAAUDIO_H
 #include "../ta-utils.h"
 #include <memory>
-#include <queue>
+#include "../fixedQueue.h"
 #include <vector>
 
 struct SampleRateChangeEvent {
@@ -124,7 +124,7 @@ struct TAMidiMessage {
 
 class TAMidiIn {
   public:
-    std::queue<TAMidiMessage> queue;
+    FixedQueue<TAMidiMessage,8192> queue;
     virtual bool gather();
     bool next(TAMidiMessage& where);
     virtual bool isDeviceOpen();
@@ -139,7 +139,7 @@ class TAMidiIn {
 };
 
 class TAMidiOut {
-  std::queue<TAMidiMessage> queue;
+  FixedQueue<TAMidiMessage,8192> queue;
   public:
     virtual bool send(const TAMidiMessage& what);
     virtual bool isDeviceOpen();

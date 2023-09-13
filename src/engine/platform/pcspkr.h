@@ -21,7 +21,7 @@
 #define _PCSPKR_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
