@@ -76,7 +76,7 @@ template <typename T, size_t items> bool FixedQueue<T,items>::erase(size_t pos) 
     return pop_back();
   }
 
-  for (size_t i=0, p=(readPos+pos)%items, p1=(readPos+pos+1)%items; i<=curSize; i++) {
+  for (size_t i=pos, p=(readPos+pos)%items, p1=(readPos+pos+1)%items; i<=curSize; i++) {
     if (p>=items) p-=items;
     if (p1>=items) p1-=items;
     data[p]=data[p1];
