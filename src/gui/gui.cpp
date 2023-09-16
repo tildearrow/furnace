@@ -1134,7 +1134,7 @@ void FurnaceGUI::stop() {
   if (followPattern && wasPlaying) {
     nextScroll=-1.0f;
     nextAddScroll=0.0f;
-    cursor.y=e->getRow();
+    cursor.y=oldRow;
     if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
       selStart=cursor;
       selEnd=cursor;
@@ -4379,15 +4379,15 @@ bool FurnaceGUI::loop() {
         info+=fmt::sprintf(" @ %gHz (%g BPM) ",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
 
         if (settings.orderRowsBase) {
-          info+=fmt::sprintf("| Order %.2X/%.2X ",e->getOrder(),e->curSubSong->ordersLen-1);
+          info+=fmt::sprintf("| Order %.2X/%.2X ",playOrder,e->curSubSong->ordersLen-1);
         } else {
-          info+=fmt::sprintf("| Order %d/%d ",e->getOrder(),e->curSubSong->ordersLen-1);
+          info+=fmt::sprintf("| Order %d/%d ",playOrder,e->curSubSong->ordersLen-1);
         }
 
         if (settings.patRowsBase) {
-          info+=fmt::sprintf("| Row %.2X/%.2X ",e->getRow(),e->curSubSong->patLen);
+          info+=fmt::sprintf("| Row %.2X/%.2X ",oldRow,e->curSubSong->patLen);
         } else {
-          info+=fmt::sprintf("| Row %d/%d ",e->getRow(),e->curSubSong->patLen);
+          info+=fmt::sprintf("| Row %d/%d ",oldRow,e->curSubSong->patLen);
         }
 
         info+=fmt::sprintf("| %d:%.2d:%.2d.%.2d",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
@@ -4459,9 +4459,15 @@ bool FurnaceGUI::loop() {
 
     MEASURE(calcChanOsc,calcChanOsc());
 
-    if (followPattern) {
-      curOrder=e->getOrder();
-    }
+    e->synchronized([this]() {
+      playOrder=e->getOrder();
+      if (followPattern) {
+        curOrder=playOrder;
+      }
+      if (e->isPlaying()) {
+        oldRow=e->getRow();
+      }
+    });
 
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -5540,8 +5546,6 @@ bool FurnaceGUI::loop() {
               stop();
               e->clearSubSongs();
               curOrder=0;
-              oldOrder=0;
-              oldOrder1=0;
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
@@ -5552,8 +5556,6 @@ bool FurnaceGUI::loop() {
               });
               e->setOrder(0);
               curOrder=0;
-              oldOrder=0;
-              oldOrder1=0;
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
@@ -5565,8 +5567,6 @@ bool FurnaceGUI::loop() {
               });
               e->setOrder(0);
               curOrder=0;
-              oldOrder=0;
-              oldOrder1=0;
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
@@ -5671,8 +5671,6 @@ bool FurnaceGUI::loop() {
               undoHist.clear();
               redoHist.clear();
               updateScroll(0);
-              oldOrder=0;
-              oldOrder1=0;
               oldRow=0;
               cursor.xCoarse=0;
               cursor.xFine=0;
@@ -7079,10 +7077,9 @@ FurnaceGUI::FurnaceGUI():
   curSample(0),
   curOctave(3),
   curOrder(0),
+  playOrder(0),
   prevIns(0),
   oldRow(0),
-  oldOrder(0),
-  oldOrder1(0),
   editStep(1),
   exportLoops(0),
   soloChan(-1),
