@@ -1591,6 +1591,8 @@ class FurnaceGUI {
     int chanOscThreads;
     int renderPoolThreads;
     int showPool;
+    int writeInsNames;
+    int readInsNames;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1771,6 +1773,8 @@ class FurnaceGUI {
       chanOscThreads(0),
       renderPoolThreads(0),
       showPool(0),
+      writeInsNames(1),
+      readInsNames(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

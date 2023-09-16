@@ -903,7 +903,7 @@ class DivEngine {
 
     // get instrument from file
     // if the returned vector is empty then there was an error.
-    std::vector<DivInstrument*> instrumentFromFile(const char* path, bool loadAssets=true);
+    std::vector<DivInstrument*> instrumentFromFile(const char* path, bool loadAssets=true, bool readInsName=true);
 
     // load temporary instrument
     void loadTempIns(DivInstrument* which);

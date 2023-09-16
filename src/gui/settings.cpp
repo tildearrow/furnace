@@ -498,8 +498,24 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
-        // SUBSECTION CHIP
-        CONFIG_SUBSECTION("Chip");
+        bool writeInsNamesB=settings.writeInsNames;
+        if (ImGui::Checkbox("Store instrument name in .fui",&writeInsNamesB)) {
+          settings.writeInsNames=writeInsNamesB;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("when enabled,saving an instrument will store its name.\nthis may increase file size.");
+        }
+
+        bool readInsNamesB=settings.readInsNames;
+        if (ImGui::Checkbox("Load instrument name from .fui",&readInsNamesB)) {
+          settings.readInsNames=readInsNamesB;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("when enabled, loading an instrument will use the stored name (if present).\notherwise, it will use the file name.");
+        }
+
+        // SUBSECTION NEW SONG
+        CONFIG_SUBSECTION("New Song");
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Initial system:");
         ImGui::SameLine();
@@ -3341,6 +3357,8 @@ void FurnaceGUI::syncSettings() {
   settings.chanOscThreads=e->getConfInt("chanOscThreads",0);
   settings.renderPoolThreads=e->getConfInt("renderPoolThreads",0);
   settings.showPool=e->getConfInt("showPool",0);
+  settings.writeInsNames=e->getConfInt("writeInsNames",1);
+  settings.readInsNames=e->getConfInt("readInsNames",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3494,6 +3512,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.chanOscThreads,0,256);
   clampSetting(settings.renderPoolThreads,0,DIV_MAX_CHIPS);
   clampSetting(settings.showPool,0,1);
+  clampSetting(settings.writeInsNames,0,1);
+  clampSetting(settings.readInsNames,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3755,6 +3775,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("chanOscThreads",settings.chanOscThreads);
   e->setConf("renderPoolThreads",settings.renderPoolThreads);
   e->setConf("showPool",settings.showPool);
+  e->setConf("writeInsNames",settings.writeInsNames);
+  e->setConf("readInsNames",settings.readInsNames);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

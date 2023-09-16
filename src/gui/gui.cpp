@@ -3545,7 +3545,7 @@ bool FurnaceGUI::loop() {
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
             int sampleCountBefore=e->song.sampleLen;
-            std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file);
+            std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file,true,settings.readInsNames);
             DivWavetable* droppedWave=NULL;
             DivSample* droppedSample=NULL;
             if (!instruments.empty()) {
@@ -4857,7 +4857,7 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_INS_SAVE:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                if (e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song)) {
+                if (e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song,settings.writeInsNames)) {
                   pushRecentSys(copyOfName.c_str());
                 }
               }
@@ -4983,7 +4983,7 @@ bool FurnaceGUI::loop() {
               String warns="there were some warnings/errors while loading instruments:\n";
               int sampleCountBefore=e->song.sampleLen;
               for (String i: fileDialog->getFileName()) {
-                std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str());
+                std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str(),true,settings.readInsNames);
                 if (insTemp.empty()) {
                   warn=true;
                   warns+=fmt::sprintf("> %s: cannot load instrument! (%s)\n",i,e->getLastError());
@@ -5029,7 +5029,7 @@ bool FurnaceGUI::loop() {
             }
             case GUI_FILE_INS_OPEN_REPLACE: {
               int sampleCountBefore=e->song.sampleLen;
-              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str());
+              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str(),true,settings.readInsNames);
               if (!instruments.empty()) {
                 if (e->song.sampleLen!=sampleCountBefore) {
                   e->renderSamplesP();
