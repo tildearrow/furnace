@@ -3922,6 +3922,17 @@ bool FurnaceGUI::loop() {
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
 
+    int nextPlayOrder=0;
+    int nextOldRow=0;
+    e->getPlayPos(nextPlayOrder,nextOldRow);
+    playOrder=nextPlayOrder;
+    if (followPattern) {
+      curOrder=playOrder;
+    }
+    if (e->isPlaying()) {
+      oldRow=nextOldRow;
+    }
+
     if (!mobileUI) {
       ImGui::BeginMainMenuBar();
       if (ImGui::BeginMenu(settings.capitalMenuBar?"File":"file")) {
@@ -4458,16 +4469,6 @@ bool FurnaceGUI::loop() {
     }
 
     MEASURE(calcChanOsc,calcChanOsc());
-
-    e->synchronized([this]() {
-      playOrder=e->getOrder();
-      if (followPattern) {
-        curOrder=playOrder;
-      }
-      if (e->isPlaying()) {
-        oldRow=e->getRow();
-      }
-    });
 
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;

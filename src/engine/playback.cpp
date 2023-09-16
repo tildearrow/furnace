@@ -1164,8 +1164,10 @@ void DivEngine::nextRow() {
   }
 
   if (!stepPlay) {
+    playPosLock.lock();
     prevOrder=curOrder;
     prevRow=curRow;
+    playPosLock.unlock();
   }
 
   for (int i=0; i<chans; i++) {
@@ -1403,8 +1405,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             endOfSong=false;
             if (stepPlay==2) {
               stepPlay=1;
+              playPosLock.lock();
               prevOrder=curOrder;
               prevRow=curRow;
+              playPosLock.unlock();
             }
             nextRow();
             break;

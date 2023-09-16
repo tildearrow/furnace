@@ -446,7 +446,7 @@ class DivEngine {
   // bitfield
   unsigned char walked[8192];
   bool isMuted[DIV_MAX_CHANS];
-  std::mutex isBusy, saveLock;
+  std::mutex isBusy, saveLock, playPosLock;
   String configPath;
   String configFile;
   String lastError;
@@ -847,6 +847,9 @@ class DivEngine {
 
     // get current row
     int getRow();
+
+    // synchronous get order/row
+    void getPlayPos(int& order, int& row);
 
     // get beat/bar
     int getElapsedBars();
