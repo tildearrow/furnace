@@ -503,7 +503,7 @@ void FurnaceGUI::drawSettings() {
           settings.writeInsNames=writeInsNamesB;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("when enabled,saving an instrument will store its name.\nthis may increase file size.");
+          ImGui::SetTooltip("when enabled, saving an instrument will store its name.\nthis may increase file size.");
         }
 
         bool readInsNamesB=settings.readInsNames;
