@@ -20,7 +20,7 @@
 #ifndef _AY_H
 #define _AY_H
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/ay8910.h"
 
 class DivPlatformAY8910: public DivDispatch {

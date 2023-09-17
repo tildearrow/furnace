@@ -21,7 +21,7 @@
 #define _OPL_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../../../extern/opl/opl3.h"
 #include "sound/ymfm/ymfm_adpcm.h"
 

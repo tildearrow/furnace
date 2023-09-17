@@ -20,7 +20,7 @@
 #ifndef _VRC6_H
 #define _VRC6_H
 
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../dispatch.h"
 #include "vgsound_emu/src/vrcvi/vrcvi.hpp"
 

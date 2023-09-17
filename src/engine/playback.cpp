@@ -1167,8 +1167,10 @@ void DivEngine::nextRow() {
   }
 
   if (!stepPlay) {
+    playPosLock.lock();
     prevOrder=curOrder;
     prevRow=curRow;
+    playPosLock.unlock();
   }
 
   for (int i=0; i<chans; i++) {
@@ -1349,8 +1351,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         isOn[pendingNotes[i].channel]=true;
       } else {
         if (isOn[pendingNotes[i].channel]) {
-          logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
-          pendingNotes.erase(pendingNotes.begin()+i);
+          //logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
+          pendingNotes[i].nop=true;
         }
       }
     }
@@ -1358,12 +1360,13 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
   while (!pendingNotes.empty()) {
     DivNoteEvent& note=pendingNotes.front();
-    if (note.channel<0 || note.channel>=chans) {
+    if (note.nop || note.channel<0 || note.channel>=chans) {
       pendingNotes.pop_front();
       continue;
     }
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
+      //dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,(note.volume*(chan[note.channel].volMax>>8))/127));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
       chan[note.channel].noteOnInhibit=true;
@@ -1405,8 +1408,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             endOfSong=false;
             if (stepPlay==2) {
               stepPlay=1;
+              playPosLock.lock();
               prevOrder=curOrder;
               prevRow=curRow;
+              playPosLock.unlock();
             }
             nextRow();
             break;
@@ -1850,7 +1855,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       }
     }
-    logD("%.2x",msg.type);
+    //logD("%.2x",msg.type);
     output->midiIn->queue.pop();
   }
   

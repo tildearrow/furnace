@@ -24,7 +24,7 @@
 #include "defines.h"
 #include "safeWriter.h"
 #include "dataErrors.h"
-#include <deque>
+#include "../fixedQueue.h"
 
 enum DivSampleLoopMode: unsigned char {
   DIV_SAMPLE_LOOP_FORWARD=0,
@@ -144,8 +144,8 @@ struct DivSample {
 
   unsigned int samples;
 
-  std::deque<DivSampleHistory*> undoHist;
-  std::deque<DivSampleHistory*> redoHist;
+  FixedQueue<DivSampleHistory*,128> undoHist;
+  FixedQueue<DivSampleHistory*,128> redoHist;
 
   /**
    * put sample data.

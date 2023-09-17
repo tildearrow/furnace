@@ -26,7 +26,7 @@
 #include <functional>
 #include <future>
 
-#include "fixedQueue.h"
+#include "../fixedQueue.h"
 
 class DivWorkPool;
 

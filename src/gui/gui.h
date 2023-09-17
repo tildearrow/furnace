@@ -27,7 +27,6 @@
 #include "imgui_impl_sdl2.h"
 #include <SDL.h>
 #include <fftw3.h>
-#include <deque>
 #include <initializer_list>
 #include <map>
 #include <future>
@@ -874,6 +873,18 @@ struct UndoStep {
   std::vector<UndoOrderData> ord;
   std::vector<UndoPatternData> pat;
   std::vector<UndoOtherData> other;
+
+  UndoStep():
+    type(GUI_UNDO_CHANGE_ORDER),
+    cursor(),
+    selStart(),
+    selEnd(),
+    order(0),
+    nibble(false),
+    oldOrdersLen(0),
+    newOrdersLen(0),
+    oldPatLen(0),
+    newPatLen(0) {}
 };
 
 // -1 = any
@@ -1323,7 +1334,7 @@ class FurnaceGUI {
 
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
-  std::deque<String> recentFile;
+  FixedQueue<String,32> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
@@ -1391,7 +1402,7 @@ class FurnaceGUI {
   String backupPath;
 
   std::mutex midiLock;
-  std::queue<TAMidiMessage> midiQueue;
+  FixedQueue<TAMidiMessage,4096> midiQueue;
   MIDIMap midiMap;
   int learning;
 
@@ -1580,6 +1591,8 @@ class FurnaceGUI {
     int chanOscThreads;
     int renderPoolThreads;
     int showPool;
+    int writeInsNames;
+    int readInsNames;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1760,6 +1773,8 @@ class FurnaceGUI {
       chanOscThreads(0),
       renderPoolThreads(0),
       showPool(0),
+      writeInsNames(1),
+      readInsNames(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -1795,7 +1810,7 @@ class FurnaceGUI {
 
   DivInstrument* prevInsData;
 
-  int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan,orderEditMode, orderCursor;
+  int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, exportLoops, soloChan,orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
   int curGroove, exitDisabledTimer;
@@ -2005,8 +2020,8 @@ class FurnaceGUI {
   int oldOrdersLen;
   DivOrders oldOrders;
   DivPattern* oldPat[DIV_MAX_CHANS];
-  std::deque<UndoStep> undoHist;
-  std::deque<UndoStep> redoHist;
+  FixedQueue<UndoStep,256> undoHist;
+  FixedQueue<UndoStep,256> redoHist;
 
   // sample editor specific
   double sampleZoom;

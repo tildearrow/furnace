@@ -91,7 +91,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (settings.overflowHighlight) {
     if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-    } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
+    } else if (isPlaying && oldRow==i && ord==playOrder) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->curSubSong->hilightB>0 && !(i%e->curSubSong->hilightB)) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
@@ -102,7 +102,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     isPushing=true;
     if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-    } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
+    } else if (isPlaying && oldRow==i && ord==playOrder) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->curSubSong->hilightB>0 && !(i%e->curSubSong->hilightB)) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
@@ -378,7 +378,7 @@ void FurnaceGUI::drawPattern() {
   bool inhibitMenu=false;
 
   if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) {
-    cursor.y=e->isStepping()?e->getRow():oldRow;
+    cursor.y=oldRow;
     if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
       selStart=cursor;
       selEnd=cursor;
@@ -419,8 +419,7 @@ void FurnaceGUI::drawPattern() {
     }
     //char id[32];
     ImGui::PushFont(patFont);
-    int ord=oldOrder;
-    oldOrder=curOrder;
+    int ord=curOrder;
     int chans=e->getTotalChannelCount();
     int displayChans=0;
     const DivPattern* patCache[DIV_MAX_CHANS];
@@ -437,23 +436,24 @@ void FurnaceGUI::drawPattern() {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+centerOff);
       }
     }
+    if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(oldRow);
+    if (--pendingStepUpdate<0) pendingStepUpdate=0;
+    if (nextScroll>-0.5f) {
+      ImGui::SetNextWindowScroll(ImVec2(-1.0f,nextScroll));
+      nextScroll=-1.0f;
+      nextAddScroll=0.0f;
+    }
     if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
-      int curRow=e->getRow();
-      if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(curRow);
-      if (--pendingStepUpdate<0) pendingStepUpdate=0;
-      if (nextScroll>-0.5f) {
-        ImGui::SetScrollY(nextScroll);
-        nextScroll=-1.0f;
-        nextAddScroll=0.0f;
-      }
+
       if (nextAddScroll!=0.0f) {
         ImGui::SetScrollY(ImGui::GetScrollY()+nextAddScroll);
         nextScroll=-1.0f;
         nextAddScroll=0.0f;
       }
+      
       ImGui::TableSetupScrollFreeze(1,1);
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
@@ -937,7 +937,6 @@ void FurnaceGUI::drawPattern() {
 
       ImGui::EndDisabled();
       ImGui::PopStyleVar();
-      oldRow=curRow;
       if (demandScrollX) {
         int totalDemand=demandX-ImGui::GetScrollX();
         if (totalDemand<80) {

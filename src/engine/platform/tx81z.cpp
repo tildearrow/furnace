@@ -147,10 +147,10 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+        chan[i].pitch2+=chan[i].std.pitch.val*(brokenPitch?2:1);
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.pitch.val*(brokenPitch?2:1);
       }
       chan[i].freqChanged=true;
     }
@@ -337,18 +337,18 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64+chan[i].pitch2;
+      chan[i].freq=chan[i].baseFreq+chan[i].pitch-128+chan[i].pitch2;
       if (!parent->song.oldArpStrategy) {
         if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<6)+(chan[i].pitch>>1)-64+chan[i].pitch2;
+          chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+chan[i].pitch2;
         } else {
-          chan[i].freq+=chan[i].arpOff<<6;
+          chan[i].freq+=chan[i].arpOff<<7;
         }
       }
       if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>=(95<<6)) chan[i].freq=(95<<6)-1;
-      immWrite(i+0x28,hScale(chan[i].freq>>6));
-      immWrite(i+0x30,(chan[i].freq<<2)|(chan[i].chVolL==chan[i].chVolR));
+      if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
+      immWrite(i+0x28,hScale(chan[i].freq>>7));
+      immWrite(i+0x30,((chan[i].freq<<1)&0xfc)|(chan[i].chVolL==chan[i].chVolR));
       hardResetElapsed+=2;
       chan[i].freqChanged=false;
     }
@@ -523,13 +523,13 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value;
+        newFreq=chan[c.chan].baseFreq+c.value*(brokenPitch?2:1);
         if (newFreq>=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       } else {
-        newFreq=chan[c.chan].baseFreq-c.value;
+        newFreq=chan[c.chan].baseFreq-c.value*(brokenPitch?2:1);
         if (newFreq<=destFreq) {
           newFreq=destFreq;
           return2=true;
@@ -1043,7 +1043,9 @@ void DivPlatformTX81Z::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
 
-  baseFreqOff=round(768.0*(log((COLOR_NTSC/(double)chipClock))/log(2.0)));
+  baseFreqOff=round(1536.0*(log((COLOR_NTSC/(double)chipClock))/log(2.0)));
+
+  brokenPitch=flags.getBool("brokenPitch",false);
 
   rate=chipClock/64;
   for (int i=0; i<8; i++) {

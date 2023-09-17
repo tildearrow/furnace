@@ -4,13 +4,14 @@
   
   <name>Furnace</name>
   <summary>Open-source chiptune tracker</summary>
+  <url type="homepage">https://github.com/tildearrow/furnace</url>
   
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0-or-later</project_license>
   
   <description>
     <p>
-      the biggest chiptune tracker ever made!
+      Furnace - the biggest chiptune tracker ever made!
     </p>
     <p>
       it allows you to create songs using a music tracker interface for several computer/game console/arcade sound chips.
@@ -19,7 +20,7 @@
       it also offers DefleMask compatibility, allowing you to import your songs and even export them back for interoperability.
     </p>
     <p>
-      <b>rationale for intense profanity:</b> the tracker itself is clean, but a few demo songs and instruments contain a small amount of strong language.
+      rationale for intense profanity: the tracker itself is clean, but a few demo songs and instruments contain a small amount of strong language.
     </p>
   </description>
 
@@ -34,4 +35,4 @@
       <image>https://tildearrow.org/storage/images/furnace.png</image>
     </screenshot>
   </screenshots>
-</component>
+

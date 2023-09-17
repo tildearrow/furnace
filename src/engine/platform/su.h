@@ -21,7 +21,7 @@
 #define _SU_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/su.h"
 
 class DivPlatformSoundUnit: public DivDispatch {

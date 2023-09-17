@@ -2166,6 +2166,13 @@ int DivEngine::getRow() {
   return prevRow;
 }
 
+void DivEngine::getPlayPos(int& order, int& row) {
+  playPosLock.lock();
+  order=prevOrder;
+  row=prevRow;
+  playPosLock.unlock();
+}
+
 int DivEngine::getElapsedBars() {
   return elapsedBars;
 }

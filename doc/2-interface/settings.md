@@ -32,8 +32,10 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
     - **Loops**: number of additional times to play through `0Bxx` song loop.
     - **Fade out (seconds)**: length of fade out after final loop.
   - **Remember last values**
+- **Store instrument name in .fui**: when enabled, saving an instrument will store its name. this may increase file size.
+- **Load instrument name from .fui**: when enabled, loading an instrument will use the stored name (if present). otherwise, it will use the file name.
 
-### Chip
+### New Song
 
 - **Initial system**: the system of chips loaded on starting Furnace.
   - **Current system**: sets current chips as default.
@@ -105,7 +107,11 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 ### Metronome
 
-- **Metronome volume**: sets volume of metronome.
+- **Volume**: sets volume of metronome.
+
+### Sample preview
+
+- **Volume**: sets volume of sample preview.
 
 ## MIDI
 

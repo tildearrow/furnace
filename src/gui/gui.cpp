@@ -1134,7 +1134,7 @@ void FurnaceGUI::stop() {
   if (followPattern && wasPlaying) {
     nextScroll=-1.0f;
     nextAddScroll=0.0f;
-    cursor.y=e->getRow();
+    cursor.y=oldRow;
     if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
       selStart=cursor;
       selEnd=cursor;
@@ -2207,7 +2207,7 @@ void FurnaceGUI::pushRecentFile(String path) {
   if (path.find(backupPath)==0) return;
   for (int i=0; i<(int)recentFile.size(); i++) {
     if (recentFile[i]==path) {
-      recentFile.erase(recentFile.begin()+i);
+      recentFile.erase(i);
       i--;
     }
   }
@@ -3545,7 +3545,7 @@ bool FurnaceGUI::loop() {
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
             int sampleCountBefore=e->song.sampleLen;
-            std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file);
+            std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file,true,settings.readInsNames);
             DivWavetable* droppedWave=NULL;
             DivSample* droppedSample=NULL;
             if (!instruments.empty()) {
@@ -3922,6 +3922,17 @@ bool FurnaceGUI::loop() {
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
 
+    int nextPlayOrder=0;
+    int nextOldRow=0;
+    e->getPlayPos(nextPlayOrder,nextOldRow);
+    playOrder=nextPlayOrder;
+    if (followPattern) {
+      curOrder=playOrder;
+    }
+    if (e->isPlaying()) {
+      oldRow=nextOldRow;
+    }
+
     if (!mobileUI) {
       ImGui::BeginMainMenuBar();
       if (ImGui::BeginMenu(settings.capitalMenuBar?"File":"file")) {
@@ -3948,7 +3959,7 @@ bool FurnaceGUI::loop() {
                 nextFile=item;
                 showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
               } else {
-                recentFile.erase(recentFile.begin()+i);
+                recentFile.erase(i);
                 i--;
                 if (load(item)>0) {
                   showError(fmt::sprintf("Error while loading file! (%s)",lastError));
@@ -4379,15 +4390,15 @@ bool FurnaceGUI::loop() {
         info+=fmt::sprintf(" @ %gHz (%g BPM) ",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
 
         if (settings.orderRowsBase) {
-          info+=fmt::sprintf("| Order %.2X/%.2X ",e->getOrder(),e->curSubSong->ordersLen-1);
+          info+=fmt::sprintf("| Order %.2X/%.2X ",playOrder,e->curSubSong->ordersLen-1);
         } else {
-          info+=fmt::sprintf("| Order %d/%d ",e->getOrder(),e->curSubSong->ordersLen-1);
+          info+=fmt::sprintf("| Order %d/%d ",playOrder,e->curSubSong->ordersLen-1);
         }
 
         if (settings.patRowsBase) {
-          info+=fmt::sprintf("| Row %.2X/%.2X ",e->getRow(),e->curSubSong->patLen);
+          info+=fmt::sprintf("| Row %.2X/%.2X ",oldRow,e->curSubSong->patLen);
         } else {
-          info+=fmt::sprintf("| Row %d/%d ",e->getRow(),e->curSubSong->patLen);
+          info+=fmt::sprintf("| Row %d/%d ",oldRow,e->curSubSong->patLen);
         }
 
         info+=fmt::sprintf("| %d:%.2d:%.2d.%.2d",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
@@ -4458,10 +4469,6 @@ bool FurnaceGUI::loop() {
     }
 
     MEASURE(calcChanOsc,calcChanOsc());
-
-    if (followPattern) {
-      curOrder=e->getOrder();
-    }
 
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -4850,7 +4857,7 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_INS_SAVE:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                if (e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song)) {
+                if (e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song,settings.writeInsNames)) {
                   pushRecentSys(copyOfName.c_str());
                 }
               }
@@ -4976,7 +4983,7 @@ bool FurnaceGUI::loop() {
               String warns="there were some warnings/errors while loading instruments:\n";
               int sampleCountBefore=e->song.sampleLen;
               for (String i: fileDialog->getFileName()) {
-                std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str());
+                std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str(),true,settings.readInsNames);
                 if (insTemp.empty()) {
                   warn=true;
                   warns+=fmt::sprintf("> %s: cannot load instrument! (%s)\n",i,e->getLastError());
@@ -5022,7 +5029,7 @@ bool FurnaceGUI::loop() {
             }
             case GUI_FILE_INS_OPEN_REPLACE: {
               int sampleCountBefore=e->song.sampleLen;
-              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str());
+              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str(),true,settings.readInsNames);
               if (!instruments.empty()) {
                 if (e->song.sampleLen!=sampleCountBefore) {
                   e->renderSamplesP();
@@ -5540,8 +5547,6 @@ bool FurnaceGUI::loop() {
               stop();
               e->clearSubSongs();
               curOrder=0;
-              oldOrder=0;
-              oldOrder1=0;
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
@@ -5552,8 +5557,6 @@ bool FurnaceGUI::loop() {
               });
               e->setOrder(0);
               curOrder=0;
-              oldOrder=0;
-              oldOrder1=0;
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
@@ -5565,8 +5568,6 @@ bool FurnaceGUI::loop() {
               });
               e->setOrder(0);
               curOrder=0;
-              oldOrder=0;
-              oldOrder1=0;
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
@@ -5671,8 +5672,6 @@ bool FurnaceGUI::loop() {
               undoHist.clear();
               redoHist.clear();
               updateScroll(0);
-              oldOrder=0;
-              oldOrder1=0;
               oldRow=0;
               cursor.xCoarse=0;
               cursor.xFine=0;
@@ -7079,10 +7078,9 @@ FurnaceGUI::FurnaceGUI():
   curSample(0),
   curOctave(3),
   curOrder(0),
+  playOrder(0),
   prevIns(0),
   oldRow(0),
-  oldOrder(0),
-  oldOrder1(0),
   editStep(1),
   exportLoops(0),
   soloChan(-1),

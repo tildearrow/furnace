@@ -166,6 +166,7 @@ const char* aboutLine[]={
   "Portable File Dialogs by Sam Hocevar",
   "Native File Dialog by Frogtoss Games",
   "PortAudio",
+  "Weak-JACK by x42",
   "RtMidi by Gary P. Scavone",
   "FFTW by Matteo Frigo and Steven G. Johnson",
   "backward-cpp by Google",
