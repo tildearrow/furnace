@@ -1,6 +1,6 @@
 # Furnace (chiptune tracker)
 
-![screenshot](papers/screenshot3.png)
+![screenshot](papers/screenshot4.png)
 
 the biggest multi-system chiptune tracker ever made!
 
