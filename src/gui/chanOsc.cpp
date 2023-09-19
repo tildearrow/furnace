@@ -357,7 +357,7 @@ void FurnaceGUI::drawChanOsc() {
     } else {
       ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
       float availY=ImGui::GetContentRegionAvail().y;
-      if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders)) {
+      if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders|ImGuiTableFlags_NoClip)) {
         std::vector<DivDispatchOscBuffer*> oscBufs;
         std::vector<ChanOscStatus*> oscFFTs;
         std::vector<int> oscChans;
@@ -763,6 +763,7 @@ void FurnaceGUI::drawChanOsc() {
                     }
                   }
                 }
+                text+=fmt::sprintf("\n%.0f %.0f/%.0f %.0f",inRect.Min.x,inRect.Min.y,inRect.Max.x,inRect.Max.y);
                 dl->AddText(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0f,0.0f)),ImGui::GetColorU32(chanOscTextColor),text.c_str());
               }
 
