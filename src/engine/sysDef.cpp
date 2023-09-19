@@ -1181,7 +1181,7 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_SWAN]=new DivSysDef(
     "WonderSwan", NULL, 0x96, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "developed by the makers of the Game Boy and the Virtual Boy...",
-    {"Wave", "Wave/PCM", "Wave", "Wave/Noise"},
+    {"Wave", "Wave/PCM", "Wave/Sweep", "Wave/Noise"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_WAVE, DIV_CH_PCM, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN},
