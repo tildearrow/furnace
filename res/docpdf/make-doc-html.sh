@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "compiling Furnace doc (PDF)..."
+echo "compiling Furnace doc (HTML)..."
 
 if [ ! -e .venv ]; then
   python3 -m virtualenv .venv || exit 1
@@ -13,6 +13,4 @@ if [ ! -e .venv/req_installed ]; then
   touch .venv/req_installed
 fi
 
-python3 make_paper.py > manual.html
-
-weasyprint -O all -dv manual.html manual.pdf
+python3 make_htmldoc.py
