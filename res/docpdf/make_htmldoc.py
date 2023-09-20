@@ -130,6 +130,10 @@ if __name__ == "__main__":
       h1 {
         text-align: center;
       }
+
+      img {
+        max-width: 100%%;
+      }
     </style>
     <title>%s</title>
   </head>
