@@ -28,12 +28,10 @@
 #include <SDL.h>
 #include <fftw3.h>
 #include <initializer_list>
-#include <map>
 #include <future>
 #include <memory>
-#include <mutex>
 #include <tuple>
-#include <vector>
+#include "../pch.h"
 
 #include "fileDialog.h"
 

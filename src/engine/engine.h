@@ -30,13 +30,9 @@
 #include "cmdStream.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
-#include <atomic>
 #include <functional>
 #include <initializer_list>
 #include <thread>
-#include <mutex>
-#include <map>
-#include <unordered_map>
 #include "../fixedQueue.h"
 
 class DivWorkPool;

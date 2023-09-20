@@ -1,7 +1,7 @@
 #include "../ta-utils.h"
 #include "imgui.h"
 #include <functional>
-#include <vector>
+#include "../pch.h"
 
 #if defined(_WIN64) || defined(__APPLE__)
 #define USE_NFD
