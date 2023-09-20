@@ -1274,6 +1274,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
     } else {
       if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
         curNibble=false;
+        if (pat->data[cursor.y][target]>e->getMaxVolumeChan(cursor.xCoarse)) pat->data[cursor.y][target]=e->getMaxVolumeChan(cursor.xCoarse);
         editAdvance();
       } else {
         curNibble=!curNibble;
