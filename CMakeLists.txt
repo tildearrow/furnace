@@ -8,6 +8,7 @@ project(furnace)
 
 if (APPLE)
   enable_language(OBJC)
+  enable_language(OBJCXX)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
