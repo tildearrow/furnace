@@ -290,7 +290,7 @@ jobs:
         mkdir new
         echo "y" | hdiutil attach Furnace-*-Darwin.dmg -readonly -mount required -mountpoint orig
 
-        cp -v -r orig new
+        cp -P -v -r orig new
         hdiutil detach orig
 
         rmdir orig
