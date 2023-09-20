@@ -271,7 +271,7 @@ jobs:
         pushd ${{ steps.package-identify.outputs.filename }}
 
         cp -v ../LICENSE LICENSE.txt
-        cp -v ../README.md README.txt
+        cp -v ../res/releaseReadme/unstable-win.txt README.txt
         cp -vr ../papers ../${binPath}/furnace.exe ./
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
           cp -v ../${binPath}/furnace.pdb ./
@@ -285,7 +285,29 @@ jobs:
       run: |
         pushd build
         cpack
-        mv Furnace-*-Darwin.dmg ../${{ steps.package-identify.outputs.filename }}
+
+        mkdir orig
+        mkdir new
+        hdiutil attach Furnace-*-Darwin.dmg -readonly -mount required -mountpoint orig
+
+        cp -r orig new
+        hdiutil detach orig
+
+        rmdir orig
+        rm Furnace-*-Darwin.dmg
+
+        cp -v ../LICENSE new/LICENSE.txt
+        cp -v ../res/releaseReadme/stable-mac.txt new/README
+        cp -v -r ../demos new/demos
+        cp -v -r ../instruments new/instruments
+        cp -v -r ../wavetables new/wavetables
+        cd new
+        wget https://tildearrow.org/furproto/manual.pdf
+        cd ..
+
+        hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg
+        
+        mv furnace.dmg ../${{ steps.package-identify.outputs.filename }}
         popd
 
     - name: Package [Linux]
@@ -317,7 +339,7 @@ jobs:
         cd ..
 
         cp ../../LICENSE .
-        cp ../../README.md .
+        cp ../../res/releaseReadme/unstable-other.txt .
         cp -r ../../papers papers
         rmdir usr
 

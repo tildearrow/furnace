@@ -25,7 +25,7 @@ cd release/windows
 
 cp ../../LICENSE LICENSE.txt || exit 1
 cp ../../winbuild/furnace.exe . || exit 1
-cp ../../README.md README.txt || exit 1
+cp ../../res/releaseReadme/stable-win.txt README.txt || exit 1
 cp -r ../../papers papers || exit 1
 cp -r ../../doc doc || exit 1
 cp -r ../../demos demos || exit 1
