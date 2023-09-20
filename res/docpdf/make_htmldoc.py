@@ -116,13 +116,11 @@ if __name__ == "__main__":
       }
 
       a {
-        color: #adf;
-        text-decoration: none;
+        color: #3df;
       }
 
       a:visited {
-        color: #adf;
-        text-decoration: none;
+        color: #fd3;
       }
 
       b {
