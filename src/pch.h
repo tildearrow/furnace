@@ -20,6 +20,7 @@
 #ifndef FUR_PCH_H
 #define FUR_PCH_H
 
+#define _USE_MATH_DEFINES
 #include <string>
 #include <vector>
 #include <mutex>
