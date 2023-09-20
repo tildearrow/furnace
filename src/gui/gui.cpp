@@ -3930,11 +3930,13 @@ bool FurnaceGUI::loop() {
     int nextPlayOrder=0;
     int nextOldRow=0;
     e->getPlayPos(nextPlayOrder,nextOldRow);
+    oldRowChanged=false;
     playOrder=nextPlayOrder;
     if (followPattern) {
       curOrder=playOrder;
     }
     if (e->isPlaying()) {
+      if (oldRow!=nextOldRow) oldRowChanged=true;
       oldRow=nextOldRow;
     }
 
@@ -7110,6 +7112,8 @@ FurnaceGUI::FurnaceGUI():
   exitDisabledTimer(0),
   soloTimeout(0.0f),
   exportFadeOut(5.0),
+  newSongFirstFrame(false),
+  oldRowChanged(false),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),

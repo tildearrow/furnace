@@ -377,11 +377,14 @@ void FurnaceGUI::drawPattern() {
 
   bool inhibitMenu=false;
 
-  if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) {
-    cursor.y=oldRow;
-    if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
-      selStart=cursor;
-      selEnd=cursor;
+  if (e->isPlaying() && followPattern) {
+    if (oldRowChanged || !e->isStepping()) {
+      if (e->isStepping()) pendingStepUpdate=1;
+      cursor.y=oldRow;
+      if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
+        selStart=cursor;
+        selEnd=cursor;
+      }
     }
   }
   demandX=0;
