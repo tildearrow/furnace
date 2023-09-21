@@ -21,7 +21,7 @@
 #define _PCE_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../waveSynth.h"
 #include "sound/pce_psg.h"
 

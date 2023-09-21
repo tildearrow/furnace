@@ -2531,10 +2531,12 @@ void FurnaceGUI::drawInsEdit() {
                   if (ImGui::Button("Request from TX81Z")) {
                     doAction(GUI_ACTION_TX81Z_REQUEST);
                   }
+                  /* 
                   ImGui::SameLine();
                   if (ImGui::Button("Send to TX81Z")) {
                     showError("Coming soon!");
                   }
+                  */
                   break;
                 case DIV_INS_OPL:
                 case DIV_INS_OPL_DRUMS: {
@@ -4490,7 +4492,7 @@ void FurnaceGUI::drawInsEdit() {
             ins->std.dutyMacro.vZoom=-1;
             PARAMETER;
           }
-          P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
+          P(ImGui::Checkbox("Don't test before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_PCE ||
@@ -5862,7 +5864,7 @@ void FurnaceGUI::drawInsEdit() {
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
-          if (ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295) {
+          if (ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295 && ins->type!=DIV_INS_ADPCMA) {
             macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.arpMacro.val));
           }
           if (dutyMax>0) {
@@ -5906,7 +5908,7 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
           }
-          if (ins->type!=DIV_INS_MSM5232 && ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295) {
+          if (ins->type!=DIV_INS_MSM5232 && ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295 && ins->type!=DIV_INS_ADPCMA) {
             macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
           }
           if (ins->type==DIV_INS_FM ||
@@ -5943,6 +5945,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_GA20 ||
               ins->type==DIV_INS_K053260 ||
               ins->type==DIV_INS_C140 ||
+              ins->type==DIV_INS_C219 ||
               ins->type==DIV_INS_TED) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }

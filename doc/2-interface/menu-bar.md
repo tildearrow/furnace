@@ -2,9 +2,9 @@
 
 the menu bar allows you to select from five menus: file, edit, settings, window and help.
 
-items in _italics_ don't appear in basic mode and are only available in advanced mode.
+items in _italic_ don't appear in basic mode and are only available in advanced mode.
 
-# file
+## file
 
 - **new...**: creates a new song.
 - **open...**: opens the file picker, allowing you to select a song to open.
@@ -50,9 +50,9 @@ items in _italics_ don't appear in basic mode and are only available in advanced
     - Linux/other: `~/.config/furnace/backups`
   - this directory grows in size as you use Furnace. remember to delete old backups periodically to save space.
 
-- **exit**: I think you know what this does.
+- **exit**: closes Furnace.
 
-## export audio
+### export audio
 
 this option allows you to export your song in .wav format. I know I know, no .mp3 or .ogg export yet, but you can use a converter.
 
@@ -70,7 +70,7 @@ and three export choices:
 - **multiple files (one per channel)**: exports the output of each channel to .wav files.
   - useful for usage with a channel visualizer such as corrscope.
 
-## export VGM
+### export VGM
 
 this option allows exporting to a VGM (Video Game Music) file. these can be played back with VGMPlay (for example).
 
@@ -104,7 +104,7 @@ the following settings exist:
 
 click on **click to export** to begin exporting.
 
-## export ZSM
+### export ZSM
 
 ZSM (ZSound Music) is a format designed for the Commander X16 to allow hardware playback.
 it may contain data for either YM2151 or VERA chips.
@@ -120,7 +120,7 @@ the following settings are available:
 
 click on **Begin Export** to... you know.
 
-## export command stream
+### export command stream
 
 this option exports a text or binary file which contains a dump of the internal command stream produced when playing the song.
 
@@ -129,7 +129,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **export (binary)**: exports in Furnace's own command stream format (FCS). see `export-tech.md` in `papers/` for details.
 - **export (text)**: exports the command stream as a text file. only useful for analysis, really.
 
-# edit
+## edit
 
 - **...**: does nothing except prevent accidental clicks on later menu items if the menu is too tall to fit on the program window.
 
@@ -189,9 +189,9 @@ it's not really useful, unless you're a developer and want to use a command stre
 
 - _**find/replace**:_ shows [the Find/Replace window](../8-advanced/find-replace.md).
 
-- **clear**: allows you to mass-delete things like songs, instruments and the like.
+- **clear**: opens a window that allows you to mass-delete things like songs, unused instruments, and the like.
 
-# settings
+## settings
 
 - **full screen**: expands the Furnace window so it covers your screen.
 - **lock layout**: prevents you from dragging/resizing docked windows, or docking more.
@@ -200,7 +200,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **reset layout**: resets the workspace to its defaults.
 - **settings...**: shows the Settings window. these are detailed in [settings.md].
 
-# window
+## window
 
 all these menu items show or hide their associated windows.
 
@@ -212,23 +212,23 @@ all these menu items show or hide their associated windows.
 - [samples](../6-sample/README.md)
 - [orders](order-list.md)
 - [pattern](../3-pattern/README.md)
-- _[mixer](mixer.md)_
-- _[grooves](grooves.md)_
-- _[channels](channels.md)_
-- _[pattern manager](pat-manager.md)_
-- _[chip manager](chip-manager.md)_
-- _[compatibility flags](compat-flags.md)_
-- [song comments](comments.md)
+- _[mixer](../8-advanced/mixer.md)_
+- _[grooves](../8-advanced/grooves.md)_
+- _[channels](../8-advanced/channels.md)_
+- _[pattern manager](../8-advanced/pat-manager.md)_
+- _[chip manager](../8-advanced/chip-manager.md)_
+- _[compatibility flags](../8-advanced/compat-flags.md)_
+- [song comments](../8-advanced/comments.md)
 
-- [piano](piano.md)
-- [oscilloscope](osc.md)
-- [oscilloscopes (per-channel)](chanosc.md)
-- [clock](clock.md)
-- [register view](regview.md)
-- [log viewer](log-viewer.md)
-- [stats](stats.md)
+- [piano](../8-advanced/piano.md)
+- [oscilloscope](../8-advanced/osc.md)
+- [oscilloscopes (per-channel)](../8-advanced/chanosc.md)
+- [clock](../8-advanced/clock.md)
+- [register view](../8-advanced/regview.md)
+- [log viewer](../8-advanced/log-viewer.md)
+- [stats](../8-advanced/stats.md)
 
-# help
+## help
 
 - **effect list**: displays the effect list.
 - **debug menu**: this menu contains various debug utilities.
@@ -244,6 +244,6 @@ at the end of the menu bar, more information may be shown:
   - instrument number and name.
   - volume in decimal, hex, and percentage.
   - effect type and description.
-- during playback, the current values of the following will be listed:\
-  > speed/groove @ tick rate (BPM) | order | row | elapsed time.
+- during playback, these values will be displayed:
+  - `speed/groove @ tick rate (BPM) | order | row | elapsed time`
 - if any changes or edits have been made but not yet saved, "modified" will appear.

@@ -21,12 +21,11 @@
 #define _WORKPOOL_H
 
 #include <thread>
-#include <mutex>
 #include <atomic>
 #include <functional>
 #include <future>
 
-#include "fixedQueue.h"
+#include "../fixedQueue.h"
 
 class DivWorkPool;
 

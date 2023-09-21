@@ -21,16 +21,19 @@
 #define _FIXED_QUEUE_H
 
 #include <stdint.h>
-#include "../ta-log.h"
+#include "ta-log.h"
 
 template<typename T, size_t items> struct FixedQueue {
   size_t readPos, writePos;
   T data[items];
 
+  T& operator[](size_t pos);
   T& front();
   T& back();
   bool pop();
   bool push(const T& item);
+
+  bool erase(size_t pos);
 
   bool pop_front();
   bool pop_back();
@@ -44,6 +47,13 @@ template<typename T, size_t items> struct FixedQueue {
     writePos(0) {}
 };
 
+template <typename T, size_t items> T& FixedQueue<T,items>::operator[](size_t pos) {
+  if (pos>=size()) {
+    logW("accessing invalid position. bug!");
+  }
+  return data[(readPos+pos)%items];
+}
+
 template <typename T, size_t items> T& FixedQueue<T,items>::front() {
   return data[readPos];
 }
@@ -51,6 +61,36 @@ template <typename T, size_t items> T& FixedQueue<T,items>::front() {
 template <typename T, size_t items> T& FixedQueue<T,items>::back() {
   if (writePos==0) return data[items-1];
   return data[writePos-1];
+}
+
+template <typename T, size_t items> bool FixedQueue<T,items>::erase(size_t pos) {
+  size_t curSize=size();
+  if (pos>=curSize) {
+    logW("accessing invalid position. bug!");
+    return false;
+  }
+  if (pos==0) {
+    return pop_front();
+  }
+  if (pos==curSize-1) {
+    return pop_back();
+  }
+
+  for (size_t i=pos+1, p=(readPos+pos)%items, p1=(readPos+pos+1)%items; i<curSize; i++) {
+    if (p>=items) p-=items;
+    if (p1>=items) p1-=items;
+    data[p]=data[p1];
+    p++;
+    p1++;
+  }
+
+  if (writePos>0) {
+    writePos--;
+  } else {
+    writePos=items-1;
+  }
+  
+  return true;
 }
 
 template <typename T, size_t items> bool FixedQueue<T,items>::pop() {

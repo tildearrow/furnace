@@ -1934,12 +1934,21 @@ namespace IGFD
       prCurrentPath = vCurrentPath;
   }
 
-  bool IGFD::FileManager::IsFileExist(const std::string& vFile)
+  bool IGFD::FileManager::IsFileExist(const std::string& vFile, const std::string& vFileExt)
   {
     std::ifstream docFile(vFile, std::ios::in);
+    logV("IGFD: IsFileExist(%s)",vFile);
     if (docFile.is_open())
     {
       docFile.close();
+      return true;
+    }
+
+    std::ifstream docFileE(vFile+vFileExt, std::ios::in);
+    logV("IGFD: IsFileExist(%s)",vFile+vFileExt);
+    if (docFileE.is_open())
+    {
+      docFileE.close();
       return true;
     }
     return false;
@@ -4564,7 +4573,7 @@ namespace IGFD
     {
       if (prFileDialogInternal.puIsOk) // catched only one time
       {
-        if (!prFileDialogInternal.puFileManager.IsFileExist(GetFilePathName())) // not existing => quit dialog
+        if (!prFileDialogInternal.puFileManager.IsFileExist(GetFilePathName(),prFileDialogInternal.puFilterManager.GetSelectedFilter().firstFilter)) // not existing => quit dialog
         {
           QuitFrame();
           return true;

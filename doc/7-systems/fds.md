@@ -5,7 +5,7 @@ as it name implies, it allowed people to play games on specialized floppy disks 
 
 it also offers an additional 6-bit, 64-byte wavetable sound channel with (somewhat limited) FM capabilities, which is what Furnace supports.
 
-# effects
+## effects
 
 - `10xx`: **change wave.**
 - `11xx`: **set modulation depth.**
@@ -24,8 +24,8 @@ it also offers an additional 6-bit, 64-byte wavetable sound channel with (somewh
     - 5: -3
     - 6: -2
     - 7: -1
-  - why is this mapping so unnatural? because that's how DefleMask does it (yeah, as you may have guessed this effect is mostly for compatibility reasons)...
+  - **do not use this effect.** it only exists for compatibility reasons
 
-# info
+## info
 
 this chip uses the [FDS](../4-instrument/fds.md) instrument editor.

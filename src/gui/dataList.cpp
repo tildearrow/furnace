@@ -172,12 +172,14 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
     wavePreview[i]=wave->data[i];
   }
   if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
-  ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0,0.5f));
-  if (ImGui::Selectable(fmt::sprintf(" %d##_WAVE%d\n",i,i).c_str(),curWave==i,0,ImVec2(0,23*dpiScale))) { // i didnt think that the 0 would work, but it does
+  ImVec2 curPos=ImGui::GetCursorPos();
+  ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign,ImVec2(0,0.5f));
+  if (ImGui::Selectable(fmt::sprintf(" %d##_WAVE%d\n",i,i).c_str(),curWave==i,0,ImVec2(0,ImGui::GetFrameHeight()))) {
     curWave=i;
     lastAssetType=1;
   }
   ImGui::PopStyleVar();
+  curPos.x+=ImGui::CalcTextSize("2222").x;
   if (wantScrollList && curWave==i) ImGui::SetScrollHereY();
   if (ImGui::IsItemHovered()) {
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
@@ -190,7 +192,8 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
     DRAG_TARGET(dir,asset,e->song.waveDir,"FUR_WAVEDIR");
   }
   ImGui::SameLine();
-  PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
+  ImGui::SetCursorPos(curPos);
+  PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetFrameHeight()));
 }
 
 void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
@@ -421,7 +424,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
     }
     if (!insListDir) {
       ImGui::SameLine();
-      if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
+      if (ImGui::Button(ICON_FA_ARROW_UP "##InsUp")) {
         if (settings.unifiedDataView) {
           switch (lastAssetType) {
             case 0:
@@ -442,7 +445,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         ImGui::SetTooltip("Move up");
       }
       ImGui::SameLine();
-      if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
+      if (ImGui::Button(ICON_FA_ARROW_DOWN "##InsDown")) {
         if (settings.unifiedDataView) {
           switch (lastAssetType) {
             case 0:
@@ -726,14 +729,14 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     }
     if (!waveListDir) {
       ImGui::SameLine();
-      if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
+      if (ImGui::Button(ICON_FA_ARROW_UP "##WaveUp")) {
         doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Move up");
       }
       ImGui::SameLine();
-      if (ImGui::ArrowButton("WaveDown",ImGuiDir_Down)) {
+      if (ImGui::Button(ICON_FA_ARROW_DOWN "##WaveDown")) {
         doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
       }
       if (ImGui::IsItemHovered()) {
@@ -868,14 +871,14 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     }
     if (!sampleListDir) {
       ImGui::SameLine();
-      if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
+      if (ImGui::Button(ICON_FA_ARROW_UP "##SampleUp")) {
         doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Move up");
       }
       ImGui::SameLine();
-      if (ImGui::ArrowButton("SampleDown",ImGuiDir_Down)) {
+      if (ImGui::Button(ICON_FA_ARROW_DOWN "##SampleDown")) {
         doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
       }
       if (ImGui::IsItemHovered()) {

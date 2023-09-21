@@ -25,7 +25,7 @@
 extern "C" {
   #include "../../../extern/Nuked-PSG/ympsg.h"
 }
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 class DivPlatformSMS: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {

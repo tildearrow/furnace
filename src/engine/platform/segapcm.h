@@ -23,7 +23,7 @@
 #include "../dispatch.h"
 #include "../instrument.h"
 #include "sound/segapcm.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 class DivPlatformSegaPCM: public DivDispatch {
   protected:

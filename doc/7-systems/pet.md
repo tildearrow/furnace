@@ -6,10 +6,11 @@ maybe no better than a computer terminal, but somebody discovered a way to updat
 
 some of these didn't even have sound...
 
-# effects
+## effects
 
-- `10xx`: **set waveform.** `xx` is a bitmask.
+- `10xx`: **set waveform.**
+  - `xx` is a bitmask.
 
-# info
+## info
 
 this chip uses the [PET](../4-instrument/pet.md) instrument editor.

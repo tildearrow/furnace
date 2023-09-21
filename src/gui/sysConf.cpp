@@ -22,7 +22,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
-bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
+bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
   bool restart=modifyOnChange;
   bool supportsCustomRate=true;
@@ -461,6 +461,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     }
     case DIV_SYSTEM_YM2151: {
       int clockSel=flags.getInt("clockSel",0);
+      bool brokenPitch=flags.getBool("brokenPitch",false);
 
       ImGui::Indent();
       if (ImGui::RadioButton("NTSC/X16 (3.58MHz)",clockSel==0)) {
@@ -477,9 +478,34 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       ImGui::Unindent();
 
+      if (ImGui::Checkbox("Broken pitch macro/slides (compatibility)",&brokenPitch)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("brokenPitch",brokenPitch);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_OPZ: {
+      bool clockSel=flags.getInt("clockSel",0);
+      bool brokenPitch=flags.getBool("brokenPitch",false);
+
+      if (ImGui::Checkbox("Pseudo-PAL",&clockSel)) {
+        altered=true;
+      }
+
+      if (ImGui::Checkbox("Broken pitch macro/slides (compatibility)",&brokenPitch)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",(int)clockSel);
+          flags.set("brokenPitch",brokenPitch);
         });
       }
       break;
@@ -1338,6 +1364,64 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
       ImGui::Unindent();
+      
+      int chipClock=flags.getInt("customClock",0);
+      if (!chipClock) {
+        switch (clockSel) {
+          case 0:
+            chipClock=4000000;
+            break;
+          case 1:
+            chipClock=4096000;
+            break;
+          case 2:
+            chipClock=8000000;
+            break;
+          case 3:
+            chipClock=8192000;
+            break;
+        }
+      }
+
+      ImGui::Text("Sample rate table:");
+      if (ImGui::BeginTable("6258Rate",3)) {
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        ImGui::TableNextColumn();
+        ImGui::Text("divider \\ clock");
+        ImGui::TableNextColumn();
+        ImGui::Text("full");
+        ImGui::TableNextColumn();
+        ImGui::Text("half");
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("/512");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/512);
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/1024);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("/768");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/768);
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/1536);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("/1024");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/1024);
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/2048);
+
+        ImGui::EndTable();
+      }
 
       if (altered) {
         e->lockSave([&]() {
@@ -1756,11 +1840,11 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
-      if (ImGui::InputText("##MMLWave",&mmlStringSNES)) {
+      if (ImGui::InputText("##MMLWave",&mmlStringSNES[sysPos])) {
         int actualData[256];
         int discardIt=0;
         memset(actualData,0,256*sizeof(int));
-        decodeMMLStrW(mmlStringSNES,actualData,discardIt,snesFilterHex?0:-128,snesFilterHex?255:127,snesFilterHex);
+        decodeMMLStrW(mmlStringSNES[sysPos],actualData,discardIt,snesFilterHex?0:-128,snesFilterHex?255:127,snesFilterHex);
         if (snesFilterHex) {
           for (int i=0; i<8; i++) {
             if (actualData[i]>=128) actualData[i]-=256;
@@ -1778,7 +1862,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
             actualData[i]=echoFilter[i];
           }
         }
-        encodeMMLStr(mmlStringSNES,actualData,8,-1,-1,snesFilterHex);
+        encodeMMLStr(mmlStringSNES[sysPos],actualData,8,-1,-1,snesFilterHex);
       }
 
       int filterSum=(

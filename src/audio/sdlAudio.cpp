@@ -18,7 +18,6 @@
  */
 
 #include <string.h>
-#include <vector>
 #include "../ta-log.h"
 #include "sdlAudio.h"
 

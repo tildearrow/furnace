@@ -20,7 +20,7 @@
 #ifndef _SONG_H
 #define _SONG_H
 #include <stdio.h>
-#include <vector>
+#include "../pch.h"
 
 #include "defines.h"
 #include "../ta-utils.h"

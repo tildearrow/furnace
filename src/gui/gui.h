@@ -27,14 +27,11 @@
 #include "imgui_impl_sdl2.h"
 #include <SDL.h>
 #include <fftw3.h>
-#include <deque>
 #include <initializer_list>
-#include <map>
 #include <future>
 #include <memory>
-#include <mutex>
 #include <tuple>
-#include <vector>
+#include "../pch.h"
 
 #include "fileDialog.h"
 
@@ -874,6 +871,18 @@ struct UndoStep {
   std::vector<UndoOrderData> ord;
   std::vector<UndoPatternData> pat;
   std::vector<UndoOtherData> other;
+
+  UndoStep():
+    type(GUI_UNDO_CHANGE_ORDER),
+    cursor(),
+    selStart(),
+    selEnd(),
+    order(0),
+    nibble(false),
+    oldOrdersLen(0),
+    newOrdersLen(0),
+    oldPatLen(0),
+    newPatLen(0) {}
 };
 
 // -1 = any
@@ -1317,12 +1326,13 @@ class FurnaceGUI {
   String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
-  String mmlStringW, mmlStringSNES, grooveString, grooveListString, mmlStringModTable;
+  String mmlStringW, grooveString, grooveListString, mmlStringModTable;
+  String mmlStringSNES[DIV_MAX_CHIPS];
   String folderString;
 
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
-  std::deque<String> recentFile;
+  FixedQueue<String,32> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
@@ -1390,7 +1400,7 @@ class FurnaceGUI {
   String backupPath;
 
   std::mutex midiLock;
-  std::queue<TAMidiMessage> midiQueue;
+  FixedQueue<TAMidiMessage,4096> midiQueue;
   MIDIMap midiMap;
   int learning;
 
@@ -1502,6 +1512,7 @@ class FurnaceGUI {
     int separateFMColors;
     int insEditColorize;
     int metroVol;
+    int sampleVol;
     int pushNibble;
     int scrollChangesOrder;
     int oplStandardWaveNames;
@@ -1578,6 +1589,8 @@ class FurnaceGUI {
     int chanOscThreads;
     int renderPoolThreads;
     int showPool;
+    int writeInsNames;
+    int readInsNames;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1682,6 +1695,7 @@ class FurnaceGUI {
       separateFMColors(0),
       insEditColorize(0),
       metroVol(100),
+      sampleVol(50),
       pushNibble(0),
       scrollChangesOrder(0),
       oplStandardWaveNames(0),
@@ -1757,6 +1771,8 @@ class FurnaceGUI {
       chanOscThreads(0),
       renderPoolThreads(0),
       showPool(0),
+      writeInsNames(1),
+      readInsNames(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -1792,7 +1808,7 @@ class FurnaceGUI {
 
   DivInstrument* prevInsData;
 
-  int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan,orderEditMode, orderCursor;
+  int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, exportLoops, soloChan,orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
   int curGroove, exitDisabledTimer;
@@ -1800,7 +1816,7 @@ class FurnaceGUI {
 
   double exportFadeOut;
 
-  bool newSongFirstFrame;
+  bool newSongFirstFrame, oldRowChanged;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
@@ -2002,8 +2018,8 @@ class FurnaceGUI {
   int oldOrdersLen;
   DivOrders oldOrders;
   DivPattern* oldPat[DIV_MAX_CHANS];
-  std::deque<UndoStep> undoHist;
-  std::deque<UndoStep> redoHist;
+  FixedQueue<UndoStep,256> undoHist;
+  FixedQueue<UndoStep,256> redoHist;
 
   // sample editor specific
   double sampleZoom;
@@ -2176,7 +2192,7 @@ class FurnaceGUI {
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
-  bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
+  bool drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
   void kvsConfig(DivInstrument* ins, bool supportsKVS=true);
   void drawFMPreview(const ImVec2& size);
   void renderFMPreview(const DivInstrument* ins, int pos=0);

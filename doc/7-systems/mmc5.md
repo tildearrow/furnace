@@ -6,11 +6,11 @@ it has two pulse channels which are very similar to the ones found in the NES, b
 
 additionally, it offers an 8-bit DAC which can be used to play samples. only one game is known to use it, though.
 
-# effects
+## effects
 
 - `12xx`: **set duty cycle or noise mode of channel.**
   - may be `0` through `3` for the pulse channels.
 
-# info
+## info
 
-this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/sample.md) instrument editors.

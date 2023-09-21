@@ -22,7 +22,7 @@
 
 #include "../dispatch.h"
 #include "../waveSynth.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/snes/SPC_DSP.h"
 
 class DivPlatformSNES: public DivDispatch {

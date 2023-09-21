@@ -60,9 +60,9 @@ the options are:
 
 drag your mouse cursor to any of the options to dock the window.
 
-if you drag to the sides (marked with blue text), the window will cover that side of the workspace.
+if you drag to the sides, the window will cover that side of the workspace.
 
-if you drag it to a window or empty space (marked with yellow text), five docking positions will appear.
+if you drag it to a window or empty space, five docking positions will appear.
 
 if you drag the window to the center of another window, it will appear as another tab.
 

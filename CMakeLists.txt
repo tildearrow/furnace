@@ -8,6 +8,7 @@ project(furnace)
 
 if (APPLE)
   enable_language(OBJC)
+  enable_language(OBJCXX)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
@@ -24,6 +25,15 @@ set(SYSTEM_SDL2_DEFAULT OFF)
 
 include(CheckIncludeFile)
 include(TestBigEndian)
+
+execute_process(COMMAND git status RESULT_VARIABLE DONT_HAVE_GIT WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+if (NOT DONT_HAVE_GIT)
+  message(STATUS "Git is available")
+else()
+  message(WARNING "either Git is not available, or this Git repository has not been initialized.
+if you have used the \"Source code\" option in the GitHub release page, you are doing it wrong! unless you manually initialize submodules, the build is guaranteed to FAIL spectacularly!
+read the \"developer info\" section of README.md for more information.")
+endif()
 
 if (ANDROID)
   set(USE_RTMIDI_DEFAULT OFF)
@@ -211,7 +221,7 @@ endif()
 if (WITH_PORTAUDIO)
   if (SYSTEM_PORTAUDIO)
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(PORTAUDIO REQUIRED portaudio)
+    pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS ${PORTAUDIO_INCLUDE_DIRS})
     list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${PORTAUDIO_CFLAGS_OTHER})
     list(APPEND DEPENDENCIES_LIBRARIES ${PORTAUDIO_LIBRARIES})
@@ -357,14 +367,16 @@ endif()
 if (WITH_JACK)
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(JACK REQUIRED jack)
+  list(APPEND AUDIO_SOURCES extern/weakjack/weak_libjack.c)
   list(APPEND AUDIO_SOURCES src/audio/jack.cpp)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS ${JACK_INCLUDE_DIRS})
   list(APPEND DEPENDENCIES_DEFINES HAVE_JACK)
-  list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${JACK_CFLAGS_OTHER})
-  list(APPEND DEPENDENCIES_LIBRARIES ${JACK_LIBRARIES})
-  list(APPEND DEPENDENCIES_LIBRARY_DIRS ${JACK_LIBRARY_DIRS})
-  list(APPEND DEPENDENCIES_LINK_OPTIONS ${JACK_LDFLAGS_OTHER})
-  list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${JACK_LDFLAGS})
+  list(APPEND DEPENDENCIES_DEFINES USE_WEAK_JACK)
+  #list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${JACK_CFLAGS_OTHER})
+  #list(APPEND DEPENDENCIES_LIBRARIES ${JACK_LIBRARIES})
+  #list(APPEND DEPENDENCIES_LIBRARY_DIRS ${JACK_LIBRARY_DIRS})
+  #list(APPEND DEPENDENCIES_LINK_OPTIONS ${JACK_LDFLAGS_OTHER})
+  #list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${JACK_LDFLAGS})
   message(STATUS "Building with JACK support")
 else()
   message(STATUS "Building without JACK support")
@@ -437,6 +449,9 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+
+src/pch.cpp
+
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -920,6 +935,15 @@ if (WARNINGS_ARE_ERRORS)
   )
 endif()
 
+if (NOT ANDROID OR TERMUX)
+  if (NOT WIN32 AND NOT APPLE)
+    if (NOT DONT_HAVE_GIT)
+      add_custom_command(OUTPUT furnace.appdata.xml COMMAND res/make-appdata.sh ARGS ${CMAKE_SOURCE_DIR}/res/furnace.appdata.xml.in ${CMAKE_BINARY_DIR}/furnace.appdata.xml DEPENDS res/furnace.appdata.xml.in WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+      list(APPEND USED_SOURCES furnace.appdata.xml)
+    endif()
+  endif()
+endif()
+
 if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
 elseif(WIN32)
@@ -945,12 +969,29 @@ if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYST
   endif()
 endif()
 
+# why 3.16..... why not 3.0?
+if (CMAKE_MAJOR_VERSION GREATER_EQUAL 3 AND CMAKE_MINOR_VERSION GREATER_EQUAL 16)
+  if (BUILD_GUI)
+  target_precompile_headers(furnace PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui_internal.h>
+  )
+  else()
+    target_precompile_headers(furnace PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+    )
+  endif()
+endif()
+
 if (NOT ANDROID OR TERMUX)
   if (NOT WIN32 AND NOT APPLE)
     include(GNUInstallDirs)
     install(TARGETS furnace RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
-    install(FILES res/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    if (NOT DONT_HAVE_GIT)
+      install(FILES ${CMAKE_BINARY_DIR}/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    endif()
     install(DIRECTORY doc DESTINATION ${CMAKE_INSTALL_DOCDIR})
     install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR}/other)
     install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)

@@ -722,6 +722,10 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
     }
   }
 
+  if (properDrums && ch>melodicChans) {
+    return;
+  }
+
   if (isMuted[ch]) {
     rWrite(chanMap[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&1)|(chan[ch].state.fb<<1));
     if (ops==4) {

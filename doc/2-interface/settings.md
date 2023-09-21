@@ -13,6 +13,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Disable threaded input (restart after changing!)**: processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.
   - however, crashes have been reported when threaded input is on. enable this option if that is the case.
 - **Enable event delay**: may cause issues with high-polling-rate mice when previewing notes.
+- **Per-channel oscilloscope threads**: runs the per-channel oscilloscope in separate threads for a performance boost when there are lots of channels.
 
 ### File
 
@@ -31,8 +32,10 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
     - **Loops**: number of additional times to play through `0Bxx` song loop.
     - **Fade out (seconds)**: length of fade out after final loop.
   - **Remember last values**
+- **Store instrument name in .fui**: when enabled, saving an instrument will store its name. this may increase file size.
+- **Load instrument name from .fui**: when enabled, loading an instrument will use the stored name (if present). otherwise, it will use the file name.
 
-### Chip
+### New Song
 
 - **Initial system**: the system of chips loaded on starting Furnace.
   - **Current system**: sets current chips as default.
@@ -58,9 +61,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 ### Behavior
 
-- **New instruments are blank**
-
-
+- **New instruments are blank**: when enabled, adding FM instruments will make them blank (rather than loading the default one).
 
 ## Audio
 
@@ -106,7 +107,11 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 ### Metronome
 
-- **Metronome volume**
+- **Volume**: sets volume of metronome.
+
+### Sample preview
+
+- **Volume**: sets volume of sample preview.
 
 ## MIDI
 
@@ -141,19 +146,6 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - **Use single control change**: maps one control change event. not useful if you want to input odd numbers.
     - **Control**: select the CC number that will change the value.
 - **Per-column control change**: when enabled, you can map several control change events to a channel's columns.
-  - **Instrument**\
-    **Volume**\
-    **Effect `x` type**\
-    **Effect `x` value**
-    - **Disabled/custom**
-    - **Use dual control change (one for each nibble)**
-      - **CC of upper nibble**
-      - **CC of lower nibble**
-    - **Use 14-bit control change**
-      - **MSB CC**
-      - **LSB CC**
-    - **Use single control change (imprecise)**
-      - **Control**
 - **Volume curve**: adjust the velocity to volume curve.
 - **Actions**: this allows you to bind note input and control change events to actions.
   - **`+`** button: adds a new action.
@@ -187,19 +179,12 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 ### Cores
 
-- **Arcade/YM2151 core**\
-  **Genesis/YM2612 core**\
-  **SN76489 core**\
-  **NES core**\
-  **FDS core**\
-  **SID core**\
-  **POKEY core**\
-  **OPN/OPNA/OPNB cores**:
-  - **Playback Core(s)**: core(s) to use for realtime playback.
-  - **Render Core(s)**: core(s) to use for exporting audio.
-  - all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
+- **Playback Core(s)**: core(s) to use for playback.
+- **Render Core(s)**: core(s) to use when exporting audio.
 
-- **PC Speaker strategy**: this is covered in the [PC speaker system doc](../7-systems/pcspkr.md).
+all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
+
+- **PC Speaker strategy**: this is covered in the [PC speaker page](../7-systems/pcspkr.md).
 
 ## Keyboard
 
@@ -208,11 +193,22 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Import**
 - **Export**
 - **Reset defaults**
-- [grouped list of keybinds...](keyboard.md)
-  - click on a keybind then enter a key or key combination to change it
-  - right-click to clear the keybind
 
+a list of keybinds is displayed.
+- click on a keybind. then enter a key or key combination to change it.
+- right-click to clear the keybind.
+- the full list is in the [keyboard](keyboard.md) page.
 
+#### note input
+
+the settings for note input keybinds operate differently. each entry in the list of keybinds is made of the following:
+- **Key**: key assignment.
+- **Type**: type of note input. left-click cycles through "Note", "Note off", "Note release", and "Macro release".
+  - note: the list is sorted by type. on changing a key's type, it will instantly move to its new sorting position!
+- **Value**: number of semitones above C at the current octave. only appears for note type binds.
+- **Remove**: removes the keybind from the list.
+
+below all the binds, select a key from the dropdown list to add it. it will appear at or near the top of the list as a note with value 0.
 
 ## Interface
 
@@ -222,7 +218,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - **Import**: reads a .ini layout file.
   - **Export**: writes current layout to a .ini file.
   - **Reset**: resets layout to default.
-- **Allow docking editors**
+- **Allow docking editors**: when enabled, you'll be able to dock instrument/wave/sample editors.
 - **Remember window position**: remembers the window's last position on start-up.
 - **Only allow window movement when clicking on title bar**
 - **Center pop-up windows**
@@ -241,56 +237,57 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Double-click time (seconds)**: maximum time between mouse clicks to recognize them as a double-click.
 - **Don't raise pattern editor on click**
 - **Focus pattern editor when selecting instrument**
-- **Note preview behavior:**
-  - **Never**
-  - **When cursor is in Note column**
-  - **When cursor is in Note column or not in edit mode**
-  - **Always**
+- **Note preview behavior:** allows you to disable note preview when entering notes in the pattern.
+  - **Never**: don't preview notes at all.
+  - **When cursor is in Note column**: only when the cursor is in the Note column
+  - **When cursor is in Note column or not in edit mode**: erm... yeah.
+  - **Always**: always preview notes.
 - **Allow dragging selection:**
-  - **No**
-  - **Yes**
-  - **Yes (while holding Ctrl only)**
+  - **No**: don't allow drag-and-drop.
+  - **Yes**: allow drag-and-drop.
+  - **Yes (while holding Ctrl only)**: allow drag-and-drop but only when holding Control (Command on macOS).
 - **Toggle channel solo on:** selects which interactions with a channel header will toggle solo for that channel.
   - Right-click or double click
   - Right-click
   - Double-click
-- **Double click selects entire column**
+- **Double click selects entire column**: when enabled, double clicking on a cell of the pattern will select the entire column.
 
 ### Cursor behavior
 
-- **Insert pushes entire channel row**
-- **Pull delete affects entire channel row**
-- **Push value when overwriting instead of clearing it**: in the order list and pattern editors, typing into an already-filled value will shift digits instead of starting fresh.
+- **Insert pushes entire channel row**: when enabled, pressing Insert will push the entire channel rather than the column at the cursor position.
+- **Pull delete affects entire channel row**: when enabled, pull deleting (Backspace by default) will pull the entire channel rather than the column at the cursor position.
+- **Push value when overwriting instead of clearing it**: in the order list and pattern editors, typing into an already-filled value will shift digits instead of starting fresh. for example:
   - if off: moving the cursor onto the value `A5` and typing a "B" results in `0B`.
   - if on: moving the cursor onto the value `A5` and typing a "B" results in `5B`.
 - **Effect input behavior:**
-  - **Move down**
-  - **Move to effect value (otherwise move down)**
-  - **Move to effect value/next effect and wrap around**
-- **Delete effect value when deleting effect**
-- **Change current instrument when changing instrument column (absorb)**
-- **Remove instrument value when inserting note off/release**
-- **Remove volume value when inserting note off/release**
-
+  - **Move down**: after entering an effect (or effect value), the cursor moves down.
+  - **Move to effect value (otherwise move down)**: after entering an effect, the cursor moves to its value. if entering a value, the cursor moves down.
+  - **Move to effect value/next effect and wrap around**: after entering an effect or effect value, the cursor moves right. if it was on the last column, it jumps back to the first effect.
+- **Delete effect value when deleting effect**: if enabled, deleting effect will also delete its value.
+- **Change current instrument when changing instrument column (absorb)**: if enabled, typing on the instrument column will also select the instrument you've typed.
+- **Remove instrument value when inserting note off/release**: if enabled, inserting a note off or release on a row that has instrument value will remove the instrument value.
+- **Remove volume value when inserting note off/release**: same as above, but for volume.
 
 ### Cursor movement
 
-- **Wrap horizontally:**
-  - **No**
-  - **Yes**
-  - **Yes, and move to next/prev row**
-- **Wrap vertically:**
-  - **No**
-  - **Yes**
-  - **Yes, and move to next/prev pattern**
-  - **Yes, and move to next/prev pattern (wrap around)**
-- **Cursor movement keys behavior:**
-  - **Move by one**
-  - **Move by Edit Step**
-- **Move cursor by edit step on delete**
-- **Move cursor by edit step on insert (push)**
-- **Move cursor up on backspace-delete**
-- **Move cursor to end of clipboard content when pasting**
+- **Wrap horizontally:** selects what to do when the cursor hits horizontal boundaries.
+  - **No**: don't wrap the cursor.
+  - **Yes**: wrap the cursor.
+  - **Yes, and move to next/prev row**: wrap the cursor and move it to the other row.
+- **Wrap vertically:** selects what to do when the cursor hits vertical boundaries.
+  - **No**: don't wrap the cursor.
+  - **Yes**: wrap the cursor.
+  - **Yes, and move to next/prev pattern**: wrap the cursor and go to the next/previous order.
+  - **Yes, and move to next/prev pattern (wrap around)**: same as the previous option, but also wraps around the song.
+- **Cursor movement keys behavior:** allows you to select how much will the cursor move by when pressing cursor movement keys.
+  - **Move by one**: guess.
+  - **Move by Edit Step**: guess.
+- **Move cursor by edit step on delete**: when deleting, moves the cursor by Edit Step.
+- **Move cursor by edit step on insert (push)**: when inserting, moves the cursor by Edit Step.
+- **Move cursor up on backspace-delete**: when pull deleting (Backspace by default), moves cursor up.
+- **Move cursor to end of clipboard content when pasting**: allows you to choose what happens after pasting.
+  - if on, the cursor will move to the end of the clipboard content.
+  - if off, the cursor won't move.
 
 ### Scrolling
 
@@ -303,8 +300,6 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Don't scroll when moving cursor**
 - **Move cursor with scroll wheel**
 
-
-
 ## Appearance
 
 ### Scaling
@@ -315,16 +310,12 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 ### Text
 
-- **Main font**: overall interface font.\
-  **Header font**: font for section headers.\
-  **Pattern font** font for the pattern view, the order list, and related.
+- **Main font**: overall interface font.
+- **Header font**: font for section headers.
+- **Pattern font** font for the pattern view, the order list, and related.
   - if "Custom...", a file path selector will appear.
   - **Size**: font size.
-- **Display Japanese characters**\
-  **Display Chinese (Simplified) characters**\
-  **Display Chinese (Traditional) characters**\
-  **Display Korean characters**
-  - only toggle these options if you have enough graphics memory.
+- **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
   - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
 
 ### Program

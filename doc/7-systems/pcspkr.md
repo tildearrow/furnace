@@ -1,8 +1,8 @@
 # PC Speaker
 
-40 years of one square beep - and still going! Single channel, no volume control...
+40 years of one square beep - and still going! single channel, no volume control...
 
-# real output
+## real output
 
 so far this is the only chip in Furnace which has a real hardware output option.
 to enable it, select file > configure chip... > PC Speaker > Use system beeper.
@@ -26,10 +26,10 @@ you may configure the output method by going in Settings > Emulation > PC Speake
 real hardware output only works on BIOS/UEFI (non-Mac) x86-based machines! attempting to do this under any other device **will not work**, or may even brick the device (if using `/dev/port` or `outb()`)!
 oh, and of course you also need the beeper to be present in your machine. some laptops connect the beeper output to the built-in speakers (or the audio output jack), and some other don't do this at all.
 
-# effects
+## effects
 
 ha! effects...
 
-# info
+## info
 
 this chip uses the [Beeper](../4-instrument/beeper.md) instrument editor.

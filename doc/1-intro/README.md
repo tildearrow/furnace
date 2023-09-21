@@ -12,9 +12,11 @@ Furnace uses hexadecimal (abbreviated as "hex") numbers frequently. see [this gu
 
 ## interface
 
-Furnace uses a music tracker interface. think of a table with music notes written on it. then that table scrolls up and plays the notes. even experienced tracker musicians might benefit from a quick review of [tracker concepts and terms](concepts.md) before using Furnace. there's also a [glossary of common terms](glossary.md).
+Furnace uses a music tracker interface. think of a table with music notes written on it. then that table scrolls up and plays the notes.
+for an introduction to a tracker interface, see [tracker concepts and terms](concepts.md) before using Furnace.
+there's also a [glossary of common terms](glossary.md).
 
-due to its nature of being feature-packed, it may be technical and somewhat difficult to get around. therefore we added a basic mode, which hides several advanced features.
+due to its nature of being feature-packed, it may be technical and somewhat difficult to get around. therefore we added a [basic mode](../2-interface/basic-mode.md), which hides several advanced features.
 
 it also has a flexible windowing system which you may move around and organize.
 
@@ -22,8 +24,6 @@ see [2-interface](../2-interface/README.md) and [3-pattern](../3-pattern/README.
 
 once familiar with the tracker, look to [9-guides](../9-guides/README.md) for useful techniques.
 
+## tutorial?
 
-
-# links
-
-[Furnace Tutorials](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1): video tutorials created by Spinning Square Waves.
+[Furnace Tutorials](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1): video tutorials created by Spinning Square Waves. be noted that these may not apply to the current version.

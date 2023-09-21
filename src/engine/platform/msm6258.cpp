@@ -30,6 +30,16 @@ const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
 }
 
+static const int msmRates[4]={
+  4, 3, 2, 2
+};
+
+int DivPlatformMSM6258::calcVGMRate() {
+  int ret=chipClock/((clockSel+1)*512*msmRates[rateSel&3]);
+  logD("MSM rate: %d",ret);
+  return ret;
+}
+
 void DivPlatformMSM6258::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     if (--msmClockCount<0) {
@@ -93,6 +103,7 @@ void DivPlatformMSM6258::tick(bool sysTick) {
         if (rateSel!=(chan[i].std.duty.val&3)) {
           rateSel=chan[i].std.duty.val&3;
           rWrite(12,rateSel);
+          updateSampleFreq=true;
         }
       }
       if (chan[i].std.panL.had) {
@@ -105,6 +116,7 @@ void DivPlatformMSM6258::tick(bool sysTick) {
         if (clockSel!=(chan[i].std.ex1.val&1)) {
           clockSel=chan[i].std.ex1.val&1;
           rWrite(8,clockSel);
+          updateSampleFreq=true;
         }
       }
       if (chan[i].std.phaseReset.had) {
@@ -113,12 +125,23 @@ void DivPlatformMSM6258::tick(bool sysTick) {
         }
       }
     }
+    if (updateSampleFreq) {
+      int newRate=calcVGMRate();
+      if (dumpWrites) addWrite(0xffff0001,newRate);
+      updateSampleFreq=false;
+    }
     if (chan[i].keyOn || chan[i].keyOff) {
       samplePos=0;
-      rWrite(0,1); // turn off
+      // turn off
+      if (dumpWrites) addWrite(0xffff0002,0);
+      rWrite(0,1);
       if (chan[i].active && !chan[i].keyOff) {
         if (sample>=0 && sample<parent->song.sampleLen) {
+          // turn on
           rWrite(0,2);
+          if (dumpWrites) addWrite(0xffff0000,sample);
+          int newRate=calcVGMRate();
+          if (dumpWrites) addWrite(0xffff0001,newRate);
         } else {
           sample=-1;
         }
@@ -220,10 +243,12 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_FREQ:
       rateSel=c.value&3;
       rWrite(12,rateSel);
+      updateSampleFreq=true;
       break;
     case DIV_CMD_SAMPLE_MODE:
       clockSel=c.value&1;
       rWrite(8,clockSel);
+      updateSampleFreq=true;
       break;
     case DIV_CMD_PANNING: {
       if (c.value==0 && c.value2==0) {
@@ -317,8 +342,10 @@ void DivPlatformMSM6258::reset() {
   msmPan=3;
   rateSel=2;
   clockSel=0;
+  updateSampleFreq=true;
   if (dumpWrites) {
     addWrite(0xffffffff,0);
+    addWrite(0xffff0001,calcVGMRate());
   }
   for (int i=0; i<1; i++) {
     chan[i]=DivPlatformMSM6258::Channel();

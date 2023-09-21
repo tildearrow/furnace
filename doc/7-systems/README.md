@@ -1,8 +1,8 @@
 # systems
 
-this is a list of some of the systems that Furnace supports, as shown in the new file dialog. each chip links to a page with information and a list of supported effects.
+this is a list that contains some of the systems that Furnace supports, as shown in the New File dialog. each chip links to a page with information and a list of supported effects.
 
-some systems have alternate chips, such as the Sega Genesis having a YM2612, a YM3438, or YMF276 depending on the model. this list shows the default configuration.
+some systems have alternate chips, such as the Sega Genesis having a YM2612 or YM3438 depending on the model. this list shows the default configuration.
 
 - **Sega Genesis**: [YM3438](ym2612.md), [SN76489](sms.md)
 - **Sega Genesis (with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
@@ -31,9 +31,9 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 <!-- -->
 - **Amiga**: [Amiga](amiga.md)
 <!-- -->
-- **Arcade (YM2151 and SegaPCM)**: [YM2151](ym2152.md), [SegaPCM](segapcm.md)
+- **Arcade (YM2151 and SegaPCM)**: [YM2151](ym2151.md), [SegaPCM](segapcm.md)
 <!-- -->
-- **Capcom CPS-1**: [YM2151](ym2152.md), [MSM6295](msm6295.md)
+- **Capcom CPS-1**: [YM2151](ym2151.md), [MSM6295](msm6295.md)
 - **Capcom CPS-2 (QSound)**: [QSound](qsound.md)
 <!-- -->
 - **Neo Geo CD**: [YM2610](ym2610.md)
@@ -46,7 +46,7 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 <!-- -->
 - **Konami Bubble System**: [AY-3-8910](ay8910.md) × 2, [Konami WSG](bubblesystem.md)
 <!-- -->
-- **Sharp X68000**: [YM2151](ym2152.md), [MSM6258](msm6258.md)
+- **Sharp X68000**: [YM2151](ym2151.md), [MSM6258](msm6258.md)
 <!-- -->
 - **PC + Sound Blaster Pro**: [YM3812](opl.md) × 2, [DAC](dac.md), [PC Speaker](pcspkr.md)
 <!-- -->
@@ -59,7 +59,7 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 
 
-# chips
+## chips
 
 this is the full list of chips that Furnace supports.
 
@@ -111,7 +111,7 @@ this is the full list of chips that Furnace supports.
 - [VRC7, Y8950, YM3526, YM3812 and YMF262 (OPL)](opl.md)
 - [YM2413 (OPLL)](opll.md)
 - [YM2414 (OPZ)](opz.md)
-- [YM2151 (OPM)](ym2152.md)
+- [YM2151 (OPM)](ym2151.md)
 - [YM2203 (OPN)](ym2203.md)
 - [YM2608 (OPNA)](ym2608.md)
 - [YM2610 (OPNB)](ym2610.md)

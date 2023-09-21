@@ -35,7 +35,7 @@ right-clicking within the view will change it to the configuration view shown ab
   - `%V`: volume (percentage)
   - `%b`: volume (hex)
   - `%%`: percent sign
-- The OK button returns from options view to the oscilloscopes.
+- the OK button returns from options view to the oscilloscopes.
 
 ## gradient
 
@@ -49,13 +49,13 @@ in this mode, the color selector is replaced by a square field onto which circul
   - **Spread**: the size of the solid center of the circle. increasing it fills more of the circle with the target color.
 
 - **Background**: sets background color for entire field.
-- **X Axis**: determines what the horizontal maps to, from left to right.\
-  **Y Axis**: determines what the vertical maps to, from bottom to top. these can be set to the following:
+- **X Axis**: determines what the horizontal maps to, from left to right.
+- **Y Axis**: determines what the vertical maps to. from bottom to top. these can be set to the following:
   - **None (0%)**: stays at the left or bottom.
   - **None (50%)**: stays at the center.
   - **None (100%)**: stays at the right or top.
   - **Frequency**: changes color with note frequency.
   - **Volume**: changes color with volume.
   - **Channel**: changes color based on channel number.
-  - **Brightness**: {{document this}}
+  - **Brightness**: currently does nothing.
   - **Note Trigger**: changes color when a new note is played.

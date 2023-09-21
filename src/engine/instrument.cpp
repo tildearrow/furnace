@@ -719,7 +719,7 @@ void DivInstrument::writeFeatureX1(SafeWriter* w) {
   FEATURE_END;
 }
 
-void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
+void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
   size_t slSeek=0;
@@ -1021,7 +1021,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
   }
 
   // check ins name
-  if (!name.empty()) {
+  if (!name.empty() && insName) {
     featureNA=true;
   }
 
@@ -3380,7 +3380,7 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
   return readInsDataOld(reader,version);
 }
 
-bool DivInstrument::save(const char* path, bool oldFormat, DivSong* song) {
+bool DivInstrument::save(const char* path, bool oldFormat, DivSong* song, bool writeInsName) {
   SafeWriter* w=new SafeWriter();
   w->init();
 
@@ -3397,14 +3397,14 @@ bool DivInstrument::save(const char* path, bool oldFormat, DivSong* song) {
     // pointer to data
     w->writeI(32);
 
-    // currently reserved (TODO; wavetable and sample here)
+    // reserved
     w->writeS(0);
     w->writeS(0);
     w->writeI(0);
 
     putInsData(w);
   } else {
-    putInsData2(w,true,song);
+    putInsData2(w,true,song,writeInsName);
   }
 
   FILE* outFile=ps_fopen(path,"wb");

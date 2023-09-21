@@ -670,31 +670,13 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::Combo("##ICondition",&i.insMode,queryModes,GUI_QUERY_MAX);
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.insMode)) {
-                snprintf(tempID,1024,"%.2X",i.ins);
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo("II1",tempID)) {
-                  for (int j=0; j<256; j++) {
-                    snprintf(tempID,1024,"%.2X",j);
-                    if (ImGui::Selectable(tempID,i.ins==j)) {
-                      i.ins=j;
-                    }
-                  }
-                  ImGui::EndCombo();
-                }
+                ImGui::InputScalar("##II1",ImGuiDataType_U8,&i.ins,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
               }
               ImGui::TableNextColumn();
               if (SECOND_VISIBLE(i.insMode)) {
-                snprintf(tempID,1024,"%.2X",i.insMax);
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo("II2",tempID)) {
-                  for (int j=0; j<256; j++) {
-                    snprintf(tempID,1024,"%.2X",j);
-                    if (ImGui::Selectable(tempID,i.insMax==j)) {
-                      i.insMax=j;
-                    }
-                  }
-                  ImGui::EndCombo();
-                }
+                ImGui::InputScalar("##II2",ImGuiDataType_U8,&i.insMax,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
               }
 
               ImGui::TableNextRow();
@@ -706,31 +688,13 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::Combo("##VCondition",&i.volMode,queryModes,GUI_QUERY_MAX);
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.volMode)) {
-                snprintf(tempID,1024,"%.2X",i.vol);
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo("VV1",tempID)) {
-                  for (int j=0; j<256; j++) {
-                    snprintf(tempID,1024,"%.2X",j);
-                    if (ImGui::Selectable(tempID,i.vol==j)) {
-                      i.vol=j;
-                    }
-                  }
-                  ImGui::EndCombo();
-                }
+                ImGui::InputScalar("##VV1",ImGuiDataType_U8,&i.vol,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
               }
               ImGui::TableNextColumn();
               if (SECOND_VISIBLE(i.volMode)) {
-                snprintf(tempID,1024,"%.2X",i.volMax);
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo("VV2",tempID)) {
-                  for (int j=0; j<256; j++) {
-                    snprintf(tempID,1024,"%.2X",j);
-                    if (ImGui::Selectable(tempID,i.volMax==j)) {
-                      i.volMax=j;
-                    }
-                  }
-                  ImGui::EndCombo();
-                }
+                ImGui::InputScalar("##VV2",ImGuiDataType_U8,&i.volMax,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
               }
 
               for (int j=0; j<i.effectCount; j++) {
@@ -744,31 +708,13 @@ void FurnaceGUI::drawFindReplace() {
                 ImGui::Combo("##ECondition",&i.effectMode[j],queryModes,GUI_QUERY_MAX);
                 ImGui::TableNextColumn();
                 if (FIRST_VISIBLE(i.effectMode[j])) {
-                  snprintf(tempID,1024,"%.2X",i.effect[j]);
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("EE1",tempID)) {
-                    for (int k=0; k<256; k++) {
-                      snprintf(tempID,1024,"%.2X",k);
-                      if (ImGui::Selectable(tempID,i.effect[j]==k)) {
-                        i.effect[j]=k;
-                      }
-                    }
-                    ImGui::EndCombo();
-                  }
+                  ImGui::InputScalar("##EE1",ImGuiDataType_U8,&i.effect[j],NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
                 }
                 ImGui::TableNextColumn();
                 if (SECOND_VISIBLE(i.effectMode[j])) {
-                  snprintf(tempID,1024,"%.2X",i.effectMax[j]);
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("EE2",tempID)) {
-                    for (int k=0; k<256; k++) {
-                      snprintf(tempID,1024,"%.2X",k);
-                      if (ImGui::Selectable(tempID,i.effectMax[j]==k)) {
-                        i.effectMax[j]=k;
-                      }
-                    }
-                    ImGui::EndCombo();
-                  }
+                  ImGui::InputScalar("##EE2",ImGuiDataType_U8,&i.effectMax[j],NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
                 }
                 
                 ImGui::TableNextRow();
@@ -780,31 +726,13 @@ void FurnaceGUI::drawFindReplace() {
                 ImGui::Combo("##EVCondition",&i.effectValMode[j],queryModes,GUI_QUERY_MAX);
                 ImGui::TableNextColumn();
                 if (FIRST_VISIBLE(i.effectValMode[j])) {
-                  snprintf(tempID,1024,"%.2X",i.effectVal[j]);
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("EV1",tempID)) {
-                    for (int k=0; k<256; k++) {
-                      snprintf(tempID,1024,"%.2X",k);
-                      if (ImGui::Selectable(tempID,i.effectVal[j]==k)) {
-                        i.effectVal[j]=k;
-                      }
-                    }
-                    ImGui::EndCombo();
-                  }
+                  ImGui::InputScalar("##EV1",ImGuiDataType_U8,&i.effectVal[j],NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
                 }
                 ImGui::TableNextColumn();
                 if (SECOND_VISIBLE(i.effectValMode[j])) {
-                  snprintf(tempID,1024,"%.2X",i.effectValMax[j]);
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("EV2",tempID)) {
-                    for (int k=0; k<256; k++) {
-                      snprintf(tempID,1024,"%.2X",k);
-                      if (ImGui::Selectable(tempID,i.effectValMax[j]==k)) {
-                        i.effectValMax[j]=k;
-                      }
-                    }
-                    ImGui::EndCombo();
-                  }
+                  ImGui::InputScalar("##EV2",ImGuiDataType_U8,&i.effectValMax[j],NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
                 }
 
                 ImGui::PopID();

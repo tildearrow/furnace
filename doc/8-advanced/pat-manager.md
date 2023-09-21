@@ -1,6 +1,6 @@
 # pattern manager
 
-The pattern manager is useful for cleaning up stray patterns and as an overview of pattern usage.
+the pattern manager is useful for cleaning up stray patterns and as an overview of pattern usage.
 
 ![pattern manager dialog](pattern-manager.png)
 
@@ -8,7 +8,7 @@ The pattern manager is useful for cleaning up stray patterns and as an overview 
 
 **Re-arrange patterns** renumbers patterns to be in sequence, along with changing all references in the order list to match.
 
-The pattern grid shows each channel and all its patterns. These are color-coded to show how much they're used in the song; these colors can be changed in Settings.
+the pattern grid shows each channel and all its patterns. these are color-coded to show how much they're used in the song; these colors can be changed in Settings.
 
 | default color | name in Settings | meaning |
 | --- | --- | --- |
@@ -19,4 +19,4 @@ The pattern grid shows each channel and all its patterns. These are color-coded 
 | orange | Really overused | used in half or more orders |
 | magenta | Combo Breaker | the only used pattern in this channel! |
 
-Right-clicking a pattern will permanently delete it.
+right-clicking a pattern will permanently delete it.

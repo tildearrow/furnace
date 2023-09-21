@@ -4,11 +4,13 @@
 
 **ADPCM**: adaptive differential pulse code modulation. this is a variety of DPCM with a more complex method of storing the amplitude differences.
 
-**ADSR**: attack, decay, sustain, release. these are the four necessary values for a basic volume envelope.
+**ADSR**: attack, decay, sustain and release. these are elements that comprise a basic envelope.
 
 **algorithm**: the way in which the operators in an FM instrument interact.
 - when two operators connect to the same point, their sounds are added together.
 - when two operators are connected left to right, the left is the modulator and the right is the carrier sound that is modified.
+
+**asset**: an instrument, wavetable or sample.
 
 **bitbang**: to achieve PCM sound by sending a rapid stream of volume commands to a non-PCM channel.
 

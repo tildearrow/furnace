@@ -41,7 +41,7 @@ hex | decimal
  40 | 64
 ```
 
-# hex to decimal
+## hex to decimal
 
 for example, take hexadecimal number `AA`:
 
@@ -67,7 +67,7 @@ now for hexadecimal number `4C5F`:
                                           = 19551
 ```
 
-# decimal to hex
+## decimal to hex
 
 if it's less than 16, just memorize the table at the top of this document.
 
@@ -96,7 +96,7 @@ now for decimal number `69420`:
 = 10F2C
 ```
 
-# hex-decimal table
+## hex to decimal table
 
   hex | `0` | `1` | `2` | `3` | `4` | `5` | `6` | `7` | `8` | `9` | `A` | `B` | `C` | `D` | `E` | `F`
 -----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:|----:

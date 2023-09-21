@@ -2,7 +2,7 @@
 
 a sound and input chip developed by Atari for their 8-bit computers (Atari 400, 800, XL/XE and so on). 4 channels of signature Atari sounds.
 
-# effects
+## effects
 
 - `10xx`: **set waveform.**
   - 0: harsh noise (poly5+17)
@@ -36,6 +36,6 @@ a sound and input chip developed by Atari for their 8-bit computers (Atari 400, 
   - when enabled, channel 2 modulates channel 1. I don't know how, but it does.
   - only on ASAP core.
 
-# info
+## info
 
 this chip uses the [POKEY](../4-instrument/pokey.md) instrument editor.
