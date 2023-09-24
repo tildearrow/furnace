@@ -3584,6 +3584,9 @@ bool FurnaceGUI::loop() {
             SDL_free(ev.drop.file);
           }
           break;
+        case SDL_USEREVENT:
+          // used for MIDI wake up
+          break;
         case SDL_QUIT:
           if (modified) {
             showWarning("Unsaved changes! Save changes before quitting?",GUI_WARN_QUIT);
@@ -3647,6 +3650,7 @@ bool FurnaceGUI::loop() {
 
     while (true) {
       midiLock.lock();
+      midiWakeUp=true;
       if (midiQueue.empty()) {
         midiLock.unlock();
         break;
@@ -6729,11 +6733,20 @@ bool FurnaceGUI::init() {
 
   firstFrame=true;
 
-  // TODO: MIDI mapping time!
+  userEvents=SDL_RegisterEvents(1);
+
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
     if (introPos<11.0) return -2;
     midiLock.lock();
     midiQueue.push(msg);
+    if (userEvents!=0xffffffff && midiWakeUp) {
+      midiWakeUp=false;
+      userEvent.user.type=userEvents;
+      userEvent.user.code=0;
+      userEvent.user.data1=NULL;
+      userEvent.user.data2=NULL;
+      SDL_PushEvent(&userEvent);
+    }
     midiLock.unlock();
     e->setMidiBaseChan(cursor.xCoarse);
     if (msg.type==TA_MIDI_SYSEX) return -2;
@@ -7013,6 +7026,7 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   mobileEdit(false),
   killGraphics(false),
+  midiWakeUp(true),
   audioEngineChanged(false),
   settingsChanged(false),
   debugFFT(false),
@@ -7026,6 +7040,8 @@ FurnaceGUI::FurnaceGUI():
   mobileEditPage(0),
   wheelCalmDown(0),
   shallDetectScale(0),
+  cpuCores(0),
+  userEvents(0xffffffff),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   mobileEditAnim(0.0f),
