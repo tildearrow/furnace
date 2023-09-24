@@ -103,7 +103,7 @@ for other operating systems, you may [build the source](#developer-info).
 - quality emulation cores (Nuked, MAME, SameBoy, Mednafen PCE, NSFplay, puNES, reSID, Stella, SAASound, vgsound_emu and ymfm)
 - wavetable synthesizer
   - available on wavetable chips
-  - create complex sounds with ease - provide up to two wavetables, select and effect and let go!
+  - create complex sounds with ease - provide up to two wavetables, select an effect and let go!
 - MIDI input support
 - additional features:
   - FM macros!
