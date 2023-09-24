@@ -745,6 +745,7 @@ namespace IGFD
     {
     public:
       std::string filter;
+      std::string firstFilter;
       std::set<std::string> collectionfilters;
 
     public:
@@ -912,7 +913,7 @@ namespace IGFD
     bool SetPathOnParentDirectoryIfAny();                              // compose paht on parent directory
     std::string GetCurrentPath();                                  // get the current path
     void SetCurrentPath(const std::string& vCurrentPath);                      // set the current path
-    static bool IsFileExist(const std::string& vFile);
+    static bool IsFileExist(const std::string& vFile, const std::string& vFileExt);
     void SetDefaultFileName(const std::string& vFileName);
     bool SelectDirectory(const FileInfos& vInfos);                    // enter directory
     void SelectFileName(const FileDialogInternal& vFileDialogInternal, 

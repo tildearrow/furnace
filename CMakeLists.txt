@@ -8,6 +8,7 @@ project(furnace)
 
 if (APPLE)
   enable_language(OBJC)
+  enable_language(OBJCXX)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
@@ -25,8 +26,18 @@ set(SYSTEM_SDL2_DEFAULT OFF)
 include(CheckIncludeFile)
 include(TestBigEndian)
 
+execute_process(COMMAND git status RESULT_VARIABLE DONT_HAVE_GIT WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+if (NOT DONT_HAVE_GIT)
+  message(STATUS "Git is available")
+else()
+  message(WARNING "either Git is not available, or this Git repository has not been initialized.
+if you have used the \"Source code\" option in the GitHub release page, you are doing it wrong! unless you manually initialize submodules, the build is guaranteed to FAIL spectacularly!
+read the \"developer info\" section of README.md for more information.")
+endif()
+
 if (ANDROID)
   set(USE_RTMIDI_DEFAULT OFF)
+  set(WITH_PORTAUDIO_DEFAULT OFF)
   set(USE_BACKWARD_DEFAULT OFF)
   find_library(TERMUX rt)
   if (TERMUX)
@@ -34,6 +45,7 @@ if (ANDROID)
   endif()
 else()
   set(USE_RTMIDI_DEFAULT ON)
+  set(WITH_PORTAUDIO_DEFAULT ON)
   if (WIN32 OR APPLE)
     set(USE_BACKWARD_DEFAULT ON)
   else()
@@ -78,6 +90,7 @@ option(USE_SDL2 "Build with SDL2. Required to build with GUI." ${USE_SDL2_DEFAUL
 option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio files." ${USE_SNDFILE_DEFAULT})
 option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
+option(WITH_PORTAUDIO "Whether to build with PortAudio for audio output." ${WITH_PORTAUDIO_DEFAULT})
 option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." ${WITH_RENDER_SDL_DEFAULT})
 option(WITH_RENDER_OPENGL "Whether to build with the OpenGL render backend." ${WITH_RENDER_OPENGL_DEFAULT})
 option(WITH_RENDER_DX11 "Whether to build with the DirectX 11 render backend." ${WITH_RENDER_DX11_DEFAULT})
@@ -85,6 +98,7 @@ option(USE_GLES "Use OpenGL ES for the OpenGL render backend." ${USE_GLES_DEFAUL
 option(SYSTEM_FFTW "Use a system-installed version of FFTW instead of the vendored one" OFF)
 option(SYSTEM_FMT "Use a system-installed version of fmt instead of the vendored one" OFF)
 option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead of the vendored one" OFF)
+option(SYSTEM_PORTAUDIO "Use a system-installed version of PortAudio instead of the vendored one" OFF)
 option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the vendored one" OFF)
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
@@ -202,6 +216,27 @@ if (USE_SNDFILE)
   endif()
 else()
   message(STATUS "Not using libsndfile")
+endif()
+
+if (WITH_PORTAUDIO)
+  if (SYSTEM_PORTAUDIO)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS ${PORTAUDIO_INCLUDE_DIRS})
+    list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${PORTAUDIO_CFLAGS_OTHER})
+    list(APPEND DEPENDENCIES_LIBRARIES ${PORTAUDIO_LIBRARIES})
+    list(APPEND DEPENDENCIES_LIBRARY_DIRS ${PORTAUDIO_LIBRARY_DIRS})
+    list(APPEND DEPENDENCIES_LINK_OPTIONS ${PORTAUDIO_LDFLAGS_OTHER})
+    list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${PORTAUDIO_LDFLAGS})
+    message(STATUS "Using system-installed PortAudio")
+  else()
+    set(PA_BUILD_SHARED_LIBS OFF CACHE BOOL "Build dynamic library" FORCE)
+    # don't - Furnace has its own implementation
+    set(PA_USE_JACK OFF CACHE BOOL "Enable support for JACK Audio Connection Kit" FORCE)
+    add_subdirectory(extern/portaudio EXCLUDE_FROM_ALL)
+    list(APPEND DEPENDENCIES_LIBRARIES PortAudio)
+    message(STATUS "Using vendored PortAudio")
+  endif()
 endif()
 
 if (USE_RTMIDI)
@@ -332,17 +367,27 @@ endif()
 if (WITH_JACK)
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(JACK REQUIRED jack)
+  list(APPEND AUDIO_SOURCES extern/weakjack/weak_libjack.c)
   list(APPEND AUDIO_SOURCES src/audio/jack.cpp)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS ${JACK_INCLUDE_DIRS})
   list(APPEND DEPENDENCIES_DEFINES HAVE_JACK)
-  list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${JACK_CFLAGS_OTHER})
-  list(APPEND DEPENDENCIES_LIBRARIES ${JACK_LIBRARIES})
-  list(APPEND DEPENDENCIES_LIBRARY_DIRS ${JACK_LIBRARY_DIRS})
-  list(APPEND DEPENDENCIES_LINK_OPTIONS ${JACK_LDFLAGS_OTHER})
-  list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${JACK_LDFLAGS})
+  list(APPEND DEPENDENCIES_DEFINES USE_WEAK_JACK)
+  #list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${JACK_CFLAGS_OTHER})
+  #list(APPEND DEPENDENCIES_LIBRARIES ${JACK_LIBRARIES})
+  #list(APPEND DEPENDENCIES_LIBRARY_DIRS ${JACK_LIBRARY_DIRS})
+  #list(APPEND DEPENDENCIES_LINK_OPTIONS ${JACK_LDFLAGS_OTHER})
+  #list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${JACK_LDFLAGS})
   message(STATUS "Building with JACK support")
 else()
   message(STATUS "Building without JACK support")
+endif()
+
+if (WITH_PORTAUDIO)
+  list(APPEND AUDIO_SOURCES src/audio/pa.cpp)
+  message(STATUS "Building with PortAudio")
+  list(APPEND DEPENDENCIES_DEFINES HAVE_PA)
+else()
+  message(STATUS "Building without PortAudio")
 endif()
 
 if (USE_RTMIDI)
@@ -404,6 +449,9 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+
+src/pch.cpp
+
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -507,7 +555,7 @@ src/engine/platform/sound/d65modified.c
 
 src/engine/platform/sound/ted-sound.c
 
-src/engine/platform/sound/c140.c
+src/engine/platform/sound/c140_c219.c
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
@@ -517,7 +565,9 @@ src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
+src/engine/workPool.cpp
 src/engine/cmdStream.cpp
+src/engine/cmdStreamOps.cpp
 src/engine/config.cpp
 src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
@@ -525,6 +575,7 @@ src/engine/engine.cpp
 src/engine/export.cpp
 src/engine/fileOps.cpp
 src/engine/fileOpsIns.cpp
+src/engine/fileOpsSample.cpp
 src/engine/filter.cpp
 src/engine/instrument.cpp
 src/engine/macroInt.cpp
@@ -535,6 +586,7 @@ src/engine/song.cpp
 src/engine/sysDef.cpp
 src/engine/wavetable.cpp
 src/engine/waveSynth.cpp
+src/engine/wavOps.cpp
 src/engine/vgmOps.cpp
 src/engine/zsmOps.cpp
 src/engine/zsm.cpp
@@ -883,6 +935,15 @@ if (WARNINGS_ARE_ERRORS)
   )
 endif()
 
+if (NOT ANDROID OR TERMUX)
+  if (NOT WIN32 AND NOT APPLE)
+    if (NOT DONT_HAVE_GIT)
+      add_custom_command(OUTPUT furnace.appdata.xml COMMAND res/make-appdata.sh ARGS ${CMAKE_SOURCE_DIR}/res/furnace.appdata.xml.in ${CMAKE_BINARY_DIR}/furnace.appdata.xml DEPENDS res/furnace.appdata.xml.in WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+      list(APPEND USED_SOURCES furnace.appdata.xml)
+    endif()
+  endif()
+endif()
+
 if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
 elseif(WIN32)
@@ -908,12 +969,29 @@ if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYST
   endif()
 endif()
 
+# why 3.16..... why not 3.0?
+if (NOT "${CMAKE_VERSION}" VERSION_LESS "3.16")
+  if (BUILD_GUI)
+  target_precompile_headers(furnace PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui_internal.h>
+  )
+  else()
+    target_precompile_headers(furnace PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+    )
+  endif()
+endif()
+
 if (NOT ANDROID OR TERMUX)
   if (NOT WIN32 AND NOT APPLE)
     include(GNUInstallDirs)
     install(TARGETS furnace RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
-    install(FILES res/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    if (NOT DONT_HAVE_GIT)
+      install(FILES ${CMAKE_BINARY_DIR}/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    endif()
     install(DIRECTORY doc DESTINATION ${CMAKE_INSTALL_DOCDIR})
     install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR}/other)
     install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)

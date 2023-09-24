@@ -22,7 +22,7 @@
 
 #include "../dispatch.h"
 #include "../waveSynth.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/snes/SPC_DSP.h"
 
 class DivPlatformSNES: public DivDispatch {
@@ -100,6 +100,7 @@ class DivPlatformSNES: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

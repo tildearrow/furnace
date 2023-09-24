@@ -1209,8 +1209,6 @@ void FurnaceGUI::doUndo() {
 
   if (curOrder>=e->curSubSong->ordersLen) {
     curOrder=e->curSubSong->ordersLen-1;
-    oldOrder=curOrder;
-    oldOrder1=curOrder;
     e->setOrder(curOrder);
   }
 
@@ -1287,8 +1285,6 @@ void FurnaceGUI::doRedo() {
 
   if (curOrder>=e->curSubSong->ordersLen) {
     curOrder=e->curSubSong->ordersLen-1;
-    oldOrder=curOrder;
-    oldOrder1=curOrder;
     e->setOrder(curOrder);
   }
 

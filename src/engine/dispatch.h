@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <vector>
+#include "../pch.h"
 #include "config.h"
 #include "chipUtils.h"
 
@@ -410,6 +410,13 @@ class DivDispatch {
      * @return a pointer, or NULL.
      */
     virtual DivMacroInt* getChanMacroInt(int chan);
+
+    /**
+     * get the stereo panning of a channel.
+     * @param chan the channel.
+     * @return a 16-bit number. left in top 8 bits and right in bottom 8 bits.
+     */
+    virtual unsigned short getPan(int chan);
 
     /**
      * get currently playing sample (and its position).

@@ -1,0 +1,6 @@
+# unstable build notice
+
+this is a dev build (also known as "unstable", "artifact" or "nightly").
+it may contain work-in-progress features and/or bug fixes.
+
+no compatibility is guaranteed between unstable and stable - you have been warned!

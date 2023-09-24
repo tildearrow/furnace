@@ -21,7 +21,6 @@
 #include "../engine.h"
 #include "../../ta-log.h"
 #include <math.h>
-#include <map>
 
 #define CHIP_FREQBASE 25165824
 
@@ -357,6 +356,10 @@ void* DivPlatformYMZ280B::getChanState(int ch) {
 
 DivMacroInt* DivPlatformYMZ280B::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformYMZ280B::getPan(int ch) {
+  return parent->convertPanLinearToSplit(chan[ch].panning,8,15);
 }
 
 DivDispatchOscBuffer* DivPlatformYMZ280B::getOscBuffer(int ch) {

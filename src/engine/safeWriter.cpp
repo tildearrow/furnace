@@ -87,6 +87,10 @@ int SafeWriter::writeS(short val) {
   return write(bytes,2);
 }
 
+int SafeWriter::writeI_BE(int val) {
+  return write(&val,4);
+}
+
 int SafeWriter::writeI(int val) {
   unsigned char bytes[4];
   bytes[0]=((unsigned int)val)&0xff;

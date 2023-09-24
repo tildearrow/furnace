@@ -255,12 +255,6 @@ void FurnaceGUI::drawTutorial() {
 
     ImGui::Text("welcome to Furnace, the biggest open-source chiptune tracker!");
 
-    ImGui::TextWrapped(
-      "did I say that 0.6pre5 will have a tutorial? well, it doesn't...\n"
-      "the reason is because 0.6pre5 fixes a critical bug which may cause config loss in some machines.\n"
-      "furthermore, it dramatically improves the backup system. couldn't put this version on hold anymore."
-    );
-
     ImGui::Separator();
 
     ImGui::TextWrapped("here are some tips to get you started:");
@@ -280,7 +274,7 @@ void FurnaceGUI::drawTutorial() {
     ImGui::TextWrapped(
       "if you need help, you may:\n"
       "- read the (incomplete) manual: https://github.com/tildearrow/furnace/blob/master/doc/README.md\n"
-      "- ask for help in Discussions (https://github.com/tildearrow/furnace/discussions) or the Furnace Discord (https://discord.gg/EfrwT2wq7z)"
+      "- ask for help in Discussions (https://github.com/tildearrow/furnace/discussions), the Furnace Discord (https://discord.gg/EfrwT2wq7z) or Furnace in Revolt (https://rvlt.gg/GRPS6tmc)"
     );
 
     ImGui::Separator();

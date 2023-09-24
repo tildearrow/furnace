@@ -322,6 +322,10 @@ DivMacroInt* DivPlatformRF5C68::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformRF5C68::getPan(int ch) {
+  return ((chan[ch].panning&15)<<8)|((chan[ch].panning&0xf0)>>4);
+}
+
 DivDispatchOscBuffer* DivPlatformRF5C68::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -351,8 +355,6 @@ void DivPlatformRF5C68::notifyInsChange(int ins) {
 }
 
 void DivPlatformRF5C68::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
-  // TODO they probably won't be added unless the samples reside in RAM
 }
 
 void DivPlatformRF5C68::notifyInsDeletion(void* ins) {

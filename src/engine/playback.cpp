@@ -22,6 +22,7 @@
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
+#include "workPool.h"
 #include "../ta-log.h"
 #include <math.h>
 
@@ -405,6 +406,38 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
   }
   // wouldn't this cause problems if it were to return 0?
   return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
+}
+
+bool DivEngine::perSystemPreEffect(int ch, unsigned char effect, unsigned char effectVal) {
+  DivSysDef* sysDef=sysDefs[sysOfChan[ch]];
+  if (sysDef==NULL) return false;
+  auto iter=sysDef->preEffectHandlers.find(effect);
+  if (iter==sysDef->preEffectHandlers.end()) return false;
+  EffectHandler handler=iter->second;
+  int val=0;
+  int val2=0;
+  try {
+    val=handler.val?handler.val(effect,effectVal):effectVal;
+    val2=handler.val2?handler.val2(effect,effectVal):0;
+  } catch (DivDoNotHandleEffect& e) {
+    return false;
+  }
+  // wouldn't this cause problems if it were to return 0?
+  return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
+}
+
+void DivEngine::processRowPre(int i) {
+  int whatOrder=curOrder;
+  int whatRow=curRow;
+  DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][whatOrder],false);
+  for (int j=0; j<curPat[i].effectCols; j++) {
+    short effect=pat->data[whatRow][4+(j<<1)];
+    short effectVal=pat->data[whatRow][5+(j<<1)];
+
+    if (effectVal==-1) effectVal=0;
+    effectVal&=255;
+    perSystemPreEffect(i,effect,effectVal);
+  }
 }
 
 void DivEngine::processRow(int i, bool afterDelay) {
@@ -1131,8 +1164,15 @@ void DivEngine::nextRow() {
   }
 
   if (!stepPlay) {
+    playPosLock.lock();
     prevOrder=curOrder;
     prevRow=curRow;
+    playPosLock.unlock();
+  }
+
+  for (int i=0; i<chans; i++) {
+    // try to find pre effects
+    processRowPre(i);
   }
 
   for (int i=0; i<chans; i++) {
@@ -1164,12 +1204,16 @@ void DivEngine::nextRow() {
     }
     if (haltOn==DIV_HALT_PATTERN) halted=true;
   } else if (playing) if (++curRow>=curSubSong->patLen) {
-    nextOrder();
+    if (shallStopSched) {
+      curRow=curSubSong->patLen-1;
+    } else {
+      nextOrder();
+    }
     if (haltOn==DIV_HALT_PATTERN) halted=true;
   }
 
   // new loop detection routine
-  if (!endOfSong && walked[((curOrder<<5)+(curRow>>3))&8191]&(1<<(curRow&7))) {
+  if (!endOfSong && walked[((curOrder<<5)+(curRow>>3))&8191]&(1<<(curRow&7)) && !shallStopSched) {
     logV("loop reached");
     endOfSong=true;
     memset(walked,0,8192);
@@ -1208,8 +1252,26 @@ void DivEngine::nextRow() {
           if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
             wantPreNote=disCont[dispatchOfChan[i]].dispatch->getWantPreNote();
             if (wantPreNote) {
+              bool doPreparePreNote=true;
               int addition=0;
+
               for (int j=0; j<curPat[i].effectCols; j++) {
+                if (!song.preNoteNoEffect) {
+                  if (pat->data[curRow][4+(j<<1)]==0x03) {
+                    doPreparePreNote=false;
+                    break;
+                  }
+                  if (pat->data[curRow][4+(j<<1)]==0x06) {
+                    doPreparePreNote=false;
+                    break;
+                  }
+                  if (pat->data[curRow][4+(j<<1)]==0xea) {
+                    if (pat->data[curRow][5+(j<<1)]>0) {
+                      doPreparePreNote=false;
+                      break;
+                    }
+                  }
+                }
                 if (pat->data[curRow][4+(j<<1)]==0xed) {
                   if (pat->data[curRow][5+(j<<1)]>0) {
                     addition=pat->data[curRow][5+(j<<1)]&255;
@@ -1217,7 +1279,7 @@ void DivEngine::nextRow() {
                   }
                 }
               }
-              dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks+addition));
+              if (doPreparePreNote) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks+addition));
             }
           }
 
@@ -1286,8 +1348,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         isOn[pendingNotes[i].channel]=true;
       } else {
         if (isOn[pendingNotes[i].channel]) {
-          logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
-          pendingNotes.erase(pendingNotes.begin()+i);
+          //logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
+          pendingNotes[i].nop=true;
         }
       }
     }
@@ -1295,12 +1357,13 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
   while (!pendingNotes.empty()) {
     DivNoteEvent& note=pendingNotes.front();
-    if (note.channel<0 || note.channel>=chans) {
+    if (note.nop || note.channel<0 || note.channel>=chans) {
       pendingNotes.pop_front();
       continue;
     }
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
+      //dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,(note.volume*(chan[note.channel].volMax>>8))/127));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
       chan[note.channel].noteOnInhibit=true;
@@ -1342,8 +1405,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             endOfSong=false;
             if (stepPlay==2) {
               stepPlay=1;
+              playPosLock.lock();
               prevOrder=curOrder;
               prevRow=curRow;
+              playPosLock.unlock();
             }
             nextRow();
             break;
@@ -1700,6 +1765,13 @@ void DivEngine::runMidiTime(int totalCycles) {
   }
 }
 
+void _runDispatch1(void* d) {
+}
+
+void _runDispatch2(void* d) {
+
+}
+
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
   lastNBIns=inChans;
   lastNBOuts=outChans;
@@ -1728,6 +1800,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   got.bufsize=size;
 
   std::chrono::steady_clock::time_point ts_processBegin=std::chrono::steady_clock::now();
+
+  if (renderPool==NULL) {
+    unsigned int howManyThreads=song.systemLen;
+    if (howManyThreads<2) howManyThreads=0;
+    if (howManyThreads>renderPoolThreads) howManyThreads=renderPoolThreads;
+    renderPool=new DivWorkPool(howManyThreads);
+  }
 
   // process MIDI events (TODO: everything)
   if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
@@ -1773,7 +1852,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       }
     }
-    logD("%.2x",msg.type);
+    //logD("%.2x",msg.type);
     output->midiIn->queue.pop();
   }
   
@@ -2002,27 +2081,37 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         // 5. tick the clock and fill buffers as needed
         if (cycles<runLeftG) {
           for (int i=0; i<song.systemLen; i++) {
-            int total=(cycles*disCont[i].runtotal)/(size<<MASTER_CLOCK_PREC);
-            disCont[i].acquire(disCont[i].runPos,total);
-            disCont[i].runLeft-=total;
-            disCont[i].runPos+=total;
+            disCont[i].cycles=cycles;
+            disCont[i].size=size;
+            renderPool->push([](void* d) {
+              DivDispatchContainer* dc=(DivDispatchContainer*)d;
+              int total=(dc->cycles*dc->runtotal)/(dc->size<<MASTER_CLOCK_PREC);
+              dc->acquire(dc->runPos,total);
+              dc->runLeft-=total;
+              dc->runPos+=total;
+            },&disCont[i]);
           }
+          renderPool->wait();
           runLeftG-=cycles;
           cycles=0;
         } else {
           cycles-=runLeftG;
           runLeftG=0;
           for (int i=0; i<song.systemLen; i++) {
-            disCont[i].acquire(disCont[i].runPos,disCont[i].runLeft);
-            disCont[i].runLeft=0;
+            renderPool->push([](void* d) {
+              DivDispatchContainer* dc=(DivDispatchContainer*)d;
+              dc->acquire(dc->runPos,dc->runLeft);
+              dc->runLeft=0;
+            },&disCont[i]);
           }
+          renderPool->wait();
         }
       }
     }
 
     //logD("attempts: %d",attempts);
-    if (attempts>=(int)size) {
-      logE("hang detected! stopping! at %d seconds %d micro",totalSeconds,totalTicks);
+    if (attempts>=(int)(size+10)) {
+      logE("hang detected! stopping! at %d seconds %d micro (%d>=%d)",totalSeconds,totalTicks,attempts,(int)size);
       freelance=false;
       playing=false;
       extValuePresent=false;
@@ -2034,8 +2123,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         logW("%d: size<lastAvail! %d<%d",i,size,disCont[i].lastAvail);
         continue;
       }
-      disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
+      disCont[i].size=size;
+      renderPool->push([](void* d) {
+        DivDispatchContainer* dc=(DivDispatchContainer*)d;
+        dc->fillBuf(dc->runtotal,dc->lastAvail,dc->size-dc->lastAvail);
+      },&disCont[i]);
     }
+    renderPool->wait();
   }
 
   if (metroBufLen<size || metroBuf==NULL) {
@@ -2113,7 +2207,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       } else if (srcPortSet==0xffd) {
         // sample preview
         for (size_t j=0; j<size; j++) {
-          out[destSubPort][j]+=samp_bbOut[j]/32768.0;
+          out[destSubPort][j]+=previewVol*(samp_bbOut[j]/32768.0);
         }
       } else if (srcPortSet==0xffe && playing && !halted) {
         // metronome

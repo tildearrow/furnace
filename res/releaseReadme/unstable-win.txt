@@ -1,0 +1,11 @@
+# unstable build notice
+
+this is a dev build (also known as "unstable", "artifact" or "nightly").
+it may contain work-in-progress features and/or bug fixes.
+
+no compatibility is guaranteed between unstable and stable - you have been warned!
+
+# the .pdb file
+
+YOU SHALL COPY THIS FILE ALONGSIDE furnace.exe. it contains debug information which is vital in the moment of a crash.
+failure to copy this file will result in useless backtraces (furnace_crash.txt) and therefore hinder me from fixing any crashes.

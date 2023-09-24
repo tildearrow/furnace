@@ -21,7 +21,6 @@
 #include "../engine.h"
 #include "../../ta-log.h"
 #include <math.h>
-#include <map>
 
 #define CHIP_DIVIDER (1248*2)
 #define QS_NOTE_FREQUENCY(x) parent->calcBaseFreq(440,4096,(x)-3,false)
@@ -621,6 +620,10 @@ void* DivPlatformQSound::getChanState(int ch) {
 
 DivMacroInt* DivPlatformQSound::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformQSound::getPan(int ch) {
+  return parent->convertPanLinearToSplit(chan[ch].panning,8,32);
 }
 
 DivDispatchOscBuffer* DivPlatformQSound::getOscBuffer(int ch) {

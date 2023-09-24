@@ -132,8 +132,8 @@ void DivPlatformGenesis::processDAC(int iRate) {
 }
 
 void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
-  static short o[2];
-  static int os[2];
+  thread_local short o[2];
+  thread_local int os[2];
 
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
@@ -213,7 +213,7 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
 }
 
 void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   ymfm::ym2612::fm_engine* fme=fm_ymfm->debug_engine();
 
@@ -473,7 +473,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
@@ -1272,6 +1272,11 @@ void* DivPlatformGenesis::getChanState(int ch) {
 
 DivMacroInt* DivPlatformGenesis::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformGenesis::getPan(int ch) {
+  if (ch>5) ch=5;
+  return ((chan[ch].pan&2)<<7)|(chan[ch].pan&1);
 }
 
 DivSamplePos DivPlatformGenesis::getSamplePos(int ch) {

@@ -212,6 +212,7 @@ void FurnaceGUI::drawDebug() {
     }
     if (ImGui::TreeNode("Oscilloscope Debug")) {
       int c=0;
+      ImGui::Checkbox("FFT debug view",&debugFFT);
       for (int i=0; i<e->song.systemLen; i++) {
         DivSystem system=e->song.system[i];
         if (e->getChannelCount(system)>0) {
@@ -305,6 +306,21 @@ void FurnaceGUI::drawDebug() {
       ImGui::SameLine();
       if (ImGui::Button("Test Save")) {
         openFileDialog(GUI_FILE_TEST_SAVE);
+      }
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Do Action")) {
+      char bindID[1024];
+      for (int j=0; j<GUI_ACTION_MAX; j++) {
+        if (strcmp(guiActions[j].friendlyName,"")==0) continue;
+        if (strstr(guiActions[j].friendlyName,"---")==guiActions[j].friendlyName) {
+          ImGui::TextUnformatted(guiActions[j].friendlyName);
+        } else {
+          snprintf(bindID,1024,"%s##DO_%d",guiActions[j].friendlyName,j);
+          if (ImGui::Button(bindID)) {
+            doAction(j);
+          }
+        }
       }
       ImGui::TreePop();
     }
@@ -556,6 +572,16 @@ void FurnaceGUI::drawDebug() {
         asFloat[i]=(float)fmPreview[i]/8192.0f;
       }
       ImGui::PlotLines("##DebugFMPreview",asFloat,FM_PREVIEW_SIZE,0,"Preview",-1.0,1.0,ImVec2(300.0f*dpiScale,150.0f*dpiScale));
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Recent Files")) {
+      ImGui::Text("Items: %d - Max: %d",(int)recentFile.size(),settings.maxRecentFile);
+      ImGui::Text("readPos: %d - writePos: %d",(int)recentFile.readPos,(int)recentFile.writePos);
+      ImGui::Indent();
+      for (size_t i=0; i<recentFile.size(); i++) {
+        ImGui::Text("%d: %s",(int)i,recentFile[i].c_str());
+      }
+      ImGui::Unindent();
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("User Interface")) {

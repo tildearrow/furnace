@@ -43,8 +43,8 @@ const unsigned char visMapOPLL[9]={
 };
 
 void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
-  static int o[2];
-  static int os;
+  thread_local int o[2];
+  thread_local int os;
 
   for (size_t h=0; h<len; h++) {
     os=0;
@@ -195,7 +195,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
           rWrite(0x06+j,(op.sl<<4)|(op.rr));
         }
         if (m.tl.had) {
-          op.tl=((j==1)?15:63)-m.tl.val;
+          op.tl=m.tl.val&((j==1)?15:63);
           if (j==1) {
             if (i<9) {
               rWrite(0x30+i,((15-VOL_SCALE_LOG_BROKEN(chan[i].outVol,15-chan[i].state.op[1].tl,15))&15)|(chan[i].state.opllPreset<<4));

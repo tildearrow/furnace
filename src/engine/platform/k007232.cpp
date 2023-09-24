@@ -78,15 +78,21 @@ void DivPlatformK007232::acquire(short** buf, size_t len) {
       const signed int rout[2]={(k007232.output(0)*((vol1>>4)&0xf)),(k007232.output(1)*((vol2>>4)&0xf))};
       buf[0][h]=(lout[0]+lout[1])<<4;
       buf[1][h]=(rout[0]+rout[1])<<4;
-      for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<3;
+      if (++oscDivider>=8) {
+        oscDivider=0;
+        for (int i=0; i<2; i++) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<3;
+        }
       }
     } else {
       const unsigned char vol=regPool[0xc];
       const signed int out[2]={(k007232.output(0)*(vol&0xf)),(k007232.output(1)*((vol>>4)&0xf))};
       buf[0][h]=(out[0]+out[1])<<4;
-      for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<4;
+      if (++oscDivider>=8) {
+        oscDivider=0;
+        for (int i=0; i<2; i++) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<4;
+        }
       }
     }
   }
@@ -424,6 +430,10 @@ DivMacroInt* DivPlatformK007232::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformK007232::getPan(int ch) {
+  return ((chan[ch].panning&15)<<8)|((chan[ch].panning&0xf0)>>4);
+}
+
 DivDispatchOscBuffer* DivPlatformK007232::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -463,8 +473,6 @@ void DivPlatformK007232::notifyInsChange(int ins) {
 }
 
 void DivPlatformK007232::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
-  // TODO they probably won't be added unless the samples reside in RAM
 }
 
 void DivPlatformK007232::notifyInsDeletion(void* ins) {
@@ -480,7 +488,7 @@ void DivPlatformK007232::setFlags(const DivConfig& flags) {
   stereo=flags.getBool("stereo",false);
   for (int i=0; i<2; i++) {
     chan[i].volumeChanged=true;
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->rate=rate/8;
   }
 }
 
@@ -571,6 +579,7 @@ int DivPlatformK007232::init(DivEngine* p, int channels, int sugRate, const DivC
   }
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
+  oscDivider=0;
   setFlags(flags);
   reset();
   

@@ -27,7 +27,7 @@
 #define chWrite(c,a,v) rWrite(((c)<<3)+(a),v)
 
 void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
@@ -392,6 +392,10 @@ void* DivPlatformSegaPCM::getChanState(int ch) {
 
 DivMacroInt* DivPlatformSegaPCM::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformSegaPCM::getPan(int ch) {
+  return (chan[ch].chPanL<<8)|chan[ch].chPanR;
 }
 
 DivSamplePos DivPlatformSegaPCM::getSamplePos(int ch) {

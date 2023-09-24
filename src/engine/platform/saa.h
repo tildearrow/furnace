@@ -21,7 +21,7 @@
 #define _SAA_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../../../extern/SAASound/src/SAASound.h"
 
 class DivPlatformSAA1099: public DivDispatch {
@@ -79,6 +79,7 @@ class DivPlatformSAA1099: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

@@ -19,6 +19,7 @@
 
 #include "lynx.h"
 #include "../engine.h"
+#include "../bsr.h"
 #include <math.h>
 
 #define rWrite(a,v) {if (!skipRegisterWrites) {mikey->write(a,v); if (dumpWrites) {addWrite(a,v);}}}
@@ -35,48 +36,6 @@
 
 #define CHIP_DIVIDER 64
 #define CHIP_FREQBASE 16000000
-
-#if defined( _MSC_VER )
-
-#include <intrin.h>
-
-static int bsr(uint16_t v) {
-  unsigned long idx;
-  if (_BitScanReverse(&idx,(unsigned long)v)) {
-    return idx;
-  }
-  else {
-    return -1;
-  }
-}
-
-#elif defined( __GNUC__ )
-
-static int bsr(uint16_t v)
-{
-  if (v) {
-    return 32 - __builtin_clz(v);
-  }
-  else{
-    return -1;
-  }
-}
-
-#else
-
-static int bsr(uint16_t v)
-{
-  uint16_t mask = 0x8000;
-  for (int i = 15; i >= 0; --i) {
-    if (v&mask)
-      return (int)i;
-    mask>>=1;
-  }
-
-  return -1;
-}
-
-#endif
 
 static int32_t clamp(int32_t v, int32_t lo, int32_t hi)
 {
@@ -238,7 +197,9 @@ void DivPlatformLynx::tick(bool sysTick) {
         chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
         if (chan[i].std.duty.had) {
           chan[i].duty=chan[i].std.duty.val;
-          WRITE_FEEDBACK(i, chan[i].duty.feedback);
+          if (!chan[i].pcm) {
+            WRITE_FEEDBACK(i, chan[i].duty.feedback);
+          }
         }
         WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
         WRITE_BACKUP( i, chan[i].fd.backup );
@@ -257,9 +218,21 @@ void DivPlatformLynx::tick(bool sysTick) {
 int DivPlatformLynx::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
+      bool prevPCM=chan[c.chan].pcm;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY);
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
       chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->amiga.useSample);
+      if (chan[c.chan].pcm!=prevPCM) {
+        if (chan[c.chan].pcm) {
+          WRITE_FEEDBACK(c.chan,0);
+          WRITE_CONTROL(c.chan,0x18);
+          WRITE_BACKUP(c.chan,0);
+        } else {
+          WRITE_FEEDBACK(c.chan,chan[c.chan].duty.feedback);
+          WRITE_CONTROL(c.chan,(chan[c.chan].fd.clockDivider|0x18|chan[c.chan].duty.int_feedback7));
+          WRITE_BACKUP(c.chan,chan[c.chan].fd.backup);
+        }
+      }
       if (c.value!=DIV_NOTE_NULL) {
         if (chan[c.chan].pcm) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
@@ -414,6 +387,10 @@ void* DivPlatformLynx::getChanState(int ch) {
 
 DivMacroInt* DivPlatformLynx::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformLynx::getPan(int ch) {
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
 }
 
 DivSamplePos DivPlatformLynx::getSamplePos(int ch) {

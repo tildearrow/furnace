@@ -509,9 +509,15 @@ void FurnaceGUI::drawMobileControls() {
           doAction(GUI_ACTION_SAVE_AS);
         }
 
-        ImGui::Button("1.1+ .dmf");
+        if (ImGui::Button("1.1+ .dmf")) {
+          mobileMenuOpen=false;
+          openFileDialog(GUI_FILE_SAVE_DMF);
+        }
         ImGui::SameLine();
-        ImGui::Button("Legacy .dmf");
+        if (ImGui::Button("Legacy .dmf")) {
+          mobileMenuOpen=false;
+          openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
+        }
         ImGui::SameLine();
         if (ImGui::Button("Export Audio")) {
           openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
@@ -665,6 +671,7 @@ void FurnaceGUI::drawEditControls() {
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Octave");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -680,6 +687,7 @@ void FurnaceGUI::drawEditControls() {
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Edit Step");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);

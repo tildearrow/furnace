@@ -69,14 +69,48 @@ void _nfdThread(const NFDState state, std::atomic<bool>* ok, std::vector<String>
       (*errorOutput)=true;
       break;
     default:
-      logE("NFD unknown return code %d!\n",ret);
+      logE("NFD unknown return code %d!\n",(int)ret);
       break;
   }
   (*ok)=true;
 }
 #endif
 
-bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale, FileDialogSelectCallback clickCallback, bool allowMultiple) {
+void FurnaceGUIFileDialog::convertFilterList(std::vector<String>& filter) {
+  memset(noSysFilter,0,4096);
+
+  String result;
+  char sprintfBuf[4096];
+
+  for (size_t i=0; (i+1)<filter.size(); i+=2) {
+    String label=filter[i];
+    String ext;
+
+    if (filter[i+1]=="*") {
+      ext=".*";
+    } else for (char j: filter[i+1]) {
+      switch (j) {
+        case '*':
+          break;
+        case ' ':
+          ext+=',';
+          break;
+        default:
+          ext+=j;
+          break;
+      }
+    }
+
+    if (!result.empty()) result+=',';
+    // what the heck? fmt::sprintf not working?!
+    snprintf(sprintfBuf,4095,"%s{%s}",label.c_str(),ext.c_str());
+    result+=sprintfBuf;
+  }
+
+  strncpy(noSysFilter,result.c_str(),4095);
+}
+
+bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, String path, double dpiScale, FileDialogSelectCallback clickCallback, bool allowMultiple) {
   if (opened) return false;
   saving=false;
   curPath=path;
@@ -149,6 +183,8 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
     }
 #endif
 
+    convertFilterList(filter);
+
     ImGuiFileDialog::Instance()->singleClickSel=mobileUI;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
     ImGuiFileDialog::Instance()->mobileMode=mobileUI;
@@ -159,7 +195,7 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
   return true;
 }
 
-bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale) {
+bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, String path, double dpiScale) {
   if (opened) return false;
 
 #ifdef ANDROID
@@ -232,6 +268,8 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
 #endif
   } else {
     hasError=false;
+
+    convertFilterList(filter);
 
     ImGuiFileDialog::Instance()->singleClickSel=false;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;

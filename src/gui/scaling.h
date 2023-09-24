@@ -17,4 +17,4 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-double getScaleFactor(const char* driverHint);
+double getScaleFactor(const char* driverHint, void* windowHint);

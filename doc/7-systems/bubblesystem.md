@@ -8,10 +8,10 @@ another AY-3-8910 IO is used for reading sound hardware status.
 
 Furnace emulates this configuration as a "chip" with 32×16 wavetables.
 
-# effects
+## effects
 
 - `10xx`: **change wave.**
 
-# info
+## info
 
-this chip uses the [Konami SCC/ Bubble System WSG](../4-instrument/scc.md) instrument editor.
+this chip uses the [Konami SCC/Bubble System WSG](../4-instrument/scc.md) instrument editor.

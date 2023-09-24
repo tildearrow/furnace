@@ -91,7 +91,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (settings.overflowHighlight) {
     if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-    } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
+    } else if (isPlaying && oldRow==i && ord==playOrder) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->curSubSong->hilightB>0 && !(i%e->curSubSong->hilightB)) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
@@ -102,7 +102,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     isPushing=true;
     if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-    } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
+    } else if (isPlaying && oldRow==i && ord==playOrder) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->curSubSong->hilightB>0 && !(i%e->curSubSong->hilightB)) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
@@ -377,11 +377,14 @@ void FurnaceGUI::drawPattern() {
 
   bool inhibitMenu=false;
 
-  if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) {
-    cursor.y=oldRow+((pendingStepUpdate)?1:0);
-    if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
-      selStart=cursor;
-      selEnd=cursor;
+  if (e->isPlaying() && followPattern) {
+    if (oldRowChanged || !e->isStepping()) {
+      if (e->isStepping()) pendingStepUpdate=1;
+      cursor.y=oldRow;
+      if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
+        selStart=cursor;
+        selEnd=cursor;
+      }
     }
   }
   demandX=0;
@@ -419,8 +422,7 @@ void FurnaceGUI::drawPattern() {
     }
     //char id[32];
     ImGui::PushFont(patFont);
-    int ord=oldOrder;
-    oldOrder=curOrder;
+    int ord=curOrder;
     int chans=e->getTotalChannelCount();
     int displayChans=0;
     const DivPattern* patCache[DIV_MAX_CHANS];
@@ -437,23 +439,24 @@ void FurnaceGUI::drawPattern() {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+centerOff);
       }
     }
-    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|(settings.cursorFollowsWheel?ImGuiTableFlags_NoScrollWithMouse:0))) {
+    if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(oldRow);
+    if (--pendingStepUpdate<0) pendingStepUpdate=0;
+    if (nextScroll>-0.5f) {
+      ImGui::SetNextWindowScroll(ImVec2(-1.0f,nextScroll));
+      nextScroll=-1.0f;
+      nextAddScroll=0.0f;
+    }
+    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
-      int curRow=e->getRow();
-      if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(curRow);
-      if (--pendingStepUpdate<0) pendingStepUpdate=0;
-      if (nextScroll>-0.5f) {
-        ImGui::SetScrollY(nextScroll);
-        nextScroll=-1.0f;
-        nextAddScroll=0.0f;
-      }
+
       if (nextAddScroll!=0.0f) {
         ImGui::SetScrollY(ImGui::GetScrollY()+nextAddScroll);
         nextScroll=-1.0f;
         nextAddScroll=0.0f;
       }
+      
       ImGui::TableSetupScrollFreeze(1,1);
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
@@ -623,7 +626,7 @@ void FurnaceGUI::drawPattern() {
           case 0: // classic
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
-              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 col=(hovered || (mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
               dl->AddRectFilled(rect.Min,rect.Max,col);
               dl->AddText(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
@@ -632,7 +635,7 @@ void FurnaceGUI::drawPattern() {
           case 1: { // line
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
-              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 fadeCol0=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
@@ -654,7 +657,7 @@ void FurnaceGUI::drawPattern() {
           case 2: { // round
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
-              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 fadeCol0=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
@@ -690,7 +693,7 @@ void FurnaceGUI::drawPattern() {
           case 4: { // square border
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
-              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
@@ -711,7 +714,7 @@ void FurnaceGUI::drawPattern() {
           case 5: { // round border
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
-              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
@@ -800,13 +803,14 @@ void FurnaceGUI::drawPattern() {
 
             if (e->isRunning()) {
               DivChannelState* cs=e->getChanState(i);
-              float stereoPan=(float)(e->convertPanSplitToLinearLR(cs->panL,cs->panR,256)-128)/128.0;
+              unsigned short chanPan=e->getChanPan(i);
+              float stereoPan=(float)(e->convertPanSplitToLinear(chanPan,8,256)-128)/128.0;
               switch (settings.channelVolStyle) {
                 case 1: // simple
-                  xRight=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.9+(keyHit1[i]*0.1f);
+                  xRight=((float)(cs->volume>>8)/(float)e->getMaxVolumeChan(i))*0.9+(keyHit1[i]*0.1f);
                   break;
                 case 2: { // stereo
-                  float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
+                  float amount=((float)(cs->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
                   xRight=0.5+amount*(1.0+MIN(0.0,stereoPan));
                   xLeft=0.5-amount*(1.0-MAX(0.0,stereoPan));
                   break;
@@ -936,7 +940,6 @@ void FurnaceGUI::drawPattern() {
 
       ImGui::EndDisabled();
       ImGui::PopStyleVar();
-      oldRow=curRow;
       if (demandScrollX) {
         int totalDemand=demandX-ImGui::GetScrollX();
         if (totalDemand<80) {
@@ -950,13 +953,13 @@ void FurnaceGUI::drawPattern() {
       // cursor follows wheel
       if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
         if (wheelX!=0 || wheelY!=0) {
-          moveCursor(wheelX,wheelY,false);
+          moveCursor(wheelX,(settings.cursorFollowsWheel==2)?wheelY:-wheelY,false);
         }
       }
 
       // overflow changes order
-      // TODO: this is very unreliable and sometimes it can warp you out of the song
-      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && !settings.cursorFollowsWheel) {
+      if (--wheelCalmDown<0) wheelCalmDown=0;
+      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && !settings.cursorFollowsWheel && !wheelCalmDown) {
         if (wheelY!=0) {
           if (wheelY>0) {
             if (ImGui::GetScrollY()<=0) {
@@ -965,10 +968,12 @@ void FurnaceGUI::drawPattern() {
                   setOrder(curOrder-1);
                   ImGui::SetScrollY(ImGui::GetScrollMaxY());
                   updateScroll(e->curSubSong->patLen);
+                  wheelCalmDown=2;
                 } else if (settings.scrollChangesOrder==2) {
                   setOrder(e->curSubSong->ordersLen-1);
                   ImGui::SetScrollY(ImGui::GetScrollMaxY());
                   updateScroll(e->curSubSong->patLen);
+                  wheelCalmDown=2;
                 }
                 haveHitBounds=false;
               } else {
@@ -984,10 +989,12 @@ void FurnaceGUI::drawPattern() {
                   setOrder(curOrder+1);
                   ImGui::SetScrollY(0);
                   updateScroll(0);
+                  wheelCalmDown=2;
                 } else if (settings.scrollChangesOrder==2) {
                   setOrder(0);
                   ImGui::SetScrollY(0);
                   updateScroll(0);
+                  wheelCalmDown=2;
                 }
                 haveHitBounds=false;
               } else {

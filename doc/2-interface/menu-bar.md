@@ -2,14 +2,14 @@
 
 the menu bar allows you to select from five menus: file, edit, settings, window and help.
 
-items in _italics_ don't appear in basic mode and are only available in advanced mode.
+items in _italic_ don't appear in basic mode and are only available in advanced mode.
 
-# file
+## file
 
-- **new...**: create a new song.
+- **new...**: creates a new song.
 - **open...**: opens the file picker, allowing you to select a song to open.
 - **open recent**: contains a list of the songs you've opened before.
-  - **clear history**: this option erases the file history.
+  - **clear history**: erases the file history.
 
 - **save**: saves the current song.
   - opens the file picker if this is a new song, or a backup.
@@ -33,22 +33,16 @@ items in _italics_ don't appear in basic mode and are only available in advanced
     - Neo Geo CD (DefleMask 1.0+)
   - only use this option if you really need it. there are features which DefleMask does not support, like some effects and FM macros, so these will be lost.
 
-- **export audio...**: export your song to a .wav file. see next section for more details.
-- **export VGM...**: export your song to a .vgm file. see next section for more details.
-- **export ZSM...**: export your song to a .zsm file. see next section for more details.
+- **export audio...**: opens the file picker, allowing you to export your song to a .wav file. see next section for more details.
+- **export VGM...**: opens the file picker, allowing you to export your song to a .vgm file. see next section for more details.
+- **export ZSM...**: opens the file picker, allowing you to export your song to a .zsm file. see next section for more details.
   - only available when there's a YM2151 and/or VERA.
 - **export command stream...**: export song data to a command stream file. see next section for more details.
   - this option is for developers.
-  
-- _**add chip...**:_ add a chip to the current song.
-- _**configure chip...**:_ set a chip's parameters.
-  - for a list of parameters, see [7-systems](../7-systems/README.md).
-- _**change chip...**:_ change a chip to another.
-  - **Preserve channel positions**: enable this option to make sure Furnace does not auto-arrange/delete channels to compensate for differing channel counts. this can be useful for doing ports, e.g. from Genesis to PC-98.
-- _**remove chip...**_: remove a chip.
-  - **Preserve channel positions**: same thing as above.
 
-- **restore backup**: restore a previously saved backup.
+- **manage chips**: opens the [Chip Manager](../8-advanced/chip-manager.md) dialog.
+
+- **restore backup**: restores a previously saved backup.
   - Furnace keeps up to 5 backups of a song.
   - the backup directory is located in:
     - Windows: `%USERPROFILE%\AppData\Roaming\furnace\backups`
@@ -56,9 +50,9 @@ items in _italics_ don't appear in basic mode and are only available in advanced
     - Linux/other: `~/.config/furnace/backups`
   - this directory grows in size as you use Furnace. remember to delete old backups periodically to save space.
 
-- **exit**: I think you know what this does.
+- **exit**: closes Furnace.
 
-## export audio
+### export audio
 
 this option allows you to export your song in .wav format. I know I know, no .mp3 or .ogg export yet, but you can use a converter.
 
@@ -76,7 +70,7 @@ and three export choices:
 - **multiple files (one per channel)**: exports the output of each channel to .wav files.
   - useful for usage with a channel visualizer such as corrscope.
 
-## export VGM
+### export VGM
 
 this option allows exporting to a VGM (Video Game Music) file. these can be played back with VGMPlay (for example).
 
@@ -87,8 +81,8 @@ the following settings exist:
   - other versions may not support all chips.
   - use this option if you need to export for a quirky player or parser.
     - for example, RYMCast is picky with format versions. if you're going to use this player, select 1.60.
-- **loop**: writes loop. if disabled, the resulting file won't loop.
-- **loop trail**: this option allows you to set how much of the song is written after it loops.
+- **loop**: includes loop information. if disabled, the resulting file won't loop.
+- **loop trail**: sets how much of the song is written after it loops.
   - the reason this exists is to work around a VGM format limitation in where post-loop state isn't recorded at all.
   - this may change the song length as it appears on a player.
   - **auto-detect**: detect how much to write automatically.
@@ -110,7 +104,7 @@ the following settings exist:
 
 click on **click to export** to begin exporting.
 
-## export ZSM
+### export ZSM
 
 ZSM (ZSound Music) is a format designed for the Commander X16 to allow hardware playback.
 it may contain data for either YM2151 or VERA chips.
@@ -122,10 +116,11 @@ the following settings are available:
   - I suggest you use the same rate as the song's.
   - apparently ZSM doesn't support changing the rate mid-song.
 - **loop**: enables loop. if disabled, the song won't loop.
+- **optimize size**: removes unnecessary commands to reduce size.
 
 click on **Begin Export** to... you know.
 
-## export command stream
+### export command stream
 
 this option exports a text or binary file which contains a dump of the internal command stream produced when playing the song.
 
@@ -134,7 +129,9 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **export (binary)**: exports in Furnace's own command stream format (FCS). see `export-tech.md` in `papers/` for details.
 - **export (text)**: exports the command stream as a text file. only useful for analysis, really.
 
-# edit
+## edit
+
+- **...**: does nothing except prevent accidental clicks on later menu items if the menu is too tall to fit on the program window.
 
 - **undo**: reverts the last action.
 - **redo**: repeats what you undid previously.
@@ -192,9 +189,9 @@ it's not really useful, unless you're a developer and want to use a command stre
 
 - _**find/replace**:_ shows [the Find/Replace window](../8-advanced/find-replace.md).
 
-- **clear**: allows you to mass-delete things like songs, instruments and the like.
+- **clear**: opens a window that allows you to mass-delete things like songs, unused instruments, and the like.
 
-# settings
+## settings
 
 - **full screen**: expands the Furnace window so it covers your screen.
 - **lock layout**: prevents you from dragging/resizing docked windows, or docking more.
@@ -203,7 +200,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **reset layout**: resets the workspace to its defaults.
 - **settings...**: shows the Settings window. these are detailed in [settings.md].
 
-# window
+## window
 
 all these menu items show or hide their associated windows.
 
@@ -215,23 +212,23 @@ all these menu items show or hide their associated windows.
 - [samples](../6-sample/README.md)
 - [orders](order-list.md)
 - [pattern](../3-pattern/README.md)
-- _[mixer](mixer.md)_
-- _[grooves](grooves.md)_
-- _[channels](channels.md)_
-- _[pattern manager](pat-manager.md)_
-- _[chip manager](chip-manager.md)_
-- _[compatibility flags](compat-flags.md)_
-- [song comments](comments.md)
+- _[mixer](../8-advanced/mixer.md)_
+- _[grooves](../8-advanced/grooves.md)_
+- _[channels](../8-advanced/channels.md)_
+- _[pattern manager](../8-advanced/pat-manager.md)_
+- _[chip manager](../8-advanced/chip-manager.md)_
+- _[compatibility flags](../8-advanced/compat-flags.md)_
+- [song comments](../8-advanced/comments.md)
 
-- [piano](piano.md)
-- [oscilloscope](osc.md)
-- [oscilloscopes (per-channel)](chanosc.md)
-- [clock](clock.md)
-- [register view](regview.md)
-- [log viewer](log-viewer.md)
-- [stats](stats.md)
+- [piano](../8-advanced/piano.md)
+- [oscilloscope](../8-advanced/osc.md)
+- [oscilloscopes (per-channel)](../8-advanced/chanosc.md)
+- [clock](../8-advanced/clock.md)
+- [register view](../8-advanced/regview.md)
+- [log viewer](../8-advanced/log-viewer.md)
+- [stats](../8-advanced/stats.md)
 
-# help
+## help
 
 - **effect list**: displays the effect list.
 - **debug menu**: this menu contains various debug utilities.
@@ -247,6 +244,6 @@ at the end of the menu bar, more information may be shown:
   - instrument number and name.
   - volume in decimal, hex, and percentage.
   - effect type and description.
-- during playback, the current values of the following will be listed:\
-  > speed/groove @ tick rate (BPM) | order | row | elapsed time.
+- during playback, these values will be displayed:
+  - `speed/groove @ tick rate (BPM) | order | row | elapsed time`
 - if any changes or edits have been made but not yet saved, "modified" will appear.

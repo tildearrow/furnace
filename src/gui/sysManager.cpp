@@ -79,7 +79,7 @@ void FurnaceGUI::drawSysManager() {
         }
         ImGui::TableNextColumn();
         if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSM%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-          drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
+          drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
           ImGui::TreePop();
         }
         ImGui::TableNextColumn();
@@ -102,10 +102,12 @@ void FurnaceGUI::drawSysManager() {
         }
         ImGui::SameLine();
         ImGui::BeginDisabled(e->song.systemLen<=1);
+        pushDestColor();
         if (ImGui::Button(ICON_FA_TIMES "##SysRemove")) {
           sysToDelete=i;
           showWarning("Are you sure you want to remove this chip?",GUI_WARN_SYSTEM_DEL);
         }
+        popDestColor();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Remove");
         }

@@ -1,39 +1,41 @@
 # settings
 
-settings are saved when clicking the **OK** button at the bottom of the dialog.
-
-
+settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the dialog.
 
 ## General
 
 ### Program
 
-- **Render backend**
-  - changing this may help with performace issues.
-- **Late render clear**
+- **Render backend**: changing this may help with performace issues.
+- **Late render clear**: this option is only useful when using old versions of Mesa drivers. it force-waits for VBlank by clearing after present, reducing latency.
 - **Power-saving mode**: saves power by lowering the frame rate to 2fps when idle.
   - may cause issues under Mesa drivers!
 - **Disable threaded input (restart after changing!)**: processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.
   - however, crashes have been reported when threaded input is on. enable this option if that is the case.
-- **Enable event delay**
-  - may cause issues with high-polling-rate mice when previewing notes.
+- **Enable event delay**: may cause issues with high-polling-rate mice when previewing notes.
+- **Per-channel oscilloscope threads**: runs the per-channel oscilloscope in separate threads for a performance boost when there are lots of channels.
 
 ### File
 
 - **Use system file picker**: uses native OS file dialog instead of Furnace's.
-- **Number of recent files**: number of files to show in the _open recent..._ menu.
-- **Compress when saving**
-  - uses zlib to compress saved songs.
-- **Save unused patterns**
-- **Use new pattern format when saving**
-- **Don't apply compatibility flags when loading .dmf**
+- **Number of recent files**: number of files that will be remembered in the _open recent..._ menu.
+- **Compress when saving**: uses zlib to compress saved songs.
+- **Save unused patterns**: stores unused patterns in a saved song.
+- **Use new pattern format when saving**: stores patterns in the new, optimized and smaller format. only disable if you need to work with older versions of Furnace.
+- **Don't apply compatibility flags when loading .dmf**: does exactly what the option says. your .dmf songs may not play correctly after enabled.
+- **Play after opening song:**
+  - No
+  - Only if already playing
+  - Yes
 - **Audio export loop/fade out time:**
   - **Set to these values on start-up:**
     - **Loops**: number of additional times to play through `0Bxx` song loop.
     - **Fade out (seconds)**: length of fade out after final loop.
   - **Remember last values**
+- **Store instrument name in .fui**: when enabled, saving an instrument will store its name. this may increase file size.
+- **Load instrument name from .fui**: when enabled, loading an instrument will use the stored name (if present). otherwise, it will use the file name.
 
-### Chip
+### New Song
 
 - **Initial system**: the system of chips loaded on starting Furnace.
   - **Current system**: sets current chips as default.
@@ -41,11 +43,10 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
     - this will not choose a random system at each start.
   - **Reset to defaults**: sets default to "Sega Genesis/Mega Drive".
   - **Name**: name for the default system. may be set to any text.
-  - **Configure:**: same as in the [chip manager](../8-advanced/chip-manager.md) and [mixer](../8-advanced/mixer.md).
+  - **Configure**: same as in the [chip manager](../8-advanced/chip-manager.md) and [mixer](../8-advanced/mixer.md).
 - **When creating new song**:
   - **Display system preset selector**
   - **Start with initial system**
-- **Restart song when changing chip properties**
 
 ### Start-up
 
@@ -60,130 +61,130 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Behavior
 
-- **New instruments are blank**
-
-
+- **New instruments are blank**: when enabled, adding FM instruments will make them blank (rather than loading the default one).
 
 ## Audio
 
 ### Output
 
-- **Backend**: selects SDL or JACK for audio output.
-  - only appears on Linux, or MacOS compiled with JACK support
-- **Driver**
+- **Backend**: selects a different backend for audio output.
+  - SDL: the default one.
+  - JACK: the JACK Audio Connection Kit (low-latency audio server). only appears on Linux, or MacOS compiled with JACK support.
+  - PortAudio: this may or may not perform better than the SDL backend.
+- **Driver**: select a different audio driver if you're having problems with the default one.
+  - only appears when Backend is SDL.
 - **Device**: audio device for playback.
-- **Sample rate**
+  - if using PortAudio backend, devices will be prefixed with the audio API that PortAudio is going to use:
+    - Windows WASAPI: a modern audio API available on Windows Vista and later, featuring an (optional) Exclusive Mode. be noted that your buffer size setting may be ignored.
+    - Windows WDM-KS: low-latency, direct to hardware output mechanism. may not work all the time and prevents your audio device from being used for anything else!
+    - Windows DirectSound: this is the worst choice. best to move on.
+    - MME: an old audio API. doesn't have Exclusive Mode.
+    - Core Audio: the only choice in macOS.
+    - ALSA: low-level audio output on Linux. may prevent other applications from using your audio device.
+- **Sample rate**: audio output rate.
+  - a lower rate decreases quality and isn't really beneficial.
+  - if using PortAudio backend, be careful about this value.
 - **Outputs**: number of audio outputs created, up to 16.
   - only appears when Backend is JACK.
-- **Channels**: number of output channels to use.
+- **Channels**: mono, stereo or something.
 - **Buffer size**: size of buffer in both samples and milliseconds.
+  - setting this to a low value may cause stuttering/glitches in playback (known as "underruns" or "xruns").
+  - setting this to a high value increases latency.
+- **Exclusive mode**: enables Exclusive Mode, which may offer latency improvements.
+  - only available on WASAPI devices in the PortAudio backend!
 - **Low-latency mode (experimental!)**: reduces latency by running the engine faster than the tick rate. useful for live playback/jam mode.
-  - _warning:_ experimental! may produce glitches. only enable if your buffer size is small (10ms or less).
-- **Force mono audio**
+  - only enable if your buffer size is small (10ms or less).
+- **Force mono audio**: use if you're unable to hear stereo audio (e.g. single speaker or hearing loss in one ear).
 - **want:** displays requested audio configuration.
 - **got:** displays actual audio configuration returned by audio backend.
 
 ### Mixing
 
-- **Quality**: selects quality of resampling. low quality reduces CPU load.
+- **Quality**: selects quality of resampling. low quality reduces CPU load by a small amount.
 - **Software clipping**: clips output to nominal range (-1.0 to 1.0) before passing it to the audio device.
   - this avoids activating Windows' built-in limiter.
+  - this option shall be enabled when using PortAudio backend with a DirectSound device.
 
 ### Metronome
 
-- **Metronome volume**
+- **Volume**: sets volume of metronome.
 
+### Sample preview
 
+- **Volume**: sets volume of sample preview.
 
 ## MIDI
 
 ### MIDI input
 
 - **MIDI input**: input device.
-- **Note input**
-- **Velocity input**
-- **Map MIDI channels to direct channels**
-- **Map Yamaha FM voice data to instruments**
-- **Program change is instrument selection**
-- **Value input style**:
-  - **Disabled/custom**
-  - **Two octaves (0 is C-4, F is D#5)**
-  - **Raw (note number is value)**
-  - **Two octaves alternate (lower keys are 0-9, upper keys are A-F)**
-  - **Use dual control change (one for each nibble)**
-    - **CC of upper nibble**
-    - **CC of lower nibble**
-  - **Use 14-bit control change**
-    - **MSB CC**
-    - **LSB CC**
-  - **Use single control change**
-    - **Control**
-- **Per-column control change**
-  - **Instrument**\
-    **Volume**\
-    **Effect `x` type**\
-    **Effect `x` value**
-    - **Disabled/custom**
-    - **Use dual control change (one for each nibble)**
-      - **CC of upper nibble**
-      - **CC of lower nibble**
-    - **Use 14-bit control change**
-      - **MSB CC**
-      - **LSB CC**
-    - **Use single control change (imprecise)**
-      - **Control**
-- **Volume curve**
-- **Actions:**
+- **Note input**: enables note input. disable if you intend to use this device only for binding actions.
+- **Velocity input**: enables velocity input when entering notes in the pattern.
+- **Map MIDI channels to direct channels**: when enabled, notes from MIDI channels will be mapped to channels rather than the cursor position.
+- **Map Yamaha FM voice data to instruments**: when enabled, Furnace will listen for any transmitted Yamaha SysEx patches.
+  - this option is only useful if you have a Yamaha FM synthesizer (e.g. TX81Z).
+  - selecting a voice or using the "Voice Transmit?" option will send a patch, and Furnace will create a new instrument with its data.
+  - this may also be triggered by clicking on "Receive from TX81Z" in the instrument editor (OPZ only).
+- **Program change is instrument selection**: changes the current instrument when a program change event is received.
+- **Value input style**: changes the way values are entered when the pattern cursor is not in the Note column. the following styles are available:
+  - **Disabled/custom**: no value input through MIDI.
+  - **Two octaves (0 is C-4, F is D#5)**: maps keys in two octaves to single nibble input. the layout is:
+    - ` - octave n -- octave n+1 -`
+    - ` 1 3   6 8 A   D F   # # # `
+    - `0 2 4 5 7 9 B C E # # # # #`
+  - **Raw (note number is value)**: the note number becomes the input value. not useful if you want to input anything above 7F.
+  - **Two octaves alternate (lower keys are 0-9, upper keys are A-F)**: maps keys in two octaves, but with a different layout:
+    - ` - octave n -- octave n+1 -`
+    - ` A B   C D E   F #   # # # `
+    - `0 1 2 3 4 5 6 7 8 9 # # # #`
+  - **Use dual control change (one for each nibble)**: maps two control change events to the nibbles of a value.
+    - **CC of upper nibble**: select the CC number that will change the upper nibble.
+    - **CC of lower nibble**: select the CC number that will change the lower nibble.
+  - **Use 14-bit control change**: maps two control change events that together form a single 14-bit CC. some MIDI controllers do these.
+    - **MSB CC**: select the CC containing the upper portion of the control.
+    - **LSB CC**: select the CC containing the lower portion of the control.
+  - **Use single control change**: maps one control change event. not useful if you want to input odd numbers.
+    - **Control**: select the CC number that will change the value.
+- **Per-column control change**: when enabled, you can map several control change events to a channel's columns.
+- **Volume curve**: adjust the velocity to volume curve.
+- **Actions**: this allows you to bind note input and control change events to actions.
   - **`+`** button: adds a new action.
   - window-with-arrow button: new action with learning! press a button or move a slider/knob/something on your device.
   - each action has the following:
-    - **Type**
-    - **Channel**
-    - **Note/Control**
-    - **Velocity/Value**
-    - **Action**
-    - **Learn**
-    - **Remove**
+    - **Type**: type of event.
+    - **Channel**: channel of event.
+    - **Note/Control**: the note/control change number.
+    - **Velocity/Value**: the velocity or control value
+    - **Action**: the GUI action to perform.
+    - **Learn**: after clicking on this button, do something in your MIDI device and Furnace will map that to this action.
+    - **Remove**: remove this action.
 
 ### MIDI output
 
 - **MIDI output**: output device.
 - **Output mode:**
-  - **Off (use for TX81Z)**
-  - **Melodic**
-- **Send Program Change**
-- **Send MIDI clock**
-- **Send MIDI timecode**
-  - **Timecode frame rate:**
-    - **Closest to Tick Rate**
-    - **Film (24fps)**
-    - **PAL (25fps)**
-    - **NTSC drop (29.97fps)**
-    - **NTSC non-drop (30fps)**
-
-
+  - **Off (use for TX81Z)**: don't output anything. use if you plan to use Furnace as sync master, or the "Receive from TX81Z" button in the OPZ instrument editor.
+  - **Melodic**: output MIDI events.
+- **Send Program Change**: output program change events when instrument change commands occur.
+- **Send MIDI clock**: output MIDI beat clock.
+- **Send MIDI timecode**: output MIDI timecode.
+  - **Timecode frame rate**: sets the timing standard used for MIDI timecode.
+    - **Closest to Tick Rate**: automatically sets the rate based on the song's Tick Rate.
+    - **Film (24fps)**: output at 24 codes per second.
+    - **PAL (25fps)**: output at 25 codes per second.
+    - **NTSC drop (29.97fps)**: output at ~29.97 codes per second, skipping frames 0 and 1 of each minute that doesn't divide by 10.
+    - **NTSC non-drop (30fps)**: output at 30 codes per second.
 
 ## Emulation
 
 ### Cores
 
-- **Arcade/YM2151 core**\
-  **Genesis/YM2612 core**\
-  **SN76489 core**\
-  **NES core**\
-  **FDS core**\
-  **SID core**\
-  **POKEY core**\
-  **OPN/OPNA/OPNB cores**: all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
+- **Playback Core(s)**: core(s) to use for playback.
+- **Render Core(s)**: core(s) to use when exporting audio.
 
-- **PC Speaker strategy**: this is covered in the [PC speaker system doc](../7-systems/pcspkr.md).
+all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
 
-- **Sample ROMs:**
-  - **OPL4 YRW801 path**
-  - **MultiPCM TG100 path**
-  - **MultiPCM MU5 path**
-
-
+- **PC Speaker strategy**: this is covered in the [PC speaker page](../7-systems/pcspkr.md).
 
 ## Keyboard
 
@@ -192,11 +193,22 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Import**
 - **Export**
 - **Reset defaults**
-- several categories of keybinds...
-  - click on a keybind then enter a key or key combination to change it
-  - right-click to clear the keybind
 
+a list of keybinds is displayed.
+- click on a keybind. then enter a key or key combination to change it.
+- right-click to clear the keybind.
+- the full list is in the [keyboard](keyboard.md) page.
 
+#### note input
+
+the settings for note input keybinds operate differently. each entry in the list of keybinds is made of the following:
+- **Key**: key assignment.
+- **Type**: type of note input. left-click cycles through "Note", "Note off", "Note release", and "Macro release".
+  - note: the list is sorted by type. on changing a key's type, it will instantly move to its new sorting position!
+- **Value**: number of semitones above C at the current octave. only appears for note type binds.
+- **Remove**: removes the keybind from the list.
+
+below all the binds, select a key from the dropdown list to add it. it will appear at or near the top of the list as a note with value 0.
 
 ## Interface
 
@@ -206,9 +218,10 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **Import**: reads a .ini layout file.
   - **Export**: writes current layout to a .ini file.
   - **Reset**: resets layout to default.
-- **Allow docking editors**
+- **Allow docking editors**: when enabled, you'll be able to dock instrument/wave/sample editors.
 - **Remember window position**: remembers the window's last position on start-up.
 - **Only allow window movement when clicking on title bar**
+- **Center pop-up windows**
 - **Play/edit controls layout:**
   - **Classic**
   - **Compact**
@@ -224,56 +237,57 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Double-click time (seconds)**: maximum time between mouse clicks to recognize them as a double-click.
 - **Don't raise pattern editor on click**
 - **Focus pattern editor when selecting instrument**
-- **Note preview behavior:**
-  - **Never**
-  - **When cursor is in Note column**
-  - **When cursor is in Note column or not in edit mode**
-  - **Always**
+- **Note preview behavior:** allows you to disable note preview when entering notes in the pattern.
+  - **Never**: don't preview notes at all.
+  - **When cursor is in Note column**: only when the cursor is in the Note column
+  - **When cursor is in Note column or not in edit mode**: erm... yeah.
+  - **Always**: always preview notes.
 - **Allow dragging selection:**
-  - **No**
-  - **Yes**
-  - **Yes (while holding Ctrl only)**
+  - **No**: don't allow drag-and-drop.
+  - **Yes**: allow drag-and-drop.
+  - **Yes (while holding Ctrl only)**: allow drag-and-drop but only when holding Control (Command on macOS).
 - **Toggle channel solo on:** selects which interactions with a channel header will toggle solo for that channel.
   - Right-click or double click
   - Right-click
   - Double-click
-- **Double click selects entire column**
+- **Double click selects entire column**: when enabled, double clicking on a cell of the pattern will select the entire column.
 
 ### Cursor behavior
 
-- **Insert pushes entire channel row**
-- **Pull delete affects entire channel row**
-- **Push value when overwriting instead of clearing it**: in the order list and pattern editors, typing into an already-filled value will shift digits instead of starting fresh.
+- **Insert pushes entire channel row**: when enabled, pressing Insert will push the entire channel rather than the column at the cursor position.
+- **Pull delete affects entire channel row**: when enabled, pull deleting (Backspace by default) will pull the entire channel rather than the column at the cursor position.
+- **Push value when overwriting instead of clearing it**: in the order list and pattern editors, typing into an already-filled value will shift digits instead of starting fresh. for example:
   - if off: moving the cursor onto the value `A5` and typing a "B" results in `0B`.
   - if on: moving the cursor onto the value `A5` and typing a "B" results in `5B`.
 - **Effect input behavior:**
-  - **Move down**
-  - **Move to effect value (otherwise move down)**
-  - **Move to effect value/next effect and wrap around**
-- **Delete effect value when deleting effect**
-- **Change current instrument when changing instrument column (absorb)**
-- **Remove instrument value when inserting note off/release**
-- **Remove volume value when inserting note off/release**
-
+  - **Move down**: after entering an effect (or effect value), the cursor moves down.
+  - **Move to effect value (otherwise move down)**: after entering an effect, the cursor moves to its value. if entering a value, the cursor moves down.
+  - **Move to effect value/next effect and wrap around**: after entering an effect or effect value, the cursor moves right. if it was on the last column, it jumps back to the first effect.
+- **Delete effect value when deleting effect**: if enabled, deleting effect will also delete its value.
+- **Change current instrument when changing instrument column (absorb)**: if enabled, typing on the instrument column will also select the instrument you've typed.
+- **Remove instrument value when inserting note off/release**: if enabled, inserting a note off or release on a row that has instrument value will remove the instrument value.
+- **Remove volume value when inserting note off/release**: same as above, but for volume.
 
 ### Cursor movement
 
-- **Wrap horizontally:**
-  - **No**
-  - **Yes**
-  - **Yes, and move to next/prev row**
-- **Wrap vertically:**
-  - **No**
-  - **Yes**
-  - **Yes, and move to next/prev pattern**
-  - **Yes, and move to next/prev pattern (wrap around)**
-- **Cursor movement keys behavior:**
-  - **Move by one**
-  - **Move by Edit Step**
-- **Move cursor by edit step on delete**
-- **Move cursor by edit step on insert (push)**
-- **Move cursor up on backspace-delete**
-- **Move cursor to end of clipboard content when pasting**
+- **Wrap horizontally:** selects what to do when the cursor hits horizontal boundaries.
+  - **No**: don't wrap the cursor.
+  - **Yes**: wrap the cursor.
+  - **Yes, and move to next/prev row**: wrap the cursor and move it to the other row.
+- **Wrap vertically:** selects what to do when the cursor hits vertical boundaries.
+  - **No**: don't wrap the cursor.
+  - **Yes**: wrap the cursor.
+  - **Yes, and move to next/prev pattern**: wrap the cursor and go to the next/previous order.
+  - **Yes, and move to next/prev pattern (wrap around)**: same as the previous option, but also wraps around the song.
+- **Cursor movement keys behavior:** allows you to select how much will the cursor move by when pressing cursor movement keys.
+  - **Move by one**: guess.
+  - **Move by Edit Step**: guess.
+- **Move cursor by edit step on delete**: when deleting, moves the cursor by Edit Step.
+- **Move cursor by edit step on insert (push)**: when inserting, moves the cursor by Edit Step.
+- **Move cursor up on backspace-delete**: when pull deleting (Backspace by default), moves cursor up.
+- **Move cursor to end of clipboard content when pasting**: allows you to choose what happens after pasting.
+  - if on, the cursor will move to the end of the clipboard content.
+  - if off, the cursor won't move.
 
 ### Scrolling
 
@@ -286,8 +300,6 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Don't scroll when moving cursor**
 - **Move cursor with scroll wheel**
 
-
-
 ## Appearance
 
 ### Scaling
@@ -298,16 +310,12 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Text
 
-- **Main font**: overall interface font.\
-  **Header font**: font for section headers.\
-  **Pattern font** font for the pattern view, the order list, and related.
+- **Main font**: overall interface font.
+- **Header font**: font for section headers.
+- **Pattern font** font for the pattern view, the order list, and related.
   - if "Custom...", a file path selector will appear.
   - **Size**: font size.
-- **Display Japanese characters**\
-  **Display Chinese (Simplified) characters**\
-  **Display Chinese (Traditional) characters**\
-  **Display Korean characters**
-  - only toggle these options if you have enough graphics memory.
+- **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
   - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
 
 ### Program
@@ -324,6 +332,8 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **File path**
   - **Cursor details or file path**
   - **Nothing**
+- **Capitalize menu bar**
+- **Display add/configure/change/remove chip menus in File menu**: if enabled, the "manage chips" item in the file menu is split into the four listed items for quick access.
 
 ### Orders
 
@@ -396,6 +406,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Horizontal instrument list**: when there are more instruments than there is room to display them...
   - if on, scroll horizontally through multiple columns.
   - if off, scroll vertically in one long column.
+  - only appears if "Unified instrument/wavetable/sample list" is off.
 - **Instrument list icon style:**
   - **None**
   - **Graphical icons**
@@ -408,10 +419,8 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 - **Macro editor layout:**
   - **Unified**
-  - **Mobile**
   - **Grid**
   - **Single (with list)**
-  - **Single (combo box)**
 - **Use classic macro editor vertical slider**
 
 ### Wave Editor

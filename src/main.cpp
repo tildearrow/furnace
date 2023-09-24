@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <string>
+#include "pch.h"
 #ifdef HAVE_SDL2
 #include "SDL_events.h"
 #endif
@@ -166,6 +166,8 @@ TAParamResult pVersion(String) {
   printf("- libsndfile by Erik de Castro Lopo and rest of libsndfile team (LGPLv2.1)\n");
   printf("- SDL2 by Sam Lantinga (zlib license)\n");
   printf("- zlib by Jean-loup Gailly and Mark Adler (zlib license)\n");
+  printf("- PortAudio (PortAudio license)\n");
+  printf("- Weak-JACK by x42 (GPLv2)\n");
   printf("- RtMidi by Gary P. Scavone (RtMidi license)\n");
   printf("- backward-cpp by Google (MIT)\n");
   printf("- Dear ImGui by Omar Cornut (MIT)\n");
@@ -210,7 +212,7 @@ TAParamResult pVersion(String) {
   printf("- ASAP POKEY emulator by Piotr Fusik ported to C++ by laoo (GPLv2)\n");
   printf("- SM8521 emulator (modified version) by cam900 (zlib license)\n");
   printf("- D65010G031 emulator (modified version) by cam900 (zlib license)\n");
-  printf("- C140 emulator (modified version) by cam900 (zlib license)\n");
+  printf("- C140/C219 emulator (modified version) by cam900 (zlib license)\n");
   return TA_PARAM_QUIT;
 }
 

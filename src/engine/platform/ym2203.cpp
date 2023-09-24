@@ -165,8 +165,8 @@ void DivPlatformYM2203::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
-  static int os;
-  static short ignored[2];
+  thread_local int os;
+  thread_local short ignored[2];
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
@@ -231,7 +231,7 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
     buf[0][h]=os;
     
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i]<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm_nuked.ch_out[i]<<1,-32768,32767);
     }
 
     for (int i=3; i<6; i++) {
@@ -241,7 +241,7 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
 }
 
 void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
-  static int os;
+  thread_local int os;
 
   ymfm::ym2203::fm_engine* fme=fm->debug_fm_engine();
 
@@ -282,7 +282,8 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
 
     
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
+      int out=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(out,-32768,32767);
     }
 
     for (int i=3; i<6; i++) {
@@ -402,7 +403,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {

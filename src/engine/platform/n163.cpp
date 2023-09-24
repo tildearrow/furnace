@@ -134,14 +134,16 @@ void DivPlatformN163::updateWave(int ch, int wave, int pos, int len) {
   len&=0xfc; // 4 nibble boundary
   if (wave<0) {
     // load from wave synth
-    for (int i=0; i<len; i++) {
-      unsigned char addr=(pos+i); // address (nibble each)
-      if (addr>=((0x78-(chanMax<<3))<<1)) { // avoid conflict with channel register area
-        break;
+    if (ch>=0) {
+      for (int i=0; i<len; i++) {
+        unsigned char addr=(pos+i); // address (nibble each)
+        if (addr>=((0x78-(chanMax<<3))<<1)) { // avoid conflict with channel register area
+          break;
+        }
+        unsigned char mask=(addr&1)?0xf0:0x0f;
+        int data=chan[ch].ws.output[i];
+        rWriteMask(addr>>1,(addr&1)?(data<<4):(data&0xf),mask);
       }
-      unsigned char mask=(addr&1)?0xf0:0x0f;
-      int data=chan[ch].ws.output[i];
-      rWriteMask(addr>>1,(addr&1)?(data<<4):(data&0xf),mask);
     }
   } else {
     // load from custom

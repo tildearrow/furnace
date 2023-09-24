@@ -21,7 +21,7 @@
 #define _C64_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/c64/sid.h"
 #include "sound/c64_fp/SID.h"
 #include "sound/c64_d/dsid.h"

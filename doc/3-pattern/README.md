@@ -1,6 +1,6 @@
-# patterns
+# pattern
 
-the pattern view allows you to edit the song.
+the pattern view allows you to edit the song's patterns.
 
 ![pattern view](pattern.png)
 
@@ -24,7 +24,7 @@ you may change the cursor position by clicking anywhere on the pattern.
 
 to select an area, press and hold the left mouse button. then drag the mouse and release the button to finish selection.
 
-right-clicking within the pattern view brings up a pop-up menu with everything in the [edit menu](../2-interface/menu-bar.md) that makes sense for entering data or altering a selected area.
+right-clicking within the pattern view brings up a pop-up menu with most options from the [edit menu](../2-interface/menu-bar.md).
 
 
 
@@ -44,30 +44,30 @@ clicking the `++` at the top left corner of the pattern view cycles through thre
   - **-**: collapse visible columns. changes to **+** when columns are hidden; click to expand them.
   - **<**: disables the last effect column and hides it. effects are not deleted...
   - **>**: adds an effects column. if one previously existed, its contents will be preserved.
-- **Pattern names**: adds a text field with which one can name the current pattern. pattern names are also visible when hovering over a pattern in the order list.
+- **Pattern names**: displays pattern names (per channel). pattern names are also visible when hovering over a pattern in the order list.
 
 right-clicking the `++` toggles the visualizer, which is active only during playback.
 
 to rename and/or hide channels, open [the Channels window](../8-advanced/channels.md) via the window menu.
 
 
-# input
+## input
 
-## note input
+### note input
 
 ![keyboard](keyboard.png)
 
 - pressing any of the respective keys will insert a note at the cursor's location, then advance to the next row (or otherwise according to the Edit Step.)
-- **note off** turns off the last played note in that channel (key off for FM; note cut otherwise).
-- **note release** triggers macro release (and in FM channels it also triggers key off).
-- **macro release** does the same as above, but does not trigger key off in FM channels.
+- **note off** (`OFF`) turns off the last played note in that channel (key off for FM/hardware envelope; note cut otherwise).
+- **note release** (`===`) triggers macro release (and in FM/hardware envelope channels it also triggers key off).
+- **macro release** (`REL`) does the same as above, but does not trigger key off in FM/hardware envelope channels.
 - **toggle edit** enables and disables editing. when editing is enabled, the cursor's row will be shaded red.
 
-## instrument/volume input
+### instrument/volume input
 
 type any hexadecimal number (0-9 and A-F). the cursor will move by the Edit Step when a suitable value is entered.
 
-## effect input
+### effect input
 
 works like the instrument/volume input.
 
@@ -80,7 +80,7 @@ here's [a list of effect types](effects.md).
 
 
 
-# keyboard shortcuts
+## keyboard shortcuts
 
 these are the default key functions. all keys are configurable in the Keyboard tab of the Settings window.
 

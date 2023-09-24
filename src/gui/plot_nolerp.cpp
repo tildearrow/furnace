@@ -78,7 +78,7 @@ int PlotNoLerpEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     ImGui::ItemSize(total_bb, style.FramePadding.y);
     if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
-    const bool hovered = ImGui::ItemHoverable(frame_bb, id);
+    const bool hovered = ImGui::ItemHoverable(frame_bb, id, 0);
 
     // Determine scale from values if not specified
     if (scale_min == FLT_MAX || scale_max == FLT_MAX)
@@ -205,7 +205,7 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
     ImGui::ItemSize(total_bb, style.FramePadding.y);
     if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
-    const bool hovered = ImGui::ItemHoverable(frame_bb, id);
+    const bool hovered = ImGui::ItemHoverable(frame_bb, id, 0);
 
     ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
@@ -315,7 +315,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     ImGui::ItemSize(total_bb, style.FramePadding.y);
     if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
-    const bool hovered = ImGui::ItemHoverable(frame_bb, id);
+    const bool hovered = ImGui::ItemHoverable(frame_bb, id, 0);
 
     // Determine scale from values if not specified
     if (scale_min == FLT_MAX || scale_max == FLT_MAX)

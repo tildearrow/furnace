@@ -23,7 +23,7 @@
 #include "../dispatch.h"
 #include "../instrument.h"
 #include "sound/segapcm.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
@@ -89,6 +89,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

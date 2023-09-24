@@ -19,6 +19,7 @@
 
 #define _USE_MATH_DEFINES
 #include "gui.h"
+#include "../ta-log.h"
 #include "imgui_internal.h"
 #include "../engine/macroInt.h"
 #include "IconsFontAwesome4.h"
@@ -269,6 +270,10 @@ const char* msm5232ControlBits[7]={
 
 const char* tedControlBits[3]={
   "square", "noise", NULL
+};
+
+const char* c219ControlBits[4]={
+  "noise", "invert", "surround", NULL
 };
 
 const char* x1_010EnvBits[8]={
@@ -1283,8 +1288,8 @@ inline bool enBit30(const int val) {
 }
 
 
-void FurnaceGUI::kvsConfig(DivInstrument* ins) {
-  if (ins->type==DIV_INS_FM && fmPreviewOn) {
+void FurnaceGUI::kvsConfig(DivInstrument* ins, bool supportsKVS) {
+  if (fmPreviewOn) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("left click to restart\nmiddle click to pause\nright click to see algorithm");
     }
@@ -1294,15 +1299,23 @@ void FurnaceGUI::kvsConfig(DivInstrument* ins) {
     if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
       fmPreviewPaused=!fmPreviewPaused;
     }
-  } else {
+  } else if (supportsKVS) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("left click to configure TL scaling\nright click to see FM preview");
     }
+  } else {
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("right click to see FM preview");
+    }
   }
-  if (ImGui::IsItemClicked(ImGuiMouseButton_Right) && ins->type==DIV_INS_FM) {
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
     fmPreviewOn=!fmPreviewOn;
   }
-  if (!fmPreviewOn || ins->type!=DIV_INS_FM) {
+  if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+    NOTIFY_LONG_HOLD;
+    fmPreviewOn=!fmPreviewOn;
+  }
+  if (!fmPreviewOn && supportsKVS) {
     int opCount=4;
     if (ins->type==DIV_INS_OPLL) opCount=2;
     if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
@@ -1568,6 +1581,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Bottom");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1590,6 +1604,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Attack");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1609,6 +1624,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Hold");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1628,6 +1644,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Decay");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1650,6 +1667,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::TableNextColumn();
         
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Release");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1671,6 +1689,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Bottom");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1693,6 +1712,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Speed");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1711,6 +1731,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         } rightClickable
 
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Shape");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1750,8 +1771,12 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 \
       /* if ADSR/LFO, populate min/max */ \
       if (i.macro->open&6) { \
-        i.macro->val[0]=i.min; \
-        i.macro->val[1]=i.max; \
+        if (i.macro->val[0]==0 && i.macro->val[1]==0) { \
+          i.macro->val[0]=i.min; \
+          i.macro->val[1]=i.max; \
+        } \
+        i.macro->val[0]=CLAMP(i.macro->val[0],i.min,i.max); \
+        i.macro->val[1]=CLAMP(i.macro->val[1],i.min,i.max); \
       } \
     } \
     PARAMETER; \
@@ -1777,7 +1802,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
   }
 
 #define BUTTON_TO_SET_PROPS(_x) \
+  pushToggleColors(_x.macro->speed!=1 || _x.macro->delay); \
   ImGui::Button(ICON_FA_ELLIPSIS_H "##IMacroSet"); \
+  popToggleColors(); \
   if (ImGui::IsItemHovered()) { \
     ImGui::SetTooltip("Delay/Step Length"); \
   } \
@@ -2281,7 +2308,7 @@ void FurnaceGUI::drawInsEdit() {
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       if (updateFMPreview) {
-        renderFMPreview(ins->fm);
+        renderFMPreview(ins);
         updateFMPreview=false;
       }
       if (settings.insEditColorize) {
@@ -2469,10 +2496,10 @@ void FurnaceGUI::drawInsEdit() {
                   P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
                   P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
-                  if (ins->type==DIV_INS_FM && fmPreviewOn) {
+                  if (fmPreviewOn) {
                     drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
                     if (!fmPreviewPaused) {
-                      renderFMPreview(ins->fm,1);
+                      renderFMPreview(ins,1);
                       WAKE_UP;
                     }
                   } else {
@@ -2490,16 +2517,26 @@ void FurnaceGUI::drawInsEdit() {
                   P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
                   P(CWSliderScalar(FM_NAME(FM_AMS2),ImGuiDataType_U8,&ins->fm.ams2,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
-                  drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  if (fmPreviewOn) {
+                    drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                    if (!fmPreviewPaused) {
+                      renderFMPreview(ins,1);
+                      WAKE_UP;
+                    }
+                  } else {
+                    drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  }
                   kvsConfig(ins);
 
                   if (ImGui::Button("Request from TX81Z")) {
                     doAction(GUI_ACTION_TX81Z_REQUEST);
                   }
+                  /* 
                   ImGui::SameLine();
                   if (ImGui::Button("Send to TX81Z")) {
                     showError("Coming soon!");
                   }
+                  */
                   break;
                 case DIV_INS_OPL:
                 case DIV_INS_OPL_DRUMS: {
@@ -2524,7 +2561,15 @@ void FurnaceGUI::drawInsEdit() {
                     }
                   }
                   ImGui::TableNextColumn();
-                  drawAlgorithm(ins->fm.alg&algMax,fourOp?FM_ALGS_4OP_OPL:FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  if (fmPreviewOn) {
+                    drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                    if (!fmPreviewPaused) {
+                      renderFMPreview(ins,1);
+                      WAKE_UP;
+                    }
+                  } else {
+                    drawAlgorithm(ins->fm.alg&algMax,fourOp?FM_ALGS_4OP_OPL:FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  }
                   kvsConfig(ins);
                   break;
                 }
@@ -2549,7 +2594,16 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
-                  drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
+                  if (fmPreviewOn) {
+                    drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
+                    if (!fmPreviewPaused) {
+                      renderFMPreview(ins,1);
+                      WAKE_UP;
+                    }
+                  } else {
+                    drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
+                  }
+                  kvsConfig(ins,false);
 
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
@@ -4287,6 +4341,7 @@ void FurnaceGUI::drawInsEdit() {
                   MARK_MODIFIED;
                 }
                 ImGui::SameLine();
+                pushDestColor();
                 if (ImGui::Button(ICON_FA_TIMES "##HWCmdDel")) {
                   for (int j=i; j<ins->gb.hwSeqLen-1; j++) {
                     ins->gb.hwSeq[j].cmd=ins->gb.hwSeq[j+1].cmd;
@@ -4294,6 +4349,7 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   ins->gb.hwSeqLen--;
                 }
+                popDestColor();
                 ImGui::PopID();
               }
               ImGui::EndTable();
@@ -4436,7 +4492,7 @@ void FurnaceGUI::drawInsEdit() {
             ins->std.dutyMacro.vZoom=-1;
             PARAMETER;
           }
-          P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
+          P(ImGui::Checkbox("Don't test before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_PCE ||
@@ -4462,7 +4518,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_K007232 ||
             ins->type==DIV_INS_GA20 ||
             ins->type==DIV_INS_K053260 ||
-            ins->type==DIV_INS_C140) {
+            ins->type==DIV_INS_C140 ||
+            ins->type==DIV_INS_C219) {
           if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
             String sName;
             bool wannaOpenSMPopup=false;
@@ -5120,10 +5177,9 @@ void FurnaceGUI::drawInsEdit() {
               ins->snes.sus=3;
             }
           } else {
-            if (ImGui::BeginTable("SNESGainParams",3,ImGuiTableFlags_NoHostExtendX)) {
-              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+            if (ImGui::BeginTable("SNESGainParams",2,ImGuiTableFlags_NoHostExtendX)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -5132,9 +5188,6 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableNextColumn();
               CENTER_TEXT("Gain");
               ImGui::TextUnformatted("Gain");
-              ImGui::TableNextColumn();
-              CENTER_TEXT("Envelope");
-              ImGui::TextUnformatted("Envelope");
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -5164,10 +5217,10 @@ void FurnaceGUI::drawInsEdit() {
               if (ins->snes.gain>gainMax) ins->snes.gain=gainMax;
               P(CWVSliderScalar("##Gain",sliderSize,ImGuiDataType_U8,&ins->snes.gain,&_ZERO,&gainMax)); rightClickable
 
-              ImGui::TableNextColumn();
-              ImGui::Text("Envelope goes here...");
-
               ImGui::EndTable();
+            }
+            if (ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LINEAR || ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LOG) {
+              ImGui::TextWrapped("using decrease modes will not produce any sound at all, unless you know what you are doing.\nit is recommended to use the Gain macro for decrease instead.");
             }
           }
           ImGui::EndTabItem();
@@ -5233,180 +5286,205 @@ void FurnaceGUI::drawInsEdit() {
             if (ImGui::Checkbox("Enable synthesizer",&ins->ws.enabled)) {
               wavePreviewInit=true;
             }
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ins->ws.effect&0x80) {
-              if ((ins->ws.effect&0x7f)>=DIV_WS_DUAL_MAX) {
-                ins->ws.effect=0;
+            if (ins->ws.enabled) {
+              ImGui::SameLine();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (ins->ws.effect&0x80) {
+                if ((ins->ws.effect&0x7f)>=DIV_WS_DUAL_MAX) {
+                  ins->ws.effect=0;
+                  wavePreviewInit=true;
+                }
+              } else {
+                if ((ins->ws.effect&0x7f)>=DIV_WS_SINGLE_MAX) {
+                  ins->ws.effect=0;
+                  wavePreviewInit=true;
+                }
+              }
+              if (ImGui::BeginCombo("##WSEffect",(ins->ws.effect&0x80)?dualWSEffects[ins->ws.effect&0x7f]:singleWSEffects[ins->ws.effect&0x7f])) {
+                ImGui::Text("Single-waveform");
+                ImGui::Indent();
+                for (int i=0; i<DIV_WS_SINGLE_MAX; i++) {
+                  if (ImGui::Selectable(singleWSEffects[i])) {
+                    ins->ws.effect=i;
+                    wavePreviewInit=true;
+                  }
+                }
+                ImGui::Unindent();
+                ImGui::Text("Dual-waveform");
+                ImGui::Indent();
+                for (int i=129; i<DIV_WS_DUAL_MAX; i++) {
+                  if (ImGui::Selectable(dualWSEffects[i-128])) {
+                    ins->ws.effect=i;
+                    wavePreviewInit=true;
+                  }
+                }
+                ImGui::Unindent();
+                ImGui::EndCombo();
+              }
+              const bool isSingleWaveFX=(ins->ws.effect>=128);
+              if (ImGui::BeginTable("WSPreview",isSingleWaveFX?3:2)) {
+                DivWavetable* wave1=e->getWave(ins->ws.wave1);
+                DivWavetable* wave2=e->getWave(ins->ws.wave2);
+                if (wavePreviewInit) {
+                  wavePreview.init(ins,wavePreviewLen,wavePreviewHeight,true);
+                  wavePreviewInit=false;
+                }
+                float wavePreview1[257];
+                float wavePreview2[257];
+                float wavePreview3[257];
+                for (int i=0; i<wave1->len; i++) {
+                  if (wave1->data[i]>wave1->max) {
+                    wavePreview1[i]=wave1->max;
+                  } else {
+                    wavePreview1[i]=wave1->data[i];
+                  }
+                }
+                if (wave1->len>0) {
+                  wavePreview1[wave1->len]=wave1->data[wave1->len-1];
+                }
+                for (int i=0; i<wave2->len; i++) {
+                  if (wave2->data[i]>wave2->max) {
+                    wavePreview2[i]=wave2->max;
+                  } else {
+                    wavePreview2[i]=wave2->data[i];
+                  }
+                }
+                if (wave2->len>0) {
+                  wavePreview2[wave2->len]=wave2->data[wave2->len-1];
+                }
+                if (ins->ws.enabled && (!wavePreviewPaused || wavePreviewInit)) {
+                  wavePreview.tick(true);
+                  WAKE_UP;
+                }
+                for (int i=0; i<wavePreviewLen; i++) {
+                  wavePreview3[i]=wavePreview.output[i];
+                }
+                if (wavePreviewLen>0) {
+                  wavePreview3[wavePreviewLen]=wavePreview3[wavePreviewLen-1];
+                }
+
+                float ySize=(isSingleWaveFX?96.0f:128.0f)*dpiScale;
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImVec2 size1=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
+                PlotNoLerp("##WaveformP1",wavePreview1,wave1->len+1,0,"Wave 1",0,wave1->max,size1);
+                if (isSingleWaveFX) {
+                  ImGui::TableNextColumn();
+                  ImVec2 size2=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
+                  PlotNoLerp("##WaveformP2",wavePreview2,wave2->len+1,0,"Wave 2",0,wave2->max,size2);
+                }
+                ImGui::TableNextColumn();
+                ImVec2 size3=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
+                PlotNoLerp("##WaveformP3",wavePreview3,wavePreviewLen+1,0,"Result",0,wavePreviewHeight,size3);
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                if (ins->std.waveMacro.len>0) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_WARNING]);
+                  ImGui::AlignTextToFramePadding();
+                  ImGui::Text("Wave 1 " ICON_FA_EXCLAMATION_TRIANGLE);
+                  ImGui::PopStyleColor();
+                  if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("waveform macro is controlling wave 1!\nthis value will be ineffective.");
+                  }
+                } else {
+                  ImGui::AlignTextToFramePadding();
+                  ImGui::Text("Wave 1");
+                }
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##SelWave1",&ins->ws.wave1,1,4)) {
+                  if (ins->ws.wave1<0) ins->ws.wave1=0;
+                  if (ins->ws.wave1>=(int)e->song.wave.size()) ins->ws.wave1=e->song.wave.size()-1;
+                  wavePreviewInit=true;
+                }
+                if (ins->std.waveMacro.len>0) {
+                  if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("waveform macro is controlling wave 1!\nthis value will be ineffective.");
+                  }
+                }
+                if (isSingleWaveFX) {
+                  ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
+                  ImGui::Text("Wave 2");
+                  ImGui::SameLine();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::InputInt("##SelWave2",&ins->ws.wave2,1,4)) {
+                    if (ins->ws.wave2<0) ins->ws.wave2=0;
+                    if (ins->ws.wave2>=(int)e->song.wave.size()) ins->ws.wave2=e->song.wave.size()-1;
+                    wavePreviewInit=true;
+                  }
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Button(wavePreviewPaused?(ICON_FA_PLAY "##WSPause"):(ICON_FA_PAUSE "##WSPause"))) {
+                  wavePreviewPaused=!wavePreviewPaused;
+                }
+                if (ImGui::IsItemHovered()) {
+                  if (wavePreviewPaused) {
+                    ImGui::SetTooltip("Resume preview");
+                  } else {
+                    ImGui::SetTooltip("Pause preview");
+                  }
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_REPEAT "##WSRestart")) {
+                  wavePreviewInit=true;
+                }
+                if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Restart preview");
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_UPLOAD "##WSCopy")) {
+                  curWave=e->addWave();
+                  if (curWave==-1) {
+                    showError("too many wavetables!");
+                  } else {
+                    wantScrollList=true;
+                    MARK_MODIFIED;
+                    RESET_WAVE_MACRO_ZOOM;
+                    nextWindow=GUI_WINDOW_WAVE_EDIT;
+
+                    DivWavetable* copyWave=e->song.wave[curWave];
+                    copyWave->len=wavePreviewLen;
+                    copyWave->max=wavePreviewHeight;
+                    memcpy(copyWave->data,wavePreview.output,256*sizeof(int));
+                  }
+                }
+                if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("Copy to new wavetable");
+                }
+                ImGui::SameLine();
+                ImGui::Text("(%d×%d)",wavePreviewLen,wavePreviewHeight+1);
+                ImGui::EndTable();
+              }
+
+              if (ImGui::InputScalar("Update Rate",ImGuiDataType_U8,&ins->ws.rateDivider,&_ONE,&_SEVEN)) {
+                wavePreviewInit=true;
+              }
+              int speed=ins->ws.speed+1;
+              if (ImGui::InputInt("Speed",&speed,1,16)) {
+                if (speed<1) speed=1;
+                if (speed>256) speed=256;
+                ins->ws.speed=speed-1;
+                wavePreviewInit=true;
+              }
+
+              if (ImGui::InputScalar("Amount",ImGuiDataType_U8,&ins->ws.param1,&_ONE,&_SEVEN)) {
+                wavePreviewInit=true;
+              }
+
+              if (ins->ws.effect==DIV_WS_PHASE_MOD) {
+                if (ImGui::InputScalar("Power",ImGuiDataType_U8,&ins->ws.param2,&_ONE,&_SEVEN)) {
+                  wavePreviewInit=true;
+                }
+              }
+
+              if (ImGui::Checkbox("Global",&ins->ws.global)) {
                 wavePreviewInit=true;
               }
             } else {
-              if ((ins->ws.effect&0x7f)>=DIV_WS_SINGLE_MAX) {
-                ins->ws.effect=0;
-                wavePreviewInit=true;
-              }
-            }
-            if (ImGui::BeginCombo("##WSEffect",(ins->ws.effect&0x80)?dualWSEffects[ins->ws.effect&0x7f]:singleWSEffects[ins->ws.effect&0x7f])) {
-              ImGui::Text("Single-waveform");
-              ImGui::Indent();
-              for (int i=0; i<DIV_WS_SINGLE_MAX; i++) {
-                if (ImGui::Selectable(singleWSEffects[i])) {
-                  ins->ws.effect=i;
-                  wavePreviewInit=true;
-                }
-              }
-              ImGui::Unindent();
-              ImGui::Text("Dual-waveform");
-              ImGui::Indent();
-              for (int i=129; i<DIV_WS_DUAL_MAX; i++) {
-                if (ImGui::Selectable(dualWSEffects[i-128])) {
-                  ins->ws.effect=i;
-                  wavePreviewInit=true;
-                }
-              }
-              ImGui::Unindent();
-              ImGui::EndCombo();
-            }
-            const bool isSingleWaveFX=(ins->ws.effect>=128);
-            if (ImGui::BeginTable("WSPreview",isSingleWaveFX?3:2)) {
-              DivWavetable* wave1=e->getWave(ins->ws.wave1);
-              DivWavetable* wave2=e->getWave(ins->ws.wave2);
-              if (wavePreviewInit) {
-                wavePreview.init(ins,wavePreviewLen,wavePreviewHeight,true);
-                wavePreviewInit=false;
-              }
-              float wavePreview1[256];
-              float wavePreview2[256];
-              float wavePreview3[256];
-              for (int i=0; i<wave1->len; i++) {
-                if (wave1->data[i]>wave1->max) {
-                  wavePreview1[i]=wave1->max;
-                } else {
-                  wavePreview1[i]=wave1->data[i];
-                }
-              }
-              for (int i=0; i<wave2->len; i++) {
-                if (wave2->data[i]>wave2->max) {
-                  wavePreview2[i]=wave2->max;
-                } else {
-                  wavePreview2[i]=wave2->data[i];
-                }
-              }
-              if (ins->ws.enabled && (!wavePreviewPaused || wavePreviewInit)) {
-                wavePreview.tick(true);
-              }
-              for (int i=0; i<wavePreviewLen; i++) {
-                if (wave2->data[i]>wavePreviewHeight) {
-                  wavePreview3[i]=wavePreviewHeight;
-                } else {
-                  wavePreview3[i]=wavePreview.output[i];
-                }
-              }
-
-              float ySize=(isSingleWaveFX?96.0f:128.0f)*dpiScale;
-
-              ImGui::TableNextRow();
-              ImGui::TableNextColumn();
-              ImVec2 size1=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
-              PlotNoLerp("##WaveformP1",wavePreview1,wave1->len+1,0,"Wave 1",0,wave1->max,size1);
-              if (isSingleWaveFX) {
-                ImGui::TableNextColumn();
-                ImVec2 size2=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
-                PlotNoLerp("##WaveformP2",wavePreview2,wave2->len+1,0,"Wave 2",0,wave2->max,size2);
-              }
-              ImGui::TableNextColumn();
-              ImVec2 size3=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
-              PlotNoLerp("##WaveformP3",wavePreview3,wavePreviewLen,0,"Result",0,wavePreviewHeight,size3);
-
-              ImGui::TableNextRow();
-              ImGui::TableNextColumn();
-              ImGui::AlignTextToFramePadding();
-              ImGui::Text("Wave 1");
-              ImGui::SameLine();
-              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              if (ImGui::InputInt("##SelWave1",&ins->ws.wave1,1,4)) {
-                if (ins->ws.wave1<0) ins->ws.wave1=0;
-                if (ins->ws.wave1>=(int)e->song.wave.size()) ins->ws.wave1=e->song.wave.size()-1;
-                wavePreviewInit=true;
-              }
-              if (isSingleWaveFX) {
-                ImGui::TableNextColumn();
-                ImGui::AlignTextToFramePadding();
-                ImGui::Text("Wave 2");
-                ImGui::SameLine();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::InputInt("##SelWave2",&ins->ws.wave2,1,4)) {
-                  if (ins->ws.wave2<0) ins->ws.wave2=0;
-                  if (ins->ws.wave2>=(int)e->song.wave.size()) ins->ws.wave2=e->song.wave.size()-1;
-                  wavePreviewInit=true;
-                }
-              }
-              ImGui::TableNextColumn();
-              if (ImGui::Button(wavePreviewPaused?(ICON_FA_PLAY "##WSPause"):(ICON_FA_PAUSE "##WSPause"))) {
-                wavePreviewPaused=!wavePreviewPaused;
-              }
-              if (ImGui::IsItemHovered()) {
-                if (wavePreviewPaused) {
-                  ImGui::SetTooltip("Resume preview");
-                } else {
-                  ImGui::SetTooltip("Pause preview");
-                }
-              }
-              ImGui::SameLine();
-              if (ImGui::Button(ICON_FA_REPEAT "##WSRestart")) {
-                wavePreviewInit=true;
-              }
-              if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Restart preview");
-              }
-              ImGui::SameLine();
-              if (ImGui::Button(ICON_FA_UPLOAD "##WSCopy")) {
-                curWave=e->addWave();
-                if (curWave==-1) {
-                  showError("too many wavetables!");
-                } else {
-                  wantScrollList=true;
-                  MARK_MODIFIED;
-                  RESET_WAVE_MACRO_ZOOM;
-                  nextWindow=GUI_WINDOW_WAVE_EDIT;
-
-                  DivWavetable* copyWave=e->song.wave[curWave];
-                  copyWave->len=wavePreviewLen;
-                  copyWave->max=wavePreviewHeight;
-                  memcpy(copyWave->data,wavePreview.output,256*sizeof(int));
-                }
-              }
-              if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Copy to new wavetable");
-              }
-              ImGui::SameLine();
-              ImGui::Text("(%d×%d)",wavePreviewLen,wavePreviewHeight+1);
-              ImGui::EndTable();
-            }
-
-            if (ImGui::InputScalar("Update Rate",ImGuiDataType_U8,&ins->ws.rateDivider,&_ONE,&_SEVEN)) {
-              wavePreviewInit=true;
-            }
-            int speed=ins->ws.speed+1;
-            if (ImGui::InputInt("Speed",&speed,1,16)) {
-              if (speed<1) speed=1;
-              if (speed>256) speed=256;
-              ins->ws.speed=speed-1;
-              wavePreviewInit=true;
-            }
-
-            if (ImGui::InputScalar("Amount",ImGuiDataType_U8,&ins->ws.param1,&_ONE,&_SEVEN)) {
-              wavePreviewInit=true;
-            }
-
-            if (ins->ws.effect==DIV_WS_PHASE_MOD) {
-              if (ImGui::InputScalar("Power",ImGuiDataType_U8,&ins->ws.param2,&_ONE,&_SEVEN)) {
-                wavePreviewInit=true;
-              }
-            }
-
-            if (ImGui::Checkbox("Global",&ins->ws.global)) {
-              wavePreviewInit=true;
+              ImGui::TextWrapped("wavetable synthesizer disabled.\nuse the Waveform macro to set the wave for this instrument.");
             }
 
             ImGui::EndTabItem();
@@ -5469,7 +5547,7 @@ void FurnaceGUI::drawInsEdit() {
             volMax=31;
           }
           if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140) {
+              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219) {
             volMax=255;
           }
           if (ins->type==DIV_INS_QSOUND) {
@@ -5514,6 +5592,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM5232) {
             dutyLabel="Group Ctrl";
             dutyMax=5;
+          }
+          if (ins->type==DIV_INS_C219) {
+            dutyLabel="Control";
+            dutyMax=3;
           }
           if (ins->type==DIV_INS_BEEPER || ins->type==DIV_INS_POKEMINI) {
             dutyLabel="Pulse Width";
@@ -5636,9 +5718,11 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) waveMax=0;
           if (ins->type==DIV_INS_GA20) waveMax=0;
           if (ins->type==DIV_INS_K053260) waveMax=0;
+          if (ins->type==DIV_INS_BEEPER) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_TED) waveMax=0;
           if (ins->type==DIV_INS_C140) waveMax=0;
+          if (ins->type==DIV_INS_C219) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -5769,7 +5853,7 @@ void FurnaceGUI::drawInsEdit() {
             panMin=0;
             panMax=127;
           }
-          if (ins->type==DIV_INS_C140) {
+          if (ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219) {
             panMin=0;
             panMax=255;
           }
@@ -5780,7 +5864,7 @@ void FurnaceGUI::drawInsEdit() {
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
-          if (ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295) {
+          if (ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295 && ins->type!=DIV_INS_ADPCMA) {
             macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.arpMacro.val));
           }
           if (dutyMax>0) {
@@ -5794,6 +5878,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,msm5232ControlBits));
             } else if (ins->type==DIV_INS_ES5506) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,dutyMin,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,&macroHoverES5506FilterMode));
+            } else if (ins->type==DIV_INS_C219) {
+              macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,120,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c219ControlBits));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,dutyMin,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
@@ -5822,7 +5908,7 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
           }
-          if (ins->type!=DIV_INS_MSM5232 && ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295) {
+          if (ins->type!=DIV_INS_MSM5232 && ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295 && ins->type!=DIV_INS_ADPCMA) {
             macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
           }
           if (ins->type==DIV_INS_FM ||
@@ -5859,6 +5945,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_GA20 ||
               ins->type==DIV_INS_K053260 ||
               ins->type==DIV_INS_C140 ||
+              ins->type==DIV_INS_C219 ||
               ins->type==DIV_INS_TED) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }

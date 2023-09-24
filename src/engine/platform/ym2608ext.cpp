@@ -156,6 +156,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
         }
       }
       rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
+      lastExtChPan=opChan[ch].pan;
       break;
     }
     case DIV_CMD_PITCH: {
@@ -508,6 +509,17 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
       rWrite(0x22,lfoValue);
     }
 
+    if (opChan[i].std.panL.had) {
+      opChan[i].pan=opChan[i].std.panL.val&3;
+      if (parent->song.sharedExtStat) {
+        for (int j=0; j<4; j++) {
+          if (i==j) continue;
+          opChan[j].pan=opChan[i].pan;
+        }
+      }
+      rWrite(chanOffs[extChanOffs]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(opChan[i].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+    }
+
 
     // param macros
     unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[i]];
@@ -538,7 +550,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
       rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
     }
     if (m.tl.had) {
-      op.tl=127-m.tl.val;
+      op.tl=m.tl.val;
       if (isOpMuted[i]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
@@ -641,13 +653,15 @@ void DivPlatformYM2608Ext::muteChannel(int ch, bool mute) {
   DivPlatformYM2608::muteChannel(extChanOffs,IS_EXTCH_MUTED);
   
   if (extMode) {
-    int ordch=orderedOps[ch-2];
-    unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-    DivInstrumentFM::Operator op=chan[2].state.op[ordch];
-    if (isOpMuted[ch-2] || !op.enable) {
-      rWrite(baseAddr+0x40,127);
-    } else {
-      rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].outVol&0x7f,127));
+    for (int i=0; i<4; i++) {
+      int ordch=orderedOps[i];
+      unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
+      DivInstrumentFM::Operator op=chan[2].state.op[ordch];
+      if (isOpMuted[i] || !op.enable) {
+        rWrite(baseAddr+0x40,127);
+      } else {
+        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[i].outVol&0x7f,127));
+      }
     }
 
     rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch-2].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
@@ -662,10 +676,8 @@ void DivPlatformYM2608Ext::forceIns() {
       if (i==2 && extMode) { // extended channel
         if (isOpMuted[orderedOps[j]] || !op.enable) {
           rWrite(baseAddr+0x40,127);
-        } else if (KVS(i,j)) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));
         } else {
-          rWrite(baseAddr+0x40,op.tl);
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));
         }
       } else {
         if (isMuted[i] || !op.enable) {
@@ -719,6 +731,9 @@ void DivPlatformYM2608Ext::forceIns() {
       opChan[i].freqChanged=true;
     }
   }
+  if (!extMode) {
+    immWrite(0x27,0x00);
+  }
 }
 
 void* DivPlatformYM2608Ext::getChanState(int ch) {
@@ -732,6 +747,18 @@ DivMacroInt* DivPlatformYM2608Ext::getChanMacroInt(int ch) {
   if (ch>=6) return &chan[ch-3].std;
   if (ch>=2) return &opChan[ch-2].std;
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformYM2608Ext::getPan(int ch) {
+  if (ch>=4+extChanOffs) return DivPlatformYM2608::getPan(ch-3);
+  if (ch>=extChanOffs) {
+    if (extMode) {
+      return ((lastExtChPan&2)<<7)|(lastExtChPan&1);
+    } else {
+      return DivPlatformYM2608::getPan(extChanOffs);
+    }
+  }
+  return DivPlatformYM2608::getPan(ch);
 }
 
 DivDispatchOscBuffer* DivPlatformYM2608Ext::getOscBuffer(int ch) {
@@ -750,7 +777,9 @@ void DivPlatformYM2608Ext::reset() {
     opChan[i].outVol=127;
   }
 
-  // channel 2 mode
+  lastExtChPan=3;
+
+  // channel 3 mode
   immWrite(0x27,0x40);
   extMode=true;
 }

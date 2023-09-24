@@ -26,6 +26,7 @@ float* DivFilterTables::cubicTable=NULL;
 float* DivFilterTables::sincTable=NULL;
 float* DivFilterTables::sincTable8=NULL;
 float* DivFilterTables::sincIntegralTable=NULL;
+float* DivFilterTables::sincIntegralSmallTable=NULL;
 
 // portions from Schism Tracker (scripts/lutgen.c)
 // licensed under same license as this program.
@@ -105,4 +106,26 @@ float* DivFilterTables::getSincIntegralTable() {
     }
   }
   return sincIntegralTable;
+}
+
+float* DivFilterTables::getSincIntegralSmallTable() {
+  if (sincIntegralSmallTable==NULL) {
+    logD("initializing small sinc integral table.");
+    sincIntegralSmallTable=new float[512];
+
+    sincIntegralSmallTable[0]=-0.5f;
+    for (int i=1; i<512; i++) {
+      int mapped=((i&63)<<3)|(i>>6);
+      int mappedPrev=(((i-1)&63)<<3)|((i-1)>>6);
+      double x=(double)i*M_PI/64.0;
+      double sinc=sin(x)/x;
+      sincIntegralSmallTable[mapped]=sincIntegralSmallTable[mappedPrev]+(sinc/64.0);
+    }
+
+    for (int i=0; i<512; i++) {
+      int mapped=((i&63)<<3)|(i>>6);
+      sincIntegralSmallTable[mapped]*=pow(cos(M_PI*(double)i/1024.0),2.0);
+    }
+  }
+  return sincIntegralSmallTable;
 }

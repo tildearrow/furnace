@@ -23,7 +23,7 @@ no plans have been made for TX81Z MIDI passthrough, because:
 - the TX81Z is very slow to process a note on/off or parameter change event.
 - the TL range has been reduced to 0-99, but the chip goes from 0-127.
 
-# effects
+## effects
 
 - `10xx`: **set noise frequency of channel 8 operator 4.** `00` disables noise while `01` to `20` enable it.
 - `11xx`: **set feedback of channel.**
@@ -33,7 +33,7 @@ no plans have been made for TX81Z MIDI passthrough, because:
 - `15xx`: **set operator 4 level.**
 - `16xy`: **set multiplier of operator.**
   - `x` is the operator (1-4).
-  - `y` is the multiplier.
+  - `y` is the new MULT value..
 - `17xx`: **set LFO speed.**
 - `18xx`: **set LFO waveform.** `xx` may be one of the following:
   - `00`: saw
@@ -114,6 +114,6 @@ no plans have been made for TX81Z MIDI passthrough, because:
 - `5Exx`: **set D2R/SR of operator 3.**
 - `5Fxx`: **set D2R/SR of operator 4.**
 
-# info
+## info
 
-this chip uses the [FM (OPZ)](../4-instrument/opz.md) instrument editor.
+this chip uses the [FM (OPZ)](../4-instrument/fm-opz.md) instrument editor.

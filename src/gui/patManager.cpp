@@ -39,12 +39,14 @@ void FurnaceGUI::drawPatManager() {
       e->lockEngine([this]() {
         e->curSubSong->optimizePatterns();
       });
+      MARK_MODIFIED;
     }
     ImGui::SameLine();
     if (ImGui::Button("Re-arrange patterns")) {
       e->lockEngine([this]() {
         e->curSubSong->rearrangePatterns();
       });
+      MARK_MODIFIED;
     }
 
     if (ImGui::BeginTable("PatManTable",257,ImGuiTableFlags_ScrollX|ImGuiTableFlags_SizingFixedFit)) {
@@ -98,6 +100,7 @@ void FurnaceGUI::drawPatManager() {
               delete e->curSubSong->pat[i].data[k];
               e->curSubSong->pat[i].data[k]=NULL;
             });
+            MARK_MODIFIED;
           }
           ImGui::PopStyleColor();
         }

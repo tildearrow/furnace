@@ -22,7 +22,7 @@
 
 #include "../dispatch.h"
 #include "../instrument.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 #define KVS(x,y) ((chan[x].state.op[y].kvs==2 && isOutput[chan[x].state.alg][y]) || chan[x].state.op[y].kvs==1)
 

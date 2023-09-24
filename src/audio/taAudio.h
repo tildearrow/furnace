@@ -21,8 +21,8 @@
 #define _TAAUDIO_H
 #include "../ta-utils.h"
 #include <memory>
-#include <queue>
-#include <vector>
+#include "../fixedQueue.h"
+#include "../pch.h"
 
 struct SampleRateChangeEvent {
   double rate;
@@ -58,13 +58,16 @@ struct TAAudioDesc {
   unsigned char inChans, outChans;
   TAAudioFormat outFormat;
 
+  bool wasapiEx;
+
   TAAudioDesc():
     rate(0.0),
     bufsize(0),
     fragments(0),
     inChans(0),
     outChans(0),
-    outFormat(TA_AUDIO_FORMAT_F32) {}
+    outFormat(TA_AUDIO_FORMAT_F32),
+    wasapiEx(false) {}
 };
 
 
@@ -121,7 +124,7 @@ struct TAMidiMessage {
 
 class TAMidiIn {
   public:
-    std::queue<TAMidiMessage> queue;
+    FixedQueue<TAMidiMessage,8192> queue;
     virtual bool gather();
     bool next(TAMidiMessage& where);
     virtual bool isDeviceOpen();
@@ -136,7 +139,7 @@ class TAMidiIn {
 };
 
 class TAMidiOut {
-  std::queue<TAMidiMessage> queue;
+  FixedQueue<TAMidiMessage,8192> queue;
   public:
     virtual bool send(const TAMidiMessage& what);
     virtual bool isDeviceOpen();

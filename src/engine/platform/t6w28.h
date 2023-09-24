@@ -21,7 +21,7 @@
 #define _T6W28_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/t6w28/T6W28_Apu.h"
 
 class DivPlatformT6W28: public DivDispatch {
@@ -63,6 +63,7 @@ class DivPlatformT6W28: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

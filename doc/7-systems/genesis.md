@@ -4,7 +4,7 @@ a video game console that showed itself as the first true rival to Nintendo's vi
 
 this console is powered by two sound chips: the [Yamaha YM2612](ym2612.md) and [a derivative of the SN76489](sms.md).
 
-# effects
+## effects
 
 - `10xy`: **set LFO parameters.**
   - `x` toggles the LFO.
@@ -16,7 +16,7 @@ this console is powered by two sound chips: the [Yamaha YM2612](ym2612.md) and [
 - `15xx`: **set operator 4 level.**
 - `16xy`: **set multiplier of operator.**
   - `x` is the operator (1-4).
-  - `y` is the multiplier.
+  - `y` is the new MULT value..
 - `17xx`: **enable PCM channel.**
   - this only works on channel 6.
   - _this effect is here for compatibility reasons!_ it is otherwise recommended to use Sample type instruments (which automatically enable PCM mode when used).
@@ -38,13 +38,13 @@ this console is powered by two sound chips: the [Yamaha YM2612](ym2612.md) and [
 
 
 
-# system modes
+## system modes
 
 ## extended channel 3
 
 in ExtCh mode, channel 3 is split into one column for each of its four operators. feedback and LFO levels are shared. the frequency of each operator may be controlled independently with notes and effects. this can be used for more polyphony or more complex sounds.
 
-all four operators are still combined according to the algorithm in use. for example, algorithm 7 acts as four independent sine waves. algorithm 4 acts as two independent 2op sounds. even with algorithm 0, placing a note in any operator triggers that operator alone.
+all four operators are still combined according to the algorithm in use. for example, algorithm 7 acts as four independent sine waves. algorithm 4 acts as two independent 2-op sounds. even with algorithm 0, placing a note in any operator triggers that operator alone.
 
 ## CSM
 

@@ -1,8 +1,16 @@
 # Konami SCC/Bubble System WSG instrument editor
 
-The SCC/Bubble System WSG instrument editor consists of these macros:
+the SCC/Bubble System WSG instrument editor consists of two tabs.
 
-- **Volume**: volume sequence
-- **Arpeggio**: pitch sequence
-- **Waveform**: specifies wavetable sequence
-- **Pitch**: fine pitch
+## Wavetable
+
+this allows you to enable and configure the Furnace wavetable synthesizer. see [this page](wavesynth.md) for more information.
+
+be noted that channel 4 and 5 share the same waveform on SCC (non-plus). careful.
+
+## Macros
+
+- **Volume**: volume sequence.
+- **Arpeggio**: pitch sequence.
+- **Waveform**: specifies wavetable.
+- **Pitch**: fine pitch.

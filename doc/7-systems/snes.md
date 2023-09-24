@@ -8,7 +8,7 @@ this whole system itself is pretty much a separate computer that the main CPU ne
 Furnace communicates with the DSP directly and provides a full 64KB of memory. this memory might be reduced excessively on ROM export to make up for playback engine and pattern data. you can go to window > statistics to see how much memory your samples are using.
 
 some notable features of the DSP are:
-- pitch modulation, meaning that you can use 2 channels to make a basic FM synth without eating up too much memory.
+- pitch modulation.
 - a built in noise generator, useful for hi-hats, cymbals, rides, effects, among other things.
 - per-channel echo, which unfortunately eats up a lot of memory but can be used to save channels in songs.
 - an 8-tap FIR filter for the echo, which is basically a procedural low-pass filter that you can edit however you want.
@@ -18,9 +18,9 @@ some notable features of the DSP are:
 - 7-bit volume per channel.
 - sample interpolation, which is basically a low-pass filter that gets affected by the pitch of the channel.
 
-Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) in order to create more 'animated' sounds, using less memory than regular samples. this however is not a hardware feature, and might be difficult to implement on real hardware.
+Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) in order to create more 'animated' sounds, using less memory than regular samples.
 
-# effects
+## effects
 
 - `10xx`: **set waveform.**
 - `11xx`: **toggle noise mode.**
@@ -37,37 +37,31 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
 - `16xx`: **set gain.** `00` to `7F` if direct, `00` to `1F` otherwise.
 - `18xx`: **enable echo buffer.**
 - `19xx`: **set echo delay.** range is `0` to `F`.
-- `1Axx`: **set left echo channel volume.**\
-  `1Bxx`: **set right echo channel volume.**\
-  `1Cxx`: **set echo feedback.**
+- `1Axx`: **set left echo channel volume.**
+- `1Bxx`: **set right echo channel volume.**
+- `1Cxx`: **set echo feedback.**
   - all of these are signed numbers.
   - `00` to `7F` for 0 to 127.
   - `80` to `FF` for -128 to -1.
-    - setting these to -128 is not recommended as it may cause echo output to overflow and therefore click.
+  - setting these to -128 is not recommended as it may cause echo output to overflow and therefore click.
 - `1Dxx`: **set noise generator frequency.** range is `00` to `1F`. see noise frequencies chart below.
-- `1Exx`: **set left dry / global volume.**\
-  `1Fxx`: **set right dry / global volume.**
+- `1Exx`: **set left dry / global volume.**
+- `1Fxx`: **set right dry / global volume.**
   - these do not affect echo.
-- `20xx`: **set attack.** range is `0` to `F`.\
-  `21xx`: **set decay.** range is `0` to `7`.\
-  `22xx`: **set sustain.** range is `0` to `7`.\
-  `23xx`: **set release.** range is `00` to `1F`.
+- `20xx`: **set attack.** range is `0` to `F`.
+- `21xx`: **set decay.** range is `0` to `7`.
+- `22xx`: **set sustain.** range is `0` to `7`.
+- `23xx`: **set release.** range is `00` to `1F`.
   - these four are only used in ADSR envelope mode. see ADSR chart below.
-- `30xx`: **set echo filter coefficient 0.**\
-  `31xx`: **set echo filter coefficient 1.**\
-  `32xx`: **set echo filter coefficient 2.**\
-  `33xx`: **set echo filter coefficient 3.**\
-  `34xx`: **set echo filter coefficient 4.**\
-  `35xx`: **set echo filter coefficient 5.**\
-  `36xx`: **set echo filter coefficient 6.**\
-  `37xx`: **set echo filter coefficient 7.**
-  - all of these are signed numbers.
-  - `00` to `7F` for 0 to 127.
-  - `80` to `FF` for -128 to -1.
-  - _Note:_ Be sure the sum of all coefficients is between -128 and 127. sums outside that may result in overflow and therefore clicking.
+- `3xyy`: **set echo filter coefficient.**
+  - `x` is the coefficient from 0 to 7.
+  - `yy` is the value (signed number).
+    - `00` to `7F` for 0 to 127.
+    - `80` to `FF` for -128 to -1.
+  - note: be sure the sum of all coefficients is between -128 and 127. sums outside that may result in overflow and therefore clicking.
   - see [SnesLab](https://sneslab.net/wiki/FIR_Filter) for a full explanation and examples.
 
-# info
+## info
 
 this chip uses the [SNES](../4-instrument/snes.md) instrument editor.
 
@@ -173,8 +167,6 @@ value |  freq. | value |    freq.
 
 reference: [Super Famicom Development Wiki](https://wiki.superfamicom.org/spc700-reference#dsp-register:-flg-1318)
 
-
-
-# resources
+## resources
 
 - [SNES-format BRR samples](https://www.smwcentral.net/?p=stion&s=brrsamples) at SMW Central

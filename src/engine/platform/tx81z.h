@@ -21,7 +21,7 @@
 #define _TX81Z_H
 
 #include "fmshared_OPM.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/ymfm/ymfm_opz.h"
 
 class DivTXInterface: public ymfm::ymfm_interface {
@@ -65,6 +65,7 @@ class DivPlatformTX81Z: public DivPlatformOPM {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

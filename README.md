@@ -48,8 +48,11 @@ for other operating systems, you may [build the source](#developer-info).
     - Ricoh RF5C68 used in Sega CD and FM Towns
     - OKI MSM6258 and MSM6295
     - Konami K007232
+    - Konami K053260
     - Irem GA20
     - Ensoniq ES5506
+    - Namco C140
+    - Namco C219
   - wavetable chips:
     - HuC6280 used in PC Engine
     - Konami Bubble System WSG
@@ -73,6 +76,7 @@ for other operating systems, you may [build the source](#developer-info).
     - QuadTone engine
   - Pokémon Mini
   - Commodore PET
+  - TED used in Commodore Plus/4
   - Casio PV-1000
   - TIA used in Atari 2600
   - POKEY used in Atari 8-bit computers
@@ -124,7 +128,7 @@ for other operating systems, you may [build the source](#developer-info).
 # quick references
 
 - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, the [official Revolt](https://rvlt.gg/GRPS6tmc) or the [official Discord server](https://discord.gg/EfrwT2wq7z).
-- **help**: check out the [documentation](doc/README.md). it's about 80% complete.
+- **help**: check out the [documentation](doc/README.md). it's about 90% complete.
 
 ## packages
 
@@ -133,7 +137,7 @@ for other operating systems, you may [build the source](#developer-info).
 some people have provided packages for Unix/Unix-like distributions. here's a list.
 
 - **Arch Linux**: [furnace](https://archlinux.org/packages/extra/x86_64/furnace/) is in the official repositories.
-- **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt (warning: 0.5.8!).
+- **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
 - **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
 - **openSUSE**: [a package](https://software.opensuse.org/package/furnace) is available, courtesy of fpesari.
 - **Void Linux**: [furnace](https://github.com/void-linux/void-packages/tree/master/srcpkgs/furnace) is available in the official repository.
@@ -249,6 +253,7 @@ Available options:
 | `USE_SNDFILE` | `ON` | Build with libsndfile (required in order to work with audio files) |
 | `USE_BACKWARD` | `ON` | Use backward-cpp to print a backtrace on crash/abort |
 | `WITH_JACK` | `ON` if system-installed JACK detected, otherwise `OFF` | Whether to build with JACK support. Auto-detects if JACK is available |
+| `WITH_PORTAUDIO` | `ON` | Whether to build with PortAudio. |
 | `SYSTEM_FFTW` | `OFF` | Use a system-installed version of FFTW instead of the vendored one |
 | `SYSTEM_FMT` | `OFF` | Use a system-installed version of fmt instead of the vendored one |
 | `SYSTEM_LIBSNDFILE` | `OFF` | Use a system-installed version of libsndfile instead of the vendored one |

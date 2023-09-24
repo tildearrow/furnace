@@ -6,10 +6,10 @@ it was used in (of course) several Konami games, which had better audio quality 
 the only problem? the waveform of the fourth channel is shared with the fifth one due to not enough memory in the chip!
 the SCC+ fixes this issue though (while being compatible with SCC games).
 
-# effects
+## effects
 
 - `10xx`: **change wave.**
 
-# info
+## info
 
 this chip uses the [Konami SCC/Bubble System WSG](../4-instrument/scc.md) instrument editor.

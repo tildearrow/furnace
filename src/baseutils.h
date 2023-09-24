@@ -20,7 +20,7 @@
 #ifndef _BASEUTILS_H
 #define _BASEUTILS_H
 
-#include <string>
+#include "pch.h"
 
 std::string taEncodeBase64(const std::string& data);
 std::string taDecodeBase64(const char* str);

@@ -1093,10 +1093,22 @@ void FurnaceGUI::drawWaveEdit() {
                     MARK_MODIFIED;
                   });
                 }
-                if (ImGui::Button("Invert",buttonSize)) {
+                if (ImGui::Button("Invert",buttonSizeHalf)) {
                   e->lockEngine([this,wave]() {
                     for (int i=0; i<wave->len; i++) {
                       wave->data[i]=wave->max-wave->data[i];
+                    }
+                    MARK_MODIFIED;
+                  });
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Reverse",buttonSizeHalf)) {
+                  e->lockEngine([this,wave]() {
+                    int origData[256];
+                    memcpy(origData,wave->data,wave->len*sizeof(int));
+
+                    for (int i=0; i<wave->len; i++) {
+                      wave->data[i]=origData[wave->len-1-i];
                     }
                     MARK_MODIFIED;
                   });

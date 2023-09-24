@@ -20,9 +20,9 @@
 #define _USE_MATH_DEFINES
 #include "msm5232.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
-//#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define NOTE_LINEAR(x) ((x)<<7)
@@ -55,13 +55,17 @@ void DivPlatformMSM5232::acquire(short** buf, size_t len) {
     }
 
     for (int i=0; i<8; i++) {
-      int o=(
-        ((regPool[12+(i>>2)]&1)?((msm->vo16[i]*partVolume[3+(i&4)])>>8):0)+
-        ((regPool[12+(i>>2)]&2)?((msm->vo8[i]*partVolume[2+(i&4)])>>8):0)+
-        ((regPool[12+(i>>2)]&4)?((msm->vo4[i]*partVolume[1+(i&4)])>>8):0)+
-        ((regPool[12+(i>>2)]&8)?((msm->vo2[i]*partVolume[i&4])>>8):0)
-      )<<2;
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(o,-32768,32767);
+      if (isMuted[i]) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+      } else {
+        int o=(
+          ((regPool[12+(i>>2)]&1)?((msm->vo16[i]*partVolume[3+(i&4)])>>8):0)+
+          ((regPool[12+(i>>2)]&2)?((msm->vo8[i]*partVolume[2+(i&4)])>>8):0)+
+          ((regPool[12+(i>>2)]&4)?((msm->vo4[i]*partVolume[1+(i&4)])>>8):0)+
+          ((regPool[12+(i>>2)]&8)?((msm->vo2[i]*partVolume[i&4])>>8):0)
+        )<<2;
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(o,-32768,32767);
+      }
     }
 
     clockDriftLFOPos+=clockDriftLFOSpeed;
@@ -125,6 +129,10 @@ void DivPlatformMSM5232::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     if (updateGroup[i]) {
       rWrite(12+i,groupControl[i]);
+      // do not retrigger inactive channels
+      for (int j=i<<2; j<(i+1)<<2; j++) {
+        if (!chan[j].active) rWrite(j,0);
+      }
       updateGroup[i]=false;
     }
     if (updateGroupAR[i]) {
