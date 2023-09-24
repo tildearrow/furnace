@@ -2418,8 +2418,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   }
   while (!done) {
     if (loopPos==-1) {
-      if (loopOrder==curOrder && loopRow==curRow && ticks==1) {
-        writeLoop=true;
+      if (loopOrder==curOrder && loopRow==curRow) {
+        if ((ticks-((tempoAccum+curSubSong->virtualTempoN)/curSubSong->virtualTempoD))<=0) {
+          writeLoop=true;
+        }
       }
     }
     songTick++;
