@@ -16,11 +16,13 @@ the index follows.
 
 ## authors
 
+- brickblock369
 - cam900
 - DeMOSic
 - Electric Keet
 - freq-mod
 - host12prog
+- Lunathir
 - nicco1690
 - tildearrow
 

@@ -334,11 +334,13 @@ if __name__ == "__main__":
           <div>
             <h3>authors</h3>
             <ul>
+              <li>brickblock369</li>
               <li>cam900</li>
               <li>DeMOSic</li>
               <li>Electric Keet</li>
               <li>freq-mod</li>
               <li>host12prog</li>
+              <li>Lunathir</li>
               <li>nicco1690</li>
               <li>tildearrow</li>
             </ul>
