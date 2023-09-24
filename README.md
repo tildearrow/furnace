@@ -327,7 +327,7 @@ it is in [doc/](doc/README.md).
 
 > is there a tutorial?
 
-sadly, the in-program tutorial isn't ready yet. however, [a video tutorial is available on YouTube](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1), made by Spinning Square Waves.
+[a video tutorial (of a previous version) is available on YouTube](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1), made by Spinning Square Waves.
 
 > I've lost my song!
 
