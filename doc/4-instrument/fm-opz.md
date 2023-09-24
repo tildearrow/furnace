@@ -53,7 +53,7 @@ these apply to each operator:
   - does not apply for OP4.
 - **Reverb (REV)**: not a true reverb. extends release time, giving a slight reverb-like effect to the operator.
 - **Fine Detune (DT)**: shifts the pitch a little (0 to 7).
-- **Waveform Select (WS)**: changes the waveform of the operator (OPL2 and OPL3 only, 0-3 range on OPL2 and 0-7 on OPL3).
+- **Waveform Select (WS)**: changes the waveform of the operator.
 - **Coarse Detune (DT2)**: shifts the pitch by tens of cents (0 to 3).
 
 #### I am familiar with Yamaha TX81Z. where's LS and KVS?
