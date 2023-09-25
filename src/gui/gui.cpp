@@ -5874,8 +5874,6 @@ bool FurnaceGUI::loop() {
 
       if (pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_8BIT && pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT) {
         pendingRawSampleChannels=1;
-      }
-      if (pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT) {
         pendingRawSampleBigEndian=false;
       }
 
@@ -5900,6 +5898,10 @@ bool FurnaceGUI::loop() {
           pendingRawSampleDepth==DIV_SAMPLE_DEPTH_ADPCM_B ||
           pendingRawSampleDepth==DIV_SAMPLE_DEPTH_VOX) {
         ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
+      }
+
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT) {
+        ImGui::Checkbox("Swap words",&pendingRawSampleBigEndian);
       }
 
       if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_MULAW) {
