@@ -4546,6 +4546,7 @@ bool FurnaceGUI::loop() {
       MEASURE(readOsc,readOsc());
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
+      MEASURE(grooves,drawGrooves());
       MEASURE(regView,drawRegView());
     } else {
       globalWinFlags=0;
