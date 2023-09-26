@@ -1708,6 +1708,10 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap namcoEffectHandlerMap={
     {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+  };
+
+  EffectHandlerMap namcoC30EffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
     {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
   };
 
@@ -1741,7 +1745,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    namcoEffectHandlerMap
+    namcoC30EffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_MSM5232]=new DivSysDef(

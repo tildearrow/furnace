@@ -201,7 +201,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     if (chan[i].std.vol.had) {
       chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;
     }
-    if (chan[i].std.duty.had && i>=4) {
+    if (chan[i].std.duty.had) {
       chan[i].noise=chan[i].std.duty.val;
       chan[i].freqChanged=true;
     }
@@ -418,6 +418,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].noise=c.value;
+      chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
