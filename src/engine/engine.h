@@ -279,8 +279,6 @@ struct EffectHandler {
   val2(val2_) {}
 };
 
-typedef SafeWriter* ROMBuilder(DivEngine* eng,int sysIndex);
-
 struct DivDoNotHandleEffect {
 };
 
@@ -587,7 +585,8 @@ class DivEngine {
   // add every export method here
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
-
+  friend class DivExportR9Tracker;
+  
   public:
     DivSong song;
     DivOrders* curOrders;

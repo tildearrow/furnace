@@ -58,22 +58,22 @@ struct TiaNote {
 
 };
 
-class R9 {
+class DivExportR9Tracker : public DivROMExport {
 
-  DivEngine* e;
+  bool compress;
 
-  void writeTrackData_NOIV(SafeWriter* w);
-  void writeTrackData_CRD(SafeWriter* w);
+  void writeTrackData_NOIV(DivEngine* e, SafeWriter* w);
+  void writeTrackData_CRD(DivEngine* e, SafeWriter* w);
+
   void writeWaveformHeader(SafeWriter* w, const char * key);
-
   void writeNote(SafeWriter* w, const TiaNote& note);
   void writeRegisters(SafeWriter* w, const TiaRegisters& reg, int channel);
 
 public:    
+  DivExportR9Tracker(bool compress=true) : compress(compress) {}
+  ~DivExportR9Tracker() {}
 
-  R9(DivEngine* _e) : e(_e) {}
-  ~R9() {}
-  SafeWriter* buildROM(int sysIndex, bool compress=true);
+  std::vector<DivROMExportOutput> go(DivEngine* e) override;
 
 };
 

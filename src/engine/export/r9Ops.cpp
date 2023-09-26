@@ -17,17 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "tiaExporter.h"
 #include "r9.h"
 
 #include <fmt/printf.h>
 #include <set>
 #include "../../ta-log.h"
-
-SafeWriter* R9TrackerBuilder(DivEngine* eng, int sysIndex) {
-  R9 r9(eng);
-  return r9.buildROM(sysIndex);
-}
 
 const int TICKS_PER_SECOND = 1000000;
 const int TICKS_AT_60HZ = TICKS_PER_SECOND / 60;
@@ -144,7 +138,8 @@ struct DumpSequence {
 
 };
 
-SafeWriter* R9::buildROM(int sysIndex, bool compress) {
+std::vector<DivROMExportOutput> DivExportR9Tracker::go(DivEngine* e) {
+  std::vector<DivROMExportOutput> ret;
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -153,12 +148,15 @@ SafeWriter* R9::buildROM(int sysIndex, bool compress) {
   w->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
   
   if (compress) {
-    writeTrackData_CRD(w);
+    writeTrackData_CRD(e, w);
   } else {
-    writeTrackData_NOIV(w);
+    writeTrackData_NOIV(e, w);
   }
 
-  return w;
+  ret.reserve(1);
+  ret.push_back(DivROMExportOutput("song.inc", w));
+
+  return ret;
 }
 
 inline auto getSequenceKey(int subsong, int ord, int row, int channel) {
@@ -186,7 +184,7 @@ inline auto getPatternKey(int subsong, int channel, int pattern) {
  *  - find common subsequences
  *  - then emit ROM data
  */
-void R9::writeTrackData_CRD(SafeWriter *w) {
+void DivExportR9Tracker::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
 
   // capture all sequences
   std::map<String, DumpSequence> sequences;
@@ -416,7 +414,7 @@ void R9::writeTrackData_CRD(SafeWriter *w) {
  * write track data capturing only the programmed note/octave/instrument/volume
  * this will not pick up any effects 
  */
-void R9::writeTrackData_NOIV(SafeWriter *w) {
+void DivExportR9Tracker::writeTrackData_NOIV(DivEngine* e, SafeWriter *w) {
 
   // emit song table
   w->writeText("\n; Song Lookup Table\n");
@@ -632,7 +630,7 @@ void R9::writeTrackData_NOIV(SafeWriter *w) {
   w->writeText("; end of track data\n");
 }
 
-void R9::writeNote(SafeWriter* w, const TiaNote& note) {
+void DivExportR9Tracker::writeNote(SafeWriter* w, const TiaNote& note) {
   // KLUDGE: assume only one channel at a time. If both are zero...won't matter
   int channel;
   if (note.registers.audc0 | note.registers.audf0 | note.registers.audv0) {
@@ -644,7 +642,7 @@ void R9::writeNote(SafeWriter* w, const TiaNote& note) {
   w->writeText(fmt::sprintf("    byte %d\n", note.duration));
 }
 
-void R9::writeRegisters(SafeWriter* w, const TiaRegisters& reg, int channel) {
+void DivExportR9Tracker::writeRegisters(SafeWriter* w, const TiaRegisters& reg, int channel) {
   if (0 == channel) {
     w->writeText(fmt::sprintf("    byte %d,%d,%d\n", reg.audc0, reg.audf0, reg.audv0));
   } else {
@@ -652,6 +650,6 @@ void R9::writeRegisters(SafeWriter* w, const TiaRegisters& reg, int channel) {
   }
 }
 
-void R9::writeWaveformHeader(SafeWriter* w, const char * key) {
+void DivExportR9Tracker::writeWaveformHeader(SafeWriter* w, const char * key) {
   w->writeText(fmt::sprintf("%s_ADDR\n", key));
 }

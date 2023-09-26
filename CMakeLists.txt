@@ -581,7 +581,6 @@ src/engine/instrument.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp
 src/engine/playback.cpp
-src/engine/romOps.cpp
 src/engine/sample.cpp
 src/engine/song.cpp
 src/engine/sysDef.cpp
@@ -591,7 +590,7 @@ src/engine/wavOps.cpp
 src/engine/vgmOps.cpp
 src/engine/zsmOps.cpp
 src/engine/zsm.cpp
-src/engine/exporter/r9Ops.cpp
+src/engine/export/r9Ops.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp

@@ -614,25 +614,20 @@ int main(int argc, char** argv) {
       }
     }
     if (romOutName!="") {
-      // infer which system is going to be built
-      DivSystem whichSystem;
-      if (e.song.systemLen!=1) {
-          reportError(fmt::sprintf("no system! (%s)",e.getLastError()));
-      }
-      whichSystem=e.song.system[0];
-      SafeWriter* w=e.buildROM(0);
-      if (w!=NULL) {
-        FILE* f=fopen(romOutName.c_str(),"wb");
-        if (f!=NULL) {
-          fwrite(w->getFinalBuf(),1,w->size(),f);
-          fclose(f);
+      // KLUDGE: assume Atari build
+      std::vector<DivROMExportOutput> out=e.buildROM(DIV_ROM_ATARI_2600_R9_TRACKER);
+      if (romOutName[romOutName.size()-1]!=DIR_SEPARATOR) romOutName+=DIR_SEPARATOR_STR;
+      for (DivROMExportOutput& i: out) {
+        String path=romOutName+i.name;
+        FILE* outFile=ps_fopen(path.c_str(),"wb");
+        if (outFile!=NULL) {
+          fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
+          fclose(outFile);
         } else {
           reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
         }
-        w->finish();
-        delete w;
-      } else {
-        reportError(fmt::sprintf("could not write ROM for system (%s) - no ROM builder found!",e.getSystemName(whichSystem)));
+        i.data->finish();
+        delete i.data;
       }
     }
     if (outName!="") {

@@ -22,7 +22,6 @@
 #include "instrument.h"
 #include "song.h"
 #include "../ta-log.h"
-#include "exporter/tiaExporter.h"
 
 DivSysDef* DivEngine::sysDefs[DIV_MAX_CHIP_DEFS];
 DivSystem DivEngine::sysFileMapFur[DIV_MAX_CHIP_DEFS];
@@ -841,8 +840,7 @@ void DivEngine::registerSystems() {
     {DIV_INS_TIA, DIV_INS_TIA},
     {},
     {},
-    waveOnlyEffectHandlerMap,
-    R9TrackerBuilder
+    waveOnlyEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_SAA1099]=new DivSysDef(
