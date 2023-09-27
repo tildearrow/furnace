@@ -35,7 +35,7 @@ cp ../../res/docpdf/manual.pdf . || exit 1
 
 x86_64-w64-mingw32-strip -s furnace.exe || exit 1
 
-zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers doc demos instruments wavetables
+zip -r furnace.zip LICENSE.txt furnace.exe README.txt manual.pdf papers demos instruments wavetables
 
 furName=$(git describe --tags | sed "s/v0/0/")
 
