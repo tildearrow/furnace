@@ -21,8 +21,6 @@
 #define _DIVCONFIG_H
 
 #include "../ta-utils.h"
-#include <map>
-#include <vector>
 #include <initializer_list>
 
 class DivConfig {

@@ -23,7 +23,6 @@
 #include "../dispatch.h"
 #include "../../fixedQueue.h"
 #include <thread>
-#include <mutex>
 #include <condition_variable>
 
 class DivPlatformPCSpeaker: public DivDispatch {

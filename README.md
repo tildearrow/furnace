@@ -103,7 +103,7 @@ for other operating systems, you may [build the source](#developer-info).
 - quality emulation cores (Nuked, MAME, SameBoy, Mednafen PCE, NSFplay, puNES, reSID, Stella, SAASound, vgsound_emu and ymfm)
 - wavetable synthesizer
   - available on wavetable chips
-  - create complex sounds with ease - provide up to two wavetables, select and effect and let go!
+  - create complex sounds with ease - provide up to two wavetables, select an effect and let go!
 - MIDI input support
 - additional features:
   - FM macros!
@@ -327,7 +327,7 @@ it is in [doc/](doc/README.md).
 
 > is there a tutorial?
 
-sadly, the in-program tutorial isn't ready yet. however, [a video tutorial is available on YouTube](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1), made by Spinning Square Waves.
+[a video tutorial (of a previous version) is available on YouTube](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1), made by Spinning Square Waves.
 
 > I've lost my song!
 

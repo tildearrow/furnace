@@ -106,7 +106,6 @@ void DivEngine::runExportThread() {
       if (sfWrap.doClose()!=0) {
         logE("could not close audio file!");
       }
-      exporting=false;
 
       if (initAudioBackend()) {
         for (int i=0; i<song.systemLen; i++) {
@@ -118,6 +117,7 @@ void DivEngine::runExportThread() {
         }
       }
       logI("done!");
+      exporting=false;
       break;
     }
     case DIV_EXPORT_MODE_MANY_SYS: {
@@ -217,7 +217,6 @@ void DivEngine::runExportThread() {
           logE("could not close audio file!");
         }
       }
-      exporting=false;
 
       if (initAudioBackend()) {
         for (int i=0; i<song.systemLen; i++) {
@@ -229,6 +228,7 @@ void DivEngine::runExportThread() {
         }
       }
       logI("done!");
+      exporting=false;
       break;
     }
     case DIV_EXPORT_MODE_MANY_CHAN: {
@@ -336,7 +336,6 @@ void DivEngine::runExportThread() {
 
         if (stopExport) break;
       }
-      exporting=false;
 
       delete[] outBuf[0];
       delete[] outBuf[1];
@@ -359,6 +358,7 @@ void DivEngine::runExportThread() {
         }
       }
       logI("done!");
+      exporting=false;
       break;
     }
   }

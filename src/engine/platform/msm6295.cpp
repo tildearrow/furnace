@@ -185,7 +185,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       chan[c.chan].std.release();
       break;
     case DIV_CMD_VOLUME: {
-      chan[c.chan].vol=c.value;
+      chan[c.chan].vol=MIN(8,c.value);
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }

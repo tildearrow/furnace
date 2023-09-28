@@ -22,7 +22,7 @@
 #include "../ta-utils.h"
 #include <memory>
 #include "../fixedQueue.h"
-#include <vector>
+#include "../pch.h"
 
 struct SampleRateChangeEvent {
   double rate;

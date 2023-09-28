@@ -3859,7 +3859,7 @@ namespace IGFD
       }
     }
 #endif
-    for (const char* i=n; *i; i++) {
+    for (const unsigned char* i=(const unsigned char*)n; *i; i++) {
 #ifdef _WIN32
       if (*i<32) {
         return 3;

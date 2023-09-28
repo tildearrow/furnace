@@ -21,7 +21,6 @@
 #include "../engine.h"
 #include "../../ta-log.h"
 #include <math.h>
-#include <map>
 
 #define CHIP_FREQBASE (is219?74448896:12582912)
 
@@ -246,10 +245,10 @@ void DivPlatformC140::tick(bool sysTick) {
         if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen && s->isLoopable()) {
           if (is219) {
             loop=MIN(start+(s->loopStart>>1),65535);
-            end=MIN(start+(s->loopEnd>>1)-1,65535);
+            end=MIN(start+(s->loopEnd>>1),65535);
           } else {
-            loop=MIN(start+s->loopStart,65535);
-            end=MIN(start+s->loopEnd-1,65535);
+            loop=MIN(start+s->loopStart+1,65535);
+            end=MIN(start+s->loopEnd+1,65535);
           }
         } else if (chan[i].noise && is219) {
           loop=0;
@@ -576,7 +575,7 @@ void DivPlatformC140::renderSamples(int sysID) {
     }
 
     if (is219) { // C219 (8-bit)
-      unsigned int length=s->length8;
+      unsigned int length=s->length8+4;
       // fit sample size to single bank size
       if (length>131072) {
         length=131072;
@@ -595,27 +594,39 @@ void DivPlatformC140::renderSamples(int sysID) {
         logW("out of C219 memory for sample %d!",i);
       }
       if (s->depth==DIV_SAMPLE_DEPTH_C219) {
+        unsigned char next=0;
+        unsigned int sPos=0;
         for (unsigned int i=0; i<length; i++) {
-          if (i>=s->lengthC219) {
-            sampleMem[(memPos+i)^1]=0;
-          } else {
-            sampleMem[(memPos+i)^1]=s->dataC219[i];
+          if (sPos<s->lengthC219) {
+            next=s->dataC219[sPos++];
+            if (s->isLoopable()) {
+              if ((int)sPos>=s->loopEnd) {
+                sPos=s->loopStart;
+              }
+            }
           }
+          sampleMem[(memPos+i)^1]=next;
         }
       } else {
+        signed char next=0;
+        unsigned int sPos=0;
         for (unsigned int i=0; i<length; i++) {
-          if (i>=s->length8) {
-            sampleMem[(memPos+i)^1]=0;
-          } else {
-            sampleMem[(memPos+i)^1]=s->data8[i];
+          if (sPos<s->length8) {
+            next=s->data8[sPos++];
+            if (s->isLoopable()) {
+              if ((int)sPos>=s->loopEnd) {
+                sPos=s->loopStart;
+              }
+            }
           }
+          sampleMem[(memPos+i)^1]=next;
         }
       }
       sampleOff[i]=memPos>>1;
       sampleLoaded[i]=true;
       memPos+=length;
     } else { // C140 (16-bit)
-      unsigned int length=s->length16;
+      unsigned int length=s->length16+4;
       // fit sample size to single bank size
       if (length>(131072)) {
         length=131072;
@@ -642,7 +653,20 @@ void DivPlatformC140::renderSamples(int sysID) {
           sampleMem[1+i+memPos]=c140Mu;
         }
       } else {
-        memcpy(sampleMem+memPos,s->data16,length);
+        short next=0;
+        unsigned int sPos=0;
+        for (unsigned int i=0; i<length; i+=2) {
+          if (sPos<s->samples) {
+            next=s->data16[sPos++];
+            if (s->isLoopable()) {
+              if ((int)sPos>=s->loopEnd) {
+                sPos=s->loopStart;
+              }
+            }
+          }
+          sampleMem[memPos+i]=((unsigned short)next);
+          sampleMem[memPos+i+1]=((unsigned short)next)>>8;
+        }
       }
       sampleOff[i]=memPos>>1;
       sampleLoaded[i]=true;

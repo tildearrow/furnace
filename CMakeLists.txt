@@ -8,6 +8,7 @@ project(furnace)
 
 if (APPLE)
   enable_language(OBJC)
+  enable_language(OBJCXX)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
@@ -448,6 +449,9 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+
+src/pch.cpp
+
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -962,6 +966,21 @@ if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYST
   else()
     target_link_directories(furnace PRIVATE ${DEPENDENCIES_LIBRARY_DIRS})
     target_link_options(furnace PRIVATE ${DEPENDENCIES_LINK_OPTIONS})
+  endif()
+endif()
+
+# why 3.16..... why not 3.0?
+if (NOT "${CMAKE_VERSION}" VERSION_LESS "3.16")
+  if (BUILD_GUI)
+  target_precompile_headers(furnace PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui_internal.h>
+  )
+  else()
+    target_precompile_headers(furnace PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+    )
   endif()
 endif()
 

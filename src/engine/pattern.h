@@ -18,7 +18,7 @@
  */
 
 #include "safeReader.h"
-#include <vector>
+#include "../pch.h"
 
 struct DivPattern {
   String name;

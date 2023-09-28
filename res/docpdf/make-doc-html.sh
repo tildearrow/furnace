@@ -1,6 +1,10 @@
 #!/bin/bash
 
-echo "compiling Furnace doc (PDF)..."
+echo "compiling Furnace doc (HTML)..."
+
+if [ -e htmldoc ]; then
+  rm -r htmldoc
+fi
 
 if [ ! -e .venv ]; then
   python3 -m virtualenv .venv || exit 1
@@ -13,6 +17,9 @@ if [ ! -e .venv/req_installed ]; then
   touch .venv/req_installed
 fi
 
-python3 make_paper.py > manual.html
+python3 make_htmldoc.py
 
-weasyprint -O all -dv manual.html manual.pdf
+echo "copying assets..."
+for i in `find ../../doc -name "*.png"`; do
+  cp "$i" "htmldoc${i#../../doc}"
+done

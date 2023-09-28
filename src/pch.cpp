@@ -17,12 +17,4 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _BASEUTILS_H
-#define _BASEUTILS_H
-
 #include "pch.h"
-
-std::string taEncodeBase64(const std::string& data);
-std::string taDecodeBase64(const char* str);
-
-#endif

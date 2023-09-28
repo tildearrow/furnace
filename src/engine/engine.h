@@ -30,13 +30,9 @@
 #include "cmdStream.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
-#include <atomic>
 #include <functional>
 #include <initializer_list>
 #include <thread>
-#include <mutex>
-#include <map>
-#include <unordered_map>
 #include "../fixedQueue.h"
 
 class DivWorkPool;
@@ -58,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "0.6pre16"
-#define DIV_ENGINE_VERSION 178
+#define DIV_VERSION "0.6pre18"
+#define DIV_ENGINE_VERSION 180
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02

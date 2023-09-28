@@ -50,9 +50,9 @@ rmdir share || exit 1
 cd ..
 
 cp ../../../LICENSE . || exit 1
-cp ../../../README.md . || exit 1
+cp ../../../res/releaseReadme/stable-linux.txt README.md || exit 1
 cp -r ../../../papers papers || exit 1
-cp -r ../../../doc doc || exit 1
+curl "https://tildearrow.org/furproto/manual.pdf" > manual.pdf
 rmdir usr || exit 1
 
 strip -s furnace
