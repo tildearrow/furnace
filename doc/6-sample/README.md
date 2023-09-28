@@ -39,6 +39,14 @@ the following sound chips have sample support:
 - Namco C140
 - Namco C219
 
+## using samples
+
+the simplest path to using a sample is:
+- in the sample list, use the "Open" button (folder icon) to load the sample.
+- double-click the sample in the list to open it in the sample editor.
+- click the "Create instrument from sample" button (upload icon, to the left of "Zoom").
+- use the created instrument in the track.
+
 ## compatible sample mode (LEGACY)
 
 **use of this mode is discouraged in favor of Sample type instruments.**
