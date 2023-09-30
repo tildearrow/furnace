@@ -3560,17 +3560,29 @@ bool FurnaceGUI::loop() {
               if (!e->getWarnings().empty()) {
                 showWarning(e->getWarnings(),GUI_WARN_GENERIC);
               }
+              int instrumentCount = -1;
               for (DivInstrument* i: instruments) {
-                e->addInstrumentPtr(i);
+                instrumentCount = e->addInstrumentPtr(i);
+              }
+              if (instrumentCount >= 0) {
+                curIns = instrumentCount - 1;
               }
               nextWindow=GUI_WINDOW_INS_LIST;
               MARK_MODIFIED;
             } else if ((droppedWave=e->waveFromFile(ev.drop.file,false))!=NULL) {
-              e->addWavePtr(droppedWave);
+              int waveCount = -1;
+              waveCount = e->addWavePtr(droppedWave);
+              if (waveCount >= 0) {
+                curWave = waveCount - 1;
+              }
               nextWindow=GUI_WINDOW_WAVE_LIST;
               MARK_MODIFIED;
             } else if ((droppedSample=e->sampleFromFile(ev.drop.file))!=NULL) {
-              e->addSamplePtr(droppedSample);
+              int sampleCount = -1;
+              sampleCount = e->addSamplePtr(droppedSample);
+              if (sampleCount >= 0) {
+                curSample = sampleCount;
+              }
               nextWindow=GUI_WINDOW_SAMPLE_LIST;
               MARK_MODIFIED;
             } else if (modified) {
@@ -5032,8 +5044,12 @@ bool FurnaceGUI::loop() {
                   displayPendingIns=true;
                   pendingInsSingle=false;
                 } else { // load the only instrument
+                  int instrumentCount = -1;
                   for (DivInstrument* i: instruments) {
-                    e->addInstrumentPtr(i);
+                    instrumentCount = e->addInstrumentPtr(i);
+                  }
+                  if (instrumentCount >= 0) {
+                    curIns = instrumentCount - 1;
                   }
                 }
               }
@@ -5083,7 +5099,9 @@ bool FurnaceGUI::loop() {
                     showError("cannot load wavetable! ("+e->getLastError()+")");
                   }
                 } else {
-                  if (e->addWavePtr(wave)==-1) {
+                  int waveCount = -1;
+                  waveCount = e->addWavePtr(wave);
+                  if (waveCount==-1) {
                     if (fileDialog->getFileName().size()>1) {
                       warn=true;
                       errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
@@ -5091,6 +5109,7 @@ bool FurnaceGUI::loop() {
                       showError("cannot load wavetable! ("+e->getLastError()+")");
                     }
                   } else {
+                    curWave = waveCount -1;
                     MARK_MODIFIED;
                     RESET_WAVE_MACRO_ZOOM;
                   }
