@@ -584,6 +584,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button("Stats")) {
           statsOpen=!statsOpen;
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Grooves")) {
+          groovesOpen=!groovesOpen;
+        }
         if (ImGui::Button("Compat Flags")) {
           compatFlagsOpen=!compatFlagsOpen;
         }

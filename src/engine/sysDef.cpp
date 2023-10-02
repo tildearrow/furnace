@@ -1181,7 +1181,7 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_SWAN]=new DivSysDef(
     "WonderSwan", NULL, 0x96, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "developed by the makers of the Game Boy and the Virtual Boy...",
-    {"Wave", "Wave/PCM", "Wave", "Wave/Noise"},
+    {"Wave", "Wave/PCM", "Wave/Sweep", "Wave/Noise"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_WAVE, DIV_CH_PCM, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN},
@@ -1649,7 +1649,7 @@ void DivEngine::registerSystems() {
     {0x1e, {DIV_CMD_SU_SYNC_PERIOD_LOW, "1Exx: Set phase reset period low byte"}},
     {0x1f, {DIV_CMD_SU_SYNC_PERIOD_HIGH, "1Fxx: Set phase reset period high byte"}},
     {0x20, {DIV_CMD_SU_SWEEP_ENABLE, "20xx: Toggle frequency sweep (bit 0-6: speed; bit 7: direction is up)", constVal<0>, effectVal}},
-    {0x21, {DIV_CMD_SU_SWEEP_ENABLE, "21xx: Toggle volume sweep (bit 0-4: speed; bit 5: direciton is up; bit 6: loop; bit 7: alternate)", constVal<1>, effectVal}},
+    {0x21, {DIV_CMD_SU_SWEEP_ENABLE, "21xx: Toggle volume sweep (bit 0-4: speed; bit 5: direction is up; bit 6: loop; bit 7: alternate)", constVal<1>, effectVal}},
     {0x22, {DIV_CMD_SU_SWEEP_ENABLE, "22xx: Toggle cutoff sweep (bit 0-6: speed; bit 7: direction is up)", constVal<2>, effectVal}},
   };
   const EffectHandler suCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, "4xxx: Set cutoff (0 to FFF)", effectValLong<12>);
@@ -1708,6 +1708,10 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap namcoEffectHandlerMap={
     {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+  };
+
+  EffectHandlerMap namcoC30EffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
     {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
   };
 
@@ -1741,7 +1745,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    namcoEffectHandlerMap
+    namcoC30EffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_MSM5232]=new DivSysDef(

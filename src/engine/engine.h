@@ -30,13 +30,9 @@
 #include "cmdStream.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
-#include <atomic>
 #include <functional>
 #include <initializer_list>
 #include <thread>
-#include <mutex>
-#include <map>
-#include <unordered_map>
 #include "../fixedQueue.h"
 
 class DivWorkPool;
@@ -56,10 +52,10 @@ class DivWorkPool;
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-#define DIV_UNSTABLE
+//#define DIV_UNSTABLE
 
-#define DIV_VERSION "0.6pre16"
-#define DIV_ENGINE_VERSION 178
+#define DIV_VERSION "0.6"
+#define DIV_ENGINE_VERSION 181
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02

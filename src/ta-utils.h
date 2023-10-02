@@ -21,7 +21,7 @@
 #define _TA_UTILS_H
 #include <stdio.h>
 #include <string.h>
-#include <string>
+#include "pch.h"
 
 #ifdef _MSC_VER
 #include <BaseTsd.h>

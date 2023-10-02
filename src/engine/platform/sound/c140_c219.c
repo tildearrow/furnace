@@ -104,7 +104,7 @@ void c140_voice_tick(struct c140_t *c140, const unsigned char v, const int cycle
 		if (!voice->muted)
 		{
 			// fetch 12 bit sample
-			signed short s1 = c140->sample_mem[((unsigned int)(voice->bank) << 16) | voice->addr] & ~0xf;
+			signed short s1 = c140->sample_mem[((unsigned int)(voice->bank) << 16) | (voice->addr & 0xffff)] & ~0xf;
 			signed short s2 = c140->sample_mem[((unsigned int)(voice->bank) << 16) | ((voice->addr + 1) & 0xffff)] & ~0xf;
 			if (voice->compressed)
 			{
@@ -171,7 +171,7 @@ void c219_voice_tick(struct c219_t *c219, const unsigned char v, const int cycle
 			else
 			{
 				// fetch 8 bit sample
-				signed short s1 = c219->sample_mem[((unsigned int)(c219->bank[(v >> 2) & 3]) << 17) | (voice->addr^1)];
+				signed short s1 = c219->sample_mem[((unsigned int)(c219->bank[(v >> 2) & 3]) << 17) | ((voice->addr^1) & 0x1ffff)];
 				signed short s2 = c219->sample_mem[((unsigned int)(c219->bank[(v >> 2) & 3]) << 17) | (((voice->addr + 1) & 0x1ffff)^1)];
 				if (voice->compressed)
 				{

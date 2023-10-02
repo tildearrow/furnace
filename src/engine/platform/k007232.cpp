@@ -431,7 +431,7 @@ DivMacroInt* DivPlatformK007232::getChanMacroInt(int ch) {
 }
 
 unsigned short DivPlatformK007232::getPan(int ch) {
-  return ((chan[ch].panning&15)<<8)|((chan[ch].panning&0xf0)>>4);
+  return stereo?(((chan[ch].panning&15)<<8)|((chan[ch].panning&0xf0)>>4)):0;
 }
 
 DivDispatchOscBuffer* DivPlatformK007232::getOscBuffer(int ch) {
