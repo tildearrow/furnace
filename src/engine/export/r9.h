@@ -41,6 +41,19 @@ struct TiaRegisters {
 
 };
 
+struct TiaChannelState {
+
+  TiaChannelState() {}
+  TiaChannelState(unsigned char audcx, unsigned char audfx, unsigned char audvx) :
+    audcx(audcx), audfx(audfx), audvx(audvx) {}
+
+  unsigned char audcx;
+  unsigned char audfx;
+  unsigned char audvx;
+
+};
+
+
 struct TiaNote {
 
   TiaRegisters registers;
@@ -60,17 +73,13 @@ struct TiaNote {
 
 class DivExportR9Tracker : public DivROMExport {
 
-  bool compress;
-
-  void writeTrackData_NOIV(DivEngine* e, SafeWriter* w);
   void writeTrackData_CRD(DivEngine* e, SafeWriter* w);
 
   void writeWaveformHeader(SafeWriter* w, const char * key);
-  void writeNote(SafeWriter* w, const TiaNote& note);
-  void writeRegisters(SafeWriter* w, const TiaRegisters& reg, int channel);
+  size_t writeNote(SafeWriter* w, const TiaNote& note, TiaChannelState& state);
 
-public:    
-  DivExportR9Tracker(bool compress=true) : compress(compress) {}
+public:
+
   ~DivExportR9Tracker() {}
 
   std::vector<DivROMExportOutput> go(DivEngine* e) override;
