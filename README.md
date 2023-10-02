@@ -17,7 +17,7 @@ for other operating systems, you may [build the source](#developer-info).
 
 ## features
 
-- over 50 sound chips - and counting:
+- a large selection of sound chips:
   - Yamaha FM chips:
     - YM2151 (OPM)
     - YM2203 (OPN)
