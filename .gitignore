@@ -27,6 +27,7 @@ CMakePresets.json
 extern/imgui_patched/examples/
 src/asm/68k/amigatest/*.bin
 src/asm/68k/amigatest/player
+src/check/calc_checksum
 res/binary_to_compressed_c
 res/binary_to_compressed_c.exe
 res/docpdf/manual.html

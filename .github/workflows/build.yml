@@ -307,7 +307,7 @@ jobs:
         cp -v -r ../instruments new/instruments
         cp -v -r ../wavetables new/wavetables
         cd new
-        wget https://tildearrow.org/furproto/manual.pdf
+        wget https://tildearrow.org/furnace/doc/latest/manual.pdf
         cd ..
 
         hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg

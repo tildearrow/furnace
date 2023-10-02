@@ -3093,6 +3093,7 @@ void FurnaceGUI::drawSettings() {
         // "42 63" - enables all instrument types
         // "4-bit FDS" - enables partial pitch linearity option
         // "Power of the Chip" - enables options for multi-threaded audio
+        // "btcdbcb" - use modern UI padding
         // "????" - enables stuff
         CONFIG_SECTION("Cheat Codes") {
           // SUBSECTION ENTER CODE:
@@ -3130,6 +3131,14 @@ void FurnaceGUI::drawSettings() {
             if (checker==0x8537719f && checker1==0x17a1f34) {
               mmlString[30]="unlocked audio multi-threading options!";
               settings.showPool=1;
+            }
+            if (checker==0x94222d83 && checker1==0x6600) {
+              mmlString[30]="enabled \"comfortable\" mode";
+              ImGuiStyle& sty=ImGui::GetStyle();
+              sty.FramePadding=ImVec2(20.0f*dpiScale,20.0f*dpiScale);
+              sty.ItemSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+              sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+              settingsOpen=false;
             }
 
             mmlString[31]="";

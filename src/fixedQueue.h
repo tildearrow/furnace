@@ -101,11 +101,11 @@ template <typename T, size_t items> bool FixedQueue<T,items>::pop() {
 
 template <typename T, size_t items> bool FixedQueue<T,items>::push(const T& item) {
   if (writePos==(readPos-1)) {
-    logW("queue overflow!");
+    //logW("queue overflow!");
     return false;
   }
   if (writePos==items-1 && readPos==0) {
-    logW("queue overflow!");
+    //logW("queue overflow!");
     return false;
   }
   data[writePos]=item;
@@ -121,11 +121,11 @@ template <typename T, size_t items> bool FixedQueue<T,items>::pop_front() {
 
 template <typename T, size_t items> bool FixedQueue<T,items>::push_back(const T& item) {
   if (writePos==(readPos-1)) {
-    logW("queue overflow!");
+    //logW("queue overflow!");
     return false;
   }
   if (writePos==items-1 && readPos==0) {
-    logW("queue overflow!");
+    //logW("queue overflow!");
     return false;
   }
   data[writePos]=item;
@@ -145,11 +145,11 @@ template <typename T, size_t items> bool FixedQueue<T,items>::pop_back() {
 
 template <typename T, size_t items> bool FixedQueue<T,items>::push_front(const T& item) {
   if (readPos==(writePos+1)) {
-    logW("stack overflow!");
+    //logW("stack overflow!");
     return false;
   }
   if (readPos==0 && writePos==items-1) {
-    logW("stack overflow!");
+    //logW("stack overflow!");
     return false;
   }
   if (readPos>0) {

@@ -40,7 +40,7 @@ xxd -c 256 -ps furnace.exe | sed "s/4765745469636b436f756e743634/4765745469636b4
 rm furnace.exe
 mv furnace-patched.exe furnace.exe
 
-zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers doc demos instruments wavetables
+zip -r furnace.zip LICENSE.txt furnace.exe README.txt manual.pdf papers demos instruments wavetables
 
 furName=$(git describe --tags | sed "s/v0/0/")
 

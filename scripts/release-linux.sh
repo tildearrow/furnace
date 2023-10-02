@@ -52,7 +52,7 @@ cd ..
 cp ../../../LICENSE . || exit 1
 cp ../../../res/releaseReadme/stable-linux.txt README.md || exit 1
 cp -r ../../../papers papers || exit 1
-curl "https://tildearrow.org/furproto/manual.pdf" > manual.pdf
+curl "https://tildearrow.org/furnace/doc/latest/manual.pdf" > manual.pdf
 rmdir usr || exit 1
 
 strip -s furnace

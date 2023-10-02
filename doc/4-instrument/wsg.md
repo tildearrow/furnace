@@ -11,7 +11,7 @@ this allows you to enable and configure the Furnace wavetable synthesizer. see [
 - **Volume**: volume sequence.
 - **Arpeggio**: pitch sequence.
 - **Noise**: specifies noise pitch.
-  - only applicable for Namco C30, and even so, only on the last 4 channels.
+  - only applicable for Namco C30.
 - **Waveform**: specifies wavetable sequence.
 - **Panning (left)**: output level of left channel.
   - Namco C30 only.
