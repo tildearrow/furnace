@@ -636,9 +636,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Text("Name");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputText("##InitSysName",&settings.initialSysName)) {
-          settingsChanged=true;
-        }
+        if (ImGui::InputText("##InitSysName",&settings.initialSysName)) settingsChanged=true;
 
         int sysCount=0;
         int doRemove=-1;
