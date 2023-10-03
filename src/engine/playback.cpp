@@ -591,8 +591,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].scheduledSlideReset=true;
     }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
+    chan[i].releasing=true;
   } else if (pat->data[whatRow][0]==102) { // env release
     dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
+    chan[i].releasing=true;
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].oldNote=chan[i].note;
     chan[i].note=pat->data[whatRow][0]+((signed char)pat->data[whatRow][1])*12;
@@ -1067,6 +1069,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
       } else if (!chan[i].noteOnInhibit) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
+        chan[i].releasing=false;
         chan[i].goneThroughNote=true;
         chan[i].wentThroughNote=true;
         keyHit[i]=true;
@@ -1366,6 +1369,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       //dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,(note.volume*(chan[note.channel].volMax>>8))/127));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
+      chan[note.channel].releasing=false;
       chan[note.channel].noteOnInhibit=true;
       chan[note.channel].lastIns=note.ins;
     } else {

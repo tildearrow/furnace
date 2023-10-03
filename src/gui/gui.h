@@ -305,6 +305,11 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,
   GUI_COLOR_PATTERN_EFFECT_MISC,
 
+  GUI_COLOR_PATTERN_STATUS_OFF,
+  GUI_COLOR_PATTERN_STATUS_REL,
+  GUI_COLOR_PATTERN_STATUS_REL_ON,
+  GUI_COLOR_PATTERN_STATUS_ON,
+
   GUI_COLOR_SAMPLE_BG,
   GUI_COLOR_SAMPLE_FG,
   GUI_COLOR_SAMPLE_LOOP,
@@ -1811,13 +1816,16 @@ class FurnaceGUI {
 
   DivInstrument* prevInsData;
 
-  int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, exportLoops, soloChan,orderEditMode, orderCursor;
-  int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, newSongCategory, latchTarget;
+  int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, exportLoops, soloChan, orderEditMode, orderCursor;
+  int loopOrder, loopRow, loopEnd, isClipping, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
   int curGroove, exitDisabledTimer;
   float soloTimeout;
 
   double exportFadeOut;
+
+  bool patExtraButtons, patChannelNames, patChannelPairs;
+  unsigned char patChannelHints;
 
   bool newSongFirstFrame, oldRowChanged;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;

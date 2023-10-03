@@ -3020,6 +3020,10 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"Secondary specific effect");
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_MISC,"Miscellaneous");
           UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_OFF,"Status: off");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_REL,"Status: off + macro rel");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_REL_ON,"Status: on + macro rel");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ON,"Status: on");
           ImGui::TreePop();
         }
         if (ImGui::TreeNode("Sample Editor")) {

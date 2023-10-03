@@ -6342,7 +6342,18 @@ bool FurnaceGUI::init() {
   waveSigned=e->getConfBool("waveSigned",false);
   waveGenVisible=e->getConfBool("waveGenVisible",false);
   waveEditStyle=e->getConfInt("waveEditStyle",0);
-  extraChannelButtons=e->getConfInt("extraChannelButtons",0);
+  int extraChannelButtons=e->getConfInt("extraChannelButtons",0);
+  if (!e->hasConf("patExtraButtons")) {
+    patExtraButtons=(extraChannelButtons==1);
+  } else {
+    patExtraButtons=e->getConfBool("patExtraButtons",false);
+  }
+  if (!e->hasConf("patChannelNames")) {
+    patChannelNames=(extraChannelButtons==2);
+  } else {
+    patChannelNames=e->getConfBool("patChannelNames",false);
+  }
+  patChannelHints=e->getConfInt("patChannelHints",0);
   lockLayout=e->getConfBool("lockLayout",false);
 #ifdef IS_MOBILE
   fullScreen=true;
@@ -6880,7 +6891,9 @@ void FurnaceGUI::commitState() {
   e->setConf("waveSigned",waveSigned);
   e->setConf("waveGenVisible",waveGenVisible);
   e->setConf("waveEditStyle",waveEditStyle);
-  e->setConf("extraChannelButtons",extraChannelButtons);
+  e->setConf("patExtraButtons",patExtraButtons);
+  e->setConf("patChannelNames",patChannelNames);
+  e->setConf("patChannelHints",(int)patChannelHints);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
   e->setConf("mobileUI",mobileUI);
@@ -7116,7 +7129,6 @@ FurnaceGUI::FurnaceGUI():
   loopRow(-1),
   loopEnd(-1),
   isClipping(0),
-  extraChannelButtons(0),
   newSongCategory(0),
   latchTarget(0),
   wheelX(0),
@@ -7131,6 +7143,10 @@ FurnaceGUI::FurnaceGUI():
   exitDisabledTimer(0),
   soloTimeout(0.0f),
   exportFadeOut(5.0),
+  patExtraButtons(false),
+  patChannelNames(false),
+  patChannelPairs(false),
+  patChannelHints(0),
   newSongFirstFrame(false),
   oldRowChanged(false),
   editControlsOpen(true),
