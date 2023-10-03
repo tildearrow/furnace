@@ -63,9 +63,11 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     struct BankedPhrase {
       unsigned char bank=0;
       unsigned char phrase=0;
+      unsigned int length=0;
       BankedPhrase():
         bank(0),
-        phrase(0) {}
+        phrase(0),
+        length(0) {}
     } bankedPhrase[256];
   
     friend void putDispatchChip(void*,int);

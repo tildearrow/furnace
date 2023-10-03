@@ -421,6 +421,7 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
       sampleOffVOX[i]=memPos;
       bankedPhrase[i].bank=bankInd;
       bankedPhrase[i].phrase=phraseInd;
+      bankedPhrase[i].length=paddedLen;
       memPos+=paddedLen;
       phraseInd++;
     }
@@ -429,7 +430,7 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
     // phrase book
     for (int i=0; i<parent->song.sampleLen; i++) {
       DivSample* s=parent->song.sample[i];
-      int endPos=sampleOffVOX[i]+s->lengthVOX;
+      int endPos=sampleOffVOX[i]+bankedPhrase[i].length;
       for (int b=0; b<4; b++) {
         unsigned int bankedAddr=((unsigned int)bankedPhrase[i].bank<<16)+(b<<8)+(bankedPhrase[i].phrase*8);
         adpcmMem[bankedAddr]=b;
