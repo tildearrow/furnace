@@ -5531,12 +5531,14 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             settingsOpen=false;
             willCommit=true;
+            settingsChanged=false;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
             ImGui::CloseCurrentPopup();
             settingsOpen=false;
             syncSettings();
+            settingsChanged=false;
           }
           ImGui::SameLine();
           if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {

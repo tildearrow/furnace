@@ -1436,6 +1436,7 @@ class FurnaceGUI {
   char emptyLabel2[32];
 
   struct Settings {
+    bool settingsChanged;
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
@@ -1618,6 +1619,7 @@ class FurnaceGUI {
     DivConfig initialSys;
 
     Settings():
+      settingsChanged(false),
       mainFontSize(18),
       patFontSize(18),
       headFontSize(27),
