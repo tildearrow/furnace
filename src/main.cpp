@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <string>
+#include "pch.h"
 #ifdef HAVE_SDL2
 #include "SDL_events.h"
 #endif
@@ -167,6 +167,7 @@ TAParamResult pVersion(String) {
   printf("- SDL2 by Sam Lantinga (zlib license)\n");
   printf("- zlib by Jean-loup Gailly and Mark Adler (zlib license)\n");
   printf("- PortAudio (PortAudio license)\n");
+  printf("- Weak-JACK by x42 (GPLv2)\n");
   printf("- RtMidi by Gary P. Scavone (RtMidi license)\n");
   printf("- backward-cpp by Google (MIT)\n");
   printf("- Dear ImGui by Omar Cornut (MIT)\n");

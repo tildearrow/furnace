@@ -21,7 +21,7 @@
 #define _GA20_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../macroInt.h"
 #include "sound/ga20/iremga20.h"
 

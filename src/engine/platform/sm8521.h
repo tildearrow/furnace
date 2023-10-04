@@ -21,7 +21,7 @@
 #define _SM8521_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../waveSynth.h"
 #include "sound/sm8521.h"
 

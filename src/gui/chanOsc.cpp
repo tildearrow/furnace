@@ -357,7 +357,7 @@ void FurnaceGUI::drawChanOsc() {
     } else {
       ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
       float availY=ImGui::GetContentRegionAvail().y;
-      if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders)) {
+      if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders|ImGuiTableFlags_NoClip)) {
         std::vector<DivDispatchOscBuffer*> oscBufs;
         std::vector<ChanOscStatus*> oscFFTs;
         std::vector<int> oscChans;

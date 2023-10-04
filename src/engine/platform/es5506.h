@@ -22,7 +22,7 @@
 
 #include "../dispatch.h"
 #include "../engine.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../macroInt.h"
 #include "../sample.h"
 #include "vgsound_emu/src/es550x/es5506.hpp"

@@ -21,7 +21,7 @@
 #define _POKEY_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 extern "C" {
 #include "sound/pokey/mzpokeysnd.h"

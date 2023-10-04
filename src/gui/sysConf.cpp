@@ -461,6 +461,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     }
     case DIV_SYSTEM_YM2151: {
       int clockSel=flags.getInt("clockSel",0);
+      bool brokenPitch=flags.getBool("brokenPitch",false);
 
       ImGui::Indent();
       if (ImGui::RadioButton("NTSC/X16 (3.58MHz)",clockSel==0)) {
@@ -477,9 +478,34 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      if (ImGui::Checkbox("Broken pitch macro/slides (compatibility)",&brokenPitch)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("brokenPitch",brokenPitch);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_OPZ: {
+      bool clockSel=flags.getInt("clockSel",0);
+      bool brokenPitch=flags.getBool("brokenPitch",false);
+
+      if (ImGui::Checkbox("Pseudo-PAL",&clockSel)) {
+        altered=true;
+      }
+
+      if (ImGui::Checkbox("Broken pitch macro/slides (compatibility)",&brokenPitch)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",(int)clockSel);
+          flags.set("brokenPitch",brokenPitch);
         });
       }
       break;

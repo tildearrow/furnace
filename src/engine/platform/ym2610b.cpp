@@ -401,7 +401,7 @@ void DivPlatformYM2610B::acquire_combo(short** buf, size_t len) {
 
     
     for (int i=0; i<psgChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i]<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm_nuked.ch_out[i]<<1,-32768,32767);
     }
 
     ssge->get_last_out(ssgOut);
@@ -471,7 +471,8 @@ void DivPlatformYM2610B::acquire_ymfm(short** buf, size_t len) {
 
     
     for (int i=0; i<psgChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
+      int out=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(out,-32768,32767);
     }
 
     ssge->get_last_out(ssgOut);

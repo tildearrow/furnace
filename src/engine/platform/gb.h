@@ -23,7 +23,7 @@
 #include "../dispatch.h"
 #include "../waveSynth.h"
 #include "sound/gb/gb.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 class DivPlatformGB: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {

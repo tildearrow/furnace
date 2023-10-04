@@ -1747,13 +1747,13 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           if (!hasRFC1) {
             hasRFC1=disCont[i].dispatch->chipClock;
             isSecond[i]=true;
-            CHIP_VOL(16,1.6);
+            CHIP_VOL(16,0.8);
             willExport[i]=true;
             writeRF5C68[1]=disCont[i].dispatch;
           }
         } else if (!hasRFC) {
           hasRFC=disCont[i].dispatch->chipClock;
-          CHIP_VOL(5,1.6);
+          CHIP_VOL(5,1.1);
           willExport[i]=true;
           writeRF5C68[0]=disCont[i].dispatch;
         }
@@ -2418,8 +2418,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   }
   while (!done) {
     if (loopPos==-1) {
-      if (loopOrder==curOrder && loopRow==curRow && ticks==1) {
-        writeLoop=true;
+      if (loopOrder==curOrder && loopRow==curRow) {
+        if ((ticks-((tempoAccum+curSubSong->virtualTempoN)/curSubSong->virtualTempoD))<=0) {
+          writeLoop=true;
+        }
       }
     }
     songTick++;

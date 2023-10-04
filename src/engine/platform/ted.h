@@ -21,7 +21,7 @@
 #define _TED_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/ted-sound.h"
 
 class DivPlatformTED: public DivDispatch {

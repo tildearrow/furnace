@@ -73,16 +73,41 @@ if __name__ == "__main__":
     for file_ in filter(lambda x: x.lower().endswith('.md'), files):
       file_list.append(os.path.join(base_dir, file_))
 
+  #-- then, create the index --#
+  index = '<h2>contents</h2><ol>'
+
   #-- then, create the document --#
   html = ''
 
   # perform sort
   file_list.sort(key=sort_func)
 
+  first = True
+
   for my_file in file_list:
+    pageLink = my_file.replace(os.path.sep, "__")
+
+    if pageLink.endswith("__doc__README.md"):
+      continue
+
     with open(my_file, 'r') as md:
       LOGGER.info("processing file %s" % my_file)
       data = md.read()
+
+    # retrieve title
+    pageTitle = data.partition('\n')[0].replace("# ","")
+
+    if pageLink.endswith("__README.md"):
+      if first:
+        first = False
+      else:
+        index += '</li></ol>'
+
+    index += '<li><a href="#%s" class="indexItemPre">%s</a><a href="#%s" class="indexItem"></a>' % ( pageLink, pageTitle, pageLink )
+    if pageLink.endswith("__README.md"):
+      index += '<ol>'
+    else:
+      index += '</li>'
     
     # perform link fixing
     data = re.sub(r'\[(.+?)\]\((.+?)\)', fix_links, data)
@@ -93,6 +118,9 @@ if __name__ == "__main__":
       my_file.replace(os.path.sep, "__"),
       markdown.markdown(data, extensions=['nl2br', 'mdx_breakless_lists', GithubFlavoredMarkdownExtension()])
     )
+
+  # finish index
+  index += '</ol></li></ol>'
 
   # build html
   final_html = ('''
@@ -136,7 +164,7 @@ if __name__ == "__main__":
             margin-right: 4pt;
             list-style-type: none;
           }
-          li:before {
+          ul > li:before {
             content: '-';
             padding-right: 3pt;
           }
@@ -192,6 +220,24 @@ if __name__ == "__main__":
             content: ' (' attr(href) ') ';
             font-weight: normal;
             color: #555;
+          }
+          a.indexItemPre {
+            color: #000;
+            text-decoration: none;
+            letter-spacing: .01em;
+          }
+          a.indexItemPre[href^='#']:after {
+            content: ' ' leader('.') ' ';
+            font-size: 1em;
+          }
+          a.indexItem {
+            float: right;
+            overflow: hidden;
+          }
+          a.indexItem[href^='#']:after {
+            content: target-counter(attr(href),page);
+            color: #000;
+            font-size: 11pt;
           }
           #cover {
             height: 100%%;
@@ -282,11 +328,37 @@ if __name__ == "__main__":
             <i>for version 0.6</i>
           </div>
         </section>
+        <section id="authors">
+          <div>
+          </div>
+          <div>
+            <h3>authors</h3>
+            <ul>
+              <li>brickblock369</li>
+              <li>cam900</li>
+              <li>DeMOSic</li>
+              <li>Electric Keet</li>
+              <li>freq-mod</li>
+              <li>host12prog</li>
+              <li>Lunathir</li>
+              <li>nicco1690</li>
+              <li>tildearrow</li>
+            </ul>
+            <p>special thanks to ZoomTen for providing tools which assisted in the production of this document!</p>
+            <p>copyright © 2023 tildearrow and other authors.</p>
+            <p>this documentation is under the <a href="https://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported</a> license.</p>
+            <p>you may reproduce, modify and/or distribute this documentation provided this copyright notice (including license and attribution) is present and any necessary disclaimers whether modifications have been made.</p>
+            <p>this documentation is provided as-is and without warranty of any kind.</p>
+            <p>this manual is written for version 0.6 of Furnace.<br/>it may not necessarily apply to previous or future versions.</p>
+        </section>
+        <section id="index">
+          %s
+        </section>
         %s
       </body>
     </html>
     ''' % (
-      html
+      index, html
     )
   )
   

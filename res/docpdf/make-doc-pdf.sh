@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "compiling Furnace doc..."
+echo "compiling Furnace doc (PDF)..."
 
 if [ ! -e .venv ]; then
   python3 -m virtualenv .venv || exit 1

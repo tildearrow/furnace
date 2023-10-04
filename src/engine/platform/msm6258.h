@@ -21,7 +21,7 @@
 #define _MSM6258_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/oki/okim6258.h"
 
 class DivPlatformMSM6258: public DivDispatch {

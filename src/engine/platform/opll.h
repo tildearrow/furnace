@@ -21,7 +21,7 @@
 #define _OPLL_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 extern "C" {
 #include "../../../extern/Nuked-OPLL/opll.h"

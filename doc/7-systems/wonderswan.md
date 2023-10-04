@@ -18,6 +18,8 @@ it has 4 wavetable channels. some of them have additional capabilities:
   - 0: disable.
   - 1-32: enable and set period.
 - `13xx`: **setup sweep amount.** channel 3 only.
+  - `00` to `7F` for 0 to 127.
+  - `80` to `FF` for -128 to -1.
 
 ## info
 

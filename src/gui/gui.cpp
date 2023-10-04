@@ -1134,7 +1134,7 @@ void FurnaceGUI::stop() {
   if (followPattern && wasPlaying) {
     nextScroll=-1.0f;
     nextAddScroll=0.0f;
-    cursor.y=e->getRow();
+    cursor.y=oldRow;
     if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
       selStart=cursor;
       selEnd=cursor;
@@ -1274,6 +1274,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
     } else {
       if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
         curNibble=false;
+        if (pat->data[cursor.y][target]>e->getMaxVolumeChan(cursor.xCoarse)) pat->data[cursor.y][target]=e->getMaxVolumeChan(cursor.xCoarse);
         editAdvance();
       } else {
         curNibble=!curNibble;
@@ -2207,7 +2208,7 @@ void FurnaceGUI::pushRecentFile(String path) {
   if (path.find(backupPath)==0) return;
   for (int i=0; i<(int)recentFile.size(); i++) {
     if (recentFile[i]==path) {
-      recentFile.erase(recentFile.begin()+i);
+      recentFile.erase(i);
       i--;
     }
   }
@@ -3544,8 +3545,12 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
+            if (introPos<11.0) {
+              SDL_free(ev.drop.file);
+              break;
+            }
             int sampleCountBefore=e->song.sampleLen;
-            std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file);
+            std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file,true,settings.readInsNames);
             DivWavetable* droppedWave=NULL;
             DivSample* droppedSample=NULL;
             if (!instruments.empty()) {
@@ -3578,6 +3583,9 @@ bool FurnaceGUI::loop() {
             }
             SDL_free(ev.drop.file);
           }
+          break;
+        case SDL_USEREVENT:
+          // used for MIDI wake up
           break;
         case SDL_QUIT:
           if (modified) {
@@ -3642,6 +3650,7 @@ bool FurnaceGUI::loop() {
 
     while (true) {
       midiLock.lock();
+      midiWakeUp=true;
       if (midiQueue.empty()) {
         midiLock.unlock();
         break;
@@ -3922,6 +3931,19 @@ bool FurnaceGUI::loop() {
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
 
+    int nextPlayOrder=0;
+    int nextOldRow=0;
+    e->getPlayPos(nextPlayOrder,nextOldRow);
+    oldRowChanged=false;
+    playOrder=nextPlayOrder;
+    if (followPattern) {
+      curOrder=playOrder;
+    }
+    if (e->isPlaying()) {
+      if (oldRow!=nextOldRow) oldRowChanged=true;
+      oldRow=nextOldRow;
+    }
+
     if (!mobileUI) {
       ImGui::BeginMainMenuBar();
       if (ImGui::BeginMenu(settings.capitalMenuBar?"File":"file")) {
@@ -3948,7 +3970,7 @@ bool FurnaceGUI::loop() {
                 nextFile=item;
                 showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
               } else {
-                recentFile.erase(recentFile.begin()+i);
+                recentFile.erase(i);
                 i--;
                 if (load(item)>0) {
                   showError(fmt::sprintf("Error while loading file! (%s)",lastError));
@@ -4379,15 +4401,15 @@ bool FurnaceGUI::loop() {
         info+=fmt::sprintf(" @ %gHz (%g BPM) ",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
 
         if (settings.orderRowsBase) {
-          info+=fmt::sprintf("| Order %.2X/%.2X ",e->getOrder(),e->curSubSong->ordersLen-1);
+          info+=fmt::sprintf("| Order %.2X/%.2X ",playOrder,e->curSubSong->ordersLen-1);
         } else {
-          info+=fmt::sprintf("| Order %d/%d ",e->getOrder(),e->curSubSong->ordersLen-1);
+          info+=fmt::sprintf("| Order %d/%d ",playOrder,e->curSubSong->ordersLen-1);
         }
 
         if (settings.patRowsBase) {
-          info+=fmt::sprintf("| Row %.2X/%.2X ",e->getRow(),e->curSubSong->patLen);
+          info+=fmt::sprintf("| Row %.2X/%.2X ",oldRow,e->curSubSong->patLen);
         } else {
-          info+=fmt::sprintf("| Row %d/%d ",e->getRow(),e->curSubSong->patLen);
+          info+=fmt::sprintf("| Row %d/%d ",oldRow,e->curSubSong->patLen);
         }
 
         info+=fmt::sprintf("| %d:%.2d:%.2d.%.2d",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
@@ -4459,10 +4481,6 @@ bool FurnaceGUI::loop() {
 
     MEASURE(calcChanOsc,calcChanOsc());
 
-    if (followPattern) {
-      curOrder=e->getOrder();
-    }
-
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
       //globalWinFlags=ImGuiWindowFlags_NoTitleBar;
@@ -4528,6 +4546,7 @@ bool FurnaceGUI::loop() {
       MEASURE(readOsc,readOsc());
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
+      MEASURE(grooves,drawGrooves());
       MEASURE(regView,drawRegView());
     } else {
       globalWinFlags=0;
@@ -4850,7 +4869,7 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_INS_SAVE:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                if (e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song)) {
+                if (e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song,settings.writeInsNames)) {
                   pushRecentSys(copyOfName.c_str());
                 }
               }
@@ -4976,7 +4995,7 @@ bool FurnaceGUI::loop() {
               String warns="there were some warnings/errors while loading instruments:\n";
               int sampleCountBefore=e->song.sampleLen;
               for (String i: fileDialog->getFileName()) {
-                std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str());
+                std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str(),true,settings.readInsNames);
                 if (insTemp.empty()) {
                   warn=true;
                   warns+=fmt::sprintf("> %s: cannot load instrument! (%s)\n",i,e->getLastError());
@@ -5022,7 +5041,7 @@ bool FurnaceGUI::loop() {
             }
             case GUI_FILE_INS_OPEN_REPLACE: {
               int sampleCountBefore=e->song.sampleLen;
-              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str());
+              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str(),true,settings.readInsNames);
               if (!instruments.empty()) {
                 if (e->song.sampleLen!=sampleCountBefore) {
                   e->renderSamplesP();
@@ -5540,8 +5559,6 @@ bool FurnaceGUI::loop() {
               stop();
               e->clearSubSongs();
               curOrder=0;
-              oldOrder=0;
-              oldOrder1=0;
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
@@ -5552,8 +5569,6 @@ bool FurnaceGUI::loop() {
               });
               e->setOrder(0);
               curOrder=0;
-              oldOrder=0;
-              oldOrder1=0;
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
@@ -5565,8 +5580,6 @@ bool FurnaceGUI::loop() {
               });
               e->setOrder(0);
               curOrder=0;
-              oldOrder=0;
-              oldOrder1=0;
               MARK_MODIFIED;
               ImGui::CloseCurrentPopup();
             }
@@ -5671,8 +5684,6 @@ bool FurnaceGUI::loop() {
               undoHist.clear();
               redoHist.clear();
               updateScroll(0);
-              oldOrder=0;
-              oldOrder1=0;
               oldRow=0;
               cursor.xCoarse=0;
               cursor.xFine=0;
@@ -5864,8 +5875,6 @@ bool FurnaceGUI::loop() {
 
       if (pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_8BIT && pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT) {
         pendingRawSampleChannels=1;
-      }
-      if (pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT) {
         pendingRawSampleBigEndian=false;
       }
 
@@ -5890,6 +5899,10 @@ bool FurnaceGUI::loop() {
           pendingRawSampleDepth==DIV_SAMPLE_DEPTH_ADPCM_B ||
           pendingRawSampleDepth==DIV_SAMPLE_DEPTH_VOX) {
         ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
+      }
+
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT) {
+        ImGui::Checkbox("Swap words",&pendingRawSampleBigEndian);
       }
 
       if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_MULAW) {
@@ -6329,7 +6342,18 @@ bool FurnaceGUI::init() {
   waveSigned=e->getConfBool("waveSigned",false);
   waveGenVisible=e->getConfBool("waveGenVisible",false);
   waveEditStyle=e->getConfInt("waveEditStyle",0);
-  extraChannelButtons=e->getConfInt("extraChannelButtons",0);
+  int extraChannelButtons=e->getConfInt("extraChannelButtons",0);
+  if (!e->hasConf("patExtraButtons")) {
+    patExtraButtons=(extraChannelButtons==1);
+  } else {
+    patExtraButtons=e->getConfBool("patExtraButtons",false);
+  }
+  if (!e->hasConf("patChannelNames")) {
+    patChannelNames=(extraChannelButtons==2);
+  } else {
+    patChannelNames=e->getConfBool("patChannelNames",false);
+  }
+  patChannelHints=e->getConfInt("patChannelHints",0);
   lockLayout=e->getConfBool("lockLayout",false);
 #ifdef IS_MOBILE
   fullScreen=true;
@@ -6723,11 +6747,20 @@ bool FurnaceGUI::init() {
 
   firstFrame=true;
 
-  // TODO: MIDI mapping time!
+  userEvents=SDL_RegisterEvents(1);
+
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
     if (introPos<11.0) return -2;
     midiLock.lock();
     midiQueue.push(msg);
+    if (userEvents!=0xffffffff && midiWakeUp) {
+      midiWakeUp=false;
+      userEvent.user.type=userEvents;
+      userEvent.user.code=0;
+      userEvent.user.data1=NULL;
+      userEvent.user.data2=NULL;
+      SDL_PushEvent(&userEvent);
+    }
     midiLock.unlock();
     e->setMidiBaseChan(cursor.xCoarse);
     if (msg.type==TA_MIDI_SYSEX) return -2;
@@ -6858,7 +6891,9 @@ void FurnaceGUI::commitState() {
   e->setConf("waveSigned",waveSigned);
   e->setConf("waveGenVisible",waveGenVisible);
   e->setConf("waveEditStyle",waveEditStyle);
-  e->setConf("extraChannelButtons",extraChannelButtons);
+  e->setConf("patExtraButtons",patExtraButtons);
+  e->setConf("patChannelNames",patChannelNames);
+  e->setConf("patChannelHints",(int)patChannelHints);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
   e->setConf("mobileUI",mobileUI);
@@ -7007,6 +7042,7 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   mobileEdit(false),
   killGraphics(false),
+  midiWakeUp(true),
   audioEngineChanged(false),
   settingsChanged(false),
   debugFFT(false),
@@ -7020,6 +7056,8 @@ FurnaceGUI::FurnaceGUI():
   mobileEditPage(0),
   wheelCalmDown(0),
   shallDetectScale(0),
+  cpuCores(0),
+  userEvents(0xffffffff),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   mobileEditAnim(0.0f),
@@ -7079,10 +7117,9 @@ FurnaceGUI::FurnaceGUI():
   curSample(0),
   curOctave(3),
   curOrder(0),
+  playOrder(0),
   prevIns(0),
   oldRow(0),
-  oldOrder(0),
-  oldOrder1(0),
   editStep(1),
   exportLoops(0),
   soloChan(-1),
@@ -7092,7 +7129,6 @@ FurnaceGUI::FurnaceGUI():
   loopRow(-1),
   loopEnd(-1),
   isClipping(0),
-  extraChannelButtons(0),
   newSongCategory(0),
   latchTarget(0),
   wheelX(0),
@@ -7107,6 +7143,12 @@ FurnaceGUI::FurnaceGUI():
   exitDisabledTimer(0),
   soloTimeout(0.0f),
   exportFadeOut(5.0),
+  patExtraButtons(false),
+  patChannelNames(false),
+  patChannelPairs(false),
+  patChannelHints(0),
+  newSongFirstFrame(false),
+  oldRowChanged(false),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),

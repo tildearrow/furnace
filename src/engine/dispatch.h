@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <vector>
+#include "../pch.h"
 #include "config.h"
 #include "chipUtils.h"
 

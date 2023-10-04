@@ -498,8 +498,24 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
-        // SUBSECTION CHIP
-        CONFIG_SUBSECTION("Chip");
+        bool writeInsNamesB=settings.writeInsNames;
+        if (ImGui::Checkbox("Store instrument name in .fui",&writeInsNamesB)) {
+          settings.writeInsNames=writeInsNamesB;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("when enabled, saving an instrument will store its name.\nthis may increase file size.");
+        }
+
+        bool readInsNamesB=settings.readInsNames;
+        if (ImGui::Checkbox("Load instrument name from .fui",&readInsNamesB)) {
+          settings.readInsNames=readInsNamesB;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("when enabled, loading an instrument will use the stored name (if present).\notherwise, it will use the file name.");
+        }
+
+        // SUBSECTION NEW SONG
+        CONFIG_SUBSECTION("New Song");
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Initial system:");
         ImGui::SameLine();
@@ -967,12 +983,23 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION METRONOME
         CONFIG_SUBSECTION("Metronome");
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Metronome volume");
+        ImGui::Text("Volume");
         ImGui::SameLine();
         if (ImGui::SliderInt("##MetroVol",&settings.metroVol,0,200,"%d%%")) {
           if (settings.metroVol<0) settings.metroVol=0;
           if (settings.metroVol>200) settings.metroVol=200;
           e->setMetronomeVol(((float)settings.metroVol)/100.0f);
+        }
+
+        // SUBSECTION SAMPLE PREVIEW
+        CONFIG_SUBSECTION("Sample preview");
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Volume");
+        ImGui::SameLine();
+        if (ImGui::SliderInt("##SampleVol",&settings.sampleVol,0,100,"%d%%")) {
+          if (settings.sampleVol<0) settings.sampleVol=0;
+          if (settings.sampleVol>100) settings.sampleVol=100;
+          e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
         }
 
         END_SECTION;
@@ -2993,6 +3020,10 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"Secondary specific effect");
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_MISC,"Miscellaneous");
           UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_OFF,"Status: off");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_REL,"Status: off + macro rel");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_REL_ON,"Status: on + macro rel");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ON,"Status: on");
           ImGui::TreePop();
         }
         if (ImGui::TreeNode("Sample Editor")) {
@@ -3066,6 +3097,7 @@ void FurnaceGUI::drawSettings() {
         // "42 63" - enables all instrument types
         // "4-bit FDS" - enables partial pitch linearity option
         // "Power of the Chip" - enables options for multi-threaded audio
+        // "btcdbcb" - use modern UI padding
         // "????" - enables stuff
         CONFIG_SECTION("Cheat Codes") {
           // SUBSECTION ENTER CODE:
@@ -3103,6 +3135,14 @@ void FurnaceGUI::drawSettings() {
             if (checker==0x8537719f && checker1==0x17a1f34) {
               mmlString[30]="unlocked audio multi-threading options!";
               settings.showPool=1;
+            }
+            if (checker==0x94222d83 && checker1==0x6600) {
+              mmlString[30]="enabled \"comfortable\" mode";
+              ImGuiStyle& sty=ImGui::GetStyle();
+              sty.FramePadding=ImVec2(20.0f*dpiScale,20.0f*dpiScale);
+              sty.ItemSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+              sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+              settingsOpen=false;
             }
 
             mmlString[31]="";
@@ -3246,6 +3286,7 @@ void FurnaceGUI::syncSettings() {
   settings.separateFMColors=e->getConfInt("separateFMColors",0);
   settings.insEditColorize=e->getConfInt("insEditColorize",0);
   settings.metroVol=e->getConfInt("metroVol",100);
+  settings.sampleVol=e->getConfInt("sampleVol",50);
   settings.pushNibble=e->getConfInt("pushNibble",0);
   settings.scrollChangesOrder=e->getConfInt("scrollChangesOrder",0);
   settings.oplStandardWaveNames=e->getConfInt("oplStandardWaveNames",0);
@@ -3329,6 +3370,8 @@ void FurnaceGUI::syncSettings() {
   settings.chanOscThreads=e->getConfInt("chanOscThreads",0);
   settings.renderPoolThreads=e->getConfInt("renderPoolThreads",0);
   settings.showPool=e->getConfInt("showPool",0);
+  settings.writeInsNames=e->getConfInt("writeInsNames",1);
+  settings.readInsNames=e->getConfInt("readInsNames",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3407,6 +3450,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.separateFMColors,0,1);
   clampSetting(settings.insEditColorize,0,1);
   clampSetting(settings.metroVol,0,200);
+  clampSetting(settings.sampleVol,0,100);
   clampSetting(settings.pushNibble,0,1);
   clampSetting(settings.scrollChangesOrder,0,2);
   clampSetting(settings.oplStandardWaveNames,0,1);
@@ -3481,6 +3525,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.chanOscThreads,0,256);
   clampSetting(settings.renderPoolThreads,0,DIV_MAX_CHIPS);
   clampSetting(settings.showPool,0,1);
+  clampSetting(settings.writeInsNames,0,1);
+  clampSetting(settings.readInsNames,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3535,6 +3581,7 @@ void FurnaceGUI::syncSettings() {
 
   e->setMidiDirect(midiMap.directChannel);
   e->setMetronomeVol(((float)settings.metroVol)/100.0f);
+  e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
 }
 
 void FurnaceGUI::commitSettings() {
@@ -3656,6 +3703,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("separateFMColors",settings.separateFMColors);
   e->setConf("insEditColorize",settings.insEditColorize);
   e->setConf("metroVol",settings.metroVol);
+  e->setConf("sampleVol",settings.sampleVol);
   e->setConf("pushNibble",settings.pushNibble);
   e->setConf("scrollChangesOrder",settings.scrollChangesOrder);
   e->setConf("oplStandardWaveNames",settings.oplStandardWaveNames);
@@ -3740,6 +3788,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("chanOscThreads",settings.chanOscThreads);
   e->setConf("renderPoolThreads",settings.renderPoolThreads);
   e->setConf("showPool",settings.showPool);
+  e->setConf("writeInsNames",settings.writeInsNames);
+  e->setConf("readInsNames",settings.readInsNames);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

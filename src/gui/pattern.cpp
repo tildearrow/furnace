@@ -91,7 +91,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (settings.overflowHighlight) {
     if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-    } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
+    } else if (isPlaying && oldRow==i && ord==playOrder) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->curSubSong->hilightB>0 && !(i%e->curSubSong->hilightB)) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
@@ -102,7 +102,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     isPushing=true;
     if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
-    } else if (isPlaying && oldRow==i && ord==e->getOrder()) {
+    } else if (isPlaying && oldRow==i && ord==playOrder) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->curSubSong->hilightB>0 && !(i%e->curSubSong->hilightB)) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]));
@@ -377,11 +377,14 @@ void FurnaceGUI::drawPattern() {
 
   bool inhibitMenu=false;
 
-  if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) {
-    cursor.y=e->isStepping()?e->getRow():oldRow;
-    if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
-      selStart=cursor;
-      selEnd=cursor;
+  if (e->isPlaying() && followPattern) {
+    if (oldRowChanged || !e->isStepping()) {
+      if (e->isStepping()) pendingStepUpdate=1;
+      cursor.y=oldRow;
+      if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
+        selStart=cursor;
+        selEnd=cursor;
+      }
     }
   }
   demandX=0;
@@ -405,6 +408,7 @@ void FurnaceGUI::drawPattern() {
     sel1.xFine^=sel2.xFine;
     sel2.xFine^=sel1.xFine;
   }
+  ImVec2 origWinPadding=ImGui::GetStyle().WindowPadding;
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
   if (mobileUI) {
     patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)+(0.12*canvasW)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
@@ -419,8 +423,7 @@ void FurnaceGUI::drawPattern() {
     }
     //char id[32];
     ImGui::PushFont(patFont);
-    int ord=oldOrder;
-    oldOrder=curOrder;
+    int ord=curOrder;
     int chans=e->getTotalChannelCount();
     int displayChans=0;
     const DivPattern* patCache[DIV_MAX_CHANS];
@@ -437,23 +440,24 @@ void FurnaceGUI::drawPattern() {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+centerOff);
       }
     }
+    if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(oldRow);
+    if (--pendingStepUpdate<0) pendingStepUpdate=0;
+    if (nextScroll>-0.5f) {
+      ImGui::SetNextWindowScroll(ImVec2(-1.0f,nextScroll));
+      nextScroll=-1.0f;
+      nextAddScroll=0.0f;
+    }
     if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
-      int curRow=e->getRow();
-      if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(curRow);
-      if (--pendingStepUpdate<0) pendingStepUpdate=0;
-      if (nextScroll>-0.5f) {
-        ImGui::SetScrollY(nextScroll);
-        nextScroll=-1.0f;
-        nextAddScroll=0.0f;
-      }
+
       if (nextAddScroll!=0.0f) {
         ImGui::SetScrollY(ImGui::GetScrollY()+nextAddScroll);
         nextScroll=-1.0f;
         nextAddScroll=0.0f;
       }
+      
       ImGui::TableSetupScrollFreeze(1,1);
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
@@ -462,17 +466,11 @@ void FurnaceGUI::drawPattern() {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       float lpwStart=ImGui::GetCursorPosX();
-      if (ImGui::Selectable((extraChannelButtons==2)?" --##ExtraChannelButtons":" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
-        if (++extraChannelButtons>2) extraChannelButtons=0;
+      if (ImGui::Selectable(" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
+        ImGui::OpenPopup("PatternOpt");
       }
       if (ImGui::IsItemHovered() && !mobileUI) {
-        if (extraChannelButtons==2) {
-          ImGui::SetTooltip("Pattern names (click to collapse)\nRight-click for visualizer");
-        } else if (extraChannelButtons==1) {
-          ImGui::SetTooltip("Expanded (click for pattern names)\nRight-click for visualizer");
-        } else {
-          ImGui::SetTooltip("Compact (click to expand)\nRight-click for visualizer");
-        }
+        ImGui::SetTooltip("click for pattern options (effect columns/pattern names/visualizer)");
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         fancyPattern=!fancyPattern;
@@ -481,6 +479,41 @@ void FurnaceGUI::drawPattern() {
         e->getCommandStream(cmdStream);
         cmdStream.clear();
       }
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,origWinPadding);
+      ImGui::PushFont(mainFont);
+      if (ImGui::BeginPopup("PatternOpt",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+        ImGui::Text("Options:");
+        ImGui::Indent();
+        ImGui::Checkbox("Effect columns/collapse",&patExtraButtons);
+        ImGui::Checkbox("Pattern names",&patChannelNames);
+        ImGui::Checkbox("Channel group hints",&patChannelPairs);
+        if (ImGui::Checkbox("Visualizer",&fancyPattern)) {
+          inhibitMenu=true;
+          e->enableCommandStream(fancyPattern);
+          e->getCommandStream(cmdStream);
+          cmdStream.clear();
+        }
+        ImGui::Unindent();
+
+        ImGui::Text("Channel status:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("No##_PCS0",patChannelHints==0)) {
+          patChannelHints=0;
+        }
+        if (ImGui::RadioButton("Basic##_PCS0",patChannelHints==1)) {
+          patChannelHints=1;
+        }
+        if (ImGui::RadioButton("Regular##_PCS0",patChannelHints==2)) {
+          patChannelHints=2;
+        }
+        if (ImGui::RadioButton("Detailed##_PCS0",patChannelHints==3)) {
+          patChannelHints=3;
+        }
+        ImGui::Unindent();
+        ImGui::EndPopup();
+      }
+      ImGui::PopFont();
+      ImGui::PopStyleVar();
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
         ImGui::TableNextColumn();
@@ -616,7 +649,7 @@ void FurnaceGUI::drawPattern() {
           minLabelArea.x+=0.5f*(maxLabelArea.x-minLabelArea.x-ImGui::CalcTextSize(chanID).x);
         }
 
-        if (extraChannelButtons==0 || settings.channelVolStyle!=0) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0.0f,0.0f));
+        if ((!patExtraButtons && !patChannelNames && !patChannelHints) || settings.channelVolStyle!=0) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0.0f,0.0f));
 
         ImGui::PushID(2048+i);
         switch (settings.channelStyle) {
@@ -732,7 +765,7 @@ void FurnaceGUI::drawPattern() {
         }
         ImGui::PopID();
 
-        if (extraChannelButtons==0 || settings.channelVolStyle!=0) ImGui::PopStyleVar();
+        if ((!patExtraButtons && !patChannelNames && !patChannelHints) || settings.channelVolStyle!=0) ImGui::PopStyleVar();
 
         if (displayTooltip && ImGui::IsItemHovered() && !mobileUI) {
           ImGui::SetTooltip("%s",e->getChannelName(i));
@@ -831,15 +864,7 @@ void FurnaceGUI::drawPattern() {
         }
         
         // extra buttons
-        if (extraChannelButtons==2) {
-          DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][ord],true);
-          ImGui::PushFont(mainFont);
-          snprintf(chanID,2048," %s##PatName%d",pat->name.c_str(),i);
-          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
-            editStr(&pat->name);
-          }
-          ImGui::PopFont();
-        } else if (extraChannelButtons==1) {
+        if (patExtraButtons) {
           snprintf(chanID,2048,"%c##_HCH%d",e->curSubSong->chanCollapse[i]?'+':'-',i);
           ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
           if (ImGui::SmallButton(chanID)) {
@@ -868,6 +893,110 @@ void FurnaceGUI::drawPattern() {
             ImGui::EndDisabled();
           }
           ImGui::Spacing();
+        }
+
+        if (patChannelNames) {
+          DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][ord],true);
+          ImGui::PushFont(mainFont);
+          snprintf(chanID,2048," %s##PatName%d",pat->name.c_str(),i);
+          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
+            editStr(&pat->name);
+          }
+          ImGui::PopFont();
+        }
+
+        if (patChannelHints) {
+          DivChannelState* cs=e->getChanState(i);
+          if (cs!=NULL) {
+            ImGui::PushFont(mainFont);
+            if (cs->keyOn) {
+              if (cs->releasing) {
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_REL_ON]));
+              } else {
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_ON]));
+              }
+              ImGui::Text(ICON_FA_SQUARE);
+              ImGui::PopStyleColor();
+            } else {
+              if (cs->releasing) {
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_REL]));
+              } else {
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
+              }
+              ImGui::Text(ICON_FA_SQUARE);
+              ImGui::PopStyleColor();
+            }
+            ImGui::PopFont();
+
+            if (e->curSubSong->chanCollapse[i]==0) {
+              ImGui::SameLine();
+              ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]));
+              ImGui::Text("%.2X",cs->volume>>8);
+              ImGui::PopStyleColor();
+
+              if (cs->volSpeed!=0) {
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_VOLUME]));
+                ImGui::Text("%+2d",cs->volSpeed/4);
+                ImGui::PopStyleColor();
+              } else {
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
+                ImGui::Text(" 00");
+                ImGui::PopStyleColor();
+              }
+
+              if (cs->vibratoDepth>0) {
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
+                ImGui::Text("~%.1X%.1X",cs->vibratoRate,cs->vibratoDepth);
+                ImGui::PopStyleColor();
+              } else {
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
+                ImGui::Text("~00");
+                ImGui::PopStyleColor();
+              }
+
+              /*
+              if (cs->legato) {
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
+                ImGui::Text("=");
+                ImGui::PopStyleColor();
+              } else {
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
+                ImGui::Text("=");
+                ImGui::PopStyleColor();
+              }*/
+
+              if (cs->inPorta) {
+                ImGui::SameLine();
+                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
+                if (cs->portaNote<-60 || cs->portaNote>=120) {
+                  ImGui::Text("???@%.2X",cs->portaSpeed);
+                } else {
+                  ImGui::Text("%s@%.2X",noteNames[60+cs->portaNote],cs->portaSpeed);
+                }
+                ImGui::PopStyleColor();
+              } else {
+                if (cs->portaSpeed>0) {
+                  ImGui::SameLine();
+                  ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
+                  if (cs->portaNote<60) {
+                    ImGui::Text(" v%.2X  ",cs->portaSpeed);
+                  } else {
+                    ImGui::Text(" ^%.2X  ",cs->portaSpeed);
+                  }
+                  ImGui::PopStyleColor();
+                } else {
+                  ImGui::SameLine();
+                  ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
+                  ImGui::Text(" --- ");
+                  ImGui::PopStyleColor();
+                }
+              }
+            }
+          }
         }
       }
       ImGui::TableNextColumn();
@@ -937,7 +1066,6 @@ void FurnaceGUI::drawPattern() {
 
       ImGui::EndDisabled();
       ImGui::PopStyleVar();
-      oldRow=curRow;
       if (demandScrollX) {
         int totalDemand=demandX-ImGui::GetScrollX();
         if (totalDemand<80) {

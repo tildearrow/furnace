@@ -464,6 +464,13 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
       accum/=channels;
       sample->data8[i]=accum;
     }
+    if (bigEndian) {
+      for (unsigned int i=0; (i+1)<samples; i+=2) {
+        sample->data8[i]^=sample->data8[i^1];
+        sample->data8[i^1]^=sample->data8[i];
+        sample->data8[i]^=sample->data8[i^1];
+      }
+    }
   } else {
     memcpy(sample->getCurBuf(),buf,len);
   }

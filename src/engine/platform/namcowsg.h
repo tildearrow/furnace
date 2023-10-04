@@ -21,7 +21,7 @@
 #define _NAMCOWSG_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../waveSynth.h"
 #include "sound/namco.h"
 
