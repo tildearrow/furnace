@@ -6353,6 +6353,7 @@ bool FurnaceGUI::init() {
   } else {
     patChannelNames=e->getConfBool("patChannelNames",false);
   }
+  patChannelPairs=e->getConfBool("patChannelPairs",true);
   patChannelHints=e->getConfInt("patChannelHints",0);
   lockLayout=e->getConfBool("lockLayout",false);
 #ifdef IS_MOBILE
@@ -6893,6 +6894,7 @@ void FurnaceGUI::commitState() {
   e->setConf("waveEditStyle",waveEditStyle);
   e->setConf("patExtraButtons",patExtraButtons);
   e->setConf("patChannelNames",patChannelNames);
+  e->setConf("patChannelPairs",patChannelPairs);
   e->setConf("patChannelHints",(int)patChannelHints);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
@@ -7145,7 +7147,7 @@ FurnaceGUI::FurnaceGUI():
   exportFadeOut(5.0),
   patExtraButtons(false),
   patChannelNames(false),
-  patChannelPairs(false),
+  patChannelPairs(true),
   patChannelHints(0),
   newSongFirstFrame(false),
   oldRowChanged(false),

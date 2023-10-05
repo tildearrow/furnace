@@ -339,6 +339,40 @@ struct DivDispatchOscBuffer {
   }
 };
 
+struct DivChannelPair {
+  const char* label;
+  // -1: none
+  signed char pairs[8];
+
+  DivChannelPair(const char* l, signed char p0, signed char p1, signed char p2, signed char p3, signed char p4, signed char p5, signed char p6, signed char p7):
+    label(l),
+    pairs{p0,p1,p2,p3,p4,p5,p6,p7} {}
+  DivChannelPair(const char* l, signed char p):
+    label(l),
+    pairs{p,-1,-1,-1,-1,-1,-1,-1} {}
+  DivChannelPair():
+    label(NULL),
+    pairs{-1,-1,-1,-1,-1,-1,-1,-1} {}
+};
+
+struct DivChannelModeHints {
+  const char* hint[4];
+  // valid types:
+  // - 0: disabled
+  // - 1: volume
+  // - 2: pitch
+  // - 3: panning
+  // - 4: ???
+  unsigned char type[4];
+  // up to 4
+  unsigned char count;
+
+  DivChannelModeHints():
+    hint{NULL,NULL,NULL,NULL},
+    type{0,0,0,0},
+    count(0) {}
+};
+
 class DivEngine;
 class DivMacroInt;
 
@@ -417,6 +451,21 @@ class DivDispatch {
      * @return a 16-bit number. left in top 8 bits and right in bottom 8 bits.
      */
     virtual unsigned short getPan(int chan);
+
+    /**
+     * get "paired" channels.
+     * @param chan the channel to query.
+     * @return a DivChannelPair.
+     */
+    virtual DivChannelPair getPaired(int chan);
+
+    /**
+     * get channel mode hints.
+     * @param chan the channel to query.
+     * @return a DivChannelModeHints.
+     */
+    virtual DivChannelModeHints getModeHints(int chan);
+    
 
     /**
      * get currently playing sample (and its position).

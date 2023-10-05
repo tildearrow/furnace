@@ -1582,6 +1582,15 @@ unsigned short DivPlatformOPL::getPan(int ch) {
   return ((chan[ch].pan&1)<<8)|((chan[ch].pan&2)>>1);
 }
 
+DivChannelPair DivPlatformOPL::getPaired(int ch) {
+  if (oplType==3 && ch<12 && !(ch&1)) {
+    if (chan[ch].fourOp) {
+      return DivChannelPair("4OP",ch+1);
+    }
+  }
+  return DivChannelPair();
+}
+
 DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
   if (oplType==759 || chipType==8950) {
     if (ch>=totalChans+1) return NULL;
