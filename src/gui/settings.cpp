@@ -1586,12 +1586,10 @@ void FurnaceGUI::drawSettings() {
         CONFIG_SUBSECTION("Keyboard");
         if (ImGui::Button("Import")) {
           openFileDialog(GUI_FILE_IMPORT_KEYBINDS);
-          settingsChanged=true;
         }
         ImGui::SameLine();
         if (ImGui::Button("Export")) {
           openFileDialog(GUI_FILE_EXPORT_KEYBINDS);
-          settingsChanged=true;
         }
         ImGui::SameLine();
         if (ImGui::Button("Reset defaults")) {
@@ -1966,12 +1964,10 @@ void FurnaceGUI::drawSettings() {
         ImGui::SameLine();
         if (ImGui::Button("Import")) {
           openFileDialog(GUI_FILE_IMPORT_LAYOUT);
-          settingsChanged=true;
         }
         ImGui::SameLine();
         if (ImGui::Button("Export")) {
           openFileDialog(GUI_FILE_EXPORT_LAYOUT);
-          settingsChanged=true;
         }
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
@@ -3027,12 +3023,10 @@ void FurnaceGUI::drawSettings() {
         CONFIG_SUBSECTION("Color scheme");
         if (ImGui::Button("Import")) {
           openFileDialog(GUI_FILE_IMPORT_COLORS);
-          settingsChanged=true;
         }
         ImGui::SameLine();
         if (ImGui::Button("Export")) {
           openFileDialog(GUI_FILE_EXPORT_COLORS);
-          settingsChanged=true;
         }
         ImGui::SameLine();
         if (ImGui::Button("Reset defaults")) {
@@ -3445,17 +3439,13 @@ void FurnaceGUI::drawSettings() {
       settingsChanged=false;
     }
     ImGui::SameLine();
-    bool applyDisabled=false;
-    if (!settingsChanged) {
-      ImGui::BeginDisabled();
-      applyDisabled=true;
-    }
+    ImGui::BeginDisabled(!settingsChanged);
     if (ImGui::Button("Apply##SettingsApply")) {
       settingsOpen=true;
       willCommit=true;
       settingsChanged=false;
     }
-    if (!settingsChanged && applyDisabled) ImGui::EndDisabled();
+    ImGui::EndDisabled();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
   ImGui::End();
