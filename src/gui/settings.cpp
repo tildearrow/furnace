@@ -323,7 +323,7 @@ void FurnaceGUI::drawSettings() {
   }
   if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags)) {
     if (!settingsOpen) {
-      if(settingsChanged) {
+      if (settingsChanged) {
         settingsOpen=true;
         showWarning("Do you want to save your settings?",GUI_WARN_CLOSE_SETTINGS);
       } else {
@@ -1039,9 +1039,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Quality");
         ImGui::SameLine();
-        if (ImGui::Combo("##Quality",&settings.audioQuality,audioQualities,2)) {
-          settingsChanged=true;
-        }
+        if (ImGui::Combo("##Quality",&settings.audioQuality,audioQualities,2)) settingsChanged=true;
         
         bool clampSamplesB=settings.clampSamples;
         if (ImGui::Checkbox("Software clipping",&clampSamplesB)) {
