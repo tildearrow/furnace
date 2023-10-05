@@ -5499,6 +5499,7 @@ bool FurnaceGUI::loop() {
                 reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
               }
             }
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5509,6 +5510,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
             resetKeybinds();
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5520,6 +5522,7 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             resetColors();
             applyUISettings(false);
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5531,12 +5534,14 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             settingsOpen=false;
             willCommit=true;
+            settingsChanged=false;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
             ImGui::CloseCurrentPopup();
             settingsOpen=false;
             syncSettings();
+            settingsChanged=false;
           }
           ImGui::SameLine();
           if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
