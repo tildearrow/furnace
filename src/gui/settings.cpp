@@ -965,8 +965,8 @@ void FurnaceGUI::drawSettings() {
         TAAudioDesc& audioWant=e->getAudioDescWant();
         TAAudioDesc& audioGot=e->getAudioDescGot();
 
-        ImGui::Text("want: %d samples @ %.0fHz (%d channels)",audioWant.bufsize,audioWant.rate,audioWant.outChans);
-        ImGui::Text("got: %d samples @ %.0fHz (%d channels)",audioGot.bufsize,audioGot.rate,audioWant.outChans);
+        ImGui::Text("want: %d samples @ %.0fHz (%d %s)",audioWant.bufsize,audioWant.rate,audioWant.outChans,(audioWant.outChans==1)?"channel":"channels");
+        ImGui::Text("got: %d samples @ %.0fHz (%d %s)",audioGot.bufsize,audioGot.rate,audioWant.outChans,(audioWant.outChans==1)?"channel":"channels");
 
         // SUBSECTION MIXING
         CONFIG_SUBSECTION("Mixing");
