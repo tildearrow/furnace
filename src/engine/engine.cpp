@@ -150,6 +150,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
         if (iter!=sysDef->postEffectHandlers.end()) {
           return iter->second.description;
         }
+        iter=sysDef->preEffectHandlers.find(effect);
+        if (iter!=sysDef->preEffectHandlers.end()) {
+          return iter->second.description;
+        }
       }
       break;
   }

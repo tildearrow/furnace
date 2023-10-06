@@ -244,13 +244,13 @@ struct DivInstrumentFM {
 
 // this is getting out of hand
 struct DivInstrumentMacro {
-  // 0-31: normal
-  // 32+: operator (top 3 bits select operator, starting from 1)
-  unsigned char macroType;
   int val[256];
   unsigned int mode;
   unsigned char open;
   unsigned char len, delay, speed, loop, rel;
+  // 0-31: normal
+  // 32+: operator (top 3 bits select operator, starting from 1)
+  unsigned char macroType;
   
   // the following variables are used by the GUI and not saved in the file
   int vScroll, vZoom;
@@ -258,7 +258,6 @@ struct DivInstrumentMacro {
   unsigned char lenMemory;
 
   explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
-    macroType(initType),
     mode(0),
     open(initOpen),
     len(0),
@@ -266,6 +265,7 @@ struct DivInstrumentMacro {
     speed(1),
     loop(255),
     rel(255),
+    macroType(initType),
     vScroll(0),
     vZoom(-1),
     lenMemory(0) {
@@ -343,7 +343,7 @@ struct DivInstrumentSTD {
     phaseResetMacro(DIV_MACRO_PHASE_RESET),
     ex4Macro(DIV_MACRO_EX4),
     ex5Macro(DIV_MACRO_EX5),
-    ex6Macro(DIV_MACRO_EX6), 
+    ex6Macro(DIV_MACRO_EX6),
     ex7Macro(DIV_MACRO_EX7),
     ex8Macro(DIV_MACRO_EX8) {
     for (int i=0; i<4; i++) {
