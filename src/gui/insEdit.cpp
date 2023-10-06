@@ -1387,10 +1387,10 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
 
     if (i.macro->vZoom<1) {
-      if (i.macro->name=="arp") {
+      if (i.macro->macroType==DIV_MACRO_ARP) {
         i.macro->vZoom=24;
         i.macro->vScroll=120-12;
-      } else if (i.macro->name=="pitch") {
+      } else if (i.macro->macroType==DIV_MACRO_PITCH) {
         i.macro->vZoom=128;
         i.macro->vScroll=2048-64;
       } else {
@@ -1413,7 +1413,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       DivMacroInt* macroInt=e->getMacroInt(j);
       if (macroInt==NULL) continue;
 
-      DivMacroStruct* macroStruct=macroInt->structByName(i.macro->name);
+      DivMacroStruct* macroStruct=macroInt->structByType(i.macro->macroType);
       if (macroStruct==NULL) continue;
 
       if (macroStruct->lastPos>i.macro->len) continue;

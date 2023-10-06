@@ -89,6 +89,52 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_NULL
 };
 
+enum DivMacroType: unsigned char {
+  DIV_MACRO_VOL=0,
+  DIV_MACRO_ARP,
+  DIV_MACRO_DUTY,
+  DIV_MACRO_WAVE,
+  DIV_MACRO_PITCH,
+  DIV_MACRO_EX1,
+  DIV_MACRO_EX2,
+  DIV_MACRO_EX3,
+  DIV_MACRO_ALG,
+  DIV_MACRO_FB,
+  DIV_MACRO_FMS,
+  DIV_MACRO_AMS,
+  DIV_MACRO_PAN_LEFT,
+  DIV_MACRO_PAN_RIGHT,
+  DIV_MACRO_PHASE_RESET,
+  DIV_MACRO_EX4,
+  DIV_MACRO_EX5,
+  DIV_MACRO_EX6,
+  DIV_MACRO_EX7,
+  DIV_MACRO_EX8
+};
+
+enum DivMacroTypeOp: unsigned char {
+  DIV_MACRO_OP_AM=32,
+  DIV_MACRO_OP_AR,
+  DIV_MACRO_OP_DR,
+  DIV_MACRO_OP_MULT,
+  DIV_MACRO_OP_RR,
+  DIV_MACRO_OP_SL,
+  DIV_MACRO_OP_TL,
+  DIV_MACRO_OP_DT2,
+  DIV_MACRO_OP_RS,
+  DIV_MACRO_OP_DT,
+  DIV_MACRO_OP_D2R,
+  DIV_MACRO_OP_SSG,
+  DIV_MACRO_OP_DAM,
+  DIV_MACRO_OP_DVB,
+  DIV_MACRO_OP_EGT,
+  DIV_MACRO_OP_KSL,
+  DIV_MACRO_OP_SUS,
+  DIV_MACRO_OP_VIB,
+  DIV_MACRO_OP_WS,
+  DIV_MACRO_OP_KSR,
+};
+
 // FM operator structure:
 // - OPN:
 //   - AM, AR, DR, MULT, RR, SL, TL, RS, DT, D2R, SSG-EG
@@ -198,7 +244,9 @@ struct DivInstrumentFM {
 
 // this is getting out of hand
 struct DivInstrumentMacro {
-  String name;
+  // 0-31: normal
+  // 32+: operator (top 3 bits select operator, starting from 1)
+  unsigned char macroType;
   int val[256];
   unsigned int mode;
   unsigned char open;
@@ -209,8 +257,8 @@ struct DivInstrumentMacro {
   int typeMemory[16];
   unsigned char lenMemory;
 
-  explicit DivInstrumentMacro(const String& n, bool initOpen=false):
-    name(n),
+  explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
+    macroType(initType),
     mode(0),
     open(initOpen),
     len(0),
@@ -271,33 +319,57 @@ struct DivInstrumentSTD {
     DivInstrumentMacro wsMacro;
     DivInstrumentMacro ksrMacro;
     OpMacro():
-      amMacro("am"), arMacro("ar"), drMacro("dr"), multMacro("mult"),
-      rrMacro("rr"), slMacro("sl"), tlMacro("tl",true), dt2Macro("dt2"),
-      rsMacro("rs"), dtMacro("dt"), d2rMacro("d2r"), ssgMacro("ssg"),
-      damMacro("dam"), dvbMacro("dvb"), egtMacro("egt"), kslMacro("ksl"),
-      susMacro("sus"), vibMacro("vib"), wsMacro("ws"), ksrMacro("ksr") {}
+      amMacro(DIV_MACRO_OP_AM), arMacro(DIV_MACRO_OP_AR), drMacro(DIV_MACRO_OP_DR), multMacro(DIV_MACRO_OP_MULT),
+      rrMacro(DIV_MACRO_OP_RR), slMacro(DIV_MACRO_OP_SL), tlMacro(DIV_MACRO_OP_TL,true), dt2Macro(DIV_MACRO_OP_DT2),
+      rsMacro(DIV_MACRO_OP_RS), dtMacro(DIV_MACRO_OP_DT), d2rMacro(DIV_MACRO_OP_D2R), ssgMacro(DIV_MACRO_OP_SSG),
+      damMacro(DIV_MACRO_OP_DAM), dvbMacro(DIV_MACRO_OP_DVB), egtMacro(DIV_MACRO_OP_EGT), kslMacro(DIV_MACRO_OP_KSL),
+      susMacro(DIV_MACRO_OP_SUS), vibMacro(DIV_MACRO_OP_VIB), wsMacro(DIV_MACRO_OP_WS), ksrMacro(DIV_MACRO_OP_KSR) {}
   } opMacros[4];
   DivInstrumentSTD():
-    volMacro("vol",true),
-    arpMacro("arp"),
-    dutyMacro("duty"),
-    waveMacro("wave"),
-    pitchMacro("pitch"),
-    ex1Macro("ex1"),
-    ex2Macro("ex2"),
-    ex3Macro("ex3"),
-    algMacro("alg"),
-    fbMacro("fb"),
-    fmsMacro("fms"),
-    amsMacro("ams"),
-    panLMacro("panL"),
-    panRMacro("panR"),
-    phaseResetMacro("phaseReset"),
-    ex4Macro("ex4"),
-    ex5Macro("ex5"),
-    ex6Macro("ex6"), 
-    ex7Macro("ex7"),
-    ex8Macro("ex8") {}
+    volMacro(DIV_MACRO_VOL,true),
+    arpMacro(DIV_MACRO_ARP),
+    dutyMacro(DIV_MACRO_DUTY),
+    waveMacro(DIV_MACRO_WAVE),
+    pitchMacro(DIV_MACRO_PITCH),
+    ex1Macro(DIV_MACRO_EX1),
+    ex2Macro(DIV_MACRO_EX2),
+    ex3Macro(DIV_MACRO_EX3),
+    algMacro(DIV_MACRO_ALG),
+    fbMacro(DIV_MACRO_FB),
+    fmsMacro(DIV_MACRO_FMS),
+    amsMacro(DIV_MACRO_AMS),
+    panLMacro(DIV_MACRO_PAN_LEFT),
+    panRMacro(DIV_MACRO_PAN_RIGHT),
+    phaseResetMacro(DIV_MACRO_PHASE_RESET),
+    ex4Macro(DIV_MACRO_EX4),
+    ex5Macro(DIV_MACRO_EX5),
+    ex6Macro(DIV_MACRO_EX6), 
+    ex7Macro(DIV_MACRO_EX7),
+    ex8Macro(DIV_MACRO_EX8) {
+    for (int i=0; i<4; i++) {
+      opMacros[i].amMacro.macroType=DIV_MACRO_OP_AM+(i<<5);
+      opMacros[i].arMacro.macroType=DIV_MACRO_OP_AR+(i<<5);
+      opMacros[i].drMacro.macroType=DIV_MACRO_OP_DR+(i<<5);
+      opMacros[i].multMacro.macroType=DIV_MACRO_OP_MULT+(i<<5);
+      opMacros[i].rrMacro.macroType=DIV_MACRO_OP_RR+(i<<5);
+      opMacros[i].slMacro.macroType=DIV_MACRO_OP_SL+(i<<5);
+      opMacros[i].tlMacro.macroType=DIV_MACRO_OP_TL+(i<<5);
+      opMacros[i].dt2Macro.macroType=DIV_MACRO_OP_DT2+(i<<5);
+      opMacros[i].rsMacro.macroType=DIV_MACRO_OP_RS+(i<<5);
+      opMacros[i].dtMacro.macroType=DIV_MACRO_OP_DT+(i<<5);
+      opMacros[i].d2rMacro.macroType=DIV_MACRO_OP_D2R+(i<<5);
+      opMacros[i].ssgMacro.macroType=DIV_MACRO_OP_SSG+(i<<5);
+
+      opMacros[i].damMacro.macroType=DIV_MACRO_OP_DAM+(i<<5);
+      opMacros[i].dvbMacro.macroType=DIV_MACRO_OP_DVB+(i<<5);
+      opMacros[i].egtMacro.macroType=DIV_MACRO_OP_EGT+(i<<5);
+      opMacros[i].kslMacro.macroType=DIV_MACRO_OP_KSL+(i<<5);
+      opMacros[i].susMacro.macroType=DIV_MACRO_OP_SUS+(i<<5);
+      opMacros[i].vibMacro.macroType=DIV_MACRO_OP_VIB+(i<<5);
+      opMacros[i].wsMacro.macroType=DIV_MACRO_OP_WS+(i<<5);
+      opMacros[i].ksrMacro.macroType=DIV_MACRO_OP_KSR+(i<<5);
+    }
+  }
 };
 
 struct DivInstrumentGB {
@@ -668,7 +740,7 @@ struct DivInstrument {
   /**
    * these are internal functions.
    */
-  void writeMacro(SafeWriter* w, const DivInstrumentMacro& m, unsigned char macroCode);
+  void writeMacro(SafeWriter* w, const DivInstrumentMacro& m);
   void writeFeatureNA(SafeWriter* w);
   void writeFeatureFM(SafeWriter* w, bool fui);
   void writeFeatureMA(SafeWriter* w);
