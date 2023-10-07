@@ -325,6 +325,11 @@ if (USE_SDL2)
       set(SDL_RENDER_D3D OFF CACHE BOOL "Enable the Direct3D render driver" FORCE)
     endif()
 
+    CHECK_INCLUDE_FILE(GLES/gl.h GLES_GL_FOUND)
+    if (NOT GLES_GL_FOUND AND NOT USE_GLES)
+      set(SDL_OPENGLES OFF CACHE BOOL "Enable OpenGL ES" FORCE)
+    endif()
+
     add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_DEFINES HAVE_SDL2)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
