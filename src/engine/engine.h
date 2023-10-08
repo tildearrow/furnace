@@ -596,6 +596,7 @@ class DivEngine {
     DivSystem sysOfChan[DIV_MAX_CHANS];
     int dispatchOfChan[DIV_MAX_CHANS];
     int dispatchChanOfChan[DIV_MAX_CHANS];
+    int dispatchFirstChan[DIV_MAX_CHANS];
     bool keyHit[DIV_MAX_CHANS];
     float* oscBuf[DIV_MAX_OUTPUTS];
     float oscSize;
@@ -1009,6 +1010,9 @@ class DivEngine {
     // get dispatch channel state
     void* getDispatchChanState(int chan);
 
+    // get channel pairs
+    DivChannelPair getChanPaired(int chan);
+
     // get register pool
     unsigned char* getRegisterPool(int sys, int& size, int& depth);
 
@@ -1320,6 +1324,7 @@ class DivEngine {
       mu5ROM(NULL) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
+      memset(dispatchFirstChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));

@@ -426,6 +426,7 @@ void FurnaceGUI::drawPattern() {
     int ord=curOrder;
     int chans=e->getTotalChannelCount();
     int displayChans=0;
+    float chanHeadBottom=0.0f;
     const DivPattern* patCache[DIV_MAX_CHANS];
     for (int i=0; i<chans; i++) {
       if (e->curSubSong->chanShow[i]) displayChans++;
@@ -998,6 +999,7 @@ void FurnaceGUI::drawPattern() {
             }
           }
         }
+        chanHeadBottom=ImGui::GetCursorScreenPos().y;
       }
       ImGui::TableNextColumn();
       lastPatternWidth=ImGui::GetCursorPosX()-lpwStart+ImGui::GetStyle().ScrollbarSize;
@@ -1133,6 +1135,105 @@ void FurnaceGUI::drawPattern() {
         }
       }
       ImGui::EndTable();
+    }
+
+    if (patChannelPairs && e->isRunning()) { // pair hints
+      ImDrawList* dl=ImGui::GetWindowDrawList();
+      float pos=0.0f;
+      float posCenter=0.0f;
+      float posMin=FLT_MAX;
+      float posMax=-FLT_MAX;
+      float posY=chanHeadBottom;
+      ImVec2 textSize;
+
+      for (int i=0; i<chans; i++) {
+        bool isPaired=false;
+        int numPairs=0;
+        if (!e->curSubSong->chanShow[i]) {
+          continue;
+        }
+
+        DivChannelPair pairs=e->getChanPaired(i);
+        for (int j=0; j<8; j++) {
+          if (pairs.pairs[j]==-1) continue;
+          int pairCh=e->dispatchFirstChan[i]+pairs.pairs[j];
+          if (!e->curSubSong->chanShow[pairCh]) {
+            continue;
+          }
+          isPaired=true;
+          break;
+        }
+
+        if (!isPaired) continue;
+
+        pos=(patChanX[i+1]+patChanX[i])*0.5;
+        posCenter=pos;
+        posMin=pos;
+        posMax=pos;
+        numPairs++;
+
+        if (pairs.label==NULL) {
+          textSize=ImGui::CalcTextSize("???");
+        } else {
+          textSize=ImGui::CalcTextSize(pairs.label);
+        }
+        dl->AddLine(
+          ImVec2(pos,posY),
+          ImVec2(pos,posY+textSize.y),
+          0xffffffff,
+          dpiScale
+        );
+
+        for (int j=0; j<8; j++) {
+          if (pairs.pairs[j]==-1) continue;
+          int pairCh=e->dispatchFirstChan[i]+pairs.pairs[j];
+          if (!e->curSubSong->chanShow[pairCh]) {
+            continue;
+          }
+
+          pos=(patChanX[pairCh+1]+patChanX[pairCh])*0.5;
+          posCenter+=pos;
+          numPairs++;
+          if (pos<posMin) posMin=pos;
+          if (pos>posMax) posMax=pos;
+          dl->AddLine(
+            ImVec2(pos,posY),
+            ImVec2(pos,posY+textSize.y),
+            0xffffffff,
+            dpiScale
+          );
+        }
+
+        posCenter/=numPairs;
+
+        if (pairs.label==NULL) {
+          dl->AddLine(
+            ImVec2(posMin,posY+textSize.y),
+            ImVec2(posMax,posY+textSize.y),
+            0xffffffff,
+            dpiScale
+          );
+        } else {
+          dl->AddLine(
+            ImVec2(posMin,posY+textSize.y),
+            ImVec2(posCenter-textSize.x*0.5,posY+textSize.y),
+            0xffffffff,
+            dpiScale
+          );
+          dl->AddLine(
+            ImVec2(posCenter+textSize.x*0.5,posY+textSize.y),
+            ImVec2(posMax,posY+textSize.y),
+            0xffffffff,
+            dpiScale
+          );
+
+          dl->AddText(
+            ImVec2(posCenter-textSize.x*0.5,posY+textSize.y*0.5),
+            0xffffffff,
+            pairs.label
+          );
+        }
+      }
     }
 
     if (fancyPattern) { // visualizer

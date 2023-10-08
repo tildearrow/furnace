@@ -1418,6 +1418,11 @@ void* DivEngine::getDispatchChanState(int ch) {
   return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);
 }
 
+DivChannelPair DivEngine::getChanPaired(int ch) {
+  if (ch<0 || ch>=chans) return DivChannelPair();
+  return disCont[dispatchOfChan[ch]].dispatch->getPaired(dispatchChanOfChan[ch]);
+}
+
 unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
   if (sys<0 || sys>=song.systemLen) return NULL;
   if (disCont[sys].dispatch==NULL) return NULL;
@@ -1912,11 +1917,13 @@ void DivEngine::recalcChans() {
   memset(isInsTypePossible,0,DIV_INS_MAX*sizeof(bool));
   for (int i=0; i<song.systemLen; i++) {
     int chanCount=getChannelCount(song.system[i]);
+    int firstChan=chans;
     chans+=chanCount;
     for (int j=0; j<chanCount; j++) {
       sysOfChan[chanIndex]=song.system[i];
       dispatchOfChan[chanIndex]=i;
       dispatchChanOfChan[chanIndex]=j;
+      dispatchFirstChan[chanIndex]=firstChan;
       chanIndex++;
 
       if (sysDefs[song.system[i]]!=NULL) {
