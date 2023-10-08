@@ -999,7 +999,7 @@ void FurnaceGUI::drawPattern() {
             }
           }
         }
-        chanHeadBottom=ImGui::GetCursorScreenPos().y;
+        chanHeadBottom=ImGui::GetCursorScreenPos().y-ImGui::GetStyle().ItemSpacing.y;
       }
       ImGui::TableNextColumn();
       lastPatternWidth=ImGui::GetCursorPosX()-lpwStart+ImGui::GetStyle().ScrollbarSize;
