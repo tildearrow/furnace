@@ -448,6 +448,7 @@ void FurnaceGUI::drawPattern() {
       nextScroll=-1.0f;
       nextAddScroll=0.0f;
     }
+    ImDrawList* tdl=NULL;
     if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
@@ -1134,11 +1135,13 @@ void FurnaceGUI::drawPattern() {
           }
         }
       }
+      // HACK: rendering here would cause the pairs to be drawn behind the pattern for some reason...
+      tdl=ImGui::GetWindowDrawList();
       ImGui::EndTable();
     }
 
-    if (patChannelPairs && e->isRunning()) { // pair hints
-      ImDrawList* dl=ImGui::GetWindowDrawList();
+    ImGui::PushFont(mainFont);
+    if (patChannelPairs && e->isRunning() && tdl!=NULL) { // pair hints
       float pos=0.0f;
       float posCenter=0.0f;
       float posMin=FLT_MAX;
@@ -1177,11 +1180,11 @@ void FurnaceGUI::drawPattern() {
         } else {
           textSize=ImGui::CalcTextSize(pairs.label);
         }
-        dl->AddLine(
+        tdl->AddLine(
           ImVec2(pos,posY),
           ImVec2(pos,posY+textSize.y),
-          0xffffffff,
-          dpiScale
+          ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+          2.0f*dpiScale
         );
 
         for (int j=0; j<8; j++) {
@@ -1196,45 +1199,54 @@ void FurnaceGUI::drawPattern() {
           numPairs++;
           if (pos<posMin) posMin=pos;
           if (pos>posMax) posMax=pos;
-          dl->AddLine(
+          tdl->AddLine(
             ImVec2(pos,posY),
             ImVec2(pos,posY+textSize.y),
-            0xffffffff,
-            dpiScale
+            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+            2.0f*dpiScale
           );
         }
 
         posCenter/=numPairs;
 
         if (pairs.label==NULL) {
-          dl->AddLine(
+          tdl->AddLine(
             ImVec2(posMin,posY+textSize.y),
             ImVec2(posMax,posY+textSize.y),
-            0xffffffff,
-            dpiScale
+            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+            2.0f*dpiScale
           );
         } else {
-          dl->AddLine(
+          tdl->AddLine(
             ImVec2(posMin,posY+textSize.y),
-            ImVec2(posCenter-textSize.x*0.5,posY+textSize.y),
-            0xffffffff,
-            dpiScale
+            ImVec2(posCenter-textSize.x*0.5-6.0f*dpiScale,posY+textSize.y),
+            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+            2.0f*dpiScale
           );
-          dl->AddLine(
-            ImVec2(posCenter+textSize.x*0.5,posY+textSize.y),
+          tdl->AddLine(
+            ImVec2(posCenter+textSize.x*0.5+6.0f*dpiScale,posY+textSize.y),
             ImVec2(posMax,posY+textSize.y),
-            0xffffffff,
-            dpiScale
+            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+            2.0f*dpiScale
           );
 
-          dl->AddText(
+          ImGui::RenderFrame(
+            ImVec2(posCenter-textSize.x*0.5-6.0f*dpiScale,posY+textSize.y*0.5-3.0f*dpiScale),
+            ImVec2(posCenter+textSize.x*0.5+6.0f*dpiScale,posY+textSize.y*1.5+3.0f*dpiScale),
+            ImGui::GetColorU32(ImGuiCol_FrameBg),
+            true,
+            ImGui::GetStyle().FrameRounding
+          );
+
+          tdl->AddText(
             ImVec2(posCenter-textSize.x*0.5,posY+textSize.y*0.5),
-            0xffffffff,
+            ImGui::GetColorU32(ImGuiCol_Text),
             pairs.label
           );
         }
       }
     }
+    ImGui::PopFont();
 
     if (fancyPattern) { // visualizer
       e->getCommandStream(cmdStream);
