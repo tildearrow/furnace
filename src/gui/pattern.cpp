@@ -28,6 +28,17 @@
 #include "../utfutils.h"
 #include <fmt/printf.h>
 
+struct DelayedLabel {
+  float posCenter, posY;
+  ImVec2 textSize;
+  const char* label;
+  DelayedLabel(float pc, float py, ImVec2 ts, const char* l):
+    posCenter(pc),
+    posY(py),
+    textSize(ts),
+    label(l) {}
+};
+
 inline float randRange(float min, float max) {
   return min+((float)rand()/(float)RAND_MAX)*(max-min);
 }
@@ -1136,22 +1147,30 @@ void FurnaceGUI::drawPattern() {
         }
       }
       // HACK: rendering here would cause the pairs to be drawn behind the pattern for some reason...
+      // ...so we capture the table's window draw list...
       tdl=ImGui::GetWindowDrawList();
       ImGui::EndTable();
     }
 
+    // ...and then use it here
     ImGui::PushFont(mainFont);
     if (patChannelPairs && e->isRunning() && tdl!=NULL) { // pair hints
       float pos=0.0f;
       float posCenter=0.0f;
       float posMin=FLT_MAX;
       float posMax=-FLT_MAX;
-      float posY=chanHeadBottom;
       ImVec2 textSize;
+      unsigned int floors[4][4]; // bit array
+      std::vector<DelayedLabel> delayedLabels;
+
+      memset(floors,0,4*4*sizeof(unsigned int));
 
       for (int i=0; i<chans; i++) {
         bool isPaired=false;
         int numPairs=0;
+        unsigned int pairMin=i;
+        unsigned int pairMax=i;
+        unsigned char curFloor=0;
         if (!e->curSubSong->chanShow[i]) {
           continue;
         }
@@ -1164,10 +1183,33 @@ void FurnaceGUI::drawPattern() {
             continue;
           }
           isPaired=true;
-          break;
+          if ((unsigned int)pairCh<pairMin) pairMin=pairCh;
+          if ((unsigned int)pairCh>pairMax) pairMax=pairCh;
         }
 
         if (!isPaired) continue;
+
+        float posY=chanHeadBottom;
+
+        // find a free floor
+        while (curFloor<4) {
+          bool free=true;
+          for (unsigned int j=pairMin; j<=pairMax; j++) {
+            const unsigned int j0=j>>5;
+            const unsigned int j1=1U<<(j&31);
+            if (floors[curFloor][j0]&j1) {
+              free=false;
+              break;
+            }
+          }
+          if (free) break;
+          curFloor++;
+        }
+        if (curFloor<4) {
+          // occupy floor
+          floors[curFloor][pairMin>>5]|=1U<<(pairMin&31);
+          floors[curFloor][pairMax>>5]|=1U<<(pairMax&31);
+        }
 
         pos=(patChanX[i+1]+patChanX[i])*0.5;
         posCenter=pos;
@@ -1180,8 +1222,11 @@ void FurnaceGUI::drawPattern() {
         } else {
           textSize=ImGui::CalcTextSize(pairs.label);
         }
+
+        posY+=(textSize.y+ImGui::GetStyle().ItemSpacing.y)*curFloor;
+
         tdl->AddLine(
-          ImVec2(pos,posY),
+          ImVec2(pos,chanHeadBottom),
           ImVec2(pos,posY+textSize.y),
           ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
           2.0f*dpiScale
@@ -1200,7 +1245,7 @@ void FurnaceGUI::drawPattern() {
           if (pos<posMin) posMin=pos;
           if (pos>posMax) posMax=pos;
           tdl->AddLine(
-            ImVec2(pos,posY),
+            ImVec2(pos,chanHeadBottom),
             ImVec2(pos,posY+textSize.y),
             ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
             2.0f*dpiScale
@@ -1230,20 +1275,25 @@ void FurnaceGUI::drawPattern() {
             2.0f*dpiScale
           );
 
-          ImGui::RenderFrame(
-            ImVec2(posCenter-textSize.x*0.5-6.0f*dpiScale,posY+textSize.y*0.5-3.0f*dpiScale),
-            ImVec2(posCenter+textSize.x*0.5+6.0f*dpiScale,posY+textSize.y*1.5+3.0f*dpiScale),
-            ImGui::GetColorU32(ImGuiCol_FrameBg),
-            true,
-            ImGui::GetStyle().FrameRounding
-          );
-
-          tdl->AddText(
-            ImVec2(posCenter-textSize.x*0.5,posY+textSize.y*0.5),
-            ImGui::GetColorU32(ImGuiCol_Text),
-            pairs.label
-          );
+          delayedLabels.push_back(DelayedLabel(posCenter,posY,textSize,pairs.label));
         }
+      }
+
+      for (DelayedLabel& i: delayedLabels) {
+        ImGui::RenderFrameDrawList(
+          tdl,
+          ImVec2(i.posCenter-i.textSize.x*0.5-6.0f*dpiScale,i.posY+i.textSize.y*0.5-3.0f*dpiScale),
+          ImVec2(i.posCenter+i.textSize.x*0.5+6.0f*dpiScale,i.posY+i.textSize.y*1.5+3.0f*dpiScale),
+          ImGui::GetColorU32(ImGuiCol_FrameBg),
+          true,
+          ImGui::GetStyle().FrameRounding
+        );
+
+        tdl->AddText(
+          ImVec2(i.posCenter-i.textSize.x*0.5,i.posY+i.textSize.y*0.5),
+          ImGui::GetColorU32(ImGuiCol_Text),
+          i.label
+        );
       }
     }
     ImGui::PopFont();
