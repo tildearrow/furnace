@@ -133,6 +133,9 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       curIns=i;
       updateFMPreview=true;
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      if (ImGui::MenuItem("duplicate")) {
+        doAction(GUI_ACTION_INS_LIST_DUPLICATE);
+      }
       if (ImGui::MenuItem("replace...")) {
         doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
       }
