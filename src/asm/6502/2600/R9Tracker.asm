@@ -29,6 +29,11 @@ SCANLINES = 262
 #endif
 
 NUM_AUDIO_CHANNELS = 2
+COUNTER_BLOCK_HEIGHT = 6
+COUNTER_HEIGHT = COUNTER_BLOCK_HEIGHT + 3
+GRADIENT_FIELD_HEIGHT = 192 - (COUNTER_HEIGHT * 3)
+OVERSCAN_HEIGHT = 30
+VERTICAL_BANNER_POS = 130
 
 ; ----------------------------------
 ; variables
@@ -55,10 +60,9 @@ tmp_pattern_ptr     ds 2
 tmp_waveform_ptr    ds 2
 tmp_input           ds 1
 
-vis_song            ds 1
-vis_order           ds 1
-vis_row             ds 1
-
+vis_freq            ds 2
+vis_amp             ds 2
+vis_gradient        ds 16
 
 ; ----------------------------------
 ; code
@@ -167,22 +171,39 @@ audio_tracker_off
             stx AUDC1
             stx AUDV0
             stx AUDV1
+            stx vis_freq
+            stx vis_freq + 1
+            stx vis_amp
+            stx vis_amp + 1
 audio_end
 
 ;---------------------
 ; vis timing
 
-            lda audio_song
-            asl
-            asl
-            asl
-            sta vis_song
-            lda audio_song_order
-            asl
-            asl
-            sta vis_order
-            lda audio_row_idx
-            sta vis_row
+            lda #$F0
+            sec
+            ldx #15
+_vis_gradient_setup
+            sta vis_gradient,x
+            sbc #$10
+            dex
+            bpl _vis_gradient_setup
+
+            ldy audio_row_idx
+            lda (tmp_pattern_ptr),y
+            and #$0f
+            tax
+            lda #$ff
+            sta vis_gradient,x
+
+;---------------------
+; vertical banner position
+
+            ldx #1
+            lda #VERTICAL_BANNER_POS
+            jsr sub_respx
+            lda #RED
+            sta COLUP1
 
 ;---------------------
 ; end vblank
@@ -191,40 +212,105 @@ audio_end
             sta WSYNC ; SL 35
             lda #1
             sta CTRLPF ; reflect playfield
-            lda #255
-            sta COLUP0
-            lda #BLACK
+            lda #$f0
+            sta PF0
+            lda #0
             sta COLUBK
             sta COLUPF
-            lda #0
             sta GRP0
             lda #WHITE
             sta COLUP0
 
-            ldx #100
-header_loop
-            sta WSYNC
-            dex
-            bpl header_loop 
 
-            lda vis_song
-            jsr sub_display_counter
-            lda vis_order
-            jsr sub_display_counter
-            lda vis_row
-            jsr sub_display_counter
-   
-            ldx #100
+            lda #12
+vis_loop
+            tax
+            ldy #31
+gradient_loop
+            sta WSYNC               ;--
+            sty GRP1
+            SLEEP 14
+            tya
+            lsr
+            ora vis_gradient,x      ;4  23
+            sta COLUBK              ;3  29 
+            tya
+            lsr
+            ora vis_gradient + 1,x  ;4  23
+            sta COLUBK              ;3  29 
+            tya
+            lsr
+            ora vis_gradient + 2,x  ;4  23
+            sta COLUBK              ;3  29 
+            tya
+            lsr
+            ora vis_gradient + 3,x  ;4  23
+            sta COLUBK              ;3  29 
+            dey                     ;2  67
+            bpl gradient_loop
+            sta WSYNC
+            lda #0
+            sta COLUBK
+            txa
+            sec
+            sbc #4
+            bpl vis_loop
+
+            ; -
+            lda #0
+            sta CTRLPF
+            sta PF0
+            lda #WHITE
+            sta COLUPF
+            lda vis_freq
+            jsr sub_waveform
+            lda vis_freq + 1
+            jsr sub_waveform
+
+            lda #20
+            ldx #0
+            jsr sub_respx
+            ldx #1
+            lda #28
+            jsr sub_respx
+            lda #3
+            sta NUSIZ0
+            sta NUSIZ1
+            lda #1
+            sta VDELP0
+            sta VDELP1
+            ldx #6
+            sta WSYNC
+title_loop
+            lda TITLE_00,x
+            sta GRP0
+            lda TITLE_01,x
+            sta GRP1
+            lda TITLE_02,x
+            sta GRP0
+            lda TITLE_03,x
+            sta GRP1
+            lda TITLE_04,x
+            sta GRP0
+            lda TITLE_05,x
+            sta GRP1
+            sta GRP0
+            dex
+            bpl title_loop
+
+
+            ldx #GRADIENT_FIELD_HEIGHT - 128
 footer_loop
             sta WSYNC
             dex
-            bmi footer_loop  
+            bne footer_loop
+ 
 
 ;--------------------
 ; Overscan start
 
 waitOnOverscan
-            ldx #30
+            ldx #OVERSCAN_HEIGHT
 waitOnOverscan_loop
             sta WSYNC
             dex
@@ -280,40 +366,6 @@ sub_start_song
             sty audio_song_order
             rts
 
-sub_display_counter
-            sta WSYNC
-            ldx #WHITE              ;2    2
-            stx COLUBK              ;3    5
-            sec                     ;2   10
-._counter_resp_loop 
-            sbc #15                 ;2   12
-            bcs ._counter_resp_loop ;2/3 14
-            tay                     ;2   16
-            lda LOOKUP_STD_HMOVE,y  ;4   20
-            sta HMP0                ;3   23
-            sta RESP0               ;3   26
-            sta WSYNC
-            sta HMOVE
-            lda #BLACK
-            sta COLUBK
-            lda #$ff
-            sta GRP0
-            SLEEP 10 ; make safe for HMOVE            
-            lda #0
-            sta HMP0
-            ldx #6
-._counter_block_loop
-            sta WSYNC
-            dex
-            bpl ._counter_block_loop
-            lda #WHITE
-            sta COLUBK
-            lda #0 
-            sta GRP0
-            sta WSYNC
-            sta COLUBK
-            rts
-
 sub_r9_tracker
             ldx #NUM_AUDIO_CHANNELS - 1
 _audio_loop
@@ -346,12 +398,14 @@ _audio_next_note_ty
             bcc _set_cx_vx             ; if clear we are loading aud(c|v)x
             lsr                        ; pull duration bit for later set
             sta AUDF0,x                ; store frequency
+            sta vis_freq,x
             jmp _set_timer_delta       ; jump to duration 
 _set_cx_vx  bcc _set_vx
             sta AUDC0,x
             jmp _set_timer_delta       ; jump to duration
 _set_vx
             sta AUDV0,x
+            sta vis_amp,x
 _set_timer_delta
             lda #0
             adc #1
@@ -362,7 +416,8 @@ _set_registers
             pha                        ; save timer
             lsr
             lsr
-            sta AUDF0,x                
+            sta AUDF0,x
+            sta vis_freq,x
             iny
             pla                      
             and #$03
@@ -381,6 +436,7 @@ _set_timer_registers
             lda (tmp_waveform_ptr),y
             and #$0f
             sta AUDV0,x
+            sta vis_amp,x
 _audio_advance_waveform
             iny
             sty audio_waveform_idx,x
@@ -430,6 +486,62 @@ _audio_advance_order_advance_pattern
 _audio_end
             rts
 
+; sethorizpos-style respx loop, with x = 0,1 for player 0,1
+sub_respx
+            sta WSYNC           ;-- --
+            sec                 ;2   2
+_respx_loop
+            sbc #15             ;2   4
+            bcs _respx_loop     ;2   6
+            eor #7              ;2   8
+            asl                 ;2  10
+            asl                 ;2  12
+            asl                 ;2  14
+            asl                 ;2  16
+            sta HMP0,x          ;4  20 
+            sta RESP0,x         ;4  24
+            sta WSYNC
+            sta HMOVE
+            rts
+
+sub_waveform
+            lsr ; div frequency by 4 
+            lsr ; 
+            tax
+            ldy #$00
+            jsr sub_freq_slice
+            ldy #$ff
+            jsr sub_freq_slice
+            rts
+
+sub_freq_slice
+            sta WSYNC               ;-- --
+            lda #0                  ;2   2
+            sta PF0                 ;3   5
+            tya                     ;2   7
+            eor VIS_FREQ_PF1,x      ;4  11
+            sta PF1                 ;3  14
+            tya                     ;2  16
+            eor VIS_FREQ_PF2,x      ;4  20
+            sta PF2                 ;3  23
+            and #$0f                ;2  25
+            pha                     ;3  28
+            tya                     ;2  30
+            eor VIS_FREQ_PF0,x      ;4  34
+            sta PF0                 ;3  37
+            SLEEP 6                 ;6  43
+            pla                     ;4  47
+            sta PF2                 ;3  50
+            sta WSYNC               ;-- --
+            lda #0                  ;2   2
+            sta PF0                 ;3   5
+            sta PF1                 ;3  12
+            sta PF2                 ;3  19
+            rts
+            
+
+            
+
 
 ;-----------------------------------------------------------------------------------
 ; Audio Data 
@@ -445,11 +557,50 @@ AUDIO_TRACKS
 ;-----------------------------------------------------------------------------------
 ; Support Data and Macros
 
-LOOKUP_STD_HMOVE = STD_HMOVE_END - 256
-    ; standard lookup for hmoves
-STD_HMOVE_BEGIN
-    byte $80, $70, $60, $50, $40, $30, $20, $10, $00, $f0, $e0, $d0, $c0, $b0, $a0, $90
-STD_HMOVE_END
+SONG_TITLE
+TITLE_00
+    byte $0,$ae,$aa,$ec,$aa,$ee; 6
+TITLE_01
+    byte $0,$ec,$8a,$8a,$8a,$ec; 6
+TITLE_02
+    byte $0,$e8,$88,$cc,$88,$ee; 6
+TITLE_03
+    byte $0,$4e,$a4,$a4,$a4,$4c; 6
+TITLE_04
+    byte $0,$ec,$82,$66,$22,$cc; 6
+TITLE_05
+    byte $0,$2c,$22,$ec,$a8,$a6; 6
+
+VIS_FREQ_PF0
+    byte %10101010
+    byte %01010101
+    byte %00110011
+    byte %11001100
+  	byte %11100000
+    byte %00010000
+    byte %00000000
+    byte %11110000
+
+
+VIS_FREQ_PF1
+    byte %01010101
+    byte %10101010
+    byte %11001100
+    byte %00110011
+	  byte %10001110
+	  byte %01110001
+	  byte %01111100
+    byte %10000011
+
+VIS_FREQ_PF2
+    byte %10101010
+    byte %01010101
+    byte %00110011
+    byte %11001100
+	  byte %00011100
+	  byte %11100011
+	  byte %11111000
+    byte %00000111
 
 CHANNEL_COLORS
     byte RED, BLUE
