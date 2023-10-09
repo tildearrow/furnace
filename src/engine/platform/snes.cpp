@@ -703,6 +703,13 @@ unsigned short DivPlatformSNES::getPan(int ch) {
   return (chan[ch].panL<<8)|chan[ch].panR;
 }
 
+DivChannelPair DivPlatformSNES::getPaired(int ch) {
+  if (chan[ch].pitchMod) {
+    return DivChannelPair("mod",(ch-1)&7);
+  }
+  return DivChannelPair();
+}
+
 DivSamplePos DivPlatformSNES::getSamplePos(int ch) {
   if (ch>=8) return DivSamplePos();
   if (!chan[ch].active) return DivSamplePos();
