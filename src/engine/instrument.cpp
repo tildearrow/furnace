@@ -319,7 +319,7 @@ void DivInstrument::writeMacro(SafeWriter* w, const DivInstrumentMacro& m) {
   w->writeC(m.loop);
   w->writeC(m.rel);
   w->writeC(m.mode);
-  w->writeC(m.open|wordSize);
+  w->writeC((m.open&0x3f)|wordSize);
   w->writeC(m.delay);
   w->writeC(m.speed);
 
@@ -2024,7 +2024,7 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
     target->mode=reader.readC();
 
     unsigned char wordSize=reader.readC();
-    target->open=wordSize&7;
+    target->open=wordSize&15;
     wordSize>>=6;
 
     target->delay=reader.readC();

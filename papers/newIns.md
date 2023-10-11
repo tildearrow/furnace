@@ -251,6 +251,7 @@ size | description
      |   - 1: 8-bit signed
      |   - 2: 16-bit signed
      |   - 3: 32-bit signed
+     | - bit 3: instant release (>=182)
      | - bit 1-2: type
      |   - 0: normal
      |   - 1: ADSR

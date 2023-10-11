@@ -42,6 +42,7 @@ void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
   has=had=actualHad=will=true;
   mode=source.mode;
   type=(source.open>>1)&3;
+  activeRelease=source.open&8;
   linger=(source.macroType==DIV_MACRO_VOL && e->song.volMacroLinger);
   lfoPos=LFO_PHASE;
 }
@@ -57,6 +58,10 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
     return;
   }
   if (released && type==1 && lastPos<3) delay=0;
+  if (released && type==0 && pos<source.rel && source.rel<source.len && activeRelease) {
+    delay=0;
+    pos=source.rel;
+  }
   if (delay>0) {
     delay--;
     if (!linger) had=false;

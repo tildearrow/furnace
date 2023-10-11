@@ -1749,9 +1749,10 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 #define BUTTON_TO_SET_MODE(buttonType) \
   if (buttonType(macroTypeLabels[(i.macro->open>>1)&3])) { \
     unsigned char prevOpen=i.macro->open; \
-    i.macro->open+=2; \
-    if (i.macro->open>=6) { \
-      i.macro->open-=6; \
+    if (i.macro->open>=4) { \
+      i.macro->open&=(~6); \
+    } else { \
+      i.macro->open+=2; \
     } \
 \
     /* check whether macro type is now ADSR/LFO or sequence */ \
@@ -1819,6 +1820,20 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     ImGui::EndPopup(); \
   }
 
+#define BUTTON_TO_SET_RELEASE(buttonType) \
+  pushToggleColors(i.macro->open&8); \
+  if (buttonType(ICON_FA_BOLT "##IMacroRelMode")) { \
+    i.macro->open^=8; \
+  } \
+  if (ImGui::IsItemHovered()) { \
+    if (i.macro->open&8) { \
+      ImGui::SetTooltip("Release mode: Active (jump to release pos)"); \
+    } else { \
+      ImGui::SetTooltip("Release mode: Passive (delayed release)"); \
+    } \
+  } \
+  popToggleColors(); \
+
 void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state) {
   int index=0;
   float reservedSpace=(settings.oldMacroVSlider)?(20.0f*dpiScale+ImGui::GetStyle().ItemSpacing.x):ImGui::GetStyle().ScrollbarSize;
@@ -1881,6 +1896,10 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
             BUTTON_TO_SET_MODE(ImGui::Button);
             ImGui::SameLine();
             BUTTON_TO_SET_PROPS(i);
+            if ((i.macro->open&6)==0) {
+              ImGui::SameLine();
+              BUTTON_TO_SET_RELEASE(ImGui::Button);
+            }
             // do not change this!
             // anything other than a checkbox will look ugly!
             // if you really need more than two macro modes please tell me.
@@ -1962,6 +1981,10 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
               ImGui::SameLine();
             }
             BUTTON_TO_SET_PROPS(i);
+            if ((i.macro->open&6)==0) {
+              ImGui::SameLine();
+              BUTTON_TO_SET_RELEASE(ImGui::Button);
+            }
             if (i.modeName!=NULL) {
               bool modeVal=i.macro->mode;
               String modeName=fmt::sprintf("%s##IMacroMode",i.modeName);
@@ -2073,6 +2096,10 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
             {
               FurnaceGUIMacroDesc& i=m;
               BUTTON_TO_SET_MODE(ImGui::Button);
+              if ((i.macro->open&6)==0) {
+                ImGui::SameLine();
+                BUTTON_TO_SET_RELEASE(ImGui::Button);
+              }
             }
             if (m.modeName!=NULL) {
               bool modeVal=m.macro->mode;
