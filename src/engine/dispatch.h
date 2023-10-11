@@ -267,6 +267,29 @@ struct DivCommand {
     value2(0) {}
 };
 
+struct DivPitchTable {
+  int pitch[(12*128)+1];
+  unsigned char linearity, blockBits;
+  bool period;
+
+  // get pitch
+  int get(int base, int pitch, int pitch2);
+
+  // linear: note
+  // non-linear: get(note,0,0)
+  int getBase(int note);
+
+  // calculate pitch table
+  void init(float tuning, double clock, double divider, int octave, unsigned char linear, bool isPeriod, unsigned char block=0);
+
+  DivPitchTable():
+    linearity(2),
+    blockBits(0),
+    period(false) {
+    memset(pitch,0,sizeof(pitch));
+  }
+};
+
 struct DivDelayedCommand {
   int ticks;
   DivCommand cmd;
@@ -693,6 +716,11 @@ class DivDispatch {
     virtual void renderSamples(int sysID);
 
     /**
+     * tell this DivDispatch that the tuning and/or pitch linearity has changed, and therefore the pitch table must be regenerated.
+     */
+    virtual void notifyPitchTable();
+
+    /**
      * initialize this DivDispatch.
      * @param parent the parent DivEngine.
      * @param channels the number of channels to acquire.
@@ -718,6 +746,7 @@ class DivDispatch {
     if (chipClock<getClockRangeMin()) chipClock=getClockRangeMin(); \
   }
 
+// NOTE: these definitions may be deprecated in the future. see DivPitchTable.
 // pitch calculation:
 // - a DivDispatch usually contains four variables per channel:
 //   - baseFreq: this changes on new notes, legato, arpeggio and slides.

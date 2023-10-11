@@ -3364,7 +3364,7 @@ void FurnaceGUI::drawSettings() {
         // ok, so you decided to read the code.
         // these are the cheat codes:
         // "Debug" - toggles mobile UI
-        // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/SoundUnit/Dummy)
+        // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/Dummy)
         // "42 63" - enables all instrument types
         // "4-bit FDS" - enables partial pitch linearity option
         // "Power of the Chip" - enables options for multi-threaded audio
