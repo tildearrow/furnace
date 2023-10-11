@@ -24,6 +24,7 @@
 
 bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
+  bool mustRender=false;
   bool restart=modifyOnChange;
   bool supportsCustomRate=true;
 
@@ -896,18 +897,22 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::RadioButton("2MB (ECS/AGA max)",chipMem==21)) {
         chipMem=21;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton("1MB",chipMem==20)) {
         chipMem=20;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton("512KB (OCS max)",chipMem==19)) {
         chipMem=19;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton("256KB",chipMem==18)) {
         chipMem=18;
         altered=true;
+        mustRender=true;
       }
       ImGui::Unindent();
 
@@ -2181,6 +2186,35 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_C140: {
+      int bankType=flags.getInt("bankType",0);
+
+      ImGui::Text("Banking style:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("Namco System 2 (2MB)",bankType==0)) {
+        bankType=0;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton("Namco System 21 (4MB)",bankType==1)) {
+        bankType=1;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton("Raw (16MB; no VGM export!)",bankType==2)) {
+        bankType=2;
+        altered=true;
+        mustRender=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("bankType",bankType);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
@@ -2188,7 +2222,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_GA20:
     case DIV_SYSTEM_PV1000:
     case DIV_SYSTEM_VERA:
-    case DIV_SYSTEM_C140:
     case DIV_SYSTEM_C219:
       break;
     case DIV_SYSTEM_YMU759:
@@ -2241,7 +2274,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
   if (altered) {
     if (chan>=0) {
-      e->updateSysFlags(chan,restart);
+      e->updateSysFlags(chan,restart,mustRender);
       if (e->song.autoSystem) {
         autoDetectSystem();
       }

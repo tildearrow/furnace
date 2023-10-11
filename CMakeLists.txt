@@ -585,6 +585,7 @@ src/engine/filter.cpp
 src/engine/instrument.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp
+src/engine/pitchTable.cpp
 src/engine/playback.cpp
 src/engine/sample.cpp
 src/engine/song.cpp

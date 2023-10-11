@@ -3212,10 +3212,11 @@ void DivEngine::setOrder(unsigned char order) {
   BUSY_END;
 }
 
-void DivEngine::updateSysFlags(int system, bool restart) {
+void DivEngine::updateSysFlags(int system, bool restart, bool render) {
   BUSY_BEGIN_SOFT;
   disCont[system].dispatch->setFlags(song.systemFlags[system]);
   disCont[system].setRates(got.rate);
+  if (render) renderSamples();
 
   // patchbay
   if (song.patchbayAuto) {

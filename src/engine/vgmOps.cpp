@@ -1834,6 +1834,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           CHIP_VOL(40,1.0);
           willExport[i]=true;
           writeC140[0]=disCont[i].dispatch;
+          c140Type=(song.systemFlags[i].getInt("bankType",0)==1)?1:0;
         } else if (!(hasC140&0x40000000)) {
           isSecond[i]=true;
           CHIP_VOL_SECOND(40,1.0);

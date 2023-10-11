@@ -996,7 +996,7 @@ class DivEngine {
     void setOrder(unsigned char order);
 
     // update system flags
-    void updateSysFlags(int system, bool restart);
+    void updateSysFlags(int system, bool restart, bool render);
 
     // set Hz
     void setSongRate(float hz);
