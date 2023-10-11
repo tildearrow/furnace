@@ -352,9 +352,9 @@ void c140_write(struct c140_t *c140, const unsigned short addr, const unsigned c
 			case 0x3: voice->freq = (voice->freq & ~0x00ff) | data; break;
 			case 0x4: { // TILDEARROW
         if (c140->bank_type == 0) {
-          voice->bank = ((data&0x20)>>2)|data&7;
+          voice->bank = ((data&0x20)>>2)|(data&7);
         } else if (c140->bank_type == 1) {
-          voice->bank = ((data&0x30)>>1)|data&7;
+          voice->bank = ((data&0x30)>>1)|(data&7);
         } else {
           voice->bank = data;
         }
