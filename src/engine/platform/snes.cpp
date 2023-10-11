@@ -472,7 +472,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_SNES_INVERT:
       chan[c.chan].invertL=(c.value>>4);
-      chan[c.chan].invertR=c.chan&15;
+      chan[c.chan].invertR=c.value&15;
       chan[c.chan].shallWriteVol=true;
       break;
     case DIV_CMD_SNES_GAIN_MODE:
