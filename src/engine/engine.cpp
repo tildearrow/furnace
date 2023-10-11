@@ -545,6 +545,7 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   
   // extra attributes
   song.subsong[0]->hz=c.getDouble("tickRate",60.0);
+  song.author=getConfString("defaultAuthorName","");
 }
 
 void DivEngine::createNew(const char* description, String sysName, bool inBase64) {

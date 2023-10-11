@@ -1618,6 +1618,7 @@ class FurnaceGUI {
     String emptyLabel;
     String emptyLabel2;
     String sdlAudioDriver;
+    String defaultAuthorName;
     DivConfig initialSys;
 
     Settings():
@@ -1800,7 +1801,8 @@ class FurnaceGUI {
       macroRelLabel("REL"),
       emptyLabel("..."),
       emptyLabel2(".."),
-      sdlAudioDriver("") {}
+      sdlAudioDriver(""),
+      defaultAuthorName("") {}
   } settings;
 
   struct Tutorial {
