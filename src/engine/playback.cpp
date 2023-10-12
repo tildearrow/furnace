@@ -1608,7 +1608,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       }
       if (totalTicks>=1000000) {
         totalTicks-=1000000;
-        totalSeconds++;
+        if (totalSeconds<0x7fffffff) totalSeconds++;
         cmdsPerSecond=totalCmds-lastCmds;
         lastCmds=totalCmds;
       }

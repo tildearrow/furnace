@@ -4412,7 +4412,43 @@ bool FurnaceGUI::loop() {
           info+=fmt::sprintf("| Row %d/%d ",oldRow,e->curSubSong->patLen);
         }
 
-        info+=fmt::sprintf("| %d:%.2d:%.2d.%.2d",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+        info+="| ";
+
+        if (totalSeconds==0x7fffffff) {
+          info+="Don't you have anything better to do?";
+        } else {
+          if (totalSeconds>=86400) {
+            int totalDays=totalSeconds/86400;
+            int totalYears=totalDays/365;
+            totalDays%=365;
+            int totalMonths=totalDays/30;
+            totalDays%=30;
+
+            if (totalYears>1) {
+              info+=fmt::sprintf("%d years ",totalYears);
+            } else if (totalYears) {
+              info+=fmt::sprintf("%d year ",totalYears);
+            }
+
+            if (totalMonths>1) {
+              info+=fmt::sprintf("%d months ",totalMonths);
+            } else if (totalMonths) {
+              info+=fmt::sprintf("%d month ",totalMonths);
+            }
+
+            if (totalDays>1) {
+              info+=fmt::sprintf("%d days ",totalDays);
+            } else {
+              info+=fmt::sprintf("%d day ",totalDays);
+            }
+          }
+
+          if (totalSeconds>=3600) {
+            info+=fmt::sprintf("%.2d:",(totalSeconds/3600)%24);
+          }
+
+          info+=fmt::sprintf("%.2d:%.2d.%.2d",(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+        }
 
         ImGui::TextUnformatted(info.c_str());
       } else {
