@@ -89,6 +89,7 @@ void DivEngine::runExportThread() {
             if (lastLoopPos>-1 && i>=lastLoopPos && totalLoops>=exportLoopCount) {
               logD("start fading out...");
               isFadingOut=true;
+              if (fadeOutSamples==0) break;
             }
           }
         }
@@ -197,6 +198,7 @@ void DivEngine::runExportThread() {
             if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
               logD("start fading out...");
               isFadingOut=true;
+              if (fadeOutSamples==0) break;
             }
           }
         }
@@ -239,7 +241,6 @@ void DivEngine::runExportThread() {
       outBuf[0]=new float[EXPORT_BUFSIZE];
       outBuf[1]=new float[EXPORT_BUFSIZE];
       outBuf[2]=new float[EXPORT_BUFSIZE*2];
-      int loopCount=remainingLoops;
 
       logI("rendering to files...");
       
@@ -281,11 +282,7 @@ void DivEngine::runExportThread() {
         lastLoopPos=-1;
         totalLoops=0;
         isFadingOut=false;
-        if (exportFadeOut<=0.01) {
-          remainingLoops=loopCount;
-        } else {
-          remainingLoops=-1;
-        }
+        remainingLoops=-1;
         playSub(false);
 
         while (playing) {
@@ -311,6 +308,7 @@ void DivEngine::runExportThread() {
               if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
                 logD("start fading out...");
                 isFadingOut=true;
+                if (fadeOutSamples==0) break;
               }
             }
           }
@@ -399,11 +397,7 @@ bool DivEngine::saveAudio(const char* path, int loops, DivAudioExportModes mode,
   stop();
   repeatPattern=false;
   setOrder(0);
-  if (exportFadeOut<=0.01) {
-    remainingLoops=loops;
-  } else {
-    remainingLoops=-1;
-  }
+  remainingLoops=-1;
 
   if (shallSwitchCores()) {
     bool isMutedBefore[DIV_MAX_CHANS];
