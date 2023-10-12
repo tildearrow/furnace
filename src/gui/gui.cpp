@@ -4984,6 +4984,7 @@ bool FurnaceGUI::loop() {
                     e->renderSamples();
                     MARK_MODIFIED;
                   });
+                  updateSampleTex=true;
                 } else {
                   showError("...but you haven't selected a sample!");
                   delete s;
@@ -5978,6 +5979,7 @@ bool FurnaceGUI::loop() {
                 e->renderSamples();
                 MARK_MODIFIED;
               });
+              updateSampleTex=true;
             } else {
               showError("...but you haven't selected a sample!");
               delete s;
