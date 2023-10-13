@@ -719,6 +719,21 @@ void DivInstrument::writeFeatureX1(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureNE(SafeWriter* w) {
+  FEATURE_BEGIN("NE");
+
+  w->writeC(amiga.useNoteMap?1:0);
+
+  if (amiga.useNoteMap) {
+    for (int note=0; note<120; note++) {
+      w->writeC(amiga.noteMap[note].dpcmFreq);
+      w->writeC(amiga.noteMap[note].dpcmDelta);
+    }
+  }
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -761,6 +776,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureSU=false;
   bool featureES=false;
   bool featureX1=false;
+  bool featureNE=false;
 
   bool checkForWL=false;
 
@@ -904,6 +920,8 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureFM=true;
         break;
       case DIV_INS_NES:
+        featureSM=true;
+        featureNE=true;
         break;
       case DIV_INS_MSM6258:
         featureSM=true;
@@ -993,6 +1011,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (amiga!=defaultIns.amiga) {
       featureSM=true;
+      featureNE=true;
     }
     if (snes!=defaultIns.snes) {
       featureSN=true;
@@ -1156,6 +1175,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureX1) {
     writeFeatureX1(w);
+  }
+  if (featureNE) {
+    writeFeatureNE(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -2541,6 +2563,21 @@ void DivInstrument::readFeatureX1(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureNE(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  amiga.useNoteMap=reader.readC();
+
+  if (amiga.useNoteMap) {
+    for (int note=0; note<120; note++) {
+      amiga.noteMap[note].dpcmFreq=reader.readC();
+      amiga.noteMap[note].dpcmDelta=reader.readC();
+    }
+  }
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
 
@@ -2606,6 +2643,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureES(reader,version);
     } else if (memcmp(featCode,"X1",2)==0) { // X1-010
       readFeatureX1(reader,version);
+    } else if (memcmp(featCode,"NE",2)==0) { // NES (DPCM)
+      readFeatureNE(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing

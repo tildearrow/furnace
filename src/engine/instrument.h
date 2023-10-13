@@ -452,9 +452,13 @@ struct DivInstrumentAmiga {
   struct SampleMap {
     int freq;
     short map;
-    SampleMap(int f=0, short m=-1):
+    signed char dpcmFreq;
+    signed char dpcmDelta;
+    SampleMap(int f=0, short m=-1, signed char df=15, signed char dd=-1):
       freq(f),
-      map(m) {}
+      map(m),
+      dpcmFreq(df),
+      dpcmDelta(dd) {}
   };
   short initSample;
   bool useNoteMap;
@@ -759,6 +763,7 @@ struct DivInstrument {
   void writeFeatureSU(SafeWriter* w);
   void writeFeatureES(SafeWriter* w);
   void writeFeatureX1(SafeWriter* w);
+  void writeFeatureNE(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -778,6 +783,7 @@ struct DivInstrument {
   void readFeatureSU(SafeReader& reader, short version);
   void readFeatureES(SafeReader& reader, short version);
   void readFeatureX1(SafeReader& reader, short version);
+  void readFeatureNE(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
