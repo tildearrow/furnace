@@ -4926,8 +4926,7 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Don't test before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_PCE ||
-            ins->type==DIV_INS_MSM6258 ||
+        if (ins->type==DIV_INS_MSM6258 ||
             ins->type==DIV_INS_MSM6295 ||
             ins->type==DIV_INS_ADPCMA ||
             ins->type==DIV_INS_ADPCMB ||
@@ -4937,12 +4936,6 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_RF5C68 ||
             ins->type==DIV_INS_AMIGA ||
             ins->type==DIV_INS_MULTIPCM ||
-            ins->type==DIV_INS_MIKEY ||
-            ins->type==DIV_INS_X1_010 ||
-            ins->type==DIV_INS_SWAN ||
-            ins->type==DIV_INS_AY ||
-            ins->type==DIV_INS_AY8930 ||
-            ins->type==DIV_INS_VRC6 ||
             ins->type==DIV_INS_SU ||
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_ES5506 ||
@@ -6192,7 +6185,14 @@ void FurnaceGUI::drawInsEdit() {
           drawMacros(macroList,macroEditStateMacros);
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_NES) {
+        if (ins->type==DIV_INS_NES ||
+            ins->type==DIV_INS_AY ||
+            ins->type==DIV_INS_AY8930 ||
+            ins->type==DIV_INS_MIKEY ||
+            ins->type==DIV_INS_PCE ||
+            ins->type==DIV_INS_X1_010 ||
+            ins->type==DIV_INS_SWAN ||
+            ins->type==DIV_INS_VRC6) {
           insTabSample(ins);
         }
         ImGui::EndTabBar();
