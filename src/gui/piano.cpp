@@ -420,7 +420,7 @@ void FurnaceGUI::drawPiano() {
                   break;
                 default:
                   if (sampleMapWaitingInput) {
-                    alterSampleMap(true,note);
+                    alterSampleMap(1,note);
                   } else {
                     e->synchronized([this,note]() {
                       e->autoNoteOn(-1,curIns,note);

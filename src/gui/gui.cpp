@@ -1400,36 +1400,69 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   }
 
   if (sampleMapWaitingInput) {
-    if (sampleMapColumn==1) {
-      // TODO: map?
-      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-        alterSampleMap(true,-1);
-        return;
-      }
-      auto it=noteKeys.find(ev.key.keysym.scancode);
-      if (it!=noteKeys.cend()) {
-        int key=it->second;
-        int num=12*curOctave+key;
-
-        if (num<-60) num=-60; // C-(-5)
-        if (num>119) num=119; // B-9
-
-        alterSampleMap(true,num);
-        return;
-      }
-    } else {
-      // TODO: map?
-      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-        alterSampleMap(false,-1);
-        return;
-      }
-      auto it=valueKeys.find(ev.key.keysym.sym);
-      if (it!=valueKeys.cend()) {
-        int num=it->second;
-        if (num<10) {
-          alterSampleMap(false,num);
+    switch (sampleMapColumn) {
+      case 0: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(0,-1);
           return;
         }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<10) {
+            alterSampleMap(0,num);
+            return;
+          }
+        }
+        break;
+      }
+      case 1: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(1,-1);
+          return;
+        }
+        auto it=noteKeys.find(ev.key.keysym.scancode);
+        if (it!=noteKeys.cend()) {
+          int key=it->second;
+          int num=12*curOctave+key;
+
+          if (num<-60) num=-60; // C-(-5)
+          if (num>119) num=119; // B-9
+
+          alterSampleMap(1,num);
+          return;
+        }
+        break;
+      }
+      case 2: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(2,-1);
+          return;
+        }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<10) {
+            alterSampleMap(2,num);
+            return;
+          }
+        }
+        break;
+      }
+      case 3: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(3,-1);
+          return;
+        }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<16) {
+            alterSampleMap(3,num);
+            return;
+          }
+        }
+        break;
       }
     }
   }

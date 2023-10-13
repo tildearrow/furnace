@@ -2258,7 +2258,7 @@ class FurnaceGUI {
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
-  void alterSampleMap(bool isNote, int val);
+  void alterSampleMap(int column, int val);
 
   void insTabSample(DivInstrument* ins);
 
