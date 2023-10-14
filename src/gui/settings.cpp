@@ -438,6 +438,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetTooltip("it is a bad idea to set this number higher than your CPU core count (%d)!",cpuCores);
           }
         }
+        if (ImGui::InputText("Default author name", &settings.defaultAuthorName)) settingsChanged=true;
         popWarningColor();
 
         // SUBSECTION FILE
@@ -3648,6 +3649,7 @@ void FurnaceGUI::syncSettings() {
   settings.showPool=e->getConfInt("showPool",0);
   settings.writeInsNames=e->getConfInt("writeInsNames",1);
   settings.readInsNames=e->getConfInt("readInsNames",1);
+  settings.defaultAuthorName=e->getConfString("defaultAuthorName","");
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -4066,6 +4068,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("showPool",settings.showPool);
   e->setConf("writeInsNames",settings.writeInsNames);
   e->setConf("readInsNames",settings.readInsNames);
+  e->setConf("defaultAuthorName",settings.defaultAuthorName);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
