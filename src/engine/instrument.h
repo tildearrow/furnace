@@ -486,8 +486,8 @@ struct DivInstrumentAmiga {
   }
 
   /**
-   * get the sample frequency at specified note.
-   * @return the frequency, or -1 if not using note map.
+   * get the sample playback note at specified note.
+   * @return the note, or -1 if not using note map.
    */
   inline int getFreq(int note) {
     if (useNoteMap) {
@@ -496,6 +496,32 @@ struct DivInstrumentAmiga {
       return noteMap[note].freq;
     }
     return note;
+  }
+
+  /**
+   * get the DPCM pitch at specified note.
+   * @return the pitch, or -1 if not using note map.
+   */
+  inline signed char getDPCMFreq(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteMap[note].dpcmFreq;
+    }
+    return -1;
+  }
+
+  /**
+   * get the DPCM delta counter value at specified note.
+   * @return the delta counter value, or -1 if not using note map.
+   */
+  inline signed char getDPCMDelta(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteMap[note].dpcmDelta;
+    }
+    return -1;
   }
 
   DivInstrumentAmiga():

@@ -2313,6 +2313,16 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
   if (ins->type==DIV_INS_SU) sampleTabName="Sound Unit";
   if (ins->type==DIV_INS_NES) sampleTabName="DPCM";
   if (ImGui::BeginTabItem(sampleTabName)) {
+    if (ins->type==DIV_INS_NES && e->song.oldDPCM) {
+      ImGui::Text("new DPCM features disabled (compatibility)!");
+      if (ImGui::Button("click here to enable them.")) {
+        e->song.oldDPCM=false;
+        MARK_MODIFIED;
+      }
+      ImGui::EndTabItem();
+      return;
+    }
+
     String sName;
     bool wannaOpenSMPopup=false;
     if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
@@ -2401,7 +2411,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ImGui::Text("#");
         if (ins->type==DIV_INS_NES) {
           ImGui::TableNextColumn();
-          ImGui::Text("freq");
+          ImGui::Text("pitch");
           ImGui::TableNextColumn();
           ImGui::Text("delta");
         } else {
@@ -2674,9 +2684,21 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
     if (ImGui::BeginPopup("SampleMapUtils",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
       if (sampleMapSelStart==sampleMapSelEnd && sampleMapSelStart>=0 && sampleMapSelStart<120) {
         if (ins->type==DIV_INS_NES) {
-          if (ImGui::MenuItem("set entire map to this frequency")) {
+          if (ImGui::MenuItem("set entire map to this pitch")) {
+            if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
+              for (int i=0; i<120; i++) {
+                if (i==sampleMapSelStart) continue;
+                ins->amiga.noteMap[i].dpcmFreq=ins->amiga.noteMap[sampleMapSelStart].dpcmFreq;
+              }
+            }
           }
           if (ImGui::MenuItem("set entire map to this delta counter value")) {
+            if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
+              for (int i=0; i<120; i++) {
+                if (i==sampleMapSelStart) continue;
+                ins->amiga.noteMap[i].dpcmDelta=ins->amiga.noteMap[sampleMapSelStart].dpcmDelta;
+              }
+            }
           }
         } else {
           if (ImGui::MenuItem("set entire map to this note")) {
@@ -2698,9 +2720,15 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         }
       }
       if (ins->type==DIV_INS_NES) {
-        if (ImGui::MenuItem("clear frequencies")) {
+        if (ImGui::MenuItem("reset pitches")) {
+          for (int i=0; i<120; i++) {
+            ins->amiga.noteMap[i].dpcmFreq=15;
+          }
         }
         if (ImGui::MenuItem("clear delta counter values")) {
+          for (int i=0; i<120; i++) {
+            ins->amiga.noteMap[i].dpcmDelta=-1;
+          }
         }
       } else {
         if (ImGui::MenuItem("reset notes")) {
