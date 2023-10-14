@@ -1371,6 +1371,9 @@ DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
       case DIV_INS_OPL_DRUMS:
         return &song.nullInsOPLDrums;
         break;
+      case DIV_INS_ESFM:
+        return &song.nullInsESFM;
+        break;
       default:
         break;
     }
@@ -2327,6 +2330,9 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
       break;
     case DIV_INS_OPL_DRUMS:
       *ins=song.nullInsOPLDrums;
+      break;
+    case DIV_INS_ESFM:
+      *ins=song.nullInsESFM;
       break;
     default:
       break;

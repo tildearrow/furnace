@@ -22,6 +22,7 @@
 #include "../../extern/opn/ym3438.h"
 #include "../../extern/opm/opm.h"
 #include "../../extern/opl/opl3.h"
+#include "../../extern/ESFMu/esfm.h"
 extern "C" {
 #include "../../extern/Nuked-OPLL/opll.h"
 }
@@ -337,6 +338,60 @@ void FurnaceGUI::renderFMPreviewOPZ(const DivInstrumentFM& params, int pos) {
   }
 }
 
+#define ESFM_WRITE(addr,val) \
+  ESFM_write_reg_buffered_fast((esfm_chip*)fmPreviewESFM,(addr),(val))
+
+void FurnaceGUI::renderFMPreviewESFM(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, int pos) {
+  if (fmPreviewESFM==NULL) {
+    fmPreviewESFM=new esfm_chip;
+    pos=0;
+  }
+  short out[4];
+  bool mult0=false;
+
+  if (pos==0) {
+    ESFM_init((esfm_chip*)fmPreviewESFM);
+    // set native mode
+    ESFM_WRITE(0x105, 0x80);
+
+    // set params
+    for (int i=0; i<4; i++) {
+      if ((params.op[i].mult&15)==0) {
+        mult0=true;
+        break;
+      }
+    }
+
+    for (int i=0; i<4; i++) {
+      const DivInstrumentFM::Operator& op=params.op[i];
+      const DivInstrumentESFM::Operator& opE=esfmParams.op[i];
+      unsigned short baseAddr=i*8;
+
+      ESFM_WRITE(baseAddr+0,(op.am<<7)|((op.vib&1)<<6)|((op.sus&1)<<5)|((op.ksr&1)<<4)|(op.mult&0x0f));
+      ESFM_WRITE(baseAddr+1,(op.ksl<<6)|(op.tl&0x3f));
+      ESFM_WRITE(baseAddr+2,(op.ar<<4)|(op.dr&0x0f));
+      ESFM_WRITE(baseAddr+3,(op.sl<<4)|(op.rr&0x0f));
+
+      // TODO: implement ct/dt detune... how will we do that?
+      ESFM_WRITE(baseAddr+4,0);
+      ESFM_WRITE(baseAddr+5,(opE.delay<<5)|(mult0?0x0a:0x06));
+
+      ESFM_WRITE(baseAddr+6,(op.dam<<7)|((op.dvb&1)<<6)|((opE.right&1)<<5)|((opE.left&1)<<4)|((opE.modIn&7)<<1));
+      ESFM_WRITE(baseAddr+7,(opE.outLvl<<5)|((i==3?esfmParams.noise:0)<<3)|(op.ws&7));
+    }
+  }
+
+  // note on
+  ESFM_WRITE(0x240, 1);
+
+  // render
+  for (int i=0; i<FM_PREVIEW_SIZE; i++) {
+    ESFM_generate((esfm_chip*)fmPreviewESFM,out);
+    ESFM_generate((esfm_chip*)fmPreviewESFM,out);
+    fmPreview[i]=CLAMP(out[0]+out[1],-32768,32767);
+  }
+}
+
 void FurnaceGUI::renderFMPreview(const DivInstrument* ins, int pos) {
   switch (ins->type) {
     case DIV_INS_FM:
@@ -354,6 +409,8 @@ void FurnaceGUI::renderFMPreview(const DivInstrument* ins, int pos) {
     case DIV_INS_OPZ:
       renderFMPreviewOPZ(ins->fm,pos);
       break;
+    case DIV_INS_ESFM:
+      renderFMPreviewESFM(ins->fm,ins->esfm,pos);
     default:
       break;
   }

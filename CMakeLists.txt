@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+
 if (APPLE)
   set(MACOSX_DEPLOYMENT_TARGET 10.9)
 endif()
@@ -454,6 +456,8 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+extern/ESFMu/esfm.c
+extern/ESFMu/esfm_registers.c
 
 src/pch.cpp
 
@@ -660,6 +664,7 @@ src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
 src/engine/platform/c140.cpp
+src/engine/platform/esfm.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 

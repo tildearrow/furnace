@@ -1917,6 +1917,18 @@ void DivEngine::registerSystems() {
       {0x12, {DIV_CMD_SNES_INVERT, "12xy: Set invert mode (x: surround; y: invert)"}},
     }
   );
+  
+  // TODO: ask Tilde to standardize!
+  sysDefs[DIV_SYSTEM_ESFM]=new DivSysDef(
+    "ESFM (TODO: gimme a better name)", NULL, 0xd0, 0, 18, true, false, 0, false, 0,
+    "TODO: give ESFM the beautiful description it deserves",
+    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "FM 10", "FM 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18"},
+    {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"},
+    {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
+    {DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM},
+    {},
+    {}
+  );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0,

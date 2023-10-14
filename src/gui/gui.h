@@ -258,6 +258,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_TED,
   GUI_COLOR_INSTR_C140,
   GUI_COLOR_INSTR_C219,
+  GUI_COLOR_INSTR_ESFM,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1379,6 +1380,7 @@ class FurnaceGUI {
   void* fmPreviewOPLL;
   void* fmPreviewOPZ;
   void* fmPreviewOPZInterface;
+  void* fmPreviewESFM;
   String* editString;
   SDL_Event userEvent;
 
@@ -2218,6 +2220,7 @@ class FurnaceGUI {
   void renderFMPreviewOPLL(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewOPL(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewOPZ(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreviewESFM(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, int pos=0);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);

@@ -82,6 +82,7 @@
 #include "platform/ted.h"
 #include "platform/c140.h"
 #include "platform/pcmdac.h"
+#include "platform/esfm.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -595,6 +596,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;
+      break;
+    case DIV_SYSTEM_ESFM:
+      dispatch=new DivPlatformESFM;
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;
