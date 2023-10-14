@@ -438,7 +438,6 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetTooltip("it is a bad idea to set this number higher than your CPU core count (%d)!",cpuCores);
           }
         }
-        if (ImGui::InputText("Default author name", &settings.defaultAuthorName)) settingsChanged=true;
         popWarningColor();
 
         // SUBSECTION FILE
@@ -762,6 +761,7 @@ void FurnaceGUI::drawSettings() {
           settings.newSongBehavior=1;
           settingsChanged=true;
         }
+        if (ImGui::InputText("Default author name", &settings.defaultAuthorName)) settingsChanged=true;
         ImGui::Unindent();
 
         // SUBSECTION START-UP
