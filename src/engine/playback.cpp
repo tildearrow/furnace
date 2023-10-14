@@ -1070,6 +1070,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
       } else if (!chan[i].noteOnInhibit) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
         chan[i].releasing=false;
+        if (song.resetArpPhaseOnNewNote) {
+           chan[i].arpStage=-1;
+        }
         chan[i].goneThroughNote=true;
         chan[i].wentThroughNote=true;
         keyHit[i]=true;

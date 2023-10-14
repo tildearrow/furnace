@@ -1860,6 +1860,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<183) {
       ds.oldDPCM=true;
     }
+    if (ds.version<184) {
+      ds.resetArpPhaseOnNewNote=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2383,7 +2386,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<4; i++) {
+      if (ds.version>=184) {
+        ds.resetArpPhaseOnNewNote=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<3; i++) {
         reader.readC();
       }
     }
@@ -5448,7 +5456,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
   w->writeC(song.brokenFMOff);
   w->writeC(song.preNoteNoEffect);
   w->writeC(song.oldDPCM);
-  for (int i=0; i<4; i++) {
+  w->writeC(song.resetArpPhaseOnNewNote);
+  for (int i=0; i<3; i++) {
     w->writeC(0);
   }
 
