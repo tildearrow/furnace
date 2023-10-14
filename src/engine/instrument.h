@@ -802,58 +802,6 @@ struct DivInstrumentESFM {
       op[3].outLvl=7;
     }
 
-#if 0
-  void syncFrom(DivInstrumentFM &other) {
-    for (int i=0; i<4; i++) {
-      this->op[i].am=other.op[i].am;
-      this->op[i].dam=other.op[i].dam;
-      this->op[i].ar=other.op[i].ar;
-      this->op[i].dr=other.op[i].dr;
-      this->op[i].mult=other.op[i].mult;
-      this->op[i].rr=other.op[i].rr;
-      this->op[i].sl=other.op[i].sl;
-      this->op[i].tl=other.op[i].tl;
-      this->op[i].ssgEnv=other.op[i].ssgEnv;
-      this->op[i].ksl=other.op[i].ksl;
-      this->op[i].vib=other.op[i].vib;
-      this->op[i].dvb=other.op[i].dvb;
-      this->op[i].ws=other.op[i].ws;
-      this->op[i].ksr=other.op[i].ksr;
-      this->op[i].ct=0;
-      // from dtTable at fmsharedbase.h
-      if (other.op[i].dt>=7){
-        // trap out of range dt values
-        // TODO: check if any systems legitimately use dt values higher than 7
-        this->op[i].dt=0;
-      } else {
-        this->op[i].dt=other.op[i].dt - 3;
-      }
-    }
-  }
-  
-  void syncTo(DivInstrumentFM &other) {
-    for (int i=0; i<4; i++) {
-      other.op[i].am=this->op[i].am;
-      other.op[i].dam=this->op[i].dam;
-      other.op[i].ar=this->op[i].ar;
-      other.op[i].dr=this->op[i].dr;
-      other.op[i].mult=this->op[i].mult;
-      other.op[i].rr=this->op[i].rr;
-      other.op[i].sl=this->op[i].sl;
-      other.op[i].tl=this->op[i].tl;
-      other.op[i].ssgEnv=this->op[i].ssgEnv;
-      other.op[i].ksl=this->op[i].ksl;
-      other.op[i].vib=this->op[i].vib;
-      other.op[i].dvb=this->op[i].dvb;
-      other.op[i].ws=this->op[i].ws;
-      other.op[i].ksr=this->op[i].ksr;
-      // dt field conversion is unfortunately lossy, as the dt field on DivInstrumentFM
-      // spans from 0..6 (eff. -3..3), while on DivInstrumentESFM it spans from -128..127.
-      other.op[i].dt=CLAMP(this->op[i].dt, -3, 3) + 3;
-    }
-  }
-#endif
-
 };
 
 struct DivInstrument {
@@ -873,7 +821,6 @@ struct DivInstrument {
   DivInstrumentES5506 es5506;
   DivInstrumentSNES snes;
   DivInstrumentESFM esfm;
-  // TODO I only added the esfm member here, still need to implement everything else related
 
   /**
    * these are internal functions.
