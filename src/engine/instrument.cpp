@@ -922,6 +922,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
       case DIV_INS_NES:
         featureSM=true;
         featureNE=true;
+        featureSL=true;
         break;
       case DIV_INS_MSM6258:
         featureSM=true;
@@ -2438,7 +2439,7 @@ void DivInstrument::readFeatureSL(SafeReader& reader, DivSong* song, short versi
     }
   }
 
-  reader.seek(lastSeek,SEEK_CUR);
+  reader.seek(lastSeek,SEEK_SET);
 
   // re-map samples
   if (amiga.initSample>=0 && amiga.initSample<256) {
@@ -2497,7 +2498,7 @@ void DivInstrument::readFeatureWL(SafeReader& reader, DivSong* song, short versi
     }
   }
 
-  reader.seek(lastSeek,SEEK_CUR);
+  reader.seek(lastSeek,SEEK_SET);
 
   // re-map wavetables
   if (ws.enabled) {
