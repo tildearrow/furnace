@@ -2496,9 +2496,9 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
             ImGui::AlignTextToFramePadding();
             ImGui::SetNextItemWidth(ImGui::CalcTextSize("0000").x);
             if (sampleMap.dpcmFreq<0) {
-              sName=fmt::sprintf("--##SD1%d",i);
+              sName=fmt::sprintf(" -- ##SD1%d",i);
             } else {
-              sName=fmt::sprintf("%2d##SD1%d",sampleMap.dpcmFreq,i);
+              sName=fmt::sprintf(" %2d ##SD1%d",sampleMap.dpcmFreq,i);
             }
             ImGui::Selectable(sName.c_str(),(sampleMapWaitingInput && sampleMapColumn==2 && i>=sampleMapMin && i<=sampleMapMax));
 
@@ -2550,9 +2550,9 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
             ImGui::AlignTextToFramePadding();
             ImGui::SetNextItemWidth(ImGui::CalcTextSize("0000").x);
             if (sampleMap.dpcmDelta<0) {
-              sName=fmt::sprintf("--##SD2%d",i);
+              sName=fmt::sprintf(" -- ##SD2%d",i);
             } else {
-              sName=fmt::sprintf("%2X##SD2%d",sampleMap.dpcmDelta,i);
+              sName=fmt::sprintf(" %2X ##SD2%d",sampleMap.dpcmDelta,i);
             }
             ImGui::Selectable(sName.c_str(),(sampleMapWaitingInput && sampleMapColumn==3 && i>=sampleMapMin && i<=sampleMapMax));
 
