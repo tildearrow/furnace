@@ -75,7 +75,8 @@ class DivExportR9Tracker : public DivROMExport {
 
   void writeTrackData_CRD(DivEngine* e, SafeWriter* w);
 
-  void writeWaveformHeader(SafeWriter* w, const char * key);
+  void writeWaveformHeader(SafeWriter* w, const char* key);
+  size_t writeTextGraphics(SafeWriter* w, const char* value);
   size_t writeNote(SafeWriter* w, const TiaNote& note, TiaChannelState& state);
 
 public:

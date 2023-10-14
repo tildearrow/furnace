@@ -180,30 +180,24 @@ audio_end
 ;---------------------
 ; vis timing
 
-            lda #$F0
+            lda #$f0
             sec
             ldx #15
-_vis_gradient_setup
+_vis_gradient_setup_loop
             sta vis_gradient,x
             sbc #$10
+            bne _vis_gradient_setup_skip_zero
+            lda #$f0
+_vis_gradient_setup_skip_zero
             dex
-            bpl _vis_gradient_setup
+            bpl _vis_gradient_setup_loop
 
             ldy audio_row_idx
             lda (tmp_pattern_ptr),y
             and #$0f
             tax
-            lda #$ff
+            lda #$0f
             sta vis_gradient,x
-
-;---------------------
-; vertical banner position
-
-            ldx #1
-            lda #VERTICAL_BANNER_POS
-            jsr sub_respx
-            lda #RED
-            sta COLUP1
 
 ;---------------------
 ; end vblank
@@ -217,10 +211,8 @@ _vis_gradient_setup
             lda #0
             sta COLUBK
             sta COLUPF
-            sta GRP0
-            lda #WHITE
             sta COLUP0
-
+            sta COLUP1
 
             lda #12
 vis_loop
@@ -267,11 +259,13 @@ gradient_loop
             lda vis_freq + 1
             jsr sub_waveform
 
-            lda #20
+            lda #13
             ldx #0
             jsr sub_respx
+            lda #0
+            sta HMP0
             ldx #1
-            lda #28
+            lda #21
             jsr sub_respx
             lda #3
             sta NUSIZ0
@@ -279,25 +273,34 @@ gradient_loop
             lda #1
             sta VDELP0
             sta VDELP1
-            ldx #6
-            sta WSYNC
+            lda #WHITE
+            sta COLUP0
+            sta COLUP1
+            SLEEP 6
+            ldy #5
 title_loop
-            lda TITLE_00,x
-            sta GRP0
-            lda TITLE_01,x
-            sta GRP1
-            lda TITLE_02,x
-            sta GRP0
-            lda TITLE_03,x
-            sta GRP1
-            lda TITLE_04,x
-            sta GRP0
-            lda TITLE_05,x
-            sta GRP1
-            sta GRP0
-            dex
+              ; load and store first 3 
+            lda TITLE_GRAPHICS_0,y              ;4   4
+            sta GRP0                            ;3   7
+            lda TITLE_GRAPHICS_1,y              ;4  11
+            sta WSYNC
+            sta.w GRP1                            ;3  14
+            lda TITLE_GRAPHICS_2,y              ;4  18
+            sta.w GRP0                            ;3  21
+            ; load next 3 EDF
+            ldx TITLE_GRAPHICS_4,y              ;4  25
+            txs                                 ;2  27
+            ldx TITLE_GRAPHICS_3,y              ;4  31
+            lda TITLE_GRAPHICS_5,y              ;4  35
+            stx.w GRP1                            ;4  39
+            tsx                                 ;2  41
+            stx GRP0                            ;3  44
+            sta GRP1                            ;3  47
+            sty GRP0 
+            dey
             bpl title_loop
-
+            ldx #$ff
+            txs
 
             ldx #GRADIENT_FIELD_HEIGHT - 128
 footer_loop
@@ -557,19 +560,6 @@ AUDIO_TRACKS
 ;-----------------------------------------------------------------------------------
 ; Support Data and Macros
 
-SONG_TITLE
-TITLE_00
-    byte $0,$ae,$aa,$ec,$aa,$ee; 6
-TITLE_01
-    byte $0,$ec,$8a,$8a,$8a,$ec; 6
-TITLE_02
-    byte $0,$e8,$88,$cc,$88,$ee; 6
-TITLE_03
-    byte $0,$4e,$a4,$a4,$a4,$4c; 6
-TITLE_04
-    byte $0,$ec,$82,$66,$22,$cc; 6
-TITLE_05
-    byte $0,$2c,$22,$ec,$a8,$a6; 6
 
 VIS_FREQ_PF0
     byte %10101010

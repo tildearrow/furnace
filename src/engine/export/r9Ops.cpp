@@ -141,11 +141,16 @@ struct DumpSequence {
 std::vector<DivROMExportOutput> DivExportR9Tracker::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
 
+
   SafeWriter* w=new SafeWriter;
   w->init();
   w->writeText("; Data exported from Furnace to R9 data track.\n");
   w->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
   w->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
+
+  // compress title to make signature
+  auto title = e->song.name.substr(0, 12);
+  writeTextGraphics(w, title.c_str());
   
   writeTrackData_CRD(e, w);
 
@@ -174,11 +179,24 @@ inline auto getPatternKey(unsigned short subsong, unsigned short channel, unsign
 }
 
 /**
+ * 
  * write track data based on a compressed register dump.
  *  - we first play back the song
  *  - capture all the sequences
  *  - find common subsequences
- *  - then emit ROM data
+ *  - then emit a source file that can be compiled with dasm
+ * 
+ *  wafeform compression scheme:
+ *   00000000                    stop
+ *   fffff010 wwwwvvvv           frequency + waveform + volume - 1 tick duration
+ *   fffff100 wwwwvvvv           " " " 2 tick duration
+ *   fffff110 dddddddd wwwwvvvv  " " " next byte is duration
+ *   xxxx0001                    volume = (volume + x) % 0x0f - 1 tick
+ *   xxxx1001                    volume = (volume + x) % 0x0f - 2 tick
+ *   xxxx0101                    wave = (wave + x) % 0x0f     - 1 tick
+ *   xxxx1101                    wave = (wave + x) % 0x0f     - 2 tick
+ *   xxxxx011                    frequency = (frequency + x) % 0x1f - 1 tick
+ *   xxxxx111                    frequency = (frequency + x) % 0x1f - 2 tick
  */
 void DivExportR9Tracker::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
 
@@ -352,6 +370,7 @@ void DivExportR9Tracker::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
     songDataSize++;
   }
 
+  // pattern lookup
   size_t patternTableSize = 0;
   w->writeC('\n');
   w->writeText("; Pattern Lookup Table\n");
@@ -393,6 +412,7 @@ void DivExportR9Tracker::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
 
   // emit waveform table
   // this is where we can lookup specific instrument/note/octave combinations
+  // can be quite expensive to store this table (2 bytes per waveform)
   size_t waveformTableSize = 0;
   w->writeC('\n');
   w->writeText("; Waveform Lookup Table\n");
@@ -409,8 +429,7 @@ void DivExportR9Tracker::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
     waveformTableSize++;
   }
     
-  // emit waveform data
-  // this is done by playing back the song from the unique notes
+  // emit waveforms
   size_t waveformDataSize = 0;
   w->writeC('\n');
   w->writeText("; Waveforms\n");
@@ -426,6 +445,7 @@ void DivExportR9Tracker::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
     waveformDataSize++;
   }
 
+  // metadata
   w->writeC('\n');
   w->writeText(fmt::sprintf("; Song Table Size %d\n", songTableSize));
   w->writeText(fmt::sprintf("; Song Data Size %d\n", songDataSize));
@@ -440,26 +460,87 @@ void DivExportR9Tracker::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
 
 }
 
-  //
-  // compression scheme:
-  //  00000000                    stop
-  //  fffff010 wwwwvvvv           frequency + waveform + volume - 1 tick duration
-  //  fffff100 wwwwvvvv           " " " 2 tick duration
-  //  fffff110 dddddddd wwwwvvvv  " " " next byte is duration
-  //  xxxx0001                    volume = (volume + x) % 0x0f - 1 tick
-  //  xxxx1001                    volume = (volume + x) % 0x0f - 2 tick
-  //  xxxx0101                    wave = (wave + x) % 0x0f     - 1 tick
-  //  xxxx1101                    wave = (wave + x) % 0x0f     - 2 tick
-  //  xxxxx011                    frequency = (frequency + x) % 0x1f - 1 tick
-  //  xxxxx111                    frequency = (frequency + x) % 0x1f - 2 tick
-  //
-  // playback:
-  //  speed 0 = paused
-  //  speed 1 = update at 60Hz  = 1x per frame = typical game speed
-  //  speed 2 = update at 120Hz = 2x per frame
-  //  ... 
-  //  speed n = update at n * 60Hxz
-  //
+int getFontIndex(const char c) {
+  if ('0' <= c && c <= '9') return c - '0';
+  if (c == ' ' || c == 0) return 10;
+  if (c == '.') return 12;
+  if ('a' <= c && c <= 'z') return 13 + c - 'a';
+  if ('A' <= c && c <= 'Z') return 13 + c - 'A';
+  return 11;
+}
+
+unsigned char FONT_DATA[39][6] = {
+  {0x00, 0x04, 0x0a, 0x0a, 0x0a, 0x04}, // SYMBOL_ZERO
+  {0x00, 0x0e, 0x04, 0x04, 0x04, 0x0c}, // SYMBOL_ONE
+  {0x00, 0x0e, 0x08, 0x06, 0x02, 0x0c}, // SYMBOL_TWO
+  {0x00, 0x0c, 0x02, 0x06, 0x02, 0x0c}, // SYMBOL_THREE
+  {0x00, 0x02, 0x02, 0x0e, 0x0a, 0x0a}, // SYMBOL_FOUR
+  {0x00, 0x0c, 0x02, 0x0c, 0x08, 0x06}, // SYMBOL_FIVE
+  {0x00, 0x06, 0x0a, 0x0c, 0x08, 0x06}, // SYMBOL_SIX
+  {0x00, 0x08, 0x08, 0x04, 0x02, 0x0e}, // SYMBOL_SEVEN
+  {0x00, 0x06, 0x0a, 0x0e, 0x0a, 0x0c}, // SYMBOL_EIGHT
+  {0x00, 0x02, 0x02, 0x0e, 0x0a, 0x0c}, // SYMBOL_NINE
+  {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // SYMBOL_SPACE
+  {0x00, 0x0e, 0x00, 0x00, 0x00, 0x00}, // SYMBOL_UNDERSCORE
+  {0x00, 0x04, 0x00, 0x00, 0x00, 0x00}, // SYMBOL_DOT
+  {0x00, 0x0a, 0x0a, 0x0e, 0x0a, 0x0e}, // SYMBOL_A
+  {0x00, 0x0e, 0x0a, 0x0c, 0x0a, 0x0e}, // SYMBOL_B
+  {0x00, 0x0e, 0x08, 0x08, 0x08, 0x0e}, // SYMBOL_C
+  {0x00, 0x0c, 0x0a, 0x0a, 0x0a, 0x0c}, // SYMBOL_D
+  {0x00, 0x0e, 0x08, 0x0c, 0x08, 0x0e}, // SYMBOL_E
+  {0x00, 0x08, 0x08, 0x0c, 0x08, 0x0e}, // SYMBOL_F
+  {0x00, 0x0e, 0x0a, 0x08, 0x08, 0x0e}, // SYMBOL_G
+  {0x00, 0x0a, 0x0a, 0x0e, 0x0a, 0x0a}, // SYMBOL_H
+  {0x00, 0x04, 0x04, 0x04, 0x04, 0x04}, // SYMBOL_I
+  {0x00, 0x0e, 0x0a, 0x02, 0x02, 0x02}, // SYMBOL_J
+  {0x00, 0x0a, 0x0a, 0x0c, 0x0a, 0x0a}, // SYMBOL_K
+  {0x00, 0x0e, 0x08, 0x08, 0x08, 0x08}, // SYMBOL_L
+  {0x00, 0x0a, 0x0a, 0x0e, 0x0e, 0x0e}, // SYMBOL_M
+  {0x00, 0x0a, 0x0a, 0x0a, 0x0a, 0x0e}, // SYMBOL_N
+  {0x00, 0x0e, 0x0a, 0x0a, 0x0a, 0x0e}, // SYMBOL_O
+  {0x00, 0x08, 0x08, 0x0e, 0x0a, 0x0e}, // SYMBOL_P
+  {0x00, 0x06, 0x08, 0x0a, 0x0a, 0x0e}, // SYMBOL_Q
+  {0x00, 0x0a, 0x0a, 0x0c, 0x0a, 0x0e}, // SYMBOL_R
+  {0x00, 0x0e, 0x02, 0x0e, 0x08, 0x0e}, // SYMBOL_S
+  {0x00, 0x04, 0x04, 0x04, 0x04, 0x0e}, // SYMBOL_T
+  {0x00, 0x0e, 0x0a, 0x0a, 0x0a, 0x0a}, // SYMBOL_U
+  {0x00, 0x04, 0x04, 0x0e, 0x0a, 0x0a}, // SYMBOL_V
+  {0x00, 0x0e, 0x0e, 0x0e, 0x0a, 0x0a}, // SYMBOL_W
+  {0x00, 0x0a, 0x0e, 0x04, 0x0e, 0x0a}, // SYMBOL_X
+  {0x00, 0x04, 0x04, 0x0e, 0x0a, 0x0a}, // SYMBOL_Y
+  {0x00, 0x0e, 0x08, 0x04, 0x02, 0x0e}  // SYMBOL_Z
+};
+
+size_t DivExportR9Tracker::writeTextGraphics(SafeWriter* w, const char* value) {
+  size_t bytesWritten = 0;
+
+  bool end = false; 
+  for (int byte = 0; byte < 6; byte++) {
+     w->writeText(fmt::sprintf("TITLE_GRAPHICS_%d\n    byte ", byte));
+    char ax = 0;
+    if (!end) {
+      ax = *value++;
+      if (0 == ax) end = true;
+    } 
+    char bx = 0;
+    if (!end) {
+      bx = *value++;
+      if (0 == bx) end = true;
+    }
+    auto ai = getFontIndex(ax);
+    auto bi = getFontIndex(bx);
+      for (int i = 0; i < 6; i++) {
+      if (i > 0) {
+        w->writeText(",");
+      }
+      const unsigned char c = (FONT_DATA[ai][i] << 4) + FONT_DATA[bi][i];
+      w->writeText(fmt::sprintf("%d", c));
+      bytesWritten += 1;
+    }
+    w->writeText("\n");
+  }
+  return bytesWritten;
+}
 
 size_t DivExportR9Tracker::writeNote(SafeWriter* w, const TiaNote& note, TiaChannelState& state) {
   size_t bytesWritten = 0;
@@ -479,7 +560,7 @@ size_t DivExportR9Tracker::writeNote(SafeWriter* w, const TiaNote& note, TiaChan
 
   if ( ((cc + fc + vc) == 1) && note.duration < 3) {
     // write a delta row - only change one register
-    dmod = note.duration > 0 ? note.duration - 1 : 1; // BUGBUG: when duration is zero... remainder?
+    dmod = note.duration > 0 ? note.duration - 1 : 1; // BUGBUG: when duration is zero... we force to 1...
     unsigned char rx;
     if (fc > 0) {
       // frequency
@@ -525,3 +606,4 @@ size_t DivExportR9Tracker::writeNote(SafeWriter* w, const TiaNote& note, TiaChan
 void DivExportR9Tracker::writeWaveformHeader(SafeWriter* w, const char * key) {
   w->writeText(fmt::sprintf("%s_ADDR\n", key));
 }
+
