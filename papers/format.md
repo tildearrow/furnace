@@ -1226,7 +1226,7 @@ size | description
  STR | pattern name (>=51)
  ??? | pattern data
      | - read a byte per row.
-     | - if it is 0xff, end of pattern.
+     | - if it is 0xff, end of data. the rest of the pattern is empty.
      | - if bit 7 is set, then read bit 0-6 as "skip N+2 rows".
      | - if bit 7 is clear, then:
      |   - bit 0: note present
