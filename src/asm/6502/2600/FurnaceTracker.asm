@@ -400,7 +400,7 @@ _audio_next_note_ty
             lsr                        ; check second bit
             bcc _set_cx_vx             ; if clear we are loading aud(c|v)x
             lsr                        ; pull duration bit for later set
-            sta AUDF0,x                ; store frequency
+            sta AUDF0,x             ; store frequency
             sta vis_freq,x
             jmp _set_timer_delta       ; jump to duration 
 _set_cx_vx  bcc _set_vx
@@ -408,7 +408,6 @@ _set_cx_vx  bcc _set_vx
             jmp _set_timer_delta       ; jump to duration
 _set_vx
             sta AUDV0,x
-            sta vis_amp,x
 _set_timer_delta
             lda #0
             adc #1
@@ -543,18 +542,11 @@ sub_freq_slice
             rts
             
 
-            
-
-
 ;-----------------------------------------------------------------------------------
 ; Audio Data 
 
-    ALIGN 256
 
-AUDIO_TRACKS
-    byte 0
-
-    #include "R9Data.inc"
+    #include "TrackData.inc"
 
 
 ;-----------------------------------------------------------------------------------

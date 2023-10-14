@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "r9.h"
+#include "atari2600Export.h"
 
 #include <fmt/printf.h>
 #include <set>
@@ -138,9 +138,8 @@ struct DumpSequence {
 
 };
 
-std::vector<DivROMExportOutput> DivExportR9Tracker::go(DivEngine* e) {
+std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
-
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -148,14 +147,17 @@ std::vector<DivROMExportOutput> DivExportR9Tracker::go(DivEngine* e) {
   w->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
   w->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
 
-  // compress title to make signature
-  auto title = e->song.name.substr(0, 12);
+  // create title
+  auto title = (e->song.name + " by " + e->song.author);
+  if (title.length() > 26) {
+    title = title.substr(23) + "...";
+  }
   writeTextGraphics(w, title.c_str());
-  
+
   writeTrackData_CRD(e, w);
 
   ret.reserve(1);
-  ret.push_back(DivROMExportOutput("R9Data.inc", w));
+  ret.push_back(DivROMExportOutput("TrackData.inc", w));
 
   return ret;
 }
@@ -180,11 +182,10 @@ inline auto getPatternKey(unsigned short subsong, unsigned short channel, unsign
 
 /**
  * 
- * write track data based on a compressed register dump.
- *  - we first play back the song
- *  - capture all the sequences
- *  - find common subsequences
- *  - then emit a source file that can be compiled with dasm
+ * we first play back the song to create a register dump then compress it
+ * by finding common subsequences
+ * 
+ * output is a source file that can be compiled via dasm
  * 
  *  wafeform compression scheme:
  *   00000000                    stop
@@ -198,7 +199,7 @@ inline auto getPatternKey(unsigned short subsong, unsigned short channel, unsign
  *   xxxxx011                    frequency = (frequency + x) % 0x1f - 1 tick
  *   xxxxx111                    frequency = (frequency + x) % 0x1f - 2 tick
  */
-void DivExportR9Tracker::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
+void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
 
   // capture all sequences
   std::map<String, DumpSequence> sequences;
@@ -469,6 +470,7 @@ int getFontIndex(const char c) {
   return 11;
 }
 
+// 4x6 font data used to encode title
 unsigned char FONT_DATA[39][6] = {
   {0x00, 0x04, 0x0a, 0x0a, 0x0a, 0x04}, // SYMBOL_ZERO
   {0x00, 0x0e, 0x04, 0x04, 0x04, 0x0c}, // SYMBOL_ONE
@@ -511,16 +513,21 @@ unsigned char FONT_DATA[39][6] = {
   {0x00, 0x0e, 0x08, 0x04, 0x02, 0x0e}  // SYMBOL_Z
 };
 
-size_t DivExportR9Tracker::writeTextGraphics(SafeWriter* w, const char* value) {
+size_t DivExportAtari2600::writeTextGraphics(SafeWriter* w, const char* value) {
   size_t bytesWritten = 0;
 
-  bool end = false; 
-  for (int byte = 0; byte < 6; byte++) {
-     w->writeText(fmt::sprintf("TITLE_GRAPHICS_%d\n    byte ", byte));
+  bool end = false;
+  size_t len = 0; 
+  while (!end) {
+    w->writeText(fmt::sprintf("TITLE_GRAPHICS_%d\n    byte ", len));
     char ax = 0;
     if (!end) {
       ax = *value++;
-      if (0 == ax) end = true;
+      if (0 == ax) {
+        end = true;
+      } else {
+        len++;
+      }
     } 
     char bx = 0;
     if (!end) {
@@ -539,10 +546,11 @@ size_t DivExportR9Tracker::writeTextGraphics(SafeWriter* w, const char* value) {
     }
     w->writeText("\n");
   }
+  w->writeText(fmt::sprintf("TITLE_LENGTH = %d", len));
   return bytesWritten;
 }
 
-size_t DivExportR9Tracker::writeNote(SafeWriter* w, const TiaNote& note, TiaChannelState& state) {
+size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaNote& note, TiaChannelState& state) {
   size_t bytesWritten = 0;
   unsigned char dmod = 0; // if duration is small, store in top bits of frequency
 
@@ -603,7 +611,7 @@ size_t DivExportR9Tracker::writeNote(SafeWriter* w, const TiaNote& note, TiaChan
 
 }
 
-void DivExportR9Tracker::writeWaveformHeader(SafeWriter* w, const char * key) {
+void DivExportAtari2600::writeWaveformHeader(SafeWriter* w, const char * key) {
   w->writeText(fmt::sprintf("%s_ADDR\n", key));
 }
 

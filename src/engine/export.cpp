@@ -20,7 +20,7 @@
 #include "engine.h"
 
 #include "export/amigaValidation.h"
-#include "export/r9.h"
+#include "export/atari2600Export.h"
 
 std::vector<DivROMExportOutput> DivEngine::buildROM(DivROMExportOptions sys) {
   DivROMExport* exporter=NULL;
@@ -29,7 +29,7 @@ std::vector<DivROMExportOutput> DivEngine::buildROM(DivROMExportOptions sys) {
       exporter=new DivExportAmigaValidation;
       break;
     case DIV_ROM_ATARI_2600_R9_TRACKER:
-      exporter=new DivExportR9Tracker;
+      exporter=new DivExportAtari2600;
       break;
     default:
       exporter=new DivROMExport;

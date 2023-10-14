@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _R9_H
-#define _R9_H
+#ifndef _ATARI2600_EXPORT_H
+#define _ATARI2600_EXPORT_H
 
 #include "../engine.h"
 
@@ -53,7 +53,6 @@ struct TiaChannelState {
 
 };
 
-
 struct TiaNote {
 
   TiaRegisters registers;
@@ -71,7 +70,7 @@ struct TiaNote {
 
 };
 
-class DivExportR9Tracker : public DivROMExport {
+class DivExportAtari2600 : public DivROMExport {
 
   void writeTrackData_CRD(DivEngine* e, SafeWriter* w);
 
@@ -81,10 +80,10 @@ class DivExportR9Tracker : public DivROMExport {
 
 public:
 
-  ~DivExportR9Tracker() {}
+  ~DivExportAtari2600() {}
 
   std::vector<DivROMExportOutput> go(DivEngine* e) override;
 
 };
 
-#endif // _R9_H
+#endif // _ATARI2600_EXPORT_H
