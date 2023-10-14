@@ -3480,7 +3480,7 @@ void FurnaceGUI::drawInsEdit() {
                 float sliderHeight=32.0f*dpiScale;
 
                 for (int i=0; i<opCount; i++) {
-                  DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i];
+                  DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i];
                   DivInstrumentESFM::Operator& opE=ins->esfm.op[i];
 
                   ImGui::TableNextRow();
@@ -3851,7 +3851,8 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(8.0f*dpiScale,4.0f*dpiScale));
               if (ImGui::BeginTable("AltFMOperators",columns,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersInner)) {
                 for (int i=0; i<opCount; i++) {
-                  DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i];
+                  DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i];
+                  DivInstrumentESFM::Operator& opE=ins->esfm.op[i];
                   if ((settings.fmLayout!=6 && ((i+1)&1)) || i==0 || settings.fmLayout==5) ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::PushID(fmt::sprintf("op%d",i).c_str());
@@ -3861,6 +3862,17 @@ void FurnaceGUI::drawInsEdit() {
                     bool mod=true;
                     if (ins->type==DIV_INS_OPL_DRUMS) {
                       mod=false;
+                    } else if (ins->type==DIV_INS_ESFM) {
+                      // this is the same as the KVS heuristic in platform/esfm.h
+                      if (opE.outLvl==7) mod=false;
+                      else if (opE.outLvl>0) {
+                        if (i==3) mod=false;
+                        else {
+                          DivInstrumentESFM::Operator& opENext=ins->esfm.op[i+1];
+                          if (opENext.modIn==0) mod=false;
+                          else if ((opE.outLvl-opENext.modIn) >= 2) mod=false;
+                        }
+                      }
                     } else if (opCount==4) {
                       if (ins->type==DIV_INS_OPL) {
                         if (opIsOutputOPL[fmOrigin.alg&3][i]) mod=false;

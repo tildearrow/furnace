@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS on)
-
 if (APPLE)
   set(MACOSX_DEPLOYMENT_TARGET 10.9)
 endif()
