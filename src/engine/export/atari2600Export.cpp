@@ -465,13 +465,15 @@ int getFontIndex(const char c) {
   if ('0' <= c && c <= '9') return c - '0';
   if (c == ' ' || c == 0) return 10;
   if (c == '.') return 12;
-  if ('a' <= c && c <= 'z') return 13 + c - 'a';
-  if ('A' <= c && c <= 'Z') return 13 + c - 'A';
+  if (c == '<') return 13;
+  if (c == '>') return 14;
+  if ('a' <= c && c <= 'z') return 15 + c - 'a';
+  if ('A' <= c && c <= 'Z') return 15 + c - 'A';
   return 11;
 }
 
 // 4x6 font data used to encode title
-unsigned char FONT_DATA[39][6] = {
+unsigned char FONT_DATA[41][6] = {
   {0x00, 0x04, 0x0a, 0x0a, 0x0a, 0x04}, // SYMBOL_ZERO
   {0x00, 0x0e, 0x04, 0x04, 0x04, 0x0c}, // SYMBOL_ONE
   {0x00, 0x0e, 0x08, 0x06, 0x02, 0x0c}, // SYMBOL_TWO
@@ -485,6 +487,8 @@ unsigned char FONT_DATA[39][6] = {
   {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // SYMBOL_SPACE
   {0x00, 0x0e, 0x00, 0x00, 0x00, 0x00}, // SYMBOL_UNDERSCORE
   {0x00, 0x04, 0x00, 0x00, 0x00, 0x00}, // SYMBOL_DOT
+  {0x00, 0x02, 0x04, 0x08, 0x04, 0x02}, // SYMBOL_LT
+  {0x00, 0x08, 0x04, 0x02, 0x04, 0x08}, // SYMBOL_GT
   {0x00, 0x0a, 0x0a, 0x0e, 0x0a, 0x0e}, // SYMBOL_A
   {0x00, 0x0e, 0x0a, 0x0c, 0x0a, 0x0e}, // SYMBOL_B
   {0x00, 0x0e, 0x08, 0x08, 0x08, 0x0e}, // SYMBOL_C
@@ -518,7 +522,7 @@ size_t DivExportAtari2600::writeTextGraphics(SafeWriter* w, const char* value) {
 
   bool end = false;
   size_t len = 0; 
-  while (!end) {
+  while (len < 6 || !end) {
     w->writeText(fmt::sprintf("TITLE_GRAPHICS_%d\n    byte ", len));
     char ax = 0;
     if (!end) {

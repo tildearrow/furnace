@@ -63,6 +63,8 @@ tmp_input           ds 1
 vis_freq            ds 2
 vis_amp             ds 2
 vis_gradient        ds 16
+vis_title_start     ds 1
+vis_title_end       ds 1
 
 ; ----------------------------------
 ; code
@@ -199,6 +201,24 @@ _vis_gradient_setup_skip_zero
             lda #$0f
             sta vis_gradient,x
 
+            lda frame
+            beq _vis_save_title
+            bpl _vis_skip_title
+            and #$07
+            bne _vis_skip_title
+            lda vis_title_start
+            clc
+            adc #6
+            cmp #((TITLE_LENGTH - 5) * 6)
+            beq _vis_skip_title
+_vis_save_title
+            sta vis_title_start
+_vis_skip_title
+            lda vis_title_start
+            clc
+            adc #5
+            sta vis_title_end
+
 ;---------------------
 ; end vblank
 
@@ -276,31 +296,35 @@ gradient_loop
             lda #WHITE
             sta COLUP0
             sta COLUP1
-            SLEEP 6
-            ldy #5
+            ldy vis_title_end
 title_loop
               ; load and store first 3 
             lda TITLE_GRAPHICS_0,y              ;4   4
             sta GRP0                            ;3   7
             lda TITLE_GRAPHICS_1,y              ;4  11
             sta WSYNC
-            sta.w GRP1                            ;3  14
+            sta.w GRP1                          ;3  14
             lda TITLE_GRAPHICS_2,y              ;4  18
-            sta.w GRP0                            ;3  21
+            sta.w GRP0                          ;3  21
             ; load next 3 EDF
             ldx TITLE_GRAPHICS_4,y              ;4  25
             txs                                 ;2  27
             ldx TITLE_GRAPHICS_3,y              ;4  31
             lda TITLE_GRAPHICS_5,y              ;4  35
-            stx.w GRP1                            ;4  39
+            stx.w GRP1                          ;4  39
             tsx                                 ;2  41
             stx GRP0                            ;3  44
             sta GRP1                            ;3  47
-            sty GRP0 
+            sta GRP0 
             dey
+            cpy vis_title_start
             bpl title_loop
             ldx #$ff
             txs
+            inx
+            stx GRP0
+            stx GRP1
+            stx GRP0
 
             ldx #GRADIENT_FIELD_HEIGHT - 128
 footer_loop
@@ -545,6 +569,7 @@ sub_freq_slice
 ;-----------------------------------------------------------------------------------
 ; Audio Data 
 
+    align 256
 
     #include "TrackData.inc"
 
