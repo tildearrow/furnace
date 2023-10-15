@@ -756,7 +756,7 @@ struct DivInstrumentSNES {
 
 // ESFM operator structure:
 // - DELAY, OUT, MOD, L, R, NOISE
-//   - Virtual: CT, DT, DTRAW
+//   - Virtual: CT, DT, FIXED
 //   - In FM struct: AM, DAM, AR, DR, MULT, RR, SL, TL
 //   - In FM struct: KSL, VIB, DVB, WS, SUS, KSR
 //   - Not in struct: FNUML, FNUMH, BLOCK
@@ -770,7 +770,7 @@ struct DivInstrumentESFM {
   // Only works on OP4, so putting it outside the Operator struct instead
   unsigned char noise;
   struct Operator {
-    unsigned char delay, outLvl, modIn, left, right;
+    unsigned char delay, outLvl, modIn, left, right, fixed;
     signed char ct, dt;
 
     bool operator==(const Operator& other);
@@ -781,8 +781,9 @@ struct DivInstrumentESFM {
       delay(0),
       outLvl(0),
       modIn(0),
-      left(true),
-      right(true),
+      left(1),
+      right(1),
+      fixed(0),
       ct(0),
       dt(0) {}
   } op[4];

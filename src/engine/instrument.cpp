@@ -245,6 +245,7 @@ bool DivInstrumentESFM::Operator::operator==(const DivInstrumentESFM::Operator& 
     _C(modIn) &&
     _C(left) &&
     _C(right) &&
+    _C(fixed) &&
     _C(ct) &&
     _C(dt)
   );
@@ -764,7 +765,7 @@ void DivInstrument::writeFeatureEF(SafeWriter* w) {
     DivInstrumentESFM::Operator& op=esfm.op[i];
 
     w->writeC(((op.delay&7)<<5)|((op.outLvl&7)<<2)|((op.right&1)<<1)|(op.left&1));
-    w->writeC(op.modIn&7);
+    w->writeC((op.fixed&1)<<3|(op.modIn&7));
     w->writeC(op.ct);
     w->writeC(op.dt);
   }
@@ -2644,6 +2645,7 @@ void DivInstrument::readFeatureEF(SafeReader& reader, short version) {
 
     next=reader.readC();
     op.modIn=next&7;
+    op.fixed=(next>>3)&1;
 
     op.ct=reader.readC();
     op.dt=reader.readC();

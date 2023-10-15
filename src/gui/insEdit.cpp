@@ -44,16 +44,16 @@ const char* fmParamNames[3][32]={
   {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2"}
 };
 
-const char* esfmParamLongNames[8]={
-  "OP4 Noise Mode", "Envelope Delay", "Output Level", "Modulation Input Level", "Left Output", "Right Output", "Coarse Tune (semitones)", "Detune"
+const char* esfmParamLongNames[9]={
+  "OP4 Noise Mode", "Envelope Delay", "Output Level", "Modulation Input Level", "Left Output", "Right Output", "Coarse Tune (semitones)", "Detune", "Fixed Frequency Mode"
 };
 
-const char* esfmParamNames[8]={
-  "OP4 Noise Mode", "Env. Delay", "Output Level", "ModInput", "Left", "Right", "Coarse Tn.", "Detune"
+const char* esfmParamNames[9]={
+  "OP4 Noise Mode", "Env. Delay", "Output Level", "ModInput", "Left", "Right", "Coarse Tn.", "Detune", "Fixed"
 };
 
-const char* esfmParamShortNames[8]={
-  "RHY", "DL", "OL", "MI", "L", "R", "CT", "DT"
+const char* esfmParamShortNames[9]={
+  "RHY", "DL", "OL", "MI", "L", "R", "CT", "DT", "FIX"
 };
 
 const char* fmParamShortNames[3][32]={
@@ -230,7 +230,8 @@ enum ESFMParams {
   ESFM_LEFT=4,
   ESFM_RIGHT=5,
   ESFM_CT=6,
-  ESFM_DT=7
+  ESFM_DT=7,
+  ESFM_FIXED=8
 };
 
 #define FM_NAME(x) fmParamNames[settings.fmNames][x]
@@ -3951,7 +3952,7 @@ void FurnaceGUI::drawInsEdit() {
                   }
 
                   float sliderHeight=200.0f*dpiScale;
-                  float waveWidth=140.0*dpiScale*((ins->type==DIV_INS_ESFM)?0.8f:1.0f);
+                  float waveWidth=140.0*dpiScale*((ins->type==DIV_INS_ESFM)?0.85f:1.0f);
                   float waveHeight=sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL || ins->type==DIV_INS_ESFM)?5.0f:4.5f);
 
                   int maxTl=127;
@@ -4312,13 +4313,44 @@ void FurnaceGUI::drawInsEdit() {
                         snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_MULT));
                         P(CWSliderScalar("##MULT",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN,tempID)); rightClickable
 
-                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                        snprintf(tempID,1024,"%s: %%d",ESFM_NAME(ESFM_CT));
-                        P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR,tempID)); rightClickable
+                        if (opE.fixed) {
+                          int block=(opE.ct>>2)&7;
+                          int freqNum=((opE.ct&3)<<8)|((unsigned char)opE.dt);
+                          ImGui::Text("Blk");
+                          if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Block");
+                          }
+                          ImGui::SameLine();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          //ImVec2 cursorAlign=ImGui::GetCursorPos();
+                          if (ImGui::InputInt("##Block",&block,1,1)) {
+                            if (block<0) block=0;
+                            if (block>7) block=7;
+                            opE.ct=(opE.ct&(~(7<<2)))|(block<<2);
+                          }
+                          
+                          ImGui::Text("F");
+                          if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Frequency (F-Num)");
+                          }
+                          ImGui::SameLine();
+                          //ImGui::SetCursorPos(ImVec2(cursorAlign.x,ImGui::GetCursorPosY()));
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          if (ImGui::InputInt("##FreqNum",&freqNum,1,16)) {
+                            if (freqNum<0) freqNum=0;
+                            if (freqNum>1023) freqNum=1023;
+                            opE.dt=freqNum&0xff;
+                            opE.ct=(opE.ct&(~3))|(freqNum>>8);
+                          }
+                        } else {
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          snprintf(tempID,1024,"%s: %%d",ESFM_NAME(ESFM_CT));
+                          P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR,tempID)); rightClickable
 
-                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                        snprintf(tempID,1024,"%s: %%d",ESFM_NAME(ESFM_DT));
-                        P(CWSliderScalar("##DT",ImGuiDataType_S8,&opE.dt,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN,tempID)); rightClickable
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          snprintf(tempID,1024,"%s: %%d",ESFM_NAME(ESFM_DT));
+                          P(CWSliderScalar("##DT",ImGuiDataType_S8,&opE.dt,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN,tempID)); rightClickable
+                        }
 
                         if (ImGui::BeginTable("panCheckboxes",2,ImGuiTableFlags_SizingStretchSame)) {
                           ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0f);
@@ -4347,8 +4379,11 @@ void FurnaceGUI::drawInsEdit() {
 
                     ImGui::TableNextColumn();
                     float envHeight=sliderHeight;//-ImGui::GetStyle().ItemSpacing.y*2.0f;
-                    if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_ESFM) {
+                    if (ins->type==DIV_INS_OPZ) {
                       envHeight-=ImGui::GetFrameHeightWithSpacing()*2.0f;
+                    }
+                    if (ins->type==DIV_INS_ESFM) {
+                      envHeight-=ImGui::GetFrameHeightWithSpacing()*3.0f;
                     }
                     drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_ESFM)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,fmOrigin.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,envHeight),ins->type);
 
@@ -4408,6 +4443,7 @@ void FurnaceGUI::drawInsEdit() {
                         } rightClickable
 
                         bool amOn=op.am;
+                        bool fixedOn=opE.fixed;
                         ImGui::TableNextColumn();
                         if (ImGui::Checkbox(FM_SHORT_NAME(FM_KSR),&ksrOn)) { PARAMETER
                           op.ksr=ksrOn;
@@ -4430,11 +4466,26 @@ void FurnaceGUI::drawInsEdit() {
                           if (ImGui::Checkbox(FM_SHORT_NAME(FM_AM),&amOn)) { PARAMETER
                             op.am=amOn;
                           }
+
+                          bool damOn=op.dam;
+                          bool dvbOn=op.dvb;
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_DVB),&dvbOn)) { PARAMETER
+                            op.dvb=dvbOn;
+                          }
+                          ImGui::TableNextColumn();
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_DAM),&damOn)) { PARAMETER
+                            op.dam=damOn;
+                          }
                           ImGui::EndTable();
                         }
                         ImGui::TableNextColumn();
                         if (ImGui::Checkbox(FM_SHORT_NAME(FM_SUS),&susOn)) { PARAMETER
                           op.sus=susOn;
+                        }
+                        if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
+                          opE.fixed=fixedOn;
                         }
 
                         ImGui::EndTable();

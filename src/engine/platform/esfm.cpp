@@ -218,12 +218,17 @@ void DivPlatformESFM::tick(bool sysTick) {
         DivInstrumentESFM::Operator& opE=chan[i].state.esfm.op[o];
         int ct=(int)opE.ct;
         int dt=(int)opE.dt;
-        int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2+dt,chipClock,CHIP_FREQBASE);
-        if (opFreq<0) opFreq=0;
-        if (opFreq>131071) opFreq=131071;
-        int freqt=toFreq(opFreq);
-        chan[i].freqL[o]=freqt&0xff;
-        chan[i].freqH[o]=freqt>>8;
+        if (opE.fixed) {
+          chan[i].freqL[o]=opE.dt;
+          chan[i].freqH[o]=opE.ct&0x1f;
+        } else {
+          int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2+dt,chipClock,CHIP_FREQBASE);
+          if (opFreq<0) opFreq=0;
+          if (opFreq>131071) opFreq=131071;
+          int freqt=toFreq(opFreq);
+          chan[i].freqL[o]=freqt&0xff;
+          chan[i].freqH[o]=freqt>>8;
+        }
         immWrite(baseAddr+OFFSET_FREQL,chan[i].freqL[o]);
         immWrite(baseAddr+OFFSET_FREQH_BLOCK_DELAY,chan[i].freqH[o]|(opE.delay<<5));
       }
@@ -558,7 +563,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
           op.rr=c.value2&15;
-          rWrite(baseAddr+OFFSET_SL_RR,(op.sl<<4)|op.rr);
+          rWrite(baseAddr+OFFSET_SL_RR,(op.sl<<4)|(op.rr&0xf));
         }
       } else {
         unsigned int o = c.value;
@@ -566,7 +571,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
         unsigned short baseAddr=c.chan*32 + o*8;
         DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
         op.rr=c.value2&15;
-        rWrite(baseAddr+OFFSET_SL_RR,(op.sl<<4)|op.rr);
+        rWrite(baseAddr+OFFSET_SL_RR,(op.sl<<4)|(op.rr&0xf));
       }
       break;
     }

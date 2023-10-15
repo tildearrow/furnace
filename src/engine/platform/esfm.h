@@ -40,6 +40,7 @@ class DivPlatformESFM: public DivDispatch {
       SharedChannel<int>(0),
       freqL{0, 0, 0, 0},
       freqH{0, 0, 0, 0},
+      hardReset(false),
       globalPan(3),
       macroVolMul(64) {}
   };
