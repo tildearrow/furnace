@@ -1146,7 +1146,7 @@ void FurnaceGUI::stop() {
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
   e->setMidiBaseChan(refChan);
   e->synchronized([this,note]() {
-    e->autoNoteOn(-1,curIns,note);
+    if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
   });
 }
 
@@ -1164,6 +1164,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 
     e->synchronized([this,num]() {
       e->autoNoteOff(-1,num);
+      failedNoteOn=false;
     });
   }
 }
@@ -6216,6 +6217,7 @@ bool FurnaceGUI::loop() {
         switch (lastWindowCat) {
           case 0:
             e->autoNoteOffAll();
+            failedNoteOn=false;
             break;
           case 1:
             e->stopWavePreview();
@@ -7304,6 +7306,7 @@ FurnaceGUI::FurnaceGUI():
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
+  failedNoteOn(false),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
   buttonLongThreshold(0.20f),

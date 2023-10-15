@@ -683,6 +683,7 @@ void FurnaceGUI::drawEditControls() {
             if (curOctave>7) curOctave=7;
             if (curOctave<-5) curOctave=-5;
             e->autoNoteOffAll();
+            failedNoteOn=false;
 
             if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
               nextWindow=GUI_WINDOW_PATTERN;
@@ -830,6 +831,7 @@ void FurnaceGUI::drawEditControls() {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
+          failedNoteOn=false;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -934,6 +936,7 @@ void FurnaceGUI::drawEditControls() {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
+          failedNoteOn=false;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -1087,6 +1090,7 @@ void FurnaceGUI::drawEditControls() {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
+          failedNoteOn=false;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;

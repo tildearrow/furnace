@@ -985,7 +985,8 @@ class DivEngine {
     // stop note
     void noteOff(int chan);
 
-    void autoNoteOn(int chan, int ins, int note, int vol=-1);
+    // returns whether it could
+    bool autoNoteOn(int chan, int ins, int note, int vol=-1);
     void autoNoteOff(int chan, int note, int vol=-1);
     void autoNoteOffAll();
 
