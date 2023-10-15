@@ -1296,6 +1296,68 @@ void FurnaceGUI::drawPattern() {
         );
       }
     }
+
+    // also let's draw a warning if the instrument cannot be previewed
+    if (tdl!=NULL && failedNoteOn) {
+      ImVec2 winCenter=ImGui::GetWindowPos()+ImGui::GetWindowSize()*0.5f;
+      ImGui::PushFont(bigFont);
+      ImVec2 warnHeadSize=ImGui::CalcTextSize("WARNING!!");
+      ImGui::PopFont();
+      ImVec2 warnTextSize1=ImGui::CalcTextSize("this instrument cannot be previewed because");
+      ImVec2 warnTextSize2=ImGui::CalcTextSize("none of the chips can play it");
+      ImVec2 warnTextSize3=ImGui::CalcTextSize("your instrument is in peril!! be careful...");
+
+      float maxTextSize=warnHeadSize.x;
+      if (warnTextSize1.x>maxTextSize) maxTextSize=warnTextSize1.x;
+      if (warnTextSize2.x>maxTextSize) maxTextSize=warnTextSize2.x;
+      if (warnTextSize3.x>maxTextSize) maxTextSize=warnTextSize3.x;
+
+      ImVec2 sumOfAll=ImVec2(
+        maxTextSize,
+        warnHeadSize.y+warnTextSize1.y+warnTextSize2.y+warnTextSize3.y
+      );
+
+      ImGui::RenderFrameDrawList(
+        tdl,
+        ImVec2(winCenter.x-sumOfAll.x*0.5-ImGui::GetStyle().ItemInnerSpacing.x,winCenter.y-sumOfAll.y*0.5-ImGui::GetStyle().ItemInnerSpacing.y),
+        ImVec2(winCenter.x+sumOfAll.x*0.5+ImGui::GetStyle().ItemInnerSpacing.x,winCenter.y+sumOfAll.y*0.5+ImGui::GetStyle().ItemInnerSpacing.y),
+        ImGui::GetColorU32(ImGuiCol_FrameBg),
+        true,
+        ImGui::GetStyle().FrameRounding
+      );
+
+      float whereY=winCenter.y-sumOfAll.y*0.5;
+
+      tdl->AddText(
+        bigFont,
+        MAX(1,40*dpiScale),
+        ImVec2(winCenter.x-warnHeadSize.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "WARNING!!"
+      );
+      whereY+=warnHeadSize.y;
+
+      tdl->AddText(
+        ImVec2(winCenter.x-warnTextSize1.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "this instrument cannot be previewed because"
+      );
+      whereY+=warnTextSize1.y;
+
+      tdl->AddText(
+        ImVec2(winCenter.x-warnTextSize2.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "none of the chips can play it"
+      );
+      whereY+=warnTextSize2.y;
+
+      tdl->AddText(
+        ImVec2(winCenter.x-warnTextSize3.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "your instrument is in peril!! be careful..."
+      );
+      whereY+=warnTextSize3.y;
+    }
     ImGui::PopFont();
 
     if (fancyPattern) { // visualizer
