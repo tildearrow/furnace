@@ -3537,7 +3537,17 @@ void FurnaceGUI::drawInsEdit() {
                     }
                   }
 
-                  if (i==0) sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
+                  if (i==0) {
+                    sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
+                    float sliderMinHeightOPL=ImGui::GetFrameHeight()*4.0+ImGui::GetStyle().ItemSpacing.y*3.0;
+                    float sliderMinHeightESFM=ImGui::GetFrameHeight()*5.0+ImGui::GetStyle().ItemSpacing.y*4.0;
+                    if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL) && sliderHeight<sliderMinHeightOPL) {
+                      sliderHeight=sliderMinHeightOPL;
+                    }
+                    if (ins->type==DIV_INS_ESFM && sliderHeight<sliderMinHeightESFM) {
+                      sliderHeight=sliderMinHeightESFM;
+                    }
+                  }
 
                   ImGui::PushID(fmt::sprintf("op%d",i).c_str());
                   String opNameLabel;
@@ -3681,7 +3691,7 @@ void FurnaceGUI::drawInsEdit() {
                   if (ins->type==DIV_INS_ESFM) {
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
-                    P(CWVSliderScalar("##CT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_S8,&opE.ct,&_MINUS_TWELVE,&_TWELVE)); rightClickable
+                    P(CWVSliderScalar("##CT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR)); rightClickable
                   }
 
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
@@ -3763,21 +3773,26 @@ void FurnaceGUI::drawInsEdit() {
                     bool amOn=op.am;
                     bool leftOn=opE.left;
                     bool rightOn=opE.right;
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*5.0-ImGui::GetStyle().ItemSpacing.y*4.0));
                     if (ImGui::BeginTable("panCheckboxes",2,ImGuiTableFlags_SizingStretchSame)) {
                       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
                       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
 
+                      float yCoordBeforeTablePadding=ImGui::GetCursorPosY();
                       ImGui::TableNextRow();
                       ImGui::TableNextColumn();
+                      ImGui::SetCursorPosY(yCoordBeforeTablePadding);
                       if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_LEFT),&leftOn)) { PARAMETER
                         opE.left=leftOn;
                       }
                       ImGui::TableNextColumn();
+                      ImGui::SetCursorPosY(yCoordBeforeTablePadding);
                       if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_RIGHT),&rightOn)) { PARAMETER
                         opE.right=rightOn;
                       }
                       ImGui::EndTable();
                     }
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY()-0.5*ImGui::GetStyle().ItemSpacing.y);
                     if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) { PARAMETER
                       op.am=amOn;
                     }
@@ -4299,7 +4314,7 @@ void FurnaceGUI::drawInsEdit() {
 
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                         snprintf(tempID,1024,"%s: %%d",ESFM_NAME(ESFM_CT));
-                        P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWELVE,&_TWELVE,tempID)); rightClickable
+                        P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR,tempID)); rightClickable
 
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                         snprintf(tempID,1024,"%s: %%d",ESFM_NAME(ESFM_DT));
@@ -4834,7 +4849,7 @@ void FurnaceGUI::drawInsEdit() {
                       ImGui::TableNextRow();
                       ImGui::TableNextColumn();
                       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                      P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWELVE,&_TWELVE)); rightClickable
+                      P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR)); rightClickable
                       ImGui::TableNextColumn();
                       ImGui::Text("%s",ESFM_NAME(ESFM_CT));
 
@@ -4893,7 +4908,7 @@ void FurnaceGUI::drawInsEdit() {
                       op.ksr=ksrOn;
                     }
                   }
-                  
+
                   if (ins->type==DIV_INS_ESFM) {
                     bool leftOn=opE.left;
                     bool rightOn=opE.right;
