@@ -1164,6 +1164,110 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
   }
 }
 
+void FurnaceGUI::drawESFMAlgorithm(DivInstrumentESFM& esfm, const ImVec2& size) {
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  ImGuiWindow* window=ImGui::GetCurrentWindow();
+
+  ImVec2 minArea=window->DC.CursorPos;
+  ImVec2 maxArea=ImVec2(
+    minArea.x+size.x,
+    minArea.y+size.y
+  );
+  ImRect rect=ImRect(minArea,maxArea);
+  ImGuiStyle& style=ImGui::GetStyle();
+  ImU32 colorM=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_MOD]);
+  ImU32 colorC=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_CAR]);
+  ImU32 colorsL[8];
+  for (int i=0; i<8; i++){
+    float alpha=(float)i/7.0f;
+    ImVec4 color=uiColors[GUI_COLOR_FM_ALG_LINE];
+    color.w *= alpha;
+    colorsL[i]=ImGui::GetColorU32(color);
+  }
+  ImGui::ItemSize(size,style.FramePadding.y);
+  if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
+    ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_FM_ALG_BG]),true,style.FrameRounding);
+    const float circleRadius=6.0f*dpiScale+1.0f;
+    //int modFb = esfm.op[0].modIn&7;
+    int mod12 = esfm.op[1].modIn&7;
+    int mod23 = esfm.op[2].modIn&7;
+    int mod34 = esfm.op[3].modIn&7;
+    int out1 = esfm.op[0].outLvl&7;
+    int out2 = esfm.op[1].outLvl&7;
+    int out3 = esfm.op[2].outLvl&7;
+    int out4 = esfm.op[3].outLvl&7;
+    bool isMod[4];
+    for (int i=0; i<4; i++) {
+      DivInstrumentESFM::Operator& opE = esfm.op[i];
+      isMod[i]=true;
+      if (opE.outLvl==7) isMod[i]=false;
+      else if (opE.outLvl>0) {
+        if (i==3) isMod[i]=false;
+        else {
+          DivInstrumentESFM::Operator& opENext=esfm.op[i+1];
+          if (opENext.modIn==0) isMod[i]=false;
+          else if ((opE.outLvl-opENext.modIn) >= 2) isMod[i]=false;
+        }
+      }
+    }
+
+    ImVec2 posOp1=ImLerp(rect.Min,rect.Max,ImVec2(0.2f,0.25f));
+    ImVec2 posOp2=ImLerp(rect.Min,rect.Max,ImVec2(0.4f,0.25f));
+    ImVec2 posOp3=ImLerp(rect.Min,rect.Max,ImVec2(0.6f,0.25f));
+    ImVec2 posOp4=ImLerp(rect.Min,rect.Max,ImVec2(0.8f,0.25f));
+    ImVec2 posBusbarOp1=ImLerp(rect.Min,rect.Max,ImVec2(0.2f,0.75f));
+    ImVec2 posBusbarOp2=ImLerp(rect.Min,rect.Max,ImVec2(0.4f,0.75f));
+    ImVec2 posBusbarOp3=ImLerp(rect.Min,rect.Max,ImVec2(0.6f,0.75f));
+    ImVec2 posBusbarOp4=ImLerp(rect.Min,rect.Max,ImVec2(0.8f,0.75f));
+
+    ImVec2 posBusbarStart=ImLerp(rect.Min,rect.Max,ImVec2(0.15f,0.75f));
+    ImVec2 posBusbarEnd=ImLerp(rect.Min,rect.Max,ImVec2(0.85f,0.75f));
+    bool busbarStartSeen=false;
+    for (int i=0; i<4; i++) {
+      DivInstrumentESFM::Operator& opE=esfm.op[i];
+      if (opE.outLvl>0) {
+        if (!busbarStartSeen) {
+          busbarStartSeen=true;
+          posBusbarStart=ImLerp(rect.Min,rect.Max,ImVec2(0.15f+0.2f*i,0.75f));
+        }
+        posBusbarEnd=ImLerp(rect.Min,rect.Max,ImVec2(0.25f+0.2f*i,0.75f));
+      }
+    }
+
+    if (mod12) addAALine(dl,posOp1,posOp2,colorsL[mod12]);
+    if (mod23) addAALine(dl,posOp2,posOp3,colorsL[mod23]);
+    if (mod34) addAALine(dl,posOp3,posOp4,colorsL[mod34]);
+    if (out1) addAALine(dl,posOp1,posBusbarOp1,colorsL[out1]);
+    if (out2) addAALine(dl,posOp2,posBusbarOp2,colorsL[out2]);
+    if (out3) addAALine(dl,posOp3,posBusbarOp3,colorsL[out3]);
+    if (out4) addAALine(dl,posOp4,posBusbarOp4,colorsL[out4]);
+
+    addAALine(dl,posBusbarStart,posBusbarEnd,colorsL[2]);
+    // addAALine(dl,posBusbarEnd,posBusbarEnd+ImVec2(-8.0f*dpiScale,-4.0f*dpiScale),colorsL[2]);
+    // addAALine(dl,posBusbarEnd,posBusbarEnd+ImVec2(-8.0f*dpiScale,4.0f*dpiScale),colorsL[2]);
+    // addAALine(dl,posBusbarStart+ImVec2(4.0f*dpiScale,-4.0f*dpiScale),posBusbarStart+ImVec2(4.0f*dpiScale,4.0f*dpiScale),colorsL[2]);
+
+    dl->AddCircle(posOp1,6.0f*dpiScale+1.0f,isMod[0]?colorM:colorC);
+    dl->AddCircleFilled(posOp1,4.0f*dpiScale+1.0f,isMod[0]?colorM:colorC);
+    dl->AddCircleFilled(posOp2,4.0f*dpiScale+1.0f,isMod[1]?colorM:colorC);
+    dl->AddCircleFilled(posOp3,4.0f*dpiScale+1.0f,isMod[2]?colorM:colorC);
+    dl->AddCircleFilled(posOp4,4.0f*dpiScale+1.0f,isMod[3]?colorM:colorC);
+
+    posOp1.x-=ImGui::CalcTextSize("1").x+circleRadius+3.0f*dpiScale;
+    posOp2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0f*dpiScale;
+    posOp3.x-=ImGui::CalcTextSize("3").x+circleRadius+3.0f*dpiScale;
+    posOp4.x-=ImGui::CalcTextSize("4").x+circleRadius+3.0f*dpiScale;
+    posOp1.y-=ImGui::CalcTextSize("1").y*0.5f;
+    posOp2.y-=ImGui::CalcTextSize("2").y*0.5f;
+    posOp3.y-=ImGui::CalcTextSize("3").y*0.5f;
+    posOp4.y-=ImGui::CalcTextSize("4").y*0.5f;
+    dl->AddText(posOp1,isMod[0]?colorM:colorC,"1");
+    dl->AddText(posOp2,isMod[1]?colorM:colorC,"2");
+    dl->AddText(posOp3,isMod[2]?colorM:colorC,"3");
+    dl->AddText(posOp4,isMod[3]?colorM:colorC,"4");
+  }
+}
+
 void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
@@ -3182,10 +3286,6 @@ void FurnaceGUI::drawInsEdit() {
                     }
                     break;
                   }
-                  case DIV_INS_ESFM: {
-                    // unreachable
-                    break;
-                  }
                   default:
                     break;
                 }
@@ -3212,8 +3312,7 @@ void FurnaceGUI::drawInsEdit() {
                       WAKE_UP;
                     }
                   } else {
-                    //drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
-                    ImGui::TextUnformatted("TODO: implement fancy ESFM\nauto algorithm drawing");
+                    drawESFMAlgorithm(ins->esfm, ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
                   }
                   kvsConfig(ins);
                 }
