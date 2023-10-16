@@ -76,6 +76,7 @@ bool cmdOutBinary=false;
 bool vgmOutDirect=false;
 
 bool safeMode=false;
+bool safeModeWithAudio=false;
 
 std::vector<TAParam> params;
 
@@ -131,6 +132,12 @@ TAParamResult pConsole(String val) {
 
 TAParamResult pSafeMode(String val) {
   safeMode=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pSafeModeAudio(String val) {
+  safeMode=true;
+  safeModeWithAudio=true;
   return TA_PARAM_SUCCESS;
 }
 
@@ -353,6 +360,7 @@ void initParams() {
   params.push_back(TAParam("s","subsong",true,pSubSong,"<number>","set sub-song"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
   params.push_back(TAParam("S","safemode",false,pSafeMode,"","enable safe mode (software rendering and no audio)"));
+  params.push_back(TAParam("A","safeaudio",false,pSafeModeAudio,"","enable safe mode (with audio"));
 
   params.push_back(TAParam("B","benchmark",true,pBenchmark,"render|seek","run performance test"));
 
@@ -509,7 +517,7 @@ int main(int argc, char** argv) {
 
   e.preInit();
 
-  if (safeMode) {
+  if (safeMode && !safeModeWithAudio) {
     e.setAudio(DIV_AUDIO_DUMMY);
   }
 
