@@ -1602,6 +1602,11 @@ class FurnaceGUI {
     int showPool;
     int writeInsNames;
     int readInsNames;
+    int fontBackend;
+    int fontHinting;
+    int fontBitmap;
+    int fontAutoHint;
+    int fontAntiAlias;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1786,6 +1791,11 @@ class FurnaceGUI {
       showPool(0),
       writeInsNames(1),
       readInsNames(1),
+      fontBackend(0),
+      fontHinting(0),
+      fontBitmap(0),
+      fontAutoHint(1),
+      fontAntiAlias(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

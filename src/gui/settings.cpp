@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "imgui_internal.h"
 #include "fonts.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
@@ -29,9 +30,9 @@
 #include "IconsFontAwesome4.h"
 #include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include "misc/freetype/imgui_freetype.h"
 #include "scaling.h"
 #include <fmt/printf.h>
-#include <imgui.h>
 
 #define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
@@ -49,6 +50,11 @@
 #else
 #define SYS_FILE_DIALOG_DEFAULT 1
 #endif
+
+const char* fontBackends[]={
+  "stb_truetype",
+  "FreeType"
+};
 
 const char* mainFonts[]={
   "IBM Plex Sans",
@@ -2340,6 +2346,17 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::BeginTable("##Text",2)) {
           ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##Combos",ImGuiTableColumnFlags_WidthStretch);
+#ifdef HAVE_FREETYPE
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Font renderer");
+          ImGui::TableNextColumn();
+          if (ImGui::Combo("##FontBack",&settings.fontBackend,fontBackends,2)) settingsChanged=true;
+#else
+          settings.fontBackend=0;
+#endif
+
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
@@ -2398,6 +2415,56 @@ void FurnaceGUI::drawSettings() {
             settingsChanged=true;
           }
           ImGui::EndTable();
+        }
+
+        if (settings.fontBackend==1) {
+          bool fontAntiAliasB=settings.fontAntiAlias;
+          if (ImGui::Checkbox("Anti-aliased fonts",&fontAntiAliasB)) {
+            settings.fontAntiAlias=fontAntiAliasB;
+            settingsChanged=true;
+          }
+
+          bool fontBitmapB=settings.fontBitmap;
+          if (ImGui::Checkbox("Support bitmap fonts",&fontBitmapB)) {
+            settings.fontBitmap=fontBitmapB;
+            settingsChanged=true;
+          }
+
+          ImGui::Text("Hinting:");
+          ImGui::Indent();
+          if (ImGui::RadioButton("Off (soft)##fh0",settings.fontHinting==0)) {
+            settings.fontHinting=0;
+            settingsChanged=true;
+          }
+          if (ImGui::RadioButton("Slight##fh1",settings.fontHinting==1)) {
+            settings.fontHinting=1;
+            settingsChanged=true;
+          }
+          if (ImGui::RadioButton("Normal##fh2",settings.fontHinting==2)) {
+            settings.fontHinting=2;
+            settingsChanged=true;
+          }
+          if (ImGui::RadioButton("Full (hard)##fh3",settings.fontHinting==3)) {
+            settings.fontHinting=3;
+            settingsChanged=true;
+          }
+          ImGui::Unindent();
+
+          ImGui::Text("Auto-hinter:");
+          ImGui::Indent();
+          if (ImGui::RadioButton("Disable##fah0",settings.fontAutoHint==0)) {
+            settings.fontAutoHint=0;
+            settingsChanged=true;
+          }
+          if (ImGui::RadioButton("Enable##fah1",settings.fontAutoHint==1)) {
+            settings.fontAutoHint=1;
+            settingsChanged=true;
+          }
+          if (ImGui::RadioButton("Force##fah2",settings.fontAutoHint==2)) {
+            settings.fontAutoHint=2;
+            settingsChanged=true;
+          }
+          ImGui::Unindent();
         }
 
         bool loadJapaneseB=settings.loadJapanese;
@@ -3650,6 +3717,11 @@ void FurnaceGUI::syncSettings() {
   settings.writeInsNames=e->getConfInt("writeInsNames",1);
   settings.readInsNames=e->getConfInt("readInsNames",1);
   settings.defaultAuthorName=e->getConfString("defaultAuthorName","");
+  settings.fontBackend=e->getConfInt("fontBackend",0);
+  settings.fontHinting=e->getConfInt("fontHinting",0);
+  settings.fontBitmap=e->getConfInt("fontBitmap",0);
+  settings.fontAutoHint=e->getConfInt("fontAutoHint",1);
+  settings.fontAntiAlias=e->getConfInt("fontAntiAlias",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3805,6 +3877,11 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.showPool,0,1);
   clampSetting(settings.writeInsNames,0,1);
   clampSetting(settings.readInsNames,0,1);
+  clampSetting(settings.fontBackend,0,1);
+  clampSetting(settings.fontHinting,0,3);
+  clampSetting(settings.fontBitmap,0,1);
+  clampSetting(settings.fontAutoHint,0,2);
+  clampSetting(settings.fontAntiAlias,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -4069,6 +4146,11 @@ void FurnaceGUI::commitSettings() {
   e->setConf("writeInsNames",settings.writeInsNames);
   e->setConf("readInsNames",settings.readInsNames);
   e->setConf("defaultAuthorName",settings.defaultAuthorName);
+  e->setConf("fontBackend",settings.fontBackend);
+  e->setConf("fontHinting",settings.fontHinting);
+  e->setConf("fontBitmap",settings.fontBitmap);
+  e->setConf("fontAutoHint",settings.fontAutoHint);
+  e->setConf("fontAntiAlias",settings.fontAntiAlias);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -4766,6 +4848,56 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   }
 
   if (updateFonts) {
+    // prepare
+#ifdef HAVE_FREETYPE
+    if (settings.fontBackend==1) {
+      ImGui::GetIO().Fonts->FontBuilderIO=ImGuiFreeType::GetBuilderForFreeType();
+      ImGui::GetIO().Fonts->FontBuilderFlags&=~(
+        ImGuiFreeTypeBuilderFlags_NoHinting|
+        ImGuiFreeTypeBuilderFlags_NoAutoHint|
+        ImGuiFreeTypeBuilderFlags_ForceAutoHint|
+        ImGuiFreeTypeBuilderFlags_LightHinting|
+        ImGuiFreeTypeBuilderFlags_MonoHinting|
+        ImGuiFreeTypeBuilderFlags_Bold|
+        ImGuiFreeTypeBuilderFlags_Oblique|
+        ImGuiFreeTypeBuilderFlags_Monochrome|
+        ImGuiFreeTypeBuilderFlags_LoadColor|
+        ImGuiFreeTypeBuilderFlags_Bitmap
+      );
+
+      if (!settings.fontAntiAlias) ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_Monochrome;
+      if (settings.fontBitmap) ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_Bitmap;
+
+      switch (settings.fontHinting) {
+        case 0: // off
+          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_NoHinting;
+          break;
+        case 1: // slight
+          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_LightHinting;
+          break;
+        case 2: // normal
+          break;
+        case 3: // full
+          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_MonoHinting;
+          break;
+      }
+
+      switch (settings.fontAutoHint) {
+        case 0: // off
+          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_NoAutoHint;
+          break;
+        case 1: // on
+          break;
+        case 2: // force
+          ImGui::GetIO().Fonts->FontBuilderFlags|=ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+          break;
+      }
+    } else {
+      ImGui::GetIO().Fonts->FontBuilderIO=ImFontAtlasGetBuilderForStbTruetype();
+    }
+#endif
+
+
     // set to 800 for now due to problems with unifont
     static const ImWchar upTo800[]={0x20,0x7e,0xa0,0x800,0};
     ImFontGlyphRangesBuilder range;
