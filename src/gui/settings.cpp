@@ -43,6 +43,12 @@
 #define POWER_SAVE_DEFAULT 0
 #endif
 
+#ifdef HAVE_FREETYPE
+#define FONT_BACKEND_DEFAULT 1
+#else
+#define FONT_BACKEND_DEFAULT 0
+#endif
+
 #if defined(__HAIKU__) || defined(IS_MOBILE) || (defined(_WIN32) && !defined(_WIN64))
 // NFD doesn't support Haiku
 // NFD doesn't support Windows XP either
@@ -3717,7 +3723,7 @@ void FurnaceGUI::syncSettings() {
   settings.writeInsNames=e->getConfInt("writeInsNames",1);
   settings.readInsNames=e->getConfInt("readInsNames",1);
   settings.defaultAuthorName=e->getConfString("defaultAuthorName","");
-  settings.fontBackend=e->getConfInt("fontBackend",0);
+  settings.fontBackend=e->getConfInt("fontBackend",FONT_BACKEND_DEFAULT);
   settings.fontHinting=e->getConfInt("fontHinting",0);
   settings.fontBitmap=e->getConfInt("fontBitmap",0);
   settings.fontAutoHint=e->getConfInt("fontAutoHint",1);

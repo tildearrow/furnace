@@ -1792,7 +1792,7 @@ class FurnaceGUI {
       showPool(0),
       writeInsNames(1),
       readInsNames(1),
-      fontBackend(0),
+      fontBackend(1),
       fontHinting(0),
       fontBitmap(0),
       fontAutoHint(1),
