@@ -271,6 +271,7 @@ Available options:
 | `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
 
 (\*) `ON` if system-installed JACK detected, otherwise `OFF`
+
 (\*\*) but consider enabling this & reporting any errors that arise from it!
 
 ## CMake Error
