@@ -32,7 +32,9 @@
 bool FurnaceGUI::initRender() {
   if (rend!=NULL) return false;
 
-  if (settings.renderBackend=="OpenGL") {
+  if (safeMode) {
+    renderBackend=GUI_BACKEND_SDL;
+  } else if (settings.renderBackend=="OpenGL") {
     renderBackend=GUI_BACKEND_GL;
   } else if (settings.renderBackend=="DirectX 11") {
     renderBackend=GUI_BACKEND_DX11;

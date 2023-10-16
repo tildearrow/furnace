@@ -260,7 +260,7 @@ void FurnaceGUI::drawOsc() {
       if (oscWidth>2048) oscWidth=2048;
 
       ImDrawListFlags prevFlags=dl->Flags;
-      if (!settings.oscAntiAlias) {
+      if (!settings.oscAntiAlias || safeMode) {
         dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
       }
 

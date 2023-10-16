@@ -1352,6 +1352,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool killGraphics;
+  bool safeMode;
   bool midiWakeUp;
   bool audioEngineChanged, settingsChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
@@ -2457,6 +2458,7 @@ class FurnaceGUI {
     const char* noteName(short note, short octave);
     bool decodeNote(const char* what, short& note, short& octave);
     void bindEngine(DivEngine* eng);
+    void enableSafeMode();
     void updateScroll(int amount);
     void addScroll(int amount);
     void setFileName(String name);

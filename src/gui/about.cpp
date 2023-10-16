@@ -160,6 +160,9 @@ const char* aboutLine[]={
   "powered by:",
   "Dear ImGui by Omar Cornut",
   "SDL2 by Sam Lantinga",
+#ifdef HAVE_FREETYPE
+  "FreeType",
+#endif
   "zlib by Jean-loup Gailly",
   "and Mark Adler",
   "libsndfile by Erik de Castro Lopo",

@@ -4805,6 +4805,16 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameShading=(float)settings.guiColorsShading/100.0f;
   }
 
+  if (safeMode) {
+    sty.WindowRounding=0.0f;
+    sty.FrameRounding=0.0f;
+    sty.GrabRounding=0.0f;
+    sty.FrameShading=0.0f;
+    sty.AntiAliasedLines=false;
+    sty.AntiAliasedLinesUseTex=false;
+    sty.AntiAliasedFill=false;
+  }
+
   if (mobileUI) {
     sty.FramePadding=ImVec2(8.0f,6.0f);
   }
@@ -4847,7 +4857,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sysCmd2Grad[i]=ImGui::GetColorU32(ImVec4(base.x,base.y,base.z,((float)i/255.0f)*base.w));
   }
 
-  if (updateFonts) {
+  if (updateFonts && !safeMode) {
     // prepare
 #ifdef HAVE_FREETYPE
     if (settings.fontBackend==1) {
@@ -5091,6 +5101,15 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       }
     }
 
+    mainFont->FallbackChar='?';
+    mainFont->EllipsisChar='.';
+    mainFont->EllipsisCharCount=3;
+  } else if (updateFonts) {
+    // safe mode
+    mainFont=ImGui::GetIO().Fonts->AddFontDefault();
+    patFont=mainFont;
+    bigFont=mainFont;
+    headFont=mainFont;
 
     mainFont->FallbackChar='?';
     mainFont->EllipsisChar='.';
@@ -5113,6 +5132,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".otf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttc",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".dfont",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fon",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".pcf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".psf",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".mod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc13",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);

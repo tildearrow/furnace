@@ -90,6 +90,10 @@ void FurnaceGUI::bindEngine(DivEngine* eng) {
   wavePreview.setEngine(e);
 }
 
+void FurnaceGUI::enableSafeMode() {
+  safeMode=true;
+}
+
 const char* FurnaceGUI::noteName(short note, short octave) {
   if (note==100) {
     return noteOffLabel;
@@ -1893,7 +1897,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -1902,7 +1906,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -1911,7 +1915,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -3849,7 +3853,7 @@ bool FurnaceGUI::loop() {
       continue;
     }
 
-    if (firstFrame) {
+    if (firstFrame && !safeMode) {
       if (!tutorial.introPlayed || settings.alwaysPlayIntro==3 || (settings.alwaysPlayIntro==2 && curFileName.empty())) {
         unsigned char* introTemp=new unsigned char[intro_fur_len];
         memcpy(introTemp,intro_fur,intro_fur_len);
@@ -6735,6 +6739,10 @@ bool FurnaceGUI::init() {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER,settings.renderDriver.c_str());
   }
 
+  if (safeMode) {
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER,"software");
+  }
+
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
     logE("it failed...");
@@ -7122,6 +7130,7 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   mobileEdit(false),
   killGraphics(false),
+  safeMode(false),
   midiWakeUp(true),
   audioEngineChanged(false),
   settingsChanged(false),
