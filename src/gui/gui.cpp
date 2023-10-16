@@ -3455,6 +3455,11 @@ bool FurnaceGUI::loop() {
     logD("key input: main thread");
   }
 
+  if (safeMode) {
+    showError("Furnace has been started in Safe Mode.\nthis means that:\n\n- software rendering is being used\n- audio output may not work\n- font loading is disabled\n\ncheck any settings which may have made Furnace start up in this mode.\nfont loading is one of these.");
+    settingsOpen=true;
+  }
+
   while (!quit) {
     SDL_Event ev;
     if (e->isPlaying()) {
@@ -6244,6 +6249,7 @@ bool FurnaceGUI::loop() {
     if (mustClear) {
       rend->clear(ImVec4(0,0,0,0));
       mustClear--;
+      if (mustClear==0) e->everythingOK();
     } else {
       if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;

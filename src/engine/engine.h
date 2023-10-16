@@ -1196,11 +1196,14 @@ class DivEngine {
     // quit dispatch
     void quitDispatch();
 
-    // pre-initialize the engine.
-    void preInit();
+    // pre-initialize the engine. returns whether Furnace should run in safe mode.
+    bool preInit(bool noSafeMode=true);
 
     // initialize the engine.
     bool init();
+
+    // confirm that the engine is running (delete safe mode file).
+    void everythingOK();
 
     // terminate the engine.
     bool quit();

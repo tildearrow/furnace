@@ -3634,13 +3634,21 @@ bool DivEngine::deinitAudioBackend(bool dueToSwitchMaster) {
   return true;
 }
 
-void DivEngine::preInit() {
+bool DivEngine::preInit(bool noSafeMode) {
+  bool wantSafe=false;
   // register systems
   if (!systemsRegistered) registerSystems();
 
   // init config
   initConfDir();
   logD("config path: %s",configPath.c_str());
+
+  if (!noSafeMode) {
+    String safeModePath=configPath+DIR_SEPARATOR_STR+"safemode";
+    if (touchFile(safeModePath.c_str())==-EEXIST) {
+      wantSafe=true;
+    }
+  }
 
   String logPath=configPath+DIR_SEPARATOR_STR+"furnace.log";
   startLogFile(logPath.c_str());
@@ -3655,6 +3663,17 @@ void DivEngine::preInit() {
     SDL_SetHint("SDL_HINT_AUDIODRIVER",audioDriver.c_str());
   }
 #endif
+
+  if (wantSafe) {
+    logW("requesting safe mode.");
+  }
+
+  return wantSafe;
+}
+
+void DivEngine::everythingOK() {
+  String safeModePath=configPath+DIR_SEPARATOR_STR+"safemode";
+  deleteFile(safeModePath.c_str());
 }
 
 bool DivEngine::init() {

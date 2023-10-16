@@ -28,5 +28,6 @@ bool deleteFile(const char* path);
 int fileExists(const char* path);
 bool dirExists(const char* what);
 bool makeDir(const char* path);
+int touchFile(const char* path);
 
 #endif

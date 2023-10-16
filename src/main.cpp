@@ -131,14 +131,24 @@ TAParamResult pConsole(String val) {
 }
 
 TAParamResult pSafeMode(String val) {
+#ifdef HAVE_GUI
   safeMode=true;
   return TA_PARAM_SUCCESS;
+#else
+  logE("Furnace was compiled without the GUI. safe mode is pointless.");
+  return TA_PARAM_ERROR;
+#endif
 }
 
 TAParamResult pSafeModeAudio(String val) {
+#ifdef HAVE_GUI
   safeMode=true;
   safeModeWithAudio=true;
   return TA_PARAM_SUCCESS;
+#else
+  logE("Furnace was compiled without the GUI. safe mode is pointless.");
+  return TA_PARAM_ERROR;
+#endif
 }
 
 TAParamResult pBinary(String val) {
@@ -515,7 +525,24 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  e.preInit();
+#ifdef HAVE_GUI
+  if (e.preInit(false)) {
+    if (consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="") {
+      logW("engine wants safe mode, but Furnace GUI is not going to start.");
+    } else {
+      safeMode=true;
+    }
+  }
+#else
+  if (e.preInit(true)) {
+    logW("engine wants safe mode, but Furnace GUI is not available.");
+  }
+#endif
+
+  if (safeMode && (consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+    logE("you can't use safe mode and console/export mode together.");
+    return 0;
+  }
 
   if (safeMode && !safeModeWithAudio) {
     e.setAudio(DIV_AUDIO_DUMMY);
@@ -684,6 +711,7 @@ int main(int argc, char** argv) {
   if (!g.init()) {
     reportError(g.getLastError());
     finishLogFile();
+    e.everythingOK();
     return 1;
   }
 
@@ -720,5 +748,6 @@ int main(int argc, char** argv) {
     CoUninitialize();
   }
 #endif
+  e.everythingOK();
   return 0;
 }
