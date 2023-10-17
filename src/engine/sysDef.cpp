@@ -1,4 +1,4 @@
-'/**
+/**
  * Furnace Tracker - multi-system chiptune tracker
  * Copyright (C) 2021-2023 tildearrow and contributors
  *
