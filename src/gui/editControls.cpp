@@ -169,7 +169,7 @@ const bool mobileButtonPersist[32]={
 };
 
 void FurnaceGUI::drawMobileControls() {
-  float timeScale=1.0f/(60.0f*ImGui::GetIO().DeltaTime);
+  float timeScale=60.0*ImGui::GetIO().DeltaTime;
   if (dragMobileMenu) {
     if (portrait) {
       mobileMenuPos=(dragMobileMenuOrigin.y-ImGui::GetMousePos().y)/(canvasH*0.65);
