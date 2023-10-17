@@ -1,6 +1,6 @@
 To generate a new letter icon:
 
-- Open `icons.sfd` in FontForge.
+- Open `res/icons.sfd` in FontForge.
 - Open "IBM Plex Sans Medium" to the side. Return to the icons font.
 - Copy the two baselines from `E0F0` to the new codepoint.
 - Open the new codepoint.
@@ -20,6 +20,11 @@ To generate a new letter icon:
   - Two lines: 8000%, X 896, Y 618.5.
 - If resulting glyph is too wide, repeat all steps starting with "IBM Plex Sans Condensed Medium" instead.
   - Remember to close the other IBM Plex font or select the proper one in the text dialog.
+- Save.
+- Use `File | Generate Fonts...` to export `res/icons.ttf`.
+  - "Validate before saving" should be turned off.
+  - An error will pop up informing that the TrueType em-size isn't a power of two. Ignore this.
+- Run `res/make-iconfont.sh`.
 
 Notes:
 
