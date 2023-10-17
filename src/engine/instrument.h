@@ -802,7 +802,6 @@ struct DivInstrumentESFM {
       op[3].modIn=7;
       op[3].outLvl=7;
     }
-
 };
 
 struct DivInstrument {

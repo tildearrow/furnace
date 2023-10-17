@@ -93,12 +93,15 @@ void DivPlatformESFM::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
 
-    // TODO: check why I disabled globalPan here?
-#if 0
     if (chan[i].std.panL.had) {
       chan[i].globalPan=((chan[i].std.panL.val&1)<<1)|((chan[i].std.panL.val&2)>>1);
+      for (int o=0; o<4; o++) {
+        unsigned short baseAddr=i*32 + o*8;
+        DivInstrumentFM::Operator& op=chan[i].state.fm.op[o];
+        DivInstrumentESFM::Operator& opE=chan[i].state.esfm.op[o];
+        rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[i].globalPan)&1)<<4)|(((opE.right&(chan[i].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
+      }
     }
-#endif
 
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -115,12 +118,28 @@ void DivPlatformESFM::tick(bool sysTick) {
         chan[i].keyOn=true;
       }
     }
-    
+
+    if (chan[i].std.duty.had) {
+      int o=3;
+      unsigned short baseAddr=i*32 + o*8;
+      DivInstrumentESFM& ins=chan[i].state.esfm;
+      DivInstrumentFM::Operator& op=chan[i].state.fm.op[o];
+      DivInstrumentESFM::Operator& opE=chan[i].state.esfm.op[o];
+      ins.noise=chan[i].std.duty.val;
+
+      if (isMuted[i]) {
+        rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?ins.noise&3:0)<<3)|0);
+      } else {
+        rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?ins.noise&3:0)<<3)|((opE.outLvl&7)<<5));
+      }
+    }
+
     for (int o=0; o<4; o++) {
       unsigned short baseAddr=i*32 + o*8;
       DivInstrumentFM::Operator& op=chan[i].state.fm.op[o];
+      DivInstrumentESFM::Operator& opE=chan[i].state.esfm.op[o];
       DivMacroInt::IntOp& m=chan[i].std.op[o];
-      
+
       if (m.am.had) {
         op.am=m.am.val;
         rWrite(baseAddr+OFFSET_AM_VIB_SUS_KSR_MULT,((op.am&1)<<7)|((op.vib&1)<<6)|((op.sus&1)<<5)|((op.ksr&1)<<4)|(op.mult&0xf));
@@ -172,6 +191,68 @@ void DivPlatformESFM::tick(bool sysTick) {
         } else {
           rWrite(baseAddr+OFFSET_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
         }
+      }
+
+      if (m.dam.had) {
+        op.dam=m.dam.val;
+        rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[i].globalPan)&1)<<4)|(((opE.right&(chan[i].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
+      }
+      if (m.dvb.had) {
+        op.dvb=m.dvb.val;
+        rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[i].globalPan)&1)<<4)|(((opE.right&(chan[i].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
+      }
+      if (m.rs.had) {
+        // operator panning
+        opE.left=(m.rs.val&2)!=0;
+        opE.right=(m.rs.val&1)!=0;
+        rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[i].globalPan)&1)<<4)|(((opE.right&(chan[i].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
+      }
+      if (m.d2r.had) {
+        // modIn
+        opE.modIn=m.d2r.val;
+        rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[i].globalPan)&1)<<4)|(((opE.right&(chan[i].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
+      }
+
+      if (m.egt.had | m.ws.had) {
+        unsigned char noise=chan[i].state.esfm.noise&3;
+        if (m.egt.had) {
+          // outLvl
+          opE.outLvl=m.egt.val;
+        }
+        if (m.ws.had) {
+          op.ws=m.ws.val;
+        }
+
+        if (isMuted[i]) {
+          rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|0);
+        } else {
+          rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|((opE.outLvl&7)<<5));
+        }
+      }
+
+      if (opE.fixed) {
+        if (m.ssg.had) {
+          opE.ct=(opE.ct&(~(7<<2)))|((m.ssg.val&7)<<2);
+          chan[i].freqChanged=true;
+        }
+        if (m.dt.had) {
+          opE.dt=m.dt.val&0xff;
+          opE.ct=(opE.ct&(~3))|((m.dt.val>>8)&3);
+          chan[i].freqChanged=true;
+        }
+      } else {
+        if (m.ssg.had) {
+          opE.ct=(signed char)m.ssg.val;
+          chan[i].freqChanged=true;
+        }
+        if (m.dt.had) {
+          opE.dt=(signed char)m.dt.val;
+          chan[i].freqChanged=true;
+        }
+      }
+      if (m.dt2.had) {
+        opE.delay=m.dt2.val;
+        rWrite(baseAddr+OFFSET_FREQH_BLOCK_DELAY,chan[i].freqH[o]|(opE.delay<<5));
       }
     }
   }
