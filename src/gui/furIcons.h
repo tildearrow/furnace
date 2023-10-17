@@ -66,6 +66,7 @@
 #define ICON_FUR_INS_TED u8"\ue134"
 #define ICON_FUR_INS_C140 u8"\ue135"
 #define ICON_FUR_INS_C219 u8"\ue142"
+#define ICON_FUR_INS_ESFM u8"\ue143"
 
 // sample editor
 #define ICON_FUR_SAMPLE_APPLY_SILENCE u8"\ue136"
