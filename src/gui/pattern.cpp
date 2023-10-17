@@ -513,15 +513,16 @@ void FurnaceGUI::drawPattern() {
         if (ImGui::RadioButton("No##_PCS0",patChannelHints==0)) {
           patChannelHints=0;
         }
-        if (ImGui::RadioButton("Basic##_PCS0",patChannelHints==1)) {
+        if (ImGui::RadioButton("Yes##_PCS1",patChannelHints==1)) {
           patChannelHints=1;
         }
-        if (ImGui::RadioButton("Regular##_PCS0",patChannelHints==2)) {
+        /*
+        if (ImGui::RadioButton("Regular##_PCS2",patChannelHints==2)) {
           patChannelHints=2;
         }
-        if (ImGui::RadioButton("Detailed##_PCS0",patChannelHints==3)) {
+        if (ImGui::RadioButton("Detailed##_PCS3",patChannelHints==3)) {
           patChannelHints=3;
-        }
+        }*/
         ImGui::Unindent();
         ImGui::EndPopup();
       }
@@ -919,6 +920,10 @@ void FurnaceGUI::drawPattern() {
         }
 
         if (patChannelHints) {
+          ImGui::Dummy(ImVec2(dpiScale,settings.iconSize*dpiScale));
+          //ImDrawList* dl=ImGui::GetWindowDrawList();
+          
+          /*
           DivChannelState* cs=e->getChanState(i);
           if (cs!=NULL) {
             ImGui::PushFont(mainFont);
@@ -940,76 +945,10 @@ void FurnaceGUI::drawPattern() {
               ImGui::PopStyleColor();
             }
             ImGui::PopFont();
-
-            if (e->curSubSong->chanCollapse[i]==0) {
-              ImGui::SameLine();
-              ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]));
-              ImGui::Text("%.2X",cs->volume>>8);
-              ImGui::PopStyleColor();
-
-              if (cs->volSpeed!=0) {
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_VOLUME]));
-                ImGui::Text("%+2d",cs->volSpeed/4);
-                ImGui::PopStyleColor();
-              } else {
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
-                ImGui::Text(" 00");
-                ImGui::PopStyleColor();
-              }
-
-              if (cs->vibratoDepth>0) {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
-                ImGui::Text("~%.1X%.1X",cs->vibratoRate,cs->vibratoDepth);
-                ImGui::PopStyleColor();
-              } else {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
-                ImGui::Text("~00");
-                ImGui::PopStyleColor();
-              }
-
-              /*
-              if (cs->legato) {
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
-                ImGui::Text("=");
-                ImGui::PopStyleColor();
-              } else {
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
-                ImGui::Text("=");
-                ImGui::PopStyleColor();
-              }*/
-
-              if (cs->inPorta) {
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
-                if (cs->portaNote<-60 || cs->portaNote>=120) {
-                  ImGui::Text("???@%.2X",cs->portaSpeed);
-                } else {
-                  ImGui::Text("%s@%.2X",noteNames[60+cs->portaNote],cs->portaSpeed);
-                }
-                ImGui::PopStyleColor();
-              } else {
-                if (cs->portaSpeed>0) {
-                  ImGui::SameLine();
-                  ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
-                  if (cs->portaNote<60) {
-                    ImGui::Text(" v%.2X  ",cs->portaSpeed);
-                  } else {
-                    ImGui::Text(" ^%.2X  ",cs->portaSpeed);
-                  }
-                  ImGui::PopStyleColor();
-                } else {
-                  ImGui::SameLine();
-                  ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
-                  ImGui::Text(" --- ");
-                  ImGui::PopStyleColor();
-                }
-              }
-            }
           }
+          */
+
+          // TODO: improve. scale font so it always fits.
         }
         chanHeadBottom=ImGui::GetCursorScreenPos().y-ImGui::GetStyle().ItemSpacing.y;
       }
@@ -1295,6 +1234,68 @@ void FurnaceGUI::drawPattern() {
           i.label
         );
       }
+    }
+
+    // also let's draw a warning if the instrument cannot be previewed
+    if (tdl!=NULL && failedNoteOn) {
+      ImVec2 winCenter=ImGui::GetWindowPos()+ImGui::GetWindowSize()*0.5f;
+      ImGui::PushFont(bigFont);
+      ImVec2 warnHeadSize=ImGui::CalcTextSize("WARNING!!");
+      ImGui::PopFont();
+      ImVec2 warnTextSize1=ImGui::CalcTextSize("this instrument cannot be previewed because");
+      ImVec2 warnTextSize2=ImGui::CalcTextSize("none of the chips can play it");
+      ImVec2 warnTextSize3=ImGui::CalcTextSize("your instrument is in peril!! be careful...");
+
+      float maxTextSize=warnHeadSize.x;
+      if (warnTextSize1.x>maxTextSize) maxTextSize=warnTextSize1.x;
+      if (warnTextSize2.x>maxTextSize) maxTextSize=warnTextSize2.x;
+      if (warnTextSize3.x>maxTextSize) maxTextSize=warnTextSize3.x;
+
+      ImVec2 sumOfAll=ImVec2(
+        maxTextSize,
+        warnHeadSize.y+warnTextSize1.y+warnTextSize2.y+warnTextSize3.y
+      );
+
+      ImGui::RenderFrameDrawList(
+        tdl,
+        ImVec2(winCenter.x-sumOfAll.x*0.5-ImGui::GetStyle().ItemInnerSpacing.x,winCenter.y-sumOfAll.y*0.5-ImGui::GetStyle().ItemInnerSpacing.y),
+        ImVec2(winCenter.x+sumOfAll.x*0.5+ImGui::GetStyle().ItemInnerSpacing.x,winCenter.y+sumOfAll.y*0.5+ImGui::GetStyle().ItemInnerSpacing.y),
+        ImGui::GetColorU32(ImGuiCol_FrameBg),
+        true,
+        ImGui::GetStyle().FrameRounding
+      );
+
+      float whereY=winCenter.y-sumOfAll.y*0.5;
+
+      tdl->AddText(
+        bigFont,
+        MAX(1,40*dpiScale),
+        ImVec2(winCenter.x-warnHeadSize.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "WARNING!!"
+      );
+      whereY+=warnHeadSize.y;
+
+      tdl->AddText(
+        ImVec2(winCenter.x-warnTextSize1.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "this instrument cannot be previewed because"
+      );
+      whereY+=warnTextSize1.y;
+
+      tdl->AddText(
+        ImVec2(winCenter.x-warnTextSize2.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "none of the chips can play it"
+      );
+      whereY+=warnTextSize2.y;
+
+      tdl->AddText(
+        ImVec2(winCenter.x-warnTextSize3.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "your instrument is in peril!! be careful..."
+      );
+      whereY+=warnTextSize3.y;
     }
     ImGui::PopFont();
 

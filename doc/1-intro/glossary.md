@@ -14,6 +14,8 @@
 
 **bitbang**: to achieve PCM sound by sending a rapid stream of volume commands to a non-PCM channel.
 
+**bitmask**: a set of bits which represent individual single-bit toggles or groups representing small numbers. these are explained fully in the [hexadecimal primer](hex.md).
+
 **BRR**: a lossy sample format used by the SNES. it has a fixed compression ratio; groups of 32 bytes (16 samples) are encoded in 9 bytes each.
 - usually stored in .brr files.
 

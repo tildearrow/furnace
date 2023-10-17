@@ -90,6 +90,10 @@ void FurnaceGUI::bindEngine(DivEngine* eng) {
   wavePreview.setEngine(e);
 }
 
+void FurnaceGUI::enableSafeMode() {
+  safeMode=true;
+}
+
 const char* FurnaceGUI::noteName(short note, short octave) {
   if (note==100) {
     return noteOffLabel;
@@ -1146,7 +1150,7 @@ void FurnaceGUI::stop() {
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
   e->setMidiBaseChan(refChan);
   e->synchronized([this,note]() {
-    e->autoNoteOn(-1,curIns,note);
+    if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
   });
 }
 
@@ -1164,6 +1168,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 
     e->synchronized([this,num]() {
       e->autoNoteOff(-1,num);
+      failedNoteOn=false;
     });
   }
 }
@@ -1892,7 +1897,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -1901,7 +1906,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -1910,7 +1915,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -3450,6 +3455,11 @@ bool FurnaceGUI::loop() {
     logD("key input: main thread");
   }
 
+  if (safeMode) {
+    showError("Furnace has been started in Safe Mode.\nthis means that:\n\n- software rendering is being used\n- audio output may not work\n- font loading is disabled\n\ncheck any settings which may have made Furnace start up in this mode.\nfont loading is one of these.");
+    settingsOpen=true;
+  }
+
   while (!quit) {
     SDL_Event ev;
     if (e->isPlaying()) {
@@ -3848,7 +3858,7 @@ bool FurnaceGUI::loop() {
       continue;
     }
 
-    if (firstFrame) {
+    if (firstFrame && !safeMode) {
       if (!tutorial.introPlayed || settings.alwaysPlayIntro==3 || (settings.alwaysPlayIntro==2 && curFileName.empty())) {
         unsigned char* introTemp=new unsigned char[intro_fur_len];
         memcpy(introTemp,intro_fur,intro_fur_len);
@@ -6216,6 +6226,7 @@ bool FurnaceGUI::loop() {
         switch (lastWindowCat) {
           case 0:
             e->autoNoteOffAll();
+            failedNoteOn=false;
             break;
           case 1:
             e->stopWavePreview();
@@ -6238,6 +6249,7 @@ bool FurnaceGUI::loop() {
     if (mustClear) {
       rend->clear(ImVec4(0,0,0,0));
       mustClear--;
+      if (mustClear==0) e->everythingOK();
     } else {
       if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;
@@ -6733,6 +6745,10 @@ bool FurnaceGUI::init() {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER,settings.renderDriver.c_str());
   }
 
+  if (safeMode) {
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER,"software");
+  }
+
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
     logE("it failed...");
@@ -7120,6 +7136,7 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   mobileEdit(false),
   killGraphics(false),
+  safeMode(false),
   midiWakeUp(true),
   audioEngineChanged(false),
   settingsChanged(false),
@@ -7304,6 +7321,7 @@ FurnaceGUI::FurnaceGUI():
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
+  failedNoteOn(false),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
   buttonLongThreshold(0.20f),
