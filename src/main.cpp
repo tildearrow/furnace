@@ -75,6 +75,9 @@ bool displayEngineFailError=false;
 bool cmdOutBinary=false;
 bool vgmOutDirect=false;
 
+bool safeMode=false;
+bool safeModeWithAudio=false;
+
 std::vector<TAParam> params;
 
 TAParamResult pHelp(String) {
@@ -99,8 +102,10 @@ TAParamResult pAudio(String val) {
     e.setAudio(DIV_AUDIO_JACK);
   } else if (val=="sdl") {
     e.setAudio(DIV_AUDIO_SDL);
+  } else if (val=="portaudio") {
+    e.setAudio(DIV_AUDIO_PORTAUDIO);
   } else {
-    logE("invalid value for audio engine! valid values are: jack, sdl.");
+    logE("invalid value for audio engine! valid values are: jack, sdl, portaudio.");
     return TA_PARAM_ERROR;
   }
   return TA_PARAM_SUCCESS;
@@ -123,6 +128,27 @@ TAParamResult pView(String val) {
 TAParamResult pConsole(String val) {
   consoleMode=true;
   return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pSafeMode(String val) {
+#ifdef HAVE_GUI
+  safeMode=true;
+  return TA_PARAM_SUCCESS;
+#else
+  logE("Furnace was compiled without the GUI. safe mode is pointless.");
+  return TA_PARAM_ERROR;
+#endif
+}
+
+TAParamResult pSafeModeAudio(String val) {
+#ifdef HAVE_GUI
+  safeMode=true;
+  safeModeWithAudio=true;
+  return TA_PARAM_SUCCESS;
+#else
+  logE("Furnace was compiled without the GUI. safe mode is pointless.");
+  return TA_PARAM_ERROR;
+#endif
 }
 
 TAParamResult pBinary(String val) {
@@ -171,6 +197,9 @@ TAParamResult pVersion(String) {
   printf("- RtMidi by Gary P. Scavone (RtMidi license)\n");
   printf("- backward-cpp by Google (MIT)\n");
   printf("- Dear ImGui by Omar Cornut (MIT)\n");
+#ifdef HAVE_FREETYPE
+  printf("- FreeType (GPLv2)\n");
+#endif
   printf("- Portable File Dialogs by Sam Hocevar (WTFPL)\n");
   printf("- Native File Dialog (modified version) by Frogtoss Games (zlib license)\n");
   printf("- FFTW by Matteo Frigo and Steven G. Johnson (GPLv2)\n");
@@ -326,7 +355,7 @@ bool needsValue(String param) {
 void initParams() {
   params.push_back(TAParam("h","help",false,pHelp,"","display this help"));
 
-  params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
+  params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl|portaudio","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
@@ -340,6 +369,8 @@ void initParams() {
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
   params.push_back(TAParam("s","subsong",true,pSubSong,"<number>","set sub-song"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
+  params.push_back(TAParam("S","safemode",false,pSafeMode,"","enable safe mode (software rendering and no audio)"));
+  params.push_back(TAParam("A","safeaudio",false,pSafeModeAudio,"","enable safe mode (with audio"));
 
   params.push_back(TAParam("B","benchmark",true,pBenchmark,"render|seek","run performance test"));
 
@@ -494,7 +525,28 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  e.preInit();
+#ifdef HAVE_GUI
+  if (e.preInit(false)) {
+    if (consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="") {
+      logW("engine wants safe mode, but Furnace GUI is not going to start.");
+    } else {
+      safeMode=true;
+    }
+  }
+#else
+  if (e.preInit(true)) {
+    logW("engine wants safe mode, but Furnace GUI is not available.");
+  }
+#endif
+
+  if (safeMode && (consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+    logE("you can't use safe mode and console/export mode together.");
+    return 0;
+  }
+
+  if (safeMode && !safeModeWithAudio) {
+    e.setAudio(DIV_AUDIO_DUMMY);
+  }
 
   if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",false)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
     logI("loading module...");
@@ -654,10 +706,12 @@ int main(int argc, char** argv) {
   }
 
 #ifdef HAVE_GUI
+  if (safeMode) g.enableSafeMode();
   g.bindEngine(&e);
   if (!g.init()) {
     reportError(g.getLastError());
     finishLogFile();
+    e.everythingOK();
     return 1;
   }
 
@@ -694,5 +748,6 @@ int main(int argc, char** argv) {
     CoUninitialize();
   }
 #endif
+  e.everythingOK();
   return 0;
 }

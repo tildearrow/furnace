@@ -1352,6 +1352,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool killGraphics;
+  bool safeMode;
   bool midiWakeUp;
   bool audioEngineChanged, settingsChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
@@ -1602,6 +1603,11 @@ class FurnaceGUI {
     int showPool;
     int writeInsNames;
     int readInsNames;
+    int fontBackend;
+    int fontHinting;
+    int fontBitmap;
+    int fontAutoHint;
+    int fontAntiAlias;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1786,6 +1792,11 @@ class FurnaceGUI {
       showPool(0),
       writeInsNames(1),
       readInsNames(1),
+      fontBackend(1),
+      fontHinting(0),
+      fontBitmap(0),
+      fontAutoHint(1),
+      fontAntiAlias(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -1854,6 +1865,7 @@ class FurnaceGUI {
   unsigned char lastAssetType;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
+  std::atomic<bool> failedNoteOn;
   float peak[DIV_MAX_OUTPUTS];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
@@ -2446,6 +2458,7 @@ class FurnaceGUI {
     const char* noteName(short note, short octave);
     bool decodeNote(const char* what, short& note, short& octave);
     void bindEngine(DivEngine* eng);
+    void enableSafeMode();
     void updateScroll(int amount);
     void addScroll(int amount);
     void setFileName(String name);

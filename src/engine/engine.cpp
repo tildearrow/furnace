@@ -3106,7 +3106,7 @@ void DivEngine::noteOff(int chan) {
   BUSY_END;
 }
 
-void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
+bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   bool isViable[DIV_MAX_CHANS];
   bool canPlayAnyway=false;
   bool notInViableChannel=false;
@@ -3142,7 +3142,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
     }
   }
 
-  if (!canPlayAnyway) return;
+  if (!canPlayAnyway) return false;
 
   // 2. find a free channel
   do {
@@ -3150,7 +3150,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
       pendingNotes.push_back(DivNoteEvent(finalChan,ins,note,vol,true));
-      return;
+      return true;
     }
     if (++finalChan>=chans) {
       finalChan=0;
@@ -3171,6 +3171,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   chan[candidate].midiNote=note;
   chan[candidate].midiAge=midiAgeCounter++;
   pendingNotes.push_back(DivNoteEvent(candidate,ins,note,vol,true));
+  return true;
 }
 
 void DivEngine::autoNoteOff(int ch, int note, int vol) {
@@ -3633,13 +3634,21 @@ bool DivEngine::deinitAudioBackend(bool dueToSwitchMaster) {
   return true;
 }
 
-void DivEngine::preInit() {
+bool DivEngine::preInit(bool noSafeMode) {
+  bool wantSafe=false;
   // register systems
   if (!systemsRegistered) registerSystems();
 
   // init config
   initConfDir();
   logD("config path: %s",configPath.c_str());
+
+  if (!noSafeMode) {
+    String safeModePath=configPath+DIR_SEPARATOR_STR+"safemode";
+    if (touchFile(safeModePath.c_str())==-EEXIST) {
+      wantSafe=true;
+    }
+  }
 
   String logPath=configPath+DIR_SEPARATOR_STR+"furnace.log";
   startLogFile(logPath.c_str());
@@ -3654,6 +3663,17 @@ void DivEngine::preInit() {
     SDL_SetHint("SDL_HINT_AUDIODRIVER",audioDriver.c_str());
   }
 #endif
+
+  if (wantSafe) {
+    logW("requesting safe mode.");
+  }
+
+  return wantSafe;
+}
+
+void DivEngine::everythingOK() {
+  String safeModePath=configPath+DIR_SEPARATOR_STR+"safemode";
+  deleteFile(safeModePath.c_str());
 }
 
 bool DivEngine::init() {

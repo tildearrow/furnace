@@ -2886,6 +2886,14 @@ void FurnaceGUI::drawInsEdit() {
           ins->type=(DivInstrumentType)insType;
         }
         */
+        bool warnType=true;
+        for (DivInstrumentType i: e->getPossibleInsTypes()) {
+          if (i==insType) {
+            warnType=false;
+          }
+        }
+
+        pushWarningColor(warnType,warnType && failedNoteOn);
         if (ImGui::BeginCombo("##Type",insTypes[insType][0])) {
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
@@ -2943,7 +2951,12 @@ void FurnaceGUI::drawInsEdit() {
             }
           }
           ImGui::EndCombo();
+        } else if (warnType) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("none of the currently present chips are able to play this instrument type!");
+          }
         }
+        popWarningColor();
 
         ImGui::EndTable();
       }
