@@ -140,24 +140,25 @@ struct DumpSequence {
 
 std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
+  ret.reserve(2);
 
-  SafeWriter* w=new SafeWriter;
-  w->init();
-  w->writeText("; Data exported from Furnace to R9 data track.\n");
-  w->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
-  w->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
-
-  // create title
+  // create title data (optional)
+  SafeWriter* titleData=new SafeWriter;
+  titleData->init();
   auto title = (e->song.name + " by " + e->song.author);
   if (title.length() > 26) {
     title = title.substr(23) + "...";
   }
-  writeTextGraphics(w, title.c_str());
+  writeTextGraphics(titleData, title.c_str());
+  ret.push_back(DivROMExportOutput("Track_title.asm", titleData));
 
-  writeTrackData_CRD(e, w);
-
-  ret.reserve(1);
-  ret.push_back(DivROMExportOutput("TrackData.inc", w));
+  // create track data
+  SafeWriter* trackData=new SafeWriter;
+  trackData->init();
+  trackData->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
+  trackData->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
+  writeTrackData_CRD(e, trackData);
+  ret.push_back(DivROMExportOutput("Track_data.asm", trackData));
 
   return ret;
 }
@@ -183,21 +184,7 @@ inline auto getPatternKey(unsigned short subsong, unsigned short channel, unsign
 /**
  * 
  * we first play back the song to create a register dump then compress it
- * by finding common subsequences
- * 
- * output is a source file that can be compiled via dasm
- * 
- *  wafeform compression scheme:
- *   00000000                    stop
- *   fffff010 wwwwvvvv           frequency + waveform + volume - 1 tick duration
- *   fffff100 wwwwvvvv           " " " 2 tick duration
- *   fffff110 dddddddd wwwwvvvv  " " " next byte is duration
- *   xxxx0001                    volume = (volume + x) % 0x0f - 1 tick
- *   xxxx1001                    volume = (volume + x) % 0x0f - 2 tick
- *   xxxx0101                    wave = (wave + x) % 0x0f     - 1 tick
- *   xxxx1101                    wave = (wave + x) % 0x0f     - 2 tick
- *   xxxxx011                    frequency = (frequency + x) % 0x1f - 1 tick
- *   xxxxx111                    frequency = (frequency + x) % 0x1f - 2 tick
+ * into common subsequences
  */
 void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
 
@@ -461,6 +448,87 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
 
 }
 
+/**
+ *  Write note data. Format:
+ * 
+ *   fffff010 wwwwvvvv           frequency + waveform + volume, duration 1
+ *   fffff100 wwwwvvvv           " " ", duration 2
+ *   fffff110 dddddddd wwwwvvvv  " " ", duration d
+ *   xxxx0001                    volume = x >> 4, duration 1 
+ *   xxxx1001                    volume = x >> 4, duration 2
+ *   xxxx0101                    wave = x >> 4, duration 1
+ *   xxxx1101                    wave = x >> 4, duration 2
+ *   xxxxx011                    frequency = x >> 3, duration 1
+ *   xxxxx111                    frequency = x >> 3, duration 2
+ *   00000000                    stop
+ * 
+ */
+size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaNote& note, TiaChannelState& state) {
+  size_t bytesWritten = 0;
+  unsigned char dmod = 0; // if duration is small, store in top bits of frequency
+
+  // KLUDGE: assume only one channel at a time. If both are zero...won't matter
+  int channel = (note.registers.audc0 | note.registers.audf0 | note.registers.audv0) != 0 ? 0 : 1; 
+  unsigned char audfx = (channel == 0) ? note.registers.audf0 : note.registers.audf1;
+  unsigned char audcx = (channel == 0) ? note.registers.audc0 : note.registers.audc1;
+  unsigned char audvx = (channel == 0) ? note.registers.audv0 : note.registers.audv1;
+
+  w->writeText(fmt::sprintf("    ;F%d C%d V%d D%d\n", audfx, audcx, audvx, note.duration));
+
+  int cc = audcx != state.audcx ? 1 : 0;
+  int fc = audfx != state.audfx ? 1 : 0;
+  int vc = audvx != state.audvx ? 1 : 0;
+
+  if ( ((cc + fc + vc) == 1) && note.duration < 3) {
+    // write a delta row - only change one register
+    dmod = note.duration > 0 ? note.duration - 1 : 1; // BUGBUG: when duration is zero... we force to 1...
+    unsigned char rx;
+    if (fc > 0) {
+      // frequency
+      rx = audfx << 3 | dmod << 2 | 0x03; //  d11
+    } else if (cc > 0 ) {
+      // waveform
+      rx = audcx << 3 | dmod << 3 | 0x05; // d101
+    } else {
+      // volume 
+      rx = audvx << 3 | dmod << 3 | 0x01; // d001
+    }
+    w->writeText(fmt::sprintf("    byte %d\n", rx));
+    bytesWritten += 1;
+
+  } else {
+    // write all registers
+    if (note.duration < 3) {
+      // short duration
+      dmod = note.duration;
+    } else {
+      dmod = 3;
+    }
+    // frequency
+    w->writeText(fmt::sprintf("    byte %d", audfx << 3 | dmod << 1 ));
+    if (dmod == 3) {
+      w->writeText(fmt::sprintf(",%d", note.duration));
+      bytesWritten += 1;
+    }
+    // waveform and volume
+    w->writeText(fmt::sprintf(",%d\n", (audcx << 4) + audvx));
+    bytesWritten += 2;
+
+  }
+
+  state.audcx = audcx;
+  state.audfx = audfx;
+  state.audvx = audvx;
+
+  return bytesWritten;
+
+}
+
+void DivExportAtari2600::writeWaveformHeader(SafeWriter* w, const char * key) {
+  w->writeText(fmt::sprintf("%s_ADDR\n", key));
+}
+
+
 int getFontIndex(const char c) {
   if ('0' <= c && c <= '9') return c - '0';
   if (c == ' ' || c == 0) return 10;
@@ -553,69 +621,3 @@ size_t DivExportAtari2600::writeTextGraphics(SafeWriter* w, const char* value) {
   w->writeText(fmt::sprintf("TITLE_LENGTH = %d", len));
   return bytesWritten;
 }
-
-size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaNote& note, TiaChannelState& state) {
-  size_t bytesWritten = 0;
-  unsigned char dmod = 0; // if duration is small, store in top bits of frequency
-
-  // KLUDGE: assume only one channel at a time. If both are zero...won't matter
-  int channel = (note.registers.audc0 | note.registers.audf0 | note.registers.audv0) != 0 ? 0 : 1; 
-  unsigned char audfx = (channel == 0) ? note.registers.audf0 : note.registers.audf1;
-  unsigned char audcx = (channel == 0) ? note.registers.audc0 : note.registers.audc1;
-  unsigned char audvx = (channel == 0) ? note.registers.audv0 : note.registers.audv1;
-
-  w->writeText(fmt::sprintf("    ;F%d C%d V%d D%d\n", audfx, audcx, audvx, note.duration));
-
-  int cc = audcx != state.audcx ? 1 : 0;
-  int fc = audfx != state.audfx ? 1 : 0;
-  int vc = audvx != state.audvx ? 1 : 0;
-
-  if ( ((cc + fc + vc) == 1) && note.duration < 3) {
-    // write a delta row - only change one register
-    dmod = note.duration > 0 ? note.duration - 1 : 1; // BUGBUG: when duration is zero... we force to 1...
-    unsigned char rx;
-    if (fc > 0) {
-      // frequency
-      rx = audfx << 3 | dmod << 2 | 0x03; //  d11
-    } else if (cc > 0 ) {
-      // waveform
-      rx = audcx << 3 | dmod << 3 | 0x05; // d101
-    } else {
-      // volume 
-      rx = audvx << 3 | dmod << 3 | 0x01; // d001
-    }
-    w->writeText(fmt::sprintf("    byte %d\n", rx));
-    bytesWritten += 1;
-
-  } else {
-    // write all registers
-    if (note.duration < 3) {
-      // short duration
-      dmod = note.duration;
-    } else {
-      dmod = 3;
-    }
-    // frequency
-    w->writeText(fmt::sprintf("    byte %d", audfx << 3 | dmod << 1 ));
-    if (dmod == 3) {
-      w->writeText(fmt::sprintf(",%d", note.duration));
-      bytesWritten += 1;
-    }
-    // waveform and volume
-    w->writeText(fmt::sprintf(",%d\n", (audcx << 4) + audvx));
-    bytesWritten += 2;
-
-  }
-
-  state.audcx = audcx;
-  state.audfx = audfx;
-  state.audvx = audvx;
-
-  return bytesWritten;
-
-}
-
-void DivExportAtari2600::writeWaveformHeader(SafeWriter* w, const char * key) {
-  w->writeText(fmt::sprintf("%s_ADDR\n", key));
-}
-
