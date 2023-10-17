@@ -3692,6 +3692,7 @@ void FurnaceGUI::drawInsEdit() {
                   bool ksrOn=op.ksr;
                   bool vibOn=op.vib;
                   bool susOn=op.sus;
+                  bool fixedOn=opE.fixed;
                   unsigned char ssgEnv=op.ssgEnv&7;
                   
                   if (ins->type==DIV_INS_ESFM) {
@@ -3873,10 +3874,18 @@ void FurnaceGUI::drawInsEdit() {
                     bool amOn=op.am;
                     bool leftOn=opE.left;
                     bool rightOn=opE.right;
+
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*5.0-ImGui::GetStyle().ItemSpacing.y*4.0));
-                    if (ImGui::BeginTable("panCheckboxes",2,ImGuiTableFlags_SizingStretchSame)) {
-                      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
-                      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+                    ImVec2 curPosBeforeDummy = ImGui::GetCursorPos();
+                    ImGui::Dummy(ImVec2(ImGui::GetFrameHeightWithSpacing()*2.0f+ImGui::CalcTextSize(FM_SHORT_NAME(FM_DAM)).x*2.0f,1.0f));
+                    ImGui::SetCursorPos(curPosBeforeDummy);
+
+                    if (ImGui::BeginTable("panCheckboxes",(fixedOn)?3:2,ImGuiTableFlags_SizingStretchProp)) {
+                      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,1.0);
+                      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,1.0);
+                      if (fixedOn) {
+                        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,1.2);
+                      }
 
                       float yCoordBeforeTablePadding=ImGui::GetCursorPosY();
                       ImGui::TableNextRow();
@@ -3890,20 +3899,81 @@ void FurnaceGUI::drawInsEdit() {
                       if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_RIGHT),&rightOn)) { PARAMETER
                         opE.right=rightOn;
                       }
+                      if (fixedOn) {
+                        ImGui::TableNextColumn();
+                        ImGui::SetCursorPosY(yCoordBeforeTablePadding);
+                        if (ImGui::Checkbox(FM_SHORT_NAME(FM_AM),&amOn)) { PARAMETER
+                          op.am=amOn;
+                        }
+                      }
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      if (ImGui::Checkbox(FM_SHORT_NAME(FM_KSR),&ksrOn)) { PARAMETER
+                        op.ksr=ksrOn;
+                      }
+                      ImGui::TableNextColumn();
+                      if (ImGui::Checkbox(FM_SHORT_NAME(FM_SUS),&susOn)) { PARAMETER
+                        op.sus=susOn;
+                      }
+                      if (fixedOn) {
+                        bool damOn=op.dam;
+                        ImGui::TableNextColumn();
+                        if (ImGui::Checkbox(FM_SHORT_NAME(FM_DAM),&damOn)) { PARAMETER
+                          op.dam=damOn;
+                        }
+                      }
                       ImGui::EndTable();
                     }
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY()-0.5*ImGui::GetStyle().ItemSpacing.y);
-                    if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) { PARAMETER
-                      op.am=amOn;
+                    if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
+                      opE.fixed=fixedOn;
                     }
-                    if (ImGui::Checkbox(FM_NAME(FM_VIB),&vibOn)) { PARAMETER
-                      op.vib=vibOn;
-                    }
-                    if (ImGui::Checkbox(FM_NAME(FM_KSR),&ksrOn)) { PARAMETER
-                      op.ksr=ksrOn;
-                    }
-                    if (ImGui::Checkbox(FM_NAME(FM_SUS),&susOn)) { PARAMETER
-                      op.sus=susOn;
+                    if (ins->type==DIV_INS_ESFM) {
+                      if (fixedOn) {
+                        int block=(opE.ct>>2)&7;
+                        int freqNum=((opE.ct&3)<<8)|((unsigned char)opE.dt);
+                        if (ImGui::InputInt("Block",&block,1,1)) {
+                          if (block<0) block=0;
+                          if (block>7) block=7;
+                          opE.ct=(opE.ct&(~(7<<2)))|(block<<2);
+                        }
+                        if (ImGui::InputInt("FreqNum",&freqNum,1,16)) {
+                          if (freqNum<0) freqNum=0;
+                          if (freqNum>1023) freqNum=1023;
+                          opE.dt=freqNum&0xff;
+                          opE.ct=(opE.ct&(~3))|(freqNum>>8);
+                        }
+                      } else {
+                        if (ImGui::BeginTable("amVibCheckboxes",2,ImGuiTableFlags_SizingStretchSame)) {
+                          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
+                          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+
+                          float yCoordBeforeTablePadding=ImGui::GetCursorPosY();
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetCursorPosY(yCoordBeforeTablePadding);
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_AM),&amOn)) { PARAMETER
+                            op.am=amOn;
+                          }
+                          ImGui::TableNextColumn();
+                          ImGui::SetCursorPosY(yCoordBeforeTablePadding);
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_VIB),&vibOn)) { PARAMETER
+                            op.vib=vibOn;
+                          }
+                          bool damOn=op.dam;
+                          bool dvbOn=op.dvb;
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_DAM),&damOn)) { PARAMETER
+                            op.dam=damOn;
+                          }
+                          ImGui::TableNextColumn();
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_DVB),&dvbOn)) { PARAMETER
+                            op.dvb=dvbOn;
+                          }
+                          ImGui::EndTable();
+                        }
+                      }
                     }
                   } else if (ins->type!=DIV_INS_OPM) {
                     ImGui::TableNextColumn();
@@ -3934,11 +4004,20 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
                     ImGui::TableNextColumn();
 
-                    drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()));
+                    drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_ESFM && fixedOn)?3.0f:1.0f)));
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                     P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
                     if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
                       ImGui::SetTooltip("OPL2/3 only (last 4 waveforms are OPL3 only)");
+                    }
+                    if (ins->type==DIV_INS_ESFM && fixedOn) {
+                      if (ImGui::Checkbox(FM_SHORT_NAME(FM_VIB),&vibOn)) { PARAMETER
+                        op.vib=vibOn;
+                      }
+                      bool dvbOn=op.dvb;
+                      if (ImGui::Checkbox(FM_SHORT_NAME(FM_DVB),&dvbOn)) { PARAMETER
+                        op.dvb=dvbOn;
+                      }
                     }
                   } else if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPM) {
                     ImGui::TableNextColumn();
@@ -4996,19 +5075,46 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (ins->type==DIV_INS_ESFM) {
-                      ImGui::TableNextRow();
-                      ImGui::TableNextColumn();
-                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                      P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR)); rightClickable
-                      ImGui::TableNextColumn();
-                      ImGui::Text("%s",ESFM_NAME(ESFM_CT));
+                      bool fixedOn=opE.fixed;
+                      if (fixedOn) {
+                        int block=(opE.ct>>2)&7;
+                        int freqNum=((opE.ct&3)<<8)|((unsigned char)opE.dt);
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        if (ImGui::InputInt("##Block",&block,1,1)) {
+                          if (block<0) block=0;
+                          if (block>7) block=7;
+                          opE.ct=(opE.ct&(~(7<<2)))|(block<<2);
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Block");
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        if (ImGui::InputInt("##FreqNum",&freqNum,1,16)) {
+                          if (freqNum<0) freqNum=0;
+                          if (freqNum>1023) freqNum=1023;
+                          opE.dt=freqNum&0xff;
+                          opE.ct=(opE.ct&(~3))|(freqNum>>8);
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::Text("FreqNum");
+                      } else {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",ESFM_NAME(ESFM_CT));
 
-                      ImGui::TableNextRow();
-                      ImGui::TableNextColumn();
-                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                      P(CWSliderScalar("##DT",ImGuiDataType_S8,&opE.dt,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
-                      ImGui::TableNextColumn();
-                      ImGui::Text("%s",ESFM_NAME(ESFM_DT));
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(CWSliderScalar("##DT",ImGuiDataType_S8,&opE.dt,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",ESFM_NAME(ESFM_DT));
+                      }
 
                     }
 
@@ -5060,14 +5166,28 @@ void FurnaceGUI::drawInsEdit() {
                   }
 
                   if (ins->type==DIV_INS_ESFM) {
+                    bool dvbOn=op.dvb;
+                    bool damOn=op.dam;
                     bool leftOn=opE.left;
                     bool rightOn=opE.right;
+                    bool fixedOn=opE.fixed;
+                    if (ImGui::Checkbox(FM_NAME(FM_DVB),&dvbOn)) { PARAMETER
+                      op.dvb=dvbOn;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Checkbox(FM_NAME(FM_DAM),&damOn)) { PARAMETER
+                      op.dam=damOn;
+                    }
                     if (ImGui::Checkbox(ESFM_NAME(ESFM_LEFT),&leftOn)) { PARAMETER
                       opE.left=leftOn;
                     }
                     ImGui::SameLine();
                     if (ImGui::Checkbox(ESFM_NAME(ESFM_RIGHT),&rightOn)) { PARAMETER
                       opE.right=rightOn;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
+                      opE.fixed=fixedOn;
                     }
                   }
 
