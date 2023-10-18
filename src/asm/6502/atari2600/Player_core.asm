@@ -155,12 +155,3 @@ _audio_advance_order_advance_pattern
 _audio_end
             rts
 
-sub_waveform
-            lsr ; div frequency by 4 
-            lsr ; 
-            tax
-            ldy #$00
-            jsr sub_freq_slice
-            ldy #$ff
-            jsr sub_freq_slice
-            rts

@@ -172,24 +172,17 @@ audio_tracker_off
             stx AUDC1
             stx AUDV0
             stx AUDV1
-            stx vis_freq
-            stx vis_freq + 1
-            stx vis_amp
-            stx vis_amp + 1
 audio_tracker_end
 
 ;---------------------
 ; vis timing
 
             lda #$f0
-            sec
             ldx #15
 _vis_gradient_setup_loop
             sta vis_gradient,x
+            sec
             sbc #$10
-            bne _vis_gradient_setup_skip_zero
-            lda #$f0
-_vis_gradient_setup_skip_zero
             dex
             bpl _vis_gradient_setup_loop
 
@@ -212,26 +205,26 @@ _vis_gradient_setup_skip_zero
             beq _vis_skip_title
 _vis_save_title
             sta vis_title_start
-_vis_skip_title
-            lda vis_title_start
             clc
             adc #5
             sta vis_title_end
+_vis_skip_title
 
 ;---------------------
 ; end vblank
 
-            jsr waitOnVBlank ; SL 34
+waitOnVBlank
+            ldx #$00
+waitOnVBlank_loop          
+            cpx INTIM
+            bmi waitOnVBlank_loop
+            stx VBLANK
             sta WSYNC ; SL 35
-            lda #1
-            sta CTRLPF ; reflect playfield
+            stx COLUPF
+            inx ; x = 1
+            stx CTRLPF ; reflect playfield
             lda #$f0
             sta PF0
-            lda #0
-            sta COLUBK
-            sta COLUPF
-            sta COLUP0
-            sta COLUP1
 
             lda #12
 vis_loop
@@ -278,20 +271,23 @@ gradient_loop
             lda vis_freq + 1
             jsr sub_waveform
 
-            lda #13
-            ldx #0
-            jsr sub_respx
-            lda #0
-            sta HMP0
-            ldx #1
-            lda #21
-            jsr sub_respx
-            lda #3
-            sta NUSIZ0
-            sta NUSIZ1
-            lda #1
-            sta VDELP0
-            sta VDELP1
+
+; Title display 
+            sta WSYNC                           ;-- --
+            lda #3                              ;2   2
+            sta NUSIZ0                          ;3   5
+            sta NUSIZ1                          ;3   8
+            lda #1                              ;2  10
+            sta VDELP0                          ;3  13
+            sta VDELP1                          ;3  16
+            lda #$f0                            ;2  18
+            sta HMP0                            ;3  21 
+            lda #$00                            ;2  23
+            sta RESP0                           ;3  26
+            sta RESP1                           ;3  29
+            sta HMP1                            ;3  32
+            sta WSYNC                           ;-- --
+            sta HMOVE                           ;3   3
             lda #WHITE
             sta COLUP0
             sta COLUP1
@@ -343,33 +339,14 @@ waitOnOverscan_loop
             bne waitOnOverscan_loop
             jmp newFrame
 
-;------------------------
-; vblank sub
-
-waitOnVBlank
-            ldx #$00
-waitOnVBlank_loop          
-            cpx INTIM
-            bmi waitOnVBlank_loop
-            stx VBLANK
-            rts 
-
-; sethorizpos-style respx loop, with x = 0,1 for player 0,1
-sub_respx
-            sta WSYNC           ;-- --
-            sec                 ;2   2
-_respx_loop
-            sbc #15             ;2   4
-            bcs _respx_loop     ;2   6
-            eor #7              ;2   8
-            asl                 ;2  10
-            asl                 ;2  12
-            asl                 ;2  14
-            asl                 ;2  16
-            sta HMP0,x          ;4  20 
-            sta RESP0,x         ;4  24
-            sta WSYNC
-            sta HMOVE
+sub_waveform
+            lsr ; div frequency by 4 
+            lsr ; 
+            tax
+            ldy #$00
+            jsr sub_freq_slice
+            ldy #$ff
+            jsr sub_freq_slice
             rts
 
 sub_freq_slice
