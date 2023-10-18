@@ -630,6 +630,11 @@ int main(int argc, char** argv) {
       displayEngineFailError=true;
     }
   }
+
+  if (subsong!=-1) {
+    e.changeSongP(subsong);
+  }
+
   if (benchMode) {
     logI("starting benchmark!");
     if (benchMode==2) {
@@ -640,6 +645,7 @@ int main(int argc, char** argv) {
     finishLogFile();
     return 0;
   }
+
   if (outName!="" || vgmOutName!="" || cmdOutName!="") {
     if (cmdOutName!="") {
       SafeWriter* w=e.saveCommand(cmdOutBinary);
@@ -680,10 +686,6 @@ int main(int argc, char** argv) {
     }
     finishLogFile();
     return 0;
-  }
-
-  if (subsong!=-1) {
-    e.changeSongP(subsong);
   }
 
   if (consoleMode) {
