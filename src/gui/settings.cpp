@@ -3158,6 +3158,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_ON,"Toggle on");
           UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_OFF,"Toggle off");
           UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
+          UI_COLOR_CONFIG(GUI_COLOR_EDITING_CLONE,"Editing (will clone)");
           UI_COLOR_CONFIG(GUI_COLOR_SONG_LOOP,"Song loop");
           UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
           UI_COLOR_CONFIG(GUI_COLOR_DESTRUCTIVE,"Destructive hint");
