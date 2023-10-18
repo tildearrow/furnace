@@ -67,7 +67,6 @@ uint8_t ESFM_readback_reg (esfm_chip *chip, uint16_t address);
 uint8_t ESFM_read_port (esfm_chip *chip, uint8_t offset);
 void ESFM_generate(esfm_chip *chip, int16_t *buf);
 void ESFM_generate_stream(esfm_chip *chip, int16_t *sndptr, uint32_t num_samples);
-// Modification by Kagamiin~:
 int16_t ESFM_get_channel_output_native(esfm_chip *chip, int channel_idx);
 
 
@@ -171,10 +170,11 @@ typedef struct _esfm_slot_internal
 	uint10 phase_out;
 	flag phase_reset;
 	flag *key_on;
+	flag key_on_gate;
 
 	uint2 eg_state;
 	flag eg_delay_run;
-	uint9 eg_delay_counter;
+	uint16 eg_delay_counter;
 
 } esfm_slot_internal;
 

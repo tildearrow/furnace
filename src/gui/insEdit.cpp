@@ -5268,7 +5268,7 @@ void FurnaceGUI::drawInsEdit() {
             }
             if (ImGui::BeginTabItem(label)) {
               ImGui::PushID(i);
-              int ordi=(opCount==4)?orderedOps[i]:i;
+              int ordi=(opCount==4 && ins->type!=DIV_INS_ESFM)?orderedOps[i]:i;
               int maxTl=127;
               if (ins->type==DIV_INS_OPLL) {
                 if (i==1) {

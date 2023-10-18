@@ -373,6 +373,8 @@ ESFM_envelope_calc(esfm_slot *slot)
 	int16 eg_inc;
 	bool reset = 0;
 	bool key_on;
+	bool key_on_signal;
+	uint16 delay_counter_compare;
 
 	key_on = *slot->in.key_on;
 	if (!slot->chip->native_mode)
@@ -408,26 +410,46 @@ ESFM_envelope_calc(esfm_slot *slot)
 		}
 		slot->in.eg_output += tremolo;
 	}
+	
+	if (slot->in.eg_delay_run && slot->in.eg_delay_counter < 32768)
+	{
+		slot->in.eg_delay_counter++;
+	}
+	
+	// triggers on key-on edge
+	if (key_on && !slot->in.key_on_gate)
+	{
+		slot->in.eg_delay_run = 1;
+		slot->in.eg_delay_counter = 0;
+	}
+	else if (!key_on)
+	{
+		slot->in.eg_delay_run = 0;
+	}
+	
+	delay_counter_compare = 0;
+	if (slot->env_delay > 0)
+	{
+		delay_counter_compare = 256 << slot->env_delay;
+	}
+	
+	if (key_on && ((slot->in.eg_delay_counter >= delay_counter_compare) || !slot->chip->native_mode))
+	{
+		key_on_signal = 1;
+	} else {
+		key_on_signal = 0;
+	}
+	
 	if (key_on && slot->in.eg_state == EG_RELEASE)
 	{
-		if (!slot->in.eg_delay_run && slot->chip->native_mode)
-		{
-			slot->in.eg_delay_run = 1;
-			slot->in.eg_delay_counter = slot->env_delay ? 0x100 : 0;
-		}
 
-		if (slot->in.eg_delay_counter == 0 || !slot->chip->native_mode)
+		if ((slot->in.eg_delay_counter >= delay_counter_compare) || !slot->chip->native_mode)
 		{
-			slot->in.eg_delay_run = 0;
 			reset = 1;
 			reg_rate = slot->attack_rate;
 		}
 		else
 		{
-			if ((slot->chip->global_timer & ((1 << slot->env_delay) - 1)) == 0)
-			{
-				slot->in.eg_delay_counter--;
-			}
 			reg_rate = slot->release_rate;
 		}
 	}
@@ -452,6 +474,7 @@ ESFM_envelope_calc(esfm_slot *slot)
 				break;
 		}
 	}
+	slot->in.key_on_gate = key_on;
 	slot->in.phase_reset = reset;
 	ks = slot->in.keyscale >> ((!slot->ksr) << 1);
 	nonzero = (reg_rate != 0);
@@ -524,7 +547,7 @@ ESFM_envelope_calc(esfm_slot *slot)
 			{
 				slot->in.eg_state = EG_DECAY;
 			}
-			else if (key_on && shift > 0 && rate_hi != 0x0f)
+			else if (key_on_signal && shift > 0 && rate_hi != 0x0f)
 			{
 				eg_inc = ~slot->in.eg_position >> (4 - shift);
 			}
@@ -553,10 +576,9 @@ ESFM_envelope_calc(esfm_slot *slot)
 	{
 		slot->in.eg_state = EG_ATTACK;
 	}
-	if (!key_on)
+	if (!key_on_signal)
 	{
 		slot->in.eg_state = EG_RELEASE;
-		slot->in.eg_delay_run = 0;
 	}
 }
 
