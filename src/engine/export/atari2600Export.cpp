@@ -142,6 +142,7 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
   ret.reserve(2);
 
+  logD("writing track metadata...");
   // create title data (optional)
   SafeWriter* titleData=new SafeWriter;
   titleData->init();
@@ -152,6 +153,7 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   writeTextGraphics(titleData, title.c_str());
   ret.push_back(DivROMExportOutput("Track_title.asm", titleData));
 
+  logD("writing track audio...");
   // create track data
   SafeWriter* trackData=new SafeWriter;
   trackData->init();
@@ -592,13 +594,12 @@ size_t DivExportAtari2600::writeTextGraphics(SafeWriter* w, const char* value) {
   size_t len = 0; 
   while (len < 6 || !end) {
     w->writeText(fmt::sprintf("TITLE_GRAPHICS_%d\n    byte ", len));
+    len++;
     char ax = 0;
     if (!end) {
       ax = *value++;
       if (0 == ax) {
         end = true;
-      } else {
-        len++;
       }
     } 
     char bx = 0;

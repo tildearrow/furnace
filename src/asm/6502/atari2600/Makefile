@@ -2,7 +2,7 @@
 DEFAULT_TARGET: all
 
 ROMDIR = roms
-INCS = $(wildcard _*.asm)
+INCS = $(wildcard *_*.asm)
 ASMS = Player.asm
 SYSTEMS = NTSC
 ROMS = $(foreach ASM, $(ASMS), $(foreach SYSTEM,$(SYSTEMS),$(ROMDIR)/$(ASM:.asm=)_$(SYSTEM).a26))
