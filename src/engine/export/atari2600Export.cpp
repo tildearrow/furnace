@@ -142,8 +142,8 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
   ret.reserve(2);
 
-  logD("writing track metadata...");
   // create title data (optional)
+  logD("writing track title graphics");
   SafeWriter* titleData=new SafeWriter;
   titleData->init();
   auto title = (e->song.name + " by " + e->song.author);
@@ -153,8 +153,8 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   writeTextGraphics(titleData, title.c_str());
   ret.push_back(DivROMExportOutput("Track_title.asm", titleData));
 
-  logD("writing track audio...");
   // create track data
+  logD("writing track audio data");
   SafeWriter* trackData=new SafeWriter;
   trackData->init();
   trackData->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
@@ -191,6 +191,7 @@ inline auto getPatternKey(unsigned short subsong, unsigned short channel, unsign
 void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
 
   // capture all sequences
+  logD("performing sequence capture");
   std::map<String, DumpSequence> sequences;
   for (int i=0; i<e->song.systemLen; i++) {
     e->getDispatch(i)->toggleRegisterDump(true);
@@ -294,6 +295,11 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
         needsWriteDuration = true;
       }
       if (needsWriteDuration) {
+        int currentTicks = e->getTotalTicks();
+        int currentSeconds = e->getTotalSeconds();
+        deltaTicks = 
+          currentTicks - lastWriteTicks + 
+          (TICKS_PER_SECOND * (currentSeconds - lastWriteSeconds));
         // final seq
         currentDumpSequence->writeDuration(deltaTicks, deltaTicksR, TICKS_AT_60HZ);
       }
@@ -304,6 +310,7 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
   }
 
   // compress the patterns into common subsequences
+  logD("performing sequence compression");
   std::map<size_t, String> commonSubSequences;
   std::map<String, String> representativeSequenceMap;
   for (auto& x: sequences) {
@@ -314,6 +321,7 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
   }
 
   // emit song table
+  logD("writing song table");
   size_t songTableSize = 0;
   w->writeText("\n; Song Lookup Table\n");
   w->writeText(fmt::sprintf("NUM_SONGS = %d\n", e->song.subsong.size()));
@@ -483,6 +491,9 @@ size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaNote& note, TiaChan
 
   if ( ((cc + fc + vc) == 1) && note.duration < 3) {
     // write a delta row - only change one register
+    if (note.duration == 0) {
+        logD("0 duration note");
+    }
     dmod = note.duration > 0 ? note.duration - 1 : 1; // BUGBUG: when duration is zero... we force to 1...
     unsigned char rx;
     if (fc > 0) {
