@@ -239,7 +239,12 @@ const char* cmdName[]={
 
   "EXTERNAL",
 
-  "ALWAYS_SET_VOLUME"
+  "ALWAYS_SET_VOLUME",
+
+  "DIV_CMD_ESFM_OP_PANNING",
+  "DIV_CMD_ESFM_OUTLVL",
+  "DIV_CMD_ESFM_MODIN",
+  "DIV_CMD_ESFM_ENV_DELAY"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");

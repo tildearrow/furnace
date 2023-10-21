@@ -366,15 +366,31 @@ void FurnaceGUI::renderFMPreviewESFM(const DivInstrumentFM& params, const DivIns
       const DivInstrumentFM::Operator& op=params.op[i];
       const DivInstrumentESFM::Operator& opE=esfmParams.op[i];
       unsigned short baseAddr=i*8;
+      unsigned char freqL, freqH;
+      if (opE.fixed) {
+        freqL=opE.dt;
+        freqH=opE.ct&0x1f;
+      } else {
+        // perform detune calculation
+        int offset=(opE.ct<<7)+opE.dt;
+        double fbase=(mult0?2048.0:1024.0)*pow(2.0,(float)offset/(128.0*12.0));
+        int bf=round(fbase);
+        int block=0;
+        while (bf>0x3ff) {
+          bf>>=1;
+          block++;
+        }
+        freqL=bf&0xff;
+        freqH=((block&7)<<2)|((bf>>8)&3);
+      }
 
       ESFM_WRITE(baseAddr+0,(op.am<<7)|((op.vib&1)<<6)|((op.sus&1)<<5)|((op.ksr&1)<<4)|(op.mult&0x0f));
       ESFM_WRITE(baseAddr+1,(op.ksl<<6)|(op.tl&0x3f));
       ESFM_WRITE(baseAddr+2,(op.ar<<4)|(op.dr&0x0f));
       ESFM_WRITE(baseAddr+3,(op.sl<<4)|(op.rr&0x0f));
 
-      // TODO: implement ct/dt detune... how will we do that?
-      ESFM_WRITE(baseAddr+4,0);
-      ESFM_WRITE(baseAddr+5,(opE.delay<<5)|(mult0?0x0a:0x06));
+      ESFM_WRITE(baseAddr+4,freqL);
+      ESFM_WRITE(baseAddr+5,(opE.delay<<5)|freqH);
 
       ESFM_WRITE(baseAddr+6,(op.dam<<7)|((op.dvb&1)<<6)|((opE.right&1)<<5)|((opE.left&1)<<4)|((opE.modIn&7)<<1));
       ESFM_WRITE(baseAddr+7,(opE.outLvl<<5)|((i==3?esfmParams.noise:0)<<3)|(op.ws&7));

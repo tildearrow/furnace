@@ -240,6 +240,11 @@ enum DivDispatchCmds {
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
+  DIV_CMD_ESFM_OP_PANNING, // (op, value)
+  DIV_CMD_ESFM_OUTLVL, // (op, value)
+  DIV_CMD_ESFM_MODIN, // (op, value)
+  DIV_CMD_ESFM_ENV_DELAY, // (op, value)
+
   DIV_CMD_MAX
 };
 

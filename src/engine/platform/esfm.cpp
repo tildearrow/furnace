@@ -230,6 +230,7 @@ void DivPlatformESFM::tick(bool sysTick) {
         }
       }
 
+      // detune/fixed pitch
       if (opE.fixed) {
         if (m.ssg.had) {
           opE.ct=(opE.ct&(~(7<<2)))|((m.ssg.val&7)<<2);
@@ -351,44 +352,21 @@ void DivPlatformESFM::tick(bool sysTick) {
 }
 
 int DivPlatformESFM::octave(int freq) {
-  if (freq>=0x3ff<<6) {
-    return 1<<7;
-  } else if (freq>=0x3ff<<5) {
-    return 1<<6;
-  } else if (freq>=0x3ff<<4) {
-    return 1<<5;
-  } else if (freq>=0x3ff<<3) {
-    return 1<<4;
-  } else if (freq>=0x3ff<<2) {
-    return 1<<3;
-  } else if (freq>=0x3ff<<1) {
-    return 1<<2;
-  } else if (freq>=0x3ff) {
-    return 1<<1;
-  } else {
-    return 1<<0;
+  int result=1;
+  while (freq>0x3ff) {
+    freq>>=1;
+    result<<=1;
   }
-  return 1<<0;
+  return result;
 }
 
 int DivPlatformESFM::toFreq(int freq) {
-  if (freq>=0x3ff<<6) {
-    return 0x1c00|((freq>>7)&0x3ff);
-  } else if (freq>=0x3ff<<5) {
-    return 0x1800|((freq>>6)&0x3ff);
-  } else if (freq>=0x3ff<<4) {
-    return 0x1400|((freq>>5)&0x3ff);
-  } else if (freq>=0x3ff<<3) {
-    return 0x1000|((freq>>4)&0x3ff);
-  } else if (freq>=0x3ff<<2) {
-    return 0xc00|((freq>>3)&0x3ff);
-  } else if (freq>=0x3ff<<1) {
-    return 0x800|((freq>>2)&0x3ff);
-  } else if (freq>=0x3ff<<0) {
-    return 0x400|((freq>>1)&0x3ff);
-  } else {
-    return freq&0x3ff;
+  int block=0;
+  while (freq>0x3ff) {
+    freq>>=1;
+    block++;
   }
+  return ((block&7)<<10)|(freq&0x3ff);
 }
 
 void DivPlatformESFM::muteChannel(int ch, bool mute) {
@@ -510,7 +488,6 @@ int DivPlatformESFM::dispatch(DivCommand c) {
         unsigned short baseAddr=c.chan*32 + o*8;
         DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
         DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
-        
         rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[c.chan].globalPan)&1)<<4)|(((opE.right&(chan[c.chan].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
       }
       break;
@@ -585,7 +562,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_AR: {
-      if (c.value<0)  {
+      if (c.value<0) {
         for (int o=0; o<4; o++) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
@@ -603,7 +580,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_DR: {
-      if (c.value<0)  {
+      if (c.value<0) {
         for (int o=0; o<4; o++) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
@@ -621,7 +598,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_SL: {
-      if (c.value<0)  {
+      if (c.value<0) {
         for (int o=0; o<4; o++) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
@@ -639,7 +616,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_RR: {
-      if (c.value<0)  {
+      if (c.value<0) {
         for (int o=0; o<4; o++) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
@@ -657,7 +634,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_AM: {
-      if (c.value<0)  {
+      if (c.value<0) {
         for (int o=0; o<4; o++) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
@@ -675,7 +652,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_VIB: {
-      if (c.value<0)  {
+      if (c.value<0) {
         for (int o=0; o<4; o++) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
@@ -693,7 +670,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_SUS: {
-      if (c.value<0)  {
+      if (c.value<0) {
         for (int o=0; o<4; o++) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
@@ -711,7 +688,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_KSR: {
-      if (c.value<0)  {
+      if (c.value<0) {
         for (int o=0; o<4; o++) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
@@ -729,7 +706,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_WS: {
-      if (c.value<0)  {
+      if (c.value<0) {
         for (int o=0; o<4; o++) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
@@ -760,7 +737,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
     }
     // KSL
     case DIV_CMD_FM_RS: {
-      if (c.value<0)  {
+      if (c.value<0) {
         for (int o=0; o<4; o++) {
           unsigned short baseAddr=c.chan*32 + o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
@@ -782,6 +759,134 @@ int DivPlatformESFM::dispatch(DivCommand c) {
         } else {
           rWrite(baseAddr+OFFSET_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
         }
+      }
+      break;
+    }
+    case DIV_CMD_FM_AM_DEPTH: {
+      unsigned int o = c.value;
+      if (o >= 4) break;
+      unsigned short baseAddr=c.chan*32 + o*8;
+      DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
+      DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+      op.dam=c.value2&1;
+      rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[c.chan].globalPan)&1)<<4)|(((opE.right&(chan[c.chan].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
+      break;
+    }
+    case DIV_CMD_FM_PM_DEPTH: {
+      unsigned int o = c.value;
+      if (o >= 4) break;
+      unsigned short baseAddr=c.chan*32 + o*8;
+      DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
+      DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+      op.dvb=c.value2&1;
+      rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[c.chan].globalPan)&1)<<4)|(((opE.right&(chan[c.chan].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
+      break;
+    }
+    case DIV_CMD_FM_FIXFREQ: {
+      unsigned int o=c.value&3;
+      bool isFNum=c.value&4;
+      DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+      if (!opE.fixed) break;
+      if (isFNum) {
+        opE.dt=(c.value2)&0xff;
+        opE.ct=(opE.ct&(~3))|((c.value2>>8)&3);
+        chan[c.chan].freqChanged=true;
+      } else {
+        opE.ct=(opE.ct&(~(7<<2)))|((c.value2&7)<<2);
+        chan[c.chan].freqChanged=true;
+      }
+      break;
+    }
+    case DIV_CMD_ESFM_OP_PANNING: {
+      unsigned int o=c.value;
+      if (o >= 4) break;
+      unsigned short baseAddr=c.chan*32 + o*8;
+      DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
+      DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+      opE.left=c.value2&1;
+      opE.right=(c.value2&2)>>1;
+      rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[c.chan].globalPan)&1)<<4)|(((opE.right&(chan[c.chan].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
+      break;
+    }
+    case DIV_CMD_ESFM_OUTLVL: {
+      if (c.value<0) {
+        for (int o=0; o<4; o++) {
+          unsigned short baseAddr=c.chan*32 + o*8;
+          DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
+          DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+          unsigned char noise=chan[c.chan].state.esfm.noise&3;
+          opE.outLvl=c.value2&7;
+          if (isMuted[c.chan]) {
+            rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|0);
+          } else {
+            rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|((opE.outLvl&7)<<5));
+          }
+        }
+      } else {
+        unsigned int o = c.value;
+        if (o >= 4) break;
+        unsigned short baseAddr=c.chan*32 + o*8;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
+        DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+        unsigned char noise=chan[c.chan].state.esfm.noise&3;
+        opE.outLvl=c.value2&7;
+        if (isMuted[c.chan]) {
+          rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|0);
+        } else {
+          rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|((opE.outLvl&7)<<5));
+        }
+      }
+      break;
+    }
+    case DIV_CMD_ESFM_MODIN: {
+      if (c.value<0) {
+        for (int o=0; o<4; o++) {
+          unsigned short baseAddr=c.chan*32 + o*8;
+          DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
+          DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+          opE.modIn=c.value2&7;
+          rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[c.chan].globalPan)&1)<<4)|(((opE.right&(chan[c.chan].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
+        }
+      } else {
+        unsigned int o = c.value;
+        if (o >= 4) break;
+        unsigned short baseAddr=c.chan*32 + o*8;
+        DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
+        DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+        opE.modIn=c.value2&7;
+        rWrite(baseAddr+OFFSET_DAM_DVB_LEFT_RIGHT_MODIN,((opE.modIn&7)<<1)|(((opE.left&chan[c.chan].globalPan)&1)<<4)|(((opE.right&(chan[c.chan].globalPan>>1))&1)<<5)|((op.dvb&1)<<6)|(op.dam<<7));
+      }
+      break;
+    }
+    case DIV_CMD_ESFM_ENV_DELAY: {
+      if (c.value<0) {
+        for (int o=0; o<4; o++) {
+          unsigned short baseAddr=c.chan*32 + o*8;
+          DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+          opE.delay=c.value2&7;
+          rWrite(baseAddr+OFFSET_FREQH_BLOCK_DELAY,chan[c.chan].freqH[o]|(opE.delay<<5));
+        }
+      } else {
+        unsigned int o = c.value;
+        if (o >= 4) break;
+        unsigned short baseAddr=c.chan*32 + o*8;
+        DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+        opE.delay=c.value2&7;
+        rWrite(baseAddr+OFFSET_FREQH_BLOCK_DELAY,chan[c.chan].freqH[o]|(opE.delay<<5));
+      }
+      break;
+    }
+    case DIV_CMD_STD_NOISE_MODE: {
+      unsigned int o=3;
+      unsigned short baseAddr=c.chan*32 + o*8;
+      DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
+      DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+      DivInstrumentESFM insE=chan[c.chan].state.esfm;
+      insE.noise=c.value&3;
+      if (isMuted[c.chan]) {
+        rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|(insE.noise<<3)|0);
+      } else {
+        rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|(insE.noise<<3)|((opE.outLvl&7)<<5));
       }
       break;
     }
@@ -843,10 +948,10 @@ DivDispatchOscBuffer* DivPlatformESFM::getOscBuffer(int ch) {
 }
 
 unsigned char* DivPlatformESFM::getRegisterPool() {
-  // TODO: DEBUG, remove this, it impacts performance
-  for (int i=0; i<ESFM_REG_POOL_SIZE; i++) {
-    regPool[i] = ESFM_readback_reg(&chip, i);
-  }
+  // // Uncomment this for debugging weird behavior
+  // for (int i=0; i<ESFM_REG_POOL_SIZE; i++) {
+  //   regPool[i]=ESFM_readback_reg(&chip, i);
+  // }
   return regPool;
 }
 
