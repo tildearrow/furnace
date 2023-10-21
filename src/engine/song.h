@@ -377,6 +377,8 @@ struct DivSong {
   bool brokenPortaLegato;
   bool brokenFMOff;
   bool preNoteNoEffect;
+  bool oldDPCM;
+  bool resetArpPhaseOnNewNote;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -496,7 +498,9 @@ struct DivSong {
     patchbayAuto(true),
     brokenPortaLegato(false),
     brokenFMOff(false),
-    preNoteNoEffect(false) {
+    preNoteNoEffect(false),
+    oldDPCM(false),
+    resetArpPhaseOnNewNote(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;

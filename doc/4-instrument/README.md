@@ -84,6 +84,9 @@ each macro has two buttons on the left.
   - **Step Length (ticks)**: determines how many ticks pass before each change of value. default is 1.
   - **Delay**: delays the start of the macro until this many ticks have passed. default is 0.
   - the button is highlighted if either of these is set differently from default.
+- release mode. this determines how macro release is handled:
+  - **Active**: jumps to release position.
+  - **Passive**: does not jump to release position. if release position hasn't been reached yet, there will be a delay.
 
 ## macro types
 

@@ -90,6 +90,10 @@ void FurnaceGUI::bindEngine(DivEngine* eng) {
   wavePreview.setEngine(e);
 }
 
+void FurnaceGUI::enableSafeMode() {
+  safeMode=true;
+}
+
 const char* FurnaceGUI::noteName(short note, short octave) {
   if (note==100) {
     return noteOffLabel;
@@ -1146,7 +1150,7 @@ void FurnaceGUI::stop() {
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
   e->setMidiBaseChan(refChan);
   e->synchronized([this,note]() {
-    e->autoNoteOn(-1,curIns,note);
+    if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
   });
 }
 
@@ -1164,6 +1168,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 
     e->synchronized([this,num]() {
       e->autoNoteOff(-1,num);
+      failedNoteOn=false;
     });
   }
 }
@@ -1400,36 +1405,69 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   }
 
   if (sampleMapWaitingInput) {
-    if (sampleMapColumn==1) {
-      // TODO: map?
-      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-        alterSampleMap(true,-1);
-        return;
-      }
-      auto it=noteKeys.find(ev.key.keysym.scancode);
-      if (it!=noteKeys.cend()) {
-        int key=it->second;
-        int num=12*curOctave+key;
-
-        if (num<-60) num=-60; // C-(-5)
-        if (num>119) num=119; // B-9
-
-        alterSampleMap(true,num);
-        return;
-      }
-    } else {
-      // TODO: map?
-      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-        alterSampleMap(false,-1);
-        return;
-      }
-      auto it=valueKeys.find(ev.key.keysym.sym);
-      if (it!=valueKeys.cend()) {
-        int num=it->second;
-        if (num<10) {
-          alterSampleMap(false,num);
+    switch (sampleMapColumn) {
+      case 0: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(0,-1);
           return;
         }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<10) {
+            alterSampleMap(0,num);
+            return;
+          }
+        }
+        break;
+      }
+      case 1: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(1,-1);
+          return;
+        }
+        auto it=noteKeys.find(ev.key.keysym.scancode);
+        if (it!=noteKeys.cend()) {
+          int key=it->second;
+          int num=12*curOctave+key;
+
+          if (num<-60) num=-60; // C-(-5)
+          if (num>119) num=119; // B-9
+
+          alterSampleMap(1,num);
+          return;
+        }
+        break;
+      }
+      case 2: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(2,-1);
+          return;
+        }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<10) {
+            alterSampleMap(2,num);
+            return;
+          }
+        }
+        break;
+      }
+      case 3: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(3,-1);
+          return;
+        }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<16) {
+            alterSampleMap(3,num);
+            return;
+          }
+        }
+        break;
       }
     }
   }
@@ -1859,7 +1897,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -1868,7 +1906,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -1877,7 +1915,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -3417,6 +3455,11 @@ bool FurnaceGUI::loop() {
     logD("key input: main thread");
   }
 
+  if (safeMode) {
+    showError("Furnace has been started in Safe Mode.\nthis means that:\n\n- software rendering is being used\n- audio output may not work\n- font loading is disabled\n\ncheck any settings which may have made Furnace start up in this mode.\nfont loading is one of these.");
+    settingsOpen=true;
+  }
+
   while (!quit) {
     SDL_Event ev;
     if (e->isPlaying()) {
@@ -3815,7 +3858,7 @@ bool FurnaceGUI::loop() {
       continue;
     }
 
-    if (firstFrame) {
+    if (firstFrame && !safeMode) {
       if (!tutorial.introPlayed || settings.alwaysPlayIntro==3 || (settings.alwaysPlayIntro==2 && curFileName.empty())) {
         unsigned char* introTemp=new unsigned char[intro_fur_len];
         memcpy(introTemp,intro_fur,intro_fur_len);
@@ -3927,6 +3970,10 @@ bool FurnaceGUI::loop() {
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
 
+    // one second counter
+    secondTimer+=ImGui::GetIO().DeltaTime;
+    if (secondTimer>=1.0f) secondTimer=fmod(secondTimer,1.0f);
+
     curWindowLast=curWindow;
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
@@ -3942,6 +3989,19 @@ bool FurnaceGUI::loop() {
     if (e->isPlaying()) {
       if (oldRow!=nextOldRow) oldRowChanged=true;
       oldRow=nextOldRow;
+    }
+
+    // check whether pattern of channel(s) at cursor/selection is/are unique
+    isPatUnique=true;
+    if (curOrder>=0 && curOrder<e->curSubSong->ordersLen && selStart.xCoarse>=0 && selStart.xCoarse<e->getTotalChannelCount() && selEnd.xCoarse>=0 && selEnd.xCoarse<e->getTotalChannelCount()) {
+      for (int i=0; i<e->curSubSong->ordersLen; i++) {
+        if (i==curOrder) continue;
+        for (int j=selStart.xCoarse; j<=selEnd.xCoarse; j++) {
+          if (e->curSubSong->orders.ord[j][i]==e->curSubSong->orders.ord[j][curOrder]) isPatUnique=false;
+          break;
+        }
+        if (!isPatUnique) break;
+      }
     }
 
     if (!mobileUI) {
@@ -4412,7 +4472,43 @@ bool FurnaceGUI::loop() {
           info+=fmt::sprintf("| Row %d/%d ",oldRow,e->curSubSong->patLen);
         }
 
-        info+=fmt::sprintf("| %d:%.2d:%.2d.%.2d",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+        info+="| ";
+
+        if (totalSeconds==0x7fffffff) {
+          info+="Don't you have anything better to do?";
+        } else {
+          if (totalSeconds>=86400) {
+            int totalDays=totalSeconds/86400;
+            int totalYears=totalDays/365;
+            totalDays%=365;
+            int totalMonths=totalDays/30;
+            totalDays%=30;
+
+            if (totalYears>1) {
+              info+=fmt::sprintf("%d years ",totalYears);
+            } else if (totalYears) {
+              info+=fmt::sprintf("%d year ",totalYears);
+            }
+
+            if (totalMonths>1) {
+              info+=fmt::sprintf("%d months ",totalMonths);
+            } else if (totalMonths) {
+              info+=fmt::sprintf("%d month ",totalMonths);
+            }
+
+            if (totalDays>1) {
+              info+=fmt::sprintf("%d days ",totalDays);
+            } else {
+              info+=fmt::sprintf("%d day ",totalDays);
+            }
+          }
+
+          if (totalSeconds>=3600) {
+            info+=fmt::sprintf("%.2d:",(totalSeconds/3600)%24);
+          }
+
+          info+=fmt::sprintf("%.2d:%.2d.%.2d",(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+        }
 
         ImGui::TextUnformatted(info.c_str());
       } else {
@@ -4948,6 +5044,7 @@ bool FurnaceGUI::loop() {
                     e->renderSamples();
                     MARK_MODIFIED;
                   });
+                  updateSampleTex=true;
                 } else {
                   showError("...but you haven't selected a sample!");
                   delete s;
@@ -5499,6 +5596,7 @@ bool FurnaceGUI::loop() {
                 reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
               }
             }
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5509,6 +5607,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
             resetKeybinds();
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5520,6 +5619,7 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             resetColors();
             applyUISettings(false);
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5531,12 +5631,14 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             settingsOpen=false;
             willCommit=true;
+            settingsChanged=false;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
             ImGui::CloseCurrentPopup();
             settingsOpen=false;
             syncSettings();
+            settingsChanged=false;
           }
           ImGui::SameLine();
           if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
@@ -5937,6 +6039,7 @@ bool FurnaceGUI::loop() {
                 e->renderSamples();
                 MARK_MODIFIED;
               });
+              updateSampleTex=true;
             } else {
               showError("...but you haven't selected a sample!");
               delete s;
@@ -6140,6 +6243,7 @@ bool FurnaceGUI::loop() {
         switch (lastWindowCat) {
           case 0:
             e->autoNoteOffAll();
+            failedNoteOn=false;
             break;
           case 1:
             e->stopWavePreview();
@@ -6162,6 +6266,7 @@ bool FurnaceGUI::loop() {
     if (mustClear) {
       rend->clear(ImVec4(0,0,0,0));
       mustClear--;
+      if (mustClear==0) e->everythingOK();
     } else {
       if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;
@@ -6342,7 +6447,19 @@ bool FurnaceGUI::init() {
   waveSigned=e->getConfBool("waveSigned",false);
   waveGenVisible=e->getConfBool("waveGenVisible",false);
   waveEditStyle=e->getConfInt("waveEditStyle",0);
-  extraChannelButtons=e->getConfInt("extraChannelButtons",0);
+  int extraChannelButtons=e->getConfInt("extraChannelButtons",0);
+  if (!e->hasConf("patExtraButtons")) {
+    patExtraButtons=(extraChannelButtons==1);
+  } else {
+    patExtraButtons=e->getConfBool("patExtraButtons",false);
+  }
+  if (!e->hasConf("patChannelNames")) {
+    patChannelNames=(extraChannelButtons==2);
+  } else {
+    patChannelNames=e->getConfBool("patChannelNames",false);
+  }
+  patChannelPairs=e->getConfBool("patChannelPairs",true);
+  patChannelHints=e->getConfInt("patChannelHints",0);
   lockLayout=e->getConfBool("lockLayout",false);
 #ifdef IS_MOBILE
   fullScreen=true;
@@ -6645,6 +6762,10 @@ bool FurnaceGUI::init() {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER,settings.renderDriver.c_str());
   }
 
+  if (safeMode) {
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER,"software");
+  }
+
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
     logE("it failed...");
@@ -6880,7 +7001,10 @@ void FurnaceGUI::commitState() {
   e->setConf("waveSigned",waveSigned);
   e->setConf("waveGenVisible",waveGenVisible);
   e->setConf("waveEditStyle",waveEditStyle);
-  e->setConf("extraChannelButtons",extraChannelButtons);
+  e->setConf("patExtraButtons",patExtraButtons);
+  e->setConf("patChannelNames",patChannelNames);
+  e->setConf("patChannelPairs",patChannelPairs);
+  e->setConf("patChannelHints",(int)patChannelHints);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
   e->setConf("mobileUI",mobileUI);
@@ -6999,6 +7123,8 @@ FurnaceGUI::FurnaceGUI():
   warnQuit(false),
   willCommit(false),
   edit(false),
+  editClone(false),
+  isPatUnique(false),
   modified(false),
   displayError(false),
   displayExporting(false),
@@ -7029,6 +7155,7 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   mobileEdit(false),
   killGraphics(false),
+  safeMode(false),
   midiWakeUp(true),
   audioEngineChanged(false),
   settingsChanged(false),
@@ -7044,6 +7171,7 @@ FurnaceGUI::FurnaceGUI():
   wheelCalmDown(0),
   shallDetectScale(0),
   cpuCores(0),
+  secondTimer(0.0f),
   userEvents(0xffffffff),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
@@ -7116,7 +7244,6 @@ FurnaceGUI::FurnaceGUI():
   loopRow(-1),
   loopEnd(-1),
   isClipping(0),
-  extraChannelButtons(0),
   newSongCategory(0),
   latchTarget(0),
   wheelX(0),
@@ -7131,6 +7258,10 @@ FurnaceGUI::FurnaceGUI():
   exitDisabledTimer(0),
   soloTimeout(0.0f),
   exportFadeOut(5.0),
+  patExtraButtons(false),
+  patChannelNames(false),
+  patChannelPairs(true),
+  patChannelHints(0),
   newSongFirstFrame(false),
   oldRowChanged(false),
   editControlsOpen(true),
@@ -7210,6 +7341,7 @@ FurnaceGUI::FurnaceGUI():
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
+  failedNoteOn(false),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
   buttonLongThreshold(0.20f),

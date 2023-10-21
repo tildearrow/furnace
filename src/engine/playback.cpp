@@ -591,8 +591,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].scheduledSlideReset=true;
     }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
+    chan[i].releasing=true;
   } else if (pat->data[whatRow][0]==102) { // env release
     dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
+    chan[i].releasing=true;
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].oldNote=chan[i].note;
     chan[i].note=pat->data[whatRow][0]+((signed char)pat->data[whatRow][1])*12;
@@ -1067,6 +1069,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
       } else if (!chan[i].noteOnInhibit) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
+        chan[i].releasing=false;
+        if (song.resetArpPhaseOnNewNote) {
+           chan[i].arpStage=-1;
+        }
         chan[i].goneThroughNote=true;
         chan[i].wentThroughNote=true;
         keyHit[i]=true;
@@ -1366,6 +1372,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       //dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,(note.volume*(chan[note.channel].volMax>>8))/127));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
+      chan[note.channel].releasing=false;
       chan[note.channel].noteOnInhibit=true;
       chan[note.channel].lastIns=note.ins;
     } else {
@@ -1604,7 +1611,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       }
       if (totalTicks>=1000000) {
         totalTicks-=1000000;
-        totalSeconds++;
+        if (totalSeconds<0x7fffffff) totalSeconds++;
         cmdsPerSecond=totalCmds-lastCmds;
         lastCmds=totalCmds;
       }
@@ -1856,7 +1863,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     output->midiIn->queue.pop();
   }
   
-  // process audio
+  // process sample/wave preview
   if ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size())) {
     unsigned int samp_bbOff=0;
     unsigned int prevAvail=blip_samples_avail(samp_bb);
@@ -2003,7 +2010,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     memset(samp_bbOut,0,size*sizeof(short));
   }
 
-  if (playing && !halted) {
+  // process audio
+  bool mustPlay=playing && !halted;
+  if (mustPlay) {
     // logic starts here
     for (int i=0; i<song.systemLen; i++) {
       // TODO: we may have a problem here
@@ -2132,6 +2141,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     renderPool->wait();
   }
 
+  // process metronome
   if (metroBufLen<size || metroBuf==NULL) {
     if (metroBuf!=NULL) delete[] metroBuf;
     metroBuf=new float[size];
@@ -2140,7 +2150,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   memset(metroBuf,0,metroBufLen*sizeof(float));
 
-  if (playing && !halted && metronome) {
+  if (mustPlay && metronome) {
     for (size_t i=0; i<size; i++) {
       if (metroTick[i]) {
         if (metroTick[i]==2) {
@@ -2222,6 +2232,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // nothing/invalid
   }
 
+  // dump to oscillator buffer
   for (unsigned int i=0; i<size; i++) {
     for (int j=0; j<outChans; j++) {
       if (oscBuf[j]==NULL) continue;
@@ -2231,6 +2242,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   oscSize=size;
 
+  // force mono audio (if enabled)
   if (forceMono && outChans>1) {
     for (size_t i=0; i<size; i++) {
       float chanSum=out[0][i];
@@ -2243,6 +2255,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       }
     }
   }
+
+  // clamp output (if enabled)
   if (clampSamples) {
     for (size_t i=0; i<size; i++) {
       for (int j=0; j<outChans; j++) {

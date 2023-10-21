@@ -75,6 +75,11 @@ bool displayEngineFailError=false;
 bool cmdOutBinary=false;
 bool vgmOutDirect=false;
 
+bool safeMode=false;
+bool safeModeWithAudio=false;
+
+bool infoMode=false;
+
 std::vector<TAParam> params;
 
 TAParamResult pHelp(String) {
@@ -99,8 +104,10 @@ TAParamResult pAudio(String val) {
     e.setAudio(DIV_AUDIO_JACK);
   } else if (val=="sdl") {
     e.setAudio(DIV_AUDIO_SDL);
+  } else if (val=="portaudio") {
+    e.setAudio(DIV_AUDIO_PORTAUDIO);
   } else {
-    logE("invalid value for audio engine! valid values are: jack, sdl.");
+    logE("invalid value for audio engine! valid values are: jack, sdl, portaudio.");
     return TA_PARAM_ERROR;
   }
   return TA_PARAM_SUCCESS;
@@ -125,6 +132,27 @@ TAParamResult pConsole(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pSafeMode(String val) {
+#ifdef HAVE_GUI
+  safeMode=true;
+  return TA_PARAM_SUCCESS;
+#else
+  logE("Furnace was compiled without the GUI. safe mode is pointless.");
+  return TA_PARAM_ERROR;
+#endif
+}
+
+TAParamResult pSafeModeAudio(String val) {
+#ifdef HAVE_GUI
+  safeMode=true;
+  safeModeWithAudio=true;
+  return TA_PARAM_SUCCESS;
+#else
+  logE("Furnace was compiled without the GUI. safe mode is pointless.");
+  return TA_PARAM_ERROR;
+#endif
+}
+
 TAParamResult pBinary(String val) {
   cmdOutBinary=true;
   return TA_PARAM_SUCCESS;
@@ -132,6 +160,11 @@ TAParamResult pBinary(String val) {
 
 TAParamResult pDirect(String val) {
   vgmOutDirect=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pInfo(String val) {
+  infoMode=true;
   return TA_PARAM_SUCCESS;
 }
 
@@ -171,6 +204,9 @@ TAParamResult pVersion(String) {
   printf("- RtMidi by Gary P. Scavone (RtMidi license)\n");
   printf("- backward-cpp by Google (MIT)\n");
   printf("- Dear ImGui by Omar Cornut (MIT)\n");
+#ifdef HAVE_FREETYPE
+  printf("- FreeType (GPLv2)\n");
+#endif
   printf("- Portable File Dialogs by Sam Hocevar (WTFPL)\n");
   printf("- Native File Dialog (modified version) by Frogtoss Games (zlib license)\n");
   printf("- FFTW by Matteo Frigo and Steven G. Johnson (GPLv2)\n");
@@ -326,7 +362,7 @@ bool needsValue(String param) {
 void initParams() {
   params.push_back(TAParam("h","help",false,pHelp,"","display this help"));
 
-  params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
+  params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl|portaudio","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
@@ -335,11 +371,14 @@ void initParams() {
   params.push_back(TAParam("b","binary",false,pBinary,"","set command stream output format to binary"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
+  params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
 
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
   params.push_back(TAParam("s","subsong",true,pSubSong,"<number>","set sub-song"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
+  params.push_back(TAParam("S","safemode",false,pSafeMode,"","enable safe mode (software rendering and no audio)"));
+  params.push_back(TAParam("A","safeaudio",false,pSafeModeAudio,"","enable safe mode (with audio"));
 
   params.push_back(TAParam("B","benchmark",true,pBenchmark,"render|seek","run performance test"));
 
@@ -494,9 +533,35 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  e.preInit();
+  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+    logE("provide a file!");
+    return 1;
+  }
 
-  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",false)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+#ifdef HAVE_GUI
+  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="") {
+      logW("engine wants safe mode, but Furnace GUI is not going to start.");
+    } else {
+      safeMode=true;
+    }
+  }
+#else
+  if (e.preInit(true)) {
+    logW("engine wants safe mode, but Furnace GUI is not available.");
+  }
+#endif
+
+  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+    logE("you can't use safe mode and console/export mode together.");
+    return 0;
+  }
+
+  if (safeMode && !safeModeWithAudio) {
+    e.setAudio(DIV_AUDIO_DUMMY);
+  }
+
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",false)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
@@ -549,6 +614,12 @@ int main(int argc, char** argv) {
       return 1;
     }
   }
+  if (infoMode) {
+    e.dumpSongInfo();
+    finishLogFile();
+    return 0;
+  }
+
   if (!e.init()) {
     if (consoleMode) {
       reportError("could not initialize engine!");
@@ -559,6 +630,11 @@ int main(int argc, char** argv) {
       displayEngineFailError=true;
     }
   }
+
+  if (subsong!=-1) {
+    e.changeSongP(subsong);
+  }
+
   if (benchMode) {
     logI("starting benchmark!");
     if (benchMode==2) {
@@ -569,6 +645,7 @@ int main(int argc, char** argv) {
     finishLogFile();
     return 0;
   }
+
   if (outName!="" || vgmOutName!="" || cmdOutName!="") {
     if (cmdOutName!="") {
       SafeWriter* w=e.saveCommand(cmdOutBinary);
@@ -611,10 +688,6 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  if (subsong!=-1) {
-    e.changeSongP(subsong);
-  }
-
   if (consoleMode) {
     bool cliSuccess=false;
     cli.bindEngine(&e);
@@ -654,10 +727,12 @@ int main(int argc, char** argv) {
   }
 
 #ifdef HAVE_GUI
+  if (safeMode) g.enableSafeMode();
   g.bindEngine(&e);
   if (!g.init()) {
     reportError(g.getLastError());
     finishLogFile();
+    e.everythingOK();
     return 1;
   }
 
@@ -694,5 +769,6 @@ int main(int argc, char** argv) {
     CoUninitialize();
   }
 #endif
+  e.everythingOK();
   return 0;
 }

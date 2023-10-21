@@ -101,6 +101,7 @@ class DivPlatformSNES: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
+    DivChannelPair getPaired(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

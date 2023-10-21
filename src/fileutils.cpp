@@ -25,6 +25,7 @@
 #include <shlwapi.h>
 #else
 #include <unistd.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
 #endif
@@ -98,5 +99,28 @@ bool makeDir(const char* path) {
   return (SHCreateDirectory(NULL,utf8To16(path).c_str())==ERROR_SUCCESS);
 #else
   return (mkdir(path,0755)==0);
+#endif
+}
+
+int touchFile(const char* path) {
+#ifdef _WIN32
+  HANDLE h=CreateFileW(utf8To16(path).c_str(),GENERIC_WRITE,FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,CREATE_NEW,FILE_ATTRIBUTE_TEMPORARY,NULL);
+  if (h==INVALID_HANDLE_VALUE) {
+    switch (GetLastError()) {
+      case ERROR_FILE_EXISTS:
+        return -EEXIST;
+        break;
+    }
+    return -EPERM;
+  }
+  if (CloseHandle(h)==0) {
+    return -EBADF;
+  }
+  return 0;
+#else
+  int fd=open(path,O_CREAT|O_WRONLY|O_TRUNC|O_EXCL,0666);
+  if (fd<0) return -errno;
+  close(fd);
+  return 0;
 #endif
 }

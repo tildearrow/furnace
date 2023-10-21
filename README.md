@@ -128,13 +128,15 @@ for other operating systems, you may [build the source](#developer-info).
 # quick references
 
 - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, the [official Revolt](https://rvlt.gg/GRPS6tmc) or the [official Discord server](https://discord.gg/EfrwT2wq7z).
-- **help**: check out the [documentation](doc/README.md). it's about 90% complete.
+- **help**: check out the [documentation](doc/README.md).
 
 ## packages
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/furnace.svg)](https://repology.org/project/furnace/versions)
 
 some people have provided packages for Unix/Unix-like distributions. here's a list.
+
+- **Flatpak**: yes! Furnace is now available on [Flathub](https://flathub.org/apps/org.tildearrow.furnace) thanks to ColinKinloch.
 
 - **Arch Linux**: [furnace](https://archlinux.org/packages/extra/x86_64/furnace/) is in the official repositories.
 - **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
@@ -252,7 +254,8 @@ Available options:
 | `USE_SDL2` | `ON` | Build with SDL2 (required to build with GUI) |
 | `USE_SNDFILE` | `ON` | Build with libsndfile (required in order to work with audio files) |
 | `USE_BACKWARD` | `ON` | Use backward-cpp to print a backtrace on crash/abort |
-| `WITH_JACK` | `ON` if system-installed JACK detected, otherwise `OFF` | Whether to build with JACK support. Auto-detects if JACK is available |
+| `USE_FREETYPE` | `OFF` | Build with FreeType support |
+| `WITH_JACK` | auto\* | Whether to build with JACK support. Auto-detects if JACK is available |
 | `WITH_PORTAUDIO` | `ON` | Whether to build with PortAudio. |
 | `SYSTEM_FFTW` | `OFF` | Use a system-installed version of FFTW instead of the vendored one |
 | `SYSTEM_FMT` | `OFF` | Use a system-installed version of fmt instead of the vendored one |
@@ -260,11 +263,16 @@ Available options:
 | `SYSTEM_RTMIDI` | `OFF` | Use a system-installed version of RtMidi instead of the vendored one |
 | `SYSTEM_ZLIB` | `OFF` | Use a system-installed version of zlib instead of the vendored one |
 | `SYSTEM_SDL2` | `OFF` | Use a system-installed version of SDL2 instead of the vendored one |
+| `SYSTEM_FREETYPE` | `OFF` | Use a system-installed version of SDL2 instead of the vendored one |
 | `SUPPORT_XP` | `OFF` | Build a Windows XP-compatible binary |
-| `WARNINGS_ARE_ERRORS` | `OFF` (but consider enabling this & reporting any errors that arise from it!) | Whether warnings in furnace's C++ code should be treated as errors |
+| `WARNINGS_ARE_ERRORS` | `OFF`\*\* | Whether warnings in furnace's C++ code should be treated as errors |
 | `WITH_DEMOS` | `ON` | Install demo songs on `make install` |
 | `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
 | `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
+
+(\*) `ON` if system-installed JACK detected, otherwise `OFF`
+
+(\*\*) but consider enabling this & reporting any errors that arise from it!
 
 ## CMake Error
 

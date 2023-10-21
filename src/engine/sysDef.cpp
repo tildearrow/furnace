@@ -674,7 +674,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_PCE]=new DivSysDef(
     "PC Engine/TurboGrafx-16", NULL, 0x05, 0x05, 6, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "an '80's game console with a wavetable sound chip, popular in Japan.",
+    "an '80s game console with a wavetable sound chip, popular in Japan.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
@@ -691,12 +691,12 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_NES]=new DivSysDef(
     "NES (Ricoh 2A03)", NULL, 0x06, 0x06, 5, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_1BIT_DPCM)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
-    "also known as Famicom in Japan, it's the most well-known game console of the '80's.",
+    "also known as Famicom in Japan, it's the most well-known game console of the '80s.",
     {"Pulse 1", "Pulse 2", "Triangle", "Noise", "DPCM"},
     {"S1", "S2", "TR", "NO", "DMC"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM},
-    {DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_AMIGA},
-    {},
+    {DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES},
+    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
     {
       {0x11, {DIV_CMD_NES_DMC, "11xx: Write to delta modulation counter (0 to 7F)"}},
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"}},
@@ -792,7 +792,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_AMIGA]=new DivSysDef(
     "Amiga", NULL, 0x81, 0, 4, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "a computer from the '80's with full sampling capabilities, giving it a sound ahead of its time.",
+    "a computer from the '80s with full sampling capabilities, giving it a sound ahead of its time.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1617,7 +1617,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_ADPCMB},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_AMIGA},
-    fmEffectHandlerMap,
+    fmOPLDrumsEffectHandlerMap,
     fmOPLPostEffectHandlerMap
   );
 

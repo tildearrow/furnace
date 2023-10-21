@@ -472,7 +472,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_SNES_INVERT:
       chan[c.chan].invertL=(c.value>>4);
-      chan[c.chan].invertR=c.chan&15;
+      chan[c.chan].invertR=c.value&15;
       chan[c.chan].shallWriteVol=true;
       break;
     case DIV_CMD_SNES_GAIN_MODE:
@@ -701,6 +701,13 @@ DivMacroInt* DivPlatformSNES::getChanMacroInt(int ch) {
 
 unsigned short DivPlatformSNES::getPan(int ch) {
   return (chan[ch].panL<<8)|chan[ch].panR;
+}
+
+DivChannelPair DivPlatformSNES::getPaired(int ch) {
+  if (chan[ch].pitchMod) {
+    return DivChannelPair("mod",(ch-1)&7);
+  }
+  return DivChannelPair();
 }
 
 DivSamplePos DivPlatformSNES::getSamplePos(int ch) {

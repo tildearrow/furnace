@@ -310,13 +310,31 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 
 ### Text
 
-- **Main font**: overall interface font.
+- **Font renderer**: this allows you to select which font renderer library to use. there are two choices:
+  - **stb_truetype**: the original font renderer used in Furnace 0.6 and before.
+  - **FreeType**: this font renderer has support for more font formats and provides more settings. introduced in Furnace 0.6.1.
+- **Main font**: font for the user interface.
 - **Header font**: font for section headers.
 - **Pattern font** font for the pattern view, the order list, and related.
   - if "Custom...", a file path selector will appear.
   - **Size**: font size.
 - **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
   - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
+
+#### FreeType-specific settings
+
+- **Anti-aliased fonts**: when enabled, fonts will be rendered smooth.
+- **Support bitmap fonts**: this option allows you to enable the loading of bitmap fonts.
+  - be noted that this may force non-bitmap fonts to undesired sizes!
+- **Hinting**: this option allows you to define how crisp fonts are rendered.
+  - **Off**: disable font hinting. at small sizes, fonts may be blurry.
+  - **Slight**: enable slight font hinting.
+  - **Normal**: enable font hinting.
+  - **Full**: enable harsh font hinting. fonts may look ugly/distorted to some people.
+- **Auto-hinter**: some fonts contain hinting data, but some don't. this allows you to select what happens.
+  - **Disable**: only rely upon font hinting data.
+  - **Enable**: prefer font hinting data if present.
+  - **Force**: ignore font hinting data.
 
 ### Program
 

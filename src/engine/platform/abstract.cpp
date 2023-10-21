@@ -37,6 +37,14 @@ unsigned short DivDispatch::getPan(int chan) {
   return 0;
 }
 
+DivChannelPair DivDispatch::getPaired(int chan) {
+  return DivChannelPair();
+}
+
+DivChannelModeHints DivDispatch::getModeHints(int chan) {
+  return DivChannelModeHints();
+}
+
 DivMacroInt* DivDispatch::getChanMacroInt(int chan) {
   return NULL;
 }
@@ -189,6 +197,9 @@ bool DivDispatch::isSampleLoaded(int index, int sample) {
 
 void DivDispatch::renderSamples(int sysID) {
   
+}
+
+void DivDispatch::notifyPitchTable() {
 }
 
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

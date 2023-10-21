@@ -1,7 +1,7 @@
 // not auto-generated. update every time you change icons.ttf!
 
 #define ICON_MIN_FUR 0xe0f0
-#define ICON_MAX_FUR 0xe142
+#define ICON_MAX_FUR 0xe144
 
 // test
 #define ICON_FUR_TEST0 u8"\ue0f0"
@@ -66,6 +66,7 @@
 #define ICON_FUR_INS_TED u8"\ue134"
 #define ICON_FUR_INS_C140 u8"\ue135"
 #define ICON_FUR_INS_C219 u8"\ue142"
+#define ICON_FUR_INS_ESFM u8"\ue143"
 
 // sample editor
 #define ICON_FUR_SAMPLE_APPLY_SILENCE u8"\ue136"
@@ -80,3 +81,6 @@
 #define ICON_FUR_SAMPLE_REVERSE u8"\ue13f"
 #define ICON_FUR_SAMPLE_SIGN u8"\ue140"
 #define ICON_FUR_SAMPLE_TRIM u8"\ue141"
+
+// misc
+#define ICON_FUR_SINE u8"\ue144"

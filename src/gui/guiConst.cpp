@@ -624,8 +624,8 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("PAT_CURSOR_DOWN_ONE", "Move cursor down by one (override Edit Step)", FURKMOD_SHIFT|SDLK_END),
   D("PAT_CURSOR_LEFT_CHANNEL", "Move cursor to previous channel", 0),
   D("PAT_CURSOR_RIGHT_CHANNEL", "Move cursor to next channel", 0),
-  D("PAT_CURSOR_NEXT_CHANNEL", "Move cursor to previous channel (overflow)", 0),
-  D("PAT_CURSOR_PREVIOUS_CHANNEL", "Move cursor to next channel (overflow)", 0),
+  D("PAT_CURSOR_NEXT_CHANNEL", "Move cursor to next channel (overflow)", 0),
+  D("PAT_CURSOR_PREVIOUS_CHANNEL", "Move cursor to previous channel (overflow)", 0),
   D("PAT_CURSOR_BEGIN", "Move cursor to beginning of pattern", SDLK_HOME),
   D("PAT_CURSOR_END", "Move cursor to end of pattern", SDLK_END),
   D("PAT_CURSOR_UP_COARSE", "Move cursor up (coarse)", SDLK_PAGEUP),
@@ -810,6 +810,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_TOGGLE_OFF,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_TOGGLE_ON,"",ImVec4(0.2f,0.6f,0.2f,1.0f)),
   D(GUI_COLOR_EDITING,"",ImVec4(0.2f,0.1f,0.1f,1.0f)),
+  D(GUI_COLOR_EDITING_CLONE,"",ImVec4(0.2f,0.1f,0.3f,1.0f)),
   D(GUI_COLOR_SONG_LOOP,"",ImVec4(0.3f,0.5f,0.8f,0.4f)),
   D(GUI_COLOR_DESTRUCTIVE,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_WARNING,"",ImVec4(0.98f,0.98f,0.06f,1.0f)),
@@ -987,6 +988,13 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,"",ImVec4(0.5f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"",ImVec4(0.0f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_MISC,"",ImVec4(0.3f,0.3f,1.0f,1.0f)),
+
+  D(GUI_COLOR_PATTERN_STATUS_OFF,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_REL,"",ImVec4(0.7f,0.1f,0.1f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_REL_ON,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_ON,"",ImVec4(0.3f,1.0f,0.1f,1.0f)),
+
+  D(GUI_COLOR_PATTERN_PAIR,"",ImVec4(0.6f,0.8f,1.0f,1.0f)),
 
   D(GUI_COLOR_SAMPLE_BG,"",ImVec4(0.04f,0.13f,0.2f,1.0f)),
   D(GUI_COLOR_SAMPLE_FG,"",ImVec4(0.7f,0.7f,0.7f,1.0f)),

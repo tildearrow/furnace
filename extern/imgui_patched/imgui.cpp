@@ -3513,6 +3513,26 @@ void ImGui::RenderFrame(ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border,
     }
 }
 
+// MODIFIED: Render a rectangle shaped with optional rounding and borders on DrawList
+void ImGui::RenderFrameDrawList(ImDrawList* dl, ImVec2 p_min, ImVec2 p_max, ImU32 fill_col, bool border, float rounding)
+{
+    ImGuiContext& g = *GImGui;
+    if (g.Style.FrameShading>0.0f) {
+      ImVec4 fill_colPre=ImGui::ColorConvertU32ToFloat4(fill_col);
+      fill_colPre.w*=1.0f-g.Style.FrameShading;
+      ImU32 fill_col1=ImGui::ColorConvertFloat4ToU32(fill_colPre);
+      dl->AddRectFilledMultiColor(p_min, p_max, fill_col, fill_col, fill_col1, fill_col1, rounding);
+    } else {
+      dl->AddRectFilled(p_min, p_max, fill_col, rounding);
+    }
+    const float border_size = g.Style.FrameBorderSize;
+    if (border && border_size > 0.0f)
+    {
+        dl->AddRect(p_min + ImVec2(1, 1), p_max + ImVec2(1, 1), GetColorU32(ImGuiCol_BorderShadow), rounding, 0, border_size);
+        dl->AddRect(p_min, p_max, GetColorU32(ImGuiCol_Border), rounding, 0, border_size);
+    }
+}
+
 void ImGui::RenderFrameBorder(ImVec2 p_min, ImVec2 p_max, float rounding)
 {
     ImGuiContext& g = *GImGui;

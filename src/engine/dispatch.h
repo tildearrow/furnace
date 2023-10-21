@@ -267,6 +267,29 @@ struct DivCommand {
     value2(0) {}
 };
 
+struct DivPitchTable {
+  int pitch[(12*128)+1];
+  unsigned char linearity, blockBits;
+  bool period;
+
+  // get pitch
+  int get(int base, int pitch, int pitch2);
+
+  // linear: note
+  // non-linear: get(note,0,0)
+  int getBase(int note);
+
+  // calculate pitch table
+  void init(float tuning, double clock, double divider, int octave, unsigned char linear, bool isPeriod, unsigned char block=0);
+
+  DivPitchTable():
+    linearity(2),
+    blockBits(0),
+    period(false) {
+    memset(pitch,0,sizeof(pitch));
+  }
+};
+
 struct DivDelayedCommand {
   int ticks;
   DivCommand cmd;
@@ -337,6 +360,40 @@ struct DivDispatchOscBuffer {
     followNeedle(0) {
     memset(data,0,65536*sizeof(short));
   }
+};
+
+struct DivChannelPair {
+  const char* label;
+  // -1: none
+  signed char pairs[8];
+
+  DivChannelPair(const char* l, signed char p0, signed char p1, signed char p2, signed char p3, signed char p4, signed char p5, signed char p6, signed char p7):
+    label(l),
+    pairs{p0,p1,p2,p3,p4,p5,p6,p7} {}
+  DivChannelPair(const char* l, signed char p):
+    label(l),
+    pairs{p,-1,-1,-1,-1,-1,-1,-1} {}
+  DivChannelPair():
+    label(NULL),
+    pairs{-1,-1,-1,-1,-1,-1,-1,-1} {}
+};
+
+struct DivChannelModeHints {
+  const char* hint[4];
+  // valid types:
+  // - 0: disabled
+  // - 1: volume
+  // - 2: pitch
+  // - 3: panning
+  // - 4: ???
+  unsigned char type[4];
+  // up to 4
+  unsigned char count;
+
+  DivChannelModeHints():
+    hint{NULL,NULL,NULL,NULL},
+    type{0,0,0,0},
+    count(0) {}
 };
 
 class DivEngine;
@@ -417,6 +474,21 @@ class DivDispatch {
      * @return a 16-bit number. left in top 8 bits and right in bottom 8 bits.
      */
     virtual unsigned short getPan(int chan);
+
+    /**
+     * get "paired" channels.
+     * @param chan the channel to query.
+     * @return a DivChannelPair.
+     */
+    virtual DivChannelPair getPaired(int chan);
+
+    /**
+     * get channel mode hints.
+     * @param chan the channel to query.
+     * @return a DivChannelModeHints.
+     */
+    virtual DivChannelModeHints getModeHints(int chan);
+    
 
     /**
      * get currently playing sample (and its position).
@@ -644,6 +716,11 @@ class DivDispatch {
     virtual void renderSamples(int sysID);
 
     /**
+     * tell this DivDispatch that the tuning and/or pitch linearity has changed, and therefore the pitch table must be regenerated.
+     */
+    virtual void notifyPitchTable();
+
+    /**
      * initialize this DivDispatch.
      * @param parent the parent DivEngine.
      * @param channels the number of channels to acquire.
@@ -669,6 +746,7 @@ class DivDispatch {
     if (chipClock<getClockRangeMin()) chipClock=getClockRangeMin(); \
   }
 
+// NOTE: these definitions may be deprecated in the future. see DivPitchTable.
 // pitch calculation:
 // - a DivDispatch usually contains four variables per channel:
 //   - baseFreq: this changes on new notes, legato, arpeggio and slides.

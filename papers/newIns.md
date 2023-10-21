@@ -145,6 +145,7 @@ the following feature codes are recognized:
 - `SU`: Sound Unit ins data
 - `ES`: ES5506 ins data
 - `X1`: X1-010 ins data
+- `NE`: NES DPCM sample map data
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there sample/wave lists.
@@ -251,6 +252,7 @@ size | description
      |   - 1: 8-bit signed
      |   - 2: 16-bit signed
      |   - 3: 32-bit signed
+     | - bit 3: instant release (>=182)
      | - bit 1-2: type
      |   - 0: normal
      |   - 1: ADSR
@@ -584,3 +586,25 @@ size | description
 -----|------------------------------------
   4  | bank slot
 ```
+
+# NES DPCM sample map data (NE)
+
+```
+size | description
+-----|------------------------------------
+  1  | use sample map
+ 2?? | DPCM sample map... (120 entries)
+     | - only read if sample map is enabled
+```
+
+the DPCM sample map format:
+
+```
+size | description
+-----|------------------------------------
+  1  | pitch (0-15; otherwise no change)
+  1  | delta counter value (0-127; otherwise no change)
+```
+
+if some fields are missing, that's because they are defined in the SM feature.
+NES instruments with DPCM sample maps have both SM and NE features.

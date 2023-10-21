@@ -54,6 +54,8 @@ class DivPlatformNES: public DivDispatch {
   unsigned char apuType;
   unsigned char linearCount;
   signed char nextDPCMFreq;
+  signed char nextDPCMDelta;
+  signed char lastDPCMFreq;
   bool dpcmMode;
   bool dpcmModeDefault;
   bool dacAntiClickOn;
