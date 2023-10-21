@@ -881,6 +881,9 @@ class DivEngine {
     // get ext value
     unsigned char getExtValue();
 
+    // dump song info to stdout
+    void dumpSongInfo();
+
     // is playing
     bool isPlaying();
 

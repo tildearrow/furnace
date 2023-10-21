@@ -23,6 +23,7 @@
 #include "../ta-log.h"
 #include "imgui_internal.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
 #include "../utfutils.h"
@@ -101,7 +102,11 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   // check overflow highlight
   if (settings.overflowHighlight) {
     if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
-      ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+      if (editClone && !isPatUnique && secondTimer<0.5) {
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]));
+      } else {
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+      }
     } else if (isPlaying && oldRow==i && ord==playOrder) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->curSubSong->hilightB>0 && !(i%e->curSubSong->hilightB)) {
@@ -112,7 +117,11 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   } else {
     isPushing=true;
     if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
-      ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+      if (editClone && !isPatUnique && secondTimer<0.5) {
+        ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]));
+      } else {
+        ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+      }
     } else if (isPlaying && oldRow==i && ord==playOrder) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->curSubSong->hilightB>0 && !(i%e->curSubSong->hilightB)) {
@@ -920,35 +929,82 @@ void FurnaceGUI::drawPattern() {
         }
 
         if (patChannelHints) {
+          ImGuiWindow* win=ImGui::GetCurrentWindow();
+          ImVec2 posMin=win->DC.CursorPos;
           ImGui::Dummy(ImVec2(dpiScale,settings.iconSize*dpiScale));
-          //ImDrawList* dl=ImGui::GetWindowDrawList();
-          
-          /*
+          ImVec2 posMax=ImGui::GetContentRegionMax();
+          ImDrawList* dl=ImGui::GetWindowDrawList();
+
+          ImVec2 iconPos[6];
+
+          for (int i=0; i<6; i++) {
+            iconPos[i]=ImLerp(posMin,posMax,ImVec2((float)i/6.0f,0.0f));
+
+            //dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[i],0xffffffff,ICON_FUR_SINE);
+          }
+
           DivChannelState* cs=e->getChanState(i);
           if (cs!=NULL) {
-            ImGui::PushFont(mainFont);
+            // 1. ON/OFF
+            ImVec4 onOffColor;
             if (cs->keyOn) {
               if (cs->releasing) {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_REL_ON]));
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_REL_ON];
               } else {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_ON]));
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_ON];
               }
-              ImGui::Text(ICON_FA_SQUARE);
-              ImGui::PopStyleColor();
             } else {
               if (cs->releasing) {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_REL]));
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_REL];
               } else {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
               }
-              ImGui::Text(ICON_FA_SQUARE);
-              ImGui::PopStyleColor();
             }
-            ImGui::PopFont();
-          }
-          */
+            dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[0],ImGui::GetColorU32(onOffColor),ICON_FA_SQUARE);
 
-          // TODO: improve. scale font so it always fits.
+            // 2. PITCH SLIDE/VIBRATO
+            ImVec4 pitchColor;
+            const char* pitchIcon=ICON_FUR_SINE;
+            if (cs->inPorta) {
+              pitchIcon=ICON_FA_SHARE;
+              pitchColor=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
+            } else if (cs->portaSpeed>0) {
+              if (cs->portaNote>=60) {
+                pitchIcon=ICON_FA_CHEVRON_UP;
+              } else {
+                pitchIcon=ICON_FA_CHEVRON_DOWN;
+              }
+              pitchColor=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
+            } else if (cs->vibratoDepth>0) {
+              pitchIcon=ICON_FUR_SINE;
+              pitchColor=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
+            } else if (cs->arp) {
+              pitchIcon=ICON_FA_BARS;
+              pitchColor=uiColors[GUI_COLOR_PATTERN_EFFECT_MISC];
+            } else {
+              pitchColor=uiColors[GUI_COLOR_TOGGLE_OFF];
+            }
+            dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[1],ImGui::GetColorU32(pitchColor),pitchIcon);
+
+
+            // 3. VOLUME
+            ImVec4 volColor;
+            const char* volIcon=ICON_FA_MINUS;
+            if (cs->tremoloDepth>0) {
+              volIcon=ICON_FUR_SINE;
+              volColor=uiColors[GUI_COLOR_PATTERN_VOLUME_MAX];
+            } else if (cs->volSpeed) {
+              if (cs->volSpeed>0) {
+                volIcon=ICON_FA_CHEVRON_UP;
+              } else {
+                volIcon=ICON_FA_CHEVRON_DOWN;
+              }
+              volColor=uiColors[GUI_COLOR_PATTERN_VOLUME_MAX];
+            } else {
+              volColor=uiColors[GUI_COLOR_TOGGLE_OFF];
+            }
+            dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[2],ImGui::GetColorU32(volColor),volIcon);
+          }
         }
         chanHeadBottom=ImGui::GetCursorScreenPos().y-ImGui::GetStyle().ItemSpacing.y;
       }

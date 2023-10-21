@@ -127,6 +127,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_TOGGLE_OFF,
   GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
+  GUI_COLOR_EDITING_CLONE,
   GUI_COLOR_SONG_LOOP,
   GUI_COLOR_DESTRUCTIVE,
   GUI_COLOR_WARNING,
@@ -1345,7 +1346,7 @@ class FurnaceGUI {
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
+  bool quit, warnQuit, willCommit, edit, editClone, isPatUnique, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
@@ -1368,6 +1369,7 @@ class FurnaceGUI {
   int wheelCalmDown;
   int shallDetectScale;
   int cpuCores;
+  float secondTimer;
   unsigned int userEvents;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;

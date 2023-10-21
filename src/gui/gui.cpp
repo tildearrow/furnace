@@ -3970,6 +3970,10 @@ bool FurnaceGUI::loop() {
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
 
+    // one second counter
+    secondTimer+=ImGui::GetIO().DeltaTime;
+    if (secondTimer>=1.0f) secondTimer=fmod(secondTimer,1.0f);
+
     curWindowLast=curWindow;
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
@@ -3985,6 +3989,19 @@ bool FurnaceGUI::loop() {
     if (e->isPlaying()) {
       if (oldRow!=nextOldRow) oldRowChanged=true;
       oldRow=nextOldRow;
+    }
+
+    // check whether pattern of channel(s) at cursor/selection is/are unique
+    isPatUnique=true;
+    if (curOrder>=0 && curOrder<e->curSubSong->ordersLen && selStart.xCoarse>=0 && selStart.xCoarse<e->getTotalChannelCount() && selEnd.xCoarse>=0 && selEnd.xCoarse<e->getTotalChannelCount()) {
+      for (int i=0; i<e->curSubSong->ordersLen; i++) {
+        if (i==curOrder) continue;
+        for (int j=selStart.xCoarse; j<=selEnd.xCoarse; j++) {
+          if (e->curSubSong->orders.ord[j][i]==e->curSubSong->orders.ord[j][curOrder]) isPatUnique=false;
+          break;
+        }
+        if (!isPatUnique) break;
+      }
     }
 
     if (!mobileUI) {
@@ -7106,6 +7123,8 @@ FurnaceGUI::FurnaceGUI():
   warnQuit(false),
   willCommit(false),
   edit(false),
+  editClone(false),
+  isPatUnique(false),
   modified(false),
   displayError(false),
   displayExporting(false),
@@ -7152,6 +7171,7 @@ FurnaceGUI::FurnaceGUI():
   wheelCalmDown(0),
   shallDetectScale(0),
   cpuCores(0),
+  secondTimer(0.0f),
   userEvents(0xffffffff),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),

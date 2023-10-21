@@ -447,6 +447,7 @@ void DivPlatformSoundUnit::forceIns() {
     chWrite(i,0x03,chan[i].pan);
     writeControl(i);
     writeControlUpper(i);
+    chWrite(i,0x08,chan[i].duty);
   }
 }
 

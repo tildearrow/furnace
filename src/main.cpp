@@ -78,6 +78,8 @@ bool vgmOutDirect=false;
 bool safeMode=false;
 bool safeModeWithAudio=false;
 
+bool infoMode=false;
+
 std::vector<TAParam> params;
 
 TAParamResult pHelp(String) {
@@ -158,6 +160,11 @@ TAParamResult pBinary(String val) {
 
 TAParamResult pDirect(String val) {
   vgmOutDirect=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pInfo(String val) {
+  infoMode=true;
   return TA_PARAM_SUCCESS;
 }
 
@@ -364,6 +371,7 @@ void initParams() {
   params.push_back(TAParam("b","binary",false,pBinary,"","set command stream output format to binary"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
+  params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
 
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
@@ -525,9 +533,14 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+    logE("provide a file!");
+    return 1;
+  }
+
 #ifdef HAVE_GUI
-  if (e.preInit(false)) {
-    if (consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="") {
       logW("engine wants safe mode, but Furnace GUI is not going to start.");
     } else {
       safeMode=true;
@@ -539,7 +552,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  if (safeMode && (consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
     logE("you can't use safe mode and console/export mode together.");
     return 0;
   }
@@ -548,7 +561,7 @@ int main(int argc, char** argv) {
     e.setAudio(DIV_AUDIO_DUMMY);
   }
 
-  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",false)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",false)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
@@ -601,6 +614,12 @@ int main(int argc, char** argv) {
       return 1;
     }
   }
+  if (infoMode) {
+    e.dumpSongInfo();
+    finishLogFile();
+    return 0;
+  }
+
   if (!e.init()) {
     if (consoleMode) {
       reportError("could not initialize engine!");
@@ -611,6 +630,11 @@ int main(int argc, char** argv) {
       displayEngineFailError=true;
     }
   }
+
+  if (subsong!=-1) {
+    e.changeSongP(subsong);
+  }
+
   if (benchMode) {
     logI("starting benchmark!");
     if (benchMode==2) {
@@ -621,6 +645,7 @@ int main(int argc, char** argv) {
     finishLogFile();
     return 0;
   }
+
   if (outName!="" || vgmOutName!="" || cmdOutName!="") {
     if (cmdOutName!="") {
       SafeWriter* w=e.saveCommand(cmdOutBinary);
@@ -661,10 +686,6 @@ int main(int argc, char** argv) {
     }
     finishLogFile();
     return 0;
-  }
-
-  if (subsong!=-1) {
-    e.changeSongP(subsong);
   }
 
   if (consoleMode) {

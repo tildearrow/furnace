@@ -2310,6 +2310,65 @@ void DivEngine::unmuteAll() {
   BUSY_END;
 }
 
+void DivEngine::dumpSongInfo() {
+  printf(
+    "SONG INFORMATION\n"
+    "- name: %s\n"
+    "- author: %s\n"
+    "- album: %s\n"
+    "- system: %s\n"
+    "- %d ins, %d waves, %d samples\n"
+    "<<<\n%s\n>>>\n\n",
+    song.name.c_str(),
+    song.author.c_str(),
+    song.category.c_str(),
+    song.systemName.c_str(),
+    song.insLen,
+    song.waveLen,
+    song.sampleLen,
+    song.notes.c_str()
+  );
+
+  printf("SUB-SONGS\n");
+  int index=0;
+  for (DivSubSong* i: song.subsong) {
+    printf(
+      "=== %d: %s\n"
+      "<<<\n%s\n>>>\n",
+      index,
+      i->name.c_str(),
+      i->notes.c_str()
+    );
+    index++;
+  }
+
+  if (!song.ins.empty()) {
+    printf("\nINSTRUMENTS\n");
+    index=0;
+    for (DivInstrument* i: song.ins) {
+      printf(
+        "- %d: %s\n",
+        index,
+        i->name.c_str()
+      );
+      index++;
+    }
+  }
+
+  if (!song.sample.empty()) {
+    printf("\nSAMPLES\n");
+    index=0;
+    for (DivSample* i: song.sample) {
+      printf(
+        "- %d: %s\n",
+        index,
+        i->name.c_str()
+      );
+      index++;
+    }
+  }
+}
+
 int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   if (song.ins.size()>=256) return -1;
   BUSY_BEGIN;

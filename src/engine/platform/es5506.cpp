@@ -1057,7 +1057,11 @@ DivMacroInt* DivPlatformES5506::getChanMacroInt(int ch) {
 }
 
 unsigned short DivPlatformES5506::getPan(int ch) {
-  return ((chan[ch].lVol>>4)<<8)|(chan[ch].rVol>>4);
+  float expL=255.0f*pow(((float)(chan[ch].resLVol>>4))/4095.0f,4.0f);
+  float expR=255.0f*pow(((float)(chan[ch].resRVol>>4))/4095.0f,4.0f);
+  if (expL>255.0f) expL=255.0f;
+  if (expR>255.0f) expR=255.0f;
+  return (((unsigned int)expL)<<8)|((unsigned int)expR);
 }
 
 void DivPlatformES5506::reset() {
