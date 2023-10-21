@@ -385,7 +385,7 @@ struct DivInstrumentGB {
 
     DIV_GB_HWCMD_MAX
   };
-  struct HWSeqCommand {
+  struct HWSeqCommandGB {
     unsigned char cmd;
     unsigned short data;
   } hwSeq[256];
@@ -403,7 +403,7 @@ struct DivInstrumentGB {
     hwSeqLen(0),
     softEnv(false),
     alwaysInit(false) {
-    memset(hwSeq,0,256*sizeof(int));
+    memset(hwSeq,0,256*sizeof(HWSeqCommandGB));
   }
 };
 
@@ -663,6 +663,25 @@ struct DivInstrumentWaveSynth {
 
 struct DivInstrumentSoundUnit {
   bool switchRoles;
+  unsigned char hwSeqLen;
+  enum HWSeqCommands: unsigned char {
+    DIV_SU_HWCMD_VOL=0,
+    DIV_SU_HWCMD_PITCH,
+    DIV_SU_HWCMD_CUT,
+    DIV_SU_HWCMD_WAIT,
+    DIV_SU_HWCMD_WAIT_REL,
+    DIV_SU_HWCMD_LOOP,
+    DIV_SU_HWCMD_LOOP_REL,
+
+    DIV_SU_HWCMD_MAX
+  };
+  struct HWSeqCommandSU {
+    unsigned char cmd;
+    unsigned char bound;
+    unsigned char val;
+    unsigned short speed;
+    unsigned short padding;
+  } hwSeq[256];
 
   bool operator==(const DivInstrumentSoundUnit& other);
   bool operator!=(const DivInstrumentSoundUnit& other) {
@@ -670,7 +689,10 @@ struct DivInstrumentSoundUnit {
   }
 
   DivInstrumentSoundUnit():
-    switchRoles(false) {}
+    switchRoles(false),
+    hwSeqLen(0) {
+    memset(hwSeq,0,256*sizeof(HWSeqCommandSU));
+  }
 };
 
 struct DivInstrumentES5506 {

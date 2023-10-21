@@ -30,12 +30,14 @@ class DivPlatformSoundUnit: public DivDispatch {
     signed char pan;
     unsigned char duty;
     bool noise, pcm, phaseReset, filterPhaseReset, switchRoles;
-    bool pcmLoop, timerSync, freqSweep, volSweep, cutSweep;
+    bool pcmLoop, timerSync, freqSweep, volSweep, cutSweep, released;
     unsigned short freqSweepP, volSweepP, cutSweepP;
     unsigned char freqSweepB, volSweepB, cutSweepB;
     unsigned char freqSweepV, volSweepV, cutSweepV;
     unsigned short syncTimer;
     signed short wave;
+    unsigned short hwSeqPos;
+    short hwSeqDelay;
     Channel():
       SharedChannel<signed char>(127),
       cutoff(16383),
@@ -56,6 +58,7 @@ class DivPlatformSoundUnit: public DivDispatch {
       freqSweep(false),
       volSweep(false),
       cutSweep(false),
+      released(false),
       freqSweepP(0),
       volSweepP(0),
       cutSweepP(0),
@@ -66,7 +69,9 @@ class DivPlatformSoundUnit: public DivDispatch {
       volSweepV(0),
       cutSweepV(0),
       syncTimer(0),
-      wave(0) {}
+      wave(0),
+      hwSeqPos(0),
+      hwSeqDelay(0) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
