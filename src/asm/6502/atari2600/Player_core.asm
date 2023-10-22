@@ -47,37 +47,34 @@ _audio_loop
 _audio_next_note
             ldy audio_pattern_idx,x 
             lda PAT_TABLE_START_LO,y
-_audio_next_note_t
-            sta tmp_pattern_ptr
+            sta audio_pattern_ptr
             lda PAT_TABLE_START_HI,y
-            sta tmp_pattern_ptr + 1
+            sta audio_pattern_ptr + 1
             ldy audio_row_idx
-            lda (tmp_pattern_ptr),y
-_audio_next_note_ty
+            lda (audio_pattern_ptr),y
             tay                       ; y is now waveform ptr
             lda WF_TABLE_START_LO,y
-            sta tmp_waveform_ptr
+            sta audio_waveform_ptr
             lda WF_TABLE_START_HI,y
-            sta tmp_waveform_ptr + 1
+            sta audio_waveform_ptr + 1
             ldy audio_waveform_idx,x
-            lda (tmp_waveform_ptr),y
+            lda (audio_waveform_ptr),y
             beq _audio_advance_tracker ; check for zero 
             lsr                        ; pull first bit
             bcc _set_registers         ; if set go to load registers
             lsr                        ; check second bit
             bcc _set_cx_vx             ; if clear we are loading aud(c|v)x
             lsr                        ; pull duration bit for later set
-            sta AUDF0,x             ; store frequency
-            sta vis_freq,x
+            sta audio_fx,x             ; store frequency
             jmp _set_timer_delta       ; jump to duration 
 _set_cx_vx  bcc _set_vx
-            sta AUDC0,x
+            sta audio_cx,x
             jmp _set_timer_delta       ; jump to duration
 _set_vx
-            sta AUDV0,x
+            sta audio_vx,x
 _set_timer_delta
             lda #0
-            adc #1
+            adc #1                     ; will be 1 or 2 based on carry bit
             sta audio_timer,x
             jmp _audio_advance_waveform
 _set_registers
@@ -85,27 +82,25 @@ _set_registers
             pha                        ; save timer
             lsr
             lsr
-            sta AUDF0,x
-            sta vis_freq,x
+            sta audio_fx,x
             iny
             pla                      
             and #$03
             cmp #$03                   
             bne _set_timer_registers
-            lda (tmp_waveform_ptr),y
+            lda (audio_waveform_ptr),y
             iny
 _set_timer_registers
             sta audio_timer,x
-            lda (tmp_waveform_ptr),y
+            lda (audio_waveform_ptr),y
             lsr
             lsr
             lsr
             lsr
-            sta AUDC0,x
-            lda (tmp_waveform_ptr),y
+            sta audio_cx,x
+            lda (audio_waveform_ptr),y
             and #$0f
-            sta AUDV0,x
-            sta vis_amp,x
+            sta audio_vx,x
 _audio_advance_waveform
             iny
             sty audio_waveform_idx,x
@@ -130,7 +125,7 @@ _audio_next_channel
             sta audio_waveform_idx+1
             ldy audio_row_idx
             iny
-            lda (tmp_pattern_ptr),y
+            lda (audio_pattern_ptr),y
             cmp #255
             beq _audio_advance_order
             sty audio_row_idx

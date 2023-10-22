@@ -34,6 +34,7 @@ COUNTER_HEIGHT = COUNTER_BLOCK_HEIGHT + 3
 GRADIENT_FIELD_HEIGHT = 192 - (COUNTER_HEIGHT * 3)
 OVERSCAN_HEIGHT = 30
 VERTICAL_BANNER_POS = 130
+MAX_SPEED = 4
 
 ; ----------------------------------
 ; variables
@@ -49,22 +50,31 @@ audio_song_ptr      ds 2  ; address of song
 audio_song_order    ds 1  ; what order are we at in the song
 audio_row_idx       ds 1  ; where are we in the current order
 audio_pattern_idx   ds 2  ; which pattern is playing on each channel
-audio_waveform_sz   ds 2  ; waveform countdown
+audio_pattern_ptr   ds 2
 audio_waveform_idx  ds 2  ; where are we in waveform on each channel
+audio_waveform_ptr  ds 2
 audio_timer         ds 2  ; time left on next action on each channel
+
+audio_registers
+audio_cx            ds 2
+audio_fx            ds 2
+audio_vx            ds 2
+
+
+audio_stack_ptr     ds 2
+audio_buffer        ds (6 * 8)
+audio_buffer_end
 
 speed               ds 1  ; playback speed
 debounce_input      ds 1
 
-tmp_pattern_ptr     ds 2
-tmp_waveform_ptr    ds 2
 tmp_input           ds 1
+tmp_update_ctl      ds 1
 
-vis_freq            ds 2
-vis_amp             ds 2
 vis_gradient        ds 16
 vis_title_start     ds 1
 vis_title_end       ds 1
+
 
 ; ----------------------------------
 ; code
@@ -138,42 +148,83 @@ _end_switches
             lda speed
             bne _do_pause
             lda #1
-            jmp _save_pause
+            jmp _save_speed
 _do_pause
             lda #0
-_save_pause
-            sta speed
-            jmp _end_input
+            jmp _save_speed
 _skip_trigger_pause
             ror
             bcs _up
             ror
             bcs _down
             ror 
+            bcs _left
+            ror 
+            bcs _right
             jmp _end_input
 _down
             jsr sub_inc_song
             jmp _end_input            
 _up
             jsr sub_dec_song
+            jmp _end_input  
+_left
+            lda speed
+            sec
+            sbc #1
+            bpl _save_speed
+            lda #0
+            jmp _save_speed
+_right
+            lda speed
+            clc
+            adc #1
+            cmp #MAX_SPEED
+            bmi _save_speed
+            lda #MAX_SPEED
+_save_speed
+            sta speed
 _end_input
             lda tmp_input
-            stx debounce_input
+            sta debounce_input
 
 ;---------------------
 ; audio tracker
 
             ldx speed
-            beq audio_tracker_off
+            bne audio_tracker_on
+            ldy #5
+_audio_on_pause
+            stx audio_fx,y
+            dey
+            bpl _audio_on_pause
+audio_tracker_on
+            lda SPEED_UPDATE_PATTERN,x
+            sta tmp_update_ctl
+            
+            ; fill stack with audio
+            lda #audio_buffer
+            sta audio_stack_ptr
+_audio_buffer_loop
+            lsr tmp_update_ctl
+            bcc _audio_skip_update
             jsr sub_play_song
-            jmp audio_tracker_end
-audio_tracker_off
-            stx AUDC0
-            stx AUDC1
-            stx AUDV0
-            stx AUDV1
-audio_tracker_end
-
+_audio_skip_update
+            ldy #5
+_audio_update_loop
+            lda audio_registers,y
+            sta (audio_stack_ptr),y
+            dey
+            bpl _audio_update_loop
+            lda audio_stack_ptr
+            clc
+            adc #6
+            sta audio_stack_ptr
+            cmp #audio_buffer_end
+            bne _audio_buffer_loop
+            lda #audio_buffer
+            sta audio_stack_ptr
+            
 ;---------------------
 ; vis timing
 
@@ -187,7 +238,7 @@ _vis_gradient_setup_loop
             bpl _vis_gradient_setup_loop
 
             ldy audio_row_idx
-            lda (tmp_pattern_ptr),y
+            lda (audio_pattern_ptr),y
             and #$0f
             tax
             lda #$0f
@@ -219,7 +270,8 @@ waitOnVBlank_loop
             cpx INTIM
             bmi waitOnVBlank_loop
             stx VBLANK
-            sta WSYNC ; SL 35
+            sta WSYNC ; SL 38
+            jsr sub_deque_audio ; 0
             stx COLUPF
             inx ; x = 1
             stx CTRLPF ; reflect playfield
@@ -255,6 +307,7 @@ gradient_loop
             sta WSYNC
             lda #0
             sta COLUBK
+            jsr sub_deque_audio ; 1-4
             txa
             sec
             sbc #4
@@ -266,9 +319,9 @@ gradient_loop
             sta PF0
             lda #WHITE
             sta COLUPF
-            lda vis_freq
+            lda audio_fx
             jsr sub_waveform
-            lda vis_freq + 1
+            lda audio_fx + 1
             jsr sub_waveform
 
 
@@ -314,30 +367,42 @@ title_loop
             dey
             cpy vis_title_start
             bpl title_loop
-            ldx #$ff
+            lda #0
+            sta GRP0
+            sta GRP1
+            sta GRP0
+            ldx #$ff ; restore stack
             txs
-            inx
-            stx GRP0
-            stx GRP1
-            stx GRP0
-
-            ldx #GRADIENT_FIELD_HEIGHT - 128
-footer_loop
-            sta WSYNC
-            dex
-            bne footer_loop
- 
 
 ;--------------------
-; Overscan start
+; Footer + Overscan 
 
-waitOnOverscan
-            ldx #OVERSCAN_HEIGHT
-waitOnOverscan_loop
+            ldy #16
+            ldx #(GRADIENT_FIELD_HEIGHT - 128) + OVERSCAN_HEIGHT
+overscan_loop
             sta WSYNC
+            dey 
+            bpl _overscan_skip_deque
+            jsr sub_deque_audio
+            ldy #32
+_overscan_skip_deque
             dex
-            bne waitOnOverscan_loop
+            bne overscan_loop
             jmp newFrame
+
+sub_deque_audio
+
+            ldy #5
+_deque_audio_loop
+            lda (audio_stack_ptr),y
+            sta AUDC0,y
+            dey
+            bpl _deque_audio_loop
+            lda audio_stack_ptr
+            clc
+            adc #6
+            sta audio_stack_ptr
+            rts
 
 sub_waveform
             lsr ; div frequency by 4 
@@ -418,6 +483,13 @@ VIS_FREQ_PF2
 	  byte %11100011
 	  byte %11111000
     byte %00000111
+
+SPEED_UPDATE_PATTERN
+    byte %00000000
+    byte %00000001
+    byte %00010001
+    byte %01010101
+    byte %11111111 ; screen unstable
 
 ;-----------------------------------------------------------------------------------
 ; the CPU reset vectors
