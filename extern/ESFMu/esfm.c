@@ -196,11 +196,13 @@ static int13
 ESFM_envelope_calc_sin0(uint10 phase, uint10 envelope)
 {
 	uint16 out = 0;
-	int13 neg = 0;
+	uint13 neg = 0;
+	bool inc = 0;
 	phase &= 0x3ff;
 	if (phase & 0x200)
 	{
 		neg = ~(0);
+		inc = 1;
 	}
 	if (phase & 0x100)
 	{
@@ -210,7 +212,7 @@ ESFM_envelope_calc_sin0(uint10 phase, uint10 envelope)
 	{
 		out = logsinrom[phase & 0xff];
 	}
-	return ESFM_envelope_calc_exp(out + (envelope << 3)) ^ neg;
+	return (int13)(((uint13)ESFM_envelope_calc_exp(out + (envelope << 3)) ^ neg) + inc);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -274,10 +276,12 @@ ESFM_envelope_calc_sin4(uint10 phase, uint10 envelope)
 {
 	uint16 out = 0;
 	int13 neg = 0;
+	bool inc = 0;
 	phase &= 0x3ff;
 	if ((phase & 0x300) == 0x100)
 	{
 		neg = ~(0);
+		inc = 1;
 	}
 	if (phase & 0x200)
 	{
@@ -291,7 +295,7 @@ ESFM_envelope_calc_sin4(uint10 phase, uint10 envelope)
 	{
 		out = logsinrom[(phase << 1) & 0xff];
 	}
-	return ESFM_envelope_calc_exp(out + (envelope << 3)) ^ neg;
+	return (int13)(((uint13)ESFM_envelope_calc_exp(out + (envelope << 3)) ^ neg) + inc);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -320,12 +324,14 @@ static int13
 ESFM_envelope_calc_sin6(uint10 phase, uint10 envelope)
 {
 	int13 neg = 0;
+	bool inc = 0;
 	phase &= 0x3ff;
 	if (phase & 0x200)
 	{
 		neg = ~(0);
+		inc = 1;
 	}
-	return ESFM_envelope_calc_exp(envelope << 3) ^ neg;
+	return (int13)(((uint13)ESFM_envelope_calc_exp(envelope << 3) ^ neg) + inc);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -334,14 +340,16 @@ ESFM_envelope_calc_sin7(uint10 phase, uint10 envelope)
 {
 	uint16 out = 0;
 	int13 neg = 0;
+	bool inc = 0;
 	phase &= 0x3ff;
 	if (phase & 0x200)
 	{
 		neg = ~(0);
+		inc = 1;
 		phase = (phase & 0x1ff) ^ 0x1ff;
 	}
 	out = phase << 3;
-	return ESFM_envelope_calc_exp(out + (envelope << 3)) ^ neg;
+	return (int13)(((uint13)ESFM_envelope_calc_exp(out + (envelope << 3)) ^ neg) + inc);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -791,6 +799,37 @@ ESFM_phase_generate_emu(esfm_slot *slot)
 	chip->lfsr = (noise >> 1) | (n_bit << 22);
 }
 
+/**
+ * TODO: Figure out what's ACTUALLY going on inside the real chip!
+ * This is not accurate at all, but it's the closest I was able to get with
+ * empirical testing (and it's closer than nothing).
+ */
+/* ------------------------------------------------------------------------- */
+static int16
+ESFM_slot3_noise3_mod_input_calc(esfm_slot *slot)
+{
+	esfm_channel *channel = slot->channel;
+	envelope_sinfunc wavegen = envelope_sin[channel->slots[2].waveform];
+	int16 phase;
+	int13 output_buf = *channel->slots[1].in.mod_input;
+	int i;
+	
+	// Go through previous slots' partial results and recalculate outputs
+	// (we skip slot 0 because its calculation happens at the end, not at the beginning)
+	for (i = 1; i < 3; i++)
+	{
+		// double the pitch
+		phase = channel->slots[i].in.phase_acc >> 8;
+		if (channel->slots[i].mod_in_level)
+		{
+			phase += output_buf >> (7 - channel->slots[i].mod_in_level);
+		}
+		output_buf = wavegen((uint10)(phase & 0x3ff), channel->slots[i].in.eg_output);
+	}
+
+	return output_buf >> (8 - slot->mod_in_level);
+}
+
 /* ------------------------------------------------------------------------- */
 static void
 ESFM_slot_generate(esfm_slot *slot)
@@ -799,7 +838,14 @@ ESFM_slot_generate(esfm_slot *slot)
 	int16 phase = slot->in.phase_out;
 	if (slot->mod_in_level)
 	{
-		phase += *slot->in.mod_input >> (7 - slot->mod_in_level);
+		if (slot->slot_idx == 3 && slot->rhy_noise == 3)
+		{
+			phase += ESFM_slot3_noise3_mod_input_calc(slot);
+		}
+		else
+		{
+			phase += *slot->in.mod_input >> (7 - slot->mod_in_level);
+		}
 	}
 	slot->in.output = wavegen((uint10)(phase & 0x3ff), slot->in.eg_output);
 	if (slot->output_level)
