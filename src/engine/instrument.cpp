@@ -2632,7 +2632,7 @@ void DivInstrument::readFeatureEF(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   unsigned char next=reader.readC();
-  esfm.noise = next&3;
+  esfm.noise=next&3;
 
   for (int i=0; i<4; i++) {
     DivInstrumentESFM::Operator& op=esfm.op[i];

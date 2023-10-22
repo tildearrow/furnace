@@ -2215,6 +2215,27 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_ESFM: {
+      supportsCustomRate=false;
+
+      // TODO: Remove the text below and uncomment the rest when overflow emulation is added to ESFMu
+      // (still under research)
+      ImGui::Text("nothing to configure");
+
+      // bool emulateOverflow=flags.getBool("emulateOverflow", false);
+      //
+      // if (ImGui::Checkbox("Enable overflow emulation", &emulateOverflow)) {
+      //   altered=true;
+      //   mustRender=true;
+      // }
+      //
+      // if (altered) {
+      //   e->lockSave([&]() {
+      //     flags.set("emulateOverflow", emulateOverflow);
+      //   });
+      // }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
@@ -2225,7 +2246,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_C219:
       break;
     case DIV_SYSTEM_YMU759:
-    case DIV_SYSTEM_ESFM:
       supportsCustomRate=false;
       ImGui::Text("nothing to configure");
       break;

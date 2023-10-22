@@ -98,7 +98,7 @@ class DivPlatformESFM: public DivDispatch {
    *      or op[o].outLvl > 0 and op[o + 1].modIn == 0.
    */
   inline bool KVS(int c, int o) {
-    if (c < 0 || c >= 18 || o < 0 || o >= 4) return false;
+    if (c<0 || c>=18 || o<0 || o>=4) return false;
 
     if (chan[c].state.fm.op[o].kvs==1) return true;
 
@@ -106,7 +106,7 @@ class DivPlatformESFM: public DivDispatch {
       if (chan[c].state.esfm.op[o].outLvl==7) return true;
       else if (chan[c].state.esfm.op[o].outLvl>0) {
         if (o==3) return true;
-        else if ((chan[c].state.esfm.op[o].outLvl-chan[c].state.esfm.op[o+1].modIn) >= 2) {
+        else if ((chan[c].state.esfm.op[o].outLvl-chan[c].state.esfm.op[o+1].modIn)>=2) {
           return true;
         }
         else if (chan[c].state.esfm.op[o+1].modIn==0) {
