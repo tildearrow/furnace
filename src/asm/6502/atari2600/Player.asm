@@ -169,16 +169,14 @@ _up
             jsr sub_dec_song
             jmp _end_input  
 _left
-            lda speed
-            sec
-            sbc #1
-            bpl _save_speed
-            lda #0
-            jmp _save_speed
+            lda #$ff
+            jmp _add_speed
 _right
-            lda speed
+            lda #1
+_add_speed
             clc
-            adc #1
+            adc speed
+            bmi _do_pause
             cmp #MAX_SPEED
             bmi _save_speed
             lda #MAX_SPEED
@@ -216,11 +214,7 @@ _audio_update_loop
             sta (audio_stack_ptr),y
             dey
             bpl _audio_update_loop
-            lda audio_stack_ptr
-            clc
-            adc #6
-            sta audio_stack_ptr
-            cmp #audio_buffer_end
+            jsr sub_advance_audio
             bne _audio_buffer_loop
             lda #audio_buffer
             sta audio_stack_ptr
@@ -284,8 +278,7 @@ vis_loop
             ldy #31
 gradient_loop
             sta WSYNC               ;--
-            sty GRP1
-            SLEEP 14
+            SLEEP 17
             tya
             lsr
             ora vis_gradient,x      ;4  23
@@ -367,10 +360,6 @@ title_loop
             dey
             cpy vis_title_start
             bpl title_loop
-            lda #0
-            sta GRP0
-            sta GRP1
-            sta GRP0
             ldx #$ff ; restore stack
             txs
 
@@ -390,18 +379,22 @@ _overscan_skip_deque
             bne overscan_loop
             jmp newFrame
 
-sub_deque_audio
+sub_advance_audio
+            lda audio_stack_ptr
+            clc
+            adc #6
+            sta audio_stack_ptr
+            cmp #audio_buffer_end
+            rts
 
+sub_deque_audio
             ldy #5
 _deque_audio_loop
             lda (audio_stack_ptr),y
             sta AUDC0,y
             dey
             bpl _deque_audio_loop
-            lda audio_stack_ptr
-            clc
-            adc #6
-            sta audio_stack_ptr
+            jsr sub_advance_audio
             rts
 
 sub_waveform
@@ -444,12 +437,15 @@ sub_freq_slice
 ;-----------------------------------------------------------------------------------
 ; Audio
 
+   ORG $F300
+
+
     #include "Track_data.asm"
 
 ;-----------------------------------------------------------------------------------
 ; Graphics
 
-   ORG $FF00
+   ORG $FF80
 
     #include "Track_title.asm"
 
