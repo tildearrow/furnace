@@ -471,7 +471,6 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
  *   xxxxx011                    frequency = x >> 3, duration 1
  *   xxxxx111                    frequency = x >> 3, duration 2
  *   00000000                    stop
- * 
  */
 size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaNote& note, TiaChannelState& state) {
   size_t bytesWritten = 0;
