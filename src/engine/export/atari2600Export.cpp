@@ -312,10 +312,16 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
   // compress the patterns into common subsequences
   logD("performing sequence compression");
   std::map<size_t, String> commonSubSequences;
+  std::map<size_t, size_t> sequenceFrequency;
   std::map<String, String> representativeSequenceMap;
   for (auto& x: sequences) {
     size_t hash = x.second.hash();
     auto it = commonSubSequences.emplace(hash, x.first);
+    if (it.second) {
+      sequenceFrequency.emplace(hash, 1);
+    } else {
+      sequenceFrequency[hash] += 1;
+    }
     // TODO: verify no hash collision...?
     representativeSequenceMap.emplace(x.first, it.first->second);
   }
@@ -432,8 +438,9 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
   w->writeC('\n');
   w->writeText("; Waveforms\n");
   for (auto& x: commonSubSequences) {
+    auto freq = sequenceFrequency[x.first];
     writeWaveformHeader(w, x.second.c_str());
-    w->writeText(fmt::sprintf("; Hash %d\n", x.first));
+    w->writeText(fmt::sprintf("; Hash %d, Freq %d\n", x.first, freq));
     auto& dump = sequences[x.second];
     TiaChannelState state(255, 255, 255);
     for (auto& n: dump.notes) {
