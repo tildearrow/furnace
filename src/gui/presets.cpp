@@ -976,7 +976,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "PC + AdLib (drums mode)", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
     }
   );
