@@ -3149,8 +3149,8 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.sampleLen=ds.sample.size();
 
     // orders
-    ds.subsong[0]->ordersLen=ordCount=reader.readC();
-    if (ds.subsong[0]->ordersLen<1 || ds.subsong[0]->ordersLen>127) {
+    ds.subsong[0]->ordersLen=ordCount=(unsigned char)reader.readC();
+    if (ds.subsong[0]->ordersLen<1 || ds.subsong[0]->ordersLen>128) {
       logD("invalid order count!");
       throw EndOfFileException(&reader,reader.tell());
     }
