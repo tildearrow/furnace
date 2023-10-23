@@ -457,15 +457,27 @@ int DivPlatformC64::dispatch(DivCommand c) {
       switch (c.value>>4) {
         case 0:
           chan[c.chan].attack=c.value&15;
+          if (!no1EUpdate) {
+            rWrite(c.chan*7+5,(chan[c.chan].attack<<4)|(chan[c.chan].decay));
+          }
           break;
         case 1:
           chan[c.chan].decay=c.value&15;
+          if (!no1EUpdate) {
+            rWrite(c.chan*7+5,(chan[c.chan].attack<<4)|(chan[c.chan].decay));
+          }
           break;
         case 2:
           chan[c.chan].sustain=c.value&15;
+          if (!no1EUpdate) {
+            rWrite(c.chan*7+6,(chan[c.chan].sustain<<4)|(chan[c.chan].release));
+          }
           break;
         case 3:
           chan[c.chan].release=c.value&15;
+          if (!no1EUpdate) {
+            rWrite(c.chan*7+6,(chan[c.chan].sustain<<4)|(chan[c.chan].release));
+          }
           break;
         case 4:
           chan[c.chan].ring=c.value;
@@ -652,6 +664,7 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
     if (sidCore==1) sid_fp->setSamplingParameters(chipClock,reSIDfp::DECIMATE,rate,0);
   }
   keyPriority=flags.getBool("keyPriority",true);
+  no1EUpdate=flags.getBool("no1EUpdate",false);
   testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
   testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
 

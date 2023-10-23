@@ -3008,6 +3008,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // C64 1Exy compat
+    if (ds.version<186) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_C64_8580 || ds.system[i]==DIV_SYSTEM_C64_6581) {
+          ds.systemFlags[i].set("no1EUpdate",true);
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
