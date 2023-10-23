@@ -239,6 +239,9 @@ const char* cmdName[]={
 
   "EXTERNAL",
 
+  "C64_AD",
+  "C64_SR",
+
   "ALWAYS_SET_VOLUME"
 };
 

@@ -493,6 +493,16 @@ int DivPlatformC64::dispatch(DivCommand c) {
           break;
       }
       break;
+    case DIV_CMD_C64_AD:
+      chan[c.chan].attack=c.value>>4;
+      chan[c.chan].decay=c.value&15;
+      rWrite(c.chan*7+5,(chan[c.chan].attack<<4)|(chan[c.chan].decay));
+      break;
+    case DIV_CMD_C64_SR:
+      chan[c.chan].sustain=c.value>>4;
+      chan[c.chan].release=c.value&15;
+      rWrite(c.chan*7+6,(chan[c.chan].sustain<<4)|(chan[c.chan].release));
+      break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;

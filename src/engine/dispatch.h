@@ -238,6 +238,9 @@ enum DivDispatchCmds {
 
   DIV_CMD_EXTERNAL, // (value)
 
+  DIV_CMD_C64_AD, // (value)
+  DIV_CMD_C64_SR, // (value)
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX
