@@ -645,7 +645,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
 
-      if (ImGui::Checkbox("Disable 1Exy env ipdate (compatibility)",&no1EUpdate)) {
+      if (ImGui::Checkbox("Disable 1Exy env update (compatibility)",&no1EUpdate)) {
         altered=true;
       }
 
