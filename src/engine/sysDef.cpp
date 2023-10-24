@@ -396,6 +396,10 @@ int effectValNibbleFlagPackReversed(unsigned char, unsigned char val) {
   return (((val&0x0f)!=0)<<1)|((val&0xf0)!=0);
 }
 
+int effectValExcessOf80Hex(unsigned char, unsigned char val) {
+  return val-0x80;
+}
+
 template<const int mask> int effectValAnd(unsigned char, unsigned char val) {
   return val&mask;
 };
@@ -617,18 +621,18 @@ void DivEngine::registerSystems() {
   };
 
   EffectHandlerMap fmESFMPostEffectHandlerMap={
+    {0x10, {DIV_CMD_FM_AM_DEPTH, "10xy: Set AM depth (x: operator from 1 to 4 (0 for all ops); y: depth (0: 1dB, 1: 4.8dB))", effectOpVal<4>, effectValAnd<1>}},
     {0x12, {DIV_CMD_FM_TL, "12xx: Set level of operator 1 (0 highest, 3F lowest)", constVal<0>, effectVal}},
     {0x13, {DIV_CMD_FM_TL, "13xx: Set level of operator 2 (0 highest, 3F lowest)", constVal<1>, effectVal}},
     {0x14, {DIV_CMD_FM_TL, "14xx: Set level of operator 3 (0 highest, 3F lowest)", constVal<2>, effectVal}},
     {0x15, {DIV_CMD_FM_TL, "15xx: Set level of operator 4 (0 highest, 3F lowest)", constVal<3>, effectVal}},
     {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)", effectOpValNoZero<4>, effectValAnd<15>}},
+    {0x17, {DIV_CMD_FM_PM_DEPTH, "17xy: Set vibrato depth (x: operator from 1 to 4 (0 for all ops); y: depth (0: normal, 1: double))", effectOpVal<4>, effectValAnd<1>}},
     {0x19, {DIV_CMD_FM_AR, "19xx: Set attack of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
     {0x1a, {DIV_CMD_FM_AR, "1Axx: Set attack of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
     {0x1b, {DIV_CMD_FM_AR, "1Bxx: Set attack of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
     {0x1c, {DIV_CMD_FM_AR, "1Cxx: Set attack of operator 3 (0 to F)", constVal<2>, effectValAnd<15>}},
     {0x1d, {DIV_CMD_FM_AR, "1Dxx: Set attack of operator 4 (0 to F)", constVal<3>, effectValAnd<15>}},
-    {0x1e, {DIV_CMD_FM_AM_DEPTH, "1Exy: Set AM depth (x: operator from 1 to 4 (0 for all ops); y: depth (0: 1dB, 1: 4.8dB))", effectOpVal<4>, effectValAnd<1>}},
-    {0x1f, {DIV_CMD_FM_PM_DEPTH, "1Fxy: Set vibrato depth (x: operator from 1 to 4 (0 for all ops); y: depth (0: normal, 1: double))", effectOpVal<4>, effectValAnd<1>}},
     {0x20, {DIV_CMD_ESFM_OP_PANNING, "20xy: Set panning of operator 1 (x: left; y: right)", constVal<0>, effectValNibbleFlagPackReversed}},
     {0x21, {DIV_CMD_ESFM_OP_PANNING, "21xy: Set panning of operator 2 (x: left; y: right)", constVal<1>, effectValNibbleFlagPackReversed}},
     {0x22, {DIV_CMD_ESFM_OP_PANNING, "22xy: Set panning of operator 3 (x: left; y: right)", constVal<2>, effectValNibbleFlagPackReversed}},
@@ -639,6 +643,10 @@ void DivEngine::registerSystems() {
     {0x27, {DIV_CMD_STD_NOISE_MODE, "27xx: Set noise mode for operator 4 (x: mode from 0 to 3)", effectValAnd<3>}},
     {0x2a, {DIV_CMD_FM_WS, "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
     {0x2f, {DIV_CMD_FM_FIXFREQ, "2Fxy: Set fixed frequency block (x: operator from 1 to 4; y: octave from 0 to 7)", effectOpValNoZero<4>, effectValAnd<7>}},
+    {0x40, {DIV_CMD_FM_DT, "40xx: Set detune of operator 1 (80 = base pitch)", constVal<0>, effectValExcessOf80Hex}},
+    {0x41, {DIV_CMD_FM_DT, "41xx: Set detune of operator 2 (80 = base pitch)", constVal<1>, effectValExcessOf80Hex}},
+    {0x42, {DIV_CMD_FM_DT, "42xx: Set detune of operator 3 (80 = base pitch)", constVal<2>, effectValExcessOf80Hex}},
+    {0x43, {DIV_CMD_FM_DT, "43xx: Set detune of operator 4 (80 = base pitch)", constVal<3>, effectValExcessOf80Hex}},
     {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)", effectOpVal<4>, effectValAnd<1>}},
     {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)", effectOpVal<4>, effectValAnd<15>}},
     {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)", effectOpVal<4>, effectValAnd<15>}},

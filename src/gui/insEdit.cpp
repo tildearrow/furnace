@@ -166,7 +166,11 @@ const char* oplDrumNames[4]={
 };
 
 const char* esfmNoiseModeNames[4]={
-  "Noise disabled", "Snare (square + noise)", "HiHat (ringmod from OP3, + noise)", "Top (ringmod from OP3)\nWARNING - not emulated properly! Will change in future versions."
+  "Normal", "Snare", "HiHat", "Top"
+};
+
+const char* esfmNoiseModeDescriptions[4]={
+  "Noise disabled", "Square + noise", "Ringmod from OP3 + noise", "Ringmod from OP3 + double pitch ModInput\nWARNING - has emulation issues, subject to change"
 };
 
 const bool opIsOutput[8][4]={
@@ -3300,8 +3304,8 @@ void FurnaceGUI::drawInsEdit() {
                 }
                 case DIV_INS_ESFM: {
                   ImGui::TableNextColumn();
-                  P(CWSliderScalar(ESFM_LONG_NAME(ESFM_NOISE),ImGuiDataType_U8,&ins->esfm.noise,&_ZERO,&_THREE)); rightClickable
-                  ImGui::TextUnformatted(esfmNoiseModeNames[ins->esfm.noise&3]);
+                  P(CWSliderScalar(ESFM_LONG_NAME(ESFM_NOISE),ImGuiDataType_U8,&ins->esfm.noise,&_ZERO,&_THREE,esfmNoiseModeNames[ins->esfm.noise&3])); rightClickable
+                  ImGui::TextUnformatted(esfmNoiseModeDescriptions[ins->esfm.noise&3]);
                   ImGui::TableNextColumn();
                   ImGui::TableNextColumn();
                   if (fmPreviewOn) {

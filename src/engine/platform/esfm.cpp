@@ -265,6 +265,7 @@ void DivPlatformESFM::tick(bool sysTick) {
     }
   }
 
+  int hardResetElapsed=0;
   bool mustHardReset=false;
 
   for (int i=0; i<18; i++) {
@@ -285,6 +286,7 @@ void DivPlatformESFM::tick(bool sysTick) {
       for (int o=0; o<4; o++) {
         unsigned short baseAddr=i*32+o*8;
         immWrite(baseAddr+OFFSET_SL_RR,0x0f);
+        hardResetElapsed++;
       }
     }
   }
@@ -313,6 +315,7 @@ void DivPlatformESFM::tick(bool sysTick) {
         }
         immWrite(baseAddr+OFFSET_FREQL,chan[i].freqL[o]);
         immWrite(baseAddr+OFFSET_FREQH_BLOCK_DELAY,chan[i].freqH[o]|(opE.delay<<5));
+        hardResetElapsed+=2;
       }
       chan[i].freqChanged=false;
     }
@@ -330,6 +333,9 @@ void DivPlatformESFM::tick(bool sysTick) {
   }
 
   if (mustHardReset) {
+    for (unsigned int i=hardResetElapsed; i<128; i++) {
+      immWrite(0x25f, i&0xff);
+    }
     for (int i=0; i<18; i++) {
       if (chan[i].hardReset && chan[i].keyOn) {
         // logI("chan[%d] hard reset key on, writing original slrr back", i);
@@ -888,6 +894,15 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       } else {
         rWrite(baseAddr+OFFSET_OUTLVL_NOISE_WS,(op.ws&7)|(insE.noise<<3)|((opE.outLvl&7)<<5));
       }
+      break;
+    }
+    case DIV_CMD_FM_DT: {
+      unsigned int o=c.value;
+      if (o >= 4) break;
+      DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
+      if (opE.fixed) break;
+      opE.dt=c.value2;
+      chan[c.chan].freqChanged=true;
       break;
     }
     case DIV_CMD_FM_HARD_RESET:
