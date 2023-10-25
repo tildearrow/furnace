@@ -14,11 +14,13 @@ Use the `--romout` command line option to export track data from furnace:
 furnace --romout <target directory> <furnace file>
 ```
 
-Once this is done, copy the contents of `src/asm/6502/atari2600` into the target directory
+To compile:
 
-You will need to set the environment variable `DASM_HOME` with the location of a dasm install.
+- copy the contents of `src/asm/6502/atari2600` into the target directory
+- You will need to set the environment variable `DASM_HOME` with the location of a dasm install.
+- Type `make` to build.
 
-Type `make` to build.
+Detailed errors will be available in `roms/Player_*.log`
 
 To run with Stella, type:
 
@@ -28,12 +30,11 @@ stella roms/Player_NTSC.a26
 
 # sequence format
 
-Songs contain pattern sequences.
-Pattern sequences contain notes distributed in two channels.
-Notes are obtained by a compressed register dump from Furnace.
-The note "waveform" is delta-encoded in order to obtain further data compression. 
+- Songs contain pattern sequences.
+- Pattern sequences contain notes.
+- Notes are obtained by a compressed register dump from Furnace
 
-Waveform format:
+Notes are encoded as follows:
 
 ```
   fffff010 wwwwvvvv           frequency + waveform + volume, duration 1
