@@ -1071,7 +1071,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "PC + ESS ES1488 (native ESFM mode)", {
+    "PC + ESS AudioDrive ES1488 (native ESFM mode)", {
       CH(DIV_SYSTEM_ESFM, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
         "rate=44100\n"
