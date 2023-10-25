@@ -220,7 +220,30 @@ void DivPlatformC64::tick(bool sysTick) {
     }
     if (chan[i].std.ex4.had) {
       chan[i].test=chan[i].std.ex4.val&1;
+
+      if (newTestBitMacro)
+      {
+          chan[i].active = chan[i].std.ex4.val & 2;
+          if (!chan[i].active)
+          {
+              chan[i].keyOff = true;
+              chan[i].keyOn = false;
+          }
+      }
+      
       rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active));
+    }
+
+    if (chan[i].std.ex5.had) {
+        chan[i].attack = chan[i].std.ex5.val >> 4;
+        chan[i].decay = chan[i].std.ex5.val & 15;
+        rWrite(i * 7 + 5, (chan[i].attack << 4) | (chan[i].decay));
+    }
+
+    if (chan[i].std.ex6.had) {
+        chan[i].sustain = chan[i].std.ex6.val >> 4;
+        chan[i].release = chan[i].std.ex6.val & 15;
+        rWrite(i * 7 + 6, (chan[i].sustain << 4) | (chan[i].release));
     }
 
     if (sysTick) {
@@ -396,7 +419,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta || !chan[c.chan].inPorta) {
+        if (parent->song.resetMacroOnPorta) {// || !chan[c.chan].inPorta) {
           chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_C64));
           chan[c.chan].keyOn=true;
         }
@@ -675,6 +698,7 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   }
   keyPriority=flags.getBool("keyPriority",true);
   no1EUpdate=flags.getBool("no1EUpdate",false);
+  newTestBitMacro = flags.getBool("oldTestBitMacro", false);
   testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
   testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
 

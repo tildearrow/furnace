@@ -256,6 +256,18 @@ const char* c64SpecialBits[3]={
   "sync", "ring", NULL
 };
 
+const char* c64TestGateBits[3]={
+  "test", "gate", NULL
+};
+
+const char* c64AttackDecayBits[9] = {
+  "Decay 1", "Decay 2", "Decay 3", "Decay 4", "Attack 1", "Attack 2", "Attack 3", "Attack 4", NULL
+};
+
+const char* c64SustainReleaseBits[9] = {
+  "Release 1", "Release 2", "Release 3", "Release 4", "Sustain 1", "Sustain 2", "Sustain 3", "Sustain 4", NULL
+};
+
 const char* pokeyCtlBits[9]={
   "15KHz", "filter 2+4", "filter 1+3", "16-bit 3+4", "16-bit 1+2", "high3", "high1", "poly9", NULL
 };
@@ -6479,7 +6491,10 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_C64) {
             macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex3Macro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c64SpecialBits));
-            macroList.push_back(FurnaceGUIMacroDesc("Test/Gate",&ins->std.ex4Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+            //macroList.push_back(FurnaceGUIMacroDesc("Test/Gate",&ins->std.ex4Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+			macroList.push_back(FurnaceGUIMacroDesc("Test/Gate",&ins->std.ex4Macro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL, true, c64TestGateBits));
+            macroList.push_back(FurnaceGUIMacroDesc("Attack/Decay", &ins->std.ex5Macro, 0, 8, 128, uiColors[GUI_COLOR_MACRO_OTHER], false, NULL, NULL, true, c64AttackDecayBits));
+            macroList.push_back(FurnaceGUIMacroDesc("Sustain/Release", &ins->std.ex6Macro, 0, 8, 128, uiColors[GUI_COLOR_MACRO_OTHER], false, NULL, NULL, true, c64SustainReleaseBits));
           }
           if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample)) {
             macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Num",&ins->std.ex3Macro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
