@@ -151,8 +151,6 @@ enum DivMacroTypeOp: unsigned char {
 //   - AM, AR, DR, MULT (CRS), RR, SL, TL, DT2, RS, DT, D2R
 //   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed
 
-
-
 struct DivInstrumentFM {
   unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset;
   bool fixedDrums;
