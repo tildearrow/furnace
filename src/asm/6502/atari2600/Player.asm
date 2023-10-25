@@ -31,8 +31,8 @@ SCANLINES = 262
 NUM_AUDIO_CHANNELS = 2
 COUNTER_BLOCK_HEIGHT = 6
 COUNTER_HEIGHT = COUNTER_BLOCK_HEIGHT + 3
-GRADIENT_FIELD_HEIGHT = 192 - (COUNTER_HEIGHT * 3)
-OVERSCAN_HEIGHT = 31
+GRADIENT_FIELD_HEIGHT = 193 - (COUNTER_HEIGHT * 3)
+OVERSCAN_HEIGHT = 35
 VERTICAL_BANNER_POS = 130
 MAX_SPEED = 4
 
@@ -56,8 +56,8 @@ audio_waveform_ptr  ds 2
 audio_timer         ds 2  ; time left on next action on each channel
 
 audio_registers
-audio_cx            ds 2
-audio_fx            ds 2
+audio_cx            ds 2  ; 
+audio_fx            ds 2  ; 
 audio_vx            ds 2
 
 
@@ -107,7 +107,7 @@ newFrame
 
             stx VSYNC               ; turn OFF VSYNC bit 1
 
-    ; 37 scanlines of vertical blank to follow
+    ; 34 scanlines of vertical blank to follow
 
 ;--------------------
 ; VBlank start
@@ -437,7 +437,7 @@ sub_freq_slice
 ;-----------------------------------------------------------------------------------
 ; Audio
 
-   ORG $F300
+    ORG $F300 ; leave F300 - FF80 for the actual song
 
 
     #include "Track_data.asm"
@@ -445,9 +445,9 @@ sub_freq_slice
 ;-----------------------------------------------------------------------------------
 ; Graphics
 
-   ORG $FF80
+    ORG $FF80
 
-    #include "Track_title.asm"
+    #include "Track_meta.asm"
 
 VIS_FREQ_PF0
     byte %10101010

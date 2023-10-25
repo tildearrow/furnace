@@ -142,16 +142,18 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
   ret.reserve(2);
 
-  // create title data (optional)
+  // create meta data (optional)
   logD("writing track title graphics");
   SafeWriter* titleData=new SafeWriter;
   titleData->init();
+  titleData->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
+  titleData->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
   auto title = (e->song.name + " by " + e->song.author);
   if (title.length() > 26) {
     title = title.substr(23) + "...";
   }
   writeTextGraphics(titleData, title.c_str());
-  ret.push_back(DivROMExportOutput("Track_title.asm", titleData));
+  ret.push_back(DivROMExportOutput("Track_meta.asm", titleData));
 
   // create track data
   logD("writing track audio data");

@@ -8,13 +8,13 @@ This ROM export is designed to be compiled with dasm.
 
 # process
 
-You can export track data from the furnace command line
+Use the `--romout` command line option to export track data from furnace:
 
 ```
 furnace --romout <target directory> <furnace file>
 ```
 
-copy Makefile, Player.asm and Player_core.asm into the target directory
+Once this is done, copy the contents of `src/asm/6502/atari2600` into the target directory
 
 You will need to set the environment variable `DASM_HOME` with the location of a dasm install.
 
