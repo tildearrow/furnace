@@ -3008,6 +3008,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // C64 1Exy compat
+    if (ds.version<186) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_C64_8580 || ds.system[i]==DIV_SYSTEM_C64_6581) {
+          ds.systemFlags[i].set("no1EUpdate",true);
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
@@ -3149,8 +3158,8 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.sampleLen=ds.sample.size();
 
     // orders
-    ds.subsong[0]->ordersLen=ordCount=reader.readC();
-    if (ds.subsong[0]->ordersLen<1 || ds.subsong[0]->ordersLen>127) {
+    ds.subsong[0]->ordersLen=ordCount=(unsigned char)reader.readC();
+    if (ds.subsong[0]->ordersLen<1 || ds.subsong[0]->ordersLen>128) {
       logD("invalid order count!");
       throw EndOfFileException(&reader,reader.tell());
     }

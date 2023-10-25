@@ -196,7 +196,10 @@ bool DivInstrumentWaveSynth::operator==(const DivInstrumentWaveSynth& other) {
 }
 
 bool DivInstrumentSoundUnit::operator==(const DivInstrumentSoundUnit& other) {
-  return _C(switchRoles);
+  return (
+    _C(switchRoles) &&
+    _C(hwSeqLen)
+  );
 }
 
 bool DivInstrumentES5506::operator==(const DivInstrumentES5506& other) {
@@ -713,6 +716,14 @@ void DivInstrument::writeFeatureSU(SafeWriter* w) {
   FEATURE_BEGIN("SU");
 
   w->writeC(su.switchRoles);
+
+  w->writeC(su.hwSeqLen);
+  for (int i=0; i<su.hwSeqLen; i++) {
+    w->writeC(su.hwSeq[i].cmd);
+    w->writeC(su.hwSeq[i].bound);
+    w->writeC(su.hwSeq[i].val);
+    w->writeS(su.hwSeq[i].speed);
+  }
 
   FEATURE_END;
 }
@@ -2584,6 +2595,16 @@ void DivInstrument::readFeatureSU(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   su.switchRoles=reader.readC();
+
+  if (version>=185) {
+    su.hwSeqLen=reader.readC();
+    for (int i=0; i<su.hwSeqLen; i++) {
+      su.hwSeq[i].cmd=reader.readC();
+      su.hwSeq[i].bound=reader.readC();
+      su.hwSeq[i].val=reader.readC();
+      su.hwSeq[i].speed=reader.readS();
+    }
+  }
 
   READ_FEAT_END;
 }

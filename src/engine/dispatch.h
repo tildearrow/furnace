@@ -238,12 +238,15 @@ enum DivDispatchCmds {
 
   DIV_CMD_EXTERNAL, // (value)
 
-  DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
+  DIV_CMD_C64_AD, // (value)
+  DIV_CMD_C64_SR, // (value)
 
   DIV_CMD_ESFM_OP_PANNING, // (op, value)
   DIV_CMD_ESFM_OUTLVL, // (op, value)
   DIV_CMD_ESFM_MODIN, // (op, value)
   DIV_CMD_ESFM_ENV_DELAY, // (op, value)
+
+  DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX
 };

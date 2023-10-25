@@ -556,6 +556,31 @@ size | description
 size | description
 -----|------------------------------------
   1  | switch roles of phase reset timer and frequency
+  1  | hardware sequence length (>=185)
+ ??? | hardware sequence...
+     | - length: 5*hwSeqLen
+```
+
+a value in the hardware sequence has the following format:
+
+```
+size | description
+-----|------------------------------------
+  1  | command
+     | - 0: set volume sweep
+     | - 1: set frequency sweep
+     | - 2: set cutoff sweep
+     | - 3: wait
+     | - 4: wait for release
+     | - 5: loop
+     | - 6: loop until release
+  1  | sweep bound
+  1  | sweep amount/command data
+     | - if "set sweep", this is amount.
+     | - for wait: length in ticks
+     | - for wait for release: nothing
+     | - for loop/loop until release: position
+  2  | sweep period
 ```
 
 # ES5506 data (ES)
