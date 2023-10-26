@@ -35,4 +35,3 @@ res/docpdf/manual.pdf
 res/docpdf/.venv
 res/docpdf/htmldoc/
 res/furnace.appdata.xml
-compile_commands.json

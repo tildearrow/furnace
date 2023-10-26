@@ -1,2 +1,0 @@
-CompileFlags:
-    Add: ["-xc", "-Wall", "-Wextra"]

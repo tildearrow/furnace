@@ -49,7 +49,7 @@ const char* esfmParamLongNames[9]={
 };
 
 const char* esfmParamNames[9]={
-  "OP4 Noise Mode", "Env. Delay", "Output Level", "ModInput", "Left", "Right", "Coarse Tn.", "Detune", "Fixed"
+  "OP4 Noise Mode", "Env. Delay", "Output Level", "ModInput", "Left", "Right", "Tune", "Detune", "Fixed"
 };
 
 const char* esfmParamShortNames[9]={
