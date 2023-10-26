@@ -53,7 +53,7 @@ const char* esfmParamNames[9]={
 };
 
 const char* esfmParamShortNames[9]={
-  "RHY", "DL", "OL", "MI", "L", "R", "CT", "DT", "FIX"
+  "NOI", "DL", "OL", "MI", "L", "R", "CT", "DT", "FIX"
 };
 
 const char* fmParamShortNames[3][32]={

@@ -185,7 +185,7 @@ void DivPlatformESFM::tick(bool sysTick) {
           op.ksl=m.ksl.val;
         }
 
-        if (KVS(i, o)) {
+        if (KVS(i,o)) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
