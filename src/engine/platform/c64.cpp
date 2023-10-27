@@ -616,7 +616,18 @@ void DivPlatformC64::reset() {
     needInitTables=false;
   } else if (sidCore==1) {
     sid_fp->reset();
-    sid_fp->clockSilent(16000);
+    for (int i=0; i<3; i++) {
+      sid_fp->write(i*7+5,testAD);
+      sid_fp->write(i*7+6,testSR);
+      sid_fp->write(i*7+4,8);
+    }
+    sid_fp->clockSilent(30000);
+    for (int i=0; i<3; i++) {
+      sid_fp->write(i*7+5,testAD);
+      sid_fp->write(i*7+6,testSR);
+      sid_fp->write(i*7+4,0);
+    }
+    sid_fp->clockSilent(30000);
   } else {
     sid->reset();
   }
