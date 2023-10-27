@@ -615,7 +615,7 @@ int main(int argc, char** argv) {
     }
     if (romOutName!="") {
       // KLUDGE: assume Atari build
-      std::vector<DivROMExportOutput> out=e.buildROM(DIV_ROM_ATARI_2600_R9_TRACKER);
+      std::vector<DivROMExportOutput> out=e.buildROM(DIV_ROM_ATARI_2600);
       if (romOutName[romOutName.size()-1]!=DIR_SEPARATOR) romOutName+=DIR_SEPARATOR_STR;
       for (DivROMExportOutput& i: out) {
         String path=romOutName+i.name;
