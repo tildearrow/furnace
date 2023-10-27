@@ -32,7 +32,7 @@ NUM_AUDIO_CHANNELS = 2
 COUNTER_BLOCK_HEIGHT = 6
 COUNTER_HEIGHT = COUNTER_BLOCK_HEIGHT + 3
 GRADIENT_FIELD_HEIGHT = 193 - (COUNTER_HEIGHT * 3)
-OVERSCAN_HEIGHT = 35
+OVERSCAN_HEIGHT = 30
 VERTICAL_BANNER_POS = 130
 MAX_SPEED = 4
 
@@ -92,6 +92,8 @@ CleanStart
             ; playback speed
             lda #1
             sta speed
+            lda #5
+            sta vis_title_end
 
 newFrame
 
@@ -252,7 +254,7 @@ _vis_save_title
             sta vis_title_start
             clc
             adc #5
-            sta vis_title_end
+            sta vis_title_end ; BUGBUG initially uninitialized
 _vis_skip_title
 
 ;---------------------

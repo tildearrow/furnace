@@ -1320,10 +1320,6 @@ void DivEngine::nextRow() {
   firstTick=true;
 }
 
-bool DivEngine::tick(bool noAccum) {
-  return nextTick(noAccum,false);
-}
-
 bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   bool ret=false;
   if (divider<1) divider=1;

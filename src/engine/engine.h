@@ -585,8 +585,8 @@ class DivEngine {
   // add every export method here
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
-  friend class DivExportR9Tracker;
-  
+  friend class DivExportAtari2600;
+
   public:
     DivSong song;
     DivOrders* curOrders;
@@ -728,9 +728,6 @@ class DivEngine {
 
     // play by one row
     void stepOne(int row);
-
-    // advance one tick
-    bool tick(bool noAccum=true);
 
     // stop
     void stop();

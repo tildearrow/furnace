@@ -148,7 +148,9 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   titleData->init();
   titleData->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
   titleData->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
-  auto title = (e->song.name + " by " + e->song.author);
+  auto title = (e->song.name.length() > 0) ?
+     (e->song.name + " by " + e->song.author) :
+     "furnace tracker";
   if (title.length() > 26) {
     title = title.substr(23) + "...";
   }
@@ -226,9 +228,9 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
       bool done=false;
       while (!done && e->isPlaying()) {
         
+        done = e->nextTick(false, true);
         int currentTicks = e->getTotalTicks();
         int currentSeconds = e->getTotalSeconds();
-        done = e->tick(false);
         deltaTicks = 
           currentTicks - lastWriteTicks + 
           (TICKS_PER_SECOND * (currentSeconds - lastWriteSeconds));
