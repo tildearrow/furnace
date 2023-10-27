@@ -240,17 +240,17 @@ void DivPlatformC64::tick(bool sysTick) {
     }
 
     if (chan[i].std.ex6.had) {
-        chan[i].decay = chan[i].std.ex5.val & 15;
-        rWrite(i * 7 + 6, (chan[i].sustain << 4) | (chan[i].release));
+        chan[i].decay = chan[i].std.ex6.val & 15;
+        rWrite(i * 7 + 5, (chan[i].attack << 4) | (chan[i].decay));
     }
 
     if (chan[i].std.ex7.had) {
-        chan[i].sustain = chan[i].std.ex6.val & 15;
+        chan[i].sustain = chan[i].std.ex7.val & 15;
         rWrite(i * 7 + 6, (chan[i].sustain << 4) | (chan[i].release));
     }
 
     if (chan[i].std.ex8.had) {
-        chan[i].release = chan[i].std.ex6.val & 15;
+        chan[i].release = chan[i].std.ex8.val & 15;
         rWrite(i * 7 + 6, (chan[i].sustain << 4) | (chan[i].release));
     }
 
