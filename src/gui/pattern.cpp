@@ -934,17 +934,18 @@ void FurnaceGUI::drawPattern() {
           ImGui::Dummy(ImVec2(dpiScale,settings.iconSize*dpiScale));
           ImVec2 posMax=ImGui::GetContentRegionMax();
           ImDrawList* dl=ImGui::GetWindowDrawList();
-
           ImVec2 iconPos[6];
-
-          for (int i=0; i<6; i++) {
-            iconPos[i]=ImLerp(posMin,posMax,ImVec2((float)i/6.0f,0.0f));
-
-            //dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[i],0xffffffff,ICON_FUR_SINE);
-          }
-
           DivChannelState* cs=e->getChanState(i);
           if (cs!=NULL) {
+            DivChannelModeHints hints=e->getChanModeHints(i);
+            if (hints.count>4) hints.count=4;
+            int hintCount=3+hints.count;
+
+            // calculate icon size
+            for (int i=0; i<hintCount; i++) {
+              iconPos[i]=ImLerp(posMin,posMax,ImVec2((float)(2*i+1)/(float)(hintCount*2),0.0f));
+            }
+
             // 1. ON/OFF
             ImVec4 onOffColor;
             if (cs->keyOn) {
@@ -960,6 +961,7 @@ void FurnaceGUI::drawPattern() {
                 onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
               }
             }
+            iconPos[0].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,ICON_FA_SQUARE).x*0.5f;
             dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[0],ImGui::GetColorU32(onOffColor),ICON_FA_SQUARE);
 
             // 2. PITCH SLIDE/VIBRATO
@@ -984,6 +986,7 @@ void FurnaceGUI::drawPattern() {
             } else {
               pitchColor=uiColors[GUI_COLOR_TOGGLE_OFF];
             }
+            iconPos[1].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,pitchIcon).x*0.5f;
             dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[1],ImGui::GetColorU32(pitchColor),pitchIcon);
 
 
@@ -1003,7 +1006,17 @@ void FurnaceGUI::drawPattern() {
             } else {
               volColor=uiColors[GUI_COLOR_TOGGLE_OFF];
             }
+            iconPos[2].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,volIcon).x*0.5f;
             dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[2],ImGui::GetColorU32(volColor),volIcon);
+
+            // 4. OTHER
+            for (int i=0; i<hints.count; i++) {
+              if (hints.hint[i]==NULL) continue;
+              ImVec4 hintColor=uiColors[GUI_COLOR_TOGGLE_OFF];
+              // TODO: color
+              iconPos[i+3].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,hints.hint[i]).x*0.5f;
+              dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[i+3],ImGui::GetColorU32(hintColor),hints.hint[i]);
+            }
           }
         }
         chanHeadBottom=ImGui::GetCursorScreenPos().y-ImGui::GetStyle().ItemSpacing.y;

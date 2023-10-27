@@ -1017,6 +1017,9 @@ class DivEngine {
     // get channel pairs
     DivChannelPair getChanPaired(int chan);
 
+    // get channel mode hints
+    DivChannelModeHints getChanModeHints(int chan);
+
     // get register pool
     unsigned char* getRegisterPool(int sys, int& size, int& depth);
 

@@ -1424,6 +1424,11 @@ DivChannelPair DivEngine::getChanPaired(int ch) {
   return disCont[dispatchOfChan[ch]].dispatch->getPaired(dispatchChanOfChan[ch]);
 }
 
+DivChannelModeHints DivEngine::getChanModeHints(int ch) {
+  if (ch<0 || ch>=chans) return DivChannelModeHints();
+  return disCont[dispatchOfChan[ch]].dispatch->getModeHints(dispatchChanOfChan[ch]);
+}
+
 unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
   if (sys<0 || sys>=song.systemLen) return NULL;
   if (disCont[sys].dispatch==NULL) return NULL;
