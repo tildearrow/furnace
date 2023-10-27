@@ -706,7 +706,7 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   }
   keyPriority=flags.getBool("keyPriority",true);
   no1EUpdate=flags.getBool("no1EUpdate",false);
-  newTestBitMacro = flags.getBool("oldTestBitMacro", false);
+  newTestBitMacro = flags.getBool("newTestBitMacro", false);
   testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
   testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
 
