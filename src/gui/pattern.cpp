@@ -1039,13 +1039,43 @@ void FurnaceGUI::drawPattern() {
                   hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DSP];
                   break;
                 case 8:
-                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC1];
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_NOTE];
                   break;
                 case 9:
-                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC2];
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC1];
                   break;
                 case 10:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC2];
+                  break;
+                case 11:
                   hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC3];
+                  break;
+                case 12:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_ATTACK];
+                  break;
+                case 13:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DECAY];
+                  break;
+                case 14:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_SUSTAIN];
+                  break;
+                case 15:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_RELEASE];
+                  break;
+                case 16:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DEC_LINEAR];
+                  break;
+                case 17:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DEC_EXP];
+                  break;
+                case 18:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_INC];
+                  break;
+                case 19:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_BENT];
+                  break;
+                case 20:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DIRECT];
                   break;
                 default:
                   hintColor=uiColors[GUI_COLOR_TEXT];

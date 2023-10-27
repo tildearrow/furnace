@@ -396,6 +396,15 @@ struct DivChannelModeHints {
   // - 9: misc 1
   // - 10: misc 2
   // - 11: misc 3
+  // - 12: attack
+  // - 13: decay
+  // - 14: sustain
+  // - 15: release
+  // - 16: dec linear
+  // - 17: dec exp
+  // - 18: inc linear
+  // - 19: inc bent
+  // - 20: direct
   unsigned char type[4];
   // up to 4
   unsigned char count;
