@@ -97,6 +97,7 @@ void FurnaceGUI::doAction(int what) {
       if (!e->isPlaying()) {
         play();
       }
+      e->setRepeatPattern(false);
       break;
     case GUI_ACTION_PLAY_REPEAT:
       play();
