@@ -572,6 +572,7 @@ void FurnaceGUI::drawSampleEdit() {
                 sampleNoteCoarse=i;
                 coarseChanged=true;
               }
+              if (i==sampleNoteCoarse) ImGui::SetItemDefaultFocus();
             }
             ImGui::EndCombo();
           } else if (ImGui::IsItemHovered()) {
