@@ -20,6 +20,8 @@
 #include "snes.h"
 #include "../engine.h"
 #include "../../ta-log.h"
+// TODO: move this away
+#include "../../src/gui/furIcons.h"
 #include <math.h>
 
 #define CHIP_FREQBASE 131072
@@ -721,19 +723,19 @@ DivChannelModeHints DivPlatformSNES::getModeHints(int ch) {
     if (v->regs[5]&128) {
       switch (v->env_mode) {
         case SPC_DSP::env_attack:
-          ret.hint[0]="A";
+          ret.hint[0]=ICON_FUR_ADSR_A;
           ret.type[0]=12;
           break;
         case SPC_DSP::env_decay:
-          ret.hint[0]="D";
+          ret.hint[0]=ICON_FUR_ADSR_D;
           ret.type[0]=13;
           break;
         case SPC_DSP::env_sustain:
-          ret.hint[0]="S";
+          ret.hint[0]=ICON_FUR_ADSR_S;
           ret.type[0]=14;
           break;
         case SPC_DSP::env_release:
-          ret.hint[0]="R";
+          ret.hint[0]=ICON_FUR_ADSR_R;
           ret.type[0]=15;
           break;
       }
@@ -741,24 +743,24 @@ DivChannelModeHints DivPlatformSNES::getModeHints(int ch) {
       if (v->regs[7]&128) {
         switch (v->regs[7]&0x60) {
           case 0:
-            ret.hint[0]="d";
+            ret.hint[0]=ICON_FUR_DEC_LINEAR;
             ret.type[0]=16;
             break;
           case 32:
-            ret.hint[0]="X";
+            ret.hint[0]=ICON_FUR_DEC_EXP;
             ret.type[0]=17;
             break;
           case 64:
-            ret.hint[0]="I";
+            ret.hint[0]=ICON_FUR_INC_LINEAR;
             ret.type[0]=18;
             break;
           case 96:
-            ret.hint[0]="B";
+            ret.hint[0]=ICON_FUR_INC_BENT;
             ret.type[0]=19;
             break;
         }
       } else {
-        ret.hint[0]="V";
+        ret.hint[0]=ICON_FUR_VOL_DIRECT;
         ret.type[0]=20;
       }
     }
