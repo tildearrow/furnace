@@ -173,6 +173,19 @@ void DivPlatformC64::tick(bool sysTick) {
         willUpdateFilter=true;
       }
     }
+    if (chan[i].std.alg.had) { //new cutoff macro!
+        DivInstrument* ins = parent->getIns(chan[i].ins, DIV_INS_C64);
+        if (ins->c64.filterIsAbs) {
+            filtCut = MIN(2047, chan[i].std.alg.val);
+        }
+        else {
+            filtCut += ((signed char)chan[i].std.alg.val) * 7; //new macro should not be executed in inverted way when in relative mode jesus
+            if (filtCut > 2047) filtCut = 2047;
+            if (filtCut < 0) filtCut = 0;
+        }
+        willUpdateFilter = true;
+    }
+
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {

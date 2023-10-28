@@ -6437,6 +6437,15 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ex1Max>0) {
             if (ins->type==DIV_INS_C64) {
+                int cutoffmin = -64;
+                int cutoffmax = 64;
+
+                if (ins->c64.filterIsAbs) {
+                    ins->std.algMacro.vZoom = -1;
+                    cutoffmin = 0;
+                    cutoffmax = 2047;
+                }
+              macroList.push_back(FurnaceGUIMacroDesc("Filter Cutoff", &ins->std.algMacro, cutoffmin, cutoffmax, 160, uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,filtModeBits));
             } else if (ins->type==DIV_INS_SAA1099) {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,saaEnvBits));
