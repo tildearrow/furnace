@@ -1081,7 +1081,7 @@ bool DivEngine::addSystem(DivSystem which) {
           song.patchbay.push_back((i<<20)|j);
         }
       } else {
-        song.patchbay.reserve(outs);
+        if (outs>0) song.patchbay.reserve(outs);
         for (unsigned int j=0; j<outs; j++) {
           song.patchbay.push_back((i<<20)|(j<<16)|j);
         }
@@ -1189,11 +1189,11 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
 
     // prepare swap list
     int index=0;
-    swapList.reserve(song.systemLen);
+    if (song.systemLen>0) swapList.reserve(song.systemLen);
     for (int i=0; i<song.systemLen; i++) {
       chanList.clear();
       const int channelCount=getChannelCount(song.system[i]);
-      chanList.reserve(channelCount);
+      if (channelCount>0) chanList.reserve(channelCount);
       for (int j=0; j<channelCount; j++) {
         chanList.push_back(index);
         index++;

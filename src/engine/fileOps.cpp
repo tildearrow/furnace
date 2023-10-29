@@ -343,7 +343,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.insLen=16;
     }
     logI("reading instruments (%d)...",ds.insLen);
-    ds.ins.reserve(ds.insLen);
+    if (ds.insLen>0) ds.ins.reserve(ds.insLen);
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
       unsigned char mode=0;
@@ -679,7 +679,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     if (ds.version>0x0b) {
       ds.waveLen=(unsigned char)reader.readC();
       logI("reading wavetables (%d)...",ds.waveLen);
-      ds.wave.reserve(ds.waveLen);
+      if (ds.waveLen>0) ds.wave.reserve(ds.waveLen);
       for (int i=0; i<ds.waveLen; i++) {
         DivWavetable* wave=new DivWavetable;
         wave->len=(unsigned char)reader.readI();
@@ -849,7 +849,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       // it appears this byte stored the YMU759 sample rate
       ymuSampleRate=reader.readC();
     }
-    ds.sample.reserve(ds.sampleLen);
+    if (ds.sampleLen>0) ds.sample.reserve(ds.sampleLen);
     for (int i=0; i<ds.sampleLen; i++) {
       DivSample* sample=new DivSample;
       int length=reader.readI();
@@ -1961,6 +1961,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     logD("systems:");
+    ds.systemLen=0;
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       unsigned char sysID=reader.readC();
       ds.system[i]=systemFromFileFur(sysID);
@@ -1980,6 +1981,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (tchans>DIV_MAX_CHANS) {
       tchans=DIV_MAX_CHANS;
       logW("too many channels!");
+    }
+    logV("system len: %d",ds.systemLen);
+    if (ds.systemLen<1) {
+      logE("zero chips!");
+      lastError="zero chips!";
+      delete[] file;
+      return false;
     }
 
     // system volume
@@ -2369,7 +2377,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
       // patchbay
       unsigned int conns=reader.readI();
-      ds.patchbay.reserve(conns);
+      if (conns>0) ds.patchbay.reserve(conns);
       for (unsigned int i=0; i<conns; i++) {
         ds.patchbay.push_back((unsigned int)reader.readI());
       }
@@ -6074,7 +6082,6 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       if (sys!=DIV_SYSTEM_GB) {
         int realVolMacroLen=i->std.volMacro.len;
         if (realVolMacroLen>127) realVolMacroLen=127;
-        w->writeC(realVolMacroLen);
         if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
           if (i->std.algMacro.len>0) volIsCutoff=true;
           if (volIsCutoff) {
@@ -6083,15 +6090,18 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
             }
             realVolMacroLen=i->std.algMacro.len;
             if (realVolMacroLen>127) realVolMacroLen=127;
+            w->writeC(realVolMacroLen);
             for (int j=0; j<realVolMacroLen; j++) {
               w->writeI((-i->std.algMacro.val[j])+18);
             }
           } else {
+            w->writeC(realVolMacroLen);
             for (int j=0; j<realVolMacroLen; j++) {
               w->writeI(i->std.volMacro.val[j]);
             }
           }
         } else {
+          w->writeC(realVolMacroLen);
           for (int j=0; j<realVolMacroLen; j++) {
             w->writeI(i->std.volMacro.val[j]);
           }
