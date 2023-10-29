@@ -418,7 +418,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) {// || !chan[c.chan].inPorta) {
+        if (parent->song.resetMacroOnPorta || parent->song.preNoteNoEffect) {
           chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_C64));
           chan[c.chan].keyOn=true;
         }
