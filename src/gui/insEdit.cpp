@@ -23,6 +23,7 @@
 #include "imgui_internal.h"
 #include "../engine/macroInt.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
 #include "intConst.h"
@@ -211,8 +212,8 @@ enum FMParams {
 
 const char* macroTypeLabels[4]={
   ICON_FA_BAR_CHART "##IMacroType",
-  ICON_FA_AREA_CHART "##IMacroType",
-  ICON_FA_LINE_CHART "##IMacroType",
+  ICON_FUR_ADSR "##IMacroType",
+  ICON_FUR_TRI "##IMacroType",
   ICON_FA_SIGN_OUT "##IMacroType"
 };
 
