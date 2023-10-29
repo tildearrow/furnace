@@ -3478,8 +3478,14 @@ void DivInstrument::convertC64SpecialMacro() {
   }
   
   // merge ex3 into ex4
-  for (int i=0; i<maxLen; i++) {
-    std.ex4Macro.val[i]|=(std.ex3Macro.val[i]&3)<<1;
+  if (std.ex3Macro.len>0) {
+    for (int i=0; i<maxLen; i++) {
+      if (i>=std.ex3Macro.len) {
+        std.ex4Macro.val[i]|=(std.ex3Macro.val[std.ex3Macro.len-1]&3)<<1;
+      } else {
+        std.ex4Macro.val[i]|=(std.ex3Macro.val[i]&3)<<1;
+      }
+    }
   }
   std.ex4Macro.len=maxLen;
 
