@@ -20,7 +20,7 @@
 #include "pce.h"
 #include "../engine.h"
 // TODO: move this away
-#include "../../src/gui/furIcons.h"
+#include "../../gui/furIcons.h"
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;

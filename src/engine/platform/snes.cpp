@@ -21,7 +21,7 @@
 #include "../engine.h"
 #include "../../ta-log.h"
 // TODO: move this away
-#include "../../src/gui/furIcons.h"
+#include "../../gui/furIcons.h"
 #include <math.h>
 
 #define CHIP_FREQBASE 131072
