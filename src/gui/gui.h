@@ -1464,6 +1464,7 @@ class FurnaceGUI {
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
+    int audioHiPass;
     int audioChans;
     int arcadeCore;
     int ym2612Core;
@@ -1656,6 +1657,7 @@ class FurnaceGUI {
       iconSize(16),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
+      audioHiPass(1),
       audioChans(2),
       arcadeCore(0),
       ym2612Core(0),

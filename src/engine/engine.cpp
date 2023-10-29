@@ -3353,7 +3353,7 @@ bool DivEngine::switchMaster(bool full) {
   if (initAudioBackend()) {
     for (int i=0; i<song.systemLen; i++) {
       disCont[i].setRates(got.rate);
-      disCont[i].setQuality(lowQuality);
+      disCont[i].setQuality(lowQuality,dcHiPass);
     }
     if (!output->setRun(true)) {
       logE("error while activating audio!");
@@ -3452,10 +3452,14 @@ void DivEngine::initDispatch(bool isRender) {
   BUSY_BEGIN;
   logV("initializing dispatch...");
   if (isRender) logI("render cores set");
+
+  lowQuality=getConfInt("audioQuality",0);
+  dcHiPass=getConfInt("audioHiPass",1);
+
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i],isRender);
     disCont[i].setRates(got.rate);
-    disCont[i].setQuality(lowQuality);
+    disCont[i].setQuality(lowQuality,dcHiPass);
   }
   if (song.patchbayAuto) {
     saveLock.lock();
@@ -3534,7 +3538,6 @@ bool DivEngine::initAudioBackend() {
   }
 #endif
 
-  lowQuality=getConfInt("audioQuality",0);
   forceMono=getConfInt("forceMono",0);
   clampSamples=getConfInt("clampSamples",0);
   lowLatency=getConfInt("lowLatency",0);
@@ -3782,6 +3785,7 @@ bool DivEngine::init() {
     logE("not enough memory!");
     return false;
   }
+  blip_set_dc(samp_bb,0);
 
   samp_bbOut=new short[32768];
 

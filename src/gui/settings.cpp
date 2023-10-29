@@ -1060,6 +1060,12 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool audioHiPassB=settings.audioHiPass;
+        if (ImGui::Checkbox("DC offset correction",&audioHiPassB)) {
+          settings.audioHiPass=audioHiPassB;
+          settingsChanged=true;
+        }
+
         // SUBSECTION METRONOME
         CONFIG_SUBSECTION("Metronome");
         ImGui::AlignTextToFramePadding();
@@ -3574,6 +3580,7 @@ void FurnaceGUI::syncSettings() {
   settings.renderDriver=e->getConfString("renderDriver","");
   settings.sdlAudioDriver=e->getConfString("sdlAudioDriver","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
+  settings.audioHiPass=e->getConfInt("audioHiPass",1);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
@@ -3756,6 +3763,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.iconSize,2,48);
   clampSetting(settings.audioEngine,0,2);
   clampSetting(settings.audioQuality,0,1);
+  clampSetting(settings.audioHiPass,0,1);
   clampSetting(settings.audioBufSize,32,4096);
   clampSetting(settings.audioRate,8000,384000);
   clampSetting(settings.audioChans,1,16);
@@ -3987,7 +3995,9 @@ void FurnaceGUI::commitSettings() {
     settings.fdsCoreRender!=e->getConfInt("fdsCoreRender",0) ||
     settings.c64CoreRender!=e->getConfInt("c64CoreRender",0) ||
     settings.pokeyCoreRender!=e->getConfInt("pokeyCoreRender",1) ||
-    settings.opnCoreRender!=e->getConfInt("opnCoreRender",1)
+    settings.opnCoreRender!=e->getConfInt("opnCoreRender",1) ||
+    settings.audioQuality!=e->getConfInt("audioQuality",0) ||
+    settings.audioHiPass!=e->getConfInt("audioHiPass",1)
   );
 
   e->setConf("mainFontSize",settings.mainFontSize);
@@ -4001,6 +4011,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("renderDriver",settings.renderDriver);
   e->setConf("sdlAudioDriver",settings.sdlAudioDriver);
   e->setConf("audioQuality",settings.audioQuality);
+  e->setConf("audioHiPass",settings.audioHiPass);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);
   e->setConf("audioChans",settings.audioChans);
