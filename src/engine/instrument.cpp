@@ -2685,6 +2685,11 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     std.volMacro=DivInstrumentMacro(DIV_MACRO_VOL,true);
   }
 
+  // <187 special/test/gate merge
+  if (type==DIV_INS_C64 && version<187) {
+    convertC64SpecialMacro();
+  }
+
   return DIV_DATA_SUCCESS;
 }
 
@@ -3426,6 +3431,11 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     std.volMacro=DivInstrumentMacro(DIV_MACRO_VOL,true);
   }
 
+  // <187 special/test/gate merge
+  if (type==DIV_INS_C64 && version<187) {
+    convertC64SpecialMacro();
+  }
+
   return DIV_DATA_SUCCESS;
 }
 
@@ -3453,6 +3463,27 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
     return readInsDataNew(reader,version,type==2,song);
   }
   return readInsDataOld(reader,version);
+}
+
+void DivInstrument::convertC64SpecialMacro() {
+  // merge special and test/gate macros into new special macro
+  int maxLen=MAX(std.ex3Macro.len,std.ex4Macro.len);
+
+  // skip if ex4 is not a sequence macro
+  if (std.ex4Macro.open&6) return;
+
+  // move ex4 macro up and fill in gate
+  for (int i=0; i<std.ex4Macro.len; i++) {
+    std.ex4Macro.val[i]=(std.ex4Macro.val[i]&1)?9:1;
+  }
+  
+  // merge ex3 into ex4
+  for (int i=0; i<maxLen; i++) {
+    std.ex4Macro.val[i]|=(std.ex3Macro.val[i]&3)<<1;
+  }
+  std.ex4Macro.len=maxLen;
+
+  std.ex3Macro=DivInstrumentMacro(DIV_MACRO_EX3);
 }
 
 bool DivInstrument::save(const char* path, bool oldFormat, DivSong* song, bool writeInsName) {

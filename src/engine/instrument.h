@@ -834,6 +834,8 @@ struct DivInstrument {
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
+
+  void convertC64SpecialMacro();
   
   /**
    * save the instrument to a SafeWriter.
