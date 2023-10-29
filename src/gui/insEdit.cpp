@@ -6033,8 +6033,8 @@ void FurnaceGUI::drawInsEdit() {
             if (ins->c64.dutyIsAbs) {
               dutyMax=4095;
             } else {
-              dutyMin=-96;
-              dutyMax=96;
+              dutyMin=-4095;
+              dutyMax=4095;
             }
           }
           if (ins->type==DIV_INS_STD) {
@@ -6419,8 +6419,8 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ex1Max>0) {
             if (ins->type==DIV_INS_C64) {
-              int cutoffMin=-64;
-              int cutoffMax=64;
+              int cutoffMin=-2047;
+              int cutoffMax=2047;
 
               if (ins->c64.filterIsAbs) {
                 cutoffMin=0;

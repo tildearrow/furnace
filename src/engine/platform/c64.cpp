@@ -176,7 +176,11 @@ void DivPlatformC64::tick(bool sysTick) {
       if (ins->c64.dutyIsAbs) {
         chan[i].duty=chan[i].std.duty.val;
       } else {
-        chan[i].duty-=((signed char)chan[i].std.duty.val)*4;
+        if (multiplyRel) {
+          chan[i].duty-=((signed char)chan[i].std.duty.val)*4;
+        } else {
+          chan[i].duty-=chan[i].std.duty.val;
+        }
       }
       rWrite(i*7+2,chan[i].duty&0xff);
       rWrite(i*7+3,chan[i].duty>>8);
@@ -199,10 +203,11 @@ void DivPlatformC64::tick(bool sysTick) {
       if (ins->c64.filterIsAbs) {
         filtCut=MIN(2047,chan[i].std.alg.val);
       } else {
-        // TODO:
-        // - why signed char?
-        // - add a mode in where it's not multiplied by 7 - dang it Delek
-        filtCut+=((signed char)chan[i].std.alg.val)*7;
+        if (multiplyRel) {
+          filtCut+=((signed char)chan[i].std.alg.val)*7;
+        } else {
+          filtCut+=chan[i].std.alg.val;
+        }
         if (filtCut>2047) filtCut=2047;
         if (filtCut<0) filtCut=0;
       }
@@ -726,6 +731,7 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   }
   keyPriority=flags.getBool("keyPriority",true);
   no1EUpdate=flags.getBool("no1EUpdate",false);
+  multiplyRel=flags.getBool("multiplyRel",false);
   testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
   testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
   initResetTime=flags.getInt("initResetTime",2);

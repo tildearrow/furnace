@@ -77,7 +77,7 @@ class DivPlatformC64: public DivDispatch {
   unsigned char sidCore;
   int filtCut, resetTime, initResetTime;
 
-  bool keyPriority, sidIs6581, needInitTables, no1EUpdate;
+  bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel;
   unsigned char chanOrder[3];
   unsigned char testAD, testSR;
 
