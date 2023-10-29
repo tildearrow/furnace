@@ -110,7 +110,7 @@ option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 
-set(DEPENDENCIES_INCLUDE_DIRS "extern/IconFontCppHeaders")
+set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
 
 if (ANDROID AND NOT TERMUX)
   set(DEPENDENCIES_DEFINES "IS_MOBILE")

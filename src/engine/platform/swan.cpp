@@ -19,8 +19,7 @@
 
 #include "swan.h"
 #include "../engine.h"
-// TODO: move this away
-#include "../../gui/furIcons.h"
+#include "furIcons.h"
 #include "IconsFontAwesome4.h"
 #include <math.h>
 

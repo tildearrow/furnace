@@ -20,8 +20,7 @@
 #include "snes.h"
 #include "../engine.h"
 #include "../../ta-log.h"
-// TODO: move this away
-#include "../../gui/furIcons.h"
+#include "furIcons.h"
 #include <math.h>
 
 #define CHIP_FREQBASE 131072
