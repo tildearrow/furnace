@@ -1062,9 +1062,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemFlags[0].set("dpcmMode",false);
     }
 
-    // C64 no key priority
+    // C64 no key priority and reset time
     if (ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) {
       ds.systemFlags[0].set("keyPriority",false);
+      ds.systemFlags[0].set("initResetTime",1);
     }
 
     // OPM broken pitch
@@ -3029,6 +3030,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       for (int i=0; i<ds.systemLen; i++) {
         if (ds.system[i]==DIV_SYSTEM_C64_8580 || ds.system[i]==DIV_SYSTEM_C64_6581) {
           ds.systemFlags[i].set("no1EUpdate",true);
+        }
+      }
+    }
+
+    // C64 original reset time
+    if (ds.version<187) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_C64_8580 || ds.system[i]==DIV_SYSTEM_C64_6581) {
+          ds.systemFlags[i].set("initResetTime",1);
         }
       }
     }

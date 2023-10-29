@@ -678,7 +678,7 @@ void DivPlatformC64::reset() {
   filtControl=7;
   filtRes=0;
   filtCut=2047;
-  resetTime=1;
+  resetTime=initResetTime;
   vol=15;
 
   chanOrder[0]=0;
@@ -728,6 +728,8 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   no1EUpdate=flags.getBool("no1EUpdate",false);
   testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
   testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
+  initResetTime=flags.getInt("initResetTime",2);
+  if (initResetTime<0) initResetTime=1;
 
   // init fake filter table
   // taken from dSID

@@ -591,6 +591,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int testDecay=flags.getInt("testDecay",0);
       int testSustain=flags.getInt("testSustain",0);
       int testRelease=flags.getInt("testRelease",0);
+      int initResetTime=flags.getInt("initResetTime",2);
 
       ImGui::Text("Clock rate:");
 
@@ -645,6 +646,18 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
 
+      ImGui::Text("Envelope reset time:");
+
+      pushWarningColor(initResetTime<1 || initResetTime>4);
+      if (CWSliderInt("##InitReset",&initResetTime,0,16)) {
+        if (initResetTime<0) initResetTime=0;
+        if (initResetTime>16) initResetTime=16;
+        altered=true;
+      }
+      popWarningColor();
+      
+      ImGui::Text("- 0 disables envelope reset. not recommended!\n- 1 may trigger SID envelope bugs.\n- values that are too high may result in notes being skipped.");
+
       if (ImGui::Checkbox("Disable 1Exy env update (compatibility)",&no1EUpdate)) {
         altered=true;
       }
@@ -658,6 +671,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("testDecay",testDecay);
           flags.set("testSustain",testSustain);
           flags.set("testRelease",testRelease);
+          flags.set("initResetTime",initResetTime);
         });
       }
       break;
