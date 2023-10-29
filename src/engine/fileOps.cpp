@@ -601,6 +601,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
 
         if (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580) {
+          bool volIsCutoff=false;
+
           ins->c64.triOn=reader.readC();
           ins->c64.sawOn=reader.readC();
           ins->c64.pulseOn=reader.readC();
@@ -617,9 +619,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->c64.oscSync=reader.readC();
           ins->c64.toFilter=reader.readC();
           if (ds.version<0x11) {
-            ins->c64.volIsCutoff=reader.readI();
+            volIsCutoff=reader.readI();
           } else {
-            ins->c64.volIsCutoff=reader.readC();
+            volIsCutoff=reader.readC();
           }
           ins->c64.initFilter=reader.readC();
 
@@ -631,10 +633,16 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->c64.ch3off=reader.readC();
 
           // weird storage
-          if (ins->c64.volIsCutoff) {
-            for (int j=0; j<ins->std.volMacro.len; j++) {
-              ins->std.volMacro.val[j]-=18;
+          if (volIsCutoff) {
+            // move to alg (new cutoff)
+            ins->std.algMacro.len=ins->std.volMacro.len;
+            ins->std.algMacro.loop=ins->std.volMacro.loop;
+            ins->std.algMacro.rel=ins->std.volMacro.rel;
+            for (int j=0; j<ins->std.algMacro.len; j++) {
+              ins->std.algMacro.val[j]=-(ins->std.volMacro.val[j]-18);
             }
+            ins->std.volMacro.len=0;
+            memset(ins->std.volMacro.val,0,256*sizeof(int));
           }
           for (int j=0; j<ins->std.dutyMacro.len; j++) {
             ins->std.dutyMacro.val[j]-=12;
@@ -6061,13 +6069,27 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         }
       }
     } else { // STD
+      bool volIsCutoff=false;
+
       if (sys!=DIV_SYSTEM_GB) {
         int realVolMacroLen=i->std.volMacro.len;
         if (realVolMacroLen>127) realVolMacroLen=127;
         w->writeC(realVolMacroLen);
-        if ((sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) && i->c64.volIsCutoff) {
-          for (int j=0; j<realVolMacroLen; j++) {
-            w->writeI(i->std.volMacro.val[j]+18);
+        if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
+          if (i->std.algMacro.len>0) volIsCutoff=true;
+          if (volIsCutoff) {
+            if (i->std.volMacro.len>0) {
+              addWarning(".dmf only supports volume or cutoff macro in C64, but not both. volume macro will be lost.");
+            }
+            realVolMacroLen=i->std.algMacro.len;
+            if (realVolMacroLen>127) realVolMacroLen=127;
+            for (int j=0; j<realVolMacroLen; j++) {
+              w->writeI((-i->std.algMacro.val[j])+18);
+            }
+          } else {
+            for (int j=0; j<realVolMacroLen; j++) {
+              w->writeI(i->std.volMacro.val[j]);
+            }
           }
         } else {
           for (int j=0; j<realVolMacroLen; j++) {
@@ -6075,7 +6097,11 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
           }
         }
         if (realVolMacroLen>0) {
-          w->writeC(i->std.volMacro.loop);
+          if (volIsCutoff) {
+            w->writeC(i->std.algMacro.loop);
+          } else {
+            w->writeC(i->std.volMacro.loop);
+          }
         }
       }
 
@@ -6166,7 +6192,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeC(i->c64.oscSync);
 
         w->writeC(i->c64.toFilter);
-        w->writeC(i->c64.volIsCutoff);
+        w->writeC(volIsCutoff);
         w->writeC(i->c64.initFilter);
 
         w->writeC(i->c64.res);

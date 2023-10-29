@@ -20,6 +20,7 @@
 #include "c64.h"
 #include "../engine.h"
 #include "sound/c64_fp/siddefs-fp.h"
+#include "IconsFontAwesome4.h"
 #include <math.h>
 #include "../../ta-log.h"
 
@@ -587,6 +588,24 @@ void* DivPlatformC64::getChanState(int ch) {
 
 DivMacroInt* DivPlatformC64::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+DivChannelModeHints DivPlatformC64::getModeHints(int ch) {
+  DivChannelModeHints ret;
+  ret.count=1;
+  ret.hint[0]=ICON_FA_BELL_SLASH_O;
+  ret.type[0]=0;
+  if (ch==2 && (filtControl&8)) {
+    ret.type[0]=7;
+  } else if (chan[ch].test && !chan[ch].gate) {
+    ret.type[0]=5;
+  } else if (chan[ch].test) {
+    ret.type[0]=6;
+  } else if (!chan[ch].gate) {
+    ret.type[0]=4;
+  }
+
+  return ret;
 }
 
 DivDispatchOscBuffer* DivPlatformC64::getOscBuffer(int ch) {

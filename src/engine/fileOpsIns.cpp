@@ -349,6 +349,8 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       }
 
       if (ins->type==DIV_INS_C64) {
+        bool volIsCutoff=false;
+
         ins->c64.triOn=reader.readC();
         ins->c64.sawOn=reader.readC();
         ins->c64.pulseOn=reader.readC();
@@ -365,9 +367,9 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         ins->c64.oscSync=reader.readC();
         ins->c64.toFilter=reader.readC();
         if (version<0x07) { // TODO: UNSURE
-          ins->c64.volIsCutoff=reader.readI();
+          volIsCutoff=reader.readI();
         } else {
-          ins->c64.volIsCutoff=reader.readC();
+          volIsCutoff=reader.readC();
         }
         ins->c64.initFilter=reader.readC();
 
@@ -379,10 +381,16 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         ins->c64.ch3off=reader.readC();
 
         // weird storage
-        if (ins->c64.volIsCutoff) {
-          for (int j=0; j<ins->std.volMacro.len; j++) {
-            ins->std.volMacro.val[j]-=18;
+        if (volIsCutoff) {
+          // move to alg (new cutoff)
+          ins->std.algMacro.len=ins->std.volMacro.len;
+          ins->std.algMacro.loop=ins->std.volMacro.loop;
+          ins->std.algMacro.rel=ins->std.volMacro.rel;
+          for (int j=0; j<ins->std.algMacro.len; j++) {
+            ins->std.algMacro.val[j]=-(ins->std.volMacro.val[j]-18);
           }
+          ins->std.volMacro.len=0;
+          memset(ins->std.volMacro.val,0,256*sizeof(int));
         }
         for (int j=0; j<ins->std.dutyMacro.len; j++) {
           ins->std.dutyMacro.val[j]-=12;

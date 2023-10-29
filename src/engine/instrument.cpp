@@ -101,7 +101,6 @@ bool DivInstrumentC64::operator==(const DivInstrumentC64& other) {
     _C(ringMod) &&
     _C(oscSync) &&
     _C(toFilter) &&
-    _C(volIsCutoff) &&
     _C(initFilter) &&
     _C(dutyIsAbs) &&
     _C(filterIsAbs) &&
@@ -391,7 +390,6 @@ void DivInstrument::writeFeature64(SafeWriter* w) {
   w->writeC(
     (c64.dutyIsAbs?0x80:0)|
     (c64.initFilter?0x40:0)|
-    (c64.volIsCutoff?0x20:0)|
     (c64.toFilter?0x10:0)|
     (c64.noiseOn?8:0)|
     (c64.pulseOn?4:0)|
@@ -1323,7 +1321,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(c64.oscSync);
   w->writeC(c64.toFilter);
   w->writeC(c64.initFilter);
-  w->writeC(c64.volIsCutoff);
+  w->writeC(0); // this was volIsCutoff
   w->writeC(c64.res);
   w->writeC(c64.lp);
   w->writeC(c64.bp);
@@ -2094,13 +2092,13 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeature64(SafeReader& reader, short version) {
+void DivInstrument::readFeature64(SafeReader& reader, bool& volIsCutoff, short version) {
   READ_FEAT_BEGIN;
 
   unsigned char next=reader.readC();
   c64.dutyIsAbs=next&128;
   c64.initFilter=next&64;
-  c64.volIsCutoff=next&32;
+  volIsCutoff=next&32;
   c64.toFilter=next&16;
   c64.noiseOn=next&8;
   c64.pulseOn=next&4;
@@ -2602,6 +2600,7 @@ void DivInstrument::readFeatureNE(SafeReader& reader, short version) {
 
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
+  bool volIsCutoff=false;
 
   int dataLen=reader.size()-4;
   if (!fui) {
@@ -2630,7 +2629,7 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     } else if (memcmp(featCode,"MA",2)==0) { // macros
       readFeatureMA(reader,version);
     } else if (memcmp(featCode,"64",2)==0) { // C64
-      readFeature64(reader,version);
+      readFeature64(reader,volIsCutoff,version);
     } else if (memcmp(featCode,"GB",2)==0) { // Game Boy
       readFeatureGB(reader,version);
     } else if (memcmp(featCode,"SM",2)==0) { // sample
@@ -2679,6 +2678,13 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     }
   }
 
+  // <187 C64 cutoff macro compatibility
+  if (type==DIV_INS_C64 && volIsCutoff && version<187) {
+    memcpy(&std.algMacro,&std.volMacro,sizeof(DivInstrumentMacro));
+    std.algMacro.macroType=DIV_MACRO_ALG;
+    std.volMacro=DivInstrumentMacro(DIV_MACRO_VOL,true);
+  }
+
   return DIV_DATA_SUCCESS;
 }
 
@@ -2686,6 +2692,7 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
   for (int macroValPos=0; macroValPos<y; macroValPos++) x[macroValPos]=reader.readI();
 
 DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
+  bool volIsCutoff=false;
   reader.readI(); // length. ignored.
 
   reader.readS(); // format version. ignored.
@@ -2768,7 +2775,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   c64.oscSync=reader.readC();
   c64.toFilter=reader.readC();
   c64.initFilter=reader.readC();
-  c64.volIsCutoff=reader.readC();
+  volIsCutoff=reader.readC();
   c64.res=reader.readC();
   c64.lp=reader.readC();
   c64.bp=reader.readC();
@@ -2826,7 +2833,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     }
   }
   if (type==DIV_INS_C64 && version<87) {
-    if (c64.volIsCutoff && !c64.filterIsAbs) for (int j=0; j<std.volMacro.len; j++) {
+    if (volIsCutoff && !c64.filterIsAbs) for (int j=0; j<std.volMacro.len; j++) {
       std.volMacro.val[j]-=18;
     }
     if (!c64.dutyIsAbs) for (int j=0; j<std.dutyMacro.len; j++) {
@@ -3412,6 +3419,13 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     }
   }
 
+  // <187 C64 cutoff macro compatibility
+  if (type==DIV_INS_C64 && volIsCutoff && version<187) {
+    memcpy(&std.algMacro,&std.volMacro,sizeof(DivInstrumentMacro));
+    std.algMacro.macroType=DIV_MACRO_ALG;
+    std.volMacro=DivInstrumentMacro(DIV_MACRO_VOL,true);
+  }
+
   return DIV_DATA_SUCCESS;
 }
 
@@ -3632,7 +3646,7 @@ bool DivInstrument::saveDMP(const char* path) {
       w->writeC(c64.ringMod);
       w->writeC(c64.oscSync);
       w->writeC(c64.toFilter);
-      w->writeC(c64.volIsCutoff);
+      w->writeC(0); // this was volIsCutoff...
       w->writeC(c64.initFilter);
       w->writeC(c64.res);
       w->writeC((c64.cut*100)/2047);

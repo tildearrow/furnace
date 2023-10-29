@@ -113,6 +113,7 @@ class DivPlatformC64: public DivDispatch {
     bool isVolGlobal();
     float getPostAmp();
     DivMacroInt* getChanMacroInt(int ch);
+    DivChannelModeHints getModeHints(int chan);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
