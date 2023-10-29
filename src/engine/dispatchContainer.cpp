@@ -171,9 +171,11 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
 
   if (dcOffCompensation && runtotal>0) {
     dcOffCompensation=false;
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      prevSample[i]=bbIn[i][0];
+    if (hiPass) {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        prevSample[i]=bbIn[i][0];
+      }
     }
   }
   if (lowQuality) {
@@ -220,7 +222,7 @@ void DivDispatchContainer::clear() {
     prevSample[i]=0;
   }
 
-  if (dispatch->getDCOffRequired()) {
+  if (dispatch->getDCOffRequired() && hiPass) {
     dcOffCompensation=true;
   }
 }
