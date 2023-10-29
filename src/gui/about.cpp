@@ -40,6 +40,7 @@ const char* aboutLine[]={
   "djtuBIG-MaliceX",
   "Eknous",
   "laoo",
+  "LTVA1",
   "MooingLemur",
   "OPNA2608",
   "superctr",
