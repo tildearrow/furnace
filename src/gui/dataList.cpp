@@ -243,6 +243,30 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     }
     ImGui::PopStyleColor();
   }
+  if (ImGui::BeginPopupContextItem("SampleRightMenu")) {
+    curSample=i;
+    samplePos=0;
+    updateSampleTex=true;
+    lastAssetType=2;
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+    if (ImGui::MenuItem("make instrument")) {
+      doAction(GUI_ACTION_SAMPLE_MAKE_INS);
+    }
+    if (ImGui::MenuItem("duplicate")) {
+      doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
+    }
+    if (ImGui::MenuItem("replace...")) {
+      doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
+    }
+    if (ImGui::MenuItem("save")) {
+      doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
+    }
+    if (ImGui::MenuItem("delete")) {
+      doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
+    }
+    ImGui::PopStyleColor();
+    ImGui::EndPopup();
+  }
   if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
 }
 
