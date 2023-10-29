@@ -587,7 +587,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int clockSel=flags.getInt("clockSel",0);
       bool keyPriority=flags.getBool("keyPriority",true);
       bool no1EUpdate=flags.getBool("no1EUpdate",false);
-      bool newTestBitMacro = flags.getBool("newTestBitMacro", false);
       int testAttack=flags.getInt("testAttack",0);
       int testDecay=flags.getInt("testDecay",0);
       int testSustain=flags.getInt("testSustain",0);
@@ -650,16 +649,11 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
 
-      if (ImGui::Checkbox("New test bit macro behaviour (with gate bit) (compatibility)", &newTestBitMacro)) {
-          altered = true;
-      }
-
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("keyPriority",keyPriority);
           flags.set("no1EUpdate",no1EUpdate);
-          flags.set("newTestBitMacro", newTestBitMacro);
           flags.set("testAttack",testAttack);
           flags.set("testDecay",testDecay);
           flags.set("testSustain",testSustain);

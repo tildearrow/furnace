@@ -26,13 +26,17 @@
 #include "sound/c64_fp/SID.h"
 #include "sound/c64_d/dsid.h"
 
+// TODO:
+// - ex3 (special) unify with ex4 (gate/test)
+// - ex4 (test) compatibility
+
 class DivPlatformC64: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     int prevFreq, testWhen;
     unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
     bool sweepChanged, filter;
-    bool resetMask, resetFilter, resetDuty, ring, sync, test;
+    bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
     Channel():
       SharedChannel<signed char>(15),
       prevFreq(65535),
@@ -49,6 +53,7 @@ class DivPlatformC64: public DivDispatch {
       resetMask(false),
       resetFilter(false),
       resetDuty(false),
+      gate(true),
       ring(false),
       sync(false),
       test(false) {}
@@ -72,7 +77,7 @@ class DivPlatformC64: public DivDispatch {
   unsigned char sidCore;
   int filtCut, resetTime;
 
-  bool keyPriority, sidIs6581, needInitTables, no1EUpdate, newTestBitMacro;
+  bool keyPriority, sidIs6581, needInitTables, no1EUpdate;
   unsigned char chanOrder[3];
   unsigned char testAD, testSR;
 

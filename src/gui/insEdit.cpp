@@ -253,12 +253,8 @@ const char* filtModeBits[5]={
   "low", "band", "high", "ch3off", NULL
 };
 
-const char* c64SpecialBits[3]={
-  "sync", "ring", NULL
-};
-
-const char* c64TestGateBits[3]={
-  "test", "gate", NULL
+const char* c64TestGateBits[5]={
+  "gate", "sync", "ring", "test", NULL
 };
 
 const char* pokeyCtlBits[9]={
@@ -5009,12 +5005,8 @@ void FurnaceGUI::drawInsEdit() {
           }
           popToggleColors();
 
-          if (ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff)) {
-            ins->std.volMacro.vZoom=-1;
-            PARAMETER;
-          }
           if (ImGui::Checkbox("Absolute Cutoff Macro",&ins->c64.filterIsAbs)) {
-            ins->std.volMacro.vZoom=-1;
+            ins->std.algMacro.vZoom=-1;
             PARAMETER;
           }
           if (ImGui::Checkbox("Absolute Duty Macro",&ins->c64.dutyIsAbs)) {
@@ -5982,17 +5974,6 @@ void FurnaceGUI::drawInsEdit() {
 
           int volMax=15;
           int volMin=0;
-          if (ins->type==DIV_INS_C64) {
-            if (ins->c64.volIsCutoff) {
-              volumeLabel="Cutoff";
-              if (ins->c64.filterIsAbs) {
-                volMax=2047;
-              } else {
-                volMin=-64;
-                volMax=64;
-              }
-            }
-          }
           if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SM8521) {
             volMax=31;
           }
@@ -6438,15 +6419,14 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ex1Max>0) {
             if (ins->type==DIV_INS_C64) {
-                int cutoffmin = -64;
-                int cutoffmax = 64;
+              int cutoffMin=-64;
+              int cutoffMax=64;
 
-                if (ins->c64.filterIsAbs) {
-                    ins->std.algMacro.vZoom = -1;
-                    cutoffmin = 0;
-                    cutoffmax = 2047;
-                }
-              macroList.push_back(FurnaceGUIMacroDesc("Filter Cutoff", &ins->std.algMacro, cutoffmin, cutoffmax, 160, uiColors[GUI_COLOR_MACRO_OTHER]));
+              if (ins->c64.filterIsAbs) {
+                cutoffMin=0;
+                cutoffMax=2047;
+              }
+              macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.algMacro,cutoffMin,cutoffMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,filtModeBits));
             } else if (ins->type==DIV_INS_SAA1099) {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,saaEnvBits));
@@ -6492,13 +6472,11 @@ void FurnaceGUI::drawInsEdit() {
             }
           }
           if (ins->type==DIV_INS_C64) {
-            macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex3Macro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c64SpecialBits));
-            //macroList.push_back(FurnaceGUIMacroDesc("Test/Gate",&ins->std.ex4Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-			macroList.push_back(FurnaceGUIMacroDesc("Test/Gate",&ins->std.ex4Macro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL, true, c64TestGateBits));
-            macroList.push_back(FurnaceGUIMacroDesc("Attack", &ins->std.ex5Macro, 0, 15, 128, uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Decay", &ins->std.ex6Macro, 0, 15, 128, uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Sustain", &ins->std.ex7Macro, 0, 15, 128, uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Release", &ins->std.ex8Macro, 0, 15, 128, uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex4Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c64TestGateBits));
+            macroList.push_back(FurnaceGUIMacroDesc("Attack",&ins->std.ex5Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Decay",&ins->std.ex6Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Sustain",&ins->std.ex7Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Release",&ins->std.ex8Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
           }
           if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample)) {
             macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Num",&ins->std.ex3Macro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
