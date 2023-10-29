@@ -932,7 +932,8 @@ void FurnaceGUI::drawPattern() {
           ImGuiWindow* win=ImGui::GetCurrentWindow();
           ImVec2 posMin=win->DC.CursorPos;
           ImGui::Dummy(ImVec2(dpiScale,settings.iconSize*dpiScale));
-          ImVec2 posMax=ImGui::GetContentRegionMax();
+          ImVec2 posMax=ImVec2(win->WorkRect.Max.x,win->WorkRect.Max.y);
+          posMin.y-=ImGui::GetStyle().ItemSpacing.y*0.5;
           ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 iconPos[6];
           DivChannelState* cs=e->getChanState(i);
