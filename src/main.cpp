@@ -566,11 +566,13 @@ int main(int argc, char** argv) {
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
       reportError(fmt::sprintf("couldn't open file! (%s)",strerror(errno)));
+      e.everythingOK();
       finishLogFile();
       return 1;
     }
     if (fseek(f,0,SEEK_END)<0) {
       reportError(fmt::sprintf("couldn't open file! (couldn't get file size: %s)",strerror(errno)));
+      e.everythingOK();
       fclose(f);
       finishLogFile();
       return 1;
@@ -578,6 +580,7 @@ int main(int argc, char** argv) {
     ssize_t len=ftell(f);
     if (len==(SIZE_MAX>>1)) {
       reportError(fmt::sprintf("couldn't open file! (couldn't get file length: %s)",strerror(errno)));
+      e.everythingOK();
       fclose(f);
       finishLogFile();
       return 1;
@@ -588,6 +591,7 @@ int main(int argc, char** argv) {
       } else {
         reportError(fmt::sprintf("couldn't open file! (tell error: %s)",strerror(errno)));
       }
+      e.everythingOK();
       fclose(f);
       finishLogFile();
       return 1;
@@ -595,6 +599,7 @@ int main(int argc, char** argv) {
     unsigned char* file=new unsigned char[len];
     if (fseek(f,0,SEEK_SET)<0) {
       reportError(fmt::sprintf("couldn't open file! (size error: %s)",strerror(errno)));
+      e.everythingOK();
       fclose(f);
       delete[] file;
       finishLogFile();
@@ -602,6 +607,7 @@ int main(int argc, char** argv) {
     }
     if (fread(file,1,(size_t)len,f)!=(size_t)len) {
       reportError(fmt::sprintf("couldn't open file! (read error: %s)",strerror(errno)));
+      e.everythingOK();
       fclose(f);
       delete[] file;
       finishLogFile();
@@ -610,6 +616,7 @@ int main(int argc, char** argv) {
     fclose(f);
     if (!e.load(file,(size_t)len)) {
       reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
+      e.everythingOK();
       finishLogFile();
       return 1;
     }
