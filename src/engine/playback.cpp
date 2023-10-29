@@ -22,6 +22,7 @@
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
 #include "engine.h"
+#include "workPool.h"
 #include "../ta-log.h"
 #include <math.h>
 
@@ -237,6 +238,9 @@ const char* cmdName[]={
   "NES_LINEAR_LENGTH",
 
   "EXTERNAL",
+
+  "C64_AD",
+  "C64_SR",
 
   "ALWAYS_SET_VOLUME"
 };
@@ -590,8 +594,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].scheduledSlideReset=true;
     }
     dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
+    chan[i].releasing=true;
   } else if (pat->data[whatRow][0]==102) { // env release
     dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
+    chan[i].releasing=true;
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].oldNote=chan[i].note;
     chan[i].note=pat->data[whatRow][0]+((signed char)pat->data[whatRow][1])*12;
@@ -1066,6 +1072,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
       } else if (!chan[i].noteOnInhibit) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
+        chan[i].releasing=false;
+        if (song.resetArpPhaseOnNewNote) {
+           chan[i].arpStage=-1;
+        }
         chan[i].goneThroughNote=true;
         chan[i].wentThroughNote=true;
         keyHit[i]=true;
@@ -1163,8 +1173,10 @@ void DivEngine::nextRow() {
   }
 
   if (!stepPlay) {
+    playPosLock.lock();
     prevOrder=curOrder;
     prevRow=curRow;
+    playPosLock.unlock();
   }
 
   for (int i=0; i<chans; i++) {
@@ -1254,11 +1266,11 @@ void DivEngine::nextRow() {
 
               for (int j=0; j<curPat[i].effectCols; j++) {
                 if (!song.preNoteNoEffect) {
-                  if (pat->data[curRow][4+(j<<1)]==0x03) {
+                  if (pat->data[curRow][4+(j<<1)]==0x03 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
                     doPreparePreNote=false;
                     break;
                   }
-                  if (pat->data[curRow][4+(j<<1)]==0x06) {
+                  if (pat->data[curRow][4+(j<<1)]==0x06 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
                     doPreparePreNote=false;
                     break;
                   }
@@ -1285,11 +1297,11 @@ void DivEngine::nextRow() {
             int addition=0;
 
             for (int j=0; j<curPat[i].effectCols; j++) {
-              if (pat->data[curRow][4+(j<<1)]==0x03) {
+              if (pat->data[curRow][4+(j<<1)]==0x03 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
                 doPrepareCut=false;
                 break;
               }
-              if (pat->data[curRow][4+(j<<1)]==0x06) {
+              if (pat->data[curRow][4+(j<<1)]==0x06 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
                 doPrepareCut=false;
                 break;
               }
@@ -1345,8 +1357,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         isOn[pendingNotes[i].channel]=true;
       } else {
         if (isOn[pendingNotes[i].channel]) {
-          logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
-          pendingNotes.erase(pendingNotes.begin()+i);
+          //logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
+          pendingNotes[i].nop=true;
         }
       }
     }
@@ -1354,14 +1366,16 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
   while (!pendingNotes.empty()) {
     DivNoteEvent& note=pendingNotes.front();
-    if (note.channel<0 || note.channel>=chans) {
+    if (note.nop || note.channel<0 || note.channel>=chans) {
       pendingNotes.pop_front();
       continue;
     }
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
+      //dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,(note.volume*(chan[note.channel].volMax>>8))/127));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
+      chan[note.channel].releasing=false;
       chan[note.channel].noteOnInhibit=true;
       chan[note.channel].lastIns=note.ins;
     } else {
@@ -1401,8 +1415,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             endOfSong=false;
             if (stepPlay==2) {
               stepPlay=1;
+              playPosLock.lock();
               prevOrder=curOrder;
               prevRow=curRow;
+              playPosLock.unlock();
             }
             nextRow();
             break;
@@ -1598,7 +1614,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       }
       if (totalTicks>=1000000) {
         totalTicks-=1000000;
-        totalSeconds++;
+        if (totalSeconds<0x7fffffff) totalSeconds++;
         cmdsPerSecond=totalCmds-lastCmds;
         lastCmds=totalCmds;
       }
@@ -1759,6 +1775,13 @@ void DivEngine::runMidiTime(int totalCycles) {
   }
 }
 
+void _runDispatch1(void* d) {
+}
+
+void _runDispatch2(void* d) {
+
+}
+
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
   lastNBIns=inChans;
   lastNBOuts=outChans;
@@ -1787,6 +1810,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   got.bufsize=size;
 
   std::chrono::steady_clock::time_point ts_processBegin=std::chrono::steady_clock::now();
+
+  if (renderPool==NULL) {
+    unsigned int howManyThreads=song.systemLen;
+    if (howManyThreads<2) howManyThreads=0;
+    if (howManyThreads>renderPoolThreads) howManyThreads=renderPoolThreads;
+    renderPool=new DivWorkPool(howManyThreads);
+  }
 
   // process MIDI events (TODO: everything)
   if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
@@ -1832,11 +1862,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       }
     }
-    logD("%.2x",msg.type);
+    //logD("%.2x",msg.type);
     output->midiIn->queue.pop();
   }
   
-  // process audio
+  // process sample/wave preview
   if ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size())) {
     unsigned int samp_bbOff=0;
     unsigned int prevAvail=blip_samples_avail(samp_bb);
@@ -1983,7 +2013,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     memset(samp_bbOut,0,size*sizeof(short));
   }
 
-  if (playing && !halted) {
+  // process audio
+  bool mustPlay=playing && !halted;
+  if (mustPlay) {
     // logic starts here
     for (int i=0; i<song.systemLen; i++) {
       // TODO: we may have a problem here
@@ -2061,20 +2093,30 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         // 5. tick the clock and fill buffers as needed
         if (cycles<runLeftG) {
           for (int i=0; i<song.systemLen; i++) {
-            int total=(cycles*disCont[i].runtotal)/(size<<MASTER_CLOCK_PREC);
-            disCont[i].acquire(disCont[i].runPos,total);
-            disCont[i].runLeft-=total;
-            disCont[i].runPos+=total;
+            disCont[i].cycles=cycles;
+            disCont[i].size=size;
+            renderPool->push([](void* d) {
+              DivDispatchContainer* dc=(DivDispatchContainer*)d;
+              int total=(dc->cycles*dc->runtotal)/(dc->size<<MASTER_CLOCK_PREC);
+              dc->acquire(dc->runPos,total);
+              dc->runLeft-=total;
+              dc->runPos+=total;
+            },&disCont[i]);
           }
+          renderPool->wait();
           runLeftG-=cycles;
           cycles=0;
         } else {
           cycles-=runLeftG;
           runLeftG=0;
           for (int i=0; i<song.systemLen; i++) {
-            disCont[i].acquire(disCont[i].runPos,disCont[i].runLeft);
-            disCont[i].runLeft=0;
+            renderPool->push([](void* d) {
+              DivDispatchContainer* dc=(DivDispatchContainer*)d;
+              dc->acquire(dc->runPos,dc->runLeft);
+              dc->runLeft=0;
+            },&disCont[i]);
           }
+          renderPool->wait();
         }
       }
     }
@@ -2093,10 +2135,16 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         logW("%d: size<lastAvail! %d<%d",i,size,disCont[i].lastAvail);
         continue;
       }
-      disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
+      disCont[i].size=size;
+      renderPool->push([](void* d) {
+        DivDispatchContainer* dc=(DivDispatchContainer*)d;
+        dc->fillBuf(dc->runtotal,dc->lastAvail,dc->size-dc->lastAvail);
+      },&disCont[i]);
     }
+    renderPool->wait();
   }
 
+  // process metronome
   if (metroBufLen<size || metroBuf==NULL) {
     if (metroBuf!=NULL) delete[] metroBuf;
     metroBuf=new float[size];
@@ -2105,7 +2153,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   memset(metroBuf,0,metroBufLen*sizeof(float));
 
-  if (playing && !halted && metronome) {
+  if (mustPlay && metronome) {
     for (size_t i=0; i<size; i++) {
       if (metroTick[i]) {
         if (metroTick[i]==2) {
@@ -2172,7 +2220,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       } else if (srcPortSet==0xffd) {
         // sample preview
         for (size_t j=0; j<size; j++) {
-          out[destSubPort][j]+=samp_bbOut[j]/32768.0;
+          out[destSubPort][j]+=previewVol*(samp_bbOut[j]/32768.0);
         }
       } else if (srcPortSet==0xffe && playing && !halted) {
         // metronome
@@ -2187,6 +2235,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // nothing/invalid
   }
 
+  // dump to oscillator buffer
   for (unsigned int i=0; i<size; i++) {
     for (int j=0; j<outChans; j++) {
       if (oscBuf[j]==NULL) continue;
@@ -2196,6 +2245,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   oscSize=size;
 
+  // force mono audio (if enabled)
   if (forceMono && outChans>1) {
     for (size_t i=0; i<size; i++) {
       float chanSum=out[0][i];
@@ -2208,6 +2258,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       }
     }
   }
+
+  // clamp output (if enabled)
   if (clampSamples) {
     for (size_t i=0; i<size; i++) {
       for (int j=0; j<outChans; j++) {

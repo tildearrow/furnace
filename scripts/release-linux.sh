@@ -14,7 +14,8 @@ fi
 
 cd linuxbuild
 
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3" -DCMAKE_CXX_FLAGS="-O3 -Wall -Wextra -Wno-unused-parameter -Werror" -DWITH_DEMOS=ON -DWITH_INSTRUMENTS=ON -DWITH_WAVETABLES=ON .. || exit 1
+# -DWITH_PORTAUDIO=OFF: Ubuntu 16.04 doesn't like it
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3" -DCMAKE_CXX_FLAGS="-O3 -Wall -Wextra -Wno-unused-parameter -Werror" -DWITH_PORTAUDIO=OFF -DWITH_DEMOS=ON -DWITH_INSTRUMENTS=ON -DWITH_WAVETABLES=ON .. || exit 1
 make -j4 || exit 1
 
 cd ..
@@ -49,9 +50,9 @@ rmdir share || exit 1
 cd ..
 
 cp ../../../LICENSE . || exit 1
-cp ../../../README.md . || exit 1
+cp ../../../res/releaseReadme/stable-linux.txt README.md || exit 1
 cp -r ../../../papers papers || exit 1
-cp -r ../../../doc doc || exit 1
+curl "https://tildearrow.org/furnace/doc/latest/manual.pdf" > manual.pdf
 rmdir usr || exit 1
 
 strip -s furnace

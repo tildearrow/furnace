@@ -1,19 +1,19 @@
 # Yamaha YM2413/OPLL
 
-the YM2413, otherwise known as OPLL, is a cost-reduced FM synthesis sound chip, based on the Yamaha YM3812 (OPL2). thought OPL was downgraded enough? :p
+the YM2413, otherwise known as OPLL, is a cost-reduced FM synthesis sound chip, based on the Yamaha YM3812 (OPL2).
 
 OPLL also spawned a few derivative chips, the best known of these is:
 - the famous Konami VRC7. used in the Japan-only video game Lagrange Point, it was **another** cost reduction on top of the OPLL! this time just 6 channels...
-- Yamaha YM2423, same chip as YM2413, just a different patch set
-- Yamaha YMF281, ditto
+- Yamaha YM2423, same chip as YM2413, just a different patch set...
+- Yamaha YMF281, ditto.....
 
-# technical specifications
+## technical specifications
 
 the YM2413 is equipped with the following features:
 
 - 9 channels of 2 operator FM synthesis
 - a drum/percussion mode, replacing the last 3 voices with 5 rhythm channels, with drum mode tones hard-defined in the chip itself, like FM instruments. only pitch might be altered.
-  - drum mode works like following: FM channel 7 is for Kick Drum, which is a normal FM channel but routed through mixer twice for 2× volume, like all drum sounds. FM channel 8 splits to Snare, Drum, and Hi-Hat. Snare Drum is the carrier and it works with a special 1 bit noise generator combined with a square wave, all possible by overriding phase-generator with some different synthesis method. Hi-Hat is the modulator and it works with the noise generator and also the special synthesis. CH9 splits to Top-Cymbal and Tom-Tom, Top-Cymbal is the carrier and only has the special synthesis, while Tom-Tom is basically a 1op wave. 
+  - drum mode works like following: FM channel 7 is for Kick Drum, which is a normal FM channel but routed through mixer twice for 2× volume, like all drum sounds. FM channel 8 splits to Snare, Drum, and Hi-Hat. Snare Drum is the carrier and it works with a special 1 bit noise generator combined with a square wave, all possible by overriding phase-generator with some different synthesis method. Hi-Hat is the modulator and it works with the noise generator and also the special synthesis. channel 9 splits to Top-Cymbal and Tom-Tom, Top-Cymbal is the carrier and only has the special synthesis, while Tom-Tom is basically a 1op wave. 
   - special synthesis mentioned already is: 5 square waves are gathered from 4×, 64× and 128× the pitch of channel 8 and 16× and 64× the pitch of channel 9 and they go through a process where 2 HH bits OR'd together, then 1 HH and 1 TC bit OR'd, then the two TC bits OR'd together, and those 3 results get XOR'd.
 - 1 user-definable patch (this patch can be changed throughout the course of the song)
 - 15 pre-defined patches which can all be used at the same time
@@ -25,14 +25,14 @@ the YM2413 is equipped with the following features:
 - modulator and carrier key scaling
 - built-in hardware vibrato support
 
-# effects
+## effects
 
 - `11xx`: **set feedback of channel.**
 - `12xx`: **set operator 1 level.**
 - `13xx`: **set operator 2 level.**
 - `16xy`: **set multiplier of operator.**
   - `x` is the operator, either 1 or 2.
-  - `y` is the multiplier.
+  - `y` is the new MULT value..
 - `18xx`: **toggle drums mode.**
   - `0` disables it and `1` enables it.
   - only in drums mode.
@@ -64,11 +64,11 @@ the YM2413 is equipped with the following features:
   - `x` is the operator, either 1 or 2. a value of `0` means "all operators".
   - `y` determines whether KSR is on.
 
-# info
+## info
 
 this chip uses the [FM (OPLL)](../4-instrument/fm-opll.md) instrument editor.
 
 ## chip options
 
-- **Ignore top/hi-hat frequency changes**: in drums mode, makes the top/hi-hat channels not write frequency since they share it with snare and tom
-- **Apply fixed frequency to all drums at once**: sets the frequency of all drums to that of a fixed frequency OPLL drums instrument when one note with it is reached
+- **Ignore top/hi-hat frequency changes**: in drums mode, makes the top/hi-hat channels not write frequency since they share it with snare and tom.
+- **Apply fixed frequency to all drums at once**: sets the frequency of all drums to that of a fixed frequency OPLL drums instrument when one note with it is reached.

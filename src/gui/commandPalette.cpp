@@ -82,7 +82,7 @@ void FurnaceGUI::drawPalette() {
 
     case CMDPAL_TYPE_RECENT:
       for (int i=0; i<(int)recentFile.size(); i++) {
-        if (matchFuzzy(recentFile.at(i).c_str(),paletteQuery.c_str())) {
+        if (matchFuzzy(recentFile[i].c_str(),paletteQuery.c_str())) {
           paletteSearchResults.push_back(i);
         }
       }
@@ -158,7 +158,7 @@ void FurnaceGUI::drawPalette() {
         s=guiActions[id].friendlyName;
         break;
       case CMDPAL_TYPE_RECENT:
-        s=recentFile.at(id).c_str();
+        s=recentFile[id].c_str();
         break;
       case CMDPAL_TYPE_INSTRUMENTS:
       case CMDPAL_TYPE_INSTRUMENT_CHANGE:
@@ -212,7 +212,7 @@ void FurnaceGUI::drawPalette() {
         break;
 
       case CMDPAL_TYPE_RECENT:
-        openRecentFile(recentFile.at(i));
+        openRecentFile(recentFile[i]);
         break;
 
       case CMDPAL_TYPE_INSTRUMENTS:

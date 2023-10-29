@@ -21,19 +21,47 @@
 #define _WORKPOOL_H
 
 #include <thread>
-#include <mutex>
+#include <atomic>
 #include <functional>
-#include <condition_variable>
+#include <future>
+
+#include "../fixedQueue.h"
+
+class DivWorkPool;
+
+struct DivPendingTask {
+  void (*func)(void*);
+  void* funcArg;
+  DivPendingTask(void (*f)(void*), void* arg):
+    func(f),
+    funcArg(arg) {}
+  DivPendingTask():
+    func(NULL),
+    funcArg(NULL) {}
+};
 
 struct DivWorkThread {
+  DivWorkPool* parent;
   std::mutex lock;
   std::thread* thread;
-  std::condition_variable notify;
-  bool busy, terminate;
+  std::promise<void> notify;
+  FixedQueue<DivPendingTask,32> tasks;
+  std::atomic<bool> isBusy;
+  bool terminate;
+  bool promiseAlreadySet;
 
   void run();
+  bool assign(void (*what)(void*), void* arg);
+  void wait();
+  bool busy();
+  void finish();
+
+  bool init(DivWorkPool* p);
   DivWorkThread():
-    busy(false) {}
+    parent(NULL),
+    isBusy(false),
+    terminate(false),
+    promiseAlreadySet(false) {}
 };
 
 /**
@@ -41,13 +69,19 @@ struct DivWorkThread {
  * it is highly recommended to use `new` when allocating a DivWorkPool.
  */
 class DivWorkPool {
+  bool threaded;
+  unsigned int count;
+  unsigned int pos;
   DivWorkThread* workThreads;
   public:
+    std::promise<void> notify;
+    std::atomic<int> busyCount;
+    
     /**
      * push a new job to this work pool.
      * if all work threads are busy, this will block until one is free.
      */
-    bool push();
+    void push(void (*what)(void*), void* arg);
     
     /**
      * check whether this work pool is busy.
@@ -57,7 +91,7 @@ class DivWorkPool {
     /**
      * wait for all work threads to finish.
      */
-    bool wait();
+    void wait();
 
     DivWorkPool(unsigned int threads=0);
     ~DivWorkPool();

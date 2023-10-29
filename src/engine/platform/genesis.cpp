@@ -132,8 +132,8 @@ void DivPlatformGenesis::processDAC(int iRate) {
 }
 
 void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
-  static short o[2];
-  static int os[2];
+  thread_local short o[2];
+  thread_local int os[2];
 
   for (size_t h=0; h<len; h++) {
     processDAC(rate);
@@ -213,7 +213,7 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
 }
 
 void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   ymfm::ym2612::fm_engine* fme=fm_ymfm->debug_engine();
 

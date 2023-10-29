@@ -20,6 +20,7 @@
 #include "c64.h"
 #include "../engine.h"
 #include "sound/c64_fp/siddefs-fp.h"
+#include "IconsFontAwesome4.h"
 #include <math.h>
 #include "../../ta-log.h"
 
@@ -158,21 +159,10 @@ void DivPlatformC64::tick(bool sysTick) {
 
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
-      if (ins->c64.volIsCutoff) {
-        if (ins->c64.filterIsAbs) {
-          filtCut=MIN(2047,chan[i].std.vol.val);
-        } else {
-          filtCut-=((signed char)chan[i].std.vol.val)*7;
-          if (filtCut>2047) filtCut=2047;
-          if (filtCut<0) filtCut=0;
-        }
-        willUpdateFilter=true;
-      } else {
-        vol=MIN(15,chan[i].std.vol.val);
-        willUpdateFilter=true;
-      }
+      vol=MIN(15,chan[i].std.vol.val);
+      willUpdateFilter=true;
     }
+
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
@@ -186,14 +176,18 @@ void DivPlatformC64::tick(bool sysTick) {
       if (ins->c64.dutyIsAbs) {
         chan[i].duty=chan[i].std.duty.val;
       } else {
-        chan[i].duty-=((signed char)chan[i].std.duty.val)*4;
+        if (multiplyRel) {
+          chan[i].duty-=((signed char)chan[i].std.duty.val)*4;
+        } else {
+          chan[i].duty-=chan[i].std.duty.val;
+        }
       }
       rWrite(i*7+2,chan[i].duty&0xff);
       rWrite(i*7+3,chan[i].duty>>8);
     }
     if (chan[i].std.wave.had) {
       chan[i].wave=chan[i].std.wave.val;
-      rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active));
+      rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active && chan[i].gate));
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -204,6 +198,21 @@ void DivPlatformC64::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.alg.had) { // new cutoff macro
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
+      if (ins->c64.filterIsAbs) {
+        filtCut=MIN(2047,chan[i].std.alg.val);
+      } else {
+        if (multiplyRel) {
+          filtCut+=((signed char)chan[i].std.alg.val)*7;
+        } else {
+          filtCut+=chan[i].std.alg.val;
+        }
+        if (filtCut>2047) filtCut=2047;
+        if (filtCut<0) filtCut=0;
+      }
+      willUpdateFilter=true;
+    }
     if (chan[i].std.ex1.had) {
       filtControl=chan[i].std.ex1.val&15;
       willUpdateFilter=true;
@@ -212,15 +221,33 @@ void DivPlatformC64::tick(bool sysTick) {
       filtRes=chan[i].std.ex2.val&15;
       willUpdateFilter=true;
     }
-    if (chan[i].std.ex3.had) {
-      chan[i].sync=chan[i].std.ex3.val&1;
-      chan[i].ring=chan[i].std.ex3.val&2;
-      chan[i].freqChanged=true;
-      rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active));
-    }
     if (chan[i].std.ex4.had) {
-      chan[i].test=chan[i].std.ex4.val&1;
-      rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active));
+      chan[i].gate=chan[i].std.ex4.val&1;
+      chan[i].sync=chan[i].std.ex4.val&2;
+      chan[i].ring=chan[i].std.ex4.val&4;
+      chan[i].test=chan[i].std.ex4.val&8;
+      chan[i].freqChanged=true;
+      rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active && chan[i].gate));
+    }
+
+    if (chan[i].std.ex5.had) {
+      chan[i].attack=chan[i].std.ex5.val&15;
+      rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
+    }
+
+    if (chan[i].std.ex6.had) {
+      chan[i].decay=chan[i].std.ex6.val&15;
+      rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
+    }
+
+    if (chan[i].std.ex7.had) {
+      chan[i].sustain=chan[i].std.ex7.val&15;
+      rWrite(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
+    }
+
+    if (chan[i].std.ex8.had) {
+      chan[i].release=chan[i].std.ex8.val&15;
+      rWrite(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
     }
 
     if (sysTick) {
@@ -243,7 +270,7 @@ void DivPlatformC64::tick(bool sysTick) {
       if (chan[i].keyOn) {
         rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
         rWrite(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
-        rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|1);
+        rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(chan[i].gate?1:0));
       }
       if (chan[i].keyOff) {
         rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
@@ -387,7 +414,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
-      rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].test<<3)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|(int)(chan[c.chan].active));
+      rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].test<<3)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|(int)(chan[c.chan].active && chan[c.chan].gate));
       break;
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
@@ -396,7 +423,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta || !chan[c.chan].inPorta) {
+        if (parent->song.resetMacroOnPorta || parent->song.preNoteNoEffect) {
           chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_C64));
           chan[c.chan].keyOn=true;
         }
@@ -457,29 +484,51 @@ int DivPlatformC64::dispatch(DivCommand c) {
       switch (c.value>>4) {
         case 0:
           chan[c.chan].attack=c.value&15;
+          if (!no1EUpdate) {
+            rWrite(c.chan*7+5,(chan[c.chan].attack<<4)|(chan[c.chan].decay));
+          }
           break;
         case 1:
           chan[c.chan].decay=c.value&15;
+          if (!no1EUpdate) {
+            rWrite(c.chan*7+5,(chan[c.chan].attack<<4)|(chan[c.chan].decay));
+          }
           break;
         case 2:
           chan[c.chan].sustain=c.value&15;
+          if (!no1EUpdate) {
+            rWrite(c.chan*7+6,(chan[c.chan].sustain<<4)|(chan[c.chan].release));
+          }
           break;
         case 3:
           chan[c.chan].release=c.value&15;
+          if (!no1EUpdate) {
+            rWrite(c.chan*7+6,(chan[c.chan].sustain<<4)|(chan[c.chan].release));
+          }
           break;
         case 4:
           chan[c.chan].ring=c.value;
-          rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].test<<3)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|(int)(chan[c.chan].active));
+          rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].test<<3)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|(int)(chan[c.chan].active && chan[c.chan].gate));
           break;
         case 5:
           chan[c.chan].sync=c.value;
-          rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].test<<3)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|(int)(chan[c.chan].active));
+          rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].test<<3)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|(int)(chan[c.chan].active && chan[c.chan].gate));
           break;
         case 6:
           filtControl&=7;
           filtControl|=(!!c.value)<<3;
           break;
       }
+      break;
+    case DIV_CMD_C64_AD:
+      chan[c.chan].attack=c.value>>4;
+      chan[c.chan].decay=c.value&15;
+      rWrite(c.chan*7+5,(chan[c.chan].attack<<4)|(chan[c.chan].decay));
+      break;
+    case DIV_CMD_C64_SR:
+      chan[c.chan].sustain=c.value>>4;
+      chan[c.chan].release=c.value&15;
+      rWrite(c.chan*7+6,(chan[c.chan].sustain<<4)|(chan[c.chan].release));
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
@@ -546,6 +595,24 @@ DivMacroInt* DivPlatformC64::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivChannelModeHints DivPlatformC64::getModeHints(int ch) {
+  DivChannelModeHints ret;
+  ret.count=1;
+  ret.hint[0]=ICON_FA_BELL_SLASH_O;
+  ret.type[0]=0;
+  if (ch==2 && (filtControl&8)) {
+    ret.type[0]=7;
+  } else if (chan[ch].test && !chan[ch].gate) {
+    ret.type[0]=5;
+  } else if (chan[ch].test) {
+    ret.type[0]=6;
+  } else if (!chan[ch].gate) {
+    ret.type[0]=4;
+  }
+
+  return ret;
+}
+
 DivDispatchOscBuffer* DivPlatformC64::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -594,7 +661,18 @@ void DivPlatformC64::reset() {
     needInitTables=false;
   } else if (sidCore==1) {
     sid_fp->reset();
-    sid_fp->clockSilent(16000);
+    for (int i=0; i<3; i++) {
+      sid_fp->write(i*7+5,testAD);
+      sid_fp->write(i*7+6,testSR);
+      sid_fp->write(i*7+4,8);
+    }
+    sid_fp->clockSilent(30000);
+    for (int i=0; i<3; i++) {
+      sid_fp->write(i*7+5,testAD);
+      sid_fp->write(i*7+6,testSR);
+      sid_fp->write(i*7+4,0);
+    }
+    sid_fp->clockSilent(30000);
   } else {
     sid->reset();
   }
@@ -605,7 +683,7 @@ void DivPlatformC64::reset() {
   filtControl=7;
   filtRes=0;
   filtCut=2047;
-  resetTime=1;
+  resetTime=initResetTime;
   vol=15;
 
   chanOrder[0]=0;
@@ -652,8 +730,12 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
     if (sidCore==1) sid_fp->setSamplingParameters(chipClock,reSIDfp::DECIMATE,rate,0);
   }
   keyPriority=flags.getBool("keyPriority",true);
+  no1EUpdate=flags.getBool("no1EUpdate",false);
+  multiplyRel=flags.getBool("multiplyRel",false);
   testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
   testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
+  initResetTime=flags.getInt("initResetTime",2);
+  if (initResetTime<0) initResetTime=1;
 
   // init fake filter table
   // taken from dSID

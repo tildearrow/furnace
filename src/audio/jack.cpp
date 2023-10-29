@@ -198,8 +198,17 @@ String TAAudioJACK::printStatus(jack_status_t status) {
 
 bool TAAudioJACK::init(TAAudioDesc& request, TAAudioDesc& response) {
   if (initialized) return false;
-  if (jack_client_open==NULL) {
+  int haveJACK=have_libjack();
+  if (haveJACK==-1) {
+    logE("JACK library not initialized!");
+    return false;
+  }
+  if (haveJACK==-2) {
     logE("JACK not installed!");
+    return false;
+  }
+  if (haveJACK!=0) {
+    logE("JACK symbol error!");
     return false;
   }
   desc=request;

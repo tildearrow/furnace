@@ -21,7 +21,6 @@
 #include "../engine.h"
 #include "../../ta-log.h"
 #include <math.h>
-#include <map>
 
 #define CHIP_FREQBASE (is219?74448896:12582912)
 
@@ -152,11 +151,18 @@ void DivPlatformC140::tick(bool sysTick) {
     }
     if (is219) {
       if (chan[i].std.duty.had) {
-        chan[i].noise=chan[i].std.duty.val&1;
-        chan[i].invert=chan[i].std.duty.val&2;
-        chan[i].surround=chan[i].std.duty.val&4;
-        chan[i].freqChanged=true;
-        chan[i].writeCtrl=true;
+        unsigned char singleByte=(
+          (chan[i].noise?1:0)|
+          (chan[i].invert?2:0)|
+          (chan[i].surround?4:0)
+        );
+        if (singleByte!=(chan[i].std.duty.val&7)) {
+          chan[i].noise=chan[i].std.duty.val&1;
+          chan[i].invert=chan[i].std.duty.val&2;
+          chan[i].surround=chan[i].std.duty.val&4;
+          chan[i].freqChanged=true;
+          chan[i].writeCtrl=true;
+        }
       }
     }
     if (chan[i].std.pitch.had) {
@@ -209,7 +215,7 @@ void DivPlatformC140::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (is219) {
-        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_C219)?1:0)|(chan[i].invert?0x40:0)|(chan[i].surround?8:0)|(chan[i].noise?4:0);
+        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable() || chan[i].noise)?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_C219)?1:0)|(chan[i].invert?0x40:0)|(chan[i].surround?8:0)|(chan[i].noise?4:0);
       } else {
         ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?0x08:0);
       }
@@ -228,18 +234,24 @@ void DivPlatformC140::tick(bool sysTick) {
             start=sampleOff[chan[i].sample]&0xffff;
             end=MIN(start+s->length8-1,65535);
           }
+        } else if (chan[i].noise && is219) {
+          bank=groupBank[i>>2];
+          start=0;
+          end=1;
         }
         if (chan[i].audPos>0) {
           start=MIN(start+(MIN(chan[i].audPos,s->length8)>>1),65535);
         }
-        if (s->isLoopable()) {
+        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen && s->isLoopable()) {
           if (is219) {
             loop=MIN(start+(s->loopStart>>1),65535);
-            end=MIN(start+(s->loopEnd>>1)-1,65535);
+            end=MIN(start+(s->loopEnd>>1),65535);
           } else {
-            loop=MIN(start+s->loopStart,65535);
-            end=MIN(start+s->loopEnd-1,65535);
+            loop=MIN(start+s->loopStart+1,65535);
+            end=MIN(start+s->loopEnd+1,65535);
           }
+        } else if (chan[i].noise && is219) {
+          loop=0;
         }
         rWrite(0x05+(i<<4),0); // force keyoff first
         if (is219) {
@@ -259,6 +271,14 @@ void DivPlatformC140::tick(bool sysTick) {
             }
           }
         } else {
+          switch (bankType) {
+            case 0:
+              bank=((bank&8)<<2)|(bank&7);
+              break;
+            case 1:
+              bank=((bank&0x18)<<1)|(bank&7);
+              break;
+          }
           rWrite(0x04+(i<<4),bank);
         }
         rWrite(0x06+(i<<4),(start>>8)&0xff);
@@ -536,7 +556,15 @@ const void* DivPlatformC140::getSampleMem(int index) {
 }
 
 size_t DivPlatformC140::getSampleMemCapacity(int index) {
-  return index == 0 ? (is219?524288:16777216) : 0;
+  if (index!=0) return 0;
+  if (is219) return 524288;
+  switch (bankType) {
+    case 0:
+      return 2097152;
+    case 1:
+      return 4194304;
+  }
+  return 16777216;
 }
 
 size_t DivPlatformC140::getSampleMemUsage(int index) {
@@ -550,7 +578,7 @@ bool DivPlatformC140::isSampleLoaded(int index, int sample) {
 }
 
 void DivPlatformC140::renderSamples(int sysID) {
-  memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleMem,0,is219?524288:16777216);
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
@@ -563,7 +591,7 @@ void DivPlatformC140::renderSamples(int sysID) {
     }
 
     if (is219) { // C219 (8-bit)
-      unsigned int length=s->length8;
+      unsigned int length=s->length8+4;
       // fit sample size to single bank size
       if (length>131072) {
         length=131072;
@@ -582,27 +610,39 @@ void DivPlatformC140::renderSamples(int sysID) {
         logW("out of C219 memory for sample %d!",i);
       }
       if (s->depth==DIV_SAMPLE_DEPTH_C219) {
+        unsigned char next=0;
+        unsigned int sPos=0;
         for (unsigned int i=0; i<length; i++) {
-          if (i>=s->lengthC219) {
-            sampleMem[(memPos+i)^1]=0;
-          } else {
-            sampleMem[(memPos+i)^1]=s->dataC219[i];
+          if (sPos<s->lengthC219) {
+            next=s->dataC219[sPos++];
+            if (s->isLoopable()) {
+              if ((int)sPos>=s->loopEnd) {
+                sPos=s->loopStart;
+              }
+            }
           }
+          sampleMem[(memPos+i)^1]=next;
         }
       } else {
+        signed char next=0;
+        unsigned int sPos=0;
         for (unsigned int i=0; i<length; i++) {
-          if (i>=s->length8) {
-            sampleMem[(memPos+i)^1]=0;
-          } else {
-            sampleMem[(memPos+i)^1]=s->data8[i];
+          if (sPos<s->length8) {
+            next=s->data8[sPos++];
+            if (s->isLoopable()) {
+              if ((int)sPos>=s->loopEnd) {
+                sPos=s->loopStart;
+              }
+            }
           }
+          sampleMem[(memPos+i)^1]=next;
         }
       }
       sampleOff[i]=memPos>>1;
       sampleLoaded[i]=true;
       memPos+=length;
     } else { // C140 (16-bit)
-      unsigned int length=s->length16;
+      unsigned int length=s->length16+4;
       // fit sample size to single bank size
       if (length>(131072)) {
         length=131072;
@@ -629,7 +669,20 @@ void DivPlatformC140::renderSamples(int sysID) {
           sampleMem[1+i+memPos]=c140Mu;
         }
       } else {
-        memcpy(sampleMem+memPos,s->data16,length);
+        short next=0;
+        unsigned int sPos=0;
+        for (unsigned int i=0; i<length; i+=2) {
+          if (sPos<s->samples) {
+            next=s->data16[sPos++];
+            if (s->isLoopable()) {
+              if ((int)sPos>=s->loopEnd) {
+                sPos=s->loopStart;
+              }
+            }
+          }
+          sampleMem[memPos+i]=((unsigned short)next);
+          sampleMem[memPos+i+1]=((unsigned short)next)>>8;
+        }
       }
       sampleOff[i]=memPos>>1;
       sampleLoaded[i]=true;
@@ -664,6 +717,10 @@ void DivPlatformC140::setFlags(const DivConfig& flags) {
     CHECK_CUSTOM_CLOCK;
     rate=chipClock/192;
   }
+  bankType=flags.getInt("bankType",0);
+  if (!is219) {
+    c140_bank_type(&c140,bankType);
+  }
   for (int i=0; i<totalChans; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -673,12 +730,13 @@ int DivPlatformC140::init(DivEngine* p, int channels, int sugRate, const DivConf
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  bankType=2;
 
   for (int i=0; i<totalChans; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  sampleMem=new unsigned char[getSampleMemCapacity()];
+  sampleMem=new unsigned char[is219?524288:16777216];
   sampleMemLen=0;
   if (is219) {
     c219_init(&c219);

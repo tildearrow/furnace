@@ -1,14 +1,14 @@
 # effect list
 
-most of the effect numbers are from ProTracker / FastTracker 2.
+some of the effect numbers are taken from ProTracker / FastTracker 2.
 
 however, effects are continuous, which means you only need to type it once and then stop it with an effect value of `00` or no effect value at all.
 
 ## volume
 
 - `0Axy`: **Volume slide.**
-  - If `x` is 0 then this slides volume down by `y` each tick.
-  - If `y` is 0 then this slides volume up by `x` each tick.
+  - if `x` is 0 then this slides volume down by `y` each tick.
+  - if `y` is 0 then this slides volume up by `x` each tick.
 - `FAxy`: **Fast volume slide.** same as `0Axy` above but 4× faster.
 - `F3xx`: **Fine volume slide up.** same as `0Ax0` but 64× slower.
 - `F4xx`: **Fine volume slide down.** same as `0A0x` but 64× slower.
@@ -16,8 +16,8 @@ however, effects are continuous, which means you only need to type it once and t
 - `F9xx`: **Single tick volume slide down.** subtracts `x` from volume on first tick only.
   - ---
 - `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed. `y` is the depth.
-  - Tremolo is downward only.
-  - Maximum tremolo depth is -60 volume steps.
+  - tremolo is downward only.
+  - maximum tremolo depth is -60 volume steps.
 
 ## pitch
 
@@ -38,11 +38,11 @@ however, effects are continuous, which means you only need to type it once and t
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
   - ---
 - `04xy`: **Vibrato.** changes pitch to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.
-  - Maximum vibrato depth is ±1 semitone.
+  - maximum vibrato depth is ±1 semitone.
 - `E3xx`: **Set vibrato direction.** `xx` may be one of the following:
-  - `00`: Up and down. default.
-  - `01`: Up only.
-  - `02`: Down only.
+  - `00`: up and down. default.
+  - `01`: up only.
+  - `02`: down only.
 - `E4xx`: **Set vibrato range** in 1/16th of a semitone. 
 
 ## panning
@@ -63,7 +63,7 @@ not all chips support these effects.
 
 ## time
 
-- `09xx`: **Set speed/groove.** if no grooves are defined, this sets speed. If alternating speeds are active, this sets the first speed.
+- `09xx`: **Set speed/groove.** if no grooves are defined, this sets speed. if alternating speeds are active, this sets the first speed.
 - `0Fxx`: **Set speed 2.** during alternating speeds or a groove, this sets the second speed.
   - ---
 - `Cxxx`: **Set tick rate.** changes tick rate to `xxx` Hz (ticks per second).
@@ -79,20 +79,21 @@ not all chips support these effects.
 ## note
 
 - `0Cxx`: **Retrigger.** repeats current note every `xx` ticks.
-  - This effect is not continuous; it must be entered on every row.
-- `ECxx`: **Note cut.** ends current note after `xx` ticks. For FM instruments, it's equivalent to a "key off".
+  - this effect is not continuous; it must be entered on every row.
+- `ECxx`: **Note cut.** ends current note after `xx` ticks. for FM instruments, it's equivalent to a "key off".
 - `EDxx`: **Note delay.** delays note by `x` ticks.
 
 ## other
 
 - `9xxx`: **Set sample position.** jumps current sample to position `xxx * 0x100`.
-  - Not all chips support this effect.
+  - not all chips support this effect.
 - `EBxx`: **Set LEGACY sample mode bank.** selects sample bank. used only for compatibility.
   - does not apply on Amiga.
 - `EExx`: **Send external command.**
   - this effect is currently incomplete.
-- `F5xx`: **Disable macro.**\
-  `F6xx`: **Enable macro.** see macro table at the end of this document for possible values.
+- `F5xx`: **Disable macro.**
+- `F6xx`: **Enable macro.**
+  - see macro table at the end of this document for possible values.
 
 additionally, [each chip has its own effects](../7-systems/README.md).
 
@@ -147,19 +148,53 @@ additionally, [each chip has its own effects](../7-systems/README.md).
 
 the interpretation of duty, wave and extra macros depends on chip/instrument type:
 
-ex | FM     | OPM       | OPZ       | OPLL  | AY-3-8910  | AY8930     | Lynx     | C64        | SAA1099  | X1-010     | Namco 163  | FDS       | Sound Unit | ES5506    | MSM6258  | QSound       | SNES      | MSM5232   |
----|--------|-----------|-----------|-------|------------|------------|----------|------------|----------|------------|------------|-----------|------------|-----------|----------|--------------|-----------|-----------|
- D | NoiseF | NoiseFreq |           |       | NoiseFreq  | NoiseFreq  | Duty/Int | Duty       |          |            | Wave Pos   |           | Duty       | Filt Mode | FreqDiv  | Echo Level   | NoiseFreq | GroupCtrl |
- W |        | LFO Shape | LFO Shape | Patch | Waveform   | Waveform   |          | Waveform   | Waveform | Waveform   | Waveform   | Waveform  | Waveform   |           |          |              | Waveform  |           |
- 1 |        | AMD       | AMD       |       |            | Duty       |          | FilterMode | Envelope | EnvMode    | WaveLen    | Mod Depth | Cutoff     | Filter K1 | ClockDiv | EchoFeedback | Special   | GroupAtk  |
- 2 |        | PMD       | PMD       |       | Envelope   | Envelope   |          | Resonance  |          | Envelope   | WaveUpdate | Mod Speed | Resonance  | Filter K2 |          | Echo Length  | Gain      | GroupDec  |
- 3 | LFOSpd | LFO Speed | LFO Speed |       | AutoEnvNum | AutoEnvNum |          | Special    |          | AutoEnvNum | WaveLoad W |           | Control    | Env Count |          |              |           | Noise     |
- A | ALG    | ALG       | ALG       |       | AutoEnvDen | AutoEnvDen |          |            |          | AutoEnvDen | WaveLoad P |           |            | Control   |          |              |           |           |
- B | FB     | FB        | FB        |       |            | Noise AND  |          |            |          |            | WaveLoad L |           |            |           |          |              |           |           |
- C | FMS    | FMS       | FMS       |       |            | Noise OR   |          |            |          |            | WaveLoad T |           |            |           |          |              |           |           |
- D | AMS    | AMS       | AMS       |       |            |            |          |            |          |            |            |           |            |           |          |              |           |           |
- 4 | OpMask | OpMask    |           |       |            |            |          | Test/Gate  |          |            |            |           | PResetTime | EnvRampL  |          |              |           |           |
- 5 |        |           | AMD2      |       |            |            |          |            |          |            |            |           |            | EnvRampR  |          |              |           |           |
- 6 |        |           | PMD2      |       |            |            |          |            |          |            |            |           |            | EnvRampK1 |          |              |           |           |
- 7 |        |           | LFO2Speed |       |            |            |          |            |          |            |            |           |            | EnvRampK2 |          |              |           |           |
- 8 |        |           | LFO2Shape |       |            |            |          |            |          |            |            |           |            | Env Mode  |          |              |           |           |
+ex | FM     | OPM       | OPZ       | OPLL  | AY-3-8910  | AY8930     | Lynx     | C64        |
+---|--------|-----------|-----------|-------|------------|------------|----------|------------|
+ D | NoiseF | NoiseFreq |           |       | NoiseFreq  | NoiseFreq  | Duty/Int | Duty       |
+ W |        | LFO Shape | LFO Shape | Patch | Waveform   | Waveform   |          | Waveform   |
+ 1 |        | AMD       | AMD       |       |            | Duty       |          | FilterMode |
+ 2 |        | PMD       | PMD       |       | Envelope   | Envelope   |          | Resonance  |
+ 3 | LFOSpd | LFO Speed | LFO Speed |       | AutoEnvNum | AutoEnvNum |          | Special    |
+ A | ALG    | ALG       | ALG       |       | AutoEnvDen | AutoEnvDen |          |            |
+ B | FB     | FB        | FB        |       |            | Noise AND  |          |            |
+ C | FMS    | FMS       | FMS       |       |            | Noise OR   |          |            |
+ D | AMS    | AMS       | AMS       |       |            |            |          |            |
+ 4 | OpMask | OpMask    |           |       |            |            |          | Test/Gate  |
+ 5 |        |           | AMD2      |       |            |            |          |            |
+ 6 |        |           | PMD2      |       |            |            |          |            |
+ 7 |        |           | LFO2Speed |       |            |            |          |            |
+ 8 |        |           | LFO2Shape |       |            |            |          |            |
+
+ex | SAA1099  | X1-010     | Namco 163  | FDS       | Sound Unit | ES5506    | MSM6258  |
+---|----------|------------|------------|-----------|------------|-----------|----------|
+ D |          |            | Wave Pos   |           | Duty       | Filt Mode | FreqDiv  |
+ W | Waveform | Waveform   | Waveform   | Waveform  | Waveform   |           |          |
+ 1 | Envelope | EnvMode    | WaveLen    | Mod Depth | Cutoff     | Filter K1 | ClockDiv |
+ 2 |          | Envelope   | WaveUpdate | Mod Speed | Resonance  | Filter K2 |          |
+ 3 |          | AutoEnvNum | WaveLoad W |           | Control    | Env Count |          |
+ A |          | AutoEnvDen | WaveLoad P |           |            | Control   |          |
+ B |          |            | WaveLoad L |           |            |           |          |
+ C |          |            | WaveLoad T |           |            |           |          |
+ D |          |            |            |           |            |           |          |
+ 4 |          |            |            |           | PResetTime | EnvRampL  |          |
+ 5 |          |            |            |           |            | EnvRampR  |          |
+ 6 |          |            |            |           |            | EnvRampK1 |          |
+ 7 |          |            |            |           |            | EnvRampK2 |          |
+ 8 |          |            |            |           |            | Env Mode  |          |
+
+ex | QSound       | SNES      | MSM5232   |
+---|--------------|-----------|-----------|
+ D | Echo Level   | NoiseFreq | GroupCtrl |
+ W |              | Waveform  |           |
+ 1 | EchoFeedback | Special   | GroupAtk  |
+ 2 | Echo Length  | Gain      | GroupDec  |
+ 3 |              |           | Noise     |
+ A |              |           |           |
+ B |              |           |           |
+ C |              |           |           |
+ D |              |           |           |
+ 4 |              |           |           |
+ 5 |              |           |           |
+ 6 |              |           |           |
+ 7 |              |           |           |
+ 8 |              |           |           |

@@ -22,7 +22,7 @@
 
 #include "../dispatch.h"
 #include "sound/c140_c219.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 class DivPlatformC140: public DivDispatch {
   struct Channel: public SharedChannel<int> {
@@ -60,6 +60,7 @@ class DivPlatformC140: public DivDispatch {
   bool is219;
   int totalChans;
   unsigned char groupBank[4];
+  unsigned char bankType;
 
   unsigned char* sampleMem;
   size_t sampleMemLen;

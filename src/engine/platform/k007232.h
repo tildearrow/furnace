@@ -21,7 +21,7 @@
 #define _K007232_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../macroInt.h"
 #include "vgsound_emu/src/k007232/k007232.hpp"
 

@@ -7,7 +7,7 @@ only 2 channels and 31 frequencies?!
 
 Furnace isn't complete without this one...
 
-# effects
+## effects
 
 - `10xx`: **select shape.**
   - `0`: nothing
@@ -29,14 +29,13 @@ Furnace isn't complete without this one...
 
 
 
-# info
+## info
 
 this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
 
+the arp macro's fixed mode operates differently, writing the direct pitch to the chip. here's a list of pitches.
 
-- pitch number can be used for absolute notes in arpeggio macros.
-
-## shape 1
+### shape 1
 
 | pitch |    NTSC | note | cent |    PAL  | note | cent
 |------:|--------:|:----:|-----:|--------:|:----:|-----:
@@ -73,7 +72,7 @@ this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
 |    30 |    67.6 |  C#2 |  -44 |    67.1 |  C-2 |  +44
 |    31 |    65.5 |  C-2 |   +3 |    65.0 |  C-2 |  -11
 
-## shapes 2, 3
+### shapes 2 and 3
 
 | pitch |    NTSC | note | cent |    PAL  | note | cent
 |------:|--------:|:----:|-----:|--------:|:----:|-----:
@@ -110,7 +109,7 @@ this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
 |    30 |     2.2 |      |      |     2.2
 |    31 |     2.1 |      |      |     2.1
 
-## shapes 4, 5
+### shapes 4 and 5
 
 | pitch |    NTSC | note | cent |    PAL  | note | cent
 |------:|--------:|:----:|-----:|--------:|:----:|-----:
@@ -147,7 +146,7 @@ this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
 |    30 |   507.1 |  B-4 |  +45 |   503.2 | B-4  |  +32
 |    31 |   491.3 |  B-4 |   -9 |   487.5 | B-4  |  -23
 
-## shapes 6, 7, 9, 10
+### shapes 6, 7, 9 and 10
 
 | pitch |    NTSC | note | cent |    PAL  | note | cent
 |------:|--------:|:----:|-----:|--------:|:----:|-----:
@@ -184,7 +183,7 @@ this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
 |    30 |    32.7 |  C-1 |  0.0 |    32.5 |  C-1 |  -11
 |    31 |    31.7 |  B-0 |  +44 |    31.5 |  B-0 |  +33
 
-## shape 8
+### shape 8
 
 | pitch |    NTSC | note | cent |    PAL  | note | cent
 |------:|--------:|:----:|-----:|--------:|:----:|-----:
@@ -221,7 +220,7 @@ this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
 |    30 |     2.0 |      |      |     2.0
 |    31 |     1.9 |      |      |     1.9
 
-## shapes 12, 13
+### shapes 12 and 13
 
 | pitch |    NTSC | note | cent |    PAL  | note | cent
 |------:|--------:|:----:|-----:|--------:|:----:|-----:
@@ -258,7 +257,7 @@ this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
 |    30 |   169.0 |  E-3 |  +43 |  167.7  |  E-3 |  +30
 |    31 |   163.8 |  E-3 |  -11 |  162.5  |  E-3 |  -25
 
-## shapes 14, 15
+### shapes 14 and 15
 
 | pitch |    NTSC | note | cent |    PAL  | note | cent
 |------:|--------:|:----:|-----:|--------:|:----:|-----:

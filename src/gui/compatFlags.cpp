@@ -188,6 +188,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("behavior changed in 0.6pre9");
         }
+        ImGui::Checkbox("Disable new NES DPCM features",&e->song.oldDPCM);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6.1");
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(".mod import")) {
@@ -210,11 +214,15 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("like ProTracker/FamiTracker");
         }
-        if (ImGui::RadioButton("Partial (only 04xy/E5xx)",e->song.linearPitch==1)) {
-          e->song.linearPitch=1;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("like DefleMask");
+        if (e->song.linearPitch==1) {
+          pushWarningColor(true);
+          if (ImGui::RadioButton("Partial (only 04xy/E5xx)",e->song.linearPitch==1)) {
+            e->song.linearPitch=1;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("like DefleMask\n\nthis pitch linearity mode is deprecated due to:\n- excessive complexity\n- lack of possible optimization\n\nit is recommended to change it now because I will remove this option in the future!");
+          }
+          popWarningColor();
         }
         if (ImGui::RadioButton("Full",e->song.linearPitch==2)) {
           e->song.linearPitch=2;
@@ -323,6 +331,10 @@ void FurnaceGUI::drawCompatFlags() {
         InvCheckbox("Pitch macro is not linear",&e->song.pitchMacroIsLinear);
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("when enabled, the pitch macro of an instrument is in frequency/period space.");
+        }
+        ImGui::Checkbox("Reset arpeggio effect position on new note",&e->song.resetArpPhaseOnNewNote);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("when enabled, arpeggio effect (00xy) position is reset on a new note.");
         }
         ImGui::EndTabItem();
       }

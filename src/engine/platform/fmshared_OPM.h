@@ -22,7 +22,7 @@
 
 #include "fmsharedbase.h"
 
-#define NOTE_LINEAR(x) (((x)<<6)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*64.0)
+#define NOTE_LINEAR(x) (((x)<<7)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*128.0)
 
 class DivPlatformOPM: public DivPlatformFMBase {
   protected:
@@ -42,13 +42,15 @@ class DivPlatformOPM: public DivPlatformFMBase {
     };
 
     unsigned char lfoValue, lfoValue2, lfoShape, lfoShape2;
+    bool brokenPitch;
 
     DivPlatformOPM():
       DivPlatformFMBase(),
       lfoValue(0),
       lfoValue2(0),
       lfoShape(0),
-      lfoShape2(0) {}
+      lfoShape2(0),
+      brokenPitch(false) {}
 };
 
 #endif

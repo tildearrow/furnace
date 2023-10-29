@@ -169,7 +169,7 @@ const bool mobileButtonPersist[32]={
 };
 
 void FurnaceGUI::drawMobileControls() {
-  float timeScale=1.0f/(60.0f*ImGui::GetIO().DeltaTime);
+  float timeScale=60.0*ImGui::GetIO().DeltaTime;
   if (dragMobileMenu) {
     if (portrait) {
       mobileMenuPos=(dragMobileMenuOrigin.y-ImGui::GetMousePos().y)/(canvasH*0.65);
@@ -584,6 +584,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button("Stats")) {
           statsOpen=!statsOpen;
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Grooves")) {
+          groovesOpen=!groovesOpen;
+        }
         if (ImGui::Button("Compat Flags")) {
           compatFlagsOpen=!compatFlagsOpen;
         }
@@ -679,6 +683,7 @@ void FurnaceGUI::drawEditControls() {
             if (curOctave>7) curOctave=7;
             if (curOctave<-5) curOctave=-5;
             e->autoNoteOffAll();
+            failedNoteOn=false;
 
             if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
               nextWindow=GUI_WINDOW_PATTERN;
@@ -826,6 +831,7 @@ void FurnaceGUI::drawEditControls() {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
+          failedNoteOn=false;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -930,6 +936,7 @@ void FurnaceGUI::drawEditControls() {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
+          failedNoteOn=false;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -1083,6 +1090,7 @@ void FurnaceGUI::drawEditControls() {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
+          failedNoteOn=false;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;

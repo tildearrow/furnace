@@ -7,6 +7,12 @@
 
 #ifdef __MINGW32__
 // Explicitly setting NTDDI version, this is necessary for the MinGW compiler
+#ifdef NTDDI_VERSION
+#undef NTDDI_VERSION
+#endif
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
 #define NTDDI_VERSION NTDDI_VISTA
 #define _WIN32_WINNT _WIN32_WINNT_VISTA
 #endif

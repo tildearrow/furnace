@@ -25,12 +25,13 @@ cd release/winxp
 
 cp ../../LICENSE LICENSE.txt || exit 1
 cp ../../xpbuild/furnace.exe . || exit 1
-cp ../../README.md README.txt || exit 1
+cp ../../res/releaseReadme/stable-win.txt README.txt || exit 1
 cp -r ../../papers papers || exit 1
-cp -r ../../doc doc || exit 1
 cp -r ../../demos demos || exit 1
 cp -r ../../instruments instruments || exit 1
 cp -r ../../wavetables wavetables || exit 1
+
+cp ../../res/docpdf/manual.pdf . || exit 1
 
 i686-w64-mingw32-strip -s furnace.exe || exit 1
 
@@ -39,7 +40,7 @@ xxd -c 256 -ps furnace.exe | sed "s/4765745469636b436f756e743634/4765745469636b4
 rm furnace.exe
 mv furnace-patched.exe furnace.exe
 
-zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers doc demos instruments wavetables
+zip -r furnace.zip LICENSE.txt furnace.exe README.txt manual.pdf papers demos instruments wavetables
 
 furName=$(git describe --tags | sed "s/v0/0/")
 

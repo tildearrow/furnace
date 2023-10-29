@@ -10,11 +10,11 @@ the original OPL (Yamaha YM3526) was present as an expansion for the Commodore 6
 its successor, the OPL2 (Yamaha YM3812), added 3 more waveforms and was one of the more popular chips because it was present on the AdLib card for PC.
 later Creative would borrow the chip to make the Sound Blaster, and totally destroyed AdLib's dominance.
 
-the OPL3 (Yamaha YMF262) added 9 more channels, 4 more waveforms, rudimentary 4-operator mode (pairing up to 12 channels to make up to six 4-operator channels), quadraphonic output (sadly Furnace only supports stereo) and some other things.
+the OPL3 (Yamaha YMF262) added 9 more channels, 4 more waveforms, rudimentary 4-operator mode (pairing up to 12 channels to make up to six 4-operator channels), quadraphonic output and some other things.
 
 afterwards everyone moved to Windows and software mixed PCM streaming...
 
-# effects
+## effects
 
 - `10xx`: **set AM depth.** the following values are accepted:
   - `0`: 1dB (shallow)
@@ -27,9 +27,9 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
   - only in 4-op mode (OPL3).
 - `15xx`: **set operator 4 level.**
   - only in 4-op mode (OPL3).
-- `16xy`: **sSet multiplier of operator.**
+- `16xy`: **set multiplier of operator.**
   - `x` is the operator (1-4; last 2 operators only in 4-op mode).
-  - `y` is the multiplier.
+  - `y` is the new MULT value..
 - `17xx`: **set vibrato depth.**
   - `0`: normal
   - `1`: double
@@ -79,6 +79,6 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
   - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` determines whether KSR is on.
 
-# info
+## info
 
 this chip uses the [FM (OPL)](../4-instrument/fm-opl.md) instrument editor.

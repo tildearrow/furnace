@@ -597,7 +597,9 @@ void DivEngine::registerSystems() {
     {0x1a, {DIV_CMD_C64_RESET_MASK, "1Axx: Disable envelope reset for this channel (1 disables; 0 enables)"}},
     {0x1b, {DIV_CMD_C64_FILTER_RESET, "1Bxy: Reset cutoff (x: on new note; y: now)"}},
     {0x1c, {DIV_CMD_C64_DUTY_RESET, "1Cxy: Reset pulse width (x: on new note; y: now)"}},
-    {0x1e, {DIV_CMD_C64_EXTENDED, "1Exy: Change additional parameters"}},
+    {0x1e, {DIV_CMD_C64_EXTENDED, "1Exy: Change other parameters (LEGACY)"}},
+    {0x20, {DIV_CMD_C64_AD, "20xy: Set attack/decay (x: attack; y: decay)"}},
+    {0x21, {DIV_CMD_C64_SR, "21xy: Set sustain/release (x: sustain; y: release)"}},
   };
   const EffectHandler c64FineDutyHandler(DIV_CMD_C64_FINE_DUTY, "3xxx: Set pulse width (0 to FFF)", effectValLong<12>);
   const EffectHandler c64FineCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, "4xxx: Set cutoff (0 to 7FF)", effectValLong<11>);
@@ -674,7 +676,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_PCE]=new DivSysDef(
     "PC Engine/TurboGrafx-16", NULL, 0x05, 0x05, 6, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "an '80's game console with a wavetable sound chip, popular in Japan.",
+    "an '80s game console with a wavetable sound chip, popular in Japan.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
@@ -691,12 +693,12 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_NES]=new DivSysDef(
     "NES (Ricoh 2A03)", NULL, 0x06, 0x06, 5, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_1BIT_DPCM)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
-    "also known as Famicom in Japan, it's the most well-known game console of the '80's.",
+    "also known as Famicom in Japan, it's the most well-known game console of the '80s.",
     {"Pulse 1", "Pulse 2", "Triangle", "Noise", "DPCM"},
     {"S1", "S2", "TR", "NO", "DMC"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM},
-    {DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_AMIGA},
-    {},
+    {DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES},
+    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
     {
       {0x11, {DIV_CMD_NES_DMC, "11xx: Write to delta modulation counter (0 to 7F)"}},
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"}},
@@ -792,7 +794,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_AMIGA]=new DivSysDef(
     "Amiga", NULL, 0x81, 0, 4, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "a computer from the '80's with full sampling capabilities, giving it a sound ahead of its time.",
+    "a computer from the '80s with full sampling capabilities, giving it a sound ahead of its time.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1137,7 +1139,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_PCSPKR]=new DivSysDef(
     "PC Speaker", NULL, 0x93, 0, 1, false, true, 0, false, 0,
-    "good luck!",
+    "good luck! you get one square and no volume control.",
     {"Square"},
     {"SQ"},
     {DIV_CH_PULSE},
@@ -1146,7 +1148,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_PONG]=new DivSysDef(
     "Pong", NULL, 0xfc, 0, 1, false, true, 0, false, 0,
-    "LOL",
+    "please don't use this chip. it was added as a joke.",
     {"Square"},
     {"SQ"},
     {DIV_CH_PULSE},
@@ -1180,8 +1182,8 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_SWAN]=new DivSysDef(
     "WonderSwan", NULL, 0x96, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "developed by the same team under the Game Boy and the Virtual Boy...",
-    {"Wave", "Wave/PCM", "Wave", "Wave/Noise"},
+    "developed by the makers of the Game Boy and the Virtual Boy...",
+    {"Wave", "Wave/PCM", "Wave/Sweep", "Wave/Noise"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_WAVE, DIV_CH_PCM, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN},
@@ -1617,7 +1619,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_ADPCMB},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_AMIGA},
-    fmEffectHandlerMap,
+    fmOPLDrumsEffectHandlerMap,
     fmOPLPostEffectHandlerMap
   );
 
@@ -1649,7 +1651,7 @@ void DivEngine::registerSystems() {
     {0x1e, {DIV_CMD_SU_SYNC_PERIOD_LOW, "1Exx: Set phase reset period low byte"}},
     {0x1f, {DIV_CMD_SU_SYNC_PERIOD_HIGH, "1Fxx: Set phase reset period high byte"}},
     {0x20, {DIV_CMD_SU_SWEEP_ENABLE, "20xx: Toggle frequency sweep (bit 0-6: speed; bit 7: direction is up)", constVal<0>, effectVal}},
-    {0x21, {DIV_CMD_SU_SWEEP_ENABLE, "21xx: Toggle volume sweep (bit 0-4: speed; bit 5: direciton is up; bit 6: loop; bit 7: alternate)", constVal<1>, effectVal}},
+    {0x21, {DIV_CMD_SU_SWEEP_ENABLE, "21xx: Toggle volume sweep (bit 0-4: speed; bit 5: direction is up; bit 6: loop; bit 7: alternate)", constVal<1>, effectVal}},
     {0x22, {DIV_CMD_SU_SWEEP_ENABLE, "22xx: Toggle cutoff sweep (bit 0-6: speed; bit 7: direction is up)", constVal<2>, effectVal}},
   };
   const EffectHandler suCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, "4xxx: Set cutoff (0 to FFF)", effectValLong<12>);
@@ -1708,6 +1710,10 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap namcoEffectHandlerMap={
     {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+  };
+
+  EffectHandlerMap namcoC30EffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
     {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
   };
 
@@ -1741,7 +1747,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    namcoEffectHandlerMap
+    namcoC30EffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_MSM5232]=new DivSysDef(
@@ -1820,7 +1826,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_GA20]=new DivSysDef(
     "Irem GA20", NULL, 0xc7, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "yet another PCM chip from Irem.",
+    "yet another PCM chip from Irem. like Amiga, but less pitch resolution and no sample loop.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1890,7 +1896,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_C140]=new DivSysDef(
     "Namco C140", NULL, 0xce, 0, 24, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_MULAW)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
-    "Namco's first PCM chip from 1987.",
+    "Namco's first PCM chip from 1987. it's pretty good for being so.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1901,7 +1907,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_C219]=new DivSysDef(
     "Namco C219", NULL, 0xcf, 0, 16, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_C219)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
-    "Namco's PCM chip used in their NA-1/2 hardware.",
+    "Namco's PCM chip used in their NA-1/2 hardware.\nvery similar to C140, but has noise generator.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},

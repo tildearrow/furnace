@@ -32,6 +32,16 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 181: Furnace 0.6
+- 180: Furnace 0.6pre18
+- 179: Furnace 0.6pre17
+- 178: Furnace 0.6pre16
+- 177: Furnace 0.6pre15
+- 175: Furnace 0.6pre14
+- 174: Furnace 0.6pre13
+- 173: Furnace 0.6pre12
+- 172: Furnace 0.6pre11
+- 171: Furnace 0.6pre10
 - 169: Furnace 0.6pre9
 - 166: Furnace 0.6pre8
 - 162: Furnace 0.6pre7
@@ -224,6 +234,7 @@ size | description
      |   - 0xce: Namco C140 - 24 channels
      |   - 0xcf: Namco C219 - 16 channels
      |   - 0xd0: Namco C352 - 32 channels (UNAVAILABLE)
+     |   - 0xd1: ESFM - 18 channels (UNAVAILABLE)
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel
@@ -350,7 +361,9 @@ size | description
   1  | broken portamento during legato
   1  | broken macro during note off in some FM chips (>=155)
   1  | pre note (C64) does not compensate for portamento or legato (>=168)
-  5  | reserved
+  1  | disable new NES DPCM features (>=183)
+  1  | reset arp effect phase on new note (>=184)
+  3  | reserved
  --- | **speed pattern of first song** (>=139)
   1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
@@ -621,7 +634,9 @@ size | description
   1  | osc sync
   1  | to filter
   1  | init filter
-  1  | vol macro is cutoff
+  1  | vol macro is cutoff (<187) or reserved
+     | - from version 187 onwards, volume and cutoff macros are separate.
+     | - if this is on and the version is less than 187, move the volume macro into the ALG one.
   1  | resonance
   1  | low pass
   1  | band pass
@@ -1109,6 +1124,24 @@ size | description
   - `val[14]`: loop
   - `val[15]`: global (not sure how will I implement this)
 
+## C64 compatibility note (>=187)
+
+in Furnace dev187 the volume and cutoff macros have been separated, as noted above.
+however, there are two other changes as well: **inverted relative (non-absolute) cutoff macro**; and a new, improved Special macro.
+
+if version is less than 187, you must convert the Special macro:
+1. do not continue if ex4 is not a Sequence type macro!
+2. move bit 0 of ex4 macro data into bit 3.
+3. set bit 0 on all steps of ex4 macro to 1.
+4. if ex3 is not a Sequence type macro, stop here.
+5. if ex3 macro length is 0, stop here.
+6. merge the ex3 macro (former Special) into ex4 (former Test).
+  - use the largest size (between ex3 and ex4).
+  - if the ex3 macro is shorter than the ex4 one, use the last value of ex3, and vice-versa.
+  - if the ex4 macro length is 0, expand it to the largest size, and set all steps to 1.
+
+don't worry about loop or release...
+
 # wavetable
 
 ```
@@ -1215,7 +1248,7 @@ size | description
  STR | pattern name (>=51)
  ??? | pattern data
      | - read a byte per row.
-     | - if it is 0xff, end of pattern.
+     | - if it is 0xff, end of data. the rest of the pattern is empty.
      | - if bit 7 is set, then read bit 0-6 as "skip N+2 rows".
      | - if bit 7 is clear, then:
      |   - bit 0: note present

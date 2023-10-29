@@ -30,8 +30,8 @@ cp -v ../../../res/logo.png furnace.png || exit 1
 ln -s furnace.png .DirIcon || exit 1
 cp -v ../../../res/furnace.desktop . || exit 1
 #mkdir -p usr/share/metainfo || exit 1
-cp -v ../../../res/furnace.appdata.xml usr/share/metainfo/org.tildearrow.furnace.metainfo.xml || exit 1
-rm usr/share/metainfo/furnace.appdata.xml || exit 1
+#cp -v ../../../res/furnace.appdata.xml usr/share/metainfo/org.tildearrow.furnace.metainfo.xml || exit 1
+#rm usr/share/metainfo/furnace.appdata.xml || exit 1
 cp -v ../../../res/AppRun . || exit 1
 
 #cp /usr/lib/libm.so.6 usr/lib/ || exit 1

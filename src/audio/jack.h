@@ -18,8 +18,7 @@
  */
 
 #include "taAudio.h"
-#include <jack/weakjack.h>
-#include <jack/jack.h>
+#include "../../extern/weakjack/weak_libjack.h"
 
 class TAAudioJACK: public TAAudio {
   jack_client_t* ac;

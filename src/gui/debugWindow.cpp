@@ -574,6 +574,16 @@ void FurnaceGUI::drawDebug() {
       ImGui::PlotLines("##DebugFMPreview",asFloat,FM_PREVIEW_SIZE,0,"Preview",-1.0,1.0,ImVec2(300.0f*dpiScale,150.0f*dpiScale));
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Recent Files")) {
+      ImGui::Text("Items: %d - Max: %d",(int)recentFile.size(),settings.maxRecentFile);
+      ImGui::Text("readPos: %d - writePos: %d",(int)recentFile.readPos,(int)recentFile.writePos);
+      ImGui::Indent();
+      for (size_t i=0; i<recentFile.size(); i++) {
+        ImGui::Text("%d: %s",(int)i,recentFile[i].c_str());
+      }
+      ImGui::Unindent();
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("User Interface")) {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;

@@ -42,7 +42,8 @@ void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
   has=had=actualHad=will=true;
   mode=source.mode;
   type=(source.open>>1)&3;
-  linger=(source.name=="vol" && e->song.volMacroLinger);
+  activeRelease=source.open&8;
+  linger=(source.macroType==DIV_MACRO_VOL && e->song.volMacroLinger);
   lfoPos=LFO_PHASE;
 }
 
@@ -57,6 +58,10 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
     return;
   }
   if (released && type==1 && lastPos<3) delay=0;
+  if (released && type==0 && pos<source.rel && source.rel<source.len && activeRelease) {
+    delay=0;
+    pos=source.rel;
+  }
   if (delay>0) {
     delay--;
     if (!linger) had=false;
@@ -419,108 +424,58 @@ void DivMacroInt::notifyInsDeletion(DivInstrument* which) {
   }
 }
 
-// randomly-generated
-constexpr unsigned int hashTable[256]={
-  0x0718657, 0xe904eb33, 0x14b2da2b, 0x0ef67ca9,
-  0x0f0559a, 0x4142065a, 0x4d9ab4ba, 0x3cdd601a,
-  0x6635aca, 0x2c41ab72, 0xf98e8d31, 0x1003ee63,
-  0x3fd9fb5, 0x30734d16, 0xe8964431, 0x29bb9b79,
-  0x817f580, 0xfe083b9e, 0x974b5e85, 0x3b5729c2,
-  0x2afea96, 0xf1573b4b, 0x308a1024, 0xaa94b92d,
-  0x693fa93, 0x547ba3da, 0xac4f206c, 0x93f72ea9,
-  0xcc44001, 0x37e27670, 0xf35a63d0, 0xd1cdbb92,
-  0x7c7ee24, 0xfa267ee9, 0xf9cd9956, 0x6a6768d4,
-  0x9e6a108, 0xf6ca4bd0, 0xa53cba9f, 0x526a523a,
-  0xf46f0c8, 0xf131bd4c, 0x82800d48, 0xabff9214,
-  0x40eabd4, 0xea0ef8f7, 0xdc3968d6, 0x54c3cb63,
-  0x8855023, 0xaab73861, 0xff0bea2c, 0x139b9765,
-  0x4a21279, 0x6b2aa29a, 0xf147cc3f, 0xc42edc1a,
-  0xfe2f86f, 0x6d352047, 0xd3cac3e4, 0x35e5c389,
-  0xe923727, 0x12fe3b32, 0x204295c5, 0x254a8b7a,
-  0xc1d995d, 0x26a512d2, 0xa3e34033, 0x9a968df0,
-  0x53447ed, 0x36cf4077, 0x189b03a7, 0x558790e8,
-  0x01f921a, 0x840f260c, 0x93dd2b86, 0x12f69cb0,
-  0x117d93a, 0xcb2cbc2b, 0xd41e3aed, 0x5ff6ec75,
-  0x607290d, 0xd41adb92, 0x64f94ba7, 0xaff720f7,
-  0x6bf1d5d, 0xc8e36c6d, 0x7095bab5, 0xdfbf7b0d,
-  0x01ddeea, 0xe8f262da, 0xf589512f, 0xc2ecac5d,
-  0xbe29d98, 0xff8b5a2e, 0x18e7279e, 0x6ad24dcb,
-  0x2b3b9b1, 0x6f5227d8, 0x076d7553, 0x6c5856e2,
-  0x995f655, 0xe9fcf5a6, 0x83671b70, 0xaf3aed1e,
-  0xac340f0, 0x5c7008b4, 0x14651282, 0x8bf855b9,
-  0x4a933af, 0x829b87f1, 0x9a673070, 0xb19da64f,
-  0x77d8f36, 0x584c9fdc, 0xa9e52c0d, 0x6da5e13d,
-  0xae1051f, 0xe85e976f, 0xfeac2d9a, 0x19c46754,
-  0x1cba6f3, 0xaf21bc31, 0x16b6a8d4, 0xe08b0fdb,
-  0x97e6e54, 0x5da499ae, 0xab472e19, 0xc2491f2e,
-  0xc08c563, 0xe91b131b, 0xc8e22451, 0x6995c8fe,
-  0x7042718, 0x01043738, 0xc7d88b28, 0x2d9f330f,
-  0x4b3aae5, 0xf1e705ba, 0xc5b8ee59, 0xa8ba4e8f,
-  0x55f65a2, 0xa1899e41, 0x296243c8, 0x1e502bf2,
-  0x20080de, 0x841d2239, 0x37b082af, 0xbdd7f7da,
-  0x4075090, 0x1dc7dc49, 0x5cd3c69a, 0x7fb13b62,
-  0xb382bf1, 0xa0cfbc2f, 0x9eca4dc1, 0xb9355453,
-  0x5d0dd24, 0x834f4d8e, 0xe9b136b2, 0xe7b8738d,
-  0x1c91d41, 0x8cb3ddb5, 0xdc600590, 0x607cff55,
-  0x2ca7675, 0x4622a8e4, 0x9340e414, 0xcb44928a,
-  0xa9e791c, 0x68849920, 0xc5b5fcd8, 0xbc352269,
-  0x3ab13cf, 0xaa3cbbd0, 0x1abacc64, 0x623b5b49,
-  0xcc8c4c3, 0x3c8f2f70, 0x3e584a28, 0x9316d24d,
-  0xfe315a2, 0x10f0ba7a, 0xed15a523, 0x4f987369,
-  0x7aa4a4a, 0x90eaf98f, 0xcf0af610, 0x1b38f4e7,
-  0x19df72d, 0xd8306808, 0xd54e25ac, 0x76b79c6d,
-  0x58110cf, 0x06a3e5f2, 0x873a6039, 0xf52684e3,
-  0xecf39c3, 0x7cbb2759, 0xe280d361, 0x91e8471a,
-  0xa67cdd3, 0x17cac3be, 0xfc9eff1f, 0x71abdf49,
-  0x6168624, 0xb68f86f7, 0x67a8e72a, 0xe746911d,
-  0xca48fd7, 0x8f3cc436, 0x3a3851a8, 0x30a7e26e,
-  0xca49308, 0xb598ef74, 0x49ef167a, 0xa9e17632,
-  0x0f7308a, 0xf156efed, 0xcf799645, 0xbae4b85a,
-  0xecba3fe, 0xd97f861d, 0xc164af62, 0xb1aca42f,
-  0xf249576, 0x83d1bf4e, 0x2f486a9c, 0xd3b53cc2,
-  0x17d7c26, 0xd95ddae1, 0x76c1a2f5, 0xf8af6782,
-  0xdbaece4, 0x010b2b53, 0x049be200, 0xd9fd0d1a,
-  0x37d7e6c, 0x5b848651, 0x203c98c7, 0x669681b0,
-  0x683086f, 0xdd0ee8ab, 0x5dbe008b, 0xe5d0690d,
-  0x23dd758, 0x6b34acbc, 0x4b2b3e65, 0xcc7b56c1,
-  0x196b0a0, 0x7b065105, 0xb731b01a, 0xd37daa16,
-  0xf77816b, 0x3c9fa546, 0x81dfadb8, 0x39b1fb8b
-};
+#define CONSIDER(x,y) case (y&0x1f): return &x; break;
 
-constexpr unsigned int NAME_HASH(const char* name) {
-  unsigned int nameHash=0xffffffff;
-  for (const char* i=name; *i; i++) {
-    nameHash=(nameHash>>8)^hashTable[(unsigned char)*i];
+DivMacroStruct* DivMacroInt::structByType(unsigned char type) {
+  if (type>=0x20) {
+    unsigned char o=((type>>5)-1)&3;
+    switch (type&0x1f) {
+      CONSIDER(op[o].am,DIV_MACRO_OP_AM)
+      CONSIDER(op[o].ar,DIV_MACRO_OP_AR)
+      CONSIDER(op[o].dr,DIV_MACRO_OP_DR)
+      CONSIDER(op[o].mult,DIV_MACRO_OP_MULT)
+      CONSIDER(op[o].rr,DIV_MACRO_OP_RR)
+      CONSIDER(op[o].sl,DIV_MACRO_OP_SL)
+      CONSIDER(op[o].tl,DIV_MACRO_OP_TL)
+      CONSIDER(op[o].dt2,DIV_MACRO_OP_DT2)
+      CONSIDER(op[o].rs,DIV_MACRO_OP_RS)
+      CONSIDER(op[o].dt,DIV_MACRO_OP_DT)
+      CONSIDER(op[o].d2r,DIV_MACRO_OP_D2R)
+      CONSIDER(op[o].ssg,DIV_MACRO_OP_SSG)
+      CONSIDER(op[o].dam,DIV_MACRO_OP_DAM)
+      CONSIDER(op[o].dvb,DIV_MACRO_OP_DVB)
+      CONSIDER(op[o].egt,DIV_MACRO_OP_EGT)
+      CONSIDER(op[o].ksl,DIV_MACRO_OP_KSL)
+      CONSIDER(op[o].sus,DIV_MACRO_OP_SUS)
+      CONSIDER(op[o].vib,DIV_MACRO_OP_VIB)
+      CONSIDER(op[o].ws,DIV_MACRO_OP_WS)
+      CONSIDER(op[o].ksr,DIV_MACRO_OP_KSR)
+    }
+
+    return NULL;
   }
-  return nameHash;
-}
 
-#define CONSIDER(x) case NAME_HASH(#x): return &x; break;
-
-DivMacroStruct* DivMacroInt::structByName(const String& name) {
-  unsigned int hash=NAME_HASH(name.c_str());
-
-  switch (hash) {
-    CONSIDER(vol)
-    CONSIDER(arp)
-    CONSIDER(duty)
-    CONSIDER(wave)
-    CONSIDER(pitch)
-    CONSIDER(ex1)
-    CONSIDER(ex2)
-    CONSIDER(ex3)
-    CONSIDER(alg)
-    CONSIDER(fb)
-    CONSIDER(fms)
-    CONSIDER(ams)
-    CONSIDER(panL)
-    CONSIDER(panR)
-    CONSIDER(phaseReset)
-    CONSIDER(ex4)
-    CONSIDER(ex5)
-    CONSIDER(ex6)
-    CONSIDER(ex7)
-    CONSIDER(ex8)
+  switch (type) {
+    CONSIDER(vol,DIV_MACRO_VOL)
+    CONSIDER(arp,DIV_MACRO_ARP)
+    CONSIDER(duty,DIV_MACRO_DUTY)
+    CONSIDER(wave,DIV_MACRO_WAVE)
+    CONSIDER(pitch,DIV_MACRO_PITCH)
+    CONSIDER(ex1,DIV_MACRO_EX1)
+    CONSIDER(ex2,DIV_MACRO_EX2)
+    CONSIDER(ex3,DIV_MACRO_EX3)
+    CONSIDER(alg,DIV_MACRO_ALG)
+    CONSIDER(fb,DIV_MACRO_FB)
+    CONSIDER(fms,DIV_MACRO_FMS)
+    CONSIDER(ams,DIV_MACRO_AMS)
+    CONSIDER(panL,DIV_MACRO_PAN_LEFT)
+    CONSIDER(panR,DIV_MACRO_PAN_RIGHT)
+    CONSIDER(phaseReset,DIV_MACRO_PHASE_RESET)
+    CONSIDER(ex4,DIV_MACRO_EX4)
+    CONSIDER(ex5,DIV_MACRO_EX5)
+    CONSIDER(ex6,DIV_MACRO_EX6)
+    CONSIDER(ex7,DIV_MACRO_EX7)
+    CONSIDER(ex8,DIV_MACRO_EX8)
   }
 
   return NULL;

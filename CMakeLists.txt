@@ -8,6 +8,7 @@ project(furnace)
 
 if (APPLE)
   enable_language(OBJC)
+  enable_language(OBJCXX)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
@@ -24,6 +25,15 @@ set(SYSTEM_SDL2_DEFAULT OFF)
 
 include(CheckIncludeFile)
 include(TestBigEndian)
+
+execute_process(COMMAND git status RESULT_VARIABLE DONT_HAVE_GIT WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+if (NOT DONT_HAVE_GIT)
+  message(STATUS "Git is available")
+else()
+  message(WARNING "either Git is not available, or this Git repository has not been initialized.
+if you have used the \"Source code\" option in the GitHub release page, you are doing it wrong! unless you manually initialize submodules, the build is guaranteed to FAIL spectacularly!
+read the \"developer info\" section of README.md for more information.")
+endif()
 
 if (ANDROID)
   set(USE_RTMIDI_DEFAULT OFF)
@@ -85,8 +95,10 @@ option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." 
 option(WITH_RENDER_OPENGL "Whether to build with the OpenGL render backend." ${WITH_RENDER_OPENGL_DEFAULT})
 option(WITH_RENDER_DX11 "Whether to build with the DirectX 11 render backend." ${WITH_RENDER_DX11_DEFAULT})
 option(USE_GLES "Use OpenGL ES for the OpenGL render backend." ${USE_GLES_DEFAULT})
+option(USE_FREETYPE "Use FreeType for font rendering." ON)
 option(SYSTEM_FFTW "Use a system-installed version of FFTW instead of the vendored one" OFF)
 option(SYSTEM_FMT "Use a system-installed version of fmt instead of the vendored one" OFF)
+option(SYSTEM_FREETYPE "Use a system-installed version of FreeType instead of the vendored one" OFF)
 option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead of the vendored one" OFF)
 option(SYSTEM_PORTAUDIO "Use a system-installed version of PortAudio instead of the vendored one" OFF)
 option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the vendored one" OFF)
@@ -98,7 +110,7 @@ option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 
-set(DEPENDENCIES_INCLUDE_DIRS "")
+set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
 
 if (ANDROID AND NOT TERMUX)
   set(DEPENDENCIES_DEFINES "IS_MOBILE")
@@ -182,6 +194,39 @@ else()
   message(STATUS "Using vendored fmt")
 endif()
 
+if (BUILD_GUI AND USE_FREETYPE)
+  # TODO: FIX FIX FIX FIX FIX
+  if (SYSTEM_FREETYPE)
+    if (PKG_CONFIG_FOUND)
+      pkg_check_modules(FREETYPE freetype>=2.0.0)
+      if (FREETYPE_FOUND)
+        list(APPEND DEPENDENCIES_INCLUDE_DIRS ${FMT_INCLUDE_DIRS})
+        list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${FMT_CFLAGS_OTHER})
+        list(APPEND DEPENDENCIES_LIBRARIES ${FMT_LIBRARIES})
+        list(APPEND DEPENDENCIES_LIBRARY_DIRS ${FMT_LIBRARY_DIRS})
+        list(APPEND DEPENDENCIES_LINK_OPTIONS ${FMT_LDFLAGS_OTHER})
+        list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${FMT_LDFLAGS})
+      endif()
+    endif()
+    if (NOT FREETYPE_FOUND)
+      find_package(freetype REQUIRED)
+      list(APPEND DEPENDENCIES_LIBRARIES freetype::freetype)
+    endif()
+    message(STATUS "Using system-installed FreeType")
+  else()
+    set(FT_DISABLE_BROTLI ON CACHE BOOL "one" FORCE)
+    set(FT_DISABLE_BZIP2 ON CACHE BOOL "two" FORCE)
+    set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "three" FORCE)
+    set(FT_DISABLE_PNG ON CACHE BOOL "four" FORCE)
+    set(FT_DISABLE_ZLIB ON CACHE BOOL "five" FORCE)
+    add_subdirectory(extern/freetype EXCLUDE_FROM_ALL)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/freetype/include)
+    list(APPEND DEPENDENCIES_LIBRARIES freetype)
+    message(STATUS "Using vendored FreeType")
+  endif()
+  list(APPEND DEPENDENCIES_DEFINES HAVE_FREETYPE)
+endif()
+
 if (USE_SNDFILE)
   list(APPEND DEPENDENCIES_DEFINES HAVE_SNDFILE)
   if (SYSTEM_LIBSNDFILE)
@@ -211,7 +256,7 @@ endif()
 if (WITH_PORTAUDIO)
   if (SYSTEM_PORTAUDIO)
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(PORTAUDIO REQUIRED portaudio)
+    pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS ${PORTAUDIO_INCLUDE_DIRS})
     list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${PORTAUDIO_CFLAGS_OTHER})
     list(APPEND DEPENDENCIES_LIBRARIES ${PORTAUDIO_LIBRARIES})
@@ -315,6 +360,11 @@ if (USE_SDL2)
       set(SDL_RENDER_D3D OFF CACHE BOOL "Enable the Direct3D render driver" FORCE)
     endif()
 
+    CHECK_INCLUDE_FILE(GLES/gl.h GLES_GL_FOUND)
+    if (NOT GLES_GL_FOUND AND NOT USE_GLES)
+      set(SDL_OPENGLES OFF CACHE BOOL "Enable OpenGL ES" FORCE)
+    endif()
+
     add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_DEFINES HAVE_SDL2)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
@@ -357,14 +407,16 @@ endif()
 if (WITH_JACK)
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(JACK REQUIRED jack)
+  list(APPEND AUDIO_SOURCES extern/weakjack/weak_libjack.c)
   list(APPEND AUDIO_SOURCES src/audio/jack.cpp)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS ${JACK_INCLUDE_DIRS})
   list(APPEND DEPENDENCIES_DEFINES HAVE_JACK)
-  list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${JACK_CFLAGS_OTHER})
-  list(APPEND DEPENDENCIES_LIBRARIES ${JACK_LIBRARIES})
-  list(APPEND DEPENDENCIES_LIBRARY_DIRS ${JACK_LIBRARY_DIRS})
-  list(APPEND DEPENDENCIES_LINK_OPTIONS ${JACK_LDFLAGS_OTHER})
-  list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${JACK_LDFLAGS})
+  list(APPEND DEPENDENCIES_DEFINES USE_WEAK_JACK)
+  #list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${JACK_CFLAGS_OTHER})
+  #list(APPEND DEPENDENCIES_LIBRARIES ${JACK_LIBRARIES})
+  #list(APPEND DEPENDENCIES_LIBRARY_DIRS ${JACK_LIBRARY_DIRS})
+  #list(APPEND DEPENDENCIES_LINK_OPTIONS ${JACK_LDFLAGS_OTHER})
+  #list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${JACK_LDFLAGS})
   message(STATUS "Building with JACK support")
 else()
   message(STATUS "Building without JACK support")
@@ -437,6 +489,9 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+
+src/pch.cpp
+
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -550,6 +605,7 @@ src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
+src/engine/workPool.cpp
 src/engine/cmdStream.cpp
 src/engine/cmdStreamOps.cpp
 src/engine/config.cpp
@@ -564,6 +620,7 @@ src/engine/filter.cpp
 src/engine/instrument.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp
+src/engine/pitchTable.cpp
 src/engine/playback.cpp
 src/engine/sample.cpp
 src/engine/song.cpp
@@ -761,6 +818,10 @@ if (WIN32 AND NOT SUPPORT_XP)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_win.cpp)
 endif()
 
+if (USE_FREETYPE)
+  list(APPEND GUI_SOURCES extern/imgui_patched/misc/freetype/imgui_freetype.cpp)
+endif()
+
 if (APPLE)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
   list(APPEND GUI_SOURCES src/gui/macstuff.m)
@@ -859,7 +920,6 @@ if (BUILD_GUI)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS
     extern/imgui_patched
     extern/imgui_patched/backends
-    extern/IconFontCppHeaders
     extern/igfd
   )
   if (WIN32 OR APPLE)
@@ -920,6 +980,15 @@ if (WARNINGS_ARE_ERRORS)
   )
 endif()
 
+if (NOT ANDROID OR TERMUX)
+  if (NOT WIN32 AND NOT APPLE)
+    if (NOT DONT_HAVE_GIT)
+      add_custom_command(OUTPUT furnace.appdata.xml COMMAND res/make-appdata.sh ARGS ${CMAKE_SOURCE_DIR}/res/furnace.appdata.xml.in ${CMAKE_BINARY_DIR}/furnace.appdata.xml DEPENDS res/furnace.appdata.xml.in WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+      list(APPEND USED_SOURCES furnace.appdata.xml)
+    endif()
+  endif()
+endif()
+
 if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
 elseif(WIN32)
@@ -945,12 +1014,29 @@ if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYST
   endif()
 endif()
 
+# why 3.16..... why not 3.0?
+if (NOT "${CMAKE_VERSION}" VERSION_LESS "3.16")
+  if (BUILD_GUI)
+  target_precompile_headers(furnace PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui_internal.h>
+  )
+  else()
+    target_precompile_headers(furnace PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+    )
+  endif()
+endif()
+
 if (NOT ANDROID OR TERMUX)
   if (NOT WIN32 AND NOT APPLE)
     include(GNUInstallDirs)
     install(TARGETS furnace RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
-    install(FILES res/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    if (NOT DONT_HAVE_GIT)
+      install(FILES ${CMAKE_BINARY_DIR}/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    endif()
     install(DIRECTORY doc DESTINATION ${CMAKE_INSTALL_DOCDIR})
     install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR}/other)
     install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)

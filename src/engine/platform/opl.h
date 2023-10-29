@@ -21,7 +21,7 @@
 #define _OPL_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "../../../extern/opl/opl3.h"
 #include "sound/ymfm/ymfm_adpcm.h"
 
@@ -115,6 +115,7 @@ class DivPlatformOPL: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
+    DivChannelPair getPaired(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

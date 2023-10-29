@@ -1,12 +1,12 @@
 # log viewer
 
-The log viewer provides a look at Furnace's internal messages. This can be useful for chasing down problems.
+the log viewer provides a look at Furnace's internal messages. this can be useful for chasing down problems.
 
 ![log viewer dialog](log-viewer.png)
 
-If the **Follow** checkbox is enabled, the log will snap to the bottom and continually scroll to show the newest messages. If disabled, it will stay put on what's currently shown.
+if the **Follow** checkbox is enabled, the log will snap to the bottom and continually scroll to show the newest messages. if disabled, it will stay put on what's currently shown.
 
-The **Level** dropdown determines the minimum importance of the messages displayed.
+the **Level** dropdown determines the minimum importance of the messages displayed.
 
 | level | message shown |
 |---|---|

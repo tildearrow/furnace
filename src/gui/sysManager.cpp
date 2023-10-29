@@ -79,14 +79,11 @@ void FurnaceGUI::drawSysManager() {
         }
         ImGui::TableNextColumn();
         if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSM%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-          drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
+          drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
           ImGui::TreePop();
         }
         ImGui::TableNextColumn();
-        ImGui::Button(ICON_FA_CHEVRON_DOWN "##SysChange");
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Change");
-        }
+        ImGui::Button("Change##SysChange");
         if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
           DivSystem picked=systemPicker();
           if (picked!=DIV_SYSTEM_NULL) {

@@ -21,7 +21,7 @@
 #define _MSM5232_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 #include "sound/oki/msm5232.h"
 
 class DivPlatformMSM5232: public DivDispatch {

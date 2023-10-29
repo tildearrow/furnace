@@ -241,8 +241,8 @@ void DivPlatformYM2610::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
-  static int os[2];
-  static short ignored[2];
+  thread_local int os[2];
+  thread_local short ignored[2];
 
   ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
   ymfm::adpcm_a_engine* aae=fm->debug_adpcm_a_engine();
@@ -333,7 +333,7 @@ void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
 
     
     for (int i=0; i<psgChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[bchOffs[i]]<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm_nuked.ch_out[bchOffs[i]]<<1,-32768,32767);
     }
 
     ssge->get_last_out(ssgOut);
@@ -350,7 +350,7 @@ void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
 }
 
 void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   ymfm::ym2610::fm_engine* fme=fm->debug_fm_engine();
   ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
@@ -404,7 +404,8 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
     buf[1][h]=os[1];
 
     for (int i=0; i<psgChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
+      int out=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(out,-32768,32767);
     }
 
     ssge->get_last_out(ssgOut);
@@ -717,6 +718,8 @@ void DivPlatformYM2610::tick(bool sysTick) {
       } else {
         chan[adpcmBChanOffs].freq=0;
       }
+      if (chan[adpcmBChanOffs].freq<0) chan[adpcmBChanOffs].freq=0;
+      if (chan[adpcmBChanOffs].freq>65535) chan[adpcmBChanOffs].freq=65535;
       immWrite(0x19,chan[adpcmBChanOffs].freq&0xff);
       immWrite(0x1a,(chan[adpcmBChanOffs].freq>>8)&0xff);
       hardResetElapsed+=2;

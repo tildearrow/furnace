@@ -1,14 +1,14 @@
-# Namco WSG | Namco C15 | Namco C30
+# Namco WSG / Namco C15 / Namco C30
 
-a family of wavetable synth sound chips used by Namco in their arcade machines (Pacman and later). waveforms are 4-bit, with 32-byte sample length.
+a family of wavetable synth sound chips used by Namco in their arcade machines (Pac-Man and later). waveforms are 4-bit, with 32-byte sample length.
 
 everything starts with Namco WSG, which is a simple 3-channel wavetable with no extra frills. C15 is a much more advanced sound source with 8 channels, and C30 adds stereo output and noise mode.
 
-# effects
+## effects
 
 - `10xx`: **change waveform.**
 - `11xx`: **toggle noise mode.** _warning:_ only on C30.
 
-# info
+## info
 
-this chip uses the [Namco WSG](../4-instrument/namco.md) instrument editor.
+this chip uses the [Namco WSG](../4-instrument/wsg.md) instrument editor.

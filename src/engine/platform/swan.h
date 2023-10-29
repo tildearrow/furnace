@@ -23,7 +23,7 @@
 #include "../dispatch.h"
 #include "../waveSynth.h"
 #include "sound/swan.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 class DivPlatformSwan: public DivDispatch {
   struct Channel: public SharedChannel<int> {
@@ -63,6 +63,7 @@ class DivPlatformSwan: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
+    DivChannelModeHints getModeHints(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

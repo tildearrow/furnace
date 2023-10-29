@@ -21,7 +21,7 @@
 #define _POKEY_H
 
 #include "../dispatch.h"
-#include "../fixedQueue.h"
+#include "../../fixedQueue.h"
 
 extern "C" {
 #include "sound/pokey/mzpokeysnd.h"
@@ -65,6 +65,7 @@ class DivPlatformPOKEY: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    DivChannelPair getPaired(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

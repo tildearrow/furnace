@@ -98,6 +98,7 @@ void FurnaceGUI::doAction(int what) {
       if (!e->isPlaying()) {
         play();
       }
+      e->setRepeatPattern(false);
       break;
     case GUI_ACTION_PLAY_REPEAT:
       play();
@@ -119,6 +120,7 @@ void FurnaceGUI::doAction(int what) {
         curOctave=7;
       } else {
         e->autoNoteOffAll();
+        failedNoteOn=false;
       }
       break;
     case GUI_ACTION_OCTAVE_DOWN:
@@ -126,6 +128,7 @@ void FurnaceGUI::doAction(int what) {
         curOctave=-5;
       } else {
         e->autoNoteOffAll();
+        failedNoteOn=false;
       }
       break;
     case GUI_ACTION_INS_UP:
@@ -184,7 +187,7 @@ void FurnaceGUI::doAction(int what) {
       e->syncReset();
       break;
     case GUI_ACTION_CLEAR:
-      showWarning("Are you sure you want to clear... (cannot be undone!)",GUI_WARN_CLEAR);
+      showWarning("Select an option: (cannot be undone!)",GUI_WARN_CLEAR);
       break;
     case GUI_ACTION_COMMAND_PALETTE:
       displayPalette=true;
@@ -943,7 +946,7 @@ void FurnaceGUI::doAction(int what) {
         sample->strip(start,end);
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       sampleSelStart=-1;
       sampleSelEnd=-1;
@@ -989,7 +992,7 @@ void FurnaceGUI::doAction(int what) {
             memcpy(&(sample->data16[pos]),sampleClipboard,sizeof(short)*sampleClipboardLen);
           }
         }
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       sampleSelStart=pos;
       sampleSelEnd=pos+sampleClipboardLen;
@@ -1019,7 +1022,7 @@ void FurnaceGUI::doAction(int what) {
             sample->data16[pos+i]=sampleClipboard[i];
           }
         }
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       sampleSelStart=pos;
       sampleSelEnd=pos+sampleClipboardLen;
@@ -1056,7 +1059,7 @@ void FurnaceGUI::doAction(int what) {
             sample->data16[pos+i]=val;
           }
         }
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       sampleSelStart=pos;
       sampleSelEnd=pos+sampleClipboardLen;
@@ -1128,7 +1131,7 @@ void FurnaceGUI::doAction(int what) {
 
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       MARK_MODIFIED;
       break;
@@ -1159,7 +1162,7 @@ void FurnaceGUI::doAction(int what) {
 
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       MARK_MODIFIED;
       break;
@@ -1190,7 +1193,7 @@ void FurnaceGUI::doAction(int what) {
 
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       MARK_MODIFIED;
       break;
@@ -1219,7 +1222,7 @@ void FurnaceGUI::doAction(int what) {
 
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       MARK_MODIFIED;
       break;
@@ -1235,7 +1238,7 @@ void FurnaceGUI::doAction(int what) {
         sample->strip(start,end);
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       sampleSelStart=-1;
       sampleSelEnd=-1;
@@ -1253,7 +1256,7 @@ void FurnaceGUI::doAction(int what) {
         sample->trim(start,end);
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       sampleSelStart=-1;
       sampleSelEnd=-1;
@@ -1288,7 +1291,7 @@ void FurnaceGUI::doAction(int what) {
 
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       MARK_MODIFIED;
       break;
@@ -1315,7 +1318,7 @@ void FurnaceGUI::doAction(int what) {
 
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       MARK_MODIFIED;
       break;
@@ -1340,7 +1343,7 @@ void FurnaceGUI::doAction(int what) {
 
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       MARK_MODIFIED;
       break;
@@ -1465,7 +1468,7 @@ void FurnaceGUI::doAction(int what) {
         sample->loop=true;
         updateSampleTex=true;
 
-        e->renderSamples();
+        e->renderSamples(curSample);
       });
       MARK_MODIFIED;
       break;
@@ -1590,8 +1593,6 @@ void FurnaceGUI::doAction(int what) {
       e->deleteOrder(curOrder);
       if (curOrder>=e->curSubSong->ordersLen) {
         curOrder=e->curSubSong->ordersLen-1;
-        oldOrder=curOrder;
-        oldOrder1=curOrder;
         e->setOrder(curOrder);
       }
       makeUndo(GUI_UNDO_CHANGE_ORDER);

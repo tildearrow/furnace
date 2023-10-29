@@ -30,14 +30,12 @@
 #include "cmdStream.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
-#include <atomic>
 #include <functional>
 #include <initializer_list>
 #include <thread>
-#include <mutex>
-#include <map>
-#include <unordered_map>
-#include <deque>
+#include "../fixedQueue.h"
+
+class DivWorkPool;
 
 #define addWarning(x) \
   if (warnings.empty()) { \
@@ -56,8 +54,8 @@
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev170"
-#define DIV_ENGINE_VERSION 170
+#define DIV_VERSION "dev187"
+#define DIV_ENGINE_VERSION 187
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -107,7 +105,7 @@ struct DivChannelState {
   int vibratoDepth, vibratoRate, vibratoPos, vibratoPosGiant, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
   unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR, lastVibrato, lastPorta;
-  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
+  bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff, releasing;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp;
   bool wentThroughNote, goneThroughNote;
 
@@ -156,6 +154,7 @@ struct DivChannelState {
     keyOff(false),
     nowYouCanStop(true),
     stopOnOff(false),
+    releasing(false),
     arpYield(false),
     delayLocked(false),
     inPorta(false),
@@ -174,14 +173,28 @@ struct DivChannelState {
 };
 
 struct DivNoteEvent {
-  int channel, ins, note, volume;
-  bool on;
+  signed char channel;
+  unsigned char ins;
+  signed char note, volume;
+  bool on, nop, pad1, pad2;
   DivNoteEvent(int c, int i, int n, int v, bool o):
     channel(c),
     ins(i),
     note(n),
     volume(v),
-    on(o) {}
+    on(o),
+    nop(false),
+    pad1(false),
+    pad2(false) {}
+  DivNoteEvent():
+    channel(-1),
+    ins(0),
+    note(0),
+    volume(0),
+    on(false),
+    nop(true),
+    pad1(false),
+    pad2(false) {}
 };
 
 struct DivDispatchContainer {
@@ -192,11 +205,15 @@ struct DivDispatchContainer {
   short* bbInMapped[DIV_MAX_OUTPUTS];
   short* bbIn[DIV_MAX_OUTPUTS];
   short* bbOut[DIV_MAX_OUTPUTS];
-  bool lowQuality, dcOffCompensation;
+  bool lowQuality, dcOffCompensation, hiPass;
   double rateMemory;
 
+  // used in multi-thread
+  int cycles;
+  unsigned int size;
+
   void setRates(double gotRate);
-  void setQuality(bool lowQual);
+  void setQuality(bool lowQual, bool dcHiPass);
   void grow(size_t size);
   void acquire(size_t offset, size_t count);
   void flush(size_t count);
@@ -213,7 +230,10 @@ struct DivDispatchContainer {
     lastAvail(0),
     lowQuality(false),
     dcOffCompensation(false),
-    rateMemory(0.0) {
+    hiPass(true),
+    rateMemory(0.0),
+    cycles(0),
+    size(0) {
     memset(bb,0,DIV_MAX_OUTPUTS*sizeof(blip_buffer_t*));
     memset(temp,0,DIV_MAX_OUTPUTS*sizeof(int));
     memset(prevSample,0,DIV_MAX_OUTPUTS*sizeof(int));
@@ -370,6 +390,7 @@ class DivEngine {
   int chans;
   bool active;
   bool lowQuality;
+  bool dcHiPass;
   bool playing;
   bool freelance;
   bool shallStop, shallStopSched;
@@ -420,11 +441,11 @@ class DivEngine {
   DivAudioExportModes exportMode;
   double exportFadeOut;
   DivConfig conf;
-  std::deque<DivNoteEvent> pendingNotes;
+  FixedQueue<DivNoteEvent,8192> pendingNotes;
   // bitfield
   unsigned char walked[8192];
   bool isMuted[DIV_MAX_CHANS];
-  std::mutex isBusy, saveLock;
+  std::mutex isBusy, saveLock, playPosLock;
   String configPath;
   String configFile;
   String lastError;
@@ -482,8 +503,12 @@ class DivEngine {
   float metroFreq, metroPos;
   float metroAmp;
   float metroVol;
+  float previewVol;
 
   size_t totalProcessed;
+
+  unsigned int renderPoolThreads;
+  DivWorkPool* renderPool;
 
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
@@ -573,6 +598,7 @@ class DivEngine {
     DivSystem sysOfChan[DIV_MAX_CHANS];
     int dispatchOfChan[DIV_MAX_CHANS];
     int dispatchChanOfChan[DIV_MAX_CHANS];
+    int dispatchFirstChan[DIV_MAX_CHANS];
     bool keyHit[DIV_MAX_CHANS];
     float* oscBuf[DIV_MAX_OUTPUTS];
     float oscSize;
@@ -697,11 +723,11 @@ class DivEngine {
     // find song loop position
     void walkSong(int& loopOrder, int& loopRow, int& loopEnd);
 
-    // play
-    void play();
+    // play (returns whether successful)
+    bool play();
 
-    // play to row
-    void playToRow(int row);
+    // play to row (returns whether successful)
+    bool playToRow(int row);
 
     // play by one row
     void stepOne(int row);
@@ -714,8 +740,12 @@ class DivEngine {
 
     // sample preview query
     bool isPreviewingSample();
+    int getSamplePreviewSample();
     int getSamplePreviewPos();
     double getSamplePreviewRate();
+
+    // set sample preview volume (1.0 = 100%)
+    void setSamplePreviewVol(float vol);
 
     // trigger sample preview
     void previewSample(int sample, int note=-1, int pStart=-1, int pEnd=-1);
@@ -818,6 +848,9 @@ class DivEngine {
     // get current row
     int getRow();
 
+    // synchronous get order/row
+    void getPlayPos(int& order, int& row);
+
     // get beat/bar
     int getElapsedBars();
     int getElapsedBeats();
@@ -850,6 +883,9 @@ class DivEngine {
     // get ext value
     unsigned char getExtValue();
 
+    // dump song info to stdout
+    void dumpSongInfo();
+
     // is playing
     bool isPlaying();
 
@@ -870,13 +906,14 @@ class DivEngine {
 
     // get instrument from file
     // if the returned vector is empty then there was an error.
-    std::vector<DivInstrument*> instrumentFromFile(const char* path, bool loadAssets=true);
+    std::vector<DivInstrument*> instrumentFromFile(const char* path, bool loadAssets=true, bool readInsName=true);
 
     // load temporary instrument
     void loadTempIns(DivInstrument* which);
 
     // delete instrument
     void delInstrument(int index);
+    void delInstrumentUnsafe(int index);
 
     // add wavetable
     int addWave();
@@ -889,6 +926,7 @@ class DivEngine {
 
     // delete wavetable
     void delWave(int index);
+    void delWaveUnsafe(int index);
 
     // add sample
     int addSample();
@@ -904,6 +942,7 @@ class DivEngine {
 
     // delete sample
     void delSample(int index);
+    void delSampleUnsafe(int index, bool render=true);
 
     // add order
     void addOrder(int pos, bool duplicate, bool where);
@@ -951,7 +990,8 @@ class DivEngine {
     // stop note
     void noteOff(int chan);
 
-    void autoNoteOn(int chan, int ins, int note, int vol=-1);
+    // returns whether it could
+    bool autoNoteOn(int chan, int ins, int note, int vol=-1);
     void autoNoteOff(int chan, int note, int vol=-1);
     void autoNoteOffAll();
 
@@ -962,7 +1002,7 @@ class DivEngine {
     void setOrder(unsigned char order);
 
     // update system flags
-    void updateSysFlags(int system, bool restart);
+    void updateSysFlags(int system, bool restart, bool render);
 
     // set Hz
     void setSongRate(float hz);
@@ -975,6 +1015,12 @@ class DivEngine {
 
     // get dispatch channel state
     void* getDispatchChanState(int chan);
+
+    // get channel pairs
+    DivChannelPair getChanPaired(int chan);
+
+    // get channel mode hints
+    DivChannelModeHints getChanModeHints(int chan);
 
     // get register pool
     unsigned char* getRegisterPool(int sys, int& size, int& depth);
@@ -1052,10 +1098,14 @@ class DivEngine {
     unsigned int getSampleFormatMask();
 
     // UNSAFE render samples - only execute when locked
-    void renderSamples();
+    void renderSamples(int whichSample=-1);
 
     // public render samples
-    void renderSamplesP();
+    // values for whichSample
+    // -2: don't render anything - just update chip sample memory
+    // -1: render all samples
+    // >=0: render specific sample
+    void renderSamplesP(int whichSample=-1);
 
     // public swap channels
     void swapChannelsP(int src, int dest);
@@ -1078,6 +1128,11 @@ class DivEngine {
 
     // clear all subsong data
     void clearSubSongs();
+
+    // optimize assets
+    void delUnusedIns();
+    void delUnusedWaves();
+    void delUnusedSamples();
 
     // change system
     void changeSystem(int index, DivSystem which, bool preserveOrder=true);
@@ -1149,11 +1204,14 @@ class DivEngine {
     // quit dispatch
     void quitDispatch();
 
-    // pre-initialize the engine.
-    void preInit();
+    // pre-initialize the engine. returns whether Furnace should run in safe mode.
+    bool preInit(bool noSafeMode=true);
 
     // initialize the engine.
     bool init();
+
+    // confirm that the engine is running (delete safe mode file).
+    void everythingOK();
 
     // terminate the engine.
     bool quit();
@@ -1168,6 +1226,7 @@ class DivEngine {
       chans(0),
       active(false),
       lowQuality(false),
+      dcHiPass(true),
       playing(false),
       freelance(false),
       shallStop(false),
@@ -1258,7 +1317,10 @@ class DivEngine {
       metroPos(0),
       metroAmp(0.0f),
       metroVol(1.0f),
+      previewVol(1.0f),
       totalProcessed(0),
+      renderPoolThreads(0),
+      renderPool(NULL),
       curOrders(NULL),
       curPat(NULL),
       tempIns(NULL),
@@ -1275,6 +1337,7 @@ class DivEngine {
       mu5ROM(NULL) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
+      memset(dispatchFirstChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));

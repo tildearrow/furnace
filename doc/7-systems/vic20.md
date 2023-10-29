@@ -1,6 +1,6 @@
 # Commodore VIC-20
 
-the Commodore VIC-20 was Commodore's major attempt at making a personal home computer, and is the percursor to the Commodore 64.
+the Commodore VIC-20 was Commodore's major attempt at making a personal home computer, and is the precursor to the Commodore 64.
 
 it was also known as the VC-20 in Germany, and the VIC-1001 in Japan.
 
@@ -17,6 +17,6 @@ these channels are not referred as "square" wave channels since a technique to p
 
 - `10xx`: **switch waveform.** range is `00` to `0F`.
 
-# info
+## info
 
 this chip uses the [VIC](../4-instrument/vic.md) instrument editor.
