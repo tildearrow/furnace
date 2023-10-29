@@ -152,7 +152,7 @@ void FurnaceGUI::drawPalette() {
       bool current=(i==curPaletteChoice);
       int id=paletteSearchResults[i];
 
-      const char* s="???";
+      String s="???";
       switch (curPaletteType) {
       case CMDPAL_TYPE_MAIN:
         s=guiActions[id].friendlyName;
@@ -165,7 +165,7 @@ void FurnaceGUI::drawPalette() {
         if (id==0) {
           s="- None -";
         } else {
-          s=e->song.ins[id-1]->name.c_str();
+          s=fmt::sprintf("%02d: %s", id-1, e->song.ins[id-1]->name.c_str());
         }
         break;
       case CMDPAL_TYPE_SAMPLES:
@@ -179,7 +179,7 @@ void FurnaceGUI::drawPalette() {
         break;
       };
 
-      if (ImGui::Selectable(s,current)) {
+      if (ImGui::Selectable(s.c_str(),current)) {
         curPaletteChoice=i;
         accepted=true;
       }
