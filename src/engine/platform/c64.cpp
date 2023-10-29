@@ -270,7 +270,7 @@ void DivPlatformC64::tick(bool sysTick) {
       if (chan[i].keyOn) {
         rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
         rWrite(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
-        rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|chan[i].gate);
+        rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(chan[i].gate?1:0));
       }
       if (chan[i].keyOff) {
         rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
