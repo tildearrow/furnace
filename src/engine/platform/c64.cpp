@@ -173,6 +173,19 @@ void DivPlatformC64::tick(bool sysTick) {
         willUpdateFilter=true;
       }
     }
+    if (chan[i].std.alg.had) { //new cutoff macro!
+        DivInstrument* ins = parent->getIns(chan[i].ins, DIV_INS_C64);
+        if (ins->c64.filterIsAbs) {
+            filtCut = MIN(2047, chan[i].std.alg.val);
+        }
+        else {
+            filtCut += ((signed char)chan[i].std.alg.val) * 7; //new macro should not be executed in inverted way when in relative mode jesus
+            if (filtCut > 2047) filtCut = 2047;
+            if (filtCut < 0) filtCut = 0;
+        }
+        willUpdateFilter = true;
+    }
+
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
@@ -220,7 +233,38 @@ void DivPlatformC64::tick(bool sysTick) {
     }
     if (chan[i].std.ex4.had) {
       chan[i].test=chan[i].std.ex4.val&1;
+
+      if (newTestBitMacro)
+      {
+          chan[i].active = chan[i].std.ex4.val & 2;
+          if (!chan[i].active)
+          {
+              chan[i].keyOff = true;
+              chan[i].keyOn = false;
+          }
+      }
+      
       rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active));
+    }
+
+    if (chan[i].std.ex5.had) {
+        chan[i].attack = chan[i].std.ex5.val & 15;
+        rWrite(i * 7 + 5, (chan[i].attack << 4) | (chan[i].decay));
+    }
+
+    if (chan[i].std.ex6.had) {
+        chan[i].decay = chan[i].std.ex6.val & 15;
+        rWrite(i * 7 + 5, (chan[i].attack << 4) | (chan[i].decay));
+    }
+
+    if (chan[i].std.ex7.had) {
+        chan[i].sustain = chan[i].std.ex7.val & 15;
+        rWrite(i * 7 + 6, (chan[i].sustain << 4) | (chan[i].release));
+    }
+
+    if (chan[i].std.ex8.had) {
+        chan[i].release = chan[i].std.ex8.val & 15;
+        rWrite(i * 7 + 6, (chan[i].sustain << 4) | (chan[i].release));
     }
 
     if (sysTick) {
@@ -396,7 +440,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta || !chan[c.chan].inPorta) {
+        if (parent->song.resetMacroOnPorta) {// || !chan[c.chan].inPorta) {
           chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_C64));
           chan[c.chan].keyOn=true;
         }
@@ -686,6 +730,7 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   }
   keyPriority=flags.getBool("keyPriority",true);
   no1EUpdate=flags.getBool("no1EUpdate",false);
+  newTestBitMacro = flags.getBool("newTestBitMacro", false);
   testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
   testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
 
