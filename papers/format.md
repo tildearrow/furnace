@@ -634,7 +634,9 @@ size | description
   1  | osc sync
   1  | to filter
   1  | init filter
-  1  | vol macro is cutoff
+  1  | vol macro is cutoff (<187) or reserved
+     | - from version 187 onwards, volume and cutoff macros are separate.
+     | - if this is on and the version is less than 187, move the volume macro into the ALG one.
   1  | resonance
   1  | low pass
   1  | band pass
@@ -1121,6 +1123,23 @@ size | description
   - `val[13]`: phase
   - `val[14]`: loop
   - `val[15]`: global (not sure how will I implement this)
+
+## C64 compatibility note (>=187)
+
+in Furnace dev187 the volume and cutoff macros have been separated, as noted above.
+however, there's another change as well: a new, improved Special macro.
+
+if version is less than 187, you must convert these:
+1. do not continue if ex4 is not a Sequence type macro!
+2. move bit 0 of ex4 macro data into bit 3.
+3. set bit 0 on all steps of ex4 macro to 1.
+4. if ex3 is not a Sequence type macro, stop here.
+5. if ex3 macro length is 0, stop here.
+6. merge the ex3 macro (former Special) into ex4 (former Test).
+  - use the largest size (between ex3 and ex4).
+  - if the ex3 macro is shorter than the ex4 one, use the last value of ex3, and vice-versa.
+
+don't worry about loop or release...
 
 # wavetable
 
