@@ -2683,6 +2683,12 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     memcpy(&std.algMacro,&std.volMacro,sizeof(DivInstrumentMacro));
     std.algMacro.macroType=DIV_MACRO_ALG;
     std.volMacro=DivInstrumentMacro(DIV_MACRO_VOL,true);
+
+    if (!c64.filterIsAbs) {
+      for (int i=0; i<std.algMacro.len; i++) {
+        std.algMacro.val[i]=-std.algMacro.val[i];
+      }
+    }
   }
 
   // <187 special/test/gate merge
@@ -3429,6 +3435,12 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     memcpy(&std.algMacro,&std.volMacro,sizeof(DivInstrumentMacro));
     std.algMacro.macroType=DIV_MACRO_ALG;
     std.volMacro=DivInstrumentMacro(DIV_MACRO_VOL,true);
+
+    if (!c64.filterIsAbs) {
+      for (int i=0; i<std.algMacro.len; i++) {
+        std.algMacro.val[i]=-std.algMacro.val[i];
+      }
+    }
   }
 
   // <187 special/test/gate merge
@@ -3482,6 +3494,10 @@ void DivInstrument::convertC64SpecialMacro() {
     if (std.ex4Macro.len>0 && std.ex4Macro.len<maxLen) {
       for (int i=std.ex4Macro.len; i<maxLen; i++) {
         std.ex4Macro.val[i]=std.ex3Macro.val[std.ex4Macro.len-1];
+      }
+    } else {
+      for (int i=0; i<maxLen; i++) {
+        std.ex4Macro.val[i]=1;
       }
     }
     for (int i=0; i<maxLen; i++) {
