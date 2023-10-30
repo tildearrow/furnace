@@ -8,7 +8,7 @@ the **chip manager** window does exactly what it says.
 
 to move a chip around, click and drag the ![crossed-arrows](chip-manager-move.png) button to its left.
 
-to replace a chip with a different one, click the ![down-angle](chip-manager-change.png) and select the replacement.
+to replace a chip with a different one, click the **Change** button and select the replacement.
 
 to remove a chip entirely, click the ![X](chip-manager-remove.png) button.
 
