@@ -672,12 +672,14 @@ void FurnaceGUI::doAction(int what) {
       if (e->moveInsUp(curIns)) {
         curIns--;
         wantScrollList=true;
+        MARK_MODIFIED;
       }
       break;
     case GUI_ACTION_INS_LIST_MOVE_DOWN:
       if (e->moveInsDown(curIns)) {
         curIns++;
         wantScrollList=true;
+        MARK_MODIFIED;
       }
       break;
     case GUI_ACTION_INS_LIST_DELETE:
@@ -752,12 +754,14 @@ void FurnaceGUI::doAction(int what) {
       if (e->moveWaveUp(curWave)) {
         curWave--;
         wantScrollList=true;
+        MARK_MODIFIED;
       }
       break;
     case GUI_ACTION_WAVE_LIST_MOVE_DOWN:
       if (e->moveWaveDown(curWave)) {
         curWave++;
         wantScrollList=true;
+        MARK_MODIFIED;
       }
       break;
     case GUI_ACTION_WAVE_LIST_DELETE:
@@ -852,6 +856,7 @@ void FurnaceGUI::doAction(int what) {
         curSample--;
         wantScrollList=true;
         updateSampleTex=true;
+        MARK_MODIFIED;
       }
       break;
     case GUI_ACTION_SAMPLE_LIST_MOVE_DOWN:
@@ -859,6 +864,7 @@ void FurnaceGUI::doAction(int what) {
         curSample++;
         wantScrollList=true;
         updateSampleTex=true;
+        MARK_MODIFIED;
       }
       break;
     case GUI_ACTION_SAMPLE_LIST_DELETE:
