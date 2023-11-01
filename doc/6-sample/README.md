@@ -167,6 +167,6 @@ in the sample viewer:
   - **copy**: copies the selection into the sample clipboard.
   - **paste**: inserts the sample clipboard at the start of the selection.
   - **paste (replace)**: replaces the selection with the sample clipboard.
-  - **paste (mix)**: mixes the sample clipboard into the existing sample, beginning at the start of the selection. this is done by adding values together. resulting in a mix of 100% each original and pasted.
-  - **set loop to selection**: changes loop start and end to match selection start and end.
+  - **paste (mix)**: mixes the sample clipboard into the existing sample, beginning at the start of the selection.
+  - **set loop to selection**: changes loop region to match selection.
   - **create wavetable from selection**: copies the selection into a new wavetable entry.

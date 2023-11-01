@@ -116,7 +116,7 @@ arpeggio macros have a short bar for setting whether to interpret the values as 
   - values are counted from `C-0`. for example, a fixed value of 48 produces a `C-4` note.
   - fixed values are especially useful for noise instruments with preset periods.
 
-below this is a short bar that controls looping.
+below this is a short bar that controls macro loop and release.
 - click to set the start point of a loop; the end point is the last value or release point. it appears as half-height bars. right-click to remove the loop.
 - shift-click to set the release point. when played, the macro will hold here until the note is released. it appears as a full-height bar. right-click to remove the release point.
 
