@@ -419,6 +419,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_FIND,
   GUI_WINDOW_CLOCK,
   GUI_WINDOW_GROOVES,
+  GUI_WINDOW_XY_OSC,
   GUI_WINDOW_INTRO_MON,
   GUI_WINDOW_SPOILER
 };
@@ -572,6 +573,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_FIND,
   GUI_ACTION_WINDOW_CLOCK,
   GUI_ACTION_WINDOW_GROOVES,
+  GUI_ACTION_WINDOW_XY_OSC,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1873,7 +1875,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen;
+  bool groovesOpen, xyOscOpen;
 
   bool basicMode, shortIntro;
   bool insListDir, waveListDir, sampleListDir;
@@ -2167,6 +2169,19 @@ class FurnaceGUI {
       planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];
 
+  // x-y oscilloscope
+  FurnaceGUITexture* xyOscPointTex;
+  bool xyOscOptions;
+  int xyOscXChannel;
+  bool xyOscXInvert;
+  int xyOscYChannel;
+  bool xyOscYInvert;
+  float xyOscZoom;
+  int xyOscSamples;
+  float xyOscDecayTime;
+  float xyOscIntensity;
+  float xyOscThickness;
+
   // visualizer
   float keyHit[DIV_MAX_CHANS];
   float keyHit1[DIV_MAX_CHANS];
@@ -2357,6 +2372,7 @@ class FurnaceGUI {
   void drawSpoiler();
   void drawClock();
   void drawTutorial();
+  void drawXYOsc();
 
   void parseKeybinds();
   void promptKey(int which);
