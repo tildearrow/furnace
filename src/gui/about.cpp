@@ -106,6 +106,7 @@ const char* aboutLine[]={
   "jaezu",
   "Laggy",
   "LovelyA72",
+  "LTVA1",
   "LunaMoth",
   "Lunathir",
   "LVintageNerd",
