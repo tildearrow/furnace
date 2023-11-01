@@ -162,7 +162,7 @@ in there, you can modify certain data pertaining to your sample, such as the:
 
 in the sample viewer:
 - left-click and drag to select a region of the sample.
-- right-click for an editing menu:
+- right-click to display a menu:
   - **cut**: puts the selection in the sample clipboard and deletes it from the sample.
   - **copy**: copies the selection into the sample clipboard.
   - **paste**: inserts the sample clipboard at the start of the selection.
