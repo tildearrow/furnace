@@ -163,10 +163,10 @@ in there, you can modify certain data pertaining to your sample, such as the:
 in the sample viewer:
 - left-click and drag to select a region of the sample.
 - right-click for an editing menu:
-  - **cut**: puts the selection in the copy buffer and deletes it from the sample.
-  - **copy**: copies the selection into the copy buffer.
-  - **paste**: inserts the copy buffer at the start of the selection.
-  - **paste (replace)**: replaces the selection with the copy buffer.
-  - **paste (mix)**: mixes copy buffer into the existing sample, beginning at the start of the selection. this is done by adding values together. resulting in a mix of 100% each original and pasted.
+  - **cut**: puts the selection in the sample clipboard and deletes it from the sample.
+  - **copy**: copies the selection into the sample clipboard.
+  - **paste**: inserts the sample clipboard at the start of the selection.
+  - **paste (replace)**: replaces the selection with the sample clipboard.
+  - **paste (mix)**: mixes the sample clipboard into the existing sample, beginning at the start of the selection. this is done by adding values together. resulting in a mix of 100% each original and pasted.
   - **set loop to selection**: changes loop start and end to match selection start and end.
   - **create wavetable from selection**: copies the selection into a new wavetable entry.
