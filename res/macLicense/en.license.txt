@@ -1,3 +1,24 @@
+YOU SHALL READ THE FOLLOWING TEXT BEFORE PROCEEDING!!!
+IF YOU DO NOT READ IT, YOU MAY NOT BE ABLE TO USE FURNACE AT ALL.
+
+
+if you are using a recent version of macOS, you may get an error saying that Furnace is damaged.
+in that case, open Terminal, and type this:
+
+```
+xattr -d com.apple.quarantine /path/to/Furnace.app
+```
+
+(replace `/path/to/Furnace.app` with the path where Furnace.app is located, e.g. `/Applications/Furnace.app`)
+
+you may need to reboot after doing this before launching Furnace.
+
+END OF MACOS ISSUE ACKNOWLEDGEMENT - license text follows.
+
+------------------
+
+
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
 
