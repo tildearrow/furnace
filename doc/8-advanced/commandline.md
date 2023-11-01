@@ -1,6 +1,6 @@
 # command line
 
-to start furnace at the command line, use the following format:
+to start Furnace at the command line, use the following command (may vary by operating system):
 
 `furnace [params] [filename]`
 
@@ -8,10 +8,10 @@ the following parameters may be used:
 
 - `-help`: display help.
 - `-audio <engine>`: set audio engine to one of the following:
-  - `jack`: JACK. only on Linux.
+  - `jack`: JACK Audio Connection Kit. only on Linux.
   - `sdl`: SDL. default.
   - `portaudio`: PortAudio.
-- `-output <filename>`: output audio to `filename`.
+- `-output <filename>`: export audio to `filename`.
 - `-vgmout <filename>`: output .vgm data to `filename`.
 - `-direct`: set VGM export direct stream mode.
 - `-zsmout <filename>`: output .zsm data for Commander X16 Zsound.
@@ -20,8 +20,9 @@ the following parameters may be used:
 - `-loglevel <level>`: set the logging level to one of the following:
   - `error`: critical errors only.
   - `warning`: errors and warnings.
-  - `info`: errors, warnings, and useful information. default.
-  - `debug`: most verbose, with all of the above and more.
+  - `info`: errors, warnings, and useful information.
+  - `debug`: all of the above and information useful for debugging.
+  - `trace`: most verbose. includes details of inner workings. default.
 - `-view <type>`: set visualization of data to one of the following:
   - `pattern`: order and pattern.
   - `commands`: commands.
@@ -34,5 +35,5 @@ the following parameters may be used:
 - `-safemode`: enable safe mode (software rendering without audio).
 - `-safeaudio`: enable safe mode (software rendering with audio).
 - `-benchmark render|seek`: run performance test.
-- `-version`: view information about Furnace.
+- `-version`: version information.
 - `-warranty`: view warranty disclaimer.
