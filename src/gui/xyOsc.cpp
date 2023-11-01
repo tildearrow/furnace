@@ -221,10 +221,10 @@ void FurnaceGUI::drawXYOsc() {
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         xyOscOptions=true;
       }
-      if (settings.oscTakesEntireWindow) {
-        ImGui::PopStyleVar(3);
-      }
     }
+  }
+  if (settings.oscTakesEntireWindow && !xyOscOptions) {
+    ImGui::PopStyleVar(3);
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_XY_OSC;
   ImGui::End();
