@@ -31,7 +31,8 @@ void FurnaceGUI::drawXYOsc() {
   }
   if (!xyOscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
-  if (settings.oscTakesEntireWindow && !xyOscOptions) {
+  bool noPadding=settings.oscTakesEntireWindow && !xyOscOptions;
+  if (noPadding) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
@@ -223,7 +224,7 @@ void FurnaceGUI::drawXYOsc() {
       }
     }
   }
-  if (settings.oscTakesEntireWindow && !xyOscOptions) {
+  if (noPadding) {
     ImGui::PopStyleVar(3);
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_XY_OSC;
