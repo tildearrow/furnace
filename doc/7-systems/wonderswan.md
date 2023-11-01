@@ -27,11 +27,14 @@ this chip uses the [WonderSwan](../4-instrument/wonderswan.md) instrument editor
 
 ## channel status
 
-when enabled, channel status will show an additional icon representing channel mode:
+the following icons are displayed when channel status is enabled in the pattern view:
 
-- ![PCM mode off](status-Swan-PCM-off.png) PCM mode off
-- ![PCM mode on](status-Swan-PCM-on.png) PCM mode on
-- ![sweep mode off](status-Swan-sweep-off.png) sweep mode off
-- ![sweep mode on](status-Swan-sweep-on.png) sweep mode on
-- ![noise mode off](status-Swan-noise-off.png) noise mode off
-- ![noise mode on](status-Swan-noise-on.png) noise mode on
+- PCM mode (channel 2):
+  - ![PCM mode off](status-Swan-PCM-off.png) off
+  - ![PCM mode on](status-Swan-PCM-on.png) on
+- sweep (channel 3):
+  - ![sweep mode off](status-Swan-sweep-off.png) disabled
+  - ![sweep mode on](status-Swan-sweep-on.png) enabled
+- noise mode (channel 4):
+  - ![noise mode off](status-Swan-noise-off.png) off
+  - ![noise mode on](status-Swan-noise-on.png) on
