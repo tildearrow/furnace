@@ -67,7 +67,7 @@ this chip uses the [SNES](../4-instrument/snes.md) instrument editor.
 
 ## channel status
 
-when enabled, channel status will show an additional icon representing the gain mode and envelope status of the currently playing note:
+when enabled, channel status will show an additional icon representing the gain mode or envelope status of the currently playing note:
 - ![direct gain, envelope off](status-SNES-gain-direct.png) direct gain, envelope off
 - ![linear gain decrease](status-SNES-gain-dec-lin.png) linear gain decrease
 - ![logarithmic gain decrease](status-SNES-gain-dec-log.png) logarithmic gain decrease

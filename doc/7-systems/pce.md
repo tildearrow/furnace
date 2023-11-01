@@ -27,6 +27,6 @@ this chip uses the [PC Engine](../4-instrument/pce.md) instrument editor.
 
 ## channel status
 
-when enabled, channel status will show an additional icon representing the noise mode of the currently playing note:
+when enabled, channel status will show an additional icon representing whether noise mode is enabled:
 - ![noise mode off](status-PCE-noise-off.png) noise mode off
 - ![noise mode on](status-PCE-noise-on.png) noise mode on

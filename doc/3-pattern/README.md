@@ -38,16 +38,21 @@ clicking on a channel name mutes that channel.
 
 double-clicking or right-clicking it enables solo mode, in which only that channel will be audible.
 
-clicking the `++` at the top left corner of the pattern view pops up a small dialog to set view modes:
-- **Effect columns/collapse**: as shown above. adds buttons:
+clicking the `++` at the top left corner of the pattern view pops up a small menu to set view modes:
+- **Effect columns/collapse**: as shown above. adds the following buttons beneath the channel name:
   - **-**: collapse visible columns. changes to **+** when columns are hidden; click to expand them.
   - **<**: disables the last effect column and hides it. effects are not deleted...
   - **>**: adds an effects column. if one previously existed, its contents will be preserved.
 - **Pattern names**: displays pattern names (per channel). pattern names are also visible when hovering over a pattern in the order list.
-- **Channel group hints**: display indicators beneath the names of channels that function together in some way.
-- **Visualizer**: during playback, show visual effects depending on activity in each channel.
-  - also can be toggled by a right-click on the `++` button.
-- **Channel status**: a bar with icons that indicate activity in the channel.
+- **Channel group hints**: display indicators when channels are paired in some way (e.g. OPL3 4-op mode).
+- **Visualizer**: during playback, show visual effects in the pattern view.
+  - also can be toggled by right-clicking on the `++` button.
+- **Channel status**: displays icons that indicate activity in the channel. see the "channel status" section below.
+
+to rename and/or hide channels, open [the Channels window](../8-advanced/channels.md) via the window menu.
+
+### channel status
+
   - note status:
     - ![note off](status-note-off.png) note off
     - ![note on](status-note-on.png) note on
@@ -65,8 +70,6 @@ clicking the `++` at the top left corner of the pattern view pops up a small dia
     - ![volume down](status-volume-down.png) volume down
     - ![tremolo](status-volume-tremolo.png) tremolo
   - other icons depending on chip.
-
-to rename and/or hide channels, open [the Channels window](../8-advanced/channels.md) via the window menu.
 
 
 ## input

@@ -27,7 +27,7 @@ this chip uses the [WonderSwan](../4-instrument/wonderswan.md) instrument editor
 
 ## channel status
 
-when enabled, channel status will show an additional icon representing the mode of the currently playing note:
+when enabled, channel status will show an additional icon representing channel mode:
 
 - ![PCM mode off](status-Swan-PCM-off.png) PCM mode off
 - ![PCM mode on](status-Swan-PCM-on.png) PCM mode on
