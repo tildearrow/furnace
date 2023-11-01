@@ -24,3 +24,14 @@ it has 4 wavetable channels. some of them have additional capabilities:
 ## info
 
 this chip uses the [WonderSwan](../4-instrument/wonderswan.md) instrument editor.
+
+## channel status
+
+when enabled, channel status will show an additional icon representing the mode of the currently playing note:
+
+- ![PCM mode off](status-Swan-PCM-off.png) PCM mode off
+- ![PCM mode on](status-Swan-PCM-on.png) PCM mode on
+- ![sweep mode off](status-Swan-sweep-off.png) sweep mode off
+- ![sweep mode on](status-Swan-sweep-on.png) sweep mode on
+- ![noise mode off](status-Swan-noise-off.png) noise mode off
+- ![noise mode on](status-Swan-noise-on.png) noise mode on

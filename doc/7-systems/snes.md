@@ -65,6 +65,18 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
 
 this chip uses the [SNES](../4-instrument/snes.md) instrument editor.
 
+## channel status
+
+when enabled, channel status will show an additional icon representing the gain mode and envelope status of the currently playing note:
+- ![direct gain, envelope off](status-SNES-gain-direct.png) direct gain, envelope off
+- ![linear gain decrease](status-SNES-gain-dec-lin.png) linear gain decrease
+- ![logarithmic gain decrease](status-SNES-gain-dec-log.png) logarithmic gain decrease
+- ![linear gain increase](status-SNES-gain-inc-lin.png) linear gain increase
+- ![bent-line gain increase](status-SNES-gain-inc-bent.png) bent-line gain increase
+- ![envelope attack](status-SNES-env-A.png) envelope attack
+- ![envelope decay](status-SNES-env-D.png) envelope decay
+- ![envelope sustain](status-SNES-env-S.png) envelope sustain
+- ![envelope release](status-SNES-env-R.png) envelope release
 
 ## ADSR
 
