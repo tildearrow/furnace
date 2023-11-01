@@ -70,7 +70,7 @@ void FurnaceGUI::drawXYOsc() {
       if (ImGui::SliderFloat("Decay Time (ms)",&xyOscDecayTime,1.0f,1000.0f,"%.1f",ImGuiSliderFlags_Logarithmic)) {
         xyOscDecayTime=MAX(xyOscDecayTime,0.0f);
       } rightClickable
-      if (ImGui::SliderFloat("Intensity",&xyOscIntensity,0.0f,2.0f,"%.2f")) {
+      if (ImGui::SliderFloat("Intensity",&xyOscIntensity,0.0f,5.0f,"%.2f")) {
         xyOscIntensity=MAX(xyOscIntensity,0.0f);
       } rightClickable
       if (ImGui::SliderFloat("Line Thickness",&xyOscThickness,0.0f,10.0f,"%.2f")) {
