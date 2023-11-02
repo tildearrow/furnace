@@ -238,6 +238,9 @@ enum DivDispatchCmds {
 
   DIV_CMD_EXTERNAL, // (value)
 
+  DIV_CMD_C64_AD, // (value)
+  DIV_CMD_C64_SR, // (value)
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX
@@ -385,7 +388,23 @@ struct DivChannelModeHints {
   // - 1: volume
   // - 2: pitch
   // - 3: panning
-  // - 4: ???
+  // - 4: chip primary
+  // - 5: chip secondary
+  // - 6: mixing
+  // - 7: DSP
+  // - 8: note
+  // - 9: misc 1
+  // - 10: misc 2
+  // - 11: misc 3
+  // - 12: attack
+  // - 13: decay
+  // - 14: sustain
+  // - 15: release
+  // - 16: dec linear
+  // - 17: dec exp
+  // - 18: inc linear
+  // - 19: inc bent
+  // - 20: direct
   unsigned char type[4];
   // up to 4
   unsigned char count;

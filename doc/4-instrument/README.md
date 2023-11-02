@@ -96,24 +96,37 @@ every macro can be defined though one of three methods, selectable with the left
 - ![ADSR](macro-button-ADSR.png) **ADSR:** this is a traditional ADSR envelope, defined by the rate of increase and decrease of value over time.
 - ![LFO](macro-button-LFO.png) **LFO:** the Low Frequency Oscillator generates a repeating wave of values.
 
-some macros are "bitmap" style. they represent a number of "bits" that can be toggled individually, and the values listed represent the sum of which bits are turned on.
-
 ### sequence
 
 ![sequence macro editor](macro-seq.png)
 
+![clipped sequence macro editor](macro-seq-clip.png)
+
+![bitmask sequence macro editor](macro-seq-bitmask.png)
+
 the number between the macro type label and the macro type button is the macro length in steps. the `-` and `+` buttons change the length of the macro. start out by adding at least a few steps.
 
 the values of the macro can be drawn in the "bar graph" box.
+- arpeggio and pitch macros may have values above or below the visible area; small chevrons will be shown until they are scrolled into view.
+- bitmask-style macros show labels for each of their bits, and these are edited as toggles.
 
-just beneath the box is a shorter bar that controls looping.
+arpeggio macros have a short bar for setting whether to interpret the values as being "relative" or "fixed".
+- by default, values are offsets **relative** to the note.
+- if clicked on, a value becomes **fixed** and will be played at its corresponding note without regard to the note entered into the pattern.
+  - values are counted from `C-0`. for example, a fixed value of 48 produces a `C-4` note.
+  - fixed values are especially useful for noise instruments with preset periods.
+
+below this is a short bar that controls macro loop and release.
 - click to set the start point of a loop; the end point is the last value or release point. it appears as half-height bars. right-click to remove the loop.
 - shift-click to set the release point. when played, the macro will hold here until the note is released. it appears as a full-height bar. right-click to remove the release point.
 
 finally, the sequence of values can be directly edited in the text box at the bottom.
 - the loop start is entered as a `|`.
 - the release point is entered as a `/`.
-- in arpeggio macros, a value starting with a `@` is an absolute note (instead of a relative shift). no matter the note entered in the pattern, `@` values will be played at that exact note. this is especially useful for noise instruments with preset periods.
+- in arpeggio macros, a value starting with a `@` is a fixed value as described above.
+- in bitmask-style macros, the values are added up in binary and converted to decimal. see [the hexadecimal guide](../1-intro/hex.md) for more info.
+
+
 
 ### ADSR
 

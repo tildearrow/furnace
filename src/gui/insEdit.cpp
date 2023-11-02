@@ -23,6 +23,7 @@
 #include "imgui_internal.h"
 #include "../engine/macroInt.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
 #include "intConst.h"
@@ -211,8 +212,8 @@ enum FMParams {
 
 const char* macroTypeLabels[4]={
   ICON_FA_BAR_CHART "##IMacroType",
-  ICON_FA_AREA_CHART "##IMacroType",
-  ICON_FA_LINE_CHART "##IMacroType",
+  ICON_FUR_ADSR "##IMacroType",
+  ICON_FUR_TRI "##IMacroType",
   ICON_FA_SIGN_OUT "##IMacroType"
 };
 
@@ -252,8 +253,8 @@ const char* filtModeBits[5]={
   "low", "band", "high", "ch3off", NULL
 };
 
-const char* c64SpecialBits[3]={
-  "sync", "ring", NULL
+const char* c64TestGateBits[5]={
+  "gate", "sync", "ring", "test", NULL
 };
 
 const char* pokeyCtlBits[9]={
@@ -337,6 +338,16 @@ const char* dualWSEffects[9]={
 const char* gbHWSeqCmdTypes[6]={
   "Envelope",
   "Sweep",
+  "Wait",
+  "Wait for Release",
+  "Loop",
+  "Loop until Release"
+};
+
+const char* suHWSeqCmdTypes[7]={
+  "Volume Sweep",
+  "Frequency Sweep",
+  "Cutoff Sweep",
   "Wait",
   "Wait for Release",
   "Loop",
@@ -2310,7 +2321,6 @@ void FurnaceGUI::alterSampleMap(int column, int val) {
 
 void FurnaceGUI::insTabSample(DivInstrument* ins) {
   const char* sampleTabName="Sample";
-  if (ins->type==DIV_INS_SU) sampleTabName="Sound Unit";
   if (ins->type==DIV_INS_NES) sampleTabName="DPCM";
   if (ImGui::BeginTabItem(sampleTabName)) {
     if (ins->type==DIV_INS_NES && e->song.oldDPCM) {
@@ -2339,9 +2349,6 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ins->type==DIV_INS_VRC6 ||
         ins->type==DIV_INS_SU) {
       P(ImGui::Checkbox("Use sample",&ins->amiga.useSample));
-      if (ins->type==DIV_INS_SU) {
-        P(ImGui::Checkbox("Switch roles of frequency and phase reset timer",&ins->su.switchRoles));
-      }
       if (ins->type==DIV_INS_X1_010) {
         if (ImGui::InputInt("Sample bank slot##BANKSLOT",&ins->x1_010.bankSlot,1,4)) { PARAMETER
           if (ins->x1_010.bankSlot<0) ins->x1_010.bankSlot=0;
@@ -4998,12 +5005,8 @@ void FurnaceGUI::drawInsEdit() {
           }
           popToggleColors();
 
-          if (ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff)) {
-            ins->std.volMacro.vZoom=-1;
-            PARAMETER;
-          }
           if (ImGui::Checkbox("Absolute Cutoff Macro",&ins->c64.filterIsAbs)) {
-            ins->std.volMacro.vZoom=-1;
+            ins->std.algMacro.vZoom=-1;
             PARAMETER;
           }
           if (ImGui::Checkbox("Absolute Duty Macro",&ins->c64.dutyIsAbs)) {
@@ -5011,6 +5014,242 @@ void FurnaceGUI::drawInsEdit() {
             PARAMETER;
           }
           P(ImGui::Checkbox("Don't test before new note",&ins->c64.noTest));
+          ImGui::EndTabItem();
+        }
+        if (ins->type==DIV_INS_SU) if (ImGui::BeginTabItem("Sound Unit")) {
+          P(ImGui::Checkbox("Switch roles of frequency and phase reset timer",&ins->su.switchRoles));
+          if (ImGui::BeginChild("HWSeqSU",ImGui::GetContentRegionAvail(),true,ImGuiWindowFlags_MenuBar)) {
+            ImGui::BeginMenuBar();
+            ImGui::Text("Hardware Sequence");
+            ImGui::EndMenuBar();
+
+            if (ins->su.hwSeqLen>0) if (ImGui::BeginTable("HWSeqListSU",3)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+              int curFrame=0;
+              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+              ImGui::TableNextColumn();
+              ImGui::Text("Tick");
+              ImGui::TableNextColumn();
+              ImGui::Text("Command");
+              ImGui::TableNextColumn();
+              ImGui::Text("Move/Remove");
+              for (int i=0; i<ins->su.hwSeqLen; i++) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%d (#%d)",curFrame,i);
+                ImGui::TableNextColumn();
+                ImGui::PushID(i);
+                if (ins->su.hwSeq[i].cmd>=DivInstrumentSoundUnit::DIV_SU_HWCMD_MAX) {
+                  ins->su.hwSeq[i].cmd=0;
+                }
+                int cmd=ins->su.hwSeq[i].cmd;
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::Combo("##HWSeqCmd",&cmd,suHWSeqCmdTypes,DivInstrumentSoundUnit::DIV_SU_HWCMD_MAX)) {
+                  if (ins->su.hwSeq[i].cmd!=cmd) {
+                    ins->su.hwSeq[i].cmd=cmd;
+                    ins->su.hwSeq[i].val=0;
+                    ins->su.hwSeq[i].bound=0;
+                    ins->su.hwSeq[i].speed=0;
+                  }
+                }
+                bool somethingChanged=false;
+                switch (ins->su.hwSeq[i].cmd) {
+                  case DivInstrumentSoundUnit::DIV_SU_HWCMD_VOL: {
+                    int swPeriod=ins->su.hwSeq[i].speed;
+                    int swBound=ins->su.hwSeq[i].bound;
+                    int swVal=ins->su.hwSeq[i].val&31;
+                    bool swDir=ins->su.hwSeq[i].val&32;
+                    bool swLoop=ins->su.hwSeq[i].val&64;
+                    bool swInvert=ins->su.hwSeq[i].val&128;
+
+                    if (ImGui::InputInt("Period",&swPeriod,1,16)) {
+                      if (swPeriod<0) swPeriod=0;
+                      if (swPeriod>65535) swPeriod=65535;
+                      somethingChanged=true;
+                    }
+                    if (CWSliderInt("Amount",&swVal,0,31)) {
+                      somethingChanged=true;
+                    }
+                    if (CWSliderInt("Bound",&swBound,0,255)) {
+                      somethingChanged=true;
+                    }
+                    if (ImGui::RadioButton("Up",swDir)) { PARAMETER
+                      swDir=true;
+                      somethingChanged=true;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::RadioButton("Down",!swDir)) { PARAMETER
+                      swDir=false;
+                      somethingChanged=true;
+                    }
+                    if (ImGui::Checkbox("Loop",&swLoop)) { PARAMETER
+                      somethingChanged=true;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Checkbox("Flip",&swInvert)) { PARAMETER
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->su.hwSeq[i].speed=swPeriod;
+                      ins->su.hwSeq[i].bound=swBound;
+                      ins->su.hwSeq[i].val=(swVal&31)|(swDir?32:0)|(swLoop?64:0)|(swInvert?128:0);
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  case DivInstrumentSoundUnit::DIV_SU_HWCMD_PITCH:
+                  case DivInstrumentSoundUnit::DIV_SU_HWCMD_CUT: {
+                    int swPeriod=ins->su.hwSeq[i].speed;
+                    int swBound=ins->su.hwSeq[i].bound;
+                    int swVal=ins->su.hwSeq[i].val&127;
+                    bool swDir=ins->su.hwSeq[i].val&128;
+
+                    if (ImGui::InputInt("Period",&swPeriod,1,16)) {
+                      if (swPeriod<0) swPeriod=0;
+                      if (swPeriod>65535) swPeriod=65535;
+                      somethingChanged=true;
+                    }
+                    if (CWSliderInt("Amount",&swVal,0,31)) {
+                      somethingChanged=true;
+                    }
+                    if (CWSliderInt("Bound",&swBound,0,255)) {
+                      somethingChanged=true;
+                    }
+                    if (ImGui::RadioButton("Up",swDir)) { PARAMETER
+                      swDir=true;
+                      somethingChanged=true;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::RadioButton("Down",!swDir)) { PARAMETER
+                      swDir=false;
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->su.hwSeq[i].speed=swPeriod;
+                      ins->su.hwSeq[i].bound=swBound;
+                      ins->su.hwSeq[i].val=(swVal&127)|(swDir?128:0);
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  case DivInstrumentSoundUnit::DIV_SU_HWCMD_WAIT: {
+                    int len=ins->su.hwSeq[i].val+1;
+                    curFrame+=ins->su.hwSeq[i].val+1;
+
+                    if (ImGui::InputInt("Ticks",&len)) {
+                      if (len<1) len=1;
+                      if (len>255) len=256;
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->su.hwSeq[i].val=len-1;
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  case DivInstrumentSoundUnit::DIV_SU_HWCMD_WAIT_REL:
+                    curFrame++;
+                    break;
+                  case DivInstrumentSoundUnit::DIV_SU_HWCMD_LOOP:
+                  case DivInstrumentSoundUnit::DIV_SU_HWCMD_LOOP_REL: {
+                    int pos=ins->su.hwSeq[i].val;
+
+                    if (ImGui::InputInt("Position",&pos)) {
+                      if (pos<0) pos=0;
+                      if (pos>(ins->su.hwSeqLen-1)) pos=(ins->su.hwSeqLen-1);
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->su.hwSeq[i].val=pos;
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  default:
+                    break;
+                }
+                ImGui::PopID();
+                ImGui::TableNextColumn();
+                ImGui::PushID(i+512);
+                if (ImGui::Button(ICON_FA_CHEVRON_UP "##HWCmdUp")) {
+                  if (i>0) {
+                    e->lockEngine([ins,i]() {
+                      ins->su.hwSeq[i-1].cmd^=ins->su.hwSeq[i].cmd;
+                      ins->su.hwSeq[i].cmd^=ins->su.hwSeq[i-1].cmd;
+                      ins->su.hwSeq[i-1].cmd^=ins->su.hwSeq[i].cmd;
+
+                      ins->su.hwSeq[i-1].speed^=ins->su.hwSeq[i].speed;
+                      ins->su.hwSeq[i].speed^=ins->su.hwSeq[i-1].speed;
+                      ins->su.hwSeq[i-1].speed^=ins->su.hwSeq[i].speed;
+
+                      ins->su.hwSeq[i-1].val^=ins->su.hwSeq[i].val;
+                      ins->su.hwSeq[i].val^=ins->su.hwSeq[i-1].val;
+                      ins->su.hwSeq[i-1].val^=ins->su.hwSeq[i].val;
+
+                      ins->su.hwSeq[i-1].bound^=ins->su.hwSeq[i].bound;
+                      ins->su.hwSeq[i].bound^=ins->su.hwSeq[i-1].bound;
+                      ins->su.hwSeq[i-1].bound^=ins->su.hwSeq[i].bound;
+                    });
+                  }
+                  MARK_MODIFIED;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_CHEVRON_DOWN "##HWCmdDown")) {
+                  if (i<ins->su.hwSeqLen-1) {
+                    e->lockEngine([ins,i]() {
+                      ins->su.hwSeq[i+1].cmd^=ins->su.hwSeq[i].cmd;
+                      ins->su.hwSeq[i].cmd^=ins->su.hwSeq[i+1].cmd;
+                      ins->su.hwSeq[i+1].cmd^=ins->su.hwSeq[i].cmd;
+
+                      ins->su.hwSeq[i+1].speed^=ins->su.hwSeq[i].speed;
+                      ins->su.hwSeq[i].speed^=ins->su.hwSeq[i+1].speed;
+                      ins->su.hwSeq[i+1].speed^=ins->su.hwSeq[i].speed;
+
+                      ins->su.hwSeq[i+1].val^=ins->su.hwSeq[i].val;
+                      ins->su.hwSeq[i].val^=ins->su.hwSeq[i+1].val;
+                      ins->su.hwSeq[i+1].val^=ins->su.hwSeq[i].val;
+
+                      ins->su.hwSeq[i+1].bound^=ins->su.hwSeq[i].bound;
+                      ins->su.hwSeq[i].bound^=ins->su.hwSeq[i+1].bound;
+                      ins->su.hwSeq[i+1].bound^=ins->su.hwSeq[i].bound;
+                    });
+                  }
+                  MARK_MODIFIED;
+                }
+                ImGui::SameLine();
+                pushDestColor();
+                if (ImGui::Button(ICON_FA_TIMES "##HWCmdDel")) {
+                  for (int j=i; j<ins->su.hwSeqLen-1; j++) {
+                    ins->su.hwSeq[j].cmd=ins->su.hwSeq[j+1].cmd;
+                    ins->su.hwSeq[j].speed=ins->su.hwSeq[j+1].speed;
+                    ins->su.hwSeq[j].val=ins->su.hwSeq[j+1].val;
+                    ins->su.hwSeq[j].bound=ins->su.hwSeq[j+1].bound;
+                  }
+                  ins->su.hwSeqLen--;
+                }
+                popDestColor();
+                ImGui::PopID();
+              }
+              ImGui::EndTable();
+            }
+
+            if (ImGui::Button(ICON_FA_PLUS "##HWCmdAdd")) {
+              if (ins->su.hwSeqLen<255) {
+                ins->su.hwSeq[ins->su.hwSeqLen].cmd=0;
+                ins->su.hwSeq[ins->su.hwSeqLen].speed=0;
+                ins->su.hwSeq[ins->su.hwSeqLen].val=0;
+                ins->su.hwSeq[ins->su.hwSeqLen].bound=0;
+                ins->su.hwSeqLen++;
+              }
+            }
+          }
+          ImGui::EndChild();
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_MSM6258 ||
@@ -5735,17 +5974,6 @@ void FurnaceGUI::drawInsEdit() {
 
           int volMax=15;
           int volMin=0;
-          if (ins->type==DIV_INS_C64) {
-            if (ins->c64.volIsCutoff) {
-              volumeLabel="Cutoff";
-              if (ins->c64.filterIsAbs) {
-                volMax=2047;
-              } else {
-                volMin=-64;
-                volMax=64;
-              }
-            }
-          }
           if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SM8521) {
             volMax=31;
           }
@@ -5805,8 +6033,8 @@ void FurnaceGUI::drawInsEdit() {
             if (ins->c64.dutyIsAbs) {
               dutyMax=4095;
             } else {
-              dutyMin=-96;
-              dutyMax=96;
+              dutyMin=-4095;
+              dutyMax=4095;
             }
           }
           if (ins->type==DIV_INS_STD) {
@@ -6191,6 +6419,14 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ex1Max>0) {
             if (ins->type==DIV_INS_C64) {
+              int cutoffMin=-2047;
+              int cutoffMax=2047;
+
+              if (ins->c64.filterIsAbs) {
+                cutoffMin=0;
+                cutoffMax=2047;
+              }
+              macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.algMacro,cutoffMin,cutoffMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,filtModeBits));
             } else if (ins->type==DIV_INS_SAA1099) {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,saaEnvBits));
@@ -6236,8 +6472,11 @@ void FurnaceGUI::drawInsEdit() {
             }
           }
           if (ins->type==DIV_INS_C64) {
-            macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex3Macro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c64SpecialBits));
-            macroList.push_back(FurnaceGUIMacroDesc("Test/Gate",&ins->std.ex4Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+            macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex4Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c64TestGateBits));
+            macroList.push_back(FurnaceGUIMacroDesc("Attack",&ins->std.ex5Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Decay",&ins->std.ex6Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Sustain",&ins->std.ex7Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Release",&ins->std.ex8Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
           }
           if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample)) {
             macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Num",&ins->std.ex3Macro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));

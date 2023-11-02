@@ -101,7 +101,6 @@ bool DivInstrumentC64::operator==(const DivInstrumentC64& other) {
     _C(ringMod) &&
     _C(oscSync) &&
     _C(toFilter) &&
-    _C(volIsCutoff) &&
     _C(initFilter) &&
     _C(dutyIsAbs) &&
     _C(filterIsAbs) &&
@@ -196,7 +195,10 @@ bool DivInstrumentWaveSynth::operator==(const DivInstrumentWaveSynth& other) {
 }
 
 bool DivInstrumentSoundUnit::operator==(const DivInstrumentSoundUnit& other) {
-  return _C(switchRoles);
+  return (
+    _C(switchRoles) &&
+    _C(hwSeqLen)
+  );
 }
 
 bool DivInstrumentES5506::operator==(const DivInstrumentES5506& other) {
@@ -388,7 +390,6 @@ void DivInstrument::writeFeature64(SafeWriter* w) {
   w->writeC(
     (c64.dutyIsAbs?0x80:0)|
     (c64.initFilter?0x40:0)|
-    (c64.volIsCutoff?0x20:0)|
     (c64.toFilter?0x10:0)|
     (c64.noiseOn?8:0)|
     (c64.pulseOn?4:0)|
@@ -690,6 +691,14 @@ void DivInstrument::writeFeatureSU(SafeWriter* w) {
   FEATURE_BEGIN("SU");
 
   w->writeC(su.switchRoles);
+
+  w->writeC(su.hwSeqLen);
+  for (int i=0; i<su.hwSeqLen; i++) {
+    w->writeC(su.hwSeq[i].cmd);
+    w->writeC(su.hwSeq[i].bound);
+    w->writeC(su.hwSeq[i].val);
+    w->writeS(su.hwSeq[i].speed);
+  }
 
   FEATURE_END;
 }
@@ -1312,7 +1321,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(c64.oscSync);
   w->writeC(c64.toFilter);
   w->writeC(c64.initFilter);
-  w->writeC(c64.volIsCutoff);
+  w->writeC(0); // this was volIsCutoff
   w->writeC(c64.res);
   w->writeC(c64.lp);
   w->writeC(c64.bp);
@@ -2083,13 +2092,13 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeature64(SafeReader& reader, short version) {
+void DivInstrument::readFeature64(SafeReader& reader, bool& volIsCutoff, short version) {
   READ_FEAT_BEGIN;
 
   unsigned char next=reader.readC();
   c64.dutyIsAbs=next&128;
   c64.initFilter=next&64;
-  c64.volIsCutoff=next&32;
+  volIsCutoff=next&32;
   c64.toFilter=next&16;
   c64.noiseOn=next&8;
   c64.pulseOn=next&4;
@@ -2536,6 +2545,16 @@ void DivInstrument::readFeatureSU(SafeReader& reader, short version) {
 
   su.switchRoles=reader.readC();
 
+  if (version>=185) {
+    su.hwSeqLen=reader.readC();
+    for (int i=0; i<su.hwSeqLen; i++) {
+      su.hwSeq[i].cmd=reader.readC();
+      su.hwSeq[i].bound=reader.readC();
+      su.hwSeq[i].val=reader.readC();
+      su.hwSeq[i].speed=reader.readS();
+    }
+  }
+
   READ_FEAT_END;
 }
 
@@ -2581,6 +2600,7 @@ void DivInstrument::readFeatureNE(SafeReader& reader, short version) {
 
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
+  bool volIsCutoff=false;
 
   int dataLen=reader.size()-4;
   if (!fui) {
@@ -2609,7 +2629,7 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     } else if (memcmp(featCode,"MA",2)==0) { // macros
       readFeatureMA(reader,version);
     } else if (memcmp(featCode,"64",2)==0) { // C64
-      readFeature64(reader,version);
+      readFeature64(reader,volIsCutoff,version);
     } else if (memcmp(featCode,"GB",2)==0) { // Game Boy
       readFeatureGB(reader,version);
     } else if (memcmp(featCode,"SM",2)==0) { // sample
@@ -2658,6 +2678,24 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     }
   }
 
+  // <187 C64 cutoff macro compatibility
+  if (type==DIV_INS_C64 && volIsCutoff && version<187) {
+    memcpy(&std.algMacro,&std.volMacro,sizeof(DivInstrumentMacro));
+    std.algMacro.macroType=DIV_MACRO_ALG;
+    std.volMacro=DivInstrumentMacro(DIV_MACRO_VOL,true);
+
+    if (!c64.filterIsAbs) {
+      for (int i=0; i<std.algMacro.len; i++) {
+        std.algMacro.val[i]=-std.algMacro.val[i];
+      }
+    }
+  }
+
+  // <187 special/test/gate merge
+  if (type==DIV_INS_C64 && version<187) {
+    convertC64SpecialMacro();
+  }
+
   return DIV_DATA_SUCCESS;
 }
 
@@ -2665,6 +2703,7 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
   for (int macroValPos=0; macroValPos<y; macroValPos++) x[macroValPos]=reader.readI();
 
 DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
+  bool volIsCutoff=false;
   reader.readI(); // length. ignored.
 
   reader.readS(); // format version. ignored.
@@ -2747,7 +2786,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   c64.oscSync=reader.readC();
   c64.toFilter=reader.readC();
   c64.initFilter=reader.readC();
-  c64.volIsCutoff=reader.readC();
+  volIsCutoff=reader.readC();
   c64.res=reader.readC();
   c64.lp=reader.readC();
   c64.bp=reader.readC();
@@ -2805,7 +2844,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     }
   }
   if (type==DIV_INS_C64 && version<87) {
-    if (c64.volIsCutoff && !c64.filterIsAbs) for (int j=0; j<std.volMacro.len; j++) {
+    if (volIsCutoff && !c64.filterIsAbs) for (int j=0; j<std.volMacro.len; j++) {
       std.volMacro.val[j]-=18;
     }
     if (!c64.dutyIsAbs) for (int j=0; j<std.dutyMacro.len; j++) {
@@ -3391,6 +3430,24 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     }
   }
 
+  // <187 C64 cutoff macro compatibility
+  if (type==DIV_INS_C64 && volIsCutoff && version<187) {
+    memcpy(&std.algMacro,&std.volMacro,sizeof(DivInstrumentMacro));
+    std.algMacro.macroType=DIV_MACRO_ALG;
+    std.volMacro=DivInstrumentMacro(DIV_MACRO_VOL,true);
+
+    if (!c64.filterIsAbs) {
+      for (int i=0; i<std.algMacro.len; i++) {
+        std.algMacro.val[i]=-std.algMacro.val[i];
+      }
+    }
+  }
+
+  // <187 special/test/gate merge
+  if (type==DIV_INS_C64 && version<187) {
+    convertC64SpecialMacro();
+  }
+
   return DIV_DATA_SUCCESS;
 }
 
@@ -3418,6 +3475,42 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
     return readInsDataNew(reader,version,type==2,song);
   }
   return readInsDataOld(reader,version);
+}
+
+void DivInstrument::convertC64SpecialMacro() {
+  // merge special and test/gate macros into new special macro
+  int maxLen=MAX(std.ex3Macro.len,std.ex4Macro.len);
+
+  // skip if ex4 is not a sequence macro
+  if (std.ex4Macro.open&6) return;
+
+  // move ex4 macro up and fill in gate
+  for (int i=0; i<std.ex4Macro.len; i++) {
+    std.ex4Macro.val[i]=(std.ex4Macro.val[i]&1)?9:1;
+  }
+  
+  // merge ex3 into ex4 if viable to
+  if (std.ex3Macro.len>0 && !(std.ex3Macro.open&6)) {
+    if (std.ex4Macro.len>0 && std.ex4Macro.len<maxLen) {
+      for (int i=std.ex4Macro.len; i<maxLen; i++) {
+        std.ex4Macro.val[i]=std.ex3Macro.val[std.ex4Macro.len-1];
+      }
+    } else {
+      for (int i=0; i<maxLen; i++) {
+        std.ex4Macro.val[i]=1;
+      }
+    }
+    for (int i=0; i<maxLen; i++) {
+      if (i>=std.ex3Macro.len) {
+        std.ex4Macro.val[i]|=(std.ex3Macro.val[std.ex3Macro.len-1]&3)<<1;
+      } else {
+        std.ex4Macro.val[i]|=(std.ex3Macro.val[i]&3)<<1;
+      }
+    }
+  }
+  std.ex4Macro.len=maxLen;
+
+  std.ex3Macro=DivInstrumentMacro(DIV_MACRO_EX3);
 }
 
 bool DivInstrument::save(const char* path, bool oldFormat, DivSong* song, bool writeInsName) {
@@ -3611,7 +3704,7 @@ bool DivInstrument::saveDMP(const char* path) {
       w->writeC(c64.ringMod);
       w->writeC(c64.oscSync);
       w->writeC(c64.toFilter);
-      w->writeC(c64.volIsCutoff);
+      w->writeC(0); // this was volIsCutoff...
       w->writeC(c64.initFilter);
       w->writeC(c64.res);
       w->writeC((c64.cut*100)/2047);

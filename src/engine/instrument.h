@@ -385,7 +385,7 @@ struct DivInstrumentGB {
 
     DIV_GB_HWCMD_MAX
   };
-  struct HWSeqCommand {
+  struct HWSeqCommandGB {
     unsigned char cmd;
     unsigned short data;
   } hwSeq[256];
@@ -403,7 +403,7 @@ struct DivInstrumentGB {
     hwSeqLen(0),
     softEnv(false),
     alwaysInit(false) {
-    memset(hwSeq,0,256*sizeof(int));
+    memset(hwSeq,0,256*sizeof(HWSeqCommandGB));
   }
 };
 
@@ -412,7 +412,7 @@ struct DivInstrumentC64 {
   unsigned char a, d, s, r;
   unsigned short duty;
   unsigned char ringMod, oscSync;
-  bool toFilter, volIsCutoff, initFilter, dutyIsAbs, filterIsAbs, noTest;
+  bool toFilter, initFilter, dutyIsAbs, filterIsAbs, noTest;
   unsigned char res;
   unsigned short cut;
   bool hp, lp, bp, ch3off;
@@ -435,7 +435,6 @@ struct DivInstrumentC64 {
     ringMod(0),
     oscSync(0),
     toFilter(false),
-    volIsCutoff(false),
     initFilter(false),
     dutyIsAbs(false),
     filterIsAbs(false),
@@ -663,6 +662,25 @@ struct DivInstrumentWaveSynth {
 
 struct DivInstrumentSoundUnit {
   bool switchRoles;
+  unsigned char hwSeqLen;
+  enum HWSeqCommands: unsigned char {
+    DIV_SU_HWCMD_VOL=0,
+    DIV_SU_HWCMD_PITCH,
+    DIV_SU_HWCMD_CUT,
+    DIV_SU_HWCMD_WAIT,
+    DIV_SU_HWCMD_WAIT_REL,
+    DIV_SU_HWCMD_LOOP,
+    DIV_SU_HWCMD_LOOP_REL,
+
+    DIV_SU_HWCMD_MAX
+  };
+  struct HWSeqCommandSU {
+    unsigned char cmd;
+    unsigned char bound;
+    unsigned char val;
+    unsigned short speed;
+    unsigned short padding;
+  } hwSeq[256];
 
   bool operator==(const DivInstrumentSoundUnit& other);
   bool operator!=(const DivInstrumentSoundUnit& other) {
@@ -670,7 +688,10 @@ struct DivInstrumentSoundUnit {
   }
 
   DivInstrumentSoundUnit():
-    switchRoles(false) {}
+    switchRoles(false),
+    hwSeqLen(0) {
+    memset(hwSeq,0,256*sizeof(HWSeqCommandSU));
+  }
 };
 
 struct DivInstrumentES5506 {
@@ -794,7 +815,7 @@ struct DivInstrument {
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
   void readFeatureMA(SafeReader& reader, short version);
-  void readFeature64(SafeReader& reader, short version);
+  void readFeature64(SafeReader& reader, bool& volIsCutoff, short version);
   void readFeatureGB(SafeReader& reader, short version);
   void readFeatureSM(SafeReader& reader, short version);
   void readFeatureOx(SafeReader& reader, int op, short version);
@@ -813,6 +834,8 @@ struct DivInstrument {
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
+
+  void convertC64SpecialMacro();
   
   /**
    * save the instrument to a SafeWriter.

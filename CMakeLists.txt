@@ -110,7 +110,7 @@ option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 
-set(DEPENDENCIES_INCLUDE_DIRS "")
+set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
 
 if (ANDROID AND NOT TERMUX)
   set(DEPENDENCIES_DEFINES "IS_MOBILE")
@@ -919,7 +919,6 @@ if (BUILD_GUI)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS
     extern/imgui_patched
     extern/imgui_patched/backends
-    extern/IconFontCppHeaders
     extern/igfd
   )
   if (WIN32 OR APPLE)

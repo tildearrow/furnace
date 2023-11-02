@@ -23,3 +23,7 @@ as listed in the "Window" menu:
 - [register view](regview.md)
 - [log viewer](log-viewer.md)
 - [stats](stats.md)
+
+other:
+
+- [command line usage](command-line.md)

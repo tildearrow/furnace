@@ -111,7 +111,7 @@ void DivEngine::runExportThread() {
       if (initAudioBackend()) {
         for (int i=0; i<song.systemLen; i++) {
           disCont[i].setRates(got.rate);
-          disCont[i].setQuality(lowQuality);
+          disCont[i].setQuality(lowQuality,dcHiPass);
         }
         if (!output->setRun(true)) {
           logE("error while activating audio!");
@@ -223,7 +223,7 @@ void DivEngine::runExportThread() {
       if (initAudioBackend()) {
         for (int i=0; i<song.systemLen; i++) {
           disCont[i].setRates(got.rate);
-          disCont[i].setQuality(lowQuality);
+          disCont[i].setQuality(lowQuality,dcHiPass);
         }
         if (!output->setRun(true)) {
           logE("error while activating audio!");
@@ -349,7 +349,7 @@ void DivEngine::runExportThread() {
       if (initAudioBackend()) {
         for (int i=0; i<song.systemLen; i++) {
           disCont[i].setRates(got.rate);
-          disCont[i].setQuality(lowQuality);
+          disCont[i].setQuality(lowQuality,dcHiPass);
         }
         if (!output->setRun(true)) {
           logE("error while activating audio!");

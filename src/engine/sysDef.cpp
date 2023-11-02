@@ -597,7 +597,9 @@ void DivEngine::registerSystems() {
     {0x1a, {DIV_CMD_C64_RESET_MASK, "1Axx: Disable envelope reset for this channel (1 disables; 0 enables)"}},
     {0x1b, {DIV_CMD_C64_FILTER_RESET, "1Bxy: Reset cutoff (x: on new note; y: now)"}},
     {0x1c, {DIV_CMD_C64_DUTY_RESET, "1Cxy: Reset pulse width (x: on new note; y: now)"}},
-    {0x1e, {DIV_CMD_C64_EXTENDED, "1Exy: Change additional parameters"}},
+    {0x1e, {DIV_CMD_C64_EXTENDED, "1Exy: Change other parameters (LEGACY)"}},
+    {0x20, {DIV_CMD_C64_AD, "20xy: Set attack/decay (x: attack; y: decay)"}},
+    {0x21, {DIV_CMD_C64_SR, "21xy: Set sustain/release (x: sustain; y: release)"}},
   };
   const EffectHandler c64FineDutyHandler(DIV_CMD_C64_FINE_DUTY, "3xxx: Set pulse width (0 to FFF)", effectValLong<12>);
   const EffectHandler c64FineCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, "4xxx: Set cutoff (0 to 7FF)", effectValLong<11>);

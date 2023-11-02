@@ -343,7 +343,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.insLen=16;
     }
     logI("reading instruments (%d)...",ds.insLen);
-    ds.ins.reserve(ds.insLen);
+    if (ds.insLen>0) ds.ins.reserve(ds.insLen);
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
       unsigned char mode=0;
@@ -601,6 +601,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
 
         if (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580) {
+          bool volIsCutoff=false;
+
           ins->c64.triOn=reader.readC();
           ins->c64.sawOn=reader.readC();
           ins->c64.pulseOn=reader.readC();
@@ -617,9 +619,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->c64.oscSync=reader.readC();
           ins->c64.toFilter=reader.readC();
           if (ds.version<0x11) {
-            ins->c64.volIsCutoff=reader.readI();
+            volIsCutoff=reader.readI();
           } else {
-            ins->c64.volIsCutoff=reader.readC();
+            volIsCutoff=reader.readC();
           }
           ins->c64.initFilter=reader.readC();
 
@@ -631,10 +633,16 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->c64.ch3off=reader.readC();
 
           // weird storage
-          if (ins->c64.volIsCutoff) {
-            for (int j=0; j<ins->std.volMacro.len; j++) {
-              ins->std.volMacro.val[j]-=18;
+          if (volIsCutoff) {
+            // move to alg (new cutoff)
+            ins->std.algMacro.len=ins->std.volMacro.len;
+            ins->std.algMacro.loop=ins->std.volMacro.loop;
+            ins->std.algMacro.rel=ins->std.volMacro.rel;
+            for (int j=0; j<ins->std.algMacro.len; j++) {
+              ins->std.algMacro.val[j]=-(ins->std.volMacro.val[j]-18);
             }
+            ins->std.volMacro.len=0;
+            memset(ins->std.volMacro.val,0,256*sizeof(int));
           }
           for (int j=0; j<ins->std.dutyMacro.len; j++) {
             ins->std.dutyMacro.val[j]-=12;
@@ -671,7 +679,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     if (ds.version>0x0b) {
       ds.waveLen=(unsigned char)reader.readC();
       logI("reading wavetables (%d)...",ds.waveLen);
-      ds.wave.reserve(ds.waveLen);
+      if (ds.waveLen>0) ds.wave.reserve(ds.waveLen);
       for (int i=0; i<ds.waveLen; i++) {
         DivWavetable* wave=new DivWavetable;
         wave->len=(unsigned char)reader.readI();
@@ -841,7 +849,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       // it appears this byte stored the YMU759 sample rate
       ymuSampleRate=reader.readC();
     }
-    ds.sample.reserve(ds.sampleLen);
+    if (ds.sampleLen>0) ds.sample.reserve(ds.sampleLen);
     for (int i=0; i<ds.sampleLen; i++) {
       DivSample* sample=new DivSample;
       int length=reader.readI();
@@ -1054,9 +1062,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemFlags[0].set("dpcmMode",false);
     }
 
-    // C64 no key priority
+    // C64 no key priority, reset time and multiply relative
     if (ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) {
       ds.systemFlags[0].set("keyPriority",false);
+      ds.systemFlags[0].set("initResetTime",1);
+      ds.systemFlags[0].set("multiplyRel",true);
     }
 
     // OPM broken pitch
@@ -1953,6 +1963,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     logD("systems:");
+    ds.systemLen=0;
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       unsigned char sysID=reader.readC();
       ds.system[i]=systemFromFileFur(sysID);
@@ -1972,6 +1983,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (tchans>DIV_MAX_CHANS) {
       tchans=DIV_MAX_CHANS;
       logW("too many channels!");
+    }
+    logV("system len: %d",ds.systemLen);
+    if (ds.systemLen<1) {
+      logE("zero chips!");
+      lastError="zero chips!";
+      delete[] file;
+      return false;
     }
 
     // system volume
@@ -2361,7 +2379,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
       // patchbay
       unsigned int conns=reader.readI();
-      ds.patchbay.reserve(conns);
+      if (conns>0) ds.patchbay.reserve(conns);
       for (unsigned int i=0; i<conns; i++) {
         ds.patchbay.push_back((unsigned int)reader.readI());
       }
@@ -3008,6 +3026,25 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // C64 1Exy compat
+    if (ds.version<186) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_C64_8580 || ds.system[i]==DIV_SYSTEM_C64_6581) {
+          ds.systemFlags[i].set("no1EUpdate",true);
+        }
+      }
+    }
+
+    // C64 original reset time and multiply relative
+    if (ds.version<187) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_C64_8580 || ds.system[i]==DIV_SYSTEM_C64_6581) {
+          ds.systemFlags[i].set("initResetTime",1);
+          ds.systemFlags[i].set("multiplyRel",true);
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
@@ -3149,8 +3186,8 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.sampleLen=ds.sample.size();
 
     // orders
-    ds.subsong[0]->ordersLen=ordCount=reader.readC();
-    if (ds.subsong[0]->ordersLen<1 || ds.subsong[0]->ordersLen>127) {
+    ds.subsong[0]->ordersLen=ordCount=(unsigned char)reader.readC();
+    if (ds.subsong[0]->ordersLen<1 || ds.subsong[0]->ordersLen>128) {
       logD("invalid order count!");
       throw EndOfFileException(&reader,reader.tell());
     }
@@ -6052,21 +6089,41 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         }
       }
     } else { // STD
+      bool volIsCutoff=false;
+
       if (sys!=DIV_SYSTEM_GB) {
         int realVolMacroLen=i->std.volMacro.len;
         if (realVolMacroLen>127) realVolMacroLen=127;
-        w->writeC(realVolMacroLen);
-        if ((sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) && i->c64.volIsCutoff) {
-          for (int j=0; j<realVolMacroLen; j++) {
-            w->writeI(i->std.volMacro.val[j]+18);
+        if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
+          if (i->std.algMacro.len>0) volIsCutoff=true;
+          if (volIsCutoff) {
+            if (i->std.volMacro.len>0) {
+              addWarning(".dmf only supports volume or cutoff macro in C64, but not both. volume macro will be lost.");
+            }
+            realVolMacroLen=i->std.algMacro.len;
+            if (realVolMacroLen>127) realVolMacroLen=127;
+            w->writeC(realVolMacroLen);
+            for (int j=0; j<realVolMacroLen; j++) {
+              w->writeI((-i->std.algMacro.val[j])+18);
+            }
+          } else {
+            w->writeC(realVolMacroLen);
+            for (int j=0; j<realVolMacroLen; j++) {
+              w->writeI(i->std.volMacro.val[j]);
+            }
           }
         } else {
+          w->writeC(realVolMacroLen);
           for (int j=0; j<realVolMacroLen; j++) {
             w->writeI(i->std.volMacro.val[j]);
           }
         }
         if (realVolMacroLen>0) {
-          w->writeC(i->std.volMacro.loop);
+          if (volIsCutoff) {
+            w->writeC(i->std.algMacro.loop);
+          } else {
+            w->writeC(i->std.volMacro.loop);
+          }
         }
       }
 
@@ -6157,7 +6214,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeC(i->c64.oscSync);
 
         w->writeC(i->c64.toFilter);
-        w->writeC(i->c64.volIsCutoff);
+        w->writeC(volIsCutoff);
         w->writeC(i->c64.initFilter);
 
         w->writeC(i->c64.res);

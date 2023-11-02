@@ -1060,6 +1060,12 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool audioHiPassB=settings.audioHiPass;
+        if (ImGui::Checkbox("DC offset correction",&audioHiPassB)) {
+          settings.audioHiPass=audioHiPassB;
+          settingsChanged=true;
+        }
+
         // SUBSECTION METRONOME
         CONFIG_SUBSECTION("Metronome");
         ImGui::AlignTextToFramePadding();
@@ -3366,10 +3372,30 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"Secondary specific effect");
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_MISC,"Miscellaneous");
           UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_OFF,"Status: off");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_OFF,"Status: off/disabled");
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_REL,"Status: off + macro rel");
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_REL_ON,"Status: on + macro rel");
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ON,"Status: on");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_VOLUME,"Status: volume");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_PITCH,"Status: pitch");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_PANNING,"Status: panning");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_SYS1,"Status: chip (primary)");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_SYS2,"Status: chip (secondary)");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MIXING,"Status: mixing");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DSP,"Status: DSP effect");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_NOTE,"Status: note altering");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MISC1,"Status: misc color 1");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MISC2,"Status: misc color 2");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MISC3,"Status: misc color 3");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ATTACK,"Status: attack");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DECAY,"Status: decay");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_SUSTAIN,"Status: sustain");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_RELEASE,"Status: release");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DEC_LINEAR,"Status: decrease linear");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DEC_EXP,"Status: decrease exp");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_INC,"Status: increase");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_BENT,"Status: bent");
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DIRECT,"Status: direct");
           ImGui::TreePop();
         }
         if (ImGui::TreeNode("Sample Editor")) {
@@ -3554,6 +3580,7 @@ void FurnaceGUI::syncSettings() {
   settings.renderDriver=e->getConfString("renderDriver","");
   settings.sdlAudioDriver=e->getConfString("sdlAudioDriver","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
+  settings.audioHiPass=e->getConfInt("audioHiPass",1);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
@@ -3736,6 +3763,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.iconSize,2,48);
   clampSetting(settings.audioEngine,0,2);
   clampSetting(settings.audioQuality,0,1);
+  clampSetting(settings.audioHiPass,0,1);
   clampSetting(settings.audioBufSize,32,4096);
   clampSetting(settings.audioRate,8000,384000);
   clampSetting(settings.audioChans,1,16);
@@ -3967,7 +3995,9 @@ void FurnaceGUI::commitSettings() {
     settings.fdsCoreRender!=e->getConfInt("fdsCoreRender",0) ||
     settings.c64CoreRender!=e->getConfInt("c64CoreRender",0) ||
     settings.pokeyCoreRender!=e->getConfInt("pokeyCoreRender",1) ||
-    settings.opnCoreRender!=e->getConfInt("opnCoreRender",1)
+    settings.opnCoreRender!=e->getConfInt("opnCoreRender",1) ||
+    settings.audioQuality!=e->getConfInt("audioQuality",0) ||
+    settings.audioHiPass!=e->getConfInt("audioHiPass",1)
   );
 
   e->setConf("mainFontSize",settings.mainFontSize);
@@ -3981,6 +4011,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("renderDriver",settings.renderDriver);
   e->setConf("sdlAudioDriver",settings.sdlAudioDriver);
   e->setConf("audioQuality",settings.audioQuality);
+  e->setConf("audioHiPass",settings.audioHiPass);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);
   e->setConf("audioChans",settings.audioChans);

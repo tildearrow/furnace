@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev184"
-#define DIV_ENGINE_VERSION 184
+#define DIV_VERSION "dev187"
+#define DIV_ENGINE_VERSION 187
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -205,7 +205,7 @@ struct DivDispatchContainer {
   short* bbInMapped[DIV_MAX_OUTPUTS];
   short* bbIn[DIV_MAX_OUTPUTS];
   short* bbOut[DIV_MAX_OUTPUTS];
-  bool lowQuality, dcOffCompensation;
+  bool lowQuality, dcOffCompensation, hiPass;
   double rateMemory;
 
   // used in multi-thread
@@ -213,7 +213,7 @@ struct DivDispatchContainer {
   unsigned int size;
 
   void setRates(double gotRate);
-  void setQuality(bool lowQual);
+  void setQuality(bool lowQual, bool dcHiPass);
   void grow(size_t size);
   void acquire(size_t offset, size_t count);
   void flush(size_t count);
@@ -230,6 +230,7 @@ struct DivDispatchContainer {
     lastAvail(0),
     lowQuality(false),
     dcOffCompensation(false),
+    hiPass(true),
     rateMemory(0.0),
     cycles(0),
     size(0) {
@@ -389,6 +390,7 @@ class DivEngine {
   int chans;
   bool active;
   bool lowQuality;
+  bool dcHiPass;
   bool playing;
   bool freelance;
   bool shallStop, shallStopSched;
@@ -1017,6 +1019,9 @@ class DivEngine {
     // get channel pairs
     DivChannelPair getChanPaired(int chan);
 
+    // get channel mode hints
+    DivChannelModeHints getChanModeHints(int chan);
+
     // get register pool
     unsigned char* getRegisterPool(int sys, int& size, int& depth);
 
@@ -1221,6 +1226,7 @@ class DivEngine {
       chans(0),
       active(false),
       lowQuality(false),
+      dcHiPass(true),
       playing(false),
       freelance(false),
       shallStop(false),

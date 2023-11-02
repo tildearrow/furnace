@@ -1081,7 +1081,7 @@ bool DivEngine::addSystem(DivSystem which) {
           song.patchbay.push_back((i<<20)|j);
         }
       } else {
-        song.patchbay.reserve(outs);
+        if (outs>0) song.patchbay.reserve(outs);
         for (unsigned int j=0; j<outs; j++) {
           song.patchbay.push_back((i<<20)|(j<<16)|j);
         }
@@ -1189,11 +1189,11 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
 
     // prepare swap list
     int index=0;
-    swapList.reserve(song.systemLen);
+    if (song.systemLen>0) swapList.reserve(song.systemLen);
     for (int i=0; i<song.systemLen; i++) {
       chanList.clear();
       const int channelCount=getChannelCount(song.system[i]);
-      chanList.reserve(channelCount);
+      if (channelCount>0) chanList.reserve(channelCount);
       for (int j=0; j<channelCount; j++) {
         chanList.push_back(index);
         index++;
@@ -1422,6 +1422,11 @@ void* DivEngine::getDispatchChanState(int ch) {
 DivChannelPair DivEngine::getChanPaired(int ch) {
   if (ch<0 || ch>=chans) return DivChannelPair();
   return disCont[dispatchOfChan[ch]].dispatch->getPaired(dispatchChanOfChan[ch]);
+}
+
+DivChannelModeHints DivEngine::getChanModeHints(int ch) {
+  if (ch<0 || ch>=chans) return DivChannelModeHints();
+  return disCont[dispatchOfChan[ch]].dispatch->getModeHints(dispatchChanOfChan[ch]);
 }
 
 unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
@@ -3348,7 +3353,7 @@ bool DivEngine::switchMaster(bool full) {
   if (initAudioBackend()) {
     for (int i=0; i<song.systemLen; i++) {
       disCont[i].setRates(got.rate);
-      disCont[i].setQuality(lowQuality);
+      disCont[i].setQuality(lowQuality,dcHiPass);
     }
     if (!output->setRun(true)) {
       logE("error while activating audio!");
@@ -3447,10 +3452,14 @@ void DivEngine::initDispatch(bool isRender) {
   BUSY_BEGIN;
   logV("initializing dispatch...");
   if (isRender) logI("render cores set");
+
+  lowQuality=getConfInt("audioQuality",0);
+  dcHiPass=getConfInt("audioHiPass",1);
+
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i],isRender);
     disCont[i].setRates(got.rate);
-    disCont[i].setQuality(lowQuality);
+    disCont[i].setQuality(lowQuality,dcHiPass);
   }
   if (song.patchbayAuto) {
     saveLock.lock();
@@ -3529,7 +3538,6 @@ bool DivEngine::initAudioBackend() {
   }
 #endif
 
-  lowQuality=getConfInt("audioQuality",0);
   forceMono=getConfInt("forceMono",0);
   clampSamples=getConfInt("clampSamples",0);
   lowLatency=getConfInt("lowLatency",0);
@@ -3777,6 +3785,7 @@ bool DivEngine::init() {
     logE("not enough memory!");
     return false;
   }
+  blip_set_dc(samp_bb,0);
 
   samp_bbOut=new short[32768];
 

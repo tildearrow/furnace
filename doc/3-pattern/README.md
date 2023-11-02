@@ -38,17 +38,38 @@ clicking on a channel name mutes that channel.
 
 double-clicking or right-clicking it enables solo mode, in which only that channel will be audible.
 
-clicking the `++` at the top left corner of the pattern view cycles through three channel bar view modes:
-- **Compact**: shows only channel names.
-- **Expanded**: as shown above. adds buttons:
+clicking the `++` at the top left corner of the pattern view pops up a small menu to set view modes:
+- **Effect columns/collapse**: displays extra options for collapsing channels and adding/removing effect columns:
   - **-**: collapse visible columns. changes to **+** when columns are hidden; click to expand them.
   - **<**: disables the last effect column and hides it. effects are not deleted...
-  - **>**: adds an effects column. if one previously existed, its contents will be preserved.
+  - **>**: adds an effect column. if one previously existed, its contents will be preserved.
 - **Pattern names**: displays pattern names (per channel). pattern names are also visible when hovering over a pattern in the order list.
-
-right-clicking the `++` toggles the visualizer, which is active only during playback.
+- **Channel group hints**: display indicators when channels are paired in some way (e.g. OPL3 4-op mode).
+- **Visualizer**: during playback, show visual effects in the pattern view.
+  - also can be toggled by right-clicking on the `++` button.
+- **Channel status**: displays icons that indicate activity in the channel. see the "channel status" section below.
 
 to rename and/or hide channels, open [the Channels window](../8-advanced/channels.md) via the window menu.
+
+### channel status
+
+- note status:
+  - ![note off](status-note-off.png) note off
+  - ![note on](status-note-on.png) note on
+  - ![macro released](status-note-on-rel.png) note on but macro released (`REL`)
+  - ![note released](status-note-off-rel.png) note released (`===`)
+- pitch alteration:
+  - ![no effect](status-pitch-none.png) nothing
+  - ![pitch up](status-pitch-up.png) pitch slide up
+  - ![pitch down](status-pitch-down.png) pitch slide down
+  - ![portamento](status-pitch-porta.png) portamento
+  - ![arpeggio](status-pitch-arpeg.png) arpeggio
+- volume alteration:
+  - ![no effect](status-volume-none.png) nothing
+  - ![volume up](status-volume-up.png) volume slide up
+  - ![volume down](status-volume-down.png) volume slide down
+  - ![tremolo](status-volume-tremolo.png) tremolo
+- other icons may be present depending on the used chips.
 
 
 ## input

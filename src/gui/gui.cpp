@@ -2237,6 +2237,9 @@ int FurnaceGUI::load(String path) {
     if (settings.playOnLoad==2 || (settings.playOnLoad==1 && wasPlaying)) {
       play();
     }
+  } else {
+    // warn the user
+    showWarning("you have loaded a backup!\nif you need to, please save it somewhere.\n\nDO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\nFurnace will not save backups of backups.",GUI_WARN_GENERIC);
   }
   return 0;
 }

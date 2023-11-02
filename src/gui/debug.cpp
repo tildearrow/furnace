@@ -238,6 +238,7 @@
   ImGui::TextColored(ch->mask?colorOn:colorOff,">> Mask");
 
 void putDispatchChip(void* data, int type) {
+<<<<<<< HEAD
   ImVec4 colorOn=ImVec4(1.0f,1.0f,0.0f,1.0f);
   ImVec4 colorOff=ImVec4(0.3f,0.3f,0.3f,1.0f);
   switch (type) {
@@ -1118,4 +1119,10 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("Unimplemented chip! Help!");
       break;
   }
+=======
+  ImGui::Text("I will finish later...");
+}
+void putDispatchChan(void* data, int chanNum, int type) {
+  ImGui::Text("I will finish later...");
+>>>>>>> 89f8970e74cece7142e27a60f50d30b8d46b02cd
 }

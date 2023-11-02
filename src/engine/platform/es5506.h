@@ -97,7 +97,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
 
       VolChanged() :
         changed(0) {}
-    } volChanged;
+    } volChangedES;
 
     struct FilterChanged { // Filter changed flags
       union { // pack flag bits in single byte
@@ -198,7 +198,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       isReverseLoop(false),
       cr(0),
       noteChanged(NoteChanged()),
-      volChanged(VolChanged()),
+      volChangedES(VolChanged()),
       filterChanged(FilterChanged()),
       envChanged(EnvChanged()),
       pcmChanged(PCMChanged()),
