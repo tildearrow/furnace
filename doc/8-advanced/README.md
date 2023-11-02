@@ -24,6 +24,6 @@ as listed in the "Window" menu:
 - [log viewer](log-viewer.md)
 - [stats](stats.md)
 
-at the command line:
+other:
 
-- [command line](commandline.md)
+- [command line usage](command-line.md)

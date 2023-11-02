@@ -554,7 +554,7 @@ int main(int argc, char** argv) {
 
   if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
     logE("you can't use safe mode and console/export mode together.");
-    return 0;
+    return 1;
   }
 
   if (safeMode && !safeModeWithAudio) {
