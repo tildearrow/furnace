@@ -614,8 +614,21 @@ int main(int argc, char** argv) {
       }
     }
     if (romOutName!="") {
-      // KLUDGE: assume Atari build
-      std::vector<DivROMExportOutput> out=e.buildROM(DIV_ROM_ATARI_2600);
+      // KLUDGE: assume one system
+      DivROMExportOptions exportOpt = DIV_ROM_ABSTRACT;
+      switch (e.song.system[0]) {
+        case DIV_SYSTEM_AMIGA:
+          exportOpt = DIV_ROM_AMIGA_VALIDATION;
+          break;
+        case DIV_SYSTEM_TIA:
+          exportOpt = DIV_ROM_ATARI_2600;
+          break;
+        case DIV_SYSTEM_C64_6581:
+        case DIV_SYSTEM_C64_8580:
+          exportOpt = DIV_ROM_C64;
+          exportOpt;
+      };
+      std::vector<DivROMExportOutput> out=e.buildROM(exportOpt);
       if (romOutName[romOutName.size()-1]!=DIR_SEPARATOR) romOutName+=DIR_SEPARATOR_STR;
       for (DivROMExportOutput& i: out) {
         String path=romOutName+i.name;

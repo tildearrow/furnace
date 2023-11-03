@@ -591,6 +591,7 @@ src/engine/vgmOps.cpp
 src/engine/zsmOps.cpp
 src/engine/zsm.cpp
 src/engine/export/atari2600Export.cpp
+src/engine/export/c64Export.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp

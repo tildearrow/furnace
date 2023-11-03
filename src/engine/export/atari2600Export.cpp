@@ -18,125 +18,56 @@
  */
 
 #include "atari2600Export.h"
+#include "registerDump.h"
 
 #include <fmt/printf.h>
 #include <set>
 #include "../../ta-log.h"
 
-const int TICKS_PER_SECOND = 1000000;
-const int TICKS_AT_60HZ = TICKS_PER_SECOND / 60;
-const int AUDC0 = 0x15;
-const int AUDC1 = 0x16;
-const int AUDF0 = 0x17;
-const int AUDF1 = 0x18;
-const int AUDV0 = 0x19;
-const int AUDV1 = 0x1A;
+const unsigned int AUDC0 = 0x15;
+const unsigned int AUDC1 = 0x16;
+const unsigned int AUDF0 = 0x17;
+const unsigned int AUDF1 = 0x18;
+const unsigned int AUDV0 = 0x19;
+const unsigned int AUDV1 = 0x1A;
 
-bool TiaRegisters::write(const DivRegWrite& registerWrite) {
-  const unsigned char val = registerWrite.val;
-  switch (registerWrite.addr) {
-    case AUDC0:
-      if (val == audc0) return false;
-      audc0 = val;
+std::map<unsigned int, unsigned int> channel0AddressMap = {
+  {AUDC0, 0},
+  {AUDF0, 1},
+  {AUDV0, 2},
+};
+
+std::map<unsigned int, unsigned int> channel1AddressMap = {
+  {AUDC1, 0},
+  {AUDF1, 1},
+  {AUDV1, 2},
+};
+
+bool TiaVoiceRegisters::write(const unsigned int addr, const unsigned int value) {
+  unsigned char val = value;
+  switch (addr) {
+    case 0:
+      if (val == audcx) return false;
+      audcx = val;
       return true;
-    case AUDC1:
-      if (val == audc1) return false;
-      audc1 = val;
+    case 1:
+      if (val == audfx) return false;
+      audfx = val;
       return true;
-    case AUDF0:
-      if (val == audf0) return false;
-      audf0 = val;
-      return true;
-    case AUDF1:
-      if (val == audf1) return false;
-      audf1 = val;
-      return true;
-    case AUDV0:
-      if (val == audv0) return false;
-      audv0 = val;
-      return true;
-    case AUDV1:
-      if (val == audv1) return false;
-      audv1 = val;
+    case 2:
+      if (val == audvx) return false;
+      audvx = val;
       return true;
   }
   return false;
 }
 
-struct PatternIndex {
-  String key;
-  unsigned short subsong, ord, chan, pat;
-  PatternIndex(
-    const String& k,
-    unsigned short s,
-    unsigned short o,
-    unsigned short c,
-    unsigned short p):
-    key(k),
-    subsong(s),
-    ord(o),
-    chan(c),
-    pat(p) {}
-};
-
-struct RowIndex {
-  unsigned short subsong, ord, row;
-  RowIndex(unsigned short s, unsigned short o, unsigned short r):
-    subsong(s),
-    ord(o),
-    row(r) {}
-  bool advance(unsigned short s, unsigned short o, unsigned short r)
-  {
-    bool changed = false;
-    if (subsong != s) {
-      subsong = s;
-      changed = true;
-    }
-    if (ord != o) {
-      ord = o;
-      changed = true;
-    }
-    if (row != r) {
-      row = r;
-      changed = true;
-    }
-    return changed;
-  }  
-};
-
-struct DumpSequence {
-
-  std::vector<TiaNote> notes;
-
-  void dumpRegisters(const TiaRegisters& registers) {
-    notes.emplace_back(TiaNote(registers));
-  }
-
-  int writeDuration(const int ticks, const int remainder,  const int freq) {
-    int total = ticks + remainder;
-    int cycles = total / freq;
-    notes.back().duration = cycles;
-    return total - (cycles * freq);
-  }
-
-  size_t size() {
-    return notes.size();
-  }
-
-  size_t hash() {
-    // rolling polyhash: see https://cp-algorithms.com/string/string-hashing.html CC 4.0 license
-    const int p = 31;
-    const int m = 1e9 + 9;
-    size_t pp = 1;
-    size_t value = 0;
-    for (auto& x : notes) {
-      value = value + (x.hash() * pp) % m;
-      pp = (pp * p) % m;
-    }
-    return value;
-  }
-
-};
+uint64_t TiaVoiceRegisters::hash_interval(const char duration) {
+  return  ((uint64_t)audcx) +  
+          (((uint64_t)audfx) << 8) + 
+          (((uint64_t)audvx) << 16) +
+          (((uint64_t)duration) << 32);
+}
 
 std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
@@ -169,24 +100,6 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   return ret;
 }
 
-inline auto getSequenceKey(unsigned short subsong, unsigned short ord, unsigned short row, unsigned short channel) {
-  return fmt::sprintf(
-        "SEQ_S%02x_O%02x_R%02x_C%02x",
-         subsong, 
-         ord,
-         row,
-         channel);
-}
-
-inline auto getPatternKey(unsigned short subsong, unsigned short channel, unsigned short pattern) {
-  return fmt::sprintf(
-    "PAT_S%02x_C%02x_P%02x",
-    subsong,
-    channel,
-    pattern
-  );
-}
-
 /**
  * 
  * we first play back the song to create a register dump then compress it
@@ -196,139 +109,20 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
 
   // capture all sequences
   logD("performing sequence capture");
-  std::map<String, DumpSequence> sequences;
-  for (int i=0; i<e->song.systemLen; i++) {
-    e->getDispatch(i)->toggleRegisterDump(true);
-  }
-  for (size_t subsong = 0; subsong < e->song.subsong.size(); subsong++) {
-    e->changeSongP(subsong);
-    for (int channel = 0; channel < e->getChannelCount(DIV_SYSTEM_TIA); channel++) {
-      e->stop();
-      e->setRepeatPattern(false);
-      e->setOrder(0);
-      e->play();
-      
-      int lastWriteTicks = e->getTotalTicks();
-      int lastWriteSeconds = e->getTotalSeconds();
-      int deltaTicksR = 0;
-      int deltaTicks = 0;
-
-      bool needsRegisterDump = false;
-      bool needsWriteDuration = false;      
-
-      RowIndex curRowIndex(e->getCurrentSubSong(), e->getOrder(), e->getRow());
-
-      String key = getSequenceKey(curRowIndex.subsong, curRowIndex.ord, curRowIndex.row, channel);
-      auto it = sequences.emplace(key, DumpSequence());
-      DumpSequence *currentDumpSequence = &(it.first->second);
-
-      TiaRegisters currentState;
-      memset(&currentState, 0, sizeof(currentState));
-
-      bool done=false;
-      while (!done && e->isPlaying()) {
-        
-        done = e->nextTick(false, true);
-        int currentTicks = e->getTotalTicks();
-        int currentSeconds = e->getTotalSeconds();
-        deltaTicks = 
-          currentTicks - lastWriteTicks + 
-          (TICKS_PER_SECOND * (currentSeconds - lastWriteSeconds));
-
-        // check if we've changed rows
-        if (curRowIndex.advance(e->getCurrentSubSong(), e->getOrder(), e->getRow())) {
-          if (needsRegisterDump) {
-            currentDumpSequence->dumpRegisters(currentState);
-            needsWriteDuration = true;
-          }
-          if (needsWriteDuration) {
-            // prev seq
-            deltaTicksR = currentDumpSequence->writeDuration(deltaTicks, deltaTicksR, TICKS_AT_60HZ);
-            deltaTicks = 0;
-            lastWriteTicks = currentTicks;
-            lastWriteSeconds = currentSeconds;
-            needsWriteDuration = false;
-          }
-          // new sequence
-          key = getSequenceKey(curRowIndex.subsong, curRowIndex.ord, curRowIndex.row, channel);
-          auto nextIt = sequences.emplace(key, DumpSequence());
-          currentDumpSequence = &(nextIt.first->second);
-          needsRegisterDump = true;
-        }
-
-        // get register dumps
-        bool isDirty = false;
-        for (int i=0; i<e->song.systemLen; i++) {
-          std::vector<DivRegWrite>& registerWrites=e->getDispatch(i)->getRegisterWrites();
-          for (DivRegWrite& registerWrite: registerWrites) {
-            switch (registerWrite.addr) {
-              case AUDC0:
-              case AUDF0:
-              case AUDV0:
-                if (1 == channel) continue;
-                break;
-              case AUDC1:
-              case AUDF1:
-              case AUDV1:
-                if (0 == channel) continue;
-                break;
-              default:
-                continue;
-            }
-            isDirty |= currentState.write(registerWrite);
-          }
-          registerWrites.clear();
-        }
-
-        if (isDirty) {
-          // end last seq
-          if (needsWriteDuration) {
-            deltaTicksR = currentDumpSequence->writeDuration(deltaTicks, deltaTicksR, TICKS_AT_60HZ);
-            lastWriteTicks = currentTicks;
-            lastWriteSeconds = currentSeconds;
-            deltaTicks = 0;
-          }
-          // start next seq
-          needsWriteDuration = true;
-          currentDumpSequence->dumpRegisters(currentState);
-          needsRegisterDump = false;
-        }
-      }
-      if (needsRegisterDump) {
-        currentDumpSequence->dumpRegisters(currentState);
-        needsWriteDuration = true;
-      }
-      if (needsWriteDuration) {
-        int currentTicks = e->getTotalTicks();
-        int currentSeconds = e->getTotalSeconds();
-        deltaTicks = 
-          currentTicks - lastWriteTicks + 
-          (TICKS_PER_SECOND * (currentSeconds - lastWriteSeconds));
-        // final seq
-        currentDumpSequence->writeDuration(deltaTicks, deltaTicksR, TICKS_AT_60HZ);
-      }
-    }
-  }
-  for (int i=0; i<e->song.systemLen; i++) {
-    e->getDispatch(i)->toggleRegisterDump(false);
-  }
+  std::map<String, DumpSequence<TiaVoiceRegisters>> sequences;
+  captureSequences(e, DIV_SYSTEM_TIA, 0, channel0AddressMap, sequences);
+  captureSequences(e, DIV_SYSTEM_TIA, 1, channel1AddressMap, sequences);
 
   // compress the patterns into common subsequences
   logD("performing sequence compression");
-  std::map<size_t, String> commonSubSequences;
-  std::map<size_t, size_t> sequenceFrequency;
+  std::map<uint64_t, String> commonSubSequences;
+  std::map<uint64_t, unsigned int> sequenceFrequency;
   std::map<String, String> representativeSequenceMap;
-  for (auto& x: sequences) {
-    size_t hash = x.second.hash();
-    auto it = commonSubSequences.emplace(hash, x.first);
-    if (it.second) {
-      sequenceFrequency.emplace(hash, 1);
-    } else {
-      sequenceFrequency[hash] += 1;
-    }
-    // TODO: verify no hash collision...?
-    representativeSequenceMap.emplace(x.first, it.first->second);
-  }
+  findCommonSubsequences(
+    sequences,
+    commonSubSequences,
+    sequenceFrequency,
+    representativeSequenceMap);
 
   // emit song table
   logD("writing song table");
@@ -446,15 +240,16 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
     writeWaveformHeader(w, x.second.c_str());
     w->writeText(fmt::sprintf("; Hash %d, Freq %d\n", x.first, freq));
     auto& dump = sequences[x.second];
-    TiaChannelState state(255, 255, 255);
-    for (auto& n: dump.notes) {
-      waveformDataSize += writeNote(w, n, state);
+    TiaVoiceRegisters last(255);
+    for (auto& n: dump.intervals) {
+      waveformDataSize += writeNote(w, n.state, n.duration, last);
+      last = n.state;
     }
     w->writeText("    byte 0\n");
     waveformDataSize++;
   }
 
-  // metadata
+  // audio metadata
   w->writeC('\n');
   w->writeText(fmt::sprintf("; Song Table Size %d\n", songTableSize));
   w->writeText(fmt::sprintf("; Song Data Size %d\n", songDataSize));
@@ -483,28 +278,27 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
  *   xxxxx111                    frequency = x >> 3, duration 2
  *   00000000                    stop
  */
-size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaNote& note, TiaChannelState& state) {
+size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaVoiceRegisters& next, const char duration, const TiaVoiceRegisters& last) {
   size_t bytesWritten = 0;
   unsigned char dmod = 0; // if duration is small, store in top bits of frequency
 
-  // KLUDGE: assume only one channel at a time. If both are zero...won't matter
-  int channel = (note.registers.audc0 | note.registers.audf0 | note.registers.audv0) != 0 ? 0 : 1; 
-  unsigned char audfx = (channel == 0) ? note.registers.audf0 : note.registers.audf1;
-  unsigned char audcx = (channel == 0) ? note.registers.audc0 : note.registers.audc1;
-  unsigned char audvx = (channel == 0) ? note.registers.audv0 : note.registers.audv1;
+  unsigned char audfx, audcx, audvx;
+  int cc, fc, vc;
+  audfx = next.audfx;
+  fc = audfx != last.audfx;
+  audcx = next.audcx;
+  cc = audcx != last.audcx;
+  audvx = next.audvx;
+  vc = audvx != last.audvx;
+  
+  w->writeText(fmt::sprintf("    ;F%d C%d V%d D%d\n", audfx, audcx, audvx, duration));
 
-  w->writeText(fmt::sprintf("    ;F%d C%d V%d D%d\n", audfx, audcx, audvx, note.duration));
-
-  int cc = audcx != state.audcx ? 1 : 0;
-  int fc = audfx != state.audfx ? 1 : 0;
-  int vc = audvx != state.audvx ? 1 : 0;
-
-  if ( ((cc + fc + vc) == 1) && note.duration < 3) {
+  if ( ((cc + fc + vc) == 1) && duration < 3) {
     // write a delta row - only change one register
-    if (note.duration == 0) {
+    if (duration == 0) {
         logD("0 duration note");
     }
-    dmod = note.duration > 0 ? note.duration - 1 : 1; // BUGBUG: when duration is zero... we force to 1...
+    dmod = duration > 0 ? duration - 1 : 1; // BUGBUG: when duration is zero... we force to 1...
     unsigned char rx;
     if (fc > 0) {
       // frequency
@@ -521,16 +315,16 @@ size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaNote& note, TiaChan
 
   } else {
     // write all registers
-    if (note.duration < 3) {
+    if (duration < 3) {
       // short duration
-      dmod = note.duration;
+      dmod = duration;
     } else {
       dmod = 3;
     }
     // frequency
     w->writeText(fmt::sprintf("    byte %d", audfx << 3 | dmod << 1 ));
     if (dmod == 3) {
-      w->writeText(fmt::sprintf(",%d", note.duration));
+      w->writeText(fmt::sprintf(",%d", duration));
       bytesWritten += 1;
     }
     // waveform and volume
@@ -538,10 +332,6 @@ size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaNote& note, TiaChan
     bytesWritten += 2;
 
   }
-
-  state.audcx = audcx;
-  state.audfx = audfx;
-  state.audvx = audvx;
 
   return bytesWritten;
 

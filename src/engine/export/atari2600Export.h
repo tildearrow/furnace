@@ -22,51 +22,17 @@
 
 #include "../engine.h"
 
-struct TiaRegisters {
-
-  unsigned char audc0;
-  unsigned char audc1;
-  unsigned char audf0;
-  unsigned char audf1;
-  unsigned char audv0;
-  unsigned char audv1;
-
-  bool write(const DivRegWrite& registerWrite);
-
-  size_t hash() {
-    return (size_t)audc0 | ((size_t)audc1 << 8) |
-      ((size_t)audf0 << 16) | ((size_t)audf1 << 24) | 
-      ((size_t)audv0 << 32) + ((size_t)audv1 << 40); 
-  }
-
-};
-
-struct TiaChannelState {
-
-  TiaChannelState() {}
-  TiaChannelState(unsigned char audcx, unsigned char audfx, unsigned char audvx) :
-    audcx(audcx), audfx(audfx), audvx(audvx) {}
+struct TiaVoiceRegisters {
 
   unsigned char audcx;
   unsigned char audfx;
   unsigned char audvx;
 
-};
+  TiaVoiceRegisters() {}
+  TiaVoiceRegisters(unsigned char c) : audcx(c), audfx(c), audvx(c) {}
 
-struct TiaNote {
-
-  TiaRegisters registers;
-  char duration;
-
-  TiaNote() {}
-
-  TiaNote(const TiaNote &n) : registers(n.registers), duration(n.duration) {}
-
-  TiaNote(const TiaRegisters &registers) : registers(registers), duration(-1) {}
-
-  size_t hash() {
-    return registers.hash() | ((size_t)duration << 48); // note: expect registers hash to use bits 0..47
-  }
+  bool write(const unsigned int addr, unsigned int value);
+  uint64_t hash_interval(const char duration);
 
 };
 
@@ -76,7 +42,7 @@ class DivExportAtari2600 : public DivROMExport {
 
   void writeWaveformHeader(SafeWriter* w, const char* key);
   size_t writeTextGraphics(SafeWriter* w, const char* value);
-  size_t writeNote(SafeWriter* w, const TiaNote& note, TiaChannelState& state);
+  size_t writeNote(SafeWriter* w, const TiaVoiceRegisters& next, const char duration, const TiaVoiceRegisters& last);
 
 public:
 

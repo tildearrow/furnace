@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2022 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,29 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "engine.h"
+#ifndef _C64_EXPORT_H
+#define _C64_EXPORT_H
 
-#include "export/amigaValidation.h"
-#include "export/atari2600Export.h"
-#include "export/c64Export.h"
+#include "../engine.h"
 
-std::vector<DivROMExportOutput> DivEngine::buildROM(DivROMExportOptions sys) {
-  DivROMExport* exporter=NULL;
-  switch (sys) {
-    case DIV_ROM_AMIGA_VALIDATION:
-      exporter=new DivExportAmigaValidation;
-      break;
-    case DIV_ROM_ATARI_2600:
-      exporter=new DivExportAtari2600;
-      break;
-    case DIV_ROM_C64:
-      exporter=new DivExportC64;
-      break;
-    default:
-      exporter=new DivROMExport;
-      break;
-  }
-  std::vector<DivROMExportOutput> ret=exporter->go(this);
-  delete exporter;
-  return ret;
-}
+class DivExportC64: public DivROMExport {
+ 
+public:
+
+  ~DivExportC64() {}
+
+  std::vector<DivROMExportOutput> go(DivEngine* e) override;
+
+};
+
+#endif // _C64_EXPORT_H
