@@ -68,17 +68,6 @@ const char** DivPlatformAmiga::getRegisterSheet() {
   return regCheatSheetAmiga;
 }
 
-#define writeAudDat(x) \
-  chan[i].audDat=x; \
-  if (i<3 && chan[i].useV) { \
-    chan[i+1].outVol=(unsigned char)chan[i].audDat^0x80; \
-    if (chan[i+1].outVol>64) chan[i+1].outVol=64; \
-  } \
-  if (i<3 && chan[i].useP) { \
-    chan[i+1].freq=(unsigned char)chan[i].audDat^0x80; \
-    if (chan[i+1].freq<AMIGA_DIVIDER) chan[i+1].freq=AMIGA_DIVIDER; \
-  }
-
 void DivPlatformAmiga::acquire(short** buf, size_t len) {
   thread_local int outL, outR, output;
   for (size_t h=0; h<len; h++) {
@@ -359,8 +348,8 @@ void DivPlatformAmiga::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol%65)*MIN(64,chan[i].std.vol.val))>>6;
-      chan[i].writeVol=true;
+      chan[i].macroVol=chan[i].std.vol.val;
+      chan[i].volChanged=true;
     }
     double off=1.0;
     if (!chan[i].useWave && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
@@ -516,8 +505,9 @@ void DivPlatformAmiga::tick(bool sysTick) {
   }
 
   for (int i=0; i<4; i++) {
-    if (chan[i].writeVol) {
-      chan[i].writeVol=false;
+    if (chan[i].volChanged) {
+      chan[i].outVol=((chan[i].vol%65)*MIN(64,chan[i].macroVol))>>6;
+      chan[i].volChanged=false;
       chWrite(i,8,chan[i].outVol);
     }
     if (chan[i].updateWave) {
@@ -585,10 +575,6 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
-        chan[c.chan].outVol=chan[c.chan].vol;
-        chan[c.chan].writeVol=true;
-      }
       if (chan[c.chan].useWave) {
         chan[c.chan].ws.init(ins,chan[c.chan].audLen<<1,255,chan[c.chan].insChanged);
         chan[c.chan].updateWave=true;
@@ -615,17 +601,12 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
-          chan[c.chan].outVol=c.value;
-          chan[c.chan].writeVol=true;
-        }
+        if (!parent->song.volMacroLinger) chan[c.chan].macroVol=chan[c.chan].maxVol;
+        chan[c.chan].volChanged=true;
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
-        return chan[c.chan].vol;
-      }
-      return chan[c.chan].outVol;
+      return chan[c.chan].vol;
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
