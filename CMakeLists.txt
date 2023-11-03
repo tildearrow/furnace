@@ -809,6 +809,7 @@ src/gui/tutorial.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp
+src/gui/xyOsc.cpp
 src/gui/gui.cpp
 )
 

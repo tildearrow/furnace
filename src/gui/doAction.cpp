@@ -279,6 +279,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_GROOVES:
       nextWindow=GUI_WINDOW_GROOVES;
       break;
+    case GUI_ACTION_WINDOW_XY_OSC:
+      nextWindow=GUI_WINDOW_XY_OSC;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -374,6 +377,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_GROOVES:
           groovesOpen=false;
+          break;
+        case GUI_WINDOW_XY_OSC:
+          xyOscOpen=false;
           break;
         default:
           break;
