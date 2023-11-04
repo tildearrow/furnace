@@ -1157,6 +1157,7 @@ const int availableSystems[]={
   DIV_SYSTEM_TED,
   DIV_SYSTEM_C140,
   DIV_SYSTEM_C219,
+  DIV_SYSTEM_ES5503,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
@@ -1269,6 +1270,7 @@ const int chipsSample[]={
   DIV_SYSTEM_K053260,
   DIV_SYSTEM_C140,
   DIV_SYSTEM_C219,
+  DIV_SYSTEM_ES5503,
   0 // don't remove this last one!
 };
 

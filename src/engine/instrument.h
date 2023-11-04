@@ -739,7 +739,7 @@ struct DivInstrumentES5506 {
 
 struct DivInstrumentES5503 {
   int wave, wavePos, waveLen;
-  char osc_state;
+  unsigned char osc_state;
   
   bool operator==(const DivInstrumentES5503& other);
   bool operator!=(const DivInstrumentES5503& other) {
@@ -748,7 +748,7 @@ struct DivInstrumentES5503 {
 
   DivInstrumentES5503():
     wave(-1), wavePos(-1), waveLen(-1), 
-    osc_state(-1) {
+    osc_state(0) {
 
     }
 };

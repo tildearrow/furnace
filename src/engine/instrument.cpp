@@ -216,6 +216,16 @@ bool DivInstrumentES5506::operator==(const DivInstrumentES5506& other) {
   );
 }
 
+/*bool DivInstrumentES5503::operator==(const DivInstrumentESFM& other) {
+  return (
+    _C(noise) &&
+    _C(op[0]) &&
+    _C(op[1]) &&
+    _C(op[2]) &&
+    _C(op[3])
+  );
+}*/
+
 bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
   return (
     _C(useEnv) &&
