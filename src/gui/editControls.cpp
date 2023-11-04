@@ -591,6 +591,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button("Compat Flags")) {
           compatFlagsOpen=!compatFlagsOpen;
         }
+        ImGui::SameLine();
+        if (ImGui::Button("XYOsc")) {
+          xyOscOpen=!xyOscOpen;
+        }
 
         ImGui::Separator();
 

@@ -30,7 +30,7 @@
 template<typename T> struct SharedChannel {
   int freq, baseFreq, baseNoteOverride, pitch, pitch2, arpOff;
   int ins, note;
-  bool active, insChanged, freqChanged, fixedArp, keyOn, keyOff, portaPause, inPorta, volChanged;
+  bool active, insChanged, freqChanged, fixedArp, keyOn, keyOff, portaPause, inPorta;
   T vol, outVol;
   DivMacroInt std;
   void handleArp(int offset=0) {
@@ -79,7 +79,6 @@ template<typename T> struct SharedChannel {
     keyOff(false),
     portaPause(false),
     inPorta(false),
-    volChanged(false),
     vol(initVol),
     outVol(initVol),
     std() {} 
