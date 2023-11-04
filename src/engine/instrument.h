@@ -85,6 +85,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_TED=52,
   DIV_INS_C140=53,
   DIV_INS_C219=54,
+  DIV_INS_ES5503=56,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -734,6 +735,22 @@ struct DivInstrumentES5506 {
   DivInstrumentES5506():
     filter(Filter()),
     envelope(Envelope()) {}
+};
+
+struct DivInstrumentES5503 {
+  int wave, wavePos, waveLen;
+  char osc_state;
+  
+  bool operator==(const DivInstrumentES5503& other);
+  bool operator!=(const DivInstrumentES5503& other) {
+    return !(*this==other);
+  }
+
+  DivInstrumentES5503():
+    wave(-1), wavePos(-1), waveLen(-1), 
+    osc_state(-1) {
+
+    }
 };
 
 struct DivInstrumentSNES {
