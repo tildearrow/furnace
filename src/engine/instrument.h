@@ -804,6 +804,7 @@ struct DivInstrument {
   DivInstrumentSoundUnit su;
   DivInstrumentES5506 es5506;
   DivInstrumentSNES snes;
+  DivInstrumentES5503 es5503;
 
   /**
    * these are internal functions.

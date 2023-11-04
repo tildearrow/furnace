@@ -601,6 +601,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformC140;
       ((DivPlatformC140*)dispatch)->set219(true);
       break;
+    case DIV_SYSTEM_ES5503:
+      dispatch=new DivPlatformES5503;
+      break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;
       break;
