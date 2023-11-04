@@ -27,13 +27,14 @@ class DivEngine;
 struct DivMacroStruct {
   int pos, lastPos, lfoPos, delay;
   int val;
-  bool has, had, actualHad, finished, will, began, masked, activeRelease;
+  bool has, had, actualHad, finished, will, linger, began, masked, activeRelease;
   unsigned int mode, type;
   unsigned char macroType;
   void doMacro(DivInstrumentMacro& source, bool released, bool tick);
   void init() {
     pos=lastPos=lfoPos=mode=type=delay=0;
     has=had=actualHad=will=false;
+    linger=false;
     began=true;
     // TODO: test whether this breaks anything?
     val=0;
@@ -50,6 +51,7 @@ struct DivMacroStruct {
     actualHad(false),
     finished(false),
     will(false),
+    linger(false),
     began(true),
     masked(false),
     activeRelease(false),
@@ -106,12 +108,6 @@ class DivMacroInt {
 
     // state
     bool hasRelease;
-
-    /**
-     * get whether brokenOutVol is enabled.
-     * @return the value of brokenOutVol, or false if not bound to an engine.
-     */
-    bool brokenOutVol();
 
     /**
      * set mask on macro.

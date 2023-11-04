@@ -31,7 +31,7 @@ template<typename T> struct SharedChannel {
   int freq, baseFreq, baseNoteOverride, pitch, pitch2, arpOff;
   int ins, note;
   bool active, insChanged, freqChanged, fixedArp, keyOn, keyOff, portaPause, inPorta, volChanged;
-  T vol, macroVol, outVol, maxVol;
+  T vol, outVol;
   DivMacroInt std;
   void handleArp(int offset=0) {
     if (std.arp.had) {
@@ -61,19 +61,6 @@ template<typename T> struct SharedChannel {
     arpOff=0;
     baseNoteOverride=0;
     fixedArp=false;
-    if (active && !std.brokenOutVol()) {
-      if (which==NULL) {
-        if (macroVol!=maxVol) {
-          macroVol=maxVol;
-          volChanged=true;
-        }
-      } else if (which->std.volMacro.len==0) {
-        if (macroVol!=maxVol) {
-          macroVol=maxVol;
-          volChanged=true;
-        }
-      }
-    }
   }
   SharedChannel(T initVol):
     freq(0),
@@ -92,11 +79,9 @@ template<typename T> struct SharedChannel {
     keyOff(false),
     portaPause(false),
     inPorta(false),
-    volChanged(true),
+    volChanged(false),
     vol(initVol),
-    macroVol(initVol),
     outVol(initVol),
-    maxVol(initVol),
     std() {} 
 };
 

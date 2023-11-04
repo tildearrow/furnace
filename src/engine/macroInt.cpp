@@ -43,6 +43,7 @@ void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
   mode=source.mode;
   type=(source.open>>1)&3;
   activeRelease=source.open&8;
+  linger=(source.macroType==DIV_MACRO_VOL && e->song.volMacroLinger);
   lfoPos=LFO_PHASE;
 }
 
@@ -63,7 +64,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
   }
   if (delay>0) {
     delay--;
-    had=false;
+    if (!linger) had=false;
     return;
   }
   if (began && source.delay>0) {
@@ -97,6 +98,8 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
       if (pos>=source.len) {
         if (source.loop<source.len && (source.loop>=source.rel || source.rel>=source.len)) {
           pos=source.loop;
+        } else if (linger) {
+          pos--;
         } else {
           has=false;
         }
@@ -137,7 +140,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
           break;
         case 4: // end
           pos=0;
-          has=false;
+          if (!linger) has=false;
           break;
       }
       val=ADSR_LOW+((pos+(ADSR_HIGH-ADSR_LOW)*pos)>>8);
@@ -248,11 +251,6 @@ void DivMacroInt::release() {
 
 void DivMacroInt::setEngine(DivEngine* eng) {
   e=eng;
-}
-
-bool DivMacroInt::brokenOutVol() {
-  if (e==NULL) return false;
-  return e->song.brokenOutVol;
 }
 
 #define ADD_MACRO(m,s) \
