@@ -141,7 +141,7 @@ int DivPlatformES5503::init(DivEngine* p, int channels, int sugRate, const DivCo
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  es5503_core=NULL;
+  es5503=NULL;
   setFlags(flags);
   reset();
   return 6;
@@ -151,9 +151,9 @@ void DivPlatformES5503::quit() {
   for (int i=0; i<6; i++) {
     delete oscBuf[i];
   }
-  if (es5503_core!=NULL) {
-    delete es5503_core;
-    es5503_core=NULL;
+  if (es5503!=NULL) {
+    delete es5503;
+    es5503=NULL;
   }
 }
 

@@ -74,6 +74,9 @@ class DivPlatformES5503: public DivDispatch {
   es5503_core* es5503;
   unsigned char regPool[256];
 
+  unsigned char* sampleMem;
+  size_t sampleMemLen;
+
   void updateWave(int ch);
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

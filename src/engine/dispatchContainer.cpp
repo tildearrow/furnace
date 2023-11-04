@@ -81,6 +81,7 @@
 #include "platform/k053260.h"
 #include "platform/ted.h"
 #include "platform/c140.h"
+#include "platform/es5503.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
