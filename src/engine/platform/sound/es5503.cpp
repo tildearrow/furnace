@@ -53,28 +53,28 @@ es5503_core::es5503_core(uint32_t clock)
   memset(this, 0, sizeof(*this));
   output_rate = (clock / 8) / (oscsenabled + 2);
   sampleMemLen = 65536 << 1;
-  sampleMem = new unsigned char[sampleMemLen];
+  sampleMem = (unsigned char*)malloc(sampleMemLen * sizeof(uint8_t));
 
   output_channels = 32;
   // The number here is the number of oscillators to enable -1 times 2.  You can never
 	// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
   oscsenabled = 62;
 
-  m_mix_buffer = new int32_t[10000];
+  m_mix_buffer = (int32_t*)malloc(1000000 * sizeof(int32_t));
 }
 
 es5503_core::~es5503_core()
 {
 	if (sampleMem != NULL)
 	{
-		delete sampleMem;
+		free(sampleMem);
 		sampleMem = NULL;
 		sampleMemLen = 0;
 	}
 	
 	if(m_mix_buffer != NULL)
 	{
-		delete m_mix_buffer;
+		free(m_mix_buffer);
 		m_mix_buffer = NULL;
 	}
 }
