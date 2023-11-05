@@ -397,7 +397,7 @@ void FurnaceGUI::drawWaveEdit() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!waveEditOpen) return;
-  float wavePreview[257];
+  float wavePreview[32769];
   if (mobileUI) {
     patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
     patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(pianoOpen?(0.4*canvasW):0.0f)):ImVec2(canvasW-(0.16*canvasH),canvasH-(pianoOpen?(0.3*canvasH):0.0f)));
@@ -500,7 +500,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
         if (ImGui::InputInt("##_WTW",&wave->len,1,2)) {
-          if (wave->len>256) wave->len=256;
+          if (wave->len>32768) wave->len=32768;
           if (wave->len<1) wave->len=1;
           e->notifyWaveChange(curWave);
           if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);

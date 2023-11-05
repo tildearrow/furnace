@@ -207,6 +207,13 @@ enum FMParams {
   FM_AMS2=31
 };
 
+enum ES5503_osc_modes {
+  OSC_MODE_FREERUN = 0,
+  OSC_MODE_ONESHOT = 1,
+  OSC_MODE_SYNC_OR_AM = 2, //for even voice syncs with next odd voice, for odd voice it amplitude modulates next even voice
+  OSC_MODE_SWAP = 3, //triggers next oscillator after previous finishes; since max wavetable size is 32 KiB allows for 64 KiB wavetables to be played seamlessly
+};
+
 #define FM_NAME(x) fmParamNames[settings.fmNames][x]
 #define FM_SHORT_NAME(x) fmParamShortNames[settings.fmNames][x]
 
@@ -376,6 +383,9 @@ const int kslMap[4]={
   0, 2, 1, 3
 };
 
+const int ES5503_wave_lengths[DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX] = {256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
+const char* ES5503_wave_lengths_string[DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX] = {"256", "512", "1024", "2048", "4096", "8192", "16384", "32768"};
+
 // do not change these!
 // anything other than a checkbox will look ugly!
 //
@@ -385,6 +395,14 @@ const char* macroAbsoluteMode="Fixed";
 const char* macroRelativeMode="Relative";
 const char* macroQSoundMode="QSound";
 const char* macroDummyMode="Bug";
+
+char* int_to_char_array(int num)
+{
+  static char numberstring[50];
+  memset(numberstring, 0, 50);
+  sprintf(numberstring, "%d", num);
+  return numberstring;
+}
 
 String macroHoverNote(int id, float val, void* u) {
   int* macroVal=(int*)u;
@@ -2347,7 +2365,8 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ins->type==DIV_INS_AY ||
         ins->type==DIV_INS_AY8930 ||
         ins->type==DIV_INS_VRC6 ||
-        ins->type==DIV_INS_SU) {
+        ins->type==DIV_INS_SU ||
+        ins->type==DIV_INS_ES5503) {
       P(ImGui::Checkbox("Use sample",&ins->amiga.useSample));
       if (ins->type==DIV_INS_X1_010) {
         if (ImGui::InputInt("Sample bank slot##BANKSLOT",&ins->x1_010.bankSlot,1,4)) { PARAMETER
@@ -5018,13 +5037,54 @@ void FurnaceGUI::drawInsEdit() {
         }
         if (ins->type==DIV_INS_ES5503) if (ImGui::BeginTabItem("ES5503")) {
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Waveform");
+          ImGui::Text("Oscillator mode:");
           ImGui::SameLine();
-          pushToggleColors(ins->es5503.osc_state);
-          if (ImGui::Button("osc")) { PARAMETER
-            ins->es5503.osc_state=!ins->es5503.osc_state;
+          bool freerun = (ins->es5503.initial_osc_mode == OSC_MODE_FREERUN);
+          bool oneshot = (ins->es5503.initial_osc_mode == OSC_MODE_ONESHOT);
+          bool sync_am = (ins->es5503.initial_osc_mode == OSC_MODE_SYNC_OR_AM);
+          bool swap = (ins->es5503.initial_osc_mode == OSC_MODE_SWAP);
+          if (ImGui::RadioButton("Freerun",freerun)) { PARAMETER
+            freerun=true;
+            oneshot=false;
+            sync_am=false;
+            swap=false;
+            ins->es5503.initial_osc_mode=OSC_MODE_FREERUN;
           }
-          popToggleColors();
+          ImGui::SameLine();
+          if (ImGui::RadioButton("Oneshot",oneshot)) { PARAMETER
+            freerun=false;
+            oneshot=true;
+            sync_am=false;
+            swap=false;
+            ins->es5503.initial_osc_mode=OSC_MODE_ONESHOT;
+          }
+          ImGui::SameLine();
+          if (ImGui::RadioButton("Sync/AM",sync_am)) { PARAMETER
+            freerun=false;
+            oneshot=false;
+            sync_am=true;
+            swap=false;
+            ins->es5503.initial_osc_mode=OSC_MODE_SYNC_OR_AM;
+          }
+          ImGui::SameLine();
+          if (ImGui::RadioButton("Swap",swap)) { PARAMETER
+            freerun=false;
+            oneshot=false;
+            sync_am=true;
+            swap=false;
+            ins->es5503.initial_osc_mode=OSC_MODE_SWAP;
+          }
+
+          int wavelen = ins->es5503.waveLen;
+          ImGui::Text("Wavetable/sample length");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          P(CWSliderScalar("Wavetable/sample length",ImGuiDataType_U8,&ins->es5503.waveLen,&_ZERO,&_SEVEN,ES5503_wave_lengths_string[ins->es5503.waveLen&7]));
+
+          ImGui::Text("Wavetable/sample position");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          P(CWSliderScalar("Wavetable/sample position",ImGuiDataType_U16,&ins->es5503.wavePos,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,int_to_char_array(ins->es5503.wavePos * 256)));
           
           ImGui::EndTabItem();
         }
@@ -5723,6 +5783,7 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_FDS ||
             (ins->type==DIV_INS_SWAN && !ins->amiga.useSample) ||
             (ins->type==DIV_INS_PCE && !ins->amiga.useSample) ||
+            (ins->type==DIV_INS_ES5503 && !ins->amiga.useSample) ||
             (ins->type==DIV_INS_VBOY) ||
             ins->type==DIV_INS_SCC ||
             ins->type==DIV_INS_SNES ||
@@ -5768,6 +5829,10 @@ void FurnaceGUI::drawInsEdit() {
               case DIV_INS_SNES:
                 wavePreviewLen=ins->amiga.waveLen+1;
                 wavePreviewHeight=15;
+                break;
+              case DIV_INS_ES5503:
+                wavePreviewLen=ES5503_wave_lengths[ins->es5503.waveLen&7];
+                wavePreviewHeight=255;
                 break;
               default:
                 wavePreviewLen=32;
@@ -5820,9 +5885,9 @@ void FurnaceGUI::drawInsEdit() {
                   wavePreview.init(ins,wavePreviewLen,wavePreviewHeight,true);
                   wavePreviewInit=false;
                 }
-                float wavePreview1[257];
-                float wavePreview2[257];
-                float wavePreview3[257];
+                float wavePreview1[32769];
+                float wavePreview2[32769];
+                float wavePreview3[32769];
                 for (int i=0; i<wave1->len; i++) {
                   if (wave1->data[i]>wave1->max) {
                     wavePreview1[i]=wave1->max;
@@ -6027,7 +6092,7 @@ void FurnaceGUI::drawInsEdit() {
             volMax=31;
           }
           if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219) {
+              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219 || ins->type==DIV_INS_ES5503) {
             volMax=255;
           }
           if (ins->type==DIV_INS_QSOUND) {
@@ -6530,7 +6595,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_PCE ||
             ins->type==DIV_INS_X1_010 ||
             ins->type==DIV_INS_SWAN ||
-            ins->type==DIV_INS_VRC6) {
+            ins->type==DIV_INS_VRC6 ||
+            ins->type==DIV_INS_ES5503) {
           insTabSample(ins);
         }
         ImGui::EndTabBar();

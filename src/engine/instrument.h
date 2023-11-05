@@ -739,7 +739,11 @@ struct DivInstrumentES5506 {
 
 struct DivInstrumentES5503 {
   int wave, wavePos, waveLen;
-  unsigned char osc_state;
+  unsigned char initial_osc_mode;
+
+  enum WaveTableLengths: unsigned char {
+    DIV_ES5503_WAVE_LENGTH_MAX=8,
+  };
   
   bool operator==(const DivInstrumentES5503& other);
   bool operator!=(const DivInstrumentES5503& other) {
@@ -747,8 +751,8 @@ struct DivInstrumentES5503 {
   }
 
   DivInstrumentES5503():
-    wave(-1), wavePos(-1), waveLen(-1), 
-    osc_state(0) {
+    wave(-1), wavePos(0), waveLen(0),
+    initial_osc_mode(0) {
 
     }
 };

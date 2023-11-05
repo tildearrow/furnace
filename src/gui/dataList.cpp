@@ -971,7 +971,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
 }
 
 void FurnaceGUI::actualWaveList() {
-  float wavePreview[257];
+  float wavePreview[32769];
 
   if (waveListDir || (settings.unifiedDataView && insListDir)) {
     ImGui::TableNextRow();

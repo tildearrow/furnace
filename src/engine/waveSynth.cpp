@@ -224,7 +224,7 @@ bool DivWaveSynth::tick(bool skipSubDiv) {
 void DivWaveSynth::setWidth(int val) {
   width=val;
   if (width<0) width=0;
-  if (width>256) width=256;
+  if (width>32768) width=32768;
 }
 
 #define SHALL_UPDATE_OUT (!state.enabled || force || (state.enabled && effectOnlyAltersOutput(state.effect)))
@@ -276,7 +276,7 @@ void DivWaveSynth::init(DivInstrument* which, int w, int h, bool insChanged) {
   width=w;
   height=h;
   if (width<0) width=0;
-  if (width>256) width=256;
+  if (width>32768) width=32768;
   if (e==NULL) return;
   if (which==NULL) {
     if (state.enabled) activeChangedB=true;
