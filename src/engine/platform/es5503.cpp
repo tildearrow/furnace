@@ -49,6 +49,16 @@ void DivPlatformES5503::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformES5503::setFlags(const DivConfig& flags) {
+  chipClock=1000000U;
+
+  CHECK_CUSTOM_CLOCK;
+  
+  rate=chipClock/32;
+
+  for (int i=0; i<32; i++) {
+    oscBuf[i]->rate=rate;
+  }
+
   if (es5503!=NULL) {
     delete es5503;
     es5503=NULL;
@@ -137,18 +147,18 @@ int DivPlatformES5503::init(DivEngine* p, int channels, int sugRate, const DivCo
   dumpWrites=false;
   skipRegisterWrites=false;
   updateLFO=false;
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<32; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   es5503=NULL;
   setFlags(flags);
   reset();
-  return 6;
+  return 32;
 }
 
 void DivPlatformES5503::quit() {
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<32; i++) {
     delete oscBuf[i];
   }
   if (es5503!=NULL) {

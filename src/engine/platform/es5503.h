@@ -65,7 +65,7 @@ class DivPlatformES5503: public DivDispatch {
     QueuedWrite(): addr(0), val(0) {}
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  FixedQueue<QueuedWrite,512> writes;
+  FixedQueue<QueuedWrite,1024> writes;
   unsigned char lastPan;
 
   int curChan;
