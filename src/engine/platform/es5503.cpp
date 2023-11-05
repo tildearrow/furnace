@@ -142,6 +142,7 @@ void DivPlatformES5503::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformES5503::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
+  memset(this->regPool, 0, sizeof(this->regPool[0]) * 256);
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
