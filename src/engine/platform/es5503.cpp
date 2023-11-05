@@ -44,16 +44,15 @@ const char** DivPlatformES5503::getRegisterSheet() {
   return regCheatSheetES5503;
 }
 
-void DivPlatformES5503::acquire(short** buf, size_t len) {
-  
+void DivPlatformES5503::acquire(short** buf, size_t len) { //the function where we actually fill the fucking audio buffer!!!!!
+  es5503->fill_audio_buffer(buf[0], buf[1], len);
 }
 
 void DivPlatformES5503::setFlags(const DivConfig& flags) {
-  chipClock=1000000U;
+  chipClock=894886U; //894886 Hz on Apple IIGS
 
   CHECK_CUSTOM_CLOCK;
-  
-  rate=chipClock/32;
+  rate=29410; //29.41 kHz for Apple IIGS card with all oscillators enabled
 
   for (int i=0; i<32; i++) {
     oscBuf[i]->rate=rate;
@@ -63,7 +62,7 @@ void DivPlatformES5503::setFlags(const DivConfig& flags) {
     delete es5503;
     es5503=NULL;
   }
-  es5503=new es5503_core();
+  es5503=new es5503_core(chipClock);
 }
 
 void DivPlatformES5503::updateWave(int ch) {

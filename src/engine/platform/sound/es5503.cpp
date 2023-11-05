@@ -48,22 +48,379 @@ static constexpr uint32_t wavemasks[8] = { 0x1ff00, 0x1fe00, 0x1fc00, 0x1f800, 0
 static constexpr uint32_t accmasks[8]  = { 0xff, 0x1ff, 0x3ff, 0x7ff, 0xfff, 0x1fff, 0x3fff, 0x7fff };
 static constexpr int    resshifts[8] = { 9, 10, 11, 12, 13, 14, 15, 16 };
 
-es5503_core::es5503_core()
+es5503_core::es5503_core(uint32_t clock)
 {
+  memset(this, 0, sizeof(*this));
+  output_rate = (clock / 8) / (oscsenabled + 2);
+  sampleMemLen = 65536 << 1;
+  sampleMem = new unsigned char[sampleMemLen];
 
+  output_channels = 32;
+  // The number here is the number of oscillators to enable -1 times 2.  You can never
+	// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
+  oscsenabled = 62;
+
+  m_mix_buffer = new int32_t[10000];
 }
 
 es5503_core::~es5503_core()
 {
-
+	if (sampleMem != NULL)
+	{
+		delete sampleMem;
+		sampleMem = NULL;
+		sampleMemLen = 0;
+	}
+	
+	if(m_mix_buffer != NULL)
+	{
+		delete m_mix_buffer;
+		m_mix_buffer = NULL;
+	}
 }
 
 uint8_t es5503_core::read(uint8_t offset)
 {
-    return 0;
+  uint8_t retval;
+	int i;
+
+	//m_stream->update();
+
+	if (offset < 0xe0)
+	{
+		int osc = offset & 0x1f;
+
+		switch(offset & 0xe0)
+		{
+			case 0:     // freq lo
+				return (oscillators[osc].freq & 0xff);
+
+			case 0x20:      // freq hi
+				return (oscillators[osc].freq >> 8);
+
+			case 0x40:  // volume
+				return oscillators[osc].vol;
+
+			case 0x60:  // data
+				return oscillators[osc].data;
+
+			case 0x80:  // wavetable pointer
+				return (oscillators[osc].wavetblpointer>>8) & 0xff;
+
+			case 0xa0:  // oscillator control
+				return oscillators[osc].control;
+
+			case 0xc0:  // bank select / wavetable size / resolution
+				retval = 0;
+				if (oscillators[osc].wavetblpointer & 0x10000)
+				{
+					retval |= 0x40;
+				}
+
+				retval |= (oscillators[osc].wavetblsize<<3);
+				retval |= oscillators[osc].resolution;
+				return retval;
+		}
+	}
+	else     // global registers
+	{
+		switch (offset)
+		{
+			case 0xe0:  // interrupt status
+				retval = rege0;
+
+				//m_irq_func(0);
+
+				// scan all oscillators
+				for (i = 0; i < oscsenabled; i++)
+				{
+					if (oscillators[i].irqpend)
+					{
+						// signal this oscillator has an interrupt
+						retval = i<<1;
+
+						rege0 = retval | 0x80;
+
+						// and clear its flag
+						oscillators[i].irqpend = 0;
+						break;
+					}
+				}
+
+				// if any oscillators still need to be serviced, assert IRQ again immediately
+				for (i = 0; i < oscsenabled; i++)
+				{
+					if (oscillators[i].irqpend)
+					{
+						//m_irq_func(1);
+						break;
+					}
+				}
+
+				return retval | 0x41;
+
+			case 0xe1:  // oscillator enable
+				return (oscsenabled - 1) << 1;
+
+			case 0xe2:  // A/D converter
+				return 0;//m_adc_func();
+		}
+	}
+
+	return 0;
 }
 
 void es5503_core::write(uint8_t offset, uint8_t data)
 {
+  if (offset < 0xe0)
+	{
+		int osc = offset & 0x1f;
 
+		switch(offset & 0xe0)
+		{
+			case 0:     // freq lo
+				oscillators[osc].freq &= 0xff00;
+				oscillators[osc].freq |= data;
+				break;
+
+			case 0x20:      // freq hi
+				oscillators[osc].freq &= 0x00ff;
+				oscillators[osc].freq |= (data<<8);
+				break;
+
+			case 0x40:  // volume
+				oscillators[osc].vol = data;
+				break;
+
+			case 0x60:  // data - ignore writes
+				break;
+
+			case 0x80:  // wavetable pointer
+				oscillators[osc].wavetblpointer = (data<<8);
+				break;
+
+			case 0xa0:  // oscillator control
+				// key on?
+				if ((oscillators[osc].control & 1) && (!(data&1)))
+				{
+					oscillators[osc].accumulator = 0;
+				}
+				oscillators[osc].control = data;
+				break;
+
+			case 0xc0:  // bank select / wavetable size / resolution
+				if (data & 0x40)    // bank select - not used on the Apple IIgs
+				{
+					oscillators[osc].wavetblpointer |= 0x10000;
+				}
+				else
+				{
+					oscillators[osc].wavetblpointer &= 0xffff;
+				}
+
+				oscillators[osc].wavetblsize = ((data>>3) & 7);
+				oscillators[osc].wtsize = wavesizes[oscillators[osc].wavetblsize];
+				oscillators[osc].resolution = (data & 7);
+				break;
+		}
+	}
+}
+
+uint8_t es5503_core::read_byte(uint32_t offset)
+{
+	if (offset < sampleMemLen && sampleMem != NULL)
+	{
+		return sampleMem[offset];
+	}
+	
+	return 0;
+}
+
+// halt_osc: handle halting an oscillator
+// onum = oscillator #
+// type = 1 for 0 found in sample data, 0 for hit end of table size
+void es5503_core::halt_osc(int onum, int type, uint32_t *accumulator, int resshift)
+{
+	ES5503Osc *pOsc = &oscillators[onum];
+	ES5503Osc *pPartner = &oscillators[onum^1];
+	int mode = (pOsc->control>>1) & 3;
+	const int partnerMode = (pPartner->control>>1) & 3;
+
+	// check for sync mode
+	if (mode == MODE_SYNCAM)
+	{
+		if (!(onum & 1))
+		{
+			// we're even, so if the odd oscillator 1 below us is playing,
+			// restart it.
+			if (!(oscillators[onum - 1].control & 1))
+			{
+				oscillators[onum - 1].accumulator = 0;
+			}
+		}
+
+		// loop this oscillator for both sync and AM
+		mode = MODE_FREE;
+	}
+
+	// if 0 found in sample data or mode is not free-run, halt this oscillator
+	if ((mode != MODE_FREE) || (type != 0))
+	{
+		pOsc->control |= 1;
+	}
+	else    // preserve the relative phase of the oscillator when looping
+	{
+		uint16_t wtsize = pOsc->wtsize - 1;
+		*accumulator -= (wtsize << resshift);
+	}
+
+	// if we're in swap mode, start the partner
+	if (mode == MODE_SWAP)
+	{
+		pPartner->control &= ~1;    // clear the halt bit
+		pPartner->accumulator = 0;  // and make sure it starts from the top (does this also need phase preservation?)
+	}
+	else
+	{
+		// if we're not swap and we're the even oscillator of the pair and the partner's swap
+		// but we aren't, we retrigger (!!!)  Verified on IIgs hardware.
+		if ((partnerMode == MODE_SWAP) && ((onum & 1)==0))
+		{
+			pOsc->control &= ~1;
+
+			// preserve the phase in this case too
+			uint16_t wtsize = pOsc->wtsize - 1;
+			*accumulator -= (wtsize << resshift);
+		}
+	}
+	// IRQ enabled for this voice?
+	if (pOsc->control & 0x08)
+	{
+		pOsc->irqpend = 1;
+
+		//m_irq_func(1);
+	}
+}
+
+void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fill audio buffer
+{
+    int32_t *mixp;
+	int osc, snum, i;
+	uint32_t ramptr;
+	int samples = len;
+
+	//std::fill_n(&m_mix_buffer[0], samples*output_channels, 0);
+	memset(m_mix_buffer, 0, samples*output_channels);
+
+	for (int chan = 0; chan < output_channels; chan++)
+	{
+		for (osc = 0; osc < oscsenabled; osc++)
+		{
+			ES5503Osc *pOsc = &oscillators[osc];
+
+			if (!(pOsc->control & 1) && ((pOsc->control >> 4) & (output_channels - 1)) == chan)
+			{
+				uint32_t wtptr = pOsc->wavetblpointer & wavemasks[pOsc->wavetblsize], altram;
+				uint32_t acc = pOsc->accumulator;
+				uint16_t wtsize = pOsc->wtsize - 1;
+				uint8_t ctrl = pOsc->control;
+				uint16_t freq = pOsc->freq;
+				int16_t vol = pOsc->vol;
+				int8_t data = -128;
+				int resshift = resshifts[pOsc->resolution] - pOsc->wavetblsize;
+				uint32_t sizemask = accmasks[pOsc->wavetblsize];
+				int mode = (pOsc->control>>1) & 3;
+				mixp = &m_mix_buffer[0] + chan;
+
+				for (snum = 0; snum < samples; snum++)
+				{
+					altram = acc >> resshift;
+					ramptr = altram & sizemask;
+
+					acc += freq;
+
+					// channel strobe is always valid when reading; this allows potentially banking per voice
+					m_channel_strobe = (ctrl>>4) & 0xf;
+					data = (int32_t)read_byte(ramptr + wtptr) ^ 0x80;
+
+					if (read_byte(ramptr + wtptr) == 0x00)
+					{
+						halt_osc(osc, 1, &acc, resshift);
+					}
+					else
+					{
+						if (mode != MODE_SYNCAM)
+						{
+							*mixp += data * vol;
+							if (chan == (output_channels - 1))
+							{
+								*mixp += data * vol;
+								*mixp += data * vol;
+							}
+						}
+						else
+						{
+							// if we're odd, we play nothing ourselves
+							if (osc & 1)
+							{
+								if (osc < 31)
+								{
+									// if the next oscillator up is playing, it's volume becomes our control
+									if (!(oscillators[osc + 1].control & 1))
+									{
+										oscillators[osc + 1].vol = data ^ 0x80;
+									}
+								}
+							}
+							else    // hard sync, both oscillators play?
+							{
+								*mixp += data * vol;
+								if (chan == (output_channels - 1))
+								{
+									*mixp += data * vol;
+									*mixp += data * vol;
+								}
+							}
+						}
+						mixp += output_channels;
+
+						if (altram >= wtsize)
+						{
+							halt_osc(osc, 0, &acc, resshift);
+						}
+					}
+
+					// if oscillator halted, we've got no more samples to generate
+					if (pOsc->control & 1)
+					{
+						ctrl |= 1;
+						break;
+					}
+				}
+
+				pOsc->control = ctrl;
+				pOsc->accumulator = acc;
+				pOsc->data = data ^ 0x80;
+			}
+		}
+	}
+
+	mixp = &m_mix_buffer[0];
+
+	for (int chan = 0; chan < output_channels; chan++)
+	{
+		for (i = 0; i < /*outputs[chan].samples();*/ len; i++)
+		{
+			//outputs[chan].put_int(i, *mixp++, 32768*8);
+			if(chan & 1)
+			{
+				left[i] = *mixp++; //pray for this shit to work bruh
+			}
+
+			else
+			{
+				right[i] = *mixp++;
+			}
+		}
+	}
 }

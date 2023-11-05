@@ -4,11 +4,16 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+#include <vector>
 
 class es5503_core {
 public:
 	// construction/destruction
-	es5503_core();
+	es5503_core(uint32_t clock);
     ~es5503_core();
 
 	// channels must be a power of two
@@ -16,6 +21,12 @@ public:
 
 	uint8_t read(uint8_t offset);
 	void write(uint8_t offset, uint8_t data);
+	uint8_t read_byte(uint32_t offset);
+	void halt_osc(int onum, int type, uint32_t *accumulator, int resshift);
+	void fill_audio_buffer(short* left, short* right, size_t len);
+
+	unsigned char* sampleMem;
+    size_t sampleMemLen;
 
 private:
 	enum
@@ -50,6 +61,8 @@ private:
 
 	int output_channels;
 	uint32_t output_rate;
+
+	int32_t* m_mix_buffer;
 
 	//void halt_osc(int onum, int type, uint32_t *accumulator, int resshift);
 };
