@@ -53,29 +53,22 @@ es5503_core::es5503_core(uint32_t clock)
   memset(this, 0, sizeof(*this));
   output_rate = (clock / 8) / (oscsenabled + 2);
   sampleMemLen = 65536 << 1;
-  sampleMem = (unsigned char*)malloc(sampleMemLen * sizeof(uint8_t));
-
+  sampleMem = new unsigned char[sampleMemLen];
   output_channels = 32;
   // The number here is the number of oscillators to enable -1 times 2.  You can never
 	// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
   oscsenabled = 62;
 
-  m_mix_buffer = (int32_t*)malloc(1000000 * sizeof(int32_t));
+  m_mix_buffer.resize(44444);
 }
 
 es5503_core::~es5503_core()
 {
 	if (sampleMem != NULL)
 	{
-		free(sampleMem);
+		delete sampleMem;
 		sampleMem = NULL;
 		sampleMemLen = 0;
-	}
-	
-	if(m_mix_buffer != NULL)
-	{
-		free(m_mix_buffer);
-		m_mix_buffer = NULL;
 	}
 }
 
@@ -309,8 +302,8 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 	uint32_t ramptr;
 	int samples = len;
 
-	//std::fill_n(&m_mix_buffer[0], samples*output_channels, 0);
-	memset(m_mix_buffer, 0, samples*output_channels);
+	std::fill_n(&m_mix_buffer[0], samples*output_channels, 0);
+	//memset(m_mix_buffer, 0, samples*output_channels);
 
 	for (int chan = 0; chan < output_channels; chan++)
 	{

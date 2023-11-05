@@ -62,7 +62,7 @@ private:
 	int output_channels;
 	uint32_t output_rate;
 
-	int32_t* m_mix_buffer;
+	std::vector<int32_t> m_mix_buffer;
 
 	//void halt_osc(int onum, int type, uint32_t *accumulator, int resshift);
 };
