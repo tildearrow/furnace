@@ -168,12 +168,12 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
 
       // output
       if (!isMuted[i]) {
-        if (amiga.audVol[i]>=64) {
+        if ((amiga.audVol[i]&127)>=64) {
           output=amiga.nextOut[i]<<6;
-        } else if (amiga.audVol[i]<=0) {
+        } else if ((amiga.audVol[i]&127)==0) {
           output=0;
         } else {
-          output=amiga.nextOut[i]*volTable[amiga.audVol[i]][amiga.volPos];
+          output=amiga.nextOut[i]*volTable[amiga.audVol[i]&63][amiga.volPos];
         }
         if (i==0 || i==3) {
           outL+=(output*sep1)>>7;
@@ -182,7 +182,7 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
           outL+=(output*sep2)>>7;
           outR+=(output*sep1)>>7;
         }
-        oscBuf[i]->data[oscBuf[i]->needle++]=(amiga.nextOut[i]*MIN(64,amiga.audVol[i]))<<1;
+        oscBuf[i]->data[oscBuf[i]->needle++]=(amiga.nextOut[i]*MIN(64,amiga.audVol[i]&127))<<1;
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
       }
