@@ -297,13 +297,15 @@ void es5503_core::halt_osc(int onum, int type, uint32_t *accumulator, int resshi
 
 void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fill audio buffer
 {
+	//std::fill_n(m_mix_buffer.begin(), samples*output_channels, 0);
+	//memset(m_mix_buffer, 0, samples*output_channels);
+
     int32_t *mixp;
 	int osc, snum, i;
 	uint32_t ramptr;
 	int samples = len;
 
-	std::fill_n(&m_mix_buffer[0], samples*output_channels, 0);
-	//memset(m_mix_buffer, 0, samples*output_channels);
+	m_mix_buffer.resize(samples*output_channels, 0);
 
 	for (int chan = 0; chan < output_channels; chan++)
 	{
