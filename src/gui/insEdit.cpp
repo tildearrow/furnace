@@ -5016,6 +5016,18 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Don't test before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
+        if (ins->type==DIV_INS_ES5503) if (ImGui::BeginTabItem("ES5503")) {
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Waveform");
+          ImGui::SameLine();
+          pushToggleColors(ins->es5503.osc_state);
+          if (ImGui::Button("osc")) { PARAMETER
+            ins->es5503.osc_state=!ins->es5503.osc_state;
+          }
+          popToggleColors();
+          
+          ImGui::EndTabItem();
+        }
         if (ins->type==DIV_INS_SU) if (ImGui::BeginTabItem("Sound Unit")) {
           P(ImGui::Checkbox("Switch roles of frequency and phase reset timer",&ins->su.switchRoles));
           if (ImGui::BeginChild("HWSeqSU",ImGui::GetContentRegionAvail(),true,ImGuiWindowFlags_MenuBar)) {
