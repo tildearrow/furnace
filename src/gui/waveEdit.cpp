@@ -500,7 +500,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
         if (ImGui::InputInt("##_WTW",&wave->len,1,2)) {
-          if (wave->len>32768) wave->len=32768;
+          if (wave->len>256) wave->len=256;
           if (wave->len<1) wave->len=1;
           e->notifyWaveChange(curWave);
           if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);

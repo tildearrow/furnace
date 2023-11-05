@@ -5831,7 +5831,7 @@ void FurnaceGUI::drawInsEdit() {
                 wavePreviewHeight=15;
                 break;
               case DIV_INS_ES5503:
-                wavePreviewLen=ES5503_wave_lengths[ins->es5503.waveLen&7];
+                wavePreviewLen=256;
                 wavePreviewHeight=255;
                 break;
               default:
@@ -5885,9 +5885,9 @@ void FurnaceGUI::drawInsEdit() {
                   wavePreview.init(ins,wavePreviewLen,wavePreviewHeight,true);
                   wavePreviewInit=false;
                 }
-                float wavePreview1[32769];
-                float wavePreview2[32769];
-                float wavePreview3[32769];
+                float wavePreview1[257];
+                float wavePreview2[257];
+                float wavePreview3[257];
                 for (int i=0; i<wave1->len; i++) {
                   if (wave1->data[i]>wave1->max) {
                     wavePreview1[i]=wave1->max;
