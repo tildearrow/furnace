@@ -24,7 +24,7 @@
 
 struct DivWavetable {
   int len, min, max;
-  int data[32768];
+  int data[256];
 
   /**
    * save the wavetable to a SafeWriter.
@@ -64,7 +64,7 @@ struct DivWavetable {
     len(32),
     min(0),
     max(31) {
-    for (int i=0; i<32768; i++) {
+    for (int i=0; i<256; i++) {
       data[i]=i;
     }
   }

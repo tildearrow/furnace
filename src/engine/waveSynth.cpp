@@ -276,7 +276,7 @@ void DivWaveSynth::init(DivInstrument* which, int w, int h, bool insChanged) {
   width=w;
   height=h;
   if (width<0) width=0;
-  if (width>32768) width=32768;
+  if (width>256) width=256;
   if (e==NULL) return;
   if (which==NULL) {
     if (state.enabled) activeChangedB=true;
