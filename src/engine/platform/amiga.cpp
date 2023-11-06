@@ -204,11 +204,6 @@ void DivPlatformAmiga::irq(int ch) {
   if (chan[ch].irLocL==0x400 && chan[ch].irLocH==0 && chan[ch].irLen==1) {
     // turn off DMA
     rWrite(0x96,1<<ch);
-  } else {
-    // write latched loc/len
-    chWrite(ch,0,chan[ch].irLocH);
-    chWrite(ch,2,chan[ch].irLocL);
-    chWrite(ch,4,chan[ch].irLen);
   }
 
   // acknowledge interrupt
@@ -529,9 +524,16 @@ void DivPlatformAmiga::tick(bool sysTick) {
   if (dmaOn) rWrite(0x96,0x8000|dmaOn);
 
   for (int i=0; i<4; i++) {
-    if ((dmaOn&(1<<i)) && !chan[i].useWave && dumpWrites) {
-      addWrite(0x200+i,(chan[i].irLocH<<16)|chan[i].irLocL);
-      addWrite(0x204+i,chan[i].irLen);
+    if ((dmaOn&(1<<i)) && !chan[i].useWave) {
+      // write latched loc/len
+      if (dumpWrites) {
+        addWrite(0x200+i,(chan[i].irLocH<<16)|chan[i].irLocL);
+        addWrite(0x204+i,chan[i].irLen);
+      } else {
+        chWrite(i,0,chan[i].irLocH);
+        chWrite(i,2,chan[i].irLocL);
+        chWrite(i,4,chan[i].irLen);
+      }
     }
   }
 
@@ -733,7 +735,6 @@ void DivPlatformAmiga::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformAmiga::forceIns() {
-  logV("at time of clear: %d",writes.size());
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
