@@ -59,7 +59,7 @@ es5503_core::es5503_core(uint32_t clock)
 	// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
   oscsenabled = 62;
 
-  m_mix_buffer.resize(44444);
+  m_mix_buffer.push_back(0);
 }
 
 es5503_core::~es5503_core()
@@ -300,12 +300,16 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 	//std::fill_n(m_mix_buffer.begin(), samples*output_channels, 0);
 	//memset(m_mix_buffer, 0, samples*output_channels);
 
-    int32_t *mixp;
+    //int32_t *mixp;
+	int32_t mixp;
 	int osc, snum, i;
 	uint32_t ramptr;
 	int samples = len;
 
-	m_mix_buffer.resize(samples*output_channels, 0);
+	if (m_mix_buffer.size() != samples * output_channels)
+	{
+		m_mix_buffer.resize(samples * output_channels, 0);
+	}
 
 	for (int chan = 0; chan < output_channels; chan++)
 	{
@@ -325,7 +329,8 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 				int resshift = resshifts[pOsc->resolution] - pOsc->wavetblsize;
 				uint32_t sizemask = accmasks[pOsc->wavetblsize];
 				int mode = (pOsc->control>>1) & 3;
-				mixp = &m_mix_buffer[0] + chan;
+				//mixp = &m_mix_buffer[0] + chan;
+				mixp = chan;
 
 				for (snum = 0; snum < samples; snum++)
 				{
@@ -346,11 +351,15 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 					{
 						if (mode != MODE_SYNCAM)
 						{
-							*mixp += data * vol;
+							//*mixp += data * vol;
+							m_mix_buffer[mixp] += data * vol;
+
 							if (chan == (output_channels - 1))
 							{
-								*mixp += data * vol;
-								*mixp += data * vol;
+								//*mixp += data * vol;
+								//*mixp += data * vol;
+								m_mix_buffer[mixp] += data * vol;
+								m_mix_buffer[mixp] += data * vol;
 							}
 						}
 						else
@@ -369,14 +378,19 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 							}
 							else    // hard sync, both oscillators play?
 							{
-								*mixp += data * vol;
+								//*mixp += data * vol;
+								m_mix_buffer[mixp] += data * vol;
+
 								if (chan == (output_channels - 1))
 								{
-									*mixp += data * vol;
-									*mixp += data * vol;
+									//*mixp += data * vol;
+									//*mixp += data * vol;
+									m_mix_buffer[mixp] += data * vol;
+									m_mix_buffer[mixp] += data * vol;
 								}
 							}
 						}
+
 						mixp += output_channels;
 
 						if (altram >= wtsize)
@@ -400,7 +414,8 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 		}
 	}
 
-	mixp = &m_mix_buffer[0];
+	//mixp = &m_mix_buffer[0];
+	mixp = 0;
 
 	for (int chan = 0; chan < output_channels; chan++)
 	{
@@ -409,12 +424,16 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 			//outputs[chan].put_int(i, *mixp++, 32768*8);
 			if(chan & 1)
 			{
-				left[i] = *mixp++; //pray for this shit to work bruh
+				//left[i] = *mixp++; //pray for this shit to work bruh
+				left[i] = m_mix_buffer[mixp];
+				mixp++;
 			}
 
 			else
 			{
-				right[i] = *mixp++;
+				//right[i] = *mixp++;
+				right[i] = m_mix_buffer[mixp];
+				mixp++;
 			}
 		}
 	}
