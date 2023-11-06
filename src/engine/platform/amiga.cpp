@@ -738,6 +738,7 @@ void DivPlatformAmiga::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chan[i].writeVol=true;
     /*chan[i].keyOn=false;
     chan[i].keyOff=false;
     chan[i].sample=-1;*/
