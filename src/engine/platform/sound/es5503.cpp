@@ -419,12 +419,12 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 
 	for (int chan = 0; chan < output_channels; chan++)
 	{
-		for (i = 0; i < /*outputs[chan].samples();*/ len; i++)
+		for (i = 0; i < len; i++)
 		{
 			//outputs[chan].put_int(i, *mixp++, 32768*8);
 			if(chan & 1)
 			{
-				//left[i] = *mixp++; //pray for this shit to work bruh
+				//left[i] = *mixp++; pray for this shit to work bruh
 				left[i] = m_mix_buffer[mixp];
 				mixp++;
 			}
