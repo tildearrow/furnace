@@ -18,7 +18,6 @@
  */
 
 #include "atari2600Export.h"
-#include "registerDump.h"
 
 #include <fmt/printf.h>
 #include <set>
@@ -43,35 +42,9 @@ std::map<unsigned int, unsigned int> channel1AddressMap = {
   {AUDV1, 2},
 };
 
-bool TiaVoiceRegisters::write(const unsigned int addr, const unsigned int value) {
-  unsigned char val = value;
-  switch (addr) {
-    case 0:
-      if (val == audcx) return false;
-      audcx = val;
-      return true;
-    case 1:
-      if (val == audfx) return false;
-      audfx = val;
-      return true;
-    case 2:
-      if (val == audvx) return false;
-      audvx = val;
-      return true;
-  }
-  return false;
-}
-
-uint64_t TiaVoiceRegisters::hash_interval(const char duration) {
-  return  ((uint64_t)audcx) +  
-          (((uint64_t)audfx) << 8) + 
-          (((uint64_t)audvx) << 16) +
-          (((uint64_t)duration) << 32);
-}
-
 std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
-  ret.reserve(2);
+  ret.reserve(3);
 
   // create meta data (optional)
   logD("writing track title graphics");
@@ -94,24 +67,12 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   trackData->init();
   trackData->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
   trackData->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
-  writeTrackData_CRD(e, trackData);
-  ret.push_back(DivROMExportOutput("Track_data.asm", trackData));
-
-  return ret;
-}
-
-/**
- * 
- * we first play back the song to create a register dump then compress it
- * into common subsequences
- */
-void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
 
   // capture all sequences
   logD("performing sequence capture");
-  std::map<String, DumpSequence<TiaVoiceRegisters>> sequences;
-  captureSequences(e, DIV_SYSTEM_TIA, 0, channel0AddressMap, sequences);
-  captureSequences(e, DIV_SYSTEM_TIA, 1, channel1AddressMap, sequences);
+  std::map<String, DumpSequence> sequences;
+  captureSequences(e, DIV_SYSTEM_TIA, 0, channel0AddressMap, sequences, true);
+  captureSequences(e, DIV_SYSTEM_TIA, 1, channel1AddressMap, sequences, true);
 
   // compress the patterns into common subsequences
   logD("performing sequence compression");
@@ -127,65 +88,65 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
   // emit song table
   logD("writing song table");
   size_t songTableSize = 0;
-  w->writeText("\n; Song Lookup Table\n");
-  w->writeText(fmt::sprintf("NUM_SONGS = %d\n", e->song.subsong.size()));
-  w->writeText("SONG_TABLE_START_LO\n");
+  trackData->writeText("\n; Song Lookup Table\n");
+  trackData->writeText(fmt::sprintf("NUM_SONGS = %d\n", e->song.subsong.size()));
+  trackData->writeText("SONG_TABLE_START_LO\n");
   for (size_t i = 0; i < e->song.subsong.size(); i++) {
-    w->writeText(fmt::sprintf("SONG_%d = . - SONG_TABLE_START_LO\n", i));
-    w->writeText(fmt::sprintf("    byte <SONG_%d_ADDR\n", i));
+    trackData->writeText(fmt::sprintf("SONG_%d = . - SONG_TABLE_START_LO\n", i));
+    trackData->writeText(fmt::sprintf("    byte <SONG_%d_ADDR\n", i));
     songTableSize++;
   }
-  w->writeText("SONG_TABLE_START_HI\n");
+  trackData->writeText("SONG_TABLE_START_HI\n");
   for (size_t i = 0; i < e->song.subsong.size(); i++) {
-    w->writeText(fmt::sprintf("    byte >SONG_%d_ADDR\n", i));
+    trackData->writeText(fmt::sprintf("    byte >SONG_%d_ADDR\n", i));
     songTableSize++;
   }
 
   // collect and emit song data
   // borrowed from fileops
   size_t songDataSize = 0;
-  w->writeText("; songs\n");
+  trackData->writeText("; songs\n");
   std::vector<PatternIndex> patterns;
   bool alreadyAdded[2][256];
   for (size_t i = 0; i < e->song.subsong.size(); i++) {
-    w->writeText(fmt::sprintf("SONG_%d_ADDR\n", i));
+    trackData->writeText(fmt::sprintf("SONG_%d_ADDR\n", i));
     DivSubSong* subs = e->song.subsong[i];
     memset(alreadyAdded, 0, 2*256*sizeof(bool));
     for (int j = 0; j < subs->ordersLen; j++) {
-      w->writeText("    byte ");
+      trackData->writeText("    byte ");
       for (int k = 0; k < e->getChannelCount(DIV_SYSTEM_TIA); k++) {
         if (k > 0) {
-          w->writeText(", ");
+          trackData->writeText(", ");
         }
         unsigned short p = subs->orders.ord[k][j];
         logD("ss: %d ord: %d chan: %d pat: %d", i, j, k, p);
         String key = getPatternKey(i, k, p);
-        w->writeText(key);
+        trackData->writeText(key);
         songDataSize++;
         if (alreadyAdded[k][p]) continue;
         patterns.push_back(PatternIndex(key, i, j, k, p));
         alreadyAdded[k][p] = true;
       }
-      w->writeText("\n");
+      trackData->writeText("\n");
     }
-    w->writeText("    byte 255\n");
+    trackData->writeText("    byte 255\n");
     songDataSize++;
   }
 
   // pattern lookup
   size_t patternTableSize = 0;
-  w->writeC('\n');
-  w->writeText("; Pattern Lookup Table\n");
-  w->writeText(fmt::sprintf("NUM_PATTERNS = %d\n", patterns.size()));
-  w->writeText("PAT_TABLE_START_LO\n");
+  trackData->writeC('\n');
+  trackData->writeText("; Pattern Lookup Table\n");
+  trackData->writeText(fmt::sprintf("NUM_PATTERNS = %d\n", patterns.size()));
+  trackData->writeText("PAT_TABLE_START_LO\n");
   for (PatternIndex& patternIndex: patterns) {
-    w->writeText(fmt::sprintf("%s = . - PAT_TABLE_START_LO\n", patternIndex.key.c_str()));
-    w->writeText(fmt::sprintf("   byte <%s_ADDR\n", patternIndex.key.c_str()));
+    trackData->writeText(fmt::sprintf("%s = . - PAT_TABLE_START_LO\n", patternIndex.key.c_str()));
+    trackData->writeText(fmt::sprintf("   byte <%s_ADDR\n", patternIndex.key.c_str()));
     patternTableSize++;
   }
-  w->writeText("PAT_TABLE_START_HI\n");
+  trackData->writeText("PAT_TABLE_START_HI\n");
   for (PatternIndex& patternIndex: patterns) {
-    w->writeText(fmt::sprintf("   byte >%s_ADDR\n", patternIndex.key.c_str()));
+    trackData->writeText(fmt::sprintf("   byte >%s_ADDR\n", patternIndex.key.c_str()));
     patternTableSize++;
   }
 
@@ -196,19 +157,19 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
   size_t patternDataSize = 0;
   for (PatternIndex& patternIndex: patterns) {
     DivPattern* pat = e->song.subsong[patternIndex.subsong]->pat[patternIndex.chan].getPattern(patternIndex.pat, false);
-    w->writeText(fmt::sprintf("; Subsong: %d Channel: %d Pattern: %d / %s\n", patternIndex.subsong, patternIndex.chan, patternIndex.pat, pat->name));
-    w->writeText(fmt::sprintf("%s_ADDR", patternIndex.key.c_str()));
+    trackData->writeText(fmt::sprintf("; Subsong: %d Channel: %d Pattern: %d / %s\n", patternIndex.subsong, patternIndex.chan, patternIndex.pat, pat->name));
+    trackData->writeText(fmt::sprintf("%s_ADDR", patternIndex.key.c_str()));
     for (int j = 0; j<e->song.subsong[patternIndex.subsong]->patLen; j++) {
       if (j % 8 == 0) {
-        w->writeText("\n    byte ");
+        trackData->writeText("\n    byte ");
       } else {
-        w->writeText(",");
+        trackData->writeText(",");
       }
       String key = getSequenceKey(patternIndex.subsong, patternIndex.ord, j, patternIndex.chan);
-      w->writeText(representativeSequenceMap[key]); // the representative
+      trackData->writeText(representativeSequenceMap[key]); // the representative
       patternDataSize++;
     }
-    w->writeText("\n    byte 255\n");
+    trackData->writeText("\n    byte 255\n");
     patternDataSize++;
   }
 
@@ -216,51 +177,76 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
   // this is where we can lookup specific instrument/note/octave combinations
   // can be quite expensive to store this table (2 bytes per waveform)
   size_t waveformTableSize = 0;
-  w->writeC('\n');
-  w->writeText("; Waveform Lookup Table\n");
-  w->writeText(fmt::sprintf("NUM_WAVEFORMS = %d\n", commonSubSequences.size()));
-  w->writeText("WF_TABLE_START_LO\n");
+  trackData->writeC('\n');
+  trackData->writeText("; Waveform Lookup Table\n");
+  trackData->writeText(fmt::sprintf("NUM_WAVEFORMS = %d\n", commonSubSequences.size()));
+  trackData->writeText("WF_TABLE_START_LO\n");
   for (auto& x: commonSubSequences) {
-    w->writeText(fmt::sprintf("%s = . - WF_TABLE_START_LO\n", x.second.c_str()));
-    w->writeText(fmt::sprintf("   byte <%s_ADDR\n", x.second.c_str()));
+    trackData->writeText(fmt::sprintf("%s = . - WF_TABLE_START_LO\n", x.second.c_str()));
+    trackData->writeText(fmt::sprintf("   byte <%s_ADDR\n", x.second.c_str()));
     waveformTableSize++;
   }
-  w->writeText("WF_TABLE_START_HI\n");
+  trackData->writeText("WF_TABLE_START_HI\n");
   for (auto& x: commonSubSequences) {
-    w->writeText(fmt::sprintf("   byte >%s_ADDR\n", x.second.c_str()));
+    trackData->writeText(fmt::sprintf("   byte >%s_ADDR\n", x.second.c_str()));
     waveformTableSize++;
   }
     
   // emit waveforms
   size_t waveformDataSize = 0;
-  w->writeC('\n');
-  w->writeText("; Waveforms\n");
+  trackData->writeC('\n');
+  trackData->writeText("; Waveforms\n");
   for (auto& x: commonSubSequences) {
     auto freq = sequenceFrequency[x.first];
-    writeWaveformHeader(w, x.second.c_str());
-    w->writeText(fmt::sprintf("; Hash %d, Freq %d\n", x.first, freq));
+    writeWaveformHeader(trackData, x.second.c_str());
+    trackData->writeText(fmt::sprintf("; Hash %d, Freq %d\n", x.first, freq));
     auto& dump = sequences[x.second];
-    TiaVoiceRegisters last(255);
+    ChannelState last(255);
     for (auto& n: dump.intervals) {
-      waveformDataSize += writeNote(w, n.state, n.duration, last);
+      waveformDataSize += writeNote(trackData, n.state, n.duration, last);
       last = n.state;
     }
-    w->writeText("    byte 0\n");
+    trackData->writeText("    byte 0\n");
     waveformDataSize++;
   }
 
   // audio metadata
-  w->writeC('\n');
-  w->writeText(fmt::sprintf("; Song Table Size %d\n", songTableSize));
-  w->writeText(fmt::sprintf("; Song Data Size %d\n", songDataSize));
-  w->writeText(fmt::sprintf("; Pattern Lookup Table Size %d\n", patternTableSize));
-  w->writeText(fmt::sprintf("; Pattern Data Size %d\n", patternDataSize));
-  w->writeText(fmt::sprintf("; Waveform Lookup Table Size %d\n", waveformTableSize));
-  w->writeText(fmt::sprintf("; Waveform Data Size %d\n", waveformDataSize));
+  trackData->writeC('\n');
+  trackData->writeText(fmt::sprintf("; Song Table Size %d\n", songTableSize));
+  trackData->writeText(fmt::sprintf("; Song Data Size %d\n", songDataSize));
+  trackData->writeText(fmt::sprintf("; Pattern Lookup Table Size %d\n", patternTableSize));
+  trackData->writeText(fmt::sprintf("; Pattern Data Size %d\n", patternDataSize));
+  trackData->writeText(fmt::sprintf("; Waveform Lookup Table Size %d\n", waveformTableSize));
+  trackData->writeText(fmt::sprintf("; Waveform Data Size %d\n", waveformDataSize));
   size_t totalDataSize = 
     songTableSize + songDataSize + patternTableSize + 
     patternDataSize + waveformTableSize + waveformDataSize;
-  w->writeText(fmt::sprintf("; Total Data Size %d\n", totalDataSize));
+  trackData->writeText(fmt::sprintf("; Total Data Size %d\n", totalDataSize));
+
+  ret.push_back(DivROMExportOutput("Track_data.asm", trackData));
+
+
+  logD("writing raw binary audio data");
+  SafeWriter* binaryData=new SafeWriter;
+  binaryData->init();
+
+  for (auto& x: commonSubSequences) {
+    auto freq = sequenceFrequency[x.first];
+    auto& dump = sequences[x.second];
+    for (auto& n: dump.intervals) {
+      unsigned char audfx = n.state.registers[0];
+      unsigned char audcx = n.state.registers[1];
+      unsigned char audvx = n.state.registers[2];
+      unsigned char x = audfx + (n.duration << 5);
+      unsigned char y = (audcx << 4) + audvx;
+      binaryData->writeC(x);
+      binaryData->writeC(y);
+    }
+  }
+
+  ret.push_back(DivROMExportOutput("Track_binary.bin", binaryData));
+
+  return ret;
 
 }
 
@@ -278,18 +264,18 @@ void DivExportAtari2600::writeTrackData_CRD(DivEngine* e, SafeWriter *w) {
  *   xxxxx111                    frequency = x >> 3, duration 2
  *   00000000                    stop
  */
-size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaVoiceRegisters& next, const char duration, const TiaVoiceRegisters& last) {
+size_t DivExportAtari2600::writeNote(SafeWriter* w, const ChannelState& next, const char duration, const ChannelState& last) {
   size_t bytesWritten = 0;
   unsigned char dmod = 0; // if duration is small, store in top bits of frequency
 
   unsigned char audfx, audcx, audvx;
   int cc, fc, vc;
-  audfx = next.audfx;
-  fc = audfx != last.audfx;
-  audcx = next.audcx;
-  cc = audcx != last.audcx;
-  audvx = next.audvx;
-  vc = audvx != last.audvx;
+  audcx = next.registers[0];
+  cc = audcx != last.registers[0];
+  audfx = next.registers[1];
+  fc = audfx != last.registers[1];
+  audvx = next.registers[2];
+  vc = audvx != last.registers[2];
   
   w->writeText(fmt::sprintf("    ;F%d C%d V%d D%d\n", audfx, audcx, audvx, duration));
 
@@ -322,13 +308,15 @@ size_t DivExportAtari2600::writeNote(SafeWriter* w, const TiaVoiceRegisters& nex
       dmod = 3;
     }
     // frequency
-    w->writeText(fmt::sprintf("    byte %d", audfx << 3 | dmod << 1 ));
+    unsigned char x = audfx << 3 | dmod << 1;
+    w->writeText(fmt::sprintf("    byte %d", x));
     if (dmod == 3) {
       w->writeText(fmt::sprintf(",%d", duration));
       bytesWritten += 1;
     }
     // waveform and volume
-    w->writeText(fmt::sprintf(",%d\n", (audcx << 4) + audvx));
+    unsigned char y = (audcx << 4) + audvx;
+    w->writeText(fmt::sprintf(",%d\n", y));
     bytesWritten += 2;
 
   }

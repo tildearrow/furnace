@@ -84,10 +84,39 @@ inline auto getPatternKey(unsigned short subsong, unsigned short channel, unsign
   );
 }
 
+struct ChannelState {
+
+  unsigned char registers[4];
+  // BUGBUG: make this a uint
+
+  ChannelState() {}
+
+  ChannelState(unsigned char c) {
+    memset(registers, c, 4);
+  }
+
+  bool write(unsigned int address, unsigned int value) {
+    unsigned char v = (unsigned char)value;
+    if (registers[address] == v) return false;
+    registers[address] = v;
+    return true;
+  }
+
+  uint64_t hash() {
+    uint64_t h = 0;
+    for (int i = 0; i < 4; i++) {
+      h = ((uint64_t)registers[i]) + (h << 8);
+    }
+    return h;
+  }
+
+};
+
+
+
 /**
- * Template struct comprised of captured register values combined with a Hz duration.
+ * Dumped register values held over time
  */
-template <typename ChannelState>
 struct DumpInterval {
 
   ChannelState state;
@@ -95,26 +124,27 @@ struct DumpInterval {
 
   DumpInterval() {}
 
-  DumpInterval(const DumpInterval<ChannelState> &n) : state(n.state), duration(n.duration) {}
+  DumpInterval(const DumpInterval &n) : state(n.state), duration(n.duration) {}
 
   DumpInterval(const ChannelState &state) : state(state), duration(-1) {}
 
   uint64_t hash() {
-    return state.hash_interval(duration);
+    uint64_t h = state.hash();
+    h += ((uint64_t)duration << 56);
+    return h;
   }
 
 }; 
 
 /**
- * Template struct used to analyze sequences of register dumps
+ * Sequences of register dumps
  */
-template <typename ChannelState> 
 struct DumpSequence {
 
-  std::vector<DumpInterval<ChannelState>> intervals;
+  std::vector<DumpInterval> intervals;
 
   void dumpRegisters(const ChannelState &state) {
-    intervals.emplace_back(DumpInterval<ChannelState>(state));
+    intervals.emplace_back(DumpInterval(state));
   }
 
   int writeDuration(const int ticks, const int remainder, const int freq) {
@@ -149,136 +179,20 @@ struct DumpSequence {
  * Depending on the system different channels may map the platform
  * address space to different channel registers.
  */
-template <typename ChannelState> 
 void captureSequences(
   DivEngine* e, 
   DivSystem system, 
   int channel,
   std::map<unsigned int, unsigned int> &addressMap,
-  std::map<String, DumpSequence<ChannelState>> &sequences
-) {
-  for (int i=0; i<e->song.systemLen; i++) {
-    e->getDispatch(i)->toggleRegisterDump(true);
-  }
-  for (size_t subsong = 0; subsong < e->song.subsong.size(); subsong++) {
-    e->changeSongP(subsong);
-    e->stop();
-    e->setRepeatPattern(false);
-    e->setOrder(0);
-    e->play();
-    
-    int lastWriteTicks = e->getTotalTicks();
-    int lastWriteSeconds = e->getTotalSeconds();
-    int deltaTicksR = 0;
-    int deltaTicks = 0;
+  std::map<String, DumpSequence> &sequences,
+  bool breakOnRow
+);
 
-    bool needsRegisterDump = false;
-    bool needsWriteDuration = false;      
-
-    RowIndex curRowIndex(e->getCurrentSubSong(), e->getOrder(), e->getRow());
-
-    String key = getSequenceKey(curRowIndex.subsong, curRowIndex.ord, curRowIndex.row, channel);
-    auto it = sequences.emplace(key, DumpSequence<ChannelState>());
-    DumpSequence<ChannelState> *currentDumpSequence = &(it.first->second);
-
-    ChannelState currentState(0);
-
-    bool done=false;
-    while (!done && e->isPlaying()) {
-      
-      done = e->nextTick(false, true);
-      int currentTicks = e->getTotalTicks();
-      int currentSeconds = e->getTotalSeconds();
-      deltaTicks = 
-        currentTicks - lastWriteTicks + 
-        (TICKS_PER_SECOND * (currentSeconds - lastWriteSeconds));
-
-      // check if we've changed rows
-      if (curRowIndex.advance(e->getCurrentSubSong(), e->getOrder(), e->getRow())) {
-        if (needsRegisterDump) {
-          currentDumpSequence->dumpRegisters(currentState);
-          needsWriteDuration = true;
-        }
-        if (needsWriteDuration) {
-          // prev seq
-          deltaTicksR = currentDumpSequence->writeDuration(deltaTicks, deltaTicksR, TICKS_AT_60HZ);
-          deltaTicks = 0;
-          lastWriteTicks = currentTicks;
-          lastWriteSeconds = currentSeconds;
-          needsWriteDuration = false;
-        }
-        // new sequence
-        key = getSequenceKey(curRowIndex.subsong, curRowIndex.ord, curRowIndex.row, channel);
-        auto nextIt = sequences.emplace(key, DumpSequence<ChannelState>());
-        currentDumpSequence = &(nextIt.first->second);
-        needsRegisterDump = true;
-      }
-
-      // get register dumps
-      bool isDirty = false;
-      for (int i=0; i<e->song.systemLen; i++) {
-        std::vector<DivRegWrite>& registerWrites=e->getDispatch(i)->getRegisterWrites();
-        for (DivRegWrite& registerWrite: registerWrites) {
-          auto it = addressMap.find(registerWrite.addr);
-          if (it == addressMap.end()) {
-            continue;
-          }
-          isDirty |= currentState.write(it->second, registerWrite.val);
-        }
-        registerWrites.clear();
-      }
-
-      if (isDirty) {
-        // end last seq
-        if (needsWriteDuration) {
-          deltaTicksR = currentDumpSequence->writeDuration(deltaTicks, deltaTicksR, TICKS_AT_60HZ);
-          lastWriteTicks = currentTicks;
-          lastWriteSeconds = currentSeconds;
-          deltaTicks = 0;
-        }
-        // start next seq
-        needsWriteDuration = true;
-        currentDumpSequence->dumpRegisters(currentState);
-        needsRegisterDump = false;
-      }
-    }
-    if (needsRegisterDump) {
-      currentDumpSequence->dumpRegisters(currentState);
-      needsWriteDuration = true;
-    }
-    if (needsWriteDuration) {
-      int currentTicks = e->getTotalTicks();
-      int currentSeconds = e->getTotalSeconds();
-      deltaTicks = 
-        currentTicks - lastWriteTicks + 
-        (TICKS_PER_SECOND * (currentSeconds - lastWriteSeconds));
-      // final seq
-      currentDumpSequence->writeDuration(deltaTicks, deltaTicksR, TICKS_AT_60HZ);
-    }
-  }
-  for (int i=0; i<e->song.systemLen; i++) {
-    e->getDispatch(i)->toggleRegisterDump(false);
-  }
-}
-
-template <typename ChannelState> 
 void findCommonSubsequences(
-  std::map<String, DumpSequence<ChannelState>> &sequences,
+  std::map<String, DumpSequence> &sequences,
   std::map<uint64_t, String> &commonSubSequences,
   std::map<uint64_t, unsigned int> &sequenceFrequency,
   std::map<String, String> &representativeSequenceMap
-) {
-  for (auto& x: sequences) {
-    uint64_t hash = x.second.hash();
-    auto it = commonSubSequences.emplace(hash, x.first);
-    if (it.second) {
-      sequenceFrequency.emplace(hash, 1);
-    } else {
-      sequenceFrequency[hash] += 1;
-    }
-    // TODO: verify no hash collision...?
-    representativeSequenceMap.emplace(x.first, it.first->second);
-  }
-}
+);
 
 #endif // _REGISTERDUMP_H

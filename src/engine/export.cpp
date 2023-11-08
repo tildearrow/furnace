@@ -21,7 +21,6 @@
 
 #include "export/amigaValidation.h"
 #include "export/atari2600Export.h"
-#include "export/c64Export.h"
 
 std::vector<DivROMExportOutput> DivEngine::buildROM(DivROMExportOptions sys) {
   DivROMExport* exporter=NULL;
@@ -31,9 +30,6 @@ std::vector<DivROMExportOutput> DivEngine::buildROM(DivROMExportOptions sys) {
       break;
     case DIV_ROM_ATARI_2600:
       exporter=new DivExportAtari2600;
-      break;
-    case DIV_ROM_C64:
-      exporter=new DivExportC64;
       break;
     default:
       exporter=new DivROMExport;

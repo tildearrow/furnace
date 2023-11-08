@@ -21,28 +21,13 @@
 #define _ATARI2600_EXPORT_H
 
 #include "../engine.h"
-
-struct TiaVoiceRegisters {
-
-  unsigned char audcx;
-  unsigned char audfx;
-  unsigned char audvx;
-
-  TiaVoiceRegisters() {}
-  TiaVoiceRegisters(unsigned char c) : audcx(c), audfx(c), audvx(c) {}
-
-  bool write(const unsigned int addr, unsigned int value);
-  uint64_t hash_interval(const char duration);
-
-};
+#include "registerDump.h"
 
 class DivExportAtari2600 : public DivROMExport {
-
-  void writeTrackData_CRD(DivEngine* e, SafeWriter* w);
-
+  
   void writeWaveformHeader(SafeWriter* w, const char* key);
   size_t writeTextGraphics(SafeWriter* w, const char* value);
-  size_t writeNote(SafeWriter* w, const TiaVoiceRegisters& next, const char duration, const TiaVoiceRegisters& last);
+  size_t writeNote(SafeWriter* w, const ChannelState& next, const char duration, const ChannelState& last);
 
 public:
 

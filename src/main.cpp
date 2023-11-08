@@ -623,14 +623,13 @@ int main(int argc, char** argv) {
         case DIV_SYSTEM_TIA:
           exportOpt = DIV_ROM_ATARI_2600;
           break;
-        case DIV_SYSTEM_C64_6581:
-        case DIV_SYSTEM_C64_8580:
-          exportOpt = DIV_ROM_C64;
-          exportOpt;
       };
+      logD("building ROM for %s", e.getSystemName(e.song.system[0]));
       std::vector<DivROMExportOutput> out=e.buildROM(exportOpt);
       if (romOutName[romOutName.size()-1]!=DIR_SEPARATOR) romOutName+=DIR_SEPARATOR_STR;
+      logD("export ROM %s", romOutName);
       for (DivROMExportOutput& i: out) {
+        logD(" - %s", i.name);
         String path=romOutName+i.name;
         FILE* outFile=ps_fopen(path.c_str(),"wb");
         if (outFile!=NULL) {
