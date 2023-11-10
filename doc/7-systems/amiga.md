@@ -6,6 +6,28 @@ in this very computer music trackers were born...
 
 imported MOD files use this chip, and will set A-4 tuning to 436.
 
+## amplitude/period modulation
+
+Amiga has support for (rather primitive) amplitude and period (frequency) modulation.
+however, nobody has used this feature as it is rather useless, not well-documented and works in a complicated way.
+
+Amiga sample playback is done by two chips: Paula (the one that you probably know) and Agnus (the one that actually feeds Paula with samples).
+Agnus has several DMA (direct memory access) units which read from chip memory independent of the CPU. four of these DMA units are used for samples.
+
+when DMA is enabled, Paula requests sample data from Agnus, and then plays these samples back.
+there's a catch though. since the data bus is 16-bit, Paula requests **two** 8-bit samples at once! this explains why:
+- the sample length registers are in words rather than bytes (thereby allowing samples up to 131070 in length)
+- the maximum playback rate (31250Hz PAL; ~31469Hz NTSC) is two times the HBlank rate (Agnus fetches samples on HBlank, around 15625Hz on PAL or ~15734Hz on NTSC)
+
+during normal sample playback, the first sample is output and then the second. afterwards, two more samples are fetched, and so on.
+
+now, when amplitude or period modulation are enabled, things work differently.
+the channel is silenced, and the two 8-bit samples are **treated as a big-endian 16-bit number**, which is then written to the next channel's volume or period.
+
+in the case of amplitude modulation, only the second sample is significant because the volume register uses 7 bits (to represent 0 to 64 (65 to 127 are treated as 64)) and the other bits are ignored.
+
+in the case of period modulation, both samples are significant. the first sample is the upper byte, and the second is the lower byte.
+
 ## effects
 
 - `10xx`: **toggle low-pass filter.** `0` turns it off and `1` turns it on.

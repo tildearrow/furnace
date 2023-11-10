@@ -149,7 +149,7 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
           } else if (waveNum<65536) {
             seq->writeC((i<<4)|4);
             seq->writeS_BE(waveNum);
-          } else{
+          } else {
             seq->writeC((i<<4)|1);
             seq->writeC(waves[waveNum].pos>>16);
             seq->writeC(waves[waveNum].pos>>8);
