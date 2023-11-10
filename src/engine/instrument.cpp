@@ -216,15 +216,14 @@ bool DivInstrumentES5506::operator==(const DivInstrumentES5506& other) {
   );
 }
 
-/*bool DivInstrumentES5503::operator==(const DivInstrumentESFM& other) {
+bool DivInstrumentES5503::operator==(const DivInstrumentES5503& other) {
   return (
-    _C(noise) &&
-    _C(op[0]) &&
-    _C(op[1]) &&
-    _C(op[2]) &&
-    _C(op[3])
+    _C(wave) &&
+    _C(wavePos) &&
+    _C(waveLen) &&
+    _C(initial_osc_mode)
   );
-}*/
+}
 
 bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
   return (
