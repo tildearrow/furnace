@@ -10,11 +10,13 @@
 #include <iostream>
 #include <vector>
 
+#include "../../dispatch.h"
+
 class es5503_core {
 public:
 	// construction/destruction
-	es5503_core(uint32_t clock);
-    ~es5503_core();
+	void es5503_core_init(uint32_t clock, DivDispatchOscBuffer** oscBuf);
+    void es5503_core_free();
 
 	// channels must be a power of two
 	void set_channels(int channels) { output_channels = channels; }
@@ -62,5 +64,6 @@ private:
 	int output_channels;
 	uint32_t output_rate;
 
-	std::vector<int32_t> m_mix_buffer;
+	int32_t m_mix_buffer[32 * 32 * 10000];
+	DivDispatchOscBuffer* oscBuf[32];
 };

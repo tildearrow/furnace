@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#pragma once
+
 #ifndef _ES5503_H
 #define _ES5503_H
 
@@ -71,7 +73,7 @@ class DivPlatformES5503: public DivDispatch {
   int curChan;
   unsigned char sampleBank, lfoMode, lfoSpeed;
 
-  es5503_core* es5503;
+  es5503_core es5503;
   unsigned char regPool[256];
 
   void updateWave(int ch);

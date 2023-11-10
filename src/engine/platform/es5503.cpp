@@ -45,7 +45,7 @@ const char** DivPlatformES5503::getRegisterSheet() {
 }
 
 void DivPlatformES5503::acquire(short** buf, size_t len) { //the function where we actually fill the fucking audio buffer!!!!!
-  es5503->fill_audio_buffer(buf[0], buf[1], len);
+  es5503.fill_audio_buffer(buf[0], buf[1], len);
 }
 
 void DivPlatformES5503::setFlags(const DivConfig& flags) {
@@ -58,11 +58,7 @@ void DivPlatformES5503::setFlags(const DivConfig& flags) {
     oscBuf[i]->rate=rate;
   }
 
-  if (es5503!=NULL) {
-    delete es5503;
-    es5503=NULL;
-  }
-  es5503=new es5503_core(chipClock);
+  es5503.es5503_core_init(chipClock, this->oscBuf);
 }
 
 void DivPlatformES5503::updateWave(int ch) {
@@ -151,7 +147,6 @@ int DivPlatformES5503::init(DivEngine* p, int channels, int sugRate, const DivCo
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  es5503=NULL;
   setFlags(flags);
   reset();
   return 32;
@@ -161,10 +156,7 @@ void DivPlatformES5503::quit() {
   for (int i=0; i<32; i++) {
     delete oscBuf[i];
   }
-  if (es5503!=NULL) {
-    delete es5503;
-    es5503=NULL;
-  }
+  es5503.es5503_core_free();
 }
 
 DivPlatformES5503::~DivPlatformES5503() {

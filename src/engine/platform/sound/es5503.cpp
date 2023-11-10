@@ -48,7 +48,7 @@ static constexpr uint32_t wavemasks[8] = { 0x1ff00, 0x1fe00, 0x1fc00, 0x1f800, 0
 static constexpr uint32_t accmasks[8]  = { 0xff, 0x1ff, 0x3ff, 0x7ff, 0xfff, 0x1fff, 0x3fff, 0x7fff };
 static constexpr int    resshifts[8] = { 9, 10, 11, 12, 13, 14, 15, 16 };
 
-es5503_core::es5503_core(uint32_t clock)
+void es5503_core::es5503_core_init(uint32_t clock, DivDispatchOscBuffer** oscBuf)
 {
   memset(this, 0, sizeof(*this));
   output_rate = (clock / 8) / (oscsenabled + 2);
@@ -59,10 +59,13 @@ es5503_core::es5503_core(uint32_t clock)
 	// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
   oscsenabled = 62;
 
-  m_mix_buffer.push_back(0);
+	for(int i = 0; i < output_channels; i++)
+	{
+		this->oscBuf[i] = oscBuf[i];
+	}
 }
 
-es5503_core::~es5503_core()
+void es5503_core::es5503_core_free()
 {
 	if (sampleMem != NULL)
 	{
@@ -306,11 +309,6 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 	uint32_t ramptr;
 	int samples = len;
 
-	if (m_mix_buffer.size() != samples * output_channels)
-	{
-		m_mix_buffer.resize(samples * output_channels, 0);
-	}
-
 	for (int chan = 0; chan < output_channels; chan++)
 	{
 		for (osc = 0; osc < oscsenabled; osc++)
@@ -425,14 +423,20 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 			if(chan & 1)
 			{
 				//left[i] = *mixp++; pray for this shit to work bruh
-				left[i] = m_mix_buffer[mixp];
+
+				left[i] += m_mix_buffer[mixp];
+				oscBuf[chan]->data[oscBuf[chan]->needle++] = m_mix_buffer[mixp];
+				//left[i] = ((mixp & 1) ? -8192 : 8192);
 				mixp++;
 			}
 
 			else
 			{
 				//right[i] = *mixp++;
-				right[i] = m_mix_buffer[mixp];
+
+				right[i] += m_mix_buffer[mixp];
+				oscBuf[chan]->data[oscBuf[chan]->needle++] = m_mix_buffer[mixp];
+				//right[i] = ((mixp & 8) ? -8192 : 8192);
 				mixp++;
 			}
 		}
