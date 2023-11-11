@@ -102,7 +102,7 @@ struct ChannelState {
     return true;
   }
 
-  uint64_t hash() {
+  uint64_t hash() const {
     uint64_t h = 0;
     for (int i = 0; i < 4; i++) {
       h = ((uint64_t)registers[i]) + (h << 8);
@@ -128,7 +128,7 @@ struct DumpInterval {
 
   DumpInterval(const ChannelState &state) : state(state), duration(-1) {}
 
-  uint64_t hash() {
+  uint64_t hash() const {
     uint64_t h = state.hash();
     h += ((uint64_t)duration << 56);
     return h;
@@ -154,11 +154,11 @@ struct DumpSequence {
     return total - (cycles * freq);
   }
 
-  size_t size() {
+  size_t size() const {
     return intervals.size();
   }
 
-  uint64_t hash() {
+  uint64_t hash() const {
     // rolling polyhash: see https://cp-algorithms.com/string/string-hashing.html CC 4.0 license
     const int p = 31;
     const int m = 1e9 + 9;
@@ -179,20 +179,32 @@ struct DumpSequence {
  * Depending on the system different channels may map the platform
  * address space to different channel registers.
  */
-void captureSequences(
+void captureSequence(
   DivEngine* e, 
-  DivSystem system, 
+  int subsong,
   int channel,
+  DivSystem system, 
   std::map<unsigned int, unsigned int> &addressMap,
-  std::map<String, DumpSequence> &sequences,
-  bool breakOnRow
+  std::vector<String> &sequence,
+  std::map<String, DumpSequence> &registerDumps 
 );
 
-void findCommonSubsequences(
-  std::map<String, DumpSequence> &sequences,
-  std::map<uint64_t, String> &commonSubSequences,
-  std::map<uint64_t, unsigned int> &sequenceFrequency,
-  std::map<String, String> &representativeSequenceMap
+void findCommonDumpSequences(
+  const std::map<String, DumpSequence> &registerDumps,
+  std::map<uint64_t, String> &commonDumpSequences,
+  std::map<uint64_t, unsigned int> &frequencyMap,
+  std::map<String, String> &representativeMap
 );
+
+struct SuffixTree;
+
+SuffixTree *createSuffixTree(
+  const std::vector<String> &sequence,
+  const std::map<uint64_t, String> &commonDumpSequences,
+  const std::map<String, String> &representativeMap,
+  std::vector<uint64_t> &alphabet
+);
+
+void testCommonSubsequences(const String &input);
 
 #endif // _REGISTERDUMP_H

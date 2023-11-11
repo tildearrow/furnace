@@ -70,20 +70,28 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
 
   // capture all sequences
   logD("performing sequence capture");
-  std::map<String, DumpSequence> sequences;
-  captureSequences(e, DIV_SYSTEM_TIA, 0, channel0AddressMap, sequences, true);
-  captureSequences(e, DIV_SYSTEM_TIA, 1, channel1AddressMap, sequences, true);
+  std::vector<String> channelSequences[2];
+  std::map<String, DumpSequence> registerDumps;
+  captureSequence(e, 0, 0, DIV_SYSTEM_TIA, channel0AddressMap, channelSequences[0], registerDumps);
+  captureSequence(e, 0, 1, DIV_SYSTEM_TIA, channel1AddressMap, channelSequences[1], registerDumps);
 
   // compress the patterns into common subsequences
   logD("performing sequence compression");
-  std::map<uint64_t, String> commonSubSequences;
-  std::map<uint64_t, unsigned int> sequenceFrequency;
-  std::map<String, String> representativeSequenceMap;
-  findCommonSubsequences(
-    sequences,
-    commonSubSequences,
-    sequenceFrequency,
-    representativeSequenceMap);
+  std::map<uint64_t, String> commonDumpSequences;
+  std::map<uint64_t, unsigned int> frequencyMap;
+  std::map<String, String> representativeMap;
+  findCommonDumpSequences(
+    registerDumps,
+    commonDumpSequences,
+    frequencyMap,
+    representativeMap);
+
+  testCommonSubsequences("banana$");
+  // findCommonSubSequences(
+  //   channelSequences[0],
+  //   commonDumpSequences,
+  //   representativeMap
+  // );
 
   // emit song table
   logD("writing song table");
@@ -107,14 +115,15 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   size_t songDataSize = 0;
   trackData->writeText("; songs\n");
   std::vector<PatternIndex> patterns;
-  bool alreadyAdded[2][256];
+  const int channelCount = 2;
+  bool alreadyAdded[channelCount][256];
   for (size_t i = 0; i < e->song.subsong.size(); i++) {
     trackData->writeText(fmt::sprintf("SONG_%d_ADDR\n", i));
     DivSubSong* subs = e->song.subsong[i];
     memset(alreadyAdded, 0, 2*256*sizeof(bool));
     for (int j = 0; j < subs->ordersLen; j++) {
       trackData->writeText("    byte ");
-      for (int k = 0; k < e->getChannelCount(DIV_SYSTEM_TIA); k++) {
+      for (int k = 0; k < channelCount; k++) {
         if (k > 0) {
           trackData->writeText(", ");
         }
@@ -166,7 +175,7 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
         trackData->writeText(",");
       }
       String key = getSequenceKey(patternIndex.subsong, patternIndex.ord, j, patternIndex.chan);
-      trackData->writeText(representativeSequenceMap[key]); // the representative
+      trackData->writeText(representativeMap[key]); // the representative
       patternDataSize++;
     }
     trackData->writeText("\n    byte 255\n");
@@ -179,15 +188,15 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   size_t waveformTableSize = 0;
   trackData->writeC('\n');
   trackData->writeText("; Waveform Lookup Table\n");
-  trackData->writeText(fmt::sprintf("NUM_WAVEFORMS = %d\n", commonSubSequences.size()));
+  trackData->writeText(fmt::sprintf("NUM_WAVEFORMS = %d\n", commonDumpSequences.size()));
   trackData->writeText("WF_TABLE_START_LO\n");
-  for (auto& x: commonSubSequences) {
+  for (auto& x: commonDumpSequences) {
     trackData->writeText(fmt::sprintf("%s = . - WF_TABLE_START_LO\n", x.second.c_str()));
     trackData->writeText(fmt::sprintf("   byte <%s_ADDR\n", x.second.c_str()));
     waveformTableSize++;
   }
   trackData->writeText("WF_TABLE_START_HI\n");
-  for (auto& x: commonSubSequences) {
+  for (auto& x: commonDumpSequences) {
     trackData->writeText(fmt::sprintf("   byte >%s_ADDR\n", x.second.c_str()));
     waveformTableSize++;
   }
@@ -196,11 +205,11 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   size_t waveformDataSize = 0;
   trackData->writeC('\n');
   trackData->writeText("; Waveforms\n");
-  for (auto& x: commonSubSequences) {
-    auto freq = sequenceFrequency[x.first];
+  for (auto& x: commonDumpSequences) {
+    auto freq = frequencyMap[x.first];
     writeWaveformHeader(trackData, x.second.c_str());
     trackData->writeText(fmt::sprintf("; Hash %d, Freq %d\n", x.first, freq));
-    auto& dump = sequences[x.second];
+    auto& dump = registerDumps[x.second];
     ChannelState last(255);
     for (auto& n: dump.intervals) {
       waveformDataSize += writeNote(trackData, n.state, n.duration, last);
@@ -229,10 +238,16 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   logD("writing raw binary audio data");
   SafeWriter* binaryData=new SafeWriter;
   binaryData->init();
-
-  for (auto& x: commonSubSequences) {
-    auto freq = sequenceFrequency[x.first];
-    auto& dump = sequences[x.second];
+  for (PatternIndex& patternIndex: patterns) {
+    DivPattern* pat = e->song.subsong[patternIndex.subsong]->pat[patternIndex.chan].getPattern(patternIndex.pat, false);
+    for (int j = 0; j<e->song.subsong[patternIndex.subsong]->patLen; j++) {
+      binaryData->writeC(((uint64_t)patternIndex.key.c_str()) & 0xff);
+      binaryData->writeL(j);
+    }
+  }
+  for (auto& x: commonDumpSequences) {
+    auto freq = frequencyMap[x.first];
+    auto& dump = registerDumps[x.second];
     for (auto& n: dump.intervals) {
       unsigned char audfx = n.state.registers[0];
       unsigned char audcx = n.state.registers[1];
