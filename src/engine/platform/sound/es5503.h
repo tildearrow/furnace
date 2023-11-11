@@ -30,6 +30,8 @@ public:
 	unsigned char* sampleMem;
     size_t sampleMemLen;
 
+	uint32_t clock;
+
 private:
 	enum
 	{

@@ -51,13 +51,15 @@ static constexpr int    resshifts[8] = { 9, 10, 11, 12, 13, 14, 15, 16 };
 void es5503_core::es5503_core_init(uint32_t clock, DivDispatchOscBuffer** oscBuf)
 {
   memset(this, 0, sizeof(*this));
+    // The number here is the number of oscillators to enable -1 times 2.  You can never
+	// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
+  oscsenabled = 32;
   output_rate = (clock / 8) / (oscsenabled + 2);
+  this->clock = clock;
   sampleMemLen = 65536 << 1;
   sampleMem = new unsigned char[sampleMemLen];
+  memset(sampleMem, 0, sampleMemLen * sizeof(unsigned char));
   output_channels = 32;
-  // The number here is the number of oscillators to enable -1 times 2.  You can never
-	// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
-  oscsenabled = 62;
 
 	for(int i = 0; i < output_channels; i++)
 	{
@@ -220,6 +222,25 @@ void es5503_core::write(uint8_t offset, uint8_t data)
 				break;
 		}
 	}
+
+	else     // global registers
+	{
+		switch (offset)
+		{
+			case 0xe0:  // interrupt status
+				break;
+
+			case 0xe1:  // oscillator enable
+				// The number here is the number of oscillators to enable -1 times 2.  You can never
+				// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
+				oscsenabled = ((data>>1) & 0x1f) + 1;
+				//notify_clock_changed();
+				break;
+
+			case 0xe2:  // A/D converter
+				break;
+		}
+	}
 }
 
 uint8_t es5503_core::read_byte(uint32_t offset)
@@ -301,7 +322,7 @@ void es5503_core::halt_osc(int onum, int type, uint32_t *accumulator, int resshi
 void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fill audio buffer
 {
 	//std::fill_n(m_mix_buffer.begin(), samples*output_channels, 0);
-	//memset(m_mix_buffer, 0, samples*output_channels);
+	memset(m_mix_buffer, 0, 32 * 4096 * 2 * sizeof(int32_t));
 
     //int32_t *mixp;
 	int32_t mixp;
@@ -317,7 +338,8 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 
 			if (!(pOsc->control & 1) && ((pOsc->control >> 4) & (output_channels - 1)) == chan)
 			{
-				uint32_t wtptr = pOsc->wavetblpointer & wavemasks[pOsc->wavetblsize], altram;
+				uint32_t wtptr = pOsc->wavetblpointer & wavemasks[pOsc->wavetblsize];
+				uint32_t altram = 0;
 				uint32_t acc = pOsc->accumulator;
 				uint16_t wtsize = pOsc->wtsize - 1;
 				uint8_t ctrl = pOsc->control;
@@ -415,6 +437,12 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 	//mixp = &m_mix_buffer[0];
 	mixp = 0;
 
+	for (i = 0; i < len; i++)
+	{
+		left[i] = 0;
+		right[i] = 0;
+	}
+
 	for (int chan = 0; chan < output_channels; chan++)
 	{
 		for (i = 0; i < len; i++)
@@ -422,21 +450,15 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 			//outputs[chan].put_int(i, *mixp++, 32768*8);
 			if(chan & 1)
 			{
-				//left[i] = *mixp++; pray for this shit to work bruh
-
 				left[i] += m_mix_buffer[mixp];
 				oscBuf[chan]->data[oscBuf[chan]->needle++] = m_mix_buffer[mixp];
-				//left[i] = ((mixp & 1) ? -8192 : 8192);
 				mixp++;
 			}
 
 			else
 			{
-				//right[i] = *mixp++;
-
 				right[i] += m_mix_buffer[mixp];
 				oscBuf[chan]->data[oscBuf[chan]->needle++] = m_mix_buffer[mixp];
-				//right[i] = ((mixp & 8) ? -8192 : 8192);
 				mixp++;
 			}
 		}

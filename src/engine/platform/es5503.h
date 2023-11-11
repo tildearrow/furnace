@@ -37,9 +37,10 @@ class DivPlatformES5503: public DivDispatch {
     bool noise, pcm, furnaceDac, deferredWaveUpdate;
     signed short wave;
     int macroVolMul, noiseSeek;
+    unsigned int wave_pos, wave_size;
     DivWaveSynth ws;
     Channel():
-      SharedChannel<signed char>(31),
+      SharedChannel<signed char>(255),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       dacPeriod(0),
@@ -53,14 +54,15 @@ class DivPlatformES5503: public DivDispatch {
       furnaceDac(false),
       deferredWaveUpdate(false),
       wave(-1),
-      macroVolMul(31),
-      noiseSeek(0) {}
+      macroVolMul(255),
+      noiseSeek(0),
+      wave_pos(0),
+      wave_size(256) {}
   };
   Channel chan[32];
   DivDispatchOscBuffer* oscBuf[32];
   bool isMuted[32];
   bool antiClickEnabled;
-  bool updateLFO;
   struct QueuedWrite {
     unsigned char addr;
     unsigned char val;
@@ -92,12 +94,14 @@ class DivPlatformES5503: public DivDispatch {
     int getRegisterPoolSize();
     void reset();
     void forceIns();
+    void writeSampleMemoryByte(int address, unsigned char value);
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
+    void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
