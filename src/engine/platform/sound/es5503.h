@@ -66,6 +66,11 @@ private:
 	int output_channels;
 	uint32_t output_rate;
 
-	int32_t m_mix_buffer[32 * 4096 * 2];
+	//int32_t m_mix_buffer[32 * 4096 * 2];
+	int32_t m_mix_buffer_right[4096 * 2];
+	int32_t m_mix_buffer_left[4096 * 2];
+
 	DivDispatchOscBuffer* oscBuf[32];
+
+	void put_in_buffer(int32_t value, uint32_t pos, uint32_t chan);
 };

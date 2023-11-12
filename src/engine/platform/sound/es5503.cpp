@@ -42,6 +42,8 @@
 
 #include "es5503.h"
 
+#include "../../../ta-log.h"
+
 // useful constants
 static constexpr uint16_t wavesizes[8] = { 256, 512, 1024, 2048, 4096, 8192, 16384, 32768 };
 static constexpr uint32_t wavemasks[8] = { 0x1ff00, 0x1fe00, 0x1fc00, 0x1f800, 0x1f000, 0x1e000, 0x1c000, 0x18000 };
@@ -319,148 +321,178 @@ void es5503_core::halt_osc(int onum, int type, uint32_t *accumulator, int resshi
 	}
 }
 
+void es5503_core::put_in_buffer(int32_t value, uint32_t pos, uint32_t chan)
+{
+	if(chan & 1)
+	{
+		m_mix_buffer_right[pos] += value;
+		return;
+	}
+
+	m_mix_buffer_left[pos] += value;
+}
+
 void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fill audio buffer
 {
 	//std::fill_n(m_mix_buffer.begin(), samples*output_channels, 0);
-	memset(m_mix_buffer, 0, 32 * 4096 * 2 * sizeof(int32_t));
+	memset(m_mix_buffer_right, 0, 4096 * 2 * sizeof(int32_t));
+	memset(m_mix_buffer_left, 0, 4096 * 2 * sizeof(int32_t));
 
     //int32_t *mixp;
-	int32_t mixp;
-	int osc, snum, i;
+	uint32_t osc, snum, i;
 	uint32_t ramptr;
-	int samples = len;
+	uint32_t samples = len;
 
-	for (int chan = 0; chan < output_channels; chan++)
+	for (osc = 0; osc < oscsenabled; osc++)
 	{
-		for (osc = 0; osc < oscsenabled; osc++)
+		ES5503Osc *pOsc = &oscillators[osc];
+
+		if (!(pOsc->control & 1))
 		{
-			ES5503Osc *pOsc = &oscillators[osc];
+			uint32_t wtptr = pOsc->wavetblpointer & wavemasks[pOsc->wavetblsize];
+			uint32_t altram = 0;
+			uint32_t acc = pOsc->accumulator;
+			uint16_t wtsize = pOsc->wtsize - 1;
+			uint8_t ctrl = pOsc->control;
+			uint16_t freq = pOsc->freq;
+			int16_t vol = pOsc->vol;
+			int8_t data = -128;
+			int resshift = resshifts[pOsc->resolution] - pOsc->wavetblsize;
+			uint32_t sizemask = accmasks[pOsc->wavetblsize];
+			int mode = (pOsc->control>>1) & 3;
+			//mixp = &m_mix_buffer[0] + chan;
 
-			if (!(pOsc->control & 1) && ((pOsc->control >> 4) & (output_channels - 1)) == chan)
+			for (snum = 0; snum < samples; snum++)
 			{
-				uint32_t wtptr = pOsc->wavetblpointer & wavemasks[pOsc->wavetblsize];
-				uint32_t altram = 0;
-				uint32_t acc = pOsc->accumulator;
-				uint16_t wtsize = pOsc->wtsize - 1;
-				uint8_t ctrl = pOsc->control;
-				uint16_t freq = pOsc->freq;
-				int16_t vol = pOsc->vol;
-				int8_t data = -128;
-				int resshift = resshifts[pOsc->resolution] - pOsc->wavetblsize;
-				uint32_t sizemask = accmasks[pOsc->wavetblsize];
-				int mode = (pOsc->control>>1) & 3;
-				//mixp = &m_mix_buffer[0] + chan;
-				mixp = chan;
+				int32_t curr_sample = 0;
 
-				for (snum = 0; snum < samples; snum++)
+				altram = acc >> resshift;
+				ramptr = altram & sizemask;
+
+				acc += freq;
+
+				// channel strobe is always valid when reading; this allows potentially banking per voice
+				m_channel_strobe = (ctrl>>4) & 0xf;
+				data = (int32_t)read_byte(ramptr + wtptr) ^ 0x80;
+
+				if (read_byte(ramptr + wtptr) == 0x00)
 				{
-					altram = acc >> resshift;
-					ramptr = altram & sizemask;
-
-					acc += freq;
-
-					// channel strobe is always valid when reading; this allows potentially banking per voice
-					m_channel_strobe = (ctrl>>4) & 0xf;
-					data = (int32_t)read_byte(ramptr + wtptr) ^ 0x80;
-
-					if (read_byte(ramptr + wtptr) == 0x00)
+					halt_osc(osc, 1, &acc, resshift);
+				}
+				else
+				{
+					if (mode != MODE_SYNCAM)
 					{
-						halt_osc(osc, 1, &acc, resshift);
+						//*mixp += data * vol;
+						//m_mix_buffer[mixp] += data * vol;
+						put_in_buffer(data * vol, snum, osc);
+
+						curr_sample += data * vol;
+
+						if (osc == (output_channels - 1))
+						{
+							//*mixp += data * vol;
+							//*mixp += data * vol;
+							//m_mix_buffer[mixp] += data * vol;
+							//m_mix_buffer[mixp] += data * vol;
+							put_in_buffer(data * vol, snum, osc);
+							put_in_buffer(data * vol, snum, osc);
+							curr_sample += data * vol;
+							curr_sample += data * vol;
+						}
 					}
 					else
 					{
-						if (mode != MODE_SYNCAM)
+						// if we're odd, we play nothing ourselves
+						if (osc & 1)
+						{
+							if (osc < 31)
+							{
+								// if the next oscillator up is playing, it's volume becomes our control
+								if (!(oscillators[osc + 1].control & 1))
+								{
+									oscillators[osc + 1].vol = data ^ 0x80;
+								}
+							}
+						}
+						else    // hard sync, both oscillators play?
 						{
 							//*mixp += data * vol;
-							m_mix_buffer[mixp] += data * vol;
+							//m_mix_buffer[mixp] += data * vol;
+							put_in_buffer(data * vol, snum, osc);
+							curr_sample += data * vol;
 
-							if (chan == (output_channels - 1))
+							if (osc == (output_channels - 1))
 							{
 								//*mixp += data * vol;
 								//*mixp += data * vol;
-								m_mix_buffer[mixp] += data * vol;
-								m_mix_buffer[mixp] += data * vol;
+								//m_mix_buffer[mixp] += data * vol;
+								//m_mix_buffer[mixp] += data * vol;
+								put_in_buffer(data * vol, snum, osc);
+								put_in_buffer(data * vol, snum, osc);
+								curr_sample += data * vol;
+								curr_sample += data * vol;
 							}
-						}
-						else
-						{
-							// if we're odd, we play nothing ourselves
-							if (osc & 1)
-							{
-								if (osc < 31)
-								{
-									// if the next oscillator up is playing, it's volume becomes our control
-									if (!(oscillators[osc + 1].control & 1))
-									{
-										oscillators[osc + 1].vol = data ^ 0x80;
-									}
-								}
-							}
-							else    // hard sync, both oscillators play?
-							{
-								//*mixp += data * vol;
-								m_mix_buffer[mixp] += data * vol;
-
-								if (chan == (output_channels - 1))
-								{
-									//*mixp += data * vol;
-									//*mixp += data * vol;
-									m_mix_buffer[mixp] += data * vol;
-									m_mix_buffer[mixp] += data * vol;
-								}
-							}
-						}
-
-						mixp += output_channels;
-
-						if (altram >= wtsize)
-						{
-							halt_osc(osc, 0, &acc, resshift);
 						}
 					}
 
-					// if oscillator halted, we've got no more samples to generate
-					if (pOsc->control & 1)
+					//mixp += output_channels;
+
+					if (altram >= wtsize)
 					{
-						ctrl |= 1;
-						break;
+						halt_osc(osc, 0, &acc, resshift);
 					}
 				}
 
-				pOsc->control = ctrl;
-				pOsc->accumulator = acc;
-				pOsc->data = data ^ 0x80;
+				if(osc & 1)
+				{
+					oscBuf[osc]->data[oscBuf[osc]->needle++] = curr_sample;
+				}
+
+				else
+				{
+					oscBuf[osc]->data[oscBuf[osc]->needle++] = curr_sample;
+				}
+
+				// if oscillator halted, we've got no more samples to generate
+				if (pOsc->control & 1)
+				{
+					ctrl |= 1;
+					break;
+				}
+			}
+
+			pOsc->control = ctrl;
+			pOsc->accumulator = acc;
+			pOsc->data = data ^ 0x80;
+		}
+
+		else
+		{
+			for (snum = 0; snum < samples; snum++)
+			{
+				oscBuf[osc]->data[oscBuf[osc]->needle++] = 0;
 			}
 		}
 	}
 
-	//mixp = &m_mix_buffer[0];
-	mixp = 0;
-
-	for (i = 0; i < len; i++)
+	for (uint32_t chan = 0; chan < oscsenabled; chan++)
 	{
-		left[i] = 0;
-		right[i] = 0;
-	}
+		uint32_t mixp = 0;
 
-	for (int chan = 0; chan < output_channels; chan++)
-	{
 		for (i = 0; i < len; i++)
 		{
-			//outputs[chan].put_int(i, *mixp++, 32768*8);
 			if(chan & 1)
 			{
-				left[i] += m_mix_buffer[mixp];
-				oscBuf[chan]->data[oscBuf[chan]->needle++] = m_mix_buffer[mixp];
-				mixp++;
+				left[i] = m_mix_buffer_left[mixp];
 			}
 
 			else
 			{
-				right[i] += m_mix_buffer[mixp];
-				oscBuf[chan]->data[oscBuf[chan]->needle++] = m_mix_buffer[mixp];
-				mixp++;
+				right[i] = m_mix_buffer_right[mixp];
 			}
+
+			mixp++;
 		}
 	}
 }

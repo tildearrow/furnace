@@ -78,8 +78,8 @@ void DivPlatformES5503::writeSampleMemoryByte(int address, unsigned char value)
 {
   if(es5503.sampleMem)
   {
-    int8_t actual_val = (int8_t)value - 128;
-    es5503.sampleMem[address] = actual_val; //signed???
+    //int8_t actual_val = (int8_t)value - 128;
+    es5503.sampleMem[address] = value;//actual_val; //signed???
   }
 }
 
@@ -115,7 +115,7 @@ void DivPlatformES5503::tick(bool sysTick) {
       if (chan[i].furnaceDac && chan[i].pcm) {
         // ignore for now
       } else {
-        rWrite(0x40 + i, chan[i].outVol);
+        rWrite(0x40 + i, isMuted[i] ? 0 : chan[i].outVol);
       }
     }
 
@@ -167,7 +167,7 @@ void DivPlatformES5503::tick(bool sysTick) {
 
       if (chan[i].keyOn) {
         rWrite(0xA0+i, 0 | (ins->es5503.initial_osc_mode << 1)); //reset halt bit and set oscillator mode
-        rWrite(0x40+i, chan[i].vol); //set volume
+        rWrite(0x40+i, isMuted[i] ? 0 : chan[i].vol); //set volume
       }
       if (chan[i].keyOff) {
         rWrite(0xA0+i, 1); //halt oscillator
@@ -254,7 +254,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       //chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
       rWrite(0x40+c.chan, chan[c.chan].vol); //set volume
       rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
-      rWrite(0xc0+c.chan, ins->es5503.waveLen << 3 | 0b111 /*highest acc resolution*/); //set wave len
+      rWrite(0xc0+c.chan, ins->es5503.waveLen << 3 | 0b001 /*lowest acc resolution*/); //set wave len
       chan[c.chan].wave_pos = ins->es5503.wavePos << 8;
       chan[c.chan].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
       chan[c.chan].macroInit(ins);
