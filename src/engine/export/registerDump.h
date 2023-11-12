@@ -197,14 +197,18 @@ void findCommonDumpSequences(
 );
 
 struct SuffixTree;
+typedef uint64_t AlphaCode;
+typedef int AlphaChar;
 
 SuffixTree *createSuffixTree(
   const std::vector<String> &sequence,
-  const std::map<uint64_t, String> &commonDumpSequences,
+  const std::map<AlphaCode, String> &commonDumpSequences,
   const std::map<String, String> &representativeMap,
-  std::vector<uint64_t> &alphabet
+  std::vector<AlphaCode> &alphabet,
+  std::vector<AlphaChar> &alphaSequence
 );
 
 void testCommonSubsequences(const String &input);
+void testCommonSubsequencesBrute(const String &input);
 
 #endif // _REGISTERDUMP_H

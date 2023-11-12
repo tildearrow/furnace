@@ -87,6 +87,9 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
     representativeMap);
 
   testCommonSubsequences("banana$");
+  testCommonSubsequences("xabcyiiizabcqabcyr$");
+  testCommonSubsequencesBrute("banana");
+  testCommonSubsequencesBrute("xabcyiiizabcqabcyr");
   // findCommonSubSequences(
   //   channelSequences[0],
   //   commonDumpSequences,
