@@ -325,11 +325,11 @@ void es5503_core::put_in_buffer(int32_t value, uint32_t pos, uint32_t chan)
 {
 	if(chan & 1)
 	{
-		m_mix_buffer_right[pos] += value;
+		m_mix_buffer_right[pos] += value / 8;
 		return;
 	}
 
-	m_mix_buffer_left[pos] += value;
+	m_mix_buffer_left[pos] += value / 8;
 }
 
 void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fill audio buffer
@@ -446,12 +446,12 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 
 				if(osc & 1)
 				{
-					oscBuf[osc]->data[oscBuf[osc]->needle++] = curr_sample;
+					oscBuf[osc]->data[oscBuf[osc]->needle++] = curr_sample / 2;
 				}
 
 				else
 				{
-					oscBuf[osc]->data[oscBuf[osc]->needle++] = curr_sample;
+					oscBuf[osc]->data[oscBuf[osc]->needle++] = curr_sample / 2;
 				}
 
 				// if oscillator halted, we've got no more samples to generate
