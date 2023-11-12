@@ -27,9 +27,9 @@ const int ES5503_wave_lengths[DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX] =
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER (chipClock / rate)
+#define CHIP_DIVIDER (double)(chipClock / rate)
 
-#define CHIP_FREQBASE (894886U)
+#define CHIP_FREQBASE (894886.0)
 
 const char* regCheatSheetES5503[]={
   "CHx_FreqL", "x",
@@ -154,7 +154,7 @@ void DivPlatformES5503::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5503);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,8,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,(double)chipClock,CHIP_FREQBASE * 4186.01 / 7458.62); //TODO: why freq calc is wrong?
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].furnaceDac && chan[i].pcm) {
@@ -266,7 +266,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       //chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
       rWrite(0x40+c.chan, chan[c.chan].vol); //set volume
       rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
-      rWrite(0xc0+c.chan, ins->es5503.waveLen << 3 | 0b001 /*lowest acc resolution*/); //set wave len
+      rWrite(0xc0+c.chan, ins->es5503.waveLen << 3 | 0b010 /*lowest acc resolution*/); //set wave len
       chan[c.chan].wave_pos = ins->es5503.wavePos << 8;
       chan[c.chan].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
       chan[c.chan].macroInit(ins);
