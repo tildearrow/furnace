@@ -34,10 +34,11 @@ class DivPlatformES5503: public DivDispatch {
     unsigned int dacPos;
     int dacSample;
     unsigned char pan;
-    bool noise, pcm, furnaceDac, deferredWaveUpdate;
+    bool pcm, furnaceDac, deferredWaveUpdate;
     signed short wave;
     int macroVolMul, noiseSeek;
     unsigned int wave_pos, wave_size;
+    unsigned char osc_mode;
     DivWaveSynth ws;
     Channel():
       SharedChannel<signed char>(255),
@@ -49,7 +50,6 @@ class DivPlatformES5503: public DivDispatch {
       dacPos(0),
       dacSample(-1),
       pan(255),
-      noise(false),
       pcm(false),
       furnaceDac(false),
       deferredWaveUpdate(false),
@@ -57,7 +57,8 @@ class DivPlatformES5503: public DivDispatch {
       macroVolMul(255),
       noiseSeek(0),
       wave_pos(0),
-      wave_size(256) {}
+      wave_size(256),
+      osc_mode(0) {}
   };
   Channel chan[32];
   DivDispatchOscBuffer* oscBuf[32];

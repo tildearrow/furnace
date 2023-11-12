@@ -15,8 +15,9 @@
 class es5503_core {
 public:
 	// construction/destruction
-	void es5503_core_init(uint32_t clock, DivDispatchOscBuffer** oscBuf);
+	void es5503_core_init(uint32_t clock, DivDispatchOscBuffer** oscBuf, uint8_t oscsenabled);
     void es5503_core_free();
+	void update_num_osc(DivDispatchOscBuffer** oscBuf, uint8_t oscsenabled);
 
 	// channels must be a power of two
 	void set_channels(int channels) { output_channels = channels; }

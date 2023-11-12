@@ -6234,6 +6234,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Echo Level";
             dutyMax=32767;
           }
+          if (ins->type==DIV_INS_ES5503) {
+            dutyLabel="Osc. mode";
+            dutyMax=3;
+          }
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
@@ -6246,6 +6250,7 @@ void FurnaceGUI::drawInsEdit() {
               waveMax=0;
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC || ins->type==DIV_INS_OPLL) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
+          if (ins->type==DIV_INS_ES5503) waveMax=ins->amiga.useSample?0:255;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
@@ -6279,6 +6284,10 @@ void FurnaceGUI::drawInsEdit() {
           
           if (ins->type==DIV_INS_OPLL) {
             waveLabel="Patch";
+          }
+
+          if (ins->type==DIV_INS_ES5503) {
+            waveLabel="Wavetable";
           }
 
           if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
@@ -6491,7 +6500,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_K053260 ||
               ins->type==DIV_INS_C140 ||
               ins->type==DIV_INS_C219 ||
-              ins->type==DIV_INS_TED) {
+              ins->type==DIV_INS_TED ||
+              ins->type==DIV_INS_ES5503) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {

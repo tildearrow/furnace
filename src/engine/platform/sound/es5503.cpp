@@ -50,20 +50,21 @@ static constexpr uint32_t wavemasks[8] = { 0x1ff00, 0x1fe00, 0x1fc00, 0x1f800, 0
 static constexpr uint32_t accmasks[8]  = { 0xff, 0x1ff, 0x3ff, 0x7ff, 0xfff, 0x1fff, 0x3fff, 0x7fff };
 static constexpr int    resshifts[8] = { 9, 10, 11, 12, 13, 14, 15, 16 };
 
-void es5503_core::es5503_core_init(uint32_t clock, DivDispatchOscBuffer** oscBuf)
+void es5503_core::es5503_core_init(uint32_t clock, DivDispatchOscBuffer** oscBuf, uint8_t oscsenabled)
 {
   memset(this, 0, sizeof(*this));
     // The number here is the number of oscillators to enable -1 times 2.  You can never
 	// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
-  oscsenabled = 32;
-  output_rate = (clock / 8) / (oscsenabled + 2);
+  this->oscsenabled = oscsenabled;
   this->clock = clock;
+  output_rate = (clock / 8) / (oscsenabled + 2);
+  
   sampleMemLen = 65536 << 1;
   sampleMem = new unsigned char[sampleMemLen];
   memset(sampleMem, 0, sampleMemLen * sizeof(unsigned char));
-  output_channels = 32;
+  output_channels = oscsenabled;
 
-	for(int i = 0; i < output_channels; i++)
+	for(int i = 0; i < oscsenabled; i++)
 	{
 		this->oscBuf[i] = oscBuf[i];
 	}
@@ -76,6 +77,20 @@ void es5503_core::es5503_core_free()
 		delete sampleMem;
 		sampleMem = NULL;
 		sampleMemLen = 0;
+	}
+}
+
+void es5503_core::update_num_osc(DivDispatchOscBuffer** oscBuf, uint8_t oscsenabled)
+{
+	this->oscsenabled = oscsenabled;
+	this->clock = clock;
+	output_rate = (clock / 8) / (oscsenabled + 2);
+
+	output_channels = oscsenabled;
+
+	for(int i = 0; i < oscsenabled; i++)
+	{
+		this->oscBuf[i] = oscBuf[i];
 	}
 }
 

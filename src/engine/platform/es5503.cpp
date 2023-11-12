@@ -71,7 +71,7 @@ void DivPlatformES5503::setFlags(const DivConfig& flags) {
     oscBuf[i]->rate=rate;
   }
 
-  es5503.es5503_core_init(chipClock, this->oscBuf);
+  es5503.es5503_core_init(chipClock, this->oscBuf, 32);
 }
 
 void DivPlatformES5503::writeSampleMemoryByte(int address, unsigned char value)
@@ -138,12 +138,23 @@ void DivPlatformES5503::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
 
+    if (chan[i].std.duty.had && !chan[i].pcm) {
+      chan[i].osc_mode = chan[i].std.duty.val & 3;
+      rWrite(0xA0 + i, (chan[i].osc_mode << 1)); //update osc. mode, do not disturb the osc
+    }
+
     if (chan[i].std.wave.had && !chan[i].pcm) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
         chan[i].ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
+    }
+
+    if (chan[i].std.phaseReset.had && !chan[i].pcm && chan[i].std.phaseReset.val == 1) {
+      rWrite(0xA0 + i, (chan[i].osc_mode << 1) | 1); //writing 1 resets acc
+      rWrite(0xA0 + i, (chan[i].osc_mode << 1)); //writing 0 forces the reset
+      //rWrite(0xA0 + i, (chan[i].osc_mode << 1) | (chan[i].keyOn ? 0 : 1)); //update osc. mode
     }
 
     if (chan[i].active) {
@@ -266,8 +277,10 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       //chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
       rWrite(0x40+c.chan, chan[c.chan].vol); //set volume
       rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
+      rWrite(0xa0+c.chan, (ins->es5503.initial_osc_mode << 1));
       rWrite(0xc0+c.chan, ins->es5503.waveLen << 3 | 0b010 /*lowest acc resolution*/); //set wave len
       chan[c.chan].wave_pos = ins->es5503.wavePos << 8;
+      chan[c.chan].osc_mode = ins->es5503.initial_osc_mode;
       chan[c.chan].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
       chan[c.chan].macroInit(ins);
       chan[c.chan].outVol=chan[c.chan].vol;
@@ -431,7 +444,7 @@ void DivPlatformES5503::reset() {
 
   curChan=-1;
   // set volume to zero and reset some other shit
-  for(int i = 0; i < 64; i++)
+  for(int i = 0; i < 0xcf; i++)
   {
     rWrite(i,0);
   }
