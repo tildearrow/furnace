@@ -343,27 +343,26 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 	uint32_t ramptr;
 	uint32_t samples = len;
 
-	for (osc = 0; osc < oscsenabled; osc++)
+	for (snum = 0; snum < samples; snum++)
 	{
-		ES5503Osc *pOsc = &oscillators[osc];
-
-		if (!(pOsc->control & 1))
+		for (osc = 0; osc < oscsenabled; osc++)
 		{
-			uint32_t wtptr = pOsc->wavetblpointer & wavemasks[pOsc->wavetblsize];
-			uint32_t altram = 0;
-			uint32_t acc = pOsc->accumulator;
-			uint16_t wtsize = pOsc->wtsize - 1;
-			uint8_t ctrl = pOsc->control;
-			uint16_t freq = pOsc->freq;
-			int16_t vol = pOsc->vol;
-			int8_t data = -128;
-			int resshift = resshifts[pOsc->resolution] - pOsc->wavetblsize;
-			uint32_t sizemask = accmasks[pOsc->wavetblsize];
-			int mode = (pOsc->control>>1) & 3;
-			//mixp = &m_mix_buffer[0] + chan;
+			ES5503Osc *pOsc = &oscillators[osc];
 
-			for (snum = 0; snum < samples; snum++)
+			if (!(pOsc->control & 1))
 			{
+				uint32_t wtptr = pOsc->wavetblpointer & wavemasks[pOsc->wavetblsize];
+				uint32_t altram = 0;
+				uint32_t acc = pOsc->accumulator;
+				uint16_t wtsize = pOsc->wtsize - 1;
+				uint8_t ctrl = pOsc->control;
+				uint16_t freq = pOsc->freq;
+				int16_t vol = pOsc->vol;
+				int8_t data = -128;
+				int resshift = resshifts[pOsc->resolution] - pOsc->wavetblsize;
+				uint32_t sizemask = accmasks[pOsc->wavetblsize];
+				int mode = (pOsc->control>>1) & 3;
+				
 				int32_t curr_sample = 0;
 
 				altram = acc >> resshift;
@@ -460,14 +459,19 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 					ctrl |= 1;
 					break;
 				}
+
+				pOsc->control = ctrl;
+				pOsc->accumulator = acc;
+				pOsc->data = data ^ 0x80;
 			}
-
-			pOsc->control = ctrl;
-			pOsc->accumulator = acc;
-			pOsc->data = data ^ 0x80;
 		}
+	}
 
-		else
+	for (osc = 0; osc < oscsenabled; osc++)
+	{
+		ES5503Osc *pOsc = &oscillators[osc];
+
+		if (pOsc->control & 1) //zero-fill osc buf
 		{
 			for (snum = 0; snum < samples; snum++)
 			{

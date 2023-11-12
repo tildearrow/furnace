@@ -128,6 +128,16 @@ void DivPlatformES5503::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
 
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
+
     if (chan[i].std.wave.had && !chan[i].pcm) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
@@ -144,7 +154,9 @@ void DivPlatformES5503::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5503);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,8,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      if (chan[i].freq<0) chan[i].freq=0;
+      if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].furnaceDac && chan[i].pcm) {
         double off=1.0;
         if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
@@ -287,6 +299,76 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         chan[c.chan].insChanged=true;
       }
       break;
+    case DIV_CMD_VOLUME:
+      if (chan[c.chan].vol!=c.value) {
+        chan[c.chan].vol=c.value;
+        if (!chan[c.chan].std.vol.has) {
+          chan[c.chan].outVol=c.value;
+          if (chan[c.chan].active && !chan[c.chan].pcm) {
+            rWrite(0x40 + c.chan, chan[c.chan].outVol);
+          }
+        }
+      }
+      break;
+    case DIV_CMD_GET_VOLUME:
+      if (chan[c.chan].std.vol.has) {
+        return chan[c.chan].vol;
+      }
+      return chan[c.chan].outVol;
+      break;
+    case DIV_CMD_PITCH:
+      chan[c.chan].pitch=c.value;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_LEGATO:
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].freqChanged=true;
+      chan[c.chan].note=c.value;
+      break;
+    case DIV_CMD_PRE_PORTA:
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_ES5503));
+      }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      chan[c.chan].inPorta=c.value;
+      break;
+    case DIV_CMD_NOTE_PORTA: {
+      int destFreq=NOTE_FREQUENCY(c.value2);
+      bool return2=false;
+      if (destFreq>chan[c.chan].baseFreq) {
+        chan[c.chan].baseFreq+=c.value;
+        if (chan[c.chan].baseFreq>=destFreq) {
+          chan[c.chan].baseFreq=destFreq;
+          return2=true;
+        }
+      } else {
+        chan[c.chan].baseFreq-=c.value;
+        if (chan[c.chan].baseFreq<=destFreq) {
+          chan[c.chan].baseFreq=destFreq;
+          return2=true;
+        }
+      }
+      chan[c.chan].freqChanged=true;
+      if (return2) {
+        chan[c.chan].inPorta=false;
+        return 2;
+      }
+      break;
+    }
+    case DIV_CMD_GET_VOLMAX:
+      return 255;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
+    case DIV_ALWAYS_SET_VOLUME:
+      return 1;
+      break;
+    default:
+      break;
   }
   return 1;
 }
@@ -348,10 +430,10 @@ void DivPlatformES5503::reset() {
   }
 
   curChan=-1;
-  // set volume to zero
-  for(int i = 0; i < 32; i++)
+  // set volume to zero and reset some other shit
+  for(int i = 0; i < 64; i++)
   {
-    rWrite(0x40+i,0);
+    rWrite(i,0);
   }
 }
 
