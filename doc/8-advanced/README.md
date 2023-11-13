@@ -18,6 +18,7 @@ as listed in the "Window" menu:
 
 - [piano](piano.md)
 - [oscilloscope](osc.md)
+- [oscilloscope (X-Y)](xyosc.md)
 - [oscilloscopes (per-channel)](chanosc.md)
 - [clock](clock.md)
 - [register view](regview.md)
