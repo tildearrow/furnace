@@ -412,12 +412,20 @@ void testCompress(SuffixTree *root, const std::vector<AlphaChar> &alphaSequence)
     }
 
     if (cleared.size() < 2) continue;
+    bool first = true;
+    size_t shrink = 0;
     for (auto z : cleared) {
+      if (first) {
+        first = false;
+        continue;
+      }
       for (size_t i = 0 ; i < x.first->depth; i++) {
         compressos[z->start + i] = true;
+        if (i > 0) {
+          shrink++;
+        }
       }
     }
-    size_t shrink = (cleared.size() - 1) * (x.first->depth - 1);
     bytes -= shrink;
   }
   logD("test compress: %d >> %d", alphaSequence.size(), bytes);
