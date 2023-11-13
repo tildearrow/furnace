@@ -1,6 +1,6 @@
 # oscilloscope
 
-the Oscilloscope shows the waveform of the mix of all currently playing sounds.
+the Oscilloscope shows the audio output as a waveform.
 
 ![oscilloscope view](osc.png)
 
