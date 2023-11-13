@@ -86,8 +86,43 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
     frequencyMap,
     representativeMap);
 
-  testCommonSubsequences("banana$");
-  testCommonSubsequences("xabcyiiizabcqabcyr$");
+  std::vector<AlphaCode> alphabet;
+  std::map<String, AlphaChar> index;
+  createAlphabet(
+    commonDumpSequences,
+    alphabet,
+    index
+  );
+  logD("Alphabet size %d", alphabet.size());
+
+  for (int i = 0; i < 2; i++) {
+    std::vector<AlphaChar> alphaSequence;
+    translateString(
+      channelSequences[i],
+      representativeMap,
+      index,
+      alphaSequence
+    );
+    logD("Sequence length %d", alphaSequence.size());
+
+    SuffixTree *root = createSuffixTree(
+      alphabet,
+      alphaSequence
+    );
+
+    // maximal common substring
+    SuffixTree *maximal = root->find_maximal_substring();
+    logD("maximal substring: %d (%d, %d)", maximal->depth, maximal->start, maximal->depth);
+    testCompress(root, alphaSequence);
+
+    delete root;
+
+  }
+
+  // BUGBUG: Not production 
+  // just testing 
+  testCommonSubsequences("banana");
+  testCommonSubsequences("xabcyiiizabcqabcyr");
   testCommonSubsequencesBrute("banana");
   testCommonSubsequencesBrute("xabcyiiizabcqabcyr");
   // findCommonSubSequences(

@@ -196,18 +196,74 @@ void findCommonDumpSequences(
   std::map<String, String> &representativeMap
 );
 
-struct SuffixTree;
 typedef uint64_t AlphaCode;
 typedef int AlphaChar;
 
-SuffixTree *createSuffixTree(
-  const std::vector<String> &sequence,
+struct SuffixTree {
+
+  SuffixTree *parent;
+  SuffixTree *slink;
+  std::vector<SuffixTree *> children;
+  bool isLeaf;
+  size_t start;
+  size_t depth;
+
+  SuffixTree(size_t alphabetSize, size_t d) : parent(NULL), slink(NULL), isLeaf(true), start(0), depth(d) {
+    children.resize(alphabetSize);
+    for (size_t i = 0; i < alphabetSize; i++) {
+      children[i] = NULL;
+    }
+  }
+
+  ~SuffixTree() {
+    for (auto x : children) {
+      delete x;
+    }
+  }
+
+  SuffixTree *splice_node(size_t d, const std::vector<AlphaChar> &S);
+
+  SuffixTree *add_leaf(size_t i, size_t d, const std::vector<AlphaChar> &S);
+
+  void compute_slink(const std::vector<AlphaChar> &S);
+
+  size_t substring_start() const;
+
+  size_t substring_end() const;
+
+  size_t substring_len() const;
+
+  SuffixTree *find(const std::vector<AlphaChar> &K, const std::vector<AlphaChar> &S);
+
+  size_t gather_leaves(std::vector<SuffixTree *> &leaves);
+
+  SuffixTree *find_maximal_substring();
+
+  AlphaChar gather_left(std::vector<SuffixTree *> &nodes, const std::vector<AlphaChar> &S);
+
+};
+
+
+void createAlphabet(
   const std::map<AlphaCode, String> &commonDumpSequences,
-  const std::map<String, String> &representativeMap,
   std::vector<AlphaCode> &alphabet,
-  std::vector<AlphaChar> &alphaSequence
+  std::map<String, AlphaChar> &index
 );
 
+void translateString(
+    const std::vector<String> &sequence,
+    const std::map<String, String> &representativeMap,
+    const std::map<String, AlphaChar> &index,
+    std::vector<AlphaChar> &alphaSequence
+);
+
+SuffixTree * createSuffixTree(
+    const std::vector<AlphaCode> &alphabet,
+    const std::vector<AlphaChar> &alphaSequence
+);
+
+
+void testCompress(SuffixTree *root, const std::vector<AlphaChar> &alphaSequence);
 void testCommonSubsequences(const String &input);
 void testCommonSubsequencesBrute(const String &input);
 

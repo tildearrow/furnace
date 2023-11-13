@@ -158,182 +158,173 @@ void findCommonDumpSequences(
   }
 }
 
-struct SuffixTree {
+SuffixTree *SuffixTree::splice_node(size_t d, const std::vector<AlphaChar> &S) {
+  assert(d < depth);
+  SuffixTree *child = new SuffixTree(children.size(), d);
+  size_t i = start;
+  child->start = i;
+  child->parent = parent;
+  child->children[S.at(i + d)] = this;
+  parent->children[S.at(i + parent->depth)] = child;
+  parent = child;
+  return child;
+}
 
-  SuffixTree *parent;
-  SuffixTree *slink;
-  std::vector<SuffixTree *> children;
-  bool isLeaf;
-  size_t start;
-  size_t depth;
+SuffixTree *SuffixTree::add_leaf(size_t i, size_t d, const std::vector<AlphaChar> &S) {
+  SuffixTree *child = new SuffixTree(children.size(), S.size() - i);
+  child->start = i;
+  child->parent = this;
+  children[S.at(i + d)] = child;
+  isLeaf = false;
+  return child;
+}
 
-  SuffixTree(size_t alphabetSize, size_t d) : parent(NULL), slink(NULL), isLeaf(true), start(0), depth(d) {
-    children.resize(alphabetSize);
-    for (size_t i = 0; i < alphabetSize; i++) {
-      children[i] = NULL;
-    }
+void SuffixTree::compute_slink(const std::vector<AlphaChar> &S) {
+  size_t d = depth;
+  SuffixTree *v = parent->slink;
+  while (v->depth < d - 1) {
+    v = v->children.at(S[start + v->depth + 1]);
   }
-
-  ~SuffixTree() {
-    for (auto x : children) {
-      delete x;
-    }
+  if (v->depth > d - 1) {
+    v = v->splice_node(d - 1, S);
   }
+  slink = v;
+}
 
-  SuffixTree *splice_node(size_t d, const std::vector<AlphaChar> &S) {
-    assert(d < depth);
-    SuffixTree *child = new SuffixTree(children.size(), d);
-    size_t i = start;
-    child->start = i;
-    child->parent = parent;
-    child->children[S.at(i + d)] = this;
-    parent->children[S.at(i + parent->depth)] = child;
-    parent = child;
-    return child;
-  }
+size_t SuffixTree::substring_start() const {
+  return start + (NULL != parent ? parent->depth : 0);
+}
 
-  SuffixTree *add_leaf(size_t i, size_t d, const std::vector<AlphaChar> &S) {
-    SuffixTree *child = new SuffixTree(children.size(), S.size() - i);
-    child->start = i;
-    child->parent = this;
-    children[S.at(i + d)] = child;
-    isLeaf = false;
-    return child;
-  }
+size_t SuffixTree::substring_end() const {
+  return start + depth;
+}
 
-  void compute_slink(const std::vector<AlphaChar> &S) {
-    size_t d = depth;
-    SuffixTree *v = parent->slink;
-    while (v->depth < d - 1) {
-      v = v->children.at(S[start + v->depth + 1]);
-    }
-    if (v->depth > d - 1) {
-      v = v->splice_node(d - 1, S);
-    }
-    slink = v;
-  }
+size_t SuffixTree::substring_len() const {
+  return substring_end() - substring_start();
+}
 
-  size_t substring_start() {
-    return start + (NULL != parent ? parent->depth : 0);
-  }
-
-  size_t substring_end() {
-    return start + depth;
-  }
-
-  size_t substring_len() {
-    return substring_end() - substring_start();
-  }
-
-  SuffixTree *find(const std::vector<AlphaChar> &K, const std::vector<AlphaChar> &S) {
-    size_t i = 0;
-    SuffixTree * u = this;
-    while (i < K.size()) {
-      SuffixTree * child = u->children.at(K.at(i));
-      if (NULL == child) return NULL;
-      u = child;
-      size_t j = u->substring_start();
-      while (i < K.size() && j < u->substring_end()) {
-        if (K.at(i) != S.at(j)) {
-          return NULL;
-        }
-        i++;
-        j++;
+SuffixTree *SuffixTree::find(const std::vector<AlphaChar> &K, const std::vector<AlphaChar> &S) {
+  size_t i = 0;
+  SuffixTree * u = this;
+  while (i < K.size()) {
+    SuffixTree * child = u->children.at(K.at(i));
+    if (NULL == child) return NULL;
+    u = child;
+    size_t j = u->substring_start();
+    while (i < K.size() && j < u->substring_end()) {
+      if (K.at(i) != S.at(j)) {
+        return NULL;
       }
+      i++;
+      j++;
     }
-    return u;
   }
+  return u;
+}
 
-  size_t gather_leaves(std::vector<SuffixTree *> &leaves) {
-    std::vector<SuffixTree *> stack;
-    stack.emplace_back(this);
-    while (stack.size() > 0) {
-      SuffixTree * u = stack.back();
-      stack.pop_back();
-      for (auto child : u->children) {
-        if (NULL == child) continue;
-        if (child->isLeaf) {
-          leaves.emplace_back(child);
-          continue;
-        }
-        stack.emplace_back(child);
+size_t SuffixTree::gather_leaves(std::vector<SuffixTree *> &leaves) {
+  std::vector<SuffixTree *> stack;
+  stack.emplace_back(this);
+  while (stack.size() > 0) {
+    SuffixTree * u = stack.back();
+    stack.pop_back();
+    for (auto child : u->children) {
+      if (NULL == child) continue;
+      if (child->isLeaf) {
+        leaves.emplace_back(child);
+        continue;
       }
+      stack.emplace_back(child);
     }
-    return leaves.size();
   }
+  return leaves.size();
+}
 
-  SuffixTree *find_maximal_substring() {
-    SuffixTree *candidate = NULL;
-    std::vector<SuffixTree *> stack;
-    stack.emplace_back(this);
-    while (stack.size() > 0) {
-      SuffixTree * u = stack.back();
-      stack.pop_back();
-      for (auto child : u->children) {
-        if (NULL == child) continue;
-        if (child->isLeaf) continue;
-        if (NULL == candidate || (candidate->depth < child->depth)) {
-          candidate = child;
-        }
-        stack.emplace_back(child);
+SuffixTree *SuffixTree::find_maximal_substring() {
+  SuffixTree *candidate = NULL;
+  std::vector<SuffixTree *> stack;
+  stack.emplace_back(this);
+  while (stack.size() > 0) {
+    SuffixTree * u = stack.back();
+    stack.pop_back();
+    for (auto child : u->children) {
+      if (NULL == child) continue;
+      if (child->isLeaf) continue;
+      if (NULL == candidate || (candidate->depth < child->depth)) {
+        candidate = child;
       }
+      stack.emplace_back(child);
     }
-    return candidate;
   }
+  return candidate;
+}
 
-  AlphaChar gather_left(std::vector<SuffixTree *> &nodes, const std::vector<AlphaChar> &S) {
-    AlphaChar leftChar = -1;
-    bool isLeftDiverse = false;
-    for (auto child : children) {
-        if (NULL == child) continue;
-        AlphaChar nextChar;
-        if (child->isLeaf) {
-          nextChar = child->start > 0 ? S.at(child->start - 1) : S.at(S.size() - 1);
-        } else {
-          nextChar = child->gather_left(nodes, S);
-        }
-        if (nextChar < 0) {
-          isLeftDiverse = true;
-        } else if (leftChar < 0) {
-          leftChar = nextChar;
-        } else if (leftChar != nextChar) {
-          isLeftDiverse = true;
-        }
-    }
-    if (isLeftDiverse && depth > 0) {
-      nodes.emplace_back(this);
-      return -1;
-    }
-    return leftChar;
+AlphaChar SuffixTree::gather_left(std::vector<SuffixTree *> &nodes, const std::vector<AlphaChar> &S) {
+  AlphaChar leftChar = -1;
+  bool isLeftDiverse = false;
+  for (auto child : children) {
+      if (NULL == child) continue;
+      AlphaChar nextChar;
+      if (child->isLeaf) {
+        nextChar = child->start > 0 ? S.at(child->start - 1) : S.at(S.size() - 1);
+      } else {
+        nextChar = child->gather_left(nodes, S);
+      }
+      if (nextChar < 0) {
+        isLeftDiverse = true;
+      } else if (leftChar < 0) {
+        leftChar = nextChar;
+      } else if (leftChar != nextChar) {
+        isLeftDiverse = true;
+      }
   }
+  if (isLeftDiverse && depth > 0) {
+    nodes.emplace_back(this);
+    return -1;
+  }
+  return leftChar;
+}
 
-};
+
+void createAlphabet(
+  const std::map<AlphaCode, String> &commonDumpSequences,
+  std::vector<AlphaCode> &alphabet,
+  std::map<String, AlphaChar> &index
+) {
+  // construct the alphabet
+  alphabet.reserve(commonDumpSequences.size() + 1);
+ 
+  alphabet.emplace_back(0);
+  index.emplace("$", 0);
+  for (auto x : commonDumpSequences) {
+    index.emplace(x.second, alphabet.size());
+    alphabet.emplace_back(x.first);
+  }
+}
+
+void translateString(
+    const std::vector<String> &sequence,
+    const std::map<String, String> &representativeMap,
+    const std::map<String, AlphaChar> &index,
+    std::vector<AlphaChar> &alphaSequence
+) {
+    // copy string in alphabet
+    alphaSequence.reserve(sequence.size() + 1); 
+    for (auto key : sequence) {
+      AlphaChar c = index.at(representativeMap.at(key));
+      alphaSequence.emplace_back(c);
+    }
+    alphaSequence.emplace_back(0);
+}
+
 
 // build a suffix tree via McCreight's algorithm
 // https://www.cs.helsinki.fi/u/tpkarkka/opetus/13s/spa/lecture09-2x4.pdf
 //
 SuffixTree * createSuffixTree(
-  const std::vector<String> &sequence,
-  const std::map<AlphaCode, String> &commonDumpSequences,
-  const std::map<String, String> &representativeMap,
-  std::vector<AlphaCode> &alphabet,
-  std::map<String, AlphaChar> &index,
-  std::vector<AlphaChar> &alphaSequence
+    const std::vector<AlphaCode> &alphabet,
+    const std::vector<AlphaChar> &alphaSequence
 ) {
-  // construct the alphabet
-  alphabet.reserve(commonDumpSequences.size());
- 
-  for (auto x : commonDumpSequences) {
-    index.emplace(x.second, alphabet.size());
-    alphabet.emplace_back(x.first);
-  }
-
-  // copy string in alphabet
-  alphaSequence.reserve(sequence.size()); 
-  for (auto key : sequence) {
-    alphaSequence.emplace_back(index.at(representativeMap.at(key)));
-  }
-
   // construct suffix tree
   int ops = 0;
   size_t d = 0;
@@ -341,7 +332,7 @@ SuffixTree * createSuffixTree(
   ops += 1;
   root->slink = root;
   SuffixTree *u = root;
-  for (int i = 0; i < alphaSequence.size(); i++) {
+  for (size_t i = 0; i < alphaSequence.size(); i++) {
     while (d == u->depth) {
       SuffixTree *child = u->children[alphaSequence[i + d]];
       ops += 1;
@@ -369,12 +360,67 @@ SuffixTree * createSuffixTree(
 
   // stats
   logD("ops %d", ops);
-  logD("Alphabet size %d", alphabet.size());
-  logD("Sequence length %d", alphaSequence.size());
 
   // produce root 
   return root;
 
+}
+
+
+bool moarcompress(std::pair<SuffixTree *, int> a, std::pair<SuffixTree *, int> b) {
+  return a.second > b.second;
+}
+
+void testCompress(SuffixTree *root, const std::vector<AlphaChar> &alphaSequence) {
+
+    // maximal repeats
+  std::vector<SuffixTree *> repeats;
+  root->gather_left(repeats, alphaSequence);
+  std::vector<std::pair<SuffixTree *, size_t>> repeatfreq;
+  for (auto x : repeats) {
+    std::vector<SuffixTree *> leaves;
+    x->gather_leaves(leaves);
+    size_t score = (x->depth - 1) * leaves.size();
+    repeatfreq.emplace_back(std::pair<SuffixTree *, size_t>(x, score));
+  }
+  // sort by freq
+  std::sort(repeatfreq.begin(), repeatfreq.end(), moarcompress);
+
+  // brute force test compress
+  size_t bytes = alphaSequence.size();
+
+  std::vector<bool> compressos;
+  for (auto x : alphaSequence) {
+    compressos.emplace_back(false);
+  }
+  for (auto x : repeatfreq) {
+    if (x.second < 1) continue;
+    std::vector<SuffixTree *> leaves;
+    x.first->gather_leaves(leaves);
+    std::vector<SuffixTree *> cleared;
+    for (auto y : leaves) {
+      bool clear = true;
+      for (size_t i = 0 ; i < x.first->depth; i++) {
+        if (compressos.at(y->start + i)) {
+          clear = false;
+          break;
+        }
+      }
+      if (clear) {
+        cleared.push_back(y);
+      }
+    }
+
+    if (cleared.size() < 2) continue;
+    for (auto z : cleared) {
+      for (size_t i = 0 ; i < x.first->depth; i++) {
+        compressos[z->start + i] = true;
+      }
+    }
+    size_t shrink = (cleared.size() - 1) * (x.first->depth - 1);
+    bytes -= shrink;
+  }
+  logD("test compress: %d >> %d", alphaSequence.size(), bytes);
 }
 
 void testCommonSubsequences(const String &input) {
@@ -393,13 +439,22 @@ void testCommonSubsequences(const String &input) {
 
   std::vector<AlphaCode> alphabet;
   std::map<String, AlphaChar> index;
-  std::vector<AlphaChar> alphaSequence;
-  SuffixTree *root = createSuffixTree(
-    sequence,
+  createAlphabet(
     commonDumpSequences,
-    representativeMap,
     alphabet,
+    index
+  );
+
+  std::vector<AlphaChar> alphaSequence;
+  translateString(
+    sequence,
+    representativeMap,
     index,
+    alphaSequence
+  );
+
+  SuffixTree *root = createSuffixTree(
+    alphabet,
     alphaSequence
   );
 
@@ -423,13 +478,6 @@ void testCommonSubsequences(const String &input) {
   // maximal common substring
   SuffixTree *maximal = root->find_maximal_substring();
   logD("maximal substring: %s", input.substr(maximal->start, maximal->depth));
-
-  // maximal repeats
-  std::vector<SuffixTree *> repeats;
-  root->gather_left(repeats, alphaSequence);
-  for (auto x : repeats) {
-    logD("maximal repeat: %s", input.substr(x->start, x->depth));
-  }
 
   // brute force frequency analysis
   for (size_t i = 0; i < input.size() - 1; i++) {
