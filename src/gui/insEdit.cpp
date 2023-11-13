@@ -5085,6 +5085,11 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           P(CWSliderScalar("Wavetable/sample position",ImGuiDataType_U16,&ins->es5503.wavePos,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,int_to_char_array(ins->es5503.wavePos * 256)));
+
+          P(ImGui::Checkbox("Virtual softpan channel",&ins->es5503.softpan_virtual_channel));
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Combines odd and next even channel into one virtual channel with 256-step panning.\nInstrument, volume and effects need to be placed on the odd channel (e.g. 1st, 3rd, 5th etc.)");
+          }
           
           ImGui::EndTabItem();
         }
@@ -6344,6 +6349,9 @@ void FurnaceGUI::drawInsEdit() {
             ex1Max=5;
             ex2Max=11;
           }
+          if (ins->type==DIV_INS_ES5503) {
+            ex1Max=255;
+          }
 
           int panMin=0;
           int panMax=0;
@@ -6413,6 +6421,9 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_ES5506) {
             panMax=4095;
+          }
+          if (ins->type==DIV_INS_ES5503 && ins->es5503.softpan_virtual_channel) {
+            panMax=255;
           }
 
           if (volMax>0) {
@@ -6535,6 +6546,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,snesModeBits));
             } else if (ins->type==DIV_INS_MSM5232) {
               macroList.push_back(FurnaceGUIMacroDesc("Group Attack",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+            } else if (ins->type==DIV_INS_ES5503) {
+              macroList.push_back(FurnaceGUIMacroDesc("Wave/sample pos.",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }

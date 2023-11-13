@@ -28,20 +28,21 @@
 #include "sound/es5503.h"
 
 class DivPlatformES5503: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel<int16_t> {
     int antiClickPeriodCount, antiClickWavePos;
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
     int dacSample;
-    unsigned char pan;
+    unsigned int panleft, panright;
     bool pcm, furnaceDac, deferredWaveUpdate;
     signed short wave;
     int macroVolMul, noiseSeek;
     unsigned int wave_pos, wave_size;
     unsigned char osc_mode;
+    bool softpan_channel;
     DivWaveSynth ws;
     Channel():
-      SharedChannel<signed char>(255),
+      SharedChannel<int16_t>(255),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       dacPeriod(0),
@@ -49,7 +50,8 @@ class DivPlatformES5503: public DivDispatch {
       dacOut(0),
       dacPos(0),
       dacSample(-1),
-      pan(255),
+      panleft(255),
+      panright(255),
       pcm(false),
       furnaceDac(false),
       deferredWaveUpdate(false),
