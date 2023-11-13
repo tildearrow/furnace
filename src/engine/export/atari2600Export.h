@@ -29,6 +29,31 @@ class DivExportAtari2600 : public DivROMExport {
   size_t writeTextGraphics(SafeWriter* w, const char* value);
   size_t writeNote(SafeWriter* w, const ChannelState& next, const char duration, const ChannelState& last);
 
+  void writeTrackV0(
+    DivEngine* e, 
+    std::vector<String> *channelSequences,
+    std::map<String, DumpSequence> &registerDumps,
+    std::vector<DivROMExportOutput> &ret
+  );
+
+  void writeTrackV1(
+    DivEngine* e, 
+    std::map<uint64_t, String> &commonDumpSequences,
+    std::map<uint64_t, unsigned int> &frequencyMap,
+    std::map<String, String> &representativeMap,
+    std::map<String, DumpSequence> &registerDumps,
+    std::vector<DivROMExportOutput> &ret
+  );
+
+  void writeTrackV2(
+    DivEngine* e, 
+    std::map<uint64_t, String> &commonDumpSequences,
+    std::map<String, String> &representativeMap,
+    std::vector<String> *channelSequences,
+    std::map<String, DumpSequence> &registerDumps,
+    std::vector<DivROMExportOutput> &ret
+  );
+
 public:
 
   ~DivExportAtari2600() {}

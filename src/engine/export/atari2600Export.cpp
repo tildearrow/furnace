@@ -44,29 +44,6 @@ std::map<unsigned int, unsigned int> channel1AddressMap = {
 
 std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
-  ret.reserve(3);
-
-  // create meta data (optional)
-  logD("writing track title graphics");
-  SafeWriter* titleData=new SafeWriter;
-  titleData->init();
-  titleData->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
-  titleData->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
-  auto title = (e->song.name.length() > 0) ?
-     (e->song.name + " by " + e->song.author) :
-     "furnace tracker";
-  if (title.length() > 26) {
-    title = title.substr(23) + "...";
-  }
-  writeTextGraphics(titleData, title.c_str());
-  ret.push_back(DivROMExportOutput("Track_meta.asm", titleData));
-
-  // create track data
-  logD("writing track audio data");
-  SafeWriter* trackData=new SafeWriter;
-  trackData->init();
-  trackData->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
-  trackData->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
 
   // capture all sequences
   logD("performing sequence capture");
@@ -86,50 +63,87 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
     frequencyMap,
     representativeMap);
 
-  std::vector<AlphaCode> alphabet;
-  std::map<String, AlphaChar> index;
-  createAlphabet(
-    commonDumpSequences,
-    alphabet,
-    index
+  writeTrackV0(
+    e,
+    channelSequences,
+    registerDumps,
+    ret
   );
-  logD("Alphabet size %d", alphabet.size());
+  writeTrackV1(
+    e,
+    commonDumpSequences,
+    frequencyMap,
+    representativeMap,
+    registerDumps,
+    ret
+  );
+  writeTrackV2(
+    e,
+    commonDumpSequences,
+    representativeMap,
+    channelSequences,
+    registerDumps,
+    ret
+  );
 
-  for (int i = 0; i < 2; i++) {
-    std::vector<AlphaChar> alphaSequence;
-    translateString(
-      channelSequences[i],
-      representativeMap,
-      index,
-      alphaSequence
-    );
-    logD("Sequence length %d", alphaSequence.size());
 
-    SuffixTree *root = createSuffixTree(
-      alphabet,
-      alphaSequence
-    );
-
-    // maximal common substring
-    SuffixTree *maximal = root->find_maximal_substring();
-    logD("maximal substring: %d (%d, %d)", maximal->depth, maximal->start, maximal->depth);
-    testCompress(root, alphaSequence);
-
-    delete root;
-
+  // create meta data (optional)
+  logD("writing track title graphics");
+  SafeWriter* titleData=new SafeWriter;
+  titleData->init();
+  titleData->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
+  titleData->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
+  auto title = (e->song.name.length() > 0) ?
+     (e->song.name + " by " + e->song.author) :
+     "furnace tracker";
+  if (title.length() > 26) {
+    title = title.substr(23) + "...";
   }
+  writeTextGraphics(titleData, title.c_str());
+  ret.push_back(DivROMExportOutput("Track_meta.asm", titleData));
 
-  // BUGBUG: Not production 
-  // just testing 
-  testCommonSubsequences("banana");
-  testCommonSubsequences("xabcyiiizabcqabcyr");
-  testCommonSubsequencesBrute("banana");
-  testCommonSubsequencesBrute("xabcyiiizabcqabcyr");
-  // findCommonSubSequences(
-  //   channelSequences[0],
-  //   commonDumpSequences,
-  //   representativeMap
-  // );
+  return ret;
+
+}
+
+void DivExportAtari2600::writeTrackV0(
+  DivEngine* e,
+  std::vector<String> *channelSequences,
+  std::map<String, DumpSequence> &registerDumps,
+  std::vector<DivROMExportOutput> &ret
+) {
+
+  logD("writing raw binary audio data");
+  SafeWriter* binaryData=new SafeWriter;
+  binaryData->init();
+  for (int i = 0; i < 2; i++) {
+    for (auto x : channelSequences[i]) {
+      auto& dump = registerDumps.at(x);
+      for (auto& n: dump.intervals) {
+        binaryData->writeC((n.state.registers[0] << 4) + n.state.registers[2]);
+        binaryData->writeC((n.state.registers[1] << 3) + n.duration);
+      }
+    }
+  }
+  ret.push_back(DivROMExportOutput("Track_binary.bin", binaryData));
+}
+
+void DivExportAtari2600::writeTrackV1(
+  DivEngine* e, 
+  std::map<uint64_t, String> &commonDumpSequences,
+  std::map<uint64_t, unsigned int> &frequencyMap,
+  std::map<String, String> &representativeMap,
+  std::map<String, DumpSequence> &registerDumps,
+  std::vector<DivROMExportOutput> &ret
+) {
+
+  // create track data
+  logD("writing track audio data");
+  SafeWriter* trackData=new SafeWriter;
+  trackData->init();
+  trackData->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
+  trackData->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
+
 
   // emit song table
   logD("writing song table");
@@ -272,34 +286,62 @@ std::vector<DivROMExportOutput> DivExportAtari2600::go(DivEngine* e) {
 
   ret.push_back(DivROMExportOutput("Track_data.asm", trackData));
 
+}
 
-  logD("writing raw binary audio data");
-  SafeWriter* binaryData=new SafeWriter;
-  binaryData->init();
-  for (PatternIndex& patternIndex: patterns) {
-    DivPattern* pat = e->song.subsong[patternIndex.subsong]->pat[patternIndex.chan].getPattern(patternIndex.pat, false);
-    for (int j = 0; j<e->song.subsong[patternIndex.subsong]->patLen; j++) {
-      binaryData->writeC(((uint64_t)patternIndex.key.c_str()) & 0xff);
-      binaryData->writeL(j);
-    }
+void DivExportAtari2600::writeTrackV2(
+  DivEngine* e, 
+  std::map<uint64_t, String> &commonDumpSequences,
+  std::map<String, String> &representativeMap,
+  std::vector<String> *channelSequences,
+  std::map<String, DumpSequence> &registerDumps,
+  std::vector<DivROMExportOutput> &ret
+) {
+  // TODO: principled raw sequence
+  std::vector<AlphaCode> alphabet;
+  std::map<String, AlphaChar> index;
+  createAlphabet(
+    commonDumpSequences,
+    alphabet,
+    index
+  );
+  logD("Alphabet size %d", alphabet.size());
+
+  for (int i = 0; i < 2; i++) {
+    std::vector<AlphaChar> alphaSequence;
+    translateString(
+      channelSequences[i],
+      representativeMap,
+      index,
+      alphaSequence
+    );
+    logD("Sequence length %d", alphaSequence.size());
+
+    SuffixTree *root = createSuffixTree(
+      alphabet,
+      alphaSequence
+    );
+
+    // maximal common substring
+    SuffixTree *maximal = root->find_maximal_substring();
+    logD("maximal substring: %d (%d, %d)", maximal->depth, maximal->start, maximal->depth);
+    testCompress(root, alphaSequence);
+
+    delete root;
+
   }
-  for (auto& x: commonDumpSequences) {
-    auto freq = frequencyMap[x.first];
-    auto& dump = registerDumps[x.second];
-    for (auto& n: dump.intervals) {
-      unsigned char audfx = n.state.registers[0];
-      unsigned char audcx = n.state.registers[1];
-      unsigned char audvx = n.state.registers[2];
-      unsigned char x = audfx + (n.duration << 5);
-      unsigned char y = (audcx << 4) + audvx;
-      binaryData->writeC(x);
-      binaryData->writeC(y);
-    }
-  }
 
-  ret.push_back(DivROMExportOutput("Track_binary.bin", binaryData));
+  // BUGBUG: Not production 
+  // just testing 
+  testCommonSubsequences("banana");
+  testCommonSubsequences("xabcyiiizabcqabcyr");
+  testCommonSubsequencesBrute("banana");
+  testCommonSubsequencesBrute("xabcyiiizabcqabcyr");
+  // findCommonSubSequences(
+  //   channelSequences[0],
+  //   commonDumpSequences,
+  //   representativeMap
+    // );
 
-  return ret;
 
 }
 

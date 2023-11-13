@@ -387,46 +387,48 @@ void testCompress(SuffixTree *root, const std::vector<AlphaChar> &alphaSequence)
   std::sort(repeatfreq.begin(), repeatfreq.end(), moarcompress);
 
   // brute force test compress
-  size_t bytes = alphaSequence.size();
-
-  std::vector<bool> compressos;
+  std::vector<int> compressos;
   for (auto x : alphaSequence) {
-    compressos.emplace_back(false);
+    compressos.emplace_back(0);
   }
-  for (auto x : repeatfreq) {
-    if (x.second < 1) continue;
-    std::vector<SuffixTree *> leaves;
-    x.first->gather_leaves(leaves);
-    std::vector<SuffixTree *> cleared;
-    for (auto y : leaves) {
-      bool clear = true;
-      for (size_t i = 0 ; i < x.first->depth; i++) {
-        if (compressos.at(y->start + i)) {
-          clear = false;
-          break;
+  std::vector<int> packed;
+  for (int level = 1; level < 20; level++) {
+    for (auto x : repeatfreq) {
+      if (x.second < 1) continue;
+      std::vector<SuffixTree *> leaves;
+      x.first->gather_leaves(leaves);
+      std::vector<SuffixTree *> cleared;
+      packed = compressos;
+      for (auto y : leaves) {
+        bool clear = true;
+        for (size_t i = 0 ; i < x.first->depth; i++) {
+          if (packed.at(y->start + i) < 0 || packed.at(y->start + i) == level) {
+            clear = false;
+            break;
+          }
+        }
+        if (clear) {
+          cleared.push_back(y);
+          for (size_t i = 0 ; i < x.first->depth; i++) {
+            packed[y->start + i] = level;
+          }
         }
       }
-      if (clear) {
-        cleared.push_back(y);
-      }
-    }
-
-    if (cleared.size() < 2) continue;
-    bool first = true;
-    size_t shrink = 0;
-    for (auto z : cleared) {
-      if (first) {
-        first = false;
-        continue;
-      }
-      for (size_t i = 0 ; i < x.first->depth; i++) {
-        compressos[z->start + i] = true;
-        if (i > 0) {
-          shrink++;
+      if (cleared.size() < 2) continue;
+      bool first = true;
+      for (auto z : cleared) {
+        for (size_t i = 0 ; i < x.first->depth; i++) {
+          compressos[z->start + i] = first ? level : -level;
+        }
+        if (first) {
+          first = false;
         }
       }
     }
-    bytes -= shrink;
+  }
+  size_t bytes = 0;
+  for (auto x : compressos) {
+    if (x >= 0) bytes++;
   }
   logD("test compress: %d >> %d", alphaSequence.size(), bytes);
 }
