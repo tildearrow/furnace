@@ -363,7 +363,7 @@ size | description
   1  | pre note (C64) does not compensate for portamento or legato (>=168)
   1  | disable new NES DPCM features (>=183)
   1  | reset arp effect phase on new note (>=184)
-  1  | linear volume scaling rounds up (>=187)
+  1  | linear volume scaling rounds up (>=188)
   2  | reserved
  --- | **speed pattern of first song** (>=139)
   1  | length of speed pattern (fail if this is lower than 0 or higher than 16)

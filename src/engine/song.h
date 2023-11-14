@@ -502,7 +502,7 @@ struct DivSong {
     preNoteNoEffect(false),
     oldDPCM(false),
     resetArpPhaseOnNewNote(false),
-    ceilVolumeScaling(false) { // DEBUG: before accepting PR, set this to false! (zeta hasn't touched the UI yet)
+    ceilVolumeScaling(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;
