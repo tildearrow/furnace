@@ -379,6 +379,7 @@ struct DivSong {
   bool preNoteNoEffect;
   bool oldDPCM;
   bool resetArpPhaseOnNewNote;
+  bool ceilVolumeScaling;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -500,7 +501,8 @@ struct DivSong {
     brokenFMOff(false),
     preNoteNoEffect(false),
     oldDPCM(false),
-    resetArpPhaseOnNewNote(false) {
+    resetArpPhaseOnNewNote(false),
+    ceilVolumeScaling(false) { // DEBUG: before accepting PR, set this to false! (zeta hasn't touched the UI yet)
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;
