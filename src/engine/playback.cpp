@@ -242,6 +242,8 @@ const char* cmdName[]={
   "C64_AD",
   "C64_SR",
 
+  "ES5503_NUM_ENABLED_OSC",
+
   "ALWAYS_SET_VOLUME"
 };
 

@@ -65,13 +65,25 @@ void DivPlatformES5503::setFlags(const DivConfig& flags) {
   chipClock=894886U; //894886 Hz on Apple IIGS
 
   CHECK_CUSTOM_CLOCK;
-  rate=29410; //29.41 kHz for Apple IIGS card with all oscillators enabled
+
+  es5503.es5503_core_init(chipClock, this->oscBuf, 32);
+
+  rate=chipClock / (es5503.oscsenabled + 2); //26320 Hz for Apple IIGS card with all oscillators enabled
 
   for (int i=0; i<32; i++) {
     oscBuf[i]->rate=rate;
   }
+}
 
-  es5503.es5503_core_init(chipClock, this->oscBuf, 32);
+void DivPlatformES5503::changeNumOscs(uint8_t num_oscs)
+{
+  es5503.update_num_osc(oscBuf, num_oscs);
+  rWrite(0xe1, (num_oscs - 1) * 2);
+  rate=chipClock / (es5503.oscsenabled + 2);
+
+  for (int i=0; i<32; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 void DivPlatformES5503::writeSampleMemoryByte(int address, unsigned char value)
@@ -97,15 +109,15 @@ void DivPlatformES5503::updateWave(int ch) {
   if (chan[ch].active) {
     if(chan[ch].softpan_channel)
     {
-      uint8_t temp = chan[ch].outVol*chan[ch].panleft / 255;
+      uint8_t temp = isMuted[ch] ? 0 : chan[ch].outVol*chan[ch].panleft / 255;
       rWrite(0x40+ch,temp);
-      temp = chan[ch].outVol*chan[ch].panright / 255;
+      temp = isMuted[ch] ? 0 : chan[ch].outVol*chan[ch].panright / 255;
       rWrite(0x40+ch+1,temp);
     }
 
     else
     {
-      rWrite(0x40+ch,chan[ch].outVol);
+      rWrite(0x40+ch,isMuted[ch] ? 0 : chan[ch].outVol);
     }
   }
   
@@ -225,7 +237,7 @@ void DivPlatformES5503::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5503);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,(double)chipClock,CHIP_FREQBASE * 4186.01 / 7458.62); //TODO: why freq calc is wrong?
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,(double)chipClock /** (32 + 2) / (es5503.oscsenabled + 2)*/,CHIP_FREQBASE * 130.81 / 211.0); //TODO: why freq calc is wrong?
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].furnaceDac && chan[i].pcm) {
@@ -303,11 +315,9 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
       if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
         chan[c.chan].pcm=true;
-      } else if (chan[c.chan].furnaceDac) {
-        chan[c.chan].pcm=false;
       }
-      if (chan[c.chan].pcm) {
-        /*if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
+      /*if (chan[c.chan].pcm) {
+          if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           chan[c.chan].furnaceDac=true;
           if (skipRegisterWrites) break;
           if (c.value!=DIV_NOTE_NULL) {
@@ -336,31 +346,9 @@ int DivPlatformES5503::dispatch(DivCommand c) {
           if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
             chan[c.chan].outVol=chan[c.chan].vol;
           }
-          //chan[c.chan].keyOn=true;
-        } else {
-          chan[c.chan].furnaceDac=false;
-          if (skipRegisterWrites) break;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (chan[c.chan].dacSample>=parent->song.sampleLen) {
-            chan[c.chan].dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-            break;
-          } else {
-            if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
-          }
-          chan[c.chan].dacPos=0;
-          chan[c.chan].dacPeriod=0;
-          chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
-          if (dumpWrites) {
-            chWrite(c.chan,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[c.chan].vol));
-            addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);
-          }
-        }*/
+        }
         break;
-      }
+      }*/
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -375,13 +363,13 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         chan[c.chan + 1].keyOn=true;
 
         uint8_t temp = chan[c.chan].vol * chan[c.chan].panleft / 255;
-        rWrite(0x40+c.chan, temp); //set volume
+        rWrite(0x40+c.chan, isMuted[c.chan] ? 0 : temp); //set volume
         rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan, (ins->es5503.initial_osc_mode << 1));
         rWrite(0xc0+c.chan, ins->es5503.waveLen << 3 | 0b010 /*lowest acc resolution*/); //set wave len
 
         temp = chan[c.chan].vol * chan[c.chan].panright / 255;
-        rWrite(0x40+c.chan+1, temp); //set volume
+        rWrite(0x40+c.chan+1, isMuted[c.chan] ? 0 : temp); //set volume
         rWrite(0x80+c.chan+1, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan+1, (ins->es5503.initial_osc_mode << 1));
         rWrite(0xc0+c.chan+1, ins->es5503.waveLen << 3 | 0b010 /*lowest acc resolution*/); //set wave len
@@ -389,7 +377,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       
       else
       {
-        rWrite(0x40+c.chan, chan[c.chan].vol); //set volume
+        rWrite(0x40+c.chan, isMuted[c.chan] ? 0 : chan[c.chan].vol); //set volume
         rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan, (ins->es5503.initial_osc_mode << 1));
         rWrite(0xc0+c.chan, ins->es5503.waveLen << 3 | 0b010 /*lowest acc resolution*/); //set wave len
@@ -439,14 +427,14 @@ int DivPlatformES5503::dispatch(DivCommand c) {
             if(chan[c.chan].softpan_channel)
             {
               uint8_t temp = chan[c.chan].outVol * chan[c.chan].panleft / 255;
-              rWrite(0x40 + c.chan, temp);
+              rWrite(0x40 + c.chan, isMuted[c.chan] ? 0 : temp);
               temp = chan[c.chan].outVol * chan[c.chan].panright / 255;
-              rWrite(0x40 + c.chan + 1, temp);
+              rWrite(0x40 + c.chan + 1, isMuted[c.chan] ? 0 : temp);
             }
 
             else
             {
-              rWrite(0x40 + c.chan, chan[c.chan].outVol);
+              rWrite(0x40 + c.chan, isMuted[c.chan] ? 0 : chan[c.chan].outVol);
             }
           }
         }
@@ -465,9 +453,9 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         chan[c.chan].panright = c.value2;
 
         uint8_t temp = chan[c.chan].vol * chan[c.chan].panleft / 255;
-        rWrite(0x40+c.chan, temp);
+        rWrite(0x40+c.chan, isMuted[c.chan] ? 0 : temp);
         temp = chan[c.chan].vol * chan[c.chan].panright / 255;
-        rWrite(0x40+c.chan+1, temp);
+        rWrite(0x40+c.chan+1, isMuted[c.chan] ? 0 : temp);
       }
       break;
     }
@@ -507,6 +495,13 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       if (return2) {
         chan[c.chan].inPorta=false;
         return 2;
+      }
+      break;
+    }
+    case DIV_CMD_ES5503_NUM_ENABLED_OSC: {
+      if(c.value >= 2 && c.value <= 32)
+      {
+        changeNumOscs(c.value);
       }
       break;
     }
@@ -574,6 +569,15 @@ DivSamplePos DivPlatformES5503::getSamplePos(int ch) {
   );
 }
 
+const void* DivPlatformES5503::getSampleMem(int index) {
+  return es5503.sampleMem;
+}
+
+/*size_t DivPlatformES5503::getSampleMemCapacity(int index)
+{
+  return 65536;
+}*/
+
 DivDispatchOscBuffer* DivPlatformES5503::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -602,6 +606,9 @@ void DivPlatformES5503::reset() {
   {
     rWrite(i,0);
   }
+
+  //write to num_osc register and enable all 32 oscillators
+  rWrite(0xe1,62);
 }
 
 int DivPlatformES5503::getOutputCount() {

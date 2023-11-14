@@ -241,6 +241,8 @@ enum DivDispatchCmds {
   DIV_CMD_C64_AD, // (value)
   DIV_CMD_C64_SR, // (value)
 
+  DIV_CMD_ES5503_NUM_ENABLED_OSC, // (value); set number of enabled oscillators (more oscs enabled = less sample rate)
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX

@@ -74,7 +74,7 @@ void es5503_core::es5503_core_free()
 {
 	if (sampleMem != NULL)
 	{
-		delete sampleMem;
+		delete[] sampleMem;
 		sampleMem = NULL;
 		sampleMemLen = 0;
 	}
@@ -82,13 +82,13 @@ void es5503_core::es5503_core_free()
 
 void es5503_core::update_num_osc(DivDispatchOscBuffer** oscBuf, uint8_t oscsenabled)
 {
-	this->oscsenabled = oscsenabled;
-	this->clock = clock;
+	//this->oscsenabled = oscsenabled;
+	//this->clock = clock;
 	output_rate = (clock / 8) / (oscsenabled + 2);
 
 	output_channels = oscsenabled;
 
-	for(int i = 0; i < oscsenabled; i++)
+	for(int i = 0; i < 32; i++)
 	{
 		this->oscBuf[i] = oscBuf[i];
 	}
@@ -349,7 +349,6 @@ void es5503_core::put_in_buffer(int32_t value, uint32_t pos, uint32_t chan)
 
 void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fill audio buffer
 {
-	//std::fill_n(m_mix_buffer.begin(), samples*output_channels, 0);
 	memset(m_mix_buffer_right, 0, 4096 * 2 * sizeof(int32_t));
 	memset(m_mix_buffer_left, 0, 4096 * 2 * sizeof(int32_t));
 
@@ -397,18 +396,12 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 				{
 					if (mode != MODE_SYNCAM)
 					{
-						//*mixp += data * vol;
-						//m_mix_buffer[mixp] += data * vol;
 						put_in_buffer(data * vol, snum, osc);
 
 						curr_sample += data * vol;
 
-						if (osc == (output_channels - 1))
+						if (osc == (oscsenabled - 1))
 						{
-							//*mixp += data * vol;
-							//*mixp += data * vol;
-							//m_mix_buffer[mixp] += data * vol;
-							//m_mix_buffer[mixp] += data * vol;
 							put_in_buffer(data * vol, snum, osc);
 							put_in_buffer(data * vol, snum, osc);
 							curr_sample += data * vol;
@@ -431,17 +424,11 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 						}
 						else    // hard sync, both oscillators play?
 						{
-							//*mixp += data * vol;
-							//m_mix_buffer[mixp] += data * vol;
 							put_in_buffer(data * vol, snum, osc);
 							curr_sample += data * vol;
 
-							if (osc == (output_channels - 1))
+							if (osc == (oscsenabled - 1))
 							{
-								//*mixp += data * vol;
-								//*mixp += data * vol;
-								//m_mix_buffer[mixp] += data * vol;
-								//m_mix_buffer[mixp] += data * vol;
 								put_in_buffer(data * vol, snum, osc);
 								put_in_buffer(data * vol, snum, osc);
 								curr_sample += data * vol;
@@ -449,8 +436,6 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 							}
 						}
 					}
-
-					//mixp += output_channels;
 
 					if (altram >= wtsize)
 					{
@@ -482,36 +467,22 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 		}
 	}
 
-	for (osc = 0; osc < oscsenabled; osc++)
+	for (osc = 0; osc < 32; osc++)
 	{
 		ES5503Osc *pOsc = &oscillators[osc];
 
-		if (pOsc->control & 1) //zero-fill osc buf
+		if ((pOsc->control & 1) || osc >= oscsenabled) //zero-fill osc buf if chan not playing or if less numb of osc is enabled
 		{
-			for (snum = 0; snum < samples; snum++)
-			{
-				oscBuf[osc]->data[oscBuf[osc]->needle++] = 0;
-			}
+			memset(oscBuf[osc]->data, 0, 65536 * sizeof(short));
 		}
 	}
 
-	for (uint32_t chan = 0; chan < oscsenabled; chan++)
+	uint32_t mixp = 0;
+
+	for (i = 0; i < len; i++)
 	{
-		uint32_t mixp = 0;
-
-		for (i = 0; i < len; i++)
-		{
-			if(chan & 1)
-			{
-				left[i] = m_mix_buffer_left[mixp];
-			}
-
-			else
-			{
-				right[i] = m_mix_buffer_right[mixp];
-			}
-
-			mixp++;
-		}
+		left[i] = m_mix_buffer_left[mixp];
+		right[i] = m_mix_buffer_right[mixp];
+		mixp++;
 	}
 }

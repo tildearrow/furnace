@@ -86,6 +86,7 @@ class DivPlatformES5503: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short** buf, size_t len);
+    void changeNumOscs(uint8_t num_oscs);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -111,6 +112,8 @@ class DivPlatformES5503: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    const void* getSampleMem(int index);
+    //size_t getSampleMemCapacity(int index);
     ~DivPlatformES5503();
 };
 

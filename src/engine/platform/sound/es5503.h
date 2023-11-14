@@ -32,6 +32,7 @@ public:
     size_t sampleMemLen;
 
 	uint32_t clock;
+	uint8_t  oscsenabled;      // # of oscillators enabled
 
 private:
 	enum
@@ -58,8 +59,6 @@ private:
 	};
 
 	ES5503Osc oscillators[32];
-
-	int8_t  oscsenabled;      // # of oscillators enabled
 	int   rege0;            // contents of register 0xe0
 
 	uint8_t m_channel_strobe;
