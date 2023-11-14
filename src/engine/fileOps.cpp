@@ -1873,7 +1873,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<184) {
       ds.resetArpPhaseOnNewNote=false;
     }
-    if (ds.version<187) {
+    if (ds.version<188) {
       ds.ceilVolumeScaling=false;
     }
     ds.isDMF=false;
@@ -2412,7 +2412,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      if (ds.version>=187) {
+      if (ds.version>=188) {
         ds.ceilVolumeScaling=reader.readC();
       } else {
         reader.readC();
