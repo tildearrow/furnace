@@ -5090,6 +5090,8 @@ void FurnaceGUI::drawInsEdit() {
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("Combines odd and next even channel into one virtual channel with 256-step panning.\nInstrument, volume and effects need to be placed on the odd channel (e.g. 1st, 3rd, 5th etc.)");
           }
+
+          P(ImGui::Checkbox("Phase reset on key-on",&ins->es5503.phase_reset_on_start));
           
           ImGui::EndTabItem();
         }

@@ -381,6 +381,14 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         rWrite(0x80+c.chan+1, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan+1, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
         rWrite(0xc0+c.chan+1, (ins->es5503.waveLen << 3) | 0b010 /*lowest acc resolution*/); //set wave len
+
+        if(ins->es5503.phase_reset_on_start)
+        {
+          rWrite(0xA0 + c.chan, (chan[c.chan].osc_mode << 1) | 1 | (chan[c.chan].output << 4)); //writing 1 resets acc
+          rWrite(0xA0 + c.chan, (chan[c.chan].osc_mode << 1) | (chan[c.chan].output << 4)); //writing 0 forces the reset
+          rWrite(0xA0 + c.chan + 1, (chan[c.chan].osc_mode << 1) | 1 | (chan[c.chan + 1].output << 4)); //writing 1 resets acc
+          rWrite(0xA0 + c.chan + 1, (chan[c.chan].osc_mode << 1) | (chan[c.chan + 1].output << 4)); //writing 0 forces the reset
+        }
       }
       
       else
@@ -389,6 +397,12 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
         rWrite(0xc0+c.chan, (ins->es5503.waveLen << 3) | 0b010 /*lowest acc resolution*/); //set wave len
+
+        if(ins->es5503.phase_reset_on_start)
+        {
+          rWrite(0xA0 + c.chan, (chan[c.chan].osc_mode << 1) | 1 | (chan[c.chan].output << 4)); //writing 1 resets acc
+          rWrite(0xA0 + c.chan, (chan[c.chan].osc_mode << 1) | (chan[c.chan].output << 4)); //writing 0 forces the reset
+        }
       }
 
       chan[c.chan].wave_pos = ins->es5503.wavePos << 8;

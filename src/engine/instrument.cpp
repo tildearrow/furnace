@@ -222,7 +222,8 @@ bool DivInstrumentES5503::operator==(const DivInstrumentES5503& other) {
     _C(wavePos) &&
     _C(waveLen) &&
     _C(initial_osc_mode) &&
-    _C(softpan_virtual_channel)
+    _C(softpan_virtual_channel) &&
+    _C(phase_reset_on_start)
   );
 }
 
