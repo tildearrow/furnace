@@ -62,7 +62,9 @@ void es5503_core::es5503_core_init(uint32_t clock, DivDispatchOscBuffer** oscBuf
   sampleMemLen = 65536 << 1;
   sampleMem = new unsigned char[sampleMemLen];
   memset(sampleMem, 0, sampleMemLen * sizeof(unsigned char));
-  output_channels = oscsenabled;
+
+  output_channels = 8; //fixed value because real chip seems to have 4 pins for addressing the output to 16 different channels; however, the datasheet suggests to use only 8.
+  //Thus MSB can be used to switch memory banks, which is used in Ensoniq SQ80 synthesizer. Apple IIGS uses only one bank, though.
 
 	for(int i = 0; i < oscsenabled; i++)
 	{
@@ -338,13 +340,20 @@ void es5503_core::halt_osc(int onum, int type, uint32_t *accumulator, int resshi
 
 void es5503_core::put_in_buffer(int32_t value, uint32_t pos, uint32_t chan)
 {
-	if(chan & 1)
+	ES5503Osc *pOsc = &oscillators[chan];
+	uint8_t output = (pOsc->control >> 4) & (output_channels - 1);
+
+	if(output == 0)
+	{
+		m_mix_buffer_left[pos] += value / 8;
+		return;
+	}
+
+	if(output == 1)
 	{
 		m_mix_buffer_right[pos] += value / 8;
 		return;
 	}
-
-	m_mix_buffer_left[pos] += value / 8;
 }
 
 void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fill audio buffer
@@ -362,6 +371,8 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 		for (osc = 0; osc < oscsenabled; osc++)
 		{
 			ES5503Osc *pOsc = &oscillators[osc];
+
+			uint8_t output_channel = (pOsc->control >> 4) & (output_channels - 1);
 
 			if (!(pOsc->control & 1))
 			{
@@ -400,7 +411,7 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 
 						curr_sample += data * vol;
 
-						if (osc == (oscsenabled - 1))
+						if (output_channel == (output_channels - 1))
 						{
 							put_in_buffer(data * vol, snum, osc);
 							put_in_buffer(data * vol, snum, osc);
@@ -427,7 +438,7 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 							put_in_buffer(data * vol, snum, osc);
 							curr_sample += data * vol;
 
-							if (osc == (oscsenabled - 1))
+							if (output_channel == (output_channels - 1))
 							{
 								put_in_buffer(data * vol, snum, osc);
 								put_in_buffer(data * vol, snum, osc);

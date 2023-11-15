@@ -40,6 +40,7 @@ class DivPlatformES5503: public DivDispatch {
     unsigned int wave_pos, wave_size;
     unsigned char osc_mode;
     bool softpan_channel;
+    uint8_t output; //8 outputs on the chip, but Apple IIGS seems to use only two: 0=left, 1=right
     DivWaveSynth ws;
     Channel():
       SharedChannel<int16_t>(255),
@@ -60,7 +61,8 @@ class DivPlatformES5503: public DivDispatch {
       noiseSeek(0),
       wave_pos(0),
       wave_size(256),
-      osc_mode(0) {}
+      osc_mode(0),
+      output(0) {}
   };
   Channel chan[32];
   DivDispatchOscBuffer* oscBuf[32];
