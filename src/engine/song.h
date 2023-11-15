@@ -164,6 +164,7 @@ struct DivSubSong {
   DivChannelData pat[DIV_MAX_CHANS];
 
   bool chanShow[DIV_MAX_CHANS];
+  bool chanShowChanOsc[DIV_MAX_CHANS];
   unsigned char chanCollapse[DIV_MAX_CHANS];
   String chanName[DIV_MAX_CHANS];
   String chanShortName[DIV_MAX_CHANS];
@@ -183,6 +184,7 @@ struct DivSubSong {
     patLen(64),
     ordersLen(1) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
+      chanShowChanOsc[i]=true;
       chanShow[i]=true;
       chanCollapse[i]=0;
     }

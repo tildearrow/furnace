@@ -92,7 +92,7 @@ void FurnaceGUI::calcChanOsc() {
       if (--tryAgain<0) break;
       buf=e->getOscBuffer(tryAgain);
     }
-    if (buf!=NULL && e->curSubSong->chanShow[i]) {
+    if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
       // 30ms should be enough
       int displaySize=(float)(buf->rate)*0.03f;
       if (e->isRunning()) {
@@ -376,7 +376,7 @@ void FurnaceGUI::drawChanOsc() {
         // fill buffers
         for (int i=0; i<chans; i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);
-          if (buf!=NULL && e->curSubSong->chanShow[i]) {
+          if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
             oscBufs.push_back(buf);
             oscFFTs.push_back(&chanOscChan[i]);
             oscChans.push_back(i);
