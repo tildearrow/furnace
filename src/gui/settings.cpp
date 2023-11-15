@@ -2325,6 +2325,15 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
+        // SUBSECTION ASSETS
+        CONFIG_SUBSECTION("Assets");
+
+        bool insTypeMenuB=settings.insTypeMenu;
+        if (ImGui::Checkbox("Display instrument type menu when adding instrument",&insTypeMenuB)) {
+          settings.insTypeMenu=insTypeMenuB;
+          settingsChanged=true;
+        }
+
         END_SECTION;
       }
       CONFIG_SECTION("Appearance") {
@@ -2885,12 +2894,6 @@ void FurnaceGUI::drawSettings() {
         bool insEditColorizeB=settings.insEditColorize;
         if (ImGui::Checkbox("Colorize instrument editor using instrument type",&insEditColorizeB)) {
           settings.insEditColorize=insEditColorizeB;
-          settingsChanged=true;
-        }
-
-        bool insTypeMenuB=settings.insTypeMenu;
-        if (ImGui::Checkbox("Display instrument type menu when adding instrument",&insTypeMenuB)) {
-          settings.insTypeMenu=insTypeMenuB;
           settingsChanged=true;
         }
 

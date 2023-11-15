@@ -81,7 +81,18 @@ const char** DivPlatformAmiga::getRegisterSheet() {
 
 void DivPlatformAmiga::acquire(short** buf, size_t len) {
   thread_local int outL, outR, output;
+
   for (size_t h=0; h<len; h++) {
+    if (--delay<0) delay=0;
+    if (!writes.empty() && delay<=0) {
+      QueuedWrite w=writes.front();
+
+      if (w.addr==0x96 && !(w.val&0x8000)) delay=4096/AMIGA_DIVIDER;
+
+      amiga.write(w.addr,w.val);
+      writes.pop();
+    }
+
     bool hsync=bypassLimits;
     outL=0;
     outR=0;
@@ -99,7 +110,8 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
     }
     for (int i=0; i<4; i++) {
       // run DMA
-      if (amiga.dmaEn && amiga.audEn[i] && !amiga.audIr[i]) {
+      if (amiga.audEn[i]) amiga.mustDMA[i]=true;
+      if (amiga.dmaEn && amiga.mustDMA[i] && !amiga.audIr[i]) {
         amiga.audTick[i]-=AMIGA_DIVIDER;
         if (amiga.audTick[i]<0) {
           amiga.audTick[i]+=MAX(AMIGA_DIVIDER,amiga.audPer[i]);
@@ -113,6 +125,8 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
 
             amiga.audWord[i]=!amiga.audWord[i];
           }
+
+          amiga.mustDMA[i]=amiga.audEn[i];
 
           amiga.audByte[i]=!amiga.audByte[i];
           if (!amiga.audByte[i] && (amiga.useV[i] || amiga.useP[i])) {
@@ -130,7 +144,7 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
                 amiga.audPer[i+1]=amiga.nextOut2[i];
               }
             }
-          } else {
+          } else if (!amiga.useV[i] && !amiga.useP[i]) {
             amiga.nextOut[i]=amiga.audDat[amiga.audByte[i]][i];
           }
         }
@@ -154,12 +168,12 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
 
       // output
       if (!isMuted[i]) {
-        if (amiga.audVol[i]>=64) {
+        if ((amiga.audVol[i]&127)>=64) {
           output=amiga.nextOut[i]<<6;
-        } else if (amiga.audVol[i]<=0) {
+        } else if ((amiga.audVol[i]&127)==0) {
           output=0;
         } else {
-          output=amiga.nextOut[i]*volTable[amiga.audVol[i]][amiga.volPos];
+          output=amiga.nextOut[i]*volTable[amiga.audVol[i]&63][amiga.volPos];
         }
         if (i==0 || i==3) {
           outL+=(output*sep1)>>7;
@@ -168,7 +182,7 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
           outL+=(output*sep2)>>7;
           outR+=(output*sep1)>>7;
         }
-        oscBuf[i]->data[oscBuf[i]->needle++]=(amiga.nextOut[i]*MIN(64,amiga.audVol[i]))<<1;
+        oscBuf[i]->data[oscBuf[i]->needle++]=(amiga.nextOut[i]*MIN(64,amiga.audVol[i]&127))<<1;
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
       }
@@ -190,11 +204,6 @@ void DivPlatformAmiga::irq(int ch) {
   if (chan[ch].irLocL==0x400 && chan[ch].irLocH==0 && chan[ch].irLen==1) {
     // turn off DMA
     rWrite(0x96,1<<ch);
-  } else {
-    // write latched loc/len
-    chWrite(ch,0,chan[ch].irLocH);
-    chWrite(ch,2,chan[ch].irLocL);
-    chWrite(ch,4,chan[ch].irLen);
   }
 
   // acknowledge interrupt
@@ -202,111 +211,96 @@ void DivPlatformAmiga::irq(int ch) {
 }
 
 #define UPDATE_DMA(x) \
-  amiga.dmaLen[x]=amiga.audLen[x]; \
-  amiga.dmaLoc[x]=amiga.audLoc[x]; \
-  amiga.audByte[x]=true; \
-  amiga.audTick[x]=0;
+  dmaLen[x]=audLen[x]; \
+  dmaLoc[x]=audLoc[x]; \
+  audByte[x]=true; \
+  audTick[x]=0;
 
-void DivPlatformAmiga::rWrite(unsigned short addr, unsigned short val) {
+void DivPlatformAmiga::Amiga::write(unsigned short addr, unsigned short val) {
   if (addr&1) return;
-
-  //logV("%.3x = %.4x",addr,val);
-  regPool[addr>>1]=val;
-
-  if (!skipRegisterWrites && dumpWrites) {
-    addWrite(addr,val);
-  }
 
   switch (addr&0x1fe) {
     case 0x96: { // DMACON
       if (val&32768) {
-        if (val&1) amiga.audEn[0]=true;
-        if (val&2) amiga.audEn[1]=true;
-        if (val&4) amiga.audEn[2]=true;
-        if (val&8) amiga.audEn[3]=true;
-        if (val&512) amiga.dmaEn=true;
+        if (val&1) audEn[0]=true;
+        if (val&2) audEn[1]=true;
+        if (val&4) audEn[2]=true;
+        if (val&8) audEn[3]=true;
+        if (val&512) dmaEn=true;
       } else {
         if (val&1) {
-          amiga.audEn[0]=false;
-          UPDATE_DMA(0);
+          audEn[0]=false;
         }
         if (val&2) {
-          amiga.audEn[1]=false;
-          UPDATE_DMA(1);
+          audEn[1]=false;
         }
         if (val&4) {
-          amiga.audEn[2]=false;
-          UPDATE_DMA(2);
+          audEn[2]=false;
         }
         if (val&8) {
-          amiga.audEn[3]=false;
-          UPDATE_DMA(3);
+          audEn[3]=false;
         }
         if (val&512) {
-          amiga.dmaEn=false;
+          dmaEn=false;
         }
       }
       break;
     }
     case 0x9a: { // INTENA
       if (val&32768) {
-        if (val&128) amiga.audInt[0]=true;
-        if (val&256) amiga.audInt[1]=true;
-        if (val&512) amiga.audInt[2]=true;
-        if (val&1024) amiga.audInt[3]=true;
+        if (val&128) audInt[0]=true;
+        if (val&256) audInt[1]=true;
+        if (val&512) audInt[2]=true;
+        if (val&1024) audInt[3]=true;
       } else {
-        if (val&128) amiga.audInt[0]=false;
-        if (val&256) amiga.audInt[1]=false;
-        if (val&512) amiga.audInt[2]=false;
-        if (val&1024) amiga.audInt[3]=false;
+        if (val&128) audInt[0]=false;
+        if (val&256) audInt[1]=false;
+        if (val&512) audInt[2]=false;
+        if (val&1024) audInt[3]=false;
       }
       break;
     }
     case 0x9c: { // INTREQ
       if (val&32768) {
         if (val&128) {
-          amiga.audIr[0]=true;
-          irq(0);
+          audIr[0]=true;
         }
         if (val&256) {
-          amiga.audIr[1]=true;
-          irq(1);
+          audIr[1]=true;
         }
         if (val&512) {
-          amiga.audIr[2]=true;
-          irq(2);
+          audIr[2]=true;
         }
         if (val&1024) {
-          amiga.audIr[3]=true;
-          irq(3);
+          audIr[3]=true;
         }
       } else {
-        if (val&128) amiga.audIr[0]=false;
-        if (val&256) amiga.audIr[1]=false;
-        if (val&512) amiga.audIr[2]=false;
-        if (val&1024) amiga.audIr[3]=false;
+        if (val&128) audIr[0]=false;
+        if (val&256) audIr[1]=false;
+        if (val&512) audIr[2]=false;
+        if (val&1024) audIr[3]=false;
       }
       break;
     }
     case 0x9e: { // ADKCON
       if (val&32768) {
-        if (val&1) amiga.useV[0]=true;
-        if (val&2) amiga.useV[1]=true;
-        if (val&4) amiga.useV[2]=true;
-        if (val&8) amiga.useV[3]=true;
-        if (val&16) amiga.useP[0]=true;
-        if (val&32) amiga.useP[1]=true;
-        if (val&64) amiga.useP[2]=true;
-        if (val&128) amiga.useP[3]=true;
+        if (val&1) useV[0]=true;
+        if (val&2) useV[1]=true;
+        if (val&4) useV[2]=true;
+        if (val&8) useV[3]=true;
+        if (val&16) useP[0]=true;
+        if (val&32) useP[1]=true;
+        if (val&64) useP[2]=true;
+        if (val&128) useP[3]=true;
       } else {
-        if (val&1) amiga.useV[0]=false;
-        if (val&2) amiga.useV[1]=false;
-        if (val&4) amiga.useV[2]=false;
-        if (val&8) amiga.useV[3]=false;
-        if (val&16) amiga.useP[0]=false;
-        if (val&32) amiga.useP[1]=false;
-        if (val&64) amiga.useP[2]=false;
-        if (val&128) amiga.useP[3]=false;
+        if (val&1) useV[0]=false;
+        if (val&2) useV[1]=false;
+        if (val&4) useV[2]=false;
+        if (val&8) useV[3]=false;
+        if (val&16) useP[0]=false;
+        if (val&32) useP[1]=false;
+        if (val&64) useP[2]=false;
+        if (val&128) useP[3]=false;
       }
       break;
     }
@@ -316,35 +310,49 @@ void DivPlatformAmiga::rWrite(unsigned short addr, unsigned short val) {
         bool updateDMA=false;
         switch (addr&15) {
           case 0: // LCH
-            amiga.audLoc[ch]&=0xffff;
-            amiga.audLoc[ch]|=val<<16;
+            audLoc[ch]&=0xffff;
+            audLoc[ch]|=val<<16;
             updateDMA=true;
             break;
           case 2: // LCL
-            amiga.audLoc[ch]&=0xffff0000;
-            amiga.audLoc[ch]|=val&0xfffe;
+            audLoc[ch]&=0xffff0000;
+            audLoc[ch]|=val&0xfffe;
             updateDMA=true;
             break;
           case 4: // LEN
-            amiga.audLen[ch]=val;
+            audLen[ch]=val;
             updateDMA=true;
             break;
           case 6: // PER
-            amiga.audPer[ch]=val;
+            audPer[ch]=val;
             break;
           case 8: // VOL
-            amiga.audVol[ch]=val;
+            audVol[ch]=val;
             break;
           case 10: // DAT
-            amiga.audDat[0][ch]=val&0xff;
-            amiga.audDat[1][ch]=val>>8;
+            audDat[0][ch]=val&0xff;
+            audDat[1][ch]=val>>8;
             break;
         }
-        if (updateDMA && !amiga.audEn[ch]) {
+        if (updateDMA && !mustDMA[ch]) {
           UPDATE_DMA(ch);
         }
       }
       break;
+    }
+  }
+}
+
+void DivPlatformAmiga::rWrite(unsigned short addr, unsigned short val) {
+  if (addr&1) return;
+
+  //logV("%.3x = %.4x",addr,val);
+  if (!skipRegisterWrites) {
+    writes.push(QueuedWrite(addr,val));
+    regPool[addr>>1]=val;
+
+    if (dumpWrites) {
+      addWrite(addr,val);
     }
   }
 }
@@ -416,6 +424,13 @@ void DivPlatformAmiga::tick(bool sysTick) {
   }
 
   if (dmaOff) rWrite(0x96,dmaOff);
+
+  for (int i=0; i<4; i++) {
+    if (chan[i].updateWave) {
+      chan[i].updateWave=false;
+      updateWave(i);
+    }
+  }
 
   for (int i=0; i<4; i++) {
     double off=1.0;
@@ -509,9 +524,16 @@ void DivPlatformAmiga::tick(bool sysTick) {
   if (dmaOn) rWrite(0x96,0x8000|dmaOn);
 
   for (int i=0; i<4; i++) {
-    if ((dmaOn&(1<<i)) && !chan[i].useWave && dumpWrites) {
-      addWrite(0x200+i,(chan[i].irLocH<<16)|chan[i].irLocL);
-      addWrite(0x204+i,chan[i].irLen);
+    if ((dmaOn&(1<<i)) && !chan[i].useWave) {
+      // write latched loc/len
+      if (dumpWrites) {
+        addWrite(0x200+i,(chan[i].irLocH<<16)|chan[i].irLocL);
+        addWrite(0x204+i,chan[i].irLen);
+      } else {
+        chWrite(i,0,chan[i].irLocH);
+        chWrite(i,2,chan[i].irLocL);
+        chWrite(i,4,chan[i].irLen);
+      }
     }
   }
 
@@ -519,10 +541,6 @@ void DivPlatformAmiga::tick(bool sysTick) {
     if (chan[i].writeVol) {
       chan[i].writeVol=false;
       chWrite(i,8,chan[i].outVol);
-    }
-    if (chan[i].updateWave) {
-      chan[i].updateWave=false;
-      updateWave(i);
     }
   }
 
@@ -720,6 +738,7 @@ void DivPlatformAmiga::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chan[i].writeVol=true;
     /*chan[i].keyOn=false;
     chan[i].keyOff=false;
     chan[i].sample=-1;*/
@@ -738,6 +757,7 @@ DivDispatchOscBuffer* DivPlatformAmiga::getOscBuffer(int ch) {
 }
 
 void DivPlatformAmiga::reset() {
+  writes.clear();
   memset(regPool,0,256*sizeof(unsigned short));
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformAmiga::Channel();
@@ -750,6 +770,7 @@ void DivPlatformAmiga::reset() {
   filterOn=false;
   filtConst=filterOn?filtConstOn:filtConstOff;
   updateADKCon=true;
+  delay=0;
 
   amiga=Amiga();
   // enable DMA

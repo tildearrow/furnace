@@ -1,25 +1,24 @@
 # oscilloscope (per-channel)
 
-the "Oscilloscope (per-channel)" dialog shows an individual oscilloscope for each channel during playback.
+the "Oscilloscope (per-channel)" windows displays several oscilloscope views (one per channel).
 
 ![oscilloscope per-channel configuration view](chanosc.png)
 
-right-clicking within the view will change it to the configuration view shown above:
-- **Columns**: arranges oscilloscopes into this many columns.
-- **Size (ms)**: sets what length of audio is visible in each oscilloscope.
-- **Center waveform**: does its best to latch the waveform to the channel's note frequency and centers the display.
+right-clicking the view will display the configuration view shown above:
+- **Columns**: sets the amount of columns for the oscilloscope views.
+- **Size (ms)**: sets how much of a channel's output is captured for the oscilloscope view.
+- **Center waveform**: when enabled, the displayed waveforms will be centered using an auto-correlation algorithm.
 - **Automatic columns**: sets the number of columns based on the number of channels.
   - **Off**: use the Columns setting.
   - **Mode 1**: always fewer columns than rows.
   - **Mode 2**: bias slightly toward more columns.
   - **Mode 3**: always more columns than rows.
-- **Amplitude**: scales amplitude for all oscilloscopes.
-- **Gradient**: see below.
-- the color selector sets the color for all waveforms. right-clicking on it pops up an option dialog:
-  - select between the square selector and the color wheel selector.
-  - **Alpha bar**: adds a transparency selector.
-- the boxes below that are for selecting colors numerically by red-green-blue-alpha, hue-saturation-value-alpha, and HTML-style RGBA in hex.
-- **Text format**: this string determins what text is shown in the top-left of each oscilloscope. it can be any text, and the following shortcodes will be replaced with information about the channel:
+- **Amplitude**: scales amplitude for all oscilloscope views.
+- **Gradient**: this allows you to use a gradient for determining the waveforms' colors instead of a single color. see the gradient section for more information.
+  - if this option is off, a color selector will be displayed. right-click on it for some options:
+    - select between the square selector and the color wheel selector.
+    - **Alpha bar**: display an opacity bar.
+- **Text format**: this allows you to display some text on each oscilloscope view. the following codes may be used:
   - `%c`: channel name
   - `%C`: channel short name
   - `%d`: channel number (starting from 0)
@@ -35,27 +34,32 @@ right-clicking within the view will change it to the configuration view shown ab
   - `%V`: volume (percentage)
   - `%b`: volume (hex)
   - `%%`: percent sign
-- the OK button returns from options view to the oscilloscopes.
+
+click on OK to return to the main view.
 
 ## gradient
 
 ![oscilloscope per-channel gradient configuration view](chanosc-gradient.png)
 
-in this mode, the color selector is replaced by a square field onto which circular "stops" can be placed. each stop adds a soft circle of color. the resulting image is used to look up the oscilloscope color as determined by each axis.
+when enabling the Gradient setting, a gradient view is displayed in where circular "points" can be placed.
+each point adds a color spot.
+the resulting image is used to look up the waveform's color as determined by each axis.
 
-- right-click to place a stop.
-- left-click on a stop to change its color. the color selector is the same as above, with two additions:
+- right-click to place a point.
+- left-click on a point to change its color:
+  - a color picker is displayed, alongside two settings.
   - **Distance**: the size of the circle.
-  - **Spread**: the size of the solid center of the circle. increasing it fills more of the circle with the target color.
+  - **Spread**: the size of the solid center of the circle. increasing it fills more of the circle with the color.
+- middle-click on a point to delete it.
 
-- **Background**: sets background color for entire field.
-- **X Axis**: determines what the horizontal maps to, from left to right.
-- **Y Axis**: determines what the vertical maps to. from bottom to top. these can be set to the following:
-  - **None (0%)**: stays at the left or bottom.
-  - **None (50%)**: stays at the center.
-  - **None (100%)**: stays at the right or top.
-  - **Frequency**: changes color with note frequency.
-  - **Volume**: changes color with volume.
-  - **Channel**: changes color based on channel number.
-  - **Brightness**: currently does nothing.
-  - **Note Trigger**: changes color when a new note is played.
+- **Background**: sets the gradient's background color.
+- **X Axis**: determines what the horizontal axis maps to.
+- **Y Axis**: determines what the vertical axis maps to. these can be set to the following:
+  - **None (0%)**: always left or bottom
+  - **None (50%)**: always center
+  - **None (100%)**: always right or top
+  - **Frequency**: changes color with frequency
+  - **Volume**: changes color with volume
+  - **Channel**: changes color based on channel number (first channel is 0% and last is 100%)
+  - **Brightness**: currently does nothing
+  - **Note Trigger**: changes color when a new note is played

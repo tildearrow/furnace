@@ -21,7 +21,8 @@ the following keyboard shortcuts work while on a text field:
 
 these work similar to text fields, but you may only input numbers.
 
-they also usually have `+` and `-` buttons which allow you to increase/decrease the amount when clicked (and rapidly do so when click-holding).
+they also usually have `+` and `-` buttons which allow you to increase/decrease the value when clicked (and rapidly do so when holding).
+additionally, Ctrl-clicking these buttons may increase/decrease the value by a coarse amount.
 
 ## sliders
 
@@ -29,7 +30,8 @@ sliders are used for controlling values in a quick manner by being dragged.
 
 using the scroll wheel while holding Ctrl will change the slider's value by small amounts.
 
-right-clicking or Ctrl-clicking or a slider (Command-click on macOS) will turn it into a number input field for a short period of time, allowing you to input precise values.
+right-clicking or Ctrl-clicking or a slider (Command-click on macOS) will turn it into a number input field, allowing you to input precise values.
+once you click away it will become a slider again.
 
 ## windows
 
@@ -37,13 +39,13 @@ right-clicking or Ctrl-clicking or a slider (Command-click on macOS) will turn i
 
 windows may be moved, collapsed, closed or even docked around the workspace.
 
-to move a window, press and hold the mouse button while on title bar or any empty space on it.
+to move a window, press and hold the left mouse button while on the title bar or any empty space on it.
 then drag your mouse, and release it to stop moving.
 
 to resize a window, drag the bottom right corner (marked by a triangular tab) or the borders.
 
 to collapse a window, click on the triangle in the title bar.
-clicking again expands it.
+clicking again expands the window.
 
 to close a window, click on the `X` at the top right corner, or select it from the "window" menu.
 
