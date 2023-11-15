@@ -1930,6 +1930,10 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {
       {0x11, {DIV_CMD_ES5503_NUM_ENABLED_OSC, "11xx: Set number of enabled oscillators (2-1F)"}},
+      {0x12, {DIV_CMD_ES5503_OSC_OUTPUT, "12xx: Set oscillator output (0-7, 0=left, 1=right)"}},
+      {0x13, {DIV_CMD_ES5503_WAVE_LENGTH, "13xx: Set wave/sample length (0-7, 0=256, 1=512 etc.)"}},
+      {0x14, {DIV_CMD_ES5503_WAVE_POS, "14xx: Set wave/sample position in memory (xx*256 offset)"}},
+      {0x15, {DIV_CMD_ES5503_OSC_MODE, "15xx: Set oscillator mode (0-3)"}},
     },
     {}
   );

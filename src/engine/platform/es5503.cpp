@@ -217,6 +217,11 @@ void DivPlatformES5503::tick(bool sysTick) {
       }
     }
 
+    if (chan[i].std.ex2.had) {
+      chan[i].output = chan[i].std.ex2.val;
+      rWrite(0xa0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
+    }
+
     if (chan[i].std.panL.had && chan[i].softpan_channel) {
       chan[i].panleft = chan[i].std.panL.val;
       uint8_t temp = chan[i].outVol * chan[i].panleft / 255;
@@ -362,17 +367,20 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         chan[c.chan + 1].active=true;
         chan[c.chan + 1].keyOn=true;
 
+        chan[c.chan].output = 0;
+        chan[c.chan + 1].output = 1; //force-reset outputs so softpanned channel works as expected
+
         uint8_t temp = chan[c.chan].vol * chan[c.chan].panleft / 255;
         rWrite(0x40+c.chan, isMuted[c.chan] ? 0 : temp); //set volume
         rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
-        rWrite(0xc0+c.chan, ins->es5503.waveLen << 3 | 0b010 /*lowest acc resolution*/); //set wave len
+        rWrite(0xc0+c.chan, (ins->es5503.waveLen << 3) | 0b010 /*lowest acc resolution*/); //set wave len
 
         temp = chan[c.chan].vol * chan[c.chan].panright / 255;
         rWrite(0x40+c.chan+1, isMuted[c.chan] ? 0 : temp); //set volume
         rWrite(0x80+c.chan+1, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan+1, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
-        rWrite(0xc0+c.chan+1, ins->es5503.waveLen << 3 | 0b010 /*lowest acc resolution*/); //set wave len
+        rWrite(0xc0+c.chan+1, (ins->es5503.waveLen << 3) | 0b010 /*lowest acc resolution*/); //set wave len
       }
       
       else
@@ -380,7 +388,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         rWrite(0x40+c.chan, isMuted[c.chan] ? 0 : chan[c.chan].vol); //set volume
         rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
-        rWrite(0xc0+c.chan, ins->es5503.waveLen << 3 | 0b010 /*lowest acc resolution*/); //set wave len
+        rWrite(0xc0+c.chan, (ins->es5503.waveLen << 3) | 0b010 /*lowest acc resolution*/); //set wave len
       }
 
       chan[c.chan].wave_pos = ins->es5503.wavePos << 8;
@@ -502,6 +510,53 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       if(c.value >= 2 && c.value <= 32)
       {
         changeNumOscs(c.value);
+      }
+      break;
+    }
+    case DIV_CMD_ES5503_OSC_OUTPUT: {
+      if(c.value <= 7)
+      {
+        chan[c.chan].output = c.value;
+        rWrite(0xa0+c.chan, (chan[c.chan].osc_mode << 1) | (chan[c.chan].output << 4));
+      }
+      break;
+    }
+    case DIV_CMD_ES5503_WAVE_LENGTH: {
+      if(c.value <= 7)
+      {
+        chan[c.chan].wave_size = ES5503_wave_lengths[c.value];
+        rWrite(0xc0+c.chan, (c.value << 3) | 0b010 /*lowest acc resolution*/); //set wave len
+
+        if(chan[c.chan].softpan_channel)
+        {
+          chan[c.chan + 1].wave_size = ES5503_wave_lengths[c.value];
+          rWrite(0xc0+c.chan+1, (c.value << 3) | 0b010 /*lowest acc resolution*/); //set wave len
+        }
+      }
+      break;
+    }
+    case DIV_CMD_ES5503_WAVE_POS: {
+      chan[c.chan].wave_pos = c.value << 8;
+      rWrite(0x80+c.chan, c.value);
+
+      if(chan[c.chan].softpan_channel)
+      {
+        chan[c.chan + 1].wave_pos = c.value << 8;
+        rWrite(0x80+c.chan+1, c.value);
+      }
+      break;
+    }
+    case DIV_CMD_ES5503_OSC_MODE: {
+      if(c.value <= 3)
+      {
+        chan[c.chan].osc_mode = c.value;
+        rWrite(0xa0+c.chan, (chan[c.chan].osc_mode << 1) | (chan[c.chan].output << 4));
+
+        if(chan[c.chan].softpan_channel)
+        {
+          chan[c.chan+1].osc_mode = c.value;
+          rWrite(0xa0+c.chan+1, (chan[c.chan].osc_mode << 1) | (chan[c.chan+1].output << 4)); //don't forget to preserve "slave" chan output
+        }
       }
       break;
     }
