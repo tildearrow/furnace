@@ -184,8 +184,8 @@ struct DivSubSong {
     patLen(64),
     ordersLen(1) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
-      chanShowChanOsc[i]=true;
       chanShow[i]=true;
+      chanShowChanOsc[i]=true;
       chanCollapse[i]=0;
     }
   }

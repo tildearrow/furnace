@@ -38,7 +38,7 @@ void FurnaceGUI::drawChannels() {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Channels",&channelsOpen,globalWinFlags)) {
-    if (ImGui::BeginTable("ChannelList",4)) {
+    if (ImGui::BeginTable("ChannelList",3)) {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
       ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
