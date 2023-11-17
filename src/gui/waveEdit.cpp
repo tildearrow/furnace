@@ -509,7 +509,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::SameLine();
         ImGui::Text("Height");
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("use a height of:\n- 16 for Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 Envelope shape and N163\n- 32 for PC Engine\n- 64 for FDS and Virtual Boy\n- 256 for X1-010 and SCC\nany other heights will be scaled during playback.");
+          ImGui::SetTooltip("use a height of:\n- 16 for Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 Envelope shape and N163\n- 32 for PC Engine\n- 64 for FDS and Virtual Boy\n- 256 for X1-010, SCC and ES5503\nany other heights will be scaled during playback.");
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);

@@ -73,6 +73,10 @@ void DivPlatformES5503::setFlags(const DivConfig& flags) {
   for (int i=0; i<32; i++) {
     oscBuf[i]->rate=rate;
   }
+
+  mono=flags.getBool("monoOutput",false);
+
+  es5503.mono = mono;
 }
 
 void DivPlatformES5503::changeNumOscs(uint8_t num_oscs)

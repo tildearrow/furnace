@@ -34,6 +34,8 @@ public:
 	uint32_t clock;
 	uint8_t  oscsenabled;      // # of oscillators enabled
 
+	bool mono;
+
 private:
 	enum
 	{

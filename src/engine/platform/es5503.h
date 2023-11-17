@@ -68,6 +68,7 @@ class DivPlatformES5503: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[32];
   bool isMuted[32];
   bool antiClickEnabled;
+  bool mono;
   struct QueuedWrite {
     unsigned char addr;
     unsigned char val;

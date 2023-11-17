@@ -343,6 +343,13 @@ void es5503_core::put_in_buffer(int32_t value, uint32_t pos, uint32_t chan)
 	ES5503Osc *pOsc = &oscillators[chan];
 	uint8_t output = (pOsc->control >> 4) & (output_channels - 1);
 
+	if(mono)
+	{
+		m_mix_buffer_left[pos] += value / 8;
+		m_mix_buffer_right[pos] += value / 8;
+		return;
+	}
+
 	if(output == 0)
 	{
 		m_mix_buffer_left[pos] += value / 8;
