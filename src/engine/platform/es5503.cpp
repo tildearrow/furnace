@@ -378,13 +378,13 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         rWrite(0x40+c.chan, isMuted[c.chan] ? 0 : temp); //set volume
         rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
-        rWrite(0xc0+c.chan, (ins->es5503.waveLen << 3) | 0b010 /*lowest acc resolution*/); //set wave len
+        rWrite(0xc0+c.chan, (ins->es5503.waveLen << 3) | chan[c.chan].address_bus_res /*lowest acc resolution*/); //set wave len
 
         temp = chan[c.chan].vol * chan[c.chan].panright / 255;
         rWrite(0x40+c.chan+1, isMuted[c.chan] ? 0 : temp); //set volume
         rWrite(0x80+c.chan+1, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan+1, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
-        rWrite(0xc0+c.chan+1, (ins->es5503.waveLen << 3) | 0b010 /*lowest acc resolution*/); //set wave len
+        rWrite(0xc0+c.chan+1, (ins->es5503.waveLen << 3) | chan[c.chan].address_bus_res /*lowest acc resolution*/); //set wave len
 
         if(ins->es5503.phase_reset_on_start)
         {
@@ -400,7 +400,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         rWrite(0x40+c.chan, isMuted[c.chan] ? 0 : chan[c.chan].vol); //set volume
         rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
         rWrite(0xa0+c.chan, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
-        rWrite(0xc0+c.chan, (ins->es5503.waveLen << 3) | 0b010 /*lowest acc resolution*/); //set wave len
+        rWrite(0xc0+c.chan, (ins->es5503.waveLen << 3) | chan[c.chan].address_bus_res /*lowest acc resolution*/); //set wave len
 
         if(ins->es5503.phase_reset_on_start)
         {
@@ -543,12 +543,12 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       if(c.value <= 7)
       {
         chan[c.chan].wave_size = ES5503_wave_lengths[c.value];
-        rWrite(0xc0+c.chan, (c.value << 3) | 0b010 /*lowest acc resolution*/); //set wave len
+        rWrite(0xc0+c.chan, (c.value << 3) | chan[c.chan].address_bus_res /*lowest acc resolution*/); //set wave len
 
         if(chan[c.chan].softpan_channel)
         {
           chan[c.chan + 1].wave_size = ES5503_wave_lengths[c.value];
-          rWrite(0xc0+c.chan+1, (c.value << 3) | 0b010 /*lowest acc resolution*/); //set wave len
+          rWrite(0xc0+c.chan+1, (c.value << 3) | chan[c.chan].address_bus_res /*lowest acc resolution*/); //set wave len
         }
       }
       break;
