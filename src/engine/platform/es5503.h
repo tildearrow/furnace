@@ -43,7 +43,8 @@ class DivPlatformES5503: public DivDispatch {
     uint8_t output; //8 outputs on the chip, but Apple IIGS seems to use only two: 0=left, 1=right
     uint8_t address_bus_res; //basically octave shifter, can be automatically manipulated to have better frequency range
     //e.g. frequency higher than 0xffff => try to use lower acc bits and recalc until freq is lower than 0xffff (lower this number), 
-    //frequency lower than let's say 0x100 => try to use higher acc bits in the same fashion
+    //frequency lower than let's say 0x100 => try to use higher acc bits in the same fashion (higher the number until freq is higher than
+    //0x100; if you can't go higher stop at highest (here 0b111) and recalc frequecny, thus you have the higher precision possible)
     DivWaveSynth ws;
     Channel():
       SharedChannel<int16_t>(255),
