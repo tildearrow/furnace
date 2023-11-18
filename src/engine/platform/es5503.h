@@ -109,7 +109,7 @@ class DivPlatformES5503: public DivDispatch {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     const void* getSampleMem(int index);
-    //size_t getSampleMemCapacity(int index);
+    size_t getSampleMemCapacity(int index);
     ~DivPlatformES5503();
 };
 

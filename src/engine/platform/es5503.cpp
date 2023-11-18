@@ -675,10 +675,10 @@ const void* DivPlatformES5503::getSampleMem(int index) {
   return es5503.sampleMem;
 }
 
-/*size_t DivPlatformES5503::getSampleMemCapacity(int index)
+size_t DivPlatformES5503::getSampleMemCapacity(int index)
 {
   return 65536;
-}*/
+}
 
 DivDispatchOscBuffer* DivPlatformES5503::getOscBuffer(int ch) {
   return oscBuf[ch];
