@@ -29,14 +29,11 @@
 
 class DivPlatformES5503: public DivDispatch {
   struct Channel: public SharedChannel<int16_t> {
-    int antiClickPeriodCount, antiClickWavePos;
-    int dacPeriod, dacRate, dacOut;
-    unsigned int dacPos;
-    int dacSample;
+    int sample;
     unsigned int panleft, panright;
-    bool pcm, furnaceDac, deferredWaveUpdate;
-    signed short wave;
-    int macroVolMul, noiseSeek;
+    bool pcm;
+    int16_t wave;
+    int macroVolMul;
     unsigned int wave_pos, wave_size;
     unsigned char osc_mode;
     bool softpan_channel;
@@ -48,21 +45,12 @@ class DivPlatformES5503: public DivDispatch {
     DivWaveSynth ws;
     Channel():
       SharedChannel<int16_t>(255),
-      antiClickPeriodCount(0),
-      antiClickWavePos(0),
-      dacPeriod(0),
-      dacRate(0),
-      dacOut(0),
-      dacPos(0),
-      dacSample(-1),
+      sample(-1),
       panleft(255),
       panright(255),
       pcm(false),
-      furnaceDac(false),
-      deferredWaveUpdate(false),
       wave(-1),
       macroVolMul(255),
-      noiseSeek(0),
       wave_pos(0),
       wave_size(256),
       osc_mode(0),
@@ -100,7 +88,7 @@ class DivPlatformES5503: public DivDispatch {
     DivMacroInt* getChanMacroInt(int ch);
     //unsigned short getPan(int chan);
     //DivChannelModeHints getModeHints(int chan);
-    DivSamplePos getSamplePos(int ch);
+    //DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
