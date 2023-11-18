@@ -97,8 +97,13 @@ void DivDispatchContainer::setRates(double gotRate) {
   rateMemory=gotRate;
 }
 
-void DivDispatchContainer::setQuality(bool lowQual) {
+void DivDispatchContainer::setQuality(bool lowQual, bool dcHiPass) {
   lowQuality=lowQual;
+  hiPass=dcHiPass;
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (bb[i]==NULL) continue;
+    blip_set_dc(bb[i],dcHiPass);
+  }
 }
 
 void DivDispatchContainer::grow(size_t size) {
@@ -124,6 +129,7 @@ void DivDispatchContainer::grow(size_t size) {
         logE("not enough memory!"); \
         return; \
       } \
+      blip_set_dc(bb[i],hiPass); \
       blip_set_rates(bb[i],dispatch->rate,rateMemory); \
  \
       if (bbIn[i]==NULL) bbIn[i]=new short[bbInLen]; \
@@ -166,9 +172,11 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
 
   if (dcOffCompensation && runtotal>0) {
     dcOffCompensation=false;
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      prevSample[i]=bbIn[i][0];
+    if (hiPass) {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        prevSample[i]=bbIn[i][0];
+      }
     }
   }
   if (lowQuality) {
@@ -215,7 +223,7 @@ void DivDispatchContainer::clear() {
     prevSample[i]=0;
   }
 
-  if (dispatch->getDCOffRequired()) {
+  if (dispatch->getDCOffRequired() && hiPass) {
     dcOffCompensation=true;
   }
 }
@@ -625,6 +633,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     bbOut[i]=new short[bbInLen];
     memset(bbIn[i],0,bbInLen*sizeof(short));
     memset(bbOut[i],0,bbInLen*sizeof(short));
+    blip_set_dc(bb[i],hiPass);
   }
 }
 

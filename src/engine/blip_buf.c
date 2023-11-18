@@ -67,6 +67,7 @@ struct blip_t
 	int avail;
 	int size;
 	int integrator;
+        unsigned char hipass;
 };
 
 typedef int buf_t;
@@ -119,6 +120,7 @@ blip_t* blip_new( int size )
 	{
 		m->factor = time_unit / blip_max_ratio;
 		m->size   = size;
+                m->hipass = 1;
 		blip_clear( m );
 		check_assumptions();
 	}
@@ -133,6 +135,10 @@ void blip_delete( blip_t* m )
 		memset( m, 0, sizeof *m );
 		free( m );
 	}
+}
+
+void blip_set_dc( blip_t* m, unsigned char enable ) {
+  m->hipass=enable;
 }
 
 void blip_set_rates( blip_t* m, double clock_rate, double sample_rate )
@@ -231,7 +237,9 @@ int blip_read_samples( blip_t* m, short out [], int count, int stereo )
 			out += step;
 			
 			/* High-pass filter */
-			sum -= s << (delta_bits - bass_shift);
+                        if (m->hipass) {
+			  sum -= s << (delta_bits - bass_shift);
+                        }
 		}
 		while ( in != end );
 		m->integrator = sum;

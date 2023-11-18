@@ -800,7 +800,7 @@ DivMacroInt* DivPlatformGenesisExt::getChanMacroInt(int ch) {
 }
 
 unsigned short DivPlatformGenesisExt::getPan(int ch) {
-  if (ch==csmChan) return 0;
+  if (ch==4+csmChan) return 0;
   if (ch>=4+extChanOffs) return DivPlatformGenesis::getPan(ch-3);
   if (ch>=extChanOffs) {
     if (extMode) {

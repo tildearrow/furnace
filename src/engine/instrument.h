@@ -413,7 +413,7 @@ struct DivInstrumentC64 {
   unsigned char a, d, s, r;
   unsigned short duty;
   unsigned char ringMod, oscSync;
-  bool toFilter, volIsCutoff, initFilter, dutyIsAbs, filterIsAbs, noTest;
+  bool toFilter, initFilter, dutyIsAbs, filterIsAbs, noTest;
   unsigned char res;
   unsigned short cut;
   bool hp, lp, bp, ch3off;
@@ -436,7 +436,6 @@ struct DivInstrumentC64 {
     ringMod(0),
     oscSync(0),
     toFilter(false),
-    volIsCutoff(false),
     initFilter(false),
     dutyIsAbs(false),
     filterIsAbs(false),
@@ -869,7 +868,7 @@ struct DivInstrument {
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
   void readFeatureMA(SafeReader& reader, short version);
-  void readFeature64(SafeReader& reader, short version);
+  void readFeature64(SafeReader& reader, bool& volIsCutoff, short version);
   void readFeatureGB(SafeReader& reader, short version);
   void readFeatureSM(SafeReader& reader, short version);
   void readFeatureOx(SafeReader& reader, int op, short version);
@@ -889,6 +888,8 @@ struct DivInstrument {
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
+
+  void convertC64SpecialMacro();
   
   /**
    * save the instrument to a SafeWriter.

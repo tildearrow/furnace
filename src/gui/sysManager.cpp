@@ -83,10 +83,7 @@ void FurnaceGUI::drawSysManager() {
           ImGui::TreePop();
         }
         ImGui::TableNextColumn();
-        ImGui::Button(ICON_FA_CHEVRON_DOWN "##SysChange");
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Change");
-        }
+        ImGui::Button("Change##SysChange");
         if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
           DivSystem picked=systemPicker();
           if (picked!=DIV_SYSTEM_NULL) {

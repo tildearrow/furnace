@@ -55,5 +55,12 @@ everything from the wavetables list applies here also, with the addition of one 
 
 samples are saved as standard wave (.wav) files.
 
-- right-clicking the Save button brings up a menu with the following options:
-  - **save raw sample...**: saves the selected sample as raw data.
+right-clicking the Save button brings up a menu with the following options:
+- **save raw sample...**: saves the selected sample as raw data.
+
+right-clicking a sample in the list brings up a menu:
+- **make instrument**: creates a new instrument which is set to use the selected sample.
+- **duplicate**: makes a copy of the selected sample.
+- **replace...**: opens a file dialog to choose a replacement sample.
+- **save**: opens a file dialog to choose where to save the sample.
+- **delete**: removes the sample.

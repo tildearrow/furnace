@@ -21,6 +21,7 @@
 #define _AMIGA_H
 
 #include "../dispatch.h"
+#include "../../fixedQueue.h"
 #include "../waveSynth.h"
 
 class DivPlatformAmiga: public DivDispatch {
@@ -59,12 +60,14 @@ class DivPlatformAmiga: public DivDispatch {
   bool amigaModel;
   bool filterOn;
   bool updateADKCon;
+  short delay;
 
   struct Amiga {
     // register state
     bool audInt[4]; // interrupt on
     bool audIr[4]; // interrupt request
     bool audEn[4]; // audio DMA on
+    bool mustDMA[4]; // audio DMA must run
     bool useP[4]; // period modulation
     bool useV[4]; // volume modulation
 
@@ -91,6 +94,8 @@ class DivPlatformAmiga: public DivDispatch {
     unsigned short hPos; // horizontal position of beam
     unsigned char state[4]; // current channel state
 
+    void write(unsigned short addr, unsigned short val);
+
     Amiga() {
       memset(this,0,sizeof(*this));
     }
@@ -112,6 +117,14 @@ class DivPlatformAmiga: public DivDispatch {
   size_t sampleMemLen;
 
   int sep1, sep2;
+
+  struct QueuedWrite {
+    unsigned short addr;
+    unsigned short val;
+    QueuedWrite(): addr(0), val(9) {}
+    QueuedWrite(unsigned short a, unsigned short v): addr(a), val(v) {}
+  };
+  FixedQueue<QueuedWrite,512> writes;
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

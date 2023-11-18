@@ -1,7 +1,7 @@
 // not auto-generated. update every time you change icons.ttf!
 
 #define ICON_MIN_FUR 0xe0f0
-#define ICON_MAX_FUR 0xe144
+#define ICON_MAX_FUR 0xe158
 
 // test
 #define ICON_FUR_TEST0 u8"\ue0f0"
@@ -82,5 +82,27 @@
 #define ICON_FUR_SAMPLE_SIGN u8"\ue140"
 #define ICON_FUR_SAMPLE_TRIM u8"\ue141"
 
+// waveforms
+#define ICON_FUR_NOISE u8"\ue14f"
+#define ICON_FUR_PULSE1 u8"\ue150"
+#define ICON_FUR_PULSE2 u8"\ue151"
+#define ICON_FUR_PULSE3 u8"\ue152"
+#define ICON_FUR_PULSE4 u8"\ue153"
+#define ICON_FUR_PULSE5 u8"\ue154"
+#define ICON_FUR_PULSE6 u8"\ue155"
+#define ICON_FUR_PULSE7 u8"\ue156"
+#define ICON_FUR_SAW u8"\ue157"
+#define ICON_FUR_TRI u8"\ue158"
+
 // misc
 #define ICON_FUR_SINE u8"\ue144"
+#define ICON_FUR_ADSR_A u8"\ue145"
+#define ICON_FUR_ADSR_D u8"\ue146"
+#define ICON_FUR_ADSR_S u8"\ue147"
+#define ICON_FUR_ADSR_R u8"\ue148"
+#define ICON_FUR_DEC_LINEAR u8"\ue149"
+#define ICON_FUR_DEC_EXP u8"\ue14a"
+#define ICON_FUR_INC_LINEAR u8"\ue14b"
+#define ICON_FUR_INC_BENT u8"\ue14c"
+#define ICON_FUR_VOL_DIRECT u8"\ue14d"
+#define ICON_FUR_ADSR u8"\ue14e"

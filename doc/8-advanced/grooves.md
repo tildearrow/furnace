@@ -1,9 +1,6 @@
 # grooves
 
-grooves are macros for speed.
-
-a **groove** is the equivalent of repeating `0Fxx` commands on each row to get a cycle of speeds. for example, a groove of "6 4 5 3" makes the first row 6 ticks long, the next row 4 ticks, then 5, 3, 6, 4, 5, 3...
-
+a **groove** is the equivalent of repeating `0Fxx` effects on each row to get a cycle of speeds. for example, a groove of "6 4 5 3" makes the first row 6 ticks long, the next row 4 ticks, then 5, 3, 6, 4, 5, 3...
 
 ![groove](groove.png)
 
@@ -13,18 +10,17 @@ to set the song's groove:
 - click again so it becomes "Groove".
 - enter a sequence of up to 16 speeds.
 
-
 ![groove patterns](grooves.png)
 
-the "Grooves" window is for entering preset groove patterns.
-- the **`+`** button adds a new groove pattern; click in the pattern to edit it.
+the "Grooves" window displays the list of groove patterns in the song.
+- the **`+`** button adds a new groove pattern; click in the groove pattern to edit it.
 - the **`×`** buttons remove them.
 
 a single `09xx` command will switch to the matching numbered groove pattern.
 
-## BPM
+## tempo
 
-this is a non-exhaustive list of grooves and their equivalent BPM.
+this is a non-exhaustive list of grooves and their equivalent tempo in BPM.
 
 note: this table assumes a song's tick rate setting is left at its default value for the chosen engine speed: 60 for NTSC, or 50 for PAL.
 

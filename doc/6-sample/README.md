@@ -159,3 +159,14 @@ in there, you can modify certain data pertaining to your sample, such as the:
 - **Create instrument from sample**: creates a new instrument with its sample set to the current sample.
 - **Zoom**: shows and sets sample view zoom level.
 - **Zoom mode**: switches between "Auto" (entire sample fits in window) and "100%" (each horizontal pixel represents one sample point).
+
+in the sample viewer:
+- left-click and drag to select a region of the sample.
+- right-click to display a menu:
+  - **cut**: puts the selection in the sample clipboard and deletes it from the sample.
+  - **copy**: copies the selection into the sample clipboard.
+  - **paste**: inserts the sample clipboard at the start of the selection.
+  - **paste (replace)**: replaces the selection with the sample clipboard.
+  - **paste (mix)**: mixes the sample clipboard into the existing sample, beginning at the start of the selection.
+  - **set loop to selection**: changes loop region to match selection.
+  - **create wavetable from selection**: copies the selection into a new wavetable entry.

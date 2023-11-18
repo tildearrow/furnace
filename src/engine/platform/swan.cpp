@@ -19,6 +19,8 @@
 
 #include "swan.h"
 #include "../engine.h"
+#include "furIcons.h"
+#include "IconsFontAwesome4.h"
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);}}
@@ -478,6 +480,30 @@ DivMacroInt* DivPlatformSwan::getChanMacroInt(int ch) {
 
 unsigned short DivPlatformSwan::getPan(int ch) {
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
+DivChannelModeHints DivPlatformSwan::getModeHints(int ch) {
+  DivChannelModeHints ret;
+
+  switch (ch) {
+    case 1: // PCM
+      ret.count=1;
+      ret.hint[0]=ICON_FA_VOLUME_UP;
+      ret.type[0]=pcm?4:0;
+      break;
+    case 2: // sweep
+      ret.count=1;
+      ret.hint[0]=ICON_FUR_SAW;
+      ret.type[0]=sweep?2:0;
+      break;
+    case 3: // noise
+      ret.count=1;
+      ret.hint[0]=ICON_FUR_NOISE;
+      ret.type[0]=noise?4:0;
+      break;
+  }
+
+  return ret;
 }
 
 DivDispatchOscBuffer* DivPlatformSwan::getOscBuffer(int ch) {

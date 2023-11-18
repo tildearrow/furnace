@@ -311,7 +311,26 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATTERN_STATUS_REL,
   GUI_COLOR_PATTERN_STATUS_REL_ON,
   GUI_COLOR_PATTERN_STATUS_ON,
-
+  GUI_COLOR_PATTERN_STATUS_VOLUME,
+  GUI_COLOR_PATTERN_STATUS_PITCH,
+  GUI_COLOR_PATTERN_STATUS_PANNING,
+  GUI_COLOR_PATTERN_STATUS_SYS1,
+  GUI_COLOR_PATTERN_STATUS_SYS2,
+  GUI_COLOR_PATTERN_STATUS_MIXING,
+  GUI_COLOR_PATTERN_STATUS_DSP,
+  GUI_COLOR_PATTERN_STATUS_NOTE,
+  GUI_COLOR_PATTERN_STATUS_MISC1,
+  GUI_COLOR_PATTERN_STATUS_MISC2,
+  GUI_COLOR_PATTERN_STATUS_MISC3,
+  GUI_COLOR_PATTERN_STATUS_ATTACK,
+  GUI_COLOR_PATTERN_STATUS_DECAY,
+  GUI_COLOR_PATTERN_STATUS_SUSTAIN,
+  GUI_COLOR_PATTERN_STATUS_RELEASE,
+  GUI_COLOR_PATTERN_STATUS_DEC_LINEAR,
+  GUI_COLOR_PATTERN_STATUS_DEC_EXP,
+  GUI_COLOR_PATTERN_STATUS_INC,
+  GUI_COLOR_PATTERN_STATUS_BENT,
+  GUI_COLOR_PATTERN_STATUS_DIRECT,
   GUI_COLOR_PATTERN_PAIR,
 
   GUI_COLOR_SAMPLE_BG,
@@ -401,6 +420,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_FIND,
   GUI_WINDOW_CLOCK,
   GUI_WINDOW_GROOVES,
+  GUI_WINDOW_XY_OSC,
   GUI_WINDOW_INTRO_MON,
   GUI_WINDOW_SPOILER
 };
@@ -554,6 +574,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_FIND,
   GUI_ACTION_WINDOW_CLOCK,
   GUI_ACTION_WINDOW_GROOVES,
+  GUI_ACTION_WINDOW_XY_OSC,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1447,6 +1468,7 @@ class FurnaceGUI {
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
+    int audioHiPass;
     int audioChans;
     int arcadeCore;
     int ym2612Core;
@@ -1639,6 +1661,7 @@ class FurnaceGUI {
       iconSize(16),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
+      audioHiPass(1),
       audioChans(2),
       arcadeCore(0),
       ym2612Core(0),
@@ -1854,7 +1877,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen;
+  bool groovesOpen, xyOscOpen;
 
   bool basicMode, shortIntro;
   bool insListDir, waveListDir, sampleListDir;
@@ -2148,6 +2171,19 @@ class FurnaceGUI {
       planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];
 
+  // x-y oscilloscope
+  FurnaceGUITexture* xyOscPointTex;
+  bool xyOscOptions;
+  int xyOscXChannel;
+  bool xyOscXInvert;
+  int xyOscYChannel;
+  bool xyOscYInvert;
+  float xyOscZoom;
+  int xyOscSamples;
+  float xyOscDecayTime;
+  float xyOscIntensity;
+  float xyOscThickness;
+
   // visualizer
   float keyHit[DIV_MAX_CHANS];
   float keyHit1[DIV_MAX_CHANS];
@@ -2340,6 +2376,7 @@ class FurnaceGUI {
   void drawSpoiler();
   void drawClock();
   void drawTutorial();
+  void drawXYOsc();
 
   void parseKeybinds();
   void promptKey(int which);

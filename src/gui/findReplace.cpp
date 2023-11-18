@@ -103,6 +103,8 @@ void FurnaceGUI::doFind() {
   int lastRow=e->curSubSong->patLen-1;
 
   if (curQueryRangeY==1) {
+    finishSelection();
+
     firstRow=selStart.y;
     lastRow=selEnd.y;
   }

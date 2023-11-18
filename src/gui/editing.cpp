@@ -83,6 +83,8 @@ void FurnaceGUI::makeUndo(ActionType action) {
   s.selStart=selStart;
   s.selEnd=selEnd;
   s.order=curOrder;
+  s.oldOrdersLen=oldOrdersLen;
+  s.newOrdersLen=e->curSubSong->ordersLen;
   s.nibble=curNibble;
   size_t subSong=e->getCurrentSubSong();
   switch (action) {
@@ -94,8 +96,6 @@ void FurnaceGUI::makeUndo(ActionType action) {
           }
         }
       }
-      s.oldOrdersLen=oldOrdersLen;
-      s.newOrdersLen=e->curSubSong->ordersLen;
       if (oldOrdersLen!=e->curSubSong->ordersLen) {
         doPush=true;
       }

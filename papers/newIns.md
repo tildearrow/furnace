@@ -295,7 +295,9 @@ size | description
   1  | flags 1
      | - bit 7: dutyIsAbs
      | - bit 6: initFilter
-     | - bit 5: volIsCutoff
+     | - bit 5: volIsCutoff (<187)
+     | - from version 187 onwards, volume and cutoff macros are separate.
+     | - if this is on and the version is less than 187, move the volume macro into the ALG one.
      | - bit 4: toFilter
      | - bit 3: noise on
      | - bit 2: pulse on
@@ -321,6 +323,24 @@ size | description
      | - bit 12-15: resonance
      | - bit 0-10: cutoff
 ```
+
+## C64 compatibility note (>=187)
+
+in Furnace dev187 the volume and cutoff macros have been separated, as noted above.
+however, there are two other changes as well: **inverted relative (non-absolute) cutoff macro**; and a new, improved Special macro.
+
+if version is less than 187, you must convert the Special macro:
+1. do not continue if ex4 is not a Sequence type macro!
+2. move bit 0 of ex4 macro data into bit 3.
+3. set bit 0 on all steps of ex4 macro to 1.
+4. if ex3 is not a Sequence type macro, stop here.
+5. if ex3 macro length is 0, stop here.
+6. merge the ex3 macro (former Special) into ex4 (former Test).
+  - use the largest size (between ex3 and ex4).
+  - if the ex3 macro is shorter than the ex4 one, use the last value of ex3, and vice-versa.
+  - if the ex4 macro length is 0, expand it to the largest size, and set all steps to 1.
+
+don't worry about loop or release...
 
 # Game Boy data (GB)
 

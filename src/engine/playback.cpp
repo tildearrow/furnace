@@ -1272,11 +1272,11 @@ void DivEngine::nextRow() {
 
               for (int j=0; j<curPat[i].effectCols; j++) {
                 if (!song.preNoteNoEffect) {
-                  if (pat->data[curRow][4+(j<<1)]==0x03) {
+                  if (pat->data[curRow][4+(j<<1)]==0x03 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
                     doPreparePreNote=false;
                     break;
                   }
-                  if (pat->data[curRow][4+(j<<1)]==0x06) {
+                  if (pat->data[curRow][4+(j<<1)]==0x06 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
                     doPreparePreNote=false;
                     break;
                   }
@@ -1303,11 +1303,11 @@ void DivEngine::nextRow() {
             int addition=0;
 
             for (int j=0; j<curPat[i].effectCols; j++) {
-              if (pat->data[curRow][4+(j<<1)]==0x03) {
+              if (pat->data[curRow][4+(j<<1)]==0x03 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
                 doPrepareCut=false;
                 break;
               }
-              if (pat->data[curRow][4+(j<<1)]==0x06) {
+              if (pat->data[curRow][4+(j<<1)]==0x06 && pat->data[curRow][5+(j<<1)]!=0 && pat->data[curRow][5+(j<<1)]!=-1) {
                 doPrepareCut=false;
                 break;
               }

@@ -19,8 +19,16 @@ furthermore, it has some PCM and LFO!
   - when LFO is enabled, channel 2 is muted and its output is passed to channel 1's frequency.
 - `13xx`: **set LFO speed.**
 - `17xx`: **toggle LEGACY sample mode.**
-  - **this effect exists only for compatibility reasons! its use is NOT recommented. use Sample type instruments instead.**
+  - **this effect exists only for compatibility reasons! its use is NOT recommended. use Sample type instruments instead.**
 
 ## info
 
 this chip uses the [PC Engine](../4-instrument/pce.md) instrument editor.
+
+## channel status
+
+the following icons are displayed when channel status is enabled in the pattern view:
+
+- noise mode (channels 5 and 6 only):
+  - ![noise mode off](status-PCE-noise-off.png) off
+  - ![noise mode on](status-PCE-noise-on.png) on

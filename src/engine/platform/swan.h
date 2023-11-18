@@ -63,6 +63,7 @@ class DivPlatformSwan: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
+    DivChannelModeHints getModeHints(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

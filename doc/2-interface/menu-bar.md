@@ -49,6 +49,7 @@ items in _italic_ don't appear in basic mode and are only available in advanced 
     - macOS: `~/Library/Application Support/Furnace/backups`
     - Linux/other: `~/.config/furnace/backups`
   - this directory grows in size as you use Furnace. remember to delete old backups periodically to save space.
+  - **do NOT rely on the backup system as auto-save!** you should save a restored backup because Furnace will not save backups of backups.
 
 - **exit**: closes Furnace.
 

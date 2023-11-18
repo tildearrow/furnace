@@ -19,6 +19,7 @@
 
 #include "pce.h"
 #include "../engine.h"
+#include "furIcons.h"
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
@@ -510,6 +511,18 @@ DivMacroInt* DivPlatformPCE::getChanMacroInt(int ch) {
 
 unsigned short DivPlatformPCE::getPan(int ch) {
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
+DivChannelModeHints DivPlatformPCE::getModeHints(int ch) {
+  DivChannelModeHints ret;
+  if (ch<4) return ret;
+  ret.count=1;
+  ret.hint[0]=ICON_FUR_NOISE;
+  ret.type[0]=0;
+
+  if (chan[ch].noise) ret.type[0]=4;
+  
+  return ret;
 }
 
 DivSamplePos DivPlatformPCE::getSamplePos(int ch) {
