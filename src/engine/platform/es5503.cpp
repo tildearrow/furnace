@@ -694,11 +694,6 @@ size_t DivPlatformES5503::getSampleMemCapacity(int index)
   return index == 0 ? 65536 : 0;
 }
 
-size_t DivPlatformES5503::getSampleMemUsage(int index)
-{
-  return index == 0 ? 65536 : 0;
-}
-
 DivDispatchOscBuffer* DivPlatformES5503::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
