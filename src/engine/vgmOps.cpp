@@ -24,6 +24,8 @@
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
+DivDispatch* writeES5503[2]={NULL,NULL};
+
 void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream) {
   unsigned char baseAddr1=isSecond?0xa0:0x50;
   unsigned char baseAddr2=isSecond?0x80:0;
@@ -418,6 +420,52 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           }
         }
         break;
+      case DIV_SYSTEM_ES5503:
+      {
+        for (int i=0; i<30; i++) //last one (or two?) channel(s?) is(are?) used for some interrupts on Apple IIGS; don't touch it(them?)!
+        {
+          w->writeC(0xd5); // set volume to zero and reset some other shit
+          w->writeC(0);
+          w->writeC(i);
+          w->writeC(0);
+
+          w->writeC(0xd5);
+          w->writeC(0);
+          w->writeC(0x20+i);
+          w->writeC(0);
+
+          w->writeC(0xd5);
+          w->writeC(0);
+          w->writeC(0x40+i);
+          w->writeC(0);
+
+          w->writeC(0xd5);
+          w->writeC(0);
+          w->writeC(0x60+i);
+          w->writeC(0);
+
+          w->writeC(0xd5);
+          w->writeC(0);
+          w->writeC(0x80+i);
+          w->writeC(0);
+
+          w->writeC(0xd5);
+          w->writeC(0);
+          w->writeC(0xc0+i);
+          w->writeC(0);
+
+          w->writeC(0xd5); //odd channels are left, even are right
+          w->writeC(0);
+          w->writeC(0xa0+i); 
+          w->writeC((i & 1) ? (1 << 4) : 0); //0=left, 1=right
+        }
+
+        w->writeC(0xd5); //write to num_osc register and enable all 32 oscillators
+        w->writeC(0);
+        w->writeC(0xe1);
+        w->writeC(62);
+        break;
+      }
       case DIV_SYSTEM_OPL:
       case DIV_SYSTEM_OPL_DRUMS:
         // disable envelope
@@ -640,6 +688,19 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         break;
     }
   }
+
+  if (write.addr>=0xfffe0000 && write.addr<0xffff0000 && writeES5503[0] != NULL) {
+    uint32_t data_size = (write.addr&0xffff);
+    uint32_t data_offset = ((uint16_t)write.val << 8);
+    const unsigned char* sample_mem = (const unsigned char*)writeES5503[0]->getSampleMem();
+    w->writeC(0x67);
+    w->writeC(0x66);
+    w->writeC(0xE1);
+    w->writeI(data_size + 4);
+    w->writeI(data_offset);
+    w->write(sample_mem+data_offset, data_size);
+  }
+
   if (write.addr>=0xffff0000) { // Furnace special command
     if (!directStream) {
       unsigned char streamID=streamOff+((write.addr&0xff00)>>8);
@@ -947,6 +1008,12 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.addr&0xff);
       w->writeC(write.val&0xff);
       break;
+    case DIV_SYSTEM_ES5503:
+      w->writeC(0xd5);
+      w->writeC(0);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val&0xff);
+      break;
     case DIV_SYSTEM_VBOY:
       w->writeC(0xc7);
       w->writeS_BE(baseAddr2S|(write.addr>>2));
@@ -1192,6 +1259,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   int hasGA20=0;
   int hasLynx=0;
 
+  uint8_t es5503_chans = 2;
+
   int howManyChips=0;
   int chipVolSum=0;
   int chipAccounting=0;
@@ -1257,6 +1326,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   DivDispatch* writeX1010[2]={NULL,NULL};
   DivDispatch* writeQSound[2]={NULL,NULL};
   DivDispatch* writeES5506[2]={NULL,NULL};
+  writeES5503[0] = writeES5503[1] = NULL;
   DivDispatch* writeZ280[2]={NULL,NULL};
   DivDispatch* writeRF5C68[2]={NULL,NULL};
   DivDispatch* writeMSM6295[2]={NULL,NULL};
@@ -1632,6 +1702,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_ES5503:
+        if (!hasES5503) {
+          hasES5503=disCont[i].dispatch->chipClock * 8; //WHAT??
+          willExport[i]=true;
+          writeES5503[0]=disCont[i].dispatch;
+          es5503_chans = disCont[i].dispatch->getOutputCount();
+        }
+        break;
       case DIV_SYSTEM_VBOY:
         if (!hasVSU) {
           hasVSU=disCont[i].dispatch->chipClock;
@@ -2000,7 +2078,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeI(hasSAA);
     w->writeI(hasES5503);
     w->writeI(hasES5505);
-    w->writeC(0); // 5503 chans
+    w->writeC(es5503_chans); // 5503 chans
     w->writeC(hasES5505?1:0); // 5505 chans
     w->writeC(0); // C352 clock divider
     w->writeC(0); // reserved
@@ -2272,6 +2350,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(0);
       w->write(writeES5506[i]->getSampleMem(),writeES5506[i]->getSampleMemUsage());
     }
+    /*if (writeES5503[i]!=NULL && writeES5503[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x8F);
+      w->writeI((writeES5503[i]->getSampleMemUsage()));
+      w->writeI(writeES5503[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeES5503[i]->getSampleMem(),writeES5503[i]->getSampleMemUsage());
+    }*/
     if (writeC140[i]!=NULL && writeC140[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
       w->writeC(0x66);

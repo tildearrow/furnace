@@ -43,6 +43,8 @@ class DivPlatformES5503: public DivDispatch {
     //frequency lower than let's say 0x100 => try to use higher acc bits in the same fashion (higher the number until freq is higher than
     //0x100; if you can't go higher stop at highest (here 0b111) and recalc frequecny, thus you have the higher precision possible)
     DivWaveSynth ws;
+    int16_t previous_sample;
+    int32_t previous_sample_pos; //these are needed to reduce unnecessary memory rewrites
     Channel():
       SharedChannel<int16_t>(255),
       sample(-1),
@@ -55,7 +57,9 @@ class DivPlatformES5503: public DivDispatch {
       wave_size(256),
       osc_mode(0),
       output(0),
-      address_bus_res(0b010) {}
+      address_bus_res(0b010),
+      previous_sample(-1),
+      previous_sample_pos(-1) {}
   };
   Channel chan[32];
   DivDispatchOscBuffer* oscBuf[32];
@@ -110,6 +114,7 @@ class DivPlatformES5503: public DivDispatch {
     void quit();
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
+    size_t getSampleMemUsage(int index);
     ~DivPlatformES5503();
 };
 

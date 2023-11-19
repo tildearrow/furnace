@@ -106,10 +106,12 @@ void DivPlatformES5503::updateWave(int ch)
   {
     for (int i=0; i<chan[ch].wave_size; i++)
     {
-        uint8_t val = chan[ch].ws.output[i & 255];
-        if (val == 0) val = 1;
-        writeSampleMemoryByte(chan[ch].wave_pos + i, val); //if using synthesized wavetable, avoid zeros so wave can loop
+      uint8_t val = chan[ch].ws.output[i & 255];
+      if (val == 0) val = 1;
+      writeSampleMemoryByte(chan[ch].wave_pos + i, val); //if using synthesized wavetable, avoid zeros so wave can loop
     }
+
+    if (dumpWrites) addWrite(0xfffe0000 | chan[ch].wave_size, chan[ch].wave_pos >> 8);
   }
 
   else
@@ -122,15 +124,17 @@ void DivPlatformES5503::updateWave(int ch)
 
     for (i=0; i<my_min(s->length8, chan[ch].wave_size); i++)
     {
-        uint8_t val = (uint8_t)s->data8[i] + 0x80;
-        if (val == 0) val = 1;
-        writeSampleMemoryByte(chan[ch].wave_pos + i, val); //avoid zeros so wave can loop and does not halt
+      uint8_t val = (uint8_t)s->data8[i] + 0x80;
+      if (val == 0) val = 1;
+      writeSampleMemoryByte(chan[ch].wave_pos + i, val); //avoid zeros so wave can loop and does not halt
     }
 
     for (; i < my_min(s->length8 + 8, chan[ch].wave_size); i++) //write at least 8 zeros if wave size allows to guarantee oneshot samples are halted if they are shorter than wave size
     {
-        writeSampleMemoryByte(chan[ch].wave_pos + i, 0);
+      writeSampleMemoryByte(chan[ch].wave_pos + i, 0);
     }
+
+    if (dumpWrites) addWrite(0xfffe0000|my_min(s->length8 + 8, chan[ch].wave_size), chan[ch].wave_pos >> 8);
   }
   
   //chan[ch].antiClickWavePos&=31;
@@ -376,8 +380,18 @@ int DivPlatformES5503::dispatch(DivCommand c) {
           chan[c.chan + 1].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
         }
 
-        updateWave(c.chan);
-        chan[c.chan].address_bus_res = 0b111;
+        if(chan[c.chan].wave_pos != chan[c.chan].previous_sample_pos || chan[c.chan].sample != chan[c.chan].previous_sample)
+        {
+          updateWave(c.chan);
+        }
+
+        chan[c.chan].previous_sample_pos = chan[c.chan].wave_pos;
+        chan[c.chan].previous_sample = chan[c.chan].sample;
+
+        if(chan[c.chan].wave_size >= 1024)
+        {
+          chan[c.chan].address_bus_res = 0b111;
+        }
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -672,12 +686,17 @@ DivMacroInt* DivPlatformES5503::getChanMacroInt(int ch) {
 }
 
 const void* DivPlatformES5503::getSampleMem(int index) {
-  return es5503.sampleMem;
+  return index == 0 ? es5503.sampleMem : NULL;
 }
 
 size_t DivPlatformES5503::getSampleMemCapacity(int index)
 {
-  return 65536;
+  return index == 0 ? 65536 : 0;
+}
+
+size_t DivPlatformES5503::getSampleMemUsage(int index)
+{
+  return index == 0 ? 65536 : 0;
 }
 
 DivDispatchOscBuffer* DivPlatformES5503::getOscBuffer(int ch) {
@@ -695,6 +714,9 @@ int DivPlatformES5503::getRegisterPoolSize() {
 void DivPlatformES5503::reset() {
   writes.clear();
   memset(regPool,0,256);
+  if (dumpWrites) {
+    addWrite(0xffffffff,0); //do reset
+  }
   memset(es5503.sampleMem,0,es5503.sampleMemLen);
   for (uint8_t i=0; i<32; i++) {
     chan[i]=DivPlatformES5503::Channel();
@@ -727,7 +749,7 @@ void DivPlatformES5503::reset() {
 }
 
 int DivPlatformES5503::getOutputCount() {
-  return 2;
+  return mono ? 1 : 2;
 }
 
 bool DivPlatformES5503::keyOffAffectsArp(int ch) {
