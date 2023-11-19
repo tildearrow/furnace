@@ -262,30 +262,11 @@ void DivPlatformES5503::tick(bool sysTick) {
       rWrite(0x40 + i + 1, isMuted[i] ? 0 : (temp));
     }
 
-    if (chan[i].active && !chan[i].pcm) {
-      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
-        updateWave(i);
-      }
-    }
-
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5503);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,(double)chipClock /** (32 + 2) / (es5503.oscsenabled + 2)*/,CHIP_FREQBASE * 130.81 * 2 / 211.0); //TODO: why freq calc is wrong?
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
-      if (chan[i].pcm) {
-        double off=1.0;
-        if (chan[i].sample>=0) {
-          DivSample* s=parent->getSample(chan[i].sample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=8363.0/(double)s->centerRate;
-          }
-        }
-        //chan[i].dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
-        //if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
-      }
 
       if(chan[i].softpan_channel)
       {
@@ -305,13 +286,25 @@ void DivPlatformES5503::tick(bool sysTick) {
       if (chan[i].keyOn) {
         if(chan[i].softpan_channel)
         {
-          rWrite(0xA0+i, 0 | (ins->es5503.initial_osc_mode << 1) | (chan[i].output << 4));
-          rWrite(0xA0+i+1, 0 | (ins->es5503.initial_osc_mode << 1) | (chan[i + 1].output << 4));
+          uint8_t temp = chan[i].vol * chan[i].panleft / 255;
+          rWrite(0x40+i, isMuted[i] ? 0 : temp); //set volume
+          rWrite(0x80+i, chan[i].wave_pos); //set wave pos
+          rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
+          rWrite(0xc0+i, (chan[i].wave_size << 3) | chan[i].address_bus_res); //set wave len
+
+          temp = chan[i].vol * chan[i].panright / 255;
+          rWrite(0x40+i+1, isMuted[i] ? 0 : temp); //set volume
+          rWrite(0x80+i+1, chan[i].wave_pos); //set wave pos
+          rWrite(0xa0+i+1, (chan[i].osc_mode << 1) | (chan[i + 1].output << 4));
+          rWrite(0xc0+i+1, (chan[i].wave_size << 3) | chan[i].address_bus_res); //set wave len
         }
 
         else
         {
-          rWrite(0xA0+i, 0 | (ins->es5503.initial_osc_mode << 1) | (chan[i].output << 4)); //reset halt bit and set oscillator mode
+          rWrite(0x40+i, isMuted[i] ? 0 : chan[i].vol); //set volume
+          rWrite(0x80+i, chan[i].wave_pos); //set wave pos
+          rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
+          rWrite(0xc0+i, (chan[i].wave_size << 3) | chan[i].address_bus_res); //set wave len
         }
       }
       if (chan[i].keyOff) {
@@ -336,6 +329,12 @@ void DivPlatformES5503::tick(bool sysTick) {
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
+    }
+
+    if (chan[i].active && !chan[i].pcm) {
+      if (chan[i].ws.tick()) {
+        updateWave(i);
+      }
     }
   }
 }
@@ -409,18 +408,6 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         chan[c.chan].output = 0;
         chan[c.chan + 1].output = 1; //force-reset outputs so softpanned channel works as expected
 
-        uint8_t temp = chan[c.chan].vol * chan[c.chan].panleft / 255;
-        rWrite(0x40+c.chan, isMuted[c.chan] ? 0 : temp); //set volume
-        rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
-        rWrite(0xa0+c.chan, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
-        rWrite(0xc0+c.chan, (ins->es5503.waveLen << 3) | chan[c.chan].address_bus_res /*lowest acc resolution*/); //set wave len
-
-        temp = chan[c.chan].vol * chan[c.chan].panright / 255;
-        rWrite(0x40+c.chan+1, isMuted[c.chan] ? 0 : temp); //set volume
-        rWrite(0x80+c.chan+1, ins->es5503.wavePos); //set wave pos
-        rWrite(0xa0+c.chan+1, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
-        rWrite(0xc0+c.chan+1, (ins->es5503.waveLen << 3) | chan[c.chan].address_bus_res /*lowest acc resolution*/); //set wave len
-
         if(ins->es5503.phase_reset_on_start)
         {
           rWrite(0xA0 + c.chan, (chan[c.chan].osc_mode << 1) | 1 | (chan[c.chan].output << 4)); //writing 1 resets acc
@@ -432,11 +419,6 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       
       else
       {
-        rWrite(0x40+c.chan, isMuted[c.chan] ? 0 : chan[c.chan].vol); //set volume
-        rWrite(0x80+c.chan, ins->es5503.wavePos); //set wave pos
-        rWrite(0xa0+c.chan, (ins->es5503.initial_osc_mode << 1) | (chan[c.chan].output << 4));
-        rWrite(0xc0+c.chan, (ins->es5503.waveLen << 3) | chan[c.chan].address_bus_res /*lowest acc resolution*/); //set wave len
-
         if(ins->es5503.phase_reset_on_start)
         {
           rWrite(0xA0 + c.chan, (chan[c.chan].osc_mode << 1) | 1 | (chan[c.chan].output << 4)); //writing 1 resets acc
@@ -726,20 +708,20 @@ void DivPlatformES5503::reset() {
   // set volume to zero and reset some other shit
   for(uint8_t i = 0; i < 0x9f; i++)
   {
-    rWrite(i,0);
+    es5503.write(i,0); //using es5503.write() instead of rWrite() so these aren't included in vgm (instead we use the addWrite(0xffffffff,0) for VGM export routine)
   }
 
   for(uint8_t i = 0xc0; i < 0xdf; i++)
   {
-    rWrite(i,0);
+    es5503.write(i,0);
   }
 
   //write to num_osc register and enable all 32 oscillators
-  rWrite(0xe1,62);
+  es5503.write(0xe1,62);
 
   for(uint8_t i = 0xa0; i < 0xbf; i++) //odd channels are left, even are right
   {
-    rWrite(i, (chan[i - 0xa0].output << 4)); //0=left, 1=right
+    es5503.write(i, (chan[i - 0xa0].output << 4)); //0=left, 1=right
   }
 }
 
