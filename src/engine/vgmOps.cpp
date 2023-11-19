@@ -1704,7 +1704,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_ES5503:
         if (!hasES5503) {
-          hasES5503=disCont[i].dispatch->chipClock * 8; //WHAT??
+          hasES5503=disCont[i].dispatch->chipClock;
           willExport[i]=true;
           writeES5503[0]=disCont[i].dispatch;
           es5503_chans = disCont[i].dispatch->getOutputCount();

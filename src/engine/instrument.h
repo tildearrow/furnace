@@ -738,7 +738,7 @@ struct DivInstrumentES5506 {
 };
 
 struct DivInstrumentES5503 {
-  int wave, wavePos, waveLen;
+  int wavePos, waveLen;
   unsigned char initial_osc_mode;
   bool softpan_virtual_channel;
   bool phase_reset_on_start;
@@ -753,7 +753,7 @@ struct DivInstrumentES5503 {
   }
 
   DivInstrumentES5503():
-    wave(-1), wavePos(0), waveLen(0),
+    wavePos(0), waveLen(0),
     initial_osc_mode(0), softpan_virtual_channel(false),
     phase_reset_on_start(true) {
 
@@ -836,6 +836,7 @@ struct DivInstrument {
   void writeFeatureES(SafeWriter* w);
   void writeFeatureX1(SafeWriter* w);
   void writeFeatureNE(SafeWriter* w);
+  void writeFeatureE3(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -856,6 +857,7 @@ struct DivInstrument {
   void readFeatureES(SafeReader& reader, short version);
   void readFeatureX1(SafeReader& reader, short version);
   void readFeatureNE(SafeReader& reader, short version);
+  void readFeatureE3(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);

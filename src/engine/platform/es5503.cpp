@@ -64,13 +64,13 @@ void DivPlatformES5503::acquire(short** buf, size_t len) { //the function where 
 }
 
 void DivPlatformES5503::setFlags(const DivConfig& flags) {
-  chipClock=894886U; //894886 Hz on Apple IIGS
+  chipClock=7159090U; //approx. 894886 * 8 Hz on Apple IIGS
 
   CHECK_CUSTOM_CLOCK;
 
   es5503.es5503_core_init(chipClock, this->oscBuf, 32);
 
-  rate=chipClock / (es5503.oscsenabled + 2); //26320 Hz for Apple IIGS card with all oscillators enabled
+  rate=(chipClock / 8) / (es5503.oscsenabled + 2); //26320 Hz for Apple IIGS card with all oscillators enabled
 
   for (int i=0; i<32; i++) {
     oscBuf[i]->rate=rate;
@@ -85,7 +85,7 @@ void DivPlatformES5503::changeNumOscs(uint8_t num_oscs)
 {
   es5503.update_num_osc(oscBuf, num_oscs);
   rWrite(0xe1, (num_oscs - 1) * 2);
-  rate=chipClock / (es5503.oscsenabled + 2);
+  rate=(chipClock / 8) / (es5503.oscsenabled + 2);
 
   for (int i=0; i<32; i++) {
     oscBuf[i]->rate=rate;
@@ -270,7 +270,7 @@ void DivPlatformES5503::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5503);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,(double)chipClock /** (32 + 2) / (es5503.oscsenabled + 2)*/,CHIP_FREQBASE * 130.81 / 211.0); //TODO: why freq calc is wrong?
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,(double)chipClock /** (32 + 2) / (es5503.oscsenabled + 2)*/,CHIP_FREQBASE * 130.81 * 2 / 211.0); //TODO: why freq calc is wrong?
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].pcm) {
@@ -352,7 +352,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       else
       {
         chan[c.chan].pcm=false;
-        chan[c.chan].address_bus_res = 0b010;
+        chan[c.chan].address_bus_res = 0b000;
       }
       if (chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
@@ -390,7 +390,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
 
         if(chan[c.chan].wave_size >= 1024)
         {
-          chan[c.chan].address_bus_res = 0b111;
+          chan[c.chan].address_bus_res = 0b011;
         }
       }
       if (c.value!=DIV_NOTE_NULL) {
