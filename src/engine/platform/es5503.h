@@ -114,7 +114,6 @@ class DivPlatformES5503: public DivDispatch {
     void quit();
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
-    ~DivPlatformES5503();
 };
 
 #endif

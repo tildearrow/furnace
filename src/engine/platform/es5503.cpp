@@ -653,11 +653,6 @@ int DivPlatformES5503::dispatch(DivCommand c) {
 
 void DivPlatformES5503::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  /*chWrite(ch,0x05,isMuted[ch]?0:chan[ch].pan);
-  if (!isMuted[ch] && (chan[ch].pcm && chan[ch].dacSample!=-1)) {
-    chWrite(ch,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[ch].outVol));
-    chWrite(ch,0x06,chan[ch].dacOut&0x1f);
-  }*/
 }
 
 void DivPlatformES5503::forceIns() {
@@ -805,11 +800,9 @@ int DivPlatformES5503::init(DivEngine* p, int channels, int sugRate, const DivCo
 }
 
 void DivPlatformES5503::quit() {
+  
+  es5503.es5503_core_free();
   for (int i=0; i<32; i++) {
     delete oscBuf[i];
   }
-  es5503.es5503_core_free();
-}
-
-DivPlatformES5503::~DivPlatformES5503() {
 }
