@@ -57,7 +57,11 @@ void DivPlatformES5503::acquire(short** buf, size_t len) { //the function where 
 
   while (!writes.empty()) { //do register writes
       QueuedWrite w=writes.front();
-      es5503.write(w.addr,w.val);
+      if(w.addr < 0x100)
+      {
+        es5503.write((uint8_t)w.addr,(uint8_t)w.val);
+      }
+      
       regPool[w.addr]=w.val;
       writes.pop();
     }
@@ -288,13 +292,13 @@ void DivPlatformES5503::tick(bool sysTick) {
         {
           uint8_t temp = chan[i].vol * chan[i].panleft / 255;
           rWrite(0x40+i, isMuted[i] ? 0 : temp); //set volume
-          rWrite(0x80+i, chan[i].wave_pos); //set wave pos
+          rWrite(0x80+i, chan[i].wave_pos >> 8); //set wave pos
           rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
           rWrite(0xc0+i, (chan[i].wave_size << 3) | chan[i].address_bus_res); //set wave len
 
           temp = chan[i].vol * chan[i].panright / 255;
           rWrite(0x40+i+1, isMuted[i] ? 0 : temp); //set volume
-          rWrite(0x80+i+1, chan[i].wave_pos); //set wave pos
+          rWrite(0x80+i+1, chan[i].wave_pos >> 8); //set wave pos
           rWrite(0xa0+i+1, (chan[i].osc_mode << 1) | (chan[i + 1].output << 4));
           rWrite(0xc0+i+1, (chan[i].wave_size << 3) | chan[i].address_bus_res); //set wave len
 
@@ -310,7 +314,7 @@ void DivPlatformES5503::tick(bool sysTick) {
         else
         {
           rWrite(0x40+i, isMuted[i] ? 0 : chan[i].vol); //set volume
-          rWrite(0x80+i, chan[i].wave_pos); //set wave pos
+          rWrite(0x80+i, chan[i].wave_pos >> 8); //set wave pos
           rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
           rWrite(0xc0+i, (chan[i].wave_size << 3) | chan[i].address_bus_res); //set wave len
 
@@ -421,11 +425,6 @@ int DivPlatformES5503::dispatch(DivCommand c) {
 
         chan[c.chan].output = 0;
         chan[c.chan + 1].output = 1; //force-reset outputs so softpanned channel works as expected
-      }
-      
-      else
-      {
-        
       }
 
       if (!chan[c.chan].pcm)
@@ -691,12 +690,12 @@ DivMacroInt* DivPlatformES5503::getChanMacroInt(int ch) {
 }
 
 const void* DivPlatformES5503::getSampleMem(int index) {
-  return index == 0 ? es5503.sampleMem : NULL;
+  return es5503.sampleMem;
 }
 
 size_t DivPlatformES5503::getSampleMemCapacity(int index)
 {
-  return index == 0 ? 65536 : 0;
+  return 65536;
 }
 
 DivDispatchOscBuffer* DivPlatformES5503::getOscBuffer(int ch) {
@@ -732,19 +731,23 @@ void DivPlatformES5503::reset() {
   for(uint8_t i = 0; i < 0x9f; i++)
   {
     es5503.write(i,0); //using es5503.write() instead of rWrite() so these aren't included in vgm (instead we use the addWrite(0xffffffff,0) for VGM export routine)
+    //rWrite(i,0);
   }
 
   for(uint8_t i = 0xc0; i < 0xdf; i++)
   {
     es5503.write(i,0);
+    //rWrite(i,0);
   }
 
   //write to num_osc register and enable all 32 oscillators
   es5503.write(0xe1,62);
+  //rWrite(0xe1,62);
 
   for(uint8_t i = 0xa0; i < 0xbf; i++) //odd channels are left, even are right
   {
     es5503.write(i, (chan[i - 0xa0].output << 4)); //0=left, 1=right
+    //rWrite(i, (chan[i - 0xa0].output << 4));
   }
 }
 

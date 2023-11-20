@@ -5095,7 +5095,7 @@ void FurnaceGUI::drawInsEdit() {
 
           P(ImGui::Checkbox("Auto-place wave in memory",&ins->es5503.auto_place_wavetables));
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("If you are using wavetable and wave length is set to 256, enabling this allows the engine\nto place wavetables for each channel in different memory location. Wave for channel 1 is at offset 0,\nfor channel 2 is at offset 256, etc., and the wave for channel 32 is at offset 7936.\nThus you occupy first 8192 bytes of memory for wavetables for 32 channels.");
+            ImGui::SetTooltip("If you are using wavetable and wave length is set to 256, enabling this allows the engine\nto place wavetables for each channel in different memory location. Wave for channel 1 is at offset 0,\nfor channel 2 is at offset 256, etc., and the wave for channel 32 is at offset 7936.\nThus you occupy first 8192 bytes of memory for wavetables of all 32 channels.");
           }
           
           ImGui::EndTabItem();
