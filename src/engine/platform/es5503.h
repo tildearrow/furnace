@@ -98,7 +98,7 @@ class DivPlatformES5503: public DivDispatch {
     int getRegisterPoolSize();
     void reset();
     void forceIns();
-    void writeSampleMemoryByte(int address, unsigned char value);
+    void writeSampleMemoryByte(unsigned int address, unsigned char value);
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();

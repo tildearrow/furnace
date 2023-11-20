@@ -92,7 +92,7 @@ void DivPlatformES5503::changeNumOscs(uint8_t num_oscs)
   }
 }
 
-void DivPlatformES5503::writeSampleMemoryByte(int address, unsigned char value)
+void DivPlatformES5503::writeSampleMemoryByte(unsigned int address, unsigned char value)
 {
   if(es5503.sampleMem)
   {
@@ -104,7 +104,7 @@ void DivPlatformES5503::updateWave(int ch)
 {
   if(!chan[ch].pcm)
   {
-    for (int i=0; i<chan[ch].wave_size; i++)
+    for (unsigned int i=0; i<chan[ch].wave_size; i++)
     {
       uint8_t val = chan[ch].ws.output[i & 255];
       if (val == 0) val = 1;
@@ -297,6 +297,14 @@ void DivPlatformES5503::tick(bool sysTick) {
           rWrite(0x80+i+1, chan[i].wave_pos); //set wave pos
           rWrite(0xa0+i+1, (chan[i].osc_mode << 1) | (chan[i + 1].output << 4));
           rWrite(0xc0+i+1, (chan[i].wave_size << 3) | chan[i].address_bus_res); //set wave len
+
+          if(ins->es5503.phase_reset_on_start)
+          {
+            rWrite(0xA0 + i, (chan[i].osc_mode << 1) | 1 | (chan[i].output << 4)); //writing 1 resets acc
+            rWrite(0xA0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4)); //writing 0 forces the reset
+            rWrite(0xA0 + i + 1, (chan[i].osc_mode << 1) | 1 | (chan[i + 1].output << 4)); //writing 1 resets acc
+            rWrite(0xA0 + i + 1, (chan[i].osc_mode << 1) | (chan[i + 1].output << 4)); //writing 0 forces the reset
+          }
         }
 
         else
@@ -305,6 +313,12 @@ void DivPlatformES5503::tick(bool sysTick) {
           rWrite(0x80+i, chan[i].wave_pos); //set wave pos
           rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
           rWrite(0xc0+i, (chan[i].wave_size << 3) | chan[i].address_bus_res); //set wave len
+
+          if(ins->es5503.phase_reset_on_start)
+          {
+            rWrite(0xA0 + i, (chan[i].osc_mode << 1) | 1 | (chan[i].output << 4)); //writing 1 resets acc
+            rWrite(0xA0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4)); //writing 0 forces the reset
+          }
         }
       }
       if (chan[i].keyOff) {
@@ -407,34 +421,43 @@ int DivPlatformES5503::dispatch(DivCommand c) {
 
         chan[c.chan].output = 0;
         chan[c.chan + 1].output = 1; //force-reset outputs so softpanned channel works as expected
-
-        if(ins->es5503.phase_reset_on_start)
-        {
-          rWrite(0xA0 + c.chan, (chan[c.chan].osc_mode << 1) | 1 | (chan[c.chan].output << 4)); //writing 1 resets acc
-          rWrite(0xA0 + c.chan, (chan[c.chan].osc_mode << 1) | (chan[c.chan].output << 4)); //writing 0 forces the reset
-          rWrite(0xA0 + c.chan + 1, (chan[c.chan].osc_mode << 1) | 1 | (chan[c.chan + 1].output << 4)); //writing 1 resets acc
-          rWrite(0xA0 + c.chan + 1, (chan[c.chan].osc_mode << 1) | (chan[c.chan + 1].output << 4)); //writing 0 forces the reset
-        }
       }
       
       else
       {
-        if(ins->es5503.phase_reset_on_start)
-        {
-          rWrite(0xA0 + c.chan, (chan[c.chan].osc_mode << 1) | 1 | (chan[c.chan].output << 4)); //writing 1 resets acc
-          rWrite(0xA0 + c.chan, (chan[c.chan].osc_mode << 1) | (chan[c.chan].output << 4)); //writing 0 forces the reset
-        }
+        
       }
 
       if (!chan[c.chan].pcm)
       {
-        chan[c.chan].wave_pos = ins->es5503.wavePos << 8;
+        if(ins->es5503.waveLen == 0 && ins->es5503.auto_place_wavetables)
+        {
+          chan[c.chan].wave_pos = (uint32_t)c.chan * 256;
+        }
+
+        else
+        {
+          chan[c.chan].wave_pos = ins->es5503.wavePos << 8;
+        }
+        //chan[c.chan].wave_pos = ins->es5503.wavePos << 8;
+        
         chan[c.chan].osc_mode = ins->es5503.initial_osc_mode;
         chan[c.chan].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
 
         if(chan[c.chan].softpan_channel)
         {
-          chan[c.chan + 1].wave_pos = ins->es5503.wavePos << 8;
+          if(ins->es5503.waveLen == 0 && ins->es5503.auto_place_wavetables)
+          {
+            chan[c.chan + 1].wave_pos = (uint32_t)c.chan * 256;
+          }
+
+          else
+          {
+            chan[c.chan + 1].wave_pos = ins->es5503.wavePos << 8;
+          }
+
+          //chan[c.chan + 1].wave_pos = ins->es5503.wavePos << 8;
+          
           chan[c.chan + 1].osc_mode = ins->es5503.initial_osc_mode;
           chan[c.chan + 1].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
         }
