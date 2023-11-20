@@ -266,6 +266,12 @@ void DivPlatformES5503::tick(bool sysTick) {
       rWrite(0x40 + i + 1, isMuted[i] ? 0 : (temp));
     }
 
+    if (chan[i].active && !chan[i].pcm) {
+      if (chan[i].ws.tick()) {
+        updateWave(i);
+      }
+    }
+
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5503);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,(double)chipClock /** (32 + 2) / (es5503.oscsenabled + 2)*/,CHIP_FREQBASE * 130.81 * 2 / 211.0); //TODO: why freq calc is wrong?
@@ -285,12 +291,6 @@ void DivPlatformES5503::tick(bool sysTick) {
       {
         rWrite(i, chan[i].freq&0xff);
         rWrite(0x20+i, chan[i].freq>>8);
-      }
-      
-      if (chan[i].active && !chan[i].pcm) {
-        if (chan[i].ws.tick()) {
-          updateWave(i);
-        }
       }
 
       if (chan[i].keyOn) {

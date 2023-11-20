@@ -491,7 +491,11 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 
 		if ((pOsc->control & 1) || osc >= oscsenabled) //zero-fill osc buf if chan not playing or if less numb of osc is enabled
 		{
-			//memset(oscBuf[osc]->data, 0, 65536 * sizeof(short));
+			for (snum = 0; snum < samples; snum++)
+			{
+				//memset(oscBuf[osc]->data, 0, 65536 * sizeof(short));
+				oscBuf[osc]->data[oscBuf[osc]->needle++] = 0;
+			}
 		}
 	}
 

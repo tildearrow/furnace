@@ -2364,11 +2364,6 @@ void FurnaceGUI::initSystemPresets() {
       )
     }
   );
-  ENTRY(
-    "Ensoniq ES5503", {
-      CH(DIV_SYSTEM_ES5503, 1.0f, 0, "")
-    }
-  );
   if (settings.hiddenSystems) {
     ENTRY(
       "Yamaha YMU759 (MA-2)", {
@@ -2558,6 +2553,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Ensoniq ES5506 (OTTO)", {
       CH(DIV_SYSTEM_ES5506, 1.0f, 0, "channels=31")
+    }
+  );
+  ENTRY(
+    "Ensoniq ES5503", {
+      CH(DIV_SYSTEM_ES5503, 1.0f, 0, "")
     }
   );
   ENTRY(
