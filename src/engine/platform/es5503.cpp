@@ -56,15 +56,15 @@ void DivPlatformES5503::acquire(short** buf, size_t len) { //the function where 
   es5503.fill_audio_buffer(buf[0], buf[1], len);
 
   while (!writes.empty()) { //do register writes
-      QueuedWrite w=writes.front();
-      if(w.addr < 0x100)
-      {
-        es5503.write((uint8_t)w.addr,(uint8_t)w.val);
-      }
-      
-      regPool[w.addr]=w.val;
-      writes.pop();
+    QueuedWrite w=writes.front();
+    if(w.addr < 0x100)
+    {
+      es5503.write((uint8_t)w.addr,(uint8_t)w.val);
     }
+    
+    regPool[w.addr]=w.val;
+    writes.pop();
+  }
 }
 
 void DivPlatformES5503::setFlags(const DivConfig& flags) {
@@ -286,6 +286,12 @@ void DivPlatformES5503::tick(bool sysTick) {
         rWrite(i, chan[i].freq&0xff);
         rWrite(0x20+i, chan[i].freq>>8);
       }
+      
+      if (chan[i].active && !chan[i].pcm) {
+        if (chan[i].ws.tick()) {
+          updateWave(i);
+        }
+      }
 
       if (chan[i].keyOn) {
         if(chan[i].softpan_channel)
@@ -347,12 +353,6 @@ void DivPlatformES5503::tick(bool sysTick) {
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
-    }
-
-    if (chan[i].active && !chan[i].pcm) {
-      if (chan[i].ws.tick()) {
-        updateWave(i);
-      }
     }
   }
 }
