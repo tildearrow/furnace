@@ -457,7 +457,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0xd5); //odd channels are left, even are right
           w->writeC(0);
           w->writeC(0xa0+i); 
-          w->writeC((i & 1) ? (1 << 4) : 0); //0=left, 1=right
+          w->writeC((i & 1) ? ((1 << 4) | 1) : 1); //0<<4=left, 1<<4=right, 1=disable oscillator
         }
 
         w->writeC(0xd5); //write to num_osc register and enable all 32 oscillators

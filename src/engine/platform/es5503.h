@@ -90,9 +90,6 @@ class DivPlatformES5503: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
-    //unsigned short getPan(int chan);
-    //DivChannelModeHints getModeHints(int chan);
-    //DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -114,6 +111,7 @@ class DivPlatformES5503: public DivDispatch {
     void quit();
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
+    bool isSampleLoaded(int index, int sample);
 };
 
 #endif

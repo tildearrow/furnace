@@ -5084,7 +5084,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::Text("Wavetable/sample position");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          P(CWSliderScalar("Wavetable/sample position",ImGuiDataType_U16,&ins->es5503.wavePos,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,int_to_char_array(ins->es5503.wavePos * 256)));
+          P(CWSliderScalar("Wavetable/sample position",ImGuiDataType_U8,&ins->es5503.wavePos,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,int_to_char_array(ins->es5503.wavePos * 256)));
 
           P(ImGui::Checkbox("Virtual softpan channel",&ins->es5503.softpan_virtual_channel));
           if (ImGui::IsItemHovered()) {
