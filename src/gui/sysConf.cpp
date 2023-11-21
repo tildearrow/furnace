@@ -2242,10 +2242,31 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_VBOY: {
+      bool romMode=flags.getBool("romMode",false);
+
+      ImGui::Text("Waveform storage mode:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("Dynamic (unconfirmed)",!romMode)) {
+        romMode=false;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Static (up to 5 waves)",romMode)) {
+        romMode=true;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("romMode",romMode);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
-    case DIV_SYSTEM_VBOY:
     case DIV_SYSTEM_GA20:
     case DIV_SYSTEM_PV1000:
     case DIV_SYSTEM_VERA:
