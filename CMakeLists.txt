@@ -556,9 +556,11 @@ src/engine/platform/sound/tia/AudioChannel.cpp
 src/engine/platform/sound/tia/Audio.cpp
 
 src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
+src/engine/platform/sound/ymfm/ymfm_opl.cpp
 src/engine/platform/sound/ymfm/ymfm_opm.cpp
 src/engine/platform/sound/ymfm/ymfm_opn.cpp
 src/engine/platform/sound/ymfm/ymfm_opz.cpp
+src/engine/platform/sound/ymfm/ymfm_pcm.cpp
 src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 
 src/engine/platform/sound/lynx/Mikey.cpp
