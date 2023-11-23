@@ -376,11 +376,11 @@ void DivPlatformOPL::acquire_ymfm2(short** buf, size_t len) {
   }
 }
 
-// TODO: ADPCM
 void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
   ymfm::ymfm_output<1> out;
 
   ymfm::y8950::fm_engine* fme=fm_ymfm8950->debug_fm_engine();
+  ymfm::adpcm_b_engine* abe=fm_ymfm8950->debug_adpcm_b_engine();
   ymfm::fm_channel<ymfm::opl_registers_base<1>>* fmChan[9];
 
   for (int i=0; i<9; i++) {
@@ -411,10 +411,12 @@ void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
       oscBuf[8]->data[oscBuf[8]->needle++]=CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767);
       oscBuf[9]->data[oscBuf[9]->needle++]=CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767);
       oscBuf[10]->data[oscBuf[10]->needle++]=CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767);
+      oscBuf[11]->data[oscBuf[11]->needle++]=CLAMP(abe->get_last_out(0),-32768,32767);
     } else {
       for (int i=0; i<9; i++) {
         oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
       }
+      oscBuf[9]->data[oscBuf[9]->needle++]=CLAMP(abe->get_last_out(0),-32768,32767);
     }
   }
 }
@@ -459,10 +461,9 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
       buf[5][h]=0;
     }
 
-    // TODO: fix 4-op view
     if (properDrums) {
       for (int i=0; i<16; i++) {
-        unsigned char ch=outChanMap[i];
+        unsigned char ch=(i<12 && chan[i&(~1)].fourOp)?outChanMap[i^1]:outChanMap[i];
         if (ch==255) continue;
         int chOut=fmChan[ch]->debug_output(0);
         if (chOut==0) {
