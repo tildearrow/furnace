@@ -23,7 +23,12 @@
 #include "../dispatch.h"
 #include "../../fixedQueue.h"
 #include "../../../extern/opl/opl3.h"
+extern "C" {
+#include "../../../extern/YM3812-LLE/fmopl2.h"
+#include "../../../extern/YMF262-LLE/fmopl3.h"
+}
 #include "sound/ymfm/ymfm_adpcm.h"
+#include "sound/ymfm/ymfm_opl.h"
 
 class DivOPLAInterface: public ymfm::ymfm_interface {
   public:
@@ -68,7 +73,7 @@ class DivPlatformOPL: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     FixedQueue<QueuedWrite,2048> writes;
-    opl3_chip fm;
+    
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     DivOPLAInterface iface;
@@ -93,10 +98,24 @@ class DivPlatformOPL: public DivDispatch {
 
     unsigned char lfoValue;
 
-    bool useYMFM, update4OpMask, pretendYMU, downsample, compatPan;
+    // 0: Nuked-OPL3
+    // 1: ymfm
+    // 2: YM3812-LLE/YMF262-LLE
+    unsigned char emuCore;
+
+    bool update4OpMask, pretendYMU, downsample, compatPan;
   
     short oldWrites[512];
     short pendingWrites[512];
+
+    // chips
+    opl3_chip fm;
+    ymfm::ym3526* fm_ymfm1;
+    ymfm::ym3812* fm_ymfm2;
+    ymfm::y8950* fm_ymfm8950;
+    ymfm::ymf262* fm_ymfm3;
+    fmopl2_t fm_lle2;
+    fmopl3_t fm_lle3;
 
     int octave(int freq);
     int toFreq(int freq);
@@ -106,8 +125,13 @@ class DivPlatformOPL: public DivDispatch {
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
+    void acquire_nukedLLE2(short** buf, size_t len);
+    void acquire_nukedLLE3(short** buf, size_t len);
     void acquire_nuked(short** buf, size_t len);
-    //void acquire_ymfm(short** buf, size_t len);
+    void acquire_ymfm3(short** buf, size_t len);
+    void acquire_ymfm8950(short** buf, size_t len);
+    void acquire_ymfm2(short** buf, size_t len);
+    void acquire_ymfm1(short** buf, size_t len);
   
   public:
     void acquire(short** buf, size_t len);
@@ -124,7 +148,7 @@ class DivPlatformOPL: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
-    void setYMFM(bool use);
+    void setCore(unsigned char which);
     void setOPLType(int type, bool drums);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);

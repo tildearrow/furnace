@@ -292,12 +292,252 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
   }
 }
 
+void DivPlatformOPL::acquire_ymfm1(short** buf, size_t len) {
+  ymfm::ymfm_output<1> out;
+
+  ymfm::ym3526::fm_engine* fme=fm_ymfm1->debug_fm_engine();
+  ymfm::fm_channel<ymfm::opl_registers_base<1>>* fmChan[9];
+
+  for (int i=0; i<9; i++) {
+    fmChan[i]=fme->debug_channel(i);
+  }
+
+  for (size_t h=0; h<len; h++) {
+    if (!writes.empty() && --delay<0) {
+      delay=1;
+      QueuedWrite& w=writes.front();
+
+      fm_ymfm1->write(0,w.addr);
+      fm_ymfm1->write(1,w.val);
+
+      regPool[w.addr&511]=w.val;
+      writes.pop();
+    }
+
+    fm_ymfm1->generate(&out,1);
+
+    buf[0][h]=out.data[0];
+
+    if (properDrums) {
+      for (int i=0; i<7; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+      }
+      oscBuf[7]->data[oscBuf[7]->needle++]=CLAMP(fmChan[7]->debug_special1()<<2,-32768,32767);
+      oscBuf[8]->data[oscBuf[8]->needle++]=CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767);
+      oscBuf[9]->data[oscBuf[9]->needle++]=CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767);
+      oscBuf[10]->data[oscBuf[10]->needle++]=CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767);
+    } else {
+      for (int i=0; i<9; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+      }
+    }
+  }
+}
+
+void DivPlatformOPL::acquire_ymfm2(short** buf, size_t len) {
+  ymfm::ymfm_output<1> out;
+
+  ymfm::ym3812::fm_engine* fme=fm_ymfm2->debug_fm_engine();
+  ymfm::fm_channel<ymfm::opl_registers_base<2>>* fmChan[9];
+
+  for (int i=0; i<9; i++) {
+    fmChan[i]=fme->debug_channel(i);
+  }
+
+  for (size_t h=0; h<len; h++) {
+    if (!writes.empty() && --delay<0) {
+      delay=1;
+      QueuedWrite& w=writes.front();
+
+      fm_ymfm2->write(0,w.addr);
+      fm_ymfm2->write(1,w.val);
+
+      regPool[w.addr&511]=w.val;
+      writes.pop();
+    }
+
+    fm_ymfm2->generate(&out,1);
+
+    buf[0][h]=out.data[0];
+
+    if (properDrums) {
+      for (int i=0; i<7; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+      }
+      oscBuf[7]->data[oscBuf[7]->needle++]=CLAMP(fmChan[7]->debug_special1()<<2,-32768,32767);
+      oscBuf[8]->data[oscBuf[8]->needle++]=CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767);
+      oscBuf[9]->data[oscBuf[9]->needle++]=CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767);
+      oscBuf[10]->data[oscBuf[10]->needle++]=CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767);
+    } else {
+      for (int i=0; i<9; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+      }
+    }
+  }
+}
+
+// TODO: ADPCM
+void DivPlatformOPL::acquire_ymfm8950(short** buf, size_t len) {
+  ymfm::ymfm_output<1> out;
+
+  ymfm::y8950::fm_engine* fme=fm_ymfm8950->debug_fm_engine();
+  ymfm::fm_channel<ymfm::opl_registers_base<1>>* fmChan[9];
+
+  for (int i=0; i<9; i++) {
+    fmChan[i]=fme->debug_channel(i);
+  }
+
+  for (size_t h=0; h<len; h++) {
+    if (!writes.empty() && --delay<0) {
+      delay=1;
+      QueuedWrite& w=writes.front();
+
+      fm_ymfm8950->write(0,w.addr);
+      fm_ymfm8950->write(1,w.val);
+
+      regPool[w.addr&511]=w.val;
+      writes.pop();
+    }
+
+    fm_ymfm8950->generate(&out,1);
+
+    buf[0][h]=out.data[0];
+
+    if (properDrums) {
+      for (int i=0; i<7; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+      }
+      oscBuf[7]->data[oscBuf[7]->needle++]=CLAMP(fmChan[7]->debug_special1()<<2,-32768,32767);
+      oscBuf[8]->data[oscBuf[8]->needle++]=CLAMP(fmChan[8]->debug_special1()<<2,-32768,32767);
+      oscBuf[9]->data[oscBuf[9]->needle++]=CLAMP(fmChan[8]->debug_special2()<<2,-32768,32767);
+      oscBuf[10]->data[oscBuf[10]->needle++]=CLAMP(fmChan[7]->debug_special2()<<2,-32768,32767);
+    } else {
+      for (int i=0; i<9; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fmChan[i]->debug_output(0)<<2,-32768,32767);
+      }
+    }
+  }
+}
+
+void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
+  ymfm::ymfm_output<4> out;
+
+  ymfm::ymf262::fm_engine* fme=fm_ymfm3->debug_fm_engine();
+  ymfm::fm_channel<ymfm::opl_registers_base<3>>* fmChan[18];
+
+  for (int i=0; i<18; i++) {
+    fmChan[i]=fme->debug_channel(i);
+  }
+
+  for (size_t h=0; h<len; h++) {
+    if (!writes.empty() && --delay<0) {
+      delay=1;
+      QueuedWrite& w=writes.front();
+
+      fm_ymfm3->write((w.addr&0x100)?2:0,w.addr);
+      fm_ymfm3->write(1,w.val);
+
+      regPool[w.addr&511]=w.val;
+      writes.pop();
+    }
+
+    fm_ymfm3->generate(&out,1);
+
+    buf[0][h]=out.data[0]>>1;
+    if (totalOutputs>1) {
+      buf[1][h]=out.data[1]>>1;
+    }
+    if (totalOutputs>2) {
+      buf[2][h]=out.data[2]>>1;
+    }
+    if (totalOutputs>3) {
+      buf[3][h]=out.data[3]>>1;
+    }
+    if (totalOutputs==6) {
+      // placeholder for OPL4
+      buf[4][h]=0;
+      buf[5][h]=0;
+    }
+
+    // TODO: fix 4-op view
+    if (properDrums) {
+      for (int i=0; i<16; i++) {
+        unsigned char ch=outChanMap[i];
+        if (ch==255) continue;
+        int chOut=fmChan[ch]->debug_output(0);
+        if (chOut==0) {
+          chOut=fmChan[ch]->debug_output(1);
+        }
+        if (chOut==0) {
+          chOut=fmChan[ch]->debug_output(2);
+        }
+        if (chOut==0) {
+          chOut=fmChan[ch]->debug_output(3);
+        }
+        if (i==15) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut,-32768,32767);
+        } else {
+          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<1,-32768,32767);
+        }
+      }
+      oscBuf[16]->data[oscBuf[16]->needle++]=CLAMP(fmChan[7]->debug_special2()<<1,-32768,32767);
+      oscBuf[17]->data[oscBuf[17]->needle++]=CLAMP(fmChan[8]->debug_special1()<<1,-32768,32767);
+      oscBuf[18]->data[oscBuf[18]->needle++]=CLAMP(fmChan[8]->debug_special2()<<1,-32768,32767);
+      oscBuf[19]->data[oscBuf[19]->needle++]=CLAMP(fmChan[7]->debug_special1()<<1,-32768,32767);
+    } else {
+      for (int i=0; i<18; i++) {
+        unsigned char ch=outChanMap[i];
+        if (ch==255) continue;
+        int chOut=fmChan[ch]->debug_output(0);
+        if (chOut==0) {
+          chOut=fmChan[ch]->debug_output(1);
+        }
+        if (chOut==0) {
+          chOut=fmChan[ch]->debug_output(2);
+        }
+        if (chOut==0) {
+          chOut=fmChan[ch]->debug_output(3);
+        }
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<1,-32768,32767);
+      }
+    }
+  }
+}
+
+void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
+}
+
+void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
+}
+
 void DivPlatformOPL::acquire(short** buf, size_t len) {
-  //if (useYMFM) {
-  //  acquire_ymfm(buf,len);
-  //} else {
+  if (emuCore==2) { // LLE
+    switch (chipType) {
+      case 1: case 2: case 8950:
+        acquire_nukedLLE2(buf,len);
+        break;
+      case 3: case 759:
+        acquire_nukedLLE3(buf,len);
+        break;
+    }
+  } else if (emuCore==1) { // ymfm
+    switch (chipType) {
+      case 1:
+        acquire_ymfm1(buf,len);
+        break;
+      case 2:
+        acquire_ymfm2(buf,len);
+        break;
+      case 8950:
+        acquire_ymfm8950(buf,len);
+        break;
+      case 3: case 759:
+        acquire_ymfm3(buf,len);
+        break;
+    }
+  } else { // OPL3
     acquire_nuked(buf,len);
-  //}
+  }
 }
 
 double DivPlatformOPL::NOTE_ADPCMB(int note) {
@@ -1620,17 +1860,34 @@ int DivPlatformOPL::getRegisterPoolSize() {
 void DivPlatformOPL::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,512);
-  /*
-  if (useYMFM) {
-    fm_ymfm->reset();
-  }
-  */
-  if (downsample) {
-    const unsigned int downsampledRate=(unsigned int)((double)rate*round(COLOR_NTSC/72.0)/(double)chipRateBase);
-    OPL3_Reset(&fm,downsampledRate);
+  
+  const unsigned int downsampledRate=(unsigned int)((double)rate*round(COLOR_NTSC/72.0)/(double)chipRateBase);
+  
+  if (emuCore==2) {
+    // TODO: LLE reset
+  } else if (emuCore==1) {
+    switch (chipType) {
+      case 1:
+        fm_ymfm1->reset();
+        break;
+      case 2:
+        fm_ymfm2->reset();
+        break;
+      case 8950:
+        fm_ymfm8950->reset();
+        break;
+      case 3: case 759:
+        fm_ymfm3->reset();
+        break;
+    }
   } else {
-    OPL3_Reset(&fm,rate);
+    if (downsample) {
+      OPL3_Reset(&fm,downsampledRate);
+    } else {
+      OPL3_Reset(&fm,rate);
+    }
   }
+
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -1744,8 +2001,8 @@ int DivPlatformOPL::getPortaFloor(int ch) {
   return (ch>5)?12:0;
 }
 
-void DivPlatformOPL::setYMFM(bool use) {
-  useYMFM=use;
+void DivPlatformOPL::setCore(unsigned char which) {
+  emuCore=which;
 }
 
 void DivPlatformOPL::setOPLType(int type, bool drums) {
@@ -1891,11 +2148,13 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
           totalOutputs=4;
           break;
       }
-      if (downsample) {
-        const unsigned int downsampledRate=(unsigned int)((double)rate*round(COLOR_NTSC/72.0)/(double)chipRateBase);
-        OPL3_Resample(&fm,downsampledRate);
-      } else {
-        OPL3_Resample(&fm,rate);
+      if (emuCore!=1 && emuCore!=2) {
+        if (downsample) {
+          const unsigned int downsampledRate=(unsigned int)((double)rate*round(COLOR_NTSC/72.0)/(double)chipRateBase);
+          OPL3_Resample(&fm,downsampledRate);
+        } else {
+          OPL3_Resample(&fm,rate);
+        }
       }
       break;
     case 4:
@@ -1990,6 +2249,29 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, const DivConfi
   for (int i=0; i<20; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+
+  fm_ymfm1=NULL;
+  fm_ymfm2=NULL;
+  fm_ymfm8950=NULL;
+  fm_ymfm3=NULL;
+
+  if (emuCore==1) {
+    switch (chipType) {
+      case 1:
+        fm_ymfm1=new ymfm::ym3526(iface);
+        break;
+      case 2:
+        fm_ymfm2=new ymfm::ym3812(iface);
+        break;
+      case 8950:
+        fm_ymfm8950=new ymfm::y8950(iface);
+        break;
+      case 3: case 759:
+        fm_ymfm3=new ymfm::ymf262(iface);
+        break;
+    }
+  }
+
   setFlags(flags);
 
   if (adpcmChan>=0) {
@@ -2011,6 +2293,22 @@ void DivPlatformOPL::quit() {
   if (adpcmChan>=0) {
     delete adpcmB;
     delete[] adpcmBMem;
+  }
+  if (fm_ymfm1!=NULL) {
+    delete fm_ymfm1;
+    fm_ymfm1=NULL;
+  }
+  if (fm_ymfm2!=NULL) {
+    delete fm_ymfm2;
+    fm_ymfm2=NULL;
+  }
+  if (fm_ymfm8950!=NULL) {
+    delete fm_ymfm8950;
+    fm_ymfm8950=NULL;
+  }
+  if (fm_ymfm3!=NULL) {
+    delete fm_ymfm3;
+    fm_ymfm3=NULL;
   }
 }
 
