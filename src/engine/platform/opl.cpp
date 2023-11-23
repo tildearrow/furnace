@@ -506,6 +506,71 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
 }
 
 void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
+    while (true) {
+      lastSH=fm_lle2.o_sh;
+      lastSY=fm_lle2.o_sy;
+
+      // register control
+      if (waitingBusy) {
+        fm_lle2.input.cs=0;
+        fm_lle2.input.rd=0;
+        fm_lle2.input.wr=1;
+        fm_lle2.input.address=0;
+      } else {
+        if (!writes.empty()) {
+          QueuedWrite& w=writes.front();
+
+          if (w.addrOrVal) {
+            regPool[w.addr&511]=w.val;
+            fm_lle2.input.cs=0;
+            fm_lle2.input.rd=1;
+            fm_lle2.input.wr=0;
+            fm_lle2.input.address=1;
+            fm_lle2.input.data_i=w.val;
+            writes.pop();
+          } else {
+            fm_lle2.input.cs=0;
+            fm_lle2.input.rd=1;
+            fm_lle2.input.wr=0;
+            fm_lle2.input.address=0;
+            fm_lle2.input.data_i=w.addr;
+            w.addrOrVal=true;
+          }
+
+          waitingBusy=true;
+          delay=144;
+        }
+      }
+
+      fm_lle2.input.mclk=1;
+      FMOPL2_Clock(&fm_lle2);
+      fm_lle2.input.mclk=0;
+      FMOPL2_Clock(&fm_lle2);
+
+      if (waitingBusy) {
+        if (--delay<=0) waitingBusy=false;
+      }
+
+      if (fm_lle2.o_sy && !lastSY) {
+        dacVal>>=1;
+        dacVal|=(fm_lle2.o_mo&1)<<17;
+      }
+
+      if (!fm_lle2.o_sh && lastSH) {
+        int e=(dacVal>>15)&7;
+        int m=(dacVal>>5)&1023;
+        m-=512;
+        dacOut=(m<<e)>>1;
+        //logV("dacVal: %.8X",dacVal);
+        //dacVal=0;
+        //dacVal&=(1U<<18);
+        break;
+      }
+    }
+
+    buf[0][h]=dacOut;
+  }
 }
 
 void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
@@ -1861,11 +1926,29 @@ int DivPlatformOPL::getRegisterPoolSize() {
 void DivPlatformOPL::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,512);
+
+  dacVal=0;
+  dacOut=0;
+  lastSH=false;
+  lastSY=false;
+  waitingBusy=true;
   
   const unsigned int downsampledRate=(unsigned int)((double)rate*round(COLOR_NTSC/72.0)/(double)chipRateBase);
   
   if (emuCore==2) {
-    // TODO: LLE reset
+    // reset 2
+    memset(&fm_lle2,0,sizeof(fmopl2_t));
+    fm_lle2.input.ic=0;
+    for (int i=0; i<80; i++) {
+      fm_lle2.input.mclk=1;
+      FMOPL2_Clock(&fm_lle2);
+      fm_lle2.input.mclk=0;
+      FMOPL2_Clock(&fm_lle2);
+    }
+    fm_lle2.input.ic=1;
+
+    // reset 3
+    memset(&fm_lle3,0,sizeof(fmopl3_t));
   } else if (emuCore==1) {
     switch (chipType) {
       case 1:

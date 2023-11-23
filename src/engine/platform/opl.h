@@ -73,6 +73,12 @@ class DivPlatformOPL: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     FixedQueue<QueuedWrite,2048> writes;
+
+    unsigned int dacVal;
+    int dacOut;
+    bool lastSH;
+    bool lastSY;
+    bool waitingBusy;
     
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
