@@ -331,3 +331,5 @@ typedef struct
     int data_z;
 } fmopl3_t;
 
+// modification
+void FMOPL3_Clock(fmopl3_t *chip);

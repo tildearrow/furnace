@@ -270,3 +270,5 @@ typedef struct
 
 } fmopl2_t;
 
+// modification
+void FMOPL2_Clock(fmopl2_t *chip);
