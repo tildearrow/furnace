@@ -6,7 +6,7 @@ Furnace achieves the authentic sound of videogame hardware by emulating sound ch
   - **ymfm**: default playback core. much less CPU usage than Nuked-OPM, but less accurate. recommended for users with last-gen or earlier hardware.
   - **Nuked-OPM**: default render core. much more accurate than ymfm, due to the emulator being based on an image of the die map taken from a real YM2151. very CPU heavy, only recommended for users with recent hardware.
 
-- **GYM2612 core**:
+- **YM2612 core**:
   - **Nuked-OPN2**: default core. a little lighter on the CPU than Nuked-OPM.
   - **ymfm**: same as ymfm above.
 
