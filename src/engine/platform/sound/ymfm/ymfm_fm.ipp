@@ -808,7 +808,9 @@ fm_channel<RegisterType>::fm_channel(fm_engine_base<RegisterType> &owner, uint32
 	m_op{ nullptr, nullptr, nullptr, nullptr },
 	m_regs(owner.regs()),
 	m_owner(owner),
-  m_output{ 0, 0, 0, 0 }
+  m_output{ 0, 0, 0, 0 },
+        m_special1(0),
+        m_special2(0)
 {
 }
 
@@ -1139,13 +1141,13 @@ void fm_channel<RegisterType>::output_rhythm_ch7(uint32_t phase_select, output_d
 	// and a combination of noise and the operator 13/17 phase select
 	// to compute the phase
 	uint32_t phase = (phase_select << 9) | (0xd0 >> (2 * (noise_state ^ phase_select)));
-	int32_t result = m_op[0]->compute_volume(phase, am_offset) >> rshift;
+	int32_t result = m_special1 = m_op[0]->compute_volume(phase, am_offset) >> rshift;
 
 	// Snare Drum: this uses the envelope from operator 16 (channel 7),
 	// and a combination of noise and operator 13 phase to pick a phase
 	uint32_t op13phase = m_op[0]->phase();
 	phase = (0x100 << bitfield(op13phase, 8)) ^ (noise_state << 8);
-	result += m_op[1]->compute_volume(phase, am_offset) >> rshift;
+	result += m_special2 = m_op[1]->compute_volume(phase, am_offset) >> rshift;
 	result = clamp(result, -clipmax - 1, clipmax);
 
 	// add to the output
@@ -1166,12 +1168,12 @@ void fm_channel<RegisterType>::output_rhythm_ch8(uint32_t phase_select, output_d
 	uint32_t am_offset = m_regs.lfo_am_offset(m_choffs);
 
 	// Tom Tom: this is just a single operator processed normally
-	int32_t result = m_op[0]->compute_volume(m_op[0]->phase(), am_offset) >> rshift;
+	int32_t result = m_special1 = m_op[0]->compute_volume(m_op[0]->phase(), am_offset) >> rshift;
 
 	// Top Cymbal: this uses the envelope from operator 17 (channel 8),
 	// and the operator 13/17 phase select to compute the phase
 	uint32_t phase = 0x100 | (phase_select << 9);
-	result += m_op[1]->compute_volume(phase, am_offset) >> rshift;
+	result += m_special2 = m_op[1]->compute_volume(phase, am_offset) >> rshift;
 	result = clamp(result, -clipmax - 1, clipmax);
 
 	// add to the output

@@ -489,6 +489,8 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+extern/YM3812-LLE/fmopl2.c
+extern/YMF262-LLE/fmopl3.c
 
 src/pch.cpp
 
@@ -556,9 +558,11 @@ src/engine/platform/sound/tia/AudioChannel.cpp
 src/engine/platform/sound/tia/Audio.cpp
 
 src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
+src/engine/platform/sound/ymfm/ymfm_opl.cpp
 src/engine/platform/sound/ymfm/ymfm_opm.cpp
 src/engine/platform/sound/ymfm/ymfm_opn.cpp
 src/engine/platform/sound/ymfm/ymfm_opz.cpp
+src/engine/platform/sound/ymfm/ymfm_pcm.cpp
 src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 
 src/engine/platform/sound/lynx/Mikey.cpp
