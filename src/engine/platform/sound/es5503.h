@@ -67,7 +67,7 @@ private:
 
 	int output_channels;
 	uint32_t output_rate;
-	
+
 	int32_t m_mix_buffer_right[4096 * 2];
 	int32_t m_mix_buffer_left[4096 * 2];
 
