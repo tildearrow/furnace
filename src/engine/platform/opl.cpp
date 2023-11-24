@@ -517,9 +517,12 @@ static const int cycleMapDrums[18]={
 
 void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
   int chOut[11];
+  thread_local ymfm::ymfm_output<2> aOut;
+
   for (size_t h=0; h<len; h++) {
     int curCycle=0;
     unsigned char subCycle=0;
+
     for (int i=0; i<11; i++) {
       chOut[i]=0;
     }
@@ -548,14 +551,46 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
             writes.pop();
             delay=84;
           } else {
-            fm_lle2.input.cs=0;
-            fm_lle2.input.rd=1;
-            fm_lle2.input.wr=0;
-            fm_lle2.input.address=0;
-            fm_lle2.input.data_i=w.addr;
-            w.addrOrVal=true;
-            // weird. wasn't it 12?
-            delay=24;
+            if (chipType==8950) {
+              switch (w.addr) {
+                case 8:
+                  adpcmB->write(w.addr-7,(w.val&15)|0x80);
+                  fm_lle2.input.cs=0;
+                  fm_lle2.input.rd=1;
+                  fm_lle2.input.wr=0;
+                  fm_lle2.input.address=0;
+                  fm_lle2.input.data_i=w.addr;
+                  w.addrOrVal=true;
+                  // weird. wasn't it 12?
+                  delay=24;
+                  break;
+                case 7: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 21: case 22: case 23:
+                  adpcmB->write(w.addr-7,w.val);
+                  regPool[w.addr&511]=w.val;
+                  writes.pop();
+                  delay=108;
+                  break;
+                default:
+                  fm_lle2.input.cs=0;
+                  fm_lle2.input.rd=1;
+                  fm_lle2.input.wr=0;
+                  fm_lle2.input.address=0;
+                  fm_lle2.input.data_i=w.addr;
+                  w.addrOrVal=true;
+                  // weird. wasn't it 12?
+                  delay=24;
+                  break;
+              }
+            } else {
+              fm_lle2.input.cs=0;
+              fm_lle2.input.rd=1;
+              fm_lle2.input.wr=0;
+              fm_lle2.input.address=0;
+              fm_lle2.input.data_i=w.addr;
+              w.addrOrVal=true;
+              // weird. wasn't it 12?
+              delay=24;
+            }
           }
 
           waitingBusy=true;
@@ -594,8 +629,6 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
       }
     }
 
-    buf[0][h]=dacOut;
-
     for (int i=0; i<11; i++) {
       if (i>=6 && properDrums) {
         chOut[i]<<=1;
@@ -606,6 +639,24 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
       if (chOut[i]>32767) chOut[i]=32767;
       oscBuf[i]->data[oscBuf[i]->needle++]=chOut[i];
     }
+
+    if (chipType==8950) {
+      adpcmB->clock();
+      aOut.clear();
+      adpcmB->output<2>(aOut,0);
+
+      if (!isMuted[adpcmChan]) {
+        dacOut-=aOut.data[0]>>3;
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=aOut.data[0]>>1;
+      } else {
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
+      }
+    }
+
+    if (dacOut<-32768) dacOut=-32768;
+    if (dacOut>32767) dacOut=32767;
+
+    buf[0][h]=dacOut;
   }
 }
 
