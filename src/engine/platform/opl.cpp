@@ -505,10 +505,20 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
   }
 }
 
+static const int cycleMap[18]={
+  6, 7, 8, 6, 7, 8, 0, 1, 2,
+  0, 1, 2, 3, 4, 5, 3, 4, 5,
+};
+
+static const int cycleMapDrums[18]={
+  6, 10, 8, 6, 7, 9, 0, 1, 2,
+  0, 1, 2, 3, 4, 5, 3, 4, 5,
+};
+
 void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
   int chOut[11];
   for (size_t h=0; h<len; h++) {
-    int curCycle=-9;
+    int curCycle=0;
     unsigned char subCycle=0;
     for (int i=0; i<11; i++) {
       chOut[i]=0;
@@ -561,10 +571,14 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
         if (--delay<0) waitingBusy=false;
       }
 
-      if (curCycle>=0 && curCycle<9) {
-        // TODO: this
+      if (!(++subCycle&3)) {
+        if (properDrums) {
+          chOut[cycleMapDrums[curCycle]]+=fm_lle2.op_value_debug;
+        } else {
+          chOut[cycleMap[curCycle]]+=fm_lle2.op_value_debug;
+        }
+        curCycle++;
       }
-      if (!(++subCycle&3)) curCycle++;
 
       if (fm_lle2.o_sy && !lastSY) {
         dacVal>>=1;
@@ -576,17 +590,20 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
         int m=(dacVal>>5)&1023;
         m-=512;
         dacOut=(m<<e)>>1;
-        //logV("dacVal: %.8X",dacVal);
-        //dacVal=0;
-        //dacVal&=(1U<<18);
         break;
       }
     }
 
     buf[0][h]=dacOut;
-    //buf[0][h]=((fm_lle2.op_value+0x1000)&0x1fff)-0x1000;
 
     for (int i=0; i<11; i++) {
+      if (i>=6 && properDrums) {
+        chOut[i]<<=1;
+      } else {
+        chOut[i]<<=2;
+      }
+      if (chOut[i]<-32768) chOut[i]=-32768;
+      if (chOut[i]>32767) chOut[i]=32767;
       oscBuf[i]->data[oscBuf[i]->needle++]=chOut[i];
     }
   }
