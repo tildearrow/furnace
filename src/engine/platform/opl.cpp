@@ -506,7 +506,14 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
 }
 
 void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
+  int chOut[11];
   for (size_t h=0; h<len; h++) {
+    int curCycle=-9;
+    unsigned char subCycle=0;
+    for (int i=0; i<11; i++) {
+      chOut[i]=0;
+    }
+    
     while (true) {
       lastSH=fm_lle2.o_sh;
       lastSY=fm_lle2.o_sy;
@@ -529,6 +536,7 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
             fm_lle2.input.address=1;
             fm_lle2.input.data_i=w.val;
             writes.pop();
+            delay=84;
           } else {
             fm_lle2.input.cs=0;
             fm_lle2.input.rd=1;
@@ -536,10 +544,11 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
             fm_lle2.input.address=0;
             fm_lle2.input.data_i=w.addr;
             w.addrOrVal=true;
+            // weird. wasn't it 12?
+            delay=24;
           }
 
           waitingBusy=true;
-          delay=144;
         }
       }
 
@@ -549,8 +558,13 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
       FMOPL2_Clock(&fm_lle2);
 
       if (waitingBusy) {
-        if (--delay<=0) waitingBusy=false;
+        if (--delay<0) waitingBusy=false;
       }
+
+      if (curCycle>=0 && curCycle<9) {
+        // TODO: this
+      }
+      if (!(++subCycle&3)) curCycle++;
 
       if (fm_lle2.o_sy && !lastSY) {
         dacVal>>=1;
@@ -570,6 +584,11 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
     }
 
     buf[0][h]=dacOut;
+    //buf[0][h]=((fm_lle2.op_value+0x1000)&0x1fff)-0x1000;
+
+    for (int i=0; i<11; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=chOut[i];
+    }
   }
 }
 

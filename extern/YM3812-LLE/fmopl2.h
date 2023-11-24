@@ -268,6 +268,8 @@ typedef struct
     int o_write1;
     int o_data_latch;
 
+    int op_value_debug;
+
 } fmopl2_t;
 
 // modification

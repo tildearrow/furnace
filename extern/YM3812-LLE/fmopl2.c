@@ -1392,6 +1392,8 @@ void FMOPL2_Clock(fmopl2_t *chip)
             int value = chip->fsm_out[8] ? 0 : chip->accm_value[1];
             value += add;
 
+            chip->op_value_debug = add;
+
             int sign = ((chip->accm_top & 64) != 0 && !chip->accm_clamplow) || chip->accm_clamphigh;
 
             int top_unsigned = chip->accm_top & 63;
