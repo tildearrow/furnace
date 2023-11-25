@@ -738,6 +738,7 @@ void DivPlatformES5503::reset() {
     chan[i].ws.init(NULL,256,255,false);
 
     chan[i].output = (i & 1) ? 1 : 0; //odd channels are left, even are right
+    chan[i].softpan_channel = false;
   }
 
   curChan=-1;
@@ -813,6 +814,14 @@ int DivPlatformES5503::init(DivEngine* p, int channels, int sugRate, const DivCo
   setFlags(flags);
   reset();
   return 32;
+}
+
+DivChannelPair DivPlatformES5503::getPaired(int ch) {
+  if (chan[ch].softpan_channel && !(ch&1))
+  {
+    return DivChannelPair("SoftPan",ch+1);
+  }
+  return DivChannelPair();
 }
 
 void DivPlatformES5503::quit() {

@@ -101,6 +101,7 @@ class DivPlatformES5503: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
+    DivChannelPair getPaired(int ch);
     void notifyWaveChange(int wave);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
