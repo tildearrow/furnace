@@ -2508,7 +2508,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       int x=(dragX-waveDragStart.x)*waveDragLen/MAX(1,waveDragAreaSize.x);
       if (x<0) x=0;
       if (x>=waveDragLen) x=waveDragLen-1;
-      int y=round(waveDragMax-((dragY-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)MAX(1,waveDragAreaSize.y))));
+      int y=(waveDragMax+1)-((dragY-waveDragStart.y)*(double((waveDragMax+1)-waveDragMin)/(double)MAX(1,waveDragAreaSize.y)));
       if (y>waveDragMax) y=waveDragMax;
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
