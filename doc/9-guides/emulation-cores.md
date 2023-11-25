@@ -39,7 +39,7 @@ Furnace achieves the authentic sound of videogame hardware by emulating sound ch
   - **Nuked-OPL3**: high quality OPL emulation core. slightly off due to tiny differences between OPL and OPL3, but otherwise it is good.
   - **ymfm**: lower (?) CPU usage.
   - **YM3812-LLE**: a new core written by the author of the Nuked cores. it features extremely accurate emulation.
-    - this core uses a *lot* of CPU time. not suitable for playback!
+    - this core uses a *lot* of CPU time. may not be suitable for playback!
 
 - **OPL3 core**:
   - **Nuked-OPL3**: high quality OPL emulation core.
