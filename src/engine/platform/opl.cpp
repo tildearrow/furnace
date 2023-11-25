@@ -505,11 +505,24 @@ void DivPlatformOPL::acquire_ymfm3(short** buf, size_t len) {
   }
 }
 
+static const int cycleMap[18]={
+  6, 7, 8, 6, 7, 8, 0, 1, 2,
+  0, 1, 2, 3, 4, 5, 3, 4, 5,
+};
+
+static const int cycleMapDrums[18]={
+  6, 10, 8, 6, 7, 9, 0, 1, 2,
+  0, 1, 2, 3, 4, 5, 3, 4, 5,
+};
+
 void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
   int chOut[11];
+  thread_local ymfm::ymfm_output<2> aOut;
+
   for (size_t h=0; h<len; h++) {
-    int curCycle=-9;
+    int curCycle=0;
     unsigned char subCycle=0;
+
     for (int i=0; i<11; i++) {
       chOut[i]=0;
     }
@@ -538,14 +551,46 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
             writes.pop();
             delay=84;
           } else {
-            fm_lle2.input.cs=0;
-            fm_lle2.input.rd=1;
-            fm_lle2.input.wr=0;
-            fm_lle2.input.address=0;
-            fm_lle2.input.data_i=w.addr;
-            w.addrOrVal=true;
-            // weird. wasn't it 12?
-            delay=24;
+            if (chipType==8950) {
+              switch (w.addr) {
+                case 8:
+                  adpcmB->write(w.addr-7,(w.val&15)|0x80);
+                  fm_lle2.input.cs=0;
+                  fm_lle2.input.rd=1;
+                  fm_lle2.input.wr=0;
+                  fm_lle2.input.address=0;
+                  fm_lle2.input.data_i=w.addr;
+                  w.addrOrVal=true;
+                  // weird. wasn't it 12?
+                  delay=24;
+                  break;
+                case 7: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 21: case 22: case 23:
+                  adpcmB->write(w.addr-7,w.val);
+                  regPool[w.addr&511]=w.val;
+                  writes.pop();
+                  delay=108;
+                  break;
+                default:
+                  fm_lle2.input.cs=0;
+                  fm_lle2.input.rd=1;
+                  fm_lle2.input.wr=0;
+                  fm_lle2.input.address=0;
+                  fm_lle2.input.data_i=w.addr;
+                  w.addrOrVal=true;
+                  // weird. wasn't it 12?
+                  delay=24;
+                  break;
+              }
+            } else {
+              fm_lle2.input.cs=0;
+              fm_lle2.input.rd=1;
+              fm_lle2.input.wr=0;
+              fm_lle2.input.address=0;
+              fm_lle2.input.data_i=w.addr;
+              w.addrOrVal=true;
+              // weird. wasn't it 12?
+              delay=24;
+            }
           }
 
           waitingBusy=true;
@@ -561,10 +606,14 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
         if (--delay<0) waitingBusy=false;
       }
 
-      if (curCycle>=0 && curCycle<9) {
-        // TODO: this
+      if (!(++subCycle&3)) {
+        if (properDrums) {
+          chOut[cycleMapDrums[curCycle]]+=fm_lle2.op_value_debug;
+        } else {
+          chOut[cycleMap[curCycle]]+=fm_lle2.op_value_debug;
+        }
+        curCycle++;
       }
-      if (!(++subCycle&3)) curCycle++;
 
       if (fm_lle2.o_sy && !lastSY) {
         dacVal>>=1;
@@ -576,23 +625,144 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
         int m=(dacVal>>5)&1023;
         m-=512;
         dacOut=(m<<e)>>1;
-        //logV("dacVal: %.8X",dacVal);
-        //dacVal=0;
-        //dacVal&=(1U<<18);
         break;
       }
     }
 
-    buf[0][h]=dacOut;
-    //buf[0][h]=((fm_lle2.op_value+0x1000)&0x1fff)-0x1000;
-
     for (int i=0; i<11; i++) {
+      if (i>=6 && properDrums) {
+        chOut[i]<<=1;
+      } else {
+        chOut[i]<<=2;
+      }
+      if (chOut[i]<-32768) chOut[i]=-32768;
+      if (chOut[i]>32767) chOut[i]=32767;
       oscBuf[i]->data[oscBuf[i]->needle++]=chOut[i];
     }
+
+    if (chipType==8950) {
+      adpcmB->clock();
+      aOut.clear();
+      adpcmB->output<2>(aOut,0);
+
+      if (!isMuted[adpcmChan]) {
+        dacOut-=aOut.data[0]>>3;
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=aOut.data[0]>>1;
+      } else {
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
+      }
+    }
+
+    if (dacOut<-32768) dacOut=-32768;
+    if (dacOut>32767) dacOut=32767;
+
+    buf[0][h]=dacOut;
   }
 }
 
 void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
+  int chOut[20];
+
+  for (size_t h=0; h<len; h++) {
+    //int curCycle=0;
+    //unsigned char subCycle=0;
+
+    for (int i=0; i<20; i++) {
+      chOut[i]=0;
+    }
+    
+    while (true) {
+      lastSH=fm_lle3.o_smpac;
+      lastSH2=fm_lle3.o_smpbd;
+      lastSY=fm_lle3.o_sy;
+
+      // register control
+      if (waitingBusy) {
+        if (delay<15) {
+          fm_lle3.input.cs=0;
+          fm_lle3.input.rd=0;
+          fm_lle3.input.wr=1;
+          fm_lle3.input.address=0;
+        }
+      } else {
+        if (!writes.empty()) {
+          QueuedWrite& w=writes.front();
+
+          if (w.addrOrVal) {
+            regPool[w.addr&511]=w.val;
+            fm_lle3.input.cs=0;
+            fm_lle3.input.rd=1;
+            fm_lle3.input.wr=0;
+            fm_lle3.input.address=(w.addr&0x100)?3:1;
+            fm_lle3.input.data_i=w.val;
+            writes.pop();
+            delay=16;
+          } else {
+            fm_lle3.input.cs=0;
+            fm_lle3.input.rd=1;
+            fm_lle3.input.wr=0;
+            fm_lle3.input.address=(w.addr&0x100)?2:0;
+            fm_lle3.input.data_i=w.addr&0xff;
+            w.addrOrVal=true;
+            // weird. wasn't it 12?
+            delay=16;
+          }
+
+          waitingBusy=true;
+        }
+      }
+
+      fm_lle3.input.mclk=1;
+      FMOPL3_Clock(&fm_lle3);
+      fm_lle3.input.mclk=0;
+      FMOPL3_Clock(&fm_lle3);
+
+      if (waitingBusy) {
+        if (--delay<0) waitingBusy=false;
+      }
+
+      /*if (!(++subCycle&3)) {
+        // TODO: chan osc
+        curCycle++;
+      }*/
+
+      if (fm_lle3.o_sy && !lastSY) {
+        dacVal>>=1;
+        dacVal|=(fm_lle3.o_doab&1)<<17;
+        dacVal2>>=1;
+        dacVal2|=(fm_lle3.o_docd&1)<<17;
+      }
+
+      if (!fm_lle3.o_smpbd && lastSH2) {
+        dacOut3[0]=((dacVal>>1)&0xffff)-0x8000;
+        dacOut3[2]=((dacVal2>>1)&0xffff)-0x8000;
+      }
+
+      if (!fm_lle3.o_smpac && lastSH) {
+        dacOut3[1]=((dacVal>>1)&0xffff)-0x8000;
+        dacOut3[3]=((dacVal2>>1)&0xffff)-0x8000;
+        break;
+      }
+    }
+
+    for (int i=0; i<20; i++) {
+      if (i>=15 && properDrums) {
+        chOut[i]<<=1;
+      } else {
+        chOut[i]<<=2;
+      }
+      if (chOut[i]<-32768) chOut[i]=-32768;
+      if (chOut[i]>32767) chOut[i]=32767;
+      oscBuf[i]->data[oscBuf[i]->needle++]=chOut[i];
+    }
+
+    for (int i=0; i<MIN(4,totalOutputs); i++) {
+      if (dacOut3[i]<-32768) dacOut3[i]=-32768;
+      if (dacOut3[i]>32767) dacOut3[i]=32767;
+
+      buf[i][h]=dacOut3[i];
+    }
+  }
 }
 
 void DivPlatformOPL::acquire(short** buf, size_t len) {
@@ -1947,27 +2117,43 @@ void DivPlatformOPL::reset() {
   memset(regPool,0,512);
 
   dacVal=0;
+  dacVal2=0;
   dacOut=0;
+  dacOut3[0]=0;
+  dacOut3[1]=0;
+  dacOut3[2]=0;
+  dacOut3[3]=0;
   lastSH=false;
+  lastSH2=false;
   lastSY=false;
   waitingBusy=true;
   
   const unsigned int downsampledRate=(unsigned int)((double)rate*round(COLOR_NTSC/72.0)/(double)chipRateBase);
   
   if (emuCore==2) {
-    // reset 2
-    memset(&fm_lle2,0,sizeof(fmopl2_t));
-    fm_lle2.input.ic=0;
-    for (int i=0; i<80; i++) {
-      fm_lle2.input.mclk=1;
-      FMOPL2_Clock(&fm_lle2);
-      fm_lle2.input.mclk=0;
-      FMOPL2_Clock(&fm_lle2);
+    if (chipType==3 || chipType==759 || chipType==4) {
+      // reset 3
+      memset(&fm_lle3,0,sizeof(fmopl3_t));
+      fm_lle3.input.ic=0;
+      for (int i=0; i<400; i++) {
+        fm_lle3.input.mclk=1;
+        FMOPL3_Clock(&fm_lle3);
+        fm_lle3.input.mclk=0;
+        FMOPL3_Clock(&fm_lle3);
+      }
+      fm_lle3.input.ic=1;
+    } else {
+      // reset 2
+      memset(&fm_lle2,0,sizeof(fmopl2_t));
+      fm_lle2.input.ic=0;
+      for (int i=0; i<80; i++) {
+        fm_lle2.input.mclk=1;
+        FMOPL2_Clock(&fm_lle2);
+        fm_lle2.input.mclk=0;
+        FMOPL2_Clock(&fm_lle2);
+      }
+      fm_lle2.input.ic=1;
     }
-    fm_lle2.input.ic=1;
-
-    // reset 3
-    memset(&fm_lle3,0,sizeof(fmopl3_t));
   } else if (emuCore==1) {
     switch (chipType) {
       case 1:

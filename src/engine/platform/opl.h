@@ -75,8 +75,11 @@ class DivPlatformOPL: public DivDispatch {
     FixedQueue<QueuedWrite,2048> writes;
 
     unsigned int dacVal;
+    unsigned int dacVal2;
     int dacOut;
+    int dacOut3[4];
     bool lastSH;
+    bool lastSH2;
     bool lastSY;
     bool waitingBusy;
     
