@@ -81,6 +81,7 @@ const char* aboutLine[]={
   "Burnt Fishy",
   "CaptainMalware",
   "Clingojam",
+  "ControlleronaHanger",
   "Crisps",
   "DeMOSic",
   "DevEd",
