@@ -678,7 +678,7 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
 
       // register control
       if (waitingBusy) {
-        if (delay<62) {
+        if (delay<15) {
           fm_lle3.input.cs=0;
           fm_lle3.input.rd=0;
           fm_lle3.input.wr=1;
@@ -696,7 +696,7 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
             fm_lle3.input.address=(w.addr&0x100)?3:1;
             fm_lle3.input.data_i=w.val;
             writes.pop();
-            delay=64;
+            delay=16;
           } else {
             fm_lle3.input.cs=0;
             fm_lle3.input.rd=1;
@@ -705,7 +705,7 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
             fm_lle3.input.data_i=w.addr&0xff;
             w.addrOrVal=true;
             // weird. wasn't it 12?
-            delay=64;
+            delay=16;
           }
 
           waitingBusy=true;
