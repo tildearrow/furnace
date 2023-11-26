@@ -407,7 +407,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
           chan[c.chan + 1].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
         }
 
-        if(chan[c.chan].wave_pos != chan[c.chan].previous_sample_pos || chan[c.chan].sample != chan[c.chan].previous_sample || chan[c.chan].insChanged)
+        if(chan[c.chan].wave_pos != chan[c.chan].previous_sample_pos || chan[c.chan].sample != chan[c.chan].previous_sample || chan[c.chan].insChanged) //TODO: make it rewrite sample at each note on only if it's instrument preview
         {
           updateWave(c.chan);
         }
