@@ -2643,8 +2643,8 @@ void FurnaceGUI::drawSettings() {
         bool capitalMenuBarB=settings.capitalMenuBar;
         if (ImGui::Checkbox("Capitalize menu bar",&capitalMenuBarB)) {
           settings.capitalMenuBar=capitalMenuBarB;
+          settingsChanged=true;
         }
-        settingsChanged=true;
 
         bool classicChipOptionsB=settings.classicChipOptions;
         if (ImGui::Checkbox("Display add/configure/change/remove chip menus in File menu",&classicChipOptionsB)) {
