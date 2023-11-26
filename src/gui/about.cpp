@@ -120,6 +120,7 @@ const char* aboutLine[]={
   "niffuM",
   "<nk>",
   "NyaongI",
+  "Pale Moon",
   "PichuMario",
   "potatoTeto",
   "psxdominator",
