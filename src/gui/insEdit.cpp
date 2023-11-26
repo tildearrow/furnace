@@ -400,7 +400,7 @@ char* int_to_char_array(int num)
 {
   static char numberstring[50];
   memset(numberstring, 0, 50);
-  sprintf(numberstring, "%d", num);
+  snprintf(numberstring, 50, "%d", num);
   return numberstring;
 }
 
@@ -5074,8 +5074,6 @@ void FurnaceGUI::drawInsEdit() {
             swap=false;
             ins->es5503.initial_osc_mode=OSC_MODE_SWAP;
           }
-
-          int wavelen = ins->es5503.waveLen;
           ImGui::Text("Wavetable/sample length");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
