@@ -351,7 +351,7 @@ void es5503_core::fill_audio_buffer(short** buf, size_t len) //fill audio buffer
 		memset(my_buf[ii], 0, len * sizeof(buf[0][0]));
 	}
 
-	uint32_t osc, snum, i;
+	uint32_t osc, snum;
 	uint32_t ramptr;
 	uint32_t samples = len;
 
