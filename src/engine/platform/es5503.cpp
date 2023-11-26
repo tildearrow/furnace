@@ -34,6 +34,8 @@ uint8_t ES5503_wave_lengths_convert_back(uint32_t len)
       return j;
     }
   }
+
+  return 0;
 }
 
 //#define rWrite(a,v) pendingWrites[a]=v;
