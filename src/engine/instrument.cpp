@@ -758,7 +758,7 @@ void DivInstrument::writeFeatureE3(SafeWriter* w) {
   FEATURE_BEGIN("E3");
   
   w->writeC((uint8_t)es5503.wavePos);
-  w->writeC((es5503.initial_osc_mode << 6)|(es5503.softpan_virtual_channel << 5)|(es5503.phase_reset_on_start << 4)|(es5503.waveLen << 1)|(es5503.auto_place_wavetables));
+  w->writeC((es5503.initial_osc_mode << 6)|((uint8_t)es5503.softpan_virtual_channel << 5)|((uint8_t)es5503.phase_reset_on_start << 4)|(es5503.waveLen << 1)|((uint8_t)es5503.auto_place_wavetables));
 
   FEATURE_END;
 }
