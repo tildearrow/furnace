@@ -26,7 +26,7 @@ public:
 	void write(uint8_t offset, uint8_t data);
 	uint8_t read_byte(uint32_t offset);
 	void halt_osc(int onum, int type, uint32_t *accumulator, int resshift);
-	void fill_audio_buffer(short* left, short* right, size_t len);
+	void fill_audio_buffer(short** buf, size_t len);
 
 	unsigned char* sampleMem;
     size_t sampleMemLen;
@@ -68,10 +68,9 @@ private:
 	int output_channels;
 	uint32_t output_rate;
 
-	int32_t m_mix_buffer_right[4096 * 2];
-	int32_t m_mix_buffer_left[4096 * 2];
-
 	DivDispatchOscBuffer* oscBuf[32];
+
+	short my_buf[8][4096 * 2];
 
 	void put_in_buffer(int32_t value, uint32_t pos, uint32_t chan);
 };

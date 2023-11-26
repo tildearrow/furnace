@@ -63,7 +63,7 @@ const char** DivPlatformES5503::getRegisterSheet() {
 }
 
 void DivPlatformES5503::acquire(short** buf, size_t len) { //the function where we actually fill the fucking audio buffer!!!!!
-  es5503.fill_audio_buffer(buf[0], buf[1], len);
+  es5503.fill_audio_buffer(buf, len);
 
   while (!writes.empty()) { //do register writes
     QueuedWrite w=writes.front();
@@ -764,7 +764,7 @@ void DivPlatformES5503::reset() {
 }
 
 int DivPlatformES5503::getOutputCount() {
-  return mono ? 1 : 2;
+  return mono ? 1 : 8;
 }
 
 bool DivPlatformES5503::keyOffAffectsArp(int ch) {

@@ -52,19 +52,19 @@ static constexpr int    resshifts[8] = { 9, 10, 11, 12, 13, 14, 15, 16 };
 
 void es5503_core::es5503_core_init(uint32_t clock, DivDispatchOscBuffer** oscBuf, uint8_t oscsenabled)
 {
-  memset(this, 0, sizeof(*this));
-    // The number here is the number of oscillators to enable -1 times 2.  You can never
-	// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
-  this->oscsenabled = oscsenabled;
-  this->clock = clock;
-  output_rate = (clock / 8) / (oscsenabled + 2);
-  
-  sampleMemLen = 65536 << 1;
-  sampleMem = new unsigned char[sampleMemLen];
-  memset(sampleMem, 0, sampleMemLen * sizeof(unsigned char));
+	memset(this, 0, sizeof(*this));
+		// The number here is the number of oscillators to enable -1 times 2.  You can never
+		// have zero oscilllators enabled.  So a value of 62 enables all 32 oscillators.
+	this->oscsenabled = oscsenabled;
+	this->clock = clock;
+	output_rate = (clock / 8) / (oscsenabled + 2);
 
-  output_channels = 8; //fixed value because real chip seems to have 4 pins for addressing the output to 16 different channels; however, the datasheet suggests to use only 8.
-  //Thus MSB can be used to switch memory banks, which is used in Ensoniq SQ80 synthesizer. Apple IIGS uses only one bank, though.
+	sampleMemLen = 65536 << 1;
+	sampleMem = new unsigned char[sampleMemLen];
+	memset(sampleMem, 0, sampleMemLen * sizeof(unsigned char));
+
+	output_channels = 8; //fixed value because real chip seems to have 4 pins for addressing the output to 16 different channels; however, the datasheet suggests to use only 8.
+	//Thus MSB can be used to switch memory banks, which is used in Ensoniq SQ80 synthesizer. Apple IIGS uses only one bank, though.
 
 	for(int i = 0; i < oscsenabled; i++)
 	{
@@ -84,11 +84,7 @@ void es5503_core::es5503_core_free()
 
 void es5503_core::update_num_osc(DivDispatchOscBuffer** oscBuf, uint8_t oscsenabled)
 {
-	//this->oscsenabled = oscsenabled;
-	//this->clock = clock;
 	output_rate = (clock / 8) / (oscsenabled + 2);
-
-	output_channels = oscsenabled;
 
 	for(int i = 0; i < 32; i++)
 	{
@@ -343,32 +339,18 @@ void es5503_core::put_in_buffer(int32_t value, uint32_t pos, uint32_t chan)
 	ES5503Osc *pOsc = &oscillators[chan];
 	uint8_t output = (pOsc->control >> 4) & (output_channels - 1);
 
-	if(mono)
-	{
-		m_mix_buffer_left[pos] += value / 8;
-		m_mix_buffer_right[pos] += value / 8;
-		return;
-	}
+	if (mono) output = 0;
 
-	if(output == 0)
-	{
-		m_mix_buffer_left[pos] += value / 8;
-		return;
-	}
-
-	if(output == 1)
-	{
-		m_mix_buffer_right[pos] += value / 8;
-		return;
-	}
+	my_buf[output][pos] += value / 8;
 }
 
-void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fill audio buffer
+void es5503_core::fill_audio_buffer(short** buf, size_t len) //fill audio buffer
 {
-	memset(m_mix_buffer_right, 0, 4096 * 2 * sizeof(int32_t));
-	memset(m_mix_buffer_left, 0, 4096 * 2 * sizeof(int32_t));
+	for(int ii = 0; ii < (mono ? 1 : 8); ii++)
+	{
+		memset(my_buf[ii], 0, len * sizeof(buf[0][0]));
+	}
 
-    //int32_t *mixp;
 	uint32_t osc, snum, i;
 	uint32_t ramptr;
 	uint32_t samples = len;
@@ -461,15 +443,7 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 					}
 				}
 
-				if(osc & 1)
-				{
-					oscBuf[osc]->data[oscBuf[osc]->needle++] = curr_sample / 2;
-				}
-
-				else
-				{
-					oscBuf[osc]->data[oscBuf[osc]->needle++] = curr_sample / 2;
-				}
+				oscBuf[osc]->data[oscBuf[osc]->needle++] = curr_sample / 2;
 
 				// if oscillator halted, we've got no more samples to generate
 				if (pOsc->control & 1)
@@ -499,12 +473,8 @@ void es5503_core::fill_audio_buffer(short* left, short* right, size_t len) //fil
 		}
 	}
 
-	uint32_t mixp = 0;
-
-	for (i = 0; i < len; i++)
+	for(int ii = 0; ii < (mono ? 1 : 8); ii++)
 	{
-		left[i] = m_mix_buffer_left[mixp];
-		right[i] = m_mix_buffer_right[mixp];
-		mixp++;
+		memcpy(buf[ii], my_buf[ii], len * sizeof(buf[0][0]));
 	}
 }
