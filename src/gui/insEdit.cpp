@@ -383,7 +383,6 @@ const int kslMap[4]={
   0, 2, 1, 3
 };
 
-const int ES5503_wave_lengths[DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX] = {256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
 const char* ES5503_wave_lengths_string[DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX] = {"256", "512", "1024", "2048", "4096", "8192", "16384", "32768"};
 
 // do not change these!
