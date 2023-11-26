@@ -4915,6 +4915,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.ScaleAllSizes(dpiScale);
 
   ImGui::GetStyle()=sty;
+  
+  updateSampleTex=true;
 
   ImGui::GetIO().ConfigInputTrickleEventQueue=settings.eventDelay;
   ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly=settings.moveWindowTitle;
