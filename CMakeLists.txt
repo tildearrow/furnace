@@ -491,6 +491,7 @@ extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
 extern/YM3812-LLE/fmopl2.c
 extern/YMF262-LLE/fmopl3.c
+extern/YMF276-LLE/fmopn2.c
 
 src/pch.cpp
 

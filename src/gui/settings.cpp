@@ -127,7 +127,8 @@ const char* arcadeCores[]={
 
 const char* ym2612Cores[]={
   "Nuked-OPN2",
-  "ymfm"
+  "ymfm",
+  "YMF276-LLE"
 };
 
 const char* snCores[]={
@@ -1499,10 +1500,10 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("YM2612");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2)) settingsChanged=true;
+          if (ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,3)) settingsChanged=true;
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,2)) settingsChanged=true;
+          if (ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,3)) settingsChanged=true;
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -3811,7 +3812,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.audioRate,8000,384000);
   clampSetting(settings.audioChans,1,16);
   clampSetting(settings.arcadeCore,0,1);
-  clampSetting(settings.ym2612Core,0,1);
+  clampSetting(settings.ym2612Core,0,2);
   clampSetting(settings.snCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
@@ -3821,7 +3822,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.opl2Core,0,2);
   clampSetting(settings.opl3Core,0,2);
   clampSetting(settings.arcadeCoreRender,0,1);
-  clampSetting(settings.ym2612CoreRender,0,1);
+  clampSetting(settings.ym2612CoreRender,0,2);
   clampSetting(settings.snCoreRender,0,1);
   clampSetting(settings.nesCoreRender,0,1);
   clampSetting(settings.fdsCoreRender,0,1);

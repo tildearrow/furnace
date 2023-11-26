@@ -70,10 +70,18 @@ void DivPlatformVERA::acquire(short** buf, size_t len) {
         if (!isMuted[16]) {
           // TODO stereo samples once DivSample has a support for it
           if (chan[16].pcm.depth16) {
-            tmp_l=s->data16[chan[16].pcm.pos];
+            if (chan[16].pcm.pos<s->samples) {
+              tmp_l=s->data16[chan[16].pcm.pos];
+            } else {
+              tmp_l=0;
+            }
             tmp_r=tmp_l;
           } else {
-            tmp_l=s->data8[chan[16].pcm.pos];
+            if (chan[16].pcm.pos<s->samples) {
+              tmp_l=s->data8[chan[16].pcm.pos];
+            } else {
+              tmp_l=0;
+            }
             tmp_r=tmp_l;
           }
           if (!(chan[16].pan&1)) tmp_l=0;

@@ -217,6 +217,7 @@ TAParamResult pVersion(String) {
   printf("- Nuked-PSG (modified version) by nukeykt (GPLv2)\n");
   printf("- YM3812-LLE by nukeykt (GPLv2)\n");
   printf("- YMF262-LLE by nukeykt (GPLv2)\n");
+  printf("- YMF276-LLE by nukeykt (GPLv2)\n");
   printf("- ymfm by Aaron Giles (BSD 3-clause)\n");
   printf("- adpcm by superctr (public domain)\n");
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");
