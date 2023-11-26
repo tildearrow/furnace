@@ -116,6 +116,7 @@ const char* aboutLine[]={
   "Martin Demsky",
   "MelonadeM",
   "Miker",
+  "NeoWar",
   "nicco1690",
   "niffuM",
   "<nk>",
