@@ -29,7 +29,7 @@ uint8_t ES5503_wave_lengths_convert_back(uint32_t len)
 {
   for(int j = 0; j < DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX; j++)
   {
-    if(len == ES5503_wave_lengths[j])
+    if((int)len == ES5503_wave_lengths[j])
     {
       return j;
     }
@@ -138,14 +138,14 @@ void DivPlatformES5503::updateWave(int ch)
 
     int i=0;
 
-    for (i=0; i<my_min(s->length8, chan[ch].wave_size); i++)
+    for (i=0; i<(int)my_min(s->length8, chan[ch].wave_size); i++)
     {
       uint8_t val = (uint8_t)s->data8[i] + 0x80;
       if (val == 0) val = 1;
       writeSampleMemoryByte(chan[ch].wave_pos + i, val); //avoid zeros so wave can loop and does not halt
     }
 
-    for (; i < my_min(s->length8 + 8, chan[ch].wave_size); i++) //write at least 8 zeros if wave size allows to guarantee oneshot samples are halted if they are shorter than wave size
+    for (; i < (int)my_min(s->length8 + 8, chan[ch].wave_size); i++) //write at least 8 zeros if wave size allows to guarantee oneshot samples are halted if they are shorter than wave size
     {
       writeSampleMemoryByte(chan[ch].wave_pos + i, 0);
     }
@@ -409,7 +409,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
           chan[c.chan + 1].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
         }
 
-        if(chan[c.chan].wave_pos != chan[c.chan].previous_sample_pos || chan[c.chan].sample != chan[c.chan].previous_sample || chan[c.chan].insChanged) //TODO: make it rewrite sample at each note on only if it's instrument preview
+        if(chan[c.chan].wave_pos != (unsigned int)chan[c.chan].previous_sample_pos || chan[c.chan].sample != (int)chan[c.chan].previous_sample || chan[c.chan].insChanged) //TODO: make it rewrite sample at each note on only if it's instrument preview
         {
           updateWave(c.chan);
         }

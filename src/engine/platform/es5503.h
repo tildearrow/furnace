@@ -67,10 +67,10 @@ class DivPlatformES5503: public DivDispatch {
   bool antiClickEnabled;
   bool mono;
   struct QueuedWrite {
-    unsigned char addr;
-    unsigned char val;
+    unsigned int addr;
+    unsigned int val;
     QueuedWrite(): addr(0), val(0) {}
-    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+    QueuedWrite(unsigned int a, unsigned int v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,1024> writes;
   unsigned char lastPan;
