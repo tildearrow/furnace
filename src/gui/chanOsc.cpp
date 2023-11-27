@@ -169,6 +169,11 @@ void FurnaceGUI::drawChanOsc() {
         if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
           centerSettingReset=true;
         }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("Randomize phase on note",&chanOscRandomPhase)) {
+        }
         ImGui::EndTable();
       }
 
@@ -513,7 +518,7 @@ void FurnaceGUI::drawChanOsc() {
                     phase=(0.5+(atan2(dft[1],dft[0])/(2.0*M_PI)));
 
                     if (fft->waveCorr) {
-                      fft->needle-=phase*fft->waveLen;
+                      fft->needle-=(phase+(fft->phaseOff*2))*fft->waveLen;
                     }
                   }
                 }
@@ -773,6 +778,10 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::EndTable();
 
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          chanOscOptions=!chanOscOptions;
+        }
+        if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+          NOTIFY_LONG_HOLD;
           chanOscOptions=!chanOscOptions;
         }
       }
