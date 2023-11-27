@@ -550,6 +550,13 @@ void FurnaceGUI::drawPattern() {
 
         if (e->keyHit[i]) {
           keyHit1[i]=1.0f;
+
+          if (chanOscRandomPhase) {
+            chanOscChan[i].phaseOff=(float)rand()/(float)RAND_MAX;
+          } else {
+            chanOscChan[i].phaseOff=0.0f;
+          }
+
           if (settings.channelFeedbackStyle==1) {
             keyHit[i]=0.2;
             if (!muted) {

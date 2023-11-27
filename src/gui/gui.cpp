@@ -6513,6 +6513,7 @@ bool FurnaceGUI::init() {
   chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
   chanOscOptions=e->getConfBool("chanOscOptions",false);
   chanOscNormalize=e->getConfBool("chanOscNormalize",false);
+  chanOscRandomPhase=e->getConfBool("chanOscRandomPhase",false);
   chanOscTextFormat=e->getConfString("chanOscTextFormat","%c");
   chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
   chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
@@ -7066,6 +7067,7 @@ void FurnaceGUI::commitState() {
   e->setConf("chanOscWaveCorr",chanOscWaveCorr);
   e->setConf("chanOscOptions",chanOscOptions);
   e->setConf("chanOscNormalize",chanOscNormalize);
+  e->setConf("chanOscRandomPhase",chanOscRandomPhase);
   e->setConf("chanOscTextFormat",chanOscTextFormat);
   e->setConf("chanOscColorR",chanOscColor.x);
   e->setConf("chanOscColorG",chanOscColor.y);
@@ -7563,6 +7565,7 @@ FurnaceGUI::FurnaceGUI():
   updateChanOscGradTex(true),
   chanOscUseGrad(false),
   chanOscNormalize(false),
+  chanOscRandomPhase(false),
   chanOscTextFormat("%c"),
   chanOscColor(1.0f,1.0f,1.0f,1.0f),
   chanOscTextColor(1.0f,1.0f,1.0f,0.75f),
