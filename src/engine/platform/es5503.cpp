@@ -753,10 +753,11 @@ void DivPlatformES5503::renderSamples(int sysID) {
       if(length < 0) break;
 
       int actualLength = length + 8; //8 more bytes for trailing zeros
+      int start_pos = 0;
 
       if (actualLength < minsize || actualLength >= maxsize) goto end;
 
-      int start_pos = is_enough_continuous_memory(actualLength);
+      start_pos = is_enough_continuous_memory(actualLength);
 
       if(start_pos == -1)
       {
