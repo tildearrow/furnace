@@ -728,7 +728,7 @@ size_t DivPlatformES5503::getSampleMemUsage(int index) {
 
 void DivPlatformES5503::renderSamples(int sysID) {
   memset(es5503.sampleMem,0,getSampleMemCapacity());
-  memset(sampleOffsets,0,256*sizeof(unsigned int));
+  memset(sampleOffsets,0,256*sizeof(uint32_t));
   memset(sampleLoaded,0,256*sizeof(bool));
   memset(free_block,1,256*sizeof(bool));
   memset(sampleLengths,0,256*sizeof(uint32_t));
