@@ -731,7 +731,7 @@ void DivPlatformES5503::renderSamples(int sysID) {
   memset(sampleOffsets,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
   memset(free_block,1,256*sizeof(bool));
-  memset(sampleLengths,0,256*sizeof(uint8_t));
+  memset(sampleLengths,0,256*sizeof(uint32_t));
 
   for(int size = 7; size > 0; size--) //first we place the longest samples then descend to shorter ones (bc placement limitations for longer samples)
   {
