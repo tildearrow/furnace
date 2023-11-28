@@ -370,7 +370,8 @@ int DivEngine::minVGMVersion(DivSystem which) {
 
 // define systems like:
 // sysDefs[DIV_SYSTEM_ID]=new DivSysDef(
-//   "Name", "Name (japanese, optional)", fileID, fileID_DMF, channels, isFM, isSTD, vgmVersion,
+//   "Name", "Name (japanese, optional)", fileID, fileID_DMF, channels, isFM, isSTD, vgmVersion, waveWidth, waveHeight,
+//   "Description",
 //   {"Channel Names", ...},
 //   {"Channel Short Names", ...},
 //   {chanTypes, ...},
@@ -618,7 +619,7 @@ void DivEngine::registerSystems() {
 
   // this chip uses YMZ ADPCM, but the emulator uses ADPCM-B because I got it wrong back then.
   sysDefs[DIV_SYSTEM_YMU759]=new DivSysDef(
-    "Yamaha YMU759 (MA-2)", NULL, 0x01, 0x01, 17, true, false, 0, false, (1U<<DIV_SAMPLE_DEPTH_YMZ_ADPCM)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B),
+    "Yamaha YMU759 (MA-2)", NULL, 0x01, 0x01, 17, true, false, 0, false, (1U<<DIV_SAMPLE_DEPTH_YMZ_ADPCM)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B), 0, 0,
     "a chip which found its way inside mobile phones in the 2000's.\nas proprietary as it is, it passed away after losing to MP3 in the mobile hardware battle.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"        }, // name
     {"1",         "2",         "3",         "4",         "5",         "6",         "7",         "8",         "9",         "10",         "11",         "12",         "13",         "14",         "15",         "16",         "PCM"        }, // short
@@ -627,19 +628,19 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_GENESIS]=new DivSysDef(
-    "Sega Genesis/Mega Drive", "セガメガドライブ", 0x02, 0x02, 10, true, true, 0, true, 0,
+    "Sega Genesis/Mega Drive", "セガメガドライブ", 0x02, 0x02, 10, true, true, 0, true, 0, 0, 0,
     "<COMPOUND SYSTEM!>",
     {}, {}, {}, {}
   );
 
   sysDefs[DIV_SYSTEM_GENESIS_EXT]=new DivSysDef(
-    "Sega Genesis Extended Channel 3", NULL, 0x42, 0x42, 13, true, true, 0, true, 0,
+    "Sega Genesis Extended Channel 3", NULL, 0x42, 0x42, 13, true, true, 0, true, 0, 0, 0,
     "<COMPOUND SYSTEM!>",
     {}, {}, {}, {}
   );
 
   sysDefs[DIV_SYSTEM_SMS]=new DivSysDef(
-    "TI SN76489", NULL, 0x03, 0x03, 4, false, true, 0x150, false, 0,
+    "TI SN76489", NULL, 0x03, 0x03, 4, false, true, 0x150, false, 0, 0, 0,
     "a square/noise sound chip found on the Sega Master System, ColecoVision, Tandy, TI's own 99/4A and a few other places.",
     {"Square 1", "Square 2", "Square 3", "Noise"},
     {"S1", "S2", "S3", "NO"},
@@ -652,13 +653,13 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SMS_OPLL]=new DivSysDef(
-    "Sega Master System + FM Expansion", NULL, 0x43, 0x43, 13, true, true, 0, true, 0,
+    "Sega Master System + FM Expansion", NULL, 0x43, 0x43, 13, true, true, 0, true, 0, 0, 0,
     "<COMPOUND SYSTEM!>",
     {}, {}, {}, {}
   );
 
   sysDefs[DIV_SYSTEM_GB]=new DivSysDef(
-    "Game Boy", NULL, 0x04, 0x04, 4, false, true, 0x161, false, 0,
+    "Game Boy", NULL, 0x04, 0x04, 4, false, true, 0x161, false, 0, 32, 16,
     "the most popular portable game console of the era.",
     {"Pulse 1", "Pulse 2", "Wavetable", "Noise"},
     {"S1", "S2", "WA", "NO"},
@@ -675,7 +676,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PCE]=new DivSysDef(
-    "PC Engine/TurboGrafx-16", NULL, 0x05, 0x05, 6, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "PC Engine/TurboGrafx-16", NULL, 0x05, 0x05, 6, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 32, 32,
     "an '80s game console with a wavetable sound chip, popular in Japan.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"},
@@ -692,7 +693,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_NES]=new DivSysDef(
-    "NES (Ricoh 2A03)", NULL, 0x06, 0x06, 5, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_1BIT_DPCM)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "NES (Ricoh 2A03)", NULL, 0x06, 0x06, 5, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_1BIT_DPCM)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "also known as Famicom in Japan, it's the most well-known game console of the '80s.",
     {"Pulse 1", "Pulse 2", "Triangle", "Noise", "DPCM"},
     {"S1", "S2", "TR", "NO", "DMC"},
@@ -714,19 +715,19 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_NES_VRC7]=new DivSysDef(
-    "NES + Konami VRC7", NULL, 0x46, 0x46, 11, true, true, 0, true, 0,
+    "NES + Konami VRC7", NULL, 0x46, 0x46, 11, true, true, 0, true, 0, 0, 0,
     "<COMPOUND SYSTEM!>",
     {}, {}, {}, {}
   );
 
   sysDefs[DIV_SYSTEM_NES_FDS]=new DivSysDef(
-    "Famicom Disk System", NULL, 0, 0x86, 6, false, true, 0, true, 0,
+    "Famicom Disk System", NULL, 0, 0x86, 6, false, true, 0, true, 0, 0, 0,
     "<COMPOUND SYSTEM!>",
     {}, {}, {}, {}
   );
 
   sysDefs[DIV_SYSTEM_C64_6581]=new DivSysDef(
-    "Commodore 64 (6581)", NULL, 0x47, 0x47, 3, false, true, 0, false, 0,
+    "Commodore 64 (6581)", NULL, 0x47, 0x47, 3, false, true, 0, false, 0, 0, 0,
     "this computer is powered by the SID chip, which had synthesizer features like a filter and ADSR.",
     {"Channel 1", "Channel 2", "Channel 3"},
     {"CH1", "CH2", "CH3"},
@@ -738,7 +739,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_C64_8580]=new DivSysDef(
-    "Commodore 64 (8580)", NULL, 0x07, 0x07, 3, false, true, 0, false, 0,
+    "Commodore 64 (8580)", NULL, 0x07, 0x07, 3, false, true, 0, false, 0, 0, 0,
     "this computer is powered by the SID chip, which had synthesizer features like a filter and ADSR.\nthis is the newer revision of the chip.",
     {"Channel 1", "Channel 2", "Channel 3"},
     {"CH1", "CH2", "CH3"},
@@ -750,13 +751,13 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_ARCADE]=new DivSysDef(
-    "DefleCade", NULL, 0x08, 0x08, 13, true, false, 0, true, 0,
+    "DefleCade", NULL, 0x08, 0x08, 13, true, false, 0, true, 0, 0, 0,
     "<COMPOUND SYSTEM!>",
     {}, {}, {}, {}
   );
 
   sysDefs[DIV_SYSTEM_YM2610]=new DivSysDef(
-    "Neo Geo CD", NULL, 0x09, 0x09, 13, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Neo Geo CD", NULL, 0x09, 0x09, 13, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "like Neo Geo, but lacking the ADPCM-B channel since they couldn't connect the pins.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6"},
     {"F1", "F2", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"},
@@ -768,7 +769,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610_EXT]=new DivSysDef(
-    "Neo Geo CD Extended Channel 2", NULL, 0x49, 0x49, 16, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Neo Geo CD Extended Channel 2", NULL, 0x49, 0x49, 16, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "like Neo Geo, but lacking the ADPCM-B channel since they couldn't connect the pins.\nthis one is in Extended Channel mode, which turns the second FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6"},
     {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"},
@@ -781,7 +782,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_AY8910]=new DivSysDef(
-    "AY-3-8910", NULL, 0x80, 0, 3, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "AY-3-8910", NULL, 0x80, 0, 3, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "this chip is everywhere! ZX Spectrum, MSX, Amstrad CPC, Intellivision, Vectrex...\nthe discovery of envelope bass helped it beat the SN76489 with ease.",
     {"PSG 1", "PSG 2", "PSG 3"},
     {"S1", "S2", "S3"},
@@ -793,7 +794,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_AMIGA]=new DivSysDef(
-    "Amiga", NULL, 0x81, 0, 4, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Amiga", NULL, 0x81, 0, 4, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 256,
     "a computer from the '80s with full sampling capabilities, giving it a sound ahead of its time.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
@@ -810,7 +811,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2151]=new DivSysDef(
-    "Yamaha YM2151 (OPM)", NULL, 0x82, 0, 8, true, false, 0x150, false, 0,
+    "Yamaha YM2151 (OPM)", NULL, 0x82, 0, 8, true, false, 0x150, false, 0, 0, 0,
     "this was Yamaha's first integrated FM chip.\nit was used in several synthesizers, computers and arcade boards.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"},
@@ -822,7 +823,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2612]=new DivSysDef(
-    "Yamaha YM2612 (OPN2)", NULL, 0x83, 0, 6, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Yamaha YM2612 (OPN2)", NULL, 0x83, 0, 6, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"},
     {"F1", "F2", "F3", "F4", "F5", "F6"},
@@ -834,7 +835,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_TIA]=new DivSysDef(
-    "Atari 2600", NULL, 0x84, 0, 2, false, true, 0, false, 0,
+    "Atari 2600", NULL, 0x84, 0, 2, false, true, 0, false, 0, 0, 0,
     "it's a challenge to make music on this chip which barely has musical capabilities...",
     {"Channel 1", "Channel 2"},
     {"CH1", "CH2"},
@@ -846,7 +847,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SAA1099]=new DivSysDef(
-    "Philips SAA1099", NULL, 0x97, 0, 6, false, true, 0x171, false, 0,
+    "Philips SAA1099", NULL, 0x97, 0, 6, false, true, 0x171, false, 0, 0, 0,
     "supposedly an upgrade from the AY-3-8910, this was present on the Creative Music System (Game Blaster) and SAM Coupé.",
     {"PSG 1", "PSG 2", "PSG 3", "PSG 4", "PSG 5", "PSG 6"},
     {"S1", "S2", "S3", "S4", "S5", "S6"},
@@ -862,7 +863,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_AY8930]=new DivSysDef(
-    "Microchip AY8930", NULL, 0x9a, 0, 3, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Microchip AY8930", NULL, 0x9a, 0, 3, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "an improved version of the AY-3-8910 with a bigger frequency range, duty cycles, configurable noise and per-channel envelopes!",
     {"PSG 1", "PSG 2", "PSG 3"},
     {"S1", "S2", "S3"},
@@ -874,7 +875,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_VIC20]=new DivSysDef(
-    "Commodore VIC-20", NULL, 0x85, 0, 4, false, true, 0, false, 0,
+    "Commodore VIC-20", NULL, 0x85, 0, 4, false, true, 0, false, 0, 0, 0,
     "Commodore's successor to the PET.\nits square wave channels are more than just square...",
     {"Low", "Mid", "High", "Noise"},
     {"LO", "MID", "HI", "NO"},
@@ -885,7 +886,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PET]=new DivSysDef(
-    "Commodore PET", NULL, 0x86, 0, 1, false, true, 0, false, 0,
+    "Commodore PET", NULL, 0x86, 0, 1, false, true, 0, false, 0, 0, 0,
     "one channel of 1-bit wavetable which is better (and worse) than the PC Speaker.",
     {"Wave"},
     {"PET"},
@@ -896,7 +897,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SNES]=new DivSysDef(
-    "SNES", NULL, 0x87, 0, 8, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_BRR,
+    "SNES", NULL, 0x87, 0, 8, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_BRR, 0, 16,
     "FM? nah... samples! Nintendo's answer to Sega.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -937,7 +938,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_VRC6]=new DivSysDef(
-    "Konami VRC6", NULL, 0x88, 0, 3, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Konami VRC6", NULL, 0x88, 0, 3, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "an expansion chip for the Famicom, featuring a quirky sawtooth channel.",
     {"VRC6 1", "VRC6 2", "VRC6 Saw"},
     {"V1", "V2", "VS"},
@@ -951,7 +952,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPLL]=new DivSysDef(
-    "Yamaha YM2413 (OPLL)", NULL, 0x89, 0, 9, true, false, 0x150, false, 0,
+    "Yamaha YM2413 (OPLL)", NULL, 0x89, 0, 9, true, false, 0x150, false, 0, 0, 0,
     "cost-reduced version of the OPL with 16 patches and only one of them is user-configurable.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"},
@@ -963,7 +964,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_FDS]=new DivSysDef(
-    "Famicom Disk System (chip)", NULL, 0x8a, 0, 1, false, true, 0x161, false, 0,
+    "Famicom Disk System (chip)", NULL, 0x8a, 0, 1, false, true, 0x161, false, 0, 64, 64,
     "a disk drive for the Famicom which also contains one wavetable channel.",
     {"FDS"},
     {"FDS"},
@@ -981,7 +982,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_MMC5]=new DivSysDef(
-    "MMC5", NULL, 0x8b, 0, 3, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "MMC5", NULL, 0x8b, 0, 3, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "an expansion chip for the Famicom, featuring a little-known PCM channel.",
     {"Pulse 1", "Pulse 2", "PCM"},
     {"S1", "S2", "PCM"},
@@ -994,7 +995,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_N163]=new DivSysDef(
-    "Namco 163", NULL, 0x8c, 0, 8, false, true, 0, false, 0,
+    "Namco 163", NULL, 0x8c, 0, 8, false, true, 0, false, 0, 0, 16,
     "an expansion chip for the Famicom, with full wavetable.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1016,7 +1017,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2203]=new DivSysDef(
-    "Yamaha YM2203 (OPN)", NULL, 0x8d, 0, 6, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Yamaha YM2203 (OPN)", NULL, 0x8d, 0, 6, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)",
     {"FM 1", "FM 2", "FM 3", "PSG 1", "PSG 2", "PSG 3"},
     {"F1", "F2", "F3", "S1", "S2", "S3"},
@@ -1028,7 +1029,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2203_EXT]=new DivSysDef(
-    "Yamaha YM2203 (OPN) Extended Channel 3", NULL, 0xb6, 0, 9, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Yamaha YM2203 (OPN) Extended Channel 3", NULL, 0xb6, 0, 9, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "PSG 1", "PSG 2", "PSG 3"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "S1", "S2", "S3"},
@@ -1041,7 +1042,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2203_CSM]=new DivSysDef(
-    "Yamaha YM2203 (OPN) CSM", NULL, 0xc3, 0, 10, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Yamaha YM2203 (OPN) CSM", NULL, 0xc3, 0, 10, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nCSM blah blah",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "CSM Timer", "PSG 1", "PSG 2", "PSG 3"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "CSM", "S1", "S2", "S3"},
@@ -1054,7 +1055,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2608]=new DivSysDef(
-    "Yamaha YM2608 (OPNA)", NULL, 0x8e, 0, 16, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Yamaha YM2608 (OPNA)", NULL, 0x8e, 0, 16, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
@@ -1066,7 +1067,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2608_EXT]=new DivSysDef(
-    "Yamaha YM2608 (OPNA) Extended Channel 3", NULL, 0xb7, 0, 19, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Yamaha YM2608 (OPNA) Extended Channel 3", NULL, 0xb7, 0, 19, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
@@ -1079,7 +1080,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2608_CSM]=new DivSysDef(
-    "Yamaha YM2608 (OPNA) CSM", NULL, 0xc4, 0, 20, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Yamaha YM2608 (OPNA) CSM", NULL, 0xc4, 0, 20, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nCSM blah blah",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "CSM Timer", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "CSM", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
@@ -1092,7 +1093,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL]=new DivSysDef(
-    "Yamaha YM3526 (OPL)", NULL, 0x8f, 0, 9, true, false, 0x151, false, 0,
+    "Yamaha YM3526 (OPL)", NULL, 0x8f, 0, 9, true, false, 0x151, false, 0, 0, 0,
     "OPN, but what if you only had two operators, no stereo, no detune and a lower ADSR parameter range?",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"},
@@ -1104,7 +1105,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL2]=new DivSysDef(
-    "Yamaha YM3812 (OPL2)", NULL, 0x90, 0, 9, true, false, 0x151, false, 0,
+    "Yamaha YM3812 (OPL2)", NULL, 0x90, 0, 9, true, false, 0x151, false, 0, 0, 0,
     "OPL, but what if you had more waveforms to choose than the normal sine?",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"},
@@ -1116,7 +1117,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL3]=new DivSysDef(
-    "Yamaha YMF262 (OPL3)", NULL, 0x91, 0, 18, true, false, 0x151, false, 0,
+    "Yamaha YMF262 (OPL3)", NULL, 0x91, 0, 18, true, false, 0x151, false, 0, 0, 0,
     "OPL2, but what if you had twice the channels, 4-op mode, stereo and even more waveforms?",
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"},
@@ -1129,7 +1130,7 @@ void DivEngine::registerSystems() {
 
   // TODO: add 12-bit and 16-bit big endian formats
   sysDefs[DIV_SYSTEM_MULTIPCM]=new DivSysDef(
-    "MultiPCM", NULL, 0x92, 0, 28, false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT),
+    "MultiPCM", NULL, 0x92, 0, 28, false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
     "how many channels of PCM do you want?\nMultiPCM: yes",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24", "Channel 25", "Channel 26", "Channel 27", "Channel 28"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28"},
@@ -1138,7 +1139,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PCSPKR]=new DivSysDef(
-    "PC Speaker", NULL, 0x93, 0, 1, false, true, 0, false, 0,
+    "PC Speaker", NULL, 0x93, 0, 1, false, true, 0, false, 0, 0, 0,
     "good luck! you get one square and no volume control.",
     {"Square"},
     {"SQ"},
@@ -1147,7 +1148,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PONG]=new DivSysDef(
-    "Pong", NULL, 0xfc, 0, 1, false, true, 0, false, 0,
+    "Pong", NULL, 0xfc, 0, 1, false, true, 0, false, 0, 0, 0,
     "please don't use this chip. it was added as a joke.",
     {"Square"},
     {"SQ"},
@@ -1156,7 +1157,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_POKEY]=new DivSysDef(
-    "POKEY", NULL, 0x94, 0, 4, false, true, 0x161, false, 0,
+    "POKEY", NULL, 0x94, 0, 4, false, true, 0x161, false, 0, 0, 0,
     "TIA, but better and more flexible.\nused in the Atari 8-bit family of computers (400/800/XL/XE).",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
@@ -1171,7 +1172,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_RF5C68]=new DivSysDef(
-    "Ricoh RF5C68", NULL, 0x95, 0, 8, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Ricoh RF5C68", NULL, 0x95, 0, 8, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "this is like SNES' sound chip but without interpolation and the rest of nice bits.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1181,7 +1182,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SWAN]=new DivSysDef(
-    "WonderSwan", NULL, 0x96, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "WonderSwan", NULL, 0x96, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 32, 16,
     "developed by the makers of the Game Boy and the Virtual Boy...",
     {"Wave", "Wave/PCM", "Wave/Sweep", "Wave/Noise"},
     {"CH1", "CH2", "CH3", "CH4"},
@@ -1198,7 +1199,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPZ]=new DivSysDef(
-    "Yamaha YM2414 (OPZ)", NULL, 0x98, 0, 8, true, false, 0, false, 0,
+    "Yamaha YM2414 (OPZ)", NULL, 0x98, 0, 8, true, false, 0, false, 0, 0, 0,
     "like OPM, but with more waveforms, fixed frequency mode and totally... undocumented.\nused in the Yamaha TX81Z and some other synthesizers.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"},
@@ -1212,7 +1213,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_POKEMINI]=new DivSysDef(
-    "Pokémon Mini", NULL, 0x99, 0, 1, false, true, 0, false, 0,
+    "Pokémon Mini", NULL, 0x99, 0, 1, false, true, 0, false, 0, 0, 0,
     "this one is like PC Speaker but has duty cycles.",
     {"Pulse"},
     {"P"},
@@ -1221,7 +1222,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM]=new DivSysDef(
-    "SegaPCM", NULL, 0x9b, 0, 16, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "SegaPCM", NULL, 0x9b, 0, 16, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "used in some Sega arcade boards (like OutRun), and usually paired with a YM2151.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
@@ -1233,7 +1234,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_VBOY]=new DivSysDef(
-    "Virtual Boy", NULL, 0x9c, 0, 6, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Virtual Boy", NULL, 0x9c, 0, 6, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 32, 64,
     "a console which failed to sell well due to its headache-inducing features.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Noise"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "NO"},
@@ -1251,7 +1252,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_VRC7]=new DivSysDef(
-    "Konami VRC7", NULL, 0x9d, 0, 6, true, false, 0x151, false, 0,
+    "Konami VRC7", NULL, 0x9d, 0, 6, true, false, 0x151, false, 0, 0, 0,
     "like OPLL, but even more cost reductions applied. three less FM channels, and no drums mode...",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"},
     {"F1", "F2", "F3", "F4", "F5", "F6"},
@@ -1263,7 +1264,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610B]=new DivSysDef(
-    "Yamaha YM2610B (OPNB2)", NULL, 0x9e, 0, 16, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Yamaha YM2610B (OPNB2)", NULL, 0x9e, 0, 16, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
@@ -1275,7 +1276,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SFX_BEEPER]=new DivSysDef(
-    "ZX Spectrum Beeper", NULL, 0x9f, 0, 6, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "ZX Spectrum Beeper", NULL, 0x9f, 0, 6, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "the ZX Spectrum only had a basic beeper capable of...\n...a bunch of thin pulses and tons of other interesting stuff!\nFurnace provides a thin pulse system.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"},
@@ -1289,7 +1290,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2612_EXT]=new DivSysDef(
-    "Yamaha YM2612 (OPN2) Extended Channel 3", NULL, 0xa0, 0, 9, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Yamaha YM2612 (OPN2) Extended Channel 3", NULL, 0xa0, 0, 9, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6"},
@@ -1302,7 +1303,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2612_CSM]=new DivSysDef(
-    "Yamaha YM2612 (OPN2) CSM", NULL, 0xc1, 0, 10, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Yamaha YM2612 (OPN2) CSM", NULL, 0xc1, 0, 10, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis one includes CSM mode control for special effects on Channel 3.",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "CSM Timer"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "CSM"},
@@ -1315,7 +1316,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SCC]=new DivSysDef(
-    "Konami SCC", NULL, 0xa1, 0, 5, false, true, 0x161, false, 0,
+    "Konami SCC", NULL, 0xa1, 0, 5, false, true, 0x161, false, 0, 32, 256,
     "a wavetable chip made by Konami for use with the MSX.\nthe last channel shares its wavetable with the previous one though.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5"},
     {"CH1", "CH2", "CH3", "CH4", "CH5"},
@@ -1326,7 +1327,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL_DRUMS]=new DivSysDef(
-    "Yamaha YM3526 (OPL) with drums", NULL, 0xa2, 0, 11, true, false, 0x151, false, 0,
+    "Yamaha YM3526 (OPL) with drums", NULL, 0xa2, 0, 11, true, false, 0x151, false, 0, 0, 0,
     "the OPL chip but with drums mode enabled.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick/FM 7", "Snare", "Tom", "Top", "HiHat"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH"},
@@ -1338,7 +1339,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL2_DRUMS]=new DivSysDef(
-    "Yamaha YM3812 (OPL2) with drums", NULL, 0xa3, 0, 11, true, false, 0x151, false, 0,
+    "Yamaha YM3812 (OPL2) with drums", NULL, 0xa3, 0, 11, true, false, 0x151, false, 0, 0, 0,
     "the OPL2 chip but with drums mode enabled.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick/FM 7", "Snare", "Tom", "Top", "HiHat"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH"},
@@ -1350,7 +1351,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL3_DRUMS]=new DivSysDef(
-    "Yamaha YMF262 (OPL3) with drums", NULL, 0xa4, 0, 20, true, false, 0x151, false, 0,
+    "Yamaha YMF262 (OPL3) with drums", NULL, 0xa4, 0, 20, true, false, 0x151, false, 0, 0, 0,
     "the OPL3 chip but with drums mode enabled.",
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "Kick/FM 16", "Snare", "Tom", "Top", "HiHat"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "BD", "SD", "TM", "TP", "HH"},
@@ -1362,7 +1363,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610_FULL]=new DivSysDef(
-    "Yamaha YM2610 (OPNB)", NULL, 0xa5, 0, 14, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Yamaha YM2610 (OPNB)", NULL, 0xa5, 0, 14, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "this chip was used in SNK's Neo Geo arcade board and video game console.\nit's like OPNA but the rhythm channels are ADPCM channels and two FM channels went missing.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
@@ -1374,7 +1375,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610_FULL_EXT]=new DivSysDef(
-    "Yamaha YM2610 (OPNB) Extended Channel 2", NULL, 0xa6, 0, 17, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Yamaha YM2610 (OPNB) Extended Channel 2", NULL, 0xa6, 0, 17, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "this chip was used in SNK's Neo Geo arcade board and video game console.\nit's like OPNA but the rhythm channels are ADPCM channels and two FM channels went missing.\nthis one is in Extended Channel mode, which turns the second FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
@@ -1387,7 +1388,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610_CSM]=new DivSysDef(
-    "Yamaha YM2610 (OPNB) CSM", NULL, 0xc2, 0, 18, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Yamaha YM2610 (OPNB) CSM", NULL, 0xc2, 0, 18, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "this chip was used in SNK's Neo Geo arcade board and video game console.\nit's like OPNA but the rhythm channels are ADPCM channels and two FM channels went missing.\nthis one includes CSM mode control for special effects on Channel 2.",
     {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "CSM Timer", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "CSM", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
@@ -1400,7 +1401,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPLL_DRUMS]=new DivSysDef(
-    "Yamaha YM2413 (OPLL) with drums", NULL, 0xa7, 0, 11, true, false, 0x150, false, 0,
+    "Yamaha YM2413 (OPLL) with drums", NULL, 0xa7, 0, 11, true, false, 0x150, false, 0, 0, 0,
     "the OPLL chips but with drums mode turned on.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick", "Snare", "Tom", "Top", "HiHat"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH"},
@@ -1418,7 +1419,7 @@ void DivEngine::registerSystems() {
   }
 
   sysDefs[DIV_SYSTEM_LYNX]=new DivSysDef(
-    "Atari Lynx", NULL, 0xa8, 0, 4, false, true, 0x172, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Atari Lynx", NULL, 0xa8, 0, 4, false, true, 0x172, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "a portable console made by Atari. it has all of Atari's trademark waveforms.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
@@ -1440,7 +1441,7 @@ void DivEngine::registerSystems() {
   }
 
   sysDefs[DIV_SYSTEM_QSOUND]=new DivSysDef(
-    "Capcom QSound", NULL, 0xe0, 0, 19, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_QSOUND_ADPCM)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Capcom QSound", NULL, 0xe0, 0, 19, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_QSOUND_ADPCM)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "used in some of Capcom's arcade boards. surround-like sampled sound with echo.",
     {"PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "ADPCM 1", "ADPCM 2", "ADPCM 3"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "A1", "A2", "A3"},
@@ -1451,7 +1452,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_VERA]=new DivSysDef(
-    "VERA", NULL, 0xac, 0, 17, false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT),
+    "VERA", NULL, 0xac, 0, 17, false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
     "the chip used in a computer design created by The 8-Bit Guy.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "PCM"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "PCM"},
@@ -1465,7 +1466,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610B_EXT]=new DivSysDef(
-    "Yamaha YM2610B (OPNB2) Extended Channel 3", NULL, 0xde, 0, 19, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Yamaha YM2610B (OPNB2) Extended Channel 3", NULL, 0xde, 0, 19, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
@@ -1478,7 +1479,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610B_CSM]=new DivSysDef(
-    "Yamaha YM2610B (OPNB2) CSM", NULL, 0xc5, 0, 20, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Yamaha YM2610B (OPNB2) CSM", NULL, 0xc5, 0, 20, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.\nCSM blah blah",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "CSM Timer", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "CSM", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
@@ -1491,7 +1492,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM_COMPAT]=new DivSysDef(
-    "SegaPCM (compatible 5-channel mode)", NULL, 0xa9, 0, 5, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "SegaPCM (compatible 5-channel mode)", NULL, 0xa9, 0, 5, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "this is the same thing as SegaPCM, but only exposes 5 of the channels for compatibility with DefleMask.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5"},
     {"P1", "P2", "P3", "P4", "P5"},
@@ -1503,7 +1504,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_X1_010]=new DivSysDef(
-    "Seta/Allumer X1-010", NULL, 0xb0, 0, 16, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Seta/Allumer X1-010", NULL, 0xb0, 0, 16, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 128, 256,
     "a sound chip used in several Seta/Allumer-manufactured arcade boards with too many channels of wavetable sound, which also are capable of sampled sound.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
@@ -1527,7 +1528,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_BUBSYS_WSG]=new DivSysDef(
-    "Konami Bubble System WSG", NULL, 0xad, 0, 2, false, true, 0, false, 0,
+    "Konami Bubble System WSG", NULL, 0xad, 0, 2, false, true, 0, false, 0, 32, 16,
     "this is the wavetable part of the Bubble System, which also had two AY-3-8910s.",
     {"Channel 1", "Channel 2"},
     {"CH1", "CH2"},
@@ -1540,7 +1541,7 @@ void DivEngine::registerSystems() {
   // to Grauw: feel free to change this to 24 during development of OPL4's PCM part.
   // TODO: add 12-bit and 16-bit big-endian sample formats
   sysDefs[DIV_SYSTEM_OPL4]=new DivSysDef(
-    "Yamaha YMF278B (OPL4)", NULL, 0xae, 0, 42, true, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT),
+    "Yamaha YMF278B (OPL4)", NULL, 0xae, 0, 42, true, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
     "like OPL3, but this time it also has a 24-channel version of MultiPCM.",
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18", "PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "PCM 17", "PCM 18", "PCM 19", "PCM 20", "PCM 21", "PCM 22", "PCM 23", "PCM 24"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P8", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24"},
@@ -1550,7 +1551,7 @@ void DivEngine::registerSystems() {
 
   // TODO: same here
   sysDefs[DIV_SYSTEM_OPL4_DRUMS]=new DivSysDef(
-    "Yamaha YMF278B (OPL4) with drums", NULL, 0xaf, 0, 44, true, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT),
+    "Yamaha YMF278B (OPL4) with drums", NULL, 0xaf, 0, 44, true, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
     "the OPL4 but with drums mode turned on.",
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "Kick/FM 16", "Snare", "Tom", "Top", "HiHat", "PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "PCM 17", "PCM 18", "PCM 19", "PCM 20", "PCM 21", "PCM 22", "PCM 23", "PCM 24"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "BD", "SD", "TM", "TP", "HH", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P8", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24"},
@@ -1588,7 +1589,7 @@ void DivEngine::registerSystems() {
 
   // TODO: custom sample format
   sysDefs[DIV_SYSTEM_ES5506]=new DivSysDef(
-    "Ensoniq ES5506", NULL, 0xb1, 0, 32, false, true, 0/*0x171*/, false, (1U<<DIV_SAMPLE_DEPTH_16BIT),
+    "Ensoniq ES5506", NULL, 0xb1, 0, 32, false, true, 0/*0x171*/, false, (1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
     "a sample chip made by Ensoniq, which is the basis for the GF1 chip found in Gravis' Ultrasound cards.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24", "Channel 25", "Channel 26", "Channel 27", "Channel 28", "Channel 29", "Channel 30", "Channel 31", "Channel 32"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32"},
@@ -1600,7 +1601,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_Y8950]=new DivSysDef(
-    "Yamaha Y8950", NULL, 0xb2, 0, 10, true, false, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_ADPCM_B,
+    "Yamaha Y8950", NULL, 0xb2, 0, 10, true, false, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_ADPCM_B, 0, 0,
     "like OPL but with an ADPCM channel.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "ADPCM"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "P"},
@@ -1612,7 +1613,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_Y8950_DRUMS]=new DivSysDef(
-    "Yamaha Y8950 with drums", NULL, 0xb3, 0, 12, true, false, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_ADPCM_B,
+    "Yamaha Y8950 with drums", NULL, 0xb3, 0, 12, true, false, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_ADPCM_B, 0, 0,
     "the Y8950 chip, in drums mode.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick/FM 7", "Snare", "Tom", "Top", "HiHat", "ADPCM"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH", "P"},
@@ -1624,7 +1625,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SCC_PLUS]=new DivSysDef(
-    "Konami SCC+", NULL, 0xb4, 0, 5, false, true, 0x161, false, 0,
+    "Konami SCC+", NULL, 0xb4, 0, 5, false, true, 0x161, false, 0, 32, 256,
     "this is a variant of Konami's SCC chip with the last channel's wavetable being independent.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5"},
     {"CH1", "CH2", "CH3", "CH4", "CH5"},
@@ -1660,7 +1661,7 @@ void DivEngine::registerSystems() {
   }
 
   sysDefs[DIV_SYSTEM_SOUND_UNIT]=new DivSysDef(
-    "tildearrow Sound Unit", NULL, 0xb5, 0, 8, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "tildearrow Sound Unit", NULL, 0xb5, 0, 8, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "tildearrow's fantasy sound chip. put SID, AY and VERA in a blender, and you get this!",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1672,7 +1673,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_MSM6295]=new DivSysDef(
-    "OKI MSM6295", NULL, 0xaa, 0, 4, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_VOX,
+    "OKI MSM6295", NULL, 0xaa, 0, 4, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_VOX, 0, 0,
     "an ADPCM sound chip manufactured by OKI and used in many arcade boards.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
@@ -1685,7 +1686,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_MSM6258]=new DivSysDef(
-    "OKI MSM6258", NULL, 0xab, 0, 1, false, true, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_VOX,
+    "OKI MSM6258", NULL, 0xab, 0, 1, false, true, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_VOX, 0, 0,
     "an ADPCM sound chip manufactured by OKI and used in the Sharp X68000.",
     {"Sample"},
     {"PCM"},
@@ -1699,7 +1700,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YMZ280B]=new DivSysDef(
-    "Yamaha YMZ280B (PCMD8)", NULL, 0xb8, 0, 8, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_YMZ_ADPCM,
+    "Yamaha YMZ280B (PCMD8)", NULL, 0xb8, 0, 8, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_YMZ_ADPCM, 0, 0,
     "used in some arcade boards. Can play back either 4-bit ADPCM, 8-bit PCM or 16-bit PCM.",
     {"PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8"},
     {"1", "2", "3", "4", "5", "6", "7", "8"},
@@ -1718,7 +1719,7 @@ void DivEngine::registerSystems() {
   };
 
   sysDefs[DIV_SYSTEM_NAMCO]=new DivSysDef(
-    "Namco WSG", NULL, 0xb9, 0, 3, false, true, 0, false, 0,
+    "Namco WSG", NULL, 0xb9, 0, 3, false, true, 0, false, 0, 32, 16,
     "a wavetable sound chip used in Pac-Man, among other early Namco arcade games.",
     {"Channel 1", "Channel 2", "Channel 3"},
     {"CH1", "CH2", "CH3"},
@@ -1729,7 +1730,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_15XX]=new DivSysDef(
-    "Namco C15 WSG", NULL, 0xba, 0, 8, false, true, 0, false, 0,
+    "Namco C15 WSG", NULL, 0xba, 0, 8, false, true, 0, false, 0, 32, 16,
     "successor of the original Namco WSG chip, used in later Namco arcade games.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1740,7 +1741,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_CUS30]=new DivSysDef(
-    "Namco C30 WSG", NULL, 0xbb, 0, 8, false, true, 0, false, 0,
+    "Namco C30 WSG", NULL, 0xbb, 0, 8, false, true, 0, false, 0, 32, 16,
     "like Namco C15 but with stereo sound.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1751,7 +1752,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_MSM5232]=new DivSysDef(
-    "OKI MSM5232", NULL, 0xbc, 0, 8, false, true, 0, false, 0,
+    "OKI MSM5232", NULL, 0xbc, 0, 8, false, true, 0, false, 0, 0, 0,
     "a square wave additive synthesis chip made by OKI. used in some arcade machines and instruments.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1768,7 +1769,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2612_DUALPCM]=new DivSysDef(
-    "Yamaha YM2612 (OPN2) with DualPCM", NULL, 0xbe, 0, 7, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Yamaha YM2612 (OPN2) with DualPCM", NULL, 0xbe, 0, 7, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis system uses software mixing to provide two sample channels.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6/PCM 1", "PCM 2"},
     {"F1", "F2", "F3", "F4", "F5", "P1", "P2"},
@@ -1780,7 +1781,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2612_DUALPCM_EXT]=new DivSysDef(
-    "Yamaha YM2612 (OPN2) Extended Channel 3 with DualPCM and CSM", NULL, 0xbd, 0, 11, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Yamaha YM2612 (OPN2) Extended Channel 3 with DualPCM and CSM", NULL, 0xbd, 0, 11, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis system uses software mixing to provide two sample channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6/PCM 1", "PCM 2", "CSM Timer"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "P1", "P2", "CSM"},
@@ -1793,7 +1794,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_T6W28]=new DivSysDef(
-    "T6W28", NULL, 0xbf, 0, 4, false, true, 0x160, false, 0,
+    "T6W28", NULL, 0xbf, 0, 4, false, true, 0x160, false, 0, 0, 0,
     "an SN76489 derivative used in Neo Geo Pocket, has independent stereo volume and noise channel frequency.",
     {"Square 1", "Square 2", "Square 3", "Noise"},
     {"S1", "S2", "S3", "NO"},
@@ -1806,7 +1807,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PCM_DAC]=new DivSysDef(
-    "Generic PCM DAC", NULL, 0xc0, 0, 1, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_16BIT,
+    "Generic PCM DAC", NULL, 0xc0, 0, 1, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_16BIT, 0, 256,
     "as generic sample playback as it gets.",
     {"Sample"},
     {"PCM"},
@@ -1815,7 +1816,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_K007232]=new DivSysDef(
-    "Konami K007232", NULL, 0xc6, 0, 2, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Konami K007232", NULL, 0xc6, 0, 2, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "this PCM chip was widely used at Konami arcade boards in 1986-1990.",
     {"Channel 1", "Channel 2"},
     {"CH1", "CH2"},
@@ -1825,7 +1826,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_GA20]=new DivSysDef(
-    "Irem GA20", NULL, 0xc7, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Irem GA20", NULL, 0xc7, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "yet another PCM chip from Irem. like Amiga, but less pitch resolution and no sample loop.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
@@ -1835,7 +1836,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SM8521]=new DivSysDef(
-    "Sharp SM8521", NULL, 0xc8, 0, 3, false, true, 0, false, 0,
+    "Sharp SM8521", NULL, 0xc8, 0, 3, false, true, 0, false, 0, 32, 16,
     "a SoC with wavetable sound hardware.",
     {"Channel 1", "Channel 2", "Noise"},
     {"CH1", "CH2", "NS"},
@@ -1846,7 +1847,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PV1000]=new DivSysDef(
-    "Casio PV-1000", NULL, 0xcb, 0, 3, false, true, 0, false, 0,
+    "Casio PV-1000", NULL, 0xcb, 0, 3, false, true, 0, false, 0, 0, 0,
     "a game console with 3 channels of square wave. it's what happens after fusing TIA and VIC together.",
     {"Square 1", "Square 2", "Square 3"},
     {"S1", "S2", "S3"},
@@ -1859,7 +1860,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SFX_BEEPER_QUADTONE]=new DivSysDef(
-    "ZX Spectrum Beeper (QuadTone Engine)", NULL, 0xca, 0, 5, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "ZX Spectrum Beeper (QuadTone Engine)", NULL, 0xca, 0, 5, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "another ZX Spectrum beeper system with full PWM pulses and 3-level volume per channel. it also has a pitchable overlay sample channel.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "PCM"},
     {"CH1", "CH2", "CH3", "CH4", "PCM"},
@@ -1872,7 +1873,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_K053260]=new DivSysDef(
-    "Konami K053260", NULL, 0xcc, 0, 4, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_K)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Konami K053260", NULL, 0xcc, 0, 4, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_K)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "this PCM chip was widely used at Konami arcade boards in 1990-1992.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
@@ -1885,7 +1886,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_TED]=new DivSysDef(
-    "MOS Technology TED", NULL, 0xcd, 0, 2, false, true, 0, false, 0,
+    "MOS Technology TED", NULL, 0xcd, 0, 2, false, true, 0, false, 0, 0, 0,
     "two square waves (one may be turned into noise). used in the Commodore Plus/4, 16 and 116.",
     {"Channel 1", "Channel 2"},
     {"CH1", "CH2"},
@@ -1895,7 +1896,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_C140]=new DivSysDef(
-    "Namco C140", NULL, 0xce, 0, 24, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_MULAW)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Namco C140", NULL, 0xce, 0, 24, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_MULAW)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "Namco's first PCM chip from 1987. it's pretty good for being so.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"},
@@ -1906,7 +1907,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_C219]=new DivSysDef(
-    "Namco C219", NULL, 0xcf, 0, 16, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_C219)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
+    "Namco C219", NULL, 0xcf, 0, 16, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_C219)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "Namco's PCM chip used in their NA-1/2 hardware.\nvery similar to C140, but has noise generator.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
@@ -1921,7 +1922,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
-    "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0,
+    "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0, 0, 0,
     "this is a system designed for testing purposes.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
