@@ -28,8 +28,8 @@ public:
 	void halt_osc(int onum, int type, uint32_t *accumulator, int resshift);
 	void fill_audio_buffer(short** buf, size_t len);
 
-	//unsigned char* sampleMem;
-	unsigned char sampleMem[65536 * 2];
+	unsigned char* sampleMem;
+	//unsigned char sampleMem[65536 * 2];
     size_t sampleMemLen;
 
 	uint32_t clock;
