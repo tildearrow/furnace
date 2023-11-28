@@ -373,6 +373,9 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         chan[c.chan].pcm=false;
         chan[c.chan].address_bus_res = 0b000;
       }
+
+      chan[c.chan].osc_mode = ins->es5503.initial_osc_mode;
+
       if (chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           if (c.value!=DIV_NOTE_NULL) {
@@ -386,8 +389,6 @@ int DivPlatformES5503::dispatch(DivCommand c) {
              
           }
         }
-        //break;
-        chan[c.chan].osc_mode = ins->es5503.initial_osc_mode;
 
         if(chan[c.chan].sample >= 0)
         {
@@ -436,8 +437,6 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       if (!chan[c.chan].pcm)
       {
         chan[c.chan].wave_size = 0;
-        
-        chan[c.chan].osc_mode = ins->es5503.initial_osc_mode;
 
         if(chan[c.chan].softpan_channel)
         {
