@@ -5073,15 +5073,6 @@ void FurnaceGUI::drawInsEdit() {
             swap=false;
             ins->es5503.initial_osc_mode=OSC_MODE_SWAP;
           }
-          ImGui::Text("Wavetable/sample length");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          P(CWSliderScalar("Wavetable/sample length",ImGuiDataType_U8,&ins->es5503.waveLen,&_ZERO,&_SEVEN,ES5503_wave_lengths_string[ins->es5503.waveLen&7]));
-
-          ImGui::Text("Wavetable/sample position");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          P(CWSliderScalar("Wavetable/sample position",ImGuiDataType_U8,&ins->es5503.wavePos,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,int_to_char_array(ins->es5503.wavePos * 256)));
 
           P(ImGui::Checkbox("Virtual softpan channel",&ins->es5503.softpan_virtual_channel));
           if (ImGui::IsItemHovered()) {
@@ -5089,11 +5080,6 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           P(ImGui::Checkbox("Phase reset on key-on",&ins->es5503.phase_reset_on_start));
-
-          P(ImGui::Checkbox("Auto-place wave in memory",&ins->es5503.auto_place_wavetables));
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("If you are using wavetable and wave length is set to 256, enabling this allows the engine\nto place wavetables for each channel in different memory location. Wave for channel 1 is at offset 0,\nfor channel 2 is at offset 256, etc., and the wave for channel 32 is at offset 7936.\nThus you occupy first 8192 bytes of memory for wavetables of all 32 channels.");
-          }
           
           ImGui::EndTabItem();
         }

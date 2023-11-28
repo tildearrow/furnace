@@ -218,12 +218,9 @@ bool DivInstrumentES5506::operator==(const DivInstrumentES5506& other) {
 
 bool DivInstrumentES5503::operator==(const DivInstrumentES5503& other) {
   return (
-    _C(wavePos) &&
-    _C(waveLen) &&
     _C(initial_osc_mode) &&
     _C(softpan_virtual_channel) &&
-    _C(phase_reset_on_start) &&
-    _C(auto_place_wavetables)
+    _C(phase_reset_on_start)
   );
 }
 
@@ -757,8 +754,7 @@ void DivInstrument::writeFeatureNE(SafeWriter* w) {
 void DivInstrument::writeFeatureE3(SafeWriter* w) {
   FEATURE_BEGIN("E3");
   
-  w->writeC((uint8_t)es5503.wavePos);
-  w->writeC((es5503.initial_osc_mode << 6)|((uint8_t)es5503.softpan_virtual_channel << 5)|((uint8_t)es5503.phase_reset_on_start << 4)|(es5503.waveLen << 1)|((uint8_t)es5503.auto_place_wavetables));
+  w->writeC((es5503.initial_osc_mode << 6)|((uint8_t)es5503.softpan_virtual_channel << 5)|((uint8_t)es5503.phase_reset_on_start << 4));
 
   FEATURE_END;
 }
@@ -2631,14 +2627,11 @@ void DivInstrument::readFeatureNE(SafeReader& reader, short version) {
 void DivInstrument::readFeatureE3(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
-  es5503.wavePos=(uint8_t)reader.readC();
   uint8_t temp = reader.readC();
 
   es5503.initial_osc_mode = temp >> 6;
   es5503.softpan_virtual_channel = (temp >> 5) & 1;
   es5503.phase_reset_on_start = (temp >> 4) & 1;
-  es5503.waveLen = (temp >> 1) & 7;
-  es5503.auto_place_wavetables = temp & 1;
 
   READ_FEAT_END;
 }

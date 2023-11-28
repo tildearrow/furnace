@@ -738,11 +738,9 @@ struct DivInstrumentES5506 {
 };
 
 struct DivInstrumentES5503 {
-  int wavePos, waveLen;
   unsigned char initial_osc_mode;
   bool softpan_virtual_channel;
   bool phase_reset_on_start;
-  bool auto_place_wavetables;
 
   enum WaveTableLengths: unsigned char {
     DIV_ES5503_WAVE_LENGTH_MAX=8,
@@ -754,10 +752,8 @@ struct DivInstrumentES5503 {
   }
 
   DivInstrumentES5503():
-    wavePos(0), waveLen(0),
     initial_osc_mode(0), softpan_virtual_channel(false),
-    phase_reset_on_start(true), 
-    auto_place_wavetables(true) {
+    phase_reset_on_start(true) {
 
     }
 };

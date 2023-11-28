@@ -78,10 +78,18 @@ class DivPlatformES5503: public DivDispatch {
   int curChan;
   unsigned char sampleBank, lfoMode, lfoSpeed;
 
+  uint32_t sampleOffsets[256];
+  bool sampleLoaded[256];
+  uint32_t sampleLengths[256];
+  uint32_t sampleMemLen;
+  bool free_block[256];
+
   es5503_core es5503;
   unsigned char regPool[256];
 
   void updateWave(int ch);
+  int is_enough_continuous_memory(int actualLength);
+  int count_free_blocks();
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
@@ -110,9 +118,11 @@ class DivPlatformES5503: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    const void* getSampleMem(int index);
-    size_t getSampleMemCapacity(int index);
+    const void* getSampleMem(int index = 0);
+    size_t getSampleMemCapacity(int index = 0);
     bool isSampleLoaded(int index, int sample);
+    size_t getSampleMemUsage(int index = 0);
+    void renderSamples(int chipID);
 };
 
 #endif

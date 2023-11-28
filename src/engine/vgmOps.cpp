@@ -2350,15 +2350,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(0);
       w->write(writeES5506[i]->getSampleMem(),writeES5506[i]->getSampleMemUsage());
     }
-    /*if (writeES5503[i]!=NULL && writeES5503[i]->getSampleMemUsage()>0) {
+    if (writeES5503[i]!=NULL && writeES5503[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
       w->writeC(0x66);
-      w->writeC(0x8F);
-      w->writeI((writeES5503[i]->getSampleMemUsage()));
-      w->writeI(writeES5503[i]->getSampleMemCapacity());
-      w->writeI(0);
+      w->writeC(0xE1);
+      w->writeI((writeES5503[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(0); //start write from offset 0
       w->write(writeES5503[i]->getSampleMem(),writeES5503[i]->getSampleMemUsage());
-    }*/
+    }
     if (writeC140[i]!=NULL && writeC140[i]->getSampleMemUsage()>0) {
       w->writeC(0x67);
       w->writeC(0x66);

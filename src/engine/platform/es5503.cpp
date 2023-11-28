@@ -27,11 +27,24 @@
 const int ES5503_wave_lengths[DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX] = {256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
 uint8_t ES5503_wave_lengths_convert_back(uint32_t len)
 {
-  for(int j = 0; j < DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX; j++)
+  for(int j = 0; j < DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX - 1; j++)
   {
-    if((int)len == ES5503_wave_lengths[j])
+    if((int)len > ES5503_wave_lengths[j] && (int)len <= ES5503_wave_lengths[j + 1])
     {
       return j;
+    }
+  }
+
+  return 0;
+}
+
+int jump_blocks(int actual_size)
+{
+  for(int i = 0; i < DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX; i++)
+  {
+    if(actual_size < ES5503_wave_lengths[i])
+    {
+      return 1 << i;
     }
   }
 
@@ -128,29 +141,6 @@ void DivPlatformES5503::updateWave(int ch)
     }
 
     if (dumpWrites) addWrite(0xfffe0000 | chan[ch].wave_size, chan[ch].wave_pos >> 8);
-  }
-
-  else
-  {
-    DivSample* s=parent->getSample(chan[ch].sample);
-
-    if(!s->data8) return;
-
-    int i=0;
-
-    for (i=0; i<(int)my_min(s->length8, chan[ch].wave_size); i++)
-    {
-      uint8_t val = (uint8_t)s->data8[i] + 0x80;
-      if (val == 0) val = 1;
-      writeSampleMemoryByte(chan[ch].wave_pos + i, val); //avoid zeros so wave can loop and does not halt
-    }
-
-    for (; i < (int)my_min(s->length8 + 8, chan[ch].wave_size); i++) //write at least 8 zeros if wave size allows to guarantee oneshot samples are halted if they are shorter than wave size
-    {
-      writeSampleMemoryByte(chan[ch].wave_pos + i, 0);
-    }
-
-    if (dumpWrites) addWrite(0xfffe0000|my_min(s->length8 + 8, chan[ch].wave_size), chan[ch].wave_pos >> 8);
   }
   
   //chan[ch].antiClickWavePos&=31;
@@ -397,29 +387,33 @@ int DivPlatformES5503::dispatch(DivCommand c) {
           }
         }
         //break;
-
-        chan[c.chan].wave_pos = ins->es5503.wavePos << 8;
         chan[c.chan].osc_mode = ins->es5503.initial_osc_mode;
-        chan[c.chan].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
+
+        if(chan[c.chan].sample >= 0)
+        {
+          chan[c.chan].wave_size = sampleLengths[chan[c.chan].sample];
+          chan[c.chan].wave_pos = sampleOffsets[chan[c.chan].sample];
+
+          if(chan[c.chan].wave_size >= 1024)
+          {
+            chan[c.chan].address_bus_res = 0b011;
+          }
+        }
 
         if(chan[c.chan].softpan_channel)
         {
-          chan[c.chan + 1].wave_pos = ins->es5503.wavePos << 8;
           chan[c.chan + 1].osc_mode = ins->es5503.initial_osc_mode;
-          chan[c.chan + 1].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
-        }
 
-        if(chan[c.chan].wave_pos != (unsigned int)chan[c.chan].previous_sample_pos || chan[c.chan].sample != (int)chan[c.chan].previous_sample || chan[c.chan].insChanged) //TODO: make it rewrite sample at each note on only if it's instrument preview
-        {
-          updateWave(c.chan);
-        }
+          if(chan[c.chan].sample >= 0)
+          {
+            chan[c.chan + 1].wave_size = sampleLengths[chan[c.chan].sample];
+            chan[c.chan + 1].wave_pos = sampleOffsets[chan[c.chan].sample];
 
-        chan[c.chan].previous_sample_pos = chan[c.chan].wave_pos;
-        chan[c.chan].previous_sample = chan[c.chan].sample;
-
-        if(chan[c.chan].wave_size >= 1024)
-        {
-          chan[c.chan].address_bus_res = 0b011;
+            if(chan[c.chan].wave_size >= 1024)
+            {
+              chan[c.chan + 1].address_bus_res = 0b011;
+            }
+          }
         }
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -429,7 +423,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      //chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
+
       if(chan[c.chan].softpan_channel)
       {
         chan[c.chan + 1].active=true;
@@ -441,36 +435,14 @@ int DivPlatformES5503::dispatch(DivCommand c) {
 
       if (!chan[c.chan].pcm)
       {
-        if(ins->es5503.waveLen == 0 && ins->es5503.auto_place_wavetables)
-        {
-          chan[c.chan].wave_pos = (uint32_t)c.chan * 256;
-        }
-
-        else
-        {
-          chan[c.chan].wave_pos = ins->es5503.wavePos << 8;
-        }
-        //chan[c.chan].wave_pos = ins->es5503.wavePos << 8;
+        chan[c.chan].wave_size = 0;
         
         chan[c.chan].osc_mode = ins->es5503.initial_osc_mode;
-        chan[c.chan].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
 
         if(chan[c.chan].softpan_channel)
         {
-          if(ins->es5503.waveLen == 0 && ins->es5503.auto_place_wavetables)
-          {
-            chan[c.chan + 1].wave_pos = (uint32_t)c.chan * 256;
-          }
-
-          else
-          {
-            chan[c.chan + 1].wave_pos = ins->es5503.wavePos << 8;
-          }
-
-          //chan[c.chan + 1].wave_pos = ins->es5503.wavePos << 8;
-          
+          chan[c.chan + 1].wave_size = 0;
           chan[c.chan + 1].osc_mode = ins->es5503.initial_osc_mode;
-          chan[c.chan + 1].wave_size = ES5503_wave_lengths[ins->es5503.waveLen&7];
         }
       }
 
@@ -495,8 +467,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].sample=-1;
-      //if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-      chan[c.chan].pcm=false;
+      chan[c.chan].pcm=false; //???
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
@@ -697,21 +668,132 @@ DivMacroInt* DivPlatformES5503::getChanMacroInt(int ch) {
 }
 
 const void* DivPlatformES5503::getSampleMem(int index) {
-  return es5503.sampleMem;
+  return index == 0 ? es5503.sampleMem : NULL;
 }
 
 size_t DivPlatformES5503::getSampleMemCapacity(int index)
 {
-  return 65536;
+  return index == 0 ? 65536 : 0;
 }
 
 bool DivPlatformES5503::isSampleLoaded(int index, int sample) {
-  DivSample* s = parent->getSample(sample);
-  if(s->length8 > getSampleMemCapacity(0))
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
+int DivPlatformES5503::is_enough_continuous_memory(int actualLength)
+{
+  int num_blocks = actualLength / 256 + 1;
+  int result = -1;
+
+  int jumpbl = jump_blocks(actualLength); //restrict possible starting positions to valid ones (depends on sample size)
+
+  for(int i = 0; i < 256; i += jumpbl)
   {
-    return false;
+    result = i; //index of 1st block
+
+    for(int j = 0; j < num_blocks; j++)
+    {
+      if(!free_block[i + j]) //block is already occupied!
+      {
+        result = -1;
+      }
+    }
+
+    if(result != -1) return result; //we found the 1st block
   }
-  return true;
+
+  return result; //haven't found continuous memory for this sample so return -1
+}
+
+int DivPlatformES5503::count_free_blocks()
+{
+  int count = 0;
+
+  for(int i = 0; i < 256; i++)
+  {
+    if(free_block[i])
+    {
+      count++;
+    }
+  }
+
+  return count;
+}
+
+size_t DivPlatformES5503::getSampleMemUsage(int index) {
+  return index == 0 ? (getSampleMemCapacity() - count_free_blocks() * 256) : 0;
+}
+
+void DivPlatformES5503::renderSamples(int sysID) {
+  memset(es5503.sampleMem,0,getSampleMemCapacity());
+  memset(sampleOffsets,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(free_block,1,256*sizeof(bool));
+  memset(sampleLengths,0,256*sizeof(uint8_t));
+
+  for(int size = 7; size > 0; size--) //first we place the longest samples then descend to shorter ones (bc placement limitations for longer samples)
+  {
+    int maxsize = ES5503_wave_lengths[size];
+    int minsize = ES5503_wave_lengths[size - 1];
+
+    for (int i = 0; i < parent->song.sampleLen; i++)
+    {
+      DivSample* s = parent->song.sample[i];
+
+      if (!s->renderOn[0][sysID])
+      {
+        sampleOffsets[i] = 0;
+        continue;
+      }
+
+      int length = s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
+
+      if(length < 0) break;
+
+      int actualLength = length + 8; //8 more bytes for trailing zeros
+
+      if (actualLength < minsize || actualLength >= maxsize) goto end;
+
+      int start_pos = is_enough_continuous_memory(actualLength);
+
+      if(start_pos == -1)
+      {
+        logW("out of ES5503 PCM memory for sample %d!", i);
+        break;
+      }
+
+      else
+      {
+        int actual_start_pos = start_pos * 256;
+
+        for(int ss = 0; ss < length; ss++)
+        {
+          uint8_t val = (uint8_t)s->data8[ss] + 0x80;
+          if (val == 0) val = 1;
+
+          es5503.sampleMem[actual_start_pos + ss] = val;
+          //es5503.sampleMem[actual_start_pos + ss] = ((actual_start_pos + ss) & 1) ? 0xff : 0x10;
+        }
+
+        memset(&es5503.sampleMem[actual_start_pos + length], 0, 8); //add at least 8 zeros to the end
+
+        int num_blocks = actualLength / 256 + 1;
+
+        sampleLengths[i] = actualLength;
+        sampleLoaded[i] = true;
+        sampleOffsets[i] = actual_start_pos;
+
+        for(int b = start_pos; b < start_pos + num_blocks; b++)
+        {
+          free_block[b] = false;
+        }
+      }
+
+      end:;
+    }
+  }
 }
 
 DivDispatchOscBuffer* DivPlatformES5503::getOscBuffer(int ch) {
@@ -732,7 +814,7 @@ void DivPlatformES5503::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0); //do reset
   }
-  memset(es5503.sampleMem,0,es5503.sampleMemLen);
+  //memset(es5503.sampleMem,0,es5503.sampleMemLen);
   for (uint8_t i=0; i<32; i++) {
     chan[i]=DivPlatformES5503::Channel();
     chan[i].std.setEngine(parent);

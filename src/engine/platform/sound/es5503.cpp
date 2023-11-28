@@ -60,7 +60,7 @@ void es5503_core::es5503_core_init(uint32_t clock, DivDispatchOscBuffer** oscBuf
 	output_rate = (clock / 8) / (oscsenabled + 2);
 
 	sampleMemLen = 65536 << 1;
-	sampleMem = new unsigned char[sampleMemLen];
+	//sampleMem = new unsigned char[sampleMemLen];
 	memset(sampleMem, 0, sampleMemLen * sizeof(unsigned char));
 
 	output_channels = 8; //fixed value because real chip seems to have 4 pins for addressing the output to 16 different channels; however, the datasheet suggests to use only 8.
@@ -76,8 +76,8 @@ void es5503_core::es5503_core_free()
 {
 	if (sampleMem != NULL)
 	{
-		delete[] sampleMem;
-		sampleMem = NULL;
+		//delete[] sampleMem;
+		//sampleMem = NULL;
 		sampleMemLen = 0;
 	}
 }
