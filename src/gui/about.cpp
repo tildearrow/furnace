@@ -114,6 +114,7 @@ const char* aboutLine[]={
   "LVintageNerd",
   "Mahbod Karamoozian",
   "Martin Demsky",
+  "masicbemester",
   "MelonadeM",
   "Miker",
   "NeoWar",
