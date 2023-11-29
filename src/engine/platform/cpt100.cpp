@@ -5,7 +5,7 @@
 #include <math.h>
 
 #define CHIP_FREQBASE 1000
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {doWrite(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 
 void DivPlatformCPT100::acquire(short** buf, size_t len) {

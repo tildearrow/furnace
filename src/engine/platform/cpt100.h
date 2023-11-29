@@ -2,8 +2,6 @@
 
 #include "../dispatch.h"
 
-// the dummy platform outputs saw waves.
-// used when a DivDispatch for a system is not found.
 class DivPlatformCPT100: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch;
@@ -21,6 +19,12 @@ class DivPlatformCPT100: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
+    struct QueuedWrite {
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+   };
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void acquire(short** buf, size_t len);
