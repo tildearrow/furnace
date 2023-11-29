@@ -1,10 +1,11 @@
 #include <math.h>
 #include <random>
+#include "ram.cpp"
 #include "envelove.cpp"
 
 
 namespace cpt100 {
-    #define SAMPLE_FREQ 48000
+    #define CPT100_SAMPLE_FREQ 48000
     std::random_device rd;
     std::mt19937 mt(rd());
 
@@ -70,7 +71,7 @@ namespace cpt100 {
         
         for(int ch=0; ch < 4; ch++) {
             for (int opNum=0; opNum < 4; opNum++) {
-                applyEnveloveToRegisters(reg,regenvl,opNum,ch,((double)len/(double)SAMPLE_FREQ));
+                applyEnveloveToRegisters(reg,regenvl,opNum,ch,((double)len/(double)CPT100_SAMPLE_FREQ));
                 ram_poke(ram,0x10000+16*ch+opNum+5,reg.at(16*ch+opNum+5));
             }
         }
@@ -79,20 +80,20 @@ namespace cpt100 {
             for(int ch=0; ch < 4; ch++) {
                 int addr = 16*ch;
                 double f1 = ((double)reg.at(addr+0).toInt()*256+reg.at(addr+1).toInt());
-                t1[ch] = t1[ch] + (f1/SAMPLE_FREQ);
+                t1[ch] = t1[ch] + (f1/CPT100_SAMPLE_FREQ);
                 double v1 = ((double)reg.at(addr+5).toInt())/255;
-                t2[ch] = t2[ch] + ((double)(f1*reg.at(addr+2).toInt()))/16/SAMPLE_FREQ;
+                t2[ch] = t2[ch] + ((double)(f1*reg.at(addr+2).toInt()))/16/CPT100_SAMPLE_FREQ;
                 double v2 = ((double)reg.at(addr+6).toInt())/128;
-                t3[ch] = t3[ch] + ((double)(f1*reg.at(addr+3).toInt()))/16/SAMPLE_FREQ;
+                t3[ch] = t3[ch] + ((double)(f1*reg.at(addr+3).toInt()))/16/CPT100_SAMPLE_FREQ;
                 double v3 = ((double)reg.at(addr+7).toInt())/128;
-                t4[ch] = t4[ch] + ((double)(f1*reg.at(addr+4).toInt()))/16/SAMPLE_FREQ;
+                t4[ch] = t4[ch] + ((double)(f1*reg.at(addr+4).toInt()))/16/CPT100_SAMPLE_FREQ;
                 double v4 = ((double)reg.at(addr+8).toInt())/128;
                 result += generateFMWave(t1[ch],v1,t2[ch],v2,t3[ch],v3,t4[ch],v4);
             }
             for(int ch=0; ch<2; ch++) {
                 int addr = 32*ch;
                 double ft = ((double)regwt.at(ch*2+0).toInt()*256+regwt.at(ch*2+1).toInt());
-                twt[ch] = twt[ch] + (ft/SAMPLE_FREQ)*32;
+                twt[ch] = twt[ch] + (ft/CPT100_SAMPLE_FREQ)*32;
                 double vt = ((double)regwt.at(ch+4).toInt())/255;
                 int val = 0;
                 if (regwt.at(ch+6).toInt() == 1) {
@@ -109,7 +110,7 @@ namespace cpt100 {
                     val = noise.at(((int)twt[ch]%1024))*255;
                 }
                 val -= 128;
-                double omega = 2.0 * 3.14159265 * ((double)regwt.at(ch+8).toInt()+1)*32 / SAMPLE_FREQ;
+                double omega = 2.0 * 3.14159265 * ((double)regwt.at(ch+8).toInt()+1)*32 / CPT100_SAMPLE_FREQ;
                 double alpha = sin(omega) / (2.0 * 1.5);
                 double a0 =  1.0 + alpha;
                 double a1 = -2.0 * cos(omega);

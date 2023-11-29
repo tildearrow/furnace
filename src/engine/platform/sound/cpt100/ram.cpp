@@ -1,18 +1,21 @@
 #include <vector>
+#include "header/types.hpp"
+#include "header/spec.hpp"
+
 namespace cpt100 {
     std::vector<Byte> ram;
     std::vector<Byte> vram;
     // RAMおよびVRAMを管理する関数
     void ram_boot(std::vector<Byte>& ram, std::vector<Byte>& vram) {
-        ram.resize(RAM_SIZE, Byte(0));
-        vram.resize(VRAM_SIZE, Byte(0));
+        ram.resize(CPT100_RAM_SIZE, Byte(0));
+        vram.resize(CPT100_VRAM_SIZE, Byte(0));
     }
 
     Byte vram_peek(std::vector<Byte>& vram, int addr) {
         if (addr < 0) {
             return Byte(0);
         }
-        if (addr < VRAM_SIZE) {
+        if (addr < CPT100_VRAM_SIZE) {
             return vram.at(addr);
         }
     }
@@ -21,7 +24,7 @@ namespace cpt100 {
         if (addr < 0) {
             return;
         }   
-        if (addr < VRAM_SIZE) {
+        if (addr < CPT100_VRAM_SIZE) {
             vram.at(addr) = val;
         }
     }
@@ -47,7 +50,7 @@ namespace cpt100 {
         if (addr < 0) {
             return Byte(0);
         }
-        if (addr < RAM_SIZE) {
+        if (addr < CPT100_RAM_SIZE) {
             return ram.at(addr);
         }
     }
@@ -56,7 +59,7 @@ namespace cpt100 {
         if (addr < 0) {
             return;
         }   
-        if (addr < RAM_SIZE) {
+        if (addr < CPT100_RAM_SIZE) {
             ram.at(addr) = val;
         }
     }

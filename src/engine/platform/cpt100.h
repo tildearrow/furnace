@@ -1,5 +1,5 @@
 
-
+#include "sound/cpt100/sound.cpp"
 #include "../dispatch.h"
 
 class DivPlatformCPT100: public DivDispatch {
@@ -39,5 +39,6 @@ class DivPlatformCPT100: public DivDispatch {
     void quit();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    void doWrite(unsigned int addr, unsigned char data);
     ~DivPlatformCPT100();
 };
