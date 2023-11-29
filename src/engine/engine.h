@@ -294,6 +294,9 @@ struct DivSysDef {
   unsigned char id_DMF;
   int channels;
   bool isFM, isSTD, isCompound;
+  // width 0: variable
+  // height 0: no wavetable support
+  unsigned short waveWidth, waveHeight;
   unsigned int vgmVersion;
   unsigned int sampleFormatMask;
   const char* chanNames[DIV_MAX_CHANS];
@@ -307,7 +310,8 @@ struct DivSysDef {
   const EffectHandlerMap preEffectHandlers;
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
-    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, const char* desc,
+    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, unsigned short waveWid, unsigned short waveHei,
+    const char* desc,
     std::initializer_list<const char*> chNames,
     std::initializer_list<const char*> chShortNames,
     std::initializer_list<int> chTypes,
@@ -325,6 +329,8 @@ struct DivSysDef {
     isFM(isFMChip),
     isSTD(isSTDChip),
     isCompound(compound),
+    waveWidth(waveWid),
+    waveHeight(waveHei),
     vgmVersion(vgmVer),
     sampleFormatMask(formatMask),
     effectHandlers(fxHandlers_),
