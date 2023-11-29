@@ -83,6 +83,7 @@
 #include "platform/c140.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
+#include "platform/cpt100.h"
 #include "../ta-log.h"
 #include "song.h"
 
@@ -646,6 +647,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;
+      break;
+    case DIV_SYSTEM_CPT100:
+      dispatch=new DivPlatformCPT100;
       break;
     default:
       logW("this system is not supported yet! using dummy platform.");

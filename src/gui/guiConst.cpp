@@ -1247,6 +1247,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_MMC5,
   DIV_SYSTEM_SM8521,
+  DIV_SYSTEM_CPT100,
   0 // don't remove this last one!
 };
 

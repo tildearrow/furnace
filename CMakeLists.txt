@@ -703,6 +703,8 @@ src/engine/platform/c140.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
+src/engine/platform/cpt100.cpp
+
 src/engine/export/abstract.cpp
 src/engine/export/amigaValidation.cpp
 
