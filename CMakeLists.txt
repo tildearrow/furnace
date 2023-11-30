@@ -11,7 +11,7 @@ if (APPLE)
   enable_language(OBJCXX)
 endif()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
@@ -605,8 +605,6 @@ src/engine/platform/sound/c140_c219.c
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
-
-src/engine/platform/sound/cpt100/sound.cpp
 
 src/engine/blip_buf.c
 src/engine/brrUtils.c

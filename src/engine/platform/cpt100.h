@@ -1,15 +1,30 @@
-
-#include "sound/cpt100/sound.cpp"
+#include "../waveSynth.h"
 #include "../dispatch.h"
 
 class DivPlatformCPT100: public DivDispatch {
-  struct Channel {
+  struct Channel : public SharedChannel<int> {
     int freq, baseFreq, pitch;
+    int wave;
     unsigned short pos;
     bool active, freqChanged;
     unsigned char vol;
     signed char amp;
-    Channel(): freq(0), baseFreq(0), pitch(0), pos(0), active(false), freqChanged(false), vol(0), amp(255) {}
+    signed char modTable[2][32];
+    DivWaveSynth ws;
+    Channel(): 
+      SharedChannel<int>(0),
+      freq(0), 
+      baseFreq(0), 
+      pitch(0), 
+      pos(0), 
+      active(false), 
+      freqChanged(false), 
+      vol(0), 
+      amp(255),
+      wave(-1)
+      {
+        memset(modTable,0,64);
+      }
   };
   unsigned char regPool[192];
   Channel chan[6];

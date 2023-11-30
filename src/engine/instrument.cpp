@@ -999,7 +999,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureSM=true;
         featureSL=true;
         break;
-      
+      case DIV_INS_CPT100:
+        featureFM=true;
+        checkForWL=true;
+        if (ws.enabled) featureWS=true;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
