@@ -26,7 +26,7 @@ class DivPlatformCPT100: public DivDispatch {
         memset(modTable,0,64);
       }
   };
-  unsigned char regPool[192];
+  unsigned char regPool[208];
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];

@@ -7,7 +7,7 @@
 
 
 #define CHIP_FREQBASE 1000
-#define rWrite(a,v) if (!skipRegisterWrites) {doWrite(a,v); regPool[(a-0x10000)%192]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {doWrite(a,v); regPool[(a-0x10000)%208]=v; if (dumpWrites) {addWrite(a,v);} }
 
 unsigned int chanaddrs_freq[6] = {0x10000,0x10010,0x10020,0x10030,0x10084,0x10086};
 unsigned int chanaddrs_volume[6] = {0x10009,0x10019,0x10029,0x10039,0x10088,0x10089};
@@ -48,8 +48,9 @@ void DivPlatformCPT100::muteChannel(int ch, bool mute) {
 void DivPlatformCPT100::tick(bool sysTick) {
   for (unsigned char i=0; i<chans; i++) {
     if (sysTick) {
-      chan[i].amp-=7;
+      chan[i].amp-=3;
       if (chan[i].amp<15) chan[i].amp=15;
+      rWrite(chanaddrs_volume[i],chan[i].amp);
     }
 
     if (chan[i].freqChanged) {
@@ -58,9 +59,14 @@ void DivPlatformCPT100::tick(bool sysTick) {
       rWrite(chanaddrs_freq[i],chan[i].freq>>8);
       rWrite(chanaddrs_freq[i]+1,chan[i].freq&0xff);
     }
-    for (int j=0;j<32;j++) {
-      rWrite(0x10090+32*i+j,chan[i].ws.output[j]);
+
+    if (i>=4 && i<=5)
+    {
+      for (int j=0;j<32;j++) {
+      rWrite(0x10090+32*(i-4)+j,chan[i].ws.output[j]);
     }
+    }
+ 
   }
 }
 
@@ -98,7 +104,7 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
           chan[c.chan].wave=0;
           chan[c.chan].ws.changeWave1(chan[c.chan].wave);
         }
-        chan[c.chan].ws.init(ins,32,127,chan[c.chan].insChanged);
+        chan[c.chan].ws.init(ins,32,255,chan[c.chan].insChanged);
         chan[c.chan].insChanged=false;
       }
       chan[c.chan].active=true;
@@ -112,7 +118,6 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
       //chan[c.chan].vol=c.value;
       chan[c.chan].vol=255;
       if (chan[c.chan].vol>255) chan[c.chan].vol=255;
-      rWrite(chanaddrs_volume[c.chan],chan[c.chan].vol);
       break;
     case DIV_CMD_GET_VOLUME:
       return chan[c.chan].vol;
@@ -171,7 +176,10 @@ void DivPlatformCPT100::reset() {
   initSound();
   for (int i=0; i<chans; i++) {
     chan[i]=DivPlatformCPT100::Channel();
-    chan[i].vol=0x0f;
+    chan[i].vol=0xff;
+    chan[i].std.setEngine(parent);
+    chan[i].ws.setEngine(parent);
+    chan[i].ws.init(NULL,32,255,false);
   }
 }
 
@@ -184,9 +192,7 @@ int DivPlatformCPT100::init(DivEngine* p, int channels, int sugRate, const DivCo
     if (i<channels) {
       oscBuf[i]=new DivDispatchOscBuffer;
       oscBuf[i]->rate=48000;
-      chan[i].std.setEngine(parent);
-      chan[i].ws.setEngine(parent);
-      chan[i].ws.init(NULL,32,127,false);
+      
     }
   }
   rate=48000;
