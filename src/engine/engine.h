@@ -52,10 +52,10 @@ class DivWorkPool;
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-//#define DIV_UNSTABLE
+#define DIV_UNSTABLE
 
-#define DIV_VERSION "0.6"
-#define DIV_ENGINE_VERSION 181
+#define DIV_VERSION "dev187"
+#define DIV_ENGINE_VERSION 187
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -205,7 +205,7 @@ struct DivDispatchContainer {
   short* bbInMapped[DIV_MAX_OUTPUTS];
   short* bbIn[DIV_MAX_OUTPUTS];
   short* bbOut[DIV_MAX_OUTPUTS];
-  bool lowQuality, dcOffCompensation;
+  bool lowQuality, dcOffCompensation, hiPass;
   double rateMemory;
 
   // used in multi-thread
@@ -213,7 +213,7 @@ struct DivDispatchContainer {
   unsigned int size;
 
   void setRates(double gotRate);
-  void setQuality(bool lowQual);
+  void setQuality(bool lowQual, bool dcHiPass);
   void grow(size_t size);
   void acquire(size_t offset, size_t count);
   void flush(size_t count);
@@ -230,6 +230,7 @@ struct DivDispatchContainer {
     lastAvail(0),
     lowQuality(false),
     dcOffCompensation(false),
+    hiPass(true),
     rateMemory(0.0),
     cycles(0),
     size(0) {
@@ -293,6 +294,9 @@ struct DivSysDef {
   unsigned char id_DMF;
   int channels;
   bool isFM, isSTD, isCompound;
+  // width 0: variable
+  // height 0: no wavetable support
+  unsigned short waveWidth, waveHeight;
   unsigned int vgmVersion;
   unsigned int sampleFormatMask;
   const char* chanNames[DIV_MAX_CHANS];
@@ -306,7 +310,8 @@ struct DivSysDef {
   const EffectHandlerMap preEffectHandlers;
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
-    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, const char* desc,
+    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, unsigned short waveWid, unsigned short waveHei,
+    const char* desc,
     std::initializer_list<const char*> chNames,
     std::initializer_list<const char*> chShortNames,
     std::initializer_list<int> chTypes,
@@ -324,6 +329,8 @@ struct DivSysDef {
     isFM(isFMChip),
     isSTD(isSTDChip),
     isCompound(compound),
+    waveWidth(waveWid),
+    waveHeight(waveHei),
     vgmVersion(vgmVer),
     sampleFormatMask(formatMask),
     effectHandlers(fxHandlers_),
@@ -389,6 +396,7 @@ class DivEngine {
   int chans;
   bool active;
   bool lowQuality;
+  bool dcHiPass;
   bool playing;
   bool freelance;
   bool shallStop, shallStopSched;
@@ -596,6 +604,7 @@ class DivEngine {
     DivSystem sysOfChan[DIV_MAX_CHANS];
     int dispatchOfChan[DIV_MAX_CHANS];
     int dispatchChanOfChan[DIV_MAX_CHANS];
+    int dispatchFirstChan[DIV_MAX_CHANS];
     bool keyHit[DIV_MAX_CHANS];
     float* oscBuf[DIV_MAX_OUTPUTS];
     float oscSize;
@@ -880,6 +889,9 @@ class DivEngine {
     // get ext value
     unsigned char getExtValue();
 
+    // dump song info to stdout
+    void dumpSongInfo();
+
     // is playing
     bool isPlaying();
 
@@ -984,7 +996,8 @@ class DivEngine {
     // stop note
     void noteOff(int chan);
 
-    void autoNoteOn(int chan, int ins, int note, int vol=-1);
+    // returns whether it could
+    bool autoNoteOn(int chan, int ins, int note, int vol=-1);
     void autoNoteOff(int chan, int note, int vol=-1);
     void autoNoteOffAll();
 
@@ -995,7 +1008,7 @@ class DivEngine {
     void setOrder(unsigned char order);
 
     // update system flags
-    void updateSysFlags(int system, bool restart);
+    void updateSysFlags(int system, bool restart, bool render);
 
     // set Hz
     void setSongRate(float hz);
@@ -1008,6 +1021,12 @@ class DivEngine {
 
     // get dispatch channel state
     void* getDispatchChanState(int chan);
+
+    // get channel pairs
+    DivChannelPair getChanPaired(int chan);
+
+    // get channel mode hints
+    DivChannelModeHints getChanModeHints(int chan);
 
     // get register pool
     unsigned char* getRegisterPool(int sys, int& size, int& depth);
@@ -1191,11 +1210,14 @@ class DivEngine {
     // quit dispatch
     void quitDispatch();
 
-    // pre-initialize the engine.
-    void preInit();
+    // pre-initialize the engine. returns whether Furnace should run in safe mode.
+    bool preInit(bool noSafeMode=true);
 
     // initialize the engine.
     bool init();
+
+    // confirm that the engine is running (delete safe mode file).
+    void everythingOK();
 
     // terminate the engine.
     bool quit();
@@ -1210,6 +1232,7 @@ class DivEngine {
       chans(0),
       active(false),
       lowQuality(false),
+      dcHiPass(true),
       playing(false),
       freelance(false),
       shallStop(false),
@@ -1320,6 +1343,7 @@ class DivEngine {
       mu5ROM(NULL) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
+      memset(dispatchFirstChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));

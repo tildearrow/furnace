@@ -67,7 +67,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
 
         switch (interp) {
           case 1: // linear
-            output=s6+((s7-s6)*(chan[0].audSub&0xffff)>>16);
+            output=s6+(((int)((int)s7-(int)s6)*((chan[0].audSub>>1)&0x7fff))>>15);
             break;
           case 2: { // cubic
             float* cubicTable=DivFilterTables::getCubicTable();
@@ -188,7 +188,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
 
         switch (interp) {
           case 1: // linear
-            output=s6+((s7-s6)*(chan[0].audSub&0xffff)>>16);
+            output=s6+(((int)((int)s7-(int)s6)*((chan[0].audSub>>1)&0x7fff))>>15);
             break;
           case 2: { // cubic
             float* cubicTable=DivFilterTables::getCubicTable();

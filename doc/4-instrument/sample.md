@@ -4,7 +4,7 @@ the Generic Sample instrument editor consists of a sample selector and several m
 
 ## Sample
 
-- **Initial sample**: specifies which sample should be assigned to the instrument.
+- **Sample**: specifies which sample should be assigned to the instrument.
 - **Use wavetable**: uses wavetable instead of a sample.
   - only available in Amiga and Generic PCM DAC.
 - **Use sample map**: enables mapping different samples to notes. see next section for more information.

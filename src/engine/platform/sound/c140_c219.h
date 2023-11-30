@@ -5,7 +5,7 @@
 MODIFIED Namco C140/C219 sound emulator - MODIFIED VERSION
 by cam900
 
-MODIFICATION by tildearrow - adds muting function
+MODIFICATION by tildearrow - adds muting function AND VGM banking
 THIS IS NOT THE ORIGINAL VERSION - you can find the original one in
 commit 72d04777c013988ed8cf6da27c62a9d784a59dff
 
@@ -78,6 +78,7 @@ struct c140_t
    signed int lout, rout;
    signed short mulaw[256];
    signed short *sample_mem;
+   unsigned char bank_type;
 };
 
 struct c219_t
@@ -105,6 +106,8 @@ void c219_keyon(struct c140_voice_t *c140_voice);
 void c140_write(struct c140_t *c140, const unsigned short addr, const unsigned char data);
 
 void c219_write(struct c219_t *c219, const unsigned short addr, const unsigned char data);
+
+void c140_bank_type(struct c140_t *c140, unsigned char type);
 
 void c140_init(struct c140_t *c140);
 

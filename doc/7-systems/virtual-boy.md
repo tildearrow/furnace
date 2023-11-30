@@ -1,6 +1,6 @@
 # Virtual Boy
 
-a "portable" video game console made by Nintendo in the '90's.
+a "portable" video game console made by Nintendo in the '90s.
 
 it supposedly was the beginning of virtual reality... nah, instead it failed to sell well because you use it for 15 minutes and then you get a headache.
 

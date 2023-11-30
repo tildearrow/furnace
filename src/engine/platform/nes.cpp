@@ -343,6 +343,10 @@ void DivPlatformNES::tick(bool sysTick) {
           } else {
             rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
           }
+          if (nextDPCMDelta>=0) {
+            rWrite(0x4011,nextDPCMDelta);
+            nextDPCMDelta=-1;
+          }
           rWrite(0x4012,(dpcmAddr>>6)&0xff);
           rWrite(0x4013,dpcmLen&0xff);
           rWrite(0x4015,31);
@@ -373,11 +377,38 @@ int DivPlatformNES::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.chan==4) { // PCM
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
-        if (ins->type==DIV_INS_AMIGA) {
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_NES);
+        if (ins->type==DIV_INS_AMIGA || (ins->type==DIV_INS_NES && !parent->song.oldDPCM)) {
+          if (ins->type==DIV_INS_NES) {
+            if (!dpcmMode) {
+              dpcmMode=true;
+              if (dumpWrites) addWrite(0xffff0002,0);
+              dacSample=-1;
+              rWrite(0x4015,15);
+              rWrite(0x4010,0);
+              rWrite(0x4012,0);
+              rWrite(0x4013,0);
+              rWrite(0x4015,31);
+            }
+
+            if (ins->amiga.useNoteMap) {
+              nextDPCMFreq=ins->amiga.getDPCMFreq(c.value);
+              if (nextDPCMFreq<0 || nextDPCMFreq>15) nextDPCMFreq=lastDPCMFreq;
+              lastDPCMFreq=nextDPCMFreq;
+              nextDPCMDelta=ins->amiga.getDPCMDelta(c.value);
+            } else {
+              if (c.value==DIV_NOTE_NULL) {
+                nextDPCMFreq=lastDPCMFreq;
+              } else {
+                nextDPCMFreq=c.value&15;
+              }
+            }
+          }
           if (c.value!=DIV_NOTE_NULL) {
             dacSample=ins->amiga.getSample(c.value);
-            c.value=ins->amiga.getFreq(c.value);
+            if (ins->type==DIV_INS_AMIGA) {
+              c.value=ins->amiga.getFreq(c.value);
+            }
           }
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
@@ -452,7 +483,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
+      chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_NES));
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
@@ -614,7 +645,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_NES));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
@@ -700,6 +731,8 @@ void DivPlatformNES::reset() {
   goingToLoop=false;
   countMode=false;
   nextDPCMFreq=-1;
+  nextDPCMDelta=-1;
+  lastDPCMFreq=15;
   linearCount=255;
 
   if (useNP) {

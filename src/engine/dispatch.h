@@ -238,6 +238,9 @@ enum DivDispatchCmds {
 
   DIV_CMD_EXTERNAL, // (value)
 
+  DIV_CMD_C64_AD, // (value)
+  DIV_CMD_C64_SR, // (value)
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX
@@ -265,6 +268,29 @@ struct DivCommand {
     dis(ch),
     value(0),
     value2(0) {}
+};
+
+struct DivPitchTable {
+  int pitch[(12*128)+1];
+  unsigned char linearity, blockBits;
+  bool period;
+
+  // get pitch
+  int get(int base, int pitch, int pitch2);
+
+  // linear: note
+  // non-linear: get(note,0,0)
+  int getBase(int note);
+
+  // calculate pitch table
+  void init(float tuning, double clock, double divider, int octave, unsigned char linear, bool isPeriod, unsigned char block=0);
+
+  DivPitchTable():
+    linearity(2),
+    blockBits(0),
+    period(false) {
+    memset(pitch,0,sizeof(pitch));
+  }
 };
 
 struct DivDelayedCommand {
@@ -362,7 +388,23 @@ struct DivChannelModeHints {
   // - 1: volume
   // - 2: pitch
   // - 3: panning
-  // - 4: ???
+  // - 4: chip primary
+  // - 5: chip secondary
+  // - 6: mixing
+  // - 7: DSP
+  // - 8: note
+  // - 9: misc 1
+  // - 10: misc 2
+  // - 11: misc 3
+  // - 12: attack
+  // - 13: decay
+  // - 14: sustain
+  // - 15: release
+  // - 16: dec linear
+  // - 17: dec exp
+  // - 18: inc linear
+  // - 19: inc bent
+  // - 20: direct
   unsigned char type[4];
   // up to 4
   unsigned char count;
@@ -693,6 +735,11 @@ class DivDispatch {
     virtual void renderSamples(int sysID);
 
     /**
+     * tell this DivDispatch that the tuning and/or pitch linearity has changed, and therefore the pitch table must be regenerated.
+     */
+    virtual void notifyPitchTable();
+
+    /**
      * initialize this DivDispatch.
      * @param parent the parent DivEngine.
      * @param channels the number of channels to acquire.
@@ -718,6 +765,7 @@ class DivDispatch {
     if (chipClock<getClockRangeMin()) chipClock=getClockRangeMin(); \
   }
 
+// NOTE: these definitions may be deprecated in the future. see DivPitchTable.
 // pitch calculation:
 // - a DivDispatch usually contains four variables per channel:
 //   - baseFreq: this changes on new notes, legato, arpeggio and slides.

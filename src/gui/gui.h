@@ -127,6 +127,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_TOGGLE_OFF,
   GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
+  GUI_COLOR_EDITING_CLONE,
   GUI_COLOR_SONG_LOOP,
   GUI_COLOR_DESTRUCTIVE,
   GUI_COLOR_WARNING,
@@ -309,6 +310,27 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATTERN_STATUS_REL,
   GUI_COLOR_PATTERN_STATUS_REL_ON,
   GUI_COLOR_PATTERN_STATUS_ON,
+  GUI_COLOR_PATTERN_STATUS_VOLUME,
+  GUI_COLOR_PATTERN_STATUS_PITCH,
+  GUI_COLOR_PATTERN_STATUS_PANNING,
+  GUI_COLOR_PATTERN_STATUS_SYS1,
+  GUI_COLOR_PATTERN_STATUS_SYS2,
+  GUI_COLOR_PATTERN_STATUS_MIXING,
+  GUI_COLOR_PATTERN_STATUS_DSP,
+  GUI_COLOR_PATTERN_STATUS_NOTE,
+  GUI_COLOR_PATTERN_STATUS_MISC1,
+  GUI_COLOR_PATTERN_STATUS_MISC2,
+  GUI_COLOR_PATTERN_STATUS_MISC3,
+  GUI_COLOR_PATTERN_STATUS_ATTACK,
+  GUI_COLOR_PATTERN_STATUS_DECAY,
+  GUI_COLOR_PATTERN_STATUS_SUSTAIN,
+  GUI_COLOR_PATTERN_STATUS_RELEASE,
+  GUI_COLOR_PATTERN_STATUS_DEC_LINEAR,
+  GUI_COLOR_PATTERN_STATUS_DEC_EXP,
+  GUI_COLOR_PATTERN_STATUS_INC,
+  GUI_COLOR_PATTERN_STATUS_BENT,
+  GUI_COLOR_PATTERN_STATUS_DIRECT,
+  GUI_COLOR_PATTERN_PAIR,
 
   GUI_COLOR_SAMPLE_BG,
   GUI_COLOR_SAMPLE_FG,
@@ -397,6 +419,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_FIND,
   GUI_WINDOW_CLOCK,
   GUI_WINDOW_GROOVES,
+  GUI_WINDOW_XY_OSC,
   GUI_WINDOW_INTRO_MON,
   GUI_WINDOW_SPOILER
 };
@@ -550,6 +573,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_FIND,
   GUI_ACTION_WINDOW_CLOCK,
   GUI_ACTION_WINDOW_GROOVES,
+  GUI_ACTION_WINDOW_XY_OSC,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1342,7 +1366,7 @@ class FurnaceGUI {
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
+  bool quit, warnQuit, willCommit, edit, editClone, isPatUnique, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
@@ -1350,6 +1374,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool killGraphics;
+  bool safeMode;
   bool midiWakeUp;
   bool audioEngineChanged, settingsChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
@@ -1364,6 +1389,7 @@ class FurnaceGUI {
   int wheelCalmDown;
   int shallDetectScale;
   int cpuCores;
+  float secondTimer;
   unsigned int userEvents;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
@@ -1436,9 +1462,11 @@ class FurnaceGUI {
   char emptyLabel2[32];
 
   struct Settings {
+    bool settingsChanged;
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
+    int audioHiPass;
     int audioChans;
     int arcadeCore;
     int ym2612Core;
@@ -1448,6 +1476,8 @@ class FurnaceGUI {
     int c64Core;
     int pokeyCore;
     int opnCore;
+    int opl2Core;
+    int opl3Core;
     int arcadeCoreRender;
     int ym2612CoreRender;
     int snCoreRender;
@@ -1456,6 +1486,8 @@ class FurnaceGUI {
     int c64CoreRender;
     int pokeyCoreRender;
     int opnCoreRender;
+    int opl2CoreRender;
+    int opl3CoreRender;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -1599,6 +1631,11 @@ class FurnaceGUI {
     int showPool;
     int writeInsNames;
     int readInsNames;
+    int fontBackend;
+    int fontHinting;
+    int fontBitmap;
+    int fontAutoHint;
+    int fontAntiAlias;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1615,15 +1652,18 @@ class FurnaceGUI {
     String emptyLabel;
     String emptyLabel2;
     String sdlAudioDriver;
+    String defaultAuthorName;
     DivConfig initialSys;
 
     Settings():
+      settingsChanged(false),
       mainFontSize(18),
       patFontSize(18),
       headFontSize(27),
       iconSize(16),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
+      audioHiPass(1),
       audioChans(2),
       arcadeCore(0),
       ym2612Core(0),
@@ -1633,6 +1673,8 @@ class FurnaceGUI {
       c64Core(0),
       pokeyCore(1),
       opnCore(1),
+      opl2Core(0),
+      opl3Core(0),
       arcadeCoreRender(1),
       ym2612CoreRender(0),
       snCoreRender(0),
@@ -1641,6 +1683,8 @@ class FurnaceGUI {
       c64CoreRender(1),
       pokeyCoreRender(1),
       opnCoreRender(1),
+      opl2CoreRender(0),
+      opl3CoreRender(0),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
@@ -1781,6 +1825,11 @@ class FurnaceGUI {
       showPool(0),
       writeInsNames(1),
       readInsNames(1),
+      fontBackend(1),
+      fontHinting(0),
+      fontBitmap(0),
+      fontAutoHint(1),
+      fontAntiAlias(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -1796,7 +1845,8 @@ class FurnaceGUI {
       macroRelLabel("REL"),
       emptyLabel("..."),
       emptyLabel2(".."),
-      sdlAudioDriver("") {}
+      sdlAudioDriver(""),
+      defaultAuthorName("") {}
   } settings;
 
   struct Tutorial {
@@ -1833,7 +1883,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen;
+  bool groovesOpen, xyOscOpen;
 
   bool basicMode, shortIntro;
   bool insListDir, waveListDir, sampleListDir;
@@ -1848,6 +1898,7 @@ class FurnaceGUI {
   unsigned char lastAssetType;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
+  std::atomic<bool> failedNoteOn;
   float peak[DIV_MAX_OUTPUTS];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
@@ -2079,7 +2130,7 @@ class FurnaceGUI {
   // per-channel oscilloscope
   int chanOscCols, chanOscAutoColsType, chanOscColorX, chanOscColorY;
   float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify;
-  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize, chanOscRandomPhase;
   String chanOscTextFormat;
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
@@ -2100,7 +2151,7 @@ class FurnaceGUI {
     double inBufPosFrac;
     double waveLen;
     int waveLenBottom, waveLenTop, relatedCh;
-    float pitch, windowSize;
+    float pitch, windowSize, phaseOff;
     unsigned short needle;
     bool ready, loudEnough, waveCorr;
     fftw_plan plan;
@@ -2118,6 +2169,7 @@ class FurnaceGUI {
       relatedCh(0),
       pitch(0.0f),
       windowSize(1.0f),
+      phaseOff(0.0f),
       needle(0),
       ready(false),
       loudEnough(false),
@@ -2125,6 +2177,19 @@ class FurnaceGUI {
       plan(NULL),
       planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];
+
+  // x-y oscilloscope
+  FurnaceGUITexture* xyOscPointTex;
+  bool xyOscOptions;
+  int xyOscXChannel;
+  bool xyOscXInvert;
+  int xyOscYChannel;
+  bool xyOscYInvert;
+  float xyOscZoom;
+  int xyOscSamples;
+  float xyOscDecayTime;
+  float xyOscIntensity;
+  float xyOscThickness;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];
@@ -2254,7 +2319,9 @@ class FurnaceGUI {
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
-  void alterSampleMap(bool isNote, int val);
+  void alterSampleMap(int column, int val);
+
+  void insTabSample(DivInstrument* ins);
 
   void drawOrderButtons();
 
@@ -2314,6 +2381,7 @@ class FurnaceGUI {
   void drawSpoiler();
   void drawClock();
   void drawTutorial();
+  void drawXYOsc();
 
   void parseKeybinds();
   void promptKey(int which);
@@ -2438,6 +2506,7 @@ class FurnaceGUI {
     const char* noteName(short note, short octave);
     bool decodeNote(const char* what, short& note, short& octave);
     void bindEngine(DivEngine* eng);
+    void enableSafeMode();
     void updateScroll(int amount);
     void addScroll(int amount);
     void setFileName(String name);

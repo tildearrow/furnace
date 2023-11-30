@@ -47,6 +47,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **When creating new song**:
   - **Display system preset selector**
   - **Start with initial system**
+  - **Default author name**
 
 ### Start-up
 
@@ -92,7 +93,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - setting this to a high value increases latency.
 - **Exclusive mode**: enables Exclusive Mode, which may offer latency improvements.
   - only available on WASAPI devices in the PortAudio backend!
-- **Low-latency mode (experimental!)**: reduces latency by running the engine faster than the tick rate. useful for live playback/jam mode.
+- **Low-latency mode**: reduces latency by running the engine faster than the tick rate. useful for live playback/jam mode.
   - only enable if your buffer size is small (10ms or less).
 - **Force mono audio**: use if you're unable to hear stereo audio (e.g. single speaker or hearing loss in one ear).
 - **want:** displays requested audio configuration.
@@ -104,6 +105,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Software clipping**: clips output to nominal range (-1.0 to 1.0) before passing it to the audio device.
   - this avoids activating Windows' built-in limiter.
   - this option shall be enabled when using PortAudio backend with a DirectSound device.
+- **DC offset correction**: apply a filter to remove DC bias, where the output is overall above or below zero. default is on.
 
 ### Metronome
 
@@ -299,6 +301,9 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - applies when playback is stopped.
 - **Don't scroll when moving cursor**
 - **Move cursor with scroll wheel**
+  - **No**
+  - **Yes**
+  - **Inverted**
 
 ## Appearance
 
@@ -310,13 +315,31 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 
 ### Text
 
-- **Main font**: overall interface font.
+- **Font renderer**: this allows you to select which font renderer library to use. there are two choices:
+  - **stb_truetype**: the original font renderer used in Furnace 0.6 and before.
+  - **FreeType**: this font renderer has support for more font formats and provides more settings. introduced in Furnace 0.6.1.
+- **Main font**: font for the user interface.
 - **Header font**: font for section headers.
 - **Pattern font** font for the pattern view, the order list, and related.
   - if "Custom...", a file path selector will appear.
   - **Size**: font size.
 - **Display Japanese characters**, **Display Chinese (Simplified) characters**, **Display Chinese (Traditional) characters** and **Display Korean characters**: only toggle these options if you have enough graphics memory.
   - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
+
+#### FreeType-specific settings
+
+- **Anti-aliased fonts**: when enabled, fonts will be rendered smooth.
+- **Support bitmap fonts**: this option allows you to enable the loading of bitmap fonts.
+  - be noted that this may force non-bitmap fonts to undesired sizes!
+- **Hinting**: this option allows you to define how crisp fonts are rendered.
+  - **Off**: disable font hinting. at small sizes, fonts may be blurry.
+  - **Slight**: enable slight font hinting.
+  - **Normal**: enable font hinting.
+  - **Full**: enable harsh font hinting. fonts may look ugly/distorted to some people.
+- **Auto-hinter**: some fonts contain hinting data, but some don't. this allows you to select what happens.
+  - **Disable**: only rely upon font hinting data.
+  - **Enable**: prefer font hinting data if present.
+  - **Force**: ignore font hinting data.
 
 ### Program
 

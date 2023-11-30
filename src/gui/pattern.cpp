@@ -23,10 +23,22 @@
 #include "../ta-log.h"
 #include "imgui_internal.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
 #include "../utfutils.h"
 #include <fmt/printf.h>
+
+struct DelayedLabel {
+  float posCenter, posY;
+  ImVec2 textSize;
+  const char* label;
+  DelayedLabel(float pc, float py, ImVec2 ts, const char* l):
+    posCenter(pc),
+    posY(py),
+    textSize(ts),
+    label(l) {}
+};
 
 inline float randRange(float min, float max) {
   return min+((float)rand()/(float)RAND_MAX)*(max-min);
@@ -90,7 +102,11 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   // check overflow highlight
   if (settings.overflowHighlight) {
     if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
-      ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+      if (editClone && !isPatUnique && secondTimer<0.5) {
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]));
+      } else {
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+      }
     } else if (isPlaying && oldRow==i && ord==playOrder) {
       ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->curSubSong->hilightB>0 && !(i%e->curSubSong->hilightB)) {
@@ -101,7 +117,11 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   } else {
     isPushing=true;
     if (edit && cursor.y==i && curWindowLast==GUI_WINDOW_PATTERN) {
-      ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+      if (editClone && !isPatUnique && secondTimer<0.5) {
+        ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]));
+      } else {
+        ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]));
+      }
     } else if (isPlaying && oldRow==i && ord==playOrder) {
       ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]));
     } else if (e->curSubSong->hilightB>0 && !(i%e->curSubSong->hilightB)) {
@@ -426,6 +446,7 @@ void FurnaceGUI::drawPattern() {
     int ord=curOrder;
     int chans=e->getTotalChannelCount();
     int displayChans=0;
+    float chanHeadBottom=0.0f;
     const DivPattern* patCache[DIV_MAX_CHANS];
     for (int i=0; i<chans; i++) {
       if (e->curSubSong->chanShow[i]) displayChans++;
@@ -447,6 +468,7 @@ void FurnaceGUI::drawPattern() {
       nextScroll=-1.0f;
       nextAddScroll=0.0f;
     }
+    ImDrawList* tdl=NULL;
     if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
@@ -500,15 +522,16 @@ void FurnaceGUI::drawPattern() {
         if (ImGui::RadioButton("No##_PCS0",patChannelHints==0)) {
           patChannelHints=0;
         }
-        if (ImGui::RadioButton("Basic##_PCS0",patChannelHints==1)) {
+        if (ImGui::RadioButton("Yes##_PCS1",patChannelHints==1)) {
           patChannelHints=1;
         }
-        if (ImGui::RadioButton("Regular##_PCS0",patChannelHints==2)) {
+        /*
+        if (ImGui::RadioButton("Regular##_PCS2",patChannelHints==2)) {
           patChannelHints=2;
         }
-        if (ImGui::RadioButton("Detailed##_PCS0",patChannelHints==3)) {
+        if (ImGui::RadioButton("Detailed##_PCS3",patChannelHints==3)) {
           patChannelHints=3;
-        }
+        }*/
         ImGui::Unindent();
         ImGui::EndPopup();
       }
@@ -527,6 +550,13 @@ void FurnaceGUI::drawPattern() {
 
         if (e->keyHit[i]) {
           keyHit1[i]=1.0f;
+
+          if (chanOscRandomPhase) {
+            chanOscChan[i].phaseOff=(float)rand()/(float)RAND_MAX;
+          } else {
+            chanOscChan[i].phaseOff=0.0f;
+          }
+
           if (settings.channelFeedbackStyle==1) {
             keyHit[i]=0.2;
             if (!muted) {
@@ -906,98 +936,165 @@ void FurnaceGUI::drawPattern() {
         }
 
         if (patChannelHints) {
+          ImGuiWindow* win=ImGui::GetCurrentWindow();
+          ImVec2 posMin=win->DC.CursorPos;
+          ImGui::Dummy(ImVec2(dpiScale,settings.iconSize*dpiScale));
+          ImVec2 posMax=ImVec2(win->WorkRect.Max.x,win->WorkRect.Max.y);
+          posMin.y-=ImGui::GetStyle().ItemSpacing.y*0.5;
+          ImDrawList* dl=ImGui::GetWindowDrawList();
+          ImVec2 iconPos[6];
           DivChannelState* cs=e->getChanState(i);
           if (cs!=NULL) {
-            ImGui::PushFont(mainFont);
+            DivChannelModeHints hints=e->getChanModeHints(i);
+            if (hints.count>4) hints.count=4;
+            int hintCount=3+hints.count;
+
+            // calculate icon size
+            for (int i=0; i<hintCount; i++) {
+              iconPos[i]=ImLerp(posMin,posMax,ImVec2((float)(2*i+1)/(float)(hintCount*2),0.0f));
+            }
+
+            // 1. ON/OFF
+            ImVec4 onOffColor;
             if (cs->keyOn) {
               if (cs->releasing) {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_REL_ON]));
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_REL_ON];
               } else {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_ON]));
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_ON];
               }
-              ImGui::Text(ICON_FA_SQUARE);
-              ImGui::PopStyleColor();
             } else {
               if (cs->releasing) {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_REL]));
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_REL];
               } else {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
+                onOffColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
               }
-              ImGui::Text(ICON_FA_SQUARE);
-              ImGui::PopStyleColor();
             }
-            ImGui::PopFont();
+            iconPos[0].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,ICON_FA_SQUARE).x*0.5f;
+            dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[0],ImGui::GetColorU32(onOffColor),ICON_FA_SQUARE);
 
-            if (e->curSubSong->chanCollapse[i]==0) {
-              ImGui::SameLine();
-              ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]));
-              ImGui::Text("%.2X",cs->volume>>8);
-              ImGui::PopStyleColor();
-
-              if (cs->volSpeed!=0) {
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_VOLUME]));
-                ImGui::Text("%+2d",cs->volSpeed/4);
-                ImGui::PopStyleColor();
+            // 2. PITCH SLIDE/VIBRATO
+            ImVec4 pitchColor;
+            const char* pitchIcon=ICON_FUR_SINE;
+            if (cs->inPorta) {
+              pitchIcon=ICON_FA_SHARE;
+              pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_PITCH];
+            } else if (cs->portaSpeed>0) {
+              if (cs->portaNote>=60) {
+                pitchIcon=ICON_FA_CHEVRON_UP;
               } else {
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
-                ImGui::Text(" 00");
-                ImGui::PopStyleColor();
+                pitchIcon=ICON_FA_CHEVRON_DOWN;
               }
+              pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_PITCH];
+            } else if (cs->vibratoDepth>0) {
+              pitchIcon=ICON_FUR_SINE;
+              pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_PITCH];
+            } else if (cs->arp) {
+              pitchIcon=ICON_FA_BARS;
+              pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_NOTE];
+            } else {
+              pitchColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
+            }
+            iconPos[1].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,pitchIcon).x*0.5f;
+            dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[1],ImGui::GetColorU32(pitchColor),pitchIcon);
 
-              if (cs->vibratoDepth>0) {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
-                ImGui::Text("~%.1X%.1X",cs->vibratoRate,cs->vibratoDepth);
-                ImGui::PopStyleColor();
+
+            // 3. VOLUME
+            ImVec4 volColor;
+            const char* volIcon=ICON_FA_MINUS;
+            if (cs->tremoloDepth>0) {
+              volIcon=ICON_FUR_SINE;
+              volColor=uiColors[GUI_COLOR_PATTERN_STATUS_VOLUME];
+            } else if (cs->volSpeed) {
+              if (cs->volSpeed>0) {
+                volIcon=ICON_FA_CHEVRON_UP;
               } else {
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
-                ImGui::Text("~00");
-                ImGui::PopStyleColor();
+                volIcon=ICON_FA_CHEVRON_DOWN;
               }
+              volColor=uiColors[GUI_COLOR_PATTERN_STATUS_VOLUME];
+            } else {
+              volColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
+            }
+            iconPos[2].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,volIcon).x*0.5f;
+            dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[2],ImGui::GetColorU32(volColor),volIcon);
 
-              /*
-              if (cs->legato) {
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
-                ImGui::Text("=");
-                ImGui::PopStyleColor();
-              } else {
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
-                ImGui::Text("=");
-                ImGui::PopStyleColor();
-              }*/
-
-              if (cs->inPorta) {
-                ImGui::SameLine();
-                ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
-                if (cs->portaNote<-60 || cs->portaNote>=120) {
-                  ImGui::Text("???@%.2X",cs->portaSpeed);
-                } else {
-                  ImGui::Text("%s@%.2X",noteNames[60+cs->portaNote],cs->portaSpeed);
-                }
-                ImGui::PopStyleColor();
-              } else {
-                if (cs->portaSpeed>0) {
-                  ImGui::SameLine();
-                  ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH]));
-                  if (cs->portaNote<60) {
-                    ImGui::Text(" v%.2X  ",cs->portaSpeed);
-                  } else {
-                    ImGui::Text(" ^%.2X  ",cs->portaSpeed);
-                  }
-                  ImGui::PopStyleColor();
-                } else {
-                  ImGui::SameLine();
-                  ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]));
-                  ImGui::Text(" --- ");
-                  ImGui::PopStyleColor();
-                }
+            // 4. OTHER
+            for (int i=0; i<hints.count; i++) {
+              if (hints.hint[i]==NULL) continue;
+              ImVec4 hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
+              switch (hints.type[i]) {
+                case 0:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_OFF];
+                  break;
+                case 1:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_VOLUME];
+                  break;
+                case 2:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_PITCH];
+                  break;
+                case 3:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_PANNING];
+                  break;
+                case 4:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_SYS1];
+                  break;
+                case 5:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_SYS2];
+                  break;
+                case 6:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MIXING];
+                  break;
+                case 7:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DSP];
+                  break;
+                case 8:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_NOTE];
+                  break;
+                case 9:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC1];
+                  break;
+                case 10:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC2];
+                  break;
+                case 11:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_MISC3];
+                  break;
+                case 12:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_ATTACK];
+                  break;
+                case 13:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DECAY];
+                  break;
+                case 14:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_SUSTAIN];
+                  break;
+                case 15:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_RELEASE];
+                  break;
+                case 16:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DEC_LINEAR];
+                  break;
+                case 17:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DEC_EXP];
+                  break;
+                case 18:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_INC];
+                  break;
+                case 19:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_BENT];
+                  break;
+                case 20:
+                  hintColor=uiColors[GUI_COLOR_PATTERN_STATUS_DIRECT];
+                  break;
+                default:
+                  hintColor=uiColors[GUI_COLOR_TEXT];
+                  break;
               }
+              iconPos[i+3].x-=mainFont->CalcTextSizeA(mainFont->FontSize,FLT_MAX,0.0f,hints.hint[i]).x*0.5f;
+              dl->AddText(mainFont,settings.mainFontSize*dpiScale,iconPos[i+3],ImGui::GetColorU32(hintColor),hints.hint[i]);
             }
           }
         }
+        chanHeadBottom=ImGui::GetCursorScreenPos().y-ImGui::GetStyle().ItemSpacing.y;
       }
       ImGui::TableNextColumn();
       lastPatternWidth=ImGui::GetCursorPosX()-lpwStart+ImGui::GetStyle().ScrollbarSize;
@@ -1132,8 +1229,219 @@ void FurnaceGUI::drawPattern() {
           }
         }
       }
+      // HACK: rendering here would cause the pairs to be drawn behind the pattern for some reason...
+      // ...so we capture the table's window draw list...
+      tdl=ImGui::GetWindowDrawList();
       ImGui::EndTable();
     }
+
+    // ...and then use it here
+    ImGui::PushFont(mainFont);
+    if (patChannelPairs && e->isRunning() && tdl!=NULL) { // pair hints
+      float pos=0.0f;
+      float posCenter=0.0f;
+      float posMin=FLT_MAX;
+      float posMax=-FLT_MAX;
+      ImVec2 textSize;
+      unsigned int floors[4][4]; // bit array
+      std::vector<DelayedLabel> delayedLabels;
+
+      memset(floors,0,4*4*sizeof(unsigned int));
+
+      for (int i=0; i<chans; i++) {
+        bool isPaired=false;
+        int numPairs=0;
+        unsigned int pairMin=i;
+        unsigned int pairMax=i;
+        unsigned char curFloor=0;
+        if (!e->curSubSong->chanShow[i]) {
+          continue;
+        }
+
+        DivChannelPair pairs=e->getChanPaired(i);
+        for (int j=0; j<8; j++) {
+          if (pairs.pairs[j]==-1) continue;
+          int pairCh=e->dispatchFirstChan[i]+pairs.pairs[j];
+          if (!e->curSubSong->chanShow[pairCh]) {
+            continue;
+          }
+          isPaired=true;
+          if ((unsigned int)pairCh<pairMin) pairMin=pairCh;
+          if ((unsigned int)pairCh>pairMax) pairMax=pairCh;
+        }
+
+        if (!isPaired) continue;
+
+        float posY=chanHeadBottom;
+
+        // find a free floor
+        while (curFloor<4) {
+          bool free=true;
+          for (unsigned int j=pairMin; j<=pairMax; j++) {
+            const unsigned int j0=j>>5;
+            const unsigned int j1=1U<<(j&31);
+            if (floors[curFloor][j0]&j1) {
+              free=false;
+              break;
+            }
+          }
+          if (free) break;
+          curFloor++;
+        }
+        if (curFloor<4) {
+          // occupy floor
+          floors[curFloor][pairMin>>5]|=1U<<(pairMin&31);
+          floors[curFloor][pairMax>>5]|=1U<<(pairMax&31);
+        }
+
+        pos=(patChanX[i+1]+patChanX[i])*0.5;
+        posCenter=pos;
+        posMin=pos;
+        posMax=pos;
+        numPairs++;
+
+        if (pairs.label==NULL) {
+          textSize=ImGui::CalcTextSize("???");
+        } else {
+          textSize=ImGui::CalcTextSize(pairs.label);
+        }
+
+        posY+=(textSize.y+ImGui::GetStyle().ItemSpacing.y)*curFloor;
+
+        tdl->AddLine(
+          ImVec2(pos,chanHeadBottom),
+          ImVec2(pos,posY+textSize.y),
+          ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+          2.0f*dpiScale
+        );
+
+        for (int j=0; j<8; j++) {
+          if (pairs.pairs[j]==-1) continue;
+          int pairCh=e->dispatchFirstChan[i]+pairs.pairs[j];
+          if (!e->curSubSong->chanShow[pairCh]) {
+            continue;
+          }
+
+          pos=(patChanX[pairCh+1]+patChanX[pairCh])*0.5;
+          posCenter+=pos;
+          numPairs++;
+          if (pos<posMin) posMin=pos;
+          if (pos>posMax) posMax=pos;
+          tdl->AddLine(
+            ImVec2(pos,chanHeadBottom),
+            ImVec2(pos,posY+textSize.y),
+            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+            2.0f*dpiScale
+          );
+        }
+
+        posCenter/=numPairs;
+
+        if (pairs.label==NULL) {
+          tdl->AddLine(
+            ImVec2(posMin,posY+textSize.y),
+            ImVec2(posMax,posY+textSize.y),
+            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+            2.0f*dpiScale
+          );
+        } else {
+          tdl->AddLine(
+            ImVec2(posMin,posY+textSize.y),
+            ImVec2(posCenter-textSize.x*0.5-6.0f*dpiScale,posY+textSize.y),
+            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+            2.0f*dpiScale
+          );
+          tdl->AddLine(
+            ImVec2(posCenter+textSize.x*0.5+6.0f*dpiScale,posY+textSize.y),
+            ImVec2(posMax,posY+textSize.y),
+            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+            2.0f*dpiScale
+          );
+
+          delayedLabels.push_back(DelayedLabel(posCenter,posY,textSize,pairs.label));
+        }
+      }
+
+      for (DelayedLabel& i: delayedLabels) {
+        ImGui::RenderFrameDrawList(
+          tdl,
+          ImVec2(i.posCenter-i.textSize.x*0.5-6.0f*dpiScale,i.posY+i.textSize.y*0.5-3.0f*dpiScale),
+          ImVec2(i.posCenter+i.textSize.x*0.5+6.0f*dpiScale,i.posY+i.textSize.y*1.5+3.0f*dpiScale),
+          ImGui::GetColorU32(ImGuiCol_FrameBg),
+          true,
+          ImGui::GetStyle().FrameRounding
+        );
+
+        tdl->AddText(
+          ImVec2(i.posCenter-i.textSize.x*0.5,i.posY+i.textSize.y*0.5),
+          ImGui::GetColorU32(ImGuiCol_Text),
+          i.label
+        );
+      }
+    }
+
+    // also let's draw a warning if the instrument cannot be previewed
+    if (tdl!=NULL && failedNoteOn) {
+      ImVec2 winCenter=ImGui::GetWindowPos()+ImGui::GetWindowSize()*0.5f;
+      ImGui::PushFont(bigFont);
+      ImVec2 warnHeadSize=ImGui::CalcTextSize("WARNING!!");
+      ImGui::PopFont();
+      ImVec2 warnTextSize1=ImGui::CalcTextSize("this instrument cannot be previewed because");
+      ImVec2 warnTextSize2=ImGui::CalcTextSize("none of the chips can play it");
+      ImVec2 warnTextSize3=ImGui::CalcTextSize("your instrument is in peril!! be careful...");
+
+      float maxTextSize=warnHeadSize.x;
+      if (warnTextSize1.x>maxTextSize) maxTextSize=warnTextSize1.x;
+      if (warnTextSize2.x>maxTextSize) maxTextSize=warnTextSize2.x;
+      if (warnTextSize3.x>maxTextSize) maxTextSize=warnTextSize3.x;
+
+      ImVec2 sumOfAll=ImVec2(
+        maxTextSize,
+        warnHeadSize.y+warnTextSize1.y+warnTextSize2.y+warnTextSize3.y
+      );
+
+      ImGui::RenderFrameDrawList(
+        tdl,
+        ImVec2(winCenter.x-sumOfAll.x*0.5-ImGui::GetStyle().ItemInnerSpacing.x,winCenter.y-sumOfAll.y*0.5-ImGui::GetStyle().ItemInnerSpacing.y),
+        ImVec2(winCenter.x+sumOfAll.x*0.5+ImGui::GetStyle().ItemInnerSpacing.x,winCenter.y+sumOfAll.y*0.5+ImGui::GetStyle().ItemInnerSpacing.y),
+        ImGui::GetColorU32(ImGuiCol_FrameBg),
+        true,
+        ImGui::GetStyle().FrameRounding
+      );
+
+      float whereY=winCenter.y-sumOfAll.y*0.5;
+
+      tdl->AddText(
+        bigFont,
+        MAX(1,40*dpiScale),
+        ImVec2(winCenter.x-warnHeadSize.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "WARNING!!"
+      );
+      whereY+=warnHeadSize.y;
+
+      tdl->AddText(
+        ImVec2(winCenter.x-warnTextSize1.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "this instrument cannot be previewed because"
+      );
+      whereY+=warnTextSize1.y;
+
+      tdl->AddText(
+        ImVec2(winCenter.x-warnTextSize2.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "none of the chips can play it"
+      );
+      whereY+=warnTextSize2.y;
+
+      tdl->AddText(
+        ImVec2(winCenter.x-warnTextSize3.x*0.5,whereY),
+        ImGui::GetColorU32(ImGuiCol_Text),
+        "your instrument is in peril!! be careful..."
+      );
+      whereY+=warnTextSize3.y;
+    }
+    ImGui::PopFont();
 
     if (fancyPattern) { // visualizer
       e->getCommandStream(cmdStream);

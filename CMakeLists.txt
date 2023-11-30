@@ -95,8 +95,10 @@ option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." 
 option(WITH_RENDER_OPENGL "Whether to build with the OpenGL render backend." ${WITH_RENDER_OPENGL_DEFAULT})
 option(WITH_RENDER_DX11 "Whether to build with the DirectX 11 render backend." ${WITH_RENDER_DX11_DEFAULT})
 option(USE_GLES "Use OpenGL ES for the OpenGL render backend." ${USE_GLES_DEFAULT})
+option(USE_FREETYPE "Use FreeType for font rendering." ON)
 option(SYSTEM_FFTW "Use a system-installed version of FFTW instead of the vendored one" OFF)
 option(SYSTEM_FMT "Use a system-installed version of fmt instead of the vendored one" OFF)
+option(SYSTEM_FREETYPE "Use a system-installed version of FreeType instead of the vendored one" OFF)
 option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead of the vendored one" OFF)
 option(SYSTEM_PORTAUDIO "Use a system-installed version of PortAudio instead of the vendored one" OFF)
 option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the vendored one" OFF)
@@ -108,7 +110,7 @@ option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 
-set(DEPENDENCIES_INCLUDE_DIRS "")
+set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
 
 if (ANDROID AND NOT TERMUX)
   set(DEPENDENCIES_DEFINES "IS_MOBILE")
@@ -190,6 +192,39 @@ else()
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/fmt/include)
   list(APPEND DEPENDENCIES_LIBRARIES fmt)
   message(STATUS "Using vendored fmt")
+endif()
+
+if (BUILD_GUI AND USE_FREETYPE)
+  # TODO: FIX FIX FIX FIX FIX
+  if (SYSTEM_FREETYPE)
+    if (PKG_CONFIG_FOUND)
+      pkg_check_modules(FREETYPE freetype>=2.0.0)
+      if (FREETYPE_FOUND)
+        list(APPEND DEPENDENCIES_INCLUDE_DIRS ${FMT_INCLUDE_DIRS})
+        list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${FMT_CFLAGS_OTHER})
+        list(APPEND DEPENDENCIES_LIBRARIES ${FMT_LIBRARIES})
+        list(APPEND DEPENDENCIES_LIBRARY_DIRS ${FMT_LIBRARY_DIRS})
+        list(APPEND DEPENDENCIES_LINK_OPTIONS ${FMT_LDFLAGS_OTHER})
+        list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${FMT_LDFLAGS})
+      endif()
+    endif()
+    if (NOT FREETYPE_FOUND)
+      find_package(freetype REQUIRED)
+      list(APPEND DEPENDENCIES_LIBRARIES freetype::freetype)
+    endif()
+    message(STATUS "Using system-installed FreeType")
+  else()
+    set(FT_DISABLE_BROTLI ON CACHE BOOL "one" FORCE)
+    set(FT_DISABLE_BZIP2 ON CACHE BOOL "two" FORCE)
+    set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "three" FORCE)
+    set(FT_DISABLE_PNG ON CACHE BOOL "four" FORCE)
+    set(FT_DISABLE_ZLIB ON CACHE BOOL "five" FORCE)
+    add_subdirectory(extern/freetype EXCLUDE_FROM_ALL)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/freetype/include)
+    list(APPEND DEPENDENCIES_LIBRARIES freetype)
+    message(STATUS "Using vendored FreeType")
+  endif()
+  list(APPEND DEPENDENCIES_DEFINES HAVE_FREETYPE)
 endif()
 
 if (USE_SNDFILE)
@@ -325,6 +360,11 @@ if (USE_SDL2)
       set(SDL_RENDER_D3D OFF CACHE BOOL "Enable the Direct3D render driver" FORCE)
     endif()
 
+    CHECK_INCLUDE_FILE(GLES/gl.h GLES_GL_FOUND)
+    if (NOT GLES_GL_FOUND AND NOT USE_GLES)
+      set(SDL_OPENGLES OFF CACHE BOOL "Enable OpenGL ES" FORCE)
+    endif()
+
     add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_DEFINES HAVE_SDL2)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
@@ -449,6 +489,9 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+extern/YM3812-LLE/fmopl2.c
+extern/YMF262-LLE/fmopl3.c
+extern/YMF276-LLE/fmopn2.c
 
 src/pch.cpp
 
@@ -516,9 +559,11 @@ src/engine/platform/sound/tia/AudioChannel.cpp
 src/engine/platform/sound/tia/Audio.cpp
 
 src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
+src/engine/platform/sound/ymfm/ymfm_opl.cpp
 src/engine/platform/sound/ymfm/ymfm_opm.cpp
 src/engine/platform/sound/ymfm/ymfm_opn.cpp
 src/engine/platform/sound/ymfm/ymfm_opz.cpp
+src/engine/platform/sound/ymfm/ymfm_pcm.cpp
 src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 
 src/engine/platform/sound/lynx/Mikey.cpp
@@ -580,6 +625,7 @@ src/engine/filter.cpp
 src/engine/instrument.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp
+src/engine/pitchTable.cpp
 src/engine/playback.cpp
 src/engine/sample.cpp
 src/engine/song.cpp
@@ -768,12 +814,17 @@ src/gui/tutorial.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp
+src/gui/xyOsc.cpp
 src/gui/gui.cpp
 )
 
 if (WIN32 AND NOT SUPPORT_XP)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_win.cpp)
+endif()
+
+if (USE_FREETYPE)
+  list(APPEND GUI_SOURCES extern/imgui_patched/misc/freetype/imgui_freetype.cpp)
 endif()
 
 if (APPLE)
@@ -874,7 +925,6 @@ if (BUILD_GUI)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS
     extern/imgui_patched
     extern/imgui_patched/backends
-    extern/IconFontCppHeaders
     extern/igfd
   )
   if (WIN32 OR APPLE)

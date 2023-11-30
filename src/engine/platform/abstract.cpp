@@ -199,6 +199,9 @@ void DivDispatch::renderSamples(int sysID) {
   
 }
 
+void DivDispatch::notifyPitchTable() {
+}
+
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   return 0;
 }

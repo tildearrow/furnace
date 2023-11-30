@@ -133,6 +133,9 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       curIns=i;
       updateFMPreview=true;
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      if (ImGui::MenuItem("duplicate")) {
+        doAction(GUI_ACTION_INS_LIST_DUPLICATE);
+      }
       if (ImGui::MenuItem("replace...")) {
         doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
       }
@@ -199,6 +202,8 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
 void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
   bool memWarning=false;
 
+  ImGui::PushID(i);
+
   DivSample* sample=e->song.sample[i];
   for (int j=0; j<e->song.systemLen; j++) {
     DivDispatch* dispatch=e->getDispatch(j);
@@ -240,7 +245,32 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     }
     ImGui::PopStyleColor();
   }
+  if (ImGui::BeginPopupContextItem("SampleRightMenu")) {
+    curSample=i;
+    samplePos=0;
+    updateSampleTex=true;
+    lastAssetType=2;
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+    if (ImGui::MenuItem("make instrument")) {
+      doAction(GUI_ACTION_SAMPLE_MAKE_INS);
+    }
+    if (ImGui::MenuItem("duplicate")) {
+      doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
+    }
+    if (ImGui::MenuItem("replace...")) {
+      doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
+    }
+    if (ImGui::MenuItem("save")) {
+      doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
+    }
+    if (ImGui::MenuItem("delete")) {
+      doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
+    }
+    ImGui::PopStyleColor();
+    ImGui::EndPopup();
+  }
   if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
+  ImGui::PopID();
 }
 
 void FurnaceGUI::drawInsList(bool asChild) {

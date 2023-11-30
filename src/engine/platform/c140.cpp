@@ -271,6 +271,14 @@ void DivPlatformC140::tick(bool sysTick) {
             }
           }
         } else {
+          switch (bankType) {
+            case 0:
+              bank=((bank&8)<<2)|(bank&7);
+              break;
+            case 1:
+              bank=((bank&0x18)<<1)|(bank&7);
+              break;
+          }
           rWrite(0x04+(i<<4),bank);
         }
         rWrite(0x06+(i<<4),(start>>8)&0xff);
@@ -548,7 +556,15 @@ const void* DivPlatformC140::getSampleMem(int index) {
 }
 
 size_t DivPlatformC140::getSampleMemCapacity(int index) {
-  return index == 0 ? (is219?524288:16777216) : 0;
+  if (index!=0) return 0;
+  if (is219) return 524288;
+  switch (bankType) {
+    case 0:
+      return 2097152;
+    case 1:
+      return 4194304;
+  }
+  return 16777216;
 }
 
 size_t DivPlatformC140::getSampleMemUsage(int index) {
@@ -562,7 +578,7 @@ bool DivPlatformC140::isSampleLoaded(int index, int sample) {
 }
 
 void DivPlatformC140::renderSamples(int sysID) {
-  memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleMem,0,is219?524288:16777216);
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
@@ -701,6 +717,10 @@ void DivPlatformC140::setFlags(const DivConfig& flags) {
     CHECK_CUSTOM_CLOCK;
     rate=chipClock/192;
   }
+  bankType=flags.getInt("bankType",0);
+  if (!is219) {
+    c140_bank_type(&c140,bankType);
+  }
   for (int i=0; i<totalChans; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -710,12 +730,13 @@ int DivPlatformC140::init(DivEngine* p, int channels, int sugRate, const DivConf
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  bankType=2;
 
   for (int i=0; i<totalChans; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  sampleMem=new unsigned char[getSampleMemCapacity()];
+  sampleMem=new unsigned char[is219?524288:16777216];
   sampleMemLen=0;
   if (is219) {
     c219_init(&c219);

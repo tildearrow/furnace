@@ -134,6 +134,79 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       }
       writeControlUpper(i);
     }
+
+    // run hardware sequence
+    if (chan[i].active) {
+      if (--chan[i].hwSeqDelay<=0) {
+        chan[i].hwSeqDelay=0;
+        DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
+        int hwSeqCount=0;
+        while (chan[i].hwSeqPos<ins->su.hwSeqLen && hwSeqCount<8) {
+          bool leave=false;
+          unsigned char bound=ins->su.hwSeq[chan[i].hwSeqPos].bound;
+          unsigned char val=ins->su.hwSeq[chan[i].hwSeqPos].val;
+          unsigned short speed=ins->su.hwSeq[chan[i].hwSeqPos].speed;
+          switch (ins->su.hwSeq[chan[i].hwSeqPos].cmd) {
+            case DivInstrumentSoundUnit::DIV_SU_HWCMD_VOL:
+              chan[i].volSweepP=speed;
+              chan[i].volSweepV=val;
+              chan[i].volSweepB=bound;
+              chan[i].volSweep=(val>0);
+              chWrite(i,0x14,chan[i].volSweepP&0xff);
+              chWrite(i,0x15,chan[i].volSweepP>>8);
+              chWrite(i,0x16,chan[i].volSweepV);
+              chWrite(i,0x17,chan[i].volSweepB);
+              writeControlUpper(i);
+              break;
+            case DivInstrumentSoundUnit::DIV_SU_HWCMD_PITCH:
+              chan[i].freqSweepP=speed;
+              chan[i].freqSweepV=val;
+              chan[i].freqSweepB=bound;
+              chan[i].freqSweep=(val>0);
+              chWrite(i,0x10,chan[i].freqSweepP&0xff);
+              chWrite(i,0x11,chan[i].freqSweepP>>8);
+              chWrite(i,0x12,chan[i].freqSweepV);
+              chWrite(i,0x13,chan[i].freqSweepB);
+              writeControlUpper(i);
+              break;
+            case DivInstrumentSoundUnit::DIV_SU_HWCMD_CUT:
+              chan[i].cutSweepP=speed;
+              chan[i].cutSweepV=val;
+              chan[i].cutSweepB=bound;
+              chan[i].cutSweep=(val>0);
+              chWrite(i,0x18,chan[i].cutSweepP&0xff);
+              chWrite(i,0x19,chan[i].cutSweepP>>8);
+              chWrite(i,0x1a,chan[i].cutSweepV);
+              chWrite(i,0x1b,chan[i].cutSweepB);
+              writeControlUpper(i);
+              break;
+            case DivInstrumentSoundUnit::DIV_SU_HWCMD_WAIT:
+              chan[i].hwSeqDelay=(val+1)*parent->tickMult;
+              leave=true;
+              break;
+            case DivInstrumentSoundUnit::DIV_SU_HWCMD_WAIT_REL:
+              if (!chan[i].released) {
+                chan[i].hwSeqPos--;
+                leave=true;
+              }
+              break;
+            case DivInstrumentSoundUnit::DIV_SU_HWCMD_LOOP:
+              chan[i].hwSeqPos=val-1;
+              break;
+            case DivInstrumentSoundUnit::DIV_SU_HWCMD_LOOP_REL:
+              if (!chan[i].released) {
+                chan[i].hwSeqPos=val-1;
+              }
+              break;
+          }
+
+          chan[i].hwSeqPos++;
+          if (leave) break;
+          hwSeqCount++;
+        }
+      }
+    }
+
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,chan[i].switchRoles,2,chan[i].pitch2,chipClock,chan[i].switchRoles?CHIP_DIVIDER:CHIP_FREQBASE);
@@ -160,8 +233,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       }
       if (chan[i].keyOn) {
         if (chan[i].pcm) {
-          DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-          int sNum=ins->amiga.getSample(chan[i].note);
+          int sNum=chan[i].sample;
           DivSample* sample=parent->getSample(sNum);
           if (sample!=NULL && sNum>=0 && sNum<parent->song.sampleLen) {
             unsigned int sampleEnd=sampleOffSU[sNum]+(sample->getLoopEndPosition());
@@ -220,6 +292,9 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
+      chan[c.chan].released=false;
+      chan[c.chan].hwSeqPos=0;
+      chan[c.chan].hwSeqDelay=0;
       chWrite(c.chan,0x02,chan[c.chan].vol);
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
@@ -231,11 +306,14 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
+      chan[c.chan].hwSeqPos=0;
+      chan[c.chan].hwSeqDelay=0;
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
       chan[c.chan].std.release();
+      chan[c.chan].released=true;
       break;
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
@@ -447,6 +525,7 @@ void DivPlatformSoundUnit::forceIns() {
     chWrite(i,0x03,chan[i].pan);
     writeControl(i);
     writeControlUpper(i);
+    chWrite(i,0x08,chan[i].duty);
   }
 }
 

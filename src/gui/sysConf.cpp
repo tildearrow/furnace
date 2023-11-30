@@ -24,6 +24,7 @@
 
 bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
+  bool mustRender=false;
   bool restart=modifyOnChange;
   bool supportsCustomRate=true;
 
@@ -585,10 +586,13 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_C64_6581: {
       int clockSel=flags.getInt("clockSel",0);
       bool keyPriority=flags.getBool("keyPriority",true);
+      bool no1EUpdate=flags.getBool("no1EUpdate",false);
+      bool multiplyRel=flags.getBool("multiplyRel",false);
       int testAttack=flags.getInt("testAttack",0);
       int testDecay=flags.getInt("testDecay",0);
       int testSustain=flags.getInt("testSustain",0);
       int testRelease=flags.getInt("testRelease",0);
+      int initResetTime=flags.getInt("initResetTime",2);
 
       ImGui::Text("Clock rate:");
 
@@ -643,14 +647,38 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
 
+      ImGui::Text("Envelope reset time:");
+
+      pushWarningColor(initResetTime<1 || initResetTime>4);
+      if (CWSliderInt("##InitReset",&initResetTime,0,16)) {
+        if (initResetTime<0) initResetTime=0;
+        if (initResetTime>16) initResetTime=16;
+        altered=true;
+      }
+      popWarningColor();
+      
+      ImGui::Text("- 0 disables envelope reset. not recommended!\n- 1 may trigger SID envelope bugs.\n- values that are too high may result in notes being skipped.");
+
+      if (ImGui::Checkbox("Disable 1Exy env update (compatibility)",&no1EUpdate)) {
+        altered=true;
+      }
+
+      if (ImGui::Checkbox("Relative duty and cutoff macros are coarse (compatibility)",&multiplyRel)) {
+        altered=true;
+      }
+
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("keyPriority",keyPriority);
+          flags.set("no1EUpdate",no1EUpdate);
+          flags.set("multiplyRel",multiplyRel);
           flags.set("testAttack",testAttack);
           flags.set("testDecay",testDecay);
           flags.set("testSustain",testSustain);
           flags.set("testRelease",testRelease);
+          flags.set("initResetTime",initResetTime);
         });
       }
       break;
@@ -896,18 +924,22 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::RadioButton("2MB (ECS/AGA max)",chipMem==21)) {
         chipMem=21;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton("1MB",chipMem==20)) {
         chipMem=20;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton("512KB (OCS max)",chipMem==19)) {
         chipMem=19;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton("256KB",chipMem==18)) {
         chipMem=18;
         altered=true;
+        mustRender=true;
       }
       ImGui::Unindent();
 
@@ -2181,14 +2213,63 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_C140: {
+      int bankType=flags.getInt("bankType",0);
+
+      ImGui::Text("Banking style:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("Namco System 2 (2MB)",bankType==0)) {
+        bankType=0;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton("Namco System 21 (4MB)",bankType==1)) {
+        bankType=1;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton("Raw (16MB; no VGM export!)",bankType==2)) {
+        bankType=2;
+        altered=true;
+        mustRender=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("bankType",bankType);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_VBOY: {
+      bool romMode=flags.getBool("romMode",false);
+
+      ImGui::Text("Waveform storage mode:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("Dynamic (unconfirmed)",!romMode)) {
+        romMode=false;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Static (up to 5 waves)",romMode)) {
+        romMode=true;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("romMode",romMode);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
-    case DIV_SYSTEM_VBOY:
     case DIV_SYSTEM_GA20:
     case DIV_SYSTEM_PV1000:
     case DIV_SYSTEM_VERA:
-    case DIV_SYSTEM_C140:
     case DIV_SYSTEM_C219:
       break;
     case DIV_SYSTEM_YMU759:
@@ -2241,7 +2322,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
   if (altered) {
     if (chan>=0) {
-      e->updateSysFlags(chan,restart);
+      e->updateSysFlags(chan,restart,mustRender);
       if (e->song.autoSystem) {
         autoDetectSystem();
       }

@@ -90,6 +90,10 @@ void FurnaceGUI::bindEngine(DivEngine* eng) {
   wavePreview.setEngine(e);
 }
 
+void FurnaceGUI::enableSafeMode() {
+  safeMode=true;
+}
+
 const char* FurnaceGUI::noteName(short note, short octave) {
   if (note==100) {
     return noteOffLabel;
@@ -1146,7 +1150,7 @@ void FurnaceGUI::stop() {
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
   e->setMidiBaseChan(refChan);
   e->synchronized([this,note]() {
-    e->autoNoteOn(-1,curIns,note);
+    if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
   });
 }
 
@@ -1164,6 +1168,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 
     e->synchronized([this,num]() {
       e->autoNoteOff(-1,num);
+      failedNoteOn=false;
     });
   }
 }
@@ -1400,36 +1405,69 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   }
 
   if (sampleMapWaitingInput) {
-    if (sampleMapColumn==1) {
-      // TODO: map?
-      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-        alterSampleMap(true,-1);
-        return;
-      }
-      auto it=noteKeys.find(ev.key.keysym.scancode);
-      if (it!=noteKeys.cend()) {
-        int key=it->second;
-        int num=12*curOctave+key;
-
-        if (num<-60) num=-60; // C-(-5)
-        if (num>119) num=119; // B-9
-
-        alterSampleMap(true,num);
-        return;
-      }
-    } else {
-      // TODO: map?
-      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-        alterSampleMap(false,-1);
-        return;
-      }
-      auto it=valueKeys.find(ev.key.keysym.sym);
-      if (it!=valueKeys.cend()) {
-        int num=it->second;
-        if (num<10) {
-          alterSampleMap(false,num);
+    switch (sampleMapColumn) {
+      case 0: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(0,-1);
           return;
         }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<10) {
+            alterSampleMap(0,num);
+            return;
+          }
+        }
+        break;
+      }
+      case 1: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(1,-1);
+          return;
+        }
+        auto it=noteKeys.find(ev.key.keysym.scancode);
+        if (it!=noteKeys.cend()) {
+          int key=it->second;
+          int num=12*curOctave+key;
+
+          if (num<-60) num=-60; // C-(-5)
+          if (num>119) num=119; // B-9
+
+          alterSampleMap(1,num);
+          return;
+        }
+        break;
+      }
+      case 2: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(2,-1);
+          return;
+        }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<10) {
+            alterSampleMap(2,num);
+            return;
+          }
+        }
+        break;
+      }
+      case 3: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(3,-1);
+          return;
+        }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<16) {
+            alterSampleMap(3,num);
+            return;
+          }
+        }
+        break;
       }
     }
   }
@@ -1859,7 +1897,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -1868,7 +1906,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -1877,7 +1915,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -2199,6 +2237,9 @@ int FurnaceGUI::load(String path) {
     if (settings.playOnLoad==2 || (settings.playOnLoad==1 && wasPlaying)) {
       play();
     }
+  } else {
+    // warn the user
+    showWarning("you have loaded a backup!\nif you need to, please save it somewhere.\n\nDO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\nFurnace will not save backups of backups.",GUI_WARN_GENERIC);
   }
   return 0;
 }
@@ -2467,7 +2508,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       int x=(dragX-waveDragStart.x)*waveDragLen/MAX(1,waveDragAreaSize.x);
       if (x<0) x=0;
       if (x>=waveDragLen) x=waveDragLen-1;
-      int y=round(waveDragMax-((dragY-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)MAX(1,waveDragAreaSize.y))));
+      int y=(waveDragMax+1)-((dragY-waveDragStart.y)*(double((waveDragMax+1)-waveDragMin)/(double)MAX(1,waveDragAreaSize.y)));
       if (y>waveDragMax) y=waveDragMax;
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
@@ -3389,6 +3430,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(readOsc)
   DECLARE_METRIC(osc)
   DECLARE_METRIC(chanOsc)
+  DECLARE_METRIC(xyOsc)
   DECLARE_METRIC(volMeter)
   DECLARE_METRIC(settings)
   DECLARE_METRIC(debug)
@@ -3415,6 +3457,11 @@ bool FurnaceGUI::loop() {
     SDL_SetEventFilter(_processEvent,this);
   } else {
     logD("key input: main thread");
+  }
+
+  if (safeMode) {
+    showError("Furnace has been started in Safe Mode.\nthis means that:\n\n- software rendering is being used\n- audio output may not work\n- font loading is disabled\n\ncheck any settings which may have made Furnace start up in this mode.\nfont loading is one of these.");
+    settingsOpen=true;
   }
 
   while (!quit) {
@@ -3815,7 +3862,7 @@ bool FurnaceGUI::loop() {
       continue;
     }
 
-    if (firstFrame) {
+    if (firstFrame && !safeMode) {
       if (!tutorial.introPlayed || settings.alwaysPlayIntro==3 || (settings.alwaysPlayIntro==2 && curFileName.empty())) {
         unsigned char* introTemp=new unsigned char[intro_fur_len];
         memcpy(introTemp,intro_fur,intro_fur_len);
@@ -3927,6 +3974,10 @@ bool FurnaceGUI::loop() {
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
 
+    // one second counter
+    secondTimer+=ImGui::GetIO().DeltaTime;
+    if (secondTimer>=1.0f) secondTimer=fmod(secondTimer,1.0f);
+
     curWindowLast=curWindow;
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
@@ -3942,6 +3993,19 @@ bool FurnaceGUI::loop() {
     if (e->isPlaying()) {
       if (oldRow!=nextOldRow) oldRowChanged=true;
       oldRow=nextOldRow;
+    }
+
+    // check whether pattern of channel(s) at cursor/selection is/are unique
+    isPatUnique=true;
+    if (curOrder>=0 && curOrder<e->curSubSong->ordersLen && selStart.xCoarse>=0 && selStart.xCoarse<e->getTotalChannelCount() && selEnd.xCoarse>=0 && selEnd.xCoarse<e->getTotalChannelCount()) {
+      for (int i=0; i<e->curSubSong->ordersLen; i++) {
+        if (i==curOrder) continue;
+        for (int j=selStart.xCoarse; j<=selEnd.xCoarse; j++) {
+          if (e->curSubSong->orders.ord[j][i]==e->curSubSong->orders.ord[j][curOrder]) isPatUnique=false;
+          break;
+        }
+        if (!isPatUnique) break;
+      }
     }
 
     if (!mobileUI) {
@@ -4362,6 +4426,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("piano/input pad",BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
         if (ImGui::MenuItem("oscilloscope (master)",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
         if (ImGui::MenuItem("oscilloscope (per-channel)",BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
+        if (ImGui::MenuItem("oscilloscope (X-Y)",BIND_FOR(GUI_ACTION_WINDOW_XY_OSC),xyOscOpen)) xyOscOpen=!xyOscOpen;
         if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
         if (ImGui::MenuItem("clock",BIND_FOR(GUI_ACTION_WINDOW_CLOCK),clockOpen)) clockOpen=!clockOpen;
         if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
@@ -4412,7 +4477,43 @@ bool FurnaceGUI::loop() {
           info+=fmt::sprintf("| Row %d/%d ",oldRow,e->curSubSong->patLen);
         }
 
-        info+=fmt::sprintf("| %d:%.2d:%.2d.%.2d",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+        info+="| ";
+
+        if (totalSeconds==0x7fffffff) {
+          info+="Don't you have anything better to do?";
+        } else {
+          if (totalSeconds>=86400) {
+            int totalDays=totalSeconds/86400;
+            int totalYears=totalDays/365;
+            totalDays%=365;
+            int totalMonths=totalDays/30;
+            totalDays%=30;
+
+            if (totalYears>1) {
+              info+=fmt::sprintf("%d years ",totalYears);
+            } else if (totalYears) {
+              info+=fmt::sprintf("%d year ",totalYears);
+            }
+
+            if (totalMonths>1) {
+              info+=fmt::sprintf("%d months ",totalMonths);
+            } else if (totalMonths) {
+              info+=fmt::sprintf("%d month ",totalMonths);
+            }
+
+            if (totalDays>1) {
+              info+=fmt::sprintf("%d days ",totalDays);
+            } else {
+              info+=fmt::sprintf("%d day ",totalDays);
+            }
+          }
+
+          if (totalSeconds>=3600) {
+            info+=fmt::sprintf("%.2d:",(totalSeconds/3600)%24);
+          }
+
+          info+=fmt::sprintf("%.2d:%.2d.%.2d",(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+        }
 
         ImGui::TextUnformatted(info.c_str());
       } else {
@@ -4546,6 +4647,7 @@ bool FurnaceGUI::loop() {
       MEASURE(readOsc,readOsc());
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
+      MEASURE(xyOsc,drawXYOsc());
       MEASURE(grooves,drawGrooves());
       MEASURE(regView,drawRegView());
     } else {
@@ -4575,6 +4677,7 @@ bool FurnaceGUI::loop() {
 
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
+      MEASURE(xyOsc,drawXYOsc());
       MEASURE(volMeter,drawVolMeter());
       MEASURE(settings,drawSettings());
       MEASURE(debug,drawDebug());
@@ -4948,6 +5051,7 @@ bool FurnaceGUI::loop() {
                     e->renderSamples();
                     MARK_MODIFIED;
                   });
+                  updateSampleTex=true;
                 } else {
                   showError("...but you haven't selected a sample!");
                   delete s;
@@ -5499,6 +5603,7 @@ bool FurnaceGUI::loop() {
                 reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
               }
             }
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5509,6 +5614,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
             resetKeybinds();
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5520,6 +5626,7 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             resetColors();
             applyUISettings(false);
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5531,12 +5638,14 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             settingsOpen=false;
             willCommit=true;
+            settingsChanged=false;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
             ImGui::CloseCurrentPopup();
             settingsOpen=false;
             syncSettings();
+            settingsChanged=false;
           }
           ImGui::SameLine();
           if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
@@ -5937,6 +6046,7 @@ bool FurnaceGUI::loop() {
                 e->renderSamples();
                 MARK_MODIFIED;
               });
+              updateSampleTex=true;
             } else {
               showError("...but you haven't selected a sample!");
               delete s;
@@ -6140,6 +6250,7 @@ bool FurnaceGUI::loop() {
         switch (lastWindowCat) {
           case 0:
             e->autoNoteOffAll();
+            failedNoteOn=false;
             break;
           case 1:
             e->stopWavePreview();
@@ -6162,6 +6273,7 @@ bool FurnaceGUI::loop() {
     if (mustClear) {
       rend->clear(ImVec4(0,0,0,0));
       mustClear--;
+      if (mustClear==0) e->everythingOK();
     } else {
       if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;
@@ -6305,6 +6417,7 @@ bool FurnaceGUI::init() {
   mixerOpen=e->getConfBool("mixerOpen",false);
   oscOpen=e->getConfBool("oscOpen",true);
   chanOscOpen=e->getConfBool("chanOscOpen",false);
+  xyOscOpen=e->getConfBool("xyOscOpen",false);
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
@@ -6400,6 +6513,7 @@ bool FurnaceGUI::init() {
   chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
   chanOscOptions=e->getConfBool("chanOscOptions",false);
   chanOscNormalize=e->getConfBool("chanOscNormalize",false);
+  chanOscRandomPhase=e->getConfBool("chanOscRandomPhase",false);
   chanOscTextFormat=e->getConfString("chanOscTextFormat","%c");
   chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
   chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
@@ -6412,6 +6526,16 @@ bool FurnaceGUI::init() {
   chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
   chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
   chanOscGrad.render();
+
+  xyOscXChannel=e->getConfInt("xyOscXChannel",0);
+  xyOscXInvert=e->getConfBool("xyOscXInvert",false);
+  xyOscYChannel=e->getConfInt("xyOscYChannel",1);
+  xyOscYInvert=e->getConfBool("xyOscYInvert",false);
+  xyOscZoom=e->getConfFloat("xyOscZoom",1.0f);
+  xyOscSamples=e->getConfInt("xyOscSamples",32768);
+  xyOscDecayTime=e->getConfFloat("xyOscDecayTime",10.0f);
+  xyOscIntensity=e->getConfFloat("xyOscIntensity",2.0f);
+  xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
 
   syncSettings();
   syncTutorial();
@@ -6657,6 +6781,10 @@ bool FurnaceGUI::init() {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER,settings.renderDriver.c_str());
   }
 
+  if (safeMode) {
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER,"software");
+  }
+
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
     logE("it failed...");
@@ -6856,6 +6984,7 @@ void FurnaceGUI::commitState() {
   e->setConf("mixerOpen",mixerOpen);
   e->setConf("oscOpen",oscOpen);
   e->setConf("chanOscOpen",chanOscOpen);
+  e->setConf("xyOscOpen",xyOscOpen);
   e->setConf("volMeterOpen",volMeterOpen);
   e->setConf("statsOpen",statsOpen);
   e->setConf("compatFlagsOpen",compatFlagsOpen);
@@ -6938,6 +7067,7 @@ void FurnaceGUI::commitState() {
   e->setConf("chanOscWaveCorr",chanOscWaveCorr);
   e->setConf("chanOscOptions",chanOscOptions);
   e->setConf("chanOscNormalize",chanOscNormalize);
+  e->setConf("chanOscRandomPhase",chanOscRandomPhase);
   e->setConf("chanOscTextFormat",chanOscTextFormat);
   e->setConf("chanOscColorR",chanOscColor.x);
   e->setConf("chanOscColorG",chanOscColor.y);
@@ -6949,6 +7079,17 @@ void FurnaceGUI::commitState() {
   e->setConf("chanOscTextColorA",chanOscTextColor.w);
   e->setConf("chanOscUseGrad",chanOscUseGrad);
   e->setConf("chanOscGrad",chanOscGrad.toString());
+
+  // commit x-y osc state
+  e->setConf("xyOscXChannel",xyOscXChannel);
+  e->setConf("xyOscXInvert",xyOscXInvert);
+  e->setConf("xyOscYChannel",xyOscYChannel);
+  e->setConf("xyOscYInvert",xyOscYInvert);
+  e->setConf("xyOscZoom",xyOscZoom);
+  e->setConf("xyOscSamples",xyOscSamples);
+  e->setConf("xyOscDecayTime",xyOscDecayTime);
+  e->setConf("xyOscIntensity",xyOscIntensity);
+  e->setConf("xyOscThickness",xyOscThickness);
 
   // commit recent files
   for (int i=0; i<30; i++) {
@@ -7014,6 +7155,8 @@ FurnaceGUI::FurnaceGUI():
   warnQuit(false),
   willCommit(false),
   edit(false),
+  editClone(false),
+  isPatUnique(false),
   modified(false),
   displayError(false),
   displayExporting(false),
@@ -7044,6 +7187,7 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   mobileEdit(false),
   killGraphics(false),
+  safeMode(false),
   midiWakeUp(true),
   audioEngineChanged(false),
   settingsChanged(false),
@@ -7059,6 +7203,7 @@ FurnaceGUI::FurnaceGUI():
   wheelCalmDown(0),
   shallDetectScale(0),
   cpuCores(0),
+  secondTimer(0.0f),
   userEvents(0xffffffff),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
@@ -7185,6 +7330,7 @@ FurnaceGUI::FurnaceGUI():
   clockOpen(false),
   speedOpen(true),
   groovesOpen(false),
+  xyOscOpen(false),
   basicMode(true),
   shortIntro(false),
   insListDir(false),
@@ -7228,6 +7374,7 @@ FurnaceGUI::FurnaceGUI():
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
+  failedNoteOn(false),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
   buttonLongThreshold(0.20f),
@@ -7418,12 +7565,24 @@ FurnaceGUI::FurnaceGUI():
   updateChanOscGradTex(true),
   chanOscUseGrad(false),
   chanOscNormalize(false),
+  chanOscRandomPhase(false),
   chanOscTextFormat("%c"),
   chanOscColor(1.0f,1.0f,1.0f,1.0f),
   chanOscTextColor(1.0f,1.0f,1.0f,0.75f),
   chanOscGrad(64,64),
   chanOscGradTex(NULL),
   chanOscWorkPool(NULL),
+  xyOscPointTex(NULL),
+  xyOscOptions(false),
+  xyOscXChannel(0),
+  xyOscXInvert(false),
+  xyOscYChannel(1),
+  xyOscYInvert(false),
+  xyOscZoom(1.0f),
+  xyOscSamples(32768),
+  xyOscDecayTime(10.0f),
+  xyOscIntensity(2.0f),
+  xyOscThickness(2.0f),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),
