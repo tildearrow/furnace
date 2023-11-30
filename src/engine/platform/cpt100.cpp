@@ -49,7 +49,7 @@ void DivPlatformCPT100::tick(bool sysTick) {
   for (unsigned char i=0; i<chans; i++) {
     if (sysTick) {
       chan[i].amp-=3;
-      if (chan[i].amp<15) chan[i].amp=15;
+      if (chan[i].amp<0) chan[i].amp=0;
       rWrite(chanaddrs_volume[i],chan[i].amp);
     }
 
@@ -83,7 +83,7 @@ unsigned char* DivPlatformCPT100::getRegisterPool() {
 }
 
 int DivPlatformCPT100::getRegisterPoolSize() {
-  return 192;
+  return 206;
 }
 
 int DivPlatformCPT100::dispatch(DivCommand c) {
