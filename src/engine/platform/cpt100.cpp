@@ -7,8 +7,8 @@
 #define CHIP_FREQBASE 1000
 #define rWrite(a,v) if (!skipRegisterWrites) {(a,v); regPool[(a)&192]=v; if (dumpWrites) {addWrite(a,v);} }
 
-void DivPlatformCPT100::doWrite(unsigned short addr, unsigned char data) {
-  
+void DivPlatformCPT100::doWrite(unsigned int addr, unsigned char data) {
+  cpt100::ram_poke(cpt100::ram,(int)addr,(cpt100::Byte)data);
 }
 
 void DivPlatformCPT100::acquire(short** buf, size_t len) {

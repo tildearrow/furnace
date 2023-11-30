@@ -1,14 +1,12 @@
 #include <math.h>
 #include <random>
-#include "ram.cpp"
-#include "envelove.cpp"
+#include "header/extern.hpp"
 
+#define CPT100_SAMPLE_FREQ 48000
 
 namespace cpt100 {
-    #define CPT100_SAMPLE_FREQ 48000
     std::random_device rd;
     std::mt19937 mt(rd());
-
     long long Total_time = 0;
     double t1[4] = {0,0,0,0};
     double t2[4] = {0,0,0,0};
@@ -20,11 +18,12 @@ namespace cpt100 {
     double out1[2] = {0.0,0.0};
     double out2[2] = {0.0,0.0};
     std::vector<int> gateTick = {0,0,0,0};
-    std::vector<Byte> reg,regenvl,regwt;
+    std::vector<cpt100::Byte> reg,regenvl,regwt;
     std::vector<int> noise;
     std::vector<EnvGenerator> envl;
     EnvGenerator _envl;
     double prev = 0;
+
     double sind(double theta) {
         return sin(theta*2*M_PI);
     }
@@ -60,10 +59,10 @@ namespace cpt100 {
         envl.at((size_t)(ch*4+opNum)).update(adsr,dt);
     }
 
-    std::vector<Sint16> AudioCallBack(int len)
+    std::vector<int16_t> AudioCallBack(int len)
     {
         int i;
-        std::vector<Sint16> frames(len,0);
+        std::vector<int16_t> frames(len,0);
         int framesize = len;
         reg = ram_peek2array(ram,0x10000,64);
         regenvl = ram_peek2array(ram,0x10040,68);
@@ -130,7 +129,7 @@ namespace cpt100 {
                 }
             }
             result /= 8;
-            frames[i] = (Sint16)result;
+            frames[i] = (int16_t)result;
         }
 
         reg.clear();
@@ -144,7 +143,7 @@ namespace cpt100 {
         
         envl.resize(16,_envl);
         noise.resize(1024,0);
-        for (i=0;i<1024;i++) {
+        for (int i=0;i<1024;i++) {
             noise[i] = mt()%2;
         }
         

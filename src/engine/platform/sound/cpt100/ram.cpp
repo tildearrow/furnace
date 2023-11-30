@@ -1,10 +1,8 @@
 #include <vector>
-#include "header/types.hpp"
 #include "header/spec.hpp"
+#include "header/types.hpp"
 
 namespace cpt100 {
-    std::vector<Byte> ram;
-    std::vector<Byte> vram;
     // RAMおよびVRAMを管理する関数
     void ram_boot(std::vector<Byte>& ram, std::vector<Byte>& vram) {
         ram.resize(CPT100_RAM_SIZE, Byte(0));
