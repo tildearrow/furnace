@@ -427,34 +427,74 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_OPL:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(1,false);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2Core",0));
+      }
       break;
     case DIV_SYSTEM_OPL_DRUMS:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(1,true);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2Core",0));
+      }
       break;
     case DIV_SYSTEM_OPL2:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(2,false);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2Core",0));
+      }
       break;
     case DIV_SYSTEM_OPL2_DRUMS:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(2,true);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2Core",0));
+      }
       break;
     case DIV_SYSTEM_OPL3:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(3,false);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl3CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl3Core",0));
+      }
       break;
     case DIV_SYSTEM_OPL3_DRUMS:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(3,true);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl3CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl3Core",0));
+      }
       break;
     case DIV_SYSTEM_Y8950:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(8950,false);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2Core",0));
+      }
       break;
     case DIV_SYSTEM_Y8950_DRUMS:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(8950,true);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl2Core",0));
+      }
       break;
     case DIV_SYSTEM_OPZ:
       dispatch=new DivPlatformTX81Z;

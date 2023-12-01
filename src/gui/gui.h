@@ -1476,6 +1476,8 @@ class FurnaceGUI {
     int c64Core;
     int pokeyCore;
     int opnCore;
+    int opl2Core;
+    int opl3Core;
     int arcadeCoreRender;
     int ym2612CoreRender;
     int snCoreRender;
@@ -1484,6 +1486,8 @@ class FurnaceGUI {
     int c64CoreRender;
     int pokeyCoreRender;
     int opnCoreRender;
+    int opl2CoreRender;
+    int opl3CoreRender;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -1669,6 +1673,8 @@ class FurnaceGUI {
       c64Core(0),
       pokeyCore(1),
       opnCore(1),
+      opl2Core(0),
+      opl3Core(0),
       arcadeCoreRender(1),
       ym2612CoreRender(0),
       snCoreRender(0),
@@ -1677,6 +1683,8 @@ class FurnaceGUI {
       c64CoreRender(1),
       pokeyCoreRender(1),
       opnCoreRender(1),
+      opl2CoreRender(0),
+      opl3CoreRender(0),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
@@ -2122,7 +2130,7 @@ class FurnaceGUI {
   // per-channel oscilloscope
   int chanOscCols, chanOscAutoColsType, chanOscColorX, chanOscColorY;
   float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify;
-  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize, chanOscRandomPhase;
   String chanOscTextFormat;
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
@@ -2143,7 +2151,7 @@ class FurnaceGUI {
     double inBufPosFrac;
     double waveLen;
     int waveLenBottom, waveLenTop, relatedCh;
-    float pitch, windowSize;
+    float pitch, windowSize, phaseOff;
     unsigned short needle;
     bool ready, loudEnough, waveCorr;
     fftw_plan plan;
@@ -2161,6 +2169,7 @@ class FurnaceGUI {
       relatedCh(0),
       pitch(0.0f),
       windowSize(1.0f),
+      phaseOff(0.0f),
       needle(0),
       ready(false),
       loudEnough(false),
