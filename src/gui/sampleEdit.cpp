@@ -1226,6 +1226,63 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
+      ImGui::Button("Crossfade");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Crossfade loop points.");
+      }
+      if (openSampleXFadeOpt) {
+        openSampleXFadeOpt=false;
+        ImGui::OpenPopup("SXFadeOpt");
+      }
+      if (ImGui::BeginPopupContextItem("SXFadeÓpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        if (ImGui::SliderInt("Number of samples", &sampleXFadeLoopLength, 0, 100000)) {
+          if (sampleXFadeLoopLength<0) sampleXFadeLoopLength=0;
+          if (sampleXFadeLoopLength>sample->loopStart) sampleXFadeLoopLength=sample->loopStart;
+          if (sampleXFadeLoopLength>100000) sampleXFadeLoopLength=100000;
+        }
+        if (ImGui::SliderInt("Linear <-> Equal power", &sampleXFadeLoopLaw, 0, 100000)) {
+          if (sampleXFadeLoopLaw<0) sampleXFadeLoopLaw=0;
+          if (sampleXFadeLoopLaw>100000) sampleXFadeLoopLaw=100000;
+        }
+        if (ImGui::Button("Apply")) {
+          sample->prepareUndo(true);
+          e->lockEngine([this,sample]{
+            SAMPLE_OP_BEGIN;
+            double l=1.0/(double)sampleXFadeLoopLength;
+            double evar=1.0-sampleXFadeLoopLaw/200000.0;
+            if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+              unsigned int xfadeInput=sample->loopStart-sampleXFadeLoopLength;
+              unsigned int xfadeOutput=sample->loopEnd-sampleXFadeLoopLength;
+              for (int i=0;i<sampleXFadeLoopLength;i++) {
+                double f1=std::pow(i*l,evar);
+                double f2=std::pow((sampleXFadeLoopLength-i)*l, evar);
+                signed char out=(signed char)(((double)sample->data8[xfadeInput])*f1+((double)sample->data8[xfadeOutput])*f2);
+                sample->data8[xfadeOutput]=out;
+                xfadeInput++;
+                xfadeOutput++;
+              }
+            } else if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+              unsigned int xfadeInput=sample->loopStart-sampleXFadeLoopLength;
+              unsigned int xfadeOutput=sample->loopEnd-sampleXFadeLoopLength;
+              for (int i=0;i<sampleXFadeLoopLength;i++) {
+                double f1=std::pow(i*l,evar);
+                double f2=std::pow((sampleXFadeLoopLength-i)*l,evar);
+                short out = (short)(((double)sample->data16[xfadeInput])*f1+((double)sample->data16[xfadeOutput])*f2);
+                sample->data16[xfadeOutput]=out;
+                xfadeInput++;
+                xfadeOutput++;
+              }
+            }
+            updateSampleTex=true;
+
+            e->renderSamples(curSample);
+          });
+          MARK_MODIFIED;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::SameLine();
       if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
         e->previewSample(curSample);
       }
