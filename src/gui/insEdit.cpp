@@ -5099,7 +5099,7 @@ void FurnaceGUI::drawInsEdit() {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op2f,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op2f,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Volume",sliderSize,ImGuiDataType_U8,&ins->cpt.op2v,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
@@ -5149,7 +5149,7 @@ void FurnaceGUI::drawInsEdit() {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op3f,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op3f,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Volume",sliderSize,ImGuiDataType_U8,&ins->cpt.op3v,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
@@ -5199,7 +5199,7 @@ void FurnaceGUI::drawInsEdit() {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op4f,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op4f,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Volume",sliderSize,ImGuiDataType_U8,&ins->cpt.op4v,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();

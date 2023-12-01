@@ -163,6 +163,11 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
           chan[c.chan].ws.changeWave1(chan[c.chan].wave);
           chan[c.chan].waveUpdated=true;
         }
+        if (c.chan < 4)
+        {
+          
+        }
+        
         chan[c.chan].insChanged=false;
       }
       chan[c.chan].ws.init(ins,32,255,chan[c.chan].insChanged);
