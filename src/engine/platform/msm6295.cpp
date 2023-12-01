@@ -327,7 +327,7 @@ void DivPlatformMSM6295::reset() {
   rateSel=rateSelInit;
   rWrite(12,!rateSelInit);
   if (isBanked) {
-    rWrite(14,1);
+    rWrite(14,0x81);
   }
 
   delay=0;
@@ -540,7 +540,7 @@ void DivPlatformMSM6295::setFlags(const DivConfig& flags) {
     rWrite(12,!rateSelInit);
     rateSel=rateSelInit;
   }
-  rWrite(14,isBanked);
+  rWrite(14,isBanked?0x81:0);
 }
 
 int DivPlatformMSM6295::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
