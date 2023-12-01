@@ -26,6 +26,14 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define rWriteDelay(a,v,d) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v,d)); if (dumpWrites) {addWrite(a,v);} }
 
+#define setPhrase(c) \
+  if (isBanked) { \
+    rWrite(16+(c),bankedPhrase[chan[(c)].sample].bank); \
+    rWrite(0,0x80|((c)<<5)|bankedPhrase[chan[(c)].sample].phrase); \
+  } else { \
+    rWrite(0,0x80|chan[(c)].sample); \
+  }
+
 const char** DivPlatformMSM6295::getRegisterSheet() {
   return NULL;
 }
@@ -116,12 +124,7 @@ void DivPlatformMSM6295::tick(bool sysTick) {
       rWriteDelay(0,(8<<i),60); // turn off
       if (chan[i].active && !chan[i].keyOff) {
         if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-          if (isBanked) {
-            rWrite(16+i,bankedPhrase[chan[i].sample].bank);
-            rWrite(0,0x80|(i<<5)|bankedPhrase[chan[i].sample].phrase);
-          } else {
-            rWrite(0,0x80|chan[i].sample); // set phrase
-          }
+          setPhrase(i);
           rWrite(0,(16<<i)|(8-chan[i].outVol)); // turn on
         } else {
           chan[i].sample=-1;
@@ -159,12 +162,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
           rWriteDelay(0,(8<<c.chan),180); // turn off
-          if (isBanked) {
-            rWrite(16+c.chan,bankedPhrase[chan[c.chan].sample].bank);
-            rWrite(0,0x80|(c.chan<<5)|bankedPhrase[chan[c.chan].sample].phrase);
-          } else {
-            rWrite(0,0x80|chan[c.chan].sample); // set phrase
-          }
+          setPhrase(c.chan);
           rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
         } else {
           break;
@@ -179,12 +177,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
         //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
         chan[c.chan].sample=12*sampleBank+c.value%12;
         rWriteDelay(0,(8<<c.chan),180); // turn off
-        if (isBanked) {
-          rWrite(16+c.chan,bankedPhrase[chan[c.chan].sample].bank);
-          rWrite(0,0x80|(c.chan<<5)|bankedPhrase[chan[c.chan].sample].phrase);
-        } else {
-          rWrite(0,0x80|chan[c.chan].sample); // set phrase
-        }
+        setPhrase(c.chan);
         rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
       }
       break;
