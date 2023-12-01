@@ -1,32 +1,39 @@
-
 #include "cpt100.h"
 #include "../engine.h"
 #include <stdio.h>
 #include <math.h>
-#include "sound/cpt100/sound.cpp"
 
 
-#define CHIP_FREQBASE 1000
+#define CHIP_FREQBASE 48000
 #define rWrite(a,v) if (!skipRegisterWrites) {doWrite(a,v); regPool[(a-0x10000)%208]=v; if (dumpWrites) {addWrite(a,v);} }
 
 unsigned int chanaddrs_freq[6] = {0x10000,0x10010,0x10020,0x10030,0x10084,0x10086};
 unsigned int chanaddrs_volume[6] = {0x10009,0x10019,0x10029,0x10039,0x10088,0x10089};
 
 void DivPlatformCPT100::doWrite(unsigned int addr, unsigned char data) {
-  ram_poke(ram,(int)addr,(Byte)data);
+  cpt->ram_poke(cpt->ram,(int)addr,(Cpt100_sound::Byte)data);
+}
+
+void DivPlatformCPT100::updateWave(int ch) {
+  if (ch>=4 && ch<=5)
+  {
+    for (int j=0;j<32;j++) {
+      rWrite(0x10090+32*(ch-4)+j,chan[ch].ws.output[j]);
+    }
+  }
 }
 
 void DivPlatformCPT100::acquire(short** buf, size_t len) {
   int chanOut;
-  std::vector<std::vector<int16_t>> output = AudioCallBack(len);
+  std::vector<std::vector<int16_t>> output = cpt->AudioCallBack(len);
   for (size_t i=0; i<len; i++) {
     int out=0;
     for (unsigned char j=0; j<chans; j++) {
       if (chan[j].active) {
         if (!isMuted[j]) {
-          chanOut=(signed short)(output[j][i])>>12;
-          oscBuf[j]->data[oscBuf[j]->needle++]=chanOut<<1;
-          out+=chanOut;
+          chanOut=(signed short)(output[j][i]);
+          oscBuf[j]->data[oscBuf[j]->needle++]=chanOut>>1;
+          out+=chanOut>>3;
         } else {
           oscBuf[j]->data[oscBuf[j]->needle++]=0;
         }
@@ -47,26 +54,77 @@ void DivPlatformCPT100::muteChannel(int ch, bool mute) {
 
 void DivPlatformCPT100::tick(bool sysTick) {
   for (unsigned char i=0; i<chans; i++) {
-    if (sysTick) {
-      chan[i].amp-=3;
-      if (chan[i].amp<0) chan[i].amp=0;
-      rWrite(chanaddrs_volume[i],chan[i].amp);
+    chan[i].std.next();
+    
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=(MIN(255,chan[i].std.vol.val)*(chan[i].vol))/16;
+      if (chan[i].outVol<0) chan[i].outVol=0;
+      if (chan[i].outVol>255) chan[i].outVol=255;
+      if (chan[i].resVol!=chan[i].outVol) {
+        chan[i].resVol=chan[i].outVol;
+        if (!isMuted[i]) {
+          chan[i].volumeChanged=true;
+        }
+      }
     }
-
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
+      if (!chan[i].inPorta) {
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+      }
+      chan[i].freqChanged=true;
+    }
+    if (chan[i].std.wave.had) {
+      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
+        chan[i].wave=chan[i].std.wave.val;
+        chan[i].ws.changeWave1(chan[i].wave);
+        chan[i].waveUpdated=true;
+        
+      }
+    }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch,-32768,32767);
+      } else {
+        chan[i].pitch=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
+    if (chan[i].std.duty.had) {
+      if (i>=4 && i<=5) {
+        rWrite(0x1008a+i-4,chan[i].std.duty.val*2);
+      }
+    }
+    if (chan[i].std.ex1.had) {
+      if (i>=4 && i<=5) {
+        rWrite(0x1008c+i-4,chan[i].std.ex1.val);
+      }
+    }
     if (chan[i].freqChanged) {
       chan[i].freqChanged=false;
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,0,false,false,0,0,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,0,false,false,0,0,chipClock,CHIP_FREQBASE)/16;
       rWrite(chanaddrs_freq[i],chan[i].freq>>8);
       rWrite(chanaddrs_freq[i]+1,chan[i].freq&0xff);
     }
-
-    if (i>=4 && i<=5)
-    {
-      for (int j=0;j<32;j++) {
-      rWrite(0x10090+32*(i-4)+j,chan[i].ws.output[j]);
+    if (chan[i].waveUpdated) {
+      if (i>=4 && i<=5)
+      {
+        for (int j=0;j<32;j++) {
+        rWrite(0x10090+32*(i-4)+j,chan[i].ws.output[j]);
+        }
+      }
+      if (chan[i].active) {
+        if (chan[i].ws.tick()) {
+          updateWave(i);
+        }
+        chan[i].freqChanged=true;
+      }
+      chan[i].waveChanged=false;
     }
-    }
- 
+    
+    rWrite(chanaddrs_volume[i],chan[i].outVol);
   }
 }
 
@@ -83,7 +141,7 @@ unsigned char* DivPlatformCPT100::getRegisterPool() {
 }
 
 int DivPlatformCPT100::getRegisterPoolSize() {
-  return 206;
+  return 208;
 }
 
 int DivPlatformCPT100::dispatch(DivCommand c) {
@@ -95,18 +153,19 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;
       }
+      chan[c.chan].macroInit(ins);
       if (chan[c.chan].insChanged) {
-        chan[c.chan].macroInit(ins);
         if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
         if (chan[c.chan].wave<0) {
           chan[c.chan].wave=0;
           chan[c.chan].ws.changeWave1(chan[c.chan].wave);
+          chan[c.chan].waveUpdated=true;
         }
-        chan[c.chan].ws.init(ins,32,255,chan[c.chan].insChanged);
         chan[c.chan].insChanged=false;
       }
+      chan[c.chan].ws.init(ins,32,255,chan[c.chan].insChanged);
       chan[c.chan].active=true;
       chan[c.chan].amp=255;
       break;
@@ -115,12 +174,18 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       break;
     case DIV_CMD_VOLUME:
-      //chan[c.chan].vol=c.value;
-      chan[c.chan].vol=255;
-      if (chan[c.chan].vol>255) chan[c.chan].vol=255;
+      chan[c.chan].vol=c.value;
+      //chan[c.chan].vol=255;
+      if (chan[c.chan].vol>16) chan[c.chan].vol=16;
       break;
     case DIV_CMD_GET_VOLUME:
       return chan[c.chan].vol;
+      break;
+    case DIV_CMD_INSTRUMENT:
+      if (chan[c.chan].ins!=c.value || c.value2==1) {
+        chan[c.chan].ins=c.value;
+        chan[c.chan].insChanged=true;
+      }
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
@@ -151,16 +216,38 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 255;
+      return 16;
       break;
+    case DIV_CMD_WAVE:
+      if (chan[c.chan].wave!=c.value) {
+        chan[c.chan].wave=c.value;
+        chan[c.chan].ws.changeWave1(chan[c.chan].wave);
+        chan[c.chan].waveUpdated=true;
+      }
+  break;
     default:
       break;
   }
   return 1;
 }
 
+void DivPlatformCPT100::notifyWaveChange(int wave) {
+  for (int i=5; i<6; i++) {
+    if (chan[i].wave==wave) {
+      chan[i].ws.changeWave1(wave);
+    }
+    chan[i].waveUpdated=true;
+  }
+}
+
 void DivPlatformCPT100::notifyInsDeletion(void* ins) {
-  // nothing
+  for (int i=0; i<6; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
+DivMacroInt* DivPlatformCPT100::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 void DivPlatformCPT100::poke(unsigned int addr, unsigned short val) {
@@ -172,8 +259,8 @@ void DivPlatformCPT100::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformCPT100::reset() {
-  ram_boot(ram,vram);
-  initSound();
+  cpt->ram_boot(cpt->ram,cpt->vram);
+  cpt->initSound();
   for (int i=0; i<chans; i++) {
     chan[i]=DivPlatformCPT100::Channel();
     chan[i].vol=0xff;
@@ -198,7 +285,8 @@ int DivPlatformCPT100::init(DivEngine* p, int channels, int sugRate, const DivCo
   rate=48000;
   chipClock=48000;
   chans=channels;
-  memset(regPool,0,192);
+  cpt = new Cpt100_sound();
+  memset(regPool,0,208);
   reset();
   return channels;
 }
@@ -207,6 +295,7 @@ void DivPlatformCPT100::quit() {
   for (int i=0; i<chans; i++) {
     delete oscBuf[i];
   }
+  delete cpt;
 }
 
 DivPlatformCPT100::~DivPlatformCPT100() {

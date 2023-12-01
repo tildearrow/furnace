@@ -2,10 +2,8 @@
 #include "header/spec.hpp"
 #include "header/types.hpp"
 
-static std::vector<Byte> ram;
-static std::vector<Byte> vram;
-
-
+std::vector<Byte> ram;
+std::vector<Byte> vram;
 
 // RAMおよびVRAMを管理する関数
 void ram_boot(std::vector<Byte>& ram, std::vector<Byte>& vram) {
