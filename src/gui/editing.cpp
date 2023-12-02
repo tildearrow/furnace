@@ -764,6 +764,8 @@ uint64_t convert_effect_openmpt_mod(char symbol, uint16_t val)
 
     default: return 0; break;
   }
+
+  return 0;
 }
 
 uint64_t convert_effect_openmpt_s3m(char symbol, uint16_t val)
@@ -950,6 +952,8 @@ uint64_t convert_effect_openmpt_s3m(char symbol, uint16_t val)
 
     default: return 0; break;
   }
+
+  return 0;
 }
 
 uint64_t convert_effect_openmpt_xm(char symbol, uint16_t val)
