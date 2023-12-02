@@ -37,7 +37,7 @@ public:
 
     double generateFMWave(double t1, double v1, double t2, double v2, double t3, double v3, double t4, double v4) {
 
-        double value = sind(t1+sind(t2+sind(t3+sind(t4)*v4)*v3)*v2)*v1*255*255;
+        double value = sind(t1+sind(t2+sind(t3+sind(t4)*v4)*v3)*v2)*v1*255*127;
         return value;
 
     }

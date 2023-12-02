@@ -29,7 +29,7 @@ void DivPlatformCPT100::acquire(short** buf, size_t len) {
   for (size_t i=0; i<len; i++) {
     int out=0;
     for (unsigned char j=0; j<chans; j++) {
-      if (chan[j].active) {
+      if (true) {
         if (!isMuted[j]) {
           chanOut=(signed short)(output[j][i]);
           oscBuf[j]->data[oscBuf[j]->needle++]=chanOut>>1;
@@ -154,6 +154,33 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
         chan[c.chan].freqChanged=true;
       }
       chan[c.chan].macroInit(ins);
+      if (c.chan<4)
+      {
+        cpt->resetGate(c.chan);
+        rWrite(0x10002 + 16*c.chan,ins->cpt.op2f*16);
+        rWrite(0x10003 + 16*c.chan,ins->cpt.op3f*16);
+        rWrite(0x10004 + 16*c.chan,ins->cpt.op4f*16);
+        rWrite(0x10009 + 16*c.chan,ins->cpt.op1v);
+        rWrite(0x1000a + 16*c.chan,ins->cpt.op2v);
+        rWrite(0x1000b + 16*c.chan,ins->cpt.op3v);
+        rWrite(0x1000c + 16*c.chan,ins->cpt.op4v);
+        rWrite(0x10040 + 16*c.chan,ins->cpt.op1a);
+        rWrite(0x10041 + 16*c.chan,ins->cpt.op1d);
+        rWrite(0x10042 + 16*c.chan,ins->cpt.op1s);
+        rWrite(0x10043 + 16*c.chan,ins->cpt.op1r);
+        rWrite(0x10044 + 16*c.chan,ins->cpt.op2a);
+        rWrite(0x10045 + 16*c.chan,ins->cpt.op2d);
+        rWrite(0x10046 + 16*c.chan,ins->cpt.op2s);
+        rWrite(0x10047 + 16*c.chan,ins->cpt.op2r);
+        rWrite(0x10048 + 16*c.chan,ins->cpt.op3a);
+        rWrite(0x10049 + 16*c.chan,ins->cpt.op3d);
+        rWrite(0x1004a + 16*c.chan,ins->cpt.op3s);
+        rWrite(0x1004b + 16*c.chan,ins->cpt.op3r);
+        rWrite(0x1004c + 16*c.chan,ins->cpt.op4a);
+        rWrite(0x1004d + 16*c.chan,ins->cpt.op4d);
+        rWrite(0x1004e + 16*c.chan,ins->cpt.op4s);
+        rWrite(0x1004f + 16*c.chan,ins->cpt.op4r);
+      }
       if (chan[c.chan].insChanged) {
         if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
@@ -163,20 +190,18 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
           chan[c.chan].ws.changeWave1(chan[c.chan].wave);
           chan[c.chan].waveUpdated=true;
         }
-        if (c.chan < 4)
-        {
-          
-        }
         
         chan[c.chan].insChanged=false;
       }
       chan[c.chan].ws.init(ins,32,255,chan[c.chan].insChanged);
       chan[c.chan].active=true;
       chan[c.chan].amp=255;
+      rWrite(0x10080 + c.chan,1);
       break;
       }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
+      rWrite(0x10080 + c.chan,0);
       break;
     case DIV_CMD_VOLUME:
       chan[c.chan].vol=c.value;
