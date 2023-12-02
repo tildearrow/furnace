@@ -115,6 +115,7 @@ const char* aboutLine[]={
   "Lunathir",
   "LVintageNerd",
   "Mahbod Karamoozian",
+  "Marisa Kirisame [DJ MasterSpark]",
   "Martin Demsky",
   "masicbemester",
   "MelonadeM",
