@@ -98,7 +98,6 @@ public:
                 result[ch] += generateFMWave(t1[ch],v1,t2[ch],v2,t3[ch],v3,t4[ch],v4);
             }
             for(int ch=0; ch<2; ch++) {
-                int addr = 32*ch;
                 double ft = ((double)regwt.at(ch*2+0).toInt()*256+regwt.at(ch*2+1).toInt());
                 twt[ch] = twt[ch] + (ft/CPT100_SAMPLE_FREQ)*32;
                 double vt = ((double)regwt.at(ch+4).toInt())/255;

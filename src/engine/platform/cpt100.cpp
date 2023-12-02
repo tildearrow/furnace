@@ -195,7 +195,7 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
       }
       chan[c.chan].ws.init(ins,32,255,chan[c.chan].insChanged);
       chan[c.chan].active=true;
-      chan[c.chan].amp=255;
+      chan[c.chan].amp=(signed char)255;
       rWrite(0x10080 + c.chan,1);
       break;
       }

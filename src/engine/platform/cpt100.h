@@ -20,17 +20,18 @@ class DivPlatformCPT100: public DivDispatch {
       freq(0), 
       baseFreq(0), 
       pitch(0), 
+      wave(-1),
       pos(0), 
       active(false), 
-      freqChanged(false), 
-      vol(0), 
-      amp(255),
-      outVol(0),
-      resVol(0),
-      wave(-1),
+      freqChanged(false),  
       volumeChanged(false),
       waveChanged(false),
-      waveUpdated(false)
+      waveUpdated(false),
+      vol(0),
+      outVol(0),
+      resVol(0),
+      amp(0)
+      
       {
         memset(modTable,0,64);
       }
