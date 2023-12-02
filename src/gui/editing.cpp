@@ -760,7 +760,7 @@ uint64_t convert_effect_openmpt_mod(char symbol, uint16_t val)
       break;
     }
 
-    default: break;
+    default: return 0; break;
   }
 }
 
@@ -944,7 +944,7 @@ uint64_t convert_effect_openmpt_s3m(char symbol, uint16_t val)
       break;
     }
 
-    default: break;
+    default: return 0; break;
   }
 }
 
