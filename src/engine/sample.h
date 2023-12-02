@@ -287,7 +287,6 @@ struct DivSample {
    */
   void convert(DivSampleDepth newDepth);
 
-  
   /**
    * initialize the rest of sample formats for this sample.
    */
