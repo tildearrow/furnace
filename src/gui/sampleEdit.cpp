@@ -1235,9 +1235,12 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::OpenPopup("SXFadeOpt");
       }
       if (ImGui::BeginPopupContextItem("SXFadeÓpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        if (sampleXFadeLoopLength>sample->loopStart) sampleXFadeLoopLength=sample->loopStart;
+        if (sampleXFadeLoopLength>(sample->loopEnd-sample->loopStart)) sampleXFadeLoopLength=sample->loopEnd-sample->loopStart;
         if (ImGui::SliderInt("Number of samples", &sampleXFadeLoopLength, 0, 100000)) {
           if (sampleXFadeLoopLength<0) sampleXFadeLoopLength=0;
           if (sampleXFadeLoopLength>sample->loopStart) sampleXFadeLoopLength=sample->loopStart;
+          if (sampleXFadeLoopLength>(sample->loopEnd-sample->loopStart)) sampleXFadeLoopLength=sample->loopEnd-sample->loopStart;
           if (sampleXFadeLoopLength>100000) sampleXFadeLoopLength=100000;
         }
         if (ImGui::SliderInt("Linear <-> Equal power", &sampleXFadeLoopLaw, 0, 100000)) {
@@ -1245,6 +1248,14 @@ void FurnaceGUI::drawSampleEdit() {
           if (sampleXFadeLoopLaw>100000) sampleXFadeLoopLaw=100000;
         }
         if (ImGui::Button("Apply")) {
+          if (sampleXFadeLoopLength>sample->loopStart){
+            SAMPLE_WARN(warnLoop,"Crossfade: length would go out of bounds. Aborted...");
+            goto done;
+          }
+          if (sampleXFadeLoopLength>(sample->loopEnd-sample->loopStart)) {
+            SAMPLE_WARN(warnLoop,"Crossfade: length would overflow loopStart. Try a smaller random value.");
+            goto done;
+          }
           sample->prepareUndo(true);
           e->lockEngine([this,sample]{
             SAMPLE_OP_BEGIN;
@@ -1278,6 +1289,7 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           MARK_MODIFIED;
+          done:
           ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
