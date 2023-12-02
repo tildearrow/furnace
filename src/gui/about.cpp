@@ -133,6 +133,7 @@ const char* aboutLine[]={
   "Raijin",
   "railzen7",
   "RevvoBolt",
+  "scooblee",
   "sillygoose",
   "SnugglyBun",
   "SuperJet Spade",
