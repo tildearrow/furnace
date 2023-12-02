@@ -976,7 +976,7 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
 
   int j=cursor.y;
   char note[4];
-  bool invalidData = true;
+  bool invalidData = false;
 
   for(size_t i=1; i<data.size() && j<e->curSubSong->patLen; i++)
   {
@@ -1003,7 +1003,6 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
         charPos++;
         continue;
       }
-
       if (iFine==0) //note
       {
         if (charPos>=line.size())
