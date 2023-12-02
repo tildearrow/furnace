@@ -143,7 +143,7 @@ if (WIN32)
   endif()
 endif()
 
-list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
+#list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
 list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/vgsound_emu-modified")
 
 find_package(Threads REQUIRED)
