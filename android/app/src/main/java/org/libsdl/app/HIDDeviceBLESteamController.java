@@ -62,13 +62,13 @@ class HIDDeviceBLESteamController extends BluetoothGattCallback implements HIDDe
         BluetoothGatt mGatt;
         boolean mResult = true;
 
-        private GattOperation(BluetoothGatt gatt, GattOperation.Operation operation, UUID uuid) {
+        private GattOperation(BluetoothGatt gatt, Operation operation, UUID uuid) {
             mGatt = gatt;
             mOp = operation;
             mUuid = uuid;
         }
 
-        private GattOperation(BluetoothGatt gatt, GattOperation.Operation operation, UUID uuid, byte[] value) {
+        private GattOperation(BluetoothGatt gatt, Operation operation, UUID uuid, byte[] value) {
             mGatt = gatt;
             mOp = operation;
             mUuid = uuid;
@@ -397,17 +397,17 @@ class HIDDeviceBLESteamController extends BluetoothGattCallback implements HIDDe
     }
 
     private void enableNotification(UUID chrUuid) {
-        GattOperation op = HIDDeviceBLESteamController.GattOperation.enableNotification(mGatt, chrUuid);
+        GattOperation op = GattOperation.enableNotification(mGatt, chrUuid);
         queueGattOperation(op);
     }
 
     public void writeCharacteristic(UUID uuid, byte[] value) {
-        GattOperation op = HIDDeviceBLESteamController.GattOperation.writeCharacteristic(mGatt, uuid, value);
+        GattOperation op = GattOperation.writeCharacteristic(mGatt, uuid, value);
         queueGattOperation(op);
     }
 
     public void readCharacteristic(UUID uuid) {
-        GattOperation op = HIDDeviceBLESteamController.GattOperation.readCharacteristic(mGatt, uuid);
+        GattOperation op = GattOperation.readCharacteristic(mGatt, uuid);
         queueGattOperation(op);
     }
 
