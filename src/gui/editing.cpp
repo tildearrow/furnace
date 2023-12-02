@@ -964,7 +964,6 @@ uint64_t convert_effect_openmpt_mptm(char symbol, uint16_t val)
 {
   if(symbol == ':')
   {
-    logW("dshit %d", ((val & 0xf0) >> 4));
     return ((0xED) << 8) | ((val & 0xf0) >> 4) | ((0xEC) << 24) | ((((val & 0xf0) >> 4) + (val & 0xf)) << 16);
   }
 
@@ -1025,8 +1024,6 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
         note[2]=line[charPos++];
         note[3]=0;
 
-        logW("note \"%s\"", note);
-
         if (iFine==0 && !opMaskPaste.note) {
           iFine++;
           continue;
@@ -1035,8 +1032,6 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
         if (strcmp(note,"...")==0 || strcmp(note,"   ")==0)
         {
           // do nothing.
-
-          logW("note empty");
         } 
         
         else 
@@ -1074,8 +1069,6 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
         }
         note[1]=line[charPos++];
         note[2]=0;
-
-        logW("ins \"%s\"", note);
 
         if (iFine==1)
         {
@@ -1133,8 +1126,6 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
         note[2]=line[charPos++];
         note[3]=0;
 
-        logW("vol/eff \"%s\"", note);
-
         if (iFine==2)
         {
           if (!opMaskPaste.vol)
@@ -1187,8 +1178,6 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
           {
             sscanf(&note[1],"%2X",&val);
           }
-
-          logW("vol/eff symbol %c, value %02X", symbol, val);
 
           if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || pat->data[j][iFine+1]==-1) 
           {
@@ -1263,7 +1252,6 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
 
       if(charPos >= line.size() - 1)
       {
-        logW("line end");
         invalidData = false;
         break;
       }
