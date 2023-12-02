@@ -127,6 +127,7 @@ const char* aboutLine[]={
   "Notakin",
   "NyaongI",
   "Pale Moon",
+  "PeyPey",
   "PichuMario",
   "potatoTeto",
   "psxdominator",
