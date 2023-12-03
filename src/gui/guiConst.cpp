@@ -743,7 +743,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_INVERT", "Invert", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_t),
   D("SAMPLE_SIGN", "Signed/unsigned exchange", FURKMOD_CMD|SDLK_u),
   D("SAMPLE_FILTER", "Apply filter", FURKMOD_CMD|SDLK_f),
-  D("SAMPLE_XFADE_LOOP", "Crossfade loop points", NOT_AN_ACTION),
+  D("SAMPLE_CROSSFADE_LOOP", "Crossfade loop points", NOT_AN_ACTION),
   D("SAMPLE_PREVIEW", "Preview sample", 0),
   D("SAMPLE_STOP_PREVIEW", "Stop sample preview", 0),
   D("SAMPLE_ZOOM_IN", "Zoom in", FURKMOD_CMD|SDLK_EQUALS),

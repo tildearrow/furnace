@@ -1336,7 +1336,7 @@ void FurnaceGUI::doAction(int what) {
       MARK_MODIFIED;
       break;
     }
-    case GUI_ACTION_SAMPLE_XFADE_LOOP:
+    case GUI_ACTION_SAMPLE_CROSSFADE_LOOP:
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       openSampleCrossFadeOpt=true;
       break;
