@@ -1087,6 +1087,7 @@ if (NOT ANDROID OR TERMUX)
     set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist)
     set(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/res/icon.icns)
     set(CPACK_BUNDLE_STARTUP_COMMAND "furnace")
+    set(CPACK_BUNDLE_APPLE_CERT_APP "-")
   endif()
   
   include(CPack)
