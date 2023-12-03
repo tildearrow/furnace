@@ -1230,58 +1230,58 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Crossfade loop points.");
       }
-      if (openSampleXFadeOpt) {
-        openSampleXFadeOpt=false;
-        ImGui::OpenPopup("SXFadeOpt");
+      if (openSampleCrossFadeOpt) {
+        openSampleCrossFadeOpt=false;
+        ImGui::OpenPopup("SCrossFadeOpt");
       }
-      if (ImGui::BeginPopupContextItem("SXFadeÓpt",ImGuiPopupFlags_MouseButtonLeft)) {
-        if (sampleXFadeLoopLength>sample->loopStart) sampleXFadeLoopLength=sample->loopStart;
-        if (sampleXFadeLoopLength>(sample->loopEnd-sample->loopStart)) sampleXFadeLoopLength=sample->loopEnd-sample->loopStart;
-        if (ImGui::SliderInt("Number of samples", &sampleXFadeLoopLength, 0, 100000)) {
-          if (sampleXFadeLoopLength<0) sampleXFadeLoopLength=0;
-          if (sampleXFadeLoopLength>sample->loopStart) sampleXFadeLoopLength=sample->loopStart;
-          if (sampleXFadeLoopLength>(sample->loopEnd-sample->loopStart)) sampleXFadeLoopLength=sample->loopEnd-sample->loopStart;
-          if (sampleXFadeLoopLength>100000) sampleXFadeLoopLength=100000;
+      if (ImGui::BeginPopupContextItem("SCrossFadeÓpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        if (sampleCrossFadeLoopLength>sample->loopStart) sampleCrossFadeLoopLength=sample->loopStart;
+        if (sampleCrossFadeLoopLength>(sample->loopEnd-sample->loopStart)) sampleCrossFadeLoopLength=sample->loopEnd-sample->loopStart;
+        if (ImGui::SliderInt("Number of samples", &sampleCrossFadeLoopLength, 0, 100000)) {
+          if (sampleCrossFadeLoopLength<0) sampleCrossFadeLoopLength=0;
+          if (sampleCrossFadeLoopLength>sample->loopStart) sampleCrossFadeLoopLength=sample->loopStart;
+          if (sampleCrossFadeLoopLength>(sample->loopEnd-sample->loopStart)) sampleCrossFadeLoopLength=sample->loopEnd-sample->loopStart;
+          if (sampleCrossFadeLoopLength>100000) sampleCrossFadeLoopLength=100000;
         }
-        if (ImGui::SliderInt("Linear <-> Equal power", &sampleXFadeLoopLaw, 0, 100000)) {
-          if (sampleXFadeLoopLaw<0) sampleXFadeLoopLaw=0;
-          if (sampleXFadeLoopLaw>100000) sampleXFadeLoopLaw=100000;
+        if (ImGui::SliderInt("Linear <-> Equal power", &sampleCrossFadeLoopLaw, 0, 100)) {
+          if (sampleCrossFadeLoopLaw<0) sampleCrossFadeLoopLaw=0;
+          if (sampleCrossFadeLoopLaw>100) sampleCrossFadeLoopLaw=100;
         }
         if (ImGui::Button("Apply")) {
-          if (sampleXFadeLoopLength>sample->loopStart){
+          if (sampleCrossFadeLoopLength>sample->loopStart){
             SAMPLE_WARN(warnLoop,"Crossfade: length would go out of bounds. Aborted...");
             goto done;
           }
-          if (sampleXFadeLoopLength>(sample->loopEnd-sample->loopStart)) {
+          if (sampleCrossFadeLoopLength>(sample->loopEnd-sample->loopStart)) {
             SAMPLE_WARN(warnLoop,"Crossfade: length would overflow loopStart. Try a smaller random value.");
             goto done;
           }
           sample->prepareUndo(true);
           e->lockEngine([this,sample]{
             SAMPLE_OP_BEGIN;
-            double l=1.0/(double)sampleXFadeLoopLength;
-            double evar=1.0-sampleXFadeLoopLaw/200000.0;
+            double l=1.0/(double)sampleCrossFadeLoopLength;
+            double evar=1.0-sampleCrossFadeLoopLaw/200.0;
             if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-              unsigned int xfadeInput=sample->loopStart-sampleXFadeLoopLength;
-              unsigned int xfadeOutput=sample->loopEnd-sampleXFadeLoopLength;
-              for (int i=0;i<sampleXFadeLoopLength;i++) {
+              unsigned int crossFadeInput=sample->loopStart-sampleCrossFadeLoopLength;
+              unsigned int crossFadeOutput=sample->loopEnd-sampleCrossFadeLoopLength;
+              for (int i=0;i<sampleCrossFadeLoopLength;i++) {
                 double f1=std::pow(i*l,evar);
-                double f2=std::pow((sampleXFadeLoopLength-i)*l, evar);
-                signed char out=(signed char)(((double)sample->data8[xfadeInput])*f1+((double)sample->data8[xfadeOutput])*f2);
-                sample->data8[xfadeOutput]=out;
-                xfadeInput++;
-                xfadeOutput++;
+                double f2=std::pow((sampleCrossFadeLoopLength-i)*l, evar);
+                signed char out=(signed char)(((double)sample->data8[crossFadeInput])*f1+((double)sample->data8[crossFadeOutput])*f2);
+                sample->data8[crossFadeOutput]=out;
+                crossFadeInput++;
+                crossFadeOutput++;
               }
             } else if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
-              unsigned int xfadeInput=sample->loopStart-sampleXFadeLoopLength;
-              unsigned int xfadeOutput=sample->loopEnd-sampleXFadeLoopLength;
-              for (int i=0;i<sampleXFadeLoopLength;i++) {
+              unsigned int crossFadeInput=sample->loopStart-sampleCrossFadeLoopLength;
+              unsigned int crossFadeOutput=sample->loopEnd-sampleCrossFadeLoopLength;
+              for (int i=0;i<sampleCrossFadeLoopLength;i++) {
                 double f1=std::pow(i*l,evar);
-                double f2=std::pow((sampleXFadeLoopLength-i)*l,evar);
-                short out = (short)(((double)sample->data16[xfadeInput])*f1+((double)sample->data16[xfadeOutput])*f2);
-                sample->data16[xfadeOutput]=out;
-                xfadeInput++;
-                xfadeOutput++;
+                double f2=std::pow((sampleCrossFadeLoopLength-i)*l,evar);
+                short out = (short)(((double)sample->data16[crossFadeInput])*f1+((double)sample->data16[crossFadeOutput])*f2);
+                sample->data16[crossFadeOutput]=out;
+                crossFadeInput++;
+                crossFadeOutput++;
               }
             }
             updateSampleTex=true;
