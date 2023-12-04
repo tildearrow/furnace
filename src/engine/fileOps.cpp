@@ -6316,6 +6316,57 @@ static const char* gbEnvDir[2]={
   "down", "up"
 };
 
+static const char* notes[12]={
+  "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
+};
+
+static const char* notesNegative[12]={
+  "c_", "c+", "d_", "d+", "e_", "f_", "f+", "g_", "g+", "a_", "a+", "b_"
+};
+
+static const char* sampleLoopModes[4]={
+  "forward", "backward", "ping-pong", "invalid"
+};
+
+void writeTextMacro(SafeWriter* w, DivInstrumentMacro& m, const char* name, bool& wroteMacroHeader) {
+  if ((m.open&6)==0 && m.len<1) return;
+  if (!wroteMacroHeader) {
+    w->writeText("- macros:\n");
+    wroteMacroHeader=true;
+  }
+  w->writeText(fmt::sprintf("  - %s:",name));
+  int len=m.len;
+  switch (m.open&6) {
+    case 2:
+      len=16;
+      w->writeText(" [ADSR]");
+      break;
+    case 4:
+      len=16;
+      w->writeText(" [LFO]");
+      break;
+  }
+  if (m.mode) {
+    w->writeText(fmt::sprintf(" [MODE %d]",m.mode));
+  }
+  if (m.delay>0) {
+    w->writeText(fmt::sprintf(" [DELAY %d]",m.delay));
+  }
+  if (m.speed>1) {
+    w->writeText(fmt::sprintf(" [SPEED %d]",m.speed));
+  }
+  for (int i=0; i<len; i++) {
+    if (i==m.loop) {
+      w->writeText(" |");
+    }
+    if (i==m.rel) {
+      w->writeText(" /");
+    }
+    w->writeText(fmt::sprintf(" %d",m.val[i]));
+  }
+  w->writeText("\n");
+}
+
 SafeWriter* DivEngine::saveText(bool separatePatterns) {
   saveLock.lock();
 
@@ -6423,11 +6474,33 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       }
     }
 
+    bool header=false;
+    writeTextMacro(w,ins->std.volMacro,"vol",header);
+    writeTextMacro(w,ins->std.arpMacro,"arp",header);
+    writeTextMacro(w,ins->std.dutyMacro,"duty",header);
+    writeTextMacro(w,ins->std.waveMacro,"wave",header);
+    writeTextMacro(w,ins->std.pitchMacro,"pitch",header);
+    writeTextMacro(w,ins->std.panLMacro,"panL",header);
+    writeTextMacro(w,ins->std.panRMacro,"panR",header);
+    writeTextMacro(w,ins->std.phaseResetMacro,"phaseReset",header);
+    writeTextMacro(w,ins->std.ex1Macro,"ex1",header);
+    writeTextMacro(w,ins->std.ex2Macro,"ex2",header);
+    writeTextMacro(w,ins->std.ex3Macro,"ex3",header);
+    writeTextMacro(w,ins->std.ex4Macro,"ex4",header);
+    writeTextMacro(w,ins->std.ex5Macro,"ex5",header);
+    writeTextMacro(w,ins->std.ex6Macro,"ex6",header);
+    writeTextMacro(w,ins->std.ex7Macro,"ex7",header);
+    writeTextMacro(w,ins->std.ex8Macro,"ex8",header);
+    writeTextMacro(w,ins->std.algMacro,"alg",header);
+    writeTextMacro(w,ins->std.fbMacro,"fb",header);
+    writeTextMacro(w,ins->std.fmsMacro,"fms",header);
+    writeTextMacro(w,ins->std.amsMacro,"ams",header);
+
     // TODO: the rest
     w->writeText("\n");
   }
 
-  w->writeText("# Wavetables\n\n");
+  w->writeText("\n# Wavetables\n\n");
 
   for (int i=0; i<song.waveLen; i++) {
     DivWavetable* wave=song.wave[i];
@@ -6437,6 +6510,38 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       w->writeText(fmt::sprintf(" %d",wave->data[j]));
     }
     w->writeText("\n");
+  }
+
+  w->writeText("\n# Samples\n\n");
+
+  for (int i=0; i<song.sampleLen; i++) {
+    DivSample* sample=song.sample[i];
+
+    w->writeText(fmt::sprintf("## %.2X: %s\n\n",i,sample->name));
+
+    w->writeText(fmt::sprintf("- format: %d\n",(int)sample->depth));
+    w->writeText(fmt::sprintf("- data length: %d\n",sample->getCurBufLen()));
+    w->writeText(fmt::sprintf("- samples: %d\n",sample->samples));
+    w->writeText(fmt::sprintf("- rate: %d\n",sample->centerRate));
+    w->writeText(fmt::sprintf("- compat rate: %d\n",sample->rate));
+    w->writeText(fmt::sprintf("- loop: %s\n",trueFalse[sample->loop?1:0]));
+    if (sample->loop) {
+      w->writeText(fmt::sprintf("  - start: %d\n",sample->loopStart));
+      w->writeText(fmt::sprintf("  - end: %d\n",sample->loopEnd));
+      w->writeText(fmt::sprintf("  - mode: %s\n",sampleLoopModes[sample->loopMode&3]));
+    }
+    w->writeText(fmt::sprintf("- BRR emphasis: %s\n",trueFalse[sample->brrEmphasis?1:0]));
+    w->writeText(fmt::sprintf("- dither: %s\n",trueFalse[sample->dither?1:0]));
+
+    // TODO' render matrix
+    unsigned char* buf=(unsigned char*)sample->getCurBuf();
+    unsigned int bufLen=sample->getCurBufLen();
+    w->writeText("\n```");
+    for (unsigned int i=0; i<bufLen; i++) {
+      if ((i&15)==0) w->writeText(fmt::sprintf("\n%.8X:",i));
+      w->writeText(fmt::sprintf(" %.2X",buf[i]));
+    }
+    w->writeText("\n```\n\n");
   }
 
   w->writeText("\n# Subsongs\n\n");
@@ -6472,7 +6577,58 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
         w->writeText(fmt::sprintf("----- ORDER %.2X\n",j));
 
         for (int k=0; k<s->patLen; k++) {
-          w->writeText(fmt::sprintf("%.2X | ",k));
+          w->writeText(fmt::sprintf("%.2X ",k));
+
+          for (int l=0; l<chans; l++) {
+            DivPattern* p=s->pat[l].getPattern(s->orders.ord[l][j],false);
+
+            int note=p->data[k][0];
+            int octave=p->data[k][1];
+
+            if (note==0 && octave==0) {
+              w->writeText("|... ");
+            } else if (note==100) {
+              w->writeText("|OFF ");
+            } else if (note==101) {
+              w->writeText("|=== ");
+            } else if (note==102) {
+              w->writeText("|REL ");
+            } else if ((octave>9 && octave<250) || note>12) {
+              w->writeText("|??? ");
+            } else {
+              if (octave>=128) octave-=256;
+              if (note>11) {
+                note-=12;
+                octave++;
+              }
+              w->writeText(fmt::sprintf("|%s%d ",(octave<0)?notesNegative[note]:notes[note],(octave<0)?(-octave):octave));
+            }
+
+            if (p->data[k][2]==-1) {
+              w->writeText(".. ");
+            } else {
+              w->writeText(fmt::sprintf("%.2X ",p->data[k][2]&0xff));
+            }
+
+            if (p->data[k][3]==-1) {
+              w->writeText("..");
+            } else {
+              w->writeText(fmt::sprintf("%.2X",p->data[k][3]&0xff));
+            }
+
+            for (int m=0; m<s->pat[l].effectCols; m++) {
+              if (p->data[k][4+(m<<1)]==-1) {
+                w->writeText(" ..");
+              } else {
+                w->writeText(fmt::sprintf(" %.2X",p->data[k][4+(m<<1)]&0xff));
+              }
+              if (p->data[k][5+(m<<1)]==-1) {
+                w->writeText("..");
+              } else {
+                w->writeText(fmt::sprintf("%.2X",p->data[k][5+(m<<1)]&0xff));
+              }
+            }
+          }
 
           w->writeText("\n");
         }

@@ -4920,7 +4920,7 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_ZSM) {
             checkExtension(".zsm");
           }
-          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM) {
+          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM || curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
           }
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM_BINARY) {
