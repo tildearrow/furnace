@@ -71,7 +71,5 @@ private:
 
 	DivDispatchOscBuffer* oscBuf[32];
 
-	short my_buf[8][4096 * 2];
-
-	void put_in_buffer(int32_t value, uint32_t pos, uint32_t chan);
+	void put_in_buffer(int32_t value, uint32_t pos, uint32_t chan, short** buf);
 };

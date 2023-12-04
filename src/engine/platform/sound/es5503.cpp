@@ -334,21 +334,21 @@ void es5503_core::halt_osc(int onum, int type, uint32_t *accumulator, int resshi
 	}
 }
 
-void es5503_core::put_in_buffer(int32_t value, uint32_t pos, uint32_t chan)
+void es5503_core::put_in_buffer(int32_t value, uint32_t pos, uint32_t chan, short** buf)
 {
 	ES5503Osc *pOsc = &oscillators[chan];
 	uint8_t output = (pOsc->control >> 4) & (output_channels - 1);
 
 	if (mono) output = 0;
 
-	my_buf[output][pos] += value / 8;
+	buf[output][pos] += value / 8;
 }
 
 void es5503_core::fill_audio_buffer(short** buf, size_t len) //fill audio buffer
 {
 	for(int ii = 0; ii < (mono ? 1 : 8); ii++)
 	{
-		memset(my_buf[ii], 0, len * sizeof(buf[0][0]));
+		memset(buf[ii], 0, len * sizeof(buf[0][0]));
 	}
 
 	uint32_t osc, snum;
@@ -396,14 +396,14 @@ void es5503_core::fill_audio_buffer(short** buf, size_t len) //fill audio buffer
 				{
 					if (mode != MODE_SYNCAM)
 					{
-						put_in_buffer(data * vol, snum, osc);
+						put_in_buffer(data * vol, snum, osc, buf);
 
 						curr_sample += data * vol;
 
 						if (output_channel == (output_channels - 1))
 						{
-							put_in_buffer(data * vol, snum, osc);
-							put_in_buffer(data * vol, snum, osc);
+							put_in_buffer(data * vol, snum, osc, buf);
+							put_in_buffer(data * vol, snum, osc, buf);
 							curr_sample += data * vol;
 							curr_sample += data * vol;
 						}
@@ -424,13 +424,13 @@ void es5503_core::fill_audio_buffer(short** buf, size_t len) //fill audio buffer
 						}
 						else    // hard sync, both oscillators play?
 						{
-							put_in_buffer(data * vol, snum, osc);
+							put_in_buffer(data * vol, snum, osc, buf);
 							curr_sample += data * vol;
 
 							if (output_channel == (output_channels - 1))
 							{
-								put_in_buffer(data * vol, snum, osc);
-								put_in_buffer(data * vol, snum, osc);
+								put_in_buffer(data * vol, snum, osc, buf);
+								put_in_buffer(data * vol, snum, osc, buf);
 								curr_sample += data * vol;
 								curr_sample += data * vol;
 							}
@@ -475,6 +475,6 @@ void es5503_core::fill_audio_buffer(short** buf, size_t len) //fill audio buffer
 
 	for(int ii = 0; ii < (mono ? 1 : 8); ii++)
 	{
-		memcpy(buf[ii], my_buf[ii], len * sizeof(buf[0][0]));
+		//memcpy(buf[ii], my_buf[ii], len * sizeof(buf[0][0]));
 	}
 }
