@@ -1872,6 +1872,15 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_EXPORT_TEXT:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Export Command Stream",
+        {"text file", "*.txt"},
+        workingDirROMExport,
+        dpiScale
+      );
+      break;
     case GUI_FILE_EXPORT_CMDSTREAM:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -4237,6 +4246,16 @@ bool FurnaceGUI::loop() {
             ImGui::EndMenu();
           }
         }
+        if (ImGui::BeginMenu("export text...")) {
+          exitDisabledTimer=1;
+          ImGui::Text(
+            "this option exports the song to a text file.\n"
+          );
+          if (ImGui::Button("export")) {
+            openFileDialog(GUI_FILE_EXPORT_TEXT);
+          }
+          ImGui::EndMenu();
+        }
         if (ImGui::BeginMenu("export command stream...")) {
           exitDisabledTimer=1;
           ImGui::Text(
@@ -4809,6 +4828,7 @@ bool FurnaceGUI::loop() {
           workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_ROM:
+        case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
         case GUI_FILE_EXPORT_CMDSTREAM_BINARY:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
@@ -5267,6 +5287,27 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");
               break;
+            case GUI_FILE_EXPORT_TEXT: {
+              SafeWriter* w=e->saveText(false);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError("could not open file!");
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf("could not write text! (%s)",e->getLastError()));
+              }
+              break;
+            }
             case GUI_FILE_EXPORT_CMDSTREAM:
             case GUI_FILE_EXPORT_CMDSTREAM_BINARY: {
               bool isBinary=(curFileDialog==GUI_FILE_EXPORT_CMDSTREAM_BINARY);
