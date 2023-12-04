@@ -419,7 +419,9 @@ void DivPlatformVB::forceIns() {
     }
     chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
   }
-  writeEnv(5,true);
+  if (chan[5].active) {
+    writeEnv(5,true);
+  }
 }
 
 void* DivPlatformVB::getChanState(int ch) {
