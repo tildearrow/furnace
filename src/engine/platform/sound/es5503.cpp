@@ -472,9 +472,4 @@ void es5503_core::fill_audio_buffer(short** buf, size_t len) //fill audio buffer
 			}
 		}
 	}
-
-	for(int ii = 0; ii < (mono ? 1 : 8); ii++)
-	{
-		//memcpy(buf[ii], my_buf[ii], len * sizeof(buf[0][0]));
-	}
 }
