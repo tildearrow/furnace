@@ -1226,7 +1226,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
-      ImGui::Button(ICON_FUR_CROSSFADE "##Crossfade");
+      ImGui::Button(ICON_FUR_CROSSFADE "##CrossFade");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Crossfade loop points");
       }
@@ -1237,59 +1237,59 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::BeginPopupContextItem("SCrossFadeOpt",ImGuiPopupFlags_MouseButtonLeft)) {
         if (sampleCrossFadeLoopLength>sample->loopStart) sampleCrossFadeLoopLength=sample->loopStart;
         if (sampleCrossFadeLoopLength>(sample->loopEnd-sample->loopStart)) sampleCrossFadeLoopLength=sample->loopEnd-sample->loopStart;
-        if (ImGui::SliderInt("Number of samples", &sampleCrossFadeLoopLength, 0, 100000)) {
+        if (ImGui::SliderInt("Number of samples",&sampleCrossFadeLoopLength,0,100000)) {
           if (sampleCrossFadeLoopLength<0) sampleCrossFadeLoopLength=0;
           if (sampleCrossFadeLoopLength>sample->loopStart) sampleCrossFadeLoopLength=sample->loopStart;
           if (sampleCrossFadeLoopLength>(sample->loopEnd-sample->loopStart)) sampleCrossFadeLoopLength=sample->loopEnd-sample->loopStart;
           if (sampleCrossFadeLoopLength>100000) sampleCrossFadeLoopLength=100000;
         }
-        if (ImGui::SliderInt("Linear <-> Equal power", &sampleCrossFadeLoopLaw, 0, 100)) {
+        if (ImGui::SliderInt("Linear <-> Equal power",&sampleCrossFadeLoopLaw,0,100)) {
           if (sampleCrossFadeLoopLaw<0) sampleCrossFadeLoopLaw=0;
           if (sampleCrossFadeLoopLaw>100) sampleCrossFadeLoopLaw=100;
         }
         if (ImGui::Button("Apply")) {
           if (sampleCrossFadeLoopLength>sample->loopStart) {
-            SAMPLE_WARN(warnLoop,"Crossfade: length would go out of bounds. Aborted...");
+            showError("Crossfade: length would go out of bounds. Aborted...");
             ImGui::CloseCurrentPopup();
-          }
-          if (sampleCrossFadeLoopLength>(sample->loopEnd-sample->loopStart)) {
-            SAMPLE_WARN(warnLoop,"Crossfade: length would overflow loopStart. Try a smaller random value.");
+          } else if (sampleCrossFadeLoopLength>(sample->loopEnd-sample->loopStart)) {
+            showError("Crossfade: length would overflow loopStart. Try a smaller random value.");
             ImGui::CloseCurrentPopup();
-          }
-          sample->prepareUndo(true);
-          e->lockEngine([this,sample]{
-            SAMPLE_OP_BEGIN;
-            double l=1.0/(double)sampleCrossFadeLoopLength;
-            double evar=1.0-sampleCrossFadeLoopLaw/200.0;
-            if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-              unsigned int crossFadeInput=sample->loopStart-sampleCrossFadeLoopLength;
-              unsigned int crossFadeOutput=sample->loopEnd-sampleCrossFadeLoopLength;
-              for (int i=0;i<sampleCrossFadeLoopLength;i++) {
-                double f1=std::pow(i*l,evar);
-                double f2=std::pow((sampleCrossFadeLoopLength-i)*l, evar);
-                signed char out=(signed char)(((double)sample->data8[crossFadeInput])*f1+((double)sample->data8[crossFadeOutput])*f2);
-                sample->data8[crossFadeOutput]=out;
-                crossFadeInput++;
-                crossFadeOutput++;
+          } else {
+            sample->prepareUndo(true);
+            e->lockEngine([this,sample] {
+              SAMPLE_OP_BEGIN;
+              double l=1.0/(double)sampleCrossFadeLoopLength;
+              double evar=1.0-sampleCrossFadeLoopLaw/200.0;
+              if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+                unsigned int crossFadeInput=sample->loopStart-sampleCrossFadeLoopLength;
+                unsigned int crossFadeOutput=sample->loopEnd-sampleCrossFadeLoopLength;
+                for (int i=0; i<sampleCrossFadeLoopLength; i++) {
+                  double f1=pow(i*l,evar);
+                  double f2=pow((sampleCrossFadeLoopLength-i)*l,evar);
+                  signed char out=(signed char)(((double)sample->data8[crossFadeInput])*f1+((double)sample->data8[crossFadeOutput])*f2);
+                  sample->data8[crossFadeOutput]=out;
+                  crossFadeInput++;
+                  crossFadeOutput++;
+                }
+              } else if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+                unsigned int crossFadeInput=sample->loopStart-sampleCrossFadeLoopLength;
+                unsigned int crossFadeOutput=sample->loopEnd-sampleCrossFadeLoopLength;
+                for (int i=0; i<sampleCrossFadeLoopLength; i++) {
+                  double f1=std::pow(i*l,evar);
+                  double f2=std::pow((sampleCrossFadeLoopLength-i)*l,evar);
+                  short out=(short)(((double)sample->data16[crossFadeInput])*f1+((double)sample->data16[crossFadeOutput])*f2);
+                  sample->data16[crossFadeOutput]=out;
+                  crossFadeInput++;
+                  crossFadeOutput++;
+                }
               }
-            } else if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
-              unsigned int crossFadeInput=sample->loopStart-sampleCrossFadeLoopLength;
-              unsigned int crossFadeOutput=sample->loopEnd-sampleCrossFadeLoopLength;
-              for (int i=0;i<sampleCrossFadeLoopLength;i++) {
-                double f1=std::pow(i*l,evar);
-                double f2=std::pow((sampleCrossFadeLoopLength-i)*l,evar);
-                short out = (short)(((double)sample->data16[crossFadeInput])*f1+((double)sample->data16[crossFadeOutput])*f2);
-                sample->data16[crossFadeOutput]=out;
-                crossFadeInput++;
-                crossFadeOutput++;
-              }
-            }
-            updateSampleTex=true;
+              updateSampleTex=true;
 
-            e->renderSamples(curSample);
-          });
-          MARK_MODIFIED;
-          ImGui::CloseCurrentPopup();
+              e->renderSamples(curSample);
+            });
+            MARK_MODIFIED;
+            ImGui::CloseCurrentPopup();
+          }
         }
         ImGui::EndPopup();
       }
