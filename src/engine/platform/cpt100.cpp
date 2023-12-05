@@ -32,7 +32,7 @@ void DivPlatformCPT100::acquire(short** buf, size_t len) {
       if (true) {
         if (!isMuted[j]) {
           chanOut=(signed short)(output[j][i]);
-          oscBuf[j]->data[oscBuf[j]->needle++]=(short)((double)chanOut/1.5);
+          oscBuf[j]->data[oscBuf[j]->needle++]=(short)((double)chanOut/2);
           out+=(int)((double)chanOut/(double)(j>4&&chan[j].pcm?1.5:5));
         } else {
           oscBuf[j]->data[oscBuf[j]->needle++]=0;
@@ -57,9 +57,13 @@ void DivPlatformCPT100::tick(bool sysTick) {
     chan[i].std.next();
     
     if (chan[i].std.vol.had) {
-      chan[i].outVol=(MIN(255,chan[i].std.vol.val)*(chan[i].vol))/16;
+      if(i>=4 && i<=5) {
+      chan[i].outVol=(MIN(255,chan[i].std.vol.val)*(chan[i].vol))/(chan[i].pcm?16:256);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (chan[i].outVol>255) chan[i].outVol=255;
+      } else {
+        chan[i].outVol=parent->getIns(chan[i].ins,DIV_INS_CPT100)->cpt.op1v;
+      }
       if (chan[i].resVol!=chan[i].outVol) {
         chan[i].resVol=chan[i].outVol;
         if (!isMuted[i]) {
