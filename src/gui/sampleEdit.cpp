@@ -1226,9 +1226,9 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
-      ImGui::Button("Crossfade");
+      ImGui::Button(ICON_FUR_CROSSFADE "##Crossfade");
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Crossfade loop points.");
+        ImGui::SetTooltip("Crossfade loop points");
       }
       if (openSampleCrossFadeOpt) {
         openSampleCrossFadeOpt=false;
@@ -1248,13 +1248,13 @@ void FurnaceGUI::drawSampleEdit() {
           if (sampleCrossFadeLoopLaw>100) sampleCrossFadeLoopLaw=100;
         }
         if (ImGui::Button("Apply")) {
-          if (sampleCrossFadeLoopLength>sample->loopStart){
+          if (sampleCrossFadeLoopLength>sample->loopStart) {
             SAMPLE_WARN(warnLoop,"Crossfade: length would go out of bounds. Aborted...");
-            goto done;
+            ImGui::CloseCurrentPopup();
           }
           if (sampleCrossFadeLoopLength>(sample->loopEnd-sample->loopStart)) {
             SAMPLE_WARN(warnLoop,"Crossfade: length would overflow loopStart. Try a smaller random value.");
-            goto done;
+            ImGui::CloseCurrentPopup();
           }
           sample->prepareUndo(true);
           e->lockEngine([this,sample]{
@@ -1289,7 +1289,6 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamples(curSample);
           });
           MARK_MODIFIED;
-          done:
           ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
