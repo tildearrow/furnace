@@ -779,6 +779,7 @@ src/gui/doAction.cpp
 src/gui/editing.cpp
 src/gui/editControls.cpp
 src/gui/effectList.cpp
+src/gui/exportWin.cpp
 src/gui/findReplace.cpp
 src/gui/fmPreview.cpp
 src/gui/gradient.cpp

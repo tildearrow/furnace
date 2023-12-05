@@ -65,6 +65,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAVE_AS:
       openFileDialog(GUI_FILE_SAVE);
       break;
+    case GUI_ACTION_EXPORT:
+      displayExport=true;
+      break;
     case GUI_ACTION_UNDO:
       if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
         doUndoSample();

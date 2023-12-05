@@ -1659,6 +1659,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_OPEN_BACKUP);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAVE);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAVE_AS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_EXPORT);
           UI_KEYBIND_CONFIG(GUI_ACTION_UNDO);
           UI_KEYBIND_CONFIG(GUI_ACTION_REDO);
           UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_TOGGLE);
@@ -2649,6 +2650,12 @@ void FurnaceGUI::drawSettings() {
         bool classicChipOptionsB=settings.classicChipOptions;
         if (ImGui::Checkbox("Display add/configure/change/remove chip menus in File menu",&classicChipOptionsB)) {
           settings.classicChipOptions=classicChipOptionsB;
+          settingsChanged=true;
+        }
+
+        bool classicExportOptionsB=settings.classicExportOptions;
+        if (ImGui::Checkbox("Display separate export options in File menu",&classicExportOptionsB)) {
+          settings.classicExportOptions=classicExportOptionsB;
           settingsChanged=true;
         }
 
@@ -3787,6 +3794,7 @@ void FurnaceGUI::syncSettings() {
   settings.centerPopup=e->getConfInt("centerPopup",1);
   settings.insIconsStyle=e->getConfInt("insIconsStyle",1);
   settings.classicChipOptions=e->getConfInt("classicChipOptions",0);
+  settings.classicExportOptions=e->getConfInt("classicExportOptions",0);
   settings.wasapiEx=e->getConfInt("wasapiEx",0);
   settings.chanOscThreads=e->getConfInt("chanOscThreads",0);
   settings.renderPoolThreads=e->getConfInt("renderPoolThreads",0);
@@ -3953,6 +3961,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.centerPopup,0,1);
   clampSetting(settings.insIconsStyle,0,2);
   clampSetting(settings.classicChipOptions,0,1);
+  clampSetting(settings.classicExportOptions,0,1);
   clampSetting(settings.wasapiEx,0,1);
   clampSetting(settings.chanOscThreads,0,256);
   clampSetting(settings.renderPoolThreads,0,DIV_MAX_CHIPS);
@@ -4232,6 +4241,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("centerPopup",settings.centerPopup);
   e->setConf("insIconsStyle",settings.insIconsStyle);
   e->setConf("classicChipOptions",settings.classicChipOptions);
+  e->setConf("classicExportOptions",settings.classicExportOptions);
   e->setConf("wasapiEx",settings.wasapiEx);
   e->setConf("chanOscThreads",settings.chanOscThreads);
   e->setConf("renderPoolThreads",settings.renderPoolThreads);
