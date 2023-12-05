@@ -1234,7 +1234,7 @@ void FurnaceGUI::drawSampleEdit() {
         openSampleCrossFadeOpt=false;
         ImGui::OpenPopup("SCrossFadeOpt");
       }
-      if (ImGui::BeginPopupContextItem("SCrossFadeÓpt",ImGuiPopupFlags_MouseButtonLeft)) {
+      if (ImGui::BeginPopupContextItem("SCrossFadeOpt",ImGuiPopupFlags_MouseButtonLeft)) {
         if (sampleCrossFadeLoopLength>sample->loopStart) sampleCrossFadeLoopLength=sample->loopStart;
         if (sampleCrossFadeLoopLength>(sample->loopEnd-sample->loopStart)) sampleCrossFadeLoopLength=sample->loopEnd-sample->loopStart;
         if (ImGui::SliderInt("Number of samples", &sampleCrossFadeLoopLength, 0, 100000)) {
