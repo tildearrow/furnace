@@ -1053,7 +1053,7 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
                 pat->data[j][1]=0;
               }
 
-              else if(strcmp(note, "~~~") == 0 || strcmp(note, "==="))
+              else if(strcmp(note, "~~~") == 0 || strcmp(note, "===") == 0)
               {
                 pat->data[j][0]=101;
                 pat->data[j][1]=0;
