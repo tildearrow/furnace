@@ -2347,7 +2347,8 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ins->type==DIV_INS_AY ||
         ins->type==DIV_INS_AY8930 ||
         ins->type==DIV_INS_VRC6 ||
-        ins->type==DIV_INS_SU) {
+        ins->type==DIV_INS_SU ||
+        ins->type==DIV_INS_CPT100) {
       P(ImGui::Checkbox("Use sample",&ins->amiga.useSample));
       if (ins->type==DIV_INS_X1_010) {
         if (ImGui::InputInt("Sample bank slot##BANKSLOT",&ins->x1_010.bankSlot,1,4)) { PARAMETER
@@ -6732,7 +6733,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_PCE ||
             ins->type==DIV_INS_X1_010 ||
             ins->type==DIV_INS_SWAN ||
-            ins->type==DIV_INS_VRC6) {
+            ins->type==DIV_INS_VRC6 ||
+            ins->type==DIV_INS_CPT100) {
           insTabSample(ins);
         }
         ImGui::EndTabBar();

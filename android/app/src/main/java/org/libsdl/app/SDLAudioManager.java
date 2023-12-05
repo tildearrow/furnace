@@ -360,7 +360,7 @@ public class SDLAudioManager {
             return;
         }
 
-        if (Build.VERSION.SDK_INT < 21 /* Android 5.0 (LOLLIPOP) */) {
+        if (android.os.Build.VERSION.SDK_INT < 21 /* Android 5.0 (LOLLIPOP) */) {
             Log.e(TAG, "Attempted to make an incompatible audio call with uninitialized audio! (floating-point output is supported since Android 5.0 Lollipop)");
             return;
         }

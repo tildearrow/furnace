@@ -25,6 +25,8 @@ public:
     std::vector<EnvGenerator> envl;
     EnvGenerator _envl;
     double prev = 0;
+    int pcm_addr[2],pcm_len[2],pcm_loop[2]={0,0};
+    std::vector<std::vector<Byte>> pcm_ram; 
 
     Cpt100_sound() {
     }
@@ -75,6 +77,16 @@ public:
         reg = ram_peek2array(ram,0x10000,64);
         regenvl = ram_peek2array(ram,0x10040,68);
         regwt = ram_peek2array(ram,0x10084,76);
+
+        for (int ch=0;ch<2;ch++) {
+            if(regwt.at(ch+6).toInt() == 4) {
+                pcm_addr[ch] = regwt.at(12+32*ch+0).toInt()*65536+regwt.at(12+32*ch+1).toInt()*256+regwt.at(12+32*ch+2).toInt();
+                pcm_len[ch] = regwt.at(12+32*ch+3).toInt()*65536+regwt.at(12+32*ch+4).toInt()*256+regwt.at(12+32*ch+5).toInt();
+                pcm_loop[ch] = regwt.at(12+32*ch+6).toInt()*65536+regwt.at(12+32*ch+7).toInt()*256+regwt.at(12+32*ch+8).toInt();
+                //std::cout << pcm_addr[ch] << std::endl;
+                //std::cout << pcm_len[ch] << std::endl;
+            }
+        }
         
         for(int ch=0; ch < 4; ch++) {
             for (int opNum=0; opNum < 4; opNum++) {
@@ -111,9 +123,17 @@ public:
                     }
                     val *= 16;
                 } else if(regwt.at(ch+6).toInt() == 0) {
-                    val = regwt.at(12+32*ch+((int)twt[ch]%32)).toInt();
+                val = regwt.at(12+32*ch+((int)twt[ch]%32)).toInt();
                 } else if(regwt.at(ch+6).toInt() == 2) {
                     val = noise.at(((int)twt[ch]%1024))*255;
+                } else if(regwt.at(ch+6).toInt() == 3) {
+                    val = noise.at(((int)twt[ch]%64))*255;
+                } else if(regwt.at(ch+6).toInt() == 4) {
+                    if (pcm_addr[ch]+(int)twt[ch] > pcm_len[ch] && pcm_loop[ch] < pcm_len[ch]) {
+                        val = ram_peek(ram,pcm_addr[ch]+((int)twt[ch]%(pcm_len[ch]-pcm_loop[ch]))+(pcm_addr[ch]-pcm_loop[ch])).toInt();
+                    } else {
+                        val = ram_peek(ram,std::min(pcm_addr[ch]+(int)twt[ch],pcm_len[ch])).toInt();
+                    }
                 }
                 val -= 128;
                 double omega = 2.0 * 3.14159265 * ((double)regwt.at(ch+8).toInt()+1)*32 / CPT100_SAMPLE_FREQ;
@@ -164,6 +184,10 @@ public:
         for (int i=0;i<4;i++) {
             envl.at((size_t)(ch*4+i)).reset(EnvGenerator::State::Attack); 
         }
+    }
+
+    void wtSync(int ch) {
+        twt[ch]=0;
     }
     
 };

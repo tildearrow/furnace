@@ -1060,6 +1060,8 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         break;
       case DIV_INS_CPT100:
         checkForWL=true;
+        featureSM=true;
+        if (amiga.useSample) featureSL=true;
         if (ws.enabled) featureWS=true;
         featureCP=true;
       case DIV_INS_MAX:
