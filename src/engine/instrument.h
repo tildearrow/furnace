@@ -518,7 +518,7 @@ struct DivInstrumentSTD {
     waveMacro = new DivInstrumentMacro(DIV_MACRO_WAVE);
     pitchMacro = new DivInstrumentMacro(DIV_MACRO_PITCH);
 
-    switch(type)
+    switch(type) //initialize system-specific macros (including FM macros)
     {
       case DIV_INS_ES5506:
         phaseResetMacro = new DivInstrumentMacro(DIV_MACRO_PHASE_RESET);

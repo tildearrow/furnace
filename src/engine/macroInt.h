@@ -75,6 +75,8 @@ class DivMacroInt {
     DivMacroStruct duty, wave, pitch, ex1, ex2, ex3;
     DivMacroStruct alg, fb, fms, ams;
     DivMacroStruct panL, panR, phaseReset, ex4, ex5, ex6, ex7, ex8;
+
+    DivMacroStruct ex9, ex10, ex11, ex12, ex13, ex14, ex15, ex16, ex17, ex18, ex19, ex20;
   
     // FM operator macro
     struct IntOp {
@@ -83,6 +85,8 @@ class DivMacroInt {
       DivMacroStruct rs, dt, d2r, ssg;
       DivMacroStruct dam, dvb, egt, ksl;
       DivMacroStruct sus, vib, ws, ksr;
+
+      DivMacroStruct ex1, ex2, ex3, ex4, ex5, ex6, ex7, ex8, ex9, ex10, ex11, ex12;
       IntOp():
         am(DIV_MACRO_OP_AM),
         ar(DIV_MACRO_OP_AR),
