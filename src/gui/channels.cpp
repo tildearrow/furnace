@@ -38,23 +38,39 @@ void FurnaceGUI::drawChannels() {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Channels",&channelsOpen,globalWinFlags)) {
-    if (ImGui::BeginTable("ChannelList",3)) {
+    if (ImGui::BeginTable("ChannelList",5)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0);
-      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
-      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,0.0);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.0);
+      ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
       ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
       ImGui::TableNextColumn();
-      ImGui::Text("Visible");
+      ImGui::Text("Pat");
+      ImGui::TableNextColumn();
+      ImGui::Text("Osc");
+      ImGui::TableNextColumn();
+      ImGui::Text("Swap");
       ImGui::TableNextColumn();
       ImGui::Text("Name");
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         ImGui::PushID(i);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::Checkbox("##Visible",&e->curSubSong->chanShow[i])) {
+        if (ImGui::Checkbox("##VisiblePat",&e->curSubSong->chanShow[i])) {
           MARK_MODIFIED;
         }
-        ImGui::SameLine();
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Show in pattern");
+        }
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("##VisibleChanOsc",&e->curSubSong->chanShowChanOsc[i])) {
+          MARK_MODIFIED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Show in per-channel oscilloscope");
+        }
+        ImGui::TableNextColumn();
         if (ImGui::Button(ICON_FA_ARROWS)) {
         }
         if (ImGui::BeginDragDropSource()) {
