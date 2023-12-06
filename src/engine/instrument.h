@@ -272,26 +272,42 @@ struct DivInstrumentMacro {
     memset(val,0,256*sizeof(int));
     memset(typeMemory,0,16*sizeof(int));
   }
+
+  DivInstrumentMacro():
+    mode(0),
+    open(0),
+    len(0),
+    delay(0),
+    speed(1),
+    loop(255),
+    rel(255),
+    macroType(0),
+    vScroll(0),
+    vZoom(-1),
+    lenMemory(0) {
+      memset(val,0,256*sizeof(int));
+      memset(typeMemory,0,16*sizeof(int));
+    }
 };
 
 struct DivInstrumentSTD {
-  DivInstrumentMacro volMacro;
-  DivInstrumentMacro arpMacro;
-  DivInstrumentMacro dutyMacro;
-  DivInstrumentMacro waveMacro;
-  DivInstrumentMacro pitchMacro;
-  DivInstrumentMacro ex1Macro;
-  DivInstrumentMacro ex2Macro;
-  DivInstrumentMacro ex3Macro;
-  DivInstrumentMacro algMacro;
-  DivInstrumentMacro fbMacro;
-  DivInstrumentMacro fmsMacro;
-  DivInstrumentMacro amsMacro;
-  DivInstrumentMacro panLMacro;
-  DivInstrumentMacro panRMacro;
-  DivInstrumentMacro phaseResetMacro;
-  DivInstrumentMacro ex4Macro;
-  DivInstrumentMacro ex5Macro;
+  DivInstrumentMacro* volMacro;
+  DivInstrumentMacro* arpMacro;
+  DivInstrumentMacro* dutyMacro;
+  DivInstrumentMacro* waveMacro;
+  DivInstrumentMacro* pitchMacro;
+  DivInstrumentMacro* ex1Macro;
+  DivInstrumentMacro* ex2Macro;
+  DivInstrumentMacro* ex3Macro;
+  DivInstrumentMacro* algMacro;
+  DivInstrumentMacro* fbMacro;
+  DivInstrumentMacro* fmsMacro;
+  DivInstrumentMacro* amsMacro;
+  DivInstrumentMacro* panLMacro;
+  DivInstrumentMacro* panRMacro;
+  DivInstrumentMacro* phaseResetMacro;
+  DivInstrumentMacro* ex4Macro;
+  DivInstrumentMacro* ex5Macro;
   DivInstrumentMacro ex6Macro;
   DivInstrumentMacro ex7Macro;
   DivInstrumentMacro ex8Macro;
@@ -369,6 +385,16 @@ struct DivInstrumentSTD {
       opMacros[i].wsMacro.macroType=DIV_MACRO_OP_WS+(i<<5);
       opMacros[i].ksrMacro.macroType=DIV_MACRO_OP_KSR+(i<<5);
     }
+  }
+
+  DivInstrumentSTD(DivInstrumentType type)
+  {
+
+  }
+
+  ~DivInstrumentSTD()
+  {
+
   }
 };
 
@@ -876,6 +902,16 @@ struct DivInstrument {
   DivInstrument():
     name(""),
     type(DIV_INS_FM) {
+  }
+
+  DivInstrument(DivInstrumentType type)
+  {
+    //int* test = new int[10000000];
+  }
+
+  ~DivInstrument()
+  {
+
   }
 };
 #endif
