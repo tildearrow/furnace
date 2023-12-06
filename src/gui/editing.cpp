@@ -24,7 +24,7 @@
 
 #include "actionUtil.h"
 
-static const char* text_format_headers[] =
+static const char* modPlugFormatHeaders[] =
 {
   "ModPlug Tracker MOD",
   "ModPlug Tracker S3M",
@@ -591,7 +591,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
   }
 }
 
-uint64_t convert_effect_openmpt_mod(char symbol, uint16_t val)
+unsigned long long convertEffectMPT_MOD(unsigned char symbol, unsigned int val)
 {
   switch(symbol)
   {
@@ -768,7 +768,7 @@ uint64_t convert_effect_openmpt_mod(char symbol, uint16_t val)
   return 0;
 }
 
-uint64_t convert_effect_openmpt_s3m(char symbol, uint16_t val)
+unsigned long long convertEffectMPT_S3M(unsigned char symbol, unsigned int val)
 {
   switch(symbol)
   {
@@ -956,29 +956,34 @@ uint64_t convert_effect_openmpt_s3m(char symbol, uint16_t val)
   return 0;
 }
 
-uint64_t convert_effect_openmpt_xm(char symbol, uint16_t val)
+unsigned long long convertEffectMPT_XM(unsigned char symbol, unsigned int val)
 {
-  return convert_effect_openmpt_mod(symbol, val);
+  if(symbol == 'K')
+  {
+    return ((0xEC) << 8) | (val);
+  }
+
+  return convertEffectMPT_MOD(symbol, val);
   //other effects too obscure bruh
 }
 
-uint64_t convert_effect_openmpt_it(char symbol, uint16_t val)
+unsigned long long convertEffectMPT_IT(unsigned char symbol, unsigned int val)
 {
-  return convert_effect_openmpt_s3m(symbol, val);
+  return convertEffectMPT_S3M(symbol, val);
   //other effects too obscure bruh
 }
 
-uint64_t convert_effect_openmpt_mptm(char symbol, uint16_t val)
+unsigned long long convertEffectMPT_MPTM(unsigned char symbol, unsigned int val)
 {
   if(symbol == ':')
   {
     return ((0xED) << 8) | ((val & 0xf0) >> 4) | ((0xEC) << 24) | ((((val & 0xf0) >> 4) + (val & 0xf)) << 16);
   }
 
-  return convert_effect_openmpt_it(symbol, val);
+  return convertEffectMPT_IT(symbol, val);
 }
 
-void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int openmpt_format)
+void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int openmpt_format)
 {
   DETERMINE_LAST;
 
@@ -1188,7 +1193,7 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
         else 
         {
           unsigned int val=0;
-          char symbol = '\0';
+          unsigned char symbol = '\0';
 
           symbol = note[0];
 
@@ -1220,11 +1225,11 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
 
             else //effect
             {
-              uint64_t eff = 0;
+              unsigned long long eff = 0;
               
               if(openmpt_format == 0)
               {
-                eff = convert_effect_openmpt_mod(symbol, val); //up to 4 effects stored in one variable
+                eff = convertEffectMPT_MOD(symbol, val); //up to 4 effects stored in one variable
 
                 if(((eff & 0x0f00) >> 8) == 0x0C) //set volume
                 {
@@ -1234,12 +1239,12 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
 
               if(openmpt_format == 1)
               {
-                eff = convert_effect_openmpt_s3m(symbol, val);
+                eff = convertEffectMPT_S3M(symbol, val);
               }
 
               if(openmpt_format == 2 || openmpt_format == 3) //set volume
               {
-                eff = convert_effect_openmpt_xm(symbol, val);
+                eff = convertEffectMPT_XM(symbol, val);
                 
                 if(((eff & 0x0f00) >> 8) == 0x0C)
                 {
@@ -1249,12 +1254,12 @@ void FurnaceGUI::doPasteOpenMPT(PasteMode mode, int arg, bool readClipboard, Str
 
               if(openmpt_format == 4 || openmpt_format == 5)
               {
-                eff = convert_effect_openmpt_it(symbol, val);
+                eff = convertEffectMPT_IT(symbol, val);
               }
 
               if(openmpt_format == 6)
               {
-                eff = convert_effect_openmpt_mptm(symbol, val);
+                eff = convertEffectMPT_MPTM(symbol, val);
               }
 
               pat->data[j][iFine+1]=((eff & 0xff00) >> 8);
@@ -1328,9 +1333,9 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String cli
   }
   std::vector<String> data;
   String tempS;
-  bool found_string = false;
-  bool is_furnace = false;
-  bool is_openmpt = false;
+  bool foundString = false;
+  bool isFurnace = false;
+  bool isOpenmpt = false;
   int openmpt_format = 0;
   for (char i: clipb) {
     if (i=='\r') continue;
@@ -1349,18 +1354,18 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String cli
 
   if (data[0].find("org.tildearrow.furnace - Pattern Data")==0)
   {
-    found_string = true;
-    is_furnace = true;
+    foundString = true;
+    isFurnace = true;
   }
 
   int i = 0;
 
-  while(text_format_headers[i] != NULL)
+  while(modPlugFormatHeaders[i] != NULL)
   {
-    if (data[0].find(text_format_headers[i])==0)
+    if (data[0].find(modPlugFormatHeaders[i])==0)
     {
-      found_string = true;
-      is_openmpt = true;
+      foundString = true;
+      isOpenmpt = true;
       openmpt_format = i;
       break;
     }
@@ -1368,16 +1373,16 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String cli
     i++;
   }
 
-  if(!found_string) return;
+  if(!foundString) return;
 
-  if(is_furnace)
+  if(isFurnace)
   {
     doPasteFurnace(mode, arg, readClipboard, clipb, data, startOff, invalidData);
   }
 
-  if(is_openmpt)
+  if(isOpenmpt)
   {
-    doPasteOpenMPT(mode, arg, readClipboard, clipb, data, openmpt_format);
+    doPasteMPT(mode, arg, readClipboard, clipb, data, openmpt_format);
   }
 }
 
