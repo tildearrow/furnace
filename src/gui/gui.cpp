@@ -3616,28 +3616,29 @@ bool FurnaceGUI::loop() {
               if (!e->getWarnings().empty()) {
                 showWarning(e->getWarnings(),GUI_WARN_GENERIC);
               }
-              int instrumentCount = -1;
+              int instrumentCount=-1;
               for (DivInstrument* i: instruments) {
-                instrumentCount = e->addInstrumentPtr(i);
+                instrumentCount=e->addInstrumentPtr(i);
               }
-              if (instrumentCount >= 0) {
-                curIns = instrumentCount - 1;
+              if (instrumentCount>=0 && settings.selectAssetOnLoad) {
+                curIns=instrumentCount-1;
               }
               nextWindow=GUI_WINDOW_INS_LIST;
               MARK_MODIFIED;
             } else if ((droppedWave=e->waveFromFile(ev.drop.file,false))!=NULL) {
-              int waveCount = -1;
-              waveCount = e->addWavePtr(droppedWave);
-              if (waveCount >= 0) {
-                curWave = waveCount - 1;
+              int waveCount=-1;
+              waveCount=e->addWavePtr(droppedWave);
+              if (waveCount>=0 && settings.selectAssetOnLoad) {
+                curWave=waveCount-1;
               }
               nextWindow=GUI_WINDOW_WAVE_LIST;
               MARK_MODIFIED;
             } else if ((droppedSample=e->sampleFromFile(ev.drop.file))!=NULL) {
-              int sampleCount = -1;
-              sampleCount = e->addSamplePtr(droppedSample);
-              if (sampleCount >= 0) {
-                curSample = sampleCount;
+              int sampleCount=-1;
+              sampleCount=e->addSamplePtr(droppedSample);
+              if (sampleCount>=0 && settings.selectAssetOnLoad) {
+                curSample=sampleCount;
+                updateSampleTex=true;
               }
               nextWindow=GUI_WINDOW_SAMPLE_LIST;
               MARK_MODIFIED;
@@ -5168,12 +5169,12 @@ bool FurnaceGUI::loop() {
                   displayPendingIns=true;
                   pendingInsSingle=false;
                 } else { // load the only instrument
-                  int instrumentCount = -1;
+                  int instrumentCount=-1;
                   for (DivInstrument* i: instruments) {
-                    instrumentCount = e->addInstrumentPtr(i);
+                    instrumentCount=e->addInstrumentPtr(i);
                   }
-                  if (instrumentCount >= 0) {
-                    curIns = instrumentCount - 1;
+                  if (instrumentCount>=0 && settings.selectAssetOnLoad) {
+                    curIns=instrumentCount-1;
                   }
                 }
               }
@@ -5223,8 +5224,8 @@ bool FurnaceGUI::loop() {
                     showError("cannot load wavetable! ("+e->getLastError()+")");
                   }
                 } else {
-                  int waveCount = -1;
-                  waveCount = e->addWavePtr(wave);
+                  int waveCount=-1;
+                  waveCount=e->addWavePtr(wave);
                   if (waveCount==-1) {
                     if (fileDialog->getFileName().size()>1) {
                       warn=true;
@@ -5233,7 +5234,9 @@ bool FurnaceGUI::loop() {
                       showError("cannot load wavetable! ("+e->getLastError()+")");
                     }
                   } else {
-                    curWave = waveCount -1;
+                    if (settings.selectAssetOnLoad) {
+                      curWave=waveCount-1;
+                    }
                     MARK_MODIFIED;
                     RESET_WAVE_MACRO_ZOOM;
                   }
@@ -7776,15 +7779,15 @@ FurnaceGUI::FurnaceGUI():
 
   waveGenAmp[0]=1.0f;
   waveGenFMCon0[0]=false;
-  waveGenFMCon1[0]= true;
-  waveGenFMCon2[1]= true;
-  waveGenFMCon3[2] = true;
-  waveGenFMCon4[0]= false;
+  waveGenFMCon1[0]=true;
+  waveGenFMCon2[1]=true;
+  waveGenFMCon3[2]=true;
+  waveGenFMCon4[0]=false;
 
-  waveGenFMCon0[4] = false;
-  waveGenFMCon1[4] = false;
-  waveGenFMCon2[4] = false;
-  waveGenFMCon3[4] = true;
+  waveGenFMCon0[4]=false;
+  waveGenFMCon1[4]=false;
+  waveGenFMCon2[4]=false;
+  waveGenFMCon3[4]=true;
 
   memset(keyHit,0,sizeof(float)*DIV_MAX_CHANS);
   memset(keyHit1,0,sizeof(float)*DIV_MAX_CHANS);
