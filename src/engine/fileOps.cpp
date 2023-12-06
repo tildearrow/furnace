@@ -2184,7 +2184,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       for (int i=0; i<tchans; i++) {
         if (ds.version<189) {
           subSong->chanShow[i]=reader.readC();
-          subSong->chanShowChanOsc[i]=true;
+          subSong->chanShowChanOsc[i]=subSong->chanShow[i];
         } else { // stores 2 bools in a single char for better compat?
           unsigned char tempchar=reader.readC();
           subSong->chanShow[i]=tempchar&0xf;
@@ -2589,7 +2589,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         for (int i=0; i<tchans; i++) {
           if (ds.version<189) {
             subSong->chanShow[i]=reader.readC();
-            subSong->chanShowChanOsc[i]=true;
+            subSong->chanShowChanOsc[i]=subSong->chanShow[i];
           } else {
             unsigned char tempchar=reader.readC();
             subSong->chanShow[i]=tempchar&0xf;
