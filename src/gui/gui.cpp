@@ -1036,6 +1036,11 @@ Pos=60,60\n\
 Size=145,184\n\
 Collapsed=0\n\
 \n\
+[Window][Oscilloscope (X-Y)]\n\
+Pos=60,60\n\
+Size=128,128\n\
+Collapsed=0\n\
+\n\
 [Docking][Data]\n\
 DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Split=Y Selected=0x6C01C512\n\
   DockNode            ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,217 Split=X Selected=0xF3094A52\n\
