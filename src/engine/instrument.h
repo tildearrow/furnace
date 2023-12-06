@@ -520,7 +520,7 @@ struct DivInstrumentSTD {
 
     switch(type)
     {
-      case DIV_INS_ADPCMA:
+      case DIV_INS_ES5506:
         phaseResetMacro = new DivInstrumentMacro(DIV_MACRO_PHASE_RESET);
         ex1Macro = new DivInstrumentMacro(DIV_MACRO_EX1);
         ex2Macro = new DivInstrumentMacro(DIV_MACRO_EX2);
