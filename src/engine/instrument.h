@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Furnace Tracker - multi-system chiptune tracker
  * Copyright (C) 2021-2023 tildearrow and contributors
@@ -109,7 +111,19 @@ enum DivMacroType: unsigned char {
   DIV_MACRO_EX5,
   DIV_MACRO_EX6,
   DIV_MACRO_EX7,
-  DIV_MACRO_EX8
+  DIV_MACRO_EX8,
+  DIV_MACRO_EX9,
+  DIV_MACRO_EX10,
+  DIV_MACRO_EX11,
+  DIV_MACRO_EX12,
+  DIV_MACRO_EX13,
+  DIV_MACRO_EX14,
+  DIV_MACRO_EX15,
+  DIV_MACRO_EX16,
+  DIV_MACRO_EX17,
+  DIV_MACRO_EX18,
+  DIV_MACRO_EX19,
+  DIV_MACRO_EX20,
 };
 
 enum DivMacroTypeOp: unsigned char {
@@ -133,6 +147,19 @@ enum DivMacroTypeOp: unsigned char {
   DIV_MACRO_OP_VIB,
   DIV_MACRO_OP_WS,
   DIV_MACRO_OP_KSR,
+
+  DIV_MACRO_OP_EX1,
+  DIV_MACRO_OP_EX2,
+  DIV_MACRO_OP_EX3,
+  DIV_MACRO_OP_EX4,
+  DIV_MACRO_OP_EX5,
+  DIV_MACRO_OP_EX6,
+  DIV_MACRO_OP_EX7,
+  DIV_MACRO_OP_EX8,
+  DIV_MACRO_OP_EX9,
+  DIV_MACRO_OP_EX10,
+  DIV_MACRO_OP_EX11,
+  DIV_MACRO_OP_EX12,
 };
 
 // FM operator structure:
@@ -308,41 +335,65 @@ struct DivInstrumentSTD {
   DivInstrumentMacro* phaseResetMacro;
   DivInstrumentMacro* ex4Macro;
   DivInstrumentMacro* ex5Macro;
-  DivInstrumentMacro ex6Macro;
-  DivInstrumentMacro ex7Macro;
-  DivInstrumentMacro ex8Macro;
+  DivInstrumentMacro* ex6Macro;
+  DivInstrumentMacro* ex7Macro;
+  DivInstrumentMacro* ex8Macro;
+  DivInstrumentMacro* ex9Macro;
+  DivInstrumentMacro* ex10Macro;
+  DivInstrumentMacro* ex11Macro;
+  DivInstrumentMacro* ex12Macro;
+  DivInstrumentMacro* ex13Macro;
+  DivInstrumentMacro* ex14Macro;
+  DivInstrumentMacro* ex15Macro;
+  DivInstrumentMacro* ex16Macro;
+  DivInstrumentMacro* ex17Macro;
+  DivInstrumentMacro* ex18Macro;
+  DivInstrumentMacro* ex19Macro;
+  DivInstrumentMacro* ex20Macro;
 
   struct OpMacro {
     // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
-    DivInstrumentMacro amMacro;
-    DivInstrumentMacro arMacro;
-    DivInstrumentMacro drMacro;
-    DivInstrumentMacro multMacro;
-    DivInstrumentMacro rrMacro;
-    DivInstrumentMacro slMacro;
-    DivInstrumentMacro tlMacro;
-    DivInstrumentMacro dt2Macro;
-    DivInstrumentMacro rsMacro;
-    DivInstrumentMacro dtMacro;
-    DivInstrumentMacro d2rMacro;
-    DivInstrumentMacro ssgMacro;
-    DivInstrumentMacro damMacro;
-    DivInstrumentMacro dvbMacro;
-    DivInstrumentMacro egtMacro;
-    DivInstrumentMacro kslMacro;
-    DivInstrumentMacro susMacro;
-    DivInstrumentMacro vibMacro;
-    DivInstrumentMacro wsMacro;
-    DivInstrumentMacro ksrMacro;
-    OpMacro():
+    DivInstrumentMacro* amMacro;
+    DivInstrumentMacro* arMacro;
+    DivInstrumentMacro* drMacro;
+    DivInstrumentMacro* multMacro;
+    DivInstrumentMacro* rrMacro;
+    DivInstrumentMacro* slMacro;
+    DivInstrumentMacro* tlMacro;
+    DivInstrumentMacro* dt2Macro;
+    DivInstrumentMacro* rsMacro;
+    DivInstrumentMacro* dtMacro;
+    DivInstrumentMacro* d2rMacro;
+    DivInstrumentMacro* ssgMacro;
+    DivInstrumentMacro* damMacro;
+    DivInstrumentMacro* dvbMacro;
+    DivInstrumentMacro* egtMacro;
+    DivInstrumentMacro* kslMacro;
+    DivInstrumentMacro* susMacro;
+    DivInstrumentMacro* vibMacro;
+    DivInstrumentMacro* wsMacro;
+    DivInstrumentMacro* ksrMacro;
+    DivInstrumentMacro* ex1Macro;
+    DivInstrumentMacro* ex2Macro;
+    DivInstrumentMacro* ex3Macro;
+    DivInstrumentMacro* ex4Macro;
+    DivInstrumentMacro* ex5Macro;
+    DivInstrumentMacro* ex6Macro;
+    DivInstrumentMacro* ex7Macro;
+    DivInstrumentMacro* ex8Macro;
+    DivInstrumentMacro* ex9Macro;
+    DivInstrumentMacro* ex10Macro;
+    DivInstrumentMacro* ex11Macro;
+    DivInstrumentMacro* ex12Macro;
+    /*OpMacro(): {}
       amMacro(DIV_MACRO_OP_AM), arMacro(DIV_MACRO_OP_AR), drMacro(DIV_MACRO_OP_DR), multMacro(DIV_MACRO_OP_MULT),
       rrMacro(DIV_MACRO_OP_RR), slMacro(DIV_MACRO_OP_SL), tlMacro(DIV_MACRO_OP_TL,true), dt2Macro(DIV_MACRO_OP_DT2),
       rsMacro(DIV_MACRO_OP_RS), dtMacro(DIV_MACRO_OP_DT), d2rMacro(DIV_MACRO_OP_D2R), ssgMacro(DIV_MACRO_OP_SSG),
       damMacro(DIV_MACRO_OP_DAM), dvbMacro(DIV_MACRO_OP_DVB), egtMacro(DIV_MACRO_OP_EGT), kslMacro(DIV_MACRO_OP_KSL),
-      susMacro(DIV_MACRO_OP_SUS), vibMacro(DIV_MACRO_OP_VIB), wsMacro(DIV_MACRO_OP_WS), ksrMacro(DIV_MACRO_OP_KSR) {}
+      susMacro(DIV_MACRO_OP_SUS), vibMacro(DIV_MACRO_OP_VIB), wsMacro(DIV_MACRO_OP_WS), ksrMacro(DIV_MACRO_OP_KSR) {}*/
   } opMacros[4];
-  DivInstrumentSTD():
-    volMacro(DIV_MACRO_VOL,true),
+  //DivInstrumentSTD(): {}
+    /*volMacro(DIV_MACRO_VOL,true),
     arpMacro(DIV_MACRO_ARP),
     dutyMacro(DIV_MACRO_DUTY),
     waveMacro(DIV_MACRO_WAVE),
@@ -385,16 +436,122 @@ struct DivInstrumentSTD {
       opMacros[i].wsMacro.macroType=DIV_MACRO_OP_WS+(i<<5);
       opMacros[i].ksrMacro.macroType=DIV_MACRO_OP_KSR+(i<<5);
     }
-  }
+  }*/
 
-  DivInstrumentSTD(DivInstrumentType type)
+  DivInstrumentSTD(DivInstrumentType type = DIV_INS_FM)
   {
+    volMacro = NULL;
+    arpMacro = NULL;
+    dutyMacro = NULL;
+    waveMacro = NULL;
+    pitchMacro = NULL;
+    ex1Macro = NULL;
+    ex2Macro = NULL;
+    ex3Macro = NULL;
+    algMacro = NULL;
+    fbMacro = NULL;
+    fmsMacro = NULL;
+    amsMacro = NULL;
+    panLMacro = NULL;
+    panRMacro = NULL;
+    phaseResetMacro = NULL;
+    ex4Macro = NULL;
+    ex5Macro = NULL;
+    ex6Macro = NULL;
+    ex7Macro = NULL;
+    ex8Macro = NULL;
+    ex9Macro = NULL;
+    ex10Macro = NULL;
+    ex11Macro = NULL;
+    ex12Macro = NULL;
+    ex13Macro = NULL;
+    ex14Macro = NULL;
+    ex15Macro = NULL;
+    ex16Macro = NULL;
+    ex17Macro = NULL;
+    ex18Macro = NULL;
+    ex19Macro = NULL;
+    ex20Macro = NULL;
 
+    for (int i=0; i<4; i++)
+    {
+      opMacros[i].amMacro = NULL;
+      opMacros[i].arMacro = NULL;
+      opMacros[i].drMacro = NULL;
+      opMacros[i].multMacro = NULL;
+      opMacros[i].rrMacro = NULL;
+      opMacros[i].slMacro = NULL;
+      opMacros[i].tlMacro = NULL;
+      opMacros[i].dt2Macro = NULL;
+      opMacros[i].rsMacro = NULL;
+      opMacros[i].dtMacro = NULL;
+      opMacros[i].d2rMacro = NULL;
+      opMacros[i].ssgMacro = NULL;
+
+      opMacros[i].damMacro = NULL;
+      opMacros[i].dvbMacro = NULL;
+      opMacros[i].egtMacro = NULL;
+      opMacros[i].kslMacro = NULL;
+      opMacros[i].susMacro = NULL;
+      opMacros[i].vibMacro = NULL;
+      opMacros[i].wsMacro = NULL;
+      opMacros[i].ksrMacro = NULL;
+
+      opMacros[i].ex1Macro = NULL;
+      opMacros[i].ex2Macro = NULL;
+      opMacros[i].ex3Macro = NULL;
+      opMacros[i].ex4Macro = NULL;
+      opMacros[i].ex5Macro = NULL;
+      opMacros[i].ex6Macro = NULL;
+      opMacros[i].ex7Macro = NULL;
+      opMacros[i].ex8Macro = NULL;
+      opMacros[i].ex9Macro = NULL;
+      opMacros[i].ex10Macro = NULL;
+      opMacros[i].ex11Macro = NULL;
+      opMacros[i].ex12Macro = NULL;
+    }
+
+    //initialize common macros used in virtually any inst
+    volMacro = new DivInstrumentMacro(DIV_MACRO_VOL, true);
+    arpMacro = new DivInstrumentMacro(DIV_MACRO_ARP);
+    dutyMacro = new DivInstrumentMacro(DIV_MACRO_DUTY);
+    waveMacro = new DivInstrumentMacro(DIV_MACRO_WAVE);
+    pitchMacro = new DivInstrumentMacro(DIV_MACRO_PITCH);
+
+    switch(type)
+    {
+      case DIV_INS_ADPCMA:
+        phaseResetMacro = new DivInstrumentMacro(DIV_MACRO_PHASE_RESET);
+        ex1Macro = new DivInstrumentMacro(DIV_MACRO_EX1);
+        ex2Macro = new DivInstrumentMacro(DIV_MACRO_EX2);
+        fbMacro = new DivInstrumentMacro(DIV_MACRO_FB);
+        algMacro = new DivInstrumentMacro(DIV_MACRO_ALG);
+      break;
+
+      //...
+
+      default: break;
+    }
   }
 
   ~DivInstrumentSTD()
   {
+    if(volMacro != NULL)
+    {
+      delete volMacro;
+    }
 
+    //...
+
+    for (int i=0; i<4; i++)
+    {
+      if(opMacros[i].amMacro != NULL)
+      {
+        delete opMacros[i].amMacro;
+      }
+
+      //...
+    }
   }
 };
 
