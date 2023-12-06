@@ -230,7 +230,12 @@ void DivPlatformVERA::tick(bool sysTick) {
         off=65536.0;
       } else {
         off=65536.0*(s->centerRate/8363.0);
+        lastCenterRate=s->centerRate;
       }
+    } else if (lastCenterRate<1) {
+      off=65536.0;
+    } else {
+      off=65536.0*(lastCenterRate/8363.0);
     }
     chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,chan[16].fixedArp?chan[16].baseNoteOverride:chan[16].arpOff,chan[16].fixedArp,false,8,chan[16].pitch2,chipClock,off);
     if (chan[16].freq>128) chan[16].freq=128;
@@ -529,6 +534,7 @@ int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, const DivConf
   pcm=new struct VERA_PCM;
   dumpWrites=false;
   skipRegisterWrites=false;
+  lastCenterRate=-1;
   setFlags(flags);
   reset();
   return 17;
