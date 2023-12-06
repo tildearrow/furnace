@@ -299,22 +299,6 @@ struct DivInstrumentMacro {
     memset(val,0,256*sizeof(int));
     memset(typeMemory,0,16*sizeof(int));
   }
-
-  DivInstrumentMacro():
-    mode(0),
-    open(0),
-    len(0),
-    delay(0),
-    speed(1),
-    loop(255),
-    rel(255),
-    macroType(0),
-    vScroll(0),
-    vZoom(-1),
-    lenMemory(0) {
-      memset(val,0,256*sizeof(int));
-      memset(typeMemory,0,16*sizeof(int));
-    }
 };
 
 struct DivInstrumentSTD {
@@ -513,7 +497,6 @@ struct DivInstrumentSTD {
 
     //initialize common macros used in virtually any inst
     volMacro = new DivInstrumentMacro(DIV_MACRO_VOL, true);
-    arpMacro = new DivInstrumentMacro(DIV_MACRO_ARP);
     dutyMacro = new DivInstrumentMacro(DIV_MACRO_DUTY);
     waveMacro = new DivInstrumentMacro(DIV_MACRO_WAVE);
     pitchMacro = new DivInstrumentMacro(DIV_MACRO_PITCH);
@@ -521,6 +504,7 @@ struct DivInstrumentSTD {
     switch(type) //initialize system-specific macros (including FM macros)
     {
       case DIV_INS_ES5506:
+        arpMacro = new DivInstrumentMacro(DIV_MACRO_ARP);
         phaseResetMacro = new DivInstrumentMacro(DIV_MACRO_PHASE_RESET);
         ex1Macro = new DivInstrumentMacro(DIV_MACRO_EX1);
         ex2Macro = new DivInstrumentMacro(DIV_MACRO_EX2);
