@@ -983,7 +983,7 @@ unsigned long long convertEffectMPT_MPTM(unsigned char symbol, unsigned int val)
   return convertEffectMPT_IT(symbol, val);
 }
 
-void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int openmpt_format)
+void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int MPTformat)
 {
   DETERMINE_LAST;
 
@@ -1227,7 +1227,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
             {
               unsigned long long eff = 0;
               
-              if(openmpt_format == 0)
+              if(MPTformat == 0)
               {
                 eff = convertEffectMPT_MOD(symbol, val); //up to 4 effects stored in one variable
 
@@ -1237,12 +1237,12 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
                 }
               }
 
-              if(openmpt_format == 1)
+              if(MPTformat == 1)
               {
                 eff = convertEffectMPT_S3M(symbol, val);
               }
 
-              if(openmpt_format == 2 || openmpt_format == 3) //set volume
+              if(MPTformat == 2 || MPTformat == 3) //set volume
               {
                 eff = convertEffectMPT_XM(symbol, val);
                 
@@ -1252,12 +1252,12 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
                 }
               }
 
-              if(openmpt_format == 4 || openmpt_format == 5)
+              if(MPTformat == 4 || MPTformat == 5)
               {
                 eff = convertEffectMPT_IT(symbol, val);
               }
 
-              if(openmpt_format == 6)
+              if(MPTformat == 6)
               {
                 eff = convertEffectMPT_MPTM(symbol, val);
               }
@@ -1336,7 +1336,7 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String cli
   bool foundString = false;
   bool isFurnace = false;
   bool isOpenmpt = false;
-  int openmpt_format = 0;
+  int MPTformat = 0;
   for (char i: clipb) {
     if (i=='\r') continue;
     if (i=='\n') {
@@ -1366,7 +1366,7 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String cli
     {
       foundString = true;
       isOpenmpt = true;
-      openmpt_format = i;
+      MPTformat = i;
       break;
     }
 
@@ -1382,7 +1382,7 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String cli
 
   if(isOpenmpt)
   {
-    doPasteMPT(mode, arg, readClipboard, clipb, data, openmpt_format);
+    doPasteMPT(mode, arg, readClipboard, clipb, data, MPTformat);
   }
 }
 
