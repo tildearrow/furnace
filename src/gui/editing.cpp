@@ -1219,6 +1219,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
                   pat->data[j][iFine+1]=val;
                   break;
                 }
+                
                 default: break;
               }
             }
