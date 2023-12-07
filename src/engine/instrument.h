@@ -942,7 +942,7 @@ struct DivInstrument {
   String name;
   DivInstrumentType type;
   DivInstrumentFM fm;
-  DivInstrumentSTD* std;
+  DivInstrumentSTD std;
   DivInstrumentGB gb;
   DivInstrumentC64 c64;
   DivInstrumentAmiga amiga;
@@ -1047,12 +1047,7 @@ struct DivInstrument {
 
   DivInstrument(DivInstrumentType type = DIV_INS_FM)
   {
-    std = new DivInstrumentSTD(type);
-  }
-
-  ~DivInstrument()
-  {
-    delete std;
+    std = DivInstrumentSTD(type);
   }
 };
 #endif
