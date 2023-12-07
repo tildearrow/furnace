@@ -140,6 +140,7 @@ const char* aboutLine[]={
   "sillygoose",
   "SnugglyBun",
   "SuperJet Spade",
+  "Supper_E1",
   "SwapXFO",
   "System64",
   "TakuikaNinja",
