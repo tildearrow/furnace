@@ -591,7 +591,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
   }
 }
 
-unsigned long long convertEffectMPT_MOD(unsigned char symbol, unsigned int val)
+unsigned int convertEffectMPT_MOD(unsigned char symbol, unsigned int val)
 {
   switch(symbol)
   {
@@ -768,7 +768,7 @@ unsigned long long convertEffectMPT_MOD(unsigned char symbol, unsigned int val)
   return 0;
 }
 
-unsigned long long convertEffectMPT_S3M(unsigned char symbol, unsigned int val)
+unsigned int convertEffectMPT_S3M(unsigned char symbol, unsigned int val)
 {
   switch(symbol)
   {
@@ -956,7 +956,7 @@ unsigned long long convertEffectMPT_S3M(unsigned char symbol, unsigned int val)
   return 0;
 }
 
-unsigned long long convertEffectMPT_XM(unsigned char symbol, unsigned int val)
+unsigned int convertEffectMPT_XM(unsigned char symbol, unsigned int val)
 {
   if(symbol == 'K')
   {
@@ -967,13 +967,13 @@ unsigned long long convertEffectMPT_XM(unsigned char symbol, unsigned int val)
   //other effects too obscure bruh
 }
 
-unsigned long long convertEffectMPT_IT(unsigned char symbol, unsigned int val)
+unsigned int convertEffectMPT_IT(unsigned char symbol, unsigned int val)
 {
   return convertEffectMPT_S3M(symbol, val);
   //other effects too obscure bruh
 }
 
-unsigned long long convertEffectMPT_MPTM(unsigned char symbol, unsigned int val)
+unsigned int convertEffectMPT_MPTM(unsigned char symbol, unsigned int val)
 {
   if(symbol == ':')
   {
@@ -1226,7 +1226,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
 
             else //effect
             {
-              unsigned long long eff = 0;
+              unsigned int eff = 0;
               
               if(MPTformat == 0)
               {
