@@ -1038,7 +1038,7 @@ Collapsed=0\n\
 \n\
 [Window][Oscilloscope (X-Y)]\n\
 Pos=60,60\n\
-Size=128,128\n\
+Size=300,300\n\
 Collapsed=0\n\
 \n\
 [Docking][Data]\n\
