@@ -7688,7 +7688,9 @@ FurnaceGUI::FurnaceGUI():
   introSkipDo(false),
   introStopped(false),
   curTutorial(-1),
-  curTutorialStep(0) {
+  curTutorialStep(0),
+  //audio export types (export options)
+  audioExportType(0) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

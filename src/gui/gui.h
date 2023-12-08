@@ -2267,6 +2267,9 @@ class FurnaceGUI {
   // tutorial
   int curTutorial, curTutorialStep;
 
+  //audio export types (export options)
+  int audioExportType;
+
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);

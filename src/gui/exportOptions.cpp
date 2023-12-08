@@ -31,7 +31,6 @@ void FurnaceGUI::drawExport() {
   if (ImGui::BeginChild("sysPickerC",avail,false,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
     if (ImGui::BeginTabBar("ExportTypes")) {
         if (ImGui::BeginTabItem("Audio")) {
-          static int audioExportType=0;
           ImGui::RadioButton("one file",&audioExportType,0);
           ImGui::RadioButton("multiple files (one per chip)",&audioExportType,1);
           ImGui::RadioButton("multiple files (one per channel)",&audioExportType,2);
