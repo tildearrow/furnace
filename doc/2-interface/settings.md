@@ -305,6 +305,12 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **Yes**
   - **Inverted**
 
+### Assets
+
+- **Display instrument type menu when adding instrument**
+  - if turned off, the menu can still be opened by right-clicking the add button.
+- **Select asset after opening one**
+
 ## Appearance
 
 ### Scaling
@@ -435,8 +441,6 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **Graphical icons**
   - **Letter icons**
 - **Colorize instrument editor using instrument type**
-- **Display instrument type menu when adding instrument**
-  - if turned off, the menu can still be opened by right-clicking the add button.
 
 ### Macro Editor
 
