@@ -88,6 +88,7 @@ void FurnaceGUI::prepareUndo(ActionType action) {
 
 void FurnaceGUI::makeUndo(ActionType action) {
   bool doPush=false;
+  bool shallWalk=false;
   UndoStep s;
   s.type=action;
   s.cursor=cursor;
@@ -136,6 +137,18 @@ void FurnaceGUI::makeUndo(ActionType action) {
           for (int k=0; k<DIV_MAX_COLS; k++) {
             if (p->data[j][k]!=oldPat[i]->data[j][k]) {
               s.pat.push_back(UndoPatternData(subSong,i,e->curOrders->ord[i][curOrder],j,k,oldPat[i]->data[j][k],p->data[j][k]));
+
+              if (k>=4) {
+                if (oldPat[i]->data[j][k&(~1)]==0x0b ||
+                    p->data[j][k&(~1)]==0x0b ||
+                    oldPat[i]->data[j][k&(~1)]==0x0d ||
+                    p->data[j][k&(~1)]==0x0d ||
+                    oldPat[i]->data[j][k&(~1)]==0xff ||
+                    p->data[j][k&(~1)]==0xff) {
+                  shallWalk=true;
+                }
+              }
+
             }
           }
         }
@@ -155,6 +168,9 @@ void FurnaceGUI::makeUndo(ActionType action) {
     undoHist.push_back(s);
     redoHist.clear();
     if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
+  }
+  if (shallWalk) {
+    e->walkSong(loopOrder,loopRow,loopEnd);
   }
 }
 
@@ -1770,6 +1786,7 @@ void FurnaceGUI::doUndo() {
           setOrder(us.order);
         }
       }
+      e->walkSong(loopOrder,loopRow,loopEnd);
       break;
   }
 
@@ -1845,7 +1862,7 @@ void FurnaceGUI::doRedo() {
           setOrder(us.order);
         }
       }
-
+      e->walkSong(loopOrder,loopRow,loopEnd);
       break;
   }
 
