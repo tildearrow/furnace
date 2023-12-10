@@ -751,6 +751,9 @@ void FurnaceGUI::doAction(int what) {
         wantScrollList=true;
         e->song.wave[curWave]->len=finalWidth;
         e->song.wave[curWave]->max=finalHeight-1;
+        for (int j=0; j<finalWidth; j++) {
+          e->song.wave[curWave]->data[j]=(j*finalHeight)/finalWidth;
+        }
         MARK_MODIFIED;
         RESET_WAVE_MACRO_ZOOM;
       }

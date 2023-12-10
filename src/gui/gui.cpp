@@ -5977,6 +5977,9 @@ bool FurnaceGUI::loop() {
           } else {
             e->song.wave[curWave]->len=i.width;
             e->song.wave[curWave]->max=i.height-1;
+            for (int j=0; j<i.width; j++) {
+              e->song.wave[curWave]->data[j]=(j*i.height)/i.width;
+            }
             MARK_MODIFIED;
             RESET_WAVE_MACRO_ZOOM;
           }
