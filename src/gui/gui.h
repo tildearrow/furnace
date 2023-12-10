@@ -1275,6 +1275,20 @@ struct FurnaceGUIQueryResult {
   }
 };
 
+struct FurnaceGUIWaveSizeEntry {
+  short width, height;
+  const char* sys;
+
+  FurnaceGUIWaveSizeEntry(short w, short h, const char* s):
+    width(w),
+    height(h),
+    sys(s) {}
+  FurnaceGUIWaveSizeEntry():
+    width(-1),
+    height(-1),
+    sys(NULL) {}
+};
+
 class FurnaceGUITexture {
 };
 
@@ -1365,11 +1379,12 @@ class FurnaceGUI {
   std::vector<FurnaceGUISysDef> newSongSearchResults;
   FixedQueue<String,32> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
+  std::vector<FurnaceGUIWaveSizeEntry> waveSizeList;
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
 
   bool quit, warnQuit, willCommit, edit, editClone, isPatUnique, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
-  bool vgmExportDirectStream, displayInsTypeList;
+  bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;

@@ -5451,6 +5451,11 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("InsTypeList");
     }
 
+    if (displayWaveSizeList) {
+      displayWaveSizeList=false;
+      ImGui::OpenPopup("WaveSizeList");
+    }
+
     if (displayExporting) {
       displayExporting=false;
       ImGui::OpenPopup("Rendering...");
@@ -5954,6 +5959,26 @@ bool FurnaceGUI::loop() {
             }
 
             MARK_MODIFIED;
+          }
+        }
+      }
+      ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopup("WaveSizeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      char temp[1024];
+      for (FurnaceGUIWaveSizeEntry i: waveSizeList) {
+        snprintf(temp,1023,"%d×%d (%s)",i.width,i.height,i.sys);
+        if (ImGui::MenuItem(temp)) {
+          // create wave
+          curWave=e->addWave();
+          if (curWave==-1) {
+            showError("too many wavetables!");
+          } else {
+            e->song.wave[curWave]->len=i.width;
+            e->song.wave[curWave]->max=i.height-1;
+            MARK_MODIFIED;
+            RESET_WAVE_MACRO_ZOOM;
           }
         }
       }
