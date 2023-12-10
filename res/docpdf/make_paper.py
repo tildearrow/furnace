@@ -341,7 +341,6 @@ if __name__ == "__main__":
               <li>freq-mod</li>
               <li>host12prog</li>
               <li>Lunathir</li>
-              <li>nicco1690</li>
               <li>tildearrow</li>
             </ul>
             <p>special thanks to ZoomTen for providing tools which assisted in the production of this document!</p>
