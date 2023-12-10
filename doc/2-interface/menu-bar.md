@@ -141,7 +141,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **cut**: moves the current selection in the pattern view to clipboard.
 - **copy**: copies the current selection in the pattern view to clipboard.
 - **paste**: inserts the clipboard's contents in the cursor position.
-  - this can also paste pattern data copied from OpenMPT.
+  - you may be able to paste from OpenMPT as well.
 - _**paste special...**:_ variants of the paste feature.
   - **paste mix**: inserts the clipboard's contents in the cursor position, but does not erase the occupied region.
   - **paste mix (background)**: does the same thing as paste mix, but doesn't alter content which is already there.
