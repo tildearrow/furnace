@@ -135,7 +135,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::Text("Columns");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##COSColumns",&chanOscCols,1,1)) {
+        if (ImGui::InputInt("##COSColumns",&chanOscCols,1,3)) {
           if (chanOscCols<1) chanOscCols=1;
           if (chanOscCols>64) chanOscCols=64;
         }
@@ -144,7 +144,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::Text("Size (ms)");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputFloat("##COSWinSize",&chanOscWindowSize,1.0f,1.0f)) {
+        if (ImGui::InputFloat("##COSWinSize",&chanOscWindowSize,1.0f,10.0f)) {
           if (chanOscWindowSize<1.0f) chanOscWindowSize=1.0f;
           if (chanOscWindowSize>50.0f) chanOscWindowSize=50.0f;
         }

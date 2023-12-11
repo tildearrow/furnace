@@ -444,7 +444,7 @@ void FurnaceGUI::drawSettings() {
         }
 
         pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
-        if (ImGui::InputInt("Per-channel oscilloscope threads",&settings.chanOscThreads)) {
+        if (ImGui::InputInt("Per-channel oscilloscope threads",&settings.chanOscThreads,1,4)) {
           if (settings.chanOscThreads<0) settings.chanOscThreads=0;
           if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
           if (settings.chanOscThreads>256) settings.chanOscThreads=256;
@@ -474,7 +474,7 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        if (ImGui::InputInt("Number of recent files",&settings.maxRecentFile)) {
+        if (ImGui::InputInt("Number of recent files",&settings.maxRecentFile,1,5)) {
           if (settings.maxRecentFile<0) settings.maxRecentFile=0;
           if (settings.maxRecentFile>30) settings.maxRecentFile=30;
           settingsChanged=true;
@@ -957,7 +957,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Outputs");
             ImGui::TableNextColumn();
-            if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,1)) {
+            if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,2)) {
               if (settings.audioChans<1) settings.audioChans=1;
               if (settings.audioChans>16) settings.audioChans=16;
               settingsChanged=true;
@@ -1011,7 +1011,7 @@ void FurnaceGUI::drawSettings() {
 
           if (renderPoolThreadsB) {
             pushWarningColor(settings.renderPoolThreads>cpuCores,settings.renderPoolThreads>cpuCores);
-            if (ImGui::InputInt("Number of threads",&settings.renderPoolThreads)) {
+            if (ImGui::InputInt("Number of threads",&settings.renderPoolThreads,1,4)) {
               if (settings.renderPoolThreads<2) settings.renderPoolThreads=2;
               if (settings.renderPoolThreads>32) settings.renderPoolThreads=32;
               settingsChanged=true;
@@ -1781,7 +1781,7 @@ void FurnaceGUI::drawSettings() {
               ImGui::TableNextColumn();
               if (i.val<100) {
                 snprintf(id,4095,"##SNValue_%d",i.scan);
-                if (ImGui::InputInt(id,&i.val,1,1)) {
+                if (ImGui::InputInt(id,&i.val,1,12)) {
                   if (i.val<0) i.val=0;
                   if (i.val>96) i.val=96;
                   noteKeys[i.scan]=i.val;
@@ -2398,7 +2398,7 @@ void FurnaceGUI::drawSettings() {
           } rightClickable
         }
 
-        if (ImGui::InputInt("Icon size",&settings.iconSize)) {
+        if (ImGui::InputInt("Icon size",&settings.iconSize,1,3)) {
           if (settings.iconSize<3) settings.iconSize=3;
           if (settings.iconSize>48) settings.iconSize=48;
           settingsChanged=true;
@@ -2434,7 +2434,7 @@ void FurnaceGUI::drawSettings() {
               settingsChanged=true;
             }
           }
-          if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize)) {
+          if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize,1,3)) {
             if (settings.mainFontSize<3) settings.mainFontSize=3;
             if (settings.mainFontSize>96) settings.mainFontSize=96;
             settingsChanged=true;
@@ -2453,7 +2453,7 @@ void FurnaceGUI::drawSettings() {
               settingsChanged=true;
             }
           }
-          if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize)) {
+          if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize,1,3)) {
             if (settings.headFontSize<3) settings.headFontSize=3;
             if (settings.headFontSize>96) settings.headFontSize=96;
             settingsChanged=true;
@@ -2472,7 +2472,7 @@ void FurnaceGUI::drawSettings() {
               settingsChanged=true;
             }
           }
-          if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
+          if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize,1,3)) {
             if (settings.patFontSize<3) settings.patFontSize=3;
             if (settings.patFontSize>96) settings.patFontSize=96;
             settingsChanged=true;
