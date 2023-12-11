@@ -717,16 +717,48 @@ void FurnaceGUI::doAction(int what) {
       insListDir=!insListDir;
       break;
     
-    case GUI_ACTION_WAVE_LIST_ADD:
+    case GUI_ACTION_WAVE_LIST_ADD: {
+      waveSizeList.clear();
+      for (int i=0; i<e->song.systemLen; i++) {
+        const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
+        if (sysDef==NULL) continue;
+
+        if (sysDef->waveHeight==0) continue;
+        if (sysDef->waveWidth==0) {
+          // add three preset sizes
+          waveSizeList.push_back(FurnaceGUIWaveSizeEntry(32,sysDef->waveHeight,sysDef->name));
+          waveSizeList.push_back(FurnaceGUIWaveSizeEntry(64,sysDef->waveHeight,sysDef->name));
+          waveSizeList.push_back(FurnaceGUIWaveSizeEntry(128,sysDef->waveHeight,sysDef->name));
+        } else {
+          waveSizeList.push_back(FurnaceGUIWaveSizeEntry(sysDef->waveWidth,sysDef->waveHeight,sysDef->name));
+        }
+      }
+
+      int finalWidth=32;
+      int finalHeight=32;
+      if (waveSizeList.size()==1) {
+        finalWidth=waveSizeList[0].width;
+        finalHeight=waveSizeList[0].height;
+      } else if (waveSizeList.size()>1) {
+        displayWaveSizeList=true;
+        break;
+      }
+
       curWave=e->addWave();
       if (curWave==-1) {
         showError("too many wavetables!");
       } else {
         wantScrollList=true;
+        e->song.wave[curWave]->len=finalWidth;
+        e->song.wave[curWave]->max=finalHeight-1;
+        for (int j=0; j<finalWidth; j++) {
+          e->song.wave[curWave]->data[j]=(j*finalHeight)/finalWidth;
+        }
         MARK_MODIFIED;
         RESET_WAVE_MACRO_ZOOM;
       }
       break;
+    }
     case GUI_ACTION_WAVE_LIST_DUPLICATE:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) {
         int prevWave=curWave;
@@ -1336,6 +1368,10 @@ void FurnaceGUI::doAction(int what) {
       MARK_MODIFIED;
       break;
     }
+    case GUI_ACTION_SAMPLE_CROSSFADE_LOOP:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      openSampleCrossFadeOpt=true;
+      break;
     case GUI_ACTION_SAMPLE_FILTER:
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       openSampleFilterOpt=true;

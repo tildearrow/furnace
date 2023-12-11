@@ -1,7 +1,8 @@
 # guides
 
-this is collection of user-contributed Furnace guides which may be useful during composition.
+this is a collection of user-contributed Furnace guides which may be useful during composition.
 
+- [tuning samples](tuning-samples.md)
 - [using samples with limited playback rates](limited-samples.md)
 - [choosing emulation cores](emulation-cores.md)
 - [using OPLL patch macro](opllswitching.md)

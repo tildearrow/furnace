@@ -1036,6 +1036,11 @@ Pos=60,60\n\
 Size=145,184\n\
 Collapsed=0\n\
 \n\
+[Window][Oscilloscope (X-Y)]\n\
+Pos=60,60\n\
+Size=300,300\n\
+Collapsed=0\n\
+\n\
 [Docking][Data]\n\
 DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Split=Y Selected=0x6C01C512\n\
   DockNode            ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,217 Split=X Selected=0xF3094A52\n\
@@ -1869,6 +1874,15 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Export ZSM",
         {"ZSM file", "*.zsm"},
         workingDirZSMExport,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_EXPORT_TEXT:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Export Command Stream",
+        {"text file", "*.txt"},
+        workingDirROMExport,
         dpiScale
       );
       break;
@@ -3607,17 +3621,30 @@ bool FurnaceGUI::loop() {
               if (!e->getWarnings().empty()) {
                 showWarning(e->getWarnings(),GUI_WARN_GENERIC);
               }
+              int instrumentCount=-1;
               for (DivInstrument* i: instruments) {
-                e->addInstrumentPtr(i);
+                instrumentCount=e->addInstrumentPtr(i);
+              }
+              if (instrumentCount>=0 && settings.selectAssetOnLoad) {
+                curIns=instrumentCount-1;
               }
               nextWindow=GUI_WINDOW_INS_LIST;
               MARK_MODIFIED;
             } else if ((droppedWave=e->waveFromFile(ev.drop.file,false))!=NULL) {
-              e->addWavePtr(droppedWave);
+              int waveCount=-1;
+              waveCount=e->addWavePtr(droppedWave);
+              if (waveCount>=0 && settings.selectAssetOnLoad) {
+                curWave=waveCount-1;
+              }
               nextWindow=GUI_WINDOW_WAVE_LIST;
               MARK_MODIFIED;
             } else if ((droppedSample=e->sampleFromFile(ev.drop.file))!=NULL) {
-              e->addSamplePtr(droppedSample);
+              int sampleCount=-1;
+              sampleCount=e->addSamplePtr(droppedSample);
+              if (sampleCount>=0 && settings.selectAssetOnLoad) {
+                curSample=sampleCount;
+                updateSampleTex=true;
+              }
               nextWindow=GUI_WINDOW_SAMPLE_LIST;
               MARK_MODIFIED;
             } else if (modified) {
@@ -4237,6 +4264,16 @@ bool FurnaceGUI::loop() {
             ImGui::EndMenu();
           }
         }
+        if (ImGui::BeginMenu("export text...")) {
+          exitDisabledTimer=1;
+          ImGui::Text(
+            "this option exports the song to a text file.\n"
+          );
+          if (ImGui::Button("export")) {
+            openFileDialog(GUI_FILE_EXPORT_TEXT);
+          }
+          ImGui::EndMenu();
+        }
         if (ImGui::BeginMenu("export command stream...")) {
           exitDisabledTimer=1;
           ImGui::Text(
@@ -4809,6 +4846,7 @@ bool FurnaceGUI::loop() {
           workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_ROM:
+        case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
         case GUI_FILE_EXPORT_CMDSTREAM_BINARY:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
@@ -4900,7 +4938,7 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_ZSM) {
             checkExtension(".zsm");
           }
-          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM) {
+          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM || curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
           }
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM_BINARY) {
@@ -5136,8 +5174,12 @@ bool FurnaceGUI::loop() {
                   displayPendingIns=true;
                   pendingInsSingle=false;
                 } else { // load the only instrument
+                  int instrumentCount=-1;
                   for (DivInstrument* i: instruments) {
-                    e->addInstrumentPtr(i);
+                    instrumentCount=e->addInstrumentPtr(i);
+                  }
+                  if (instrumentCount>=0 && settings.selectAssetOnLoad) {
+                    curIns=instrumentCount-1;
                   }
                 }
               }
@@ -5187,7 +5229,9 @@ bool FurnaceGUI::loop() {
                     showError("cannot load wavetable! ("+e->getLastError()+")");
                   }
                 } else {
-                  if (e->addWavePtr(wave)==-1) {
+                  int waveCount=-1;
+                  waveCount=e->addWavePtr(wave);
+                  if (waveCount==-1) {
                     if (fileDialog->getFileName().size()>1) {
                       warn=true;
                       errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
@@ -5195,6 +5239,9 @@ bool FurnaceGUI::loop() {
                       showError("cannot load wavetable! ("+e->getLastError()+")");
                     }
                   } else {
+                    if (settings.selectAssetOnLoad) {
+                      curWave=waveCount-1;
+                    }
                     MARK_MODIFIED;
                     RESET_WAVE_MACRO_ZOOM;
                   }
@@ -5267,6 +5314,27 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");
               break;
+            case GUI_FILE_EXPORT_TEXT: {
+              SafeWriter* w=e->saveText(false);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError("could not open file!");
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf("could not write text! (%s)",e->getLastError()));
+              }
+              break;
+            }
             case GUI_FILE_EXPORT_CMDSTREAM:
             case GUI_FILE_EXPORT_CMDSTREAM_BINARY: {
               bool isBinary=(curFileDialog==GUI_FILE_EXPORT_CMDSTREAM_BINARY);
@@ -5381,6 +5449,11 @@ bool FurnaceGUI::loop() {
     if (displayInsTypeList) {
       displayInsTypeList=false;
       ImGui::OpenPopup("InsTypeList");
+    }
+
+    if (displayWaveSizeList) {
+      displayWaveSizeList=false;
+      ImGui::OpenPopup("WaveSizeList");
     }
 
     if (displayExporting) {
@@ -5886,6 +5959,29 @@ bool FurnaceGUI::loop() {
             }
 
             MARK_MODIFIED;
+          }
+        }
+      }
+      ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopup("WaveSizeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      char temp[1024];
+      for (FurnaceGUIWaveSizeEntry i: waveSizeList) {
+        snprintf(temp,1023,"%d×%d (%s)",i.width,i.height,i.sys);
+        if (ImGui::MenuItem(temp)) {
+          // create wave
+          curWave=e->addWave();
+          if (curWave==-1) {
+            showError("too many wavetables!");
+          } else {
+            e->song.wave[curWave]->len=i.width;
+            e->song.wave[curWave]->max=i.height-1;
+            for (int j=0; j<i.width; j++) {
+              e->song.wave[curWave]->data[j]=(j*i.height)/i.width;
+            }
+            MARK_MODIFIED;
+            RESET_WAVE_MACRO_ZOOM;
           }
         }
       }
@@ -7529,6 +7625,8 @@ FurnaceGUI::FurnaceGUI():
   sampleFilterRes(0.25f),
   sampleFilterCutStart(16000.0f),
   sampleFilterCutEnd(100.0f),
+  sampleCrossFadeLoopLength(0),
+  sampleCrossFadeLoopLaw(50),
   sampleFilterPower(1),
   sampleClipboard(NULL),
   sampleClipboardLen(0),
@@ -7537,6 +7635,7 @@ FurnaceGUI::FurnaceGUI():
   openSampleAmplifyOpt(false),
   openSampleSilenceOpt(false),
   openSampleFilterOpt(false),
+  openSampleCrossFadeOpt(false),
   selectedPortSet(0x1fff),
   selectedSubPort(-1),
   hoveredPortSet(0x1fff),
@@ -7713,15 +7812,15 @@ FurnaceGUI::FurnaceGUI():
 
   waveGenAmp[0]=1.0f;
   waveGenFMCon0[0]=false;
-  waveGenFMCon1[0]= true;
-  waveGenFMCon2[1]= true;
-  waveGenFMCon3[2] = true;
-  waveGenFMCon4[0]= false;
+  waveGenFMCon1[0]=true;
+  waveGenFMCon2[1]=true;
+  waveGenFMCon3[2]=true;
+  waveGenFMCon4[0]=false;
 
-  waveGenFMCon0[4] = false;
-  waveGenFMCon1[4] = false;
-  waveGenFMCon2[4] = false;
-  waveGenFMCon3[4] = true;
+  waveGenFMCon0[4]=false;
+  waveGenFMCon1[4]=false;
+  waveGenFMCon2[4]=false;
+  waveGenFMCon3[4]=true;
 
   memset(keyHit,0,sizeof(float)*DIV_MAX_CHANS);
   memset(keyHit1,0,sizeof(float)*DIV_MAX_CHANS);

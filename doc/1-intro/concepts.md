@@ -23,7 +23,7 @@ the **order list** is a smaller spreadsheet showing the overall song structure.
 - patterns may be used multiple times in the order list. changing a pattern's data in one order will affect the same pattern used in other orders.
 - each pattern is made of the same number of rows as seen in the tracker view.
 - during playback, the **playhead** moves down as described previously. when it reaches the end of the pattern view, it will go to the next order.
-- if the last order is reached and the playhear reaches the end of the pattern view, it will go back to the beginning of the song.
+- if the last order is reached and the playhead reaches the end of the pattern view, it will go back to the beginning of the song.
 
 ## time
 
