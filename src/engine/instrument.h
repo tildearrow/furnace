@@ -113,6 +113,7 @@ enum DivMacroType: unsigned char {
   DIV_MACRO_EX6,
   DIV_MACRO_EX7,
   DIV_MACRO_EX8,
+  
   DIV_MACRO_EX9,
   DIV_MACRO_EX10,
   DIV_MACRO_EX11,
