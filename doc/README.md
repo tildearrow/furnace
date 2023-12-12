@@ -23,7 +23,6 @@ the index follows.
 - freq-mod
 - host12prog
 - Lunathir
-- nicco1690
 - tildearrow
 
 ## information

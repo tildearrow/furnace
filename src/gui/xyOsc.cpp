@@ -30,7 +30,7 @@ void FurnaceGUI::drawXYOsc() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!xyOscOpen) return;
-  ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
+  ImGui::SetNextWindowSizeConstraints(ImVec2(128.0f*dpiScale,128.0f*dpiScale),ImVec2(canvasW,canvasH));
   bool noPadding=settings.oscTakesEntireWindow && !xyOscOptions;
   if (noPadding) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));

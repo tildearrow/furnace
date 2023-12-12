@@ -24,6 +24,17 @@
 
 #include "actionUtil.h"
 
+static const char* modPlugFormatHeaders[]={
+  "ModPlug Tracker MOD",
+  "ModPlug Tracker S3M",
+  "ModPlug Tracker  XM",
+  "ModPlug Tracker XM",
+  "ModPlug Tracker  IT",
+  "ModPlug Tracker IT",
+  "ModPlug Tracker MPT",
+  NULL,
+};
+
 const char* FurnaceGUI::noteNameNormal(short note, short octave) {
   if (note==100) { // note cut
     return "OFF";
@@ -77,6 +88,7 @@ void FurnaceGUI::prepareUndo(ActionType action) {
 
 void FurnaceGUI::makeUndo(ActionType action) {
   bool doPush=false;
+  bool shallWalk=false;
   UndoStep s;
   s.type=action;
   s.cursor=cursor;
@@ -125,6 +137,18 @@ void FurnaceGUI::makeUndo(ActionType action) {
           for (int k=0; k<DIV_MAX_COLS; k++) {
             if (p->data[j][k]!=oldPat[i]->data[j][k]) {
               s.pat.push_back(UndoPatternData(subSong,i,e->curOrders->ord[i][curOrder],j,k,oldPat[i]->data[j][k],p->data[j][k]));
+
+              if (k>=4) {
+                if (oldPat[i]->data[j][k&(~1)]==0x0b ||
+                    p->data[j][k&(~1)]==0x0b ||
+                    oldPat[i]->data[j][k&(~1)]==0x0d ||
+                    p->data[j][k&(~1)]==0x0d ||
+                    oldPat[i]->data[j][k&(~1)]==0xff ||
+                    p->data[j][k&(~1)]==0xff) {
+                  shallWalk=true;
+                }
+              }
+
             }
           }
         }
@@ -144,6 +168,9 @@ void FurnaceGUI::makeUndo(ActionType action) {
     undoHist.push_back(s);
     redoHist.clear();
     if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
+  }
+  if (shallWalk) {
+    e->walkSong(loopOrder,loopRow,loopEnd);
   }
 }
 
@@ -433,36 +460,8 @@ String FurnaceGUI::doCopy(bool cut, bool writeClipboard, const SelectionPoint& s
   return clipb;
 }
 
-void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String clipb) {
-  if (readClipboard) {
-    finishSelection();
-    prepareUndo(GUI_UNDO_PATTERN_PASTE);
-    char* clipText=SDL_GetClipboardText();
-    if (clipText!=NULL) {
-      if (clipText[0]) {
-        clipboard=clipText;
-      }
-      SDL_free(clipText);
-    }
-    clipb=clipboard;
-  }
-  std::vector<String> data;
-  String tempS;
-  for (char i: clipb) {
-    if (i=='\r') continue;
-    if (i=='\n') {
-      data.push_back(tempS);
-      tempS="";
-      continue;
-    }
-    tempS+=i;
-  }
-  data.push_back(tempS);
-
-  int startOff=-1;
-  bool invalidData=false;
-  if (data.size()<2) return;
-  if (data[0].find("org.tildearrow.furnace - Pattern Data")!=0) return;
+void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int startOff, bool invalidData)
+{
   if (sscanf(data[1].c_str(),"%d",&startOff)!=1) return;
   if (startOff<0) return;
 
@@ -604,6 +603,605 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String cli
     }
 
     makeUndo(GUI_UNDO_PATTERN_PASTE);
+  }
+}
+
+unsigned int convertEffectMPT_MOD(unsigned char symbol, unsigned int val) {
+  switch (symbol) {
+    case '0':
+      return (0x00<<8)|val;
+      break;
+    case '1':
+      return (0x01<<8)|val;
+      break;
+    case '2':
+      return (0x02<<8)|val;
+      break;
+    case '3':
+      return (0x03<<8)|val;
+      break;
+    case '4':
+      return (0x04<<8)|val;
+      break;
+    case '5':
+      return (0x0a<<8)|val|(0x03<<24); // Axy+300
+      break;
+    case '6':
+      return (0x0a<<8)|val|(0x04<<24); // Axy+400
+      break;
+    case '7':
+      return (0x07<<8)|val;
+      break;
+    case '8':
+      return (0x80<<8)|val;
+      break;
+    case '9':
+      return (0x90<<8)|val;
+      break;
+    case 'A':
+      return (0x0A<<8)|val;
+      break;
+    case 'B':
+      return (0x0B<<8)|val;
+      break;
+    case 'C':
+      return (0x0C<<8)|val; // interpreted as volume later
+      break;
+    case 'D': {
+      unsigned char newParam=(val&0xf)+((val&0xff)>>4)*10; // hex to decimal, Protracker (and XM too!) lol
+      return (0x0D<<8)|newParam;
+      break;
+    }
+    case 'E': {
+      switch (val>>4) {
+        case 1:
+          return (0xF1<<8)|(val&0xf);
+          break;
+        case 2:
+          return (0xF2<<8)|(val&0xf);
+          break;
+        // glissando and vib shape not supported in Furnace
+        case 5:
+          return (0xF5<<8)|((val&0xf)<<4);
+          break;
+        // pattern loop not supported
+        case 8:
+          return (0x80<<8)|((val&0xf)<<4);
+          break;
+        case 9:
+          return (0x0C<<8)|(val&0xf);
+          break;
+        case 0xA:
+          return (0xF3<<8)|(val&0xf);
+          break;
+        case 0xB:
+          return (0xF4<<8)|(val&0xf);
+          break;
+        case 0xC:
+          return (0xFC<<8)|(val&0xf);
+          break;
+        case 0xD:
+          return (0xFD<<8)|(val&0xf);
+          break;
+        default:
+          break;
+      }
+      break;
+    }
+    case 'F':
+      if (val<0x20) {
+        return (0x0F<<8)|val;
+      } else {
+        return (0xF0<<8)|val;
+      }
+      break;
+  }
+
+  return 0;
+}
+
+unsigned int convertEffectMPT_S3M(unsigned char symbol, unsigned int val) {
+  switch (symbol) {
+    case 'A':
+      return (0x09<<8)|val;
+      break;
+    case 'B':
+      return (0x0B<<8)|val;
+      break;
+    case 'C':
+      return (0x0D<<8)|val;
+      break;
+    case 'D':
+      if ((val&0xf0)==0xf0) {
+        return (0xF4<<8)|(val&0xf);
+      } else if ((val&0xf)==0xf) {
+        return (0xF3<<8)|((val&0xf0)>>4);
+      } else {
+        return (0x0A<<8)|val;
+      }
+      break;
+    case 'E':
+      if (val<0xe0) {
+        return (0x02<<8)|val;
+      } else if (val>=0xe0 && val<0xf0) {
+        return (0xF2<<8)|(val&0xf);
+      } else {
+        return (0xF2<<8)|((val&0xf)>>1);
+      }
+      break;
+    case 'F':
+      if (val<0xe0) {
+        return (0x01<<8)|val;
+      } else if (val>=0xe0 && val<0xf0) {
+        return (0xF1<<8)|(val&0xf);
+      } else {
+        return (0xF1<<8)|((val&0xf)>>1);
+      }
+      break;
+    case 'G':
+      return (0x03<<8)|val;
+      break;
+    case 'H':
+      return (0x04<<8)|val;
+      break;
+    case 'J':
+      return (0x00<<8)|val;
+      break;
+    case 'K':
+      return (0x0a<<8)|val|(0x04<<24); // Axy+400
+      break;
+    case 'L':
+      return (0x0a<<8)|val|(0x03<<24); // Axy+300
+      break;
+    case 'O':
+      return (0x90<<8)|val;
+      break;
+    case 'Q':
+      return (0xC0<<8)|(val&0xf);
+      break;
+    case 'R':
+      return (0x07<<8)|(val&0xf);
+      break;
+    case 'S': {
+      switch (val>>4) {
+        case 2:
+          return (0xE5<<8)|((val&0xf)<<4);
+          break;
+        case 8:
+          return (0x80<<8)|((val&0xf)<<4);
+          break;
+        case 0xC:
+          return (0xFC<<8)|(val&0xf);
+          break;
+        case 0xD:
+          return (0xFD<<8)|(val&0xf);
+          break;
+        default:
+          break;
+      }
+      break;
+    }
+    case 'T':
+      return (0xF0<<8)|(val&0xf);
+      break;
+    case 'U':
+      return (0x04<<8)|MAX(1,((val&0xf0)>>6)<<4)|MAX(1,(val&0xf)>>2);
+      break;
+    case 'X':
+      return (0x80<<8)|val;
+      break;
+    default:
+      return 0;
+      break;
+  }
+
+  return 0;
+}
+
+unsigned int convertEffectMPT_XM(unsigned char symbol, unsigned int val) {
+  if (symbol=='K') {
+    return (0xEC<<8)|val;
+  }
+
+  return convertEffectMPT_MOD(symbol,val); // for now
+}
+
+unsigned int convertEffectMPT_IT(unsigned char symbol, unsigned int val) {
+  return convertEffectMPT_S3M(symbol,val); // for now
+}
+
+unsigned int convertEffectMPT_MPTM(unsigned char symbol, unsigned int val) {
+  if (symbol==':') {
+    return (0xED<<8)|((val&0xf0)>>4)|(0xEC<<24)|((((val&0xf0)>>4)+(val&0xf))<<16);
+  }
+
+  return convertEffectMPT_IT(symbol,val);
+}
+
+// TODO: fix code style
+void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat)
+{
+  DETERMINE_LAST;
+
+  int j=cursor.y;
+  char note[4];
+  bool invalidData=false;
+
+  memset(note,0,4);
+
+  for(size_t i=1; i<data.size() && j<e->curSubSong->patLen; i++)
+  {
+    size_t charPos=1;
+    int iCoarse=cursor.xCoarse;
+    int iFine=0;
+
+    String& line=data[i];
+
+    while (charPos<line.size() && iCoarse<lastChannel)
+    {
+      DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
+      if (line[charPos]=='|' && charPos != 0) // MPT format starts every pattern line with '|'
+      {
+        iCoarse++;
+
+        if (iCoarse<lastChannel) while (!e->curSubSong->chanShow[iCoarse])
+        {
+          iCoarse++;
+          if (iCoarse>=lastChannel) break;
+        }
+
+        iFine=0;
+        charPos++;
+        continue;
+      }
+      if (iFine==0) // note
+      {
+        if (charPos>=line.size())
+        {
+          invalidData=true;
+          break;
+        }
+        note[0]=line[charPos++];
+        if (charPos>=line.size()) {
+          invalidData=true;
+          break;
+        }
+        note[1]=line[charPos++];
+        if (charPos>=line.size()) {
+          invalidData=true;
+          break;
+        }
+        note[2]=line[charPos++];
+        note[3]=0;
+
+        if (iFine==0 && !opMaskPaste.note) {
+          iFine++;
+          continue;
+        }
+
+        if (strcmp(note,"...")==0 || strcmp(note,"   ")==0)
+        {
+          // do nothing.
+        } 
+        
+        else 
+        {
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || (pat->data[j][0]==0 && pat->data[j][1]==0)) 
+          {
+            if (!decodeNote(note,pat->data[j][0],pat->data[j][1]))
+            {
+              if(strcmp(note, "^^^") == 0)
+              {
+                pat->data[j][0]=100;
+                pat->data[j][1]=0;
+              }
+              else if(strcmp(note, "~~~") == 0 || strcmp(note, "===") == 0)
+              {
+                pat->data[j][0]=101;
+                pat->data[j][1]=0;
+              }
+              else
+              {
+                invalidData=true;
+              }
+              
+              break;
+            }
+            else
+            {
+              pat->data[j][1]--; // MPT is one octave higher...
+            }
+
+            if (mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG) pat->data[j][2]=arg;
+          }
+        }
+      } 
+      else if (iFine==1) // instrument
+      {
+        if (charPos>=line.size())
+        {
+          invalidData=true;
+          break;
+        }
+        note[0]=line[charPos++];
+        if (charPos>=line.size())
+        {
+          invalidData=true;
+          break;
+        }
+        note[1]=line[charPos++];
+        note[2]=0;
+
+        if (iFine==1)
+        {
+          if (!opMaskPaste.ins || mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG)
+          {
+            iFine++;
+            continue;
+          }
+        }
+
+        if (strcmp(note,"..")==0 || strcmp(note,"  ")==0)
+        {
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG ||
+                mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG))
+          {
+            pat->data[j][iFine+1]=-1;
+          }
+        } 
+        else 
+        {
+          unsigned int val=0;
+          if (sscanf(note,"%2X",&val)!=1) 
+          {
+            invalidData=true;
+            break;
+          }
+
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || pat->data[j][iFine+1]==-1) 
+          {
+            pat->data[j][iFine+1]=val;
+          }
+        }
+      }
+      else
+      { // volume and effects
+        if (charPos>=line.size())
+        {
+          invalidData=true;
+          break;
+        }
+        note[0]=line[charPos++];
+        if (charPos>=line.size())
+        {
+          invalidData=true;
+          break;
+        }
+        note[1]=line[charPos++];
+        if (charPos>=line.size())
+        {
+          invalidData=true;
+          break;
+        }
+        note[2]=line[charPos++];
+        note[3]=0;
+
+        if (iFine==2)
+        {
+          if (!opMaskPaste.vol)
+          {
+            iFine++;
+            continue;
+          }
+        } 
+        
+        else if ((iFine&1)==0) 
+        {
+          if (!opMaskPaste.effectVal) 
+          {
+            iFine++;
+            continue;
+          }
+        } 
+        else if ((iFine&1)==1) 
+        {
+          if (!opMaskPaste.effect) 
+          {
+            iFine++;
+            continue;
+          }
+        }
+
+        if (strcmp(note,"...")==0 || strcmp(note,"   ")==0)
+        {
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG ||
+                mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG))
+          {
+            pat->data[j][iFine+1]=-1;
+          }
+        } 
+        else 
+        {
+          unsigned int val=0;
+          unsigned char symbol = '\0';
+
+          symbol = note[0];
+
+          if(iFine == 2)
+          {
+            sscanf(&note[1],"%2d",&val);
+          }
+          else
+          {
+            sscanf(&note[1],"%2X",&val);
+          }
+
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || pat->data[j][iFine+1]==-1) 
+          {
+            // if (iFine<(3+e->curPat[iCoarse].effectCols*2)) pat->data[j][iFine+1]=val;
+            if(iFine == 2) // volume
+            {
+              switch(symbol)
+              {
+                case 'v':
+                {
+                  pat->data[j][iFine+1]=val;
+                  break;
+                }
+                
+                default:
+                  break;
+              }
+            }
+            else // effect
+            {
+              unsigned int eff = 0;
+              
+              if(mptFormat == 0)
+              {
+                eff = convertEffectMPT_MOD(symbol, val); // up to 4 effects stored in one variable
+
+                if(((eff & 0x0f00) >> 8) == 0x0C) // set volume
+                {
+                  pat->data[j][iFine]=eff & 0xff;
+                }
+              }
+
+              if(mptFormat == 1)
+              {
+                eff = convertEffectMPT_S3M(symbol, val);
+              }
+
+              if(mptFormat == 2 || mptFormat == 3) // set volume
+              {
+                eff = convertEffectMPT_XM(symbol, val);
+                
+                if(((eff & 0x0f00) >> 8) == 0x0C)
+                {
+                  pat->data[j][iFine]=eff & 0xff;
+                }
+              }
+
+              if(mptFormat == 4 || mptFormat == 5)
+              {
+                eff = convertEffectMPT_IT(symbol, val);
+              }
+
+              if(mptFormat == 6)
+              {
+                eff = convertEffectMPT_MPTM(symbol, val);
+              }
+
+              pat->data[j][iFine+1]=((eff & 0xff00) >> 8);
+              pat->data[j][iFine+2]=(eff & 0xff);
+
+              if(eff > 0xffff)
+              {
+                pat->data[j][iFine+3]=((eff & 0xff000000) >> 24);
+                pat->data[j][iFine+4]=((eff & 0xff0000) >> 16);
+              }
+              
+            }
+          }
+        }
+      }
+
+      iFine++;
+
+      if(charPos >= line.size() - 1)
+      {
+        invalidData = false;
+        break;
+      }
+    }
+    
+    if (invalidData)
+    {
+      logW("invalid OpenMPT clipboard data! failed at line %d char %d",i,charPos);
+      logW("%s",line.c_str());
+      break;
+    }
+
+    j++;
+    if (mode==GUI_PASTE_MODE_OVERFLOW && j>=e->curSubSong->patLen && curOrder<e->curSubSong->ordersLen-1)
+    {
+      j=0;
+      curOrder++;
+    }
+
+    if (mode==GUI_PASTE_MODE_FLOOD && i==data.size()-1)
+    {
+      i=1;
+    }
+  }
+
+  if (readClipboard) {
+    if (settings.cursorPastePos) {
+      cursor.y=j;
+      if (cursor.y>=e->curSubSong->patLen) cursor.y=e->curSubSong->patLen-1;
+      selStart=cursor;
+      selEnd=cursor;
+      updateScroll(cursor.y);
+    }
+
+    makeUndo(GUI_UNDO_PATTERN_PASTE);
+  }
+}
+
+void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String clipb) {
+  if (readClipboard) {
+    finishSelection();
+    prepareUndo(GUI_UNDO_PATTERN_PASTE);
+    char* clipText=SDL_GetClipboardText();
+    if (clipText!=NULL) {
+      if (clipText[0]) {
+        clipboard=clipText;
+      }
+      SDL_free(clipText);
+    }
+    clipb=clipboard;
+  }
+  std::vector<String> data;
+  String tempS;
+  bool foundString=false;
+  bool isFurnace=false;
+  bool isModPlug=false;
+  int mptFormat=0;
+  for (char i: clipb) {
+    if (i=='\r') continue;
+    if (i=='\n') {
+      data.push_back(tempS);
+      tempS="";
+      continue;
+    }
+    tempS+=i;
+  }
+  data.push_back(tempS);
+
+  int startOff=-1;
+  bool invalidData=false;
+  if (data.size()<2) return;
+
+  if (data[0].find("org.tildearrow.furnace - Pattern Data")==0) {
+    foundString=true;
+    isFurnace=true;
+  } else {
+    for (int i=0; modPlugFormatHeaders[i]; i++) {
+      if (data[0].find(modPlugFormatHeaders[i])==0) {
+        foundString=true;
+        isModPlug=true;
+        mptFormat=i;
+        break;
+      }
+    }
+  }
+
+  if (!foundString) return;
+
+  if (isFurnace) {
+    doPasteFurnace(mode,arg,readClipboard,clipb,data,startOff,invalidData);
+  } else if (isModPlug) {
+    doPasteMPT(mode,arg,readClipboard,clipb,data,mptFormat);
   }
 }
 
@@ -1188,6 +1786,7 @@ void FurnaceGUI::doUndo() {
           setOrder(us.order);
         }
       }
+      e->walkSong(loopOrder,loopRow,loopEnd);
       break;
   }
 
@@ -1263,7 +1862,7 @@ void FurnaceGUI::doRedo() {
           setOrder(us.order);
         }
       }
-
+      e->walkSong(loopOrder,loopRow,loopEnd);
       break;
   }
 

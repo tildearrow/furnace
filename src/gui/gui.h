@@ -1275,6 +1275,20 @@ struct FurnaceGUIQueryResult {
   }
 };
 
+struct FurnaceGUIWaveSizeEntry {
+  short width, height;
+  const char* sys;
+
+  FurnaceGUIWaveSizeEntry(short w, short h, const char* s):
+    width(w),
+    height(h),
+    sys(s) {}
+  FurnaceGUIWaveSizeEntry():
+    width(-1),
+    height(-1),
+    sys(NULL) {}
+};
+
 class FurnaceGUITexture {
 };
 
@@ -1365,11 +1379,12 @@ class FurnaceGUI {
   std::vector<FurnaceGUISysDef> newSongSearchResults;
   FixedQueue<String,32> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
+  std::vector<FurnaceGUIWaveSizeEntry> waveSizeList;
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
 
   bool quit, warnQuit, willCommit, edit, editClone, isPatUnique, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
-  bool vgmExportDirectStream, displayInsTypeList;
+  bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
@@ -1638,6 +1653,7 @@ class FurnaceGUI {
     int fontBitmap;
     int fontAutoHint;
     int fontAntiAlias;
+    int selectAssetOnLoad;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1832,6 +1848,7 @@ class FurnaceGUI {
       fontBitmap(0),
       fontAutoHint(1),
       fontAntiAlias(1),
+      selectAssetOnLoad(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2429,6 +2446,8 @@ class FurnaceGUI {
   void doInsert();
   void doTranspose(int amount, OperationMask& mask);
   String doCopy(bool cut, bool writeClipboard, const SelectionPoint& sStart, const SelectionPoint& sEnd);
+  void doPasteFurnace(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int startOff, bool invalidData);
+  void doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat);
   void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0, bool readClipboard=true, String clipb="");
   void doChangeIns(int ins);
   void doInterpolate();

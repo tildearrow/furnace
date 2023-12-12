@@ -154,6 +154,9 @@ in there, you can modify certain data pertaining to your sample, such as the:
   - **Low-pass**: amount to attenuate everything above cutoff.
   - **Band-pass**: amount to attenuate everything outside cutoff.
   - **High-pass**: amount to attenuate everything below cutoff.
+- **Crossfade loop points**: applies a "fade" between the loop's starting point and the end.
+  - **Number of samples**: how many samples in the loop region to take into account for crossfade.
+  - **Linear <-> Equal power**: the curve used to crossfade.
 - **Preview sample**: plays sample at base frequency.
 - **Stop sample preview**: stops preview.
 - **Create instrument from sample**: creates a new instrument with its sample set to the current sample.
