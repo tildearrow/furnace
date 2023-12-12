@@ -73,29 +73,14 @@ class DivMacroInt {
   bool released;
   public:
     // common macro
-    /*DivMacroStruct vol;
-    DivMacroStruct arp;
-    DivMacroStruct duty, wave, pitch, ex1, ex2, ex3;
-    DivMacroStruct alg, fb, fms, ams;
-    DivMacroStruct panL, panR, phaseReset, ex4, ex5, ex6, ex7, ex8;
-
-    DivMacroStruct ex9, ex10, ex11, ex12, ex13, ex14, ex15, ex16, ex17, ex18, ex19, ex20;*/
 
     std::vector<DivMacroStruct> macros;
   
     // FM operator macro
     struct IntOp {
-      /*DivMacroStruct am, ar, dr, mult;
-      DivMacroStruct rr, sl, tl, dt2;
-      DivMacroStruct rs, dt, d2r, ssg;
-      DivMacroStruct dam, dvb, egt, ksl;
-      DivMacroStruct sus, vib, ws, ksr;
-
-      DivMacroStruct ex1, ex2, ex3, ex4, ex5, ex6, ex7, ex8, ex9, ex10, ex11, ex12;*/
-
       std::vector<DivMacroStruct> macros;
 
-      IntOp():
+      IntOp()
       {
         macros.clear();
       }
@@ -146,7 +131,7 @@ class DivMacroInt {
      */
     DivMacroStruct* structByType(unsigned char which);
 
-    DivMacroInt():
+    DivMacroInt()
     {
       //memset(macroList,0,128*sizeof(void*));
       //memset(macroSource,0,128*sizeof(void*));
