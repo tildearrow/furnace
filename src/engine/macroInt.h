@@ -21,6 +21,7 @@
 #define _MACROINT_H
 
 #include "instrument.h"
+#include <vector>
 
 class DivEngine;
 
@@ -63,52 +64,44 @@ struct DivMacroStruct {
 class DivMacroInt {
   DivEngine* e;
   DivInstrument* ins;
-  DivMacroStruct* macroList[128];
-  DivInstrumentMacro* macroSource[128];
-  size_t macroListLen;
+  //DivMacroStruct* macroList[128];
+  //DivInstrumentMacro* macroSource[128];
+  std::vector<DivMacroStruct*> macroList;
+  std::vector<DivInstrumentMacro*> macroSource;
+  //size_t macroListLen;
   int subTick;
   bool released;
   public:
     // common macro
-    DivMacroStruct vol;
+    /*DivMacroStruct vol;
     DivMacroStruct arp;
     DivMacroStruct duty, wave, pitch, ex1, ex2, ex3;
     DivMacroStruct alg, fb, fms, ams;
     DivMacroStruct panL, panR, phaseReset, ex4, ex5, ex6, ex7, ex8;
 
-    DivMacroStruct ex9, ex10, ex11, ex12, ex13, ex14, ex15, ex16, ex17, ex18, ex19, ex20;
+    DivMacroStruct ex9, ex10, ex11, ex12, ex13, ex14, ex15, ex16, ex17, ex18, ex19, ex20;*/
+
+    std::vector<DivMacroStruct> macros;
   
     // FM operator macro
     struct IntOp {
-      DivMacroStruct am, ar, dr, mult;
+      /*DivMacroStruct am, ar, dr, mult;
       DivMacroStruct rr, sl, tl, dt2;
       DivMacroStruct rs, dt, d2r, ssg;
       DivMacroStruct dam, dvb, egt, ksl;
       DivMacroStruct sus, vib, ws, ksr;
 
-      DivMacroStruct ex1, ex2, ex3, ex4, ex5, ex6, ex7, ex8, ex9, ex10, ex11, ex12;
+      DivMacroStruct ex1, ex2, ex3, ex4, ex5, ex6, ex7, ex8, ex9, ex10, ex11, ex12;*/
+
+      std::vector<DivMacroStruct> macros;
+
       IntOp():
-        am(DIV_MACRO_OP_AM),
-        ar(DIV_MACRO_OP_AR),
-        dr(DIV_MACRO_OP_DR),
-        mult(DIV_MACRO_OP_MULT),
-        rr(DIV_MACRO_OP_RR),
-        sl(DIV_MACRO_OP_SL),
-        tl(DIV_MACRO_OP_TL),
-        dt2(DIV_MACRO_OP_DT2),
-        rs(DIV_MACRO_OP_RS),
-        dt(DIV_MACRO_OP_DT),
-        d2r(DIV_MACRO_OP_D2R),
-        ssg(DIV_MACRO_OP_SSG),
-        dam(DIV_MACRO_OP_DAM),
-        dvb(DIV_MACRO_OP_DVB),
-        egt(DIV_MACRO_OP_EGT),
-        ksl(DIV_MACRO_OP_KSL),
-        sus(DIV_MACRO_OP_SUS),
-        vib(DIV_MACRO_OP_VIB),
-        ws(DIV_MACRO_OP_WS),
-        ksr(DIV_MACRO_OP_KSR) {}
-    } op[4];
+      {
+        macros.clear();
+      }
+    };
+
+    std::vector<IntOp> op;
 
     // state
     bool hasRelease;
@@ -154,34 +147,13 @@ class DivMacroInt {
     DivMacroStruct* structByType(unsigned char which);
 
     DivMacroInt():
-      e(NULL),
-      ins(NULL),
-      macroListLen(0),
-      subTick(1),
-      released(false),
-      vol(DIV_MACRO_VOL),
-      arp(DIV_MACRO_ARP),
-      duty(DIV_MACRO_DUTY),
-      wave(DIV_MACRO_WAVE),
-      pitch(DIV_MACRO_PITCH),
-      ex1(DIV_MACRO_EX1),
-      ex2(DIV_MACRO_EX2),
-      ex3(DIV_MACRO_EX3),
-      alg(DIV_MACRO_ALG),
-      fb(DIV_MACRO_FB),
-      fms(DIV_MACRO_FMS),
-      ams(DIV_MACRO_AMS),
-      panL(DIV_MACRO_PAN_LEFT),
-      panR(DIV_MACRO_PAN_RIGHT),
-      phaseReset(DIV_MACRO_PHASE_RESET),
-      ex4(DIV_MACRO_EX4),
-      ex5(DIV_MACRO_EX5),
-      ex6(DIV_MACRO_EX6),
-      ex7(DIV_MACRO_EX7),
-      ex8(DIV_MACRO_EX8),
-      hasRelease(false) {
-      memset(macroList,0,128*sizeof(void*));
-      memset(macroSource,0,128*sizeof(void*));
+    {
+      //memset(macroList,0,128*sizeof(void*));
+      //memset(macroSource,0,128*sizeof(void*));
+      macroList.clear();
+      macroSource.clear();
+
+      op.clear();
     }
 };
 

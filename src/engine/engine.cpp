@@ -2384,7 +2384,7 @@ void DivEngine::dumpSongInfo() {
 int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   if (song.ins.size()>=256) return -1;
   BUSY_BEGIN;
-  DivInstrument* ins=new DivInstrument(fallbackType);
+  DivInstrument* ins=new DivInstrument();
   int insCount=(int)song.ins.size();
   DivInstrumentType prefType;
   if (refChan<0) {
