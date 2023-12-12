@@ -444,7 +444,7 @@ void FurnaceGUI::drawSettings() {
         }
 
         pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
-        if (ImGui::InputInt("Per-channel oscilloscope threads",&settings.chanOscThreads,1,4)) {
+        if (ImGui::InputInt("Per-channel oscilloscope threads",&settings.chanOscThreads)) {
           if (settings.chanOscThreads<0) settings.chanOscThreads=0;
           if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
           if (settings.chanOscThreads>256) settings.chanOscThreads=256;
@@ -1011,7 +1011,7 @@ void FurnaceGUI::drawSettings() {
 
           if (renderPoolThreadsB) {
             pushWarningColor(settings.renderPoolThreads>cpuCores,settings.renderPoolThreads>cpuCores);
-            if (ImGui::InputInt("Number of threads",&settings.renderPoolThreads,1,4)) {
+            if (ImGui::InputInt("Number of threads",&settings.renderPoolThreads)) {
               if (settings.renderPoolThreads<2) settings.renderPoolThreads=2;
               if (settings.renderPoolThreads>32) settings.renderPoolThreads=32;
               settingsChanged=true;
