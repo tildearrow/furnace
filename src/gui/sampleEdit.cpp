@@ -1127,7 +1127,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (sampleFilterCutStart<0.0) sampleFilterCutStart=0.0;
           if (sampleFilterCutStart>sample->rate*0.5) sampleFilterCutStart=sample->rate*0.5;
         }
-        if (ImGui::InputFloat("To",&sampleFilterCutEnd,1.00f,1000.0f,"%.0f")) {
+        if (ImGui::InputFloat("To",&sampleFilterCutEnd,10.0f,1000.0f,"%.0f")) {
           if (sampleFilterCutEnd<0.0) sampleFilterCutEnd=0.0;
           if (sampleFilterCutEnd>sample->rate*0.5) sampleFilterCutEnd=sample->rate*0.5;
         }

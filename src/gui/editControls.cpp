@@ -687,7 +687,7 @@ void FurnaceGUI::drawEditControls() {
           ImGui::Text("Octave");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##Octave",&curOctave,1,3)) {
+          if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
             if (curOctave>7) curOctave=7;
             if (curOctave<-5) curOctave=-5;
             e->autoNoteOffAll();
@@ -704,7 +704,7 @@ void FurnaceGUI::drawEditControls() {
           ImGui::Text("Edit Step");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##EditStep",&editStep,1,3)) {
+          if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
             if (editStep>=e->curSubSong->patLen) editStep=e->curSubSong->patLen-1;
             if (editStep<0) editStep=0;
 
@@ -835,7 +835,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::Text("Octave");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
-        if (ImGui::InputInt("##Octave",&curOctave,1,3)) {
+        if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
@@ -850,7 +850,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::Text("Edit Step");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
-        if (ImGui::InputInt("##EditStep",&editStep,1,3)) {
+        if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->curSubSong->patLen) editStep=e->curSubSong->patLen-1;
           if (editStep<0) editStep=0;
 
@@ -1094,7 +1094,7 @@ void FurnaceGUI::drawEditControls() {
         float cursor=ImGui::GetCursorPosX();
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
-        if (ImGui::InputInt("##Octave",&curOctave,1,3)) {
+        if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
@@ -1110,7 +1110,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         ImGui::SetCursorPosX(cursor);
         ImGui::SetNextItemWidth(avail);
-        if (ImGui::InputInt("##EditStep",&editStep,1,3)) {
+        if (ImGui::InputInt("##EditStep",&editStep,1,1)) {
           if (editStep>=e->curSubSong->patLen) editStep=e->curSubSong->patLen-1;
           if (editStep<0) editStep=0;
 
