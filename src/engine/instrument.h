@@ -306,11 +306,63 @@ struct DivInstrumentSTD {
   std::vector<DivInstrumentMacro> macros;
 
   struct OpMacro {
-    // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
     std::vector<DivInstrumentMacro> macros;
   };
 
   std::vector<OpMacro> ops;
+
+  DivInstrumentMacro* get_macro(uint8_t macro_id, uint8_t op_index, bool allocate)
+  {
+    if(op_index == 0xff) //allocate new macro for main instrument
+    {
+      for(int i = 0; i < macros.size(); i++)
+      {
+        if(macros[i].macroType == macro_id) return &macros[i];
+      }
+
+      if(allocate)
+      {
+        macros.push_back(DivInstrumentMacro(macro_id));
+        return &macros[macros.size() - 1];
+      }
+
+      else
+      {
+        DivInstrumentMacro* macro = new DivInstrumentMacro(macro_id);
+        return macro;
+      }
+    }
+
+    else //looking at FM ops
+    {
+      if(ops.size() < op_index + 1) //if vector is shorter, pad it to the required length
+      {
+        int initial_size = ops.size();
+
+        for(int i = 0; i < (op_index + 1) - initial_size; i++)
+        {
+          ops.push_back(OpMacro());
+        }
+      }
+
+      for(int i = 0; i < ops[op_index].macros.size(); i++)
+      {
+        if(ops[op_index].macros[i].macroType == macro_id) return &ops[op_index].macros[i];
+      }
+
+      if(allocate)
+      {
+        ops[op_index].macros.push_back(DivInstrumentMacro(macro_id));
+        return &ops[op_index].macros[macros.size() - 1];
+      }
+
+      else
+      {
+        DivInstrumentMacro* macro = new DivInstrumentMacro(macro_id);
+        return macro;
+      }
+    }
+  }
 };
 
 struct DivInstrumentGB {
