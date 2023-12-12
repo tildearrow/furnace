@@ -263,6 +263,7 @@ void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
 {
   if(!(ms->masked))
   {
+    macros.push_back(DivMacroStruct(m->macroType));
     macroList.push_back(ms);
     macroSource.push_back(m);
   }
@@ -272,7 +273,8 @@ void DivMacroInt::add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMa
 {
   if(!(ms->masked))
   {
-    op[oper].macros.push_back(ms);
+    op[oper].macros.push_back(DivMacroStruct(m->macroType));
+    macroList.push_back(ms);
     macroSource.push_back(m);
   }
 }
