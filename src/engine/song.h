@@ -164,6 +164,7 @@ struct DivSubSong {
   DivChannelData pat[DIV_MAX_CHANS];
 
   bool chanShow[DIV_MAX_CHANS];
+  bool chanShowChanOsc[DIV_MAX_CHANS];
   unsigned char chanCollapse[DIV_MAX_CHANS];
   String chanName[DIV_MAX_CHANS];
   String chanShortName[DIV_MAX_CHANS];
@@ -184,6 +185,7 @@ struct DivSubSong {
     ordersLen(1) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       chanShow[i]=true;
+      chanShowChanOsc[i]=true;
       chanCollapse[i]=0;
     }
   }
@@ -379,6 +381,7 @@ struct DivSong {
   bool preNoteNoEffect;
   bool oldDPCM;
   bool resetArpPhaseOnNewNote;
+  bool ceilVolumeScaling;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -500,7 +503,8 @@ struct DivSong {
     brokenFMOff(false),
     preNoteNoEffect(false),
     oldDPCM(false),
-    resetArpPhaseOnNewNote(false) {
+    resetArpPhaseOnNewNote(false),
+    ceilVolumeScaling(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;

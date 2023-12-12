@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev187"
-#define DIV_ENGINE_VERSION 187
+#define DIV_VERSION "dev189"
+#define DIV_ENGINE_VERSION 189
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -647,6 +647,8 @@ class DivEngine {
     SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true, bool optimize=true);
     // dump command stream.
     SafeWriter* saveCommand(bool binary=false);
+    // export to text
+    SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
     bool saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime=0.0);
     // wait for audio export to finish

@@ -39,7 +39,7 @@ void DivEngine::nextOrder() {
   }
 }
 
-const char* notes[12]={
+static const char* notes[12]={
   "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
 };
 

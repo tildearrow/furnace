@@ -414,7 +414,13 @@ void DivPlatformVB::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     updateWave(i);
+    if (romMode) {
+      chWrite(i,0x06,chan[i].wave);
+    }
     chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
+  }
+  if (chan[5].active) {
+    writeEnv(5,true);
   }
 }
 

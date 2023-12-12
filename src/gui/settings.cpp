@@ -2370,6 +2370,12 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool selectAssetOnLoadB=settings.selectAssetOnLoad;
+        if (ImGui::Checkbox("Select asset after opening one",&selectAssetOnLoadB)) {
+          settings.selectAssetOnLoad=selectAssetOnLoadB;
+          settingsChanged=true;
+        }
+
         END_SECTION;
       }
       CONFIG_SECTION("Appearance") {
@@ -3799,6 +3805,7 @@ void FurnaceGUI::syncSettings() {
   settings.fontBitmap=e->getConfInt("fontBitmap",0);
   settings.fontAutoHint=e->getConfInt("fontAutoHint",1);
   settings.fontAntiAlias=e->getConfInt("fontAntiAlias",1);
+  settings.selectAssetOnLoad=e->getConfInt("selectAssetOnLoad",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3964,6 +3971,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.fontBitmap,0,1);
   clampSetting(settings.fontAutoHint,0,2);
   clampSetting(settings.fontAntiAlias,0,1);
+  clampSetting(settings.selectAssetOnLoad,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -4244,6 +4252,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("fontBitmap",settings.fontBitmap);
   e->setConf("fontAutoHint",settings.fontAutoHint);
   e->setConf("fontAntiAlias",settings.fontAntiAlias);
+  e->setConf("selectAssetOnLoad",settings.selectAssetOnLoad);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

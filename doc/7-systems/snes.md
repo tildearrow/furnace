@@ -65,6 +65,8 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
 
 this chip uses the [SNES](../4-instrument/snes.md) instrument editor.
 
+when two channels are joined for pitch modulation, the channel bar will show `mod` on a bracket tying them together.
+
 ## channel status
 
 the following icons are displayed when channel status is enabled in the pattern view:
