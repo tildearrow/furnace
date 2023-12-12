@@ -126,19 +126,18 @@ finally, the sequence of values can be directly edited in the text box at the bo
 - in arpeggio macros, a value starting with a `@` is a fixed value as described above.
 - in bitmask-style macros, the values are added up in binary and converted to decimal. see [the hexadecimal guide](../1-intro/hex.md) for more info.
 
-in all cases except bitmask macros, right-clicking on the graph opens up a small editing menu:
-- **copy**: copy the entire macro.
-- **paste**: paste a copied macro. changes the macro length to match.
-- **clear**: removes the macro completely.
-- **clear contents**: resets all values while leaving the length of the macro intact.
+in all cases except bitmask macros, right-clicking on the graph opens up an editing menu:
+- **copy**: copies the macro.
+- **paste**: pastes the macro in the clipboard. changes the macro length to match.
+- **clear**: clears the macro.
+- **clear contents**: resets all values to 0.
 - **offset**:
   - **X**: slides the data "horizontally" within the macro, filling the gap with zeroes. data moved past the start or end is lost.
   - **Y**: increases or decreases all values, clipping them if they would move past the allowed range.
 - **scale**:
-  - **X**: stretches the length of the macro, repeating or removing values as needed.
+  - **X**: stretches the macro.
   - **Y**: multiplies all values by the scale factor, clipping them if they would exceed the allowed range.
 - **randomize**: replaces all values with random values between **Min** and **Max**.
-- none of these apply to macro delay or step length.
 
 ### ADSR
 
