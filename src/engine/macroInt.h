@@ -131,10 +131,23 @@ class DivMacroInt {
      */
     DivMacroStruct* structByType(unsigned char which);
 
+    /**
+     * Add MS and M to the corresponding macro lists.
+     * @param ms DivMacroStruct pointer.
+     * @param m DivInstrumentMacro pointer.
+     */
+    void add_macro(DivMacroStruct* ms, DivInstrumentMacro* m);
+
+    /**
+     * Add MS and M to the corresponding macro lists of OpInt struct corrsponding to OPER operator.
+     * @param oper Operator index.
+     * @param ms DivMacroStruct pointer.
+     * @param m DivInstrumentMacro pointer.
+     */
+    void add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMacro* m);
+
     DivMacroInt()
     {
-      //memset(macroList,0,128*sizeof(void*));
-      //memset(macroSource,0,128*sizeof(void*));
       macroList.clear();
       macroSource.clear();
 

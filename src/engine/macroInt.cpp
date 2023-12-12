@@ -255,17 +255,33 @@ void DivMacroInt::setEngine(DivEngine* eng) {
 
 #define ADD_MACRO(m,s) \
   if (!m.masked) { \
-    macroList[macroListLen]=&m; \
-    macroSource[macroListLen++]=&s; \
+    macroList.push_back(&m); \
+    macroSource.push_back(&s); \
   }
+
+void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
+{
+  if(!(ms->masked))
+  {
+    macroList.push_back(ms);
+    macroSource.push_back(m);
+  }
+}
+
+void DivMacroInt::add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMacro* m)
+{
+  if(!(ms->masked))
+  {
+    op[oper].macros.push_back(ms);
+    macroSource.push_back(m);
+  }
+}
 
 void DivMacroInt::init(DivInstrument* which) {
   ins=which;
   // initialize
-  for (size_t i=0; i<macroListLen; i++) {
-    if (macroList[i]!=NULL) macroList[i]->init();
-  }
-  macroListLen=0;
+  macroList.clear();
+  macroSource.clear();
   subTick=1;
 
   hasRelease=false;
@@ -274,136 +290,37 @@ void DivMacroInt::init(DivInstrument* which) {
   if (ins==NULL) return;
 
   // prepare common macro
-  if (ins->std.volMacro.len>0) {
-    ADD_MACRO(vol,ins->std.volMacro);
-  }
-  if (ins->std.arpMacro.len>0) {
-    ADD_MACRO(arp,ins->std.arpMacro);
-  }
-  if (ins->std.dutyMacro.len>0) {
-    ADD_MACRO(duty,ins->std.dutyMacro);
-  }
-  if (ins->std.waveMacro.len>0) {
-    ADD_MACRO(wave,ins->std.waveMacro);
-  }
-  if (ins->std.pitchMacro.len>0) {
-    ADD_MACRO(pitch,ins->std.pitchMacro);
-  }
-  if (ins->std.ex1Macro.len>0) {
-    ADD_MACRO(ex1,ins->std.ex1Macro);
-  }
-  if (ins->std.ex2Macro.len>0) {
-    ADD_MACRO(ex2,ins->std.ex2Macro);
-  }
-  if (ins->std.ex3Macro.len>0) {
-    ADD_MACRO(ex3,ins->std.ex3Macro);
-  }
-  if (ins->std.algMacro.len>0) {
-    ADD_MACRO(alg,ins->std.algMacro);
-  }
-  if (ins->std.fbMacro.len>0) {
-    ADD_MACRO(fb,ins->std.fbMacro);
-  }
-  if (ins->std.fmsMacro.len>0) {
-    ADD_MACRO(fms,ins->std.fmsMacro);
-  }
-  if (ins->std.amsMacro.len>0) {
-    ADD_MACRO(ams,ins->std.amsMacro);
+  for(int i = 0; i < ins->std.macros.size(); i++)
+  {
+    if(ins->std.macros[i].len > 0)
+    {
+      add_macro(new DivMacroStruct(ins->std.macros[i].macroType), &ins->std.macros[i]);
+    }
   }
 
-  if (ins->std.panLMacro.len>0) {
-    ADD_MACRO(panL,ins->std.panLMacro);
-  }
-  if (ins->std.panRMacro.len>0) {
-    ADD_MACRO(panR,ins->std.panRMacro);
-  }
-  if (ins->std.phaseResetMacro.len>0) {
-    ADD_MACRO(phaseReset,ins->std.phaseResetMacro);
-  }
-  if (ins->std.ex4Macro.len>0) {
-    ADD_MACRO(ex4,ins->std.ex4Macro);
-  }
-  if (ins->std.ex5Macro.len>0) {
-    ADD_MACRO(ex5,ins->std.ex5Macro);
-  }
-  if (ins->std.ex6Macro.len>0) {
-    ADD_MACRO(ex6,ins->std.ex6Macro);
-  }
-  if (ins->std.ex7Macro.len>0) {
-    ADD_MACRO(ex7,ins->std.ex7Macro);
-  }
-  if (ins->std.ex8Macro.len>0) {
-    ADD_MACRO(ex8,ins->std.ex8Macro);
+  if(op.size() < ins->std.ops.size())
+  {
+    int init = op.size();
+
+    for(int i = 0; i < ins->std.ops.size() - init; i++)
+    {
+      op.push_back(IntOp());
+    }
   }
 
   // prepare FM operator macros
-  for (int i=0; i<4; i++) {
-    DivInstrumentSTD::OpMacro& m=ins->std.opMacros[i];
-    IntOp& o=op[i];
-    if (m.amMacro.len>0) {
-      ADD_MACRO(o.am,m.amMacro);
-    }
-    if (m.arMacro.len>0) {
-      ADD_MACRO(o.ar,m.arMacro);
-    }
-    if (m.drMacro.len>0) {
-      ADD_MACRO(o.dr,m.drMacro);
-    }
-    if (m.multMacro.len>0) {
-      ADD_MACRO(o.mult,m.multMacro);
-    }
-    if (m.rrMacro.len>0) {
-      ADD_MACRO(o.rr,m.rrMacro);
-    }
-    if (m.slMacro.len>0) {
-      ADD_MACRO(o.sl,m.slMacro);
-    }
-    if (m.tlMacro.len>0) {
-      ADD_MACRO(o.tl,m.tlMacro);
-    }
-    if (m.dt2Macro.len>0) {
-      ADD_MACRO(o.dt2,m.dt2Macro);
-    }
-    if (m.rsMacro.len>0) {
-      ADD_MACRO(o.rs,m.rsMacro);
-    }
-    if (m.dtMacro.len>0) {
-      ADD_MACRO(o.dt,m.dtMacro);
-    }
-    if (m.d2rMacro.len>0) {
-      ADD_MACRO(o.d2r,m.d2rMacro);
-    }
-    if (m.ssgMacro.len>0) {
-      ADD_MACRO(o.ssg,m.ssgMacro);
-    }
-
-    if (m.damMacro.len>0) {
-      ADD_MACRO(o.dam,m.damMacro);
-    }
-    if (m.dvbMacro.len>0) {
-      ADD_MACRO(o.dvb,m.dvbMacro);
-    }
-    if (m.egtMacro.len>0) {
-      ADD_MACRO(o.egt,m.egtMacro);
-    }
-    if (m.kslMacro.len>0) {
-      ADD_MACRO(o.ksl,m.kslMacro);
-    }
-    if (m.susMacro.len>0) {
-      ADD_MACRO(o.sus,m.susMacro);
-    }
-    if (m.vibMacro.len>0) {
-      ADD_MACRO(o.vib,m.vibMacro);
-    }
-    if (m.wsMacro.len>0) {
-      ADD_MACRO(o.ws,m.wsMacro);
-    }
-    if (m.ksrMacro.len>0) {
-      ADD_MACRO(o.ksr,m.ksrMacro);
+  for (int oper=0; oper<ins->std.ops.size(); oper++)
+  {
+    for (int i=0; i<ins->std.ops[oper].macros.size(); i++)
+    {
+      if(ins->std.ops[oper].macros[i].len > 0)
+      {
+        add_op_macro(oper, new DivMacroStruct(ins->std.ops[oper].macros[i].macroType), &ins->std.ops[oper].macros[i]);
+      }
     }
   }
 
-  for (size_t i=0; i<macroListLen; i++) {
+  for (size_t i=0; i<macroList.size(); i++) {
     if (macroSource[i]!=NULL) {
       macroList[i]->prepare(*macroSource[i],e);
       // check ADSR mode
