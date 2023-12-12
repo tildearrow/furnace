@@ -127,7 +127,7 @@ class DivMacroInt {
     /**
      * get DivMacroStruct by macro type.
      * @param which the macro type.
-     * @return a DivMacroStruct, or NULL if none found.
+     * @return a DivMacroStruct pointer, or NULL if none found.
      */
     DivMacroStruct* structByType(unsigned char which);
 
@@ -145,6 +145,13 @@ class DivMacroInt {
      * @param m DivInstrumentMacro pointer.
      */
     void add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMacro* m);
+
+    /**
+     * Get DivMacroStruct pointer for a given macro_id.
+     * @param macro_id Macro ID.
+     * @return a DivMacroStruct pointer, or NULL if none found.
+     */
+    DivMacroStruct* get_div_macro_struct(uint8_t macro_id);
 
     DivMacroInt()
     {

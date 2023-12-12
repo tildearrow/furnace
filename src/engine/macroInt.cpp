@@ -171,7 +171,7 @@ void DivMacroInt::next() {
   // run macros
   // TODO: potentially get rid of list to avoid allocations
   subTick--;
-  for (size_t i=0; i<macroListLen; i++) {
+  for (size_t i=0; i<macroList.size(); i++) {
     if (macroList[i]!=NULL && macroSource[i]!=NULL) {
       macroList[i]->doMacro(*macroSource[i],released,subTick==0);
     }
@@ -253,12 +253,6 @@ void DivMacroInt::setEngine(DivEngine* eng) {
   e=eng;
 }
 
-#define ADD_MACRO(m,s) \
-  if (!m.masked) { \
-    macroList.push_back(&m); \
-    macroSource.push_back(&s); \
-  }
-
 void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
 {
   if(!(ms->masked))
@@ -277,6 +271,27 @@ void DivMacroInt::add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMa
     macroList.push_back(ms);
     macroSource.push_back(m);
   }
+}
+
+DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
+{
+  if(macro_id < 0x20)
+  {
+    for(int i = 0; i < macros.size(); i++)
+    {
+      if(macros[i].macroType == macro_id) return &macros[i];
+    }
+  }
+
+  else
+  {
+    for(int i = 0; i < op[macro_id >> 5].macros.size(); i++)
+    {
+      if(op[macro_id >> 5].macros[i].macroType == macro_id) return &op[macro_id >> 5].macros[i];
+    }
+  }
+
+  return NULL;
 }
 
 void DivMacroInt::init(DivInstrument* which) {
