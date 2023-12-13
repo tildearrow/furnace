@@ -128,7 +128,7 @@ finally, the sequence of values can be directly edited in the text box at the bo
 
 in all cases except bitmask macros, right-clicking on the graph opens up an editing menu:
 - **copy**: copies the macro.
-- **paste**: pastes the macro in the clipboard. changes the macro length to match.
+- **paste**: pastes the macro in the clipboard.
 - **clear**: clears the macro.
 - **clear contents**: resets all values to 0.
 - **offset**:
