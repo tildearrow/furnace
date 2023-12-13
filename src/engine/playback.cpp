@@ -1825,37 +1825,37 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     if ((ins=midiCallback(msg))!=-2) {
       int chan=msg.type&15;
       switch (msg.type&0xf0) {
-        // case TA_MIDI_NOTE_OFF: {
-        //   if (chan<0 || chan>=chans) break;
-        //   if (midiIsDirect) {
-        //     pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
-        //   } else {
-        //     autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
-        //   }
-        //   if (!playing) {
-        //     reset();
-        //     freelance=true;
-        //     playing=true;
-        //   }
-        //   break;
-        // }
-        // case TA_MIDI_NOTE_ON: {
-        //   if (chan<0 || chan>=chans) break;
-        //   if (msg.data[1]==0) {
-        //     if (midiIsDirect) {
-        //       pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
-        //     } else {
-        //       autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
-        //     }
-        //   } else {
-        //     if (midiIsDirect) {
-        //       pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true));
-        //     } else {
-        //       autoNoteOn(msg.type&15,ins,msg.data[0]-12,msg.data[1]);
-        //     }
-        //   }
-        //   break;
-        // }
+        case TA_MIDI_NOTE_OFF: {
+          if (chan<0 || chan>=chans) break;
+          if (midiIsDirect) {
+            pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
+          } else {
+            autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
+          }
+          if (!playing) {
+            reset();
+            freelance=true;
+            playing=true;
+          }
+          break;
+        }
+        case TA_MIDI_NOTE_ON: {
+          if (chan<0 || chan>=chans) break;
+          if (msg.data[1]==0) {
+            if (midiIsDirect) {
+              pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
+            } else {
+              autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
+            }
+          } else {
+            if (midiIsDirect) {
+              pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true));
+            } else {
+              autoNoteOn(msg.type&15,ins,msg.data[0]-12,msg.data[1]);
+            }
+          }
+          break;
+        }
         case TA_MIDI_PROGRAM: {
           // TODO: change instrument event thingy
           break;

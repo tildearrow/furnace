@@ -3767,10 +3767,6 @@ bool FurnaceGUI::loop() {
         learning=-1;
       } else {
         int action=midiMap.at(msg);
-        int chan=msg.type&15;
-        int ins=-1;
-        int vol = midiMap.volInput?((int)(pow((double)msg.data[1]/127.0,midiMap.volExp)*127.0)):-1;
-        int note = msg.data[0]-12;
         if (action!=0) {
           doAction(action);
         } else switch (msg.type&0xf0) {
@@ -3778,33 +3774,10 @@ bool FurnaceGUI::loop() {
             if (midiMap.valueInputStyle==0 || midiMap.valueInputStyle>3 || cursor.xFine==0) {
               if (midiMap.noteInput && edit && msg.data[1]!=0) {
                 noteInput(
-                  note,
+                  msg.data[0]-12,
                   0,
-                  vol
+                  midiMap.volInput?((int)(pow((double)msg.data[1]/127.0,midiMap.volExp)*127.0)):-1
                 );
-                // Preview note input with velocity sensitivity
-                if (midiMap.directChannel) {
-                  e->noteOn(
-                    chan,
-                    ins,
-                    note,
-                    vol
-                  );
-                } else {
-                  e->autoNoteOn(
-                    chan,
-                    ins,
-                    note,
-                    vol
-                  );
-                }
-              } else if (msg.data[1]==0) {
-                // Velocity 0 note offs
-                if (midiMap.directChannel) {
-                  e->noteOff(chan);
-                } else {
-                  e->autoNoteOff(chan, note);
-                }  
               }
             } else {
               if (edit && msg.data[1]!=0) {
@@ -3829,13 +3802,6 @@ bool FurnaceGUI::loop() {
               }
             }
             break;
-          case TA_MIDI_NOTE_OFF:
-            if (midiMap.directChannel) {
-              e->noteOff(msg.type&15);
-            } else {
-              e->autoNoteOff(msg.type&15, msg.data[0]-12);
-            }  
-            break;    
           case TA_MIDI_PROGRAM:
             if (midiMap.programChange) {
               curIns=msg.data[0];
