@@ -455,7 +455,7 @@ void FurnaceGUI::drawWaveEdit() {
 
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(80.0f*dpiScale);
-        if (ImGui::InputInt("##CurWave",&curWave,1,1)) {
+        if (ImGui::InputInt("##CurWave",&curWave,1,10)) {
           if (curWave<0) curWave=0;
           if (curWave>=(int)e->song.wave.size()) curWave=e->song.wave.size()-1;
         }
@@ -499,7 +499,7 @@ void FurnaceGUI::drawWaveEdit() {
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
-        if (ImGui::InputInt("##_WTW",&wave->len,1,2)) {
+        if (ImGui::InputInt("##_WTW",&wave->len,1,16)) {
           if (wave->len>256) wave->len=256;
           if (wave->len<1) wave->len=1;
           e->notifyWaveChange(curWave);
@@ -514,7 +514,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
         int realMax=wave->max+1;
-        if (ImGui::InputInt("##_WTH",&realMax,1,2)) {
+        if (ImGui::InputInt("##_WTH",&realMax,1,16)) {
           if (realMax>256) realMax=256;
           if (realMax<2) realMax=2;
           wave->max=realMax-1;

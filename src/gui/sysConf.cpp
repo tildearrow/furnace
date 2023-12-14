@@ -2312,7 +2312,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       altered=true;
     }
     ImGui::Indent();
-    if (ImGui::InputInt("Hz",&customClock)) {
+    if (ImGui::InputInt("Hz",&customClock,100,10000)) {
       if (customClock<MIN_CUSTOM_CLOCK) customClock=0;
       if (customClock>MAX_CUSTOM_CLOCK) customClock=MAX_CUSTOM_CLOCK;
       altered=true;

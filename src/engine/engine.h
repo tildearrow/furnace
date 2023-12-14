@@ -190,7 +190,7 @@ struct DivNoteEvent {
     channel(-1),
     ins(0),
     note(0),
-    volume(0),
+    volume(-1),
     on(false),
     nop(true),
     pad1(false),
