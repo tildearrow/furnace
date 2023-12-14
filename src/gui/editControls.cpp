@@ -534,6 +534,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button("CmdStream Text")) {
           openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Text")) {
+          openFileDialog(GUI_FILE_EXPORT_TEXT);
+        }
 
         if (ImGui::Button("Restore Backup")) {
           mobileMenuOpen=false;

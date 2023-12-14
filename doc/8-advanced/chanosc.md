@@ -1,6 +1,6 @@
 # oscilloscope (per-channel)
 
-the "Oscilloscope (per-channel)" windows displays several oscilloscope views (one per channel).
+the "Oscilloscope (per-channel)" window displays several oscilloscope views (one per channel).
 
 ![oscilloscope per-channel configuration view](chanosc.png)
 
