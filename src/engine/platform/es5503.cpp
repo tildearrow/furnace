@@ -359,6 +359,13 @@ void DivPlatformES5503::tick(bool sysTick) {
   }
 }
 
+
+int DivPlatformES5503::mapVelocity(int ch, unsigned char vel)
+{
+  const int volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0)))); //linear
+  return (vel*volMax)/127;
+}
+
 int DivPlatformES5503::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
