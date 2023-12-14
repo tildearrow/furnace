@@ -1372,7 +1372,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     }
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
-      //dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,(note.volume*(chan[note.channel].volMax>>8))/127));
+      dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,(note.volume*(chan[note.channel].volMax>>8))/127));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
       chan[note.channel].releasing=false;
