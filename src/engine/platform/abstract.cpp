@@ -102,6 +102,11 @@ bool DivDispatch::isVolGlobal() {
   return false;
 }
 
+int DivDispatch::mapVelocity(int ch, unsigned char vel) {
+  const int volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
+  return (vel*volMax)/127;
+}
+
 int DivDispatch::getPortaFloor(int ch) {
   return 0x00;
 }
