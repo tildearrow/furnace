@@ -2686,9 +2686,9 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
 
   // <187 C64 cutoff macro compatibility
   if (type==DIV_INS_C64 && volIsCutoff && version<187) {
-    memcpy(&std.algMacro,&std.volMacro,sizeof(DivInstrumentMacro));
+    memcpy(std.get_macro(DIV_MACRO_ALG, true),std.get_macro(DIV_MACRO_VOL, true),sizeof(DivInstrumentMacro));
     std.get_macro(DIV_MACRO_ALG, false)->macroType=DIV_MACRO_ALG;
-    std.volMacro=DivInstrumentMacro(DIV_MACRO_VOL,true);
+    *std.get_macro(DIV_MACRO_VOL, true)=DivInstrumentMacro(DIV_MACRO_VOL,true);
 
     if (!c64.filterIsAbs) {
       for (int i=0; i<std.get_macro(DIV_MACRO_ALG, false)->len; i++) {
@@ -2815,53 +2815,53 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   for (int k=0; k<12; k++) reader.readC();
 
   // standard
-  std.get_macro(DIV_MACRO_VOL, false)->len=reader.readI();
-  std.get_macro(DIV_MACRO_ARP, false)->len=reader.readI();
-  std.get_macro(DIV_MACRO_DUTY, false)->len=reader.readI();
-  std.get_macro(DIV_MACRO_WAVE, false)->len=reader.readI();
+  std.get_macro(DIV_MACRO_VOL, true)->len=reader.readI();
+  std.get_macro(DIV_MACRO_ARP, true)->len=reader.readI();
+  std.get_macro(DIV_MACRO_DUTY, true)->len=reader.readI();
+  std.get_macro(DIV_MACRO_WAVE, true)->len=reader.readI();
   if (version>=17) {
-    std.get_macro(DIV_MACRO_PITCH, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_EX1, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_EX2, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_EX3, false)->len=reader.readI();
+    std.get_macro(DIV_MACRO_PITCH, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_EX1, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_EX2, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_EX3, true)->len=reader.readI();
   }
-  std.get_macro(DIV_MACRO_VOL, false)->loop=reader.readI();
-  std.get_macro(DIV_MACRO_ARP, false)->loop=reader.readI();
-  std.get_macro(DIV_MACRO_DUTY, false)->loop=reader.readI();
-  std.get_macro(DIV_MACRO_WAVE, false)->loop=reader.readI();
+  std.get_macro(DIV_MACRO_VOL, true)->loop=reader.readI();
+  std.get_macro(DIV_MACRO_ARP, true)->loop=reader.readI();
+  std.get_macro(DIV_MACRO_DUTY, true)->loop=reader.readI();
+  std.get_macro(DIV_MACRO_WAVE, true)->loop=reader.readI();
   if (version>=17) {
-    std.get_macro(DIV_MACRO_PITCH, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_EX1, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_EX2, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_EX3, false)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_PITCH, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_EX1, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_EX2, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_EX3, true)->loop=reader.readI();
   }
-  std.get_macro(DIV_MACRO_ARP, false)->mode=reader.readC();
+  std.get_macro(DIV_MACRO_ARP, true)->mode=reader.readC();
   // these 3 were macro heights before but they are not used anymore
   int oldVolHeight=reader.readC();
   int oldDutyHeight=reader.readC();
   reader.readC(); // oldWaveHeight
-  READ_MACRO_VALS(std.get_macro(DIV_MACRO_VOL, false)->val,std.get_macro(DIV_MACRO_VOL, false)->len);
-  READ_MACRO_VALS(std.get_macro(DIV_MACRO_ARP, false)->val,std.get_macro(DIV_MACRO_ARP, false)->len);
-  READ_MACRO_VALS(std.get_macro(DIV_MACRO_DUTY, false)->val,std.get_macro(DIV_MACRO_DUTY, false)->len);
-  READ_MACRO_VALS(std.get_macro(DIV_MACRO_WAVE, false)->val,std.get_macro(DIV_MACRO_WAVE, false)->len);
+  READ_MACRO_VALS(std.get_macro(DIV_MACRO_VOL, true)->val,std.get_macro(DIV_MACRO_VOL, true)->len);
+  READ_MACRO_VALS(std.get_macro(DIV_MACRO_ARP, true)->val,std.get_macro(DIV_MACRO_ARP, true)->len);
+  READ_MACRO_VALS(std.get_macro(DIV_MACRO_DUTY, true)->val,std.get_macro(DIV_MACRO_DUTY, true)->len);
+  READ_MACRO_VALS(std.get_macro(DIV_MACRO_WAVE, true)->val,std.get_macro(DIV_MACRO_WAVE, true)->len);
   if (version<31) {
-    if (!std.get_macro(DIV_MACRO_ARP, false)->mode) for (int j=0; j<std.get_macro(DIV_MACRO_ARP, false)->len; j++) {
-      std.get_macro(DIV_MACRO_ARP, false)->val[j]-=12;
+    if (!std.get_macro(DIV_MACRO_ARP, true)->mode) for (int j=0; j<std.get_macro(DIV_MACRO_ARP, true)->len; j++) {
+      std.get_macro(DIV_MACRO_ARP, true)->val[j]-=12;
     }
   }
   if (type==DIV_INS_C64 && version<87) {
-    if (volIsCutoff && !c64.filterIsAbs) for (int j=0; j<std.get_macro(DIV_MACRO_VOL, false)->len; j++) {
-      std.get_macro(DIV_MACRO_VOL, false)->val[j]-=18;
+    if (volIsCutoff && !c64.filterIsAbs) for (int j=0; j<std.get_macro(DIV_MACRO_VOL, true)->len; j++) {
+      std.get_macro(DIV_MACRO_VOL, true)->val[j]-=18;
     }
-    if (!c64.dutyIsAbs) for (int j=0; j<std.get_macro(DIV_MACRO_DUTY, false)->len; j++) {
-      std.get_macro(DIV_MACRO_DUTY, false)->val[j]-=12;
+    if (!c64.dutyIsAbs) for (int j=0; j<std.get_macro(DIV_MACRO_DUTY, true)->len; j++) {
+      std.get_macro(DIV_MACRO_DUTY, true)->val[j]-=12;
     }
   }
   if (version>=17) {
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_PITCH, false)->val,std.get_macro(DIV_MACRO_PITCH, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX1, false)->val,std.get_macro(DIV_MACRO_EX1, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX2, false)->val,std.get_macro(DIV_MACRO_EX2, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX3, false)->val,std.get_macro(DIV_MACRO_EX3, false)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_PITCH, true)->val,std.get_macro(DIV_MACRO_PITCH, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX1, true)->val,std.get_macro(DIV_MACRO_EX1, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX2, true)->val,std.get_macro(DIV_MACRO_EX2, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX3, true)->val,std.get_macro(DIV_MACRO_EX3, true)->len);
   } else {
     if (type==DIV_INS_STD) {
       if (oldVolHeight==31) {
@@ -2875,147 +2875,147 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
 
   // FM macros
   if (version>=29) {
-    std.get_macro(DIV_MACRO_ALG, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_FB, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_FMS, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_AMS, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_ALG, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_FB, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_FMS, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_AMS, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_VOL, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_ARP, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_DUTY, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_WAVE, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_PITCH, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_EX1, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_EX2, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_EX3, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_ALG, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_FB, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_FMS, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_AMS, false)->open=reader.readC();
+    std.get_macro(DIV_MACRO_ALG, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_FB, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_FMS, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_AMS, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_ALG, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_FB, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_FMS, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_AMS, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_VOL, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_ARP, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_DUTY, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_WAVE, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_PITCH, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_EX1, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_EX2, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_EX3, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_ALG, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_FB, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_FMS, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_AMS, true)->open=reader.readC();
 
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_ALG, false)->val,std.get_macro(DIV_MACRO_ALG, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_FB, false)->val,std.get_macro(DIV_MACRO_FB, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_FMS, false)->val,std.get_macro(DIV_MACRO_FMS, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_AMS, false)->val,std.get_macro(DIV_MACRO_AMS, false)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_ALG, true)->val,std.get_macro(DIV_MACRO_ALG, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_FB, true)->val,std.get_macro(DIV_MACRO_FB, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_FMS, true)->val,std.get_macro(DIV_MACRO_FMS, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_AMS, true)->val,std.get_macro(DIV_MACRO_AMS, true)->len);
 
     for (int i=0; i<4; i++) {
       DivInstrumentSTD::OpMacro& op=std.ops[i];
 
-      op.op_get_macro(DIV_MACRO_OP_AM, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_AR, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DR, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_MULT, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_RR, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_SL, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_TL, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DT2, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_RS, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DT, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_D2R, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_SSG, false)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_AM, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_AR, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DR, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_MULT, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_RR, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_SL, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_TL, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DT2, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_RS, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DT, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_D2R, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_SSG, true)->len=reader.readI();
 
-      op.op_get_macro(DIV_MACRO_OP_AM, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_AR, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DR, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_MULT, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_RR, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_SL, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_TL, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DT2, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_RS, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DT, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_D2R, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_SSG, false)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_AM, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_AR, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DR, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_MULT, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_RR, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_SL, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_TL, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DT2, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_RS, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DT, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_D2R, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_SSG, true)->loop=reader.readI();
 
-      op.op_get_macro(DIV_MACRO_OP_AM, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_AR, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DR, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_MULT, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_RR, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_SL, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_TL, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DT2, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_RS, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DT, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_D2R, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_SSG, false)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_AM, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_AR, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DR, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_MULT, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_RR, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_SL, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_TL, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DT2, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_RS, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DT, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_D2R, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_SSG, true)->open=reader.readC();
     }
 
     // FM macro low 8 bits
     for (int i=0; i<4; i++) {
       DivInstrumentSTD::OpMacro& op=std.ops[i];
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_AM, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_AM, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_AM, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_AM, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_AR, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_AR, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_AR, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_AR, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DR, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_DR, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DR, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_DR, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_MULT, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_MULT, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_MULT, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_MULT, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_RR, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_RR, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_RR, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_RR, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_SL, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_SL, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_SL, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_SL, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_TL, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_TL, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_TL, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_TL, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DT2, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_DT2, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DT2, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_DT2, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_RS, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_RS, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_RS, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_RS, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DT, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_DT, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DT, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_DT, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_D2R, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_D2R, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_D2R, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_D2R, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_SSG, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_SSG, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_SSG, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_SSG, true)->val[j]=(unsigned char)reader.readC();
       }
     }
   }
 
   // release points
   if (version>=44) {
-    std.get_macro(DIV_MACRO_VOL, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_ARP, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_DUTY, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_WAVE, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_PITCH, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_EX1, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_EX2, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_EX3, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_ALG, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_FB, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_FMS, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_AMS, false)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_VOL, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_ARP, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_DUTY, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_WAVE, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_PITCH, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_EX1, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_EX2, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_EX3, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_ALG, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_FB, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_FMS, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_AMS, true)->rel=reader.readI();
 
     for (int i=0; i<4; i++) {
       DivInstrumentSTD::OpMacro& op=std.ops[i];
 
-      op.op_get_macro(DIV_MACRO_OP_AM, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_AR, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DR, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_MULT, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_RR, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_SL, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_TL, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DT2, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_RS, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DT, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_D2R, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_SSG, false)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_AM, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_AR, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DR, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_MULT, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_RR, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_SL, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_TL, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DT2, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_RS, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DT, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_D2R, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_SSG, true)->rel=reader.readI();
     }
   }
 
@@ -3024,68 +3024,68 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     for (int i=0; i<4; i++) {
       DivInstrumentSTD::OpMacro& op=std.ops[i];
 
-      op.op_get_macro(DIV_MACRO_OP_DAM, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DVB, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_EGT, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_KSL, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_SUS, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_VIB, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_WS, false)->len=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_KSR, false)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DAM, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DVB, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_EGT, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_KSL, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_SUS, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_VIB, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_WS, true)->len=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_KSR, true)->len=reader.readI();
 
-      op.op_get_macro(DIV_MACRO_OP_DAM, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DVB, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_EGT, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_KSL, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_SUS, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_VIB, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_WS, false)->loop=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_KSR, false)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DAM, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DVB, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_EGT, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_KSL, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_SUS, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_VIB, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_WS, true)->loop=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_KSR, true)->loop=reader.readI();
 
-      op.op_get_macro(DIV_MACRO_OP_DAM, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_DVB, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_EGT, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_KSL, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_SUS, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_VIB, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_WS, false)->rel=reader.readI();
-      op.op_get_macro(DIV_MACRO_OP_KSR, false)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DAM, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_DVB, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_EGT, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_KSL, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_SUS, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_VIB, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_WS, true)->rel=reader.readI();
+      op.op_get_macro(DIV_MACRO_OP_KSR, true)->rel=reader.readI();
 
-      op.op_get_macro(DIV_MACRO_OP_DAM, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DVB, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_EGT, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_KSL, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_SUS, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_VIB, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_WS, false)->open=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_KSR, false)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DAM, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DVB, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_EGT, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_KSL, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_SUS, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_VIB, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_WS, true)->open=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_KSR, true)->open=reader.readC();
     }
 
     for (int i=0; i<4; i++) {
       DivInstrumentSTD::OpMacro& op=std.ops[i];
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DAM, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_DAM, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DAM, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_DAM, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DVB, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_DVB, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DVB, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_DVB, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_EGT, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_EGT, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_EGT, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_EGT, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_KSL, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_KSL, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_KSL, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_KSL, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_SUS, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_SUS, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_SUS, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_SUS, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_VIB, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_VIB, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_VIB, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_VIB, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_WS, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_WS, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_WS, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_WS, true)->val[j]=(unsigned char)reader.readC();
       }
-      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_KSR, false)->len; j++) {
-        op.op_get_macro(DIV_MACRO_OP_KSR, false)->val[j]=(unsigned char)reader.readC();
+      for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_KSR, true)->len; j++) {
+        op.op_get_macro(DIV_MACRO_OP_KSR, true)->val[j]=(unsigned char)reader.readC();
       }
     }
   }
@@ -3101,16 +3101,16 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
 
   // clear noise macro if PCE instrument and version<63
   if (version<63 && type==DIV_INS_PCE) {
-    std.get_macro(DIV_MACRO_DUTY, false)->len=0;
-    std.get_macro(DIV_MACRO_DUTY, false)->loop=255;
-    std.get_macro(DIV_MACRO_DUTY, false)->rel=255;
+    std.get_macro(DIV_MACRO_DUTY, true)->len=0;
+    std.get_macro(DIV_MACRO_DUTY, true)->loop=255;
+    std.get_macro(DIV_MACRO_DUTY, true)->rel=255;
   }
 
   // clear wave macro if OPLL instrument and version<70
   if (version<70 && type==DIV_INS_OPLL) {
-    std.get_macro(DIV_MACRO_WAVE, false)->len=0;
-    std.get_macro(DIV_MACRO_WAVE, false)->loop=255;
-    std.get_macro(DIV_MACRO_WAVE, false)->rel=255;
+    std.get_macro(DIV_MACRO_WAVE, true)->len=0;
+    std.get_macro(DIV_MACRO_WAVE, true)->loop=255;
+    std.get_macro(DIV_MACRO_WAVE, true)->rel=255;
   }
 
   // sample map
@@ -3143,50 +3143,50 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
 
   if (version>=76) {
     // more macros
-    std.get_macro(DIV_MACRO_PAN_LEFT, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_PAN_RIGHT, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_PHASE_RESET, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_EX4, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_EX5, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_EX6, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_EX7, false)->len=reader.readI();
-    std.get_macro(DIV_MACRO_EX8, false)->len=reader.readI();
+    std.get_macro(DIV_MACRO_PAN_LEFT, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_PAN_RIGHT, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_PHASE_RESET, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_EX4, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_EX5, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_EX6, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_EX7, true)->len=reader.readI();
+    std.get_macro(DIV_MACRO_EX8, true)->len=reader.readI();
 
-    std.get_macro(DIV_MACRO_PAN_LEFT, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_PAN_RIGHT, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_PHASE_RESET, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_EX4, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_EX5, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_EX6, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_EX7, false)->loop=reader.readI();
-    std.get_macro(DIV_MACRO_EX8, false)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_PAN_LEFT, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_PAN_RIGHT, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_PHASE_RESET, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_EX4, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_EX5, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_EX6, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_EX7, true)->loop=reader.readI();
+    std.get_macro(DIV_MACRO_EX8, true)->loop=reader.readI();
 
-    std.get_macro(DIV_MACRO_PAN_LEFT, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_PAN_RIGHT, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_PHASE_RESET, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_EX4, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_EX5, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_EX6, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_EX7, false)->rel=reader.readI();
-    std.get_macro(DIV_MACRO_EX8, false)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_PAN_LEFT, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_PAN_RIGHT, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_PHASE_RESET, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_EX4, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_EX5, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_EX6, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_EX7, true)->rel=reader.readI();
+    std.get_macro(DIV_MACRO_EX8, true)->rel=reader.readI();
 
-    std.get_macro(DIV_MACRO_PAN_LEFT, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_PAN_RIGHT, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_PHASE_RESET, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_EX4, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_EX5, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_EX6, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_EX7, false)->open=reader.readC();
-    std.get_macro(DIV_MACRO_EX8, false)->open=reader.readC();
+    std.get_macro(DIV_MACRO_PAN_LEFT, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_PAN_RIGHT, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_PHASE_RESET, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_EX4, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_EX5, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_EX6, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_EX7, true)->open=reader.readC();
+    std.get_macro(DIV_MACRO_EX8, true)->open=reader.readC();
 
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_PAN_LEFT, false)->val,std.get_macro(DIV_MACRO_PAN_LEFT, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_PAN_RIGHT, false)->val,std.get_macro(DIV_MACRO_PAN_RIGHT, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_PHASE_RESET, false)->val,std.get_macro(DIV_MACRO_PHASE_RESET, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX4, false)->val,std.get_macro(DIV_MACRO_EX4, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX5, false)->val,std.get_macro(DIV_MACRO_EX5, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX6, false)->val,std.get_macro(DIV_MACRO_EX6, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX7, false)->val,std.get_macro(DIV_MACRO_EX7, false)->len);
-    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX8, false)->val,std.get_macro(DIV_MACRO_EX8, false)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_PAN_LEFT, true)->val,std.get_macro(DIV_MACRO_PAN_LEFT, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_PAN_RIGHT, true)->val,std.get_macro(DIV_MACRO_PAN_RIGHT, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_PHASE_RESET, true)->val,std.get_macro(DIV_MACRO_PHASE_RESET, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX4, true)->val,std.get_macro(DIV_MACRO_EX4, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX5, true)->val,std.get_macro(DIV_MACRO_EX5, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX6, true)->val,std.get_macro(DIV_MACRO_EX6, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX7, true)->val,std.get_macro(DIV_MACRO_EX7, true)->len);
+    READ_MACRO_VALS(std.get_macro(DIV_MACRO_EX8, true)->val,std.get_macro(DIV_MACRO_EX8, true)->len);
 
     // FDS
     fds.modSpeed=reader.readI();
@@ -3221,25 +3221,25 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
 
   // other macro modes
   if (version>=84) {
-    std.get_macro(DIV_MACRO_VOL, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_DUTY, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_WAVE, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_PITCH, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_EX1, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_EX2, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_EX3, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_ALG, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_FB, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_FMS, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_AMS, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_PAN_LEFT, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_PAN_RIGHT, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_PHASE_RESET, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_EX4, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_EX5, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_EX6, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_EX7, false)->mode=reader.readC();
-    std.get_macro(DIV_MACRO_EX8, false)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_VOL, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_DUTY, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_WAVE, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_PITCH, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_EX1, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_EX2, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_EX3, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_ALG, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_FB, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_FMS, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_AMS, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_PAN_LEFT, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_PAN_RIGHT, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_PHASE_RESET, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_EX4, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_EX5, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_EX6, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_EX7, true)->mode=reader.readC();
+    std.get_macro(DIV_MACRO_EX8, true)->mode=reader.readC();
   }
 
   // C64 no test
@@ -3318,105 +3318,105 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
 
   // macro speed/delay
   if (version>=111) {
-    std.get_macro(DIV_MACRO_VOL, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_ARP, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_DUTY, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_WAVE, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_PITCH, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_EX1, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_EX2, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_EX3, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_ALG, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_FB, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_FMS, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_AMS, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_PAN_LEFT, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_PAN_RIGHT, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_PHASE_RESET, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_EX4, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_EX5, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_EX6, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_EX7, false)->speed=reader.readC();
-    std.get_macro(DIV_MACRO_EX8, false)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_VOL, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_ARP, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_DUTY, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_WAVE, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_PITCH, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_EX1, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_EX2, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_EX3, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_ALG, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_FB, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_FMS, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_AMS, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_PAN_LEFT, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_PAN_RIGHT, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_PHASE_RESET, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_EX4, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_EX5, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_EX6, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_EX7, true)->speed=reader.readC();
+    std.get_macro(DIV_MACRO_EX8, true)->speed=reader.readC();
 
-    std.get_macro(DIV_MACRO_VOL, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_ARP, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_DUTY, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_WAVE, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_PITCH, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_EX1, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_EX2, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_EX3, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_ALG, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_FB, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_FMS, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_AMS, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_PAN_LEFT, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_PAN_RIGHT, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_PHASE_RESET, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_EX4, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_EX5, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_EX6, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_EX7, false)->delay=reader.readC();
-    std.get_macro(DIV_MACRO_EX8, false)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_VOL, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_ARP, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_DUTY, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_WAVE, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_PITCH, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_EX1, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_EX2, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_EX3, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_ALG, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_FB, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_FMS, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_AMS, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_PAN_LEFT, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_PAN_RIGHT, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_PHASE_RESET, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_EX4, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_EX5, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_EX6, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_EX7, true)->delay=reader.readC();
+    std.get_macro(DIV_MACRO_EX8, true)->delay=reader.readC();
 
     // op macro speed/delay
     for (int i=0; i<4; i++) {
       DivInstrumentSTD::OpMacro& op=std.ops[i];
 
-      op.op_get_macro(DIV_MACRO_OP_AM, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_AR, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DR, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_MULT, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_RR, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_SL, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_TL, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DT2, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_RS, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DT, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_D2R, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_SSG, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DAM, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DVB, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_EGT, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_KSL, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_SUS, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_VIB, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_WS, false)->speed=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_KSR, false)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_AM, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_AR, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DR, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_MULT, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_RR, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_SL, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_TL, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DT2, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_RS, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DT, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_D2R, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_SSG, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DAM, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DVB, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_EGT, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_KSL, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_SUS, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_VIB, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_WS, true)->speed=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_KSR, true)->speed=reader.readC();
 
-      op.op_get_macro(DIV_MACRO_OP_AM, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_AR, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DR, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_MULT, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_RR, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_SL, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_TL, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DT2, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_RS, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DT, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_D2R, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_SSG, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DAM, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_DVB, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_EGT, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_KSL, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_SUS, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_VIB, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_WS, false)->delay=reader.readC();
-      op.op_get_macro(DIV_MACRO_OP_KSR, false)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_AM, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_AR, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DR, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_MULT, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_RR, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_SL, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_TL, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DT2, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_RS, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DT, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_D2R, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_SSG, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DAM, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_DVB, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_EGT, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_KSL, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_SUS, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_VIB, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_WS, true)->delay=reader.readC();
+      op.op_get_macro(DIV_MACRO_OP_KSR, true)->delay=reader.readC();
     }
   }
 
   // old arp macro format
   if (version<112) {
-    if (std.get_macro(DIV_MACRO_ARP, false)->mode) {
-      std.get_macro(DIV_MACRO_ARP, false)->mode=0;
-      for (int i=0; i<std.get_macro(DIV_MACRO_ARP, false)->len; i++) {
-        std.get_macro(DIV_MACRO_ARP, false)->val[i]^=0x40000000;
+    if (std.get_macro(DIV_MACRO_ARP, true)->mode) {
+      std.get_macro(DIV_MACRO_ARP, true)->mode=0;
+      for (int i=0; i<std.get_macro(DIV_MACRO_ARP, true)->len; i++) {
+        std.get_macro(DIV_MACRO_ARP, true)->val[i]^=0x40000000;
       }
-      if ((std.get_macro(DIV_MACRO_ARP, false)->loop>=std.get_macro(DIV_MACRO_ARP, false)->len || (std.get_macro(DIV_MACRO_ARP, false)->rel>std.get_macro(DIV_MACRO_ARP, false)->loop && std.get_macro(DIV_MACRO_ARP, false)->rel<std.get_macro(DIV_MACRO_ARP, false)->len)) && std.get_macro(DIV_MACRO_ARP, false)->len<255) {
-        std.get_macro(DIV_MACRO_ARP, false)->val[std.get_macro(DIV_MACRO_ARP, false)->len++]=0;
+      if ((std.get_macro(DIV_MACRO_ARP, true)->loop>=std.get_macro(DIV_MACRO_ARP, true)->len || (std.get_macro(DIV_MACRO_ARP, true)->rel>std.get_macro(DIV_MACRO_ARP, true)->loop && std.get_macro(DIV_MACRO_ARP, true)->rel<std.get_macro(DIV_MACRO_ARP, true)->len)) && std.get_macro(DIV_MACRO_ARP, true)->len<255) {
+        std.get_macro(DIV_MACRO_ARP, true)->val[std.get_macro(DIV_MACRO_ARP, true)->len++]=0;
       }
     }
   }
@@ -3424,13 +3424,13 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   // <167 TL macro compat
   if (version<167) {
     for (int i=0; i<4; i++) {
-      if (std.ops[i].tlMacro.open&6) {
+      if (std.ops[i].op_get_macro(DIV_MACRO_OP_TL, true)->open&6) {
           for (int j=0; j<2; j++) {
-          std.ops[i].tlMacro.val[j]^=0x7f;
+          std.ops[i].op_get_macro(DIV_MACRO_OP_TL, true)->val[j]^=0x7f;
         }
       } else {
-        for (int j=0; j<std.ops[i].tlMacro.len; j++) {
-          std.ops[i].tlMacro.val[j]^=0x7f;
+        for (int j=0; j<std.ops[i].op_get_macro(DIV_MACRO_OP_TL, true)->len; j++) {
+          std.ops[i].op_get_macro(DIV_MACRO_OP_TL, true)->val[j]^=0x7f;
         }
       }
     }
@@ -3438,13 +3438,13 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
 
   // <187 C64 cutoff macro compatibility
   if (type==DIV_INS_C64 && volIsCutoff && version<187) {
-    memcpy(&std.algMacro,&std.volMacro,sizeof(DivInstrumentMacro));
-    std.get_macro(DIV_MACRO_ALG, false)->macroType=DIV_MACRO_ALG;
-    std.volMacro=DivInstrumentMacro(DIV_MACRO_VOL,true);
+    memcpy(std.get_macro(DIV_MACRO_ALG, true),std.get_macro(DIV_MACRO_VOL, true),sizeof(DivInstrumentMacro));
+    std.get_macro(DIV_MACRO_ALG, true)->macroType=DIV_MACRO_ALG;
+    *std.get_macro(DIV_MACRO_VOL, true)=DivInstrumentMacro(DIV_MACRO_VOL,true);
 
     if (!c64.filterIsAbs) {
-      for (int i=0; i<std.get_macro(DIV_MACRO_ALG, false)->len; i++) {
-        std.get_macro(DIV_MACRO_ALG, false)->val[i]=-std.get_macro(DIV_MACRO_ALG, false)->val[i];
+      for (int i=0; i<std.get_macro(DIV_MACRO_ALG, true)->len; i++) {
+        std.get_macro(DIV_MACRO_ALG, true)->val[i]=-std.get_macro(DIV_MACRO_ALG, true)->val[i];
       }
     }
   }
