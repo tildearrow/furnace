@@ -114,28 +114,28 @@ void DivPlatformPokeMini::acquire(short** buf, size_t len) {
 void DivPlatformPokeMini::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol,chan[i].std.vol.val,2);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val,2);
       rWrite(0x71,(chan[i].outVol==2)?3:chan[i].outVol);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
-      chan[i].duty=chan[i].std.duty.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      chan[i].duty=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }

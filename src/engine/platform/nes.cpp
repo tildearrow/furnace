@@ -206,9 +206,9 @@ unsigned char DivPlatformNES::calcDPCMRate(int inRate) {
 void DivPlatformNES::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
       // ok, why are the volumes like that?
-      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (i==2) { // triangle
         rWrite(0x4000+i*4,(chan[i].outVol==0)?0:linearCount);
@@ -219,20 +219,20 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (i==3) { // noise
-        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val);
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
         if (!chan[i].inPorta) {
-          chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+          chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
         }
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
-      chan[i].duty=chan[i].std.duty.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      chan[i].duty=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
       if (i==3) {
         if (parent->song.properNoiseLayout) {
           chan[i].duty&=1;
@@ -247,12 +247,12 @@ void DivPlatformNES::tick(bool sysTick) {
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
@@ -262,8 +262,8 @@ void DivPlatformNES::tick(bool sysTick) {
         //rWrite(16+i*5,chan[i].sweep);
       }
     }
-    if (i<3) if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1) {
+    if (i<3) if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) {
         chan[i].freqChanged=true;
         chan[i].prevFreq=-1;
       }

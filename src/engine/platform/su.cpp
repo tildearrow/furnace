@@ -67,63 +67,63 @@ void DivPlatformSoundUnit::writeControlUpper(int ch) {
 void DivPlatformSoundUnit::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
       if (ins->type==DIV_INS_AMIGA) {
-        chan[i].outVol=((chan[i].vol&127)*MIN(64,chan[i].std.vol.val))>>6;
+        chan[i].outVol=((chan[i].vol&127)*MIN(64,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))>>6;
       } else {
-        chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
+        chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))>>7;
       }
       chWrite(i,0x02,chan[i].outVol);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_SU(i,parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_SU(i,parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
-      chan[i].duty=chan[i].std.duty.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      chan[i].duty=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
       chWrite(i,0x08,chan[i].duty);
     }
-    if (chan[i].std.wave.had) {
-      chan[i].wave=chan[i].std.wave.val&7;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
+      chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val&7;
       writeControl(i);
     }
-    if (chan[i].std.phaseReset.had) {
-      chan[i].phaseReset=chan[i].std.phaseReset.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      chan[i].phaseReset=chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val;
       writeControlUpper(i);
     }
-    if (chan[i].std.panL.had) {
-      chan[i].pan=chan[i].std.panL.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+      chan[i].pan=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val;
       chWrite(i,0x03,chan[i].pan);
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.ex1.had) {
-      chan[i].cutoff=((chan[i].std.ex1.val&16383)*chan[i].baseCutoff)/16380;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had) {
+      chan[i].cutoff=((chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&16383)*chan[i].baseCutoff)/16380;
       chWrite(i,0x06,chan[i].cutoff&0xff);
       chWrite(i,0x07,chan[i].cutoff>>8);
     }
-    if (chan[i].std.ex2.had) {
-      chan[i].res=chan[i].std.ex2.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had) {
+      chan[i].res=chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val;
       chWrite(i,0x09,chan[i].res);
     }
-    if (chan[i].std.ex3.had) {
-      chan[i].control=chan[i].std.ex3.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->had) {
+      chan[i].control=chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->val&15;
       writeControl(i);
     }
-    if (chan[i].std.ex4.had) {
-      chan[i].syncTimer=chan[i].std.ex4.val&65535;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->had) {
+      chan[i].syncTimer=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val&65535;
       chan[i].timerSync=(chan[i].syncTimer>0);
       if (chan[i].switchRoles) {
         chWrite(i,0x00,chan[i].syncTimer&0xff);

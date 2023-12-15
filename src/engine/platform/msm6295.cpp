@@ -90,17 +90,17 @@ void DivPlatformMSM6295::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     if (!parent->song.disableSampleMacro) {
       chan[i].std.next();
-      if (chan[i].std.vol.had) {
-        chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].std.vol.val,chan[i].vol,8);
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+        chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val,chan[i].vol,8);
       }
-      if (chan[i].std.duty.had) {
-        if (rateSel!=(chan[i].std.duty.val&1)) {
-          rateSel=chan[i].std.duty.val&1;
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+        if (rateSel!=(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&1)) {
+          rateSel=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&1;
           rWrite(12,!rateSel);
         }
       }
-      if (chan[i].std.phaseReset.had) {
-        if (chan[i].std.phaseReset.val && chan[i].active) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+        if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val && chan[i].active) {
           chan[i].keyOn=true;
         }
       }

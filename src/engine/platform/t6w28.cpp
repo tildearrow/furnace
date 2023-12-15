@@ -105,43 +105,43 @@ int DivPlatformT6W28::snCalcFreq(int ch) {
 void DivPlatformT6W28::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),15);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val);
         chan[i].baseFreq=NOTE_SN(i,noiseSeek);
       }
       chan[i].freqChanged=true;
     }
-    if (i==3 && chan[i].std.duty.had) {
-      if (chan[i].duty!=chan[i].std.duty.val) {
-        chan[i].duty=((chan[i].std.duty.val==1)?4:0)|3;
+    if (i==3 && chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      if (chan[i].duty!=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val) {
+        chan[i].duty=((chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val==1)?4:0)|3;
         rWrite(1,0xe0+chan[i].duty);
       }
     }
-    if (chan[i].std.panL.had) {
-      chan[i].panL=chan[i].std.panL.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+      chan[i].panL=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&15;
     }
-    if (chan[i].std.panR.had) {
-      chan[i].panR=chan[i].std.panR.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
+      chan[i].panR=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val&15;
     }
-    if (chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
       writeOutVol(i);
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.phaseReset.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
       rWrite(1,0xe0+chan[i].duty);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {

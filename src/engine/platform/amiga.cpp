@@ -381,14 +381,14 @@ void DivPlatformAmiga::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       // TODO: why the off mult? this may be a bug!
-      chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(parent->calcArp(chan[i].note,chan[i].std.arp.val)));
+      chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val)));
       chan[i].freqChanged=true;
     }
-    if (chan[i].useWave && chan[i].std.wave.had) {
-      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave.val;
+    if (chan[i].useWave && chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
+      if (chan[i].wave!=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val || chan[i].ws.activeChanged()) {
+        chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val;
         chan[i].ws.changeWave1(chan[i].wave);
         chan[i].updateWave=true;
       }
@@ -398,17 +398,17 @@ void DivPlatformAmiga::tick(bool sysTick) {
         chan[i].updateWave=true;
       }
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1 && chan[i].active) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1 && chan[i].active) {
         chan[i].keyOn=true;
       }
     }

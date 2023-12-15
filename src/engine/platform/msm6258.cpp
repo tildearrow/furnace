@@ -99,28 +99,28 @@ void DivPlatformMSM6258::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
     if (!parent->song.disableSampleMacro) {
       chan[i].std.next();
-      if (chan[i].std.duty.had) {
-        if (rateSel!=(chan[i].std.duty.val&3)) {
-          rateSel=chan[i].std.duty.val&3;
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+        if (rateSel!=(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&3)) {
+          rateSel=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&3;
           rWrite(12,rateSel);
           updateSampleFreq=true;
         }
       }
-      if (chan[i].std.panL.had) {
-        if (chan[i].pan!=(chan[i].std.panL.val&3)) {
-          chan[i].pan=chan[i].std.panL.val&3;
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+        if (chan[i].pan!=(chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&3)) {
+          chan[i].pan=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&3;
           rWrite(2,chan[i].pan);
         }
       }
-      if (chan[i].std.ex1.had) {
-        if (clockSel!=(chan[i].std.ex1.val&1)) {
-          clockSel=chan[i].std.ex1.val&1;
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had) {
+        if (clockSel!=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&1)) {
+          clockSel=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&1;
           rWrite(8,clockSel);
           updateSampleFreq=true;
         }
       }
-      if (chan[i].std.phaseReset.had) {
-        if (chan[i].std.phaseReset.val && chan[i].active) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+        if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val && chan[i].active) {
           chan[i].keyOn=true;
         }
       }

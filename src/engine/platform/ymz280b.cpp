@@ -88,37 +88,37 @@ void DivPlatformYMZ280B::acquire(short** buf, size_t len) {
 void DivPlatformYMZ280B::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&0xff)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=((chan[i].vol&0xff)*MIN(chan[i].macroVolMul,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/chan[i].macroVolMul;
       writeOutVol(i);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.panL.had) { // panning
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) { // panning
       if (chan[i].isNewYMZ) {
-        chan[i].panning=8+chan[i].std.panL.val;
+        chan[i].panning=8+chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val;
       } else {
-        chan[i].panning=MIN((chan[i].std.panL.val*15/16+15)/2+1,15);
+        chan[i].panning=MIN((chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val*15/16+15)/2+1,15);
       }
       rWrite(0x03+i*4,chan[i].panning);
     }
-    if (chan[i].std.phaseReset.had) {
-      if ((chan[i].std.phaseReset.val==1) && chan[i].active) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if ((chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) && chan[i].active) {
         chan[i].audPos=0;
         chan[i].setPos=true;
       }
@@ -187,7 +187,7 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
         rWrite(0x61+i*4,loopStart&0xff);
         rWrite(0x62+i*4,loopEnd&0xff);
         rWrite(0x63+i*4,end&0xff);
-        if (!chan[i].std.vol.had) {
+        if (!chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
           chan[i].outVol=chan[i].vol;
           writeOutVol(i);
         }

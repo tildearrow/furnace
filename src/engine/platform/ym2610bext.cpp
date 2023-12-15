@@ -444,8 +444,8 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
   if (extMode && !noExtMacros) for (int i=0; i<4; i++) {
     opChan[i].std.next();
 
-    if (opChan[i].std.vol.had) {
-      opChan[i].outVol=VOL_SCALE_LOG_BROKEN(opChan[i].vol,MIN(127,opChan[i].std.vol.val),127);
+    if (opchan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      opChan[i].outVol=VOL_SCALE_LOG_BROKEN(opChan[i].vol,MIN(127,opchan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),127);
       unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[orderedOps[i]];
       DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[orderedOps[i]];
       if (isOpMuted[i]) {

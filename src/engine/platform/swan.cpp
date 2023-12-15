@@ -129,8 +129,8 @@ void DivPlatformSwan::tick(bool sysTick) {
   unsigned char sndCtrl=(pcm?0x20:0)|(sweep?0x40:0)|((noise>0)?0x80:0);
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      int env=chan[i].std.vol.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      int env=chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val;
       if(parent->getIns(chan[i].ins,DIV_INS_SWAN)->type==DIV_INS_AMIGA) {
         env=MIN(env/4,15);
       }
@@ -138,35 +138,35 @@ void DivPlatformSwan::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.wave.had && !(i==1 && pcm)) {
-      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had && !(i==1 && pcm)) {
+      if (chan[i].wave!=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val || chan[i].ws.activeChanged()) {
+        chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val;
         chan[i].ws.changeWave1(chan[i].wave);
       }
     }
-    if (chan[i].std.panL.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
       chan[i].pan&=0x0f;
-      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+      chan[i].pan|=(chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&15)<<4;
     }
-    if (chan[i].std.panR.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
       chan[i].pan&=0xf0;
-      chan[i].pan|=chan[i].std.panR.val&15;
+      chan[i].pan|=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val&15;
     }
-    if (chan[i].std.panL.had || chan[i].std.panR.had) {
-      calcAndWriteOutVol(i,chan[i].std.vol.will?chan[i].std.vol.val:15);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
+      calcAndWriteOutVol(i,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->will?chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val:15);
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
@@ -197,7 +197,7 @@ void DivPlatformSwan::tick(bool sysTick) {
       rWrite(i*2,rVal&0xff);
       rWrite(i*2+1,rVal>>8);
       if (chan[i].keyOn) {
-        if (!chan[i].std.vol.will) {
+        if (!chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
           calcAndWriteOutVol(i,15);
         }
         chan[i].keyOn=false;
@@ -230,7 +230,7 @@ void DivPlatformSwan::tick(bool sysTick) {
   unsigned char origSndCtrl=sndCtrl;
   bool phaseResetHappens=false;
   for (int i=0; i<4; i++) {
-    if (chan[i].std.phaseReset.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
       phaseResetHappens=true;
       sndCtrl&=~(1<<i);
     }

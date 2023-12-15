@@ -307,8 +307,8 @@ void DivPlatformYM2203::tick(bool sysTick) {
     if (i==2 && extMode) continue;
     chan[i].std.next();
 
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(127,chan[i].std.vol.val),127);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(127,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),127);
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -326,31 +326,31 @@ void DivPlatformYM2203::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
+        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val),11);
       }
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-1048576,1048575);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1 && chan[i].active) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1 && chan[i].active) {
         chan[i].keyOn=true;
       }
     }
 
-    if (chan[i].std.alg.had) {
-      chan[i].state.alg=chan[i].std.alg.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->had) {
+      chan[i].state.alg=chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
       if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -366,12 +366,12 @@ void DivPlatformYM2203::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.fb.had) {
-      chan[i].state.fb=chan[i].std.fb.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->had) {
+      chan[i].state.fb=chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     }
-    if (chan[i].std.ex4.had && chan[i].active) {
-      chan[i].opMask=chan[i].std.ex4.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->had && chan[i].active) {
+      chan[i].opMask=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val&15;
       chan[i].opMaskChanged=true;
     }
     for (int j=0; j<4; j++) {

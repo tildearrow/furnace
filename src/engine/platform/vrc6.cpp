@@ -135,16 +135,16 @@ void DivPlatformVRC6::tick(bool sysTick) {
     // 16 for pulse; 14 for saw
     int CHIP_DIVIDER=(i==2)?14:16;
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
       if (i==2) { // sawtooth
-        chan[i].outVol=((chan[i].vol&63)*MIN(63,chan[i].std.vol.val))/63;
+        chan[i].outVol=((chan[i].vol&63)*MIN(63,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/63;
         if (chan[i].outVol<0) chan[i].outVol=0;
         if (chan[i].outVol>63) chan[i].outVol=63;
         if (!isMuted[i]) {
           chWrite(i,0,chan[i].outVol);
         }
       } else { // pulse
-        chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))/15;
+        chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/15;
         if (chan[i].outVol<0) chan[i].outVol=0;
         if (chan[i].outVol>15) chan[i].outVol=15;
         if ((!isMuted[i]) && (!chan[i].pcm)) {
@@ -154,29 +154,29 @@ void DivPlatformVRC6::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
-      chan[i].duty=chan[i].std.duty.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      chan[i].duty=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
       if ((!isMuted[i]) && (i!=2) && (!chan[i].pcm)) { // pulse
         chWrite(i,0,(chan[i].outVol&0xf)|((chan[i].duty&7)<<4));
       }
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val && chan[i].active) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val && chan[i].active) {
         if ((i!=2) && (!chan[i].pcm)) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
           if (chan[i].dacSample<0 || chan[i].dacSample>=parent->song.sampleLen) {

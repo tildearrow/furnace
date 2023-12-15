@@ -494,8 +494,8 @@ void DivPlatformYM2608::tick(bool sysTick) {
     if (i==2 && extMode) continue;
     chan[i].std.next();
 
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(127,chan[i].std.vol.val),127);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(127,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),127);
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -513,36 +513,36 @@ void DivPlatformYM2608::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
+        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val),11);
       }
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.panL.had) {
-      chan[i].pan=chan[i].std.panL.val&3;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+      chan[i].pan=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&3;
       rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
 
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-1048576,1048575);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1 && chan[i].active) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1 && chan[i].active) {
         chan[i].keyOn=true;
       }
     }
 
-    if (chan[i].std.alg.had) {
-      chan[i].state.alg=chan[i].std.alg.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->had) {
+      chan[i].state.alg=chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
       if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -558,24 +558,24 @@ void DivPlatformYM2608::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.fb.had) {
-      chan[i].state.fb=chan[i].std.fb.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->had) {
+      chan[i].state.fb=chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     }
-    if (chan[i].std.fms.had) {
-      chan[i].state.fms=chan[i].std.fms.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_FMS)->had) {
+      chan[i].state.fms=chan[i].std.get_div_macro_struct(DIV_MACRO_FMS)->val;
       rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
-    if (chan[i].std.ams.had) {
-      chan[i].state.ams=chan[i].std.ams.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_AMS)->had) {
+      chan[i].state.ams=chan[i].std.get_div_macro_struct(DIV_MACRO_AMS)->val;
       rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
-    if (chan[i].std.ex3.had) {
-      lfoValue=(chan[i].std.ex3.val>7)?0:(8|(chan[i].std.ex3.val&7));
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->had) {
+      lfoValue=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->val>7)?0:(8|(chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->val&7));
       rWrite(0x22,lfoValue);
     }
-    if (chan[i].std.ex4.had && chan[i].active) {
-      chan[i].opMask=chan[i].std.ex4.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->had && chan[i].active) {
+      chan[i].opMask=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val&15;
       chan[i].opMaskChanged=true;
     }
     for (int j=0; j<4; j++) {
@@ -699,25 +699,25 @@ void DivPlatformYM2608::tick(bool sysTick) {
   for (int i=9; i<15; i++) {
     if (chan[i].furnacePCM) {
       chan[i].std.next();
-      if (chan[i].std.vol.had) {
-        chan[i].outVol=(chan[i].vol*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+        chan[i].outVol=(chan[i].vol*MIN(chan[i].macroVolMul,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/chan[i].macroVolMul;
       }
-      if (chan[i].std.duty.had) {
-        if (globalRSSVolume!=(chan[i].std.duty.val&0x3f)) {
-          globalRSSVolume=chan[i].std.duty.val&0x3f;
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+        if (globalRSSVolume!=(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&0x3f)) {
+          globalRSSVolume=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&0x3f;
           immWrite(0x11,globalRSSVolume);
           hardResetElapsed++;
         }
       }
-      if (chan[i].std.panL.had) {
-        chan[i].pan=chan[i].std.panL.val&3;
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+        chan[i].pan=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&3;
       }
-      if (chan[i].std.phaseReset.had) {
-        if ((chan[i].std.phaseReset.val==1) && chan[i].active) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+        if ((chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) && chan[i].active) {
           chan[i].keyOn=true;
         }
       }
-      if (!isMuted[i] && (chan[i].std.vol.had || chan[i].std.panL.had)) {
+      if (!isMuted[i] && (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had)) {
         immWrite(0x18+(i-9),isMuted[i]?0:((chan[i].pan<<6)|chan[i].outVol));
         hardResetElapsed++;
       }

@@ -95,8 +95,8 @@ unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pi
 void DivPlatformTIA::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
         rWrite(0x19+i,0);
@@ -105,17 +105,17 @@ void DivPlatformTIA::tick(bool sysTick) {
       }
     }
     chan[i].handleArp();
-    if (chan[i].std.wave.had) {
-      chan[i].shape=chan[i].std.wave.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
+      chan[i].shape=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val&15;
       rWrite(0x15+i,chan[i].shape);
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }

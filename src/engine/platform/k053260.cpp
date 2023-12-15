@@ -90,35 +90,35 @@ void DivPlatformK053260::tick(bool sysTick) {
   unsigned char panMask=0;
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&0x7f)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=((chan[i].vol&0x7f)*MIN(chan[i].macroVolMul,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/chan[i].macroVolMul;
       chWrite(i,7,chan[i].outVol);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.panL.had) { // panning
-      chan[i].panning=4+chan[i].std.panL.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) { // panning
+      chan[i].panning=4+chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val;
       if (!isMuted[i]) {
         panMask|=1<<i;
       }
     }
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1 && chan[i].active) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1 && chan[i].active) {
         chan[i].audPos=0;
         chan[i].setPos=true;
       }
@@ -185,7 +185,7 @@ void DivPlatformK053260::tick(bool sysTick) {
         chWrite(i,4,start&0xff);
         chWrite(i,5,start>>8);
         chWrite(i,6,start>>16);
-        if (!chan[i].std.vol.had) {
+        if (!chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
           chan[i].outVol=chan[i].vol;
           chWrite(i,7,chan[i].outVol);
         }

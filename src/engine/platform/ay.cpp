@@ -240,8 +240,8 @@ void DivPlatformAY8910::tick(bool sysTick) {
   // PSG
   for (int i=0; i<3; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=MIN(15,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val)-(15-(chan[i].vol&15));
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (!(chan[i].nextPSGMode.val&8)) {
         if (isMuted[i]) {
@@ -255,18 +255,18 @@ void DivPlatformAY8910::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
-      rWrite(0x06,31-chan[i].std.duty.val);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      rWrite(0x06,31-chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val);
     }
-    if (chan[i].std.wave.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
       if (!(chan[i].nextPSGMode.val&8)) {
-        chan[i].nextPSGMode.val=(chan[i].std.wave.val+1)&7;
+        chan[i].nextPSGMode.val=(chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val+1)&7;
         if (chan[i].active) {
           chan[i].curPSGMode.val=chan[i].nextPSGMode.val;
         }
@@ -279,17 +279,17 @@ void DivPlatformAY8910::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) {
         if (chan[i].nextPSGMode.val&8) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
           if (chan[i].dac.sample<0 || chan[i].dac.sample>=parent->song.sampleLen) {
@@ -306,19 +306,19 @@ void DivPlatformAY8910::tick(bool sysTick) {
         oldWrites[0x0d]=-1;
       }
     }
-    if (chan[i].std.ex2.had) {
-      ayEnvMode=chan[i].std.ex2.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had) {
+      ayEnvMode=chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val;
       rWrite(0x0d,ayEnvMode);
     }
-    if (chan[i].std.ex3.had) {
-      chan[i].autoEnvNum=chan[i].std.ex3.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->had) {
+      chan[i].autoEnvNum=chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->val;
       chan[i].freqChanged=true;
-      if (!chan[i].std.alg.will) chan[i].autoEnvDen=1;
+      if (!chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->will) chan[i].autoEnvDen=1;
     }
-    if (chan[i].std.alg.had) {
-      chan[i].autoEnvDen=chan[i].std.alg.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->had) {
+      chan[i].autoEnvDen=chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val;
       chan[i].freqChanged=true;
-      if (!chan[i].std.ex3.will) chan[i].autoEnvNum=1;
+      if (!chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->will) chan[i].autoEnvNum=1;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);

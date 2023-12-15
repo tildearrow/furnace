@@ -149,8 +149,8 @@ void DivPlatformArcade::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
 
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(127,chan[i].std.vol.val),127);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(127,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),127);
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -166,28 +166,28 @@ void DivPlatformArcade::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.duty.had) {
-      if (chan[i].std.duty.val>0) {
-        rWrite(0x0f,0x80|(chan[i].std.duty.val-1));
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val>0) {
+        rWrite(0x0f,0x80|(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val-1));
       } else {
         rWrite(0x0f,0);
       }
     }
 
-    if (chan[i].std.wave.had) {
-      rWrite(0x1b,chan[i].std.wave.val&3);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
+      rWrite(0x1b,chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val&3);
     }
 
-    if (chan[i].std.panL.had) {
-      chan[i].chVolL=(chan[i].std.panL.val&2)>>1;
-      chan[i].chVolR=chan[i].std.panL.val&1;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+      chan[i].chVolL=(chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&2)>>1;
+      chan[i].chVolR=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&1;
       if (isMuted[i]) {
         rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
       } else {
@@ -195,42 +195,42 @@ void DivPlatformArcade::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val*(brokenPitch?2:1);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val*(brokenPitch?2:1);
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val*(brokenPitch?2:1);
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val*(brokenPitch?2:1);
       }
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1 && chan[i].active) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1 && chan[i].active) {
         chan[i].keyOn=true;
       }
     }
 
-    if (chan[i].std.ex1.had) {
-      amDepth=chan[i].std.ex1.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had) {
+      amDepth=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val;
       immWrite(0x19,amDepth);
     }
 
-    if (chan[i].std.ex2.had) {
-      pmDepth=chan[i].std.ex2.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had) {
+      pmDepth=chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val;
       immWrite(0x19,0x80|pmDepth);
     }
 
-    if (chan[i].std.ex3.had) {
-      immWrite(0x18,chan[i].std.ex3.val);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->had) {
+      immWrite(0x18,chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->val);
     }
 
-    if (chan[i].std.ex1.had || chan[i].std.ex2.had || chan[i].std.ex3.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->had) {
       immWrite(0x01,0x00); // LFO On
     }
 
-    if (chan[i].std.alg.had) {
-      chan[i].state.alg=chan[i].std.alg.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->had) {
+      chan[i].state.alg=chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val;
       if (isMuted[i]) {
         rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
       } else {
@@ -250,24 +250,24 @@ void DivPlatformArcade::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.fb.had) {
-      chan[i].state.fb=chan[i].std.fb.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->had) {
+      chan[i].state.fb=chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->val;
       if (isMuted[i]) {
         rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
       } else {
         rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
       }
     }
-    if (chan[i].std.fms.had) {
-      chan[i].state.fms=chan[i].std.fms.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_FMS)->had) {
+      chan[i].state.fms=chan[i].std.get_div_macro_struct(DIV_MACRO_FMS)->val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
     }
-    if (chan[i].std.ams.had) {
-      chan[i].state.ams=chan[i].std.ams.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_AMS)->had) {
+      chan[i].state.ams=chan[i].std.get_div_macro_struct(DIV_MACRO_AMS)->val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
     }
-    if (chan[i].std.ex4.had && chan[i].active) {
-      chan[i].opMask=chan[i].std.ex4.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->had && chan[i].active) {
+      chan[i].opMask=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val&15;
       chan[i].opMaskChanged=true;
     }
     for (int j=0; j<4; j++) {

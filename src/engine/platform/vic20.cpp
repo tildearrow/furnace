@@ -86,21 +86,21 @@ void DivPlatformVIC20::writeOutVol(int ch) {
 void DivPlatformVIC20::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      int env=chan[i].std.vol.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      int env=chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val;
       calcAndWriteOutVol(i,env);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
-      if (chan[i].onOff!=(bool)chan[i].std.duty.val) {
-        chan[i].onOff=(bool)chan[i].std.duty.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      if (chan[i].onOff!=(bool)chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val) {
+        chan[i].onOff=(bool)chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
         if (chan[i].active) {
           if (chan[i].onOff) {
             chan[i].keyOn=true;
@@ -112,18 +112,18 @@ void DivPlatformVIC20::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.wave.had) {
-      if (chan[i].wave!=chan[i].std.wave.val) {
-        chan[i].wave=chan[i].std.wave.val&0x0f;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
+      if (chan[i].wave!=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val) {
+        chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val&0x0f;
         chan[i].keyOn=true;
       }
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }

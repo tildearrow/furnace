@@ -153,57 +153,57 @@ void DivPlatformPCE::tick(bool sysTick) {
     }
 
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol&31,MIN(31,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),31);
       if (chan[i].furnaceDac && chan[i].pcm) {
         // ignore for now
       } else {
         chWrite(i,0x04,0x80|chan[i].outVol);
       }
     }
-    if (chan[i].std.duty.had && i>=4) {
-      chan[i].noise=chan[i].std.duty.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had && i>=4) {
+      chan[i].noise=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
       chan[i].freqChanged=true;
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val);
         chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
         if (noiseSeek<0) noiseSeek=0;
         chan[i].noiseSeek=noiseSeek;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.wave.had && !chan[i].pcm) {
-      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had && !chan[i].pcm) {
+      if (chan[i].wave!=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val || chan[i].ws.activeChanged()) {
+        chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val;
         chan[i].ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
-    if (chan[i].std.panL.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
       chan[i].pan&=0x0f;
-      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+      chan[i].pan|=(chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&15)<<4;
     }
-    if (chan[i].std.panR.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
       chan[i].pan&=0xf0;
-      chan[i].pan|=chan[i].std.panR.val&15;
+      chan[i].pan|=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val&15;
     }
-    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
       chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had && chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) {
       if (chan[i].furnaceDac && chan[i].pcm) {
         if (chan[i].active && chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
           chan[i].dacPos=0;
@@ -217,7 +217,7 @@ void DivPlatformPCE::tick(bool sysTick) {
       chan[i].antiClickPeriodCount=0;
     }
     if (chan[i].active) {
-      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) || chan[i].deferredWaveUpdate) {
+      if (chan[i].ws.tick() || (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had && chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) || chan[i].deferredWaveUpdate) {
         updateWave(i);
       }
     }

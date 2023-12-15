@@ -59,8 +59,8 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
     chan[i].std.next();
 
     if (parent->song.newSegaPCM) {
-      if (chan[i].std.vol.had) {
-        chan[i].outVol=(chan[i].vol*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+        chan[i].outVol=(chan[i].vol*MIN(chan[i].macroVolMul,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/chan[i].macroVolMul;
         chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/127;
         chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/127;
         rWrite(2+(i<<3),chan[i].chVolL);
@@ -70,37 +70,37 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=(parent->calcArp(chan[i].note,chan[i].std.arp.val)<<7);
+        chan[i].baseFreq=(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val)<<7);
       }
       chan[i].freqChanged=true;
     }
 
-    if (parent->song.newSegaPCM) if (chan[i].std.panL.had) {
-      chan[i].chPanL=chan[i].std.panL.val&127;
+    if (parent->song.newSegaPCM) if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+      chan[i].chPanL=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&127;
       chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/127;
       rWrite(2+(i<<3),chan[i].chVolL);
     }
 
-    if (parent->song.newSegaPCM) if (chan[i].std.panR.had) {
-      chan[i].chPanR=chan[i].std.panR.val&127;
+    if (parent->song.newSegaPCM) if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
+      chan[i].chPanR=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val&127;
       chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/127;
       rWrite(3+(i<<3),chan[i].chVolR);
     }
     
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1 && chan[i].active) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1 && chan[i].active) {
         chan[i].keyOn=true;
       }
     }

@@ -104,71 +104,71 @@ void DivPlatformSNES::tick(bool sysTick) {
   unsigned char koff=0;
   for (int i=0; i<8; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&127,MIN(127,chan[i].std.vol.val),127);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&127,MIN(127,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),127);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
-      noiseFreq=chan[i].std.duty.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      noiseFreq=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
       writeControl=true;
     }
-    if (chan[i].useWave && chan[i].std.wave.had) {
-      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave.val;
+    if (chan[i].useWave && chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
+      if (chan[i].wave!=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val || chan[i].ws.activeChanged()) {
+        chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val;
         chan[i].ws.changeWave1(chan[i].wave);
       }
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.panL.had) {
-      chan[i].panL=chan[i].std.panL.val&0x7f;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+      chan[i].panL=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&0x7f;
     }
-    if (chan[i].std.panR.had) {
-      chan[i].panR=chan[i].std.panR.val&0x7f;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
+      chan[i].panR=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val&0x7f;
     }
     bool hasInverted=false;
-    if (chan[i].std.ex1.had) {
-      if (chan[i].invertL!=(bool)(chan[i].std.ex1.val&16)) {
-        chan[i].invertL=chan[i].std.ex1.val&16;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had) {
+      if (chan[i].invertL!=(bool)(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&16)) {
+        chan[i].invertL=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&16;
         hasInverted=true;
       }
-      if (chan[i].invertR!=(bool)(chan[i].std.ex1.val&8)) {
-        chan[i].invertR=chan[i].std.ex1.val&8;
+      if (chan[i].invertR!=(bool)(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&8)) {
+        chan[i].invertR=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&8;
         hasInverted=true;
       }
-      if (chan[i].pitchMod!=(bool)(chan[i].std.ex1.val&4)) {
-        chan[i].pitchMod=chan[i].std.ex1.val&4;
+      if (chan[i].pitchMod!=(bool)(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&4)) {
+        chan[i].pitchMod=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&4;
         writePitchMod=true;
       }
-      if (chan[i].echo!=(bool)(chan[i].std.ex1.val&2)) {
-        chan[i].echo=chan[i].std.ex1.val&2;
+      if (chan[i].echo!=(bool)(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&2)) {
+        chan[i].echo=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&2;
         writeEcho=true;
       }
-      if (chan[i].noise!=(bool)(chan[i].std.ex1.val&1)) {
-        chan[i].noise=chan[i].std.ex1.val&1;
+      if (chan[i].noise!=(bool)(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&1)) {
+        chan[i].noise=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&1;
         writeNoise=true;
       }
     }
-    if (chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had || hasInverted) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had || hasInverted) {
       chan[i].shallWriteVol=true;
     }
-    if (chan[i].std.ex2.had) {
-      if (chan[i].std.ex2.val&0x80) {
-        switch (chan[i].std.ex2.val&0x60) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val&0x80) {
+        switch (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val&0x60) {
           case 0x00:
             chan[i].state.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LINEAR;
             break;
@@ -182,10 +182,10 @@ void DivPlatformSNES::tick(bool sysTick) {
             chan[i].state.gainMode=DivInstrumentSNES::GAIN_MODE_INC_INVLOG;
             break;
         }
-        chan[i].state.gain=chan[i].std.ex2.val&31;
+        chan[i].state.gain=chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val&31;
       } else {
         chan[i].state.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT;
-        chan[i].state.gain=chan[i].std.ex2.val&127;
+        chan[i].state.gain=chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val&127;
       }
       chan[i].shallWriteEnv=true;
     }

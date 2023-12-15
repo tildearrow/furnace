@@ -97,31 +97,31 @@ const int decayMap[16]={
 void DivPlatformMSM5232::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&127,MIN(127,chan[i].std.vol.val),127);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&127,MIN(127,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),127);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
-      groupControl[i>>2]=(chan[i].std.duty.val&0x1f)|(groupEnv[i>>2]?0x20:0);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      groupControl[i>>2]=(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&0x1f)|(groupEnv[i>>2]?0x20:0);
       updateGroup[i>>2]=true;
     }
-    if (chan[i].std.ex1.had) { // attack
-      groupAR[i>>2]=attackMap[chan[i].std.ex1.val&7];
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had) { // attack
+      groupAR[i>>2]=attackMap[chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&7];
       updateGroupAR[i>>2]=true;
     }
-    if (chan[i].std.ex2.had) { // decay
-      groupDR[i>>2]=decayMap[chan[i].std.ex2.val&15];
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had) { // decay
+      groupDR[i>>2]=decayMap[chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val&15];
       updateGroupDR[i>>2]=true;
     }
-    if (chan[i].std.ex3.had) { // noise
-      chan[i].noise=chan[i].std.ex3.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->had) { // noise
+      chan[i].noise=chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->val;
       chan[i].freqChanged=true;
     }
   }
