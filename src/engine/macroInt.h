@@ -74,12 +74,21 @@ class DivMacroInt {
     std::vector<DivMacroStruct> macros;
   
     // FM operator macro
-    struct IntOp {
+    struct IntOp
+    {
       std::vector<DivMacroStruct> macros;
 
       IntOp()
       {
         macros.clear();
+      }
+
+      DivMacroStruct* op_get_div_macro_struct(uint8_t macro_id)
+      {
+        for(int i = 0; i < macros.size(); i++)
+        {
+          if(macros[i].macroType == macro_id) return &macros[i];
+        }
       }
     };
 

@@ -237,32 +237,32 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
       DivMacroInt::IntOp& m=chan[i].std.op[j];
-      if (m.am.had) {
-        op.am=m.am.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->had) {
+        op.am=m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->val;
         rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
       }
-      if (m.ar.had) {
-        op.ar=m.ar.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_AR)->had) {
+        op.ar=m.op_get_div_macro_struct(DIV_MACRO_OP_AR)->val;
         rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
       }
-      if (m.dr.had) {
-        op.dr=m.dr.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_DR)->had) {
+        op.dr=m.op_get_div_macro_struct(DIV_MACRO_OP_DR)->val;
         rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
       }
-      if (m.mult.had) {
-        op.mult=m.mult.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_MULT)->had) {
+        op.mult=m.op_get_div_macro_struct(DIV_MACRO_OP_MULT)->val;
         rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       }
-      if (m.rr.had) {
-        op.rr=m.rr.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_RR)->had) {
+        op.rr=m.op_get_div_macro_struct(DIV_MACRO_OP_RR)->val;
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
-      if (m.sl.had) {
-        op.sl=m.sl.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_SL)->had) {
+        op.sl=m.op_get_div_macro_struct(DIV_MACRO_OP_SL)->val;
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
-      if (m.tl.had) {
-        op.tl=m.tl.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_TL)->had) {
+        op.tl=m.op_get_div_macro_struct(DIV_MACRO_OP_TL)->val;
         if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
@@ -273,20 +273,20 @@ void DivPlatformTX81Z::tick(bool sysTick) {
           }
         }
       }
-      if (m.rs.had) {
-        op.rs=m.rs.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_RS)->had) {
+        op.rs=m.op_get_div_macro_struct(DIV_MACRO_OP_RS)->val;
         rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
       }
-      if (m.dt.had) {
-        op.dt=m.dt.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->had) {
+        op.dt=m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->val;
         rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       }
-      if (m.d2r.had) {
-        op.d2r=m.d2r.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_D2R)->had) {
+        op.d2r=m.op_get_div_macro_struct(DIV_MACRO_OP_D2R)->val;
         rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
       }
-      if (m.dt2.had) {
-        op.dt2=m.dt2.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_DT2)->had) {
+        op.dt2=m.op_get_div_macro_struct(DIV_MACRO_OP_DT2)->val;
         rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
       }
     }

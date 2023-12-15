@@ -170,32 +170,32 @@ void DivPlatformOPLL::tick(bool sysTick) {
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         DivMacroInt::IntOp& m=chan[i].std.op[j];
 
-        if (m.am.had) {
-          op.am=m.am.val;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->had) {
+          op.am=m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->val;
           rWrite(0x00+j,(op.am<<7)|(op.vib<<6)|((op.ssgEnv&8)<<2)|(op.ksr<<4)|(op.mult));
         }
-        if (m.ar.had) {
-          op.ar=m.ar.val;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_AR)->had) {
+          op.ar=m.op_get_div_macro_struct(DIV_MACRO_OP_AR)->val;
           rWrite(0x04+j,(op.ar<<4)|(op.dr));
         }
-        if (m.dr.had) {
-          op.dr=m.dr.val;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_DR)->had) {
+          op.dr=m.op_get_div_macro_struct(DIV_MACRO_OP_DR)->val;
           rWrite(0x04+j,(op.ar<<4)|(op.dr));
         }
-        if (m.mult.had) {
-          op.mult=m.mult.val;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_MULT)->had) {
+          op.mult=m.op_get_div_macro_struct(DIV_MACRO_OP_MULT)->val;
           rWrite(0x00+j,(op.am<<7)|(op.vib<<6)|((op.ssgEnv&8)<<2)|(op.ksr<<4)|(op.mult));
         }
-        if (m.rr.had) {
-          op.rr=m.rr.val;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_RR)->had) {
+          op.rr=m.op_get_div_macro_struct(DIV_MACRO_OP_RR)->val;
           rWrite(0x06+j,(op.sl<<4)|(op.rr));
         }
-        if (m.sl.had) {
-          op.sl=m.sl.val;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_SL)->had) {
+          op.sl=m.op_get_div_macro_struct(DIV_MACRO_OP_SL)->val;
           rWrite(0x06+j,(op.sl<<4)|(op.rr));
         }
-        if (m.tl.had) {
-          op.tl=m.tl.val&((j==1)?15:63);
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_TL)->had) {
+          op.tl=m.op_get_div_macro_struct(DIV_MACRO_OP_TL)->val&((j==1)?15:63);
           if (j==1) {
             if (i<9) {
               rWrite(0x30+i,((15-VOL_SCALE_LOG_BROKEN(chan[i].outVol,15-chan[i].state.op[1].tl,15))&15)|(chan[i].state.opllPreset<<4));
@@ -205,24 +205,24 @@ void DivPlatformOPLL::tick(bool sysTick) {
           }
         }
 
-        if (m.egt.had) {
-          op.ssgEnv=(m.egt.val&1)?8:0;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_EGT)->had) {
+          op.ssgEnv=(m.op_get_div_macro_struct(DIV_MACRO_OP_EGT)->val&1)?8:0;
           rWrite(0x00+j,(op.am<<7)|(op.vib<<6)|((op.ssgEnv&8)<<2)|(op.ksr<<4)|(op.mult));
         }
-        if (m.ksl.had) {
-          op.ksl=m.ksl.val;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_KSL)->had) {
+          op.ksl=m.op_get_div_macro_struct(DIV_MACRO_OP_KSL)->val;
           if (j==1) {
             rWrite(0x02,(chan[i].state.op[0].ksl<<6)|(chan[i].state.op[0].tl&63));
           } else {
             rWrite(0x03,(chan[i].state.op[1].ksl<<6)|((chan[i].state.fms&1)<<4)|((chan[i].state.ams&1)<<3)|chan[i].state.fb);
           }
         }
-        if (m.ksr.had) {
-          op.ksr=m.ksr.val;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_KSR)->had) {
+          op.ksr=m.op_get_div_macro_struct(DIV_MACRO_OP_KSR)->val;
           rWrite(0x00+j,(op.am<<7)|(op.vib<<6)|((op.ssgEnv&8)<<2)|(op.ksr<<4)|(op.mult));
         }
-        if (m.vib.had) {
-          op.vib=m.vib.val;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_VIB)->had) {
+          op.vib=m.op_get_div_macro_struct(DIV_MACRO_OP_VIB)->val;
           rWrite(0x00+j,(op.am<<7)|(op.vib<<6)|((op.ssgEnv&8)<<2)|(op.ksr<<4)|(op.mult));
         }
       }
