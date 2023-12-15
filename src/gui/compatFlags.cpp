@@ -336,6 +336,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("when enabled, arpeggio effect (00xy) position is reset on a new note.");
         }
+        ImGui::Checkbox("Volume scaling rounds up",&e->song.ceilVolumeScaling);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels");
+        }
         ImGui::EndTabItem();
       }
       ImGui::EndTabBar();

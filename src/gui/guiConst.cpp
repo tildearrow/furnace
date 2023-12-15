@@ -539,7 +539,11 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAVE", "Save file", FURKMOD_CMD|SDLK_s),
   D("SAVE_AS", "Save as", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_s),
   D("UNDO", "Undo", FURKMOD_CMD|SDLK_z),
+#ifdef __APPLE__
+  D("REDO", "Redo", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_z),
+#else
   D("REDO", "Redo", FURKMOD_CMD|SDLK_y),
+#endif
   D("PLAY_TOGGLE", "Play/Stop (toggle)", SDLK_RETURN),
   D("PLAY", "Play", 0),
   D("STOP", "Stop", 0),
@@ -575,7 +579,11 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_SAMPLE_LIST", "Sample List", 0),
   D("WINDOW_SAMPLE_EDIT", "Sample Editor", 0),
   D("WINDOW_ABOUT", "About", 0),
+#ifdef __APPLE__
+  D("WINDOW_SETTINGS", "Settings", FURKMOD_CMD|SDLK_COMMA),
+#else
   D("WINDOW_SETTINGS", "Settings", 0),
+#endif
   D("WINDOW_MIXER", "Mixer", 0),
   D("WINDOW_DEBUG", "Debug Menu", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_d),
   D("WINDOW_OSCILLOSCOPE", "Oscilloscope (master)", 0),
@@ -744,6 +752,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_INVERT", "Invert", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_t),
   D("SAMPLE_SIGN", "Signed/unsigned exchange", FURKMOD_CMD|SDLK_u),
   D("SAMPLE_FILTER", "Apply filter", FURKMOD_CMD|SDLK_f),
+  D("SAMPLE_CROSSFADE_LOOP", "Crossfade loop points", NOT_AN_ACTION),
   D("SAMPLE_PREVIEW", "Preview sample", 0),
   D("SAMPLE_STOP_PREVIEW", "Stop sample preview", 0),
   D("SAMPLE_ZOOM_IN", "Zoom in", FURKMOD_CMD|SDLK_EQUALS),

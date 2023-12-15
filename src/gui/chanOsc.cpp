@@ -92,7 +92,7 @@ void FurnaceGUI::calcChanOsc() {
       if (--tryAgain<0) break;
       buf=e->getOscBuffer(tryAgain);
     }
-    if (buf!=NULL && e->curSubSong->chanShow[i]) {
+    if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
       // 30ms should be enough
       int displaySize=(float)(buf->rate)*0.03f;
       if (e->isRunning()) {
@@ -135,7 +135,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::Text("Columns");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##COSColumns",&chanOscCols,1,1)) {
+        if (ImGui::InputInt("##COSColumns",&chanOscCols,1,3)) {
           if (chanOscCols<1) chanOscCols=1;
           if (chanOscCols>64) chanOscCols=64;
         }
@@ -144,7 +144,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::Text("Size (ms)");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputFloat("##COSWinSize",&chanOscWindowSize,1.0f,1.0f)) {
+        if (ImGui::InputFloat("##COSWinSize",&chanOscWindowSize,1.0f,10.0f)) {
           if (chanOscWindowSize<1.0f) chanOscWindowSize=1.0f;
           if (chanOscWindowSize>50.0f) chanOscWindowSize=50.0f;
         }
@@ -168,6 +168,11 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
           centerSettingReset=true;
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("Randomize phase on note",&chanOscRandomPhase)) {
         }
         ImGui::EndTable();
       }
@@ -376,7 +381,7 @@ void FurnaceGUI::drawChanOsc() {
         // fill buffers
         for (int i=0; i<chans; i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);
-          if (buf!=NULL && e->curSubSong->chanShow[i]) {
+          if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
             oscBufs.push_back(buf);
             oscFFTs.push_back(&chanOscChan[i]);
             oscChans.push_back(i);
@@ -513,7 +518,7 @@ void FurnaceGUI::drawChanOsc() {
                     phase=(0.5+(atan2(dft[1],dft[0])/(2.0*M_PI)));
 
                     if (fft->waveCorr) {
-                      fft->needle-=phase*fft->waveLen;
+                      fft->needle-=(phase+(fft->phaseOff*2))*fft->waveLen;
                     }
                   }
                 }
@@ -773,6 +778,10 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::EndTable();
 
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          chanOscOptions=!chanOscOptions;
+        }
+        if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+          NOTIFY_LONG_HOLD;
           chanOscOptions=!chanOscOptions;
         }
       }

@@ -39,3 +39,7 @@ a sound and input chip developed by Atari for their 8-bit computers (Atari 400, 
 ## info
 
 this chip uses the [POKEY](../4-instrument/pokey.md) instrument editor.
+
+when two channels are joined for filtered output, the channel bar will show `filter` on a bracket tying them together.
+
+when two channels are joined for wide period range, the channel bar will show `16-bit` on a bracket tying them together.

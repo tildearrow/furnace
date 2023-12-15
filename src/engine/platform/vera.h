@@ -30,13 +30,13 @@ class DivPlatformVERA: public DivDispatch {
   protected:
     struct Channel: public SharedChannel<int> {
       unsigned char pan;
-      unsigned accum;
+      unsigned int accum;
       int noiseval;
 
       struct PCMChannel {
         int sample;
-        unsigned pos;
-        unsigned len;
+        unsigned int pos;
+        unsigned int len;
         unsigned char freq;
         bool depth16;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0), depth16(false) {}
@@ -54,6 +54,7 @@ class DivPlatformVERA: public DivDispatch {
     unsigned char regPool[69];
     struct VERA_PSG* psg;
     struct VERA_PCM* pcm;
+    int lastCenterRate;
   
     int calcNoteFreq(int ch, int note);
     friend void putDispatchChip(void*,int);

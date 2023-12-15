@@ -48,7 +48,9 @@ enum DivDispatchCmds {
   DIV_CMD_ENV_RELEASE,
   DIV_CMD_INSTRUMENT, // (ins, force)
   DIV_CMD_VOLUME, // (vol)
+  // TODO: think of possibly moving this
   DIV_CMD_GET_VOLUME, // () -> vol
+  // TODO: move. shouldn't be a command.
   DIV_CMD_GET_VOLMAX, // () -> volMax
   DIV_CMD_NOTE_PORTA, // (target, speed) -> 2 if target reached
   DIV_CMD_PITCH, // (pitch)
@@ -595,6 +597,14 @@ class DivDispatch {
     virtual bool isVolGlobal();
 
     /**
+     * map MIDI velocity (from 0 to 127) to chip volume.
+     * @param ch the chip channel. -1 means N/A.
+     * @param vel input velocity.
+     * @return output volume.
+     */
+    virtual int mapVelocity(int ch, unsigned char vel);
+
+    /**
      * get the lowest note in a portamento.
      * @param ch the channel in question.
      * @return the lowest note.
@@ -787,7 +797,7 @@ class DivDispatch {
 #define NOTE_FNUM_BLOCK(x,bits) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits)
 
 // this is for volume scaling calculation.
-#define VOL_SCALE_LINEAR(x,y,range) (((x)*(y))/(range))
+#define VOL_SCALE_LINEAR(x,y,range) ((parent->song.ceilVolumeScaling)?((((x)*(y))+(range-1))/(range)):(((x)*(y))/(range)))
 #define VOL_SCALE_LOG(x,y,range) (CLAMP(((x)+(y))-(range),0,(range)))
 #define VOL_SCALE_LINEAR_BROKEN(x,y,range) ((parent->song.newVolumeScaling)?(VOL_SCALE_LINEAR(x,y,range)):(VOL_SCALE_LOG(x,y,range)))
 #define VOL_SCALE_LOG_BROKEN(x,y,range) ((parent->song.newVolumeScaling)?(VOL_SCALE_LOG(x,y,range)):(VOL_SCALE_LINEAR(x,y,range)))

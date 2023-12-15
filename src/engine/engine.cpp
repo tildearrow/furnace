@@ -1522,6 +1522,11 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   while (playing && curOrder<goal) {
     if (nextTick(preserveDrift)) {
       skipping=false;
+      cmdStream.clear();
+      for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
+      if (goal>0 || goalRow>0) {
+        for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
+      }
       return;
     }
     if (!preserveDrift) {
@@ -1533,6 +1538,11 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   while (playing && (curRow<goalRow || ticks>1)) {
     if (nextTick(preserveDrift)) {
       skipping=false;
+      cmdStream.clear();
+      for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
+      if (goal>0 || goalRow>0) {
+        for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
+      }
       return;
     }
     if (!preserveDrift) {

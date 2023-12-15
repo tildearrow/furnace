@@ -39,7 +39,7 @@ void DivEngine::nextOrder() {
   }
 }
 
-const char* notes[12]={
+static const char* notes[12]={
   "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
 };
 
@@ -1378,7 +1378,11 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     }
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
-      //dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,(note.volume*(chan[note.channel].volMax>>8))/127));
+      if (note.volume>=0) {
+        int mappedVol=disCont[dispatchOfChan[note.channel]].dispatch->mapVelocity(note.channel,note.volume);
+        logV("dispatching volume (%d -> %d)",note.volume,mappedVol);
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
+      }
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
       chan[note.channel].releasing=false;

@@ -53,7 +53,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       float halfAvail=(avail-ImGui::GetStyle().ItemSpacing.x)*0.5;
       ImGui::SetNextItemWidth(halfAvail);
       float setHz=tempoView?e->curSubSong->hz*2.5:e->curSubSong->hz;
-      if (ImGui::InputFloat("##Rate",&setHz,1.0f,1.0f,"%g")) { MARK_MODIFIED
+      if (ImGui::InputFloat("##Rate",&setHz,1.0f,10.0f,"%g")) { MARK_MODIFIED
         if (tempoView) setHz/=2.5;
         if (setHz<1) setHz=1;
         if (setHz>999) setHz=999;
@@ -169,7 +169,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         ImGui::Text("Virtual Tempo");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(halfAvail);
-        if (ImGui::InputScalar("##VTempoN",ImGuiDataType_S16,&e->curSubSong->virtualTempoN,&_ONE,&_THREE)) { MARK_MODIFIED
+        if (ImGui::InputScalar("##VTempoN",ImGuiDataType_S16,&e->curSubSong->virtualTempoN,&_ONE,&_TEN)) { MARK_MODIFIED
           if (e->curSubSong->virtualTempoN<1) e->curSubSong->virtualTempoN=1;
           if (e->curSubSong->virtualTempoN>255) e->curSubSong->virtualTempoN=255;
         }
@@ -178,7 +178,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(halfAvail);
-        if (ImGui::InputScalar("##VTempoD",ImGuiDataType_S16,&e->curSubSong->virtualTempoD,&_ONE,&_THREE)) { MARK_MODIFIED
+        if (ImGui::InputScalar("##VTempoD",ImGuiDataType_S16,&e->curSubSong->virtualTempoD,&_ONE,&_TEN)) { MARK_MODIFIED
           if (e->curSubSong->virtualTempoD<1) e->curSubSong->virtualTempoD=1;
           if (e->curSubSong->virtualTempoD>255) e->curSubSong->virtualTempoD=255;
         }
@@ -208,12 +208,12 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       ImGui::Text("Highlight");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(halfAvail);
-      if (ImGui::InputScalar("##Highlight1",ImGuiDataType_U8,&e->curSubSong->hilightA,&_ONE,&_THREE)) {
+      if (ImGui::InputScalar("##Highlight1",ImGuiDataType_U8,&e->curSubSong->hilightA,&_ONE,&_FOUR)) {
         MARK_MODIFIED;
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(halfAvail);
-      if (ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->curSubSong->hilightB,&_ONE,&_THREE)) {
+      if (ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->curSubSong->hilightB,&_ONE,&_FOUR)) {
         MARK_MODIFIED;
       }
       ImGui::EndTable();
@@ -233,7 +233,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
       int patLen=e->curSubSong->patLen;
-      if (ImGui::InputInt("##PatLength",&patLen,1,3)) { MARK_MODIFIED
+      if (ImGui::InputInt("##PatLength",&patLen,1,16)) { MARK_MODIFIED
         if (patLen<1) patLen=1;
         if (patLen>DIV_MAX_PATTERNS) patLen=DIV_MAX_PATTERNS;
         e->curSubSong->patLen=patLen;
@@ -247,7 +247,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(avail);
         int ordLen=e->curSubSong->ordersLen;
-        if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) { MARK_MODIFIED
+        if (ImGui::InputInt("##OrdLength",&ordLen,1,4)) { MARK_MODIFIED
           if (ordLen<1) ordLen=1;
           if (ordLen>DIV_MAX_PATTERNS) ordLen=DIV_MAX_PATTERNS;
           e->curSubSong->ordersLen=ordLen;

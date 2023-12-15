@@ -22,7 +22,9 @@
 const int _ZERO=0;
 const int _ONE=1;
 const int _THREE=3;
+const int _FOUR=4;
 const int _SEVEN=7;
+const int _EIGHT=8;
 const int _TEN=10;
 const int _FIFTEEN=15;
 const int _SIXTEEN=16;

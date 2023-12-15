@@ -127,7 +127,8 @@ const char* arcadeCores[]={
 
 const char* ym2612Cores[]={
   "Nuked-OPN2",
-  "ymfm"
+  "ymfm",
+  "YMF276-LLE"
 };
 
 const char* snCores[]={
@@ -154,6 +155,18 @@ const char* pokeyCores[]={
 const char* opnCores[]={
   "ymfm only",
   "Nuked-OPN2 (FM) + ymfm (SSG/ADPCM)"
+};
+
+const char* opl2Cores[]={
+  "Nuked-OPL3",
+  "ymfm",
+  "YM3812-LLE"
+};
+
+const char* opl3Cores[]={
+  "Nuked-OPL3",
+  "ymfm",
+  "YMF262-LLE"
 };
 
 const char* pcspkrOutMethods[]={
@@ -461,7 +474,7 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        if (ImGui::InputInt("Number of recent files",&settings.maxRecentFile)) {
+        if (ImGui::InputInt("Number of recent files",&settings.maxRecentFile,1,5)) {
           if (settings.maxRecentFile<0) settings.maxRecentFile=0;
           if (settings.maxRecentFile>30) settings.maxRecentFile=30;
           settingsChanged=true;
@@ -944,7 +957,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Outputs");
             ImGui::TableNextColumn();
-            if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,1)) {
+            if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,2)) {
               if (settings.audioChans<1) settings.audioChans=1;
               if (settings.audioChans>16) settings.audioChans=16;
               settingsChanged=true;
@@ -1487,10 +1500,10 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("YM2612");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2)) settingsChanged=true;
+          if (ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,3)) settingsChanged=true;
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,2)) settingsChanged=true;
+          if (ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,3)) settingsChanged=true;
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -1557,6 +1570,29 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::Combo("##OPNCoreRender",&settings.opnCoreRender,opnCores,2)) settingsChanged=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPL/OPL2/Y8950");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL2Core",&settings.opl2Core,opl2Cores,3)) settingsChanged=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL2CoreRender",&settings.opl2CoreRender,opl2Cores,3)) settingsChanged=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPL3");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL3Core",&settings.opl3Core,opl3Cores,3)) settingsChanged=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL3CoreRender",&settings.opl3CoreRender,opl3Cores,3)) settingsChanged=true;
+
           ImGui::EndTable();
         }
         ImGui::Separator();
@@ -1745,7 +1781,7 @@ void FurnaceGUI::drawSettings() {
               ImGui::TableNextColumn();
               if (i.val<100) {
                 snprintf(id,4095,"##SNValue_%d",i.scan);
-                if (ImGui::InputInt(id,&i.val,1,1)) {
+                if (ImGui::InputInt(id,&i.val,1,12)) {
                   if (i.val<0) i.val=0;
                   if (i.val>96) i.val=96;
                   noteKeys[i.scan]=i.val;
@@ -2334,6 +2370,12 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool selectAssetOnLoadB=settings.selectAssetOnLoad;
+        if (ImGui::Checkbox("Select asset after opening one",&selectAssetOnLoadB)) {
+          settings.selectAssetOnLoad=selectAssetOnLoadB;
+          settingsChanged=true;
+        }
+
         END_SECTION;
       }
       CONFIG_SECTION("Appearance") {
@@ -2356,7 +2398,7 @@ void FurnaceGUI::drawSettings() {
           } rightClickable
         }
 
-        if (ImGui::InputInt("Icon size",&settings.iconSize)) {
+        if (ImGui::InputInt("Icon size",&settings.iconSize,1,3)) {
           if (settings.iconSize<3) settings.iconSize=3;
           if (settings.iconSize>48) settings.iconSize=48;
           settingsChanged=true;
@@ -2392,7 +2434,7 @@ void FurnaceGUI::drawSettings() {
               settingsChanged=true;
             }
           }
-          if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize)) {
+          if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize,1,3)) {
             if (settings.mainFontSize<3) settings.mainFontSize=3;
             if (settings.mainFontSize>96) settings.mainFontSize=96;
             settingsChanged=true;
@@ -2411,7 +2453,7 @@ void FurnaceGUI::drawSettings() {
               settingsChanged=true;
             }
           }
-          if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize)) {
+          if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize,1,3)) {
             if (settings.headFontSize<3) settings.headFontSize=3;
             if (settings.headFontSize>96) settings.headFontSize=96;
             settingsChanged=true;
@@ -2430,7 +2472,7 @@ void FurnaceGUI::drawSettings() {
               settingsChanged=true;
             }
           }
-          if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
+          if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize,1,3)) {
             if (settings.patFontSize<3) settings.patFontSize=3;
             if (settings.patFontSize>96) settings.patFontSize=96;
             settingsChanged=true;
@@ -2607,8 +2649,8 @@ void FurnaceGUI::drawSettings() {
         bool capitalMenuBarB=settings.capitalMenuBar;
         if (ImGui::Checkbox("Capitalize menu bar",&capitalMenuBarB)) {
           settings.capitalMenuBar=capitalMenuBarB;
+          settingsChanged=true;
         }
-        settingsChanged=true;
 
         bool classicChipOptionsB=settings.classicChipOptions;
         if (ImGui::Checkbox("Display add/configure/change/remove chip menus in File menu",&classicChipOptionsB)) {
@@ -3594,6 +3636,8 @@ void FurnaceGUI::syncSettings() {
   settings.c64Core=e->getConfInt("c64Core",0);
   settings.pokeyCore=e->getConfInt("pokeyCore",1);
   settings.opnCore=e->getConfInt("opnCore",1);
+  settings.opl2Core=e->getConfInt("opl2Core",0);
+  settings.opl3Core=e->getConfInt("opl3Core",0);
   settings.arcadeCoreRender=e->getConfInt("arcadeCoreRender",1);
   settings.ym2612CoreRender=e->getConfInt("ym2612CoreRender",0);
   settings.snCoreRender=e->getConfInt("snCoreRender",0);
@@ -3602,6 +3646,8 @@ void FurnaceGUI::syncSettings() {
   settings.c64CoreRender=e->getConfInt("c64CoreRender",1);
   settings.pokeyCoreRender=e->getConfInt("pokeyCoreRender",1);
   settings.opnCoreRender=e->getConfInt("opnCoreRender",1);
+  settings.opl2CoreRender=e->getConfInt("opl2CoreRender",0);
+  settings.opl3CoreRender=e->getConfInt("opl3CoreRender",0);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
   settings.yrw801Path=e->getConfString("yrw801Path","");
   settings.tg100Path=e->getConfString("tg100Path","");
@@ -3759,6 +3805,7 @@ void FurnaceGUI::syncSettings() {
   settings.fontBitmap=e->getConfInt("fontBitmap",0);
   settings.fontAutoHint=e->getConfInt("fontAutoHint",1);
   settings.fontAntiAlias=e->getConfInt("fontAntiAlias",1);
+  settings.selectAssetOnLoad=e->getConfInt("selectAssetOnLoad",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3771,21 +3818,25 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.audioRate,8000,384000);
   clampSetting(settings.audioChans,1,16);
   clampSetting(settings.arcadeCore,0,1);
-  clampSetting(settings.ym2612Core,0,1);
+  clampSetting(settings.ym2612Core,0,2);
   clampSetting(settings.snCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
   clampSetting(settings.c64Core,0,2);
   clampSetting(settings.pokeyCore,0,1);
   clampSetting(settings.opnCore,0,1);
+  clampSetting(settings.opl2Core,0,2);
+  clampSetting(settings.opl3Core,0,2);
   clampSetting(settings.arcadeCoreRender,0,1);
-  clampSetting(settings.ym2612CoreRender,0,1);
+  clampSetting(settings.ym2612CoreRender,0,2);
   clampSetting(settings.snCoreRender,0,1);
   clampSetting(settings.nesCoreRender,0,1);
   clampSetting(settings.fdsCoreRender,0,1);
   clampSetting(settings.c64CoreRender,0,2);
   clampSetting(settings.pokeyCoreRender,0,1);
   clampSetting(settings.opnCoreRender,0,1);
+  clampSetting(settings.opl2CoreRender,0,2);
+  clampSetting(settings.opl3CoreRender,0,2);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
@@ -3920,6 +3971,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.fontBitmap,0,1);
   clampSetting(settings.fontAutoHint,0,2);
   clampSetting(settings.fontAntiAlias,0,1);
+  clampSetting(settings.selectAssetOnLoad,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3991,6 +4043,8 @@ void FurnaceGUI::commitSettings() {
     settings.c64Core!=e->getConfInt("c64Core",0) ||
     settings.pokeyCore!=e->getConfInt("pokeyCore",1) ||
     settings.opnCore!=e->getConfInt("opnCore",1) ||
+    settings.opl2Core!=e->getConfInt("opl2Core",0) ||
+    settings.opl3Core!=e->getConfInt("opl3Core",0) ||
     settings.arcadeCoreRender!=e->getConfInt("arcadeCoreRender",0) ||
     settings.ym2612CoreRender!=e->getConfInt("ym2612CoreRender",0) ||
     settings.snCoreRender!=e->getConfInt("snCoreRender",0) ||
@@ -3999,6 +4053,8 @@ void FurnaceGUI::commitSettings() {
     settings.c64CoreRender!=e->getConfInt("c64CoreRender",0) ||
     settings.pokeyCoreRender!=e->getConfInt("pokeyCoreRender",1) ||
     settings.opnCoreRender!=e->getConfInt("opnCoreRender",1) ||
+    settings.opl2CoreRender!=e->getConfInt("opl2CoreRender",0) ||
+    settings.opl3CoreRender!=e->getConfInt("opl3CoreRender",0) ||
     settings.audioQuality!=e->getConfInt("audioQuality",0) ||
     settings.audioHiPass!=e->getConfInt("audioHiPass",1)
   );
@@ -4026,6 +4082,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("c64Core",settings.c64Core);
   e->setConf("pokeyCore",settings.pokeyCore);
   e->setConf("opnCore",settings.opnCore);
+  e->setConf("opl2Core",settings.opl2Core);
+  e->setConf("opl3Core",settings.opl3Core);
   e->setConf("arcadeCoreRender",settings.arcadeCoreRender);
   e->setConf("ym2612CoreRender",settings.ym2612CoreRender);
   e->setConf("snCoreRender",settings.snCoreRender);
@@ -4034,6 +4092,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("c64CoreRender",settings.c64CoreRender);
   e->setConf("pokeyCoreRender",settings.pokeyCoreRender);
   e->setConf("opnCoreRender",settings.opnCoreRender);
+  e->setConf("opl2CoreRender",settings.opl2CoreRender);
+  e->setConf("opl3CoreRender",settings.opl3CoreRender);
   e->setConf("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
   e->setConf("yrw801Path",settings.yrw801Path);
   e->setConf("tg100Path",settings.tg100Path);
@@ -4192,6 +4252,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("fontBitmap",settings.fontBitmap);
   e->setConf("fontAutoHint",settings.fontAutoHint);
   e->setConf("fontAntiAlias",settings.fontAntiAlias);
+  e->setConf("selectAssetOnLoad",settings.selectAssetOnLoad);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -4863,6 +4924,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.ScaleAllSizes(dpiScale);
 
   ImGui::GetStyle()=sty;
+  
+  updateSampleTex=true;
 
   ImGui::GetIO().ConfigInputTrickleEventQueue=settings.eventDelay;
   ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly=settings.moveWindowTitle;
