@@ -1021,8 +1021,8 @@ void DivPlatformESFM::notifyInsDeletion(void* ins) {
 
 int DivPlatformESFM::mapVelocity(int ch, unsigned char vel) {
   const int volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
-  double attenDb=40*log10(vel/127);
-  double attenUnits=attenDb*(8.0/6.0); // negative
+  double attenDb=20*log10(vel/127); // 20dB/decade for a linear mapping
+  double attenUnits=attenDb*(8.0/6.0);
   return MAX(0,volMax+attenUnits);
 }
 
