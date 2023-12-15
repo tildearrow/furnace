@@ -294,7 +294,8 @@ DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
   return NULL;
 }
 
-void DivMacroInt::init(DivInstrument* which) {
+void DivMacroInt::init(DivInstrument* which)
+{
   ins=which;
   // initialize
   macroList.clear();
