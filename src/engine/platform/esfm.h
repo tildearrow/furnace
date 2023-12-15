@@ -136,6 +136,7 @@ class DivPlatformESFM: public DivDispatch {
     void toggleRegisterDump(bool enable);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    int mapVelocity(int ch, unsigned char vel);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     void setFlags(const DivConfig& flags);

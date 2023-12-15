@@ -1972,7 +1972,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_ESFM]=new DivSysDef(
-    "ESS ES1xxx series (ESFM)", NULL, 0xd1, 0, 18, true, false, 0, false, 0,
+    "ESS ES1xxx series (ESFM)", NULL, 0xd1, 0, 18, true, false, 0, false, 0, 0, 0, 
     "a unique FM synth featured in PC sound cards.\nbased on the OPL3 design, but with lots of its features extended.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "FM 10", "FM 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"},
