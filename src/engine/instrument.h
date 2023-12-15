@@ -336,25 +336,25 @@ struct DivInstrumentSTD {
 
     else //looking at FM ops
     {
-      if(ops.size() < (macro_id >> 5)) //if vector is shorter, pad it to the required length
+      if(ops.size() < ((macro_id >> 5) - 1)) //if vector is shorter, pad it to the required length
       {
         int initial_size = ops.size();
 
-        for(int i = 0; i < (macro_id >> 5) - initial_size; i++)
+        for(int i = 0; i < ((macro_id >> 5) - 1) - initial_size; i++)
         {
           ops.push_back(OpMacro());
         }
       }
 
-      for(int i = 0; i < ops[macro_id >> 5].macros.size(); i++)
+      for(int i = 0; i < ops[(macro_id >> 5) - 1].macros.size(); i++)
       {
-        if(ops[macro_id >> 5].macros[i].macroType == macro_id) return &ops[macro_id >> 5].macros[i];
+        if(ops[(macro_id >> 5) - 1].macros[i].macroType == macro_id) return &ops[(macro_id >> 5) - 1].macros[i];
       }
 
       if(allocate)
       {
-        ops[macro_id >> 5].macros.push_back(DivInstrumentMacro(macro_id));
-        return &ops[macro_id >> 5].macros[macros.size() - 1];
+        ops[(macro_id >> 5) - 1].macros.push_back(DivInstrumentMacro(macro_id));
+        return &ops[(macro_id >> 5) - 1].macros[macros.size() - 1];
       }
 
       else

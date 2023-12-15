@@ -366,8 +366,8 @@ void DivPlatformAmiga::updateWave(int ch) {
 void DivPlatformAmiga::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol%65)*MIN(64,chan[i].std.vol.val))>>6;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=((chan[i].vol%65)*MIN(64,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))>>6;
       chan[i].writeVol=true;
     }
     double off=1.0;

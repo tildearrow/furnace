@@ -64,11 +64,8 @@ struct DivMacroStruct {
 class DivMacroInt {
   DivEngine* e;
   DivInstrument* ins;
-  //DivMacroStruct* macroList[128];
-  //DivInstrumentMacro* macroSource[128];
   std::vector<DivMacroStruct*> macroList;
   std::vector<DivInstrumentMacro*> macroSource;
-  //size_t macroListLen;
   int subTick;
   bool released;
   public:
@@ -152,6 +149,36 @@ class DivMacroInt {
      * @return a DivMacroStruct pointer, or NULL if none found.
      */
     DivMacroStruct* get_div_macro_struct(uint8_t macro_id);
+
+    /**
+     * Mask (enable or disable) macro.
+     * @param id Macro ID.
+     * @param enabled Flag for enabling/disabling macro.
+     */
+    void consider_macro(unsigned char id, bool enabled);
+
+    /**
+     * Mask (enable or disable) FM operator macro.
+     * @param oper FM operator index.
+     * @param id Macro ID.
+     * @param enabled Flag for enabling/disabling macro.
+     */
+    void consider_op_macro(unsigned char oper, unsigned char id, bool enabled);
+
+    /**
+     * Get DivMacroStruct pointer for macro with given type.
+     * @param type Macro type.
+     * @return a DivMacroStruct pointer, or NULL if none found.
+     */
+    DivMacroStruct* get_macro_by_type(unsigned char type);
+
+    /**
+     * Get DivMacroStruct pointer for FM operator macro with given type.
+     * @param oper FM operator index.
+     * @param type Macro type.
+     * @return a DivMacroStruct pointer, or NULL if none found.
+     */
+    DivMacroStruct* get_op_macro_by_type(unsigned char oper, unsigned char type);
 
     DivMacroInt()
     {
