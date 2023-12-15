@@ -303,17 +303,46 @@ struct DivInstrumentMacro {
   }
 };
 
-struct DivInstrumentSTD {
+struct DivInstrumentSTD
+{
   std::vector<DivInstrumentMacro> macros;
 
-  struct OpMacro {
+  struct OpMacro
+  {
     std::vector<DivInstrumentMacro> macros;
+
+    DivInstrumentMacro* OpMacro::op_get_macro(uint8_t macro_id, bool allocate)
+    {
+      static DivInstrumentMacro dummy = DivInstrumentMacro(0xff); //empty macro
+
+      if(macro_id < 0x20) //allocate new macro for main instrument
+      {
+        for(int i = 0; i < macros.size(); i++)
+        {
+          if(macros[i].macroType == macro_id) return &macros[i];
+        }
+
+        if(allocate)
+        {
+          macros.push_back(DivInstrumentMacro(macro_id));
+          return &macros[macros.size() - 1];
+        }
+
+        else
+        {
+          //DivInstrumentMacro* macro = new DivInstrumentMacro(macro_id);
+          return &dummy;
+        }
+      }
+    }
   };
 
   std::vector<OpMacro> ops;
 
   DivInstrumentMacro* get_macro(uint8_t macro_id, bool allocate)
   {
+    static DivInstrumentMacro dummy = DivInstrumentMacro(0xff); //empty macro
+
     if(macro_id < 0x20) //allocate new macro for main instrument
     {
       for(int i = 0; i < macros.size(); i++)
@@ -329,38 +358,8 @@ struct DivInstrumentSTD {
 
       else
       {
-        DivInstrumentMacro* macro = new DivInstrumentMacro(macro_id);
-        return macro;
-      }
-    }
-
-    else //looking at FM ops
-    {
-      if(ops.size() < ((macro_id >> 5) - 1)) //if vector is shorter, pad it to the required length
-      {
-        int initial_size = ops.size();
-
-        for(int i = 0; i < ((macro_id >> 5) - 1) - initial_size; i++)
-        {
-          ops.push_back(OpMacro());
-        }
-      }
-
-      for(int i = 0; i < ops[(macro_id >> 5) - 1].macros.size(); i++)
-      {
-        if(ops[(macro_id >> 5) - 1].macros[i].macroType == macro_id) return &ops[(macro_id >> 5) - 1].macros[i];
-      }
-
-      if(allocate)
-      {
-        ops[(macro_id >> 5) - 1].macros.push_back(DivInstrumentMacro(macro_id));
-        return &ops[(macro_id >> 5) - 1].macros[macros.size() - 1];
-      }
-
-      else
-      {
-        DivInstrumentMacro* macro = new DivInstrumentMacro(macro_id);
-        return macro;
+        //DivInstrumentMacro* macro = new DivInstrumentMacro(macro_id);
+        return &dummy;
       }
     }
   }

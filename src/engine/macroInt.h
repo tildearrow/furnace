@@ -83,7 +83,7 @@ class DivMacroInt {
         macros.clear();
       }
 
-      DivMacroStruct* op_get_div_macro_struct(uint8_t macro_id)
+      DivMacroStruct* IntOp::op_get_div_macro_struct(uint8_t macro_id)
       {
         for(int i = 0; i < macros.size(); i++)
         {
