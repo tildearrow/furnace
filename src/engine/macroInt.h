@@ -92,6 +92,14 @@ class DivMacroInt {
       }
     };
 
+    ~DivMacroInt()
+    {
+      for(int i = 0; i < macroList.size(); i++)
+      {
+        delete macroList[i];
+      }
+    }
+
     std::vector<IntOp> op;
 
     // state
