@@ -1360,7 +1360,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].macroInit(ins);
           chan[c.chan].fixedFreq=0;
-          if (!chan[c.chan].std.vol.will) {
+          if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(18,chan[c.chan].outVol);
           }
@@ -1426,7 +1426,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,c.chan>melodicChans?DIV_INS_OPL_DRUMS:DIV_INS_OPL);
 
       chan[c.chan].macroInit(ins);
-      if (!chan[c.chan].std.vol.will) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
 
@@ -1489,7 +1489,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (c.value>63) c.value=63;
       }
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.vol.has) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         chan[c.chan].outVol=c.value;
       }
       if (c.chan==adpcmChan) { // ADPCM-B
@@ -1979,7 +1979,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       return 63;
       break;
     case DIV_CMD_PRE_PORTA:
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) {
         chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(chan[c.chan].note)):(NOTE_FREQUENCY(chan[c.chan].note));
       }
       chan[c.chan].inPorta=c.value;

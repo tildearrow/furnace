@@ -564,7 +564,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
       chan[c.chan].macroInit(ins);
       if (c.chan<3) {
-        if (!chan[c.chan].std.vol.will) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
       }
@@ -599,7 +599,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.vol.has) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         chan[c.chan].outVol=c.value;
       }
       for (int i=0; i<4; i++) {

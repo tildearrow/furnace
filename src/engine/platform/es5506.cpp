@@ -752,10 +752,10 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         chan[c.chan].noteChanged.changed=0xff;
         chan[c.chan].volChanged.changed=0xff;
       }
-      if (!chan[c.chan].std.vol.will) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=(0xfff*chan[c.chan].vol)/0xff;
       }
-      if (!chan[c.chan].std.panL.will) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->will) {
         chan[c.chan].outLVol=(0xfff*chan[c.chan].lVol)/0xff;
       }
       if (!chan[c.chan].std.panR.will) {
@@ -785,7 +785,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[c.chan].outVol=(0xfff*c.value)/0xff;
           chan[c.chan].volChanged.changed=0xff;
         }
@@ -802,7 +802,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       // Left volume
       if (chan[c.chan].lVol!=c.value) {
         chan[c.chan].lVol=c.value;
-        if (!chan[c.chan].std.panL.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->has) {
           chan[c.chan].outLVol=(0xfff*c.value)/0xff;
           chan[c.chan].volChanged.lVol=1;
         }
@@ -827,7 +827,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         // Left volume
         if (chan[c.chan].lVol!=c.value2) {
           chan[c.chan].lVol=c.value2;
-          if (!chan[c.chan].std.panL.has) {
+          if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->has) {
             chan[c.chan].outLVol=(0xfff*c.value2)/0xff;
             chan[c.chan].volChanged.lVol=1;
           }
@@ -987,7 +987,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       chan[c.chan].note=c.value;
-      chan[c.chan].nextNote=chan[c.chan].note+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0));
+      chan[c.chan].nextNote=chan[c.chan].note+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val-12):(0));
       chan[c.chan].noteChanged.note=1;
       break;
     }
@@ -995,7 +995,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_ES5506));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) {
         chan[c.chan].nextNote=chan[c.chan].note;
         chan[c.chan].noteChanged.note=1;
       }

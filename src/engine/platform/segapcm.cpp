@@ -204,7 +204,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         }
         chan[c.chan].furnacePCM=true;
         chan[c.chan].macroInit(ins);
-        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
           chan[c.chan].outVol=chan[c.chan].vol;
 
           if (parent->song.newSegaPCM) {
@@ -253,7 +253,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.vol.has) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         chan[c.chan].outVol=c.value;
       }
       if (parent->song.newSegaPCM) {
@@ -346,7 +346,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       return 127;
       break;
     case DIV_CMD_PRE_PORTA:
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=(chan[c.chan].note<<7);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=(chan[c.chan].note<<7);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

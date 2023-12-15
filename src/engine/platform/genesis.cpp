@@ -741,7 +741,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           chan[c.chan].furnaceDac=true;
 
           chan[c.chan].macroInit(ins);
-          if (!chan[c.chan].std.vol.will) {
+          if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
             chan[c.chan].outVol=chan[c.chan].vol;
           }
 
@@ -772,7 +772,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (c.chan>=6) break;
 
       chan[c.chan].macroInit(ins);
-      if (!chan[c.chan].std.vol.will) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
 
@@ -817,7 +817,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.vol.has) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         chan[c.chan].outVol=c.value;
       }
       if (c.chan>=6) break;

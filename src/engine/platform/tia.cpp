@@ -166,11 +166,11 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       rWrite(0x15+c.chan,chan[c.chan].shape);
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (chan[c.chan].insChanged) {
-        if (!chan[c.chan].std.wave.will) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_WAVE)->will) {
           chan[c.chan].shape=4;
           rWrite(0x15+c.chan,chan[c.chan].shape);
         }
@@ -194,7 +194,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.vol.has) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         chan[c.chan].outVol=c.value;
       }
       if (isMuted[c.chan]) {

@@ -135,7 +135,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       if (skipRegisterWrites) break;
       if (chan[c.chan].furnacePCM) {
         chan[c.chan].macroInit(ins);
-        if (!chan[c.chan].std.vol.will) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
         if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
@@ -186,7 +186,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=MIN(8,c.value);
-      if (!chan[c.chan].std.vol.has) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         chan[c.chan].outVol=c.value;
       }
       break;

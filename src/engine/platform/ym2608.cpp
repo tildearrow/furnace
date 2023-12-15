@@ -913,7 +913,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         if (skipRegisterWrites) break;
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].macroInit(ins);
-          if (!chan[c.chan].std.vol.will) {
+          if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(0x10b,chan[c.chan].outVol);
           }
@@ -990,7 +990,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         if (skipRegisterWrites) break;
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].macroInit(ins);
-          if (!chan[c.chan].std.vol.will) {
+          if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(0x18+(c.chan-9),isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].outVol));
           }
@@ -1006,7 +1006,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
       chan[c.chan].macroInit(ins);
       if (c.chan<6) {
-        if (!chan[c.chan].std.vol.will) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
       }
@@ -1041,7 +1041,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.vol.has) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         chan[c.chan].outVol=c.value;
       }
       if (c.chan>14) { // ADPCM-B

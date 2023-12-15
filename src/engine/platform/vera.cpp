@@ -211,15 +211,15 @@ void DivPlatformVERA::tick(bool sysTick) {
   }
   // PCM
   chan[16].std.next();
-  if (chan[16].std.vol.had) {
-    chan[16].outVol=MAX(chan[16].vol+MIN(chan[16].std.vol.val/4,15)-15,0);
+  if (chan[16].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+    chan[16].outVol=MAX(chan[16].vol+MIN(chan[16].std.get_div_macro_struct(DIV_MACRO_VOL)->val/4,15)-15,0);
     rWritePCMVol(chan[16].outVol&15);
   }
   if (NEW_ARP_STRAT) {
     chan[16].handleArp();
-  } else if (chan[16].std.arp.had) {
+  } else if (chan[16].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
     if (!chan[16].inPorta) {
-      chan[16].baseFreq=calcNoteFreq(16,parent->calcArp(chan[16].note,chan[16].std.arp.val));
+      chan[16].baseFreq=calcNoteFreq(16,parent->calcArp(chan[16].note,chan[16].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
     }
     chan[16].freqChanged=true;
   }
@@ -326,7 +326,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       break;
@@ -394,7 +394,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=calcNoteFreq(c.chan,c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=calcNoteFreq(c.chan,c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -402,7 +402,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
       }
-      if (!chan[c.chan].inPorta && c.value && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=calcNoteFreq(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=calcNoteFreq(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_STD_NOISE_MODE:

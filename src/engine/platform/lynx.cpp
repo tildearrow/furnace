@@ -251,7 +251,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       break;
@@ -280,7 +280,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[c.chan].outVol=c.value;
         }
         if (chan[c.chan].active && !chan[c.chan].pcm) WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
@@ -291,7 +291,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       WRITE_ATTEN(c.chan,chan[c.chan].pan);
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
+      if (chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -327,7 +327,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      int whatAMess=c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
+      int whatAMess=c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0));
       chan[c.chan].baseFreq=NOTE_PERIODIC(whatAMess);
       if (chan[c.chan].pcm) {
         chan[c.chan].sampleBaseFreq=NOTE_FREQUENCY(whatAMess);
@@ -341,7 +341,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

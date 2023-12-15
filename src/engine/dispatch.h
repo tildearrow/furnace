@@ -25,6 +25,7 @@
 #include "../pch.h"
 #include "config.h"
 #include "chipUtils.h"
+#include "macroInt.h"
 
 #define ONE_SEMITONE 2200
 
@@ -799,6 +800,6 @@ class DivDispatch {
   if ((x)>(xMax)) (x)=(xMax);
 
 #define NEW_ARP_STRAT (parent->song.linearPitch==2 && !parent->song.oldArpStrategy)
-#define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT
+#define HACKY_LEGATO_MESS chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->mode && !NEW_ARP_STRAT
 
 #endif
