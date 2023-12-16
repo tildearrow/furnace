@@ -270,82 +270,82 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     } else { // STD
       logD("reading STD data...");
       if (ins->type!=DIV_INS_GB) {
-        ins->std.volMacro.len=reader.readC();
+        ins->std.get_macro(DIV_MACRO_VOL, true)->len=reader.readC();
         if (version>5) {
-          for (int i=0; i<ins->std.volMacro.len; i++) {
-            ins->std.volMacro.val[i]=reader.readI();
-            if (ins->std.volMacro.val[i]>15 && sys==6) { // FDS
+          for (int i=0; i<ins->std.get_macro(DIV_MACRO_VOL, true)->len; i++) {
+            ins->std.get_macro(DIV_MACRO_VOL, true)->val[i]=reader.readI();
+            if (ins->std.get_macro(DIV_MACRO_VOL, true)->val[i]>15 && sys==6) { // FDS
               ins->type=DIV_INS_FDS;
             }
           }
         } else {
-          for (int i=0; i<ins->std.volMacro.len; i++) {
-            ins->std.volMacro.val[i]=reader.readC();
+          for (int i=0; i<ins->std.get_macro(DIV_MACRO_VOL, true)->len; i++) {
+            ins->std.get_macro(DIV_MACRO_VOL, true)->val[i]=reader.readC();
           }
         }
-        if (version<11) for (int i=0; i<ins->std.volMacro.len; i++) {
-          if (ins->std.volMacro.val[i]>15 && ins->type==DIV_INS_STD) ins->type=DIV_INS_PCE;
+        if (version<11) for (int i=0; i<ins->std.get_macro(DIV_MACRO_VOL, true)->len; i++) {
+          if (ins->std.get_macro(DIV_MACRO_VOL, true)->val[i]>15 && ins->type==DIV_INS_STD) ins->type=DIV_INS_PCE;
         }
-        if (ins->std.volMacro.len>0) {
-          ins->std.volMacro.open=true;
-          ins->std.volMacro.loop=reader.readC();
+        if (ins->std.get_macro(DIV_MACRO_VOL, true)->len>0) {
+          ins->std.get_macro(DIV_MACRO_VOL, true)->open=true;
+          ins->std.get_macro(DIV_MACRO_VOL, true)->loop=reader.readC();
         } else {
-          ins->std.volMacro.open=false;
+          ins->std.get_macro(DIV_MACRO_VOL, true)->open=false;
         }
       }
 
-      ins->std.arpMacro.len=reader.readC();
+      ins->std.get_macro(DIV_MACRO_ARP, true)->len=reader.readC();
       if (version>5) {
-        for (int i=0; i<ins->std.arpMacro.len; i++) {
-          ins->std.arpMacro.val[i]=reader.readI();
+        for (int i=0; i<ins->std.get_macro(DIV_MACRO_ARP, true)->len; i++) {
+          ins->std.get_macro(DIV_MACRO_ARP, true)->val[i]=reader.readI();
         }
       } else {
-        for (int i=0; i<ins->std.arpMacro.len; i++) {
-          ins->std.arpMacro.val[i]=reader.readC();
+        for (int i=0; i<ins->std.get_macro(DIV_MACRO_ARP, true)->len; i++) {
+          ins->std.get_macro(DIV_MACRO_ARP, true)->val[i]=reader.readC();
         }
       }
-      if (ins->std.arpMacro.len>0) {
-        ins->std.arpMacro.open=true;
-        ins->std.arpMacro.loop=reader.readC();
+      if (ins->std.get_macro(DIV_MACRO_ARP, true)->len>0) {
+        ins->std.get_macro(DIV_MACRO_ARP, true)->open=true;
+        ins->std.get_macro(DIV_MACRO_ARP, true)->loop=reader.readC();
       } else {
-        ins->std.arpMacro.open=false;
+        ins->std.get_macro(DIV_MACRO_ARP, true)->open=false;
       }
       if (version>8) { // TODO: when?
-        ins->std.arpMacro.mode=reader.readC();
+        ins->std.get_macro(DIV_MACRO_ARP, true)->mode=reader.readC();
       }
 
-      ins->std.dutyMacro.len=reader.readC();
+      ins->std.get_macro(DIV_MACRO_DUTY, true)->len=reader.readC();
       if (version>5) {
-        for (int i=0; i<ins->std.dutyMacro.len; i++) {
-          ins->std.dutyMacro.val[i]=reader.readI();
+        for (int i=0; i<ins->std.get_macro(DIV_MACRO_DUTY, true)->len; i++) {
+          ins->std.get_macro(DIV_MACRO_DUTY, true)->val[i]=reader.readI();
         }
       } else {
-        for (int i=0; i<ins->std.dutyMacro.len; i++) {
-          ins->std.dutyMacro.val[i]=reader.readC();
+        for (int i=0; i<ins->std.get_macro(DIV_MACRO_DUTY, true)->len; i++) {
+          ins->std.get_macro(DIV_MACRO_DUTY, true)->val[i]=reader.readC();
         }
       }
-      if (ins->std.dutyMacro.len>0) {
-        ins->std.dutyMacro.open=true;
-        ins->std.dutyMacro.loop=reader.readC();
+      if (ins->std.get_macro(DIV_MACRO_DUTY, true)->len>0) {
+        ins->std.get_macro(DIV_MACRO_DUTY, true)->open=true;
+        ins->std.get_macro(DIV_MACRO_DUTY, true)->loop=reader.readC();
       } else {
-        ins->std.dutyMacro.open=false;
+        ins->std.get_macro(DIV_MACRO_DUTY, true)->open=false;
       }
 
-      ins->std.waveMacro.len=reader.readC();
+      ins->std.get_macro(DIV_MACRO_WAVE, true)->len=reader.readC();
       if (version>5) {
-        for (int i=0; i<ins->std.waveMacro.len; i++) {
-          ins->std.waveMacro.val[i]=reader.readI();
+        for (int i=0; i<ins->std.get_macro(DIV_MACRO_WAVE, true)->len; i++) {
+          ins->std.get_macro(DIV_MACRO_WAVE, true)->val[i]=reader.readI();
         }
       } else {
-        for (int i=0; i<ins->std.waveMacro.len; i++) {
-          ins->std.waveMacro.val[i]=reader.readC();
+        for (int i=0; i<ins->std.get_macro(DIV_MACRO_WAVE, true)->len; i++) {
+          ins->std.get_macro(DIV_MACRO_WAVE, true)->val[i]=reader.readC();
         }
       }
-      if (ins->std.waveMacro.len>0) {
-        ins->std.waveMacro.open=true;
-        ins->std.waveMacro.loop=reader.readC();
+      if (ins->std.get_macro(DIV_MACRO_WAVE, true)->len>0) {
+        ins->std.get_macro(DIV_MACRO_WAVE, true)->open=true;
+        ins->std.get_macro(DIV_MACRO_WAVE, true)->loop=reader.readC();
       } else {
-        ins->std.waveMacro.open=false;
+        ins->std.get_macro(DIV_MACRO_WAVE, true)->open=false;
       }
 
       if (ins->type==DIV_INS_C64) {
@@ -383,17 +383,17 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         // weird storage
         if (volIsCutoff) {
           // move to alg (new cutoff)
-          ins->std.algMacro.len=ins->std.volMacro.len;
-          ins->std.algMacro.loop=ins->std.volMacro.loop;
-          ins->std.algMacro.rel=ins->std.volMacro.rel;
-          for (int j=0; j<ins->std.algMacro.len; j++) {
-            ins->std.algMacro.val[j]=-(ins->std.volMacro.val[j]-18);
+          ins->std.get_macro(DIV_MACRO_ALG, true)->len=ins->std.get_macro(DIV_MACRO_VOL, true)->len;
+          ins->std.get_macro(DIV_MACRO_ALG, true)->loop=ins->std.get_macro(DIV_MACRO_VOL, true)->loop;
+          ins->std.get_macro(DIV_MACRO_ALG, true)->rel=ins->std.get_macro(DIV_MACRO_VOL, true)->rel;
+          for (int j=0; j<ins->std.get_macro(DIV_MACRO_ALG, true)->len; j++) {
+            ins->std.get_macro(DIV_MACRO_ALG, true)->val[j]=-(ins->std.get_macro(DIV_MACRO_VOL, true)->val[j]-18);
           }
-          ins->std.volMacro.len=0;
-          memset(ins->std.volMacro.val,0,256*sizeof(int));
+          ins->std.get_macro(DIV_MACRO_VOL, true)->len=0;
+          memset(ins->std.get_macro(DIV_MACRO_VOL, true)->val,0,256*sizeof(int));
         }
-        for (int j=0; j<ins->std.dutyMacro.len; j++) {
-          ins->std.dutyMacro.val[j]-=12;
+        for (int j=0; j<ins->std.get_macro(DIV_MACRO_DUTY, true)->len; j++) {
+          ins->std.get_macro(DIV_MACRO_DUTY, true)->val[j]-=12;
         }
       }
       if (ins->type==DIV_INS_GB) {

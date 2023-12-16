@@ -334,6 +334,8 @@ struct DivInstrumentSTD
           return &dummy;
         }
       }
+
+      return NULL;
     }
   };
 
@@ -362,6 +364,8 @@ struct DivInstrumentSTD
         return &dummy;
       }
     }
+
+    return NULL;
   }
 };
 
