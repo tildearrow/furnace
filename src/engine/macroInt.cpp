@@ -259,7 +259,7 @@ void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
 
 void DivMacroInt::add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMacro* m)
 {
-  for (int i = 0; i < op[oper].macros.size(); i++)
+  /*for (int i = 0; i < op[oper].macros.size(); i++)
   {
     if (op[oper].macros[i].macroType == m->macroType)
     {
@@ -267,7 +267,7 @@ void DivMacroInt::add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMa
       macroSource[i] = m;
       return;
     }
-  }
+  }*/
 
   if(!(ms->masked))
   {
@@ -281,8 +281,8 @@ DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
 {
     static DivMacroStruct dummy = DivMacroStruct(0xff);
 
-  if(macro_id < 0x20)
-  {
+  //if(macro_id < 0x20)
+  //{
     for(int i = 0; i < macroList.size(); i++)
     {
       if(macroList[i]->macroType == macro_id)
@@ -294,20 +294,21 @@ DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
     //macros.push_back(DivMacroStruct(macro_id));
     //add_macro(&macros.back(), NULL);
     return &dummy;
-  }
+ // }
 
-  else
+  /*else
   {
     for(int i = 0; i < op[(macro_id >> 5) - 1].macros.size(); i++)
     {
       if(op[(macro_id >> 5) - 1].macros[i].macroType == macro_id) return &op[(macro_id >> 5) - 1].macros[i];
     }
 
-    op[(macro_id >> 5) - 1].macros.push_back(DivMacroStruct(macro_id));
-    return &op[(macro_id >> 5) - 1].macros.back();
-  }
+    //op[(macro_id >> 5) - 1].macros.push_back(DivMacroStruct(macro_id));
+    //return &op[(macro_id >> 5) - 1].macros.back();
+    return &dummy;
+  }*/
 
-  return NULL;
+  //return NULL;
 }
 
 void DivMacroInt::init(DivInstrument* which)
@@ -392,11 +393,29 @@ DivMacroStruct* DivMacroInt::get_macro_by_type(unsigned char type)
 
 DivMacroStruct* DivMacroInt::get_op_macro_by_type(unsigned char oper, unsigned char type)
 {
-  for(int i = 0; i < 0x20; i++)
+  /*if(oper >= op.size())
+  {
+    int limit = 1 + oper - op.size();
+
+    for(int i = 0; i < limit; i++)
+    {
+      op.push_back(IntOp());
+    }
+  }
+
+  for(int i = 0; i < op[oper].macros.size(); i++)
   {
     if(op[oper].macros[i].macroType == type)
     {
       return &op[oper].macros[i];
+    }
+  }*/
+
+  for(int i = 0; i < macroList.size(); i++)
+  {
+    if(macroList[i]->macroType == type)
+    {
+      return macroList[i];
     }
   }
 
