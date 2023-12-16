@@ -239,16 +239,6 @@ void DivMacroInt::setEngine(DivEngine* eng) {
 
 void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
 {
-    /*for (int i = 0; i < macros.size(); i++)
-    {
-      if (macros[i].macroType == m->macroType)
-      {
-        macroList[i] = ms;
-        macroSource[i] = m;
-        return;
-      }
-    }*/
-
   if(!(ms->masked))
   {
     macros.push_back(*ms);
@@ -259,16 +249,6 @@ void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
 
 void DivMacroInt::add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMacro* m)
 {
-  /*for (int i = 0; i < op[oper].macros.size(); i++)
-  {
-    if (op[oper].macros[i].macroType == m->macroType)
-    {
-      macroList[i] = ms;
-      macroSource[i] = m;
-      return;
-    }
-  }*/
-
   if(!(ms->masked))
   {
     op[oper].macros.push_back(*ms);
@@ -379,29 +359,11 @@ DivMacroStruct* DivMacroInt::get_macro_by_type(unsigned char type)
 
 DivMacroStruct* DivMacroInt::get_op_macro_by_type(unsigned char oper, unsigned char type)
 {
-  /*if(oper >= op.size())
-  {
-    int limit = 1 + oper - op.size();
-
-    for(int i = 0; i < limit; i++)
-    {
-      op.push_back(IntOp());
-    }
-  }
-
   for(int i = 0; i < op[oper].macros.size(); i++)
   {
     if(op[oper].macros[i].macroType == type)
     {
       return &op[oper].macros[i];
-    }
-  }*/
-
-  for(int i = 0; i < macroList.size(); i++)
-  {
-    if(macroList[i]->macroType == type)
-    {
-      return macroList[i];
     }
   }
 
@@ -414,7 +376,7 @@ DivMacroStruct* DivMacroInt::structByType(unsigned char type)
   {
     unsigned char o = ((type >> 5) - 1) & 3;
     
-    return get_op_macro_by_type(o, type & 31);
+    return get_op_macro_by_type(o, type);
   }
 
   return get_macro_by_type(type);
