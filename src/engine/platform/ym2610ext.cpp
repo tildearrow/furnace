@@ -81,7 +81,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       } else {
         opChan[ch].macroInit(ins);       
       }
-      if (!opChan[ch].std.vol.will) {
+      if (!opChan[ch].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         opChan[ch].outVol=opChan[ch].vol;
       }
 
@@ -116,7 +116,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       opChan[ch].vol=c.value;
-      if (!opChan[ch].std.vol.has) {
+      if (!opChan[ch].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         opChan[ch].outVol=c.value;
       }
       unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
@@ -445,7 +445,7 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
     opChan[i].std.next();
 
     if (opChan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
-      opChan[i].outVol=VOL_SCALE_LOG_BROKEN(opChan[i].vol,MIN(127,ophan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),127);
+      opChan[i].outVol=VOL_SCALE_LOG_BROKEN(opChan[i].vol,MIN(127,opChan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),127);
       unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[orderedOps[i]];
       DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[orderedOps[i]];
       if (isOpMuted[i]) {

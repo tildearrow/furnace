@@ -85,7 +85,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
       } else {
         opChan[ch].macroInit(ins);       
       }
-      if (!opChan[ch].std.vol.will) {
+      if (!opChan[ch].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         opChan[ch].outVol=opChan[ch].vol;
       }
 
@@ -120,7 +120,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       opChan[ch].vol=c.value;
-      if (!opChan[ch].std.vol.has) {
+      if (!opChan[ch].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         opChan[ch].outVol=c.value;
       }
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
