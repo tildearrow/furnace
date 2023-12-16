@@ -300,7 +300,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].test=false;
-      if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.get_macro(DIV_MACRO_WAVE)->len>0) {
+      if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.get_macro(DIV_MACRO_WAVE, true)->len>0) {
         chan[c.chan].duty=ins->c64.duty;
         rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
         rWrite(c.chan*7+3,chan[c.chan].duty>>8);

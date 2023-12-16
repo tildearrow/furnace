@@ -884,7 +884,7 @@ void DivPlatformOPL::tick(bool sysTick) {
       if (slot==255) continue;
       unsigned short baseAddr=slotMap[slot];
       DivInstrumentFM::Operator& op=chan[i].state.op[(ops==4)?orderedOpsL[j]:j];
-      DivMacroInt::IntOp& m=chan[i].std.op[(ops==4)?orderedOpsL[j]:j];
+      DivMacroInt::IntOp& m=*chan[i].std.get_int_op((ops==4)?orderedOpsL[j]:j);
       if (m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->had) {
         op.am=m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);

@@ -470,7 +470,7 @@ void DivInstrument::writeFeatureOx(SafeWriter* w, int ope) {
   w->writeS(8);
   
   // write macros
-  DivInstrumentSTD::OpMacro& o=std.ops[ope];
+  DivInstrumentSTD::OpMacro& o=*std.get_op_macro(ope);
 
   writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_AM, false));
   writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_AR, false));
@@ -1100,7 +1100,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     for (int i=0; i<opCount; i++)
     {
-      DivInstrumentSTD::OpMacro& m=std.ops[i];
+      DivInstrumentSTD::OpMacro& m=*std.get_op_macro(i);
 
       if (m.op_get_macro(DIV_MACRO_OP_AM, false)->len ||
           m.op_get_macro(DIV_MACRO_OP_AR, false)->len ||
@@ -1428,7 +1428,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   }
 
   for (int i=0; i<4; i++) {
-    DivInstrumentSTD::OpMacro& op=std.ops[i];
+    DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
 
     w->writeI(op.op_get_macro(DIV_MACRO_OP_AM, false)->len);
     w->writeI(op.op_get_macro(DIV_MACRO_OP_AR, false)->len);
@@ -1469,7 +1469,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   }
 
   for (int i=0; i<4; i++) {
-    DivInstrumentSTD::OpMacro& op=std.ops[i];
+    DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
     for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_AM, false)->len; j++) {
       w->writeC(op.op_get_macro(DIV_MACRO_OP_AM, false)->val[j]&0xff);
     }
@@ -1522,7 +1522,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeI(std.get_macro(DIV_MACRO_FMS, false)->rel);
   w->writeI(std.get_macro(DIV_MACRO_AMS, false)->rel);
   for (int i=0; i<4; i++) {
-    DivInstrumentSTD::OpMacro& op=std.ops[i];
+    DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
 
     w->writeI(op.op_get_macro(DIV_MACRO_OP_AM, false)->rel);
     w->writeI(op.op_get_macro(DIV_MACRO_OP_AR, false)->rel);
@@ -1540,7 +1540,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
 
   // extended op macros
   for (int i=0; i<4; i++) {
-    DivInstrumentSTD::OpMacro& op=std.ops[i];
+    DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
 
     w->writeI(op.op_get_macro(DIV_MACRO_OP_DAM, false)->len);
     w->writeI(op.op_get_macro(DIV_MACRO_OP_DVB, false)->len);
@@ -1580,7 +1580,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   }
 
   for (int i=0; i<4; i++) {
-    DivInstrumentSTD::OpMacro& op=std.ops[i];
+    DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
     for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DAM, false)->len; j++) {
       w->writeC(op.op_get_macro(DIV_MACRO_OP_DAM, false)->val[j]);
     }
@@ -1839,7 +1839,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
 
   // op macro speed/delay
   for (int i=0; i<4; i++) {
-    DivInstrumentSTD::OpMacro& op=std.ops[i];
+    DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
 
     w->writeC(op.op_get_macro(DIV_MACRO_OP_AM, false)->speed);
     w->writeC(op.op_get_macro(DIV_MACRO_OP_AR, false)->speed);
@@ -2194,7 +2194,7 @@ void DivInstrument::readFeatureOx(SafeReader& reader, int op, short version) {
 
   unsigned short macroHeaderLen=reader.readS();
 
-  DivInstrumentMacro* target=std.ops[op].op_get_macro(DIV_MACRO_OP_AM, true);
+  DivInstrumentMacro* target=std.get_op_macro(op)->op_get_macro(DIV_MACRO_OP_AM, true);
 
   while (reader.tell()<endOfFeat) {
     size_t endOfMacroHeader=reader.tell()+macroHeaderLen;
@@ -2902,7 +2902,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     READ_MACRO_VALS(std.get_macro(DIV_MACRO_AMS, true)->val,std.get_macro(DIV_MACRO_AMS, true)->len);
 
     for (int i=0; i<4; i++) {
-      DivInstrumentSTD::OpMacro& op=std.ops[i];
+      DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
 
       op.op_get_macro(DIV_MACRO_OP_AM, true)->len=reader.readI();
       op.op_get_macro(DIV_MACRO_OP_AR, true)->len=reader.readI();
@@ -2946,7 +2946,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
 
     // FM macro low 8 bits
     for (int i=0; i<4; i++) {
-      DivInstrumentSTD::OpMacro& op=std.ops[i];
+      DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
       for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_AM, true)->len; j++) {
         op.op_get_macro(DIV_MACRO_OP_AM, true)->val[j]=(unsigned char)reader.readC();
       }
@@ -3002,7 +3002,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     std.get_macro(DIV_MACRO_AMS, true)->rel=reader.readI();
 
     for (int i=0; i<4; i++) {
-      DivInstrumentSTD::OpMacro& op=std.ops[i];
+      DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
 
       op.op_get_macro(DIV_MACRO_OP_AM, true)->rel=reader.readI();
       op.op_get_macro(DIV_MACRO_OP_AR, true)->rel=reader.readI();
@@ -3022,7 +3022,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   // extended op macros
   if (version>=61) {
     for (int i=0; i<4; i++) {
-      DivInstrumentSTD::OpMacro& op=std.ops[i];
+      DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
 
       op.op_get_macro(DIV_MACRO_OP_DAM, true)->len=reader.readI();
       op.op_get_macro(DIV_MACRO_OP_DVB, true)->len=reader.readI();
@@ -3062,7 +3062,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     }
 
     for (int i=0; i<4; i++) {
-      DivInstrumentSTD::OpMacro& op=std.ops[i];
+      DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
       for (int j=0; j<op.op_get_macro(DIV_MACRO_OP_DAM, true)->len; j++) {
         op.op_get_macro(DIV_MACRO_OP_DAM, true)->val[j]=(unsigned char)reader.readC();
       }
@@ -3362,7 +3362,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
 
     // op macro speed/delay
     for (int i=0; i<4; i++) {
-      DivInstrumentSTD::OpMacro& op=std.ops[i];
+      DivInstrumentSTD::OpMacro& op=*std.get_op_macro(i);
 
       op.op_get_macro(DIV_MACRO_OP_AM, true)->speed=reader.readC();
       op.op_get_macro(DIV_MACRO_OP_AR, true)->speed=reader.readC();

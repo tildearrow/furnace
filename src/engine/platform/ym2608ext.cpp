@@ -524,7 +524,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
     // param macros
     unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[i]];
     DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[i]];
-    DivMacroInt::IntOp& m=opChan[i].std.op[orderedOps[i]];
+    DivMacroInt::IntOp& m=*opChan[i].std.get_int_op(orderedOps[i]);
     if (m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->had) {
       op.am=m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->val;
       rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));

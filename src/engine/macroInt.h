@@ -89,6 +89,9 @@ class DivMacroInt {
         {
           if(macros[i].macroType == macro_id) return &macros[i];
         }
+
+        macros.push_back(DivMacroStruct(macro_id));
+        return &macros.back();
       }
     };
 
@@ -98,6 +101,21 @@ class DivMacroInt {
       {
         delete macroList[i];
       }
+    }
+
+    IntOp* get_int_op(int index)
+    {
+      if(index >= op.size())
+      {
+        int limit = index + 1 - op.size();
+
+        for(int j = 0; j < limit; j++)
+        {
+          op.push_back(IntOp());
+        }
+      }
+
+      return &op[index];
     }
 
     std::vector<IntOp> op;

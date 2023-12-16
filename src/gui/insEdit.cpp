@@ -4565,6 +4565,20 @@ void FurnaceGUI::drawInsEdit() {
             drawMacros(macroList,macroEditStateFM);
             ImGui::EndTabItem();
           }
+
+          for (int i=0; i<opCount; i++)
+          {
+            if(ins->std.ops.size() < opCount)
+            {
+              int limit = opCount - ins->std.ops.size();
+
+              for(int j = 0; j < limit; j++)
+              {
+                ins->std.ops.push_back(DivInstrumentSTD::OpMacro());
+              }
+            }
+          }
+
           for (int i=0; i<opCount; i++) {
             if (ins->type==DIV_INS_OPL_DRUMS) {
               if (i>0) break;

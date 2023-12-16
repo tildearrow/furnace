@@ -273,7 +273,7 @@ void DivPlatformArcade::tick(bool sysTick) {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
-      DivMacroInt::IntOp& m=chan[i].std.op[j];
+      DivMacroInt::IntOp& m=*chan[i].std.get_int_op(j);
       if (m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->had) {
         op.am=m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->val;
         rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));

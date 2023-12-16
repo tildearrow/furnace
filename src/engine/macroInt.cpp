@@ -265,6 +265,9 @@ DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
     {
       if(macros[i].macroType == macro_id) return &macros[i];
     }
+
+    macros.push_back(DivMacroStruct(macro_id));
+    return &macros.back();
   }
 
   else
@@ -273,6 +276,9 @@ DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
     {
       if(op[(macro_id >> 5) - 1].macros[i].macroType == macro_id) return &op[(macro_id >> 5) - 1].macros[i];
     }
+
+    op[(macro_id >> 5) - 1].macros.push_back(DivMacroStruct(macro_id));
+    return &op[(macro_id >> 5) - 1].macros.back();
   }
 
   return NULL;
