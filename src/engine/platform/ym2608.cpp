@@ -735,42 +735,42 @@ void DivPlatformYM2608::tick(bool sysTick) {
   if (chan[15].furnacePCM) {
     chan[15].std.next();
 
-    if (chan[15].std.vol.had) {
-      chan[15].outVol=(chan[15].vol*MIN(chan[15].macroVolMul,chan[15].std.vol.val))/chan[15].macroVolMul;
+    if (chan[15].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[15].outVol=(chan[15].vol*MIN(chan[15].macroVolMul,chan[15].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/chan[15].macroVolMul;
       immWrite(0x10b,chan[15].outVol);
       hardResetElapsed++;
     }
 
     if (NEW_ARP_STRAT) {
       chan[15].handleArp();
-    } else if (chan[15].std.arp.had) {
+    } else if (chan[15].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[15].inPorta) {
-        chan[15].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[15].note,chan[15].std.arp.val));
+        chan[15].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[15].note,chan[15].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[15].freqChanged=true;
     }
 
-    if (chan[15].std.pitch.had) {
-      if (chan[15].std.pitch.mode) {
-        chan[15].pitch2+=chan[15].std.pitch.val;
+    if (chan[15].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[15].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[15].pitch2+=chan[15].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[15].pitch2,-65535,65535);
       } else {
-        chan[15].pitch2=chan[15].std.pitch.val;
+        chan[15].pitch2=chan[15].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[15].freqChanged=true;
     }
 
-    if (chan[15].std.panL.had) {
-      if (chan[15].pan!=(chan[15].std.panL.val&3)) {
-        chan[15].pan=chan[15].std.panL.val&3;
+    if (chan[15].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+      if (chan[15].pan!=(chan[15].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&3)) {
+        chan[15].pan=chan[15].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&3;
         if (!isMuted[15]) {
           immWrite(0x101,(isMuted[15]?0:(chan[15].pan<<6))|2);
           hardResetElapsed++;
         }
       }
     }
-    if (chan[15].std.phaseReset.had) {
-      if ((chan[15].std.phaseReset.val==1) && chan[15].active) {
+    if (chan[15].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if ((chan[15].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) && chan[15].active) {
         chan[15].keyOn=true;
       }
     }

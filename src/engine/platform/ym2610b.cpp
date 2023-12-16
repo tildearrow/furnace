@@ -737,42 +737,42 @@ void DivPlatformYM2610B::tick(bool sysTick) {
   if (chan[adpcmBChanOffs].furnacePCM) {
     chan[adpcmBChanOffs].std.next();
 
-    if (chan[adpcmBChanOffs].std.vol.had) {
-      chan[adpcmBChanOffs].outVol=(chan[adpcmBChanOffs].vol*MIN(chan[adpcmBChanOffs].macroVolMul,chan[adpcmBChanOffs].std.vol.val))/chan[adpcmBChanOffs].macroVolMul;
+    if (chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[adpcmBChanOffs].outVol=(chan[adpcmBChanOffs].vol*MIN(chan[adpcmBChanOffs].macroVolMul,chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/chan[adpcmBChanOffs].macroVolMul;
       immWrite(0x1b,chan[adpcmBChanOffs].outVol);
       hardResetElapsed++;
     }
 
     if (NEW_ARP_STRAT) {
       chan[adpcmBChanOffs].handleArp();
-    } else if (chan[adpcmBChanOffs].std.arp.had) {
+    } else if (chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[adpcmBChanOffs].inPorta) {
-        chan[adpcmBChanOffs].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmBChanOffs].note,chan[adpcmBChanOffs].std.arp.val));
+        chan[adpcmBChanOffs].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmBChanOffs].note,chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[adpcmBChanOffs].freqChanged=true;
     }
 
-    if (chan[adpcmBChanOffs].std.pitch.had) {
-      if (chan[adpcmBChanOffs].std.pitch.mode) {
-        chan[adpcmBChanOffs].pitch2+=chan[adpcmBChanOffs].std.pitch.val;
+    if (chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[adpcmBChanOffs].pitch2+=chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[adpcmBChanOffs].pitch2,-65535,65535);
       } else {
-        chan[adpcmBChanOffs].pitch2=chan[adpcmBChanOffs].std.pitch.val;
+        chan[adpcmBChanOffs].pitch2=chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[adpcmBChanOffs].freqChanged=true;
     }
 
-    if (chan[adpcmBChanOffs].std.panL.had) {
-      if (chan[adpcmBChanOffs].pan!=(chan[adpcmBChanOffs].std.panL.val&3)) {
-        chan[adpcmBChanOffs].pan=chan[adpcmBChanOffs].std.panL.val&3;
+    if (chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+      if (chan[adpcmBChanOffs].pan!=(chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&3)) {
+        chan[adpcmBChanOffs].pan=chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&3;
         if (!isMuted[adpcmBChanOffs]) {
           immWrite(0x11,(isMuted[adpcmBChanOffs]?0:(chan[adpcmBChanOffs].pan<<6)));
           hardResetElapsed++;
         }
       }
     }
-    if (chan[adpcmBChanOffs].std.phaseReset.had) {
-      if ((chan[adpcmBChanOffs].std.phaseReset.val==1) && chan[adpcmBChanOffs].active) {
+    if (chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if ((chan[adpcmBChanOffs].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) && chan[adpcmBChanOffs].active) {
         chan[adpcmBChanOffs].keyOn=true;
       }
     }

@@ -275,8 +275,8 @@ void DivPlatformSMS::tick(bool sysTick) {
     } else { // 3 fixed values
       unsigned char value;
       // TODO: new arp?
-      if (chan[3].std.arp.had) {
-        value=parent->calcArp(chan[3].note,chan[3].std.arp.val)%12;
+      if (chan[3].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
+        value=parent->calcArp(chan[3].note,chan[3].std.get_div_macro_struct(DIV_MACRO_ARP)->val)%12;
       } else { // pardon?
         value=chan[3].note%12;
       }

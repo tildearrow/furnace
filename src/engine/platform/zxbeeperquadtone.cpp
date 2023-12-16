@@ -132,18 +132,18 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
   }
   if (NEW_ARP_STRAT) {
     chan[4].handleArp();
-  } else if (chan[4].std.arp.had) {
+  } else if (chan[4].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
     if (!chan[4].inPorta) {
-      chan[4].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[4].note,chan[4].std.arp.val));
+      chan[4].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[4].note,chan[4].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
     }
     chan[4].freqChanged=true;
   }
-  if (chan[4].std.pitch.had) {
-    if (chan[4].std.pitch.mode) {
-      chan[4].pitch2+=chan[4].std.pitch.val;
+  if (chan[4].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+    if (chan[4].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+      chan[4].pitch2+=chan[4].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       CLAMP_VAR(chan[4].pitch2,-65535,65535);
     } else {
-      chan[4].pitch2=chan[4].std.pitch.val;
+      chan[4].pitch2=chan[4].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
     }
     chan[4].freqChanged=true;
   }
