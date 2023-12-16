@@ -239,7 +239,7 @@ void DivMacroInt::setEngine(DivEngine* eng) {
 
 void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
 {
-    for (int i = 0; i < macros.size(); i++)
+    /*for (int i = 0; i < macros.size(); i++)
     {
       if (macros[i].macroType == m->macroType)
       {
@@ -247,7 +247,7 @@ void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
         macroSource[i] = m;
         return;
       }
-    }
+    }*/
 
   if(!(ms->masked))
   {
@@ -314,8 +314,8 @@ void DivMacroInt::init(DivInstrument* which)
 {
   ins=which;
   // initialize
-  //macroList.clear();
-  //macroSource.clear();
+  macroList.clear();
+  macroSource.clear();
   subTick=1;
 
   hasRelease=false;
