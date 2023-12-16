@@ -239,9 +239,19 @@ void DivMacroInt::setEngine(DivEngine* eng) {
 
 void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
 {
+    for (int i = 0; i < macros.size(); i++)
+    {
+      if (macros[i].macroType == m->macroType)
+      {
+        macroList[i] = ms;
+        macroSource[i] = m;
+        return;
+      }
+    }
+
   if(!(ms->masked))
   {
-    macros.push_back(DivMacroStruct(m->macroType));
+    macros.push_back(*ms);
     macroList.push_back(ms);
     macroSource.push_back(m);
   }
@@ -249,9 +259,19 @@ void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
 
 void DivMacroInt::add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMacro* m)
 {
+  for (int i = 0; i < op[oper].macros.size(); i++)
+  {
+    if (op[oper].macros[i].macroType == m->macroType)
+    {
+      macroList[i] = ms;
+      macroSource[i] = m;
+      return;
+    }
+  }
+
   if(!(ms->masked))
   {
-    op[oper].macros.push_back(DivMacroStruct(m->macroType));
+    op[oper].macros.push_back(*ms);
     macroList.push_back(ms);
     macroSource.push_back(m);
   }
@@ -259,15 +279,21 @@ void DivMacroInt::add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMa
 
 DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
 {
+    static DivMacroStruct dummy = DivMacroStruct(0xff);
+
   if(macro_id < 0x20)
   {
-    for(int i = 0; i < macros.size(); i++)
+    for(int i = 0; i < macroList.size(); i++)
     {
-      if(macros[i].macroType == macro_id) return &macros[i];
+      if(macroList[i]->macroType == macro_id)
+      {
+        return macroList[i];
+      }
     }
 
-    macros.push_back(DivMacroStruct(macro_id));
-    return &macros.back();
+    //macros.push_back(DivMacroStruct(macro_id));
+    //add_macro(&macros.back(), NULL);
+    return &dummy;
   }
 
   else
@@ -288,8 +314,8 @@ void DivMacroInt::init(DivInstrument* which)
 {
   ins=which;
   // initialize
-  macroList.clear();
-  macroSource.clear();
+  //macroList.clear();
+  //macroSource.clear();
   subTick=1;
 
   hasRelease=false;
