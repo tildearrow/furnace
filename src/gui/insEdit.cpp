@@ -2955,6 +2955,19 @@ void FurnaceGUI::drawInsEdit() {
                 ins->std.opMacros[j].wsMacro.vZoom=-1;
                 ins->std.opMacros[j].ksrMacro.vZoom=-1;
               }*/
+
+              for(int i = 0; i < ins->std.macros.size(); i++)
+              {
+                ins->std.macros[i].vZoom = -1;
+              }
+
+              for(int j = 0; j < ins->std.ops.size(); j++)
+              {
+                for(int i = 0; i < ins->std.ops[j].macros.size(); i++)
+                {
+                  ins->std.ops[j].macros[i].vZoom = -1;
+                }
+              }
             }
           }
           ImGui::EndCombo();

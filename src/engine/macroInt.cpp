@@ -274,41 +274,23 @@ void DivMacroInt::add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMa
     op[oper].macros.push_back(*ms);
     macroList.push_back(ms);
     macroSource.push_back(m);
+
+    macroList[macroList.size() - 1] = &op[oper].macros[op[oper].macros.size() - 1];
   }
 }
 
 DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
 {
-    static DivMacroStruct dummy = DivMacroStruct(0xff);
-
-  //if(macro_id < 0x20)
-  //{
-    for(int i = 0; i < macroList.size(); i++)
-    {
-      if(macroList[i]->macroType == macro_id)
-      {
-        return macroList[i];
-      }
-    }
-
-    //macros.push_back(DivMacroStruct(macro_id));
-    //add_macro(&macros.back(), NULL);
-    return &dummy;
- // }
-
-  /*else
+  static DivMacroStruct dummy = DivMacroStruct(0xff);
+  for(int i = 0; i < macroList.size(); i++)
   {
-    for(int i = 0; i < op[(macro_id >> 5) - 1].macros.size(); i++)
+    if(macroList[i]->macroType == macro_id)
     {
-      if(op[(macro_id >> 5) - 1].macros[i].macroType == macro_id) return &op[(macro_id >> 5) - 1].macros[i];
+      return macroList[i];
     }
+  }
 
-    //op[(macro_id >> 5) - 1].macros.push_back(DivMacroStruct(macro_id));
-    //return &op[(macro_id >> 5) - 1].macros.back();
-    return &dummy;
-  }*/
-
-  //return NULL;
+  return &dummy;
 }
 
 void DivMacroInt::init(DivInstrument* which)
@@ -325,6 +307,8 @@ void DivMacroInt::init(DivInstrument* which)
   if (ins==NULL) return;
 
   // prepare common macro
+  macros.clear();
+
   for(int i = 0; i < ins->std.macros.size(); i++)
   {
     if(ins->std.macros[i].len > 0)
@@ -346,6 +330,8 @@ void DivMacroInt::init(DivInstrument* which)
   // prepare FM operator macros
   for (int oper=0; oper<ins->std.ops.size(); oper++)
   {
+    op[oper].macros.clear();
+
     for (int i=0; i<ins->std.ops[oper].macros.size(); i++)
     {
       if(ins->std.ops[oper].macros[i].len > 0)

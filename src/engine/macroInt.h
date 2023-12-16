@@ -85,21 +85,39 @@ class DivMacroInt {
 
       DivMacroStruct* IntOp::op_get_div_macro_struct(uint8_t macro_id)
       {
+        static DivMacroStruct dummy = DivMacroStruct(0xff);
+
         for(int i = 0; i < macros.size(); i++)
         {
+          DivMacroStruct* fuck = &macros[i];
           if(macros[i].macroType == macro_id) return &macros[i];
         }
 
-        macros.push_back(DivMacroStruct(macro_id));
-        return &macros.back();
+        //macros.push_back(DivMacroStruct(macro_id));
+        //return &macros.back();
+        return &dummy;
       }
+
+      /*DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
+      {
+        static DivMacroStruct dummy = DivMacroStruct(0xff);
+        for(int i = 0; i < macroList.size(); i++)
+        {
+          if(macroList[i]->macroType == macro_id)
+          {
+            return macroList[i];
+          }
+        }
+
+        return &dummy;
+      }*/
     };
 
     ~DivMacroInt()
     {
       for(int i = 0; i < macroList.size(); i++)
       {
-        delete macroList[i];
+        //delete macroList[i];
       }
     }
 
