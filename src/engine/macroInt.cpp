@@ -379,7 +379,7 @@ void DivMacroInt::notifyInsDeletion(DivInstrument* which) {
 
 DivMacroStruct* DivMacroInt::get_macro_by_type(unsigned char type)
 {
-  for(int i = 0; i < 0x20; i++)
+  for(int i = 0; i < macros.size(); i++)
   {
     if(macros[i].macroType == type)
     {
