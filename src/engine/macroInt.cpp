@@ -279,13 +279,22 @@ int DivMacroInt::get_macro_count(DivInstrument* ins)
 
   for(int i = 0; i < ins->std.macros.size(); i++)
   {
-    sizeof(DivInstrument);
+    if(ins->std.macros[i].len > 0) sum++;
   }
+
+  return sum;
 }
 
 int DivMacroInt::get_op_macro_count(DivInstrument* ins, uint8_t oper)
 {
+  int sum = 0;
 
+  for(int i = 0; i < ins->std.ops[oper].macros.size(); i++)
+  {
+    if(ins->std.ops[oper].macros[i].len > 0) sum++;
+  }
+
+  return sum;
 }
 
 void DivMacroInt::init(DivInstrument* which)
@@ -306,7 +315,7 @@ void DivMacroInt::init(DivInstrument* which)
   // prepare common macro
   macros.clear();
   macros.shrink_to_fit();
-  macros.reserve(ins->std.macros.size());
+  macros.reserve(get_macro_count(which));
 
   for(int i = 0; i < ins->std.macros.size(); i++)
   {
@@ -331,7 +340,7 @@ void DivMacroInt::init(DivInstrument* which)
   {
     op[oper].macros.clear();
     op[oper].macros.shrink_to_fit();
-    op[oper].macros.reserve(ins->std.ops[oper].macros.size());
+    op[oper].macros.reserve(get_op_macro_count(which, oper));
 
     for (int i=0; i<ins->std.ops[oper].macros.size(); i++)
     {
