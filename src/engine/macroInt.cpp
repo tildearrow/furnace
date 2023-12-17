@@ -363,6 +363,16 @@ DivMacroStruct* DivMacroInt::get_macro_by_type(unsigned char type)
 
 DivMacroStruct* DivMacroInt::get_op_macro_by_type(unsigned char oper, unsigned char type)
 {
+  if(op.size() <= oper)
+  {
+    int limit = 1 + oper - op.size();
+
+    for(int i = 0; i < limit; i++)
+    {
+      op.push_back(IntOp());
+    }
+  }
+
   for(int i = 0; i < op[oper].macros.size(); i++)
   {
     if(op[oper].macros[i].macroType == type)
