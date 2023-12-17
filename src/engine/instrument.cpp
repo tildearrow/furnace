@@ -357,7 +357,6 @@ void DivInstrument::writeFeatureMA(SafeWriter* w) {
   w->writeS(8);
   
   // write macros
-  
   writeMacro(w,std.volMacro);
   writeMacro(w,std.arpMacro);
   writeMacro(w,std.dutyMacro);
