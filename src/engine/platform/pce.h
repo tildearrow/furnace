@@ -86,7 +86,7 @@ class DivPlatformPCE: public DivDispatch {
     DivChannelModeHints getModeHints(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
-    int mapVelocity(int ch, unsigned char vel);
+    int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

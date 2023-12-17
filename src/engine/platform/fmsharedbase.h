@@ -122,7 +122,7 @@ class DivPlatformFMBase: public DivDispatch {
       }
     }
     
-    virtual int mapVelocity(int ch, unsigned char vel) {
+    virtual int mapVelocity(int ch, float vel) {
       // -0.75dB per step
       // -6: 64: 8
       // -12: 32: 16
@@ -133,7 +133,7 @@ class DivPlatformFMBase: public DivDispatch {
       // -42: 1: 56
       if (vel==0) return 0;
       if (vel==127) return 127;
-      return CLAMP(round(128.0-(56.0-log2(vel)*8.0)),0,127);
+      return CLAMP(round(128.0-(56.0-log2(vel*127.0)*8.0)),0,127);
     }
 
     friend void putDispatchChan(void*,int,int);

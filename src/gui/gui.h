@@ -1003,7 +1003,7 @@ struct MIDIMap {
     valueInputControlMSB(0),
     valueInputControlLSB(0),
     valueInputControlSingle(0),
-    volExp(1.0f),
+    volExp(2.0f),
     valueInputCurMSB(0),
     valueInputCurLSB(0),
     valueInputCurSingle(0) {

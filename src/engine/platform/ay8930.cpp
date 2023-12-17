@@ -718,8 +718,8 @@ DivDispatchOscBuffer* DivPlatformAY8930::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
-int DivPlatformAY8930::mapVelocity(int ch, unsigned char vel) {
-  return round(31.0*pow(((double)vel/127.0),0.22));
+int DivPlatformAY8930::mapVelocity(int ch, float vel) {
+  return round(31.0*pow(vel,0.22));
 }
 
 unsigned char* DivPlatformAY8930::getRegisterPool() {
