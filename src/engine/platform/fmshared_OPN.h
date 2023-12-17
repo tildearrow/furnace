@@ -191,7 +191,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
       if (ch==adpcmBChanOffs) return vel*255.0;
       if (ch>=adpcmAChanOffs) {
         if (vel==0) return 0;
-        if (vel==127) return 31;
+        if (vel>=1.0) return 31;
         return CLAMP(round(32.0-(56.0-log2(vel*127.0)*8.0)),0,31);
       }
       if (ch>=psgChanOffs) return round(15.0*pow(vel,0.33));

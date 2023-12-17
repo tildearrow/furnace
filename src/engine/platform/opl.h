@@ -150,6 +150,7 @@ class DivPlatformOPL: public DivDispatch {
     unsigned short getPan(int chan);
     DivChannelPair getPaired(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

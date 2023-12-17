@@ -132,7 +132,7 @@ class DivPlatformFMBase: public DivDispatch {
       // -36: 2: 48
       // -42: 1: 56
       if (vel==0) return 0;
-      if (vel==127) return 127;
+      if (vel>=1.0) return 127;
       return CLAMP(round(128.0-(56.0-log2(vel*127.0)*8.0)),0,127);
     }
 
