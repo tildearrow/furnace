@@ -539,6 +539,10 @@ DivDispatchOscBuffer* DivPlatformPCE::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+int DivPlatformPCE::mapVelocity(int ch, float vel) {
+  return round(31.0*pow(vel,0.22));
+}
+
 unsigned char* DivPlatformPCE::getRegisterPool() {
   return regPool;
 }

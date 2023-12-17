@@ -424,6 +424,7 @@ class DivEngine {
   bool midiOutProgramChange;
   int midiOutMode;
   int midiOutTimeRate;
+  float midiVolExp;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
@@ -1185,6 +1186,9 @@ class DivEngine {
     // set MIDI direct channel map
     void setMidiDirect(bool value);
 
+    // set MIDI volume curve exponent
+    void setMidiVolExp(float value);
+
     // set MIDI input callback
     // if the specified function returns -2, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
@@ -1262,6 +1266,7 @@ class DivEngine {
       midiOutProgramChange(false),
       midiOutMode(DIV_MIDI_MODE_NOTE),
       midiOutTimeRate(0),
+      midiVolExp(2.0f), // General MIDI standard
       softLockCount(0),
       subticks(0),
       ticks(0),

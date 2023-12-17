@@ -600,10 +600,10 @@ class DivDispatch {
     /**
      * map MIDI velocity (from 0 to 127) to chip volume.
      * @param ch the chip channel. -1 means N/A.
-     * @param vel input velocity.
+     * @param vel input velocity, from 0.0 to 1.0.
      * @return output volume.
      */
-    virtual int mapVelocity(int ch, unsigned char vel);
+    virtual int mapVelocity(int ch, float vel);
 
     /**
      * get the lowest note in a portamento.
