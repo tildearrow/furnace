@@ -273,6 +273,21 @@ DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
   return &dummy;
 }
 
+int DivMacroInt::get_macro_count(DivInstrument* ins)
+{
+  int sum = 0;
+
+  for(int i = 0; i < ins->std.macros.size(); i++)
+  {
+    sizeof(DivInstrument);
+  }
+}
+
+int DivMacroInt::get_op_macro_count(DivInstrument* ins, uint8_t oper)
+{
+
+}
+
 void DivMacroInt::init(DivInstrument* which)
 {
   ins=which;

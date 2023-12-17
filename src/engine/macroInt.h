@@ -215,6 +215,21 @@ class DivMacroInt {
      */
     DivMacroStruct* get_op_macro_by_type(unsigned char oper, unsigned char type);
 
+    /**
+     * Get number of instrument macros that actually need to be executed.
+     * @param ins DivInstrument pointer.
+     * @return a number of macros that actually need to be processed.
+     */
+    int DivMacroInt::get_macro_count(DivInstrument* ins);
+
+    /**
+     * Get number of FM operator macros that actually need to be executed.
+     * @param ins DivInstrument pointer.
+     * @param oper FM operator index.
+     * @return a number of specified FM operator macros that actually need to be processed.
+     */
+    int DivMacroInt::get_op_macro_count(DivInstrument* ins, uint8_t oper);
+
     DivMacroInt()
     {
       macros.clear();
