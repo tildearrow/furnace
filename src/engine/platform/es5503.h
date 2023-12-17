@@ -106,7 +106,6 @@ class DivPlatformES5503: public DivDispatch {
     void writeSampleMemoryByte(unsigned int address, unsigned char value);
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    int mapVelocity(int ch, unsigned char vel);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
