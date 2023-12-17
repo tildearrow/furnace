@@ -1300,6 +1300,12 @@ DivDispatchOscBuffer* DivPlatformGenesis::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+int DivPlatformGenesis::mapVelocity(int ch, float vel) {
+  if (ch==csmChan) return DivPlatformOPN::mapVelocity(ch,vel);
+  if (ch>5) return DivPlatformOPN::mapVelocity(5,vel);
+  return DivPlatformOPN::mapVelocity(ch,vel);
+}
+
 unsigned char* DivPlatformGenesis::getRegisterPool() {
   return regPool;
 }
