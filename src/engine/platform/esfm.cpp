@@ -1021,7 +1021,7 @@ void DivPlatformESFM::notifyInsDeletion(void* ins) {
 
 int DivPlatformESFM::mapVelocity(int ch, float vel) {
   const int volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
-  double attenDb=40*log10(vel); // 40dB/decade for a quadratic mapping, per MIDI standard
+  double attenDb=20*log10(vel); // 20dB/decade for a linear mapping
   double attenUnits=attenDb/0.75; // 0.75dB/unit
   return MAX(0,volMax+attenUnits);
 }
