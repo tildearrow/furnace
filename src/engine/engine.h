@@ -851,6 +851,9 @@ class DivEngine {
     // get channel max volume
     int getMaxVolumeChan(int chan);
 
+    // map MIDI velocity to volume
+    int mapVelocity(int ch, float vel);
+
     // get current order
     unsigned char getOrder();
 
