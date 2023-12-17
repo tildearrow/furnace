@@ -308,6 +308,10 @@ DivDispatchOscBuffer* DivPlatformT6W28::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+int DivPlatformT6W28::mapVelocity(int ch, unsigned char vel) {
+  return round(15.0*pow(((double)vel/127.0),0.33));
+}
+
 unsigned char* DivPlatformT6W28::getRegisterPool() {
   return regPool;
 }

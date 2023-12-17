@@ -462,6 +462,10 @@ DivDispatchOscBuffer* DivPlatformSMS::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+int DivPlatformSMS::mapVelocity(int ch, unsigned char vel) {
+  return round(15.0*pow(((double)vel/127.0),0.33));
+}
+
 unsigned char* DivPlatformSMS::getRegisterPool() {
   return regPool;
 }

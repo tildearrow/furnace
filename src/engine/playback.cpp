@@ -1372,8 +1372,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     }
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
-      if (note.volume>=0) {
-        int mappedVol=disCont[dispatchOfChan[note.channel]].dispatch->mapVelocity(note.channel,note.volume);
+      if (note.volume>=0 && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
+        int mappedVol=disCont[dispatchOfChan[note.channel]].dispatch->mapVelocity(dispatchChanOfChan[note.channel],note.volume);
         logV("dispatching volume (%d -> %d)",note.volume,mappedVol);
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
       }
