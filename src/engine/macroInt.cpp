@@ -185,15 +185,19 @@ void DivMacroInt::next() {
   }
 }
 
+#define OP_MACRO_MASKED(oper, id) (op[oper].macro_mask[((id) & 0x1f) / 8] & (1 << (((id) & 0x1f) & 7)))
+#define MACRO_MASKED(id) (macro_mask[(id) / 8] & (1 << ((id) & 7)))
+
 void DivMacroInt::consider_macro(unsigned char id, bool enabled)
 {
-  for(int i = 0; i < 0x20; i++)
+  if(enabled)
   {
-    if(macros[i].macroType == id)
-    {
-      macros[i].masked = enabled;
-      return;
-    }
+    macro_mask[id / 8] |= (1 << (id & 7));
+  }
+
+  else
+  {
+    macro_mask[id / 8] &= ~(1 << (id & 7));
   }
 
   return;
@@ -201,13 +205,16 @@ void DivMacroInt::consider_macro(unsigned char id, bool enabled)
 
 void DivMacroInt::consider_op_macro(unsigned char oper, unsigned char id, bool enabled)
 {
-  for(int i = 0; i < 0x20; i++)
+  uint8_t new_id = id & 0x1f;
+
+  if(enabled)
   {
-    if(op[oper].macros[i].macroType == id)
-    {
-      op[oper].macros[i].masked = enabled;
-      return;
-    }
+    op[oper].macro_mask[new_id / 8] |= (1 << (new_id & 7));
+  }
+
+  else
+  {
+    op[oper].macro_mask[new_id / 8] &= ~(1 << (new_id & 7));
   }
 
   return;
@@ -226,9 +233,6 @@ void DivMacroInt::mask(unsigned char id, bool enabled)
   }
 }
 
-#undef CONSIDER_OP
-#undef CONSIDER
-
 void DivMacroInt::release() {
   released=true;
 }
@@ -237,36 +241,32 @@ void DivMacroInt::setEngine(DivEngine* eng) {
   e=eng;
 }
 
-void DivMacroInt::add_macro(DivMacroStruct* ms, DivInstrumentMacro* m)
+void DivMacroInt::add_macro(uint8_t macro_type, DivInstrumentMacro* m)
 {
-  if(!(ms->masked))
-  {
-    macros.push_back(*ms);
-    macroList.push_back(ms);
-    macroSource.push_back(m);
-  }
+  if(MACRO_MASKED(macro_type)) return;
+
+  macros.push_back(DivMacroStruct(macro_type));
+  macroList.push_back(&macros.back());
+  macroSource.push_back(m);
 }
 
-void DivMacroInt::add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMacro* m)
+void DivMacroInt::add_op_macro(uint8_t oper, uint8_t macro_type, DivInstrumentMacro* m)
 {
-  if(!(ms->masked))
-  {
-    op[oper].macros.push_back(*ms);
-    macroList.push_back(ms);
-    macroSource.push_back(m);
+  if(OP_MACRO_MASKED(oper, macro_type)) return;
 
-    macroList[macroList.size() - 1] = &op[oper].macros[op[oper].macros.size() - 1];
-  }
+  op[oper].macros.push_back(DivMacroStruct(macro_type));
+  macroList.push_back(&op[oper].macros.back());
+  macroSource.push_back(m);
 }
 
 DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
 {
   static DivMacroStruct dummy = DivMacroStruct(0xff);
-  for(int i = 0; i < macroList.size(); i++)
+  for(int i = 0; i < macros.size(); i++)
   {
-    if(macroList[i]->macroType == macro_id)
+    if(macros[i].macroType == macro_id)
     {
-      return macroList[i];
+      return &macros[i];
     }
   }
 
@@ -293,7 +293,7 @@ void DivMacroInt::init(DivInstrument* which)
   {
     if(ins->std.macros[i].len > 0)
     {
-      add_macro(new DivMacroStruct(ins->std.macros[i].macroType), &ins->std.macros[i]);
+      add_macro(ins->std.macros[i].macroType, &ins->std.macros[i]);
     }
   }
 
@@ -316,7 +316,7 @@ void DivMacroInt::init(DivInstrument* which)
     {
       if(ins->std.ops[oper].macros[i].len > 0)
       {
-        add_op_macro(oper, new DivMacroStruct(ins->std.ops[oper].macros[i].macroType), &ins->std.ops[oper].macros[i]);
+        add_op_macro(oper, ins->std.ops[oper].macros[i].macroType, &ins->std.ops[oper].macros[i]);
       }
     }
   }
@@ -342,15 +342,13 @@ void DivMacroInt::notifyInsDeletion(DivInstrument* which) {
   }
 }
 
-//#define CONSIDER(x,y) case (y&0x1f): return &x; break;
-
 DivMacroStruct* DivMacroInt::get_macro_by_type(unsigned char type)
 {
-  for(int i = 0; i < macroList.size(); i++)
+  for(int i = 0; i < macros.size(); i++)
   {
-    if(macroList[i]->macroType == type)
+    if(macros[i].macroType == type)
     {
-      return macroList[i];
+      return &macros[i];
     }
   }
 

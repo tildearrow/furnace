@@ -72,15 +72,22 @@ class DivMacroInt {
     // common macro
 
     std::vector<DivMacroStruct> macros;
+    uint8_t macro_mask[4];
   
     // FM operator macro
     struct IntOp
     {
       std::vector<DivMacroStruct> macros;
+      uint8_t macro_mask[4];
 
       IntOp()
       {
         macros.clear();
+
+        for(int i = 0; i < 4; i++)
+        {
+          macro_mask[i] = 0;
+        }
       }
 
       DivMacroStruct* IntOp::op_get_div_macro_struct(uint8_t macro_id)
@@ -95,14 +102,6 @@ class DivMacroInt {
         return &dummy;
       }
     };
-
-    ~DivMacroInt()
-    {
-      for(int i = 0; i < macroList.size(); i++)
-      {
-        //delete macroList[i];
-      }
-    }
 
     IntOp* get_int_op(int index)
     {
@@ -165,19 +164,19 @@ class DivMacroInt {
     DivMacroStruct* structByType(unsigned char which);
 
     /**
-     * Add MS and M to the corresponding macro lists.
-     * @param ms DivMacroStruct pointer.
+     * Add macro of specified type to corresponding macro lists.
+     * @param macro_type Macro type.
      * @param m DivInstrumentMacro pointer.
      */
-    void add_macro(DivMacroStruct* ms, DivInstrumentMacro* m);
+    void add_macro(uint8_t macro_type, DivInstrumentMacro* m);
 
     /**
-     * Add MS and M to the corresponding macro lists of OpInt struct corrsponding to OPER operator.
+     * Add macro of specified type to macro lists of OpInt struct corresponding to OPER operator.
      * @param oper Operator index.
-     * @param ms DivMacroStruct pointer.
+     * @param macro_type Macro type.
      * @param m DivInstrumentMacro pointer.
      */
-    void add_op_macro(uint8_t oper, DivMacroStruct* ms, DivInstrumentMacro* m);
+    void add_op_macro(uint8_t oper, uint8_t macro_type, DivInstrumentMacro* m);
 
     /**
      * Get DivMacroStruct pointer for a given macro_id.
@@ -220,6 +219,11 @@ class DivMacroInt {
     {
       macroList.clear();
       macroSource.clear();
+
+      for(int i = 0; i < 4; i++)
+      {
+        macro_mask[i] = 0;
+      }
 
       op.clear();
     }
