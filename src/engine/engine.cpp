@@ -3391,6 +3391,10 @@ void DivEngine::setMidiDirect(bool value) {
   midiIsDirect=value;
 }
 
+void DivEngine::setMidiVolExp(float value) {
+  midiVolExp=value;
+}
+
 void DivEngine::setMidiCallback(std::function<int(const TAMidiMessage&)> what) {
   midiCallback=what;
 }

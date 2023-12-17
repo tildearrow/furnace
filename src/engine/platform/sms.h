@@ -79,6 +79,7 @@ class DivPlatformSMS: public DivDispatch {
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

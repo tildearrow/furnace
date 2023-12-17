@@ -1139,7 +1139,10 @@ void FurnaceGUI::drawSettings() {
         // TODO
         //ImGui::Checkbox("Use raw velocity value (don't map from linear to log)",&midiMap.rawVolume);
         //ImGui::Checkbox("Polyphonic/chord input",&midiMap.polyInput);
-        if (ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel)) settingsChanged=true;
+        if (ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel)) {
+          e->setMidiDirect(midiMap.directChannel);
+          settingsChanged=true;
+        }
         if (ImGui::Checkbox("Map Yamaha FM voice data to instruments",&midiMap.yamahaFMResponse)) settingsChanged=true;
         if (ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange)) settingsChanged=true;
         //ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
@@ -1198,6 +1201,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::SliderFloat("Volume curve",&midiMap.volExp,0.01,8.0,"%.2f")) {
           if (midiMap.volExp<0.01) midiMap.volExp=0.01;
           if (midiMap.volExp>8.0) midiMap.volExp=8.0;
+          e->setMidiVolExp(midiMap.volExp);
           settingsChanged=true;
         } rightClickable
         float curve[128];
@@ -4025,6 +4029,7 @@ void FurnaceGUI::syncSettings() {
   midiMap.compile();
 
   e->setMidiDirect(midiMap.directChannel);
+  e->setMidiVolExp(midiMap.volExp);
   e->setMetronomeVol(((float)settings.metroVol)/100.0f);
   e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
 }
