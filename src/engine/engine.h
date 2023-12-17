@@ -176,16 +176,16 @@ struct DivNoteEvent {
   signed char channel;
   unsigned char ins;
   signed char note, volume;
-  bool on, nop, pad1, pad2;
-  DivNoteEvent(int c, int i, int n, int v, bool o):
+  bool on, nop, insChange, fromMIDI;
+  DivNoteEvent(int c, int i, int n, int v, bool o, bool ic=false, bool fm=false):
     channel(c),
     ins(i),
     note(n),
     volume(v),
     on(o),
     nop(false),
-    pad1(false),
-    pad2(false) {}
+    insChange(ic),
+    fromMIDI(fm) {}
   DivNoteEvent():
     channel(-1),
     ins(0),
@@ -193,8 +193,8 @@ struct DivNoteEvent {
     volume(-1),
     on(false),
     nop(true),
-    pad1(false),
-    pad2(false) {}
+    insChange(false),
+    fromMIDI(false) {}
 };
 
 struct DivDispatchContainer {
@@ -415,6 +415,7 @@ class DivEngine {
   bool firstTick;
   bool skipping;
   bool midiIsDirect;
+  bool midiIsDirectProgram;
   bool lowLatency;
   bool systemsRegistered;
   bool hasLoadedSomething;
@@ -1188,6 +1189,9 @@ class DivEngine {
     // set MIDI direct channel map
     void setMidiDirect(bool value);
 
+    // set MIDI direct program change
+    void setMidiDirectProgram(bool value);
+
     // set MIDI volume curve exponent
     void setMidiVolExp(float value);
 
@@ -1260,6 +1264,7 @@ class DivEngine {
       firstTick(false),
       skipping(false),
       midiIsDirect(false),
+      midiIsDirectProgram(false),
       lowLatency(false),
       systemsRegistered(false),
       hasLoadedSomething(false),

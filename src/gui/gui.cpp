@@ -3803,7 +3803,7 @@ bool FurnaceGUI::loop() {
             }
             break;
           case TA_MIDI_PROGRAM:
-            if (midiMap.programChange) {
+            if (midiMap.programChange && !(midiMap.directChannel && midiMap.directProgram)) {
               curIns=msg.data[0];
               if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
               wavePreviewInit=true;
@@ -7018,6 +7018,7 @@ bool FurnaceGUI::init() {
       return -2;
     }
 
+    if (midiMap.directChannel && midiMap.directProgram) return -1;
     return curIns;
   });
 

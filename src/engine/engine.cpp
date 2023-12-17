@@ -3392,6 +3392,10 @@ void DivEngine::setMidiDirect(bool value) {
   midiIsDirect=value;
 }
 
+void DivEngine::setMidiDirectProgram(bool value) {
+  midiIsDirectProgram=value;
+}
+
 void DivEngine::setMidiVolExp(float value) {
   midiVolExp=value;
 }

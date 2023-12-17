@@ -1141,10 +1141,19 @@ void FurnaceGUI::drawSettings() {
         //ImGui::Checkbox("Polyphonic/chord input",&midiMap.polyInput);
         if (ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel)) {
           e->setMidiDirect(midiMap.directChannel);
+          e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
           settingsChanged=true;
         }
+        if (midiMap.directChannel) {
+          if (ImGui::Checkbox("Program change pass-through",&midiMap.directProgram)) {
+            e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
+            settingsChanged=true;
+          }
+        }
         if (ImGui::Checkbox("Map Yamaha FM voice data to instruments",&midiMap.yamahaFMResponse)) settingsChanged=true;
-        if (ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange)) settingsChanged=true;
+        if (!(midiMap.directChannel && midiMap.directProgram)) {
+          if (ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange)) settingsChanged=true;
+        }
         //ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
         //ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
         if (ImGui::Combo("Value input style",&midiMap.valueInputStyle,valueInputStyles,7)) settingsChanged=true;
@@ -4029,6 +4038,7 @@ void FurnaceGUI::syncSettings() {
   midiMap.compile();
 
   e->setMidiDirect(midiMap.directChannel);
+  e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
   e->setMidiVolExp(midiMap.volExp);
   e->setMetronomeVol(((float)settings.metroVol)/100.0f);
   e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
