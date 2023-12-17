@@ -246,7 +246,7 @@ void DivMacroInt::add_macro(uint8_t macro_type, DivInstrumentMacro* m)
   if(MACRO_MASKED(macro_type)) return;
 
   macros.push_back(DivMacroStruct(macro_type));
-  macroList.push_back(&macros.back());
+  macroList.push_back(&macros[macros.size() - 1]);
   macroSource.push_back(m);
 }
 
@@ -255,7 +255,7 @@ void DivMacroInt::add_op_macro(uint8_t oper, uint8_t macro_type, DivInstrumentMa
   if(OP_MACRO_MASKED(oper, macro_type)) return;
 
   op[oper].macros.push_back(DivMacroStruct(macro_type));
-  macroList.push_back(&op[oper].macros.back());
+  macroList.push_back(&op[oper].macros[op[oper].macros.size() - 1]);
   macroSource.push_back(m);
 }
 
@@ -278,7 +278,9 @@ void DivMacroInt::init(DivInstrument* which)
   ins=which;
   // initialize
   macroList.clear();
+  macroList.shrink_to_fit();
   macroSource.clear();
+  macroSource.shrink_to_fit();
   subTick=1;
 
   hasRelease=false;
@@ -288,6 +290,8 @@ void DivMacroInt::init(DivInstrument* which)
 
   // prepare common macro
   macros.clear();
+  macros.shrink_to_fit();
+  macros.reserve(ins->std.macros.size());
 
   for(int i = 0; i < ins->std.macros.size(); i++)
   {
@@ -311,6 +315,8 @@ void DivMacroInt::init(DivInstrument* which)
   for (int oper=0; oper<ins->std.ops.size(); oper++)
   {
     op[oper].macros.clear();
+    op[oper].macros.shrink_to_fit();
+    op[oper].macros.reserve(ins->std.ops[oper].macros.size());
 
     for (int i=0; i<ins->std.ops[oper].macros.size(); i++)
     {

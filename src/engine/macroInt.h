@@ -217,6 +217,7 @@ class DivMacroInt {
 
     DivMacroInt()
     {
+      macros.clear();
       macroList.clear();
       macroSource.clear();
 
