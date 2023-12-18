@@ -311,13 +311,13 @@ struct DivInstrumentSTD
   {
     std::vector<DivInstrumentMacro> macros;
 
-    DivInstrumentMacro* OpMacro::op_get_macro(uint8_t macro_id, bool allocate)
+    DivInstrumentMacro* op_get_macro(uint8_t macro_id, bool allocate)
     {
       static DivInstrumentMacro dummy = DivInstrumentMacro(0xff); //empty macro
 
       if(macro_id < 0x40)
       {
-        for(int i = 0; i < macros.size(); i++)
+        for(int i = 0; i < (int)macros.size(); i++)
         {
           if(macros[i].macroType == macro_id) return &macros[i];
         }
@@ -362,7 +362,7 @@ struct DivInstrumentSTD
 
     if(macro_id < 0x20) //allocate new macro for main instrument
     {
-      for(int i = 0; i < macros.size(); i++)
+      for(int i = 0; i < (int)macros.size(); i++)
       {
         if(macros[i].macroType == macro_id) return &macros[i];
       }

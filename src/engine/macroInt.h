@@ -90,11 +90,11 @@ class DivMacroInt {
         }
       }
 
-      DivMacroStruct* IntOp::op_get_div_macro_struct(uint8_t macro_id)
+      DivMacroStruct* op_get_div_macro_struct(uint8_t macro_id)
       {
         static DivMacroStruct dummy = DivMacroStruct(0xff);
 
-        for(int i = 0; i < macros.size(); i++)
+        for(int i = 0; i < (int)macros.size(); i++)
         {
           if(macros[i].macroType == macro_id) return &macros[i];
         }
@@ -105,7 +105,7 @@ class DivMacroInt {
 
     IntOp* get_int_op(int index)
     {
-      if(index >= op.size())
+      if(index >= (int)op.size())
       {
         int limit = index + 1 - op.size();
 
@@ -220,7 +220,7 @@ class DivMacroInt {
      * @param ins DivInstrument pointer.
      * @return a number of macros that actually need to be processed.
      */
-    int DivMacroInt::get_macro_count(DivInstrument* ins);
+    int get_macro_count(DivInstrument* ins);
 
     /**
      * Get number of FM operator macros that actually need to be executed.
@@ -228,7 +228,7 @@ class DivMacroInt {
      * @param oper FM operator index.
      * @return a number of specified FM operator macros that actually need to be processed.
      */
-    int DivMacroInt::get_op_macro_count(DivInstrument* ins, uint8_t oper);
+    int get_op_macro_count(DivInstrument* ins, uint8_t oper);
 
     DivMacroInt()
     {
