@@ -962,6 +962,13 @@ DivDispatchOscBuffer* DivPlatformOPLL::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+int DivPlatformOPLL::mapVelocity(int ch, float vel) {
+  // -3dB per step
+  if (vel==0) return 0;
+  if (vel>=1.0) return 15;
+  return CLAMP(round(16.0-(14.0-log2(vel*127.0)*2.0)),0,15);
+}
+
 unsigned char* DivPlatformOPLL::getRegisterPool() {
   return regPool;
 }

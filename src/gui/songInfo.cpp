@@ -108,7 +108,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       float tune=e->song.tuning;
       float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) { MARK_MODIFIED
+      if (ImGui::InputFloat("##Tuning",&tune,1.0f,10.0f,"%g")) { MARK_MODIFIED
         if (tune<220.0f) tune=220.0f;
         if (tune>880.0f) tune=880.0f;
         e->song.tuning=tune;

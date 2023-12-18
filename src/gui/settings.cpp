@@ -474,7 +474,7 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        if (ImGui::InputInt("Number of recent files",&settings.maxRecentFile)) {
+        if (ImGui::InputInt("Number of recent files",&settings.maxRecentFile,1,5)) {
           if (settings.maxRecentFile<0) settings.maxRecentFile=0;
           if (settings.maxRecentFile>30) settings.maxRecentFile=30;
           settingsChanged=true;
@@ -957,7 +957,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Outputs");
             ImGui::TableNextColumn();
-            if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,1)) {
+            if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,2)) {
               if (settings.audioChans<1) settings.audioChans=1;
               if (settings.audioChans>16) settings.audioChans=16;
               settingsChanged=true;
@@ -1139,9 +1139,21 @@ void FurnaceGUI::drawSettings() {
         // TODO
         //ImGui::Checkbox("Use raw velocity value (don't map from linear to log)",&midiMap.rawVolume);
         //ImGui::Checkbox("Polyphonic/chord input",&midiMap.polyInput);
-        if (ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel)) settingsChanged=true;
+        if (ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel)) {
+          e->setMidiDirect(midiMap.directChannel);
+          e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
+          settingsChanged=true;
+        }
+        if (midiMap.directChannel) {
+          if (ImGui::Checkbox("Program change pass-through",&midiMap.directProgram)) {
+            e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
+            settingsChanged=true;
+          }
+        }
         if (ImGui::Checkbox("Map Yamaha FM voice data to instruments",&midiMap.yamahaFMResponse)) settingsChanged=true;
-        if (ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange)) settingsChanged=true;
+        if (!(midiMap.directChannel && midiMap.directProgram)) {
+          if (ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange)) settingsChanged=true;
+        }
         //ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
         //ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
         if (ImGui::Combo("Value input style",&midiMap.valueInputStyle,valueInputStyles,7)) settingsChanged=true;
@@ -1198,6 +1210,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::SliderFloat("Volume curve",&midiMap.volExp,0.01,8.0,"%.2f")) {
           if (midiMap.volExp<0.01) midiMap.volExp=0.01;
           if (midiMap.volExp>8.0) midiMap.volExp=8.0;
+          e->setMidiVolExp(midiMap.volExp);
           settingsChanged=true;
         } rightClickable
         float curve[128];
@@ -1781,7 +1794,7 @@ void FurnaceGUI::drawSettings() {
               ImGui::TableNextColumn();
               if (i.val<100) {
                 snprintf(id,4095,"##SNValue_%d",i.scan);
-                if (ImGui::InputInt(id,&i.val,1,1)) {
+                if (ImGui::InputInt(id,&i.val,1,12)) {
                   if (i.val<0) i.val=0;
                   if (i.val>96) i.val=96;
                   noteKeys[i.scan]=i.val;
@@ -2398,7 +2411,7 @@ void FurnaceGUI::drawSettings() {
           } rightClickable
         }
 
-        if (ImGui::InputInt("Icon size",&settings.iconSize)) {
+        if (ImGui::InputInt("Icon size",&settings.iconSize,1,3)) {
           if (settings.iconSize<3) settings.iconSize=3;
           if (settings.iconSize>48) settings.iconSize=48;
           settingsChanged=true;
@@ -2434,7 +2447,7 @@ void FurnaceGUI::drawSettings() {
               settingsChanged=true;
             }
           }
-          if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize)) {
+          if (ImGui::InputInt("Size##MainFontSize",&settings.mainFontSize,1,3)) {
             if (settings.mainFontSize<3) settings.mainFontSize=3;
             if (settings.mainFontSize>96) settings.mainFontSize=96;
             settingsChanged=true;
@@ -2453,7 +2466,7 @@ void FurnaceGUI::drawSettings() {
               settingsChanged=true;
             }
           }
-          if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize)) {
+          if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize,1,3)) {
             if (settings.headFontSize<3) settings.headFontSize=3;
             if (settings.headFontSize>96) settings.headFontSize=96;
             settingsChanged=true;
@@ -2472,7 +2485,7 @@ void FurnaceGUI::drawSettings() {
               settingsChanged=true;
             }
           }
-          if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize)) {
+          if (ImGui::InputInt("Size##PatFontSize",&settings.patFontSize,1,3)) {
             if (settings.patFontSize<3) settings.patFontSize=3;
             if (settings.patFontSize>96) settings.patFontSize=96;
             settingsChanged=true;
@@ -4025,6 +4038,8 @@ void FurnaceGUI::syncSettings() {
   midiMap.compile();
 
   e->setMidiDirect(midiMap.directChannel);
+  e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
+  e->setMidiVolExp(midiMap.volExp);
   e->setMetronomeVol(((float)settings.metroVol)/100.0f);
   e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
 }

@@ -1216,7 +1216,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
     if (latchVol!=-1) {
       pat->data[cursor.y][3]=MIN(maxVol,latchVol);
     } else if (vol!=-1) {
-      pat->data[cursor.y][3]=(vol*maxVol)/127;
+      pat->data[cursor.y][3]=e->mapVelocity(cursor.xCoarse,pow((float)vol/127.0f,midiMap.volExp));
     }
     if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
     if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
@@ -2854,7 +2854,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   ImGui::Text("transpose");
   ImGui::SameLine();
   ImGui::SetNextItemWidth(120.0f*dpiScale);
-  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,1)) {
+  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,12)) {
     if (transposeAmount<-96) transposeAmount=-96;
     if (transposeAmount>96) transposeAmount=96;
   }
@@ -2886,7 +2886,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
   if (!basicMode) {
     if (ImGui::BeginMenu("gradient/fade...")) {
-      if (ImGui::InputInt("Start",&fadeMin,1,1)) {
+      if (ImGui::InputInt("Start",&fadeMin,1,16)) {
         if (fadeMin<0) fadeMin=0;
         if (fadeMode) {
           if (fadeMin>15) fadeMin=15;
@@ -2894,7 +2894,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
           if (fadeMin>255) fadeMin=255;
         }
       }
-      if (ImGui::InputInt("End",&fadeMax,1,1)) {
+      if (ImGui::InputInt("End",&fadeMax,1,16)) {
         if (fadeMax<0) fadeMax=0;
         if (fadeMode) {
           if (fadeMax>15) fadeMax=15;
@@ -2918,7 +2918,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("scale...")) {
-      if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,1,"%.1f%%")) {
+      if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,10,"%.1f%%")) {
         if (scaleMax<0.0f) scaleMax=0.0f;
         if (scaleMax>25600.0f) scaleMax=25600.0f;
       }
@@ -2929,7 +2929,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("randomize...")) {
-      if (ImGui::InputInt("Minimum",&randomizeMin,1,1)) {
+      if (ImGui::InputInt("Minimum",&randomizeMin,1,16)) {
         if (randomizeMin<0) randomizeMin=0;
         if (randomMode) {
           if (randomizeMin>15) randomizeMin=15;
@@ -2938,7 +2938,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
         }
         if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
       }
-      if (ImGui::InputInt("Maximum",&randomizeMax,1,1)) {
+      if (ImGui::InputInt("Maximum",&randomizeMax,1,16)) {
         if (randomizeMax<0) randomizeMax=0;
         if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
         if (randomMode) {
@@ -2970,7 +2970,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
     if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
 
     ImGui::SetNextItemWidth(120.0f*dpiScale);
-    if (ImGui::InputInt("collapse/expand amount##CollapseAmount",&collapseAmount,1,1)) {
+    if (ImGui::InputInt("collapse/expand amount##CollapseAmount",&collapseAmount,1,4)) {
       if (collapseAmount<2) collapseAmount=2;
       if (collapseAmount>256) collapseAmount=256;
     }
@@ -3776,7 +3776,7 @@ bool FurnaceGUI::loop() {
                 noteInput(
                   msg.data[0]-12,
                   0,
-                  midiMap.volInput?((int)(pow((double)msg.data[1]/127.0,midiMap.volExp)*127.0)):-1
+                  midiMap.volInput?msg.data[1]:-1
                 );
               }
             } else {
@@ -3803,7 +3803,7 @@ bool FurnaceGUI::loop() {
             }
             break;
           case TA_MIDI_PROGRAM:
-            if (midiMap.programChange) {
+            if (midiMap.programChange && !(midiMap.directChannel && midiMap.directProgram)) {
               curIns=msg.data[0];
               if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
               wavePreviewInit=true;
@@ -4212,7 +4212,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::BeginMenu("export ZSM...")) {
             exitDisabledTimer=1;
             ImGui::Text("Commander X16 Zsound Music File");
-            if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
+            if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,10)) {
               if (zsmExportTickRate<1) zsmExportTickRate=1;
               if (zsmExportTickRate>44100) zsmExportTickRate=44100;
             }
@@ -6088,7 +6088,7 @@ bool FurnaceGUI::loop() {
         ImGui::Text("Channels");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(120.0f*dpiScale);
-        if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {
+        if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels,1,2)) {
         }
         ImGui::Text("(will be mixed down to mono)");
         ImGui::Checkbox("Unsigned",&pendingRawSampleUnsigned);
@@ -7018,6 +7018,7 @@ bool FurnaceGUI::init() {
       return -2;
     }
 
+    if (midiMap.directChannel && midiMap.directProgram) return -1;
     return curIns;
   });
 

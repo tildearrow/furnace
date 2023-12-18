@@ -186,6 +186,17 @@ class DivPlatformOPN: public DivPlatformFMBase {
     void setCombo(bool combo) {
       useCombo=combo;
     }
+    virtual int mapVelocity(int ch, float vel) {
+      if (ch==csmChan) return vel*127.0;
+      if (ch==adpcmBChanOffs) return vel*255.0;
+      if (ch>=adpcmAChanOffs) {
+        if (vel==0) return 0;
+        if (vel>=1.0) return 31;
+        return CLAMP(round(32.0-(56.0-log2(vel*127.0)*8.0)),0,31);
+      }
+      if (ch>=psgChanOffs) return round(15.0*pow(vel,0.33));
+      return DivPlatformFMBase::mapVelocity(ch,vel);
+    }
 };
 
 #endif

@@ -757,6 +757,12 @@ DivDispatchOscBuffer* DivPlatformYM2610Ext::getOscBuffer(int ch) {
   return NULL;
 }
 
+int DivPlatformYM2610Ext::mapVelocity(int ch, float vel) {
+  if (ch>=extChanOffs+4) return DivPlatformOPN::mapVelocity(ch-3,vel);
+  if (ch>=extChanOffs) return DivPlatformOPN::mapVelocity(extChanOffs,vel);
+  return DivPlatformOPN::mapVelocity(ch,vel);
+}
+
 void DivPlatformYM2610Ext::reset() {
   DivPlatformYM2610::reset();
 

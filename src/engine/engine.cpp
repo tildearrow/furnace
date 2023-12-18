@@ -2185,6 +2185,13 @@ int DivEngine::getMaxVolumeChan(int ch) {
   return chan[ch].volMax>>8;
 }
 
+int DivEngine::mapVelocity(int ch, float vel) {
+  if (ch<0) return 0;
+  if (ch>=chans) return 0;
+  if (disCont[dispatchOfChan[ch]].dispatch==NULL) return 0;
+  return disCont[dispatchOfChan[ch]].dispatch->mapVelocity(dispatchChanOfChan[ch],vel);
+}
+
 unsigned char DivEngine::getOrder() {
   return prevOrder;
 }
@@ -3383,6 +3390,14 @@ void DivEngine::setMidiBaseChan(int chan) {
 
 void DivEngine::setMidiDirect(bool value) {
   midiIsDirect=value;
+}
+
+void DivEngine::setMidiDirectProgram(bool value) {
+  midiIsDirectProgram=value;
+}
+
+void DivEngine::setMidiVolExp(float value) {
+  midiVolExp=value;
 }
 
 void DivEngine::setMidiCallback(std::function<int(const TAMidiMessage&)> what) {

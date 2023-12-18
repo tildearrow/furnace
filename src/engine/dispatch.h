@@ -49,7 +49,9 @@ enum DivDispatchCmds {
   DIV_CMD_ENV_RELEASE,
   DIV_CMD_INSTRUMENT, // (ins, force)
   DIV_CMD_VOLUME, // (vol)
+  // TODO: think of possibly moving this
   DIV_CMD_GET_VOLUME, // () -> vol
+  // TODO: move. shouldn't be a command.
   DIV_CMD_GET_VOLMAX, // () -> volMax
   DIV_CMD_NOTE_PORTA, // (target, speed) -> 2 if target reached
   DIV_CMD_PITCH, // (pitch)
@@ -589,6 +591,14 @@ class DivDispatch {
      * @return whether it is.
      */
     virtual bool isVolGlobal();
+
+    /**
+     * map MIDI velocity (from 0 to 127) to chip volume.
+     * @param ch the chip channel. -1 means N/A.
+     * @param vel input velocity, from 0.0 to 1.0.
+     * @return output volume.
+     */
+    virtual int mapVelocity(int ch, float vel);
 
     /**
      * get the lowest note in a portamento.
