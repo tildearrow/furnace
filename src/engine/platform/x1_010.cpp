@@ -324,8 +324,8 @@ void DivPlatformX1_010::updateEnvelope(int ch) {
 void DivPlatformX1_010::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      signed char macroVol=((chan[i].vol&15)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/(chan[i].macroVolMul);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      signed char macroVol=((chan[i].vol&15)*MIN(chan[i].macroVolMul,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/(chan[i].macroVolMul);
       if ((!isMuted[i]) && (macroVol!=chan[i].outVol)) {
         chan[i].outVol=macroVol;
         chan[i].envChanged=true;
@@ -334,43 +334,43 @@ void DivPlatformX1_010::tick(bool sysTick) {
     if ((!chan[i].pcm) || chan[i].furnacePCM) {
       if (NEW_ARP_STRAT) {
         chan[i].handleArp();
-      } else if (chan[i].std.arp.had) {
+      } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
         if (!chan[i].inPorta) {
-          chan[i].baseFreq=NoteX1_010(i,parent->calcArp(chan[i].note,chan[i].std.arp.val));
+          chan[i].baseFreq=NoteX1_010(i,parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
         }
         chan[i].freqChanged=true;
       }
     }
-    if (chan[i].std.wave.had && !chan[i].pcm) {
-      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had && !chan[i].pcm) {
+      if (chan[i].wave!=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val || chan[i].ws.activeChanged()) {
+        chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val;
         if (!chan[i].pcm) {
           chan[i].ws.changeWave1(chan[i].wave);
           if (!chan[i].keyOff) chan[i].keyOn=true;
         }
       }
     }
-    if (chan[i].std.panL.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
       chan[i].pan&=0x0f;
-      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+      chan[i].pan|=(chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&15)<<4;
       chan[i].envChanged=true;
     }
-    if (chan[i].std.panR.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
       chan[i].pan&=0xf0;
-      chan[i].pan|=chan[i].std.panR.val&15;
+      chan[i].pan|=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val&15;
       chan[i].envChanged=true;
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.ex1.had) {
-      bool nextEnable=(chan[i].std.ex1.val&1);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had) {
+      bool nextEnable=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&1);
       if (nextEnable!=(chan[i].env.flag.envEnable)) {
         chan[i].env.flag.envEnable=nextEnable;
         if (!chan[i].pcm) {
@@ -380,42 +380,42 @@ void DivPlatformX1_010::tick(bool sysTick) {
           refreshControl(i);
         }
       }
-      bool nextOneshot=(chan[i].std.ex1.val&2);
+      bool nextOneshot=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&2);
       if (nextOneshot!=(chan[i].env.flag.envOneshot)) {
         chan[i].env.flag.envOneshot=nextOneshot;
         if (!chan[i].pcm) {
           refreshControl(i);
         }
       }
-      bool nextSplit=(chan[i].std.ex1.val&4);
+      bool nextSplit=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&4);
       if (nextSplit!=(chan[i].env.flag.envSplit)) {
         chan[i].env.flag.envSplit=nextSplit;
         if (!isMuted[i] && !chan[i].pcm) {
           chan[i].envChanged=true;
         }
       }
-      bool nextHinvR=(chan[i].std.ex1.val&8);
+      bool nextHinvR=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&8);
       if (nextHinvR!=(chan[i].env.flag.envHinvR)) {
         chan[i].env.flag.envHinvR=nextHinvR;
         if (!isMuted[i] && !chan[i].pcm) {
           chan[i].envChanged=true;
         }
       }
-      bool nextVinvR=(chan[i].std.ex1.val&16);
+      bool nextVinvR=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&16);
       if (nextVinvR!=(chan[i].env.flag.envVinvR)) {
         chan[i].env.flag.envVinvR=nextVinvR;
         if (!isMuted[i] && !chan[i].pcm) {
           chan[i].envChanged=true;
         }
       }
-      bool nextHinvL=(chan[i].std.ex1.val&32);
+      bool nextHinvL=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&32);
       if (nextHinvL!=(chan[i].env.flag.envHinvL)) {
         chan[i].env.flag.envHinvL=nextHinvL;
         if (!isMuted[i] && !chan[i].pcm) {
           chan[i].envChanged=true;
         }
       }
-      bool nextVinvL=(chan[i].std.ex1.val&64);
+      bool nextVinvL=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&64);
       if (nextVinvL!=(chan[i].env.flag.envVinvL)) {
         chan[i].env.flag.envVinvL=nextVinvL;
         if (!isMuted[i] && !chan[i].pcm) {
@@ -423,9 +423,9 @@ void DivPlatformX1_010::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.ex2.had) {
-      if (chan[i].env.shape!=chan[i].std.ex2.val) {
-        chan[i].env.shape=chan[i].std.ex2.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had) {
+      if (chan[i].env.shape!=chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val) {
+        chan[i].env.shape=chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val;
         if (!chan[i].pcm) {
           if (chan[i].env.flag.envEnable && (!isMuted[i])) {
             chan[i].envChanged=true;
@@ -434,22 +434,22 @@ void DivPlatformX1_010::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.ex3.had) {
-      chan[i].autoEnvNum=chan[i].std.ex3.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->had) {
+      chan[i].autoEnvNum=chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->val;
       if (!chan[i].pcm) {
         chan[i].freqChanged=true;
-        if (!chan[i].std.alg.will) chan[i].autoEnvDen=1;
+        if (!chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->will) chan[i].autoEnvDen=1;
       }
     }
-    if (chan[i].std.alg.had) {
-      chan[i].autoEnvDen=chan[i].std.alg.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->had) {
+      chan[i].autoEnvDen=chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val;
       if (!chan[i].pcm) {
         chan[i].freqChanged=true;
-        if (!chan[i].std.ex3.will) chan[i].autoEnvNum=1;
+        if (!chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->will) chan[i].autoEnvNum=1;
       }
     }
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val && chan[i].active && chan[i].pcm) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val && chan[i].active && chan[i].pcm) {
         chWrite(i,0,0);
         refreshControl(i);
       }
@@ -616,7 +616,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chan[c.chan].envChanged=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (chan[c.chan].wave<0) {
@@ -647,7 +647,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           if (chan[c.chan].outVol!=c.value) {
             chan[c.chan].outVol=c.value;
             if (!isMuted[c.chan]) {
@@ -658,7 +658,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
+      if (chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -732,14 +732,14 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       chan[c.chan].note=c.value;
-      chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0)));
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_X1_010));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_FREQ:

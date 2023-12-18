@@ -809,8 +809,8 @@ void DivPlatformOPL::tick(bool sysTick) {
     int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
     chan[i].std.next();
 
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(63,chan[i].std.vol.val),63);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(63,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),63);
       for (int j=0; j<ops; j++) {
         unsigned char slot=slots[j][i];
         if (slot==255) continue;
@@ -831,41 +831,41 @@ void DivPlatformOPL::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
 
-    if (oplType==3 && chan[i].std.panL.had) {
-      chan[i].pan=((chan[i].std.panL.val&1)<<1)|((chan[i].std.panL.val&2)>>1)|((chan[i].std.panL.val&4)<<1)|((chan[i].std.panL.val&8)>>1);
+    if (oplType==3 && chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+      chan[i].pan=((chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&1)<<1)|((chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&2)>>1)|((chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&4)<<1)|((chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&8)>>1);
     }
 
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-131071,131071);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1 && chan[i].active) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1 && chan[i].active) {
         chan[i].keyOn=true;
       }
     }
 
-    if (chan[i].std.alg.had) {
-      chan[i].state.alg=chan[i].std.alg.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->had) {
+      chan[i].state.alg=chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val;
     }
-    if (chan[i].std.fb.had) {
-      chan[i].state.fb=chan[i].std.fb.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->had) {
+      chan[i].state.fb=chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->val;
     }
 
-    if (chan[i].std.alg.had || chan[i].std.fb.had || (oplType==3 && chan[i].std.panL.had)) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->had || (oplType==3 && chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had)) {
       if (isMuted[i]) {
         rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1));
         if (ops==4) {
@@ -884,59 +884,59 @@ void DivPlatformOPL::tick(bool sysTick) {
       if (slot==255) continue;
       unsigned short baseAddr=slotMap[slot];
       DivInstrumentFM::Operator& op=chan[i].state.op[(ops==4)?orderedOpsL[j]:j];
-      DivMacroInt::IntOp& m=chan[i].std.op[(ops==4)?orderedOpsL[j]:j];
-      if (m.am.had) {
-        op.am=m.am.val;
+      DivMacroInt::IntOp& m=*chan[i].std.get_int_op((ops==4)?orderedOpsL[j]:j);
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->had) {
+        op.am=m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
       }
-      if (m.vib.had) {
-        op.vib=m.vib.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_VIB)->had) {
+        op.vib=m.op_get_div_macro_struct(DIV_MACRO_OP_VIB)->val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
       }
-      if (m.sus.had) {
-        op.sus=m.sus.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_SUS)->had) {
+        op.sus=m.op_get_div_macro_struct(DIV_MACRO_OP_SUS)->val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
       }
-      if (m.ksr.had) {
-        op.ksr=m.ksr.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_KSR)->had) {
+        op.ksr=m.op_get_div_macro_struct(DIV_MACRO_OP_KSR)->val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
       }
-      if (m.mult.had) {
-        op.mult=m.mult.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_MULT)->had) {
+        op.mult=m.op_get_div_macro_struct(DIV_MACRO_OP_MULT)->val;
         rWrite(baseAddr+ADDR_AM_VIB_SUS_KSR_MULT,(op.am<<7)|(op.vib<<6)|(op.sus<<5)|(op.ksr<<4)|op.mult);
       }
 
-      if (m.ar.had) {
-        op.ar=m.ar.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_AR)->had) {
+        op.ar=m.op_get_div_macro_struct(DIV_MACRO_OP_AR)->val;
         rWrite(baseAddr+ADDR_AR_DR,(op.ar<<4)|op.dr);
       }
-      if (m.dr.had) {
-        op.dr=m.dr.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_DR)->had) {
+        op.dr=m.op_get_div_macro_struct(DIV_MACRO_OP_DR)->val;
         rWrite(baseAddr+ADDR_AR_DR,(op.ar<<4)|op.dr);
       }
-      if (m.sl.had) {
-        op.sl=m.sl.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_SL)->had) {
+        op.sl=m.op_get_div_macro_struct(DIV_MACRO_OP_SL)->val;
         rWrite(baseAddr+ADDR_SL_RR,(op.sl<<4)|op.rr);
       }
-      if (m.rr.had) {
-        op.rr=m.rr.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_RR)->had) {
+        op.rr=m.op_get_div_macro_struct(DIV_MACRO_OP_RR)->val;
         rWrite(baseAddr+ADDR_SL_RR,(op.sl<<4)|op.rr);
       }
 
       if (oplType>1) {
-        if (m.ws.had) {
-          op.ws=m.ws.val;
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_WS)->had) {
+          op.ws=m.op_get_div_macro_struct(DIV_MACRO_OP_WS)->val;
           rWrite(baseAddr+ADDR_WS,op.ws&((oplType==3)?7:3));
         }
       }
 
-      if (m.tl.had) {
-        op.tl=m.tl.val&63;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_TL)->had) {
+        op.tl=m.op_get_div_macro_struct(DIV_MACRO_OP_TL)->val&63;
       }
-      if (m.ksl.had) {
-        op.ksl=m.ksl.val;
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_KSL)->had) {
+        op.ksl=m.op_get_div_macro_struct(DIV_MACRO_OP_KSL)->val;
       }
-      if (m.tl.had || m.ksl.had) {
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_TL)->had || m.op_get_div_macro_struct(DIV_MACRO_OP_KSL)->had) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
@@ -1010,21 +1010,21 @@ void DivPlatformOPL::tick(bool sysTick) {
     if (chan[adpcmChan].furnacePCM) {
       chan[adpcmChan].std.next();
 
-      if (chan[adpcmChan].std.vol.had) {
-        chan[adpcmChan].outVol=(chan[adpcmChan].vol*MIN(chan[adpcmChan].macroVolMul,chan[adpcmChan].std.vol.val))/chan[adpcmChan].macroVolMul;
+      if (chan[adpcmChan].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+        chan[adpcmChan].outVol=(chan[adpcmChan].vol*MIN(chan[adpcmChan].macroVolMul,chan[adpcmChan].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/chan[adpcmChan].macroVolMul;
         immWrite(18,chan[adpcmChan].outVol);
       }
 
       if (NEW_ARP_STRAT) {
         chan[adpcmChan].handleArp();
-      } else if (chan[adpcmChan].std.arp.had) {
+      } else if (chan[adpcmChan].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
         if (!chan[adpcmChan].inPorta) {
-          chan[adpcmChan].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmChan].note,chan[adpcmChan].std.arp.val));
+          chan[adpcmChan].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmChan].note,chan[adpcmChan].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
         }
         chan[adpcmChan].freqChanged=true;
       }
-      if (chan[adpcmChan].std.phaseReset.had) {
-        if ((chan[adpcmChan].std.phaseReset.val==1) && chan[adpcmChan].active) {
+      if (chan[adpcmChan].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+        if ((chan[adpcmChan].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) && chan[adpcmChan].active) {
           chan[adpcmChan].keyOn=true;
         }
       }
@@ -1360,7 +1360,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].macroInit(ins);
           chan[c.chan].fixedFreq=0;
-          if (!chan[c.chan].std.vol.will) {
+          if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(18,chan[c.chan].outVol);
           }
@@ -1426,7 +1426,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,c.chan>melodicChans?DIV_INS_OPL_DRUMS:DIV_INS_OPL);
 
       chan[c.chan].macroInit(ins);
-      if (!chan[c.chan].std.vol.will) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
 
@@ -1489,7 +1489,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (c.value>63) c.value=63;
       }
       chan[c.chan].vol=c.value;
-      if (!chan[c.chan].std.vol.has) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         chan[c.chan].outVol=c.value;
       }
       if (c.chan==adpcmChan) { // ADPCM-B
@@ -1979,7 +1979,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       return 63;
       break;
     case DIV_CMD_PRE_PORTA:
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) {
         chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(chan[c.chan].note)):(NOTE_FREQUENCY(chan[c.chan].note));
       }
       chan[c.chan].inPorta=c.value;

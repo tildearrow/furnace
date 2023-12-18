@@ -90,17 +90,17 @@ void DivPlatformMSM6295::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     if (!parent->song.disableSampleMacro) {
       chan[i].std.next();
-      if (chan[i].std.vol.had) {
-        chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].std.vol.val,chan[i].vol,8);
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+        chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val,chan[i].vol,8);
       }
-      if (chan[i].std.duty.had) {
-        if (rateSel!=(chan[i].std.duty.val&1)) {
-          rateSel=chan[i].std.duty.val&1;
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+        if (rateSel!=(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&1)) {
+          rateSel=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&1;
           rWrite(12,!rateSel);
         }
       }
-      if (chan[i].std.phaseReset.had) {
-        if (chan[i].std.phaseReset.val && chan[i].active) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+        if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val && chan[i].active) {
           chan[i].keyOn=true;
         }
       }
@@ -135,7 +135,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       if (skipRegisterWrites) break;
       if (chan[c.chan].furnacePCM) {
         chan[c.chan].macroInit(ins);
-        if (!chan[c.chan].std.vol.will) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
         if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
@@ -186,7 +186,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       chan[c.chan].vol=MIN(8,c.value);
-      if (!chan[c.chan].std.vol.has) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         chan[c.chan].outVol=c.value;
       }
       break;

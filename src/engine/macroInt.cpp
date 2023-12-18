@@ -171,7 +171,7 @@ void DivMacroInt::next() {
   // run macros
   // TODO: potentially get rid of list to avoid allocations
   subTick--;
-  for (size_t i=0; i<macroListLen; i++) {
+  for (size_t i=0; i<macroList.size(); i++) {
     if (macroList[i]!=NULL && macroSource[i]!=NULL) {
       macroList[i]->doMacro(*macroSource[i],released,subTick==0);
     }
@@ -185,65 +185,53 @@ void DivMacroInt::next() {
   }
 }
 
-#define CONSIDER(x,y) \
-  case y: \
-    x.masked=enabled; \
-    break;
+#define OP_MACRO_MASKED(oper, id) (op[oper].macro_mask[((id) & 0x1f) / 8] & (1 << (((id) & 0x1f) & 7)))
+#define MACRO_MASKED(id) (macro_mask[(id) / 8] & (1 << ((id) & 7)))
 
-#define CONSIDER_OP(oi,o) \
-  CONSIDER(op[oi].am,0+o) \
-  CONSIDER(op[oi].ar,1+o) \
-  CONSIDER(op[oi].dr,2+o) \
-  CONSIDER(op[oi].mult,3+o) \
-  CONSIDER(op[oi].rr,4+o) \
-  CONSIDER(op[oi].sl,5+o) \
-  CONSIDER(op[oi].tl,6+o) \
-  CONSIDER(op[oi].dt2,7+o) \
-  CONSIDER(op[oi].rs,8+o) \
-  CONSIDER(op[oi].dt,9+o) \
-  CONSIDER(op[oi].d2r,10+o) \
-  CONSIDER(op[oi].ssg,11+o) \
-  CONSIDER(op[oi].dam,12+o) \
-  CONSIDER(op[oi].dvb,13+o) \
-  CONSIDER(op[oi].egt,14+o) \
-  CONSIDER(op[oi].ksl,15+o) \
-  CONSIDER(op[oi].sus,16+o) \
-  CONSIDER(op[oi].vib,17+o) \
-  CONSIDER(op[oi].ws,18+o) \
-  CONSIDER(op[oi].ksr,19+o)
-
-void DivMacroInt::mask(unsigned char id, bool enabled) {
-  switch (id) {
-    CONSIDER(vol,0)
-    CONSIDER(arp,1)
-    CONSIDER(duty,2)
-    CONSIDER(wave,3)
-    CONSIDER(pitch,4)
-    CONSIDER(ex1,5)
-    CONSIDER(ex2,6)
-    CONSIDER(ex3,7)
-    CONSIDER(alg,8)
-    CONSIDER(fb,9)
-    CONSIDER(fms,10)
-    CONSIDER(ams,11)
-    CONSIDER(panL,12)
-    CONSIDER(panR,13)
-    CONSIDER(phaseReset,14)
-    CONSIDER(ex4,15)
-    CONSIDER(ex5,16)
-    CONSIDER(ex6,17)
-    CONSIDER(ex7,18)
-    CONSIDER(ex8,19)
-
-    CONSIDER_OP(0,0x20)
-    CONSIDER_OP(2,0x40)
-    CONSIDER_OP(1,0x60)
-    CONSIDER_OP(3,0x80)
+void DivMacroInt::consider_macro(unsigned char id, bool enabled)
+{
+  if(enabled)
+  {
+    macro_mask[id / 8] |= (1 << (id & 7));
   }
+
+  else
+  {
+    macro_mask[id / 8] &= ~(1 << (id & 7));
+  }
+
+  return;
 }
 
-#undef CONSIDER_OP
-#undef CONSIDER
+void DivMacroInt::consider_op_macro(unsigned char oper, unsigned char id, bool enabled)
+{
+  uint8_t new_id = id & 0x1f;
+
+  if(enabled)
+  {
+    op[oper].macro_mask[new_id / 8] |= (1 << (new_id & 7));
+  }
+
+  else
+  {
+    op[oper].macro_mask[new_id / 8] &= ~(1 << (new_id & 7));
+  }
+
+  return;
+}
+
+void DivMacroInt::mask(unsigned char id, bool enabled)
+{
+  if(id < 0x20)
+  {
+    consider_macro(id, enabled);
+  }
+
+  else
+  {
+    consider_op_macro((id >> 5) - 1, id, enabled);
+  }
+}
 
 void DivMacroInt::release() {
   released=true;
@@ -253,19 +241,70 @@ void DivMacroInt::setEngine(DivEngine* eng) {
   e=eng;
 }
 
-#define ADD_MACRO(m,s) \
-  if (!m.masked) { \
-    macroList[macroListLen]=&m; \
-    macroSource[macroListLen++]=&s; \
+void DivMacroInt::add_macro(uint8_t macro_type, DivInstrumentMacro* m)
+{
+  if(MACRO_MASKED(macro_type)) return;
+
+  macros.push_back(DivMacroStruct(macro_type));
+  macroList.push_back(&macros[macros.size() - 1]);
+  macroSource.push_back(m);
+}
+
+void DivMacroInt::add_op_macro(uint8_t oper, uint8_t macro_type, DivInstrumentMacro* m)
+{
+  if(OP_MACRO_MASKED(oper, macro_type)) return;
+
+  op[oper].macros.push_back(DivMacroStruct(macro_type));
+  macroList.push_back(&op[oper].macros[op[oper].macros.size() - 1]);
+  macroSource.push_back(m);
+}
+
+DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
+{
+  static DivMacroStruct dummy = DivMacroStruct(0xff);
+  for(int i = 0; i < (int)macros.size(); i++)
+  {
+    if(macros[i].macroType == macro_id)
+    {
+      return &macros[i];
+    }
   }
 
-void DivMacroInt::init(DivInstrument* which) {
+  return &dummy;
+}
+
+int DivMacroInt::get_macro_count(DivInstrument* ins)
+{
+  int sum = 0;
+
+  for(int i = 0; i < (int)ins->std.macros.size(); i++)
+  {
+    if(ins->std.macros[i].len > 0) sum++;
+  }
+
+  return sum;
+}
+
+int DivMacroInt::get_op_macro_count(DivInstrument* ins, uint8_t oper)
+{
+  int sum = 0;
+
+  for(int i = 0; i < (int)ins->std.ops[oper].macros.size(); i++)
+  {
+    if(ins->std.ops[oper].macros[i].len > 0) sum++;
+  }
+
+  return sum;
+}
+
+void DivMacroInt::init(DivInstrument* which)
+{
   ins=which;
   // initialize
-  for (size_t i=0; i<macroListLen; i++) {
-    if (macroList[i]!=NULL) macroList[i]->init();
-  }
-  macroListLen=0;
+  macroList.clear();
+  macroList.shrink_to_fit();
+  macroSource.clear();
+  macroSource.shrink_to_fit();
   subTick=1;
 
   hasRelease=false;
@@ -274,136 +313,45 @@ void DivMacroInt::init(DivInstrument* which) {
   if (ins==NULL) return;
 
   // prepare common macro
-  if (ins->std.volMacro.len>0) {
-    ADD_MACRO(vol,ins->std.volMacro);
-  }
-  if (ins->std.arpMacro.len>0) {
-    ADD_MACRO(arp,ins->std.arpMacro);
-  }
-  if (ins->std.dutyMacro.len>0) {
-    ADD_MACRO(duty,ins->std.dutyMacro);
-  }
-  if (ins->std.waveMacro.len>0) {
-    ADD_MACRO(wave,ins->std.waveMacro);
-  }
-  if (ins->std.pitchMacro.len>0) {
-    ADD_MACRO(pitch,ins->std.pitchMacro);
-  }
-  if (ins->std.ex1Macro.len>0) {
-    ADD_MACRO(ex1,ins->std.ex1Macro);
-  }
-  if (ins->std.ex2Macro.len>0) {
-    ADD_MACRO(ex2,ins->std.ex2Macro);
-  }
-  if (ins->std.ex3Macro.len>0) {
-    ADD_MACRO(ex3,ins->std.ex3Macro);
-  }
-  if (ins->std.algMacro.len>0) {
-    ADD_MACRO(alg,ins->std.algMacro);
-  }
-  if (ins->std.fbMacro.len>0) {
-    ADD_MACRO(fb,ins->std.fbMacro);
-  }
-  if (ins->std.fmsMacro.len>0) {
-    ADD_MACRO(fms,ins->std.fmsMacro);
-  }
-  if (ins->std.amsMacro.len>0) {
-    ADD_MACRO(ams,ins->std.amsMacro);
+  macros.clear();
+  macros.shrink_to_fit();
+  macros.reserve(get_macro_count(which));
+
+  for(int i = 0; i < (int)ins->std.macros.size(); i++)
+  {
+    if(ins->std.macros[i].len > 0)
+    {
+      add_macro(ins->std.macros[i].macroType, &ins->std.macros[i]);
+    }
   }
 
-  if (ins->std.panLMacro.len>0) {
-    ADD_MACRO(panL,ins->std.panLMacro);
-  }
-  if (ins->std.panRMacro.len>0) {
-    ADD_MACRO(panR,ins->std.panRMacro);
-  }
-  if (ins->std.phaseResetMacro.len>0) {
-    ADD_MACRO(phaseReset,ins->std.phaseResetMacro);
-  }
-  if (ins->std.ex4Macro.len>0) {
-    ADD_MACRO(ex4,ins->std.ex4Macro);
-  }
-  if (ins->std.ex5Macro.len>0) {
-    ADD_MACRO(ex5,ins->std.ex5Macro);
-  }
-  if (ins->std.ex6Macro.len>0) {
-    ADD_MACRO(ex6,ins->std.ex6Macro);
-  }
-  if (ins->std.ex7Macro.len>0) {
-    ADD_MACRO(ex7,ins->std.ex7Macro);
-  }
-  if (ins->std.ex8Macro.len>0) {
-    ADD_MACRO(ex8,ins->std.ex8Macro);
+  if(op.size() < ins->std.ops.size()) //if operators vector isn't initialized
+  {
+    int init = op.size();
+
+    for(int i = 0; i < (int)ins->std.ops.size() - init; i++)
+    {
+      op.push_back(IntOp());
+    }
   }
 
   // prepare FM operator macros
-  for (int i=0; i<4; i++) {
-    DivInstrumentSTD::OpMacro& m=ins->std.opMacros[i];
-    IntOp& o=op[i];
-    if (m.amMacro.len>0) {
-      ADD_MACRO(o.am,m.amMacro);
-    }
-    if (m.arMacro.len>0) {
-      ADD_MACRO(o.ar,m.arMacro);
-    }
-    if (m.drMacro.len>0) {
-      ADD_MACRO(o.dr,m.drMacro);
-    }
-    if (m.multMacro.len>0) {
-      ADD_MACRO(o.mult,m.multMacro);
-    }
-    if (m.rrMacro.len>0) {
-      ADD_MACRO(o.rr,m.rrMacro);
-    }
-    if (m.slMacro.len>0) {
-      ADD_MACRO(o.sl,m.slMacro);
-    }
-    if (m.tlMacro.len>0) {
-      ADD_MACRO(o.tl,m.tlMacro);
-    }
-    if (m.dt2Macro.len>0) {
-      ADD_MACRO(o.dt2,m.dt2Macro);
-    }
-    if (m.rsMacro.len>0) {
-      ADD_MACRO(o.rs,m.rsMacro);
-    }
-    if (m.dtMacro.len>0) {
-      ADD_MACRO(o.dt,m.dtMacro);
-    }
-    if (m.d2rMacro.len>0) {
-      ADD_MACRO(o.d2r,m.d2rMacro);
-    }
-    if (m.ssgMacro.len>0) {
-      ADD_MACRO(o.ssg,m.ssgMacro);
-    }
+  for (int oper = 0; oper < (int)ins->std.ops.size(); oper++)
+  {
+    op[oper].macros.clear();
+    op[oper].macros.shrink_to_fit();
+    op[oper].macros.reserve(get_op_macro_count(which, oper));
 
-    if (m.damMacro.len>0) {
-      ADD_MACRO(o.dam,m.damMacro);
-    }
-    if (m.dvbMacro.len>0) {
-      ADD_MACRO(o.dvb,m.dvbMacro);
-    }
-    if (m.egtMacro.len>0) {
-      ADD_MACRO(o.egt,m.egtMacro);
-    }
-    if (m.kslMacro.len>0) {
-      ADD_MACRO(o.ksl,m.kslMacro);
-    }
-    if (m.susMacro.len>0) {
-      ADD_MACRO(o.sus,m.susMacro);
-    }
-    if (m.vibMacro.len>0) {
-      ADD_MACRO(o.vib,m.vibMacro);
-    }
-    if (m.wsMacro.len>0) {
-      ADD_MACRO(o.ws,m.wsMacro);
-    }
-    if (m.ksrMacro.len>0) {
-      ADD_MACRO(o.ksr,m.ksrMacro);
+    for (int i = 0; i < (int)ins->std.ops[oper].macros.size(); i++)
+    {
+      if(ins->std.ops[oper].macros[i].len > 0)
+      {
+        add_op_macro(oper, ins->std.ops[oper].macros[i].macroType, &ins->std.ops[oper].macros[i]);
+      }
     }
   }
 
-  for (size_t i=0; i<macroListLen; i++) {
+  for (size_t i=0; i<macroList.size(); i++) {
     if (macroSource[i]!=NULL) {
       macroList[i]->prepare(*macroSource[i],e);
       // check ADSR mode
@@ -424,61 +372,52 @@ void DivMacroInt::notifyInsDeletion(DivInstrument* which) {
   }
 }
 
-#define CONSIDER(x,y) case (y&0x1f): return &x; break;
-
-DivMacroStruct* DivMacroInt::structByType(unsigned char type) {
-  if (type>=0x20) {
-    unsigned char o=((type>>5)-1)&3;
-    switch (type&0x1f) {
-      CONSIDER(op[o].am,DIV_MACRO_OP_AM)
-      CONSIDER(op[o].ar,DIV_MACRO_OP_AR)
-      CONSIDER(op[o].dr,DIV_MACRO_OP_DR)
-      CONSIDER(op[o].mult,DIV_MACRO_OP_MULT)
-      CONSIDER(op[o].rr,DIV_MACRO_OP_RR)
-      CONSIDER(op[o].sl,DIV_MACRO_OP_SL)
-      CONSIDER(op[o].tl,DIV_MACRO_OP_TL)
-      CONSIDER(op[o].dt2,DIV_MACRO_OP_DT2)
-      CONSIDER(op[o].rs,DIV_MACRO_OP_RS)
-      CONSIDER(op[o].dt,DIV_MACRO_OP_DT)
-      CONSIDER(op[o].d2r,DIV_MACRO_OP_D2R)
-      CONSIDER(op[o].ssg,DIV_MACRO_OP_SSG)
-      CONSIDER(op[o].dam,DIV_MACRO_OP_DAM)
-      CONSIDER(op[o].dvb,DIV_MACRO_OP_DVB)
-      CONSIDER(op[o].egt,DIV_MACRO_OP_EGT)
-      CONSIDER(op[o].ksl,DIV_MACRO_OP_KSL)
-      CONSIDER(op[o].sus,DIV_MACRO_OP_SUS)
-      CONSIDER(op[o].vib,DIV_MACRO_OP_VIB)
-      CONSIDER(op[o].ws,DIV_MACRO_OP_WS)
-      CONSIDER(op[o].ksr,DIV_MACRO_OP_KSR)
+DivMacroStruct* DivMacroInt::get_macro_by_type(unsigned char type)
+{
+  for(int i = 0; i < (int)macros.size(); i++)
+  {
+    if(macros[i].macroType == type)
+    {
+      return &macros[i];
     }
-
-    return NULL;
-  }
-
-  switch (type) {
-    CONSIDER(vol,DIV_MACRO_VOL)
-    CONSIDER(arp,DIV_MACRO_ARP)
-    CONSIDER(duty,DIV_MACRO_DUTY)
-    CONSIDER(wave,DIV_MACRO_WAVE)
-    CONSIDER(pitch,DIV_MACRO_PITCH)
-    CONSIDER(ex1,DIV_MACRO_EX1)
-    CONSIDER(ex2,DIV_MACRO_EX2)
-    CONSIDER(ex3,DIV_MACRO_EX3)
-    CONSIDER(alg,DIV_MACRO_ALG)
-    CONSIDER(fb,DIV_MACRO_FB)
-    CONSIDER(fms,DIV_MACRO_FMS)
-    CONSIDER(ams,DIV_MACRO_AMS)
-    CONSIDER(panL,DIV_MACRO_PAN_LEFT)
-    CONSIDER(panR,DIV_MACRO_PAN_RIGHT)
-    CONSIDER(phaseReset,DIV_MACRO_PHASE_RESET)
-    CONSIDER(ex4,DIV_MACRO_EX4)
-    CONSIDER(ex5,DIV_MACRO_EX5)
-    CONSIDER(ex6,DIV_MACRO_EX6)
-    CONSIDER(ex7,DIV_MACRO_EX7)
-    CONSIDER(ex8,DIV_MACRO_EX8)
   }
 
   return NULL;
+}
+
+DivMacroStruct* DivMacroInt::get_op_macro_by_type(unsigned char oper, unsigned char type)
+{
+  if(op.size() <= oper)
+  {
+    int limit = 1 + oper - op.size();
+
+    for(int i = 0; i < limit; i++)
+    {
+      op.push_back(IntOp());
+    }
+  }
+
+  for(int i = 0; i < (int)op[oper].macros.size(); i++)
+  {
+    if(op[oper].macros[i].macroType == type)
+    {
+      return &op[oper].macros[i];
+    }
+  }
+
+  return NULL;
+}
+
+DivMacroStruct* DivMacroInt::structByType(unsigned char type)
+{
+  if (type>=0x20)
+  {
+    unsigned char o = ((type >> 5) - 1) & 3;
+    
+    return get_op_macro_by_type(o, type);
+  }
+
+  return get_macro_by_type(type);
 }
 
 #undef CONSIDER

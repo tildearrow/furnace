@@ -158,95 +158,95 @@ void DivPlatformC64::tick(bool sysTick) {
     int i=chanOrder[_i];
 
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      vol=MIN(15,chan[i].std.vol.val);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      vol=MIN(15,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val);
       willUpdateFilter=true;
     }
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
       if (ins->c64.dutyIsAbs) {
-        chan[i].duty=chan[i].std.duty.val;
+        chan[i].duty=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
       } else {
         if (multiplyRel) {
-          chan[i].duty-=((signed char)chan[i].std.duty.val)*4;
+          chan[i].duty-=((signed char)chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val)*4;
         } else {
-          chan[i].duty-=chan[i].std.duty.val;
+          chan[i].duty-=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
         }
       }
       rWrite(i*7+2,chan[i].duty&0xff);
       rWrite(i*7+3,chan[i].duty>>8);
     }
-    if (chan[i].std.wave.had) {
-      chan[i].wave=chan[i].std.wave.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
+      chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val;
       rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active && chan[i].gate));
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.alg.had) { // new cutoff macro
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->had) { // new cutoff macro
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
       if (ins->c64.filterIsAbs) {
-        filtCut=MIN(2047,chan[i].std.alg.val);
+        filtCut=MIN(2047,chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val);
       } else {
         if (multiplyRel) {
-          filtCut+=((signed char)chan[i].std.alg.val)*7;
+          filtCut+=((signed char)chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val)*7;
         } else {
-          filtCut+=chan[i].std.alg.val;
+          filtCut+=chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val;
         }
         if (filtCut>2047) filtCut=2047;
         if (filtCut<0) filtCut=0;
       }
       willUpdateFilter=true;
     }
-    if (chan[i].std.ex1.had) {
-      filtControl=chan[i].std.ex1.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had) {
+      filtControl=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&15;
       willUpdateFilter=true;
     }
-    if (chan[i].std.ex2.had) {
-      filtRes=chan[i].std.ex2.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had) {
+      filtRes=chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val&15;
       willUpdateFilter=true;
     }
-    if (chan[i].std.ex4.had) {
-      chan[i].gate=chan[i].std.ex4.val&1;
-      chan[i].sync=chan[i].std.ex4.val&2;
-      chan[i].ring=chan[i].std.ex4.val&4;
-      chan[i].test=chan[i].std.ex4.val&8;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->had) {
+      chan[i].gate=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val&1;
+      chan[i].sync=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val&2;
+      chan[i].ring=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val&4;
+      chan[i].test=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val&8;
       chan[i].freqChanged=true;
       rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active && chan[i].gate));
     }
 
-    if (chan[i].std.ex5.had) {
-      chan[i].attack=chan[i].std.ex5.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX5)->had) {
+      chan[i].attack=chan[i].std.get_div_macro_struct(DIV_MACRO_EX5)->val&15;
       rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
     }
 
-    if (chan[i].std.ex6.had) {
-      chan[i].decay=chan[i].std.ex6.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX6)->had) {
+      chan[i].decay=chan[i].std.get_div_macro_struct(DIV_MACRO_EX6)->val&15;
       rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
     }
 
-    if (chan[i].std.ex7.had) {
-      chan[i].sustain=chan[i].std.ex7.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX7)->had) {
+      chan[i].sustain=chan[i].std.get_div_macro_struct(DIV_MACRO_EX7)->val&15;
       rWrite(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
     }
 
-    if (chan[i].std.ex8.had) {
-      chan[i].release=chan[i].std.ex8.val&15;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->had) {
+      chan[i].release=chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->val&15;
       rWrite(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
     }
 
@@ -300,7 +300,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].test=false;
-      if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacro.len>0) {
+      if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.get_macro(DIV_MACRO_WAVE, true)->len>0) {
         chan[c.chan].duty=ins->c64.duty;
         rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
         rWrite(c.chan*7+3,chan[c.chan].duty>>8);
@@ -363,7 +363,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[c.chan].outVol=c.value;
           vol=chan[c.chan].outVol;
         } else {
@@ -417,7 +417,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].test<<3)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|(int)(chan[c.chan].active && chan[c.chan].gate));
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -428,7 +428,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
           chan[c.chan].keyOn=true;
         }
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

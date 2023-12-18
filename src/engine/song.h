@@ -606,7 +606,7 @@ struct DivSong {
     nullInsOPLDrums.fm.op[3].rr=7;
     nullInsOPLDrums.fm.op[3].mult=2;
 
-    nullInsQSound.std.panLMacro.mode=true;
+    nullInsQSound.std.get_macro(DIV_MACRO_PAN_LEFT, true)->mode=true;
   }
 };
 

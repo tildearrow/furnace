@@ -282,12 +282,12 @@ void DivPlatformQSound::acquire(short** buf, size_t len) {
 void DivPlatformQSound::tick(bool sysTick) {
   for (int i=0; i<19; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
       if (chan[i].isNewQSound) {
-        chan[i].outVol=((chan[i].vol&0xff)*MIN(16383,chan[i].std.vol.val))/16383;
-        chan[i].resVol=((chan[i].vol&0xff)*MIN(16383,chan[i].std.vol.val))/255;
+        chan[i].outVol=((chan[i].vol&0xff)*MIN(16383,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/16383;
+        chan[i].resVol=((chan[i].vol&0xff)*MIN(16383,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/255;
       } else {
-        chan[i].outVol=((chan[i].vol&0xff)*chan[i].std.vol.val)>>6;
+        chan[i].outVol=((chan[i].vol&0xff)*chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val)>>6;
         chan[i].resVol=chan[i].outVol<<4;
       }
       // Check if enabled and write volume
@@ -336,44 +336,44 @@ void DivPlatformQSound::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=QS_NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=QS_NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].isNewQSound && chan[i].std.duty.had) {
-      chan[i].echo=CLAMP(chan[i].std.duty.val,0,32767);
+    if (chan[i].isNewQSound && chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      chan[i].echo=CLAMP(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val,0,32767);
       if (i<16) {
         immWrite(Q1_ECHO+i,chan[i].echo&0x7fff);
       }
     }
-    if (chan[i].isNewQSound && chan[i].std.ex1.had) {
-      immWrite(Q1_ECHO_FEEDBACK,chan[i].std.ex1.val&0x3fff);
+    if (chan[i].isNewQSound && chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had) {
+      immWrite(Q1_ECHO_FEEDBACK,chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&0x3fff);
     }
-    if (chan[i].isNewQSound && chan[i].std.ex2.had) {
-      immWrite(Q1_ECHO_LENGTH,0xfff-(2725-CLAMP(chan[i].std.ex2.val&0xfff,0,2725)));
+    if (chan[i].isNewQSound && chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had) {
+      immWrite(Q1_ECHO_LENGTH,0xfff-(2725-CLAMP(chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val&0xfff,0,2725)));
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.panL.had) { // panning
-      chan[i].panning=chan[i].std.panL.val+16;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) { // panning
+      chan[i].panning=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val+16;
     }
-    if (chan[i].std.panR.had) { // surround
-      chan[i].surround=chan[i].std.panR.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) { // surround
+      chan[i].surround=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val;
     }
-    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
       immWrite(Q1_PAN+i,chan[i].panning+0x110+(chan[i].surround?0:0x30));
     }
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1 && chan[i].active && (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen)) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1 && chan[i].active && (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen)) {
         chan[i].keyOn=true;
       }
     }
@@ -406,7 +406,7 @@ void DivPlatformQSound::tick(bool sysTick) {
         }
         //logV("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
         // Write sample address. Enable volume
-        if (!chan[i].std.vol.had) {
+        if (!chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
           if (chan[i].isNewQSound) {
             chan[i].resVol=(chan[i].vol*16383)/255;
           } else {
@@ -467,7 +467,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chan[c.chan].keyOff=false;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
         if (chan[c.chan].isNewQSound) {
           chan[c.chan].resVol=(chan[c.chan].outVol*16383)/255;
@@ -495,7 +495,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           // Check if enabled and write volume
           chan[c.chan].outVol=c.value;
           if (chan[c.chan].isNewQSound) {
@@ -514,7 +514,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
+      if (chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -566,7 +566,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -575,7 +575,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

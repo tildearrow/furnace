@@ -34,21 +34,21 @@ template<typename T> struct SharedChannel {
   T vol, outVol;
   DivMacroInt std;
   void handleArp(int offset=0) {
-    if (std.arp.had) {
-      if (std.arp.val<0) {
-        if (!(std.arp.val&0x40000000)) {
-          baseNoteOverride=(std.arp.val|0x40000000)+offset;
+    if (std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
+      if (std.get_div_macro_struct(DIV_MACRO_ARP)->val<0) {
+        if (!(std.get_div_macro_struct(DIV_MACRO_ARP)->val&0x40000000)) {
+          baseNoteOverride=(std.get_div_macro_struct(DIV_MACRO_ARP)->val|0x40000000)+offset;
           fixedArp=true;
         } else {
-          arpOff=std.arp.val;
+          arpOff=std.get_div_macro_struct(DIV_MACRO_ARP)->val;
           fixedArp=false;
         }
       } else {
-        if (std.arp.val&0x40000000) {
-          baseNoteOverride=(std.arp.val&(~0x40000000))+offset;
+        if (std.get_div_macro_struct(DIV_MACRO_ARP)->val&0x40000000) {
+          baseNoteOverride=(std.get_div_macro_struct(DIV_MACRO_ARP)->val&(~0x40000000))+offset;
           fixedArp=true;
         } else {
-          arpOff=std.arp.val;
+          arpOff=std.get_div_macro_struct(DIV_MACRO_ARP)->val;
           fixedArp=false;
         }
       }

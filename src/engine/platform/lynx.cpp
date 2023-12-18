@@ -122,51 +122,51 @@ void DivPlatformLynx::acquire(short** buf, size_t len) {
 void DivPlatformLynx::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
       if (chan[i].pcm) {
-        chan[i].outVol=((chan[i].vol&127)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
+        chan[i].outVol=((chan[i].vol&127)*MIN(chan[i].macroVolMul,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))/chan[i].macroVolMul;
       } else {
-        chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
+        chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))>>7;
       }
       WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].actualNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        chan[i].actualNote=parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val);
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].actualNote);
         if (chan[i].pcm) chan[i].sampleBaseFreq=NOTE_FREQUENCY(chan[i].actualNote);
         chan[i].freqChanged=true;
       }
     }
 
-    if (chan[i].std.panL.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
       chan[i].pan&=0x0f;
-      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+      chan[i].pan|=(chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&15)<<4;
     }
 
-    if (chan[i].std.panR.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
       chan[i].pan&=0xf0;
-      chan[i].pan|=chan[i].std.panR.val&15;
+      chan[i].pan|=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val&15;
     }
 
-    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
       WRITE_ATTEN(i,chan[i].pan);
     }
 
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) {
         if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
           chan[i].sampleAccum=0;
           chan[i].samplePos=0;
@@ -195,8 +195,8 @@ void DivPlatformLynx::tick(bool sysTick) {
           chan[i].lfsr=-1;
         }
         chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-        if (chan[i].std.duty.had) {
-          chan[i].duty=chan[i].std.duty.val;
+        if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+          chan[i].duty=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
           if (!chan[i].pcm) {
             WRITE_FEEDBACK(i, chan[i].duty.feedback);
           }
@@ -205,8 +205,8 @@ void DivPlatformLynx::tick(bool sysTick) {
         WRITE_BACKUP( i, chan[i].fd.backup );
       }
       chan[i].freqChanged=false;
-    } else if (chan[i].std.duty.had) {
-      chan[i].duty = chan[i].std.duty.val;
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      chan[i].duty = chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
       if (!chan[i].pcm) {
         WRITE_FEEDBACK(i, chan[i].duty.feedback);
         WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
@@ -251,7 +251,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       break;
@@ -280,7 +280,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[c.chan].outVol=c.value;
         }
         if (chan[c.chan].active && !chan[c.chan].pcm) WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
@@ -291,7 +291,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       WRITE_ATTEN(c.chan,chan[c.chan].pan);
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
+      if (chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -327,7 +327,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      int whatAMess=c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
+      int whatAMess=c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0));
       chan[c.chan].baseFreq=NOTE_PERIODIC(whatAMess);
       if (chan[c.chan].pcm) {
         chan[c.chan].sampleBaseFreq=NOTE_FREQUENCY(whatAMess);
@@ -341,7 +341,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
