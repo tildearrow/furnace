@@ -262,7 +262,7 @@ void DivMacroInt::add_op_macro(uint8_t oper, uint8_t macro_type, DivInstrumentMa
 DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
 {
   static DivMacroStruct dummy = DivMacroStruct(0xff);
-  for(int i = 0; i < macros.size(); i++)
+  for(int i = 0; i < (int)macros.size(); i++)
   {
     if(macros[i].macroType == macro_id)
     {
@@ -277,7 +277,7 @@ int DivMacroInt::get_macro_count(DivInstrument* ins)
 {
   int sum = 0;
 
-  for(int i = 0; i < ins->std.macros.size(); i++)
+  for(int i = 0; i < (int)ins->std.macros.size(); i++)
   {
     if(ins->std.macros[i].len > 0) sum++;
   }
@@ -289,7 +289,7 @@ int DivMacroInt::get_op_macro_count(DivInstrument* ins, uint8_t oper)
 {
   int sum = 0;
 
-  for(int i = 0; i < ins->std.ops[oper].macros.size(); i++)
+  for(int i = 0; i < (int)ins->std.ops[oper].macros.size(); i++)
   {
     if(ins->std.ops[oper].macros[i].len > 0) sum++;
   }
@@ -317,7 +317,7 @@ void DivMacroInt::init(DivInstrument* which)
   macros.shrink_to_fit();
   macros.reserve(get_macro_count(which));
 
-  for(int i = 0; i < ins->std.macros.size(); i++)
+  for(int i = 0; i < (int)ins->std.macros.size(); i++)
   {
     if(ins->std.macros[i].len > 0)
     {
@@ -329,20 +329,20 @@ void DivMacroInt::init(DivInstrument* which)
   {
     int init = op.size();
 
-    for(int i = 0; i < ins->std.ops.size() - init; i++)
+    for(int i = 0; i < (int)ins->std.ops.size() - init; i++)
     {
       op.push_back(IntOp());
     }
   }
 
   // prepare FM operator macros
-  for (int oper=0; oper<ins->std.ops.size(); oper++)
+  for (int oper = 0; oper < (int)ins->std.ops.size(); oper++)
   {
     op[oper].macros.clear();
     op[oper].macros.shrink_to_fit();
     op[oper].macros.reserve(get_op_macro_count(which, oper));
 
-    for (int i=0; i<ins->std.ops[oper].macros.size(); i++)
+    for (int i = 0; i < (int)ins->std.ops[oper].macros.size(); i++)
     {
       if(ins->std.ops[oper].macros[i].len > 0)
       {
@@ -374,7 +374,7 @@ void DivMacroInt::notifyInsDeletion(DivInstrument* which) {
 
 DivMacroStruct* DivMacroInt::get_macro_by_type(unsigned char type)
 {
-  for(int i = 0; i < macros.size(); i++)
+  for(int i = 0; i < (int)macros.size(); i++)
   {
     if(macros[i].macroType == type)
     {
@@ -397,7 +397,7 @@ DivMacroStruct* DivMacroInt::get_op_macro_by_type(unsigned char oper, unsigned c
     }
   }
 
-  for(int i = 0; i < op[oper].macros.size(); i++)
+  for(int i = 0; i < (int)op[oper].macros.size(); i++)
   {
     if(op[oper].macros[i].macroType == type)
     {
