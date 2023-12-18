@@ -95,6 +95,7 @@ class DivPlatformOPLL: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

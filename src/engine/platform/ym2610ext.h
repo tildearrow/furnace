@@ -35,6 +35,7 @@ class DivPlatformYM2610Ext: public DivPlatformYM2610 {
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    int mapVelocity(int ch, float vel);
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
