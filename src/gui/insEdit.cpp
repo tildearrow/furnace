@@ -2956,14 +2956,14 @@ void FurnaceGUI::drawInsEdit() {
                 ins->std.opMacros[j].ksrMacro.vZoom=-1;
               }*/
 
-              for(int i = 0; i < ins->std.macros.size(); i++)
+              for(int i = 0; i < (int)ins->std.macros.size(); i++)
               {
                 ins->std.macros[i].vZoom = -1;
               }
 
-              for(int j = 0; j < ins->std.ops.size(); j++)
+              for(int j = 0; j < (int)ins->std.ops.size(); j++)
               {
-                for(int i = 0; i < ins->std.ops[j].macros.size(); i++)
+                for(int i = 0; i < (int)ins->std.ops[j].macros.size(); i++)
                 {
                   ins->std.ops[j].macros[i].vZoom = -1;
                 }
@@ -4575,13 +4575,19 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("LFO2 Speed",ins->std.get_macro(DIV_MACRO_EX7, true),0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("LFO2 Shape",ins->std.get_macro(DIV_MACRO_EX8, true),0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
             }
+
+            for(int i = 0; i < (int)ins->std.macros.size(); i++)
+            {
+              ins->std.macros[i].vZoom = -1;
+            }
+
             drawMacros(macroList,macroEditStateFM);
             ImGui::EndTabItem();
           }
 
           for (int i=0; i<opCount; i++)
           {
-            if(ins->std.ops.size() < opCount)
+            if((int)ins->std.ops.size() < opCount)
             {
               int limit = opCount - ins->std.ops.size();
 
@@ -4661,6 +4667,12 @@ void FurnaceGUI::drawInsEdit() {
                   macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SSG),ins->std.ops[ordi].op_get_macro(DIV_MACRO_OP_SSG, true),0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,ssgEnvBits));
                 }
               }
+
+              for(int i = 0; i < (int)ins->std.ops[ordi].macros.size(); i++)
+              {
+                ins->std.ops[ordi].macros[i].vZoom = -1;
+              }
+
               drawMacros(macroList,macroEditStateOP[ordi]);
               ImGui::PopID();
               ImGui::EndTabItem();
@@ -6533,6 +6545,11 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_MSM5232) {
             macroList.push_back(FurnaceGUIMacroDesc("Noise",ins->std.get_macro(DIV_MACRO_EX3, true),0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+          }
+
+          for(int i = 0; i < (int)ins->std.macros.size(); i++)
+          {
+            ins->std.macros[i].vZoom = -1;
           }
 
           drawMacros(macroList,macroEditStateMacros);
