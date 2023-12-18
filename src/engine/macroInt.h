@@ -236,6 +236,12 @@ class DivMacroInt {
       macroList.clear();
       macroSource.clear();
 
+      e = NULL;
+      ins = NULL;
+      subTick = 0;
+      released = false;
+      hasRelease = false;
+
       for(int i = 0; i < 4; i++)
       {
         macro_mask[i] = 0;
