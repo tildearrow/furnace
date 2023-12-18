@@ -1167,7 +1167,10 @@ struct FurnaceGUITutorialDef {
 };
 
 struct FurnaceGUIMacroDesc {
-  DivInstrumentMacro* macro;
+  //DivInstrumentMacro* macro;
+  DivInstrument* ins;
+  DivMacroType macro_id;
+  int oper;
   int min, max;
   float height;
   const char* displayName;
@@ -1179,8 +1182,10 @@ struct FurnaceGUIMacroDesc {
   String (*hoverFunc)(int,float,void*);
   void* hoverFuncUser;
 
-  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float,void*)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false, void* hfu=NULL):
-    macro(m),
+  FurnaceGUIMacroDesc(const char* name, DivInstrument* ins, DivMacroType macro_id, int oper, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float,void*)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false, void* hfu=NULL):
+    ins(ins),
+    macro_id(macro_id),
+    oper(oper),
     height(macroHeight),
     displayName(name),
     bitfieldBits(bfVal),
@@ -1195,6 +1200,29 @@ struct FurnaceGUIMacroDesc {
     // MSVC -> hell
     this->min=macroMin;
     this->max=macroMax;
+  }
+
+  DivInstrumentMacro* get_macro()
+  {
+    if(oper == 0xff) //main instrument macros
+    {
+      return ins->std.get_macro(macro_id, true);
+    }
+
+    else
+    {
+      if(oper <= (int)ins->std.ops.size())
+      {
+        int limit = oper + 1 - (int)ins->std.ops.size();
+
+        for(int i = 0; i < limit; i++)
+        {
+          ins->std.ops.push_back(DivInstrumentSTD::OpMacro());
+        }
+      }
+
+      return ins->std.ops[oper].op_get_macro(macro_id, true);
+    }
   }
 };
 

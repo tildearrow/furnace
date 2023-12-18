@@ -7538,7 +7538,7 @@ FurnaceGUI::FurnaceGUI():
   macroDragLineInitial(0,0),
   macroDragLineInitialV(0,0),
   macroDragActive(false),
-  lastMacroDesc(NULL,NULL,0,0,0.0f),
+  lastMacroDesc(NULL,NULL,(DivMacroType)0,0,0,0,0.0f),
   macroOffX(0),
   macroOffY(0),
   macroScaleX(100.0f),
