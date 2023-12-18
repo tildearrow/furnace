@@ -2885,14 +2885,8 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::Text("Type");
 
         ImGui::TableNextColumn();
-        if (ins->type>=DIV_INS_MAX) ins->type=DIV_INS_FM;
         int insType=ins->type;
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        /*
-        if (ImGui::Combo("##Type",&insType,insTypes,DIV_INS_MAX,DIV_INS_MAX)) {
-          ins->type=(DivInstrumentType)insType;
-        }
-        */
         bool warnType=true;
         for (DivInstrumentType i: e->getPossibleInsTypes()) {
           if (i==insType) {
@@ -2901,7 +2895,7 @@ void FurnaceGUI::drawInsEdit() {
         }
 
         pushWarningColor(warnType,warnType && failedNoteOn);
-        if (ImGui::BeginCombo("##Type",insTypes[insType][0])) {
+        if (ImGui::BeginCombo("##Type",(insType>=DIV_INS_MAX)?"Unknown":insTypes[insType][0])) {
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
             for (int i=0; insTypes[i][0]; i++) {
@@ -6520,6 +6514,12 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_SWAN ||
             ins->type==DIV_INS_VRC6) {
           insTabSample(ins);
+        }
+        if (ins->type>=DIV_INS_MAX) {
+          if (ImGui::BeginTabItem("Error")) {
+            ImGui::Text("invalid instrument type! change it first.");
+            ImGui::EndTabItem();
+          }
         }
         ImGui::EndTabBar();
       }
