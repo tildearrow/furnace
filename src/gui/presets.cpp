@@ -742,11 +742,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "NEC PC-98 (with PC-9801-86)", { // -73 also has OPNA
       CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, -1, // 2x 16-bit Burr Brown DAC
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, // 2x 16-bit Burr Brown DAC
         "rate=44100\n"
         "outDepth=15\n"
       ),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 1,
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
         "rate=44100\n"
         "outDepth=15\n"
       ),
