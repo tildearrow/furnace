@@ -310,11 +310,12 @@ void DivMacroInt::init(DivInstrument* which)
   hasRelease=false;
   released=false;
 
-  if (ins==NULL) return;
-
   // prepare common macro
   macros.clear();
   macros.shrink_to_fit();
+
+  if (ins==NULL) return;
+
   macros.reserve(get_macro_count(which));
 
   for(int i = 0; i < (int)ins->std.macros.size(); i++)
