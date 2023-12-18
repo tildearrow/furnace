@@ -1,3 +1,11 @@
+# Better Furnace (placeholder name)
+
+A fork of [Furnace chiptune tracker](https://github.com/tildearrow/furnace) with the aim to cut out the bloat (aka abandoned/unfinished stuff), make codebase cleaner and easier to understand, optimize performance and memory usage, and bring more useful features.
+
+TODO: add about code of conduct and contribution
+
+[see here](https://nightly.link/ltva1/furnace/workflows/build/master) for the latest unstable build of the fork.
+
 # Furnace (chiptune tracker)
 
 ![screenshot](papers/screenshot3.png)
