@@ -172,8 +172,8 @@ void DivMacroInt::next() {
   // TODO: potentially get rid of list to avoid allocations
   subTick--;
   for (size_t i=0; i<macroList.size(); i++) {
-    if (macroList[i]!=NULL && macroSource[i]!=NULL) {
-      macroList[i]->doMacro(*macroSource[i],released,subTick==0);
+    if (macroList[i]!=NULL) { //&& macroSource[i]!=NULL) {
+      macroList[i]->doMacro(macroSource[i].op == 0xff ? (*ins->std.get_macro(macroSource[i].macro_id, false)) : (*ins->std.ops[macroSource[i].op].op_get_macro(macroSource[i].macro_id, false)),released,subTick==0);
     }
   }
   if (subTick<=0) {
@@ -247,7 +247,7 @@ void DivMacroInt::add_macro(uint8_t macro_type, DivInstrumentMacro* m)
 
   macros.push_back(DivMacroStruct(macro_type));
   macroList.push_back(&macros[macros.size() - 1]);
-  macroSource.push_back(m);
+  macroSource.push_back(macro_source(macro_type, 0xff));
 }
 
 void DivMacroInt::add_op_macro(uint8_t oper, uint8_t macro_type, DivInstrumentMacro* m)
@@ -256,7 +256,7 @@ void DivMacroInt::add_op_macro(uint8_t oper, uint8_t macro_type, DivInstrumentMa
 
   op[oper].macros.push_back(DivMacroStruct(macro_type));
   macroList.push_back(&op[oper].macros[op[oper].macros.size() - 1]);
-  macroSource.push_back(m);
+  macroSource.push_back(macro_source(macro_type, oper));
 }
 
 DivMacroStruct* DivMacroInt::get_div_macro_struct(uint8_t macro_id)
@@ -359,17 +359,18 @@ void DivMacroInt::init(DivInstrument* which)
   }
 
   for (size_t i=0; i<macroList.size(); i++) {
-    if (macroSource[i]!=NULL) {
-      macroList[i]->prepare(*macroSource[i],e);
+    //if (macroSource[i]!=NULL) {
+      DivInstrumentMacro* m = macroSource[i].op == 0xff ? ins->std.get_macro(macroSource[i].macro_id, false) : ins->std.ops[macroSource[i].op].op_get_macro(macroSource[i].macro_id, false);
+      macroList[i]->prepare(*m,e);
       // check ADSR mode
-      if ((macroSource[i]->open&6)==2) {
-        if (macroSource[i]->val[8]>0) {
+      if ((m->open&6)==2) {
+        if (m->val[8]>0) {
           hasRelease=true;
         }
-      } else if (macroSource[i]->rel<macroSource[i]->len) {
+      } else if (m->rel<m->len) {
         hasRelease=true;
       }
-    }
+    //}
   }
 }
 
