@@ -94,7 +94,8 @@ void FurnaceGUI::drawPalette() {
         paletteSearchResults.push_back(0);
       }
       for (int i=0; i<e->song.insLen; i++) {
-        if (matchFuzzy(e->song.ins[i]->name.c_str(),paletteQuery.c_str())) {
+        String s=fmt::sprintf("%02d: %s", i, e->song.ins[i]->name.c_str());
+        if (matchFuzzy(s.c_str(),paletteQuery.c_str())) {
           paletteSearchResults.push_back(i+1); // because over here ins=0 is 'None'
         }
       }
