@@ -1216,7 +1216,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
     if (latchVol!=-1) {
       pat->data[cursor.y][3]=MIN(maxVol,latchVol);
     } else if (vol!=-1) {
-      pat->data[cursor.y][3]=(vol*maxVol)/127;
+      pat->data[cursor.y][3]=e->mapVelocity(cursor.xCoarse,pow((float)vol/127.0f,midiMap.volExp));
     }
     if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
     if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
@@ -3776,7 +3776,7 @@ bool FurnaceGUI::loop() {
                 noteInput(
                   msg.data[0]-12,
                   0,
-                  midiMap.volInput?((int)(pow((double)msg.data[1]/127.0,midiMap.volExp)*127.0)):-1
+                  midiMap.volInput?msg.data[1]:-1
                 );
               }
             } else {
@@ -3803,7 +3803,7 @@ bool FurnaceGUI::loop() {
             }
             break;
           case TA_MIDI_PROGRAM:
-            if (midiMap.programChange) {
+            if (midiMap.programChange && !(midiMap.directChannel && midiMap.directProgram)) {
               curIns=msg.data[0];
               if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
               wavePreviewInit=true;
@@ -7018,6 +7018,7 @@ bool FurnaceGUI::init() {
       return -2;
     }
 
+    if (midiMap.directChannel && midiMap.directProgram) return -1;
     return curIns;
   });
 

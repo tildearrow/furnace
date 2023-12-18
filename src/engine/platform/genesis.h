@@ -112,6 +112,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     virtual unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    virtual int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
