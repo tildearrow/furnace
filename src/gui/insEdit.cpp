@@ -2915,47 +2915,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type=i;
 
               // reset macro zoom
-              /*ins->std.volMacro.vZoom=-1;
-              ins->std.dutyMacro.vZoom=-1;
-              ins->std.waveMacro.vZoom=-1;
-              ins->std.ex1Macro.vZoom=-1;
-              ins->std.ex2Macro.vZoom=-1;
-              ins->std.ex3Macro.vZoom=-1;
-              ins->std.ex4Macro.vZoom=-1;
-              ins->std.ex5Macro.vZoom=-1;
-              ins->std.ex6Macro.vZoom=-1;
-              ins->std.ex7Macro.vZoom=-1;
-              ins->std.ex8Macro.vZoom=-1;
-              ins->std.panLMacro.vZoom=-1;
-              ins->std.panRMacro.vZoom=-1;
-              ins->std.phaseResetMacro.vZoom=-1;
-              ins->std.algMacro.vZoom=-1;
-              ins->std.fbMacro.vZoom=-1;
-              ins->std.fmsMacro.vZoom=-1;
-              ins->std.amsMacro.vZoom=-1;
-              for (int j=0; j<4; j++) {
-                ins->std.opMacros[j].amMacro.vZoom=-1;
-                ins->std.opMacros[j].arMacro.vZoom=-1;
-                ins->std.opMacros[j].drMacro.vZoom=-1;
-                ins->std.opMacros[j].multMacro.vZoom=-1;
-                ins->std.opMacros[j].rrMacro.vZoom=-1;
-                ins->std.opMacros[j].slMacro.vZoom=-1;
-                ins->std.opMacros[j].tlMacro.vZoom=-1;
-                ins->std.opMacros[j].dt2Macro.vZoom=-1;
-                ins->std.opMacros[j].rsMacro.vZoom=-1;
-                ins->std.opMacros[j].dtMacro.vZoom=-1;
-                ins->std.opMacros[j].d2rMacro.vZoom=-1;
-                ins->std.opMacros[j].ssgMacro.vZoom=-1;
-                ins->std.opMacros[j].damMacro.vZoom=-1;
-                ins->std.opMacros[j].dvbMacro.vZoom=-1;
-                ins->std.opMacros[j].egtMacro.vZoom=-1;
-                ins->std.opMacros[j].kslMacro.vZoom=-1;
-                ins->std.opMacros[j].susMacro.vZoom=-1;
-                ins->std.opMacros[j].vibMacro.vZoom=-1;
-                ins->std.opMacros[j].wsMacro.vZoom=-1;
-                ins->std.opMacros[j].ksrMacro.vZoom=-1;
-              }*/
-
+              
               for(int i = 0; i < (int)ins->std.macros.size(); i++)
               {
                 ins->std.macros[i].vZoom = -1;
@@ -4576,7 +4536,7 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("LFO2 Shape",ins->std.get_macro(DIV_MACRO_EX8, true),0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
             }
 
-            for(int i = 0; i < (int)ins->std.macros.size(); i++)
+            for(int i = 0; i < (int)ins->std.macros.size(); i++) // reset macro zoom
             {
               ins->std.macros[i].vZoom = -1;
             }
@@ -4668,7 +4628,7 @@ void FurnaceGUI::drawInsEdit() {
                 }
               }
 
-              for(int i = 0; i < (int)ins->std.ops[ordi].macros.size(); i++)
+              for(int i = 0; i < (int)ins->std.ops[ordi].macros.size(); i++) // reset macro zoom
               {
                 ins->std.ops[ordi].macros[i].vZoom = -1;
               }
@@ -6547,7 +6507,7 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Noise",ins->std.get_macro(DIV_MACRO_EX3, true),0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
 
-          for(int i = 0; i < (int)ins->std.macros.size(); i++)
+          for(int i = 0; i < (int)ins->std.macros.size(); i++) // reset macro zoom
           {
             ins->std.macros[i].vZoom = -1;
           }
