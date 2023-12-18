@@ -314,6 +314,12 @@ void DivMacroInt::init(DivInstrument* which)
   macros.clear();
   macros.shrink_to_fit();
 
+  for (int oper = 0; oper < (int)op.size(); oper++)
+  {
+    op[oper].macros.clear();
+    op[oper].macros.shrink_to_fit();
+  }
+
   if (ins==NULL) return;
 
   macros.reserve(get_macro_count(which));
