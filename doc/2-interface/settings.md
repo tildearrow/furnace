@@ -134,14 +134,18 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Value input style**: changes the way values are entered when the pattern cursor is not in the Note column. the following styles are available:
   - **Disabled/custom**: no value input through MIDI.
   - **Two octaves (0 is C-4, F is D#5)**: maps keys in two octaves to single nibble input. the layout is:
-    - ` - octave n -- octave n+1 -`
-    - ` 1 3   6 8 A   D F   # # # `
-    - `0 2 4 5 7 9 B C E # # # # #`
+    ```
+       octave n   |  octave n+1 
+     1 3   6 8 A  |  D F   # # # 
+    0 2 4 5 7 9 B | C E # # # # #
+    ```
   - **Raw (note number is value)**: the note number becomes the input value. not useful if you want to input anything above 7F.
   - **Two octaves alternate (lower keys are 0-9, upper keys are A-F)**: maps keys in two octaves, but with a different layout:
-    - ` - octave n -- octave n+1 -`
-    - ` A B   C D E   F #   # # # `
-    - `0 1 2 3 4 5 6 7 8 9 # # # #`
+    ```
+       octave n   |  octave n+1  
+     A B   C D E  |  F #   # # # 
+    0 1 2 3 4 5 6 | 7 8 9 # # # #
+    ```
   - **Use dual control change (one for each nibble)**: maps two control change events to the nibbles of a value.
     - **CC of upper nibble**: select the CC number that will change the upper nibble.
     - **CC of lower nibble**: select the CC number that will change the lower nibble.
