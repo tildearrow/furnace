@@ -210,11 +210,14 @@ TAParamResult pVersion(String) {
   printf("- Portable File Dialogs by Sam Hocevar (WTFPL)\n");
   printf("- Native File Dialog (modified version) by Frogtoss Games (zlib license)\n");
   printf("- FFTW by Matteo Frigo and Steven G. Johnson (GPLv2)\n");
-  printf("- Nuked-OPM by Nuke.YKT (LGPLv2.1)\n");
-  printf("- Nuked-OPN2 by Nuke.YKT (LGPLv2.1)\n");
-  printf("- Nuked-OPL3 by Nuke.YKT (LGPLv2.1)\n");
-  printf("- Nuked-OPLL by Nuke.YKT (GPLv2)\n");
-  printf("- Nuked-PSG (modified version) by Nuke.YKT (GPLv2)\n");
+  printf("- Nuked-OPM by nukeykt (LGPLv2.1)\n");
+  printf("- Nuked-OPN2 by nukeykt (LGPLv2.1)\n");
+  printf("- Nuked-OPL3 by nukeykt (LGPLv2.1)\n");
+  printf("- Nuked-OPLL by nukeykt (GPLv2)\n");
+  printf("- Nuked-PSG (modified version) by nukeykt (GPLv2)\n");
+  printf("- YM3812-LLE by nukeykt (GPLv2)\n");
+  printf("- YMF262-LLE by nukeykt (GPLv2)\n");
+  printf("- YMF276-LLE by nukeykt (GPLv2)\n");
   printf("- ymfm by Aaron Giles (BSD 3-clause)\n");
   printf("- adpcm by superctr (public domain)\n");
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");
@@ -370,7 +373,7 @@ void initParams() {
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
   params.push_back(TAParam("b","binary",false,pBinary,"","set command stream output format to binary"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
-  params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
+  params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
   params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
 
@@ -554,7 +557,7 @@ int main(int argc, char** argv) {
 
   if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
     logE("you can't use safe mode and console/export mode together.");
-    return 0;
+    return 1;
   }
 
   if (safeMode && !safeModeWithAudio) {

@@ -103,6 +103,8 @@ void FurnaceGUI::doFind() {
   int lastRow=e->curSubSong->patLen-1;
 
   if (curQueryRangeY==1) {
+    finishSelection();
+
     firstRow=selStart.y;
     lastRow=selEnd.y;
   }
@@ -922,14 +924,14 @@ void FurnaceGUI::drawFindReplace() {
               if (queryReplaceIns>255) queryReplaceIns=255;
             }
           } else if (queryReplaceInsMode==GUI_QUERY_REPLACE_ADD || queryReplaceInsMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
-            if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,12)) {
+            if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,16)) {
               if (queryReplaceIns<-255) queryReplaceIns=-255;
               if (queryReplaceIns>255) queryReplaceIns=255;
             }
           } else if (queryReplaceInsMode==GUI_QUERY_REPLACE_SCALE) {
             if (queryReplaceIns<0) queryReplaceIns=0;
             if (queryReplaceIns>400) queryReplaceIns=400;
-            if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,12)) {
+            if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,10)) {
               if (queryReplaceIns<0) queryReplaceIns=0;
               if (queryReplaceIns>400) queryReplaceIns=400;
             }
@@ -951,14 +953,14 @@ void FurnaceGUI::drawFindReplace() {
               if (queryReplaceVol>255) queryReplaceVol=255;
             }
           } else if (queryReplaceVolMode==GUI_QUERY_REPLACE_ADD || queryReplaceVolMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
-            if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,12)) {
+            if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,16)) {
               if (queryReplaceVol<-255) queryReplaceVol=-255;
               if (queryReplaceVol>255) queryReplaceVol=255;
             }
           } else if (queryReplaceVolMode==GUI_QUERY_REPLACE_SCALE) {
             if (queryReplaceVol<0) queryReplaceVol=0;
             if (queryReplaceVol>400) queryReplaceVol=400;
-            if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,12)) {
+            if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,10)) {
               if (queryReplaceVol<0) queryReplaceVol=0;
               if (queryReplaceVol>400) queryReplaceVol=400;
             }
@@ -982,14 +984,14 @@ void FurnaceGUI::drawFindReplace() {
                 if (queryReplaceEffect[i]>255) queryReplaceEffect[i]=255;
               }
             } else if (queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_ADD || queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
-              if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,12)) {
+              if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,16)) {
                 if (queryReplaceEffect[i]<-255) queryReplaceEffect[i]=-255;
                 if (queryReplaceEffect[i]>255) queryReplaceEffect[i]=255;
               }
             } else if (queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_SCALE) {
               if (queryReplaceEffect[i]<0) queryReplaceEffect[i]=0;
               if (queryReplaceEffect[i]>400) queryReplaceEffect[i]=400;
-              if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,12)) {
+              if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,10)) {
                 if (queryReplaceEffect[i]<0) queryReplaceEffect[i]=0;
                 if (queryReplaceEffect[i]>400) queryReplaceEffect[i]=400;
               }
@@ -1011,14 +1013,14 @@ void FurnaceGUI::drawFindReplace() {
                 if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
               }
             } else if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_ADD || queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
-              if (ImGui::InputInt("##ERValueV",&queryReplaceEffectVal[i],1,12)) {
+              if (ImGui::InputInt("##ERValueV",&queryReplaceEffectVal[i],1,16)) {
                 if (queryReplaceEffectVal[i]<-255) queryReplaceEffectVal[i]=-255;
                 if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
               }
             } else if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_SCALE) {
               if (queryReplaceEffectVal[i]<0) queryReplaceEffectVal[i]=0;
               if (queryReplaceEffectVal[i]>400) queryReplaceEffectVal[i]=400;
-              if (ImGui::InputInt("##ERValueV",&queryReplaceEffectVal[i],1,12)) {
+              if (ImGui::InputInt("##ERValueV",&queryReplaceEffectVal[i],1,10)) {
                 if (queryReplaceEffectVal[i]<0) queryReplaceEffectVal[i]=0;
                 if (queryReplaceEffectVal[i]>400) queryReplaceEffectVal[i]=400;
               }

@@ -57,10 +57,12 @@ class DivPlatformVB: public DivDispatch {
   int tempR;
   unsigned char modulation;
   bool modType;
+  bool romMode;
   signed char modTable[32];
   VSU* vb;
   unsigned char regPool[0x600];
   void updateWave(int ch);
+  void updateROMWaves();
   void writeEnv(int ch, bool upperByteToo=false);
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

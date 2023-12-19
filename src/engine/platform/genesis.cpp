@@ -289,8 +289,14 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
   }
 }
 
+void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
+  // TODO
+}
+
 void DivPlatformGenesis::acquire(short** buf, size_t len) {
-  if (useYMFM) {
+  if (useYMFM==2) {
+    acquire_nuked276(buf,len);
+  } else if (useYMFM==1) {
     acquire_ymfm(buf,len);
   } else {
     acquire_nuked(buf,len);
@@ -1294,6 +1300,12 @@ DivDispatchOscBuffer* DivPlatformGenesis::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+int DivPlatformGenesis::mapVelocity(int ch, float vel) {
+  if (ch==csmChan) return DivPlatformOPN::mapVelocity(ch,vel);
+  if (ch>5) return DivPlatformOPN::mapVelocity(5,vel);
+  return DivPlatformOPN::mapVelocity(ch,vel);
+}
+
 unsigned char* DivPlatformGenesis::getRegisterPool() {
   return regPool;
 }
@@ -1309,7 +1321,9 @@ float DivPlatformGenesis::getPostAmp() {
 void DivPlatformGenesis::reset() {
   writes.clear();
   memset(regPool,0,512);
-  if (useYMFM) {
+  if (useYMFM==2) {
+    memset(&fm_276,0,sizeof(fmopn2_t));
+  } else if (useYMFM==1) {
     fm_ymfm->reset();
   }
   OPN2_Reset(&fm);
@@ -1396,7 +1410,7 @@ int DivPlatformGenesis::getPortaFloor(int ch) {
   return 0;
 }
 
-void DivPlatformGenesis::setYMFM(bool use) {
+void DivPlatformGenesis::setYMFM(unsigned char use) {
   useYMFM=use;
 }
 
@@ -1441,7 +1455,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
       break;
   }
   CHECK_CUSTOM_CLOCK;
-  if (useYMFM) {
+  if (useYMFM==1) {
     if (fm_ymfm!=NULL) delete fm_ymfm;
     if (chipType==1) {
       fm_ymfm=new ymfm::ym2612(iface);

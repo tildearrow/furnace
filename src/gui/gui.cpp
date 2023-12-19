@@ -1036,6 +1036,11 @@ Pos=60,60\n\
 Size=145,184\n\
 Collapsed=0\n\
 \n\
+[Window][Oscilloscope (X-Y)]\n\
+Pos=60,60\n\
+Size=300,300\n\
+Collapsed=0\n\
+\n\
 [Docking][Data]\n\
 DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Split=Y Selected=0x6C01C512\n\
   DockNode            ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,217 Split=X Selected=0xF3094A52\n\
@@ -1211,7 +1216,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
     if (latchVol!=-1) {
       pat->data[cursor.y][3]=MIN(maxVol,latchVol);
     } else if (vol!=-1) {
-      pat->data[cursor.y][3]=(vol*maxVol)/127;
+      pat->data[cursor.y][3]=e->mapVelocity(cursor.xCoarse,pow((float)vol/127.0f,midiMap.volExp));
     }
     if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
     if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
@@ -1872,6 +1877,15 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_EXPORT_TEXT:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Export Command Stream",
+        {"text file", "*.txt"},
+        workingDirROMExport,
+        dpiScale
+      );
+      break;
     case GUI_FILE_EXPORT_CMDSTREAM:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -2232,6 +2246,8 @@ int FurnaceGUI::load(String path) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
   pushRecentFile(path);
+  // walk song
+  e->walkSong(loopOrder,loopRow,loopEnd);
   // do not auto-play a backup
   if (path.find(backupPath)!=0) {
     if (settings.playOnLoad==2 || (settings.playOnLoad==1 && wasPlaying)) {
@@ -2519,7 +2535,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       int x=(dragX-waveDragStart.x)*waveDragLen/MAX(1,waveDragAreaSize.x);
       if (x<0) x=0;
       if (x>=waveDragLen) x=waveDragLen-1;
-      int y=round(waveDragMax-((dragY-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)MAX(1,waveDragAreaSize.y))));
+      int y=(waveDragMax+1)-((dragY-waveDragStart.y)*(double((waveDragMax+1)-waveDragMin)/(double)MAX(1,waveDragAreaSize.y)));
       if (y>waveDragMax) y=waveDragMax;
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
@@ -2851,7 +2867,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   ImGui::Text("transpose");
   ImGui::SameLine();
   ImGui::SetNextItemWidth(120.0f*dpiScale);
-  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,1)) {
+  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,12)) {
     if (transposeAmount<-96) transposeAmount=-96;
     if (transposeAmount>96) transposeAmount=96;
   }
@@ -2883,7 +2899,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
   if (!basicMode) {
     if (ImGui::BeginMenu("gradient/fade...")) {
-      if (ImGui::InputInt("Start",&fadeMin,1,1)) {
+      if (ImGui::InputInt("Start",&fadeMin,1,16)) {
         if (fadeMin<0) fadeMin=0;
         if (fadeMode) {
           if (fadeMin>15) fadeMin=15;
@@ -2891,7 +2907,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
           if (fadeMin>255) fadeMin=255;
         }
       }
-      if (ImGui::InputInt("End",&fadeMax,1,1)) {
+      if (ImGui::InputInt("End",&fadeMax,1,16)) {
         if (fadeMax<0) fadeMax=0;
         if (fadeMode) {
           if (fadeMax>15) fadeMax=15;
@@ -2915,7 +2931,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("scale...")) {
-      if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,1,"%.1f%%")) {
+      if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,10,"%.1f%%")) {
         if (scaleMax<0.0f) scaleMax=0.0f;
         if (scaleMax>25600.0f) scaleMax=25600.0f;
       }
@@ -2926,7 +2942,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
       ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("randomize...")) {
-      if (ImGui::InputInt("Minimum",&randomizeMin,1,1)) {
+      if (ImGui::InputInt("Minimum",&randomizeMin,1,16)) {
         if (randomizeMin<0) randomizeMin=0;
         if (randomMode) {
           if (randomizeMin>15) randomizeMin=15;
@@ -2935,7 +2951,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
         }
         if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
       }
-      if (ImGui::InputInt("Maximum",&randomizeMax,1,1)) {
+      if (ImGui::InputInt("Maximum",&randomizeMax,1,16)) {
         if (randomizeMax<0) randomizeMax=0;
         if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
         if (randomMode) {
@@ -2967,7 +2983,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
     if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
 
     ImGui::SetNextItemWidth(120.0f*dpiScale);
-    if (ImGui::InputInt("collapse/expand amount##CollapseAmount",&collapseAmount,1,1)) {
+    if (ImGui::InputInt("collapse/expand amount##CollapseAmount",&collapseAmount,1,4)) {
       if (collapseAmount<2) collapseAmount=2;
       if (collapseAmount>256) collapseAmount=256;
     }
@@ -3441,6 +3457,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(readOsc)
   DECLARE_METRIC(osc)
   DECLARE_METRIC(chanOsc)
+  DECLARE_METRIC(xyOsc)
   DECLARE_METRIC(volMeter)
   DECLARE_METRIC(settings)
   DECLARE_METRIC(debug)
@@ -3617,17 +3634,30 @@ bool FurnaceGUI::loop() {
               if (!e->getWarnings().empty()) {
                 showWarning(e->getWarnings(),GUI_WARN_GENERIC);
               }
+              int instrumentCount=-1;
               for (DivInstrument* i: instruments) {
-                e->addInstrumentPtr(i);
+                instrumentCount=e->addInstrumentPtr(i);
+              }
+              if (instrumentCount>=0 && settings.selectAssetOnLoad) {
+                curIns=instrumentCount-1;
               }
               nextWindow=GUI_WINDOW_INS_LIST;
               MARK_MODIFIED;
             } else if ((droppedWave=e->waveFromFile(ev.drop.file,false))!=NULL) {
-              e->addWavePtr(droppedWave);
+              int waveCount=-1;
+              waveCount=e->addWavePtr(droppedWave);
+              if (waveCount>=0 && settings.selectAssetOnLoad) {
+                curWave=waveCount-1;
+              }
               nextWindow=GUI_WINDOW_WAVE_LIST;
               MARK_MODIFIED;
             } else if ((droppedSample=e->sampleFromFile(ev.drop.file))!=NULL) {
-              e->addSamplePtr(droppedSample);
+              int sampleCount=-1;
+              sampleCount=e->addSamplePtr(droppedSample);
+              if (sampleCount>=0 && settings.selectAssetOnLoad) {
+                curSample=sampleCount;
+                updateSampleTex=true;
+              }
               nextWindow=GUI_WINDOW_SAMPLE_LIST;
               MARK_MODIFIED;
             } else if (modified) {
@@ -3759,7 +3789,7 @@ bool FurnaceGUI::loop() {
                 noteInput(
                   msg.data[0]-12,
                   0,
-                  midiMap.volInput?((int)(pow((double)msg.data[1]/127.0,midiMap.volExp)*127.0)):-1
+                  midiMap.volInput?msg.data[1]:-1
                 );
               }
             } else {
@@ -3786,7 +3816,7 @@ bool FurnaceGUI::loop() {
             }
             break;
           case TA_MIDI_PROGRAM:
-            if (midiMap.programChange) {
+            if (midiMap.programChange && !(midiMap.directChannel && midiMap.directProgram)) {
               curIns=msg.data[0];
               if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
               wavePreviewInit=true;
@@ -4193,7 +4223,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::BeginMenu("export ZSM...")) {
             exitDisabledTimer=1;
             ImGui::Text("Commander X16 Zsound Music File");
-            if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
+            if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,10)) {
               if (zsmExportTickRate<1) zsmExportTickRate=1;
               if (zsmExportTickRate>44100) zsmExportTickRate=44100;
             }
@@ -4244,6 +4274,16 @@ bool FurnaceGUI::loop() {
             }
             ImGui::EndMenu();
           }
+        }
+        if (ImGui::BeginMenu("export text...")) {
+          exitDisabledTimer=1;
+          ImGui::Text(
+            "this option exports the song to a text file.\n"
+          );
+          if (ImGui::Button("export")) {
+            openFileDialog(GUI_FILE_EXPORT_TEXT);
+          }
+          ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("export command stream...")) {
           exitDisabledTimer=1;
@@ -4436,6 +4476,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("piano/input pad",BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
         if (ImGui::MenuItem("oscilloscope (master)",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
         if (ImGui::MenuItem("oscilloscope (per-channel)",BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
+        if (ImGui::MenuItem("oscilloscope (X-Y)",BIND_FOR(GUI_ACTION_WINDOW_XY_OSC),xyOscOpen)) xyOscOpen=!xyOscOpen;
         if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
         if (ImGui::MenuItem("clock",BIND_FOR(GUI_ACTION_WINDOW_CLOCK),clockOpen)) clockOpen=!clockOpen;
         if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
@@ -4656,6 +4697,7 @@ bool FurnaceGUI::loop() {
       MEASURE(readOsc,readOsc());
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
+      MEASURE(xyOsc,drawXYOsc());
       MEASURE(grooves,drawGrooves());
       MEASURE(regView,drawRegView());
     } else {
@@ -4685,6 +4727,7 @@ bool FurnaceGUI::loop() {
 
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
+      MEASURE(xyOsc,drawXYOsc());
       MEASURE(volMeter,drawVolMeter());
       MEASURE(settings,drawSettings());
       MEASURE(debug,drawDebug());
@@ -4816,6 +4859,7 @@ bool FurnaceGUI::loop() {
           workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_ROM:
+        case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
         case GUI_FILE_EXPORT_CMDSTREAM_BINARY:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
@@ -4907,7 +4951,7 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_ZSM) {
             checkExtension(".zsm");
           }
-          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM) {
+          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM || curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
           }
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM_BINARY) {
@@ -5143,8 +5187,12 @@ bool FurnaceGUI::loop() {
                   displayPendingIns=true;
                   pendingInsSingle=false;
                 } else { // load the only instrument
+                  int instrumentCount=-1;
                   for (DivInstrument* i: instruments) {
-                    e->addInstrumentPtr(i);
+                    instrumentCount=e->addInstrumentPtr(i);
+                  }
+                  if (instrumentCount>=0 && settings.selectAssetOnLoad) {
+                    curIns=instrumentCount-1;
                   }
                 }
               }
@@ -5194,7 +5242,9 @@ bool FurnaceGUI::loop() {
                     showError("cannot load wavetable! ("+e->getLastError()+")");
                   }
                 } else {
-                  if (e->addWavePtr(wave)==-1) {
+                  int waveCount=-1;
+                  waveCount=e->addWavePtr(wave);
+                  if (waveCount==-1) {
                     if (fileDialog->getFileName().size()>1) {
                       warn=true;
                       errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
@@ -5202,6 +5252,9 @@ bool FurnaceGUI::loop() {
                       showError("cannot load wavetable! ("+e->getLastError()+")");
                     }
                   } else {
+                    if (settings.selectAssetOnLoad) {
+                      curWave=waveCount-1;
+                    }
                     MARK_MODIFIED;
                     RESET_WAVE_MACRO_ZOOM;
                   }
@@ -5274,6 +5327,27 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");
               break;
+            case GUI_FILE_EXPORT_TEXT: {
+              SafeWriter* w=e->saveText(false);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError("could not open file!");
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf("could not write text! (%s)",e->getLastError()));
+              }
+              break;
+            }
             case GUI_FILE_EXPORT_CMDSTREAM:
             case GUI_FILE_EXPORT_CMDSTREAM_BINARY: {
               bool isBinary=(curFileDialog==GUI_FILE_EXPORT_CMDSTREAM_BINARY);
@@ -5388,6 +5462,11 @@ bool FurnaceGUI::loop() {
     if (displayInsTypeList) {
       displayInsTypeList=false;
       ImGui::OpenPopup("InsTypeList");
+    }
+
+    if (displayWaveSizeList) {
+      displayWaveSizeList=false;
+      ImGui::OpenPopup("WaveSizeList");
     }
 
     if (displayExporting) {
@@ -5916,6 +5995,29 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    if (ImGui::BeginPopup("WaveSizeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      char temp[1024];
+      for (FurnaceGUIWaveSizeEntry i: waveSizeList) {
+        snprintf(temp,1023,"%d×%d (%s)",i.width,i.height,i.sys);
+        if (ImGui::MenuItem(temp)) {
+          // create wave
+          curWave=e->addWave();
+          if (curWave==-1) {
+            showError("too many wavetables!");
+          } else {
+            e->song.wave[curWave]->len=i.width;
+            e->song.wave[curWave]->max=i.height-1;
+            for (int j=0; j<i.width; j++) {
+              e->song.wave[curWave]->data[j]=(j*i.height)/i.width;
+            }
+            MARK_MODIFIED;
+            RESET_WAVE_MACRO_ZOOM;
+          }
+        }
+      }
+      ImGui::EndPopup();
+    }
+
     // TODO:
     // - multiple selection
     // - replace instrument
@@ -6016,7 +6118,7 @@ bool FurnaceGUI::loop() {
         ImGui::Text("Channels");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(120.0f*dpiScale);
-        if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {
+        if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels,1,2)) {
         }
         ImGui::Text("(will be mixed down to mono)");
         ImGui::Checkbox("Unsigned",&pendingRawSampleUnsigned);
@@ -6441,6 +6543,7 @@ bool FurnaceGUI::init() {
   mixerOpen=e->getConfBool("mixerOpen",false);
   oscOpen=e->getConfBool("oscOpen",true);
   chanOscOpen=e->getConfBool("chanOscOpen",false);
+  xyOscOpen=e->getConfBool("xyOscOpen",false);
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
@@ -6536,6 +6639,7 @@ bool FurnaceGUI::init() {
   chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
   chanOscOptions=e->getConfBool("chanOscOptions",false);
   chanOscNormalize=e->getConfBool("chanOscNormalize",false);
+  chanOscRandomPhase=e->getConfBool("chanOscRandomPhase",false);
   chanOscTextFormat=e->getConfString("chanOscTextFormat","%c");
   chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
   chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
@@ -6548,6 +6652,16 @@ bool FurnaceGUI::init() {
   chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
   chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
   chanOscGrad.render();
+
+  xyOscXChannel=e->getConfInt("xyOscXChannel",0);
+  xyOscXInvert=e->getConfBool("xyOscXInvert",false);
+  xyOscYChannel=e->getConfInt("xyOscYChannel",1);
+  xyOscYInvert=e->getConfBool("xyOscYInvert",false);
+  xyOscZoom=e->getConfFloat("xyOscZoom",1.0f);
+  xyOscSamples=e->getConfInt("xyOscSamples",32768);
+  xyOscDecayTime=e->getConfFloat("xyOscDecayTime",10.0f);
+  xyOscIntensity=e->getConfFloat("xyOscIntensity",2.0f);
+  xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
 
   syncSettings();
   syncTutorial();
@@ -6934,6 +7048,7 @@ bool FurnaceGUI::init() {
       return -2;
     }
 
+    if (midiMap.directChannel && midiMap.directProgram) return -1;
     return curIns;
   });
 
@@ -6996,6 +7111,7 @@ void FurnaceGUI::commitState() {
   e->setConf("mixerOpen",mixerOpen);
   e->setConf("oscOpen",oscOpen);
   e->setConf("chanOscOpen",chanOscOpen);
+  e->setConf("xyOscOpen",xyOscOpen);
   e->setConf("volMeterOpen",volMeterOpen);
   e->setConf("statsOpen",statsOpen);
   e->setConf("compatFlagsOpen",compatFlagsOpen);
@@ -7078,6 +7194,7 @@ void FurnaceGUI::commitState() {
   e->setConf("chanOscWaveCorr",chanOscWaveCorr);
   e->setConf("chanOscOptions",chanOscOptions);
   e->setConf("chanOscNormalize",chanOscNormalize);
+  e->setConf("chanOscRandomPhase",chanOscRandomPhase);
   e->setConf("chanOscTextFormat",chanOscTextFormat);
   e->setConf("chanOscColorR",chanOscColor.x);
   e->setConf("chanOscColorG",chanOscColor.y);
@@ -7089,6 +7206,17 @@ void FurnaceGUI::commitState() {
   e->setConf("chanOscTextColorA",chanOscTextColor.w);
   e->setConf("chanOscUseGrad",chanOscUseGrad);
   e->setConf("chanOscGrad",chanOscGrad.toString());
+
+  // commit x-y osc state
+  e->setConf("xyOscXChannel",xyOscXChannel);
+  e->setConf("xyOscXInvert",xyOscXInvert);
+  e->setConf("xyOscYChannel",xyOscYChannel);
+  e->setConf("xyOscYInvert",xyOscYInvert);
+  e->setConf("xyOscZoom",xyOscZoom);
+  e->setConf("xyOscSamples",xyOscSamples);
+  e->setConf("xyOscDecayTime",xyOscDecayTime);
+  e->setConf("xyOscIntensity",xyOscIntensity);
+  e->setConf("xyOscThickness",xyOscThickness);
 
   // commit recent files
   for (int i=0; i<30; i++) {
@@ -7332,6 +7460,7 @@ FurnaceGUI::FurnaceGUI():
   clockOpen(false),
   speedOpen(true),
   groovesOpen(false),
+  xyOscOpen(false),
   basicMode(true),
   shortIntro(false),
   insListDir(false),
@@ -7530,6 +7659,8 @@ FurnaceGUI::FurnaceGUI():
   sampleFilterRes(0.25f),
   sampleFilterCutStart(16000.0f),
   sampleFilterCutEnd(100.0f),
+  sampleCrossFadeLoopLength(0),
+  sampleCrossFadeLoopLaw(50),
   sampleFilterPower(1),
   sampleClipboard(NULL),
   sampleClipboardLen(0),
@@ -7538,6 +7669,7 @@ FurnaceGUI::FurnaceGUI():
   openSampleAmplifyOpt(false),
   openSampleSilenceOpt(false),
   openSampleFilterOpt(false),
+  openSampleCrossFadeOpt(false),
   selectedPortSet(0x1fff),
   selectedSubPort(-1),
   hoveredPortSet(0x1fff),
@@ -7566,12 +7698,24 @@ FurnaceGUI::FurnaceGUI():
   updateChanOscGradTex(true),
   chanOscUseGrad(false),
   chanOscNormalize(false),
+  chanOscRandomPhase(false),
   chanOscTextFormat("%c"),
   chanOscColor(1.0f,1.0f,1.0f,1.0f),
   chanOscTextColor(1.0f,1.0f,1.0f,0.75f),
   chanOscGrad(64,64),
   chanOscGradTex(NULL),
   chanOscWorkPool(NULL),
+  xyOscPointTex(NULL),
+  xyOscOptions(false),
+  xyOscXChannel(0),
+  xyOscXInvert(false),
+  xyOscYChannel(1),
+  xyOscYInvert(false),
+  xyOscZoom(1.0f),
+  xyOscSamples(32768),
+  xyOscDecayTime(10.0f),
+  xyOscIntensity(2.0f),
+  xyOscThickness(2.0f),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),
@@ -7702,15 +7846,15 @@ FurnaceGUI::FurnaceGUI():
 
   waveGenAmp[0]=1.0f;
   waveGenFMCon0[0]=false;
-  waveGenFMCon1[0]= true;
-  waveGenFMCon2[1]= true;
-  waveGenFMCon3[2] = true;
-  waveGenFMCon4[0]= false;
+  waveGenFMCon1[0]=true;
+  waveGenFMCon2[1]=true;
+  waveGenFMCon3[2]=true;
+  waveGenFMCon4[0]=false;
 
-  waveGenFMCon0[4] = false;
-  waveGenFMCon1[4] = false;
-  waveGenFMCon2[4] = false;
-  waveGenFMCon3[4] = true;
+  waveGenFMCon0[4]=false;
+  waveGenFMCon1[4]=false;
+  waveGenFMCon2[4]=false;
+  waveGenFMCon3[4]=true;
 
   memset(keyHit,0,sizeof(float)*DIV_MAX_CHANS);
   memset(keyHit1,0,sizeof(float)*DIV_MAX_CHANS);

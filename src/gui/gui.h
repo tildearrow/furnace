@@ -419,6 +419,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_FIND,
   GUI_WINDOW_CLOCK,
   GUI_WINDOW_GROOVES,
+  GUI_WINDOW_XY_OSC,
   GUI_WINDOW_INTRO_MON,
   GUI_WINDOW_SPOILER
 };
@@ -464,6 +465,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_ZSM,
   GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_CMDSTREAM_BINARY,
+  GUI_FILE_EXPORT_TEXT,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
   GUI_FILE_LOAD_HEAD_FONT,
@@ -581,6 +583,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_FIND,
   GUI_ACTION_WINDOW_CLOCK,
   GUI_ACTION_WINDOW_GROOVES,
+  GUI_ACTION_WINDOW_XY_OSC,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -729,6 +732,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_INVERT,
   GUI_ACTION_SAMPLE_SIGN,
   GUI_ACTION_SAMPLE_FILTER,
+  GUI_ACTION_SAMPLE_CROSSFADE_LOOP,
   GUI_ACTION_SAMPLE_PREVIEW,
   GUI_ACTION_SAMPLE_STOP_PREVIEW,
   GUI_ACTION_SAMPLE_ZOOM_IN,
@@ -941,7 +945,7 @@ struct MIDIMap {
   int**** map;
   std::vector<MIDIBind> binds;
 
-  bool noteInput, volInput, rawVolume, polyInput, directChannel, programChange, midiClock, midiTimeCode, yamahaFMResponse;
+  bool noteInput, volInput, rawVolume, polyInput, directChannel, programChange, midiClock, midiTimeCode, yamahaFMResponse, directProgram;
   // 0: disabled
   //
   // 1: C- C# D- D# E- F- F# G- G# A- A# B-
@@ -1004,11 +1008,12 @@ struct MIDIMap {
     midiClock(false),
     midiTimeCode(false),
     yamahaFMResponse(false),
+    directProgram(false),
     valueInputStyle(1),
     valueInputControlMSB(0),
     valueInputControlLSB(0),
     valueInputControlSingle(0),
-    volExp(1.0f),
+    volExp(2.0f),
     valueInputCurMSB(0),
     valueInputCurLSB(0),
     valueInputCurSingle(0) {
@@ -1280,6 +1285,20 @@ struct FurnaceGUIQueryResult {
   }
 };
 
+struct FurnaceGUIWaveSizeEntry {
+  short width, height;
+  const char* sys;
+
+  FurnaceGUIWaveSizeEntry(short w, short h, const char* s):
+    width(w),
+    height(h),
+    sys(s) {}
+  FurnaceGUIWaveSizeEntry():
+    width(-1),
+    height(-1),
+    sys(NULL) {}
+};
+
 class FurnaceGUITexture {
 };
 
@@ -1371,11 +1390,12 @@ class FurnaceGUI {
   std::vector<int> paletteSearchResults;
   FixedQueue<String,32> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
+  std::vector<FurnaceGUIWaveSizeEntry> waveSizeList;
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
 
   bool quit, warnQuit, willCommit, edit, editClone, isPatUnique, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
-  bool vgmExportDirectStream, displayInsTypeList;
+  bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, displayPalette, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
@@ -1484,6 +1504,8 @@ class FurnaceGUI {
     int c64Core;
     int pokeyCore;
     int opnCore;
+    int opl2Core;
+    int opl3Core;
     int arcadeCoreRender;
     int ym2612CoreRender;
     int snCoreRender;
@@ -1492,6 +1514,8 @@ class FurnaceGUI {
     int c64CoreRender;
     int pokeyCoreRender;
     int opnCoreRender;
+    int opl2CoreRender;
+    int opl3CoreRender;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -1640,6 +1664,7 @@ class FurnaceGUI {
     int fontBitmap;
     int fontAutoHint;
     int fontAntiAlias;
+    int selectAssetOnLoad;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1677,6 +1702,8 @@ class FurnaceGUI {
       c64Core(0),
       pokeyCore(1),
       opnCore(1),
+      opl2Core(0),
+      opl3Core(0),
       arcadeCoreRender(1),
       ym2612CoreRender(0),
       snCoreRender(0),
@@ -1685,6 +1712,8 @@ class FurnaceGUI {
       c64CoreRender(1),
       pokeyCoreRender(1),
       opnCoreRender(1),
+      opl2CoreRender(0),
+      opl3CoreRender(0),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
@@ -1830,6 +1859,7 @@ class FurnaceGUI {
       fontBitmap(0),
       fontAutoHint(1),
       fontAntiAlias(1),
+      selectAssetOnLoad(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -1884,7 +1914,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen;
+  bool groovesOpen, xyOscOpen;
 
   bool basicMode, shortIntro;
   bool insListDir, waveListDir, sampleListDir;
@@ -2104,10 +2134,11 @@ class FurnaceGUI {
   ImVec2 sampleDragAreaSize;
   unsigned int sampleDragLen;
   float sampleFilterL, sampleFilterB, sampleFilterH, sampleFilterRes, sampleFilterCutStart, sampleFilterCutEnd;
+  int sampleCrossFadeLoopLength, sampleCrossFadeLoopLaw;
   unsigned char sampleFilterPower;
   short* sampleClipboard;
   size_t sampleClipboardLen;
-  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt;
+  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt, openSampleCrossFadeOpt;
 
   // mixer
   // 0xxx: output
@@ -2131,7 +2162,7 @@ class FurnaceGUI {
   // per-channel oscilloscope
   int chanOscCols, chanOscAutoColsType, chanOscColorX, chanOscColorY;
   float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify;
-  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize, chanOscRandomPhase;
   String chanOscTextFormat;
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
@@ -2152,7 +2183,7 @@ class FurnaceGUI {
     double inBufPosFrac;
     double waveLen;
     int waveLenBottom, waveLenTop, relatedCh;
-    float pitch, windowSize;
+    float pitch, windowSize, phaseOff;
     unsigned short needle;
     bool ready, loudEnough, waveCorr;
     fftw_plan plan;
@@ -2170,6 +2201,7 @@ class FurnaceGUI {
       relatedCh(0),
       pitch(0.0f),
       windowSize(1.0f),
+      phaseOff(0.0f),
       needle(0),
       ready(false),
       loudEnough(false),
@@ -2177,6 +2209,19 @@ class FurnaceGUI {
       plan(NULL),
       planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];
+
+  // x-y oscilloscope
+  FurnaceGUITexture* xyOscPointTex;
+  bool xyOscOptions;
+  int xyOscXChannel;
+  bool xyOscXInvert;
+  int xyOscYChannel;
+  bool xyOscYInvert;
+  float xyOscZoom;
+  int xyOscSamples;
+  float xyOscDecayTime;
+  float xyOscIntensity;
+  float xyOscThickness;
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];
@@ -2369,6 +2414,7 @@ class FurnaceGUI {
   void drawSpoiler();
   void drawClock();
   void drawTutorial();
+  void drawXYOsc();
 
   void parseKeybinds();
   void promptKey(int which);
@@ -2413,6 +2459,8 @@ class FurnaceGUI {
   void doInsert();
   void doTranspose(int amount, OperationMask& mask);
   String doCopy(bool cut, bool writeClipboard, const SelectionPoint& sStart, const SelectionPoint& sEnd);
+  void doPasteFurnace(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int startOff, bool invalidData);
+  void doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat);
   void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0, bool readClipboard=true, String clipb="");
   void doChangeIns(int ins);
   void doInterpolate();

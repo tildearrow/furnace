@@ -18,8 +18,13 @@ as listed in the "Window" menu:
 
 - [piano](piano.md)
 - [oscilloscope](osc.md)
+- [oscilloscope (X-Y)](xyosc.md)
 - [oscilloscopes (per-channel)](chanosc.md)
 - [clock](clock.md)
 - [register view](regview.md)
 - [log viewer](log-viewer.md)
 - [stats](stats.md)
+
+other:
+
+- [command line usage](command-line.md)

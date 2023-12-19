@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev187"
-#define DIV_ENGINE_VERSION 187
+#define DIV_VERSION "dev189"
+#define DIV_ENGINE_VERSION 189
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -176,25 +176,25 @@ struct DivNoteEvent {
   signed char channel;
   unsigned char ins;
   signed char note, volume;
-  bool on, nop, pad1, pad2;
-  DivNoteEvent(int c, int i, int n, int v, bool o):
+  bool on, nop, insChange, fromMIDI;
+  DivNoteEvent(int c, int i, int n, int v, bool o, bool ic=false, bool fm=false):
     channel(c),
     ins(i),
     note(n),
     volume(v),
     on(o),
     nop(false),
-    pad1(false),
-    pad2(false) {}
+    insChange(ic),
+    fromMIDI(fm) {}
   DivNoteEvent():
     channel(-1),
     ins(0),
     note(0),
-    volume(0),
+    volume(-1),
     on(false),
     nop(true),
-    pad1(false),
-    pad2(false) {}
+    insChange(false),
+    fromMIDI(false) {}
 };
 
 struct DivDispatchContainer {
@@ -294,6 +294,9 @@ struct DivSysDef {
   unsigned char id_DMF;
   int channels;
   bool isFM, isSTD, isCompound;
+  // width 0: variable
+  // height 0: no wavetable support
+  unsigned short waveWidth, waveHeight;
   unsigned int vgmVersion;
   unsigned int sampleFormatMask;
   const char* chanNames[DIV_MAX_CHANS];
@@ -307,7 +310,8 @@ struct DivSysDef {
   const EffectHandlerMap preEffectHandlers;
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
-    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, const char* desc,
+    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, unsigned short waveWid, unsigned short waveHei,
+    const char* desc,
     std::initializer_list<const char*> chNames,
     std::initializer_list<const char*> chShortNames,
     std::initializer_list<int> chTypes,
@@ -325,6 +329,8 @@ struct DivSysDef {
     isFM(isFMChip),
     isSTD(isSTDChip),
     isCompound(compound),
+    waveWidth(waveWid),
+    waveHeight(waveHei),
     vgmVersion(vgmVer),
     sampleFormatMask(formatMask),
     effectHandlers(fxHandlers_),
@@ -409,6 +415,7 @@ class DivEngine {
   bool firstTick;
   bool skipping;
   bool midiIsDirect;
+  bool midiIsDirectProgram;
   bool lowLatency;
   bool systemsRegistered;
   bool hasLoadedSomething;
@@ -417,6 +424,7 @@ class DivEngine {
   bool midiOutProgramChange;
   int midiOutMode;
   int midiOutTimeRate;
+  float midiVolExp;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
@@ -641,6 +649,8 @@ class DivEngine {
     SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true, bool optimize=true);
     // dump command stream.
     SafeWriter* saveCommand(bool binary=false);
+    // export to text
+    SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
     bool saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime=0.0);
     // wait for audio export to finish
@@ -841,6 +851,9 @@ class DivEngine {
 
     // get channel max volume
     int getMaxVolumeChan(int chan);
+
+    // map MIDI velocity to volume
+    int mapVelocity(int ch, float vel);
 
     // get current order
     unsigned char getOrder();
@@ -1176,6 +1189,12 @@ class DivEngine {
     // set MIDI direct channel map
     void setMidiDirect(bool value);
 
+    // set MIDI direct program change
+    void setMidiDirectProgram(bool value);
+
+    // set MIDI volume curve exponent
+    void setMidiVolExp(float value);
+
     // set MIDI input callback
     // if the specified function returns -2, note feedback will be inhibited.
     void setMidiCallback(std::function<int(const TAMidiMessage&)> what);
@@ -1245,6 +1264,7 @@ class DivEngine {
       firstTick(false),
       skipping(false),
       midiIsDirect(false),
+      midiIsDirectProgram(false),
       lowLatency(false),
       systemsRegistered(false),
       hasLoadedSomething(false),
@@ -1253,6 +1273,7 @@ class DivEngine {
       midiOutProgramChange(false),
       midiOutMode(DIV_MIDI_MODE_NOTE),
       midiOutTimeRate(0),
+      midiVolExp(2.0f), // General MIDI standard
       softLockCount(0),
       subticks(0),
       ticks(0),

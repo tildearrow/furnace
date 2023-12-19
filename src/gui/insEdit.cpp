@@ -1858,7 +1858,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         float lenAvail=ImGui::GetContentRegionAvail().x;
         //ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale));
         ImGui::SetNextItemWidth(120.0f*dpiScale);
-        if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,16)) {
+        if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
           if (macroPointSize<1) macroPointSize=1;
           if (macroPointSize>256) macroPointSize=256;
         }
@@ -2064,7 +2064,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           ImGui::Button(ICON_FA_SEARCH_PLUS "##MacroZoomB");
           if (ImGui::BeginPopupContextItem("MacroZoomP",ImGuiPopupFlags_MouseButtonLeft)) {
             ImGui::SetNextItemWidth(120.0f*dpiScale);
-            if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,16)) {
+            if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
               if (macroPointSize<1) macroPointSize=1;
               if (macroPointSize>256) macroPointSize=256;
             }
@@ -2250,7 +2250,7 @@ void FurnaceGUI::alterSampleMap(int column, int val) {
     } \
   } \
   ImGui::TableNextColumn(); \
-  if (ImGui::InputInt(df,&fNum,1,1)) { \
+  if (ImGui::InputInt(df,&fNum,1,16)) { \
     if (fNum<0) fNum=0; \
     if (ins->type==DIV_INS_OPLL) { \
       if (fNum>511) fNum=511; \
@@ -2824,7 +2824,11 @@ void FurnaceGUI::drawInsEdit() {
         updateFMPreview=false;
       }
       if (settings.insEditColorize) {
-        pushAccentColors(uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],ImVec4(0.0f,0.0f,0.0f,0.0f));
+        if (ins->type>=DIV_INS_MAX) {
+          pushAccentColors(uiColors[GUI_COLOR_INSTR_UNKNOWN],uiColors[GUI_COLOR_INSTR_UNKNOWN],uiColors[GUI_COLOR_INSTR_UNKNOWN],ImVec4(0.0f,0.0f,0.0f,0.0f));
+        } else {
+          pushAccentColors(uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],ImVec4(0.0f,0.0f,0.0f,0.0f));
+        }
       }
       if (ImGui::BeginTable("InsProp",3)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
@@ -2885,14 +2889,8 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::Text("Type");
 
         ImGui::TableNextColumn();
-        if (ins->type>=DIV_INS_MAX) ins->type=DIV_INS_FM;
         int insType=ins->type;
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        /*
-        if (ImGui::Combo("##Type",&insType,insTypes,DIV_INS_MAX,DIV_INS_MAX)) {
-          ins->type=(DivInstrumentType)insType;
-        }
-        */
         bool warnType=true;
         for (DivInstrumentType i: e->getPossibleInsTypes()) {
           if (i==insType) {
@@ -2901,7 +2899,7 @@ void FurnaceGUI::drawInsEdit() {
         }
 
         pushWarningColor(warnType,warnType && failedNoteOn);
-        if (ImGui::BeginCombo("##Type",insTypes[insType][0])) {
+        if (ImGui::BeginCombo("##Type",(insType>=DIV_INS_MAX)?"Unknown":insTypes[insType][0])) {
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
             for (int i=0; insTypes[i][0]; i++) {
@@ -4799,7 +4797,7 @@ void FurnaceGUI::drawInsEdit() {
                     int len=ins->gb.hwSeq[i].data+1;
                     curFrame+=ins->gb.hwSeq[i].data+1;
 
-                    if (ImGui::InputInt("Ticks",&len)) {
+                    if (ImGui::InputInt("Ticks",&len,1,4)) {
                       if (len<1) len=1;
                       if (len>255) len=256;
                       somethingChanged=true;
@@ -4818,7 +4816,7 @@ void FurnaceGUI::drawInsEdit() {
                   case DivInstrumentGB::DIV_GB_HWCMD_LOOP_REL: {
                     int pos=ins->gb.hwSeq[i].data;
 
-                    if (ImGui::InputInt("Position",&pos)) {
+                    if (ImGui::InputInt("Position",&pos,1,1)) {
                       if (pos<0) pos=0;
                       if (pos>(ins->gb.hwSeqLen-1)) pos=(ins->gb.hwSeqLen-1);
                       somethingChanged=true;
@@ -5159,7 +5157,7 @@ void FurnaceGUI::drawInsEdit() {
                   case DivInstrumentSoundUnit::DIV_SU_HWCMD_LOOP_REL: {
                     int pos=ins->su.hwSeq[i].val;
 
-                    if (ImGui::InputInt("Position",&pos)) {
+                    if (ImGui::InputInt("Position",&pos,1,4)) {
                       if (pos<0) pos=0;
                       if (pos>(ins->su.hwSeqLen-1)) pos=(ins->su.hwSeqLen-1);
                       somethingChanged=true;
@@ -5354,7 +5352,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("only use for compatibility with .dmf modules!\n- initializes modulation table with first wavetable\n- does not alter modulation parameters on instrument change");
           }
-          if (ImGui::InputInt("Modulation depth",&ins->fds.modDepth,1,32)) {
+          if (ImGui::InputInt("Modulation depth",&ins->fds.modDepth,1,4)) {
             if (ins->fds.modDepth<0) ins->fds.modDepth=0;
             if (ins->fds.modDepth>63) ins->fds.modDepth=63;
           }
@@ -5938,23 +5936,23 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::EndTable();
               }
 
-              if (ImGui::InputScalar("Update Rate",ImGuiDataType_U8,&ins->ws.rateDivider,&_ONE,&_SEVEN)) {
+              if (ImGui::InputScalar("Update Rate",ImGuiDataType_U8,&ins->ws.rateDivider,&_ONE,&_EIGHT)) {
                 wavePreviewInit=true;
               }
               int speed=ins->ws.speed+1;
-              if (ImGui::InputInt("Speed",&speed,1,16)) {
+              if (ImGui::InputInt("Speed",&speed,1,8)) {
                 if (speed<1) speed=1;
                 if (speed>256) speed=256;
                 ins->ws.speed=speed-1;
                 wavePreviewInit=true;
               }
 
-              if (ImGui::InputScalar("Amount",ImGuiDataType_U8,&ins->ws.param1,&_ONE,&_SEVEN)) {
+              if (ImGui::InputScalar("Amount",ImGuiDataType_U8,&ins->ws.param1,&_ONE,&_EIGHT)) {
                 wavePreviewInit=true;
               }
 
               if (ins->ws.effect==DIV_WS_PHASE_MOD) {
-                if (ImGui::InputScalar("Power",ImGuiDataType_U8,&ins->ws.param2,&_ONE,&_SEVEN)) {
+                if (ImGui::InputScalar("Power",ImGuiDataType_U8,&ins->ws.param2,&_ONE,&_EIGHT)) {
                   wavePreviewInit=true;
                 }
               }
@@ -5969,7 +5967,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTabItem();
           }
         }
-        if (ImGui::BeginTabItem("Macros")) {
+        if (ins->type<DIV_INS_MAX) if (ImGui::BeginTabItem("Macros")) {
           const char* volumeLabel="Volume";
 
           int volMax=15;
@@ -6520,6 +6518,12 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_SWAN ||
             ins->type==DIV_INS_VRC6) {
           insTabSample(ins);
+        }
+        if (ins->type>=DIV_INS_MAX) {
+          if (ImGui::BeginTabItem("Error")) {
+            ImGui::Text("invalid instrument type! change it first.");
+            ImGui::EndTabItem();
+          }
         }
         ImGui::EndTabBar();
       }

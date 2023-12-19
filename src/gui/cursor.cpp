@@ -344,6 +344,10 @@ void FurnaceGUI::moveCursorPrevChannel(bool overflow) {
   }
   e->setMidiBaseChan(cursor.xCoarse);
 
+  int xFineMax=(e->curSubSong->chanCollapse[cursor.xCoarse]?(4-e->curSubSong->chanCollapse[cursor.xCoarse]):(3+e->curPat[cursor.xCoarse].effectCols*2));
+  if (cursor.xFine<0) cursor.xFine=0;
+  if (cursor.xFine>=xFineMax) cursor.xFine=xFineMax-1;
+
   selStart=cursor;
   selEnd=cursor;
   demandScrollX=true;
@@ -367,6 +371,10 @@ void FurnaceGUI::moveCursorNextChannel(bool overflow) {
     }
   }
   e->setMidiBaseChan(cursor.xCoarse);
+
+  int xFineMax=(e->curSubSong->chanCollapse[cursor.xCoarse]?(4-e->curSubSong->chanCollapse[cursor.xCoarse]):(3+e->curPat[cursor.xCoarse].effectCols*2));
+  if (cursor.xFine<0) cursor.xFine=0;
+  if (cursor.xFine>=xFineMax) cursor.xFine=xFineMax-1;
 
   selStart=cursor;
   selEnd=cursor;

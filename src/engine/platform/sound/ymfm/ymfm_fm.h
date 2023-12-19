@@ -305,6 +305,8 @@ public:
 	// simple getters for debugging
 	fm_operator<RegisterType> *debug_operator(uint32_t index) const { return m_op[index]; }
   int32_t debug_output(uint32_t index) const { return m_output[index]; }
+  int32_t debug_special1() const { return m_special1; }
+  int32_t debug_special2() const { return m_special2; }
 
 private:
 	// helper to add values to the outputs based on channel enables
@@ -343,6 +345,8 @@ private:
 	RegisterType &m_regs;                  // direct reference to registers
 	fm_engine_base<RegisterType> &m_owner; // reference to the owning engine
   mutable int32_t m_output[4];
+  mutable int32_t m_special1;
+  mutable int32_t m_special2;
 };
 
 
