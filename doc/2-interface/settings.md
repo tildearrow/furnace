@@ -123,22 +123,21 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Note input**: enables note input. disable if you intend to use this device only for binding actions.
 - **Velocity input**: enables velocity input when entering notes in the pattern.
 - **Map MIDI channels to direct channels**: when enabled, notes from MIDI channels will be mapped to channels rather than the cursor position.
+- **Program change pass-through**: when enabled, program change events are sent to each channel as instrument change commands.
+  - this option is only available when the previous one is enabled.
 - **Map Yamaha FM voice data to instruments**: when enabled, Furnace will listen for any transmitted Yamaha SysEx patches.
   - this option is only useful if you have a Yamaha FM synthesizer (e.g. TX81Z).
   - selecting a voice or using the "Voice Transmit?" option will send a patch, and Furnace will create a new instrument with its data.
   - this may also be triggered by clicking on "Receive from TX81Z" in the instrument editor (OPZ only).
 - **Program change is instrument selection**: changes the current instrument when a program change event is received.
+  - this option is not available when "Program change pass-through" is enabled.
 - **Value input style**: changes the way values are entered when the pattern cursor is not in the Note column. the following styles are available:
   - **Disabled/custom**: no value input through MIDI.
   - **Two octaves (0 is C-4, F is D#5)**: maps keys in two octaves to single nibble input. the layout is:
-    - ` - octave n -- octave n+1 -`
-    - ` 1 3   6 8 A   D F   # # # `
-    - `0 2 4 5 7 9 B C E # # # # #`
+    ![two octaves layout 1](MIDI-value-input-1.png)
   - **Raw (note number is value)**: the note number becomes the input value. not useful if you want to input anything above 7F.
   - **Two octaves alternate (lower keys are 0-9, upper keys are A-F)**: maps keys in two octaves, but with a different layout:
-    - ` - octave n -- octave n+1 -`
-    - ` A B   C D E   F #   # # # `
-    - `0 1 2 3 4 5 6 7 8 9 # # # #`
+    ![two octaves layout 2](MIDI-value-input-2.png)
   - **Use dual control change (one for each nibble)**: maps two control change events to the nibbles of a value.
     - **CC of upper nibble**: select the CC number that will change the upper nibble.
     - **CC of lower nibble**: select the CC number that will change the lower nibble.
@@ -149,6 +148,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
     - **Control**: select the CC number that will change the value.
 - **Per-column control change**: when enabled, you can map several control change events to a channel's columns.
 - **Volume curve**: adjust the velocity to volume curve.
+  - the default is 2.0, which matches General MIDI standard.
 - **Actions**: this allows you to bind note input and control change events to actions.
   - **`+`** button: adds a new action.
   - window-with-arrow button: new action with learning! press a button or move a slider/knob/something on your device.

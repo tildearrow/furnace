@@ -5984,7 +5984,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTabItem();
           }
         }
-        if (ImGui::BeginTabItem("Macros")) {
+        if (ins->type<DIV_INS_MAX) if (ImGui::BeginTabItem("Macros")) {
           const char* volumeLabel="Volume";
 
           int volMax=15;
