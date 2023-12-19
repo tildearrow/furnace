@@ -61,11 +61,23 @@ struct DivMacroStruct {
     macroType(mType) {}
 };
 
+struct macro_source
+{
+  uint8_t macro_id;
+  uint8_t op;
+
+  macro_source(uint8_t macro_id, uint8_t op)
+  {
+    this->macro_id = macro_id;
+    this->op = op;
+  }
+};
+
 class DivMacroInt {
   DivEngine* e;
   DivInstrument* ins;
   std::vector<DivMacroStruct*> macroList;
-  std::vector<DivInstrumentMacro*> macroSource;
+  std::vector<macro_source> macroSource;
   int subTick;
   bool released;
   public:
