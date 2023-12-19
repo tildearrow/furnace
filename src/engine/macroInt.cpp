@@ -166,14 +166,19 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
   }
 }
 
+DivInstrumentMacro* macro_source_get_macro(macro_source* s, DivInstrument* ins)
+{
+  return s->op == 0xff ? ins->std.get_macro(s->macro_id, false) : ins->std.ops[s->op].op_get_macro(s->macro_id, false);
+}
+
 void DivMacroInt::next() {
   if (ins==NULL) return;
   // run macros
   // TODO: potentially get rid of list to avoid allocations
   subTick--;
   for (size_t i=0; i<macroList.size(); i++) {
-    if (macroList[i]!=NULL) { //&& macroSource[i]!=NULL) {
-      macroList[i]->doMacro(macroSource[i].op == 0xff ? (*ins->std.get_macro(macroSource[i].macro_id, false)) : (*ins->std.ops[macroSource[i].op].op_get_macro(macroSource[i].macro_id, false)),released,subTick==0);
+    if (macroList[i]!=NULL) {
+      macroList[i]->doMacro(*macro_source_get_macro(&macroSource[i], ins),released,subTick==0);
     }
   }
   if (subTick<=0) {
@@ -359,18 +364,16 @@ void DivMacroInt::init(DivInstrument* which)
   }
 
   for (size_t i=0; i<macroList.size(); i++) {
-    //if (macroSource[i]!=NULL) {
-      DivInstrumentMacro* m = macroSource[i].op == 0xff ? ins->std.get_macro(macroSource[i].macro_id, false) : ins->std.ops[macroSource[i].op].op_get_macro(macroSource[i].macro_id, false);
-      macroList[i]->prepare(*m,e);
-      // check ADSR mode
-      if ((m->open&6)==2) {
-        if (m->val[8]>0) {
-          hasRelease=true;
-        }
-      } else if (m->rel<m->len) {
+    DivInstrumentMacro* m = macro_source_get_macro(&macroSource[i], ins);
+    macroList[i]->prepare(*m,e);
+    // check ADSR mode
+    if ((m->open&6)==2) {
+      if (m->val[8]>0) {
         hasRelease=true;
       }
-    //}
+    } else if (m->rel<m->len) {
+      hasRelease=true;
+    }
   }
 }
 
