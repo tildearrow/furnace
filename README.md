@@ -4,7 +4,9 @@ A fork of [Furnace chiptune tracker](https://github.com/tildearrow/furnace) with
 
 TODO: add about code of conduct and contribution
 
-[see here](https://nightly.link/ltva1/furnace/workflows/build/master) for the latest unstable build of the fork.
+[See here](https://nightly.link/ltva1/furnace/workflows/build/master) for the latest unstable build of the fork.
+
+[Fork changelog](fork_changelog.md)
 
 # Furnace (chiptune tracker)
 
