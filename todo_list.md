@@ -39,7 +39,7 @@ Add:
 - Saving “Appearance” tab setting in color+interface config file
 
 Misc
-- When designing a hardware playback driver, make it modular. E.g. if no vibrato is used, cut out the assembly code that renders the vibrato. If no filter control is present, cut out that part. And so on. Thus the driver can be big and slow if the song uses some advanced features, but small and fast if the user wrote a simple piece of music. Ideally emulator has an unrolled loop for all channels, and these features can be included into the code of specific channel (based on if the feature is used by that channel throughout the song). Thus even better modularity can be achieved.
+- When designing a hardware playback driver, make it modular. E.g. if no vibrato is used, cut out the assembly code that renders the vibrato. If no filter control is present, cut out that part. And so on. Thus the driver can be big and slow if the song uses some advanced features, but small and fast if the user wrote a simple piece of music. Ideally emulator has an unrolled loop for all channels (if makes a big difference, so applicable only to low-spec system), and these features can be included into the code of specific channel (based on if the feature is used by that channel throughout the song). Thus even better modularity can be achieved.
 - Have an open approach to driver donation from the community and disassemblies. Invite members that have already designed their own routines.
 - Analyze chips that were implemented with emulation in a very HLE way (biggest offender: Game.com’s noise LFSR).
 - Debate on Follin-like ZX Spectrum beeper engine from hardware-export view (likely, replace with existing drivers like Octode or QChan)
