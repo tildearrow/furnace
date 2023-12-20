@@ -2,7 +2,7 @@
 
 A fork of [Furnace chiptune tracker](https://github.com/tildearrow/furnace) with the aim to cut out the bloat (aka abandoned/unfinished stuff), make codebase cleaner and easier to understand, optimize performance and memory usage, and bring more useful features.
 
-TODO: add about code of conduct and contribution
+Here are our [community rules](code_of_conduct.md) and [contribution rules](code_of_conduct.md). And here's [what we need the help with](PLEASE_HEEEEEELP_AHHH.md) right now.
 
 [See here](https://nightly.link/ltva1/furnace/workflows/build/master) for the latest unstable build of the fork.
 
