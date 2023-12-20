@@ -5,4 +5,4 @@ LTVA:
 
 freq-mod:
 
-...
+- 86-PCM streo DAC fix
