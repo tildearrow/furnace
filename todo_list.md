@@ -19,7 +19,7 @@ Change:
 - Allow to dynamically load samples into chip’s memory if possible during song playback
 - Reorganize the chips menu. There is a separate menu for chips and systems (which contain multiple chips inside; also called “compound systems”). In chips menu, features such as e.g. extended 3rd channel and CSM timer are selectable: 
 
-![chip_menu_draft.png]
+![](chip_menu_draft.png)
 
 These can be enabled or disabled (in this case a backup is made) later, and notes are shifted onto their respective new patterns (if applicable).
 
