@@ -3170,26 +3170,84 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::Button("Reset defaults")) {
           showWarning("Are you sure you want to reset the color scheme?",GUI_WARN_RESET_COLORS);
         }
-        if (ImGui::TreeNode("General")) {
-          ImGui::Text("Color scheme type:");
-          ImGui::Indent();
-          if (ImGui::RadioButton("Dark##gcb0",settings.guiColorsBase==0)) {
-            settings.guiColorsBase=0;
-            applyUISettings(false);
-            settingsChanged=true;
+        bool basicColorsB=!settings.basicColors;
+        if (ImGui::Checkbox("Guru mode",&basicColorsB)) {
+          settings.basicColors=!basicColorsB;
+          applyUISettings(false);
+          settingsChanged=true;
+        }
+        if (settings.basicColors) {
+          if (ImGui::TreeNode("Interface")) {
+            if (ImGui::SliderInt("Frame shading",&settings.guiColorsShading,0,100,"%d%%")) {
+              if (settings.guiColorsShading<0) settings.guiColorsShading=0;
+              if (settings.guiColorsShading>100) settings.guiColorsShading=100;
+              applyUISettings(false);
+              settingsChanged=true;
+            }
+            ImGui::Text("Color scheme type:");
+            ImGui::Indent();
+            if (ImGui::RadioButton("Dark##gcb0",settings.guiColorsBase==0)) {
+              settings.guiColorsBase=0;
+              applyUISettings(false);
+              settingsChanged=true;
+            }
+            if (ImGui::RadioButton("Light##gcb1",settings.guiColorsBase==1)) {
+              settings.guiColorsBase=1;
+              applyUISettings(false);
+              settingsChanged=true;
+            }
+            ImGui::Unindent();
+
+            ImGui::Text("Accent colors:");
+            ImGui::Indent();
+            UI_COLOR_CONFIG(GUI_COLOR_ACCENT_PRIMARY,"Primary");
+            UI_COLOR_CONFIG(GUI_COLOR_ACCENT_SECONDARY,"Secondary");
+            ImGui::Unindent();
+
+            ImGui::TreePop();
           }
-          if (ImGui::RadioButton("Light##gcb1",settings.guiColorsBase==1)) {
-            settings.guiColorsBase=1;
-            applyUISettings(false);
-            settingsChanged=true;
+        } else {
+          if (ImGui::TreeNode("Interface")) {
+            if (ImGui::SliderInt("Frame shading",&settings.guiColorsShading,0,100,"%d%%")) {
+              if (settings.guiColorsShading<0) settings.guiColorsShading=0;
+              if (settings.guiColorsShading>100) settings.guiColorsShading=100;
+              applyUISettings(false);
+              settingsChanged=true;
+            }
+
+            UI_COLOR_CONFIG(GUI_COLOR_BUTTON,"Button");
+            UI_COLOR_CONFIG(GUI_COLOR_BUTTON_HOVER,"Button (hovered)");
+            UI_COLOR_CONFIG(GUI_COLOR_BUTTON_ACTIVE,"Button (active)");
+            UI_COLOR_CONFIG(GUI_COLOR_TAB,"Tab");
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_HOVER,"Tab (hovered)");
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_ACTIVE,"Tab (active)");
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED,"Tab (unfocused)");
+            UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED_ACTIVE,"Tab (unfocused and active)");
+            UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER,"ImGui header");
+            UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER_HOVER,"ImGui header (hovered)");
+            UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER_ACTIVE,"ImGui header (active)");
+            UI_COLOR_CONFIG(GUI_COLOR_RESIZE_GRIP,"Resize grip");
+            UI_COLOR_CONFIG(GUI_COLOR_RESIZE_GRIP_HOVER,"Resize grip (hovered)");
+            UI_COLOR_CONFIG(GUI_COLOR_RESIZE_GRIP_ACTIVE,"Resize grip (active)");
+            UI_COLOR_CONFIG(GUI_COLOR_WIDGET_BACKGROUND,"Widget background");
+            UI_COLOR_CONFIG(GUI_COLOR_WIDGET_BACKGROUND_HOVER,"Widget background (hovered)");
+            UI_COLOR_CONFIG(GUI_COLOR_WIDGET_BACKGROUND_ACTIVE,"Widget background (active)");
+            UI_COLOR_CONFIG(GUI_COLOR_SLIDER_GRAB,"Slider grab");
+            UI_COLOR_CONFIG(GUI_COLOR_SLIDER_GRAB_ACTIVE,"Slider grab (active)");
+            UI_COLOR_CONFIG(GUI_COLOR_TITLE_BACKGROUND_ACTIVE,"Title background (active)");
+            UI_COLOR_CONFIG(GUI_COLOR_CHECK_MARK,"Checkbox/radio button mark");
+            UI_COLOR_CONFIG(GUI_COLOR_TEXT_SELECTION,"Text selection");
+            UI_COLOR_CONFIG(GUI_COLOR_PLOT_LINES,"Line plot");
+            UI_COLOR_CONFIG(GUI_COLOR_PLOT_LINES_HOVER,"Line plot (hovered)");
+            UI_COLOR_CONFIG(GUI_COLOR_PLOT_HISTOGRAM,"Histogram plot");
+            UI_COLOR_CONFIG(GUI_COLOR_PLOT_HISTOGRAM_HOVER,"Histogram plot (hovered)");
+            UI_COLOR_CONFIG(GUI_COLOR_TABLE_ROW_EVEN,"Table row (even)");
+            UI_COLOR_CONFIG(GUI_COLOR_TABLE_ROW_ODD,"Table row (odd)");
+
+            ImGui::TreePop();
           }
-          ImGui::Unindent();
-          if (ImGui::SliderInt("Frame shading",&settings.guiColorsShading,0,100,"%d%%")) {
-            if (settings.guiColorsShading<0) settings.guiColorsShading=0;
-            if (settings.guiColorsShading>100) settings.guiColorsShading=100;
-            applyUISettings(false);
-            settingsChanged=true;
-          }
+        }
+        if (ImGui::TreeNode("Interface (other)")) {
           UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
           UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
           UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_CHILD,"Sub-window background");
@@ -3197,8 +3255,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_MODAL_BACKDROP,"Modal backdrop");
           UI_COLOR_CONFIG(GUI_COLOR_HEADER,"Header");
           UI_COLOR_CONFIG(GUI_COLOR_TEXT,"Text");
-          UI_COLOR_CONFIG(GUI_COLOR_ACCENT_PRIMARY,"Primary");
-          UI_COLOR_CONFIG(GUI_COLOR_ACCENT_SECONDARY,"Secondary");
+          UI_COLOR_CONFIG(GUI_COLOR_TEXT_DISABLED,"Text (disabled)");
           UI_COLOR_CONFIG(GUI_COLOR_TITLE_INACTIVE,"Title bar (inactive)");
           UI_COLOR_CONFIG(GUI_COLOR_TITLE_COLLAPSED,"Title bar (collapsed)");
           UI_COLOR_CONFIG(GUI_COLOR_MENU_BAR,"Menu bar");
@@ -3219,11 +3276,11 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_DRAG_DROP_TARGET,"Drag and drop target");
           UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_HIGHLIGHT,"Window switcher (highlight)");
           UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_BACKDROP,"Window switcher backdrop");
+          ImGui::TreePop();
+        }
+        if (ImGui::TreeNode("Miscellaneous")) {
           UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_ON,"Toggle on");
           UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_OFF,"Toggle off");
-          UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
-          UI_COLOR_CONFIG(GUI_COLOR_EDITING_CLONE,"Editing (will clone)");
-          UI_COLOR_CONFIG(GUI_COLOR_SONG_LOOP,"Song loop");
           UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
           UI_COLOR_CONFIG(GUI_COLOR_DESTRUCTIVE,"Destructive hint");
           UI_COLOR_CONFIG(GUI_COLOR_WARNING,"Warning hint");
@@ -3284,6 +3341,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::TreeNode("Orders")) {
           UI_COLOR_CONFIG(GUI_COLOR_ORDER_ROW_INDEX,"Order number");
           UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Playing order background");
+          UI_COLOR_CONFIG(GUI_COLOR_SONG_LOOP,"Song loop");
           UI_COLOR_CONFIG(GUI_COLOR_ORDER_SELECTED,"Selected order");
           UI_COLOR_CONFIG(GUI_COLOR_ORDER_SIMILAR,"Similar patterns");
           UI_COLOR_CONFIG(GUI_COLOR_ORDER_INACTIVE,"Inactive patterns");
@@ -3396,6 +3454,8 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::TreeNode("Pattern")) {
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_PLAY_HEAD,"Playhead");
+          UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
+          UI_COLOR_CONFIG(GUI_COLOR_EDITING_CLONE,"Editing (will clone)");
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR,"Cursor");
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR_HOVER,"Cursor (hovered)");
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR_ACTIVE,"Cursor (clicked)");
@@ -3819,6 +3879,7 @@ void FurnaceGUI::syncSettings() {
   settings.fontAutoHint=e->getConfInt("fontAutoHint",1);
   settings.fontAntiAlias=e->getConfInt("fontAntiAlias",1);
   settings.selectAssetOnLoad=e->getConfInt("selectAssetOnLoad",1);
+  settings.basicColors=e->getConfInt("basicColors",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3985,6 +4046,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.fontAutoHint,0,2);
   clampSetting(settings.fontAntiAlias,0,1);
   clampSetting(settings.selectAssetOnLoad,0,1);
+  clampSetting(settings.basicColors,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -4268,6 +4330,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("fontAutoHint",settings.fontAutoHint);
   e->setConf("fontAntiAlias",settings.fontAntiAlias);
   e->setConf("selectAssetOnLoad",settings.selectAssetOnLoad);
+  e->setConf("basicColors",settings.basicColors);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -4359,12 +4422,10 @@ bool FurnaceGUI::importColors(String path) {
     if (keyOrValue) {
       // unoptimal
       const char* cs=key.c_str();
-      bool found=false;
       for (int i=0; i<GUI_COLOR_MAX; i++) {
         try {
           if (strcmp(cs,guiColors[i].name)==0) {
             uiColors[i]=ImGui::ColorConvertU32ToFloat4(std::stoi(value));
-            found=true;
             break;
           }
         } catch (std::out_of_range& e) {
@@ -4373,7 +4434,6 @@ bool FurnaceGUI::importColors(String path) {
           break;
         }
       }
-      if (!found) logW("line invalid: %s",line);
     }
   }
   fclose(f);
@@ -4387,6 +4447,7 @@ bool FurnaceGUI::exportColors(String path) {
     logW("error while opening color file for export: %s",strerror(errno));
     return false;
   }
+  fprintf(f,"configVersion=%d\n",DIV_ENGINE_VERSION);
   for (int i=0; i<GUI_COLOR_MAX; i++) {
     if (fprintf(f,"%s=%d\n",guiColors[i].name,ImGui::ColorConvertFloat4ToU32(uiColors[i]))<0) {
       logW("error while exporting colors: %s",strerror(errno));
@@ -4848,6 +4909,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
   secondaryHoverActual=secondaryHover;
 
+  // TODO: improve
   if (mobileUI) { // disable all hovered colors
     primaryHover=primary;
     secondaryHover=secondary;
@@ -4877,31 +4939,63 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.Colors[ImGuiCol_NavWindowingHighlight]=uiColors[GUI_COLOR_NAV_WIN_HIGHLIGHT];
   sty.Colors[ImGuiCol_NavWindowingDimBg]=uiColors[GUI_COLOR_NAV_WIN_BACKDROP];
   sty.Colors[ImGuiCol_Text]=uiColors[GUI_COLOR_TEXT];
+  sty.Colors[ImGuiCol_TextDisabled]=uiColors[GUI_COLOR_TEXT_DISABLED];
 
-  sty.Colors[ImGuiCol_Button]=primary;
-  sty.Colors[ImGuiCol_ButtonHovered]=primaryHover;
-  sty.Colors[ImGuiCol_ButtonActive]=primaryActive;
-  sty.Colors[ImGuiCol_Tab]=primary;
-  sty.Colors[ImGuiCol_TabHovered]=secondaryHover;
-  sty.Colors[ImGuiCol_TabActive]=secondarySemiActive;
-  sty.Colors[ImGuiCol_TabUnfocused]=primary;
-  sty.Colors[ImGuiCol_TabUnfocusedActive]=primaryHover;
-  sty.Colors[ImGuiCol_Header]=secondary;
-  sty.Colors[ImGuiCol_HeaderHovered]=secondaryHover;
-  sty.Colors[ImGuiCol_HeaderActive]=secondaryActive;
-  sty.Colors[ImGuiCol_ResizeGrip]=secondary;
-  sty.Colors[ImGuiCol_ResizeGripHovered]=secondaryHover;
-  sty.Colors[ImGuiCol_ResizeGripActive]=secondaryActive;
-  sty.Colors[ImGuiCol_FrameBg]=secondary;
-  sty.Colors[ImGuiCol_FrameBgHovered]=secondaryHover;
-  sty.Colors[ImGuiCol_FrameBgActive]=secondaryActive;
-  sty.Colors[ImGuiCol_SliderGrab]=primaryActive;
-  sty.Colors[ImGuiCol_SliderGrabActive]=primaryActive;
-  sty.Colors[ImGuiCol_TitleBgActive]=primary;
-  sty.Colors[ImGuiCol_CheckMark]=primaryActive;
-  sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHoverActual;
-  sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
-  sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
+  if (settings.basicColors) {
+    sty.Colors[ImGuiCol_Button]=primary;
+    sty.Colors[ImGuiCol_ButtonHovered]=primaryHover;
+    sty.Colors[ImGuiCol_ButtonActive]=primaryActive;
+    sty.Colors[ImGuiCol_Tab]=primary;
+    sty.Colors[ImGuiCol_TabHovered]=secondaryHover;
+    sty.Colors[ImGuiCol_TabActive]=secondarySemiActive;
+    sty.Colors[ImGuiCol_TabUnfocused]=primary;
+    sty.Colors[ImGuiCol_TabUnfocusedActive]=primaryHover;
+    sty.Colors[ImGuiCol_Header]=secondary;
+    sty.Colors[ImGuiCol_HeaderHovered]=secondaryHover;
+    sty.Colors[ImGuiCol_HeaderActive]=secondaryActive;
+    sty.Colors[ImGuiCol_ResizeGrip]=secondary;
+    sty.Colors[ImGuiCol_ResizeGripHovered]=secondaryHover;
+    sty.Colors[ImGuiCol_ResizeGripActive]=secondaryActive;
+    sty.Colors[ImGuiCol_FrameBg]=secondary;
+    sty.Colors[ImGuiCol_FrameBgHovered]=secondaryHover;
+    sty.Colors[ImGuiCol_FrameBgActive]=secondaryActive;
+    sty.Colors[ImGuiCol_SliderGrab]=primaryActive;
+    sty.Colors[ImGuiCol_SliderGrabActive]=primaryActive;
+    sty.Colors[ImGuiCol_TitleBgActive]=primary;
+    sty.Colors[ImGuiCol_CheckMark]=primaryActive;
+    sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHoverActual;
+    sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
+    sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
+  } else {
+    sty.Colors[ImGuiCol_Button]=uiColors[GUI_COLOR_BUTTON];
+    sty.Colors[ImGuiCol_ButtonHovered]=uiColors[GUI_COLOR_BUTTON_HOVER];
+    sty.Colors[ImGuiCol_ButtonActive]=uiColors[GUI_COLOR_BUTTON_ACTIVE];
+    sty.Colors[ImGuiCol_Tab]=uiColors[GUI_COLOR_TAB];
+    sty.Colors[ImGuiCol_TabHovered]=uiColors[GUI_COLOR_TAB_HOVER];
+    sty.Colors[ImGuiCol_TabActive]=uiColors[GUI_COLOR_TAB_ACTIVE];
+    sty.Colors[ImGuiCol_TabUnfocused]=uiColors[GUI_COLOR_TAB_UNFOCUSED];
+    sty.Colors[ImGuiCol_TabUnfocusedActive]=uiColors[GUI_COLOR_TAB_UNFOCUSED_ACTIVE];
+    sty.Colors[ImGuiCol_Header]=uiColors[GUI_COLOR_IMGUI_HEADER];
+    sty.Colors[ImGuiCol_HeaderHovered]=uiColors[GUI_COLOR_IMGUI_HEADER_HOVER];
+    sty.Colors[ImGuiCol_HeaderActive]=uiColors[GUI_COLOR_IMGUI_HEADER_ACTIVE];
+    sty.Colors[ImGuiCol_ResizeGrip]=uiColors[GUI_COLOR_RESIZE_GRIP];
+    sty.Colors[ImGuiCol_ResizeGripHovered]=uiColors[GUI_COLOR_RESIZE_GRIP_HOVER];
+    sty.Colors[ImGuiCol_ResizeGripActive]=uiColors[GUI_COLOR_RESIZE_GRIP_ACTIVE];
+    sty.Colors[ImGuiCol_FrameBg]=uiColors[GUI_COLOR_WIDGET_BACKGROUND];
+    sty.Colors[ImGuiCol_FrameBgHovered]=uiColors[GUI_COLOR_WIDGET_BACKGROUND_HOVER];
+    sty.Colors[ImGuiCol_FrameBgActive]=uiColors[GUI_COLOR_WIDGET_BACKGROUND_ACTIVE];
+    sty.Colors[ImGuiCol_SliderGrab]=uiColors[GUI_COLOR_SLIDER_GRAB];
+    sty.Colors[ImGuiCol_SliderGrabActive]=uiColors[GUI_COLOR_SLIDER_GRAB_ACTIVE];
+    sty.Colors[ImGuiCol_TitleBgActive]=uiColors[GUI_COLOR_TITLE_BACKGROUND_ACTIVE];
+    sty.Colors[ImGuiCol_CheckMark]=uiColors[GUI_COLOR_CHECK_MARK];
+    sty.Colors[ImGuiCol_TextSelectedBg]=uiColors[GUI_COLOR_TEXT_SELECTION];
+    sty.Colors[ImGuiCol_PlotLines]=uiColors[GUI_COLOR_PLOT_LINES];
+    sty.Colors[ImGuiCol_PlotLinesHovered]=uiColors[GUI_COLOR_PLOT_LINES_HOVER];
+    sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_PLOT_HISTOGRAM];
+    sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_PLOT_HISTOGRAM_HOVER];
+    sty.Colors[ImGuiCol_TableRowBg]=uiColors[GUI_COLOR_TABLE_ROW_EVEN];
+    sty.Colors[ImGuiCol_TableRowBgAlt]=uiColors[GUI_COLOR_TABLE_ROW_ODD];
+  }
   sty.Colors[ImGuiCol_Border]=uiColors[GUI_COLOR_BORDER];
   sty.Colors[ImGuiCol_BorderShadow]=uiColors[GUI_COLOR_BORDER_SHADOW];
 
