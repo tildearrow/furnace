@@ -509,6 +509,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Import**
 - **Export**
 - **Reset defaults**
+- **Guru mode**: exposes additional color settings that would otherwise be automatically calculated.
 - **General**
   - **Color scheme type:**
     - **Dark**
