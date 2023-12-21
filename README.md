@@ -10,6 +10,8 @@ Here are the [future plans](todo_list.md).
 
 [Fork changelog](fork_changelog.md)
 
+[Our Discord server](https://discord.gg/sT8zcsyJZt)
+
 # Furnace (chiptune tracker)
 
 ![screenshot](papers/screenshot3.png)
