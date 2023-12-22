@@ -771,10 +771,10 @@ unsigned int convertEffectMPT_S3M(unsigned char symbol, unsigned int val) {
           return (0x80<<8)|((val&0xf)<<4);
           break;
         case 0xC:
-          return (0xFC<<8)|(val&0xf);
+          return (0xEC<<8)|(val&0xf);
           break;
         case 0xD:
-          return (0xFD<<8)|(val&0xf);
+          return (0xED<<8)|(val&0xf);
           break;
         default:
           break;
