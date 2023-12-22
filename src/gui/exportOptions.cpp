@@ -263,8 +263,8 @@ void FurnaceGUI::drawExport() {
       }
       ImGui::EndTabBar();
     }
-    ImGui::EndChild();
   }
+  ImGui::EndChild();
   ImGui::Separator();
   if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
 }
