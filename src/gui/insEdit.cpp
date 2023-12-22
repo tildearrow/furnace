@@ -2842,7 +2842,11 @@ void FurnaceGUI::drawInsEdit() {
         updateFMPreview=false;
       }
       if (settings.insEditColorize) {
-        pushAccentColors(uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],ImVec4(0.0f,0.0f,0.0f,0.0f));
+        if (ins->type>=DIV_INS_MAX) {
+          pushAccentColors(uiColors[GUI_COLOR_INSTR_UNKNOWN],uiColors[GUI_COLOR_INSTR_UNKNOWN],uiColors[GUI_COLOR_INSTR_UNKNOWN],ImVec4(0.0f,0.0f,0.0f,0.0f));
+        } else {
+          pushAccentColors(uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],ImVec4(0.0f,0.0f,0.0f,0.0f));
+        }
       }
       if (ImGui::BeginTable("InsProp",3)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
@@ -2903,14 +2907,8 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::Text("Type");
 
         ImGui::TableNextColumn();
-        if (ins->type>=DIV_INS_MAX) ins->type=DIV_INS_FM;
         int insType=ins->type;
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        /*
-        if (ImGui::Combo("##Type",&insType,insTypes,DIV_INS_MAX,DIV_INS_MAX)) {
-          ins->type=(DivInstrumentType)insType;
-        }
-        */
         bool warnType=true;
         for (DivInstrumentType i: e->getPossibleInsTypes()) {
           if (i==insType) {
@@ -2919,7 +2917,7 @@ void FurnaceGUI::drawInsEdit() {
         }
 
         pushWarningColor(warnType,warnType && failedNoteOn);
-        if (ImGui::BeginCombo("##Type",insTypes[insType][0])) {
+        if (ImGui::BeginCombo("##Type",(insType>=DIV_INS_MAX)?"Unknown":insTypes[insType][0])) {
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
             for (int i=0; insTypes[i][0]; i++) {
@@ -6041,7 +6039,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTabItem();
           }
         }
-        if (ImGui::BeginTabItem("Macros")) {
+        if (ins->type<DIV_INS_MAX) if (ImGui::BeginTabItem("Macros")) {
           const char* volumeLabel="Volume";
 
           int volMax=15;
@@ -6614,6 +6612,12 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_VRC6 ||
             ins->type==DIV_INS_ES5503) {
           insTabSample(ins);
+        }
+        if (ins->type>=DIV_INS_MAX) {
+          if (ImGui::BeginTabItem("Error")) {
+            ImGui::Text("invalid instrument type! change it first.");
+            ImGui::EndTabItem();
+          }
         }
         ImGui::EndTabBar();
       }

@@ -101,6 +101,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_MODAL_BACKDROP,
   GUI_COLOR_HEADER,
   GUI_COLOR_TEXT,
+  GUI_COLOR_TEXT_DISABLED,
   GUI_COLOR_ACCENT_PRIMARY,
   GUI_COLOR_ACCENT_SECONDARY,
   GUI_COLOR_TITLE_INACTIVE,
@@ -124,6 +125,36 @@ enum FurnaceGUIColors {
   GUI_COLOR_NAV_HIGHLIGHT,
   GUI_COLOR_NAV_WIN_HIGHLIGHT,
   GUI_COLOR_NAV_WIN_BACKDROP,
+  GUI_COLOR_PLOT_LINES,
+  GUI_COLOR_PLOT_LINES_HOVER,
+  GUI_COLOR_PLOT_HISTOGRAM,
+  GUI_COLOR_PLOT_HISTOGRAM_HOVER,
+
+  GUI_COLOR_BUTTON,
+  GUI_COLOR_BUTTON_HOVER,
+  GUI_COLOR_BUTTON_ACTIVE,
+  GUI_COLOR_TAB,
+  GUI_COLOR_TAB_HOVER,
+  GUI_COLOR_TAB_ACTIVE,
+  GUI_COLOR_TAB_UNFOCUSED,
+  GUI_COLOR_TAB_UNFOCUSED_ACTIVE,
+  GUI_COLOR_IMGUI_HEADER,
+  GUI_COLOR_IMGUI_HEADER_HOVER,
+  GUI_COLOR_IMGUI_HEADER_ACTIVE,
+  GUI_COLOR_RESIZE_GRIP,
+  GUI_COLOR_RESIZE_GRIP_HOVER,
+  GUI_COLOR_RESIZE_GRIP_ACTIVE,
+  GUI_COLOR_WIDGET_BACKGROUND,
+  GUI_COLOR_WIDGET_BACKGROUND_HOVER,
+  GUI_COLOR_WIDGET_BACKGROUND_ACTIVE,
+  GUI_COLOR_SLIDER_GRAB,
+  GUI_COLOR_SLIDER_GRAB_ACTIVE,
+  GUI_COLOR_TITLE_BACKGROUND_ACTIVE,
+  GUI_COLOR_CHECK_MARK,
+  GUI_COLOR_TEXT_SELECTION,
+  GUI_COLOR_TABLE_ROW_EVEN,
+  GUI_COLOR_TABLE_ROW_ODD,
+
   GUI_COLOR_TOGGLE_OFF,
   GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
@@ -437,6 +468,20 @@ enum FurnaceGUIMobileScenes {
   GUI_SCENE_CHIPS,
   GUI_SCENE_MIXER,
   GUI_SCENE_OTHER,
+};
+
+enum FurnaceGUISettingGroups: unsigned int {
+  GUI_SETTINGS_GENERAL=1,
+  GUI_SETTINGS_AUDIO=2,
+  GUI_SETTINGS_MIDI=4,
+  GUI_SETTINGS_KEYBOARD=8,
+  GUI_SETTINGS_BEHAVIOR=16,
+  GUI_SETTINGS_FONT=32,
+  GUI_SETTINGS_APPEARANCE=64,
+  GUI_SETTINGS_LAYOUTS=128,
+  GUI_SETTINGS_COLOR=256,
+
+  GUI_SETTINGS_ALL=0xffffffff
 };
 
 enum FurnaceGUIFileDialogs {
@@ -1657,6 +1702,7 @@ class FurnaceGUI {
     int fontAutoHint;
     int fontAntiAlias;
     int selectAssetOnLoad;
+    int basicColors;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1852,6 +1898,7 @@ class FurnaceGUI {
       fontAutoHint(1),
       fontAntiAlias(1),
       selectAssetOnLoad(1),
+      basicColors(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2421,6 +2468,9 @@ class FurnaceGUI {
 
   void resetColors();
   void resetKeybinds();
+
+  void readConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
+  void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
 
   void syncSettings();
   void commitSettings();
