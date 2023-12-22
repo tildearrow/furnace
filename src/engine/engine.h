@@ -702,6 +702,9 @@ class DivEngine {
     double getConfDouble(String key, double fallback);
     String getConfString(String key, String fallback);
 
+    // get config object
+    DivConfig& getConfObject();
+
     // set a config value
     void setConf(String key, bool value);
     void setConf(String key, int value);
