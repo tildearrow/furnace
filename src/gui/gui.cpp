@@ -4139,7 +4139,42 @@ bool FurnaceGUI::loop() {
             ImGui::EndMenu();
           }
         } else if (settings.exportOptionsLayout==2) {
-          
+          if (ImGui::MenuItem("export audio...")) {
+            curExportType=GUI_EXPORT_AUDIO;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem("export VGM...")) {
+            curExportType=GUI_EXPORT_VGM;
+            displayExport=true;
+          }
+          int numZSMCompat=0;
+          for (int i=0; i<e->song.systemLen; i++) {
+            if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
+          }
+          if (numZSMCompat>0) {
+            if (ImGui::MenuItem("export ZSM...")) {
+              curExportType=GUI_EXPORT_ZSM;
+              displayExport=true;
+            }
+          }
+          int numAmiga=0;
+          for (int i=0; i<e->song.systemLen; i++) {
+            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
+          }
+          if (numAmiga && settings.iCannotWait) {
+            if (ImGui::MenuItem("export Amiga validation data...")) {
+              curExportType=GUI_EXPORT_AMIGA_VAL;
+              displayExport=true;
+            }
+          }
+          if (ImGui::MenuItem("export text...")) {
+            curExportType=GUI_EXPORT_TEXT;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem("export command stream...")) {
+            curExportType=GUI_EXPORT_CMD_STREAM;
+            displayExport=true;
+          }
         } else {
           if (ImGui::MenuItem("export...",BIND_FOR(GUI_ACTION_EXPORT))) {
             displayExport=true;
@@ -7597,7 +7632,7 @@ FurnaceGUI::FurnaceGUI():
   curTutorial(-1),
   curTutorialStep(0),
   audioExportType(0),
-  curExportType(-1) {
+  curExportType(GUI_EXPORT_NONE) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

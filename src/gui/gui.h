@@ -549,6 +549,17 @@ enum FurnaceGUIWarnings {
   GUI_WARN_GENERIC
 };
 
+enum FurnaceGUIExportTypes {
+  GUI_EXPORT_NONE=-1,
+
+  GUI_EXPORT_AUDIO=0,
+  GUI_EXPORT_VGM,
+  GUI_EXPORT_ZSM,
+  GUI_EXPORT_CMD_STREAM,
+  GUI_EXPORT_AMIGA_VAL,
+  GUI_EXPORT_TEXT
+};
+
 enum FurnaceGUIFMAlgs {
   FM_ALGS_4OP,
   FM_ALGS_2OP_OPL,
@@ -2336,7 +2347,7 @@ class FurnaceGUI {
 
   // export options
   int audioExportType;
-  int curExportType;
+  FurnaceGUIExportTypes curExportType;
 
   void drawExportAudio();
   void drawExportVGM();
