@@ -1014,11 +1014,6 @@ Size=305,557\n\
 Collapsed=0\n\
 DockId=0x00000018,0\n\
 \n\
-[Window][Welcome]\n\
-Pos=944,666\n\
-Size=672,268\n\
-Collapsed=0\n\
-\n\
 [Window][Grooves]\n\
 Pos=416,314\n\
 Size=463,250\n\
