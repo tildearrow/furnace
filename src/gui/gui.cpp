@@ -4101,7 +4101,7 @@ bool FurnaceGUI::loop() {
           openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
         }
         ImGui::Separator();
-        if (settings.exportOptionsLayout) {
+        if (settings.exportOptionsLayout==0) {
           if (ImGui::BeginMenu("export audio...")) {
             drawExportAudio();
             ImGui::EndMenu();
@@ -4114,7 +4114,7 @@ bool FurnaceGUI::loop() {
           for (int i=0; i<e->song.systemLen; i++) {
             if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
           }
-          if (numZSMCompat > 0) {
+          if (numZSMCompat>0) {
             if (ImGui::BeginMenu("export ZSM...")) {
               drawExportZSM();
               ImGui::EndMenu();
@@ -4138,6 +4138,8 @@ bool FurnaceGUI::loop() {
             drawExportCommand();
             ImGui::EndMenu();
           }
+        } else if (settings.exportOptionsLayout==2) {
+          
         } else {
           if (ImGui::MenuItem("export...",BIND_FOR(GUI_ACTION_EXPORT))) {
             displayExport=true;
@@ -7594,7 +7596,8 @@ FurnaceGUI::FurnaceGUI():
   introStopped(false),
   curTutorial(-1),
   curTutorialStep(0),
-  audioExportType(0) {
+  audioExportType(0),
+  curExportType(-1) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

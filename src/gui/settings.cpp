@@ -2661,6 +2661,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Unindent();
 
         ImGui::Text("Export options layout:");
+        ImGui::Indent();
         if (ImGui::RadioButton("Sub-menus in File menu##eol0",settings.exportOptionsLayout==0)) {
           settings.exportOptionsLayout=0;
           settingsChanged=true;
@@ -2673,6 +2674,7 @@ void FurnaceGUI::drawSettings() {
           settings.exportOptionsLayout=2;
           settingsChanged=true;
         }
+        ImGui::Unindent();
 
         bool capitalMenuBarB=settings.capitalMenuBar;
         if (ImGui::Checkbox("Capitalize menu bar",&capitalMenuBarB)) {

@@ -223,7 +223,7 @@ void FurnaceGUI::drawExport() {
   ImVec2 avail=ImGui::GetContentRegionAvail();
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
-  if (ImGui::BeginChild("sysPickerC",avail,false,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+  if (ImGui::BeginChild("sysPickerC",avail,false)) {
     if (ImGui::BeginTabBar("ExportTypes")) {
       if (ImGui::BeginTabItem("Audio")) {
         drawExportAudio();

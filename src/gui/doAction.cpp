@@ -66,6 +66,7 @@ void FurnaceGUI::doAction(int what) {
       openFileDialog(GUI_FILE_SAVE);
       break;
     case GUI_ACTION_EXPORT:
+      curExportType=-1;
       displayExport=true;
       break;
     case GUI_ACTION_UNDO:

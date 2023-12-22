@@ -2334,8 +2334,9 @@ class FurnaceGUI {
   // tutorial
   int curTutorial, curTutorialStep;
 
-  // audio export types (export options)
+  // export options
   int audioExportType;
+  int curExportType;
 
   void drawExportAudio();
   void drawExportVGM();
