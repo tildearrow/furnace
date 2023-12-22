@@ -1,6 +1,6 @@
 # What to do next idk
 
-Note: whatever feature/fix made by tildearrow, if useful, are ported to this fork.
+Note: whatever feature/fix made by tildearrow, if useful, is ported to this fork.
 
 Remove:
 - Deflemask compatibility with exporting modules and no longer add new compatibility flags (you can still import modules)
