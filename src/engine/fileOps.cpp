@@ -1873,6 +1873,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<184) {
       ds.resetArpPhaseOnNewNote=false;
     }
+    if (ds.version<188) {
+      ds.ceilVolumeScaling=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2182,7 +2185,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (ds.version>=39) {
       for (int i=0; i<tchans; i++) {
-        subSong->chanShow[i]=reader.readC();
+        if (ds.version<189) {
+          subSong->chanShow[i]=reader.readC();
+          subSong->chanShowChanOsc[i]=subSong->chanShow[i];
+        } else {
+          unsigned char tempchar=reader.readC();
+          subSong->chanShow[i]=tempchar&1;
+          subSong->chanShowChanOsc[i]=(tempchar&2);
+        }
       }
 
       for (int i=0; i<tchans; i++) {
@@ -2409,7 +2419,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<3; i++) {
+      if (ds.version>=188) {
+        ds.ceilVolumeScaling=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<2; i++) {
         reader.readC();
       }
     }
@@ -2580,7 +2595,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         }
 
         for (int i=0; i<tchans; i++) {
-          subSong->chanShow[i]=reader.readC();
+          if (ds.version<189) {
+            subSong->chanShow[i]=reader.readC();
+            subSong->chanShowChanOsc[i]=subSong->chanShow[i];
+          } else {
+            unsigned char tempchar=reader.readC();
+            subSong->chanShow[i]=tempchar&1;
+            subSong->chanShowChanOsc[i]=tempchar&2;
+          }
         }
 
         for (int i=0; i<tchans; i++) {
@@ -3449,12 +3471,14 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     }
     for(int i=0; i<chCount; i++) {
       ds.subsong[0]->chanShow[i]=true;
+      ds.subsong[0]->chanShowChanOsc[i]=true;
       ds.subsong[0]->chanName[i]=fmt::sprintf("Channel %d",i+1);
       ds.subsong[0]->chanShortName[i]=fmt::sprintf("C%d",i+1);
     }
     for(int i=chCount; i<ds.systemLen*4; i++) {
       ds.subsong[0]->pat[i].effectCols=1;
       ds.subsong[0]->chanShow[i]=false;
+      ds.subsong[0]->chanShowChanOsc[i]=false;
     }
     
     // instrument creation
@@ -5402,7 +5426,10 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
   }
 
   for (int i=0; i<chans; i++) {
-    w->writeC(subSong->chanShow[i]);
+    w->writeC(
+      (subSong->chanShow[i]?1:0)|
+      (subSong->chanShowChanOsc[i]?2:0)
+    );
   }
 
   for (int i=0; i<chans; i++) {
@@ -5494,7 +5521,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
   w->writeC(song.preNoteNoEffect);
   w->writeC(song.oldDPCM);
   w->writeC(song.resetArpPhaseOnNewNote);
-  for (int i=0; i<3; i++) {
+  w->writeC(song.ceilVolumeScaling);
+  for (int i=0; i<2; i++) {
     w->writeC(0);
   }
 
@@ -5559,7 +5587,10 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
     }
 
     for (int i=0; i<chans; i++) {
-      w->writeC(subSong->chanShow[i]);
+      w->writeC(
+        (subSong->chanShow[i]?1:0)|
+        (subSong->chanShowChanOsc[i]?2:0)
+      );
     }
 
     for (int i=0; i<chans; i++) {

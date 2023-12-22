@@ -818,6 +818,12 @@ DivDispatchOscBuffer* DivPlatformGenesisExt::getOscBuffer(int ch) {
   return NULL;
 }
 
+int DivPlatformGenesisExt::mapVelocity(int ch, float vel) {
+  if (ch>=extChanOffs+4) return DivPlatformGenesis::mapVelocity(ch-3,vel);
+  if (ch>=extChanOffs) return DivPlatformGenesis::mapVelocity(extChanOffs,vel);
+  return DivPlatformGenesis::mapVelocity(ch,vel);
+}
+
 void DivPlatformGenesisExt::reset() {
   DivPlatformGenesis::reset();
 

@@ -1519,6 +1519,11 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   while (playing && curOrder<goal) {
     if (nextTick(preserveDrift)) {
       skipping=false;
+      cmdStream.clear();
+      for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
+      if (goal>0 || goalRow>0) {
+        for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
+      }
       return;
     }
     if (!preserveDrift) {
@@ -1530,6 +1535,11 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   while (playing && (curRow<goalRow || ticks>1)) {
     if (nextTick(preserveDrift)) {
       skipping=false;
+      cmdStream.clear();
+      for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
+      if (goal>0 || goalRow>0) {
+        for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
+      }
       return;
     }
     if (!preserveDrift) {
@@ -2173,6 +2183,13 @@ String DivEngine::getConfigPath() {
 
 int DivEngine::getMaxVolumeChan(int ch) {
   return chan[ch].volMax>>8;
+}
+
+int DivEngine::mapVelocity(int ch, float vel) {
+  if (ch<0) return 0;
+  if (ch>=chans) return 0;
+  if (disCont[dispatchOfChan[ch]].dispatch==NULL) return 0;
+  return disCont[dispatchOfChan[ch]].dispatch->mapVelocity(dispatchChanOfChan[ch],vel);
 }
 
 unsigned char DivEngine::getOrder() {
@@ -3373,6 +3390,14 @@ void DivEngine::setMidiBaseChan(int chan) {
 
 void DivEngine::setMidiDirect(bool value) {
   midiIsDirect=value;
+}
+
+void DivEngine::setMidiDirectProgram(bool value) {
+  midiIsDirectProgram=value;
+}
+
+void DivEngine::setMidiVolExp(float value) {
+  midiVolExp=value;
 }
 
 void DivEngine::setMidiCallback(std::function<int(const TAMidiMessage&)> what) {

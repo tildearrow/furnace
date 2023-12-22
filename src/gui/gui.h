@@ -101,6 +101,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_MODAL_BACKDROP,
   GUI_COLOR_HEADER,
   GUI_COLOR_TEXT,
+  GUI_COLOR_TEXT_DISABLED,
   GUI_COLOR_ACCENT_PRIMARY,
   GUI_COLOR_ACCENT_SECONDARY,
   GUI_COLOR_TITLE_INACTIVE,
@@ -124,6 +125,36 @@ enum FurnaceGUIColors {
   GUI_COLOR_NAV_HIGHLIGHT,
   GUI_COLOR_NAV_WIN_HIGHLIGHT,
   GUI_COLOR_NAV_WIN_BACKDROP,
+  GUI_COLOR_PLOT_LINES,
+  GUI_COLOR_PLOT_LINES_HOVER,
+  GUI_COLOR_PLOT_HISTOGRAM,
+  GUI_COLOR_PLOT_HISTOGRAM_HOVER,
+
+  GUI_COLOR_BUTTON,
+  GUI_COLOR_BUTTON_HOVER,
+  GUI_COLOR_BUTTON_ACTIVE,
+  GUI_COLOR_TAB,
+  GUI_COLOR_TAB_HOVER,
+  GUI_COLOR_TAB_ACTIVE,
+  GUI_COLOR_TAB_UNFOCUSED,
+  GUI_COLOR_TAB_UNFOCUSED_ACTIVE,
+  GUI_COLOR_IMGUI_HEADER,
+  GUI_COLOR_IMGUI_HEADER_HOVER,
+  GUI_COLOR_IMGUI_HEADER_ACTIVE,
+  GUI_COLOR_RESIZE_GRIP,
+  GUI_COLOR_RESIZE_GRIP_HOVER,
+  GUI_COLOR_RESIZE_GRIP_ACTIVE,
+  GUI_COLOR_WIDGET_BACKGROUND,
+  GUI_COLOR_WIDGET_BACKGROUND_HOVER,
+  GUI_COLOR_WIDGET_BACKGROUND_ACTIVE,
+  GUI_COLOR_SLIDER_GRAB,
+  GUI_COLOR_SLIDER_GRAB_ACTIVE,
+  GUI_COLOR_TITLE_BACKGROUND_ACTIVE,
+  GUI_COLOR_CHECK_MARK,
+  GUI_COLOR_TEXT_SELECTION,
+  GUI_COLOR_TABLE_ROW_EVEN,
+  GUI_COLOR_TABLE_ROW_ODD,
+
   GUI_COLOR_TOGGLE_OFF,
   GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
@@ -437,6 +468,20 @@ enum FurnaceGUIMobileScenes {
   GUI_SCENE_OTHER,
 };
 
+enum FurnaceGUISettingGroups: unsigned int {
+  GUI_SETTINGS_GENERAL=1,
+  GUI_SETTINGS_AUDIO=2,
+  GUI_SETTINGS_MIDI=4,
+  GUI_SETTINGS_KEYBOARD=8,
+  GUI_SETTINGS_BEHAVIOR=16,
+  GUI_SETTINGS_FONT=32,
+  GUI_SETTINGS_APPEARANCE=64,
+  GUI_SETTINGS_LAYOUTS=128,
+  GUI_SETTINGS_COLOR=256,
+
+  GUI_SETTINGS_ALL=0xffffffff
+};
+
 enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
   GUI_FILE_OPEN_BACKUP,
@@ -724,6 +769,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_INVERT,
   GUI_ACTION_SAMPLE_SIGN,
   GUI_ACTION_SAMPLE_FILTER,
+  GUI_ACTION_SAMPLE_CROSSFADE_LOOP,
   GUI_ACTION_SAMPLE_PREVIEW,
   GUI_ACTION_SAMPLE_STOP_PREVIEW,
   GUI_ACTION_SAMPLE_ZOOM_IN,
@@ -936,7 +982,7 @@ struct MIDIMap {
   int**** map;
   std::vector<MIDIBind> binds;
 
-  bool noteInput, volInput, rawVolume, polyInput, directChannel, programChange, midiClock, midiTimeCode, yamahaFMResponse;
+  bool noteInput, volInput, rawVolume, polyInput, directChannel, programChange, midiClock, midiTimeCode, yamahaFMResponse, directProgram;
   // 0: disabled
   //
   // 1: C- C# D- D# E- F- F# G- G# A- A# B-
@@ -999,11 +1045,12 @@ struct MIDIMap {
     midiClock(false),
     midiTimeCode(false),
     yamahaFMResponse(false),
+    directProgram(false),
     valueInputStyle(1),
     valueInputControlMSB(0),
     valueInputControlLSB(0),
     valueInputControlSingle(0),
-    volExp(1.0f),
+    volExp(2.0f),
     valueInputCurMSB(0),
     valueInputCurLSB(0),
     valueInputCurSingle(0) {
@@ -1275,6 +1322,20 @@ struct FurnaceGUIQueryResult {
   }
 };
 
+struct FurnaceGUIWaveSizeEntry {
+  short width, height;
+  const char* sys;
+
+  FurnaceGUIWaveSizeEntry(short w, short h, const char* s):
+    width(w),
+    height(h),
+    sys(s) {}
+  FurnaceGUIWaveSizeEntry():
+    width(-1),
+    height(-1),
+    sys(NULL) {}
+};
+
 class FurnaceGUITexture {
 };
 
@@ -1365,11 +1426,12 @@ class FurnaceGUI {
   std::vector<FurnaceGUISysDef> newSongSearchResults;
   FixedQueue<String,32> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
+  std::vector<FurnaceGUIWaveSizeEntry> waveSizeList;
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
 
   bool quit, warnQuit, willCommit, edit, editClone, isPatUnique, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
-  bool vgmExportDirectStream, displayInsTypeList;
+  bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, displayExport, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
@@ -1639,6 +1701,8 @@ class FurnaceGUI {
     int fontBitmap;
     int fontAutoHint;
     int fontAntiAlias;
+    int selectAssetOnLoad;
+    int basicColors;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1834,6 +1898,8 @@ class FurnaceGUI {
       fontBitmap(0),
       fontAutoHint(1),
       fontAntiAlias(1),
+      selectAssetOnLoad(1),
+      basicColors(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2107,10 +2173,11 @@ class FurnaceGUI {
   ImVec2 sampleDragAreaSize;
   unsigned int sampleDragLen;
   float sampleFilterL, sampleFilterB, sampleFilterH, sampleFilterRes, sampleFilterCutStart, sampleFilterCutEnd;
+  int sampleCrossFadeLoopLength, sampleCrossFadeLoopLaw;
   unsigned char sampleFilterPower;
   short* sampleClipboard;
   size_t sampleClipboardLen;
-  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt;
+  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt, openSampleCrossFadeOpt;
 
   // mixer
   // 0xxx: output
@@ -2407,6 +2474,9 @@ class FurnaceGUI {
   void resetColors();
   void resetKeybinds();
 
+  void readConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
+  void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
+
   void syncSettings();
   void commitSettings();
   void syncTutorial();
@@ -2434,6 +2504,8 @@ class FurnaceGUI {
   void doInsert();
   void doTranspose(int amount, OperationMask& mask);
   String doCopy(bool cut, bool writeClipboard, const SelectionPoint& sStart, const SelectionPoint& sEnd);
+  void doPasteFurnace(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int startOff, bool invalidData);
+  void doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat);
   void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0, bool readClipboard=true, String clipb="");
   void doChangeIns(int ins);
   void doInterpolate();

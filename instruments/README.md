@@ -18,7 +18,6 @@ these are organized in the respective chip folders.
 - jvsTSX
 - Laggy
 - LovelyA72
-- nicco1690
 - PacorexTheTrex
 - paynspch
 - pedipanol

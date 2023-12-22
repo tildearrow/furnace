@@ -35,6 +35,7 @@ items in _italic_ don't appear in basic mode and are only available in advanced 
 
 - **export audio...**: opens the file picker, allowing you to export your song to a .wav file. see next section for more details.
 - **export VGM...**: opens the file picker, allowing you to export your song to a .vgm file. see next section for more details.
+- **export text...**: opens the file picker, allowing you to export your song to a .txt file.
 - **export ZSM...**: opens the file picker, allowing you to export your song to a .zsm file. see next section for more details.
   - only available when there's a YM2151 and/or VERA.
 - **export command stream...**: export song data to a command stream file. see next section for more details.
@@ -140,6 +141,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **cut**: moves the current selection in the pattern view to clipboard.
 - **copy**: copies the current selection in the pattern view to clipboard.
 - **paste**: inserts the clipboard's contents in the cursor position.
+  - you may be able to paste from OpenMPT as well.
 - _**paste special...**:_ variants of the paste feature.
   - **paste mix**: inserts the clipboard's contents in the cursor position, but does not erase the occupied region.
   - **paste mix (background)**: does the same thing as paste mix, but doesn't alter content which is already there.
