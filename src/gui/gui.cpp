@@ -4101,7 +4101,7 @@ bool FurnaceGUI::loop() {
           openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
         }
         ImGui::Separator();
-        if (settings.classicExportOptions) {
+        if (settings.exportOptionsLayout) {
           if (ImGui::BeginMenu("export audio...")) {
             drawExportAudio();
             ImGui::EndMenu();

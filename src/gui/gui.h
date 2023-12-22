@@ -1689,7 +1689,7 @@ class FurnaceGUI {
     int centerPopup;
     int insIconsStyle;
     int classicChipOptions;
-    int classicExportOptions;
+    int exportOptionsLayout;
     int wasapiEx;
     int chanOscThreads;
     int renderPoolThreads;
@@ -1886,7 +1886,7 @@ class FurnaceGUI {
       centerPopup(1),
       insIconsStyle(1),
       classicChipOptions(0),
-      classicExportOptions(0), // poll?
+      exportOptionsLayout(1),
       wasapiEx(0),
       chanOscThreads(0),
       renderPoolThreads(0),
