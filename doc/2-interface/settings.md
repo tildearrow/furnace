@@ -498,7 +498,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Rounded window corners**
 - **Rounded buttons**
 - **Rounded menu corners**
-- **Borders around widgets**: draws thin borders on buttons, checkboxes, text widgets, and the like.
+- **Borders around widgets**: draws borders on buttons, checkboxes, text widgets, and the like.
 
 
 
@@ -509,6 +509,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Import**
 - **Export**
 - **Reset defaults**
+- **Guru mode**: exposes all color options (instead of accent colors).
 - **General**
   - **Color scheme type:**
     - **Dark**

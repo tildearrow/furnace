@@ -468,6 +468,20 @@ enum FurnaceGUIMobileScenes {
   GUI_SCENE_OTHER,
 };
 
+enum FurnaceGUISettingGroups: unsigned int {
+  GUI_SETTINGS_GENERAL=1,
+  GUI_SETTINGS_AUDIO=2,
+  GUI_SETTINGS_MIDI=4,
+  GUI_SETTINGS_KEYBOARD=8,
+  GUI_SETTINGS_BEHAVIOR=16,
+  GUI_SETTINGS_FONT=32,
+  GUI_SETTINGS_APPEARANCE=64,
+  GUI_SETTINGS_LAYOUTS=128,
+  GUI_SETTINGS_COLOR=256,
+
+  GUI_SETTINGS_ALL=0xffffffff
+};
+
 enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
   GUI_FILE_OPEN_BACKUP,
@@ -2480,6 +2494,9 @@ class FurnaceGUI {
 
   void resetColors();
   void resetKeybinds();
+
+  void readConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
+  void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
 
   void syncSettings();
   void commitSettings();
