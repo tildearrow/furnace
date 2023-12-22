@@ -791,25 +791,6 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION START-UP
         CONFIG_SUBSECTION("Start-up");
-        ImGui::Text("Play intro on start-up:");
-        ImGui::Indent();
-        if (ImGui::RadioButton("No##pis0",settings.alwaysPlayIntro==0)) {
-          settings.alwaysPlayIntro=0;
-          settingsChanged=true;
-        }
-        if (ImGui::RadioButton("Short##pis1",settings.alwaysPlayIntro==1)) {
-          settings.alwaysPlayIntro=1;
-          settingsChanged=true;
-        }
-        if (ImGui::RadioButton("Full (short when loading song)##pis2",settings.alwaysPlayIntro==2)) {
-          settings.alwaysPlayIntro=2;
-          settingsChanged=true;
-        }
-        if (ImGui::RadioButton("Full (always)##pis3",settings.alwaysPlayIntro==3)) {
-          settings.alwaysPlayIntro=3;
-          settingsChanged=true;
-        }
-        ImGui::Unindent();
 
         bool disableFadeInB=settings.disableFadeIn;
         if (ImGui::Checkbox("Disable fade-in during start-up",&disableFadeInB)) {
@@ -3844,7 +3825,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   settings.doubleClickTime=conf.getFloat("doubleClickTime",0.3f);
   settings.oneDigitEffects=conf.getInt("oneDigitEffects",0);
   settings.disableFadeIn=conf.getInt("disableFadeIn",0);
-  settings.alwaysPlayIntro=conf.getInt("alwaysPlayIntro",0);
   settings.cursorFollowsOrder=conf.getInt("cursorFollowsOrder",1);
   settings.iCannotWait=conf.getInt("iCannotWait",0);
   settings.orderButtonPos=conf.getInt("orderButtonPos",2);
@@ -4013,7 +3993,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.doubleClickTime,0.02,1.0);
   clampSetting(settings.oneDigitEffects,0,1);
   clampSetting(settings.disableFadeIn,0,1);
-  clampSetting(settings.alwaysPlayIntro,0,3);
   clampSetting(settings.cursorFollowsOrder,0,1);
   clampSetting(settings.iCannotWait,0,1);
   clampSetting(settings.orderButtonPos,0,2);
@@ -4261,7 +4240,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   conf.set("doubleClickTime",settings.doubleClickTime);
   conf.set("oneDigitEffects",settings.oneDigitEffects);
   conf.set("disableFadeIn",settings.disableFadeIn);
-  conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
   conf.set("cursorFollowsOrder",settings.cursorFollowsOrder);
   conf.set("iCannotWait",settings.iCannotWait);
   conf.set("orderButtonPos",settings.orderButtonPos);

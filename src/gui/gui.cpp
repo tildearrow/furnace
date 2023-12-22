@@ -36,7 +36,6 @@
 #include "guiConst.h"
 #include "intConst.h"
 #include "scaling.h"
-#include "introTune.h"
 #include <stdint.h>
 #include <zlib.h>
 #include <fmt/printf.h>
@@ -572,7 +571,6 @@ void FurnaceGUI::setFileName(String name) {
 #endif
   updateWindowTitle();
   pushRecentFile(curFileName);
-  if (settings.alwaysPlayIntro==2) shortIntro=true;
 }
 
 void FurnaceGUI::updateWindowTitle() {
@@ -1016,11 +1014,6 @@ Size=305,557\n\
 Collapsed=0\n\
 DockId=0x00000018,0\n\
 \n\
-[Window][Intro]\n\
-Pos=0,0\n\
-Size=2560,1600\n\
-Collapsed=0\n\
-\n\
 [Window][Welcome]\n\
 Pos=944,666\n\
 Size=672,268\n\
@@ -1329,7 +1322,6 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   }
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
-  if (introPos<11.0 && !shortIntro) return;
   if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
 
@@ -3074,7 +3066,6 @@ int _processEvent(void* instance, SDL_Event* event) {
 #endif
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
-  if (introPos<11.0 && !shortIntro) return 1;
 #ifdef IS_MOBILE
   if (ev->type==SDL_APP_TERMINATING) {
     // TODO: save last song state here
@@ -3290,9 +3281,6 @@ void FurnaceGUI::pointDown(int x, int y, int button) {
     bindSetTarget=0;
     bindSetPrevValue=0;
   }
-  if (introPos<11.0 && !shortIntro) {
-    introSkipDo=true;
-  }
 }
 
 void FurnaceGUI::pointUp(int x, int y, int button) {
@@ -3310,9 +3298,6 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   macroDragLastY=-1;
   macroLoopDragActive=false;
   waveDragActive=false;
-  if (introPos<11.0 && introSkip<0.5 && !shortIntro) {
-    introSkipDo=false;
-  }
   if (sampleDragActive) {
     logD("stopping sample drag");
     if (sampleDragMode) {
@@ -3435,7 +3420,6 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(grooves)
   DECLARE_METRIC(songInfo)
   DECLARE_METRIC(orders)
-  DECLARE_METRIC(intro)
   DECLARE_METRIC(sampleList)
   DECLARE_METRIC(sampleEdit)
   DECLARE_METRIC(waveList)
@@ -3608,10 +3592,6 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
-            if (introPos<11.0) {
-              SDL_free(ev.drop.file);
-              break;
-            }
             int sampleCountBefore=e->song.sampleLen;
             std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file,true,settings.readInsNames);
             DivWavetable* droppedWave=NULL;
@@ -3889,14 +3869,6 @@ bool FurnaceGUI::loop() {
       SDL_Delay(30);
       drawHalt=0;
       continue;
-    }
-
-    if (firstFrame && !safeMode) {
-      if (!tutorial.introPlayed || settings.alwaysPlayIntro==3 || (settings.alwaysPlayIntro==2 && curFileName.empty())) {
-        unsigned char* introTemp=new unsigned char[intro_fur_len];
-        memcpy(introTemp,intro_fur,intro_fur_len);
-        e->load(introTemp,intro_fur_len);
-      }
     }
 
     if (!e->isRunning()) {
@@ -4757,8 +4729,6 @@ bool FurnaceGUI::loop() {
       if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
     }
 
-    activateTutorial(GUI_TUTORIAL_OVERVIEW);
-
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
     if (firstFrame) {
@@ -5428,12 +5398,12 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    if (warnQuit && introPos>=11.0) {
+    if (warnQuit) {
       warnQuit=false;
       ImGui::OpenPopup("Warning");
     }
 
-    if (displayError && introPos>=11.0) {
+    if (displayError) {
       displayError=false;
       ImGui::OpenPopup("Error");
     }
@@ -5513,8 +5483,6 @@ bool FurnaceGUI::loop() {
       }
       ImGui::EndPopup();
     }
-
-    drawTutorial();
 
     ImVec2 newSongMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(400.0f*dpiScale,200.0f*dpiScale);
     ImVec2 newSongMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
@@ -6188,18 +6156,6 @@ bool FurnaceGUI::loop() {
     }
 
     MEASURE_END(popup);
-
-    if (!tutorial.introPlayed || settings.alwaysPlayIntro!=0) {
-      MEASURE_BEGIN(intro);
-      initialScreenWipe=0;
-      if (settings.alwaysPlayIntro==1) {
-        shortIntro=true;
-      }
-      drawIntro(introPos);
-      MEASURE_END(intro);
-    } else {
-      introPos=12.0;
-    }
 
 #ifdef DIV_UNSTABLE
     {
@@ -6977,7 +6933,6 @@ bool FurnaceGUI::init() {
   userEvents=SDL_RegisterEvents(1);
 
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
-    if (introPos<11.0) return -2;
     midiLock.lock();
     midiQueue.push(msg);
     if (userEvents!=0xffffffff && midiWakeUp) {
@@ -7431,7 +7386,6 @@ FurnaceGUI::FurnaceGUI():
   groovesOpen(false),
   xyOscOpen(false),
   basicMode(true),
-  shortIntro(false),
   insListDir(false),
   waveListDir(false),
   sampleListDir(false),
@@ -7721,13 +7675,9 @@ FurnaceGUI::FurnaceGUI():
   waveGenSmooth(1),
   waveGenAmplify(1.0f),
   waveGenFM(false),
-  introPos(0.0),
-  introSkip(0.0),
   monitorPos(0.0),
   mustClear(2),
   initialScreenWipe(1.0f),
-  introSkipDo(false),
-  introStopped(false),
   curTutorial(-1),
   curTutorialStep(0) {
   // value keys

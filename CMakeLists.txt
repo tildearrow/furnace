@@ -751,12 +751,6 @@ src/gui/font_furicon.cpp
 src/gui/fonts.cpp
 
 src/gui/image_icon.cpp
-src/gui/image_talogo.cpp
-src/gui/image_tachip.cpp
-src/gui/image_logo.cpp
-src/gui/image_wordmark.cpp
-src/gui/image_introbg.cpp
-src/gui/image_pat.cpp
 src/gui/image.cpp
 
 src/gui/debug.cpp
@@ -765,7 +759,6 @@ src/gui/fileDialog.cpp
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
 
-src/gui/introTune.cpp
 
 src/gui/about.cpp
 src/gui/channels.cpp
@@ -784,7 +777,6 @@ src/gui/fmPreview.cpp
 src/gui/gradient.cpp
 src/gui/grooves.cpp
 src/gui/insEdit.cpp
-src/gui/intro.cpp
 src/gui/log.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
@@ -810,7 +802,6 @@ src/gui/sysEx.cpp
 src/gui/sysManager.cpp
 src/gui/sysPartNumber.cpp
 src/gui/sysPicker.cpp
-src/gui/tutorial.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp
