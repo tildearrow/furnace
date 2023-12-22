@@ -512,7 +512,40 @@ struct DivInstrumentAmiga {
   bool useSample;
   bool useWave;
   unsigned char waveLen;
-  SampleMap noteMap[120];
+  SampleMap* noteMap;
+
+  ~DivInstrumentAmiga()
+  {
+    if(noteMap != NULL)
+    {
+      delete noteMap;
+    }
+  }
+
+  SampleMap* get_amiga_sample_map(int i, bool allocate)
+  {
+    static SampleMap dummy;
+
+    if(noteMap != NULL)
+    {
+      return &noteMap[i];
+    }
+
+    else
+    {
+      if(allocate)
+      {
+        noteMap = new SampleMap[120];
+        return &noteMap[i];
+      }
+
+      else
+      {
+        memset(&dummy, 0, sizeof(dummy));
+        return &dummy;
+      }
+    }
+  }
 
   bool operator==(const DivInstrumentAmiga& other);
   bool operator!=(const DivInstrumentAmiga& other) {
@@ -577,10 +610,7 @@ struct DivInstrumentAmiga {
     useSample(false),
     useWave(false),
     waveLen(31) {
-    for (int i=0; i<120; i++) {
-      noteMap[i].map=-1;
-      noteMap[i].freq=i;
-    }
+    noteMap = NULL;
   }
 };
 

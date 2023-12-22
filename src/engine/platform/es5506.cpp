@@ -391,7 +391,7 @@ void DivPlatformES5506::tick(bool sysTick) {
         bool sampleValid=false;
         if (((ins->amiga.useNoteMap) && (next>=0 && next<120)) ||
             ((!ins->amiga.useNoteMap) && (next>=0 && next<parent->song.sampleLen))) {
-          DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[next];
+          DivInstrumentAmiga::SampleMap& noteMapind=*ins->amiga.get_amiga_sample_map(next, true);
           int sample=next;
           if (ins->amiga.useNoteMap) {
             sample=noteMapind.map;

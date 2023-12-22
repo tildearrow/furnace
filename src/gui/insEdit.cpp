@@ -2171,44 +2171,44 @@ void FurnaceGUI::alterSampleMap(int column, int val) {
     if (i<0 || i>=120) continue;
 
     if (sampleMapColumn==1 && column==1) {
-      ins->amiga.noteMap[i].freq=val;
+      ins->amiga.get_amiga_sample_map(i, true)->freq=val;
     } else if (sampleMapColumn==0 && column==0) {
       if (val<0) {
-        ins->amiga.noteMap[i].map=-1;
+        ins->amiga.get_amiga_sample_map(i, true)->map=-1;
       } else if (sampleMapDigit>0) {
-        ins->amiga.noteMap[i].map*=10;
-        ins->amiga.noteMap[i].map+=val;
+        ins->amiga.get_amiga_sample_map(i, true)->map*=10;
+        ins->amiga.get_amiga_sample_map(i, true)->map+=val;
       } else {
-        ins->amiga.noteMap[i].map=val;
+        ins->amiga.get_amiga_sample_map(i, true)->map=val;
       }
-      if (ins->amiga.noteMap[i].map>=(int)e->song.sample.size()) {
-        ins->amiga.noteMap[i].map=((int)e->song.sample.size())-1;
+      if (ins->amiga.get_amiga_sample_map(i, true)->map>=(int)e->song.sample.size()) {
+        ins->amiga.get_amiga_sample_map(i, true)->map=((int)e->song.sample.size())-1;
       }
     } else if (sampleMapColumn==2 && column==2) {
       if (val<0) {
-        ins->amiga.noteMap[i].dpcmFreq=-1;
+        ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq=-1;
       } else if (sampleMapDigit>0) {
-        ins->amiga.noteMap[i].dpcmFreq*=10;
-        ins->amiga.noteMap[i].dpcmFreq+=val;
+        ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq*=10;
+        ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq+=val;
       } else {
-        ins->amiga.noteMap[i].dpcmFreq=val;
+        ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq=val;
       }
-      if (ins->amiga.noteMap[i].dpcmFreq>15) {
-        ins->amiga.noteMap[i].dpcmFreq%=10;
+      if (ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq>15) {
+        ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq%=10;
       }
     } else if (sampleMapColumn==3 && column==3) {
       if (val<0) {
-        ins->amiga.noteMap[i].dpcmDelta=-1;
+        ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta=-1;
       } else if (sampleMapDigit>0) {
-        if (ins->amiga.noteMap[i].dpcmDelta>7) {
+        if (ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta>7) {
 
-          ins->amiga.noteMap[i].dpcmDelta=val;
+          ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta=val;
         } else {
-          ins->amiga.noteMap[i].dpcmDelta<<=4;
-          ins->amiga.noteMap[i].dpcmDelta+=val;
+          ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta<<=4;
+          ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta+=val;
         }
       } else {
-        ins->amiga.noteMap[i].dpcmDelta=val;
+        ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta=val;
       }
     }
   }
@@ -2455,7 +2455,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(ImGuiCol_HeaderHovered));
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,ImGui::GetColorU32(ImGuiCol_HeaderHovered));
         for (int i=0; i<120; i++) {
-          DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
+          DivInstrumentAmiga::SampleMap& sampleMap=*ins->amiga.get_amiga_sample_map(i, true);
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
@@ -2712,7 +2712,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
             if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
               for (int i=0; i<120; i++) {
                 if (i==sampleMapSelStart) continue;
-                ins->amiga.noteMap[i].dpcmFreq=ins->amiga.noteMap[sampleMapSelStart].dpcmFreq;
+                ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq=ins->amiga.get_amiga_sample_map(sampleMapSelStart, true)->dpcmFreq;
               }
             }
           }
@@ -2720,7 +2720,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
             if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
               for (int i=0; i<120; i++) {
                 if (i==sampleMapSelStart) continue;
-                ins->amiga.noteMap[i].dpcmDelta=ins->amiga.noteMap[sampleMapSelStart].dpcmDelta;
+                ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta=ins->amiga.get_amiga_sample_map(sampleMapSelStart, true)->dpcmDelta;
               }
             }
           }
@@ -2729,7 +2729,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
             if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
               for (int i=0; i<120; i++) {
                 if (i==sampleMapSelStart) continue;
-                ins->amiga.noteMap[i].freq=ins->amiga.noteMap[sampleMapSelStart].freq;
+                ins->amiga.get_amiga_sample_map(i, true)->freq=ins->amiga.get_amiga_sample_map(sampleMapSelStart, true)->freq;
               }
             }
           }
@@ -2738,7 +2738,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
           if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
             for (int i=0; i<120; i++) {
               if (i==sampleMapSelStart) continue;
-              ins->amiga.noteMap[i].map=ins->amiga.noteMap[sampleMapSelStart].map;
+              ins->amiga.get_amiga_sample_map(i, true)->map=ins->amiga.get_amiga_sample_map(sampleMapSelStart, true)->map;
             }
           }
         }
@@ -2746,24 +2746,24 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
       if (ins->type==DIV_INS_NES) {
         if (ImGui::MenuItem("reset pitches")) {
           for (int i=0; i<120; i++) {
-            ins->amiga.noteMap[i].dpcmFreq=15;
+            ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq=15;
           }
         }
         if (ImGui::MenuItem("clear delta counter values")) {
           for (int i=0; i<120; i++) {
-            ins->amiga.noteMap[i].dpcmDelta=-1;
+            ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta=-1;
           }
         }
       } else {
         if (ImGui::MenuItem("reset notes")) {
           for (int i=0; i<120; i++) {
-            ins->amiga.noteMap[i].freq=i;
+            ins->amiga.get_amiga_sample_map(i, true)->freq=i;
           }
         }
       }
       if (ImGui::MenuItem("clear map samples")) {
         for (int i=0; i<120; i++) {
-          ins->amiga.noteMap[i].map=-1;
+          ins->amiga.get_amiga_sample_map(i, true)->map=-1;
         }
       }
       ImGui::EndPopup();
