@@ -238,8 +238,8 @@ void DivPlatformGB::tick(bool sysTick) {
         int hwSeqCount=0;
         while (chan[i].hwSeqPos<ins->gb.hwSeqLen && hwSeqCount<4) {
           bool leave=false;
-          unsigned short data=ins->gb.get_hw_sec(chan[i].hwSeqPos, true)->data;
-          switch (ins->gb.get_hw_sec(chan[i].hwSeqPos, true)->cmd) {
+          unsigned short data=ins->gb.get_gb_hw_seq(chan[i].hwSeqPos, true)->data;
+          switch (ins->gb.get_gb_hw_seq(chan[i].hwSeqPos, true)->cmd) {
             case DivInstrumentGB::DIV_GB_HWCMD_ENVELOPE:
               if (!chan[i].softEnv) {
                 chan[i].envLen=data&7;
