@@ -430,8 +430,8 @@ void DivInstrument::writeFeatureGB(SafeWriter* w) {
 
   w->writeC(gb.hwSeqLen);
   for (int i=0; i<gb.hwSeqLen; i++) {
-    w->writeC(gb.hwSeq[i].cmd);
-    w->writeS(gb.hwSeq[i].data);
+    w->writeC(gb.get_hw_sec(i, true)->cmd);
+    w->writeS(gb.get_hw_sec(i, true)->data);
   }
 
   FEATURE_END;
@@ -1766,8 +1766,8 @@ void DivInstrument::putInsData(SafeWriter* w) {
   // GB hardware sequence
   w->writeC(gb.hwSeqLen);
   for (int i=0; i<gb.hwSeqLen; i++) {
-    w->writeC(gb.hwSeq[i].cmd);
-    w->writeS(gb.hwSeq[i].data);
+    w->writeC(gb.get_hw_sec(i, true)->cmd);
+    w->writeS(gb.get_hw_sec(i, true)->data);
   }
 
   // GB additional flags
@@ -2155,8 +2155,8 @@ void DivInstrument::readFeatureGB(SafeReader& reader, short version) {
 
   gb.hwSeqLen=reader.readC();
   for (int i=0; i<gb.hwSeqLen; i++) {
-    gb.hwSeq[i].cmd=reader.readC();
-    gb.hwSeq[i].data=reader.readS();
+    gb.get_hw_sec(i, true)->cmd=reader.readC();
+    gb.get_hw_sec(i, true)->data=reader.readS();
   }
 
   READ_FEAT_END;
@@ -3273,8 +3273,8 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   if (version>=105) {
     gb.hwSeqLen=reader.readC();
     for (int i=0; i<gb.hwSeqLen; i++) {
-      gb.hwSeq[i].cmd=reader.readC();
-      gb.hwSeq[i].data=reader.readS();
+      gb.get_hw_sec(i, true)->cmd=reader.readC();
+      gb.get_hw_sec(i, true)->data=reader.readS();
     }
   }
 

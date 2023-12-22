@@ -405,7 +405,7 @@ struct DivInstrumentGB {
 
   HWSeqCommandGB* hwSeq;
 
-  HWSeqCommandGB* get_gb_hw_seq(int i, bool allocate)
+  HWSeqCommandGB* get_hw_sec(int i, bool allocate)
   {
     static HWSeqCommandGB dummy;
 
@@ -424,7 +424,6 @@ struct DivInstrumentGB {
 
       else
       {
-        memset((void*)&dummy, 0, sizeof(dummy));
         return &dummy;
       }
     }
