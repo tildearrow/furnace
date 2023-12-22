@@ -405,7 +405,7 @@ struct DivInstrumentGB {
 
   HWSeqCommandGB* hwSeq;
 
-  HWSeqCommandGB* get_hw_sec(int i, bool allocate)
+  HWSeqCommandGB* get_gb_hw_seq(int i, bool allocate)
   {
     static HWSeqCommandGB dummy;
 
@@ -424,6 +424,7 @@ struct DivInstrumentGB {
 
       else
       {
+        memset(&dummy, 0, sizeof(dummy));
         return &dummy;
       }
     }
@@ -755,11 +756,15 @@ struct DivInstrumentSoundUnit {
     DIV_SU_HWCMD_MAX
   };
   typedef struct HWSeqCommandSU {
+  typedef struct HWSeqCommandSU {
     unsigned char cmd;
     unsigned char bound;
     unsigned char val;
     unsigned short speed;
     unsigned short padding;
+  } HWSeqCommandSU;
+
+  HWSeqCommandSU* hwSeq;
   } HWSeqCommandSU;
 
   HWSeqCommandSU* hwSeq;

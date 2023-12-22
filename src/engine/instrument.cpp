@@ -430,8 +430,8 @@ void DivInstrument::writeFeatureGB(SafeWriter* w) {
 
   w->writeC(gb.hwSeqLen);
   for (int i=0; i<gb.hwSeqLen; i++) {
-    w->writeC(gb.get_hw_sec(i, true)->cmd);
-    w->writeS(gb.get_hw_sec(i, true)->data);
+    w->writeC(gb.get_gb_hw_seq(i, true)->cmd);
+    w->writeS(gb.get_gb_hw_seq(i, true)->data);
   }
 
   FEATURE_END;
@@ -695,10 +695,10 @@ void DivInstrument::writeFeatureSU(SafeWriter* w) {
 
   w->writeC(su.hwSeqLen);
   for (int i=0; i<su.hwSeqLen; i++) {
-    w->writeC(su.hwSeq[i].cmd);
-    w->writeC(su.hwSeq[i].bound);
-    w->writeC(su.hwSeq[i].val);
-    w->writeS(su.hwSeq[i].speed);
+    w->writeC(su.get_su_hw_seq(i, true)->cmd);
+    w->writeC(su.get_su_hw_seq(i, true)->bound);
+    w->writeC(su.get_su_hw_seq(i, true)->val);
+    w->writeS(su.get_su_hw_seq(i, true)->speed);
   }
 
   FEATURE_END;
@@ -1766,8 +1766,8 @@ void DivInstrument::putInsData(SafeWriter* w) {
   // GB hardware sequence
   w->writeC(gb.hwSeqLen);
   for (int i=0; i<gb.hwSeqLen; i++) {
-    w->writeC(gb.get_hw_sec(i, true)->cmd);
-    w->writeS(gb.get_hw_sec(i, true)->data);
+    w->writeC(gb.get_gb_hw_seq(i, true)->cmd);
+    w->writeS(gb.get_gb_hw_seq(i, true)->data);
   }
 
   // GB additional flags
@@ -2155,8 +2155,8 @@ void DivInstrument::readFeatureGB(SafeReader& reader, short version) {
 
   gb.hwSeqLen=reader.readC();
   for (int i=0; i<gb.hwSeqLen; i++) {
-    gb.get_hw_sec(i, true)->cmd=reader.readC();
-    gb.get_hw_sec(i, true)->data=reader.readS();
+    gb.get_gb_hw_seq(i, true)->cmd=reader.readC();
+    gb.get_gb_hw_seq(i, true)->data=reader.readS();
   }
 
   READ_FEAT_END;
@@ -2555,10 +2555,10 @@ void DivInstrument::readFeatureSU(SafeReader& reader, short version) {
   if (version>=185) {
     su.hwSeqLen=reader.readC();
     for (int i=0; i<su.hwSeqLen; i++) {
-      su.hwSeq[i].cmd=reader.readC();
-      su.hwSeq[i].bound=reader.readC();
-      su.hwSeq[i].val=reader.readC();
-      su.hwSeq[i].speed=reader.readS();
+      su.get_su_hw_seq(i, true)->cmd=reader.readC();
+      su.get_su_hw_seq(i, true)->bound=reader.readC();
+      su.get_su_hw_seq(i, true)->val=reader.readC();
+      su.get_su_hw_seq(i, true)->speed=reader.readS();
     }
   }
 
@@ -3273,8 +3273,8 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   if (version>=105) {
     gb.hwSeqLen=reader.readC();
     for (int i=0; i<gb.hwSeqLen; i++) {
-      gb.get_hw_sec(i, true)->cmd=reader.readC();
-      gb.get_hw_sec(i, true)->data=reader.readS();
+      gb.get_gb_hw_seq(i, true)->cmd=reader.readC();
+      gb.get_gb_hw_seq(i, true)->data=reader.readS();
     }
   }
 

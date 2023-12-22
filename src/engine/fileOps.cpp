@@ -6500,7 +6500,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       if (ins->gb.hwSeqLen>0) {
         w->writeText("  - hardware sequence:\n");
         for (int j=0; j<ins->gb.hwSeqLen; j++) {
-          w->writeText(fmt::sprintf("    - %d: %.2X %.4X\n",j,ins->gb.get_hw_sec(j, false)->cmd,ins->gb.get_hw_sec(j, false)->data));
+          w->writeText(fmt::sprintf("    - %d: %.2X %.4X\n",j,ins->gb.get_gb_hw_seq(j, false)->cmd,ins->gb.get_gb_hw_seq(j, false)->data));
         }
       }
     }
