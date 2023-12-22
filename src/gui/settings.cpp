@@ -1672,6 +1672,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_OPEN_BACKUP);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAVE);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAVE_AS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_EXPORT);
           UI_KEYBIND_CONFIG(GUI_ACTION_UNDO);
           UI_KEYBIND_CONFIG(GUI_ACTION_REDO);
           UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_TOGGLE);
@@ -2658,6 +2659,20 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
         ImGui::Unindent();
+
+        ImGui::Text("Export options layout:");
+        if (ImGui::RadioButton("Sub-menus in File menu##eol0",settings.exportOptionsLayout==0)) {
+          settings.exportOptionsLayout=0;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Modal window with tabs##eol1",settings.exportOptionsLayout==1)) {
+          settings.exportOptionsLayout=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Modal windows with options in File menu##eol2",settings.exportOptionsLayout==2)) {
+          settings.exportOptionsLayout=2;
+          settingsChanged=true;
+        }
 
         bool capitalMenuBarB=settings.capitalMenuBar;
         if (ImGui::Checkbox("Capitalize menu bar",&capitalMenuBarB)) {
@@ -3866,6 +3881,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   settings.centerPopup=conf.getInt("centerPopup",1);
   settings.insIconsStyle=conf.getInt("insIconsStyle",1);
   settings.classicChipOptions=conf.getInt("classicChipOptions",0);
+  settings.exportOptionsLayout=conf.getInt("exportOptionsLayout",1);
   settings.wasapiEx=conf.getInt("wasapiEx",0);
   settings.chanOscThreads=conf.getInt("chanOscThreads",0);
   settings.renderPoolThreads=conf.getInt("renderPoolThreads",0);
@@ -4034,6 +4050,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.centerPopup,0,1);
   clampSetting(settings.insIconsStyle,0,2);
   clampSetting(settings.classicChipOptions,0,1);
+  clampSetting(settings.exportOptionsLayout,0,2);
   clampSetting(settings.wasapiEx,0,1);
   clampSetting(settings.chanOscThreads,0,256);
   clampSetting(settings.renderPoolThreads,0,DIV_MAX_CHIPS);
@@ -4283,6 +4300,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   conf.set("centerPopup",settings.centerPopup);
   conf.set("insIconsStyle",settings.insIconsStyle);
   conf.set("classicChipOptions",settings.classicChipOptions);
+  conf.set("exportOptionsLayout",settings.exportOptionsLayout);
   conf.set("wasapiEx",settings.wasapiEx);
   conf.set("chanOscThreads",settings.chanOscThreads);
   conf.set("renderPoolThreads",settings.renderPoolThreads);
