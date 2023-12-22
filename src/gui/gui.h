@@ -2386,7 +2386,7 @@ class FurnaceGUI {
   void highlightWindow(const char* winName);
 
   FurnaceGUIImage* getImage(FurnaceGUIImages image);
-  FurnaceGUITexture* getTexture(FurnaceGUIImages image);
+  FurnaceGUITexture* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode);
 
   void drawMobileControls();
   void drawMobileOrderSel();
