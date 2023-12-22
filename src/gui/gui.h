@@ -562,6 +562,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_OPEN_BACKUP,
   GUI_ACTION_SAVE,
   GUI_ACTION_SAVE_AS,
+  GUI_ACTION_EXPORT,
   GUI_ACTION_UNDO,
   GUI_ACTION_REDO,
   GUI_ACTION_PLAY_TOGGLE,
@@ -1461,7 +1462,7 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
+  bool displayNew, displayExport, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool killGraphics;
@@ -1717,6 +1718,7 @@ class FurnaceGUI {
     int centerPopup;
     int insIconsStyle;
     int classicChipOptions;
+    int exportOptionsLayout;
     int wasapiEx;
     int chanOscThreads;
     int renderPoolThreads;
@@ -1914,6 +1916,7 @@ class FurnaceGUI {
       centerPopup(1),
       insIconsStyle(1),
       classicChipOptions(0),
+      exportOptionsLayout(1),
       wasapiEx(0),
       chanOscThreads(0),
       renderPoolThreads(0),
@@ -2361,6 +2364,16 @@ class FurnaceGUI {
   // tutorial
   int curTutorial, curTutorialStep;
 
+  // audio export types (export options)
+  int audioExportType;
+
+  void drawExportAudio();
+  void drawExportVGM();
+  void drawExportZSM();
+  void drawExportAmigaVal();
+  void drawExportText();
+  void drawExportCommand();
+
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
@@ -2472,6 +2485,7 @@ class FurnaceGUI {
   void drawSettings();
   void drawDebug();
   void drawNewSong();
+  void drawExport();
   void drawLog();
   void drawEffectList();
   void drawSubSongs(bool asChild=false);
