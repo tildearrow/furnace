@@ -4738,24 +4738,24 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::Text("%d (#%d)",curFrame,i);
                 ImGui::TableNextColumn();
                 ImGui::PushID(i);
-                if (ins->gb.hwSeq[i].cmd>=DivInstrumentGB::DIV_GB_HWCMD_MAX) {
-                  ins->gb.hwSeq[i].cmd=0;
+                if (ins->gb.get_hw_sec(i, true)->cmd>=DivInstrumentGB::DIV_GB_HWCMD_MAX) {
+                  ins->gb.get_hw_sec(i, true)->cmd=0;
                 }
-                int cmd=ins->gb.hwSeq[i].cmd;
+                int cmd=ins->gb.get_hw_sec(i, true)->cmd;
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 if (ImGui::Combo("##HWSeqCmd",&cmd,gbHWSeqCmdTypes,DivInstrumentGB::DIV_GB_HWCMD_MAX)) {
-                  if (ins->gb.hwSeq[i].cmd!=cmd) {
-                    ins->gb.hwSeq[i].cmd=cmd;
-                    ins->gb.hwSeq[i].data=0;
+                  if (ins->gb.get_hw_sec(i, true)->cmd!=cmd) {
+                    ins->gb.get_hw_sec(i, true)->cmd=cmd;
+                    ins->gb.get_hw_sec(i, true)->data=0;
                   }
                 }
                 bool somethingChanged=false;
-                switch (ins->gb.hwSeq[i].cmd) {
+                switch (ins->gb.get_hw_sec(i, true)->cmd) {
                   case DivInstrumentGB::DIV_GB_HWCMD_ENVELOPE: {
-                    int hwsVol=(ins->gb.hwSeq[i].data&0xf0)>>4;
-                    bool hwsDir=ins->gb.hwSeq[i].data&8;
-                    int hwsLen=ins->gb.hwSeq[i].data&7;
-                    int hwsSoundLen=ins->gb.hwSeq[i].data>>8;
+                    int hwsVol=(ins->gb.get_hw_sec(i, true)->data&0xf0)>>4;
+                    bool hwsDir=ins->gb.get_hw_sec(i, true)->data&8;
+                    int hwsLen=ins->gb.get_hw_sec(i, true)->data&7;
+                    int hwsSoundLen=ins->gb.get_hw_sec(i, true)->data>>8;
 
                     if (CWSliderInt("Volume",&hwsVol,0,15)) {
                       somethingChanged=true;
@@ -4777,15 +4777,15 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->gb.hwSeq[i].data=(hwsLen&7)|(hwsDir?8:0)|(hwsVol<<4)|(hwsSoundLen<<8);
+                      ins->gb.get_hw_sec(i, true)->data=(hwsLen&7)|(hwsDir?8:0)|(hwsVol<<4)|(hwsSoundLen<<8);
                       PARAMETER;
                     }
                     break;
                   }
                   case DivInstrumentGB::DIV_GB_HWCMD_SWEEP: {
-                    int hwsShift=ins->gb.hwSeq[i].data&7;
-                    int hwsSpeed=(ins->gb.hwSeq[i].data&0x70)>>4;
-                    bool hwsDir=ins->gb.hwSeq[i].data&8;
+                    int hwsShift=ins->gb.get_hw_sec(i, true)->data&7;
+                    int hwsSpeed=(ins->gb.get_hw_sec(i, true)->data&0x70)>>4;
+                    bool hwsDir=ins->gb.get_hw_sec(i, true)->data&8;
 
                     if (CWSliderInt("Shift",&hwsShift,0,7)) {
                       somethingChanged=true;
@@ -4805,14 +4805,14 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->gb.hwSeq[i].data=(hwsShift&7)|(hwsDir?8:0)|(hwsSpeed<<4);
+                      ins->gb.get_hw_sec(i, true)->data=(hwsShift&7)|(hwsDir?8:0)|(hwsSpeed<<4);
                       PARAMETER;
                     }
                     break;
                   }
                   case DivInstrumentGB::DIV_GB_HWCMD_WAIT: {
-                    int len=ins->gb.hwSeq[i].data+1;
-                    curFrame+=ins->gb.hwSeq[i].data+1;
+                    int len=ins->gb.get_hw_sec(i, true)->data+1;
+                    curFrame+=ins->gb.get_hw_sec(i, true)->data+1;
 
                     if (ImGui::InputInt("Ticks",&len,1,4)) {
                       if (len<1) len=1;
@@ -4821,7 +4821,7 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->gb.hwSeq[i].data=len-1;
+                      ins->gb.get_hw_sec(i, true)->data=len-1;
                       PARAMETER;
                     }
                     break;
@@ -4831,7 +4831,7 @@ void FurnaceGUI::drawInsEdit() {
                     break;
                   case DivInstrumentGB::DIV_GB_HWCMD_LOOP:
                   case DivInstrumentGB::DIV_GB_HWCMD_LOOP_REL: {
-                    int pos=ins->gb.hwSeq[i].data;
+                    int pos=ins->gb.get_hw_sec(i, true)->data;
 
                     if (ImGui::InputInt("Position",&pos,1,1)) {
                       if (pos<0) pos=0;
@@ -4840,7 +4840,7 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->gb.hwSeq[i].data=pos;
+                      ins->gb.get_hw_sec(i, true)->data=pos;
                       PARAMETER;
                     }
                     break;
@@ -4854,13 +4854,13 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::Button(ICON_FA_CHEVRON_UP "##HWCmdUp")) {
                   if (i>0) {
                     e->lockEngine([ins,i]() {
-                      ins->gb.hwSeq[i-1].cmd^=ins->gb.hwSeq[i].cmd;
-                      ins->gb.hwSeq[i].cmd^=ins->gb.hwSeq[i-1].cmd;
-                      ins->gb.hwSeq[i-1].cmd^=ins->gb.hwSeq[i].cmd;
+                      ins->gb.get_hw_sec(i - 1, true)->cmd^=ins->gb.get_hw_sec(i, true)->cmd;
+                      ins->gb.get_hw_sec(i, true)->cmd^=ins->gb.get_hw_sec(i - 1, true)->cmd;
+                      ins->gb.get_hw_sec(i - 1, true)->cmd^=ins->gb.get_hw_sec(i, true)->cmd;
 
-                      ins->gb.hwSeq[i-1].data^=ins->gb.hwSeq[i].data;
-                      ins->gb.hwSeq[i].data^=ins->gb.hwSeq[i-1].data;
-                      ins->gb.hwSeq[i-1].data^=ins->gb.hwSeq[i].data;
+                      ins->gb.get_hw_sec(i - 1, true)->data^=ins->gb.get_hw_sec(i, true)->data;
+                      ins->gb.get_hw_sec(i, true)->data^=ins->gb.get_hw_sec(i - 1, true)->data;
+                      ins->gb.get_hw_sec(i - 1, true)->data^=ins->gb.get_hw_sec(i, true)->data;
                     });
                   }
                   MARK_MODIFIED;
@@ -4869,13 +4869,13 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::Button(ICON_FA_CHEVRON_DOWN "##HWCmdDown")) {
                   if (i<ins->gb.hwSeqLen-1) {
                     e->lockEngine([ins,i]() {
-                      ins->gb.hwSeq[i+1].cmd^=ins->gb.hwSeq[i].cmd;
-                      ins->gb.hwSeq[i].cmd^=ins->gb.hwSeq[i+1].cmd;
-                      ins->gb.hwSeq[i+1].cmd^=ins->gb.hwSeq[i].cmd;
+                      ins->gb.get_hw_sec(i, true)->cmd^=ins->gb.get_hw_sec(i, true)->cmd;
+                      ins->gb.get_hw_sec(i, true)->cmd^=ins->gb.get_hw_sec(i, true)->cmd;
+                      ins->gb.get_hw_sec(i, true)->cmd^=ins->gb.get_hw_sec(i, true)->cmd;
 
-                      ins->gb.hwSeq[i+1].data^=ins->gb.hwSeq[i].data;
-                      ins->gb.hwSeq[i].data^=ins->gb.hwSeq[i+1].data;
-                      ins->gb.hwSeq[i+1].data^=ins->gb.hwSeq[i].data;
+                      ins->gb.get_hw_sec(i, true)->data^=ins->gb.get_hw_sec(i, true)->data;
+                      ins->gb.get_hw_sec(i, true)->data^=ins->gb.get_hw_sec(i, true)->data;
+                      ins->gb.get_hw_sec(i, true)->data^=ins->gb.get_hw_sec(i, true)->data;
                     });
                   }
                   MARK_MODIFIED;
@@ -4884,8 +4884,8 @@ void FurnaceGUI::drawInsEdit() {
                 pushDestColor();
                 if (ImGui::Button(ICON_FA_TIMES "##HWCmdDel")) {
                   for (int j=i; j<ins->gb.hwSeqLen-1; j++) {
-                    ins->gb.hwSeq[j].cmd=ins->gb.hwSeq[j+1].cmd;
-                    ins->gb.hwSeq[j].data=ins->gb.hwSeq[j+1].data;
+                    ins->gb.get_hw_sec(j, true)->cmd=ins->gb.get_hw_sec(j+1, true)->cmd;
+                    ins->gb.get_hw_sec(j, true)->data=ins->gb.get_hw_sec(j+1, true)->data;
                   }
                   ins->gb.hwSeqLen--;
                 }
@@ -4897,8 +4897,8 @@ void FurnaceGUI::drawInsEdit() {
 
             if (ImGui::Button(ICON_FA_PLUS "##HWCmdAdd")) {
               if (ins->gb.hwSeqLen<255) {
-                ins->gb.hwSeq[ins->gb.hwSeqLen].cmd=0;
-                ins->gb.hwSeq[ins->gb.hwSeqLen].data=0;
+                ins->gb.get_hw_sec(ins->gb.hwSeqLen, true)->cmd=0;
+                ins->gb.get_hw_sec(ins->gb.hwSeqLen, true)->data=0;
                 ins->gb.hwSeqLen++;
               }
             }

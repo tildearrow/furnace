@@ -397,10 +397,37 @@ struct DivInstrumentGB {
 
     DIV_GB_HWCMD_MAX
   };
-  struct HWSeqCommandGB {
+
+  typedef struct {
     unsigned char cmd;
     unsigned short data;
-  } hwSeq[256];
+  } HWSeqCommandGB;
+
+  HWSeqCommandGB* hwSeq;
+
+  HWSeqCommandGB* get_hw_sec(int i, bool allocate)
+  {
+    static HWSeqCommandGB dummy;
+
+    if(hwSeq != NULL)
+    {
+      return &hwSeq[i];
+    }
+
+    else
+    {
+      if(allocate)
+      {
+        hwSeq = new HWSeqCommandGB[256];
+        return &hwSeq[i];
+      }
+
+      else
+      {
+        return &dummy;
+      }
+    }
+  }
 
   bool operator==(const DivInstrumentGB& other);
   bool operator!=(const DivInstrumentGB& other) {
@@ -415,7 +442,15 @@ struct DivInstrumentGB {
     hwSeqLen(0),
     softEnv(false),
     alwaysInit(false) {
-    memset(hwSeq,0,256*sizeof(HWSeqCommandGB));
+    hwSeq = NULL;
+  }
+
+  ~DivInstrumentGB()
+  {
+    if(hwSeq != NULL)
+    {
+      delete hwSeq;
+    }
   }
 };
 
