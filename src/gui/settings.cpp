@@ -3142,6 +3142,12 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool roundedTabsB=settings.roundedTabs;
+        if (ImGui::Checkbox("Rounded tabs",&roundedTabsB)) {
+          settings.roundedTabs=roundedTabsB;
+          settingsChanged=true;
+        }
+
         bool roundedMenusB=settings.roundedMenus;
         if (ImGui::Checkbox("Rounded menu corners",&roundedMenusB)) {
           settings.roundedMenus=roundedMenusB;
@@ -3762,6 +3768,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   settings.sysFileDialog=conf.getInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
   settings.roundedWindows=conf.getInt("roundedWindows",1);
   settings.roundedButtons=conf.getInt("roundedButtons",1);
+  settings.roundedTabs=conf.getInt("roundedTabs",1);
   settings.roundedMenus=conf.getInt("roundedMenus",0);
   settings.loadJapanese=conf.getInt("loadJapanese",0);
   settings.loadChinese=conf.getInt("loadChinese",0);
@@ -3945,6 +3952,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.sysFileDialog,0,1);
   clampSetting(settings.roundedWindows,0,1);
   clampSetting(settings.roundedButtons,0,1);
+  clampSetting(settings.roundedTabs,0,1);
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.loadChinese,0,1);
@@ -4178,6 +4186,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   conf.set("sysFileDialog",settings.sysFileDialog);
   conf.set("roundedWindows",settings.roundedWindows);
   conf.set("roundedButtons",settings.roundedButtons);
+  conf.set("roundedTabs",settings.roundedTabs);
   conf.set("roundedMenus",settings.roundedMenus);
   conf.set("loadJapanese",settings.loadJapanese);
   conf.set("loadChinese",settings.loadChinese);
@@ -5011,6 +5020,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameRounding=6.0f;
     sty.GrabRounding=6.0f;
   }
+  if (settings.roundedTabs) sty.TabRounding = 6.0f;
+  else sty.TabRounding = 0.0f;
+
   if (settings.roundedMenus) sty.PopupRounding=8.0f;
 
   if (settings.frameBorders) {

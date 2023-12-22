@@ -1619,6 +1619,7 @@ class FurnaceGUI {
     int sysFileDialog;
     int roundedWindows;
     int roundedButtons;
+    int roundedTabs;
     int roundedMenus;
     int loadJapanese;
     int loadChinese;
@@ -1816,6 +1817,7 @@ class FurnaceGUI {
       sysFileDialog(1),
       roundedWindows(1),
       roundedButtons(1),
+      roundedTabs(1),
       roundedMenus(0),
       loadJapanese(0),
       loadChinese(0),
