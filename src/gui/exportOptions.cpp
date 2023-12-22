@@ -224,44 +224,102 @@ void FurnaceGUI::drawExport() {
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
   if (ImGui::BeginChild("sysPickerC",avail,false)) {
-    if (ImGui::BeginTabBar("ExportTypes")) {
-      if (ImGui::BeginTabItem("Audio")) {
+    if (settings.exportOptionsLayout==1 || curExportType==GUI_EXPORT_NONE) {
+      if (ImGui::BeginTabBar("ExportTypes")) {
+        if (ImGui::BeginTabItem("Audio")) {
+          drawExportAudio();
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("VGM")) {
+          drawExportVGM();
+          ImGui::EndTabItem();
+        }
+        int numZSMCompat=0;
+        for (int i=0; i<e->song.systemLen; i++) {
+          if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
+        }
+        if (numZSMCompat>0) {
+          if (ImGui::BeginTabItem("ZSM")) {
+            drawExportZSM();
+            ImGui::EndTabItem();
+          }
+        }
+        int numAmiga=0;
+        for (int i=0; i<e->song.systemLen; i++) {
+          if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
+        }
+        if (numAmiga && settings.iCannotWait) {
+          if (ImGui::BeginTabItem("Amiga Validation")) {
+            drawExportAmigaVal();
+            ImGui::EndTabItem();
+          }
+        }
+        if (ImGui::BeginTabItem("Text")) {
+          drawExportText();
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Command Stream")) {
+          drawExportCommand();
+          ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+      }
+    } else switch (curExportType) {
+      case GUI_EXPORT_AUDIO:
         drawExportAudio();
-        ImGui::EndTabItem();
-      }
-      if (ImGui::BeginTabItem("VGM")) {
+        break;
+      case GUI_EXPORT_VGM:
         drawExportVGM();
-        ImGui::EndTabItem();
-      }
-      int numZSMCompat=0;
-      for (int i=0; i<e->song.systemLen; i++) {
-        if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
-      }
-      if (numZSMCompat>0) {
-        if (ImGui::BeginTabItem("ZSM")) {
-          drawExportZSM();
-          ImGui::EndTabItem();
-        }
-      }
-      int numAmiga=0;
-      for (int i=0; i<e->song.systemLen; i++) {
-        if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
-      }
-      if (numAmiga && settings.iCannotWait) {
-        if (ImGui::BeginTabItem("Amiga Validation")) {
-          drawExportAmigaVal();
-          ImGui::EndTabItem();
-        }
-      }
-      if (ImGui::BeginTabItem("Text")) {
+        break;
+      case GUI_EXPORT_ZSM:
+        drawExportZSM();
+        break;
+      case GUI_EXPORT_AMIGA_VAL:
+        drawExportAmigaVal();
+        break;
+      case GUI_EXPORT_TEXT:
         drawExportText();
-        ImGui::EndTabItem();
-      }
-      if (ImGui::BeginTabItem("Command Stream")) {
+        break;
+      case GUI_EXPORT_CMD_STREAM:
         drawExportCommand();
-        ImGui::EndTabItem();
-      }
-      ImGui::EndTabBar();
+        break;
+      default:
+        ImGui::Text("congratulations! you've unlocked a secret panel.");
+        if (ImGui::Button("Toggle hidden systems")) {
+          settings.hiddenSystems=!settings.hiddenSystems;
+          ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Toggle all instrument types")) {
+          settings.displayAllInsTypes=!settings.displayAllInsTypes;
+          ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Set pitch linearity to Partial")) {
+          e->song.linearPitch=1;
+          ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Enable multi-threading settings")) {
+          settings.showPool=1;
+          ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Set fat to max")) {
+          ImGuiStyle& sty=ImGui::GetStyle();
+          sty.FramePadding=ImVec2(20.0f*dpiScale,20.0f*dpiScale);
+          sty.ItemSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+          sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+          ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Set muscle and fat to zero")) {
+          ImGuiStyle& sty=ImGui::GetStyle();
+          sty.FramePadding=ImVec2(0,0);
+          sty.ItemSpacing=ImVec2(0,0);
+          sty.ItemInnerSpacing=ImVec2(0,0);
+          ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::Button("Tell tildearrow this must be a mistake")) {
+          showError("yeah, it's a bug. write a bug report in the GitHub page and tell me how did you get here.");
+          ImGui::CloseCurrentPopup();
+        }
+        break;
     }
   }
   ImGui::EndChild();
