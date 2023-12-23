@@ -430,8 +430,8 @@ void DivInstrument::writeFeatureGB(SafeWriter* w) {
 
   w->writeC(gb.hwSeqLen);
   for (int i=0; i<gb.hwSeqLen; i++) {
-    w->writeC(gb.get_gb_hw_seq(i, true)->cmd);
-    w->writeS(gb.get_gb_hw_seq(i, true)->data);
+    w->writeC(gb.hwSeq[i].cmd);
+    w->writeS(gb.hwSeq[i].data);
   }
 
   FEATURE_END;
@@ -450,8 +450,8 @@ void DivInstrument::writeFeatureSM(SafeWriter* w) {
 
   if (amiga.useNoteMap) {
     for (int note=0; note<120; note++) {
-      w->writeS(amiga.get_amiga_sample_map(note, true)->freq);
-      w->writeS(amiga.get_amiga_sample_map(note, true)->map);
+      w->writeS(amiga.noteMap[note].freq);
+      w->writeS(amiga.noteMap[note].map);
     }
   }
 
@@ -591,8 +591,8 @@ size_t DivInstrument::writeFeatureSL(SafeWriter* w, std::vector<int>& list, cons
 
   if (amiga.useNoteMap) {
     for (int i=0; i<120; i++) {
-      if (amiga.get_amiga_sample_map(i, true)->map>=0 && amiga.get_amiga_sample_map(i, true)->map<(int)song->sample.size()) {
-        sampleUsed[amiga.get_amiga_sample_map(i, true)->map]=true;
+      if (amiga.noteMap[i].map>=0 && amiga.noteMap[i].map<(int)song->sample.size()) {
+        sampleUsed[amiga.noteMap[i].map]=true;
       }
     }
   }
@@ -695,10 +695,10 @@ void DivInstrument::writeFeatureSU(SafeWriter* w) {
 
   w->writeC(su.hwSeqLen);
   for (int i=0; i<su.hwSeqLen; i++) {
-    w->writeC(su.get_su_hw_seq(i, true)->cmd);
-    w->writeC(su.get_su_hw_seq(i, true)->bound);
-    w->writeC(su.get_su_hw_seq(i, true)->val);
-    w->writeS(su.get_su_hw_seq(i, true)->speed);
+    w->writeC(su.hwSeq[i].cmd);
+    w->writeC(su.hwSeq[i].bound);
+    w->writeC(su.hwSeq[i].val);
+    w->writeS(su.hwSeq[i].speed);
   }
 
   FEATURE_END;
@@ -736,8 +736,8 @@ void DivInstrument::writeFeatureNE(SafeWriter* w) {
 
   if (amiga.useNoteMap) {
     for (int note=0; note<120; note++) {
-      w->writeC(amiga.get_amiga_sample_map(note, true)->dpcmFreq);
-      w->writeC(amiga.get_amiga_sample_map(note, true)->dpcmDelta);
+      w->writeC(amiga.noteMap[note].dpcmFreq);
+      w->writeC(amiga.noteMap[note].dpcmDelta);
     }
   }
 
@@ -1619,10 +1619,10 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(amiga.useNoteMap);
   if (amiga.useNoteMap) {
     for (int note=0; note<120; note++) {
-      w->writeI(amiga.get_amiga_sample_map(note, true)->freq);
+      w->writeI(amiga.noteMap[note].freq);
     }
     for (int note=0; note<120; note++) {
-      w->writeS(amiga.get_amiga_sample_map(note, true)->map);
+      w->writeS(amiga.noteMap[note].map);
     }
   }
 
@@ -1766,8 +1766,8 @@ void DivInstrument::putInsData(SafeWriter* w) {
   // GB hardware sequence
   w->writeC(gb.hwSeqLen);
   for (int i=0; i<gb.hwSeqLen; i++) {
-    w->writeC(gb.get_gb_hw_seq(i, true)->cmd);
-    w->writeS(gb.get_gb_hw_seq(i, true)->data);
+    w->writeC(gb.hwSeq[i].cmd);
+    w->writeS(gb.hwSeq[i].data);
   }
 
   // GB additional flags
@@ -2155,8 +2155,8 @@ void DivInstrument::readFeatureGB(SafeReader& reader, short version) {
 
   gb.hwSeqLen=reader.readC();
   for (int i=0; i<gb.hwSeqLen; i++) {
-    gb.get_gb_hw_seq(i, true)->cmd=reader.readC();
-    gb.get_gb_hw_seq(i, true)->data=reader.readS();
+    gb.hwSeq[i].cmd=reader.readC();
+    gb.hwSeq[i].data=reader.readS();
   }
 
   READ_FEAT_END;
@@ -2176,13 +2176,13 @@ void DivInstrument::readFeatureSM(SafeReader& reader, short version) {
 
   if (amiga.useNoteMap) {
     for (int note=0; note<120; note++) {
-      amiga.get_amiga_sample_map(note, true)->freq=reader.readS();
-      amiga.get_amiga_sample_map(note, true)->map=reader.readS();
+      amiga.noteMap[note].freq=reader.readS();
+      amiga.noteMap[note].map=reader.readS();
     }
 
     if (version<152) {
       for (int note=0; note<120; note++) {
-        amiga.get_amiga_sample_map(note, true)->freq=note;
+        amiga.noteMap[note].freq=note;
       }
     }
   }
@@ -2464,8 +2464,8 @@ void DivInstrument::readFeatureSL(SafeReader& reader, DivSong* song, short versi
 
   if (amiga.useNoteMap) {
     for (int i=0; i<120; i++) {
-      if (amiga.get_amiga_sample_map(i, true)->map>=0 && amiga.get_amiga_sample_map(i, true)->map<256) {
-        amiga.get_amiga_sample_map(i, true)->map=sampleRemap[amiga.get_amiga_sample_map(i, true)->map];
+      if (amiga.noteMap[i].map>=0 && amiga.noteMap[i].map<256) {
+        amiga.noteMap[i].map=sampleRemap[amiga.noteMap[i].map];
       }
     }
   }
@@ -2555,10 +2555,10 @@ void DivInstrument::readFeatureSU(SafeReader& reader, short version) {
   if (version>=185) {
     su.hwSeqLen=reader.readC();
     for (int i=0; i<su.hwSeqLen; i++) {
-      su.get_su_hw_seq(i, true)->cmd=reader.readC();
-      su.get_su_hw_seq(i, true)->bound=reader.readC();
-      su.get_su_hw_seq(i, true)->val=reader.readC();
-      su.get_su_hw_seq(i, true)->speed=reader.readS();
+      su.hwSeq[i].cmd=reader.readC();
+      su.hwSeq[i].bound=reader.readC();
+      su.hwSeq[i].val=reader.readC();
+      su.hwSeq[i].speed=reader.readS();
     }
   }
 
@@ -2597,8 +2597,8 @@ void DivInstrument::readFeatureNE(SafeReader& reader, short version) {
 
   if (amiga.useNoteMap) {
     for (int note=0; note<120; note++) {
-      amiga.get_amiga_sample_map(note, true)->dpcmFreq=reader.readC();
-      amiga.get_amiga_sample_map(note, true)->dpcmDelta=reader.readC();
+      amiga.noteMap[note].dpcmFreq=reader.readC();
+      amiga.noteMap[note].dpcmDelta=reader.readC();
     }
   }
 
@@ -3119,15 +3119,15 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     amiga.useNoteMap=reader.readC();
     if (amiga.useNoteMap) {
       for (int note=0; note<120; note++) {
-        amiga.get_amiga_sample_map(note, true)->freq=reader.readI();
+        amiga.noteMap[note].freq=reader.readI();
       }
       for (int note=0; note<120; note++) {
-        amiga.get_amiga_sample_map(note, true)->map=reader.readS();
+        amiga.noteMap[note].map=reader.readS();
       }
 
       if (version<152) {
         for (int note=0; note<120; note++) {
-          amiga.get_amiga_sample_map(note, true)->freq=note;
+          amiga.noteMap[note].freq=note;
         }
       }
     }
@@ -3273,8 +3273,8 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   if (version>=105) {
     gb.hwSeqLen=reader.readC();
     for (int i=0; i<gb.hwSeqLen; i++) {
-      gb.get_gb_hw_seq(i, true)->cmd=reader.readC();
-      gb.get_gb_hw_seq(i, true)->data=reader.readS();
+      gb.hwSeq[i].cmd=reader.readC();
+      gb.hwSeq[i].data=reader.readS();
     }
   }
 
