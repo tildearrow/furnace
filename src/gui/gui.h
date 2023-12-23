@@ -2308,6 +2308,8 @@ class FurnaceGUI {
   bool waveGenFMCon4[5];
   bool waveGenFM;
 
+  int mustClear;
+
   // export options
   int audioExportType;
   FurnaceGUIExportTypes curExportType;

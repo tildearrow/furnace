@@ -6181,6 +6181,13 @@ bool FurnaceGUI::loop() {
     renderTimeEnd=SDL_GetPerformanceCounter();
     drawTimeBegin=SDL_GetPerformanceCounter();
     rend->renderGUI();
+
+    if (mustClear) 
+    {
+        rend->clear(ImVec4(0, 0, 0, 0));
+        mustClear--;
+        if (mustClear == 0) e->everythingOK();
+    }
     
     drawTimeEnd=SDL_GetPerformanceCounter();
     rend->present();
@@ -7508,6 +7515,7 @@ FurnaceGUI::FurnaceGUI():
   waveGenOffsetX(0),
   waveGenOffsetY(0),
   waveGenSmooth(1),
+  mustClear(3),
   waveGenAmplify(1.0f),
   waveGenFM(false) {
   // value keys
