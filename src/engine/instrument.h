@@ -610,7 +610,10 @@ struct DivInstrumentAmiga {
     useSample(false),
     useWave(false),
     waveLen(31) {
-    noteMap = NULL;
+    for (int i=0; i<120; i++) {
+      noteMap[i].map=-1;
+      noteMap[i].freq=i;
+    }
   }
 };
 
