@@ -21,8 +21,9 @@
 #include "guiConst.h"
 #include "../fileutils.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include <imgui.h>
 
-void FurnaceGUI::drawExportAudio() {
+void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
 
   ImGui::RadioButton("one file",&audioExportType,0);
@@ -35,7 +36,13 @@ void FurnaceGUI::drawExportAudio() {
     if (exportFadeOut<0.0) exportFadeOut=0.0;
   }
 
-  if (ImGui::Button("Export")) {
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+
+  if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
     switch (audioExportType) {
       case 0:
         openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
@@ -51,7 +58,7 @@ void FurnaceGUI::drawExportAudio() {
   }
 }
 
-void FurnaceGUI::drawExportVGM() {
+void FurnaceGUI::drawExportVGM(bool onWindow) {
   exitDisabledTimer=1;
 
   ImGui::Text("settings:");
@@ -129,16 +136,25 @@ void FurnaceGUI::drawExportVGM() {
   }
   ImGui::Text("select the chip you wish to export, but only up to %d of each type.",(vgmExportVersion>=0x151)?2:1);
   if (hasOneAtLeast) {
-    if (ImGui::Button("Export")) {
+    if (onWindow) {
+      ImGui::Separator();
+      if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+      ImGui::SameLine();
+    }
+    if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
       openFileDialog(GUI_FILE_EXPORT_VGM);
       ImGui::CloseCurrentPopup();
     }
   } else {
     ImGui::Text("nothing to export");
+    if (onWindow) {
+      ImGui::Separator();
+      if (ImGui::Button("Cancel",ImVec2(400.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    }
   }
 }
 
-void FurnaceGUI::drawExportZSM() {
+void FurnaceGUI::drawExportZSM(bool onWindow) {
   exitDisabledTimer=1;
 
   ImGui::Text("Commander X16 Zsound Music File");
@@ -149,13 +165,18 @@ void FurnaceGUI::drawExportZSM() {
   ImGui::Checkbox("loop",&zsmExportLoop);
   ImGui::SameLine();
   ImGui::Checkbox("optimize size",&zsmExportOptimize);
-  if (ImGui::Button("Export")) {
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
     openFileDialog(GUI_FILE_EXPORT_ZSM);
     ImGui::CloseCurrentPopup();
   }
 }
 
-void FurnaceGUI::drawExportAmigaVal() {
+void FurnaceGUI::drawExportAmigaVal(bool onWindow) {
   exitDisabledTimer=1;
 
   ImGui::Text(
@@ -167,7 +188,12 @@ void FurnaceGUI::drawExportAmigaVal() {
   ImGui::Text("Directory");
   ImGui::SameLine();
   ImGui::InputText("##AVDPath",&workingDirROMExport);
-  if (ImGui::Button("Bake Data")) {
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button("Bake Data",ImVec2(200.0f*dpiScale,0))) {
     std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
     if (workingDirROMExport.size()>0) {
       if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
@@ -187,19 +213,24 @@ void FurnaceGUI::drawExportAmigaVal() {
   }
 }
 
-void FurnaceGUI::drawExportText() {
+void FurnaceGUI::drawExportText(bool onWindow) {
   exitDisabledTimer=1;
 
   ImGui::Text(
     "this option exports the song to a text file.\n"
   );
-  if (ImGui::Button("Export")) {
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
     openFileDialog(GUI_FILE_EXPORT_TEXT);
     ImGui::CloseCurrentPopup();
   }
 }
 
-void FurnaceGUI::drawExportCommand() {
+void FurnaceGUI::drawExportCommand(bool onWindow) {
   exitDisabledTimer=1;
   
   ImGui::Text(
@@ -209,28 +240,31 @@ void FurnaceGUI::drawExportCommand() {
 
     "technical/development use only!"
   );
-  if (ImGui::Button("Export (binary)")) {
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button("Cancel",ImVec2(133.3f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button("Export (binary)",ImVec2(133.3f*dpiScale,0))) {
     openFileDialog(GUI_FILE_EXPORT_CMDSTREAM_BINARY);
     ImGui::CloseCurrentPopup();
   }
-  if (ImGui::Button("Export (text)")) {
+  ImGui::SameLine();
+  if (ImGui::Button("Export (text)",ImVec2(133.3f*dpiScale,0))) {
     openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
     ImGui::CloseCurrentPopup();
   }
 }
 
 void FurnaceGUI::drawExport() {
-  ImVec2 avail=ImGui::GetContentRegionAvail();
-  avail.y-=ImGui::GetFrameHeightWithSpacing();
-
-  if (ImGui::BeginChild("sysPickerC",avail,false,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+  if (settings.exportOptionsLayout==1 || curExportType==GUI_EXPORT_NONE) {
     if (ImGui::BeginTabBar("ExportTypes")) {
       if (ImGui::BeginTabItem("Audio")) {
-        drawExportAudio();
+        drawExportAudio(true);
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("VGM")) {
-        drawExportVGM();
+        drawExportVGM(true);
         ImGui::EndTabItem();
       }
       int numZSMCompat=0;
@@ -239,7 +273,7 @@ void FurnaceGUI::drawExport() {
       }
       if (numZSMCompat>0) {
         if (ImGui::BeginTabItem("ZSM")) {
-          drawExportZSM();
+          drawExportZSM(true);
           ImGui::EndTabItem();
         }
       }
@@ -249,22 +283,75 @@ void FurnaceGUI::drawExport() {
       }
       if (numAmiga && settings.iCannotWait) {
         if (ImGui::BeginTabItem("Amiga Validation")) {
-          drawExportAmigaVal();
+          drawExportAmigaVal(true);
           ImGui::EndTabItem();
         }
       }
       if (ImGui::BeginTabItem("Text")) {
-        drawExportText();
+        drawExportText(true);
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Command Stream")) {
-        drawExportCommand();
+        drawExportCommand(true);
         ImGui::EndTabItem();
       }
       ImGui::EndTabBar();
     }
-    ImGui::EndChild();
+  } else switch (curExportType) {
+    case GUI_EXPORT_AUDIO:
+      drawExportAudio(true);
+      break;
+    case GUI_EXPORT_VGM:
+      drawExportVGM(true);
+      break;
+    case GUI_EXPORT_ZSM:
+      drawExportZSM(true);
+      break;
+    case GUI_EXPORT_AMIGA_VAL:
+      drawExportAmigaVal(true);
+      break;
+    case GUI_EXPORT_TEXT:
+      drawExportText(true);
+      break;
+    case GUI_EXPORT_CMD_STREAM:
+      drawExportCommand(true);
+      break;
+    default:
+      ImGui::Text("congratulations! you've unlocked a secret panel.");
+      if (ImGui::Button("Toggle hidden systems")) {
+        settings.hiddenSystems=!settings.hiddenSystems;
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::Button("Toggle all instrument types")) {
+        settings.displayAllInsTypes=!settings.displayAllInsTypes;
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::Button("Set pitch linearity to Partial")) {
+        e->song.linearPitch=1;
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::Button("Enable multi-threading settings")) {
+        settings.showPool=1;
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::Button("Set fat to max")) {
+        ImGuiStyle& sty=ImGui::GetStyle();
+        sty.FramePadding=ImVec2(20.0f*dpiScale,20.0f*dpiScale);
+        sty.ItemSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+        sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::Button("Set muscle and fat to zero")) {
+        ImGuiStyle& sty=ImGui::GetStyle();
+        sty.FramePadding=ImVec2(0,0);
+        sty.ItemSpacing=ImVec2(0,0);
+        sty.ItemInnerSpacing=ImVec2(0,0);
+        ImGui::CloseCurrentPopup();
+      }
+      if (ImGui::Button("Tell tildearrow this must be a mistake")) {
+        showError("yeah, it's a bug. write a bug report in the GitHub page and tell me how did you get here.");
+        ImGui::CloseCurrentPopup();
+      }
+      break;
   }
-  ImGui::Separator();
-  if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
 }

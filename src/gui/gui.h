@@ -478,6 +478,7 @@ enum FurnaceGUISettingGroups: unsigned int {
   GUI_SETTINGS_APPEARANCE=64,
   GUI_SETTINGS_LAYOUTS=128,
   GUI_SETTINGS_COLOR=256,
+  GUI_SETTINGS_EMULATION=512,
 
   GUI_SETTINGS_ALL=0xffffffff
 };
@@ -547,6 +548,17 @@ enum FurnaceGUIWarnings {
   GUI_WARN_CLEAR_HISTORY,
   GUI_WARN_BASIC_MODE,
   GUI_WARN_GENERIC
+};
+
+enum FurnaceGUIExportTypes {
+  GUI_EXPORT_NONE=-1,
+
+  GUI_EXPORT_AUDIO=0,
+  GUI_EXPORT_VGM,
+  GUI_EXPORT_ZSM,
+  GUI_EXPORT_CMD_STREAM,
+  GUI_EXPORT_AMIGA_VAL,
+  GUI_EXPORT_TEXT
 };
 
 enum FurnaceGUIFMAlgs {
@@ -2324,7 +2336,7 @@ class FurnaceGUI {
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
   
-  //effect sorting
+  // effect sorting
   bool effectsShow[10];
 
   // TX81Z
@@ -2364,15 +2376,16 @@ class FurnaceGUI {
   // tutorial
   int curTutorial, curTutorialStep;
 
-  // audio export types (export options)
+  // export options
   int audioExportType;
+  FurnaceGUIExportTypes curExportType;
 
-  void drawExportAudio();
-  void drawExportVGM();
-  void drawExportZSM();
-  void drawExportAmigaVal();
-  void drawExportText();
-  void drawExportCommand();
+  void drawExportAudio(bool onWindow=false);
+  void drawExportVGM(bool onWindow=false);
+  void drawExportZSM(bool onWindow=false);
+  void drawExportAmigaVal(bool onWindow=false);
+  void drawExportText(bool onWindow=false);
+  void drawExportCommand(bool onWindow=false);
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
