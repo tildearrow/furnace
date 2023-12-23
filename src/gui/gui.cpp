@@ -6182,6 +6182,20 @@ bool FurnaceGUI::loop() {
     drawTimeBegin=SDL_GetPerformanceCounter();
     rend->renderGUI();
 
+    if (mustClear) {
+      rend->clear(ImVec4(0,0,0,0));
+      mustClear--;
+      if (mustClear==0) e->everythingOK();
+    } else {
+      if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
+        WAKE_UP;
+        initialScreenWipe-=ImGui::GetIO().DeltaTime*5.0f;
+        if (initialScreenWipe>0.0f) {
+          rend->wipe(pow(initialScreenWipe,2.0f));
+        }
+      }
+    }
+    
     drawTimeEnd=SDL_GetPerformanceCounter();
     rend->present();
     if (settings.renderClearPos) {
