@@ -4117,6 +4117,22 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("initialSys2",settings.initialSys.toBase64());
     conf.set("initialSysName",settings.initialSysName);
+
+    conf.set("noThreadedInput",settings.noThreadedInput);
+    conf.set("powerSave",settings.powerSave);
+    conf.set("eventDelay",settings.eventDelay);
+
+    conf.set("renderBackend",settings.renderBackend);
+    conf.set("renderClearPos",settings.renderClearPos);
+    
+    conf.set("chanOscThreads",settings.chanOscThreads);
+    conf.set("renderPoolThreads",settings.renderPoolThreads);
+    conf.set("showPool",settings.showPool);
+    conf.set("writeInsNames",settings.writeInsNames);
+    conf.set("readInsNames",settings.readInsNames);
+    conf.set("defaultAuthorName",settings.defaultAuthorName);
+
+    conf.set("hiddenSystems",settings.hiddenSystems);
   }
 
   // audio
@@ -4131,11 +4147,24 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("audioBufSize",settings.audioBufSize);
     conf.set("audioRate",settings.audioRate);
     conf.set("audioChans",settings.audioChans);
+
+    conf.set("lowLatency",settings.lowLatency);
+
+    conf.set("metroVol",settings.metroVol);
+    conf.set("sampleVol",settings.sampleVol);
+
+    conf.set("wasapiEx",settings.wasapiEx);
+
+    conf.set("clampSamples",settings.clampSamples);
   }
 
   // MIDI
   if (groups&GUI_SETTINGS_MIDI) {
-
+    conf.set("midiOutClock",settings.midiOutClock);
+    conf.set("midiOutTime",settings.midiOutTime);
+    conf.set("midiOutProgramChange",settings.midiOutProgramChange);
+    conf.set("midiOutMode",settings.midiOutMode);
+    conf.set("midiOutTimeRate",settings.midiOutTimeRate);
   }
 
   // keyboard
@@ -4172,6 +4201,12 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("loadChinese",settings.loadChinese);
     conf.set("loadChineseTraditional",settings.loadChineseTraditional);
     conf.set("loadKorean",settings.loadKorean);
+
+    conf.set("fontBackend",settings.fontBackend);
+    conf.set("fontHinting",settings.fontHinting);
+    conf.set("fontBitmap",settings.fontBitmap);
+    conf.set("fontAutoHint",settings.fontAutoHint);
+    conf.set("fontAntiAlias",settings.fontAntiAlias);
   }
 
   // appearance
@@ -4190,6 +4225,33 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("channelFeedbackStyle",settings.channelFeedbackStyle);
     conf.set("channelFont",settings.channelFont);
     conf.set("channelTextCenter",settings.channelTextCenter);
+
+    conf.set("roundedWindows",settings.roundedWindows);
+    conf.set("roundedButtons",settings.roundedButtons);
+    conf.set("roundedMenus",settings.roundedMenus);
+
+    conf.set("separateFMColors",settings.separateFMColors);
+    conf.set("insEditColorize",settings.insEditColorize);
+
+    conf.set("chipNames",settings.chipNames);
+    conf.set("overflowHighlight",settings.overflowHighlight);
+    conf.set("partyTime",settings.partyTime);
+    conf.set("flatNotes",settings.flatNotes);
+    conf.set("germanNotation",settings.germanNotation);
+
+    conf.set("frameBorders",settings.frameBorders);
+
+    conf.set("noteOffLabel",settings.noteOffLabel);
+    conf.set("noteRelLabel",settings.noteRelLabel);
+    conf.set("macroRelLabel",settings.macroRelLabel);
+    conf.set("emptyLabel",settings.emptyLabel);
+    conf.set("emptyLabel2",settings.emptyLabel2);
+
+    conf.set("noteCellSpacing",settings.noteCellSpacing);
+    conf.set("insCellSpacing",settings.insCellSpacing);
+    conf.set("volCellSpacing",settings.volCellSpacing);
+    conf.set("effectCellSpacing",settings.effectCellSpacing);
+    conf.set("effectValCellSpacing",settings.effectValCellSpacing);
   }
 
   // layout
@@ -4242,131 +4304,94 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("mu5Path",settings.mu5Path);
   }
 
-  // TODO: the fucking rest
-  conf.set("patRowsBase",settings.patRowsBase);
-  conf.set("orderRowsBase",settings.orderRowsBase);
-  conf.set("soloAction",settings.soloAction);
-  conf.set("pullDeleteBehavior",settings.pullDeleteBehavior);
-  conf.set("wrapHorizontal",settings.wrapHorizontal);
-  conf.set("wrapVertical",settings.wrapVertical);
-  conf.set("macroView",settings.macroView);
-  conf.set("fmNames",settings.fmNames);
-  conf.set("allowEditDocking",settings.allowEditDocking);
-  conf.set("chipNames",settings.chipNames);
-  conf.set("overflowHighlight",settings.overflowHighlight);
-  conf.set("partyTime",settings.partyTime);
-  conf.set("flatNotes",settings.flatNotes);
-  conf.set("germanNotation",settings.germanNotation);
-  conf.set("stepOnDelete",settings.stepOnDelete);
-  conf.set("scrollStep",settings.scrollStep);
-  conf.set("sysSeparators",settings.sysSeparators);
-  conf.set("forceMono",settings.forceMono);
-  conf.set("controlLayout",settings.controlLayout);
-  conf.set("statusDisplay",settings.statusDisplay);
-  conf.set("viewPrevPattern",settings.viewPrevPattern);
-  conf.set("avoidRaisingPattern",settings.avoidRaisingPattern);
-  conf.set("insFocusesPattern",settings.insFocusesPattern);
-  conf.set("stepOnInsert",settings.stepOnInsert);
-  conf.set("unifiedDataView",settings.unifiedDataView);
-  conf.set("sysFileDialog",settings.sysFileDialog);
-  conf.set("roundedWindows",settings.roundedWindows);
-  conf.set("roundedButtons",settings.roundedButtons);
-  conf.set("roundedTabs",settings.roundedTabs);
-  conf.set("roundedMenus",settings.roundedMenus);
-  conf.set("susPosition",settings.susPosition);
-  conf.set("effectCursorDir",settings.effectCursorDir);
-  conf.set("cursorPastePos",settings.cursorPastePos);
-  conf.set("titleBarInfo",settings.titleBarInfo);
-  conf.set("titleBarSys",settings.titleBarSys);
-  conf.set("frameBorders",settings.frameBorders);
-  conf.set("effectDeletionAltersValue",settings.effectDeletionAltersValue);
+    conf.set("patRowsBase",settings.patRowsBase);
+    conf.set("orderRowsBase",settings.orderRowsBase);
+    conf.set("soloAction",settings.soloAction);
+    conf.set("pullDeleteBehavior",settings.pullDeleteBehavior);
+    conf.set("wrapHorizontal",settings.wrapHorizontal);
+    conf.set("wrapVertical",settings.wrapVertical);
+    conf.set("macroView",settings.macroView);
+    conf.set("fmNames",settings.fmNames);
+    conf.set("allowEditDocking",settings.allowEditDocking);
+    
+    conf.set("stepOnDelete",settings.stepOnDelete);
+    conf.set("scrollStep",settings.scrollStep);
+    conf.set("sysSeparators",settings.sysSeparators);
+    conf.set("forceMono",settings.forceMono);
+    conf.set("controlLayout",settings.controlLayout);
+    conf.set("statusDisplay",settings.statusDisplay);
+    conf.set("viewPrevPattern",settings.viewPrevPattern);
+    conf.set("avoidRaisingPattern",settings.avoidRaisingPattern);
+    conf.set("insFocusesPattern",settings.insFocusesPattern);
+    conf.set("stepOnInsert",settings.stepOnInsert);
+    conf.set("unifiedDataView",settings.unifiedDataView);
+    conf.set("sysFileDialog",settings.sysFileDialog);
+    conf.set("susPosition",settings.susPosition);
+    conf.set("effectCursorDir",settings.effectCursorDir);
+    conf.set("cursorPastePos",settings.cursorPastePos);
+    conf.set("titleBarInfo",settings.titleBarInfo);
+    conf.set("titleBarSys",settings.titleBarSys);
+    
+    conf.set("effectDeletionAltersValue",settings.effectDeletionAltersValue);
 
-  conf.set("separateFMColors",settings.separateFMColors);
-  conf.set("insEditColorize",settings.insEditColorize);
-  conf.set("metroVol",settings.metroVol);
-  conf.set("sampleVol",settings.sampleVol);
-  conf.set("pushNibble",settings.pushNibble);
-  conf.set("scrollChangesOrder",settings.scrollChangesOrder);
-  conf.set("oplStandardWaveNames",settings.oplStandardWaveNames);
-  conf.set("cursorMoveNoScroll",settings.cursorMoveNoScroll);
-  conf.set("lowLatency",settings.lowLatency);
-  conf.set("notePreviewBehavior",settings.notePreviewBehavior);
-  conf.set("powerSave",settings.powerSave);
-  conf.set("absorbInsInput",settings.absorbInsInput);
-  conf.set("eventDelay",settings.eventDelay);
-  conf.set("moveWindowTitle",settings.moveWindowTitle);
-  conf.set("hiddenSystems",settings.hiddenSystems);
-  conf.set("horizontalDataView",settings.horizontalDataView);
-  conf.set("noMultiSystem",settings.noMultiSystem);
-  conf.set("oldMacroVSlider",settings.oldMacroVSlider);
-  conf.set("displayAllInsTypes",settings.displayAllInsTypes);
-  conf.set("displayPartial",settings.displayPartial);
-  conf.set("noteCellSpacing",settings.noteCellSpacing);
-  conf.set("insCellSpacing",settings.insCellSpacing);
-  conf.set("volCellSpacing",settings.volCellSpacing);
-  conf.set("effectCellSpacing",settings.effectCellSpacing);
-  conf.set("effectValCellSpacing",settings.effectValCellSpacing);
-  conf.set("doubleClickColumn",settings.doubleClickColumn);
-  conf.set("blankIns",settings.blankIns);
-  conf.set("dragMovesSelection",settings.dragMovesSelection);
-  conf.set("unsignedDetune",settings.unsignedDetune);
-  conf.set("noThreadedInput",settings.noThreadedInput);
-  conf.set("saveWindowPos",settings.saveWindowPos);
-  conf.set("clampSamples",settings.clampSamples);
-  conf.set("noteOffLabel",settings.noteOffLabel);
-  conf.set("noteRelLabel",settings.noteRelLabel);
-  conf.set("macroRelLabel",settings.macroRelLabel);
-  conf.set("emptyLabel",settings.emptyLabel);
-  conf.set("emptyLabel2",settings.emptyLabel2);
-  conf.set("saveUnusedPatterns",settings.saveUnusedPatterns);
-  conf.set("maxRecentFile",settings.maxRecentFile);
-  conf.set("midiOutClock",settings.midiOutClock);
-  conf.set("midiOutTime",settings.midiOutTime);
-  conf.set("midiOutProgramChange",settings.midiOutProgramChange);
-  conf.set("midiOutMode",settings.midiOutMode);
-  conf.set("midiOutTimeRate",settings.midiOutTimeRate);
-  conf.set("centerPattern",settings.centerPattern);
-  conf.set("ordersCursor",settings.ordersCursor);
-  conf.set("persistFadeOut",settings.persistFadeOut);
-  conf.set("exportLoops",settings.exportLoops);
-  conf.set("exportFadeOut",settings.exportFadeOut);
-  conf.set("macroLayout",settings.macroLayout);
-  conf.set("doubleClickTime",settings.doubleClickTime);
-  conf.set("oneDigitEffects",settings.oneDigitEffects);
-  conf.set("disableFadeIn",settings.disableFadeIn);
-  conf.set("cursorFollowsOrder",settings.cursorFollowsOrder);
-  conf.set("iCannotWait",settings.iCannotWait);
-  conf.set("orderButtonPos",settings.orderButtonPos);
-  conf.set("compress",settings.compress);
-  conf.set("newPatternFormat",settings.newPatternFormat);
-  conf.set("renderBackend",settings.renderBackend);
-  conf.set("renderClearPos",settings.renderClearPos);
-  conf.set("insertBehavior",settings.insertBehavior);
-  conf.set("pullDeleteRow",settings.pullDeleteRow);
-  conf.set("newSongBehavior",settings.newSongBehavior);
-  conf.set("memUsageUnit",settings.memUsageUnit);
-  conf.set("cursorFollowsWheel",settings.cursorFollowsWheel);
-  conf.set("removeInsOff",settings.removeInsOff);
-  conf.set("removeVolOff",settings.removeVolOff);
-  conf.set("playOnLoad",settings.playOnLoad);
-  conf.set("insTypeMenu",settings.insTypeMenu);
-  conf.set("capitalMenuBar",settings.capitalMenuBar);
-  conf.set("centerPopup",settings.centerPopup);
-  conf.set("insIconsStyle",settings.insIconsStyle);
-  conf.set("classicChipOptions",settings.classicChipOptions);
-  conf.set("wasapiEx",settings.wasapiEx);
-  conf.set("chanOscThreads",settings.chanOscThreads);
-  conf.set("renderPoolThreads",settings.renderPoolThreads);
-  conf.set("showPool",settings.showPool);
-  conf.set("writeInsNames",settings.writeInsNames);
-  conf.set("readInsNames",settings.readInsNames);
-  conf.set("defaultAuthorName",settings.defaultAuthorName);
-  conf.set("fontBackend",settings.fontBackend);
-  conf.set("fontHinting",settings.fontHinting);
-  conf.set("fontBitmap",settings.fontBitmap);
-  conf.set("fontAutoHint",settings.fontAutoHint);
-  conf.set("fontAntiAlias",settings.fontAntiAlias);
-  conf.set("selectAssetOnLoad",settings.selectAssetOnLoad);
+   
+    conf.set("pushNibble",settings.pushNibble);
+    conf.set("scrollChangesOrder",settings.scrollChangesOrder);
+    conf.set("oplStandardWaveNames",settings.oplStandardWaveNames);
+    conf.set("cursorMoveNoScroll",settings.cursorMoveNoScroll);
+
+    conf.set("notePreviewBehavior",settings.notePreviewBehavior);
+    
+    conf.set("absorbInsInput",settings.absorbInsInput);
+    
+    conf.set("moveWindowTitle",settings.moveWindowTitle);
+    
+    conf.set("horizontalDataView",settings.horizontalDataView);
+    conf.set("noMultiSystem",settings.noMultiSystem);
+    conf.set("oldMacroVSlider",settings.oldMacroVSlider);
+    conf.set("displayAllInsTypes",settings.displayAllInsTypes);
+    conf.set("displayPartial",settings.displayPartial);
+    conf.set("doubleClickColumn",settings.doubleClickColumn);
+    conf.set("blankIns",settings.blankIns);
+    conf.set("dragMovesSelection",settings.dragMovesSelection);
+    conf.set("unsignedDetune",settings.unsignedDetune);
+    
+    conf.set("saveWindowPos",settings.saveWindowPos);
+    
+    conf.set("saveUnusedPatterns",settings.saveUnusedPatterns);
+    conf.set("maxRecentFile",settings.maxRecentFile);
+    
+    conf.set("centerPattern",settings.centerPattern);
+    conf.set("ordersCursor",settings.ordersCursor);
+    conf.set("persistFadeOut",settings.persistFadeOut);
+    conf.set("exportLoops",settings.exportLoops);
+    conf.set("exportFadeOut",settings.exportFadeOut);
+    conf.set("macroLayout",settings.macroLayout);
+    conf.set("doubleClickTime",settings.doubleClickTime);
+    conf.set("oneDigitEffects",settings.oneDigitEffects);
+    conf.set("disableFadeIn",settings.disableFadeIn);
+    conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
+    conf.set("cursorFollowsOrder",settings.cursorFollowsOrder);
+    conf.set("iCannotWait",settings.iCannotWait);
+    conf.set("orderButtonPos",settings.orderButtonPos);
+    conf.set("compress",settings.compress);
+    conf.set("newPatternFormat",settings.newPatternFormat);
+    
+    conf.set("insertBehavior",settings.insertBehavior);
+    conf.set("pullDeleteRow",settings.pullDeleteRow);
+    conf.set("newSongBehavior",settings.newSongBehavior);
+    conf.set("memUsageUnit",settings.memUsageUnit);
+    conf.set("cursorFollowsWheel",settings.cursorFollowsWheel);
+    conf.set("removeInsOff",settings.removeInsOff);
+    conf.set("removeVolOff",settings.removeVolOff);
+    conf.set("playOnLoad",settings.playOnLoad);
+    conf.set("insTypeMenu",settings.insTypeMenu);
+    conf.set("capitalMenuBar",settings.capitalMenuBar);
+    conf.set("centerPopup",settings.centerPopup);
+    conf.set("insIconsStyle",settings.insIconsStyle);
+    conf.set("classicChipOptions",settings.classicChipOptions);
+    
+    conf.set("selectAssetOnLoad",settings.selectAssetOnLoad);
 }
 
 void FurnaceGUI::syncSettings() {
