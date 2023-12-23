@@ -2305,7 +2305,7 @@ class FurnaceGUI {
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
   
-  //effect sorting
+  // effect sorting
   bool effectsShow[10];
 
   // TX81Z
@@ -2349,12 +2349,12 @@ class FurnaceGUI {
   int audioExportType;
   FurnaceGUIExportTypes curExportType;
 
-  void drawExportAudio();
-  void drawExportVGM();
-  void drawExportZSM();
-  void drawExportAmigaVal();
-  void drawExportText();
-  void drawExportCommand();
+  void drawExportAudio(bool onWindow=false);
+  void drawExportVGM(bool onWindow=false);
+  void drawExportZSM(bool onWindow=false);
+  void drawExportAmigaVal(bool onWindow=false);
+  void drawExportText(bool onWindow=false);
+  void drawExportCommand(bool onWindow=false);
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
