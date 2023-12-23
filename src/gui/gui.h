@@ -2309,6 +2309,7 @@ class FurnaceGUI {
   bool waveGenFM;
 
   int mustClear;
+  float initialScreenWipe;
 
   // export options
   int audioExportType;
