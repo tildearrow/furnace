@@ -3696,6 +3696,36 @@ void FurnaceGUI::drawSettings() {
   }
 
 void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
+  if (groups&GUI_SETTINGS_GENERAL) {
+  }
+
+  if (groups&GUI_SETTINGS_AUDIO) {
+  }
+
+  if (groups&GUI_SETTINGS_MIDI) {
+  }
+
+  if (groups&GUI_SETTINGS_KEYBOARD) {
+  }
+
+  if (groups&GUI_SETTINGS_BEHAVIOR) {
+  }
+
+  if (groups&GUI_SETTINGS_FONT) {
+  }
+
+  if (groups&GUI_SETTINGS_APPEARANCE) {
+  }
+
+  if (groups&GUI_SETTINGS_LAYOUTS) {
+  }
+
+  if (groups&GUI_SETTINGS_COLOR) {
+  }
+
+  if (groups&GUI_SETTINGS_EMULATION) {
+  }
+
   settings.mainFontSize=conf.getInt("mainFontSize",18);
   settings.headFontSize=conf.getInt("headFontSize",27);
   settings.patFontSize=conf.getInt("patFontSize",18);
@@ -4553,18 +4583,23 @@ bool FurnaceGUI::importColors(String path) {
 }
 
 bool FurnaceGUI::exportColors(String path) {
+  DivConfig c;
+
+  c.set("configVersion",DIV_ENGINE_VERSION);
+  writeConfig(c,GUI_SETTINGS_COLOR);
+
   FILE* f=ps_fopen(path.c_str(),"wb");
   if (f==NULL) {
     logW("error while opening color file for export: %s",strerror(errno));
     return false;
   }
-  fprintf(f,"configVersion=%d\n",DIV_ENGINE_VERSION);
-  for (int i=0; i<GUI_COLOR_MAX; i++) {
-    if (fprintf(f,"%s=%d\n",guiColors[i].name,ImGui::ColorConvertFloat4ToU32(uiColors[i]))<0) {
-      logW("error while exporting colors: %s",strerror(errno));
-      break;
-    }
+
+  String result=c.toString();
+
+  if (fwrite(result.c_str(),1,result.size(),f)!=result.size()) {
+    logW("couldn't write color file entirely.");
   }
+
   fclose(f);
   return true;
 }
