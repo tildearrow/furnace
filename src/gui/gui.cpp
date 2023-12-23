@@ -6182,6 +6182,26 @@ bool FurnaceGUI::loop() {
     drawTimeBegin=SDL_GetPerformanceCounter();
     rend->renderGUI();
 
+    if (mustClear) 
+    {
+      rend->clear(ImVec4(0, 0, 0, 0));
+      mustClear--;
+      if (mustClear == 0) e->everythingOK();
+    }
+
+    else
+    {
+      if (initialScreenWipe>0.0f && !settings.disableFadeIn)
+      {
+        WAKE_UP;
+        initialScreenWipe-=ImGui::GetIO().DeltaTime*5.0f;
+        if (initialScreenWipe>0.0f)
+        {
+          rend->wipe(pow(initialScreenWipe,2.0f));
+        }
+      }
+    }
+    
     drawTimeEnd=SDL_GetPerformanceCounter();
     rend->present();
     if (settings.renderClearPos) {
@@ -7509,7 +7529,9 @@ FurnaceGUI::FurnaceGUI():
   waveGenOffsetY(0),
   waveGenSmooth(1),
   waveGenAmplify(1.0f),
-  waveGenFM(false) {
+  waveGenFM(false),
+  mustClear(3),
+  initialScreenWipe(1.0f) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
