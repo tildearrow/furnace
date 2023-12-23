@@ -4777,8 +4777,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
 
               const int dpcmNotes=(blockVersion>=2)?96:72;
               for (int j=0; j<dpcmNotes; j++) {
-                ins->amiga.noteMap[j].map=(short)((unsigned char)reader.readC())-1;
-                ins->amiga.noteMap[j].freq=(unsigned char)reader.readC();
+                ins->amiga.get_amiga_sample_map(j, true)->map=(short)((unsigned char)reader.readC())-1;
+                ins->amiga.get_amiga_sample_map(j, true)->freq=(unsigned char)reader.readC();
                 if (blockVersion>=6) {
                   reader.readC(); // DMC value
                 }
@@ -6500,7 +6500,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       if (ins->gb.hwSeqLen>0) {
         w->writeText("  - hardware sequence:\n");
         for (int j=0; j<ins->gb.hwSeqLen; j++) {
-          w->writeText(fmt::sprintf("    - %d: %.2X %.4X\n",j,ins->gb.hwSeq[j].cmd,ins->gb.hwSeq[j].data));
+          w->writeText(fmt::sprintf("    - %d: %.2X %.4X\n",j,ins->gb.get_gb_hw_seq(j, false)->cmd,ins->gb.get_gb_hw_seq(j, false)->data));
         }
       }
     }
