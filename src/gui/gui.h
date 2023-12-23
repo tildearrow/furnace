@@ -451,7 +451,6 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_CLOCK,
   GUI_WINDOW_GROOVES,
   GUI_WINDOW_XY_OSC,
-  GUI_WINDOW_INTRO_MON,
   GUI_WINDOW_SPOILER
 };
 
@@ -546,7 +545,6 @@ enum FurnaceGUIWarnings {
   GUI_WARN_SUBSONG_DEL,
   GUI_WARN_SYSTEM_DEL,
   GUI_WARN_CLEAR_HISTORY,
-  GUI_WARN_BASIC_MODE,
   GUI_WARN_GENERIC
 };
 
@@ -817,12 +815,6 @@ enum FurnaceGUIActions {
 
 enum FurnaceGUIImages {
   GUI_IMAGE_ICON=0,
-  GUI_IMAGE_TALOGO,
-  GUI_IMAGE_TACHIP,
-  GUI_IMAGE_LOGO,
-  GUI_IMAGE_WORDMARK,
-  GUI_IMAGE_INTROBG,
-  GUI_IMAGE_PAT,
 
   GUI_IMAGE_MAX
 };
@@ -842,11 +834,6 @@ enum FurnaceGUIChanOscRef {
   GUI_OSCREF_MAX
 };
 
-enum FurnaceGUITutorials {
-  GUI_TUTORIAL_OVERVIEW=0,
-  
-  GUI_TUTORIAL_MAX
-};
 
 enum PasteMode {
   GUI_PASTE_MODE_NORMAL=0,
@@ -1197,31 +1184,6 @@ struct FurnaceGUISysCategory {
   FurnaceGUISysCategory():
     name(NULL),
     description(NULL) {}
-};
-
-typedef std::function<void()> TutorialFunc;
-
-struct FurnaceGUITutorialStep {
-  const char* text;
-  int waitForTrigger;
-  TutorialFunc run;
-  TutorialFunc runBefore;
-  TutorialFunc runAfter;
-  
-  FurnaceGUITutorialStep(const char* t, int trigger=-1, TutorialFunc activeFunc=NULL, TutorialFunc beginFunc=NULL, TutorialFunc endFunc=NULL):
-    text(t),
-    waitForTrigger(trigger),
-    run(activeFunc),
-    runBefore(beginFunc),
-    runAfter(endFunc) {}
-};
-
-struct FurnaceGUITutorialDef {
-  const char* name;
-  std::vector<FurnaceGUITutorialStep> steps;
-  FurnaceGUITutorialDef():
-    name("Help!") {}
-  FurnaceGUITutorialDef(const char* n, std::initializer_list<FurnaceGUITutorialStep> step);
 };
 
 struct FurnaceGUIMacroDesc {
@@ -1710,7 +1672,6 @@ class FurnaceGUI {
     float doubleClickTime;
     int oneDigitEffects;
     int disableFadeIn;
-    int alwaysPlayIntro;
     int iCannotWait;
     int orderButtonPos;
     int compress;
@@ -1908,7 +1869,6 @@ class FurnaceGUI {
       doubleClickTime(0.3f),
       oneDigitEffects(0),
       disableFadeIn(0),
-      alwaysPlayIntro(0),
       iCannotWait(0),
       orderButtonPos(2),
       compress(1),
@@ -1961,19 +1921,6 @@ class FurnaceGUI {
       defaultAuthorName("") {}
   } settings;
 
-  struct Tutorial {
-    int userComesFrom;
-    bool introPlayed;
-    bool protoWelcome;
-    bool taken[GUI_TUTORIAL_MAX];
-    Tutorial():
-      userComesFrom(0),
-      introPlayed(false),
-      protoWelcome(false) {
-      memset(taken,0,GUI_TUTORIAL_MAX*sizeof(bool));
-    }
-  } tutorial;
-
   char finalLayoutPath[4096];
 
   DivInstrument* prevInsData;
@@ -1996,8 +1943,6 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen;
-
-  bool basicMode, shortIntro;
   bool insListDir, waveListDir, sampleListDir;
 
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
@@ -2086,7 +2031,6 @@ class FurnaceGUI {
   std::vector<std::pair<DivInstrument*,bool>> pendingIns;
 
   std::vector<FurnaceGUISysCategory> sysCategories;
-  FurnaceGUITutorialDef tutorials[GUI_TUTORIAL_MAX];
 
   bool wavePreviewOn;
   SDL_Scancode wavePreviewKey;
@@ -2364,18 +2308,6 @@ class FurnaceGUI {
   bool waveGenFMCon4[5];
   bool waveGenFM;
 
-  // intro
-  double introPos;
-  double introSkip;
-  double monitorPos;
-  int mustClear;
-  float initialScreenWipe;
-  bool introSkipDo, introStopped;
-  ImVec2 introMin, introMax;
-
-  // tutorial
-  int curTutorial, curTutorialStep;
-
   // export options
   int audioExportType;
   FurnaceGUIExportTypes curExportType;
@@ -2386,7 +2318,6 @@ class FurnaceGUI {
   void drawExportAmigaVal(bool onWindow=false);
   void drawExportText(bool onWindow=false);
   void drawExportCommand(bool onWindow=false);
-
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
@@ -2464,8 +2395,7 @@ class FurnaceGUI {
   void highlightWindow(const char* winName);
 
   FurnaceGUIImage* getImage(FurnaceGUIImages image);
-  FurnaceGUITexture* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode=GUI_BLEND_MODE_BLEND);
-  void drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor);
+  FurnaceGUITexture* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode);
 
   void drawMobileControls();
   void drawMobileOrderSel();
@@ -2494,7 +2424,6 @@ class FurnaceGUI {
   void drawSysManager();
   void drawRegView();
   void drawAbout();
-  void drawIntro(double introTime, bool monitor=false);
   void drawSettings();
   void drawDebug();
   void drawNewSong();
@@ -2505,7 +2434,6 @@ class FurnaceGUI {
   void drawFindReplace();
   void drawSpoiler();
   void drawClock();
-  void drawTutorial();
   void drawXYOsc();
 
   void parseKeybinds();
@@ -2529,8 +2457,6 @@ class FurnaceGUI {
 
   void syncSettings();
   void commitSettings();
-  void syncTutorial();
-  void commitTutorial();
   void commitState();
   void processDrags(int dragX, int dragY);
   void processPoint(SDL_Event& ev);
@@ -2586,8 +2512,6 @@ class FurnaceGUI {
   void play(int row=0);
   void setOrder(unsigned char order, bool forced=false);
   void stop();
-  void endIntroTune();
-
   void previewNote(int refChan, int note, bool autoNote=false);
   void stopPreviewNote(SDL_Scancode scancode, bool autoNote=false);
 
@@ -2611,8 +2535,6 @@ class FurnaceGUI {
 
   void applyUISettings(bool updateFonts=true);
   void initSystemPresets();
-  void initTutorial();
-  void activateTutorial(FurnaceGUITutorials which);
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false, bool bit30=false);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);
