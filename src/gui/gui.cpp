@@ -7528,10 +7528,10 @@ FurnaceGUI::FurnaceGUI():
   waveGenOffsetX(0),
   waveGenOffsetY(0),
   waveGenSmooth(1),
-  mustClear(3),
-  initialScreenWipe(1.0f),
   waveGenAmplify(1.0f),
-  waveGenFM(false) {
+  waveGenFM(false),
+  mustClear(3),
+  initialScreenWipe(1.0f) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
