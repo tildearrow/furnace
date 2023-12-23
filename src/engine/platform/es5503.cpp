@@ -27,11 +27,13 @@
 const int ES5503_wave_lengths[DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX] = {256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
 uint8_t ES5503_wave_lengths_convert_back(uint32_t len)
 {
+  if(len <= ES5503_wave_lengths[0]) return 0;
+
   for(int j = 0; j < DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX - 1; j++)
   {
     if((int)len > ES5503_wave_lengths[j] && (int)len <= ES5503_wave_lengths[j + 1])
     {
-      return j;
+      return j + 1;
     }
   }
 
@@ -325,6 +327,8 @@ void DivPlatformES5503::tick(bool sysTick) {
           rWrite(0x80+i, chan[i].wave_pos >> 8); //set wave pos
           rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
           rWrite(0xc0+i, (ES5503_wave_lengths_convert_back(chan[i].wave_size) << 3) | chan[i].address_bus_res); //set wave len
+
+          int idsf = ES5503_wave_lengths_convert_back(chan[i].wave_size);
 
           if(ins->es5503.phase_reset_on_start)
           {
@@ -754,7 +758,16 @@ void DivPlatformES5503::renderSamples(int sysID) {
       int actualLength = length + 8; //8 more bytes for trailing zeros
       int start_pos = 0;
 
-      if (actualLength < minsize || actualLength >= maxsize) goto end;
+      if (size != 1)
+      {
+        if (actualLength < minsize || actualLength >= maxsize) goto end;
+      }
+
+      else //for samples with <= 256 steps length
+      {
+        if (actualLength >= maxsize) goto end;
+      }
+      
 
       start_pos = is_enough_continuous_memory(actualLength);
 
@@ -777,13 +790,15 @@ void DivPlatformES5503::renderSamples(int sysID) {
           //es5503.sampleMem[actual_start_pos + ss] = ((actual_start_pos + ss) & 1) ? 0xff : 0x10;
         }
 
-        memset(&es5503.sampleMem[actual_start_pos + length], 0, 8); //add at least 8 zeros to the end
+        //memset(&es5503.sampleMem[actual_start_pos + length], 0, 8); //add at least 8 zeros to the end
 
         int num_blocks = actualLength / 256 + 1;
 
-        sampleLengths[i] = actualLength;
+        sampleLengths[i] = actualLength - 8;
         sampleLoaded[i] = true;
         sampleOffsets[i] = actual_start_pos;
+
+        logW("sample %d length %d startpos %d", i, sampleLengths[i], sampleOffsets[i]);
 
         for(int b = start_pos; b < start_pos + num_blocks; b++)
         {
