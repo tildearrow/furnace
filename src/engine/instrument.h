@@ -397,7 +397,8 @@ struct DivInstrumentGB {
 
     DIV_GB_HWCMD_MAX
   };
-  struct HWSeqCommandGB {
+  
+  typedef struct {
     unsigned char cmd;
     unsigned short data;
   } HWSeqCommandGB;
@@ -746,13 +747,16 @@ struct DivInstrumentSoundUnit {
 
     DIV_SU_HWCMD_MAX
   };
-  struct HWSeqCommandSU {
+
+  typedef struct {
     unsigned char cmd;
     unsigned char bound;
     unsigned char val;
     unsigned short speed;
     unsigned short padding;
-  } hwSeq[256];
+  } HWSeqCommandSU;
+
+  HWSeqCommandSU* hwSeq;
 
   bool operator==(const DivInstrumentSoundUnit& other);
   bool operator!=(const DivInstrumentSoundUnit& other) {
