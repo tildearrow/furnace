@@ -397,7 +397,7 @@ struct DivInstrumentGB {
 
     DIV_GB_HWCMD_MAX
   };
-  
+
   typedef struct {
     unsigned char cmd;
     unsigned short data;
@@ -444,6 +444,14 @@ struct DivInstrumentGB {
     softEnv(false),
     alwaysInit(false) {
     hwSeq = NULL;
+  }
+
+  ~DivInstrumentGB()
+  {
+    if(hwSeq != NULL)
+    {
+      delete hwSeq;
+    }
   }
 };
 
@@ -504,7 +512,6 @@ struct DivInstrumentAmiga {
   bool useSample;
   bool useWave;
   unsigned char waveLen;
-
   SampleMap* noteMap;
 
   ~DivInstrumentAmiga()
@@ -539,6 +546,7 @@ struct DivInstrumentAmiga {
       }
     }
   }
+
   bool operator==(const DivInstrumentAmiga& other);
   bool operator!=(const DivInstrumentAmiga& other) {
     return !(*this==other);
@@ -744,8 +752,7 @@ struct DivInstrumentSoundUnit {
 
     DIV_SU_HWCMD_MAX
   };
-
-  typedef struct {
+  typedef struct HWSeqCommandSU {
     unsigned char cmd;
     unsigned char bound;
     unsigned char val;
