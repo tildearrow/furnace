@@ -4370,7 +4370,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("doubleClickTime",settings.doubleClickTime);
     conf.set("oneDigitEffects",settings.oneDigitEffects);
     conf.set("disableFadeIn",settings.disableFadeIn);
-    conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
     conf.set("cursorFollowsOrder",settings.cursorFollowsOrder);
     conf.set("iCannotWait",settings.iCannotWait);
     conf.set("orderButtonPos",settings.orderButtonPos);
