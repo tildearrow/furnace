@@ -885,6 +885,14 @@ struct SelectionPoint {
     xCoarse(0), xFine(0), y(0) {}
 };
 
+struct UndoRegion {
+  struct UndoRegionPoint {
+    int ord, x, y;
+    UndoRegionPoint():
+      ord(0), x(0), y(0) {}
+  } begin, end;
+};
+
 enum ActionType {
   GUI_UNDO_CHANGE_ORDER,
   GUI_UNDO_PATTERN_EDIT,
