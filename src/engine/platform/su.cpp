@@ -143,10 +143,10 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
         int hwSeqCount=0;
         while (chan[i].hwSeqPos<ins->su.hwSeqLen && hwSeqCount<8) {
           bool leave=false;
-          unsigned char bound=ins->su.get_su_hw_seq(chan[i].hwSeqPos, true)->bound;
-          unsigned char val=ins->su.get_su_hw_seq(chan[i].hwSeqPos, true)->val;
-          unsigned short speed=ins->su.get_su_hw_seq(chan[i].hwSeqPos, true)->speed;
-          switch (ins->su.get_su_hw_seq(chan[i].hwSeqPos, true)->cmd) {
+          unsigned char bound=ins->su.hwSeq[chan[i].hwSeqPos].bound;
+          unsigned char val=ins->su.hwSeq[chan[i].hwSeqPos].val;
+          unsigned short speed=ins->su.hwSeq[chan[i].hwSeqPos].speed;
+          switch (ins->su.hwSeq[chan[i].hwSeqPos].cmd) {
             case DivInstrumentSoundUnit::DIV_SU_HWCMD_VOL:
               chan[i].volSweepP=speed;
               chan[i].volSweepV=val;

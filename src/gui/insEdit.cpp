@@ -2171,44 +2171,44 @@ void FurnaceGUI::alterSampleMap(int column, int val) {
     if (i<0 || i>=120) continue;
 
     if (sampleMapColumn==1 && column==1) {
-      ins->amiga.get_amiga_sample_map(i, true)->freq=val;
+      ins->amiga.noteMap[i].freq=val;
     } else if (sampleMapColumn==0 && column==0) {
       if (val<0) {
-        ins->amiga.get_amiga_sample_map(i, true)->map=-1;
+        ins->amiga.noteMap[i].map=-1;
       } else if (sampleMapDigit>0) {
-        ins->amiga.get_amiga_sample_map(i, true)->map*=10;
-        ins->amiga.get_amiga_sample_map(i, true)->map+=val;
+        ins->amiga.noteMap[i].map*=10;
+        ins->amiga.noteMap[i].map+=val;
       } else {
-        ins->amiga.get_amiga_sample_map(i, true)->map=val;
+        ins->amiga.noteMap[i].map=val;
       }
-      if (ins->amiga.get_amiga_sample_map(i, true)->map>=(int)e->song.sample.size()) {
-        ins->amiga.get_amiga_sample_map(i, true)->map=((int)e->song.sample.size())-1;
+      if (ins->amiga.noteMap[i].map>=(int)e->song.sample.size()) {
+        ins->amiga.noteMap[i].map=((int)e->song.sample.size())-1;
       }
     } else if (sampleMapColumn==2 && column==2) {
       if (val<0) {
-        ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq=-1;
+        ins->amiga.noteMap[i].dpcmFreq=-1;
       } else if (sampleMapDigit>0) {
-        ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq*=10;
-        ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq+=val;
+        ins->amiga.noteMap[i].dpcmFreq*=10;
+        ins->amiga.noteMap[i].dpcmFreq+=val;
       } else {
-        ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq=val;
+        ins->amiga.noteMap[i].dpcmFreq=val;
       }
-      if (ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq>15) {
-        ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq%=10;
+      if (ins->amiga.noteMap[i].dpcmFreq>15) {
+        ins->amiga.noteMap[i].dpcmFreq%=10;
       }
     } else if (sampleMapColumn==3 && column==3) {
       if (val<0) {
-        ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta=-1;
+        ins->amiga.noteMap[i].dpcmDelta=-1;
       } else if (sampleMapDigit>0) {
-        if (ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta>7) {
+        if (ins->amiga.noteMap[i].dpcmDelta>7) {
 
-          ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta=val;
+          ins->amiga.noteMap[i].dpcmDelta=val;
         } else {
-          ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta<<=4;
-          ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta+=val;
+          ins->amiga.noteMap[i].dpcmDelta<<=4;
+          ins->amiga.noteMap[i].dpcmDelta+=val;
         }
       } else {
-        ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta=val;
+        ins->amiga.noteMap[i].dpcmDelta=val;
       }
     }
   }
@@ -2455,7 +2455,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(ImGuiCol_HeaderHovered));
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,ImGui::GetColorU32(ImGuiCol_HeaderHovered));
         for (int i=0; i<120; i++) {
-          DivInstrumentAmiga::SampleMap& sampleMap=*ins->amiga.get_amiga_sample_map(i, true);
+          DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
@@ -2712,7 +2712,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
             if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
               for (int i=0; i<120; i++) {
                 if (i==sampleMapSelStart) continue;
-                ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq=ins->amiga.get_amiga_sample_map(sampleMapSelStart, true)->dpcmFreq;
+                ins->amiga.noteMap[i].dpcmFreq=ins->amiga.noteMap[sampleMapSelStart].dpcmFreq;
               }
             }
           }
@@ -2720,7 +2720,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
             if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
               for (int i=0; i<120; i++) {
                 if (i==sampleMapSelStart) continue;
-                ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta=ins->amiga.get_amiga_sample_map(sampleMapSelStart, true)->dpcmDelta;
+                ins->amiga.noteMap[i].dpcmDelta=ins->amiga.noteMap[sampleMapSelStart].dpcmDelta;
               }
             }
           }
@@ -2729,7 +2729,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
             if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
               for (int i=0; i<120; i++) {
                 if (i==sampleMapSelStart) continue;
-                ins->amiga.get_amiga_sample_map(i, true)->freq=ins->amiga.get_amiga_sample_map(sampleMapSelStart, true)->freq;
+                ins->amiga.noteMap[i].freq=ins->amiga.noteMap[sampleMapSelStart].freq;
               }
             }
           }
@@ -2738,7 +2738,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
           if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
             for (int i=0; i<120; i++) {
               if (i==sampleMapSelStart) continue;
-              ins->amiga.get_amiga_sample_map(i, true)->map=ins->amiga.get_amiga_sample_map(sampleMapSelStart, true)->map;
+              ins->amiga.noteMap[i].map=ins->amiga.noteMap[sampleMapSelStart].map;
             }
           }
         }
@@ -2746,24 +2746,24 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
       if (ins->type==DIV_INS_NES) {
         if (ImGui::MenuItem("reset pitches")) {
           for (int i=0; i<120; i++) {
-            ins->amiga.get_amiga_sample_map(i, true)->dpcmFreq=15;
+            ins->amiga.noteMap[i].dpcmFreq=15;
           }
         }
         if (ImGui::MenuItem("clear delta counter values")) {
           for (int i=0; i<120; i++) {
-            ins->amiga.get_amiga_sample_map(i, true)->dpcmDelta=-1;
+            ins->amiga.noteMap[i].dpcmDelta=-1;
           }
         }
       } else {
         if (ImGui::MenuItem("reset notes")) {
           for (int i=0; i<120; i++) {
-            ins->amiga.get_amiga_sample_map(i, true)->freq=i;
+            ins->amiga.noteMap[i].freq=i;
           }
         }
       }
       if (ImGui::MenuItem("clear map samples")) {
         for (int i=0; i<120; i++) {
-          ins->amiga.get_amiga_sample_map(i, true)->map=-1;
+          ins->amiga.noteMap[i].map=-1;
         }
       }
       ImGui::EndPopup();
@@ -4738,24 +4738,24 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::Text("%d (#%d)",curFrame,i);
                 ImGui::TableNextColumn();
                 ImGui::PushID(i);
-                if (ins->gb.get_gb_hw_seq(i, true)->cmd>=DivInstrumentGB::DIV_GB_HWCMD_MAX) {
-                  ins->gb.get_gb_hw_seq(i, true)->cmd=0;
+                if (ins->gb.hwSeq[i].cmd>=DivInstrumentGB::DIV_GB_HWCMD_MAX) {
+                  ins->gb.hwSeq[i].cmd=0;
                 }
-                int cmd=ins->gb.get_gb_hw_seq(i, true)->cmd;
+                int cmd=ins->gb.hwSeq[i].cmd;
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 if (ImGui::Combo("##HWSeqCmd",&cmd,gbHWSeqCmdTypes,DivInstrumentGB::DIV_GB_HWCMD_MAX)) {
-                  if (ins->gb.get_gb_hw_seq(i, true)->cmd!=cmd) {
-                    ins->gb.get_gb_hw_seq(i, true)->cmd=cmd;
-                    ins->gb.get_gb_hw_seq(i, true)->data=0;
+                  if (ins->gb.hwSeq[i].cmd!=cmd) {
+                    ins->gb.hwSeq[i].cmd=cmd;
+                    ins->gb.hwSeq[i].data=0;
                   }
                 }
                 bool somethingChanged=false;
-                switch (ins->gb.get_gb_hw_seq(i, true)->cmd) {
+                switch (ins->gb.hwSeq[i].cmd) {
                   case DivInstrumentGB::DIV_GB_HWCMD_ENVELOPE: {
-                    int hwsVol=(ins->gb.get_gb_hw_seq(i, true)->data&0xf0)>>4;
-                    bool hwsDir=ins->gb.get_gb_hw_seq(i, true)->data&8;
-                    int hwsLen=ins->gb.get_gb_hw_seq(i, true)->data&7;
-                    int hwsSoundLen=ins->gb.get_gb_hw_seq(i, true)->data>>8;
+                    int hwsVol=(ins->gb.hwSeq[i].data&0xf0)>>4;
+                    bool hwsDir=ins->gb.hwSeq[i].data&8;
+                    int hwsLen=ins->gb.hwSeq[i].data&7;
+                    int hwsSoundLen=ins->gb.hwSeq[i].data>>8;
 
                     if (CWSliderInt("Volume",&hwsVol,0,15)) {
                       somethingChanged=true;
@@ -4777,15 +4777,15 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->gb.get_gb_hw_seq(i, true)->data=(hwsLen&7)|(hwsDir?8:0)|(hwsVol<<4)|(hwsSoundLen<<8);
+                      ins->gb.hwSeq[i].data=(hwsLen&7)|(hwsDir?8:0)|(hwsVol<<4)|(hwsSoundLen<<8);
                       PARAMETER;
                     }
                     break;
                   }
                   case DivInstrumentGB::DIV_GB_HWCMD_SWEEP: {
-                    int hwsShift=ins->gb.get_gb_hw_seq(i, true)->data&7;
-                    int hwsSpeed=(ins->gb.get_gb_hw_seq(i, true)->data&0x70)>>4;
-                    bool hwsDir=ins->gb.get_gb_hw_seq(i, true)->data&8;
+                    int hwsShift=ins->gb.hwSeq[i].data&7;
+                    int hwsSpeed=(ins->gb.hwSeq[i].data&0x70)>>4;
+                    bool hwsDir=ins->gb.hwSeq[i].data&8;
 
                     if (CWSliderInt("Shift",&hwsShift,0,7)) {
                       somethingChanged=true;
@@ -4805,14 +4805,14 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->gb.get_gb_hw_seq(i, true)->data=(hwsShift&7)|(hwsDir?8:0)|(hwsSpeed<<4);
+                      ins->gb.hwSeq[i].data=(hwsShift&7)|(hwsDir?8:0)|(hwsSpeed<<4);
                       PARAMETER;
                     }
                     break;
                   }
                   case DivInstrumentGB::DIV_GB_HWCMD_WAIT: {
-                    int len=ins->gb.get_gb_hw_seq(i, true)->data+1;
-                    curFrame+=ins->gb.get_gb_hw_seq(i, true)->data+1;
+                    int len=ins->gb.hwSeq[i].data+1;
+                    curFrame+=ins->gb.hwSeq[i].data+1;
 
                     if (ImGui::InputInt("Ticks",&len,1,4)) {
                       if (len<1) len=1;
@@ -4821,7 +4821,7 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->gb.get_gb_hw_seq(i, true)->data=len-1;
+                      ins->gb.hwSeq[i].data=len-1;
                       PARAMETER;
                     }
                     break;
@@ -4831,7 +4831,7 @@ void FurnaceGUI::drawInsEdit() {
                     break;
                   case DivInstrumentGB::DIV_GB_HWCMD_LOOP:
                   case DivInstrumentGB::DIV_GB_HWCMD_LOOP_REL: {
-                    int pos=ins->gb.get_gb_hw_seq(i, true)->data;
+                    int pos=ins->gb.hwSeq[i].data;
 
                     if (ImGui::InputInt("Position",&pos,1,1)) {
                       if (pos<0) pos=0;
@@ -4840,7 +4840,7 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->gb.get_gb_hw_seq(i, true)->data=pos;
+                      ins->gb.hwSeq[i].data=pos;
                       PARAMETER;
                     }
                     break;
@@ -4854,13 +4854,13 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::Button(ICON_FA_CHEVRON_UP "##HWCmdUp")) {
                   if (i>0) {
                     e->lockEngine([ins,i]() {
-                      ins->gb.get_gb_hw_seq(i - 1, true)->cmd^=ins->gb.get_gb_hw_seq(i, true)->cmd;
-                      ins->gb.get_gb_hw_seq(i, true)->cmd^=ins->gb.get_gb_hw_seq(i - 1, true)->cmd;
-                      ins->gb.get_gb_hw_seq(i - 1, true)->cmd^=ins->gb.get_gb_hw_seq(i, true)->cmd;
+                      ins->gb.hwSeq[i-1].cmd^=ins->gb.hwSeq[i].cmd;
+                      ins->gb.hwSeq[i].cmd^=ins->gb.hwSeq[i-1].cmd;
+                      ins->gb.hwSeq[i-1].cmd^=ins->gb.hwSeq[i].cmd;
 
-                      ins->gb.get_gb_hw_seq(i - 1, true)->data^=ins->gb.get_gb_hw_seq(i, true)->data;
-                      ins->gb.get_gb_hw_seq(i, true)->data^=ins->gb.get_gb_hw_seq(i - 1, true)->data;
-                      ins->gb.get_gb_hw_seq(i - 1, true)->data^=ins->gb.get_gb_hw_seq(i, true)->data;
+                      ins->gb.hwSeq[i-1].data^=ins->gb.hwSeq[i].data;
+                      ins->gb.hwSeq[i].data^=ins->gb.hwSeq[i-1].data;
+                      ins->gb.hwSeq[i-1].data^=ins->gb.hwSeq[i].data;
                     });
                   }
                   MARK_MODIFIED;
@@ -4869,13 +4869,13 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::Button(ICON_FA_CHEVRON_DOWN "##HWCmdDown")) {
                   if (i<ins->gb.hwSeqLen-1) {
                     e->lockEngine([ins,i]() {
-                      ins->gb.get_gb_hw_seq(i + 1, true)->cmd^=ins->gb.get_gb_hw_seq(i, true)->cmd;
-                      ins->gb.get_gb_hw_seq(i, true)->cmd^=ins->gb.get_gb_hw_seq(i, true)->cmd;
-                      ins->gb.get_gb_hw_seq(i + 1, true)->cmd^=ins->gb.get_gb_hw_seq(i, true)->cmd;
+                      ins->gb.hwSeq[i+1].cmd^=ins->gb.hwSeq[i].cmd;
+                      ins->gb.hwSeq[i].cmd^=ins->gb.hwSeq[i+1].cmd;
+                      ins->gb.hwSeq[i+1].cmd^=ins->gb.hwSeq[i].cmd;
 
-                      ins->gb.get_gb_hw_seq(i + 1, true)->data^=ins->gb.get_gb_hw_seq(i, true)->data;
-                      ins->gb.get_gb_hw_seq(i, true)->data^=ins->gb.get_gb_hw_seq(i, true)->data;
-                      ins->gb.get_gb_hw_seq(i + 1, true)->data^=ins->gb.get_gb_hw_seq(i, true)->data;
+                      ins->gb.hwSeq[i+1].data^=ins->gb.hwSeq[i].data;
+                      ins->gb.hwSeq[i].data^=ins->gb.hwSeq[i+1].data;
+                      ins->gb.hwSeq[i+1].data^=ins->gb.hwSeq[i].data;
                     });
                   }
                   MARK_MODIFIED;
@@ -4884,8 +4884,8 @@ void FurnaceGUI::drawInsEdit() {
                 pushDestColor();
                 if (ImGui::Button(ICON_FA_TIMES "##HWCmdDel")) {
                   for (int j=i; j<ins->gb.hwSeqLen-1; j++) {
-                    ins->gb.get_gb_hw_seq(j, true)->cmd=ins->gb.get_gb_hw_seq(j+1, true)->cmd;
-                    ins->gb.get_gb_hw_seq(j, true)->data=ins->gb.get_gb_hw_seq(j+1, true)->data;
+                    ins->gb.hwSeq[j].cmd=ins->gb.hwSeq[j+1].cmd;
+                    ins->gb.hwSeq[j].data=ins->gb.hwSeq[j+1].data;
                   }
                   ins->gb.hwSeqLen--;
                 }
@@ -4897,8 +4897,8 @@ void FurnaceGUI::drawInsEdit() {
 
             if (ImGui::Button(ICON_FA_PLUS "##HWCmdAdd")) {
               if (ins->gb.hwSeqLen<255) {
-                ins->gb.get_gb_hw_seq(ins->gb.hwSeqLen, true)->cmd=0;
-                ins->gb.get_gb_hw_seq(ins->gb.hwSeqLen, true)->data=0;
+                ins->gb.hwSeq[ins->gb.hwSeqLen].cmd=0;
+                ins->gb.hwSeq[ins->gb.hwSeqLen].data=0;
                 ins->gb.hwSeqLen++;
               }
             }
@@ -5056,28 +5056,28 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::Text("%d (#%d)",curFrame,i);
                 ImGui::TableNextColumn();
                 ImGui::PushID(i);
-                if (ins->su.get_su_hw_seq(i, true)->cmd>=DivInstrumentSoundUnit::DIV_SU_HWCMD_MAX) {
-                  ins->su.get_su_hw_seq(i, true)->cmd=0;
+                if (ins->su.hwSeq[i].cmd>=DivInstrumentSoundUnit::DIV_SU_HWCMD_MAX) {
+                  ins->su.hwSeq[i].cmd=0;
                 }
-                int cmd=ins->su.get_su_hw_seq(i, true)->cmd;
+                int cmd=ins->su.hwSeq[i].cmd;
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 if (ImGui::Combo("##HWSeqCmd",&cmd,suHWSeqCmdTypes,DivInstrumentSoundUnit::DIV_SU_HWCMD_MAX)) {
-                  if (ins->su.get_su_hw_seq(i, true)->cmd!=cmd) {
-                    ins->su.get_su_hw_seq(i, true)->cmd=cmd;
-                    ins->su.get_su_hw_seq(i, true)->val=0;
-                    ins->su.get_su_hw_seq(i, true)->bound=0;
-                    ins->su.get_su_hw_seq(i, true)->speed=0;
+                  if (ins->su.hwSeq[i].cmd!=cmd) {
+                    ins->su.hwSeq[i].cmd=cmd;
+                    ins->su.hwSeq[i].val=0;
+                    ins->su.hwSeq[i].bound=0;
+                    ins->su.hwSeq[i].speed=0;
                   }
                 }
                 bool somethingChanged=false;
-                switch (ins->su.get_su_hw_seq(i, true)->cmd) {
+                switch (ins->su.hwSeq[i].cmd) {
                   case DivInstrumentSoundUnit::DIV_SU_HWCMD_VOL: {
-                    int swPeriod=ins->su.get_su_hw_seq(i, true)->speed;
-                    int swBound=ins->su.get_su_hw_seq(i, true)->bound;
-                    int swVal=ins->su.get_su_hw_seq(i, true)->val&31;
-                    bool swDir=ins->su.get_su_hw_seq(i, true)->val&32;
-                    bool swLoop=ins->su.get_su_hw_seq(i, true)->val&64;
-                    bool swInvert=ins->su.get_su_hw_seq(i, true)->val&128;
+                    int swPeriod=ins->su.hwSeq[i].speed;
+                    int swBound=ins->su.hwSeq[i].bound;
+                    int swVal=ins->su.hwSeq[i].val&31;
+                    bool swDir=ins->su.hwSeq[i].val&32;
+                    bool swLoop=ins->su.hwSeq[i].val&64;
+                    bool swInvert=ins->su.hwSeq[i].val&128;
 
                     if (ImGui::InputInt("Period",&swPeriod,1,16)) {
                       if (swPeriod<0) swPeriod=0;
@@ -5108,19 +5108,19 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->su.get_su_hw_seq(i, true)->speed=swPeriod;
-                      ins->su.get_su_hw_seq(i, true)->bound=swBound;
-                      ins->su.get_su_hw_seq(i, true)->val=(swVal&31)|(swDir?32:0)|(swLoop?64:0)|(swInvert?128:0);
+                      ins->su.hwSeq[i].speed=swPeriod;
+                      ins->su.hwSeq[i].bound=swBound;
+                      ins->su.hwSeq[i].val=(swVal&31)|(swDir?32:0)|(swLoop?64:0)|(swInvert?128:0);
                       PARAMETER;
                     }
                     break;
                   }
                   case DivInstrumentSoundUnit::DIV_SU_HWCMD_PITCH:
                   case DivInstrumentSoundUnit::DIV_SU_HWCMD_CUT: {
-                    int swPeriod=ins->su.get_su_hw_seq(i, true)->speed;
-                    int swBound=ins->su.get_su_hw_seq(i, true)->bound;
-                    int swVal=ins->su.get_su_hw_seq(i, true)->val&127;
-                    bool swDir=ins->su.get_su_hw_seq(i, true)->val&128;
+                    int swPeriod=ins->su.hwSeq[i].speed;
+                    int swBound=ins->su.hwSeq[i].bound;
+                    int swVal=ins->su.hwSeq[i].val&127;
+                    bool swDir=ins->su.hwSeq[i].val&128;
 
                     if (ImGui::InputInt("Period",&swPeriod,1,16)) {
                       if (swPeriod<0) swPeriod=0;
@@ -5144,16 +5144,16 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->su.get_su_hw_seq(i, true)->speed=swPeriod;
-                      ins->su.get_su_hw_seq(i, true)->bound=swBound;
-                      ins->su.get_su_hw_seq(i, true)->val=(swVal&127)|(swDir?128:0);
+                      ins->su.hwSeq[i].speed=swPeriod;
+                      ins->su.hwSeq[i].bound=swBound;
+                      ins->su.hwSeq[i].val=(swVal&127)|(swDir?128:0);
                       PARAMETER;
                     }
                     break;
                   }
                   case DivInstrumentSoundUnit::DIV_SU_HWCMD_WAIT: {
-                    int len=ins->su.get_su_hw_seq(i, true)->val+1;
-                    curFrame+=ins->su.get_su_hw_seq(i, true)->val+1;
+                    int len=ins->su.hwSeq[i].val+1;
+                    curFrame+=ins->su.hwSeq[i].val+1;
 
                     if (ImGui::InputInt("Ticks",&len)) {
                       if (len<1) len=1;
@@ -5162,7 +5162,7 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->su.get_su_hw_seq(i, true)->val=len-1;
+                      ins->su.hwSeq[i].val=len-1;
                       PARAMETER;
                     }
                     break;
@@ -5172,7 +5172,7 @@ void FurnaceGUI::drawInsEdit() {
                     break;
                   case DivInstrumentSoundUnit::DIV_SU_HWCMD_LOOP:
                   case DivInstrumentSoundUnit::DIV_SU_HWCMD_LOOP_REL: {
-                    int pos=ins->su.get_su_hw_seq(i, true)->val;
+                    int pos=ins->su.hwSeq[i].val;
 
                     if (ImGui::InputInt("Position",&pos,1,4)) {
                       if (pos<0) pos=0;
@@ -5181,7 +5181,7 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     if (somethingChanged) {
-                      ins->su.get_su_hw_seq(i, true)->val=pos;
+                      ins->su.hwSeq[i].val=pos;
                       PARAMETER;
                     }
                     break;
@@ -5195,21 +5195,21 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::Button(ICON_FA_CHEVRON_UP "##HWCmdUp")) {
                   if (i>0) {
                     e->lockEngine([ins,i]() {
-                      ins->su.get_su_hw_seq(i - 1, true)->cmd^=ins->su.get_su_hw_seq(i, true)->cmd;
-                      ins->su.get_su_hw_seq(i, true)->cmd^=ins->su.get_su_hw_seq(i - 1, true)->cmd;
-                      ins->su.get_su_hw_seq(i - 1, true)->cmd^=ins->su.get_su_hw_seq(i, true)->cmd;
+                      ins->su.hwSeq[i-1].cmd^=ins->su.hwSeq[i].cmd;
+                      ins->su.hwSeq[i].cmd^=ins->su.hwSeq[i-1].cmd;
+                      ins->su.hwSeq[i-1].cmd^=ins->su.hwSeq[i].cmd;
 
-                      ins->su.get_su_hw_seq(i - 1, true)->speed^=ins->su.get_su_hw_seq(i, true)->speed;
-                      ins->su.get_su_hw_seq(i, true)->speed^=ins->su.get_su_hw_seq(i - 1, true)->speed;
-                      ins->su.get_su_hw_seq(i - 1, true)->speed^=ins->su.get_su_hw_seq(i, true)->speed;
+                      ins->su.hwSeq[i-1].speed^=ins->su.hwSeq[i].speed;
+                      ins->su.hwSeq[i].speed^=ins->su.hwSeq[i-1].speed;
+                      ins->su.hwSeq[i-1].speed^=ins->su.hwSeq[i].speed;
 
-                      ins->su.get_su_hw_seq(i - 1, true)->val^=ins->su.get_su_hw_seq(i, true)->val;
-                      ins->su.get_su_hw_seq(i, true)->val^=ins->su.get_su_hw_seq(i - 1, true)->val;
-                      ins->su.get_su_hw_seq(i - 1, true)->val^=ins->su.get_su_hw_seq(i, true)->val;
+                      ins->su.hwSeq[i-1].val^=ins->su.hwSeq[i].val;
+                      ins->su.hwSeq[i].val^=ins->su.hwSeq[i-1].val;
+                      ins->su.hwSeq[i-1].val^=ins->su.hwSeq[i].val;
 
-                      ins->su.get_su_hw_seq(i - 1, true)->bound^=ins->su.get_su_hw_seq(i, true)->bound;
-                      ins->su.get_su_hw_seq(i, true)->bound^=ins->su.get_su_hw_seq(i - 1, true)->bound;
-                      ins->su.get_su_hw_seq(i - 1, true)->bound^=ins->su.get_su_hw_seq(i, true)->bound;
+                      ins->su.hwSeq[i-1].bound^=ins->su.hwSeq[i].bound;
+                      ins->su.hwSeq[i].bound^=ins->su.hwSeq[i-1].bound;
+                      ins->su.hwSeq[i-1].bound^=ins->su.hwSeq[i].bound;
                     });
                   }
                   MARK_MODIFIED;
@@ -5218,21 +5218,21 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::Button(ICON_FA_CHEVRON_DOWN "##HWCmdDown")) {
                   if (i<ins->su.hwSeqLen-1) {
                     e->lockEngine([ins,i]() {
-                      ins->su.get_su_hw_seq(i + 1, true)->cmd^=ins->su.get_su_hw_seq(i, true)->cmd;
-                      ins->su.get_su_hw_seq(i, true)->cmd^=ins->su.get_su_hw_seq(i + 1, true)->cmd;
-                      ins->su.get_su_hw_seq(i + 1, true)->cmd^=ins->su.get_su_hw_seq(i, true)->cmd;
+                      ins->su.hwSeq[i+1].cmd^=ins->su.hwSeq[i].cmd;
+                      ins->su.hwSeq[i].cmd^=ins->su.hwSeq[i+1].cmd;
+                      ins->su.hwSeq[i+1].cmd^=ins->su.hwSeq[i].cmd;
 
-                      ins->su.get_su_hw_seq(i + 1, true)->speed^=ins->su.get_su_hw_seq(i, true)->speed;
-                      ins->su.get_su_hw_seq(i, true)->speed^=ins->su.get_su_hw_seq(i + 1, true)->speed;
-                      ins->su.get_su_hw_seq(i + 1, true)->speed^=ins->su.get_su_hw_seq(i, true)->speed;
+                      ins->su.hwSeq[i+1].speed^=ins->su.hwSeq[i].speed;
+                      ins->su.hwSeq[i].speed^=ins->su.hwSeq[i+1].speed;
+                      ins->su.hwSeq[i+1].speed^=ins->su.hwSeq[i].speed;
 
-                      ins->su.get_su_hw_seq(i + 1, true)->val^=ins->su.get_su_hw_seq(i, true)->val;
-                      ins->su.get_su_hw_seq(i, true)->val^=ins->su.get_su_hw_seq(i + 1, true)->val;
-                      ins->su.get_su_hw_seq(i + 1, true)->val^=ins->su.get_su_hw_seq(i, true)->val;
+                      ins->su.hwSeq[i+1].val^=ins->su.hwSeq[i].val;
+                      ins->su.hwSeq[i].val^=ins->su.hwSeq[i+1].val;
+                      ins->su.hwSeq[i+1].val^=ins->su.hwSeq[i].val;
 
-                      ins->su.get_su_hw_seq(i + 1, true)->bound^=ins->su.get_su_hw_seq(i, true)->bound;
-                      ins->su.get_su_hw_seq(i, true)->bound^=ins->su.get_su_hw_seq(i + 1, true)->bound;
-                      ins->su.get_su_hw_seq(i + 1, true)->bound^=ins->su.get_su_hw_seq(i, true)->bound;
+                      ins->su.hwSeq[i+1].bound^=ins->su.hwSeq[i].bound;
+                      ins->su.hwSeq[i].bound^=ins->su.hwSeq[i+1].bound;
+                      ins->su.hwSeq[i+1].bound^=ins->su.hwSeq[i].bound;
                     });
                   }
                   MARK_MODIFIED;
@@ -5241,10 +5241,10 @@ void FurnaceGUI::drawInsEdit() {
                 pushDestColor();
                 if (ImGui::Button(ICON_FA_TIMES "##HWCmdDel")) {
                   for (int j=i; j<ins->su.hwSeqLen-1; j++) {
-                    ins->su.get_su_hw_seq(j, true)->cmd=ins->su.get_su_hw_seq(j+1, true)->cmd;
-                    ins->su.get_su_hw_seq(j, true)->speed=ins->su.get_su_hw_seq(j+1, true)->speed;
-                    ins->su.get_su_hw_seq(j, true)->val=ins->su.get_su_hw_seq(j+1, true)->val;
-                    ins->su.get_su_hw_seq(j, true)->bound=ins->su.get_su_hw_seq(j+1, true)->bound;
+                    ins->su.hwSeq[j].cmd=ins->su.hwSeq[j+1].cmd;
+                    ins->su.hwSeq[j].speed=ins->su.hwSeq[j+1].speed;
+                    ins->su.hwSeq[j].val=ins->su.hwSeq[j+1].val;
+                    ins->su.hwSeq[j].bound=ins->su.hwSeq[j+1].bound;
                   }
                   ins->su.hwSeqLen--;
                 }
@@ -5256,10 +5256,10 @@ void FurnaceGUI::drawInsEdit() {
 
             if (ImGui::Button(ICON_FA_PLUS "##HWCmdAdd")) {
               if (ins->su.hwSeqLen<255) {
-                ins->su.get_su_hw_seq(ins->su.hwSeqLen, true)->cmd=0;
-                ins->su.get_su_hw_seq(ins->su.hwSeqLen, true)->speed=0;
-                ins->su.get_su_hw_seq(ins->su.hwSeqLen, true)->val=0;
-                ins->su.get_su_hw_seq(ins->su.hwSeqLen, true)->bound=0;
+                ins->su.hwSeq[ins->su.hwSeqLen].cmd=0;
+                ins->su.hwSeq[ins->su.hwSeqLen].speed=0;
+                ins->su.hwSeq[ins->su.hwSeqLen].val=0;
+                ins->su.hwSeq[ins->su.hwSeqLen].bound=0;
                 ins->su.hwSeqLen++;
               }
             }

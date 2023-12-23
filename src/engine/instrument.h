@@ -397,38 +397,10 @@ struct DivInstrumentGB {
 
     DIV_GB_HWCMD_MAX
   };
-
-  typedef struct {
+  struct HWSeqCommandGB {
     unsigned char cmd;
     unsigned short data;
-  } HWSeqCommandGB;
-
-  HWSeqCommandGB* hwSeq;
-
-  HWSeqCommandGB* get_gb_hw_seq(int i, bool allocate)
-  {
-    static HWSeqCommandGB dummy;
-
-    if(hwSeq != NULL)
-    {
-      return &hwSeq[i];
-    }
-
-    else
-    {
-      if(allocate)
-      {
-        hwSeq = new HWSeqCommandGB[256];
-        return &hwSeq[i];
-      }
-
-      else
-      {
-        memset(&dummy, 0, sizeof(dummy));
-        return &dummy;
-      }
-    }
-  }
+  } hwSeq[256];
 
   bool operator==(const DivInstrumentGB& other);
   bool operator!=(const DivInstrumentGB& other) {
@@ -443,15 +415,7 @@ struct DivInstrumentGB {
     hwSeqLen(0),
     softEnv(false),
     alwaysInit(false) {
-    hwSeq = NULL;
-  }
-
-  ~DivInstrumentGB()
-  {
-    if(hwSeq != NULL)
-    {
-      delete hwSeq;
-    }
+    memset(hwSeq,0,256*sizeof(HWSeqCommandGB));
   }
 };
 
@@ -512,40 +476,7 @@ struct DivInstrumentAmiga {
   bool useSample;
   bool useWave;
   unsigned char waveLen;
-  SampleMap* noteMap;
-
-  ~DivInstrumentAmiga()
-  {
-    if(noteMap != NULL)
-    {
-      delete noteMap;
-    }
-  }
-
-  SampleMap* get_amiga_sample_map(int i, bool allocate)
-  {
-    static SampleMap dummy;
-
-    if(noteMap != NULL)
-    {
-      return &noteMap[i];
-    }
-
-    else
-    {
-      if(allocate)
-      {
-        noteMap = new SampleMap[120];
-        return &noteMap[i];
-      }
-
-      else
-      {
-        memset(&dummy, 0, sizeof(dummy));
-        return &dummy;
-      }
-    }
-  }
+  SampleMap noteMap[120];
 
   bool operator==(const DivInstrumentAmiga& other);
   bool operator!=(const DivInstrumentAmiga& other) {
@@ -610,7 +541,10 @@ struct DivInstrumentAmiga {
     useSample(false),
     useWave(false),
     waveLen(31) {
-    noteMap = NULL;
+    for (int i=0; i<120; i++) {
+      noteMap[i].map=-1;
+      noteMap[i].freq=i;
+    }
   }
 };
 
@@ -752,15 +686,13 @@ struct DivInstrumentSoundUnit {
 
     DIV_SU_HWCMD_MAX
   };
-  typedef struct HWSeqCommandSU {
+  struct HWSeqCommandSU {
     unsigned char cmd;
     unsigned char bound;
     unsigned char val;
     unsigned short speed;
     unsigned short padding;
-  } HWSeqCommandSU;
-
-  HWSeqCommandSU* hwSeq;
+  } hwSeq[256];
 
   bool operator==(const DivInstrumentSoundUnit& other);
   bool operator!=(const DivInstrumentSoundUnit& other) {
@@ -770,40 +702,7 @@ struct DivInstrumentSoundUnit {
   DivInstrumentSoundUnit():
     switchRoles(false),
     hwSeqLen(0) {
-    hwSeq = NULL;
-  }
-
-  ~DivInstrumentSoundUnit()
-  {
-    if(hwSeq != NULL)
-    {
-      delete hwSeq;
-    }
-  }
-
-  HWSeqCommandSU* get_su_hw_seq(int i, bool allocate)
-  {
-    static HWSeqCommandSU dummy;
-
-    if(hwSeq != NULL)
-    {
-      return &hwSeq[i];
-    }
-
-    else
-    {
-      if(allocate)
-      {
-        hwSeq = new HWSeqCommandSU[256];
-        return &hwSeq[i];
-      }
-
-      else
-      {
-        memset(&dummy, 0, sizeof(dummy));
-        return &dummy;
-      }
-    }
+    memset(hwSeq,0,256*sizeof(HWSeqCommandSU));
   }
 };
 
