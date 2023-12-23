@@ -3754,7 +3754,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   settings.pullDeleteBehavior=conf.getInt("pullDeleteBehavior",1);
   settings.wrapHorizontal=conf.getInt("wrapHorizontal",0);
   settings.wrapVertical=conf.getInt("wrapVertical",0);
-  settings.macroView=conf.getInt("macroView",0);
   settings.fmNames=conf.getInt("fmNames",0);
   settings.allowEditDocking=conf.getInt("allowEditDocking",1);
   settings.chipNames=conf.getInt("chipNames",0);
@@ -3938,7 +3937,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.pullDeleteBehavior,0,1);
   clampSetting(settings.wrapHorizontal,0,2);
   clampSetting(settings.wrapVertical,0,3);
-  clampSetting(settings.macroView,0,1);
   clampSetting(settings.fmNames,0,2);
   clampSetting(settings.allowEditDocking,0,1);
   clampSetting(settings.chipNames,0,1);
@@ -4146,6 +4144,32 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("defaultAuthorName",settings.defaultAuthorName);
 
     conf.set("hiddenSystems",settings.hiddenSystems);
+    conf.set("allowEditDocking",settings.allowEditDocking);
+    conf.set("sysFileDialog",settings.sysFileDialog);
+    conf.set("displayAllInsTypes",settings.displayAllInsTypes);
+    conf.set("displayPartial",settings.displayPartial);
+
+    conf.set("blankIns",settings.blankIns);
+
+    conf.set("saveWindowPos",settings.saveWindowPos);
+    
+    conf.set("saveUnusedPatterns",settings.saveUnusedPatterns);
+    conf.set("maxRecentFile",settings.maxRecentFile);
+    
+    conf.set("persistFadeOut",settings.persistFadeOut);
+    conf.set("exportLoops",settings.exportLoops);
+    conf.set("exportFadeOut",settings.exportFadeOut);
+
+    conf.set("doubleClickTime",settings.doubleClickTime);
+    conf.set("disableFadeIn",settings.disableFadeIn);
+    conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
+    conf.set("iCannotWait",settings.iCannotWait);
+
+    conf.set("compress",settings.compress);
+    conf.set("newPatternFormat",settings.newPatternFormat);
+    conf.set("newSongBehavior",settings.newSongBehavior);
+    conf.set("playOnLoad",settings.playOnLoad);
+    conf.set("centerPopup",settings.centerPopup);
   }
 
   // audio
@@ -4169,6 +4193,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("wasapiEx",settings.wasapiEx);
 
     conf.set("clampSamples",settings.clampSamples);
+    conf.set("forceMono",settings.forceMono);
   }
 
   // MIDI
@@ -4193,7 +4218,44 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
   // behavior
   if (groups&GUI_SETTINGS_BEHAVIOR) {
+    conf.set("soloAction",settings.soloAction);
+    conf.set("pullDeleteBehavior",settings.pullDeleteBehavior);
+    conf.set("wrapHorizontal",settings.wrapHorizontal);
+    conf.set("wrapVertical",settings.wrapVertical);
+    
+    conf.set("stepOnDelete",settings.stepOnDelete);
+    conf.set("scrollStep",settings.scrollStep);
+    conf.set("avoidRaisingPattern",settings.avoidRaisingPattern);
+    conf.set("insFocusesPattern",settings.insFocusesPattern);
+    conf.set("stepOnInsert",settings.stepOnInsert);
+    conf.set("effectCursorDir",settings.effectCursorDir);
+    conf.set("cursorPastePos",settings.cursorPastePos);
+    
+    conf.set("effectDeletionAltersValue",settings.effectDeletionAltersValue);
 
+    conf.set("pushNibble",settings.pushNibble);
+    conf.set("scrollChangesOrder",settings.scrollChangesOrder);
+    conf.set("cursorMoveNoScroll",settings.cursorMoveNoScroll);
+
+    conf.set("notePreviewBehavior",settings.notePreviewBehavior);
+    
+    conf.set("absorbInsInput",settings.absorbInsInput);
+    
+    conf.set("moveWindowTitle",settings.moveWindowTitle);
+    
+    conf.set("doubleClickColumn",settings.doubleClickColumn);
+    conf.set("dragMovesSelection",settings.dragMovesSelection);
+    
+    conf.set("cursorFollowsOrder",settings.cursorFollowsOrder);
+    
+    conf.set("insertBehavior",settings.insertBehavior);
+    conf.set("pullDeleteRow",settings.pullDeleteRow);
+    conf.set("cursorFollowsWheel",settings.cursorFollowsWheel);
+    conf.set("removeInsOff",settings.removeInsOff);
+    conf.set("removeVolOff",settings.removeVolOff);
+    conf.set("insTypeMenu",settings.insTypeMenu);
+    
+    conf.set("selectAssetOnLoad",settings.selectAssetOnLoad);
   }
 
   // font
@@ -4265,6 +4327,31 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("volCellSpacing",settings.volCellSpacing);
     conf.set("effectCellSpacing",settings.effectCellSpacing);
     conf.set("effectValCellSpacing",settings.effectValCellSpacing);
+
+    conf.set("patRowsBase",settings.patRowsBase);
+    conf.set("orderRowsBase",settings.orderRowsBase);
+    conf.set("fmNames",settings.fmNames);
+    conf.set("statusDisplay",settings.statusDisplay);
+    conf.set("viewPrevPattern",settings.viewPrevPattern);
+    conf.set("susPosition",settings.susPosition);
+
+    conf.set("titleBarInfo",settings.titleBarInfo);
+    conf.set("titleBarSys",settings.titleBarSys);
+
+    conf.set("oplStandardWaveNames",settings.oplStandardWaveNames);
+
+    conf.set("horizontalDataView",settings.horizontalDataView);
+    conf.set("noMultiSystem",settings.noMultiSystem);
+    conf.set("oldMacroVSlider",settings.oldMacroVSlider);
+    conf.set("unsignedDetune",settings.unsignedDetune);
+    conf.set("centerPattern",settings.centerPattern);
+    conf.set("ordersCursor",settings.ordersCursor);
+    conf.set("oneDigitEffects",settings.oneDigitEffects);
+    conf.set("orderButtonPos",settings.orderButtonPos);
+    conf.set("memUsageUnit",settings.memUsageUnit);
+    conf.set("capitalMenuBar",settings.capitalMenuBar);
+    conf.set("insIconsStyle",settings.insIconsStyle);
+    conf.set("sysSeparators",settings.sysSeparators);
   }
 
   // layout
@@ -4273,6 +4360,10 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("sampleLayout",settings.sampleLayout);
     conf.set("waveLayout",settings.waveLayout);
     conf.set("exportOptionsLayout",settings.exportOptionsLayout);
+    conf.set("unifiedDataView",settings.unifiedDataView);
+    conf.set("macroLayout",settings.macroLayout);
+    conf.set("controlLayout",settings.controlLayout);
+    conf.set("classicChipOptions",settings.classicChipOptions);
   }
 
   // color
@@ -4316,95 +4407,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("tg100Path",settings.tg100Path);
     conf.set("mu5Path",settings.mu5Path);
   }
-
-    conf.set("patRowsBase",settings.patRowsBase);
-    conf.set("orderRowsBase",settings.orderRowsBase);
-    conf.set("soloAction",settings.soloAction);
-    conf.set("pullDeleteBehavior",settings.pullDeleteBehavior);
-    conf.set("wrapHorizontal",settings.wrapHorizontal);
-    conf.set("wrapVertical",settings.wrapVertical);
-    conf.set("macroView",settings.macroView);
-    conf.set("fmNames",settings.fmNames);
-    conf.set("allowEditDocking",settings.allowEditDocking);
-    
-    conf.set("stepOnDelete",settings.stepOnDelete);
-    conf.set("scrollStep",settings.scrollStep);
-    conf.set("sysSeparators",settings.sysSeparators);
-    conf.set("forceMono",settings.forceMono);
-    conf.set("controlLayout",settings.controlLayout);
-    conf.set("statusDisplay",settings.statusDisplay);
-    conf.set("viewPrevPattern",settings.viewPrevPattern);
-    conf.set("avoidRaisingPattern",settings.avoidRaisingPattern);
-    conf.set("insFocusesPattern",settings.insFocusesPattern);
-    conf.set("stepOnInsert",settings.stepOnInsert);
-    conf.set("unifiedDataView",settings.unifiedDataView);
-    conf.set("sysFileDialog",settings.sysFileDialog);
-    conf.set("susPosition",settings.susPosition);
-    conf.set("effectCursorDir",settings.effectCursorDir);
-    conf.set("cursorPastePos",settings.cursorPastePos);
-    conf.set("titleBarInfo",settings.titleBarInfo);
-    conf.set("titleBarSys",settings.titleBarSys);
-    
-    conf.set("effectDeletionAltersValue",settings.effectDeletionAltersValue);
-
-   
-    conf.set("pushNibble",settings.pushNibble);
-    conf.set("scrollChangesOrder",settings.scrollChangesOrder);
-    conf.set("oplStandardWaveNames",settings.oplStandardWaveNames);
-    conf.set("cursorMoveNoScroll",settings.cursorMoveNoScroll);
-
-    conf.set("notePreviewBehavior",settings.notePreviewBehavior);
-    
-    conf.set("absorbInsInput",settings.absorbInsInput);
-    
-    conf.set("moveWindowTitle",settings.moveWindowTitle);
-    
-    conf.set("horizontalDataView",settings.horizontalDataView);
-    conf.set("noMultiSystem",settings.noMultiSystem);
-    conf.set("oldMacroVSlider",settings.oldMacroVSlider);
-    conf.set("displayAllInsTypes",settings.displayAllInsTypes);
-    conf.set("displayPartial",settings.displayPartial);
-    conf.set("doubleClickColumn",settings.doubleClickColumn);
-    conf.set("blankIns",settings.blankIns);
-    conf.set("dragMovesSelection",settings.dragMovesSelection);
-    conf.set("unsignedDetune",settings.unsignedDetune);
-    
-    conf.set("saveWindowPos",settings.saveWindowPos);
-    
-    conf.set("saveUnusedPatterns",settings.saveUnusedPatterns);
-    conf.set("maxRecentFile",settings.maxRecentFile);
-    
-    conf.set("centerPattern",settings.centerPattern);
-    conf.set("ordersCursor",settings.ordersCursor);
-    conf.set("persistFadeOut",settings.persistFadeOut);
-    conf.set("exportLoops",settings.exportLoops);
-    conf.set("exportFadeOut",settings.exportFadeOut);
-    conf.set("macroLayout",settings.macroLayout);
-    conf.set("doubleClickTime",settings.doubleClickTime);
-    conf.set("oneDigitEffects",settings.oneDigitEffects);
-    conf.set("disableFadeIn",settings.disableFadeIn);
-    conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
-    conf.set("cursorFollowsOrder",settings.cursorFollowsOrder);
-    conf.set("iCannotWait",settings.iCannotWait);
-    conf.set("orderButtonPos",settings.orderButtonPos);
-    conf.set("compress",settings.compress);
-    conf.set("newPatternFormat",settings.newPatternFormat);
-    
-    conf.set("insertBehavior",settings.insertBehavior);
-    conf.set("pullDeleteRow",settings.pullDeleteRow);
-    conf.set("newSongBehavior",settings.newSongBehavior);
-    conf.set("memUsageUnit",settings.memUsageUnit);
-    conf.set("cursorFollowsWheel",settings.cursorFollowsWheel);
-    conf.set("removeInsOff",settings.removeInsOff);
-    conf.set("removeVolOff",settings.removeVolOff);
-    conf.set("playOnLoad",settings.playOnLoad);
-    conf.set("insTypeMenu",settings.insTypeMenu);
-    conf.set("capitalMenuBar",settings.capitalMenuBar);
-    conf.set("centerPopup",settings.centerPopup);
-    conf.set("insIconsStyle",settings.insIconsStyle);
-    conf.set("classicChipOptions",settings.classicChipOptions);
-    
-    conf.set("selectAssetOnLoad",settings.selectAssetOnLoad);
 }
 
 void FurnaceGUI::syncSettings() {
