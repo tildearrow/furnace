@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev189"
-#define DIV_ENGINE_VERSION 189
+#define DIV_VERSION "dev190"
+#define DIV_ENGINE_VERSION 190
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -701,6 +701,9 @@ class DivEngine {
     float getConfFloat(String key, float fallback);
     double getConfDouble(String key, double fallback);
     String getConfString(String key, String fallback);
+
+    // get config object
+    DivConfig& getConfObject();
 
     // set a config value
     void setConf(String key, bool value);

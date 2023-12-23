@@ -36,7 +36,6 @@
 #include "guiConst.h"
 #include "intConst.h"
 #include "scaling.h"
-#include "introTune.h"
 #include <stdint.h>
 #include <zlib.h>
 #include <fmt/printf.h>
@@ -572,7 +571,6 @@ void FurnaceGUI::setFileName(String name) {
 #endif
   updateWindowTitle();
   pushRecentFile(curFileName);
-  if (settings.alwaysPlayIntro==2) shortIntro=true;
 }
 
 void FurnaceGUI::updateWindowTitle() {
@@ -1016,16 +1014,6 @@ Size=305,557\n\
 Collapsed=0\n\
 DockId=0x00000018,0\n\
 \n\
-[Window][Intro]\n\
-Pos=0,0\n\
-Size=2560,1600\n\
-Collapsed=0\n\
-\n\
-[Window][Welcome]\n\
-Pos=944,666\n\
-Size=672,268\n\
-Collapsed=0\n\
-\n\
 [Window][Grooves]\n\
 Pos=416,314\n\
 Size=463,250\n\
@@ -1329,7 +1317,6 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   }
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
-  if (introPos<11.0 && !shortIntro) return;
   if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
 
@@ -2646,7 +2633,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true,true,selStart,selEnd);
   if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false,true,selStart,selEnd);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
-  if (!basicMode) if (ImGui::BeginMenu("paste special...")) {
+  if (ImGui::BeginMenu("paste special...")) {
     if (ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX))) doPaste(GUI_PASTE_MODE_MIX_FG);
     if (ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG))) doPaste(GUI_PASTE_MODE_MIX_BG);
     if (ImGui::BeginMenu("paste with ins (foreground)")) {
@@ -2683,164 +2670,162 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   ImGui::Separator();
 
-  if (!basicMode) {
-    if (ImGui::BeginMenu("operation mask...")) {
-      drawOpMask(opMaskDelete);
-      ImGui::SameLine();
-      ImGui::Text("delete");
-
-      drawOpMask(opMaskPullDelete);
-      ImGui::SameLine();
-      ImGui::Text("pull delete");
-
-      drawOpMask(opMaskInsert);
-      ImGui::SameLine();
-      ImGui::Text("insert");
-
-      drawOpMask(opMaskPaste);
-      ImGui::SameLine();
-      ImGui::Text("paste");
-
-      drawOpMask(opMaskTransposeNote);
-      ImGui::SameLine();
-      ImGui::Text("transpose (note)");
-
-      drawOpMask(opMaskTransposeValue);
-      ImGui::SameLine();
-      ImGui::Text("transpose (value)");
-
-      drawOpMask(opMaskInterpolate);
-      ImGui::SameLine();
-      ImGui::Text("interpolate");
-
-      drawOpMask(opMaskFade);
-      ImGui::SameLine();
-      ImGui::Text("fade");
-
-      drawOpMask(opMaskInvertVal);
-      ImGui::SameLine();
-      ImGui::Text("invert values");
-
-      drawOpMask(opMaskScale);
-      ImGui::SameLine();
-      ImGui::Text("scale");
-
-      drawOpMask(opMaskRandomize);
-      ImGui::SameLine();
-      ImGui::Text("randomize");
-
-      drawOpMask(opMaskFlip);
-      ImGui::SameLine();
-      ImGui::Text("flip");
-
-      drawOpMask(opMaskCollapseExpand);
-      ImGui::SameLine();
-      ImGui::Text("collapse/expand");
-
-      ImGui::EndMenu();
-    }
-
-    ImGui::Text("input latch");
-    ImGui::PushFont(patFont);
-    if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
-      static char id[64];
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-      ImGui::Text("C-4");
-      ImGui::PopStyleColor();
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
-      if (latchIns==-2) {
-        strcpy(id,"&&##LatchIns");
-      } else if (latchIns==-1) {
-        strcpy(id,"..##LatchIns");
-      } else {
-        snprintf(id,63,"%.2x##LatchIns",latchIns&0xff);
-      }
-      if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=1;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchIns=-2;
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-        ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
-        ImGui::PopStyleColor();
-      }
-      ImGui::PopStyleColor();
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
-      if (latchVol==-1) {
-        strcpy(id,"..##LatchVol");
-      } else {
-        snprintf(id,63,"%.2x##LatchVol",latchVol&0xff);
-      }
-      if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=2;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchVol=-1;
-      }
-      ImGui::PopStyleColor();
-      ImGui::TableNextColumn();
-      if (latchEffect==-1) {
-        strcpy(id,"..##LatchFX");
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-      } else {
-        const unsigned char data=latchEffect;
-        snprintf(id,63,"%.2x##LatchFX",data);
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
-      }
-
-      if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=3;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchEffect=-1;
-      }
-      ImGui::TableNextColumn();
-      if (latchEffectVal==-1) {
-        strcpy(id,"..##LatchFXV");
-      } else {
-        snprintf(id,63,"%.2x##LatchFXV",latchEffectVal&0xff);
-      }
-      if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=4;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchEffectVal=-1;
-      }
-      ImGui::PopStyleColor();
-      ImGui::EndTable();
-    }
-    ImGui::PopFont();
+  if (ImGui::BeginMenu("operation mask...")) {
+    drawOpMask(opMaskDelete);
     ImGui::SameLine();
-    if (ImGui::Button("Set")) {
-      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
-      latchIns=pat->data[cursor.y][2];
-      latchVol=pat->data[cursor.y][3];
-      latchEffect=pat->data[cursor.y][4];
-      latchEffectVal=pat->data[cursor.y][5];
-      latchTarget=0;
-      latchNibble=false;
-    }
+    ImGui::Text("delete");
+
+    drawOpMask(opMaskPullDelete);
     ImGui::SameLine();
-    if (ImGui::Button("Reset")) {
-      latchIns=-2;
-      latchVol=-1;
-      latchEffect=-1;
-      latchEffectVal=-1;
-      latchTarget=0;
-      latchNibble=false;
-    }
-    ImGui::Separator();
+    ImGui::Text("pull delete");
+
+    drawOpMask(opMaskInsert);
+    ImGui::SameLine();
+    ImGui::Text("insert");
+
+    drawOpMask(opMaskPaste);
+    ImGui::SameLine();
+    ImGui::Text("paste");
+
+    drawOpMask(opMaskTransposeNote);
+    ImGui::SameLine();
+    ImGui::Text("transpose (note)");
+
+    drawOpMask(opMaskTransposeValue);
+    ImGui::SameLine();
+    ImGui::Text("transpose (value)");
+
+    drawOpMask(opMaskInterpolate);
+    ImGui::SameLine();
+    ImGui::Text("interpolate");
+
+    drawOpMask(opMaskFade);
+    ImGui::SameLine();
+    ImGui::Text("fade");
+
+    drawOpMask(opMaskInvertVal);
+    ImGui::SameLine();
+    ImGui::Text("invert values");
+
+    drawOpMask(opMaskScale);
+    ImGui::SameLine();
+    ImGui::Text("scale");
+
+    drawOpMask(opMaskRandomize);
+    ImGui::SameLine();
+    ImGui::Text("randomize");
+
+    drawOpMask(opMaskFlip);
+    ImGui::SameLine();
+    ImGui::Text("flip");
+
+    drawOpMask(opMaskCollapseExpand);
+    ImGui::SameLine();
+    ImGui::Text("collapse/expand");
+
+    ImGui::EndMenu();
   }
+
+  ImGui::Text("input latch");
+  ImGui::PushFont(patFont);
+  if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
+    static char id[64];
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+    ImGui::Text("C-4");
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+    if (latchIns==-2) {
+      strcpy(id,"&&##LatchIns");
+    } else if (latchIns==-1) {
+      strcpy(id,"..##LatchIns");
+    } else {
+      snprintf(id,63,"%.2x##LatchIns",latchIns&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=1;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchIns=-2;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
+      ImGui::PopStyleColor();
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
+    if (latchVol==-1) {
+      strcpy(id,"..##LatchVol");
+    } else {
+      snprintf(id,63,"%.2x##LatchVol",latchVol&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=2;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchVol=-1;
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    if (latchEffect==-1) {
+      strcpy(id,"..##LatchFX");
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+    } else {
+      const unsigned char data=latchEffect;
+      snprintf(id,63,"%.2x##LatchFX",data);
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+    }
+
+    if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=3;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchEffect=-1;
+    }
+    ImGui::TableNextColumn();
+    if (latchEffectVal==-1) {
+      strcpy(id,"..##LatchFXV");
+    } else {
+      snprintf(id,63,"%.2x##LatchFXV",latchEffectVal&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=4;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchEffectVal=-1;
+    }
+    ImGui::PopStyleColor();
+    ImGui::EndTable();
+  }
+  ImGui::PopFont();
+  ImGui::SameLine();
+  if (ImGui::Button("Set")) {
+    DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
+    latchIns=pat->data[cursor.y][2];
+    latchVol=pat->data[cursor.y][3];
+    latchEffect=pat->data[cursor.y][4];
+    latchEffectVal=pat->data[cursor.y][5];
+    latchTarget=0;
+    latchNibble=false;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Reset")) {
+    latchIns=-2;
+    latchVol=-1;
+    latchEffect=-1;
+    latchEffectVal=-1;
+    latchTarget=0;
+    latchNibble=false;
+  }
+  ImGui::Separator();
 
   if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1,opMaskTransposeNote);
   if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1,opMaskTransposeNote);
@@ -2886,104 +2871,102 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::EndMenu();
   }
 
-  if (!basicMode) {
-    if (ImGui::BeginMenu("gradient/fade...")) {
-      if (ImGui::InputInt("Start",&fadeMin,1,16)) {
-        if (fadeMin<0) fadeMin=0;
-        if (fadeMode) {
-          if (fadeMin>15) fadeMin=15;
-        } else {
-          if (fadeMin>255) fadeMin=255;
-        }
+  if (ImGui::BeginMenu("gradient/fade...")) {
+    if (ImGui::InputInt("Start",&fadeMin,1,16)) {
+      if (fadeMin<0) fadeMin=0;
+      if (fadeMode) {
+        if (fadeMin>15) fadeMin=15;
+      } else {
+        if (fadeMin>255) fadeMin=255;
       }
-      if (ImGui::InputInt("End",&fadeMax,1,16)) {
-        if (fadeMax<0) fadeMax=0;
-        if (fadeMode) {
-          if (fadeMax>15) fadeMax=15;
-        } else {
-          if (fadeMax>255) fadeMax=255;
-        }
-      }
-      if (ImGui::Checkbox("Nibble mode",&fadeMode)) {
-        if (fadeMode) {
-          if (fadeMin>15) fadeMin=15;
-          if (fadeMax>15) fadeMax=15;
-        } else {
-          if (fadeMin>255) fadeMin=255;
-          if (fadeMax>255) fadeMax=255;
-        }
-      }
-      if (ImGui::Button("Go ahead")) {
-        doFade(fadeMin,fadeMax,fadeMode);
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("scale...")) {
-      if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,10,"%.1f%%")) {
-        if (scaleMax<0.0f) scaleMax=0.0f;
-        if (scaleMax>25600.0f) scaleMax=25600.0f;
+    if (ImGui::InputInt("End",&fadeMax,1,16)) {
+      if (fadeMax<0) fadeMax=0;
+      if (fadeMode) {
+        if (fadeMax>15) fadeMax=15;
+      } else {
+        if (fadeMax>255) fadeMax=255;
       }
-      if (ImGui::Button("Scale")) {
-        doScale(scaleMax);
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("randomize...")) {
-      if (ImGui::InputInt("Minimum",&randomizeMin,1,16)) {
-        if (randomizeMin<0) randomizeMin=0;
-        if (randomMode) {
-          if (randomizeMin>15) randomizeMin=15;
-        } else {
-          if (randomizeMin>255) randomizeMin=255;
-        }
-        if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
+    if (ImGui::Checkbox("Nibble mode",&fadeMode)) {
+      if (fadeMode) {
+        if (fadeMin>15) fadeMin=15;
+        if (fadeMax>15) fadeMax=15;
+      } else {
+        if (fadeMin>255) fadeMin=255;
+        if (fadeMax>255) fadeMax=255;
       }
-      if (ImGui::InputInt("Maximum",&randomizeMax,1,16)) {
-        if (randomizeMax<0) randomizeMax=0;
-        if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
-        if (randomMode) {
-          if (randomizeMax>15) randomizeMax=15;
-        } else {
-          if (randomizeMax>255) randomizeMax=255;
-        }
-      }
-      if (ImGui::Checkbox("Nibble mode",&randomMode)) {
-        if (randomMode) {
-          if (randomizeMin>15) randomizeMin=15;
-          if (randomizeMax>15) randomizeMax=15;
-        } else {
-          if (randomizeMin>255) randomizeMin=255;
-          if (randomizeMax>255) randomizeMax=255;
-        }
-      }
-      // TODO: add an option to set effect to specific value?
-      if (ImGui::Button("Randomize")) {
-        doRandomize(randomizeMin,randomizeMax,randomMode);
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndMenu();
     }
-    if (ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES))) doInvertValues();
+    if (ImGui::Button("Go ahead")) {
+      doFade(fadeMin,fadeMax,fadeMode);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("scale...")) {
+    if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,10,"%.1f%%")) {
+      if (scaleMax<0.0f) scaleMax=0.0f;
+      if (scaleMax>25600.0f) scaleMax=25600.0f;
+    }
+    if (ImGui::Button("Scale")) {
+      doScale(scaleMax);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("randomize...")) {
+    if (ImGui::InputInt("Minimum",&randomizeMin,1,16)) {
+      if (randomizeMin<0) randomizeMin=0;
+      if (randomMode) {
+        if (randomizeMin>15) randomizeMin=15;
+      } else {
+        if (randomizeMin>255) randomizeMin=255;
+      }
+      if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
+    }
+    if (ImGui::InputInt("Maximum",&randomizeMax,1,16)) {
+      if (randomizeMax<0) randomizeMax=0;
+      if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
+      if (randomMode) {
+        if (randomizeMax>15) randomizeMax=15;
+      } else {
+        if (randomizeMax>255) randomizeMax=255;
+      }
+    }
+    if (ImGui::Checkbox("Nibble mode",&randomMode)) {
+      if (randomMode) {
+        if (randomizeMin>15) randomizeMin=15;
+        if (randomizeMax>15) randomizeMax=15;
+      } else {
+        if (randomizeMin>255) randomizeMin=255;
+        if (randomizeMax>255) randomizeMax=255;
+      }
+    }
+    // TODO: add an option to set effect to specific value?
+    if (ImGui::Button("Randomize")) {
+      doRandomize(randomizeMin,randomizeMax,randomMode);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES))) doInvertValues();
 
+  ImGui::Separator();
+
+  if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
+
+  ImGui::SetNextItemWidth(120.0f*dpiScale);
+  if (ImGui::InputInt("collapse/expand amount##CollapseAmount",&collapseAmount,1,4)) {
+    if (collapseAmount<2) collapseAmount=2;
+    if (collapseAmount>256) collapseAmount=256;
+  }
+  if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(collapseAmount,selStart,selEnd);
+  if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(collapseAmount,selStart,selEnd);
+
+  if (topMenu) {
     ImGui::Separator();
-
-    if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
-
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    if (ImGui::InputInt("collapse/expand amount##CollapseAmount",&collapseAmount,1,4)) {
-      if (collapseAmount<2) collapseAmount=2;
-      if (collapseAmount>256) collapseAmount=256;
-    }
-    if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(collapseAmount,selStart,selEnd);
-    if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(collapseAmount,selStart,selEnd);
-
-    if (topMenu) {
-      ImGui::Separator();
-      if (ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT))) doAction(GUI_ACTION_PAT_COLLAPSE_PAT);
-      if (ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT))) doAction(GUI_ACTION_PAT_EXPAND_PAT);
-    }
+    if (ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT))) doAction(GUI_ACTION_PAT_COLLAPSE_PAT);
+    if (ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT))) doAction(GUI_ACTION_PAT_EXPAND_PAT);
   }
 
   if (topMenu) {
@@ -2992,15 +2975,13 @@ void FurnaceGUI::editOptions(bool topMenu) {
     if (ImGui::MenuItem("expand song",BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG))) doAction(GUI_ACTION_PAT_EXPAND_SONG);
   }
 
-  if (!basicMode) {
-    if (topMenu) {
-      ImGui::Separator();
-      if (ImGui::MenuItem("find/replace",BIND_FOR(GUI_ACTION_WINDOW_FIND),findOpen)) {
-        if (findOpen) {
-          findOpen=false;
-        } else {
-          nextWindow=GUI_WINDOW_FIND;
-        }
+  if (topMenu) {
+    ImGui::Separator();
+    if (ImGui::MenuItem("find/replace",BIND_FOR(GUI_ACTION_WINDOW_FIND),findOpen)) {
+      if (findOpen) {
+        findOpen=false;
+      } else {
+        nextWindow=GUI_WINDOW_FIND;
       }
     }
   }
@@ -3074,7 +3055,6 @@ int _processEvent(void* instance, SDL_Event* event) {
 #endif
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
-  if (introPos<11.0 && !shortIntro) return 1;
 #ifdef IS_MOBILE
   if (ev->type==SDL_APP_TERMINATING) {
     // TODO: save last song state here
@@ -3290,9 +3270,6 @@ void FurnaceGUI::pointDown(int x, int y, int button) {
     bindSetTarget=0;
     bindSetPrevValue=0;
   }
-  if (introPos<11.0 && !shortIntro) {
-    introSkipDo=true;
-  }
 }
 
 void FurnaceGUI::pointUp(int x, int y, int button) {
@@ -3310,9 +3287,6 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   macroDragLastY=-1;
   macroLoopDragActive=false;
   waveDragActive=false;
-  if (introPos<11.0 && introSkip<0.5 && !shortIntro) {
-    introSkipDo=false;
-  }
   if (sampleDragActive) {
     logD("stopping sample drag");
     if (sampleDragMode) {
@@ -3435,7 +3409,6 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(grooves)
   DECLARE_METRIC(songInfo)
   DECLARE_METRIC(orders)
-  DECLARE_METRIC(intro)
   DECLARE_METRIC(sampleList)
   DECLARE_METRIC(sampleEdit)
   DECLARE_METRIC(waveList)
@@ -3608,10 +3581,6 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
-            if (introPos<11.0) {
-              SDL_free(ev.drop.file);
-              break;
-            }
             int sampleCountBefore=e->song.sampleLen;
             std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file,true,settings.readInsNames);
             DivWavetable* droppedWave=NULL;
@@ -3891,14 +3860,6 @@ bool FurnaceGUI::loop() {
       continue;
     }
 
-    if (firstFrame && !safeMode) {
-      if (!tutorial.introPlayed || settings.alwaysPlayIntro==3 || (settings.alwaysPlayIntro==2 && curFileName.empty())) {
-        unsigned char* introTemp=new unsigned char[intro_fur_len];
-        memcpy(introTemp,intro_fur,intro_fur_len);
-        e->load(introTemp,intro_fur_len);
-      }
-    }
-
     if (!e->isRunning()) {
       activeNotes.clear();
       memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
@@ -3987,9 +3948,6 @@ bool FurnaceGUI::loop() {
       }
 
       firstFrame=true;
-      mustClear=2;
-      initialScreenWipe=1.0f;
-
       continue;
     }
 
@@ -4101,197 +4059,84 @@ bool FurnaceGUI::loop() {
           openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
         }
         ImGui::Separator();
-        if (ImGui::BeginMenu("export audio...")) {
-          exitDisabledTimer=1;
-          if (ImGui::MenuItem("one file")) {
-            openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
+        if (settings.exportOptionsLayout==0) {
+          if (ImGui::BeginMenu("export audio...")) {
+            drawExportAudio();
+            ImGui::EndMenu();
           }
-          if (ImGui::MenuItem("multiple files (one per chip)")) {
-            openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_SYS);
+          if (ImGui::BeginMenu("export VGM...")) {
+            drawExportVGM();
+            ImGui::EndMenu();
           }
-          if (ImGui::MenuItem("multiple files (one per channel)")) {
-            openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_CHANNEL);
-          }
-          if (ImGui::InputInt("Loops",&exportLoops,1,2)) {
-            if (exportLoops<0) exportLoops=0;
-          }
-          if (ImGui::InputDouble("Fade out (seconds)",&exportFadeOut,1.0,2.0,"%.1f")) {
-            if (exportFadeOut<0.0) exportFadeOut=0.0;
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("export VGM...")) {
-          exitDisabledTimer=1;
-          ImGui::Text("settings:");
-          if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
-            for (int i=0; i<7; i++) {
-              if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
-                vgmExportVersion=vgmVersions[i];
-              }
-            }
-            ImGui::EndCombo();
-          }
-          ImGui::Checkbox("loop",&vgmExportLoop);
-          if (vgmExportLoop && e->song.loopModality==2) {
-            ImGui::Text("loop trail:");
-            ImGui::Indent();
-            if (ImGui::RadioButton("auto-detect",vgmExportTrailingTicks==-1)) {
-              vgmExportTrailingTicks=-1;
-            }
-            if (ImGui::RadioButton("add one loop",vgmExportTrailingTicks==-2)) {
-              vgmExportTrailingTicks=-2;
-            }
-            if (ImGui::RadioButton("custom",vgmExportTrailingTicks>=0)) {
-              vgmExportTrailingTicks=0;
-            }
-            if (vgmExportTrailingTicks>=0) {
-              ImGui::SameLine();
-              if (ImGui::InputInt("##TrailTicks",&vgmExportTrailingTicks,1,100)) {
-                if (vgmExportTrailingTicks<0) vgmExportTrailingTicks=0;
-              }
-            }
-            ImGui::Unindent();
-          }
-          ImGui::Checkbox("add pattern change hints",&vgmExportPatternHints);
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(
-              "inserts data blocks on pattern changes.\n"
-              "useful if you are writing a playback routine.\n\n"
-
-              "the format of a pattern change data block is:\n"
-              "67 66 FE ll ll ll ll 01 oo rr pp pp pp ...\n"
-              "- ll: length, a 32-bit little-endian number\n"
-              "- oo: order\n"
-              "- rr: initial row (a 0Dxx effect is able to select a different row)\n"
-              "- pp: pattern index (one per channel)\n\n"
-
-              "pattern indexes are ordered as they appear in the song."
-            );
-          }
-          ImGui::Checkbox("direct stream mode",&vgmExportDirectStream);
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(
-              "required for DualPCM and MSM6258 export.\n\n"
-              "allows for volume/direction changes when playing samples,\n"
-              "at the cost of a massive increase in file size."
-            );
-          }
-          ImGui::Text("chips to export:");
-          bool hasOneAtLeast=false;
+          int numZSMCompat=0;
           for (int i=0; i<e->song.systemLen; i++) {
-            int minVersion=e->minVGMVersion(e->song.system[i]);
-            ImGui::BeginDisabled(minVersion>vgmExportVersion || minVersion==0);
-            ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
-            ImGui::EndDisabled();
-            if (minVersion>vgmExportVersion) {
-              if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                ImGui::SetTooltip("this chip is only available in VGM %d.%.2x and higher!",minVersion>>8,minVersion&0xff);
-              }
-            } else if (minVersion==0) {
-              if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                ImGui::SetTooltip("this chip is not supported by the VGM format!");
-              }
-            } else {
-              if (willExport[i]) hasOneAtLeast=true;
+            if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
+          }
+          if (numZSMCompat>0) {
+            if (ImGui::BeginMenu("export ZSM...")) {
+              drawExportZSM();
+              ImGui::EndMenu();
             }
           }
-          ImGui::Text("select the chip you wish to export,");
-          ImGui::Text("but only up to %d of each type.",(vgmExportVersion>=0x151)?2:1);
-          if (hasOneAtLeast) {
-            if (ImGui::MenuItem("click to export")) {
-              openFileDialog(GUI_FILE_EXPORT_VGM);
-            }
-          } else {
-            ImGui::Text("nothing to export");
+          int numAmiga=0;
+          for (int i=0; i<e->song.systemLen; i++) {
+            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
           }
-          ImGui::EndMenu();
-        }
-        int numZSMCompat=0;
-        for (int i=0; i<e->song.systemLen; i++) {
-          if ((e->song.system[i] == DIV_SYSTEM_VERA) || (e->song.system[i] == DIV_SYSTEM_YM2151)) numZSMCompat++;
-        }
-        if (numZSMCompat > 0) {
-          if (ImGui::BeginMenu("export ZSM...")) {
-            exitDisabledTimer=1;
-            ImGui::Text("Commander X16 Zsound Music File");
-            if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,10)) {
-              if (zsmExportTickRate<1) zsmExportTickRate=1;
-              if (zsmExportTickRate>44100) zsmExportTickRate=44100;
+          if (numAmiga && settings.iCannotWait) {
+            if (ImGui::BeginMenu("export Amiga validation data...")) {
+              drawExportAmigaVal();
+              ImGui::EndMenu();
             }
-            ImGui::Checkbox("loop",&zsmExportLoop);
-            ImGui::SameLine();
-            ImGui::Checkbox("optimize size",&zsmExportOptimize);
-            ImGui::SameLine();
-            if (ImGui::Button("Begin Export")) {
-              openFileDialog(GUI_FILE_EXPORT_ZSM);
-              ImGui::CloseCurrentPopup();
-            }
+          }
+          if (ImGui::BeginMenu("export text...")) {
+            drawExportText();
             ImGui::EndMenu();
           }
-        }
-        int numAmiga=0;
-        for (int i=0; i<e->song.systemLen; i++) {
-          if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
-        }
-        if (numAmiga && settings.iCannotWait) {
-          if (ImGui::BeginMenu("export Amiga validation data...")) {
-            exitDisabledTimer=1;
-            ImGui::Text(
-              "this is NOT ROM export! only use for making sure the\n"
-              "Furnace Amiga emulator is working properly by\n"
-              "comparing it with real Amiga output."
-            );
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("Directory");
-            ImGui::SameLine();
-            ImGui::InputText("##AVDPath",&workingDirROMExport);
-            if (ImGui::Button("Bake Data")) {
-              std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
-              if (workingDirROMExport.size()>0) {
-                if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
-              }
-              for (DivROMExportOutput& i: out) {
-                String path=workingDirROMExport+i.name;
-                FILE* outFile=ps_fopen(path.c_str(),"wb");
-                if (outFile!=NULL) {
-                  fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
-                  fclose(outFile);
-                }
-                i.data->finish();
-                delete i.data;
-              }
-              showError(fmt::sprintf("Done! Baked %d files.",(int)out.size()));
-              ImGui::CloseCurrentPopup();
-            }
+          if (ImGui::BeginMenu("export command stream...")) {
+            drawExportCommand();
             ImGui::EndMenu();
           }
-        }
-        if (ImGui::BeginMenu("export text...")) {
-          exitDisabledTimer=1;
-          ImGui::Text(
-            "this option exports the song to a text file.\n"
-          );
-          if (ImGui::Button("export")) {
-            openFileDialog(GUI_FILE_EXPORT_TEXT);
+        } else if (settings.exportOptionsLayout==2) {
+          if (ImGui::MenuItem("export audio...")) {
+            curExportType=GUI_EXPORT_AUDIO;
+            displayExport=true;
           }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("export command stream...")) {
-          exitDisabledTimer=1;
-          ImGui::Text(
-            "this option exports a text or binary file which\n"
-            "contains a dump of the internal command stream\n"
-            "produced when playing the song.\n\n"
-
-            "technical/development use only!"
-          );
-          if (ImGui::Button("export (binary)")) {
-            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM_BINARY);
+          if (ImGui::MenuItem("export VGM...")) {
+            curExportType=GUI_EXPORT_VGM;
+            displayExport=true;
           }
-          if (ImGui::Button("export (text)")) {
-            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
+          int numZSMCompat=0;
+          for (int i=0; i<e->song.systemLen; i++) {
+            if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
           }
-          ImGui::EndMenu();
+          if (numZSMCompat>0) {
+            if (ImGui::MenuItem("export ZSM...")) {
+              curExportType=GUI_EXPORT_ZSM;
+              displayExport=true;
+            }
+          }
+          int numAmiga=0;
+          for (int i=0; i<e->song.systemLen; i++) {
+            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
+          }
+          if (numAmiga && settings.iCannotWait) {
+            if (ImGui::MenuItem("export Amiga validation data...")) {
+              curExportType=GUI_EXPORT_AMIGA_VAL;
+              displayExport=true;
+            }
+          }
+          if (ImGui::MenuItem("export text...")) {
+            curExportType=GUI_EXPORT_TEXT;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem("export command stream...")) {
+            curExportType=GUI_EXPORT_CMD_STREAM;
+            displayExport=true;
+          }
+        } else {
+          if (ImGui::MenuItem("export...",BIND_FOR(GUI_ACTION_EXPORT))) {
+            displayExport=true;
+          }
         }
         ImGui::Separator();
         if (!settings.classicChipOptions) {
@@ -4405,13 +4250,6 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
           lockLayout=!lockLayout;
         }
-        if (ImGui::MenuItem("basic mode",NULL,basicMode)) {
-          if (basicMode) {
-            showWarning("prepare to unlock the full power of Furnace!",GUI_WARN_BASIC_MODE);
-          } else {
-            showWarning("are you sure? this will disable several things.",GUI_WARN_BASIC_MODE);
-          }
-        }
         if (ImGui::MenuItem("visualizer",NULL,fancyPattern)) {
           fancyPattern=!fancyPattern;
           e->enableCommandStream(fancyPattern);
@@ -4446,15 +4284,11 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("orders",BIND_FOR(GUI_ACTION_WINDOW_ORDERS),ordersOpen)) ordersOpen=!ordersOpen;
         if (ImGui::MenuItem("pattern",BIND_FOR(GUI_ACTION_WINDOW_PATTERN),patternOpen)) patternOpen=!patternOpen;
         if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
-        if (!basicMode) {
-          if (ImGui::MenuItem("grooves",BIND_FOR(GUI_ACTION_WINDOW_GROOVES),groovesOpen)) groovesOpen=!groovesOpen;
-          if (ImGui::MenuItem("channels",BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
-        }
+        if (ImGui::MenuItem("grooves",BIND_FOR(GUI_ACTION_WINDOW_GROOVES),groovesOpen)) groovesOpen=!groovesOpen;
+        if (ImGui::MenuItem("channels",BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
         if (ImGui::MenuItem("pattern manager",BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
         if (ImGui::MenuItem("chip manager",BIND_FOR(GUI_ACTION_WINDOW_SYS_MANAGER),sysManagerOpen)) sysManagerOpen=!sysManagerOpen;
-        if (!basicMode) {
-          if (ImGui::MenuItem("compatibility flags",BIND_FOR(GUI_ACTION_WINDOW_COMPAT_FLAGS),compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
-        }
+        if (ImGui::MenuItem("compatibility flags",BIND_FOR(GUI_ACTION_WINDOW_COMPAT_FLAGS),compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
         if (ImGui::MenuItem("song comments",BIND_FOR(GUI_ACTION_WINDOW_NOTES),notesOpen)) notesOpen=!notesOpen;
         ImGui::Separator();
         if (ImGui::MenuItem("instrument editor",BIND_FOR(GUI_ACTION_WINDOW_INS_EDIT),insEditOpen)) insEditOpen=!insEditOpen;
@@ -4699,9 +4533,7 @@ bool FurnaceGUI::loop() {
       MEASURE(pattern,drawPattern());
       MEASURE(editControls,drawEditControls());
       MEASURE(speed,drawSpeed());
-      if (!basicMode) {
-        MEASURE(grooves,drawGrooves());
-      }
+      MEASURE(grooves,drawGrooves());
       MEASURE(songInfo,drawSongInfo());
       MEASURE(orders,drawOrders());
       MEASURE(sampleList,drawSampleList());
@@ -4721,14 +4553,10 @@ bool FurnaceGUI::loop() {
       MEASURE(settings,drawSettings());
       MEASURE(debug,drawDebug());
       MEASURE(stats,drawStats());
-      if (!basicMode) {
-        MEASURE(compatFlags,drawCompatFlags());
-      }
+      MEASURE(compatFlags,drawCompatFlags());
       MEASURE(piano,drawPiano());
       MEASURE(notes,drawNotes());
-      if (!basicMode) {
-        MEASURE(channels,drawChannels());
-      }
+      MEASURE(channels,drawChannels());
       MEASURE(patManager,drawPatManager());
       MEASURE(sysManager,drawSysManager());
       MEASURE(clock,drawClock());
@@ -4756,8 +4584,6 @@ bool FurnaceGUI::loop() {
       keyHit1[i]-=0.2f;
       if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
     }
-
-    activateTutorial(GUI_TUTORIAL_OVERVIEW);
 
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
@@ -5428,12 +5254,12 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    if (warnQuit && introPos>=11.0) {
+    if (warnQuit) {
       warnQuit=false;
       ImGui::OpenPopup("Warning");
     }
 
-    if (displayError && introPos>=11.0) {
+    if (displayError) {
       displayError=false;
       ImGui::OpenPopup("Error");
     }
@@ -5487,6 +5313,11 @@ bool FurnaceGUI::loop() {
       }
     }
 
+    if (displayExport) {
+      displayExport=false;
+      ImGui::OpenPopup("Export");
+    }
+
     if (displayEditString) {
       ImGui::OpenPopup("EditString");
     }
@@ -5514,8 +5345,6 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    drawTutorial();
-
     ImVec2 newSongMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(400.0f*dpiScale,200.0f*dpiScale);
     ImVec2 newSongMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
     ImGui::SetNextWindowSizeConstraints(newSongMinSize,newSongMaxSize);
@@ -5525,6 +5354,12 @@ bool FurnaceGUI::loop() {
         ImGui::SetWindowSize(newSongMinSize,ImGuiCond_Always);
       }
       drawNewSong();
+      ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopupModal("Export",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
+      drawExport();
       ImGui::EndPopup();
     }
 
@@ -5909,16 +5744,6 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           break;
-        case GUI_WARN_BASIC_MODE:
-          if (ImGui::Button("Yes")) {
-            basicMode=!basicMode;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("No")) {
-            ImGui::CloseCurrentPopup();
-          }
-          break;
         case GUI_WARN_GENERIC:
           if (ImGui::Button("OK")) {
             ImGui::CloseCurrentPopup();
@@ -6189,18 +6014,6 @@ bool FurnaceGUI::loop() {
 
     MEASURE_END(popup);
 
-    if (!tutorial.introPlayed || settings.alwaysPlayIntro!=0) {
-      MEASURE_BEGIN(intro);
-      initialScreenWipe=0;
-      if (settings.alwaysPlayIntro==1) {
-        shortIntro=true;
-      }
-      drawIntro(introPos);
-      MEASURE_END(intro);
-    } else {
-      introPos=12.0;
-    }
-
 #ifdef DIV_UNSTABLE
     {
       ImDrawList* dl=ImGui::GetForegroundDrawList();
@@ -6368,19 +6181,7 @@ bool FurnaceGUI::loop() {
     renderTimeEnd=SDL_GetPerformanceCounter();
     drawTimeBegin=SDL_GetPerformanceCounter();
     rend->renderGUI();
-    if (mustClear) {
-      rend->clear(ImVec4(0,0,0,0));
-      mustClear--;
-      if (mustClear==0) e->everythingOK();
-    } else {
-      if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
-        WAKE_UP;
-        initialScreenWipe-=ImGui::GetIO().DeltaTime*5.0f;
-        if (initialScreenWipe>0.0f) {
-          rend->wipe(pow(initialScreenWipe,2.0f));
-        }
-      }
-    }
+
     drawTimeEnd=SDL_GetPerformanceCounter();
     rend->present();
     if (settings.renderClearPos) {
@@ -6538,12 +6339,6 @@ bool FurnaceGUI::init() {
   findOpen=e->getConfBool("findOpen",false);
   spoilerOpen=e->getConfBool("spoilerOpen",false);
 
-  if (e->hasConf("lastDir")) {
-    basicMode=e->getConfBool("basicMode",false);
-  } else {
-    basicMode=true;
-  }
-
   insListDir=e->getConfBool("insListDir",false);
   waveListDir=e->getConfBool("waveListDir",false);
   sampleListDir=e->getConfBool("sampleListDir",false);
@@ -6636,7 +6431,6 @@ bool FurnaceGUI::init() {
   xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
 
   syncSettings();
-  syncTutorial();
 
   if (!settings.persistFadeOut) {
     exportLoops=settings.exportLoops;
@@ -6651,7 +6445,6 @@ bool FurnaceGUI::init() {
   }
 
   initSystemPresets();
-  initTutorial();
 
   e->setAutoNotePoly(noteInputPoly);
 
@@ -6977,7 +6770,6 @@ bool FurnaceGUI::init() {
   userEvents=SDL_RegisterEvents(1);
 
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
-    if (introPos<11.0) return -2;
     midiLock.lock();
     midiQueue.push(msg);
     if (userEvents!=0xffffffff && midiWakeUp) {
@@ -7101,7 +6893,6 @@ void FurnaceGUI::commitState() {
   e->setConf("subSongsOpen",subSongsOpen);
   e->setConf("findOpen",findOpen);
   e->setConf("spoilerOpen",spoilerOpen);
-  e->setConf("basicMode",basicMode);
 
   // commit dir state
   e->setConf("insListDir",insListDir);
@@ -7430,8 +7221,6 @@ FurnaceGUI::FurnaceGUI():
   speedOpen(true),
   groovesOpen(false),
   xyOscOpen(false),
-  basicMode(true),
-  shortIntro(false),
   insListDir(false),
   waveListDir(false),
   sampleListDir(false),
@@ -7720,16 +7509,7 @@ FurnaceGUI::FurnaceGUI():
   waveGenOffsetY(0),
   waveGenSmooth(1),
   waveGenAmplify(1.0f),
-  waveGenFM(false),
-  introPos(0.0),
-  introSkip(0.0),
-  monitorPos(0.0),
-  mustClear(2),
-  initialScreenWipe(1.0f),
-  introSkipDo(false),
-  introStopped(false),
-  curTutorial(-1),
-  curTutorialStep(0) {
+  waveGenFM(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

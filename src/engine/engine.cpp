@@ -973,8 +973,8 @@ void DivEngine::delUnusedSamples() {
       }
       if (i->amiga.useNoteMap) {
         for (int j=0; j<120; j++) {
-          if (i->amiga.get_amiga_sample_map(j, true)->map>=0 && i->amiga.get_amiga_sample_map(j, true)->map<song.sampleLen) {
-            isUsed[i->amiga.get_amiga_sample_map(j, true)->map]=true;
+          if (i->amiga.noteMap[j].map>=0 && i->amiga.noteMap[j].map<song.sampleLen) {
+            isUsed[i->amiga.noteMap[j].map]=true;
           }
         }
       }
@@ -2742,10 +2742,10 @@ void DivEngine::delSampleUnsafe(int index, bool render) {
         i->amiga.initSample--;
       }
       for (int j=0; j<120; j++) {
-        if (i->amiga.get_amiga_sample_map(j, true)->map==index) {
-          i->amiga.get_amiga_sample_map(j, true)->map=-1;
-        } else if (i->amiga.get_amiga_sample_map(j, true)->map>index) {
-          i->amiga.get_amiga_sample_map(j, true)->map--;
+        if (i->amiga.noteMap[j].map==index) {
+          i->amiga.noteMap[j].map=-1;
+        } else if (i->amiga.noteMap[j].map>index) {
+          i->amiga.noteMap[j].map--;
         }
       }
     }
@@ -2959,10 +2959,10 @@ void DivEngine::exchangeSample(int one, int two) {
       i->amiga.initSample=one;
     }
     for (int j=0; j<120; j++) {
-      if (i->amiga.get_amiga_sample_map(j, true)->map==one) {
-        i->amiga.get_amiga_sample_map(j, true)->map=two;
-      } else if (i->amiga.get_amiga_sample_map(j, true)->map==two) {
-        i->amiga.get_amiga_sample_map(j, true)->map=one;
+      if (i->amiga.noteMap[j].map==one) {
+        i->amiga.noteMap[j].map=two;
+      } else if (i->amiga.noteMap[j].map==two) {
+        i->amiga.noteMap[j].map=one;
       }
     }
   }

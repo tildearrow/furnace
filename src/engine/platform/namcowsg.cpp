@@ -199,7 +199,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
   for (int i=0; i<chans; i++) {
     chan[i].std.next();
     if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
-      chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))>>4;
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val,15);
     }
     if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
       chan[i].noise=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;

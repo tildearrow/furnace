@@ -397,8 +397,7 @@ struct DivInstrumentGB {
 
     DIV_GB_HWCMD_MAX
   };
-
-  typedef struct {
+  struct HWSeqCommandGB {
     unsigned char cmd;
     unsigned short data;
   } HWSeqCommandGB;
@@ -443,15 +442,7 @@ struct DivInstrumentGB {
     hwSeqLen(0),
     softEnv(false),
     alwaysInit(false) {
-    hwSeq = NULL;
-  }
-
-  ~DivInstrumentGB()
-  {
-    if(hwSeq != NULL)
-    {
-      delete hwSeq;
-    }
+    memset(hwSeq,0,256*sizeof(HWSeqCommandGB));
   }
 };
 
@@ -512,6 +503,7 @@ struct DivInstrumentAmiga {
   bool useSample;
   bool useWave;
   unsigned char waveLen;
+
   SampleMap* noteMap;
 
   ~DivInstrumentAmiga()
@@ -546,7 +538,6 @@ struct DivInstrumentAmiga {
       }
     }
   }
-
   bool operator==(const DivInstrumentAmiga& other);
   bool operator!=(const DivInstrumentAmiga& other) {
     return !(*this==other);
@@ -610,7 +601,10 @@ struct DivInstrumentAmiga {
     useSample(false),
     useWave(false),
     waveLen(31) {
-    noteMap = NULL;
+    for (int i=0; i<120; i++) {
+      noteMap[i].map=-1;
+      noteMap[i].freq=i;
+    }
   }
 };
 
@@ -752,15 +746,13 @@ struct DivInstrumentSoundUnit {
 
     DIV_SU_HWCMD_MAX
   };
-  typedef struct HWSeqCommandSU {
+  struct HWSeqCommandSU {
     unsigned char cmd;
     unsigned char bound;
     unsigned char val;
     unsigned short speed;
     unsigned short padding;
-  } HWSeqCommandSU;
-
-  HWSeqCommandSU* hwSeq;
+  } hwSeq[256];
 
   bool operator==(const DivInstrumentSoundUnit& other);
   bool operator!=(const DivInstrumentSoundUnit& other) {
