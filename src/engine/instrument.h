@@ -752,16 +752,13 @@ struct DivInstrumentSoundUnit {
 
     DIV_SU_HWCMD_MAX
   };
-  typedef struct HWSeqCommandSU {
-  typedef struct HWSeqCommandSU {
+
+  typedef struct {
     unsigned char cmd;
     unsigned char bound;
     unsigned char val;
     unsigned short speed;
     unsigned short padding;
-  } HWSeqCommandSU;
-
-  HWSeqCommandSU* hwSeq;
   } HWSeqCommandSU;
 
   HWSeqCommandSU* hwSeq;
