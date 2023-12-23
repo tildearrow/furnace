@@ -27,7 +27,7 @@
 const int ES5503_wave_lengths[DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX] = {256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
 uint8_t ES5503_wave_lengths_convert_back(uint32_t len)
 {
-  if(len <= ES5503_wave_lengths[0]) return 0;
+  if((int)len <= ES5503_wave_lengths[0]) return 0;
 
   for(int j = 0; j < DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX - 1; j++)
   {
@@ -327,8 +327,6 @@ void DivPlatformES5503::tick(bool sysTick) {
           rWrite(0x80+i, chan[i].wave_pos >> 8); //set wave pos
           rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
           rWrite(0xc0+i, (ES5503_wave_lengths_convert_back(chan[i].wave_size) << 3) | chan[i].address_bus_res); //set wave len
-
-          int idsf = ES5503_wave_lengths_convert_back(chan[i].wave_size);
 
           if(ins->es5503.phase_reset_on_start)
           {
