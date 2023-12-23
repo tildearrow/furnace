@@ -424,7 +424,7 @@ struct DivInstrumentGB {
 
       else
       {
-        memset(&dummy, 0, sizeof(dummy));
+        memset((void*)&dummy, 0, sizeof(dummy));
         return &dummy;
       }
     }
@@ -541,7 +541,7 @@ struct DivInstrumentAmiga {
 
       else
       {
-        memset(&dummy, 0, sizeof(dummy));
+        memset((void*)&dummy, 0, sizeof(dummy));
         return &dummy;
       }
     }
@@ -800,7 +800,7 @@ struct DivInstrumentSoundUnit {
 
       else
       {
-        memset(&dummy, 0, sizeof(dummy));
+        memset((void*)&dummy, 0, sizeof(dummy));
         return &dummy;
       }
     }
