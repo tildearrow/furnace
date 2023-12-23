@@ -424,7 +424,7 @@ struct DivInstrumentGB {
 
       else
       {
-        memset(&dummy, 0, sizeof(dummy));
+        memset((void*)&dummy, 0, sizeof(dummy));
         return &dummy;
       }
     }
