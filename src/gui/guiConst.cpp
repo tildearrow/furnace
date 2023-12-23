@@ -537,6 +537,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("OPEN_BACKUP", "Restore backup", 0),
   D("SAVE", "Save file", FURKMOD_CMD|SDLK_s),
   D("SAVE_AS", "Save as", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_s),
+  D("EXPORT", "Export", 0),
   D("UNDO", "Undo", FURKMOD_CMD|SDLK_z),
 #ifdef __APPLE__
   D("REDO", "Redo", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_z),

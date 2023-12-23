@@ -477,6 +477,7 @@ enum FurnaceGUISettingGroups: unsigned int {
   GUI_SETTINGS_APPEARANCE=64,
   GUI_SETTINGS_LAYOUTS=128,
   GUI_SETTINGS_COLOR=256,
+  GUI_SETTINGS_EMULATION=512,
 
   GUI_SETTINGS_ALL=0xffffffff
 };
@@ -548,6 +549,17 @@ enum FurnaceGUIWarnings {
   GUI_WARN_GENERIC
 };
 
+enum FurnaceGUIExportTypes {
+  GUI_EXPORT_NONE=-1,
+
+  GUI_EXPORT_AUDIO=0,
+  GUI_EXPORT_VGM,
+  GUI_EXPORT_ZSM,
+  GUI_EXPORT_CMD_STREAM,
+  GUI_EXPORT_AMIGA_VAL,
+  GUI_EXPORT_TEXT
+};
+
 enum FurnaceGUIFMAlgs {
   FM_ALGS_4OP,
   FM_ALGS_2OP_OPL,
@@ -561,6 +573,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_OPEN_BACKUP,
   GUI_ACTION_SAVE,
   GUI_ACTION_SAVE_AS,
+  GUI_ACTION_EXPORT,
   GUI_ACTION_UNDO,
   GUI_ACTION_REDO,
   GUI_ACTION_PLAY_TOGGLE,
@@ -1424,7 +1437,7 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
+  bool displayNew, displayExport, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool killGraphics;
@@ -1582,6 +1595,7 @@ class FurnaceGUI {
     int sysFileDialog;
     int roundedWindows;
     int roundedButtons;
+    int roundedTabs;
     int roundedMenus;
     int loadJapanese;
     int loadChinese;
@@ -1678,6 +1692,7 @@ class FurnaceGUI {
     int centerPopup;
     int insIconsStyle;
     int classicChipOptions;
+    int exportOptionsLayout;
     int wasapiEx;
     int chanOscThreads;
     int renderPoolThreads;
@@ -1778,6 +1793,7 @@ class FurnaceGUI {
       sysFileDialog(1),
       roundedWindows(1),
       roundedButtons(1),
+      roundedTabs(1),
       roundedMenus(0),
       loadJapanese(0),
       loadChinese(0),
@@ -1873,6 +1889,7 @@ class FurnaceGUI {
       centerPopup(1),
       insIconsStyle(1),
       classicChipOptions(0),
+      exportOptionsLayout(1),
       wasapiEx(0),
       chanOscThreads(0),
       renderPoolThreads(0),
@@ -2264,7 +2281,7 @@ class FurnaceGUI {
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
   
-  //effect sorting
+  // effect sorting
   bool effectsShow[10];
 
   // TX81Z
@@ -2292,6 +2309,16 @@ class FurnaceGUI {
   bool waveGenFMCon4[5];
   bool waveGenFM;
 
+  // export options
+  int audioExportType;
+  FurnaceGUIExportTypes curExportType;
+
+  void drawExportAudio(bool onWindow=false);
+  void drawExportVGM(bool onWindow=false);
+  void drawExportZSM(bool onWindow=false);
+  void drawExportAmigaVal(bool onWindow=false);
+  void drawExportText(bool onWindow=false);
+  void drawExportCommand(bool onWindow=false);
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
@@ -2401,6 +2428,7 @@ class FurnaceGUI {
   void drawSettings();
   void drawDebug();
   void drawNewSong();
+  void drawExport();
   void drawLog();
   void drawEffectList();
   void drawSubSongs(bool asChild=false);

@@ -1653,6 +1653,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_OPEN_BACKUP);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAVE);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAVE_AS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_EXPORT);
           UI_KEYBIND_CONFIG(GUI_ACTION_UNDO);
           UI_KEYBIND_CONFIG(GUI_ACTION_REDO);
           UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_TOGGLE);
@@ -2640,6 +2641,22 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
+        ImGui::Text("Export options layout:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("Sub-menus in File menu##eol0",settings.exportOptionsLayout==0)) {
+          settings.exportOptionsLayout=0;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Modal window with tabs##eol1",settings.exportOptionsLayout==1)) {
+          settings.exportOptionsLayout=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Modal windows with options in File menu##eol2",settings.exportOptionsLayout==2)) {
+          settings.exportOptionsLayout=2;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
+
         bool capitalMenuBarB=settings.capitalMenuBar;
         if (ImGui::Checkbox("Capitalize menu bar",&capitalMenuBarB)) {
           settings.capitalMenuBar=capitalMenuBarB;
@@ -3120,6 +3137,12 @@ void FurnaceGUI::drawSettings() {
         bool roundedButtonsB=settings.roundedButtons;
         if (ImGui::Checkbox("Rounded buttons",&roundedButtonsB)) {
           settings.roundedButtons=roundedButtonsB;
+          settingsChanged=true;
+        }
+
+        bool roundedTabsB=settings.roundedTabs;
+        if (ImGui::Checkbox("Rounded tabs",&roundedTabsB)) {
+          settings.roundedTabs=roundedTabsB;
           settingsChanged=true;
         }
 
@@ -3743,6 +3766,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   settings.sysFileDialog=conf.getInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
   settings.roundedWindows=conf.getInt("roundedWindows",1);
   settings.roundedButtons=conf.getInt("roundedButtons",1);
+  settings.roundedTabs=conf.getInt("roundedTabs",1);
   settings.roundedMenus=conf.getInt("roundedMenus",0);
   settings.loadJapanese=conf.getInt("loadJapanese",0);
   settings.loadChinese=conf.getInt("loadChinese",0);
@@ -3846,6 +3870,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   settings.centerPopup=conf.getInt("centerPopup",1);
   settings.insIconsStyle=conf.getInt("insIconsStyle",1);
   settings.classicChipOptions=conf.getInt("classicChipOptions",0);
+  settings.exportOptionsLayout=conf.getInt("exportOptionsLayout",1);
   settings.wasapiEx=conf.getInt("wasapiEx",0);
   settings.chanOscThreads=conf.getInt("chanOscThreads",0);
   settings.renderPoolThreads=conf.getInt("renderPoolThreads",0);
@@ -3925,6 +3950,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.sysFileDialog,0,1);
   clampSetting(settings.roundedWindows,0,1);
   clampSetting(settings.roundedButtons,0,1);
+  clampSetting(settings.roundedTabs,0,1);
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.loadChinese,0,1);
@@ -4013,6 +4039,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.centerPopup,0,1);
   clampSetting(settings.insIconsStyle,0,2);
   clampSetting(settings.classicChipOptions,0,1);
+  clampSetting(settings.exportOptionsLayout,0,2);
   clampSetting(settings.wasapiEx,0,1);
   clampSetting(settings.chanOscThreads,0,256);
   clampSetting(settings.renderPoolThreads,0,DIV_MAX_CHIPS);
@@ -4081,51 +4108,141 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 }
 
 void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
-  conf.set("mainFontSize",settings.mainFontSize);
-  conf.set("headFontSize",settings.headFontSize);
-  conf.set("patFontSize",settings.patFontSize);
-  conf.set("iconSize",settings.iconSize);
-  conf.set("audioEngine",String(audioBackends[settings.audioEngine]));
-  conf.set("audioDevice",settings.audioDevice);
-  conf.set("midiInDevice",settings.midiInDevice);
-  conf.set("midiOutDevice",settings.midiOutDevice);
-  conf.set("renderDriver",settings.renderDriver);
-  conf.set("sdlAudioDriver",settings.sdlAudioDriver);
-  conf.set("audioQuality",settings.audioQuality);
-  conf.set("audioHiPass",settings.audioHiPass);
-  conf.set("audioBufSize",settings.audioBufSize);
-  conf.set("audioRate",settings.audioRate);
-  conf.set("audioChans",settings.audioChans);
-  conf.set("arcadeCore",settings.arcadeCore);
-  conf.set("ym2612Core",settings.ym2612Core);
-  conf.set("snCore",settings.snCore);
-  conf.set("nesCore",settings.nesCore);
-  conf.set("fdsCore",settings.fdsCore);
-  conf.set("c64Core",settings.c64Core);
-  conf.set("pokeyCore",settings.pokeyCore);
-  conf.set("opnCore",settings.opnCore);
-  conf.set("opl2Core",settings.opl2Core);
-  conf.set("opl3Core",settings.opl3Core);
-  conf.set("arcadeCoreRender",settings.arcadeCoreRender);
-  conf.set("ym2612CoreRender",settings.ym2612CoreRender);
-  conf.set("snCoreRender",settings.snCoreRender);
-  conf.set("nesCoreRender",settings.nesCoreRender);
-  conf.set("fdsCoreRender",settings.fdsCoreRender);
-  conf.set("c64CoreRender",settings.c64CoreRender);
-  conf.set("pokeyCoreRender",settings.pokeyCoreRender);
-  conf.set("opnCoreRender",settings.opnCoreRender);
-  conf.set("opl2CoreRender",settings.opl2CoreRender);
-  conf.set("opl3CoreRender",settings.opl3CoreRender);
-  conf.set("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
-  conf.set("yrw801Path",settings.yrw801Path);
-  conf.set("tg100Path",settings.tg100Path);
-  conf.set("mu5Path",settings.mu5Path);
-  conf.set("mainFont",settings.mainFont);
-  conf.set("headFont",settings.headFont);
-  conf.set("patFont",settings.patFont);
-  conf.set("mainFontPath",settings.mainFontPath);
-  conf.set("headFontPath",settings.headFontPath);
-  conf.set("patFontPath",settings.patFontPath);
+  // general
+  if (groups&GUI_SETTINGS_GENERAL) {
+    conf.set("renderDriver",settings.renderDriver);
+    conf.set("noDMFCompat",settings.noDMFCompat);
+
+    conf.set("dpiScale",settings.dpiScale);
+
+    conf.set("initialSys2",settings.initialSys.toBase64());
+    conf.set("initialSysName",settings.initialSysName);
+  }
+
+  // audio
+  if (groups&GUI_SETTINGS_AUDIO) {
+    conf.set("audioEngine",String(audioBackends[settings.audioEngine]));
+    conf.set("audioDevice",settings.audioDevice);
+    conf.set("midiInDevice",settings.midiInDevice);
+    conf.set("midiOutDevice",settings.midiOutDevice);
+    conf.set("sdlAudioDriver",settings.sdlAudioDriver);
+    conf.set("audioQuality",settings.audioQuality);
+    conf.set("audioHiPass",settings.audioHiPass);
+    conf.set("audioBufSize",settings.audioBufSize);
+    conf.set("audioRate",settings.audioRate);
+    conf.set("audioChans",settings.audioChans);
+  }
+
+  // MIDI
+  if (groups&GUI_SETTINGS_MIDI) {
+
+  }
+
+  // keyboard
+  if (groups&GUI_SETTINGS_KEYBOARD) {
+    // keybinds
+    for (int i=0; i<GUI_ACTION_MAX; i++) {
+      if (guiActions[i].defaultBind==-1) continue; // not a bind
+      conf.set(String("keybind_GUI_ACTION_")+String(guiActions[i].name),actionKeys[i]);
+    }
+
+    conf.set("noteKeys",encodeKeyMap(noteKeys));
+  }
+
+  // behavior
+  if (groups&GUI_SETTINGS_BEHAVIOR) {
+
+  }
+
+  // font
+  if (groups&GUI_SETTINGS_FONT) {
+    conf.set("mainFontSize",settings.mainFontSize);
+    conf.set("headFontSize",settings.headFontSize);
+    conf.set("patFontSize",settings.patFontSize);
+    conf.set("iconSize",settings.iconSize);
+
+    conf.set("mainFont",settings.mainFont);
+    conf.set("headFont",settings.headFont);
+    conf.set("patFont",settings.patFont);
+    conf.set("mainFontPath",settings.mainFontPath);
+    conf.set("headFontPath",settings.headFontPath);
+    conf.set("patFontPath",settings.patFontPath);
+
+    conf.set("loadJapanese",settings.loadJapanese);
+    conf.set("loadChinese",settings.loadChinese);
+    conf.set("loadChineseTraditional",settings.loadChineseTraditional);
+    conf.set("loadKorean",settings.loadKorean);
+  }
+
+  // appearance
+  if (groups&GUI_SETTINGS_APPEARANCE) {
+    conf.set("oscRoundedCorners",settings.oscRoundedCorners);
+    conf.set("oscTakesEntireWindow",settings.oscTakesEntireWindow);
+    conf.set("oscBorder",settings.oscBorder);
+    conf.set("oscEscapesBoundary",settings.oscEscapesBoundary);
+    conf.set("oscMono",settings.oscMono);
+    conf.set("oscAntiAlias",settings.oscAntiAlias);
+
+    conf.set("channelColors",settings.channelColors);
+    conf.set("channelTextColors",settings.channelTextColors);
+    conf.set("channelStyle",settings.channelStyle);
+    conf.set("channelVolStyle",settings.channelVolStyle);
+    conf.set("channelFeedbackStyle",settings.channelFeedbackStyle);
+    conf.set("channelFont",settings.channelFont);
+    conf.set("channelTextCenter",settings.channelTextCenter);
+  }
+
+  // layout
+  if (groups&GUI_SETTINGS_LAYOUTS) {
+    conf.set("fmLayout",settings.fmLayout);
+    conf.set("sampleLayout",settings.sampleLayout);
+    conf.set("waveLayout",settings.waveLayout);
+    conf.set("exportOptionsLayout",settings.exportOptionsLayout);
+  }
+
+  // color
+  if (groups&GUI_SETTINGS_COLOR) {
+    conf.set("guiColorsBase",settings.guiColorsBase);
+    conf.set("guiColorsShading",settings.guiColorsShading);
+    conf.set("basicColors",settings.basicColors);
+
+    // colors
+    for (int i=0; i<GUI_COLOR_MAX; i++) {
+      conf.set(guiColors[i].name,(int)ImGui::ColorConvertFloat4ToU32(uiColors[i]));
+    }
+  }
+
+  // emulation
+  if (groups&GUI_SETTINGS_EMULATION) {
+    conf.set("arcadeCore",settings.arcadeCore);
+    conf.set("ym2612Core",settings.ym2612Core);
+    conf.set("snCore",settings.snCore);
+    conf.set("nesCore",settings.nesCore);
+    conf.set("fdsCore",settings.fdsCore);
+    conf.set("c64Core",settings.c64Core);
+    conf.set("pokeyCore",settings.pokeyCore);
+    conf.set("opnCore",settings.opnCore);
+    conf.set("opl2Core",settings.opl2Core);
+    conf.set("opl3Core",settings.opl3Core);
+    conf.set("arcadeCoreRender",settings.arcadeCoreRender);
+    conf.set("ym2612CoreRender",settings.ym2612CoreRender);
+    conf.set("snCoreRender",settings.snCoreRender);
+    conf.set("nesCoreRender",settings.nesCoreRender);
+    conf.set("fdsCoreRender",settings.fdsCoreRender);
+    conf.set("c64CoreRender",settings.c64CoreRender);
+    conf.set("pokeyCoreRender",settings.pokeyCoreRender);
+    conf.set("opnCoreRender",settings.opnCoreRender);
+    conf.set("opl2CoreRender",settings.opl2CoreRender);
+    conf.set("opl3CoreRender",settings.opl3CoreRender);
+
+    conf.set("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
+
+    conf.set("yrw801Path",settings.yrw801Path);
+    conf.set("tg100Path",settings.tg100Path);
+    conf.set("mu5Path",settings.mu5Path);
+  }
+
+  // TODO: the fucking rest
   conf.set("patRowsBase",settings.patRowsBase);
   conf.set("orderRowsBase",settings.orderRowsBase);
   conf.set("soloAction",settings.soloAction);
@@ -4146,10 +4263,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   conf.set("forceMono",settings.forceMono);
   conf.set("controlLayout",settings.controlLayout);
   conf.set("statusDisplay",settings.statusDisplay);
-  conf.set("dpiScale",settings.dpiScale);
   conf.set("viewPrevPattern",settings.viewPrevPattern);
-  conf.set("guiColorsBase",settings.guiColorsBase);
-  conf.set("guiColorsShading",settings.guiColorsShading);
   conf.set("avoidRaisingPattern",settings.avoidRaisingPattern);
   conf.set("insFocusesPattern",settings.insFocusesPattern);
   conf.set("stepOnInsert",settings.stepOnInsert);
@@ -4157,14 +4271,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   conf.set("sysFileDialog",settings.sysFileDialog);
   conf.set("roundedWindows",settings.roundedWindows);
   conf.set("roundedButtons",settings.roundedButtons);
+  conf.set("roundedTabs",settings.roundedTabs);
   conf.set("roundedMenus",settings.roundedMenus);
-  conf.set("loadJapanese",settings.loadJapanese);
-  conf.set("loadChinese",settings.loadChinese);
-  conf.set("loadChineseTraditional",settings.loadChineseTraditional);
-  conf.set("loadKorean",settings.loadKorean);
-  conf.set("fmLayout",settings.fmLayout);
-  conf.set("sampleLayout",settings.sampleLayout);
-  conf.set("waveLayout",settings.waveLayout);
   conf.set("susPosition",settings.susPosition);
   conf.set("effectCursorDir",settings.effectCursorDir);
   conf.set("cursorPastePos",settings.cursorPastePos);
@@ -4172,12 +4280,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   conf.set("titleBarSys",settings.titleBarSys);
   conf.set("frameBorders",settings.frameBorders);
   conf.set("effectDeletionAltersValue",settings.effectDeletionAltersValue);
-  conf.set("oscRoundedCorners",settings.oscRoundedCorners);
-  conf.set("oscTakesEntireWindow",settings.oscTakesEntireWindow);
-  conf.set("oscBorder",settings.oscBorder);
-  conf.set("oscEscapesBoundary",settings.oscEscapesBoundary);
-  conf.set("oscMono",settings.oscMono);
-  conf.set("oscAntiAlias",settings.oscAntiAlias);
+
   conf.set("separateFMColors",settings.separateFMColors);
   conf.set("insEditColorize",settings.insEditColorize);
   conf.set("metroVol",settings.metroVol);
@@ -4193,8 +4296,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   conf.set("eventDelay",settings.eventDelay);
   conf.set("moveWindowTitle",settings.moveWindowTitle);
   conf.set("hiddenSystems",settings.hiddenSystems);
-  conf.set("initialSys2",settings.initialSys.toBase64());
-  conf.set("initialSysName",settings.initialSysName);
   conf.set("horizontalDataView",settings.horizontalDataView);
   conf.set("noMultiSystem",settings.noMultiSystem);
   conf.set("oldMacroVSlider",settings.oldMacroVSlider);
@@ -4218,13 +4319,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   conf.set("emptyLabel",settings.emptyLabel);
   conf.set("emptyLabel2",settings.emptyLabel2);
   conf.set("saveUnusedPatterns",settings.saveUnusedPatterns);
-  conf.set("channelColors",settings.channelColors);
-  conf.set("channelTextColors",settings.channelTextColors);
-  conf.set("channelStyle",settings.channelStyle);
-  conf.set("channelVolStyle",settings.channelVolStyle);
-  conf.set("channelFeedbackStyle",settings.channelFeedbackStyle);
-  conf.set("channelFont",settings.channelFont);
-  conf.set("channelTextCenter",settings.channelTextCenter);
   conf.set("maxRecentFile",settings.maxRecentFile);
   conf.set("midiOutClock",settings.midiOutClock);
   conf.set("midiOutTime",settings.midiOutTime);
@@ -4252,7 +4346,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   conf.set("newSongBehavior",settings.newSongBehavior);
   conf.set("memUsageUnit",settings.memUsageUnit);
   conf.set("cursorFollowsWheel",settings.cursorFollowsWheel);
-  conf.set("noDMFCompat",settings.noDMFCompat);
   conf.set("removeInsOff",settings.removeInsOff);
   conf.set("removeVolOff",settings.removeVolOff);
   conf.set("playOnLoad",settings.playOnLoad);
@@ -4274,20 +4367,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   conf.set("fontAutoHint",settings.fontAutoHint);
   conf.set("fontAntiAlias",settings.fontAntiAlias);
   conf.set("selectAssetOnLoad",settings.selectAssetOnLoad);
-  conf.set("basicColors",settings.basicColors);
-
-  // colors
-  for (int i=0; i<GUI_COLOR_MAX; i++) {
-    conf.set(guiColors[i].name,(int)ImGui::ColorConvertFloat4ToU32(uiColors[i]));
-  }
-
-  // keybinds
-  for (int i=0; i<GUI_ACTION_MAX; i++) {
-    if (guiActions[i].defaultBind==-1) continue; // not a bind
-    conf.set(String("keybind_GUI_ACTION_")+String(guiActions[i].name),actionKeys[i]);
-  }
-
-  conf.set("noteKeys",encodeKeyMap(noteKeys));
 }
 
 void FurnaceGUI::syncSettings() {
@@ -4989,6 +5068,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameRounding=6.0f;
     sty.GrabRounding=6.0f;
   }
+  if (settings.roundedTabs) sty.TabRounding = 6.0f;
+  else sty.TabRounding = 0.0f;
+
   if (settings.roundedMenus) sty.PopupRounding=8.0f;
 
   if (settings.frameBorders) {
