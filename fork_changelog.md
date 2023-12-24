@@ -7,3 +7,4 @@ LTVA:
 freq-mod:
 
 - 86-PCM streo DAC fix
+- Remove basic mode, tutorial and intro
