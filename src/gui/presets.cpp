@@ -2224,6 +2224,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Yamaha YM2608 (extended channel 3 and CSM)", {
+      CH(DIV_SYSTEM_YM2608_CSM, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     "Yamaha YM2610 (OPNB)", {
       CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "")
     }

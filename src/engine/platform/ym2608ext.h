@@ -44,6 +44,7 @@ class DivPlatformYM2608Ext: public DivPlatformYM2608 {
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
+    void setCSM(unsigned char isCSM);
     void quit();
     ~DivPlatformYM2608Ext();
 };

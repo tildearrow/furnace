@@ -148,7 +148,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
         pan(3) {}
     };
 
-    const int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum;
+    int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum;
 
     double fmFreqBase;
     unsigned int fmDivBase;

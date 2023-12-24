@@ -416,6 +416,16 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2608Ext*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
       }
+      ((DivPlatformYM2608Ext*)dispatch)->setCSM(0);
+      break;
+    case DIV_SYSTEM_YM2608_CSM:
+      dispatch=new DivPlatformYM2608Ext;
+      if (isRender) {
+        ((DivPlatformYM2608Ext*)dispatch)->setCombo(eng->getConfInt("opnCoreRender",1)==1);
+      } else {
+        ((DivPlatformYM2608Ext*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
+      }
+      ((DivPlatformYM2608Ext*)dispatch)->setCSM(1);
       break;
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
