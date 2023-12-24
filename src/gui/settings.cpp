@@ -3760,7 +3760,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     settings.doubleClickTime=conf.getFloat("doubleClickTime",0.3f);
     settings.disableFadeIn=conf.getInt("disableFadeIn",0);
-    settings.alwaysPlayIntro=conf.getInt("alwaysPlayIntro",0);
     settings.iCannotWait=conf.getInt("iCannotWait",0);
 
     settings.compress=conf.getInt("compress",1);
@@ -4219,7 +4218,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("doubleClickTime",settings.doubleClickTime);
     conf.set("disableFadeIn",settings.disableFadeIn);
-    conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
     conf.set("iCannotWait",settings.iCannotWait);
 
     conf.set("compress",settings.compress);
