@@ -3901,6 +3901,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     settings.roundedWindows=conf.getInt("roundedWindows",1);
     settings.roundedButtons=conf.getInt("roundedButtons",1);
+    settings.roundedTabs=conf.getInt("roundedTabs",1);
     settings.roundedMenus=conf.getInt("roundedMenus",0);
 
     settings.separateFMColors=conf.getInt("separateFMColors",0);
@@ -4358,6 +4359,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("roundedWindows",settings.roundedWindows);
     conf.set("roundedButtons",settings.roundedButtons);
+    conf.set("roundedTabs",settings.roundedTabs);
     conf.set("roundedMenus",settings.roundedMenus);
 
     conf.set("separateFMColors",settings.separateFMColors);
