@@ -235,7 +235,7 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
     }
 
     for (int i=psgChanOffs; i<(psgChanOffs + 3); i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++] = fmout.data[i - (psgChanOffs - 1)] << 1;
+      oscBuf[i]->data[oscBuf[i]->needle++] = fmout.data[i - (psgChanOffs - 1)] << 1;
     }
   }
 }
