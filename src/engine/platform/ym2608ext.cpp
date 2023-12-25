@@ -441,9 +441,9 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
       }
     }
     if (writeSomething) {
-      if (chan[csmChan].active) { // CSM
+      /*if (chan[csmChan].active) { // CSM
         writeMask^=0xf0;
-      }
+      }*/
       immWrite(0x28,writeMask);
     }
   }

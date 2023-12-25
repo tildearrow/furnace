@@ -1004,6 +1004,20 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         break;
       }
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
+      if (c.chan==csmChan && extMode) { // CSM
+        chan[c.chan].macroInit(ins);
+        chan[c.chan].insChanged=false;
+
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].portaPause=false;
+          chan[c.chan].note=c.value;
+          chan[c.chan].freqChanged=true;
+        }
+        chan[c.chan].keyOn=true;
+        chan[c.chan].active=true;
+        break;
+      }
       chan[c.chan].macroInit(ins);
       if (c.chan<6) {
         if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
