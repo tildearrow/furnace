@@ -745,9 +745,9 @@ void DivPlatformYM2608Ext::forceIns() {
       chan[i].freqChanged=true;
     }
   }
-  for (int i=(isCSM ? 10 : 9); i<(isCSM ? 17 : 16); i++) {
+  for (int i=(adpcmAChanOffs); i<(adpcmBChanOffs + 1); i++) {
     chan[i].insChanged=true;
-    if (i>(isCSM ? 15 : 14)) { // ADPCM-B
+    if (i>(adpcmBChanOffs)) { // ADPCM-B
       immWrite(0x10b,chan[i].outVol);
     } else {
       immWrite(0x18+(i-9),isMuted[i]?0:((chan[i].pan<<6)|chan[i].outVol));
@@ -785,7 +785,7 @@ void* DivPlatformYM2608Ext::getChanState(int ch) {
 }
 
 DivMacroInt* DivPlatformYM2608Ext::getChanMacroInt(int ch) {
-  if (ch>=(isCSM ? 10 : 9) && ch<(isCSM ? 13 : 12)) return ay->getChanMacroInt(ch-(isCSM ? 10 : 9));
+  if (ch>=(adpcmAChanOffs) && ch<(adpcmAChanOffs + 3)) return ay->getChanMacroInt(ch-(adpcmAChanOffs));
   if (ch>=6) return &chan[ch-3].std;
   if (ch>=2) return &opChan[ch-2].std;
   return &chan[ch].std;
@@ -834,7 +834,7 @@ void DivPlatformYM2608Ext::reset() {
 }
 
 bool DivPlatformYM2608Ext::keyOffAffectsArp(int ch) {
-  return (ch>(isCSM ? 9 : 8));
+  return (ch>(psgChanOffs + 2));
 }
 
 void DivPlatformYM2608Ext::notifyInsChange(int ins) {
@@ -861,7 +861,7 @@ int DivPlatformYM2608Ext::init(DivEngine* parent, int channels, int sugRate, con
   extSys=true;
 
   reset();
-  return (isCSM ? 20 : 19);
+  return (adpcmBChanOffs + 4);
 }
 
 void DivPlatformYM2608Ext::setCSM(unsigned char isCSM) {
