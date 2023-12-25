@@ -1122,6 +1122,29 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
+      if (c.chan==csmChan) {
+        int destFreq=NOTE_PERIODIC(c.value2);
+        bool return2=false;
+        if (destFreq>chan[c.chan].baseFreq) {
+          chan[c.chan].baseFreq+=c.value;
+          if (chan[c.chan].baseFreq>=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        } else {
+          chan[c.chan].baseFreq-=c.value;
+          if (chan[c.chan].baseFreq<=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        }
+        chan[c.chan].freqChanged=true;
+        if (return2) {
+          chan[c.chan].inPorta=false;
+          return 2;
+        }
+        break;
+      }
       if (c.chan>(psgChanOffs - 1) || parent->song.linearPitch==2) { // PSG, ADPCM-B
         int destFreq=NOTE_OPNB(c.chan,c.value2);
         bool return2=false;
@@ -1156,6 +1179,9 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       iface.sampleBank=sampleBank;
       break;
     case DIV_CMD_LEGATO: {
+      if (c.chan==csmChan) {
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+      }
       if (c.chan==(adpcmBChanOffs) && !chan[c.chan].furnacePCM) break;
       if (c.chan<=psgChanOffs) {
         if (chan[c.chan].insChanged) {
