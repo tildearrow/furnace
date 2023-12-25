@@ -1671,6 +1671,12 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       }
       prevInsData=new DivInstrument;
       *prevInsData=*e->getIns(curIns);
+
+      if(prevInsData->amiga.noteMap != NULL)
+      {
+        prevInsData->amiga.noteMap = new DivInstrumentAmiga::SampleMap[120];
+      }
+
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
@@ -4625,6 +4631,11 @@ bool FurnaceGUI::loop() {
           if (prevInsData!=NULL) {
             if (prevIns>=0 && prevIns<(int)e->song.ins.size()) {
               *e->song.ins[prevIns]=*prevInsData;
+
+              if(e->song.ins[prevIns]->amiga.noteMap != NULL)
+              {
+                e->song.ins[prevIns]->amiga.noteMap = new DivInstrumentAmiga::SampleMap[120];
+              }
             }
           }
         } else {

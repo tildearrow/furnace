@@ -519,6 +519,7 @@ struct DivInstrumentAmiga {
     if(noteMap != NULL)
     {
       delete noteMap;
+      noteMap = NULL;
     }
   }
 
