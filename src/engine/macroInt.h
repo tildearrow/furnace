@@ -80,6 +80,7 @@ class DivMacroInt {
   std::vector<macro_source> macroSource;
   int subTick;
   bool released;
+
   public:
     // common macro
 

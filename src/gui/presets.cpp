@@ -2214,6 +2214,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Yamaha YM2203 (extended channel 3 and CSM)", {
+      CH(DIV_SYSTEM_YM2203_CSM, 1.0f, 0, "clockSel=3")
+    }
+  );
+  ENTRY(
     "Yamaha YM2608 (OPNA)", {
       CH(DIV_SYSTEM_YM2608, 1.0f, 0, "")
     }
@@ -2234,6 +2239,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Yamaha YM2610 (extended channel 2 and CSM)", {
+      CH(DIV_SYSTEM_YM2610_CSM, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     "Yamaha YM2610B (OPNB2)", {
       CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
     }
@@ -2241,6 +2251,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Yamaha YM2610B (extended channel 3)", {
       CH(DIV_SYSTEM_YM2610B_EXT, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Yamaha YM2610B (extended channel 3 and CSM)", {
+      CH(DIV_SYSTEM_YM2610B_CSM, 1.0f, 0, "")
     }
   );
   ENTRY(
