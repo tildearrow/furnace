@@ -1901,7 +1901,7 @@ class FurnaceGUI {
       chanOscThreads(0),
       renderPoolThreads(0),
       showPool(0),
-      writeInsNames(1),
+      writeInsNames(0),
       readInsNames(1),
       fontBackend(1),
       fontHinting(0),

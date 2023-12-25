@@ -3737,7 +3737,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.chanOscThreads=conf.getInt("chanOscThreads",0);
     settings.renderPoolThreads=conf.getInt("renderPoolThreads",0);
     settings.showPool=conf.getInt("showPool",0);
-    settings.writeInsNames=conf.getInt("writeInsNames",1);
+    settings.writeInsNames=conf.getInt("writeInsNames",0);
     settings.readInsNames=conf.getInt("readInsNames",1);
     settings.defaultAuthorName=conf.getString("defaultAuthorName","");
 
