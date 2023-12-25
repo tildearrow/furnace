@@ -403,13 +403,13 @@ struct DivInstrumentGB {
     unsigned short data;
   } HWSeqCommandGB;
 
-  HWSeqCommandGB* hwSeq;
+  std::vector<HWSeqCommandGB> hwSeq;
 
   HWSeqCommandGB* get_gb_hw_seq(int i, bool allocate)
   {
     static HWSeqCommandGB dummy;
 
-    if(hwSeq != NULL)
+    if(hwSeq.size() != 0)
     {
       return &hwSeq[i];
     }
@@ -418,7 +418,7 @@ struct DivInstrumentGB {
     {
       if(allocate)
       {
-        hwSeq = new HWSeqCommandGB[256];
+        hwSeq.resize(256);
         return &hwSeq[i];
       }
 
@@ -442,17 +442,7 @@ struct DivInstrumentGB {
     soundLen(64),
     hwSeqLen(0),
     softEnv(false),
-    alwaysInit(false) {
-    hwSeq = NULL;
-  }
-
-  ~DivInstrumentGB()
-  {
-    if(hwSeq != NULL)
-    {
-      delete hwSeq;
-    }
-  }
+    alwaysInit(false) {}
 };
 
 struct DivInstrumentC64 {
@@ -512,22 +502,13 @@ struct DivInstrumentAmiga {
   bool useSample;
   bool useWave;
   unsigned char waveLen;
-  SampleMap* noteMap;
-
-  ~DivInstrumentAmiga()
-  {
-    if(noteMap != NULL)
-    {
-      delete noteMap;
-      noteMap = NULL;
-    }
-  }
+  std::vector<SampleMap> noteMap;
 
   SampleMap* get_amiga_sample_map(int i, bool allocate)
   {
     static SampleMap dummy;
 
-    if(noteMap != NULL)
+    if(noteMap.size() != 0)
     {
       return &noteMap[i];
     }
@@ -536,7 +517,7 @@ struct DivInstrumentAmiga {
     {
       if(allocate)
       {
-        noteMap = new SampleMap[120];
+        noteMap.resize(120);
         return &noteMap[i];
       }
 
@@ -610,9 +591,7 @@ struct DivInstrumentAmiga {
     useNoteMap(false),
     useSample(false),
     useWave(false),
-    waveLen(31) {
-    noteMap = NULL;
-  }
+    waveLen(31) {}
 };
 
 struct DivInstrumentX1_010 {
@@ -762,7 +741,7 @@ struct DivInstrumentSoundUnit {
     unsigned short padding;
   } HWSeqCommandSU;
 
-  HWSeqCommandSU* hwSeq;
+  std::vector<HWSeqCommandSU> hwSeq;
 
   bool operator==(const DivInstrumentSoundUnit& other);
   bool operator!=(const DivInstrumentSoundUnit& other) {
@@ -771,23 +750,13 @@ struct DivInstrumentSoundUnit {
 
   DivInstrumentSoundUnit():
     switchRoles(false),
-    hwSeqLen(0) {
-    hwSeq = NULL;
-  }
-
-  ~DivInstrumentSoundUnit()
-  {
-    if(hwSeq != NULL)
-    {
-      delete hwSeq;
-    }
-  }
+    hwSeqLen(0) {}
 
   HWSeqCommandSU* get_su_hw_seq(int i, bool allocate)
   {
     static HWSeqCommandSU dummy;
 
-    if(hwSeq != NULL)
+    if(hwSeq.size() != 0)
     {
       return &hwSeq[i];
     }
@@ -796,7 +765,7 @@ struct DivInstrumentSoundUnit {
     {
       if(allocate)
       {
-        hwSeq = new HWSeqCommandSU[256];
+        hwSeq.resize(256);
         return &hwSeq[i];
       }
 
