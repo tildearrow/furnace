@@ -2,9 +2,9 @@
 
 You can create pull requests as usual, however, you may be given write access to the repo which means that you can work directly in **this** repo. You will be given an access after at least 3 merged pull requests where at least one of them is of significant effort.
 
-Usual pull requests can be as short as one line, or even small fixes in this one line. Significant effort pull request, however, means a substantial change made to the program. For example: adding new chip, refactoring major feature like macros or instrument editor, structuring the big piece of code, implementing new relatively complex feature (e.g. )
+Usual pull requests can be as short as one line, or even small fixes in this one line. Significant effort pull request, however, means a substantial change made to the program. For example: adding new chip, refactoring major feature like macros or instrument editor, structuring the big piece of code, implementing new relatively complex feature (e.g. local wavetables — per-instrument wavetables).
 
-Please, before you start working on some big pull request, ask others (preferably in `[TBD, Discord server??? maybe]`), maybe somebody is already working on it.
+Please, before you start working on some big pull request, ask others (preferably on Discord server), maybe somebody is already working on it.
 
 ## Work with write access
 
