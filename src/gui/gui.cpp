@@ -1671,6 +1671,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       }
       prevInsData=new DivInstrument;
       *prevInsData=*e->getIns(curIns);
+
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
