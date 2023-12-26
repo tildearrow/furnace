@@ -44,6 +44,7 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     void acquire_ymfm(short** buf, size_t len);
     
   public:
+    unsigned char isCSM;
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
