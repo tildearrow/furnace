@@ -950,12 +950,6 @@ struct DivInstrument {
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
 
   void convertC64SpecialMacro();
-  
-  /**
-   * save the instrument to a SafeWriter.
-   * @param w the SafeWriter in question.
-   */
-  void putInsData(SafeWriter* w);
 
   /**
    * save the instrument to a SafeWriter using new format.
@@ -974,12 +968,11 @@ struct DivInstrument {
   /**
    * save this instrument to a file.
    * @param path file path.
-   * @param oldFormat whether to save in legacy Furnace ins format.
    * @param song if new format, a DivSong to read wavetables and samples.
    * @param writeInsName whether to write the instrument name or not. ignored if old format.
    * @return whether it was successful.
    */
-  bool save(const char* path, bool oldFormat=false, DivSong* song=NULL, bool writeInsName=true);
+  bool save(const char* path, DivSong* song=NULL, bool writeInsName=true);
 
   /**
    * save this instrument to a file in .dmp format.
