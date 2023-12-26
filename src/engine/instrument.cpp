@@ -358,26 +358,10 @@ void DivInstrument::writeFeatureMA(SafeWriter* w) {
   
   // write macros
   
-  writeMacro(w,*std.get_macro(DIV_MACRO_VOL, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_ARP, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_DUTY, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_WAVE, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_PITCH, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_EX1, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_EX2, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_EX3, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_ALG, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_FB, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_FMS, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_AMS, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_PAN_LEFT, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_PAN_RIGHT, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_PHASE_RESET, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_EX4, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_EX5, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_EX6, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_EX7, false));
-  writeMacro(w,*std.get_macro(DIV_MACRO_EX8, false));
+  for(int i = 0; i < 32; i++)
+  {
+    writeMacro(w,*std.get_macro(DIV_MACRO_VOL + i, false));
+  }
 
   // "stop reading" code
   w->writeC(-1);
@@ -473,26 +457,10 @@ void DivInstrument::writeFeatureOx(SafeWriter* w, int ope) {
   // write macros
   DivInstrumentSTD::OpMacro& o=*std.get_op_macro(ope);
 
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_AM, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_AR, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_DR, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_MULT, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_RR, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_SL, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_TL, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_DT2, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_RS, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_DT, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_D2R, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_SSG, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_DAM, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_DVB, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_EGT, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_KSL, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_SUS, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_VIB, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_WS, false));
-  writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_KSR, false));
+  for(int i = 0; i < 32; i++)
+  {
+    writeMacro(w,*o.op_get_macro(DIV_MACRO_OP_AM + i, false));
+  }
 
   // "stop reading" code
   w->writeC(-1);
@@ -1351,71 +1319,12 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
     // end of macro list
     if (macroCode==255) break;
 
-    switch (macroCode) {
-      case 0:
-        target=std.get_macro(DIV_MACRO_VOL, true);
-        break;
-      case 1:
-        target=std.get_macro(DIV_MACRO_ARP, true);
-        break;
-      case 2:
-        target=std.get_macro(DIV_MACRO_DUTY, true);
-        break;
-      case 3:
-        target=std.get_macro(DIV_MACRO_WAVE, true);
-        break;
-      case 4:
-        target=std.get_macro(DIV_MACRO_PITCH, true);
-        break;
-      case 5:
-        target=std.get_macro(DIV_MACRO_EX1, true);
-        break;
-      case 6:
-        target=std.get_macro(DIV_MACRO_EX2, true);
-        break;
-      case 7:
-        target=std.get_macro(DIV_MACRO_EX3, true);
-        break;
-      case 8:
-        target=std.get_macro(DIV_MACRO_ALG, true);
-        break;
-      case 9:
-        target=std.get_macro(DIV_MACRO_FB, true);
-        break;
-      case 10:
-        target=std.get_macro(DIV_MACRO_FMS, true);
-        break;
-      case 11:
-        target=std.get_macro(DIV_MACRO_AMS, true);
-        break;
-      case 12:
-        target=std.get_macro(DIV_MACRO_PAN_LEFT, true);
-        break;
-      case 13:
-        target=std.get_macro(DIV_MACRO_PAN_RIGHT, true);
-        break;
-      case 14:
-        target=std.get_macro(DIV_MACRO_PHASE_RESET, true);
-        break;
-      case 15:
-        target=std.get_macro(DIV_MACRO_EX4, true);
-        break;
-      case 16:
-        target=std.get_macro(DIV_MACRO_EX5, true);
-        break;
-      case 17:
-        target=std.get_macro(DIV_MACRO_EX6, true);
-        break;
-      case 18:
-        target=std.get_macro(DIV_MACRO_EX7, true);
-        break;
-      case 19:
-        target=std.get_macro(DIV_MACRO_EX8, true);
-        break;
-      default:
-        logW("invalid macro code %d!");
-        break;
+    if (macroCode > 31)
+    {
+      logW("invalid macro code %d!", macroCode); break; //only 32 macros per instrument!!!
     }
+
+    target = std.get_macro(DIV_MACRO_VOL + macroCode, true);
 
     target->len=reader.readC();
     target->loop=reader.readC();
@@ -1564,68 +1473,12 @@ void DivInstrument::readFeatureOx(SafeReader& reader, int op, short version) {
     // end of macro list
     if (macroCode==255) break;
 
-    switch (macroCode) {
-      case 0:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_AM, true);
-        break;
-      case 1:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_AR, true);
-        break;
-      case 2:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_DR, true);
-        break;
-      case 3:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_MULT, true);
-        break;
-      case 4:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_RR, true);
-        break;
-      case 5:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_SL, true);
-        break;
-      case 6:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_TL, true);
-        break;
-      case 7:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_DT2, true);
-        break;
-      case 8:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_RS, true);
-        break;
-      case 9:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_DT, true);
-        break;
-      case 10:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_D2R, true);
-        break;
-      case 11:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_SSG, true);
-        break;
-      case 12:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_DAM, true);
-        break;
-      case 13:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_DVB, true);
-        break;
-      case 14:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_EGT, true);
-        break;
-      case 15:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_KSL, true);
-        break;
-      case 16:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_SUS, true);
-        break;
-      case 17:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_VIB, true);
-        break;
-      case 18:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_WS, true);
-        break;
-      case 19:
-        target=std.ops[op].op_get_macro(DIV_MACRO_OP_KSR, true);
-        break;
+    if (macroCode > DIV_MACRO_OP_AM + 31)
+    {
+      logW("invalid op %d macro code %d!", op, macroCode); break; //only 32 macros per FM op!!!
     }
+
+    target=std.ops[op].op_get_macro(DIV_MACRO_OP_AM + macroCode, true);
 
     target->len=reader.readC();
     target->loop=reader.readC();
@@ -2053,12 +1906,12 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
   // <187 C64 cutoff macro compatibility
   if (type==DIV_INS_C64 && volIsCutoff && version<187) {
     memcpy(std.get_macro(DIV_MACRO_ALG, true),std.get_macro(DIV_MACRO_VOL, true),sizeof(DivInstrumentMacro));
-    std.get_macro(DIV_MACRO_ALG, false)->macroType=DIV_MACRO_ALG;
+    std.get_macro(DIV_MACRO_ALG, true)->macroType=DIV_MACRO_ALG;
     *std.get_macro(DIV_MACRO_VOL, true)=DivInstrumentMacro(DIV_MACRO_VOL,true);
 
     if (!c64.filterIsAbs) {
-      for (int i=0; i<std.get_macro(DIV_MACRO_ALG, false)->len; i++) {
-        std.get_macro(DIV_MACRO_ALG, false)->val[i]=-std.get_macro(DIV_MACRO_ALG, false)->val[i];
+      for (int i=0; i<std.get_macro(DIV_MACRO_ALG, true)->len; i++) {
+        std.get_macro(DIV_MACRO_ALG, true)->val[i]=-std.get_macro(DIV_MACRO_ALG, true)->val[i];
       }
     }
   }
