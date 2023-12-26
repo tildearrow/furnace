@@ -5160,7 +5160,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   
   // step 4: not a valid file
   logE("not a valid module!");
-  lastError="not a compatible song";
+  lastError="not a compatible song/instrument";
   delete[] file;
   return false;
 }

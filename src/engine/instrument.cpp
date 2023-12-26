@@ -2621,6 +2621,11 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
 
   type=(DivInstrumentType)reader.readS();
 
+  if(type >= DIV_INS_MAX) //invalid instrument type!
+  {
+    return DIV_DATA_INVALID_DATA;
+  }
+
   // feature reading loop
   while ((int)reader.tell()<dataLen) {
     // read feature code
