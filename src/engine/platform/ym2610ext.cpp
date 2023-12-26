@@ -442,16 +442,6 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
       }
       immWrite(0x28,writeMask);
     }
-    if (extMode) {
-      if (chan[csmChan].keyOn) {
-        immWrite(0x27,0x81);
-        chan[csmChan].keyOn=false;
-      }
-      if (chan[csmChan].keyOff) {
-        immWrite(0x27,0x40);
-        chan[csmChan].keyOff=false;
-      }
-    }
   }
 
   if (extMode && !noExtMacros) for (int i=0; i<4; i++) {
@@ -664,6 +654,17 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
         }
       }
       immWrite(0x28,writeMask);
+    }
+  }
+
+  if (extMode) {
+    if (chan[csmChan].keyOn) {
+      immWrite(0x27,0x81);
+      chan[csmChan].keyOn=false;
+    }
+    if (chan[csmChan].keyOff) {
+      immWrite(0x27,0x40);
+      chan[csmChan].keyOff=false;
     }
   }
 }
