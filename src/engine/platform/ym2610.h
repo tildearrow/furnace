@@ -68,7 +68,9 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformYM2610():
-      DivPlatformYM2610Base(1,4,7,13,14) {}
+      DivPlatformYM2610Base(1,4,7,13,14) {
+        isCSM = false;
+      }
     ~DivPlatformYM2610();
 };
 #endif
