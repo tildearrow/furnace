@@ -1024,7 +1024,7 @@ void DivPlatformYM2203::reset() {
   OPN2_Reset(&fm_nuked);
   OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
   fm->reset();
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<7; i++) {
     chan[i]=DivPlatformOPN::OPNChannel();
     chan[i].std.setEngine(parent);
   }
@@ -1032,7 +1032,7 @@ void DivPlatformYM2203::reset() {
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;
   }
-  for (int i=3; i<6; i++) {
+  for (int i=psgChanOffs; i<psgChanOffs + 3; i++) {
     chan[i].vol=0x0f;
   }
 
