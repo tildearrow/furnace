@@ -1712,7 +1712,6 @@ class FurnaceGUI {
     int fontAutoHint;
     int fontAntiAlias;
     int selectAssetOnLoad;
-    int basicColors;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1909,7 +1908,6 @@ class FurnaceGUI {
       fontAutoHint(1),
       fontAntiAlias(1),
       selectAssetOnLoad(1),
-      basicColors(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
