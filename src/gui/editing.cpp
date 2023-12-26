@@ -1117,7 +1117,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
     
     if (invalidData)
     {
-      logW("invalid OpenMPT clipboard data! failed at line %d char %d",i,charPos);
+      logW("invalid clipboard data! failed at line %d char %d",i,charPos);
       logW("%s",line.c_str());
       break;
     }
