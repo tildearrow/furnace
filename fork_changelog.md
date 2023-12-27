@@ -8,6 +8,7 @@ LTVA:
 - remove the ability to **save** instrument in old format (useless and afaik never even used in the program)
 - CSM variants for YM2203, YM2608, YM2610 and YM2610B chips
 - Hide FM chips variations (ext3 ch, drums mode, CSM) into spoilers to reduce FM chips tab clutter in chips manager
+- Remove ability to save `.dmf` files
 
 freq-mod:
 - 86-PCM streo DAC fix
