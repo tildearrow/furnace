@@ -97,6 +97,7 @@ DivSystem FurnaceGUI::systemPicker() {
   if (ImGui::BeginTable("SysList",1,ImGuiTableFlags_ScrollY,ImVec2(500.0f*dpiScale,200.0*dpiScale))) {
     if (sysSearchQuery.empty()) {
       // display chip list
+      
       for (int j=0; curSysSection[j]; j++) {
         RESTRICT_CHIP_SHOW_BEGIN
         RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2612_EXT) //which chips are not shown in "All chips" tab
