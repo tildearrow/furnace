@@ -258,7 +258,8 @@ void putDispatchChip(void* data, int type) {
       break;
     }
     case DIV_SYSTEM_YM2203:
-    case DIV_SYSTEM_YM2203_EXT: {
+    case DIV_SYSTEM_YM2203_EXT:
+    case DIV_SYSTEM_YM2203_CSM: {
       DivPlatformYM2203* ch=(DivPlatformYM2203*)data;
       ImGui::Text("> YM2203");
       FM_OPN_CHIP_DEBUG;
@@ -286,14 +287,16 @@ void putDispatchChip(void* data, int type) {
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL:
-    case DIV_SYSTEM_YM2610_FULL_EXT: {
+    case DIV_SYSTEM_YM2610_FULL_EXT:
+    case DIV_SYSTEM_YM2610_CSM: {
       DivPlatformYM2610* ch=(DivPlatformYM2610*)data;
       ImGui::Text("> YM2610");
       OPNB_CHIP_DEBUG;
       break;
     }
     case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610B_EXT: {
+    case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_YM2610B_CSM: {
       DivPlatformYM2610B* ch=(DivPlatformYM2610B*)data;
       ImGui::Text("> YM2610B");
       OPNB_CHIP_DEBUG;
