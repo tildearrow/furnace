@@ -23,7 +23,7 @@
 
 const char* aboutLine[]={
   "tildearrow",
-  "and Better Furnace developers",
+  "and Furnace-B developers",
   "are proud to present",
   "",
   ("Furnace " DIV_VERSION),
@@ -242,7 +242,7 @@ const char* aboutLine[]={
   "",
   "help Furnace grow:",
   "https://github.com/tildearrow/furnace",
-  "help Better Furnace:",
+  "help Furnace-B:",
   "https://github.com/LTVA1/furnace",
   "",
   "contact tildearrow at:",
