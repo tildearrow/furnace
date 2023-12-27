@@ -17,11 +17,20 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _DATA_ERRORS_H
-#define _DATA_ERRORS_H
-enum DivDataErrors {
-  DIV_DATA_SUCCESS=0,
-  DIV_DATA_INVALID_HEADER=1,
-  DIV_DATA_INVALID_DATA=2,
-};
-#endif
+#pragma once
+
+#include "../dataErrors.h"
+#include "../engine.h"
+#include "../../ta-log.h"
+#include "../instrument.h"
+#include "../song.h"
+#include <zlib.h>
+#include <fmt/printf.h>
+
+#define DIV_READ_SIZE 131072
+#define DIV_DMF_MAGIC ".DelekDefleMask."
+#define DIV_FUR_MAGIC "-Furnace module-"
+#define DIV_FTM_MAGIC "FamiTracker Module"
+#define DIV_FC13_MAGIC "SMOD"
+#define DIV_FC14_MAGIC "FC14"
+#define DIV_S3M_MAGIC "SCRM"

@@ -17,11 +17,37 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _DATA_ERRORS_H
-#define _DATA_ERRORS_H
-enum DivDataErrors {
-  DIV_DATA_SUCCESS=0,
-  DIV_DATA_INVALID_HEADER=1,
-  DIV_DATA_INVALID_DATA=2,
+#pragma once
+
+#include "importExport.h"
+
+// MIDI-related
+struct midibank_t {
+  String name;
+  uint8_t bankMsb,
+          bankLsb;
 };
-#endif
+
+// Reused patch data structures
+
+// SBI and some other OPL containers
+
+struct sbi_t {
+  uint8_t Mcharacteristics,
+          Ccharacteristics,
+          Mscaling_output,
+          Cscaling_output,
+          Meg_AD,
+          Ceg_AD,
+          Meg_SR,
+          Ceg_SR,
+          Mwave,
+          Cwave,
+          FeedConnect;
+};
+
+bool stringNotBlank(String& str);
+// detune needs extra translation from register to furnace format
+uint8_t fmDtRegisterToFurnace(uint8_t&& dtNative);
+
+void readSbiOpData(sbi_t& sbi, SafeReader& reader);
