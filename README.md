@@ -1,4 +1,4 @@
-# Better Furnace (placeholder name)
+# Furnace-B
 
 A fork of [Furnace chiptune tracker](https://github.com/tildearrow/furnace) with the aim to cut out the bloat (aka abandoned/unfinished stuff), make codebase cleaner and easier to understand, optimize performance and memory usage, and bring more useful features.
 
