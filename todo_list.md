@@ -4,10 +4,10 @@ Note: whatever feature/fix made by tildearrow, if useful, is ported to this fork
 
 Remove:
 - Deflemask compatibility with exporting modules and no longer add new compatibility flags (you can still import modules)
-- Cheat codes (cringe)
+- Cheat codes
 - Long codebase problems and other jank that never was fully implemented
 - Limit of 128 channels and 32 chips. Memory for channels and chips must be dynamically allocated
-- Some arcade presets (too many of them)
+- Some arcade presets (too many of them). Or at least organize them like presets menu... 
 - Panic attacks measures, like saving 5 copies of config files and backup modules
 
 Change:
