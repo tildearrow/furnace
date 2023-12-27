@@ -492,6 +492,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 
 - **Rounded window corners**
 - **Rounded buttons**
+- **Rounded tabs**
 - **Rounded menu corners**
 - **Borders around widgets**: draws borders on buttons, checkboxes, text widgets, and the like.
 
