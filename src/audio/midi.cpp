@@ -62,5 +62,6 @@ void TAAudio::quitMidi() {
 
 bool TAAudio::reinitMidi(bool jack) {
   quitMidi();
-  initMidi(jack);
+  return initMidi(jack);
+  
 }
