@@ -3473,6 +3473,15 @@ void DivEngine::rescanAudioDevices() {
   }
 }
 
+
+void DivEngine::rescanMidiDevices() {
+  if (output!=NULL) {
+    logV("reloading midi...");
+    output->reinitMidi(false);
+    rescanAudioDevices();
+  }
+}
+
 void DivEngine::initDispatch(bool isRender) {
   BUSY_BEGIN;
   logV("initializing dispatch...");
