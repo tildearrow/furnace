@@ -16,8 +16,6 @@ Furnace uses a music tracker interface. think of a table with music notes writte
 for an introduction to a tracker interface, see [tracker concepts and terms](concepts.md) before using Furnace.
 there's also a [glossary of common terms](glossary.md).
 
-due to its nature of being feature-packed, it may be technical and somewhat difficult to get around. therefore we added a [basic mode](../2-interface/basic-mode.md), which hides several advanced features.
-
 it also has a flexible windowing system which you may move around and organize.
 
 see [2-interface](../2-interface/README.md) and [3-pattern](../3-pattern/README.md) for more information.
