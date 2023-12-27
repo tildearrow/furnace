@@ -708,6 +708,28 @@ src/engine/export/amigaValidation.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp
+
+src/engine/importExport/dmf.cpp
+src/engine/importExport/fc.cpp
+src/engine/importExport/ftm.cpp
+src/engine/importExport/mod.cpp
+src/engine/importExport/s3m.cpp
+
+src/engine/importExport/shared.cpp
+src/engine/importExport/dmp.cpp
+src/engine/importExport/bnk.cpp
+src/engine/importExport/ff.cpp
+src/engine/importExport/gyb.cpp
+src/engine/importExport/opli.cpp
+src/engine/importExport/opm.cpp
+src/engine/importExport/opni.cpp
+src/engine/importExport/s3i.cpp
+src/engine/importExport/sbi.cpp
+src/engine/importExport/tfi.cpp
+src/engine/importExport/vgi.cpp
+src/engine/importExport/wopl.cpp
+src/engine/importExport/wopn.cpp
+src/engine/importExport/y12.cpp
 )
 
 if (USE_SNDFILE)
