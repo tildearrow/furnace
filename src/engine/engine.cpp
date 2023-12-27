@@ -3545,12 +3545,22 @@ bool DivEngine::initAudioBackend() {
   // load values
   logI("initializing audio.");
   if (audioEngine==DIV_AUDIO_NULL) {
-    if (getConfString("audioEngine","SDL")=="JACK") {
-      audioEngine=DIV_AUDIO_JACK;
-    } else if (getConfString("audioEngine","SDL")=="PortAudio") {
-      audioEngine=DIV_AUDIO_PORTAUDIO;
+    if (!fallbackMode) {
+      if (getConfString("audioEngine","SDL")=="JACK") {
+        audioEngine=DIV_AUDIO_JACK;
+      } else if (getConfString("audioEngine","SDL")=="PortAudio") {
+        audioEngine=DIV_AUDIO_PORTAUDIO;
+      } else {
+        audioEngine=DIV_AUDIO_SDL;
+      }
     } else {
-      audioEngine=DIV_AUDIO_SDL;
+      if (getConfString("audioFallbackEngine","SDL")=="JACK") {
+        audioEngine=DIV_AUDIO_JACK;
+      } else if (getConfString("audioFallbackEngine","SDL")=="PortAudio") {
+        audioEngine=DIV_AUDIO_PORTAUDIO;
+      } else {
+        audioEngine=DIV_AUDIO_SDL;
+      }
     }
   }
 
@@ -3649,11 +3659,18 @@ bool DivEngine::initAudioBackend() {
 
   logV("calling init");
   if (!output->init(want,got)) {
-    logE("error while initializing audio!");
-    delete output;
-    output=NULL;
-    audioEngine=DIV_AUDIO_NULL;
-    return false;
+    if (!fallbackMode) {
+      logE("error while initializing audio! trying fallback engine");
+      audioEngine=DIV_AUDIO_NULL;
+      fallbackMode=true;
+      return initAudioBackend();
+    } else {
+        logE("error while initializing audio! even fallback failed!");
+        delete output;
+        output=NULL;
+        audioEngine=DIV_AUDIO_NULL;
+        return false;
+    }
   }
 
   logV("allocating oscBuf...");

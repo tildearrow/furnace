@@ -866,15 +866,42 @@ void FurnaceGUI::drawSettings() {
               settingsChanged=true;
             }
 #endif
-            if (settings.audioEngine!=prevAudioEngine) {
+            ImGui::EndCombo();
+          }
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Fallback Backend");
+          ImGui::TableNextColumn();
+          int prevAudioFallbackEngine=settings.audioFallbackEngine;
+          if (ImGui::BeginCombo("##FallbackBackend",audioBackends[settings.audioFallbackEngine])) {
+#ifdef HAVE_JACK
+            if (ImGui::Selectable("JACK",settings.audioFallbackEngine==DIV_AUDIO_JACK)) {
+              settings.audioFallbackEngine=DIV_AUDIO_JACK;
+              settingsChanged=true;
+            }
+#endif
+            if (ImGui::Selectable("SDL",settings.audioFallbackEngine==DIV_AUDIO_SDL)) {
+              settings.audioFallbackEngine=DIV_AUDIO_SDL;
+              settingsChanged=true;
+            }
+#ifdef HAVE_PA
+            if (ImGui::Selectable("PortAudio",settings.audioFallbackEngine==DIV_AUDIO_PORTAUDIO)) {
+              settings.audioFallbackEngine=DIV_AUDIO_PORTAUDIO;
+              settingsChanged=true;
+            }
+#endif
+            if (settings.audioEngine!=prevAudioEngine || settings.audioFallbackEngine!=prevAudioFallbackEngine) {
               audioEngineChanged=true;
               settings.audioDevice="";
-              if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
+              if (!isProAudio[settings.audioFallbackEngine]) settings.audioChans=2;
             }
             ImGui::EndCombo();
           }
 #endif
-
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("When the main backend fails Furnace will try to initialize the fallback backend.");
+          }
           if (settings.audioEngine==DIV_AUDIO_SDL) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
@@ -3792,6 +3819,14 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     } else {
       settings.audioEngine=DIV_AUDIO_SDL;
     }
+    settings.audioFallbackEngine=(conf.getString("audioFallbackEngine","SDL")=="SDL")?1:0;
+    if (conf.getString("audioFallbackEngine","SDL")=="JACK") {
+      settings.audioFallbackEngine=DIV_AUDIO_JACK;
+    } else if (conf.getString("audioFallbackEngine","SDL")=="PortAudio") {
+      settings.audioFallbackEngine=DIV_AUDIO_PORTAUDIO;
+    } else {
+      settings.audioFallbackEngine=DIV_AUDIO_SDL;
+    }
     settings.audioDevice=conf.getString("audioDevice","");
     settings.sdlAudioDriver=conf.getString("sdlAudioDriver","");
     settings.audioQuality=conf.getInt("audioQuality",0);
@@ -4022,6 +4057,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.patFontSize,2,96);
   clampSetting(settings.iconSize,2,48);
   clampSetting(settings.audioEngine,0,2);
+  clampSetting(settings.audioFallbackEngine,0,2);
   clampSetting(settings.audioQuality,0,1);
   clampSetting(settings.audioHiPass,0,1);
   clampSetting(settings.audioBufSize,32,4096);
@@ -4245,6 +4281,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   // audio
   if (groups&GUI_SETTINGS_AUDIO) {
     conf.set("audioEngine",String(audioBackends[settings.audioEngine]));
+    conf.set("audioFallbackEngine",String(audioBackends[settings.audioFallbackEngine]));
     conf.set("audioDevice",settings.audioDevice);
     conf.set("sdlAudioDriver",settings.sdlAudioDriver);
     conf.set("audioQuality",settings.audioQuality);
