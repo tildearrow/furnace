@@ -437,6 +437,9 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
       }
     }
     if (writeSomething) {
+      if (chan[csmChan].active) { // CSM
+        writeMask^=0xf0;
+      }
       immWrite(0x28,writeMask);
     }
   }
@@ -610,7 +613,28 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
       }
     }
   }
+  if (extMode) {
+    if (chan[csmChan].freqChanged) {
+      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
+      if (chan[csmChan].freq<1) chan[csmChan].freq=1;
+      if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
+      int wf=0x400-chan[csmChan].freq;
+      immWrite(0x24,wf>>2);
+      immWrite(0x25,wf&3);
+      chan[csmChan].freqChanged=false;
+    }
+
+    if (chan[csmChan].keyOff || chan[csmChan].keyOn) {
+      writeNoteOn=true;
+      for (int i=0; i<4; i++) {
+        writeMask|=opChan[i].active<<(4+i);
+      }
+    }
+  }
   if (writeNoteOn) {
+    if (chan[csmChan].active) { // CSM
+      writeMask^=0xf0;
+    }
     writeMask^=hardResetMask;
     immWrite(0x28,writeMask);
     writeMask^=hardResetMask;
@@ -630,6 +654,17 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
         }
       }
       immWrite(0x28,writeMask);
+    }
+  }
+
+  if (extMode) {
+    if (chan[csmChan].keyOn) {
+      immWrite(0x27,0x81);
+      chan[csmChan].keyOn=false;
+    }
+    if (chan[csmChan].keyOff) {
+      immWrite(0x27,0x40);
+      chan[csmChan].keyOff=false;
     }
   }
 }
@@ -721,6 +756,11 @@ void DivPlatformYM2610Ext::forceIns() {
       opChan[i].freqChanged=true;
     }
   }
+  if (extMode && chan[csmChan].active) { // CSM
+    chan[csmChan].insChanged=true;
+    chan[csmChan].freqChanged=true;
+    chan[csmChan].keyOn=true;
+  }
   if (!extMode) {
     immWrite(0x27,0x00);
   }
@@ -740,6 +780,7 @@ DivMacroInt* DivPlatformYM2610Ext::getChanMacroInt(int ch) {
 }
 
 unsigned short DivPlatformYM2610Ext::getPan(int ch) {
+  if (ch==4+csmChan) return 0;
   if (ch>=4+extChanOffs) return DivPlatformYM2610::getPan(ch-3);
   if (ch>=extChanOffs) {
     if (extMode) {
@@ -808,7 +849,21 @@ int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, con
   extSys=true;
 
   reset();
-  return 17;
+  return (adpcmBChanOffs + 4);
+}
+
+void DivPlatformYM2610Ext::setCSM(unsigned char isCSM) {
+  this->isCSM = isCSM;
+
+  if(isCSM)
+  {
+    psgChanOffs++;
+    adpcmAChanOffs++;
+    adpcmBChanOffs++;
+    chanNum++;
+
+    csmChan = 4;
+  }
 }
 
 void DivPlatformYM2610Ext::quit() {

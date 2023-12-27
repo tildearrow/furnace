@@ -348,6 +348,16 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2610Ext*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
       }
+      ((DivPlatformYM2610Ext*)dispatch)->setCSM(0);
+      break;
+    case DIV_SYSTEM_YM2610_CSM:
+      dispatch=new DivPlatformYM2610Ext;
+      if (isRender) {
+        ((DivPlatformYM2610Ext*)dispatch)->setCombo(eng->getConfInt("opnCoreRender",1)==1);
+      } else {
+        ((DivPlatformYM2610Ext*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
+      }
+      ((DivPlatformYM2610Ext*)dispatch)->setCSM(1);
       break;
     case DIV_SYSTEM_YM2610B:
       dispatch=new DivPlatformYM2610B;
@@ -364,6 +374,16 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2610BExt*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
       }
+      ((DivPlatformYM2610BExt*)dispatch)->setCSM(0);
+      break;
+    case DIV_SYSTEM_YM2610B_CSM:
+      dispatch=new DivPlatformYM2610BExt;
+      if (isRender) {
+        ((DivPlatformYM2610BExt*)dispatch)->setCombo(eng->getConfInt("opnCoreRender",1)==1);
+      } else {
+        ((DivPlatformYM2610BExt*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
+      }
+      ((DivPlatformYM2610BExt*)dispatch)->setCSM(1);
       break;
     case DIV_SYSTEM_AMIGA:
       dispatch=new DivPlatformAmiga;
@@ -400,6 +420,16 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2203Ext*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
       }
+      ((DivPlatformYM2203Ext*)dispatch)->setCSM(0);
+      break;
+    case DIV_SYSTEM_YM2203_CSM:
+      dispatch=new DivPlatformYM2203Ext;
+      if (isRender) {
+        ((DivPlatformYM2203Ext*)dispatch)->setCombo(eng->getConfInt("opnCoreRender",1)==1);
+      } else {
+        ((DivPlatformYM2203Ext*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
+      }
+      ((DivPlatformYM2203Ext*)dispatch)->setCSM(1);
       break;
     case DIV_SYSTEM_YM2608:
       dispatch=new DivPlatformYM2608;
