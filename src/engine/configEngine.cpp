@@ -168,3 +168,7 @@ void DivEngine::setConf(String key, String value) {
 bool DivEngine::hasConf(String key) {
   return conf.has(key);
 }
+
+DivConfig& DivEngine::getConfObject() {
+  return conf;
+}

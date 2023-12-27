@@ -199,7 +199,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
   for (int i=0; i<chans; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol,chan[i].std.vol.val,15);
     }
     if (chan[i].std.duty.had) {
       chan[i].noise=chan[i].std.duty.val;
