@@ -1750,6 +1750,24 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, const DivCo
   return 17;
 }
 
+void DivPlatformYM2608::setCSM(unsigned char isCSM) {
+  this->isCSM = isCSM;
+
+  if(isCSM)
+  {
+    csmChan = 6;
+    psgChanOffs++;
+    adpcmAChanOffs++;
+    adpcmBChanOffs++;
+    chanNum++;
+  }
+
+  else
+  {
+    csmChan = 16;
+  }
+}
+
 void DivPlatformYM2608::quit() {
   for (int i=0; i<17; i++) {
     delete oscBuf[i];

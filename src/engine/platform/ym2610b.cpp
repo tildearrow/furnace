@@ -1646,6 +1646,25 @@ int DivPlatformYM2610B::init(DivEngine* p, int channels, int sugRate, const DivC
   return 17;
 }
 
+void DivPlatformYM2610B::setCSM(unsigned char isCSM) {
+  this->isCSM = isCSM;
+
+  if(isCSM)
+  {
+    psgChanOffs++;
+    adpcmAChanOffs++;
+    adpcmBChanOffs++;
+    chanNum++;
+
+    csmChan = 6;
+  }
+
+  else
+  {
+    csmChan = 16;
+  }
+}
+
 void DivPlatformYM2610B::quit() {
   delete fm;
   DivPlatformYM2610Base::quit();

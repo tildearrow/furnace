@@ -1168,6 +1168,21 @@ int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, const DivCo
   return 7;
 }
 
+void DivPlatformYM2203::setCSM(unsigned char isCSM) {
+  this->isCSM = isCSM;
+
+  if(isCSM)
+  {
+    psgChanOffs++;
+    csmChan = 3;
+  }
+
+  else
+  {
+    csmChan = 6;
+  }
+}
+
 void DivPlatformYM2203::quit() {
   for (int i=0; i<7; i++) {
     delete oscBuf[i];

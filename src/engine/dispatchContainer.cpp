@@ -339,6 +339,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2610*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
       }
+      ((DivPlatformYM2610*)dispatch)->setCSM(0);
       break;
     case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL_EXT:
@@ -366,6 +367,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2610B*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
       }
+      ((DivPlatformYM2610B*)dispatch)->setCSM(0);
       break;
     case DIV_SYSTEM_YM2610B_EXT:
       dispatch=new DivPlatformYM2610BExt;
@@ -412,6 +414,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2203*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
       }
+      ((DivPlatformYM2203*)dispatch)->setCSM(0);
       break;
     case DIV_SYSTEM_YM2203_EXT:
       dispatch=new DivPlatformYM2203Ext;
@@ -438,6 +441,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformYM2608*)dispatch)->setCombo(eng->getConfInt("opnCore",1)==1);
       }
+      ((DivPlatformYM2608*)dispatch)->setCSM(0);
       break;
     case DIV_SYSTEM_YM2608_EXT:
       dispatch=new DivPlatformYM2608Ext;

@@ -852,20 +852,6 @@ int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, con
   return (adpcmBChanOffs + 4);
 }
 
-void DivPlatformYM2610Ext::setCSM(unsigned char isCSM) {
-  this->isCSM = isCSM;
-
-  if(isCSM)
-  {
-    psgChanOffs++;
-    adpcmAChanOffs++;
-    adpcmBChanOffs++;
-    chanNum++;
-
-    csmChan = 4;
-  }
-}
-
 void DivPlatformYM2610Ext::quit() {
   DivPlatformYM2610::quit();
 }
