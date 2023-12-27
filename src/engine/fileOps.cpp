@@ -822,7 +822,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.ceilVolumeScaling=false;
     }
     ds.isDMF=false;
-
+    
     reader.readS(); // reserved
     int infoSeek=reader.readI();
 

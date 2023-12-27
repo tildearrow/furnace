@@ -104,6 +104,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
+    void setCSM(unsigned char isCSM);
     void quit();
     DivPlatformYM2608():
       DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32),

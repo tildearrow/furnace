@@ -793,16 +793,5 @@ void DivPlatformYM2203Ext::quit() {
   DivPlatformYM2203::quit();
 }
 
-void DivPlatformYM2203Ext::setCSM(unsigned char isCSM) {
-  this->isCSM = isCSM;
-
-  if(isCSM)
-  {
-    psgChanOffs++;
-
-    csmChan = 3;
-  }
-}
-
 DivPlatformYM2203Ext::~DivPlatformYM2203Ext() {
 }

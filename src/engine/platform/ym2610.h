@@ -66,6 +66,7 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
+    void setCSM(unsigned char isCSM);
     void quit();
     DivPlatformYM2610():
       DivPlatformYM2610Base(1,4,7,13,14) {
