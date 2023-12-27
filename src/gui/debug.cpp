@@ -269,7 +269,8 @@ void putDispatchChip(void* data, int type) {
       break;
     }
     case DIV_SYSTEM_YM2608:
-    case DIV_SYSTEM_YM2608_EXT: {
+    case DIV_SYSTEM_YM2608_EXT:
+    case DIV_SYSTEM_YM2608_CSM: {
       DivPlatformYM2608* ch=(DivPlatformYM2608*)data;
       ImGui::Text("> YM2608");
       FM_OPN_CHIP_DEBUG;
