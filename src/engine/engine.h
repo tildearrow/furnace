@@ -1077,6 +1077,9 @@ class DivEngine {
     // rescan audio devices
     void rescanAudioDevices();
 
+    /** rescan midi devices */
+    void rescanMidiDevices();
+
     // set the console mode.
     void setConsoleMode(bool enable);
 

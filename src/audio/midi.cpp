@@ -59,3 +59,8 @@ void TAAudio::quitMidi() {
     midiOut=NULL;
   }
 }
+
+bool TAAudio::reinitMidi(bool jack) {
+  quitMidi();
+  initMidi(jack);
+}

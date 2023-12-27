@@ -178,6 +178,8 @@ class TAAudio {
     virtual std::vector<String> listAudioDevices();
     bool initMidi(bool jack);
     void quitMidi();
+    /** remove and reload midi to allow hotswaping midi devices */
+    bool reinitMidi(bool jack);
     virtual bool init(TAAudioDesc& request, TAAudioDesc& response);
 
     TAAudio():
