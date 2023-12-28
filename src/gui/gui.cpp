@@ -1319,6 +1319,32 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   }
 }
 
+void FurnaceGUI::orderInput(int num) {
+  if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
+    prepareUndo(GUI_UNDO_CHANGE_ORDER);
+    e->lockSave([this,num]() {
+      if (!curNibble && !settings.pushNibble) e->curOrders->ord[orderCursor][curOrder]=0;
+      e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
+    });
+    MARK_MODIFIED;
+    curNibble=!curNibble;
+    if (orderEditMode==2 || orderEditMode==3) {
+      if (!curNibble) {
+        if (orderEditMode==2) {
+          orderCursor++;
+          if (orderCursor>=e->getTotalChannelCount()) orderCursor=0;
+        } else if (orderEditMode==3) {
+          if (curOrder<e->curSubSong->ordersLen-1) {
+            setOrder(curOrder+1);
+          }
+        }
+      }
+    }
+    e->walkSong(loopOrder,loopRow,loopEnd);
+    makeUndo(GUI_UNDO_CHANGE_ORDER);
+  }
+}
+
 #define changeLatch(x) \
   if (x<0) x=0; \
   if (!latchNibble && !settings.pushNibble) x=0; \
@@ -1529,29 +1555,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         auto it=valueKeys.find(ev.key.keysym.sym);
         if (it!=valueKeys.cend()) {
           int num=it->second;
-          if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
-            prepareUndo(GUI_UNDO_CHANGE_ORDER);
-            e->lockSave([this,num]() {
-              if (!curNibble && !settings.pushNibble) e->curOrders->ord[orderCursor][curOrder]=0;
-              e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
-            });
-            MARK_MODIFIED;
-            curNibble=!curNibble;
-            if (orderEditMode==2 || orderEditMode==3) {
-              if (!curNibble) {
-                if (orderEditMode==2) {
-                  orderCursor++;
-                  if (orderCursor>=e->getTotalChannelCount()) orderCursor=0;
-                } else if (orderEditMode==3) {
-                  if (curOrder<e->curSubSong->ordersLen-1) {
-                    setOrder(curOrder+1);
-                  }
-                }
-              }
-            }
-            e->walkSong(loopOrder,loopRow,loopEnd);
-            makeUndo(GUI_UNDO_CHANGE_ORDER);
-          }
+          orderInput(num);
         }
       }
       break;
@@ -4518,6 +4522,7 @@ bool FurnaceGUI::loop() {
           ordersOpen=true;
           curWindow=GUI_WINDOW_ORDERS;
           MEASURE(orders,drawOrders());
+          MEASURE(piano,drawPiano());
           break;
         case GUI_SCENE_INSTRUMENT:
           insEditOpen=true;

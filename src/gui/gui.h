@@ -2555,6 +2555,7 @@ class FurnaceGUI {
   DivSystem systemPicker();
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);
+  void orderInput(int num);
 
   void doGenerateWave();
 
