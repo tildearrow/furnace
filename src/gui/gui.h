@@ -1464,11 +1464,7 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-<<<<<<< HEAD
-  bool displayNew, displayPalette, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
-=======
-  bool displayNew, displayExport, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
->>>>>>> 07b037349b2419736359f25e114e5798e17bb327
+  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool killGraphics;
@@ -2491,11 +2487,8 @@ class FurnaceGUI {
   void drawSettings();
   void drawDebug();
   void drawNewSong();
-<<<<<<< HEAD
   void drawPalette();
-=======
   void drawExport();
->>>>>>> 07b037349b2419736359f25e114e5798e17bb327
   void drawLog();
   void drawEffectList();
   void drawSubSongs(bool asChild=false);
