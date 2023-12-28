@@ -13,6 +13,7 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Restore backup                                         | —                |
 | Save file                                              | `Ctrl-S`         |
 | Save as                                                | `Ctrl-Shift-S`   |
+| Export                                                 | —                |
 | Undo                                                   | `Ctrl-Z`         |
 | Redo                                                   | `Ctrl-Y`         |
 | Play/Stop (toggle)                                     | `Return`         |

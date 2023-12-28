@@ -33,13 +33,7 @@ items in _italic_ don't appear in basic mode and are only available in advanced 
     - Neo Geo CD (DefleMask 1.0+)
   - only use this option if you really need it. there are features which DefleMask does not support, like some effects and FM macros, so these will be lost.
 
-- **export audio...**: opens the file picker, allowing you to export your song to a .wav file. see next section for more details.
-- **export VGM...**: opens the file picker, allowing you to export your song to a .vgm file. see next section for more details.
-- **export text...**: opens the file picker, allowing you to export your song to a .txt file.
-- **export ZSM...**: opens the file picker, allowing you to export your song to a .zsm file. see next section for more details.
-  - only available when there's a YM2151 and/or VERA.
-- **export command stream...**: export song data to a command stream file. see next section for more details.
-  - this option is for developers.
+- **export...**: for saving to formats other than Furnace modules. see next section for more details.
 
 - **manage chips**: opens the [Chip Manager](../8-advanced/chip-manager.md) dialog.
 
@@ -54,25 +48,29 @@ items in _italic_ don't appear in basic mode and are only available in advanced 
 
 - **exit**: closes Furnace.
 
-### export audio
+### export...
+
+this modal dialog has a tab for each type of export.
+
+#### Audio
 
 this option allows you to export your song in .wav format. I know I know, no .mp3 or .ogg export yet, but you can use a converter.
 
-there are two parameters:
-
-- **Loops**: sets the number of times the song will loop.
-  - does not have effect if the song ends with `FFxx` effect.
-- **Fade out (seconds)**: sets the fade out time when the song is over.
-  - does not have effect if the song ends with `FFxx` effect.
-
-and three export choices:
+there are three export choices:
 
 - **one file**: exports your song to one .wav file.
 - **multiple files (one per chip)**: exports the output of each chip to .wav files.
 - **multiple files (one per channel)**: exports the output of each channel to .wav files.
   - useful for usage with a channel visualizer such as corrscope.
 
-### export VGM
+and two parameters:
+
+- **Loops**: sets the number of times the song will loop.
+  - does not have effect if the song ends with `FFxx` effect.
+- **Fade out (seconds)**: sets the fade out time when the song is over.
+  - does not have effect if the song ends with `FFxx` effect.
+
+#### VGM
 
 this option allows exporting to a VGM (Video Game Music) file. these can be played back with VGMPlay (for example).
 
@@ -92,9 +90,6 @@ the following settings exist:
   - **custom**: allows you to specify how many ticks to add.
     - `0` is effectively none, disabling loop trail completely.
   - this option will not appear if the loop modality isn't set to None as there wouldn't be a need to.
-- **chips to export**: select which chips are going to be exported.
-  - due to VGM format limitations, you can only select up to two of each chip type.
-  - some chips will not be available, either because VGM doesn't support these yet, or because you selected an old format version.
 - **add pattern change hints**: this option adds a "hint" when a pattern change occurs. only useful if you're a developer.
   - the format of the "hint" data block that gets written is: `67 66 FE ll ll ll ll 01 oo rr pp pp pp ...`
     - `ll`: length, a 32-bit little-endian number
@@ -103,10 +98,11 @@ the following settings exist:
     - `pp`: pattern index (one per channel)
 - **direct stream mode**: this option allows DualPCM to work. don't use this for other chips.
   - may or may not play well with hardware VGM players.
+- **chips to export**: select which chips are going to be exported.
+  - due to VGM format limitations, you can only select up to two of each chip type.
+  - some chips will not be available, either because VGM doesn't support these yet, or because you selected an old format version.
 
-click on **click to export** to begin exporting.
-
-### export ZSM
+#### ZSM
 
 ZSM (ZSound Music) is a format designed for the Commander X16 to allow hardware playback.
 it may contain data for either YM2151 or VERA chips.
@@ -120,14 +116,17 @@ the following settings are available:
 - **loop**: enables loop. if disabled, the song won't loop.
 - **optimize size**: removes unnecessary commands to reduce size.
 
-click on **Begin Export** to... you know.
+#### Text
 
-### export command stream
+this option exports the song to a text file.
+
+#### Command Stream
 
 this option exports a text or binary file which contains a dump of the internal command stream produced when playing the song.
 
 it's not really useful, unless you're a developer and want to use a command stream dump for some reason (e.g. writing a hardware sound driver).
 
+the export button is split into two:
 - **export (binary)**: exports in Furnace's own command stream format (FCS). see `export-tech.md` in `papers/` for details.
 - **export (text)**: exports the command stream as a text file. only useful for analysis, really.
 
