@@ -83,7 +83,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0x82:
       return "82xx: Set panning (right channel)";
     case 0x88:
-      return "88xx: Set panning (rear channels; x: left; y: right)";
+      return "88xy: Set panning (rear channels; x: left; y: right)";
       break;
     case 0x89:
       return "89xx: Set panning (rear left channel)";
