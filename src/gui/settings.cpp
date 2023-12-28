@@ -1672,6 +1672,7 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_OPEN_BACKUP);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAVE);
           UI_KEYBIND_CONFIG(GUI_ACTION_SAVE_AS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_EXPORT);
           UI_KEYBIND_CONFIG(GUI_ACTION_UNDO);
           UI_KEYBIND_CONFIG(GUI_ACTION_REDO);
           UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_TOGGLE);
@@ -2655,6 +2656,22 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::RadioButton("Nothing##sbar3",settings.statusDisplay==3)) {
           settings.statusDisplay=3;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
+
+        ImGui::Text("Export options layout:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("Sub-menus in File menu##eol0",settings.exportOptionsLayout==0)) {
+          settings.exportOptionsLayout=0;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Modal window with tabs##eol1",settings.exportOptionsLayout==1)) {
+          settings.exportOptionsLayout=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Modal windows with options in File menu##eol2",settings.exportOptionsLayout==2)) {
+          settings.exportOptionsLayout=2;
           settingsChanged=true;
         }
         ImGui::Unindent();
@@ -3680,207 +3697,326 @@ void FurnaceGUI::drawSettings() {
   }
 
 void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
-  settings.mainFontSize=conf.getInt("mainFontSize",18);
-  settings.headFontSize=conf.getInt("headFontSize",27);
-  settings.patFontSize=conf.getInt("patFontSize",18);
-  settings.iconSize=conf.getInt("iconSize",16);
-  settings.audioEngine=(conf.getString("audioEngine","SDL")=="SDL")?1:0;
-  if (conf.getString("audioEngine","SDL")=="JACK") {
-    settings.audioEngine=DIV_AUDIO_JACK;
-  } else if (conf.getString("audioEngine","SDL")=="PortAudio") {
-    settings.audioEngine=DIV_AUDIO_PORTAUDIO;
-  } else {
-    settings.audioEngine=DIV_AUDIO_SDL;
+  if (groups&GUI_SETTINGS_GENERAL) {
+    settings.renderDriver=conf.getString("renderDriver","");
+    settings.noDMFCompat=conf.getInt("noDMFCompat",0);
+
+    settings.dpiScale=conf.getFloat("dpiScale",0.0f);
+
+    settings.initialSysName=conf.getString("initialSysName","");
+
+    // initial system
+    String initialSys2=conf.getString("initialSys2","");
+    bool oldVol=conf.getInt("configVersion",DIV_ENGINE_VERSION)<135;
+    if (initialSys2.empty()) {
+      initialSys2=e->decodeSysDesc(conf.getString("initialSys",""));
+      oldVol=false;
+    }
+    settings.initialSys.clear();
+    settings.initialSys.loadFromBase64(initialSys2.c_str());
+    if (settings.initialSys.getInt("id0",0)==0) {
+      settings.initialSys.clear();
+      settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
+      settings.initialSys.set("vol0",1.0f);
+      settings.initialSys.set("pan0",0.0f);
+      settings.initialSys.set("fr0",0.0f);
+      settings.initialSys.set("flags0","");
+      settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
+      settings.initialSys.set("vol1",0.5f);
+      settings.initialSys.set("pan1",0);
+      settings.initialSys.set("fr1",0);
+      settings.initialSys.set("flags1","");
+    } else {
+      if (oldVol) {
+        for (int i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
+          float newVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i),64);
+          float newPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i),0);
+          newVol/=64.0f;
+          newPan/=127.0f;
+          settings.initialSys.set(fmt::sprintf("vol%d",i),newVol);
+          settings.initialSys.set(fmt::sprintf("pan%d",i),newPan);
+        }
+        conf.set("initialSys2",settings.initialSys.toBase64());
+        conf.set("configVersion",DIV_ENGINE_VERSION);
+      }
+    }
+
+    settings.noThreadedInput=conf.getInt("noThreadedInput",0);
+    settings.powerSave=conf.getInt("powerSave",POWER_SAVE_DEFAULT);
+    settings.eventDelay=conf.getInt("eventDelay",0);
+
+    settings.renderBackend=conf.getString("renderBackend",GUI_BACKEND_DEFAULT_NAME);
+    settings.renderClearPos=conf.getInt("renderClearPos",0);
+
+    settings.chanOscThreads=conf.getInt("chanOscThreads",0);
+    settings.renderPoolThreads=conf.getInt("renderPoolThreads",0);
+    settings.showPool=conf.getInt("showPool",0);
+    settings.writeInsNames=conf.getInt("writeInsNames",0);
+    settings.readInsNames=conf.getInt("readInsNames",1);
+    settings.defaultAuthorName=conf.getString("defaultAuthorName","");
+
+    settings.hiddenSystems=conf.getInt("hiddenSystems",0);
+    settings.allowEditDocking=conf.getInt("allowEditDocking",1);
+    settings.sysFileDialog=conf.getInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
+    settings.displayAllInsTypes=conf.getInt("displayAllInsTypes",0);
+    settings.displayPartial=conf.getInt("displayPartial",0);
+
+    settings.blankIns=conf.getInt("blankIns",0);
+
+    settings.saveWindowPos=conf.getInt("saveWindowPos",1);
+
+    settings.saveUnusedPatterns=conf.getInt("saveUnusedPatterns",0);
+    settings.maxRecentFile=conf.getInt("maxRecentFile",10);
+
+    settings.persistFadeOut=conf.getInt("persistFadeOut",1);
+    settings.exportLoops=conf.getInt("exportLoops",0);
+    settings.exportFadeOut=conf.getDouble("exportFadeOut",0.0);
+
+    settings.doubleClickTime=conf.getFloat("doubleClickTime",0.3f);
+    settings.disableFadeIn=conf.getInt("disableFadeIn",0);
+    settings.alwaysPlayIntro=conf.getInt("alwaysPlayIntro",0);
+    settings.iCannotWait=conf.getInt("iCannotWait",0);
+
+    settings.compress=conf.getInt("compress",1);
+    settings.newPatternFormat=conf.getInt("newPatternFormat",1);
+    settings.newSongBehavior=conf.getInt("newSongBehavior",0);
+    settings.playOnLoad=conf.getInt("playOnLoad",0);
+    settings.centerPopup=conf.getInt("centerPopup",1);
   }
-  settings.audioDevice=conf.getString("audioDevice","");
-  settings.audioChans=conf.getInt("audioChans",2);
-  settings.midiInDevice=conf.getString("midiInDevice","");
-  settings.midiOutDevice=conf.getString("midiOutDevice","");
-  settings.renderDriver=conf.getString("renderDriver","");
-  settings.sdlAudioDriver=conf.getString("sdlAudioDriver","");
-  settings.audioQuality=conf.getInt("audioQuality",0);
-  settings.audioHiPass=conf.getInt("audioHiPass",1);
-  settings.audioBufSize=conf.getInt("audioBufSize",1024);
-  settings.audioRate=conf.getInt("audioRate",44100);
-  settings.arcadeCore=conf.getInt("arcadeCore",0);
-  settings.ym2612Core=conf.getInt("ym2612Core",0);
-  settings.snCore=conf.getInt("snCore",0);
-  settings.nesCore=conf.getInt("nesCore",0);
-  settings.fdsCore=conf.getInt("fdsCore",0);
-  settings.c64Core=conf.getInt("c64Core",0);
-  settings.pokeyCore=conf.getInt("pokeyCore",1);
-  settings.opnCore=conf.getInt("opnCore",1);
-  settings.opl2Core=conf.getInt("opl2Core",0);
-  settings.opl3Core=conf.getInt("opl3Core",0);
-  settings.arcadeCoreRender=conf.getInt("arcadeCoreRender",1);
-  settings.ym2612CoreRender=conf.getInt("ym2612CoreRender",0);
-  settings.snCoreRender=conf.getInt("snCoreRender",0);
-  settings.nesCoreRender=conf.getInt("nesCoreRender",0);
-  settings.fdsCoreRender=conf.getInt("fdsCoreRender",1);
-  settings.c64CoreRender=conf.getInt("c64CoreRender",1);
-  settings.pokeyCoreRender=conf.getInt("pokeyCoreRender",1);
-  settings.opnCoreRender=conf.getInt("opnCoreRender",1);
-  settings.opl2CoreRender=conf.getInt("opl2CoreRender",0);
-  settings.opl3CoreRender=conf.getInt("opl3CoreRender",0);
-  settings.pcSpeakerOutMethod=conf.getInt("pcSpeakerOutMethod",0);
-  settings.yrw801Path=conf.getString("yrw801Path","");
-  settings.tg100Path=conf.getString("tg100Path","");
-  settings.mu5Path=conf.getString("mu5Path","");
-  settings.mainFont=conf.getInt("mainFont",0);
-  settings.headFont=conf.getInt("headFont",0);
-  settings.patFont=conf.getInt("patFont",0);
-  settings.mainFontPath=conf.getString("mainFontPath","");
-  settings.headFontPath=conf.getString("headFontPath","");
-  settings.patFontPath=conf.getString("patFontPath","");
-  settings.patRowsBase=conf.getInt("patRowsBase",0);
-  settings.orderRowsBase=conf.getInt("orderRowsBase",1);
-  settings.soloAction=conf.getInt("soloAction",0);
-  settings.pullDeleteBehavior=conf.getInt("pullDeleteBehavior",1);
-  settings.wrapHorizontal=conf.getInt("wrapHorizontal",0);
-  settings.wrapVertical=conf.getInt("wrapVertical",0);
-  settings.macroView=conf.getInt("macroView",0);
-  settings.fmNames=conf.getInt("fmNames",0);
-  settings.allowEditDocking=conf.getInt("allowEditDocking",1);
-  settings.chipNames=conf.getInt("chipNames",0);
-  settings.overflowHighlight=conf.getInt("overflowHighlight",0);
-  settings.partyTime=conf.getInt("partyTime",0);
-  settings.flatNotes=conf.getInt("flatNotes",0);
-  settings.germanNotation=conf.getInt("germanNotation",0);
-  settings.stepOnDelete=conf.getInt("stepOnDelete",0);
-  settings.scrollStep=conf.getInt("scrollStep",0);
-  settings.sysSeparators=conf.getInt("sysSeparators",1);
-  settings.forceMono=conf.getInt("forceMono",0);
-  settings.controlLayout=conf.getInt("controlLayout",3);
-  settings.statusDisplay=conf.getInt("statusDisplay",0);
-  settings.dpiScale=conf.getFloat("dpiScale",0.0f);
-  settings.viewPrevPattern=conf.getInt("viewPrevPattern",1);
-  settings.guiColorsBase=conf.getInt("guiColorsBase",0);
-  settings.guiColorsShading=conf.getInt("guiColorsShading",0);
-  settings.avoidRaisingPattern=conf.getInt("avoidRaisingPattern",0);
-  settings.insFocusesPattern=conf.getInt("insFocusesPattern",1);
-  settings.stepOnInsert=conf.getInt("stepOnInsert",0);
-  settings.unifiedDataView=conf.getInt("unifiedDataView",0);
-  settings.sysFileDialog=conf.getInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
-  settings.roundedWindows=conf.getInt("roundedWindows",1);
-  settings.roundedButtons=conf.getInt("roundedButtons",1);
-  settings.roundedMenus=conf.getInt("roundedMenus",0);
-  settings.loadJapanese=conf.getInt("loadJapanese",0);
-  settings.loadChinese=conf.getInt("loadChinese",0);
-  settings.loadChineseTraditional=conf.getInt("loadChineseTraditional",0);
-  settings.loadKorean=conf.getInt("loadKorean",0);
-  settings.fmLayout=conf.getInt("fmLayout",4);
-  settings.sampleLayout=conf.getInt("sampleLayout",0);
-  settings.waveLayout=conf.getInt("waveLayout",0);
-  settings.susPosition=conf.getInt("susPosition",0);
-  settings.effectCursorDir=conf.getInt("effectCursorDir",1);
-  settings.cursorPastePos=conf.getInt("cursorPastePos",1);
-  settings.titleBarInfo=conf.getInt("titleBarInfo",1);
-  settings.titleBarSys=conf.getInt("titleBarSys",1);
-  settings.frameBorders=conf.getInt("frameBorders",0);
-  settings.effectDeletionAltersValue=conf.getInt("effectDeletionAltersValue",1);
-  settings.oscRoundedCorners=conf.getInt("oscRoundedCorners",1);
-  settings.oscTakesEntireWindow=conf.getInt("oscTakesEntireWindow",0);
-  settings.oscBorder=conf.getInt("oscBorder",1);
-  settings.oscEscapesBoundary=conf.getInt("oscEscapesBoundary",0);
-  settings.oscMono=conf.getInt("oscMono",1);
-  settings.oscAntiAlias=conf.getInt("oscAntiAlias",1);
-  settings.separateFMColors=conf.getInt("separateFMColors",0);
-  settings.insEditColorize=conf.getInt("insEditColorize",0);
-  settings.metroVol=conf.getInt("metroVol",100);
-  settings.sampleVol=conf.getInt("sampleVol",50);
-  settings.pushNibble=conf.getInt("pushNibble",0);
-  settings.scrollChangesOrder=conf.getInt("scrollChangesOrder",0);
-  settings.oplStandardWaveNames=conf.getInt("oplStandardWaveNames",0);
-  settings.cursorMoveNoScroll=conf.getInt("cursorMoveNoScroll",0);
-  settings.lowLatency=conf.getInt("lowLatency",0);
-  settings.notePreviewBehavior=conf.getInt("notePreviewBehavior",1);
-  settings.powerSave=conf.getInt("powerSave",POWER_SAVE_DEFAULT);
-  settings.absorbInsInput=conf.getInt("absorbInsInput",0);
-  settings.eventDelay=conf.getInt("eventDelay",0);
-  settings.moveWindowTitle=conf.getInt("moveWindowTitle",1);
-  settings.hiddenSystems=conf.getInt("hiddenSystems",0);
-  settings.horizontalDataView=conf.getInt("horizontalDataView",0);
-  settings.noMultiSystem=conf.getInt("noMultiSystem",0);
-  settings.oldMacroVSlider=conf.getInt("oldMacroVSlider",0);
-  settings.displayAllInsTypes=conf.getInt("displayAllInsTypes",0);
-  settings.displayPartial=conf.getInt("displayPartial",0);
-  settings.noteCellSpacing=conf.getInt("noteCellSpacing",0);
-  settings.insCellSpacing=conf.getInt("insCellSpacing",0);
-  settings.volCellSpacing=conf.getInt("volCellSpacing",0);
-  settings.effectCellSpacing=conf.getInt("effectCellSpacing",0);
-  settings.effectValCellSpacing=conf.getInt("effectValCellSpacing",0);
-  settings.doubleClickColumn=conf.getInt("doubleClickColumn",1);
-  settings.blankIns=conf.getInt("blankIns",0);
-  settings.dragMovesSelection=conf.getInt("dragMovesSelection",2);
-  settings.unsignedDetune=conf.getInt("unsignedDetune",0);
-  settings.noThreadedInput=conf.getInt("noThreadedInput",0);
-  settings.saveWindowPos=conf.getInt("saveWindowPos",1);
-  settings.initialSysName=conf.getString("initialSysName","");
-  settings.clampSamples=conf.getInt("clampSamples",0);
-  settings.noteOffLabel=conf.getString("noteOffLabel","OFF");
-  settings.noteRelLabel=conf.getString("noteRelLabel","===");
-  settings.macroRelLabel=conf.getString("macroRelLabel","REL");
-  settings.emptyLabel=conf.getString("emptyLabel","...");
-  settings.emptyLabel2=conf.getString("emptyLabel2","..");
-  settings.saveUnusedPatterns=conf.getInt("saveUnusedPatterns",0);
-  settings.channelColors=conf.getInt("channelColors",1);
-  settings.channelTextColors=conf.getInt("channelTextColors",0);
-  settings.channelStyle=conf.getInt("channelStyle",1);
-  settings.channelVolStyle=conf.getInt("channelVolStyle",0);
-  settings.channelFeedbackStyle=conf.getInt("channelFeedbackStyle",1);
-  settings.channelFont=conf.getInt("channelFont",1);
-  settings.channelTextCenter=conf.getInt("channelTextCenter",1);
-  settings.maxRecentFile=conf.getInt("maxRecentFile",10);
-  settings.midiOutClock=conf.getInt("midiOutClock",0);
-  settings.midiOutTime=conf.getInt("midiOutTime",0);
-  settings.midiOutProgramChange=conf.getInt("midiOutProgramChange",0);
-  settings.midiOutMode=conf.getInt("midiOutMode",1);
-  settings.midiOutTimeRate=conf.getInt("midiOutTimeRate",0);
-  settings.centerPattern=conf.getInt("centerPattern",0);
-  settings.ordersCursor=conf.getInt("ordersCursor",1);
-  settings.persistFadeOut=conf.getInt("persistFadeOut",1);
-  settings.exportLoops=conf.getInt("exportLoops",0);
-  settings.exportFadeOut=conf.getDouble("exportFadeOut",0.0);
-  settings.macroLayout=conf.getInt("macroLayout",0);
-  settings.doubleClickTime=conf.getFloat("doubleClickTime",0.3f);
-  settings.oneDigitEffects=conf.getInt("oneDigitEffects",0);
-  settings.disableFadeIn=conf.getInt("disableFadeIn",0);
-  settings.alwaysPlayIntro=conf.getInt("alwaysPlayIntro",0);
-  settings.cursorFollowsOrder=conf.getInt("cursorFollowsOrder",1);
-  settings.iCannotWait=conf.getInt("iCannotWait",0);
-  settings.orderButtonPos=conf.getInt("orderButtonPos",2);
-  settings.compress=conf.getInt("compress",1);
-  settings.newPatternFormat=conf.getInt("newPatternFormat",1);
-  settings.renderBackend=conf.getString("renderBackend",GUI_BACKEND_DEFAULT_NAME);
-  settings.renderClearPos=conf.getInt("renderClearPos",0);
-  settings.insertBehavior=conf.getInt("insertBehavior",1);
-  settings.pullDeleteRow=conf.getInt("pullDeleteRow",1);
-  settings.newSongBehavior=conf.getInt("newSongBehavior",0);
-  settings.memUsageUnit=conf.getInt("memUsageUnit",1);
-  settings.cursorFollowsWheel=conf.getInt("cursorFollowsWheel",0);
-  settings.noDMFCompat=conf.getInt("noDMFCompat",0);
-  settings.removeInsOff=conf.getInt("removeInsOff",0);
-  settings.removeVolOff=conf.getInt("removeVolOff",0);
-  settings.playOnLoad=conf.getInt("playOnLoad",0);
-  settings.insTypeMenu=conf.getInt("insTypeMenu",1);
-  settings.capitalMenuBar=conf.getInt("capitalMenuBar",0);
-  settings.centerPopup=conf.getInt("centerPopup",1);
-  settings.insIconsStyle=conf.getInt("insIconsStyle",1);
-  settings.classicChipOptions=conf.getInt("classicChipOptions",0);
-  settings.wasapiEx=conf.getInt("wasapiEx",0);
-  settings.chanOscThreads=conf.getInt("chanOscThreads",0);
-  settings.renderPoolThreads=conf.getInt("renderPoolThreads",0);
-  settings.showPool=conf.getInt("showPool",0);
-  settings.writeInsNames=conf.getInt("writeInsNames",1);
-  settings.readInsNames=conf.getInt("readInsNames",1);
-  settings.defaultAuthorName=conf.getString("defaultAuthorName","");
-  settings.fontBackend=conf.getInt("fontBackend",FONT_BACKEND_DEFAULT);
-  settings.fontHinting=conf.getInt("fontHinting",0);
-  settings.fontBitmap=conf.getInt("fontBitmap",0);
-  settings.fontAutoHint=conf.getInt("fontAutoHint",1);
-  settings.fontAntiAlias=conf.getInt("fontAntiAlias",1);
-  settings.selectAssetOnLoad=conf.getInt("selectAssetOnLoad",1);
-  settings.basicColors=conf.getInt("basicColors",1);
+
+  if (groups&GUI_SETTINGS_AUDIO) {
+    settings.audioEngine=(conf.getString("audioEngine","SDL")=="SDL")?1:0;
+    if (conf.getString("audioEngine","SDL")=="JACK") {
+      settings.audioEngine=DIV_AUDIO_JACK;
+    } else if (conf.getString("audioEngine","SDL")=="PortAudio") {
+      settings.audioEngine=DIV_AUDIO_PORTAUDIO;
+    } else {
+      settings.audioEngine=DIV_AUDIO_SDL;
+    }
+    settings.audioDevice=conf.getString("audioDevice","");
+    settings.sdlAudioDriver=conf.getString("sdlAudioDriver","");
+    settings.audioQuality=conf.getInt("audioQuality",0);
+    settings.audioHiPass=conf.getInt("audioHiPass",1);
+    settings.audioBufSize=conf.getInt("audioBufSize",1024);
+    settings.audioRate=conf.getInt("audioRate",44100);
+    settings.audioChans=conf.getInt("audioChans",2);
+
+    settings.lowLatency=conf.getInt("lowLatency",0);
+
+    settings.metroVol=conf.getInt("metroVol",100);
+    settings.sampleVol=conf.getInt("sampleVol",50);
+
+    settings.wasapiEx=conf.getInt("wasapiEx",0);
+
+    settings.clampSamples=conf.getInt("clampSamples",0);
+    settings.forceMono=conf.getInt("forceMono",0);
+  }
+
+  if (groups&GUI_SETTINGS_MIDI) {
+    settings.midiInDevice=conf.getString("midiInDevice","");
+    settings.midiOutDevice=conf.getString("midiOutDevice","");
+    settings.midiOutClock=conf.getInt("midiOutClock",0);
+    settings.midiOutTime=conf.getInt("midiOutTime",0);
+    settings.midiOutProgramChange=conf.getInt("midiOutProgramChange",0);
+    settings.midiOutMode=conf.getInt("midiOutMode",1);
+    settings.midiOutTimeRate=conf.getInt("midiOutTimeRate",0);
+  }
+
+  if (groups&GUI_SETTINGS_KEYBOARD) {
+    // keybinds
+    for (int i=0; i<GUI_ACTION_MAX; i++) {
+      if (guiActions[i].defaultBind==-1) continue; // not a bind
+      actionKeys[i]=conf.getInt(String("keybind_GUI_ACTION_")+String(guiActions[i].name),guiActions[i].defaultBind);
+    }
+
+    decodeKeyMap(noteKeys,conf.getString("noteKeys",DEFAULT_NOTE_KEYS));
+  }
+
+  if (groups&GUI_SETTINGS_BEHAVIOR) {
+    settings.soloAction=conf.getInt("soloAction",0);
+    settings.pullDeleteBehavior=conf.getInt("pullDeleteBehavior",1);
+    settings.wrapHorizontal=conf.getInt("wrapHorizontal",0);
+    settings.wrapVertical=conf.getInt("wrapVertical",0);
+
+    settings.stepOnDelete=conf.getInt("stepOnDelete",0);
+    settings.scrollStep=conf.getInt("scrollStep",0);
+    settings.avoidRaisingPattern=conf.getInt("avoidRaisingPattern",0);
+    settings.insFocusesPattern=conf.getInt("insFocusesPattern",1);
+    settings.stepOnInsert=conf.getInt("stepOnInsert",0);
+    settings.effectCursorDir=conf.getInt("effectCursorDir",1);
+    settings.cursorPastePos=conf.getInt("cursorPastePos",1);
+
+    settings.effectDeletionAltersValue=conf.getInt("effectDeletionAltersValue",1);
+
+    settings.pushNibble=conf.getInt("pushNibble",0);
+    settings.scrollChangesOrder=conf.getInt("scrollChangesOrder",0);
+    settings.cursorMoveNoScroll=conf.getInt("cursorMoveNoScroll",0);
+
+    settings.notePreviewBehavior=conf.getInt("notePreviewBehavior",1);
+    
+    settings.absorbInsInput=conf.getInt("absorbInsInput",0);
+    
+    settings.moveWindowTitle=conf.getInt("moveWindowTitle",1);
+
+    settings.doubleClickColumn=conf.getInt("doubleClickColumn",1);
+    settings.dragMovesSelection=conf.getInt("dragMovesSelection",2);
+
+    settings.cursorFollowsOrder=conf.getInt("cursorFollowsOrder",1);
+
+    settings.insertBehavior=conf.getInt("insertBehavior",1);
+    settings.pullDeleteRow=conf.getInt("pullDeleteRow",1);
+    settings.cursorFollowsWheel=conf.getInt("cursorFollowsWheel",0);
+    settings.removeInsOff=conf.getInt("removeInsOff",0);
+    settings.removeVolOff=conf.getInt("removeVolOff",0);
+    settings.insTypeMenu=conf.getInt("insTypeMenu",1);
+
+    settings.selectAssetOnLoad=conf.getInt("selectAssetOnLoad",1);
+  }
+
+  if (groups&GUI_SETTINGS_FONT) {
+    settings.mainFontSize=conf.getInt("mainFontSize",18);
+    settings.headFontSize=conf.getInt("headFontSize",27);
+    settings.patFontSize=conf.getInt("patFontSize",18);
+    settings.iconSize=conf.getInt("iconSize",16);
+
+    settings.mainFont=conf.getInt("mainFont",0);
+    settings.headFont=conf.getInt("headFont",0);
+    settings.patFont=conf.getInt("patFont",0);
+    settings.mainFontPath=conf.getString("mainFontPath","");
+    settings.headFontPath=conf.getString("headFontPath","");
+    settings.patFontPath=conf.getString("patFontPath","");
+
+    settings.loadJapanese=conf.getInt("loadJapanese",0);
+    settings.loadChinese=conf.getInt("loadChinese",0);
+    settings.loadChineseTraditional=conf.getInt("loadChineseTraditional",0);
+    settings.loadKorean=conf.getInt("loadKorean",0);
+
+    settings.fontBackend=conf.getInt("fontBackend",FONT_BACKEND_DEFAULT);
+    settings.fontHinting=conf.getInt("fontHinting",0);
+    settings.fontBitmap=conf.getInt("fontBitmap",0);
+    settings.fontAutoHint=conf.getInt("fontAutoHint",1);
+    settings.fontAntiAlias=conf.getInt("fontAntiAlias",1);
+  }
+
+  if (groups&GUI_SETTINGS_APPEARANCE) {
+    settings.oscRoundedCorners=conf.getInt("oscRoundedCorners",1);
+    settings.oscTakesEntireWindow=conf.getInt("oscTakesEntireWindow",0);
+    settings.oscBorder=conf.getInt("oscBorder",1);
+    settings.oscEscapesBoundary=conf.getInt("oscEscapesBoundary",0);
+    settings.oscMono=conf.getInt("oscMono",1);
+    settings.oscAntiAlias=conf.getInt("oscAntiAlias",1);
+
+    settings.channelColors=conf.getInt("channelColors",1);
+    settings.channelTextColors=conf.getInt("channelTextColors",0);
+    settings.channelStyle=conf.getInt("channelStyle",1);
+    settings.channelVolStyle=conf.getInt("channelVolStyle",0);
+    settings.channelFeedbackStyle=conf.getInt("channelFeedbackStyle",1);
+    settings.channelFont=conf.getInt("channelFont",1);
+    settings.channelTextCenter=conf.getInt("channelTextCenter",1);
+
+    settings.roundedWindows=conf.getInt("roundedWindows",1);
+    settings.roundedButtons=conf.getInt("roundedButtons",1);
+    settings.roundedMenus=conf.getInt("roundedMenus",0);
+
+    settings.separateFMColors=conf.getInt("separateFMColors",0);
+    settings.insEditColorize=conf.getInt("insEditColorize",0);
+
+    settings.chipNames=conf.getInt("chipNames",0);
+    settings.overflowHighlight=conf.getInt("overflowHighlight",0);
+    settings.partyTime=conf.getInt("partyTime",0);
+    settings.flatNotes=conf.getInt("flatNotes",0);
+    settings.germanNotation=conf.getInt("germanNotation",0);
+
+    settings.frameBorders=conf.getInt("frameBorders",0);
+
+    settings.noteOffLabel=conf.getString("noteOffLabel","OFF");
+    settings.noteRelLabel=conf.getString("noteRelLabel","===");
+    settings.macroRelLabel=conf.getString("macroRelLabel","REL");
+    settings.emptyLabel=conf.getString("emptyLabel","...");
+    settings.emptyLabel2=conf.getString("emptyLabel2","..");
+
+    settings.noteCellSpacing=conf.getInt("noteCellSpacing",0);
+    settings.insCellSpacing=conf.getInt("insCellSpacing",0);
+    settings.volCellSpacing=conf.getInt("volCellSpacing",0);
+    settings.effectCellSpacing=conf.getInt("effectCellSpacing",0);
+    settings.effectValCellSpacing=conf.getInt("effectValCellSpacing",0);
+
+    settings.patRowsBase=conf.getInt("patRowsBase",0);
+    settings.orderRowsBase=conf.getInt("orderRowsBase",1);
+    settings.fmNames=conf.getInt("fmNames",0);
+    settings.statusDisplay=conf.getInt("statusDisplay",0);
+    settings.viewPrevPattern=conf.getInt("viewPrevPattern",1);
+    settings.susPosition=conf.getInt("susPosition",0);
+
+    settings.titleBarInfo=conf.getInt("titleBarInfo",1);
+    settings.titleBarSys=conf.getInt("titleBarSys",1);
+
+    settings.oplStandardWaveNames=conf.getInt("oplStandardWaveNames",0);
+
+    settings.horizontalDataView=conf.getInt("horizontalDataView",0);
+    settings.noMultiSystem=conf.getInt("noMultiSystem",0);
+    settings.oldMacroVSlider=conf.getInt("oldMacroVSlider",0);
+    settings.unsignedDetune=conf.getInt("unsignedDetune",0);
+    settings.centerPattern=conf.getInt("centerPattern",0);
+    settings.ordersCursor=conf.getInt("ordersCursor",1);
+    settings.oneDigitEffects=conf.getInt("oneDigitEffects",0);
+    settings.orderButtonPos=conf.getInt("orderButtonPos",2);
+    settings.memUsageUnit=conf.getInt("memUsageUnit",1);
+    settings.capitalMenuBar=conf.getInt("capitalMenuBar",0);
+    settings.insIconsStyle=conf.getInt("insIconsStyle",1);
+    settings.sysSeparators=conf.getInt("sysSeparators",1);
+  }
+
+  if (groups&GUI_SETTINGS_LAYOUTS) {
+    settings.fmLayout=conf.getInt("fmLayout",4);
+    settings.sampleLayout=conf.getInt("sampleLayout",0);
+    settings.waveLayout=conf.getInt("waveLayout",0);
+    settings.exportOptionsLayout=conf.getInt("exportOptionsLayout",1);
+    settings.unifiedDataView=conf.getInt("unifiedDataView",0);
+    settings.macroLayout=conf.getInt("macroLayout",0);
+    settings.controlLayout=conf.getInt("controlLayout",3);
+    settings.classicChipOptions=conf.getInt("classicChipOptions",0);
+  }
+
+  if (groups&GUI_SETTINGS_COLOR) {
+    settings.guiColorsBase=conf.getInt("guiColorsBase",0);
+    settings.guiColorsShading=conf.getInt("guiColorsShading",0);
+    settings.basicColors=conf.getInt("basicColors",1);
+
+    // colors
+    for (int i=0; i<GUI_COLOR_MAX; i++) {
+      uiColors[i]=ImGui::ColorConvertU32ToFloat4(conf.getInt(guiColors[i].name,guiColors[i].defaultColor));
+    }
+  }
+
+  if (groups&GUI_SETTINGS_EMULATION) {
+    settings.arcadeCore=conf.getInt("arcadeCore",0);
+    settings.ym2612Core=conf.getInt("ym2612Core",0);
+    settings.snCore=conf.getInt("snCore",0);
+    settings.nesCore=conf.getInt("nesCore",0);
+    settings.fdsCore=conf.getInt("fdsCore",0);
+    settings.c64Core=conf.getInt("c64Core",0);
+    settings.pokeyCore=conf.getInt("pokeyCore",1);
+    settings.opnCore=conf.getInt("opnCore",1);
+    settings.opl2Core=conf.getInt("opl2Core",0);
+    settings.opl3Core=conf.getInt("opl3Core",0);
+    settings.arcadeCoreRender=conf.getInt("arcadeCoreRender",1);
+    settings.ym2612CoreRender=conf.getInt("ym2612CoreRender",0);
+    settings.snCoreRender=conf.getInt("snCoreRender",0);
+    settings.nesCoreRender=conf.getInt("nesCoreRender",0);
+    settings.fdsCoreRender=conf.getInt("fdsCoreRender",1);
+    settings.c64CoreRender=conf.getInt("c64CoreRender",1);
+    settings.pokeyCoreRender=conf.getInt("pokeyCoreRender",1);
+    settings.opnCoreRender=conf.getInt("opnCoreRender",1);
+    settings.opl2CoreRender=conf.getInt("opl2CoreRender",0);
+    settings.opl3CoreRender=conf.getInt("opl3CoreRender",0);
+
+    settings.pcSpeakerOutMethod=conf.getInt("pcSpeakerOutMethod",0);
+
+    settings.yrw801Path=conf.getString("yrw801Path","");
+    settings.tg100Path=conf.getString("tg100Path","");
+    settings.mu5Path=conf.getString("mu5Path","");
+  }
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3921,7 +4057,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.pullDeleteBehavior,0,1);
   clampSetting(settings.wrapHorizontal,0,2);
   clampSetting(settings.wrapVertical,0,3);
-  clampSetting(settings.macroView,0,1);
   clampSetting(settings.fmNames,0,2);
   clampSetting(settings.allowEditDocking,0,1);
   clampSetting(settings.chipNames,0,1);
@@ -4035,6 +4170,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.centerPopup,0,1);
   clampSetting(settings.insIconsStyle,0,2);
   clampSetting(settings.classicChipOptions,0,1);
+  clampSetting(settings.exportOptionsLayout,0,2);
   clampSetting(settings.wasapiEx,0,1);
   clampSetting(settings.chanOscThreads,0,256);
   clampSetting(settings.renderPoolThreads,0,DIV_MAX_CHIPS);
@@ -4050,267 +4186,298 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.basicColors,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
-  if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
-
-  // keybinds
-  for (int i=0; i<GUI_ACTION_MAX; i++) {
-    if (guiActions[i].defaultBind==-1) continue; // not a bind
-    actionKeys[i]=conf.getInt(String("keybind_GUI_ACTION_")+String(guiActions[i].name),guiActions[i].defaultBind);
-  }
-
-  decodeKeyMap(noteKeys,conf.getString("noteKeys",DEFAULT_NOTE_KEYS));
-
-  // colors
-  for (int i=0; i<GUI_COLOR_MAX; i++) {
-    uiColors[i]=ImGui::ColorConvertU32ToFloat4(conf.getInt(guiColors[i].name,guiColors[i].defaultColor));
-  }
-
-  // initial system
-  String initialSys2=conf.getString("initialSys2","");
-  bool oldVol=conf.getInt("configVersion",DIV_ENGINE_VERSION)<135;
-  if (initialSys2.empty()) {
-    initialSys2=e->decodeSysDesc(conf.getString("initialSys",""));
-    oldVol=false;
-  }
-  settings.initialSys.clear();
-  settings.initialSys.loadFromBase64(initialSys2.c_str());
-  if (settings.initialSys.getInt("id0",0)==0) {
-    settings.initialSys.clear();
-    settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
-    settings.initialSys.set("vol0",1.0f);
-    settings.initialSys.set("pan0",0.0f);
-    settings.initialSys.set("fr0",0.0f);
-    settings.initialSys.set("flags0","");
-    settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
-    settings.initialSys.set("vol1",0.5f);
-    settings.initialSys.set("pan1",0);
-    settings.initialSys.set("fr1",0);
-    settings.initialSys.set("flags1","");
-  } else {
-    if (oldVol) {
-      for (int i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
-        float newVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i),64);
-        float newPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i),0);
-        newVol/=64.0f;
-        newPan/=127.0f;
-        settings.initialSys.set(fmt::sprintf("vol%d",i),newVol);
-        settings.initialSys.set(fmt::sprintf("pan%d",i),newPan);
-      }
-      conf.set("initialSys2",settings.initialSys.toBase64());
-      conf.set("configVersion",DIV_ENGINE_VERSION);
-    }
-  }
+  if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
 }
 
 void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
-  conf.set("mainFontSize",settings.mainFontSize);
-  conf.set("headFontSize",settings.headFontSize);
-  conf.set("patFontSize",settings.patFontSize);
-  conf.set("iconSize",settings.iconSize);
-  conf.set("audioEngine",String(audioBackends[settings.audioEngine]));
-  conf.set("audioDevice",settings.audioDevice);
-  conf.set("midiInDevice",settings.midiInDevice);
-  conf.set("midiOutDevice",settings.midiOutDevice);
-  conf.set("renderDriver",settings.renderDriver);
-  conf.set("sdlAudioDriver",settings.sdlAudioDriver);
-  conf.set("audioQuality",settings.audioQuality);
-  conf.set("audioHiPass",settings.audioHiPass);
-  conf.set("audioBufSize",settings.audioBufSize);
-  conf.set("audioRate",settings.audioRate);
-  conf.set("audioChans",settings.audioChans);
-  conf.set("arcadeCore",settings.arcadeCore);
-  conf.set("ym2612Core",settings.ym2612Core);
-  conf.set("snCore",settings.snCore);
-  conf.set("nesCore",settings.nesCore);
-  conf.set("fdsCore",settings.fdsCore);
-  conf.set("c64Core",settings.c64Core);
-  conf.set("pokeyCore",settings.pokeyCore);
-  conf.set("opnCore",settings.opnCore);
-  conf.set("opl2Core",settings.opl2Core);
-  conf.set("opl3Core",settings.opl3Core);
-  conf.set("arcadeCoreRender",settings.arcadeCoreRender);
-  conf.set("ym2612CoreRender",settings.ym2612CoreRender);
-  conf.set("snCoreRender",settings.snCoreRender);
-  conf.set("nesCoreRender",settings.nesCoreRender);
-  conf.set("fdsCoreRender",settings.fdsCoreRender);
-  conf.set("c64CoreRender",settings.c64CoreRender);
-  conf.set("pokeyCoreRender",settings.pokeyCoreRender);
-  conf.set("opnCoreRender",settings.opnCoreRender);
-  conf.set("opl2CoreRender",settings.opl2CoreRender);
-  conf.set("opl3CoreRender",settings.opl3CoreRender);
-  conf.set("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
-  conf.set("yrw801Path",settings.yrw801Path);
-  conf.set("tg100Path",settings.tg100Path);
-  conf.set("mu5Path",settings.mu5Path);
-  conf.set("mainFont",settings.mainFont);
-  conf.set("headFont",settings.headFont);
-  conf.set("patFont",settings.patFont);
-  conf.set("mainFontPath",settings.mainFontPath);
-  conf.set("headFontPath",settings.headFontPath);
-  conf.set("patFontPath",settings.patFontPath);
-  conf.set("patRowsBase",settings.patRowsBase);
-  conf.set("orderRowsBase",settings.orderRowsBase);
-  conf.set("soloAction",settings.soloAction);
-  conf.set("pullDeleteBehavior",settings.pullDeleteBehavior);
-  conf.set("wrapHorizontal",settings.wrapHorizontal);
-  conf.set("wrapVertical",settings.wrapVertical);
-  conf.set("macroView",settings.macroView);
-  conf.set("fmNames",settings.fmNames);
-  conf.set("allowEditDocking",settings.allowEditDocking);
-  conf.set("chipNames",settings.chipNames);
-  conf.set("overflowHighlight",settings.overflowHighlight);
-  conf.set("partyTime",settings.partyTime);
-  conf.set("flatNotes",settings.flatNotes);
-  conf.set("germanNotation",settings.germanNotation);
-  conf.set("stepOnDelete",settings.stepOnDelete);
-  conf.set("scrollStep",settings.scrollStep);
-  conf.set("sysSeparators",settings.sysSeparators);
-  conf.set("forceMono",settings.forceMono);
-  conf.set("controlLayout",settings.controlLayout);
-  conf.set("statusDisplay",settings.statusDisplay);
-  conf.set("dpiScale",settings.dpiScale);
-  conf.set("viewPrevPattern",settings.viewPrevPattern);
-  conf.set("guiColorsBase",settings.guiColorsBase);
-  conf.set("guiColorsShading",settings.guiColorsShading);
-  conf.set("avoidRaisingPattern",settings.avoidRaisingPattern);
-  conf.set("insFocusesPattern",settings.insFocusesPattern);
-  conf.set("stepOnInsert",settings.stepOnInsert);
-  conf.set("unifiedDataView",settings.unifiedDataView);
-  conf.set("sysFileDialog",settings.sysFileDialog);
-  conf.set("roundedWindows",settings.roundedWindows);
-  conf.set("roundedButtons",settings.roundedButtons);
-  conf.set("roundedMenus",settings.roundedMenus);
-  conf.set("loadJapanese",settings.loadJapanese);
-  conf.set("loadChinese",settings.loadChinese);
-  conf.set("loadChineseTraditional",settings.loadChineseTraditional);
-  conf.set("loadKorean",settings.loadKorean);
-  conf.set("fmLayout",settings.fmLayout);
-  conf.set("sampleLayout",settings.sampleLayout);
-  conf.set("waveLayout",settings.waveLayout);
-  conf.set("susPosition",settings.susPosition);
-  conf.set("effectCursorDir",settings.effectCursorDir);
-  conf.set("cursorPastePos",settings.cursorPastePos);
-  conf.set("titleBarInfo",settings.titleBarInfo);
-  conf.set("titleBarSys",settings.titleBarSys);
-  conf.set("frameBorders",settings.frameBorders);
-  conf.set("effectDeletionAltersValue",settings.effectDeletionAltersValue);
-  conf.set("oscRoundedCorners",settings.oscRoundedCorners);
-  conf.set("oscTakesEntireWindow",settings.oscTakesEntireWindow);
-  conf.set("oscBorder",settings.oscBorder);
-  conf.set("oscEscapesBoundary",settings.oscEscapesBoundary);
-  conf.set("oscMono",settings.oscMono);
-  conf.set("oscAntiAlias",settings.oscAntiAlias);
-  conf.set("separateFMColors",settings.separateFMColors);
-  conf.set("insEditColorize",settings.insEditColorize);
-  conf.set("metroVol",settings.metroVol);
-  conf.set("sampleVol",settings.sampleVol);
-  conf.set("pushNibble",settings.pushNibble);
-  conf.set("scrollChangesOrder",settings.scrollChangesOrder);
-  conf.set("oplStandardWaveNames",settings.oplStandardWaveNames);
-  conf.set("cursorMoveNoScroll",settings.cursorMoveNoScroll);
-  conf.set("lowLatency",settings.lowLatency);
-  conf.set("notePreviewBehavior",settings.notePreviewBehavior);
-  conf.set("powerSave",settings.powerSave);
-  conf.set("absorbInsInput",settings.absorbInsInput);
-  conf.set("eventDelay",settings.eventDelay);
-  conf.set("moveWindowTitle",settings.moveWindowTitle);
-  conf.set("hiddenSystems",settings.hiddenSystems);
-  conf.set("initialSys2",settings.initialSys.toBase64());
-  conf.set("initialSysName",settings.initialSysName);
-  conf.set("horizontalDataView",settings.horizontalDataView);
-  conf.set("noMultiSystem",settings.noMultiSystem);
-  conf.set("oldMacroVSlider",settings.oldMacroVSlider);
-  conf.set("displayAllInsTypes",settings.displayAllInsTypes);
-  conf.set("displayPartial",settings.displayPartial);
-  conf.set("noteCellSpacing",settings.noteCellSpacing);
-  conf.set("insCellSpacing",settings.insCellSpacing);
-  conf.set("volCellSpacing",settings.volCellSpacing);
-  conf.set("effectCellSpacing",settings.effectCellSpacing);
-  conf.set("effectValCellSpacing",settings.effectValCellSpacing);
-  conf.set("doubleClickColumn",settings.doubleClickColumn);
-  conf.set("blankIns",settings.blankIns);
-  conf.set("dragMovesSelection",settings.dragMovesSelection);
-  conf.set("unsignedDetune",settings.unsignedDetune);
-  conf.set("noThreadedInput",settings.noThreadedInput);
-  conf.set("saveWindowPos",settings.saveWindowPos);
-  conf.set("clampSamples",settings.clampSamples);
-  conf.set("noteOffLabel",settings.noteOffLabel);
-  conf.set("noteRelLabel",settings.noteRelLabel);
-  conf.set("macroRelLabel",settings.macroRelLabel);
-  conf.set("emptyLabel",settings.emptyLabel);
-  conf.set("emptyLabel2",settings.emptyLabel2);
-  conf.set("saveUnusedPatterns",settings.saveUnusedPatterns);
-  conf.set("channelColors",settings.channelColors);
-  conf.set("channelTextColors",settings.channelTextColors);
-  conf.set("channelStyle",settings.channelStyle);
-  conf.set("channelVolStyle",settings.channelVolStyle);
-  conf.set("channelFeedbackStyle",settings.channelFeedbackStyle);
-  conf.set("channelFont",settings.channelFont);
-  conf.set("channelTextCenter",settings.channelTextCenter);
-  conf.set("maxRecentFile",settings.maxRecentFile);
-  conf.set("midiOutClock",settings.midiOutClock);
-  conf.set("midiOutTime",settings.midiOutTime);
-  conf.set("midiOutProgramChange",settings.midiOutProgramChange);
-  conf.set("midiOutMode",settings.midiOutMode);
-  conf.set("midiOutTimeRate",settings.midiOutTimeRate);
-  conf.set("centerPattern",settings.centerPattern);
-  conf.set("ordersCursor",settings.ordersCursor);
-  conf.set("persistFadeOut",settings.persistFadeOut);
-  conf.set("exportLoops",settings.exportLoops);
-  conf.set("exportFadeOut",settings.exportFadeOut);
-  conf.set("macroLayout",settings.macroLayout);
-  conf.set("doubleClickTime",settings.doubleClickTime);
-  conf.set("oneDigitEffects",settings.oneDigitEffects);
-  conf.set("disableFadeIn",settings.disableFadeIn);
-  conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
-  conf.set("cursorFollowsOrder",settings.cursorFollowsOrder);
-  conf.set("iCannotWait",settings.iCannotWait);
-  conf.set("orderButtonPos",settings.orderButtonPos);
-  conf.set("compress",settings.compress);
-  conf.set("newPatternFormat",settings.newPatternFormat);
-  conf.set("renderBackend",settings.renderBackend);
-  conf.set("renderClearPos",settings.renderClearPos);
-  conf.set("insertBehavior",settings.insertBehavior);
-  conf.set("pullDeleteRow",settings.pullDeleteRow);
-  conf.set("newSongBehavior",settings.newSongBehavior);
-  conf.set("memUsageUnit",settings.memUsageUnit);
-  conf.set("cursorFollowsWheel",settings.cursorFollowsWheel);
-  conf.set("noDMFCompat",settings.noDMFCompat);
-  conf.set("removeInsOff",settings.removeInsOff);
-  conf.set("removeVolOff",settings.removeVolOff);
-  conf.set("playOnLoad",settings.playOnLoad);
-  conf.set("insTypeMenu",settings.insTypeMenu);
-  conf.set("capitalMenuBar",settings.capitalMenuBar);
-  conf.set("centerPopup",settings.centerPopup);
-  conf.set("insIconsStyle",settings.insIconsStyle);
-  conf.set("classicChipOptions",settings.classicChipOptions);
-  conf.set("wasapiEx",settings.wasapiEx);
-  conf.set("chanOscThreads",settings.chanOscThreads);
-  conf.set("renderPoolThreads",settings.renderPoolThreads);
-  conf.set("showPool",settings.showPool);
-  conf.set("writeInsNames",settings.writeInsNames);
-  conf.set("readInsNames",settings.readInsNames);
-  conf.set("defaultAuthorName",settings.defaultAuthorName);
-  conf.set("fontBackend",settings.fontBackend);
-  conf.set("fontHinting",settings.fontHinting);
-  conf.set("fontBitmap",settings.fontBitmap);
-  conf.set("fontAutoHint",settings.fontAutoHint);
-  conf.set("fontAntiAlias",settings.fontAntiAlias);
-  conf.set("selectAssetOnLoad",settings.selectAssetOnLoad);
-  conf.set("basicColors",settings.basicColors);
+  // general
+  if (groups&GUI_SETTINGS_GENERAL) {
+    conf.set("renderDriver",settings.renderDriver);
+    conf.set("noDMFCompat",settings.noDMFCompat);
 
-  // colors
-  for (int i=0; i<GUI_COLOR_MAX; i++) {
-    conf.set(guiColors[i].name,(int)ImGui::ColorConvertFloat4ToU32(uiColors[i]));
+    conf.set("dpiScale",settings.dpiScale);
+
+    conf.set("initialSys2",settings.initialSys.toBase64());
+    conf.set("initialSysName",settings.initialSysName);
+
+    conf.set("noThreadedInput",settings.noThreadedInput);
+    conf.set("powerSave",settings.powerSave);
+    conf.set("eventDelay",settings.eventDelay);
+
+    conf.set("renderBackend",settings.renderBackend);
+    conf.set("renderClearPos",settings.renderClearPos);
+    
+    conf.set("chanOscThreads",settings.chanOscThreads);
+    conf.set("renderPoolThreads",settings.renderPoolThreads);
+    conf.set("showPool",settings.showPool);
+    conf.set("writeInsNames",settings.writeInsNames);
+    conf.set("readInsNames",settings.readInsNames);
+    conf.set("defaultAuthorName",settings.defaultAuthorName);
+
+    conf.set("hiddenSystems",settings.hiddenSystems);
+    conf.set("allowEditDocking",settings.allowEditDocking);
+    conf.set("sysFileDialog",settings.sysFileDialog);
+    conf.set("displayAllInsTypes",settings.displayAllInsTypes);
+    conf.set("displayPartial",settings.displayPartial);
+
+    conf.set("blankIns",settings.blankIns);
+
+    conf.set("saveWindowPos",settings.saveWindowPos);
+    
+    conf.set("saveUnusedPatterns",settings.saveUnusedPatterns);
+    conf.set("maxRecentFile",settings.maxRecentFile);
+    
+    conf.set("persistFadeOut",settings.persistFadeOut);
+    conf.set("exportLoops",settings.exportLoops);
+    conf.set("exportFadeOut",settings.exportFadeOut);
+
+    conf.set("doubleClickTime",settings.doubleClickTime);
+    conf.set("disableFadeIn",settings.disableFadeIn);
+    conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
+    conf.set("iCannotWait",settings.iCannotWait);
+
+    conf.set("compress",settings.compress);
+    conf.set("newPatternFormat",settings.newPatternFormat);
+    conf.set("newSongBehavior",settings.newSongBehavior);
+    conf.set("playOnLoad",settings.playOnLoad);
+    conf.set("centerPopup",settings.centerPopup);
   }
 
-  // keybinds
-  for (int i=0; i<GUI_ACTION_MAX; i++) {
-    if (guiActions[i].defaultBind==-1) continue; // not a bind
-    conf.set(String("keybind_GUI_ACTION_")+String(guiActions[i].name),actionKeys[i]);
+  // audio
+  if (groups&GUI_SETTINGS_AUDIO) {
+    conf.set("audioEngine",String(audioBackends[settings.audioEngine]));
+    conf.set("audioDevice",settings.audioDevice);
+    conf.set("sdlAudioDriver",settings.sdlAudioDriver);
+    conf.set("audioQuality",settings.audioQuality);
+    conf.set("audioHiPass",settings.audioHiPass);
+    conf.set("audioBufSize",settings.audioBufSize);
+    conf.set("audioRate",settings.audioRate);
+    conf.set("audioChans",settings.audioChans);
+
+    conf.set("lowLatency",settings.lowLatency);
+
+    conf.set("metroVol",settings.metroVol);
+    conf.set("sampleVol",settings.sampleVol);
+
+    conf.set("wasapiEx",settings.wasapiEx);
+
+    conf.set("clampSamples",settings.clampSamples);
+    conf.set("forceMono",settings.forceMono);
   }
 
-  conf.set("noteKeys",encodeKeyMap(noteKeys));
+  // MIDI
+  if (groups&GUI_SETTINGS_MIDI) {
+    conf.set("midiInDevice",settings.midiInDevice);
+    conf.set("midiOutDevice",settings.midiOutDevice);
+    conf.set("midiOutClock",settings.midiOutClock);
+    conf.set("midiOutTime",settings.midiOutTime);
+    conf.set("midiOutProgramChange",settings.midiOutProgramChange);
+    conf.set("midiOutMode",settings.midiOutMode);
+    conf.set("midiOutTimeRate",settings.midiOutTimeRate);
+  }
+
+  // keyboard
+  if (groups&GUI_SETTINGS_KEYBOARD) {
+    // keybinds
+    for (int i=0; i<GUI_ACTION_MAX; i++) {
+      if (guiActions[i].defaultBind==-1) continue; // not a bind
+      conf.set(String("keybind_GUI_ACTION_")+String(guiActions[i].name),actionKeys[i]);
+    }
+
+    conf.set("noteKeys",encodeKeyMap(noteKeys));
+  }
+
+  // behavior
+  if (groups&GUI_SETTINGS_BEHAVIOR) {
+    conf.set("soloAction",settings.soloAction);
+    conf.set("pullDeleteBehavior",settings.pullDeleteBehavior);
+    conf.set("wrapHorizontal",settings.wrapHorizontal);
+    conf.set("wrapVertical",settings.wrapVertical);
+    
+    conf.set("stepOnDelete",settings.stepOnDelete);
+    conf.set("scrollStep",settings.scrollStep);
+    conf.set("avoidRaisingPattern",settings.avoidRaisingPattern);
+    conf.set("insFocusesPattern",settings.insFocusesPattern);
+    conf.set("stepOnInsert",settings.stepOnInsert);
+    conf.set("effectCursorDir",settings.effectCursorDir);
+    conf.set("cursorPastePos",settings.cursorPastePos);
+    
+    conf.set("effectDeletionAltersValue",settings.effectDeletionAltersValue);
+
+    conf.set("pushNibble",settings.pushNibble);
+    conf.set("scrollChangesOrder",settings.scrollChangesOrder);
+    conf.set("cursorMoveNoScroll",settings.cursorMoveNoScroll);
+
+    conf.set("notePreviewBehavior",settings.notePreviewBehavior);
+    
+    conf.set("absorbInsInput",settings.absorbInsInput);
+    
+    conf.set("moveWindowTitle",settings.moveWindowTitle);
+    
+    conf.set("doubleClickColumn",settings.doubleClickColumn);
+    conf.set("dragMovesSelection",settings.dragMovesSelection);
+    
+    conf.set("cursorFollowsOrder",settings.cursorFollowsOrder);
+    
+    conf.set("insertBehavior",settings.insertBehavior);
+    conf.set("pullDeleteRow",settings.pullDeleteRow);
+    conf.set("cursorFollowsWheel",settings.cursorFollowsWheel);
+    conf.set("removeInsOff",settings.removeInsOff);
+    conf.set("removeVolOff",settings.removeVolOff);
+    conf.set("insTypeMenu",settings.insTypeMenu);
+    
+    conf.set("selectAssetOnLoad",settings.selectAssetOnLoad);
+  }
+
+  // font
+  if (groups&GUI_SETTINGS_FONT) {
+    conf.set("mainFontSize",settings.mainFontSize);
+    conf.set("headFontSize",settings.headFontSize);
+    conf.set("patFontSize",settings.patFontSize);
+    conf.set("iconSize",settings.iconSize);
+
+    conf.set("mainFont",settings.mainFont);
+    conf.set("headFont",settings.headFont);
+    conf.set("patFont",settings.patFont);
+    conf.set("mainFontPath",settings.mainFontPath);
+    conf.set("headFontPath",settings.headFontPath);
+    conf.set("patFontPath",settings.patFontPath);
+
+    conf.set("loadJapanese",settings.loadJapanese);
+    conf.set("loadChinese",settings.loadChinese);
+    conf.set("loadChineseTraditional",settings.loadChineseTraditional);
+    conf.set("loadKorean",settings.loadKorean);
+
+    conf.set("fontBackend",settings.fontBackend);
+    conf.set("fontHinting",settings.fontHinting);
+    conf.set("fontBitmap",settings.fontBitmap);
+    conf.set("fontAutoHint",settings.fontAutoHint);
+    conf.set("fontAntiAlias",settings.fontAntiAlias);
+  }
+
+  // appearance
+  if (groups&GUI_SETTINGS_APPEARANCE) {
+    conf.set("oscRoundedCorners",settings.oscRoundedCorners);
+    conf.set("oscTakesEntireWindow",settings.oscTakesEntireWindow);
+    conf.set("oscBorder",settings.oscBorder);
+    conf.set("oscEscapesBoundary",settings.oscEscapesBoundary);
+    conf.set("oscMono",settings.oscMono);
+    conf.set("oscAntiAlias",settings.oscAntiAlias);
+
+    conf.set("channelColors",settings.channelColors);
+    conf.set("channelTextColors",settings.channelTextColors);
+    conf.set("channelStyle",settings.channelStyle);
+    conf.set("channelVolStyle",settings.channelVolStyle);
+    conf.set("channelFeedbackStyle",settings.channelFeedbackStyle);
+    conf.set("channelFont",settings.channelFont);
+    conf.set("channelTextCenter",settings.channelTextCenter);
+
+    conf.set("roundedWindows",settings.roundedWindows);
+    conf.set("roundedButtons",settings.roundedButtons);
+    conf.set("roundedMenus",settings.roundedMenus);
+
+    conf.set("separateFMColors",settings.separateFMColors);
+    conf.set("insEditColorize",settings.insEditColorize);
+
+    conf.set("chipNames",settings.chipNames);
+    conf.set("overflowHighlight",settings.overflowHighlight);
+    conf.set("partyTime",settings.partyTime);
+    conf.set("flatNotes",settings.flatNotes);
+    conf.set("germanNotation",settings.germanNotation);
+
+    conf.set("frameBorders",settings.frameBorders);
+
+    conf.set("noteOffLabel",settings.noteOffLabel);
+    conf.set("noteRelLabel",settings.noteRelLabel);
+    conf.set("macroRelLabel",settings.macroRelLabel);
+    conf.set("emptyLabel",settings.emptyLabel);
+    conf.set("emptyLabel2",settings.emptyLabel2);
+
+    conf.set("noteCellSpacing",settings.noteCellSpacing);
+    conf.set("insCellSpacing",settings.insCellSpacing);
+    conf.set("volCellSpacing",settings.volCellSpacing);
+    conf.set("effectCellSpacing",settings.effectCellSpacing);
+    conf.set("effectValCellSpacing",settings.effectValCellSpacing);
+
+    conf.set("patRowsBase",settings.patRowsBase);
+    conf.set("orderRowsBase",settings.orderRowsBase);
+    conf.set("fmNames",settings.fmNames);
+    conf.set("statusDisplay",settings.statusDisplay);
+    conf.set("viewPrevPattern",settings.viewPrevPattern);
+    conf.set("susPosition",settings.susPosition);
+
+    conf.set("titleBarInfo",settings.titleBarInfo);
+    conf.set("titleBarSys",settings.titleBarSys);
+
+    conf.set("oplStandardWaveNames",settings.oplStandardWaveNames);
+
+    conf.set("horizontalDataView",settings.horizontalDataView);
+    conf.set("noMultiSystem",settings.noMultiSystem);
+    conf.set("oldMacroVSlider",settings.oldMacroVSlider);
+    conf.set("unsignedDetune",settings.unsignedDetune);
+    conf.set("centerPattern",settings.centerPattern);
+    conf.set("ordersCursor",settings.ordersCursor);
+    conf.set("oneDigitEffects",settings.oneDigitEffects);
+    conf.set("orderButtonPos",settings.orderButtonPos);
+    conf.set("memUsageUnit",settings.memUsageUnit);
+    conf.set("capitalMenuBar",settings.capitalMenuBar);
+    conf.set("insIconsStyle",settings.insIconsStyle);
+    conf.set("sysSeparators",settings.sysSeparators);
+  }
+
+  // layout
+  if (groups&GUI_SETTINGS_LAYOUTS) {
+    conf.set("fmLayout",settings.fmLayout);
+    conf.set("sampleLayout",settings.sampleLayout);
+    conf.set("waveLayout",settings.waveLayout);
+    conf.set("exportOptionsLayout",settings.exportOptionsLayout);
+    conf.set("unifiedDataView",settings.unifiedDataView);
+    conf.set("macroLayout",settings.macroLayout);
+    conf.set("controlLayout",settings.controlLayout);
+    conf.set("classicChipOptions",settings.classicChipOptions);
+  }
+
+  // color
+  if (groups&GUI_SETTINGS_COLOR) {
+    conf.set("guiColorsBase",settings.guiColorsBase);
+    conf.set("guiColorsShading",settings.guiColorsShading);
+    conf.set("basicColors",settings.basicColors);
+
+    // colors
+    for (int i=0; i<GUI_COLOR_MAX; i++) {
+      conf.set(guiColors[i].name,(int)ImGui::ColorConvertFloat4ToU32(uiColors[i]));
+    }
+  }
+
+  // emulation
+  if (groups&GUI_SETTINGS_EMULATION) {
+    conf.set("arcadeCore",settings.arcadeCore);
+    conf.set("ym2612Core",settings.ym2612Core);
+    conf.set("snCore",settings.snCore);
+    conf.set("nesCore",settings.nesCore);
+    conf.set("fdsCore",settings.fdsCore);
+    conf.set("c64Core",settings.c64Core);
+    conf.set("pokeyCore",settings.pokeyCore);
+    conf.set("opnCore",settings.opnCore);
+    conf.set("opl2Core",settings.opl2Core);
+    conf.set("opl3Core",settings.opl3Core);
+    conf.set("arcadeCoreRender",settings.arcadeCoreRender);
+    conf.set("ym2612CoreRender",settings.ym2612CoreRender);
+    conf.set("snCoreRender",settings.snCoreRender);
+    conf.set("nesCoreRender",settings.nesCoreRender);
+    conf.set("fdsCoreRender",settings.fdsCoreRender);
+    conf.set("c64CoreRender",settings.c64CoreRender);
+    conf.set("pokeyCoreRender",settings.pokeyCoreRender);
+    conf.set("opnCoreRender",settings.opnCoreRender);
+    conf.set("opl2CoreRender",settings.opl2CoreRender);
+    conf.set("opl3CoreRender",settings.opl3CoreRender);
+
+    conf.set("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
+
+    conf.set("yrw801Path",settings.yrw801Path);
+    conf.set("tg100Path",settings.tg100Path);
+    conf.set("mu5Path",settings.mu5Path);
+  }
 }
 
 void FurnaceGUI::syncSettings() {
@@ -4408,67 +4575,36 @@ void FurnaceGUI::commitSettings() {
 }
 
 bool FurnaceGUI::importColors(String path) {
-  FILE* f=ps_fopen(path.c_str(),"rb");
-  if (f==NULL) {
+  DivConfig c;
+  if (!c.loadFromFile(path.c_str(),false,false)) {
     logW("error while opening color file for import: %s",strerror(errno));
     return false;
   }
-  resetColors();
-  char line[4096];
-  while (!feof(f)) {
-    String key="";
-    String value="";
-    bool keyOrValue=false;
-    if (fgets(line,4095,f)==NULL) {
-      break;
-    }
-    for (char* i=line; *i; i++) {
-      if (*i=='\n') continue;
-      if (keyOrValue) {
-        value+=*i;
-      } else {
-        if (*i=='=') {
-          keyOrValue=true;
-        } else {
-          key+=*i;
-        }
-      }
-    }
-    if (keyOrValue) {
-      // unoptimal
-      const char* cs=key.c_str();
-      for (int i=0; i<GUI_COLOR_MAX; i++) {
-        try {
-          if (strcmp(cs,guiColors[i].name)==0) {
-            uiColors[i]=ImGui::ColorConvertU32ToFloat4(std::stoi(value));
-            break;
-          }
-        } catch (std::out_of_range& e) {
-          break;
-        } catch (std::invalid_argument& e) {
-          break;
-        }
-      }
-    }
-  }
-  fclose(f);
+
+  readConfig(c,GUI_SETTINGS_COLOR);
+
   applyUISettings(false);
   return true;
 }
 
 bool FurnaceGUI::exportColors(String path) {
+  DivConfig c;
+
+  c.set("configVersion",DIV_ENGINE_VERSION);
+  writeConfig(c,GUI_SETTINGS_COLOR);
+
   FILE* f=ps_fopen(path.c_str(),"wb");
   if (f==NULL) {
     logW("error while opening color file for export: %s",strerror(errno));
     return false;
   }
-  fprintf(f,"configVersion=%d\n",DIV_ENGINE_VERSION);
-  for (int i=0; i<GUI_COLOR_MAX; i++) {
-    if (fprintf(f,"%s=%d\n",guiColors[i].name,ImGui::ColorConvertFloat4ToU32(uiColors[i]))<0) {
-      logW("error while exporting colors: %s",strerror(errno));
-      break;
-    }
+
+  String result=c.toString();
+
+  if (fwrite(result.c_str(),1,result.size(),f)!=result.size()) {
+    logW("couldn't write color file entirely.");
   }
+
   fclose(f);
   return true;
 }

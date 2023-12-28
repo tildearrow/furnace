@@ -6492,7 +6492,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
     if (ins->type==DIV_INS_GB) {
       w->writeText("- Game Boy parameters:\n");
       w->writeText(fmt::sprintf("  - volume: %d\n",ins->gb.envVol));
-      w->writeText(fmt::sprintf("  - direction: %d\n",gbEnvDir[ins->gb.envDir?1:0]));
+      w->writeText(fmt::sprintf("  - direction: %s\n",gbEnvDir[ins->gb.envDir?1:0]));
       w->writeText(fmt::sprintf("  - length: %d\n",ins->gb.envLen));
       w->writeText(fmt::sprintf("  - sound length: %d\n",ins->gb.soundLen));
       w->writeText(fmt::sprintf("  - use software envelope: %s\n",trueFalse[ins->gb.softEnv?1:0]));
