@@ -3464,21 +3464,18 @@ void DivEngine::rescanAudioDevices() {
   audioDevs.clear();
   if (output!=NULL) {
     audioDevs=output->listAudioDevices();
+  }
+}
+
+void DivEngine::rescanMidiDevices() {
+  if (output!=NULL) {
+    logV("re-scanning midi...");
     if (output->midiIn!=NULL) {
       midiIns=output->midiIn->listDevices();
     }
     if (output->midiOut!=NULL) {
       midiOuts=output->midiOut->listDevices();
     }
-  }
-}
-
-
-void DivEngine::rescanMidiDevices() {
-  if (output!=NULL) {
-    logV("reloading midi...");
-    output->reinitMidi(false);
-    rescanAudioDevices();
   }
 }
 

@@ -1130,7 +1130,7 @@ void FurnaceGUI::drawSettings() {
         }
 
         ImGui::SameLine();
-        if (ImGui::Button("Reload MIDI devices")) {
+        if (ImGui::Button("Re-scan MIDI devices")) {
           e->rescanMidiDevices();
           audioEngineChanged=true;
           settingsChanged=false;
