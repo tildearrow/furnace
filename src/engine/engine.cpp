@@ -3545,7 +3545,7 @@ bool DivEngine::initAudioBackend() {
   // load values
   logI("initializing audio.");
   if (audioEngine==DIV_AUDIO_NULL) {
-    if (!fallbackMode) {
+    if (!audioFallbackMode) {
       if (getConfString("audioEngine","SDL")=="JACK") {
         audioEngine=DIV_AUDIO_JACK;
       } else if (getConfString("audioEngine","SDL")=="PortAudio") {
@@ -3566,7 +3566,12 @@ bool DivEngine::initAudioBackend() {
 
 #ifdef HAVE_SDL2
   if (audioEngine==DIV_AUDIO_SDL) {
-    String audioDriver=getConfString("sdlAudioDriver","");
+    String audioDriver="";
+    if (!audioFallbackMode) {
+      audioDriver=getConfString("sdlAudioDriver","");
+    } else {
+      audioDriver=getConfString("sdlAudioFallbackDriver","");
+    }
     if (!audioDriver.empty()) {
       SDL_SetHint("SDL_HINT_AUDIODRIVER",audioDriver.c_str());
     }
@@ -3640,8 +3645,11 @@ bool DivEngine::initAudioBackend() {
 
   logV("listing audio devices");
   audioDevs=output->listAudioDevices();
-
-  want.deviceName=getConfString("audioDevice","");
+  if (!audioFallbackMode) {
+    want.deviceName=getConfString("audioDevice","");
+  } else {
+    want.deviceName=getConfString("audioFallbackDevice","");
+  }
   want.bufsize=getConfInt("audioBufSize",1024);
   want.rate=getConfInt("audioRate",44100);
   want.fragments=2;
@@ -3659,10 +3667,10 @@ bool DivEngine::initAudioBackend() {
 
   logV("calling init");
   if (!output->init(want,got)) {
-    if (!fallbackMode) {
+    if (!audioFallbackMode) {
       logE("error while initializing audio! trying fallback engine");
       audioEngine=DIV_AUDIO_NULL;
-      fallbackMode=true;
+      audioFallbackMode=true;
       return initAudioBackend();
     } else {
         logE("error while initializing audio! even fallback failed!");

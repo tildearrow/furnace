@@ -1728,6 +1728,7 @@ class FurnaceGUI {
     String headFontPath;
     String patFontPath;
     String audioDevice;
+    String audioFallbackDevice;
     String midiInDevice;
     String midiOutDevice;
     String renderBackend;
@@ -1739,6 +1740,7 @@ class FurnaceGUI {
     String emptyLabel;
     String emptyLabel2;
     String sdlAudioDriver;
+    String sdlAudioFallbackDriver;
     String defaultAuthorName;
     DivConfig initialSys;
 
@@ -1926,6 +1928,7 @@ class FurnaceGUI {
       headFontPath(""),
       patFontPath(""),
       audioDevice(""),
+      audioFallbackDevice(""),
       midiInDevice(""),
       midiOutDevice(""),
       renderBackend(""),
@@ -1937,6 +1940,7 @@ class FurnaceGUI {
       emptyLabel("..."),
       emptyLabel2(".."),
       sdlAudioDriver(""),
+      sdlAudioFallbackDriver(""),
       defaultAuthorName("") {}
   } settings;
 

@@ -422,7 +422,7 @@ class DivEngine {
   bool midiOutClock;
   bool midiOutTime;
   bool midiOutProgramChange;
-  bool fallbackMode;
+  bool audioFallbackMode;
   int midiOutMode;
   int midiOutTimeRate;
   float midiVolExp;
@@ -1275,7 +1275,7 @@ class DivEngine {
       midiOutClock(false),
       midiOutTime(false),
       midiOutProgramChange(false),
-      fallbackMode(false),
+      audioFallbackMode(false),
       midiOutMode(DIV_MIDI_MODE_NOTE),
       midiOutTimeRate(0),
       midiVolExp(2.0f), // General MIDI standard
