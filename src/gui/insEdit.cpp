@@ -4524,10 +4524,16 @@ void FurnaceGUI::drawInsEdit() {
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                           snprintf(tempID,1024,"%s: %%d",ESFM_NAME(ESFM_CT));
                           P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR,tempID)); rightClickable
+                          if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Detune in semitones");
+                          }
 
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                           snprintf(tempID,1024,"%s: %%d",ESFM_NAME(ESFM_DT));
                           P(CWSliderScalar("##DT",ImGuiDataType_S8,&opE.dt,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN,tempID)); rightClickable
+                          if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Detune in fractions of semitone.\n128 = +1 semitone, -128 = -1 semitone.");
+                          }
                         }
 
                         if (ImGui::BeginTable("panCheckboxes",2,ImGuiTableFlags_SizingStretchSame)) {
