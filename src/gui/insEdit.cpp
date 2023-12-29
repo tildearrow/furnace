@@ -4549,10 +4549,16 @@ void FurnaceGUI::drawInsEdit() {
                           if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_LEFT),&leftOn)) { PARAMETER
                             opE.left=leftOn;
                           }
+                          if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("If operator output sound, enable left channel output.");
+                          }
                           ImGui::TableNextColumn();
                           ImGui::SetCursorPosY(yPosOutsideTablePadding);
                           if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_RIGHT),&rightOn)) { PARAMETER
                             opE.right=rightOn;
+                          }
+                          if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("If operator output sound, enable right channel output.");
                           }
                           ImGui::EndTable();
                         }
