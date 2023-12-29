@@ -4550,7 +4550,7 @@ void FurnaceGUI::drawInsEdit() {
                             opE.left=leftOn;
                           }
                           if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip("If operator output sound, enable left channel output.");
+                            ImGui::SetTooltip("If operator outputs sound, enable left channel output.");
                           }
                           ImGui::TableNextColumn();
                           ImGui::SetCursorPosY(yPosOutsideTablePadding);
@@ -4558,7 +4558,7 @@ void FurnaceGUI::drawInsEdit() {
                             opE.right=rightOn;
                           }
                           if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip("If operator output sound, enable right channel output.");
+                            ImGui::SetTooltip("If operator outputs sound, enable right channel output.");
                           }
                           ImGui::EndTable();
                         }
