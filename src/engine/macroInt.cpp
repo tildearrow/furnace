@@ -425,7 +425,7 @@ DivMacroStruct* DivMacroInt::structByType(unsigned char type)
   {
     unsigned char o = ((type >> 5) - 1) & 3;
     
-    return get_op_macro_by_type(o, type);
+    return get_op_macro_by_type(o, (type & 31) + 32);
   }
 
   return get_macro_by_type(type);

@@ -1208,8 +1208,10 @@ struct FurnaceGUIMacroDesc {
   bool isBitfield, blockMode, bit30;
   String (*hoverFunc)(int,float,void*);
   void* hoverFuncUser;
+  bool is_arp;
+  bool is_pitch;
 
-  FurnaceGUIMacroDesc(const char* name, DivInstrument* ins, DivMacroType macro_id, int oper, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float,void*)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false, void* hfu=NULL):
+  FurnaceGUIMacroDesc(const char* name, DivInstrument* ins, DivMacroType macro_id, int oper, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float,void*)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false, void* hfu=NULL, bool isArp=false, bool isPitch=false):
     ins(ins),
     macro_id(macro_id),
     oper(oper),
@@ -1223,7 +1225,9 @@ struct FurnaceGUIMacroDesc {
     blockMode(block),
     bit30(bit30Special),
     hoverFunc(hf),
-    hoverFuncUser(hfu) {
+    hoverFuncUser(hfu),
+    is_arp(isArp),
+    is_pitch(isPitch) {
     // MSVC -> hell
     this->min=macroMin;
     this->max=macroMax;

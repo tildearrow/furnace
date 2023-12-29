@@ -229,8 +229,11 @@ void DivPlatformESFM::tick(bool sysTick) {
         }
       }
 
+      chan[i].handleArpFmOp(0, o);
+      chan[i].handlePitchFmOp(o);
+
       // detune/fixed pitch
-      if (opE.fixed) {
+      /*if (opE.fixed) {
         if (m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->had) {
           opE.ct=(opE.ct&(~(7<<2)))|((m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val&7)<<2);
           chan[i].freqChanged=true;
@@ -249,7 +252,8 @@ void DivPlatformESFM::tick(bool sysTick) {
           opE.dt=(signed char)m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->val;
           chan[i].freqChanged=true;
         }
-      }
+      }*/
+
       if (m.op_get_div_macro_struct(DIV_MACRO_OP_DT2)->had) {
         opE.delay=m.op_get_div_macro_struct(DIV_MACRO_OP_DT2)->val;
         rWrite(baseAddr+ADDR_FREQH_BLOCK_DELAY,chan[i].freqH[o]|(opE.delay<<5));
@@ -305,7 +309,34 @@ void DivPlatformESFM::tick(bool sysTick) {
           chan[i].freqL[o]=opE.dt;
           chan[i].freqH[o]=opE.ct&0x1f;
         } else {
-          int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2+dt,chipClock,CHIP_FREQBASE);
+          int opFreq = 0;
+          //int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2+dt,chipClock,CHIP_FREQBASE);
+          if(chan[i].opsState[o].has_op_arp)
+          {
+            if(chan[i].opsState[o].has_op_pitch)
+            {
+              opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct,chan[i].opsState[o].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2+dt,chipClock,CHIP_FREQBASE);
+            }
+
+            else
+            {
+              opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct,chan[i].opsState[o].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].opsState[o].pitch2+dt,chipClock,CHIP_FREQBASE);
+            }
+          }
+
+          else
+          {
+            if(chan[i].opsState[o].has_op_pitch)
+            {
+              opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].opsState[o].pitch2+dt,chipClock,CHIP_FREQBASE);
+            }
+
+            else
+            {
+              opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2+dt,chipClock,CHIP_FREQBASE);
+            }
+          }
+          
           if (opFreq<0) opFreq=0;
           if (opFreq>131071) opFreq=131071;
           int freqt=toFreq(opFreq);
@@ -432,6 +463,9 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ESFM);
 
       chan[c.chan].macroInit(ins);
+
+      memset(chan[c.chan].opsState, 0, sizeof(chan[c.chan].opsState)); //so ops arp and pitch states are reset bruh
+
       if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }

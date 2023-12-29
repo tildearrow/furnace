@@ -36,13 +36,85 @@ class DivPlatformESFM: public DivDispatch {
     bool hardReset;
     unsigned char globalPan;
     int macroVolMul;
+
+    struct
+    {
+      int baseNoteOverride;
+      bool fixedArp;
+      int arpOff;
+      int pitch2;
+      bool has_op_arp; //if operator has its own arpeggio value that overrides main instrument's one
+      bool has_op_pitch; //if operator has its own pitch value that overrides main instrument's one
+    } opsState[4];
+    
+
+    void handleArpFmOp(int offset=0, int o=0) {
+      //DivInstrumentFM::Operator& op=this->state.fm.op[o];
+      //DivInstrumentESFM::Operator& opE=this->state.esfm.op[o];
+      DivMacroInt::IntOp& m=*this->std.get_int_op(o);
+
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->had) {
+        opsState[o].has_op_arp = true;
+
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val<0) {
+          if (!(m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val&0x40000000)) {
+            opsState[o].baseNoteOverride=(m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val|0x40000000)+offset;
+            opsState[o].fixedArp=true;
+          } else {
+            opsState[o].arpOff=m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val;
+            opsState[o].fixedArp=false;
+          }
+        } else {
+          if (m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val&0x40000000) {
+            opsState[o].baseNoteOverride=(m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val&(~0x40000000))+offset;
+            opsState[o].fixedArp=true;
+          } else {
+            opsState[o].arpOff=m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val;
+            opsState[o].fixedArp=false;
+          }
+        }
+        freqChanged=true;
+      }
+
+      else
+      {
+        opsState[o].has_op_arp = false;
+      }
+    }
+
+    void handlePitchFmOp(int o)
+    {
+      DivMacroInt::IntOp& m=*this->std.get_int_op(o);
+
+      //m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->
+      if (m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->had) 
+      {
+        opsState[o].has_op_pitch = true;
+
+        if (m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->mode) {
+          opsState[o].pitch2+=m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->val;
+          CLAMP_VAR(opsState[o].pitch2,-131071,131071);
+        } else {
+          opsState[o].pitch2=m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->val;
+        }
+        this->freqChanged=true;
+      }
+
+      else
+      {
+        opsState[o].has_op_pitch = false;
+      }
+    }
+
     Channel():
       SharedChannel<int>(0),
       freqL{0, 0, 0, 0},
       freqH{0, 0, 0, 0},
       hardReset(false),
       globalPan(3),
-      macroVolMul(64) {}
+      macroVolMul(64) {
+        memset(opsState, 0, sizeof(opsState));
+      }
   };
   Channel chan[18];
   DivDispatchOscBuffer* oscBuf[18];
@@ -130,6 +202,7 @@ class DivPlatformESFM: public DivDispatch {
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
+    void handleArpFmOp(int offset=0, int o=0);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);

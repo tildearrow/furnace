@@ -1537,10 +1537,10 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
 
     if (i.get_macro()->vZoom<1) {
-      if (i.get_macro()->macroType==DIV_MACRO_ARP) {
+      if (i.get_macro()->macroType==DIV_MACRO_ARP || i.is_arp) {
         i.get_macro()->vZoom=24;
         i.get_macro()->vScroll=120-12;
-      } else if (i.get_macro()->macroType==DIV_MACRO_PITCH) {
+      } else if (i.get_macro()->macroType==DIV_MACRO_PITCH || i.is_pitch) {
         i.get_macro()->vZoom=128;
         i.get_macro()->vScroll=2048-64;
       } else {
@@ -1563,7 +1563,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       DivMacroInt* macroInt=e->getMacroInt(j);
       if (macroInt==NULL) continue;
 
-      DivMacroStruct* macroStruct=macroInt->structByType(i.get_macro()->macroType);
+      DivMacroStruct* macroStruct=macroInt->structByType(i.get_macro()->macroType + (i.oper == 0xff ? 0 : (i.oper * 32)));
       if (macroStruct==NULL) continue;
 
       if (macroStruct->lastPos>i.get_macro()->len) continue;
@@ -5333,8 +5333,12 @@ void FurnaceGUI::drawInsEdit() {
                   macroList.push_back(FurnaceGUIMacroDesc("Block",ins,(DivMacroType)DIV_MACRO_OP_SSG,ordi,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER],true));
                   macroList.push_back(FurnaceGUIMacroDesc("FreqNum",ins,(DivMacroType)DIV_MACRO_OP_DT,ordi,0,1023,160,uiColors[GUI_COLOR_MACRO_OTHER]));
                 } else {
-                  macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_CT),ins,(DivMacroType)DIV_MACRO_OP_SSG,ordi,-24,24,128,uiColors[GUI_COLOR_MACRO_OTHER],true));
-                  macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_DT),ins,(DivMacroType)DIV_MACRO_OP_DT,ordi,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                  //macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_CT),ins,(DivMacroType)DIV_MACRO_OP_SSG,ordi,-24,24,128,uiColors[GUI_COLOR_MACRO_OTHER],true));
+                  //macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",ins,DIV_MACRO_ARP,0xff,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.get_macro(DIV_MACRO_ARP, true)->val));
+                  macroList.push_back(FurnaceGUIMacroDesc("Op. arpeggio",ins,(DivMacroType)DIV_MACRO_OP_SSG,ordi,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.ops[ordi].op_get_macro(DIV_MACRO_OP_SSG, true)->val,true));
+                  //macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_DT),ins,(DivMacroType)DIV_MACRO_OP_DT,ordi,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                  //macroList.push_back(FurnaceGUIMacroDesc("Pitch",ins,DIV_MACRO_PITCH,0xff,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+                  macroList.push_back(FurnaceGUIMacroDesc("Op. pitch",ins,(DivMacroType)DIV_MACRO_OP_DT,ordi,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,0,false,NULL,false,true));
                 }
 
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),ins,(DivMacroType)DIV_MACRO_OP_AM,ordi,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
@@ -5364,10 +5368,10 @@ void FurnaceGUI::drawInsEdit() {
                 }
               }
 
-              for(int i = 0; i < (int)ins->std.ops[ordi].macros.size(); i++) // reset macro zoom
+              /*for(int i = 0; i < (int)ins->std.ops[ordi].macros.size(); i++) // reset macro zoom
               {
                 ins->std.ops[ordi].macros[i].vZoom = -1;
-              }
+              }*/
 
               drawMacros(macroList,macroEditStateOP[ordi]);
               ImGui::PopID();
@@ -7249,10 +7253,10 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Noise",ins,DIV_MACRO_EX3, 0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
 
-          for(int i = 0; i < (int)ins->std.macros.size(); i++) // reset macro zoom
+          /*for(int i = 0; i < (int)ins->std.macros.size(); i++) // reset macro zoom
           {
             ins->std.macros[i].vZoom = -1;
-          }
+          }*/
 
           drawMacros(macroList,macroEditStateMacros);
           ImGui::EndTabItem();
