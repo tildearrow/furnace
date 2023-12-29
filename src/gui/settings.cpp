@@ -1110,6 +1110,13 @@ void FurnaceGUI::drawSettings() {
           ImGui::EndCombo();
         }
 
+        ImGui::SameLine();
+        if (ImGui::Button("Re-scan MIDI devices")) {
+          e->rescanMidiDevices();
+          audioEngineChanged=true;
+          settingsChanged=false;
+        }
+
         if (hasToReloadMidi) {
           midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg");
           midiMap.compile();
