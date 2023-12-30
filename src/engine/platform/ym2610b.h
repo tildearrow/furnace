@@ -40,6 +40,7 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     void acquire_ymfm(short** buf, size_t len);
 
   public:
+    unsigned char isCSM;
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -61,9 +62,12 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
+    void setCSM(unsigned char isCSM);
     void quit();
     DivPlatformYM2610B():
-      DivPlatformYM2610Base(2,6,9,15,16) {}
+      DivPlatformYM2610Base(2,6,9,15,16) {
+        isCSM = false;
+      }
     ~DivPlatformYM2610B();
 };
 #endif

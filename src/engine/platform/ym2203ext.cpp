@@ -82,7 +82,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       } else {
         opChan[ch].macroInit(ins);       
       }
-      if (!opChan[ch].std.vol.will) {
+      if (!opChan[ch].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         opChan[ch].outVol=opChan[ch].vol;
       }
 
@@ -117,7 +117,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME: {
       opChan[ch].vol=c.value;
-      if (!opChan[ch].std.vol.has) {
+      if (!opChan[ch].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         opChan[ch].outVol=c.value;
       }
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
@@ -417,6 +417,9 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       }
     }
     if (writeSomething) {
+      if (chan[csmChan].active) { // CSM
+        writeMask^=0xf0;
+      }
       immWrite(0x28,writeMask);
     }
   }
@@ -424,8 +427,8 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
   if (extMode && !noExtMacros) for (int i=0; i<4; i++) {
     opChan[i].std.next();
 
-    if (opChan[i].std.vol.had) {
-      opChan[i].outVol=VOL_SCALE_LOG_BROKEN(opChan[i].vol,MIN(127,opChan[i].std.vol.val),127);
+    if (opChan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      opChan[i].outVol=VOL_SCALE_LOG_BROKEN(opChan[i].vol,MIN(127,opChan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),127);
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[i]];
       DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[i]];
       if (isOpMuted[i]) {
@@ -435,26 +438,26 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       }
     }
 
-    if (opChan[i].std.arp.had) {
+    if (opChan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!opChan[i].inPorta) {
-        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11);
+        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val),11);
       }
       opChan[i].freqChanged=true;
     }
 
-    if (opChan[i].std.pitch.had) {
-      if (opChan[i].std.pitch.mode) {
-        opChan[i].pitch2+=opChan[i].std.pitch.val;
+    if (opChan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (opChan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        opChan[i].pitch2+=opChan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(opChan[i].pitch2,-1048576,1048575);
       } else {
-        opChan[i].pitch2=opChan[i].std.pitch.val;
+        opChan[i].pitch2=opChan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       opChan[i].freqChanged=true;
     }
 
     // channel macros
-    if (opChan[i].std.alg.had) {
-      chan[extChanOffs].state.alg=opChan[i].std.alg.val;
+    if (opChan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->had) {
+      chan[extChanOffs].state.alg=opChan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val;
       rWrite(chanOffs[extChanOffs]+ADDR_FB_ALG,(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
       if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[j];
@@ -467,8 +470,8 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       }
     }
     if (i==0 || fbAllOps) {
-      if (opChan[i].std.fb.had) {
-        chan[extChanOffs].state.fb=opChan[i].std.fb.val;
+      if (opChan[i].std.get_div_macro_struct(DIV_MACRO_FB)->had) {
+        chan[extChanOffs].state.fb=opChan[i].std.get_div_macro_struct(DIV_MACRO_FB)->val;
         rWrite(chanOffs[extChanOffs]+ADDR_FB_ALG,(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
       }
     }
@@ -476,53 +479,53 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
     // param macros
     unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[i]];
     DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[i]];
-    DivMacroInt::IntOp& m=opChan[i].std.op[orderedOps[i]];
-    if (m.am.had) {
-      op.am=m.am.val;
+    DivMacroInt::IntOp& m=*opChan[i].std.get_int_op(orderedOps[i]);
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->had) {
+      op.am=m.op_get_div_macro_struct(DIV_MACRO_OP_AM)->val;
       rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
     }
-    if (m.ar.had) {
-      op.ar=m.ar.val;
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_AR)->had) {
+      op.ar=m.op_get_div_macro_struct(DIV_MACRO_OP_AR)->val;
       rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
     }
-    if (m.dr.had) {
-      op.dr=m.dr.val;
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_DR)->had) {
+      op.dr=m.op_get_div_macro_struct(DIV_MACRO_OP_DR)->val;
       rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
     }
-    if (m.mult.had) {
-      op.mult=m.mult.val;
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_MULT)->had) {
+      op.mult=m.op_get_div_macro_struct(DIV_MACRO_OP_MULT)->val;
       rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
     }
-    if (m.rr.had) {
-      op.rr=m.rr.val;
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_RR)->had) {
+      op.rr=m.op_get_div_macro_struct(DIV_MACRO_OP_RR)->val;
       rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
     }
-    if (m.sl.had) {
-      op.sl=m.sl.val;
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_SL)->had) {
+      op.sl=m.op_get_div_macro_struct(DIV_MACRO_OP_SL)->val;
       rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
     }
-    if (m.tl.had) {
-      op.tl=m.tl.val;
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_TL)->had) {
+      op.tl=m.op_get_div_macro_struct(DIV_MACRO_OP_TL)->val;
       if (isOpMuted[i]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
         rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[i].outVol&0x7f,127));
       }
     }
-    if (m.rs.had) {
-      op.rs=m.rs.val;
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_RS)->had) {
+      op.rs=m.op_get_div_macro_struct(DIV_MACRO_OP_RS)->val;
       rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
     }
-    if (m.dt.had) {
-      op.dt=m.dt.val;
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->had) {
+      op.dt=m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->val;
       rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
     }
-    if (m.d2r.had) {
-      op.d2r=m.d2r.val;
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_D2R)->had) {
+      op.d2r=m.op_get_div_macro_struct(DIV_MACRO_OP_D2R)->val;
       rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
     }
-    if (m.ssg.had) {
-      op.ssgEnv=m.ssg.val;
+    if (m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->had) {
+      op.ssgEnv=m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val;
       rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
     }
   }
@@ -568,7 +571,31 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       }
     }
   }
+
+  if (extMode) {
+    if (chan[csmChan].freqChanged) {
+      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
+      if (chan[csmChan].freq<1) chan[csmChan].freq=1;
+      if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
+      int wf=0x400-chan[csmChan].freq;
+      immWrite(0x24,wf>>2);
+      immWrite(0x25,wf&3);
+      chan[csmChan].freqChanged=false;
+    }
+
+    if (chan[csmChan].keyOff || chan[csmChan].keyOn) {
+      writeNoteOn=true;
+      for (int i=0; i<4; i++) {
+        writeMask|=opChan[i].active<<(4+i);
+      }
+    }
+  }
+
   if (writeNoteOn) {
+    if (chan[csmChan].active) { // CSM
+      writeMask^=0xf0;
+    }
+
     writeMask^=hardResetMask;
     immWrite(0x28,writeMask);
     writeMask^=hardResetMask;
@@ -588,6 +615,17 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
         }
       }
       immWrite(0x28,writeMask);
+    }
+  }
+
+  if (extMode) {
+    if (chan[csmChan].keyOn) {
+      immWrite(0x27,0x81);
+      chan[csmChan].keyOn=false;
+    }
+    if (chan[csmChan].keyOff) {
+      immWrite(0x27,0x40);
+      chan[csmChan].keyOff=false;
     }
   }
 }
@@ -669,6 +707,13 @@ void DivPlatformYM2203Ext::forceIns() {
       opChan[i].freqChanged=true;
     }
   }
+
+  if (extMode && chan[csmChan].active) { // CSM
+    chan[csmChan].insChanged=true;
+    chan[csmChan].freqChanged=true;
+    chan[csmChan].keyOn=true;
+  }
+
   if (!extMode) {
     immWrite(0x27,0x00);
   }
@@ -681,7 +726,7 @@ void* DivPlatformYM2203Ext::getChanState(int ch) {
 }
 
 DivMacroInt* DivPlatformYM2203Ext::getChanMacroInt(int ch) {
-  if (ch>=6) return ay->getChanMacroInt(ch-6);
+  if (ch>=psgChanOffs + 3) return ay->getChanMacroInt(ch-(psgChanOffs + 3));
   if (ch>=2) return &opChan[ch-2].std;
   return &chan[ch].std;
 }
@@ -741,7 +786,7 @@ int DivPlatformYM2203Ext::init(DivEngine* parent, int channels, int sugRate, con
   extSys=true;
 
   reset();
-  return 9;
+  return psgChanOffs + 2 + 4;
 }
 
 void DivPlatformYM2203Ext::quit() {

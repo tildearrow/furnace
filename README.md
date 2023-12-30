@@ -1,3 +1,17 @@
+# Furnace-B
+
+A fork of [Furnace chiptune tracker](https://github.com/tildearrow/furnace) with the aim to cut out the bloat (aka abandoned/unfinished stuff), make codebase cleaner and easier to understand, optimize performance and memory usage, and bring more useful features.
+
+Here are our [community rules](code_of_conduct.md) and [contribution rules](contribution_guide.md). And here's [what we need the help with](PLEASE_HEEEEEELP_AHHH.md) right now.
+
+Here are the [future plans](todo_list.md).
+
+[See here](https://nightly.link/ltva1/furnace/workflows/build/master) for the latest unstable build of the fork.
+
+[Fork changelog](fork_changelog.md)
+
+[Our Discord server](https://discord.gg/sT8zcsyJZt)
+
 # Furnace (chiptune tracker)
 
 ![screenshot](papers/screenshot3.png)

@@ -23,6 +23,39 @@
 #include "guiConst.h"
 #include <imgui.h>
 
+#define RESTRICT_CHIP_SHOW_BEGIN if(
+#define RESTRICT_CHIP_SHOW_SYSTEM(sys) curSysSection[j] != (sys) &&
+#define RESTRICT_CHIP_SHOW_HEADER_END(sys) curSysSection[j] != (sys)) \
+{
+
+#define RESTRICT_CHIP_SHOW_END \
+}
+
+#define FIRST_SYSTEM_COLLAPSIBLE_BEGIN(sys) \
+if((DivSystem)curSysSection[j] == (sys)) \
+{ \
+  if (ImGui::TreeNode(e->getSystemName((DivSystem)curSysSection[j]))) {
+
+#define SYSTEM_COLLAPSIBLE_BEGIN(sys) \
+else if((DivSystem)curSysSection[j] == (sys)) \
+{ \
+  if (ImGui::TreeNode(e->getSystemName((DivSystem)curSysSection[j]))) {
+
+
+#define SYSTEM_IN_COLLAPSIBLE(sys) \
+    if (ImGui::Selectable(e->getSystemName(sys),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=(sys); \
+    if (ImGui::IsItemHovered()) { \
+      hoveredSys=(sys); \
+    } 
+
+#define SYSTEM_COLLAPSIBLE_END(sys) \
+    ImGui::TreePop(); \
+  } \
+  if (ImGui::IsItemHovered() && hoveredSys != (sys)) { \
+    hoveredSys=(DivSystem)curSysSection[j]; \
+  } \
+} 
+
 DivSystem FurnaceGUI::systemPicker() {
   DivSystem ret=DIV_SYSTEM_NULL;
   DivSystem hoveredSys=DIV_SYSTEM_NULL;
@@ -64,13 +97,102 @@ DivSystem FurnaceGUI::systemPicker() {
   if (ImGui::BeginTable("SysList",1,ImGuiTableFlags_ScrollY,ImVec2(500.0f*dpiScale,200.0*dpiScale))) {
     if (sysSearchQuery.empty()) {
       // display chip list
+      
       for (int j=0; curSysSection[j]; j++) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        if (ImGui::Selectable(e->getSystemName((DivSystem)curSysSection[j]),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=(DivSystem)curSysSection[j];
-        if (ImGui::IsItemHovered()) {
-          hoveredSys=(DivSystem)curSysSection[j];
-        }
+        RESTRICT_CHIP_SHOW_BEGIN
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2612_EXT) //which chips are not shown in "All chips" tab
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2612_DUALPCM) //a hack to still show them in search results
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2612_CSM)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2612_DUALPCM)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2612_DUALPCM_EXT)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2610_EXT)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2610_FULL)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2610_FULL_EXT)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2610_CSM)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2610B_EXT)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2610B_CSM)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2203_EXT)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2203_CSM)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2608_EXT)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_YM2608_CSM)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_OPLL_DRUMS)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_OPL_DRUMS)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_OPL2_DRUMS)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_OPL3_DRUMS)
+        RESTRICT_CHIP_SHOW_SYSTEM(DIV_SYSTEM_Y8950_DRUMS)
+        RESTRICT_CHIP_SHOW_HEADER_END(DIV_SYSTEM_Y8950_DRUMS)
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+
+          FIRST_SYSTEM_COLLAPSIBLE_BEGIN(DIV_SYSTEM_YM2612);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2612);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2612_EXT);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2612_CSM);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2612_DUALPCM);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2612_DUALPCM_EXT);
+          SYSTEM_COLLAPSIBLE_END(DIV_SYSTEM_YM2612_DUALPCM_EXT)
+
+          SYSTEM_COLLAPSIBLE_BEGIN(DIV_SYSTEM_YM2610);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2610);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2610_EXT);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2610_FULL);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2610_FULL_EXT);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2610_CSM);
+          SYSTEM_COLLAPSIBLE_END(DIV_SYSTEM_YM2610_CSM)
+
+          SYSTEM_COLLAPSIBLE_BEGIN(DIV_SYSTEM_YM2610B);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2610B);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2610B_EXT);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2610B_CSM);
+          SYSTEM_COLLAPSIBLE_END(DIV_SYSTEM_YM2610B_CSM)
+
+          SYSTEM_COLLAPSIBLE_BEGIN(DIV_SYSTEM_YM2203);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2203);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2203_EXT);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2203_CSM);
+          SYSTEM_COLLAPSIBLE_END(DIV_SYSTEM_YM2203_CSM)
+
+          SYSTEM_COLLAPSIBLE_BEGIN(DIV_SYSTEM_YM2608);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2608);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2608_EXT);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_YM2608_CSM);
+          SYSTEM_COLLAPSIBLE_END(DIV_SYSTEM_YM2608_CSM)
+
+          SYSTEM_COLLAPSIBLE_BEGIN(DIV_SYSTEM_OPLL);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_OPLL);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_OPLL_DRUMS);
+          SYSTEM_COLLAPSIBLE_END(DIV_SYSTEM_OPLL_DRUMS)
+
+          SYSTEM_COLLAPSIBLE_BEGIN(DIV_SYSTEM_OPL);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_OPL);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_OPL_DRUMS);
+          SYSTEM_COLLAPSIBLE_END(DIV_SYSTEM_OPL_DRUMS)
+
+          SYSTEM_COLLAPSIBLE_BEGIN(DIV_SYSTEM_OPL2);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_OPL2);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_OPL2_DRUMS);
+          SYSTEM_COLLAPSIBLE_END(DIV_SYSTEM_OPL2_DRUMS)
+
+          SYSTEM_COLLAPSIBLE_BEGIN(DIV_SYSTEM_OPL3);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_OPL3);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_OPL3_DRUMS);
+          SYSTEM_COLLAPSIBLE_END(DIV_SYSTEM_OPL3_DRUMS)
+
+          SYSTEM_COLLAPSIBLE_BEGIN(DIV_SYSTEM_Y8950);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_Y8950);
+          SYSTEM_IN_COLLAPSIBLE(DIV_SYSTEM_Y8950_DRUMS);
+          SYSTEM_COLLAPSIBLE_END(DIV_SYSTEM_Y8950_DRUMS)
+
+          else
+          {
+            if (ImGui::Selectable(e->getSystemName((DivSystem)curSysSection[j]),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=(DivSystem)curSysSection[j];
+            if (ImGui::IsItemHovered()) {
+              hoveredSys=(DivSystem)curSysSection[j];
+            }
+          }
+
+        RESTRICT_CHIP_SHOW_END
       }
     } else {
       // display search results

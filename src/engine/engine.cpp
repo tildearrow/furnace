@@ -83,7 +83,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0x82:
       return "82xx: Set panning (right channel)";
     case 0x88:
-      return "88xx: Set panning (rear channels; x: left; y: right)";
+      return "88xy: Set panning (rear channels; x: left; y: right)";
       break;
     case 0x89:
       return "89xx: Set panning (rear left channel)";
@@ -973,8 +973,8 @@ void DivEngine::delUnusedSamples() {
       }
       if (i->amiga.useNoteMap) {
         for (int j=0; j<120; j++) {
-          if (i->amiga.noteMap[j].map>=0 && i->amiga.noteMap[j].map<song.sampleLen) {
-            isUsed[i->amiga.noteMap[j].map]=true;
+          if (i->amiga.get_amiga_sample_map(j, true)->map>=0 && i->amiga.get_amiga_sample_map(j, true)->map<song.sampleLen) {
+            isUsed[i->amiga.get_amiga_sample_map(j, true)->map]=true;
           }
         }
       }
@@ -2391,7 +2391,7 @@ void DivEngine::dumpSongInfo() {
 int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   if (song.ins.size()>=256) return -1;
   BUSY_BEGIN;
-  DivInstrument* ins=new DivInstrument;
+  DivInstrument* ins=new DivInstrument();
   int insCount=(int)song.ins.size();
   DivInstrumentType prefType;
   if (refChan<0) {
@@ -2742,10 +2742,10 @@ void DivEngine::delSampleUnsafe(int index, bool render) {
         i->amiga.initSample--;
       }
       for (int j=0; j<120; j++) {
-        if (i->amiga.noteMap[j].map==index) {
-          i->amiga.noteMap[j].map=-1;
-        } else if (i->amiga.noteMap[j].map>index) {
-          i->amiga.noteMap[j].map--;
+        if (i->amiga.get_amiga_sample_map(j, true)->map==index) {
+          i->amiga.get_amiga_sample_map(j, true)->map=-1;
+        } else if (i->amiga.get_amiga_sample_map(j, true)->map>index) {
+          i->amiga.get_amiga_sample_map(j, true)->map--;
         }
       }
     }
@@ -2959,10 +2959,10 @@ void DivEngine::exchangeSample(int one, int two) {
       i->amiga.initSample=one;
     }
     for (int j=0; j<120; j++) {
-      if (i->amiga.noteMap[j].map==one) {
-        i->amiga.noteMap[j].map=two;
-      } else if (i->amiga.noteMap[j].map==two) {
-        i->amiga.noteMap[j].map=one;
+      if (i->amiga.get_amiga_sample_map(j, true)->map==one) {
+        i->amiga.get_amiga_sample_map(j, true)->map=two;
+      } else if (i->amiga.get_amiga_sample_map(j, true)->map==two) {
+        i->amiga.get_amiga_sample_map(j, true)->map=one;
       }
     }
   }
@@ -3464,6 +3464,12 @@ void DivEngine::rescanAudioDevices() {
   audioDevs.clear();
   if (output!=NULL) {
     audioDevs=output->listAudioDevices();
+  }
+}
+
+void DivEngine::rescanMidiDevices() {
+  if (output!=NULL) {
+    logV("re-scanning midi...");
     if (output->midiIn!=NULL) {
       midiIns=output->midiIn->listDevices();
     }

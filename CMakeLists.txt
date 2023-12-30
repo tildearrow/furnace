@@ -711,6 +711,28 @@ src/engine/export/amigaValidation.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp
+
+src/engine/importExport/dmf.cpp
+src/engine/importExport/fc.cpp
+src/engine/importExport/ftm.cpp
+src/engine/importExport/mod.cpp
+src/engine/importExport/s3m.cpp
+
+src/engine/importExport/shared.cpp
+src/engine/importExport/dmp.cpp
+src/engine/importExport/bnk.cpp
+src/engine/importExport/ff.cpp
+src/engine/importExport/gyb.cpp
+src/engine/importExport/opli.cpp
+src/engine/importExport/opm.cpp
+src/engine/importExport/opni.cpp
+src/engine/importExport/s3i.cpp
+src/engine/importExport/sbi.cpp
+src/engine/importExport/tfi.cpp
+src/engine/importExport/vgi.cpp
+src/engine/importExport/wopl.cpp
+src/engine/importExport/wopn.cpp
+src/engine/importExport/y12.cpp
 )
 
 if (USE_SNDFILE)
@@ -754,12 +776,6 @@ src/gui/font_furicon.cpp
 src/gui/fonts.cpp
 
 src/gui/image_icon.cpp
-src/gui/image_talogo.cpp
-src/gui/image_tachip.cpp
-src/gui/image_logo.cpp
-src/gui/image_wordmark.cpp
-src/gui/image_introbg.cpp
-src/gui/image_pat.cpp
 src/gui/image.cpp
 
 src/gui/debug.cpp
@@ -768,7 +784,6 @@ src/gui/fileDialog.cpp
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
 
-src/gui/introTune.cpp
 
 src/gui/about.cpp
 src/gui/channels.cpp
@@ -788,7 +803,6 @@ src/gui/fmPreview.cpp
 src/gui/gradient.cpp
 src/gui/grooves.cpp
 src/gui/insEdit.cpp
-src/gui/intro.cpp
 src/gui/log.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
@@ -814,7 +828,6 @@ src/gui/sysEx.cpp
 src/gui/sysManager.cpp
 src/gui/sysPartNumber.cpp
 src/gui/sysPicker.cpp
-src/gui/tutorial.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp

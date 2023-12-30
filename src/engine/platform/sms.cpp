@@ -176,19 +176,19 @@ int DivPlatformSMS::snCalcFreq(int ch) {
 void DivPlatformSMS::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG(chan[i].std.vol.val,chan[i].vol,15);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LOG(chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val,chan[i].vol,15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       // old formula
-      // ((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;
+      // ((chan[i].vol&15)*MIN(15,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val))>>4;
       chan[i].writeVol=true;
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
         // TODO: add compatibility flag. this is horrible.
-        int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val);
         if (!easyNoise) while (areYouSerious>0x60) areYouSerious-=12;
         chan[i].baseFreq=NOTE_SN(i,areYouSerious);
         chan[i].actualNote=areYouSerious;
@@ -196,34 +196,34 @@ void DivPlatformSMS::tick(bool sysTick) {
       }
     }
     if (i==3) {
-      if (chan[i].std.duty.had) {
-        if (chan[i].std.duty.val!=snNoiseMode || parent->song.snDutyReset) {
-          snNoiseMode=chan[i].std.duty.val;
-          if (chan[i].std.duty.val<2) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+        if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val!=snNoiseMode || parent->song.snDutyReset) {
+          snNoiseMode=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
+          if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val<2) {
             chan[3].freqChanged=false;
           }
           updateSNMode=true;
         }
       }
-      if (chan[i].std.phaseReset.had) {
-        if (chan[i].std.phaseReset.val==1) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+        if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) {
           updateSNMode=true;
         }
       }
     }
     if (stereo) {
-      if (chan[i].std.panL.had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
         lastPan&=~(0x11<<i);
-        lastPan|=((chan[i].std.panL.val&1)<<i)|(((chan[i].std.panL.val>>1)&1)<<(i+4));
+        lastPan|=((chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&1)<<i)|(((chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val>>1)&1)<<(i+4));
         rWrite(1,lastPan);
       }
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
@@ -275,8 +275,8 @@ void DivPlatformSMS::tick(bool sysTick) {
     } else { // 3 fixed values
       unsigned char value;
       // TODO: new arp?
-      if (chan[3].std.arp.had) {
-        value=parent->calcArp(chan[3].note,chan[3].std.arp.val)%12;
+      if (chan[3].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
+        value=parent->calcArp(chan[3].note,chan[3].std.get_div_macro_struct(DIV_MACRO_ARP)->val)%12;
       } else { // pardon?
         value=chan[3].note%12;
       }
@@ -320,7 +320,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         //rWrite(0,0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       //}
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       break;
@@ -340,7 +340,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[c.chan].outVol=c.value;
         }
         if (chan[c.chan].active) {
@@ -349,7 +349,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
+      if (chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -399,7 +399,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_SN(c.chan,c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_SN(c.chan,c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].actualNote=c.value;
@@ -408,7 +408,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

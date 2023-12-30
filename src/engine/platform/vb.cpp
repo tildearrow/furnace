@@ -141,28 +141,28 @@ void DivPlatformVB::writeEnv(int ch, bool upperByteToo) {
 void DivPlatformVB::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),15);
       writeEnv(i);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (i==5 && chan[i].std.duty.had) {
-      if ((chan[i].std.duty.val&7)!=((chan[i].envHigh>>4)&7)) {
+    if (i==5 && chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      if ((chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&7)!=((chan[i].envHigh>>4)&7)) {
         chan[i].envHigh&=~0x70;
-        chan[i].envHigh|=(chan[i].std.duty.val&7)<<4;
+        chan[i].envHigh|=(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&7)<<4;
         writeEnv(i,true);
       }
     }
-    if (chan[i].std.wave.had) {
-      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
+      if (chan[i].wave!=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val || chan[i].ws.activeChanged()) {
+        chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val;
         if (romMode) {
           chWrite(i,0x06,chan[i].wave);
         }
@@ -170,31 +170,31 @@ void DivPlatformVB::tick(bool sysTick) {
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
-    if (chan[i].std.panL.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
       chan[i].pan&=0x0f;
-      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+      chan[i].pan|=(chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&15)<<4;
     }
-    if (chan[i].std.panR.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
       chan[i].pan&=0xf0;
-      chan[i].pan|=chan[i].std.panR.val&15;
+      chan[i].pan|=chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val&15;
     }
-    if (chan[i].std.panL.had || chan[i].std.panR.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had || chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
       chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had && chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) {
       chWrite(i,0x00,0x80);
     }
     if (chan[i].active) {
-      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
+      if (chan[i].ws.tick() || (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had && chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1)) {
         updateWave(i);
       }
     }
@@ -235,7 +235,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
           rWrite(0x280+(i<<2),modTable[i]);
         }
       }
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
         writeEnv(c.chan);
       }
@@ -265,7 +265,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[c.chan].outVol=c.value;
           if (chan[c.chan].active) {
             writeEnv(c.chan);
@@ -274,7 +274,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
+      if (chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -375,7 +375,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -383,7 +383,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

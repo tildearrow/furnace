@@ -187,23 +187,23 @@ void DivPlatformES5506::tick(bool sysTick) {
     DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5506);
     signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
     // volume/panning macros
-    if (chan[i].std.vol.had) {
-      const int nextVol=VOL_SCALE_LOG((0xfff*chan[i].vol)/0xff,(0xfff*chan[i].std.vol.val)/chan[i].volMacroMax,0xfff);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      const int nextVol=VOL_SCALE_LOG((0xfff*chan[i].vol)/0xff,(0xfff*chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val)/chan[i].volMacroMax,0xfff);
       if (chan[i].outVol!=nextVol) {
         chan[i].outVol=nextVol;
         chan[i].volChanged.lVol=1;
         chan[i].volChanged.rVol=1;
       }
     }
-    if (chan[i].std.panL.had) {
-      const int nextLVol=VOL_SCALE_LOG((0xfff*chan[i].lVol)/0xff,(0xfff*chan[i].std.panL.val)/chan[i].panMacroMax,0xfff);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+      const int nextLVol=VOL_SCALE_LOG((0xfff*chan[i].lVol)/0xff,(0xfff*chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val)/chan[i].panMacroMax,0xfff);
       if (chan[i].outLVol!=nextLVol) {
         chan[i].outLVol=nextLVol;
         chan[i].volChanged.lVol=1;
       }
     }
-    if (chan[i].std.panR.had) {
-      const int nextRVol=VOL_SCALE_LOG((0xfff*chan[i].rVol)/0xff,(0xfff*chan[i].std.panR.val)/chan[i].panMacroMax,0xfff);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
+      const int nextRVol=VOL_SCALE_LOG((0xfff*chan[i].rVol)/0xff,(0xfff*chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val)/chan[i].panMacroMax,0xfff);
       if (chan[i].outRVol!=nextRVol) {
         chan[i].outRVol=nextRVol;
         chan[i].volChanged.rVol=1;
@@ -212,45 +212,45 @@ void DivPlatformES5506::tick(bool sysTick) {
     // arpeggio/pitch macros, frequency related
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].nextNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        chan[i].nextNote=parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val);
       }
       chan[i].noteChanged.note=1;
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-2048,2048);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
     // phase reset macro
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) {
         chan[i].keyOn=true;
       }
     }
     // filter macros
-    if (chan[i].std.duty.had) {
-      if (chan[i].filter.mode!=DivInstrumentES5506::Filter::FilterMode(chan[i].std.duty.val&3)) {
-        chan[i].filter.mode=DivInstrumentES5506::Filter::FilterMode(chan[i].std.duty.val&3);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      if (chan[i].filter.mode!=DivInstrumentES5506::Filter::FilterMode(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&3)) {
+        chan[i].filter.mode=DivInstrumentES5506::Filter::FilterMode(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&3);
         chan[i].filterChanged.mode=1;
       }
     }
-    if (chan[i].std.ex1.had) {
-      switch (chan[i].std.ex1.mode) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had) {
+      switch (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->mode) {
         case 0: // absolute
-          if (chan[i].filter.k1!=(chan[i].std.ex1.val&0xffff)) {
-            chan[i].filter.k1=chan[i].std.ex1.val&0xffff;
+          if (chan[i].filter.k1!=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&0xffff)) {
+            chan[i].filter.k1=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val&0xffff;
             chan[i].filterChanged.k1=1;
           }
           break;
         case 1: // relative
-          if (chan[i].k1Offs!=chan[i].std.ex1.val) {
-            chan[i].k1Offs=chan[i].std.ex1.val;
+          if (chan[i].k1Offs!=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val) {
+            chan[i].k1Offs=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val;
             chan[i].filterChanged.k1=1;
           }
           break;
@@ -258,17 +258,17 @@ void DivPlatformES5506::tick(bool sysTick) {
           break;
       }
     }
-    if (chan[i].std.ex2.had) {
-      switch (chan[i].std.ex2.mode) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had) {
+      switch (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->mode) {
         case 0: // absolute
-          if (chan[i].filter.k2!=(chan[i].std.ex2.val&0xffff)) {
-            chan[i].filter.k2=chan[i].std.ex2.val&0xffff;
+          if (chan[i].filter.k2!=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val&0xffff)) {
+            chan[i].filter.k2=chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val&0xffff;
             chan[i].filterChanged.k2=1;
           }
           break;
         case 1: // relative
-          if (chan[i].k2Offs!=chan[i].std.ex1.val) {
-            chan[i].k2Offs=chan[i].std.ex1.val;
+          if (chan[i].k2Offs!=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val) {
+            chan[i].k2Offs=chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val;
             chan[i].filterChanged.k2=1;
           }
           break;
@@ -277,43 +277,43 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     // envelope macros
-    if (chan[i].std.ex3.had) {
-      if (chan[i].envelope.ecount!=(chan[i].std.ex3.val&0x1ff)) {
-        chan[i].envelope.ecount=chan[i].std.ex3.val&0x1ff;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->had) {
+      if (chan[i].envelope.ecount!=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->val&0x1ff)) {
+        chan[i].envelope.ecount=chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->val&0x1ff;
         chan[i].envChanged.ecount=1;
       }
     }
-    if (chan[i].std.ex4.had) {
-      if (chan[i].envelope.lVRamp!=chan[i].std.ex4.val) {
-        chan[i].envelope.lVRamp=chan[i].std.ex4.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->had) {
+      if (chan[i].envelope.lVRamp!=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val) {
+        chan[i].envelope.lVRamp=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val;
         chan[i].envChanged.lVRamp=1;
       }
     }
-    if (chan[i].std.ex5.had) {
-      if (chan[i].envelope.rVRamp!=chan[i].std.ex5.val) {
-        chan[i].envelope.rVRamp=chan[i].std.ex5.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX5)->had) {
+      if (chan[i].envelope.rVRamp!=chan[i].std.get_div_macro_struct(DIV_MACRO_EX5)->val) {
+        chan[i].envelope.rVRamp=chan[i].std.get_div_macro_struct(DIV_MACRO_EX5)->val;
         chan[i].envChanged.rVRamp=1;
       }
     }
-    if (chan[i].std.ex6.had) {
-      if (chan[i].envelope.k1Ramp!=chan[i].std.ex6.val) {
-        chan[i].envelope.k1Ramp=chan[i].std.ex6.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX6)->had) {
+      if (chan[i].envelope.k1Ramp!=chan[i].std.get_div_macro_struct(DIV_MACRO_EX6)->val) {
+        chan[i].envelope.k1Ramp=chan[i].std.get_div_macro_struct(DIV_MACRO_EX6)->val;
         chan[i].envChanged.k1Ramp=1;
       }
     }
-    if (chan[i].std.ex7.had) {
-      if (chan[i].envelope.k2Ramp!=chan[i].std.ex7.val) {
-        chan[i].envelope.k2Ramp=chan[i].std.ex7.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX7)->had) {
+      if (chan[i].envelope.k2Ramp!=chan[i].std.get_div_macro_struct(DIV_MACRO_EX7)->val) {
+        chan[i].envelope.k2Ramp=chan[i].std.get_div_macro_struct(DIV_MACRO_EX7)->val;
         chan[i].envChanged.k2Ramp=1;
       }
     }
-    if (chan[i].std.ex8.had) {
-      if (chan[i].envelope.k1Slow!=(bool)(chan[i].std.ex8.val&1)) {
-        chan[i].envelope.k1Slow=chan[i].std.ex8.val&1;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->had) {
+      if (chan[i].envelope.k1Slow!=(bool)(chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->val&1)) {
+        chan[i].envelope.k1Slow=chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->val&1;
         chan[i].envChanged.k1Ramp=1;
       }
-      if (chan[i].envelope.k2Slow!=(bool)(chan[i].std.ex8.val&2)) {
-        chan[i].envelope.k2Slow=chan[i].std.ex8.val&2;
+      if (chan[i].envelope.k2Slow!=(bool)(chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->val&2)) {
+        chan[i].envelope.k2Slow=chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->val&2;
         chan[i].envChanged.k2Ramp=1;
       }
     }
@@ -335,8 +335,8 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     // channel assignment
-    if (chan[i].active && chan[i].std.fb.had) {
-      const unsigned char ca=CLAMP(chan[i].std.fb.val,0,5);
+    if (chan[i].active && chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->had) {
+      const unsigned char ca=CLAMP(chan[i].std.get_div_macro_struct(DIV_MACRO_FB)->val,0,5);
       if (chan[i].ca!=ca) {
         chan[i].ca=ca;
         if (!chan[i].keyOn) {
@@ -345,15 +345,15 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     // control macros
-    if (chan[i].active && chan[i].std.alg.had) {
-      if (chan[i].pcm.pause!=(bool)(chan[i].std.alg.val&1)) {
-        chan[i].pcm.pause=chan[i].std.alg.val&1;
+    if (chan[i].active && chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->had) {
+      if (chan[i].pcm.pause!=(bool)(chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val&1)) {
+        chan[i].pcm.pause=chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val&1;
         if (!chan[i].keyOn) {
           pageWriteMask(0x00|i,0x5f,0x00,chan[i].pcm.pause?0x0002:0x0000,0x0002);
         }
       }
-      if (chan[i].pcm.direction!=(bool)(chan[i].std.alg.val&2)) {
-        chan[i].pcm.direction=chan[i].std.alg.val&2;
+      if (chan[i].pcm.direction!=(bool)(chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val&2)) {
+        chan[i].pcm.direction=chan[i].std.get_div_macro_struct(DIV_MACRO_ALG)->val&2;
         if (!chan[i].keyOn) {
           pageWriteMask(0x00|i,0x5f,0x00,chan[i].pcm.direction?0x0040:0x0000,0x0040);
         }
@@ -391,7 +391,7 @@ void DivPlatformES5506::tick(bool sysTick) {
         bool sampleValid=false;
         if (((ins->amiga.useNoteMap) && (next>=0 && next<120)) ||
             ((!ins->amiga.useNoteMap) && (next>=0 && next<parent->song.sampleLen))) {
-          DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[next];
+          DivInstrumentAmiga::SampleMap& noteMapind=*ins->amiga.get_amiga_sample_map(next, true);
           int sample=next;
           if (ins->amiga.useNoteMap) {
             sample=noteMapind.map;
@@ -502,14 +502,14 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWriteMask(0x00|i,0x5f,0x00,(chan[i].filter.mode<<8),0x0300);
         }
         if (chan[i].filterChanged.k2) {
-          if (chan[i].std.ex2.mode!=0) { // Relative
+          if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->mode!=0) { // Relative
             k2=CLAMP(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
             k2=chan[i].filter.k2;
           }
         }
         if (chan[i].filterChanged.k1) {
-          if (chan[i].std.ex1.mode!=0) { // Relative
+          if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->mode!=0) { // Relative
             k1=CLAMP(chan[i].filter.k1+chan[i].k1Offs,0,65535);
           } else {
             k1=chan[i].filter.k1;
@@ -654,14 +654,14 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x00|i,0x08,((unsigned char)(chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
           // initialize filter
           pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
-          if ((chan[i].std.ex2.mode!=0) && (chan[i].std.ex2.had)) {
+          if ((chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->mode!=0) && (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had)) {
             k2=CLAMP(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
             k2=chan[i].filter.k2;
           }
           pageWrite(0x00|i,0x07,k2);
           chan[i].k2Prev=k2;
-          if ((chan[i].std.ex1.mode!=0) && (chan[i].std.ex1.had)) {
+          if ((chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->mode!=0) && (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had)) {
             k1=CLAMP(chan[i].filter.k1+chan[i].k1Offs,0,65535);
           } else {
             k1=chan[i].filter.k1;
@@ -752,13 +752,13 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         chan[c.chan].noteChanged.changed=0xff;
         chan[c.chan].volChanged.changed=0xff;
       }
-      if (!chan[c.chan].std.vol.will) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=(0xfff*chan[c.chan].vol)/0xff;
       }
-      if (!chan[c.chan].std.panL.will) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->will) {
         chan[c.chan].outLVol=(0xfff*chan[c.chan].lVol)/0xff;
       }
-      if (!chan[c.chan].std.panR.will) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->will) {
         chan[c.chan].outRVol=(0xfff*chan[c.chan].rVol)/0xff;
       }
       chan[c.chan].active=true;
@@ -785,7 +785,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[c.chan].outVol=(0xfff*c.value)/0xff;
           chan[c.chan].volChanged.changed=0xff;
         }
@@ -802,7 +802,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       // Left volume
       if (chan[c.chan].lVol!=c.value) {
         chan[c.chan].lVol=c.value;
-        if (!chan[c.chan].std.panL.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->has) {
           chan[c.chan].outLVol=(0xfff*c.value)/0xff;
           chan[c.chan].volChanged.lVol=1;
         }
@@ -810,7 +810,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       // Right volume
       if (chan[c.chan].rVol!=c.value2) {
         chan[c.chan].rVol=c.value2;
-        if (!chan[c.chan].std.panR.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->has) {
           chan[c.chan].outRVol=(0xfff*c.value2)/0xff;
           chan[c.chan].volChanged.rVol=1;
         }
@@ -827,7 +827,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         // Left volume
         if (chan[c.chan].lVol!=c.value2) {
           chan[c.chan].lVol=c.value2;
-          if (!chan[c.chan].std.panL.has) {
+          if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->has) {
             chan[c.chan].outLVol=(0xfff*c.value2)/0xff;
             chan[c.chan].volChanged.lVol=1;
           }
@@ -837,7 +837,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         // Right volume
         if (chan[c.chan].rVol!=c.value2) {
           chan[c.chan].rVol=c.value2;
-          if (!chan[c.chan].std.panR.has) {
+          if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->has) {
             chan[c.chan].outRVol=(0xfff*c.value2)/0xff;
             chan[c.chan].volChanged.rVol=1;
           }
@@ -987,7 +987,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       chan[c.chan].note=c.value;
-      chan[c.chan].nextNote=chan[c.chan].note+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0));
+      chan[c.chan].nextNote=chan[c.chan].note+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val-12):(0));
       chan[c.chan].noteChanged.note=1;
       break;
     }
@@ -995,7 +995,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_ES5506));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) {
         chan[c.chan].nextNote=chan[c.chan].note;
         chan[c.chan].noteChanged.note=1;
       }

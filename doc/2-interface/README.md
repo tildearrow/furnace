@@ -43,5 +43,4 @@ the default layout of Furnace is depicted below.
 
 ## other topics
 
-- [basic mode](basic-mode.md)
 - [settings](settings.md)

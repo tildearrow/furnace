@@ -27,23 +27,11 @@
 #include "stb_image.h"
 
 const unsigned char* imageData[GUI_IMAGE_MAX]={
-  image_icon_data,
-  image_talogo_data,
-  image_tachip_data,
-  image_logo_data,
-  image_wordmark_data,
-  image_introbg_data,
-  image_pat_data
+  image_icon_data
 };
 
 const unsigned int imageLen[GUI_IMAGE_MAX]={
-  image_icon_size,
-  image_talogo_size,
-  image_tachip_size,
-  image_logo_size,
-  image_wordmark_size,
-  image_introbg_size,
-  image_pat_size
+  image_icon_size
 };
 
 FurnaceGUITexture* FurnaceGUI::getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode) {

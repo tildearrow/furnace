@@ -243,20 +243,20 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
 
 void DivPlatformPCMDAC::tick(bool sysTick) {
   chan[0].std.next();
-  if (chan[0].std.vol.had) {
-    chan[0].envVol=chan[0].std.vol.val;
+  if (chan[0].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+    chan[0].envVol=chan[0].std.get_div_macro_struct(DIV_MACRO_VOL)->val;
   }
   if (NEW_ARP_STRAT) {
     chan[0].handleArp();
-  } else if (chan[0].std.arp.had) {
+  } else if (chan[0].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
     if (!chan[0].inPorta) {
-      chan[0].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[0].note,chan[0].std.arp.val));
+      chan[0].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[0].note,chan[0].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
     }
     chan[0].freqChanged=true;
   }
-  if (chan[0].useWave && chan[0].std.wave.had) {
-    if (chan[0].wave!=chan[0].std.wave.val || chan[0].ws.activeChanged()) {
-      chan[0].wave=chan[0].std.wave.val;
+  if (chan[0].useWave && chan[0].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
+    if (chan[0].wave!=chan[0].std.get_div_macro_struct(DIV_MACRO_WAVE)->val || chan[0].ws.activeChanged()) {
+      chan[0].wave=chan[0].std.get_div_macro_struct(DIV_MACRO_WAVE)->val;
       chan[0].ws.changeWave1(chan[0].wave);
       if (!chan[0].keyOff) chan[0].keyOn=true;
     }
@@ -264,25 +264,25 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
   if (chan[0].useWave && chan[0].active) {
     chan[0].ws.tick();
   }
-  if (chan[0].std.pitch.had) {
-    if (chan[0].std.pitch.mode) {
-      chan[0].pitch2+=chan[0].std.pitch.val;
+  if (chan[0].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+    if (chan[0].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+      chan[0].pitch2+=chan[0].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       CLAMP_VAR(chan[0].pitch2,-32768,32767);
     } else {
-      chan[0].pitch2=chan[0].std.pitch.val;
+      chan[0].pitch2=chan[0].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
     }
     chan[0].freqChanged=true;
   }
-  if (chan[0].std.panL.had) {
-    int val=chan[0].std.panL.val&0x7f;
+  if (chan[0].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
+    int val=chan[0].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&0x7f;
     chan[0].panL=val*2;
   }
-  if (chan[0].std.panR.had) {
-    int val=chan[0].std.panR.val&0x7f;
+  if (chan[0].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had) {
+    int val=chan[0].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val&0x7f;
     chan[0].panR=val*2;
   }
-  if (chan[0].std.phaseReset.had) {
-    if (chan[0].std.phaseReset.val==1) {
+  if (chan[0].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+    if (chan[0].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) {
       chan[0].audDir=false;
       chan[0].audPos=0;
     }
@@ -297,7 +297,7 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
     chan[0].freq=off*parent->calcFreq(chan[0].baseFreq,chan[0].pitch,chan[0].fixedArp?chan[0].baseNoteOverride:chan[0].arpOff,chan[0].fixedArp,false,2,chan[0].pitch2,chipClock,CHIP_FREQBASE);
     if (chan[0].freq>16777215) chan[0].freq=16777215;
     if (chan[0].keyOn) {
-      if (!chan[0].std.vol.had) {
+      if (!chan[0].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
         chan[0].envVol=64;
       }
       chan[0].keyOn=false;
@@ -351,7 +351,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       chan[0].active=true;
       chan[0].keyOn=true;
       chan[0].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[0].std.vol.will) {
+      if (!parent->song.brokenOutVol && !chan[0].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[0].envVol=64;
       }
       if (chan[0].useWave) {
@@ -379,7 +379,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[0].vol!=c.value) {
         chan[0].vol=c.value;
-        if (!chan[0].std.vol.has) {
+        if (!chan[0].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[0].envVol=64;
         }
       }
@@ -427,7 +427,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0))));
+      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0))));
       chan[0].freqChanged=true;
       chan[0].note=c.value;
       break;

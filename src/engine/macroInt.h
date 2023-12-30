@@ -21,6 +21,7 @@
 #define _MACROINT_H
 
 #include "instrument.h"
+#include <vector>
 
 class DivEngine;
 
@@ -60,51 +61,77 @@ struct DivMacroStruct {
     macroType(mType) {}
 };
 
+struct macro_source
+{
+  uint8_t macro_id;
+  uint8_t op;
+
+  macro_source(uint8_t macro_id, uint8_t op)
+  {
+    this->macro_id = macro_id;
+    this->op = op;
+  }
+};
+
 class DivMacroInt {
   DivEngine* e;
   DivInstrument* ins;
-  DivMacroStruct* macroList[128];
-  DivInstrumentMacro* macroSource[128];
-  size_t macroListLen;
+  std::vector<DivMacroStruct*> macroList;
+  std::vector<macro_source> macroSource;
   int subTick;
   bool released;
+
   public:
     // common macro
-    DivMacroStruct vol;
-    DivMacroStruct arp;
-    DivMacroStruct duty, wave, pitch, ex1, ex2, ex3;
-    DivMacroStruct alg, fb, fms, ams;
-    DivMacroStruct panL, panR, phaseReset, ex4, ex5, ex6, ex7, ex8;
+
+    std::vector<DivMacroStruct> macros;
+    uint8_t macro_mask[4];
   
     // FM operator macro
-    struct IntOp {
-      DivMacroStruct am, ar, dr, mult;
-      DivMacroStruct rr, sl, tl, dt2;
-      DivMacroStruct rs, dt, d2r, ssg;
-      DivMacroStruct dam, dvb, egt, ksl;
-      DivMacroStruct sus, vib, ws, ksr;
-      IntOp():
-        am(DIV_MACRO_OP_AM),
-        ar(DIV_MACRO_OP_AR),
-        dr(DIV_MACRO_OP_DR),
-        mult(DIV_MACRO_OP_MULT),
-        rr(DIV_MACRO_OP_RR),
-        sl(DIV_MACRO_OP_SL),
-        tl(DIV_MACRO_OP_TL),
-        dt2(DIV_MACRO_OP_DT2),
-        rs(DIV_MACRO_OP_RS),
-        dt(DIV_MACRO_OP_DT),
-        d2r(DIV_MACRO_OP_D2R),
-        ssg(DIV_MACRO_OP_SSG),
-        dam(DIV_MACRO_OP_DAM),
-        dvb(DIV_MACRO_OP_DVB),
-        egt(DIV_MACRO_OP_EGT),
-        ksl(DIV_MACRO_OP_KSL),
-        sus(DIV_MACRO_OP_SUS),
-        vib(DIV_MACRO_OP_VIB),
-        ws(DIV_MACRO_OP_WS),
-        ksr(DIV_MACRO_OP_KSR) {}
-    } op[4];
+    struct IntOp
+    {
+      std::vector<DivMacroStruct> macros;
+      uint8_t macro_mask[4];
+
+      IntOp()
+      {
+        macros.clear();
+
+        for(int i = 0; i < 4; i++)
+        {
+          macro_mask[i] = 0;
+        }
+      }
+
+      DivMacroStruct* op_get_div_macro_struct(uint8_t macro_id)
+      {
+        static DivMacroStruct dummy = DivMacroStruct(0xff);
+
+        for(int i = 0; i < (int)macros.size(); i++)
+        {
+          if(macros[i].macroType == macro_id) return &macros[i];
+        }
+
+        return &dummy;
+      }
+    };
+
+    IntOp* get_int_op(int index)
+    {
+      if(index >= (int)op.size())
+      {
+        int limit = index + 1 - op.size();
+
+        for(int j = 0; j < limit; j++)
+        {
+          op.push_back(IntOp());
+        }
+      }
+
+      return &op[index];
+    }
+
+    std::vector<IntOp> op;
 
     // state
     bool hasRelease;
@@ -145,39 +172,95 @@ class DivMacroInt {
     /**
      * get DivMacroStruct by macro type.
      * @param which the macro type.
-     * @return a DivMacroStruct, or NULL if none found.
+     * @return a DivMacroStruct pointer, or NULL if none found.
      */
     DivMacroStruct* structByType(unsigned char which);
 
-    DivMacroInt():
-      e(NULL),
-      ins(NULL),
-      macroListLen(0),
-      subTick(1),
-      released(false),
-      vol(DIV_MACRO_VOL),
-      arp(DIV_MACRO_ARP),
-      duty(DIV_MACRO_DUTY),
-      wave(DIV_MACRO_WAVE),
-      pitch(DIV_MACRO_PITCH),
-      ex1(DIV_MACRO_EX1),
-      ex2(DIV_MACRO_EX2),
-      ex3(DIV_MACRO_EX3),
-      alg(DIV_MACRO_ALG),
-      fb(DIV_MACRO_FB),
-      fms(DIV_MACRO_FMS),
-      ams(DIV_MACRO_AMS),
-      panL(DIV_MACRO_PAN_LEFT),
-      panR(DIV_MACRO_PAN_RIGHT),
-      phaseReset(DIV_MACRO_PHASE_RESET),
-      ex4(DIV_MACRO_EX4),
-      ex5(DIV_MACRO_EX5),
-      ex6(DIV_MACRO_EX6),
-      ex7(DIV_MACRO_EX7),
-      ex8(DIV_MACRO_EX8),
-      hasRelease(false) {
-      memset(macroList,0,128*sizeof(void*));
-      memset(macroSource,0,128*sizeof(void*));
+    /**
+     * Add macro of specified type to corresponding macro lists.
+     * @param macro_type Macro type.
+     * @param m DivInstrumentMacro pointer.
+     */
+    void add_macro(uint8_t macro_type, DivInstrumentMacro* m);
+
+    /**
+     * Add macro of specified type to macro lists of OpInt struct corresponding to OPER operator.
+     * @param oper Operator index.
+     * @param macro_type Macro type.
+     * @param m DivInstrumentMacro pointer.
+     */
+    void add_op_macro(uint8_t oper, uint8_t macro_type, DivInstrumentMacro* m);
+
+    /**
+     * Get DivMacroStruct pointer for a given macro_id.
+     * @param macro_id Macro ID.
+     * @return a DivMacroStruct pointer, or NULL if none found.
+     */
+    DivMacroStruct* get_div_macro_struct(uint8_t macro_id);
+
+    /**
+     * Mask (enable or disable) macro.
+     * @param id Macro ID.
+     * @param enabled Flag for enabling/disabling macro.
+     */
+    void consider_macro(unsigned char id, bool enabled);
+
+    /**
+     * Mask (enable or disable) FM operator macro.
+     * @param oper FM operator index.
+     * @param id Macro ID.
+     * @param enabled Flag for enabling/disabling macro.
+     */
+    void consider_op_macro(unsigned char oper, unsigned char id, bool enabled);
+
+    /**
+     * Get DivMacroStruct pointer for macro with given type.
+     * @param type Macro type.
+     * @return a DivMacroStruct pointer, or NULL if none found.
+     */
+    DivMacroStruct* get_macro_by_type(unsigned char type);
+
+    /**
+     * Get DivMacroStruct pointer for FM operator macro with given type.
+     * @param oper FM operator index.
+     * @param type Macro type.
+     * @return a DivMacroStruct pointer, or NULL if none found.
+     */
+    DivMacroStruct* get_op_macro_by_type(unsigned char oper, unsigned char type);
+
+    /**
+     * Get number of instrument macros that actually need to be executed.
+     * @param ins DivInstrument pointer.
+     * @return a number of macros that actually need to be processed.
+     */
+    int get_macro_count(DivInstrument* ins);
+
+    /**
+     * Get number of FM operator macros that actually need to be executed.
+     * @param ins DivInstrument pointer.
+     * @param oper FM operator index.
+     * @return a number of specified FM operator macros that actually need to be processed.
+     */
+    int get_op_macro_count(DivInstrument* ins, uint8_t oper);
+
+    DivMacroInt()
+    {
+      macros.clear();
+      macroList.clear();
+      macroSource.clear();
+
+      e = NULL;
+      ins = NULL;
+      subTick = 0;
+      released = false;
+      hasRelease = false;
+
+      for(int i = 0; i < 4; i++)
+      {
+        macro_mask[i] = 0;
+      }
+
+      op.clear();
     }
 };
 

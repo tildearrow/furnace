@@ -51,11 +51,6 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 ### Start-up
 
-- **Play intro on start-up:**
-  - **No**: skips intro entirely.
-  - **Short**: shows silent title screen briefly.
-  - **Full (short when loading song)**: shows animated musical intro unless started with a song (command line, double-clicking a .fur file, etc.)
-  - **Full (always)**: always shows animated musical intro.
 - **Disable fade-in during start-up**
 - **About screen party time**
   - _warning:_ may cause epileptic seizures.
@@ -497,6 +492,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 
 - **Rounded window corners**
 - **Rounded buttons**
+- **Rounded tabs**
 - **Rounded menu corners**
 - **Borders around widgets**: draws borders on buttons, checkboxes, text widgets, and the like.
 

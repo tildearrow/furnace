@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Furnace Tracker - multi-system chiptune tracker
  * Copyright (C) 2021-2023 tildearrow and contributors
@@ -23,6 +25,7 @@
 #include "dataErrors.h"
 #include "../ta-utils.h"
 #include "../pch.h"
+#include <vector>
 
 struct DivSong;
 
@@ -110,7 +113,20 @@ enum DivMacroType: unsigned char {
   DIV_MACRO_EX5,
   DIV_MACRO_EX6,
   DIV_MACRO_EX7,
-  DIV_MACRO_EX8
+  DIV_MACRO_EX8,
+  
+  DIV_MACRO_EX9,
+  DIV_MACRO_EX10,
+  DIV_MACRO_EX11,
+  DIV_MACRO_EX12,
+  DIV_MACRO_EX13,
+  DIV_MACRO_EX14,
+  DIV_MACRO_EX15,
+  DIV_MACRO_EX16,
+  DIV_MACRO_EX17,
+  DIV_MACRO_EX18,
+  DIV_MACRO_EX19,
+  DIV_MACRO_EX20,
 };
 
 enum DivMacroTypeOp: unsigned char {
@@ -134,6 +150,19 @@ enum DivMacroTypeOp: unsigned char {
   DIV_MACRO_OP_VIB,
   DIV_MACRO_OP_WS,
   DIV_MACRO_OP_KSR,
+
+  DIV_MACRO_OP_EX1,
+  DIV_MACRO_OP_EX2,
+  DIV_MACRO_OP_EX3,
+  DIV_MACRO_OP_EX4,
+  DIV_MACRO_OP_EX5,
+  DIV_MACRO_OP_EX6,
+  DIV_MACRO_OP_EX7,
+  DIV_MACRO_OP_EX8,
+  DIV_MACRO_OP_EX9,
+  DIV_MACRO_OP_EX10,
+  DIV_MACRO_OP_EX11,
+  DIV_MACRO_OP_EX12,
 };
 
 // FM operator structure:
@@ -275,101 +304,84 @@ struct DivInstrumentMacro {
   }
 };
 
-struct DivInstrumentSTD {
-  DivInstrumentMacro volMacro;
-  DivInstrumentMacro arpMacro;
-  DivInstrumentMacro dutyMacro;
-  DivInstrumentMacro waveMacro;
-  DivInstrumentMacro pitchMacro;
-  DivInstrumentMacro ex1Macro;
-  DivInstrumentMacro ex2Macro;
-  DivInstrumentMacro ex3Macro;
-  DivInstrumentMacro algMacro;
-  DivInstrumentMacro fbMacro;
-  DivInstrumentMacro fmsMacro;
-  DivInstrumentMacro amsMacro;
-  DivInstrumentMacro panLMacro;
-  DivInstrumentMacro panRMacro;
-  DivInstrumentMacro phaseResetMacro;
-  DivInstrumentMacro ex4Macro;
-  DivInstrumentMacro ex5Macro;
-  DivInstrumentMacro ex6Macro;
-  DivInstrumentMacro ex7Macro;
-  DivInstrumentMacro ex8Macro;
+struct DivInstrumentSTD
+{
+  std::vector<DivInstrumentMacro> macros;
 
-  struct OpMacro {
-    // ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
-    DivInstrumentMacro amMacro;
-    DivInstrumentMacro arMacro;
-    DivInstrumentMacro drMacro;
-    DivInstrumentMacro multMacro;
-    DivInstrumentMacro rrMacro;
-    DivInstrumentMacro slMacro;
-    DivInstrumentMacro tlMacro;
-    DivInstrumentMacro dt2Macro;
-    DivInstrumentMacro rsMacro;
-    DivInstrumentMacro dtMacro;
-    DivInstrumentMacro d2rMacro;
-    DivInstrumentMacro ssgMacro;
-    DivInstrumentMacro damMacro;
-    DivInstrumentMacro dvbMacro;
-    DivInstrumentMacro egtMacro;
-    DivInstrumentMacro kslMacro;
-    DivInstrumentMacro susMacro;
-    DivInstrumentMacro vibMacro;
-    DivInstrumentMacro wsMacro;
-    DivInstrumentMacro ksrMacro;
-    OpMacro():
-      amMacro(DIV_MACRO_OP_AM), arMacro(DIV_MACRO_OP_AR), drMacro(DIV_MACRO_OP_DR), multMacro(DIV_MACRO_OP_MULT),
-      rrMacro(DIV_MACRO_OP_RR), slMacro(DIV_MACRO_OP_SL), tlMacro(DIV_MACRO_OP_TL,true), dt2Macro(DIV_MACRO_OP_DT2),
-      rsMacro(DIV_MACRO_OP_RS), dtMacro(DIV_MACRO_OP_DT), d2rMacro(DIV_MACRO_OP_D2R), ssgMacro(DIV_MACRO_OP_SSG),
-      damMacro(DIV_MACRO_OP_DAM), dvbMacro(DIV_MACRO_OP_DVB), egtMacro(DIV_MACRO_OP_EGT), kslMacro(DIV_MACRO_OP_KSL),
-      susMacro(DIV_MACRO_OP_SUS), vibMacro(DIV_MACRO_OP_VIB), wsMacro(DIV_MACRO_OP_WS), ksrMacro(DIV_MACRO_OP_KSR) {}
-  } opMacros[4];
-  DivInstrumentSTD():
-    volMacro(DIV_MACRO_VOL,true),
-    arpMacro(DIV_MACRO_ARP),
-    dutyMacro(DIV_MACRO_DUTY),
-    waveMacro(DIV_MACRO_WAVE),
-    pitchMacro(DIV_MACRO_PITCH),
-    ex1Macro(DIV_MACRO_EX1),
-    ex2Macro(DIV_MACRO_EX2),
-    ex3Macro(DIV_MACRO_EX3),
-    algMacro(DIV_MACRO_ALG),
-    fbMacro(DIV_MACRO_FB),
-    fmsMacro(DIV_MACRO_FMS),
-    amsMacro(DIV_MACRO_AMS),
-    panLMacro(DIV_MACRO_PAN_LEFT),
-    panRMacro(DIV_MACRO_PAN_RIGHT),
-    phaseResetMacro(DIV_MACRO_PHASE_RESET),
-    ex4Macro(DIV_MACRO_EX4),
-    ex5Macro(DIV_MACRO_EX5),
-    ex6Macro(DIV_MACRO_EX6),
-    ex7Macro(DIV_MACRO_EX7),
-    ex8Macro(DIV_MACRO_EX8) {
-    for (int i=0; i<4; i++) {
-      opMacros[i].amMacro.macroType=DIV_MACRO_OP_AM+(i<<5);
-      opMacros[i].arMacro.macroType=DIV_MACRO_OP_AR+(i<<5);
-      opMacros[i].drMacro.macroType=DIV_MACRO_OP_DR+(i<<5);
-      opMacros[i].multMacro.macroType=DIV_MACRO_OP_MULT+(i<<5);
-      opMacros[i].rrMacro.macroType=DIV_MACRO_OP_RR+(i<<5);
-      opMacros[i].slMacro.macroType=DIV_MACRO_OP_SL+(i<<5);
-      opMacros[i].tlMacro.macroType=DIV_MACRO_OP_TL+(i<<5);
-      opMacros[i].dt2Macro.macroType=DIV_MACRO_OP_DT2+(i<<5);
-      opMacros[i].rsMacro.macroType=DIV_MACRO_OP_RS+(i<<5);
-      opMacros[i].dtMacro.macroType=DIV_MACRO_OP_DT+(i<<5);
-      opMacros[i].d2rMacro.macroType=DIV_MACRO_OP_D2R+(i<<5);
-      opMacros[i].ssgMacro.macroType=DIV_MACRO_OP_SSG+(i<<5);
+  struct OpMacro
+  {
+    std::vector<DivInstrumentMacro> macros;
 
-      opMacros[i].damMacro.macroType=DIV_MACRO_OP_DAM+(i<<5);
-      opMacros[i].dvbMacro.macroType=DIV_MACRO_OP_DVB+(i<<5);
-      opMacros[i].egtMacro.macroType=DIV_MACRO_OP_EGT+(i<<5);
-      opMacros[i].kslMacro.macroType=DIV_MACRO_OP_KSL+(i<<5);
-      opMacros[i].susMacro.macroType=DIV_MACRO_OP_SUS+(i<<5);
-      opMacros[i].vibMacro.macroType=DIV_MACRO_OP_VIB+(i<<5);
-      opMacros[i].wsMacro.macroType=DIV_MACRO_OP_WS+(i<<5);
-      opMacros[i].ksrMacro.macroType=DIV_MACRO_OP_KSR+(i<<5);
+    DivInstrumentMacro* op_get_macro(uint8_t macro_id, bool allocate)
+    {
+      static DivInstrumentMacro dummy = DivInstrumentMacro(0xff); //empty macro
+
+      if(macro_id < 0x40)
+      {
+        for(int i = 0; i < (int)macros.size(); i++)
+        {
+          if(macros[i].macroType == macro_id) return &macros[i];
+        }
+
+        if(allocate)
+        {
+          macros.push_back(DivInstrumentMacro(macro_id));
+          return &macros[macros.size() - 1];
+        }
+
+        else
+        {
+          //DivInstrumentMacro* macro = new DivInstrumentMacro(macro_id);
+          return &dummy;
+        }
+      }
+
+      return NULL;
     }
+  };
+
+  std::vector<OpMacro> ops;
+
+  OpMacro* get_op_macro(uint8_t index)
+  {
+    if(index >= ops.size())
+    {
+      int limit = index + 1 - ops.size();
+
+      for(int j = 0; j < limit; j++)
+      {
+        ops.push_back(OpMacro());
+      }
+    }
+
+    return &ops[index];
+  }
+
+  DivInstrumentMacro* get_macro(uint8_t macro_id, bool allocate)
+  {
+    static DivInstrumentMacro dummy = DivInstrumentMacro(0xff); //empty macro
+
+    if(macro_id < 0x20) //allocate new macro for main instrument
+    {
+      for(int i = 0; i < (int)macros.size(); i++)
+      {
+        if(macros[i].macroType == macro_id) return &macros[i];
+      }
+
+      if(allocate)
+      {
+        macros.push_back(DivInstrumentMacro(macro_id));
+        return &macros[macros.size() - 1];
+      }
+
+      else
+      {
+        //DivInstrumentMacro* macro = new DivInstrumentMacro(macro_id);
+        return &dummy;
+      }
+    }
+
+    return NULL;
   }
 };
 
@@ -386,10 +398,38 @@ struct DivInstrumentGB {
 
     DIV_GB_HWCMD_MAX
   };
-  struct HWSeqCommandGB {
+
+  typedef struct {
     unsigned char cmd;
     unsigned short data;
-  } hwSeq[256];
+  } HWSeqCommandGB;
+
+  std::vector<HWSeqCommandGB> hwSeq;
+
+  HWSeqCommandGB* get_gb_hw_seq(int i, bool allocate)
+  {
+    static HWSeqCommandGB dummy;
+
+    if(hwSeq.size() != 0)
+    {
+      return &hwSeq[i];
+    }
+
+    else
+    {
+      if(allocate)
+      {
+        hwSeq.resize(256);
+        return &hwSeq[i];
+      }
+
+      else
+      {
+        memset((void*)&dummy, 0, sizeof(dummy));
+        return &dummy;
+      }
+    }
+  }
 
   bool operator==(const DivInstrumentGB& other);
   bool operator!=(const DivInstrumentGB& other) {
@@ -403,9 +443,7 @@ struct DivInstrumentGB {
     soundLen(64),
     hwSeqLen(0),
     softEnv(false),
-    alwaysInit(false) {
-    memset(hwSeq,0,256*sizeof(HWSeqCommandGB));
-  }
+    alwaysInit(false) {}
 };
 
 struct DivInstrumentC64 {
@@ -465,7 +503,32 @@ struct DivInstrumentAmiga {
   bool useSample;
   bool useWave;
   unsigned char waveLen;
-  SampleMap noteMap[120];
+  std::vector<SampleMap> noteMap;
+
+  SampleMap* get_amiga_sample_map(int i, bool allocate)
+  {
+    static SampleMap dummy;
+
+    if(noteMap.size() != 0)
+    {
+      return &noteMap[i];
+    }
+
+    else
+    {
+      if(allocate)
+      {
+        noteMap.resize(120);
+        return &noteMap[i];
+      }
+
+      else
+      {
+        memset((void*)&dummy, 0, sizeof(dummy));
+        return &dummy;
+      }
+    }
+  }
 
   bool operator==(const DivInstrumentAmiga& other);
   bool operator!=(const DivInstrumentAmiga& other) {
@@ -529,12 +592,7 @@ struct DivInstrumentAmiga {
     useNoteMap(false),
     useSample(false),
     useWave(false),
-    waveLen(31) {
-    for (int i=0; i<120; i++) {
-      noteMap[i].map=-1;
-      noteMap[i].freq=i;
-    }
-  }
+    waveLen(31) {}
 };
 
 struct DivInstrumentX1_010 {
@@ -675,13 +733,16 @@ struct DivInstrumentSoundUnit {
 
     DIV_SU_HWCMD_MAX
   };
-  struct HWSeqCommandSU {
+
+  typedef struct {
     unsigned char cmd;
     unsigned char bound;
     unsigned char val;
     unsigned short speed;
     unsigned short padding;
-  } hwSeq[256];
+  } HWSeqCommandSU;
+
+  std::vector<HWSeqCommandSU> hwSeq;
 
   bool operator==(const DivInstrumentSoundUnit& other);
   bool operator!=(const DivInstrumentSoundUnit& other) {
@@ -690,8 +751,31 @@ struct DivInstrumentSoundUnit {
 
   DivInstrumentSoundUnit():
     switchRoles(false),
-    hwSeqLen(0) {
-    memset(hwSeq,0,256*sizeof(HWSeqCommandSU));
+    hwSeqLen(0) {}
+
+  HWSeqCommandSU* get_su_hw_seq(int i, bool allocate)
+  {
+    static HWSeqCommandSU dummy;
+
+    if(hwSeq.size() != 0)
+    {
+      return &hwSeq[i];
+    }
+
+    else
+    {
+      if(allocate)
+      {
+        hwSeq.resize(256);
+        return &hwSeq[i];
+      }
+
+      else
+      {
+        memset((void*)&dummy, 0, sizeof(dummy));
+        return &dummy;
+      }
+    }
   }
 };
 
@@ -861,12 +945,6 @@ struct DivInstrument {
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
 
   void convertC64SpecialMacro();
-  
-  /**
-   * save the instrument to a SafeWriter.
-   * @param w the SafeWriter in question.
-   */
-  void putInsData(SafeWriter* w);
 
   /**
    * save the instrument to a SafeWriter using new format.
@@ -885,12 +963,11 @@ struct DivInstrument {
   /**
    * save this instrument to a file.
    * @param path file path.
-   * @param oldFormat whether to save in legacy Furnace ins format.
    * @param song if new format, a DivSong to read wavetables and samples.
    * @param writeInsName whether to write the instrument name or not. ignored if old format.
    * @return whether it was successful.
    */
-  bool save(const char* path, bool oldFormat=false, DivSong* song=NULL, bool writeInsName=true);
+  bool save(const char* path, DivSong* song=NULL, bool writeInsName=true);
 
   /**
    * save this instrument to a file in .dmp format.

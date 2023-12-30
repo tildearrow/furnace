@@ -92,28 +92,28 @@ void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
 void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=(MIN(chan[i].vol,2)*MIN(chan[i].std.vol.val,2)/2);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=(MIN(chan[i].vol,2)*MIN(chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val,2)/2);
       writeOutVol(i);
     }
-    if (chan[i].std.duty.had) {
-      chan[i].duty=chan[i].std.duty.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      chan[i].duty=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
       rWrite(2+i*4,chan[i].duty^0xff);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
@@ -132,18 +132,18 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
   }
   if (NEW_ARP_STRAT) {
     chan[4].handleArp();
-  } else if (chan[4].std.arp.had) {
+  } else if (chan[4].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
     if (!chan[4].inPorta) {
-      chan[4].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[4].note,chan[4].std.arp.val));
+      chan[4].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[4].note,chan[4].std.get_div_macro_struct(DIV_MACRO_ARP)->val));
     }
     chan[4].freqChanged=true;
   }
-  if (chan[4].std.pitch.had) {
-    if (chan[4].std.pitch.mode) {
-      chan[4].pitch2+=chan[4].std.pitch.val;
+  if (chan[4].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+    if (chan[4].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+      chan[4].pitch2+=chan[4].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       CLAMP_VAR(chan[4].pitch2,-65535,65535);
     } else {
-      chan[4].pitch2=chan[4].std.pitch.val;
+      chan[4].pitch2=chan[4].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
     }
     chan[4].freqChanged=true;
   }
@@ -179,7 +179,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
         chan[c.chan].keyOn=true;
         chan[c.chan].macroInit(ins);
         chan[c.chan].insChanged=false;
-        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
           chan[c.chan].outVol=chan[c.chan].vol;
           writeOutVol(c.chan);
         }
@@ -224,14 +224,14 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[c.chan].outVol=c.value;
           writeOutVol(c.chan);
         }
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
+      if (chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -268,7 +268,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
       if (c.chan<4) rWrite(2+c.chan*4,chan[c.chan].duty^0xff);
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -276,7 +276,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEMINI));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

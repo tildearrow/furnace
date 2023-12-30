@@ -151,8 +151,8 @@ void DivPlatformGB::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].softEnv) {
-      if (chan[i].std.vol.had) {
-        chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+        chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),15);
         if (chan[i].outVol<0) chan[i].outVol=0;
 
         if (i==2) {
@@ -170,51 +170,51 @@ void DivPlatformGB::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT && i!=3) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       if (i==3) { // noise
-        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val,24);
+        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val,24);
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
         if (!chan[i].inPorta) {
-          chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
+          chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val,24));
         }
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
-      chan[i].duty=chan[i].std.duty.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
+      chan[i].duty=chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val;
       if (i!=2) {
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
       } else if (!chan[i].softEnv) {
         if (parent->song.waveDutyIsVol) {
-          rWrite(16+i*5+2,gbVolMap[(chan[i].std.duty.val&3)<<2]);
+          rWrite(16+i*5+2,gbVolMap[(chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val&3)<<2]);
         }
       }
     }
-    if (i==2 && chan[i].std.wave.had) {
-      if (chan[i].wave!=chan[i].std.wave.val || ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave.val;
+    if (i==2 && chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had) {
+      if (chan[i].wave!=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val || ws.activeChanged()) {
+        chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val;
         ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
-    if (chan[i].std.panL.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had) {
       lastPan&=~(0x11<<i);
-      lastPan|=((chan[i].std.panL.val&1)<<i)|((chan[i].std.panL.val&2)<<(i+3));
+      lastPan|=((chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&1)<<i)|((chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val&2)<<(i+3));
       rWrite(0x25,procMute());
     }
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val==1) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val==1) {
         chan[i].keyOn=true;
         if (i==2) {
           antiClickWavePos=0;
@@ -238,8 +238,8 @@ void DivPlatformGB::tick(bool sysTick) {
         int hwSeqCount=0;
         while (chan[i].hwSeqPos<ins->gb.hwSeqLen && hwSeqCount<4) {
           bool leave=false;
-          unsigned short data=ins->gb.hwSeq[chan[i].hwSeqPos].data;
-          switch (ins->gb.hwSeq[chan[i].hwSeqPos].cmd) {
+          unsigned short data=ins->gb.get_gb_hw_seq(chan[i].hwSeqPos, true)->data;
+          switch (ins->gb.get_gb_hw_seq(chan[i].hwSeqPos, true)->cmd) {
             case DivInstrumentGB::DIV_GB_HWCMD_ENVELOPE:
               if (!chan[i].softEnv) {
                 chan[i].envLen=data&7;
@@ -397,7 +397,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
           chan[c.chan].outVol=chan[c.chan].envVol;
         }
       } else if (chan[c.chan].softEnv && c.chan!=2) {
-        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
           chan[c.chan].outVol=chan[c.chan].vol;
           chan[c.chan].envVol=chan[c.chan].outVol;
         }
@@ -453,8 +453,8 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].envVol=chan[c.chan].vol;
         chan[c.chan].soManyHacksToMakeItDefleCompatible=true;
       } else if (c.chan!=2) {
-        if (chan[c.chan].std.vol.will && !chan[c.chan].std.vol.finished) {
-          chan[c.chan].outVol=VOL_SCALE_LINEAR(chan[c.chan].vol&15,MIN(15,chan[c.chan].std.vol.val),15);
+        if (chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will && !chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->finished) {
+          chan[c.chan].outVol=VOL_SCALE_LINEAR(chan[c.chan].vol&15,MIN(15,chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->val),15);
         }
         chan[c.chan].envVol=chan[c.chan].outVol;
         
@@ -519,7 +519,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -527,7 +527,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_GB));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GB_SWEEP_DIR:
