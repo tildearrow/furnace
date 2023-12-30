@@ -303,36 +303,56 @@ void DivPlatformES5503::tick(bool sysTick) {
         {
           uint8_t temp = chan[i].outVol * chan[i].panleft / 255;
           rWrite(0x40+i, isMuted[i] ? 0 : temp); //set volume
-          rWrite(0x80+i, chan[i].wave_pos >> 8); //set wave pos
-          rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
+          if(chan[i].pcm || chan[i].wavetable_block != -1)
+          {
+            rWrite(0x80+i, chan[i].wave_pos >> 8); //set wave pos
+            rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
+          }
+
           rWrite(0xc0+i, (ES5503_wave_lengths_convert_back(chan[i].wave_size) << 3) | chan[i].address_bus_res); //set wave len
 
           temp = chan[i].outVol * chan[i].panright / 255;
           rWrite(0x40+i+1, isMuted[i] ? 0 : temp); //set volume
-          rWrite(0x80+i+1, chan[i].wave_pos >> 8); //set wave pos
-          rWrite(0xa0+i+1, (chan[i].osc_mode << 1) | (chan[i + 1].output << 4));
+
+          if(chan[i].pcm || chan[i].wavetable_block != -1)
+          {
+            rWrite(0x80+i+1, chan[i].wave_pos >> 8); //set wave pos
+            rWrite(0xa0+i+1, (chan[i].osc_mode << 1) | (chan[i + 1].output << 4));
+          }
+
           rWrite(0xc0+i+1, (ES5503_wave_lengths_convert_back(chan[i].wave_size) << 3) | chan[i].address_bus_res); //set wave len
 
-          if(ins->es5503.phase_reset_on_start)
+          if(chan[i].pcm || chan[i].wavetable_block != -1)
           {
-            rWrite(0xA0 + i, (chan[i].osc_mode << 1) | 1 | (chan[i].output << 4)); //writing 1 resets acc
-            rWrite(0xA0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4)); //writing 0 forces the reset
-            rWrite(0xA0 + i + 1, (chan[i].osc_mode << 1) | 1 | (chan[i + 1].output << 4)); //writing 1 resets acc
-            rWrite(0xA0 + i + 1, (chan[i].osc_mode << 1) | (chan[i + 1].output << 4)); //writing 0 forces the reset
+            if(ins->es5503.phase_reset_on_start)
+            {
+              rWrite(0xA0 + i, (chan[i].osc_mode << 1) | 1 | (chan[i].output << 4)); //writing 1 resets acc
+              rWrite(0xA0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4)); //writing 0 forces the reset
+              rWrite(0xA0 + i + 1, (chan[i].osc_mode << 1) | 1 | (chan[i + 1].output << 4)); //writing 1 resets acc
+              rWrite(0xA0 + i + 1, (chan[i].osc_mode << 1) | (chan[i + 1].output << 4)); //writing 0 forces the reset
+            }
           }
         }
 
         else
         {
           rWrite(0x40+i, isMuted[i] ? 0 : chan[i].outVol); //set volume
-          rWrite(0x80+i, chan[i].wave_pos >> 8); //set wave pos
-          rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
+
+          if(chan[i].pcm || chan[i].wavetable_block != -1)
+          {
+            rWrite(0x80+i, chan[i].wave_pos >> 8); //set wave pos
+            rWrite(0xa0+i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
+          }
+
           rWrite(0xc0+i, (ES5503_wave_lengths_convert_back(chan[i].wave_size) << 3) | chan[i].address_bus_res); //set wave len
 
-          if(ins->es5503.phase_reset_on_start)
+          if(chan[i].pcm || chan[i].wavetable_block != -1)
           {
-            rWrite(0xA0 + i, (chan[i].osc_mode << 1) | 1 | (chan[i].output << 4)); //writing 1 resets acc
-            rWrite(0xA0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4)); //writing 0 forces the reset
+            if(ins->es5503.phase_reset_on_start)
+            {
+              rWrite(0xA0 + i, (chan[i].osc_mode << 1) | 1 | (chan[i].output << 4)); //writing 1 resets acc
+              rWrite(0xA0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4)); //writing 0 forces the reset
+            }
           }
         }
       }
