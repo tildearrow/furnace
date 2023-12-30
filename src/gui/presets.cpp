@@ -2986,6 +2986,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Ensoniq ES5503", {
+      CH(DIV_SYSTEM_ES5503, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     "Konami K053260", {
       CH(DIV_SYSTEM_K053260, 1.0f, 0, "")
     }

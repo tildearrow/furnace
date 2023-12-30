@@ -602,6 +602,8 @@ src/engine/platform/sound/ted-sound.c
 
 src/engine/platform/sound/c140_c219.c
 
+src/engine/platform/sound/es5503.cpp
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -700,6 +702,7 @@ src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
 src/engine/platform/c140.cpp
+src/engine/platform/es5503.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 

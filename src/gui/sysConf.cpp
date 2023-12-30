@@ -2276,6 +2276,21 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       supportsCustomRate=false;
       ImGui::Text("nothing to configure");
       break;
+    case DIV_SYSTEM_ES5503:
+    {
+        bool mono = flags.getBool("monoOutput", false);
+
+        if (ImGui::Checkbox("Downmix chip output to mono", &mono)) {
+            altered = true;
+        }
+
+        if (altered) {
+            e->lockSave([&]() {
+                flags.set("monoOutput", mono);
+            });
+        }
+        break;
+    }
     default: {
       bool sysPal=flags.getInt("clockSel",0);
 

@@ -216,6 +216,14 @@ bool DivInstrumentES5506::operator==(const DivInstrumentES5506& other) {
   );
 }
 
+bool DivInstrumentES5503::operator==(const DivInstrumentES5503& other) {
+  return (
+    _C(initial_osc_mode) &&
+    _C(softpan_virtual_channel) &&
+    _C(phase_reset_on_start)
+  );
+}
+
 bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
   return (
     _C(useEnv) &&
@@ -712,6 +720,14 @@ void DivInstrument::writeFeatureNE(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureE3(SafeWriter* w) {
+  FEATURE_BEGIN("E3");
+  
+  w->writeC((es5503.initial_osc_mode << 6)|((uint8_t)es5503.softpan_virtual_channel << 5)|((uint8_t)es5503.phase_reset_on_start << 4));
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -755,6 +771,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureES=false;
   bool featureX1=false;
   bool featureNE=false;
+  bool featureE3=false;
 
   bool checkForWL=false;
 
@@ -968,6 +985,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureSM=true;
         featureSL=true;
         break;
+      case DIV_INS_ES5503:
+        featureE3=true;
+        break;
       
       case DIV_INS_MAX:
         break;
@@ -1015,6 +1035,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (x1_010!=defaultIns.x1_010) {
       featureX1=true;
+    }
+    if (es5503!=defaultIns.es5503) {
+      featureE3=true;
     }
   }
 
@@ -1163,6 +1186,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureNE) {
     writeFeatureNE(w);
+  }
+  if (featureE3) {
+    writeFeatureE3(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -1818,6 +1844,18 @@ void DivInstrument::readFeatureNE(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureE3(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  uint8_t temp = reader.readC();
+
+  es5503.initial_osc_mode = temp >> 6;
+  es5503.softpan_virtual_channel = (temp >> 5) & 1;
+  es5503.phase_reset_on_start = (temp >> 4) & 1;
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -1891,6 +1929,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureX1(reader,version);
     } else if (memcmp(featCode,"NE",2)==0) { // NES (DPCM)
       readFeatureNE(reader,version);
+    } else if (memcmp(featCode,"E3",2)==0) { // ES5503
+      readFeatureE3(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing
