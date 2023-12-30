@@ -166,8 +166,8 @@ void DivPlatformES5503::tick(bool sysTick) {
   for(int i = 0; i < 32; i++)
   {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&255,MIN(255,chan[i].std.vol.val),255);
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&255,MIN(255,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),255);
       if (chan[i].pcm) {
         // ignore for now
       } else {
@@ -188,22 +188,22 @@ void DivPlatformES5503::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.pitch.had) {
-      if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->had) {
+      if (chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->mode) {
+        chan[i].pitch2+=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.get_div_macro_struct(DIV_MACRO_PITCH)->val;
       }
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.duty.had && !chan[i].pcm) {
-      chan[i].osc_mode = chan[i].std.duty.val & 3;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had && !chan[i].pcm) {
+      chan[i].osc_mode = chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val & 3;
       if(chan[i].softpan_channel)
       {
         rWrite(0xA0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4)); //update osc. mode, do not disturb the osc
@@ -216,15 +216,15 @@ void DivPlatformES5503::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.wave.had && !chan[i].pcm) {
-      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
-        chan[i].wave=chan[i].std.wave.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->had && !chan[i].pcm) {
+      if (chan[i].wave!=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val || chan[i].ws.activeChanged()) {
+        chan[i].wave=chan[i].std.get_div_macro_struct(DIV_MACRO_WAVE)->val;
         chan[i].ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
 
-    if (chan[i].std.phaseReset.had && !chan[i].pcm && chan[i].std.phaseReset.val == 1) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had && !chan[i].pcm && chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val == 1) {
       if(chan[i].softpan_channel)
       {
         rWrite(0xA0 + i, (chan[i].osc_mode << 1) | 1 | (chan[i].output << 4)); //writing 1 resets acc
@@ -240,32 +240,32 @@ void DivPlatformES5503::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.ex1.had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->had) {
       if(chan[i].softpan_channel)
       {
-        rWrite(0x80 + i, chan[i].std.ex1.val);
-        rWrite(0x80 + i + 1, chan[i].std.ex1.val);
+        rWrite(0x80 + i, chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val);
+        rWrite(0x80 + i + 1, chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val);
       }
 
       else
       {
-        rWrite(0x80 + i, chan[i].std.ex1.val);
+        rWrite(0x80 + i, chan[i].std.get_div_macro_struct(DIV_MACRO_EX1)->val);
       }
     }
 
-    if (chan[i].std.ex2.had) {
-      chan[i].output = chan[i].std.ex2.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->had) {
+      chan[i].output = chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val;
       rWrite(0xa0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
     }
 
-    if (chan[i].std.panL.had && chan[i].softpan_channel) {
-      chan[i].panleft = chan[i].std.panL.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->had && chan[i].softpan_channel) {
+      chan[i].panleft = chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_LEFT)->val;
       uint8_t temp = chan[i].outVol * chan[i].panleft / 255;
       rWrite(0x40 + i, isMuted[i] ? 0 : (temp));
     }
 
-    if (chan[i].std.panR.had && chan[i].softpan_channel) {
-      chan[i].panright = chan[i].std.panR.val;
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->had && chan[i].softpan_channel) {
+      chan[i].panright = chan[i].std.get_div_macro_struct(DIV_MACRO_PAN_RIGHT)->val;
       uint8_t temp = chan[i].outVol * chan[i].panright / 255;
       rWrite(0x40 + i + 1, isMuted[i] ? 0 : (temp));
     }
@@ -448,7 +448,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       }
 
       chan[c.chan].macroInit(ins);
-      if (!chan[c.chan].std.vol.will) {
+      if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
 
@@ -486,7 +486,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.has) {
+        if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[c.chan].outVol=c.value;
           if (chan[c.chan].active && !chan[c.chan].pcm) {
             if(chan[c.chan].softpan_channel)
@@ -506,7 +506,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
+      if (chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
         return chan[c.chan].vol;
       }
       return chan[c.chan].outVol;
@@ -529,7 +529,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -537,7 +537,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_ES5503));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.get_div_macro_struct(DIV_MACRO_ARP)->will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_NOTE_PORTA: {
