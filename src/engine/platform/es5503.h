@@ -43,8 +43,7 @@ class DivPlatformES5503: public DivDispatch {
     //frequency lower than let's say 0x100 => try to use higher acc bits in the same fashion (higher the number until freq is higher than
     //0x100; if you can't go higher stop at highest (here 0b111) and recalc frequecny, thus you have the higher precision possible)
     DivWaveSynth ws;
-    int16_t previous_sample;
-    int32_t previous_sample_pos; //these are needed to reduce unnecessary memory rewrites
+    int wavetable_block;
     Channel():
       SharedChannel<int16_t>(255),
       sample(-1),
@@ -58,8 +57,7 @@ class DivPlatformES5503: public DivDispatch {
       osc_mode(0),
       output(0),
       address_bus_res(0b010),
-      previous_sample(-1),
-      previous_sample_pos(-1) {}
+      wavetable_block(-1) {}
   };
   Channel chan[32];
   DivDispatchOscBuffer* oscBuf[32];
@@ -83,6 +81,10 @@ class DivPlatformES5503: public DivDispatch {
   uint32_t sampleLengths[256];
   uint32_t sampleMemLen;
   bool free_block[256];
+
+  int reserved_blocks; //how many blocks of 256 bytes reserved for wavetables
+  uint32_t wavetable_blocks_offsets[32]; //addresses
+  bool wavetable_block_occupied[32];
 
   es5503_core es5503;
   unsigned char regPool[256];

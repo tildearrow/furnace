@@ -108,6 +108,7 @@ void DivPlatformES5503::setFlags(const DivConfig& flags) {
   }
 
   mono=flags.getBool("monoOutput",false);
+  reserved_blocks=flags.getInt("reserveBlocks",0);
 
   es5503.mono = mono;
 }
@@ -379,6 +380,12 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       chan[c.chan].osc_mode = ins->es5503.initial_osc_mode;
 
       if (chan[c.chan].pcm) {
+        if(chan[c.chan].wavetable_block != -1)
+        {
+          wavetable_block_occupied[chan[c.chan].wavetable_block] = false;
+          chan[c.chan].wavetable_block = -1;
+        }
+
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].sample=ins->amiga.getSample(c.value);
@@ -419,6 +426,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
           }
         }
       }
+
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -436,17 +444,6 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         chan[c.chan + 1].output = 1; //force-reset outputs so softpanned channel works as expected
       }
 
-      if (!chan[c.chan].pcm)
-      {
-        chan[c.chan].wave_size = 0;
-
-        if(chan[c.chan].softpan_channel)
-        {
-          chan[c.chan + 1].wave_size = 0;
-          chan[c.chan + 1].osc_mode = ins->es5503.initial_osc_mode;
-        }
-      }
-
       chan[c.chan].macroInit(ins);
       if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->will) {
         chan[c.chan].outVol=chan[c.chan].vol;
@@ -462,6 +459,33 @@ int DivPlatformES5503::dispatch(DivCommand c) {
 
         chan[c.chan].ws.init(ins,256,255,chan[c.chan].insChanged);
         chan[c.chan].insChanged=false;
+
+        chan[c.chan].wave_size = 0;
+
+        bool found_block = false;
+
+        for(int b = 0; b < reserved_blocks; b++)
+        {
+          if(!wavetable_block_occupied[b])
+          {
+            chan[c.chan].wave_pos = wavetable_blocks_offsets[b];
+            wavetable_block_occupied[b] = true;
+            found_block = true;
+            chan[c.chan].wave_size = 256;
+            chan[c.chan].wavetable_block = b;
+            break;
+          }
+        }
+
+        if(found_block)
+        {
+          if(chan[c.chan].softpan_channel)
+          {
+            chan[c.chan + 1].wave_size = 256;
+            chan[c.chan + 1].wave_pos = chan[c.chan].wave_pos;
+            chan[c.chan + 1].osc_mode = ins->es5503.initial_osc_mode;
+          }
+        }
       }
       
       break;
@@ -734,6 +758,8 @@ void DivPlatformES5503::renderSamples(int sysID) {
   memset(free_block,1,256*sizeof(bool));
   memset(sampleLengths,0,256*sizeof(uint32_t));
 
+  memset(wavetable_blocks_offsets,0,32*sizeof(uint32_t));
+
   for(int size = 7; size > 0; size--) //first we place the longest samples then descend to shorter ones (bc placement limitations for longer samples)
   {
     int maxsize = ES5503_wave_lengths[size];
@@ -765,11 +791,10 @@ void DivPlatformES5503::renderSamples(int sysID) {
       {
         if (actualLength >= maxsize) goto end;
       }
-      
 
       start_pos = is_enough_continuous_memory(actualLength);
 
-      if(start_pos == -1)
+      if(start_pos == -1 || reserved_blocks >= count_free_blocks())
       {
         logW("out of ES5503 PCM memory for sample %d!", i);
         break;
@@ -807,6 +832,13 @@ void DivPlatformES5503::renderSamples(int sysID) {
       end:;
     }
   }
+
+  for(int i = 0; i < reserved_blocks; i++)
+  {
+    int block_index = is_enough_continuous_memory(0);
+    wavetable_blocks_offsets[i] = block_index * 256;
+    free_block[block_index] = false;
+  }
 }
 
 DivDispatchOscBuffer* DivPlatformES5503::getOscBuffer(int ch) {
@@ -836,6 +868,8 @@ void DivPlatformES5503::reset() {
 
     chan[i].output = (i & 1) ? 1 : 0; //odd channels are left, even are right
     chan[i].softpan_channel = false;
+
+    chan[i].wavetable_block = -1;
   }
 
   curChan=-1;
@@ -858,6 +892,8 @@ void DivPlatformES5503::reset() {
   {
     es5503.write(i, (chan[i - 0xa0].output << 4) | 1); //0<<4=left, 1<<4=right, 1=disable oscillator
   }
+
+  memset(wavetable_block_occupied, 0, sizeof(bool) * 32);
 }
 
 int DivPlatformES5503::getOutputCount() {

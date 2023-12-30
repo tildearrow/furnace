@@ -94,7 +94,7 @@ void es5503_core::update_num_osc(DivDispatchOscBuffer** oscBuf, uint8_t oscsenab
 
 uint8_t es5503_core::read(uint8_t offset)
 {
-  uint8_t retval;
+	uint8_t retval;
 	int i;
 
 	//m_stream->update();
