@@ -3153,6 +3153,12 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool roundedScrollbarsB=settings.roundedScrollbars;
+        if (ImGui::Checkbox("Rounded scrollbars",&roundedScrollbarsB)) {
+          settings.roundedScrollbars=roundedScrollbarsB;
+          settingsChanged=true;
+        }
+
         bool roundedMenusB=settings.roundedMenus;
         if (ImGui::Checkbox("Rounded menu corners",&roundedMenusB)) {
           settings.roundedMenus=roundedMenusB;
@@ -3871,6 +3877,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.roundedWindows=conf.getInt("roundedWindows",1);
     settings.roundedButtons=conf.getInt("roundedButtons",1);
     settings.roundedTabs=conf.getInt("roundedTabs",1);
+    settings.roundedScrollbars=conf.getInt("roundedScrollbars",1);
     settings.roundedMenus=conf.getInt("roundedMenus",0);
 
     settings.separateFMColors=conf.getInt("separateFMColors",0);
@@ -4036,6 +4043,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.roundedWindows,0,1);
   clampSetting(settings.roundedButtons,0,1);
   clampSetting(settings.roundedTabs,0,1);
+  clampSetting(settings.roundedScrollbars,0,1);
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.loadChinese,0,1);
@@ -4327,6 +4335,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("roundedWindows",settings.roundedWindows);
     conf.set("roundedButtons",settings.roundedButtons);
     conf.set("roundedTabs",settings.roundedTabs);
+    conf.set("roundedScrollbars",settings.roundedScrollbars);
     conf.set("roundedMenus",settings.roundedMenus);
 
     conf.set("separateFMColors",settings.separateFMColors);
@@ -5074,6 +5083,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   }
   if (settings.roundedTabs) sty.TabRounding = 6.0f;
   else sty.TabRounding = 0.0f;
+
+  if (settings.roundedScrollbars) sty.ScrollbarRounding = 6.0f;
+  else sty.ScrollbarRounding = 0.0f;
 
   if (settings.roundedMenus) sty.PopupRounding=8.0f;
 
