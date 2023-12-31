@@ -147,7 +147,6 @@ void FurnaceGUI::drawNewSong() {
         for(int i = 0; i < (int)category.size(); i++)
         {
           FurnaceGUISysDef* sysdef = &category[i];
-          start:;
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -187,8 +186,6 @@ void FurnaceGUI::drawNewSong() {
                 i++;
                 sysdef = &category[i];
               }
-
-              //goto start;
             }
           }
 
