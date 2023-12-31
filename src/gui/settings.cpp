@@ -4928,6 +4928,7 @@ void setupLabel(const char* lStr, char* label, int len) {
 
 void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGuiStyle sty;
+
   if (settings.guiColorsBase) {
     ImGui::StyleColorsLight(&sty);
   } else {
