@@ -22,6 +22,36 @@
 #include <fmt/printf.h>
 #include <algorithm>
 
+#define SHOW_HOVER_INFO \
+if (ImGui::IsItemHovered()) { \
+  if (ImGui::BeginTooltip()) { \
+    std::map<DivSystem,int> chipCounts; \
+    std::vector<DivSystem> chips; \
+    for (FurnaceGUISysDefChip chip: sysdef->orig) { \
+      if (chipCounts.find(chip.sys)==chipCounts.end()) { \
+        chipCounts[chip.sys]=1; \
+        chips.push_back(chip.sys); \
+      } else { \
+        chipCounts[chip.sys]+=1; \
+      } \
+    } \
+    for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) { \
+      DivSystem chip=chips[chipIndex]; \
+      const DivSysDef* sysDef=e->getSystemDef(chip); \
+      ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale)); \
+      ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]); \
+      ImGui::Text("%s",sysDef->description); \
+      ImGui::PopTextWrapPos(); \
+      if (chipIndex+1<chips.size()) { \
+        ImGui::Separator(); \
+      } \
+    } \
+    ImGui::EndTooltip(); \
+  } \
+} \
+
+bool showing_search_results = false;
+
 void FurnaceGUI::drawNewSong() {
   bool accepted=false;
 
@@ -39,6 +69,7 @@ void FurnaceGUI::drawNewSong() {
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::InputTextWithHint("##SysSearch","Search...",&newSongQuery)) {
       String lowerCase=newSongQuery;
+      
       for (char& i: lowerCase) {
         if (i>='A' && i<='Z') i+='a'-'A';
       }
@@ -68,6 +99,13 @@ void FurnaceGUI::drawNewSong() {
           return strcmp(a.name,b.name)==0;
         });
         newSongSearchResults.erase(lastItem,newSongSearchResults.end());
+      }
+
+      showing_search_results = true;
+
+      if(newSongQuery == "")
+      {
+        showing_search_results = false;
       }
     }
     if (ImGui::BeginTable("sysPicker",newSongQuery.empty()?2:1,ImGuiTableFlags_BordersInnerV)) {
@@ -105,40 +143,61 @@ void FurnaceGUI::drawNewSong() {
       ImGui::TableNextColumn();
       if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
         std::vector<FurnaceGUISysDef>& category=(newSongQuery.empty())?(sysCategories[newSongCategory].systems):(newSongSearchResults);
-        for (FurnaceGUISysDef& i: category) {
+
+        for(int i = 0; i < (int)category.size(); i++)
+        {
+          FurnaceGUISysDef* sysdef = &category[i];
+
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
-          if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
-            nextDesc=i.definition;
-            nextDescName=i.name;
-            accepted=true;
-          }
-          if (ImGui::IsItemHovered()) {
-            if (ImGui::BeginTooltip()) {
-              std::map<DivSystem,int> chipCounts;
-              std::vector<DivSystem> chips;
-              for (FurnaceGUISysDefChip chip: i.orig) {
-                if (chipCounts.find(chip.sys)==chipCounts.end()) {
-                  chipCounts[chip.sys]=1;
-                  chips.push_back(chip.sys);
-                } else {
-                  chipCounts[chip.sys]+=1;
+
+          if(sysdef->menuStatus == MENU_STATUS_LIST_START && showing_search_results == false)
+          {
+            if(ImGui::TreeNode(sysdef->name))
+            {
+              SHOW_HOVER_INFO
+
+              while(sysdef->menuStatus != MENU_STATUS_LIST_END)
+              {
+                sysdef = &category[i];
+                i++;
+                
+                if (ImGui::Selectable(sysdef->name,false,ImGuiSelectableFlags_DontClosePopups)) {
+                  nextDesc=sysdef->definition;
+                  nextDescName=sysdef->name;
+                  accepted=true;
                 }
-              }
-              for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) {
-                DivSystem chip=chips[chipIndex];
-                const DivSysDef* sysDef=e->getSystemDef(chip);
-                ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
-                ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
-                ImGui::Text("%s",sysDef->description);
-                ImGui::PopTextWrapPos();
-                if (chipIndex+1<chips.size()) {
-                  ImGui::Separator();
-                }
+
+                SHOW_HOVER_INFO
               }
 
-              ImGui::EndTooltip();
+              i--;
+              sysdef = &category[i];
+
+              ImGui::TreePop();
             }
+
+            else
+            {
+              SHOW_HOVER_INFO
+              
+              while(sysdef->menuStatus != MENU_STATUS_LIST_END)
+              {
+                i++;
+                sysdef = &category[i];
+              }
+            }
+          }
+
+          else
+          {
+            if (ImGui::Selectable(sysdef->name,false,ImGuiSelectableFlags_DontClosePopups)) {
+              nextDesc=sysdef->definition;
+              nextDescName=sysdef->name;
+              accepted=true;
+            }
+
+            SHOW_HOVER_INFO
           }
         }
 
