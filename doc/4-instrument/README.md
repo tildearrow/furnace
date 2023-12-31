@@ -67,6 +67,7 @@ the following instrument types are available:
 - [TED](ted.md) - for use with Commodore Plus/4 and Commodore 16's TED chip.
 - [C140](c140.md) - for use with C140 sample chip.
 - [C219](c219.md) - for use with C219 sample chip.
+- [FM (ESFM)](fm-esfm.md) - for use with ESS ES1xxx-series (ESFM).
 
 ## macros
 
