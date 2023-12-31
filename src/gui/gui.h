@@ -1172,12 +1172,20 @@ struct FurnaceGUISysDefChip {
     flags(f) {}
 };
 
+enum menu_status
+{
+  MENU_STATUS_USUAL = 0,
+  MENU_STATUS_LIST_START,
+  MENU_STATUS_LIST_END,
+};
+
 struct FurnaceGUISysDef {
+  menu_status menuStatus;
   const char* name;
   const char* extra;
   String definition;
   std::vector<FurnaceGUISysDefChip> orig;
-  FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL);
+  FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL, menu_status menuStatuss = MENU_STATUS_USUAL);
 };
 
 struct FurnaceGUISysCategory {

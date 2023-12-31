@@ -105,40 +105,66 @@ void FurnaceGUI::drawNewSong() {
       ImGui::TableNextColumn();
       if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
         std::vector<FurnaceGUISysDef>& category=(newSongQuery.empty())?(sysCategories[newSongCategory].systems):(newSongSearchResults);
+
+        bool dropdown_list_opened = false;
+        bool in_dropdown_list = false;
+
         for (FurnaceGUISysDef& i: category) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
-          if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
-            nextDesc=i.definition;
-            nextDescName=i.name;
-            accepted=true;
-          }
-          if (ImGui::IsItemHovered()) {
-            if (ImGui::BeginTooltip()) {
-              std::map<DivSystem,int> chipCounts;
-              std::vector<DivSystem> chips;
-              for (FurnaceGUISysDefChip chip: i.orig) {
-                if (chipCounts.find(chip.sys)==chipCounts.end()) {
-                  chipCounts[chip.sys]=1;
-                  chips.push_back(chip.sys);
-                } else {
-                  chipCounts[chip.sys]+=1;
-                }
-              }
-              for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) {
-                DivSystem chip=chips[chipIndex];
-                const DivSysDef* sysDef=e->getSystemDef(chip);
-                ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
-                ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
-                ImGui::Text("%s",sysDef->description);
-                ImGui::PopTextWrapPos();
-                if (chipIndex+1<chips.size()) {
-                  ImGui::Separator();
-                }
-              }
 
-              ImGui::EndTooltip();
+          if(i.menuStatus == MENU_STATUS_LIST_START)
+          {
+            if(ImGui::TreeNode(i.name))
+            {
+              dropdown_list_opened = true;
             }
+
+            in_dropdown_list = true;
+          }
+          
+          if(dropdown_list_opened)
+          {
+            if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
+              nextDesc=i.definition;
+              nextDescName=i.name;
+              accepted=true;
+            }
+
+            if (ImGui::IsItemHovered()) {
+              if (ImGui::BeginTooltip()) {
+                std::map<DivSystem,int> chipCounts;
+                std::vector<DivSystem> chips;
+                for (FurnaceGUISysDefChip chip: i.orig) {
+                  if (chipCounts.find(chip.sys)==chipCounts.end()) {
+                    chipCounts[chip.sys]=1;
+                    chips.push_back(chip.sys);
+                  } else {
+                    chipCounts[chip.sys]+=1;
+                  }
+                }
+                for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) {
+                  DivSystem chip=chips[chipIndex];
+                  const DivSysDef* sysDef=e->getSystemDef(chip);
+                  ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
+                  ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
+                  ImGui::Text("%s",sysDef->description);
+                  ImGui::PopTextWrapPos();
+                  if (chipIndex+1<chips.size()) {
+                    ImGui::Separator();
+                  }
+                }
+
+                ImGui::EndTooltip();
+              }
+            }
+          }
+
+          if(i.menuStatus == MENU_STATUS_LIST_END)
+          {
+            ImGui::TreePop();
+            in_dropdown_list = false;
+            dropdown_list_opened = false;
           }
         }
 
