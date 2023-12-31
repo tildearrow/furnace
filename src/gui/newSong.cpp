@@ -144,7 +144,7 @@ void FurnaceGUI::drawNewSong() {
       if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
         std::vector<FurnaceGUISysDef>& category=(newSongQuery.empty())?(sysCategories[newSongCategory].systems):(newSongSearchResults);
 
-        for(int i = 0; i < category.size(); i++)
+        for(int i = 0; i < (int)category.size(); i++)
         {
           FurnaceGUISysDef* sysdef = &category[i];
           start:;
