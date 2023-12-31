@@ -1174,12 +1174,20 @@ struct FurnaceGUISysDefChip {
     flags(f) {}
 };
 
+enum menu_status
+{
+  MENU_STATUS_USUAL = 0,
+  MENU_STATUS_LIST_START,
+  MENU_STATUS_LIST_END,
+};
+
 struct FurnaceGUISysDef {
   const char* name;
   const char* extra;
+  menu_status menuStatus;
   String definition;
   std::vector<FurnaceGUISysDefChip> orig;
-  FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL);
+  FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL, menu_status menuStatuss = MENU_STATUS_USUAL);
 };
 
 struct FurnaceGUISysCategory {
@@ -1603,6 +1611,7 @@ class FurnaceGUI {
     int roundedWindows;
     int roundedButtons;
     int roundedTabs;
+    int roundedScrollbars;
     int roundedMenus;
     int loadJapanese;
     int loadChinese;
@@ -1800,6 +1809,7 @@ class FurnaceGUI {
       roundedWindows(1),
       roundedButtons(1),
       roundedTabs(1),
+      roundedScrollbars(1),
       roundedMenus(0),
       loadJapanese(0),
       loadChinese(0),
