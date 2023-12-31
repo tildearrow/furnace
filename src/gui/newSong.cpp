@@ -50,6 +50,8 @@ if (ImGui::IsItemHovered()) { \
   } \
 } \
 
+bool showing_search_results = false;
+
 void FurnaceGUI::drawNewSong() {
   bool accepted=false;
 
@@ -67,6 +69,7 @@ void FurnaceGUI::drawNewSong() {
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::InputTextWithHint("##SysSearch","Search...",&newSongQuery)) {
       String lowerCase=newSongQuery;
+      
       for (char& i: lowerCase) {
         if (i>='A' && i<='Z') i+='a'-'A';
       }
@@ -96,6 +99,13 @@ void FurnaceGUI::drawNewSong() {
           return strcmp(a.name,b.name)==0;
         });
         newSongSearchResults.erase(lastItem,newSongSearchResults.end());
+      }
+
+      showing_search_results = true;
+
+      if(newSongQuery == "")
+      {
+        showing_search_results = false;
       }
     }
     if (ImGui::BeginTable("sysPicker",newSongQuery.empty()?2:1,ImGuiTableFlags_BordersInnerV)) {
@@ -137,11 +147,12 @@ void FurnaceGUI::drawNewSong() {
         for(int i = 0; i < category.size(); i++)
         {
           FurnaceGUISysDef* sysdef = &category[i];
+          start:;
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
 
-          if(sysdef->menuStatus == MENU_STATUS_LIST_START)
+          if(sysdef->menuStatus == MENU_STATUS_LIST_START && showing_search_results == false)
           {
             if(ImGui::TreeNode(sysdef->name))
             {
@@ -149,6 +160,9 @@ void FurnaceGUI::drawNewSong() {
 
               while(sysdef->menuStatus != MENU_STATUS_LIST_END)
               {
+                sysdef = &category[i];
+                i++;
+                
                 if (ImGui::Selectable(sysdef->name,false,ImGuiSelectableFlags_DontClosePopups)) {
                   nextDesc=sysdef->definition;
                   nextDescName=sysdef->name;
@@ -156,10 +170,10 @@ void FurnaceGUI::drawNewSong() {
                 }
 
                 SHOW_HOVER_INFO
-
-                i++;
-                sysdef = &category[i];
               }
+
+              i--;
+              sysdef = &category[i];
 
               ImGui::TreePop();
             }
@@ -173,6 +187,8 @@ void FurnaceGUI::drawNewSong() {
                 i++;
                 sysdef = &category[i];
               }
+
+              //goto start;
             }
           }
 
@@ -184,33 +200,7 @@ void FurnaceGUI::drawNewSong() {
               accepted=true;
             }
 
-            if (ImGui::IsItemHovered()) {
-              if (ImGui::BeginTooltip()) {
-                std::map<DivSystem,int> chipCounts;
-                std::vector<DivSystem> chips;
-                for (FurnaceGUISysDefChip chip: sysdef->orig) {
-                  if (chipCounts.find(chip.sys)==chipCounts.end()) {
-                    chipCounts[chip.sys]=1;
-                    chips.push_back(chip.sys);
-                  } else {
-                    chipCounts[chip.sys]+=1;
-                  }
-                }
-                for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) {
-                  DivSystem chip=chips[chipIndex];
-                  const DivSysDef* sysDef=e->getSystemDef(chip);
-                  ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
-                  ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
-                  ImGui::Text("%s",sysDef->description);
-                  ImGui::PopTextWrapPos();
-                  if (chipIndex+1<chips.size()) {
-                    ImGui::Separator();
-                  }
-                }
-
-                ImGui::EndTooltip();
-              }
-            }
+            SHOW_HOVER_INFO
           }
         }
 
