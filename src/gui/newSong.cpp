@@ -22,6 +22,34 @@
 #include <fmt/printf.h>
 #include <algorithm>
 
+#define SHOW_HOVER_INFO \
+if (ImGui::IsItemHovered()) { \
+  if (ImGui::BeginTooltip()) { \
+    std::map<DivSystem,int> chipCounts; \
+    std::vector<DivSystem> chips; \
+    for (FurnaceGUISysDefChip chip: sysdef->orig) { \
+      if (chipCounts.find(chip.sys)==chipCounts.end()) { \
+        chipCounts[chip.sys]=1; \
+        chips.push_back(chip.sys); \
+      } else { \
+        chipCounts[chip.sys]+=1; \
+      } \
+    } \
+    for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) { \
+      DivSystem chip=chips[chipIndex]; \
+      const DivSysDef* sysDef=e->getSystemDef(chip); \
+      ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale)); \
+      ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]); \
+      ImGui::Text("%s",sysDef->description); \
+      ImGui::PopTextWrapPos(); \
+      if (chipIndex+1<chips.size()) { \
+        ImGui::Separator(); \
+      } \
+    } \
+    ImGui::EndTooltip(); \
+  } \
+} \
+
 void FurnaceGUI::drawNewSong() {
   bool accepted=false;
 
@@ -106,28 +134,56 @@ void FurnaceGUI::drawNewSong() {
       if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
         std::vector<FurnaceGUISysDef>& category=(newSongQuery.empty())?(sysCategories[newSongCategory].systems):(newSongSearchResults);
 
-        bool dropdown_list_opened = false;
-        bool in_dropdown_list = false;
+        for(int i = 0; i < category.size(); i++)
+        {
+          FurnaceGUISysDef* sysdef = &category[i];
 
-        for (FurnaceGUISysDef& i: category) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
 
-          if(i.menuStatus == MENU_STATUS_LIST_START)
+          if(sysdef->menuStatus == MENU_STATUS_LIST_START)
           {
-            if(ImGui::TreeNode(i.name))
+            if(ImGui::TreeNode(sysdef->name))
             {
-              dropdown_list_opened = true;
+              SHOW_HOVER_INFO
+
+              while(sysdef->menuStatus != MENU_STATUS_LIST_END)
+              {
+                if (ImGui::Selectable(sysdef->name,false,ImGuiSelectableFlags_DontClosePopups)) {
+                  nextDesc=sysdef->definition;
+                  nextDescName=sysdef->name;
+                  accepted=true;
+                }
+
+                SHOW_HOVER_INFO
+
+                i++;
+                sysdef = &category[i];
+              }
+
+              ImGui::TreePop();
             }
 
-            in_dropdown_list = true;
+            else
+            {
+              while(sysdef->menuStatus != MENU_STATUS_LIST_END)
+              {
+                i++;
+                sysdef = &category[i];
+              }
+
+              i++;
+              sysdef = &category[i];
+            }
+
+            SHOW_HOVER_INFO
           }
-          
-          if(dropdown_list_opened)
+
+          else
           {
-            if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
-              nextDesc=i.definition;
-              nextDescName=i.name;
+            if (ImGui::Selectable(sysdef->name,false,ImGuiSelectableFlags_DontClosePopups)) {
+              nextDesc=sysdef->definition;
+              nextDescName=sysdef->name;
               accepted=true;
             }
 
@@ -135,7 +191,7 @@ void FurnaceGUI::drawNewSong() {
               if (ImGui::BeginTooltip()) {
                 std::map<DivSystem,int> chipCounts;
                 std::vector<DivSystem> chips;
-                for (FurnaceGUISysDefChip chip: i.orig) {
+                for (FurnaceGUISysDefChip chip: sysdef->orig) {
                   if (chipCounts.find(chip.sys)==chipCounts.end()) {
                     chipCounts[chip.sys]=1;
                     chips.push_back(chip.sys);
@@ -158,13 +214,6 @@ void FurnaceGUI::drawNewSong() {
                 ImGui::EndTooltip();
               }
             }
-          }
-
-          if(i.menuStatus == MENU_STATUS_LIST_END)
-          {
-            ImGui::TreePop();
-            in_dropdown_list = false;
-            dropdown_list_opened = false;
           }
         }
 
