@@ -166,17 +166,14 @@ void FurnaceGUI::drawNewSong() {
 
             else
             {
+              SHOW_HOVER_INFO
+              
               while(sysdef->menuStatus != MENU_STATUS_LIST_END)
               {
                 i++;
                 sysdef = &category[i];
               }
-
-              i++;
-              sysdef = &category[i];
             }
-
-            SHOW_HOVER_INFO
           }
 
           else

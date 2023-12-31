@@ -149,7 +149,7 @@ void FurnaceGUI::initSystemPresets() {
     }, NULL, MENU_STATUS_USUAL
   );
   ENTRY(
-    "NES", {
+    "NES/Famicom", {
       CH(DIV_SYSTEM_NES, 1.0f, 0, "")
     }, NULL, MENU_STATUS_USUAL
   );
@@ -3199,7 +3199,7 @@ void FurnaceGUI::initSystemPresets() {
     }, NULL, MENU_STATUS_USUAL
   );
   ENTRY(
-    "NES", {
+    "NES/Famicom", {
       CH(DIV_SYSTEM_NES, 1.0f, 0, "")
     }, NULL, MENU_STATUS_USUAL
   );
