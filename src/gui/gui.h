@@ -1180,9 +1180,9 @@ enum menu_status
 };
 
 struct FurnaceGUISysDef {
-  menu_status menuStatus;
   const char* name;
   const char* extra;
+  menu_status menuStatus;
   String definition;
   std::vector<FurnaceGUISysDefChip> orig;
   FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL, menu_status menuStatuss = MENU_STATUS_USUAL);
