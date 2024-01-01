@@ -229,11 +229,8 @@ void DivPlatformESFM::tick(bool sysTick) {
         }
       }
 
-      chan[i].handleArpFmOp(0, o);
-      chan[i].handlePitchFmOp(o);
-
       // detune/fixed pitch
-      /*if (opE.fixed) {
+      if (opE.fixed) {
         if (m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->had) {
           opE.ct=(opE.ct&(~(7<<2)))|((m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val&7)<<2);
           chan[i].freqChanged=true;
@@ -244,15 +241,9 @@ void DivPlatformESFM::tick(bool sysTick) {
           chan[i].freqChanged=true;
         }
       } else {
-        if (m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->had) {
-          opE.ct=(signed char)m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->val;
-          chan[i].freqChanged=true;
-        }
-        if (m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->had) {
-          opE.dt=(signed char)m.op_get_div_macro_struct(DIV_MACRO_OP_DT)->val;
-          chan[i].freqChanged=true;
-        }
-      }*/
+        chan[i].handleArpFmOp(0, o);
+        chan[i].handlePitchFmOp(o);
+      }
 
       if (m.op_get_div_macro_struct(DIV_MACRO_OP_DT2)->had) {
         opE.delay=m.op_get_div_macro_struct(DIV_MACRO_OP_DT2)->val;
