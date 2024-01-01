@@ -68,6 +68,7 @@ the following instrument types are available:
 - [C140](c140.md) - for use with C140 sample chip.
 - [C219](c219.md) - for use with C219 sample chip.
 - [FM (ESFM)](fm-esfm.md) - for use with ESS ES1xxx-series (ESFM).
+- [ES5503](es5503.md) - for use with Ensoniq ES5503 sound chip.
 
 ## macros
 

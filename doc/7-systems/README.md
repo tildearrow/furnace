@@ -70,6 +70,7 @@ this is the full list of chips that Furnace supports.
 - [MOS 6581/8580 (SID)](c64.md)
 - [Ensoniq ES5506](es5506.md)
 - [ESS ES1xxx-series (ESFM)](esfm.md)
+- [ESS ES1xxx-series (ESFM)](es5503.md)
 - [Konami SCC](scc.md)
 - [FDS](fds.md)
 - [Game Boy](game-boy.md)
