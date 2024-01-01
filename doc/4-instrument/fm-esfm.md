@@ -88,6 +88,10 @@ note: MI1 is not included as it is the feedback level.
 
 each operator has a Fixed Frequency mode. once enabled, the operator runs at the specified frequency regardless of the note.
 
+when the fixed frequency mode is enabled, the Tune and Fine Detune sliders will be replaced by **Block (Blk)** and **FreqNum (F)** spinboxes, which allow you to input a raw frequency value into the operator. the actual frequency is determined by the formula: `FreqNum*(2^Block)`
+
+in other words, FreqNum defines the base frequency, while Block determines the scaling factor in octaves.
+
 ## macros
 
 these macros allow you to control several parameters of FM on each tick.
@@ -102,11 +106,15 @@ due to a quirk in how the envelope delay feature works, the **Envelope Delay** m
 
 note that the macro cannot exceed 659.1 ms in length - anything beyond that will be treated as a value of 0.
 
-### operator arpeggio and pitch
+### operator arpeggio and pitch macros
 
-among the available macros are **Op. arpeggio** and **Op. pitch**. these work like the **Arpeggio** and **Pitch** macros featured below, but are applied to the individual operator, overriding the **Arpeggio**/**Pitch** macros respectively.
+among the available macros are **Op. Arpeggio** and **Op. Pitch**. these work like the **Arpeggio** and **Pitch** macros featured below, but are applied to the individual operator, overriding the **Arpeggio**/**Pitch** macros respectively.
 
 the **Tune** and **Fine Detune** FM parameters are still obeyed normally when using these macros.
+
+### fixed frequency macros
+
+when fixed frequency is enabled for an operator, the **Op. Arpeggio** and **Op. Pitch** macros will be replaced by the **Block** and **FreqNum** macros. these can be used to change the operator's fixed frequency over time.
 
 ## Macros
 
