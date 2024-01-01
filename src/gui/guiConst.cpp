@@ -175,6 +175,7 @@ const char* insTypes[DIV_INS_MAX+1][3]={
   {"TED",ICON_FA_BAR_CHART,ICON_FUR_INS_TED},
   {"C140",ICON_FA_VOLUME_UP,ICON_FUR_INS_C140},
   {"C219",ICON_FA_VOLUME_UP,ICON_FUR_INS_C219},
+  {"FM (ESFM)",ICON_FA_AREA_CHART,ICON_FUR_INS_ESFM},
   {"ES5503",ICON_FA_VOLUME_UP,ICON_FUR_INS_C219},
   {NULL,ICON_FA_QUESTION,ICON_FA_QUESTION}
 };
@@ -985,6 +986,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_TED,"",ImVec4(0.7f,0.6f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_C140,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_C219,"",ImVec4(1.0f,0.8f,0.0f,1.0f)),
+  D(GUI_COLOR_INSTR_ESFM,"",ImVec4(0.3f,1.0f,0.9f,1.0f)),
   D(GUI_COLOR_INSTR_ES5503,"",ImVec4(1.0f,0.8f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
@@ -1208,6 +1210,7 @@ const int availableSystems[]={
   DIV_SYSTEM_C219,
   DIV_SYSTEM_ES5503,
   DIV_SYSTEM_PCM_DAC,
+  DIV_SYSTEM_ESFM,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
 };
@@ -1247,6 +1250,7 @@ const int chipsFM[]={ //the ones that are commented out are inside collapsible m
   DIV_SYSTEM_OPL3,
   //DIV_SYSTEM_OPL3_DRUMS,
   DIV_SYSTEM_OPZ,
+  DIV_SYSTEM_ESFM,
   0 // don't remove this last one!
 };
 

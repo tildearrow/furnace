@@ -1289,6 +1289,17 @@ void FurnaceGUI::initSystemPresets() {
     }, NULL, MENU_STATUS_USUAL
   );
   ENTRY(
+    "PC + ESS AudioDrive ES1488 (native ESFM mode)", {
+      CH(DIV_SYSTEM_ESFM, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+        "rate=44100\n"
+        "outDepth=15\n"
+        "stereo=true\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     "PC + PC-FXGA", {
       CH(DIV_SYSTEM_PCE, 1.0f, 0, ""), // HuC6230 (WSG from HuC6280 but with built in 2 OKI ADPCM playback engines)
       CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
@@ -2810,6 +2821,11 @@ void FurnaceGUI::initSystemPresets() {
          "chipType=1\n"
       )
     }, NULL, MENU_STATUS_LIST_END
+  );
+  ENTRY(
+    "ESS ES1xxx series (ESFM)", {
+      CH(DIV_SYSTEM_ESFM, 1.0f, 0, "")
+    }
   );
   if (settings.hiddenSystems) {
     ENTRY(

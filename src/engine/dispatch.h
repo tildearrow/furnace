@@ -244,6 +244,11 @@ enum DivDispatchCmds {
   DIV_CMD_C64_AD, // (value)
   DIV_CMD_C64_SR, // (value)
 
+  DIV_CMD_ESFM_OP_PANNING, // (op, value)
+  DIV_CMD_ESFM_OUTLVL, // (op, value)
+  DIV_CMD_ESFM_MODIN, // (op, value)
+  DIV_CMD_ESFM_ENV_DELAY, // (op, value)
+
   DIV_CMD_ES5503_NUM_ENABLED_OSC, // (value); set number of enabled oscillators (more oscs enabled = less sample rate)
   DIV_CMD_ES5503_OSC_OUTPUT, // (value)
   DIV_CMD_ES5503_WAVE_LENGTH,

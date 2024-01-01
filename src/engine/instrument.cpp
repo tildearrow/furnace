@@ -238,6 +238,29 @@ bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
   );
 }
 
+bool DivInstrumentESFM::operator==(const DivInstrumentESFM& other) {
+  return (
+    _C(noise) &&
+    _C(op[0]) &&
+    _C(op[1]) &&
+    _C(op[2]) &&
+    _C(op[3])
+  );
+}
+
+bool DivInstrumentESFM::Operator::operator==(const DivInstrumentESFM::Operator& other) {
+  return (
+    _C(delay) &&
+    _C(outLvl) &&
+    _C(modIn) &&
+    _C(left) &&
+    _C(right) &&
+    _C(fixed) &&
+    _C(ct) &&
+    _C(dt)
+  );
+}
+
 #undef _C
 
 #define FEATURE_BEGIN(x) \
@@ -720,6 +743,22 @@ void DivInstrument::writeFeatureNE(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureEF(SafeWriter* w) {
+  FEATURE_BEGIN("EF");
+
+  w->writeC(esfm.noise&3);
+  for (int i=0; i<4; i++) {
+    DivInstrumentESFM::Operator& op=esfm.op[i];
+
+    w->writeC(((op.delay&7)<<5)|((op.outLvl&7)<<2)|((op.right&1)<<1)|(op.left&1));
+    w->writeC((op.fixed&1)<<3|(op.modIn&7));
+    w->writeC(op.ct);
+    w->writeC(op.dt);
+  }
+  
+  FEATURE_END;
+}
+
 void DivInstrument::writeFeatureE3(SafeWriter* w) {
   FEATURE_BEGIN("E3");
   
@@ -771,6 +810,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureES=false;
   bool featureX1=false;
   bool featureNE=false;
+  bool featureEF=false;
   bool featureE3=false;
 
   bool checkForWL=false;
@@ -985,10 +1025,13 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureSM=true;
         featureSL=true;
         break;
+      case DIV_INS_ESFM:
+        featureFM=true;
+        featureEF=true;
+        break;
       case DIV_INS_ES5503:
         featureE3=true;
         break;
-      
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1035,6 +1078,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (x1_010!=defaultIns.x1_010) {
       featureX1=true;
+    }
+    if (esfm!=defaultIns.esfm) {
+      featureEF=true;
     }
     if (es5503!=defaultIns.es5503) {
       featureE3=true;
@@ -1186,6 +1232,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureNE) {
     writeFeatureNE(w);
+  }
+  if (featureEF) {
+    writeFeatureEF(w);
   }
   if (featureE3) {
     writeFeatureE3(w);
@@ -1844,6 +1893,32 @@ void DivInstrument::readFeatureNE(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureEF(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  unsigned char next=reader.readC();
+  esfm.noise=next&3;
+
+  for (int i=0; i<4; i++) {
+    DivInstrumentESFM::Operator& op=esfm.op[i];
+
+    next=reader.readC();
+    op.delay=(next>>5)&7;
+    op.outLvl=(next>>2)&7;
+    op.right=(next>>1)&1;
+    op.left=next&1;
+
+    next=reader.readC();
+    op.modIn=next&7;
+    op.fixed=(next>>3)&1;
+
+    op.ct=reader.readC();
+    op.dt=reader.readC();
+  }
+  
+  READ_FEAT_END;
+}
+
 void DivInstrument::readFeatureE3(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
@@ -1929,6 +2004,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureX1(reader,version);
     } else if (memcmp(featCode,"NE",2)==0) { // NES (DPCM)
       readFeatureNE(reader,version);
+    } else if (memcmp(featCode,"EF",2)==0) { // ESFM
+      readFeatureEF(reader,version);
     } else if (memcmp(featCode,"E3",2)==0) { // ES5503
       readFeatureE3(reader,version);
     } else {
