@@ -306,12 +306,12 @@ void DivPlatformESFM::tick(bool sysTick) {
           {
             if(chan[i].opsState[o].has_op_pitch)
             {
-              opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct,chan[i].opsState[o].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2+dt,chipClock,CHIP_FREQBASE);
+              opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct,chan[i].opsState[o].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].opsState[o].pitch2+dt,chipClock,CHIP_FREQBASE);
             }
 
             else
             {
-              opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct,chan[i].opsState[o].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].opsState[o].pitch2+dt,chipClock,CHIP_FREQBASE);
+              opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct,chan[i].opsState[o].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2+dt,chipClock,CHIP_FREQBASE);
             }
           }
 
