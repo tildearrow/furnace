@@ -17,13 +17,13 @@ unlike most four-operator FM synthesizers, however, ESFM does not have an algori
 
 these apply to the instrument as a whole:
 
-- **OP4 Noise Mode**: enables special noise effects for operator 4 (0 to 3).
+- **OP4 Noise Mode**: enables special noise effects for operator 4. range is 0 to 3.
   - these are normally used for the drum channels in ESFM's OPL3 compatibility mode.
     - however, in ESFM, operator 4 can be modulated by operator 3, whereas in OPL3 drum mode the rhythm channels cannot be modulated.
   - note: usage of noise mode 3 ("Top") is discouraged for now as it's not properly emulated yet, and results may change when the emulation gets fixed in the future.
 - **operator routing preview**: shows how operators are connected with each other and with the audio output (at the bottom).
   - left-click pops up a small "operators changes with volume?" dialog where each operator can be toggled to scale with volume level.
-  - right-click to switch to a preview display of the waveform generated on a new note:
+  - right-click switches to a preview display of the waveform generated on a new note:
     - left-click restarts the preview.
     - middle-click pauses and unpauses the preview.
     - right-click returns to algorithm view.
@@ -90,7 +90,7 @@ each operator has a Fixed Frequency mode. once enabled, the operator runs at the
 
 ## macros
 
-these macros allow you to control several parameters of FM per tick.
+these macros allow you to control several parameters of FM on each tick.
 
 ## OP1-OP4 Macros
 
@@ -104,7 +104,7 @@ note that the macro cannot exceed 659.1 ms in length - anything beyond that will
 
 ### operator arpeggio and pitch
 
-among the available macros are **Op. arpeggio** and **Op. pitch**. these work like the **Arpeggio** and **Pitch** macros featured below, but are applied individually over the operator, overriding the **Arpeggio**/**Pitch** macros respectively.
+among the available macros are **Op. arpeggio** and **Op. pitch**. these work like the **Arpeggio** and **Pitch** macros featured below, but are applied to the individual operator, overriding the **Arpeggio**/**Pitch** macros respectively.
 
 ## Macros
 
