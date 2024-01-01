@@ -424,10 +424,11 @@ int DivPlatformES5503::dispatch(DivCommand c) {
           chan[c.chan].wave_size = sampleLengths[chan[c.chan].sample];
           chan[c.chan].wave_pos = sampleOffsets[chan[c.chan].sample];
 
-          if(chan[c.chan].wave_size >= 1024)
+          chan[c.chan].address_bus_res = ES5503_wave_lengths_convert_back(chan[c.chan].wave_size);
+          /*if(chan[c.chan].wave_size >= 1024)
           {
             chan[c.chan].address_bus_res = 0b011;
-          }
+          }*/
         }
 
         if(chan[c.chan].softpan_channel)
@@ -439,10 +440,11 @@ int DivPlatformES5503::dispatch(DivCommand c) {
             chan[c.chan + 1].wave_size = sampleLengths[chan[c.chan].sample];
             chan[c.chan + 1].wave_pos = sampleOffsets[chan[c.chan].sample];
 
-            if(chan[c.chan].wave_size >= 1024)
+            chan[c.chan + 1].address_bus_res = ES5503_wave_lengths_convert_back(chan[c.chan].wave_size);
+            /*if(chan[c.chan].wave_size >= 1024)
             {
               chan[c.chan + 1].address_bus_res = 0b011;
-            }
+            }*/
           }
         }
       }
