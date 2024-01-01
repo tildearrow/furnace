@@ -421,6 +421,8 @@ const char* macroRelativeMode="Relative";
 const char* macroQSoundMode="QSound";
 const char* macroDummyMode="Bug";
 
+bool reset_esfm_macros = true;
+
 String macroHoverNote(int id, float val, void* u) {
   int* macroVal=(int*)u;
   if ((macroVal[id]&0xc0000000)==0x40000000 || (macroVal[id]&0xc0000000)==0x80000000) {
@@ -5343,18 +5345,40 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_MODIN),ins,(DivMacroType)DIV_MACRO_OP_D2R,ordi,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
                 if (ins->esfm.op[ordi].fixed) {
                   macroList.push_back(FurnaceGUIMacroDesc("Block",ins,(DivMacroType)DIV_MACRO_OP_SSG,ordi,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER],true));
-                  macroList.back().get_macro()->vZoom=macroList.back().max-macroList.back().min;
-                  macroList.back().get_macro()->vScroll=0;
+
+                  if(reset_esfm_macros)
+                  {
+                    macroList.back().get_macro()->vZoom=macroList.back().max-macroList.back().min;
+                    macroList.back().get_macro()->vScroll=0;
+                  }
+                  
                   macroList.push_back(FurnaceGUIMacroDesc("FreqNum",ins,(DivMacroType)DIV_MACRO_OP_DT,ordi,0,1023,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-                  macroList.back().get_macro()->vZoom=macroList.back().max-macroList.back().min;
-                  macroList.back().get_macro()->vScroll=0;
+
+                  if(reset_esfm_macros)
+                  {
+                    macroList.back().get_macro()->vZoom=macroList.back().max-macroList.back().min;
+                    macroList.back().get_macro()->vScroll=0;
+                  }
+
+                  reset_esfm_macros = false;
                 } else {
                   macroList.push_back(FurnaceGUIMacroDesc("Op. Arpeggio",ins,(DivMacroType)DIV_MACRO_OP_SSG,ordi,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.ops[ordi].op_get_macro(DIV_MACRO_OP_SSG, true)->val,true));
-                  macroList.back().get_macro()->vZoom=24;
-                  macroList.back().get_macro()->vScroll=120-12;
+                  
+                  if(!reset_esfm_macros)
+                  {
+                    macroList.back().get_macro()->vZoom=24;
+                    macroList.back().get_macro()->vScroll=120-12;
+                  }
+
                   macroList.push_back(FurnaceGUIMacroDesc("Op. Pitch",ins,(DivMacroType)DIV_MACRO_OP_DT,ordi,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,0,false,NULL,false,true));
-                  macroList.back().get_macro()->vZoom=128;
-                  macroList.back().get_macro()->vScroll=2048-64;
+
+                  if(!reset_esfm_macros)
+                  {
+                    macroList.back().get_macro()->vZoom=128;
+                    macroList.back().get_macro()->vScroll=2048-64;
+                  }
+
+                  reset_esfm_macros = true;
                 }
 
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),ins,(DivMacroType)DIV_MACRO_OP_AM,ordi,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
