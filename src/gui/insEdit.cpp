@@ -1537,10 +1537,10 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
 
     if (i.macro->vZoom<1) {
-      if (i.macro->macroType==DIV_MACRO_ARP) {
+      if (i.macro->macroType==DIV_MACRO_ARP || i.isArp) {
         i.macro->vZoom=24;
         i.macro->vScroll=120-12;
-      } else if (i.macro->macroType==DIV_MACRO_PITCH) {
+      } else if (i.macro->macroType==DIV_MACRO_PITCH || i.isPitch) {
         i.macro->vZoom=128;
         i.macro->vScroll=2048-64;
       } else {
@@ -3937,6 +3937,9 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY()-0.5*ImGui::GetStyle().ItemSpacing.y);
                     if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
                       opE.fixed=fixedOn;
+                      // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                      ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                      ins->std.opMacros[i].dtMacro.vZoom=-1;
                     }
                     if (ins->type==DIV_INS_ESFM) {
                       if (fixedOn) {
@@ -4674,6 +4677,9 @@ void FurnaceGUI::drawInsEdit() {
                         }
                         if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
                           opE.fixed=fixedOn;
+                          // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                          ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                          ins->std.opMacros[i].dtMacro.vZoom=-1;
                         }
 
                         ImGui::EndTable();
@@ -5198,6 +5204,9 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::SameLine();
                     if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
                       opE.fixed=fixedOn;
+                      // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                      ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                      ins->std.opMacros[i].dtMacro.vZoom=-1;
                     }
                   }
 
@@ -5322,8 +5331,8 @@ void FurnaceGUI::drawInsEdit() {
                   macroList.push_back(FurnaceGUIMacroDesc("Block",&ins->std.opMacros[ordi].ssgMacro,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER],true));
                   macroList.push_back(FurnaceGUIMacroDesc("FreqNum",&ins->std.opMacros[ordi].dtMacro,0,1023,160,uiColors[GUI_COLOR_MACRO_OTHER]));
                 } else {
-                  macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_CT),&ins->std.opMacros[ordi].ssgMacro,-24,24,128,uiColors[GUI_COLOR_MACRO_OTHER],true));
-                  macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_DT),&ins->std.opMacros[ordi].dtMacro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                  macroList.push_back(FurnaceGUIMacroDesc("Op. Arpeggio",&ins->std.opMacros[ordi].ssgMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.opMacros[ordi].ssgMacro.val,true));
+                  macroList.push_back(FurnaceGUIMacroDesc("Op. Pitch",&ins->std.opMacros[ordi].dtMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,0,false,NULL,false,true));
                 }
 
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),&ins->std.opMacros[ordi].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));

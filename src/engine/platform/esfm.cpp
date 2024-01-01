@@ -229,6 +229,8 @@ void DivPlatformESFM::tick(bool sysTick) {
         }
       }
 
+
+
       // detune/fixed pitch
       if (opE.fixed) {
         if (m.ssg.had) {
@@ -241,21 +243,18 @@ void DivPlatformESFM::tick(bool sysTick) {
           chan[i].freqChanged=true;
         }
       } else {
-        if (m.ssg.had) {
-          opE.ct=(signed char)m.ssg.val;
-          chan[i].freqChanged=true;
-        }
-        if (m.dt.had) {
-          opE.dt=(signed char)m.dt.val;
-          chan[i].freqChanged=true;
-        }
+        chan[i].handleArpFmOp(0, o);
+        chan[i].handlePitchFmOp(o);
       }
+
       if (m.dt2.had) {
         opE.delay=m.dt2.val;
         rWrite(baseAddr+ADDR_FREQH_BLOCK_DELAY,chan[i].freqH[o]|(opE.delay<<5));
       }
     }
   }
+
+
 
   for (int i=0; i<ESFM_REG_POOL_SIZE; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
@@ -305,7 +304,17 @@ void DivPlatformESFM::tick(bool sysTick) {
           chan[i].freqL[o]=opE.dt;
           chan[i].freqH[o]=opE.ct&0x1f;
         } else {
-          int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2+dt,chipClock,CHIP_FREQBASE);
+          int arp=chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct;
+          int pitch2=chan[i].pitch2+dt;
+          int fixedArp=chan[i].fixedArp;
+          if(chan[i].opsState[o].hasOpArp) {
+            arp=chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct;
+            fixedArp=chan[i].opsState[o].fixedArp;
+          }
+          if(chan[i].opsState[o].hasOpPitch) {
+            pitch2=chan[i].opsState[o].pitch2+dt;
+          }
+          int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,octave(chan[i].baseFreq)*2,pitch2,chipClock,CHIP_FREQBASE);
           if (opFreq<0) opFreq=0;
           if (opFreq>131071) opFreq=131071;
           int freqt=toFreq(opFreq);
@@ -432,6 +441,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ESFM);
 
       chan[c.chan].macroInit(ins);
+      memset(chan[c.chan].opsState, 0, sizeof(chan[c.chan].opsState));
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
