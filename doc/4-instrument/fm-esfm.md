@@ -106,6 +106,8 @@ note that the macro cannot exceed 659.1 ms in length - anything beyond that will
 
 among the available macros are **Op. arpeggio** and **Op. pitch**. these work like the **Arpeggio** and **Pitch** macros featured below, but are applied to the individual operator, overriding the **Arpeggio**/**Pitch** macros respectively.
 
+the **Tune** and **Fine Detune** FM parameters are still obeyed normally when using these macros.
+
 ## Macros
 
 - **Volume**: volume sequence.
