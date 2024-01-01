@@ -89,6 +89,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_C140=53,
   DIV_INS_C219=54,
   DIV_INS_ESFM=55,
+  DIV_INS_ES5503=56,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -821,6 +822,27 @@ struct DivInstrumentES5506 {
     envelope(Envelope()) {}
 };
 
+struct DivInstrumentES5503 {
+  unsigned char initial_osc_mode;
+  bool softpan_virtual_channel;
+  bool phase_reset_on_start;
+
+  enum WaveTableLengths: unsigned char {
+    DIV_ES5503_WAVE_LENGTH_MAX=8,
+  };
+  
+  bool operator==(const DivInstrumentES5503& other);
+  bool operator!=(const DivInstrumentES5503& other) {
+    return !(*this==other);
+  }
+
+  DivInstrumentES5503():
+    initial_osc_mode(0), softpan_virtual_channel(false),
+    phase_reset_on_start(true) {
+
+    }
+};
+
 struct DivInstrumentSNES {
   enum GainMode: unsigned char {
     GAIN_MODE_DIRECT=0,
@@ -923,6 +945,7 @@ struct DivInstrument {
   DivInstrumentES5506 es5506;
   DivInstrumentSNES snes;
   DivInstrumentESFM esfm;
+  DivInstrumentES5503 es5503;
 
   /**
    * these are internal functions.
@@ -948,6 +971,7 @@ struct DivInstrument {
   void writeFeatureX1(SafeWriter* w);
   void writeFeatureNE(SafeWriter* w);
   void writeFeatureEF(SafeWriter* w);
+  void writeFeatureE3(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -969,6 +993,7 @@ struct DivInstrument {
   void readFeatureX1(SafeReader& reader, short version);
   void readFeatureNE(SafeReader& reader, short version);
   void readFeatureEF(SafeReader& reader, short version);
+  void readFeatureE3(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);

@@ -3428,6 +3428,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_PCM,"PCM");
           UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_WAVE,"Wave");
           UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_OP,"FM operator");
+          UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_ES5503_VIRT,"ES5503 master virtual softpan channel");
           UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_MUTED,"Muted");
           ImGui::TreePop();
         }

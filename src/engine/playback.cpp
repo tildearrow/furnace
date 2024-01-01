@@ -249,6 +249,13 @@ const char* cmdName[]={
 
   "ALWAYS_SET_VOLUME",
 
+  "ES5503_NUM_ENABLED_OSC",
+  "ES5503_OSC_OUTPUT",
+  "ES5503_WAVE_LENGTH",
+  "ES5503_WAVE_POS",
+  "ES5503_OSC_MODE",
+
+  "ALWAYS_SET_VOLUME"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");

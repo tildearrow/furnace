@@ -2277,6 +2277,36 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       supportsCustomRate=false;
       ImGui::Text("nothing to configure");
       break;
+    case DIV_SYSTEM_ES5503:
+    {
+      bool mono = flags.getBool("monoOutput", false);
+
+      if (ImGui::Checkbox("Downmix chip output to mono", &mono)) {
+        altered = true;
+      }
+
+      int reserved = flags.getInt("reserveBlocks",0);
+
+      ImGui::TextUnformatted("Reserved blocks for wavetables:");
+      if(CWSliderInt("",&reserved,0,32))
+      {
+        e->renderSamples(-1);
+        altered = true;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Reserve this many blocks 256 bytes each in sample memory.\nEach block holds one wavetable (is used for one wavetable channel),\nso reserve as many as you need.");
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+            flags.set("monoOutput", mono);
+            flags.set("reserveBlocks", reserved);
+        });
+
+        e->renderSamples(-1);
+      }
+      break;
+    }
     default: {
       bool sysPal=flags.getInt("clockSel",0);
 

@@ -1984,6 +1984,24 @@ void DivEngine::registerSystems() {
     },
     fmESFMPostEffectHandlerMap
   );
+  
+  sysDefs[DIV_SYSTEM_ES5503]=new DivSysDef(
+    "Ensoniq ES5503", NULL, 0xff, 0, 32, false, true, 0x171, false, (1U<<DIV_SAMPLE_DEPTH_8BIT), 256, 256,
+    "first Ensoniq chip used in their synths and Apple IIGS\ncomputer. Has 32 hard-panned 8-bit wavetable/sample channels,\ncan do oscillator sync (like SID) and amplitude modulation.\nCan have up to 128 KiB (2 banks of 64 KiB) of memory\nfor wavetables/samples.\nAs Robert Yannes (SID chip creator)\nsaid, it's more or less what SID chip could be\nif he was given enough time for its development.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24", "Channel 25", "Channel 26", "Channel 27", "Channel 28", "Channel 29", "Channel 30", "Channel 31", "Channel 32"},
+    {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32"},
+    {DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE, DIV_CH_ES5503_VIRT, DIV_CH_WAVE },
+    {DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503, DIV_INS_ES5503},
+    {},
+    {
+      {0x11, {DIV_CMD_ES5503_NUM_ENABLED_OSC, "11xx: Set number of enabled oscillators (2-1F)"}},
+      {0x12, {DIV_CMD_ES5503_OSC_OUTPUT, "12xx: Set oscillator output (0-7, 0=left, 1=right)"}},
+      {0x13, {DIV_CMD_ES5503_WAVE_LENGTH, "13xx: Set wave/sample length (0-7, 0=256, 1=512 etc.)"}},
+      {0x14, {DIV_CMD_ES5503_WAVE_POS, "14xx: Set wave/sample position in memory (xx*256 offset)"}},
+      {0x15, {DIV_CMD_ES5503_OSC_MODE, "15xx: Set oscillator mode (0-3)"}},
+    },
+    {}
+  );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0, 0, 0,

@@ -279,6 +279,10 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       break;
     case DIV_SYSTEM_ESFM:
       return "ES1xxx";
+      break;
+    case DIV_SYSTEM_ES5503:
+      return "ES5503";
+      break;
     default:
       return FurnaceGUI::getSystemName(sys);
       break;

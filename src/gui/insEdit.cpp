@@ -238,6 +238,12 @@ enum ESFMParams {
   ESFM_DT=7,
   ESFM_FIXED=8
 };
+enum ES5503_osc_modes {
+  OSC_MODE_FREERUN = 0,
+  OSC_MODE_ONESHOT = 1,
+  OSC_MODE_SYNC_OR_AM = 2, //for even voice syncs with next odd voice, for odd voice it amplitude modulates next even voice
+  OSC_MODE_SWAP = 3, //triggers next oscillator after previous finishes; since max wavetable size is 32 KiB allows for 64 KiB wavetables to be played seamlessly
+};
 
 #define FM_NAME(x) fmParamNames[settings.fmNames][x]
 #define FM_SHORT_NAME(x) fmParamShortNames[settings.fmNames][x]
@@ -411,6 +417,8 @@ const int kslMap[4]={
   0, 2, 1, 3
 };
 
+const char* ES5503_wave_lengths_string[DivInstrumentES5503::DIV_ES5503_WAVE_LENGTH_MAX] = {"256", "512", "1024", "2048", "4096", "8192", "16384", "32768"};
+
 // do not change these!
 // anything other than a checkbox will look ugly!
 //
@@ -420,6 +428,14 @@ const char* macroAbsoluteMode="Fixed";
 const char* macroRelativeMode="Relative";
 const char* macroQSoundMode="QSound";
 const char* macroDummyMode="Bug";
+
+char* int_to_char_array(int num)
+{
+  static char numberstring[50];
+  memset(numberstring, 0, 50);
+  snprintf(numberstring, 50, "%d", num);
+  return numberstring;
+}
 
 String macroHoverNote(int id, float val, void* u) {
   int* macroVal=(int*)u;
@@ -2507,7 +2523,8 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ins->type==DIV_INS_AY ||
         ins->type==DIV_INS_AY8930 ||
         ins->type==DIV_INS_VRC6 ||
-        ins->type==DIV_INS_SU) {
+        ins->type==DIV_INS_SU ||
+        ins->type==DIV_INS_ES5503) {
       P(ImGui::Checkbox("Use sample",&ins->amiga.useSample));
       if (ins->type==DIV_INS_X1_010) {
         if (ImGui::InputInt("Sample bank slot##BANKSLOT",&ins->x1_010.bankSlot,1,4)) { PARAMETER
@@ -5772,6 +5789,55 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Don't test before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
+        if (ins->type==DIV_INS_ES5503) if (ImGui::BeginTabItem("ES5503")) {
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Oscillator mode:");
+          ImGui::SameLine();
+          bool freerun = (ins->es5503.initial_osc_mode == OSC_MODE_FREERUN);
+          bool oneshot = (ins->es5503.initial_osc_mode == OSC_MODE_ONESHOT);
+          bool sync_am = (ins->es5503.initial_osc_mode == OSC_MODE_SYNC_OR_AM);
+          bool swap = (ins->es5503.initial_osc_mode == OSC_MODE_SWAP);
+          if (ImGui::RadioButton("Freerun",freerun)) { PARAMETER
+            freerun=true;
+            oneshot=false;
+            sync_am=false;
+            swap=false;
+            ins->es5503.initial_osc_mode=OSC_MODE_FREERUN;
+          }
+          ImGui::SameLine();
+          if (ImGui::RadioButton("Oneshot",oneshot)) { PARAMETER
+            freerun=false;
+            oneshot=true;
+            sync_am=false;
+            swap=false;
+            ins->es5503.initial_osc_mode=OSC_MODE_ONESHOT;
+          }
+          ImGui::SameLine();
+          if (ImGui::RadioButton("Sync/AM",sync_am)) { PARAMETER
+            freerun=false;
+            oneshot=false;
+            sync_am=true;
+            swap=false;
+            ins->es5503.initial_osc_mode=OSC_MODE_SYNC_OR_AM;
+          }
+          ImGui::SameLine();
+          if (ImGui::RadioButton("Swap",swap)) { PARAMETER
+            freerun=false;
+            oneshot=false;
+            sync_am=true;
+            swap=false;
+            ins->es5503.initial_osc_mode=OSC_MODE_SWAP;
+          }
+
+          P(ImGui::Checkbox("Virtual softpan channel",&ins->es5503.softpan_virtual_channel));
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Combines odd and next even channel into one virtual channel with 256-step panning.\nInstrument, volume and effects need to be placed on the odd channel (e.g. 1st, 3rd, 5th etc.)");
+          }
+
+          P(ImGui::Checkbox("Phase reset on key-on",&ins->es5503.phase_reset_on_start));
+          
+          ImGui::EndTabItem();
+        }
         if (ins->type==DIV_INS_SU) if (ImGui::BeginTabItem("Sound Unit")) {
           P(ImGui::Checkbox("Switch roles of frequency and phase reset timer",&ins->su.switchRoles));
           if (ImGui::BeginChild("HWSeqSU",ImGui::GetContentRegionAvail(),true,ImGuiWindowFlags_MenuBar)) {
@@ -6467,6 +6533,7 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_FDS ||
             (ins->type==DIV_INS_SWAN && !ins->amiga.useSample) ||
             (ins->type==DIV_INS_PCE && !ins->amiga.useSample) ||
+            (ins->type==DIV_INS_ES5503 && !ins->amiga.useSample) ||
             (ins->type==DIV_INS_VBOY) ||
             ins->type==DIV_INS_SCC ||
             ins->type==DIV_INS_SNES ||
@@ -6512,6 +6579,10 @@ void FurnaceGUI::drawInsEdit() {
               case DIV_INS_SNES:
                 wavePreviewLen=ins->amiga.waveLen+1;
                 wavePreviewHeight=15;
+                break;
+              case DIV_INS_ES5503:
+                wavePreviewLen=256;
+                wavePreviewHeight=255;
                 break;
               default:
                 wavePreviewLen=32;
@@ -6771,7 +6842,7 @@ void FurnaceGUI::drawInsEdit() {
             volMax=31;
           }
           if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219) {
+              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219 || ins->type==DIV_INS_ES5503) {
             volMax=255;
           }
           if (ins->type==DIV_INS_QSOUND) {
@@ -6915,6 +6986,9 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_ESFM) {
             dutyLabel="OP4 Noise Mode";
+          }
+          if (ins->type==DIV_INS_ES5503) {
+            dutyLabel="Osc. mode";
             dutyMax=3;
           }
 
@@ -6929,6 +7003,7 @@ void FurnaceGUI::drawInsEdit() {
               waveMax=0;
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC || ins->type==DIV_INS_OPLL) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
+          if (ins->type==DIV_INS_ES5503) waveMax=ins->amiga.useSample?0:255;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
@@ -6962,6 +7037,10 @@ void FurnaceGUI::drawInsEdit() {
           
           if (ins->type==DIV_INS_OPLL) {
             waveLabel="Patch";
+          }
+
+          if (ins->type==DIV_INS_ES5503) {
+            waveLabel="Wavetable";
           }
 
           if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
@@ -7017,6 +7096,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM5232) {
             ex1Max=5;
             ex2Max=11;
+          }
+          if (ins->type==DIV_INS_ES5503) {
+            ex1Max=255;
+            ex2Max=7;
           }
 
           int panMin=0;
@@ -7088,6 +7171,9 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_ES5506) {
             panMax=4095;
+          }
+          if (ins->type==DIV_INS_ES5503 && ins->es5503.softpan_virtual_channel) {
+            panMax=255;
           }
 
           if (volMax>0) {
@@ -7176,7 +7262,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_C140 ||
               ins->type==DIV_INS_C219 ||
               ins->type==DIV_INS_TED ||
-              ins->type==DIV_INS_ESFM) {
+              ins->type==DIV_INS_ESFM ||
+              ins->type==DIV_INS_ES5503) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",ins,DIV_MACRO_PHASE_RESET,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -7210,6 +7297,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Special",ins,DIV_MACRO_EX1,0xff,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,snesModeBits));
             } else if (ins->type==DIV_INS_MSM5232) {
               macroList.push_back(FurnaceGUIMacroDesc("Group Attack",ins,DIV_MACRO_EX1,0xff,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+            } else if (ins->type==DIV_INS_ES5503) {
+              macroList.push_back(FurnaceGUIMacroDesc("Wave/sample pos.",ins,DIV_MACRO_EX1,0xff,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",ins,DIV_MACRO_EX1,0xff,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
@@ -7227,8 +7316,9 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Echo Length",ins,DIV_MACRO_EX2,0xff,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SNES) {
               macroList.push_back(FurnaceGUIMacroDesc("Gain",ins,DIV_MACRO_EX2,0xff,0,ex2Max,256,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,macroHoverGain,false));
-            } else if (ins->type==DIV_INS_MSM5232) {
               macroList.push_back(FurnaceGUIMacroDesc("Group Decay",ins,DIV_MACRO_EX2,0xff,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            } else if (ins->type==DIV_INS_ES5503) {
+              macroList.push_back(FurnaceGUIMacroDesc("Osc. output",ins,DIV_MACRO_EX2,0xff,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",ins,DIV_MACRO_EX2,0xff,0,ex2Max,ex2Bit?64:160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,ex2Bit,ayEnvBits));
             }
@@ -7285,7 +7375,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_PCE ||
             ins->type==DIV_INS_X1_010 ||
             ins->type==DIV_INS_SWAN ||
-            ins->type==DIV_INS_VRC6) {
+            ins->type==DIV_INS_VRC6 ||
+            ins->type==DIV_INS_ES5503) {
           insTabSample(ins);
         }
         if (ins->type>=DIV_INS_MAX) {
