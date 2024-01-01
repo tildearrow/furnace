@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev189"
-#define DIV_ENGINE_VERSION 189
+#define DIV_VERSION "dev190"
+#define DIV_ENGINE_VERSION 190
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -176,16 +176,16 @@ struct DivNoteEvent {
   signed char channel;
   unsigned char ins;
   signed char note, volume;
-  bool on, nop, pad1, pad2;
-  DivNoteEvent(int c, int i, int n, int v, bool o):
+  bool on, nop, insChange, fromMIDI;
+  DivNoteEvent(int c, int i, int n, int v, bool o, bool ic=false, bool fm=false):
     channel(c),
     ins(i),
     note(n),
     volume(v),
     on(o),
     nop(false),
-    pad1(false),
-    pad2(false) {}
+    insChange(ic),
+    fromMIDI(fm) {}
   DivNoteEvent():
     channel(-1),
     ins(0),
@@ -193,8 +193,8 @@ struct DivNoteEvent {
     volume(-1),
     on(false),
     nop(true),
-    pad1(false),
-    pad2(false) {}
+    insChange(false),
+    fromMIDI(false) {}
 };
 
 struct DivDispatchContainer {
@@ -415,6 +415,7 @@ class DivEngine {
   bool firstTick;
   bool skipping;
   bool midiIsDirect;
+  bool midiIsDirectProgram;
   bool lowLatency;
   bool systemsRegistered;
   bool hasLoadedSomething;
@@ -701,6 +702,9 @@ class DivEngine {
     double getConfDouble(String key, double fallback);
     String getConfString(String key, String fallback);
 
+    // get config object
+    DivConfig& getConfObject();
+
     // set a config value
     void setConf(String key, bool value);
     void setConf(String key, int value);
@@ -850,6 +854,9 @@ class DivEngine {
 
     // get channel max volume
     int getMaxVolumeChan(int chan);
+
+    // map MIDI velocity to volume
+    int mapVelocity(int ch, float vel);
 
     // get current order
     unsigned char getOrder();
@@ -1070,6 +1077,9 @@ class DivEngine {
     // rescan audio devices
     void rescanAudioDevices();
 
+    /** rescan midi devices */
+    void rescanMidiDevices();
+
     // set the console mode.
     void setConsoleMode(bool enable);
 
@@ -1185,6 +1195,9 @@ class DivEngine {
     // set MIDI direct channel map
     void setMidiDirect(bool value);
 
+    // set MIDI direct program change
+    void setMidiDirectProgram(bool value);
+
     // set MIDI volume curve exponent
     void setMidiVolExp(float value);
 
@@ -1257,6 +1270,7 @@ class DivEngine {
       firstTick(false),
       skipping(false),
       midiIsDirect(false),
+      midiIsDirectProgram(false),
       lowLatency(false),
       systemsRegistered(false),
       hasLoadedSomething(false),

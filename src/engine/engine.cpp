@@ -83,7 +83,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0x82:
       return "82xx: Set panning (right channel)";
     case 0x88:
-      return "88xx: Set panning (rear channels; x: left; y: right)";
+      return "88xy: Set panning (rear channels; x: left; y: right)";
       break;
     case 0x89:
       return "89xx: Set panning (rear left channel)";
@@ -2188,6 +2188,13 @@ int DivEngine::getMaxVolumeChan(int ch) {
   return chan[ch].volMax>>8;
 }
 
+int DivEngine::mapVelocity(int ch, float vel) {
+  if (ch<0) return 0;
+  if (ch>=chans) return 0;
+  if (disCont[dispatchOfChan[ch]].dispatch==NULL) return 0;
+  return disCont[dispatchOfChan[ch]].dispatch->mapVelocity(dispatchChanOfChan[ch],vel);
+}
+
 unsigned char DivEngine::getOrder() {
   return prevOrder;
 }
@@ -3391,6 +3398,10 @@ void DivEngine::setMidiDirect(bool value) {
   midiIsDirect=value;
 }
 
+void DivEngine::setMidiDirectProgram(bool value) {
+  midiIsDirectProgram=value;
+}
+
 void DivEngine::setMidiVolExp(float value) {
   midiVolExp=value;
 }
@@ -3459,6 +3470,12 @@ void DivEngine::rescanAudioDevices() {
   audioDevs.clear();
   if (output!=NULL) {
     audioDevs=output->listAudioDevices();
+  }
+}
+
+void DivEngine::rescanMidiDevices() {
+  if (output!=NULL) {
+    logV("re-scanning midi...");
     if (output->midiIn!=NULL) {
       midiIns=output->midiIn->listDevices();
     }

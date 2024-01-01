@@ -34,6 +34,7 @@ class DivPlatformYM2203Ext: public DivPlatformYM2203 {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    int mapVelocity(int ch, float vel);
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
