@@ -290,6 +290,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_TED,
   GUI_COLOR_INSTR_C140,
   GUI_COLOR_INSTR_C219,
+  GUI_COLOR_INSTR_ESFM,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1215,8 +1216,10 @@ struct FurnaceGUIMacroDesc {
   bool isBitfield, blockMode, bit30;
   String (*hoverFunc)(int,float,void*);
   void* hoverFuncUser;
+  bool is_arp;
+  bool is_pitch;
 
-  FurnaceGUIMacroDesc(const char* name, DivInstrument* ins, DivMacroType macro_id, int oper, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float,void*)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false, void* hfu=NULL):
+  FurnaceGUIMacroDesc(const char* name, DivInstrument* ins, DivMacroType macro_id, int oper, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float,void*)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false, void* hfu=NULL, bool isArp=false, bool isPitch=false):
     ins(ins),
     macro_id(macro_id),
     oper(oper),
@@ -1230,7 +1233,9 @@ struct FurnaceGUIMacroDesc {
     blockMode(block),
     bit30(bit30Special),
     hoverFunc(hf),
-    hoverFuncUser(hfu) {
+    hoverFuncUser(hfu),
+    is_arp(isArp),
+    is_pitch(isPitch) {
     // MSVC -> hell
     this->min=macroMin;
     this->max=macroMax;
@@ -1483,6 +1488,7 @@ class FurnaceGUI {
   void* fmPreviewOPLL;
   void* fmPreviewOPZ;
   void* fmPreviewOPZInterface;
+  void* fmPreviewESFM;
   String* editString;
   SDL_Event userEvent;
 
@@ -2338,6 +2344,7 @@ class FurnaceGUI {
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
+  void drawESFMAlgorithm(DivInstrumentESFM& esfm, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
   bool drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
@@ -2349,6 +2356,7 @@ class FurnaceGUI {
   void renderFMPreviewOPLL(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewOPL(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewOPZ(const DivInstrumentFM& params, int pos=0);
+  void renderFMPreviewESFM(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, int pos=0);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);

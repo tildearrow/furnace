@@ -2962,7 +2962,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
 
     w->writeText(fmt::sprintf("- type: %d\n",(int)ins->type));
 
-    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM) {
+    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
       w->writeText("- FM parameters:\n");
       w->writeText(fmt::sprintf("  - ALG: %d\n",ins->fm.alg));
       w->writeText(fmt::sprintf("  - FB: %d\n",ins->fm.fb));
@@ -3003,6 +3003,25 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
         w->writeText(fmt::sprintf("    - WS: %d\n",op.ws));
         w->writeText(fmt::sprintf("    - KSR: %d\n",op.ksr));
         w->writeText(fmt::sprintf("    - TL volume scale: %d\n",op.kvs));
+      }
+    }
+
+    if (ins->type==DIV_INS_ESFM) {
+      w->writeText("- ESFM parameters:\n");
+      w->writeText(fmt::sprintf("  - noise mode: %d\n",ins->esfm.noise));
+
+      for (int j=0; j<ins->fm.ops; j++) {
+        DivInstrumentESFM::Operator& opE=ins->esfm.op[j];
+
+        w->writeText(fmt::sprintf("  - operator %d:\n",j));
+        w->writeText(fmt::sprintf("    - DL: %d\n",opE.delay));
+        w->writeText(fmt::sprintf("    - OL: %d\n",opE.outLvl));
+        w->writeText(fmt::sprintf("    - MI: %d\n",opE.modIn));
+        w->writeText(fmt::sprintf("    - output left: %s\n",trueFalse[opE.left?1:0]));
+        w->writeText(fmt::sprintf("    - output right: %s\n",trueFalse[opE.right?1:0]));
+        w->writeText(fmt::sprintf("    - CT: %d\n",opE.ct));
+        w->writeText(fmt::sprintf("    - DT: %d\n",opE.dt));
+        w->writeText(fmt::sprintf("    - fixed frequency: %s\n",trueFalse[opE.fixed?1:0]));
       }
     }
 
