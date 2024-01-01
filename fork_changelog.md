@@ -9,6 +9,7 @@ LTVA:
 - CSM variants for YM2203, YM2608, YM2610 and YM2610B chips
 - Hide FM chips variations (ext3 ch, drums mode, CSM) into spoilers to reduce FM chips tab clutter in chips manager
 - Remove ability to save `.dmf` files
+- Add ESFM system. The code is courtesy of @Kagamiin, I just added per-op arpeggio and pitch macros which Kagamiin actually adopted in tilde's Furnace PR. And, of course, I edited the code to match new macro system. 
 
 freq-mod:
 - 86-PCM streo DAC fix
