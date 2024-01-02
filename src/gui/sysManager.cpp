@@ -85,7 +85,7 @@ void FurnaceGUI::drawSysManager() {
         ImGui::TableNextColumn();
         ImGui::Button("Change##SysChange");
         if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
-          DivSystem picked=systemPicker();
+          DivSystem picked=systemPicker(false);
           if (picked!=DIV_SYSTEM_NULL) {
             e->changeSystem(i,picked,preserveChanPos);
             MARK_MODIFIED;
@@ -117,7 +117,7 @@ void FurnaceGUI::drawSysManager() {
         ImGui::TableNextColumn();
         ImGui::Button(ICON_FA_PLUS "##SysAdd");
         if (ImGui::BeginPopupContextItem("SysPickerA",ImGuiPopupFlags_MouseButtonLeft)) {
-          DivSystem picked=systemPicker();
+          DivSystem picked=systemPicker(false);
           if (picked!=DIV_SYSTEM_NULL) {
             if (!e->addSystem(picked)) {
               showError("cannot add chip! ("+e->getLastError()+")");
