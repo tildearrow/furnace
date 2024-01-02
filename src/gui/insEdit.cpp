@@ -3793,6 +3793,9 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
                     P(CWVSliderScalar("##CT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR)); rightClickable
+                    if (ImGui::IsItemHovered()) {
+                      ImGui::SetTooltip("Detune in semitones");
+                    }
                   }
 
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
@@ -3869,6 +3872,9 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
                     P(CWVSliderScalar("##DT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_S8,&opE.dt,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+                    if (ImGui::IsItemHovered()) {
+                      ImGui::SetTooltip("Detune in fractions of semitone.\n128 = +1 semitone, -128 = -1 semitone.");
+                    }
 
                     ImGui::TableNextColumn();
                     bool amOn=op.am;
@@ -3894,10 +3900,16 @@ void FurnaceGUI::drawInsEdit() {
                       if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_LEFT),&leftOn)) { PARAMETER
                         opE.left=leftOn;
                       }
+                      if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("If operator outputs sound, enable left channel output.");
+                      }
                       ImGui::TableNextColumn();
                       ImGui::SetCursorPosY(yCoordBeforeTablePadding);
                       if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_RIGHT),&rightOn)) { PARAMETER
                         opE.right=rightOn;
+                      }
+                      if (ImGui::IsItemHovered()) {
+                        ImGui::SetTooltip("If operator outputs sound, enable right channel output.");
                       }
                       if (fixedOn) {
                         ImGui::TableNextColumn();
@@ -5123,6 +5135,9 @@ void FurnaceGUI::drawInsEdit() {
                         ImGui::TableNextColumn();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                         P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR)); rightClickable
+                        if (ImGui::IsItemHovered()) {
+                          ImGui::SetTooltip("Detune in semitones");
+                        }
                         ImGui::TableNextColumn();
                         ImGui::Text("%s",ESFM_NAME(ESFM_CT));
 
@@ -5130,6 +5145,9 @@ void FurnaceGUI::drawInsEdit() {
                         ImGui::TableNextColumn();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                         P(CWSliderScalar("##DT",ImGuiDataType_S8,&opE.dt,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+                        if (ImGui::IsItemHovered()) {
+                          ImGui::SetTooltip("Detune in fractions of semitone.\n128 = +1 semitone, -128 = -1 semitone.");
+                        }
                         ImGui::TableNextColumn();
                         ImGui::Text("%s",ESFM_NAME(ESFM_DT));
                       }
@@ -5199,9 +5217,15 @@ void FurnaceGUI::drawInsEdit() {
                     if (ImGui::Checkbox(ESFM_NAME(ESFM_LEFT),&leftOn)) { PARAMETER
                       opE.left=leftOn;
                     }
+                    if (ImGui::IsItemHovered()) {
+                      ImGui::SetTooltip("If operator outputs sound, enable left channel output.");
+                    }
                     ImGui::SameLine();
                     if (ImGui::Checkbox(ESFM_NAME(ESFM_RIGHT),&rightOn)) { PARAMETER
                       opE.right=rightOn;
+                    }
+                    if (ImGui::IsItemHovered()) {
+                      ImGui::SetTooltip("If operator outputs sound, enable right channel output.");
                     }
                     ImGui::SameLine();
                     if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
