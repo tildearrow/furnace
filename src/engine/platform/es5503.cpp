@@ -279,7 +279,7 @@ void DivPlatformES5503::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5503);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,(double)chipClock /** (32 + 2) / (es5503.oscsenabled + 2)*/,CHIP_FREQBASE * 130.81 * 2 / 211.0); //TODO: why freq calc is wrong?
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,(double)chipClock,CHIP_FREQBASE * 130.81 * 2 / 211.0); //TODO: why freq calc is wrong?
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
 
