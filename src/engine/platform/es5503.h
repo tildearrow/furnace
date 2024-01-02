@@ -57,7 +57,9 @@ class DivPlatformES5503: public DivDispatch {
       osc_mode(0),
       output(0),
       address_bus_res(0b010),
-      wavetable_block(-1) {}
+      wavetable_block(-1) {
+        softpan_channel = false;
+      }
   };
   Channel chan[32];
   DivDispatchOscBuffer* oscBuf[32];

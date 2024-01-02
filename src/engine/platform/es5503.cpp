@@ -373,6 +373,8 @@ void DivPlatformES5503::tick(bool sysTick) {
       {
         if (chan[i].keyOn) chan[i+1].keyOn=false;
         if (chan[i].keyOff) chan[i+1].keyOff=false;
+
+        if (chan[i].keyOff) chan[i].softpan_channel = false;
       }
 
       if (chan[i].keyOn) chan[i].keyOn=false;
@@ -518,6 +520,12 @@ int DivPlatformES5503::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
+
+      if(chan[c.chan].wavetable_block != -1)
+      {
+        wavetable_block_occupied[chan[c.chan].wavetable_block] = false;
+        chan[c.chan].wavetable_block = -1;
+      }
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:

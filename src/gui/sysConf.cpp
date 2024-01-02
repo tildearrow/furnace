@@ -22,6 +22,8 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
+bool rerender_es5503 = true;
+
 bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
   bool mustRender=false;
@@ -2287,12 +2289,19 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       int reserved = flags.getInt("reserveBlocks",0);
 
+      if(rerender_es5503)
+      {
+        e->renderSamples(-1); //hack! it needs rerendering two times...
+        rerender_es5503 = false;
+      }
+
       ImGui::TextUnformatted("Reserved blocks for wavetables:");
       if(CWSliderInt("",&reserved,0,32))
       {
-        e->renderSamples(-1);
         altered = true;
+        rerender_es5503 = true;
       }
+
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Reserve this many blocks 256 bytes each in sample memory.\nEach block holds one wavetable (is used for one wavetable channel),\nso reserve as many as you need.");
       }
@@ -2303,7 +2312,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
             flags.set("reserveBlocks", reserved);
         });
 
-        e->renderSamples(-1);
+        e->renderSamples(-1); //hack! it needs rerendering two times...
       }
       break;
     }
