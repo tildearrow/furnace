@@ -56,7 +56,7 @@ else if((DivSystem)curSysSection[j] == (sys)) \
   } \
 } 
 
-DivSystem FurnaceGUI::systemPicker() {
+DivSystem FurnaceGUI::systemPicker(bool full_width) {
   DivSystem ret=DIV_SYSTEM_NULL;
   DivSystem hoveredSys=DIV_SYSTEM_NULL;
   bool reissueSearch=false;
@@ -94,7 +94,7 @@ DivSystem FurnaceGUI::systemPicker() {
       }
     }
   }
-  if (ImGui::BeginTable("SysList",1,ImGuiTableFlags_ScrollY,ImVec2(500.0f*dpiScale,200.0*dpiScale))) {
+  if (ImGui::BeginTable("SysList",1,ImGuiTableFlags_ScrollY,ImVec2(full_width ? ImGui::GetContentRegionAvail().x : 500.0f*dpiScale,200.0f*dpiScale))) {
     if (sysSearchQuery.empty()) {
       // display chip list
       

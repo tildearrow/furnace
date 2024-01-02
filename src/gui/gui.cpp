@@ -4122,7 +4122,7 @@ bool FurnaceGUI::loop() {
         } else {
           if (ImGui::BeginMenu("add chip...")) {
             exitDisabledTimer=1;
-            DivSystem picked=systemPicker();
+            DivSystem picked=systemPicker(false);
             if (picked!=DIV_SYSTEM_NULL) {
               if (!e->addSystem(picked)) {
                 showError("cannot add chip! ("+e->getLastError()+")");
@@ -4152,7 +4152,7 @@ bool FurnaceGUI::loop() {
             ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
             for (int i=0; i<e->song.systemLen; i++) {
               if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-                DivSystem picked=systemPicker();
+                DivSystem picked=systemPicker(false);
                 if (picked!=DIV_SYSTEM_NULL) {
                   e->changeSystem(i,picked,preserveChanPos);
                   MARK_MODIFIED;
