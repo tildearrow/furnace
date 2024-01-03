@@ -4316,6 +4316,11 @@ bool FurnaceGUI::loop() {
             ImGui::EndMenu();
           }
         }
+#if defined(FURNACE_DATADIR) && defined(SHOW_OPEN_ASSETS_MENU_ENTRY)
+        if (ImGui::MenuItem("open built-in assets directory")) {
+          SDL_OpenURL("file://" FURNACE_DATADIR);
+        }
+#endif
         ImGui::BeginDisabled(exitDisabledTimer);
         ImGui::Separator();
         if (ImGui::MenuItem("restore backup",BIND_FOR(GUI_ACTION_OPEN_BACKUP))) {

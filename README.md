@@ -272,6 +272,7 @@ Available options:
 | `WITH_DEMOS` | `ON` | Install demo songs on `make install` |
 | `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
 | `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
+| `SHOW_OPEN_ASSETS_MENU_ENTRY` | `ON` | `Show option to open built-in assets directory (on supported platforms)` |
 
 (\*) `ON` if system-installed JACK detected, otherwise `OFF`
 
