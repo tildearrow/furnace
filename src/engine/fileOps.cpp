@@ -3025,6 +3025,15 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       }
     }
 
+    if (ins->type==DIV_INS_ES5503) {
+      w->writeText("- ES503 parameters:\n");
+
+      w->writeText(fmt::sprintf("  - oscillator mode: %d\n",ins->es5503.initial_osc_mode));
+
+      w->writeText(fmt::sprintf("  - phase reset on key-on: %s\n",trueFalse[ins->es5503.phase_reset_on_start?1:0]));
+      w->writeText(fmt::sprintf("  - softpan virtual channel: %s\n",trueFalse[ins->es5503.softpan_virtual_channel?1:0]));
+    }
+
     if (ins->type==DIV_INS_GB) {
       w->writeText("- Game Boy parameters:\n");
       w->writeText(fmt::sprintf("  - volume: %d\n",ins->gb.envVol));

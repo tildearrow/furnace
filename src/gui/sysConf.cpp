@@ -22,6 +22,8 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
+bool rerender_es5503 = true;
+
 bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
   bool mustRender=false;
@@ -2277,6 +2279,43 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       supportsCustomRate=false;
       ImGui::Text("nothing to configure");
       break;
+    case DIV_SYSTEM_ES5503:
+    {
+      bool mono = flags.getBool("monoOutput", false);
+
+      if (ImGui::Checkbox("Downmix chip output to mono", &mono)) {
+        altered = true;
+      }
+
+      int reserved = flags.getInt("reserveBlocks",0);
+
+      if(rerender_es5503)
+      {
+        e->renderSamples(-1); //hack! it needs rerendering two times...
+        rerender_es5503 = false;
+      }
+
+      ImGui::TextUnformatted("Reserved blocks for wavetables:");
+      if(CWSliderInt("",&reserved,0,32))
+      {
+        altered = true;
+        rerender_es5503 = true;
+      }
+
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Reserve this many blocks 256 bytes each in sample memory.\nEach block holds one wavetable (is used for one wavetable channel),\nso reserve as many as you need.");
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+            flags.set("monoOutput", mono);
+            flags.set("reserveBlocks", reserved);
+        });
+
+        e->renderSamples(-1); //hack! it needs rerendering two times...
+      }
+      break;
+    }
     default: {
       bool sysPal=flags.getInt("clockSel",0);
 

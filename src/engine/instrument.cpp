@@ -216,6 +216,14 @@ bool DivInstrumentES5506::operator==(const DivInstrumentES5506& other) {
   );
 }
 
+bool DivInstrumentES5503::operator==(const DivInstrumentES5503& other) {
+  return (
+    _C(initial_osc_mode) &&
+    _C(softpan_virtual_channel) &&
+    _C(phase_reset_on_start)
+  );
+}
+
 bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
   return (
     _C(useEnv) &&
@@ -747,6 +755,14 @@ void DivInstrument::writeFeatureEF(SafeWriter* w) {
     w->writeC(op.ct);
     w->writeC(op.dt);
   }
+  
+  FEATURE_END;
+}
+
+void DivInstrument::writeFeatureE3(SafeWriter* w) {
+  FEATURE_BEGIN("E3");
+  
+  w->writeC((es5503.initial_osc_mode << 6)|((uint8_t)es5503.softpan_virtual_channel << 5)|((uint8_t)es5503.phase_reset_on_start << 4));
 
   FEATURE_END;
 }
@@ -795,6 +811,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureX1=false;
   bool featureNE=false;
   bool featureEF=false;
+  bool featureE3=false;
 
   bool checkForWL=false;
 
@@ -1012,6 +1029,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureFM=true;
         featureEF=true;
         break;
+      case DIV_INS_ES5503:
+        featureE3=true;
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1061,6 +1081,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (esfm!=defaultIns.esfm) {
       featureEF=true;
+    }
+    if (es5503!=defaultIns.es5503) {
+      featureE3=true;
     }
   }
 
@@ -1212,6 +1235,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureEF) {
     writeFeatureEF(w);
+  }
+  if (featureE3) {
+    writeFeatureE3(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -1889,6 +1915,18 @@ void DivInstrument::readFeatureEF(SafeReader& reader, short version) {
     op.ct=reader.readC();
     op.dt=reader.readC();
   }
+  
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureE3(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  uint8_t temp = reader.readC();
+
+  es5503.initial_osc_mode = temp >> 6;
+  es5503.softpan_virtual_channel = (temp >> 5) & 1;
+  es5503.phase_reset_on_start = (temp >> 4) & 1;
 
   READ_FEAT_END;
 }
@@ -1968,6 +2006,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureNE(reader,version);
     } else if (memcmp(featCode,"EF",2)==0) { // ESFM
       readFeatureEF(reader,version);
+    } else if (memcmp(featCode,"E3",2)==0) { // ES5503
+      readFeatureE3(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing
