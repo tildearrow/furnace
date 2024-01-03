@@ -3562,69 +3562,7 @@ void FurnaceGUI::drawSettings() {
         }
         END_SECTION;
       }
-      if (nonLatchNibble) {
-        // ok, so you decided to read the code.
-        // these are the cheat codes:
-        // "Debug" - toggles mobile UI
-        // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/Dummy)
-        // "42 63" - enables all instrument types
-        // "4-bit FDS" - enables partial pitch linearity option
-        // "Power of the Chip" - enables options for multi-threaded audio
-        // "btcdbcb" - use modern UI padding
-        // "????" - enables stuff
-        CONFIG_SECTION("Cheat Codes") {
-          // SUBSECTION ENTER CODE:
-          CONFIG_SUBSECTION("Enter code:");
-          ImGui::InputText("##CheatCode",&mmlString[31]);
-          if (ImGui::Button("Submit")) {
-            unsigned int checker=0x11111111;
-            unsigned int checker1=0;
-            int index=0;
-            mmlString[30]="invalid code";
-
-            for (char& i: mmlString[31]) {
-              checker^=((unsigned int)i)<<index;
-              checker1+=i;
-              checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
-              checker1<<=1;
-              index=(index+1)&31;
-            }
-            if (checker==0x90888b65 && checker1==0x1482) {
-              mmlString[30]="toggled alternate UI";
-              toggleMobileUI(!mobileUI);
-            }
-            if (checker==0x5a42a113 && checker1==0xe4ef451e) {
-              mmlString[30]=":smile: :star_struck: :sunglasses: :ok_hand:";
-              settings.hiddenSystems=!settings.hiddenSystems;
-            }
-            if (checker==0xe888896b && checker1==0xbde) {
-              mmlString[30]="enabled all instrument types";
-              settings.displayAllInsTypes=!settings.displayAllInsTypes;
-            }
-            if (checker==0x3f88abcc && checker1==0xf4a6) {
-              mmlString[30]="OK, if I bring your Partial pitch linearity will you stop bothering me?";
-              settings.displayPartial=1;
-            }
-            if (checker==0x8537719f && checker1==0x17a1f34) {
-              mmlString[30]="unlocked audio multi-threading options!";
-              settings.showPool=1;
-            }
-            if (checker==0x94222d83 && checker1==0x6600) {
-              mmlString[30]="enabled \"comfortable\" mode";
-              ImGuiStyle& sty=ImGui::GetStyle();
-              sty.FramePadding=ImVec2(20.0f*dpiScale,20.0f*dpiScale);
-              sty.ItemSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
-              sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
-              settingsOpen=false;
-            }
-
-            mmlString[31]="";
-          }
-          ImGui::Text("%s",mmlString[30].c_str());
-
-          END_SECTION;
-        }
-      }
+      
       ImGui::EndTabBar();
     }
     ImGui::Separator();

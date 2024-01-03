@@ -626,6 +626,53 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Force Load")) e->loadConf();
       ImGui::SameLine();
       if (ImGui::Button("Force Save")) e->saveConf();
+
+      // ok, so you decided to read the code.
+      // these are the cheat codes:
+      // [These were cheat codes but I left only ones that are useful debug options and put them here] - LTVA
+      // "Debug" - toggles mobile UI
+      // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/Dummy)
+      // "42 63" - enables all instrument types
+      // "4-bit FDS" - enables partial pitch linearity option
+      // "Power of the Chip" - enables options for multi-threaded audio
+      // "btcdbcb" - use modern UI padding
+      // "????" - enables stuff
+
+      if (ImGui::Button("Toggle mobile UI")) toggleMobileUI(!mobileUI);
+
+      bool hiddenSystemsB = settings.hiddenSystems;
+      if (ImGui::Checkbox("Show hidden systems", &hiddenSystemsB))
+      {
+        settings.hiddenSystems=hiddenSystemsB;
+        willCommit = true;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Nice Amiga cover of the song!\n:smile: :star_struck: :sunglasses: :ok_hand:\n[Afaik it's a joke about AshKirby putting emojis at each message's end] - LTVA");
+      }
+
+      bool displayAllInsTypesB = settings.displayAllInsTypes;
+      if (ImGui::Checkbox("Display all instrument types", &displayAllInsTypesB))
+      {
+        settings.displayAllInsTypes=displayAllInsTypesB;
+        willCommit = true;
+      }
+
+      bool displayPartialB = settings.displayPartial;
+      if (ImGui::Checkbox("OK, if I bring your Partial pitch linearity will you stop bothering me?", &displayPartialB))
+      {
+        settings.displayPartial=displayPartialB;
+        willCommit = true;
+      }
+
+      bool showPoolB = settings.showPool;
+      if (ImGui::Checkbox("unlocked audio multi-threading options!", &showPoolB))
+      {
+        settings.showPool=showPoolB;
+        willCommit = true;
+      }
+
+
+      
       ImGui::TreePop();
     }
     ImGui::Text("Song format version %d",e->song.version);

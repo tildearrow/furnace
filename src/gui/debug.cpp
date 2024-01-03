@@ -55,6 +55,7 @@
 #include "../engine/platform/pv1000.h"
 #include "../engine/platform/k053260.h"
 #include "../engine/platform/c140.h"
+#include "../engine/platform/esfm.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -554,6 +555,13 @@ void putDispatchChip(void* data, int type) {
     case DIV_SYSTEM_C140: {
       DivPlatformC140* ch=(DivPlatformC140*)data;
       ImGui::Text("> C140");
+      COMMON_CHIP_DEBUG;
+      COMMON_CHIP_DEBUG_BOOL;
+      break;
+    }
+    case DIV_SYSTEM_ESFM: {
+      DivPlatformESFM* ch=(DivPlatformESFM*)data;
+      ImGui::Text("> ESFM");
       COMMON_CHIP_DEBUG;
       COMMON_CHIP_DEBUG_BOOL;
       break;
@@ -1094,6 +1102,13 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->volChangedL?colorOn:colorOff,">> VolChangedL");
       ImGui::TextColored(ch->volChangedR?colorOn:colorOff,">> VolChangedR");
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      break;
+    }
+    case DIV_SYSTEM_ESFM: {
+      DivPlatformESFM* ch=(DivPlatformESFM*)data;
+      ImGui::Text("> ESFM");
+      COMMON_CHIP_DEBUG;
+      COMMON_CHIP_DEBUG_BOOL;
       break;
     }
     default:

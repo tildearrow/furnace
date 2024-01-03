@@ -616,21 +616,6 @@ void FurnaceGUI::updateWindowTitle() {
   }
 
   if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
-
-  if (e->song.insLen==1) {
-    unsigned int checker=0x11111111;
-    unsigned int checker1=0;
-    DivInstrument* ins=e->getIns(0);
-    if (ins->name.size()==15 && e->curSubSong->ordersLen==8) {
-      for (int i=0; i<15; i++) {
-        checker^=ins->name[i]<<i;
-        checker1+=ins->name[i];
-        checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
-        checker1<<=1;
-      }
-      if (checker==0x5ec4497d && checker1==0x6347ee) nonLatchNibble=true;
-    }
-  }
 }
 
 void FurnaceGUI::autoDetectSystem() {
@@ -7226,7 +7211,6 @@ FurnaceGUI::FurnaceGUI():
   lockLayout(false),
   editOptsVisible(false),
   latchNibble(false),
-  nonLatchNibble(false),
   keepLoopAlive(false),
   keepGrooveAlive(false),
   orderScrollLocked(false),
