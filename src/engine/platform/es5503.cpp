@@ -401,13 +401,13 @@ int DivPlatformES5503::dispatch(DivCommand c) {
 
       chan[c.chan].osc_mode = ins->es5503.initial_osc_mode;
 
-      if (chan[c.chan].pcm) {
-        if(chan[c.chan].wavetable_block != -1)
-        {
-          wavetable_block_occupied[chan[c.chan].wavetable_block] = false;
-          chan[c.chan].wavetable_block = -1;
-        }
+      if(chan[c.chan].wavetable_block != -1) //free block to hopefully properly reallocate it afterwards (see below)
+      {
+        wavetable_block_occupied[chan[c.chan].wavetable_block] = false;
+        chan[c.chan].wavetable_block = -1;
+      }
 
+      if (chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].sample=ins->amiga.getSample(c.value);
@@ -427,10 +427,6 @@ int DivPlatformES5503::dispatch(DivCommand c) {
           chan[c.chan].wave_pos = sampleOffsets[chan[c.chan].sample];
 
           chan[c.chan].address_bus_res = ES5503_wave_lengths_convert_back(chan[c.chan].wave_size);
-          /*if(chan[c.chan].wave_size >= 1024)
-          {
-            chan[c.chan].address_bus_res = 0b011;
-          }*/
         }
 
         if(chan[c.chan].softpan_channel)
@@ -443,10 +439,6 @@ int DivPlatformES5503::dispatch(DivCommand c) {
             chan[c.chan + 1].wave_pos = sampleOffsets[chan[c.chan].sample];
 
             chan[c.chan + 1].address_bus_res = ES5503_wave_lengths_convert_back(chan[c.chan].wave_size);
-            /*if(chan[c.chan].wave_size >= 1024)
-            {
-              chan[c.chan + 1].address_bus_res = 0b011;
-            }*/
           }
         }
       }
@@ -478,8 +470,9 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         if (chan[c.chan].wave<0) 
         {
           chan[c.chan].wave=0;
-          chan[c.chan].ws.changeWave1(chan[c.chan].wave);
         }
+
+        chan[c.chan].ws.changeWave1(chan[c.chan].wave);
 
         chan[c.chan].ws.init(ins,256,255,chan[c.chan].insChanged);
         chan[c.chan].insChanged=false;
