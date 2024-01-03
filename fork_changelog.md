@@ -11,6 +11,7 @@ LTVA:
 - Remove ability to save `.dmf` files
 - Add ESFM system. The code is courtesy of @Kagamiin, I just added per-op arpeggio and pitch macros which Kagamiin actually adopted in tilde's Furnace PR. And, of course, I edited the code to match new macro system.
 - Make a menu in settings->general where you select default chips a proper menu just like in chip manager
+- Move useful cheat codes into debug->settings
 
 freq-mod:
 - 86-PCM streo DAC fix
