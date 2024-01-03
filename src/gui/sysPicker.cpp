@@ -94,6 +94,9 @@ DivSystem FurnaceGUI::systemPicker(bool full_width) {
       }
     }
   }
+
+  float real_full_width = ImGui::GetContentRegionAvail().x;
+
   if (ImGui::BeginTable("SysList",1,ImGuiTableFlags_ScrollY,ImVec2(full_width ? ImGui::GetContentRegionAvail().x : 500.0f*dpiScale,200.0f*dpiScale))) {
     if (sysSearchQuery.empty()) {
       // display chip list
@@ -186,7 +189,7 @@ DivSystem FurnaceGUI::systemPicker(bool full_width) {
 
           else
           {
-            if (ImGui::Selectable(e->getSystemName((DivSystem)curSysSection[j]),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=(DivSystem)curSysSection[j];
+            if (ImGui::Selectable(e->getSystemName((DivSystem)curSysSection[j]),false,0,ImVec2(full_width ? real_full_width : 500.0f*dpiScale,0.0f))) ret=(DivSystem)curSysSection[j];
             if (ImGui::IsItemHovered()) {
               hoveredSys=(DivSystem)curSysSection[j];
             }
@@ -199,7 +202,7 @@ DivSystem FurnaceGUI::systemPicker(bool full_width) {
       for (DivSystem i: sysSearchResults) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::Selectable(e->getSystemName(i),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=i;
+        if (ImGui::Selectable(e->getSystemName(i),false,0,ImVec2(full_width ? real_full_width : 500.0f*dpiScale,0.0f))) ret=i;
         if (ImGui::IsItemHovered()) {
           hoveredSys=i;
         }
