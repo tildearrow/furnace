@@ -19,6 +19,8 @@
 
 // guiConst: constants used in the GUI like arrays, strings and other stuff
 
+#pragma once
+
 struct FurnaceGUIActionDef {
   const char* name;
   const char* friendlyName;

@@ -736,6 +736,9 @@ src/engine/importExport/vgi.cpp
 src/engine/importExport/wopl.cpp
 src/engine/importExport/wopn.cpp
 src/engine/importExport/y12.cpp
+
+src/gui/inst/macroDraw.cpp
+src/gui/inst/macroDrawUtil.cpp
 )
 
 if (USE_SNDFILE)
