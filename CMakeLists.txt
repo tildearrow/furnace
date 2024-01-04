@@ -745,6 +745,8 @@ src/gui/inst/fmEnvUtil.cpp
 
 src/gui/inst/fmPublicVars.cpp
 src/gui/inst/publicVars.cpp
+
+src/gui/inst/fm.cpp
 )
 
 if (USE_SNDFILE)
