@@ -208,12 +208,12 @@ void DivPlatformES5503::tick(bool sysTick) {
       if(chan[i].softpan_channel)
       {
         rWrite(0xA0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4)); //update osc. mode, do not disturb the osc
+        rWrite(0xA0 + i + 1, (chan[i].osc_mode << 1) | (chan[i + 1].output << 4));
       }
 
       else
       {
         rWrite(0xA0 + i, (chan[i].osc_mode << 1) | (chan[i].output << 4));
-        rWrite(0xA0 + i + 1, (chan[i].osc_mode << 1) | (chan[i + 1].output << 4));
       }
     }
 
@@ -356,6 +356,7 @@ void DivPlatformES5503::tick(bool sysTick) {
           }
         }
       }
+
       if (chan[i].keyOff) {
         if(chan[i].softpan_channel)
         {
@@ -389,6 +390,7 @@ int DivPlatformES5503::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ES5503);
       chan[c.chan].softpan_channel = ins->es5503.softpan_virtual_channel && !(c.chan & 1); //only works on odd channel
+
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
       if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
         chan[c.chan].pcm=true;
@@ -519,10 +521,22 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         wavetable_block_occupied[chan[c.chan].wavetable_block] = false;
         chan[c.chan].wavetable_block = -1;
       }
+
+      if(chan[c.chan].softpan_channel)
+      {
+        chan[c.chan + 1].active=false;
+        chan[c.chan + 1].keyOff=true;
+        chan[c.chan + 1].macroInit(NULL);
+      }
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
       chan[c.chan].std.release();
+
+      if(chan[c.chan].softpan_channel)
+      {
+        chan[c.chan + 1].std.release();
+      }
       break;
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
@@ -833,10 +847,7 @@ void DivPlatformES5503::renderSamples(int sysID) {
           if (val == 0) val = 1;
 
           es5503.sampleMem[actual_start_pos + ss] = val;
-          //es5503.sampleMem[actual_start_pos + ss] = ((actual_start_pos + ss) & 1) ? 0xff : 0x10;
         }
-
-        //memset(&es5503.sampleMem[actual_start_pos + length], 0, 8); //add at least 8 zeros to the end
 
         int num_blocks = actualLength / 256 + 1;
 

@@ -383,7 +383,6 @@ enum DivChanTypes {
   DIV_CH_WAVE=3,
   DIV_CH_PCM=4,
   DIV_CH_OP=5,
-  DIV_CH_ES5503_VIRT = 6,
 };
 
 extern const char* cmdName[];
