@@ -4362,9 +4362,6 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
     const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + frame_size);
     const ImRect total_bb(frame_bb.Min, frame_bb.Min + total_size);
 
-    float d_cursor_v_x = 0, d_cursor_v_y = 0.0f;
-    int d_cursor_pos = 0;
-
     const bool has_word_wrap = is_multiline && (flags & ImGuiInputTextFlags_WordWrapping) != 0;
     const float word_wrap_width = has_word_wrap ? frame_size.x - style.FramePadding.x * 2.0f : 0.0f;
 
@@ -5083,7 +5080,6 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 
     // Render text. We currently only render selection when the widget is active or while scrolling.
     // FIXME: We could remove the '&& render_cursor' to keep rendering selection when inactive.
-    int d_len = 0;
     if (render_cursor || render_selection)
     {
         IM_ASSERT(state != NULL);
