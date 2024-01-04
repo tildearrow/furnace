@@ -23,24 +23,3 @@
 #include "../guiConst.h"
 #include "IconsFontAwesome4.h"
 #include "furIcons.h"
-
-#define P(x) if (x) { \
-  MARK_MODIFIED; \
-  e->notifyInsChange(curIns); \
-  updateFMPreview=true; \
-}
-
-#define PARAMETER MARK_MODIFIED; e->notifyInsChange(curIns); updateFMPreview=true;
-
-String genericGuide(float value);
-int deBit30(const int val);
-bool enBit30(const int val);
-String macroHoverNote(int id, float val, void* u);
-String macroHover(int id, float val, void* u);
-String macroHoverLoop(int id, float val, void* u);
-String macroHoverBit30(int id, float val, void* u);
-
-char* int_to_char_array(int num);
-String macroHoverGain(int id, float val, void* u);
-String macroHoverES5506FilterMode(int id, float val, void* u);
-String macroLFOWaves(int id, float val, void* u);

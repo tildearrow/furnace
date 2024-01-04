@@ -739,6 +739,9 @@ src/engine/importExport/y12.cpp
 
 src/gui/inst/macroDraw.cpp
 src/gui/inst/macroDrawUtil.cpp
+src/gui/inst/stringsUtil.cpp
+src/gui/inst/sampleDraw.cpp
+src/gui/inst/fmEnvUtil.cpp
 )
 
 if (USE_SNDFILE)

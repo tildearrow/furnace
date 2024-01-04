@@ -56,3 +56,64 @@ String macroHoverBit30(int id, float val, void* u) {
   if (val>0) return "Fixed";
   return "Relative";
 }
+
+char* int_to_char_array(int num)
+{
+  static char numberstring[50];
+  memset(numberstring, 0, 50);
+  snprintf(numberstring, 50, "%d", num);
+  return numberstring;
+}
+
+String macroHoverGain(int id, float val, void* u) {
+  if (val>=224.0f) {
+    return fmt::sprintf("%d: +%d (exponential)",id,(int)(val-224));
+  }
+  if (val>=192.0f) {
+    return fmt::sprintf("%d: +%d (linear)",id,(int)(val-192));
+  }
+  if (val>=160.0f) {
+    return fmt::sprintf("%d: -%d (exponential)",id,(int)(val-160));
+  }
+  if (val>=128.0f) {
+    return fmt::sprintf("%d: -%d (linear)",id,(int)(val-128));
+  }
+  return fmt::sprintf("%d: %d (direct)",id,(int)val);
+}
+
+String macroHoverES5506FilterMode(int id, float val, void* u) {
+  String mode="???";
+  switch (((int)val)&3) {
+    case 0:
+      mode="HP/K2, HP/K2";
+      break;
+    case 1:
+      mode="HP/K2, LP/K1";
+      break;
+    case 2:
+      mode="LP/K2, LP/K2";
+      break;
+    case 3:
+      mode="LP/K2, LP/K1";
+      break;
+    default:
+      break;
+  }
+  return fmt::sprintf("%d: %s",id,mode);
+}
+
+String macroLFOWaves(int id, float val, void* u) {
+  switch (((int)val)&3) {
+    case 0:
+      return "Saw";
+    case 1:
+      return "Square";
+    case 2:
+      return "Triangle";
+    case 3:
+      return "Random";
+    default:
+      return "???";
+  }
+  return "???";
+}
