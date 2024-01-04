@@ -273,9 +273,9 @@ jobs:
         cp -v ../LICENSE LICENSE.txt
         cp -v ../res/releaseReadme/unstable-win.txt README.txt
         cp -vr ../papers ../${binPath}/furnace.exe ./
-        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
-          cp -v ../${binPath}/furnace.pdb ./
-        fi
+        #if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+        #  cp -v ../${binPath}/furnace.pdb ./
+        #fi
         sha256sum ../${binPath}/furnace.exe > checksum.txt
 
         popd
