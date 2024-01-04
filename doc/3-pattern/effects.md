@@ -148,22 +148,22 @@ additionally, [each chip has its own effects](../7-systems/README.md).
 
 the interpretation of duty, wave and extra macros depends on chip/instrument type:
 
-ex | FM     | OPM       | OPZ       | OPLL  | AY-3-8910  | AY8930     | Lynx     | C64        |
----|--------|-----------|-----------|-------|------------|------------|----------|------------|
- D | NoiseF | NoiseFreq |           |       | NoiseFreq  | NoiseFreq  | Duty/Int | Duty       |
- W |        | LFO Shape | LFO Shape | Patch | Waveform   | Waveform   |          | Waveform   |
- 1 |        | AMD       | AMD       |       |            | Duty       |          | FilterMode |
- 2 |        | PMD       | PMD       |       | Envelope   | Envelope   |          | Resonance  |
- 3 | LFOSpd | LFO Speed | LFO Speed |       | AutoEnvNum | AutoEnvNum |          |            |
- A | ALG    | ALG       | ALG       |       | AutoEnvDen | AutoEnvDen |          | Cutoff     |
- B | FB     | FB        | FB        |       |            | Noise AND  |          |            |
- C | FMS    | FMS       | FMS       |       |            | Noise OR   |          |            |
- D | AMS    | AMS       | AMS       |       |            |            |          |            |
- 4 | OpMask | OpMask    |           |       |            |            |          | Special    |
- 5 |        |           | AMD2      |       |            |            |          | Attack     |
- 6 |        |           | PMD2      |       |            |            |          | Decay      |
- 7 |        |           | LFO2Speed |       |            |            |          | Sustain    |
- 8 |        |           | LFO2Shape |       |            |            |          | Release    |
+ex | FM     | OPM       | OPZ       | OPLL  | AY-3-8910  | AY8930     | Lynx     | C64          |
+---|--------|-----------|-----------|-------|------------|------------|----------|--------------|
+ D | NoiseF | NoiseFreq |           |       | NoiseFreq  | NoiseFreq  | Duty/Int | Duty         |
+ W |        | LFO Shape | LFO Shape | Patch | Waveform   | Waveform   |          | Waveform     |
+ 1 |        | AMD       | AMD       |       |            | Duty       |          | FilterMode   |
+ 2 |        | PMD       | PMD       |       | Envelope   | Envelope   |          | Resonance    |
+ 3 | LFOSpd | LFO Speed | LFO Speed |       | AutoEnvNum | AutoEnvNum |          | Filt. on/off |
+ A | ALG    | ALG       | ALG       |       | AutoEnvDen | AutoEnvDen |          | Cutoff       |
+ B | FB     | FB        | FB        |       |            | Noise AND  |          |              |
+ C | FMS    | FMS       | FMS       |       |            | Noise OR   |          |              |
+ D | AMS    | AMS       | AMS       |       |            |            |          |              |
+ 4 | OpMask | OpMask    |           |       |            |            |          | Special      |
+ 5 |        |           | AMD2      |       |            |            |          | Attack       |
+ 6 |        |           | PMD2      |       |            |            |          | Decay        |
+ 7 |        |           | LFO2Speed |       |            |            |          | Sustain      |
+ 8 |        |           | LFO2Shape |       |            |            |          | Release      |
 
 ex | SAA1099  | X1-010     | Namco 163  | FDS       | Sound Unit | ES5506    | MSM6258  |
 ---|----------|------------|------------|-----------|------------|-----------|----------|
