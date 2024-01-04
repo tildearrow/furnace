@@ -742,6 +742,9 @@ src/gui/inst/macroDrawUtil.cpp
 src/gui/inst/stringsUtil.cpp
 src/gui/inst/sampleDraw.cpp
 src/gui/inst/fmEnvUtil.cpp
+
+src/gui/inst/fmPublicVars.cpp
+src/gui/inst/publicVars.cpp
 )
 
 if (USE_SNDFILE)
