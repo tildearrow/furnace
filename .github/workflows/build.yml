@@ -2,7 +2,7 @@ name: Build furnace
 
 on:
   push:
-    branches: [master, ESFM]
+    branches: master
   pull_request:
     branches: master
 
@@ -11,7 +11,7 @@ defaults:
     shell: bash
 
 env:
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: Release
 
 jobs:
   build:
@@ -273,9 +273,9 @@ jobs:
         cp -v ../LICENSE LICENSE.txt
         cp -v ../res/releaseReadme/unstable-win.txt README.txt
         cp -vr ../papers ../${binPath}/furnace.exe ./
-        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
-          cp -v ../${binPath}/furnace.pdb ./
-        fi
+        #if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+        #  cp -v ../${binPath}/furnace.pdb ./
+        #fi
         sha256sum ../${binPath}/furnace.exe > checksum.txt
 
         popd
