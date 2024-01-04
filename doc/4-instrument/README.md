@@ -139,6 +139,11 @@ in all cases except bitmask macros, right-clicking on the graph opens up an edit
   - **Y**: multiplies all values by the scale factor, clipping them if they would exceed the allowed range.
 - **randomize**: replaces all values with random values between **Min** and **Max**.
 
+while the pointer is over a macro view, the scroll wheel can change the view:
+- to zoom horizontally, hold Ctrl.
+- to zoom vertically, hold Ctrl and Shift.
+- to scroll vertically, hold Shift.
+
 ### ADSR
 
 ![ADSR macro editor](macro-ADSR.png)
