@@ -260,9 +260,6 @@ void FurnaceGUI::drawInsFMFM(DivInstrument* ins)
           int maxTl=127;
           int maxArDr=31;
           bool ssgOn=op.ssgEnv&8;
-          bool ksrOn=op.ksr;
-          bool vibOn=op.vib;
-          bool susOn=op.sus;
           unsigned char ssgEnv=op.ssgEnv&7;
 
           ImGui::TableNextColumn();
@@ -454,9 +451,6 @@ void FurnaceGUI::drawInsFMFM(DivInstrument* ins)
           int maxArDr=31;
 
           bool ssgOn=op.ssgEnv&8;
-          bool ksrOn=op.ksr;
-          bool vibOn=op.vib;
-          bool egtOn=op.egt;
           bool susOn=op.sus; // yawn
           unsigned char ssgEnv=op.ssgEnv&7;
 
@@ -711,9 +705,6 @@ void FurnaceGUI::drawInsFMFM(DivInstrument* ins)
           int maxArDr=31;
 
           bool ssgOn=op.ssgEnv&8;
-          bool ksrOn=op.ksr;
-          bool vibOn=op.vib;
-          bool susOn=op.sus; // don't you make fun of this one
           unsigned char ssgEnv=op.ssgEnv&7;
           ImGui::SameLine();
           if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) 
