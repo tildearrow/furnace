@@ -221,6 +221,10 @@ void DivPlatformC64::tick(bool sysTick) {
       filtRes=chan[i].std.get_div_macro_struct(DIV_MACRO_EX2)->val&15;
       willUpdateFilter=true;
     }
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->had) {
+      chan[i].filter=chan[i].std.get_div_macro_struct(DIV_MACRO_EX3)->val&1;
+      willUpdateFilter=true;
+    }
     if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->had) {
       chan[i].gate=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val&1;
       chan[i].sync=chan[i].std.get_div_macro_struct(DIV_MACRO_EX4)->val&2;
