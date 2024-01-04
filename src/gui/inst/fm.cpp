@@ -476,7 +476,6 @@ void FurnaceGUI::drawInsFMFM(DivInstrument* ins)
             ImGui::TableNextColumn();
 
             op.ar&=maxArDr;
-            float textX_AR=ImGui::GetCursorPosX();
             P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
 
             ImGui::SameLine();
