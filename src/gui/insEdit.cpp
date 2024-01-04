@@ -167,7 +167,6 @@ void FurnaceGUI::drawActualInsEditor()
 
     ImGui::EndTable();
   }
-  
 
   if (ImGui::BeginTabBar("insEditTab")) {
     //std::vector<FurnaceGUIMacroDesc> macroList;
