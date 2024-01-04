@@ -230,7 +230,6 @@ void FurnaceGUI::drawInsFMFM(DivInstrument* ins)
           if (i==0) 
           {
             sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
-            float sliderMinHeightESFM=ImGui::GetFrameHeight()*5.0+ImGui::GetStyle().ItemSpacing.y*4.0;
           }
 
           ImGui::PushID(fmt::sprintf("op%d",i).c_str());
@@ -450,7 +449,6 @@ void FurnaceGUI::drawInsFMFM(DivInstrument* ins)
           int maxArDr=31;
 
           bool ssgOn=op.ssgEnv&8;
-          bool susOn=op.sus; // yawn
           unsigned char ssgEnv=op.ssgEnv&7;
 
           ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,oldPadding);
