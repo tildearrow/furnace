@@ -2191,8 +2191,7 @@ void FurnaceGUI::drawInsFM(DivInstrument* ins)
   if (ins->type!=DIV_INS_ESFM) {
     if (ImGui::BeginTabItem("FM Macros")) {
       if (ins->type==DIV_INS_OPLL) {
-        //macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SUS),ins,DIV_MACRO_ALG,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-      macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SUS),ins,DIV_MACRO_ALG,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+        macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SUS),ins,DIV_MACRO_ALG,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
         macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FB),ins,DIV_MACRO_FB,0xff,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
         macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DC),ins,DIV_MACRO_FMS,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
         macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DM),ins,DIV_MACRO_AMS,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
@@ -2229,13 +2228,13 @@ void FurnaceGUI::drawInsFM(DivInstrument* ins)
         macroList.push_back(FurnaceGUIMacroDesc("LFO2 Shape",ins,DIV_MACRO_EX8,0xff,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
       }
 
-    for(int i = 0; i < (int)ins->std.macros.size(); i++) // reset macro zoom
-    {
-      ins->std.macros[i].vZoom = -1;
-    }
+      for(int i = 0; i < (int)ins->std.macros.size(); i++) // reset macro zoom
+      {
+        ins->std.macros[i].vZoom = -1;
+      }
 
-    drawMacros(macroList,macroEditStateFM);
-      ImGui::EndTabItem();
+      drawMacros(macroList,macroEditStateFM);
+        ImGui::EndTabItem();
     }
   }
 
@@ -3873,7 +3872,7 @@ void FurnaceGUI::drawActualInsEditor()
       }
     }
     if (ins->type<DIV_INS_MAX) if (ImGui::BeginTabItem("Macros")) {
-      const char* volumeLabel="Volume";
+      //const char* volumeLabel="Volume";
 
       int volMax=15;
       int volMin=0;
@@ -3928,7 +3927,7 @@ void FurnaceGUI::drawActualInsEditor()
         volMax=2;
       }
 
-      const char* dutyLabel="Duty/Noise";
+      //const char* dutyLabel="Duty/Noise";
       int dutyMin=0;
       int dutyMax=3;
       if (ins->type==DIV_INS_C64) {
@@ -4068,7 +4067,7 @@ void FurnaceGUI::drawActualInsEditor()
         dutyMax=3;
       }
 
-      const char* waveLabel="Waveform";
+      //const char* waveLabel="Waveform";
       int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
       bool waveBitMode=false;
       if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SAA1099) {

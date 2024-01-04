@@ -25,3 +25,6 @@
 #include "furIcons.h"
 
 extern std::vector<FurnaceGUIMacroDesc> macroList;
+extern const char* volumeLabel;
+extern const char* dutyLabel;
+extern const char* waveLabel;

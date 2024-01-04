@@ -20,3 +20,6 @@
 #include "publicVars.h"
 
 std::vector<FurnaceGUIMacroDesc> macroList;
+const char* volumeLabel="Volume";
+const char* dutyLabel="Duty/Noise";
+const char* waveLabel="Waveform";
