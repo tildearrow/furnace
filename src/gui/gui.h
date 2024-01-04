@@ -2434,6 +2434,10 @@ class FurnaceGUI {
   void drawPattern();
   void drawInsList(bool asChild=false);
   void drawInsEdit();
+  void drawActualInsEditor();
+
+  void drawInsFM(DivInstrument* ins);
+
   void drawWaveList(bool asChild=false);
   void drawWaveEdit();
   void drawSampleList(bool asChild=false);

@@ -1,3 +1,5 @@
+#pragma once
+
 // not auto-generated. update every time you change icons.ttf!
 
 #define ICON_MIN_FUR 0xe0f0
