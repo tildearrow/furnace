@@ -30,7 +30,7 @@ void FurnaceGUI::drawNotes() {
   }
   if (!notesOpen) return;
   if (ImGui::Begin("Song Comments",&notesOpen,globalWinFlags)) {
-    if (ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo | ImGuiInputTextFlags_WordWrapping)) {
+    if (ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail(),settings.wrapText ? (ImGuiInputTextFlags_UndoRedo | ImGuiInputTextFlags_WordWrapping) : ImGuiInputTextFlags_UndoRedo)) {
       MARK_MODIFIED;
     }
   }

@@ -3175,6 +3175,15 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool wrapTextB=settings.wrapText;
+        if (ImGui::Checkbox("Wrap text",&wrapTextB)) {
+          settings.wrapText=wrapTextB;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Wrap text in song/subsong comments window.");
+        }
+
         END_SECTION;
       }
       CONFIG_SECTION("Color") {
@@ -3820,6 +3829,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.roundedWindows=conf.getInt("roundedWindows",1);
     settings.roundedButtons=conf.getInt("roundedButtons",1);
     settings.roundedTabs=conf.getInt("roundedTabs",1);
+    settings.wrapText=conf.getInt("wrapText",1);
     settings.roundedScrollbars=conf.getInt("roundedScrollbars",1);
     settings.roundedMenus=conf.getInt("roundedMenus",0);
 
@@ -3986,6 +3996,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.roundedWindows,0,1);
   clampSetting(settings.roundedButtons,0,1);
   clampSetting(settings.roundedTabs,0,1);
+  clampSetting(settings.wrapText,0,1);
   clampSetting(settings.roundedScrollbars,0,1);
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
@@ -4278,6 +4289,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("roundedWindows",settings.roundedWindows);
     conf.set("roundedButtons",settings.roundedButtons);
     conf.set("roundedTabs",settings.roundedTabs);
+    conf.set("wrapText",settings.wrapText);
     conf.set("roundedScrollbars",settings.roundedScrollbars);
     conf.set("roundedMenus",settings.roundedMenus);
 
