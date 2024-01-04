@@ -14,6 +14,7 @@ LTVA:
 - Make a menu in settings->general where you select default chips a proper menu just like in chip manager
 - Move useful cheat codes into debug->settings and delete the ridiculous one (that just forces shitty padding for all UI elements)
 - Add Ensoniq ES5503 system
+- Add filter on/off macro for C64 instrument
 
 freq-mod:
 - 86-PCM streo DAC fix
