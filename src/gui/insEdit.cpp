@@ -1563,8 +1563,8 @@ void FurnaceGUI::drawActualInsEditor()
     if (ins->type<DIV_INS_MAX) if (ImGui::BeginTabItem("Macros")) {
       //const char* volumeLabel="Volume";
 
-      int volMax=15;
-      int volMin=0;
+      volMax=15;
+      volMin=0;
       if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SM8521) {
         volMax=31;
       }
@@ -1617,8 +1617,8 @@ void FurnaceGUI::drawActualInsEditor()
       }
 
       //const char* dutyLabel="Duty/Noise";
-      int dutyMin=0;
-      int dutyMax=3;
+      dutyMin=0;
+      dutyMax=3;
       if (ins->type==DIV_INS_C64) {
         dutyLabel="Duty";
         if (ins->c64.dutyIsAbs) {
@@ -1757,8 +1757,8 @@ void FurnaceGUI::drawActualInsEditor()
       }
 
       //const char* waveLabel="Waveform";
-      int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
-      bool waveBitMode=false;
+      waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
+      waveBitMode=false;
       if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SAA1099) {
         waveBitMode=true;
       }
@@ -1812,13 +1812,13 @@ void FurnaceGUI::drawActualInsEditor()
         waveBitMode=ins->amiga.useSample?false:true;
       }
 
-      const char** waveNames=NULL;
+      waveNames=NULL;
       if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) waveNames=ayShapeBits;
       if (ins->type==DIV_INS_C64) waveNames=c64ShapeBits;
 
-      int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
-      int ex2Max=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?4:0;
-      bool ex2Bit=true;
+      ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
+      ex2Max=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?4:0;
+      ex2Bit=true;
 
       if (ins->type==DIV_INS_C64) {
         ex1Max=4;
