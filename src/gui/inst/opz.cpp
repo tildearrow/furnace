@@ -378,7 +378,7 @@ void FurnaceGUI::drawInsOPZ(DivInstrument* ins)
           }
           
           ImGui::TableNextColumn();
-          
+
           ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
           ImGui::TableNextColumn();
 
@@ -497,7 +497,6 @@ void FurnaceGUI::drawInsOPZ(DivInstrument* ins)
             ImGui::TableNextColumn();
 
             op.ar&=maxArDr;
-            float textX_AR=ImGui::GetCursorPosX();
             P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
 
             ImGui::SameLine();
@@ -761,9 +760,6 @@ void FurnaceGUI::drawInsOPZ(DivInstrument* ins)
           int maxTl=127;
           int maxArDr=31;
 
-          bool ksrOn=op.ksr;
-
-          
           ImGui::SameLine();
           bool fixedOn=op.egt;
           if (ImGui::Checkbox("Fixed",&fixedOn)) 
