@@ -61,7 +61,7 @@ void FurnaceGUI::drawInsESFM(DivInstrument* ins)
       }
     }
 
-    if (ImGui::BeginTable("fmDetails",3,(ins->type==DIV_INS_ESFM)?ImGuiTableFlags_SizingStretchProp:ImGuiTableFlags_SizingStretchSame)) 
+    if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchProp)) 
     {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.50f);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.15f);
