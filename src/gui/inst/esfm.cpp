@@ -245,7 +245,6 @@ void FurnaceGUI::drawInsESFM(DivInstrument* ins)
           if (i==0) 
           {
             sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
-            float sliderMinHeightOPL=ImGui::GetFrameHeight()*4.0+ImGui::GetStyle().ItemSpacing.y*3.0;
             float sliderMinHeightESFM=ImGui::GetFrameHeight()*5.0+ImGui::GetStyle().ItemSpacing.y*4.0;
             sliderHeight=sliderMinHeightESFM;
           }
@@ -599,7 +598,6 @@ void FurnaceGUI::drawInsESFM(DivInstrument* ins)
 
           bool ksrOn=op.ksr;
           bool vibOn=op.vib;
-          bool egtOn=op.egt;
           bool susOn=op.sus; // yawn
 
           ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,oldPadding);
@@ -647,7 +645,6 @@ void FurnaceGUI::drawInsESFM(DivInstrument* ins)
               P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
             }
 
-            float textX_D2R=0.0f;
             ImGui::SameLine();
             op.rr&=15;
             float textX_RR=ImGui::GetCursorPosX();

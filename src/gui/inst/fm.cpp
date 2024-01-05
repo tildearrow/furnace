@@ -55,10 +55,10 @@ void FurnaceGUI::drawInsFM(DivInstrument* ins)
       drawInsESFM(ins); return; break;
     }
 
-    default: return; break;
+    //default: return; break;
   }
 
-  return;
+  //return;
 
   opCount=4;
   if (ins->type==DIV_INS_OPLL) opCount=2;
