@@ -45,6 +45,7 @@ for other operating systems, you may [build the source](#developer-info).
     - YM3812 (OPL2)
     - YMF262 (OPL3) with full 4-op support!
     - Y8950 (OPL with ADPCM)
+    - ESS ES1xxx series (ESFM) in native mode!
   - square wave chips:
     - AY-3-8910/YM2149(F) used in several computers and game consoles
     - Commodore VIC used in the VIC-20
@@ -65,6 +66,7 @@ for other operating systems, you may [build the source](#developer-info).
     - Konami K053260
     - Irem GA20
     - Ensoniq ES5506
+    - Ensoniq ES5503
     - Namco C140
     - Namco C219
   - wavetable chips:
@@ -105,9 +107,6 @@ for other operating systems, you may [build the source](#developer-info).
   - ...or create your own - up to 32 of them or a total of 128 channels!
 - DefleMask compatibility
   - loads .dmf modules from all versions (beta 1 to 1.1.9)
-  - saves .dmf modules - both modern and legacy
-    - Furnace doubles as a module downgrader
-  - loads/saves .dmp instruments and .dmw wavetables as well
   - clean-room design (guesswork and ABX tests only, no decompilation involved)
   - some bug/quirk implementation for increased playback accuracy through compatibility flags
 - VGM export
