@@ -167,23 +167,21 @@ void DivPlatformES5503::tick(bool sysTick) {
   for(int i = 0; i < 32; i++)
   {
     chan[i].std.next();
-    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->had) 
+    {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&255,MIN(255,chan[i].std.get_div_macro_struct(DIV_MACRO_VOL)->val),255);
-      if (chan[i].pcm) {
-        // ignore for now
-      } else {
-        if(chan[i].softpan_channel)
-        {
-          uint8_t temp = chan[i].outVol * chan[i].panleft / 255;
-          rWrite(0x40 + i, isMuted[i] ? 0 : (temp));
-          temp = chan[i].outVol * chan[i].panright / 255;
-          rWrite(0x40 + i + 1, isMuted[i] ? 0 : (temp));
-        }
 
-        else
-        {
-          rWrite(0x40 + i, isMuted[i] ? 0 : chan[i].outVol);
-        }
+      if(chan[i].softpan_channel)
+      {
+        uint8_t temp = chan[i].outVol * chan[i].panleft / 255;
+        rWrite(0x40 + i, isMuted[i] ? 0 : (temp));
+        temp = chan[i].outVol * chan[i].panright / 255;
+        rWrite(0x40 + i + 1, isMuted[i] ? 0 : (temp));
+      }
+
+      else
+      {
+        rWrite(0x40 + i, isMuted[i] ? 0 : chan[i].outVol);
       }
     }
 
@@ -203,7 +201,7 @@ void DivPlatformES5503::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
 
-    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had && !chan[i].pcm) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->had) {
       chan[i].osc_mode = chan[i].std.get_div_macro_struct(DIV_MACRO_DUTY)->val & 3;
       if(chan[i].softpan_channel)
       {
@@ -225,7 +223,7 @@ void DivPlatformES5503::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had && !chan[i].pcm && chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val == 1) {
+    if (chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->had && chan[i].std.get_div_macro_struct(DIV_MACRO_PHASE_RESET)->val == 1) {
       if(chan[i].softpan_channel)
       {
         rWrite(0xA0 + i, (chan[i].osc_mode << 1) | 1 | (chan[i].output << 4)); //writing 1 resets acc
@@ -549,7 +547,8 @@ int DivPlatformES5503::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.get_div_macro_struct(DIV_MACRO_VOL)->has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active && !chan[c.chan].pcm) {
+          if (chan[c.chan].active) 
+          {
             if(chan[c.chan].softpan_channel)
             {
               uint8_t temp = chan[c.chan].outVol * chan[c.chan].panleft / 255;
