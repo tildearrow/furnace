@@ -50,6 +50,11 @@ void FurnaceGUI::drawInsFM(DivInstrument* ins)
       drawInsOPZ(ins); return; break;
     }
 
+    case DIV_INS_ESFM:
+    {
+      drawInsESFM(ins); return; break;
+    }
+
     default: return; break;
   }
 
