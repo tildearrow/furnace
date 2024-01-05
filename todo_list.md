@@ -3,7 +3,6 @@
 Note: whatever feature/fix made by tildearrow, if useful, is ported to this fork.
 
 Remove:
-- Cheat codes
 - Long codebase problems and other jank that never was fully implemented
 - Limit of 128 channels and 32 chips. Memory for channels and chips must be dynamically allocated
 - Some arcade presets (too many of them). Or at least organize them like presets menu... 
@@ -19,12 +18,11 @@ Add:
 - Import of the following: “xm”, “it”, "med", "s3m", "mptm", "a2m", "rmt", “vt” (Vortex Tracker), “sng” (GoatTracker)
 - Local wavetables and samples inside each instrument with a switch so sample map/wavetable selection macro refers to local or global waves
 - DPCM loop point
-- Chips from pending Furnace PRs, if possible (right now it’s OPL4, MultiPCM, ESFM, ES5503)
+- Chips from pending Furnace PRs, if possible (right now it’s OPL4, MultiPCM)
 - Features from pending Furnace PRs, if possible
 - Ability to copy-paste LFO and ADSR type macros
 - Instrument preview on instrument load
 - Slowly add any other chips when enough info about them is gathered and decent emulators are made (debatable if some borderline chips are in question like various DSP processors or SCSP)
-- Ability to paste a pack of wavetables like the one Kurumi wavetable builder produces
 - Investigate feature requests present on Github Discussions. For example, YM2413 PCM, SN76489 Snooze Tracker-like features, AY-3-8910 PWM.
 - OPF2 sound chip (and other fantasy sound sources like YM2609)
 
