@@ -840,7 +840,7 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
   }
 }
 
-void FurnaceGUI::drawInsFMFM(DivInstrument* ins)
+void FurnaceGUI::drawInsOPN(DivInstrument* ins)
 {
   opCount=4;
   opsAreMutable=true;
@@ -1711,7 +1711,7 @@ void FurnaceGUI::drawInsFM(DivInstrument* ins)
 {
   if(ins->type == DIV_INS_FM)
   {
-    drawInsFMFM(ins); return;
+    drawInsOPN(ins); return;
   }
 
   if(ins->type == DIV_INS_OPM)
