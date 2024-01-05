@@ -38,3 +38,7 @@ extern const char** waveNames;
 extern int ex1Max;
 extern int ex2Max;
 extern bool ex2Bit;
+extern int panMin;
+extern int panMax;
+extern bool panSingle;
+extern bool panSingleNoBit;

@@ -33,3 +33,7 @@ const char** waveNames=NULL;
 int ex1Max=0;
 int ex2Max=0;
 bool ex2Bit=false;
+int panMin=0;
+int panMax=0;
+bool panSingle=false;
+bool panSingleNoBit=false;

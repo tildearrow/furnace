@@ -1866,10 +1866,10 @@ void FurnaceGUI::drawActualInsEditor()
         ex2Max=7;
       }
 
-      int panMin=0;
-      int panMax=0;
-      bool panSingle=false;
-      bool panSingleNoBit=false;
+      panMin=0;
+      panMax=0;
+      panSingle=false;
+      panSingleNoBit=false;
       if (ins->type==DIV_INS_STD ||//Game Gear
           ins->type==DIV_INS_FM ||
           ins->type==DIV_INS_OPM ||
