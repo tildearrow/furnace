@@ -2441,7 +2441,6 @@ class FurnaceGUI {
   void drawInsOPM(DivInstrument* ins);
   void drawInsESFM(DivInstrument* ins);
   void drawInsOPL(DivInstrument* ins);
-  void drawInsOPLDrums(DivInstrument* ins);
   void drawInsOPLL(DivInstrument* ins);
   void drawInsOPZ(DivInstrument* ins);
 

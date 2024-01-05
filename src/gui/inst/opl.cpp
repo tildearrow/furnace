@@ -140,7 +140,8 @@ void FurnaceGUI::drawInsOPL(DivInstrument* ins)
     if (ins->type==DIV_INS_OPLL && ins->fm.opllPreset!=0) willDisplayOps=false;
 
     ImGui::BeginDisabled(!willDisplayOps);
-    if (settings.fmLayout==0) {
+    if (settings.fmLayout==0) 
+    {
       int numCols=13;
 
       if (ImGui::BeginTable("FMOperators",numCols,ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersH|ImGuiTableFlags_BordersOuterV)) 
