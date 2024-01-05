@@ -42,7 +42,6 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
 
     isPresentCount=0;
     memset(isPresent,0,4*sizeof(bool));
-
     if (!isPresent[0] && !isPresent[1] && !isPresent[2] && !isPresent[3]) 
     {
       isPresent[0]=true;
@@ -53,7 +52,6 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
     }
 
     presentWhich=0;
-
     for (int i=0; i<4; i++) 
     {
       if (isPresent[i]) 
@@ -63,14 +61,13 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
       }
     }
 
-    if (ImGui::BeginTable("fmDetails",3,(ins->type==DIV_INS_ESFM)?ImGuiTableFlags_SizingStretchProp:ImGuiTableFlags_SizingStretchSame)) 
+    if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) 
     {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.50f:0.0f));
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.15f:0.0f));
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.35f:0.0f));
 
       ImGui::TableNextRow();
-      
       ImGui::TableNextColumn();
       P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
       P(CWSliderScalar(FM_NAME(FM_FMS),ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN)); rightClickable
@@ -87,12 +84,13 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
           WAKE_UP;
         }
       } 
+      
       else 
       {
         drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
       }
+
       kvsConfig(ins);
-        
       ImGui::EndTable();
     }
 
@@ -115,6 +113,7 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
         ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed); // -separator-
         ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthStretch,0.05f); // tl
         ImGui::TableSetupColumn("c8",ImGuiTableColumnFlags_WidthStretch,0.05f); // rs/ksl
+        ImGui::TableSetupColumn("c9",ImGuiTableColumnFlags_WidthStretch,0.05f); // mult
         ImGui::TableSetupColumn("c10",ImGuiTableColumnFlags_WidthStretch,0.05f); // dt
         ImGui::TableSetupColumn("c11",ImGuiTableColumnFlags_WidthStretch,0.05f); // dt2
         ImGui::TableSetupColumn("c15",ImGuiTableColumnFlags_WidthFixed); // am
@@ -160,14 +159,17 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
         ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
         TOOLTIP_TEXT(FM_NAME(FM_TL));
         ImGui::TableNextColumn();
+
         CENTER_TEXT(FM_SHORT_NAME(FM_RS));
         ImGui::TextUnformatted(FM_SHORT_NAME(FM_RS));
         TOOLTIP_TEXT(FM_NAME(FM_RS));
+
         ImGui::TableNextColumn();
         CENTER_TEXT(FM_SHORT_NAME(FM_MULT));
         ImGui::TextUnformatted(FM_SHORT_NAME(FM_MULT));
         TOOLTIP_TEXT(FM_NAME(FM_MULT));
         ImGui::TableNextColumn();
+
         CENTER_TEXT(FM_SHORT_NAME(FM_DT));
         ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT));
         TOOLTIP_TEXT(FM_NAME(FM_DT));
@@ -179,7 +181,7 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
         CENTER_TEXT(FM_SHORT_NAME(FM_AM));
         ImGui::TextUnformatted(FM_SHORT_NAME(FM_AM));
         TOOLTIP_TEXT(FM_NAME(FM_AM));
-
+        ImGui::TableNextColumn();
         ImGui::TableNextColumn();
         CENTER_TEXT("Envelope");
         ImGui::TextUnformatted("Envelope");
@@ -188,19 +190,15 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
 
         for (int i=0; i<opCount; i++) 
         {
-          DivInstrumentFM::Operator& op=fmOrigin.op[opOrder[i]];
+          DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i];
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
 
           // push colors
-          if (settings.separateFMColors) 
-          {
+          if (settings.separateFMColors) {
             bool mod=true;
-            if (opCount==4) 
-            {
-              if (opIsOutput[fmOrigin.alg&7][i]) mod=false;
-            }
+            if (opIsOutput[fmOrigin.alg&7][i]) mod=false;
 
             if (mod) 
             {
@@ -211,6 +209,7 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
                 uiColors[GUI_COLOR_FM_BORDER_SHADOW_MOD]
               );
             } 
+            
             else 
             {
               pushAccentColors(
@@ -225,17 +224,16 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
           if (i==0) 
           {
             sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
-            float sliderMinHeightOPL=ImGui::GetFrameHeight()*4.0+ImGui::GetStyle().ItemSpacing.y*3.0;
           }
 
           ImGui::PushID(fmt::sprintf("op%d",i).c_str());
           String opNameLabel;
           opNameLabel=fmt::sprintf("OP%d",i+1);
-
           if (opsAreMutable) 
           {
             pushToggleColors(op.enable);
-            if (ImGui::Button(opNameLabel.c_str())) {
+            if (ImGui::Button(opNameLabel.c_str())) 
+            {
               op.enable=!op.enable;
               PARAMETER;
             }
@@ -247,8 +245,6 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
 
           int maxTl=127;
           int maxArDr=31;
-          bool ssgOn=op.ssgEnv&8;
-          unsigned char ssgEnv=op.ssgEnv&7;
 
           ImGui::TableNextColumn();
           op.ar&=maxArDr;
@@ -358,7 +354,6 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
           columns=opCount;
           break;
       }
-
       char tempID[1024];
       ImVec2 oldPadding=ImGui::GetStyle().CellPadding;
       ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(8.0f*dpiScale,4.0f*dpiScale));
@@ -366,7 +361,7 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
       {
         for (int i=0; i<opCount; i++) 
         {
-          DivInstrumentFM::Operator& op=fmOrigin.op[opOrder[i]];
+          DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i];
           if ((settings.fmLayout!=6 && ((i+1)&1)) || i==0 || settings.fmLayout==5) ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::PushID(fmt::sprintf("op%d",i).c_str());
@@ -386,6 +381,7 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
                 uiColors[GUI_COLOR_FM_BORDER_SHADOW_MOD]
               );
             } 
+            
             else 
             {
               pushAccentColors(
@@ -407,8 +403,7 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
           if (opsAreMutable) 
           {
             pushToggleColors(op.enable);
-            if (ImGui::Button(tempID)) 
-            {
+            if (ImGui::Button(tempID)) {
               op.enable=!op.enable;
               PARAMETER;
             }
@@ -422,9 +417,6 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
           int maxTl=127;
           int maxArDr=31;
 
-          bool ssgOn=op.ssgEnv&8;
-          unsigned char ssgEnv=op.ssgEnv&7;
-
           ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,oldPadding);
           if (ImGui::BeginTable("opParams",4,ImGuiTableFlags_BordersInnerV)) 
           {
@@ -436,11 +428,12 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             float textY=ImGui::GetCursorPosY();
-            
+
             CENTER_TEXT_20(FM_SHORT_NAME(FM_AR));
             ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
             TOOLTIP_TEXT(FM_NAME(FM_AR));
 
+            ImGui::TableNextColumn();
             ImGui::Text("Waveform");
             ImGui::TableNextColumn();
             ImGui::Text("Envelope");
@@ -450,7 +443,6 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
             ImGui::TableNextColumn();
 
             op.ar&=maxArDr;
-            float textX_AR=ImGui::GetCursorPosX();
             P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
 
             ImGui::SameLine();
@@ -468,6 +460,7 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
             }
 
             float textX_D2R=0.0f;
+            
             ImGui::SameLine();
             op.d2r&=31;
             textX_D2R=ImGui::GetCursorPosX();
@@ -487,6 +480,8 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
             }
 
             ImVec2 prevCurPos=ImGui::GetCursorPos();
+
+            // labels
 
             ImGui::SetCursorPos(ImVec2(textX_DR,textY));
             CENTER_TEXT_20(FM_SHORT_NAME(FM_DR));
@@ -595,7 +590,6 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
           columns=opCount;
           break;
       }
-
       if (ImGui::BeginTable("FMOperators",columns,ImGuiTableFlags_SizingStretchSame)) 
       {
         for (int i=0; i<opCount; i++) {
@@ -606,10 +600,10 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
           ImGui::PushID(fmt::sprintf("op%d",i).c_str());
 
           // push colors
-          if (settings.separateFMColors) 
+          if (settings.separateFMColors)
           {
             bool mod=true;
-            if (opIsOutput[fmOrigin.alg&7][i]) mod=false;
+            if (opIsOutputOPL[fmOrigin.alg&3][i]) mod=false;
 
             if (mod) 
             {
@@ -620,6 +614,7 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
                 uiColors[GUI_COLOR_FM_BORDER_SHADOW_MOD]
               );
             } 
+            
             else 
             {
               pushAccentColors(
@@ -640,7 +635,8 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
           if (opsAreMutable) 
           {
             pushToggleColors(op.enable);
-            if (ImGui::Button(opNameLabel.c_str())) {
+            if (ImGui::Button(opNameLabel.c_str())) 
+            {
               op.enable=!op.enable;
               PARAMETER;
             }
@@ -650,7 +646,6 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
           ImGui::SameLine();
 
           bool amOn=op.am;
-
           if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) 
           { PARAMETER
             op.am=amOn;
@@ -734,7 +729,6 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-
             P(CWSliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE)); rightClickable
             ImGui::TableNextColumn();
             ImGui::Text("%s",FM_NAME(FM_RS));
@@ -746,6 +740,19 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
             ImGui::TableNextColumn();
             ImGui::Text("%s",FM_NAME(FM_MULT));
             
+            int detune=detuneMap[settings.unsignedDetune?1:0][op.dt&7];
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderInt("##DT",&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4)) 
+            { PARAMETER
+              if (detune<-3) detune=-3;
+              if (detune>7) detune=7;
+              op.dt=detuneUnmap[settings.unsignedDetune?1:0][detune+3];
+            } rightClickable
+            ImGui::TableNextColumn();
+            ImGui::Text("%s",FM_NAME(FM_DT));
+
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -756,8 +763,7 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
             ImGui::EndTable();
           }
 
-          if (settings.separateFMColors) 
-          {
+          if (settings.separateFMColors) {
             popAccentColors();
           }
 
@@ -776,7 +782,6 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
     macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FB),ins,DIV_MACRO_FB,0xff,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
     macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FMS),ins,DIV_MACRO_FMS,0xff,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
     macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AMS),ins,DIV_MACRO_AMS,0xff,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER]));
-
     macroList.push_back(FurnaceGUIMacroDesc("AM Depth",ins,DIV_MACRO_EX1,0xff,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
     macroList.push_back(FurnaceGUIMacroDesc("PM Depth",ins,DIV_MACRO_EX2,0xff,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
     macroList.push_back(FurnaceGUIMacroDesc("LFO Speed",ins,DIV_MACRO_EX3,0xff,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -808,12 +813,12 @@ void FurnaceGUI::drawInsOPM(DivInstrument* ins)
   for (int i=0; i<opCount; i++) 
   {
     snprintf(label,31,"OP%d Macros",i+1);
-
     if (ImGui::BeginTabItem(label)) 
     {
       ImGui::PushID(i);
-      int ordi=orderedOps[i];
+      int ordi=(opCount==4 && ins->type!=DIV_INS_ESFM)?orderedOps[i]:i;
       int maxTl=127;
+
       int maxArDr=31;
 
       macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_TL),ins,(DivMacroType)DIV_MACRO_OP_TL,ordi,0,maxTl,128,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -920,6 +925,7 @@ void FurnaceGUI::drawInsFMFM(DivInstrument* ins)
         ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed); // -separator-
         ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthStretch,0.05f); // tl
         ImGui::TableSetupColumn("c8",ImGuiTableColumnFlags_WidthStretch,0.05f); // rs/ksl
+        ImGui::TableSetupColumn("c9",ImGuiTableColumnFlags_WidthStretch,0.05f); // mult
         ImGui::TableSetupColumn("c10",ImGuiTableColumnFlags_WidthStretch,0.05f); // dt
         ImGui::TableSetupColumn("c15",ImGuiTableColumnFlags_WidthFixed); // am
         ImGui::TableSetupColumn("c12",ImGuiTableColumnFlags_WidthFixed); // -separator-
@@ -1005,10 +1011,7 @@ void FurnaceGUI::drawInsFMFM(DivInstrument* ins)
           if (settings.separateFMColors) 
           {
             bool mod=true;
-            if (opCount==4) 
-            {
-              if (i==1) mod=false;
-            }
+            if (opIsOutput[fmOrigin.alg&7][i]) mod=false;
 
             if (mod) 
             {
@@ -1155,7 +1158,7 @@ void FurnaceGUI::drawInsFMFM(DivInstrument* ins)
           }
 
           ImGui::TableNextColumn();
-          drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_ESFM)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,fmOrigin.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight),ins->type);
+          drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,fmOrigin.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight),ins->type);
 
           if (settings.separateFMColors) 
           {
@@ -1710,6 +1713,13 @@ void FurnaceGUI::drawInsFM(DivInstrument* ins)
   {
     drawInsFMFM(ins); return;
   }
+
+  if(ins->type == DIV_INS_OPM)
+  {
+    drawInsOPM(ins); return;
+  }
+
+  return;
 
   opCount=4;
   if (ins->type==DIV_INS_OPLL) opCount=2;
