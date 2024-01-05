@@ -542,7 +542,6 @@ void FurnaceGUI::drawInsOPL(DivInstrument* ins)
             ImGui::TableNextColumn();
 
             op.ar&=maxArDr;
-            float textX_AR=ImGui::GetCursorPosX();
             P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
 
             ImGui::SameLine();
@@ -558,8 +557,6 @@ void FurnaceGUI::drawInsOPL(DivInstrument* ins)
               textX_SL=ImGui::GetCursorPosX();
               P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
             }
-
-            float textX_D2R=0.0f;
 
             ImGui::SameLine();
             op.rr&=15;
@@ -703,7 +700,6 @@ void FurnaceGUI::drawInsOPL(DivInstrument* ins)
       {
         for (int i=0; i<opCount; i++) {
           DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i];
-          DivInstrumentESFM::Operator& opE=ins->esfm.op[i];
           if ((settings.fmLayout!=3 && ((i+1)&1)) || i==0 || settings.fmLayout==2) ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::Separator();

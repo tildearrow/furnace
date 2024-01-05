@@ -440,7 +440,7 @@ void FurnaceGUI::drawInsOPN(DivInstrument* ins)
           }
 
           float sliderHeight=200.0f*dpiScale;
-          float waveWidth=140.0*dpiScale*((ins->type==DIV_INS_ESFM)?0.85f:1.0f);
+          float waveWidth=140.0*dpiScale;
           float waveHeight=sliderHeight-ImGui::GetFrameHeightWithSpacing()*4.5f;
 
           int maxTl=127;
@@ -578,7 +578,7 @@ void FurnaceGUI::drawInsOPN(DivInstrument* ins)
             ImGui::TableNextColumn();
             op.tl&=maxTl;
             float tlSliderWidth=(ins->type==DIV_INS_ESFM)?20.0f*dpiScale:ImGui::GetFrameHeight();
-            float tlSliderHeight=sliderHeight-((ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM)?(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y):0.0f);
+            float tlSliderHeight=sliderHeight-(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y);
             float textX_tl=ImGui::GetCursorPosX();
             P(CWVSliderScalar("##TL",ImVec2(tlSliderWidth,tlSliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
 
@@ -701,7 +701,7 @@ void FurnaceGUI::drawInsOPN(DivInstrument* ins)
           bool ssgOn=op.ssgEnv&8;
           unsigned char ssgEnv=op.ssgEnv&7;
           ImGui::SameLine();
-          if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) 
+          if (ImGui::Checkbox("SSG On",&ssgOn)) 
           { PARAMETER
             op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
           }
