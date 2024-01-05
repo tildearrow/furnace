@@ -2439,6 +2439,13 @@ class FurnaceGUI {
   void drawInsFM(DivInstrument* ins);
   void drawInsOPN(DivInstrument* ins);
   void drawInsOPM(DivInstrument* ins);
+  void drawInsESFM(DivInstrument* ins);
+  void drawInsOPL(DivInstrument* ins);
+  void drawInsOPLDrums(DivInstrument* ins);
+  void drawInsOPLL(DivInstrument* ins);
+  void drawInsOPZ(DivInstrument* ins);
+
+  void drawInsWaveTab(DivInstrument* ins);
 
   void drawWaveList(bool asChild=false);
   void drawWaveEdit();

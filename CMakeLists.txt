@@ -747,6 +747,15 @@ src/gui/inst/fmPublicVars.cpp
 src/gui/inst/publicVars.cpp
 
 src/gui/inst/fm.cpp
+src/gui/inst/esfm.cpp
+src/gui/inst/opn.cpp
+src/gui/inst/opm.cpp
+src/gui/inst/opz.cpp
+src/gui/inst/opl.cpp
+src/gui/inst/oplDrums.cpp
+src/gui/inst/opll.cpp
+
+src/gui/inst/wavetable.cpp
 )
 
 if (USE_SNDFILE)
