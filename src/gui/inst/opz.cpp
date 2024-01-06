@@ -1021,7 +1021,6 @@ void FurnaceGUI::drawInsOPZ(DivInstrument* ins)
 
   if (ImGui::BeginTabItem("Macros")) 
   {
-    panMin=0;
     panMax=2;
 
     macroList.push_back(FurnaceGUIMacroDesc("Volume",ins,DIV_MACRO_VOL,0xff,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));

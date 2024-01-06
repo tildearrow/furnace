@@ -321,7 +321,6 @@ void FurnaceGUI::drawInsGB(DivInstrument* ins)
 
   if (ImGui::BeginTabItem("Macros")) 
   {
-    panMin=0;
     panMax=2;
 
     if (ins->gb.softEnv) 
