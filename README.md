@@ -65,8 +65,8 @@ for other operating systems, you may [build the source](#developer-info).
     - Konami K007232
     - Konami K053260
     - Irem GA20
-    - Ensoniq ES5506
     - Ensoniq ES5503
+    - Ensoniq ES5506
     - Namco C140
     - Namco C219
   - wavetable chips:
