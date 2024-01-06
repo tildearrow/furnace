@@ -241,6 +241,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsVBOY(ins); break;
       }
 
+      case DIV_INS_ES5506:
+      {
+        drawInsES5506(ins); break;
+      }
+
       default: break;
     }
 
@@ -265,42 +270,6 @@ void FurnaceGUI::drawActualInsEditor()
       //insTabSample(ins);
     }
 
-    if (ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem("ES5506")) {
-      if (ImGui::BeginTable("ESParams",2,ImGuiTableFlags_SizingStretchSame)) {
-        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
-        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
-        // filter
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        P(CWSliderScalar("Filter Mode",ImGuiDataType_U8,&ins->es5506.filter.mode,&_ZERO,&_THREE,es5506FilterModes[ins->es5506.filter.mode&3]));
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        P(CWSliderScalar("Filter K1",ImGuiDataType_U16,&ins->es5506.filter.k1,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
-        ImGui::TableNextColumn();
-        P(CWSliderScalar("Filter K2",ImGuiDataType_U16,&ins->es5506.filter.k2,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
-        // envelope
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        P(CWSliderScalar("Envelope count",ImGuiDataType_U16,&ins->es5506.envelope.ecount,&_ZERO,&_FIVE_HUNDRED_ELEVEN)); rightClickable
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        P(CWSliderScalar("Left Volume Ramp",ImGuiDataType_S8,&ins->es5506.envelope.lVRamp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
-        ImGui::TableNextColumn();
-        P(CWSliderScalar("Right Volume Ramp",ImGuiDataType_S8,&ins->es5506.envelope.rVRamp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        P(CWSliderScalar("Filter K1 Ramp",ImGuiDataType_S8,&ins->es5506.envelope.k1Ramp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
-        ImGui::TableNextColumn();
-        P(CWSliderScalar("Filter K2 Ramp",ImGuiDataType_S8,&ins->es5506.envelope.k2Ramp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("K1 Ramp Slowdown",&ins->es5506.envelope.k1Slow);
-        ImGui::TableNextColumn();
-        ImGui::Checkbox("K2 Ramp Slowdown",&ins->es5506.envelope.k2Slow);
-        ImGui::EndTable();
-      }
-      ImGui::EndTabItem();
-    }
     if (ins->type==DIV_INS_MULTIPCM) {
       if (ImGui::BeginTabItem("MultiPCM")) {
         ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
