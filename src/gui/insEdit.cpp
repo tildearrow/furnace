@@ -247,7 +247,7 @@ void FurnaceGUI::drawActualInsEditor()
         ins->type==DIV_INS_K053260 ||
         ins->type==DIV_INS_C140 ||
         ins->type==DIV_INS_C219) {
-      insTabSample(ins);
+      //insTabSample(ins);
     }
     if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
       bool preLoad=ins->n163.waveMode&0x1;
@@ -695,7 +695,7 @@ void FurnaceGUI::drawActualInsEditor()
         ins->type==DIV_INS_NAMCO ||
         ins->type==DIV_INS_SM8521) 
         {
-          drawInsWaveTab(ins);
+          //drawInsWaveTab(ins);
         }
         
     if (ins->type>DIV_INS_MAX) if (ImGui::BeginTabItem("Macros")) {
@@ -1280,7 +1280,7 @@ void FurnaceGUI::drawActualInsEditor()
         ins->type==DIV_INS_SWAN ||
         ins->type==DIV_INS_VRC6 ||
         ins->type==DIV_INS_ES5503) {
-      insTabSample(ins);
+      //insTabSample(ins);
     }
     if (ins->type>=DIV_INS_MAX) {
       if (ImGui::BeginTabItem("Error")) {
