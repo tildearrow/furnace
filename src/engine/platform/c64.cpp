@@ -318,7 +318,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
         chan[c.chan].ring=ins->c64.ringMod;
         chan[c.chan].sync=ins->c64.oscSync;
       }
-      if (chan[c.chan].insChanged || chan[c.chan].resetFilter) {
+      if (chan[c.chan].insChanged || chan[c.chan].resetFilter || ins->c64.initFilter) {
         chan[c.chan].filter=ins->c64.toFilter;
         if (ins->c64.initFilter) {
           filtCut=ins->c64.cut;
