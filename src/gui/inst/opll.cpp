@@ -385,9 +385,7 @@ void FurnaceGUI::drawInsOPLL(DivInstrument* ins)
           int maxArDr=15;
           bool ksrOn=op.ksr;
           bool vibOn=op.vib;
-          bool susOn=op.sus;
           bool ssgOn=op.ssgEnv&8;
-          unsigned char ssgEnv=op.ssgEnv&7;
 
           ImGui::TableNextColumn();
           op.ar&=maxArDr;
@@ -561,9 +559,6 @@ void FurnaceGUI::drawInsOPLL(DivInstrument* ins)
           bool ssgOn=op.ssgEnv&8;
           bool ksrOn=op.ksr;
           bool vibOn=op.vib;
-          bool egtOn=op.egt;
-          bool susOn=op.sus; // yawn
-          unsigned char ssgEnv=op.ssgEnv&7;
 
           ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,oldPadding);
           if (ImGui::BeginTable("opParams",4,ImGuiTableFlags_BordersInnerV)) 
@@ -589,7 +584,6 @@ void FurnaceGUI::drawInsOPLL(DivInstrument* ins)
             // A/D/S/R
             ImGui::TableNextColumn();
             op.ar&=maxArDr;
-            float textX_AR=ImGui::GetCursorPosX();
             P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
 
             ImGui::SameLine();
@@ -605,8 +599,6 @@ void FurnaceGUI::drawInsOPLL(DivInstrument* ins)
               textX_SL=ImGui::GetCursorPosX();
               P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
             }
-
-            float textX_D2R=0.0f;
 
             ImGui::SameLine();
             op.rr&=15;
@@ -796,8 +788,6 @@ void FurnaceGUI::drawInsOPLL(DivInstrument* ins)
           bool ssgOn=op.ssgEnv&8;
           bool ksrOn=op.ksr;
           bool vibOn=op.vib;
-          bool susOn=op.sus; // don't you make fun of this one
-          unsigned char ssgEnv=op.ssgEnv&7;
 
           ImGui::SameLine();
           if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) 
@@ -979,5 +969,22 @@ void FurnaceGUI::drawInsOPLL(DivInstrument* ins)
       ImGui::PopID();
       ImGui::EndTabItem();
     }
+  }
+
+  if (ImGui::BeginTabItem("Macros")) 
+  {
+    volMax=63;
+    waveLabel="Patch";
+    waveMax=15;
+
+    macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,ins,DIV_MACRO_VOL,0xff,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+    macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",ins,DIV_MACRO_ARP,0xff,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.get_macro(DIV_MACRO_ARP, true)->val));
+    macroList.push_back(FurnaceGUIMacroDesc("Pitch",ins,DIV_MACRO_PITCH,0xff,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+    macroList.push_back(FurnaceGUIMacroDesc(waveLabel, ins, DIV_MACRO_WAVE, 0xff, 0, waveMax, 160, uiColors[GUI_COLOR_MACRO_WAVE], false, NULL, NULL));
+
+    macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",ins,DIV_MACRO_PHASE_RESET,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+
+    drawMacros(macroList,macroEditStateMacros);
+    ImGui::EndTabItem();
   }
 }
