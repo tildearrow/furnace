@@ -251,6 +251,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsMULTIPCM(ins); break;
       }
 
+      case DIV_INS_SNES:
+      {
+        drawInsSNES(ins); break;
+      }
+
       default: break;
     }
 
@@ -274,123 +279,7 @@ void FurnaceGUI::drawActualInsEditor()
         ins->type==DIV_INS_C219) {
       //insTabSample(ins);
     }
-
-    if (ins->type==DIV_INS_SNES) if (ImGui::BeginTabItem("SNES")) {
-      P(ImGui::Checkbox("Use envelope",&ins->snes.useEnv));
-      ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
-      if (ins->snes.useEnv) {
-        if (ImGui::BeginTable("SNESEnvParams",ins->snes.sus?6:5,ImGuiTableFlags_NoHostExtendX)) {
-          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          if (ins->snes.sus) {
-            ImGui::TableSetupColumn("c2x",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          }
-          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          CENTER_TEXT("A");
-          ImGui::TextUnformatted("A");
-          ImGui::TableNextColumn();
-          CENTER_TEXT("D");
-          ImGui::TextUnformatted("D");
-          ImGui::TableNextColumn();
-          CENTER_TEXT("S");
-          ImGui::TextUnformatted("S");
-          if (ins->snes.sus) {
-            ImGui::TableNextColumn();
-            CENTER_TEXT("D2");
-            ImGui::TextUnformatted("D2");
-          }
-          ImGui::TableNextColumn();
-          CENTER_TEXT("R");
-          ImGui::TextUnformatted("R");
-          ImGui::TableNextColumn();
-          CENTER_TEXT("Envelope");
-          ImGui::TextUnformatted("Envelope");
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->snes.a,&_ZERO,&_FIFTEEN)); rightClickable
-          ImGui::TableNextColumn();
-          P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->snes.d,&_ZERO,&_SEVEN)); rightClickable
-          ImGui::TableNextColumn();
-          P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->snes.s,&_ZERO,&_SEVEN)); rightClickable
-          if (ins->snes.sus) {
-            ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Decay2",sliderSize,ImGuiDataType_U8,&ins->snes.d2,&_ZERO,&_THIRTY_ONE)); rightClickable
-          }
-          ImGui::TableNextColumn();
-          P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->snes.r,&_ZERO,&_THIRTY_ONE)); rightClickable
-          ImGui::TableNextColumn();
-          drawFMEnv(0,ins->snes.a+1,1+ins->snes.d*2,ins->snes.sus?ins->snes.d2:ins->snes.r,ins->snes.sus?ins->snes.r:31,(14-ins->snes.s*2),(ins->snes.r==0 || (ins->snes.sus && ins->snes.d2==0)),0,0,7,16,31,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
-
-          ImGui::EndTable();
-        }
-        ImGui::Text("Sustain/release mode:");
-        if (ImGui::RadioButton("Direct (cut on release)",ins->snes.sus==0)) {
-          ins->snes.sus=0;
-        }
-        if (ImGui::RadioButton("Effective (linear decrease)",ins->snes.sus==1)) {
-          ins->snes.sus=1;
-        }
-        if (ImGui::RadioButton("Effective (exponential decrease)",ins->snes.sus==2)) {
-          ins->snes.sus=2;
-        }
-        if (ImGui::RadioButton("Delayed (write R on release)",ins->snes.sus==3)) {
-          ins->snes.sus=3;
-        }
-      } else {
-        if (ImGui::BeginTable("SNESGainParams",2,ImGuiTableFlags_NoHostExtendX)) {
-          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          CENTER_TEXT("Gain Mode");
-          ImGui::TextUnformatted("Gain Mode");
-          ImGui::TableNextColumn();
-          CENTER_TEXT("Gain");
-          ImGui::TextUnformatted("Gain");
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          if (ImGui::RadioButton("Direct",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT)) {
-            ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT;
-            PARAMETER;
-          }
-          if (ImGui::RadioButton("Decrease (linear)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LINEAR)) {
-            ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LINEAR;
-            PARAMETER;
-          }
-          if (ImGui::RadioButton("Decrease (logarithmic)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LOG)) {
-            ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LOG;
-            PARAMETER;
-          }
-          if (ImGui::RadioButton("Increase (linear)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_INC_LINEAR)) {
-            ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_INC_LINEAR;
-            PARAMETER;
-          }
-          if (ImGui::RadioButton("Increase (bent line)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_INC_INVLOG)) {
-            ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_INC_INVLOG;
-            PARAMETER;
-          }
-
-          ImGui::TableNextColumn();
-          unsigned char gainMax=(ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT)?127:31;
-          if (ins->snes.gain>gainMax) ins->snes.gain=gainMax;
-          P(CWVSliderScalar("##Gain",sliderSize,ImGuiDataType_U8,&ins->snes.gain,&_ZERO,&gainMax)); rightClickable
-
-          ImGui::EndTable();
-        }
-        if (ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LINEAR || ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LOG) {
-          ImGui::TextWrapped("using decrease modes will not produce any sound at all, unless you know what you are doing.\nit is recommended to use the Gain macro for decrease instead.");
-        }
-      }
-      ImGui::EndTabItem();
-    }
+    
     if (ins->type==DIV_INS_GB ||
         (ins->type==DIV_INS_AMIGA && ins->amiga.useWave) ||
         (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample) ||
@@ -928,6 +817,7 @@ void FurnaceGUI::drawActualInsEditor()
           macroList.push_back(FurnaceGUIMacroDesc("Echo Length",ins,DIV_MACRO_EX2,0xff,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
         } else if (ins->type==DIV_INS_SNES) {
           macroList.push_back(FurnaceGUIMacroDesc("Gain",ins,DIV_MACRO_EX2,0xff,0,ex2Max,256,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,macroHoverGain,false));
+        } else if (ins->type==DIV_INS_MSM5232) {
           macroList.push_back(FurnaceGUIMacroDesc("Group Decay",ins,DIV_MACRO_EX2,0xff,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
         } else if (ins->type==DIV_INS_ES5503) {
           macroList.push_back(FurnaceGUIMacroDesc("Osc. output",ins,DIV_MACRO_EX2,0xff,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER]));
