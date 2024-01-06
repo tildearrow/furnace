@@ -16,6 +16,7 @@ LTVA:
 - Add Ensoniq ES5503 system
 - Add filter on/off macro for C64 instrument
 - Apply some imgui patch so text in song/subsong info/comments window actually wraps (and add a setting to toggle the wrap)
+- cap max arrow size in arp and pitch macros so arrow (which emerges if you scroll arp/pitch macro vertically and the values go out of bounds) doesn't freak out in grid macro layout
 
 freq-mod:
 - 86-PCM streo DAC fix
