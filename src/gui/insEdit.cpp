@@ -226,6 +226,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsSU(ins); break;
       }
 
+      case DIV_INS_N163:
+      {
+        drawInsN163(ins); break;
+      }
+
       default: break;
     }
 
@@ -249,81 +254,7 @@ void FurnaceGUI::drawActualInsEditor()
         ins->type==DIV_INS_C219) {
       //insTabSample(ins);
     }
-    if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
-      bool preLoad=ins->n163.waveMode&0x1;
-      if (ImGui::Checkbox("Load waveform",&preLoad)) { PARAMETER
-        ins->n163.waveMode=(ins->n163.waveMode&~0x1)|(preLoad?0x1:0);
-      }
 
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("when enabled, a waveform will be loaded into RAM.\nwhen disabled, only the offset and length change.");
-      }
-
-      if (preLoad) {
-        if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
-          if (ins->n163.wave<0) ins->n163.wave=0;
-          if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;
-        }
-      }
-
-      ImGui::Separator();
-
-      P(ImGui::Checkbox("Per-channel wave position/length",&ins->n163.perChanPos));
-
-      if (ins->n163.perChanPos) {
-        if (ImGui::BeginTable("N1PerChPos",3)) {
-          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
-          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
-
-          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-          ImGui::TableNextColumn();
-          ImGui::Text("Ch");
-          ImGui::TableNextColumn();
-          ImGui::Text("Position");
-          ImGui::TableNextColumn();
-          ImGui::Text("Length");
-
-          for (int i=0; i<8; i++) {
-            ImGui::PushID(64+i);
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::Dummy(ImVec2(dpiScale,ImGui::GetFrameHeightWithSpacing()));
-            ImGui::SameLine();
-            ImGui::Text("%d",i+1);
-
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##pcOff",&ins->n163.wavePosCh[i],1,16)) { PARAMETER
-              if (ins->n163.wavePosCh[i]<0) ins->n163.wavePosCh[i]=0;
-              if (ins->n163.wavePosCh[i]>255) ins->n163.wavePosCh[i]=255;
-            }
-
-            ImGui::TableNextColumn();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##pcLen",&ins->n163.waveLenCh[i],4,16)) { PARAMETER
-              if (ins->n163.waveLenCh[i]<0) ins->n163.waveLenCh[i]=0;
-              if (ins->n163.waveLenCh[i]>252) ins->n163.waveLenCh[i]=252;
-              ins->n163.waveLenCh[i]&=0xfc;
-            }
-            ImGui::PopID();
-          }
-
-          ImGui::EndTable();
-        }
-      } else {
-        if (ImGui::InputInt("Position##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
-          if (ins->n163.wavePos<0) ins->n163.wavePos=0;
-          if (ins->n163.wavePos>255) ins->n163.wavePos=255;
-        }
-        if (ImGui::InputInt("Length##WAVELEN",&ins->n163.waveLen,4,16)) { PARAMETER
-          if (ins->n163.waveLen<0) ins->n163.waveLen=0;
-          if (ins->n163.waveLen>252) ins->n163.waveLen=252;
-          ins->n163.waveLen&=0xfc;
-        }
-      }
-      ImGui::EndTabItem();
-    }
     if (ins->type==DIV_INS_FDS) if (ImGui::BeginTabItem("FDS")) {
       float modTable[32];
       int modTableInt[256];
