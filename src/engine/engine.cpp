@@ -3220,7 +3220,22 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
         } else {
           isViable[i]=false;
         }
-      } else {
+      } 
+      
+      else if(insInst->type==DIV_INS_ES5503 && insInst->es5503.softpan_virtual_channel) //limit available channels to only 1st, 3rd, ... channels
+      {
+        if(dispatchChanOfChan[i] % 2 == 0)
+        {
+          isViable[i]=true;
+          canPlayAnyway=true;
+        } 
+        else 
+        {
+          isViable[i]=false;
+        }
+      }
+      
+      else {
         isViable[i]=true;
         canPlayAnyway=true;
       }
