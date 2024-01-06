@@ -173,9 +173,45 @@ void FurnaceGUI::drawActualInsEditor()
     macroList.clear();
     macroList.shrink_to_fit();
 
-    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
-      drawInsFM(ins);
-      //return;
+    switch(ins->type)
+    {
+      case DIV_INS_FM:
+      {
+        drawInsOPN(ins); break;
+      }
+
+      case DIV_INS_OPM:
+      {
+        drawInsOPM(ins); break;
+      }
+
+      case DIV_INS_OPZ:
+      {
+        drawInsOPZ(ins); break;
+      }
+
+      case DIV_INS_ESFM:
+      {
+        drawInsESFM(ins); break;
+      }
+
+      case DIV_INS_OPL:
+      case DIV_INS_OPL_DRUMS:
+      {
+        drawInsOPL(ins); break;
+      }
+
+      case DIV_INS_OPLL:
+      {
+        drawInsOPLL(ins); break;
+      }
+
+      case DIV_INS_GB:
+      {
+        drawInsGB(ins); break;
+      }
+
+      default: break;
     }
 
     if (ins->type==DIV_INS_GB) if (ImGui::BeginTabItem("Game Boy")) {
@@ -1308,7 +1344,7 @@ void FurnaceGUI::drawActualInsEditor()
           drawInsWaveTab(ins);
         }
         
-    if (ins->type<DIV_INS_MAX) if (ImGui::BeginTabItem("Macros")) {
+    if (ins->type>DIV_INS_MAX) if (ImGui::BeginTabItem("Macros")) {
       //const char* volumeLabel="Volume";
 
       volMax=15;

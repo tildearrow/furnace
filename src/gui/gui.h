@@ -2443,6 +2443,7 @@ class FurnaceGUI {
   void drawInsOPL(DivInstrument* ins);
   void drawInsOPLL(DivInstrument* ins);
   void drawInsOPZ(DivInstrument* ins);
+  void drawInsGB(DivInstrument* ins);
 
   void drawInsWaveTab(DivInstrument* ins);
 

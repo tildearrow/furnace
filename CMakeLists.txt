@@ -754,6 +754,8 @@ src/gui/inst/opz.cpp
 src/gui/inst/opl.cpp
 src/gui/inst/opll.cpp
 
+src/gui/inst/gb.cpp
+
 src/gui/inst/wavetable.cpp
 )
 
