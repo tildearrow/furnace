@@ -216,58 +216,14 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsC64(ins); break;
       }
 
+      case DIV_INS_ES5503:
+      {
+        drawInsES5503(ins); break;
+      }
+
       default: break;
     }
 
-    if (ins->type==DIV_INS_ES5503) if (ImGui::BeginTabItem("ES5503")) {
-      ImGui::AlignTextToFramePadding();
-      ImGui::Text("Oscillator mode:");
-      ImGui::SameLine();
-      bool freerun = (ins->es5503.initial_osc_mode == OSC_MODE_FREERUN);
-      bool oneshot = (ins->es5503.initial_osc_mode == OSC_MODE_ONESHOT);
-      bool sync_am = (ins->es5503.initial_osc_mode == OSC_MODE_SYNC_OR_AM);
-      bool swap = (ins->es5503.initial_osc_mode == OSC_MODE_SWAP);
-      if (ImGui::RadioButton("Freerun",freerun)) { PARAMETER
-        freerun=true;
-        oneshot=false;
-        sync_am=false;
-        swap=false;
-        ins->es5503.initial_osc_mode=OSC_MODE_FREERUN;
-      }
-      ImGui::SameLine();
-      if (ImGui::RadioButton("Oneshot",oneshot)) { PARAMETER
-        freerun=false;
-        oneshot=true;
-        sync_am=false;
-        swap=false;
-        ins->es5503.initial_osc_mode=OSC_MODE_ONESHOT;
-      }
-      ImGui::SameLine();
-      if (ImGui::RadioButton("Sync/AM",sync_am)) { PARAMETER
-        freerun=false;
-        oneshot=false;
-        sync_am=true;
-        swap=false;
-        ins->es5503.initial_osc_mode=OSC_MODE_SYNC_OR_AM;
-      }
-      ImGui::SameLine();
-      if (ImGui::RadioButton("Swap",swap)) { PARAMETER
-        freerun=false;
-        oneshot=false;
-        sync_am=true;
-        swap=false;
-        ins->es5503.initial_osc_mode=OSC_MODE_SWAP;
-      }
-
-      P(ImGui::Checkbox("Virtual softpan channel",&ins->es5503.softpan_virtual_channel));
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Combines odd and next even channel into one virtual channel with 256-step panning.\nInstrument, volume and effects need to be placed on the odd channel (e.g. 1st, 3rd, 5th etc.)");
-      }
-
-      P(ImGui::Checkbox("Phase reset on key-on",&ins->es5503.phase_reset_on_start));
-      
-      ImGui::EndTabItem();
-    }
     if (ins->type==DIV_INS_SU) if (ImGui::BeginTabItem("Sound Unit")) {
       P(ImGui::Checkbox("Switch roles of frequency and phase reset timer",&ins->su.switchRoles));
       if (ImGui::BeginChild("HWSeqSU",ImGui::GetContentRegionAvail(),true,ImGuiWindowFlags_MenuBar)) {
