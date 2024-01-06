@@ -175,6 +175,7 @@ void FurnaceGUI::drawActualInsEditor()
 
     if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
       drawInsFM(ins);
+      //return;
     }
 
     if (ins->type==DIV_INS_GB) if (ImGui::BeginTabItem("Game Boy")) {

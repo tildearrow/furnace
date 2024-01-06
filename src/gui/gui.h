@@ -2110,7 +2110,7 @@ class FurnaceGUI {
   int macroLoopDragLen;
   bool macroLoopDragActive;
 
-  FurnaceGUIMacroEditState macroEditStateFM, macroEditStateOP[4], macroEditStateMacros;
+  FurnaceGUIMacroEditState macroEditStateFM, macroEditStateOP[8], macroEditStateMacros;
 
   ImVec2 waveDragStart;
   ImVec2 waveDragAreaSize;

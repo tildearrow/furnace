@@ -61,6 +61,11 @@ void FurnaceGUI::drawInsFM(DivInstrument* ins)
       drawInsOPL(ins); return; break;
     }
 
+    case DIV_INS_OPLL:
+    {
+      drawInsOPLL(ins); return; break;
+    }
+
     default: return; break;
   }
 

@@ -1295,7 +1295,7 @@ void FurnaceGUI::drawInsESFM(DivInstrument* ins)
       macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_OUTLVL),ins,(DivMacroType)DIV_MACRO_OP_EGT,ordi,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
       macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_MODIN),ins,(DivMacroType)DIV_MACRO_OP_D2R,ordi,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
 
-      if (ins->esfm.op[ordi].fixed) 
+      if (ins->esfm.op[ordi].fixed)
       {
         macroList.push_back(FurnaceGUIMacroDesc("Block",ins,(DivMacroType)DIV_MACRO_OP_SSG,ordi,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER],true));
         macroList.push_back(FurnaceGUIMacroDesc("FreqNum",ins,(DivMacroType)DIV_MACRO_OP_DT,ordi,0,1023,160,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -1319,5 +1319,24 @@ void FurnaceGUI::drawInsESFM(DivInstrument* ins)
       ImGui::PopID();
       ImGui::EndTabItem();
     }
+  }
+
+  if (ImGui::BeginTabItem("Macros")) 
+  {
+    volMax=63;
+    dutyLabel="OP4 Noise Mode";
+    panMin=0;
+    panMax=2;
+
+    macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,ins,DIV_MACRO_VOL,0xff,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+    macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",ins,DIV_MACRO_ARP,0xff,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.get_macro(DIV_MACRO_ARP, true)->val));
+    macroList.push_back(FurnaceGUIMacroDesc("Pitch",ins,DIV_MACRO_PITCH,0xff,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+    macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,ins,DIV_MACRO_DUTY,0xff,dutyMin,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+    macroList.push_back(FurnaceGUIMacroDesc("Panning",ins,DIV_MACRO_PAN_LEFT,0xff,0,panMax,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+
+    macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",ins,DIV_MACRO_PHASE_RESET,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+
+    drawMacros(macroList,macroEditStateMacros);
+    ImGui::EndTabItem();
   }
 }
