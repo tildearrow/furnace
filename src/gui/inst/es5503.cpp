@@ -105,7 +105,7 @@ void FurnaceGUI::drawInsES5503(DivInstrument* ins)
 
     if(!ins->amiga.useSample)
     {
-      macroList.push_back(FurnaceGUIMacroDesc("Wavetable",ins,DIV_MACRO_WAVE,0xff,0,255,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL));
+      macroList.push_back(FurnaceGUIMacroDesc("Waveform",ins,DIV_MACRO_WAVE,0xff,0,MAX(1,e->song.waveLen-1),160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL));
     }
 
     macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",ins,DIV_MACRO_PHASE_RESET,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));

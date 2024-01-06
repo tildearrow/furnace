@@ -231,6 +231,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsN163(ins); break;
       }
 
+      case DIV_INS_FDS:
+      {
+        drawInsFDS(ins); break;
+      }
+
       default: break;
     }
 
@@ -254,69 +259,7 @@ void FurnaceGUI::drawActualInsEditor()
         ins->type==DIV_INS_C219) {
       //insTabSample(ins);
     }
-
-    if (ins->type==DIV_INS_FDS) if (ImGui::BeginTabItem("FDS")) {
-      float modTable[32];
-      int modTableInt[256];
-      ImGui::Checkbox("Compatibility mode",&ins->fds.initModTableWithFirstWave);
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("only use for compatibility with .dmf modules!\n- initializes modulation table with first wavetable\n- does not alter modulation parameters on instrument change");
-      }
-      if (ImGui::InputInt("Modulation depth",&ins->fds.modDepth,1,4)) {
-        if (ins->fds.modDepth<0) ins->fds.modDepth=0;
-        if (ins->fds.modDepth>63) ins->fds.modDepth=63;
-      }
-      if (ImGui::InputInt("Modulation speed",&ins->fds.modSpeed,1,4)) {
-        if (ins->fds.modSpeed<0) ins->fds.modSpeed=0;
-        if (ins->fds.modSpeed>4095) ins->fds.modSpeed=4095;
-      }
-      ImGui::Text("Modulation table");
-      for (int i=0; i<32; i++) {
-        modTable[i]=ins->fds.modTable[i];
-        modTableInt[i]=ins->fds.modTable[i];
-      }
-      ImVec2 modTableSize=ImVec2(ImGui::GetContentRegionAvail().x,96.0f*dpiScale);
-      PlotCustom("ModTable",modTable,32,0,NULL,-4,3,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-        macroDragStart=ImGui::GetItemRectMin();
-        macroDragAreaSize=modTableSize;
-        macroDragMin=-4;
-        macroDragMax=3;
-        macroDragBitOff=0;
-        macroDragBitMode=false;
-        macroDragInitialValueSet=false;
-        macroDragInitialValue=false;
-        macroDragLen=32;
-        macroDragActive=true;
-        macroDragCTarget=(unsigned char*)ins->fds.modTable;
-        macroDragChar=true;
-        macroDragLineMode=false;
-        macroDragLineInitial=ImVec2(0,0);
-        processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-        ImGui::InhibitInertialScroll();
-      }
-
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
-      if (ImGui::InputText("##MMLModTable",&mmlStringModTable)) {
-        int discardIt=0;
-        memset(modTableInt,0,256*sizeof(int));
-        decodeMMLStrW(mmlStringModTable,modTableInt,discardIt,-4,3,false);
-        for (int i=0; i<32; i++) {
-          if (i>=discardIt) {
-            modTableInt[i]=0;
-          } else {
-            if (modTableInt[i]<-4) modTableInt[i]=-4;
-            if (modTableInt[i]>3) modTableInt[i]=3;
-          }
-          ins->fds.modTable[i]=modTableInt[i];
-        }
-        MARK_MODIFIED;
-      }
-      if (!ImGui::IsItemActive()) {
-        encodeMMLStr(mmlStringModTable,modTableInt,32,-1,-1,false);
-      }
-      ImGui::EndTabItem();
-    }
+    
     if (ins->type==DIV_INS_VBOY) if (ImGui::BeginTabItem("Virtual Boy")) {
       float modTable[32];
       int modTableInt[256];
