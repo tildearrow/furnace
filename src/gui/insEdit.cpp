@@ -246,6 +246,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsES5506(ins); break;
       }
 
+      case DIV_INS_MULTIPCM:
+      {
+        drawInsMULTIPCM(ins); break;
+      }
+
       default: break;
     }
 
@@ -270,91 +275,6 @@ void FurnaceGUI::drawActualInsEditor()
       //insTabSample(ins);
     }
 
-    if (ins->type==DIV_INS_MULTIPCM) {
-      if (ImGui::BeginTabItem("MultiPCM")) {
-        ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
-        if (ImGui::BeginTable("MultiPCMADSRParams",7,ImGuiTableFlags_NoHostExtendX)) {
-          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-          ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthStretch);
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          CENTER_TEXT("AR");
-          ImGui::TextUnformatted("AR");
-          if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Attack Rate");
-          }
-          ImGui::TableNextColumn();
-          CENTER_TEXT("D1R");
-          ImGui::TextUnformatted("D1R");
-          if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Decay 1 Rate");
-          }
-          ImGui::TableNextColumn();
-          CENTER_TEXT("DL");
-          ImGui::TextUnformatted("DL");
-          if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Decay Level");
-          }
-          ImGui::TableNextColumn();
-          CENTER_TEXT("D2R");
-          ImGui::TextUnformatted("D2R");
-          if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Decay 2 Rate");
-          }
-          ImGui::TableNextColumn();
-          CENTER_TEXT("RR");
-          ImGui::TextUnformatted("RR");
-          if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Release Rate");
-          }
-          ImGui::TableNextColumn();
-          CENTER_TEXT("RC");
-          ImGui::TextUnformatted("RC");
-          if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Rate Correction");
-          }
-          ImGui::TableNextColumn();
-          CENTER_TEXT("Envelope");
-          ImGui::TextUnformatted("Envelope");
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          P(CWVSliderScalar("##Attack Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.ar,&_ZERO,&_FIFTEEN)); rightClickable
-          ImGui::TableNextColumn();
-          P(CWVSliderScalar("##Decay 1 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d1r,&_ZERO,&_FIFTEEN)); rightClickable
-          ImGui::TableNextColumn();
-          P(CWVSliderScalar("##Decay Level",sliderSize,ImGuiDataType_U8,&ins->multipcm.dl,&_ZERO,&_FIFTEEN)); rightClickable
-          ImGui::TableNextColumn();
-          P(CWVSliderScalar("##Decay 2 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d2r,&_ZERO,&_FIFTEEN)); rightClickable
-          ImGui::TableNextColumn();
-          P(CWVSliderScalar("##Release Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.rr,&_ZERO,&_FIFTEEN)); rightClickable
-          ImGui::TableNextColumn();
-          P(CWVSliderScalar("##Rate Correction",sliderSize,ImGuiDataType_U8,&ins->multipcm.rc,&_ZERO,&_FIFTEEN)); rightClickable
-          ImGui::TableNextColumn();
-          drawFMEnv(0,ins->multipcm.ar,ins->multipcm.d1r,ins->multipcm.d2r,ins->multipcm.rr,ins->multipcm.dl,0,0,0,127,15,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
-          ImGui::EndTable();
-        }
-        if (ImGui::BeginTable("MultiPCMLFOParams",3,ImGuiTableFlags_SizingStretchSame)) {
-          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
-          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
-          ImGui::TableNextColumn();
-          P(CWSliderScalar("LFO Rate",ImGuiDataType_U8,&ins->multipcm.lfo,&_ZERO,&_SEVEN)); rightClickable
-          ImGui::TableNextColumn();
-          P(CWSliderScalar("PM Depth",ImGuiDataType_U8,&ins->multipcm.vib,&_ZERO,&_SEVEN)); rightClickable
-          ImGui::TableNextColumn();
-          P(CWSliderScalar("AM Depth",ImGuiDataType_U8,&ins->multipcm.am,&_ZERO,&_SEVEN)); rightClickable
-          ImGui::EndTable();
-        }
-        ImGui::EndTabItem();
-      }
-    }
     if (ins->type==DIV_INS_SNES) if (ImGui::BeginTabItem("SNES")) {
       P(ImGui::Checkbox("Use envelope",&ins->snes.useEnv));
       ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
