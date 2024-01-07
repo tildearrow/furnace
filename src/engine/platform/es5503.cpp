@@ -185,16 +185,6 @@ void DivPlatformES5503::tick(bool sysTick) {
       }
     }
 
-    if(isMuted[i])
-    {
-      rWrite(0x40 + i, 0); //force mute even for samples, I hope
-
-      if(chan[i].softpan_channel)
-      {
-        rWrite(0x40 + i + 1, 0); //force mute even for samples, I hope
-      }
-    }
-
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
     } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
@@ -707,6 +697,32 @@ int DivPlatformES5503::dispatch(DivCommand c) {
 
 void DivPlatformES5503::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+
+  if(isMuted[ch])
+  {
+    rWrite(0x40 + ch, 0); //force mute even for samples, I hope
+
+    if(chan[ch].softpan_channel)
+    {
+      rWrite(0x40 + ch + 1, 0); //force mute even for samples, I hope
+    }
+  }
+
+  else
+  {
+    if(chan[ch].softpan_channel)
+    {
+      uint8_t temp = chan[ch].outVol * chan[ch].panleft / 255;
+      rWrite(0x40 + ch, isMuted[ch] ? 0 : (temp));
+      temp = chan[ch].outVol * chan[ch].panright / 255;
+      rWrite(0x40 + ch + 1, isMuted[ch] ? 0 : (temp));
+    }
+
+    else
+    {
+      rWrite(0x40 + ch, isMuted[ch] ? 0 : chan[ch].outVol);
+    }
+  }
 }
 
 void DivPlatformES5503::forceIns() {
