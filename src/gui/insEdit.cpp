@@ -271,6 +271,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsAmiga(ins); break;
       }
 
+      case DIV_INS_AY:
+      {
+        drawInsAY(ins); break;
+      }
+
       default: break;
     }
 
