@@ -336,6 +336,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsNAMCO(ins); break;
       }
 
+      case DIV_INS_NES:
+      {
+        drawInsNES(ins); break;
+      }
+
       default: break;
     }
 
