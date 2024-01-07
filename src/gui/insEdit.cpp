@@ -276,6 +276,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsAY(ins); break;
       }
 
+      case DIV_INS_AY8930:
+      {
+        drawInsAY8930(ins); break;
+      }
+
       default: break;
     }
 
