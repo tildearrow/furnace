@@ -311,6 +311,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsK053260(ins); break;
       }
 
+      case DIV_INS_MIKEY:
+      {
+        drawInsMIKEY(ins); break;
+      }
+
       default: break;
     }
 
