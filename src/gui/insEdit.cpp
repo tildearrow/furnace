@@ -316,6 +316,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsMIKEY(ins); break;
       }
 
+      case DIV_INS_MSM5232:
+      {
+        drawInsMSM5232(ins); break;
+      }
+
       default: break;
     }
 

@@ -29,5 +29,19 @@ class FurnaceGUI;
 
 void FurnaceGUI::drawInsMSM5232(DivInstrument* ins)
 {
+  insTabSample(ins);
 
+  if (ImGui::BeginTabItem("Macros")) 
+  {
+    macroList.push_back(FurnaceGUIMacroDesc("Volume",ins,DIV_MACRO_VOL,0xff,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+    macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",ins,DIV_MACRO_ARP,0xff,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.get_macro(DIV_MACRO_ARP, true)->val));
+
+    macroList.push_back(FurnaceGUIMacroDesc("Group Ctrl",ins,DIV_MACRO_DUTY,0xff,0,5,80,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,msm5232ControlBits));
+    macroList.push_back(FurnaceGUIMacroDesc("Group Attack",ins,DIV_MACRO_EX1,0xff,0,5,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+    macroList.push_back(FurnaceGUIMacroDesc("Group Decay",ins,DIV_MACRO_EX2,0xff,0,11,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+    macroList.push_back(FurnaceGUIMacroDesc("Noise",ins,DIV_MACRO_EX3,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+
+    drawMacros(macroList,macroEditStateMacros);
+    ImGui::EndTabItem();
+  }
 }
