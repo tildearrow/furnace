@@ -261,6 +261,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsADPCMA(ins); break;
       }
 
+      case DIV_INS_ADPCMB:
+      {
+        drawInsADPCMB(ins); break;
+      }
+
       default: break;
     }
 

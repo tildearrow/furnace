@@ -33,9 +33,6 @@ void FurnaceGUI::drawInsADPCMA(DivInstrument* ins)
 
   if (ImGui::BeginTabItem("Macros")) 
   {
-    panMin=0;
-    panMax=255;
-
     macroList.push_back(FurnaceGUIMacroDesc("Volume",ins,DIV_MACRO_VOL,0xff,0,31,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
     macroList.push_back(FurnaceGUIMacroDesc("Global Volume",ins,DIV_MACRO_DUTY,0xff,0,63,160,uiColors[GUI_COLOR_MACRO_OTHER]));
     macroList.push_back(FurnaceGUIMacroDesc("Panning",ins,DIV_MACRO_PAN_LEFT,0xff,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
