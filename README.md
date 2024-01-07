@@ -57,7 +57,7 @@ for other operating systems, you may [build the source](#developer-info).
     - Microchip AY8930
     - TI SN76489 used in Sega Master System and BBC Micro
     - PC Speaker
-      - Ability to play music on your PC's PC speaker! (Linux/Unix-like only)
+      - Ability to play music on your PC (the one Furnace is running on) PC speaker! (Linux/Unix-like only)
     - Philips SAA1099 used in SAM Coupé
     - OKI MSM5232 used in some arcade boards
   - sample chips:
