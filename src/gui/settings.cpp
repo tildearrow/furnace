@@ -3175,6 +3175,8 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        // SUBSECTION MISC
+        CONFIG_SUBSECTION("Misc");
         bool wrapTextB=settings.wrapText;
         if (ImGui::Checkbox("Wrap text",&wrapTextB)) {
           settings.wrapText=wrapTextB;
@@ -3182,6 +3184,15 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Wrap text in song/subsong comments window.");
+        }
+
+        bool doFrameShadingForMultilineTextB=settings.doFrameShadingForMultilineText;
+        if (ImGui::Checkbox("Frame shading in text windows",&doFrameShadingForMultilineTextB)) {
+          settings.doFrameShadingForMultilineText=doFrameShadingForMultilineTextB;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Apply frame shading to the multiline text fields\nsuch as song/subsong info/comments.");
         }
 
         END_SECTION;
@@ -3842,6 +3853,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.germanNotation=conf.getInt("germanNotation",0);
 
     settings.frameBorders=conf.getInt("frameBorders",0);
+    settings.doFrameShadingForMultilineText=conf.getInt("doFrameShadingForMultilineText",0);
 
     settings.noteOffLabel=conf.getString("noteOffLabel","OFF");
     settings.noteRelLabel=conf.getString("noteRelLabel","===");
@@ -3987,6 +3999,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.viewPrevPattern,0,1);
   clampSetting(settings.guiColorsBase,0,1);
   clampSetting(settings.guiColorsShading,0,100);
+  clampSetting(settings.doFrameShadingForMultilineText,0,1);
   clampSetting(settings.avoidRaisingPattern,0,1);
   clampSetting(settings.insFocusesPattern,0,1);
   clampSetting(settings.stepOnInsert,0,1);
@@ -4339,6 +4352,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("capitalMenuBar",settings.capitalMenuBar);
     conf.set("insIconsStyle",settings.insIconsStyle);
     conf.set("sysSeparators",settings.sysSeparators);
+
+    conf.set("doFrameShadingForMultilineText",settings.doFrameShadingForMultilineText);
   }
 
   // layout
@@ -5050,6 +5065,12 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameBorderSize=0.0f;
   }
 
+  if (settings.doFrameShadingForMultilineText) {
+    sty.DoFrameShadingForMultilineText=true;
+  } else {
+    sty.DoFrameShadingForMultilineText=false;
+  }
+
   if (settings.guiColorsShading>0) {
     sty.FrameShading=(float)settings.guiColorsShading/100.0f;
   }
@@ -5059,6 +5080,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameRounding=0.0f;
     sty.GrabRounding=0.0f;
     sty.FrameShading=0.0f;
+    sty.DoFrameShadingForMultilineText=false;
     sty.AntiAliasedLines=false;
     sty.AntiAliasedLinesUseTex=false;
     sty.AntiAliasedFill=false;

@@ -1608,6 +1608,7 @@ class FurnaceGUI {
     int viewPrevPattern;
     int guiColorsBase;
     int guiColorsShading;
+    int doFrameShadingForMultilineText;
     int avoidRaisingPattern;
     int insFocusesPattern;
     int stepOnInsert;
@@ -1807,6 +1808,7 @@ class FurnaceGUI {
       viewPrevPattern(1),
       guiColorsBase(0),
       guiColorsShading(0),
+      doFrameShadingForMultilineText(0),
       avoidRaisingPattern(0),
       insFocusesPattern(1),
       stepOnInsert(0),
