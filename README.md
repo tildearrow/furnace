@@ -32,19 +32,24 @@ for other operating systems, you may [build the source](#developer-info).
 ## features
 
 - a large selection of sound chips:
-  - Yamaha FM chips:
+  - Yamaha and other FM chips:
     - YM2151 (OPM)
     - YM2203 (OPN)
-    - YM2413 (OPLL)
+      - CSM mode support
+    - YM2413 (OPLL) with drums mode support
     - YM2414 (OPZ) used in Yamaha TX81Z
     - YM2608 (OPNA) used in PC-98
+      - CSM mode support
     - YM2610 (OPNB) used in Neo Geo
+      - CSM mode support
     - YM2610B (OPNB2)
+      - CSM mode support
     - YM2612 (OPN2) used in Sega Genesis and FM Towns
-    - YM3526 (OPL) used in C64 Sound Expander
-    - YM3812 (OPL2)
-    - YMF262 (OPL3) with full 4-op support!
-    - Y8950 (OPL with ADPCM)
+      - CSM mode support
+    - YM3526 (OPL) used in C64 Sound Expander (with drums mode support)
+    - YM3812 (OPL2) with drums mode support
+    - YMF262 (OPL3) with full 4-op and drums mode support!
+    - Y8950 (OPL with ADPCM) with drums mode support
     - ESS ES1xxx series (ESFM) in native mode!
   - square wave chips:
     - AY-3-8910/YM2149(F) used in several computers and game consoles
@@ -52,6 +57,7 @@ for other operating systems, you may [build the source](#developer-info).
     - Microchip AY8930
     - TI SN76489 used in Sega Master System and BBC Micro
     - PC Speaker
+      - Ability to play music on your PC's PC speaker! (Linux/Unix-like only)
     - Philips SAA1099 used in SAM Coupé
     - OKI MSM5232 used in some arcade boards
   - sample chips:
@@ -367,18 +373,14 @@ Furnace keeps backups of the songs you've worked on before. go to **file > resto
 
 Furnace's .dmf compatibility isn't perfect and it's mostly because DefleMask does things different.
 
-> my song sounds terrible after saving as .dmf!
-
-you should only save as .dmf if you're really sure, because the DefleMask format has several limitations. save in Furnace song format instead (.fur).
-
 ---
 # footnotes
 
-copyright (C) 2021-2023 tildearrow and contributors.
+copyright (C) 2021-2024 tildearrow and contributors.
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
