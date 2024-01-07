@@ -321,6 +321,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsMSM5232(ins); break;
       }
 
+      case DIV_INS_MSM6258:
+      {
+        drawInsMSM6258(ins); break;
+      }
+
       default: break;
     }
 

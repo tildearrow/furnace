@@ -29,5 +29,16 @@ class FurnaceGUI;
 
 void FurnaceGUI::drawInsMSM6258(DivInstrument* ins)
 {
+  insTabSample(ins);
 
+  if (ImGui::BeginTabItem("Macros")) 
+  {
+    macroList.push_back(FurnaceGUIMacroDesc("Frequency Divider",ins,DIV_MACRO_DUTY,0xff,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER]));
+    macroList.push_back(FurnaceGUIMacroDesc("Panning",ins,DIV_MACRO_PAN_LEFT,0xff,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+    macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",ins,DIV_MACRO_PHASE_RESET,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+    macroList.push_back(FurnaceGUIMacroDesc("Clock Divider",ins,DIV_MACRO_EX1,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER]));
+
+    drawMacros(macroList,macroEditStateMacros);
+    ImGui::EndTabItem();
+  }
 }
