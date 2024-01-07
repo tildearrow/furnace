@@ -281,6 +281,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsAY8930(ins); break;
       }
 
+      case DIV_INS_BEEPER:
+      {
+        drawInsBEEPER(ins); break;
+      }
+
       default: break;
     }
 
