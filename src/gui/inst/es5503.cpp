@@ -86,6 +86,7 @@ void FurnaceGUI::drawInsES5503(DivInstrument* ins)
   }
 
   if(!ins->amiga.useSample) drawInsWaveTab(ins);
+  insTabSample(ins);
 
   if (ImGui::BeginTabItem("Macros")) 
   {
@@ -116,6 +117,4 @@ void FurnaceGUI::drawInsES5503(DivInstrument* ins)
     drawMacros(macroList,macroEditStateMacros);
     ImGui::EndTabItem();
   }
-
-  insTabSample(ins);
 }
