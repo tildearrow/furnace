@@ -96,7 +96,8 @@ for other operating systems, you may [build the source](#developer-info).
   - Casio PV-1000
   - TIA used in Atari 2600
   - POKEY used in Atari 8-bit computers
-  - Game Boy
+  - **Game Boy**
+    - including SOFTWARE ENVELOPES (zombie mode)
   - Virtual Boy
   - modern/fantasy:
     - Commander X16 VERA
