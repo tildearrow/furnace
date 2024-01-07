@@ -306,6 +306,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsK007232(ins); break;
       }
 
+      case DIV_INS_K053260:
+      {
+        drawInsK053260(ins); break;
+      }
+
       default: break;
     }
 
