@@ -266,6 +266,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsADPCMB(ins); break;
       }
 
+      case DIV_INS_AMIGA:
+      {
+        drawInsAmiga(ins); break;
+      }
+
       default: break;
     }
 
@@ -304,7 +309,7 @@ void FurnaceGUI::drawActualInsEditor()
         ins->type==DIV_INS_NAMCO ||
         ins->type==DIV_INS_SM8521) 
         {
-          //drawInsWaveTab(ins);
+          //insTabWave(ins);
         }
         
     if (ins->type>DIV_INS_MAX) if (ImGui::BeginTabItem("Macros")) {

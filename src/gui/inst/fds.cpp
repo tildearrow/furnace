@@ -130,7 +130,7 @@ void FurnaceGUI::drawInsFDS(DivInstrument* ins)
     ImGui::EndTabItem();
   }
 
-  drawInsWaveTab(ins);
+  insTabWave(ins);
 
   if (ImGui::BeginTabItem("Macros")) 
   {

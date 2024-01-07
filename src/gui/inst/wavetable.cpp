@@ -33,7 +33,7 @@ extern "C" {
 
 class FurnaceGUI;
 
-void FurnaceGUI::drawInsWaveTab(DivInstrument* ins)
+void FurnaceGUI::insTabWave(DivInstrument* ins)
 {
     if (ImGui::BeginTabItem("Wavetable")) 
     {

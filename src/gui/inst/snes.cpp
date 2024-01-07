@@ -165,7 +165,7 @@ void FurnaceGUI::drawInsSNES(DivInstrument* ins)
     ImGui::EndTabItem();
   }
 
-  drawInsWaveTab(ins);
+  insTabWave(ins);
   insTabSample(ins);
 
   if (ImGui::BeginTabItem("Macros")) 

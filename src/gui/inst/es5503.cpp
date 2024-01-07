@@ -85,7 +85,7 @@ void FurnaceGUI::drawInsES5503(DivInstrument* ins)
     ImGui::EndTabItem();
   }
 
-  if(!ins->amiga.useSample) drawInsWaveTab(ins);
+  if(!ins->amiga.useSample) insTabWave(ins);
   insTabSample(ins);
 
   if (ImGui::BeginTabItem("Macros")) 

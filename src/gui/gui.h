@@ -2491,7 +2491,7 @@ class FurnaceGUI {
   void drawInsC219(DivInstrument* ins);
   void drawInsES5503(DivInstrument* ins);
 
-  void drawInsWaveTab(DivInstrument* ins);
+  void insTabWave(DivInstrument* ins);
 
   void drawWaveList(bool asChild=false);
   void drawWaveEdit();
