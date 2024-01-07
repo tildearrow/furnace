@@ -331,6 +331,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsMSM6295(ins); break;
       }
 
+      case DIV_INS_NAMCO:
+      {
+        drawInsNAMCO(ins); break;
+      }
+
       default: break;
     }
 
