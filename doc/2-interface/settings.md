@@ -495,9 +495,11 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Rounded tabs**
 - **Rounded menu corners**
 - **Borders around widgets**: draws borders on buttons, checkboxes, text widgets, and the like.
+
+### Misc
+
 - **Wrap text**: wraps text in song/subsong comments window.
-
-
+- **Frame shading in text windows**: applies frame shading to the multiline text fields such as song/subsong info/comments.
 
 ## Color
 
