@@ -346,6 +346,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsPCE(ins); break;
       }
 
+      case DIV_INS_PET:
+      {
+        drawInsPET(ins); break;
+      }
+
       default: break;
     }
 
