@@ -185,6 +185,16 @@ void DivPlatformES5503::tick(bool sysTick) {
       }
     }
 
+    if(isMuted[i])
+    {
+      rWrite(0x40 + i, 0); //force mute even for samples, I hope
+
+      if(chan[i].softpan_channel)
+      {
+        rWrite(0x40 + i + 1, 0); //force mute even for samples, I hope
+      }
+    }
+
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
     } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
