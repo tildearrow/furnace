@@ -787,6 +787,7 @@ src/gui/inst/qsound.cpp
 src/gui/inst/rf5c68.cpp
 src/gui/inst/saa1099.cpp
 src/gui/inst/scc.cpp
+src/gui/inst/std.cpp
 src/gui/inst/segapcm.cpp
 src/gui/inst/sm8521.cpp
 src/gui/inst/snes.cpp
