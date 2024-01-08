@@ -401,6 +401,46 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsSWAN(ins); break;
       }
 
+      case DIV_INS_T6W28:
+      {
+        drawInsT6W28(ins); break;
+      }
+
+      case DIV_INS_TED:
+      {
+        drawInsTED(ins); break;
+      }
+
+      case DIV_INS_TIA:
+      {
+        drawInsTIA(ins); break;
+      }
+
+      case DIV_INS_VERA:
+      {
+        drawInsVERA(ins); break;
+      }
+
+      case DIV_INS_VRC6:
+      {
+        drawInsVRC6(ins); break;
+      }
+
+      case DIV_INS_VRC6_SAW:
+      {
+        drawInsVRC6_SAW(ins); break;
+      }
+
+      case DIV_INS_X1_010:
+      {
+        drawInsX1_010(ins); break;
+      }
+
+      case DIV_INS_YMZ280B:
+      {
+        drawInsYMZ280B(ins); break;
+      }
+
       default: break;
     }
 

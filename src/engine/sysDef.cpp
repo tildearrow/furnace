@@ -885,7 +885,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_TIA]=new DivSysDef(
-    "Atari 2600", NULL, 0x84, 0, 2, false, true, 0, false, 0, 0, 0,
+    "Atari 2600 (TIA)", NULL, 0x84, 0, 2, false, true, 0, false, 0, 0, 0,
     "it's a challenge to make music on this chip which barely has musical capabilities...",
     {"Channel 1", "Channel 2"},
     {"CH1", "CH2"},
@@ -1469,7 +1469,7 @@ void DivEngine::registerSystems() {
   }
 
   sysDefs[DIV_SYSTEM_LYNX]=new DivSysDef(
-    "Atari Lynx", NULL, 0xa8, 0, 4, false, true, 0x172, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
+    "Atari Lynx (MIKEY)", NULL, 0xa8, 0, 4, false, true, 0x172, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "a portable console made by Atari. it has all of Atari's trademark waveforms.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
