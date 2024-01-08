@@ -20,20 +20,5 @@
 #include "publicVars.h"
 
 std::vector<FurnaceGUIMacroDesc> macroList;
-const char* volumeLabel="Volume";
-const char* dutyLabel="Duty/Noise";
-const char* waveLabel="Waveform";
-int volMax=15;
-int volMin=0;
-int dutyMin=0;
-int dutyMax=3;
-int waveMax=0;
-bool waveBitMode=false;
-const char** waveNames=NULL;
-int ex1Max=0;
-int ex2Max=0;
-bool ex2Bit=false;
 int panMin=0;
 int panMax=0;
-bool panSingle=false;
-bool panSingleNoBit=false;

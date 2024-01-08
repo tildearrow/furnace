@@ -170,6 +170,9 @@ void FurnaceGUI::drawInsC64(DivInstrument* ins)
 
   if (ImGui::BeginTabItem("Macros")) 
   {
+    int dutyMin = 0;
+    int dutyMax = 0;
+
     if (ins->c64.dutyIsAbs)
     {
       dutyMin=0;
@@ -181,8 +184,6 @@ void FurnaceGUI::drawInsC64(DivInstrument* ins)
       dutyMin=-4095;
       dutyMax=4095;
     }
-
-    waveNames=c64ShapeBits;
 
     int cutoffMin=-2047;
     int cutoffMax=2047;
@@ -196,7 +197,7 @@ void FurnaceGUI::drawInsC64(DivInstrument* ins)
     macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",ins,DIV_MACRO_ARP,0xff,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.get_macro(DIV_MACRO_ARP, true)->val));
     macroList.push_back(FurnaceGUIMacroDesc("Pitch",ins,DIV_MACRO_PITCH,0xff,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
     macroList.push_back(FurnaceGUIMacroDesc("Duty",ins,DIV_MACRO_DUTY,0xff,dutyMin,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-    macroList.push_back(FurnaceGUIMacroDesc("Waveform",ins,DIV_MACRO_WAVE,0xff,0,4,64,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,waveNames,0));
+    macroList.push_back(FurnaceGUIMacroDesc("Waveform",ins,DIV_MACRO_WAVE,0xff,0,4,64,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,c64ShapeBits,0));
 
     macroList.push_back(FurnaceGUIMacroDesc("Cutoff",ins,DIV_MACRO_ALG,0xff,cutoffMin,cutoffMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
     macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",ins,DIV_MACRO_EX1,0xff,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,filtModeBits));

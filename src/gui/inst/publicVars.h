@@ -25,20 +25,5 @@
 #include "furIcons.h"
 
 extern std::vector<FurnaceGUIMacroDesc> macroList;
-extern const char* volumeLabel;
-extern const char* dutyLabel;
-extern const char* waveLabel;
-extern int volMax;
-extern int volMin;
-extern int dutyMin;
-extern int dutyMax;
-extern int waveMax;
-extern bool waveBitMode;
-extern const char** waveNames;
-extern int ex1Max;
-extern int ex2Max;
-extern bool ex2Bit;
 extern int panMin;
 extern int panMax;
-extern bool panSingle;
-extern bool panSingleNoBit;
