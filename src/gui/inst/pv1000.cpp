@@ -29,5 +29,13 @@ class FurnaceGUI;
 
 void FurnaceGUI::drawInsPV1000(DivInstrument* ins)
 {
+  if (ImGui::BeginTabItem("Macros")) 
+  {
+    macroList.push_back(FurnaceGUIMacroDesc("Volume",ins,DIV_MACRO_VOL,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_VOLUME]));
+    macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",ins,DIV_MACRO_ARP,0xff,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.get_macro(DIV_MACRO_ARP, true)->val));
+    macroList.push_back(FurnaceGUIMacroDesc("Pitch",ins,DIV_MACRO_PITCH,0xff,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
 
+    drawMacros(macroList,macroEditStateMacros);
+    ImGui::EndTabItem();
+  }
 }

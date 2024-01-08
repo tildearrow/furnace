@@ -351,6 +351,31 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsPET(ins); break;
       }
 
+      case DIV_INS_POKEMINI:
+      {
+        drawInsPOKEMINI(ins); break;
+      }
+
+      case DIV_INS_POKEY:
+      {
+        drawInsPOKEY(ins); break;
+      }
+
+      case DIV_INS_PV1000:
+      {
+        drawInsPV1000(ins); break;
+      }
+
+      case DIV_INS_QSOUND:
+      {
+        drawInsQSOUND(ins); break;
+      }
+
+      case DIV_INS_RF5C68:
+      {
+        drawInsRF5C68(ins); break;
+      }
+
       default: break;
     }
 
