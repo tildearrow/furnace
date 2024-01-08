@@ -2024,7 +2024,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
   if (type==DIV_INS_C64 && volIsCutoff && version<187) {
     memcpy(std.get_macro(DIV_MACRO_ALG, true),std.get_macro(DIV_MACRO_VOL, true),sizeof(DivInstrumentMacro));
     std.get_macro(DIV_MACRO_ALG, true)->macroType=DIV_MACRO_ALG;
-    *std.get_macro(DIV_MACRO_VOL, true)=DivInstrumentMacro(DIV_MACRO_VOL,true);
+    //*std.get_macro(DIV_MACRO_VOL, true)=DivInstrumentMacro(DIV_MACRO_VOL,true);
+    std.get_macro(DIV_MACRO_VOL, true)->len = 0;
 
     if (!c64.filterIsAbs) {
       for (int i=0; i<std.get_macro(DIV_MACRO_ALG, true)->len; i++) {
@@ -2776,7 +2777,8 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   if (type==DIV_INS_C64 && volIsCutoff && version<187) {
     memcpy(std.get_macro(DIV_MACRO_ALG, true),std.get_macro(DIV_MACRO_VOL, true),sizeof(DivInstrumentMacro));
     std.get_macro(DIV_MACRO_ALG, true)->macroType=DIV_MACRO_ALG;
-    *std.get_macro(DIV_MACRO_VOL, true)=DivInstrumentMacro(DIV_MACRO_VOL,true);
+    //*std.get_macro(DIV_MACRO_VOL, true)=DivInstrumentMacro(DIV_MACRO_VOL,true);
+    std.get_macro(DIV_MACRO_VOL, true)->len = 0;
 
     if (!c64.filterIsAbs) {
       for (int i=0; i<std.get_macro(DIV_MACRO_ALG, true)->len; i++) {
