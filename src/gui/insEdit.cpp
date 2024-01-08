@@ -376,6 +376,31 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsRF5C68(ins); break;
       }
 
+      case DIV_INS_SAA1099:
+      {
+        drawInsSAA1099(ins); break;
+      }
+
+      case DIV_INS_SCC:
+      {
+        drawInsSCC(ins); break;
+      }
+
+      case DIV_INS_SEGAPCM:
+      {
+        drawInsSEGAPCM(ins); break;
+      }
+
+      case DIV_INS_SM8521:
+      {
+        drawInsSM8521(ins); break;
+      }
+
+      case DIV_INS_SWAN:
+      {
+        drawInsSWAN(ins); break;
+      }
+
       default: break;
     }
 
