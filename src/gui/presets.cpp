@@ -294,70 +294,70 @@ void FurnaceGUI::initSystemPresets() {
     }, NULL, MENU_STATUS_USUAL
   );
   ENTRY(
-    "Commodore 64 (6581 SID)", {
+    "Commodore 64 (C64, 6581 SID)", {
       CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1")
     },
     "tickRate=50.1245421",
     MENU_STATUS_LIST_START
   );
   ENTRY(
-    "Commodore 64 (8580 SID)", {
+    "Commodore 64 (C64, 8580 SID)", {
       CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1")
     },
     "tickRate=50.1245421",
     MENU_STATUS_USUAL
   );
   ENTRY(
-    "Commodore 64 (6581 SID + Sound Expander)", {
+    "Commodore 64 (C64, 6581 SID + Sound Expander)", {
       CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL, 1.0f, 0, "")
     },
     "tickRate=50.1245421"
   );
   ENTRY(
-    "Commodore 64 (6581 SID + Sound Expander in drums mode)", {
+    "Commodore 64 (C64, 6581 SID + Sound Expander in drums mode)", {
       CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "")
     },
     "tickRate=50.1245421"
   );
   ENTRY(
-    "Commodore 64 (8580 SID + Sound Expander)", {
+    "Commodore 64 (C64, 8580 SID + Sound Expander)", {
       CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL, 1.0f, 0, "")
     },
     "tickRate=50.1245421"
   );
   ENTRY(
-    "Commodore 64 (8580 SID + Sound Expander in drums mode)", {
+    "Commodore 64 (C64, 8580 SID + Sound Expander in drums mode)", {
       CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "")
     },
     "tickRate=50.1245421"
   );
   ENTRY(
-    "Commodore 64 (6581 SID + FM-YAM)", {
+    "Commodore 64 (C64, 6581 SID + FM-YAM)", {
       CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL2, 1.0f, 0, "")
     },
     "tickRate=50.1245421"
   );
   ENTRY(
-    "Commodore 64 (6581 SID + FM-YAM in drums mode)", {
+    "Commodore 64 (C64, 6581 SID + FM-YAM in drums mode)", {
       CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "")
     },
     "tickRate=50.1245421"
   );
   ENTRY(
-    "Commodore 64 (8580 SID + FM-YAM)", {
+    "Commodore 64 (C64, 8580 SID + FM-YAM)", {
       CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL2, 1.0f, 0, "")
     },
     "tickRate=50.1245421"
   );
   ENTRY(
-    "Commodore 64 (8580 SID + FM-YAM in drums mode)", {
+    "Commodore 64 (C64, 8580 SID + FM-YAM in drums mode)", {
       CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "")
     },
