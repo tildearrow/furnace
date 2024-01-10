@@ -2001,6 +2001,16 @@ void DivEngine::registerSystems() {
     },
     {}
   );
+  
+  sysDefs[DIV_SYSTEM_GBA_DMA]=new DivSysDef(
+    "Game Boy Advance DMA Sound", NULL, 0xfe, 0, 2, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
+    "additional PCM FIFO channels in Game Boy Advance driven directly by its DMA hardware.",
+    {"PCM 1", "PCM 2"},
+    {"P1", "P2"},
+    {DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_GBA_DMA, DIV_INS_GBA_DMA},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA}
+  );
 
   sysDefs[DIV_SYSTEM_DAVE]=new DivSysDef(
     "Dave", NULL, 0xd5, 0, 6, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,

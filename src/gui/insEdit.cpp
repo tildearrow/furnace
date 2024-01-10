@@ -2525,14 +2525,15 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
       ImGui::EndCombo();
     }
     // Wavetable
-    if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SNES) {
+    if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SNES || ins->type==DIV_INS_GBA_DMA) {
+      const char* useWaveText=ins->type==DIV_INS_AMIGA?"Use wavetable (Amiga/Generic DAC only)":"Use wavetable";
       ImGui::BeginDisabled(ins->amiga.useNoteMap);
-      P(ImGui::Checkbox("Use wavetable (Amiga/SNES/Generic DAC only)",&ins->amiga.useWave));
+      P(ImGui::Checkbox(useWaveText,&ins->amiga.useWave));
       if (ins->amiga.useWave) {
         int len=ins->amiga.waveLen+1;
         int origLen=len;
         if (ImGui::InputInt("Width",&len,2,16)) {
-          if (ins->type==DIV_INS_SNES) {
+          if (ins->type==DIV_INS_SNES || ins->type==DIV_INS_GBA_DMA) {
             if (len<16) len=16;
             if (len>256) len=256;
             if (len>origLen) {
@@ -5395,6 +5396,7 @@ void FurnaceGUI::drawInsEdit() {
         if (ins->type==DIV_INS_GB) if (ImGui::BeginTabItem("Game Boy")) {
           P(ImGui::Checkbox("Use software envelope",&ins->gb.softEnv));
           P(ImGui::Checkbox("Initialize envelope on every note",&ins->gb.alwaysInit));
+          P(ImGui::Checkbox("Double wave length (GBA only)",&ins->gb.doubleWave));
 
           ImGui::BeginDisabled(ins->gb.softEnv);
           if (ImGui::BeginTable("GBParams",2)) {
@@ -6021,7 +6023,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_GA20 ||
             ins->type==DIV_INS_K053260 ||
             ins->type==DIV_INS_C140 ||
-            ins->type==DIV_INS_C219) {
+            ins->type==DIV_INS_C219 ||
+            ins->type==DIV_INS_GBA_DMA) {
           insTabSample(ins);
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
@@ -6456,6 +6459,7 @@ void FurnaceGUI::drawInsEdit() {
         }
         if (ins->type==DIV_INS_GB ||
             (ins->type==DIV_INS_AMIGA && ins->amiga.useWave) ||
+            (ins->type==DIV_INS_GBA_DMA && ins->amiga.useWave) ||
             (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample) ||
             ins->type==DIV_INS_N163 ||
             ins->type==DIV_INS_FDS ||
@@ -6500,6 +6504,7 @@ void FurnaceGUI::drawInsEdit() {
                 wavePreviewHeight=255;
                 break;
               case DIV_INS_AMIGA:
+              case DIV_INS_GBA_DMA:
                 wavePreviewLen=ins->amiga.waveLen+1;
                 wavePreviewHeight=255;
                 break;
@@ -6771,7 +6776,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_QSOUND) {
             volMax=16383;
           }
-          if (ins->type==DIV_INS_POKEMINI) {
+          if (ins->type==DIV_INS_POKEMINI || ins->type==DIV_INS_GBA_DMA) {
             volMax=2;
           }
 
@@ -6830,7 +6835,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_PET || ins->type==DIV_INS_SEGAPCM ||
               ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
               ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000 || ins->type==DIV_INS_K053260 ||
-              ins->type==DIV_INS_C140) {
+              ins->type==DIV_INS_C140 || ins->type==DIV_INS_GBA_DMA) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -7045,7 +7050,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_VERA ||
               ins->type==DIV_INS_ADPCMA ||
               ins->type==DIV_INS_ADPCMB ||
-              ins->type==DIV_INS_ESFM) {
+              ins->type==DIV_INS_ESFM ||
+              ins->type==DIV_INS_GBA_DMA) {
             panMax=2;
             panSingle=true;
           }
@@ -7201,7 +7207,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_ESFM ||
               ins->type==DIV_INS_POWERNOISE ||
               ins->type==DIV_INS_POWERNOISE_SLOPE ||
-              ins->type==DIV_INS_DAVE) {
+              ins->type==DIV_INS_DAVE ||
+              ins->type==DIV_INS_GBA_DMA) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {

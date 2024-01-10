@@ -329,6 +329,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       bool noAntiClick=flags.getBool("noAntiClick",false);
       bool invertWave=flags.getBool("invertWave",true);
       bool enoughAlready=flags.getBool("enoughAlready",false);
+      bool extendWave=flags.getBool("extendWave",false);
+      int dacDepth=flags.getInt("dacDepth",6);
 
       if (ImGui::Checkbox("Disable anti-click",&noAntiClick)) {
         altered=true;
@@ -351,6 +353,22 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         chipType=3;
         altered=true;
       }
+      ImGui::Unindent();
+      ImGui::Text("Game Boy Advance:");
+      ImGui::Indent();
+      ImGui::BeginDisabled(chipType!=3);
+      if (ImGui::Checkbox("Wave channel extension",&extendWave)) {
+        altered=true;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("note: not supported by the VGM format!\nallows wave channel to have double length and 75%% volume");
+      }
+      if (CWSliderInt("DAC bit depth (reduces output rate)",&dacDepth,6,9)) {
+        if (dacDepth<6) dacDepth=6;
+        if (dacDepth>9) dacDepth=9;
+        altered=true;
+      }
+      ImGui::EndDisabled();
       ImGui::Unindent();
       ImGui::Text("Wave channel orientation:");
       if (chipType==3) {
@@ -381,11 +399,33 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
 
       if (altered) {
+        if (chipType!=3) {
+          extendWave=false;
+          dacDepth=6;
+        }
         e->lockSave([&]() {
           flags.set("chipType",chipType);
           flags.set("noAntiClick",noAntiClick);
           flags.set("invertWave",invertWave);
           flags.set("enoughAlready",enoughAlready);
+          flags.set("extendWave",extendWave);
+          flags.set("dacDepth",dacDepth);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_GBA_DMA: {
+      int dacDepth=flags.getInt("dacDepth",6);
+
+      if (CWSliderInt("DAC bit depth (reduces output rate)",&dacDepth,6,9)) {
+        if (dacDepth<6) dacDepth=6;
+        if (dacDepth>9) dacDepth=9;
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("dacDepth",dacDepth);
         });
       }
       break;

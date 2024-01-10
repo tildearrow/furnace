@@ -89,6 +89,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_POWERNOISE=56,
   DIV_INS_POWERNOISE_SLOPE=57,
   DIV_INS_DAVE=58,
+  DIV_INS_GBA_DMA=59,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -378,7 +379,7 @@ struct DivInstrumentSTD {
 
 struct DivInstrumentGB {
   unsigned char envVol, envDir, envLen, soundLen, hwSeqLen;
-  bool softEnv, alwaysInit;
+  bool softEnv, alwaysInit, doubleWave; // TODO file save/load of doubleWave
   enum HWSeqCommands: unsigned char {
     DIV_GB_HWCMD_ENVELOPE=0,
     DIV_GB_HWCMD_SWEEP,
@@ -406,7 +407,8 @@ struct DivInstrumentGB {
     soundLen(64),
     hwSeqLen(0),
     softEnv(false),
-    alwaysInit(false) {
+    alwaysInit(false),
+    doubleWave(false) {
     memset(hwSeq,0,256*sizeof(HWSeqCommandGB));
   }
 };
