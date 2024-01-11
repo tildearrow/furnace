@@ -27,6 +27,8 @@ const DivInstrument defaultIns;
 
 #define _C(x) x==other.x
 
+#define UNUSED(x) (void)(x)
+
 bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
   return (
     _C(alg) &&
@@ -2025,6 +2027,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
   {
     DivInstrumentMacro* m = std.get_macro(DIV_MACRO_ALG, true);
     m = std.get_macro(DIV_MACRO_VOL, true);
+
+    UNUSED(m);
     
     for (int i=0; i<256; i++) 
     {
@@ -2794,6 +2798,8 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   {
     DivInstrumentMacro* m = std.get_macro(DIV_MACRO_ALG, true);
     m = std.get_macro(DIV_MACRO_VOL, true);
+
+    UNUSED(m);
 
     for (int i=0; i<256; i++) 
     {
