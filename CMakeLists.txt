@@ -746,7 +746,6 @@ src/gui/inst/fmEnvUtil.cpp
 src/gui/inst/fmPublicVars.cpp
 src/gui/inst/publicVars.cpp
 
-src/gui/inst/fm.cpp
 src/gui/inst/esfm.cpp
 src/gui/inst/opn.cpp
 src/gui/inst/opm.cpp

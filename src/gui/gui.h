@@ -2437,7 +2437,6 @@ class FurnaceGUI {
   void drawActualInsEditor();
 
   void drawInsSTD(DivInstrument* ins);
-  void drawInsFM(DivInstrument* ins);
   void drawInsOPN(DivInstrument* ins);
   void drawInsOPM(DivInstrument* ins);
   void drawInsESFM(DivInstrument* ins);
