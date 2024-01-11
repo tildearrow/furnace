@@ -373,6 +373,9 @@ void DivPlatformPCSpeaker::tick(bool sysTick) {
       if (chan[i].keyOff) {
         on=false;
       }
+      if (freq!=chan[i].freq && resetPhase) {
+        pos=0;
+      }
       freq=chan[i].freq;
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -610,6 +613,7 @@ void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/PCSPKR_DIVIDER;
   speakerType=flags.getInt("speakerType",0)&3;
+  resetPhase=flags.getBool("resetPhase",false);
   oscBuf->rate=rate;
 
   switch (speakerType) {

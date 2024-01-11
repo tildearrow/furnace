@@ -997,6 +997,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_PCSPKR: {
       int clockSel=flags.getInt("clockSel",0);
       int speakerType=flags.getInt("speakerType",0);
+      bool resetPhase=flags.getBool("resetPhase",false);
 
       ImGui::Text("Clock rate:");
       ImGui::Indent();
@@ -1034,10 +1035,15 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      if (ImGui::Checkbox("Reset phase on frequency change",&resetPhase)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("speakerType",speakerType);
+          flags.set("resetPhase",resetPhase);
         });
       }
       break;
