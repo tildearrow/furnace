@@ -372,7 +372,7 @@ struct DivInstrumentSTD
       if(allocate)
       {
         macros.push_back(DivInstrumentMacro(macro_id));
-        return &macros[macros.size() - 1];
+        return &macros.back();
       }
 
       else
