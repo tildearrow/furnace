@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <unordered_map>
 #include <string>
 
 enum DivLang
@@ -19,7 +20,7 @@ typedef struct
 class DivLocale
 {
     private:
-        std::map<std::string, LocaleEntry> strings;
+        std::unordered_map<std::string, LocaleEntry> strings;
         DivLang language;
 
     public:
