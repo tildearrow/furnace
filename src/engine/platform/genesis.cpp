@@ -351,16 +351,9 @@ void DivPlatformGenesis::tick(bool sysTick) {
     if (i>=5 && chan[i].furnaceDac && chan[i].dacMode) {
       if (NEW_ARP_STRAT) {
         chan[i].handleArp();
-      } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had && chan[i].dacMode) {
+      } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had) {
         if (!chan[i].inPorta) {
           chan[i].baseFreq=parent->calcBaseFreq(1,1,parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val),false);
-        }
-        chan[i].freqChanged=true;
-      }
-      else //when Ch6 is not in DAC mode
-      {
-        if (!chan[i].inPorta) {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->val),11);
         }
         chan[i].freqChanged=true;
       }
