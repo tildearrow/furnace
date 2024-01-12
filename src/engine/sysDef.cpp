@@ -1862,7 +1862,11 @@ void DivEngine::registerSystems() {
     {"Sample"},
     {"PCM"},
     {DIV_CH_PCM},
-    {DIV_INS_AMIGA}
+    {DIV_INS_AMIGA},
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+    }
   );
 
   sysDefs[DIV_SYSTEM_K007232]=new DivSysDef(
@@ -2009,7 +2013,11 @@ void DivEngine::registerSystems() {
     {"P1", "P2"},
     {DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_GBA_DMA, DIV_INS_GBA_DMA},
-    {DIV_INS_AMIGA, DIV_INS_AMIGA}
+    {DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+    }
   );
 
   sysDefs[DIV_SYSTEM_DAVE]=new DivSysDef(
