@@ -415,9 +415,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_GBA_DMA: {
-      int dacDepth=flags.getInt("dacDepth",6);
+      int dacDepth=flags.getInt("dacDepth",9);
 
-      if (CWSliderInt("DAC bit depth (reduces output rate)",&dacDepth,6,9)) {
+      ImGui::Text("DAC bit depth (reduces output rate):");
+      if (CWSliderInt("##DACDepth",&dacDepth,6,9)) {
         if (dacDepth<6) dacDepth=6;
         if (dacDepth>9) dacDepth=9;
         altered=true;
