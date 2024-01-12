@@ -348,7 +348,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
       }
     }
 
-    if (i>=5 && chan[i].furnaceDac) {
+    if (i>=5 && chan[i].furnaceDac && chan[i].dacMode) {
       if (NEW_ARP_STRAT) {
         chan[i].handleArp();
       } else if (chan[i].std.get_div_macro_struct(DIV_MACRO_ARP)->had && chan[i].dacMode) {
