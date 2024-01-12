@@ -42,7 +42,7 @@ void FurnaceGUI::drawInsMIKEY(DivInstrument* ins)
 
     if(!ins->amiga.useSample)
     {
-      macroList.push_back(FurnaceGUIMacroDesc("Duty/Int",ins,DIV_MACRO_DUTY,0xff,0,10,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));
+      macroList.push_back(FurnaceGUIMacroDesc("Duty/Int",ins,DIV_MACRO_DUTY,0xff,0,10,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));
     }
 
     macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",ins,DIV_MACRO_PAN_LEFT,0xff,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
