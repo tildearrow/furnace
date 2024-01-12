@@ -3585,6 +3585,8 @@ void FurnaceGUI::drawSettings() {
       
       CONFIG_SECTION("Language") 
       {
+        CONFIG_SUBSECTION("UI language");
+
         if(ImGui::BeginCombo("Language", locale.getLangName(locale.getLangIndex())))
         {
           for(int i = 0; i < DIV_LANG_MAX; i++)
