@@ -836,6 +836,9 @@ src/gui/waveEdit.cpp
 src/gui/volMeter.cpp
 src/gui/xyOsc.cpp
 src/gui/gui.cpp
+
+src/locale/locale.cpp
+src/locale/russian.cpp
 )
 
 if (WIN32 AND NOT SUPPORT_XP)

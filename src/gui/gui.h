@@ -35,6 +35,14 @@
 
 #include "fileDialog.h"
 
+#include "../locale/locale.h"
+
+//macros for localization (l10n):
+
+#define _L(string) locale.getText(string)
+
+//===============================
+
 #define rightClickable if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetKeyboardFocusHere(-1);
 #define ctrlWheeling ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) && wheelY!=0)
 
@@ -480,6 +488,8 @@ enum FurnaceGUISettingGroups: unsigned int {
   GUI_SETTINGS_LAYOUTS=128,
   GUI_SETTINGS_COLOR=256,
   GUI_SETTINGS_EMULATION=512,
+
+  GUI_SETTINGS_LANGUAGE=1024,
 
   GUI_SETTINGS_ALL=0xffffffff
 };
@@ -1729,6 +1739,7 @@ class FurnaceGUI {
     int fontAntiAlias;
     int selectAssetOnLoad;
     unsigned int maxUndoSteps;
+    int language;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -1928,6 +1939,7 @@ class FurnaceGUI {
       fontAntiAlias(1),
       selectAssetOnLoad(1),
       maxUndoSteps(100),
+      language(DIV_LANG_ENGLISH),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2339,6 +2351,9 @@ class FurnaceGUI {
   // export options
   int audioExportType;
   FurnaceGUIExportTypes curExportType;
+
+  //translation
+  DivLocale locale;
 
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);

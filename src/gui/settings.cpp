@@ -3583,6 +3583,30 @@ void FurnaceGUI::drawSettings() {
         END_SECTION;
       }
       
+      CONFIG_SECTION("Language") 
+      {
+        if(ImGui::BeginCombo("Language", locale.getLangName(locale.getLangIndex())))
+        {
+          for(int i = 0; i < DIV_LANG_MAX; i++)
+          {
+            if (ImGui::Selectable(locale.getLangName((DivLang)i))) 
+            {
+              locale.setLanguage((DivLang)i);
+
+              settings.language=i;
+              settingsChanged=true;
+            }
+          }
+
+          ImGui::EndCombo();
+        }
+
+        ImGui::TextUnformatted(_L("test"));
+        ImGui::TextUnformatted(_L("iulserghiueshgui"));
+
+        END_SECTION;
+      }
+      
       ImGui::EndTabBar();
     }
     ImGui::Separator();
@@ -3943,6 +3967,12 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.mu5Path=conf.getString("mu5Path","");
   }
 
+  if (groups&GUI_SETTINGS_LANGUAGE)
+  {
+    settings.language=conf.getInt("language",DIV_LANG_ENGLISH);
+    locale.setLanguage((DivLang)settings.language);
+  }
+
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -4111,6 +4141,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.fontAutoHint,0,2);
   clampSetting(settings.fontAntiAlias,0,1);
   clampSetting(settings.selectAssetOnLoad,0,1);
+
+  clampSetting(settings.language,0,DIV_LANG_MAX-1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4407,6 +4439,12 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("yrw801Path",settings.yrw801Path);
     conf.set("tg100Path",settings.tg100Path);
     conf.set("mu5Path",settings.mu5Path);
+  }
+
+  // language
+  if (groups&GUI_SETTINGS_LANGUAGE)
+  {
+    conf.set("language",settings.language);
   }
 }
 
