@@ -160,7 +160,7 @@ void DivLocale::addTranslationsRussian()
     strings["Between Decay and Sustain Rate##susp0"].plurals[0] = "Между спадом и уклоном поддержки##susp0";
     strings["After Release Rate##susp1"].plurals[0] = "После уклона затухания##susp1";
     strings["Use separate colors for carriers/modulators in FM editor"].plurals[0] = "Использовать различные цвета для модулирующих и несущих операторов";
-    strings["Unsigned FM detune values"].plurals[0] = "Беззнаковое значение параметра растройки";
+    strings["Unsigned FM detune values"].plurals[0] = "Беззнаковое значение параметра расстройки";
 
     strings["Statistics"].plurals[0] = "Окно статистики";
     strings["Chip memory usage unit:"].plurals[0] = "Единицы измерения использования памяти чипа:";
