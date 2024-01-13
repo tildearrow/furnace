@@ -13,6 +13,15 @@ void DivLocale::addTranslationsRussian()
     //common (non-chip-specific) effects
 
     strings["00xy: Arpeggio"].plurals[0] = "00xy: Арпеджио";
+    
+    //MACRO EDITOR
+
+    //bitfield macros strings
+
+    strings["hold"].plurals[0] = "удержание";
+    strings["alternate"].plurals[0] = "изм. направл.";
+    strings["direction"].plurals[0] = "направление";
+    strings["enable"].plurals[0] = "вкл.";
 
     //SETTINGS
 

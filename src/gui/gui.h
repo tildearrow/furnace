@@ -2654,6 +2654,9 @@ class FurnaceGUI {
   const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
 
   public:
+    //this is a horrible hack to allow localized strings in bitfield type macros...
+    int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor);
+
     void editStr(String* which);
     void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);
