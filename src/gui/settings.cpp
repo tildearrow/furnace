@@ -819,6 +819,27 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        CONFIG_SUBSECTION("Language");
+
+        if(ImGui::BeginCombo("GUI language", locale.getLangName(locale.getLangIndex())))
+        {
+          for(int i = 0; i < DIV_LANG_MAX; i++)
+          {
+            if (ImGui::Selectable(locale.getLangName((DivLang)i))) 
+            {
+              locale.setLanguage((DivLang)i);
+
+              settings.language=i;
+              settingsChanged=true;
+            }
+          }
+
+          ImGui::EndCombo();
+        }
+
+        ImGui::TextUnformatted(_L("test"));
+        ImGui::TextUnformatted(_L("iulserghiueshgui"));
+
         END_SECTION;
       }
       CONFIG_SECTION("Audio") {
@@ -3583,32 +3604,6 @@ void FurnaceGUI::drawSettings() {
         END_SECTION;
       }
       
-      CONFIG_SECTION("Language") 
-      {
-        CONFIG_SUBSECTION("UI language");
-
-        if(ImGui::BeginCombo("Language", locale.getLangName(locale.getLangIndex())))
-        {
-          for(int i = 0; i < DIV_LANG_MAX; i++)
-          {
-            if (ImGui::Selectable(locale.getLangName((DivLang)i))) 
-            {
-              locale.setLanguage((DivLang)i);
-
-              settings.language=i;
-              settingsChanged=true;
-            }
-          }
-
-          ImGui::EndCombo();
-        }
-
-        ImGui::TextUnformatted(_L("test"));
-        ImGui::TextUnformatted(_L("iulserghiueshgui"));
-
-        END_SECTION;
-      }
-      
       ImGui::EndTabBar();
     }
     ImGui::Separator();
@@ -3730,6 +3725,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.newSongBehavior=conf.getInt("newSongBehavior",0);
     settings.playOnLoad=conf.getInt("playOnLoad",0);
     settings.centerPopup=conf.getInt("centerPopup",1);
+
+    settings.language=conf.getInt("language",DIV_LANG_ENGLISH);
+    locale.setLanguage((DivLang)settings.language);
   }
 
   if (groups&GUI_SETTINGS_AUDIO) {
@@ -3969,12 +3967,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.mu5Path=conf.getString("mu5Path","");
   }
 
-  if (groups&GUI_SETTINGS_LANGUAGE)
-  {
-    settings.language=conf.getInt("language",DIV_LANG_ENGLISH);
-    locale.setLanguage((DivLang)settings.language);
-  }
-
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -4201,6 +4193,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("newSongBehavior",settings.newSongBehavior);
     conf.set("playOnLoad",settings.playOnLoad);
     conf.set("centerPopup",settings.centerPopup);
+
+    conf.set("language",settings.language);
   }
 
   // audio
@@ -4441,12 +4435,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("yrw801Path",settings.yrw801Path);
     conf.set("tg100Path",settings.tg100Path);
     conf.set("mu5Path",settings.mu5Path);
-  }
-
-  // language
-  if (groups&GUI_SETTINGS_LANGUAGE)
-  {
-    conf.set("language",settings.language);
   }
 }
 

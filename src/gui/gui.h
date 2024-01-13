@@ -489,8 +489,6 @@ enum FurnaceGUISettingGroups: unsigned int {
   GUI_SETTINGS_COLOR=256,
   GUI_SETTINGS_EMULATION=512,
 
-  GUI_SETTINGS_LANGUAGE=1024,
-
   GUI_SETTINGS_ALL=0xffffffff
 };
 
