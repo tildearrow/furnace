@@ -42,6 +42,7 @@ void DivLocale::setLanguage(DivLang lang)
 
 const char* DivLocale::getText(const char* text)
 {
+    if(text == NULL) return text;
     if(language == DIV_LANG_ENGLISH) return text; //nothing to translate!
 
     auto iter = strings.find(text);

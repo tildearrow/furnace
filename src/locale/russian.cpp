@@ -8,6 +8,12 @@ void DivLocale::addTranslationsRussian()
 {
     strings["test"].plurals[0] = "тест";
 
+    //EFFECT LIST
+
+    //common (non-chip-specific) effects
+
+    strings["00xy: Arpeggio"].plurals[0] = "00xy: Арпеджио";
+
     //SETTINGS
 
     //appearance section

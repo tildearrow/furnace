@@ -46,7 +46,7 @@ void FurnaceGUI::drawEffectList() {
 
       const char* prevName=NULL;
       for (int i=0; i<256; i++) {
-        const char* name=e->getEffectDesc(i,cursor.xCoarse);
+        const char* name=_L(e->getEffectDesc(i,cursor.xCoarse));
         bool effectShow=true;
         if (name==prevName) {
           continue;
