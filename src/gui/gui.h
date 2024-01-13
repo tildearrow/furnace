@@ -2462,6 +2462,7 @@ class FurnaceGUI {
   void drawInsSWAN(DivInstrument* ins);
   void drawInsMIKEY(DivInstrument* ins);
   void drawInsVERA(DivInstrument* ins);
+  void drawInsVIC(DivInstrument* ins);
   void drawInsX1_010(DivInstrument* ins);
   void drawInsVRC6_SAW(DivInstrument* ins);
   void drawInsES5506(DivInstrument* ins);

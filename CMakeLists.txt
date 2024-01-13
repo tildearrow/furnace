@@ -797,6 +797,7 @@ src/gui/inst/ted.cpp
 src/gui/inst/tia.cpp
 src/gui/inst/vboy.cpp
 src/gui/inst/vera.cpp
+src/gui/inst/vic.cpp
 src/gui/inst/vrc6.cpp
 src/gui/inst/vrc6saw.cpp
 src/gui/inst/x1_010.cpp

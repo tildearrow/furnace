@@ -27,26 +27,16 @@
 
 class FurnaceGUI;
 
-void FurnaceGUI::drawInsVRC6(DivInstrument* ins)
+void FurnaceGUI::drawInsVIC(DivInstrument* ins)
 {
-  insTabSample(ins);
-
   if (ImGui::BeginTabItem("Macros")) 
   {
     macroList.push_back(FurnaceGUIMacroDesc("Volume",ins,DIV_MACRO_VOL,0xff,0,15,64,uiColors[GUI_COLOR_MACRO_VOLUME]));
     macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",ins,DIV_MACRO_ARP,0xff,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.get_macro(DIV_MACRO_ARP, true)->val));
     macroList.push_back(FurnaceGUIMacroDesc("Pitch",ins,DIV_MACRO_PITCH,0xff,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
 
-    if(!ins->amiga.useSample)
-    {
-      macroList.push_back(FurnaceGUIMacroDesc("Duty",ins,DIV_MACRO_DUTY,0xff,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-    }
-
-    if(ins->amiga.useSample)
-    {
-      macroList.push_back(FurnaceGUIMacroDesc("Waveform",ins,DIV_MACRO_WAVE,0xff,0,MAX(1,e->song.waveLen-1),160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL));
-      macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",ins,DIV_MACRO_PHASE_RESET,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-    }
+    macroList.push_back(FurnaceGUIMacroDesc("On/Off",ins,DIV_MACRO_DUTY,0xff,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER]));
+    macroList.push_back(FurnaceGUIMacroDesc("Waveform",ins,DIV_MACRO_WAVE,0xff,0,15,64,uiColors[GUI_COLOR_MACRO_WAVE]));
 
     drawMacros(macroList,macroEditStateMacros);
     ImGui::EndTabItem();

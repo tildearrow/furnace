@@ -426,6 +426,11 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsVERA(ins); break;
       }
 
+      case DIV_INS_VIC:
+      {
+        drawInsVIC(ins); break;
+      }
+
       case DIV_INS_VRC6:
       {
         drawInsVRC6(ins); break;
