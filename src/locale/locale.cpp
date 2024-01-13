@@ -4,6 +4,7 @@ const char* languages[] =
 {
     "English",
     "Русский",
+    "TEMPLATE",
     NULL
 };
 
@@ -33,6 +34,12 @@ void DivLocale::setLanguage(DivLang lang)
         case DIV_LANG_RUSSIAN:
         {
             addTranslationsRussian();
+            break;
+        }
+
+        case DIV_LANG_TEMPLATE:
+        {
+            addTranslationsTemplate();
             break;
         }
 
