@@ -2656,6 +2656,9 @@ class FurnaceGUI {
   public:
     //this is a horrible hack to allow localized strings in bitfield type macros...
     int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor);
+    int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor);
+
+    String realMacroHoverGain(int id, float val, void* u);
 
     void editStr(String* which);
     void showWarning(String what, FurnaceGUIWarnings type);

@@ -16,12 +16,44 @@ void DivLocale::addTranslationsRussian()
     
     //MACRO EDITOR
 
+    //macro names
+
+    strings["Volume"].plurals[0] = "Громкость";
+    strings["Gain"].plurals[0] = "Усиление";
+
     //bitfield macros strings
 
     strings["hold"].plurals[0] = "удержание";
     strings["alternate"].plurals[0] = "изм. направл.";
     strings["direction"].plurals[0] = "направление";
     strings["enable"].plurals[0] = "вкл.";
+
+    strings["right"].plurals[0] = "правый";
+    strings["left"].plurals[0] = "левый";
+    strings["rear right"].plurals[0] = "задний правый";
+    strings["rear left"].plurals[0] = "задний левый";
+
+    //macro hover notes
+
+    strings["exponential"].plurals[0] = "экспоненциальное";
+    strings["linear"].plurals[0] = "линейное";
+    strings["direct"].plurals[0] = "прямое";
+
+    strings["Release"].plurals[0] = "Затухание";
+    strings["Loop"].plurals[0] = "Цикл";
+
+    strings["Fixed"].plurals[0] = "Абсолютное";
+    strings["Relative"].plurals[0] = "Относительное";
+
+    strings["HP/K2, HP/K2"].plurals[0] = "ФВЧ/K2, ФВЧ/K2";
+    strings["HP/K2, LP/K1"].plurals[0] = "ФВЧ/K2, ФНЧ/K1";
+    strings["LP/K2, LP/K2"].plurals[0] = "ФНЧ/K2, ФНЧ/K2";
+    strings["LP/K2, LP/K1"].plurals[0] = "ФНЧ/K2, ФНЧ/K1";
+
+    strings["Saw"].plurals[0] = "Пила";
+    strings["Square"].plurals[0] = "Меандр";
+    strings["Triangle"].plurals[0] = "Треугольная волна";
+    strings["Random"].plurals[0] = "Шум";
 
     //SETTINGS
 

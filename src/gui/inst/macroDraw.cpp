@@ -526,7 +526,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
 
   for(int i = 0; i < (int)macros.size(); i++) //calculate table column width (the one where macro names go) to eliminate one-frame glitch
   {
-    float current_width = ImGui::CalcTextSize(macros[i].displayName).x;
+    float current_width = ImGui::CalcTextSize(_L(macros[i].displayName)).x;
 
     if(current_width > max_macro_len)
     {
@@ -579,7 +579,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
 
           // description
           ImGui::TableNextColumn();
-          ImGui::Text("%s",i.displayName);
+          ImGui::Text("%s",_L(i.displayName));
           ImGui::SameLine();
           if (ImGui::SmallButton((i.get_macro()->open&1)?(ICON_FA_CHEVRON_UP "##IMacroOpen"):(ICON_FA_CHEVRON_DOWN "##IMacroOpen"))) {
             i.get_macro()->open^=1;
@@ -655,7 +655,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
 
           ImGui::PushID(index);
 
-          ImGui::TextUnformatted(i.displayName);
+          ImGui::TextUnformatted(_L(i.displayName));
           ImGui::SameLine();
           if (ImGui::SmallButton((i.get_macro()->open&1)?(ICON_FA_CHEVRON_UP "##IMacroOpen"):(ICON_FA_CHEVRON_DOWN "##IMacroOpen"))) {
             i.get_macro()->open^=1;
@@ -711,7 +711,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         for (size_t i=0; i<macros.size(); i++) {
-          if (ImGui::Selectable(macros[i].displayName,state.selectedMacro==(int)i)) {
+          if (ImGui::Selectable(_L(macros[i].displayName),state.selectedMacro==(int)i)) {
             state.selectedMacro=i;
           }
         }
