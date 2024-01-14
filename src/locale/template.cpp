@@ -2,11 +2,64 @@
 #include <string>
 #include "locale.h"
 
+#include "template.h"
+
+int getPluralIndexTemplate(int n)
+{
+    return 0;
+    //here you can provide plural forms indices based on the integer.
+    //you can find one-liners for common languages here:
+    //https://www.gnu.org/software/gettext/manual/html_node/Plural-forms.html
+    //these would need some adaptation to work in this code
+    //see russian.cpp file for example of adapted statement
+}
+
 class DivLocale;
 
 void DivLocale::addTranslationsTemplate()
 {
-    strings["test"].plurals[0] = "=test";
+    //WINDOW NAMES
+
+    strings["Settings###Settings"].plurals[0] = "=Settings###Settings";
+    strings["Pattern###Pattern"].plurals[0] = "=Pattern###Pattern";
+    strings["Orders###Orders"].plurals[0] = "=Orders###Orders";
+    strings["Statistics###Statistics"].plurals[0] = "=Statistics###Statistics";
+    strings["Song Info###Song Information"].plurals[0] = "=Song Info###Song Information"; //this needs fixing
+    strings["Subsongs###Subsongs"].plurals[0] = "=Subsongs###Subsongs";
+    strings["About Furnace###About Furnace"].plurals[0] = "=About Furnace###About Furnace";
+    strings["Channels###Channels"].plurals[0] = "=Channels###Channels";
+    strings["Oscilloscope (per-channel)###Oscilloscope (per-channel)"].plurals[0] = "=Oscilloscope (per-channel)###Oscilloscope (per-channel)";
+    strings["Clock###Clock"].plurals[0] = "Clock###Clock";
+    strings["Compatibility Flags###Compatibility Flags"].plurals[0] = "=Compatibility Flags###Compatibility Flags";
+    strings["Instruments###Instruments"].plurals[0] = "=Instruments###Instruments";
+    strings["Wavetables###Wavetables"].plurals[0] = "=Wavetables###Wavetables";
+    strings["Debug###Debug"].plurals[0] = "=Debug###Debug";
+    strings["Samples###Samples"].plurals[0] = "=Samples###Samples";
+    strings["MobileEdit###MobileEdit"].plurals[0] = "=MobileEdit###MobileEdit";
+    strings["Mobile Controls###Mobile Controls"].plurals[0] = "=Mobile Controls###Mobile Controls";
+    strings["Mobile Menu###Mobile Menu"].plurals[0] = "=Mobile Menu###Mobile Menu";
+    strings["Play/Edit Controls###Play/Edit Controls"].plurals[0] = "=Play/Edit Controls###Play/Edit Controls";
+    strings["Play Controls###Play Controls"].plurals[0] = "=Play Controls###Play Controls";
+    strings["Edit Controls###Edit Controls"].plurals[0] = "=Edit Controls###Edit Controls";
+    strings["Effect List###Effect List"].plurals[0] = "=Effect List###Effect List";
+    strings["Find/Replace###Find/Replace"].plurals[0] = "=Find/Replace###Find/Replace";
+    strings["Grooves###Grooves"].plurals[0] = "=Grooves###Grooves";
+    strings["Instrument Editor###Instrument Editor"].plurals[0] = "=Instrument Editor###Instrument Editor";
+    strings["Log Viewer###Log Viewer"].plurals[0] = "=Log Viewer###Log Viewer";
+    strings["Mixer###Mixer"].plurals[0] = "=Mixer###Mixer";
+    strings["OrderSel###OrderSel"].plurals[0] = "=OrderSel###OrderSel";
+    strings["Oscilloscope###Oscilloscope"].plurals[0] = "=Oscilloscope###Oscilloscope";
+    strings["Pattern Manager###Pattern Manager"].plurals[0] = "=Pattern Manager###Pattern Manager";
+    strings["Input Pad###Input Pad"].plurals[0] = "=Input Pad###Input Pad";
+    strings["Register View###Register View"].plurals[0] = "=Register View###Register View";
+    strings["Sample Editor###Sample Editor"].plurals[0] = "=Sample Editor###Sample Editor";
+    strings["Song Comments###Song Comments"].plurals[0] = "=Song Comments###Song Comments";
+    strings["Speed###Speed"].plurals[0] = "=Speed###Speed";
+    strings["Spoiler###Spoiler"].plurals[0] = "=Spoiler###Spoiler";
+    strings["Chip Manager###Chip Manager"].plurals[0] = "=Chip Manager###Chip Manager";
+    strings["Volume Meter###Volume Meter"].plurals[0] = "=Volume Meter###Volume Meter";
+    strings["Wavetable Editor###Wavetable Editor"].plurals[0] = "=Wavetable Editor###Wavetable Editor";
+    strings["Oscilloscope (X-Y)###Oscilloscope (X-Y)"].plurals[0] = "=Oscilloscope (X-Y)###Oscilloscope (X-Y)";
 
     //EFFECT LIST
 
@@ -59,10 +112,8 @@ void DivLocale::addTranslationsTemplate()
     //TODO: all the "const char*" at the top of `settings.cpp`?
 
     //keybind prompt
-    strings["Press key..."].plurals[0] = "Press key...";
+    strings["Press key..."].plurals[0] = "=Press key...";
 
-    //window name
-    strings["Settings###Settings"].plurals[0] = "=Settings###Settings";
     strings["Do you want to save your settings?"].plurals[0] = "=Do you want to save your settings?";
 
     //general section
@@ -177,7 +228,7 @@ void DivLocale::addTranslationsTemplate()
     strings["DC offset correction"].plurals[0] = "=DC offset correction";
 
     strings["Metronome"].plurals[0] = "=Metronome";
-    strings["Volume"].plurals[0] = "=Volume";
+    strings["Volume##MetroVol"].plurals[0] = "=Volume##MetroVol";
 
     strings["Sample preview"].plurals[0] = "=Sample preview";
 
@@ -220,9 +271,45 @@ void DivLocale::addTranslationsTemplate()
     strings["Enable##fah1"].plurals[0] = "=Enable##fah1";
     strings["Force##fah2"].plurals[0] = "=Force##fah2";
     strings["Display Japanese characters"].plurals[0] = "=Display Japanese characters";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
+            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。"].plurals[0] = 
+            
+            "=Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
+            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。";
     strings["Display Chinese (Simplified) characters"].plurals[0] = "=Display Chinese (Simplified) characters";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "请在确保你有足够的显存后再启动此设定\n"
+            "这是一个在ImGui实现动态字体加载之前的临时解决方案"].plurals[0] = 
+            
+            "=Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "请在确保你有足够的显存后再启动此设定\n"
+            "这是一个在ImGui实现动态字体加载之前的临时解决方案";
     strings["Display Chinese (Traditional) characters"].plurals[0] = "=Display Chinese (Traditional) characters";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "請在確保你有足夠的顯存后再啟動此設定\n"
+            "這是一個在ImGui實現動態字體加載之前的臨時解決方案"].plurals[0] = 
+            
+            "=Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "請在確保你有足夠的顯存后再啟動此設定\n"
+            "這是一個在ImGui實現動態字體加載之前的臨時解決方案";
     strings["Display Korean characters"].plurals[0] = "=Display Korean characters";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
+            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."].plurals[0] = 
+            
+            "=Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
+            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다.";
 
     strings["Program"].plurals[0] = "=Program";
     strings["Title bar:"].plurals[0] = "=Title bar:";
@@ -348,7 +435,7 @@ void DivLocale::addTranslationsTemplate()
     strings["Bytes##MUU0"].plurals[0] = "=Bytes##MUU0";
     strings["Kilobytes##MUU1"].plurals[0] = "=Kilobytes##MUU1";
 
-    strings["Oscilloscope"].plurals[0] = "=Oscilloscope";
+    strings["Oscilloscope##set"].plurals[0] = "=Oscilloscope##set";
     strings["Rounded corners"].plurals[0] = "=Rounded corners";
     strings["Border"].plurals[0] = "=Border";
     strings["Mono"].plurals[0] = "=Mono";

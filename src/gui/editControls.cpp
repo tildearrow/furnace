@@ -235,7 +235,7 @@ void FurnaceGUI::drawMobileControls() {
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,mobileEditButtonSize.x);
-    if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration)) {
+    if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration,_L("MobileEdit###MobileEdit"))) {
       bool mobileEditWas=mobileEdit;
       if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && mobileEdit) {
         mobileEdit=false;
@@ -330,7 +330,7 @@ void FurnaceGUI::drawMobileControls() {
   
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*canvasH)-(0.16*canvasW)):ImVec2(0.5*canvasW*mobileMenuPos,0.0f));
   ImGui::SetNextWindowSize(portrait?ImVec2(canvasW,0.16*canvasW):ImVec2(0.16*canvasH,canvasH));
-  if (ImGui::Begin("Mobile Controls",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
+  if (ImGui::Begin("Mobile Controls",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags, _L("Mobile Controls###Mobile Controls"))) {
     float avail=portrait?ImGui::GetContentRegionAvail().y:ImGui::GetContentRegionAvail().x;
     ImVec2 buttonSize=ImVec2(avail,avail);
     const char* mobButtonName=ICON_FA_CHEVRON_RIGHT "##MobileMenu";
@@ -405,7 +405,7 @@ void FurnaceGUI::drawMobileControls() {
 
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*canvasH)):ImVec2(0.5*canvasW*(mobileMenuPos-1.0),0.0f));
   ImGui::SetNextWindowSize(portrait?ImVec2(canvasW,0.65*canvasH):ImVec2(0.5*canvasW,canvasH));
-  if (ImGui::Begin("Mobile Menu",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
+  if (ImGui::Begin("Mobile Menu",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags,_L("Mobile Menu###Mobile Menu"))) {
     if (ImGui::BeginTable("SceneSel",5)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,1.0f);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,1.0f);
@@ -650,7 +650,7 @@ void FurnaceGUI::drawEditControls() {
   if (!editControlsOpen) return;
   switch (settings.controlLayout) {
     case 0: // classic
-      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,globalWinFlags)) {
+      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,globalWinFlags,_L("Play/Edit Controls###Play/Edit Controls"))) {
         if (ImGui::BeginTable("PlayEditAlign",2)) {
           ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
@@ -748,7 +748,7 @@ void FurnaceGUI::drawEditControls() {
       ImGui::End();
       break;
     case 1: // compact
-      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
+      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags,_L("Play/Edit Controls###Play/Edit Controls"))) {
         if (ImGui::Button(ICON_FA_STOP "##Stop")) {
           stop();
         }
@@ -855,7 +855,7 @@ void FurnaceGUI::drawEditControls() {
       ImGui::End();
       break;
     case 2: // compact vertical
-      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
+      if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags,_L("Play/Edit Controls###Play/Edit Controls"))) {
         ImVec2 buttonSize=ImVec2(ImGui::GetContentRegionAvail().x,0.0f);
         pushToggleColors(e->isPlaying());
         if (ImGui::Button(ICON_FA_PLAY "##Play",buttonSize)) {
@@ -1060,7 +1060,7 @@ void FurnaceGUI::drawEditControls() {
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
 
-      if (ImGui::Begin("Edit Controls",&editControlsOpen,globalWinFlags)) {
+      if (ImGui::Begin("Edit Controls",&editControlsOpen,globalWinFlags, _L("Edit Controls###Edit Controls"))) {
         ImGui::Columns(2);
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Octave");

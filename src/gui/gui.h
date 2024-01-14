@@ -40,6 +40,7 @@
 //macros for localization (l10n):
 
 #define _L(string) locale.getText(string)
+#define _LP(string, n) locale.getTextPlural((string), n)
 
 //===============================
 

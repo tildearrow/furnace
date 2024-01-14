@@ -2,11 +2,67 @@
 #include <string>
 #include "locale.h"
 
+#include "russian.h"
+
+int getPluralIndexRussian(int n)
+{
+    return (n%10==1 && n%100!=11) ? 0 : ((n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20)) ? 1 : 2);
+    //here you can provide plural forms indices based on the integer.
+    //you can find one-liners for common languages here:
+    //https://www.gnu.org/software/gettext/manual/html_node/Plural-forms.html
+    //these would need some adaptation to work in this code
+}
+
 class DivLocale;
 
 void DivLocale::addTranslationsRussian()
 {
-    strings["test"].plurals[0] = "тест";
+    strings["%d apple"].plurals[0] = "%d яблоко";
+    strings["%d apple"].plurals[1] = "%d яблока";
+    strings["%d apple"].plurals[2] = "%d яблок";
+
+    //WINDOW NAMES
+
+    strings["Settings###Settings"].plurals[0] = "Настройки###Settings";
+    strings["Pattern###Pattern"].plurals[0] = "=Pattern###Pattern";
+    strings["Orders###Orders"].plurals[0] = "=Orders###Orders";
+    strings["Statistics###Statistics"].plurals[0] = "=Statistics###Statistics";
+    strings["Song Info###Song Information"].plurals[0] = "=Song Info###Song Information"; //this needs fixing
+    strings["Subsongs###Subsongs"].plurals[0] = "=Subsongs###Subsongs";
+    strings["About Furnace###About Furnace"].plurals[0] = "=About Furnace###About Furnace";
+    strings["Channels###Channels"].plurals[0] = "=Channels###Channels";
+    strings["Oscilloscope (per-channel)###Oscilloscope (per-channel)"].plurals[0] = "=Oscilloscope (per-channel)###Oscilloscope (per-channel)";
+    strings["Clock###Clock"].plurals[0] = "Clock###Clock";
+    strings["Compatibility Flags###Compatibility Flags"].plurals[0] = "=Compatibility Flags###Compatibility Flags";
+    strings["Instruments###Instruments"].plurals[0] = "=Instruments###Instruments";
+    strings["Wavetables###Wavetables"].plurals[0] = "=Wavetables###Wavetables";
+    strings["Debug###Debug"].plurals[0] = "=Debug###Debug";
+    strings["Samples###Samples"].plurals[0] = "=Samples###Samples";
+    strings["MobileEdit###MobileEdit"].plurals[0] = "=MobileEdit###MobileEdit";
+    strings["Mobile Controls###Mobile Controls"].plurals[0] = "=Mobile Controls###Mobile Controls";
+    strings["Mobile Menu###Mobile Menu"].plurals[0] = "=Mobile Menu###Mobile Menu";
+    strings["Play/Edit Controls###Play/Edit Controls"].plurals[0] = "=Play/Edit Controls###Play/Edit Controls";
+    strings["Play Controls###Play Controls"].plurals[0] = "=Play Controls###Play Controls";
+    strings["Edit Controls###Edit Controls"].plurals[0] = "=Edit Controls###Edit Controls";
+    strings["Effect List###Effect List"].plurals[0] = "=Effect List###Effect List";
+    strings["Find/Replace###Find/Replace"].plurals[0] = "=Find/Replace###Find/Replace";
+    strings["Grooves###Grooves"].plurals[0] = "=Grooves###Grooves";
+    strings["Instrument Editor###Instrument Editor"].plurals[0] = "=Instrument Editor###Instrument Editor";
+    strings["Log Viewer###Log Viewer"].plurals[0] = "=Log Viewer###Log Viewer";
+    strings["Mixer###Mixer"].plurals[0] = "=Mixer###Mixer";
+    strings["OrderSel###OrderSel"].plurals[0] = "=OrderSel###OrderSel";
+    strings["Oscilloscope###Oscilloscope"].plurals[0] = "=Oscilloscope###Oscilloscope";
+    strings["Pattern Manager###Pattern Manager"].plurals[0] = "=Pattern Manager###Pattern Manager";
+    strings["Input Pad###Input Pad"].plurals[0] = "=Input Pad###Input Pad";
+    strings["Register View###Register View"].plurals[0] = "=Register View###Register View";
+    strings["Sample Editor###Sample Editor"].plurals[0] = "=Sample Editor###Sample Editor";
+    strings["Song Comments###Song Comments"].plurals[0] = "=Song Comments###Song Comments";
+    strings["Speed###Speed"].plurals[0] = "=Speed###Speed";
+    strings["Spoiler###Spoiler"].plurals[0] = "=Spoiler###Spoiler";
+    strings["Chip Manager###Chip Manager"].plurals[0] = "=Chip Manager###Chip Manager";
+    strings["Volume Meter###Volume Meter"].plurals[0] = "=Volume Meter###Volume Meter";
+    strings["Wavetable Editor###Wavetable Editor"].plurals[0] = "=Wavetable Editor###Wavetable Editor";
+    strings["Oscilloscope (X-Y)###Oscilloscope (X-Y)"].plurals[0] = "=Oscilloscope (X-Y)###Oscilloscope (X-Y)";
 
     //EFFECT LIST
 
@@ -57,6 +113,135 @@ void DivLocale::addTranslationsRussian()
 
     //SETTINGS
 
+    //keybind prompt
+    strings["Press key..."].plurals[0] = "Нажмите клавишу...";
+    strings["Do you want to save your settings?"].plurals[0] = "Вы хотите сохранить свои настройки?";
+
+    //general section
+    strings["General"].plurals[0] = "Основные";
+
+    strings["Program"].plurals[0] = "Программа";
+    strings["Render backend"].plurals[0] = "Библиотека отрисовки";
+    strings["you may need to restart Furnace for this setting to take effect."].plurals[0] = "возможно, вам потребуется перезапустить Furnace, чтобы эта настрока применилась.";
+    strings["Render driver"].plurals[0] = "Драйвер отрисовки";
+    strings["Automatic"].plurals[0] = "Выбирать автоматически";
+    strings["Late render clear"].plurals[0] = "Запаздывающая очистка буфера отрисовщика";
+    strings["calls rend->clear() after rend->present(). might reduce UI latency by one frame in some drivers."].plurals[0] = "вызывает rend->clear() после rend->present(). может устранить запаздывание отрисовки интерфейса на один кадр для некоторых драйверов.";
+    strings["Power-saving mode"].plurals[0] = "Режим энергосбережения";
+    strings["saves power by lowering the frame rate to 2fps when idle.\nmay cause issues under Mesa drivers!"].plurals[0] = "уменьшает энергопотребление при помощи уменьшения частоты отрисовки до двух кадров в секунду в режиме ожидания.\nможет приводить к проблемам на драйверах Mesa!";
+    strings["Disable threaded input (restart after changing!)"].plurals[0] = "Отключить обработку нажатий для превью интсрумента в отдельном потоке (перезагрузите программу после изменения!)";
+    strings["threaded input processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.\nhowever, crashes have been reported when threaded input is on. enable this option if that is the case."].plurals[0] = "обработка нажатий клавиш для превью инструмента происходит в отдельном потоке (на поддерживаемых платформах), что позволяет уменьшить задержку ввода.\nтем не менее, есть сообщения о вылетах программы при выключённой настройке. включите её, если у вас программа вылетает.";
+    strings["Enable event delay"].plurals[0] = "Включить задержку событий";
+    strings["may cause issues with high-polling-rate mice when previewing notes."].plurals[0] = "может привести к проблемам во время превью инструмента, если подключена мышь с большой частотой обновления.";
+    strings["Per-channel oscilloscope threads"].plurals[0] = "Потоки исполнения осциллографов для отдельных каналов";
+    strings["you're being silly, aren't you? that's enough."].plurals[0] = "может, хватит уже хернёй страдать? этого достаточно.";
+    strings["what are you doing? stop!"].plurals[0] = "ты чё делаешь? хватит!";
+    strings["it is a bad idea to set this number higher than your CPU core count (%d)!"].plurals[0] = "не рекомендуется выставлять здесь значение, большее количества ядер вашего ЦП (%d)!";
+
+    strings["File"].plurals[0] = "Файл";
+    strings["Use system file picker"].plurals[0] = "Использовать диалоговое окно выбора файлов ОС";
+    strings["Number of recent files"].plurals[0] = "Количество недавних файлов";
+    strings["Compress when saving"].plurals[0] = "Сжимать сохраняемые файоы";
+    strings["use zlib to compress saved songs."].plurals[0] = "использовать библиотеку zlib для сжатия сохраняемых модулей.";
+    strings["Save unused patterns"].plurals[0] = "Сохранять неиспользуемые паттерны";
+    strings["Use new pattern format when saving"].plurals[0] = "Использовать новый формат сохранения паттернов";
+    strings["use a packed format which saves space when saving songs.\ndisable if you need compatibility with older Furnace and/or tools\nwhich do not support this format."].plurals[0] = "использовать сжатый формат сохранения паттернов, что позволяет уменьшить размер файла с модулем.\nотключите, если нужна совместимость со старыми версиями Furnace и/или другими программами,\nкоторые не поддерживают старый формат.";
+    strings["Don't apply compatibility flags when loading .dmf"].plurals[0] = "Не применять флаги совместимости при загрузке .dmf";
+    strings["do not report any issues arising from the use of this option!"].plurals[0] = "не жалуйтесь на проблемы, которые возникнут после включения этой настройки!";
+    strings["Play after opening song:"].plurals[0] = "Проигрывание модуля после его загрузки:";
+    strings["No##pol0"].plurals[0] = "Нет##pol0";
+    strings["Only if already playing##pol1"].plurals[0] = "Только если до этого уже играл##pol1";
+    strings["Yes##pol0"].plurals[0] = "Да##pol0";
+    strings["Audio export loop/fade out time:"].plurals[0] = "Количество циклов проигрывания и время затухания при экспорте аудио:";
+    strings["Set to these values on start-up:##fot0"].plurals[0] = "Выставить эти значения при запуске:##fot0";
+    strings["Loops"].plurals[0] = "Циклы";
+    strings["Fade out (seconds)"].plurals[0] = "Затухание (в секундах)";
+    strings["Remember last values##fot1"].plurals[0] = "Запоминать предыдущие значения##fot1";
+    strings["Store instrument name in .fui"].plurals[0] = "Сохранять название инструмента в файле .fui";
+    strings["when enabled, saving an instrument will store its name.\nthis may increase file size."].plurals[0] = "При включении имя инструмента будет сохраняться в файле.\nэто может увеличить размер файла.";
+    strings["Load instrument name from .fui"].plurals[0] = "Загружать имя инструмента из файла .fui";
+    strings["when enabled, loading an instrument will use the stored name (if present).\notherwise, it will use the file name."].plurals[0] = "При включении имя инструмента будет загружаться из файла (при наличии имени в файле).\nВ противном случае будет использоваться имя файла.";
+
+    strings["New Song"].plurals[0] = "Новая композиция";
+    strings["Initial system:"].plurals[0] = "Система по умолчанию:";
+    strings["Current system"].plurals[0] = "Текущая";
+    strings["Randomize"].plurals[0] = "Выбрать случайно";
+    strings["Reset to defaults"].plurals[0] = "Устан. по умолчанию";
+    strings["Name"].plurals[0] = "Название";
+    strings["Invert"].plurals[0] = "Обр.";
+    strings["Volume"].plurals[0] = "Громкость";
+    strings["Panning"].plurals[0] = "Панорамирование";
+    strings["Front/Rear"].plurals[0] = "Передн./задн.";
+    strings["Configure"].plurals[0] = "Настроить";
+    strings["When creating new song:"].plurals[0] = "При создании новой композиции:";
+    strings["Display system preset selector##NSB0"].plurals[0] = "Отобразить окно выбора пресета системы##NSB0";
+    strings["Start with initial system##NSB1"].plurals[0] = "Начать с системы по умолчанию##NSB1";
+    strings["Default author name"].plurals[0] = "Имя автора по умолчанию";
+
+    strings["Start-up"].plurals[0] = "Запуск";
+    strings["Disable fade-in during start-up"].plurals[0] = "Отключить плавное появление интерфейса при запуске";
+    strings["About screen party time"].plurals[0] = "Вечеринка на экране \"О программе\"";
+    strings["Warning: may cause epileptic seizures."].plurals[0] = "Внимание: может вызвать эпилептические приступы.";
+
+    strings["Behavior"].plurals[0] = "Поведение программы";
+    strings["New instruments are blank"].plurals[0] = "Пустые новые инструменты";
+
+    strings["Language"].plurals[0] = "Язык";
+    strings["GUI language"].plurals[0] = "Язык интерфейса";
+
+    //audio section
+
+    strings["Audio"].plurals[0] = "Аудио";
+
+    strings["Output"].plurals[0] = "Вывод";
+    strings["Backend"].plurals[0] = "Интерфейс";
+    strings["Driver"].plurals[0] = "Драйвер";
+    strings["Automatic"].plurals[0] = "Автоматически";
+    strings["you may need to restart Furnace for this setting to take effect."].plurals[0] = "возможно, вам придётся перезапустить Furnace для применения настройки.";
+    strings["Device"].plurals[0] = "Устройство вывода";
+    strings["<click on OK or Apply first>"].plurals[0] = "=<сначала нажмите на кнопки \"ОК\" или \"Применить\">";
+    strings["ALERT - TRESPASSER DETECTED"].plurals[0] = "ВНИМАНИЕ - ОБНАРУЖЕН НАРУШИТЕЛЬ";
+    strings["you have been arrested for trying to engage with a disabled combo box."].plurals[0] = "вы были арестованы за попытку взаимодействия с выключенным выпадающим списком.";
+    strings["<System default>"].plurals[0] = "=<По умолчанию>";
+    strings["Sample rate"].plurals[0] = "Частота дискретизации";
+    strings["Outputs"].plurals[0] = "Выводы";
+    strings["Channels"].plurals[0] = "Число каналов";
+    strings["What?"].plurals[0] = "Что?";
+    strings["Buffer size"].plurals[0] = "Размер буфера";
+    strings["%d (latency: ~%.1fms)"].plurals[0] = "=%d (задержка: ~%.1f мс)";
+    strings["Multi-threaded (EXPERIMENTAL)"].plurals[0] = "Многопоточность (ЭКСПЕРИМЕНТАЛЬНАЯ)";
+    strings["runs chip emulation on separate threads.\nmay increase performance when using heavy emulation cores.\n\nwarnings:\n- experimental!\n- only useful on multi-chip songs."].plurals[0] = "исполняет эмуляторы чипов в отдельных потоках.\nможет повысить производительность при использовании тяжёлых эмуляторов.\n\nвнимание:\n- экспериментальная функция!\n- полезна только для композиций, использующих несколько чипов.";
+    strings["Number of threads"].plurals[0] = "Количество потоков";
+    strings["that's the limit!"].plurals[0] = "это предел!";
+    strings["it is a VERY bad idea to set this number higher than your CPU core count (%d)!"].plurals[0] = "это ОЧЕНЬ плохая идея - устанавливать это значение большим, чем колчество ядер ЦП (%d)!";
+    strings["Low-latency mode"].plurals[0] = "Режим малой задержки";
+    strings["reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: only enable if your buffer size is small (10ms or less)."].plurals[0] = "уменьшает задержку, исполняя код движка трекера быстрее, чем указано в настройках.\nполезно для режима исполнения в реальном времени.\n\nвнимание: включайте только если размер вашего аудиобуфера мал (10 мс или меньше).";
+    strings["Force mono audio"].plurals[0] = "Принудительно сводить в моно";
+    strings["Exclusive mode"].plurals[0] = "Исключительный режим";
+    strings["want: %d samples @ %.0fHz (%d %s)"].plurals[0] = "запрошено: %d сэмплов @ %.0fHz (%d %s)";
+    strings["channel"].plurals[0] = "канал";
+    strings["channel"].plurals[1] = "канала";
+    strings["channel"].plurals[2] = "каналов";
+    strings["got: %d samples @ %.0fHz (%d %s)"].plurals[0] = "получено: %d сэмплов @ %.0fHz (%d %s)";
+
+    strings["Mixing"].plurals[0] = "Сведение";
+    strings["Quality"].plurals[0] = "Качество";
+    strings["Software clipping"].plurals[0] = "Программное ограничение сигнала";
+    strings["DC offset correction"].plurals[0] = "Коррекция смещения пост. составляющей";
+
+    strings["Metronome"].plurals[0] = "Метроном";
+    strings["Volume##MetroVol"].plurals[0] = "Громкость метронома##MetroVol";
+
+    strings["Sample preview"].plurals[0] = "Превью сэмпла";
+
+    //MIDI section
+
+    //emulation section
+
+    //keyboard section
+
+    //interface selection
+
     //appearance section
 
     strings["Appearance"].plurals[0] = "Внешний вид";
@@ -86,9 +271,45 @@ void DivLocale::addTranslationsRussian()
     strings["Enable##fah1"].plurals[0] = "Включить##fah1";
     strings["Force##fah2"].plurals[0] = "Принудительное##fah2";
     strings["Display Japanese characters"].plurals[0] = "Отображать японские символы (вкл. иероглифы)";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
+            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。"].plurals[0] = 
+            
+            "Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
+            "Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n\n"
+            "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
+            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。";
     strings["Display Chinese (Simplified) characters"].plurals[0] = "Отображать китайские иероглифы (упрощённые)";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "请在确保你有足够的显存后再启动此设定\n"
+            "这是一个在ImGui实现动态字体加载之前的临时解决方案"].plurals[0] = 
+            
+            "Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
+            "Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n\n"
+            "请在确保你有足够的显存后再启动此设定\n"
+            "这是一个在ImGui实现动态字体加载之前的临时解决方案";
     strings["Display Chinese (Traditional) characters"].plurals[0] = "Отображать китайские иероглифы (традиционные)";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "請在確保你有足夠的顯存后再啟動此設定\n"
+            "這是一個在ImGui實現動態字體加載之前的臨時解決方案"].plurals[0] = 
+            
+            "Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
+            "Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n\n"
+            "請在確保你有足夠的顯存后再啟動此設定\n"
+            "這是一個在ImGui實現動態字體加載之前的臨時解決方案";
     strings["Display Korean characters"].plurals[0] = "Отображать корейские иероглифы";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
+            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."].plurals[0] = 
+            
+            "Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
+            "Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n\n"
+            "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
+            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다.";
 
     strings["Program"].plurals[0] = "Программа";
     strings["Title bar:"].plurals[0] = "Полоса заголовка окна";
@@ -214,7 +435,7 @@ void DivLocale::addTranslationsRussian()
     strings["Bytes##MUU0"].plurals[0] = "Байты##MUU0";
     strings["Kilobytes##MUU1"].plurals[0] = "Килобайты##MUU1";
 
-    strings["Oscilloscope"].plurals[0] = "Осциллограф";
+    strings["Oscilloscope##set"].plurals[0] = "Осциллограф##set";
     strings["Rounded corners"].plurals[0] = "Закруглённые края";
     strings["Border"].plurals[0] = "Граница";
     strings["Mono"].plurals[0] = "Моно";

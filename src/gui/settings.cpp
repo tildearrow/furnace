@@ -367,7 +367,7 @@ void FurnaceGUI::drawSettings() {
   } else {
     ImGui::SetNextWindowSizeConstraints(ImVec2(200.0f*dpiScale,100.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin(_L("Settings###Settings"),&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags)) {
+  if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags, _L("Settings###Settings"))) {
     if (!settingsOpen) {
       if (settingsChanged) {
         settingsOpen=true;
@@ -857,8 +857,16 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::EndCombo();
         }
-        ImGui::TextUnformatted(_L("test"));
-        ImGui::TextUnformatted(_L("iulserghiueshgui"));
+        //ImGui::TextUnformatted(_L("test"));
+
+        if(settings.language == (int)DIV_LANG_RUSSIAN)
+        {
+          ImGui::Text(_LP("%d apple", 1), 1);
+          ImGui::Text(_LP("%d apple", 2), 2);
+          ImGui::Text(_LP("%d apple", 5), 5);
+          ImGui::TextUnformatted(_L("iulserghiueshgui"));
+        }
+        
 
         END_SECTION;
       }
@@ -1084,8 +1092,8 @@ void FurnaceGUI::drawSettings() {
         TAAudioDesc& audioWant=e->getAudioDescWant();
         TAAudioDesc& audioGot=e->getAudioDescGot();
 
-        ImGui::Text(_L("want: %d samples @ %.0fHz (%d %s)"),audioWant.bufsize,audioWant.rate,audioWant.outChans,(audioWant.outChans==1)?_L("channel"):_L("channels"));
-        ImGui::Text(_L("got: %d samples @ %.0fHz (%d %s)"),audioGot.bufsize,audioGot.rate,audioWant.outChans,(audioWant.outChans==1)?_L("channel"):_L("channels"));
+        ImGui::Text(_L("want: %d samples @ %.0fHz (%d %s)"),audioWant.bufsize,audioWant.rate,audioWant.outChans,(settings.language == (int)DIV_LANG_ENGLISH ? ((audioWant.outChans==1)?"channel":"channels") : (_LP("channel", audioWant.outChans))));
+        ImGui::Text(_L("got: %d samples @ %.0fHz (%d %s)"),audioGot.bufsize,audioGot.rate,audioWant.outChans,(settings.language == (int)DIV_LANG_ENGLISH ? ((audioWant.outChans==1)?"channel":"channels") : (_LP("channel", audioWant.outChans))));
 
         // SUBSECTION MIXING
         CONFIG_SUBSECTION(_L("Mixing"));
@@ -1109,7 +1117,7 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION METRONOME
         CONFIG_SUBSECTION(_L("Metronome"));
         ImGui::AlignTextToFramePadding();
-        ImGui::Text(_L("Volume"));
+        ImGui::Text(_L("Volume##MetroVol"));
         ImGui::SameLine();
         if (ImGui::SliderInt("##MetroVol",&settings.metroVol,0,200,"%d%%")) {
           if (settings.metroVol<0) settings.metroVol=0;
@@ -2700,10 +2708,10 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-            "Only toggle this option if you have enough graphics memory.\n"
+            _L("Only toggle this option if you have enough graphics memory.\n"
             "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
             "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
-            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。"
+            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。")
           );
         }
 
@@ -2714,10 +2722,10 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-            "Only toggle this option if you have enough graphics memory.\n"
+            _L("Only toggle this option if you have enough graphics memory.\n"
             "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
             "请在确保你有足够的显存后再启动此设定\n"
-            "这是一个在ImGui实现动态字体加载之前的临时解决方案"
+            "这是一个在ImGui实现动态字体加载之前的临时解决方案")
           );
         }
 
@@ -2728,10 +2736,10 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-            "Only toggle this option if you have enough graphics memory.\n"
+            _L("Only toggle this option if you have enough graphics memory.\n"
             "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
             "請在確保你有足夠的顯存后再啟動此設定\n"
-            "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
+            "這是一個在ImGui實現動態字體加載之前的臨時解決方案")
           );
         }
 
@@ -2742,10 +2750,10 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-            "Only toggle this option if you have enough graphics memory.\n"
+            _L("Only toggle this option if you have enough graphics memory.\n"
             "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
             "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
-            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
+            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다.")
           );
         }
 
@@ -3257,7 +3265,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Unindent();
 
         // SUBSECTION OSCILLOSCOPE
-        CONFIG_SUBSECTION(_L("Oscilloscope"));
+        CONFIG_SUBSECTION(_L("Oscilloscope##set"));
         bool oscRoundedCornersB=settings.oscRoundedCorners;
         if (ImGui::Checkbox(_L("Rounded corners"),&oscRoundedCornersB)) {
           settings.oscRoundedCorners=oscRoundedCornersB;

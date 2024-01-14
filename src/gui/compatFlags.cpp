@@ -28,7 +28,7 @@ void FurnaceGUI::drawCompatFlags() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!compatFlagsOpen) return;
-  if (ImGui::Begin("Compatibility Flags",&compatFlagsOpen,globalWinFlags)) {
+  if (ImGui::Begin("Compatibility Flags",&compatFlagsOpen,globalWinFlags, _L("Compatibility Flags###Compatibility Flags"))) {
     ImGui::TextWrapped("these flags are designed to provide better DefleMask/older Furnace compatibility.\nit is recommended to disable most of these unless you rely on specific quirks.");
     if (ImGui::BeginTabBar("settingsTab")) {
       if (ImGui::BeginTabItem("DefleMask")) {

@@ -28,6 +28,7 @@ class DivLocale
         DivLocale()
         {
             strings.clear();
+            getPluralIndex = NULL;
         }
 
         void setLanguage(DivLang lang);
@@ -38,6 +39,8 @@ class DivLocale
         const char* getText(const char* text);
         const char* getTextPlural(const char* text, int p); //different plural forms
         const char* getTextContext(const char* text, int c); //different translations depending on context
+
+        int (*getPluralIndex)(int); //function that returns plural forms array index based on the input integer
 
         //=====================================================
         //FUNCTIONS THAT DEFINE TRANSLATED STRINGS:
