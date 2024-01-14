@@ -294,7 +294,7 @@ const char* specificControls[19]={
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
   ImGui::AlignTextToFramePadding();\
-  ImGui::TextUnformatted(guiActions[what].friendlyName); \
+  ImGui::TextUnformatted(_L(guiActions[what].friendlyName)); \
   ImGui::TableNextColumn(); \
   if (ImGui::Button(fmt::sprintf("%s##KC_" #what,(bindSetPending && bindSetTarget==what)?_L("Press key..."):getKeyName(actionKeys[what])).c_str())) { \
     promptKey(what); \
