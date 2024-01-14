@@ -386,7 +386,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip(_L("you may need to restart Furnace for this setting to take effect."));
         }
         if (curRenderBackend=="SDL") {
-          if (ImGui::BeginCombo(_L("Render driver"),settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
+          if (ImGui::BeginCombo(_L("Render driver"),settings.renderDriver.empty()?_L("Automatic"):settings.renderDriver.c_str())) {
             if (ImGui::Selectable(_L("Automatic"),settings.renderDriver.empty())) {
               settings.renderDriver="";
               settingsChanged=true;
@@ -836,17 +836,15 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::EndCombo();
         }
-
-//TRANSLATED
-
         ImGui::TextUnformatted(_L("test"));
         ImGui::TextUnformatted(_L("iulserghiueshgui"));
 
         END_SECTION;
       }
-      CONFIG_SECTION("Audio") {
+
+      CONFIG_SECTION(_L("Audio")) {
         // SUBSECTION OUTPUT
-        CONFIG_SUBSECTION("Output");
+        CONFIG_SUBSECTION(_L("Output"));
         if (ImGui::BeginTable("##Output",2)) {
           ImGui::TableSetupColumn("##Label",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##Combo",ImGuiTableColumnFlags_WidthStretch);
@@ -854,7 +852,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Backend");
+          ImGui::Text(_L("Backend"));
           ImGui::TableNextColumn();
           int prevAudioEngine=settings.audioEngine;
           if (ImGui::BeginCombo("##Backend",audioBackends[settings.audioEngine])) {
@@ -887,10 +885,10 @@ void FurnaceGUI::drawSettings() {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
-            ImGui::Text("Driver");
+            ImGui::Text(_L("Driver"));
             ImGui::TableNextColumn();
             if (ImGui::BeginCombo("##SDLADriver",settings.sdlAudioDriver.empty()?"Automatic":settings.sdlAudioDriver.c_str())) {
-              if (ImGui::Selectable("Automatic",settings.sdlAudioDriver.empty())) {
+              if (ImGui::Selectable(_L("Automatic"),settings.sdlAudioDriver.empty())) {
                 settings.sdlAudioDriver="";
                 settingsChanged=true;
               }
@@ -903,30 +901,30 @@ void FurnaceGUI::drawSettings() {
               ImGui::EndCombo();
             }
             if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
+              ImGui::SetTooltip(_L("you may need to restart Furnace for this setting to take effect."));
             }
           }
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Device");
+          ImGui::Text(_L("Device"));
           ImGui::TableNextColumn();
           if (audioEngineChanged) {
             ImGui::BeginDisabled();
-            if (ImGui::BeginCombo("##AudioDevice","<click on OK or Apply first>")) {
-              ImGui::Text("ALERT - TRESPASSER DETECTED");
+            if (ImGui::BeginCombo("##AudioDevice",_L("<click on OK or Apply first>"))) {
+              ImGui::Text(_L("ALERT - TRESPASSER DETECTED"));
               if (ImGui::IsItemHovered()) {
-                showError("you have been arrested for trying to engage with a disabled combo box.");
+                showError(_L("you have been arrested for trying to engage with a disabled combo box."));
                 ImGui::CloseCurrentPopup();
               }
               ImGui::EndCombo();
             }
             ImGui::EndDisabled();
           } else {
-            String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
+            String audioDevName=settings.audioDevice.empty()?_L("<System default>"):settings.audioDevice;
             if (ImGui::BeginCombo("##AudioDevice",audioDevName.c_str())) {
-              if (ImGui::Selectable("<System default>",settings.audioDevice.empty())) {
+              if (ImGui::Selectable(_L("<System default>"),settings.audioDevice.empty())) {
                 settings.audioDevice="";
                 settingsChanged=true;
               }
@@ -943,7 +941,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Sample rate");
+          ImGui::Text(_L("Sample rate"));
           ImGui::TableNextColumn();
           String sr=fmt::sprintf("%d",settings.audioRate);
           if (ImGui::BeginCombo("##SampleRate",sr.c_str())) {
@@ -963,7 +961,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           if (isProAudio[settings.audioEngine]) {
             ImGui::AlignTextToFramePadding();
-            ImGui::Text("Outputs");
+            ImGui::Text(_L("Outputs"));
             ImGui::TableNextColumn();
             if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,2)) {
               if (settings.audioChans<1) settings.audioChans=1;
@@ -972,9 +970,9 @@ void FurnaceGUI::drawSettings() {
             }
           } else {
             ImGui::AlignTextToFramePadding();
-            ImGui::Text("Channels");
+            ImGui::Text(_L("Channels"));
             ImGui::TableNextColumn();
-            String chStr=(settings.audioChans<1 || settings.audioChans>8)?"What?":nonProAudioOuts[settings.audioChans-1];
+            String chStr=(settings.audioChans<1 || settings.audioChans>8)?_L("What?"):nonProAudioOuts[settings.audioChans-1];
             if (ImGui::BeginCombo("##AudioChans",chStr.c_str())) {
               CHANS_SELECTABLE(1);
               CHANS_SELECTABLE(2);
@@ -988,9 +986,9 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Buffer size");
+          ImGui::Text(_L("Buffer size"));
           ImGui::TableNextColumn();
-          String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
+          String bs=fmt::sprintf(_L("%d (latency: ~%.1fms)"),settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
           if (ImGui::BeginCombo("##BufferSize",bs.c_str())) {
             BUFFER_SIZE_SELECTABLE(64);
             BUFFER_SIZE_SELECTABLE(128);
@@ -1005,7 +1003,7 @@ void FurnaceGUI::drawSettings() {
 
         if (settings.showPool) {
           bool renderPoolThreadsB=(settings.renderPoolThreads>0);
-          if (ImGui::Checkbox("Multi-threaded (EXPERIMENTAL)",&renderPoolThreadsB)) {
+          if (ImGui::Checkbox(_L("Multi-threaded (EXPERIMENTAL)"),&renderPoolThreadsB)) {
             if (renderPoolThreadsB) {
               settings.renderPoolThreads=2;
             } else {
@@ -1014,23 +1012,23 @@ void FurnaceGUI::drawSettings() {
             settingsChanged=true;
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("runs chip emulation on separate threads.\nmay increase performance when using heavy emulation cores.\n\nwarnings:\n- experimental!\n- only useful on multi-chip songs.");
+            ImGui::SetTooltip(_L("runs chip emulation on separate threads.\nmay increase performance when using heavy emulation cores.\n\nwarnings:\n- experimental!\n- only useful on multi-chip songs."));
           }
 
           if (renderPoolThreadsB) {
             pushWarningColor(settings.renderPoolThreads>cpuCores,settings.renderPoolThreads>cpuCores);
-            if (ImGui::InputInt("Number of threads",&settings.renderPoolThreads)) {
+            if (ImGui::InputInt(_L("Number of threads"),&settings.renderPoolThreads)) {
               if (settings.renderPoolThreads<2) settings.renderPoolThreads=2;
               if (settings.renderPoolThreads>32) settings.renderPoolThreads=32;
               settingsChanged=true;
             }
             if (settings.renderPoolThreads>=DIV_MAX_CHIPS) {
               if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("that's the limit!");
+                ImGui::SetTooltip(_L("that's the limit!"));
               }
             } else if (settings.renderPoolThreads>cpuCores) {
               if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("it is a VERY bad idea to set this number higher than your CPU core count (%d)!",cpuCores);
+                ImGui::SetTooltip(_L("it is a VERY bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
               }
             }
             popWarningColor();
@@ -1038,16 +1036,16 @@ void FurnaceGUI::drawSettings() {
         }
 
         bool lowLatencyB=settings.lowLatency;
-        if (ImGui::Checkbox("Low-latency mode",&lowLatencyB)) {
+        if (ImGui::Checkbox(_L("Low-latency mode"),&lowLatencyB)) {
           settings.lowLatency=lowLatencyB;
           settingsChanged=true;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: only enable if your buffer size is small (10ms or less).");
+          ImGui::SetTooltip(_L("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: only enable if your buffer size is small (10ms or less)."));
         }
 
         bool forceMonoB=settings.forceMono;
-        if (ImGui::Checkbox("Force mono audio",&forceMonoB)) {
+        if (ImGui::Checkbox(_L("Force mono audio"),&forceMonoB)) {
           settings.forceMono=forceMonoB;
           settingsChanged=true;
         }
@@ -1055,7 +1053,7 @@ void FurnaceGUI::drawSettings() {
         if (settings.audioEngine==DIV_AUDIO_PORTAUDIO) {
           if (settings.audioDevice.find("[Windows WASAPI] ")==0) {
             bool wasapiExB=settings.wasapiEx;
-            if (ImGui::Checkbox("Exclusive mode",&wasapiExB)) {
+            if (ImGui::Checkbox(_L("Exclusive mode"),&wasapiExB)) {
               settings.wasapiEx=wasapiExB;
               settingsChanged=true;
             }
@@ -1065,32 +1063,32 @@ void FurnaceGUI::drawSettings() {
         TAAudioDesc& audioWant=e->getAudioDescWant();
         TAAudioDesc& audioGot=e->getAudioDescGot();
 
-        ImGui::Text("want: %d samples @ %.0fHz (%d %s)",audioWant.bufsize,audioWant.rate,audioWant.outChans,(audioWant.outChans==1)?"channel":"channels");
-        ImGui::Text("got: %d samples @ %.0fHz (%d %s)",audioGot.bufsize,audioGot.rate,audioWant.outChans,(audioWant.outChans==1)?"channel":"channels");
+        ImGui::Text(_L("want: %d samples @ %.0fHz (%d %s)"),audioWant.bufsize,audioWant.rate,audioWant.outChans,(audioWant.outChans==1)?_L("channel"):_L("channels"));
+        ImGui::Text(_L("got: %d samples @ %.0fHz (%d %s)"),audioGot.bufsize,audioGot.rate,audioWant.outChans,(audioWant.outChans==1)?_L("channel"):_L("channels"));
 
         // SUBSECTION MIXING
-        CONFIG_SUBSECTION("Mixing");
+        CONFIG_SUBSECTION(_L("Mixing"));
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Quality");
+        ImGui::Text(_L("Quality"));
         ImGui::SameLine();
         if (ImGui::Combo("##Quality",&settings.audioQuality,audioQualities,2)) settingsChanged=true;
         
         bool clampSamplesB=settings.clampSamples;
-        if (ImGui::Checkbox("Software clipping",&clampSamplesB)) {
+        if (ImGui::Checkbox(_L("Software clipping"),&clampSamplesB)) {
           settings.clampSamples=clampSamplesB;
           settingsChanged=true;
         }
 
         bool audioHiPassB=settings.audioHiPass;
-        if (ImGui::Checkbox("DC offset correction",&audioHiPassB)) {
+        if (ImGui::Checkbox(_L("DC offset correction"),&audioHiPassB)) {
           settings.audioHiPass=audioHiPassB;
           settingsChanged=true;
         }
 
         // SUBSECTION METRONOME
-        CONFIG_SUBSECTION("Metronome");
+        CONFIG_SUBSECTION(_L("Metronome"));
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Volume");
+        ImGui::Text(_L("Volume"));
         ImGui::SameLine();
         if (ImGui::SliderInt("##MetroVol",&settings.metroVol,0,200,"%d%%")) {
           if (settings.metroVol<0) settings.metroVol=0;
@@ -1100,9 +1098,9 @@ void FurnaceGUI::drawSettings() {
         }
 
         // SUBSECTION SAMPLE PREVIEW
-        CONFIG_SUBSECTION("Sample preview");
+        CONFIG_SUBSECTION(_L("Sample preview"));
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Volume");
+        ImGui::Text(_L("Volume"));
         ImGui::SameLine();
         if (ImGui::SliderInt("##SampleVol",&settings.sampleVol,0,100,"%d%%")) {
           if (settings.sampleVol<0) settings.sampleVol=0;
@@ -1113,6 +1111,9 @@ void FurnaceGUI::drawSettings() {
 
         END_SECTION;
       }
+
+// TRANSLATED
+
       CONFIG_SECTION("MIDI") {
         // SUBSECTION MIDI INPUT
         CONFIG_SUBSECTION("MIDI input");

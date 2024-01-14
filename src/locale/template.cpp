@@ -56,7 +56,7 @@ void DivLocale::addTranslationsTemplate()
     strings["Random"].plurals[0] = "=Random";
 
     //SETTINGS
-    //TODO: all the "const char*" at the top of `settings.cpp`
+    //TODO: all the "const char*" at the top of `settings.cpp`?
 
     //keybind prompt
     strings["Press key..."].plurals[0] = "Press key...";
@@ -137,13 +137,59 @@ void DivLocale::addTranslationsTemplate()
     strings["Language"].plurals[0] = "=Language";
     strings["GUI language"].plurals[0] = "=GUI language";
 
+    //audio section
+
+    strings["Audio"].plurals[0] = "=Audio";
+
+    strings["Output"].plurals[0] = "=Output";
+    strings["Backend"].plurals[0] = "=Backend";
+    strings["Driver"].plurals[0] = "=Driver";
+    strings["Automatic"].plurals[0] = "=Automatic";
+    strings["you may need to restart Furnace for this setting to take effect."].plurals[0] = "=you may need to restart Furnace for this setting to take effect.";
+    strings["Device"].plurals[0] = "=Device";
+    strings["<click on OK or Apply first>"].plurals[0] = "=<click on OK or Apply first>";
+    strings["ALERT - TRESPASSER DETECTED"].plurals[0] = "=ALERT - TRESPASSER DETECTED";
+    strings["you have been arrested for trying to engage with a disabled combo box."].plurals[0] = "=you have been arrested for trying to engage with a disabled combo box.";
+    strings["<System default>"].plurals[0] = "=<System default>";
+    strings["Sample rate"].plurals[0] = "=Sample rate";
+    strings["Outputs"].plurals[0] = "=Outputs";
+    strings["Channels"].plurals[0] = "=Channels";
+    strings["What?"].plurals[0] = "=What?";
+    strings["Buffer size"].plurals[0] = "=Buffer size";
+    strings["%d (latency: ~%.1fms)"].plurals[0] = "=%d (latency: ~%.1fms)";
+    strings["Multi-threaded (EXPERIMENTAL)"].plurals[0] = "=Multi-threaded (EXPERIMENTAL)";
+    strings["runs chip emulation on separate threads.\nmay increase performance when using heavy emulation cores.\n\nwarnings:\n- experimental!\n- only useful on multi-chip songs."].plurals[0] = "=runs chip emulation on separate threads.\nmay increase performance when using heavy emulation cores.\n\nwarnings:\n- experimental!\n- only useful on multi-chip songs.";
+    strings["Number of threads"].plurals[0] = "=Number of threads";
+    strings["that's the limit!"].plurals[0] = "=that's the limit!";
+    strings["it is a VERY bad idea to set this number higher than your CPU core count (%d)!"].plurals[0] = "=it is a VERY bad idea to set this number higher than your CPU core count (%d)!";
+    strings["Low-latency mode"].plurals[0] = "=Low-latency mode";
+    strings["reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: only enable if your buffer size is small (10ms or less)."].plurals[0] = "=reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: only enable if your buffer size is small (10ms or less).";
+    strings["Force mono audio"].plurals[0] = "=Force mono audio";
+    strings["Exclusive mode"].plurals[0] = "=Exclusive mode";
+    strings["want: %d samples @ %.0fHz (%d %s)"].plurals[0] = "=want: %d samples @ %.0fHz (%d %s)";
+    strings["channel"].plurals[0] = "=channel";
+    strings["channels"].plurals[0] = "=channels";
+    strings["got: %d samples @ %.0fHz (%d %s)"].plurals[0] = "=got: %d samples @ %.0fHz (%d %s)";
+
+    strings["Mixing"].plurals[0] = "=Mixing";
+    strings["Quality"].plurals[0] = "=Quality";
+    strings["Software clipping"].plurals[0] = "=Software clipping";
+    strings["DC offset correction"].plurals[0] = "=DC offset correction";
+
+    strings["Metronome"].plurals[0] = "=Metronome";
+    strings["Volume"].plurals[0] = "=Volume";
+
+    strings["Sample preview"].plurals[0] = "=Sample preview";
+
     strings["TEXT"].plurals[0] = "=TEXT";
 
-    //appearance section
+    //MIDI section
 
-    strings["Appearance"].plurals[0] = "=Appearance";
+    //emulation section
 
-    strings["Scaling"].plurals[0] = "=Scaling";
+    //keyboard section
+
+    //interface selection
 
     //appearance section
 
@@ -157,22 +203,22 @@ void DivLocale::addTranslationsTemplate()
     strings["Text"].plurals[0] = "=Text";
     strings["Font renderer"].plurals[0] = "=Font renderer";
     strings["Main font"].plurals[0] = "=Main font";
-    strings["Size##MainFontSize"].plurals[0] = "Size!##MainFontSize";
+    strings["Size##MainFontSize"].plurals[0] = "=Size##MainFontSize";
     strings["Header font"].plurals[0] = "=Header font";
-    strings["Size##HeadFontSize"].plurals[0] = "Size!##HeadFontSize";
+    strings["Size##HeadFontSize"].plurals[0] = "=Size##HeadFontSize";
     strings["Pattern font"].plurals[0] = "=Pattern font";
-    strings["Size##PatFontSize"].plurals[0] = "Size!##PatFontSize";
+    strings["Size##PatFontSize"].plurals[0] = "=Size##PatFontSize";
     strings["Anti-aliased fonts"].plurals[0] = "=Anti-aliased fonts";
     strings["Support bitmap fonts"].plurals[0] = "=Support bitmap fonts";
     strings["Hinting:"].plurals[0] = "=Hinting:";
-    strings["Off (soft)##fh0"].plurals[0] = "Off (soft)!##fh0";
-    strings["Slight##fh1"].plurals[0] = "Slight!##fh1";
-    strings["Normal##fh2"].plurals[0] = "Normal!##fh2";
-    strings["Full (hard)##fh3"].plurals[0] = "Full (hard)!##fh3";
+    strings["Off (soft)##fh0"].plurals[0] = "=Off (soft)##fh0";
+    strings["Slight##fh1"].plurals[0] = "=Slight##fh1";
+    strings["Normal##fh2"].plurals[0] = "=Normal##fh2";
+    strings["Full (hard)##fh3"].plurals[0] = "=Full (hard)##fh3";
     strings["Auto-hinter:"].plurals[0] = "=Auto-hinter:";
-    strings["Disable##fah0"].plurals[0] = "Disable!##fah0";
-    strings["Enable##fah1"].plurals[0] = "Enable!##fah1";
-    strings["Force##fah2"].plurals[0] = "Force!##fah2";
+    strings["Disable##fah0"].plurals[0] = "=Disable##fah0";
+    strings["Enable##fah1"].plurals[0] = "=Enable##fah1";
+    strings["Force##fah2"].plurals[0] = "=Force##fah2";
     strings["Display Japanese characters"].plurals[0] = "=Display Japanese characters";
     strings["Display Chinese (Simplified) characters"].plurals[0] = "=Display Chinese (Simplified) characters";
     strings["Display Chinese (Traditional) characters"].plurals[0] = "=Display Chinese (Traditional) characters";
@@ -180,36 +226,36 @@ void DivLocale::addTranslationsTemplate()
 
     strings["Program"].plurals[0] = "=Program";
     strings["Title bar:"].plurals[0] = "=Title bar:";
-    strings["Song Name - Furnace##tbar1"].plurals[0] = "Song Name - Furnace!##tbar1";
-    strings["file_name.fur - Furnace##tbar2"].plurals[0] = "file_name.fur - Furnace!##tbar2";
-    strings["/path/to/file.fur - Furnace##tbar3"].plurals[0] = "/path/to/file.fur - Furnace!##tbar3";
+    strings["Song Name - Furnace##tbar1"].plurals[0] = "=Song Name - Furnace##tbar1";
+    strings["file_name.fur - Furnace##tbar2"].plurals[0] = "=file_name.fur - Furnace##tbar2";
+    strings["/path/to/file.fur - Furnace##tbar3"].plurals[0] = "=/path/to/file.fur - Furnace##tbar3";
     strings["Display system name on title bar"].plurals[0] = "=Display system name on title bar";
-    strings["Display chip names instead of \"multi-system\""].plurals[0] = "=Display chip names instead of \"multi-system\"";
+    strings["Display chip names instead of \"multi-system\" in title bar"].plurals[0] = "=Display chip names instead of \"multi-system\" in title bar";
     strings["Status bar:"].plurals[0] = "=Status bar:";
-    strings["Cursor details##sbar0"].plurals[0] = "Cursor details!##sbar0";
-    strings["File path##sbar1"].plurals[0] = "File path!##sbar1";
-    strings["Cursor details or file path##sbar2"].plurals[0] = "Cursor details or file path!##sbar2";
-    strings["Nothing##sbar3"].plurals[0] = "Nothing!##sbar3";
+    strings["Cursor details##sbar0"].plurals[0] = "=Cursor details##sbar0";
+    strings["File path##sbar1"].plurals[0] = "=File path##sbar1";
+    strings["Cursor details or file path##sbar2"].plurals[0] = "=Cursor details or file path##sbar2";
+    strings["Nothing##sbar3"].plurals[0] = "=Nothing##sbar3";
     strings["Export options layout:"].plurals[0] = "=Export options layout:";
-    strings["Sub-menus in File menu##eol0"].plurals[0] = "Sub-menus in File menu!##eol0";
-    strings["Modal window with tabs##eol1"].plurals[0] = "Modal window with tabs!##eol1";
-    strings["Modal windows with options in File menu##eol2"].plurals[0] = "Modal windows with options in File menu!##eol2";
+    strings["Sub-menus in File menu##eol0"].plurals[0] = "=Sub-menus in File menu##eol0";
+    strings["Modal window with tabs##eol1"].plurals[0] = "=Modal window with tabs##eol1";
+    strings["Modal windows with options in File menu##eol2"].plurals[0] = "=Modal windows with options in File menu##eol2";
     strings["Capitalize menu bar"].plurals[0] = "=Capitalize menu bar";
     strings["Display add/configure/change/remove chip menus in File menu"].plurals[0] = "=Display add/configure/change/remove chip menus in File menu";
 
     strings["Orders"].plurals[0] = "=Orders";
     strings["Highlight channel at cursor in Orders"].plurals[0] = "=Highlight channel at cursor in Orders";
     strings["Orders row number format:"].plurals[0] = "=Orders row number format:";
-    strings["Decimal##orbD"].plurals[0] = "Decimal!##orbD";
-    strings["Hexadecimal##orbH"].plurals[0] = "Hexadecimal!##orbH";
+    strings["Decimal##orbD"].plurals[0] = "=Decimal##orbD";
+    strings["Hexadecimal##orbH"].plurals[0] = "=Hexadecimal##orbH";
 
     strings["Pattern"].plurals[0] = "=Pattern";
     strings["Center pattern view"].plurals[0] = "=Center pattern view";
     strings["Overflow pattern highlights"].plurals[0] = "=Overflow pattern highlights";
     strings["Display previous/next pattern"].plurals[0] = "=Display previous/next pattern";
     strings["Pattern row number format:"].plurals[0] = "=Pattern row number format:";
-    strings["Decimal##prbD"].plurals[0] = "Decimal!##prbD";
-    strings["Hexadecimal##prbH"].plurals[0] = "Hexadecimal!##prbH";
+    strings["Decimal##prbD"].plurals[0] = "=Decimal##prbD";
+    strings["Hexadecimal##prbH"].plurals[0] = "=Hexadecimal##prbH";
     strings["Pattern view labels:"].plurals[0] = "=Pattern view labels:";
     strings["Note off (3-char)"].plurals[0] = "=Note off (3-char)";
     strings["Note release (3-char)"].plurals[0] = "=Note release (3-char)";
@@ -228,50 +274,50 @@ void DivLocale::addTranslationsTemplate()
 
     strings["Channel"].plurals[0] = "=Channel";
     strings["Channel style:"].plurals[0] = "=Channel style:";
-    strings["Classic##CHS0"].plurals[0] = "Classic!##CHS0";
-    strings["Line##CHS1"].plurals[0] = "Line!##CHS1";
-    strings["Round##CHS2"].plurals[0] = "Round!##CHS2";
-    strings["Split button##CHS3"].plurals[0] = "Split button!##CHS3";
-    strings["Square border##CHS4"].plurals[0] = "Square border!##CHS4";
-    strings["Round border##CHS5"].plurals[0] = "Round border!##CHS5";
+    strings["Classic##CHS0"].plurals[0] = "=Classic##CHS0";
+    strings["Line##CHS1"].plurals[0] = "=Line##CHS1";
+    strings["Round##CHS2"].plurals[0] = "=Round##CHS2";
+    strings["Split button##CHS3"].plurals[0] = "=Split button##CHS3";
+    strings["Square border##CHS4"].plurals[0] = "=Square border##CHS4";
+    strings["Round border##CHS5"].plurals[0] = "=Round border##CHS5";
     strings["Channel volume bar:"].plurals[0] = "=Channel volume bar:";
-    strings["Non##CHV0"].plurals[0] = "Non!##CHV0";
-    strings["Simple##CHV1"].plurals[0] = "Simple!##CHV1";
-    strings["Stereo##CHV2"].plurals[0] = "Stereo!##CHV2";
-    strings["Real##CHV3"].plurals[0] = "Real!##CHV3";
-    strings["Real (stereo)##CHV4"].plurals[0] = "Real (stereo)!##CHV4";
+    strings["Non##CHV0"].plurals[0] = "=Non##CHV0";
+    strings["Simple##CHV1"].plurals[0] = "=Simple##CHV1";
+    strings["Stereo##CHV2"].plurals[0] = "=Stereo##CHV2";
+    strings["Real##CHV3"].plurals[0] = "=Real##CHV3";
+    strings["Real (stereo)##CHV4"].plurals[0] = "=Real (stereo)##CHV4";
     strings["Channel feedback style:"].plurals[0] = "=Channel feedback style:";
-    strings["Off##CHF0"].plurals[0] = "Off!##CHF0";
-    strings["Note##CHF1"].plurals[0] = "Note!##CHF1";
-    strings["Volume##CHF2"].plurals[0] = "Volume!##CHF2";
-    strings["Active##CHF3"].plurals[0] = "Active!##CHF3";
+    strings["Off##CHF0"].plurals[0] = "=Off##CHF0";
+    strings["Note##CHF1"].plurals[0] = "=Note##CHF1";
+    strings["Volume##CHF2"].plurals[0] = "=Volume##CHF2";
+    strings["Active##CHF3"].plurals[0] = "=Active##CHF3";
     strings["Channel font:"].plurals[0] = "=Channel font:";
-    strings["Regular##CHFont0"].plurals[0] = "Regular!##CHFont0";
-    strings["Monospace##CHFont1"].plurals[0] = "Monospace!##CHFont1";
+    strings["Regular##CHFont0"].plurals[0] = "=Regular##CHFont0";
+    strings["Monospace##CHFont1"].plurals[0] = "=Monospace##CHFont1";
     strings["Center channel name"].plurals[0] = "=Center channel name";
     strings["Channel colors:"].plurals[0] = "=Channel colors:";
-    strings["Single##CHC0"].plurals[0] = "Single!##CHC0";
-    strings["Channel type##CHC1"].plurals[0] = "Channel type!##CHC1";
-    strings["Instrument type##CHC2"].plurals[0] = "Instrument type!##CHC2";
+    strings["Single##CHC0"].plurals[0] = "=Single##CHC0";
+    strings["Channel type##CHC1"].plurals[0] = "=Channel type##CHC1";
+    strings["Instrument type##CHC2"].plurals[0] = "=Instrument type##CHC2";
     strings["Channel name colors:"].plurals[0] = "=Channel name colors:";
-    strings["Single##CTC0"].plurals[0] = "Single!##CTC0";
-    strings["Channel type##CTC1"].plurals[0] = "Channel type!##CTC1";
-    strings["Instrument type##CTC2"].plurals[0] = "Instrument type!##CTC2";
+    strings["Single##CTC0"].plurals[0] = "=Single##CTC0";
+    strings["Channel type##CTC1"].plurals[0] = "=Channel type##CTC1";
+    strings["Instrument type##CTC2"].plurals[0] = "=Instrument type##CTC2";
 
     strings["Assets"].plurals[0] = "=Assets";
     strings["Unified instrument/wavetable/sample list"].plurals[0] = "=Unified instrument/wavetable/sample list";
     strings["Horizontal instrument list"].plurals[0] = "=Horizontal instrument list";
     strings["Instrument list icon style:"].plurals[0] = "=Instrument list icon style:";
-    strings["None##iis0"].plurals[0] = "None!##iis0";
-    strings["Graphical icons##iis1"].plurals[0] = "Graphical icons!##iis1";
-    strings["Letter icons##iis2"].plurals[0] = "Letter icons!##iis2";
+    strings["None##iis0"].plurals[0] = "=None##iis0";
+    strings["Graphical icons##iis1"].plurals[0] = "=Graphical icons##iis1";
+    strings["Letter icons##iis2"].plurals[0] = "=Letter icons##iis2";
     strings["Colorize instrument editor using instrument type"].plurals[0] = "=Colorize instrument editor using instrument type";
 
     strings["Macro Editor"].plurals[0] = "=Macro Editor";
     strings["Macro editor layout:"].plurals[0] = "=Macro editor layout:";
-    strings["Unified##mel0"].plurals[0] = "Unified!##mel0";
-    strings["Grid##mel2"].plurals[0] = "Grid!##mel2";
-    strings["Single (with list)##mel3"].plurals[0] = "Single (with list)!##mel3";
+    strings["Unified##mel0"].plurals[0] = "=Unified##mel0";
+    strings["Grid##mel2"].plurals[0] = "=Grid##mel2";
+    strings["Single (with list)##mel3"].plurals[0] = "=Single (with list)##mel3";
     strings["Use classic macro editor vertical slider"].plurals[0] = "=Use classic macro editor vertical slider";
 
     strings["Wave Editor"].plurals[0] = "=Wave Editor";
@@ -279,28 +325,28 @@ void DivLocale::addTranslationsTemplate()
 
     strings["FM Editor"].plurals[0] = "=FM Editor";
     strings["FM parameter names:"].plurals[0] = "=FM parameter names:";
-    strings["Friendly##fmn0"].plurals[0] = "Friendly!##fmn0";
-    strings["Technical##fmn1"].plurals[0] = "Technical!##fmn1";
-    strings["Technical (alternate)##fmn2"].plurals[0] = "Technical (alternate)!##fmn2";
+    strings["Friendly##fmn0"].plurals[0] = "=Friendly##fmn0";
+    strings["Technical##fmn1"].plurals[0] = "=Technical##fmn1";
+    strings["Technical (alternate)##fmn2"].plurals[0] = "=Technical (alternate)##fmn2";
     strings["Use standard OPL waveform names"].plurals[0] = "=Use standard OPL waveform names";
     strings["FM parameter editor layout:"].plurals[0] = "=FM parameter editor layout:";
-    strings["Modern##fml0"].plurals[0] = "Modern!##fml0";
-    strings["Compact (2x2, classic)##fml1"].plurals[0] = "Compact (2x2, classic)!##fml1";
-    strings["Compact (1x4)##fml2"].plurals[0] = "Compact (1x4)!##fml2";
-    strings["Compact (4x1)##fml3"].plurals[0] = "Compact (4x1)!##fml3";
-    strings["Alternate (2x2)##fml4"].plurals[0] = "Alternate (2x2)!##fml4";
-    strings["Alternate (1x4)##fml5"].plurals[0] = "Alternate (1x4)!##fml5";
-    strings["Alternate (4x1)##fml6"].plurals[0] = "Alternate (4x1)!##fml6";
+    strings["Modern##fml0"].plurals[0] = "=Modern##fml0";
+    strings["Compact (2x2, classic)##fml1"].plurals[0] = "=Compact (2x2, classic)##fml1";
+    strings["Compact (1x4)##fml2"].plurals[0] = "=Compact (1x4)##fml2";
+    strings["Compact (4x1)##fml3"].plurals[0] = "=Compact (4x1)##fml3";
+    strings["Alternate (2x2)##fml4"].plurals[0] = "=Alternate (2x2)##fml4";
+    strings["Alternate (1x4)##fml5"].plurals[0] = "=Alternate (1x4)##fml5";
+    strings["Alternate (4x1)##fml6"].plurals[0] = "=Alternate (4x1)##fml6";
     strings["Position of Sustain in FM editor:"].plurals[0] = "=Position of Sustain in FM editor:";
-    strings["Between Decay and Sustain Rate##susp0"].plurals[0] = "Between Decay and Sustain Rate!##susp0";
-    strings["After Release Rate##susp1"].plurals[0] = "After Release Rate!##susp1";
+    strings["Between Decay and Sustain Rate##susp0"].plurals[0] = "=Between Decay and Sustain Rate##susp0";
+    strings["After Release Rate##susp1"].plurals[0] = "=After Release Rate##susp1";
     strings["Use separate colors for carriers/modulators in FM editor"].plurals[0] = "=Use separate colors for carriers/modulators in FM editor";
     strings["Unsigned FM detune values"].plurals[0] = "=Unsigned FM detune values";
 
     strings["Statistics"].plurals[0] = "=Statistics";
     strings["Chip memory usage unit:"].plurals[0] = "=Chip memory usage unit:";
-    strings["Bytes##MUU0"].plurals[0] = "Bytes!##MUU0";
-    strings["Kilobytes##MUU1"].plurals[0] = "Kilobytes!##MUU1";
+    strings["Bytes##MUU0"].plurals[0] = "=Bytes##MUU0";
+    strings["Kilobytes##MUU1"].plurals[0] = "=Kilobytes##MUU1";
 
     strings["Oscilloscope"].plurals[0] = "=Oscilloscope";
     strings["Rounded corners"].plurals[0] = "=Rounded corners";
@@ -324,4 +370,7 @@ void DivLocale::addTranslationsTemplate()
     strings["Frame shading in text windows"].plurals[0] = "=Frame shading in text windows";
     strings["Apply frame shading to the multiline text fields\nsuch as song/subsong info/comments."].plurals[0] = "=Apply frame shading to the multiline text fields\nsuch as song/subsong info/comments.";
     //strings[""].plurals[0] = "";
+
+    // color section
+
 }
