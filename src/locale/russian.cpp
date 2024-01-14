@@ -21,6 +21,19 @@ void DivLocale::addTranslationsRussian()
     strings["%d apple"].plurals[1] = "%d яблока";
     strings["%d apple"].plurals[2] = "%d яблок";
 
+    //MENU BAR ITEMS
+
+    strings["File##menubar"].plurals[0] = "Файл##menubar";
+    strings["file##menubar"].plurals[0] = "файл##menubar";
+    strings["Edit##menubar"].plurals[0] = "Правка##menubar";
+    strings["edit##menubar"].plurals[0] = "правка##menubar";
+    strings["Settings##menubar"].plurals[0] = "Настройки##menubar";
+    strings["settings##menubar"].plurals[0] = "настройки##menubar";
+    strings["Window##menubar"].plurals[0] = "Окно##menubar";
+    strings["window##menubar"].plurals[0] = "окно##menubar";
+    strings["Help##menubar"].plurals[0] = "Справка##menubar";
+    strings["help##menubar"].plurals[0] = "справка##menubar";
+
     //WINDOW NAMES
 
     strings["Settings###Settings"].plurals[0] = "Настройки###Settings";

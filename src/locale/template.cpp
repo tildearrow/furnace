@@ -18,6 +18,19 @@ class DivLocale;
 
 void DivLocale::addTranslationsTemplate()
 {
+    //MENU BAR ITEMS
+
+    strings["File##menubar"].plurals[0] = "=File##menubar";
+    strings["file##menubar"].plurals[0] = "=file##menubar";
+    strings["Edit##menubar"].plurals[0] = "=Edit##menubar";
+    strings["edit##menubar"].plurals[0] = "=edit##menubar";
+    strings["Settings##menubar"].plurals[0] = "=Settings##menubar";
+    strings["settings##menubar"].plurals[0] = "=settings##menubar";
+    strings["Window##menubar"].plurals[0] = "=Window##menubar";
+    strings["window##menubar"].plurals[0] = "=window##menubar";
+    strings["Help##menubar"].plurals[0] = "=Help##menubar";
+    strings["help##menubar"].plurals[0] = "=help##menubar";
+
     //WINDOW NAMES
 
     strings["Settings###Settings"].plurals[0] = "=Settings###Settings";
