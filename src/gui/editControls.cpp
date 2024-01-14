@@ -971,7 +971,7 @@ void FurnaceGUI::drawEditControls() {
       ImGui::End();
       break;
     case 3: // split
-      if (ImGui::Begin("Play Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
+      if (ImGui::Begin("Play Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags,_L("Play Controls###Play Controls"))) {
         if (e->isPlaying()) {
           pushToggleColors(true);
           if (ImGui::Button(ICON_FA_STOP "##Stop")) {
