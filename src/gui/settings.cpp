@@ -1117,7 +1117,7 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION METRONOME
         CONFIG_SUBSECTION(_L("Metronome"));
         ImGui::AlignTextToFramePadding();
-        ImGui::Text(_L("Volume##MetroVol"));
+        ImGui::Text(_L("Volume"));
         ImGui::SameLine();
         if (ImGui::SliderInt("##MetroVol",&settings.metroVol,0,200,"%d%%")) {
           if (settings.metroVol<0) settings.metroVol=0;
@@ -1141,18 +1141,16 @@ void FurnaceGUI::drawSettings() {
         END_SECTION;
       }
 
-// TRANSLATED
-
-      CONFIG_SECTION("MIDI") {
+      CONFIG_SECTION(_L("MIDI")) {
         // SUBSECTION MIDI INPUT
-        CONFIG_SUBSECTION("MIDI input");
+        CONFIG_SUBSECTION(_L("MIDI input"));
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("MIDI input");
+        ImGui::Text(_L("MIDI input"));
         ImGui::SameLine();
-        String midiInName=settings.midiInDevice.empty()?"<disabled>":settings.midiInDevice;
+        String midiInName=settings.midiInDevice.empty()?_L("<disabled>"):settings.midiInDevice;
         bool hasToReloadMidi=false;
         if (ImGui::BeginCombo("##MidiInDevice",midiInName.c_str())) {
-          if (ImGui::Selectable("<disabled>",settings.midiInDevice.empty())) {
+          if (ImGui::Selectable(_L("<disabled>"),settings.midiInDevice.empty())) {
             settings.midiInDevice="";
             hasToReloadMidi=true;
             settingsChanged=true;
@@ -1168,7 +1166,7 @@ void FurnaceGUI::drawSettings() {
         }
 
         ImGui::SameLine();
-        if (ImGui::Button("Re-scan MIDI devices")) {
+        if (ImGui::Button(_L("Re-scan MIDI devices"))) {
           e->rescanMidiDevices();
           audioEngineChanged=true;
           settingsChanged=false;
@@ -1179,29 +1177,29 @@ void FurnaceGUI::drawSettings() {
           midiMap.compile();
         }
 
-        if (ImGui::Checkbox("Note input",&midiMap.noteInput)) settingsChanged=true;
-        if (ImGui::Checkbox("Velocity input",&midiMap.volInput)) settingsChanged=true;
+        if (ImGui::Checkbox(_L("Note input"),&midiMap.noteInput)) settingsChanged=true;
+        if (ImGui::Checkbox(_L("Velocity input"),&midiMap.volInput)) settingsChanged=true;
         // TODO
         //ImGui::Checkbox("Use raw velocity value (don't map from linear to log)",&midiMap.rawVolume);
         //ImGui::Checkbox("Polyphonic/chord input",&midiMap.polyInput);
-        if (ImGui::Checkbox("Map MIDI channels to direct channels",&midiMap.directChannel)) {
+        if (ImGui::Checkbox(_L("Map MIDI channels to direct channels"),&midiMap.directChannel)) {
           e->setMidiDirect(midiMap.directChannel);
           e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
           settingsChanged=true;
         }
         if (midiMap.directChannel) {
-          if (ImGui::Checkbox("Program change pass-through",&midiMap.directProgram)) {
+          if (ImGui::Checkbox(_L("Program change pass-through"),&midiMap.directProgram)) {
             e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
             settingsChanged=true;
           }
         }
-        if (ImGui::Checkbox("Map Yamaha FM voice data to instruments",&midiMap.yamahaFMResponse)) settingsChanged=true;
+        if (ImGui::Checkbox(_L("Map Yamaha FM voice data to instruments"),&midiMap.yamahaFMResponse)) settingsChanged=true;
         if (!(midiMap.directChannel && midiMap.directProgram)) {
-          if (ImGui::Checkbox("Program change is instrument selection",&midiMap.programChange)) settingsChanged=true;
+          if (ImGui::Checkbox(_L("Program change is instrument selection"),&midiMap.programChange)) settingsChanged=true;
         }
-        //ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
-        //ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
-        //if (ImGui::Combo("Value input style",&midiMap.valueInputStyle,valueInputStyles,7)) settingsChanged=true;
+        //ImGui::Checkbox(_L("Listen to MIDI clock"),&midiMap.midiClock);
+        //ImGui::Checkbox(_L("Listen to MIDI time code"),&midiMap.midiTimeCode);
+        //if (ImGui::Combo(_L("Value input style"),&midiMap.valueInputStyle,valueInputStyles,7)) settingsChanged=true;
         if (ImGui::BeginCombo(_L("Value input style"),_L(valueInputStyles[midiMap.valueInputStyle])))
         {
           int i = 0;
@@ -1220,25 +1218,25 @@ void FurnaceGUI::drawSettings() {
         }
         if (midiMap.valueInputStyle>3) {
           if (midiMap.valueInputStyle==6) {
-            if (ImGui::InputInt("Control##valueCCS",&midiMap.valueInputControlSingle,1,16)) {
+            if (ImGui::InputInt(_L("Control##valueCCS"),&midiMap.valueInputControlSingle,1,16)) {
               if (midiMap.valueInputControlSingle<0) midiMap.valueInputControlSingle=0;
               if (midiMap.valueInputControlSingle>127) midiMap.valueInputControlSingle=127;
               settingsChanged=true;
             }
           } else {
-            if (ImGui::InputInt((midiMap.valueInputStyle==4)?"CC of upper nibble##valueCC1":"MSB CC##valueCC1",&midiMap.valueInputControlMSB,1,16)) {
+            if (ImGui::InputInt((midiMap.valueInputStyle==4)?_L("CC of upper nibble##valueCC1"):_L("MSB CC##valueCC1"),&midiMap.valueInputControlMSB,1,16)) {
               if (midiMap.valueInputControlMSB<0) midiMap.valueInputControlMSB=0;
               if (midiMap.valueInputControlMSB>127) midiMap.valueInputControlMSB=127;
               settingsChanged=true;
             }
-            if (ImGui::InputInt((midiMap.valueInputStyle==4)?"CC of lower nibble##valueCC2":"LSB CC##valueCC2",&midiMap.valueInputControlLSB,1,16)) {
+            if (ImGui::InputInt((midiMap.valueInputStyle==4)?_L("CC of lower nibble##valueCC2"):_L("LSB CC##valueCC2"),&midiMap.valueInputControlLSB,1,16)) {
               if (midiMap.valueInputControlLSB<0) midiMap.valueInputControlLSB=0;
               if (midiMap.valueInputControlLSB>127) midiMap.valueInputControlLSB=127;
               settingsChanged=true;
             }
           }
         }
-        if (ImGui::TreeNode("Per-column control change")) {
+        if (ImGui::TreeNode(_L("Per-column control change"))) {
           for (int i=0; i<18; i++) {
             ImGui::PushID(i);
             //if (ImGui::Combo(specificControls[i],&midiMap.valueInputSpecificStyle[i],valueSInputStyles,4)) settingsChanged=true;
@@ -1261,18 +1259,18 @@ void FurnaceGUI::drawSettings() {
             if (midiMap.valueInputSpecificStyle[i]>0) {
               ImGui::Indent();
               if (midiMap.valueInputSpecificStyle[i]==3) {
-                if (ImGui::InputInt("Control##valueCCS",&midiMap.valueInputSpecificSingle[i],1,16)) {
+                if (ImGui::InputInt(_L("Control##valueCCS"),&midiMap.valueInputSpecificSingle[i],1,16)) {
                   if (midiMap.valueInputSpecificSingle[i]<0) midiMap.valueInputSpecificSingle[i]=0;
                   if (midiMap.valueInputSpecificSingle[i]>127) midiMap.valueInputSpecificSingle[i]=127;
                   settingsChanged=true;
                 }
               } else {
-                if (ImGui::InputInt((midiMap.valueInputSpecificStyle[i]==4)?"CC of upper nibble##valueCC1":"MSB CC##valueCC1",&midiMap.valueInputSpecificMSB[i],1,16)) {
+                if (ImGui::InputInt((midiMap.valueInputSpecificStyle[i]==4)?_L("CC of upper nibble##valueCC1"):_L("MSB CC##valueCC1"),&midiMap.valueInputSpecificMSB[i],1,16)) {
                   if (midiMap.valueInputSpecificMSB[i]<0) midiMap.valueInputSpecificMSB[i]=0;
                   if (midiMap.valueInputSpecificMSB[i]>127) midiMap.valueInputSpecificMSB[i]=127;
                   settingsChanged=true;
                 }
-                if (ImGui::InputInt((midiMap.valueInputSpecificStyle[i]==4)?"CC of lower nibble##valueCC2":"LSB CC##valueCC2",&midiMap.valueInputSpecificLSB[i],1,16)) {
+                if (ImGui::InputInt((midiMap.valueInputSpecificStyle[i]==4)?_L("CC of lower nibble##valueCC2"):_L("LSB CC##valueCC2"),&midiMap.valueInputSpecificLSB[i],1,16)) {
                   if (midiMap.valueInputSpecificLSB[i]<0) midiMap.valueInputSpecificLSB[i]=0;
                   if (midiMap.valueInputSpecificLSB[i]>127) midiMap.valueInputSpecificLSB[i]=127;
                   settingsChanged=true;
@@ -1284,7 +1282,7 @@ void FurnaceGUI::drawSettings() {
           }
           ImGui::TreePop();
         }
-        if (ImGui::SliderFloat("Volume curve",&midiMap.volExp,0.01,8.0,"%.2f")) {
+        if (ImGui::SliderFloat(_L("Volume curve"),&midiMap.volExp,0.01,8.0,"%.2f")) {
           if (midiMap.volExp<0.01) midiMap.volExp=0.01;
           if (midiMap.volExp>8.0) midiMap.volExp=8.0;
           e->setMidiVolExp(midiMap.volExp);
@@ -1294,10 +1292,10 @@ void FurnaceGUI::drawSettings() {
         for (int i=0; i<128; i++) {
           curve[i]=(int)(pow((double)i/127.0,midiMap.volExp)*127.0);
         }
-        ImGui::PlotLines("##VolCurveDisplay",curve,128,0,"Volume curve",0.0,127.0,ImVec2(200.0f*dpiScale,200.0f*dpiScale));
+        ImGui::PlotLines("##VolCurveDisplay",curve,128,0,_L("Volume curve"),0.0,127.0,ImVec2(200.0f*dpiScale,200.0f*dpiScale));
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Actions:");
+        ImGui::Text(_L("Actions:"));
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_PLUS "##AddAction")) {
           midiMap.binds.push_back(MIDIBind());
@@ -1311,7 +1309,7 @@ void FurnaceGUI::drawSettings() {
         }
         if (learning!=-1) {
           ImGui::SameLine();
-          ImGui::Text("(learning! press a button or move a slider/knob/something on your device.)");
+          ImGui::Text(_L("(learning! press a button or move a slider/knob/something on your device.)"));
         }
 
         if (ImGui::BeginTable("MIDIActions",7)) {
@@ -1325,15 +1323,15 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
           ImGui::TableNextColumn();
-          ImGui::Text("Type");
+          ImGui::Text(_L("Type"));
           ImGui::TableNextColumn();
-          ImGui::Text("Channel");
+          ImGui::Text(_L("Channel"));
           ImGui::TableNextColumn();
-          ImGui::Text("Note/Control");
+          ImGui::Text(_L("Note/Control"));
           ImGui::TableNextColumn();
-          ImGui::Text("Velocity/Value");
+          ImGui::Text(_L("Velocity/Value)"));
           ImGui::TableNextColumn();
-          ImGui::Text("Action");
+          ImGui::Text(_L("Action"));
           ImGui::TableNextColumn();
           ImGui::TableNextColumn();
 
@@ -1403,13 +1401,13 @@ void FurnaceGUI::drawSettings() {
 
             ImGui::TableNextColumn();
             if (bind.data2==128) {
-              snprintf(bindID,1024,"Any");
+              snprintf(bindID,1024,_L("Any"));
             } else {
               snprintf(bindID,1024,"%d (0x%.2X)",bind.data2,bind.data2);
             }
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::BeginCombo("##BValue2",bindID)) {
-              if (ImGui::Selectable("Any",bind.data2==128)) {
+              if (ImGui::Selectable(_L("Any"),bind.data2==128)) {
                 bind.data2=128;
                 settingsChanged=true;
               }
@@ -1426,7 +1424,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::BeginCombo("##BAction",(bind.action==0)?"--none--":guiActions[bind.action].friendlyName)) {
-              if (ImGui::Selectable("--none--",bind.action==0)) {
+              if (ImGui::Selectable(_L("--none--"),bind.action==0)) {
                 bind.action=0;
                 settingsChanged=true;
               }
@@ -1447,7 +1445,7 @@ void FurnaceGUI::drawSettings() {
 
             ImGui::TableNextColumn();
             pushToggleColors(learning==(int)i);
-            if (ImGui::Button((learning==(int)i)?("waiting...##BLearn"):("Learn##BLearn"))) {
+            if (ImGui::Button((learning==(int)i)?(_L("waiting...##BLearn")):(_L("Learn##BLearn")))) {
               if (learning==(int)i) {
                 learning=-1;
               } else {
@@ -1471,13 +1469,13 @@ void FurnaceGUI::drawSettings() {
         }
 
         // SUBSECTION MIDI OUTPUT
-        CONFIG_SUBSECTION("MIDI output");
+        CONFIG_SUBSECTION(_L("MIDI output"));
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("MIDI output");
+        ImGui::Text(_L("MIDI output"));
         ImGui::SameLine();
-        String midiOutName=settings.midiOutDevice.empty()?"<disabled>":settings.midiOutDevice;
+        String midiOutName=settings.midiOutDevice.empty()?_L("<disabled>"):settings.midiOutDevice;
         if (ImGui::BeginCombo("##MidiOutDevice",midiOutName.c_str())) {
-          if (ImGui::Selectable("<disabled>",settings.midiOutDevice.empty())) {
+          if (ImGui::Selectable(_L("<disabled>"),settings.midiOutDevice.empty())) {
             settings.midiOutDevice="";
             settingsChanged=true;
           }
@@ -1490,60 +1488,60 @@ void FurnaceGUI::drawSettings() {
           ImGui::EndCombo();
         }
 
-        ImGui::Text("Output mode:");
+        ImGui::Text(_L("Output mode:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("Off (use for TX81Z)",settings.midiOutMode==0)) {
+        if (ImGui::RadioButton(_L("Off (use for TX81Z)"),settings.midiOutMode==0)) {
           settings.midiOutMode=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Melodic",settings.midiOutMode==1)) {
+        if (ImGui::RadioButton(_L("Melodic"),settings.midiOutMode==1)) {
           settings.midiOutMode=1;
           settingsChanged=true;
         }
         /*
-        if (ImGui::RadioButton("Light Show (use for Launchpad)",settings.midiOutMode==2)) {
+        if (ImGui::RadioButton(_L("Light Show (use for Launchpad)"),settings.midiOutMode==2)) {
           settings.midiOutMode=2;
         }*/
         ImGui::Unindent();
 
         bool midiOutProgramChangeB=settings.midiOutProgramChange;
-        if (ImGui::Checkbox("Send Program Change",&midiOutProgramChangeB)) {
+        if (ImGui::Checkbox(_L("Send Program Change"),&midiOutProgramChangeB)) {
           settings.midiOutProgramChange=midiOutProgramChangeB;
           settingsChanged=true;
         }
 
         bool midiOutClockB=settings.midiOutClock;
-        if (ImGui::Checkbox("Send MIDI clock",&midiOutClockB)) {
+        if (ImGui::Checkbox(_L("Send MIDI clock"),&midiOutClockB)) {
           settings.midiOutClock=midiOutClockB;
           settingsChanged=true;
         }
 
         bool midiOutTimeB=settings.midiOutTime;
-        if (ImGui::Checkbox("Send MIDI timecode",&midiOutTimeB)) {
+        if (ImGui::Checkbox(_L("Send MIDI timecode"),&midiOutTimeB)) {
           settings.midiOutTime=midiOutTimeB;
           settingsChanged=true;
         }
 
         if (settings.midiOutTime) {
-          ImGui::Text("Timecode frame rate:");
+          ImGui::Text(_L("Timecode frame rate:"));
           ImGui::Indent();
-          if (ImGui::RadioButton("Closest to Tick Rate",settings.midiOutTimeRate==0)) {
+          if (ImGui::RadioButton(_L("Closest to Tick Rate"),settings.midiOutTimeRate==0)) {
             settings.midiOutTimeRate=0;
             settingsChanged=true;
           }
-          if (ImGui::RadioButton("Film (24fps)",settings.midiOutTimeRate==1)) {
+          if (ImGui::RadioButton(_L("Film (24fps)"),settings.midiOutTimeRate==1)) {
             settings.midiOutTimeRate=1;
             settingsChanged=true;
           }
-          if (ImGui::RadioButton("PAL (25fps)",settings.midiOutTimeRate==2)) {
+          if (ImGui::RadioButton(_L("PAL (25fps)"),settings.midiOutTimeRate==2)) {
             settings.midiOutTimeRate=2;
             settingsChanged=true;
           }
-          if (ImGui::RadioButton("NTSC drop (29.97fps)",settings.midiOutTimeRate==3)) {
+          if (ImGui::RadioButton(_L("NTSC drop (29.97fps)"),settings.midiOutTimeRate==3)) {
             settings.midiOutTimeRate=3;
             settingsChanged=true;
           }
-          if (ImGui::RadioButton("NTSC non-drop (30fps)",settings.midiOutTimeRate==4)) {
+          if (ImGui::RadioButton(_L("NTSC non-drop (30fps)"),settings.midiOutTimeRate==4)) {
             settings.midiOutTimeRate=4;
             settingsChanged=true;
           }
@@ -1552,25 +1550,28 @@ void FurnaceGUI::drawSettings() {
 
         END_SECTION;
       }
-      CONFIG_SECTION("Emulation") {
+
+//TRANSLATED
+
+      CONFIG_SECTION(_L("Emulation")) {
         // SUBSECTION LAYOUT
-        CONFIG_SUBSECTION("Cores");
+        CONFIG_SUBSECTION(_L("Cores"));
         if (ImGui::BeginTable("##Cores",3)) {
           ImGui::TableSetupColumn("##System",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
           ImGui::TableSetupColumn("##RenderCores",ImGuiTableColumnFlags_WidthStretch);
           ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
           ImGui::TableNextColumn();
-          ImGui::Text("System");
+          ImGui::Text(_L("System"));
           ImGui::TableNextColumn();
-          ImGui::Text("Playback Core(s)");
+          ImGui::Text(_L("Playback Core(s)"));
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("used for playback");
+            ImGui::SetTooltip(_L("used for playback"));
           }
           ImGui::TableNextColumn();
-          ImGui::Text("Render Core(s)");
+          ImGui::Text(_L("Render Core(s)"));
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("used in audio export");
+            ImGui::SetTooltip(_L("used in audio export"));
           }
 
           ImGui::TableNextRow();
@@ -1688,7 +1689,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Separator();
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("PC Speaker strategy");
+        ImGui::Text(_L("PC Speaker strategy"));
         ImGui::SameLine();
         //if (ImGui::Combo("##PCSOutMethod",&settings.pcSpeakerOutMethod,pcspkrOutMethods,5)) settingsChanged=true;
         if (ImGui::BeginCombo("##PCSOutMethod",_L(pcspkrOutMethods[settings.pcSpeakerOutMethod])))
@@ -1710,10 +1711,10 @@ void FurnaceGUI::drawSettings() {
 
         /*
         ImGui::Separator();
-        ImGui::Text("Sample ROMs:");
+        ImGui::Text(_L("Sample ROMs:"));
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("OPL4 YRW801 path");
+        ImGui::Text(_L("OPL4 YRW801 path"));
         ImGui::SameLine();
         ImGui::InputText("##YRW801Path",&settings.yrw801Path);
         ImGui::SameLine();
@@ -1722,7 +1723,7 @@ void FurnaceGUI::drawSettings() {
         }
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("MultiPCM TG100 path");
+        ImGui::Text(_L("MultiPCM TG100 path"));
         ImGui::SameLine();
         ImGui::InputText("##TG100Path",&settings.tg100Path);
         ImGui::SameLine();
@@ -1731,7 +1732,7 @@ void FurnaceGUI::drawSettings() {
         }
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("MultiPCM MU5 path");
+        ImGui::Text(_L("MultiPCM MU5 path"));
         ImGui::SameLine();
         ImGui::InputText("##MU5Path",&settings.mu5Path);
         ImGui::SameLine();
@@ -1742,6 +1743,9 @@ void FurnaceGUI::drawSettings() {
 
         END_SECTION;
       }
+
+//TRANSLATED
+
       CONFIG_SECTION("Keyboard") {
         // SUBSECTION LAYOUT
         CONFIG_SUBSECTION("Keyboard");

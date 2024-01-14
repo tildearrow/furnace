@@ -124,6 +124,65 @@ void DivLocale::addTranslationsTemplate()
     //SETTINGS
     //TODO: all the "const char*" at the top of `settings.cpp`?
 
+    //lists
+    strings["<Use system font>"].plurals[0] = "=<Use system font>";
+    strings["<Custom...>"].plurals[0] = "=<Custom...>";
+
+    strings["Mono"].plurals[0] = "=Mono";
+    strings["Stereo"].plurals[0] = "=Stereo";
+    strings["Quadraphonic"].plurals[0] = "=Quadraphonic";
+    strings["5.1 Surround"].plurals[0] = "=5.1 Surround";
+    strings["7.1 Surround"].plurals[0] = "=7.1 Surround";
+    strings["What?"].plurals[0] = "=What?";
+
+    strings["High"].plurals[0] = "=High";
+    strings["Low"].plurals[0] = "=Low";
+
+    strings["ASAP (C++ port)"].plurals[0] = "=ASAP (C++ port)";
+
+    strings["KIOCSOUND on /dev/tty1"].plurals[0] = "=KIOCSOUND on /dev/tty1";
+    strings["KIOCSOUND on standard output"].plurals[0] = "=KIOCSOUND on standard output";
+
+    strings["Disabled/custom"].plurals[0] = "=Disabled/custom";
+    strings["Two octaves (0 is C-4, F is D#5)"].plurals[0] = "=Two octaves (0 is C-4, F is D#5)";
+    strings["Raw (note number is value)"].plurals[0] = "=Raw (note number is value)";
+    strings["Two octaves alternate (lower keys are 0-9, upper keys are A-F)"].plurals[0] = "=Two octaves alternate (lower keys are 0-9, upper keys are A-F)";
+    strings["Use dual control change (one for each nibble)"].plurals[0] = "=Use dual control change (one for each nibble)";
+    strings["Use 14-bit control change"].plurals[0] = "=Use 14-bit control change";
+    strings["Use single control change (imprecise)"].plurals[0] = "=Use single control change (imprecise)";
+
+    strings["--select--"].plurals[0] = "=--select--";
+    strings["???"].plurals[0] = "=???";
+    strings["Note Off"].plurals[0] = "=Note Off";
+    strings["Note On"].plurals[0] = "=Note On";
+    strings["Aftertouch"].plurals[0] = "=Aftertouch";
+    strings["Control"].plurals[0] = "=Control";
+    strings["Program"].plurals[0] = "=Program";
+    strings["ChanPressure"].plurals[0] = "=ChanPressure";
+    strings["Pitch Bend"].plurals[0] = "=Pitch Bend";
+    strings["SysEx"].plurals[0] = "=SysEx";
+
+    strings["Any"].plurals[0] = "=Any";
+
+    strings["Instrument"].plurals[0] = "=Instrument";
+    strings["Volume"].plurals[0] = "=Volume";
+    strings["Effect 1 type"].plurals[0] = "=Effect 1 type";
+    strings["Effect 1 value"].plurals[0] = "=Effect 1 value";
+    strings["Effect 2 type"].plurals[0] = "=Effect 2 type";
+    strings["Effect 2 value"].plurals[0] = "=Effect 2 value";
+    strings["Effect 3 type"].plurals[0] = "=Effect 3 type";
+    strings["Effect 3 value"].plurals[0] = "=Effect 3 value";
+    strings["Effect 4 type"].plurals[0] = "=Effect 4 type";
+    strings["Effect 4 value"].plurals[0] = "=Effect 4 value";
+    strings["Effect 5 type"].plurals[0] = "=Effect 5 type";
+    strings["Effect 5 value"].plurals[0] = "=Effect 5 value";
+    strings["Effect 6 type"].plurals[0] = "=Effect 6 type";
+    strings["Effect 6 value"].plurals[0] = "=Effect 6 value";
+    strings["Effect 7 type"].plurals[0] = "=Effect 7 type";
+    strings["Effect 7 value"].plurals[0] = "=Effect 7 value";
+    strings["Effect 8 type"].plurals[0] = "=Effect 8 type";
+    strings["Effect 8 value"].plurals[0] = "=Effect 8 value";
+
     //keybind prompt
     strings["Press key..."].plurals[0] = "=Press key...";
 
@@ -241,15 +300,80 @@ void DivLocale::addTranslationsTemplate()
     strings["DC offset correction"].plurals[0] = "=DC offset correction";
 
     strings["Metronome"].plurals[0] = "=Metronome";
-    strings["Volume##MetroVol"].plurals[0] = "=Volume##MetroVol";
 
     strings["Sample preview"].plurals[0] = "=Sample preview";
 
-    strings["TEXT"].plurals[0] = "=TEXT";
-
     //MIDI section
 
+    strings["MIDI"].plurals[0] = "=MIDI";
+    strings["MIDI input"].plurals[0] = "=MIDI input";
+    strings["<disabled>"].plurals[0] = "=<disabled>";
+    strings["Re-scan MIDI devices"].plurals[0] = "=Re-scan MIDI devices";
+    strings["Note input"].plurals[0] = "=Note input";
+    strings["Velocity input"].plurals[0] = "=Velocity input";
+    strings["Map MIDI channels to direct channels"].plurals[0] = "=Map MIDI channels to direct channels";
+    strings["Program change pass-through"].plurals[0] = "=Program change pass-through";
+    strings["Map Yamaha FM voice data to instruments"].plurals[0] = "=Map Yamaha FM voice data to instruments";
+    strings["Program change is instrument selection"].plurals[0] = "=Program change is instrument selection";
+    strings["Listen to MIDI clock"].plurals[0] = "=Listen to MIDI clock";
+    strings["Listen to MIDI time code"].plurals[0] = "=Listen to MIDI time code";
+    strings["Value input style"].plurals[0] = "=Value input style";
+    strings["Control##valueCCS"].plurals[0] = "=Control##valueCCS";
+    strings["CC of upper nibble##valueCC1"].plurals[0] = "=CC of upper nibble##valueCC1";
+    strings["MSB CC##valueCC1"].plurals[0] = "=MSB CC##valueCC1";
+    strings["CC of lower nibble##valueCC2"].plurals[0] = "=CC of lower nibble##valueCC2";
+    strings["LSB CC##valueCC2"].plurals[0] = "=LSB CC##valueCC2";
+    strings["Per-column control change"].plurals[0] = "=Per-column control change";
+    strings["Control##valueCCS"].plurals[0] = "=Control##valueCCS";
+    strings["CC of upper nibble##valueCC1"].plurals[0] = "=CC of upper nibble##valueCC1";
+    strings["MSB CC##valueCC1"].plurals[0] = "=MSB CC##valueCC1";
+    strings["CC of lower nibble##valueCC2"].plurals[0] = "=CC of lower nibble##valueCC2";
+    strings["LSB CC##valueCC2"].plurals[0] = "=LSB CC##valueCC2";
+    strings["Volume curve"].plurals[0] = "=Volume curve";
+    strings["Actions:"].plurals[0] = "=Actions:";
+    strings["(learning! press a button or move a slider/knob/something on your device.)"].plurals[0] = "=(learning! press a button or move a slider/knob/something on your device.)";
+    strings["Type"].plurals[0] = "=Type";
+    strings["Channel"].plurals[0] = "=Channel";
+    strings["Note/Control"].plurals[0] = "=Note/Control";
+    strings["Velocity/Value)"].plurals[0] = "=Velocity/Value)";
+    strings["Action"].plurals[0] = "=Action";
+    strings["Any"].plurals[0] = "=Any";
+    strings["--none--"].plurals[0] = "=--none--";
+    strings["waiting...##BLearn"].plurals[0] = "=waiting...##BLearn";
+    strings["Learn##BLearn"].plurals[0] = "=Learn##BLearn";
+
+    strings["MIDI output"].plurals[0] = "=MIDI output";
+    strings["<disabled>"].plurals[0] = "=<disabled>";
+    strings["Output mode:"].plurals[0] = "=Output mode:";
+    strings["Off (use for TX81Z)"].plurals[0] = "=Off (use for TX81Z)";
+    strings["Melodic"].plurals[0] = "=Melodic";
+    strings["Light Show (use for Launchpad)"].plurals[0] = "=Light Show (use for Launchpad)";
+    strings["Send Program Change"].plurals[0] = "=Send Program Change";
+    strings["Send MIDI clock"].plurals[0] = "=Send MIDI clock";
+    strings["Send MIDI timecode"].plurals[0] = "=Send MIDI timecode";
+    strings["Timecode frame rate:"].plurals[0] = "=Timecode frame rate:";
+    strings["Closest to Tick Rate"].plurals[0] = "=Closest to Tick Rate";
+    strings["Film (24fps)"].plurals[0] = "=Film (24fps)";
+    strings["PAL (25fps)"].plurals[0] = "=PAL (25fps)";
+    strings["NTSC drop (29.97fps)"].plurals[0] = "=NTSC drop (29.97fps)";
+    strings["NTSC non-drop (30fps)"].plurals[0] = "=NTSC non-drop (30fps)";
+
     //emulation section
+
+    strings["Emulation"].plurals[0] = "=Emulation";
+    strings["Cores"].plurals[0] = "=Cores";
+    strings["System"].plurals[0] = "=System";
+    strings["Playback Core(s)"].plurals[0] = "=Playback Core(s)";
+    strings["used for playback"].plurals[0] = "=used for playback";
+    strings["Render Core(s)"].plurals[0] = "=Render Core(s)";
+    strings["used in audio export"].plurals[0] = "=used in audio export";
+    strings["PC Speaker strategy"].plurals[0] = "=PC Speaker strategy";
+    strings["Sample ROMs:"].plurals[0] = "=Sample ROMs:";
+    strings["OPL4 YRW801 path"].plurals[0] = "=OPL4 YRW801 path";
+    strings["MultiPCM TG100 path"].plurals[0] = "=MultiPCM TG100 path";
+    strings["MultiPCM MU5 path"].plurals[0] = "=MultiPCM MU5 path";
+
+    strings["TESTTEXT"].plurals[0] = "=TESTTEXT";
 
     //keyboard section
 
