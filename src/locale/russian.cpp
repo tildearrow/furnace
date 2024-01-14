@@ -61,7 +61,7 @@ void DivLocale::addTranslationsRussian()
 
     strings["Appearance"].plurals[0] = "Внешний вид";
 
-    strings["Scaling"].plurals[0] = "Масштабирование";
+    strings["Scaling"].plurals[0] = "Масштаб";
     strings["Automatic UI scaling factor"].plurals[0] = "Автоматическое масштабирование интерфейса";
     strings["UI scaling factor"].plurals[0] = "Масштаб интерфейса";
     strings["Icon size"].plurals[0] = "Размер иконок";

@@ -59,7 +59,8 @@
 
 const char* fontBackends[]={
   "stb_truetype",
-  "FreeType"
+  "FreeType",
+  NULL
 };
 
 const char* mainFonts[]={
@@ -69,7 +70,8 @@ const char* mainFonts[]={
   "Proggy Clean",
   "GNU Unifont",
   "<Use system font>",
-  "<Custom...>"
+  "<Custom...>",
+  NULL
 };
 
 const char* headFonts[]={
@@ -79,7 +81,8 @@ const char* headFonts[]={
   "Proggy Clean",
   "GNU Unifont",
   "<Use system font>",
-  "<Custom...>"
+  "<Custom...>",
+  NULL
 };
 
 const char* patFonts[]={
@@ -89,13 +92,15 @@ const char* patFonts[]={
   "Proggy Clean",
   "GNU Unifont",
   "<Use system font>",
-  "<Custom...>"
+  "<Custom...>",
+  NULL
 };
 
 const char* audioBackends[]={
   "JACK",
   "SDL",
-  "PortAudio"
+  "PortAudio",
+  NULL
 };
 
 const bool isProAudio[]={
@@ -112,61 +117,72 @@ const char* nonProAudioOuts[]={
   "What?",
   "5.1 Surround",
   "What?",
-  "7.1 Surround"
+  "7.1 Surround",
+  NULL
 };
 
 const char* audioQualities[]={
   "High",
-  "Low"
+  "Low",
+  NULL
 };
 
 const char* arcadeCores[]={
   "ymfm",
-  "Nuked-OPM"
+  "Nuked-OPM",
+  NULL
 };
 
 const char* ym2612Cores[]={
   "Nuked-OPN2",
   "ymfm",
-  "YMF276-LLE"
+  "YMF276-LLE",
+  NULL
 };
 
 const char* snCores[]={
   "MAME",
-  "Nuked-PSG Mod"
+  "Nuked-PSG Mod",
+  NULL
 };
 
 const char* nesCores[]={
   "puNES",
-  "NSFplay"
+  "NSFplay",
+  NULL
 };
 
 const char* c64Cores[]={
   "reSID",
   "reSIDfp",
-  "dSID"
+  "dSID",
+  NULL
 };
 
 const char* pokeyCores[]={
   "Atari800 (mzpokeysnd)",
-  "ASAP (C++ port)"
+  "ASAP (C++ port)",
+  NULL
 };
 
 const char* opnCores[]={
   "ymfm only",
-  "Nuked-OPN2 (FM) + ymfm (SSG/ADPCM)"
+  "Nuked-OPN2 (FM) + ymfm (SSG/ADPCM)",
+  NULL
 };
 
 const char* opl2Cores[]={
   "Nuked-OPL3",
   "ymfm",
-  "YM3812-LLE"
+  "YM3812-LLE",
+  NULL
 };
 
 const char* opl3Cores[]={
   "Nuked-OPL3",
   "ymfm",
-  "YMF262-LLE"
+  "YMF262-LLE",
+  NULL
 };
 
 const char* pcspkrOutMethods[]={
@@ -174,7 +190,8 @@ const char* pcspkrOutMethods[]={
   "KIOCSOUND on /dev/tty1",
   "/dev/port",
   "KIOCSOUND on standard output",
-  "outb()"
+  "outb()",
+  NULL
 };
 
 const char* valueInputStyles[]={
@@ -184,14 +201,16 @@ const char* valueInputStyles[]={
   "Two octaves alternate (lower keys are 0-9, upper keys are A-F)",
   "Use dual control change (one for each nibble)",
   "Use 14-bit control change",
-  "Use single control change (imprecise)"
+  "Use single control change (imprecise)",
+  NULL
 };
 
 const char* valueSInputStyles[]={
   "Disabled/custom",
   "Use dual control change (one for each nibble)",
   "Use 14-bit control change",
-  "Use single control change (imprecise)"
+  "Use single control change (imprecise)",
+  NULL
 };
 
 const char* messageTypes[]={
@@ -210,14 +229,15 @@ const char* messageTypes[]={
   "Program",
   "ChanPressure",
   "Pitch Bend",
-  "SysEx"
+  "SysEx",
+  NULL
 };
 
 const char* messageChannels[]={
-  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "Any"
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "Any", NULL
 };
 
-const char* specificControls[18]={
+const char* specificControls[19]={
   "Instrument",
   "Volume",
   "Effect 1 type",
@@ -235,7 +255,8 @@ const char* specificControls[18]={
   "Effect 7 type",
   "Effect 7 value",
   "Effect 8 type",
-  "Effect 8 value"
+  "Effect 8 value",
+  NULL
 };
 
 #define SAMPLE_RATE_SELECTABLE(x) \
@@ -251,7 +272,7 @@ const char* specificControls[18]={
   }
 
 #define CHANS_SELECTABLE(x) \
-  if (ImGui::Selectable(nonProAudioOuts[x-1],settings.audioChans==x)) { \
+  if (ImGui::Selectable(_L(nonProAudioOuts[x-1]),settings.audioChans==x)) { \
     settings.audioChans=x; \
     settingsChanged=true; \
   }
@@ -855,19 +876,19 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text(_L("Backend"));
           ImGui::TableNextColumn();
           int prevAudioEngine=settings.audioEngine;
-          if (ImGui::BeginCombo("##Backend",audioBackends[settings.audioEngine])) {
+          if (ImGui::BeginCombo("##Backend",_L(audioBackends[settings.audioEngine]))) {
 #ifdef HAVE_JACK
-            if (ImGui::Selectable("JACK",settings.audioEngine==DIV_AUDIO_JACK)) {
+            if (ImGui::Selectable(_L("JACK"),settings.audioEngine==DIV_AUDIO_JACK)) {
               settings.audioEngine=DIV_AUDIO_JACK;
               settingsChanged=true;
             }
 #endif
-            if (ImGui::Selectable("SDL",settings.audioEngine==DIV_AUDIO_SDL)) {
+            if (ImGui::Selectable(_L("SDL"),settings.audioEngine==DIV_AUDIO_SDL)) {
               settings.audioEngine=DIV_AUDIO_SDL;
               settingsChanged=true;
             }
 #ifdef HAVE_PA
-            if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
+            if (ImGui::Selectable(_L("PortAudio"),settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
               settings.audioEngine=DIV_AUDIO_PORTAUDIO;
               settingsChanged=true;
             }
@@ -1172,7 +1193,23 @@ void FurnaceGUI::drawSettings() {
         }
         //ImGui::Checkbox("Listen to MIDI clock",&midiMap.midiClock);
         //ImGui::Checkbox("Listen to MIDI time code",&midiMap.midiTimeCode);
-        if (ImGui::Combo("Value input style",&midiMap.valueInputStyle,valueInputStyles,7)) settingsChanged=true;
+        //if (ImGui::Combo("Value input style",&midiMap.valueInputStyle,valueInputStyles,7)) settingsChanged=true;
+        if (ImGui::BeginCombo(_L("Value input style"),_L(valueInputStyles[midiMap.valueInputStyle])))
+        {
+          int i = 0;
+          while(valueInputStyles[i])
+          {
+            if (ImGui::Selectable(_L(valueInputStyles[i])))
+            {
+              midiMap.valueInputStyle = i;
+              settingsChanged=true;
+            }
+
+            i++;
+          }
+
+          ImGui::EndCombo();
+        }
         if (midiMap.valueInputStyle>3) {
           if (midiMap.valueInputStyle==6) {
             if (ImGui::InputInt("Control##valueCCS",&midiMap.valueInputControlSingle,1,16)) {
@@ -1196,7 +1233,23 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::TreeNode("Per-column control change")) {
           for (int i=0; i<18; i++) {
             ImGui::PushID(i);
-            if (ImGui::Combo(specificControls[i],&midiMap.valueInputSpecificStyle[i],valueSInputStyles,4)) settingsChanged=true;
+            //if (ImGui::Combo(specificControls[i],&midiMap.valueInputSpecificStyle[i],valueSInputStyles,4)) settingsChanged=true;
+            if (ImGui::BeginCombo(_L(specificControls[i]),_L(valueSInputStyles[midiMap.valueInputSpecificStyle[i]])))
+            {
+              int j = 0;
+              while(valueSInputStyles[j])
+              {
+                if (ImGui::Selectable(_L(valueSInputStyles[j])))
+                {
+                  midiMap.valueInputSpecificStyle[i] = j;
+                  settingsChanged=true;
+                }
+
+                j++;
+              }
+
+              ImGui::EndCombo();
+            }
             if (midiMap.valueInputSpecificStyle[i]>0) {
               ImGui::Indent();
               if (midiMap.valueInputSpecificStyle[i]==3) {
@@ -1284,9 +1337,9 @@ void FurnaceGUI::drawSettings() {
 
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::BeginCombo("##BType",messageTypes[bind.type])) {
+            if (ImGui::BeginCombo("##BType",_L(messageTypes[bind.type]))) {
               for (int j=8; j<15; j++) {
-                if (ImGui::Selectable(messageTypes[j],bind.type==j)) {
+                if (ImGui::Selectable(_L(messageTypes[j]),bind.type==j)) {
                   bind.type=j;
                   settingsChanged=true;
                 }
@@ -1296,13 +1349,13 @@ void FurnaceGUI::drawSettings() {
 
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::BeginCombo("##BChannel",messageChannels[bind.channel])) {
-              if (ImGui::Selectable(messageChannels[16],bind.channel==16)) {
+            if (ImGui::BeginCombo("##BChannel",_L(messageChannels[bind.channel]))) {
+              if (ImGui::Selectable(_L(messageChannels[16]),bind.channel==16)) {
                 bind.channel=16;
                 settingsChanged=true;
               }
               for (int j=0; j<16; j++) {
-                if (ImGui::Selectable(messageChannels[j],bind.channel==j)) {
+                if (ImGui::Selectable(_L(messageChannels[j]),bind.channel==j)) {
                   bind.channel=j;
                   settingsChanged=true;
                 }
@@ -1312,7 +1365,7 @@ void FurnaceGUI::drawSettings() {
 
             ImGui::TableNextColumn();
             if (bind.data1==128) {
-              snprintf(bindID,1024,"Any");
+              snprintf(bindID,1024,_L("Any"));
             } else {
               const char* nName="???";
               if ((bind.data1+60)>0 && (bind.data1+60)<180) {
@@ -1322,7 +1375,7 @@ void FurnaceGUI::drawSettings() {
             }
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::BeginCombo("##BValue1",bindID)) {
-              if (ImGui::Selectable("Any",bind.data1==128)) {
+              if (ImGui::Selectable(_L("Any"),bind.data1==128)) {
                 bind.data1=128;
                 settingsChanged=true;
               }
@@ -1629,7 +1682,23 @@ void FurnaceGUI::drawSettings() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("PC Speaker strategy");
         ImGui::SameLine();
-        if (ImGui::Combo("##PCSOutMethod",&settings.pcSpeakerOutMethod,pcspkrOutMethods,5)) settingsChanged=true;
+        //if (ImGui::Combo("##PCSOutMethod",&settings.pcSpeakerOutMethod,pcspkrOutMethods,5)) settingsChanged=true;
+        if (ImGui::BeginCombo("##PCSOutMethod",_L(pcspkrOutMethods[settings.pcSpeakerOutMethod])))
+        {
+          int i = 0;
+          while(pcspkrOutMethods[i])
+          {
+            if (ImGui::Selectable(_L(pcspkrOutMethods[i])))
+            {
+              settings.pcSpeakerOutMethod = i;
+              settingsChanged=true;
+            }
+
+            i++;
+          }
+
+          ImGui::EndCombo();
+        }
 
         /*
         ImGui::Separator();
@@ -2445,7 +2514,23 @@ void FurnaceGUI::drawSettings() {
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_L("Font renderer"));
           ImGui::TableNextColumn();
-          if (ImGui::Combo("##FontBack",&settings.fontBackend,fontBackends,2)) settingsChanged=true;
+          //if (ImGui::Combo("##FontBack",&settings.fontBackend,fontBackends,2)) settingsChanged=true;
+          if (ImGui::BeginCombo("##FontBack",_L(fontBackends[settings.fontBackend])))
+          {
+            int i = 0;
+            while(fontBackends[i])
+            {
+              if (ImGui::Selectable(_L(fontBackends[i])))
+              {
+                settings.fontBackend = i;
+                settingsChanged=true;
+              }
+
+              i++;
+            }
+
+            ImGui::EndCombo();
+          }
 #else
           settings.fontBackend=0;
 #endif
@@ -2455,7 +2540,23 @@ void FurnaceGUI::drawSettings() {
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_L("Main font"));
           ImGui::TableNextColumn();
-          if (ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,7)) settingsChanged=true;
+          //if (ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,7)) settingsChanged=true;
+          if (ImGui::BeginCombo("##MainFont",_L(mainFonts[settings.mainFont])))
+          {
+            int i = 0;
+            while(mainFonts[i])
+            {
+              if (ImGui::Selectable(_L(mainFonts[i])))
+              {
+                settings.mainFont = i;
+                settingsChanged=true;
+              }
+
+              i++;
+            }
+
+            ImGui::EndCombo();
+          }
           if (settings.mainFont==6) {
             ImGui::InputText("##MainFontPath",&settings.mainFontPath);
             ImGui::SameLine();
@@ -2474,7 +2575,23 @@ void FurnaceGUI::drawSettings() {
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_L("Header font"));
           ImGui::TableNextColumn();
-          if (ImGui::Combo("##HeadFont",&settings.headFont,headFonts,7)) settingsChanged=true;
+          //if (ImGui::Combo("##HeadFont",&settings.headFont,headFonts,7)) settingsChanged=true;
+          if (ImGui::BeginCombo("##HeadFont",_L(headFonts[settings.headFont])))
+          {
+            int i = 0;
+            while(headFonts[i])
+            {
+              if (ImGui::Selectable(_L(headFonts[i])))
+              {
+                settings.headFont = i;
+                settingsChanged=true;
+              }
+
+              i++;
+            }
+
+            ImGui::EndCombo();
+          }
           if (settings.headFont==6) {
             ImGui::InputText("##HeadFontPath",&settings.headFontPath);
             ImGui::SameLine();
@@ -2493,7 +2610,23 @@ void FurnaceGUI::drawSettings() {
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_L("Pattern font"));
           ImGui::TableNextColumn();
-          if (ImGui::Combo("##PatFont",&settings.patFont,patFonts,7)) settingsChanged=true;
+          //if (ImGui::Combo("##PatFont",&settings.patFont,patFonts,7)) settingsChanged=true;
+          if (ImGui::BeginCombo("##PatFont",_L(patFonts[settings.patFont])))
+          {
+            int i = 0;
+            while(patFonts[i])
+            {
+              if (ImGui::Selectable(_L(patFonts[i])))
+              {
+                settings.patFont = i;
+                settingsChanged=true;
+              }
+
+              i++;
+            }
+
+            ImGui::EndCombo();
+          }
           if (settings.patFont==6) {
             ImGui::InputText("##PatFontPath",&settings.patFontPath);
             ImGui::SameLine();
