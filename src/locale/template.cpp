@@ -373,9 +373,35 @@ void DivLocale::addTranslationsTemplate()
     strings["MultiPCM TG100 path"].plurals[0] = "=MultiPCM TG100 path";
     strings["MultiPCM MU5 path"].plurals[0] = "=MultiPCM MU5 path";
 
-    strings["TESTTEXT"].plurals[0] = "=TESTTEXT";
-
     //keyboard section
+
+    strings["Keyboard"].plurals[0] = "=Keyboard";
+    strings["Import"].plurals[0] = "=Import";
+    strings["Export"].plurals[0] = "=Export";
+    strings["Reset defaults"].plurals[0] = "=Reset defaults";
+    strings["Are you sure you want to reset the keyboard settings?"].plurals[0] = "=Are you sure you want to reset the keyboard settings?";
+    strings["Global hotkeys"].plurals[0] = "=Global hotkeys";
+    strings["Window activation"].plurals[0] = "=Window activation";
+    strings["Note input"].plurals[0] = "=Note input";
+    strings["Key"].plurals[0] = "=Key";
+    strings["Type"].plurals[0] = "=Type";
+    strings["Value"].plurals[0] = "=Value";
+    strings["Remove"].plurals[0] = "=Remove";
+    strings["Macro release##SNType_%d"].plurals[0] = "=Macro release##SNType_%d";
+    strings["Note release##SNType_%d"].plurals[0] = "=Note release##SNType_%d";
+    strings["Note off##SNType_%d"].plurals[0] = "=Note off##SNType_%d";
+    strings["Note##SNType_%d"].plurals[0] = "=Note##SNType_%d";
+    strings["Add..."].plurals[0] = "=Add...";
+    strings["Pattern"].plurals[0] = "=Pattern";
+    strings["keysPattern"].plurals[0] = "=keysPattern";
+    strings["Instrument list"].plurals[0] = "=Instrument list";
+    strings["Wavetable list"].plurals[0] = "=Wavetable list";
+    strings["Sample list"].plurals[0] = "=Sample list";
+    strings["Orders"].plurals[0] = "=Orders";
+    strings["Sample editor"].plurals[0] = "=Sample editor";
+
+
+    strings["TESTTEXT"].plurals[0] = "=TESTTEXT";
 
     //interface selection
 

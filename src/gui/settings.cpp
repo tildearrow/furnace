@@ -1778,21 +1778,21 @@ void FurnaceGUI::drawSettings() {
 
 //TRANSLATED
 
-      CONFIG_SECTION("Keyboard") {
+      CONFIG_SECTION(_L("Keyboard")) {
         // SUBSECTION LAYOUT
-        CONFIG_SUBSECTION("Keyboard");
-        if (ImGui::Button("Import")) {
+        CONFIG_SUBSECTION(_L("Keyboard"));
+        if (ImGui::Button(_L("Import"))) {
           openFileDialog(GUI_FILE_IMPORT_KEYBINDS);
         }
         ImGui::SameLine();
-        if (ImGui::Button("Export")) {
+        if (ImGui::Button(_L("Export"))) {
           openFileDialog(GUI_FILE_EXPORT_KEYBINDS);
         }
         ImGui::SameLine();
-        if (ImGui::Button("Reset defaults")) {
-          showWarning("Are you sure you want to reset the keyboard settings?",GUI_WARN_RESET_KEYBINDS);
+        if (ImGui::Button(_L("Reset defaults"))) {
+          showWarning(_L("Are you sure you want to reset the keyboard settings?"),GUI_WARN_RESET_KEYBINDS);
         }
-        if (ImGui::TreeNode("Global hotkeys")) {
+        if (ImGui::TreeNode(_L("Global hotkeys"))) {
           KEYBIND_CONFIG_BEGIN("keysGlobal");
 
           UI_KEYBIND_CONFIG(GUI_ACTION_NEW);
@@ -1829,7 +1829,7 @@ void FurnaceGUI::drawSettings() {
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Window activation")) {
+        if (ImGui::TreeNode(_L("Window activation"))) {
           KEYBIND_CONFIG_BEGIN("keysWindow");
 
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_FIND);
@@ -1870,7 +1870,7 @@ void FurnaceGUI::drawSettings() {
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Note input")) {
+        if (ImGui::TreeNode(_L("Note input"))) {
           std::vector<MappedInput> sorted;
           if (ImGui::BeginTable("keysNoteInput",4)) {
             for (std::map<int,int>::value_type& i: noteKeys) {
@@ -1887,13 +1887,13 @@ void FurnaceGUI::drawSettings() {
 
             ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
             ImGui::TableNextColumn();
-            ImGui::Text("Key");
+            ImGui::Text(_L("Key"));
             ImGui::TableNextColumn();
-            ImGui::Text("Type");
+            ImGui::Text(_L("Type"));
             ImGui::TableNextColumn();
-            ImGui::Text("Value");
+            ImGui::Text(_L("Value"));
             ImGui::TableNextColumn();
-            ImGui::Text("Remove");
+            ImGui::Text(_L("Remove"));
 
             for (MappedInput& i: sorted) {
               ImGui::TableNextRow();
@@ -1901,22 +1901,22 @@ void FurnaceGUI::drawSettings() {
               ImGui::Text("%s",SDL_GetScancodeName((SDL_Scancode)i.scan));
               ImGui::TableNextColumn();
               if (i.val==102) {
-                snprintf(id,4095,"Macro release##SNType_%d",i.scan);
+                snprintf(id,4095,_L("Macro release##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
                   noteKeys[i.scan]=0;
                 }
               } else if (i.val==101) {
-                snprintf(id,4095,"Note release##SNType_%d",i.scan);
+                snprintf(id,4095,_L("Note release##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
                   noteKeys[i.scan]=102;
                 }
               } else if (i.val==100) {
-                snprintf(id,4095,"Note off##SNType_%d",i.scan);
+                snprintf(id,4095,_L("Note off##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
                   noteKeys[i.scan]=101;
                 }
               } else {
-                snprintf(id,4095,"Note##SNType_%d",i.scan);
+                snprintf(id,4095,_L("Note##SNType_%d"),i.scan);
                 if (ImGui::Button(id)) {
                   noteKeys[i.scan]=100;
                 }
@@ -1940,7 +1940,7 @@ void FurnaceGUI::drawSettings() {
             }
             ImGui::EndTable();
 
-            if (ImGui::BeginCombo("##SNAddNew","Add...")) {
+            if (ImGui::BeginCombo("##SNAddNew",_L("Add..."))) {
               for (int i=0; i<SDL_NUM_SCANCODES; i++) {
                 const char* sName=SDL_GetScancodeName((SDL_Scancode)i);
                 if (sName==NULL) continue;
@@ -1956,8 +1956,8 @@ void FurnaceGUI::drawSettings() {
           }
           ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Pattern")) {
-          KEYBIND_CONFIG_BEGIN("keysPattern");
+        if (ImGui::TreeNode(_L("Pattern"))) {
+          KEYBIND_CONFIG_BEGIN(_L("keysPattern"));
 
           UI_KEYBIND_CONFIG(GUI_ACTION_PAT_NOTE_UP);
           UI_KEYBIND_CONFIG(GUI_ACTION_PAT_NOTE_DOWN);
@@ -2026,7 +2026,7 @@ void FurnaceGUI::drawSettings() {
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Instrument list")) {
+        if (ImGui::TreeNode(_L("Instrument list"))) {
           KEYBIND_CONFIG_BEGIN("keysInsList");
 
           UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_ADD);
@@ -2046,7 +2046,7 @@ void FurnaceGUI::drawSettings() {
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Wavetable list")) {
+        if (ImGui::TreeNode(_L("Wavetable list"))) {
           KEYBIND_CONFIG_BEGIN("keysWaveList");
 
           UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_ADD);
@@ -2067,7 +2067,7 @@ void FurnaceGUI::drawSettings() {
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Sample list")) {
+        if (ImGui::TreeNode(_L("Sample list"))) {
           KEYBIND_CONFIG_BEGIN("keysSampleList");
 
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_ADD);
@@ -2092,7 +2092,7 @@ void FurnaceGUI::drawSettings() {
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Orders")) {
+        if (ImGui::TreeNode(_L("Orders"))) {
           KEYBIND_CONFIG_BEGIN("keysOrders");
 
           UI_KEYBIND_CONFIG(GUI_ACTION_ORDERS_UP);
@@ -2116,7 +2116,7 @@ void FurnaceGUI::drawSettings() {
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
         }
-        if (ImGui::TreeNode("Sample editor")) {
+        if (ImGui::TreeNode(_L("Sample editor"))) {
           KEYBIND_CONFIG_BEGIN("keysSampleEdit");
 
           UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_SELECT);
@@ -2154,6 +2154,9 @@ void FurnaceGUI::drawSettings() {
         }
         END_SECTION;
       }
+
+//TRANSLATED
+
       CONFIG_SECTION("Interface") {
         // SUBSECTION LAYOUT
         CONFIG_SUBSECTION("Layout");
