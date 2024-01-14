@@ -143,7 +143,7 @@ void DivLocale::addTranslationsRussian()
     strings["calls rend->clear() after rend->present(). might reduce UI latency by one frame in some drivers."].plurals[0] = "вызывает rend->clear() после rend->present(). может устранить запаздывание отрисовки интерфейса на один кадр для некоторых драйверов.";
     strings["Power-saving mode"].plurals[0] = "Режим энергосбережения";
     strings["saves power by lowering the frame rate to 2fps when idle.\nmay cause issues under Mesa drivers!"].plurals[0] = "уменьшает энергопотребление при помощи уменьшения частоты отрисовки до двух кадров в секунду в режиме ожидания.\nможет приводить к проблемам на драйверах Mesa!";
-    strings["Disable threaded input (restart after changing!)"].plurals[0] = "Отключить обработку нажатий для превью интсрумента в отдельном потоке (перезагрузите программу после изменения!)";
+    strings["Disable threaded input (restart after changing!)"].plurals[0] = "Отключить обработку нажатий для превью инструмента в отдельном потоке (перезагрузите программу после изменения!)";
     strings["threaded input processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.\nhowever, crashes have been reported when threaded input is on. enable this option if that is the case."].plurals[0] = "обработка нажатий клавиш для превью инструмента происходит в отдельном потоке (на поддерживаемых платформах), что позволяет уменьшить задержку ввода.\nтем не менее, есть сообщения о вылетах программы при выключённой настройке. включите её, если у вас программа вылетает.";
     strings["Enable event delay"].plurals[0] = "Включить задержку событий";
     strings["may cause issues with high-polling-rate mice when previewing notes."].plurals[0] = "может привести к проблемам во время превью инструмента, если подключена мышь с большой частотой обновления.";
@@ -155,7 +155,7 @@ void DivLocale::addTranslationsRussian()
     strings["File"].plurals[0] = "Файл";
     strings["Use system file picker"].plurals[0] = "Использовать диалоговое окно выбора файлов ОС";
     strings["Number of recent files"].plurals[0] = "Количество недавних файлов";
-    strings["Compress when saving"].plurals[0] = "Сжимать сохраняемые файоы";
+    strings["Compress when saving"].plurals[0] = "Сжимать сохраняемые файлы";
     strings["use zlib to compress saved songs."].plurals[0] = "использовать библиотеку zlib для сжатия сохраняемых модулей.";
     strings["Save unused patterns"].plurals[0] = "Сохранять неиспользуемые паттерны";
     strings["Use new pattern format when saving"].plurals[0] = "Использовать новый формат сохранения паттернов";
