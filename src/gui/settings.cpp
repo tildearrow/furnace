@@ -278,7 +278,7 @@ const char* specificControls[19]={
   }
 
 #define UI_COLOR_CONFIG(what,label) \
-  if (ImGui::ColorEdit4(label "##CC_" #what,(float*)&uiColors[what])) { \
+  if (ImGui::ColorEdit4(_L(label "##CC_" #what),(float*)&uiColors[what])) { \
     applyUISettings(false); \
     settingsChanged=true; \
   }
@@ -1551,8 +1551,6 @@ void FurnaceGUI::drawSettings() {
         END_SECTION;
       }
 
-//TRANSLATED
-
       CONFIG_SECTION(_L("Emulation")) {
         // SUBSECTION LAYOUT
         CONFIG_SUBSECTION(_L("Cores"));
@@ -1775,8 +1773,6 @@ void FurnaceGUI::drawSettings() {
 
         END_SECTION;
       }
-
-//TRANSLATED
 
       CONFIG_SECTION(_L("Keyboard")) {
         // SUBSECTION LAYOUT
@@ -2155,96 +2151,94 @@ void FurnaceGUI::drawSettings() {
         END_SECTION;
       }
 
-//TRANSLATED
-
-      CONFIG_SECTION("Interface") {
+      CONFIG_SECTION(_L("Interface")) {
         // SUBSECTION LAYOUT
-        CONFIG_SUBSECTION("Layout");
+        CONFIG_SUBSECTION(_L("Layout"));
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Workspace layout:");
+        ImGui::Text(_L("Workspace layout:"));
         ImGui::SameLine();
-        if (ImGui::Button("Import")) {
+        if (ImGui::Button(_L("Import"))) {
           openFileDialog(GUI_FILE_IMPORT_LAYOUT);
         }
         ImGui::SameLine();
-        if (ImGui::Button("Export")) {
+        if (ImGui::Button(_L("Export"))) {
           openFileDialog(GUI_FILE_EXPORT_LAYOUT);
         }
         ImGui::SameLine();
-        if (ImGui::Button("Reset")) {
-          showWarning("Are you sure you want to reset the workspace layout?",GUI_WARN_RESET_LAYOUT);
+        if (ImGui::Button(_L("Reset"))) {
+          showWarning(_L("Are you sure you want to reset the workspace layout?"),GUI_WARN_RESET_LAYOUT);
         }
 
         bool allowEditDockingB=settings.allowEditDocking;
-        if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
+        if (ImGui::Checkbox(_L("Allow docking editors"),&allowEditDockingB)) {
           settings.allowEditDocking=allowEditDockingB;
           settingsChanged=true;
         }
 
 #ifndef IS_MOBILE
           bool saveWindowPosB=settings.saveWindowPos;
-          if (ImGui::Checkbox("Remember window position",&saveWindowPosB)) {
+          if (ImGui::Checkbox(_L("Remember window position"),&saveWindowPosB)) {
             settings.saveWindowPos=saveWindowPosB;
             settingsChanged=true;
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("remembers the window's last position on start-up.");
+            ImGui::SetTooltip(_L("remembers the window's last position on start-up."));
           }
 #endif
 
         bool moveWindowTitleB=settings.moveWindowTitle;
-        if (ImGui::Checkbox("Only allow window movement when clicking on title bar",&moveWindowTitleB)) {
+        if (ImGui::Checkbox(_L("Only allow window movement when clicking on title bar"),&moveWindowTitleB)) {
           settings.moveWindowTitle=moveWindowTitleB;
           applyUISettings(false);
           settingsChanged=true;
         }
 
         bool centerPopupB=settings.centerPopup;
-        if (ImGui::Checkbox("Center pop-up windows",&centerPopupB)) {
+        if (ImGui::Checkbox(_L("Center pop-up windows"),&centerPopupB)) {
           settings.centerPopup=centerPopupB;
           settingsChanged=true;
         }
 
-        ImGui::Text("Play/edit controls layout:");
+        ImGui::Text(_L("Play/edit controls layout:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("Classic##ecl0",settings.controlLayout==0)) {
+        if (ImGui::RadioButton(_L("Classic##ecl0"),settings.controlLayout==0)) {
           settings.controlLayout=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Compact##ecl1",settings.controlLayout==1)) {
+        if (ImGui::RadioButton(_L("Compact##ecl1"),settings.controlLayout==1)) {
           settings.controlLayout=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Compact (vertical)##ecl2",settings.controlLayout==2)) {
+        if (ImGui::RadioButton(_L("Compact (vertical)##ecl2"),settings.controlLayout==2)) {
           settings.controlLayout=2;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Split##ecl3",settings.controlLayout==3)) {
+        if (ImGui::RadioButton(_L("Split##ecl3"),settings.controlLayout==3)) {
           settings.controlLayout=3;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
-        ImGui::Text("Position of buttons in Orders:");
+        ImGui::Text(_L("Position of buttons in Orders:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("Top##obp0",settings.orderButtonPos==0)) {
+        if (ImGui::RadioButton(_L("Top##obp0"),settings.orderButtonPos==0)) {
           settings.orderButtonPos=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Left##obp1",settings.orderButtonPos==1)) {
+        if (ImGui::RadioButton(_L("Left##obp1"),settings.orderButtonPos==1)) {
           settings.orderButtonPos=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Right##obp2",settings.orderButtonPos==2)) {
+        if (ImGui::RadioButton(_L("Right##obp2"),settings.orderButtonPos==2)) {
           settings.orderButtonPos=2;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
         // SUBSECTION MOUSE
-        CONFIG_SUBSECTION("Mouse");
+        CONFIG_SUBSECTION(_L("Mouse"));
 
-        if (CWSliderFloat("Double-click time (seconds)",&settings.doubleClickTime,0.02,1.0,"%.2f")) {
+        if (CWSliderFloat(_L("Double-click time (seconds)"),&settings.doubleClickTime,0.02,1.0,"%.2f")) {
           if (settings.doubleClickTime<0.02) settings.doubleClickTime=0.02;
           if (settings.doubleClickTime>1.0) settings.doubleClickTime=1.0;
 
@@ -2253,277 +2247,278 @@ void FurnaceGUI::drawSettings() {
         }
 
         bool avoidRaisingPatternB=settings.avoidRaisingPattern;
-        if (ImGui::Checkbox("Don't raise pattern editor on click",&avoidRaisingPatternB)) {
+        if (ImGui::Checkbox(_L("Don't raise pattern editor on click"),&avoidRaisingPatternB)) {
           settings.avoidRaisingPattern=avoidRaisingPatternB;
           settingsChanged=true;
         }
 
         bool insFocusesPatternB=settings.insFocusesPattern;
-        if (ImGui::Checkbox("Focus pattern editor when selecting instrument",&insFocusesPatternB)) {
+        if (ImGui::Checkbox(_L("Focus pattern editor when selecting instrument"),&insFocusesPatternB)) {
           settings.insFocusesPattern=insFocusesPatternB;
           settingsChanged=true;
         }
 
-        ImGui::Text("Note preview behavior:");
+        ImGui::Text(_L("Note preview behavior:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("Never##npb0",settings.notePreviewBehavior==0)) {
+        if (ImGui::RadioButton(_L("Never##npb0"),settings.notePreviewBehavior==0)) {
           settings.notePreviewBehavior=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("When cursor is in Note column##npb1",settings.notePreviewBehavior==1)) {
+        if (ImGui::RadioButton(_L("When cursor is in Note column##npb1"),settings.notePreviewBehavior==1)) {
           settings.notePreviewBehavior=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("When cursor is in Note column or not in edit mode##npb2",settings.notePreviewBehavior==2)) {
+        if (ImGui::RadioButton(_L("When cursor is in Note column or not in edit mode##npb2"),settings.notePreviewBehavior==2)) {
           settings.notePreviewBehavior=2;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Always##npb3",settings.notePreviewBehavior==3)) {
+        if (ImGui::RadioButton(_L("Always##npb3"),settings.notePreviewBehavior==3)) {
           settings.notePreviewBehavior=3;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
-        ImGui::Text("Allow dragging selection:");
+        ImGui::Text(_L("Allow dragging selection:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("No##dms0",settings.dragMovesSelection==0)) {
+        if (ImGui::RadioButton(_L("No##dms0"),settings.dragMovesSelection==0)) {
           settings.dragMovesSelection=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Yes##dms1",settings.dragMovesSelection==1)) {
+        if (ImGui::RadioButton(_L("Yes##dms1"),settings.dragMovesSelection==1)) {
           settings.dragMovesSelection=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Yes (while holding Ctrl only)##dms2",settings.dragMovesSelection==2)) {
+        if (ImGui::RadioButton(_L("Yes (while holding Ctrl only)##dms2"),settings.dragMovesSelection==2)) {
           settings.dragMovesSelection=2;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
-        ImGui::Text("Toggle channel solo on:");
+        ImGui::Text(_L("Toggle channel solo on:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("Right-click or double-click##soloA",settings.soloAction==0)) {
+        if (ImGui::RadioButton(_L("Right-click or double-click##soloA"),settings.soloAction==0)) {
           settings.soloAction=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Right-click##soloR",settings.soloAction==1)) {
+        if (ImGui::RadioButton(_L("Right-click##soloR"),settings.soloAction==1)) {
           settings.soloAction=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Double-click##soloD",settings.soloAction==2)) {
+        if (ImGui::RadioButton(_L("Double-click##soloD"),settings.soloAction==2)) {
           settings.soloAction=2;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
         bool doubleClickColumnB=settings.doubleClickColumn;
-        if (ImGui::Checkbox("Double click selects entire column",&doubleClickColumnB)) {
+        if (ImGui::Checkbox(_L("Double click selects entire column"),&doubleClickColumnB)) {
           settings.doubleClickColumn=doubleClickColumnB;
           settingsChanged=true;
         }
 
         // SUBSECTION CURSOR BEHAVIOR
-        CONFIG_SUBSECTION("Cursor behavior");
+        CONFIG_SUBSECTION(_L("Cursor behavior"));
         bool insertBehaviorB=settings.insertBehavior;
-        if (ImGui::Checkbox("Insert pushes entire channel row",&insertBehaviorB)) {
+        if (ImGui::Checkbox(_L("Insert pushes entire channel row"),&insertBehaviorB)) {
           settings.insertBehavior=insertBehaviorB;
           settingsChanged=true;
         }
 
         bool pullDeleteRowB=settings.pullDeleteRow;
-        if (ImGui::Checkbox("Pull delete affects entire channel row",&pullDeleteRowB)) {
+        if (ImGui::Checkbox(_L("Pull delete affects entire channel row"),&pullDeleteRowB)) {
           settings.pullDeleteRow=pullDeleteRowB;
           settingsChanged=true;
         }
 
         bool pushNibbleB=settings.pushNibble;
-        if (ImGui::Checkbox("Push value when overwriting instead of clearing it",&pushNibbleB)) {
+        if (ImGui::Checkbox(_L("Push value when overwriting instead of clearing it"),&pushNibbleB)) {
           settings.pushNibble=pushNibbleB;
           settingsChanged=true;
         }
 
-        ImGui::Text("Effect input behavior:");
+        ImGui::Text(_L("Effect input behavior:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("Move down##eicb0",settings.effectCursorDir==0)) {
+        if (ImGui::RadioButton(_L("Move down##eicb0"),settings.effectCursorDir==0)) {
           settings.effectCursorDir=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Move to effect value (otherwise move down)##eicb1",settings.effectCursorDir==1)) {
+        if (ImGui::RadioButton(_L("Move to effect value (otherwise move down)##eicb1"),settings.effectCursorDir==1)) {
           settings.effectCursorDir=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Move to effect value/next effect and wrap around##eicb2",settings.effectCursorDir==2)) {
+        if (ImGui::RadioButton(_L("Move to effect value/next effect and wrap around##eicb2"),settings.effectCursorDir==2)) {
           settings.effectCursorDir=2;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
         bool effectDeletionAltersValueB=settings.effectDeletionAltersValue;
-        if (ImGui::Checkbox("Delete effect value when deleting effect",&effectDeletionAltersValueB)) {
+        if (ImGui::Checkbox(_L("Delete effect value when deleting effect"),&effectDeletionAltersValueB)) {
           settings.effectDeletionAltersValue=effectDeletionAltersValueB;
           settingsChanged=true;
         }
 
         bool absorbInsInputB=settings.absorbInsInput;
-        if (ImGui::Checkbox("Change current instrument when changing instrument column (absorb)",&absorbInsInputB)) {
+        if (ImGui::Checkbox(_L("Change current instrument when changing instrument column (absorb)"),&absorbInsInputB)) {
           settings.absorbInsInput=absorbInsInputB;
           settingsChanged=true;
         }
 
         bool removeInsOffB=settings.removeInsOff;
-        if (ImGui::Checkbox("Remove instrument value when inserting note off/release",&removeInsOffB)) {
+        if (ImGui::Checkbox(_L("Remove instrument value when inserting note off/release"),&removeInsOffB)) {
           settings.removeInsOff=removeInsOffB;
           settingsChanged=true;
         }
 
         bool removeVolOffB=settings.removeVolOff;
-        if (ImGui::Checkbox("Remove volume value when inserting note off/release",&removeVolOffB)) {
+        if (ImGui::Checkbox(_L("Remove volume value when inserting note off/release"),&removeVolOffB)) {
           settings.removeVolOff=removeVolOffB;
           settingsChanged=true;
         }
 
         // SUBSECTION CURSOR MOVEMENT
-        CONFIG_SUBSECTION("Cursor movement");
+        CONFIG_SUBSECTION(_L("Cursor movement"));
 
-        ImGui::Text("Wrap horizontally:");
+        ImGui::Text(_L("Wrap horizontally:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("No##wrapH0",settings.wrapHorizontal==0)) {
+        if (ImGui::RadioButton(_L("No##wrapH0"),settings.wrapHorizontal==0)) {
           settings.wrapHorizontal=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Yes##wrapH1",settings.wrapHorizontal==1)) {
+        if (ImGui::RadioButton(_L("Yes##wrapH1"),settings.wrapHorizontal==1)) {
           settings.wrapHorizontal=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Yes, and move to next/prev row##wrapH2",settings.wrapHorizontal==2)) {
+        if (ImGui::RadioButton(_L("Yes, and move to next/prev row##wrapH2"),settings.wrapHorizontal==2)) {
           settings.wrapHorizontal=2;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
-        ImGui::Text("Wrap vertically:");
+        ImGui::Text(_L("Wrap vertically:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("No##wrapV0",settings.wrapVertical==0)) {
+        if (ImGui::RadioButton(_L("No##wrapV0"),settings.wrapVertical==0)) {
           settings.wrapVertical=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Yes##wrapV1",settings.wrapVertical==1)) {
+        if (ImGui::RadioButton(_L("Yes##wrapV1"),settings.wrapVertical==1)) {
           settings.wrapVertical=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Yes, and move to next/prev pattern##wrapV2",settings.wrapVertical==2)) {
+        if (ImGui::RadioButton(_L("Yes, and move to next/prev pattern##wrapV2"),settings.wrapVertical==2)) {
           settings.wrapVertical=2;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Yes, and move to next/prev pattern (wrap around)##wrapV2",settings.wrapVertical==3)) {
+        if (ImGui::RadioButton(_L("Yes, and move to next/prev pattern (wrap around)##wrapV2"),settings.wrapVertical==3)) {
           settings.wrapVertical=3;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
-        ImGui::Text("Cursor movement keys behavior:");
+        ImGui::Text(_L("Cursor movement keys behavior:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("Move by one##cmk0",settings.scrollStep==0)) {
+        if (ImGui::RadioButton(_L("Move by one##cmk0"),settings.scrollStep==0)) {
           settings.scrollStep=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Move by Edit Step##cmk1",settings.scrollStep==1)) {
+        if (ImGui::RadioButton(_L("Move by Edit Step##cmk1"),settings.scrollStep==1)) {
           settings.scrollStep=1;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
         bool stepOnDeleteB=settings.stepOnDelete;
-        if (ImGui::Checkbox("Move cursor by edit step on delete",&stepOnDeleteB)) {
+        if (ImGui::Checkbox(_L("Move cursor by edit step on delete"),&stepOnDeleteB)) {
           settings.stepOnDelete=stepOnDeleteB;
           settingsChanged=true;
         }
 
         bool stepOnInsertB=settings.stepOnInsert;
-        if (ImGui::Checkbox("Move cursor by edit step on insert (push)",&stepOnInsertB)) {
+        if (ImGui::Checkbox(_L("Move cursor by edit step on insert (push)"),&stepOnInsertB)) {
           settings.stepOnInsert=stepOnInsertB;
           settingsChanged=true;
         }
 
         bool pullDeleteBehaviorB=settings.pullDeleteBehavior;
-        if (ImGui::Checkbox("Move cursor up on backspace-delete",&pullDeleteBehaviorB)) {
+        if (ImGui::Checkbox(_L("Move cursor up on backspace-delete"),&pullDeleteBehaviorB)) {
           settings.pullDeleteBehavior=pullDeleteBehaviorB;
           settingsChanged=true;
         }
 
         bool cursorPastePosB=settings.cursorPastePos;
-        if (ImGui::Checkbox("Move cursor to end of clipboard content when pasting",&cursorPastePosB)) {
+        if (ImGui::Checkbox(_L("Move cursor to end of clipboard content when pasting"),&cursorPastePosB)) {
           settings.cursorPastePos=cursorPastePosB;
           settingsChanged=true;
         }
 
         // SUBSECTION SCROLLING
-        CONFIG_SUBSECTION("Scrolling");
+        CONFIG_SUBSECTION(_L("Scrolling"));
 
-        ImGui::Text("Change order when scrolling outside of pattern bounds:");
+        ImGui::Text(_L("Change order when scrolling outside of pattern bounds:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("No##pscroll0",settings.scrollChangesOrder==0)) {
+        if (ImGui::RadioButton(_L("No##pscroll0"),settings.scrollChangesOrder==0)) {
           settings.scrollChangesOrder=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Yes##pscroll1",settings.scrollChangesOrder==1)) {
+        if (ImGui::RadioButton(_L("Yes##pscroll1"),settings.scrollChangesOrder==1)) {
           settings.scrollChangesOrder=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Yes, and wrap around song##pscroll2",settings.scrollChangesOrder==2)) {
+        if (ImGui::RadioButton(_L("Yes, and wrap around song##pscroll2"),settings.scrollChangesOrder==2)) {
           settings.scrollChangesOrder=2;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
         bool cursorFollowsOrderB=settings.cursorFollowsOrder;
-        if (ImGui::Checkbox("Cursor follows current order when moving it",&cursorFollowsOrderB)) {
+        if (ImGui::Checkbox(_L("Cursor follows current order when moving it"),&cursorFollowsOrderB)) {
           settings.cursorFollowsOrder=cursorFollowsOrderB;
           settingsChanged=true;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("applies when playback is stopped.");
+          ImGui::SetTooltip(_L("applies when playback is stopped."));
         }
 
         bool cursorMoveNoScrollB=settings.cursorMoveNoScroll;
-        if (ImGui::Checkbox("Don't scroll when moving cursor",&cursorMoveNoScrollB)) {
+        if (ImGui::Checkbox(_L("Don't scroll when moving cursor"),&cursorMoveNoScrollB)) {
           settings.cursorMoveNoScroll=cursorMoveNoScrollB;
           settingsChanged=true;
         }
 
-        ImGui::Text("Move cursor with scroll wheel:");
+        ImGui::Text(_L("Move cursor with scroll wheel:"));
         ImGui::Indent();
-        if (ImGui::RadioButton("No##csw0",settings.cursorFollowsWheel==0)) {
+        if (ImGui::RadioButton(_L("No##csw0"),settings.cursorFollowsWheel==0)) {
           settings.cursorFollowsWheel=0;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Yes##csw1",settings.cursorFollowsWheel==1)) {
+        if (ImGui::RadioButton(_L("Yes##csw1"),settings.cursorFollowsWheel==1)) {
           settings.cursorFollowsWheel=1;
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Inverted##csw2",settings.cursorFollowsWheel==2)) {
+        if (ImGui::RadioButton(_L("Inverted##csw2"),settings.cursorFollowsWheel==2)) {
           settings.cursorFollowsWheel=2;
           settingsChanged=true;
         }
         ImGui::Unindent();
 
         // SUBSECTION ASSETS
-        CONFIG_SUBSECTION("Assets");
+        CONFIG_SUBSECTION(_L("Assets"));
 
         bool insTypeMenuB=settings.insTypeMenu;
-        if (ImGui::Checkbox("Display instrument type menu when adding instrument",&insTypeMenuB)) {
+        if (ImGui::Checkbox(_L("Display instrument type menu when adding instrument"),&insTypeMenuB)) {
           settings.insTypeMenu=insTypeMenuB;
           settingsChanged=true;
         }
 
         bool selectAssetOnLoadB=settings.selectAssetOnLoad;
-        if (ImGui::Checkbox("Select asset after opening one",&selectAssetOnLoadB)) {
+        if (ImGui::Checkbox(_L("Select asset after opening one"),&selectAssetOnLoadB)) {
           settings.selectAssetOnLoad=selectAssetOnLoadB;
           settingsChanged=true;
         }
 
         END_SECTION;
       }
+
       CONFIG_SECTION(_L("Appearance")) {
         // SUBSECTION INTERFACE
         CONFIG_SUBSECTION(_L("Scaling"));
@@ -3401,391 +3396,394 @@ void FurnaceGUI::drawSettings() {
 
         END_SECTION;
       }
-      CONFIG_SECTION("Color") {
-        // SUBSECTION COLOR SCHEME
-        CONFIG_SUBSECTION("Color scheme");
-        if (ImGui::Button("Import")) {
-          openFileDialog(GUI_FILE_IMPORT_COLORS);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Export")) {
-          openFileDialog(GUI_FILE_EXPORT_COLORS);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Reset defaults")) {
-          showWarning("Are you sure you want to reset the color scheme?",GUI_WARN_RESET_COLORS);
-        }
-        if (ImGui::TreeNode("Interface")) {
-          if (ImGui::SliderInt("Frame shading",&settings.guiColorsShading,0,100,"%d%%")) {
-            if (settings.guiColorsShading<0) settings.guiColorsShading=0;
-            if (settings.guiColorsShading>100) settings.guiColorsShading=100;
-            applyUISettings(false);
-            settingsChanged=true;
-          }
 
-          UI_COLOR_CONFIG(GUI_COLOR_BUTTON,"Button");
-          UI_COLOR_CONFIG(GUI_COLOR_BUTTON_HOVER,"Button (hovered)");
-          UI_COLOR_CONFIG(GUI_COLOR_BUTTON_ACTIVE,"Button (active)");
-          UI_COLOR_CONFIG(GUI_COLOR_TAB,"Tab");
-          UI_COLOR_CONFIG(GUI_COLOR_TAB_HOVER,"Tab (hovered)");
-          UI_COLOR_CONFIG(GUI_COLOR_TAB_ACTIVE,"Tab (active)");
-          UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED,"Tab (unfocused)");
-          UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED_ACTIVE,"Tab (unfocused and active)");
-          UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER,"ImGui header");
-          UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER_HOVER,"ImGui header (hovered)");
-          UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER_ACTIVE,"ImGui header (active)");
-          UI_COLOR_CONFIG(GUI_COLOR_RESIZE_GRIP,"Resize grip");
-          UI_COLOR_CONFIG(GUI_COLOR_RESIZE_GRIP_HOVER,"Resize grip (hovered)");
-          UI_COLOR_CONFIG(GUI_COLOR_RESIZE_GRIP_ACTIVE,"Resize grip (active)");
-          UI_COLOR_CONFIG(GUI_COLOR_WIDGET_BACKGROUND,"Widget background");
-          UI_COLOR_CONFIG(GUI_COLOR_WIDGET_BACKGROUND_HOVER,"Widget background (hovered)");
-          UI_COLOR_CONFIG(GUI_COLOR_WIDGET_BACKGROUND_ACTIVE,"Widget background (active)");
-          UI_COLOR_CONFIG(GUI_COLOR_SLIDER_GRAB,"Slider grab");
-          UI_COLOR_CONFIG(GUI_COLOR_SLIDER_GRAB_ACTIVE,"Slider grab (active)");
-          UI_COLOR_CONFIG(GUI_COLOR_TITLE_BACKGROUND_ACTIVE,"Title background (active)");
-          UI_COLOR_CONFIG(GUI_COLOR_CHECK_MARK,"Checkbox/radio button mark");
-          UI_COLOR_CONFIG(GUI_COLOR_TEXT_SELECTION,"Text selection");
-          UI_COLOR_CONFIG(GUI_COLOR_PLOT_LINES,"Line plot");
-          UI_COLOR_CONFIG(GUI_COLOR_PLOT_LINES_HOVER,"Line plot (hovered)");
-          UI_COLOR_CONFIG(GUI_COLOR_PLOT_HISTOGRAM,"Histogram plot");
-          UI_COLOR_CONFIG(GUI_COLOR_PLOT_HISTOGRAM_HOVER,"Histogram plot (hovered)");
-          UI_COLOR_CONFIG(GUI_COLOR_TABLE_ROW_EVEN,"Table row (even)");
-          UI_COLOR_CONFIG(GUI_COLOR_TABLE_ROW_ODD,"Table row (odd)");
+//TRANSLATED
 
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Interface (other)")) {
-          UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
-          UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
-          UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_CHILD,"Sub-window background");
-          UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_POPUP,"Pop-up background");
-          UI_COLOR_CONFIG(GUI_COLOR_MODAL_BACKDROP,"Modal backdrop");
-          UI_COLOR_CONFIG(GUI_COLOR_HEADER,"Header");
-          UI_COLOR_CONFIG(GUI_COLOR_TEXT,"Text");
-          UI_COLOR_CONFIG(GUI_COLOR_TEXT_DISABLED,"Text (disabled)");
-          UI_COLOR_CONFIG(GUI_COLOR_TITLE_INACTIVE,"Title bar (inactive)");
-          UI_COLOR_CONFIG(GUI_COLOR_TITLE_COLLAPSED,"Title bar (collapsed)");
-          UI_COLOR_CONFIG(GUI_COLOR_MENU_BAR,"Menu bar");
-          UI_COLOR_CONFIG(GUI_COLOR_BORDER,"Border");
-          UI_COLOR_CONFIG(GUI_COLOR_BORDER_SHADOW,"Border shadow");
-          UI_COLOR_CONFIG(GUI_COLOR_SCROLL,"Scroll bar");
-          UI_COLOR_CONFIG(GUI_COLOR_SCROLL_HOVER,"Scroll bar (hovered)");
-          UI_COLOR_CONFIG(GUI_COLOR_SCROLL_ACTIVE,"Scroll bar (clicked)");
-          UI_COLOR_CONFIG(GUI_COLOR_SCROLL_BACKGROUND,"Scroll bar background");
-          UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR,"Separator");
-          UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR_HOVER,"Separator (hover)");
-          UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR_ACTIVE,"Separator (active)");
-          UI_COLOR_CONFIG(GUI_COLOR_DOCKING_PREVIEW,"Docking preview");
-          UI_COLOR_CONFIG(GUI_COLOR_DOCKING_EMPTY,"Docking empty");
-          UI_COLOR_CONFIG(GUI_COLOR_TABLE_HEADER,"Table header");
-          UI_COLOR_CONFIG(GUI_COLOR_TABLE_BORDER_HARD,"Table border (hard)");
-          UI_COLOR_CONFIG(GUI_COLOR_TABLE_BORDER_SOFT,"Table border (soft)");
-          UI_COLOR_CONFIG(GUI_COLOR_DRAG_DROP_TARGET,"Drag and drop target");
-          UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_HIGHLIGHT,"Window switcher (highlight)");
-          UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_BACKDROP,"Window switcher backdrop");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Miscellaneous")) {
-          UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_ON,"Toggle on");
-          UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_OFF,"Toggle off");
-          UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
-          UI_COLOR_CONFIG(GUI_COLOR_DESTRUCTIVE,"Destructive hint");
-          UI_COLOR_CONFIG(GUI_COLOR_WARNING,"Warning hint");
-          UI_COLOR_CONFIG(GUI_COLOR_ERROR,"Error hint");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("File Picker (built-in)")) {
-          UI_COLOR_CONFIG(GUI_COLOR_FILE_DIR,"Directory");
-          UI_COLOR_CONFIG(GUI_COLOR_FILE_SONG_NATIVE,"Song (native)");
-          UI_COLOR_CONFIG(GUI_COLOR_FILE_SONG_IMPORT,"Song (import)");
-          UI_COLOR_CONFIG(GUI_COLOR_FILE_INSTR,"Instrument");
-          UI_COLOR_CONFIG(GUI_COLOR_FILE_AUDIO,"Audio");
-          UI_COLOR_CONFIG(GUI_COLOR_FILE_WAVE,"Wavetable");
-          UI_COLOR_CONFIG(GUI_COLOR_FILE_VGM,"VGM");
-          UI_COLOR_CONFIG(GUI_COLOR_FILE_ZSM,"ZSM");
-          UI_COLOR_CONFIG(GUI_COLOR_FILE_FONT,"Font");
-          UI_COLOR_CONFIG(GUI_COLOR_FILE_OTHER,"Other");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Oscilloscope")) {
-          UI_COLOR_CONFIG(GUI_COLOR_OSC_BORDER,"Border");
-          UI_COLOR_CONFIG(GUI_COLOR_OSC_BG1,"Background (top-left)");
-          UI_COLOR_CONFIG(GUI_COLOR_OSC_BG2,"Background (top-right)");
-          UI_COLOR_CONFIG(GUI_COLOR_OSC_BG3,"Background (bottom-left)");
-          UI_COLOR_CONFIG(GUI_COLOR_OSC_BG4,"Background (bottom-right)");
-          UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE,"Waveform");
-          UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_PEAK,"Waveform (clip)");
-          UI_COLOR_CONFIG(GUI_COLOR_OSC_REF,"Reference");
-          UI_COLOR_CONFIG(GUI_COLOR_OSC_GUIDE,"Guide");
+CONFIG_SECTION(_L("Color")) {
+  // SUBSECTION COLOR SCHEME
+  CONFIG_SUBSECTION(_L("Color scheme"));
+  if (ImGui::Button(_L("Import"))) {
+    openFileDialog(GUI_FILE_IMPORT_COLORS);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(_L("Export"))) {
+    openFileDialog(GUI_FILE_EXPORT_COLORS);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(_L("Reset defaults"))) {
+    showWarning(_L("Are you sure you want to reset the color scheme?"),GUI_WARN_RESET_COLORS);
+  }
+  if (ImGui::TreeNode(_L("Interface"))) {
+    if (ImGui::SliderInt(_L("Frame shading"),&settings.guiColorsShading,0,100,_L("%d%%"))) {
+      if (settings.guiColorsShading<0) settings.guiColorsShading=0;
+      if (settings.guiColorsShading>100) settings.guiColorsShading=100;
+      applyUISettings(false);
+      settingsChanged=true;
+    }
 
-          if (ImGui::TreeNode("Wave (non-mono)")) {
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH0,"Waveform (1)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH1,"Waveform (2)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH2,"Waveform (3)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH3,"Waveform (4)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH4,"Waveform (5)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH5,"Waveform (6)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH6,"Waveform (7)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH7,"Waveform (8)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH8,"Waveform (9)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH9,"Waveform (10)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH10,"Waveform (11)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH11,"Waveform (12)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH12,"Waveform (13)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH13,"Waveform (14)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH14,"Waveform (15)");
-            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH15,"Waveform (16)");
-            ImGui::TreePop();
-          }
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Volume Meter")) {
-          UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_LOW,"Low");
-          UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_HIGH,"High");
-          UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_PEAK,"Clip");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Orders")) {
-          UI_COLOR_CONFIG(GUI_COLOR_ORDER_ROW_INDEX,"Order number");
-          UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Playing order background");
-          UI_COLOR_CONFIG(GUI_COLOR_SONG_LOOP,"Song loop");
-          UI_COLOR_CONFIG(GUI_COLOR_ORDER_SELECTED,"Selected order");
-          UI_COLOR_CONFIG(GUI_COLOR_ORDER_SIMILAR,"Similar patterns");
-          UI_COLOR_CONFIG(GUI_COLOR_ORDER_INACTIVE,"Inactive patterns");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Envelope View")) {
-          UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE,"Envelope");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_SUS_GUIDE,"Sustain guide");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_RELEASE,"Release");
+    UI_COLOR_CONFIG(GUI_COLOR_BUTTON,"Button");
+    UI_COLOR_CONFIG(GUI_COLOR_BUTTON_HOVER,"Button (hovered)");
+    UI_COLOR_CONFIG(GUI_COLOR_BUTTON_ACTIVE,"Button (active)");
+    UI_COLOR_CONFIG(GUI_COLOR_TAB,"Tab");
+    UI_COLOR_CONFIG(GUI_COLOR_TAB_HOVER,"Tab (hovered)");
+    UI_COLOR_CONFIG(GUI_COLOR_TAB_ACTIVE,"Tab (active)");
+    UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED,"Tab (unfocused)");
+    UI_COLOR_CONFIG(GUI_COLOR_TAB_UNFOCUSED_ACTIVE,"Tab (unfocused and active)");
+    UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER,"ImGui header");
+    UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER_HOVER,"ImGui header (hovered)");
+    UI_COLOR_CONFIG(GUI_COLOR_IMGUI_HEADER_ACTIVE,"ImGui header (active)");
+    UI_COLOR_CONFIG(GUI_COLOR_RESIZE_GRIP,"Resize grip");
+    UI_COLOR_CONFIG(GUI_COLOR_RESIZE_GRIP_HOVER,"Resize grip (hovered)");
+    UI_COLOR_CONFIG(GUI_COLOR_RESIZE_GRIP_ACTIVE,"Resize grip (active)");
+    UI_COLOR_CONFIG(GUI_COLOR_WIDGET_BACKGROUND,"Widget background");
+    UI_COLOR_CONFIG(GUI_COLOR_WIDGET_BACKGROUND_HOVER,"Widget background (hovered)");
+    UI_COLOR_CONFIG(GUI_COLOR_WIDGET_BACKGROUND_ACTIVE,"Widget background (active)");
+    UI_COLOR_CONFIG(GUI_COLOR_SLIDER_GRAB,"Slider grab");
+    UI_COLOR_CONFIG(GUI_COLOR_SLIDER_GRAB_ACTIVE,"Slider grab (active)");
+    UI_COLOR_CONFIG(GUI_COLOR_TITLE_BACKGROUND_ACTIVE,"Title background (active)");
+    UI_COLOR_CONFIG(GUI_COLOR_CHECK_MARK,"Checkbox/radio button mark");
+    UI_COLOR_CONFIG(GUI_COLOR_TEXT_SELECTION,"Text selection");
+    UI_COLOR_CONFIG(GUI_COLOR_PLOT_LINES,"Line plot");
+    UI_COLOR_CONFIG(GUI_COLOR_PLOT_LINES_HOVER,"Line plot (hovered)");
+    UI_COLOR_CONFIG(GUI_COLOR_PLOT_HISTOGRAM,"Histogram plot");
+    UI_COLOR_CONFIG(GUI_COLOR_PLOT_HISTOGRAM_HOVER,"Histogram plot (hovered)");
+    UI_COLOR_CONFIG(GUI_COLOR_TABLE_ROW_EVEN,"Table row (even)");
+    UI_COLOR_CONFIG(GUI_COLOR_TABLE_ROW_ODD,"Table row (odd)");
 
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("FM Editor")) {
-          UI_COLOR_CONFIG(GUI_COLOR_FM_ALG_BG,"Algorithm background");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_ALG_LINE,"Algorithm lines");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_MOD,"Modulator");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_CAR,"Carrier");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Interface (other)"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
+    UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
+    UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_CHILD,"Sub-window background");
+    UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_POPUP,"Pop-up background");
+    UI_COLOR_CONFIG(GUI_COLOR_MODAL_BACKDROP,"Modal backdrop");
+    UI_COLOR_CONFIG(GUI_COLOR_HEADER,"Header");
+    UI_COLOR_CONFIG(GUI_COLOR_TEXT,"Text");
+    UI_COLOR_CONFIG(GUI_COLOR_TEXT_DISABLED,"Text (disabled)");
+    UI_COLOR_CONFIG(GUI_COLOR_TITLE_INACTIVE,"Title bar (inactive)");
+    UI_COLOR_CONFIG(GUI_COLOR_TITLE_COLLAPSED,"Title bar (collapsed)");
+    UI_COLOR_CONFIG(GUI_COLOR_MENU_BAR,"Menu bar");
+    UI_COLOR_CONFIG(GUI_COLOR_BORDER,"Border");
+    UI_COLOR_CONFIG(GUI_COLOR_BORDER_SHADOW,"Border shadow");
+    UI_COLOR_CONFIG(GUI_COLOR_SCROLL,"Scroll bar");
+    UI_COLOR_CONFIG(GUI_COLOR_SCROLL_HOVER,"Scroll bar (hovered)");
+    UI_COLOR_CONFIG(GUI_COLOR_SCROLL_ACTIVE,"Scroll bar (clicked)");
+    UI_COLOR_CONFIG(GUI_COLOR_SCROLL_BACKGROUND,"Scroll bar background");
+    UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR,"Separator");
+    UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR_HOVER,"Separator (hover)");
+    UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR_ACTIVE,"Separator (active)");
+    UI_COLOR_CONFIG(GUI_COLOR_DOCKING_PREVIEW,"Docking preview");
+    UI_COLOR_CONFIG(GUI_COLOR_DOCKING_EMPTY,"Docking empty");
+    UI_COLOR_CONFIG(GUI_COLOR_TABLE_HEADER,"Table header");
+    UI_COLOR_CONFIG(GUI_COLOR_TABLE_BORDER_HARD,"Table border (hard)");
+    UI_COLOR_CONFIG(GUI_COLOR_TABLE_BORDER_SOFT,"Table border (soft)");
+    UI_COLOR_CONFIG(GUI_COLOR_DRAG_DROP_TARGET,"Drag and drop target");
+    UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_HIGHLIGHT,"Window switcher (highlight)");
+    UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_BACKDROP,"Window switcher backdrop");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Miscellaneous"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_ON,"Toggle on");
+    UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_OFF,"Toggle off");
+    UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
+    UI_COLOR_CONFIG(GUI_COLOR_DESTRUCTIVE,"Destructive hint");
+    UI_COLOR_CONFIG(GUI_COLOR_WARNING,"Warning hint");
+    UI_COLOR_CONFIG(GUI_COLOR_ERROR,"Error hint");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("File Picker (built-in)"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_FILE_DIR,"Directory");
+    UI_COLOR_CONFIG(GUI_COLOR_FILE_SONG_NATIVE,"Song (native)");
+    UI_COLOR_CONFIG(GUI_COLOR_FILE_SONG_IMPORT,"Song (import)");
+    UI_COLOR_CONFIG(GUI_COLOR_FILE_INSTR,"Instrument");
+    UI_COLOR_CONFIG(GUI_COLOR_FILE_AUDIO,"Audio");
+    UI_COLOR_CONFIG(GUI_COLOR_FILE_WAVE,"Wavetable");
+    UI_COLOR_CONFIG(GUI_COLOR_FILE_VGM,"VGM");
+    UI_COLOR_CONFIG(GUI_COLOR_FILE_ZSM,"ZSM");
+    UI_COLOR_CONFIG(GUI_COLOR_FILE_FONT,"Font");
+    UI_COLOR_CONFIG(GUI_COLOR_FILE_OTHER,"Other");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Oscilloscope"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_OSC_BORDER,"Border");
+    UI_COLOR_CONFIG(GUI_COLOR_OSC_BG1,"Background (top-left)");
+    UI_COLOR_CONFIG(GUI_COLOR_OSC_BG2,"Background (top-right)");
+    UI_COLOR_CONFIG(GUI_COLOR_OSC_BG3,"Background (bottom-left)");
+    UI_COLOR_CONFIG(GUI_COLOR_OSC_BG4,"Background (bottom-right)");
+    UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE,"Waveform");
+    UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_PEAK,"Waveform (clip)");
+    UI_COLOR_CONFIG(GUI_COLOR_OSC_REF,"Reference");
+    UI_COLOR_CONFIG(GUI_COLOR_OSC_GUIDE,"Guide");
 
-          UI_COLOR_CONFIG(GUI_COLOR_FM_SSG,"SSG-EG");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_WAVE,"Waveform");
+    if (ImGui::TreeNode(_L("Wave (non-mono)"))) {
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH0,"Waveform (1)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH1,"Waveform (2)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH2,"Waveform (3)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH3,"Waveform (4)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH4,"Waveform (5)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH5,"Waveform (6)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH6,"Waveform (7)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH7,"Waveform (8)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH8,"Waveform (9)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH9,"Waveform (10)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH10,"Waveform (11)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH11,"Waveform (12)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH12,"Waveform (13)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH13,"Waveform (14)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH14,"Waveform (15)");
+      UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH15,"Waveform (16)");
+      ImGui::TreePop();
+    }
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Volume Meter"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_LOW,"Low");
+    UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_HIGH,"High");
+    UI_COLOR_CONFIG(GUI_COLOR_VOLMETER_PEAK,"Clip");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Orders"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_ORDER_ROW_INDEX,"Order number");
+    UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Playing order background");
+    UI_COLOR_CONFIG(GUI_COLOR_SONG_LOOP,"Song loop");
+    UI_COLOR_CONFIG(GUI_COLOR_ORDER_SELECTED,"Selected order");
+    UI_COLOR_CONFIG(GUI_COLOR_ORDER_SIMILAR,"Similar patterns");
+    UI_COLOR_CONFIG(GUI_COLOR_ORDER_INACTIVE,"Inactive patterns");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Envelope View"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE,"Envelope");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_SUS_GUIDE,"Sustain guide");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_ENVELOPE_RELEASE,"Release");
 
-          ImGui::TextWrapped("(the following colors only apply when \"Use separate colors for carriers/modulators in FM editor\" is on!)");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("FM Editor"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_FM_ALG_BG,"Algorithm background");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_ALG_LINE,"Algorithm lines");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_MOD,"Modulator");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_CAR,"Carrier");
 
-          UI_COLOR_CONFIG(GUI_COLOR_FM_PRIMARY_MOD,"Mod. accent (primary)");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_SECONDARY_MOD,"Mod. accent (secondary)");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_MOD,"Mod. border");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_SHADOW_MOD,"Mod. border shadow");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_SSG,"SSG-EG");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_WAVE,"Waveform");
 
-          UI_COLOR_CONFIG(GUI_COLOR_FM_PRIMARY_CAR,"Car. accent (primary");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_SECONDARY_CAR,"Car. accent (secondary)");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_CAR,"Car. border");
-          UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_SHADOW_CAR,"Car. border shadow");
+    ImGui::TextWrapped("(the following colors only apply when \"Use separate colors for carriers/modulators in FM editor\" is on!)");
 
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Macro Editor")) {
-          UI_COLOR_CONFIG(GUI_COLOR_MACRO_VOLUME,"Volume");
-          UI_COLOR_CONFIG(GUI_COLOR_MACRO_PITCH,"Pitch");
-          UI_COLOR_CONFIG(GUI_COLOR_MACRO_WAVE,"Wave");
-          UI_COLOR_CONFIG(GUI_COLOR_MACRO_OTHER,"Other");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Instrument Types")) {
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_FM,"FM (OPN)");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_STD,"SN76489/Sega PSG");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_T6W28,"T6W28");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_GB,"Game Boy");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_C64,"C64");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_AMIGA,"Amiga/Generic Sample");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_PCE,"PC Engine");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_AY,"AY-3-8910/SSG");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_AY8930,"AY8930");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_TIA,"TIA");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_SAA1099,"SAA1099");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_VIC,"VIC");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_PET,"PET");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_VRC6,"VRC6");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_VRC6_SAW,"VRC6 (saw)");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPLL,"FM (OPLL)");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPL,"FM (OPL)");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_FDS,"FDS");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_VBOY,"Virtual Boy");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_N163,"Namco 163");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_SCC,"Konami SCC");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPZ,"FM (OPZ)");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEY,"POKEY");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_BEEPER,"PC Beeper");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_SWAN,"WonderSwan");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_MIKEY,"Lynx");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_VERA,"VERA");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_X1_010,"X1-010");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_ES5506,"ES5506");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_MULTIPCM,"MultiPCM");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_SNES,"SNES");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_SU,"Sound Unit");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_NAMCO,"Namco WSG");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPL_DRUMS,"FM (OPL Drums)");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPM,"FM (OPM)");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_NES,"NES");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM6258,"MSM6258");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM6295,"MSM6295");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_ADPCMA,"ADPCM-A");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_ADPCMB,"ADPCM-B");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_SEGAPCM,"Sega PCM");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_QSOUND,"QSound");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_YMZ280B,"YMZ280B");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_RF5C68,"RF5C68");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM5232,"MSM5232");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_K007232,"K007232");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_GA20,"GA20");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEMINI,"Pokémon Mini");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_SM8521,"SM8521");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_PV1000,"PV-1000");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_K053260,"K053260");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_C140,"C140");
-          UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Channel")) {
-          UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_BG,"Single color (background)");
-          UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_FG,"Single color (text)");
-          UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_FM,"FM");
-          UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_PULSE,"Pulse");
-          UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_NOISE,"Noise");
-          UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_PCM,"PCM");
-          UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_WAVE,"Wave");
-          UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_OP,"FM operator");
-          UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_MUTED,"Muted");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Pattern")) {
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_PLAY_HEAD,"Playhead");
-          UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
-          UI_COLOR_CONFIG(GUI_COLOR_EDITING_CLONE,"Editing (will clone)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR,"Cursor");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR_HOVER,"Cursor (hovered)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR_ACTIVE,"Cursor (clicked)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_SELECTION,"Selection");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_SELECTION_HOVER,"Selection (hovered)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_SELECTION_ACTIVE,"Selection (clicked)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_HI_1,"Highlight 1");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_HI_2,"Highlight 2");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ROW_INDEX,"Row number");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ROW_INDEX_HI1,"Row number (highlight 1)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ROW_INDEX_HI2,"Row number (highlight 2)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ACTIVE,"Note");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ACTIVE_HI1,"Note (highlight 1)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ACTIVE_HI2,"Note (highlight 2)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INACTIVE,"Blank");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INACTIVE_HI1,"Blank (highlight 1)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INACTIVE_HI2,"Blank (highlight 2)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INS,"Instrument");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INS_WARN,"Instrument (invalid type)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INS_ERROR,"Instrument (out of range)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_VOLUME_MIN,"Volume (0%)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_VOLUME_HALF,"Volume (50%)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_VOLUME_MAX,"Volume (100%)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_INVALID,"Invalid effect");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_PITCH,"Pitch effect");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_VOLUME,"Volume effect");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_PANNING,"Panning effect");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SONG,"Song effect");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_TIME,"Time effect");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SPEED,"Speed effect");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,"Primary specific effect");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"Secondary specific effect");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_MISC,"Miscellaneous");
-          UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_OFF,"Status: off/disabled");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_REL,"Status: off + macro rel");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_REL_ON,"Status: on + macro rel");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ON,"Status: on");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_VOLUME,"Status: volume");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_PITCH,"Status: pitch");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_PANNING,"Status: panning");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_SYS1,"Status: chip (primary)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_SYS2,"Status: chip (secondary)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MIXING,"Status: mixing");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DSP,"Status: DSP effect");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_NOTE,"Status: note altering");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MISC1,"Status: misc color 1");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MISC2,"Status: misc color 2");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MISC3,"Status: misc color 3");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ATTACK,"Status: attack");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DECAY,"Status: decay");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_SUSTAIN,"Status: sustain");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_RELEASE,"Status: release");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DEC_LINEAR,"Status: decrease linear");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DEC_EXP,"Status: decrease exp");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_INC,"Status: increase");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_BENT,"Status: bent");
-          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DIRECT,"Status: direct");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Sample Editor")) {
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_BG,"Background");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_FG,"Waveform");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_TIME_BG,"Time background");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_TIME_FG,"Time text");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP,"Loop region");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CENTER,"Center guide");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_GRID,"Grid");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_SEL,"Selection");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_SEL_POINT,"Selection points");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE,"Preview needle");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE_PLAYING,"Playing needles");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP_POINT,"Loop markers");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_DISABLED,"Chip select: disabled");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_ENABLED,"Chip select: enabled");
-          UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_WARNING,"Chip select: enabled (failure)");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Pattern Manager")) {
-          UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_NULL,"Unallocated");
-          UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_UNUSED,"Unused");
-          UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_USED,"Used");
-          UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_OVERUSED,"Overused");
-          UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_EXTREMELY_OVERUSED,"Really overused");
-          UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_COMBO_BREAKER,"Combo Breaker");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Piano")) {
-          UI_COLOR_CONFIG(GUI_COLOR_PIANO_BACKGROUND,"Background");
-          UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP,"Upper key");
-          UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP_HIT,"Upper key (feedback)");
-          UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP_ACTIVE,"Upper key (pressed)");
-          UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM,"Lower key");
-          UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_HIT,"Lower key (feedback)");
-          UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE,"Lower key (pressed)");
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Clock")) {
-          UI_COLOR_CONFIG(GUI_COLOR_CLOCK_TEXT,"Clock text");
-          UI_COLOR_CONFIG(GUI_COLOR_CLOCK_BEAT_LOW,"Beat (off)");
-          UI_COLOR_CONFIG(GUI_COLOR_CLOCK_BEAT_HIGH,"Beat (on)");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_PRIMARY_MOD,"Mod. accent (primary)");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_SECONDARY_MOD,"Mod. accent (secondary)");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_MOD,"Mod. border");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_SHADOW_MOD,"Mod. border shadow");
 
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Patchbay")) {
-          UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORTSET,"PortSet");
-          UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORT,"Port");
-          UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORT_HIDDEN,"Port (hidden/unavailable)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_CONNECTION,"Connection (selected)");
-          UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_CONNECTION_BG,"Connection (other)");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_PRIMARY_CAR,"Car. accent (primary");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_SECONDARY_CAR,"Car. accent (secondary)");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_CAR,"Car. border");
+    UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_SHADOW_CAR,"Car. border shadow");
 
-          ImGui::TreePop();
-        }
-        if (ImGui::TreeNode("Log Viewer")) {
-          UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_ERROR,"Log level: Error");
-          UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_WARNING,"Log level: Warning");
-          UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_INFO,"Log level: Info");
-          UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_DEBUG,"Log level: Debug");
-          UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_TRACE,"Log level: Trace/Verbose");
-          ImGui::TreePop();
-        }
-        END_SECTION;
-      }
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Macro Editor"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_MACRO_VOLUME,"Volume");
+    UI_COLOR_CONFIG(GUI_COLOR_MACRO_PITCH,"Pitch");
+    UI_COLOR_CONFIG(GUI_COLOR_MACRO_WAVE,"Wave");
+    UI_COLOR_CONFIG(GUI_COLOR_MACRO_OTHER,"Other");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Instrument Types"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_FM,"FM (OPN)");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_STD,"SN76489/Sega PSG");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_T6W28,"T6W28");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_GB,"Game Boy");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_C64,"C64");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_AMIGA,"Amiga/Generic Sample");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_PCE,"PC Engine");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_AY,"AY-3-8910/SSG");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_AY8930,"AY8930");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_TIA,"TIA");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_SAA1099,"SAA1099");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_VIC,"VIC");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_PET,"PET");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_VRC6,"VRC6");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_VRC6_SAW,"VRC6 (saw)");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPLL,"FM (OPLL)");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPL,"FM (OPL)");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_FDS,"FDS");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_VBOY,"Virtual Boy");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_N163,"Namco 163");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_SCC,"Konami SCC");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPZ,"FM (OPZ)");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEY,"POKEY");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_BEEPER,"PC Beeper");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_SWAN,"WonderSwan");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_MIKEY,"Lynx");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_VERA,"VERA");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_X1_010,"X1-010");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_ES5506,"ES5506");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_MULTIPCM,"MultiPCM");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_SNES,"SNES");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_SU,"Sound Unit");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_NAMCO,"Namco WSG");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPL_DRUMS,"FM (OPL Drums)");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPM,"FM (OPM)");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_NES,"NES");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM6258,"MSM6258");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM6295,"MSM6295");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_ADPCMA,"ADPCM-A");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_ADPCMB,"ADPCM-B");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_SEGAPCM,"Sega PCM");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_QSOUND,"QSound");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_YMZ280B,"YMZ280B");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_RF5C68,"RF5C68");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM5232,"MSM5232");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_K007232,"K007232");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_GA20,"GA20");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEMINI,"Pokémon Mini");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_SM8521,"SM8521");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_PV1000,"PV-1000");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_K053260,"K053260");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_C140,"C140");
+    UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Channel"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_BG,"Single color (background)");
+    UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_FG,"Single color (text)");
+    UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_FM,"FM");
+    UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_PULSE,"Pulse");
+    UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_NOISE,"Noise");
+    UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_PCM,"PCM");
+    UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_WAVE,"Wave");
+    UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_OP,"FM operator");
+    UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_MUTED,"Muted");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Pattern"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_PLAY_HEAD,"Playhead");
+    UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
+    UI_COLOR_CONFIG(GUI_COLOR_EDITING_CLONE,"Editing (will clone)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR,"Cursor");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR_HOVER,"Cursor (hovered)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_CURSOR_ACTIVE,"Cursor (clicked)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_SELECTION,"Selection");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_SELECTION_HOVER,"Selection (hovered)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_SELECTION_ACTIVE,"Selection (clicked)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_HI_1,"Highlight 1");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_HI_2,"Highlight 2");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ROW_INDEX,"Row number");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ROW_INDEX_HI1,"Row number (highlight 1)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ROW_INDEX_HI2,"Row number (highlight 2)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ACTIVE,"Note");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ACTIVE_HI1,"Note (highlight 1)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_ACTIVE_HI2,"Note (highlight 2)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INACTIVE,"Blank");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INACTIVE_HI1,"Blank (highlight 1)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INACTIVE_HI2,"Blank (highlight 2)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INS,"Instrument");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INS_WARN,"Instrument (invalid type)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_INS_ERROR,"Instrument (out of range)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_VOLUME_MIN,"Volume (0%)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_VOLUME_HALF,"Volume (50%)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_VOLUME_MAX,"Volume (100%)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_INVALID,"Invalid effect");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_PITCH,"Pitch effect");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_VOLUME,"Volume effect");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_PANNING,"Panning effect");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SONG,"Song effect");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_TIME,"Time effect");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SPEED,"Speed effect");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,"Primary specific effect");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"Secondary specific effect");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_MISC,"Miscellaneous");
+    UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_OFF,"Status: off/disabled");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_REL,"Status: off + macro rel");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_REL_ON,"Status: on + macro rel");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ON,"Status: on");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_VOLUME,"Status: volume");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_PITCH,"Status: pitch");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_PANNING,"Status: panning");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_SYS1,"Status: chip (primary)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_SYS2,"Status: chip (secondary)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MIXING,"Status: mixing");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DSP,"Status: DSP effect");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_NOTE,"Status: note altering");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MISC1,"Status: misc color 1");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MISC2,"Status: misc color 2");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_MISC3,"Status: misc color 3");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ATTACK,"Status: attack");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DECAY,"Status: decay");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_SUSTAIN,"Status: sustain");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_RELEASE,"Status: release");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DEC_LINEAR,"Status: decrease linear");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DEC_EXP,"Status: decrease exp");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_INC,"Status: increase");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_BENT,"Status: bent");
+    UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DIRECT,"Status: direct");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Sample Editor"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_BG,"Background");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_FG,"Waveform");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_TIME_BG,"Time background");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_TIME_FG,"Time text");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP,"Loop region");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CENTER,"Center guide");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_GRID,"Grid");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_SEL,"Selection");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_SEL_POINT,"Selection points");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE,"Preview needle");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE_PLAYING,"Playing needles");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP_POINT,"Loop markers");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_DISABLED,"Chip select: disabled");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_ENABLED,"Chip select: enabled");
+    UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_WARNING,"Chip select: enabled (failure)");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Pattern Manager"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_NULL,"Unallocated");
+    UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_UNUSED,"Unused");
+    UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_USED,"Used");
+    UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_OVERUSED,"Overused");
+    UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_EXTREMELY_OVERUSED,"Really overused");
+    UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_COMBO_BREAKER,"Combo Breaker");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Piano"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_PIANO_BACKGROUND,"Background");
+    UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP,"Upper key");
+    UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP_HIT,"Upper key (feedback)");
+    UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP_ACTIVE,"Upper key (pressed)");
+    UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM,"Lower key");
+    UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_HIT,"Lower key (feedback)");
+    UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE,"Lower key (pressed)");
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Clock"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_CLOCK_TEXT,"Clock text");
+    UI_COLOR_CONFIG(GUI_COLOR_CLOCK_BEAT_LOW,"Beat (off)");
+    UI_COLOR_CONFIG(GUI_COLOR_CLOCK_BEAT_HIGH,"Beat (on)");
+
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Patchbay"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORTSET,"PortSet");
+    UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORT,"Port");
+    UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORT_HIDDEN,"Port (hidden/unavailable)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_CONNECTION,"Connection (selected)");
+    UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_CONNECTION_BG,"Connection (other)");
+
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode(_L("Log Viewer"))) {
+    UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_ERROR,"Log level: Error");
+    UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_WARNING,"Log level: Warning");
+    UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_INFO,"Log level: Info");
+    UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_DEBUG,"Log level: Debug");
+    UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_TRACE,"Log level: Trace/Verbose");
+    ImGui::TreePop();
+  }
+  END_SECTION;
+}
       
       ImGui::EndTabBar();
     }
