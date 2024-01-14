@@ -3397,8 +3397,6 @@ void FurnaceGUI::drawSettings() {
         END_SECTION;
       }
 
-//TRANSLATED
-
 CONFIG_SECTION(_L("Color")) {
   // SUBSECTION COLOR SCHEME
   CONFIG_SUBSECTION(_L("Color scheme"));

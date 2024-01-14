@@ -20,6 +20,161 @@ void DivLocale::addTranslationsTemplate()
 {
     //everything in a string after the ## must remain as is
 
+    //progress tracker (# means done):
+    // # about.cpp
+    //   channels.cpp
+    //   chanOsc.cpp
+    //   clock.cpp
+    //   compatFlags.cpp
+    //   cursor.cpp
+    //   dataList.cpp
+    //   debug.cpp
+    //   debugWindow.cpp
+    //   doAction.cpp
+    //   editControls.cpp
+    //   editing.cpp
+    //   effectList.cpp
+    //   exportOptions.cpp
+    //   fileDialog.cpp
+    //   findReplace.cpp
+    //   fmPreview.cpp
+    //   fonts.cpp
+    //   gradient.cpp
+    //   grooves.cpp
+    //   gui.cpp
+    //   guiConst.cpp
+    //   image.cpp
+    //   image_icon.cpp
+    //   insEdit.cpp
+    //   intConst.cpp
+    //   log.cpp
+    //   macstuff.m
+    //   midiMap.cpp
+    //   mixer.cpp
+    //   newSong.cpp
+    //   orders.cpp
+    //   osc.cpp
+    //   patManager.cpp
+    //   pattern.cpp
+    //   piano.cpp
+    //   plot_nolerp.cpp
+    //   presets.cpp
+    //   regView.cpp
+    //   render.cpp
+    //   sampleEdit.cpp
+    //   scaling.cpp
+    // # settings.cpp
+    //   songInfo.cpp
+    //   songNotes.cpp
+    //   speed.cpp
+    //   spoiler.cpp
+    //   stats.cpp
+    //   subSongs.cpp
+    //   sysConf.cpp
+    //   sysEx.cpp
+    //   sysManager.cpp
+    //   sysPartNumber.cpp
+    //   sysPicker.cpp
+    //   util.cpp
+    //   volMeter.cpp
+    //   waveEdit.cpp
+    //   xyOsc.cpp
+
+    //ABOUT
+
+    strings["About Furnace"].plurals[0] = "=About Furnace";
+
+    strings["and Furnace-B developers"].plurals[0] = "=and Furnace-B developers";
+    strings["are proud to present"].plurals[0] = "=are proud to present";
+    strings["the biggest multi-system chiptune tracker!"].plurals[0] = "=the biggest multi-system chiptune tracker!";
+    strings["featuring DefleMask song compatibility."].plurals[0] = "=featuring DefleMask song compatibility.";
+
+    strings["> CREDITS <"].plurals[0] = "=> CREDITS <";
+    strings["-- program --"].plurals[0] = "=-- program --";
+    strings["A M 4 N (intro tune)"].plurals[0] = "=A M 4 N (intro tune)";
+    strings["-- graphics/UI design --"].plurals[0] = "=-- graphics/UI design --";
+    strings["-- documentation --"].plurals[0] = "=-- documentation --";
+    strings["-- demo songs --"].plurals[0] = "=-- demo songs --";
+    strings["-- additional feedback/fixes --"].plurals[0] = "=-- additional feedback/fixes --";
+
+    strings["powered by:"].plurals[0] = "=powered by:";
+    strings["Dear ImGui by Omar Cornut"].plurals[0] = "=Dear ImGui by Omar Cornut";
+    strings["SDL2 by Sam Lantinga"].plurals[0] = "=SDL2 by Sam Lantinga";
+    strings["zlib by Jean-loup Gailly"].plurals[0] = "=zlib by Jean-loup Gailly";
+    strings["and Mark Adler"].plurals[0] = "=and Mark Adler";
+    strings["libsndfile by Erik de Castro Lopo"].plurals[0] = "=libsndfile by Erik de Castro Lopo";
+    strings["Portable File Dialogs by Sam Hocevar"].plurals[0] = "=Portable File Dialogs by Sam Hocevar";
+    strings["Native File Dialog by Frogtoss Games"].plurals[0] = "=Native File Dialog by Frogtoss Games";
+    strings["Weak-JACK by x42"].plurals[0] = "=Weak-JACK by x42";
+    strings["RtMidi by Gary P. Scavone"].plurals[0] = "=RtMidi by Gary P. Scavone";
+    strings["FFTW by Matteo Frigo and Steven G. Johnson"].plurals[0] = "=FFTW by Matteo Frigo and Steven G. Johnson";
+    strings["backward-cpp by Google"].plurals[0] = "=backward-cpp by Google";
+    strings["adpcm by superctr"].plurals[0] = "=adpcm by superctr";
+    strings["Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"].plurals[0] = "=Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt";
+    strings["YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt"].plurals[0] = "=YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt";
+    strings["ymfm by Aaron Giles"].plurals[0] = "=ymfm by Aaron Giles";
+    strings["MAME SN76496 by Nicola Salmoria"].plurals[0] = "=MAME SN76496 by Nicola Salmoria";
+    strings["MAME AY-3-8910 by Couriersud"].plurals[0] = "=MAME AY-3-8910 by Couriersud";
+    strings["with AY8930 fixes by Eulous, cam900 and Grauw"].plurals[0] = "=with AY8930 fixes by Eulous, cam900 and Grauw";
+    strings["MAME SAA1099 by Juergen Buchmueller and Manuel Abadia"].plurals[0] = "=MAME SAA1099 by Juergen Buchmueller and Manuel Abadia";
+    strings["MAME Namco WSG by Nicola Salmoria and Aaron Giles"].plurals[0] = "=MAME Namco WSG by Nicola Salmoria and Aaron Giles";
+    strings["MAME RF5C68 core by Olivier Galibert and Aaron Giles"].plurals[0] = "=MAME RF5C68 core by Olivier Galibert and Aaron Giles";
+    strings["MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya"].plurals[0] = "=MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya";
+    strings["MAME MSM6258 core by Barry Rodewald"].plurals[0] = "=MAME MSM6258 core by Barry Rodewald";
+    strings["MAME YMZ280B core by Aaron Giles"].plurals[0] = "=MAME YMZ280B core by Aaron Giles";
+    strings["MAME GA20 core by Acho A. Tang and R. Belmont"].plurals[0] = "=MAME GA20 core by Acho A. Tang and R. Belmont";
+    strings["MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"].plurals[0] = "=MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert";
+    strings["SAASound by Dave Hooper and Simon Owen"].plurals[0] = "=SAASound by Dave Hooper and Simon Owen";
+    strings["SameBoy by Lior Halphon"].plurals[0] = "=SameBoy by Lior Halphon";
+    strings["Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"].plurals[0] = "=Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores";
+    strings["SNES DSP core by Blargg"].plurals[0] = "=SNES DSP core by Blargg";
+    strings["puNES (NES, MMC5 and FDS) by FHorse"].plurals[0] = "=puNES (NES, MMC5 and FDS) by FHorse";
+    strings["NSFPlay (NES and FDS) by Brad Smith and Brezza"].plurals[0] = "=NSFPlay (NES and FDS) by Brad Smith and Brezza";
+    strings["reSID by Dag Lem"].plurals[0] = "=reSID by Dag Lem";
+    strings["reSIDfp by Dag Lem, Antti Lankila"].plurals[0] = "=reSIDfp by Dag Lem, Antti Lankila";
+    strings["and Leandro Nini"].plurals[0] = "=and Leandro Nini";
+    strings["dSID by DefleMask Team based on jsSID"].plurals[0] = "=dSID by DefleMask Team based on jsSID";
+    strings["Stella by Stella Team"].plurals[0] = "=Stella by Stella Team";
+    strings["QSound emulator by superctr and Valley Bell"].plurals[0] = "=QSound emulator by superctr and Valley Bell";
+    strings["VICE VIC-20 sound core by Rami Rasanen and viznut"].plurals[0] = "=VICE VIC-20 sound core by Rami Rasanen and viznut";
+    strings["VICE TED sound core by Andreas Boose, Tibor Biczo"].plurals[0] = "=VICE TED sound core by Andreas Boose, Tibor Biczo";
+    strings["and Marco van den Heuvel"].plurals[0] = "=and Marco van den Heuvel";
+    strings["VERA sound core by Frank van den Hoef"].plurals[0] = "=VERA sound core by Frank van den Hoef";
+    strings["mzpokeysnd POKEY emulator by Michael Borisov"].plurals[0] = "=mzpokeysnd POKEY emulator by Michael Borisov";
+    strings["ASAP POKEY emulator by Piotr Fusik"].plurals[0] = "=ASAP POKEY emulator by Piotr Fusik";
+    strings["ported by laoo to C++"].plurals[0] = "=ported by laoo to C++";
+    strings["vgsound_emu (second version, modified version) by cam900"].plurals[0] = "=vgsound_emu (second version, modified version) by cam900";
+    strings["SM8521 emulator (modified version) by cam900"].plurals[0] = "=SM8521 emulator (modified version) by cam900";
+    strings["D65010G031 emulator (modified version) by cam900"].plurals[0] = "=D65010G031 emulator (modified version) by cam900";
+    strings["Namco C140/C219 emulator (modified version) by cam900"].plurals[0] = "=Namco C140/C219 emulator (modified version) by cam900";
+
+    strings["greetings to:"].plurals[0] = "=greetings to:";
+    strings["NEOART Costa Rica"].plurals[0] = "=NEOART Costa Rica";
+    strings["Xenium Demoparty"].plurals[0] = "=Xenium Demoparty";
+    strings["all members of Deflers of Noice!"].plurals[0] = "=all members of Deflers of Noice!";
+
+    strings["copyright © 2021-2023 tildearrow"].plurals[0] = "=copyright © 2021-2023 tildearrow";
+    strings["(and contributors)."].plurals[0] = "=(and contributors).";
+    strings["licensed under GPLv2+! see"].plurals[0] = "=licensed under GPLv2+! see";
+    strings["LICENSE for more information."].plurals[0] = "=LICENSE for more information.";
+
+    strings["help Furnace grow:"].plurals[0] = "=help Furnace grow:";
+    strings["help Furnace-B:"].plurals[0] = "=help Furnace-B:";
+
+    strings["contact tildearrow at:"].plurals[0] = "=contact tildearrow at:";
+
+    strings["disclaimer:"].plurals[0] = "=disclaimer:";
+    strings["despite the fact this program works"].plurals[0] = "=despite the fact this program works";
+    strings["with the .dmf file format, it is NOT"].plurals[0] = "=with the .dmf file format, it is NOT";
+    strings["affiliated with Delek or DefleMask in"].plurals[0] = "=affiliated with Delek or DefleMask in";
+    strings["any way, nor it is a replacement for"].plurals[0] = "=any way, nor it is a replacement for";
+    strings["the original program."].plurals[0] = "=the original program.";
+
+    strings["it also comes with ABSOLUTELY NO WARRANTY."].plurals[0] = "=it also comes with ABSOLUTELY NO WARRANTY.";
+
+    strings["thanks to all contributors/bug reporters!"].plurals[0] = "=thanks to all contributors/bug reporters!";
+
+
     //MENU BAR ITEMS
 
     strings["File##menubar"].plurals[0] = "=File##menubar";

@@ -264,7 +264,7 @@ const size_t aboutCount=sizeof(aboutLine)/sizeof(aboutLine[0]);
 
 void FurnaceGUI::drawAbout() {
   // do stuff
-  if (ImGui::Begin("About Furnace",NULL,ImGuiWindowFlags_Modal|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar, _L("About Furnace###About Furnace"))) {
+  if (ImGui::Begin(_L("About Furnace"),NULL,ImGuiWindowFlags_Modal|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar, _L("About Furnace###About Furnace"))) {
     ImGui::SetWindowPos(ImVec2(0,0));
     ImGui::SetWindowSize(ImVec2(canvasW,canvasH));
     ImGui::PushFont(bigFont);
@@ -318,24 +318,24 @@ void FurnaceGUI::drawAbout() {
     }
 
     for (size_t i=0; i<aboutCount; i++) {
-      double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(aboutLine[i]).x*0.5);
+      double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(_L(aboutLine[i])).x*0.5);
       double posY=(canvasH-aboutScroll+42*i*dpiScale);
       if (posY<-80*dpiScale || posY>canvasH) continue;
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX+dpiScale,posY+dpiScale),
-                  0xff000000,aboutLine[i]);
+                  0xff000000,_L(aboutLine[i]));
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX+dpiScale,posY-dpiScale),
-                  0xff000000,aboutLine[i]);
+                  0xff000000,_L(aboutLine[i]));
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX-dpiScale,posY+dpiScale),
-                  0xff000000,aboutLine[i]);
+                  0xff000000,_L(aboutLine[i]));
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX-dpiScale,posY-dpiScale),
-                  0xff000000,aboutLine[i]);
+                  0xff000000,_L(aboutLine[i]));
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX,posY),
-                  0xffffffff,aboutLine[i]);
+                  0xffffffff,_L(aboutLine[i]));
     }
     ImGui::PopFont();
 
