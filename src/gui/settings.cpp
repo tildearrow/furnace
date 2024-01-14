@@ -1646,10 +1646,42 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("POKEY");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2)) settingsChanged=true;
+          //if (ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2)) settingsChanged=true;
+          if (ImGui::BeginCombo("##POKEYCore",_L(pokeyCores[settings.pokeyCore])))
+          {
+            int i = 0;
+            while(pokeyCores[i])
+            {
+              if (ImGui::Selectable(_L(pokeyCores[i])))
+              {
+                settings.pokeyCore = i;
+                settingsChanged=true;
+              }
+
+              i++;
+            }
+
+            ImGui::EndCombo();
+          }
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##POKEYCoreRender",&settings.pokeyCoreRender,pokeyCores,2)) settingsChanged=true;
+          //if (ImGui::Combo("##POKEYCoreRender",&settings.pokeyCoreRender,pokeyCores,2)) settingsChanged=true;
+          if (ImGui::BeginCombo("##POKEYCoreRender",_L(pokeyCores[settings.pokeyCoreRender])))
+          {
+            int i = 0;
+            while(pokeyCores[i])
+            {
+              if (ImGui::Selectable(_L(pokeyCores[i])))
+              {
+                settings.pokeyCoreRender = i;
+                settingsChanged=true;
+              }
+
+              i++;
+            }
+
+            ImGui::EndCombo();
+          }
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
