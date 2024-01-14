@@ -907,6 +907,7 @@ src/gui/gui.cpp
 
 src/locale/locale.cpp
 src/locale/russian.cpp
+src/locale/template.cpp
 )
 
 if (WIN32 AND NOT SUPPORT_XP)
