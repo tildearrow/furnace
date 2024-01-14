@@ -67,7 +67,8 @@ const char* DivLocale::getText(const char* text)
     }
     else 
     {
-        return iter->second.plurals[0].c_str(); //found string. The default string (without plural form/context specified) lies in plurals[0]
+        const char* str = iter->second.plurals[0].c_str();
+        return strcmp(str, "") == 0 ? text : str; //found string. The default string (without plural form/context specified) lies in plurals[0]
     }
 }
 
