@@ -24,7 +24,7 @@ void DivLocale::addTranslationsTemplate()
     strings["Pattern###Pattern"].plurals[0] = "=Pattern###Pattern";
     strings["Orders###Orders"].plurals[0] = "=Orders###Orders";
     strings["Statistics###Statistics"].plurals[0] = "=Statistics###Statistics";
-    strings["Song Info###Song Information"].plurals[0] = "=Song Info###Song Information"; //this needs fixing
+    strings["Song Info###Song Information"].plurals[0] = "=Song Info###Song Information";
     strings["Subsongs###Subsongs"].plurals[0] = "=Subsongs###Subsongs";
     strings["About Furnace###About Furnace"].plurals[0] = "=About Furnace###About Furnace";
     strings["Channels###Channels"].plurals[0] = "=Channels###Channels";

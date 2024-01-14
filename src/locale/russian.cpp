@@ -24,45 +24,46 @@ void DivLocale::addTranslationsRussian()
     //WINDOW NAMES
 
     strings["Settings###Settings"].plurals[0] = "Настройки###Settings";
-    strings["Pattern###Pattern"].plurals[0] = "=Pattern###Pattern";
-    strings["Orders###Orders"].plurals[0] = "=Orders###Orders";
-    strings["Statistics###Statistics"].plurals[0] = "=Statistics###Statistics";
-    strings["Song Info###Song Information"].plurals[0] = "=Song Info###Song Information"; //this needs fixing
-    strings["Subsongs###Subsongs"].plurals[0] = "=Subsongs###Subsongs";
-    strings["About Furnace###About Furnace"].plurals[0] = "=About Furnace###About Furnace";
-    strings["Channels###Channels"].plurals[0] = "=Channels###Channels";
-    strings["Oscilloscope (per-channel)###Oscilloscope (per-channel)"].plurals[0] = "=Oscilloscope (per-channel)###Oscilloscope (per-channel)";
-    strings["Clock###Clock"].plurals[0] = "Clock###Clock";
-    strings["Compatibility Flags###Compatibility Flags"].plurals[0] = "=Compatibility Flags###Compatibility Flags";
-    strings["Instruments###Instruments"].plurals[0] = "=Instruments###Instruments";
-    strings["Wavetables###Wavetables"].plurals[0] = "=Wavetables###Wavetables";
-    strings["Debug###Debug"].plurals[0] = "=Debug###Debug";
-    strings["Samples###Samples"].plurals[0] = "=Samples###Samples";
-    strings["MobileEdit###MobileEdit"].plurals[0] = "=MobileEdit###MobileEdit";
-    strings["Mobile Controls###Mobile Controls"].plurals[0] = "=Mobile Controls###Mobile Controls";
-    strings["Mobile Menu###Mobile Menu"].plurals[0] = "=Mobile Menu###Mobile Menu";
-    strings["Play/Edit Controls###Play/Edit Controls"].plurals[0] = "=Play/Edit Controls###Play/Edit Controls";
-    strings["Play Controls###Play Controls"].plurals[0] = "=Play Controls###Play Controls";
-    strings["Edit Controls###Edit Controls"].plurals[0] = "=Edit Controls###Edit Controls";
-    strings["Effect List###Effect List"].plurals[0] = "=Effect List###Effect List";
-    strings["Find/Replace###Find/Replace"].plurals[0] = "=Find/Replace###Find/Replace";
-    strings["Grooves###Grooves"].plurals[0] = "=Grooves###Grooves";
-    strings["Instrument Editor###Instrument Editor"].plurals[0] = "=Instrument Editor###Instrument Editor";
-    strings["Log Viewer###Log Viewer"].plurals[0] = "=Log Viewer###Log Viewer";
-    strings["Mixer###Mixer"].plurals[0] = "=Mixer###Mixer";
-    strings["OrderSel###OrderSel"].plurals[0] = "=OrderSel###OrderSel";
-    strings["Oscilloscope###Oscilloscope"].plurals[0] = "=Oscilloscope###Oscilloscope";
-    strings["Pattern Manager###Pattern Manager"].plurals[0] = "=Pattern Manager###Pattern Manager";
-    strings["Input Pad###Input Pad"].plurals[0] = "=Input Pad###Input Pad";
-    strings["Register View###Register View"].plurals[0] = "=Register View###Register View";
-    strings["Sample Editor###Sample Editor"].plurals[0] = "=Sample Editor###Sample Editor";
-    strings["Song Comments###Song Comments"].plurals[0] = "=Song Comments###Song Comments";
-    strings["Speed###Speed"].plurals[0] = "=Speed###Speed";
-    strings["Spoiler###Spoiler"].plurals[0] = "=Spoiler###Spoiler";
-    strings["Chip Manager###Chip Manager"].plurals[0] = "=Chip Manager###Chip Manager";
-    strings["Volume Meter###Volume Meter"].plurals[0] = "=Volume Meter###Volume Meter";
-    strings["Wavetable Editor###Wavetable Editor"].plurals[0] = "=Wavetable Editor###Wavetable Editor";
-    strings["Oscilloscope (X-Y)###Oscilloscope (X-Y)"].plurals[0] = "=Oscilloscope (X-Y)###Oscilloscope (X-Y)";
+    strings["Pattern###Pattern"].plurals[0] = "Паттерны###Pattern";
+    strings["Orders###Orders"].plurals[0] = "Матр. патт.###Orders";
+    strings["Statistics###Statistics"].plurals[0] = "Статистика###Statistics";
+    strings["Song Info###Song Information"].plurals[0] = "О треке###Song Information";
+    strings["Subsongs###Subsongs"].plurals[0] = "Подпесни###Subsongs";
+    strings["About Furnace###About Furnace"].plurals[0] = "О Furnace###About Furnace";
+    strings["Channels###Channels"].plurals[0] = "Каналы###Channels";
+    strings["Oscilloscope (per-channel)###Oscilloscope (per-channel)"].plurals[0] = "Осц-фы (отд. кан.)###Oscilloscope (per-channel)";
+    strings["Clock###Clock"].plurals[0] = "Часы###Clock";
+    strings["Compatibility Flags###Compatibility Flags"].plurals[0] = "Флаги совм.###Compatibility Flags";
+    strings["Instruments###Instruments"].plurals[0] = "Инструменты###Instruments";
+    strings["Wavetables###Wavetables"].plurals[0] = "Волн. табл.###Wavetables";
+    strings["Debug###Debug"].plurals[0] = "Отладка###Debug";
+    strings["Samples###Samples"].plurals[0] = "Сэмплы###Samples";
+    strings["MobileEdit###MobileEdit"].plurals[0] = "Моб. меню ред.###MobileEdit";
+    strings["Mobile Controls###Mobile Controls"].plurals[0] = "Моб. элем. упр.###Mobile Controls";
+    strings["Mobile Menu###Mobile Menu"].plurals[0] = "Моб. меню###Mobile Menu";
+    strings["Play/Edit Controls###Play/Edit Controls"].plurals[0] = "Упр. ред./воспр.###Play/Edit Controls";
+    strings["Play Controls###Play Controls"].plurals[0] = "Упр. воспр.###Play Controls";
+    strings["Edit Controls###Edit Controls"].plurals[0] = "Упр. ред.###Edit Controls";
+    strings["Effect List###Effect List"].plurals[0] = "Спис. эффектов###Effect List";
+    strings["Find/Replace###Find/Replace"].plurals[0] = "Найти/Заменить###Find/Replace";
+    strings["Grooves###Grooves"].plurals[0] = "Ритм-паттерны###Grooves";
+    strings["Instrument Editor###Instrument Editor"].plurals[0] = "Ред. инструментов###Instrument Editor";
+    strings["Log Viewer###Log Viewer"].plurals[0] = "Просмотр логов###Log Viewer";
+    strings["Mixer###Mixer"].plurals[0] = "Микшер###Mixer";
+    strings["OrderSel###OrderSel"].plurals[0] = "Выб. матр. пат.###OrderSel";
+    strings["Oscilloscope###Oscilloscope"].plurals[0] = "Осциллограф###Oscilloscope";
+    strings["Pattern Manager###Pattern Manager"].plurals[0] = "Упр. паттернами###Pattern Manager";
+    strings["Input Pad###Input Pad"].plurals[0] = "Панель ввода###Input Pad";
+    strings["Piano###Piano"].plurals[0] = "Клав. пианино###Piano";
+    strings["Register View###Register View"].plurals[0] = "Просм. регистров###Register View";
+    strings["Sample Editor###Sample Editor"].plurals[0] = "Ред. сэмплов###Sample Editor";
+    strings["Song Comments###Song Comments"].plurals[0] = "Комм. трека###Song Comments";
+    strings["Speed###Speed"].plurals[0] = "Скорость###Speed";
+    strings["Spoiler###Spoiler"].plurals[0] = "Спойлер###Spoiler";
+    strings["Chip Manager###Chip Manager"].plurals[0] = "Упр. чипами###Chip Manager";
+    strings["Volume Meter###Volume Meter"].plurals[0] = "Изм. громкости###Volume Meter";
+    strings["Wavetable Editor###Wavetable Editor"].plurals[0] = "Ред. волн. таблиц###Wavetable Editor";
+    strings["Oscilloscope (X-Y)###Oscilloscope (X-Y)"].plurals[0] = "Осциллограф (X-Y)###Oscilloscope (X-Y)";
 
     //EFFECT LIST
 
@@ -224,7 +225,7 @@ void DivLocale::addTranslationsRussian()
     strings["channel"].plurals[2] = "каналов";
     strings["got: %d samples @ %.0fHz (%d %s)"].plurals[0] = "получено: %d сэмплов @ %.0fHz (%d %s)";
 
-    strings["Mixing"].plurals[0] = "Сведение";
+    strings["Mixing"].plurals[0] = "Микширование";
     strings["Quality"].plurals[0] = "Качество";
     strings["Software clipping"].plurals[0] = "Программное ограничение сигнала";
     strings["DC offset correction"].plurals[0] = "Коррекция смещения пост. составляющей";
