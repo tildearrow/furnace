@@ -155,7 +155,7 @@ void DivLocale::addTranslationsRussian()
     strings["File"].plurals[0] = "Файл";
     strings["Use system file picker"].plurals[0] = "Использовать диалоговое окно выбора файлов ОС";
     strings["Number of recent files"].plurals[0] = "Количество недавних файлов";
-    strings["Compress when saving"].plurals[0] = "Сжимать сохраняемые файоы";
+    strings["Compress when saving"].plurals[0] = "Сжимать сохраняемые файлы";
     strings["use zlib to compress saved songs."].plurals[0] = "использовать библиотеку zlib для сжатия сохраняемых модулей.";
     strings["Save unused patterns"].plurals[0] = "Сохранять неиспользуемые паттерны";
     strings["Use new pattern format when saving"].plurals[0] = "Использовать новый формат сохранения паттернов";
