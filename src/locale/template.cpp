@@ -174,6 +174,17 @@ void DivLocale::addTranslationsTemplate()
 
     strings["thanks to all contributors/bug reporters!"].plurals[0] = "=thanks to all contributors/bug reporters!";
 
+    //CHANNELS WINDOW
+
+    strings["Channels"].plurals[0] = "=Channels";
+    strings["Channels###Channels"].plurals[0] = "=Channels###Channels";
+    strings["Pat"].plurals[0] = "=Pat";
+    strings["Osc"].plurals[0] = "=Osc";
+    strings["Swap"].plurals[0] = "=Swap";
+    strings["Name"].plurals[0] = "=Name";
+    strings["Show in pattern"].plurals[0] = "=Show in pattern";
+    strings["Show in per-channel oscilloscope"].plurals[0] = "=Show in per-channel oscilloscope";
+    strings["%s #%d\n(drag to swap channels)"].plurals[0] = "=%s #%d\n(drag to swap channels)";
 
     //MENU BAR ITEMS
 
@@ -890,8 +901,6 @@ void DivLocale::addTranslationsTemplate()
     strings["Assets"].plurals[0] = "=Assets";
     strings["Display instrument type menu when adding instrument"].plurals[0] = "=Display instrument type menu when adding instrument";
     strings["Select asset after opening one"].plurals[0] = "=Select asset after opening one";
-
-    strings["TESTTEXT"].plurals[0] = "=TESTTEXT";
 
     //appearance section
 
