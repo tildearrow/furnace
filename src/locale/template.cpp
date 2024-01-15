@@ -26,8 +26,7 @@ void DivLocale::addTranslationsTemplate()
     // # chanOsc.cpp
     // # clock.cpp
     // # compatFlags.cpp
-    //   cursor.cpp
-    //   dataList.cpp
+    // # dataList.cpp
     //   debug.cpp
     //   debugWindow.cpp
     //   doAction.cpp
@@ -248,7 +247,6 @@ void DivLocale::addTranslationsTemplate()
 
     //COMPATIBILITY FLAGS
 
-
     strings["Compatibility Flags###Compatibility Flags"].plurals[0] = "=Compatibility Flags###Compatibility Flags";
     strings["these flags are designed to provide better DefleMask/older Furnace compatibility.\nit is recommended to disable most of these unless you rely on specific quirks."].plurals[0] = "=these flags are designed to provide better DefleMask/older Furnace compatibility.\nit is recommended to disable most of these unless you rely on specific quirks.";
     strings["DefleMask"].plurals[0] = "=DefleMask";
@@ -382,8 +380,6 @@ void DivLocale::addTranslationsTemplate()
     strings["Volume scaling rounds up"].plurals[0] = "=Volume scaling rounds up";
     strings["when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels"].plurals[0] = "=when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels";
 
-//progress on sifting through files alkphabetically
-
     //MENU BAR ITEMS
 
     strings["File##menubar"].plurals[0] = "=File##menubar";
@@ -396,6 +392,61 @@ void DivLocale::addTranslationsTemplate()
     strings["window##menubar"].plurals[0] = "=window##menubar";
     strings["Help##menubar"].plurals[0] = "=Help##menubar";
     strings["help##menubar"].plurals[0] = "=help##menubar";
+
+    //DATA LIST (ASSETS)
+
+    strings["Bug!"].plurals[0] = "=Bug!";
+    strings["Unknown"].plurals[0] = "=Unknown";
+    strings["duplicate"].plurals[0] = "=duplicate";
+    strings["replace..."].plurals[0] = "=replace...";
+    strings["save"].plurals[0] = "=save";
+    strings["save (.dmp)"].plurals[0] = "=save (.dmp)";
+    strings["delete"].plurals[0] = "=delete";
+    strings["%.2X: <INVALID>"].plurals[0] = "=%.2X: <INVALID>";
+    strings["- None -"].plurals[0] = "=- None -";
+    strings["out of memory for this sample!"].plurals[0] = "=out of memory for this sample!";
+    strings["make instrument"].plurals[0] = "=make instrument";
+    strings["Instruments###Instruments"].plurals[0] = "=Instruments###Instruments";
+    strings["Add"].plurals[0] = "=Add";
+    strings["Duplicate"].plurals[0] = "=Duplicate";
+    strings["Open"].plurals[0] = "=Open";
+    strings["replace instrument..."].plurals[0] = "=replace instrument...";
+    strings["load instrument from TX81Z"].plurals[0] = "=load instrument from TX81Z";
+    strings["replace wavetable..."].plurals[0] = "=replace wavetable...";
+    strings["replace sample..."].plurals[0] = "=replace sample...";
+    strings["import raw sample..."].plurals[0] = "=import raw sample...";
+    strings["import raw sample (replace)..."].plurals[0] = "=import raw sample (replace)...";
+    strings["load from TX81Z"].plurals[0] = "=load from TX81Z";
+    strings["Open (insert; right-click to replace)"].plurals[0] = "=Open (insert; right-click to replace)";
+    strings["Save"].plurals[0] = "=Save";
+    strings["save instrument as .dmp..."].plurals[0] = "=save instrument as .dmp...";
+    strings["save wavetable as .dmw..."].plurals[0] = "=save wavetable as .dmw...";
+    strings["save raw wavetable..."].plurals[0] = "=save raw wavetable...";
+    strings["save raw sample..."].plurals[0] = "=save raw sample...";
+    strings["save as .dmp..."].plurals[0] = "=save as .dmp...";
+    strings["Toggle folders/standard view"].plurals[0] = "=Toggle folders/standard view";
+    strings["Move up"].plurals[0] = "=Move up";
+    strings["Move down"].plurals[0] = "=Move down";
+    strings["Create"].plurals[0] = "=Create";
+    strings["New folder"].plurals[0] = "=New folder";
+    strings["Preview (right click to stop)"].plurals[0] = "=Preview (right click to stop)";
+    strings["Delete"].plurals[0] = "=Delete";
+    strings["Instruments"].plurals[0] = "=Instruments";
+    strings["<uncategorized>"].plurals[0] = "=<uncategorized>";
+    strings["rename..."].plurals[0] = "=rename...";
+    strings["delete"].plurals[0] = "=delete";
+    strings["Wavetables"].plurals[0] = "=Wavetables";
+    strings["Samples"].plurals[0] = "=Samples";
+    strings["Wavetables###Wavetables"].plurals[0] = "=Wavetables###Wavetables";
+    strings["save as .dmw..."].plurals[0] = "=save as .dmw...";
+    strings["save raw..."].plurals[0] = "=save raw...";
+    strings["Toggle folders/standard view"].plurals[0] = "=Toggle folders/standard view";
+    strings["Samples###Samples"].plurals[0] = "=Samples###Samples";
+    strings["import raw..."].plurals[0] = "=import raw...";
+    strings["import raw (replace)..."].plurals[0] = "=import raw (replace)...";
+    strings["save raw..."].plurals[0] = "=save raw...";
+
+//progress on sifting through files alkphabetically
 
     //WINDOW NAMES
 
