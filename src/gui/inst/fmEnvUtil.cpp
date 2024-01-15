@@ -863,7 +863,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       //addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
       addAALine(dl,pos1,pos2,color); //A
       addAALine(dl,pos2,posDecayRate0Pt,color); //Line from A to end of graph
-    } else if (d2r==0.0 || ((instType==DIV_INS_OPL || instType==DIV_INS_SNES) && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { //envelope stays at the sustain level forever
+    } else if (d2r==0.0 || ((instType==DIV_INS_OPL || instType==DIV_INS_SNES || instType == DIV_INS_ESFM) && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { //envelope stays at the sustain level forever
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
       addAALine(dl,pos3,posSLineHEnd,colorR); //draw horiz line through sustain level
       addAALine(dl,pos3,posSLineVEnd,colorR); //draw vert. line through sustain level
