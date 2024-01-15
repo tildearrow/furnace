@@ -23,6 +23,321 @@ void DivLocale::addTranslationsRussian()
     strings["%d apple"].plurals[1] = "%d яблока";
     strings["%d apple"].plurals[2] = "%d яблок";
 
+    //ABOUT
+
+    strings["About Furnace"].plurals[0] = "=About Furnace";
+
+    strings["and Furnace-B developers"].plurals[0] = "=and Furnace-B developers";
+    strings["are proud to present"].plurals[0] = "=are proud to present";
+    strings["the biggest multi-system chiptune tracker!"].plurals[0] = "=the biggest multi-system chiptune tracker!";
+    strings["featuring DefleMask song compatibility."].plurals[0] = "=featuring DefleMask song compatibility.";
+
+    strings["> CREDITS <"].plurals[0] = "=> CREDITS <";
+    strings["-- program --"].plurals[0] = "=-- program --";
+    strings["A M 4 N (intro tune)"].plurals[0] = "=A M 4 N (intro tune)";
+    strings["-- graphics/UI design --"].plurals[0] = "=-- graphics/UI design --";
+    strings["-- documentation --"].plurals[0] = "=-- documentation --";
+    strings["-- demo songs --"].plurals[0] = "=-- demo songs --";
+    strings["-- additional feedback/fixes --"].plurals[0] = "=-- additional feedback/fixes --";
+
+    strings["powered by:"].plurals[0] = "=powered by:";
+    strings["Dear ImGui by Omar Cornut"].plurals[0] = "=Dear ImGui by Omar Cornut";
+    strings["SDL2 by Sam Lantinga"].plurals[0] = "=SDL2 by Sam Lantinga";
+    strings["zlib by Jean-loup Gailly"].plurals[0] = "=zlib by Jean-loup Gailly";
+    strings["and Mark Adler"].plurals[0] = "=and Mark Adler";
+    strings["libsndfile by Erik de Castro Lopo"].plurals[0] = "=libsndfile by Erik de Castro Lopo";
+    strings["Portable File Dialogs by Sam Hocevar"].plurals[0] = "=Portable File Dialogs by Sam Hocevar";
+    strings["Native File Dialog by Frogtoss Games"].plurals[0] = "=Native File Dialog by Frogtoss Games";
+    strings["Weak-JACK by x42"].plurals[0] = "=Weak-JACK by x42";
+    strings["RtMidi by Gary P. Scavone"].plurals[0] = "=RtMidi by Gary P. Scavone";
+    strings["FFTW by Matteo Frigo and Steven G. Johnson"].plurals[0] = "=FFTW by Matteo Frigo and Steven G. Johnson";
+    strings["backward-cpp by Google"].plurals[0] = "=backward-cpp by Google";
+    strings["adpcm by superctr"].plurals[0] = "=adpcm by superctr";
+    strings["Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"].plurals[0] = "=Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt";
+    strings["YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt"].plurals[0] = "=YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt";
+    strings["ymfm by Aaron Giles"].plurals[0] = "=ymfm by Aaron Giles";
+    strings["MAME SN76496 by Nicola Salmoria"].plurals[0] = "=MAME SN76496 by Nicola Salmoria";
+    strings["MAME AY-3-8910 by Couriersud"].plurals[0] = "=MAME AY-3-8910 by Couriersud";
+    strings["with AY8930 fixes by Eulous, cam900 and Grauw"].plurals[0] = "=with AY8930 fixes by Eulous, cam900 and Grauw";
+    strings["MAME SAA1099 by Juergen Buchmueller and Manuel Abadia"].plurals[0] = "=MAME SAA1099 by Juergen Buchmueller and Manuel Abadia";
+    strings["MAME Namco WSG by Nicola Salmoria and Aaron Giles"].plurals[0] = "=MAME Namco WSG by Nicola Salmoria and Aaron Giles";
+    strings["MAME RF5C68 core by Olivier Galibert and Aaron Giles"].plurals[0] = "=MAME RF5C68 core by Olivier Galibert and Aaron Giles";
+    strings["MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya"].plurals[0] = "=MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya";
+    strings["MAME MSM6258 core by Barry Rodewald"].plurals[0] = "=MAME MSM6258 core by Barry Rodewald";
+    strings["MAME YMZ280B core by Aaron Giles"].plurals[0] = "=MAME YMZ280B core by Aaron Giles";
+    strings["MAME GA20 core by Acho A. Tang and R. Belmont"].plurals[0] = "=MAME GA20 core by Acho A. Tang and R. Belmont";
+    strings["MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"].plurals[0] = "=MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert";
+    strings["SAASound by Dave Hooper and Simon Owen"].plurals[0] = "=SAASound by Dave Hooper and Simon Owen";
+    strings["SameBoy by Lior Halphon"].plurals[0] = "=SameBoy by Lior Halphon";
+    strings["Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"].plurals[0] = "=Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores";
+    strings["SNES DSP core by Blargg"].plurals[0] = "=SNES DSP core by Blargg";
+    strings["puNES (NES, MMC5 and FDS) by FHorse"].plurals[0] = "=puNES (NES, MMC5 and FDS) by FHorse";
+    strings["NSFPlay (NES and FDS) by Brad Smith and Brezza"].plurals[0] = "=NSFPlay (NES and FDS) by Brad Smith and Brezza";
+    strings["reSID by Dag Lem"].plurals[0] = "=reSID by Dag Lem";
+    strings["reSIDfp by Dag Lem, Antti Lankila"].plurals[0] = "=reSIDfp by Dag Lem, Antti Lankila";
+    strings["and Leandro Nini"].plurals[0] = "=and Leandro Nini";
+    strings["dSID by DefleMask Team based on jsSID"].plurals[0] = "=dSID by DefleMask Team based on jsSID";
+    strings["Stella by Stella Team"].plurals[0] = "=Stella by Stella Team";
+    strings["QSound emulator by superctr and Valley Bell"].plurals[0] = "=QSound emulator by superctr and Valley Bell";
+    strings["VICE VIC-20 sound core by Rami Rasanen and viznut"].plurals[0] = "=VICE VIC-20 sound core by Rami Rasanen and viznut";
+    strings["VICE TED sound core by Andreas Boose, Tibor Biczo"].plurals[0] = "=VICE TED sound core by Andreas Boose, Tibor Biczo";
+    strings["and Marco van den Heuvel"].plurals[0] = "=and Marco van den Heuvel";
+    strings["VERA sound core by Frank van den Hoef"].plurals[0] = "=VERA sound core by Frank van den Hoef";
+    strings["mzpokeysnd POKEY emulator by Michael Borisov"].plurals[0] = "=mzpokeysnd POKEY emulator by Michael Borisov";
+    strings["ASAP POKEY emulator by Piotr Fusik"].plurals[0] = "=ASAP POKEY emulator by Piotr Fusik";
+    strings["ported by laoo to C++"].plurals[0] = "=ported by laoo to C++";
+    strings["vgsound_emu (second version, modified version) by cam900"].plurals[0] = "=vgsound_emu (second version, modified version) by cam900";
+    strings["SM8521 emulator (modified version) by cam900"].plurals[0] = "=SM8521 emulator (modified version) by cam900";
+    strings["D65010G031 emulator (modified version) by cam900"].plurals[0] = "=D65010G031 emulator (modified version) by cam900";
+    strings["Namco C140/C219 emulator (modified version) by cam900"].plurals[0] = "=Namco C140/C219 emulator (modified version) by cam900";
+
+    strings["greetings to:"].plurals[0] = "=greetings to:";
+    strings["NEOART Costa Rica"].plurals[0] = "=NEOART Costa Rica";
+    strings["Xenium Demoparty"].plurals[0] = "=Xenium Demoparty";
+    strings["all members of Deflers of Noice!"].plurals[0] = "=all members of Deflers of Noice!";
+
+    strings["copyright © 2021-2023 tildearrow"].plurals[0] = "=copyright © 2021-2023 tildearrow";
+    strings["(and contributors)."].plurals[0] = "=(and contributors).";
+    strings["licensed under GPLv2+! see"].plurals[0] = "=licensed under GPLv2+! see";
+    strings["LICENSE for more information."].plurals[0] = "=LICENSE for more information.";
+
+    strings["help Furnace grow:"].plurals[0] = "=help Furnace grow:";
+    strings["help Furnace-B:"].plurals[0] = "=help Furnace-B:";
+
+    strings["contact tildearrow at:"].plurals[0] = "=contact tildearrow at:";
+
+    strings["disclaimer:"].plurals[0] = "=disclaimer:";
+    strings["despite the fact this program works"].plurals[0] = "=despite the fact this program works";
+    strings["with the .dmf file format, it is NOT"].plurals[0] = "=with the .dmf file format, it is NOT";
+    strings["affiliated with Delek or DefleMask in"].plurals[0] = "=affiliated with Delek or DefleMask in";
+    strings["any way, nor it is a replacement for"].plurals[0] = "=any way, nor it is a replacement for";
+    strings["the original program."].plurals[0] = "=the original program.";
+
+    strings["it also comes with ABSOLUTELY NO WARRANTY."].plurals[0] = "=it also comes with ABSOLUTELY NO WARRANTY.";
+
+    strings["thanks to all contributors/bug reporters!"].plurals[0] = "=thanks to all contributors/bug reporters!";
+
+    //CHANNELS WINDOW
+
+    strings["Channels"].plurals[0] = "=Channels";
+    strings["Channels###Channels"].plurals[0] = "=Channels###Channels";
+    strings["Pat"].plurals[0] = "=Pat";
+    strings["Osc"].plurals[0] = "=Osc";
+    strings["Swap"].plurals[0] = "=Swap";
+    strings["Name"].plurals[0] = "=Name";
+    strings["Show in pattern"].plurals[0] = "=Show in pattern";
+    strings["Show in per-channel oscilloscope"].plurals[0] = "=Show in per-channel oscilloscope";
+    strings["%s #%d\n(drag to swap channels)"].plurals[0] = "=%s #%d\n(drag to swap channels)";
+
+    //OSCILLOSCOPE (PER-CHANNEL)
+
+    strings["None (0%)"].plurals[0] = "=None (0%)";
+    strings["None (50%)"].plurals[0] = "=None (50%)";
+    strings["None (100%)"].plurals[0] = "=None (100%)";
+    strings["Frequency"].plurals[0] = "=Frequency";
+    strings["Volume"].plurals[0] = "=Volume";
+    strings["Channel"].plurals[0] = "=Channel";
+    strings["Brightness"].plurals[0] = "=Brightness";
+    strings["Note Trigger"].plurals[0] = "=Note Trigger";
+    strings["Off"].plurals[0] = "=Off";
+    strings["Mode 1"].plurals[0] = "=Mode 1";
+    strings["Mode 2"].plurals[0] = "=Mode 2";
+    strings["Mode 3"].plurals[0] = "=Mode 3";
+
+    strings["Oscilloscope (per-channel)###Oscilloscope (per-channel)"].plurals[0] = "=Oscilloscope (per-channel)###Oscilloscope (per-channel)";
+
+    strings["Columns"].plurals[0] = "=Columns";
+    strings["Size (ms)"].plurals[0] = "=Size (ms)";
+    strings["Automatic columns"].plurals[0] = "=Automatic columns";
+    strings["Center waveform"].plurals[0] = "=Center waveform";
+    strings["Randomize phase on note"].plurals[0] = "=Randomize phase on note";
+    strings["Amplitude"].plurals[0] = "=Amplitude";
+    strings["Gradient"].plurals[0] = "=Gradient";
+    strings["Color"].plurals[0] = "=Color";
+    strings["Distance"].plurals[0] = "=Distance";
+    strings["Spread"].plurals[0] = "=Spread";
+    strings["Remove"].plurals[0] = "=Remove";
+    strings["Background"].plurals[0] = "=Background";
+    strings["X Axis##AxisX"].plurals[0] = "=X Axis##AxisX";
+    strings["Y Axis##AxisY"].plurals[0] = "=Y Axis##AxisY";
+    strings["Color"].plurals[0] = "=Color";
+    strings["Text format:"].plurals[0] = "=Text format:";
+
+    strings["format guide:\n"
+            "- %c: channel name\n"
+            "- %C: channel short name\n"
+            "- %d: channel number (starting from 0)\n"
+            "- %D: channel number (starting from 1)\n"
+            "- %n: channel note\n"
+            "- %i: instrument name\n"
+            "- %I: instrument number (decimal)\n"
+            "- %x: instrument number (hex)\n"
+            "- %s: chip name\n"
+            "- %p: chip part number\n"
+            "- %S: chip ID\n"
+            "- %v: volume (decimal)\n"
+            "- %V: volume (percentage)\n"
+            "- %b: volume (hex)\n"
+            "- %%: percent sign"].plurals[0] = 
+
+            "=format guide:\n"
+            "=- %c: channel name\n"
+            "=- %C: channel short name\n"
+            "=- %d: channel number (starting from 0)\n"
+            "=- %D: channel number (starting from 1)\n"
+            "=- %n: channel note\n"
+            "=- %i: instrument name\n"
+            "=- %I: instrument number (decimal)\n"
+            "=- %x: instrument number (hex)\n"
+            "=- %s: chip name\n"
+            "=- %p: chip part number\n"
+            "=- %S: chip ID\n"
+            "=- %v: volume (decimal)\n"
+            "=- %V: volume (percentage)\n"
+            "=- %b: volume (hex)\n"
+            "=- %%: percent sign";
+
+    strings["Text color"].plurals[0] = "=Text color";
+    strings["Error!"].plurals[0] = "=Error!";
+    strings["\nquiet"].plurals[0] = "=\nquiet";
+
+    //CLOCK
+
+    //COMPATIBILITY FLAGS
+
+    strings["Compatibility Flags###Compatibility Flags"].plurals[0] = "=Compatibility Flags###Compatibility Flags";
+    strings["these flags are designed to provide better DefleMask/older Furnace compatibility.\nit is recommended to disable most of these unless you rely on specific quirks."].plurals[0] = "=these flags are designed to provide better DefleMask/older Furnace compatibility.\nit is recommended to disable most of these unless you rely on specific quirks.";
+    strings["DefleMask"].plurals[0] = "=DefleMask";
+    strings["Limit slide range"].plurals[0] = "=Limit slide range";
+    strings["when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves."].plurals[0] = "=when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves.";
+    strings["Compatible noise layout on NES and PC Engine"].plurals[0] = "=Compatible noise layout on NES and PC Engine";
+    strings["use a rather unusual compatible noise frequency layout.\nremoves some noise frequencies on PC Engine."].plurals[0] = "=use a rather unusual compatible noise frequency layout.\nremoves some noise frequencies on PC Engine.";
+    strings["Game Boy instrument duty is wave volume"].plurals[0] = "=Game Boy instrument duty is wave volume";
+    strings["if enabled, an instrument with duty macro in the wave channel will be mapped to wavetable volume."].plurals[0] = "=if enabled, an instrument with duty macro in the wave channel will be mapped to wavetable volume.";
+    strings["Restart macro on portamento"].plurals[0] = "=Restart macro on portamento";
+    strings["when enabled, a portamento effect will reset the channel's macro if used in combination with a note."].plurals[0] = "=when enabled, a portamento effect will reset the channel's macro if used in combination with a note.";
+    strings["Legacy volume slides"].plurals[0] = "=Legacy volume slides";
+    strings["simulate glitchy volume slide behavior by silently overflowing the volume when the slide goes below 0."].plurals[0] = "=simulate glitchy volume slide behavior by silently overflowing the volume when the slide goes below 0.";
+    strings["Compatible arpeggio"].plurals[0] = "=Compatible arpeggio";
+    strings["delay arpeggio by one tick on every new note."].plurals[0] = "=delay arpeggio by one tick on every new note.";
+    strings["Broken DAC mode"].plurals[0] = "=Broken DAC mode";
+    strings["when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing."].plurals[0] = "=when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing.";
+    strings["Broken speed alternation"].plurals[0] = "=Broken speed alternation";
+    strings["determines next speed based on whether the row is odd/even instead of alternating between speeds."].plurals[0] = "=determines next speed based on whether the row is odd/even instead of alternating between speeds.";
+    strings["Ignore duplicate slide effects"].plurals[0] = "=Ignore duplicate slide effects";
+    strings["if this is on, only the first slide of a row in a channel will be considered."].plurals[0] = "=if this is on, only the first slide of a row in a channel will be considered.";
+    strings["Ignore 0Dxx on the last order"].plurals[0] = "=Ignore 0Dxx on the last order";
+    strings["if this is on, a jump to next row effect will not take place when it is on the last order of a song."].plurals[0] = "=if this is on, a jump to next row effect will not take place when it is on the last order of a song.";
+    strings["Buggy portamento after pitch slide"].plurals[0] = "=Buggy portamento after pitch slide";
+    strings["simulates a bug in where portamento does not work after sliding."].plurals[0] = "=simulates a bug in where portamento does not work after sliding.";
+    strings["FM pitch slide octave boundary odd behavior"].plurals[0] = "=FM pitch slide octave boundary odd behavior";
+    strings["if this is on, a pitch slide that crosses the octave boundary will stop for one tick and then continue from the nearest octave boundary.\nfor .dmf compatibility."].plurals[0] = "=if this is on, a pitch slide that crosses the octave boundary will stop for one tick and then continue from the nearest octave boundary.\nfor .dmf compatibility.";
+    strings["Don't apply Game Boy envelope on note-less instrument change"].plurals[0] = "=Don't apply Game Boy envelope on note-less instrument change";
+    strings["if this is on, an instrument change will not affect the envelope."].plurals[0] = "=if this is on, an instrument change will not affect the envelope.";
+    strings["Ignore DAC mode change outside of intended channel in ExtCh mode"].plurals[0] = "=Ignore DAC mode change outside of intended channel in ExtCh mode";
+    strings["if this is on, 17xx has no effect on the operator channels in YM2612."].plurals[0] = "=if this is on, 17xx has no effect on the operator channels in YM2612.";
+    strings["E1xy/E2xy also take priority over slide stops"].plurals[0] = "=E1xy/E2xy also take priority over slide stops";
+    strings["does this make any sense by now?"].plurals[0] = "=does this make any sense by now?";
+    strings["E1xy/E2xy stop when repeating the same note"].plurals[0] = "=E1xy/E2xy stop when repeating the same note";
+    strings["ugh, if only this wasn't a thing..."].plurals[0] = "=ugh, if only this wasn't a thing...";
+    strings["SN76489 duty macro always resets phase"].plurals[0] = "=SN76489 duty macro always resets phase";
+    strings["when enabled, duty macro will always reset phase, even if its value hasn't changed."].plurals[0] = "=when enabled, duty macro will always reset phase, even if its value hasn't changed.";
+    strings["Broken volume scaling strategy"].plurals[0] = "=Broken volume scaling strategy";
+    strings["when enabled:\n- log scaling: multiply\n- linear scaling: subtract\nwhen disabled:\n- log scaling: subtract\n- linear scaling: multiply"].plurals[0] = "=when enabled:\n- log scaling: multiply\n- linear scaling: subtract\nwhen disabled:\n- log scaling: subtract\n- linear scaling: multiply";
+    strings["Don't persist volume macro after it finishes"].plurals[0] = "=Don't persist volume macro after it finishes";
+    strings["when enabled, a value in the volume column that happens after the volume macro is done will disregard the macro."].plurals[0] = "=when enabled, a value in the volume column that happens after the volume macro is done will disregard the macro.";
+    strings["Broken output volume on instrument change"].plurals[0] = "=Broken output volume on instrument change";
+    strings["if enabled, no checks for the presence of a volume macro will be made.\nthis will cause the last macro value to linger unless a value in the volume column is present."].plurals[0] = "=if enabled, no checks for the presence of a volume macro will be made.\nthis will cause the last macro value to linger unless a value in the volume column is present.";
+    strings["Broken output volume - Episode 2 (PLEASE KEEP ME DISABLED)"].plurals[0] = "=Broken output volume - Episode 2 (PLEASE KEEP ME DISABLED)";
+    strings["these compatibility flags are getting SO damn ridiculous and out of control.\nas you may have guessed, this one exists due to yet ANOTHER DefleMask-specific behavior.\nplease keep this off at all costs, because I will not support it when ROM export comes.\noh, and don't start an argument out of it. Furnace isn't a DefleMask replacement, and no,\nI am not trying to make it look like one with all these flags.\n\noh, and what about the other flags that don't have to do with DefleMask?\nthose are for .mod import, future FamiTracker import and personal taste!\n\nend of rant"].plurals[0] = "=these compatibility flags are getting SO damn ridiculous and out of control.\nas you may have guessed, this one exists due to yet ANOTHER DefleMask-specific behavior.\nplease keep this off at all costs, because I will not support it when ROM export comes.\noh, and don't start an argument out of it. Furnace isn't a DefleMask replacement, and no,\nI am not trying to make it look like one with all these flags.\n\noh, and what about the other flags that don't have to do with DefleMask?\nthose are for .mod import, future FamiTracker import and personal taste!\n\nend of rant";
+    strings["Treat SN76489 periods under 8 as 1"].plurals[0] = "=Treat SN76489 periods under 8 as 1";
+    strings["when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range."].plurals[0] = "=when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range.";
+    strings["Old Furnace"].plurals[0] = "=Old Furnace";
+    strings["Arpeggio inhibits non-porta slides"].plurals[0] = "=Arpeggio inhibits non-porta slides";
+    strings["behavior changed in 0.5.5"].plurals[0] = "=behavior changed in 0.5.5";
+    strings["Wack FM algorithm macro"].plurals[0] = "=Wack FM algorithm macro";
+    strings["behavior changed in 0.5.5"].plurals[0] = "=behavior changed in 0.5.5";
+    strings["Broken shortcut slides (E1xy/E2xy)"].plurals[0] = "=Broken shortcut slides (E1xy/E2xy)";
+    strings["behavior changed in 0.5.7"].plurals[0] = "=behavior changed in 0.5.7";
+    strings["Stop portamento on note off"].plurals[0] = "=Stop portamento on note off";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Don't allow instrument change during slides"].plurals[0] = "=Don't allow instrument change during slides";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Don't reset note to base on arpeggio stop"].plurals[0] = "=Don't reset note to base on arpeggio stop";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["ExtCh channel status is not shared among operators"].plurals[0] = "=ExtCh channel status is not shared among operators";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Disable new SegaPCM features (macros and better panning)"].plurals[0] = "=Disable new SegaPCM features (macros and better panning)";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Old FM octave boundary behavior"].plurals[0] = "=Old FM octave boundary behavior";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Disable OPN2 DAC volume control"].plurals[0] = "=Disable OPN2 DAC volume control";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Broken initial position of portamento after arpeggio"].plurals[0] = "=Broken initial position of portamento after arpeggio";
+    strings["behavior changed in 0.6pre1.5"].plurals[0] = "=behavior changed in 0.6pre1.5";
+    strings["Disable new sample features"].plurals[0] = "=Disable new sample features";
+    strings["behavior changed in 0.6pre2"].plurals[0] = "=behavior changed in 0.6pre2";
+    strings["Old arpeggio macro + pitch slide strategy"].plurals[0] = "=Old arpeggio macro + pitch slide strategy";
+    strings["behavior changed in 0.6pre2"].plurals[0] = "=behavior changed in 0.6pre2";
+    strings["Broken portamento during legato"].plurals[0] = "=Broken portamento during legato";
+    strings["behavior changed in 0.6pre4"].plurals[0] = "=behavior changed in 0.6pre4";
+    strings["Broken macros in some FM chips after note off"].plurals[0] = "=Broken macros in some FM chips after note off";
+    strings["behavior changed in 0.6pre5"].plurals[0] = "=behavior changed in 0.6pre5";
+    strings["Pre-note does not take effects into consideration"].plurals[0] = "=Pre-note does not take effects into consideration";
+    strings["behavior changed in 0.6pre9"].plurals[0] = "=behavior changed in 0.6pre9";
+    strings["Disable new NES DPCM features"].plurals[0] = "=Disable new NES DPCM features";
+    strings["behavior changed in 0.6.1"].plurals[0] = "=behavior changed in 0.6.1";
+    strings[".mod import"].plurals[0] = "=.mod import";
+    strings["Don't slide on the first tick of a row"].plurals[0] = "=Don't slide on the first tick of a row";
+    strings["simulates ProTracker's behavior of not applying volume/pitch slides on the first tick of a row."].plurals[0] = "=simulates ProTracker's behavior of not applying volume/pitch slides on the first tick of a row.";
+    strings["Reset arpeggio position on row change"].plurals[0] = "=Reset arpeggio position on row change";
+    strings["simulates ProTracker's behavior of arpeggio being bound to the current tick of a row."].plurals[0] = "=simulates ProTracker's behavior of arpeggio being bound to the current tick of a row.";
+    strings["Pitch/Playback"].plurals[0] = "=Pitch/Playback";
+    strings["Pitch linearity:"].plurals[0] = "=Pitch linearity:";
+    strings["None"].plurals[0] = "=None";
+    strings["like ProTracker/FamiTracker"].plurals[0] = "=like ProTracker/FamiTracker";
+    strings["Partial (only 04xy/E5xx)"].plurals[0] = "=Partial (only 04xy/E5xx)";
+    strings["like DefleMask\n\nthis pitch linearity mode is deprecated due to:\n- excessive complexity\n- lack of possible optimization\n\nit is recommended to change it now because I will remove this option in the future!"].plurals[0] = "=like DefleMask\n\nthis pitch linearity mode is deprecated due to:\n- excessive complexity\n- lack of possible optimization\n\nit is recommended to change it now because I will remove this option in the future!";
+    strings["Full"].plurals[0] = "=Full";
+    strings["like Impulse Tracker"].plurals[0] = "=like Impulse Tracker";
+    strings["Pitch slide speed multiplier"].plurals[0] = "=Pitch slide speed multiplier";
+    strings["Loop modality:"].plurals[0] = "=Loop modality:";
+    strings["Reset channels"].plurals[0] = "=Reset channels";
+    strings["select to reset channels on loop. may trigger a voltage click on every loop!"].plurals[0] = "=select to reset channels on loop. may trigger a voltage click on every loop!";
+    strings["Soft reset channels"].plurals[0] = "=Soft reset channels";
+    strings["select to turn channels off on loop."].plurals[0] = "=select to turn channels off on loop.";
+    strings["Do nothing"].plurals[0] = "=Do nothing";
+    strings["select to not reset channels on loop."].plurals[0] = "=select to not reset channels on loop.";
+    strings["Cut/delay effect policy:"].plurals[0] = "=Cut/delay effect policy:";
+    strings["Strict"].plurals[0] = "=Strict";
+    strings["only when time is less than speed (like DefleMask/ProTracker)"].plurals[0] = "=only when time is less than speed (like DefleMask/ProTracker)";
+    strings["Strict (old)"].plurals[0] = "=Strict (old)";
+    strings["only when time is less than or equal to speed (original buggy behavior)"].plurals[0] = "=only when time is less than or equal to speed (original buggy behavior)";
+    strings["Lax"].plurals[0] = "=Lax";
+    strings["no checks"].plurals[0] = "=no checks";
+    strings["Simultaneous jump (0B+0D) treatment:"].plurals[0] = "=Simultaneous jump (0B+0D) treatment:";
+    strings["Normal"].plurals[0] = "=Normal";
+    strings["accept 0B+0D to jump to a specific row of an order"].plurals[0] = "=accept 0B+0D to jump to a specific row of an order";
+    strings["Old Furnace"].plurals[0] = "=Old Furnace";
+    strings["only accept the first jump effect"].plurals[0] = "=only accept the first jump effect";
+    strings["DefleMask"].plurals[0] = "=DefleMask";
+    strings["only accept 0Dxx"].plurals[0] = "=only accept 0Dxx";
+    strings["Other"].plurals[0] = "=Other";
+    strings["Auto-insert one tick gap between notes"].plurals[0] = "=Auto-insert one tick gap between notes";
+    strings["when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.\n\nineffective on C64."].plurals[0] = "=when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.\n\nineffective on C64.";
+    strings["Don't reset slides after note off"].plurals[0] = "=Don't reset slides after note off";
+    strings["when enabled, note off will not reset the channel's slide effect."].plurals[0] = "=when enabled, note off will not reset the channel's slide effect.";
+    strings["Don't reset portamento after reaching target"].plurals[0] = "=Don't reset portamento after reaching target";
+    strings["when enabled, the slide effect will not be disabled after it reaches its target."].plurals[0] = "=when enabled, the slide effect will not be disabled after it reaches its target.";
+    strings["Continuous vibrato"].plurals[0] = "=Continuous vibrato";
+    strings["when enabled, vibrato phase/position will not be reset on a new note."].plurals[0] = "=when enabled, vibrato phase/position will not be reset on a new note.";
+    strings["Pitch macro is not linear"].plurals[0] = "=Pitch macro is not linear";
+    strings["when enabled, the pitch macro of an instrument is in frequency/period space."].plurals[0] = "=when enabled, the pitch macro of an instrument is in frequency/period space.";
+    strings["Reset arpeggio effect position on new note"].plurals[0] = "=Reset arpeggio effect position on new note";
+    strings["when enabled, arpeggio effect (00xy) position is reset on a new note."].plurals[0] = "=when enabled, arpeggio effect (00xy) position is reset on a new note.";
+    strings["Volume scaling rounds up"].plurals[0] = "=Volume scaling rounds up";
+    strings["when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels"].plurals[0] = "=when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels";
+
     //MENU BAR ITEMS
 
     strings["File##menubar"].plurals[0] = "Файл##menubar";
@@ -35,6 +350,59 @@ void DivLocale::addTranslationsRussian()
     strings["window##menubar"].plurals[0] = "окно##menubar";
     strings["Help##menubar"].plurals[0] = "Справка##menubar";
     strings["help##menubar"].plurals[0] = "справка##menubar";
+
+    //DATA LIST (ASSETS)
+
+    strings["Bug!"].plurals[0] = "=Bug!";
+    strings["Unknown"].plurals[0] = "=Unknown";
+    strings["duplicate"].plurals[0] = "=duplicate";
+    strings["replace..."].plurals[0] = "=replace...";
+    strings["save"].plurals[0] = "=save";
+    strings["save (.dmp)"].plurals[0] = "=save (.dmp)";
+    strings["delete"].plurals[0] = "=delete";
+    strings["%.2X: <INVALID>"].plurals[0] = "=%.2X: <INVALID>";
+    strings["- None -"].plurals[0] = "=- None -";
+    strings["out of memory for this sample!"].plurals[0] = "=out of memory for this sample!";
+    strings["make instrument"].plurals[0] = "=make instrument";
+    strings["Instruments###Instruments"].plurals[0] = "=Instruments###Instruments";
+    strings["Add"].plurals[0] = "=Add";
+    strings["Duplicate"].plurals[0] = "=Duplicate";
+    strings["Open"].plurals[0] = "=Open";
+    strings["replace instrument..."].plurals[0] = "=replace instrument...";
+    strings["load instrument from TX81Z"].plurals[0] = "=load instrument from TX81Z";
+    strings["replace wavetable..."].plurals[0] = "=replace wavetable...";
+    strings["replace sample..."].plurals[0] = "=replace sample...";
+    strings["import raw sample..."].plurals[0] = "=import raw sample...";
+    strings["import raw sample (replace)..."].plurals[0] = "=import raw sample (replace)...";
+    strings["load from TX81Z"].plurals[0] = "=load from TX81Z";
+    strings["Open (insert; right-click to replace)"].plurals[0] = "=Open (insert; right-click to replace)";
+    strings["Save"].plurals[0] = "=Save";
+    strings["save instrument as .dmp..."].plurals[0] = "=save instrument as .dmp...";
+    strings["save wavetable as .dmw..."].plurals[0] = "=save wavetable as .dmw...";
+    strings["save raw wavetable..."].plurals[0] = "=save raw wavetable...";
+    strings["save raw sample..."].plurals[0] = "=save raw sample...";
+    strings["save as .dmp..."].plurals[0] = "=save as .dmp...";
+    strings["Toggle folders/standard view"].plurals[0] = "=Toggle folders/standard view";
+    strings["Move up"].plurals[0] = "=Move up";
+    strings["Move down"].plurals[0] = "=Move down";
+    strings["Create"].plurals[0] = "=Create";
+    strings["New folder"].plurals[0] = "=New folder";
+    strings["Preview (right click to stop)"].plurals[0] = "=Preview (right click to stop)";
+    strings["Delete"].plurals[0] = "=Delete";
+    strings["Instruments"].plurals[0] = "=Instruments";
+    strings["<uncategorized>"].plurals[0] = "=<uncategorized>";
+    strings["rename..."].plurals[0] = "=rename...";
+    strings["delete"].plurals[0] = "=delete";
+    strings["Wavetables"].plurals[0] = "=Wavetables";
+    strings["Samples"].plurals[0] = "=Samples";
+    strings["Wavetables###Wavetables"].plurals[0] = "=Wavetables###Wavetables";
+    strings["save as .dmw..."].plurals[0] = "=save as .dmw...";
+    strings["save raw..."].plurals[0] = "=save raw...";
+    strings["Toggle folders/standard view"].plurals[0] = "=Toggle folders/standard view";
+    strings["Samples###Samples"].plurals[0] = "=Samples###Samples";
+    strings["import raw..."].plurals[0] = "=import raw...";
+    strings["import raw (replace)..."].plurals[0] = "=import raw (replace)...";
+    strings["save raw..."].plurals[0] = "=save raw...";
 
     //WINDOW NAMES
 
@@ -647,7 +1015,97 @@ void DivLocale::addTranslationsRussian()
     strings["Orders"].plurals[0] = "=Orders";
     strings["Sample editor"].plurals[0] = "=Sample editor";
 
-    //interface selection
+    //interface section
+
+    strings["Interface"].plurals[0] = "=Interface";
+
+    strings["Layout"].plurals[0] = "=Layout";
+    strings["Workspace layout:"].plurals[0] = "=Workspace layout:";
+    strings["Import"].plurals[0] = "=Import";
+    strings["Export"].plurals[0] = "=Export";
+    strings["Reset"].plurals[0] = "=Reset";
+    strings["Are you sure you want to reset the workspace layout?"].plurals[0] = "=Are you sure you want to reset the workspace layout?";
+    strings["Allow docking editors"].plurals[0] = "=Allow docking editors";
+    strings["Remember window position"].plurals[0] = "=Remember window position";
+    strings["remembers the window's last position on start-up."].plurals[0] = "=remembers the window's last position on start-up.";
+    strings["Only allow window movement when clicking on title bar"].plurals[0] = "=Only allow window movement when clicking on title bar";
+    strings["Center pop-up windows"].plurals[0] = "=Center pop-up windows";
+    strings["Play/edit controls layout:"].plurals[0] = "=Play/edit controls layout:";
+    strings["Classic##ecl0"].plurals[0] = "=Classic##ecl0";
+    strings["Compact##ecl1"].plurals[0] = "=Compact##ecl1";
+    strings["Compact (vertical)##ecl2"].plurals[0] = "=Compact (vertical)##ecl2";
+    strings["Split##ecl3"].plurals[0] = "=Split##ecl3";
+    strings["Position of buttons in Orders:"].plurals[0] = "=Position of buttons in Orders:";
+    strings["Top##obp0"].plurals[0] = "=Top##obp0";
+    strings["Left##obp1"].plurals[0] = "=Left##obp1";
+    strings["Right##obp2"].plurals[0] = "=Right##obp2";
+
+    strings["Mouse"].plurals[0] = "=Mouse";
+    strings["Double-click time (seconds)"].plurals[0] = "=Double-click time (seconds)";
+    strings["Don't raise pattern editor on click"].plurals[0] = "=Don't raise pattern editor on click";
+    strings["Focus pattern editor when selecting instrument"].plurals[0] = "=Focus pattern editor when selecting instrument";
+    strings["Note preview behavior:"].plurals[0] = "=Note preview behavior:";
+    strings["Never##npb0"].plurals[0] = "=Never##npb0";
+    strings["When cursor is in Note column##npb1"].plurals[0] = "=When cursor is in Note column##npb1";
+    strings["When cursor is in Note column or not in edit mode##npb2"].plurals[0] = "=When cursor is in Note column or not in edit mode##npb2";
+    strings["Always##npb3"].plurals[0] = "=Always##npb3";
+    strings["Allow dragging selection:"].plurals[0] = "=Allow dragging selection:";
+    strings["No##dms0"].plurals[0] = "=No##dms0";
+    strings["Yes##dms1"].plurals[0] = "=Yes##dms1";
+    strings["Yes (while holding Ctrl only)##dms2"].plurals[0] = "=Yes (while holding Ctrl only)##dms2";
+    strings["Toggle channel solo on:"].plurals[0] = "=Toggle channel solo on:";
+    strings["Right-click or double-click##soloA"].plurals[0] = "=Right-click or double-click##soloA";
+    strings["Right-click##soloR"].plurals[0] = "=Right-click##soloR";
+    strings["Double-click##soloD"].plurals[0] = "=Double-click##soloD";
+    strings["Double click selects entire column"].plurals[0] = "=Double click selects entire column";
+
+    strings["Cursor behavior"].plurals[0] = "=Cursor behavior";
+    strings["Insert pushes entire channel row"].plurals[0] = "=Insert pushes entire channel row";
+    strings["Pull delete affects entire channel row"].plurals[0] = "=Pull delete affects entire channel row";
+    strings["Push value when overwriting instead of clearing it"].plurals[0] = "=Push value when overwriting instead of clearing it";
+    strings["Effect input behavior:"].plurals[0] = "=Effect input behavior:";
+    strings["Move down##eicb0"].plurals[0] = "=Move down##eicb0";
+    strings["Move to effect value (otherwise move down)##eicb1"].plurals[0] = "=Move to effect value (otherwise move down)##eicb1";
+    strings["Move to effect value/next effect and wrap around##eicb2"].plurals[0] = "=Move to effect value/next effect and wrap around##eicb2";
+    strings["Delete effect value when deleting effect"].plurals[0] = "=Delete effect value when deleting effect";
+    strings["Change current instrument when changing instrument column (absorb)"].plurals[0] = "=Change current instrument when changing instrument column (absorb)";
+    strings["Remove instrument value when inserting note off/release"].plurals[0] = "=Remove instrument value when inserting note off/release";
+    strings["Remove volume value when inserting note off/release"].plurals[0] = "=Remove volume value when inserting note off/release";
+
+    strings["Cursor movement"].plurals[0] = "=Cursor movement";
+    strings["Wrap horizontally:"].plurals[0] = "=Wrap horizontally:";
+    strings["No##wrapH0"].plurals[0] = "=No##wrapH0";
+    strings["Yes##wrapH1"].plurals[0] = "=Yes##wrapH1";
+    strings["Yes, and move to next/prev row##wrapH2"].plurals[0] = "=Yes, and move to next/prev row##wrapH2";
+    strings["Wrap vertically:"].plurals[0] = "=Wrap vertically:";
+    strings["No##wrapV0"].plurals[0] = "=No##wrapV0";
+    strings["Yes##wrapV1"].plurals[0] = "=Yes##wrapV1";
+    strings["Yes, and move to next/prev pattern##wrapV2"].plurals[0] = "=Yes, and move to next/prev pattern##wrapV2";
+    strings["Yes, and move to next/prev pattern (wrap around)##wrapV2"].plurals[0] = "=Yes, and move to next/prev pattern (wrap around)##wrapV2";
+    strings["Cursor movement keys behavior:"].plurals[0] = "=Cursor movement keys behavior:";
+    strings["Move by one##cmk0"].plurals[0] = "=Move by one##cmk0";
+    strings["Move by Edit Step##cmk1"].plurals[0] = "=Move by Edit Step##cmk1";
+    strings["Move cursor by edit step on delete"].plurals[0] = "=Move cursor by edit step on delete";
+    strings["Move cursor by edit step on insert (push)"].plurals[0] = "=Move cursor by edit step on insert (push)";
+    strings["Move cursor up on backspace-delete"].plurals[0] = "=Move cursor up on backspace-delete";
+    strings["Move cursor to end of clipboard content when pasting"].plurals[0] = "=Move cursor to end of clipboard content when pasting";
+
+    strings["Scrolling"].plurals[0] = "=Scrolling";
+    strings["Change order when scrolling outside of pattern bounds:"].plurals[0] = "=Change order when scrolling outside of pattern bounds:";
+    strings["No##pscroll0"].plurals[0] = "=No##pscroll0";
+    strings["Yes##pscroll1"].plurals[0] = "=Yes##pscroll1";
+    strings["Yes, and wrap around song##pscroll2"].plurals[0] = "=Yes, and wrap around song##pscroll2";
+    strings["Cursor follows current order when moving it"].plurals[0] = "=Cursor follows current order when moving it";
+    strings["applies when playback is stopped."].plurals[0] = "=applies when playback is stopped.";
+    strings["Don't scroll when moving cursor"].plurals[0] = "=Don't scroll when moving cursor";
+    strings["Move cursor with scroll wheel:"].plurals[0] = "=Move cursor with scroll wheel:";
+    strings["No##csw0"].plurals[0] = "=No##csw0";
+    strings["Yes##csw1"].plurals[0] = "=Yes##csw1";
+    strings["Inverted##csw2"].plurals[0] = "=Inverted##csw2";
+
+    strings["Assets"].plurals[0] = "=Assets";
+    strings["Display instrument type menu when adding instrument"].plurals[0] = "=Display instrument type menu when adding instrument";
+    strings["Select asset after opening one"].plurals[0] = "=Select asset after opening one";
 
     //appearance section
 
@@ -863,5 +1321,336 @@ void DivLocale::addTranslationsRussian()
     strings["Wrap text in song/subsong comments window."].plurals[0] = "Переносить текст на новую строку в окне информации/комментариев к композиции.";
     strings["Frame shading in text windows"].plurals[0] = "Градиент в текстовых окнах";
     strings["Apply frame shading to the multiline text fields\nsuch as song/subsong info/comments."].plurals[0] = "Применять градиент в окне информации/комментариев к композиции.";
+
+    // color section
+
+    strings["Color"].plurals[0] = "=Color";
+
+    strings["Color scheme"].plurals[0] = "=Color scheme";
+    strings["Import"].plurals[0] = "=Import";
+    strings["Export"].plurals[0] = "=Export";
+    strings["Reset defaults"].plurals[0] = "=Reset defaults";
+    strings["Are you sure you want to reset the color scheme?"].plurals[0] = "=Are you sure you want to reset the color scheme?";
+    strings["Interface"].plurals[0] = "=Interface";
+    strings["Frame shading"].plurals[0] = "=Frame shading";
+
+    // section names are grouped here for convenience (hopefully)
+    strings["Interface (other)"].plurals[0] = "=Interface (other)";
+    strings["Miscellaneous"].plurals[0] = "=Miscellaneous";
+    strings["File Picker (built-in)"].plurals[0] = "=File Picker (built-in)";
+    strings["Oscilloscope"].plurals[0] = "=Oscilloscope";
+    strings["Wave (non-mono)"].plurals[0] = "=Wave (non-mono)";
+    strings["Volume Meter"].plurals[0] = "=Volume Meter";
+    strings["Orders"].plurals[0] = "=Orders";
+    strings["Envelope View"].plurals[0] = "=Envelope View";
+    strings["FM Editor"].plurals[0] = "=FM Editor";
+    strings["Macro Editor"].plurals[0] = "=Macro Editor";
+    strings["Instrument Types"].plurals[0] = "=Instrument Types";
+    strings["Channel"].plurals[0] = "=Channel";
+    strings["Pattern"].plurals[0] = "=Pattern";
+    strings["Sample Editor"].plurals[0] = "=Sample Editor";
+    strings["Pattern Manager"].plurals[0] = "=Pattern Manager";
+    strings["Piano"].plurals[0] = "=Piano";
+    strings["Clock"].plurals[0] = "=Clock";
+    strings["Patchbay"].plurals[0] = "=Patchbay";
+    strings["Log Viewer"].plurals[0] = "=Log Viewer";
+
+    // these are messy, but the ##CC_GUI... is required.
+    strings["Button##CC_GUI_COLOR_BUTTON"].plurals[0] = "=Button##CC_GUI_COLOR_BUTTON";
+    strings["Button (hovered)##CC_GUI_COLOR_BUTTON_HOVER"].plurals[0] = "=Button (hovered)##CC_GUI_COLOR_BUTTON_HOVER";
+    strings["Button (active)##CC_GUI_COLOR_BUTTON_ACTIVE"].plurals[0] = "=Button (active)##CC_GUI_COLOR_BUTTON_ACTIVE";
+    strings["Tab##CC_GUI_COLOR_TAB"].plurals[0] = "=Tab##CC_GUI_COLOR_TAB";
+    strings["Tab (hovered)##CC_GUI_COLOR_TAB_HOVER"].plurals[0] = "=Tab (hovered)##CC_GUI_COLOR_TAB_HOVER";
+    strings["Tab (active)##CC_GUI_COLOR_TAB_ACTIVE"].plurals[0] = "=Tab (active)##CC_GUI_COLOR_TAB_ACTIVE";
+    strings["Tab (unfocused)##CC_GUI_COLOR_TAB_UNFOCUSED"].plurals[0] = "=Tab (unfocused)##CC_GUI_COLOR_TAB_UNFOCUSED";
+    strings["Tab (unfocused and active)##CC_GUI_COLOR_TAB_UNFOCUSED_ACTIVE"].plurals[0] = "=Tab (unfocused and active)##CC_GUI_COLOR_TAB_UNFOCUSED_ACTIVE";
+    strings["ImGui header##CC_GUI_COLOR_IMGUI_HEADER"].plurals[0] = "=ImGui header##CC_GUI_COLOR_IMGUI_HEADER";
+    strings["ImGui header (hovered)##CC_GUI_COLOR_IMGUI_HEADER_HOVER"].plurals[0] = "=ImGui header (hovered)##CC_GUI_COLOR_IMGUI_HEADER_HOVER";
+    strings["ImGui header (active)##CC_GUI_COLOR_IMGUI_HEADER_ACTIVE"].plurals[0] = "=ImGui header (active)##CC_GUI_COLOR_IMGUI_HEADER_ACTIVE";
+    strings["Resize grip##CC_GUI_COLOR_RESIZE_GRIP"].plurals[0] = "=Resize grip##CC_GUI_COLOR_RESIZE_GRIP";
+    strings["Resize grip (hovered)##CC_GUI_COLOR_RESIZE_GRIP_HOVER"].plurals[0] = "=Resize grip (hovered)##CC_GUI_COLOR_RESIZE_GRIP_HOVER";
+    strings["Resize grip (active)##CC_GUI_COLOR_RESIZE_GRIP_ACTIVE"].plurals[0] = "=Resize grip (active)##CC_GUI_COLOR_RESIZE_GRIP_ACTIVE";
+    strings["Widget background##CC_GUI_COLOR_WIDGET_BACKGROUND"].plurals[0] = "=Widget background##CC_GUI_COLOR_WIDGET_BACKGROUND";
+    strings["Widget background (hovered)##CC_GUI_COLOR_WIDGET_BACKGROUND_HOVER"].plurals[0] = "=Widget background (hovered)##CC_GUI_COLOR_WIDGET_BACKGROUND_HOVER";
+    strings["Widget background (active)##CC_GUI_COLOR_WIDGET_BACKGROUND_ACTIVE"].plurals[0] = "=Widget background (active)##CC_GUI_COLOR_WIDGET_BACKGROUND_ACTIVE";
+    strings["Slider grab##CC_GUI_COLOR_SLIDER_GRAB"].plurals[0] = "=Slider grab##CC_GUI_COLOR_SLIDER_GRAB";
+    strings["Slider grab (active)##CC_GUI_COLOR_SLIDER_GRAB_ACTIVE"].plurals[0] = "=Slider grab (active)##CC_GUI_COLOR_SLIDER_GRAB_ACTIVE";
+    strings["Title background (active)##CC_GUI_COLOR_TITLE_BACKGROUND_ACTIVE"].plurals[0] = "=Title background (active)##CC_GUI_COLOR_TITLE_BACKGROUND_ACTIVE";
+    strings["Checkbox/radio button mark##CC_GUI_COLOR_CHECK_MARK"].plurals[0] = "=Checkbox/radio button mark##CC_GUI_COLOR_CHECK_MARK";
+    strings["Text selection##CC_GUI_COLOR_TEXT_SELECTION"].plurals[0] = "=Text selection##CC_GUI_COLOR_TEXT_SELECTION";
+    strings["Line plot##CC_GUI_COLOR_PLOT_LINES"].plurals[0] = "=Line plot##CC_GUI_COLOR_PLOT_LINES";
+    strings["Line plot (hovered)##CC_GUI_COLOR_PLOT_LINES_HOVER"].plurals[0] = "=Line plot (hovered)##CC_GUI_COLOR_PLOT_LINES_HOVER";
+    strings["Histogram plot##CC_GUI_COLOR_PLOT_HISTOGRAM"].plurals[0] = "=Histogram plot##CC_GUI_COLOR_PLOT_HISTOGRAM";
+    strings["Histogram plot (hovered)##CC_GUI_COLOR_PLOT_HISTOGRAM_HOVER"].plurals[0] = "=Histogram plot (hovered)##CC_GUI_COLOR_PLOT_HISTOGRAM_HOVER";
+    strings["Table row (even)##CC_GUI_COLOR_TABLE_ROW_EVEN"].plurals[0] = "=Table row (even)##CC_GUI_COLOR_TABLE_ROW_EVEN";
+    strings["Table row (odd)##CC_GUI_COLOR_TABLE_ROW_ODD"].plurals[0] = "=Table row (odd)##CC_GUI_COLOR_TABLE_ROW_ODD";
+
+    strings["Background##CC_GUI_COLOR_BACKGROUND"].plurals[0] = "=Background##CC_GUI_COLOR_BACKGROUND";
+    strings["Window background##CC_GUI_COLOR_FRAME_BACKGROUND"].plurals[0] = "=Window background##CC_GUI_COLOR_FRAME_BACKGROUND";
+    strings["Sub-window background##CC_GUI_COLOR_FRAME_BACKGROUND_CHILD"].plurals[0] = "=Sub-window background##CC_GUI_COLOR_FRAME_BACKGROUND_CHILD";
+    strings["Pop-up background##CC_GUI_COLOR_FRAME_BACKGROUND_POPUP"].plurals[0] = "=Pop-up background##CC_GUI_COLOR_FRAME_BACKGROUND_POPUP";
+    strings["Modal backdrop##CC_GUI_COLOR_MODAL_BACKDROP"].plurals[0] = "=Modal backdrop##CC_GUI_COLOR_MODAL_BACKDROP";
+    strings["Header##CC_GUI_COLOR_HEADER"].plurals[0] = "=Header##CC_GUI_COLOR_HEADER";
+    strings["Text##CC_GUI_COLOR_TEXT"].plurals[0] = "=Text##CC_GUI_COLOR_TEXT";
+    strings["Text (disabled)##CC_GUI_COLOR_TEXT_DISABLED"].plurals[0] = "=Text (disabled)##CC_GUI_COLOR_TEXT_DISABLED";
+    strings["Title bar (inactive)##CC_GUI_COLOR_TITLE_INACTIVE"].plurals[0] = "=Title bar (inactive)##CC_GUI_COLOR_TITLE_INACTIVE";
+    strings["Title bar (collapsed)##CC_GUI_COLOR_TITLE_COLLAPSED"].plurals[0] = "=Title bar (collapsed)##CC_GUI_COLOR_TITLE_COLLAPSED";
+    strings["Menu bar##CC_GUI_COLOR_MENU_BAR"].plurals[0] = "=Menu bar##CC_GUI_COLOR_MENU_BAR";
+    strings["Border##CC_GUI_COLOR_BORDER"].plurals[0] = "=Border##CC_GUI_COLOR_BORDER";
+    strings["Border shadow##CC_GUI_COLOR_BORDER_SHADOW"].plurals[0] = "=Border shadow##CC_GUI_COLOR_BORDER_SHADOW";
+    strings["Scroll bar##CC_GUI_COLOR_SCROLL"].plurals[0] = "=Scroll bar##CC_GUI_COLOR_SCROLL";
+    strings["Scroll bar (hovered)##CC_GUI_COLOR_SCROLL_HOVER"].plurals[0] = "=Scroll bar (hovered)##CC_GUI_COLOR_SCROLL_HOVER";
+    strings["Scroll bar (clicked)##CC_GUI_COLOR_SCROLL_ACTIVE"].plurals[0] = "=Scroll bar (clicked)##CC_GUI_COLOR_SCROLL_ACTIVE";
+    strings["Scroll bar background##CC_GUI_COLOR_SCROLL_BACKGROUND"].plurals[0] = "=Scroll bar background##CC_GUI_COLOR_SCROLL_BACKGROUND";
+    strings["Separator##CC_GUI_COLOR_SEPARATOR"].plurals[0] = "=Separator##CC_GUI_COLOR_SEPARATOR";
+    strings["Separator (hover)##CC_GUI_COLOR_SEPARATOR_HOVER"].plurals[0] = "=Separator (hover)##CC_GUI_COLOR_SEPARATOR_HOVER";
+    strings["Separator (active)##CC_GUI_COLOR_SEPARATOR_ACTIVE"].plurals[0] = "=Separator (active)##CC_GUI_COLOR_SEPARATOR_ACTIVE";
+    strings["Docking preview##CC_GUI_COLOR_DOCKING_PREVIEW"].plurals[0] = "=Docking preview##CC_GUI_COLOR_DOCKING_PREVIEW";
+    strings["Docking empty##CC_GUI_COLOR_DOCKING_EMPTY"].plurals[0] = "=Docking empty##CC_GUI_COLOR_DOCKING_EMPTY";
+    strings["Table header##CC_GUI_COLOR_TABLE_HEADER"].plurals[0] = "=Table header##CC_GUI_COLOR_TABLE_HEADER";
+    strings["Table border (hard)##CC_GUI_COLOR_TABLE_BORDER_HARD"].plurals[0] = "=Table border (hard)##CC_GUI_COLOR_TABLE_BORDER_HARD";
+    strings["Table border (soft)##CC_GUI_COLOR_TABLE_BORDER_SOFT"].plurals[0] = "=Table border (soft)##CC_GUI_COLOR_TABLE_BORDER_SOFT";
+    strings["Drag and drop target##CC_GUI_COLOR_DRAG_DROP_TARGET"].plurals[0] = "=Drag and drop target##CC_GUI_COLOR_DRAG_DROP_TARGET";
+    strings["Window switcher (highlight)##CC_GUI_COLOR_NAV_WIN_HIGHLIGHT"].plurals[0] = "=Window switcher (highlight)##CC_GUI_COLOR_NAV_WIN_HIGHLIGHT";
+    strings["Window switcher backdrop##CC_GUI_COLOR_NAV_WIN_BACKDROP"].plurals[0] = "=Window switcher backdrop##CC_GUI_COLOR_NAV_WIN_BACKDROP";
+
+    strings["Toggle on##CC_GUI_COLOR_TOGGLE_ON"].plurals[0] = "=Toggle on##CC_GUI_COLOR_TOGGLE_ON";
+    strings["Toggle off##CC_GUI_COLOR_TOGGLE_OFF"].plurals[0] = "=Toggle off##CC_GUI_COLOR_TOGGLE_OFF";
+    strings["Playback status##CC_GUI_COLOR_PLAYBACK_STAT"].plurals[0] = "=Playback status##CC_GUI_COLOR_PLAYBACK_STAT";
+    strings["Destructive hint##CC_GUI_COLOR_DESTRUCTIVE"].plurals[0] = "=Destructive hint##CC_GUI_COLOR_DESTRUCTIVE";
+    strings["Warning hint##CC_GUI_COLOR_WARNING"].plurals[0] = "=Warning hint##CC_GUI_COLOR_WARNING";
+    strings["Error hint##CC_GUI_COLOR_ERROR"].plurals[0] = "=Error hint##CC_GUI_COLOR_ERROR";
+
+    strings["Directory##CC_GUI_COLOR_FILE_DIR"].plurals[0] = "=Directory##CC_GUI_COLOR_FILE_DIR";
+    strings["Song (native)##CC_GUI_COLOR_FILE_SONG_NATIVE"].plurals[0] = "=Song (native)##CC_GUI_COLOR_FILE_SONG_NATIVE";
+    strings["Song (import)##CC_GUI_COLOR_FILE_SONG_IMPORT"].plurals[0] = "=Song (import)##CC_GUI_COLOR_FILE_SONG_IMPORT";
+    strings["Instrument##CC_GUI_COLOR_FILE_INSTR"].plurals[0] = "=Instrument##CC_GUI_COLOR_FILE_INSTR";
+    strings["Audio##CC_GUI_COLOR_FILE_AUDIO"].plurals[0] = "=Audio##CC_GUI_COLOR_FILE_AUDIO";
+    strings["Wavetable##CC_GUI_COLOR_FILE_WAVE"].plurals[0] = "=Wavetable##CC_GUI_COLOR_FILE_WAVE";
+    strings["VGM##CC_GUI_COLOR_FILE_VGM"].plurals[0] = "=VGM##CC_GUI_COLOR_FILE_VGM";
+    strings["ZSM##CC_GUI_COLOR_FILE_ZSM"].plurals[0] = "=ZSM##CC_GUI_COLOR_FILE_ZSM";
+    strings["Font##CC_GUI_COLOR_FILE_FONT"].plurals[0] = "=Font##CC_GUI_COLOR_FILE_FONT";
+    strings["Other##CC_GUI_COLOR_FILE_OTHER"].plurals[0] = "=Other##CC_GUI_COLOR_FILE_OTHER";
+
+    strings["Border##CC_GUI_COLOR_OSC_BORDER"].plurals[0] = "=Border##CC_GUI_COLOR_OSC_BORDER";
+    strings["Background (top-left)##CC_GUI_COLOR_OSC_BG1"].plurals[0] = "=Background (top-left)##CC_GUI_COLOR_OSC_BG1";
+    strings["Background (top-right)##CC_GUI_COLOR_OSC_BG2"].plurals[0] = "=Background (top-right)##CC_GUI_COLOR_OSC_BG2";
+    strings["Background (bottom-left)##CC_GUI_COLOR_OSC_BG3"].plurals[0] = "=Background (bottom-left)##CC_GUI_COLOR_OSC_BG3";
+    strings["Background (bottom-right)##CC_GUI_COLOR_OSC_BG4"].plurals[0] = "=Background (bottom-right)##CC_GUI_COLOR_OSC_BG4";
+    strings["Waveform##CC_GUI_COLOR_OSC_WAVE"].plurals[0] = "=Waveform##CC_GUI_COLOR_OSC_WAVE";
+    strings["Waveform (clip)##CC_GUI_COLOR_OSC_WAVE_PEAK"].plurals[0] = "=Waveform (clip)##CC_GUI_COLOR_OSC_WAVE_PEAK";
+    strings["Reference##CC_GUI_COLOR_OSC_REF"].plurals[0] = "=Reference##CC_GUI_COLOR_OSC_REF";
+    strings["Guide##CC_GUI_COLOR_OSC_GUIDE"].plurals[0] = "=Guide##CC_GUI_COLOR_OSC_GUIDE";
+
+    strings["Low##CC_GUI_COLOR_VOLMETER_LOW"].plurals[0] = "=Low##CC_GUI_COLOR_VOLMETER_LOW";
+    strings["High##CC_GUI_COLOR_VOLMETER_HIGH"].plurals[0] = "=High##CC_GUI_COLOR_VOLMETER_HIGH";
+    strings["Clip##CC_GUI_COLOR_VOLMETER_PEAK"].plurals[0] = "=Clip##CC_GUI_COLOR_VOLMETER_PEAK";
+
+    strings["Order number##CC_GUI_COLOR_ORDER_ROW_INDEX"].plurals[0] = "=Order number##CC_GUI_COLOR_ORDER_ROW_INDEX";
+    strings["Playing order background##CC_GUI_COLOR_ORDER_ACTIVE"].plurals[0] = "=Playing order background##CC_GUI_COLOR_ORDER_ACTIVE";
+    strings["Song loop##CC_GUI_COLOR_SONG_LOOP"].plurals[0] = "=Song loop##CC_GUI_COLOR_SONG_LOOP";
+    strings["Selected order##CC_GUI_COLOR_ORDER_SELECTED"].plurals[0] = "=Selected order##CC_GUI_COLOR_ORDER_SELECTED";
+    strings["Similar patterns##CC_GUI_COLOR_ORDER_SIMILAR"].plurals[0] = "=Similar patterns##CC_GUI_COLOR_ORDER_SIMILAR";
+    strings["Inactive patterns##CC_GUI_COLOR_ORDER_INACTIVE"].plurals[0] = "=Inactive patterns##CC_GUI_COLOR_ORDER_INACTIVE";
+
+    strings["Envelope##CC_GUI_COLOR_FM_ENVELOPE"].plurals[0] = "=Envelope##CC_GUI_COLOR_FM_ENVELOPE";
+    strings["Sustain guide##CC_GUI_COLOR_FM_ENVELOPE_SUS_GUIDE"].plurals[0] = "=Sustain guide##CC_GUI_COLOR_FM_ENVELOPE_SUS_GUIDE";
+    strings["Release##CC_GUI_COLOR_FM_ENVELOPE_RELEASE"].plurals[0] = "=Release##CC_GUI_COLOR_FM_ENVELOPE_RELEASE";
+
+    strings["Algorithm background##CC_GUI_COLOR_FM_ALG_BG"].plurals[0] = "=Algorithm background##CC_GUI_COLOR_FM_ALG_BG";
+    strings["Algorithm lines##CC_GUI_COLOR_FM_ALG_LINE"].plurals[0] = "=Algorithm lines##CC_GUI_COLOR_FM_ALG_LINE";
+    strings["Modulator##CC_GUI_COLOR_FM_MOD"].plurals[0] = "=Modulator##CC_GUI_COLOR_FM_MOD";
+    strings["Carrier##CC_GUI_COLOR_FM_CAR"].plurals[0] = "=Carrier##CC_GUI_COLOR_FM_CAR";
+
+    strings["SSG-EG##CC_GUI_COLOR_FM_SSG"].plurals[0] = "=SSG-EG##CC_GUI_COLOR_FM_SSG";
+    strings["Waveform##CC_GUI_COLOR_FM_WAVE"].plurals[0] = "=Waveform##CC_GUI_COLOR_FM_WAVE";
+
+    strings["Mod. accent (primary)##CC_GUI_COLOR_FM_PRIMARY_MOD"].plurals[0] = "=Mod. accent (primary)##CC_GUI_COLOR_FM_PRIMARY_MOD";
+    strings["Mod. accent (secondary)##CC_GUI_COLOR_FM_SECONDARY_MOD"].plurals[0] = "=Mod. accent (secondary)##CC_GUI_COLOR_FM_SECONDARY_MOD";
+    strings["Mod. border##CC_GUI_COLOR_FM_BORDER_MOD"].plurals[0] = "=Mod. border##CC_GUI_COLOR_FM_BORDER_MOD";
+    strings["Mod. border shadow##CC_GUI_COLOR_FM_BORDER_SHADOW_MOD"].plurals[0] = "=Mod. border shadow##CC_GUI_COLOR_FM_BORDER_SHADOW_MOD";
+
+    strings["Car. accent (primary##CC_GUI_COLOR_FM_PRIMARY_CAR"].plurals[0] = "=Car. accent (primary##CC_GUI_COLOR_FM_PRIMARY_CAR";
+    strings["Car. accent (secondary)##CC_GUI_COLOR_FM_SECONDARY_CAR"].plurals[0] = "=Car. accent (secondary)##CC_GUI_COLOR_FM_SECONDARY_CAR";
+    strings["Car. border##CC_GUI_COLOR_FM_BORDER_CAR"].plurals[0] = "=Car. border##CC_GUI_COLOR_FM_BORDER_CAR";
+    strings["Car. border shadow##CC_GUI_COLOR_FM_BORDER_SHADOW_CAR"].plurals[0] = "=Car. border shadow##CC_GUI_COLOR_FM_BORDER_SHADOW_CAR";
+
+    strings["Volume##CC_GUI_COLOR_MACRO_VOLUME"].plurals[0] = "=Volume##CC_GUI_COLOR_MACRO_VOLUME";
+    strings["Pitch##CC_GUI_COLOR_MACRO_PITCH"].plurals[0] = "=Pitch##CC_GUI_COLOR_MACRO_PITCH";
+    strings["Wave##CC_GUI_COLOR_MACRO_WAVE"].plurals[0] = "=Wave##CC_GUI_COLOR_MACRO_WAVE";
+    strings["Other##CC_GUI_COLOR_MACRO_OTHER"].plurals[0] = "=Other##CC_GUI_COLOR_MACRO_OTHER";
+
+    strings["FM (OPN)##CC_GUI_COLOR_INSTR_FM"].plurals[0] = "=FM (OPN)##CC_GUI_COLOR_INSTR_FM";
+    strings["SN76489/Sega PSG##CC_GUI_COLOR_INSTR_STD"].plurals[0] = "=SN76489/Sega PSG##CC_GUI_COLOR_INSTR_STD";
+    strings["T6W28##CC_GUI_COLOR_INSTR_T6W28"].plurals[0] = "=T6W28##CC_GUI_COLOR_INSTR_T6W28";
+    strings["Game Boy##CC_GUI_COLOR_INSTR_GB"].plurals[0] = "=Game Boy##CC_GUI_COLOR_INSTR_GB";
+    strings["C64##CC_GUI_COLOR_INSTR_C64"].plurals[0] = "=C64##CC_GUI_COLOR_INSTR_C64";
+    strings["Amiga/Generic Sample##CC_GUI_COLOR_INSTR_AMIGA"].plurals[0] = "=Amiga/Generic Sample##CC_GUI_COLOR_INSTR_AMIGA";
+    strings["PC Engine##CC_GUI_COLOR_INSTR_PCE"].plurals[0] = "=PC Engine##CC_GUI_COLOR_INSTR_PCE";
+    strings["AY-3-8910/SSG##CC_GUI_COLOR_INSTR_AY"].plurals[0] = "=AY-3-8910/SSG##CC_GUI_COLOR_INSTR_AY";
+    strings["AY8930##CC_GUI_COLOR_INSTR_AY8930"].plurals[0] = "=AY8930##CC_GUI_COLOR_INSTR_AY8930";
+    strings["TIA##CC_GUI_COLOR_INSTR_TIA"].plurals[0] = "=TIA##CC_GUI_COLOR_INSTR_TIA";
+    strings["SAA1099##CC_GUI_COLOR_INSTR_SAA1099"].plurals[0] = "=SAA1099##CC_GUI_COLOR_INSTR_SAA1099";
+    strings["VIC##CC_GUI_COLOR_INSTR_VIC"].plurals[0] = "=VIC##CC_GUI_COLOR_INSTR_VIC";
+    strings["PET##CC_GUI_COLOR_INSTR_PET"].plurals[0] = "=PET##CC_GUI_COLOR_INSTR_PET";
+    strings["VRC6##CC_GUI_COLOR_INSTR_VRC6"].plurals[0] = "=VRC6##CC_GUI_COLOR_INSTR_VRC6";
+    strings["VRC6 (saw)##CC_GUI_COLOR_INSTR_VRC6_SAW"].plurals[0] = "=VRC6 (saw)##CC_GUI_COLOR_INSTR_VRC6_SAW";
+    strings["FM (OPLL)##CC_GUI_COLOR_INSTR_OPLL"].plurals[0] = "=FM (OPLL)##CC_GUI_COLOR_INSTR_OPLL";
+    strings["FM (OPL)##CC_GUI_COLOR_INSTR_OPL"].plurals[0] = "=FM (OPL)##CC_GUI_COLOR_INSTR_OPL";
+    strings["FDS##CC_GUI_COLOR_INSTR_FDS"].plurals[0] = "=FDS##CC_GUI_COLOR_INSTR_FDS";
+    strings["Virtual Boy##CC_GUI_COLOR_INSTR_VBOY"].plurals[0] = "=Virtual Boy##CC_GUI_COLOR_INSTR_VBOY";
+    strings["Namco 163##CC_GUI_COLOR_INSTR_N163"].plurals[0] = "=Namco 163##CC_GUI_COLOR_INSTR_N163";
+    strings["Konami SCC##CC_GUI_COLOR_INSTR_SCC"].plurals[0] = "=Konami SCC##CC_GUI_COLOR_INSTR_SCC";
+    strings["FM (OPZ)##CC_GUI_COLOR_INSTR_OPZ"].plurals[0] = "=FM (OPZ)##CC_GUI_COLOR_INSTR_OPZ";
+    strings["POKEY##CC_GUI_COLOR_INSTR_POKEY"].plurals[0] = "=POKEY##CC_GUI_COLOR_INSTR_POKEY";
+    strings["PC Beeper##CC_GUI_COLOR_INSTR_BEEPER"].plurals[0] = "=PC Beeper##CC_GUI_COLOR_INSTR_BEEPER";
+    strings["WonderSwan##CC_GUI_COLOR_INSTR_SWAN"].plurals[0] = "=WonderSwan##CC_GUI_COLOR_INSTR_SWAN";
+    strings["Lynx##CC_GUI_COLOR_INSTR_MIKEY"].plurals[0] = "=Lynx##CC_GUI_COLOR_INSTR_MIKEY";
+    strings["VERA##CC_GUI_COLOR_INSTR_VERA"].plurals[0] = "=VERA##CC_GUI_COLOR_INSTR_VERA";
+    strings["X1-010##CC_GUI_COLOR_INSTR_X1_010"].plurals[0] = "=X1-010##CC_GUI_COLOR_INSTR_X1_010";
+    strings["ES5506##CC_GUI_COLOR_INSTR_ES5506"].plurals[0] = "=ES5506##CC_GUI_COLOR_INSTR_ES5506";
+    strings["MultiPCM##CC_GUI_COLOR_INSTR_MULTIPCM"].plurals[0] = "=MultiPCM##CC_GUI_COLOR_INSTR_MULTIPCM";
+    strings["SNES##CC_GUI_COLOR_INSTR_SNES"].plurals[0] = "=SNES##CC_GUI_COLOR_INSTR_SNES";
+    strings["Sound Unit##CC_GUI_COLOR_INSTR_SU"].plurals[0] = "=Sound Unit##CC_GUI_COLOR_INSTR_SU";
+    strings["Namco WSG##CC_GUI_COLOR_INSTR_NAMCO"].plurals[0] = "=Namco WSG##CC_GUI_COLOR_INSTR_NAMCO";
+    strings["FM (OPL Drums)##CC_GUI_COLOR_INSTR_OPL_DRUMS"].plurals[0] = "=FM (OPL Drums)##CC_GUI_COLOR_INSTR_OPL_DRUMS";
+    strings["FM (OPM)##CC_GUI_COLOR_INSTR_OPM"].plurals[0] = "=FM (OPM)##CC_GUI_COLOR_INSTR_OPM";
+    strings["NES##CC_GUI_COLOR_INSTR_NES"].plurals[0] = "=NES##CC_GUI_COLOR_INSTR_NES";
+    strings["MSM6258##CC_GUI_COLOR_INSTR_MSM6258"].plurals[0] = "=MSM6258##CC_GUI_COLOR_INSTR_MSM6258";
+    strings["MSM6295##CC_GUI_COLOR_INSTR_MSM6295"].plurals[0] = "=MSM6295##CC_GUI_COLOR_INSTR_MSM6295";
+    strings["ADPCM-A##CC_GUI_COLOR_INSTR_ADPCMA"].plurals[0] = "=ADPCM-A##CC_GUI_COLOR_INSTR_ADPCMA";
+    strings["ADPCM-B##CC_GUI_COLOR_INSTR_ADPCMB"].plurals[0] = "=ADPCM-B##CC_GUI_COLOR_INSTR_ADPCMB";
+    strings["Sega PCM##CC_GUI_COLOR_INSTR_SEGAPCM"].plurals[0] = "=Sega PCM##CC_GUI_COLOR_INSTR_SEGAPCM";
+    strings["QSound##CC_GUI_COLOR_INSTR_QSOUND"].plurals[0] = "=QSound##CC_GUI_COLOR_INSTR_QSOUND";
+    strings["YMZ280B##CC_GUI_COLOR_INSTR_YMZ280B"].plurals[0] = "=YMZ280B##CC_GUI_COLOR_INSTR_YMZ280B";
+    strings["RF5C68##CC_GUI_COLOR_INSTR_RF5C68"].plurals[0] = "=RF5C68##CC_GUI_COLOR_INSTR_RF5C68";
+    strings["MSM5232##CC_GUI_COLOR_INSTR_MSM5232"].plurals[0] = "=MSM5232##CC_GUI_COLOR_INSTR_MSM5232";
+    strings["K007232##CC_GUI_COLOR_INSTR_K007232"].plurals[0] = "=K007232##CC_GUI_COLOR_INSTR_K007232";
+    strings["GA20##CC_GUI_COLOR_INSTR_GA20"].plurals[0] = "=GA20##CC_GUI_COLOR_INSTR_GA20";
+    strings["Pokémon Mini##CC_GUI_COLOR_INSTR_POKEMINI"].plurals[0] = "=Pokémon Mini##CC_GUI_COLOR_INSTR_POKEMINI";
+    strings["SM8521##CC_GUI_COLOR_INSTR_SM8521"].plurals[0] = "=SM8521##CC_GUI_COLOR_INSTR_SM8521";
+    strings["PV-1000##CC_GUI_COLOR_INSTR_PV1000"].plurals[0] = "=PV-1000##CC_GUI_COLOR_INSTR_PV1000";
+    strings["K053260##CC_GUI_COLOR_INSTR_K053260"].plurals[0] = "=K053260##CC_GUI_COLOR_INSTR_K053260";
+    strings["C140##CC_GUI_COLOR_INSTR_C140"].plurals[0] = "=C140##CC_GUI_COLOR_INSTR_C140";
+    strings["Other/Unknown##CC_GUI_COLOR_INSTR_UNKNOWN"].plurals[0] = "=Other/Unknown##CC_GUI_COLOR_INSTR_UNKNOWN";
+
+    strings["Single color (background)##CC_GUI_COLOR_CHANNEL_BG"].plurals[0] = "=Single color (background)##CC_GUI_COLOR_CHANNEL_BG";
+    strings["Single color (text)##CC_GUI_COLOR_CHANNEL_FG"].plurals[0] = "=Single color (text)##CC_GUI_COLOR_CHANNEL_FG";
+    strings["FM##CC_GUI_COLOR_CHANNEL_FM"].plurals[0] = "=FM##CC_GUI_COLOR_CHANNEL_FM";
+    strings["Pulse##CC_GUI_COLOR_CHANNEL_PULSE"].plurals[0] = "=Pulse##CC_GUI_COLOR_CHANNEL_PULSE";
+    strings["Noise##CC_GUI_COLOR_CHANNEL_NOISE"].plurals[0] = "=Noise##CC_GUI_COLOR_CHANNEL_NOISE";
+    strings["PCM##CC_GUI_COLOR_CHANNEL_PCM"].plurals[0] = "=PCM##CC_GUI_COLOR_CHANNEL_PCM";
+    strings["Wave##CC_GUI_COLOR_CHANNEL_WAVE"].plurals[0] = "=Wave##CC_GUI_COLOR_CHANNEL_WAVE";
+    strings["FM operator##CC_GUI_COLOR_CHANNEL_OP"].plurals[0] = "=FM operator##CC_GUI_COLOR_CHANNEL_OP";
+    strings["Muted##CC_GUI_COLOR_CHANNEL_MUTED"].plurals[0] = "=Muted##CC_GUI_COLOR_CHANNEL_MUTED";
+
+    strings["Playhead##CC_GUI_COLOR_PATTERN_PLAY_HEAD"].plurals[0] = "=Playhead##CC_GUI_COLOR_PATTERN_PLAY_HEAD";
+    strings["Editing##CC_GUI_COLOR_EDITING"].plurals[0] = "=Editing##CC_GUI_COLOR_EDITING";
+    strings["Editing (will clone)##CC_GUI_COLOR_EDITING_CLONE"].plurals[0] = "=Editing (will clone)##CC_GUI_COLOR_EDITING_CLONE";
+    strings["Cursor##CC_GUI_COLOR_PATTERN_CURSOR"].plurals[0] = "=Cursor##CC_GUI_COLOR_PATTERN_CURSOR";
+    strings["Cursor (hovered)##CC_GUI_COLOR_PATTERN_CURSOR_HOVER"].plurals[0] = "=Cursor (hovered)##CC_GUI_COLOR_PATTERN_CURSOR_HOVER";
+    strings["Cursor (clicked)##CC_GUI_COLOR_PATTERN_CURSOR_ACTIVE"].plurals[0] = "=Cursor (clicked)##CC_GUI_COLOR_PATTERN_CURSOR_ACTIVE";
+    strings["Selection##CC_GUI_COLOR_PATTERN_SELECTION"].plurals[0] = "=Selection##CC_GUI_COLOR_PATTERN_SELECTION";
+    strings["Selection (hovered)##CC_GUI_COLOR_PATTERN_SELECTION_HOVER"].plurals[0] = "=Selection (hovered)##CC_GUI_COLOR_PATTERN_SELECTION_HOVER";
+    strings["Selection (clicked)##CC_GUI_COLOR_PATTERN_SELECTION_ACTIVE"].plurals[0] = "=Selection (clicked)##CC_GUI_COLOR_PATTERN_SELECTION_ACTIVE";
+    strings["Highlight 1##CC_GUI_COLOR_PATTERN_HI_1"].plurals[0] = "=Highlight 1##CC_GUI_COLOR_PATTERN_HI_1";
+    strings["Highlight 2##CC_GUI_COLOR_PATTERN_HI_2"].plurals[0] = "=Highlight 2##CC_GUI_COLOR_PATTERN_HI_2";
+    strings["Row number##CC_GUI_COLOR_PATTERN_ROW_INDEX"].plurals[0] = "=Row number##CC_GUI_COLOR_PATTERN_ROW_INDEX";
+    strings["Row number (highlight 1)##CC_GUI_COLOR_PATTERN_ROW_INDEX_HI1"].plurals[0] = "=Row number (highlight 1)##CC_GUI_COLOR_PATTERN_ROW_INDEX_HI1";
+    strings["Row number (highlight 2)##CC_GUI_COLOR_PATTERN_ROW_INDEX_HI2"].plurals[0] = "=Row number (highlight 2)##CC_GUI_COLOR_PATTERN_ROW_INDEX_HI2";
+    strings["Note##CC_GUI_COLOR_PATTERN_ACTIVE"].plurals[0] = "=Note##CC_GUI_COLOR_PATTERN_ACTIVE";
+    strings["Note (highlight 1)##CC_GUI_COLOR_PATTERN_ACTIVE_HI1"].plurals[0] = "=Note (highlight 1)##CC_GUI_COLOR_PATTERN_ACTIVE_HI1";
+    strings["Note (highlight 2)##CC_GUI_COLOR_PATTERN_ACTIVE_HI2"].plurals[0] = "=Note (highlight 2)##CC_GUI_COLOR_PATTERN_ACTIVE_HI2";
+    strings["Blank##CC_GUI_COLOR_PATTERN_INACTIVE"].plurals[0] = "=Blank##CC_GUI_COLOR_PATTERN_INACTIVE";
+    strings["Blank (highlight 1)##CC_GUI_COLOR_PATTERN_INACTIVE_HI1"].plurals[0] = "=Blank (highlight 1)##CC_GUI_COLOR_PATTERN_INACTIVE_HI1";
+    strings["Blank (highlight 2)##CC_GUI_COLOR_PATTERN_INACTIVE_HI2"].plurals[0] = "=Blank (highlight 2)##CC_GUI_COLOR_PATTERN_INACTIVE_HI2";
+    strings["Instrument##CC_GUI_COLOR_PATTERN_INS"].plurals[0] = "=Instrument##CC_GUI_COLOR_PATTERN_INS";
+    strings["Instrument (invalid type)##CC_GUI_COLOR_PATTERN_INS_WARN"].plurals[0] = "=Instrument (invalid type)##CC_GUI_COLOR_PATTERN_INS_WARN";
+    strings["Instrument (out of range)##CC_GUI_COLOR_PATTERN_INS_ERROR"].plurals[0] = "=Instrument (out of range)##CC_GUI_COLOR_PATTERN_INS_ERROR";
+    strings["Volume (0%)##CC_GUI_COLOR_PATTERN_VOLUME_MIN"].plurals[0] = "=Volume (0%)##CC_GUI_COLOR_PATTERN_VOLUME_MIN";
+    strings["Volume (50%)##CC_GUI_COLOR_PATTERN_VOLUME_HALF"].plurals[0] = "=Volume (50%)##CC_GUI_COLOR_PATTERN_VOLUME_HALF";
+    strings["Volume (100%)##CC_GUI_COLOR_PATTERN_VOLUME_MAX"].plurals[0] = "=Volume (100%)##CC_GUI_COLOR_PATTERN_VOLUME_MAX";
+    strings["Invalid effect##CC_GUI_COLOR_PATTERN_EFFECT_INVALID"].plurals[0] = "=Invalid effect##CC_GUI_COLOR_PATTERN_EFFECT_INVALID";
+    strings["Pitch effect##CC_GUI_COLOR_PATTERN_EFFECT_PITCH"].plurals[0] = "=Pitch effect##CC_GUI_COLOR_PATTERN_EFFECT_PITCH";
+    strings["Volume effect##CC_GUI_COLOR_PATTERN_EFFECT_VOLUME"].plurals[0] = "=Volume effect##CC_GUI_COLOR_PATTERN_EFFECT_VOLUME";
+    strings["Panning effect##CC_GUI_COLOR_PATTERN_EFFECT_PANNING"].plurals[0] = "=Panning effect##CC_GUI_COLOR_PATTERN_EFFECT_PANNING";
+    strings["Song effect##CC_GUI_COLOR_PATTERN_EFFECT_SONG"].plurals[0] = "=Song effect##CC_GUI_COLOR_PATTERN_EFFECT_SONG";
+    strings["Time effect##CC_GUI_COLOR_PATTERN_EFFECT_TIME"].plurals[0] = "=Time effect##CC_GUI_COLOR_PATTERN_EFFECT_TIME";
+    strings["Speed effect##CC_GUI_COLOR_PATTERN_EFFECT_SPEED"].plurals[0] = "=Speed effect##CC_GUI_COLOR_PATTERN_EFFECT_SPEED";
+    strings["Primary specific effect##CC_GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY"].plurals[0] = "=Primary specific effect##CC_GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY";
+    strings["Secondary specific effect##CC_GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY"].plurals[0] = "=Secondary specific effect##CC_GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY";
+    strings["Miscellaneous##CC_GUI_COLOR_PATTERN_EFFECT_MISC"].plurals[0] = "=Miscellaneous##CC_GUI_COLOR_PATTERN_EFFECT_MISC";
+    strings["External command output##CC_GUI_COLOR_EE_VALUE"].plurals[0] = "=External command output##CC_GUI_COLOR_EE_VALUE";
+    strings["Status: off/disabled##CC_GUI_COLOR_PATTERN_STATUS_OFF"].plurals[0] = "=Status: off/disabled##CC_GUI_COLOR_PATTERN_STATUS_OFF";
+    strings["Status: off + macro rel##CC_GUI_COLOR_PATTERN_STATUS_REL"].plurals[0] = "=Status: off + macro rel##CC_GUI_COLOR_PATTERN_STATUS_REL";
+    strings["Status: on + macro rel##CC_GUI_COLOR_PATTERN_STATUS_REL_ON"].plurals[0] = "=Status: on + macro rel##CC_GUI_COLOR_PATTERN_STATUS_REL_ON";
+    strings["Status: on##CC_GUI_COLOR_PATTERN_STATUS_ON"].plurals[0] = "=Status: on##CC_GUI_COLOR_PATTERN_STATUS_ON";
+    strings["Status: volume##CC_GUI_COLOR_PATTERN_STATUS_VOLUME"].plurals[0] = "=Status: volume##CC_GUI_COLOR_PATTERN_STATUS_VOLUME";
+    strings["Status: pitch##CC_GUI_COLOR_PATTERN_STATUS_PITCH"].plurals[0] = "=Status: pitch##CC_GUI_COLOR_PATTERN_STATUS_PITCH";
+    strings["Status: panning##CC_GUI_COLOR_PATTERN_STATUS_PANNING"].plurals[0] = "=Status: panning##CC_GUI_COLOR_PATTERN_STATUS_PANNING";
+    strings["Status: chip (primary)##CC_GUI_COLOR_PATTERN_STATUS_SYS1"].plurals[0] = "=Status: chip (primary)##CC_GUI_COLOR_PATTERN_STATUS_SYS1";
+    strings["Status: chip (secondary)##CC_GUI_COLOR_PATTERN_STATUS_SYS2"].plurals[0] = "=Status: chip (secondary)##CC_GUI_COLOR_PATTERN_STATUS_SYS2";
+    strings["Status: mixing##CC_GUI_COLOR_PATTERN_STATUS_MIXING"].plurals[0] = "=Status: mixing##CC_GUI_COLOR_PATTERN_STATUS_MIXING";
+    strings["Status: DSP effect##CC_GUI_COLOR_PATTERN_STATUS_DSP"].plurals[0] = "=Status: DSP effect##CC_GUI_COLOR_PATTERN_STATUS_DSP";
+    strings["Status: note altering##CC_GUI_COLOR_PATTERN_STATUS_NOTE"].plurals[0] = "=Status: note altering##CC_GUI_COLOR_PATTERN_STATUS_NOTE";
+    strings["Status: misc color 1##CC_GUI_COLOR_PATTERN_STATUS_MISC1"].plurals[0] = "=Status: misc color 1##CC_GUI_COLOR_PATTERN_STATUS_MISC1";
+    strings["Status: misc color 2##CC_GUI_COLOR_PATTERN_STATUS_MISC2"].plurals[0] = "=Status: misc color 2##CC_GUI_COLOR_PATTERN_STATUS_MISC2";
+    strings["Status: misc color 3##CC_GUI_COLOR_PATTERN_STATUS_MISC3"].plurals[0] = "=Status: misc color 3##CC_GUI_COLOR_PATTERN_STATUS_MISC3";
+    strings["Status: attack##CC_GUI_COLOR_PATTERN_STATUS_ATTACK"].plurals[0] = "=Status: attack##CC_GUI_COLOR_PATTERN_STATUS_ATTACK";
+    strings["Status: decay##CC_GUI_COLOR_PATTERN_STATUS_DECAY"].plurals[0] = "=Status: decay##CC_GUI_COLOR_PATTERN_STATUS_DECAY";
+    strings["Status: sustain##CC_GUI_COLOR_PATTERN_STATUS_SUSTAIN"].plurals[0] = "=Status: sustain##CC_GUI_COLOR_PATTERN_STATUS_SUSTAIN";
+    strings["Status: release##CC_GUI_COLOR_PATTERN_STATUS_RELEASE"].plurals[0] = "=Status: release##CC_GUI_COLOR_PATTERN_STATUS_RELEASE";
+    strings["Status: decrease linear##CC_GUI_COLOR_PATTERN_STATUS_DEC_LINEAR"].plurals[0] = "=Status: decrease linear##CC_GUI_COLOR_PATTERN_STATUS_DEC_LINEAR";
+    strings["Status: decrease exp##CC_GUI_COLOR_PATTERN_STATUS_DEC_EXP"].plurals[0] = "=Status: decrease exp##CC_GUI_COLOR_PATTERN_STATUS_DEC_EXP";
+    strings["Status: increase##CC_GUI_COLOR_PATTERN_STATUS_INC"].plurals[0] = "=Status: increase##CC_GUI_COLOR_PATTERN_STATUS_INC";
+    strings["Status: bent##CC_GUI_COLOR_PATTERN_STATUS_BENT"].plurals[0] = "=Status: bent##CC_GUI_COLOR_PATTERN_STATUS_BENT";
+    strings["Status: direct##CC_GUI_COLOR_PATTERN_STATUS_DIRECT"].plurals[0] = "=Status: direct##CC_GUI_COLOR_PATTERN_STATUS_DIRECT";
+
+    strings["Background##CC_GUI_COLOR_SAMPLE_BG"].plurals[0] = "=Background##CC_GUI_COLOR_SAMPLE_BG";
+    strings["Waveform##CC_GUI_COLOR_SAMPLE_FG"].plurals[0] = "=Waveform##CC_GUI_COLOR_SAMPLE_FG";
+    strings["Time background##CC_GUI_COLOR_SAMPLE_TIME_BG"].plurals[0] = "=Time background##CC_GUI_COLOR_SAMPLE_TIME_BG";
+    strings["Time text##CC_GUI_COLOR_SAMPLE_TIME_FG"].plurals[0] = "=Time text##CC_GUI_COLOR_SAMPLE_TIME_FG";
+    strings["Loop region##CC_GUI_COLOR_SAMPLE_LOOP"].plurals[0] = "=Loop region##CC_GUI_COLOR_SAMPLE_LOOP";
+    strings["Center guide##CC_GUI_COLOR_SAMPLE_CENTER"].plurals[0] = "=Center guide##CC_GUI_COLOR_SAMPLE_CENTER";
+    strings["Grid##CC_GUI_COLOR_SAMPLE_GRID"].plurals[0] = "=Grid##CC_GUI_COLOR_SAMPLE_GRID";
+    strings["Selection##CC_GUI_COLOR_SAMPLE_SEL"].plurals[0] = "=Selection##CC_GUI_COLOR_SAMPLE_SEL";
+    strings["Selection points##CC_GUI_COLOR_SAMPLE_SEL_POINT"].plurals[0] = "=Selection points##CC_GUI_COLOR_SAMPLE_SEL_POINT";
+    strings["Preview needle##CC_GUI_COLOR_SAMPLE_NEEDLE"].plurals[0] = "=Preview needle##CC_GUI_COLOR_SAMPLE_NEEDLE";
+    strings["Playing needles##CC_GUI_COLOR_SAMPLE_NEEDLE_PLAYING"].plurals[0] = "=Playing needles##CC_GUI_COLOR_SAMPLE_NEEDLE_PLAYING";
+    strings["Loop markers##CC_GUI_COLOR_SAMPLE_LOOP_POINT"].plurals[0] = "=Loop markers##CC_GUI_COLOR_SAMPLE_LOOP_POINT";
+    strings["Chip select: disabled##CC_GUI_COLOR_SAMPLE_CHIP_DISABLED"].plurals[0] = "=Chip select: disabled##CC_GUI_COLOR_SAMPLE_CHIP_DISABLED";
+    strings["Chip select: enabled##CC_GUI_COLOR_SAMPLE_CHIP_ENABLED"].plurals[0] = "=Chip select: enabled##CC_GUI_COLOR_SAMPLE_CHIP_ENABLED";
+    strings["Chip select: enabled (failure)##CC_GUI_COLOR_SAMPLE_CHIP_WARNING"].plurals[0] = "=Chip select: enabled (failure)##CC_GUI_COLOR_SAMPLE_CHIP_WARNING";
+
+    strings["Unallocated##CC_GUI_COLOR_PAT_MANAGER_NULL"].plurals[0] = "=Unallocated##CC_GUI_COLOR_PAT_MANAGER_NULL";
+    strings["Unused##CC_GUI_COLOR_PAT_MANAGER_UNUSED"].plurals[0] = "=Unused##CC_GUI_COLOR_PAT_MANAGER_UNUSED";
+    strings["Used##CC_GUI_COLOR_PAT_MANAGER_USED"].plurals[0] = "=Used##CC_GUI_COLOR_PAT_MANAGER_USED";
+    strings["Overused##CC_GUI_COLOR_PAT_MANAGER_OVERUSED"].plurals[0] = "=Overused##CC_GUI_COLOR_PAT_MANAGER_OVERUSED";
+    strings["Really overused##CC_GUI_COLOR_PAT_MANAGER_EXTREMELY_OVERUSED"].plurals[0] = "=Really overused##CC_GUI_COLOR_PAT_MANAGER_EXTREMELY_OVERUSED";
+    strings["Combo Breaker##CC_GUI_COLOR_PAT_MANAGER_COMBO_BREAKER"].plurals[0] = "=Combo Breaker##CC_GUI_COLOR_PAT_MANAGER_COMBO_BREAKER";
+
+    strings["Background##CC_GUI_COLOR_PIANO_BACKGROUND"].plurals[0] = "=Background##CC_GUI_COLOR_PIANO_BACKGROUND";
+    strings["Upper key##CC_GUI_COLOR_PIANO_KEY_TOP"].plurals[0] = "=Upper key##CC_GUI_COLOR_PIANO_KEY_TOP";
+    strings["Upper key (feedback)##CC_GUI_COLOR_PIANO_KEY_TOP_HIT"].plurals[0] = "=Upper key (feedback)##CC_GUI_COLOR_PIANO_KEY_TOP_HIT";
+    strings["Upper key (pressed)##CC_GUI_COLOR_PIANO_KEY_TOP_ACTIVE"].plurals[0] = "=Upper key (pressed)##CC_GUI_COLOR_PIANO_KEY_TOP_ACTIVE";
+    strings["Lower key##CC_GUI_COLOR_PIANO_KEY_BOTTOM"].plurals[0] = "=Lower key##CC_GUI_COLOR_PIANO_KEY_BOTTOM";
+    strings["Lower key (feedback)##CC_GUI_COLOR_PIANO_KEY_BOTTOM_HIT"].plurals[0] = "=Lower key (feedback)##CC_GUI_COLOR_PIANO_KEY_BOTTOM_HIT";
+    strings["Lower key (pressed)##CC_GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE"].plurals[0] = "=Lower key (pressed)##CC_GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE";
+
+    strings["Clock text##CC_GUI_COLOR_CLOCK_TEXT"].plurals[0] = "=Clock text##CC_GUI_COLOR_CLOCK_TEXT";
+    strings["Beat (off)##CC_GUI_COLOR_CLOCK_BEAT_LOW"].plurals[0] = "=Beat (off)##CC_GUI_COLOR_CLOCK_BEAT_LOW";
+    strings["Beat (on)##CC_GUI_COLOR_CLOCK_BEAT_HIGH"].plurals[0] = "=Beat (on)##CC_GUI_COLOR_CLOCK_BEAT_HIGH";
+
+    strings["PortSet##CC_GUI_COLOR_PATCHBAY_PORTSET"].plurals[0] = "=PortSet##CC_GUI_COLOR_PATCHBAY_PORTSET";
+    strings["Port##CC_GUI_COLOR_PATCHBAY_PORT"].plurals[0] = "=Port##CC_GUI_COLOR_PATCHBAY_PORT";
+    strings["Port (hidden/unavailable)##CC_GUI_COLOR_PATCHBAY_PORT_HIDDEN"].plurals[0] = "=Port (hidden/unavailable)##CC_GUI_COLOR_PATCHBAY_PORT_HIDDEN";
+    strings["Connection (selected)##CC_GUI_COLOR_PATCHBAY_CONNECTION"].plurals[0] = "=Connection (selected)##CC_GUI_COLOR_PATCHBAY_CONNECTION";
+    strings["Connection (other)##CC_GUI_COLOR_PATCHBAY_CONNECTION_BG"].plurals[0] = "=Connection (other)##CC_GUI_COLOR_PATCHBAY_CONNECTION_BG";
+
+    strings["Log level: Error##CC_GUI_COLOR_LOGLEVEL_ERROR"].plurals[0] = "=Log level: Error##CC_GUI_COLOR_LOGLEVEL_ERROR";
+    strings["Log level: Warning##CC_GUI_COLOR_LOGLEVEL_WARNING"].plurals[0] = "=Log level: Warning##CC_GUI_COLOR_LOGLEVEL_WARNING";
+    strings["Log level: Info##CC_GUI_COLOR_LOGLEVEL_INFO"].plurals[0] = "=Log level: Info##CC_GUI_COLOR_LOGLEVEL_INFO";
+    strings["Log level: Debug##CC_GUI_COLOR_LOGLEVEL_DEBUG"].plurals[0] = "=Log level: Debug##CC_GUI_COLOR_LOGLEVEL_DEBUG";
+    strings["Log level: Trace/Verbose##CC_GUI_COLOR_LOGLEVEL_TRACE"].plurals[0] = "=Log level: Trace/Verbose##CC_GUI_COLOR_LOGLEVEL_TRACE";
     //strings[""].plurals[0] = "";
 }
