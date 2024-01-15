@@ -24,17 +24,18 @@ void DivLocale::addTranslationsTemplate()
 
     //progress tracker
     //   code  is the hashcode prefix (derived from path)
+    // !       means deduplication still needs to happen
     // @       means source needs disambiguation tags
     // +       means source has _L() wrappers
-    // #       means template has strings (all done!)
+    // #       means all done!
  
     //   sg**  src/gui/
     // # sgab  src/gui/about.cpp
-    // @ sgch  src/gui/channels.cpp
-    // @ sgco  src/gui/chanOsc.cpp
-    // @ sgcl  src/gui/clock.cpp
+    // # sgch  src/gui/channels.cpp
+    // # sgco  src/gui/chanOsc.cpp
+    // # sgcl  src/gui/clock.cpp
     //   sgcm  src/gui/compatFlags.cpp
-    // @ sgdl  src/gui/dataList.cpp
+    // # sgdl  src/gui/dataList.cpp
     //   sgdb  src/gui/debug.cpp
     //   sgdw  src/gui/debugWindow.cpp
     //   sgda  src/gui/doAction.cpp
@@ -216,14 +217,14 @@ void DivLocale::addTranslationsTemplate()
     strings["Randomize phase on note##sgco"].plurals[0] = "=Randomize phase on note##sgco";
     strings["Amplitude##sgco"].plurals[0] = "=Amplitude##sgco";
     strings["Gradient##sgco"].plurals[0] = "=Gradient##sgco";
-    strings["Color##sgco"].plurals[0] = "=Color##sgco";
+    strings["Color##sgco0"].plurals[0] = "=Color##sgco";
     strings["Distance##sgco"].plurals[0] = "=Distance##sgco";
     strings["Spread##sgco"].plurals[0] = "=Spread##sgco";
     strings["Remove##sgco"].plurals[0] = "=Remove##sgco";
     strings["Background##sgco"].plurals[0] = "=Background##sgco";
     strings["X Axis##AxisX"].plurals[0] = "=X Axis##AxisX";
     strings["Y Axis##AxisY"].plurals[0] = "=Y Axis##AxisY";
-    strings["Color##sgco"].plurals[0] = "=Color##sgco";
+    strings["Color##sgco1"].plurals[0] = "=Color##sgco";
     strings["Text format:##sgco"].plurals[0] = "=Text format:##sgco";
 
     strings["format guide:\n"
@@ -274,56 +275,88 @@ void DivLocale::addTranslationsTemplate()
 
     //src/gui/dataList.cpp
 
-    strings["Bug!"].plurals[0] = "=Bug!";
-    strings["Unknown"].plurals[0] = "=Unknown";
-    strings["duplicate"].plurals[0] = "=duplicate";
-    strings["replace..."].plurals[0] = "=replace...";
-    strings["save"].plurals[0] = "=save";
-    strings["save (.dmp)"].plurals[0] = "=save (.dmp)";
-    strings["delete"].plurals[0] = "=delete";
-    strings["%.2X: <INVALID>"].plurals[0] = "=%.2X: <INVALID>";
-    strings["- None -"].plurals[0] = "=- None -";
-    strings["out of memory for this sample!"].plurals[0] = "=out of memory for this sample!";
-    strings["make instrument"].plurals[0] = "=make instrument";
+    strings["Bug!##sgdl"].plurals[0] = "=Bug!##sgdl";
+    strings["Unknown##sgdl"].plurals[0] = "=Unknown##sgdl";
+    strings["duplicate##sgdl0"].plurals[0] = "=duplicate";
+    strings["replace...##sgdl0"].plurals[0] = "=replace...";
+    strings["save##sgdl0"].plurals[0] = "=save";
+    strings["save (.dmp)##sgdl"].plurals[0] = "=save (.dmp)##sgdl";
+    strings["delete##sgdl0"].plurals[0] = "=delete";
+    strings["%.2X: <INVALID>##sgdl"].plurals[0] = "=%.2X: <INVALID>##sgdl";
+    strings["- None -##sgdl"].plurals[0] = "=- None -##sgdl";
+    strings["out of memory for this sample!##sgdl"].plurals[0] = "=out of memory for this sample!##sgdl";
+    strings["make instrument##sgdl"].plurals[0] = "=make instrument##sgdl";
+    strings["duplicate##sgdl1"].plurals[0] = "=duplicate";
+    strings["replace...##sgdl1"].plurals[0] = "=replace...";
+    strings["save##sgdl1"].plurals[0] = "=save";
+    strings["delete##sgdl1"].plurals[0] = "=delete";
     strings["Instruments###Instruments"].plurals[0] = "=Instruments###Instruments";
-    strings["Add"].plurals[0] = "=Add";
-    strings["Duplicate"].plurals[0] = "=Duplicate";
-    strings["Open"].plurals[0] = "=Open";
-    strings["replace instrument..."].plurals[0] = "=replace instrument...";
-    strings["load instrument from TX81Z"].plurals[0] = "=load instrument from TX81Z";
-    strings["replace wavetable..."].plurals[0] = "=replace wavetable...";
-    strings["replace sample..."].plurals[0] = "=replace sample...";
-    strings["import raw sample..."].plurals[0] = "=import raw sample...";
-    strings["import raw sample (replace)..."].plurals[0] = "=import raw sample (replace)...";
-    strings["load from TX81Z"].plurals[0] = "=load from TX81Z";
-    strings["Open (insert; right-click to replace)"].plurals[0] = "=Open (insert; right-click to replace)";
-    strings["Save"].plurals[0] = "=Save";
-    strings["save instrument as .dmp..."].plurals[0] = "=save instrument as .dmp...";
-    strings["save wavetable as .dmw..."].plurals[0] = "=save wavetable as .dmw...";
-    strings["save raw wavetable..."].plurals[0] = "=save raw wavetable...";
-    strings["save raw sample..."].plurals[0] = "=save raw sample...";
-    strings["save as .dmp..."].plurals[0] = "=save as .dmp...";
-    strings["Toggle folders/standard view"].plurals[0] = "=Toggle folders/standard view";
-    strings["Move up"].plurals[0] = "=Move up";
-    strings["Move down"].plurals[0] = "=Move down";
-    strings["Create"].plurals[0] = "=Create";
-    strings["New folder"].plurals[0] = "=New folder";
-    strings["Preview (right click to stop)"].plurals[0] = "=Preview (right click to stop)";
-    strings["Delete"].plurals[0] = "=Delete";
-    strings["Instruments"].plurals[0] = "=Instruments";
-    strings["<uncategorized>"].plurals[0] = "=<uncategorized>";
-    strings["rename..."].plurals[0] = "=rename...";
-    strings["delete"].plurals[0] = "=delete";
-    strings["Wavetables"].plurals[0] = "=Wavetables";
-    strings["Samples"].plurals[0] = "=Samples";
+    strings["Add##sgdl0"].plurals[0] = "=Add";
+    strings["Duplicate##sgdl2"].plurals[0] = "=Duplicate";
+    strings["Open##sgdl0"].plurals[0] = "=Open";
+    strings["replace instrument...##sgdl"].plurals[0] = "=replace instrument...##sgdl";
+    strings["load instrument from TX81Z##sgdl"].plurals[0] = "=load instrument from TX81Z##sgdl";
+    strings["replace wavetable...##sgdl"].plurals[0] = "=replace wavetable...##sgdl";
+    strings["replace sample...##sgdl"].plurals[0] = "=replace sample...##sgdl";
+    strings["import raw sample...##sgdl"].plurals[0] = "=import raw sample...##sgdl";
+    strings["import raw sample (replace)...##sgdl"].plurals[0] = "=import raw sample (replace)...##sgdl";
+    strings["replace...##sgdl2"].plurals[0] = "=replace...";
+    strings["load from TX81Z##sgdl"].plurals[0] = "=load from TX81Z##sgdl";
+    strings["Open (insert; right-click to replace)##sgdl"].plurals[0] = "=Open (insert; right-click to replace)##sgdl";
+    strings["Save##sgdl2"].plurals[0] = "=Save";
+    strings["save instrument as .dmp...##sgdl"].plurals[0] = "=save instrument as .dmp...##sgdl";
+    strings["save wavetable as .dmw...##sgdl"].plurals[0] = "=save wavetable as .dmw...##sgdl";
+    strings["save raw wavetable...##sgdl"].plurals[0] = "=save raw wavetable...##sgdl";
+    strings["save raw sample...##sgdl"].plurals[0] = "=save raw sample...##sgdl";
+    strings["save as .dmp...##sgdl"].plurals[0] = "=save as .dmp...##sgdl";
+    strings["Toggle folders/standard view##sgdl0"].plurals[0] = "=Toggle folders/standard view";
+    strings["Move up##sgdl0"].plurals[0] = "=Move up";
+    strings["Move down##sgdl0"].plurals[0] = "=Move down";
+    strings["Create##sgdl0"].plurals[0] = "=Create";
+    strings["New folder##sgdl0"].plurals[0] = "=New folder";
+    strings["Preview (right click to stop)##sgdl0"].plurals[0] = "=Preview (right click to stop)";
+    strings["Delete##sgdl2"].plurals[0] = "=Delete";
+    strings["Instruments##sgdl"].plurals[0] = "=Instruments##sgdl";
+    strings["<uncategorized>##sgdl0"].plurals[0] = "=<uncategorized>";
+    strings["rename...##sgdl0"].plurals[0] = "=rename...";
+    strings["delete##sgdl3"].plurals[0] = "=delete";
+    strings["Wavetables##sgdl"].plurals[0] = "=Wavetables##sgdl";
+    strings["Samples##sgdl"].plurals[0] = "=Samples##sgdl";
     strings["Wavetables###Wavetables"].plurals[0] = "=Wavetables###Wavetables";
-    strings["save as .dmw..."].plurals[0] = "=save as .dmw...";
-    strings["save raw..."].plurals[0] = "=save raw...";
-    strings["Toggle folders/standard view"].plurals[0] = "=Toggle folders/standard view";
+    strings["Add##sgdl2"].plurals[0] = "=Add";
+    strings["Duplicate##sgdl3"].plurals[0] = "=Duplicate";
+    strings["Open##sgdl1"].plurals[0] = "=Open";
+    strings["replace...##sgdl3"].plurals[0] = "=replace...";
+    strings["Save##sgdl3"].plurals[0] = "=Save";
+    strings["save as .dmw...##sgdl"].plurals[0] = "=save as .dmw...##sgdl";
+    strings["save raw...##sgdl0"].plurals[0] = "=save raw...";
+    strings["Toggle folders/standard view##sgdl1"].plurals[0] = "=Toggle folders/standard view";
+    strings["Move up##sgdl1"].plurals[0] = "=Move up";
+    strings["Move down##sgdl1"].plurals[0] = "=Move down";
+    strings["Create##sgdl1"].plurals[0] = "=Create";
+    strings["New folder##sgdl1"].plurals[0] = "=New folder";
+    strings["Delete##sgdl4"].plurals[0] = "=Delete";
     strings["Samples###Samples"].plurals[0] = "=Samples###Samples";
-    strings["import raw..."].plurals[0] = "=import raw...";
-    strings["import raw (replace)..."].plurals[0] = "=import raw (replace)...";
-    strings["save raw..."].plurals[0] = "=save raw...";
+    strings["Add##sgdl3"].plurals[0] = "=Add";
+    strings["Duplicate##sgdl4"].plurals[0] = "=Duplicate";
+    strings["Open##sgdl2"].plurals[0] = "=Open";
+    strings["replace...##sgdl4"].plurals[0] = "=replace...";
+    strings["import raw...##sgdl"].plurals[0] = "=import raw...##sgdl";
+    strings["import raw (replace)...##sgdl"].plurals[0] = "=import raw (replace)...##sgdl";
+    strings["Save##sgdl4"].plurals[0] = "=Save";
+    strings["save raw...##sgdl1"].plurals[0] = "=save raw...";
+    strings["Toggle folders/standard view##sgdl2"].plurals[0] = "=Toggle folders/standard view";
+    strings["Move up##sgdl2"].plurals[0] = "=Move up";
+    strings["Move down##sgdl2"].plurals[0] = "=Move down";
+    strings["Create##sgdl2"].plurals[0] = "=Create";
+    strings["New folder##sgdl2"].plurals[0] = "=New folder";
+    strings["Preview (right click to stop)##sgdl1"].plurals[0] = "=Preview (right click to stop)";
+    strings["Delete##sgdl5"].plurals[0] = "=Delete";
+    strings["<uncategorized>##sgdl1"].plurals[0] = "=<uncategorized>";
+    strings["rename...##sgdl1"].plurals[0] = "=rename...";
+    strings["delete##sgdl6"].plurals[0] = "=delete";
+    strings["rename...##sgdl2"].plurals[0] = "=rename...";
+    strings["delete##sgdl7"].plurals[0] = "=delete";
 
 //progress on sifting through files alphabetically
 

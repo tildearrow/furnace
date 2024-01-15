@@ -267,7 +267,7 @@ void FurnaceGUI::drawChanOsc() {
                 i.prevY=i.y;
               }
               if (ImGui::BeginPopup("gradPointSettings",ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize)) {
-                if (ImGui::ColorPicker4(_L("Color##sgco"),(float*)&i.color)) {
+                if (ImGui::ColorPicker4(_L("Color##sgco0"),(float*)&i.color)) {
                   updateChanOscGradTex=true;
                 }
                 ImGui::AlignTextToFramePadding();
@@ -323,7 +323,7 @@ void FurnaceGUI::drawChanOsc() {
         }
       } else {
         ImGui::SetNextItemWidth(400.0f*dpiScale);
-        ImGui::ColorPicker4(_L("Color##sgco"),(float*)&chanOscColor);
+        ImGui::ColorPicker4(_L("Color##sgco1"),(float*)&chanOscColor);
       }
 
       ImGui::AlignTextToFramePadding();
