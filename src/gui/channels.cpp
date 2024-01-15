@@ -46,13 +46,13 @@ void FurnaceGUI::drawChannels() {
       ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
       ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
       ImGui::TableNextColumn();
-      ImGui::Text(_L("Pat"));
+      ImGui::Text(_L("Pat##sgch"));
       ImGui::TableNextColumn();
-      ImGui::Text(_L("Osc"));
+      ImGui::Text(_L("Osc##sgch"));
       ImGui::TableNextColumn();
-      ImGui::Text(_L("Swap"));
+      ImGui::Text(_L("Swap##sgch"));
       ImGui::TableNextColumn();
-      ImGui::Text(_L("Name"));
+      ImGui::Text(_L("Name##sgch"));
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         ImGui::PushID(i);
         ImGui::TableNextRow();
@@ -68,7 +68,7 @@ void FurnaceGUI::drawChannels() {
           MARK_MODIFIED;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_L("Show in per-channel oscilloscope"));
+          ImGui::SetTooltip(_L("Show in per-channel oscilloscope##sgch"));
         }
         ImGui::TableNextColumn();
         if (ImGui::Button(ICON_FA_ARROWS)) {
@@ -79,7 +79,7 @@ void FurnaceGUI::drawChannels() {
           ImGui::Button(ICON_FA_ARROWS "##ChanDrag");
           ImGui::EndDragDropSource();
         } else if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_L("%s #%d\n(drag to swap channels)"),e->getSystemName(e->sysOfChan[i]),e->dispatchChanOfChan[i]);
+          ImGui::SetTooltip(_L("%s #%d\n(drag to swap channels)##sgch"),e->getSystemName(e->sysOfChan[i]),e->dispatchChanOfChan[i]);
         }
         if (ImGui::BeginDragDropTarget()) {
           const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_CHAN");

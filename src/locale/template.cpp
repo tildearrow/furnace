@@ -87,7 +87,7 @@ void DivLocale::addTranslationsTemplate()
     //   sgwe  src/gui/waveEdit.cpp
     //   sgxy  src/gui/xyOsc.cpp
 
-    //ABOUT
+    //src/gui/about.cpp
 
     strings["About Furnace###About Furnace"].plurals[0] = "=About Furnace###About Furnace";
 
@@ -181,50 +181,50 @@ void DivLocale::addTranslationsTemplate()
 
     strings["thanks to all contributors/bug reporters!##sgab"].plurals[0] = "=thanks to all contributors/bug reporters!##sgab";
 
-    //CHANNELS WINDOW
+    //src/gui/channels.cpp
 
     strings["Channels###Channels"].plurals[0] = "=Channels###Channels";
-    strings["Pat"].plurals[0] = "=Pat";
-    strings["Osc"].plurals[0] = "=Osc";
-    strings["Swap"].plurals[0] = "=Swap";
-    strings["Name"].plurals[0] = "=Name";
+    strings["Pat##sgch"].plurals[0] = "=Pat##sgch";
+    strings["Osc##sgch"].plurals[0] = "=Osc##sgch";
+    strings["Swap##sgch"].plurals[0] = "=Swap##sgch";
+    strings["Name##sgch"].plurals[0] = "=Name##sgch";
     strings["Show in pattern##sgch"].plurals[0] = "=Show in pattern##sgch";
-    strings["Show in per-channel oscilloscope"].plurals[0] = "=Show in per-channel oscilloscope";
-    strings["%s #%d\n(drag to swap channels)"].plurals[0] = "=%s #%d\n(drag to swap channels)";
+    strings["Show in per-channel oscilloscope##sgch"].plurals[0] = "=Show in per-channel oscilloscope##sgch";
+    strings["%s #%d\n(drag to swap channels)##sgch"].plurals[0] = "=%s #%d\n(drag to swap channels)##sgch";
 
-    //OSCILLOSCOPE (PER-CHANNEL)
+    //src/gui/chanOsc.cpp
 
-    strings["None (0%)"].plurals[0] = "=None (0%)";
-    strings["None (50%)"].plurals[0] = "=None (50%)";
-    strings["None (100%)"].plurals[0] = "=None (100%)";
-    strings["Frequency"].plurals[0] = "=Frequency";
-    strings["Volume"].plurals[0] = "=Volume";
-    strings["Channel"].plurals[0] = "=Channel";
-    strings["Brightness"].plurals[0] = "=Brightness";
-    strings["Note Trigger"].plurals[0] = "=Note Trigger";
-    strings["Off"].plurals[0] = "=Off";
-    strings["Mode 1"].plurals[0] = "=Mode 1";
-    strings["Mode 2"].plurals[0] = "=Mode 2";
-    strings["Mode 3"].plurals[0] = "=Mode 3";
+    strings["None (0%)##sgco"].plurals[0] = "=None (0%)##sgco";
+    strings["None (50%)##sgco"].plurals[0] = "=None (50%)##sgco";
+    strings["None (100%)##sgco"].plurals[0] = "=None (100%)##sgco";
+    strings["Frequency##sgco"].plurals[0] = "=Frequency##sgco";
+    strings["Volume##sgco"].plurals[0] = "=Volume##sgco";
+    strings["Channel##sgco"].plurals[0] = "=Channel##sgco";
+    strings["Brightness##sgco"].plurals[0] = "=Brightness##sgco";
+    strings["Note Trigger##sgco"].plurals[0] = "=Note Trigger##sgco";
+    strings["Off##sgco"].plurals[0] = "=Off##sgco";
+    strings["Mode 1##sgco"].plurals[0] = "=Mode 1##sgco";
+    strings["Mode 2##sgco"].plurals[0] = "=Mode 2##sgco";
+    strings["Mode 3##sgco"].plurals[0] = "=Mode 3##sgco";
 
     strings["Oscilloscope (per-channel)###Oscilloscope (per-channel)"].plurals[0] = "=Oscilloscope (per-channel)###Oscilloscope (per-channel)";
 
-    strings["Columns"].plurals[0] = "=Columns";
-    strings["Size (ms)"].plurals[0] = "=Size (ms)";
-    strings["Automatic columns"].plurals[0] = "=Automatic columns";
-    strings["Center waveform"].plurals[0] = "=Center waveform";
-    strings["Randomize phase on note"].plurals[0] = "=Randomize phase on note";
-    strings["Amplitude"].plurals[0] = "=Amplitude";
-    strings["Gradient"].plurals[0] = "=Gradient";
-    strings["Color"].plurals[0] = "=Color";
-    strings["Distance"].plurals[0] = "=Distance";
-    strings["Spread"].plurals[0] = "=Spread";
-    strings["Remove"].plurals[0] = "=Remove";
-    strings["Background"].plurals[0] = "=Background";
+    strings["Columns##sgco"].plurals[0] = "=Columns##sgco";
+    strings["Size (ms)##sgco"].plurals[0] = "=Size (ms)##sgco";
+    strings["Automatic columns##sgco"].plurals[0] = "=Automatic columns##sgco";
+    strings["Center waveform##sgco"].plurals[0] = "=Center waveform##sgco";
+    strings["Randomize phase on note##sgco"].plurals[0] = "=Randomize phase on note##sgco";
+    strings["Amplitude##sgco"].plurals[0] = "=Amplitude##sgco";
+    strings["Gradient##sgco"].plurals[0] = "=Gradient##sgco";
+    strings["Color##sgco"].plurals[0] = "=Color##sgco";
+    strings["Distance##sgco"].plurals[0] = "=Distance##sgco";
+    strings["Spread##sgco"].plurals[0] = "=Spread##sgco";
+    strings["Remove##sgco"].plurals[0] = "=Remove##sgco";
+    strings["Background##sgco"].plurals[0] = "=Background##sgco";
     strings["X Axis##AxisX"].plurals[0] = "=X Axis##AxisX";
     strings["Y Axis##AxisY"].plurals[0] = "=Y Axis##AxisY";
-    strings["Color"].plurals[0] = "=Color";
-    strings["Text format:"].plurals[0] = "=Text format:";
+    strings["Color##sgco"].plurals[0] = "=Color##sgco";
+    strings["Text format:##sgco"].plurals[0] = "=Text format:##sgco";
 
     strings["format guide:\n"
             "- %c: channel name\n"
@@ -241,7 +241,7 @@ void DivLocale::addTranslationsTemplate()
             "- %v: volume (decimal)\n"
             "- %V: volume (percentage)\n"
             "- %b: volume (hex)\n"
-            "- %%: percent sign"].plurals[0] = 
+            "- %%: percent sign##sgco"].plurals[0] = 
 
             "=format guide:\n"
             "=- %c: channel name\n"
@@ -260,19 +260,19 @@ void DivLocale::addTranslationsTemplate()
             "=- %b: volume (hex)\n"
             "=- %%: percent sign";
 
-    strings["Text color"].plurals[0] = "=Text color";
-    strings["Error!"].plurals[0] = "=Error!";
-    strings["\nquiet"].plurals[0] = "=\nquiet";
+    strings["Text color##sgco"].plurals[0] = "=Text color##sgco";
+    strings["Error!##sgco"].plurals[0] = "=Error!##sgco";
+    strings["\nquiet##sgco"].plurals[0] = "=\nquiet##sgco";
 
-    //CLOCK
+    //src/gui/clock.cpp
 
     strings["Clock###Clock"].plurals[0] = "=Clock###Clock";
 
-    //COMPATIBILITY FLAGS
+    //src/gui/compatFlags.cpp
 
         //waiting for compat flags reduction
 
-    //DATA LIST (ASSETS)
+    //src/gui/dataList.cpp
 
     strings["Bug!"].plurals[0] = "=Bug!";
     strings["Unknown"].plurals[0] = "=Unknown";
