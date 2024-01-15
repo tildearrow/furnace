@@ -18,7 +18,7 @@ class DivLocale;
 
 void DivLocale::addTranslationsTemplate()
 {
-    //everything in a string after the ## must remain as is
+    //everything in a string after the ## or ### must remain as is
 
     //progress tracker (# means done):
     // # about.cpp

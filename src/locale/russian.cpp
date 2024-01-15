@@ -17,6 +17,8 @@ class DivLocale;
 
 void DivLocale::addTranslationsRussian()
 {
+    //everything in a string after the ## of ### must remain as is
+
     strings["%d apple"].plurals[0] = "%d яблоко";
     strings["%d apple"].plurals[1] = "%d яблока";
     strings["%d apple"].plurals[2] = "%d яблок";
