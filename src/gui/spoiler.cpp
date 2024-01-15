@@ -27,7 +27,7 @@ void FurnaceGUI::drawSpoiler() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!spoilerOpen) return;
-  if (ImGui::Begin("Spoiler",&spoilerOpen,globalWinFlags|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::Begin("Spoiler",&spoilerOpen,globalWinFlags|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_AlwaysAutoResize,_L("Spoiler###Spoiler"))) {
     ImGui::PushFont(bigFont);
     ImGui::Text("SPOILER");
     ImGui::PopFont();
