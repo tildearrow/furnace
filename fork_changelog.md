@@ -23,6 +23,7 @@ LTVA:
 freq-mod:
 - 86-PCM streo DAC fix
 - Remove basic mode, tutorial and intro
+- Remove certian compatibility flags from the GUI (notably, old Furnace compatibility)
 
 Electric Keet:
 - "Furnace-B" name
