@@ -219,23 +219,39 @@ void DivLocale::addTranslationsTemplate()
     strings["Color"].plurals[0] = "=Color";
     strings["Text format:"].plurals[0] = "=Text format:";
 
-    strings["format guide:\n"].plurals[0] = "=format guide:\n";
-    strings["- %c: channel name\n"].plurals[0] = "=- %c: channel name\n";
-    strings["- %C: channel short name\n"].plurals[0] = "=- %C: channel short name\n";
-    strings["- %d: channel number (starting from 0)\n"].plurals[0] = "=- %d: channel number (starting from 0)\n";
-    strings["- %D: channel number (starting from 1)\n"].plurals[0] = "=- %D: channel number (starting from 1)\n";
-    strings["- %n: channel note\n"].plurals[0] = "=- %n: channel note\n";
-    strings["- %i: instrument name\n"].plurals[0] = "=- %i: instrument name\n";
-    strings["- %I: instrument number (decimal)\n"].plurals[0] = "=- %I: instrument number (decimal)\n";
-    strings["- %x: instrument number (hex)\n"].plurals[0] = "=- %x: instrument number (hex)\n";
-    strings["- %s: chip name\n"].plurals[0] = "=- %s: chip name\n";
-    strings["- %p: chip part number\n"].plurals[0] = "=- %p: chip part number\n";
-    strings["- %S: chip ID\n"].plurals[0] = "=- %S: chip ID\n";
-    strings["- %v: volume (decimal)\n"].plurals[0] = "=- %v: volume (decimal)\n";
-    strings["- %V: volume (percentage)\n"].plurals[0] = "=- %V: volume (percentage)\n";
-    strings["- %b: volume (hex)\n"].plurals[0] = "=- %b: volume (hex)\n";
-    strings["- %%: percent sign"].plurals[0] = "=- %%: percent sign";
+    strings["format guide:\n"
+            "- %c: channel name\n"
+            "- %C: channel short name\n"
+            "- %d: channel number (starting from 0)\n"
+            "- %D: channel number (starting from 1)\n"
+            "- %n: channel note\n"
+            "- %i: instrument name\n"
+            "- %I: instrument number (decimal)\n"
+            "- %x: instrument number (hex)\n"
+            "- %s: chip name\n"
+            "- %p: chip part number\n"
+            "- %S: chip ID\n"
+            "- %v: volume (decimal)\n"
+            "- %V: volume (percentage)\n"
+            "- %b: volume (hex)\n"
+            "- %%: percent sign"].plurals[0] = 
 
+            "=format guide:\n"
+            "=- %c: channel name\n"
+            "=- %C: channel short name\n"
+            "=- %d: channel number (starting from 0)\n"
+            "=- %D: channel number (starting from 1)\n"
+            "=- %n: channel note\n"
+            "=- %i: instrument name\n"
+            "=- %I: instrument number (decimal)\n"
+            "=- %x: instrument number (hex)\n"
+            "=- %s: chip name\n"
+            "=- %p: chip part number\n"
+            "=- %S: chip ID\n"
+            "=- %v: volume (decimal)\n"
+            "=- %V: volume (percentage)\n"
+            "=- %b: volume (hex)\n"
+            "=- %%: percent sign";
 
     strings["Text color"].plurals[0] = "=Text color";
     strings["Error!"].plurals[0] = "=Error!";
