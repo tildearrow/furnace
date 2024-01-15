@@ -22,8 +22,8 @@ void DivLocale::addTranslationsTemplate()
 
     //progress tracker (# means done):
     // # about.cpp
-    //   channels.cpp
-    //   chanOsc.cpp
+    // # channels.cpp
+    // # chanOsc.cpp
     //   clock.cpp
     //   compatFlags.cpp
     //   cursor.cpp
@@ -185,6 +185,63 @@ void DivLocale::addTranslationsTemplate()
     strings["Show in pattern"].plurals[0] = "=Show in pattern";
     strings["Show in per-channel oscilloscope"].plurals[0] = "=Show in per-channel oscilloscope";
     strings["%s #%d\n(drag to swap channels)"].plurals[0] = "=%s #%d\n(drag to swap channels)";
+
+    //OSCILLOSCOPE (PER-CHANNEL)
+
+    strings["None (0%)"].plurals[0] = "=None (0%)";
+    strings["None (50%)"].plurals[0] = "=None (50%)";
+    strings["None (100%)"].plurals[0] = "=None (100%)";
+    strings["Frequency"].plurals[0] = "=Frequency";
+    strings["Volume"].plurals[0] = "=Volume";
+    strings["Channel"].plurals[0] = "=Channel";
+    strings["Brightness"].plurals[0] = "=Brightness";
+    strings["Note Trigger"].plurals[0] = "=Note Trigger";
+    strings["Off"].plurals[0] = "=Off";
+    strings["Mode 1"].plurals[0] = "=Mode 1";
+    strings["Mode 2"].plurals[0] = "=Mode 2";
+    strings["Mode 3"].plurals[0] = "=Mode 3";
+
+    strings["Oscilloscope (per-channel)###Oscilloscope (per-channel)"].plurals[0] = "=Oscilloscope (per-channel)###Oscilloscope (per-channel)";
+
+    strings["Columns"].plurals[0] = "=Columns";
+    strings["Size (ms)"].plurals[0] = "=Size (ms)";
+    strings["Automatic columns"].plurals[0] = "=Automatic columns";
+    strings["Center waveform"].plurals[0] = "=Center waveform";
+    strings["Randomize phase on note"].plurals[0] = "=Randomize phase on note";
+    strings["Amplitude"].plurals[0] = "=Amplitude";
+    strings["Gradient"].plurals[0] = "=Gradient";
+    strings["Color"].plurals[0] = "=Color";
+    strings["Distance"].plurals[0] = "=Distance";
+    strings["Spread"].plurals[0] = "=Spread";
+    strings["Remove"].plurals[0] = "=Remove";
+    strings["Background"].plurals[0] = "=Background";
+    strings["X Axis##AxisX"].plurals[0] = "=X Axis##AxisX";
+    strings["Y Axis##AxisY"].plurals[0] = "=Y Axis##AxisY";
+    strings["Color"].plurals[0] = "=Color";
+    strings["Text format:"].plurals[0] = "=Text format:";
+
+    strings["format guide:\n"].plurals[0] = "=format guide:\n";
+    strings["- %c: channel name\n"].plurals[0] = "=- %c: channel name\n";
+    strings["- %C: channel short name\n"].plurals[0] = "=- %C: channel short name\n";
+    strings["- %d: channel number (starting from 0)\n"].plurals[0] = "=- %d: channel number (starting from 0)\n";
+    strings["- %D: channel number (starting from 1)\n"].plurals[0] = "=- %D: channel number (starting from 1)\n";
+    strings["- %n: channel note\n"].plurals[0] = "=- %n: channel note\n";
+    strings["- %i: instrument name\n"].plurals[0] = "=- %i: instrument name\n";
+    strings["- %I: instrument number (decimal)\n"].plurals[0] = "=- %I: instrument number (decimal)\n";
+    strings["- %x: instrument number (hex)\n"].plurals[0] = "=- %x: instrument number (hex)\n";
+    strings["- %s: chip name\n"].plurals[0] = "=- %s: chip name\n";
+    strings["- %p: chip part number\n"].plurals[0] = "=- %p: chip part number\n";
+    strings["- %S: chip ID\n"].plurals[0] = "=- %S: chip ID\n";
+    strings["- %v: volume (decimal)\n"].plurals[0] = "=- %v: volume (decimal)\n";
+    strings["- %V: volume (percentage)\n"].plurals[0] = "=- %V: volume (percentage)\n";
+    strings["- %b: volume (hex)\n"].plurals[0] = "=- %b: volume (hex)\n";
+    strings["- %%: percent sign"].plurals[0] = "=- %%: percent sign";
+
+
+    strings["Text color"].plurals[0] = "=Text color";
+    strings["Error!"].plurals[0] = "=Error!";
+    strings["\nquiet"].plurals[0] = "=\nquiet";
+
 
     //MENU BAR ITEMS
 
