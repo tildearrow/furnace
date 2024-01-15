@@ -18,170 +18,177 @@ class DivLocale;
 
 void DivLocale::addTranslationsTemplate()
 {
-    //everything in a string after the ## or ### must remain as is
+    // everything in a string after the ## or ### must remain as is
+    // example: Sparkles!##sgab1 means the second instance of "Sparkles!"
+    //   in `src/gui/about.cpp`.
 
-    //progress tracker (# means done):
-    // # about.cpp
-    // # channels.cpp
-    // # chanOsc.cpp
-    // # clock.cpp
-    // # compatFlags.cpp
-    // # dataList.cpp
-    //   debug.cpp
-    //   debugWindow.cpp
-    //   doAction.cpp
-    //   editControls.cpp
-    //   editing.cpp
-    //   effectList.cpp
-    //   exportOptions.cpp
-    //   fileDialog.cpp
-    //   findReplace.cpp
-    //   fmPreview.cpp
-    //   fonts.cpp
-    //   gradient.cpp
-    //   grooves.cpp
-    //   gui.cpp
-    //   guiConst.cpp
-    //   image.cpp
-    //   image_icon.cpp
-    //   insEdit.cpp
-    //   intConst.cpp
-    //   log.cpp
-    //   macstuff.m
-    //   midiMap.cpp
-    //   mixer.cpp
-    //   newSong.cpp
-    //   orders.cpp
-    //   osc.cpp
-    //   patManager.cpp
-    //   pattern.cpp
-    //   piano.cpp
-    //   plot_nolerp.cpp
-    //   presets.cpp
-    //   regView.cpp
-    //   render.cpp
-    //   sampleEdit.cpp
-    //   scaling.cpp
-    // # settings.cpp
-    //   songInfo.cpp
-    //   songNotes.cpp
-    //   speed.cpp
-    //   spoiler.cpp
-    //   stats.cpp
-    //   subSongs.cpp
-    //   sysConf.cpp
-    //   sysEx.cpp
-    //   sysManager.cpp
-    //   sysPartNumber.cpp
-    //   sysPicker.cpp
-    //   util.cpp
-    //   volMeter.cpp
-    //   waveEdit.cpp
-    //   xyOsc.cpp
+    //progress tracker
+    //   code  is the hashcode prefix (derived from path)
+    // @       means source needs disambiguation tags
+    // +       means source has _L() wrappers
+    // #       means template has strings (all done!)
+ 
+    //   sg**  src/gui/
+    // # sgab  src/gui/about.cpp
+    // @ sgch  src/gui/channels.cpp
+    // @ sgco  src/gui/chanOsc.cpp
+    // @ sgcl  src/gui/clock.cpp
+    //   sgcm  src/gui/compatFlags.cpp
+    // @ sgdl  src/gui/dataList.cpp
+    //   sgdb  src/gui/debug.cpp
+    //   sgdw  src/gui/debugWindow.cpp
+    //   sgda  src/gui/doAction.cpp
+    //   sgec  src/gui/editControls.cpp
+    //   sged  src/gui/editing.cpp
+    //   sgef  src/gui/effectList.cpp
+    //   sgeo  src/gui/exportOptions.cpp
+    //   sgfd  src/gui/fileDialog.cpp
+    //   sgfr  src/gui/findReplace.cpp
+    //   sgfm  src/gui/fmPreview.cpp
+    //   sgfo  src/gui/fonts.cpp
+    //   sggd  src/gui/gradient.cpp
+    //   sggv  src/gui/grooves.cpp
+    //   sggu  src/gui/gui.cpp
+    //   sggc  src/gui/guiConst.cpp
+    //   sgim  src/gui/image.cpp
+    //   sgii  src/gui/image_icon.cpp
+    //   sgie  src/gui/insEdit.cpp
+    //   sgic  src/gui/intConst.cpp
+    //   sglo  src/gui/log.cpp
+    //   sgms  src/gui/macstuff.m
+    //   sgmm  src/gui/midiMap.cpp
+    //   sgmx  src/gui/mixer.cpp
+    //   sgns  src/gui/newSong.cpp
+    //   sgor  src/gui/orders.cpp
+    //   sgos  src/gui/osc.cpp
+    //   sgpm  src/gui/patManager.cpp
+    //   sgpa  src/gui/pattern.cpp
+    //   sgpi  src/gui/piano.cpp
+    //   sgpn  src/gui/plot_nolerp.cpp
+    //   sgpr  src/gui/presets.cpp
+    //   sgrv  src/gui/regView.cpp
+    //   sgre  src/gui/render.cpp
+    //   sgse  src/gui/sampleEdit.cpp
+    //   sgsc  src/gui/scaling.cpp
+    // + sgse  src/gui/settings.cpp
+    //   sgsi  src/gui/songInfo.cpp
+    //   sgsn  src/gui/songNotes.cpp
+    //   sgsp  src/gui/speed.cpp
+    //   sgsl  src/gui/spoiler.cpp
+    //   sgst  src/gui/stats.cpp
+    //   sgss  src/gui/subSongs.cpp
+    //   sgsc  src/gui/sysConf.cpp
+    //   sgsx  src/gui/sysEx.cpp
+    //   sgsm  src/gui/sysManager.cpp
+    //   sgsa  src/gui/sysPartNumber.cpp
+    //   sgsp  src/gui/sysPicker.cpp
+    //   sgut  src/gui/util.cpp
+    //   sgvm  src/gui/volMeter.cpp
+    //   sgwe  src/gui/waveEdit.cpp
+    //   sgxy  src/gui/xyOsc.cpp
 
     //ABOUT
 
-    strings["About Furnace"].plurals[0] = "=About Furnace";
+    strings["About Furnace###About Furnace"].plurals[0] = "=About Furnace###About Furnace";
 
-    strings["and Furnace-B developers"].plurals[0] = "=and Furnace-B developers";
-    strings["are proud to present"].plurals[0] = "=are proud to present";
-    strings["the biggest multi-system chiptune tracker!"].plurals[0] = "=the biggest multi-system chiptune tracker!";
-    strings["featuring DefleMask song compatibility."].plurals[0] = "=featuring DefleMask song compatibility.";
+    strings["and Furnace-B developers##sgab"].plurals[0] = "=and Furnace-B developers##sgab";
+    strings["are proud to present##sgab"].plurals[0] = "=are proud to present##sgab";
+    strings["the biggest multi-system chiptune tracker!##sgab"].plurals[0] = "=the biggest multi-system chiptune tracker!##sgab";
+    strings["featuring DefleMask song compatibility.##sgab"].plurals[0] = "=featuring DefleMask song compatibility.##sgab";
 
-    strings["> CREDITS <"].plurals[0] = "=> CREDITS <";
-    strings["-- program --"].plurals[0] = "=-- program --";
-    strings["A M 4 N (intro tune)"].plurals[0] = "=A M 4 N (intro tune)";
-    strings["-- graphics/UI design --"].plurals[0] = "=-- graphics/UI design --";
-    strings["-- documentation --"].plurals[0] = "=-- documentation --";
-    strings["-- demo songs --"].plurals[0] = "=-- demo songs --";
-    strings["-- additional feedback/fixes --"].plurals[0] = "=-- additional feedback/fixes --";
+    strings["> CREDITS <##sgab"].plurals[0] = "=> CREDITS <##sgab";
+    strings["-- program --##sgab"].plurals[0] = "=-- program --##sgab";
+    strings["A M 4 N (intro tune)##sgab"].plurals[0] = "=A M 4 N (intro tune)##sgab";
+    strings["-- graphics/UI design --##sgab"].plurals[0] = "=-- graphics/UI design --##sgab";
+    strings["-- documentation --##sgab"].plurals[0] = "=-- documentation --##sgab";
+    strings["-- demo songs --##sgab"].plurals[0] = "=-- demo songs --##sgab";
+    strings["-- additional feedback/fixes --##sgab"].plurals[0] = "=-- additional feedback/fixes --##sgab";
 
-    strings["powered by:"].plurals[0] = "=powered by:";
-    strings["Dear ImGui by Omar Cornut"].plurals[0] = "=Dear ImGui by Omar Cornut";
-    strings["SDL2 by Sam Lantinga"].plurals[0] = "=SDL2 by Sam Lantinga";
-    strings["zlib by Jean-loup Gailly"].plurals[0] = "=zlib by Jean-loup Gailly";
-    strings["and Mark Adler"].plurals[0] = "=and Mark Adler";
-    strings["libsndfile by Erik de Castro Lopo"].plurals[0] = "=libsndfile by Erik de Castro Lopo";
-    strings["Portable File Dialogs by Sam Hocevar"].plurals[0] = "=Portable File Dialogs by Sam Hocevar";
-    strings["Native File Dialog by Frogtoss Games"].plurals[0] = "=Native File Dialog by Frogtoss Games";
-    strings["Weak-JACK by x42"].plurals[0] = "=Weak-JACK by x42";
-    strings["RtMidi by Gary P. Scavone"].plurals[0] = "=RtMidi by Gary P. Scavone";
-    strings["FFTW by Matteo Frigo and Steven G. Johnson"].plurals[0] = "=FFTW by Matteo Frigo and Steven G. Johnson";
-    strings["backward-cpp by Google"].plurals[0] = "=backward-cpp by Google";
-    strings["adpcm by superctr"].plurals[0] = "=adpcm by superctr";
-    strings["Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"].plurals[0] = "=Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt";
-    strings["YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt"].plurals[0] = "=YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt";
-    strings["ymfm by Aaron Giles"].plurals[0] = "=ymfm by Aaron Giles";
-    strings["MAME SN76496 by Nicola Salmoria"].plurals[0] = "=MAME SN76496 by Nicola Salmoria";
-    strings["MAME AY-3-8910 by Couriersud"].plurals[0] = "=MAME AY-3-8910 by Couriersud";
-    strings["with AY8930 fixes by Eulous, cam900 and Grauw"].plurals[0] = "=with AY8930 fixes by Eulous, cam900 and Grauw";
-    strings["MAME SAA1099 by Juergen Buchmueller and Manuel Abadia"].plurals[0] = "=MAME SAA1099 by Juergen Buchmueller and Manuel Abadia";
-    strings["MAME Namco WSG by Nicola Salmoria and Aaron Giles"].plurals[0] = "=MAME Namco WSG by Nicola Salmoria and Aaron Giles";
-    strings["MAME RF5C68 core by Olivier Galibert and Aaron Giles"].plurals[0] = "=MAME RF5C68 core by Olivier Galibert and Aaron Giles";
-    strings["MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya"].plurals[0] = "=MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya";
-    strings["MAME MSM6258 core by Barry Rodewald"].plurals[0] = "=MAME MSM6258 core by Barry Rodewald";
-    strings["MAME YMZ280B core by Aaron Giles"].plurals[0] = "=MAME YMZ280B core by Aaron Giles";
-    strings["MAME GA20 core by Acho A. Tang and R. Belmont"].plurals[0] = "=MAME GA20 core by Acho A. Tang and R. Belmont";
-    strings["MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"].plurals[0] = "=MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert";
-    strings["SAASound by Dave Hooper and Simon Owen"].plurals[0] = "=SAASound by Dave Hooper and Simon Owen";
-    strings["SameBoy by Lior Halphon"].plurals[0] = "=SameBoy by Lior Halphon";
-    strings["Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"].plurals[0] = "=Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores";
-    strings["SNES DSP core by Blargg"].plurals[0] = "=SNES DSP core by Blargg";
-    strings["puNES (NES, MMC5 and FDS) by FHorse"].plurals[0] = "=puNES (NES, MMC5 and FDS) by FHorse";
-    strings["NSFPlay (NES and FDS) by Brad Smith and Brezza"].plurals[0] = "=NSFPlay (NES and FDS) by Brad Smith and Brezza";
-    strings["reSID by Dag Lem"].plurals[0] = "=reSID by Dag Lem";
-    strings["reSIDfp by Dag Lem, Antti Lankila"].plurals[0] = "=reSIDfp by Dag Lem, Antti Lankila";
-    strings["and Leandro Nini"].plurals[0] = "=and Leandro Nini";
-    strings["dSID by DefleMask Team based on jsSID"].plurals[0] = "=dSID by DefleMask Team based on jsSID";
-    strings["Stella by Stella Team"].plurals[0] = "=Stella by Stella Team";
-    strings["QSound emulator by superctr and Valley Bell"].plurals[0] = "=QSound emulator by superctr and Valley Bell";
-    strings["VICE VIC-20 sound core by Rami Rasanen and viznut"].plurals[0] = "=VICE VIC-20 sound core by Rami Rasanen and viznut";
-    strings["VICE TED sound core by Andreas Boose, Tibor Biczo"].plurals[0] = "=VICE TED sound core by Andreas Boose, Tibor Biczo";
-    strings["and Marco van den Heuvel"].plurals[0] = "=and Marco van den Heuvel";
-    strings["VERA sound core by Frank van den Hoef"].plurals[0] = "=VERA sound core by Frank van den Hoef";
-    strings["mzpokeysnd POKEY emulator by Michael Borisov"].plurals[0] = "=mzpokeysnd POKEY emulator by Michael Borisov";
-    strings["ASAP POKEY emulator by Piotr Fusik"].plurals[0] = "=ASAP POKEY emulator by Piotr Fusik";
-    strings["ported by laoo to C++"].plurals[0] = "=ported by laoo to C++";
-    strings["vgsound_emu (second version, modified version) by cam900"].plurals[0] = "=vgsound_emu (second version, modified version) by cam900";
-    strings["SM8521 emulator (modified version) by cam900"].plurals[0] = "=SM8521 emulator (modified version) by cam900";
-    strings["D65010G031 emulator (modified version) by cam900"].plurals[0] = "=D65010G031 emulator (modified version) by cam900";
-    strings["Namco C140/C219 emulator (modified version) by cam900"].plurals[0] = "=Namco C140/C219 emulator (modified version) by cam900";
+    strings["powered by:##sgab"].plurals[0] = "=powered by:##sgab";
+    strings["Dear ImGui by Omar Cornut##sgab"].plurals[0] = "=Dear ImGui by Omar Cornut##sgab";
+    strings["SDL2 by Sam Lantinga##sgab"].plurals[0] = "=SDL2 by Sam Lantinga##sgab";
+    strings["zlib by Jean-loup Gailly##sgab"].plurals[0] = "=zlib by Jean-loup Gailly##sgab";
+    strings["and Mark Adler##sgab"].plurals[0] = "=and Mark Adler##sgab";
+    strings["libsndfile by Erik de Castro Lopo##sgab"].plurals[0] = "=libsndfile by Erik de Castro Lopo##sgab";
+    strings["Portable File Dialogs by Sam Hocevar##sgab"].plurals[0] = "=Portable File Dialogs by Sam Hocevar##sgab";
+    strings["Native File Dialog by Frogtoss Games##sgab"].plurals[0] = "=Native File Dialog by Frogtoss Games##sgab";
+    strings["Weak-JACK by x42##sgab"].plurals[0] = "=Weak-JACK by x42##sgab";
+    strings["RtMidi by Gary P. Scavone##sgab"].plurals[0] = "=RtMidi by Gary P. Scavone##sgab";
+    strings["FFTW by Matteo Frigo and Steven G. Johnson##sgab"].plurals[0] = "=FFTW by Matteo Frigo and Steven G. Johnson##sgab";
+    strings["backward-cpp by Google##sgab"].plurals[0] = "=backward-cpp by Google##sgab";
+    strings["adpcm by superctr##sgab"].plurals[0] = "=adpcm by superctr##sgab";
+    strings["Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt##sgab"].plurals[0] = "=Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt##sgab";
+    strings["YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt##sgab"].plurals[0] = "=YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt##sgab";
+    strings["ymfm by Aaron Giles##sgab"].plurals[0] = "=ymfm by Aaron Giles##sgab";
+    strings["MAME SN76496 by Nicola Salmoria##sgab"].plurals[0] = "=MAME SN76496 by Nicola Salmoria##sgab";
+    strings["MAME AY-3-8910 by Couriersud##sgab"].plurals[0] = "=MAME AY-3-8910 by Couriersud##sgab";
+    strings["with AY8930 fixes by Eulous, cam900 and Grauw##sgab"].plurals[0] = "=with AY8930 fixes by Eulous, cam900 and Grauw##sgab";
+    strings["MAME SAA1099 by Juergen Buchmueller and Manuel Abadia##sgab"].plurals[0] = "=MAME SAA1099 by Juergen Buchmueller and Manuel Abadia##sgab";
+    strings["MAME Namco WSG by Nicola Salmoria and Aaron Giles##sgab"].plurals[0] = "=MAME Namco WSG by Nicola Salmoria and Aaron Giles##sgab";
+    strings["MAME RF5C68 core by Olivier Galibert and Aaron Giles##sgab"].plurals[0] = "=MAME RF5C68 core by Olivier Galibert and Aaron Giles##sgab";
+    strings["MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya##sgab"].plurals[0] = "=MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya##sgab";
+    strings["MAME MSM6258 core by Barry Rodewald##sgab"].plurals[0] = "=MAME MSM6258 core by Barry Rodewald##sgab";
+    strings["MAME YMZ280B core by Aaron Giles##sgab"].plurals[0] = "=MAME YMZ280B core by Aaron Giles##sgab";
+    strings["MAME GA20 core by Acho A. Tang and R. Belmont##sgab"].plurals[0] = "=MAME GA20 core by Acho A. Tang and R. Belmont##sgab";
+    strings["MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert##sgab"].plurals[0] = "=MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert##sgab";
+    strings["SAASound by Dave Hooper and Simon Owen##sgab"].plurals[0] = "=SAASound by Dave Hooper and Simon Owen##sgab";
+    strings["SameBoy by Lior Halphon##sgab"].plurals[0] = "=SameBoy by Lior Halphon##sgab";
+    strings["Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores##sgab"].plurals[0] = "=Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores##sgab";
+    strings["SNES DSP core by Blargg##sgab"].plurals[0] = "=SNES DSP core by Blargg##sgab";
+    strings["puNES (NES, MMC5 and FDS) by FHorse##sgab"].plurals[0] = "=puNES (NES, MMC5 and FDS) by FHorse##sgab";
+    strings["NSFPlay (NES and FDS) by Brad Smith and Brezza##sgab"].plurals[0] = "=NSFPlay (NES and FDS) by Brad Smith and Brezza##sgab";
+    strings["reSID by Dag Lem##sgab"].plurals[0] = "=reSID by Dag Lem##sgab";
+    strings["reSIDfp by Dag Lem, Antti Lankila##sgab"].plurals[0] = "=reSIDfp by Dag Lem, Antti Lankila##sgab";
+    strings["and Leandro Nini##sgab"].plurals[0] = "=and Leandro Nini##sgab";
+    strings["dSID by DefleMask Team based on jsSID##sgab"].plurals[0] = "=dSID by DefleMask Team based on jsSID##sgab";
+    strings["Stella by Stella Team##sgab"].plurals[0] = "=Stella by Stella Team##sgab";
+    strings["QSound emulator by superctr and Valley Bell##sgab"].plurals[0] = "=QSound emulator by superctr and Valley Bell##sgab";
+    strings["VICE VIC-20 sound core by Rami Rasanen and viznut##sgab"].plurals[0] = "=VICE VIC-20 sound core by Rami Rasanen and viznut##sgab";
+    strings["VICE TED sound core by Andreas Boose, Tibor Biczo##sgab"].plurals[0] = "=VICE TED sound core by Andreas Boose, Tibor Biczo##sgab";
+    strings["and Marco van den Heuvel##sgab"].plurals[0] = "=and Marco van den Heuvel##sgab";
+    strings["VERA sound core by Frank van den Hoef##sgab"].plurals[0] = "=VERA sound core by Frank van den Hoef##sgab";
+    strings["mzpokeysnd POKEY emulator by Michael Borisov##sgab"].plurals[0] = "=mzpokeysnd POKEY emulator by Michael Borisov##sgab";
+    strings["ASAP POKEY emulator by Piotr Fusik##sgab"].plurals[0] = "=ASAP POKEY emulator by Piotr Fusik##sgab";
+    strings["ported by laoo to C++##sgab"].plurals[0] = "=ported by laoo to C++##sgab";
+    strings["vgsound_emu (second version, modified version) by cam900##sgab"].plurals[0] = "=vgsound_emu (second version, modified version) by cam900##sgab";
+    strings["SM8521 emulator (modified version) by cam900##sgab"].plurals[0] = "=SM8521 emulator (modified version) by cam900##sgab";
+    strings["D65010G031 emulator (modified version) by cam900##sgab"].plurals[0] = "=D65010G031 emulator (modified version) by cam900##sgab";
+    strings["Namco C140/C219 emulator (modified version) by cam900##sgab"].plurals[0] = "=Namco C140/C219 emulator (modified version) by cam900##sgab";
 
-    strings["greetings to:"].plurals[0] = "=greetings to:";
-    strings["NEOART Costa Rica"].plurals[0] = "=NEOART Costa Rica";
-    strings["Xenium Demoparty"].plurals[0] = "=Xenium Demoparty";
-    strings["all members of Deflers of Noice!"].plurals[0] = "=all members of Deflers of Noice!";
+    strings["greetings to:##sgab"].plurals[0] = "=greetings to:##sgab";
+    strings["NEOART Costa Rica##sgab"].plurals[0] = "=NEOART Costa Rica##sgab";
+    strings["Xenium Demoparty##sgab"].plurals[0] = "=Xenium Demoparty##sgab";
+    strings["all members of Deflers of Noice!##sgab"].plurals[0] = "=all members of Deflers of Noice!##sgab";
 
-    strings["copyright © 2021-2023 tildearrow"].plurals[0] = "=copyright © 2021-2023 tildearrow";
-    strings["(and contributors)."].plurals[0] = "=(and contributors).";
-    strings["licensed under GPLv2+! see"].plurals[0] = "=licensed under GPLv2+! see";
-    strings["LICENSE for more information."].plurals[0] = "=LICENSE for more information.";
+    strings["copyright © 2021-2023 tildearrow##sgab"].plurals[0] = "=copyright © 2021-2023 tildearrow##sgab";
+    strings["(and contributors).##sgab"].plurals[0] = "=(and contributors).##sgab";
+    strings["licensed under GPLv2+! see##sgab"].plurals[0] = "=licensed under GPLv2+! see##sgab";
+    strings["LICENSE for more information.##sgab"].plurals[0] = "=LICENSE for more information.##sgab";
 
-    strings["help Furnace grow:"].plurals[0] = "=help Furnace grow:";
-    strings["help Furnace-B:"].plurals[0] = "=help Furnace-B:";
+    strings["help Furnace grow:##sgab"].plurals[0] = "=help Furnace grow:##sgab";
+    strings["help Furnace-B:##sgab"].plurals[0] = "=help Furnace-B:##sgab";
 
-    strings["contact tildearrow at:"].plurals[0] = "=contact tildearrow at:";
+    strings["contact tildearrow at:##sgab"].plurals[0] = "=contact tildearrow at:##sgab";
 
-    strings["disclaimer:"].plurals[0] = "=disclaimer:";
-    strings["despite the fact this program works"].plurals[0] = "=despite the fact this program works";
-    strings["with the .dmf file format, it is NOT"].plurals[0] = "=with the .dmf file format, it is NOT";
-    strings["affiliated with Delek or DefleMask in"].plurals[0] = "=affiliated with Delek or DefleMask in";
-    strings["any way, nor it is a replacement for"].plurals[0] = "=any way, nor it is a replacement for";
-    strings["the original program."].plurals[0] = "=the original program.";
+    strings["disclaimer:##sgab"].plurals[0] = "=disclaimer:##sgab";
+    strings["despite the fact this program works##sgab"].plurals[0] = "=despite the fact this program works##sgab";
+    strings["with the .dmf file format, it is NOT##sgab"].plurals[0] = "=with the .dmf file format, it is NOT##sgab";
+    strings["affiliated with Delek or DefleMask in##sgab"].plurals[0] = "=affiliated with Delek or DefleMask in##sgab";
+    strings["any way, nor it is a replacement for##sgab"].plurals[0] = "=any way, nor it is a replacement for##sgab";
+    strings["the original program.##sgab"].plurals[0] = "=the original program.##sgab";
 
-    strings["it also comes with ABSOLUTELY NO WARRANTY."].plurals[0] = "=it also comes with ABSOLUTELY NO WARRANTY.";
+    strings["it also comes with ABSOLUTELY NO WARRANTY.##sgab"].plurals[0] = "=it also comes with ABSOLUTELY NO WARRANTY.##sgab";
 
-    strings["thanks to all contributors/bug reporters!"].plurals[0] = "=thanks to all contributors/bug reporters!";
+    strings["thanks to all contributors/bug reporters!##sgab"].plurals[0] = "=thanks to all contributors/bug reporters!##sgab";
 
     //CHANNELS WINDOW
 
-    strings["Channels"].plurals[0] = "=Channels";
     strings["Channels###Channels"].plurals[0] = "=Channels###Channels";
     strings["Pat"].plurals[0] = "=Pat";
     strings["Osc"].plurals[0] = "=Osc";
     strings["Swap"].plurals[0] = "=Swap";
     strings["Name"].plurals[0] = "=Name";
-    strings["Show in pattern"].plurals[0] = "=Show in pattern";
+    strings["Show in pattern##sgch"].plurals[0] = "=Show in pattern##sgch";
     strings["Show in per-channel oscilloscope"].plurals[0] = "=Show in per-channel oscilloscope";
     strings["%s #%d\n(drag to swap channels)"].plurals[0] = "=%s #%d\n(drag to swap channels)";
 
@@ -259,153 +266,11 @@ void DivLocale::addTranslationsTemplate()
 
     //CLOCK
 
+    strings["Clock###Clock"].plurals[0] = "=Clock###Clock";
+
     //COMPATIBILITY FLAGS
 
-    strings["Compatibility Flags###Compatibility Flags"].plurals[0] = "=Compatibility Flags###Compatibility Flags";
-    strings["these flags are designed to provide better DefleMask/older Furnace compatibility.\nit is recommended to disable most of these unless you rely on specific quirks."].plurals[0] = "=these flags are designed to provide better DefleMask/older Furnace compatibility.\nit is recommended to disable most of these unless you rely on specific quirks.";
-    strings["DefleMask"].plurals[0] = "=DefleMask";
-    strings["Limit slide range"].plurals[0] = "=Limit slide range";
-    strings["when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves."].plurals[0] = "=when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves.";
-    strings["Compatible noise layout on NES and PC Engine"].plurals[0] = "=Compatible noise layout on NES and PC Engine";
-    strings["use a rather unusual compatible noise frequency layout.\nremoves some noise frequencies on PC Engine."].plurals[0] = "=use a rather unusual compatible noise frequency layout.\nremoves some noise frequencies on PC Engine.";
-    strings["Game Boy instrument duty is wave volume"].plurals[0] = "=Game Boy instrument duty is wave volume";
-    strings["if enabled, an instrument with duty macro in the wave channel will be mapped to wavetable volume."].plurals[0] = "=if enabled, an instrument with duty macro in the wave channel will be mapped to wavetable volume.";
-    strings["Restart macro on portamento"].plurals[0] = "=Restart macro on portamento";
-    strings["when enabled, a portamento effect will reset the channel's macro if used in combination with a note."].plurals[0] = "=when enabled, a portamento effect will reset the channel's macro if used in combination with a note.";
-    strings["Legacy volume slides"].plurals[0] = "=Legacy volume slides";
-    strings["simulate glitchy volume slide behavior by silently overflowing the volume when the slide goes below 0."].plurals[0] = "=simulate glitchy volume slide behavior by silently overflowing the volume when the slide goes below 0.";
-    strings["Compatible arpeggio"].plurals[0] = "=Compatible arpeggio";
-    strings["delay arpeggio by one tick on every new note."].plurals[0] = "=delay arpeggio by one tick on every new note.";
-    strings["Broken DAC mode"].plurals[0] = "=Broken DAC mode";
-    strings["when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing."].plurals[0] = "=when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing.";
-    strings["Broken speed alternation"].plurals[0] = "=Broken speed alternation";
-    strings["determines next speed based on whether the row is odd/even instead of alternating between speeds."].plurals[0] = "=determines next speed based on whether the row is odd/even instead of alternating between speeds.";
-    strings["Ignore duplicate slide effects"].plurals[0] = "=Ignore duplicate slide effects";
-    strings["if this is on, only the first slide of a row in a channel will be considered."].plurals[0] = "=if this is on, only the first slide of a row in a channel will be considered.";
-    strings["Ignore 0Dxx on the last order"].plurals[0] = "=Ignore 0Dxx on the last order";
-    strings["if this is on, a jump to next row effect will not take place when it is on the last order of a song."].plurals[0] = "=if this is on, a jump to next row effect will not take place when it is on the last order of a song.";
-    strings["Buggy portamento after pitch slide"].plurals[0] = "=Buggy portamento after pitch slide";
-    strings["simulates a bug in where portamento does not work after sliding."].plurals[0] = "=simulates a bug in where portamento does not work after sliding.";
-    strings["FM pitch slide octave boundary odd behavior"].plurals[0] = "=FM pitch slide octave boundary odd behavior";
-    strings["if this is on, a pitch slide that crosses the octave boundary will stop for one tick and then continue from the nearest octave boundary.\nfor .dmf compatibility."].plurals[0] = "=if this is on, a pitch slide that crosses the octave boundary will stop for one tick and then continue from the nearest octave boundary.\nfor .dmf compatibility.";
-    strings["Don't apply Game Boy envelope on note-less instrument change"].plurals[0] = "=Don't apply Game Boy envelope on note-less instrument change";
-    strings["if this is on, an instrument change will not affect the envelope."].plurals[0] = "=if this is on, an instrument change will not affect the envelope.";
-    strings["Ignore DAC mode change outside of intended channel in ExtCh mode"].plurals[0] = "=Ignore DAC mode change outside of intended channel in ExtCh mode";
-    strings["if this is on, 17xx has no effect on the operator channels in YM2612."].plurals[0] = "=if this is on, 17xx has no effect on the operator channels in YM2612.";
-    strings["E1xy/E2xy also take priority over slide stops"].plurals[0] = "=E1xy/E2xy also take priority over slide stops";
-    strings["does this make any sense by now?"].plurals[0] = "=does this make any sense by now?";
-    strings["E1xy/E2xy stop when repeating the same note"].plurals[0] = "=E1xy/E2xy stop when repeating the same note";
-    strings["ugh, if only this wasn't a thing..."].plurals[0] = "=ugh, if only this wasn't a thing...";
-    strings["SN76489 duty macro always resets phase"].plurals[0] = "=SN76489 duty macro always resets phase";
-    strings["when enabled, duty macro will always reset phase, even if its value hasn't changed."].plurals[0] = "=when enabled, duty macro will always reset phase, even if its value hasn't changed.";
-    strings["Broken volume scaling strategy"].plurals[0] = "=Broken volume scaling strategy";
-    strings["when enabled:\n- log scaling: multiply\n- linear scaling: subtract\nwhen disabled:\n- log scaling: subtract\n- linear scaling: multiply"].plurals[0] = "=when enabled:\n- log scaling: multiply\n- linear scaling: subtract\nwhen disabled:\n- log scaling: subtract\n- linear scaling: multiply";
-    strings["Don't persist volume macro after it finishes"].plurals[0] = "=Don't persist volume macro after it finishes";
-    strings["when enabled, a value in the volume column that happens after the volume macro is done will disregard the macro."].plurals[0] = "=when enabled, a value in the volume column that happens after the volume macro is done will disregard the macro.";
-    strings["Broken output volume on instrument change"].plurals[0] = "=Broken output volume on instrument change";
-    strings["if enabled, no checks for the presence of a volume macro will be made.\nthis will cause the last macro value to linger unless a value in the volume column is present."].plurals[0] = "=if enabled, no checks for the presence of a volume macro will be made.\nthis will cause the last macro value to linger unless a value in the volume column is present.";
-    strings["Broken output volume - Episode 2 (PLEASE KEEP ME DISABLED)"].plurals[0] = "=Broken output volume - Episode 2 (PLEASE KEEP ME DISABLED)";
-    strings["these compatibility flags are getting SO damn ridiculous and out of control.\nas you may have guessed, this one exists due to yet ANOTHER DefleMask-specific behavior.\nplease keep this off at all costs, because I will not support it when ROM export comes.\noh, and don't start an argument out of it. Furnace isn't a DefleMask replacement, and no,\nI am not trying to make it look like one with all these flags.\n\noh, and what about the other flags that don't have to do with DefleMask?\nthose are for .mod import, future FamiTracker import and personal taste!\n\nend of rant"].plurals[0] = "=these compatibility flags are getting SO damn ridiculous and out of control.\nas you may have guessed, this one exists due to yet ANOTHER DefleMask-specific behavior.\nplease keep this off at all costs, because I will not support it when ROM export comes.\noh, and don't start an argument out of it. Furnace isn't a DefleMask replacement, and no,\nI am not trying to make it look like one with all these flags.\n\noh, and what about the other flags that don't have to do with DefleMask?\nthose are for .mod import, future FamiTracker import and personal taste!\n\nend of rant";
-    strings["Treat SN76489 periods under 8 as 1"].plurals[0] = "=Treat SN76489 periods under 8 as 1";
-    strings["when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range."].plurals[0] = "=when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range.";
-    strings["Old Furnace"].plurals[0] = "=Old Furnace";
-    strings["Arpeggio inhibits non-porta slides"].plurals[0] = "=Arpeggio inhibits non-porta slides";
-    strings["behavior changed in 0.5.5"].plurals[0] = "=behavior changed in 0.5.5";
-    strings["Wack FM algorithm macro"].plurals[0] = "=Wack FM algorithm macro";
-    strings["behavior changed in 0.5.5"].plurals[0] = "=behavior changed in 0.5.5";
-    strings["Broken shortcut slides (E1xy/E2xy)"].plurals[0] = "=Broken shortcut slides (E1xy/E2xy)";
-    strings["behavior changed in 0.5.7"].plurals[0] = "=behavior changed in 0.5.7";
-    strings["Stop portamento on note off"].plurals[0] = "=Stop portamento on note off";
-    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
-    strings["Don't allow instrument change during slides"].plurals[0] = "=Don't allow instrument change during slides";
-    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
-    strings["Don't reset note to base on arpeggio stop"].plurals[0] = "=Don't reset note to base on arpeggio stop";
-    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
-    strings["ExtCh channel status is not shared among operators"].plurals[0] = "=ExtCh channel status is not shared among operators";
-    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
-    strings["Disable new SegaPCM features (macros and better panning)"].plurals[0] = "=Disable new SegaPCM features (macros and better panning)";
-    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
-    strings["Old FM octave boundary behavior"].plurals[0] = "=Old FM octave boundary behavior";
-    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
-    strings["Disable OPN2 DAC volume control"].plurals[0] = "=Disable OPN2 DAC volume control";
-    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
-    strings["Broken initial position of portamento after arpeggio"].plurals[0] = "=Broken initial position of portamento after arpeggio";
-    strings["behavior changed in 0.6pre1.5"].plurals[0] = "=behavior changed in 0.6pre1.5";
-    strings["Disable new sample features"].plurals[0] = "=Disable new sample features";
-    strings["behavior changed in 0.6pre2"].plurals[0] = "=behavior changed in 0.6pre2";
-    strings["Old arpeggio macro + pitch slide strategy"].plurals[0] = "=Old arpeggio macro + pitch slide strategy";
-    strings["behavior changed in 0.6pre2"].plurals[0] = "=behavior changed in 0.6pre2";
-    strings["Broken portamento during legato"].plurals[0] = "=Broken portamento during legato";
-    strings["behavior changed in 0.6pre4"].plurals[0] = "=behavior changed in 0.6pre4";
-    strings["Broken macros in some FM chips after note off"].plurals[0] = "=Broken macros in some FM chips after note off";
-    strings["behavior changed in 0.6pre5"].plurals[0] = "=behavior changed in 0.6pre5";
-    strings["Pre-note does not take effects into consideration"].plurals[0] = "=Pre-note does not take effects into consideration";
-    strings["behavior changed in 0.6pre9"].plurals[0] = "=behavior changed in 0.6pre9";
-    strings["Disable new NES DPCM features"].plurals[0] = "=Disable new NES DPCM features";
-    strings["behavior changed in 0.6.1"].plurals[0] = "=behavior changed in 0.6.1";
-    strings[".mod import"].plurals[0] = "=.mod import";
-    strings["Don't slide on the first tick of a row"].plurals[0] = "=Don't slide on the first tick of a row";
-    strings["simulates ProTracker's behavior of not applying volume/pitch slides on the first tick of a row."].plurals[0] = "=simulates ProTracker's behavior of not applying volume/pitch slides on the first tick of a row.";
-    strings["Reset arpeggio position on row change"].plurals[0] = "=Reset arpeggio position on row change";
-    strings["simulates ProTracker's behavior of arpeggio being bound to the current tick of a row."].plurals[0] = "=simulates ProTracker's behavior of arpeggio being bound to the current tick of a row.";
-    strings["Pitch/Playback"].plurals[0] = "=Pitch/Playback";
-    strings["Pitch linearity:"].plurals[0] = "=Pitch linearity:";
-    strings["None"].plurals[0] = "=None";
-    strings["like ProTracker/FamiTracker"].plurals[0] = "=like ProTracker/FamiTracker";
-    strings["Partial (only 04xy/E5xx)"].plurals[0] = "=Partial (only 04xy/E5xx)";
-    strings["like DefleMask\n\nthis pitch linearity mode is deprecated due to:\n- excessive complexity\n- lack of possible optimization\n\nit is recommended to change it now because I will remove this option in the future!"].plurals[0] = "=like DefleMask\n\nthis pitch linearity mode is deprecated due to:\n- excessive complexity\n- lack of possible optimization\n\nit is recommended to change it now because I will remove this option in the future!";
-    strings["Full"].plurals[0] = "=Full";
-    strings["like Impulse Tracker"].plurals[0] = "=like Impulse Tracker";
-    strings["Pitch slide speed multiplier"].plurals[0] = "=Pitch slide speed multiplier";
-    strings["Loop modality:"].plurals[0] = "=Loop modality:";
-    strings["Reset channels"].plurals[0] = "=Reset channels";
-    strings["select to reset channels on loop. may trigger a voltage click on every loop!"].plurals[0] = "=select to reset channels on loop. may trigger a voltage click on every loop!";
-    strings["Soft reset channels"].plurals[0] = "=Soft reset channels";
-    strings["select to turn channels off on loop."].plurals[0] = "=select to turn channels off on loop.";
-    strings["Do nothing"].plurals[0] = "=Do nothing";
-    strings["select to not reset channels on loop."].plurals[0] = "=select to not reset channels on loop.";
-    strings["Cut/delay effect policy:"].plurals[0] = "=Cut/delay effect policy:";
-    strings["Strict"].plurals[0] = "=Strict";
-    strings["only when time is less than speed (like DefleMask/ProTracker)"].plurals[0] = "=only when time is less than speed (like DefleMask/ProTracker)";
-    strings["Strict (old)"].plurals[0] = "=Strict (old)";
-    strings["only when time is less than or equal to speed (original buggy behavior)"].plurals[0] = "=only when time is less than or equal to speed (original buggy behavior)";
-    strings["Lax"].plurals[0] = "=Lax";
-    strings["no checks"].plurals[0] = "=no checks";
-    strings["Simultaneous jump (0B+0D) treatment:"].plurals[0] = "=Simultaneous jump (0B+0D) treatment:";
-    strings["Normal"].plurals[0] = "=Normal";
-    strings["accept 0B+0D to jump to a specific row of an order"].plurals[0] = "=accept 0B+0D to jump to a specific row of an order";
-    strings["Old Furnace"].plurals[0] = "=Old Furnace";
-    strings["only accept the first jump effect"].plurals[0] = "=only accept the first jump effect";
-    strings["DefleMask"].plurals[0] = "=DefleMask";
-    strings["only accept 0Dxx"].plurals[0] = "=only accept 0Dxx";
-    strings["Other"].plurals[0] = "=Other";
-    strings["Auto-insert one tick gap between notes"].plurals[0] = "=Auto-insert one tick gap between notes";
-    strings["when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.\n\nineffective on C64."].plurals[0] = "=when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.\n\nineffective on C64.";
-    strings["Don't reset slides after note off"].plurals[0] = "=Don't reset slides after note off";
-    strings["when enabled, note off will not reset the channel's slide effect."].plurals[0] = "=when enabled, note off will not reset the channel's slide effect.";
-    strings["Don't reset portamento after reaching target"].plurals[0] = "=Don't reset portamento after reaching target";
-    strings["when enabled, the slide effect will not be disabled after it reaches its target."].plurals[0] = "=when enabled, the slide effect will not be disabled after it reaches its target.";
-    strings["Continuous vibrato"].plurals[0] = "=Continuous vibrato";
-    strings["when enabled, vibrato phase/position will not be reset on a new note."].plurals[0] = "=when enabled, vibrato phase/position will not be reset on a new note.";
-    strings["Pitch macro is not linear"].plurals[0] = "=Pitch macro is not linear";
-    strings["when enabled, the pitch macro of an instrument is in frequency/period space."].plurals[0] = "=when enabled, the pitch macro of an instrument is in frequency/period space.";
-    strings["Reset arpeggio effect position on new note"].plurals[0] = "=Reset arpeggio effect position on new note";
-    strings["when enabled, arpeggio effect (00xy) position is reset on a new note."].plurals[0] = "=when enabled, arpeggio effect (00xy) position is reset on a new note.";
-    strings["Volume scaling rounds up"].plurals[0] = "=Volume scaling rounds up";
-    strings["when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels"].plurals[0] = "=when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels";
-
-    //MENU BAR ITEMS
-
-    strings["File##menubar"].plurals[0] = "=File##menubar";
-    strings["file##menubar"].plurals[0] = "=file##menubar";
-    strings["Edit##menubar"].plurals[0] = "=Edit##menubar";
-    strings["edit##menubar"].plurals[0] = "=edit##menubar";
-    strings["Settings##menubar"].plurals[0] = "=Settings##menubar";
-    strings["settings##menubar"].plurals[0] = "=settings##menubar";
-    strings["Window##menubar"].plurals[0] = "=Window##menubar";
-    strings["window##menubar"].plurals[0] = "=window##menubar";
-    strings["Help##menubar"].plurals[0] = "=Help##menubar";
-    strings["help##menubar"].plurals[0] = "=help##menubar";
+        //waiting for compat flags reduction
 
     //DATA LIST (ASSETS)
 
@@ -460,7 +325,20 @@ void DivLocale::addTranslationsTemplate()
     strings["import raw (replace)..."].plurals[0] = "=import raw (replace)...";
     strings["save raw..."].plurals[0] = "=save raw...";
 
-//progress on sifting through files alkphabetically
+//progress on sifting through files alphabetically
+
+    //MENU BAR ITEMS
+
+    strings["File##menubar"].plurals[0] = "=File##menubar";
+    strings["file##menubar"].plurals[0] = "=file##menubar";
+    strings["Edit##menubar"].plurals[0] = "=Edit##menubar";
+    strings["edit##menubar"].plurals[0] = "=edit##menubar";
+    strings["Settings##menubar"].plurals[0] = "=Settings##menubar";
+    strings["settings##menubar"].plurals[0] = "=settings##menubar";
+    strings["Window##menubar"].plurals[0] = "=Window##menubar";
+    strings["window##menubar"].plurals[0] = "=window##menubar";
+    strings["Help##menubar"].plurals[0] = "=Help##menubar";
+    strings["help##menubar"].plurals[0] = "=help##menubar";
 
     //WINDOW NAMES
 
@@ -473,7 +351,7 @@ void DivLocale::addTranslationsTemplate()
     strings["About Furnace###About Furnace"].plurals[0] = "=About Furnace###About Furnace";
     strings["Channels###Channels"].plurals[0] = "=Channels###Channels";
     strings["Oscilloscope (per-channel)###Oscilloscope (per-channel)"].plurals[0] = "=Oscilloscope (per-channel)###Oscilloscope (per-channel)";
-    strings["Clock###Clock"].plurals[0] = "=Clock###Clock";
+    strings["Clock###Clock"].plurals[0] = "Clock###Clock";
     strings["Compatibility Flags###Compatibility Flags"].plurals[0] = "=Compatibility Flags###Compatibility Flags";
     strings["Instruments###Instruments"].plurals[0] = "=Instruments###Instruments";
     strings["Wavetables###Wavetables"].plurals[0] = "=Wavetables###Wavetables";

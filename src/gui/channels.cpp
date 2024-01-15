@@ -37,7 +37,7 @@ void FurnaceGUI::drawChannels() {
   } else {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin(_L("Channels"),&channelsOpen,globalWinFlags, _L("Channels###Channels"))) {
+  if (ImGui::Begin("Channels",&channelsOpen,globalWinFlags, _L("Channels###Channels"))) {
     if (ImGui::BeginTable("ChannelList",5)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0);
@@ -61,7 +61,7 @@ void FurnaceGUI::drawChannels() {
           MARK_MODIFIED;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_L("Show in pattern"));
+          ImGui::SetTooltip(_L("Show in pattern##sgch"));
         }
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##VisibleChanOsc",&e->curSubSong->chanShowChanOsc[i])) {
