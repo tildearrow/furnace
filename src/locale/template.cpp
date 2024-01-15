@@ -24,8 +24,8 @@ void DivLocale::addTranslationsTemplate()
     // # about.cpp
     // # channels.cpp
     // # chanOsc.cpp
-    //   clock.cpp
-    //   compatFlags.cpp
+    // # clock.cpp
+    // # compatFlags.cpp
     //   cursor.cpp
     //   dataList.cpp
     //   debug.cpp
@@ -242,6 +242,147 @@ void DivLocale::addTranslationsTemplate()
     strings["Error!"].plurals[0] = "=Error!";
     strings["\nquiet"].plurals[0] = "=\nquiet";
 
+    //CLOCK
+
+    strings["Clock###Clock"].plurals[0] = "=Clock###Clock";
+
+    //COMPATIBILITY FLAGS
+
+
+    strings["Compatibility Flags###Compatibility Flags"].plurals[0] = "=Compatibility Flags###Compatibility Flags";
+    strings["these flags are designed to provide better DefleMask/older Furnace compatibility.\nit is recommended to disable most of these unless you rely on specific quirks."].plurals[0] = "=these flags are designed to provide better DefleMask/older Furnace compatibility.\nit is recommended to disable most of these unless you rely on specific quirks.";
+    strings["DefleMask"].plurals[0] = "=DefleMask";
+    strings["Limit slide range"].plurals[0] = "=Limit slide range";
+    strings["when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves."].plurals[0] = "=when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves.";
+    strings["Compatible noise layout on NES and PC Engine"].plurals[0] = "=Compatible noise layout on NES and PC Engine";
+    strings["use a rather unusual compatible noise frequency layout.\nremoves some noise frequencies on PC Engine."].plurals[0] = "=use a rather unusual compatible noise frequency layout.\nremoves some noise frequencies on PC Engine.";
+    strings["Game Boy instrument duty is wave volume"].plurals[0] = "=Game Boy instrument duty is wave volume";
+    strings["if enabled, an instrument with duty macro in the wave channel will be mapped to wavetable volume."].plurals[0] = "=if enabled, an instrument with duty macro in the wave channel will be mapped to wavetable volume.";
+    strings["Restart macro on portamento"].plurals[0] = "=Restart macro on portamento";
+    strings["when enabled, a portamento effect will reset the channel's macro if used in combination with a note."].plurals[0] = "=when enabled, a portamento effect will reset the channel's macro if used in combination with a note.";
+    strings["Legacy volume slides"].plurals[0] = "=Legacy volume slides";
+    strings["simulate glitchy volume slide behavior by silently overflowing the volume when the slide goes below 0."].plurals[0] = "=simulate glitchy volume slide behavior by silently overflowing the volume when the slide goes below 0.";
+    strings["Compatible arpeggio"].plurals[0] = "=Compatible arpeggio";
+    strings["delay arpeggio by one tick on every new note."].plurals[0] = "=delay arpeggio by one tick on every new note.";
+    strings["Broken DAC mode"].plurals[0] = "=Broken DAC mode";
+    strings["when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing."].plurals[0] = "=when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing.";
+    strings["Broken speed alternation"].plurals[0] = "=Broken speed alternation";
+    strings["determines next speed based on whether the row is odd/even instead of alternating between speeds."].plurals[0] = "=determines next speed based on whether the row is odd/even instead of alternating between speeds.";
+    strings["Ignore duplicate slide effects"].plurals[0] = "=Ignore duplicate slide effects";
+    strings["if this is on, only the first slide of a row in a channel will be considered."].plurals[0] = "=if this is on, only the first slide of a row in a channel will be considered.";
+    strings["Ignore 0Dxx on the last order"].plurals[0] = "=Ignore 0Dxx on the last order";
+    strings["if this is on, a jump to next row effect will not take place when it is on the last order of a song."].plurals[0] = "=if this is on, a jump to next row effect will not take place when it is on the last order of a song.";
+    strings["Buggy portamento after pitch slide"].plurals[0] = "=Buggy portamento after pitch slide";
+    strings["simulates a bug in where portamento does not work after sliding."].plurals[0] = "=simulates a bug in where portamento does not work after sliding.";
+    strings["FM pitch slide octave boundary odd behavior"].plurals[0] = "=FM pitch slide octave boundary odd behavior";
+    strings["if this is on, a pitch slide that crosses the octave boundary will stop for one tick and then continue from the nearest octave boundary.\nfor .dmf compatibility."].plurals[0] = "=if this is on, a pitch slide that crosses the octave boundary will stop for one tick and then continue from the nearest octave boundary.\nfor .dmf compatibility.";
+    strings["Don't apply Game Boy envelope on note-less instrument change"].plurals[0] = "=Don't apply Game Boy envelope on note-less instrument change";
+    strings["if this is on, an instrument change will not affect the envelope."].plurals[0] = "=if this is on, an instrument change will not affect the envelope.";
+    strings["Ignore DAC mode change outside of intended channel in ExtCh mode"].plurals[0] = "=Ignore DAC mode change outside of intended channel in ExtCh mode";
+    strings["if this is on, 17xx has no effect on the operator channels in YM2612."].plurals[0] = "=if this is on, 17xx has no effect on the operator channels in YM2612.";
+    strings["E1xy/E2xy also take priority over slide stops"].plurals[0] = "=E1xy/E2xy also take priority over slide stops";
+    strings["does this make any sense by now?"].plurals[0] = "=does this make any sense by now?";
+    strings["E1xy/E2xy stop when repeating the same note"].plurals[0] = "=E1xy/E2xy stop when repeating the same note";
+    strings["ugh, if only this wasn't a thing..."].plurals[0] = "=ugh, if only this wasn't a thing...";
+    strings["SN76489 duty macro always resets phase"].plurals[0] = "=SN76489 duty macro always resets phase";
+    strings["when enabled, duty macro will always reset phase, even if its value hasn't changed."].plurals[0] = "=when enabled, duty macro will always reset phase, even if its value hasn't changed.";
+    strings["Broken volume scaling strategy"].plurals[0] = "=Broken volume scaling strategy";
+    strings["when enabled:\n- log scaling: multiply\n- linear scaling: subtract\nwhen disabled:\n- log scaling: subtract\n- linear scaling: multiply"].plurals[0] = "=when enabled:\n- log scaling: multiply\n- linear scaling: subtract\nwhen disabled:\n- log scaling: subtract\n- linear scaling: multiply";
+    strings["Don't persist volume macro after it finishes"].plurals[0] = "=Don't persist volume macro after it finishes";
+    strings["when enabled, a value in the volume column that happens after the volume macro is done will disregard the macro."].plurals[0] = "=when enabled, a value in the volume column that happens after the volume macro is done will disregard the macro.";
+    strings["Broken output volume on instrument change"].plurals[0] = "=Broken output volume on instrument change";
+    strings["if enabled, no checks for the presence of a volume macro will be made.\nthis will cause the last macro value to linger unless a value in the volume column is present."].plurals[0] = "=if enabled, no checks for the presence of a volume macro will be made.\nthis will cause the last macro value to linger unless a value in the volume column is present.";
+    strings["Broken output volume - Episode 2 (PLEASE KEEP ME DISABLED)"].plurals[0] = "=Broken output volume - Episode 2 (PLEASE KEEP ME DISABLED)";
+    strings["these compatibility flags are getting SO damn ridiculous and out of control.\nas you may have guessed, this one exists due to yet ANOTHER DefleMask-specific behavior.\nplease keep this off at all costs, because I will not support it when ROM export comes.\noh, and don't start an argument out of it. Furnace isn't a DefleMask replacement, and no,\nI am not trying to make it look like one with all these flags.\n\noh, and what about the other flags that don't have to do with DefleMask?\nthose are for .mod import, future FamiTracker import and personal taste!\n\nend of rant"].plurals[0] = "=these compatibility flags are getting SO damn ridiculous and out of control.\nas you may have guessed, this one exists due to yet ANOTHER DefleMask-specific behavior.\nplease keep this off at all costs, because I will not support it when ROM export comes.\noh, and don't start an argument out of it. Furnace isn't a DefleMask replacement, and no,\nI am not trying to make it look like one with all these flags.\n\noh, and what about the other flags that don't have to do with DefleMask?\nthose are for .mod import, future FamiTracker import and personal taste!\n\nend of rant";
+    strings["Treat SN76489 periods under 8 as 1"].plurals[0] = "=Treat SN76489 periods under 8 as 1";
+    strings["when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range."].plurals[0] = "=when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range.";
+    strings["Old Furnace"].plurals[0] = "=Old Furnace";
+    strings["Arpeggio inhibits non-porta slides"].plurals[0] = "=Arpeggio inhibits non-porta slides";
+    strings["behavior changed in 0.5.5"].plurals[0] = "=behavior changed in 0.5.5";
+    strings["Wack FM algorithm macro"].plurals[0] = "=Wack FM algorithm macro";
+    strings["behavior changed in 0.5.5"].plurals[0] = "=behavior changed in 0.5.5";
+    strings["Broken shortcut slides (E1xy/E2xy)"].plurals[0] = "=Broken shortcut slides (E1xy/E2xy)";
+    strings["behavior changed in 0.5.7"].plurals[0] = "=behavior changed in 0.5.7";
+    strings["Stop portamento on note off"].plurals[0] = "=Stop portamento on note off";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Don't allow instrument change during slides"].plurals[0] = "=Don't allow instrument change during slides";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Don't reset note to base on arpeggio stop"].plurals[0] = "=Don't reset note to base on arpeggio stop";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["ExtCh channel status is not shared among operators"].plurals[0] = "=ExtCh channel status is not shared among operators";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Disable new SegaPCM features (macros and better panning)"].plurals[0] = "=Disable new SegaPCM features (macros and better panning)";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Old FM octave boundary behavior"].plurals[0] = "=Old FM octave boundary behavior";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Disable OPN2 DAC volume control"].plurals[0] = "=Disable OPN2 DAC volume control";
+    strings["behavior changed in 0.6pre1"].plurals[0] = "=behavior changed in 0.6pre1";
+    strings["Broken initial position of portamento after arpeggio"].plurals[0] = "=Broken initial position of portamento after arpeggio";
+    strings["behavior changed in 0.6pre1.5"].plurals[0] = "=behavior changed in 0.6pre1.5";
+    strings["Disable new sample features"].plurals[0] = "=Disable new sample features";
+    strings["behavior changed in 0.6pre2"].plurals[0] = "=behavior changed in 0.6pre2";
+    strings["Old arpeggio macro + pitch slide strategy"].plurals[0] = "=Old arpeggio macro + pitch slide strategy";
+    strings["behavior changed in 0.6pre2"].plurals[0] = "=behavior changed in 0.6pre2";
+    strings["Broken portamento during legato"].plurals[0] = "=Broken portamento during legato";
+    strings["behavior changed in 0.6pre4"].plurals[0] = "=behavior changed in 0.6pre4";
+    strings["Broken macros in some FM chips after note off"].plurals[0] = "=Broken macros in some FM chips after note off";
+    strings["behavior changed in 0.6pre5"].plurals[0] = "=behavior changed in 0.6pre5";
+    strings["Pre-note does not take effects into consideration"].plurals[0] = "=Pre-note does not take effects into consideration";
+    strings["behavior changed in 0.6pre9"].plurals[0] = "=behavior changed in 0.6pre9";
+    strings["Disable new NES DPCM features"].plurals[0] = "=Disable new NES DPCM features";
+    strings["behavior changed in 0.6.1"].plurals[0] = "=behavior changed in 0.6.1";
+    strings[".mod import"].plurals[0] = "=.mod import";
+    strings["Don't slide on the first tick of a row"].plurals[0] = "=Don't slide on the first tick of a row";
+    strings["simulates ProTracker's behavior of not applying volume/pitch slides on the first tick of a row."].plurals[0] = "=simulates ProTracker's behavior of not applying volume/pitch slides on the first tick of a row.";
+    strings["Reset arpeggio position on row change"].plurals[0] = "=Reset arpeggio position on row change";
+    strings["simulates ProTracker's behavior of arpeggio being bound to the current tick of a row."].plurals[0] = "=simulates ProTracker's behavior of arpeggio being bound to the current tick of a row.";
+    strings["Pitch/Playback"].plurals[0] = "=Pitch/Playback";
+    strings["Pitch linearity:"].plurals[0] = "=Pitch linearity:";
+    strings["None"].plurals[0] = "=None";
+    strings["like ProTracker/FamiTracker"].plurals[0] = "=like ProTracker/FamiTracker";
+    strings["Partial (only 04xy/E5xx)"].plurals[0] = "=Partial (only 04xy/E5xx)";
+    strings["like DefleMask\n\nthis pitch linearity mode is deprecated due to:\n- excessive complexity\n- lack of possible optimization\n\nit is recommended to change it now because I will remove this option in the future!"].plurals[0] = "=like DefleMask\n\nthis pitch linearity mode is deprecated due to:\n- excessive complexity\n- lack of possible optimization\n\nit is recommended to change it now because I will remove this option in the future!";
+    strings["Full"].plurals[0] = "=Full";
+    strings["like Impulse Tracker"].plurals[0] = "=like Impulse Tracker";
+    strings["Pitch slide speed multiplier"].plurals[0] = "=Pitch slide speed multiplier";
+    strings["Loop modality:"].plurals[0] = "=Loop modality:";
+    strings["Reset channels"].plurals[0] = "=Reset channels";
+    strings["select to reset channels on loop. may trigger a voltage click on every loop!"].plurals[0] = "=select to reset channels on loop. may trigger a voltage click on every loop!";
+    strings["Soft reset channels"].plurals[0] = "=Soft reset channels";
+    strings["select to turn channels off on loop."].plurals[0] = "=select to turn channels off on loop.";
+    strings["Do nothing"].plurals[0] = "=Do nothing";
+    strings["select to not reset channels on loop."].plurals[0] = "=select to not reset channels on loop.";
+    strings["Cut/delay effect policy:"].plurals[0] = "=Cut/delay effect policy:";
+    strings["Strict"].plurals[0] = "=Strict";
+    strings["only when time is less than speed (like DefleMask/ProTracker)"].plurals[0] = "=only when time is less than speed (like DefleMask/ProTracker)";
+    strings["Strict (old)"].plurals[0] = "=Strict (old)";
+    strings["only when time is less than or equal to speed (original buggy behavior)"].plurals[0] = "=only when time is less than or equal to speed (original buggy behavior)";
+    strings["Lax"].plurals[0] = "=Lax";
+    strings["no checks"].plurals[0] = "=no checks";
+    strings["Simultaneous jump (0B+0D) treatment:"].plurals[0] = "=Simultaneous jump (0B+0D) treatment:";
+    strings["Normal"].plurals[0] = "=Normal";
+    strings["accept 0B+0D to jump to a specific row of an order"].plurals[0] = "=accept 0B+0D to jump to a specific row of an order";
+    strings["Old Furnace"].plurals[0] = "=Old Furnace";
+    strings["only accept the first jump effect"].plurals[0] = "=only accept the first jump effect";
+    strings["DefleMask"].plurals[0] = "=DefleMask";
+    strings["only accept 0Dxx"].plurals[0] = "=only accept 0Dxx";
+    strings["Other"].plurals[0] = "=Other";
+    strings["Auto-insert one tick gap between notes"].plurals[0] = "=Auto-insert one tick gap between notes";
+    strings["when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.\n\nineffective on C64."].plurals[0] = "=when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.\n\nineffective on C64.";
+    strings["Don't reset slides after note off"].plurals[0] = "=Don't reset slides after note off";
+    strings["when enabled, note off will not reset the channel's slide effect."].plurals[0] = "=when enabled, note off will not reset the channel's slide effect.";
+    strings["Don't reset portamento after reaching target"].plurals[0] = "=Don't reset portamento after reaching target";
+    strings["when enabled, the slide effect will not be disabled after it reaches its target."].plurals[0] = "=when enabled, the slide effect will not be disabled after it reaches its target.";
+    strings["Continuous vibrato"].plurals[0] = "=Continuous vibrato";
+    strings["when enabled, vibrato phase/position will not be reset on a new note."].plurals[0] = "=when enabled, vibrato phase/position will not be reset on a new note.";
+    strings["Pitch macro is not linear"].plurals[0] = "=Pitch macro is not linear";
+    strings["when enabled, the pitch macro of an instrument is in frequency/period space."].plurals[0] = "=when enabled, the pitch macro of an instrument is in frequency/period space.";
+    strings["Reset arpeggio effect position on new note"].plurals[0] = "=Reset arpeggio effect position on new note";
+    strings["when enabled, arpeggio effect (00xy) position is reset on a new note."].plurals[0] = "=when enabled, arpeggio effect (00xy) position is reset on a new note.";
+    strings["Volume scaling rounds up"].plurals[0] = "=Volume scaling rounds up";
+    strings["when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels"].plurals[0] = "=when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels";
+
+//progress on sifting through files alkphabetically
 
     //MENU BAR ITEMS
 
