@@ -3,9 +3,9 @@
 Note: whatever feature/fix made by tildearrow, if useful, is ported to this fork.
 
 Remove:
-- Long codebase problems and other jank that never was fully implemented
+- Long codebase problems and other jank that never was fully implemented (partially done)
 - Limit of 128 channels and 32 chips. Memory for channels and chips must be dynamically allocated
-- Some arcade presets (too many of them). Or at least organize them like presets menu... 
+- Some arcade presets (too many of them). Or at least organize them like presets menu... (that is done)
 - Panic attacks measures, like saving 5 copies of config files and backup modules
 
 Change:
@@ -32,5 +32,5 @@ Misc
 - Analyze chips that were implemented with emulation in a very HLE way (biggest offender: Game.com’s noise LFSR).
 - Debate on Follin-like ZX Spectrum beeper engine from hardware-export view (likely, replace with existing drivers like Octode or QChan)
 - If the project goes overboard, consider the age-old dilemma of changing the name.
-- Try to come up with a way to enable multi-language support
+- Try to come up with a way to enable multi-language support (a WIP now, kinda works!)
 - Wavetable editor as powerful as Kurumi (at least Kurumi 3)
