@@ -332,6 +332,7 @@ void FurnaceGUI::drawChanOsc() {
       ImGui::InputText("##TextFormat",&chanOscTextFormat);
       if (ImGui::IsItemHovered()) {
         if (ImGui::BeginTooltip()) {
+//translate this from here
           ImGui::TextUnformatted(
             "format guide:\n"
             "- %c: channel name\n"
@@ -350,6 +351,7 @@ void FurnaceGUI::drawChanOsc() {
             "- %b: volume (hex)\n"
             "- %%: percent sign"
           );
+//to here
           ImGui::EndTooltip();
         }
       }
