@@ -67,41 +67,6 @@ void FurnaceGUI::drawCompatFlags() {
         }
         ImGui::EndTabItem();
       }
-      if (ImGui::BeginTabItem("Old Furnace")) {
-        ImGui::Checkbox("Arpeggio inhibits non-porta slides",&e->song.arpNonPorta);
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("behavior changed in 0.5.5");
-        }
-        ImGui::Checkbox("Stop portamento on note off",&e->song.stopPortaOnNoteOff);
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("behavior changed in 0.6pre1");
-        }
-        InvCheckbox("Don't allow instrument change during slides",&e->song.newInsTriggersInPorta);
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("behavior changed in 0.6pre1");
-        }
-        InvCheckbox("Don't reset note to base on arpeggio stop",&e->song.arp0Reset);
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("behavior changed in 0.6pre1");
-        }
-        InvCheckbox("ExtCh channel status is not shared among operators",&e->song.sharedExtStat);
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("behavior changed in 0.6pre1");
-        }
-        ImGui::Checkbox("Old FM octave boundary behavior",&e->song.oldOctaveBoundary);
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("behavior changed in 0.6pre1");
-        }
-        ImGui::Checkbox("Old arpeggio macro + pitch slide strategy",&e->song.oldArpStrategy);
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("behavior changed in 0.6pre2");
-        }
-        ImGui::Checkbox("Pre-note does not take effects into consideration",&e->song.preNoteNoEffect);
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("behavior changed in 0.6pre9");
-        }
-        ImGui::EndTabItem();
-      }
       if (ImGui::BeginTabItem(".mod import")) {
         ImGui::Checkbox("Don't slide on the first tick of a row",&e->song.noSlidesOnFirstTick);
         if (ImGui::IsItemHovered()) {
