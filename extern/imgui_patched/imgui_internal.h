@@ -941,6 +941,8 @@ enum ImGuiTextFlags_
 {
     ImGuiTextFlags_None                         = 0,
     ImGuiTextFlags_NoWidthForLargeClippedText   = 1 << 0,
+
+    ImGuiTextFlags_HideID   = 1 << 1, //hide things after ##
 };
 
 enum ImGuiTooltipFlags_
