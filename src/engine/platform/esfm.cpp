@@ -75,7 +75,7 @@ void DivPlatformESFM::tick(bool sysTick) {
           rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|0);
         } else {
           rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|((opE.outLvl&7)<<5));
-          if (KVS(i,o)) {
+          if (KVS_ES(i,o)) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -185,7 +185,7 @@ void DivPlatformESFM::tick(bool sysTick) {
           op.ksl=m.ksl.val;
         }
 
-        if (KVS(i,o)) {
+        if (KVS_ES(i,o)) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -396,7 +396,7 @@ void DivPlatformESFM::muteChannel(int ch, bool mute) {
       rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|0);
     } else {
       rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|((opE.outLvl&7)<<5));
-      if (KVS(ch,o)) {
+      if (KVS_ES(ch,o)) {
         rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[ch].outVol&0x3f,63))|(op.ksl<<6));
       } else {
         rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -419,7 +419,7 @@ void DivPlatformESFM::commitState(int ch, DivInstrument* ins) {
         rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|0);
       } else {
         rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|((opE.outLvl&7)<<5));
-        if (KVS(ch,o)) {
+        if (KVS_ES(ch,o)) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[ch].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -478,7 +478,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       for (int o=0; o<4; o++) {
         unsigned short baseAddr=c.chan*32+o*8;
         DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
-        if (KVS(c.chan,o)) {
+        if (KVS_ES(c.chan,o)) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -567,7 +567,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       unsigned short baseAddr=c.chan*32+o*8;
       DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
       op.tl=c.value2&63;
-      if (KVS(c.chan,o)) {
+      if (KVS_ES(c.chan,o)) {
         rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
       } else {
         rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -755,7 +755,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
           unsigned short baseAddr=c.chan*32+o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
           op.ksl=c.value2&3;
-          if (KVS(c.chan,o)) {
+          if (KVS_ES(c.chan,o)) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -767,7 +767,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
         unsigned short baseAddr=c.chan*32+o*8;
         DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
         op.ksl=c.value2&3;
-        if (KVS(c.chan,o)) {
+        if (KVS_ES(c.chan,o)) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));

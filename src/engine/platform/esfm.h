@@ -147,10 +147,6 @@ class DivPlatformESFM: public DivDispatch {
     }
   }
 
-#ifdef KVS
-#undef KVS
-#endif
-
   /**
    * ESFM doesn't have predef algorithms, so a custom KVS heuristic for auto mode is needed.
    * This is a bit too complex for a macro.
@@ -161,7 +157,7 @@ class DivPlatformESFM: public DivDispatch {
    *      or op[o].outLvl > 0 and (op[o].outLvl - op[o + 1].modIn) >= 2,
    *      or op[o].outLvl > 0 and op[o + 1].modIn == 0.
    */
-  inline bool KVS(int c, int o) {
+  inline bool KVS_ES(int c, int o) {
     if (c<0 || c>=18 || o<0 || o>=4) return false;
 
     if (chan[c].state.fm.op[o].kvs==1) return true;
