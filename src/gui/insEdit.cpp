@@ -3612,13 +3612,18 @@ void FurnaceGUI::drawInsEdit() {
                       mod=false;
                     } else if (ins->type==DIV_INS_ESFM) {
                       // this is the same as the KVS heuristic in platform/esfm.h
-                      if (opE.outLvl==7) mod=false;
-                      else if (opE.outLvl>0) {
-                        if (i==3) mod=false;
-                        else {
+                      if (opE.outLvl==7) {
+                        mod=false;
+                      } else if (opE.outLvl>0) {
+                        if (i==3) {
+                          mod=false;
+                        } else {
                           DivInstrumentESFM::Operator& opENext=ins->esfm.op[i+1];
-                          if (opENext.modIn==0) mod=false;
-                          else if ((opE.outLvl-opENext.modIn)>=2) mod=false;
+                          if (opENext.modIn==0) {
+                            mod=false;
+                          } else if ((opE.outLvl-opENext.modIn)>=2) {
+                            mod=false;
+                          }
                         }
                       }
                     } else if (opCount==4) {
@@ -4781,13 +4786,18 @@ void FurnaceGUI::drawInsEdit() {
                       mod=false;
                     } else if (ins->type==DIV_INS_ESFM) {
                       // this is the same as the KVS heuristic in platform/esfm.h
-                      if (opE.outLvl==7) mod=false;
-                      else if (opE.outLvl>0) {
-                        if (i==3) mod=false;
-                        else {
+                      if (opE.outLvl==7) {
+                        mod=false;
+                      } else if (opE.outLvl>0) {
+                        if (i==3) {
+                          mod=false;
+                        } else {
                           DivInstrumentESFM::Operator& opENext=ins->esfm.op[i+1];
-                          if (opENext.modIn==0) mod=false;
-                          else if ((opE.outLvl-opENext.modIn)>=2) mod=false;
+                          if (opENext.modIn==0) {
+                            mod=false;
+                          } else if ((opE.outLvl-opENext.modIn)>=2) {
+                            mod=false;
+                          }
                         }
                       }
                     } else if (opCount==4) {
