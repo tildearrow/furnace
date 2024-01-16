@@ -18,9 +18,6 @@
  */
 
 #include "macroDraw.h"
-#include "../gui.h"
-
-class FurnaceGUI;
 
 String genericGuide(float value) {
   return fmt::sprintf("%d",(int)value);
@@ -69,23 +66,19 @@ char* int_to_char_array(int num)
 }
 
 String macroHoverGain(int id, float val, void* u) {
-  return "";
-}
-
-String FurnaceGUI::realMacroHoverGain(int id, float val, void* u) {
   if (val>=224.0f) {
-    return fmt::sprintf("%d: +%d (%s)",id,(int)(val-224), _L("exponential"));
+    return fmt::sprintf("%d: +%d (exponential)",id,(int)(val-224));
   }
   if (val>=192.0f) {
-    return fmt::sprintf("%d: +%d (%s)",id,(int)(val-192), _L("linear"));
+    return fmt::sprintf("%d: +%d (linear)",id,(int)(val-192));
   }
   if (val>=160.0f) {
-    return fmt::sprintf("%d: -%d (%s)",id,(int)(val-160), _L("exponential"));
+    return fmt::sprintf("%d: -%d (exponential)",id,(int)(val-160));
   }
   if (val>=128.0f) {
-    return fmt::sprintf("%d: -%d (%s)",id,(int)(val-128), _L("linear"));
+    return fmt::sprintf("%d: -%d (linear)",id,(int)(val-128));
   }
-  return fmt::sprintf("%d: %d (%s)",id,(int)val, _L("direct"));
+  return fmt::sprintf("%d: %d (direct)",id,(int)val);
 }
 
 String macroHoverES5506FilterMode(int id, float val, void* u) {

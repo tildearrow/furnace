@@ -35,15 +35,6 @@
 
 #include "fileDialog.h"
 
-#include "../locale/locale.h"
-
-//macros for localization (l10n):
-
-#define _L(string) locale.getText(string)
-#define _LP(string, n) locale.getTextPlural((string), n)
-
-//===============================
-
 #define rightClickable if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetKeyboardFocusHere(-1);
 #define ctrlWheeling ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) && wheelY!=0)
 
@@ -1738,7 +1729,6 @@ class FurnaceGUI {
     int fontAntiAlias;
     int selectAssetOnLoad;
     unsigned int maxUndoSteps;
-    int language;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -1938,7 +1928,6 @@ class FurnaceGUI {
       fontAntiAlias(1),
       selectAssetOnLoad(1),
       maxUndoSteps(100),
-      language(DIV_LANG_ENGLISH),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2351,9 +2340,6 @@ class FurnaceGUI {
   int audioExportType;
   FurnaceGUIExportTypes curExportType;
 
-  //translation
-  DivLocale locale;
-
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportZSM(bool onWindow=false);
@@ -2655,12 +2641,6 @@ class FurnaceGUI {
   const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
 
   public:
-    //this is a horrible hack to allow localized strings in bitfield type macros...
-    int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor);
-    int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor);
-
-    String realMacroHoverGain(int id, float val, void* u);
-
     void editStr(String* which);
     void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);

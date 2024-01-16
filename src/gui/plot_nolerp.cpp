@@ -28,14 +28,6 @@
 
 #include "../ta-utils.h"
 
-#include "gui.h"
-
-#include "inst/macroDraw.h"
-
-class FurnaceGUI;
-//this is a horrible hack to allow localized strings in bitfield type macros...
-extern FurnaceGUI g;
-
 struct FurnacePlotArrayGetterData
 {
     const float* Values;
@@ -193,14 +185,14 @@ void PlotNoLerp(const char* label, const float* values, int values_count, int va
     PlotNoLerpEx(ImGuiPlotType_Lines, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size);
 }
 
-int FurnaceGUI::PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor)
+int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor)
 {
-    ImGuiContext& gg = *GImGui;
+    ImGuiContext& g = *GImGui;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
         return -1;
 
-    const ImGuiStyle& style = gg.Style;
+    const ImGuiStyle& style = g.Style;
     const ImGuiID id = window->GetID(label);
 
     const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
@@ -227,9 +219,9 @@ int FurnaceGUI::PlotBitfieldEx(const char* label, int (*values_getter)(void* dat
         int item_count = values_count;
 
         // Tooltip on hover
-        if (hovered && inner_bb.Contains(gg.IO.MousePos))
+        if (hovered && inner_bb.Contains(g.IO.MousePos))
         {
-            const float t = ImClamp((gg.IO.MousePos.x - inner_bb.Min.x) / (inner_bb.Max.x - inner_bb.Min.x), 0.0f, 0.9999f);
+            const float t = ImClamp((g.IO.MousePos.x - inner_bb.Min.x) / (inner_bb.Max.x - inner_bb.Min.x), 0.0f, 0.9999f);
             const int v_idx = (int)(t * item_count);
             IM_ASSERT(v_idx >= 0 && v_idx < values_count);
 
@@ -280,13 +272,12 @@ int FurnaceGUI::PlotBitfieldEx(const char* label, int (*values_getter)(void* dat
       float lineHeight=ImGui::GetTextLineHeight()/2.0;
       for (int i=0; i<bits && overlay_text[i]; i++) {
         ImGui::PushStyleColor(ImGuiCol_Text,ImVec4(0,0,0,1.0f));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight-1), _L(overlay_text[i]), NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight+1), _L(overlay_text[i]), NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight-1), _L(overlay_text[i]), NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight+1), _L(overlay_text[i]), NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight-1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x-1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x-1,frame_bb.Max.y+lineHeight+1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight-1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight-1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x+1, frame_bb.Min.y-lineHeight+1), ImVec2(frame_bb.Max.x+1,frame_bb.Max.y+lineHeight+1), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
         ImGui::PopStyleColor();
-        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x, frame_bb.Min.y-lineHeight), ImVec2(frame_bb.Max.x,frame_bb.Max.y+lineHeight), _L(overlay_text[i]), NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
-        //this is a horrible hack to allow localized strings in bitfield type macros...
+        ImGui::RenderTextClipped(ImVec2(frame_bb.Min.x, frame_bb.Min.y-lineHeight), ImVec2(frame_bb.Max.x,frame_bb.Max.y+lineHeight), overlay_text[i], NULL, NULL, ImVec2(0.0f, (0.5+double(bits-1-i))/double(bits)));
       }
     }
 
@@ -301,10 +292,10 @@ int FurnaceGUI::PlotBitfieldEx(const char* label, int (*values_getter)(void* dat
 void PlotBitfield(const char* label, const int* values, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 graph_size, int stride, const bool* values_highlight, ImVec4 highlightColor)
 {
     FurnacePlotIntArrayGetterData data(values, stride);
-    g.PlotBitfieldEx(label, &Plot_IntArrayGetter, (void*)&data, values_count, values_offset, overlay_text, bits, graph_size, values_highlight, highlightColor);
+    PlotBitfieldEx(label, &Plot_IntArrayGetter, (void*)&data, values_count, values_offset, overlay_text, bits, graph_size, values_highlight, highlightColor);
 }
 
-int FurnaceGUI::PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
+int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -371,23 +362,8 @@ int FurnaceGUI::PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (
             const float v1 = values_getter(data, (v_idx + 1) % values_count);
             if (hoverFunc) {
               std::string hoverText=hoverFunc(v_idx+values_display_offset,v0,hoverFuncUser);
-
-              if(hoverFunc == macroHoverGain)
-              {
-                hoverText = realMacroHoverGain(v_idx+values_display_offset,v0,hoverFuncUser);
-              }
-
-              if (!hoverText.empty()) 
-              {
-                if(hoverFunc == macroHoverGain)
-                {
-                  ImGui::SetTooltip("%s",hoverText.c_str());
-                }
-                else
-                {
-                  ImGui::SetTooltip("%s",_L(hoverText.c_str()));
-                }
-                
+              if (!hoverText.empty()) {
+                ImGui::SetTooltip("%s",hoverText.c_str());
               }
             } else {
               if (plot_type == ImGuiPlotType_Lines)
@@ -510,5 +486,5 @@ int FurnaceGUI::PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (
 void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
 {
     FurnacePlotArrayGetterData data(values, stride);
-    g.PlotCustomEx(ImGuiPlotType_Histogram, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, color, highlight, hoverFunc, hoverFuncUser, blockMode, guideFunc, values_highlight, highlightColor);
+    PlotCustomEx(ImGuiPlotType_Histogram, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, color, highlight, hoverFunc, hoverFuncUser, blockMode, guideFunc, values_highlight, highlightColor);
 }

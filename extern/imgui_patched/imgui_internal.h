@@ -941,8 +941,6 @@ enum ImGuiTextFlags_
 {
     ImGuiTextFlags_None                         = 0,
     ImGuiTextFlags_NoWidthForLargeClippedText   = 1 << 0,
-
-    ImGuiTextFlags_HideID   = 1 << 1, //hide things after ##
 };
 
 enum ImGuiTooltipFlags_
@@ -2518,9 +2516,6 @@ struct IMGUI_API ImGuiWindow
 {
     ImGuiContext*           Ctx;                                // Parent UI context (needs to be set explicitly by parent).
     char*                   Name;                               // Window name, owned by the window.
-
-    char*                   DisplayedName;                      // Window name, displayed in docked mode.
-
     ImGuiID                 ID;                                 // == ImHashStr(Name)
     ImGuiWindowFlags        Flags, FlagsPreviousFrame;          // See enum ImGuiWindowFlags_
     ImGuiWindowClass        WindowClass;                        // Advanced users only. Set with SetNextWindowClass()
@@ -2646,7 +2641,7 @@ struct IMGUI_API ImGuiWindow
     ImRect                  DockTabItemRect;
 
 public:
-    ImGuiWindow(ImGuiContext* context, const char* name, const char* displayedName = NULL);
+    ImGuiWindow(ImGuiContext* context, const char* name);
     ~ImGuiWindow();
 
     ImGuiID     GetID(const char* str, const char* str_end = NULL);

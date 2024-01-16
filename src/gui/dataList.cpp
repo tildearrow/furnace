@@ -73,10 +73,10 @@ const char* sampleNote[12]={
 void FurnaceGUI::insListItem(int i, int dir, int asset) {
   ImGui::PushID(i);
   String name=(settings.insIconsStyle==0)?"":ICON_FA_CIRCLE_O;
-  const char* insType=_L("Bug!##sgdl");
+  const char* insType="Bug!";
   if (i>=0 && i<e->song.insLen) {
     DivInstrument* ins=e->song.ins[i];
-    insType=(ins->type>=DIV_INS_MAX)?_L("Unknown##sgdl"):insTypes[ins->type][0];
+    insType=(ins->type>=DIV_INS_MAX)?"Unknown":insTypes[ins->type][0];
     const char** insIcon=NULL;
 
     if (ins->type>=DIV_INS_MAX) {
@@ -133,19 +133,19 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       curIns=i;
       updateFMPreview=true;
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-      if (ImGui::MenuItem(_L("duplicate##sgdl0"))) {
+      if (ImGui::MenuItem("duplicate")) {
         doAction(GUI_ACTION_INS_LIST_DUPLICATE);
       }
-      if (ImGui::MenuItem(_L("replace...##sgdl0"))) {
+      if (ImGui::MenuItem("replace...")) {
         doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
       }
-      if (ImGui::MenuItem(_L("save##sgdl0"))) {
+      if (ImGui::MenuItem("save")) {
         doAction(GUI_ACTION_INS_LIST_SAVE);
       }
-      if (ImGui::MenuItem(_L("save (.dmp)##sgdl"))) {
+      if (ImGui::MenuItem("save (.dmp)")) {
         doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
       }
-      if (ImGui::MenuItem(_L("delete##sgdl0"))) {
+      if (ImGui::MenuItem("delete")) {
         doAction(GUI_ACTION_INS_LIST_DELETE);
       }
       ImGui::PopStyleColor();
@@ -159,11 +159,11 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       ImGui::Text("%.2X: %s",i,ins->name.c_str());
     } else {
       ImGui::SameLine();
-      ImGui::Text(_L("%.2X: <INVALID>##sgdl"),i);
+      ImGui::Text("%.2X: <INVALID>",i);
     }
   } else {
     ImGui::SameLine();
-    ImGui::Text(_L("- None -##sgdl"));
+    ImGui::Text("- None -");
   }
   ImGui::PopID();
   ImGui::PopStyleColor();
@@ -240,7 +240,7 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     ImGui::Text(ICON_FA_EXCLAMATION_TRIANGLE);
     if (ImGui::IsItemHovered() && !mobileUI) {
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-      ImGui::SetTooltip(_L("out of memory for this sample!##sgdl"));
+      ImGui::SetTooltip("out of memory for this sample!");
       ImGui::PopStyleColor();
     }
     ImGui::PopStyleColor();
@@ -251,19 +251,19 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     updateSampleTex=true;
     lastAssetType=2;
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-    if (ImGui::MenuItem(_L("make instrument##sgdl"))) {
+    if (ImGui::MenuItem("make instrument")) {
       doAction(GUI_ACTION_SAMPLE_MAKE_INS);
     }
-    if (ImGui::MenuItem(_L("duplicate##sgdl1"))) {
+    if (ImGui::MenuItem("duplicate")) {
       doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
     }
-    if (ImGui::MenuItem(_L("replace...##sgdl1"))) {
+    if (ImGui::MenuItem("replace...")) {
       doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
     }
-    if (ImGui::MenuItem(_L("save##sgdl1"))) {
+    if (ImGui::MenuItem("save")) {
       doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
     }
-    if (ImGui::MenuItem(_L("delete##sgdl1"))) {
+    if (ImGui::MenuItem("delete")) {
       doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
     }
     ImGui::PopStyleColor();
@@ -284,7 +284,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
   if (asChild) {
     began=ImGui::BeginChild("Instruments");
   } else {
-    began=ImGui::Begin("Instruments",&insListOpen,globalWinFlags,_L("Instruments###Instruments"));
+    began=ImGui::Begin("Instruments",&insListOpen,globalWinFlags);
   }
   if (began) {
     if (settings.unifiedDataView) settings.horizontalDataView=0;
@@ -306,7 +306,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
       }
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Add##sgdl0"));
+      ImGui::SetTooltip("Add");
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
       makeInsTypeList=e->getPossibleInsTypes();
@@ -332,7 +332,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
       }
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Duplicate##sgdl2"));
+      ImGui::SetTooltip("Duplicate");
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##InsLoad")) {
@@ -353,47 +353,47 @@ void FurnaceGUI::drawInsList(bool asChild) {
       }
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Open##sgdl0"));
+      ImGui::SetTooltip("Open");
     }
     if (ImGui::BeginPopupContextItem("InsOpenOpt")) {
       if (settings.unifiedDataView) {
-        if (ImGui::MenuItem(_L("replace instrument...##sgdl"))) {
+        if (ImGui::MenuItem("replace instrument...")) {
           doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
         }
-        if (ImGui::MenuItem(_L("load instrument from TX81Z##sgdl"))) {
+        if (ImGui::MenuItem("load instrument from TX81Z")) {
           doAction(GUI_ACTION_TX81Z_REQUEST);
         }
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem(_L("replace wavetable...##sgdl"))) {
+        if (ImGui::MenuItem("replace wavetable...")) {
           doAction((curWave>=0 && curWave<(int)e->song.wave.size())?GUI_ACTION_WAVE_LIST_OPEN_REPLACE:GUI_ACTION_WAVE_LIST_OPEN);
         }
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem(_L("replace sample...##sgdl"))) {
+        if (ImGui::MenuItem("replace sample...")) {
           doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
         }
-        if (ImGui::MenuItem(_L("import raw sample...##sgdl"))) {
+        if (ImGui::MenuItem("import raw sample...")) {
           doAction(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
         }
-        if (ImGui::MenuItem(_L("import raw sample (replace)...##sgdl"))) {
+        if (ImGui::MenuItem("import raw sample (replace)...")) {
           doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
         }
       } else {
-        if (ImGui::MenuItem(_L("replace...##sgdl2"))) {
+        if (ImGui::MenuItem("replace...")) {
           doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
         }
         ImGui::Separator();
-        if (ImGui::MenuItem(_L("load from TX81Z##sgdl"))) {
+        if (ImGui::MenuItem("load from TX81Z")) {
           doAction(GUI_ACTION_TX81Z_REQUEST);
         }
       }
       ImGui::EndPopup();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Open (insert; right-click to replace)##sgdl"));
+      ImGui::SetTooltip("Open (insert; right-click to replace)");
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##InsSave")) {
@@ -414,30 +414,30 @@ void FurnaceGUI::drawInsList(bool asChild) {
       }
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Save##sgdl2"));
+      ImGui::SetTooltip("Save");
     }
     if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
       if (settings.unifiedDataView) {
-        if (ImGui::MenuItem(_L("save instrument as .dmp...##sgdl"))) {
+        if (ImGui::MenuItem("save instrument as .dmp...")) {
           doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
         }
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem(_L("save wavetable as .dmw...##sgdl"))) {
+        if (ImGui::MenuItem("save wavetable as .dmw...")) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
         }
-        if (ImGui::MenuItem(_L("save raw wavetable...##sgdl"))) {
+        if (ImGui::MenuItem("save raw wavetable...")) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
         }
 
         ImGui::Separator();
 
-        if (ImGui::MenuItem(_L("save raw sample...##sgdl"))) {
+        if (ImGui::MenuItem("save raw sample...")) {
           doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
         }
       } else {
-        if (ImGui::MenuItem(_L("save as .dmp...##sgdl"))) {
+        if (ImGui::MenuItem("save as .dmp...")) {
           doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
         }
       }
@@ -450,7 +450,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
     }
     popToggleColors();
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Toggle folders/standard view##sgdl0"));
+      ImGui::SetTooltip("Toggle folders/standard view");
     }
     if (!insListDir) {
       ImGui::SameLine();
@@ -472,7 +472,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         }
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_L("Move up##sgdl0"));
+        ImGui::SetTooltip("Move up");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ARROW_DOWN "##InsDown")) {
@@ -493,7 +493,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         }
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_L("Move down##sgdl0"));
+        ImGui::SetTooltip("Move down");
       }
     } else {
       ImGui::SameLine();
@@ -504,7 +504,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         ImGui::InputText("##FolderName",&folderString);
         ImGui::SameLine();
         ImGui::BeginDisabled(folderString.empty());
-        if (ImGui::Button(_L("Create##sgdl0"))) {
+        if (ImGui::Button("Create")) {
           if (settings.unifiedDataView) {
             switch (lastAssetType) {
               case 0:
@@ -534,7 +534,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         ImGui::EndPopup();
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_L("New folder##sgdl0"));
+        ImGui::SetTooltip("New folder");
       }
     }
     if (lastAssetType==2) {
@@ -543,7 +543,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_L("Preview (right click to stop)##sgdl0"));
+        ImGui::SetTooltip("Preview (right click to stop)");
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
@@ -570,7 +570,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
     }
     popDestColor();
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Delete##sgdl2"));
+      ImGui::SetTooltip("Delete");
     }
     ImGui::Separator();
     int availableRows=ImGui::GetContentRegionAvail().y/ImGui::GetFrameHeight();
@@ -587,7 +587,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
           lastAssetType=0;
         }
         ImGui::SameLine();
-        ImGui::Text(_L("Instruments##sgdl"));
+        ImGui::Text("Instruments");
         ImGui::Indent();
       }
 
@@ -602,16 +602,16 @@ void FurnaceGUI::drawInsList(bool asChild) {
         int dirIndex=0;
         int dirToDelete=-1;
         for (DivAssetDir& i: e->song.insDir) {
-          String nodeName=fmt::sprintf("%s %s##_ADI%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?_L("<uncategorized>##sgdl0"):i.name,i.name.empty()?-1:dirIndex);
+          String nodeName=fmt::sprintf("%s %s##_ADI%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?"<uncategorized>":i.name,i.name.empty()?-1:dirIndex);
           String popupID=fmt::sprintf("DirRightMenu%d",dirIndex);
           bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
           DRAG_SOURCE(dirIndex,-1,"FUR_INSDIR");
           DRAG_TARGET(dirIndex,-1,e->song.insDir,"FUR_INSDIR");
           if (ImGui::BeginPopupContextItem(popupID.c_str())) {
-            if (ImGui::MenuItem(_L("rename...##sgdl0"))) {
+            if (ImGui::MenuItem("rename...")) {
               editStr(&i.name);
             }
-            if (ImGui::MenuItem(_L("delete##sgdl3"))) {
+            if (ImGui::MenuItem("delete")) {
               dirToDelete=dirIndex;
             }
             ImGui::EndPopup();
@@ -657,7 +657,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
           lastAssetType=1;
         }
         ImGui::SameLine();
-        ImGui::Text(_L("Wavetables##sgdl"));
+        ImGui::Text("Wavetables");
         ImGui::Indent();
         actualWaveList();
         ImGui::Unindent();
@@ -668,7 +668,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
           lastAssetType=2;
         }
         ImGui::SameLine();
-        ImGui::Text(_L("Samples##sgdl"));
+        ImGui::Text("Samples");
         ImGui::Indent();
         actualSampleList();
         ImGui::Unindent();
@@ -701,31 +701,31 @@ void FurnaceGUI::drawWaveList(bool asChild) {
   if (asChild) {
     began=ImGui::BeginChild("Wavetables");
   } else {
-    began=ImGui::Begin("Wavetables",&waveListOpen,globalWinFlags, _L("Wavetables###Wavetables"));
+    began=ImGui::Begin("Wavetables",&waveListOpen,globalWinFlags);
   }
   if (began) {
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       doAction(GUI_ACTION_WAVE_LIST_ADD);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Add##sgdl1"));
+      ImGui::SetTooltip("Add");
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FILES_O "##WaveClone")) {
       doAction(GUI_ACTION_WAVE_LIST_DUPLICATE);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Duplicate##sgdl3"));
+      ImGui::SetTooltip("Duplicate");
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WaveLoad")) {
       doAction(GUI_ACTION_WAVE_LIST_OPEN);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Open##sgdl1"));
+      ImGui::SetTooltip("Open");
     }
     if (ImGui::BeginPopupContextItem("WaveOpenOpt")) {
-      if (ImGui::MenuItem(_L("replace...##sgdl3"))) {
+      if (ImGui::MenuItem("replace...")) {
         doAction((curWave>=0 && curWave<(int)e->song.wave.size())?GUI_ACTION_WAVE_LIST_OPEN_REPLACE:GUI_ACTION_WAVE_LIST_OPEN);
       }
       ImGui::EndPopup();
@@ -735,14 +735,14 @@ void FurnaceGUI::drawWaveList(bool asChild) {
       doAction(GUI_ACTION_WAVE_LIST_SAVE);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Save##sgdl3"));
+      ImGui::SetTooltip("Save");
     }
     if (!settings.unifiedDataView) {
       if (ImGui::BeginPopupContextItem("WaveSaveFormats",ImGuiMouseButton_Right)) {
-        if (ImGui::MenuItem(_L("save as .dmw...##sgdl"))) {
+        if (ImGui::MenuItem("save as .dmw...")) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
         }
-        if (ImGui::MenuItem(_L("save raw...##sgdl0"))) {
+        if (ImGui::MenuItem("save raw...")) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
         }
         ImGui::EndPopup();
@@ -755,7 +755,7 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     }
     popToggleColors();
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Toggle folders/standard view##sgdl1"));
+      ImGui::SetTooltip("Toggle folders/standard view");
     }
     if (!waveListDir) {
       ImGui::SameLine();
@@ -763,14 +763,14 @@ void FurnaceGUI::drawWaveList(bool asChild) {
         doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_L("Move up##sgdl1"));
+        ImGui::SetTooltip("Move up");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ARROW_DOWN "##WaveDown")) {
         doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_L("Move down##sgdl1"));
+        ImGui::SetTooltip("Move down");
       }
     } else {
       ImGui::SameLine();
@@ -781,7 +781,7 @@ void FurnaceGUI::drawWaveList(bool asChild) {
         ImGui::InputText("##FolderName",&folderString);
         ImGui::SameLine();
         ImGui::BeginDisabled(folderString.empty());
-        if (ImGui::Button(_L("Create##sgdl1"))) {
+        if (ImGui::Button("Create")) {
           e->lockEngine([this]() {
             e->song.waveDir.push_back(DivAssetDir(folderString));
           });
@@ -791,7 +791,7 @@ void FurnaceGUI::drawWaveList(bool asChild) {
         ImGui::EndPopup();
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_L("New folder##sgdl1"));
+        ImGui::SetTooltip("New folder");
       }
     }
     ImGui::SameLine();
@@ -801,7 +801,7 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     }
     popDestColor();
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Delete##sgdl4"));
+      ImGui::SetTooltip("Delete");
     }
     ImGui::Separator();
     if (ImGui::BeginTable("WaveListScroll",1,ImGuiTableFlags_ScrollY)) {
@@ -833,42 +833,42 @@ void FurnaceGUI::drawSampleList(bool asChild) {
   if (asChild) {
     began=ImGui::BeginChild("Samples");
   } else {
-    began=ImGui::Begin("Samples",&sampleListOpen,globalWinFlags, _L("Samples###Samples"));
+    began=ImGui::Begin("Samples",&sampleListOpen,globalWinFlags);
   }
   if (began) {
     if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Add##sgdl2"));
+      ImGui::SetTooltip("Add");
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FILES_O "##SampleClone")) {
       doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Duplicate##sgdl4"));
+      ImGui::SetTooltip("Duplicate");
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SampleLoad")) {
       doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Open##sgdl2"));
+      ImGui::SetTooltip("Open");
     }
     if (mobileUI && ImGui::IsItemActive() && CHECK_LONG_HOLD) {
       ImGui::OpenPopup("SampleOpenOpt");
       NOTIFY_LONG_HOLD;
     }
     if (ImGui::BeginPopupContextItem("SampleOpenOpt")) {
-      if (ImGui::MenuItem(_L("replace...##sgdl4"))) {
+      if (ImGui::MenuItem("replace...")) {
         doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
       }
       ImGui::Separator();
-      if (ImGui::MenuItem(_L("import raw...##sgdl"))) {
+      if (ImGui::MenuItem("import raw...")) {
         doAction(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
       }
-      if (ImGui::MenuItem(_L("import raw (replace)...##sgdl"))) {
+      if (ImGui::MenuItem("import raw (replace)...")) {
         doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
       }
       ImGui::EndPopup();
@@ -878,14 +878,14 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Save##sgdl4"));
+      ImGui::SetTooltip("Save");
     }
     if (mobileUI && ImGui::IsItemActive() && CHECK_LONG_HOLD) {
       ImGui::OpenPopup("SampleSaveOpt");
       NOTIFY_LONG_HOLD;
     }
     if (ImGui::BeginPopupContextItem("SampleSaveOpt")) {
-      if (ImGui::MenuItem(_L("save raw...##sgdl1"))) {
+      if (ImGui::MenuItem("save raw...")) {
         doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
       }
       ImGui::EndPopup();
@@ -897,7 +897,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     }
     popToggleColors();
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Toggle folders/standard view##sgdl2"));
+      ImGui::SetTooltip("Toggle folders/standard view");
     }
     if (!sampleListDir) {
       ImGui::SameLine();
@@ -905,14 +905,14 @@ void FurnaceGUI::drawSampleList(bool asChild) {
         doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_L("Move up##sgdl2"));
+        ImGui::SetTooltip("Move up");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ARROW_DOWN "##SampleDown")) {
         doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_L("Move down##sgdl2"));
+        ImGui::SetTooltip("Move down");
       }
     } else {
       ImGui::SameLine();
@@ -923,7 +923,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
         ImGui::InputText("##FolderName",&folderString);
         ImGui::SameLine();
         ImGui::BeginDisabled(folderString.empty());
-        if (ImGui::Button(_L("Create##sgdl2"))) {
+        if (ImGui::Button("Create")) {
           e->lockEngine([this]() {
             e->song.sampleDir.push_back(DivAssetDir(folderString));
           });
@@ -933,7 +933,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
         ImGui::EndPopup();
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_L("New folder##sgdl2"));
+        ImGui::SetTooltip("New folder");
       }
     }
     ImGui::SameLine();
@@ -941,7 +941,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Preview (right click to stop)##sgdl1"));
+      ImGui::SetTooltip("Preview (right click to stop)");
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
       doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
@@ -953,7 +953,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     }
     popDestColor();
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_L("Delete"));
+      ImGui::SetTooltip("Delete");
     }
     ImGui::Separator();
     if (ImGui::BeginTable("SampleListScroll",1,ImGuiTableFlags_ScrollY)) {
@@ -979,16 +979,16 @@ void FurnaceGUI::actualWaveList() {
     int dirIndex=0;
     int dirToDelete=-1;
     for (DivAssetDir& i: e->song.waveDir) {
-      String nodeName=fmt::sprintf("%s %s##_ADW%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?_L("<uncategorized>##sgdl1"):i.name,i.name.empty()?-1:dirIndex);
+      String nodeName=fmt::sprintf("%s %s##_ADW%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?"<uncategorized>":i.name,i.name.empty()?-1:dirIndex);
       String popupID=fmt::sprintf("DirRightMenu%d",dirIndex);
       bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
       DRAG_SOURCE(dirIndex,-1,"FUR_WAVEDIR");
       DRAG_TARGET(dirIndex,-1,e->song.waveDir,"FUR_WAVEDIR");
       if (ImGui::BeginPopupContextItem(popupID.c_str())) {
-        if (ImGui::MenuItem(_L("rename...##sgdl1"))) {
+        if (ImGui::MenuItem("rename...")) {
           editStr(&i.name);
         }
-        if (ImGui::MenuItem(_L("delete##sgdl5"))) {
+        if (ImGui::MenuItem("delete")) {
           dirToDelete=dirIndex;
         }
         ImGui::EndPopup();
@@ -1025,16 +1025,16 @@ void FurnaceGUI::actualSampleList() {
     int dirIndex=0;
     int dirToDelete=-1;
     for (DivAssetDir& i: e->song.sampleDir) {
-      String nodeName=fmt::sprintf("%s %s##_ADS%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?"<uncategorized>##sgdl2":i.name,i.name.empty()?-1:dirIndex);
+      String nodeName=fmt::sprintf("%s %s##_ADS%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?"<uncategorized>":i.name,i.name.empty()?-1:dirIndex);
       String popupID=fmt::sprintf("DirRightMenu%d",dirIndex);
       bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
       DRAG_SOURCE(dirIndex,-1,"FUR_SDIR");
       DRAG_TARGET(dirIndex,-1,e->song.sampleDir,"FUR_SDIR");
       if (ImGui::BeginPopupContextItem(popupID.c_str())) {
-        if (ImGui::MenuItem(_L("rename...##sgdl2"))) {
+        if (ImGui::MenuItem("rename...")) {
           editStr(&i.name);
         }
-        if (ImGui::MenuItem(_L("delete##sgdl6"))) {
+        if (ImGui::MenuItem("delete")) {
           dirToDelete=dirIndex;
         }
         ImGui::EndPopup();

@@ -223,7 +223,7 @@ void FurnaceGUI::drawMixer() {
   } else {
     ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin("Mixer",&mixerOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking), _L("Mixer###Mixer"))) {
+  if (ImGui::Begin("Mixer",&mixerOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (ImGui::BeginTabBar("MixerView")) {
       if (ImGui::BeginTabItem("Mixer")) {
         if (ImGui::SliderFloat("Master Volume",&e->song.masterVol,0,3,"%.2fx")) {

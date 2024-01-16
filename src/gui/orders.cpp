@@ -43,7 +43,7 @@ void FurnaceGUI::drawMobileOrderSel() {
 
   ImGui::SetNextWindowPos(ImVec2(0.0f,mobileMenuPos*-0.65*canvasH));
   ImGui::SetNextWindowSize(ImVec2(canvasW,0.12*canvasW));
-  if (ImGui::Begin("OrderSel",NULL,globalWinFlags, _L("OrderSel###OrderSel"))) {
+  if (ImGui::Begin("OrderSel",NULL,globalWinFlags)) {
     ImDrawList* dl=ImGui::GetWindowDrawList();
     ImGuiWindow* window=ImGui::GetCurrentWindow();
     ImGuiStyle& style=ImGui::GetStyle();
@@ -229,7 +229,7 @@ void FurnaceGUI::drawOrders() {
   } else {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin("Orders",&ordersOpen,globalWinFlags|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse, _L("Orders###Orders"))) {
+  if (ImGui::Begin("Orders",&ordersOpen,globalWinFlags|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
     if (ImGui::BeginTable("OrdColumn",(settings.orderButtonPos==0)?1:2,ImGuiTableFlags_BordersInnerV)) {
       if (settings.orderButtonPos==2) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);

@@ -509,7 +509,7 @@ void FurnaceGUI::drawFindReplace() {
   }
   if (!findOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
-  if (ImGui::Begin("Find/Replace",&findOpen,globalWinFlags,_L("Find/Replace###Find/Replace"))) {
+  if (ImGui::Begin("Find/Replace",&findOpen,globalWinFlags)) {
     if (curQuery.empty()) {
       curQuery.push_back(FurnaceGUIFindQuery());
     }
