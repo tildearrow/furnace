@@ -305,6 +305,120 @@ void DivLocale::addTranslationsRussian()
     strings["Help##menubar"].plurals[0] = "Справка##menubar";
     strings["help##menubar"].plurals[0] = "справка##menubar";
 
+    //MENU BARS
+
+    strings["new...##sggu"].plurals[0] = "=new...";
+    strings["Unsaved changes! Save changes before creating a new song?##sggu"].plurals[0] = "=Unsaved changes! Save changes before creating a new song?";
+    strings["open...##sggu"].plurals[0] = "=open...";
+    strings["Unsaved changes! Save changes before opening another file?##sggu"].plurals[0] = "=Unsaved changes! Save changes before opening another file?";
+    strings["open recent##sggu"].plurals[0] = "=open recent";
+    strings["Unsaved changes! Save changes before opening file?##sggu"].plurals[0] = "=Unsaved changes! Save changes before opening file?";
+    strings["Error while loading file! (%s)##sggu"].plurals[0] = "=Error while loading file! (%s)";
+    strings["nothing here yet##sggu"].plurals[0] = "=nothing here yet";
+    strings["clear history##sggu"].plurals[0] = "=clear history";
+    strings["Are you sure you want to clear the recent file list?##sggu"].plurals[0] = "=Are you sure you want to clear the recent file list?";
+    strings["save##sggu"].plurals[0] = "=save";
+    strings["Error while saving file! (%s)##sggu"].plurals[0] = "=Error while saving file! (%s)";
+    strings["save as...##sggu"].plurals[0] = "=save as...";
+    strings["export audio...##sggu"].plurals[0] = "=export audio...";
+    strings["export VGM...##sggu"].plurals[0] = "=export VGM...";
+    strings["export ZSM...##sggu"].plurals[0] = "=export ZSM...";
+    strings["export Amiga validation data...##sggu"].plurals[0] = "=export Amiga validation data...";
+    strings["export text...##sggu"].plurals[0] = "=export text...";
+    strings["export command stream...##sggu"].plurals[0] = "=export command stream...";
+    strings["export...##sggu"].plurals[0] = "=export...";
+    strings["manage chips##sggu"].plurals[0] = "=manage chips";
+    strings["add chip...##sggu"].plurals[0] = "=add chip...";
+    strings["cannot add chip! (##sggu"].plurals[0] = "=cannot add chip! (";
+    strings["configure chip...##sggu"].plurals[0] = "=configure chip...##sggu";
+    strings["change chip...##sggu"].plurals[0] = "=change chip...";
+    strings["Preserve channel positions##sggu0"].plurals[0] = "=Preserve channel positions";
+    strings["remove chip...##sggu"].plurals[0] = "=remove chip...";
+    strings["Preserve channel positions##sggu1"].plurals[0] = "=Preserve channel positions";
+    strings["cannot remove chip! (##sggu"].plurals[0] = "=cannot remove chip! (";
+    strings["restore backup##sggu"].plurals[0] = "=restore backup";
+    strings["Unsaved changes! Save before quitting?##sggu"].plurals[0] = "=Unsaved changes! Save before quitting?";
+    
+    strings["undo##sggu"].plurals[0] = "=undo";
+    strings["redo##sggu"].plurals[0] = "=redo";
+    strings["cut##sggu"].plurals[0] = "=cut";
+    strings["copy##sggu"].plurals[0] = "=copy";
+    strings["paste##sggu0"].plurals[0] = "=paste";
+    strings["paste special...##sggu"].plurals[0] = "=paste special...##sggu";
+    strings["paste mix##sggu"].plurals[0] = "=paste mix";
+    strings["paste mix (background)##sggu"].plurals[0] = "=paste mix (background)";
+    strings["paste with ins (foreground)##sggu"].plurals[0] = "=paste with ins (foreground)";
+    strings["no instruments available##sggu0"].plurals[0] = "=no instruments available";
+    strings["paste with ins (background)##sggu"].plurals[0] = "=paste with ins (background)";
+    strings["no instruments available##sggu1"].plurals[0] = "=no instruments available";
+    strings["paste flood##sggu"].plurals[0] = "=paste flood";
+    strings["paste overflow##sggu"].plurals[0] = "=paste overflow";
+    strings["delete##sggu0"].plurals[0] = "=delete";
+    strings["select all##sggu"].plurals[0] = "=select all";
+    strings["operation mask...##sggu"].plurals[0] = "=operation mask...";
+    strings["delete##sggu1"].plurals[0] = "=delete";
+    strings["pull delete##sggu"].plurals[0] = "=pull delete";
+    strings["insert##sggu"].plurals[0] = "=insert";
+    strings["paste##sggu1"].plurals[0] = "=paste";
+    strings["transpose (note)##sggu"].plurals[0] = "=transpose (note)";
+    strings["transpose (value)##sggu"].plurals[0] = "=transpose (value)";
+    strings["interpolate##sggu"].plurals[0] = "=interpolate";
+    strings["fade##sggu"].plurals[0] = "=fade";
+    strings["invert values##sggu"].plurals[0] = "=invert values";
+    strings["scale##sggu"].plurals[0] = "=scale";
+    strings["randomize##sggu"].plurals[0] = "=randomize";
+    strings["flip##sggu"].plurals[0] = "=flip";
+    strings["collapse/expand##sggu"].plurals[0] = "=collapse/expand";
+    strings["input latch##sggu"].plurals[0] = "=input latch";
+    strings["&&: selected instrument\n..: no instrument##sggu"].plurals[0] = "=&&: selected instrument\n..: no instrument";
+    strings["Set##sggu"].plurals[0] = "=Set";
+    strings["Reset##sggu"].plurals[0] = "=Reset";
+    strings["note up##sggu"].plurals[0] = "=note up";
+    strings["note down##sggu"].plurals[0] = "=note down";
+    strings["octave up##sggu"].plurals[0] = "=octave up";
+    strings["octave down##sggu"].plurals[0] = "=octave down";
+    strings["values up##sggu"].plurals[0] = "=values up";
+    strings["values down##sggu"].plurals[0] = "=values down";
+    strings["values up (+16)##sggu"].plurals[0] = "=values up (+16)";
+    strings["values down (-16)##sggu"].plurals[0] = "=values down (-16)";
+    strings["transpose##sggu"].plurals[0] = "=transpose";
+    strings["Notes##sggu"].plurals[0] = "=Notes";
+    strings["Values##sggu"].plurals[0] = "=Values";
+    strings["interpolate##sggu"].plurals[0] = "=interpolate";
+    strings["change instrument...##sggu"].plurals[0] = "=change instrument...";
+    strings["no instruments available##sggu"].plurals[0] = "=no instruments available";
+    strings["gradient/fade...##sggu"].plurals[0] = "=gradient/fade...";
+    strings["Start##sggu"].plurals[0] = "=Start";
+    strings["End##sggu"].plurals[0] = "=End";
+    strings["Nibble mode##sggu0"].plurals[0] = "=Nibble mode";
+    strings["Go ahead##sggu"].plurals[0] = "=Go ahead";
+    strings["scale...##sggu"].plurals[0] = "=scale...";
+    strings["Scale##sggu"].plurals[0] = "=Scale";
+    strings["randomize...##sggu"].plurals[0] = "=randomize...";
+    strings["Minimum##sggu"].plurals[0] = "=Minimum";
+    strings["Maximum##sggu"].plurals[0] = "=Maximum";
+    strings["Nibble mode##sggu1"].plurals[0] = "=Nibble mode";
+    strings["Randomize##sggu"].plurals[0] = "=Randomize";
+    strings["invert values##sggu"].plurals[0] = "=invert values";
+    strings["flip selection##sggu"].plurals[0] = "=flip selection";
+    strings["collapse/expand amount##CollapseAmount"].plurals[0] = "=collapse/expand amount##CollapseAmount";
+    strings["collapse##sggu"].plurals[0] = "=collapse";
+    strings["expand##sggu"].plurals[0] = "=expand";
+    strings["collapse pattern##sggu"].plurals[0] = "=collapse pattern";
+    strings["expand pattern##sggu"].plurals[0] = "=expand pattern";
+    strings["collapse song##sggu"].plurals[0] = "=collapse song";
+    strings["expand song##sggu"].plurals[0] = "=expand song";
+    strings["find/replace##sggu"].plurals[0] = "=find/replace";
+    strings["clear...##sggu"].plurals[0] = "=clear...";
+
+    strings["full screen##sggu"].plurals[0] = "=full screen";
+    strings["lock layout##sggu"].plurals[0] = "=lock layout";
+    strings["visualizer##sggu"].plurals[0] = "=visualizer";
+    strings["reset layout##sggu"].plurals[0] = "=reset layout";
+    strings["Are you sure you want to reset the workspace layout?##sggu"].plurals[0] = "=Are you sure you want to reset the workspace layout?";
+    strings["switch to mobile view##sggu"].plurals[0] = "=switch to mobile view";
+    strings["settings...##sggu"].plurals[0] = "=settings...";
+
     //WINDOW NAMES
 
     strings["Settings###Settings"].plurals[0] = "Настройки###Settings";
@@ -348,6 +462,13 @@ void DivLocale::addTranslationsRussian()
     strings["Volume Meter###Volume Meter"].plurals[0] = "Изм. громкости###Volume Meter";
     strings["Wavetable Editor###Wavetable Editor"].plurals[0] = "Ред. волн. таблиц###Wavetable Editor";
     strings["Oscilloscope (X-Y)###Oscilloscope (X-Y)"].plurals[0] = "Осциллограф (X-Y)###Oscilloscope (X-Y)";
+    //popups
+    strings["Warning###Warning"].plurals[0] = "=Warning###Warning";
+    strings["Error###Error"].plurals[0] = "=Error###Error";
+    strings["Select Instrument###Select Instrument"].plurals[0] = "=Select Instrument###Select Instrument";
+    strings["Import Raw Sample###Import Raw Sample"].plurals[0] = "=Import Raw Sample###Import Raw Sample";
+    strings["Rendering...###Rendering..."].plurals[0] = "=Rendering...###Rendering...";
+    strings["New Song###New Song"].plurals[0] = "=New Song###New Song";
 
     //EFFECT LIST
 
