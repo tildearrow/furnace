@@ -2943,7 +2943,8 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION ASSETS
         CONFIG_SUBSECTION("Assets");
         bool unifiedDataViewB=settings.unifiedDataView;
-        if (ImGui::Checkbox("Unified instrument/wavetable/sample list",&unifiedDataViewB)) {
+        if (ImGui::Checkbox("Unified instrument/wavetable/sample list",&unifiedDataViewB)) 
+        {
           settings.unifiedDataView=unifiedDataViewB;
           settingsChanged=true;
         }
