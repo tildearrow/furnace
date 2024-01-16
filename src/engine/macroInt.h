@@ -144,6 +144,11 @@ class DivMacroInt {
     /**
      * trigger macro release.
      */
+    void retrig(unsigned char id);
+
+    /**
+     * trigger macro release.
+     */
     void release();
 
     /**

@@ -238,6 +238,40 @@ void DivMacroInt::mask(unsigned char id, bool enabled)
   }
 }
 
+void DivMacroInt::retrig(unsigned char id)
+{
+  if(id < 0x20)
+  {
+    DivMacroStruct* m = get_div_macro_struct(id);
+    DivInstrumentMacro* sm = ins->std.get_macro(m->macroType, false);
+
+    if(sm == NULL) return;
+    if(sm->len == 0 && m->type == 0) return;
+
+    m->has=m->had=m->actualHad=m->will=true;
+    m->lfoPos = 0;
+    m->pos = 0;
+    m->lastPos = 0;
+    m->delay = 0;
+  }
+
+  else
+  {
+    IntOp* i = get_int_op((id >> 5) - 1);
+    DivMacroStruct* m = i->op_get_div_macro_struct((id & 31) + 0x20);
+    DivInstrumentMacro* sm = ins->std.get_op_macro((id >> 5) - 1)->op_get_macro(m->macroType, false);
+
+    if(sm == NULL) return;
+    if(sm->len == 0 && m->type == 0) return;
+
+    m->has=m->had=m->actualHad=m->will=true;
+    m->lfoPos = 0;
+    m->pos = 0;
+    m->lastPos = 0;
+    m->delay = 0;
+  }
+}
+
 void DivMacroInt::release() {
   released=true;
 }

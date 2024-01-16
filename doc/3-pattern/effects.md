@@ -93,6 +93,7 @@ not all chips support these effects.
   - this effect is currently incomplete.
 - `F5xx`: **Disable macro.**
 - `F6xx`: **Enable macro.**
+- `F7xx`: **Retrigger macro.**
   - see macro table at the end of this document for possible values.
 
 additionally, [each chip has its own effects](../7-systems/README.md).
@@ -182,19 +183,19 @@ ex | SAA1099  | X1-010     | Namco 163  | FDS       | Sound Unit | ES5506    | M
  7 |          |            |            |           |            | EnvRampK2 |          |
  8 |          |            |            |           |            | Env Mode  |          |
 
-ex | QSound       | SNES      | MSM5232   |
----|--------------|-----------|-----------|
- D | Echo Level   | NoiseFreq | GroupCtrl |
- W |              | Waveform  |           |
- 1 | EchoFeedback | Special   | GroupAtk  |
- 2 | Echo Length  | Gain      | GroupDec  |
- 3 |              |           | Noise     |
- A |              |           |           |
- B |              |           |           |
- C |              |           |           |
- D |              |           |           |
- 4 |              |           |           |
- 5 |              |           |           |
- 6 |              |           |           |
- 7 |              |           |           |
- 8 |              |           |           |
+ex | QSound       | SNES      | MSM5232   |    ESFM    |   ES5503    |
+---|--------------|-----------|-----------|------------|-------------|
+ D | Echo Level   | NoiseFreq | GroupCtrl | OP4NoiMode |  Osc. mode  |
+ W |              | Waveform  |           |  Waveform  |  Waveform   |
+ 1 | EchoFeedback | Special   | GroupAtk  |            |  Wave pos   |
+ 2 | Echo Length  | Gain      | GroupDec  |            | Osc. output |
+ 3 |              |           | Noise     |            |             |
+ A |              |           |           |            |             |
+ B |              |           |           |            |             |
+ C |              |           |           |            |             |
+ D |              |           |           |            |             |
+ 4 |              |           |           |            |             |
+ 5 |              |           |           |            |             |
+ 6 |              |           |           |            |             |
+ 7 |              |           |           |            |             |
+ 8 |              |           |           |            |             |
