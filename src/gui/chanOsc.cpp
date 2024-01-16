@@ -348,6 +348,7 @@ void FurnaceGUI::drawChanOsc() {
             "- %v: volume (decimal)\n"
             "- %V: volume (percentage)\n"
             "- %b: volume (hex)\n"
+            "- %l: line break\n"
             "- %%: percent sign"
           );
           ImGui::EndTooltip();
@@ -749,6 +750,10 @@ void FurnaceGUI::drawChanOsc() {
                         short noteMod=tempNote%12+12; //also note 0 is a BUG, hence +12 on the note and -1 on the octave
                         short oct=tempNote/12-1; 
                         text+=fmt::sprintf("%s",noteName(noteMod,oct));
+                        break;
+                      }
+                      case 'l': {
+                        text+="\n";
                         break;
                       }
                       case '%':
