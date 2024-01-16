@@ -242,7 +242,13 @@ const char* cmdName[]={
   "C64_AD",
   "C64_SR",
 
-  "ALWAYS_SET_VOLUME"
+  "ESFM_OP_PANNING",
+  "ESFM_OUTLVL",
+  "ESFM_MODIN",
+  "ESFM_ENV_DELAY",
+
+  "ALWAYS_SET_VOLUME",
+
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
