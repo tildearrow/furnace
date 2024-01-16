@@ -348,7 +348,7 @@ void FurnaceGUI::drawChanOsc() {
             "- %v: volume (decimal)\n"
             "- %V: volume (percentage)\n"
             "- %b: volume (hex)\n"
-            "- %l: line break\n"
+            "- %l: new line\n"
             "- %%: percent sign"
           );
           ImGui::EndTooltip();
