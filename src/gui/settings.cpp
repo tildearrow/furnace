@@ -296,7 +296,7 @@ const char* specificControls[19]={
   ImGui::AlignTextToFramePadding();\
   ImGui::TextUnformatted(_L(guiActions[what].friendlyName)); \
   ImGui::TableNextColumn(); \
-  if (ImGui::Button(fmt::sprintf("%s##KC_" #what,(bindSetPending && bindSetTarget==what)?_L("Press key...##sgse"):getKeyName(actionKeys[what])).c_str())) { \
+  if (ImGui::Button(fmt::sprintf("%s##KC_" #what,(bindSetPending && bindSetTarget==what)?_L("Press key...##sgse"):_L(getKeyName(actionKeys[what]).c_str())).c_str())) { \
     promptKey(what); \
     settingsChanged=true; \
   } \

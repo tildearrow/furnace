@@ -89,6 +89,8 @@ void DivLocale::addTranslationsTemplate()
     //   sgwe  src/gui/waveEdit.cpp
     //   sgxy  src/gui/xyOsc.cpp
 
+    strings["<nothing>##test"].plurals[0] = "=<nothing>##test";
+
     //src/gui/about.cpp
 
     strings["About Furnace###About Furnace"].plurals[0] = "=About Furnace###About Furnace";
@@ -540,7 +542,6 @@ void DivLocale::addTranslationsTemplate()
     strings["About Furnace###About Furnace"].plurals[0] = "=About Furnace###About Furnace";
     strings["Channels###Channels"].plurals[0] = "=Channels###Channels";
     strings["Oscilloscope (per-channel)###Oscilloscope (per-channel)"].plurals[0] = "=Oscilloscope (per-channel)###Oscilloscope (per-channel)";
-    strings["Clock###Clock"].plurals[0] = "Clock###Clock";
     strings["Compatibility Flags###Compatibility Flags"].plurals[0] = "=Compatibility Flags###Compatibility Flags";
     strings["Instruments###Instruments"].plurals[0] = "=Instruments###Instruments";
     strings["Wavetables###Wavetables"].plurals[0] = "=Wavetables###Wavetables";
