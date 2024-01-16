@@ -92,6 +92,7 @@ void DivLocale::addTranslationsRussian()
     strings["SM8521 emulator (modified version) by cam900##sgab"].plurals[0] = "=SM8521 emulator (modified version) by cam900";
     strings["D65010G031 emulator (modified version) by cam900##sgab"].plurals[0] = "=D65010G031 emulator (modified version) by cam900";
     strings["Namco C140/C219 emulator (modified version) by cam900##sgab"].plurals[0] = "=Namco C140/C219 emulator (modified version) by cam900";
+    strings["ESFMu emulator by Kagamiin~##sgab"].plurals[0] = "=ESFMu emulator by Kagamiin~";
 
     strings["greetings to:##sgab"].plurals[0] = "=greetings to:";
     strings["NEOART Costa Rica##sgab"].plurals[0] = "=NEOART Costa Rica";
@@ -1218,7 +1219,7 @@ void DivLocale::addTranslationsRussian()
     strings["Clock##sgse"].plurals[0] = "=Clock";
     strings["Patchbay##sgse"].plurals[0] = "=Patchbay";
     strings["Log Viewer##sgse"].plurals[0] = "=Log Viewer";
-    
+
     // these are messy, but the ##CC_GUI... is required.
     strings["Button##CC_GUI_COLOR_BUTTON"].plurals[0] = "=Button##CC_GUI_COLOR_BUTTON";
     strings["Button (hovered)##CC_GUI_COLOR_BUTTON_HOVER"].plurals[0] = "=Button (hovered)##CC_GUI_COLOR_BUTTON_HOVER";

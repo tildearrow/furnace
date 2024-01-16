@@ -229,6 +229,7 @@ const char* aboutLine[]={
   "SM8521 emulator (modified version) by cam900##sgab",
   "D65010G031 emulator (modified version) by cam900##sgab",
   "Namco C140/C219 emulator (modified version) by cam900##sgab",
+  "ESFMu emulator by Kagamiin~##sgab",
   "",
   "greetings to:##sgab",
   "NEOART Costa Rica##sgab",
