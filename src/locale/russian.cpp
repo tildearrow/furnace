@@ -822,6 +822,7 @@ void DivLocale::addTranslationsRussian()
     strings["KIOCSOUND on /dev/tty1##sgse"].plurals[0] = "=KIOCSOUND on /dev/tty1";
     strings["KIOCSOUND on standard output##sgse"].plurals[0] = "=KIOCSOUND on standard output";
     strings["Disabled/custom##sgse0"].plurals[0] = "=Disabled/custom";
+    strings["Two octaves (0 is C-4, F is D#5)##sgse"].plurals[0] = "=Two octaves (0 is C-4, F is D#5)";
     strings["Raw (note number is value)##sgse"].plurals[0] = "=Raw (note number is value)";
     strings["Two octaves alternate (lower keys are 0-9, upper keys are A-F)##sgse"].plurals[0] = "=Two octaves alternate (lower keys are 0-9, upper keys are A-F)";
     strings["Use dual control change (one for each nibble)##sgse0"].plurals[0] = "=Use dual control change (one for each nibble)";
@@ -933,9 +934,6 @@ void DivLocale::addTranslationsRussian()
     strings["Audio##sgse"].plurals[0] = "Аудио";
     strings["Output##sgse"].plurals[0] = "Вывод";
     strings["Backend##sgse"].plurals[0] = "Интерфейс";
-    strings["JACK##sgse"].plurals[0] = "=JACK";
-    strings["SDL##sgse"].plurals[0] = "=SDL";
-    strings["PortAudio##sgse"].plurals[0] = "=PortAudio";
     strings["Driver##sgse"].plurals[0] = "Драйвер";
     strings["Automatic##sgse2"].plurals[0] = "Автоматически";
     strings["you may need to restart Furnace for this setting to take effect.##sgse2"].plurals[0] = "возможно, вам придётся перезапустить Furnace для применения настройки.";
@@ -1678,5 +1676,14 @@ void DivLocale::addTranslationsRussian()
     strings["Log level: Info##CC_GUI_COLOR_LOGLEVEL_INFO"].plurals[0] = "=Log level: Info##CC_GUI_COLOR_LOGLEVEL_INFO";
     strings["Log level: Debug##CC_GUI_COLOR_LOGLEVEL_DEBUG"].plurals[0] = "=Log level: Debug##CC_GUI_COLOR_LOGLEVEL_DEBUG";
     strings["Log level: Trace/Verbose##CC_GUI_COLOR_LOGLEVEL_TRACE"].plurals[0] = "=Log level: Trace/Verbose##CC_GUI_COLOR_LOGLEVEL_TRACE";
+
+    strings["OK##SettingsOK"].plurals[0] = "=OK##SettingsOK";
+    strings["Cancel##SettingsCancel"].plurals[0] = "=Cancel##SettingsCancel";
+    strings["Apply##SettingsApply"].plurals[0] = "=Apply##SettingsApply";
+
+    //src/gui/util.cpp
+    strings["<nothing>##sgut"].plurals[0] = "=<nothing>";
+    strings["Unknown##sgut0"].plurals[0] = "=Unknown";
+    strings["Unknown##sgut1"].plurals[0] = "=Unknown";
     //strings[""].plurals[0] = "";
 }

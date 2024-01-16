@@ -38,7 +38,8 @@ const char* chanOscRefs[]={
   "Channel##sgco",
   "Brightness##sgco",
 
-  "Note Trigger##sgco"
+  "Note Trigger##sgco",
+  NULL
 };
 
 const char* autoColsTypes[]={
