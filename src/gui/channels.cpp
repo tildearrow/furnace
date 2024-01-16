@@ -37,7 +37,7 @@ void FurnaceGUI::drawChannels() {
   } else {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin("Channels",&channelsOpen,globalWinFlags)) {
+  if (ImGui::Begin("Channels",&channelsOpen,globalWinFlags, _L("Channels###Channels"))) {
     if (ImGui::BeginTable("ChannelList",5)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0);
@@ -46,13 +46,13 @@ void FurnaceGUI::drawChannels() {
       ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
       ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
       ImGui::TableNextColumn();
-      ImGui::Text("Pat");
+      ImGui::Text(_L("Pat##sgch"));
       ImGui::TableNextColumn();
-      ImGui::Text("Osc");
+      ImGui::Text(_L("Osc##sgch"));
       ImGui::TableNextColumn();
-      ImGui::Text("Swap");
+      ImGui::Text(_L("Swap##sgch"));
       ImGui::TableNextColumn();
-      ImGui::Text("Name");
+      ImGui::Text(_L("Name##sgch"));
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         ImGui::PushID(i);
         ImGui::TableNextRow();
@@ -61,14 +61,14 @@ void FurnaceGUI::drawChannels() {
           MARK_MODIFIED;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Show in pattern");
+          ImGui::SetTooltip(_L("Show in pattern##sgch"));
         }
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("##VisibleChanOsc",&e->curSubSong->chanShowChanOsc[i])) {
           MARK_MODIFIED;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Show in per-channel oscilloscope");
+          ImGui::SetTooltip(_L("Show in per-channel oscilloscope##sgch"));
         }
         ImGui::TableNextColumn();
         if (ImGui::Button(ICON_FA_ARROWS)) {
@@ -79,7 +79,7 @@ void FurnaceGUI::drawChannels() {
           ImGui::Button(ICON_FA_ARROWS "##ChanDrag");
           ImGui::EndDragDropSource();
         } else if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s #%d\n(drag to swap channels)",e->getSystemName(e->sysOfChan[i]),e->dispatchChanOfChan[i]);
+          ImGui::SetTooltip(_L("%s #%d\n(drag to swap channels)##sgch"),e->getSystemName(e->sysOfChan[i]),e->dispatchChanOfChan[i]);
         }
         if (ImGui::BeginDragDropTarget()) {
           const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_CHAN");

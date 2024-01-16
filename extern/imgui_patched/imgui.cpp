@@ -1046,7 +1046,7 @@ static const float DOCKING_TRANSPARENT_PAYLOAD_ALPHA        = 0.50f;    // For u
 
 static void             SetCurrentWindow(ImGuiWindow* window);
 static void             FindHoveredWindow();
-static ImGuiWindow*     CreateNewWindow(const char* name, ImGuiWindowFlags flags);
+static ImGuiWindow*     CreateNewWindow(const char* name, ImGuiWindowFlags flags, const char* displayedName = NULL);
 static ImVec2           CalcNextScrollFromScrollTargetAndClamp(ImGuiWindow* window);
 
 static void             AddWindowToSortBuffer(ImVector<ImGuiWindow*>* out_sorted_windows, ImGuiWindow* window);
@@ -3845,12 +3845,23 @@ void ImGui::CallContextHooks(ImGuiContext* ctx, ImGuiContextHookType hook_type)
 //-----------------------------------------------------------------------------
 
 // ImGuiWindow is mostly a dumb struct. It merely has a constructor and a few helper methods
-ImGuiWindow::ImGuiWindow(ImGuiContext* ctx, const char* name) : DrawListInst(NULL)
+ImGuiWindow::ImGuiWindow(ImGuiContext* ctx, const char* name, const char* displayedName) : DrawListInst(NULL)
 {
     memset(this, 0, sizeof(*this));
     Ctx = ctx;
     Name = ImStrdup(name);
     NameBufLen = (int)strlen(name) + 1;
+
+    if(displayedName != NULL)
+    {
+        DisplayedName = ImStrdup(displayedName);
+    }
+
+    else
+    {
+        DisplayedName = NULL;
+    }
+    
     ID = ImHashStr(name);
     IDStack.push_back(ID);
     ViewportAllowPlatformMonitorExtend = -1;
@@ -3881,6 +3892,7 @@ ImGuiWindow::~ImGuiWindow()
 {
     IM_ASSERT(DrawList == &DrawListInst);
     IM_DELETE(Name);
+    IM_DELETE(DisplayedName);
     ColumnsStorage.clear_destruct();
 }
 
@@ -5730,6 +5742,7 @@ bool ImGui::BeginChildEx(const char* name, ImGuiID id, const ImVec2& size_arg, b
     if (!border)
         g.Style.ChildBorderSize = 0.0f;
     bool ret = Begin(temp_window_name, NULL, flags);
+
     g.Style.ChildBorderSize = backup_border_size;
 
     ImGuiWindow* child_window = g.CurrentWindow;
@@ -5929,12 +5942,12 @@ static void InitOrLoadWindowSettings(ImGuiWindow* window, ImGuiWindowSettings* s
     }
 }
 
-static ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags)
+static ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags, const char* displayedName)
 {
     // Create window the first time
     //IMGUI_DEBUG_LOG("CreateNewWindow '%s', flags = 0x%08X\n", name, flags);
     ImGuiContext& g = *GImGui;
-    ImGuiWindow* window = IM_NEW(ImGuiWindow)(&g, name);
+    ImGuiWindow* window = IM_NEW(ImGuiWindow)(&g, name, displayedName);
     window->Flags = flags;
     g.WindowsById.SetVoidPtr(window->ID, window);
 
@@ -6650,7 +6663,7 @@ ImGuiWindow* ImGui::FindBlockingModal(ImGuiWindow* window)
 //   You can use the "##" or "###" markers to use the same label with different id, or same id with different label. See documentation at the top of this file.
 // - Return false when window is collapsed, so you can early out in your code. You always need to call ImGui::End() even if false is returned.
 // - Passing 'bool* p_open' displays a Close button on the upper-right corner of the window, the pointed value will be set to false when the button is pressed.
-bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
+bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags, const char* displayedName)
 {
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
@@ -6662,7 +6675,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
     ImGuiWindow* window = FindWindowByName(name);
     const bool window_just_created = (window == NULL);
     if (window_just_created)
-        window = CreateNewWindow(name, flags);
+        window = CreateNewWindow(name, flags, displayedName);
 
     // Automatically disable manual moving/resizing when NoInputs is set
     if ((flags & ImGuiWindowFlags_NoInputs) == ImGuiWindowFlags_NoInputs)
@@ -7419,7 +7432,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
 
         // Title bar
         if (!(flags & ImGuiWindowFlags_NoTitleBar) && !window->DockIsActive)
-            RenderWindowTitleBarContents(window, ImRect(title_bar_rect.Min.x + window->WindowBorderSize, title_bar_rect.Min.y, title_bar_rect.Max.x - window->WindowBorderSize, title_bar_rect.Max.y), name, p_open);
+            RenderWindowTitleBarContents(window, ImRect(title_bar_rect.Min.x + window->WindowBorderSize, title_bar_rect.Min.y, title_bar_rect.Max.x - window->WindowBorderSize, title_bar_rect.Max.y), displayedName == NULL ? name : displayedName, p_open);
 
         // Clear hit test shape every frame
         window->HitTestHoleSize.x = window->HitTestHoleSize.y = 0;
@@ -16889,7 +16902,7 @@ bool ImGui::DockNodeBeginAmendTabBar(ImGuiDockNode* node)
         return false;
     if (node->MergedFlags & ImGuiDockNodeFlags_KeepAliveOnly)
         return false;
-    Begin(node->HostWindow->Name);
+    Begin(node->HostWindow->Name); //this is to be edited
     PushOverrideID(node->ID);
     bool ret = BeginTabBarEx(node->TabBar, node->TabBar->BarRect, node->TabBar->Flags, node);
     IM_UNUSED(ret);
@@ -17092,7 +17105,7 @@ static void ImGui::DockNodeUpdateTabBar(ImGuiDockNode* node, ImGuiWindow* host_w
 
             // Note that TabItemEx() calls TabBarCalcTabID() so our tab item ID will ignore the current ID stack (rightly so)
             bool tab_open = true;
-            TabItemEx(tab_bar, window->Name, window->HasCloseButton ? &tab_open : NULL, tab_item_flags, window);
+            TabItemEx(tab_bar, window->DisplayedName == NULL ? window->Name : window->DisplayedName, window->HasCloseButton ? &tab_open : NULL, tab_item_flags, window);
             if (!tab_open)
                 node->WantCloseTabId = window->TabId;
             if (tab_bar->VisibleTabId == window->TabId)
@@ -17549,7 +17562,7 @@ static void ImGui::DockNodePreviewDockRender(ImGuiWindow* host_window, ImGuiDock
                 if (!tab_bar_rect.Contains(tab_bb))
                     overlay_draw_lists[overlay_n]->PushClipRect(tab_bar_rect.Min, tab_bar_rect.Max);
                 TabItemBackground(overlay_draw_lists[overlay_n], tab_bb, tab_flags, overlay_col_tabs);
-                TabItemLabelAndCloseButton(overlay_draw_lists[overlay_n], tab_bb, tab_flags, g.Style.FramePadding, payload_window->Name, 0, 0, false, NULL, NULL);
+                TabItemLabelAndCloseButton(overlay_draw_lists[overlay_n], tab_bb, tab_flags, g.Style.FramePadding, payload_window->DisplayedName == NULL ? payload_window->Name : payload_window->DisplayedName, 0, 0, false, NULL, NULL);
                 if (!tab_bar_rect.Contains(tab_bb))
                     overlay_draw_lists[overlay_n]->PopClipRect();
             }

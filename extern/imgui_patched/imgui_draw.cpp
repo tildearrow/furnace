@@ -1620,6 +1620,17 @@ void ImDrawList::AddBezierQuadratic(const ImVec2& p1, const ImVec2& p2, const Im
     PathStroke(col, 0, thickness);
 }
 
+const char* FindTextEnd(const char* text, const char* text_end)
+{
+    const char* text_display_end = text;
+    if (!text_end)
+        text_end = (const char*)-1;
+
+    while (text_display_end < text_end && *text_display_end != '\0' && (text_display_end[0] != '#' || text_display_end[1] != '#'))
+        text_display_end++;
+    return text_display_end;
+}
+
 void ImDrawList::AddText(const ImFont* font, float font_size, const ImVec2& pos, ImU32 col, const char* text_begin, const char* text_end, float wrap_width, const ImVec4* cpu_fine_clip_rect)
 {
     if ((col & IM_COL32_A_MASK) == 0)
@@ -1629,6 +1640,8 @@ void ImDrawList::AddText(const ImFont* font, float font_size, const ImVec2& pos,
         text_end = text_begin + strlen(text_begin);
     if (text_begin == text_end)
         return;
+
+    text_end = FindTextEnd(text_begin, text_end); //hides everything after ##
 
     // Pull default font/size from the shared ImDrawListSharedData instance
     if (font == NULL)

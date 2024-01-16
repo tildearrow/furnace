@@ -38,7 +38,7 @@ void FurnaceGUI::drawSysManager() {
   } else {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags)) {
+  if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags,_L("Chip Manager###Chip Manager"))) {
     ImGui::Checkbox("Preserve channel order",&preserveChanPos);
     if (ImGui::BeginTable("SystemList",3)) {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
