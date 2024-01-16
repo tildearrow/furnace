@@ -19,11 +19,14 @@ class DivLocale;
 void DivLocale::addTranslationsTemplate()
 {
     // everything in a string after the ## or ### must remain as is
-    // example: Sparkles!##sgab1 means the second instance of "Sparkles!"
+    //   unless it's one of these purely-for-translation codes
+    // example: "Sparkles!##sgab1" means the second instance of "Sparkles!"
     //   in `src/gui/about.cpp`.
 
     //progress tracker
     //   code  is the hashcode prefix (derived from path)
+    // X       means not to translate
+    // @       means it needs code help
     // +       means source has _L() wrappers but needs disambiguation
     // #       means all done!
  
@@ -32,9 +35,9 @@ void DivLocale::addTranslationsTemplate()
     // # sgch  src/gui/channels.cpp
     // # sgco  src/gui/chanOsc.cpp
     // # sgcl  src/gui/clock.cpp
-    //   sgcm  src/gui/compatFlags.cpp
+    // X sgcm  src/gui/compatFlags.cpp
     // # sgdl  src/gui/dataList.cpp
-    //   sgdb  src/gui/debug.cpp
+    // X sgdb  src/gui/debug.cpp
     //   sgdw  src/gui/debugWindow.cpp
     //   sgda  src/gui/doAction.cpp
     //   sgec  src/gui/editControls.cpp
@@ -81,7 +84,7 @@ void DivLocale::addTranslationsTemplate()
     //   sgsm  src/gui/sysManager.cpp
     //   sgsa  src/gui/sysPartNumber.cpp
     //   sgsp  src/gui/sysPicker.cpp
-    //   sgut  src/gui/util.cpp
+    // @ sgut  src/gui/util.cpp
     //   sgvm  src/gui/volMeter.cpp
     //   sgwe  src/gui/waveEdit.cpp
     //   sgxy  src/gui/xyOsc.cpp
@@ -888,6 +891,7 @@ void DivLocale::addTranslationsTemplate()
     strings["KIOCSOUND on /dev/tty1##sgse"].plurals[0] = "=KIOCSOUND on /dev/tty1";
     strings["KIOCSOUND on standard output##sgse"].plurals[0] = "=KIOCSOUND on standard output";
     strings["Disabled/custom##sgse0"].plurals[0] = "=Disabled/custom";
+    strings["Two octaves (0 is C-4, F is D#5)##sgse"].plurals[0] = "=Two octaves (0 is C-4, F is D#5)";
     strings["Raw (note number is value)##sgse"].plurals[0] = "=Raw (note number is value)";
     strings["Two octaves alternate (lower keys are 0-9, upper keys are A-F)##sgse"].plurals[0] = "=Two octaves alternate (lower keys are 0-9, upper keys are A-F)";
     strings["Use dual control change (one for each nibble)##sgse0"].plurals[0] = "=Use dual control change (one for each nibble)";
@@ -1001,9 +1005,6 @@ void DivLocale::addTranslationsTemplate()
     strings["Audio##sgse"].plurals[0] = "=Audio";
     strings["Output##sgse"].plurals[0] = "=Output";
     strings["Backend##sgse"].plurals[0] = "=Backend";
-    strings["JACK##sgse"].plurals[0] = "=JACK";
-    strings["SDL##sgse"].plurals[0] = "=SDL";
-    strings["PortAudio##sgse"].plurals[0] = "=PortAudio";
     strings["Driver##sgse"].plurals[0] = "=Driver";
     strings["Automatic##sgse2"].plurals[0] = "=Automatic";
     strings["you may need to restart Furnace for this setting to take effect.##sgse2"].plurals[0] = "=you may need to restart Furnace for this setting to take effect.";
@@ -1746,4 +1747,13 @@ void DivLocale::addTranslationsTemplate()
     strings["Log level: Debug##CC_GUI_COLOR_LOGLEVEL_DEBUG"].plurals[0] = "=Log level: Debug##CC_GUI_COLOR_LOGLEVEL_DEBUG";
     strings["Log level: Trace/Verbose##CC_GUI_COLOR_LOGLEVEL_TRACE"].plurals[0] = "=Log level: Trace/Verbose##CC_GUI_COLOR_LOGLEVEL_TRACE";
 
+    strings["OK##SettingsOK"].plurals[0] = "=OK##SettingsOK";
+    strings["Cancel##SettingsCancel"].plurals[0] = "=Cancel##SettingsCancel";
+    strings["Apply##SettingsApply"].plurals[0] = "=Apply##SettingsApply";
+
+    //src/gui/util.cpp
+    strings["<nothing>##sgut"].plurals[0] = "=<nothing>";
+    strings["Unknown##sgut0"].plurals[0] = "=Unknown";
+    strings["Unknown##sgut1"].plurals[0] = "=Unknown";
 }
+

@@ -234,7 +234,7 @@ const char* messageTypes[]={
 };
 
 const char* messageChannels[]={
-  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "Any", NULL
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "=Any", NULL
 };
 
 const char* specificControls[19]={
@@ -886,17 +886,17 @@ void FurnaceGUI::drawSettings() {
           int prevAudioEngine=settings.audioEngine;
           if (ImGui::BeginCombo("##Backend",_L(audioBackends[settings.audioEngine]))) {
 #ifdef HAVE_JACK
-            if (ImGui::Selectable(_L("JACK##sgse"),settings.audioEngine==DIV_AUDIO_JACK)) {
+            if (ImGui::Selectable("JACK",settings.audioEngine==DIV_AUDIO_JACK)) {
               settings.audioEngine=DIV_AUDIO_JACK;
               settingsChanged=true;
             }
 #endif
-            if (ImGui::Selectable(_L("SDL##sgse"),settings.audioEngine==DIV_AUDIO_SDL)) {
+            if (ImGui::Selectable("SDL",settings.audioEngine==DIV_AUDIO_SDL)) {
               settings.audioEngine=DIV_AUDIO_SDL;
               settingsChanged=true;
             }
 #ifdef HAVE_PA
-            if (ImGui::Selectable(_L("PortAudio##sgse"),settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
+            if (ImGui::Selectable("PortAudio",settings.audioEngine==DIV_AUDIO_PORTAUDIO)) {
               settings.audioEngine=DIV_AUDIO_PORTAUDIO;
               settingsChanged=true;
             }
@@ -1001,7 +1001,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::AlignTextToFramePadding();
             ImGui::Text(_L("Channels##sgse"));
             ImGui::TableNextColumn();
-            String chStr=(settings.audioChans<1 || settings.audioChans>8)?_L("What?##sgse3"):nonProAudioOuts[settings.audioChans-1];
+            String chStr=(settings.audioChans<1 || settings.audioChans>8)?_L("What?##sgse3"):_L(nonProAudioOuts[settings.audioChans-1]);
             if (ImGui::BeginCombo("##AudioChans",chStr.c_str())) {
               CHANS_SELECTABLE(1);
               CHANS_SELECTABLE(2);
@@ -1100,7 +1100,23 @@ void FurnaceGUI::drawSettings() {
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_L("Quality##sgse"));
         ImGui::SameLine();
-        if (ImGui::Combo("##Quality",&settings.audioQuality,audioQualities,2)) settingsChanged=true;
+        //if (ImGui::Combo("##Quality",&settings.audioQuality,audioQualities,2)) settingsChanged=true;
+        if (ImGui::BeginCombo("##Quality",_L(audioQualities[settings.audioQuality])))
+        {
+          int i = 0;
+          while(audioQualities[i])
+          {
+            if (ImGui::Selectable(_L(audioQualities[i])))
+            {
+              settings.audioQuality = i;
+              settingsChanged=true;
+            }
+
+            i++;
+          }
+
+            ImGui::EndCombo();
+          }
         
         bool clampSamplesB=settings.clampSamples;
         if (ImGui::Checkbox(_L("Software clipping##sgse"),&clampSamplesB)) {
@@ -1423,7 +1439,7 @@ void FurnaceGUI::drawSettings() {
 
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::BeginCombo("##BAction",(bind.action==0)?"--none--":guiActions[bind.action].friendlyName)) {
+            if (ImGui::BeginCombo("##BAction",(bind.action==0)?_L("--none--##sgse"):_L(guiActions[bind.action].friendlyName))) {
               if (ImGui::Selectable(_L("--none--##sgse"),bind.action==0)) {
                 bind.action=0;
                 settingsChanged=true;
@@ -1431,9 +1447,9 @@ void FurnaceGUI::drawSettings() {
               for (int j=0; j<GUI_ACTION_MAX; j++) {
                 if (strcmp(guiActions[j].friendlyName,"")==0) continue;
                 if (strstr(guiActions[j].friendlyName,"---")==guiActions[j].friendlyName) {
-                  ImGui::TextUnformatted(guiActions[j].friendlyName);
+                  ImGui::TextUnformatted(_L(guiActions[j].friendlyName));
                 } else {
-                  snprintf(bindID,1024,"%s##BA_%d",guiActions[j].friendlyName,j);
+                  snprintf(bindID,1024,"%s##BA_%d",_L(guiActions[j].friendlyName),j);
                   if (ImGui::Selectable(bindID,bind.action==j)) {
                     bind.action=j;
                     settingsChanged=true;
@@ -3786,13 +3802,13 @@ CONFIG_SECTION(_L("Color##sgse")) {
       ImGui::EndTabBar();
     }
     ImGui::Separator();
-    if (ImGui::Button("OK##SettingsOK")) {
+    if (ImGui::Button(_L("OK##SettingsOK"))) {
       settingsOpen=false;
       willCommit=true;
       settingsChanged=false;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Cancel##SettingsCancel")) {
+    if (ImGui::Button(_L("Cancel##SettingsCancel"))) {
       settingsOpen=false;
       audioEngineChanged=false;
       syncSettings();
@@ -3800,7 +3816,7 @@ CONFIG_SECTION(_L("Color##sgse")) {
     }
     ImGui::SameLine();
     ImGui::BeginDisabled(!settingsChanged);
-    if (ImGui::Button("Apply##SettingsApply")) {
+    if (ImGui::Button(_L("Apply##SettingsApply"))) {
       settingsOpen=true;
       willCommit=true;
       settingsChanged=false;

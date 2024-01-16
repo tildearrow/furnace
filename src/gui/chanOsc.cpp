@@ -316,8 +316,38 @@ void FurnaceGUI::drawChanOsc() {
           if (ImGui::ColorEdit4(_L("Background##sgco"),(float*)&chanOscGrad.bgColor)) {
             updateChanOscGradTex=true;
           }
-          ImGui::Combo(_L("X Axis##AxisX"),&chanOscColorX,chanOscRefs,GUI_OSCREF_MAX);
-          ImGui::Combo(_L("Y Axis##AxisY"),&chanOscColorY,chanOscRefs,GUI_OSCREF_MAX);
+          //ImGui::Combo(_L("X Axis##AxisX"),&chanOscColorX,chanOscRefs,GUI_OSCREF_MAX);
+          if (ImGui::BeginCombo("X Axis##AxisX",_L(chanOscRefs[chanOscColorX])))
+          {
+            int i = 0;
+            while(chanOscRefs[i])
+            {
+              if (ImGui::Selectable(_L(chanOscRefs[i])))
+              {
+                chanOscColorX = i;
+              }
+
+              i++;
+            }
+
+            ImGui::EndCombo();
+          }
+          //ImGui::Combo(_L("Y Axis##AxisY"),&chanOscColorY,chanOscRefs,GUI_OSCREF_MAX);
+          if (ImGui::BeginCombo("Y Axis##AxisY",_L(chanOscRefs[chanOscColorY])))
+          {
+            int i = 0;
+            while(chanOscRefs[i])
+            {
+              if (ImGui::Selectable(_L(chanOscRefs[i])))
+              {
+                chanOscColorY = i;
+              }
+
+              i++;
+            }
+
+            ImGui::EndCombo();
+          }
 
           ImGui::EndTable();
         }
