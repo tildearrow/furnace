@@ -241,6 +241,7 @@ void DivLocale::addTranslationsTemplate()
             "- %v: volume (decimal)\n"
             "- %V: volume (percentage)\n"
             "- %b: volume (hex)\n"
+            "- %l: new line (line break)\n"
             "- %%: percent sign##sgco"].plurals[0] = 
 
             "=format guide:\n"
@@ -258,6 +259,7 @@ void DivLocale::addTranslationsTemplate()
             "=- %v: volume (decimal)\n"
             "=- %V: volume (percentage)\n"
             "=- %b: volume (hex)\n"
+            "=- %l: new line (line break)\n"
             "=- %%: percent sign";
 
     strings["Text color##sgco"].plurals[0] = "=Text color";
