@@ -6,7 +6,7 @@
 
 int getPluralIndexTemplate(int n)
 {
-    return 0;
+    return n > 1 ? 1 : 0;
     //here you can provide plural forms indices based on the integer.
     //you can find one-liners for common languages here:
     //https://www.gnu.org/software/gettext/manual/html_node/Plural-forms.html
@@ -867,6 +867,8 @@ void DivLocale::addTranslationsTemplate()
     strings["Force mono audio##sgse"].plurals[0] = "=Force mono audio";
     strings["Exclusive mode##sgse"].plurals[0] = "=Exclusive mode";
     strings["want: %d samples @ %.0fHz (%d %s)##sgse"].plurals[0] = "=want: %d samples @ %.0fHz (%d %s)";
+    strings["channel##sgse"].plurals[0] = "=channel";
+    strings["channel##sgse"].plurals[1] = "=channels";
     strings["got: %d samples @ %.0fHz (%d %s)##sgse"].plurals[0] = "=got: %d samples @ %.0fHz (%d %s)";
     strings["Mixing##sgse"].plurals[0] = "=Mixing";
     strings["Quality##sgse"].plurals[0] = "=Quality";
@@ -1081,9 +1083,46 @@ void DivLocale::addTranslationsTemplate()
     strings["Enable##fah1"].plurals[0] = "=Enable##fah1";
     strings["Force##fah2"].plurals[0] = "=Force##fah2";
     strings["Display Japanese characters##sgse"].plurals[0] = "=Display Japanese characters";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
+            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。##sgse"].plurals[0] = 
+            
+            "=Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
+            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。";
     strings["Display Chinese (Simplified) characters##sgse"].plurals[0] = "=Display Chinese (Simplified) characters";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "请在确保你有足够的显存后再启动此设定\n"
+            "这是一个在ImGui实现动态字体加载之前的临时解决方案##sgse"].plurals[0] = 
+            
+            "=Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "请在确保你有足够的显存后再启动此设定\n"
+            "这是一个在ImGui实现动态字体加载之前的临时解决方案";
+    
     strings["Display Chinese (Traditional) characters##sgse"].plurals[0] = "=Display Chinese (Traditional) characters";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "請在確保你有足夠的顯存后再啟動此設定\n"
+            "這是一個在ImGui實現動態字體加載之前的臨時解決方案##sgse"].plurals[0] = 
+            
+            "=Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "請在確保你有足夠的顯存后再啟動此設定\n"
+            "這是一個在ImGui實現動態字體加載之前的臨時解決方案";
     strings["Display Korean characters##sgse"].plurals[0] = "=Display Korean characters";
+    strings["Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
+            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다.##sgse"].plurals[0] = 
+            
+            "=Only toggle this option if you have enough graphics memory.\n"
+            "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+            "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
+            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다.";
     strings["Program##sgse2"].plurals[0] = "=Program";
     strings["Title bar:##sgse"].plurals[0] = "=Title bar:";
     strings["Furnace##tbar0"].plurals[0] = "=Furnace##tbar0";
@@ -1091,6 +1130,7 @@ void DivLocale::addTranslationsTemplate()
     strings["file_name.fur - Furnace##tbar2"].plurals[0] = "=file_name.fur - Furnace##tbar2";
     strings["/path/to/file.fur - Furnace##tbar3"].plurals[0] = "=/path/to/file.fur - Furnace##tbar3";
     strings["Display system name on title bar##sgse"].plurals[0] = "=Display system name on title bar";
+    strings["Display chip names instead of \"multi-system\" in title bar##sgse"].plurals[0] = "=Display chip names instead of \"multi-system\" in title bar##sgse";
     strings["Status bar:##sgse"].plurals[0] = "=Status bar:";
     strings["Cursor details##sbar0"].plurals[0] = "=Cursor details##sbar0";
     strings["File path##sbar1"].plurals[0] = "=File path##sbar1";

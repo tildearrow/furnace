@@ -1092,8 +1092,8 @@ void FurnaceGUI::drawSettings() {
         TAAudioDesc& audioWant=e->getAudioDescWant();
         TAAudioDesc& audioGot=e->getAudioDescGot();
 
-        ImGui::Text(_L("want: %d samples @ %.0fHz (%d %s)##sgse"),audioWant.bufsize,audioWant.rate,audioWant.outChans,(settings.language == (int)DIV_LANG_ENGLISH ? ((audioWant.outChans==1)?"channel":"channels") : (_LP("channel", audioWant.outChans))));
-        ImGui::Text(_L("got: %d samples @ %.0fHz (%d %s)##sgse"),audioGot.bufsize,audioGot.rate,audioWant.outChans,(settings.language == (int)DIV_LANG_ENGLISH ? ((audioWant.outChans==1)?"channel":"channels") : (_LP("channel", audioWant.outChans))));
+        ImGui::Text(_L("want: %d samples @ %.0fHz (%d %s)##sgse"),audioWant.bufsize,audioWant.rate,audioWant.outChans,(settings.language == (int)DIV_LANG_ENGLISH ? ((audioWant.outChans==1)?"channel":"channels") : (_LP("channel##sgse", audioWant.outChans))));
+        ImGui::Text(_L("got: %d samples @ %.0fHz (%d %s)##sgse"),audioGot.bufsize,audioGot.rate,audioWant.outChans,(settings.language == (int)DIV_LANG_ENGLISH ? ((audioWant.outChans==1)?"channel":"channels") : (_LP("channel##sgse", audioWant.outChans))));
 
         // SUBSECTION MIXING
         CONFIG_SUBSECTION(_L("Mixing##sgse"));
@@ -2745,7 +2745,7 @@ void FurnaceGUI::drawSettings() {
             _L("Only toggle this option if you have enough graphics memory.\n"
             "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
             "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
-            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。")
+            "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。##sgse")
           );
         }
 
@@ -2759,7 +2759,7 @@ void FurnaceGUI::drawSettings() {
             _L("Only toggle this option if you have enough graphics memory.\n"
             "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
             "请在确保你有足够的显存后再启动此设定\n"
-            "这是一个在ImGui实现动态字体加载之前的临时解决方案")
+            "这是一个在ImGui实现动态字体加载之前的临时解决方案##sgse")
           );
         }
 
@@ -2773,7 +2773,7 @@ void FurnaceGUI::drawSettings() {
             _L("Only toggle this option if you have enough graphics memory.\n"
             "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
             "請在確保你有足夠的顯存后再啟動此設定\n"
-            "這是一個在ImGui實現動態字體加載之前的臨時解決方案")
+            "這是一個在ImGui實現動態字體加載之前的臨時解決方案##sgse")
           );
         }
 
@@ -2787,7 +2787,7 @@ void FurnaceGUI::drawSettings() {
             _L("Only toggle this option if you have enough graphics memory.\n"
             "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
             "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
-            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다.")
+            "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다.##sgse")
           );
         }
 
@@ -2825,7 +2825,7 @@ void FurnaceGUI::drawSettings() {
         }
 
         bool noMultiSystemB=settings.noMultiSystem;
-        if (ImGui::Checkbox(_L("Display chip names instead of \"multi-system\" in title bar"),&noMultiSystemB)) {
+        if (ImGui::Checkbox(_L("Display chip names instead of \"multi-system\" in title bar##sgse"),&noMultiSystemB)) {
           settings.noMultiSystem=noMultiSystemB;
           updateWindowTitle();
           settingsChanged=true;
