@@ -249,7 +249,7 @@ void DivMacroInt::retrig(unsigned char id)
     if(sm->len == 0 && m->type == 0) return;
 
     m->has=m->had=m->actualHad=m->will=true;
-    m->lfoPos = 0;
+    m->lfoPos = sm->val[13];
     m->pos = 0;
     m->lastPos = 0;
     m->delay = 0;
@@ -265,7 +265,7 @@ void DivMacroInt::retrig(unsigned char id)
     if(sm->len == 0 && m->type == 0) return;
 
     m->has=m->had=m->actualHad=m->will=true;
-    m->lfoPos = 0;
+    m->lfoPos = sm->val[13];
     m->pos = 0;
     m->lastPos = 0;
     m->delay = 0;
