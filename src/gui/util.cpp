@@ -90,7 +90,7 @@ String getKeyName(int key, bool emptyNone) {
     if (emptyNone) {
       return "";
     } else {
-      return "<nothing>##test";
+      return "<nothing>";
     }
   }
   String ret;

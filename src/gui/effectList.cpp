@@ -11,7 +11,7 @@ void FurnaceGUI::drawEffectList() {
   }
   if (!effectListOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(60.0f*dpiScale,20.0f*dpiScale),ImVec2(canvasW,canvasH));
-  if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags,_L("Effect List###Effect List"))) {
+  if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags)) {
     float availB=ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing();
     if (availB>0) {
       ImGui::PushTextWrapPos(availB);
@@ -46,7 +46,7 @@ void FurnaceGUI::drawEffectList() {
 
       const char* prevName=NULL;
       for (int i=0; i<256; i++) {
-        const char* name=_L(e->getEffectDesc(i,cursor.xCoarse));
+        const char* name=e->getEffectDesc(i,cursor.xCoarse);
         bool effectShow=true;
         if (name==prevName) {
           continue;

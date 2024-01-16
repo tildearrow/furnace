@@ -32,7 +32,7 @@ void FurnaceGUI::drawGrooves() {
   }
   if (!groovesOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
-  if (ImGui::Begin("Grooves",&groovesOpen,globalWinFlags,_L("Grooves###Grooves"))) {
+  if (ImGui::Begin("Grooves",&groovesOpen,globalWinFlags)) {
     int delGroove=-1;
 
     ImGui::Text("use effect 09xx to select a groove pattern.");
