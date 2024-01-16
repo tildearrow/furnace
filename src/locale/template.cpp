@@ -406,6 +406,7 @@ void DivLocale::addTranslationsTemplate()
     strings["Preserve channel positions##sggu1"].plurals[0] = "=Preserve channel positions";
     strings["cannot remove chip! (##sggu"].plurals[0] = "=cannot remove chip! (";
     strings["restore backup##sggu"].plurals[0] = "=restore backup";
+    strings["exit##sggu"].plurals[0] = "=exit";
     strings["Unsaved changes! Save before quitting?##sggu"].plurals[0] = "=Unsaved changes! Save before quitting?";
     
     strings["undo##sggu"].plurals[0] = "=undo";
@@ -487,6 +488,43 @@ void DivLocale::addTranslationsTemplate()
     strings["Are you sure you want to reset the workspace layout?##sggu"].plurals[0] = "=Are you sure you want to reset the workspace layout?";
     strings["switch to mobile view##sggu"].plurals[0] = "=switch to mobile view";
     strings["settings...##sggu"].plurals[0] = "=settings...";
+
+    strings["song information##sggu"].plurals[0] = "=song information";
+    strings["subsongs##sggu"].plurals[0] = "=subsongs";
+    strings["speed##sggu"].plurals[0] = "=speed";
+    strings["assets##sggu"].plurals[0] = "=assets";
+    strings["instruments##sggu"].plurals[0] = "=instruments";
+    strings["wavetables##sggu"].plurals[0] = "=wavetables";
+    strings["samples##sggu"].plurals[0] = "=samples";
+    strings["orders##sggu"].plurals[0] = "=orders";
+    strings["pattern##sggu"].plurals[0] = "=pattern";
+    strings["mixer##sggu"].plurals[0] = "=mixer";
+    strings["grooves##sggu"].plurals[0] = "=grooves";
+    strings["channels##sggu"].plurals[0] = "=channels";
+    strings["pattern manager##sggu"].plurals[0] = "=pattern manager";
+    strings["chip manager##sggu"].plurals[0] = "=chip manager";
+    strings["compatibility flags##sggu"].plurals[0] = "=compatibility flags";
+    strings["song comments##sggu"].plurals[0] = "=song comments";
+    strings["instrument editor##sggu"].plurals[0] = "=instrument editor";
+    strings["wavetable editor##sggu"].plurals[0] = "=wavetable editor";
+    strings["sample editor##sggu"].plurals[0] = "=sample editor";
+    strings["play/edit controls##sggu"].plurals[0] = "=play/edit controls";
+    strings["piano/input pad##sggu"].plurals[0] = "=piano/input pad";
+    strings["oscilloscope (master)##sggu"].plurals[0] = "=oscilloscope (master)";
+    strings["oscilloscope (per-channel)##sggu"].plurals[0] = "=oscilloscope (per-channel)";
+    strings["oscilloscope (X-Y)##sggu"].plurals[0] = "=oscilloscope (X-Y)";
+    strings["volume meter##sggu"].plurals[0] = "=volume meter";
+    strings["clock##sggu"].plurals[0] = "=clock";
+    strings["register view##sggu"].plurals[0] = "=register view";
+    strings["log viewer##sggu"].plurals[0] = "=log viewer";
+    strings["statistics##sggu"].plurals[0] = "=statistics";
+    strings["spoiler##sggu"].plurals[0] = "=spoiler";
+
+    strings["effect list##sggu"].plurals[0] = "=effect list";
+    strings["debug menu##sggu"].plurals[0] = "=debug menu";
+    strings["inspector##sggu"].plurals[0] = "=inspector";
+    strings["panic##sggu"].plurals[0] = "=panic";
+    strings["about...##sggu"].plurals[0] = "=about...";
 
     //WINDOW NAMES
 
