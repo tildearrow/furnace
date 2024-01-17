@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2739,11 +2739,31 @@ void FurnaceGUI::drawSettings() {
         ImGui::Unindent();
 
         ImGui::Text("Pattern view labels:");
-        if (ImGui::InputTextWithHint("Note off (3-char)","OFF",&settings.noteOffLabel)) settingsChanged=true;
-        if (ImGui::InputTextWithHint("Note release (3-char)","===",&settings.noteRelLabel)) settingsChanged=true;
-        if (ImGui::InputTextWithHint("Macro release (3-char)","REL",&settings.macroRelLabel)) settingsChanged=true;
-        if (ImGui::InputTextWithHint("Empty field (3-char)","...",&settings.emptyLabel)) settingsChanged=true;
-        if (ImGui::InputTextWithHint("Empty field (2-char)","..",&settings.emptyLabel2)) settingsChanged=true;
+        ImGui::PushFont(patFont);
+        if (ImGui::InputTextWithHint("##PVLOff","OFF",&settings.noteOffLabel)) settingsChanged=true;
+        ImGui::PopFont();
+        ImGui::SameLine();
+        ImGui::Text("Note off (3-char)");
+        ImGui::PushFont(patFont);
+        if (ImGui::InputTextWithHint("##PVLRel","===",&settings.noteRelLabel)) settingsChanged=true;
+        ImGui::PopFont();
+        ImGui::SameLine();
+        ImGui::Text("Note release (3-char)");
+        ImGui::PushFont(patFont);
+        if (ImGui::InputTextWithHint("##PVLMacroRel","REL",&settings.macroRelLabel)) settingsChanged=true;
+        ImGui::PopFont();
+        ImGui::SameLine();
+        ImGui::Text("Macro release (3-char)");
+        ImGui::PushFont(patFont);
+        if (ImGui::InputTextWithHint("##PVLE3","...",&settings.emptyLabel)) settingsChanged=true;
+        ImGui::PopFont();
+        ImGui::SameLine();
+        ImGui::Text("Empty field (3-char)");
+        ImGui::PushFont(patFont);
+        if (ImGui::InputTextWithHint("##PVLE2","..",&settings.emptyLabel2)) settingsChanged=true;
+        ImGui::PopFont();
+        ImGui::SameLine();
+        ImGui::Text("Empty field (2-char)");
 
         ImGui::Text("Pattern view spacing after:");
 
@@ -2923,7 +2943,8 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION ASSETS
         CONFIG_SUBSECTION("Assets");
         bool unifiedDataViewB=settings.unifiedDataView;
-        if (ImGui::Checkbox("Unified instrument/wavetable/sample list",&unifiedDataViewB)) {
+        if (ImGui::Checkbox("Unified instrument/wavetable/sample list",&unifiedDataViewB)) 
+        {
           settings.unifiedDataView=unifiedDataViewB;
           settingsChanged=true;
         }
@@ -4011,6 +4032,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.wrapText,0,1);
   clampSetting(settings.roundedScrollbars,0,1);
   clampSetting(settings.roundedMenus,0,1);
+  clampSetting(settings.roundedTabs,0,1);
+  clampSetting(settings.roundedScrollbars,0,1);
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.loadChinese,0,1);
   clampSetting(settings.loadChineseTraditional,0,1);

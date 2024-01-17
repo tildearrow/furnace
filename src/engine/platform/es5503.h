@@ -123,6 +123,7 @@ class DivPlatformES5503: public DivDispatch {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     const void* getSampleMem(int index = 0);
+    bool getLegacyAlwaysSetVolume();
     size_t getSampleMemCapacity(int index = 0);
     bool isSampleLoaded(int index, int sample);
     size_t getSampleMemUsage(int index = 0);

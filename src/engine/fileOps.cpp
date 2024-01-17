@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -821,6 +821,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<188) {
       ds.ceilVolumeScaling=false;
     }
+    if (ds.version<191) {
+      ds.oldAlwaysSetVolume=true;
+    }
     ds.isDMF=false;
     
     reader.readS(); // reserved
@@ -1369,7 +1372,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<2; i++) {
+      if (ds.version>=191) {
+        ds.oldAlwaysSetVolume=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<1; i++) {
         reader.readC();
       }
     }
@@ -2524,7 +2532,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
   w->writeC(song.oldDPCM);
   w->writeC(song.resetArpPhaseOnNewNote);
   w->writeC(song.ceilVolumeScaling);
-  for (int i=0; i<2; i++) {
+  w->writeC(song.oldAlwaysSetVolume);
+  for (int i=0; i<1; i++) {
     w->writeC(0);
   }
 

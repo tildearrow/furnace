@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -261,9 +261,6 @@ int DivPlatformTIA::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_RETRIG:
       chan[c.chan].std.retrig(c.value);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
       break;
@@ -341,6 +338,10 @@ int DivPlatformTIA::getOutputCount() {
 
 bool DivPlatformTIA::keyOffAffectsArp(int ch) {
   return true;
+}
+
+bool DivPlatformTIA::getLegacyAlwaysSetVolume() {
+  return false;
 }
 
 void DivPlatformTIA::notifyInsDeletion(void* ins) {

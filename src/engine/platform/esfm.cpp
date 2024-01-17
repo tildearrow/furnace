@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ void DivPlatformESFM::tick(bool sysTick) {
           rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|0);
         } else {
           rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|((opE.outLvl&7)<<5));
-          if (KVS(i,o)) {
+          if (KVS_ES(i,o)) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -185,7 +185,7 @@ void DivPlatformESFM::tick(bool sysTick) {
           op.ksl=m.op_get_div_macro_struct(DIV_MACRO_OP_KSL)->val;
         }
 
-        if (KVS(i,o)) {
+        if (KVS_ES(i,o)) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -229,6 +229,8 @@ void DivPlatformESFM::tick(bool sysTick) {
         }
       }
 
+
+
       // detune/fixed pitch
       if (opE.fixed) {
         if (m.op_get_div_macro_struct(DIV_MACRO_OP_SSG)->had) {
@@ -251,6 +253,8 @@ void DivPlatformESFM::tick(bool sysTick) {
       }
     }
   }
+
+
 
   for (int i=0; i<ESFM_REG_POOL_SIZE; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
@@ -409,7 +413,7 @@ void DivPlatformESFM::muteChannel(int ch, bool mute) {
       rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|0);
     } else {
       rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|((opE.outLvl&7)<<5));
-      if (KVS(ch,o)) {
+      if (KVS_ES(ch,o)) {
         rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[ch].outVol&0x3f,63))|(op.ksl<<6));
       } else {
         rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -432,7 +436,7 @@ void DivPlatformESFM::commitState(int ch, DivInstrument* ins) {
         rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|0);
       } else {
         rWrite(baseAddr+ADDR_OUTLVL_NOISE_WS,(op.ws&7)|((o==3?noise:0)<<3)|((opE.outLvl&7)<<5));
-        if (KVS(ch,o)) {
+        if (KVS_ES(ch,o)) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[ch].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -493,7 +497,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       for (int o=0; o<4; o++) {
         unsigned short baseAddr=c.chan*32+o*8;
         DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
-        if (KVS(c.chan,o)) {
+        if (KVS_ES(c.chan,o)) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -582,7 +586,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       unsigned short baseAddr=c.chan*32+o*8;
       DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
       op.tl=c.value2&63;
-      if (KVS(c.chan,o)) {
+      if (KVS_ES(c.chan,o)) {
         rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
       } else {
         rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -770,7 +774,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
           unsigned short baseAddr=c.chan*32+o*8;
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
           op.ksl=c.value2&3;
-          if (KVS(c.chan,o)) {
+          if (KVS_ES(c.chan,o)) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -782,7 +786,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
         unsigned short baseAddr=c.chan*32+o*8;
         DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
         op.ksl=c.value2&3;
-        if (KVS(c.chan,o)) {
+        if (KVS_ES(c.chan,o)) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG_BROKEN(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,(op.tl&0x3f)|(op.ksl<<6));
@@ -938,9 +942,6 @@ int DivPlatformESFM::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_RETRIG:
       chan[c.chan].std.retrig(c.value);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     case DIV_CMD_GET_VOLMAX:
       return 63;
       break;
@@ -1030,6 +1031,10 @@ bool DivPlatformESFM::keyOffAffectsArp(int ch) {
 }
 
 bool DivPlatformESFM::keyOffAffectsPorta(int ch) {
+  return false;
+}
+
+bool DivPlatformESFM::getLegacyAlwaysSetVolume() {
   return false;
 }
 

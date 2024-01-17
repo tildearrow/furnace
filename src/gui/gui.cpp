@@ -2,7 +2,7 @@
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -5852,6 +5852,15 @@ bool FurnaceGUI::loop() {
         pendingRawSampleBigEndian=false;
       }
 
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Sample rate");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      if (ImGui::InputInt("##RSRate",&pendingRawSampleRate,100,1000)) {
+        if (pendingRawSampleRate<100) pendingRawSampleRate=100;
+        if (pendingRawSampleRate>384000) pendingRawSampleRate=384000;
+      }
+
       if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Channels");
@@ -5897,7 +5906,7 @@ bool FurnaceGUI::loop() {
       }
 
       if (ImGui::Button("OK")) {
-        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles);
+        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles,pendingRawSampleRate);
         if (s==NULL) {
           showError(e->getLastError());
         } else {
@@ -7075,6 +7084,7 @@ FurnaceGUI::FurnaceGUI():
   editString(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
+  pendingRawSampleRate(32000),
   pendingRawSampleUnsigned(false),
   pendingRawSampleBigEndian(false),
   pendingRawSampleSwapNibbles(false),

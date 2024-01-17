@@ -689,9 +689,6 @@ int DivPlatformES5503::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_RETRIG:
       chan[c.chan].std.retrig(c.value);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
-      break;
     default:
       break;
   }
@@ -974,6 +971,11 @@ void DivPlatformES5503::notifyWaveChange(int wave) {
     }
   }
 }
+
+bool DivPlatformES5503::getLegacyAlwaysSetVolume() {
+  return true;
+}
+
 
 void DivPlatformES5503::notifyInsChange(int ins) {
   for (int i=0; i<32; i++) {

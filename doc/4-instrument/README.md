@@ -38,7 +38,8 @@ the following instrument types are available:
 - [PET](pet.md) - for use with Commodore PET.
 - [VRC6](vrc6.md) - for use with VRC6's PSG sound source.
 - [FM (OPLL)](fm-opll.md) - for use with YM2413.
-- [FM (OPL)](fm-opll.md) - for use with YM3526 (OPL), YM3812 (OPL2) and YMF262 (OPL3).
+- [FM (OPL)](fm-opl.md) - for use with YM3526 (OPL), YM3812 (OPL2) and YMF262 (OPL3).
+- [FM (ESFM)](fm-esfm.md) - for use with ESFM.
 - [FDS](fds.md) - for use with Famicom Disk System sound source.
 - [Virtual Boy](virtual-boy.md) - for use with Virtual Boy.
 - [Namco 163](n163.md) - for use with Namco 163.
