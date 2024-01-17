@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,6 +77,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
     virtual bool keyOffAffectsArp(int ch) override;
+    virtual bool getLegacyAlwaysSetVolume() override;
     virtual float getPostAmp() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyInsDeletion(void* ins) override;

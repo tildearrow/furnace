@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -353,9 +353,6 @@ int DivPlatformLynx::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     default:
       break;
   }
@@ -436,6 +433,10 @@ bool DivPlatformLynx::keyOffAffectsArp(int ch) {
 
 bool DivPlatformLynx::keyOffAffectsPorta(int ch) {
   return true;
+}
+
+bool DivPlatformLynx::getLegacyAlwaysSetVolume() {
+  return false;
 }
 
 //int DivPlatformLynx::getPortaFloor(int ch) {

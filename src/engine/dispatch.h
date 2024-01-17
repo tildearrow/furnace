@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -617,6 +617,13 @@ class DivDispatch {
      * @return the lowest note.
      */
     virtual int getPortaFloor(int ch);
+
+    /**
+     * check whether to always set volume on volume change (even when same volume).
+     * only for compatibility purposes!
+     * @return truth.
+     */
+    virtual bool getLegacyAlwaysSetVolume();
 
     /**
      * get the required amplification level of this dispatch's output.

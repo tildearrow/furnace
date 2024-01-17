@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,6 +115,9 @@ class DivPlatformESFM: public DivDispatch {
       macroVolMul(64) {
         memset(opsState, 0, sizeof(opsState));
       }
+      macroVolMul(64) {
+        memset(opsState, 0, sizeof(opsState));
+      }
   };
   Channel chan[18];
   DivDispatchOscBuffer* oscBuf[18];
@@ -155,10 +158,6 @@ class DivPlatformESFM: public DivDispatch {
     }
   }
 
-#ifdef KVS
-#undef KVS
-#endif
-
   /**
    * ESFM doesn't have predef algorithms, so a custom KVS heuristic for auto mode is needed.
    * This is a bit too complex for a macro.
@@ -169,7 +168,7 @@ class DivPlatformESFM: public DivDispatch {
    *      or op[o].outLvl > 0 and (op[o].outLvl - op[o + 1].modIn) >= 2,
    *      or op[o].outLvl > 0 and op[o + 1].modIn == 0.
    */
-  inline bool KVS(int c, int o) {
+  inline bool KVS_ES(int c, int o) {
     if (c<0 || c>=18 || o<0 || o>=4) return false;
 
     if (chan[c].state.fm.op[o].kvs==1) return true;
@@ -206,6 +205,7 @@ class DivPlatformESFM: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    bool getLegacyAlwaysSetVolume();
     void toggleRegisterDump(bool enable);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);

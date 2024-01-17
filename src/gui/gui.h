@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1494,7 +1494,7 @@ class FurnaceGUI {
   SDL_Event userEvent;
 
   String pendingRawSample;
-  int pendingRawSampleDepth, pendingRawSampleChannels;
+  int pendingRawSampleDepth, pendingRawSampleChannels, pendingRawSampleRate;
   bool pendingRawSampleUnsigned, pendingRawSampleBigEndian, pendingRawSampleSwapNibbles, pendingRawSampleReplace;
 
   ImGuiWindowFlags globalWinFlags;
@@ -1620,6 +1620,8 @@ class FurnaceGUI {
     int wrapText;
     int roundedScrollbars;
     int roundedMenus;
+    int roundedTabs;
+    int roundedScrollbars;
     int loadJapanese;
     int loadChinese;
     int loadChineseTraditional;
@@ -1820,6 +1822,8 @@ class FurnaceGUI {
       wrapText(1),
       roundedScrollbars(1),
       roundedMenus(0),
+      roundedTabs(1),
+      roundedScrollbars(1),
       loadJapanese(0),
       loadChinese(0),
       loadChineseTraditional(0),

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3190,6 +3190,18 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool roundedTabsB=settings.roundedTabs;
+        if (ImGui::Checkbox("Rounded tabs",&roundedTabsB)) {
+          settings.roundedTabs=roundedTabsB;
+          settingsChanged=true;
+        }
+
+        bool roundedScrollbarsB=settings.roundedScrollbars;
+        if (ImGui::Checkbox("Rounded scrollbars",&roundedScrollbarsB)) {
+          settings.roundedScrollbars=roundedScrollbarsB;
+          settingsChanged=true;
+        }
+
         bool frameBordersB=settings.frameBorders;
         if (ImGui::Checkbox("Borders around widgets",&frameBordersB)) {
           settings.frameBorders=frameBordersB;
@@ -3863,6 +3875,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.wrapText=conf.getInt("wrapText",1);
     settings.roundedScrollbars=conf.getInt("roundedScrollbars",1);
     settings.roundedMenus=conf.getInt("roundedMenus",0);
+    settings.roundedTabs=conf.getInt("roundedTabs",1);
+    settings.roundedScrollbars=conf.getInt("roundedScrollbars",1);
 
     settings.separateFMColors=conf.getInt("separateFMColors",0);
     settings.insEditColorize=conf.getInt("insEditColorize",0);
@@ -4032,6 +4046,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.wrapText,0,1);
   clampSetting(settings.roundedScrollbars,0,1);
   clampSetting(settings.roundedMenus,0,1);
+  clampSetting(settings.roundedTabs,0,1);
+  clampSetting(settings.roundedScrollbars,0,1);
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.loadChinese,0,1);
   clampSetting(settings.loadChineseTraditional,0,1);
@@ -4325,6 +4341,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("wrapText",settings.wrapText);
     conf.set("roundedScrollbars",settings.roundedScrollbars);
     conf.set("roundedMenus",settings.roundedMenus);
+    conf.set("roundedTabs",settings.roundedTabs);
+    conf.set("roundedScrollbars",settings.roundedScrollbars);
 
     conf.set("separateFMColors",settings.separateFMColors);
     conf.set("insEditColorize",settings.insEditColorize);
@@ -5079,6 +5097,16 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   else sty.ScrollbarRounding = 0.0f;
 
   if (settings.roundedMenus) sty.PopupRounding=8.0f;
+  if (settings.roundedTabs) {
+    sty.TabRounding=4.0f;
+  } else {
+    sty.TabRounding=0.0f;
+  }
+  if (settings.roundedScrollbars) {
+    sty.ScrollbarRounding=9.0f;
+  } else {
+    sty.ScrollbarRounding=0.0f;
+  }
 
   if (settings.frameBorders) {
     sty.FrameBorderSize=1.0f;

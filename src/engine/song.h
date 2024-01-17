@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -384,6 +384,7 @@ struct DivSong {
   bool oldDPCM;
   bool resetArpPhaseOnNewNote;
   bool ceilVolumeScaling;
+  bool oldAlwaysSetVolume;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -506,7 +507,8 @@ struct DivSong {
     preNoteNoEffect(false),
     oldDPCM(false),
     resetArpPhaseOnNewNote(false),
-    ceilVolumeScaling(false) {
+    ceilVolumeScaling(false),
+    oldAlwaysSetVolume(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;

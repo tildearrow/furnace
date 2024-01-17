@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -394,9 +394,6 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
       break;
     case DIV_CMD_MACRO_ON:
       opChan[ch].std.mask(c.value,false);
-      break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
       break;
     case DIV_CMD_PRE_PORTA:
       break;

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -268,9 +268,6 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     case DIV_CMD_GET_VOLMAX:
       return 8;
       break;
@@ -368,6 +365,10 @@ int DivPlatformMSM6258::getOutputCount() {
 }
 
 bool DivPlatformMSM6258::keyOffAffectsArp(int ch) {
+  return false;
+}
+
+bool DivPlatformMSM6258::getLegacyAlwaysSetVolume() {
   return false;
 }
 
