@@ -214,7 +214,7 @@ enum DivDispatchCmds {
 
   DIV_CMD_MACRO_OFF, // (which)
   DIV_CMD_MACRO_ON, // (which)
-  DIV_CMD_MACRO_RETRIG, // (which)
+  DIV_CMD_MACRO_RESTART, // (which)
 
   DIV_CMD_SURROUND_PANNING, // (out, val)
 

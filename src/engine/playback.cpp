@@ -1015,8 +1015,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xf6: // enable macro
         dispatchCmd(DivCommand(DIV_CMD_MACRO_ON,i,effectVal&0xff));
         break;
-      case 0xf7: // retrigger macro
-        dispatchCmd(DivCommand(DIV_CMD_MACRO_RETRIG,i,effectVal&0xff));
+      case 0xf7: // restart macro
+        dispatchCmd(DivCommand(DIV_CMD_MACRO_RESTART,i,effectVal&0xff));
         break;
       case 0xf8: // single volume ramp up
         chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);
