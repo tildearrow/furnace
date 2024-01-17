@@ -365,6 +365,14 @@ ESFM_slot_write (esfm_slot *slot, uint8_t register_idx, uint8_t data)
 		ESFM_slot_update_keyscale(slot);
 		break;
 	case 0x05:
+		if (slot->env_delay < (data >> 5))
+		{
+			slot->in.eg_delay_transitioned_01 = 1;
+		}
+		else if (slot->env_delay > (data >> 5))
+		{
+			slot->in.eg_delay_transitioned_10 = 1;
+		}
 		slot->env_delay = data >> 5;
 		slot->emu_key_on = (data >> 5) & 0x01;
 		slot->block = (data >> 2) & 0x07;
@@ -992,4 +1000,3 @@ ESFM_init (esfm_chip *chip)
 
 	chip->lfsr = 1;
 }
-

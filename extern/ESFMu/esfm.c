@@ -374,7 +374,6 @@ ESFM_envelope_calc(esfm_slot *slot)
 	bool reset = 0;
 	bool key_on;
 	bool key_on_signal;
-	uint16 delay_counter_compare;
 
 	key_on = *slot->in.key_on;
 	if (!slot->chip->native_mode)
@@ -421,19 +420,42 @@ ESFM_envelope_calc(esfm_slot *slot)
 	{
 		slot->in.eg_delay_run = 1;
 		slot->in.eg_delay_counter = 0;
+		slot->in.eg_delay_transitioned_01 = 0;
+		slot->in.eg_delay_transitioned_01_gate = 0;
+		slot->in.eg_delay_transitioned_10 = 0;
+		slot->in.eg_delay_transitioned_10_gate = 0;
+		slot->in.eg_delay_counter_compare = 0;
+		if (slot->env_delay > 0)
+		{
+			slot->in.eg_delay_counter_compare = 256 << slot->env_delay;
+		}
 	}
 	else if (!key_on)
 	{
 		slot->in.eg_delay_run = 0;
 	}
 	
-	delay_counter_compare = 0;
-	if (slot->env_delay > 0)
+	// TODO: is this really how the chip behaves? Can it only transition the envelope delay once? Am I implementing this in a sane way? I feel like this is a roundabout hack.
+	if ((slot->in.eg_delay_transitioned_10 && !slot->in.eg_delay_transitioned_10_gate) ||
+		(slot->in.eg_delay_transitioned_01 && !slot->in.eg_delay_transitioned_01_gate)
+	)
 	{
-		delay_counter_compare = 256 << slot->env_delay;
+		slot->in.eg_delay_counter_compare = 0;
+		if (slot->env_delay > 0)
+		{
+			slot->in.eg_delay_counter_compare = 256 << slot->env_delay;
+		}
+		if (slot->in.eg_delay_transitioned_10)
+		{
+			slot->in.eg_delay_transitioned_10_gate = 1;
+		}
+		if (slot->in.eg_delay_transitioned_01)
+		{
+			slot->in.eg_delay_transitioned_01_gate = 1;
+		}
 	}
 	
-	if (key_on && ((slot->in.eg_delay_counter >= delay_counter_compare) || !slot->chip->native_mode))
+	if (key_on && ((slot->in.eg_delay_counter >= slot->in.eg_delay_counter_compare) || !slot->chip->native_mode))
 	{
 		key_on_signal = 1;
 	} else {
@@ -443,7 +465,7 @@ ESFM_envelope_calc(esfm_slot *slot)
 	if (key_on && slot->in.eg_state == EG_RELEASE)
 	{
 
-		if ((slot->in.eg_delay_counter >= delay_counter_compare) || !slot->chip->native_mode)
+		if ((slot->in.eg_delay_counter >= slot->in.eg_delay_counter_compare) || !slot->chip->native_mode)
 		{
 			reset = 1;
 			reg_rate = slot->attack_rate;

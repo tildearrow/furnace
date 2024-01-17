@@ -174,7 +174,12 @@ typedef struct _esfm_slot_internal
 
 	uint2 eg_state;
 	flag eg_delay_run;
+	flag eg_delay_transitioned_10;
+	flag eg_delay_transitioned_10_gate;
+	flag eg_delay_transitioned_01;
+	flag eg_delay_transitioned_01_gate;
 	uint16 eg_delay_counter;
+	uint16 eg_delay_counter_compare;
 
 } esfm_slot_internal;
 
