@@ -399,6 +399,9 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       opChan[ch].std.mask(c.value,false);
       break;
+    case DIV_CMD_MACRO_RETRIG:
+      chan[c.chan].std.retrig(c.value);
+      break;
     case DIV_CMD_PRE_PORTA:
       break;
     default:

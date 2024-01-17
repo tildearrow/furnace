@@ -93,7 +93,9 @@ not all chips support these effects.
   - this effect is currently incomplete.
 - `F5xx`: **Disable macro.**
 - `F6xx`: **Enable macro.**
+- `F7xx`: **Retrigger macro.**
   - see macro table at the end of this document for possible values.
+  - `F7xx` resets LFO macro phase to the phase that is set in instrument macro settings.
 
 additionally, [each chip has its own effects](../7-systems/README.md).
 
@@ -121,6 +123,18 @@ additionally, [each chip has its own effects](../7-systems/README.md).
 `11` | extra 6
 `12` | extra 7
 `13` | extra 8
+`14` | extra 9
+`15` | extra 10
+`16` | extra 11
+`17` | extra 12
+`18` | extra 13
+`19` | extra 14
+`1A` | extra 15
+`1B` | extra 16
+`1C` | extra 17
+`1D` | extra 18
+`0E` | extra 19
+`1F` | extra 20
 |    | **operator 1 macros**
 `20` | AM
 `21` | AR
@@ -142,6 +156,18 @@ additionally, [each chip has its own effects](../7-systems/README.md).
 `31` | VIB
 `32` | WS
 `33` | KSR
+`34` | extra 1
+`35` | extra 2
+`36` | extra 3
+`37` | extra 4
+`38` | extra 5
+`39` | extra 6
+`3A` | extra 7
+`3B` | extra 8
+`3C` | extra 9
+`3D` | extra 10
+`3E` | extra 11
+`3F` | extra 12
 `40` | **operator 2 macros**
 `60` | **operator 3 macros**
 `80` | **operator 4 macros**
@@ -182,19 +208,19 @@ ex | SAA1099  | X1-010     | Namco 163  | FDS       | Sound Unit | ES5506    | M
  7 |          |            |            |           |            | EnvRampK2 |          |
  8 |          |            |            |           |            | Env Mode  |          |
 
-ex | QSound       | SNES      | MSM5232   |
----|--------------|-----------|-----------|
- D | Echo Level   | NoiseFreq | GroupCtrl |
- W |              | Waveform  |           |
- 1 | EchoFeedback | Special   | GroupAtk  |
- 2 | Echo Length  | Gain      | GroupDec  |
- 3 |              |           | Noise     |
- A |              |           |           |
- B |              |           |           |
- C |              |           |           |
- D |              |           |           |
- 4 |              |           |           |
- 5 |              |           |           |
- 6 |              |           |           |
- 7 |              |           |           |
- 8 |              |           |           |
+ex | QSound       | SNES      | MSM5232   |    ESFM    |   ES5503    |
+---|--------------|-----------|-----------|------------|-------------|
+ D | Echo Level   | NoiseFreq | GroupCtrl | OP4NoiMode |  Osc. mode  |
+ W |              | Waveform  |           |  Waveform  |  Waveform   |
+ 1 | EchoFeedback | Special   | GroupAtk  |            |  Wave pos   |
+ 2 | Echo Length  | Gain      | GroupDec  |            | Osc. output |
+ 3 |              |           | Noise     |            |             |
+ A |              |           |           |            |             |
+ B |              |           |           |            |             |
+ C |              |           |           |            |             |
+ D |              |           |           |            |             |
+ 4 |              |           |           |            |             |
+ 5 |              |           |           |            |             |
+ 6 |              |           |           |            |             |
+ 7 |              |           |           |            |             |
+ 8 |              |           |           |            |             |

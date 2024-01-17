@@ -271,6 +271,9 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
+    case DIV_CMD_MACRO_RETRIG:
+      chan[c.chan].std.retrig(c.value);
+      break;
     default:
       break;
   }
