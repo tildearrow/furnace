@@ -246,6 +246,8 @@ const char* cmdName[]={
   "ESFM_OUTLVL",
   "ESFM_MODIN",
   "ESFM_ENV_DELAY",
+
+  "MACRO_RESTART",
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
@@ -1005,6 +1007,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xf6: // enable macro
         dispatchCmd(DivCommand(DIV_CMD_MACRO_ON,i,effectVal&0xff));
+        break;
+      case 0xf7: // restart macro
+        dispatchCmd(DivCommand(DIV_CMD_MACRO_RESTART,i,effectVal&0xff));
         break;
       case 0xf8: // single volume ramp up
         chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);

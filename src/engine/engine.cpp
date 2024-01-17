@@ -129,6 +129,8 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "F5xx: Disable macro (see manual)";
     case 0xf6:
       return "F6xx: Enable macro (see manual)";
+    case 0xf7:
+      return "F7xx: Restart macro (see manual)";
     case 0xf8:
       return "F8xx: Single tick volume slide up";
     case 0xf9:

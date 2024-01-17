@@ -120,6 +120,11 @@ class DivMacroInt {
     void release();
 
     /**
+     * restart macro.
+     */
+    void restart(unsigned char id);
+
+    /**
      * trigger next macro tick.
      */
     void next();

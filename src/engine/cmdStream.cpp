@@ -233,6 +233,7 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_AMIGA_PM:
           case DIV_CMD_MACRO_OFF:
           case DIV_CMD_MACRO_ON:
+          case DIV_CMD_MACRO_RESTART:
             arg0=(unsigned char)stream.readC();
             break;
           case DIV_CMD_FM_TL:

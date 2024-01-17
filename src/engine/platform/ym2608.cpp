@@ -1352,6 +1352,9 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
+      break;
     case DIV_CMD_GET_VOLMAX:
       if (c.chan>14) return 255;
       if (c.chan>8) return 31;
