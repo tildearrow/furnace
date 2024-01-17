@@ -194,6 +194,7 @@ const char* aboutLine[]={
   "adpcm by superctr",
   "Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt",
   "YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt",
+  "ESFMu by Kagamiin~",
   "ymfm by Aaron Giles",
   "MAME SN76496 by Nicola Salmoria",
   "MAME AY-3-8910 by Couriersud",
