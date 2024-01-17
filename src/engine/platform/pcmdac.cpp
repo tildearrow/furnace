@@ -453,7 +453,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_CMD_MACRO_RESTART:
-      chan[c.chan].std.retrig(c.value);
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;

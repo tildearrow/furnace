@@ -419,7 +419,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       opChan[ch].std.mask(c.value,false);
       break;
     case DIV_CMD_MACRO_RESTART:
-      chan[c.chan].std.retrig(c.value);
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_PRE_PORTA:
       break;
