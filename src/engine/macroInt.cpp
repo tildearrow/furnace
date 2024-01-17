@@ -245,6 +245,77 @@ void DivMacroInt::mask(unsigned char id, bool enabled) {
 #undef CONSIDER_OP
 #undef CONSIDER
 
+void DivMacroInt::retrig(unsigned char id)
+{
+  if(id < 0x20)
+  {
+    DivMacroStruct* m = NULL;
+    DivInstrumentMacro* sm = NULL;
+
+    for(int i = 0; i < macroListLen; i++)
+    {
+      if(macroList[i]->macroType == id)
+      {
+        m = macroList[i];
+        sm = macroSource[i];
+        break;
+      }
+    }
+
+    if(sm == NULL || m == NULL) return;
+    if(sm->len == 0 && m->type == 0) return;
+
+    m->has=m->had=m->actualHad=m->will=true;
+    m->lfoPos = sm->val[13];
+    m->pos = 0;
+    m->lastPos = 0;
+    m->delay = 0;
+  }
+
+  else //here we can't run the search since macros share ID
+  {
+    DivMacroStruct* m = NULL;
+    DivInstrumentMacro* sm = NULL;
+
+    int oper = (id >> 5) - 1;
+    int type = (id & 0x1f) + 0x20;
+
+    switch(type)
+    {
+      case DIV_MACRO_OP_AM: m = &op[oper].am; sm = &ins->std.opMacros[oper].amMacro; break;
+      case DIV_MACRO_OP_AR: m = &op[oper].ar; sm = &ins->std.opMacros[oper].arMacro; break;
+      case DIV_MACRO_OP_DR: m = &op[oper].dr; sm = &ins->std.opMacros[oper].drMacro; break;
+      case DIV_MACRO_OP_MULT: m = &op[oper].mult; sm = &ins->std.opMacros[oper].multMacro; break;
+      case DIV_MACRO_OP_RR: m = &op[oper].rr; sm = &ins->std.opMacros[oper].rrMacro; break;
+      case DIV_MACRO_OP_SL: m = &op[oper].sl; sm = &ins->std.opMacros[oper].slMacro; break;
+      case DIV_MACRO_OP_TL: m = &op[oper].tl; sm = &ins->std.opMacros[oper].tlMacro; break;
+      case DIV_MACRO_OP_DT2: m = &op[oper].dt2; sm = &ins->std.opMacros[oper].dt2Macro; break;
+      case DIV_MACRO_OP_RS: m = &op[oper].rs; sm = &ins->std.opMacros[oper].rsMacro; break;
+      case DIV_MACRO_OP_DT: m = &op[oper].dt; sm = &ins->std.opMacros[oper].dtMacro; break;
+      case DIV_MACRO_OP_D2R: m = &op[oper].d2r; sm = &ins->std.opMacros[oper].d2rMacro; break;
+      case DIV_MACRO_OP_SSG: m = &op[oper].ssg; sm = &ins->std.opMacros[oper].ssgMacro; break;
+      case DIV_MACRO_OP_DAM: m = &op[oper].dam; sm = &ins->std.opMacros[oper].damMacro; break;
+      case DIV_MACRO_OP_DVB: m = &op[oper].dvb; sm = &ins->std.opMacros[oper].dvbMacro; break;
+      case DIV_MACRO_OP_EGT: m = &op[oper].egt; sm = &ins->std.opMacros[oper].egtMacro; break;
+      case DIV_MACRO_OP_KSL: m = &op[oper].ksl; sm = &ins->std.opMacros[oper].kslMacro; break;
+      case DIV_MACRO_OP_SUS: m = &op[oper].sus; sm = &ins->std.opMacros[oper].susMacro; break;
+      case DIV_MACRO_OP_VIB: m = &op[oper].vib; sm = &ins->std.opMacros[oper].vibMacro; break;
+      case DIV_MACRO_OP_WS: m = &op[oper].ws; sm = &ins->std.opMacros[oper].wsMacro; break;
+      case DIV_MACRO_OP_KSR: m = &op[oper].ksr; sm = &ins->std.opMacros[oper].ksrMacro; break;
+      default: return; break;
+    }
+
+    if(sm == NULL || m == NULL) return;
+    if(sm->len == 0 && m->type == 0) return;
+
+    m->has=m->had=m->actualHad=m->will=true;
+    m->lfoPos = sm->val[13];
+    m->pos = 0;
+    m->lastPos = 0;
+    m->delay = 0;
+  }
+}
+
 void DivMacroInt::release() {
   released=true;
 }
