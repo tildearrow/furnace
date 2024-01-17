@@ -123,6 +123,18 @@ additionally, [each chip has its own effects](../7-systems/README.md).
 `11` | extra 6
 `12` | extra 7
 `13` | extra 8
+`14` | extra 9
+`15` | extra 10
+`16` | extra 11
+`17` | extra 12
+`18` | extra 13
+`19` | extra 14
+`1A` | extra 15
+`1B` | extra 16
+`1C` | extra 17
+`1D` | extra 18
+`0E` | extra 19
+`1F` | extra 20
 |    | **operator 1 macros**
 `20` | AM
 `21` | AR
@@ -144,6 +156,18 @@ additionally, [each chip has its own effects](../7-systems/README.md).
 `31` | VIB
 `32` | WS
 `33` | KSR
+`34` | extra 1
+`35` | extra 2
+`36` | extra 3
+`37` | extra 4
+`38` | extra 5
+`39` | extra 6
+`3A` | extra 7
+`3B` | extra 8
+`3C` | extra 9
+`3D` | extra 10
+`3E` | extra 11
+`3F` | extra 12
 `40` | **operator 2 macros**
 `60` | **operator 3 macros**
 `80` | **operator 4 macros**

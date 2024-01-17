@@ -142,7 +142,7 @@ class DivMacroInt {
     void mask(unsigned char id, bool enabled);
 
     /**
-     * trigger macro release.
+     * retrigger macro.
      */
     void retrig(unsigned char id);
 
