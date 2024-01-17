@@ -1,6 +1,5 @@
 # to-do
 
-- individual macro retrigger
 - finish color import improvements (settings refactor)
 - new undo stuff
 - fix some bugs
