@@ -93,9 +93,8 @@ not all chips support these effects.
   - this effect is currently incomplete.
 - `F5xx`: **Disable macro.**
 - `F6xx`: **Enable macro.**
-- `F7xx`: **Retrigger macro.**
+- `F7xx`: **Restart macro.**
   - see macro table at the end of this document for possible values.
-  - `F7xx` resets LFO macro phase to the phase that is set in instrument macro settings.
 
 additionally, [each chip has its own effects](../7-systems/README.md).
 
