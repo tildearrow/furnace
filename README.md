@@ -361,7 +361,7 @@ you should only save as .dmf if you're really sure, because the DefleMask format
 ---
 # footnotes
 
-copyright (C) 2021-2023 tildearrow and contributors.
+copyright (C) 2021-2024 tildearrow and contributors.
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 
