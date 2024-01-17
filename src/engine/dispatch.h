@@ -248,8 +248,6 @@ enum DivDispatchCmds {
   DIV_CMD_ESFM_MODIN, // (op, value)
   DIV_CMD_ESFM_ENV_DELAY, // (op, value)
 
-  DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
-
   DIV_CMD_MAX
 };
 
@@ -610,6 +608,13 @@ class DivDispatch {
      * @return the lowest note.
      */
     virtual int getPortaFloor(int ch);
+
+    /**
+     * check whether to always set volume on volume change (even when same volume).
+     * only for compatibility purposes!
+     * @return truth.
+     */
+    virtual bool getLegacyAlwaysSetVolume();
 
     /**
      * get the required amplification level of this dispatch's output.

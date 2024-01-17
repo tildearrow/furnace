@@ -180,9 +180,6 @@ int DivPlatformPong::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
-      break;
     default:
       break;
   }

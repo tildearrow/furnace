@@ -339,9 +339,6 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
@@ -370,6 +367,10 @@ void DivPlatformSegaPCM::forceIns() {
     rWrite(3+(i<<3),chan[i].chVolR);
     rWrite(7+(i<<3),chan[i].pcm.freq);
   }
+}
+
+bool DivPlatformSegaPCM::getLegacyAlwaysSetVolume() {
+  return false;
 }
 
 void DivPlatformSegaPCM::notifyInsChange(int ins) {

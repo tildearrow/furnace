@@ -111,6 +111,10 @@ int DivDispatch::getPortaFloor(int ch) {
   return 0x00;
 }
 
+bool DivDispatch::getLegacyAlwaysSetVolume() {
+  return true;
+}
+
 float DivDispatch::getPostAmp() {
   return 1.0f;
 }

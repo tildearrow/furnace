@@ -192,6 +192,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("behavior changed in 0.6.1");
         }
+        ImGui::Checkbox("Legacy technical ALWAYS_SET_VOLUME behavior",&e->song.oldAlwaysSetVolume);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6.1\nthis flag will be removed if I find out that none of the songs break after disabling it.");
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(".mod import")) {

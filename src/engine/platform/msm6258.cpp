@@ -268,9 +268,6 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     case DIV_CMD_GET_VOLMAX:
       return 8;
       break;
@@ -368,6 +365,10 @@ int DivPlatformMSM6258::getOutputCount() {
 }
 
 bool DivPlatformMSM6258::keyOffAffectsArp(int ch) {
+  return false;
+}
+
+bool DivPlatformMSM6258::getLegacyAlwaysSetVolume() {
   return false;
 }
 

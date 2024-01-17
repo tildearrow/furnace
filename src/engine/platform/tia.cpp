@@ -258,9 +258,6 @@ int DivPlatformTIA::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
       break;
@@ -338,6 +335,10 @@ int DivPlatformTIA::getOutputCount() {
 
 bool DivPlatformTIA::keyOffAffectsArp(int ch) {
   return true;
+}
+
+bool DivPlatformTIA::getLegacyAlwaysSetVolume() {
+  return false;
 }
 
 void DivPlatformTIA::notifyInsDeletion(void* ins) {

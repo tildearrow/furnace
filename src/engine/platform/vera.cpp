@@ -437,9 +437,6 @@ int DivPlatformVERA::dispatch(DivCommand c) {
     case DIV_CMD_EXTERNAL:
       rWriteZSMSync(c.value);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     default:
       break;
   }
@@ -468,6 +465,10 @@ unsigned char* DivPlatformVERA::getRegisterPool() {
 
 int DivPlatformVERA::getRegisterPoolSize() {
   return 67;
+}
+
+bool DivPlatformVERA::getLegacyAlwaysSetVolume() {
+  return false;
 }
 
 void DivPlatformVERA::muteChannel(int ch, bool mute) {

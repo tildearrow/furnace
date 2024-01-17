@@ -187,6 +187,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.oldDPCM=true;
       ds.delayBehavior=0;
       ds.jumpTreatment=2;
+      ds.oldAlwaysSetVolume=true;
 
       // 1.1 compat flags
       if (ds.version>24) {
@@ -1876,6 +1877,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<188) {
       ds.ceilVolumeScaling=false;
     }
+    if (ds.version<191) {
+      ds.oldAlwaysSetVolume=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2424,7 +2428,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<2; i++) {
+      if (ds.version>=191) {
+        ds.oldAlwaysSetVolume=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<1; i++) {
         reader.readC();
       }
     }
@@ -5522,7 +5531,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
   w->writeC(song.oldDPCM);
   w->writeC(song.resetArpPhaseOnNewNote);
   w->writeC(song.ceilVolumeScaling);
-  for (int i=0; i<2; i++) {
+  w->writeC(song.oldAlwaysSetVolume);
+  for (int i=0; i<1; i++) {
     w->writeC(0);
   }
 

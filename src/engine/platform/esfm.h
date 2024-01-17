@@ -193,6 +193,7 @@ class DivPlatformESFM: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    bool getLegacyAlwaysSetVolume();
     void toggleRegisterDump(bool enable);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);

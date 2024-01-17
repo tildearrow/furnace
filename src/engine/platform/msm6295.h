@@ -77,6 +77,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
     virtual bool keyOffAffectsArp(int ch) override;
+    virtual bool getLegacyAlwaysSetVolume() override;
     virtual float getPostAmp() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyInsDeletion(void* ins) override;

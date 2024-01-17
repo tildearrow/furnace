@@ -653,9 +653,6 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     case DIV_CMD_GET_VOLMAX:
       return 31;
       break;
@@ -776,6 +773,10 @@ int DivPlatformAY8930::getOutputCount() {
 
 bool DivPlatformAY8930::keyOffAffectsArp(int ch) {
   return true;
+}
+
+bool DivPlatformAY8930::getLegacyAlwaysSetVolume() {
+  return false;
 }
 
 void DivPlatformAY8930::notifyInsDeletion(void* ins) {

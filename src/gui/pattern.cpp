@@ -1463,7 +1463,6 @@ void FurnaceGUI::drawPattern() {
         if (i.cmd==DIV_CMD_PRE_NOTE) continue;
         if (i.cmd==DIV_CMD_SAMPLE_BANK) continue;
         if (i.cmd==DIV_CMD_GET_VOLUME) continue;
-        if (i.cmd==DIV_ALWAYS_SET_VOLUME) continue;
         if (i.cmd==DIV_CMD_HINT_VOLUME ||
             i.cmd==DIV_CMD_HINT_PORTA ||
             i.cmd==DIV_CMD_HINT_LEGATO ||

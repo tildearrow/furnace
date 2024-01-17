@@ -89,6 +89,7 @@ class DivPlatformSMS: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    bool getLegacyAlwaysSetVolume();
     float getPostAmp();
     int getPortaFloor(int ch);
     void setFlags(const DivConfig& flags);

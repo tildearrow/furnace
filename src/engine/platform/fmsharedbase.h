@@ -136,6 +136,10 @@ class DivPlatformFMBase: public DivDispatch {
       return CLAMP(round(128.0-(56.0-log2(vel*127.0)*8.0)),0,127);
     }
 
+    bool getLegacyAlwaysSetVolume() {
+      return true;
+    }
+
     friend void putDispatchChan(void*,int,int);
   
     DivPlatformFMBase():

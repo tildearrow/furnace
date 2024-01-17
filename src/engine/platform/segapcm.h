@@ -103,6 +103,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
+    bool getLegacyAlwaysSetVolume();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const void* getSampleMem(int index=0);

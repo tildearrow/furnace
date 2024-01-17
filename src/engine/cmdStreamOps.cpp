@@ -312,8 +312,6 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
     for (DivCommand& i: cmdStream) {
       switch (i.cmd) {
         // strip away hinted/useless commands
-        case DIV_ALWAYS_SET_VOLUME:
-          break;
         case DIV_CMD_GET_VOLUME:
           break;
         case DIV_CMD_VOLUME:

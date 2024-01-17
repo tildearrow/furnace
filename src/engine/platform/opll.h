@@ -105,6 +105,7 @@ class DivPlatformOPLL: public DivDispatch {
     void setYMFM(bool use);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    bool getLegacyAlwaysSetVolume();
     float getPostAmp();
     void toggleRegisterDump(bool enable);
     void setVRC7(bool vrc);

@@ -144,6 +144,7 @@ class DivPlatformAY8930: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     DivMacroInt* getChanMacroInt(int ch);
     DivSamplePos getSamplePos(int ch);
+    bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

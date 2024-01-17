@@ -1343,7 +1343,7 @@ void DivPlatformOPL::commitState(int ch, DivInstrument* ins) {
 int DivPlatformOPL::dispatch(DivCommand c) {
   if (c.chan>=totalChans && c.chan!=adpcmChan) return 0;
   // ineffective in 4-op mode
-  if (oplType==3 && c.chan!=adpcmChan && c.chan<14 && (c.chan&1) && c.cmd!=DIV_CMD_GET_VOLMAX && c.cmd!=DIV_ALWAYS_SET_VOLUME) {
+  if (oplType==3 && c.chan!=adpcmChan && c.chan<14 && (c.chan&1) && c.cmd!=DIV_CMD_GET_VOLMAX) {
     if (chan[c.chan-1].fourOp) return 0;
   }
   switch (c.cmd) {
@@ -1970,9 +1970,6 @@ int DivPlatformOPL::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     case DIV_CMD_GET_VOLMAX:
       if (c.chan==adpcmChan) return 255;
       if (pretendYMU) return 127;
@@ -2276,6 +2273,10 @@ bool DivPlatformOPL::keyOffAffectsArp(int ch) {
 }
 
 bool DivPlatformOPL::keyOffAffectsPorta(int ch) {
+  return false;
+}
+
+bool DivPlatformOPL::getLegacyAlwaysSetVolume() {
   return false;
 }
 
