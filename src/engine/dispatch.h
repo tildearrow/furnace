@@ -213,7 +213,6 @@ enum DivDispatchCmds {
 
   DIV_CMD_MACRO_OFF, // (which)
   DIV_CMD_MACRO_ON, // (which)
-  DIV_CMD_MACRO_RETRIG, // (which)
 
   DIV_CMD_SURROUND_PANNING, // (out, val)
 
@@ -248,6 +247,8 @@ enum DivDispatchCmds {
   DIV_CMD_ESFM_OUTLVL, // (op, value)
   DIV_CMD_ESFM_MODIN, // (op, value)
   DIV_CMD_ESFM_ENV_DELAY, // (op, value)
+
+  DIV_CMD_MACRO_RETRIG, // (which)
 
   DIV_CMD_MAX
 };
