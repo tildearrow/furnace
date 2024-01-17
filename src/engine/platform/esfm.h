@@ -115,9 +115,6 @@ class DivPlatformESFM: public DivDispatch {
       macroVolMul(64) {
         memset(opsState, 0, sizeof(opsState));
       }
-      macroVolMul(64) {
-        memset(opsState, 0, sizeof(opsState));
-      }
   };
   Channel chan[18];
   DivDispatchOscBuffer* oscBuf[18];
