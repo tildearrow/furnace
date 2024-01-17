@@ -252,7 +252,7 @@ void DivMacroInt::retrig(unsigned char id)
     DivMacroStruct* m = NULL;
     DivInstrumentMacro* sm = NULL;
 
-    for(int i = 0; i < macroListLen; i++)
+    for(int i = 0; i < (int)macroListLen; i++)
     {
       if(macroList[i]->macroType == id)
       {
