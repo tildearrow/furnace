@@ -753,7 +753,7 @@ void FurnaceGUI::drawChanOsc() {
                         break;
                       }
                       case 'l': {
-                        text+="\n";
+                        text+='\n';
                         break;
                       }
                       case '%':
