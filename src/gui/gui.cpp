@@ -5988,6 +5988,15 @@ bool FurnaceGUI::loop() {
         pendingRawSampleBigEndian=false;
       }
 
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Sample rate");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      if (ImGui::InputInt("##RSRate",&pendingRawSampleRate,100,1000)) {
+        if (pendingRawSampleRate<100) pendingRawSampleRate=100;
+        if (pendingRawSampleRate>384000) pendingRawSampleRate=384000;
+      }
+
       if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Channels");
@@ -6033,7 +6042,7 @@ bool FurnaceGUI::loop() {
       }
 
       if (ImGui::Button("OK")) {
-        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles);
+        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles,pendingRawSampleRate);
         if (s==NULL) {
           showError(e->getLastError());
         } else {
@@ -7225,6 +7234,7 @@ FurnaceGUI::FurnaceGUI():
   editString(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
+  pendingRawSampleRate(32000),
   pendingRawSampleUnsigned(false),
   pendingRawSampleBigEndian(false),
   pendingRawSampleSwapNibbles(false),

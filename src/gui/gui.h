@@ -1497,7 +1497,7 @@ class FurnaceGUI {
   SDL_Event userEvent;
 
   String pendingRawSample;
-  int pendingRawSampleDepth, pendingRawSampleChannels;
+  int pendingRawSampleDepth, pendingRawSampleChannels, pendingRawSampleRate;
   bool pendingRawSampleUnsigned, pendingRawSampleBigEndian, pendingRawSampleSwapNibbles, pendingRawSampleReplace;
 
   ImGuiWindowFlags globalWinFlags;
