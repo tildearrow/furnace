@@ -325,6 +325,10 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
         introPos=12.0;
         tutorial.introPlayed=true;
         commitTutorial();
+        if (!heWarn) {
+          showWarning("welcome to Furnace Hyper ESFMing!\n\nthis version of Furnace is designed for the ESFM Demo Song Contest of January 2024.\n\ngo to the Contest menu for more information.",GUI_WARN_GENERIC);
+          heWarn=true;
+        }
       }
     }
   } else if (!shortIntro) {

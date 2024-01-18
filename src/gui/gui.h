@@ -548,6 +548,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_SYSTEM_DEL,
   GUI_WARN_CLEAR_HISTORY,
   GUI_WARN_BASIC_MODE,
+  GUI_WARN_ESFM,
   GUI_WARN_GENERIC
 };
 
@@ -2358,7 +2359,7 @@ class FurnaceGUI {
   double monitorPos;
   int mustClear;
   float initialScreenWipe;
-  bool introSkipDo, introStopped;
+  bool introSkipDo, introStopped, heWarn;
   ImVec2 introMin, introMax;
 
   // tutorial
@@ -2452,6 +2453,8 @@ class FurnaceGUI {
   void popToggleColors();
 
   void highlightWindow(const char* winName);
+
+  void startESFMContest();
 
   FurnaceGUIImage* getImage(FurnaceGUIImages image);
   FurnaceGUITexture* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode=GUI_BLEND_MODE_BLEND);

@@ -42,6 +42,14 @@ void FurnaceGUI::initSystemPresets() {
 
   FurnaceGUISysCategory cat;
 
+  CATEGORY_BEGIN("ESFM demo song contest","join the contest and contribute to Furnace!");
+  ENTRY(
+    "ESS ES1xxx series (ESFM)", {
+      CH(DIV_SYSTEM_ESFM, 1.0f, 0, "")
+    }
+  );
+  CATEGORY_END;
+
   CATEGORY_BEGIN("Game consoles","let's play some chiptune making games!");
   ENTRY(
     "Sega Genesis", {

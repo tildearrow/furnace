@@ -3010,6 +3010,23 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
 }
 
+void FurnaceGUI::startESFMContest() {
+  e->createNew("id0=209","ESS ES1xxx series (ESFM)",false);
+  undoHist.clear();
+  redoHist.clear();
+  curFileName="";
+  modified=false;
+  curNibble=false;
+  orderNibble=false;
+  orderCursor=-1;
+  samplePos=0;
+  updateSampleTex=true;
+  selStart=SelectionPoint();
+  selEnd=SelectionPoint();
+  cursor=SelectionPoint();
+  updateWindowTitle();
+}
+
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   if (mobileUI!=enable || force) {
     if (!mobileUI && enable) {
@@ -4377,6 +4394,63 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
+
+      time_t curTime=time(NULL);
+      ssize_t remain=1706504400-curTime;
+      bool contestWarn=(remain>0 && remain<86400 && (remain&1));
+      bool contestErr=(remain>0 && remain<3600 && (remain&1));
+      pushWarningColor(contestWarn,contestErr);
+      if (contestErr) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ERROR]);
+      } else if (contestWarn) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_WARNING]);
+      } else {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      }
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Contest":"contest")) {
+        if (remain<0) {
+          ImGui::Text("it's over! thank you for participating!");
+        } else {
+          int remainDays=remain/86400;
+          int remainHours=(remain/3600)%24;
+          int remainMins=(remain/60)%60;
+          int remainSecs=remain%60;
+
+          ImGui::Text("welcome to the ESFM demo song contest!\njoin the official Discord for more information:");
+
+          if (ImGui::Button("https://discord.gg/EfrwT2wq7z")) {
+            if (SDL_OpenURL("https://discord.gg/EfrwT2wq7z")!=0) {
+              showError("couldn't open link! you'll have to do it manually...");
+            }
+            ImGui::CloseCurrentPopup();
+          }
+
+          if (e->song.systemLen==1 && e->song.system[0]==DIV_SYSTEM_ESFM) {
+            ImGui::Text("your song qualifies for the contest. keep going!");
+          } else {
+            ImGui::Text("your song must be on the ESFM system. single-chip!");
+          }
+
+          ImGui::Text("remaining time:");
+          ImGui::PushFont(bigFont);
+          ImGui::Text("%d %s, %02d:%02d:%02d",remainDays,(remainDays==1?"day":"days"),remainHours,remainMins,remainSecs);
+          ImGui::PopFont();
+
+          ImGui::Separator();
+
+          if (ImGui::Button("click to start fresh!")) {
+            if (modified) {
+              showWarning("Unsaved changes! Save changes before getting into the contest?",GUI_WARN_ESFM);
+            } else {
+              startESFMContest();
+            }
+            ImGui::CloseCurrentPopup();
+          }
+        }
+        ImGui::EndMenu();
+      }
+      ImGui::PopStyleColor();
+      popWarningColor();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
       if (e->isPlaying()) {
         int totalTicks=e->getTotalTicks();
@@ -4868,6 +4942,9 @@ bool FurnaceGUI::loop() {
                     break;
                   case GUI_WARN_NEW:
                     displayNew=true;
+                    break;
+                  case GUI_WARN_ESFM:
+                    startESFMContest();
                     break;
                   case GUI_WARN_OPEN:
                     openOpen=true;
@@ -5486,6 +5563,30 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button("No")) {
             ImGui::CloseCurrentPopup();
             displayNew=true;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_ESFM:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
+              openFileDialog(GUI_FILE_SAVE);
+              postWarnAction=GUI_WARN_ESFM;
+            } else {
+              if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
+                showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+              } else {
+                startESFMContest();
+              }
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+            startESFMContest();
           }
           ImGui::SameLine();
           if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
@@ -6284,6 +6385,10 @@ bool FurnaceGUI::loop() {
       rend->clear(ImVec4(0,0,0,0));
       mustClear--;
       if (mustClear==0) e->everythingOK();
+      if (mustClear==0 && !heWarn) {
+        showWarning("welcome to Furnace Hyper ESFMing!\n\nthis version of Furnace is designed for the ESFM Demo Song Contest of January 2024.\n\ngo to the Contest menu for more information.",GUI_WARN_GENERIC);
+        heWarn=true;
+      }
     } else {
       if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;
@@ -7641,6 +7746,7 @@ FurnaceGUI::FurnaceGUI():
   initialScreenWipe(1.0f),
   introSkipDo(false),
   introStopped(false),
+  heWarn(false),
   curTutorial(-1),
   curTutorialStep(0),
   audioExportType(0),

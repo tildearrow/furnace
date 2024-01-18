@@ -54,7 +54,7 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev191"
+#define DIV_VERSION "Hyper ESFMing"
 #define DIV_ENGINE_VERSION 191
 // for imports
 #define DIV_VERSION_MOD 0xff01
