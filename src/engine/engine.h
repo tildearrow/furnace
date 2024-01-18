@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev190"
-#define DIV_ENGINE_VERSION 190
+#define DIV_VERSION "dev191"
+#define DIV_ENGINE_VERSION 191
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -954,7 +954,7 @@ class DivEngine {
     DivSample* sampleFromFile(const char* path);
 
     // get raw sample
-    DivSample* sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles);
+    DivSample* sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles, int rate);
 
     // delete sample
     void delSample(int index);
@@ -1076,6 +1076,9 @@ class DivEngine {
 
     // rescan audio devices
     void rescanAudioDevices();
+
+    /** rescan midi devices */
+    void rescanMidiDevices();
 
     // set the console mode.
     void setConsoleMode(bool enable);

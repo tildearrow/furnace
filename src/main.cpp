@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -188,7 +188,7 @@ TAParamResult pLogLevel(String val) {
 
 TAParamResult pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
-  printf("copyright (C) 2021-2023 tildearrow and contributors.\n");
+  printf("copyright (C) 2021-2024 tildearrow and contributors.\n");
   printf("licensed under the GNU General Public License version 2 or later\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");
@@ -218,6 +218,7 @@ TAParamResult pVersion(String) {
   printf("- YM3812-LLE by nukeykt (GPLv2)\n");
   printf("- YMF262-LLE by nukeykt (GPLv2)\n");
   printf("- YMF276-LLE by nukeykt (GPLv2)\n");
+  printf("- ESFMu by Kagamiin~ (LGPLv2.1)\n");
   printf("- ymfm by Aaron Giles (BSD 3-clause)\n");
   printf("- adpcm by superctr (public domain)\n");
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");

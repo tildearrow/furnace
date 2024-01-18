@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -434,11 +434,11 @@ int DivPlatformVERA::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
+      break;
     case DIV_CMD_EXTERNAL:
       rWriteZSMSync(c.value);
-      break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
       break;
     default:
       break;
@@ -468,6 +468,10 @@ unsigned char* DivPlatformVERA::getRegisterPool() {
 
 int DivPlatformVERA::getRegisterPoolSize() {
   return 67;
+}
+
+bool DivPlatformVERA::getLegacyAlwaysSetVolume() {
+  return false;
 }
 
 void DivPlatformVERA::muteChannel(int ch, bool mute) {

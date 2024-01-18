@@ -2,7 +2,7 @@
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1319,6 +1319,32 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   }
 }
 
+void FurnaceGUI::orderInput(int num) {
+  if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
+    prepareUndo(GUI_UNDO_CHANGE_ORDER);
+    e->lockSave([this,num]() {
+      if (!curNibble && !settings.pushNibble) e->curOrders->ord[orderCursor][curOrder]=0;
+      e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
+    });
+    MARK_MODIFIED;
+    curNibble=!curNibble;
+    if (orderEditMode==2 || orderEditMode==3) {
+      if (!curNibble) {
+        if (orderEditMode==2) {
+          orderCursor++;
+          if (orderCursor>=e->getTotalChannelCount()) orderCursor=0;
+        } else if (orderEditMode==3) {
+          if (curOrder<e->curSubSong->ordersLen-1) {
+            setOrder(curOrder+1);
+          }
+        }
+      }
+    }
+    e->walkSong(loopOrder,loopRow,loopEnd);
+    makeUndo(GUI_UNDO_CHANGE_ORDER);
+  }
+}
+
 #define changeLatch(x) \
   if (x<0) x=0; \
   if (!latchNibble && !settings.pushNibble) x=0; \
@@ -1529,29 +1555,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         auto it=valueKeys.find(ev.key.keysym.sym);
         if (it!=valueKeys.cend()) {
           int num=it->second;
-          if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
-            prepareUndo(GUI_UNDO_CHANGE_ORDER);
-            e->lockSave([this,num]() {
-              if (!curNibble && !settings.pushNibble) e->curOrders->ord[orderCursor][curOrder]=0;
-              e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
-            });
-            MARK_MODIFIED;
-            curNibble=!curNibble;
-            if (orderEditMode==2 || orderEditMode==3) {
-              if (!curNibble) {
-                if (orderEditMode==2) {
-                  orderCursor++;
-                  if (orderCursor>=e->getTotalChannelCount()) orderCursor=0;
-                } else if (orderEditMode==3) {
-                  if (curOrder<e->curSubSong->ordersLen-1) {
-                    setOrder(curOrder+1);
-                  }
-                }
-              }
-            }
-            e->walkSong(loopOrder,loopRow,loopEnd);
-            makeUndo(GUI_UNDO_CHANGE_ORDER);
-          }
+          orderInput(num);
         }
       }
       break;
@@ -4529,6 +4533,7 @@ bool FurnaceGUI::loop() {
           ordersOpen=true;
           curWindow=GUI_WINDOW_ORDERS;
           MEASURE(orders,drawOrders());
+          MEASURE(piano,drawPiano());
           break;
         case GUI_SCENE_INSTRUMENT:
           insEditOpen=true;
@@ -6011,6 +6016,15 @@ bool FurnaceGUI::loop() {
         pendingRawSampleBigEndian=false;
       }
 
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Sample rate");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      if (ImGui::InputInt("##RSRate",&pendingRawSampleRate,100,1000)) {
+        if (pendingRawSampleRate<100) pendingRawSampleRate=100;
+        if (pendingRawSampleRate>384000) pendingRawSampleRate=384000;
+      }
+
       if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Channels");
@@ -6056,7 +6070,7 @@ bool FurnaceGUI::loop() {
       }
 
       if (ImGui::Button("OK")) {
-        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles);
+        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles,pendingRawSampleRate);
         if (s==NULL) {
           showError(e->getLastError());
         } else {
@@ -7249,6 +7263,7 @@ FurnaceGUI::FurnaceGUI():
   editString(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
+  pendingRawSampleRate(32000),
   pendingRawSampleUnsigned(false),
   pendingRawSampleBigEndian(false),
   pendingRawSampleSwapNibbles(false),

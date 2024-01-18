@@ -492,6 +492,8 @@ extern/opl/opl3.c
 extern/YM3812-LLE/fmopl2.c
 extern/YMF262-LLE/fmopl3.c
 extern/YMF276-LLE/fmopn2.c
+extern/ESFMu/esfm.c
+extern/ESFMu/esfm_registers.c
 
 src/pch.cpp
 
@@ -700,6 +702,7 @@ src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
 src/engine/platform/c140.cpp
+src/engine/platform/esfm.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0x82:
       return "82xx: Set panning (right channel)";
     case 0x88:
-      return "88xx: Set panning (rear channels; x: left; y: right)";
+      return "88xy: Set panning (rear channels; x: left; y: right)";
       break;
     case 0x89:
       return "89xx: Set panning (rear left channel)";
@@ -129,6 +129,8 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "F5xx: Disable macro (see manual)";
     case 0xf6:
       return "F6xx: Enable macro (see manual)";
+    case 0xf7:
+      return "F7xx: Restart macro (see manual)";
     case 0xf8:
       return "F8xx: Single tick volume slide up";
     case 0xf9:
@@ -1371,6 +1373,9 @@ DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
       case DIV_INS_OPL_DRUMS:
         return &song.nullInsOPLDrums;
         break;
+      case DIV_INS_ESFM:
+        return &song.nullInsESFM;
+        break;
       default:
         break;
     }
@@ -2408,6 +2413,9 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
       break;
     case DIV_INS_OPL_DRUMS:
       *ins=song.nullInsOPLDrums;
+      break;
+    case DIV_INS_ESFM:
+      *ins=song.nullInsESFM;
       break;
     default:
       break;
@@ -3464,6 +3472,12 @@ void DivEngine::rescanAudioDevices() {
   audioDevs.clear();
   if (output!=NULL) {
     audioDevs=output->listAudioDevices();
+  }
+}
+
+void DivEngine::rescanMidiDevices() {
+  if (output!=NULL) {
+    logV("re-scanning midi...");
     if (output->midiIn!=NULL) {
       midiIns=output->midiIn->listDevices();
     }

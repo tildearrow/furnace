@@ -364,7 +364,8 @@ size | description
   1  | disable new NES DPCM features (>=183)
   1  | reset arp effect phase on new note (>=184)
   1  | linear volume scaling rounds up (>=188)
-  2  | reserved
+  1  | legacy "always set volume" behavior (>=191)
+  1  | reserved
  --- | **speed pattern of first song** (>=139)
   1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)

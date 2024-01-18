@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,18 @@ const char* fmParamNames[3][32]={
   {"Algorithm", "Feedback", "LFO > Freq", "LFO > Amp", "Attack", "Decay", "Decay 2", "Release", "Sustain", "Level", "EnvScale", "Multiplier", "Detune", "Detune 2", "SSG-EG", "AM", "AM Depth", "Vibrato Depth", "Sustained", "Sustained", "Level Scaling", "Sustain", "Vibrato", "Waveform", "Scale Rate", "OP2 Half Sine", "OP1 Half Sine", "EnvShift", "Reverb", "Fine", "LFO2 > Freq", "LFO2 > Amp"},
   {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "SR", "RR", "SL", "TL", "KS", "MULT", "DT", "DT2", "SSG-EG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2"},
   {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2"}
+};
+
+const char* esfmParamLongNames[9]={
+  "OP4 Noise Mode", "Envelope Delay", "Output Level", "Modulation Input Level", "Left Output", "Right Output", "Coarse Tune (semitones)", "Detune", "Fixed Frequency Mode"
+};
+
+const char* esfmParamNames[9]={
+  "OP4 Noise Mode", "Env. Delay", "Output Level", "ModInput", "Left", "Right", "Tune", "Detune", "Fixed"
+};
+
+const char* esfmParamShortNames[9]={
+  "NOI", "DL", "OL", "MI", "L", "R", "CT", "DT", "FIX"
 };
 
 const char* fmParamShortNames[3][32]={
@@ -154,6 +166,14 @@ const char* oplDrumNames[4]={
   "Snare", "Tom", "Top", "HiHat"
 };
 
+const char* esfmNoiseModeNames[4]={
+  "Normal", "Snare", "HiHat", "Top"
+};
+
+const char* esfmNoiseModeDescriptions[4]={
+  "Noise disabled", "Square + noise", "Ringmod from OP3 + noise", "Ringmod from OP3 + double pitch ModInput\nWARNING - has emulation issues, subject to change"
+};
+
 const bool opIsOutput[8][4]={
   {false,false,false,true},
   {false,false,false,true},
@@ -207,8 +227,23 @@ enum FMParams {
   FM_AMS2=31
 };
 
+enum ESFMParams {
+  ESFM_NOISE=0,
+  ESFM_DELAY=1,
+  ESFM_OUTLVL=2,
+  ESFM_MODIN=3,
+  ESFM_LEFT=4,
+  ESFM_RIGHT=5,
+  ESFM_CT=6,
+  ESFM_DT=7,
+  ESFM_FIXED=8
+};
+
 #define FM_NAME(x) fmParamNames[settings.fmNames][x]
 #define FM_SHORT_NAME(x) fmParamShortNames[settings.fmNames][x]
+#define ESFM_LONG_NAME(x) (esfmParamLongNames[x])
+#define ESFM_NAME(x) (esfmParamNames[x])
+#define ESFM_SHORT_NAME(x) (esfmParamShortNames[x])
 
 const char* macroTypeLabels[4]={
   ICON_FA_BAR_CHART "##IMacroType",
@@ -1144,6 +1179,110 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
   }
 }
 
+void FurnaceGUI::drawESFMAlgorithm(DivInstrumentESFM& esfm, const ImVec2& size) {
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  ImGuiWindow* window=ImGui::GetCurrentWindow();
+
+  ImVec2 minArea=window->DC.CursorPos;
+  ImVec2 maxArea=ImVec2(
+    minArea.x+size.x,
+    minArea.y+size.y
+  );
+  ImRect rect=ImRect(minArea,maxArea);
+  ImGuiStyle& style=ImGui::GetStyle();
+  ImU32 colorM=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_MOD]);
+  ImU32 colorC=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_CAR]);
+  ImU32 colorsL[8];
+  for (int i=0; i<8; i++){
+    float alpha=(float)i/7.0f;
+    ImVec4 color=uiColors[GUI_COLOR_FM_ALG_LINE];
+    color.w *= alpha;
+    colorsL[i]=ImGui::GetColorU32(color);
+  }
+  ImGui::ItemSize(size,style.FramePadding.y);
+  if (ImGui::ItemAdd(rect,ImGui::GetID("alg"))) {
+    ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_FM_ALG_BG]),true,style.FrameRounding);
+    const float circleRadius=6.0f*dpiScale+1.0f;
+    //int modFb = esfm.op[0].modIn&7;
+    int mod12 = esfm.op[1].modIn&7;
+    int mod23 = esfm.op[2].modIn&7;
+    int mod34 = esfm.op[3].modIn&7;
+    int out1 = esfm.op[0].outLvl&7;
+    int out2 = esfm.op[1].outLvl&7;
+    int out3 = esfm.op[2].outLvl&7;
+    int out4 = esfm.op[3].outLvl&7;
+    bool isMod[4];
+    for (int i=0; i<4; i++) {
+      DivInstrumentESFM::Operator& opE=esfm.op[i];
+      isMod[i]=true;
+      if (opE.outLvl==7) isMod[i]=false;
+      else if (opE.outLvl>0) {
+        if (i==3) isMod[i]=false;
+        else {
+          DivInstrumentESFM::Operator& opENext=esfm.op[i+1];
+          if (opENext.modIn==0) isMod[i]=false;
+          else if ((opE.outLvl-opENext.modIn)>=2) isMod[i]=false;
+        }
+      }
+    }
+
+    ImVec2 posOp1=ImLerp(rect.Min,rect.Max,ImVec2(0.2f,0.25f));
+    ImVec2 posOp2=ImLerp(rect.Min,rect.Max,ImVec2(0.4f,0.25f));
+    ImVec2 posOp3=ImLerp(rect.Min,rect.Max,ImVec2(0.6f,0.25f));
+    ImVec2 posOp4=ImLerp(rect.Min,rect.Max,ImVec2(0.8f,0.25f));
+    ImVec2 posBusbarOp1=ImLerp(rect.Min,rect.Max,ImVec2(0.2f,0.75f));
+    ImVec2 posBusbarOp2=ImLerp(rect.Min,rect.Max,ImVec2(0.4f,0.75f));
+    ImVec2 posBusbarOp3=ImLerp(rect.Min,rect.Max,ImVec2(0.6f,0.75f));
+    ImVec2 posBusbarOp4=ImLerp(rect.Min,rect.Max,ImVec2(0.8f,0.75f));
+
+    ImVec2 posBusbarStart=ImLerp(rect.Min,rect.Max,ImVec2(0.15f,0.75f));
+    ImVec2 posBusbarEnd=ImLerp(rect.Min,rect.Max,ImVec2(0.85f,0.75f));
+    bool busbarStartSeen=false;
+    for (int i=0; i<4; i++) {
+      DivInstrumentESFM::Operator& opE=esfm.op[i];
+      if (opE.outLvl>0) {
+        if (!busbarStartSeen) {
+          busbarStartSeen=true;
+          posBusbarStart=ImLerp(rect.Min,rect.Max,ImVec2(0.15f+0.2f*i,0.75f));
+        }
+        posBusbarEnd=ImLerp(rect.Min,rect.Max,ImVec2(0.25f+0.2f*i,0.75f));
+      }
+    }
+
+    if (mod12) addAALine(dl,posOp1,posOp2,colorsL[mod12]);
+    if (mod23) addAALine(dl,posOp2,posOp3,colorsL[mod23]);
+    if (mod34) addAALine(dl,posOp3,posOp4,colorsL[mod34]);
+    if (out1) addAALine(dl,posOp1,posBusbarOp1,colorsL[out1]);
+    if (out2) addAALine(dl,posOp2,posBusbarOp2,colorsL[out2]);
+    if (out3) addAALine(dl,posOp3,posBusbarOp3,colorsL[out3]);
+    if (out4) addAALine(dl,posOp4,posBusbarOp4,colorsL[out4]);
+
+    addAALine(dl,posBusbarStart,posBusbarEnd,colorsL[2]);
+    // addAALine(dl,posBusbarEnd,posBusbarEnd+ImVec2(-8.0f*dpiScale,-4.0f*dpiScale),colorsL[2]);
+    // addAALine(dl,posBusbarEnd,posBusbarEnd+ImVec2(-8.0f*dpiScale,4.0f*dpiScale),colorsL[2]);
+    // addAALine(dl,posBusbarStart+ImVec2(4.0f*dpiScale,-4.0f*dpiScale),posBusbarStart+ImVec2(4.0f*dpiScale,4.0f*dpiScale),colorsL[2]);
+
+    dl->AddCircle(posOp1,6.0f*dpiScale+1.0f,isMod[0]?colorM:colorC);
+    dl->AddCircleFilled(posOp1,4.0f*dpiScale+1.0f,isMod[0]?colorM:colorC);
+    dl->AddCircleFilled(posOp2,4.0f*dpiScale+1.0f,isMod[1]?colorM:colorC);
+    dl->AddCircleFilled(posOp3,4.0f*dpiScale+1.0f,isMod[2]?colorM:colorC);
+    dl->AddCircleFilled(posOp4,4.0f*dpiScale+1.0f,isMod[3]?colorM:colorC);
+
+    posOp1.x-=ImGui::CalcTextSize("1").x+circleRadius+3.0f*dpiScale;
+    posOp2.x-=ImGui::CalcTextSize("2").x+circleRadius+3.0f*dpiScale;
+    posOp3.x-=ImGui::CalcTextSize("3").x+circleRadius+3.0f*dpiScale;
+    posOp4.x-=ImGui::CalcTextSize("4").x+circleRadius+3.0f*dpiScale;
+    posOp1.y-=ImGui::CalcTextSize("1").y*0.5f;
+    posOp2.y-=ImGui::CalcTextSize("2").y*0.5f;
+    posOp3.y-=ImGui::CalcTextSize("3").y*0.5f;
+    posOp4.y-=ImGui::CalcTextSize("4").y*0.5f;
+    dl->AddText(posOp1,isMod[0]?colorM:colorC,"1");
+    dl->AddText(posOp2,isMod[1]?colorM:colorC,"2");
+    dl->AddText(posOp3,isMod[2]?colorM:colorC,"3");
+    dl->AddText(posOp4,isMod[3]?colorM:colorC,"4");
+  }
+}
+
 void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
@@ -1199,7 +1338,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       //addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
       addAALine(dl,pos1,pos2,color); //A
       addAALine(dl,pos2,posDecayRate0Pt,color); //Line from A to end of graph
-    } else if (d2r==0.0 || ((instType==DIV_INS_OPL || instType==DIV_INS_SNES) && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { //envelope stays at the sustain level forever
+    } else if (d2r==0.0 || ((instType==DIV_INS_OPL || instType==DIV_INS_SNES || instType==DIV_INS_ESFM) && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { //envelope stays at the sustain level forever
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
       addAALine(dl,pos3,posSLineHEnd,colorR); //draw horiz line through sustain level
       addAALine(dl,pos3,posSLineVEnd,colorR); //draw vert. line through sustain level
@@ -1398,10 +1537,10 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
 
     if (i.macro->vZoom<1) {
-      if (i.macro->macroType==DIV_MACRO_ARP) {
+      if (i.macro->macroType==DIV_MACRO_ARP || i.isArp) {
         i.macro->vZoom=24;
         i.macro->vScroll=120-12;
-      } else if (i.macro->macroType==DIV_MACRO_PITCH) {
+      } else if (i.macro->macroType==DIV_MACRO_PITCH || i.isPitch) {
         i.macro->vZoom=128;
         i.macro->vScroll=2048-64;
       } else {
@@ -2298,17 +2437,21 @@ void FurnaceGUI::alterSampleMap(int column, int val) {
     if (dragItem!=NULL) { \
       if (dragItem->IsDataType("FUR_OP")) { \
         if (opToMove!=i && opToMove>=0) { \
-          int destOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i; \
-          int sourceOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[opToMove]:opToMove; \
+          int destOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i; \
+          int sourceOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[opToMove]:opToMove; \
           if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
             e->lockEngine([ins,destOp,sourceOp]() { \
               ins->fm.op[destOp]=ins->fm.op[sourceOp]; \
+              ins->esfm.op[destOp]=ins->esfm.op[sourceOp]; \
             }); \
           } else { \
             e->lockEngine([ins,destOp,sourceOp]() { \
               DivInstrumentFM::Operator origOp=ins->fm.op[sourceOp]; \
+              DivInstrumentESFM::Operator origOpE=ins->esfm.op[sourceOp]; \
               ins->fm.op[sourceOp]=ins->fm.op[destOp]; \
+              ins->esfm.op[sourceOp]=ins->esfm.op[destOp]; \
               ins->fm.op[destOp]=origOp; \
+              ins->esfm.op[destOp]=origOpE; \
             }); \
           } \
           PARAMETER; \
@@ -2969,7 +3112,7 @@ void FurnaceGUI::drawInsEdit() {
 
       if (ImGui::BeginTabBar("insEditTab")) {
         std::vector<FurnaceGUIMacroDesc> macroList;
-        if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM) {
+        if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
           char label[32];
           int opCount=4;
           if (ins->type==DIV_INS_OPLL) opCount=2;
@@ -3003,10 +3146,10 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
 
-            if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) {
-              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
-              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
+            if (ImGui::BeginTable("fmDetails",3,(ins->type==DIV_INS_ESFM)?ImGuiTableFlags_SizingStretchProp:ImGuiTableFlags_SizingStretchSame)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.50f:0.0f));
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.15f:0.0f));
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,((ins->type==DIV_INS_ESFM)?0.35f:0.0f));
 
               ImGui::TableNextRow();
               switch (ins->type) {
@@ -3164,6 +3307,23 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   break;
                 }
+                case DIV_INS_ESFM: {
+                  ImGui::TableNextColumn();
+                  P(CWSliderScalar(ESFM_LONG_NAME(ESFM_NOISE),ImGuiDataType_U8,&ins->esfm.noise,&_ZERO,&_THREE,esfmNoiseModeNames[ins->esfm.noise&3])); rightClickable
+                  ImGui::TextUnformatted(esfmNoiseModeDescriptions[ins->esfm.noise&3]);
+                  ImGui::TableNextColumn();
+                  ImGui::TableNextColumn();
+                  if (fmPreviewOn) {
+                    drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                    if (!fmPreviewPaused) {
+                      renderFMPreview(ins,1);
+                      WAKE_UP;
+                    }
+                  } else {
+                    drawESFMAlgorithm(ins->esfm, ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  }
+                  kvsConfig(ins);
+                }
                 default:
                   break;
               }
@@ -3254,9 +3414,15 @@ void FurnaceGUI::drawInsEdit() {
               if (ins->type==DIV_INS_OPL ||ins->type==DIV_INS_OPL_DRUMS) numCols=13;
               if (ins->type==DIV_INS_OPLL) numCols=12;
               if (ins->type==DIV_INS_OPZ) numCols=19;
+              if (ins->type==DIV_INS_ESFM) numCols=19;
               if (ImGui::BeginTable("FMOperators",numCols,ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersH|ImGuiTableFlags_BordersOuterV)) {
                 // configure columns
                 ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed); // op name
+                if (ins->type==DIV_INS_ESFM) {
+                  ImGui::TableSetupColumn("c0e0",ImGuiTableColumnFlags_WidthStretch,0.05f); // outLvl
+                  ImGui::TableSetupColumn("c0e1",ImGuiTableColumnFlags_WidthFixed); // -separator-
+                  ImGui::TableSetupColumn("c0e2",ImGuiTableColumnFlags_WidthStretch,0.05f); // delay
+                }
                 ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.05f); // ar
                 ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.05f); // dr
                 ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.05f); // sl
@@ -3271,13 +3437,20 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableSetupColumn("c8z0",ImGuiTableColumnFlags_WidthStretch,0.05f); // egs
                   ImGui::TableSetupColumn("c8z1",ImGuiTableColumnFlags_WidthStretch,0.05f); // rev
                 }
+                if (ins->type==DIV_INS_ESFM) {
+                  ImGui::TableSetupColumn("c8e0",ImGuiTableColumnFlags_WidthStretch,0.05f); // outLvl
+                }
                 ImGui::TableSetupColumn("c9",ImGuiTableColumnFlags_WidthStretch,0.05f); // mult
 
                 if (ins->type==DIV_INS_OPZ) {
                   ImGui::TableSetupColumn("c9z",ImGuiTableColumnFlags_WidthStretch,0.05f); // fine
                 }
 
-                if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
+                if (ins->type==DIV_INS_ESFM) {
+                  ImGui::TableSetupColumn("c9e",ImGuiTableColumnFlags_WidthStretch,0.05f); // ct
+                }
+
+                if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
                   ImGui::TableSetupColumn("c10",ImGuiTableColumnFlags_WidthStretch,0.05f); // dt
                 }
                 if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
@@ -3294,7 +3467,17 @@ void FurnaceGUI::drawInsEdit() {
                 // header
                 ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
                 ImGui::TableNextColumn();
-
+                if (ins->type==DIV_INS_ESFM) {
+                  ImGui::TableNextColumn();
+                  CENTER_TEXT(ESFM_SHORT_NAME(ESFM_MODIN));
+                  ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_MODIN));
+                  TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_MODIN));
+                  ImGui::TableNextColumn();
+                  ImGui::TableNextColumn();
+                  CENTER_TEXT(ESFM_SHORT_NAME(ESFM_DELAY));
+                  ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_DELAY));
+                  TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_DELAY));
+                }
                 ImGui::TableNextColumn();
                 CENTER_TEXT(FM_SHORT_NAME(FM_AR));
                 ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
@@ -3350,6 +3533,12 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TextUnformatted(FM_SHORT_NAME(FM_REV));
                   TOOLTIP_TEXT(FM_NAME(FM_REV));
                 }
+                if (ins->type==DIV_INS_ESFM) {
+                  ImGui::TableNextColumn();
+                  CENTER_TEXT(ESFM_SHORT_NAME(ESFM_OUTLVL));
+                  ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_OUTLVL));
+                  TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_OUTLVL));
+                }
                 ImGui::TableNextColumn();
                 CENTER_TEXT(FM_SHORT_NAME(FM_MULT));
                 ImGui::TextUnformatted(FM_SHORT_NAME(FM_MULT));
@@ -3360,11 +3549,23 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TextUnformatted(FM_SHORT_NAME(FM_FINE));
                   TOOLTIP_TEXT(FM_NAME(FM_FINE));
                 }
+                if (ins->type==DIV_INS_ESFM) {
+                  ImGui::TableNextColumn();
+                  CENTER_TEXT(ESFM_SHORT_NAME(ESFM_CT));
+                  ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_CT));
+                  TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_CT));
+                }
                 ImGui::TableNextColumn();
                 if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                   CENTER_TEXT(FM_SHORT_NAME(FM_DT));
                   ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT));
                   TOOLTIP_TEXT(FM_NAME(FM_DT));
+                  ImGui::TableNextColumn();
+                }
+                if (ins->type==DIV_INS_ESFM) {
+                  CENTER_TEXT(ESFM_SHORT_NAME(ESFM_DT));
+                  ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_DT));
+                  TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_DT));
                   ImGui::TableNextColumn();
                 }
                 if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
@@ -3382,7 +3583,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TextUnformatted("Other");
                 }
                 ImGui::TableNextColumn();
-                if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ) {
+                if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_ESFM) {
                   ImGui::TableNextColumn();
                   CENTER_TEXT(FM_NAME(FM_WS));
                   ImGui::TextUnformatted(FM_NAME(FM_WS));
@@ -3398,7 +3599,9 @@ void FurnaceGUI::drawInsEdit() {
                 float sliderHeight=32.0f*dpiScale;
 
                 for (int i=0; i<opCount; i++) {
-                  DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i];
+                  DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i];
+                  DivInstrumentESFM::Operator& opE=ins->esfm.op[i];
+
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
 
@@ -3407,6 +3610,22 @@ void FurnaceGUI::drawInsEdit() {
                     bool mod=true;
                     if (ins->type==DIV_INS_OPL_DRUMS) {
                       mod=false;
+                    } else if (ins->type==DIV_INS_ESFM) {
+                      // this is the same as the KVS heuristic in platform/esfm.h
+                      if (opE.outLvl==7) {
+                        mod=false;
+                      } else if (opE.outLvl>0) {
+                        if (i==3) {
+                          mod=false;
+                        } else {
+                          DivInstrumentESFM::Operator& opENext=ins->esfm.op[i+1];
+                          if (opENext.modIn==0) {
+                            mod=false;
+                          } else if ((opE.outLvl-opENext.modIn)>=2) {
+                            mod=false;
+                          }
+                        }
+                      }
                     } else if (opCount==4) {
                       if (ins->type==DIV_INS_OPL) {
                         if (opIsOutputOPL[fmOrigin.alg&3][i]) mod=false;
@@ -3433,7 +3652,17 @@ void FurnaceGUI::drawInsEdit() {
                     }
                   }
 
-                  if (i==0) sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
+                  if (i==0) {
+                    sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
+                    float sliderMinHeightOPL=ImGui::GetFrameHeight()*4.0+ImGui::GetStyle().ItemSpacing.y*3.0;
+                    float sliderMinHeightESFM=ImGui::GetFrameHeight()*5.0+ImGui::GetStyle().ItemSpacing.y*4.0;
+                    if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL) && sliderHeight<sliderMinHeightOPL) {
+                      sliderHeight=sliderMinHeightOPL;
+                    }
+                    if (ins->type==DIV_INS_ESFM && sliderHeight<sliderMinHeightESFM) {
+                      sliderHeight=sliderMinHeightESFM;
+                    }
+                  }
 
                   ImGui::PushID(fmt::sprintf("op%d",i).c_str());
                   String opNameLabel;
@@ -3458,7 +3687,7 @@ void FurnaceGUI::drawInsEdit() {
                   } else {
                     ImGui::TextUnformatted(opNameLabel.c_str());
                   }
-                  
+
                   // drag point
                   OP_DRAG_POINT;
 
@@ -3470,7 +3699,7 @@ void FurnaceGUI::drawInsEdit() {
                       maxTl=63;
                     }
                   }
-                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
+                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_ESFM) {
                     maxTl=63;
                   }
                   int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM)?31:15;
@@ -3478,7 +3707,20 @@ void FurnaceGUI::drawInsEdit() {
                   bool ksrOn=op.ksr;
                   bool vibOn=op.vib;
                   bool susOn=op.sus;
+                  bool fixedOn=opE.fixed;
                   unsigned char ssgEnv=op.ssgEnv&7;
+
+                  if (ins->type==DIV_INS_ESFM) {
+                    ImGui::TableNextColumn();
+                    CENTER_VSLIDER;
+                    P(CWVSliderScalar("##MODIN",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&opE.modIn,&_ZERO,&_SEVEN)); rightClickable
+                    ImGui::TableNextColumn();
+                    ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
+                    ImGui::TableNextColumn();
+                    opE.delay&=7;
+                    CENTER_VSLIDER;
+                    P(CWVSliderScalar("##DELAY",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&opE.delay,&_ZERO,&_SEVEN)); rightClickable
+                  }
 
                   ImGui::TableNextColumn();
                   op.ar&=maxArDr;
@@ -3546,6 +3788,12 @@ void FurnaceGUI::drawInsEdit() {
                     P(CWVSliderScalar("##REV",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dam,&_ZERO,&_SEVEN)); rightClickable
                   }
 
+                  if (ins->type==DIV_INS_ESFM) {
+                    ImGui::TableNextColumn();
+                    CENTER_VSLIDER;
+                    P(CWVSliderScalar("##OUTLVL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&opE.outLvl,&_ZERO,&_SEVEN)); rightClickable
+                  }
+
                   ImGui::TableNextColumn();
                   CENTER_VSLIDER;
                   P(CWVSliderScalar("##MULT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
@@ -3554,6 +3802,12 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
                     P(CWVSliderScalar("##FINE",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN)); rightClickable
+                  }
+
+                  if (ins->type==DIV_INS_ESFM) {
+                    ImGui::TableNextColumn();
+                    CENTER_VSLIDER;
+                    P(CWVSliderScalar("##CT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR)); rightClickable
                   }
 
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
@@ -3626,6 +3880,119 @@ void FurnaceGUI::drawInsEdit() {
                         op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
                       }
                     }
+                  } else if (ins->type==DIV_INS_ESFM) {
+                    ImGui::TableNextColumn();
+                    CENTER_VSLIDER;
+                    P(CWVSliderScalar("##DT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_S8,&opE.dt,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+
+                    ImGui::TableNextColumn();
+                    bool amOn=op.am;
+                    bool leftOn=opE.left;
+                    bool rightOn=opE.right;
+
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*5.0-ImGui::GetStyle().ItemSpacing.y*4.0));
+                    ImVec2 curPosBeforeDummy = ImGui::GetCursorPos();
+                    ImGui::Dummy(ImVec2(ImGui::GetFrameHeightWithSpacing()*2.0f+ImGui::CalcTextSize(FM_SHORT_NAME(FM_DAM)).x*2.0f,1.0f));
+                    ImGui::SetCursorPos(curPosBeforeDummy);
+
+                    if (ImGui::BeginTable("panCheckboxes",(fixedOn)?3:2,ImGuiTableFlags_SizingStretchProp)) {
+                      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,1.0);
+                      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,1.0);
+                      if (fixedOn) {
+                        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,1.2);
+                      }
+
+                      float yCoordBeforeTablePadding=ImGui::GetCursorPosY();
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetCursorPosY(yCoordBeforeTablePadding);
+                      if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_LEFT),&leftOn)) { PARAMETER
+                        opE.left=leftOn;
+                      }
+                      ImGui::TableNextColumn();
+                      ImGui::SetCursorPosY(yCoordBeforeTablePadding);
+                      if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_RIGHT),&rightOn)) { PARAMETER
+                        opE.right=rightOn;
+                      }
+                      if (fixedOn) {
+                        ImGui::TableNextColumn();
+                        ImGui::SetCursorPosY(yCoordBeforeTablePadding);
+                        if (ImGui::Checkbox(FM_SHORT_NAME(FM_AM),&amOn)) { PARAMETER
+                          op.am=amOn;
+                        }
+                      }
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      if (ImGui::Checkbox(FM_SHORT_NAME(FM_KSR),&ksrOn)) { PARAMETER
+                        op.ksr=ksrOn;
+                      }
+                      ImGui::TableNextColumn();
+                      if (ImGui::Checkbox(FM_SHORT_NAME(FM_SUS),&susOn)) { PARAMETER
+                        op.sus=susOn;
+                      }
+                      if (fixedOn) {
+                        bool damOn=op.dam;
+                        ImGui::TableNextColumn();
+                        if (ImGui::Checkbox(FM_SHORT_NAME(FM_DAM),&damOn)) { PARAMETER
+                          op.dam=damOn;
+                        }
+                      }
+                      ImGui::EndTable();
+                    }
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY()-0.5*ImGui::GetStyle().ItemSpacing.y);
+                    if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
+                      opE.fixed=fixedOn;
+                      // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                      ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                      ins->std.opMacros[i].dtMacro.vZoom=-1;
+                    }
+                    if (ins->type==DIV_INS_ESFM) {
+                      if (fixedOn) {
+                        int block=(opE.ct>>2)&7;
+                        int freqNum=((opE.ct&3)<<8)|((unsigned char)opE.dt);
+                        if (ImGui::InputInt("Block",&block,1,1)) {
+                          if (block<0) block=0;
+                          if (block>7) block=7;
+                          opE.ct=(opE.ct&(~(7<<2)))|(block<<2);
+                        }
+                        if (ImGui::InputInt("FreqNum",&freqNum,1,16)) {
+                          if (freqNum<0) freqNum=0;
+                          if (freqNum>1023) freqNum=1023;
+                          opE.dt=freqNum&0xff;
+                          opE.ct=(opE.ct&(~3))|(freqNum>>8);
+                        }
+                      } else {
+                        if (ImGui::BeginTable("amVibCheckboxes",2,ImGuiTableFlags_SizingStretchSame)) {
+                          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
+                          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+
+                          float yCoordBeforeTablePadding=ImGui::GetCursorPosY();
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetCursorPosY(yCoordBeforeTablePadding);
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_AM),&amOn)) { PARAMETER
+                            op.am=amOn;
+                          }
+                          ImGui::TableNextColumn();
+                          ImGui::SetCursorPosY(yCoordBeforeTablePadding);
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_VIB),&vibOn)) { PARAMETER
+                            op.vib=vibOn;
+                          }
+                          bool damOn=op.dam;
+                          bool dvbOn=op.dvb;
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_DAM),&damOn)) { PARAMETER
+                            op.dam=damOn;
+                          }
+                          ImGui::TableNextColumn();
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_DVB),&dvbOn)) { PARAMETER
+                            op.dvb=dvbOn;
+                          }
+                          ImGui::EndTable();
+                        }
+                      }
+                    }
                   } else if (ins->type!=DIV_INS_OPM) {
                     ImGui::TableNextColumn();
                     bool amOn=op.am;
@@ -3650,16 +4017,25 @@ void FurnaceGUI::drawInsEdit() {
                     }
                   }
 
-                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ) {
+                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_ESFM) {
                     ImGui::TableNextColumn();
                     ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
                     ImGui::TableNextColumn();
 
-                    drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()));
+                    drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_ESFM && fixedOn)?3.0f:1.0f)));
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                     P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
                     if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
                       ImGui::SetTooltip("OPL2/3 only (last 4 waveforms are OPL3 only)");
+                    }
+                    if (ins->type==DIV_INS_ESFM && fixedOn) {
+                      if (ImGui::Checkbox(FM_SHORT_NAME(FM_VIB),&vibOn)) { PARAMETER
+                        op.vib=vibOn;
+                      }
+                      bool dvbOn=op.dvb;
+                      if (ImGui::Checkbox(FM_SHORT_NAME(FM_DVB),&dvbOn)) { PARAMETER
+                        op.dvb=dvbOn;
+                      }
                     }
                   } else if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPM) {
                     ImGui::TableNextColumn();
@@ -3667,7 +4043,7 @@ void FurnaceGUI::drawInsEdit() {
                   }
 
                   ImGui::TableNextColumn();
-                  drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,fmOrigin.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight),ins->type);
+                  drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_ESFM)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,fmOrigin.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight),ins->type);
 
                   if (settings.separateFMColors) {
                     popAccentColors();
@@ -3696,7 +4072,8 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(8.0f*dpiScale,4.0f*dpiScale));
               if (ImGui::BeginTable("AltFMOperators",columns,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersInner)) {
                 for (int i=0; i<opCount; i++) {
-                  DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i];
+                  DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i];
+                  DivInstrumentESFM::Operator& opE=ins->esfm.op[i];
                   if ((settings.fmLayout!=6 && ((i+1)&1)) || i==0 || settings.fmLayout==5) ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::PushID(fmt::sprintf("op%d",i).c_str());
@@ -3706,6 +4083,17 @@ void FurnaceGUI::drawInsEdit() {
                     bool mod=true;
                     if (ins->type==DIV_INS_OPL_DRUMS) {
                       mod=false;
+                    } else if (ins->type==DIV_INS_ESFM) {
+                      // this is the same as the KVS heuristic in platform/esfm.h
+                      if (opE.outLvl==7) mod=false;
+                      else if (opE.outLvl>0) {
+                        if (i==3) mod=false;
+                        else {
+                          DivInstrumentESFM::Operator& opENext=ins->esfm.op[i+1];
+                          if (opENext.modIn==0) mod=false;
+                          else if ((opE.outLvl-opENext.modIn)>=2) mod=false;
+                        }
+                      }
                     } else if (opCount==4) {
                       if (ins->type==DIV_INS_OPL) {
                         if (opIsOutputOPL[fmOrigin.alg&3][i]) mod=false;
@@ -3760,8 +4148,8 @@ void FurnaceGUI::drawInsEdit() {
                   }
 
                   float sliderHeight=200.0f*dpiScale;
-                  float waveWidth=140.0*dpiScale;
-                  float waveHeight=sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL)?5.0f:4.5f);
+                  float waveWidth=140.0*dpiScale*((ins->type==DIV_INS_ESFM)?0.85f:1.0f);
+                  float waveHeight=sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL || ins->type==DIV_INS_ESFM)?5.0f:4.5f);
 
                   int maxTl=127;
                   if (ins->type==DIV_INS_OPLL) {
@@ -3771,7 +4159,7 @@ void FurnaceGUI::drawInsEdit() {
                       maxTl=63;
                     }
                   }
-                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
+                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_ESFM) {
                     maxTl=63;
                   }
                   int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM)?31:15;
@@ -3793,9 +4181,15 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     float textY=ImGui::GetCursorPosY();
-                    CENTER_TEXT_20(FM_SHORT_NAME(FM_AR));
-                    ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
-                    TOOLTIP_TEXT(FM_NAME(FM_AR));
+                    if (ins->type==DIV_INS_ESFM) {
+                      CENTER_TEXT_20(ESFM_SHORT_NAME(ESFM_DELAY));
+                      ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_DELAY));
+                      TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_DELAY));
+                    } else {
+                      CENTER_TEXT_20(FM_SHORT_NAME(FM_AR));
+                      ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
+                      TOOLTIP_TEXT(FM_NAME(FM_AR));
+                    }
                     ImGui::TableNextColumn();
                     if (ins->type==DIV_INS_FM) {
                       ImGui::Text("SSG-EG");
@@ -3805,14 +4199,18 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     ImGui::Text("Envelope");
                     ImGui::TableNextColumn();
-                    CENTER_TEXT(FM_SHORT_NAME(FM_TL));
-                    ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
-                    TOOLTIP_TEXT(FM_NAME(FM_TL));
 
                     // A/D/S/R
                     ImGui::TableNextColumn();
 
+                    if (ins->type==DIV_INS_ESFM) {
+                      opE.delay&=7;
+                      P(CWVSliderScalar("##DELAY",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&opE.delay,&_ZERO,&_SEVEN)); rightClickable
+                      ImGui::SameLine();
+                    }
+
                     op.ar&=maxArDr;
+                    float textX_AR=ImGui::GetCursorPosX();
                     P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
 
                     ImGui::SameLine();
@@ -3849,8 +4247,15 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     ImVec2 prevCurPos=ImGui::GetCursorPos();
-                    
+
                     // labels
+                    if (ins->type==DIV_INS_ESFM) {
+                      ImGui::SetCursorPos(ImVec2(textX_AR,textY));
+                      CENTER_TEXT_20(FM_SHORT_NAME(FM_AR));
+                      ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
+                      TOOLTIP_TEXT(FM_NAME(FM_AR));
+                    }
+
                     ImGui::SetCursorPos(ImVec2(textX_DR,textY));
                     CENTER_TEXT_20(FM_SHORT_NAME(FM_DR));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_DR));
@@ -4092,6 +4497,78 @@ void FurnaceGUI::drawInsEdit() {
                         P(CWSliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE,tempID)); rightClickable
                         break;
                       }
+                      case DIV_INS_ESFM:
+                        // waveform
+                        drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
+
+                        // params
+                        ImGui::Separator();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_MULT));
+                        P(CWSliderScalar("##MULT",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN,tempID)); rightClickable
+
+                        if (opE.fixed) {
+                          int block=(opE.ct>>2)&7;
+                          int freqNum=((opE.ct&3)<<8)|((unsigned char)opE.dt);
+                          ImGui::Text("Blk");
+                          if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Block");
+                          }
+                          ImGui::SameLine();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          //ImVec2 cursorAlign=ImGui::GetCursorPos();
+                          if (ImGui::InputInt("##Block",&block,1,1)) {
+                            if (block<0) block=0;
+                            if (block>7) block=7;
+                            opE.ct=(opE.ct&(~(7<<2)))|(block<<2);
+                          }
+
+                          ImGui::Text("F");
+                          if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Frequency (F-Num)");
+                          }
+                          ImGui::SameLine();
+                          //ImGui::SetCursorPos(ImVec2(cursorAlign.x,ImGui::GetCursorPosY()));
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          if (ImGui::InputInt("##FreqNum",&freqNum,1,16)) {
+                            if (freqNum<0) freqNum=0;
+                            if (freqNum>1023) freqNum=1023;
+                            opE.dt=freqNum&0xff;
+                            opE.ct=(opE.ct&(~3))|(freqNum>>8);
+                          }
+                        } else {
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          snprintf(tempID,1024,"%s: %%d",ESFM_NAME(ESFM_CT));
+                          P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR,tempID)); rightClickable
+
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          snprintf(tempID,1024,"%s: %%d",ESFM_NAME(ESFM_DT));
+                          P(CWSliderScalar("##DT",ImGuiDataType_S8,&opE.dt,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN,tempID)); rightClickable
+                        }
+
+                        if (ImGui::BeginTable("panCheckboxes",2,ImGuiTableFlags_SizingStretchSame)) {
+                          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0f);
+                          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0f);
+
+                          float yPosOutsideTablePadding=ImGui::GetCursorPosY();
+                          bool leftOn=opE.left;
+                          bool rightOn=opE.right;
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetCursorPosY(yPosOutsideTablePadding);
+                          if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_LEFT),&leftOn)) { PARAMETER
+                            opE.left=leftOn;
+                          }
+                          ImGui::TableNextColumn();
+                          ImGui::SetCursorPosY(yPosOutsideTablePadding);
+                          if (ImGui::Checkbox(ESFM_SHORT_NAME(ESFM_RIGHT),&rightOn)) { PARAMETER
+                            opE.right=rightOn;
+                          }
+                          ImGui::EndTable();
+                        }
+                        break;
                       default:
                         break;
                     }
@@ -4101,7 +4578,10 @@ void FurnaceGUI::drawInsEdit() {
                     if (ins->type==DIV_INS_OPZ) {
                       envHeight-=ImGui::GetFrameHeightWithSpacing()*2.0f;
                     }
-                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,fmOrigin.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,envHeight),ins->type);
+                    if (ins->type==DIV_INS_ESFM) {
+                      envHeight-=ImGui::GetFrameHeightWithSpacing()*3.0f;
+                    }
+                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_ESFM)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,fmOrigin.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,envHeight),ins->type);
 
                     if (ins->type==DIV_INS_OPZ) {
                       ImGui::Separator();
@@ -4142,9 +4622,81 @@ void FurnaceGUI::drawInsEdit() {
                       }
                     }
 
+                    if (ins->type==DIV_INS_ESFM) {
+                      ImGui::Separator();
+                      if (ImGui::BeginTable("FMParamsInnerESFM",2)) {
+                        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.64f);
+                        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.36f);
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_KSL));
+                        int ksl=kslMap[op.ksl&3];
+                        if (CWSliderInt("##KSL",&ksl,0,3,tempID)) {
+                          op.ksl=kslMap[ksl&3];
+                          PARAMETER;
+                        } rightClickable
+
+                        bool amOn=op.am;
+                        bool fixedOn=opE.fixed;
+                        ImGui::TableNextColumn();
+                        if (ImGui::Checkbox(FM_SHORT_NAME(FM_KSR),&ksrOn)) { PARAMETER
+                          op.ksr=ksrOn;
+                        }
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        if (ImGui::BeginTable("vibAmCheckboxes",2)) {
+                          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0f);
+                          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0f);
+
+                          float yPosOutsideTablePadding=ImGui::GetCursorPosY();
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetCursorPosY(yPosOutsideTablePadding);
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_VIB),&vibOn)) { PARAMETER
+                            op.vib=vibOn;
+                          }
+                          ImGui::TableNextColumn();
+                          ImGui::SetCursorPosY(yPosOutsideTablePadding);
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_AM),&amOn)) { PARAMETER
+                            op.am=amOn;
+                          }
+
+                          bool damOn=op.dam;
+                          bool dvbOn=op.dvb;
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_DVB),&dvbOn)) { PARAMETER
+                            op.dvb=dvbOn;
+                          }
+                          ImGui::TableNextColumn();
+                          if (ImGui::Checkbox(FM_SHORT_NAME(FM_DAM),&damOn)) { PARAMETER
+                            op.dam=damOn;
+                          }
+                          ImGui::EndTable();
+                        }
+                        ImGui::TableNextColumn();
+                        if (ImGui::Checkbox(FM_SHORT_NAME(FM_SUS),&susOn)) { PARAMETER
+                          op.sus=susOn;
+                        }
+                        if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
+                          opE.fixed=fixedOn;
+                          // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                          ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                          ins->std.opMacros[i].dtMacro.vZoom=-1;
+                        }
+
+                        ImGui::EndTable();
+                      }
+                    }
+
                     ImGui::TableNextColumn();
                     op.tl&=maxTl;
-                    P(CWVSliderScalar("##TL",ImVec2(ImGui::GetFrameHeight(),sliderHeight-((ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM)?(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y):0.0f)),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
+                    float tlSliderWidth=(ins->type==DIV_INS_ESFM)?20.0f*dpiScale:ImGui::GetFrameHeight();
+                    float tlSliderHeight=sliderHeight-((ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM)?(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y):0.0f);
+                    float textX_tl=ImGui::GetCursorPosX();
+                    P(CWVSliderScalar("##TL",ImVec2(tlSliderWidth,tlSliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
 
                     if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
                       CENTER_TEXT(FM_SHORT_NAME(FM_AM));
@@ -4154,6 +4706,42 @@ void FurnaceGUI::drawInsEdit() {
                       if (ImGui::Checkbox("##AM",&amOn)) { PARAMETER
                         op.am=amOn;
                       }
+                    }
+
+                    if (ins->type==DIV_INS_ESFM) {
+                      ImGui::SameLine();
+                      float textX_outLvl=ImGui::GetCursorPosX();
+                      P(CWVSliderScalar("##OUTLVL",ImVec2(tlSliderWidth,tlSliderHeight),ImGuiDataType_U8,&opE.outLvl,&_ZERO,&_SEVEN)); rightClickable
+
+                      ImGui::SameLine();
+                      float textX_modIn=ImGui::GetCursorPosX();
+                      P(CWVSliderScalar("##MODIN",ImVec2(tlSliderWidth,tlSliderHeight),ImGuiDataType_U8,&opE.modIn,&_ZERO,&_SEVEN)); rightClickable
+
+                      prevCurPos=ImGui::GetCursorPos();
+                      ImGui::SetCursorPos(ImVec2(textX_tl,textY));
+                      CENTER_TEXT_20(FM_SHORT_NAME(FM_TL));
+                      ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
+                      TOOLTIP_TEXT(FM_NAME(FM_TL));
+
+                      ImGui::SetCursorPos(ImVec2(textX_outLvl,textY));
+                      CENTER_TEXT_20(ESFM_SHORT_NAME(ESFM_OUTLVL));
+                      ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_OUTLVL));
+                      TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_OUTLVL));
+
+                      ImGui::SetCursorPos(ImVec2(textX_modIn,textY));
+                      CENTER_TEXT_20(ESFM_SHORT_NAME(ESFM_MODIN));
+                      ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_MODIN));
+                      TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_MODIN));
+
+                      ImGui::SetCursorPos(prevCurPos);
+                    } else {
+                      prevCurPos=ImGui::GetCursorPos();
+                      ImGui::SetCursorPos(ImVec2(textX_tl,textY));
+                      CENTER_TEXT(FM_SHORT_NAME(FM_TL));
+                      ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
+                      TOOLTIP_TEXT(FM_NAME(FM_TL));
+
+                      ImGui::SetCursorPos(prevCurPos);
                     }
 
                     ImGui::EndTable();
@@ -4184,7 +4772,8 @@ void FurnaceGUI::drawInsEdit() {
               }
               if (ImGui::BeginTable("FMOperators",columns,ImGuiTableFlags_SizingStretchSame)) {
                 for (int i=0; i<opCount; i++) {
-                  DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i];
+                  DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i];
+                  DivInstrumentESFM::Operator& opE=ins->esfm.op[i];
                   if ((settings.fmLayout!=3 && ((i+1)&1)) || i==0 || settings.fmLayout==2) ImGui::TableNextRow();
                   ImGui::TableNextColumn();
                   ImGui::Separator();
@@ -4195,6 +4784,22 @@ void FurnaceGUI::drawInsEdit() {
                     bool mod=true;
                     if (ins->type==DIV_INS_OPL_DRUMS) {
                       mod=false;
+                    } else if (ins->type==DIV_INS_ESFM) {
+                      // this is the same as the KVS heuristic in platform/esfm.h
+                      if (opE.outLvl==7) {
+                        mod=false;
+                      } else if (opE.outLvl>0) {
+                        if (i==3) {
+                          mod=false;
+                        } else {
+                          DivInstrumentESFM::Operator& opENext=ins->esfm.op[i+1];
+                          if (opENext.modIn==0) {
+                            mod=false;
+                          } else if ((opE.outLvl-opENext.modIn)>=2) {
+                            mod=false;
+                          }
+                        }
+                      }
                     } else if (opCount==4) {
                       if (ins->type==DIV_INS_OPL) {
                         if (opIsOutputOPL[fmOrigin.alg&3][i]) mod=false;
@@ -4262,7 +4867,7 @@ void FurnaceGUI::drawInsEdit() {
                       maxTl=63;
                     }
                   }
-                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
+                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_ESFM) {
                     maxTl=63;
                   }
                   int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM)?31:15;
@@ -4272,14 +4877,14 @@ void FurnaceGUI::drawInsEdit() {
                   bool vibOn=op.vib;
                   bool susOn=op.sus; // don't you make fun of this one
                   unsigned char ssgEnv=op.ssgEnv&7;
-                  if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_OPZ && ins->type!=DIV_INS_OPM) {
+                  if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_OPZ && ins->type!=DIV_INS_OPM && ins->type!=DIV_INS_ESFM) {
                     ImGui::SameLine();
                     if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) { PARAMETER
                       op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
                     }
                   }
 
-                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
+                  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_ESFM) {
                     ImGui::SameLine();
                     if (ImGui::Checkbox(FM_NAME(FM_SUS),&susOn)) { PARAMETER
                       op.sus=susOn;
@@ -4295,11 +4900,21 @@ void FurnaceGUI::drawInsEdit() {
                   }
 
                   //52.0 controls vert scaling; default 96
-                  drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,fmOrigin.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale),ins->type);
+                  drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_ESFM)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,fmOrigin.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale),ins->type);
                   //P(CWSliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE)); rightClickable
                   if (ImGui::BeginTable("opParams",2,ImGuiTableFlags_SizingStretchProp)) {
                     ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0); \
                     ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0); \
+
+                    if (ins->type==DIV_INS_ESFM) {
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      opE.delay&=7;
+                      P(CWSliderScalar("##DELAY",ImGuiDataType_U8,&opE.delay,&_ZERO,&_SEVEN)); rightClickable
+                      ImGui::TableNextColumn();
+                      ImGui::Text("%s",ESFM_NAME(ESFM_DELAY));
+                    }
 
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
@@ -4485,7 +5100,51 @@ void FurnaceGUI::drawInsEdit() {
                       }
                     }
 
-                    if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ) {
+                    if (ins->type==DIV_INS_ESFM) {
+                      bool fixedOn=opE.fixed;
+                      if (fixedOn) {
+                        int block=(opE.ct>>2)&7;
+                        int freqNum=((opE.ct&3)<<8)|((unsigned char)opE.dt);
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        if (ImGui::InputInt("##Block",&block,1,1)) {
+                          if (block<0) block=0;
+                          if (block>7) block=7;
+                          opE.ct=(opE.ct&(~(7<<2)))|(block<<2);
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Block");
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        if (ImGui::InputInt("##FreqNum",&freqNum,1,16)) {
+                          if (freqNum<0) freqNum=0;
+                          if (freqNum>1023) freqNum=1023;
+                          opE.dt=freqNum&0xff;
+                          opE.ct=(opE.ct&(~3))|(freqNum>>8);
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::Text("FreqNum");
+                      } else {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(CWSliderScalar("##CT",ImGuiDataType_S8,&opE.ct,&_MINUS_TWENTY_FOUR,&_TWENTY_FOUR)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",ESFM_NAME(ESFM_CT));
+
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(CWSliderScalar("##DT",ImGuiDataType_S8,&opE.dt,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",ESFM_NAME(ESFM_DT));
+                      }
+
+                    }
+
+                    if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_ESFM) {
                       ImGui::TableNextRow();
                       ImGui::TableNextColumn();
                       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -4496,17 +5155,68 @@ void FurnaceGUI::drawInsEdit() {
                       ImGui::TableNextColumn();
                       ImGui::Text("%s",FM_NAME(FM_WS));
                     }
-                    
+
+                    if (ins->type==DIV_INS_ESFM) {
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::Separator();
+                      ImGui::TableNextColumn();
+                      ImGui::Separator();
+
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      P(CWSliderScalar("##OUTLVL",ImGuiDataType_U8,&opE.outLvl,&_ZERO,&_SEVEN)); rightClickable
+                      ImGui::TableNextColumn();
+                      ImGui::Text("%s",ESFM_NAME(ESFM_OUTLVL));
+
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      P(CWSliderScalar("##MODIN",ImGuiDataType_U8,&opE.modIn,&_ZERO,&_SEVEN)); rightClickable
+                      ImGui::TableNextColumn();
+                      ImGui::Text("%s",ESFM_NAME(ESFM_MODIN));
+                    }
+
                     ImGui::EndTable();
                   }
 
-                  if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
+                  if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_ESFM) {
                     if (ImGui::Checkbox(FM_NAME(FM_VIB),&vibOn)) { PARAMETER
                       op.vib=vibOn;
                     }
                     ImGui::SameLine();
                     if (ImGui::Checkbox(FM_NAME(FM_KSR),&ksrOn)) { PARAMETER
                       op.ksr=ksrOn;
+                    }
+                  }
+
+                  if (ins->type==DIV_INS_ESFM) {
+                    bool dvbOn=op.dvb;
+                    bool damOn=op.dam;
+                    bool leftOn=opE.left;
+                    bool rightOn=opE.right;
+                    bool fixedOn=opE.fixed;
+                    if (ImGui::Checkbox(FM_NAME(FM_DVB),&dvbOn)) { PARAMETER
+                      op.dvb=dvbOn;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Checkbox(FM_NAME(FM_DAM),&damOn)) { PARAMETER
+                      op.dam=damOn;
+                    }
+                    if (ImGui::Checkbox(ESFM_NAME(ESFM_LEFT),&leftOn)) { PARAMETER
+                      opE.left=leftOn;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Checkbox(ESFM_NAME(ESFM_RIGHT),&rightOn)) { PARAMETER
+                      opE.right=rightOn;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Checkbox(ESFM_NAME(ESFM_FIXED),&fixedOn)) { PARAMETER
+                      opE.fixed=fixedOn;
+                      // HACK: reset zoom and scroll in fixed pitch macros so that they draw correctly
+                      ins->std.opMacros[i].ssgMacro.vZoom=-1;
+                      ins->std.opMacros[i].dtMacro.vZoom=-1;
                     }
                   }
 
@@ -4522,46 +5232,48 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndDisabled();
             ImGui::EndTabItem();
           }
-          if (ImGui::BeginTabItem("FM Macros")) {
-            if (ins->type==DIV_INS_OPLL) {
-              macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SUS),&ins->std.algMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-              macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FB),&ins->std.fbMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DC),&ins->std.fmsMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-              macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DM),&ins->std.amsMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-            } else {
-              macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_ALG),&ins->std.algMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FB),&ins->std.fbMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-              if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS) {
-                if (ins->type==DIV_INS_OPZ) {
-                  // TODO: FMS2/AMS2 macros
-                  macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FMS),&ins->std.fmsMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-                  macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AMS),&ins->std.amsMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER]));
-                } else {
-                  macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FMS),&ins->std.fmsMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-                  macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AMS),&ins->std.amsMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER]));
+          if (ins->type!=DIV_INS_ESFM) {
+            if (ImGui::BeginTabItem("FM Macros")) {
+              if (ins->type==DIV_INS_OPLL) {
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SUS),&ins->std.algMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FB),&ins->std.fbMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DC),&ins->std.fmsMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DM),&ins->std.amsMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              } else {
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_ALG),&ins->std.algMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FB),&ins->std.fbMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+                if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS) {
+                  if (ins->type==DIV_INS_OPZ) {
+                    // TODO: FMS2/AMS2 macros
+                    macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FMS),&ins->std.fmsMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+                    macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AMS),&ins->std.amsMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER]));
+                  } else {
+                    macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FMS),&ins->std.fmsMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+                    macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AMS),&ins->std.amsMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER]));
+                  }
                 }
               }
+
+              if (ins->type==DIV_INS_FM) {
+                macroList.push_back(FurnaceGUIMacroDesc("LFO Speed",&ins->std.ex3Macro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+              }
+              if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
+                macroList.push_back(FurnaceGUIMacroDesc("AM Depth",&ins->std.ex1Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("PM Depth",&ins->std.ex2Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("LFO Speed",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("LFO Shape",&ins->std.waveMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
+              }
+              if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
+                macroList.push_back(FurnaceGUIMacroDesc("OpMask",&ins->std.ex4Macro,0,4,128,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,fmOperatorBits));
+              } else if (ins->type==DIV_INS_OPZ) {
+                macroList.push_back(FurnaceGUIMacroDesc("AM Depth 2",&ins->std.ex5Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("PM Depth 2",&ins->std.ex6Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("LFO2 Speed",&ins->std.ex7Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("LFO2 Shape",&ins->std.ex8Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
+              }
+              drawMacros(macroList,macroEditStateFM);
+              ImGui::EndTabItem();
             }
-            
-            if (ins->type==DIV_INS_FM) {
-              macroList.push_back(FurnaceGUIMacroDesc("LFO Speed",&ins->std.ex3Macro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-            }
-            if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
-              macroList.push_back(FurnaceGUIMacroDesc("AM Depth",&ins->std.ex1Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc("PM Depth",&ins->std.ex2Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc("LFO Speed",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc("LFO Shape",&ins->std.waveMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
-            }
-            if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
-              macroList.push_back(FurnaceGUIMacroDesc("OpMask",&ins->std.ex4Macro,0,4,128,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,fmOperatorBits));
-            } else if (ins->type==DIV_INS_OPZ) {
-              macroList.push_back(FurnaceGUIMacroDesc("AM Depth 2",&ins->std.ex5Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc("PM Depth 2",&ins->std.ex6Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc("LFO2 Speed",&ins->std.ex7Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc("LFO2 Shape",&ins->std.ex8Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
-            }
-            drawMacros(macroList,macroEditStateFM);
-            ImGui::EndTabItem();
           }
           for (int i=0; i<opCount; i++) {
             if (ins->type==DIV_INS_OPL_DRUMS) {
@@ -4572,7 +5284,7 @@ void FurnaceGUI::drawInsEdit() {
             }
             if (ImGui::BeginTabItem(label)) {
               ImGui::PushID(i);
-              int ordi=(opCount==4)?orderedOps[i]:i;
+              int ordi=(opCount==4 && ins->type!=DIV_INS_ESFM)?orderedOps[i]:i;
               int maxTl=127;
               if (ins->type==DIV_INS_OPLL) {
                 if (i==1) {
@@ -4581,7 +5293,7 @@ void FurnaceGUI::drawInsEdit() {
                   maxTl=63;
                 }
               }
-              if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
+              if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_ESFM) {
                 maxTl=63;
               }
               int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM)?31:15;
@@ -4613,6 +5325,33 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_VIB),&ins->std.opMacros[ordi].vibMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_KSR),&ins->std.opMacros[ordi].ksrMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_EGS),&ins->std.opMacros[ordi].egtMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              } else if (ins->type==DIV_INS_ESFM) {
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_TL),&ins->std.opMacros[ordi].tlMacro,0,maxTl,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_DELAY),&ins->std.opMacros[ordi].dt2Macro,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AR),&ins->std.opMacros[ordi].arMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DR),&ins->std.opMacros[ordi].drMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SL),&ins->std.opMacros[ordi].slMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_RR),&ins->std.opMacros[ordi].rrMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_KSL),&ins->std.opMacros[ordi].kslMacro,0,3,32,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_MULT),&ins->std.opMacros[ordi].multMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_WS),&ins->std.opMacros[ordi].wsMacro,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_OUTLVL),&ins->std.opMacros[ordi].egtMacro,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_MODIN),&ins->std.opMacros[ordi].d2rMacro,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+                if (ins->esfm.op[ordi].fixed) {
+                  macroList.push_back(FurnaceGUIMacroDesc("Block",&ins->std.opMacros[ordi].ssgMacro,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER],true));
+                  macroList.push_back(FurnaceGUIMacroDesc("FreqNum",&ins->std.opMacros[ordi].dtMacro,0,1023,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                } else {
+                  macroList.push_back(FurnaceGUIMacroDesc("Op. Arpeggio",&ins->std.opMacros[ordi].ssgMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.opMacros[ordi].ssgMacro.val,true));
+                  macroList.push_back(FurnaceGUIMacroDesc("Op. Pitch",&ins->std.opMacros[ordi].dtMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,0,false,NULL,false,true));
+                }
+
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),&ins->std.opMacros[ordi].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_VIB),&ins->std.opMacros[ordi].vibMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DAM),&ins->std.opMacros[ordi].damMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DVB),&ins->std.opMacros[ordi].dvbMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_KSR),&ins->std.opMacros[ordi].ksrMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SUS),&ins->std.opMacros[ordi].susMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+                macroList.push_back(FurnaceGUIMacroDesc("Op. Panning",&ins->std.opMacros[ordi].rsMacro,0,2,40,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
               } else {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_TL),&ins->std.opMacros[ordi].tlMacro,0,maxTl,128,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AR),&ins->std.opMacros[ordi].arMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -5975,7 +6714,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SM8521) {
             volMax=31;
           }
-          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6_SAW) {
+          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_ESFM) {
             volMax=63;
           }
           if (ins->type==DIV_INS_AMIGA) {
@@ -6155,6 +6894,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Echo Level";
             dutyMax=32767;
           }
+          if (ins->type==DIV_INS_ESFM) {
+            dutyLabel="OP4 Noise Mode";
+            dutyMax=3;
+          }
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
@@ -6168,7 +6911,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC || ins->type==DIV_INS_OPLL) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
-          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) waveMax=0;
+          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
           if (ins->type==DIV_INS_MULTIPCM) waveMax=0;
           if (ins->type==DIV_INS_ADPCMA) waveMax=0;
@@ -6269,7 +7012,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_MSM6258 ||
               ins->type==DIV_INS_VERA ||
               ins->type==DIV_INS_ADPCMA ||
-              ins->type==DIV_INS_ADPCMB) {
+              ins->type==DIV_INS_ADPCMB ||
+              ins->type==DIV_INS_ESFM) {
             panMax=2;
             panSingle=true;
           }
@@ -6412,7 +7156,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_K053260 ||
               ins->type==DIV_INS_C140 ||
               ins->type==DIV_INS_C219 ||
-              ins->type==DIV_INS_TED) {
+              ins->type==DIV_INS_TED ||
+              ins->type==DIV_INS_ESFM) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {

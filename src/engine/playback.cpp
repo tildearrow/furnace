@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -242,7 +242,12 @@ const char* cmdName[]={
   "C64_AD",
   "C64_SR",
 
-  "ALWAYS_SET_VOLUME"
+  "ESFM_OP_PANNING",
+  "ESFM_OUTLVL",
+  "ESFM_MODIN",
+  "ESFM_ENV_DELAY",
+
+  "MACRO_RESTART",
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
@@ -267,8 +272,6 @@ int DivEngine::dispatchCmd(DivCommand c) {
     if (!skipping) {
       switch (c.cmd) {
         // strip away hinted/useless commands
-        case DIV_ALWAYS_SET_VOLUME:
-          break;
         case DIV_CMD_GET_VOLUME:
           break;
         case DIV_CMD_VOLUME:
@@ -615,7 +618,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // volume
   if (pat->data[whatRow][3]!=-1) {
-    if (dispatchCmd(DivCommand(DIV_ALWAYS_SET_VOLUME,i)) || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
+    if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
       if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
         chan[i].midiAftertouch=true;
       }
@@ -1004,6 +1007,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xf6: // enable macro
         dispatchCmd(DivCommand(DIV_CMD_MACRO_ON,i,effectVal&0xff));
+        break;
+      case 0xf7: // restart macro
+        dispatchCmd(DivCommand(DIV_CMD_MACRO_RESTART,i,effectVal&0xff));
         break;
       case 0xf8: // single volume ramp up
         chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -997,6 +997,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_PCSPKR: {
       int clockSel=flags.getInt("clockSel",0);
       int speakerType=flags.getInt("speakerType",0);
+      bool resetPhase=flags.getBool("resetPhase",false);
 
       ImGui::Text("Clock rate:");
       ImGui::Indent();
@@ -1034,10 +1035,15 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      if (ImGui::Checkbox("Reset phase on frequency change",&resetPhase)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("speakerType",speakerType);
+          flags.set("resetPhase",resetPhase);
         });
       }
       break;
@@ -2273,6 +2279,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_C219:
       break;
     case DIV_SYSTEM_YMU759:
+    case DIV_SYSTEM_ESFM:
       supportsCustomRate=false;
       ImGui::Text("nothing to configure");
       break;

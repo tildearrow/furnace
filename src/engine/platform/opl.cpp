@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1343,7 +1343,7 @@ void DivPlatformOPL::commitState(int ch, DivInstrument* ins) {
 int DivPlatformOPL::dispatch(DivCommand c) {
   if (c.chan>=totalChans && c.chan!=adpcmChan) return 0;
   // ineffective in 4-op mode
-  if (oplType==3 && c.chan!=adpcmChan && c.chan<14 && (c.chan&1) && c.cmd!=DIV_CMD_GET_VOLMAX && c.cmd!=DIV_ALWAYS_SET_VOLUME) {
+  if (oplType==3 && c.chan!=adpcmChan && c.chan<14 && (c.chan&1) && c.cmd!=DIV_CMD_GET_VOLMAX) {
     if (chan[c.chan-1].fourOp) return 0;
   }
   switch (c.cmd) {
@@ -1970,8 +1970,8 @@ int DivPlatformOPL::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       if (c.chan==adpcmChan) return 255;
@@ -2276,6 +2276,10 @@ bool DivPlatformOPL::keyOffAffectsArp(int ch) {
 }
 
 bool DivPlatformOPL::keyOffAffectsPorta(int ch) {
+  return false;
+}
+
+bool DivPlatformOPL::getLegacyAlwaysSetVolume() {
   return false;
 }
 

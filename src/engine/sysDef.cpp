@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -614,6 +614,56 @@ void DivEngine::registerSystems() {
   EffectHandlerMap segaPCMPostEffectHandlerMap={
     {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set PCM frequency"}}
   };
+
+  EffectHandlerMap fmESFMPostEffectHandlerMap={
+    {0x10, {DIV_CMD_FM_AM_DEPTH, "10xy: Set AM depth (x: operator from 1 to 4 (0 for all ops); y: depth (0: 1dB, 1: 4.8dB))", effectOpVal<4>, effectValAnd<1>}},
+    {0x12, {DIV_CMD_FM_TL, "12xx: Set level of operator 1 (0 highest, 3F lowest)", constVal<0>, effectVal}},
+    {0x13, {DIV_CMD_FM_TL, "13xx: Set level of operator 2 (0 highest, 3F lowest)", constVal<1>, effectVal}},
+    {0x14, {DIV_CMD_FM_TL, "14xx: Set level of operator 3 (0 highest, 3F lowest)", constVal<2>, effectVal}},
+    {0x15, {DIV_CMD_FM_TL, "15xx: Set level of operator 4 (0 highest, 3F lowest)", constVal<3>, effectVal}},
+    {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)", effectOpValNoZero<4>, effectValAnd<15>}},
+    {0x17, {DIV_CMD_FM_PM_DEPTH, "17xy: Set vibrato depth (x: operator from 1 to 4 (0 for all ops); y: depth (0: normal, 1: double))", effectOpVal<4>, effectValAnd<1>}},
+    {0x19, {DIV_CMD_FM_AR, "19xx: Set attack of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
+    {0x1a, {DIV_CMD_FM_AR, "1Axx: Set attack of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
+    {0x1b, {DIV_CMD_FM_AR, "1Bxx: Set attack of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
+    {0x1c, {DIV_CMD_FM_AR, "1Cxx: Set attack of operator 3 (0 to F)", constVal<2>, effectValAnd<15>}},
+    {0x1d, {DIV_CMD_FM_AR, "1Dxx: Set attack of operator 4 (0 to F)", constVal<3>, effectValAnd<15>}},
+    {0x20, {DIV_CMD_ESFM_OP_PANNING, "20xy: Set panning of operator 1 (x: left; y: right)", constVal<0>, effectVal}},
+    {0x21, {DIV_CMD_ESFM_OP_PANNING, "21xy: Set panning of operator 2 (x: left; y: right)", constVal<1>, effectVal}},
+    {0x22, {DIV_CMD_ESFM_OP_PANNING, "22xy: Set panning of operator 3 (x: left; y: right)", constVal<2>, effectVal}},
+    {0x23, {DIV_CMD_ESFM_OP_PANNING, "23xy: Set panning of operator 4 (x: left; y: right)", constVal<3>, effectVal}},
+    {0x24, {DIV_CMD_ESFM_OUTLVL, "24xy: Set output level register (x: operator from 1 to 4 (0 for all ops); y: level from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
+    {0x25, {DIV_CMD_ESFM_MODIN, "25xy: Set modulation input level (x: operator from 1 to 4 (0 for all ops); y: level from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
+    {0x26, {DIV_CMD_ESFM_ENV_DELAY, "26xy: Set envelope delay (x: operator from 1 to 4 (0 for all ops); y: delay from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
+    {0x27, {DIV_CMD_STD_NOISE_MODE, "27xx: Set noise mode for operator 4 (x: mode from 0 to 3)", effectValAnd<3>}},
+    {0x2a, {DIV_CMD_FM_WS, "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
+    {0x2f, {DIV_CMD_FM_FIXFREQ, "2Fxy: Set fixed frequency block (x: operator from 1 to 4; y: octave from 0 to 7)", effectOpValNoZero<4>, effectValAnd<7>}},
+    {0x40, {DIV_CMD_FM_DT, "40xx: Set detune of operator 1 (80: center)", constVal<0>, effectVal}},
+    {0x41, {DIV_CMD_FM_DT, "41xx: Set detune of operator 2 (80: center)", constVal<1>, effectVal}},
+    {0x42, {DIV_CMD_FM_DT, "42xx: Set detune of operator 3 (80: center)", constVal<2>, effectVal}},
+    {0x43, {DIV_CMD_FM_DT, "43xx: Set detune of operator 4 (80: center)", constVal<3>, effectVal}},
+    {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)", effectOpVal<4>, effectValAnd<1>}},
+    {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)", effectOpVal<4>, effectValAnd<15>}},
+    {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)", effectOpVal<4>, effectValAnd<15>}},
+    {0x53, {DIV_CMD_FM_VIB, "53xy: Set vibrato (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal<4>, effectValAnd<1>}},
+    {0x54, {DIV_CMD_FM_RS, "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)", effectOpVal<4>, effectValAnd<3>}},
+    {0x55, {DIV_CMD_FM_SUS, "55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal<4>, effectValAnd<1>}},
+    {0x56, {DIV_CMD_FM_DR, "56xx: Set decay of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
+    {0x57, {DIV_CMD_FM_DR, "57xx: Set decay of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
+    {0x58, {DIV_CMD_FM_DR, "58xx: Set decay of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
+    {0x59, {DIV_CMD_FM_DR, "59xx: Set decay of operator 3 (0 to F)", constVal<2>, effectValAnd<15>}},
+    {0x5a, {DIV_CMD_FM_DR, "5Axx: Set decay of operator 4 (0 to F)", constVal<3>, effectValAnd<15>}},
+    {0x5b, {DIV_CMD_FM_KSR, "5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal<4>, effectValAnd<1>}}
+  };
+  const EffectHandler fmESFMFixFreqFNumHandler[4]={
+    {DIV_CMD_FM_FIXFREQ, "3xyy: Set fixed frequency F-num of operator 1 (x: high 2 bits from 0 to 3; y: low 8 bits of F-num)", constVal<4>, effectValLong<10>},
+    {DIV_CMD_FM_FIXFREQ, "3xyy: Set fixed frequency F-num of operator 2 (x: high 2 bits from 4 to 7; y: low 8 bits of F-num)", constVal<5>, effectValLong<10>},
+    {DIV_CMD_FM_FIXFREQ, "3xyy: Set fixed frequency F-num of operator 3 (x: high 2 bits from 8 to B; y: low 8 bits of F-num)", constVal<6>, effectValLong<10>},
+    {DIV_CMD_FM_FIXFREQ, "3xyy: Set fixed frequency F-num of operator 4 (x: high 2 bits from C to F; y: low 8 bits of F-num)", constVal<7>, effectValLong<10>},
+  };
+  for (int i=0; i<16; i++) {
+    fmESFMPostEffectHandlerMap.emplace(0x30+i,fmESFMFixFreqFNumHandler[i/4]);
+  }
 
   // SysDefs
 
@@ -1919,6 +1969,20 @@ void DivEngine::registerSystems() {
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set noise mode"}},
       {0x12, {DIV_CMD_SNES_INVERT, "12xy: Set invert mode (x: surround; y: invert)"}},
     }
+  );
+
+  sysDefs[DIV_SYSTEM_ESFM]=new DivSysDef(
+    "ESS ES1xxx series (ESFM)", NULL, 0xd1, 0, 18, true, false, 0, false, 0, 0, 0, 
+    "a unique FM synth featured in PC sound cards.\nbased on the OPL3 design, but with lots of its features extended.",
+    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "FM 10", "FM 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18"},
+    {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"},
+    {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
+    {DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM, DIV_INS_ESFM},
+    {},
+    {
+      {0x2e, {DIV_CMD_FM_HARD_RESET, "2Exx: Toggle hard envelope reset on new notes"}},
+    },
+    fmESFMPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

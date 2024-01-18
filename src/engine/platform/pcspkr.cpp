@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -373,6 +373,9 @@ void DivPlatformPCSpeaker::tick(bool sysTick) {
       if (chan[i].keyOff) {
         on=false;
       }
+      if (freq!=chan[i].freq && resetPhase) {
+        pos=0;
+      }
       freq=chan[i].freq;
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -473,8 +476,8 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -610,6 +613,7 @@ void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/PCSPKR_DIVIDER;
   speakerType=flags.getInt("speakerType",0)&3;
+  resetPhase=flags.getBool("resetPhase",false);
   oscBuf->rate=rate;
 
   switch (speakerType) {

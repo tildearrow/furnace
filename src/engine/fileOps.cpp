@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -187,6 +187,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.oldDPCM=true;
       ds.delayBehavior=0;
       ds.jumpTreatment=2;
+      ds.oldAlwaysSetVolume=true;
 
       // 1.1 compat flags
       if (ds.version>24) {
@@ -1876,6 +1877,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<188) {
       ds.ceilVolumeScaling=false;
     }
+    if (ds.version<191) {
+      ds.oldAlwaysSetVolume=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2424,7 +2428,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<2; i++) {
+      if (ds.version>=191) {
+        ds.oldAlwaysSetVolume=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<1; i++) {
         reader.readC();
       }
     }
@@ -5522,7 +5531,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
   w->writeC(song.oldDPCM);
   w->writeC(song.resetArpPhaseOnNewNote);
   w->writeC(song.ceilVolumeScaling);
-  for (int i=0; i<2; i++) {
+  w->writeC(song.oldAlwaysSetVolume);
+  for (int i=0; i<1; i++) {
     w->writeC(0);
   }
 
@@ -6445,7 +6455,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
 
     w->writeText(fmt::sprintf("- type: %d\n",(int)ins->type));
 
-    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM) {
+    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
       w->writeText("- FM parameters:\n");
       w->writeText(fmt::sprintf("  - ALG: %d\n",ins->fm.alg));
       w->writeText(fmt::sprintf("  - FB: %d\n",ins->fm.fb));
@@ -6486,6 +6496,25 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
         w->writeText(fmt::sprintf("    - WS: %d\n",op.ws));
         w->writeText(fmt::sprintf("    - KSR: %d\n",op.ksr));
         w->writeText(fmt::sprintf("    - TL volume scale: %d\n",op.kvs));
+      }
+    }
+
+    if (ins->type==DIV_INS_ESFM) {
+      w->writeText("- ESFM parameters:\n");
+      w->writeText(fmt::sprintf("  - noise mode: %d\n",ins->esfm.noise));
+
+      for (int j=0; j<ins->fm.ops; j++) {
+        DivInstrumentESFM::Operator& opE=ins->esfm.op[j];
+
+        w->writeText(fmt::sprintf("  - operator %d:\n",j));
+        w->writeText(fmt::sprintf("    - DL: %d\n",opE.delay));
+        w->writeText(fmt::sprintf("    - OL: %d\n",opE.outLvl));
+        w->writeText(fmt::sprintf("    - MI: %d\n",opE.modIn));
+        w->writeText(fmt::sprintf("    - output left: %s\n",trueFalse[opE.left?1:0]));
+        w->writeText(fmt::sprintf("    - output right: %s\n",trueFalse[opE.right?1:0]));
+        w->writeText(fmt::sprintf("    - CT: %d\n",opE.ct));
+        w->writeText(fmt::sprintf("    - DT: %d\n",opE.dt));
+        w->writeText(fmt::sprintf("    - fixed frequency: %s\n",trueFalse[opE.fixed?1:0]));
       }
     }
 
