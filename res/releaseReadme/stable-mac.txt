@@ -28,7 +28,7 @@ if you find issues (e.g. bugs or annoyances), report them. links below.
   - discussion: https://github.com/tildearrow/furnace/discussions
 - Furnace on Revolt: https://rvlt.gg/GRPS6tmc
 - Furnace on Discord: https://discord.gg/EfrwT2wq7z
-- online manual: https://tildearrow.org/furnace/doc/v0.6/
+- online manual: https://tildearrow.org/furnace/doc/esfm-con/
 
 # notes
 
