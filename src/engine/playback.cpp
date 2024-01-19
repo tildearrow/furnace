@@ -212,7 +212,6 @@ const char* cmdName[]={
 
   "MACRO_OFF",
   "MACRO_ON",
-  "MACRO_RETRIG",
 
   "SURROUND_PANNING",
 
@@ -248,7 +247,7 @@ const char* cmdName[]={
   "ESFM_MODIN",
   "ESFM_ENV_DELAY",
 
-  "DIV_CMD_MACRO_RESTART",
+  "MACRO_RESTART",
 
   "ES5503_NUM_ENABLED_OSC",
   "ES5503_OSC_OUTPUT",
