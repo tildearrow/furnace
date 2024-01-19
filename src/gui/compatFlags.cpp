@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -191,6 +191,10 @@ void FurnaceGUI::drawCompatFlags() {
         ImGui::Checkbox("Disable new NES DPCM features",&e->song.oldDPCM);
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("behavior changed in 0.6.1");
+        }
+        ImGui::Checkbox("Legacy technical ALWAYS_SET_VOLUME behavior",&e->song.oldAlwaysSetVolume);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6.1\nthis flag will be removed if I find out that none of the songs break after disabling it.");
         }
         ImGui::EndTabItem();
       }

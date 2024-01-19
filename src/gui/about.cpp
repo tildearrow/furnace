@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ const char* aboutLine[]={
   "cam900",
   "djtuBIG-MaliceX",
   "Eknous",
+  "Kagamiin~",
   "laoo",
   "LTVA1",
   "MooingLemur",
@@ -109,6 +110,7 @@ const char* aboutLine[]={
   "Korbo",
   "jaezu",
   "Laggy",
+  "leejh20",
   "LovelyA72",
   "LTVA1",
   "LunaMoth",
@@ -193,6 +195,7 @@ const char* aboutLine[]={
   "adpcm by superctr",
   "Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt",
   "YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt",
+  "ESFMu by Kagamiin~",
   "ymfm by Aaron Giles",
   "MAME SN76496 by Nicola Salmoria",
   "MAME AY-3-8910 by Couriersud",
@@ -234,7 +237,7 @@ const char* aboutLine[]={
   "Xenium Demoparty",
   "all members of Deflers of Noice!",
   "",
-  "copyright © 2021-2023 tildearrow",
+  "copyright © 2021-2024 tildearrow",
   "(and contributors).",
   "licensed under GPLv2+! see",
   "LICENSE for more information.",

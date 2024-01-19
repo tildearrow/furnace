@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -302,7 +302,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
 #endif
 }
 
-DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles) {
+DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles, int rate) {
   if (song.sample.size()>=256) {
     lastError="too many samples!";
     return NULL;
@@ -420,8 +420,8 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     return NULL;
   }
 
-  sample->rate=32000;
-  sample->centerRate=32000;
+  sample->rate=rate;
+  sample->centerRate=rate;
   sample->depth=depth;
   sample->init(samples);
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -651,8 +651,8 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
@@ -719,6 +719,10 @@ DivDispatchOscBuffer* DivPlatformAY8910::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+int DivPlatformAY8910::mapVelocity(int ch, float vel) {
+  return round(15.0*pow(vel,0.33));
+}
+
 unsigned char* DivPlatformAY8910::getRegisterPool() {
   return regPool;
 }
@@ -773,6 +777,10 @@ int DivPlatformAY8910::getOutputCount() {
 
 bool DivPlatformAY8910::keyOffAffectsArp(int ch) {
   return true;
+}
+
+bool DivPlatformAY8910::getLegacyAlwaysSetVolume() {
+  return false;
 }
 
 void DivPlatformAY8910::notifyInsDeletion(void* ins) {

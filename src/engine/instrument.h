@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,6 +85,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_TED=52,
   DIV_INS_C140=53,
   DIV_INS_C219=54,
+  DIV_INS_ESFM=55,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -771,6 +772,56 @@ struct DivInstrumentSNES {
     d2(0) {}
 };
 
+// ESFM operator structure:
+// - DELAY, OUT, MOD, L, R, NOISE
+//   - Virtual: CT, DT, FIXED
+//   - In FM struct: AM, DAM, AR, DR, MULT, RR, SL, TL
+//   - In FM struct: KSL, VIB, DVB, WS, SUS, KSR
+//   - Not in struct: FNUML, FNUMH, BLOCK
+
+struct DivInstrumentESFM {
+  bool operator==(const DivInstrumentESFM& other);
+  bool operator!=(const DivInstrumentESFM& other) {
+    return !(*this==other);
+  }
+
+  // Only works on OP4, so putting it outside the Operator struct instead
+  unsigned char noise;
+  struct Operator {
+    unsigned char delay, outLvl, modIn, left, right, fixed;
+    signed char ct, dt;
+
+    bool operator==(const Operator& other);
+    bool operator!=(const Operator& other) {
+      return !(*this==other);
+    }
+    Operator():
+      delay(0),
+      outLvl(0),
+      modIn(0),
+      left(1),
+      right(1),
+      fixed(0),
+      ct(0),
+      dt(0) {}
+  } op[4];
+  DivInstrumentESFM():
+    noise(0)
+    {
+      op[0].modIn=4;
+      op[0].outLvl=0;
+
+      op[1].modIn=7;
+      op[1].outLvl=0;
+
+      op[2].modIn=7;
+      op[2].outLvl=0;
+
+      op[3].modIn=7;
+      op[3].outLvl=7;
+    }
+};
+
 struct DivInstrument {
   String name;
   DivInstrumentType type;
@@ -787,6 +838,7 @@ struct DivInstrument {
   DivInstrumentSoundUnit su;
   DivInstrumentES5506 es5506;
   DivInstrumentSNES snes;
+  DivInstrumentESFM esfm;
 
   /**
    * these are internal functions.
@@ -811,6 +863,7 @@ struct DivInstrument {
   void writeFeatureES(SafeWriter* w);
   void writeFeatureX1(SafeWriter* w);
   void writeFeatureNE(SafeWriter* w);
+  void writeFeatureEF(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -831,6 +884,7 @@ struct DivInstrument {
   void readFeatureES(SafeReader& reader, short version);
   void readFeatureX1(SafeReader& reader, short version);
   void readFeatureNE(SafeReader& reader, short version);
+  void readFeatureEF(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);

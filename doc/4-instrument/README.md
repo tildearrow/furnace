@@ -1,16 +1,24 @@
 # instrument editor
 
-the instrument editor always starts with this section:
+the instrument editor allows you to edit instruments.
+it can be activated by double-clicking on an instrument in the instrument list.
+
+alternatively, window > instrument editor displays it.
+
+## main
 
 ![top of instrument editor](instrument-editor-top.png)
 
-- top-left numeric dropdown: instrument selector.
-- folder icon: open an instrument file.
-- save icon: save current instrument as a file.
-  - right-clicking gives the option to save a .dmp format DefleMask preset.
-- **Name**: instrument name.
-- **Type**: the system for which the instrument is intended.
-  - if changed, all applicable settings and macros will remain as they are. numbers will not be adjusted.
+**TODO: add descriptions to buttons in the image. it really needs them.**
+
+- **Instrument Selector**: displays a list of instruments in the song.
+- **Open**: open an instrument file.
+- **Save**: save current instrument to a file.
+  - right-click to see additional options, such as saving in DefleMask preset format (.dmp).
+- **Name**: changes the instrument name.
+- **Type**: changes the instrument type (usually chip-specific).
+  - if changed, all applicable settings and macros will remain unchanged.
+  - you may have to adjust them afterwards.
 
 ## instrument types
 
@@ -31,6 +39,7 @@ the following instrument types are available:
 - [VRC6](vrc6.md) - for use with VRC6's PSG sound source.
 - [FM (OPLL)](fm-opll.md) - for use with YM2413.
 - [FM (OPL)](fm-opll.md) - for use with YM3526 (OPL), YM3812 (OPL2) and YMF262 (OPL3).
+- [FM (ESFM)](fm-esfm.md) - for use with ESFM.
 - [FDS](fds.md) - for use with Famicom Disk System sound source.
 - [Virtual Boy](virtual-boy.md) - for use with Virtual Boy.
 - [Namco 163](n163.md) - for use with Namco 163.
@@ -76,27 +85,29 @@ after creating an instrument, open the Instrument Editor and select the "Macros"
 
 ![macro view](macroview.png)
 
-the very first numeric entry sets the visible width of the bars in sequence-type macros. the scrollbar affects the view of all macros at once. there's a matching scrollbar at the bottom underneath all the macros.
+the very first numeric entry sets the visible width of the bars in sequence-type macros. the scrollbar affects the view of all macros at once. there is a matching scrollbar at the bottom underneath all the macros.
 
-each macro has two buttons on the left.
-- macro type (explained below).
-- timing editor, which pops up a small dialog:
-  - **Step Length (ticks)**: determines how many ticks pass before each change of value. default is 1.
-  - **Delay**: delays the start of the macro until this many ticks have passed. default is 0.
-  - the button is highlighted if either of these is set differently from default.
-- release mode. this determines how macro release is handled:
-  - **Active**: jumps to release position.
-  - **Passive**: does not jump to release position. if release position hasn't been reached yet, there will be a delay.
+each macro has the following parameters:
+- macro type (explained below)
+- timing options:
+  - **Step Length (ticks)**: determines the number of ticks between macro steps. default is 1.
+  - **Delay**: delays the macro until this many ticks have elapsed. default is 0.
+  - the button is highlighted if either of these parameters is set to non-default values.
+- release mode: determines how macro release (`===` or `REL` in the pattern) is handled:
+  - **Active**: jumps to release position on release.
+  - **Passive**: does not jump to release position. this will result in delay if release position has not been reached yet.
 
 ## macro types
 
-every macro can be defined though one of three methods, selectable with the leftmost button under the macro type label:
+there are three macro types:
 
-- ![sequence](macro-button-seq.png) **Sequence:** displayed as a bar graph, this is a sequence of numeric values.
-- ![ADSR](macro-button-ADSR.png) **ADSR:** this is a traditional ADSR envelope, defined by the rate of increase and decrease of value over time.
-- ![LFO](macro-button-LFO.png) **LFO:** the Low Frequency Oscillator generates a repeating wave of values.
+- ![sequence](macro-button-seq.png) **Sequence:** a sequence of numeric values.
+- ![ADSR](macro-button-ADSR.png) **ADSR:** this is an attack/decay/sustain/release envelope.
+- ![LFO](macro-button-LFO.png) **LFO:** Low Frequency Oscillator.
 
 ### sequence
+
+this is the most basic macro type. when the instrument is played, every value in the macro will be output sequentially, from left to right.
 
 ![sequence macro editor](macro-seq.png)
 
@@ -104,31 +115,26 @@ every macro can be defined though one of three methods, selectable with the left
 
 ![bitmask sequence macro editor](macro-seq-bitmask.png)
 
-the number between the macro type label and the macro type button is the macro length in steps. the `-` and `+` buttons change the length of the macro. start out by adding at least a few steps.
+**TODO: once again, text in the image. this sucks.**
 
-the values of the macro can be drawn in the "bar graph" box.
-- arpeggio and pitch macros may have values above or below the visible area; small chevrons will be shown until they are scrolled into view.
-- bitmask-style macros show labels for each of their bits, and these are edited as toggles.
+the Length field allows you to set the number of steps in the sequence.
 
-arpeggio macros have a short bar for setting whether to interpret the values as being "relative" or "fixed".
-- by default, values are offsets **relative** to the note.
-- if clicked on, a value becomes **fixed** and will be played at its corresponding note without regard to the note entered into the pattern.
-  - values are counted from `C-0`. for example, a fixed value of 48 produces a `C-4` note.
-  - fixed values are especially useful for noise instruments with preset periods.
+the sequence view allows you to edit the macro.
+- press and hold the left mouse button to start drawing. release to stop drawing.
+- press and hold the right mouse button to draw a line.
+  - the start point will be set to the cursor position.
+  - move the cursor to change the end point.
+  - release to finish drawing the line.
 
-below this is a short bar that controls macro loop and release.
-- click to set the start point of a loop; the end point is the last value or release point. it appears as half-height bars. right-click to remove the loop.
-- shift-click to set the release point. when played, the macro will hold here until the note is released. it appears as a full-height bar. right-click to remove the release point.
+the sequence view may be adjusted using the following combinations:
+- hold Ctrl and use the scroll wheel to zoom horizontally.
+- hold Ctrl-Shift and use the scroll wheel to zoom vertically.
+- the scrollbar at the right allows you to scroll vertically (if possible).
+- you may hold Shift and use the scroll wheel to scroll vertically as well.
 
-finally, the sequence of values can be directly edited in the text box at the bottom.
-- the loop start is entered as a `|`.
-- the release point is entered as a `/`.
-- in arpeggio macros, a value starting with a `@` is a fixed value as described above.
-- in bitmask-style macros, the values are added up in binary and converted to decimal. see [the hexadecimal guide](../1-intro/hex.md) for more info.
-
-in all cases except bitmask macros, right-clicking on the graph opens up an editing menu:
-- **copy**: copies the macro.
-- **paste**: pastes the macro in the clipboard.
+right-click on the sequence view to open a menu:
+- **copy**: copy this macro to clipboard.
+- **paste**: pastes the macro.
 - **clear**: clears the macro.
 - **clear contents**: resets all values to 0.
 - **offset**:
@@ -139,19 +145,46 @@ in all cases except bitmask macros, right-clicking on the graph opens up an edit
   - **Y**: multiplies all values by the scale factor, clipping them if they would exceed the allowed range.
 - **randomize**: replaces all values with random values between **Min** and **Max**.
 
+arpeggio and pitch macros may have values above or below the visible area. indicators will be shown until they are scrolled into view.
+
+bitmask-style macros show labels for each of their bits. these are edited as toggles.
+- drawing lines is not possible in these macros.
+
+under the sequence view there is a bar that allows you to set loop and release points.
+- click to set the loop start point; the end point is the last step or release point.
+  - right-click to remove the loop point.
+- shift-click to set the release point.
+  - the macro will stop at the release point until the note is released (`===` or `REL`).
+    - if the loop point is set, and it is placed before the release point, the macro will loop until note release instead.
+  - shift-right-click to remove the release point.
+
+arpeggio macros have an additional bar under the sequence view to set steps to "relative" or "fixed":
+- by default, step values are offsets **relative** to the note.
+- if clicked on, a step value becomes **fixed** and will be played at its corresponding note without regard to the currently playing note.
+  - values are counted from `C-0`. for example, a fixed value of 48 produces a `C-4` note.
+  - fixed values are especially useful for noise or percussion.
+
+the sequence can be edited in the text input field at the very bottom. the following symbols have special meanings:
+- `|`: loop point.
+- `/`: release point.
+- in arpeggio macros, `@` prefixed to a value indicates that it is a fixed value as described above.
+
+in bitmask-style macros, the values are added up in binary and converted to decimal.
+
 ### ADSR
 
 ![ADSR macro editor](macro-ADSR.png)
 
-- **Bottom** and **Top** determine the range of outputs generated by the macro. (Bottom can be larger than Top to invert the envelope!) All outputs will be between these two values.
+- **Bottom** and **Top** determine the macro's output range (Bottom can be larger than Top to invert the envelope!). all outputs will be between these two values.
 - Attack, Decay, Sustain, SusDecay, and Release accept inputs between 0 to 255. these are scaled to the distance between Bottom and Top.
-- **Attack** is how much the value moves toward Top with each tick.
-- **Hold** sets how many ticks to stay at Top before Decay.
-- **Decay** is how much the value moves to the Sustain level.
-- **Sustain** is how far from Bottom the value stays while the note is held.
-- **SusTime** is how many ticks to stay at Sustain until SusDecay.
-- **SusDecay** is how much the value moves toward Bottom with each tick while the note is held.
-- **Release** is how much the value moves toward Bottom with each tick after the note is released.
+  - the output starts at Bottom.
+  - **Attack** is how much the output moves toward Top with each tick.
+  - **Hold** sets how many ticks to stay at Top before Decay.
+  - **Decay** is how much the output moves to the Sustain level.
+  - **Sustain** is how far from Bottom the value stays while the note is on.
+  - **SusTime** is how many ticks to stay at Sustain until SusDecay.
+  - **SusDecay** is how much the output moves toward Bottom with each tick while the note is on.
+  - **Release** is how much the output moves toward Bottom with each tick after the note is released.
 
 ![macro ADSR chart](macro-ADSRchart.png)
 
@@ -159,10 +192,13 @@ in all cases except bitmask macros, right-clicking on the graph opens up an edit
 
 ![LFO macro editor](macro-LFO.png)
 
-- **Bottom** and **Top** determine the range of values generated by the macro. (Bottom can be larger than Top to invert the waveform!)
-- **Speed** is how quickly the values change - the frequency of the oscillator.
-- **Phase** is which part of the waveform the macro will start at, measured in 1/1024 increments.
-- **Shape** is the waveform used. triangle is the default, and Saw and Square are exactly as they say.
+- **Bottom** and **Top** determine the macro's output range (Bottom can be larger than Top to invert the waveform!).
+- **Speed** is how quickly the LFO position moves.
+- **Phase** defines the starting LFO position, measured in 1/1024 increments.
+- **Shape** is the waveform of the LFO. there are three waveforms:
+  - Triangle: Bottom > Top > Bottom.
+  - Saw: moves from Bottom to Top, and then jumps back to Bottom.
+  - Square: alternates between Bottom and Top.
 
 
 

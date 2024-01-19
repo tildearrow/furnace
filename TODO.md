@@ -1,14 +1,11 @@
 # to-do
 
-- add cheat code to insert bruno time (blank)
-
-# THE REAL TO-DO LIST
-
+- finish color import improvements (settings refactor)
+- new undo stuff
+- fix some bugs
 - finish auto-clone
 
 once you have done all of this (maybe not the first one), release 0.6.1
-
-Furnace is like alcohol...
 
 # and then
 

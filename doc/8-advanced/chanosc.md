@@ -33,6 +33,7 @@ right-clicking the view will display the configuration view shown above:
   - `%v`: volume (decimal)
   - `%V`: volume (percentage)
   - `%b`: volume (hex)
+  - `%l`: new line
   - `%%`: percent sign
 
 click on OK to return to the main view.

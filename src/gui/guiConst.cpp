@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -175,6 +175,7 @@ const char* insTypes[DIV_INS_MAX+1][3]={
   {"TED",ICON_FA_BAR_CHART,ICON_FUR_INS_TED},
   {"C140",ICON_FA_VOLUME_UP,ICON_FUR_INS_C140},
   {"C219",ICON_FA_VOLUME_UP,ICON_FUR_INS_C219},
+  {"FM (ESFM)",ICON_FA_AREA_CHART,ICON_FUR_INS_ESFM},
   {NULL,ICON_FA_QUESTION,ICON_FA_QUESTION}
 };
 
@@ -515,7 +516,7 @@ const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // F4
   GUI_COLOR_PATTERN_EFFECT_MISC, // F5
   GUI_COLOR_PATTERN_EFFECT_MISC, // F6
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // F7
+  GUI_COLOR_PATTERN_EFFECT_MISC, // F7
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // F8
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // F9
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // FA
@@ -537,6 +538,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("OPEN_BACKUP", "Restore backup", 0),
   D("SAVE", "Save file", FURKMOD_CMD|SDLK_s),
   D("SAVE_AS", "Save as", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_s),
+  D("EXPORT", "Export", 0),
   D("UNDO", "Undo", FURKMOD_CMD|SDLK_z),
 #ifdef __APPLE__
   D("REDO", "Redo", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_z),
@@ -794,6 +796,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_MODAL_BACKDROP,"",ImVec4(0.0f,0.0f,0.0f,0.55f)),
   D(GUI_COLOR_HEADER,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_TEXT,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_TEXT_DISABLED,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
   D(GUI_COLOR_ACCENT_PRIMARY,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
   D(GUI_COLOR_ACCENT_SECONDARY,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
   D(GUI_COLOR_TITLE_INACTIVE,"",ImVec4(0.04f,0.04f,0.04f,1.0f)),
@@ -817,6 +820,36 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_NAV_HIGHLIGHT,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
   D(GUI_COLOR_NAV_WIN_HIGHLIGHT,"",ImVec4(1.0f,1.0f,1.0f,0.7f)),
   D(GUI_COLOR_NAV_WIN_BACKDROP,"",ImVec4(0.8f,0.8f,0.8f,0.2f)),
+  D(GUI_COLOR_PLOT_LINES,"",ImVec4(0.61f,0.61f,0.61f,1.0f)),
+  D(GUI_COLOR_PLOT_LINES_HOVER,"",ImVec4(1.00f,0.43f,0.35f,1.00f)),
+  D(GUI_COLOR_PLOT_HISTOGRAM,"",ImVec4(0.0f,0.9f,1.0f,1.0f)),
+  D(GUI_COLOR_PLOT_HISTOGRAM_HOVER,"",ImVec4(0.0f,0.9f,1.0f,1.0f)),
+
+  D(GUI_COLOR_BUTTON,"",ImVec4(0.085f,0.216f,0.343f,1.0f)),
+  D(GUI_COLOR_BUTTON_HOVER,"",ImVec4(0.075f,0.287f,0.49f,1.0f)),
+  D(GUI_COLOR_BUTTON_ACTIVE,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
+  D(GUI_COLOR_TAB,"",ImVec4(0.085f,0.216f,0.343f,1.0f)),
+  D(GUI_COLOR_TAB_HOVER,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
+  D(GUI_COLOR_TAB_ACTIVE,"",ImVec4(0.25f,0.47f,0.735f,1.0f)),
+  D(GUI_COLOR_TAB_UNFOCUSED,"",ImVec4(0.085f,0.216f,0.343f,1.0f)),
+  D(GUI_COLOR_TAB_UNFOCUSED_ACTIVE,"",ImVec4(0.075f,0.287f,0.49f,1.0f)),
+  D(GUI_COLOR_IMGUI_HEADER,"",ImVec4(0.083f,0.156f,0.245f,1.0f)),
+  D(GUI_COLOR_IMGUI_HEADER_HOVER,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
+  D(GUI_COLOR_IMGUI_HEADER_ACTIVE,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_RESIZE_GRIP,"",ImVec4(0.083f,0.156f,0.245f,1.0f)),
+  D(GUI_COLOR_RESIZE_GRIP_HOVER,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
+  D(GUI_COLOR_RESIZE_GRIP_ACTIVE,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_WIDGET_BACKGROUND,"",ImVec4(0.083f,0.156f,0.245f,1.0f)),
+  D(GUI_COLOR_WIDGET_BACKGROUND_HOVER,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
+  D(GUI_COLOR_WIDGET_BACKGROUND_ACTIVE,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_SLIDER_GRAB,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
+  D(GUI_COLOR_SLIDER_GRAB_ACTIVE,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
+  D(GUI_COLOR_TITLE_BACKGROUND_ACTIVE,"",ImVec4(0.085f,0.216f,0.343f,1.0f)),
+  D(GUI_COLOR_CHECK_MARK,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
+  D(GUI_COLOR_TEXT_SELECTION,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
+  D(GUI_COLOR_TABLE_ROW_EVEN,"",ImVec4(0.0f,0.0f,0.0f,0.0f)),
+  D(GUI_COLOR_TABLE_ROW_ODD,"",ImVec4(1.0f,1.0f,1.0f,0.06f)),
+
   D(GUI_COLOR_TOGGLE_OFF,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_TOGGLE_ON,"",ImVec4(0.2f,0.6f,0.2f,1.0f)),
   D(GUI_COLOR_EDITING,"",ImVec4(0.2f,0.1f,0.1f,1.0f)),
@@ -952,6 +985,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_TED,"",ImVec4(0.7f,0.6f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_C140,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_C219,"",ImVec4(1.0f,0.8f,0.0f,1.0f)),
+  D(GUI_COLOR_INSTR_ESFM,"",ImVec4(0.1f,0.9f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -1167,6 +1201,7 @@ const int availableSystems[]={
   DIV_SYSTEM_C140,
   DIV_SYSTEM_C219,
   DIV_SYSTEM_PCM_DAC,
+  DIV_SYSTEM_ESFM,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
 };
@@ -1202,6 +1237,7 @@ const int chipsFM[]={
   DIV_SYSTEM_OPL3,
   DIV_SYSTEM_OPL3_DRUMS,
   DIV_SYSTEM_OPZ,
+  DIV_SYSTEM_ESFM,
   0 // don't remove this last one!
 };
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
   FixedQueue<RealQueueVal,2048> realQueue;
   std::mutex realQueueLock;
   bool isMuted[1];
-  bool on, flip, lastOn, realOutEnabled;
+  bool on, flip, lastOn, realOutEnabled, resetPhase;
   int pos, speakerType, beepFD, realOutMethod;
   float low, band;
   float low2, high2, band2;

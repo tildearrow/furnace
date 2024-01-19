@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1062,6 +1062,17 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "PC + Sound Blaster Pro 2 (drums mode)", {
       CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+        "rate=44100\n"
+        "outDepth=15\n"
+        "stereo=true\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "PC + ESS AudioDrive ES1488 (native ESFM mode)", {
+      CH(DIV_SYSTEM_ESFM, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
         "rate=44100\n"
         "outDepth=15\n"
@@ -2362,6 +2373,11 @@ void FurnaceGUI::initSystemPresets() {
          "clockSel=5\n"
          "chipType=1\n"
       )
+    }
+  );
+  ENTRY(
+    "ESS ES1xxx series (ESFM)", {
+      CH(DIV_SYSTEM_ESFM, 1.0f, 0, "")
     }
   );
   if (settings.hiddenSystems) {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -395,9 +395,6 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       opChan[ch].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
-      break;
     case DIV_CMD_PRE_PORTA:
       break;
     default:
@@ -755,6 +752,12 @@ DivDispatchOscBuffer* DivPlatformYM2610Ext::getOscBuffer(int ch) {
   if (ch>=(extChanOffs+4)) return oscBuf[ch-3];
   if (ch<(extChanOffs+1)) return oscBuf[ch];
   return NULL;
+}
+
+int DivPlatformYM2610Ext::mapVelocity(int ch, float vel) {
+  if (ch>=extChanOffs+4) return DivPlatformOPN::mapVelocity(ch-3,vel);
+  if (ch>=extChanOffs) return DivPlatformOPN::mapVelocity(extChanOffs,vel);
+  return DivPlatformOPN::mapVelocity(ch,vel);
 }
 
 void DivPlatformYM2610Ext::reset() {

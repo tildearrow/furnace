@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -474,8 +474,8 @@ int DivPlatformPCE::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -537,6 +537,10 @@ DivSamplePos DivPlatformPCE::getSamplePos(int ch) {
 
 DivDispatchOscBuffer* DivPlatformPCE::getOscBuffer(int ch) {
   return oscBuf[ch];
+}
+
+int DivPlatformPCE::mapVelocity(int ch, float vel) {
+  return round(31.0*pow(vel,0.22));
 }
 
 unsigned char* DivPlatformPCE::getRegisterPool() {

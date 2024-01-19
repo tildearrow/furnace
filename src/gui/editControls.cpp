@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -519,24 +519,8 @@ void FurnaceGUI::drawMobileControls() {
           openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
         }
         ImGui::SameLine();
-        if (ImGui::Button("Export Audio")) {
-          openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Export VGM")) {
-          openFileDialog(GUI_FILE_EXPORT_VGM);
-        }
-
-        if (ImGui::Button("CmdStream")) {
-          openFileDialog(GUI_FILE_EXPORT_CMDSTREAM_BINARY);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("CmdStream Text")) {
-          openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Text")) {
-          openFileDialog(GUI_FILE_EXPORT_TEXT);
+        if (ImGui::Button("Export")) {
+          doAction(GUI_ACTION_EXPORT);
         }
 
         if (ImGui::Button("Restore Backup")) {
