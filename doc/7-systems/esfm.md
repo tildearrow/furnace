@@ -1,4 +1,4 @@
-# ESS Technology ES1xxx-series (ESFM)
+# ESS ESFM
 
 an FM synthesizer core included in a series of sound card chipsets made by ESS, which were mildly popular in the DOS days during the mid-late 90s.
 
@@ -10,42 +10,37 @@ thanks to ESS's decision to not release any documentation to developers and lock
 
 ## effects
 
-- `10xy`: **set AM depth of operator.**
+- `10xy`: **set AM depth.**
   - `x` is the operator from 1 to 4. a value of `0` means "all operators".
-  - `y` determines the AM depth; the following values are possible:
-    - `0`: 1dB (shallow)
-    - `1`: 4.8dB (deep)
-- `11xx`: **set feedback of channel.**
+  - `y` is either `0` (1dB, shallow) or `1` (4.8dB, deep).
 - `12xx`: **set operator 1 level.**
 - `13xx`: **set operator 2 level.**
 - `14xx`: **set operator 3 level.**
 - `15xx`: **set operator 4 level.**
 - `16xy`: **set multiplier of operator.**
-  - `x` is the operator from 1 to 4.
-  - `y` is the new MULT value.
-- `17xx`: **set vibrato depth of operator.**
+  - `x` is the operator (1-4).
+  - `y` is the new MULT value..
+- `17xy`: **set vibrato depth.**
   - `x` is the operator from 1 to 4. a value of `0` means "all operators".
-  - `y` determines the vibrato depth; the following values are possible:
-    - `0`: normal
-    - `1`: double
+  - `y` is either `0` (normal) or `1` (double).
 - `19xx`: **set attack of all operators.**
 - `1Axx`: **set attack of operator 1.**
 - `1Bxx`: **set attack of operator 2.**
 - `1Cxx`: **set attack of operator 3.**
 - `1Dxx`: **set attack of operator 4.**
 - `20xy`: **set panning of operator 1.**
-  - `x` is the left channel.
-  - `y` is the right channel.
+  - `x` determines whether to output on left.
+  - `y` determines whether to output on right.
 - `21xy`: **set panning of operator 2.**
-  - `x` is the left channel.
-  - `y` is the right channel.
+  - `x` determines whether to output on left.
+  - `y` determines whether to output on right.
 - `22xy`: **set panning of operator 3.**
-  - `x` is the left channel.
-  - `y` is the right channel.
+  - `x` determines whether to output on left.
+  - `y` determines whether to output on right.
 - `23xy`: **set panning of operator 4.**
-  - `x` is the left channel.
-  - `y` is the right channel.
-- `24xy`: **set output level register of operator.**
+  - `x` determines whether to output on left.
+  - `y` determines whether to output on right.
+- `24xy`: **set output level of operator.**
   - `x` is the operator from 1 to 4. a value of `0` means "all operators".
   - `y` is the value.
 - `25xy`: **set modulation input level of operator.**
@@ -54,24 +49,30 @@ thanks to ESS's decision to not release any documentation to developers and lock
 - `26xy`: **set envelope delay of operator.**
   - `x` is the operator from 1 to 4. a value of `0` means "all operators".
   - `y` is the value.
-- `27xx`: **set noise mode of operator 4.**
+- `27xx`: **set operator 4 noise mode.**
+  - `0`: noise off
+  - `1`: square + noise
+  - `2`: ring mod from operator 3 + noise
+  - `3`: ring mod from operator 3 + double pitch modulation input
+    - note: emulation issues. subject to change!
 - `2Axy`: **set waveform of operator.**
   - `x` is the operator from 1 to 4. a value of `0` means "all operators".
   - `y` is the value.
 - `2Exx`: **enable envelope hard reset.**
-  - this works by inserting a quick release and tiny delay before a new note.
-- `2Fxx`: **set fixed frequency block of operator**
+- `2Fxy`: **set fixed frequency block (octave).**
   - `x` is the operator from 1 to 4.
-  - `y` is the block from 0 to 7.
-  - the actual frequency is: `Fnum*(2^block)`
-- `3xyy`: **set fixed frequency Fnum of operator**
-  - `x` is the top 2 bits of the Fnum (`0-3` for operator 1; `4-7` for operator 2; `8-B` for operator 3; `C-F` for operator 4)
-  - `y` is the bottom 8 bits of the Fnum
-  - the actual frequency is: `Fnum*(2^block)`
-- `40xx`: **set detune of operator 1.** `00` is -1 semitone, `80` is base pitch, `FF` is nearly +1 semitone.
-- `41xx`: **set detune of operator 2.** `00` is -1 semitone, `80` is base pitch, `FF` is nearly +1 semitone.
-- `42xx`: **set detune of operator 3.** `00` is -1 semitone, `80` is base pitch, `FF` is nearly +1 semitone.
-- `43xx`: **set detune of operator 4.** `00` is -1 semitone, `80` is base pitch, `FF` is nearly +1 semitone.
+  - `y` is the block/octave from 0 to 7.
+- `3xyy`: **set fixed frequency f-num.**
+  - `x` contains operator number and high bits of f-num may be any of the following:
+    - `0` to `3` for operator 1
+    - `4` to `7` for operator 2
+    - `8` to `B` for operator 3
+    - `C` to `F` for operator 4
+  - `y` are the lower bits of f-num.
+- `40xx`: **set operator 1 detune.**
+- `41xx`: **set operator 1 detune.**
+- `42xx`: **set operator 1 detune.**
+- `43xx`: **set operator 1 detune.**
 - `50xy`: **set AM of operator.**
   - `x` is the operator from 1 to 4. a value of `0` means "all operators".
   - `y` determines whether AM is on.
