@@ -524,6 +524,9 @@ void DivPlatformMSM6295::setFlags(const DivConfig& flags) {
     case 14:
       chipClock=COLOR_NTSC/3.0;
       break;
+    case 15:
+      chipClock=3200000;
+      break;
     default:
       chipClock=4000000/4;
       break;

@@ -1523,6 +1523,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         clockSel=13;
         altered=true;
       }
+      if (ImGui::RadioButton("3.2MHz",clockSel==15)) {
+        clockSel=15;
+        altered=true;
+      }
       if (ImGui::RadioButton("3.58MHz",clockSel==4)) {
         clockSel=4;
         altered=true;
