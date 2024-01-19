@@ -214,7 +214,6 @@ enum DivDispatchCmds {
 
   DIV_CMD_MACRO_OFF, // (which)
   DIV_CMD_MACRO_ON, // (which)
-  DIV_CMD_MACRO_RESTART, // (which)
 
   DIV_CMD_SURROUND_PANNING, // (out, val)
 
@@ -255,6 +254,8 @@ enum DivDispatchCmds {
   DIV_CMD_ES5503_WAVE_LENGTH,
   DIV_CMD_ES5503_WAVE_POS,
   DIV_CMD_ES5503_OSC_MODE,
+
+  DIV_CMD_MACRO_RESTART, // (which)
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
