@@ -1,8 +1,12 @@
 # ESS ESFM
 
-an enhanced version of Yamaha's OPL3, adding many features which weren't present on the original chip, such as 4-op on all channels, coarse/fine detune, per-op panning, envelope delay, noise generator and advanced modulation routing (no more algorithms!).
+an FM synthesizer core included in a series of sound card chipsets made by ESS, which were mildly popular in the DOS days during the mid-late 90s.
 
-the technology was present in many of ESS' sound cards (the ES1xxx series in particular).
+at a cursory glance, it looks like just an [OPL3 clone](opl.md). but hidden under a veil of mystery is its exclusive "native mode", revealing an impressive superset of features, including 4-operator support on all 18 channels, semi-modular operator routing, per-operator pitch control, and even a few unique features.
+
+for a long time, not much was known about the inner workings of ESFM's native mode, since ESS did not release any documentation to developers on how to use it. this has thankfully changed in recent years thanks to reverse-engineering efforts from the community.
+
+thanks to ESS's decision to not release any documentation to developers and lock down usage of native mode behind a couple of General MIDI drivers shipping with rather lackluster patch sets, ESFM's native mode was unfortunately not very well used over its original lifespan.
 
 ## effects
 
