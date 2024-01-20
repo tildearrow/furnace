@@ -176,6 +176,26 @@ void FurnaceGUI::drawExportZSM(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportDMF(bool onWindow) {
+  exitDisabledTimer=1;
+
+  ImGui::Text("DefleMask file (1.1.3+)");
+  if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_SAVE_DMF);
+    ImGui::CloseCurrentPopup();
+  }
+}
+
+void FurnaceGUI::drawExportDMFLegacy(bool onWindow) {
+  exitDisabledTimer=1;
+
+  ImGui::Text("DefleMask file (1.0/legacy)");
+  if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
+    ImGui::CloseCurrentPopup();
+  }
+}
+
 void FurnaceGUI::drawExportAmigaVal(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -267,6 +287,14 @@ void FurnaceGUI::drawExport() {
         drawExportVGM(true);
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem("DMF (1.1.3+)")) {
+        drawExportDMF(true);
+        ImGui::EndTabItem();
+      }
+      if (ImGui::BeginTabItem("DMF (1.0/legacy)")) {
+        drawExportDMFLegacy(true);
+        ImGui::EndTabItem();
+      }
       int numZSMCompat=0;
       for (int i=0; i<e->song.systemLen; i++) {
         if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
@@ -306,6 +334,12 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_ZSM:
       drawExportZSM(true);
+      break;
+    case GUI_FILE_SAVE_DMF:
+      drawExportDMF(true);
+      break;
+    case GUI_FILE_SAVE_DMF_LEGACY:
+      drawExportDMFLegacy(true);
       break;
     case GUI_EXPORT_AMIGA_VAL:
       drawExportAmigaVal(true);

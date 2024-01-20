@@ -556,6 +556,8 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_AUDIO=0,
   GUI_EXPORT_VGM,
   GUI_EXPORT_ZSM,
+  GUI_EXPORT_DMF,
+  GUI_EXPORT_DMF_LEGACY,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_AMIGA_VAL,
   GUI_EXPORT_TEXT
@@ -2353,6 +2355,8 @@ class FurnaceGUI {
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportZSM(bool onWindow=false);
+  void drawExportDMF(bool onWindow=false);
+  void drawExportDMFLegacy(bool onWindow=false);
   void drawExportAmigaVal(bool onWindow=false);
   void drawExportText(bool onWindow=false);
   void drawExportCommand(bool onWindow=false);

@@ -4042,12 +4042,6 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("save as...",BIND_FOR(GUI_ACTION_SAVE_AS))) {
           openFileDialog(GUI_FILE_SAVE);
         }
-        if (ImGui::MenuItem("save as .dmf (1.1.3+)...")) {
-          openFileDialog(GUI_FILE_SAVE_DMF);
-        }
-        if (ImGui::MenuItem("save as .dmf (1.0/legacy)...")) {
-          openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
-        }
         ImGui::Separator();
         if (settings.exportOptionsLayout==0) {
           if (ImGui::BeginMenu("export audio...")) {
@@ -4057,6 +4051,12 @@ bool FurnaceGUI::loop() {
           if (ImGui::BeginMenu("export VGM...")) {
             drawExportVGM();
             ImGui::EndMenu();
+          }
+          if (ImGui::MenuItem("export .dmf (1.1.3+)...")) {
+          openFileDialog(GUI_FILE_SAVE_DMF);
+          }
+          if (ImGui::MenuItem("export .dmf (1.0/legacy)...")) {
+            openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
           }
           int numZSMCompat=0;
           for (int i=0; i<e->song.systemLen; i++) {
@@ -4093,6 +4093,14 @@ bool FurnaceGUI::loop() {
           }
           if (ImGui::MenuItem("export VGM...")) {
             curExportType=GUI_EXPORT_VGM;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem("export .dmf (1.1.3+)...")) {
+            curExportType=(FurnaceGUIExportTypes)GUI_FILE_SAVE_DMF;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem("export .dmf (1.0/legacy)...")) {
+            curExportType=(FurnaceGUIExportTypes)GUI_FILE_SAVE_DMF_LEGACY;
             displayExport=true;
           }
           int numZSMCompat=0;
