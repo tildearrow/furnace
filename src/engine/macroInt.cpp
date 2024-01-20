@@ -168,7 +168,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
 
 DivInstrumentMacro* macro_source_get_macro(macro_source* s, DivInstrument* ins)
 {
-  return s->op == 0xff ? ins->std.get_macro(s->macro_id, false) : ins->std.ops[s->op].op_get_macro(s->macro_id, false);
+  return s->op == 0xff ? ins->std.get_macro(s->macro_id, false) : ins->std.get_op_macro(s->op)->op_get_macro(s->macro_id, false);
 }
 
 void DivMacroInt::next() {
