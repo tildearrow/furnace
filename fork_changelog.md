@@ -8,7 +8,6 @@ LTVA:
 - CSM variants for YM2203, YM2608, YM2610 and YM2610B chips
 - Hide FM chips variations (ext3 ch, drums mode, CSM) into spoilers to reduce FM chips tab clutter in chips manager
 - Do the same thing in presets menu
-- Remove ability to save `.dmf` files
 - Add ESFM system. The code is courtesy of @Kagamiin, I just added per-op arpeggio and pitch macros which Kagamiin actually adopted in tilde's Furnace PR. And, of course, I edited the code to match new macro system.
 - Make a menu in settings->general where you select default chips a proper menu just like in chip manager
 - Move useful cheat codes into debug->settings and delete the ridiculous one (that just forces shitty padding for all UI elements)
