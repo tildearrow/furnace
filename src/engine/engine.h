@@ -630,6 +630,8 @@ class DivEngine {
     bool load(unsigned char* f, size_t length);
     // play a binary command stream.
     bool playStream(unsigned char* f, size_t length);
+    // save as .dmf.
+    SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
     // if notPrimary is true then the song will not be altered
     SafeWriter* saveFur(bool notPrimary=false, bool newPatternFormat=true);

@@ -488,6 +488,8 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
   GUI_FILE_OPEN_BACKUP,
   GUI_FILE_SAVE,
+  GUI_FILE_SAVE_DMF,
+  GUI_FILE_SAVE_DMF_LEGACY,
   GUI_FILE_INS_OPEN,
   GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
@@ -2622,7 +2624,7 @@ class FurnaceGUI {
   void pointMotion(int x, int y, int xrel, int yrel);
 
   void openFileDialog(FurnaceGUIFileDialogs type);
-  int save(String path);
+  int save(String path, int dmfVersion);
   int load(String path);
   int loadStream(String path);
   void pushRecentFile(String path);

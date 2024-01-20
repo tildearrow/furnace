@@ -57,7 +57,7 @@ void FurnaceGUI::doAction(int what) {
       if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
         openFileDialog(GUI_FILE_SAVE);
       } else {
-        if (save(curFileName)>0) {
+        if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
           showError(fmt::sprintf("Error while saving file! (%s)",lastError));
         }
       }
