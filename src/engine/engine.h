@@ -174,7 +174,7 @@ struct DivChannelState {
 
 struct DivNoteEvent {
   signed char channel;
-  unsigned char ins;
+  short ins;
   signed char note, volume;
   bool on, nop, insChange, fromMIDI;
   DivNoteEvent(int c, int i, int n, int v, bool o, bool ic=false, bool fm=false):
