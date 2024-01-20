@@ -104,7 +104,7 @@ void FurnaceGUI::prepareUndo(ActionType action, UndoRegion region) {
           auto it=oldPatMap.find(id);
           if (it==oldPatMap.end()) {
             p=oldPatMap[id]=new DivPattern;
-            logV("oldPatMap: allocating for %.4x",id);
+            //logV("oldPatMap: allocating for %.4x",id);
           } else {
             p=it->second;
           }
@@ -249,6 +249,12 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
   if (shallWalk) {
     e->walkSong(loopOrder,loopRow,loopEnd);
   }
+
+  // garbage collection
+  for (std::pair<unsigned short,DivPattern*> i: oldPatMap) {
+    delete i.second;
+  }
+  oldPatMap.clear();
 }
 
 void FurnaceGUI::doSelectAll() {
