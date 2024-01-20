@@ -2693,107 +2693,106 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::EndMenu();
   }
 
-    ImGui::Text("input latch");
-    ImGui::PushFont(patFont);
-    if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
-      static char id[64];
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-      ImGui::Text("C-4");
-      ImGui::PopStyleColor();
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
-      if (latchIns==-2) {
-        strcpy(id,"&&##LatchIns");
-      } else if (latchIns==-1) {
-        strcpy(id,"..##LatchIns");
-      } else {
-        snprintf(id,63,"%.2X##LatchIns",latchIns&0xff);
-      }
-      if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=1;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchIns=-2;
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-        ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
-        ImGui::PopStyleColor();
-      }
-      ImGui::PopStyleColor();
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
-      if (latchVol==-1) {
-        strcpy(id,"..##LatchVol");
-      } else {
-        snprintf(id,63,"%.2X##LatchVol",latchVol&0xff);
-      }
-      if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=2;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchVol=-1;
-      }
-      ImGui::PopStyleColor();
-      ImGui::TableNextColumn();
-      if (latchEffect==-1) {
-        strcpy(id,"..##LatchFX");
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-      } else {
-        const unsigned char data=latchEffect;
-        snprintf(id,63,"%.2X##LatchFX",data);
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
-      }
-
-      if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=3;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchEffect=-1;
-      }
-      ImGui::TableNextColumn();
-      if (latchEffectVal==-1) {
-        strcpy(id,"..##LatchFXV");
-      } else {
-        snprintf(id,63,"%.2X##LatchFXV",latchEffectVal&0xff);
-      }
-      if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=4;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchEffectVal=-1;
-      }
-      ImGui::PopStyleColor();
-      ImGui::EndTable();
+  ImGui::Text("input latch");
+  ImGui::PushFont(patFont);
+  if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
+    static char id[64];
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+    ImGui::Text("C-4");
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+    if (latchIns==-2) {
+      strcpy(id,"&&##LatchIns");
+    } else if (latchIns==-1) {
+      strcpy(id,"..##LatchIns");
+    } else {
+      snprintf(id,63,"%.2X##LatchIns",latchIns&0xff);
     }
-    ImGui::PopFont();
-    ImGui::SameLine();
-    if (ImGui::Button("Set")) {
-      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
-      latchIns=pat->data[cursor.y][2];
-      latchVol=pat->data[cursor.y][3];
-      latchEffect=pat->data[cursor.y][4];
-      latchEffectVal=pat->data[cursor.y][5];
-      latchTarget=0;
+    if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=1;
       latchNibble=false;
     }
-    ImGui::SameLine();
-    if (ImGui::Button("Reset")) {
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
       latchIns=-2;
-      latchVol=-1;
-      latchEffect=-1;
-      latchEffectVal=-1;
-      latchTarget=0;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
+      ImGui::PopStyleColor();
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
+    if (latchVol==-1) {
+      strcpy(id,"..##LatchVol");
+    } else {
+      snprintf(id,63,"%.2X##LatchVol",latchVol&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=2;
       latchNibble=false;
     }
-    ImGui::Separator();
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchVol=-1;
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    if (latchEffect==-1) {
+      strcpy(id,"..##LatchFX");
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+    } else {
+      const unsigned char data=latchEffect;
+      snprintf(id,63,"%.2X##LatchFX",data);
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+    }
+
+    if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=3;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchEffect=-1;
+    }
+    ImGui::TableNextColumn();
+    if (latchEffectVal==-1) {
+      strcpy(id,"..##LatchFXV");
+    } else {
+      snprintf(id,63,"%.2X##LatchFXV",latchEffectVal&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=4;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchEffectVal=-1;
+    }
+    ImGui::PopStyleColor();
+    ImGui::EndTable();
   }
+  ImGui::PopFont();
+  ImGui::SameLine();
+  if (ImGui::Button("Set")) {
+    DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
+    latchIns=pat->data[cursor.y][2];
+    latchVol=pat->data[cursor.y][3];
+    latchEffect=pat->data[cursor.y][4];
+    latchEffectVal=pat->data[cursor.y][5];
+    latchTarget=0;
+    latchNibble=false;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Reset")) {
+    latchIns=-2;
+    latchVol=-1;
+    latchEffect=-1;
+    latchEffectVal=-1;
+    latchTarget=0;
+    latchNibble=false;
+  }
+  ImGui::Separator();
 
   if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1,opMaskTransposeNote);
   if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1,opMaskTransposeNote);
