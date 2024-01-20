@@ -980,7 +980,7 @@ void FurnaceGUI::kvsConfig(DivInstrument* ins, bool supportsKVS) {
         ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
         for (int i=0; i<4; i++) {
-          int o=(opCount==4)?orderedOps[i]:i;
+          int o=(opCount==4 && ins->type!=DIV_INS_ESFM)?orderedOps[i]:i;
           if (!(i&1)) ImGui::TableNextRow();
           const char* label="AUTO##OPKVS";
           if (ins->fm.op[o].kvs==0) {
