@@ -889,9 +889,17 @@ struct SelectionPoint {
 struct UndoRegion {
   struct UndoRegionPoint {
     int ord, x, y;
+    UndoRegionPoint(int o, int xp, int yp):
+      ord(o), x(xp), y(yp) {}
     UndoRegionPoint():
-      ord(0), x(0), y(0) {}
+      ord(-1), x(-1), y(-1) {}
   } begin, end;
+  UndoRegion(int o0, int x0, int y0, int o1, int x1, int y1):
+    begin(o0,x0,y0),
+    end(o1,x1,y1) {}
+  UndoRegion():
+    begin(),
+    end() {}
 };
 
 enum ActionType {
@@ -2179,7 +2187,7 @@ class FurnaceGUI {
 
   int oldOrdersLen;
   DivOrders oldOrders;
-  DivPattern* oldPat[DIV_MAX_CHANS];
+  std::map<unsigned short,DivPattern*> oldPatMap;
   FixedQueue<UndoStep,256> undoHist;
   FixedQueue<UndoStep,256> redoHist;
 
@@ -2536,8 +2544,8 @@ class FurnaceGUI {
   void moveCursorTop(bool select);
   void moveCursorBottom(bool select);
   void editAdvance();
-  void prepareUndo(ActionType action);
-  void makeUndo(ActionType action);
+  void prepareUndo(ActionType action, UndoRegion region=UndoRegion());
+  void makeUndo(ActionType action, UndoRegion region=UndoRegion());
   void doSelectAll();
   void doDelete();
   void doPullDelete();

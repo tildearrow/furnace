@@ -52,7 +52,16 @@ const char* FurnaceGUI::noteNameNormal(short note, short octave) {
   return noteNames[seek];
 }
 
-void FurnaceGUI::prepareUndo(ActionType action) {
+void FurnaceGUI::prepareUndo(ActionType action, UndoRegion region) {
+  if (region.begin.ord==-1) {
+    region.begin.ord=curOrder;
+    region.end.ord=curOrder;
+    region.begin.x=0;
+    region.end.x=e->getTotalChannelCount()-1;
+    region.begin.y=0;
+    region.end.y=e->curSubSong->patLen-1;
+  }
+
   switch (action) {
     case GUI_UNDO_CHANGE_ORDER:
       memcpy(&oldOrders,e->curOrders,sizeof(DivOrders));
@@ -74,8 +83,21 @@ void FurnaceGUI::prepareUndo(ActionType action) {
     case GUI_UNDO_PATTERN_COLLAPSE:
     case GUI_UNDO_PATTERN_EXPAND:
     case GUI_UNDO_PATTERN_DRAG:
-      for (int i=0; i<e->getTotalChannelCount(); i++) {
-        e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],false)->copyOn(oldPat[i]);
+      for (int h=region.begin.ord; h<=region.end.ord; h++) {
+        for (int i=region.begin.x; i<=region.end.x; i++) {
+          unsigned short id=h|(i<<8);
+          DivPattern* p=NULL;
+
+          auto it=oldPatMap.find(id);
+          if (it==oldPatMap.end()) {
+            p=oldPatMap[id]=new DivPattern;
+            logV("oldPatMap: allocating for %.4x",id);
+          } else {
+            p=it->second;
+          }
+
+          e->curPat[i].getPattern(e->curOrders->ord[i][h],false)->copyOn(p);
+        }
       }
       break;
     case GUI_UNDO_PATTERN_COLLAPSE_SONG:
@@ -86,7 +108,7 @@ void FurnaceGUI::prepareUndo(ActionType action) {
   }
 }
 
-void FurnaceGUI::makeUndo(ActionType action) {
+void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
   bool doPush=false;
   bool shallWalk=false;
   UndoStep s;
@@ -99,6 +121,16 @@ void FurnaceGUI::makeUndo(ActionType action) {
   s.newOrdersLen=e->curSubSong->ordersLen;
   s.nibble=curNibble;
   size_t subSong=e->getCurrentSubSong();
+
+  if (region.begin.ord==-1) {
+    region.begin.ord=curOrder;
+    region.end.ord=curOrder;
+    region.begin.x=0;
+    region.end.x=e->getTotalChannelCount()-1;
+    region.begin.y=0;
+    region.end.y=e->curSubSong->patLen-1;
+  }
+
   switch (action) {
     case GUI_UNDO_CHANGE_ORDER:
       for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -131,24 +163,37 @@ void FurnaceGUI::makeUndo(ActionType action) {
     case GUI_UNDO_PATTERN_COLLAPSE:
     case GUI_UNDO_PATTERN_EXPAND:
     case GUI_UNDO_PATTERN_DRAG:
-      for (int i=0; i<e->getTotalChannelCount(); i++) {
-        DivPattern* p=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],false);
-        for (int j=0; j<e->curSubSong->patLen; j++) {
-          for (int k=0; k<DIV_MAX_COLS; k++) {
-            if (p->data[j][k]!=oldPat[i]->data[j][k]) {
-              s.pat.push_back(UndoPatternData(subSong,i,e->curOrders->ord[i][curOrder],j,k,oldPat[i]->data[j][k],p->data[j][k]));
+      for (int h=region.begin.ord; h<=region.end.ord; h++) {
+        for (int i=region.begin.x; i<=region.end.x; i++) {
+          DivPattern* p=e->curPat[i].getPattern(e->curOrders->ord[i][h],false);
+          DivPattern* op=NULL;
+          unsigned short id=h|(i<<8);
 
-              if (k>=4) {
-                if (oldPat[i]->data[j][k&(~1)]==0x0b ||
-                    p->data[j][k&(~1)]==0x0b ||
-                    oldPat[i]->data[j][k&(~1)]==0x0d ||
-                    p->data[j][k&(~1)]==0x0d ||
-                    oldPat[i]->data[j][k&(~1)]==0xff ||
-                    p->data[j][k&(~1)]==0xff) {
-                  shallWalk=true;
+          auto it=oldPatMap.find(id);
+          if (it==oldPatMap.end()) {
+            logW("no data in oldPatMap for channel %d!",i);
+            continue;
+          } else {
+            op=it->second;
+          }
+
+          for (int j=region.begin.y; j<=region.end.y; j++) {
+            for (int k=0; k<DIV_MAX_COLS; k++) {
+              if (p->data[j][k]!=op->data[j][k]) {
+                s.pat.push_back(UndoPatternData(subSong,i,e->curOrders->ord[i][h],j,k,op->data[j][k],p->data[j][k]));
+
+                if (k>=4) {
+                  if (op->data[j][k&(~1)]==0x0b ||
+                      p->data[j][k&(~1)]==0x0b ||
+                      op->data[j][k&(~1)]==0x0d ||
+                      p->data[j][k&(~1)]==0x0d ||
+                      op->data[j][k&(~1)]==0xff ||
+                      p->data[j][k&(~1)]==0xff) {
+                    shallWalk=true;
+                  }
                 }
-              }
 
+              }
             }
           }
         }
