@@ -60,6 +60,19 @@ void FurnaceGUI::prepareUndo(ActionType action, UndoRegion region) {
     region.end.x=e->getTotalChannelCount()-1;
     region.begin.y=0;
     region.end.y=e->curSubSong->patLen-1;
+  } else {
+    if (region.begin.ord<0) region.begin.ord=0;
+    if (region.begin.ord>e->curSubSong->ordersLen) region.begin.ord=e->curSubSong->ordersLen;
+    if (region.end.ord<0) region.end.ord=0;
+    if (region.end.ord>e->curSubSong->ordersLen) region.end.ord=e->curSubSong->ordersLen;
+    if (region.begin.x<0) region.begin.x=0;
+    if (region.begin.x>=e->getTotalChannelCount()) region.begin.x=e->getTotalChannelCount()-1;
+    if (region.end.x<0) region.end.x=0;
+    if (region.end.x>=e->getTotalChannelCount()) region.end.x=e->getTotalChannelCount()-1;
+    if (region.begin.y<0) region.begin.y=0;
+    if (region.begin.y>=e->curSubSong->patLen) region.begin.y=e->curSubSong->patLen-1;
+    if (region.end.y<0) region.end.y=0;
+    if (region.end.y>=e->curSubSong->patLen) region.end.y=e->curSubSong->patLen-1;
   }
 
   switch (action) {
@@ -91,7 +104,7 @@ void FurnaceGUI::prepareUndo(ActionType action, UndoRegion region) {
           auto it=oldPatMap.find(id);
           if (it==oldPatMap.end()) {
             p=oldPatMap[id]=new DivPattern;
-            logV("oldPatMap: allocating for %.4x",id);
+            //logV("oldPatMap: allocating for %.4x",id);
           } else {
             p=it->second;
           }
@@ -129,6 +142,19 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
     region.end.x=e->getTotalChannelCount()-1;
     region.begin.y=0;
     region.end.y=e->curSubSong->patLen-1;
+  } else {
+    if (region.begin.ord<0) region.begin.ord=0;
+    if (region.begin.ord>e->curSubSong->ordersLen) region.begin.ord=e->curSubSong->ordersLen;
+    if (region.end.ord<0) region.end.ord=0;
+    if (region.end.ord>e->curSubSong->ordersLen) region.end.ord=e->curSubSong->ordersLen;
+    if (region.begin.x<0) region.begin.x=0;
+    if (region.begin.x>=e->getTotalChannelCount()) region.begin.x=e->getTotalChannelCount()-1;
+    if (region.end.x<0) region.end.x=0;
+    if (region.end.x>=e->getTotalChannelCount()) region.end.x=e->getTotalChannelCount()-1;
+    if (region.begin.y<0) region.begin.y=0;
+    if (region.begin.y>=e->curSubSong->patLen) region.begin.y=e->curSubSong->patLen-1;
+    if (region.end.y<0) region.end.y=0;
+    if (region.end.y>=e->curSubSong->patLen) region.end.y=e->curSubSong->patLen-1;
   }
 
   switch (action) {
@@ -177,7 +203,13 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
             op=it->second;
           }
 
-          for (int j=region.begin.y; j<=region.end.y; j++) {
+          int jBegin=0;
+          int jEnd=e->curSubSong->patLen-1;
+
+          if (h==region.begin.ord) jBegin=region.begin.y;
+          if (h==region.end.ord) jEnd=region.end.y;
+
+          for (int j=jBegin; j<=jEnd; j++) {
             for (int k=0; k<DIV_MAX_COLS; k++) {
               if (p->data[j][k]!=op->data[j][k]) {
                 s.pat.push_back(UndoPatternData(subSong,i,e->curOrders->ord[i][h],j,k,op->data[j][k],p->data[j][k]));
@@ -217,6 +249,12 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
   if (shallWalk) {
     e->walkSong(loopOrder,loopRow,loopEnd);
   }
+
+  // garbage collection
+  for (std::pair<unsigned short,DivPattern*> i: oldPatMap) {
+    delete i.second;
+  }
+  oldPatMap.clear();
 }
 
 void FurnaceGUI::doSelectAll() {
@@ -505,7 +543,7 @@ String FurnaceGUI::doCopy(bool cut, bool writeClipboard, const SelectionPoint& s
   return clipb;
 }
 
-void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int startOff, bool invalidData)
+void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int startOff, bool invalidData, UndoRegion ur)
 {
   if (sscanf(data[1].c_str(),"%d",&startOff)!=1) return;
   if (startOff<0) return;
@@ -647,7 +685,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
       updateScroll(cursor.y);
     }
 
-    makeUndo(GUI_UNDO_PATTERN_PASTE);
+    makeUndo(GUI_UNDO_PATTERN_PASTE,ur);
   }
 }
 
@@ -864,7 +902,7 @@ unsigned int convertEffectMPT_MPTM(unsigned char symbol, unsigned int val) {
 }
 
 // TODO: fix code style
-void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat)
+void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat, UndoRegion ur)
 {
   DETERMINE_LAST;
 
@@ -1189,14 +1227,13 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
       updateScroll(cursor.y);
     }
 
-    makeUndo(GUI_UNDO_PATTERN_PASTE);
+    makeUndo(GUI_UNDO_PATTERN_PASTE,ur);
   }
 }
 
 void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String clipb) {
   if (readClipboard) {
     finishSelection();
-    prepareUndo(GUI_UNDO_PATTERN_PASTE);
     char* clipText=SDL_GetClipboardText();
     if (clipText!=NULL) {
       if (clipText[0]) {
@@ -1243,10 +1280,28 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg, bool readClipboard, String cli
 
   if (!foundString) return;
 
+  UndoRegion ur;
+  if (mode==GUI_PASTE_MODE_OVERFLOW) {
+    int rows=cursor.y;
+    int firstPattern=curOrder;
+    int lastPattern=curOrder;
+    rows+=data.size();
+    while (rows>=e->curSubSong->patLen) {
+      lastPattern++;
+      rows-=e->curSubSong->patLen;
+    }
+
+    ur=UndoRegion(firstPattern,0,0,lastPattern,e->getTotalChannelCount()-1,e->curSubSong->patLen-1);
+  }
+
+  if (readClipboard) {
+    prepareUndo(GUI_UNDO_PATTERN_PASTE,ur);
+  }
+
   if (isFurnace) {
-    doPasteFurnace(mode,arg,readClipboard,clipb,data,startOff,invalidData);
+    doPasteFurnace(mode,arg,readClipboard,clipb,data,startOff,invalidData,ur);
   } else if (isModPlug) {
-    doPasteMPT(mode,arg,readClipboard,clipb,data,mptFormat);
+    doPasteMPT(mode,arg,readClipboard,clipb,data,mptFormat,ur);
   }
 }
 
