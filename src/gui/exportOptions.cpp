@@ -180,6 +180,11 @@ void FurnaceGUI::drawExportDMF(bool onWindow) {
   exitDisabledTimer=1;
 
   ImGui::Text("DefleMask file (1.1.3+)");
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
   if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
     openFileDialog(GUI_FILE_SAVE_DMF);
     ImGui::CloseCurrentPopup();
@@ -190,6 +195,11 @@ void FurnaceGUI::drawExportDMFLegacy(bool onWindow) {
   exitDisabledTimer=1;
 
   ImGui::Text("DefleMask file (1.0/legacy)");
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
   if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
     openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
     ImGui::CloseCurrentPopup();
