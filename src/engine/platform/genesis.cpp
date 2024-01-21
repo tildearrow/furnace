@@ -365,7 +365,6 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
       {
         oscBuf[i]->data[oscBuf[i]->needle++] = (sum_l + sum_r) / 2;
       }
-      
     }
 
     if (chipType == 2) //YMF276 mode
