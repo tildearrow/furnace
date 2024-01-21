@@ -35,6 +35,7 @@
   (b.dir ? 0x01 : 0x00))
 #define volPan(v, p)  (((v * (p >> 4) / 15) << 4) | ((v * (p & 0xf) / 15) & 0xf))
 #define mapAmp(a) (((a) * 65535 / 15 - 32768) * (pn.flags & 0x7) / 7)
+#define CHIP_DIVIDER 2
 
 const char* regCheatSheetPowerNoise[]={
   "ACTL", "00",
@@ -174,13 +175,63 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     }
     
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,chan[i].octave);
+      chan[i].freq = parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       
       if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>4095) chan[i].freq=4095;
+      if (chan[i].freq>0xfffffff) chan[i].freq=0xfffffff;
+      if(chan[i].freq >= 0x8000000) {
+        chan[i].octave = 0;
+      }
+      else if(chan[i].freq >= 0x4000000) {
+        chan[i].octave = 1;
+      }
+      else if(chan[i].freq >= 0x2000000) {
+        chan[i].octave = 2;
+      }
+      else if(chan[i].freq >= 0x1000000) {
+        chan[i].octave = 3;
+      }
+      if(chan[i].freq >= 0x800000) {
+        chan[i].octave = 4;
+      }
+      else if(chan[i].freq >= 0x400000) {
+        chan[i].octave = 5;
+      }
+      else if(chan[i].freq >= 0x200000) {
+        chan[i].octave = 6;
+      }
+      else if(chan[i].freq >= 0x100000) {
+        chan[i].octave = 7;
+      }
+      if(chan[i].freq >= 0x800000) {
+        chan[i].octave = 8;
+      }
+      else if(chan[i].freq >= 0x400000) {
+        chan[i].octave = 9;
+      }
+      else if(chan[i].freq >= 0x200000) {
+        chan[i].octave = 10;
+      }
+      else if(chan[i].freq >= 0x100000) {
+        chan[i].octave = 11;
+      }
+      if(chan[i].freq >= 0x8000) {
+        chan[i].octave = 12;
+      }
+      else if(chan[i].freq >= 0x4000) {
+        chan[i].octave = 13;
+      }
+      else if(chan[i].freq >= 0x2000) {
+        chan[i].octave = 14;
+      }
+      else {
+        chan[i].octave = 15;
+      }
+      chan[i].freq = 0xfff-(chan[i].freq>>chan[i].octave);
+      chan[i].octave = 15 - chan[i].octave;
       
-      cWrite(i,0x01,(4095-chan[i].freq)&0xff);
-      cWrite(i,0x02,((4095-chan[i].freq)>>8) | (chan[i].octave<<4));
+      cWrite(i,0x01,chan[i].freq&0xff);
+      cWrite(i,0x02,(chan[i].freq>>8) | (chan[i].octave<<4));
       
       if (chan[i].keyOn) {
         if(chan[i].slope) {
@@ -227,14 +278,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
       if (ins->type==DIV_INS_POWER_NOISE) {
         if (skipRegisterWrites) break;
         if (c.value!=DIV_NOTE_NULL) {
-          int baseFreq, divider;
-          for (divider = 0; divider < 16; divider++) {
-            baseFreq = round(parent->calcBaseFreq(chipClock,2<<divider,c.value,true));
-            if(baseFreq < 4096) break;
-          }
-          
-          chan[c.chan].octave=divider;
-          chan[c.chan].baseFreq=baseFreq;
+          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
@@ -282,33 +326,25 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq, divider;
-      for (divider = 0; divider < 16; divider++) {
-        destFreq = round(parent->calcBaseFreq(chipClock,2<<divider,c.value2,true));
-        if(destFreq < 4096) break;
-      }
+      int destFreq=NOTE_PERIODIC(c.value2);
       
       bool return2=false;
-      if (destFreq>chan[c.chan].baseFreq || divider<chan[c.chan].octave) {
+      if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
-        if (chan[c.chan].baseFreq > 4095 && chan[c.chan].octave > 0) {
-          chan[c.chan].octave--;
-          chan[c.chan].baseFreq %= 4096;
+        if (chan[c.chan].baseFreq > 0xfffffff) {
+          chan[c.chan].baseFreq = 0xfffffff;
         }
-        if (chan[c.chan].baseFreq>=destFreq || chan[c.chan].octave<divider) {
+        if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
-          chan[c.chan].octave=divider;
           return2=true;
         }
       } else {
         chan[c.chan].baseFreq-=c.value;
-        if (chan[c.chan].baseFreq < 0 && chan[c.chan].octave < 15) {
-          chan[c.chan].octave++;
-          chan[c.chan].baseFreq = (chan[c.chan].baseFreq + 4096) % 4096;
+        if (chan[c.chan].baseFreq < 0) {
+          chan[c.chan].baseFreq = 0;
         }
-        if (chan[c.chan].baseFreq<=destFreq || chan[c.chan].octave>divider) {
+        if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
-          chan[c.chan].octave=divider;
           return2=true;
         }
       }
@@ -327,13 +363,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       int whatAMess = c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
       
-      int baseFreq, divider;
-      for (divider = 0; divider < 16; divider++) {
-        baseFreq = round(parent->calcBaseFreq(chipClock,2<<divider,whatAMess,true));
-        if(baseFreq < 4096) break;
-      }
-      chan[c.chan].baseFreq=baseFreq;
-      chan[c.chan].octave=divider;
+      chan[c.chan].baseFreq=NOTE_PERIODIC(whatAMess);
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -343,13 +373,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POWER_NOISE));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
-        int baseFreq, divider;
-        for (divider = 0; divider < 16; divider++) {
-          baseFreq = round(parent->calcBaseFreq(chipClock,2<<divider,chan[c.chan].note,true));
-          if(baseFreq < 4096) break;
-        }
-        chan[c.chan].baseFreq=baseFreq;
-        chan[c.chan].octave=divider;
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -449,9 +473,11 @@ int DivPlatformPowerNoise::getRegisterPoolSize() {
 void DivPlatformPowerNoise::reset() {
   memset(regPool,0,32);
   for (int i=0; i<4; i++) {
-    chan[i]=Channel();
+    chan[i]=DivPlatformPowerNoise::Channel();
     chan[i].std.setEngine(parent);
-    if(i == 3) chan[i].slope = true;
+    if(i == 3) {
+      chan[i].slope = true;
+    }
   }
   
   pwrnoise_reset(&pn);
