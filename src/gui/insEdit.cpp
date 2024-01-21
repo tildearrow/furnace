@@ -6902,6 +6902,9 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="OP4 Noise Mode";
             dutyMax=3;
           }
+          if (ins->type==DIV_INS_POWER_NOISE) {
+            dutyMax=0;
+          }
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));

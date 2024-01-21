@@ -1,0 +1,525 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2024 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#include "powernoise.h"
+#include "../engine.h"
+#include "furIcons.h"
+#include <math.h>
+
+#define rWrite(a,v) if (!skipRegisterWrites) {regPool[a] = v; pwrnoise_write(&pn, (uint8_t)a, (uint8_t)v); if (dumpWrites) {addWrite(a,v);} }
+#define cWrite(c,a,v) rWrite((c << 3) | (a + 1), v)
+#define noiseCtl(enable, am, tapB) ((enable ? 0x80 : 0x00) | (am ? 0x02 : 0x00) | (tapB ? 0x01 : 0x00))
+#define slopeCtl(enable, rst, a, b) ((enable ? 0x80 : 0x00) | \
+  (rst ? 0x40 : 0x00) | \
+  (a.clip ? 0x20 : 0x00) | \
+  (b.clip ? 0x10 : 0x00) | \
+  (a.reset ? 0x08 : 0x00) | \
+  (b.reset ? 0x04 : 0x00) | \
+  (a.dir ? 0x02 : 0x00) | \
+  (b.dir ? 0x01 : 0x00))
+#define volPan(v, p)  (((v * (p >> 4) / 15) << 4) | ((v * (p & 0xf) / 15) & 0xf))
+#define mapAmp(a) (((a) * 65535 / 15 - 32768) * (pn.flags & 0x7) / 7)
+
+const char* regCheatSheetPowerNoise[]={
+  "ACTL", "00",
+  "N1CTL", "01",
+  "N1FL", "02",
+  "N1FH", "03",
+  "N1SRL", "04",
+  "N1SRH", "05",
+  "N1TAP", "06",
+  "N1V", "07",
+  "IOA", "08",
+  "N2CTL", "09",
+  "N2FL", "0A",
+  "N2FH", "0B",
+  "N2SRL", "0C",
+  "N2SRH", "0D",
+  "N2TAP", "0E",
+  "N2V", "0F",
+  "IOB", "10",
+  "N3CTL", "11",
+  "N3FL", "12",
+  "N3FH", "13",
+  "N3SRL", "14",
+  "N3SRH", "15",
+  "N3TAP", "16",
+  "N3V", "17",
+  "SLACC", "18",
+  "SLCTL", "19",
+  "SLFL", "1A",
+  "SLFH", "1B",
+  "SLPA", "1C",
+  "SLPB", "1D",
+  "SLPO", "1E",
+  "SLV", "1F",
+  NULL
+};
+
+const char** DivPlatformPowerNoise::getRegisterSheet() {
+  return regCheatSheetPowerNoise;
+}
+
+void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
+  int16_t left, right;
+  
+  for (size_t h=0; h<len; h++) {
+    pwrnoise_step(&pn, &left, &right);
+    
+    oscBuf[0]->data[oscBuf[0]->needle++]=mapAmp(pn.n1.out_latch);
+    oscBuf[1]->data[oscBuf[1]->needle++]=mapAmp(pn.n2.out_latch);
+    oscBuf[2]->data[oscBuf[2]->needle++]=mapAmp(pn.n3.out_latch);
+    oscBuf[3]->data[oscBuf[3]->needle++]=mapAmp(pn.s.out_latch);
+    
+    buf[0][h] = left;
+    buf[1][h] = right;
+  }
+}
+
+/* macros:
+ *  EX1 - control (0-63)
+ *  EX2 - portion A length (0-255) - slope only
+ *  EX3 - portion B length (0-255) - slope only
+ *  EX4 - tap A location (0-15) - noise only
+ *  EX5 - tap B location (0-15) - noise only
+ *  EX6 - portion A offset (0-15) - slope only
+ *  EX7 - portion B offset (0-15) - slope only
+**/
+
+void DivPlatformPowerNoise::tick(bool sysTick) {
+  for(int i = 0; i < 4; i++) {
+    chan[i].std.next();
+    
+    if (chan[i].std.ex1.had) {
+      int val = chan[i].std.ex1.val;
+      
+      if (chan[i].slope) {
+        chan[i].slopeA.clip = ((val & 0x20) != 0);
+        chan[i].slopeB.clip = ((val & 0x10) != 0);
+        chan[i].slopeA.reset = ((val & 0x08) != 0);
+        chan[i].slopeB.reset = ((val & 0x04) != 0);
+        chan[i].slopeA.dir = ((val & 0x02) != 0);
+        chan[i].slopeB.dir = ((val & 0x01) != 0);
+        cWrite(i, 0x00, slopeCtl(chan[i].active, false, chan[i].slopeA, chan[i].slopeB));
+      }
+      else {
+        chan[i].am = ((val & 0x02) != 0);
+        chan[i].tapBEnable = ((val & 0x01) != 0);
+        cWrite(i, 0x00, noiseCtl(chan[i].active, chan[i].am, chan[i].tapBEnable));
+      }
+    }
+    if (chan[i].std.ex2.had && chan[i].slope) {
+      cWrite(i, 0x03, chan[i].std.ex2.val)
+    }
+    if (chan[i].std.ex3.had && chan[i].slope) {
+      cWrite(i, 0x04, chan[i].std.ex3.val)
+    }
+    if ((chan[i].std.ex4.had || chan[i].std.ex5.had) && !chan[i].slope) {
+      cWrite(i, 0x05, (chan[i].std.ex4.val << 4) | chan[i].std.ex5.val)
+    }
+    if ((chan[i].std.ex6.had || chan[i].std.ex7.had) && chan[i].slope) {
+      cWrite(i, 0x05, (chan[i].std.ex6.val << 4) | chan[i].std.ex7.val)
+    }
+    
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+    }
+    chan[i].handleArp();
+    if (chan[i].std.panL.had) {
+      chan[i].pan&=0x0f;
+      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+    }
+    if (chan[i].std.panR.had) {
+      chan[i].pan&=0xf0;
+      chan[i].pan|=chan[i].std.panR.val&15;
+    }
+    if (chan[i].std.panL.had || chan[i].std.panR.had || chan[i].std.vol.had) {
+      cWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol, chan[i].pan));
+    }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
+    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+      if (chan[i].slope && chan[i].active) {
+        cWrite(i, 0x00, slopeCtl(true, true, chan[i].slopeA, chan[i].slopeB));
+        chan[i].keyOn=true;
+      }
+      else if (chan[i].active) {
+        cWrite(i, 0x03, 0x01);
+        cWrite(i, 0x04, 0x00);
+        chan[i].keyOn=true;
+      }
+    }
+    
+    if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,chan[i].octave);
+      
+      if (chan[i].freq<0) chan[i].freq=0;
+      if (chan[i].freq>4095) chan[i].freq=4095;
+      
+      cWrite(i,0x01,(4095-chan[i].freq)&0xff);
+      cWrite(i,0x02,((4095-chan[i].freq)>>8) | (chan[i].octave<<4));
+      
+      if (chan[i].keyOn) {
+        if(chan[i].slope) {
+          cWrite(i, 0x00, slopeCtl(true, false, chan[i].slopeA, chan[i].slopeB));
+        }
+        else {
+          cWrite(i, 0x00, noiseCtl(true, chan[i].am, chan[i].tapBEnable));
+          cWrite(i, 0x03, 0x01);
+          cWrite(i, 0x04, 0x00);
+        }
+      }
+      if (chan[i].keyOff) {
+        if(chan[i].slope) {
+          cWrite(i, 0x00, slopeCtl(false, false, chan[i].slopeA, chan[i].slopeB));
+        }
+        else {
+          cWrite(i, 0x00, noiseCtl(false, chan[i].am, chan[i].tapBEnable));
+        }
+      }
+      if (chan[i].keyOn) chan[i].keyOn=false;
+      if (chan[i].keyOff) chan[i].keyOff=false;
+      chan[i].freqChanged=false;
+    }
+    
+    if (chan[i].slope) {
+      uint8_t counter = pn.s.accum;
+      regPool[0x18] = counter;
+    }
+    else {
+      uint16_t lfsr;
+      if (i == 0) lfsr = pn.n1.lfsr;
+      else if (i == 1) lfsr = pn.n2.lfsr;
+      else lfsr = pn.n3.lfsr;
+      regPool[(i << 3) + 0x4] = lfsr & 0xff;
+      regPool[(i << 3) + 0x5] = lfsr >> 8;
+    }
+  }
+}
+
+int DivPlatformPowerNoise::dispatch(DivCommand c) {
+  switch (c.cmd) {
+    case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_POWER_NOISE);
+      if (ins->type==DIV_INS_POWER_NOISE) {
+        if (skipRegisterWrites) break;
+        if (c.value!=DIV_NOTE_NULL) {
+          int baseFreq, divider;
+          for (divider = 0; divider < 16; divider++) {
+            baseFreq = round(parent->calcBaseFreq(chipClock,2<<divider,c.value,true));
+            if(baseFreq < 4096) break;
+          }
+          
+          chan[c.chan].octave=divider;
+          chan[c.chan].baseFreq=baseFreq;
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].note=c.value;
+        }
+        chan[c.chan].active=true;
+        chan[c.chan].macroInit(ins);
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+        }
+        chan[c.chan].keyOn=true;
+      }
+      chan[c.chan].insChanged=false;
+      break;
+    }
+    case DIV_CMD_NOTE_OFF:
+      chan[c.chan].active=false;
+      chan[c.chan].keyOff=true;
+      chan[c.chan].macroInit(NULL);
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
+      break;
+    case DIV_CMD_INSTRUMENT:
+      if (chan[c.chan].ins!=c.value || c.value2==1) {
+        chan[c.chan].ins=c.value;
+        chan[c.chan].insChanged=true;
+      }
+      break;
+    case DIV_CMD_VOLUME:
+      if (chan[c.chan].vol!=c.value) {
+        chan[c.chan].vol=c.value;
+        if (!chan[c.chan].std.vol.has) {
+          chan[c.chan].outVol=c.value;
+        }
+      }
+      break;
+    case DIV_CMD_GET_VOLUME:
+      if (chan[c.chan].std.vol.has) {
+        return chan[c.chan].vol;
+      }
+      return chan[c.chan].outVol;
+      break;
+    case DIV_CMD_PITCH:
+      chan[c.chan].pitch=c.value;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_NOTE_PORTA: {
+      int destFreq, divider;
+      for (divider = 0; divider < 16; divider++) {
+        destFreq = round(parent->calcBaseFreq(chipClock,2<<divider,c.value2,true));
+        if(destFreq < 4096) break;
+      }
+      
+      bool return2=false;
+      if (destFreq>chan[c.chan].baseFreq || divider<chan[c.chan].octave) {
+        chan[c.chan].baseFreq+=c.value;
+        if (chan[c.chan].baseFreq > 4095 && chan[c.chan].octave > 0) {
+          chan[c.chan].octave--;
+          chan[c.chan].baseFreq %= 4096;
+        }
+        if (chan[c.chan].baseFreq>=destFreq || chan[c.chan].octave<divider) {
+          chan[c.chan].baseFreq=destFreq;
+          chan[c.chan].octave=divider;
+          return2=true;
+        }
+      } else {
+        chan[c.chan].baseFreq-=c.value;
+        if (chan[c.chan].baseFreq < 0 && chan[c.chan].octave < 15) {
+          chan[c.chan].octave++;
+          chan[c.chan].baseFreq = (chan[c.chan].baseFreq + 4096) % 4096;
+        }
+        if (chan[c.chan].baseFreq<=destFreq || chan[c.chan].octave>divider) {
+          chan[c.chan].baseFreq=destFreq;
+          chan[c.chan].octave=divider;
+          return2=true;
+        }
+      }
+      chan[c.chan].freqChanged=true;
+      if (return2) {
+        chan[c.chan].inPorta=false;
+        return 2;
+      }
+      break;
+    }
+    case DIV_CMD_PANNING: {
+      chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
+      cWrite(c.chan,0x06,isMuted[c.chan]?0:volPan(chan[c.chan].outVol, chan[c.chan].pan));
+      break;
+    }
+    case DIV_CMD_LEGATO: {
+      int whatAMess = c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
+      
+      int baseFreq, divider;
+      for (divider = 0; divider < 16; divider++) {
+        baseFreq = round(parent->calcBaseFreq(chipClock,2<<divider,whatAMess,true));
+        if(baseFreq < 4096) break;
+      }
+      chan[c.chan].baseFreq=baseFreq;
+      chan[c.chan].octave=divider;
+      chan[c.chan].freqChanged=true;
+      chan[c.chan].note=c.value;
+      break;
+    }
+    case DIV_CMD_PRE_PORTA: {
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POWER_NOISE));
+      }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+        int baseFreq, divider;
+        for (divider = 0; divider < 16; divider++) {
+          baseFreq = round(parent->calcBaseFreq(chipClock,2<<divider,chan[c.chan].note,true));
+          if(baseFreq < 4096) break;
+        }
+        chan[c.chan].baseFreq=baseFreq;
+        chan[c.chan].octave=divider;
+      }
+      chan[c.chan].inPorta=c.value;
+      break;
+    }
+    case DIV_CMD_GET_VOLMAX:
+      return 15;
+      break;
+    case DIV_CMD_POWER_NOISE_COUNTER_LOAD: {
+      if (chan[c.chan].slope && c.value == 0) {
+        rWrite(0x18, c.value2 & 0x7f);
+      }
+      else if (!chan[c.chan].slope) {
+        cWrite(c.chan, 0x03 + c.value, c.value2);
+      }
+      break;
+    }
+    case DIV_CMD_POWER_NOISE_IO_WRITE:
+      rWrite(0x08 + (c.value << 3), c.value2);
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
+      break;
+    default:
+      break;
+  }
+  return 1;
+}
+
+void DivPlatformPowerNoise::muteChannel(int ch, bool mute) {
+  isMuted[ch]=mute;
+  cWrite(ch,0x06,isMuted[ch]?0:volPan(chan[ch].outVol, chan[ch].pan));
+}
+
+void DivPlatformPowerNoise::forceIns() {
+  for (int i=0; i<6; i++) {
+    chan[i].insChanged=true;
+    chan[i].freqChanged=true;
+    cWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol, chan[i].pan));
+  }
+}
+
+void* DivPlatformPowerNoise::getChanState(int ch) {
+  return &chan[ch];
+}
+
+DivMacroInt* DivPlatformPowerNoise::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
+unsigned short DivPlatformPowerNoise::getPan(int ch) {
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
+DivChannelModeHints DivPlatformPowerNoise::getModeHints(int ch) {
+  DivChannelModeHints ret;
+  
+  ret.count=1;
+  
+  if (ch==3) {
+    ret.hint[0]=ICON_FUR_SAW;
+    ret.type[0]=5;
+  }
+  else {
+    ret.hint[0]=ICON_FUR_NOISE;
+    ret.type[0]=4;
+  }
+  
+  return ret;
+}
+
+DivSamplePos DivPlatformPowerNoise::getSamplePos(int ch) {
+  return DivSamplePos();
+}
+
+DivDispatchOscBuffer* DivPlatformPowerNoise::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
+int DivPlatformPowerNoise::mapVelocity(int ch, float vel) {
+  return round(15.0*pow(vel,0.22));
+}
+
+unsigned char* DivPlatformPowerNoise::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformPowerNoise::getRegisterPoolSize() {
+  return 32;
+}
+
+void DivPlatformPowerNoise::reset() {
+  memset(regPool,0,32);
+  for (int i=0; i<4; i++) {
+    chan[i]=Channel();
+    chan[i].std.setEngine(parent);
+    if(i == 3) chan[i].slope = true;
+  }
+  
+  pwrnoise_reset(&pn);
+  
+  // set master volume to full
+  rWrite(0,0x87);
+  // set per-channel panning
+  for (int i=0; i<4; i++) {
+    cWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol, chan[i].pan));
+  }
+  addWrite(0xffffffff, 0);
+}
+
+int DivPlatformPowerNoise::getOutputCount() {
+  return 2;
+}
+
+bool DivPlatformPowerNoise::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+void DivPlatformPowerNoise::notifyWaveChange(int wave) {
+}
+
+void DivPlatformPowerNoise::notifyInsDeletion(void* ins) {
+  for (int i=0; i<4; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
+void DivPlatformPowerNoise::setFlags(const DivConfig& flags) {
+  chipClock=16777216;
+  
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock;
+  
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->rate=rate;
+  }
+}
+
+void DivPlatformPowerNoise::poke(unsigned int addr, unsigned short val) {
+  rWrite(addr,val);
+}
+
+void DivPlatformPowerNoise::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+int DivPlatformPowerNoise::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
+  parent=p;
+  dumpWrites=false;
+  skipRegisterWrites=false;
+  
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
+  setFlags(flags);
+  reset();
+  return 4;
+}
+
+void DivPlatformPowerNoise::quit() {
+  for (int i=0; i<4; i++) {
+    delete oscBuf[i];
+  }
+}
+
+DivPlatformPowerNoise::~DivPlatformPowerNoise() {
+}
