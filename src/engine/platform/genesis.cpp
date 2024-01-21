@@ -334,7 +334,7 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
 
     for (i = 0; i < 6; i++)
     {
-      for(int j = 0; j < 8; j++)
+      for(int j = 0; j < 144/6; j++)
       {
         FMOPN2_Clock(&fm_276, 0);
         sum_l += fm_276.out_l;
@@ -342,25 +342,25 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
         FMOPN2_Clock(&fm_276, 1);
         sum_l += fm_276.out_l;
         sum_r += fm_276.out_r;
-      }
 
-      if (chipType == 2) //YMF276 mode
-      {
-        if (!o_bco && fm_276.o_bco)
+        if (chipType == 2) //YMF276 mode
         {
-          dac_shifter = (dac_shifter << 1) | fm_276.o_so;
-
-          if (o_lro != fm_276.o_lro)
+          if (!o_bco && fm_276.o_bco)
           {
-            if (o_lro)
-              sample_l = dac_shifter;
-            else
-              sample_r = dac_shifter;
-          }
+            dac_shifter = (dac_shifter << 1) | fm_276.o_so;
 
-          o_lro = fm_276.o_lro;
+            if (o_lro != fm_276.o_lro)
+            {
+              if (o_lro)
+                sample_l = dac_shifter;
+              else
+                sample_r = dac_shifter;
+            }
+
+            o_lro = fm_276.o_lro;
+          }
+          o_bco = fm_276.o_bco;
         }
-        o_bco = fm_276.o_bco;
       }
 
       oscBuf[i]->data[oscBuf[i]->needle++] = (fm_276.out_l + fm_276.out_r) / 2;
@@ -378,8 +378,8 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
     }
     else
     {
-      sum_l /= 12;
-      sum_r /= 12;
+      //sum_l /= 12;
+      //sum_r /= 12;
       buf[0][h] = sum_l;
       buf[1][h] = sum_r;
     }
@@ -1598,6 +1598,8 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
     } else {
       fm_ymfm=new ymfm::ym3438(iface);
     }
+    rate=chipClock/144;
+  } else if(useYMFM==2) {
     rate=chipClock/144;
   } else {
     rate=chipClock/36;
