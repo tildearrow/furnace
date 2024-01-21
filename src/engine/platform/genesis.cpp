@@ -451,7 +451,6 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
         {
           osc_data += sample_l + sample_r;
         }
-
         else
         {
           osc_data += fm_276.out_l + fm_276.out_r;
