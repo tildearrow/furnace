@@ -417,8 +417,6 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
         flushFirst=false;
       }
 
-      int osc_data = 0;
-
       for(int j = 0; j < 144/6; j++)
       {
         FMOPN2_Clock(&fm_276, 0);
@@ -446,33 +444,9 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
           }
           o_bco = fm_276.o_bco;
         }
-
-        if (chipType == 2) //YMF276 mode
-        {
-          osc_data += sample_l + sample_r;
-        }
-        else
-        {
-          osc_data += fm_276.out_l + fm_276.out_r;
-        }
       }
 
-      if (i==5) {
-        if (fm.dacen) {
-          if (softPCM) {
-            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
-            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
-          } else {
-            oscBuf[i]->data[oscBuf[i]->needle++]=osc_data;
-            oscBuf[6]->data[oscBuf[6]->needle++]=0;
-          }
-        } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=osc_data;
-          oscBuf[6]->data[oscBuf[6]->needle++]=0;
-        }
-      } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=osc_data;
-      }
+      oscBuf[i]->data[oscBuf[i]->needle++]=0;
     }
 
     if (chipType == 2) //YMF276 mode
