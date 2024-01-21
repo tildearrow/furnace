@@ -295,7 +295,6 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
   {
     int sum_l = 0;
     int sum_r = 0;
-    int i;
 
     int sample_l = 0;
     int sample_r = 0;
@@ -335,7 +334,7 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
       writes.pop_front();
     }
 
-    for (i = 0; i < 6; i++)
+    for (int i = 0; i < 6; i++)
     {
       FMOPN2_Clock(&fm_276, 0);
       sum_l += fm_276.out_l;
