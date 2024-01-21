@@ -314,8 +314,12 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
         fm_276.input.data = w.addr & 0xff;
         fm_276.input.wr = 1;
         FMOPN2_Clock(&fm_276, 0);
+        sum_l += fm_276.out_l;
+        sum_r += fm_276.out_r;
         fm_276.input.wr = 0;
         FMOPN2_Clock(&fm_276, 1);
+        sum_l += fm_276.out_l;
+        sum_r += fm_276.out_r;
 
         if (chipType == 2) //YMF276 mode
         {
@@ -339,7 +343,11 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
         for(int c = 0; c < 17; c++)
         {
           FMOPN2_Clock(&fm_276, 0);
+          sum_l += fm_276.out_l;
+          sum_r += fm_276.out_r;
           FMOPN2_Clock(&fm_276, 1);
+          sum_l += fm_276.out_l;
+          sum_r += fm_276.out_r;
 
           if (chipType == 2) //YMF276 mode
           {
@@ -365,8 +373,12 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
         fm_276.input.data = w.val;
         fm_276.input.wr = 1;
         FMOPN2_Clock(&fm_276, 0);
+        sum_l += fm_276.out_l;
+        sum_r += fm_276.out_r;
         fm_276.input.wr = 0;
         FMOPN2_Clock(&fm_276, 1);
+        sum_l += fm_276.out_l;
+        sum_r += fm_276.out_r;
 
         if (chipType == 2) //YMF276 mode
         {
@@ -390,7 +402,11 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
         for(int c = 0; c < 83; c++)
         {
           FMOPN2_Clock(&fm_276, 0);
+          sum_l += fm_276.out_l;
+          sum_r += fm_276.out_r;
           FMOPN2_Clock(&fm_276, 1);
+          sum_l += fm_276.out_l;
+          sum_r += fm_276.out_r;
 
           if (chipType == 2) //YMF276 mode
           {
