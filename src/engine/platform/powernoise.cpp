@@ -101,6 +101,7 @@ void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
  *  EX5 - tap B location (0-15) - noise only
  *  EX6 - portion A offset (0-15) - slope only
  *  EX7 - portion B offset (0-15) - slope only
+ *  EX8 - load LFSR (0-65535) - noise only
 **/
 
 void DivPlatformPowerNoise::tick(bool sysTick) {
@@ -126,16 +127,21 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       }
     }
     if (chan[i].std.ex2.had && chan[i].slope) {
-      cWrite(i, 0x03, chan[i].std.ex2.val)
+      cWrite(i, 0x03, chan[i].std.ex2.val);
     }
     if (chan[i].std.ex3.had && chan[i].slope) {
-      cWrite(i, 0x04, chan[i].std.ex3.val)
+      cWrite(i, 0x04, chan[i].std.ex3.val);
     }
     if ((chan[i].std.ex4.had || chan[i].std.ex5.had) && !chan[i].slope) {
-      cWrite(i, 0x05, (chan[i].std.ex4.val << 4) | chan[i].std.ex5.val)
+      cWrite(i, 0x05, (chan[i].std.ex4.val << 4) | chan[i].std.ex5.val);
     }
     if ((chan[i].std.ex6.had || chan[i].std.ex7.had) && chan[i].slope) {
-      cWrite(i, 0x05, (chan[i].std.ex6.val << 4) | chan[i].std.ex7.val)
+      cWrite(i, 0x05, (chan[i].std.ex6.val << 4) | chan[i].std.ex7.val);
+    }
+    if (chan[i].std.ex8.had && !chan[i].slope && chan[i].active && chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+      cWrite(i, 0x03, chan[i].std.ex8.val & 0xff);
+      cWrite(i, 0x04, chan[i].std.ex8.val >> 8);
+      chan[i].keyOn=true;
     }
     
     if (chan[i].std.vol.had) {
@@ -165,11 +171,6 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
       if (chan[i].slope && chan[i].active) {
         cWrite(i, 0x00, slopeCtl(true, true, chan[i].slopeA, chan[i].slopeB));
-        chan[i].keyOn=true;
-      }
-      else if (chan[i].active) {
-        cWrite(i, 0x03, 0x01);
-        cWrite(i, 0x04, 0x00);
         chan[i].keyOn=true;
       }
     }
@@ -239,8 +240,6 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
         }
         else {
           cWrite(i, 0x00, noiseCtl(true, chan[i].am, chan[i].tapBEnable));
-          cWrite(i, 0x03, 0x01);
-          cWrite(i, 0x04, 0x00);
         }
       }
       if (chan[i].keyOff) {
