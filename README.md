@@ -114,6 +114,9 @@ for other operating systems, you may [build the source](#developer-info).
   - ...or create your own - up to 32 of them or a total of 128 channels!
 - DefleMask compatibility
   - loads .dmf modules from all versions (beta 1 to 1.1.9)
+  - saves .dmf modules - both modern and legacy
+    - Furnace doubles as a module downgrader
+  - loads/saves .dmp instruments and .dmw wavetables as well
   - clean-room design (guesswork and ABX tests only, no decompilation involved)
   - some bug/quirk implementation for increased playback accuracy through compatibility flags
 - VGM export
@@ -372,6 +375,10 @@ Furnace keeps backups of the songs you've worked on before. go to **file > resto
 > my .dmf song sounds odd at a certain point
 
 Furnace's .dmf compatibility isn't perfect and it's mostly because DefleMask does things different.
+
+> my song sounds terrible after saving as .dmf!
+
+you should only save as .dmf if you're really sure, because the DefleMask format has several limitations. save in Furnace song format instead (.fur).
 
 ---
 # footnotes
