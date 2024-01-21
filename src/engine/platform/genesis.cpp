@@ -371,6 +371,11 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
     {
       buf[0][h] = sample_l;
       buf[1][h] = sample_r;
+
+      //sum_l /= 12;
+      //sum_r /= 12;
+      buf[0][h] = sum_l * 8;
+      buf[1][h] = sum_r * 8;
     }
     else
     {
