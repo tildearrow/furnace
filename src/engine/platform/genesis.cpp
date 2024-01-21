@@ -295,6 +295,7 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
   {
     int sum_l = 0;
     int sum_r = 0;
+    int i;
 
     int sample_l = 0;
     int sample_r = 0;
@@ -302,39 +303,36 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
     if (!writes.empty()) 
     {
       QueuedWrite& w=writes.front();
+      
+      fm_276.input.address = w.addr < 0x100 ? 0 : 2;
+      fm_276.input.data = w.addr & 0xff;
+      fm_276.input.wr = 1;
+      FMOPN2_Clock(&fm_276, 0);
+      fm_276.input.wr = 0;
 
-      //if(w.addr < 0x200)
-      //{
-        fm_276.input.address = w.addr < 0x100 ? 0 : 2;
-        fm_276.input.data = w.addr & 0xff;
-        fm_276.input.wr = 1;
+      for(int c = 0; c < 17; c++)
+      {
         FMOPN2_Clock(&fm_276, 0);
-        fm_276.input.wr = 0;
+        FMOPN2_Clock(&fm_276, 1);
+      }
 
-        for(int c = 0; c < 17; c++)
-        {
-          FMOPN2_Clock(&fm_276, 0);
-          FMOPN2_Clock(&fm_276, 1);
-        }
+      fm_276.input.address = w.addr < 0x100 ? 1 : 3;
+      fm_276.input.data = w.val;
+      fm_276.input.wr = 1;
+      FMOPN2_Clock(&fm_276, 0);
+      fm_276.input.wr = 0;
 
-        fm_276.input.address = w.addr < 0x100 ? 1 : 3;
-        fm_276.input.data = w.val;
-        fm_276.input.wr = 1;
+      for(int c = 0; c < 83; c++)
+      {
         FMOPN2_Clock(&fm_276, 0);
-        fm_276.input.wr = 0;
-
-        for(int c = 0; c < 83; c++)
-        {
-          FMOPN2_Clock(&fm_276, 0);
-          FMOPN2_Clock(&fm_276, 1);
-        }
-      //}
+        FMOPN2_Clock(&fm_276, 1);
+      }
 
       regPool[w.addr&0x1ff]=w.val;
       writes.pop_front();
     }
 
-    for (int i = 0; i < 6; i++)
+    for (i = 0; i < 6; i++)
     {
       FMOPN2_Clock(&fm_276, 0);
       sum_l += fm_276.out_l;
@@ -363,11 +361,11 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
 
         oscBuf[i]->data[oscBuf[i]->needle++] = (sample_l + sample_r) / 2;
       }
-
       else
       {
         oscBuf[i]->data[oscBuf[i]->needle++] = (sum_l + sum_r) / 2;
       }
+      
     }
 
     if (chipType == 2) //YMF276 mode
@@ -379,7 +377,6 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
     {
       sum_l /= 12;
       sum_r /= 12;
-
       buf[0][h] = sum_l;
       buf[1][h] = sum_r;
     }
