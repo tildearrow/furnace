@@ -22,7 +22,9 @@
 
 #include "fmshared_OPN.h"
 #include "sound/ymfm/ymfm_opn.h"
+extern "C" {
 #include "../../../extern/YMF276-LLE/fmopn2.h"
+}
 
 class DivYM2612Interface: public ymfm::ymfm_interface {
   int setA, setB;
@@ -89,6 +91,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     unsigned char useYMFM;
     unsigned char chipType;
     short dacWrite;
+
+    int dac_shifter, o_lro, o_bco;
   
     unsigned char dacVolTable[128];
   
