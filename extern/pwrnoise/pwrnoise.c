@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -177,7 +176,6 @@ void pwrnoise_reset(power_noise_t *pn) {
 
 void pwrnoise_write(power_noise_t *pn, uint8_t reg, uint8_t val) {
 	reg &= 0x1f;
-	printf("%02x %02x\n", reg, val);
 	
 	if (reg == 0x00) {
 		pn->flags = val;
