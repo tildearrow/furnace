@@ -306,9 +306,6 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
 
       if(w.addr < 0x100)
       {
-        fm_276.input.cs = 1;
-        fm_276.input.rd = 0;
-
         fm_276.input.address = 0;
         fm_276.input.data = w.addr & 0xff;
         fm_276.input.wr = 1;
@@ -332,16 +329,10 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
           FMOPN2_Clock(&fm_276, 0);
           FMOPN2_Clock(&fm_276, 1);
         }
-
-        fm_276.input.cs = 0;
-        fm_276.input.rd = 1;
       }
 
       if(w.addr > 0xff && w.addr < 0x200)
       {
-        fm_276.input.cs = 1;
-        fm_276.input.rd = 0;
-        
         fm_276.input.address = 2;
         fm_276.input.data = w.addr & 0xff;
         fm_276.input.wr = 1;
@@ -365,9 +356,6 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
           FMOPN2_Clock(&fm_276, 0);
           FMOPN2_Clock(&fm_276, 1);
         }
-
-        fm_276.input.cs = 0;
-        fm_276.input.rd = 1;
       }
 
       regPool[w.addr&0x1ff]=w.val;
@@ -385,21 +373,21 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
 
       if (chipType == 2) //YMF276 mode
       {
-          if (!o_bco && fm_276.o_bco)
+        if (!o_bco && fm_276.o_bco)
+        {
+          dac_shifter = (dac_shifter << 1) | fm_276.o_so;
+
+          if (o_lro != fm_276.o_lro)
           {
-              dac_shifter = (dac_shifter << 1) | fm_276.o_so;
-
-              if (o_lro != fm_276.o_lro)
-              {
-                  if (o_lro)
-                      sample_l = dac_shifter;
-                  else
-                      sample_r = dac_shifter;
-              }
-
-              o_lro = fm_276.o_lro;
+            if (o_lro)
+              sample_l = dac_shifter;
+            else
+              sample_r = dac_shifter;
           }
-          o_bco = fm_276.o_bco;
+
+          o_lro = fm_276.o_lro;
+        }
+        o_bco = fm_276.o_bco;
       }
 
       oscBuf[i]->data[oscBuf[i]->needle++] = (sum_l + sum_r) / 2;
