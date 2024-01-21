@@ -334,12 +334,15 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
 
     for (i = 0; i < 6; i++)
     {
-      FMOPN2_Clock(&fm_276, 0);
-      sum_l += fm_276.out_l;
-      sum_r += fm_276.out_r;
-      FMOPN2_Clock(&fm_276, 1);
-      sum_l += fm_276.out_l;
-      sum_r += fm_276.out_r;
+      for(int j = 0; j < 8; j++)
+      {
+        FMOPN2_Clock(&fm_276, 0);
+        sum_l += fm_276.out_l;
+        sum_r += fm_276.out_r;
+        FMOPN2_Clock(&fm_276, 1);
+        sum_l += fm_276.out_l;
+        sum_r += fm_276.out_r;
+      }
 
       if (chipType == 2) //YMF276 mode
       {
@@ -358,13 +361,9 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
           o_lro = fm_276.o_lro;
         }
         o_bco = fm_276.o_bco;
+      }
 
-        oscBuf[i]->data[oscBuf[i]->needle++] = (sample_l + sample_r) / 2;
-      }
-      else
-      {
-        oscBuf[i]->data[oscBuf[i]->needle++] = (sum_l + sum_r) / 2;
-      }
+      oscBuf[i]->data[oscBuf[i]->needle++] = (fm_276.out_l + fm_276.out_r) / 2;
     }
 
     if (chipType == 2) //YMF276 mode
@@ -374,8 +373,8 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
 
       //sum_l /= 12;
       //sum_r /= 12;
-      buf[0][h] = sum_l * 8;
-      buf[1][h] = sum_r * 8;
+      //buf[0][h] = sum_l * 8;
+      //buf[1][h] = sum_r * 8;
     }
     else
     {
@@ -1434,7 +1433,7 @@ void DivPlatformGenesis::reset() {
       fm_276.flags = 0;
     }
 
-    if(chipType == 2) //YM3438
+    if(chipType == 0 || chipType == 1) //YM3438 or YM2612
     {
       fm_276.flags = fmopn2_flags_ym3438;
     }
