@@ -6936,6 +6936,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TED) waveMax=0;
           if (ins->type==DIV_INS_C140) waveMax=0;
           if (ins->type==DIV_INS_C219) waveMax=0;
+          if (ins->type==DIV_INS_POWER_NOISE) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -7074,6 +7075,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             panMax=4095;
           }
+          if (ins->type==DIV_INS_POWER_NOISE) {
+            panMax=15;
+          }
 
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
@@ -7161,7 +7165,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_C140 ||
               ins->type==DIV_INS_C219 ||
               ins->type==DIV_INS_TED ||
-              ins->type==DIV_INS_ESFM) {
+              ins->type==DIV_INS_ESFM ||
+              ins->type==DIV_INS_POWER_NOISE) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -7253,6 +7258,15 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_MSM5232) {
             macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+          }
+          if (ins->type==DIV_INS_POWER_NOISE) {
+            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,8,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+            macroList.push_back(FurnaceGUIMacroDesc("Portion A Length",&ins->std.ex2Macro,0,255,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Portion B Length",&ins->std.ex3Macro,0,255,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Tap A Location",&ins->std.ex4Macro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Tap B Location",&ins->std.ex5Macro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Portion A Offset",&ins->std.ex6Macro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Portion B Offset",&ins->std.ex7Macro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
           }
 
           drawMacros(macroList,macroEditStateMacros);

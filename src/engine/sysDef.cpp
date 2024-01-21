@@ -1984,6 +1984,23 @@ void DivEngine::registerSystems() {
     },
     fmESFMPostEffectHandlerMap
   );
+  
+  sysDefs[DIV_SYSTEM_POWER_NOISE]=new DivSysDef(
+    "BS-C-04xx series (Power Noise)", NULL, 0xd2, 0, 4, false, false, 0, false, 0, 0, 0, 
+    "a fantasy sound chip designed by jvsTSX and The Beesh-Spweesh!\nused in the Hexheld fantasy console.",
+    {"Noise 1", "Noise 2", "Noise 3", "Slope"},
+    {"N1", "N2", "N3", "SL"},
+    {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PULSE},
+    {DIV_INS_POWER_NOISE, DIV_INS_POWER_NOISE, DIV_INS_POWER_NOISE, DIV_INS_POWER_NOISE},
+    {},
+    {
+      {0x20, {DIV_CMD_POWER_NOISE_COUNTER_LOAD, "20xx: Load low byte of noise channel LFSR (00 to FF) or slope channel accumulator (00 to 7F)", constVal<0>, effectVal}},
+      {0x21, {DIV_CMD_POWER_NOISE_COUNTER_LOAD, "21xx: Load high byte of noise channel LFSR (00 to FF)", constVal<1>, effectVal}},
+      {0x22, {DIV_CMD_POWER_NOISE_IO_WRITE, "22xx: Write to I/O port A", constVal<0>, effectVal}},
+      {0x23, {DIV_CMD_POWER_NOISE_IO_WRITE, "23xx: Write to I/O port B", constVal<1>, effectVal}},
+    },
+    {}
+  );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0, 0, 0,
