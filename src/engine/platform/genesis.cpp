@@ -303,8 +303,8 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
     {
       QueuedWrite& w=writes.front();
 
-      if(w.addr < 0x200)
-      {
+      //if(w.addr < 0x200)
+      //{
         fm_276.input.address = w.addr < 0x100 ? 0 : 2;
         fm_276.input.data = w.addr & 0xff;
         fm_276.input.wr = 1;
@@ -328,7 +328,7 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
           FMOPN2_Clock(&fm_276, 0);
           FMOPN2_Clock(&fm_276, 1);
         }
-      }
+      //}
 
       regPool[w.addr&0x1ff]=w.val;
       writes.pop_front();
