@@ -303,7 +303,7 @@ void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
     {
       QueuedWrite& w=writes.front();
 
-      if(w.addr < 0x100)
+      if(w.addr < 0x200)
       {
         fm_276.input.address = w.addr < 0x100 ? 0 : 2;
         fm_276.input.data = w.addr & 0xff;
