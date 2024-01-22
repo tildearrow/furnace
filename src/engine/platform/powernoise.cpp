@@ -312,6 +312,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
+          cWrite(c.chan,0x06,isMuted[c.chan]?0:volPan(chan[c.chan].outVol, chan[c.chan].pan));
         }
       }
       break;
