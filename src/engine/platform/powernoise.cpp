@@ -22,8 +22,8 @@
 #include "furIcons.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {regPool[a] = v; pwrnoise_write(&pn, (uint8_t)a, (uint8_t)v); if (dumpWrites) {addWrite(a,v);} }
-#define cWrite(c,a,v) rWrite((c << 3) | (a + 1), v)
+#define rWrite(a,v) if (!skipRegisterWrites) {regPool[a] = (v); pwrnoise_write(&pn, (uint8_t)(a), (uint8_t)(v)); if (dumpWrites) {addWrite(a,v);} }
+#define cWrite(c,a,v) rWrite((c << 3) | ((a) + 1), (v))
 #define noiseCtl(enable, am, tapB) (((enable) ? 0x80 : 0x00) | ((am) ? 0x02 : 0x00) | ((tapB) ? 0x01 : 0x00))
 #define slopeCtl(enable, rst, a, b) (((enable) ? 0x80 : 0x00) | \
   (rst ? 0x40 : 0x00) | \
