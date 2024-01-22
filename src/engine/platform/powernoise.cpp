@@ -146,18 +146,29 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+      if (chan[i].outVol<0) chan[i].outVol=0;
     }
-    chan[i].handleArp();
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
+      if (!chan[i].inPorta) {
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+      }
+      chan[i].freqChanged=true;
+    }
     if (chan[i].std.panL.had) {
       chan[i].pan&=0x0f;
       chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+      cWrite(i,0x06,volPan(chan[i].outVol, chan[i].pan));
     }
     if (chan[i].std.panR.had) {
       chan[i].pan&=0xf0;
       chan[i].pan|=chan[i].std.panR.val&15;
+      cWrite(i,0x06,volPan(chan[i].outVol, chan[i].pan));
     }
-    if (chan[i].std.panL.had || chan[i].std.panR.had || chan[i].std.vol.had) {
-      cWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol, chan[i].pan));
+    
+    if(chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had) {
+      cWrite(i,0x06,volPan(chan[i].outVol, chan[i].pan));
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -312,7 +323,9 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          cWrite(c.chan,0x06,isMuted[c.chan]?0:volPan(chan[c.chan].outVol, chan[c.chan].pan));
+          if (chan[c.chan].active) {
+            cWrite(c.chan,0x06,volPan(chan[c.chan].outVol, chan[c.chan].pan));
+          }
         }
       }
       break;
@@ -358,7 +371,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
     }
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
-      cWrite(c.chan,0x06,isMuted[c.chan]?0:volPan(chan[c.chan].outVol, chan[c.chan].pan));
+      cWrite(c.chan,0x06,volPan(chan[c.chan].outVol, chan[c.chan].pan));
       break;
     }
     case DIV_CMD_LEGATO: {
@@ -410,15 +423,15 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
 }
 
 void DivPlatformPowerNoise::muteChannel(int ch, bool mute) {
-  isMuted[ch]=mute;
-  cWrite(ch,0x06,isMuted[ch]?0:volPan(chan[ch].outVol, chan[ch].pan));
+  if(mute) chan[ch].keyOff = true;
+  else chan[ch].keyOn = true;
 }
 
 void DivPlatformPowerNoise::forceIns() {
   for (int i=0; i<6; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    cWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol, chan[i].pan));
+    cWrite(i,0x06,volPan(chan[i].outVol, chan[i].pan));
   }
 }
 
@@ -487,7 +500,7 @@ void DivPlatformPowerNoise::reset() {
   rWrite(0,0x87);
   // set per-channel panning
   for (int i=0; i<4; i++) {
-    cWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol, chan[i].pan));
+    cWrite(i,0x06,volPan(chan[i].outVol, chan[i].pan));
   }
   addWrite(0xffffffff, 0);
 }
@@ -534,7 +547,6 @@ int DivPlatformPowerNoise::init(DivEngine* p, int channels, int sugRate, const D
   skipRegisterWrites=false;
   
   for (int i=0; i<4; i++) {
-    isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);

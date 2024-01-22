@@ -59,7 +59,6 @@ class DivPlatformPowerNoise: public DivDispatch {
   
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
-  bool isMuted[4];
   unsigned char regPool[32];
   
   FixedQueue<int16_t,64> queueLeft;
