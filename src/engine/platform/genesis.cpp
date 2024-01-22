@@ -291,6 +291,212 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
 
 void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
   // TODO
+  for (size_t h=0; h<len; h++) 
+  {
+    processDAC(rate);
+
+    int sum_l = 0;
+    int sum_r = 0;
+
+    int sample_l = 0;
+    int sample_r = 0;
+
+    bool was_reg_write = false;
+
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      if (w.addrOrVal) {
+        //logV("%.3x = %.2x",w.addr,w.val);
+        //OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
+        was_reg_write = true;
+
+        fm_276.input.address = w.addr < 0x100 ? 0 : 2;
+        fm_276.input.data = w.addr & 0xff;
+        fm_276.input.wr = 1;
+        FMOPN2_Clock(&fm_276, 0);
+        sum_l += fm_276.out_l;
+        sum_r += fm_276.out_r;
+        fm_276.input.wr = 0;
+        FMOPN2_Clock(&fm_276, 1);
+        sum_l += fm_276.out_l;
+        sum_r += fm_276.out_r;
+
+        if (chipType == 2) //YMF276 mode
+        {
+          if (!o_bco && fm_276.o_bco)
+          {
+            dac_shifter = (dac_shifter << 1) | fm_276.o_so;
+
+            if (o_lro != fm_276.o_lro)
+            {
+              if (o_lro)
+                sample_l = dac_shifter;
+              else
+                sample_r = dac_shifter;
+            }
+
+            o_lro = fm_276.o_lro;
+          }
+          o_bco = fm_276.o_bco;
+        }
+
+        for(int c = 0; c < 17; c++)
+        {
+          FMOPN2_Clock(&fm_276, 0);
+          sum_l += fm_276.out_l;
+          sum_r += fm_276.out_r;
+          FMOPN2_Clock(&fm_276, 1);
+          sum_l += fm_276.out_l;
+          sum_r += fm_276.out_r;
+
+          if (chipType == 2) //YMF276 mode
+          {
+            if (!o_bco && fm_276.o_bco)
+            {
+              dac_shifter = (dac_shifter << 1) | fm_276.o_so;
+
+              if (o_lro != fm_276.o_lro)
+              {
+                if (o_lro)
+                  sample_l = dac_shifter;
+                else
+                  sample_r = dac_shifter;
+              }
+
+              o_lro = fm_276.o_lro;
+            }
+            o_bco = fm_276.o_bco;
+          }
+        }
+
+        fm_276.input.address = w.addr < 0x100 ? 1 : 3;
+        fm_276.input.data = w.val;
+        fm_276.input.wr = 1;
+        FMOPN2_Clock(&fm_276, 0);
+        sum_l += fm_276.out_l;
+        sum_r += fm_276.out_r;
+        fm_276.input.wr = 0;
+        FMOPN2_Clock(&fm_276, 1);
+        sum_l += fm_276.out_l;
+        sum_r += fm_276.out_r;
+
+        if (chipType == 2) //YMF276 mode
+        {
+          if (!o_bco && fm_276.o_bco)
+          {
+            dac_shifter = (dac_shifter << 1) | fm_276.o_so;
+
+            if (o_lro != fm_276.o_lro)
+            {
+              if (o_lro)
+                sample_l = dac_shifter;
+              else
+                sample_r = dac_shifter;
+            }
+
+            o_lro = fm_276.o_lro;
+          }
+          o_bco = fm_276.o_bco;
+        }
+
+        for(int c = 0; c < 83; c++)
+        {
+          FMOPN2_Clock(&fm_276, 0);
+          sum_l += fm_276.out_l;
+          sum_r += fm_276.out_r;
+          FMOPN2_Clock(&fm_276, 1);
+          sum_l += fm_276.out_l;
+          sum_r += fm_276.out_r;
+
+          if (chipType == 2) //YMF276 mode
+          {
+            if (!o_bco && fm_276.o_bco)
+            {
+              dac_shifter = (dac_shifter << 1) | fm_276.o_so;
+
+              if (o_lro != fm_276.o_lro)
+              {
+                if (o_lro)
+                  sample_l = dac_shifter;
+                else
+                  sample_r = dac_shifter;
+              }
+
+              o_lro = fm_276.o_lro;
+            }
+            o_bco = fm_276.o_bco;
+          }
+        }
+
+        regPool[w.addr&0x1ff]=w.val;
+        writes.pop_front();
+
+        if (dacWrite>=0) {
+          if (!canWriteDAC) {
+            canWriteDAC=true;
+          } else {
+            urgentWrite(0x2a,dacWrite);
+            dacWrite=-1;
+            canWriteDAC=writes.empty();
+          }
+        }
+      } else {
+        w.addrOrVal=true;
+      }
+    } else {
+      canWriteDAC=true;
+      if (dacWrite>=0) {
+        urgentWrite(0x2a,dacWrite);
+        dacWrite=-1;
+      }
+      flushFirst=false;
+    }
+
+    for(int j = 0; j < (was_reg_write ? (144 - 83 - 19) : 144); j++)
+    {
+      FMOPN2_Clock(&fm_276, 0);
+      sum_l += fm_276.out_l;
+      sum_r += fm_276.out_r;
+      FMOPN2_Clock(&fm_276, 1);
+      sum_l += fm_276.out_l;
+      sum_r += fm_276.out_r;
+
+      if (chipType == 2) //YMF276 mode
+      {
+        if (!o_bco && fm_276.o_bco)
+        {
+          dac_shifter = (dac_shifter << 1) | fm_276.o_so;
+
+          if (o_lro != fm_276.o_lro)
+          {
+            if (o_lro)
+              sample_l = dac_shifter;
+            else
+              sample_r = dac_shifter;
+          }
+
+          o_lro = fm_276.o_lro;
+        }
+        o_bco = fm_276.o_bco;
+      }
+    }
+
+    for (int i = 0; i < 6; i++)
+    {
+      oscBuf[i]->data[oscBuf[i]->needle++]=0;
+    }
+
+    if (chipType == 2) //YMF276 mode
+    {
+      buf[0][h] = sample_l;
+      buf[1][h] = sample_r;
+    }
+    else
+    {
+      buf[0][h] = sum_l;
+      buf[1][h] = sum_r;
+    }
+  }
 }
 
 void DivPlatformGenesis::acquire(short** buf, size_t len) {
@@ -1322,7 +1528,50 @@ void DivPlatformGenesis::reset() {
   writes.clear();
   memset(regPool,0,512);
   if (useYMFM==2) {
+    dac_shifter = 0;
+    o_bco = 0;
+    o_lro = 0;
+
     memset(&fm_276,0,sizeof(fmopn2_t));
+
+    fm_276.input.cs = 1;
+    fm_276.input.rd = 0;
+    fm_276.input.wr = 0;
+    fm_276.input.address = 0;
+    fm_276.input.data = 0;
+    //fm_276->chip2.flags = ymf276mode ? 0 : fmopn2_flags_ym3438;
+
+    if(chipType == 2) //YMF276
+    {
+      fm_276.flags = 0;
+    }
+
+    if(chipType == 0 || chipType == 1) //YM3438 or YM2612
+    {
+      fm_276.flags = fmopn2_flags_ym3438;
+    }
+
+    for (int i = 0; i < 288; i++)
+    {
+      FMOPN2_Clock(&fm_276, 0);
+      FMOPN2_Clock(&fm_276, 1);
+    }
+
+    fm_276.input.ic = 1;
+
+    for (int i = 0; i < 288 * 2; i++)
+    {
+      FMOPN2_Clock(&fm_276, 0);
+      FMOPN2_Clock(&fm_276, 1);
+    }
+
+    fm_276.input.ic = 0;
+
+    for (int i = 0; i < 288 * 2; i++)
+    {
+      FMOPN2_Clock(&fm_276, 0);
+      FMOPN2_Clock(&fm_276, 1);
+    }
   } else if (useYMFM==1) {
     fm_ymfm->reset();
   }
@@ -1462,6 +1711,8 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
     } else {
       fm_ymfm=new ymfm::ym3438(iface);
     }
+    rate=chipClock/144;
+  } else if(useYMFM==2) {
     rate=chipClock/144;
   } else {
     rate=chipClock/36;

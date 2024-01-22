@@ -2319,6 +2319,7 @@ void FMOPN2_ClockFM(fmopn2_t *chip)
 void FMOPN2_Clock(fmopn2_t *chip, int clk)
 {
     chip->pinput.phi = clk;
+    chip->pinput.ic = chip->input.ic;
     if (memcmp(&chip->pinput, &chip->pinput_old, sizeof(chip->pinput)) != 0)
     {
         FMOPN2_Prescaler(chip);
