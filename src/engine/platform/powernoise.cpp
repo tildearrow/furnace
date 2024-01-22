@@ -35,7 +35,7 @@
   (b.dir ? 0x01 : 0x00))
 #define volPan(v, p)  (((v * (p >> 4) / 15) << 4) | ((v * (p & 0xf) / 15) & 0xf))
 #define mapAmp(a) (((a) * 65535 / 15 - 32768) * (pn.flags & 0x7) / 7)
-#define CHIP_DIVIDER 2
+#define CHIP_DIVIDER 128
 
 const char* regCheatSheetPowerNoise[]={
   "ACTL", "00",
@@ -179,57 +179,58 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       chan[i].freq = parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       
       if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0xfffffff) chan[i].freq=0xfffffff;
-      if(chan[i].freq >= 0x8000000) {
-        chan[i].octave = 0;
-      }
-      else if(chan[i].freq >= 0x4000000) {
-        chan[i].octave = 1;
+      if (chan[i].freq>0x7ffffff) chan[i].freq=0x7ffffff;
+      
+      if(chan[i].freq >= 0x4000000) {
+        chan[i].octave = 15;
       }
       else if(chan[i].freq >= 0x2000000) {
-        chan[i].octave = 2;
+        chan[i].octave = 14;
       }
       else if(chan[i].freq >= 0x1000000) {
-        chan[i].octave = 3;
+        chan[i].octave = 13;
       }
-      if(chan[i].freq >= 0x800000) {
-        chan[i].octave = 4;
-      }
-      else if(chan[i].freq >= 0x400000) {
-        chan[i].octave = 5;
-      }
-      else if(chan[i].freq >= 0x200000) {
-        chan[i].octave = 6;
-      }
-      else if(chan[i].freq >= 0x100000) {
-        chan[i].octave = 7;
-      }
-      if(chan[i].freq >= 0x800000) {
-        chan[i].octave = 8;
+      else if(chan[i].freq >= 0x800000) {
+        chan[i].octave = 12;
       }
       else if(chan[i].freq >= 0x400000) {
-        chan[i].octave = 9;
+        chan[i].octave = 11;
       }
       else if(chan[i].freq >= 0x200000) {
         chan[i].octave = 10;
       }
       else if(chan[i].freq >= 0x100000) {
-        chan[i].octave = 11;
+        chan[i].octave = 9;
       }
-      if(chan[i].freq >= 0x8000) {
-        chan[i].octave = 12;
+      else if(chan[i].freq >= 0x80000) {
+        chan[i].octave = 8;
+      }
+      else if(chan[i].freq >= 0x40000) {
+        chan[i].octave = 7;
+      }
+      else if(chan[i].freq >= 0x20000) {
+        chan[i].octave = 6;
+      }
+      else if(chan[i].freq >= 0x10000) {
+        chan[i].octave = 5;
+      }
+      else if(chan[i].freq >= 0x8000) {
+        chan[i].octave = 4;
       }
       else if(chan[i].freq >= 0x4000) {
-        chan[i].octave = 13;
+        chan[i].octave = 3;
       }
       else if(chan[i].freq >= 0x2000) {
-        chan[i].octave = 14;
+        chan[i].octave = 2;
+      }
+      else if(chan[i].freq >= 0x1000) {
+        chan[i].octave = 1;
       }
       else {
-        chan[i].octave = 15;
+        chan[i].octave = 0;
       }
+      
       chan[i].freq = 0xfff-(chan[i].freq>>chan[i].octave);
-      chan[i].octave = 15 - chan[i].octave;
       
       cWrite(i,0x01,chan[i].freq&0xff);
       cWrite(i,0x02,(chan[i].freq>>8) | (chan[i].octave<<4));
@@ -330,8 +331,8 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
-        if (chan[c.chan].baseFreq > 0xfffffff) {
-          chan[c.chan].baseFreq = 0xfffffff;
+        if (chan[c.chan].baseFreq > 0x7ffffff) {
+          chan[c.chan].baseFreq = 0x7ffffff;
         }
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
