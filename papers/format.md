@@ -234,7 +234,7 @@ size | description
      |   - 0xce: Namco C140 - 24 channels
      |   - 0xcf: Namco C219 - 16 channels
      |   - 0xd0: Namco C352 - 32 channels (UNAVAILABLE)
-     |   - 0xd1: ESFM - 18 channels (UNAVAILABLE)
+     |   - 0xd1: ESFM - 18 channels
      |   - 0xd2: Ensoniq ES5503 (hard pan) - 32 channels (UNAVAILABLE)
      |   - 0xd4: PowerNoise - 4 channels (UNAVAILABLE)
      |   - 0xde: YM2610B extended - 19 channels
