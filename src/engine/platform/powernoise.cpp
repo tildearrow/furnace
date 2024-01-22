@@ -24,8 +24,8 @@
 
 #define rWrite(a,v) if (!skipRegisterWrites) {regPool[a] = v; pwrnoise_write(&pn, (uint8_t)a, (uint8_t)v); if (dumpWrites) {addWrite(a,v);} }
 #define cWrite(c,a,v) rWrite((c << 3) | (a + 1), v)
-#define noiseCtl(enable, am, tapB) ((enable ? 0x80 : 0x00) | (am ? 0x02 : 0x00) | (tapB ? 0x01 : 0x00))
-#define slopeCtl(enable, rst, a, b) ((enable ? 0x80 : 0x00) | \
+#define noiseCtl(enable, am, tapB) (((enable) ? 0x80 : 0x00) | ((am) ? 0x02 : 0x00) | ((tapB) ? 0x01 : 0x00))
+#define slopeCtl(enable, rst, a, b) (((enable) ? 0x80 : 0x00) | \
   (rst ? 0x40 : 0x00) | \
   (a.clip ? 0x20 : 0x00) | \
   (b.clip ? 0x10 : 0x00) | \
@@ -34,7 +34,7 @@
   (a.dir ? 0x02 : 0x00) | \
   (b.dir ? 0x01 : 0x00))
 #define volPan(v, p)  (((v * (p >> 4) / 15) << 4) | ((v * (p & 0xf) / 15) & 0xf))
-#define mapAmp(a) (((a) * 65535 / 15 - 32768) * (pn.flags & 0x7) / 7)
+#define mapAmp(a) (((a) * 65535 / 63 - 32768) * (pn.flags & 0x7) / 7)
 #define CHIP_DIVIDER 128
 
 const char* regCheatSheetPowerNoise[]={
@@ -159,16 +159,14 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     if (chan[i].std.panL.had) {
       chan[i].pan&=0x0f;
       chan[i].pan|=(chan[i].std.panL.val&15)<<4;
-      cWrite(i,0x06,volPan(chan[i].outVol, chan[i].pan));
     }
     if (chan[i].std.panR.had) {
       chan[i].pan&=0xf0;
       chan[i].pan|=chan[i].std.panR.val&15;
-      cWrite(i,0x06,volPan(chan[i].outVol, chan[i].pan));
     }
     
     if(chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had) {
-      cWrite(i,0x06,volPan(chan[i].outVol, chan[i].pan));
+      cWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol, chan[i].pan));
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -180,8 +178,8 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
-      if (chan[i].slope && chan[i].active) {
-        cWrite(i, 0x00, slopeCtl(true, true, chan[i].slopeA, chan[i].slopeB));
+      if (chan[i].slope) {
+        cWrite(i, 0x00, slopeCtl(chan[i].active, true, chan[i].slopeA, chan[i].slopeB));
         chan[i].keyOn=true;
       }
     }
@@ -262,6 +260,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
           cWrite(i, 0x00, noiseCtl(false, chan[i].am, chan[i].tapBEnable));
         }
       }
+      
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -323,9 +322,6 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active) {
-            cWrite(c.chan,0x06,volPan(chan[c.chan].outVol, chan[c.chan].pan));
-          }
         }
       }
       break;
@@ -369,11 +365,9 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_PANNING: {
+    case DIV_CMD_PANNING:
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
-      cWrite(c.chan,0x06,volPan(chan[c.chan].outVol, chan[c.chan].pan));
       break;
-    }
     case DIV_CMD_LEGATO: {
       int whatAMess = c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
       
@@ -423,15 +417,14 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
 }
 
 void DivPlatformPowerNoise::muteChannel(int ch, bool mute) {
-  if(mute) chan[ch].keyOff = true;
-  else chan[ch].keyOn = true;
+  isMuted[ch] = mute;
+  cWrite(ch,0x06,isMuted[ch]?0:volPan(chan[ch].outVol, chan[ch].pan));
 }
 
 void DivPlatformPowerNoise::forceIns() {
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    cWrite(i,0x06,volPan(chan[i].outVol, chan[i].pan));
   }
 }
 
@@ -489,9 +482,7 @@ void DivPlatformPowerNoise::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformPowerNoise::Channel();
     chan[i].std.setEngine(parent);
-    if(i == 3) {
-      chan[i].slope = true;
-    }
+    chan[i].slope = i == 3;
   }
   
   pwrnoise_reset(&pn);
@@ -548,6 +539,7 @@ int DivPlatformPowerNoise::init(DivEngine* p, int channels, int sugRate, const D
   
   for (int i=0; i<4; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
+    isMuted[i]=false;
   }
   setFlags(flags);
   reset();
