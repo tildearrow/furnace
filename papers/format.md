@@ -235,6 +235,7 @@ size | description
      |   - 0xcf: Namco C219 - 16 channels
      |   - 0xd0: Namco C352 - 32 channels (UNAVAILABLE)
      |   - 0xd1: ESFM - 18 channels (UNAVAILABLE)
+     |   - 0xd4: PowerNoise - 4 channels (UNAVAILABLE)
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel
