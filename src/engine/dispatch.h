@@ -248,10 +248,10 @@ enum DivDispatchCmds {
   DIV_CMD_ESFM_MODIN, // (op, value)
   DIV_CMD_ESFM_ENV_DELAY, // (op, value)
 
+  DIV_CMD_MACRO_RESTART, // (which)
+
   DIV_CMD_POWER_NOISE_COUNTER_LOAD, // (which, val)
   DIV_CMD_POWER_NOISE_IO_WRITE, // (port, value)
-
-  DIV_CMD_MACRO_RESTART, // (which)
 
   DIV_CMD_MAX
 };
