@@ -244,7 +244,7 @@ size | description
      |   - 0xfe: reserved for development
      |   - 0xff: reserved for development
      | - (compound!) means that the system is composed of two or more chips,
-     |   and has to be flattened.
+     |   and has to be flattened. 
      | - (UNAVAILABLE) means that the chip hasn't been implemented in Furnace
      |   yet.
  32  | sound chip volumes (<135) or reserved
