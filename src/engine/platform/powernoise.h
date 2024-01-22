@@ -21,7 +21,6 @@
 #define _POWER_NOISE_H
 
 #include "../dispatch.h"
-#include "../../fixedQueue.h"
 #include "../../../extern/pwrnoise/pwrnoise.h"
 
 class DivPlatformPowerNoise: public DivDispatch {
@@ -61,9 +60,6 @@ class DivPlatformPowerNoise: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   unsigned char regPool[32];
-  
-  FixedQueue<int16_t,64> queueLeft;
-  FixedQueue<int16_t,64> queueRight;
   
   power_noise_t pn;
   

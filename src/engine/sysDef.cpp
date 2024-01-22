@@ -1986,7 +1986,7 @@ void DivEngine::registerSystems() {
   );
   
   sysDefs[DIV_SYSTEM_POWER_NOISE]=new DivSysDef(
-    "PowerNoise", NULL, 0xd2, 0, 4, false, false, 0, false, 0, 0, 0, 
+    "PowerNoise", NULL, 0xd4, 0, 4, false, false, 0, false, 0, 0, 0, 
     "a fantasy sound chip designed by jvsTSX and The Beesh-Spweesh!\nused in the Hexheld fantasy console.",
     {"Noise 1", "Noise 2", "Noise 3", "Slope"},
     {"N1", "N2", "N3", "SL"},

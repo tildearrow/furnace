@@ -34,7 +34,7 @@
   (a.dir ? 0x02 : 0x00) | \
   (b.dir ? 0x01 : 0x00))
 #define volPan(v, p)  (((v * (p >> 4) / 15) << 4) | ((v * (p & 0xf) / 15) & 0xf))
-#define mapAmp(a) (((a) * 65535 / 63 - 32768) * (pn.flags & 0x7) / 7)
+#define mapAmp(a) ((((a) * 65535 / 63 - 32768) * (pn.flags & 0x7) / 7) >> 1)
 #define CHIP_DIVIDER 128
 
 const char* regCheatSheetPowerNoise[]={
@@ -81,7 +81,9 @@ void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
   int16_t left, right;
   
   for (size_t h=0; h<len; h++) {
-    pwrnoise_step(&pn, &left, &right);
+    for(int i = 0; i < 32; i++) {
+      pwrnoise_step(&pn, &left, &right);
+    }
     
     oscBuf[0]->data[oscBuf[0]->needle++]=mapAmp(pn.n1.out_latch);
     oscBuf[1]->data[oscBuf[1]->needle++]=mapAmp(pn.n2.out_latch);
@@ -145,7 +147,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     }
     
     if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
     }
     if (NEW_ARP_STRAT) {
@@ -165,7 +167,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       chan[i].pan|=chan[i].std.panR.val&15;
     }
     
-    if(chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had) {
+    if (chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had) {
       cWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol, chan[i].pan));
     }
     if (chan[i].std.pitch.had) {
@@ -190,49 +192,49 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x7ffffff) chan[i].freq=0x7ffffff;
       
-      if(chan[i].freq >= 0x4000000) {
+      if (chan[i].freq >= 0x4000000) {
         chan[i].octave = 15;
       }
-      else if(chan[i].freq >= 0x2000000) {
+      else if (chan[i].freq >= 0x2000000) {
         chan[i].octave = 14;
       }
-      else if(chan[i].freq >= 0x1000000) {
+      else if (chan[i].freq >= 0x1000000) {
         chan[i].octave = 13;
       }
-      else if(chan[i].freq >= 0x800000) {
+      else if (chan[i].freq >= 0x800000) {
         chan[i].octave = 12;
       }
-      else if(chan[i].freq >= 0x400000) {
+      else if (chan[i].freq >= 0x400000) {
         chan[i].octave = 11;
       }
-      else if(chan[i].freq >= 0x200000) {
+      else if (chan[i].freq >= 0x200000) {
         chan[i].octave = 10;
       }
-      else if(chan[i].freq >= 0x100000) {
+      else if (chan[i].freq >= 0x100000) {
         chan[i].octave = 9;
       }
-      else if(chan[i].freq >= 0x80000) {
+      else if (chan[i].freq >= 0x80000) {
         chan[i].octave = 8;
       }
-      else if(chan[i].freq >= 0x40000) {
+      else if (chan[i].freq >= 0x40000) {
         chan[i].octave = 7;
       }
-      else if(chan[i].freq >= 0x20000) {
+      else if (chan[i].freq >= 0x20000) {
         chan[i].octave = 6;
       }
-      else if(chan[i].freq >= 0x10000) {
+      else if (chan[i].freq >= 0x10000) {
         chan[i].octave = 5;
       }
-      else if(chan[i].freq >= 0x8000) {
+      else if (chan[i].freq >= 0x8000) {
         chan[i].octave = 4;
       }
-      else if(chan[i].freq >= 0x4000) {
+      else if (chan[i].freq >= 0x4000) {
         chan[i].octave = 3;
       }
-      else if(chan[i].freq >= 0x2000) {
+      else if (chan[i].freq >= 0x2000) {
         chan[i].octave = 2;
       }
-      else if(chan[i].freq >= 0x1000) {
+      else if (chan[i].freq >= 0x1000) {
         chan[i].octave = 1;
       }
       else {
@@ -245,7 +247,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       cWrite(i,0x02,(chan[i].freq>>8) | (chan[i].octave<<4));
       
       if (chan[i].keyOn) {
-        if(chan[i].slope) {
+        if (chan[i].slope) {
           cWrite(i, 0x00, slopeCtl(true, false, chan[i].slopeA, chan[i].slopeB));
         }
         else {
@@ -253,7 +255,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
         }
       }
       if (chan[i].keyOff) {
-        if(chan[i].slope) {
+        if (chan[i].slope) {
           cWrite(i, 0x00, slopeCtl(false, false, chan[i].slopeA, chan[i].slopeB));
         }
         else {
@@ -442,18 +444,7 @@ unsigned short DivPlatformPowerNoise::getPan(int ch) {
 
 DivChannelModeHints DivPlatformPowerNoise::getModeHints(int ch) {
   DivChannelModeHints ret;
-  
-  ret.count=1;
-  
-  if (ch==3) {
-    ret.hint[0]=ICON_FUR_SAW;
-    ret.type[0]=5;
-  }
-  else {
-    ret.hint[0]=ICON_FUR_NOISE;
-    ret.type[0]=4;
-  }
-  
+  ret.count=0;
   return ret;
 }
 
@@ -514,10 +505,10 @@ void DivPlatformPowerNoise::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformPowerNoise::setFlags(const DivConfig& flags) {
-  chipClock=16777216;
+  chipClock=16000000;
   
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock;
+  rate=chipClock/32;
   
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
