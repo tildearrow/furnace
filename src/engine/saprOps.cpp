@@ -79,7 +79,8 @@ SafeWriter* DivEngine::saveSAPR(int sapScanlines) {
     sapScanlines = scanlinesPerFrame;
   }
   double origRate = got.rate;
-  double sapRate = (palTiming?49.86:59.92) * scanlinesPerFrame / sapScanlines;;
+  //double sapRate = (palTiming?49.86:59.92) * scanlinesPerFrame / sapScanlines;
+  double sapRate = (palTiming?50:60) * scanlinesPerFrame / sapScanlines;
   got.rate=sapRate;
 
   // Determine loop point.
