@@ -176,6 +176,21 @@ void FurnaceGUI::drawExportZSM(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportSAPR(bool onWindow) {
+  exitDisabledTimer=1;
+
+  ImGui::Checkbox("use PAL timings",&saprExportPal);
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_EXPORT_SAPR);
+    ImGui::CloseCurrentPopup();
+  }
+}
+
 void FurnaceGUI::drawExportAmigaVal(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -268,8 +283,12 @@ void FurnaceGUI::drawExport() {
         ImGui::EndTabItem();
       }
       int numZSMCompat=0;
+      int numSAPRCompat=0;
+      int numAmiga=0;
       for (int i=0; i<e->song.systemLen; i++) {
         if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
+        if (e->song.system[i]==DIV_SYSTEM_POKEY) numSAPRCompat++;
+        if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
       }
       if (numZSMCompat>0) {
         if (ImGui::BeginTabItem("ZSM")) {
@@ -277,9 +296,11 @@ void FurnaceGUI::drawExport() {
           ImGui::EndTabItem();
         }
       }
-      int numAmiga=0;
-      for (int i=0; i<e->song.systemLen; i++) {
-        if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
+      if (numSAPRCompat>0) {
+        if (ImGui::BeginTabItem("SAP-R")) {
+          drawExportSAPR(true);
+          ImGui::EndTabItem();
+        }
       }
       if (numAmiga && settings.iCannotWait) {
         if (ImGui::BeginTabItem("Amiga Validation")) {
@@ -306,6 +327,9 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_ZSM:
       drawExportZSM(true);
+      break;
+    case GUI_EXPORT_SAPR:
+      drawExportSAPR(true);
       break;
     case GUI_EXPORT_AMIGA_VAL:
       drawExportAmigaVal(true);

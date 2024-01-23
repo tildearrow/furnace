@@ -630,6 +630,7 @@ src/engine/pattern.cpp
 src/engine/pitchTable.cpp
 src/engine/playback.cpp
 src/engine/sample.cpp
+src/engine/saprOps.cpp
 src/engine/song.cpp
 src/engine/sysDef.cpp
 src/engine/wavetable.cpp

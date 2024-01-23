@@ -1881,6 +1881,15 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_EXPORT_SAPR:
+      if (!dirExists(workingDirSAPRExport)) workingDirSAPRExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Export SAP-R",
+        {"SAP file", "*.sap"},
+        workingDirSAPRExport,
+        dpiScale
+      );
+      break;
     case GUI_FILE_EXPORT_TEXT:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -4115,8 +4124,12 @@ bool FurnaceGUI::loop() {
             ImGui::EndMenu();
           }
           int numZSMCompat=0;
+          int numSAPRCompat=0;
+          int numAmiga=0;
           for (int i=0; i<e->song.systemLen; i++) {
             if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
+            if (e->song.system[i]==DIV_SYSTEM_POKEY) numSAPRCompat++;
+            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
           }
           if (numZSMCompat>0) {
             if (ImGui::BeginMenu("export ZSM...")) {
@@ -4124,9 +4137,11 @@ bool FurnaceGUI::loop() {
               ImGui::EndMenu();
             }
           }
-          int numAmiga=0;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
+          if (numSAPRCompat>0) {
+            if (ImGui::BeginMenu("export SAP-R...")) {
+              drawExportSAPR();
+              ImGui::EndMenu();
+            }
           }
           if (numAmiga && settings.iCannotWait) {
             if (ImGui::BeginMenu("export Amiga validation data...")) {
@@ -4152,8 +4167,12 @@ bool FurnaceGUI::loop() {
             displayExport=true;
           }
           int numZSMCompat=0;
+          int numSAPRCompat=0;
+          int numAmiga=0;
           for (int i=0; i<e->song.systemLen; i++) {
             if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
+            if (e->song.system[i]==DIV_SYSTEM_POKEY) numSAPRCompat++;
+            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
           }
           if (numZSMCompat>0) {
             if (ImGui::MenuItem("export ZSM...")) {
@@ -4161,9 +4180,11 @@ bool FurnaceGUI::loop() {
               displayExport=true;
             }
           }
-          int numAmiga=0;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
+          if (numZSMCompat>0) {
+            if (ImGui::MenuItem("export SAP-R...")) {
+              curExportType=GUI_EXPORT_SAPR;
+              displayExport=true;
+            }
           }
           if (numAmiga && settings.iCannotWait) {
             if (ImGui::MenuItem("export Amiga validation data...")) {
@@ -4739,6 +4760,9 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_ZSM:
           workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_EXPORT_SAPR:
+          workingDirSAPRExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
@@ -4831,6 +4855,9 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_ZSM) {
             checkExtension(".zsm");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_SAPR) {
+            checkExtension(".sap");
           }
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM || curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
@@ -5202,6 +5229,27 @@ bool FurnaceGUI::loop() {
                 }
               } else {
                 showError(fmt::sprintf("Could not write ZSM! (%s)",e->getLastError()));
+              }
+              break;
+            }
+            case GUI_FILE_EXPORT_SAPR: {
+              SafeWriter* w=e->saveSAPR(0, saprExportPal);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError("could not open file!");
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf("Could not write SAP-R! (%s)",e->getLastError()));
               }
               break;
             }
@@ -6406,6 +6454,7 @@ bool FurnaceGUI::init() {
   workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
   workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
   workingDirZSMExport=e->getConfString("lastDirZSMExport",workingDir);
+  workingDirSAPRExport=e->getConfString("lastDirSAPRExport",workingDir);
   workingDirROMExport=e->getConfString("lastDirROMExport",workingDir);
   workingDirFont=e->getConfString("lastDirFont",workingDir);
   workingDirColors=e->getConfString("lastDirColors",workingDir);
@@ -6969,6 +7018,7 @@ void FurnaceGUI::commitState() {
   e->setConf("lastDirAudioExport",workingDirAudioExport);
   e->setConf("lastDirVGMExport",workingDirVGMExport);
   e->setConf("lastDirZSMExport",workingDirZSMExport);
+  e->setConf("lastDirSAPRExport",workingDirSAPRExport);
   e->setConf("lastDirROMExport",workingDirROMExport);
   e->setConf("lastDirFont",workingDirFont);
   e->setConf("lastDirColors",workingDirColors);
@@ -7199,6 +7249,7 @@ FurnaceGUI::FurnaceGUI():
   vgmExportTrailingTicks(-1),
   drawHalt(10),
   zsmExportTickRate(60),
+  saprExportPal(true),
   macroPointSize(16),
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
