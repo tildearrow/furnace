@@ -328,6 +328,10 @@ const char* es5506FilterModes[4]={
   "HP/K2, HP/K2", "HP/K2, LP/K1", "LP/K2, LP/K2", "LP/K2, LP/K1",
 };
 
+const char* powernoiseControlBits[7]={
+  "tap B / down B", "slope AM / down A", "reset B", "reset A", "clip B", "clip A", NULL
+};
+
 const char* panBits[5]={
   "right", "left", "rear right", "rear left", NULL
 };
@@ -7263,7 +7267,7 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ins->type==DIV_INS_POWER_NOISE) {
-            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,6,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,6,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,powernoiseControlBits));
             macroList.push_back(FurnaceGUIMacroDesc("Portion A Length",&ins->std.ex2Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Portion B Length",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Tap A Location",&ins->std.ex4Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
