@@ -40,22 +40,23 @@ void pwrnoise_noise_write(noise_channel_t *chan, uint8_t reg, uint8_t val) {
 	}
 }
 
-void pwrnoise_noise_step(noise_channel_t *chan) {
-	chan->octave_counter++;
-	if (chan->enable && !(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001)) {
-		if ((++chan->period_counter) == 4096) {
+void pwrnoise_noise_step(noise_channel_t *chan, uint16_t cycles) {
+	if (!chan->enable) chan->out_latch = 0;
+	
+	chan->octave_counter += cycles;
+	if (chan->enable && (cycles > 2 || !(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001))) {
+		chan->period_counter += (cycles >> (chan->octave + 1));
+		if (cycles == 1) ++chan->period_counter;
+		
+		if (chan->period_counter >= 4096) {
 			chan->prev = (uint8_t)(chan->lfsr >> 15);
 			uint16_t in = ((chan->lfsr >> chan->tapa) ^ (chan->tapb_enable ? (chan->lfsr >> chan->tapb) : 0)) & 0x0001;
 			chan->lfsr = (chan->lfsr << 1) | in;
-			chan->period_counter = chan->period;
+			chan->period_counter = chan->period + (chan->period_counter - 4096);
 		}
 	}
 	
-	uint8_t out = chan->prev;
-	if (!chan->enable) out = 0;
-	else if (out != 0) out = chan->vol;
-	
-	chan->out_latch = out;
+	chan->out_latch = (chan->prev != 0) ? chan->vol : 0;
 }
 
 void pwrnoise_slope_write(slope_channel_t *chan, uint8_t reg, uint8_t val) {
@@ -96,9 +97,18 @@ void pwrnoise_slope_write(slope_channel_t *chan, uint8_t reg, uint8_t val) {
 	}
 }
 
-void pwrnoise_slope_step(slope_channel_t *chan, bool force_zero) {
-	if (chan->enable && !((chan->octave_counter++ >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001)) {
-		if ((++chan->period_counter) == 4096) {
+void pwrnoise_slope_step(slope_channel_t *chan, uint16_t cycles, bool force_zero) {
+	if (!chan->enable) {
+		chan->out_latch = 0;
+		return;
+	}
+	
+	chan->octave_counter += cycles;
+	if (chan->enable && (cycles > 2 || !(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001))) {
+		chan->period_counter += (cycles >> (chan->octave + 1));
+		if (cycles == 1) ++chan->period_counter;
+		
+		if (chan->period_counter >= 4096) {
 			if (!chan->portion) {
 				if ((chan->flags & 0x02) != 0) chan->accum -= chan->aoffset;
 				else chan->accum += chan->aoffset;
@@ -126,48 +136,47 @@ void pwrnoise_slope_step(slope_channel_t *chan, bool force_zero) {
 				}
 			}
 			
-			chan->period_counter = chan->period;
+			chan->period_counter = chan->period + (chan->period_counter - 4096);
+			
+			uint8_t left = chan->accum >> 3;
+			uint8_t right = chan->accum >> 3;
+	
+			switch (chan->vol >> 4) {
+				case 0:
+				case 1:
+					left >>= 1;
+				case 2:
+				case 3:
+					left >>= 1;
+				case 4:
+				case 5:
+				case 6:
+				case 7:
+					left >>= 1;
+				default: break;
+			}
+			switch (chan->vol & 0xf) {
+				case 0:
+				case 1:
+					right >>= 1;
+				case 2:
+				case 3:
+					right >>= 1;
+				case 4:
+				case 5:
+				case 6:
+				case 7:
+					right >>= 1;
+				default: break;
+			}
+	
+			left &= (chan->vol >> 4);
+			right &= (chan->vol & 0xf);
+			chan->prev = (left << 4) | right;
 		}
 	}
 	
-	uint8_t left = chan->accum >> 3;
-	uint8_t right = chan->accum >> 3;
-	
-	switch (chan->vol >> 4) {
-		case 0:
-		case 1:
-			left >>= 1;
-		case 2:
-		case 3:
-			left >>= 1;
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-			left >>= 1;
-		default: break;
-	}
-	switch (chan->vol & 0xf) {
-		case 0:
-		case 1:
-			right >>= 1;
-		case 2:
-		case 3:
-			right >>= 1;
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-			right >>= 1;
-		default: break;
-	}
-	
-	left &= (chan->vol >> 4);
-	right &= (chan->vol & 0xf);
-	uint8_t out = (left << 4) | right;
-	
-	if (!chan->enable || force_zero) out = 0;
-	chan->out_latch = out;
+	chan->out_latch = force_zero ? 0 : chan->prev;
 }
 
 void pwrnoise_reset(power_noise_t *pn) {
@@ -200,14 +209,14 @@ void pwrnoise_write(power_noise_t *pn, uint8_t reg, uint8_t val) {
 	}
 }
 
-void pwrnoise_step(power_noise_t *pn, int16_t *left, int16_t *right) {
+void pwrnoise_step(power_noise_t *pn, uint16_t cycles, int16_t *left, int16_t *right) {
 	int32_t final_left, final_right;
 	
 	if ((pn->flags & 0x80) != 0) {
-		pwrnoise_noise_step(&pn->n1);
-		pwrnoise_noise_step(&pn->n2);
-		pwrnoise_noise_step(&pn->n3);
-		pwrnoise_slope_step(&pn->s, (pn->n1.am && !(pn->n1.prev)) || (pn->n2.am && !(pn->n2.prev)) || (pn->n3.am && !(pn->n3.prev)));
+		pwrnoise_noise_step(&pn->n1, cycles);
+		pwrnoise_noise_step(&pn->n2, cycles);
+		pwrnoise_noise_step(&pn->n3, cycles);
+		pwrnoise_slope_step(&pn->s, cycles, (pn->n1.am && !(pn->n1.prev)) || (pn->n2.am && !(pn->n2.prev)) || (pn->n3.am && !(pn->n3.prev)));
 		
 		final_left = (pn->n1.out_latch >> 4) + (pn->n2.out_latch >> 4) + (pn->n3.out_latch >> 4) + (pn->s.out_latch >> 4);
 		final_right = (pn->n1.out_latch & 0xf) + (pn->n2.out_latch & 0xf) + (pn->n3.out_latch & 0xf) + (pn->s.out_latch & 0xf);

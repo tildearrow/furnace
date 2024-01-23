@@ -19,6 +19,7 @@
 
 #include "powernoise.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include "furIcons.h"
 #include <math.h>
 
@@ -81,9 +82,7 @@ void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
   int16_t left, right;
   
   for (size_t h=0; h<len; h++) {
-    for(int i = 0; i < 32; i++) {
-      pwrnoise_step(&pn, &left, &right);
-    }
+    pwrnoise_step(&pn, 32, &left, &right);
     
     oscBuf[0]->data[oscBuf[0]->needle++]=mapAmp(((pn.n1.out_latch>>1)&0x7)+(pn.n1.out_latch>>5));
     oscBuf[1]->data[oscBuf[1]->needle++]=mapAmp(((pn.n2.out_latch>>1)&0x7)+(pn.n2.out_latch>>5));

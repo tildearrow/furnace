@@ -52,6 +52,7 @@ typedef struct {
 	uint8_t vol;
 
 	uint8_t out_latch;
+  uint8_t prev;
 } slope_channel_t;
 
 typedef struct {
@@ -66,7 +67,7 @@ typedef struct {
 } power_noise_t;
 
 void pwrnoise_reset(power_noise_t *pn);
-void pwrnoise_step(power_noise_t *pn, int16_t *left, int16_t *right);
+void pwrnoise_step(power_noise_t *pn, uint16_t cycles, int16_t *left, int16_t *right);
 void pwrnoise_write(power_noise_t *pn, uint8_t reg, uint8_t val);
 
 #ifdef __cplusplus
