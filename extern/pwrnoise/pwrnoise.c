@@ -44,7 +44,7 @@ void pwrnoise_noise_step(noise_channel_t *chan, uint16_t cycles) {
 	if (!chan->enable) chan->out_latch = 0;
 	
 	chan->octave_counter += cycles;
-	if (chan->enable && (cycles > 2 || !(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001))) {
+	if (cycles > 2 || !(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001)) {
 		chan->period_counter += (cycles >> (chan->octave + 1));
 		if (cycles == 1) ++chan->period_counter;
 		
@@ -56,7 +56,7 @@ void pwrnoise_noise_step(noise_channel_t *chan, uint16_t cycles) {
 		}
 	}
 	
-	chan->out_latch = (chan->prev != 0) ? chan->vol : 0;
+	chan->out_latch = chan->prev ? chan->vol : 0;
 }
 
 void pwrnoise_slope_write(slope_channel_t *chan, uint8_t reg, uint8_t val) {
@@ -104,7 +104,7 @@ void pwrnoise_slope_step(slope_channel_t *chan, uint16_t cycles, bool force_zero
 	}
 	
 	chan->octave_counter += cycles;
-	if (chan->enable && (cycles > 2 || !(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001))) {
+	if (cycles > 2 || !(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001)) {
 		chan->period_counter += (cycles >> (chan->octave + 1));
 		if (cycles == 1) ++chan->period_counter;
 		
