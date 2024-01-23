@@ -153,7 +153,7 @@ SafeWriter* DivEngine::saveSAPR(int sapScanlines) {
   auto w = new SafeWriter;
   w->init(); 
   // Write SAP header: Author, name, timing, type.
-  w->writeText(fmt::sprintf("SAP\r\nAUTHOR \"%s\"\r\nNAME\"%s\"\r\n%s\r\nTYPE R\r\n",
+  w->writeText(fmt::sprintf("SAP\r\nAUTHOR \"%s\"\r\nNAME \"%s\"\r\n%s\r\nTYPE R\r\n",
     song.author, song.name, palTiming ? "PAL" : "NTSC"
   ));
   if (sapScanlines != scanlinesPerFrame) {
