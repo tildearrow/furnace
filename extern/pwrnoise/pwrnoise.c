@@ -41,7 +41,10 @@ void pwrnoise_noise_write(noise_channel_t *chan, uint8_t reg, uint8_t val) {
 }
 
 void pwrnoise_noise_step(noise_channel_t *chan, uint16_t cycles) {
-	if (!chan->enable) chan->out_latch = 0;
+	if (!chan->enable) {
+		chan->out_latch = 0;
+		return;
+	}
 	
 	chan->octave_counter += cycles;
 	if (cycles > 2 || !(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001)) {
