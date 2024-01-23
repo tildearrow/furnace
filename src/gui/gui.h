@@ -1482,7 +1482,6 @@ class FurnaceGUI {
   int vgmExportTrailingTicks;
   int drawHalt;
   int zsmExportTickRate;
-  bool saprExportPal;
   int macroPointSize;
   int waveEditStyle;
   int displayInsTypeListMakeInsSample;

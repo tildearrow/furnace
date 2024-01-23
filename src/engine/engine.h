@@ -648,7 +648,7 @@ class DivEngine {
     // dump to ZSM.
     SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true, bool optimize=true);
     // dump to SAP-R.
-    SafeWriter* saveSAPR(int sapScanlines=0, bool palTiming=true);
+    SafeWriter* saveSAPR(int sapScanlines=0);
     // dump command stream.
     SafeWriter* saveCommand(bool binary=false);
     // export to text

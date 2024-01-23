@@ -39,7 +39,7 @@ static std::string ticksToTime(double rate, int ticks) {
   );
 }
 
-SafeWriter* DivEngine::saveSAPR(int sapScanlines, bool palTiming) {
+SafeWriter* DivEngine::saveSAPR(int sapScanlines) {
   int POKEY=-1;
   int IGNORED=0;
 
@@ -73,6 +73,7 @@ SafeWriter* DivEngine::saveSAPR(int sapScanlines, bool palTiming) {
   setOrder(0);
   BUSY_BEGIN_SOFT;
 
+  bool palTiming = song.systemFlags[POKEY].getInt("clockSel",0) != 0;
   int scanlinesPerFrame = (palTiming?312:262);
   if (sapScanlines <= 0) {
     sapScanlines = scanlinesPerFrame;
@@ -150,7 +151,7 @@ SafeWriter* DivEngine::saveSAPR(int sapScanlines, bool palTiming) {
   extValuePresent=false;
 
   auto w = new SafeWriter;
-  w->init();
+  w->init(); 
   // Write SAP header: Author, name, timing, type.
   w->writeText(fmt::sprintf("SAP\r\nAUTHOR \"%s\"\r\nNAME\"%s\"\r\n%s\r\nTYPE R\r\n",
     song.author, song.name, palTiming ? "PAL" : "NTSC"

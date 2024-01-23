@@ -179,7 +179,6 @@ void FurnaceGUI::drawExportZSM(bool onWindow) {
 void FurnaceGUI::drawExportSAPR(bool onWindow) {
   exitDisabledTimer=1;
 
-  ImGui::Checkbox("use PAL timings",&saprExportPal);
   if (onWindow) {
     ImGui::Separator();
     if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
