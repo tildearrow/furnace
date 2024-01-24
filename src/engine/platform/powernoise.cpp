@@ -81,15 +81,15 @@ const char** DivPlatformPowerNoise::getRegisterSheet() {
 
 void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
   short left, right;
-  
+
   for (size_t h=0; h<len; h++) {
-    pwrnoise_step(&pn, 32, &left, &right);
-    
+    pwrnoise_step(&pn,32,&left,&right);
+
     oscBuf[0]->data[oscBuf[0]->needle++]=mapAmp(((pn.n1.out_latch>>1)&0x7)+(pn.n1.out_latch>>5));
     oscBuf[1]->data[oscBuf[1]->needle++]=mapAmp(((pn.n2.out_latch>>1)&0x7)+(pn.n2.out_latch>>5));
     oscBuf[2]->data[oscBuf[2]->needle++]=mapAmp(((pn.n3.out_latch>>1)&0x7)+(pn.n3.out_latch>>5));
     oscBuf[3]->data[oscBuf[3]->needle++]=mapAmp(((pn.s.out_latch>>1)&0x7)+(pn.s.out_latch>>5));
-    
+
     buf[0][h] = left;
     buf[1][h] = right;
   }
@@ -109,10 +109,10 @@ void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
 void DivPlatformPowerNoise::tick(bool sysTick) {
   for(int i = 0; i < 4; i++) {
     chan[i].std.next();
-    
+
     if (chan[i].std.ex1.had) {
       int val = chan[i].std.ex1.val;
-      
+
       if (chan[i].slope) {
         chan[i].slopeA.clip = ((val & 0x20) != 0);
         chan[i].slopeB.clip = ((val & 0x10) != 0);
@@ -144,7 +144,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       cWrite(i, 0x03, chan[i].std.ex8.val & 0xff);
       cWrite(i, 0x04, chan[i].std.ex8.val >> 8);
     }
-    
+
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
@@ -165,7 +165,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       chan[i].pan&=0xf0;
       chan[i].pan|=chan[i].std.panR.val&15;
     }
-    
+
     if (chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had) {
       cWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol, chan[i].pan));
     }
@@ -184,13 +184,13 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
         chan[i].keyOn=true;
       }
     }
-    
+
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq = parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      
+
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x7ffffff) chan[i].freq=0x7ffffff;
-      
+
       if (chan[i].freq >= 0x4000000) {
         chan[i].octave = 15;
       }
@@ -239,12 +239,12 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       else {
         chan[i].octave = 0;
       }
-      
+
       chan[i].freq = 0xfff-(chan[i].freq>>chan[i].octave);
-      
+
       cWrite(i,0x01,chan[i].freq&0xff);
       cWrite(i,0x02,(chan[i].freq>>8) | (chan[i].octave<<4));
-      
+
       if (chan[i].keyOn) {
         if (chan[i].slope) {
           cWrite(i, 0x00, slopeCtl(true, false, chan[i].slopeA, chan[i].slopeB));
@@ -261,12 +261,12 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
           cWrite(i, 0x00, noiseCtl(false, chan[i].am, chan[i].tapBEnable));
         }
       }
-      
+
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
-    
+
     if (chan[i].slope) {
       unsigned char counter = pn.s.accum;
       regPool[0x18] = counter;
@@ -337,7 +337,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
-      
+
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -370,7 +370,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO: {
       int whatAMess = c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
-      
+
       chan[c.chan].baseFreq=NOTE_PERIODIC(whatAMess);
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
@@ -473,9 +473,9 @@ void DivPlatformPowerNoise::reset() {
     chan[i].std.setEngine(parent);
     chan[i].slope = i == 3;
   }
-  
+
   pwrnoise_reset(&pn);
-  
+
   // set master volume to full
   rWrite(0,0x87);
   // set per-channel panning
@@ -504,10 +504,10 @@ void DivPlatformPowerNoise::notifyInsDeletion(void* ins) {
 
 void DivPlatformPowerNoise::setFlags(const DivConfig& flags) {
   chipClock=16000000;
-  
+
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/32;
-  
+
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -525,7 +525,7 @@ int DivPlatformPowerNoise::init(DivEngine* p, int channels, int sugRate, const D
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
-  
+
   for (int i=0; i<4; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
     isMuted[i]=false;
