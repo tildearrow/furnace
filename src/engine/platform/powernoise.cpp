@@ -23,7 +23,7 @@
 #include "furIcons.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {regPool[a] = (v); pwrnoise_write(&pn, (uint8_t)(a), (uint8_t)(v)); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {regPool[a] = (v); pwrnoise_write(&pn, (unsigned char)(a), (unsigned char)(v)); if (dumpWrites) {addWrite(a,v);} }
 #define cWrite(c,a,v) rWrite((c << 3) | ((a) + 1), (v))
 #define noiseCtl(enable, am, tapB) (((enable) ? 0x80 : 0x00) | ((am) ? 0x02 : 0x00) | ((tapB) ? 0x01 : 0x00))
 #define slopeCtl(enable, rst, a, b) (((enable) ? 0x80 : 0x00) | \
@@ -79,7 +79,7 @@ const char** DivPlatformPowerNoise::getRegisterSheet() {
 }
 
 void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
-  int16_t left, right;
+  short left, right;
   
   for (size_t h=0; h<len; h++) {
     pwrnoise_step(&pn, 32, &left, &right);
@@ -267,11 +267,11 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     }
     
     if (chan[i].slope) {
-      uint8_t counter = pn.s.accum;
+      unsigned char counter = pn.s.accum;
       regPool[0x18] = counter;
     }
     else {
-      uint16_t lfsr;
+      unsigned short lfsr;
       if (i == 0) lfsr = pn.n1.lfsr;
       else if (i == 1) lfsr = pn.n2.lfsr;
       else lfsr = pn.n3.lfsr;
