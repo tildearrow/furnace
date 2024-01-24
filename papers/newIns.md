@@ -121,6 +121,9 @@ the following instrument types are available:
 - 52: TED
 - 53: C140
 - 54: C219
+- 55: ESFM
+- 56: PowerNoise (noise)
+- 57: PowerNoise (slope)
 
 the following feature codes are recognized:
 
@@ -146,6 +149,7 @@ the following feature codes are recognized:
 - `ES`: ES5506 ins data
 - `X1`: X1-010 ins data
 - `NE`: NES DPCM sample map data
+- `EF`: ESFM ins data
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there sample/wave lists.
