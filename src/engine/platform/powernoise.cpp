@@ -139,10 +139,9 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     if ((chan[i].std.ex6.had || chan[i].std.ex7.had) && chan[i].slope) {
       cWrite(i, 0x05, (chan[i].std.ex6.val << 4) | chan[i].std.ex7.val);
     }
-    if (chan[i].std.ex8.had && !chan[i].slope && chan[i].active && chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+    if (chan[i].std.ex8.had && !chan[i].slope) {
       cWrite(i, 0x03, chan[i].std.ex8.val & 0xff);
       cWrite(i, 0x04, chan[i].std.ex8.val >> 8);
-      chan[i].keyOn=true;
     }
     
     if (chan[i].std.vol.had) {
