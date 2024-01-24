@@ -25,7 +25,7 @@
 #include "../bsr.h"
 
 #define rWrite(a,v) if (!skipRegisterWrites) {regPool[a]=(v); pwrnoise_write(&pn,(unsigned char)(a),(unsigned char)(v)); if (dumpWrites) {addWrite(a,v);}}
-#define cWrite(c,a,v) rWrite((c<<3)|((a)+1),(v))
+#define chWrite(c,a,v) rWrite((c<<3)|((a)+1),(v))
 #define noiseCtl(enable,am,tapB) (((enable)?0x80:0x00)|((am)?0x02:0x00)|((tapB)?0x01:0x00))
 #define slopeCtl(enable,rst,a,b) (((enable)?0x80:0x00)| \
   (rst?0x40:0x00)| \
@@ -38,7 +38,6 @@
 #define volPan(v,p) (((v*(p>>4)/15)<<4)|((v*(p&0xf)/15)&0xf))
 // TODO: optimize!
 #define mapAmp(a) ((((a)*65535/63-32768)*(pn.flags&0x7)/7)>>1)
-#define CHIP_DIVIDER 128
 
 const char* regCheatSheetPowerNoise[]={
   "ACTL", "00",
@@ -109,6 +108,8 @@ void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
 
 void DivPlatformPowerNoise::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
+    int CHIP_DIVIDER=2;
+    if (i==3) CHIP_DIVIDER=128;
     chan[i].std.next();
 
     if (chan[i].std.ex1.had) {
@@ -121,28 +122,46 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
         chan[i].slopeB.reset=(val&0x04);
         chan[i].slopeA.dir=(val&0x02);
         chan[i].slopeB.dir=(val&0x01);
-        cWrite(i,0x00,slopeCtl(chan[i].active,false,chan[i].slopeA,chan[i].slopeB));
+        chWrite(i,0x00,slopeCtl(chan[i].active,false,chan[i].slopeA,chan[i].slopeB));
       } else {
         chan[i].am=(val&0x02);
         chan[i].tapBEnable=(val&0x01);
-        cWrite(i,0x00,noiseCtl(chan[i].active, chan[i].am, chan[i].tapBEnable));
+        chWrite(i,0x00,noiseCtl(chan[i].active, chan[i].am, chan[i].tapBEnable));
       }
     }
-    if (chan[i].std.ex2.had && chan[i].slope) {
-      cWrite(i,0x03,chan[i].std.ex2.val);
-    }
-    if (chan[i].std.ex3.had && chan[i].slope) {
-      cWrite(i,0x04,chan[i].std.ex3.val);
-    }
-    if ((chan[i].std.ex4.had || chan[i].std.ex5.had) && !chan[i].slope) {
-      cWrite(i,0x05,(chan[i].std.ex4.val<<4)|chan[i].std.ex5.val);
-    }
-    if ((chan[i].std.ex6.had || chan[i].std.ex7.had) && chan[i].slope) {
-      cWrite(i,0x05,(chan[i].std.ex6.val<<4)|chan[i].std.ex7.val);
-    }
-    if (chan[i].std.ex8.had && !chan[i].slope) {
-      cWrite(i,0x03,chan[i].std.ex8.val&0xff);
-      cWrite(i,0x04,chan[i].std.ex8.val>>8);
+    if (chan[i].slope) {
+      if (chan[i].std.ex2.had) {
+        chan[i].slopeA.len=chan[i].std.ex2.val;
+        chWrite(i,0x03,chan[i].std.ex2.val);
+      }
+      if (chan[i].std.ex3.had) {
+        chan[i].slopeB.len=chan[i].std.ex3.val;
+        chWrite(i,0x04,chan[i].std.ex3.val);
+      }
+      if (chan[i].std.ex6.had) {
+        chan[i].slopeA.offset=chan[i].std.ex6.val;
+      }
+      if (chan[i].std.ex7.had) {
+        chan[i].slopeB.offset=chan[i].std.ex7.val;
+      }
+      if (chan[i].std.ex6.had || chan[i].std.ex7.had) {
+        chWrite(i,0x05,(chan[i].slopeA.offset<<4)|chan[i].slopeB.offset);
+      }
+    } else {
+      if (chan[i].std.ex4.had) {
+        chan[i].tapA=chan[i].std.ex4.val;
+      }
+      if (chan[i].std.ex5.had) {
+        chan[i].tapB=chan[i].std.ex5.val;
+      }
+      if (chan[i].std.ex4.had || chan[i].std.ex5.had) {
+        chWrite(i,0x05,(chan[i].tapA<<4)|chan[i].tapB);
+      }
+      if (chan[i].std.ex8.had) {
+        chan[i].initLFSR=chan[i].std.ex8.val&0xffff;
+        chWrite(i,0x03,chan[i].std.ex8.val&0xff);
+        chWrite(i,0x04,chan[i].std.ex8.val>>8);
+      }
     }
 
     if (chan[i].std.vol.had) {
@@ -167,7 +186,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     }
 
     if (chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had) {
-      cWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol,chan[i].pan));
+      chWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol,chan[i].pan));
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -180,7 +199,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     }
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
       if (chan[i].slope) {
-        cWrite(i,0x00,slopeCtl(chan[i].active,true,chan[i].slopeA,chan[i].slopeB));
+        chWrite(i,0x00,slopeCtl(chan[i].active,true,chan[i].slopeA,chan[i].slopeB));
         chan[i].keyOn=true;
       }
     }
@@ -190,25 +209,28 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
 
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x7ffffff) chan[i].freq=0x7ffffff;
-      chan[i].octave=MAX(bsr(chan[i].freq)-12,0);
+      chan[i].octave=MAX(bsr32(chan[i].freq)-12,0);
       if (chan[i].octave>15) chan[i].octave=15;
-      chan[i].fNum=0xfff-(chan[i].freq>>chan[i].octave);
+      chan[i].fNum=0x1000-(chan[i].freq>>chan[i].octave);
+      if (chan[i].fNum<0) chan[i].fNum=0;
+      if (chan[i].fNum>4095) chan[i].fNum=4095;
+      logV("%.4x (%x, %x)",chan[i].fNum,chan[i].octave,chan[i].freq);
 
-      cWrite(i,0x01,chan[i].fNum&0xff);
-      cWrite(i,0x02,(chan[i].fNum>>8)|(chan[i].octave<<4));
+      chWrite(i,0x01,chan[i].fNum&0xff);
+      chWrite(i,0x02,(chan[i].fNum>>8)|(chan[i].octave<<4));
 
       if (chan[i].keyOn) {
         if (chan[i].slope) {
-          cWrite(i,0x00,slopeCtl(true,false,chan[i].slopeA,chan[i].slopeB));
+          chWrite(i,0x00,slopeCtl(true,false,chan[i].slopeA,chan[i].slopeB));
         } else {
-          cWrite(i,0x00,noiseCtl(true,chan[i].am,chan[i].tapBEnable));
+          chWrite(i,0x00,noiseCtl(true,chan[i].am,chan[i].tapBEnable));
         }
       }
       if (chan[i].keyOff) {
         if (chan[i].slope) {
-          cWrite(i,0x00,slopeCtl(false,false,chan[i].slopeA,chan[i].slopeB));
+          chWrite(i,0x00,slopeCtl(false,false,chan[i].slopeA,chan[i].slopeB));
         } else {
-          cWrite(i,0x00,noiseCtl(false,chan[i].am,chan[i].tapBEnable));
+          chWrite(i,0x00,noiseCtl(false,chan[i].am,chan[i].tapBEnable));
         }
       }
 
@@ -236,6 +258,9 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
 }
 
 int DivPlatformPowerNoise::dispatch(DivCommand c) {
+  int CHIP_DIVIDER=2;
+  if (c.chan==3) CHIP_DIVIDER=128;
+
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_POWERNOISE);
@@ -344,7 +369,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
       if (chan[c.chan].slope && c.value==0) {
         rWrite(0x18,c.value2&0x7f);
       } else if (!chan[c.chan].slope) {
-        cWrite(c.chan,0x03+c.value,c.value2);
+        chWrite(c.chan,0x03+c.value,c.value2);
       }
       break;
     }
@@ -368,7 +393,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
 
 void DivPlatformPowerNoise::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  cWrite(ch,0x06,isMuted[ch]?0:volPan(chan[ch].outVol,chan[ch].pan));
+  chWrite(ch,0x06,isMuted[ch]?0:volPan(chan[ch].outVol,chan[ch].pan));
 }
 
 void DivPlatformPowerNoise::forceIns() {
@@ -426,9 +451,20 @@ void DivPlatformPowerNoise::reset() {
   rWrite(0,0x87);
   // set per-channel panning
   for (int i=0; i<4; i++) {
-    cWrite(i,0x06,volPan(chan[i].outVol,chan[i].pan));
+    chWrite(i,0x06,volPan(chan[i].outVol,chan[i].pan));
   }
-  // TODO: set LFSR defaults
+  // set default params so we have sound
+  // noise
+  for (int i=0; i<3; i++) {
+    chWrite(i,0x03,chan[i].initLFSR&0xff);
+    chWrite(i,0x04,chan[i].initLFSR>>8);
+    chWrite(i,0x05,(chan[i].tapA<<4)|chan[i].tapB);
+  }
+  // slope
+  chWrite(3,0x03,chan[3].slopeA.len);
+  chWrite(3,0x04,chan[3].slopeB.len);
+  chWrite(3,0x05,(chan[3].slopeA.offset<<4)|chan[3].slopeB.offset);
+
   addWrite(0xffffffff,0);
 }
 

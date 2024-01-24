@@ -27,6 +27,13 @@ class DivPlatformPowerNoise: public DivDispatch {
   struct SlopePortion {
     unsigned char len, offset;
     bool clip, reset, dir;
+
+    SlopePortion(unsigned char l, unsigned char o, bool c, bool r, bool d):
+      len(l),
+      offset(o),
+      clip(c),
+      reset(r),
+      dir(d) {}
     
     SlopePortion():
       len(0),
@@ -38,6 +45,7 @@ class DivPlatformPowerNoise: public DivDispatch {
   
   struct Channel: public SharedChannel<signed char> {
     int fNum;
+    unsigned short initLFSR;
     unsigned char octave, pan, tapA, tapB;
     bool slope, am, tapBEnable, keyOn, keyOff;
     SlopePortion slopeA, slopeB;
@@ -45,16 +53,17 @@ class DivPlatformPowerNoise: public DivDispatch {
     Channel():
       SharedChannel<signed char>(15),
       fNum(0),
+      initLFSR(0x5555),
       octave(0),
       pan(255),
-      tapA(0),
-      tapB(0),
+      tapA(1),
+      tapB(2),
       slope(false),
       am(false),
       tapBEnable(false),
       keyOn(false),
       keyOff(false),
-      slopeA(),
+      slopeA(255,1,false,false,false),
       slopeB() {}
   };
   
