@@ -37,12 +37,14 @@ class DivPlatformPowerNoise: public DivDispatch {
   };
   
   struct Channel: public SharedChannel<signed char> {
+    int fNum;
     unsigned char octave, pan, tapA, tapB;
     bool slope, am, tapBEnable, keyOn, keyOff;
     SlopePortion slopeA, slopeB;
     
     Channel():
       SharedChannel<signed char>(15),
+      fNum(0),
       octave(0),
       pan(255),
       tapA(0),
@@ -72,9 +74,8 @@ class DivPlatformPowerNoise: public DivDispatch {
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivChannelModeHints getModeHints(int chan);
-    DivSamplePos getSamplePos(int ch);
+    bool getDCOffRequired();
     DivDispatchOscBuffer* getOscBuffer(int chan);
-    int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
