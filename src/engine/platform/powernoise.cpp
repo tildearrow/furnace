@@ -23,19 +23,20 @@
 #include "furIcons.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {regPool[a] = (v); pwrnoise_write(&pn, (unsigned char)(a), (unsigned char)(v)); if (dumpWrites) {addWrite(a,v);} }
-#define cWrite(c,a,v) rWrite((c << 3) | ((a) + 1), (v))
-#define noiseCtl(enable, am, tapB) (((enable) ? 0x80 : 0x00) | ((am) ? 0x02 : 0x00) | ((tapB) ? 0x01 : 0x00))
-#define slopeCtl(enable, rst, a, b) (((enable) ? 0x80 : 0x00) | \
-  (rst ? 0x40 : 0x00) | \
-  (a.clip ? 0x20 : 0x00) | \
-  (b.clip ? 0x10 : 0x00) | \
-  (a.reset ? 0x08 : 0x00) | \
-  (b.reset ? 0x04 : 0x00) | \
-  (a.dir ? 0x02 : 0x00) | \
-  (b.dir ? 0x01 : 0x00))
-#define volPan(v, p)  (((v * (p >> 4) / 15) << 4) | ((v * (p & 0xf) / 15) & 0xf))
-#define mapAmp(a) ((((a) * 65535 / 63 - 32768) * (pn.flags & 0x7) / 7) >> 1)
+#define rWrite(a,v) if (!skipRegisterWrites) {regPool[a]=(v); pwrnoise_write(&pn,(unsigned char)(a),(unsigned char)(v)); if (dumpWrites) {addWrite(a,v);}}
+#define cWrite(c,a,v) rWrite((c<<3)|((a)+1),(v))
+#define noiseCtl(enable,am,tapB) (((enable)?0x80:0x00)|((am)?0x02:0x00)|((tapB)?0x01:0x00))
+#define slopeCtl(enable,rst,a,b) (((enable)?0x80:0x00)| \
+  (rst?0x40:0x00)| \
+  (a.clip?0x20:0x00)| \
+  (b.clip?0x10:0x00)| \
+  (a.reset?0x08:0x00)| \
+  (b.reset?0x04:0x00)| \
+  (a.dir?0x02:0x00)| \
+  (b.dir?0x01:0x00))
+#define volPan(v,p) (((v*(p>>4)/15)<<4)|((v*(p&0xf)/15)&0xf))
+// TODO: optimize!
+#define mapAmp(a) ((((a)*65535/63-32768)*(pn.flags&0x7)/7)>>1)
 #define CHIP_DIVIDER 128
 
 const char* regCheatSheetPowerNoise[]={
@@ -285,20 +286,19 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_POWERNOISE);
-      if (ins->type==DIV_INS_POWERNOISE) {
-        if (skipRegisterWrites) break;
-        if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
-          chan[c.chan].freqChanged=true;
-          chan[c.chan].note=c.value;
-        }
-        chan[c.chan].active=true;
-        chan[c.chan].macroInit(ins);
-        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
-          chan[c.chan].outVol=chan[c.chan].vol;
-        }
-        chan[c.chan].keyOn=true;
+      // ??????
+      if (skipRegisterWrites) break;
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].note=c.value;
       }
+      chan[c.chan].active=true;
+      chan[c.chan].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
+      chan[c.chan].keyOn=true;
       chan[c.chan].insChanged=false;
       break;
     }

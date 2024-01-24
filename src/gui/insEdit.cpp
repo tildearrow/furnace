@@ -6909,6 +6909,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_POWERNOISE) {
             dutyMax=0;
           }
+          if (ins->type==DIV_INS_POWERNOISE_SLOPE) {
+            dutyMax=0;
+          }
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
@@ -6944,6 +6947,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_C140) waveMax=0;
           if (ins->type==DIV_INS_C219) waveMax=0;
           if (ins->type==DIV_INS_POWERNOISE) waveMax=0;
+          if (ins->type==DIV_INS_POWERNOISE_SLOPE) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -7085,6 +7089,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_POWERNOISE) {
             panMax=15;
           }
+          if (ins->type==DIV_INS_POWERNOISE_SLOPE) {
+            panMax=15;
+          }
 
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
@@ -7173,7 +7180,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_C219 ||
               ins->type==DIV_INS_TED ||
               ins->type==DIV_INS_ESFM ||
-              ins->type==DIV_INS_POWERNOISE) {
+              ins->type==DIV_INS_POWERNOISE ||
+              ins->type==DIV_INS_POWERNOISE_SLOPE) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -7268,13 +7276,16 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_POWERNOISE) {
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,6,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,powernoiseControlBits));
-            macroList.push_back(FurnaceGUIMacroDesc("Portion A Length",&ins->std.ex2Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Portion B Length",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Tap A Location",&ins->std.ex4Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Tap B Location",&ins->std.ex5Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Load LFSR",&ins->std.ex8Macro,0,16,256,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+          }
+          if (ins->type==DIV_INS_POWERNOISE_SLOPE) {
+            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,6,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,powernoiseControlBits));
+            macroList.push_back(FurnaceGUIMacroDesc("Portion A Length",&ins->std.ex2Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Portion B Length",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Portion A Offset",&ins->std.ex6Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Portion B Offset",&ins->std.ex7Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Load LFSR",&ins->std.ex8Macro,0,16,256,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
 
           drawMacros(macroList,macroEditStateMacros);
