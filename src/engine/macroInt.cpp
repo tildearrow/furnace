@@ -238,23 +238,29 @@ void DivMacroInt::mask(unsigned char id, bool enabled)
   }
 }
 
+#define ACTUALLY_RESTART_MACRO \
+  m->has=m->had=m->actualHad=m->will=true; \
+  m->lfoPos = sm->val[13]; \
+  m->pos = 0; \
+  m->lastPos = 0; \
+  m->delay = 0; \
+
 void DivMacroInt::restart(unsigned char id)
 {
+  if(e == NULL) return;
+  if(ins == NULL) return;
+
   if(id < 0x20)
   {
     DivMacroStruct* m = get_div_macro_struct(id);
     DivInstrumentMacro* sm = ins->std.get_macro(m->macroType, false);
 
     if(sm == NULL) return;
-    if(sm->len == 0 && m->type == 0) return;
+    if(m->masked) return;
+    if(sm->len <= 0) return;
 
-    m->has=m->had=m->actualHad=m->will=true;
-    m->lfoPos = sm->val[13];
-    m->pos = 0;
-    m->lastPos = 0;
-    m->delay = 0;
+    ACTUALLY_RESTART_MACRO
   }
-
   else
   {
     IntOp* i = get_int_op((id >> 5) - 1);
@@ -262,13 +268,10 @@ void DivMacroInt::restart(unsigned char id)
     DivInstrumentMacro* sm = ins->std.get_op_macro((id >> 5) - 1)->op_get_macro(m->macroType, false);
 
     if(sm == NULL) return;
-    if(sm->len == 0 && m->type == 0) return;
+    if(m->masked) return;
+    if(sm->len <= 0) return;
 
-    m->has=m->had=m->actualHad=m->will=true;
-    m->lfoPos = sm->val[13];
-    m->pos = 0;
-    m->lastPos = 0;
-    m->delay = 0;
+    ACTUALLY_RESTART_MACRO
   }
 }
 
