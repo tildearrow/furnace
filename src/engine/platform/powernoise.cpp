@@ -284,8 +284,8 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
 int DivPlatformPowerNoise::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_POWER_NOISE);
-      if (ins->type==DIV_INS_POWER_NOISE) {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_POWERNOISE);
+      if (ins->type==DIV_INS_POWERNOISE) {
         if (skipRegisterWrites) break;
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -378,7 +378,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA: {
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POWER_NOISE));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POWERNOISE));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -389,7 +389,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return 15;
       break;
-    case DIV_CMD_POWER_NOISE_COUNTER_LOAD: {
+    case DIV_CMD_POWERNOISE_COUNTER_LOAD: {
       if (chan[c.chan].slope && c.value == 0) {
         rWrite(0x18, c.value2 & 0x7f);
       }
@@ -398,7 +398,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_POWER_NOISE_IO_WRITE:
+    case DIV_CMD_POWERNOISE_IO_WRITE:
       rWrite(0x08 + (c.value << 3), c.value2);
       break;
     case DIV_CMD_MACRO_OFF:

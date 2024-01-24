@@ -1043,7 +1043,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureFM=true;
         featureEF=true;
         break;
-      case DIV_INS_POWER_NOISE:
+      case DIV_INS_POWERNOISE:
         break;
       case DIV_INS_MAX:
         break;

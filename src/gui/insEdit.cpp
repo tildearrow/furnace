@@ -6906,7 +6906,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="OP4 Noise Mode";
             dutyMax=3;
           }
-          if (ins->type==DIV_INS_POWER_NOISE) {
+          if (ins->type==DIV_INS_POWERNOISE) {
             dutyMax=0;
           }
 
@@ -6943,7 +6943,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TED) waveMax=0;
           if (ins->type==DIV_INS_C140) waveMax=0;
           if (ins->type==DIV_INS_C219) waveMax=0;
-          if (ins->type==DIV_INS_POWER_NOISE) waveMax=0;
+          if (ins->type==DIV_INS_POWERNOISE) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -7082,7 +7082,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             panMax=4095;
           }
-          if (ins->type==DIV_INS_POWER_NOISE) {
+          if (ins->type==DIV_INS_POWERNOISE) {
             panMax=15;
           }
 
@@ -7173,7 +7173,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_C219 ||
               ins->type==DIV_INS_TED ||
               ins->type==DIV_INS_ESFM ||
-              ins->type==DIV_INS_POWER_NOISE) {
+              ins->type==DIV_INS_POWERNOISE) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -7266,7 +7266,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM5232) {
             macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
-          if (ins->type==DIV_INS_POWER_NOISE) {
+          if (ins->type==DIV_INS_POWERNOISE) {
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,6,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,powernoiseControlBits));
             macroList.push_back(FurnaceGUIMacroDesc("Portion A Length",&ins->std.ex2Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Portion B Length",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));

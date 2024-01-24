@@ -987,7 +987,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_C140,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_C219,"",ImVec4(1.0f,0.8f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_ESFM,"",ImVec4(0.1f,0.9f,1.0f,1.0f)),
-  D(GUI_COLOR_INSTR_POWER_NOISE,"",ImVec4(1.0f,1.0f,0.8f,1.0f)),
+  D(GUI_COLOR_INSTR_POWERNOISE,"",ImVec4(1.0f,1.0f,0.8f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -1205,7 +1205,7 @@ const int availableSystems[]={
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_ESFM,
   DIV_SYSTEM_PONG,
-  DIV_SYSTEM_POWER_NOISE,
+  DIV_SYSTEM_POWERNOISE,
   0 // don't remove this last one!
 };
 
@@ -1295,7 +1295,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_MMC5,
   DIV_SYSTEM_SM8521,
-  DIV_SYSTEM_POWER_NOISE,
+  DIV_SYSTEM_POWERNOISE,
   0 // don't remove this last one!
 };
 

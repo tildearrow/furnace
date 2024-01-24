@@ -649,7 +649,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_ESFM:
       dispatch=new DivPlatformESFM;
       break;
-    case DIV_SYSTEM_POWER_NOISE:
+    case DIV_SYSTEM_POWERNOISE:
       dispatch=new DivPlatformPowerNoise;
       break;
     case DIV_SYSTEM_DUMMY:

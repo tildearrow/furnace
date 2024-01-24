@@ -2747,7 +2747,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "PowerNoise", {
-      CH(DIV_SYSTEM_POWER_NOISE, 1.0f, 0, "")
+      CH(DIV_SYSTEM_POWERNOISE, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

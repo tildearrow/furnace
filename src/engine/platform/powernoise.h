@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _POWER_NOISE_H
-#define _POWER_NOISE_H
+#ifndef _POWERNOISE_H
+#define _POWERNOISE_H
 
 #include "../dispatch.h"
 #include "../../../extern/pwrnoise/pwrnoise.h"
