@@ -85,10 +85,10 @@ void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     pwrnoise_step(&pn,32,&left,&right);
 
-    oscBuf[0]->data[oscBuf[0]->needle++]=mapAmp(((pn.n1.out_latch>>1)&0x7)+(pn.n1.out_latch>>5));
-    oscBuf[1]->data[oscBuf[1]->needle++]=mapAmp(((pn.n2.out_latch>>1)&0x7)+(pn.n2.out_latch>>5));
-    oscBuf[2]->data[oscBuf[2]->needle++]=mapAmp(((pn.n3.out_latch>>1)&0x7)+(pn.n3.out_latch>>5));
-    oscBuf[3]->data[oscBuf[3]->needle++]=mapAmp(((pn.s.out_latch>>1)&0x7)+(pn.s.out_latch>>5));
+    oscBuf[0]->data[oscBuf[0]->needle++]=mapAmp((pn.n1.out_latch&0xf)+(pn.n1.out_latch>>4));
+    oscBuf[1]->data[oscBuf[1]->needle++]=mapAmp((pn.n2.out_latch&0xf)+(pn.n2.out_latch>>4));
+    oscBuf[2]->data[oscBuf[2]->needle++]=mapAmp((pn.n3.out_latch&0xf)+(pn.n3.out_latch>>4));
+    oscBuf[3]->data[oscBuf[3]->needle++]=mapAmp((pn.s.out_latch&0xf)+(pn.s.out_latch>>4));
 
     buf[0][h]=left;
     buf[1][h]=right;
