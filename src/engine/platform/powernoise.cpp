@@ -206,6 +206,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq>>=chan[i].octaveOff;
 
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x7ffffff) chan[i].freq=0x7ffffff;
@@ -267,6 +268,9 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
+      }
+      if (chan[c.chan].insChanged) {
+        chan[c.chan].octaveOff=ins->powernoise.octave;
       }
       chan[c.chan].active=true;
       chan[c.chan].macroInit(ins);

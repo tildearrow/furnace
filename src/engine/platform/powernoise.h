@@ -46,7 +46,7 @@ class DivPlatformPowerNoise: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     int fNum;
     unsigned short initLFSR;
-    unsigned char octave, pan, tapA, tapB;
+    unsigned char octave, pan, tapA, tapB, octaveOff;
     bool slope, am, tapBEnable, keyOn, keyOff;
     SlopePortion slopeA, slopeB;
     
@@ -58,6 +58,7 @@ class DivPlatformPowerNoise: public DivDispatch {
       pan(255),
       tapA(1),
       tapB(2),
+      octaveOff(0),
       slope(false),
       am(false),
       tapBEnable(false),
