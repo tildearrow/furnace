@@ -47,9 +47,9 @@ void pwrnoise_noise_step(noise_channel_t *chan, uint16_t cycles) {
 	}
 	
 	chan->octave_counter += cycles;
-	if ((cycles > 2) || (!(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001))) {
+	if (((cycles >= 2) && ((cycles >> (chan->octave + 1)) != 0)) || (!(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001))) {
 		chan->period_counter += (cycles >> (chan->octave + 1));
-		if (cycles == 1) ++chan->period_counter;
+		if ((cycles >> (chan->octave + 1)) == 0) ++chan->period_counter;
 		
 		if (chan->period_counter >= 4096) {
 			chan->prev = (uint8_t)(chan->lfsr >> 15);
@@ -107,9 +107,9 @@ void pwrnoise_slope_step(slope_channel_t *chan, uint16_t cycles, bool force_zero
 	}
 	
 	chan->octave_counter += cycles;
-	if ((cycles > 2) || (!(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001))) {
+	if (((cycles >= 2) && ((cycles >> (chan->octave + 1)) != 0)) || (!(((chan->octave_counter - 1) >> chan->octave) & 0x0001) && ((chan->octave_counter >> chan->octave) & 0x0001))) {
 		chan->period_counter += (cycles >> (chan->octave + 1));
-		if (cycles == 1) ++chan->period_counter;
+		if ((cycles >> (chan->octave + 1)) == 0) ++chan->period_counter;
 		
 		if (chan->period_counter >= 4096) {
 			if (!chan->portion) {

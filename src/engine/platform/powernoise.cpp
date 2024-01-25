@@ -214,7 +214,6 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       chan[i].fNum=0x1000-(chan[i].freq>>chan[i].octave);
       if (chan[i].fNum<0) chan[i].fNum=0;
       if (chan[i].fNum>4095) chan[i].fNum=4095;
-      logV("%.4x (%x, %x)",chan[i].fNum,chan[i].octave,chan[i].freq);
 
       chWrite(i,0x01,chan[i].fNum&0xff);
       chWrite(i,0x02,(chan[i].fNum>>8)|(chan[i].octave<<4));
