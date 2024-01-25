@@ -1841,6 +1841,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   // process MIDI events (TODO: everything)
   if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
     TAMidiMessage& msg=output->midiIn->queue.front();
+    if (midiDebug) {
+      if (msg.type==TA_MIDI_SYSEX) {
+        logD("MIDI debug: %.2X SysEx",msg.type);
+      } else {
+        logD("MIDI debug: %.2X %.2X %.2X",msg.type,msg.data[0],msg.data[1]);
+      }
+    }
     int ins=-1;
     if ((ins=midiCallback(msg))!=-2) {
       int chan=msg.type&15;

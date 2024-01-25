@@ -3412,6 +3412,10 @@ void DivEngine::setMidiCallback(std::function<int(const TAMidiMessage&)> what) {
   midiCallback=what;
 }
 
+void DivEngine::setMidiDebug(bool enable) {
+  midiDebug=enable;
+}
+
 bool DivEngine::sendMidiMessage(TAMidiMessage& msg) {
   if (output==NULL) {
     logW("output is NULL!");
