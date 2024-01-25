@@ -7295,7 +7295,7 @@ void FurnaceGUI::drawInsEdit() {
           drawMacros(macroList,macroEditStateMacros);
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_POWERNOISE) {
+        if (ins->type==DIV_INS_POWERNOISE || ins->type==DIV_INS_POWERNOISE_SLOPE) {
           if (ImGui::BeginTabItem("PowerNoise")) {
             int pnOctave=ins->powernoise.octave;
             if (ImGui::InputInt("Octave offset",&pnOctave,1,4)) { PARAMETER
