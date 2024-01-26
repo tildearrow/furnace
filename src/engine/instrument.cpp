@@ -263,6 +263,10 @@ bool DivInstrumentESFM::Operator::operator==(const DivInstrumentESFM::Operator& 
   );
 }
 
+bool DivInstrumentPowerNoise::operator==(const DivInstrumentPowerNoise& other) {
+  return _C(octave);
+}
+
 #undef _C
 
 #define FEATURE_BEGIN(x) \
@@ -769,6 +773,14 @@ void DivInstrument::writeFeatureE3(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeaturePN(SafeWriter* w) {
+  FEATURE_BEGIN("PN");
+
+  w->writeC(powernoise.octave);
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -814,6 +826,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureNE=false;
   bool featureEF=false;
   bool featureE3=false;
+  bool featurePN=false;
 
   bool checkForWL=false;
 
@@ -1034,6 +1047,12 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
       case DIV_INS_ES5503:
         featureE3=true;
         break;
+      case DIV_INS_POWERNOISE:
+        featurePN=true;
+        break;
+      case DIV_INS_POWERNOISE_SLOPE:
+        featurePN=true;
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1086,6 +1105,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (es5503!=defaultIns.es5503) {
       featureE3=true;
+    }
+    if (powernoise!=defaultIns.powernoise) {
+      featurePN=true;
     }
   }
 
@@ -1240,6 +1262,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureE3) {
     writeFeatureE3(w);
+  }
+  if (featurePN) {
+    writeFeaturePN(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -1917,7 +1942,7 @@ void DivInstrument::readFeatureEF(SafeReader& reader, short version) {
     op.ct=reader.readC();
     op.dt=reader.readC();
   }
-  
+
   READ_FEAT_END;
 }
 
@@ -1929,6 +1954,14 @@ void DivInstrument::readFeatureE3(SafeReader& reader, short version) {
   es5503.initial_osc_mode = temp >> 6;
   es5503.softpan_virtual_channel = (temp >> 5) & 1;
   es5503.phase_reset_on_start = (temp >> 4) & 1;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeaturePN(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  powernoise.octave=reader.readC();
 
   READ_FEAT_END;
 }
@@ -2010,6 +2043,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureEF(reader,version);
     } else if (memcmp(featCode,"E3",2)==0) { // ES5503
       readFeatureE3(reader,version);
+    } else if (memcmp(featCode,"PN",2)==0) { // PowerNoise
+      readFeaturePN(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing

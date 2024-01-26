@@ -133,7 +133,8 @@ enum DivSystem {
   DIV_SYSTEM_C140,
   DIV_SYSTEM_C219,
   DIV_SYSTEM_ESFM,
-  DIV_SYSTEM_ES5503
+  DIV_SYSTEM_ES5503,
+  DIV_SYSTEM_POWERNOISE,
 };
 
 enum DivEffectType: unsigned short {

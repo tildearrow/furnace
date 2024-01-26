@@ -257,6 +257,9 @@ enum DivDispatchCmds {
   DIV_CMD_ES5503_WAVE_POS,
   DIV_CMD_ES5503_OSC_MODE,
 
+  DIV_CMD_POWERNOISE_COUNTER_LOAD, // (which, val)
+  DIV_CMD_POWERNOISE_IO_WRITE, // (port, value)
+
   DIV_CMD_MAX
 };
 

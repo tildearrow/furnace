@@ -34,7 +34,7 @@ however, effects are continuous, which means you only need to type it once and t
 - `E2xy`: **Note slide down.** `x` is the speed, while `y` is how many semitones to slide down.
   - ---
 - `EAxx`: **Toggle legato.** while on, new notes instantly change the pitch of the currently playing sound instead of starting it over.
-- `00xy`: **Arpeggio.** after using this effect the channel will rapidly switch between semitone values of `note`, `note + x` and `note + y`.
+- `00xy`: **Arpeggio.** this effect produces a rapid cycle between the current note, the note plus `x` semitones and the note plus `y` semitones.
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
   - ---
 - `04xy`: **Vibrato.** changes pitch to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.

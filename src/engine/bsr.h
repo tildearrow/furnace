@@ -24,33 +24,58 @@
 static inline int bsr(unsigned short v) {
   unsigned long idx;
   if (_BitScanReverse(&idx,(unsigned long)v)) {
-    return idx;
+    return idx+1;
   }
   else {
     return -1;
   }
 }
 
+static inline int bsr32(unsigned int v) {
+  unsigned long idx;
+  if (_BitScanReverse(&idx,(unsigned long)v)) {
+    return idx+1;
+  } else {
+    return -1;
+  }
+}
+
 #elif defined( __GNUC__ )
 
-static inline int bsr(unsigned short v)
-{
+static inline int bsr(unsigned short v) {
   if (v) {
     return 32 - __builtin_clz(v);
+  } else {
+    return -1;
   }
-  else{
+}
+
+static inline int bsr32(unsigned int v) {
+  if (v) {
+    return 32 - __builtin_clz(v);
+  } else {
     return -1;
   }
 }
 
 #else
 
-static inline int bsr(unsigned short v)
-{
+static inline int bsr(unsigned short v) {
   unsigned short mask = 0x8000;
-  for (int i = 15; i >= 0; --i) {
+  for (int i = 16; i >= 0; --i) {
     if (v&mask)
-      return (int)i;
+      return i;
+    mask>>=1;
+  }
+
+  return -1;
+}
+
+static inline int bsr32(unsigned int v) {
+  unsigned int mask = 0x80000000;
+  for (int i = 32; i >= 0; --i) {
+    if (v&mask)
+      return i;
     mask>>=1;
   }
 

@@ -495,6 +495,8 @@ extern/YMF276-LLE/fmopn2.c
 extern/ESFMu/esfm.c
 extern/ESFMu/esfm_registers.c
 
+extern/pwrnoise/pwrnoise.c
+
 src/pch.cpp
 
 src/engine/platform/sound/sn76496.cpp
@@ -706,6 +708,7 @@ src/engine/platform/ted.cpp
 src/engine/platform/c140.cpp
 src/engine/platform/esfm.cpp
 src/engine/platform/es5503.cpp
+src/engine/platform/powernoise.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 

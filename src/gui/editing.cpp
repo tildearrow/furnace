@@ -1666,7 +1666,7 @@ void FurnaceGUI::doExpand(int multiplier, const SelectionPoint& sStart, const Se
 void FurnaceGUI::doCollapseSong(int divider) {
   if (divider<2) return;
   if (e->curSubSong->patLen<divider) {
-    showError("can't collapse any further!##sged");
+    showError("can't collapse any further!");
     return;
   }
   finishSelection();
