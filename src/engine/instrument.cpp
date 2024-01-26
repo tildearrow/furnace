@@ -781,14 +781,6 @@ void DivInstrument::writeFeaturePN(SafeWriter* w) {
   FEATURE_END;
 }
 
-void DivInstrument::writeFeaturePN(SafeWriter* w) {
-  FEATURE_BEGIN("PN");
-
-  w->writeC(powernoise.octave);
-
-  FEATURE_END;
-}
-
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
