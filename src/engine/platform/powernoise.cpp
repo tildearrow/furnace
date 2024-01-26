@@ -201,6 +201,9 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       if (chan[i].slope) {
         chWrite(i,0x00,slopeCtl(chan[i].active,true,chan[i].slopeA,chan[i].slopeB));
         chan[i].keyOn=true;
+      } else {
+        chWrite(i,0x03,chan[i].initLFSR&0xff);
+        chWrite(i,0x04,chan[i].initLFSR>>8);
       }
     }
 
