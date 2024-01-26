@@ -1964,6 +1964,9 @@ class FurnaceGUI {
 
   DivInstrument* prevInsData;
 
+  unsigned char* pendingLayoutImport;
+  size_t pendingLayoutImportLen;
+
   int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, exportLoops, soloChan, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;

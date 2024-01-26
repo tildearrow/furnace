@@ -3945,11 +3945,23 @@ bool FurnaceGUI::loop() {
 
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
+    if (pendingLayoutImport!=NULL) {
+      ImGui::LoadIniSettingsFromMemory((const char*)pendingLayoutImport,pendingLayoutImportLen);
+    }
+
     if (!rend->newFrame()) {
       fontsFailed=true;
     }
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
+
+    if (pendingLayoutImport!=NULL) {
+      WAKE_UP;
+      ImGui::Render();
+      delete[] pendingLayoutImport;
+      pendingLayoutImport=NULL;
+      continue;
+    }
 
     // one second counter
     secondTimer+=ImGui::GetIO().DeltaTime;
@@ -7170,6 +7182,8 @@ FurnaceGUI::FurnaceGUI():
   headFont(NULL),
   fontRange(NULL),
   prevInsData(NULL),
+  pendingLayoutImport(NULL),
+  pendingLayoutImportLen(0),
   curIns(0),
   curWave(0),
   curSample(0),
