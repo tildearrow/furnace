@@ -37,7 +37,7 @@ the `size of this block` fields represent the size of a block excluding the ID a
 ```
 size | description
 -----|------------------------------------
-  4  | "FINS" format magic
+  4  | "FINS" format magic ("FINB" for Furnace-B)
   2  | format version
   2  | instrument type
  ??? | features...
@@ -48,7 +48,7 @@ instruments in a .fur file use the following header instead:
 ```
 size | description
 -----|------------------------------------
-  4  | "INS2" block ID
+  4  | "INS2" block ID ("IN2B" for Furnace-B)
   4  | size of this block
   2  | format version
   2  | instrument type
@@ -122,8 +122,9 @@ the following instrument types are available:
 - 53: C140
 - 54: C219
 - 55: ESFM
-- 56: PowerNoise (noise)
-- 57: PowerNoise (slope)
+- 56: ES5503
+- 57: PowerNoise (noise)
+- 58: PowerNoise (slope)
 
 the following feature codes are recognized:
 
@@ -151,6 +152,7 @@ the following feature codes are recognized:
 - `NE`: NES DPCM sample map data
 - `EF`: ESFM ins data
 - `PN`: PowerNoise ins data
+- `E3`: ES5503 ins data
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there sample/wave lists.
@@ -658,6 +660,17 @@ size | description
 
 if some fields are missing, that's because they are defined in the SM feature.
 NES instruments with DPCM sample maps have both SM and NE features.
+
+# ES5503 data (E3)
+
+```
+size | description
+-----|------------------------------------
+  1  | data (bits of this field below; MSB = 7, LSB = 0)
+     | - 6-7: initial oscillator mode
+     | - 5: softpan virtual channel
+     | - 4: phase reset on note start
+```
 
 # PowerNoise data (PN)
 

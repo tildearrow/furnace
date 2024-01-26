@@ -102,7 +102,7 @@ the header is 32 bytes long.
 ```
 size | description
 -----|------------------------------------
- 16  | "-Furnace module-" format magic
+ 16  | "-Furnace module-" format magic ("Furnace-B module" for Furnace-B)
   2  | format version
   2  | reserved
   4  | song info pointer
