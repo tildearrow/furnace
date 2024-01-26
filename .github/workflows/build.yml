@@ -273,9 +273,9 @@ jobs:
         cp -v ../LICENSE LICENSE.txt
         cp -v ../res/releaseReadme/unstable-win.txt README.txt
         cp -vr ../papers ../${binPath}/furnace.exe ./
-        #if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
-        #  cp -v ../${binPath}/furnace.pdb ./
-        #fi
+        # if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
+        #   cp -v ../${binPath}/furnace.pdb ./
+        # fi
         sha256sum ../${binPath}/furnace.exe > checksum.txt
 
         popd
@@ -373,8 +373,8 @@ jobs:
         tar -zcv -f ../${{ steps.package-identify.outputs.filename }} furnace
 
     - name: Upload artifact
-      if: ${{ github.repository == 'LTVA1/furnace' }}
-      uses: actions/upload-artifact@v3.1.1
+      if: ${{ github.repository == 'LTVA1/furnace' && github.ref_name == 'master' }}
+      uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.package-identify.outputs.id }}
         path: ${{ steps.package-identify.outputs.filename }}
