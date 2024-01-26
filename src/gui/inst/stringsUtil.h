@@ -53,6 +53,8 @@ extern const char* x1_010EnvBits[8];
 extern const char* suControlBits[5];
 extern const char* es5506FilterModes[4];
 extern const char* panBits[5];
+extern const char* powerNoiseControlBits[3];
+extern const char* powerNoiseSlopeControlBits[7];
 extern const char* oneBit[2];
 extern const char* es5506EnvelopeModes[3];
 extern const char* es5506ControlModes[3];

@@ -252,6 +252,14 @@ const char* panBits[5]={
   "right", "left", "rear right", "rear left", NULL
 };
 
+const char* powerNoiseControlBits[3]={
+  "tap B", "slope AM", NULL
+};
+
+const char* powerNoiseSlopeControlBits[7]={
+  "down B", "down A", "reset B", "reset A", "clip B", "clip A", NULL
+};
+
 const char* oneBit[2]={
   "on", NULL
 };
