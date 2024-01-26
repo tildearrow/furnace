@@ -26,7 +26,7 @@ const char* aboutLine[]={
   "and Furnace-B developers",
   "are proud to present",
   "",
-  ("Furnace " DIV_VERSION),
+  ("Furnace-B " DIV_VERSION),
   "",
   "the biggest multi-system chiptune tracker!",
   "featuring DefleMask song compatibility.",

@@ -577,18 +577,18 @@ void FurnaceGUI::updateWindowTitle() {
   String title;
   switch (settings.titleBarInfo) {
     case 0:
-      title="Furnace";
+      title="Furnace-B";
       break;
     case 1:
       if (e->song.name.empty()) {
-        title="Furnace";
+        title="Furnace-B";
       } else {
-        title=fmt::sprintf("%s - Furnace",e->song.name);
+        title=fmt::sprintf("%s - Furnace-B",e->song.name);
       }
       break;
     case 2:
       if (curFileName.empty()) {
-        title="Furnace";
+        title="Furnace-B";
       } else {
         String shortName;
         size_t pos=curFileName.rfind(DIR_SEPARATOR);
@@ -597,14 +597,14 @@ void FurnaceGUI::updateWindowTitle() {
         } else {
           shortName=curFileName.substr(pos+1);
         }
-        title=fmt::sprintf("%s - Furnace",shortName);
+        title=fmt::sprintf("%s - Furnace-B",shortName);
       }
       break;
     case 3:
       if (curFileName.empty()) {
-        title="Furnace";
+        title="Furnace-B";
       } else {
-        title=fmt::sprintf("%s - Furnace",curFileName);
+        title=fmt::sprintf("%s - Furnace-B",curFileName);
       }
       break;
   }

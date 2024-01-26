@@ -1011,8 +1011,8 @@ struct DivInstrument {
   void readFeatureE3(SafeReader& reader, short version);
   void readFeaturePN(SafeReader& reader, short version);
 
-  DivDataErrors readInsDataOld(SafeReader& reader, short version);
-  DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
+  DivDataErrors readInsDataOld(SafeReader& reader, short version, bool tildearrow_version);
+  DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song, bool tildearrow_version);
 
   void convertC64SpecialMacro();
 

@@ -683,7 +683,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::TreePop();
     }
     ImGui::Text("Song format version %d",e->song.version);
-    ImGui::Text("Furnace version " DIV_VERSION " (%d)",DIV_ENGINE_VERSION);
+    ImGui::Text("Furnace-B version " DIV_VERSION " (%d)",DIV_ENGINE_VERSION);
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_DEBUG;
   ImGui::End();

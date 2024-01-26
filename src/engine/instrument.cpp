@@ -793,9 +793,11 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   std::vector<unsigned int> samplePtr;
 
   if (fui) {
-    w->write("FINS",4);
+    //w->write("FINS",4);
+    w->write("FINB",4); //Furnace-B version
   } else {
-    w->write("INS2",4);
+    //w->write("INS2",4);
+    w->write("IN2B",4); //Furnace-B version
     blockStartSeek=w->tell();
     w->writeI(0);
   }
@@ -1966,7 +1968,7 @@ void DivInstrument::readFeaturePN(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
-DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
+DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song, bool tildearrow_version) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
 
@@ -1986,6 +1988,24 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
   {
     return DIV_DATA_INVALID_DATA;
   }
+
+  if(tildearrow_version)
+  {
+    //the PowerNoise instrument indices are incompatible between tildearrow Furnace and Furnace-B (because Furnace-B also has the ES5503 instrument which lacks in tildearrow version so ES5503 and powernoise indices overlap). Thus we need to convert!
+    if(type == 56) //powernoise noise inst
+    {
+      type = DIV_INS_POWERNOISE;
+      goto proceed;
+    }
+
+    if(type == 57) //powernoise slope inst
+    {
+      type = DIV_INS_POWERNOISE_SLOPE;
+      goto proceed;
+    }
+  }
+  
+  proceed:;
 
   // feature reading loop
   while ((int)reader.tell()<dataLen) {
@@ -2100,7 +2120,7 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
 #define READ_MACRO_VALS(x,y) \
   for (int macroValPos=0; macroValPos<y; macroValPos++) x[macroValPos]=reader.readI();
 
-DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
+DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version, bool tildearrow_version) {
   bool volIsCutoff=false;
   reader.readI(); // length. ignored.
 
@@ -2879,14 +2899,25 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
   // 2: new (FINS, no length)
   int type=-1;
 
+  bool tildearrow_version = false;
+
   char magic[4];
   reader.read(magic,4);
   if (memcmp(magic,"INST",4)==0) {
     type=0;
+    tildearrow_version = true;
   } else if (memcmp(magic,"INS2",4)==0) {
     type=1;
+    tildearrow_version = true;
   } else if (memcmp(magic,"FINS",4)==0) {
     type=2;
+    tildearrow_version = true;
+  } else if (memcmp(magic,"IN2B",4)==0) {
+    type=1;
+    tildearrow_version = false;
+  } else if (memcmp(magic,"FINB",4)==0) {
+    type=2;
+    tildearrow_version = false;
   } else {
     logE("invalid instrument header!");
     return DIV_DATA_INVALID_HEADER;
@@ -2894,9 +2925,9 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
 
   if (type==1 || type==2) {
     logV("reading new instrument data...");
-    return readInsDataNew(reader,version,type==2,song);
+    return readInsDataNew(reader,version,type==2,song,tildearrow_version);
   }
-  return readInsDataOld(reader,version);
+  return readInsDataOld(reader,version,tildearrow_version);
 }
 
 void DivInstrument::convertC64SpecialMacro() {

@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev191"
-#define DIV_ENGINE_VERSION 191
+#define DIV_VERSION "dev192"
+#define DIV_ENGINE_VERSION 192
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -542,7 +542,7 @@ class DivEngine {
   void testFunction();
 
   bool loadDMF(unsigned char* file, size_t len);
-  bool loadFur(unsigned char* file, size_t len);
+  bool loadFur(unsigned char* file, size_t len, bool tildearrow_version);
   bool loadMod(unsigned char* file, size_t len);
   bool loadS3M(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len);

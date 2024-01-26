@@ -2596,22 +2596,22 @@ void FurnaceGUI::drawSettings() {
         CONFIG_SUBSECTION("Program");
         ImGui::Text("Title bar:");
         ImGui::Indent();
-        if (ImGui::RadioButton("Furnace##tbar0",settings.titleBarInfo==0)) {
+        if (ImGui::RadioButton("Furnace-B##tbar0",settings.titleBarInfo==0)) {
           settings.titleBarInfo=0;
           updateWindowTitle();
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Song Name - Furnace##tbar1",settings.titleBarInfo==1)) {
+        if (ImGui::RadioButton("Song Name - Furnace-B##tbar1",settings.titleBarInfo==1)) {
           settings.titleBarInfo=1;
           updateWindowTitle();
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("file_name.fur - Furnace##tbar2",settings.titleBarInfo==2)) {
+        if (ImGui::RadioButton("file_name.fur - Furnace-B##tbar2",settings.titleBarInfo==2)) {
           settings.titleBarInfo=2;
           updateWindowTitle();
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("/path/to/file.fur - Furnace##tbar3",settings.titleBarInfo==3)) {
+        if (ImGui::RadioButton("/path/to/file.fur - Furnace-B##tbar3",settings.titleBarInfo==3)) {
           settings.titleBarInfo=3;
           updateWindowTitle();
           settingsChanged=true;
