@@ -3753,12 +3753,16 @@ bool DivEngine::preInit(bool noSafeMode) {
   initConfDir();
   logD("config path: %s",configPath.c_str());
 
+  // TODO: re-enable with a better approach
+  // see issue #1581
+  /*
   if (!noSafeMode) {
     String safeModePath=configPath+DIR_SEPARATOR_STR+"safemode";
     if (touchFile(safeModePath.c_str())==-EEXIST) {
       wantSafe=true;
     }
   }
+  */
 
   String logPath=configPath+DIR_SEPARATOR_STR+"furnace.log";
   startLogFile(logPath.c_str());
@@ -3782,8 +3786,12 @@ bool DivEngine::preInit(bool noSafeMode) {
 }
 
 void DivEngine::everythingOK() {
+  // TODO: re-enable with a better approach
+  // see issue #1581
+  /*
   String safeModePath=configPath+DIR_SEPARATOR_STR+"safemode";
   deleteFile(safeModePath.c_str());
+  */
 }
 
 bool DivEngine::init() {
