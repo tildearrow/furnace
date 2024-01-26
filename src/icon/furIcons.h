@@ -71,6 +71,7 @@
 #define ICON_FUR_INS_ESFM u8"\ue143"
 #define ICON_FUR_INS_ES5503 u8"\ue15a"
 #define ICON_FUR_INS_POWERNOISE u8"\ue15b"
+#define ICON_FUR_INS_POWERNOISE_SLOPE u8"\ue15c"
 
 // sample editor
 #define ICON_FUR_SAMPLE_APPLY_SILENCE u8"\ue136"
