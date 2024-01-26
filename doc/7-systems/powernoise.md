@@ -1,6 +1,6 @@
 # PowerNoise
 
-a fantasy sound chip created by StinkerB06 and jvsTSX for the Hexheld fantasy video game console.
+a fantasy sound chip created by The Beesh-Spweesh! and jvsTSX for the Hexheld fantasy video game console.
 
 its design employs linear-feedback shift registers (LFSR) for sound generation. this technology is used in many random number generators to produce noise, but it is also capable of producing other tones.
 
