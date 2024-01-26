@@ -4760,18 +4760,17 @@ bool FurnaceGUI::importLayout(String path) {
     fclose(f);
     return false;
   }
-  unsigned char* file=new unsigned char[len];
-  if (fread(file,1,(size_t)len,f)!=(size_t)len) {
+  pendingLayoutImport=new unsigned char[len];
+  if (fread(pendingLayoutImport,1,(size_t)len,f)!=(size_t)len) {
     perror("read error");
     lastError=fmt::sprintf("on read: %s",strerror(errno));
     fclose(f);
-    delete[] file;
+    delete[] pendingLayoutImport;
     return false;
   }
   fclose(f);
 
-  ImGui::LoadIniSettingsFromMemory((const char*)file,len);
-  delete[] file;
+  pendingLayoutImportLen=len;
   return true;
 }
 
