@@ -433,7 +433,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("MIDI Debug")) {
-      if (ImGui::Button("Enable Debug (go to log viewer")) {
+      if (ImGui::Button("Enable Debug (go to log viewer)")) {
         e->setMidiDebug(true);
         nextWindow=GUI_WINDOW_LOG;
       }
