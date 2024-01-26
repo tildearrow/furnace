@@ -345,10 +345,10 @@ void FurnaceGUI::drawExport() {
     case GUI_EXPORT_ZSM:
       drawExportZSM(true);
       break;
-    case GUI_FILE_SAVE_DMF:
+    case GUI_EXPORT_DMF:
       drawExportDMF(true);
       break;
-    case GUI_FILE_SAVE_DMF_LEGACY:
+    case GUI_EXPORT_DMF_LEGACY:
       drawExportDMFLegacy(true);
       break;
     case GUI_EXPORT_AMIGA_VAL:

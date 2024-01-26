@@ -4108,11 +4108,11 @@ bool FurnaceGUI::loop() {
             displayExport=true;
           }
           if (ImGui::MenuItem("export .dmf (1.1.3+)...")) {
-            curExportType=(FurnaceGUIExportTypes)GUI_FILE_SAVE_DMF;
+            curExportType=GUI_EXPORT_DMF;
             displayExport=true;
           }
           if (ImGui::MenuItem("export .dmf (1.0/legacy)...")) {
-            curExportType=(FurnaceGUIExportTypes)GUI_FILE_SAVE_DMF_LEGACY;
+            curExportType=GUI_EXPORT_DMF_LEGACY;
             displayExport=true;
           }
           int numZSMCompat=0;
