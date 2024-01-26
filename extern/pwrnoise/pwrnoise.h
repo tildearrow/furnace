@@ -41,8 +41,8 @@ typedef struct {
 
 	uint8_t alength;
 	uint8_t blength;
-	uint8_t a;
-	uint8_t b;
+	uint16_t a;
+	uint16_t b;
 	bool portion;
 
 	uint8_t aoffset;
