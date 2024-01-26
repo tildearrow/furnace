@@ -284,7 +284,16 @@ jobs:
       if: ${{ runner.os == 'macOS' }}
       run: |
         pushd build
-        cpack
+        retries=0
+        while ! cpack; do
+          echo "TRYING AGAIN..."
+          retries=$((retries+1))
+          if [ $retries -gt 5 ]; then
+            echo "OH NO, WE'VE FAILED..."
+            exit 1
+            break
+          fi
+        done
 
         echo "making dirs"
         mkdir orig
