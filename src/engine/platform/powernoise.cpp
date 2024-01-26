@@ -211,7 +211,6 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x7ffffff) chan[i].freq=0x7ffffff;
       int bsr32Val=bsr32(chan[i].freq);
-      logV("%x: %d",chan[i].freq,bsr32Val);
       chan[i].octave=MAX(bsr32Val-12,0);
       if (chan[i].octave>15) chan[i].octave=15;
       chan[i].fNum=0x1000-(chan[i].freq>>chan[i].octave);
