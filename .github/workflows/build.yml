@@ -286,13 +286,20 @@ jobs:
         pushd build
         cpack
 
+        echo "making dirs"
         mkdir orig
         mkdir new
+        echo "attaching"
         echo "y" | hdiutil attach Furnace-*-Darwin.dmg -readonly -mount required -mountpoint orig
 
+        echo "copying"
         cp -v -r orig/Furnace.app new/Furnace.app
+        echo "synchronizing"
+        sync
+        echo "detaching"
         hdiutil detach orig
 
+        echo "removing orig"
         rmdir orig
         rm Furnace-*-Darwin.dmg
 
@@ -301,6 +308,7 @@ jobs:
           rmdir new/Furnace.app/Contents/Resources/bin
         fi
 
+        echo "copying extra stuff"
         cp -v ../LICENSE new/LICENSE.txt
         cp -v ../res/releaseReadme/stable-mac.txt new/README
         cp -v -r ../demos new/demos
@@ -310,6 +318,7 @@ jobs:
         wget https://tildearrow.org/furnace/doc/latest/manual.pdf
         cd ..
 
+        echo "creating new image"
         hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg
         
         mv furnace.dmg ../${{ steps.package-identify.outputs.filename }}
