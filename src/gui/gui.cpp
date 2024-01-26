@@ -577,18 +577,18 @@ void FurnaceGUI::updateWindowTitle() {
   String title;
   switch (settings.titleBarInfo) {
     case 0:
-      title="Furnace";
+      title="Furnace-B";
       break;
     case 1:
       if (e->song.name.empty()) {
-        title="Furnace";
+        title="Furnace-B";
       } else {
-        title=fmt::sprintf("%s - Furnace",e->song.name);
+        title=fmt::sprintf("%s - Furnace-B",e->song.name);
       }
       break;
     case 2:
       if (curFileName.empty()) {
-        title="Furnace";
+        title="Furnace-B";
       } else {
         String shortName;
         size_t pos=curFileName.rfind(DIR_SEPARATOR);
@@ -597,14 +597,14 @@ void FurnaceGUI::updateWindowTitle() {
         } else {
           shortName=curFileName.substr(pos+1);
         }
-        title=fmt::sprintf("%s - Furnace",shortName);
+        title=fmt::sprintf("%s - Furnace-B",shortName);
       }
       break;
     case 3:
       if (curFileName.empty()) {
-        title="Furnace";
+        title="Furnace-B";
       } else {
-        title=fmt::sprintf("%s - Furnace",curFileName);
+        title=fmt::sprintf("%s - Furnace-B",curFileName);
       }
       break;
   }
@@ -3945,11 +3945,23 @@ bool FurnaceGUI::loop() {
 
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
+    if (pendingLayoutImport!=NULL) {
+      ImGui::LoadIniSettingsFromMemory((const char*)pendingLayoutImport,pendingLayoutImportLen);
+    }
+
     if (!rend->newFrame()) {
       fontsFailed=true;
     }
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
+
+    if (pendingLayoutImport!=NULL) {
+      WAKE_UP;
+      ImGui::Render();
+      delete[] pendingLayoutImport;
+      pendingLayoutImport=NULL;
+      continue;
+    }
 
     // one second counter
     secondTimer+=ImGui::GetIO().DeltaTime;
@@ -4096,11 +4108,11 @@ bool FurnaceGUI::loop() {
             displayExport=true;
           }
           if (ImGui::MenuItem("export .dmf (1.1.3+)...")) {
-            curExportType=(FurnaceGUIExportTypes)GUI_FILE_SAVE_DMF;
+            curExportType=GUI_EXPORT_DMF;
             displayExport=true;
           }
           if (ImGui::MenuItem("export .dmf (1.0/legacy)...")) {
-            curExportType=(FurnaceGUIExportTypes)GUI_FILE_SAVE_DMF_LEGACY;
+            curExportType=GUI_EXPORT_DMF_LEGACY;
             displayExport=true;
           }
           int numZSMCompat=0;
@@ -7170,6 +7182,8 @@ FurnaceGUI::FurnaceGUI():
   headFont(NULL),
   fontRange(NULL),
   prevInsData(NULL),
+  pendingLayoutImport(NULL),
+  pendingLayoutImportLen(0),
   curIns(0),
   curWave(0),
   curSample(0),

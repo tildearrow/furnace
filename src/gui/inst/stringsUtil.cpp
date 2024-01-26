@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -250,6 +250,14 @@ const char* es5506FilterModes[4]={
 
 const char* panBits[5]={
   "right", "left", "rear right", "rear left", NULL
+};
+
+const char* powerNoiseControlBits[3]={
+  "tap B", "slope AM", NULL
+};
+
+const char* powerNoiseSlopeControlBits[7]={
+  "down B", "down A", "reset B", "reset A", "clip B", "clip A", NULL
 };
 
 const char* oneBit[2]={

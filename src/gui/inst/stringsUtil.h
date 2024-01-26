@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,8 @@ extern const char* x1_010EnvBits[8];
 extern const char* suControlBits[5];
 extern const char* es5506FilterModes[4];
 extern const char* panBits[5];
+extern const char* powerNoiseControlBits[3];
+extern const char* powerNoiseSlopeControlBits[7];
 extern const char* oneBit[2];
 extern const char* es5506EnvelopeModes[3];
 extern const char* es5506ControlModes[3];

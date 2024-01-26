@@ -2596,22 +2596,22 @@ void FurnaceGUI::drawSettings() {
         CONFIG_SUBSECTION("Program");
         ImGui::Text("Title bar:");
         ImGui::Indent();
-        if (ImGui::RadioButton("Furnace##tbar0",settings.titleBarInfo==0)) {
+        if (ImGui::RadioButton("Furnace-B##tbar0",settings.titleBarInfo==0)) {
           settings.titleBarInfo=0;
           updateWindowTitle();
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("Song Name - Furnace##tbar1",settings.titleBarInfo==1)) {
+        if (ImGui::RadioButton("Song Name - Furnace-B##tbar1",settings.titleBarInfo==1)) {
           settings.titleBarInfo=1;
           updateWindowTitle();
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("file_name.fur - Furnace##tbar2",settings.titleBarInfo==2)) {
+        if (ImGui::RadioButton("file_name.fur - Furnace-B##tbar2",settings.titleBarInfo==2)) {
           settings.titleBarInfo=2;
           updateWindowTitle();
           settingsChanged=true;
         }
-        if (ImGui::RadioButton("/path/to/file.fur - Furnace##tbar3",settings.titleBarInfo==3)) {
+        if (ImGui::RadioButton("/path/to/file.fur - Furnace-B##tbar3",settings.titleBarInfo==3)) {
           settings.titleBarInfo=3;
           updateWindowTitle();
           settingsChanged=true;
@@ -3461,6 +3461,10 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_PV1000,"PV-1000");
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_K053260,"K053260");
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_C140,"C140");
+          UI_COLOR_CONFIG(GUI_COLOR_INSTR_C219,"C219");
+          UI_COLOR_CONFIG(GUI_COLOR_INSTR_ESFM,"ESFM");
+          UI_COLOR_CONFIG(GUI_COLOR_INSTR_POWERNOISE,"PowerNoise (noise)");
+          UI_COLOR_CONFIG(GUI_COLOR_INSTR_POWERNOISE_SLOPE,"PowerNoise (slope)");
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
           ImGui::TreePop();
         }
@@ -4665,18 +4669,17 @@ bool FurnaceGUI::importLayout(String path) {
     fclose(f);
     return false;
   }
-  unsigned char* file=new unsigned char[len];
-  if (fread(file,1,(size_t)len,f)!=(size_t)len) {
+  pendingLayoutImport=new unsigned char[len];
+  if (fread(pendingLayoutImport,1,(size_t)len,f)!=(size_t)len) {
     perror("read error");
     lastError=fmt::sprintf("on read: %s",strerror(errno));
     fclose(f);
-    delete[] file;
+    delete[] pendingLayoutImport;
     return false;
   }
   fclose(f);
 
-  ImGui::LoadIniSettingsFromMemory((const char*)file,len);
-  delete[] file;
+  pendingLayoutImportLen=len;
   return true;
 }
 

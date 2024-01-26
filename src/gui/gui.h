@@ -292,6 +292,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_C219,
   GUI_COLOR_INSTR_ESFM,
   GUI_COLOR_INSTR_ES5503,
+  GUI_COLOR_INSTR_POWERNOISE,
+  GUI_COLOR_INSTR_POWERNOISE_SLOPE,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1962,6 +1964,9 @@ class FurnaceGUI {
 
   DivInstrument* prevInsData;
 
+  unsigned char* pendingLayoutImport;
+  size_t pendingLayoutImportLen;
+
   int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, exportLoops, soloChan, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
@@ -2508,6 +2513,8 @@ class FurnaceGUI {
   void drawInsC140(DivInstrument* ins);
   void drawInsC219(DivInstrument* ins);
   void drawInsES5503(DivInstrument* ins);
+  void drawInsPOWERNOISE(DivInstrument* ins);
+  void drawInsPOWERNOISESLOPE(DivInstrument* ins);
 
   void insTabWave(DivInstrument* ins);
 

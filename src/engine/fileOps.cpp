@@ -659,7 +659,7 @@ short newFormatOctaves[180]={
     8,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9, //  9
 };
 
-bool DivEngine::loadFur(unsigned char* file, size_t len) {
+bool DivEngine::loadFur(unsigned char* file, size_t len, bool tildearrow_version) {
   unsigned int insPtr[256];
   unsigned int wavePtr[256];
   unsigned int samplePtr[256];
@@ -2157,7 +2157,9 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   } else if (memcmp(file,DIV_FTM_MAGIC,18)==0) {
     return loadFTM(file,len);
   } else if (memcmp(file,DIV_FUR_MAGIC,16)==0) {
-    return loadFur(file,len);
+    return loadFur(file,len,false);
+  } else if (memcmp(file,DIV_FUR_B_MAGIC,16)==0) {
+    return loadFur(file,len,true);
   } else if (memcmp(file,DIV_FC13_MAGIC,4)==0 || memcmp(file,DIV_FC14_MAGIC,4)==0) {
     return loadFC(file,len);
   }
@@ -2290,7 +2292,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
   w->init();
   /// HEADER
   // write magic
-  w->write(DIV_FUR_MAGIC,16);
+  //w->write(DIV_FUR_MAGIC,16);
+  w->write(DIV_FUR_B_MAGIC,16); //incompatibility of instrument types introduced when PowerNoise was added to Furnace-B, thus the different format is needed!
 
   // write version
   w->writeS(DIV_ENGINE_VERSION);

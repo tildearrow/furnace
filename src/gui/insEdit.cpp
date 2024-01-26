@@ -451,6 +451,16 @@ void FurnaceGUI::drawActualInsEditor()
         drawInsYMZ280B(ins); break;
       }
 
+      case DIV_INS_POWERNOISE:
+      {
+        drawInsPOWERNOISE(ins); break;
+      }
+
+      case DIV_INS_POWERNOISE_SLOPE:
+      {
+        drawInsPOWERNOISESLOPE(ins); break;
+      }
+
       default: break;
     }
 

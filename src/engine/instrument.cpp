@@ -263,6 +263,10 @@ bool DivInstrumentESFM::Operator::operator==(const DivInstrumentESFM::Operator& 
   );
 }
 
+bool DivInstrumentPowerNoise::operator==(const DivInstrumentPowerNoise& other) {
+  return _C(octave);
+}
+
 #undef _C
 
 #define FEATURE_BEGIN(x) \
@@ -769,6 +773,14 @@ void DivInstrument::writeFeatureE3(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeaturePN(SafeWriter* w) {
+  FEATURE_BEGIN("PN");
+
+  w->writeC(powernoise.octave);
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -781,9 +793,11 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   std::vector<unsigned int> samplePtr;
 
   if (fui) {
-    w->write("FINS",4);
+    //w->write("FINS",4);
+    w->write("FINB",4); //Furnace-B version
   } else {
-    w->write("INS2",4);
+    //w->write("INS2",4);
+    w->write("IN2B",4); //Furnace-B version
     blockStartSeek=w->tell();
     w->writeI(0);
   }
@@ -814,6 +828,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureNE=false;
   bool featureEF=false;
   bool featureE3=false;
+  bool featurePN=false;
 
   bool checkForWL=false;
 
@@ -1034,6 +1049,12 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
       case DIV_INS_ES5503:
         featureE3=true;
         break;
+      case DIV_INS_POWERNOISE:
+        featurePN=true;
+        break;
+      case DIV_INS_POWERNOISE_SLOPE:
+        featurePN=true;
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1086,6 +1107,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (es5503!=defaultIns.es5503) {
       featureE3=true;
+    }
+    if (powernoise!=defaultIns.powernoise) {
+      featurePN=true;
     }
   }
 
@@ -1240,6 +1264,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureE3) {
     writeFeatureE3(w);
+  }
+  if (featurePN) {
+    writeFeaturePN(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -1917,7 +1944,7 @@ void DivInstrument::readFeatureEF(SafeReader& reader, short version) {
     op.ct=reader.readC();
     op.dt=reader.readC();
   }
-  
+
   READ_FEAT_END;
 }
 
@@ -1933,7 +1960,15 @@ void DivInstrument::readFeatureE3(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
-DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
+void DivInstrument::readFeaturePN(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  powernoise.octave=reader.readC();
+
+  READ_FEAT_END;
+}
+
+DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song, bool tildearrow_version) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
 
@@ -1953,6 +1988,24 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
   {
     return DIV_DATA_INVALID_DATA;
   }
+
+  if(tildearrow_version)
+  {
+    //the PowerNoise instrument indices are incompatible between tildearrow Furnace and Furnace-B (because Furnace-B also has the ES5503 instrument which lacks in tildearrow version so ES5503 and powernoise indices overlap). Thus we need to convert!
+    if(type == 56) //powernoise noise inst
+    {
+      type = DIV_INS_POWERNOISE;
+      goto proceed;
+    }
+
+    if(type == 57) //powernoise slope inst
+    {
+      type = DIV_INS_POWERNOISE_SLOPE;
+      goto proceed;
+    }
+  }
+  
+  proceed:;
 
   // feature reading loop
   while ((int)reader.tell()<dataLen) {
@@ -2010,6 +2063,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureEF(reader,version);
     } else if (memcmp(featCode,"E3",2)==0) { // ES5503
       readFeatureE3(reader,version);
+    } else if (memcmp(featCode,"PN",2)==0) { // PowerNoise
+      readFeaturePN(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing
@@ -2065,7 +2120,7 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
 #define READ_MACRO_VALS(x,y) \
   for (int macroValPos=0; macroValPos<y; macroValPos++) x[macroValPos]=reader.readI();
 
-DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
+DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version, bool tildearrow_version) {
   bool volIsCutoff=false;
   reader.readI(); // length. ignored.
 
@@ -2844,14 +2899,25 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
   // 2: new (FINS, no length)
   int type=-1;
 
+  bool tildearrow_version = false;
+
   char magic[4];
   reader.read(magic,4);
   if (memcmp(magic,"INST",4)==0) {
     type=0;
+    tildearrow_version = true;
   } else if (memcmp(magic,"INS2",4)==0) {
     type=1;
+    tildearrow_version = true;
   } else if (memcmp(magic,"FINS",4)==0) {
     type=2;
+    tildearrow_version = true;
+  } else if (memcmp(magic,"IN2B",4)==0) {
+    type=1;
+    tildearrow_version = false;
+  } else if (memcmp(magic,"FINB",4)==0) {
+    type=2;
+    tildearrow_version = false;
   } else {
     logE("invalid instrument header!");
     return DIV_DATA_INVALID_HEADER;
@@ -2859,9 +2925,9 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
 
   if (type==1 || type==2) {
     logV("reading new instrument data...");
-    return readInsDataNew(reader,version,type==2,song);
+    return readInsDataNew(reader,version,type==2,song,tildearrow_version);
   }
-  return readInsDataOld(reader,version);
+  return readInsDataOld(reader,version,tildearrow_version);
 }
 
 void DivInstrument::convertC64SpecialMacro() {

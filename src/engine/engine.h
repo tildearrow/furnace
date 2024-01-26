@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev191"
-#define DIV_ENGINE_VERSION 191
+#define DIV_VERSION "dev192"
+#define DIV_ENGINE_VERSION 192
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -497,6 +497,7 @@ class DivEngine {
   short effectSlotMap[4096];
   int midiBaseChan;
   bool midiPoly;
+  bool midiDebug;
   size_t midiAgeCounter;
 
   blip_buffer_t* samp_bb;
@@ -541,7 +542,7 @@ class DivEngine {
   void testFunction();
 
   bool loadDMF(unsigned char* file, size_t len);
-  bool loadFur(unsigned char* file, size_t len);
+  bool loadFur(unsigned char* file, size_t len, bool tildearrow_version);
   bool loadMod(unsigned char* file, size_t len);
   bool loadS3M(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len);
@@ -1208,6 +1209,9 @@ class DivEngine {
     // send MIDI message
     bool sendMidiMessage(TAMidiMessage& msg);
 
+    // enable MIDI debug
+    void setMidiDebug(bool enable);
+
     // perform secure/sync operation
     void synchronized(const std::function<void()>& what);
 
@@ -1329,6 +1333,7 @@ class DivEngine {
       cmdStreamInt(NULL),
       midiBaseChan(0),
       midiPoly(true),
+      midiDebug(false),
       midiAgeCounter(0),
       samp_bb(NULL),
       samp_bbInLen(0),

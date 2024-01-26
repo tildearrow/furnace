@@ -115,7 +115,12 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool
     if (memcmp("FINS",magic,4)==0) {
       isFurnaceInstr=true;
       logV("found a new Furnace ins");
-    } else {
+    } 
+    else if (memcmp("FINB",magic,4)==0) {
+      isFurnaceInstr=true;
+      logV("found a new Furnace-B ins");
+    }
+    else {
       reader.read(&magic[4],12);
       if (memcmp("-Furnace instr.-",magic,16)==0) {
         logV("found an old Furnace ins");
