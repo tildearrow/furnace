@@ -158,9 +158,11 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
         chWrite(i,0x05,(chan[i].tapA<<4)|chan[i].tapB);
       }
       if (chan[i].std.ex8.had) {
-        chan[i].initLFSR=chan[i].std.ex8.val&0xffff;
-        chWrite(i,0x03,chan[i].std.ex8.val&0xff);
-        chWrite(i,0x04,chan[i].std.ex8.val>>8);
+        if (chan[i].initLFSR!=(chan[i].std.ex8.val&0xffff)) {
+          chan[i].initLFSR=chan[i].std.ex8.val&0xffff;
+          chWrite(i,0x03,chan[i].std.ex8.val&0xff);
+          chWrite(i,0x04,chan[i].std.ex8.val>>8);
+        }
       }
     }
 
@@ -407,6 +409,10 @@ void DivPlatformPowerNoise::forceIns() {
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    if (i<3) {
+      chWrite(i,0x03,chan[i].initLFSR&0xff);
+      chWrite(i,0x04,chan[i].initLFSR>>8);
+    }
   }
 }
 
