@@ -158,7 +158,7 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
         chWrite(i,0x05,(chan[i].tapA<<4)|chan[i].tapB);
       }
       if (chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->had) {
-        if (chan[i].initLFSR!=(chan[i].std.ex8.val&0xffff)) {
+        if (chan[i].initLFSR!=(chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->val&0xffff)) {
           chan[i].initLFSR=chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->val&0xffff;
           chWrite(i,0x03,chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->val&0xff);
           chWrite(i,0x04,chan[i].std.get_div_macro_struct(DIV_MACRO_EX8)->val>>8);
