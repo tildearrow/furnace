@@ -27,6 +27,7 @@
 #include "imgui_impl_sdl2.h"
 #include <SDL.h>
 #include <fftw3.h>
+#include <stdint.h>
 #include <initializer_list>
 #include <future>
 #include <memory>
@@ -2164,10 +2165,10 @@ class FurnaceGUI {
   ImVec2 orderScrollRealOrigin;
   ImVec2 dragMobileMenuOrigin;
 
-  int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
-  int renderTimeBegin, renderTimeEnd, renderTimeDelta;
-  int drawTimeBegin, drawTimeEnd, drawTimeDelta;
-  int eventTimeBegin, eventTimeEnd, eventTimeDelta;
+  uint64_t layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
+  uint64_t renderTimeBegin, renderTimeEnd, renderTimeDelta;
+  uint64_t drawTimeBegin, drawTimeEnd, drawTimeDelta;
+  uint64_t eventTimeBegin, eventTimeEnd, eventTimeDelta;
 
   FurnaceGUIPerfMetric perfMetrics[64];
   int perfMetricsLen;

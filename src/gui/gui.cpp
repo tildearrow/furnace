@@ -3411,7 +3411,7 @@ bool FurnaceGUI::detectOutOfBoundsWindow(SDL_Rect& failing) {
 }
 
 #define DECLARE_METRIC(_n) \
-  int __perfM##_n;
+  uint64_t __perfM##_n;
 
 #define MEASURE_BEGIN(_n) \
   __perfM##_n=SDL_GetPerformanceCounter();
