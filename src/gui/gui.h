@@ -1978,6 +1978,8 @@ class FurnaceGUI {
 
   unsigned char* pendingLayoutImport;
   size_t pendingLayoutImportLen;
+  int pendingLayoutImportStep;
+  FixedQueue<bool*,64> pendingLayoutImportReopen;
 
   int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, exportLoops, soloChan, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, newSongCategory, latchTarget;
