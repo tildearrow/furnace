@@ -328,7 +328,17 @@ jobs:
         cd ..
 
         echo "creating new image"
-        hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg
+        retries=0
+        while ! hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg; do
+          echo "TRYING AGAIN..."
+          retries=$((retries+1))
+          if [ $retries -gt 5 ]; then
+            echo "OH NO, WE'VE FAILED..."
+            exit 1
+            break
+          fi
+          sleep 5
+        done
         
         mv furnace.dmg ../${{ steps.package-identify.outputs.filename }}
         popd
