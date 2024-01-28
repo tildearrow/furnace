@@ -3371,7 +3371,7 @@ bool FurnaceGUI::detectOutOfBoundsWindow(SDL_Rect& failing) {
 }
 
 #define DECLARE_METRIC(_n) \
-  int __perfM##_n;
+  uint64_t __perfM##_n;
 
 #define MEASURE_BEGIN(_n) \
   __perfM##_n=SDL_GetPerformanceCounter();
@@ -3385,6 +3385,10 @@ bool FurnaceGUI::detectOutOfBoundsWindow(SDL_Rect& failing) {
   MEASURE_BEGIN(_n) \
   _x; \
   MEASURE_END(_n)
+
+#define IMPORT_CLOSE(x) \
+  if (x) pendingLayoutImportReopen.push(&x); \
+  x=false;
 
 bool FurnaceGUI::loop() {
   DECLARE_METRIC(calcChanOsc)
@@ -3946,7 +3950,59 @@ bool FurnaceGUI::loop() {
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
     if (pendingLayoutImport!=NULL) {
-      ImGui::LoadIniSettingsFromMemory((const char*)pendingLayoutImport,pendingLayoutImportLen);
+      if (pendingLayoutImportStep==0) {
+        IMPORT_CLOSE(editControlsOpen);
+        IMPORT_CLOSE(ordersOpen);
+        IMPORT_CLOSE(insListOpen);
+        IMPORT_CLOSE(songInfoOpen);
+        IMPORT_CLOSE(patternOpen);
+        IMPORT_CLOSE(insEditOpen);
+        IMPORT_CLOSE(waveListOpen);
+        IMPORT_CLOSE(waveEditOpen);
+        IMPORT_CLOSE(sampleListOpen);
+        IMPORT_CLOSE(sampleEditOpen);
+        IMPORT_CLOSE(aboutOpen);
+        IMPORT_CLOSE(settingsOpen);
+        IMPORT_CLOSE(mixerOpen);
+        IMPORT_CLOSE(debugOpen);
+        IMPORT_CLOSE(inspectorOpen);
+        IMPORT_CLOSE(oscOpen);
+        IMPORT_CLOSE(volMeterOpen);
+        IMPORT_CLOSE(statsOpen);
+        IMPORT_CLOSE(compatFlagsOpen);
+        IMPORT_CLOSE(pianoOpen);
+        IMPORT_CLOSE(notesOpen);
+        IMPORT_CLOSE(channelsOpen);
+        IMPORT_CLOSE(regViewOpen);
+        IMPORT_CLOSE(logOpen);
+        IMPORT_CLOSE(effectListOpen);
+        IMPORT_CLOSE(chanOscOpen);
+        IMPORT_CLOSE(subSongsOpen);
+        IMPORT_CLOSE(findOpen);
+        IMPORT_CLOSE(spoilerOpen);
+        IMPORT_CLOSE(patManagerOpen);
+        IMPORT_CLOSE(sysManagerOpen);
+        IMPORT_CLOSE(clockOpen);
+        IMPORT_CLOSE(speedOpen);
+        IMPORT_CLOSE(groovesOpen);
+        IMPORT_CLOSE(xyOscOpen);
+      } else if (pendingLayoutImportStep==1) {
+        // let the UI settle
+      } else if (pendingLayoutImportStep==2) {
+        ImGui::LoadIniSettingsFromMemory((const char*)pendingLayoutImport,pendingLayoutImportLen);
+      } else if (pendingLayoutImportStep==3) {
+        // restore open windows
+        while (!pendingLayoutImportReopen.empty()) {
+          bool* next=pendingLayoutImportReopen.front();
+          *next=true;
+          pendingLayoutImportReopen.pop();
+        }
+      } else if (pendingLayoutImportStep==4) {
+        delete[] pendingLayoutImport;
+        pendingLayoutImport=NULL;
+      }
+      pendingLayoutImportStep++;
+      if (pendingLayoutImport==NULL) pendingLayoutImportStep=0;
     }
 
     if (!rend->newFrame()) {
@@ -3954,14 +4010,6 @@ bool FurnaceGUI::loop() {
     }
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
-
-    if (pendingLayoutImport!=NULL) {
-      WAKE_UP;
-      ImGui::Render();
-      delete[] pendingLayoutImport;
-      pendingLayoutImport=NULL;
-      continue;
-    }
 
     // one second counter
     secondTimer+=ImGui::GetIO().DeltaTime;
@@ -7184,6 +7232,7 @@ FurnaceGUI::FurnaceGUI():
   prevInsData(NULL),
   pendingLayoutImport(NULL),
   pendingLayoutImportLen(0),
+  pendingLayoutImportStep(0),
   curIns(0),
   curWave(0),
   curSample(0),
