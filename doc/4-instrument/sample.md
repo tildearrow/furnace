@@ -13,6 +13,8 @@ the Generic Sample instrument editor consists of a sample selector and several m
 
 the sample map allows you to set a sample for each note. this can be used to create more realistic instruments, split key instruments, drum kits and more.
 
+it will also play the sample at the key it was triggered on, check this guide about [tuning samples](doc/9-guides/tuning-samples.md) to mitigate this issue.
+
 after enabling this option, a table appears with the contents of the sample map.
 - the first column represents the input note.
 - the second column allows you to type in a sample number for each note.
