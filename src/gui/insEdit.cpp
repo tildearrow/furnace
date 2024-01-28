@@ -329,11 +329,11 @@ const char* es5506FilterModes[4]={
 };
 
 const char* powerNoiseControlBits[3]={
-  "tap B", "slope AM", NULL
+  "enable tap B", "AM with slope", NULL
 };
 
 const char* powerNoiseSlopeControlBits[7]={
-  "down B", "down A", "reset B", "reset A", "clip B", "clip A", NULL
+  "invert B", "invert A", "reset B", "reset A", "clip B", "clip A", NULL
 };
 
 const char* panBits[5]={
