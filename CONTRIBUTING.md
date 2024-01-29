@@ -35,6 +35,7 @@ the coding style is described here:
   - preprocessor directives not intended
   - if macro comprises more than one line, indent
   - no new line after `template<>`
+- do not use `_t` types, except for 64-bit integers and `size_t`.
 - prefer built-in types:
   - `bool`
   - `signed char` or `unsigned char` are 8-bit
@@ -48,6 +49,7 @@ the coding style is described here:
   - `long long int` or `unsigned long long int` are 64-bit
     - avoid using 64-bit numbers as I still build for 32-bit systems.
     - two `long`s are required to make Windows happy.
+    - prefer using `int64_t` or `uint64_t` for this specific case.
   - `size_t` are 32-bit or 64-bit, depending on architecture.
 - in float/double operations, always use decimal and `f` if single-precision.
   - e.g. `1.0f` or `1.0` instead of `1`.

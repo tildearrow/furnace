@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,6 +64,10 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_SAVE_AS:
       openFileDialog(GUI_FILE_SAVE);
+      break;
+    case GUI_ACTION_EXPORT:
+      curExportType=GUI_EXPORT_NONE;
+      displayExport=true;
       break;
     case GUI_ACTION_UNDO:
       if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
@@ -639,6 +643,11 @@ void FurnaceGUI::doAction(int what) {
             e->song.ins[curIns]->fm.op[i].rr=15;
             e->song.ins[curIns]->fm.op[i].tl=127;
             e->song.ins[curIns]->fm.op[i].dt=3;
+
+            e->song.ins[curIns]->esfm.op[i].ct=0;
+            e->song.ins[curIns]->esfm.op[i].dt=0;
+            e->song.ins[curIns]->esfm.op[i].modIn=0;
+            e->song.ins[curIns]->esfm.op[i].outLvl=0;
           }
         }
         wantScrollList=true;
@@ -716,17 +725,50 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_INS_LIST_DIR_VIEW:
       insListDir=!insListDir;
       break;
+
     
-    case GUI_ACTION_WAVE_LIST_ADD:
+    case GUI_ACTION_WAVE_LIST_ADD: {
+      waveSizeList.clear();
+      for (int i=0; i<e->song.systemLen; i++) {
+        const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
+        if (sysDef==NULL) continue;
+
+        if (sysDef->waveHeight==0) continue;
+        if (sysDef->waveWidth==0) {
+          // add three preset sizes
+          waveSizeList.push_back(FurnaceGUIWaveSizeEntry(32,sysDef->waveHeight,sysDef->name));
+          waveSizeList.push_back(FurnaceGUIWaveSizeEntry(64,sysDef->waveHeight,sysDef->name));
+          waveSizeList.push_back(FurnaceGUIWaveSizeEntry(128,sysDef->waveHeight,sysDef->name));
+        } else {
+          waveSizeList.push_back(FurnaceGUIWaveSizeEntry(sysDef->waveWidth,sysDef->waveHeight,sysDef->name));
+        }
+      }
+
+      int finalWidth=32;
+      int finalHeight=32;
+      if (waveSizeList.size()==1) {
+        finalWidth=waveSizeList[0].width;
+        finalHeight=waveSizeList[0].height;
+      } else if (waveSizeList.size()>1) {
+        displayWaveSizeList=true;
+        break;
+      }
+
       curWave=e->addWave();
       if (curWave==-1) {
         showError("too many wavetables!");
       } else {
         wantScrollList=true;
+        e->song.wave[curWave]->len=finalWidth;
+        e->song.wave[curWave]->max=finalHeight-1;
+        for (int j=0; j<finalWidth; j++) {
+          e->song.wave[curWave]->data[j]=(j*finalHeight)/finalWidth;
+        }
         MARK_MODIFIED;
         RESET_WAVE_MACRO_ZOOM;
       }
       break;
+    }
     case GUI_ACTION_WAVE_LIST_DUPLICATE:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) {
         int prevWave=curWave;
@@ -904,6 +946,73 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_LIST_DIR_VIEW:
       sampleListDir=!sampleListDir;
       break;
+    case GUI_ACTION_SAMPLE_LIST_MAKE_MAP: {
+      // determine instrument type
+      std::vector<DivInstrumentType> tempTypeList=e->getPossibleInsTypes();
+      makeInsTypeList.clear();
+
+      for (DivInstrumentType& i: tempTypeList) {
+        if (i==DIV_INS_PCE ||
+            i==DIV_INS_MSM6258 ||
+            i==DIV_INS_MSM6295 ||
+            i==DIV_INS_ADPCMA ||
+            i==DIV_INS_ADPCMB ||
+            i==DIV_INS_SEGAPCM ||
+            i==DIV_INS_QSOUND ||
+            i==DIV_INS_YMZ280B ||
+            i==DIV_INS_RF5C68 ||
+            i==DIV_INS_MULTIPCM ||
+            i==DIV_INS_MIKEY ||
+            i==DIV_INS_X1_010 ||
+            i==DIV_INS_SWAN ||
+            i==DIV_INS_AY ||
+            i==DIV_INS_AY8930 ||
+            i==DIV_INS_VRC6 ||
+            i==DIV_INS_SU ||
+            i==DIV_INS_SNES ||
+            i==DIV_INS_ES5506 ||
+            i==DIV_INS_K007232 ||
+            i==DIV_INS_GA20 ||
+            i==DIV_INS_K053260 ||
+            i==DIV_INS_C140 ||
+            i==DIV_INS_C219) {
+          makeInsTypeList.push_back(i);
+        }
+      }
+
+      if (makeInsTypeList.size()>1) {
+        displayInsTypeList=true;
+        displayInsTypeListMakeInsSample=-2;
+        break;
+      }
+
+      DivInstrumentType insType=DIV_INS_AMIGA;
+      if (!makeInsTypeList.empty()) {
+        insType=makeInsTypeList[0];
+      }
+
+      curIns=e->addInstrument(cursor.xCoarse);
+      if (curIns==-1) {
+        showError("too many instruments!");
+      } else {
+        e->song.ins[curIns]->type=insType;
+        e->song.ins[curIns]->name="Drum Kit";
+        e->song.ins[curIns]->amiga.useNoteMap=true;
+        if (insType!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
+
+        for (int i=0; i<120; i++) {
+          e->song.ins[curIns]->amiga.noteMap[i].freq=48;
+          e->song.ins[curIns]->amiga.noteMap[i].map=i;
+          e->song.ins[curIns]->amiga.noteMap[i].dpcmFreq=15;
+        }
+
+        nextWindow=GUI_WINDOW_INS_EDIT;
+        MARK_MODIFIED;
+        wavePreviewInit=true;
+        updateFMPreview=true;
+      }
+      break;
+    }
 
     case GUI_ACTION_SAMPLE_SELECT:
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
@@ -1336,6 +1445,10 @@ void FurnaceGUI::doAction(int what) {
       MARK_MODIFIED;
       break;
     }
+    case GUI_ACTION_SAMPLE_CROSSFADE_LOOP:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      openSampleCrossFadeOpt=true;
+      break;
     case GUI_ACTION_SAMPLE_FILTER:
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       openSampleFilterOpt=true;
@@ -1412,7 +1525,8 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_K007232 ||
             i==DIV_INS_GA20 ||
             i==DIV_INS_K053260 ||
-            i==DIV_INS_C140) {
+            i==DIV_INS_C140 ||
+            i==DIV_INS_C219) {
           makeInsTypeList.push_back(i);
         }
       }

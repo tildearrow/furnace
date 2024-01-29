@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,8 +102,17 @@ bool DivDispatch::isVolGlobal() {
   return false;
 }
 
+int DivDispatch::mapVelocity(int ch, float vel) {
+  const int volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
+  return round(vel*volMax);
+}
+
 int DivDispatch::getPortaFloor(int ch) {
   return 0x00;
+}
+
+bool DivDispatch::getLegacyAlwaysSetVolume() {
+  return true;
 }
 
 float DivDispatch::getPostAmp() {

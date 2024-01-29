@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -153,6 +153,7 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_AMIGA_PM:
     case DIV_CMD_MACRO_OFF:
     case DIV_CMD_MACRO_ON:
+    case DIV_CMD_MACRO_RESTART:
     case DIV_CMD_HINT_ARP_TIME:
       w->writeC(1); // length
       w->writeC(c.value);
@@ -312,8 +313,6 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
     for (DivCommand& i: cmdStream) {
       switch (i.cmd) {
         // strip away hinted/useless commands
-        case DIV_ALWAYS_SET_VOLUME:
-          break;
         case DIV_CMD_GET_VOLUME:
           break;
         case DIV_CMD_VOLUME:

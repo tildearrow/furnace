@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -192,6 +192,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("behavior changed in 0.6.1");
         }
+        ImGui::Checkbox("Legacy technical ALWAYS_SET_VOLUME behavior",&e->song.oldAlwaysSetVolume);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6.1\nthis flag will be removed if I find out that none of the songs break after disabling it.");
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(".mod import")) {
@@ -335,6 +339,10 @@ void FurnaceGUI::drawCompatFlags() {
         ImGui::Checkbox("Reset arpeggio effect position on new note",&e->song.resetArpPhaseOnNewNote);
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("when enabled, arpeggio effect (00xy) position is reset on a new note.");
+        }
+        ImGui::Checkbox("Volume scaling rounds up",&e->song.ceilVolumeScaling);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels");
         }
         ImGui::EndTabItem();
       }

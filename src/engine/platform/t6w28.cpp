@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -271,8 +271,8 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -306,6 +306,10 @@ unsigned short DivPlatformT6W28::getPan(int ch) {
 
 DivDispatchOscBuffer* DivPlatformT6W28::getOscBuffer(int ch) {
   return oscBuf[ch];
+}
+
+int DivPlatformT6W28::mapVelocity(int ch, float vel) {
+  return round(15.0*pow(vel,0.33));
 }
 
 unsigned char* DivPlatformT6W28::getRegisterPool() {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ void FurnaceGUI::drawXYOsc() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!xyOscOpen) return;
-  ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
+  ImGui::SetNextWindowSizeConstraints(ImVec2(128.0f*dpiScale,128.0f*dpiScale),ImVec2(canvasW,canvasH));
   bool noPadding=settings.oscTakesEntireWindow && !xyOscOptions;
   if (noPadding) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));

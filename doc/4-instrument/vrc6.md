@@ -19,7 +19,7 @@ note that using samples on VRC6 is CPU expensive!
 
 ## VRC6 (saw) instrument editor
 
-this channel has its own instrument type, a one-of-a-kind thing in Furnace that was decided as a compromise during a debate.
+this channel has its own instrument type, a thing in Furnace that was decided as a compromise during a debate.
 
 the only differences from this instrument type compared to the regular one are:
 - the lack of a Sample tab.

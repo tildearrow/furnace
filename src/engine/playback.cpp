@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ void DivEngine::nextOrder() {
   }
 }
 
-const char* notes[12]={
+static const char* notes[12]={
   "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
 };
 
@@ -242,7 +242,15 @@ const char* cmdName[]={
   "C64_AD",
   "C64_SR",
 
-  "ALWAYS_SET_VOLUME"
+  "ESFM_OP_PANNING",
+  "ESFM_OUTLVL",
+  "ESFM_MODIN",
+  "ESFM_ENV_DELAY",
+
+  "POWERNOISE_COUNTER_LOAD",
+  "POWERNOISE_IO_WRITE",
+
+  "MACRO_RESTART",
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
@@ -267,8 +275,6 @@ int DivEngine::dispatchCmd(DivCommand c) {
     if (!skipping) {
       switch (c.cmd) {
         // strip away hinted/useless commands
-        case DIV_ALWAYS_SET_VOLUME:
-          break;
         case DIV_CMD_GET_VOLUME:
           break;
         case DIV_CMD_VOLUME:
@@ -615,7 +621,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // volume
   if (pat->data[whatRow][3]!=-1) {
-    if (dispatchCmd(DivCommand(DIV_ALWAYS_SET_VOLUME,i)) || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
+    if (!song.oldAlwaysSetVolume || disCont[dispatchOfChan[i]].dispatch->getLegacyAlwaysSetVolume() || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
       if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
         chan[i].midiAftertouch=true;
       }
@@ -1005,6 +1011,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xf6: // enable macro
         dispatchCmd(DivCommand(DIV_CMD_MACRO_ON,i,effectVal&0xff));
         break;
+      case 0xf7: // restart macro
+        dispatchCmd(DivCommand(DIV_CMD_MACRO_RESTART,i,effectVal&0xff));
+        break;
       case 0xf8: // single volume ramp up
         chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
@@ -1370,9 +1379,20 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       pendingNotes.pop_front();
       continue;
     }
+    if (note.insChange) {
+      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,0));
+      pendingNotes.pop_front();
+      continue;
+    }
     if (note.on) {
-      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
-      //dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,(note.volume*(chan[note.channel].volMax>>8))/127));
+      if (!(midiIsDirect && midiIsDirectProgram && note.fromMIDI)) {
+        dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
+      }
+      if (note.volume>=0 && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
+        float curvedVol=pow((float)note.volume/127.0f,midiVolExp);
+        int mappedVol=disCont[dispatchOfChan[note.channel]].dispatch->mapVelocity(dispatchChanOfChan[note.channel],curvedVol);
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
+      }
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
       chan[note.channel].releasing=false;
@@ -1821,14 +1841,21 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   // process MIDI events (TODO: everything)
   if (output) if (output->midiIn) while (!output->midiIn->queue.empty()) {
     TAMidiMessage& msg=output->midiIn->queue.front();
+    if (midiDebug) {
+      if (msg.type==TA_MIDI_SYSEX) {
+        logD("MIDI debug: %.2X SysEx",msg.type);
+      } else {
+        logD("MIDI debug: %.2X %.2X %.2X",msg.type,msg.data[0],msg.data[1]);
+      }
+    }
     int ins=-1;
     if ((ins=midiCallback(msg))!=-2) {
       int chan=msg.type&15;
       switch (msg.type&0xf0) {
         case TA_MIDI_NOTE_OFF: {
-          if (chan<0 || chan>=chans) break;
           if (midiIsDirect) {
-            pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
+            if (chan<0 || chan>=chans) break;
+            pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
           } else {
             autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
           }
@@ -1840,16 +1867,17 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           break;
         }
         case TA_MIDI_NOTE_ON: {
-          if (chan<0 || chan>=chans) break;
           if (msg.data[1]==0) {
             if (midiIsDirect) {
-              pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
+              if (chan<0 || chan>=chans) break;
+              pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
             } else {
               autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
             }
           } else {
             if (midiIsDirect) {
-              pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true));
+              if (chan<0 || chan>=chans) break;
+              pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true,false,true));
             } else {
               autoNoteOn(msg.type&15,ins,msg.data[0]-12,msg.data[1]);
             }
@@ -1857,10 +1885,14 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           break;
         }
         case TA_MIDI_PROGRAM: {
-          // TODO: change instrument event thingy
+          if (midiIsDirect && midiIsDirectProgram) {
+            pendingNotes.push_back(DivNoteEvent(chan,msg.data[0],0,0,false,true,true));
+          }
           break;
         }
       }
+    } else if (midiDebug) {
+      logD("callback wants ignore");
     }
     //logD("%.2x",msg.type);
     output->midiIn->queue.pop();

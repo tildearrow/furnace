@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0x82:
       return "82xx: Set panning (right channel)";
     case 0x88:
-      return "88xx: Set panning (rear channels; x: left; y: right)";
+      return "88xy: Set panning (rear channels; x: left; y: right)";
       break;
     case 0x89:
       return "89xx: Set panning (rear left channel)";
@@ -129,6 +129,8 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "F5xx: Disable macro (see manual)";
     case 0xf6:
       return "F6xx: Enable macro (see manual)";
+    case 0xf7:
+      return "F7xx: Restart macro (see manual)";
     case 0xf8:
       return "F8xx: Single tick volume slide up";
     case 0xf9:
@@ -1371,6 +1373,9 @@ DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
       case DIV_INS_OPL_DRUMS:
         return &song.nullInsOPLDrums;
         break;
+      case DIV_INS_ESFM:
+        return &song.nullInsESFM;
+        break;
       default:
         break;
     }
@@ -1519,6 +1524,11 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   while (playing && curOrder<goal) {
     if (nextTick(preserveDrift)) {
       skipping=false;
+      cmdStream.clear();
+      for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
+      if (goal>0 || goalRow>0) {
+        for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
+      }
       return;
     }
     if (!preserveDrift) {
@@ -1530,6 +1540,11 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   while (playing && (curRow<goalRow || ticks>1)) {
     if (nextTick(preserveDrift)) {
       skipping=false;
+      cmdStream.clear();
+      for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
+      if (goal>0 || goalRow>0) {
+        for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
+      }
       return;
     }
     if (!preserveDrift) {
@@ -2175,6 +2190,13 @@ int DivEngine::getMaxVolumeChan(int ch) {
   return chan[ch].volMax>>8;
 }
 
+int DivEngine::mapVelocity(int ch, float vel) {
+  if (ch<0) return 0;
+  if (ch>=chans) return 0;
+  if (disCont[dispatchOfChan[ch]].dispatch==NULL) return 0;
+  return disCont[dispatchOfChan[ch]].dispatch->mapVelocity(dispatchChanOfChan[ch],vel);
+}
+
 unsigned char DivEngine::getOrder() {
   return prevOrder;
 }
@@ -2391,6 +2413,9 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
       break;
     case DIV_INS_OPL_DRUMS:
       *ins=song.nullInsOPLDrums;
+      break;
+    case DIV_INS_ESFM:
+      *ins=song.nullInsESFM;
       break;
     default:
       break;
@@ -3375,8 +3400,20 @@ void DivEngine::setMidiDirect(bool value) {
   midiIsDirect=value;
 }
 
+void DivEngine::setMidiDirectProgram(bool value) {
+  midiIsDirectProgram=value;
+}
+
+void DivEngine::setMidiVolExp(float value) {
+  midiVolExp=value;
+}
+
 void DivEngine::setMidiCallback(std::function<int(const TAMidiMessage&)> what) {
   midiCallback=what;
+}
+
+void DivEngine::setMidiDebug(bool enable) {
+  midiDebug=enable;
 }
 
 bool DivEngine::sendMidiMessage(TAMidiMessage& msg) {
@@ -3439,6 +3476,12 @@ void DivEngine::rescanAudioDevices() {
   audioDevs.clear();
   if (output!=NULL) {
     audioDevs=output->listAudioDevices();
+  }
+}
+
+void DivEngine::rescanMidiDevices() {
+  if (output!=NULL) {
+    logV("re-scanning midi...");
     if (output->midiIn!=NULL) {
       midiIns=output->midiIn->listDevices();
     }
@@ -3710,12 +3753,16 @@ bool DivEngine::preInit(bool noSafeMode) {
   initConfDir();
   logD("config path: %s",configPath.c_str());
 
+  // TODO: re-enable with a better approach
+  // see issue #1581
+  /*
   if (!noSafeMode) {
     String safeModePath=configPath+DIR_SEPARATOR_STR+"safemode";
     if (touchFile(safeModePath.c_str())==-EEXIST) {
       wantSafe=true;
     }
   }
+  */
 
   String logPath=configPath+DIR_SEPARATOR_STR+"furnace.log";
   startLogFile(logPath.c_str());
@@ -3739,8 +3786,12 @@ bool DivEngine::preInit(bool noSafeMode) {
 }
 
 void DivEngine::everythingOK() {
+  // TODO: re-enable with a better approach
+  // see issue #1581
+  /*
   String safeModePath=configPath+DIR_SEPARATOR_STR+"safemode";
   deleteFile(safeModePath.c_str());
+  */
 }
 
 bool DivEngine::init() {

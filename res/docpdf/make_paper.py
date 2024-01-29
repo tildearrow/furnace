@@ -341,11 +341,10 @@ if __name__ == "__main__":
               <li>freq-mod</li>
               <li>host12prog</li>
               <li>Lunathir</li>
-              <li>nicco1690</li>
               <li>tildearrow</li>
             </ul>
             <p>special thanks to ZoomTen for providing tools which assisted in the production of this document!</p>
-            <p>copyright © 2023 tildearrow and other authors.</p>
+            <p>copyright © 2024 tildearrow and other authors.</p>
             <p>this documentation is under the <a href="https://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported</a> license.</p>
             <p>you may reproduce, modify and/or distribute this documentation provided this copyright notice (including license and attribution) is present and any necessary disclaimers whether modifications have been made.</p>
             <p>this documentation is provided as-is and without warranty of any kind.</p>

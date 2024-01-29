@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,11 @@ const bool isTopKey[12]={
 
 #define VALUE_DIGIT(x,label) \
   if (ImGui::Button(label,buttonSize)) { \
-    valueInput(x,false); \
+    if (curWindow==GUI_WINDOW_ORDERS && orderEditMode>0) { \
+      orderInput(x); \
+    } else { \
+      valueInput(x,false); \
+    } \
   }
 
 void FurnaceGUI::drawPiano() {
@@ -166,7 +170,7 @@ void FurnaceGUI::drawPiano() {
       }
 
       ImGui::TableNextColumn();
-      if (pianoInputPadMode==PIANO_INPUT_PAD_REPLACE && cursor.xFine>0 && curWindow==GUI_WINDOW_PATTERN) {
+      if (pianoInputPadMode==PIANO_INPUT_PAD_REPLACE && ((cursor.xFine>0 && curWindow==GUI_WINDOW_PATTERN) || (curWindow==GUI_WINDOW_ORDERS && orderEditMode>0))) {
         ImVec2 buttonSize=ImGui::GetContentRegionAvail();
         if (ImGui::BeginTable("InputPadP",8,ImGuiTableFlags_SizingFixedSame)) {
           ImGui::TableNextRow();
@@ -443,9 +447,9 @@ void FurnaceGUI::drawPiano() {
   ImGui::End();
 
   // draw input pad if necessary
-  if ((curWindow==GUI_WINDOW_PATTERN || !mobileUI) && ((pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_AUTO && cursor.xFine>0) || pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
+  if ((curWindow==GUI_WINDOW_ORDERS || curWindow==GUI_WINDOW_PATTERN || !mobileUI) && ((pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_AUTO && (cursor.xFine>0 || (curWindow==GUI_WINDOW_ORDERS && orderEditMode>0))) || pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
     if (ImGui::Begin("Input Pad",NULL,ImGuiWindowFlags_NoTitleBar)) {
-      ImGui::BeginDisabled(cursor.xFine==0);
+      ImGui::BeginDisabled(cursor.xFine==0 && !(curWindow==GUI_WINDOW_ORDERS && orderEditMode>0));
       if (ImGui::BeginTable("InputPad",3,ImGuiTableFlags_Borders)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();

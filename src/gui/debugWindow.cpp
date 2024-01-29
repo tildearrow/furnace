@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -430,6 +430,13 @@ void FurnaceGUI::drawDebug() {
 
       ImGui::Text("last call to nextBuf(): in %d, out %d, size %d",e->lastNBIns,e->lastNBOuts,e->lastNBSize);
 
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("MIDI Debug")) {
+      if (ImGui::Button("Enable Debug (go to log viewer)")) {
+        e->setMidiDebug(true);
+        nextWindow=GUI_WINDOW_LOG;
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Visualizer Debug")) {

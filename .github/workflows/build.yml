@@ -33,7 +33,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3.1.0
+      uses: actions/checkout@v4.1.1
       with:
         submodules: recursive
 
@@ -106,7 +106,7 @@ jobs:
 
     - name: Setup Toolchain [Windows MSVC]
       if: ${{ matrix.config.compiler == 'msvc' }}
-      uses: vadz/gha-setup-vsdevenv@avoid-deprecation-warnings
+      uses: lunathir/gha-setup-vsdevenv@avoid-deprecation-warnings
       with:
         arch: ${{ steps.windows-identify.outputs.vswhere-target }}
 
@@ -284,15 +284,31 @@ jobs:
       if: ${{ runner.os == 'macOS' }}
       run: |
         pushd build
-        cpack
+        retries=0
+        while ! cpack; do
+          echo "TRYING AGAIN..."
+          retries=$((retries+1))
+          if [ $retries -gt 5 ]; then
+            echo "OH NO, WE'VE FAILED..."
+            exit 1
+            break
+          fi
+        done
 
+        echo "making dirs"
         mkdir orig
         mkdir new
+        echo "attaching"
         echo "y" | hdiutil attach Furnace-*-Darwin.dmg -readonly -mount required -mountpoint orig
 
+        echo "copying"
         cp -v -r orig/Furnace.app new/Furnace.app
+        echo "synchronizing"
+        sync
+        echo "detaching"
         hdiutil detach orig
 
+        echo "removing orig"
         rmdir orig
         rm Furnace-*-Darwin.dmg
 
@@ -301,6 +317,7 @@ jobs:
           rmdir new/Furnace.app/Contents/Resources/bin
         fi
 
+        echo "copying extra stuff"
         cp -v ../LICENSE new/LICENSE.txt
         cp -v ../res/releaseReadme/stable-mac.txt new/README
         cp -v -r ../demos new/demos
@@ -310,7 +327,18 @@ jobs:
         wget https://tildearrow.org/furnace/doc/latest/manual.pdf
         cd ..
 
-        hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg
+        echo "creating new image"
+        retries=0
+        while ! hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg; do
+          echo "TRYING AGAIN..."
+          retries=$((retries+1))
+          if [ $retries -gt 5 ]; then
+            echo "OH NO, WE'VE FAILED..."
+            exit 1
+            break
+          fi
+          sleep 5
+        done
         
         mv furnace.dmg ../${{ steps.package-identify.outputs.filename }}
         popd
@@ -356,7 +384,7 @@ jobs:
 
     - name: Upload artifact
       if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'master' }}
-      uses: actions/upload-artifact@v3.1.1
+      uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.package-identify.outputs.id }}
         path: ${{ steps.package-identify.outputs.filename }}

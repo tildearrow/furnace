@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -240,6 +240,81 @@ void DivMacroInt::mask(unsigned char id, bool enabled) {
     CONSIDER_OP(1,0x60)
     CONSIDER_OP(3,0x80)
   }
+}
+
+#undef CONSIDER_OP
+#undef CONSIDER
+
+#define CONSIDER(x,y,z) \
+  case z: \
+    macroState=&x; \
+    macro=&ins->std.y; \
+    break;
+
+#define CONSIDER_OP(oi,o) \
+  CONSIDER(op[oi].am,opMacros[oi].amMacro,0+o) \
+  CONSIDER(op[oi].ar,opMacros[oi].arMacro,1+o) \
+  CONSIDER(op[oi].dr,opMacros[oi].drMacro,2+o) \
+  CONSIDER(op[oi].mult,opMacros[oi].multMacro,3+o) \
+  CONSIDER(op[oi].rr,opMacros[oi].rrMacro,4+o) \
+  CONSIDER(op[oi].sl,opMacros[oi].slMacro,5+o) \
+  CONSIDER(op[oi].tl,opMacros[oi].tlMacro,6+o) \
+  CONSIDER(op[oi].dt2,opMacros[oi].dt2Macro,7+o) \
+  CONSIDER(op[oi].rs,opMacros[oi].rsMacro,8+o) \
+  CONSIDER(op[oi].dt,opMacros[oi].dtMacro,9+o) \
+  CONSIDER(op[oi].d2r,opMacros[oi].d2rMacro,10+o) \
+  CONSIDER(op[oi].ssg,opMacros[oi].ssgMacro,11+o) \
+  CONSIDER(op[oi].dam,opMacros[oi].damMacro,12+o) \
+  CONSIDER(op[oi].dvb,opMacros[oi].dvbMacro,13+o) \
+  CONSIDER(op[oi].egt,opMacros[oi].egtMacro,14+o) \
+  CONSIDER(op[oi].ksl,opMacros[oi].kslMacro,15+o) \
+  CONSIDER(op[oi].sus,opMacros[oi].susMacro,16+o) \
+  CONSIDER(op[oi].vib,opMacros[oi].vibMacro,17+o) \
+  CONSIDER(op[oi].ws,opMacros[oi].wsMacro,18+o) \
+  CONSIDER(op[oi].ksr,opMacros[oi].ksrMacro,19+o)
+
+void DivMacroInt::restart(unsigned char id) {
+  DivMacroStruct* macroState=NULL;
+  DivInstrumentMacro* macro=NULL;
+
+  if (e==NULL) return;
+  if (ins==NULL) return;
+  
+  switch (id) {
+    CONSIDER(vol,volMacro,0)
+    CONSIDER(arp,arpMacro,1)
+    CONSIDER(duty,dutyMacro,2)
+    CONSIDER(wave,waveMacro,3)
+    CONSIDER(pitch,pitchMacro,4)
+    CONSIDER(ex1,ex1Macro,5)
+    CONSIDER(ex2,ex2Macro,6)
+    CONSIDER(ex3,ex3Macro,7)
+    CONSIDER(alg,algMacro,8)
+    CONSIDER(fb,fbMacro,9)
+    CONSIDER(fms,fmsMacro,10)
+    CONSIDER(ams,amsMacro,11)
+    CONSIDER(panL,panLMacro,12)
+    CONSIDER(panR,panRMacro,13)
+    CONSIDER(phaseReset,phaseResetMacro,14)
+    CONSIDER(ex4,ex4Macro,15)
+    CONSIDER(ex5,ex5Macro,16)
+    CONSIDER(ex6,ex6Macro,17)
+    CONSIDER(ex7,ex7Macro,18)
+    CONSIDER(ex8,ex8Macro,19)
+
+    CONSIDER_OP(0,0x20)
+    CONSIDER_OP(2,0x40)
+    CONSIDER_OP(1,0x60)
+    CONSIDER_OP(3,0x80)
+  }
+
+  if (macroState==NULL || macro==NULL) return;
+
+  if (macro->len<=0) return;
+  if (macroState->masked) return;
+
+  macroState->init();
+  macroState->prepare(*macro,e);
 }
 
 #undef CONSIDER_OP

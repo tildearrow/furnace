@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,9 @@ enum DivDispatchCmds {
   DIV_CMD_ENV_RELEASE,
   DIV_CMD_INSTRUMENT, // (ins, force)
   DIV_CMD_VOLUME, // (vol)
+  // TODO: think of possibly moving this
   DIV_CMD_GET_VOLUME, // () -> vol
+  // TODO: move. shouldn't be a command.
   DIV_CMD_GET_VOLMAX, // () -> volMax
   DIV_CMD_NOTE_PORTA, // (target, speed) -> 2 if target reached
   DIV_CMD_PITCH, // (pitch)
@@ -241,7 +243,15 @@ enum DivDispatchCmds {
   DIV_CMD_C64_AD, // (value)
   DIV_CMD_C64_SR, // (value)
 
-  DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
+  DIV_CMD_ESFM_OP_PANNING, // (op, value)
+  DIV_CMD_ESFM_OUTLVL, // (op, value)
+  DIV_CMD_ESFM_MODIN, // (op, value)
+  DIV_CMD_ESFM_ENV_DELAY, // (op, value)
+
+  DIV_CMD_MACRO_RESTART, // (which)
+
+  DIV_CMD_POWERNOISE_COUNTER_LOAD, // (which, val)
+  DIV_CMD_POWERNOISE_IO_WRITE, // (port, value)
 
   DIV_CMD_MAX
 };
@@ -590,11 +600,26 @@ class DivDispatch {
     virtual bool isVolGlobal();
 
     /**
+     * map MIDI velocity (from 0 to 127) to chip volume.
+     * @param ch the chip channel. -1 means N/A.
+     * @param vel input velocity, from 0.0 to 1.0.
+     * @return output volume.
+     */
+    virtual int mapVelocity(int ch, float vel);
+
+    /**
      * get the lowest note in a portamento.
      * @param ch the channel in question.
      * @return the lowest note.
      */
     virtual int getPortaFloor(int ch);
+
+    /**
+     * check whether to always set volume on volume change (even when same volume).
+     * only for compatibility purposes!
+     * @return truth.
+     */
+    virtual bool getLegacyAlwaysSetVolume();
 
     /**
      * get the required amplification level of this dispatch's output.
@@ -782,7 +807,7 @@ class DivDispatch {
 #define NOTE_FNUM_BLOCK(x,bits) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits)
 
 // this is for volume scaling calculation.
-#define VOL_SCALE_LINEAR(x,y,range) (((x)*(y))/(range))
+#define VOL_SCALE_LINEAR(x,y,range) ((parent->song.ceilVolumeScaling)?((((x)*(y))+(range-1))/(range)):(((x)*(y))/(range)))
 #define VOL_SCALE_LOG(x,y,range) (CLAMP(((x)+(y))-(range),0,(range)))
 #define VOL_SCALE_LINEAR_BROKEN(x,y,range) ((parent->song.newVolumeScaling)?(VOL_SCALE_LINEAR(x,y,range)):(VOL_SCALE_LOG(x,y,range)))
 #define VOL_SCALE_LOG_BROKEN(x,y,range) ((parent->song.newVolumeScaling)?(VOL_SCALE_LOG(x,y,range)):(VOL_SCALE_LINEAR(x,y,range)))

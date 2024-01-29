@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -768,6 +768,34 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "NEC PC-98 (with PC-9801-86) stereo", { // -73 also has OPNA
+      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, -1.0f, // 2x 16-bit Burr Brown DAC
+        "rate=44100\n"
+        "outDepth=15\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 1.0f,
+        "rate=44100\n"
+        "outDepth=15\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+    }
+  );
+  ENTRY(
+    "NEC PC-98 (with PC-9801-86; extended channel 3) stereo", { // -73 also has OPNA
+      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, -1.0f,
+        "rate=44100\n"
+        "outDepth=15\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 1.0f,
+        "rate=44100\n"
+        "outDepth=15\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+    }
+  );
+  ENTRY(
     "NEC PC-98 (with PC-9801-73)", {
       CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
@@ -1062,6 +1090,17 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "PC + Sound Blaster Pro 2 (drums mode)", {
       CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+        "rate=44100\n"
+        "outDepth=15\n"
+        "stereo=true\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "PC + ESS AudioDrive ES1488 (native ESFM mode)", {
+      CH(DIV_SYSTEM_ESFM, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
         "rate=44100\n"
         "outDepth=15\n"
@@ -2364,6 +2403,11 @@ void FurnaceGUI::initSystemPresets() {
       )
     }
   );
+  ENTRY(
+    "ESS ES1xxx series (ESFM)", {
+      CH(DIV_SYSTEM_ESFM, 1.0f, 0, "")
+    }
+  );
   if (settings.hiddenSystems) {
     ENTRY(
       "Yamaha YMU759 (MA-2)", {
@@ -2727,6 +2771,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "tildearrow Sound Unit", {
       CH(DIV_SYSTEM_SOUND_UNIT, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "PowerNoise", {
+      CH(DIV_SYSTEM_POWERNOISE, 1.0f, 0, "")
     }
   );
   ENTRY(

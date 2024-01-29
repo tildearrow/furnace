@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -181,6 +181,10 @@ void FurnaceGUI::drawOrderButtons() {
   }
   NEXT_BUTTON;
 
+  if (orderEditMode==0 && mobileUI) {
+    orderEditMode=1;
+  }
+
   const char* orderEditModeLabel="?##OrderEditMode";
   if (orderEditMode==3) {
     orderEditModeLabel=ICON_FA_ARROWS_V "##OrderEditMode";
@@ -193,7 +197,7 @@ void FurnaceGUI::drawOrderButtons() {
   }
   if (ImGui::Button(orderEditModeLabel)) { handleUnimportant
     orderEditMode++;
-    if (orderEditMode>3) orderEditMode=0;
+    if (orderEditMode>3) orderEditMode=mobileUI?1:0;
     curNibble=false;
   }
   if (ImGui::IsItemHovered()) {
@@ -219,7 +223,7 @@ void FurnaceGUI::drawOrders() {
   if (!ordersOpen) return;
   if (mobileUI) {
     patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
-    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)):ImVec2(canvasW-(0.16*canvasH),canvasH));
+    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(pianoOpen?(0.4*canvasW):0.0f)):ImVec2(canvasW-(0.16*canvasH),canvasH-(pianoOpen?(0.3*canvasH):0.0f)));
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   } else {

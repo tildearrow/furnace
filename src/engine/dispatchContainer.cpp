@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,6 +82,8 @@
 #include "platform/ted.h"
 #include "platform/c140.h"
 #include "platform/pcmdac.h"
+#include "platform/esfm.h"
+#include "platform/powernoise.h"
 #include "platform/dummy.h"
 #include "platform/cpt100.h"
 #include "../ta-log.h"
@@ -644,6 +646,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;
+      break;
+    case DIV_SYSTEM_ESFM:
+      dispatch=new DivPlatformESFM;
+      break;
+    case DIV_SYSTEM_POWERNOISE:
+      dispatch=new DivPlatformPowerNoise;
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;

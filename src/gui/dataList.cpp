@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   const char* insType="Bug!";
   if (i>=0 && i<e->song.insLen) {
     DivInstrument* ins=e->song.ins[i];
-    insType=(ins->type>DIV_INS_MAX)?"Unknown":insTypes[ins->type][0];
+    insType=(ins->type>=DIV_INS_MAX)?"Unknown":insTypes[ins->type][0];
     const char** insIcon=NULL;
 
     if (ins->type>=DIV_INS_MAX) {

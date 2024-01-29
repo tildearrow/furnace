@@ -29,7 +29,7 @@ these apply to the instrument as a whole:
 these apply to each operator:
 - the crossed-arrows button can be dragged to rearrange operators.
 - **Amplitude Modulation (AM)**: makes the operator affected by LFO tremolo.
-- **Sustain flag (SUS)**: when enabled, value of Sustain Level is in effect.
+- **Sustain flag (SUS)**: when enabled, the envelope pauses ("sustains") once it reaches the Sustain Level and does not proceed to the release phase until note off.
 - **Attack Rate (AR)**: determines the rising time for the sound. the bigger the value, the faster the attack (0 to 15).
 - **Decay Rate (DR)**: determines the diminishing time for the sound. the higher the value, the shorter the decay. it's the initial amplitude decay rate (0 to 15).
 - **Sustain Level (SL)**: determines the point at which the sound ceases to decay and changes to a sound having a constant level. the sustain level is expressed as a fraction of the maximum level (0 to 15).

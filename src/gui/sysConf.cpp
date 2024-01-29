@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -754,40 +754,48 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         clockSel=0;
         altered=true;
       }
-      if (ImGui::RadioButton("1.77MHz (ZX Spectrum)",clockSel==1)) {
+      if (ImGui::RadioButton("1.77MHz (ZX Spectrum PAL)",clockSel==1)) {
         clockSel=1;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.75MHz (ZX Spectrum)",clockSel==2)) {
-        clockSel=2;
-        altered=true;
-      }
-      if (ImGui::RadioButton("2MHz (Atari ST/Sharp X1)",clockSel==3)) {
-        clockSel=3;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.5MHz (Vectrex)",clockSel==4)) {
-        clockSel=4;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1MHz (Amstrad CPC)",clockSel==5)) {
-        clockSel=5;
-        altered=true;
-      }
-      if (ImGui::RadioButton("0.89MHz (Pre-divided Sunsoft 5B)",clockSel==6)) {
-        clockSel=6;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.67MHz (?)",clockSel==7)) {
-        clockSel=7;
         altered=true;
       }
       if (ImGui::RadioButton("0.83MHz (Pre-divided Sunsoft 5B on PAL)",clockSel==8)) {
         clockSel=8;
         altered=true;
       }
+      if (ImGui::RadioButton("0.89MHz (Pre-divided Sunsoft 5B)",clockSel==6)) {
+        clockSel=6;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1MHz (Amstrad CPC)",clockSel==5)) {
+        clockSel=5;
+        altered=true;
+      }
       if (ImGui::RadioButton("1.10MHz (Gamate/VIC-20 PAL)",clockSel==9)) {
         clockSel=9;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.25MHz (Mag Max)",clockSel==13)) {
+        clockSel=13;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.5MHz (Vectrex)",clockSel==4)) {
+        clockSel=4;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.536MHz (Kyugo)",clockSel==14)) {
+        clockSel=14;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.67MHz (?)",clockSel==7)) {
+        clockSel=7;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.75MHz (ZX Spectrum 48K)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton("2MHz (Atari ST/Sharp X1)",clockSel==3)) {
+        clockSel=3;
         altered=true;
       }
       if (ImGui::RadioButton("2^21Hz (Game Boy)",clockSel==10)) {
@@ -800,14 +808,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       if (ImGui::RadioButton("3.6MHz (Darky)",clockSel==12)) {
         clockSel=12;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.25MHz (Mag Max)",clockSel==13)) {
-        clockSel=13;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.536MHz (Kyugo)",clockSel==14)) {
-        clockSel=14;
         altered=true;
       }
       ImGui::Unindent();
@@ -997,6 +997,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_PCSPKR: {
       int clockSel=flags.getInt("clockSel",0);
       int speakerType=flags.getInt("speakerType",0);
+      bool resetPhase=flags.getBool("resetPhase",false);
 
       ImGui::Text("Clock rate:");
       ImGui::Indent();
@@ -1034,10 +1035,15 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      if (ImGui::Checkbox("Reset phase on frequency change",&resetPhase)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("speakerType",speakerType);
+          flags.set("resetPhase",resetPhase);
         });
       }
       break;
@@ -1468,36 +1474,40 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       ImGui::Text("Clock rate:");
       ImGui::Indent();
+      if (ImGui::RadioButton("0.875MHz",clockSel==10)) {
+        clockSel=10;
+        altered=true;
+      }
+      if (ImGui::RadioButton("0.89MHz",clockSel==7)) {
+        clockSel=7;
+        altered=true;
+      }
+      if (ImGui::RadioButton("0.9375MHz",clockSel==11)) {
+        clockSel=11;
+        altered=true;
+      }
       if (ImGui::RadioButton("1MHz",clockSel==0)) {
         clockSel=0;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.056MHz",clockSel==1)) {
-        clockSel=1;
-        altered=true;
-      }
-      if (ImGui::RadioButton("4MHz",clockSel==2)) {
-        clockSel=2;
-        altered=true;
-      }
-      if (ImGui::RadioButton("4.224MHz",clockSel==3)) {
-        clockSel=3;
-        altered=true;
-      }
-      if (ImGui::RadioButton("3.58MHz",clockSel==4)) {
-        clockSel=4;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.79MHz",clockSel==5)) {
-        clockSel=5;
         altered=true;
       }
       if (ImGui::RadioButton("1.02MHz",clockSel==6)) {
         clockSel=6;
         altered=true;
       }
-      if (ImGui::RadioButton("0.89MHz",clockSel==7)) {
-        clockSel=7;
+      if (ImGui::RadioButton("1.056MHz",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.193MHz (Atari)",clockSel==14)) {
+        clockSel=14;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.5MHz",clockSel==12)) {
+        clockSel=12;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.79MHz",clockSel==5)) {
+        clockSel=5;
         altered=true;
       }
       if (ImGui::RadioButton("2MHz",clockSel==8)) {
@@ -1508,24 +1518,20 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         clockSel=9;
         altered=true;
       }
-      if (ImGui::RadioButton("0.875MHz",clockSel==10)) {
-        clockSel=10;
-        altered=true;
-      }
-      if (ImGui::RadioButton("0.9375MHz",clockSel==11)) {
-        clockSel=11;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.5MHz",clockSel==12)) {
-        clockSel=12;
-        altered=true;
-      }
       if (ImGui::RadioButton("3MHz",clockSel==13)) {
         clockSel=13;
         altered=true;
       }
-      if (ImGui::RadioButton("1.193MHz (Atari)",clockSel==14)) {
-        clockSel=14;
+      if (ImGui::RadioButton("3.58MHz",clockSel==4)) {
+        clockSel=4;
+        altered=true;
+      }
+      if (ImGui::RadioButton("4MHz",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton("4.224MHz",clockSel==3)) {
+        clockSel=3;
         altered=true;
       }
       ImGui::Unindent();
@@ -2273,6 +2279,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_C219:
       break;
     case DIV_SYSTEM_YMU759:
+    case DIV_SYSTEM_ESFM:
       supportsCustomRate=false;
       ImGui::Text("nothing to configure");
       break;
@@ -2306,7 +2313,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       altered=true;
     }
     ImGui::Indent();
-    if (ImGui::InputInt("Hz",&customClock)) {
+    if (ImGui::InputInt("Hz",&customClock,100,10000)) {
       if (customClock<MIN_CUSTOM_CLOCK) customClock=0;
       if (customClock>MAX_CUSTOM_CLOCK) customClock=MAX_CUSTOM_CLOCK;
       altered=true;
