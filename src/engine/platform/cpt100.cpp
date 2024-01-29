@@ -202,10 +202,10 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON:
       {
       DivInstrument* ins = parent->getIns(chan[c.chan].ins,DIV_INS_CPT100);
-      if (chan[c.chan].pcm && !(ins->amiga.useSample)) {
-        chan[c.chan].pcm=(ins->amiga.useSample);
+      if (chan[c.chan].pcm && !(ins->type==DIV_INS_AMIGA || ins->amiga.useSample)) {
+        chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->amiga.useSample);
       }
-      chan[c.chan].pcm=(ins->amiga.useSample);
+      chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->amiga.useSample);
       if (chan[c.chan].pcm) {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);

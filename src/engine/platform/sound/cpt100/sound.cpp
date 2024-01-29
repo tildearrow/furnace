@@ -125,7 +125,7 @@ public:
                 } else if(regwt.at(ch+6).toInt() == 0) {
                 val = regwt.at(12+32*ch+((int)twt[ch]%32)).toInt();
                 } else if(regwt.at(ch+6).toInt() == 2) {
-                    val = noise.at(((int)twt[ch]%1024))*255;
+                    val = noise.at(((int)twt[ch]%65536))*255;
                 } else if(regwt.at(ch+6).toInt() == 3) {
                     val = noise.at(((int)twt[ch]%64))*255;
                 } else if(regwt.at(ch+6).toInt() == 4) {
@@ -170,8 +170,8 @@ public:
     void initSound() {
         
         envl.resize(16,_envl);
-        noise.resize(1024,0);
-        for (int i=0;i<1024;i++) {
+        noise.resize(65536,0);
+        for (int i=0;i<65536;i++) {
             noise[i] = mt()%2;
         }
         
