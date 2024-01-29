@@ -946,7 +946,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_LIST_DIR_VIEW:
       sampleListDir=!sampleListDir;
       break;
-    case GUI_ACTION_SAMPLE_LIST_MAKE_MAP:
+    case GUI_ACTION_SAMPLE_LIST_MAKE_MAP: {
       // determine instrument type
       std::vector<DivInstrumentType> tempTypeList=e->getPossibleInsTypes();
       makeInsTypeList.clear();
@@ -1012,7 +1012,7 @@ void FurnaceGUI::doAction(int what) {
         updateFMPreview=true;
       }
       break;
-      break;
+    }
 
     case GUI_ACTION_SAMPLE_SELECT:
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
