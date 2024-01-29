@@ -975,7 +975,8 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_GA20 ||
             i==DIV_INS_K053260 ||
             i==DIV_INS_C140 ||
-            i==DIV_INS_C219) {
+            i==DIV_INS_C219 ||
+            i==DIV_INS_ES5503) {
           makeInsTypeList.push_back(i);
         }
       }
@@ -1001,9 +1002,9 @@ void FurnaceGUI::doAction(int what) {
         if (insType!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
 
         for (int i=0; i<120; i++) {
-          e->song.ins[curIns]->amiga.noteMap[i].freq=48;
-          e->song.ins[curIns]->amiga.noteMap[i].map=i;
-          e->song.ins[curIns]->amiga.noteMap[i].dpcmFreq=15;
+          e->song.ins[curIns]->amiga.get_amiga_sample_map(i, true)->freq=48;
+          e->song.ins[curIns]->amiga.get_amiga_sample_map(i, true)->map=i;
+          e->song.ins[curIns]->amiga.get_amiga_sample_map(i, true)->dpcmFreq=15;
         }
 
         nextWindow=GUI_WINDOW_INS_EDIT;
