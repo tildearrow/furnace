@@ -19,6 +19,7 @@ LTVA:
 - remove the ability to make pattern length 0 by repeatedly applying "collapse song"
 - Add localization code and Russian translation
 - Break compatibility with tildearrow Furnace because of PowerNoise and ES5503 instrument ID conflicts: you can load tildearrow's Furnace modules just fine, inst IDs will be converted, but the format (module and instrument) magic was changed so you won't be able to load Furnace-B modules in original Furnace.
+- YMF276-LLE now actually produces sound
 
 freq-mod:
 - 86-PCM streo DAC fix
