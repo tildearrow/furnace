@@ -536,7 +536,7 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap fmOPNAPostEffectHandlerMap(fmOPNPostEffectHandlerMap);
   fmOPNAPostEffectHandlerMap.insert({
-    {0x31, {DIV_CMD_ADPCMA_GLOBAL_VOLUME, "1Fxx: Set ADPCM-A global volume (0 to 3F)"}},
+    {0x1f, {DIV_CMD_ADPCMA_GLOBAL_VOLUME, "1Fxx: Set ADPCM-A global volume (0 to 3F)"}},
   });
 
   EffectHandlerMap fmOPLLPostEffectHandlerMap={
