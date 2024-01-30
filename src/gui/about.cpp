@@ -156,6 +156,7 @@ const char* aboutLine[]={
   "The Beesh-Spweesh!",
   "TheRealHedgehogSonic",
   "tildearrow",
+  "traumatized",
   "Uhrwerk Klockwerx",
   "Ultraprogramer",
   "UserSniper",
