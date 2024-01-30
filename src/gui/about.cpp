@@ -123,6 +123,7 @@ const char* aboutLine[]={
   "masicbemester",
   "MelonadeM",
   "Miker",
+  "Molkirill",
   "NeoWar",
   "niffuM",
   "<nk>",
