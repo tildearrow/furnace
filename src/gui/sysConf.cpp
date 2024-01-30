@@ -1596,6 +1596,19 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_LYNX: {
+      bool tuned=flags.getBool("tuned",false);
+      if (ImGui::Checkbox("Consistent frequency across all duties",&tuned)) {
+        altered=true;
+        e->lockSave([&]() {
+          flags.set("tuned",tuned);
+        });
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("note: only works for an initial LFSR value of 0!");
+      }
+      break;
+    }
     case DIV_SYSTEM_OPL:
     case DIV_SYSTEM_OPL_DRUMS:
     case DIV_SYSTEM_OPL2:
