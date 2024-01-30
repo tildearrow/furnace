@@ -981,37 +981,12 @@ void FurnaceGUI::doAction(int what) {
         }
       }
 
-      if (makeInsTypeList.size()>1) {
-        displayInsTypeList=true;
-        displayInsTypeListMakeInsSample=-2;
-        break;
+      if (makeInsTypeList.empty()) {
+        makeInsTypeList.push_back(DIV_INS_AMIGA);
       }
 
-      DivInstrumentType insType=DIV_INS_AMIGA;
-      if (!makeInsTypeList.empty()) {
-        insType=makeInsTypeList[0];
-      }
-
-      curIns=e->addInstrument(cursor.xCoarse);
-      if (curIns==-1) {
-        showError("too many instruments!");
-      } else {
-        e->song.ins[curIns]->type=insType;
-        e->song.ins[curIns]->name="Drum Kit";
-        e->song.ins[curIns]->amiga.useNoteMap=true;
-        if (insType!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
-
-        for (int i=0; i<120; i++) {
-          e->song.ins[curIns]->amiga.get_amiga_sample_map(i, true)->freq=48;
-          e->song.ins[curIns]->amiga.get_amiga_sample_map(i, true)->map=i;
-          e->song.ins[curIns]->amiga.get_amiga_sample_map(i, true)->dpcmFreq=15;
-        }
-
-        nextWindow=GUI_WINDOW_INS_EDIT;
-        MARK_MODIFIED;
-        wavePreviewInit=true;
-        updateFMPreview=true;
-      }
+      displayInsTypeList=true;
+      displayInsTypeListMakeInsSample=-2;
       break;
     }
 

@@ -5814,6 +5814,26 @@ bool FurnaceGUI::loop() {
 
     if (ImGui::BeginPopup("InsTypeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
       char temp[1024];
+      if (displayInsTypeListMakeInsSample==-2) {
+        ImGui::Text("Drum kit mode:");
+        if (ImGui::RadioButton("Normal",!makeDrumkitMode)) {
+          makeDrumkitMode=false;
+        }
+        if (ImGui::RadioButton("12 samples per octave",makeDrumkitMode)) {
+          makeDrumkitMode=true;
+        }
+
+        if (!makeDrumkitMode) {
+          ImGui::Text("Starting octave");
+          ImGui::SameLine();
+          if (ImGui::InputInt("##DKOctave",&makeDrumkitOctave,1,3)) {
+            if (makeDrumkitOctave<0) makeDrumkitOctave=0;
+            if (makeDrumkitOctave>9) makeDrumkitOctave=9;
+          }
+        }
+
+        ImGui::Separator();
+      }
       for (DivInstrumentType& i: makeInsTypeList) {
         strncpy(temp,insTypes[i][0],1023);
         if (ImGui::MenuItem(temp)) {
@@ -5822,7 +5842,36 @@ bool FurnaceGUI::loop() {
           if (curIns==-1) {
             showError("too many instruments!");
           } else {
-            if (displayInsTypeListMakeInsSample>=0 && displayInsTypeListMakeInsSample<(int)e->song.sample.size()) {
+            if (displayInsTypeListMakeInsSample==-2) {
+              e->song.ins[curIns]->type=i;
+              e->song.ins[curIns]->name="Drum Kit";
+              e->song.ins[curIns]->amiga.useNoteMap=true;
+              if (i!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
+
+              if (makeDrumkitMode) {
+                for (int j=0; j<120; j++) {
+                  e->song.ins[curIns]->amiga.noteMap[j].freq=48;
+                  e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
+                  e->song.ins[curIns]->amiga.noteMap[j].map=j%12;
+                  if ((j%12)>=e->song.sampleLen) continue;
+                }
+              } else {
+                int index=-makeDrumkitOctave*12;
+                for (int j=0; j<120; j++) {
+                  e->song.ins[curIns]->amiga.noteMap[j].freq=48;
+                  e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
+                  if (index<0 || index>=e->song.sampleLen) {
+                    index++;
+                    continue;
+                  }
+                  e->song.ins[curIns]->amiga.noteMap[j].map=index++;
+                }
+              }
+
+              nextWindow=GUI_WINDOW_INS_EDIT;
+              wavePreviewInit=true;
+              updateFMPreview=true;
+            } else if (displayInsTypeListMakeInsSample>=0 && displayInsTypeListMakeInsSample<(int)e->song.sample.size()) {
               e->song.ins[curIns]->type=i;
               e->song.ins[curIns]->name=e->song.sample[displayInsTypeListMakeInsSample]->name;
               e->song.ins[curIns]->amiga.initSample=displayInsTypeListMakeInsSample;
@@ -7159,6 +7208,7 @@ FurnaceGUI::FurnaceGUI():
   killGraphics(false),
   safeMode(false),
   midiWakeUp(true),
+  makeDrumkitMode(false),
   audioEngineChanged(false),
   settingsChanged(false),
   debugFFT(false),
@@ -7169,6 +7219,7 @@ FurnaceGUI::FurnaceGUI():
   macroPointSize(16),
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
+  makeDrumkitOctave(3),
   mobileEditPage(0),
   wheelCalmDown(0),
   shallDetectScale(0),
