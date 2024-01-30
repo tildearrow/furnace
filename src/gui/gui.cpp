@@ -5901,7 +5901,22 @@ bool FurnaceGUI::loop() {
           if (curIns==-1) {
             showError("too many instruments!");
           } else {
-            if (displayInsTypeListMakeInsSample>=0 && displayInsTypeListMakeInsSample<(int)e->song.sample.size()) {
+            if (displayInsTypeListMakeInsSample==-2) {
+              e->song.ins[curIns]->type=i;
+              e->song.ins[curIns]->name="Drum Kit";
+              e->song.ins[curIns]->amiga.useNoteMap=true;
+              if (i!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
+
+              for (int j=0; j<120; j++) {
+                e->song.ins[curIns]->amiga.noteMap[i].freq=48;
+                e->song.ins[curIns]->amiga.noteMap[i].map=j;
+                e->song.ins[curIns]->amiga.noteMap[i].dpcmFreq=15;
+              }
+
+              nextWindow=GUI_WINDOW_INS_EDIT;
+              wavePreviewInit=true;
+              updateFMPreview=true;
+            } else if (displayInsTypeListMakeInsSample>=0 && displayInsTypeListMakeInsSample<(int)e->song.sample.size()) {
               e->song.ins[curIns]->type=i;
               e->song.ins[curIns]->name=e->song.sample[displayInsTypeListMakeInsSample]->name;
               e->song.ins[curIns]->amiga.initSample=displayInsTypeListMakeInsSample;
