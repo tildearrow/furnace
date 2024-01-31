@@ -370,19 +370,9 @@ void DivPlatformAmiga::tick(bool sysTick) {
       chan[i].outVol=((chan[i].vol%65)*MIN(64,chan[i].std.vol.val))>>6;
       chan[i].writeVol=true;
     }
-    double off=1.0;
-    if (!chan[i].useWave && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-      DivSample* s=parent->getSample(chan[i].sample);
-      if (s->centerRate<1) {
-        off=1.0;
-      } else {
-        off=8363.0/(double)s->centerRate;
-      }
-    }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
-      // TODO: why the off mult? this may be a bug!
       chan[i].baseFreq=round(NOTE_PERIODIC_NOROUND(parent->calcArp(chan[i].note,chan[i].std.arp.val)));
       chan[i].freqChanged=true;
     }
@@ -577,6 +567,8 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
             chan[c.chan].updateWave=true;
           }
         }
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
