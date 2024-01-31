@@ -36,5 +36,6 @@
 
 // dispatch
 #define DIV_MAX_OUTPUTS 16
+#define DIV_NOTE_NULL 0x7fffffff
 
 #endif

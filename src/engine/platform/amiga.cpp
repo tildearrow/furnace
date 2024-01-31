@@ -383,7 +383,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       // TODO: why the off mult? this may be a bug!
-      chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(parent->calcArp(chan[i].note,chan[i].std.arp.val)));
+      chan[i].baseFreq=round(NOTE_PERIODIC_NOROUND(parent->calcArp(chan[i].note,chan[i].std.arp.val)));
       chan[i].freqChanged=true;
     }
     if (chan[i].useWave && chan[i].std.wave.had) {
@@ -580,7 +580,9 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
         }
         chan[c.chan].useWave=false;
       }
@@ -657,9 +659,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].updateWave=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
-      chan[c.chan].sample=ins->amiga.getSample(c.value2);
-      int destFreq=round(NOTE_PERIODIC_NOROUND(c.value2));
+      int destFreq=round(NOTE_PERIODIC_NOROUND(c.value2+chan[c.chan].sampleNoteDelta));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -682,7 +682,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=round(NOTE_PERIODIC_NOROUND(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0))));
+      chan[c.chan].baseFreq=round(NOTE_PERIODIC_NOROUND(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0))));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
