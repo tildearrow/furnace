@@ -17,46 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// this is a mini-assembler written for Furnace.
-// it will be used in future ROM export (yes, that's right, ROM is baked at export time).
+#include "divasm.h"
 
-#include "../engine/safeWriter.h"
+int main(int argc, char** argv) {
+  if (argc<2) {
+    printf("usage: %s file\n",argv[0]);
+    return 1;
+  }
 
-struct DivASMResult {
-  int line, err;
-  DivASMResult():
-    line(-1),
-    err(0) {}
-};
-
-enum DivASMTarget {
-  DIV_ASM_TARGET_DUMMY=0,
-  DIV_ASM_TARGET_6502,
-  DIV_ASM_TARGET_SPC700,
-  DIV_ASM_TARGET_Z80
-};
-
-struct DivLabel {
-  String name;
-  unsigned int location;
-  bool direct;
-};
-
-struct DivOper {
-  String operation;
-  int line;
-};
-
-class DivASM {
-  SafeWriter* result;
-
-  std::vector<DivLabel> labels;
-  std::vector<DivOper> ops;
-
-  public:
-    DivASMResult getError();
-    SafeWriter* assemble(SafeReader* data);
-
-    DivASM();
-    ~DivASM();
-};
+  
+  return 0;
+}
