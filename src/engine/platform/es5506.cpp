@@ -727,19 +727,24 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (((ins->amiga.useNoteMap) && (c.value>=0 && c.value<120)) ||
           ((!ins->amiga.useNoteMap) && (ins->amiga.initSample>=0 && ins->amiga.initSample<parent->song.sampleLen))) {
         int sample=ins->amiga.getSample(c.value);
+        chan[c.chan].sampleNote=c.value;
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleValid=true;
           chan[c.chan].volMacroMax=ins->type==DIV_INS_AMIGA?64:0xfff;
           chan[c.chan].panMacroMax=ins->type==DIV_INS_AMIGA?127:0xfff;
           chan[c.chan].pcm.next=ins->amiga.useNoteMap?c.value:sample;
           c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
           chan[c.chan].pcm.note=c.value;
           chan[c.chan].filter=ins->es5506.filter;
           chan[c.chan].envelope=ins->es5506.envelope;
+        } else {
+          chan[c.chan].sampleNoteDelta=0;
         }
       }
       if (!sampleValid) {
         chan[c.chan].pcm.index=chan[c.chan].pcm.next=-1;
+        chan[c.chan].sampleNoteDelta=0;
         chan[c.chan].filter=DivInstrumentES5506::Filter();
         chan[c.chan].envelope=DivInstrumentES5506::Envelope();
       }
@@ -962,7 +967,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       break;
     case DIV_CMD_NOTE_PORTA: {
       int nextFreq=chan[c.chan].baseFreq;
-      const int destFreq=NOTE_ES5506(c.chan,c.value2);
+      const int destFreq=NOTE_ES5506(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>nextFreq) {
         nextFreq+=c.value;
@@ -987,7 +992,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       chan[c.chan].note=c.value;
-      chan[c.chan].nextNote=chan[c.chan].note+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0));
+      chan[c.chan].nextNote=chan[c.chan].note+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0));
       chan[c.chan].noteChanged.note=1;
       break;
     }

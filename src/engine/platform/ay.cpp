@@ -408,7 +408,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
             chan[c.chan].sampleNote=c.value;
             c.value=ins->amiga.getFreq(c.value);
             chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-          } else {
+          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
             chan[c.chan].dac.sample=ins->amiga.getSample(chan[c.chan].sampleNote);
             c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
           }
