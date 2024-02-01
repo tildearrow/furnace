@@ -72,37 +72,6 @@ int16_t ESFM_get_channel_output_native(esfm_chip *chip, int channel_idx);
 
 // These are fake types just for syntax sugar.
 // Beware of their underlying types when reading/writing to them.
-#ifndef __NO_ESFM_FAST_TYPES
-#ifndef __ESFM_FAST_TYPES
-#define __ESFM_FAST_TYPES
-#endif
-#endif
-
-#ifdef __ESFM_FAST_TYPES
-
-typedef uint_fast8_t flag;
-typedef uint_fast8_t uint2;
-typedef uint_fast8_t uint3;
-typedef uint_fast8_t uint4;
-typedef uint_fast8_t uint5;
-typedef uint_fast8_t uint6;
-typedef uint_fast8_t uint8;
-typedef uint_fast16_t uint9;
-typedef uint_fast16_t uint10;
-typedef uint_fast16_t uint11;
-typedef uint_fast16_t uint12;
-typedef uint_fast16_t uint16;
-typedef uint_fast32_t uint19;
-typedef uint_fast32_t uint23;
-typedef uint_fast32_t uint32;
-typedef uint_fast64_t uint36;
-
-typedef int_fast16_t int13;
-typedef int_fast16_t int14;
-typedef int_fast16_t int16;
-typedef int_fast32_t int32;
-
-#else
 typedef uint8_t flag;
 typedef uint8_t uint2;
 typedef uint8_t uint3;
@@ -124,8 +93,6 @@ typedef int16_t int13;
 typedef int16_t int14;
 typedef int16_t int16;
 typedef int32_t int32;
-
-#endif
 
 enum eg_states
 {
