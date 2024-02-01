@@ -1754,7 +1754,7 @@ ESFM_process_feedback(esfm_chip *chip)
 		int32_t wave_out, wave_last;
 		int32_t phase_feedback;
 		uint19 regressed_phase;
-		int iter_counter;
+		uint32_t iter_counter;
 		uint3 waveform;
 		uint3 mod_in_shift;
 		uint32_t phase, phase_acc;
@@ -1781,30 +1781,30 @@ ESFM_process_feedback(esfm_chip *chip)
 			// ASM optimizaions!
 #if defined(__GNUC__) && defined(__x86_64__)
 			asm (
-				"movzbq %b[wave], %%r8              \n\t"
+				"movzbq %[wave], %%r8               \n\t"
 				"shll   $11, %%r8d                  \n\t"
 				"leaq   %[sinrom], %%rax            \n\t"
 				"addq   %%rax, %%r8                 \n\t"
 				"leaq   %[exprom], %%r9             \n\t"
-				"movl   %k[eg_out], %%r10d          \n\t"
+				"movzwl %[eg_out], %%r10d           \n\t"
 				"shll   $3, %%r10d                  \n\t"
 				"xorl   %%r11d, %%r11d              \n\t"
-				"movl   %%r11d, %k[out]             \n\t"
-				"movw   $29, %%dx                   \n"
+				"movl   %%r11d, %[out]              \n\t"
+				"movl   $29, %%edx                  \n"
 				"1:                                 \n\t"
 				// phase_feedback = (wave_out + wave_last) >> 2;
-				"movl   %k[out], %k[p_fb]           \n\t"
-				"addl   %%r11d, %k[p_fb]            \n\t"
-				"sarl   $2, %k[p_fb]                \n\t"
+				"movl   %[out], %[p_fb]             \n\t"
+				"addl   %%r11d, %[p_fb]             \n\t"
+				"sarl   $2, %[p_fb]                 \n\t"
 				// wave_last = wave_out
-				"movl   %k[out], %%r11d             \n\t"
+				"movl   %[out], %%r11d              \n\t"
 				// phase = phase_feedback >> mod_in_shift;
-				"movl   %k[p_fb], %%ebx             \n\t"
-				"movb   %b[mod_in], %%cl            \n\t"
-				"sarl   %%cl, %%ebx                 \n\t"
+				"movl   %[p_fb], %%eax              \n\t"
+				"movb   %[mod_in], %%cl             \n\t"
+				"sarl   %%cl, %%eax                 \n\t"
 				// phase += phase_acc >> 9;
-				"movl   %k[p_acc], %%eax            \n\t"
-				"shrl   $9, %%eax                   \n\t"
+				"movl   %[p_acc], %%ebx             \n\t"
+				"sarl   $9, %%ebx                   \n\t"
 				"addl   %%ebx, %%eax                \n\t"
 				// lookup = logsinrom[(waveform << 10) | (phase & 0x3ff)];
 				"andq   $0x3ff, %%rax               \n\t"
@@ -1820,26 +1820,26 @@ ESFM_process_feedback(esfm_chip *chip)
 				// wave_out = exprom[level & 0xff] >> (level >> 8);
 				"movb   %%ah, %%cl                  \n\t"
 				"movzbl %%al, %%eax                 \n\t"
-				"movzwl (%%r9, %%rax, 2), %k[out]   \n\t"
-				"shrl   %%cl, %k[out]               \n\t"
+				"movzwl (%%r9, %%rax, 2), %[out]    \n\t"
+				"shrl   %%cl, %[out]                \n\t"
 				// if (lookup & 0x8000) wave_out = -wave_out;
 				// in other words, lookup is negative
-				"movl   %k[out], %%ecx              \n\t"
+				"movl   %[out], %%ecx               \n\t"
 				"negl   %%ecx                       \n\t"
 				"testw  %%bx, %%bx                  \n\t"
-				"cmovsl %%ecx, %k[out]              \n\t"
+				"cmovsl %%ecx, %[out]               \n\t"
 				// phase_acc += phase_offset
-				"addl   %k[p_off], %k[p_acc]        \n\t"
+				"addl   %[p_off], %[p_acc]          \n\t"
 				// loop
-				"decw   %%dx                        \n\t"
+				"decl   %%edx                       \n\t"
 				"jne    1b                          \n\t"
 				: [p_fb]   "=&r" (phase_feedback),
 				  [p_acc]  "+r"  (phase_acc),
-				  [out]    "+r"  (wave_out)
-				: [p_off]  "g"   ((uint32_t)phase_offset),
-				  [mod_in] "g"   ((uint8_t)mod_in_shift),
-				  [wave]   "g"   ((uint8_t)waveform),
-				  [eg_out] "g"   ((uint32_t)eg_output),
+				  [out]    "=&r" (wave_out)
+				: [p_off]  "r"   (phase_offset),
+				  [mod_in] "r"   (mod_in_shift),
+				  [wave]   "r"   (waveform),
+				  [eg_out] "r"   (eg_output),
 				  [sinrom] "m"   (logsinrom),
 				  [exprom] "m"   (exprom)
 				: "cc", "ax", "bx", "cx", "dx", "r8", "r9", "r10", "r11"
@@ -1847,7 +1847,7 @@ ESFM_process_feedback(esfm_chip *chip)
 #else
 			wave_out = 0;
 			wave_last = 0;
-			for (iter_counter = 28; iter_counter >= 0; iter_counter--)
+			for (iter_counter = 0; iter_counter < 29; iter_counter++)
 			{
 				phase_feedback = (wave_out + wave_last) >> 2;
 				wave_last = wave_out;
