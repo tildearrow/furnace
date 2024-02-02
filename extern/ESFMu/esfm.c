@@ -1836,8 +1836,8 @@ ESFM_process_feedback(esfm_chip *chip)
 				  [out]    "=&r" (wave_out)
 				: [p_off]  "r"   (phase_offset),
 				  [mod_in] "r"   (mod_in_shift),
-				  [wave]   "r"   (waveform),
-				  [eg_out] "r"   (eg_output),
+				  [wave]   "g"   (waveform),
+				  [eg_out] "g"   (eg_output),
 				  [sinrom] "m"   (logsinrom),
 				  [exprom] "m"   (exprom)
 				: "cc", "ax", "bx", "cx", "dx", "r8", "r9", "r10", "r11"
