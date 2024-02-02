@@ -1083,7 +1083,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (c.chan>=psgChanOffs || parent->song.linearPitch==2) { // PSG, ADPCM-B
-        int destFreq=NOTE_OPNB(c.chan,c.value2);
+        int destFreq=NOTE_OPNB(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -1124,7 +1124,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           chan[c.chan].insChanged=false;
         }
       }
-      chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value);
+      chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value+chan[c.chan].sampleNoteDelta);
       chan[c.chan].freqChanged=true;
       break;
     }

@@ -404,9 +404,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       chan[0].ws.changeWave1(chan[0].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
-      chan[0].sample=ins->amiga.getSample(c.value2);
-      int destFreq=round(NOTE_FREQUENCY(c.value2));
+      int destFreq=round(NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta));
       bool return2=false;
       if (destFreq>chan[0].baseFreq) {
         chan[0].baseFreq+=c.value;
@@ -429,7 +427,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0))));
+      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0))));
       chan[0].freqChanged=true;
       chan[0].note=c.value;
       break;
