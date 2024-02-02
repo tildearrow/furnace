@@ -451,7 +451,9 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       chan[c.chan].isNewQSound=(ins->type==DIV_INS_QSOUND);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
+        chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value);

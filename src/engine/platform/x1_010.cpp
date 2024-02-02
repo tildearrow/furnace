@@ -543,7 +543,9 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           chan[c.chan].macroInit(ins);
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].sample=ins->amiga.getSample(c.value);
+            chan[c.chan].sampleNote=c.value;
             c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
           }
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);

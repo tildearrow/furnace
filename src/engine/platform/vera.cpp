@@ -302,7 +302,9 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         if (c.value!=DIV_NOTE_NULL) {
           DivInstrument* ins=parent->getIns(chan[16].ins,DIV_INS_VERA);
           chan[16].pcm.sample=ins->amiga.getSample(c.value);
+          chan[16].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
+          chan[16].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
         }
         if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
           chan[16].pcm.sample=-1;

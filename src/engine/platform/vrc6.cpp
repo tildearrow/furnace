@@ -242,7 +242,9 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
           if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+              chan[c.chan].sampleNote=c.value;
               c.value=ins->amiga.getFreq(c.value);
+              chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
             }
             if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
               chan[c.chan].dacSample=-1;
