@@ -297,6 +297,7 @@ typedef struct
     int op_mod[2];
 
     int op_value;
+    int op_value_debug;
 
     int accm_a[2];
     int accm_b[2];

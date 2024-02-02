@@ -1442,6 +1442,8 @@ void FMOPL3_Clock(fmopl3_t *chip)
 
             int sign;
 
+            chip->op_value_debug = chip->op_value;
+
             int accm_a = chip->fsm_out[6] ? 0 : chip->accm_a[1];
             accm_a += (chip->pan_l[1][1] & 1) != 0 ? value : 0;
             chip->accm_a[0] = accm_a;
