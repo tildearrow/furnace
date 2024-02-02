@@ -228,21 +228,28 @@ int DivPlatformLynx::dispatch(DivCommand c) {
           WRITE_CONTROL(c.chan,0x18);
           WRITE_BACKUP(c.chan,0);
         } else {
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
           WRITE_FEEDBACK(c.chan,chan[c.chan].duty.feedback);
           WRITE_CONTROL(c.chan,(chan[c.chan].fd.clockDivider|0x18|chan[c.chan].duty.int_feedback7));
           WRITE_BACKUP(c.chan,chan[c.chan].fd.backup);
         }
       }
-      if (c.value!=DIV_NOTE_NULL) {
-        if (chan[c.chan].pcm) {
+      if (chan[c.chan].pcm) {
+        if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
           chan[c.chan].sampleBaseFreq=NOTE_FREQUENCY(c.value);
-          chan[c.chan].sampleAccum=0;
-          chan[c.chan].samplePos=0;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
+        chan[c.chan].sampleAccum=0;
+        chan[c.chan].samplePos=0;
+      }
+      if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;

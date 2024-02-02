@@ -299,12 +299,15 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if (c.chan<16) {
         rWriteLo(c.chan,2,chan[c.chan].vol);
       } else {
+        DivInstrument* ins=parent->getIns(chan[16].ins,DIV_INS_VERA);
         if (c.value!=DIV_NOTE_NULL) {
-          DivInstrument* ins=parent->getIns(chan[16].ins,DIV_INS_VERA);
           chan[16].pcm.sample=ins->amiga.getSample(c.value);
           chan[16].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[16].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          chan[16].pcm.sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
         if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
           chan[16].pcm.sample=-1;

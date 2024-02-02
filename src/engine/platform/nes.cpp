@@ -411,6 +411,11 @@ int DivPlatformNES::dispatch(DivCommand c) {
               c.value=ins->amiga.getFreq(c.value);
               chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
             }
+          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+            dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+            if (ins->type==DIV_INS_AMIGA) {
+              c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
+            }
           }
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;

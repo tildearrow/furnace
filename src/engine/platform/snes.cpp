@@ -333,6 +333,8 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SNES);
       if (ins->amiga.useWave) {
         chan[c.chan].useWave=true;
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
         chan[c.chan].wtLen=ins->amiga.waveLen+1;
         if (chan[c.chan].insChanged) {
           if (chan[c.chan].wave<0) {

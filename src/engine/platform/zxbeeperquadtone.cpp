@@ -196,6 +196,12 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
           // TODO support offset commands
           curSamplePos=0;
           curSamplePeriod=0;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          curSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
+          // TODO support offset commands
+          curSamplePos=0;
+          curSamplePeriod=0;
         }
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;

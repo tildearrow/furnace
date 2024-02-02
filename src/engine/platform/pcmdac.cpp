@@ -314,6 +314,8 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
         chan[0].useWave=true;
         chan[0].audLen=ins->amiga.waveLen+1;
         if (chan[0].insChanged) {
@@ -329,6 +331,9 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
           chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
         chan[0].useWave=false;
       }
@@ -337,6 +342,8 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       }
       if (chan[0].useWave || chan[0].sample<0 || chan[0].sample>=parent->song.sampleLen) {
         chan[0].sample=-1;
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
       }
       if (chan[0].setPos) {
         chan[0].setPos=false;

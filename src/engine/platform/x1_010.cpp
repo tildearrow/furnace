@@ -536,6 +536,8 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           chan[c.chan].furnacePCM=true;
         } else {
           chan[c.chan].furnacePCM=false;
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
         }
         if (skipRegisterWrites) break;
         if (chan[c.chan].furnacePCM) {
@@ -610,6 +612,8 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         }
       } else if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].note=c.value;
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
         chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
         chan[c.chan].fixedFreq=0;
         chan[c.chan].freqChanged=true;
