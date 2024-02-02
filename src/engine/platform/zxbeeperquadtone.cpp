@@ -50,13 +50,13 @@ void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
     }
     if (sampleActive) {
       buf[0][h]=chan[4].out?32767:0;
-      if ((outputClock&3)==0) {
+      if (outputClock==0) {
         oscBuf[0]->data[oscBuf[0]->needle++]=0;
         oscBuf[1]->data[oscBuf[1]->needle++]=0;
         oscBuf[2]->data[oscBuf[2]->needle++]=0;
         oscBuf[3]->data[oscBuf[3]->needle++]=0;
-        oscBuf[4]->data[oscBuf[4]->needle++]=buf[0][h];
       }
+      oscBuf[4]->data[oscBuf[4]->needle++]=buf[0][h];
     } else {
       int ch=outputClock/2;
       int b=ch*4;
@@ -65,17 +65,14 @@ void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
         short oscOut;
         chan[ch].sPosition+=(regPool[1+b]<<8)|regPool[0+b];
         chan[ch].out=regPool[3+b]+((((chan[ch].sPosition>>8)&0xff)<regPool[2+b])?1:0);
-        if ((chan[ch].out&0x18)==0x18) {
-          oscOut=32767;
-        } else if ((chan[ch].out&0x18)==0) {
+        if (isMuted[ch] || ((chan[ch].out&0x18)==0)) {
           oscOut=0;
+        } else if ((chan[ch].out&0x18)==0x18) {
+          oscOut=32767;
         } else {
           oscOut=16383;
         }
         oscBuf[ch]->data[oscBuf[ch]->needle++]=oscOut;
-      }
-      if ((outputClock&3)==0) {
-        oscBuf[4]->data[oscBuf[4]->needle++]=0;
       }
       if (!isMuted[ch]) o=chan[ch].out&0x10;
       if (noHiss) {
@@ -88,6 +85,7 @@ void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
         buf[0][h]=o?32767:0;
       }
       chan[ch].out<<=1;
+      oscBuf[4]->data[oscBuf[4]->needle++]=0;
     }
     outputClock=(outputClock+1)&7;
   }
@@ -387,9 +385,10 @@ void DivPlatformZXBeeperQuadTone::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/40;
   noHiss=flags.getBool("noHiss",false);
-  for (int i=0; i<5; i++) {
-    oscBuf[i]->rate=rate/4;
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->rate=rate/8;
   }
+  oscBuf[4]->rate=rate;
 }
 
 void DivPlatformZXBeeperQuadTone::poke(unsigned int addr, unsigned short val) {
