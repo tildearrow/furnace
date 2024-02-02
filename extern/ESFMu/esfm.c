@@ -1908,6 +1908,61 @@ ESFM_process_feedback(esfm_chip *chip)
 				  [i]      "m"   (iter_counter)
 				: "cc", "ax", "bx", "cx", "di"
 			);
+#elif defined(__GNUC__) && defined(__arm__)
+			asm (
+				"ldr     r3, =%[sinrom]             \n\t"
+				"ldrb    r0, %[wave]                \n\t"
+				"add     r3, r3, r0, lsl #11        \n\t"
+				"mov     r4, #0                     \n\t"
+				"mov     %[out], #0                 \n\t"
+				"ldr     r5, =0x1fff<<1             \n\t"
+				"ldr     r6, =0xff<<1               \n\t"
+				"mov     r2, #29                    \n"
+				"1:                                 \n\t"
+				// phase_feedback = (wave_out + wave_last) >> 2;
+				"add     %[p_fb], %[out], r4        \n\t"
+				"asr     %[p_fb], %[p_fb], #2       \n\t"
+				// wave_last = wave_out
+				"mov     r4, %[out]                 \n\t"
+				// phase = phase_feedback >> mod_in_shift;
+				"asr     r0, %[p_fb], %[mod_in]     \n\t"
+				// phase += phase_acc >> 9;
+				"add     r0, r0, %[p_acc], asr #9   \n\t"
+				// lookup = logsinrom[(waveform << 10) | (phase & 0x3ff)];
+				"lsl     r0, r0, #22                \n\t"
+				"add     r0, r3, r0, lsr #21        \n\t"
+				"ldrsh   r1, [r0]                   \n\t"
+				// level = (lookup & 0x1fff) + (envelope << 3);
+				"and     r0, r5, r1, lsl #1         \n\t"
+				"add     r0, r0, %[eg_out], lsl #4  \n\t"
+				// if (level > 0x1fff) level = 0x1fff;
+				"cmp     r0, r5                     \n\t"
+				"movhi   r0, r5                     \n\t"
+				// wave_out = exprom[level & 0xff] >> (level >> 8);
+				"lsr     %[out], r0, #9             \n\t"
+				"and     r0, r0, r6                 \n\t"
+				"ldrh    r0, [%[exprom], r0]        \n\t"
+				"lsr     %[out], r0, %[out]         \n\t"
+				// if (lookup & 0x8000) wave_out = -wave_out;
+				// in other words, lookup is negative
+				"tst     r1, r1                     \n\t"
+				"negmi   %[out], %[out]             \n\t"
+				// phase_acc += phase_offset
+				"add     %[p_acc], %[p_acc], %[p_off]\n\t"
+				// loop
+				"subs    r2, r2, #1                 \n\t"
+				"bne     1b                         \n\t"
+				: [p_fb]   "=&r" (phase_feedback),
+				  [p_acc]  "+r"  (phase_acc),
+				  [out]    "=&r" (wave_out)
+				: [p_off]  "r"   (phase_offset),
+				  [mod_in] "r"   (mod_in_shift),
+				  [wave]   "m"   (waveform),
+				  [eg_out] "r"   (eg_output),
+				  [sinrom] "i"   (logsinrom),
+				  [exprom] "r"   (exprom)
+				: "cc", "r0", "r1", "r2", "r3", "r4", "r5", "r6"
+			);
 #else
 			wave_out = 0;
 			wave_last = 0;
