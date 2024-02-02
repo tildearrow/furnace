@@ -674,6 +674,7 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
 
 void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
   int chOut[20];
+  int ch=0;
 
   for (size_t h=0; h<len; h++) {
     int curCycle=0;
@@ -735,16 +736,18 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
 
       if (!(++subCycle&1)) {
         if (properDrums) {
-          if (fm_lle3.op_value_debug&0x1000) {
-            chOut[cycleMap3Drums[curCycle]]+=(fm_lle3.op_value_debug|0xfffff000)<<1;
-          } else {
-            chOut[cycleMap3Drums[curCycle]]+=(fm_lle3.op_value_debug)<<1;
-          }
+          ch=cycleMap3Drums[curCycle];
         } else {
+          ch=cycleMap3[curCycle];
+        }
+
+        if (ch<12 && !(ch&1) && chan[ch&(~1)].state.alg>0) ch|=1;
+
+        if (ch>=12 || (ch&1) || !chan[ch&(~1)].fourOp) {
           if (fm_lle3.op_value_debug&0x1000) {
-            chOut[cycleMap3[curCycle]]+=(fm_lle3.op_value_debug|0xfffff000)<<1;
+            chOut[ch]+=(fm_lle3.op_value_debug|0xfffff000)<<1;
           } else {
-            chOut[cycleMap3[curCycle]]+=(fm_lle3.op_value_debug)<<1;
+            chOut[ch]+=(fm_lle3.op_value_debug)<<1;
           }
         }
         curCycle++;
