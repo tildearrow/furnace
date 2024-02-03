@@ -44,7 +44,7 @@
 #endif
 
 #ifdef HAVE_FREETYPE
-#define FONT_BACKEND_DEFAULT 1
+#define FONT_BACKEND_DEFAULT 0
 #else
 #define FONT_BACKEND_DEFAULT 0
 #endif
