@@ -18,7 +18,7 @@ void FurnaceGUI::drawEffectList() {
       ImGui::TextWrapped("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
       ImGui::PopTextWrapPos();
     }
-    effectSearch.Draw();
+    effectSearch.Draw("Search");
     ImGui::SameLine();
     ImGui::Button(ICON_FA_BARS "##SortEffects");
     if (ImGui::BeginPopupContextItem("effectSort",ImGuiPopupFlags_MouseButtonLeft)) {
