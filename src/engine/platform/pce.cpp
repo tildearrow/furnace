@@ -524,6 +524,13 @@ unsigned short DivPlatformPCE::getPan(int ch) {
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
 }
 
+DivChannelPair DivPlatformPCE::getPaired(int ch) {
+  if (ch==1 && lfoMode>0) {
+    return DivChannelPair("mod",0);
+  }
+  return DivChannelPair();
+}
+
 DivChannelModeHints DivPlatformPCE::getModeHints(int ch) {
   DivChannelModeHints ret;
   if (ch<4) return ret;
