@@ -39,7 +39,7 @@ typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
 #include <signal.h>
 #include <unistd.h>
 
-struct sigaction termsa = {0};
+struct sigaction termsa;
 #endif
 
 #include "cli/cli.h"
