@@ -2343,8 +2343,9 @@ class FurnaceGUI {
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
   
-  // effect sorting
+  // effect sorting / searching
   bool effectsShow[10];
+  ImGuiTextFilter effectSearch;
 
   // TX81Z
   bool hasACED;
