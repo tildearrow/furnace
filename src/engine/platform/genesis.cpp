@@ -704,8 +704,12 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         } else if (chan[c.chan].furnaceDac) {
           chan[c.chan].dacMode=0;
           rWrite(0x2b,0<<7);
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
         } else if (!chan[c.chan].dacMode) {
           rWrite(0x2b,0<<7);
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
         }
       }
       if (c.chan>=5 && chan[c.chan].dacMode) {
@@ -713,7 +717,12 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         if (ins->type==DIV_INS_AMIGA) { // Furnace mode
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+            chan[c.chan].sampleNote=c.value;
             c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+            chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
           }
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
@@ -752,6 +761,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
           }
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
           chan[c.chan].dacSample=12*chan[c.chan].sampleBank+chan[c.chan].note%12;
           if (chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
@@ -863,7 +874,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (parent->song.linearPitch==2) {
-        int destFreq=NOTE_FREQUENCY(c.value2);
+        int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -909,7 +920,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         break;
       }
       if (c.chan>=5 && chan[c.chan].furnaceDac && chan[c.chan].dacMode) {
-        int destFreq=parent->calcBaseFreq(1,1,c.value2,false);
+        int destFreq=parent->calcBaseFreq(1,1,c.value2+chan[c.chan].sampleNoteDelta,false);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value*16;
@@ -963,7 +974,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (c.chan==csmChan) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
       } else if (c.chan>=5 && chan[c.chan].furnaceDac && chan[c.chan].dacMode) {
-        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+chan[c.chan].sampleNoteDelta,false);
       } else {
         if (chan[c.chan].insChanged) {
           DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);

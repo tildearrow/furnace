@@ -27,6 +27,7 @@
 #include "imgui_impl_sdl2.h"
 #include <SDL.h>
 #include <fftw3.h>
+#include <stdint.h>
 #include <initializer_list>
 #include <future>
 #include <memory>
@@ -291,6 +292,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_C140,
   GUI_COLOR_INSTR_C219,
   GUI_COLOR_INSTR_ESFM,
+  GUI_COLOR_INSTR_POWERNOISE,
+  GUI_COLOR_INSTR_POWERNOISE_SLOPE,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -766,6 +769,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_LIST_PREVIEW,
   GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW,
   GUI_ACTION_SAMPLE_LIST_DIR_VIEW,
+  GUI_ACTION_SAMPLE_LIST_MAKE_MAP,
   GUI_ACTION_SAMPLE_LIST_MAX,
 
   GUI_ACTION_SAMPLE_MIN,
@@ -898,9 +902,17 @@ struct SelectionPoint {
 struct UndoRegion {
   struct UndoRegionPoint {
     int ord, x, y;
+    UndoRegionPoint(int o, int xp, int yp):
+      ord(o), x(xp), y(yp) {}
     UndoRegionPoint():
-      ord(0), x(0), y(0) {}
+      ord(-1), x(-1), y(-1) {}
   } begin, end;
+  UndoRegion(int o0, int x0, int y0, int o1, int x1, int y1):
+    begin(o0,x0,y0),
+    end(o1,x1,y1) {}
+  UndoRegion():
+    begin(),
+    end() {}
 };
 
 enum ActionType {
@@ -1475,6 +1487,7 @@ class FurnaceGUI {
   bool killGraphics;
   bool safeMode;
   bool midiWakeUp;
+  bool makeDrumkitMode;
   bool audioEngineChanged, settingsChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
@@ -1484,6 +1497,7 @@ class FurnaceGUI {
   int macroPointSize;
   int waveEditStyle;
   int displayInsTypeListMakeInsSample;
+  int makeDrumkitOctave;
   int mobileEditPage;
   int wheelCalmDown;
   int shallDetectScale;
@@ -1976,6 +1990,11 @@ class FurnaceGUI {
 
   DivInstrument* prevInsData;
 
+  unsigned char* pendingLayoutImport;
+  size_t pendingLayoutImportLen;
+  int pendingLayoutImportStep;
+  FixedQueue<bool*,64> pendingLayoutImportReopen;
+
   int curIns, curWave, curSample, curOctave, curOrder, playOrder, prevIns, oldRow, editStep, exportLoops, soloChan, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
@@ -2160,10 +2179,10 @@ class FurnaceGUI {
   ImVec2 orderScrollRealOrigin;
   ImVec2 dragMobileMenuOrigin;
 
-  int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
-  int renderTimeBegin, renderTimeEnd, renderTimeDelta;
-  int drawTimeBegin, drawTimeEnd, drawTimeDelta;
-  int eventTimeBegin, eventTimeEnd, eventTimeDelta;
+  uint64_t layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
+  uint64_t renderTimeBegin, renderTimeEnd, renderTimeDelta;
+  uint64_t drawTimeBegin, drawTimeEnd, drawTimeDelta;
+  uint64_t eventTimeBegin, eventTimeEnd, eventTimeDelta;
 
   FurnaceGUIPerfMetric perfMetrics[64];
   int perfMetricsLen;
@@ -2190,7 +2209,7 @@ class FurnaceGUI {
 
   int oldOrdersLen;
   DivOrders oldOrders;
-  DivPattern* oldPat[DIV_MAX_CHANS];
+  std::map<unsigned short,DivPattern*> oldPatMap;
   FixedQueue<UndoStep,256> undoHist;
   FixedQueue<UndoStep,256> redoHist;
 
@@ -2548,16 +2567,16 @@ class FurnaceGUI {
   void moveCursorTop(bool select);
   void moveCursorBottom(bool select);
   void editAdvance();
-  void prepareUndo(ActionType action);
-  void makeUndo(ActionType action);
+  void prepareUndo(ActionType action, UndoRegion region=UndoRegion());
+  void makeUndo(ActionType action, UndoRegion region=UndoRegion());
   void doSelectAll();
   void doDelete();
   void doPullDelete();
   void doInsert();
   void doTranspose(int amount, OperationMask& mask);
   String doCopy(bool cut, bool writeClipboard, const SelectionPoint& sStart, const SelectionPoint& sEnd);
-  void doPasteFurnace(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int startOff, bool invalidData);
-  void doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat);
+  void doPasteFurnace(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int startOff, bool invalidData, UndoRegion ur);
+  void doPasteMPT(PasteMode mode, int arg, bool readClipboard, String clipb, std::vector<String> data, int mptFormat, UndoRegion ur);
   void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0, bool readClipboard=true, String clipb="");
   void doChangeIns(int ins);
   void doInterpolate();

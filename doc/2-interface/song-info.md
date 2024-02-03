@@ -30,7 +30,7 @@ items in _italic_ don't appear in basic mode and are only available in advanced 
 - clicking the Tick Rate button switches to a more traditional **Base Tempo** BPM setting.
 
 **Speed**: the number of ticks per row.
-- clicking the "Speed" button changes to more complex modes covered in the [grooves] page.
+- clicking the "Speed" button changes to more complex modes covered in the [grooves](../8-advanced/grooves.md) page.
 
 _**Virtual Tempo**:_ Simulates any arbitrary tempo without altering the tick rate. it does this by adding or skipping ticks to approximate the tempo. the two numbers represent a ratio applied to the actual tick rate. example:
 - set tick rate to 150 BPM (60 Hz) and speed to 6.

@@ -16,7 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
-set(CMAKE_PROJECT_VERSION_PATCH 0)
+set(CMAKE_PROJECT_VERSION_PATCH 1)
 
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
@@ -198,14 +198,14 @@ if (BUILD_GUI AND USE_FREETYPE)
   # TODO: FIX FIX FIX FIX FIX
   if (SYSTEM_FREETYPE)
     if (PKG_CONFIG_FOUND)
-      pkg_check_modules(FREETYPE freetype>=2.0.0)
+      pkg_check_modules(FREETYPE freetype2>=2.0.0)
       if (FREETYPE_FOUND)
-        list(APPEND DEPENDENCIES_INCLUDE_DIRS ${FMT_INCLUDE_DIRS})
-        list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${FMT_CFLAGS_OTHER})
-        list(APPEND DEPENDENCIES_LIBRARIES ${FMT_LIBRARIES})
-        list(APPEND DEPENDENCIES_LIBRARY_DIRS ${FMT_LIBRARY_DIRS})
-        list(APPEND DEPENDENCIES_LINK_OPTIONS ${FMT_LDFLAGS_OTHER})
-        list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${FMT_LDFLAGS})
+        list(APPEND DEPENDENCIES_INCLUDE_DIRS ${FREETYPE_INCLUDE_DIRS})
+        list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${FREETYPE_CFLAGS_OTHER})
+        list(APPEND DEPENDENCIES_LIBRARIES ${FREETYPE_LIBRARIES})
+        list(APPEND DEPENDENCIES_LIBRARY_DIRS ${FREETYPE_LIBRARY_DIRS})
+        list(APPEND DEPENDENCIES_LINK_OPTIONS ${FREETYPE_LDFLAGS_OTHER})
+        list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${FREETYPE_LDFLAGS})
       endif()
     endif()
     if (NOT FREETYPE_FOUND)
@@ -495,6 +495,8 @@ extern/YMF276-LLE/fmopn2.c
 extern/ESFMu/esfm.c
 extern/ESFMu/esfm_registers.c
 
+extern/pwrnoise/pwrnoise.c
+
 src/pch.cpp
 
 src/engine/platform/sound/sn76496.cpp
@@ -703,6 +705,7 @@ src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
 src/engine/platform/c140.cpp
 src/engine/platform/esfm.cpp
+src/engine/platform/powernoise.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 

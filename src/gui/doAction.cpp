@@ -749,6 +749,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_INS_LIST_DIR_VIEW:
       insListDir=!insListDir;
       break;
+
     
     case GUI_ACTION_WAVE_LIST_ADD: {
       waveSizeList.clear();
@@ -969,6 +970,48 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_LIST_DIR_VIEW:
       sampleListDir=!sampleListDir;
       break;
+    case GUI_ACTION_SAMPLE_LIST_MAKE_MAP: {
+      // determine instrument type
+      std::vector<DivInstrumentType> tempTypeList=e->getPossibleInsTypes();
+      makeInsTypeList.clear();
+
+      for (DivInstrumentType& i: tempTypeList) {
+        if (i==DIV_INS_PCE ||
+            i==DIV_INS_MSM6258 ||
+            i==DIV_INS_MSM6295 ||
+            i==DIV_INS_ADPCMA ||
+            i==DIV_INS_ADPCMB ||
+            i==DIV_INS_SEGAPCM ||
+            i==DIV_INS_QSOUND ||
+            i==DIV_INS_YMZ280B ||
+            i==DIV_INS_RF5C68 ||
+            i==DIV_INS_MULTIPCM ||
+            i==DIV_INS_MIKEY ||
+            i==DIV_INS_X1_010 ||
+            i==DIV_INS_SWAN ||
+            i==DIV_INS_AY ||
+            i==DIV_INS_AY8930 ||
+            i==DIV_INS_VRC6 ||
+            i==DIV_INS_SU ||
+            i==DIV_INS_SNES ||
+            i==DIV_INS_ES5506 ||
+            i==DIV_INS_K007232 ||
+            i==DIV_INS_GA20 ||
+            i==DIV_INS_K053260 ||
+            i==DIV_INS_C140 ||
+            i==DIV_INS_C219) {
+          makeInsTypeList.push_back(i);
+        }
+      }
+
+      if (makeInsTypeList.empty()) {
+        makeInsTypeList.push_back(DIV_INS_AMIGA);
+      }
+
+      displayInsTypeList=true;
+      displayInsTypeListMakeInsSample=-2;
+      break;
+    }
 
     case GUI_ACTION_SAMPLE_SELECT:
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
@@ -1481,7 +1524,8 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_K007232 ||
             i==DIV_INS_GA20 ||
             i==DIV_INS_K053260 ||
-            i==DIV_INS_C140) {
+            i==DIV_INS_C140 ||
+            i==DIV_INS_C219) {
           makeInsTypeList.push_back(i);
         }
       }

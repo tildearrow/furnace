@@ -278,6 +278,8 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].pcm=true;
       } else if (chan[c.chan].furnaceDac) {
         chan[c.chan].pcm=false;
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
       }
       if (chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
@@ -285,7 +287,12 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           if (skipRegisterWrites) break;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+            chan[c.chan].sampleNote=c.value;
             c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+            chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
           }
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
@@ -312,6 +319,8 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           //chan[c.chan].keyOn=true;
         } else {
           chan[c.chan].furnaceDac=false;
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
           if (skipRegisterWrites) break;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
@@ -334,6 +343,8 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         }
         break;
       }
+      chan[c.chan].sampleNote=DIV_NOTE_NULL;
+      chan[c.chan].sampleNoteDelta=0;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -413,7 +424,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       updateLFO=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -454,7 +465,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -511,6 +522,13 @@ DivMacroInt* DivPlatformPCE::getChanMacroInt(int ch) {
 
 unsigned short DivPlatformPCE::getPan(int ch) {
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
+DivChannelPair DivPlatformPCE::getPaired(int ch) {
+  if (ch==1 && lfoMode>0) {
+    return DivChannelPair("mod",0);
+  }
+  return DivChannelPair();
 }
 
 DivChannelModeHints DivPlatformPCE::getModeHints(int ch) {
