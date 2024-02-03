@@ -84,9 +84,7 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_QUIT:
-      {
-        requestQuit();
-      }
+      requestQuit();
       break;
     case GUI_ACTION_PLAY_TOGGLE:
       if (e->isPlaying() && !e->isStepping()) {
