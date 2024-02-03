@@ -708,6 +708,7 @@ src/engine/platform/ted.cpp
 src/engine/platform/c140.cpp
 src/engine/platform/esfm.cpp
 src/engine/platform/powernoise.cpp
+src/engine/platform/dave.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
@@ -918,6 +919,12 @@ set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} ${CLI_SOURCES} src/main.cpp)
 if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)
   if (WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag(-gcodeview GCC_CODEVIEW)
+    if (GCC_CODEVIEW)
+      set(CMAKE_EXE_LINKER_FLAGS "-Wl,--pdb= ")
+      add_compile_options(-gcodeview)
+    endif()
     list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
   endif()
   find_library(EXECINFO_IS_LIBRARY execinfo)

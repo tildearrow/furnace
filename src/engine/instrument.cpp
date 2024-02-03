@@ -1062,6 +1062,8 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
       case DIV_INS_POWERNOISE_SLOPE:
         featurePN=true;
         break;
+      case DIV_INS_DAVE:
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:

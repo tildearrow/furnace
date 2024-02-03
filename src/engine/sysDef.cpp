@@ -2002,6 +2002,21 @@ void DivEngine::registerSystems() {
     {}
   );
 
+  sysDefs[DIV_SYSTEM_DAVE]=new DivSysDef(
+    "Dave", NULL, 0xd5, 0, 6, false, true, 0, false, 0, 0, 0,
+    "this chip was featured in the Enterprise 128 computer. it is similar to POKEY, but with stereo output.",
+    {"Channel 1", "Channel 2", "Channel 3", "Noise", "DAC Left", "DAC Right"},
+    {"CH1", "CH2", "CH3", "NO", "L", "R"},
+    {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_DAVE, DIV_INS_DAVE, DIV_INS_DAVE, DIV_INS_DAVE, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (0 to 7)"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set AUDCTL"}},
+      {0x12, {DIV_CMD_STD_NOISE_FREQ, "12xx: Toggle two-tone mode"}},
+    }
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0, 0, 0,
     "this is a system designed for testing purposes.",
