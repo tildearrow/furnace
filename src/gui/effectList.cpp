@@ -17,8 +17,9 @@ void FurnaceGUI::drawEffectList() {
       ImGui::PushTextWrapPos(availB);
       ImGui::TextWrapped("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
       ImGui::PopTextWrapPos();
-      ImGui::SameLine();
     }
+    effectSearch.Draw();
+    ImGui::SameLine();
     ImGui::Button(ICON_FA_BARS "##SortEffects");
     if (ImGui::BeginPopupContextItem("effectSort",ImGuiPopupFlags_MouseButtonLeft)) {
       for (int i=1; i<10; i++) {
@@ -65,7 +66,8 @@ void FurnaceGUI::drawEffectList() {
             }
           }
         }
-        if (name!=NULL && effectsShow[fxColors[i]-GUI_COLOR_PATTERN_EFFECT_INVALID]) {
+        if (name==NULL) continue;
+        if (effectSearch.PassFilter(name) && effectsShow[fxColors[i]-GUI_COLOR_PATTERN_EFFECT_INVALID]) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::PushFont(patFont);
