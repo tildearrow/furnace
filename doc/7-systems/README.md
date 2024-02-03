@@ -90,6 +90,7 @@ this is the full list of chips that Furnace supports.
 - [PET](pet.md)
 - [Pokémon Mini](pokemini.md)
 - [POKEY](pokey.md)
+- [PowerNoise](powernoise.md)
 - [PV-1000](pv1000.md)
 - [QSound](qsound.md)
 - [RF5C68/RF5C164](ricoh.md)

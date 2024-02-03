@@ -15,7 +15,7 @@ depending on the LFSR configuration:
 - a bottle is pushed into the conveyor. it is either empty or filled with water depending on the bottle at a specific position in the conveyor (this is called a "tap"), or
 - two bottles at specific positions ("taps") are looked at and combined as follows:
   - if the bottles are identical, an empty bottle is pushed.
-  - if one bottle has water but the other is empty, a watee bottle is pushed.
+  - if one bottle has water but the other is empty, a water bottle is pushed.
 the process is repeated indefinitely.
 
 PowerNoise uses either one or two taps for the LFSR, configurable via the Control macro.
