@@ -217,30 +217,30 @@ const char* resampleStrats[]={
   "best possible"
 };
 
-const FurnaceGUIColors fxColorsSort[]={//used for sorting
+const FurnaceGUIColors fxColorsSort[]={ // used for sorting
+  GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_PITCH,
+  GUI_COLOR_PATTERN_EFFECT_VOLUME,
+  GUI_COLOR_PATTERN_EFFECT_PANNING,
   GUI_COLOR_PATTERN_EFFECT_SONG,
   GUI_COLOR_PATTERN_EFFECT_TIME,
   GUI_COLOR_PATTERN_EFFECT_SPEED,
-  GUI_COLOR_PATTERN_EFFECT_PANNING,
-  GUI_COLOR_PATTERN_EFFECT_VOLUME,
   GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
   GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,
-  GUI_COLOR_PATTERN_EFFECT_MISC,
-  GUI_COLOR_PATTERN_EFFECT_INVALID
+  GUI_COLOR_PATTERN_EFFECT_MISC
 };
 
 const char* fxColorsNames[]={
+  "Invalid",
   "Pitch",
+  "Volume",
+  "Panning",
   "Song",
   "Time",
   "Speed",
-  "Panning",
-  "Volume",
-  "System Primary",
-  "System Secondary",
-  "Miscellaneous",
-  "Invalid"
+  "System (Primary)",
+  "System (Secondary)",
+  "Miscellaneous"
 };
 
 const FurnaceGUIColors fxColors[256]={
