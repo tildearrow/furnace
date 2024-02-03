@@ -581,6 +581,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_EXPORT,
   GUI_ACTION_UNDO,
   GUI_ACTION_REDO,
+  GUI_ACTION_QUIT,
   GUI_ACTION_PLAY_TOGGLE,
   GUI_ACTION_PLAY,
   GUI_ACTION_STOP,
@@ -2658,7 +2659,7 @@ class FurnaceGUI {
     bool loop();
     bool finish();
     bool init();
-    void requestQuit();
+    bool requestQuit();
     FurnaceGUI();
 };
 
