@@ -1908,60 +1908,70 @@ ESFM_process_feedback(esfm_chip *chip)
 				  [i]      "m"   (iter_counter)
 				: "cc", "ax", "bx", "cx", "di"
 			);
-#elif defined(__GNUC__) && defined(__arm__) && 0 // TODO: FIX
+#elif defined(__GNUC__) && defined(__arm__)
 			asm (
-				"ldr     r3, =%[sinrom]             \n\t"
+				"ldr     r4, %[p_acc]               \n\t"
+				"mov     r5, #0                     \n\t"
+				"mov     r6, #0                     \n\t"
+				"ldr     r7, %[p_off]               \n\t"
+				"ldrb    r8, %[mod_in]              \n\t"
+				"ldrh    r9, %[eg_out]              \n\t"
+				"ldr     r10, =%c[sinrom]           \n\t"
 				"ldrb    r0, %[wave]                \n\t"
-				"add     r3, r3, r0, lsl #11        \n\t"
-				"mov     r4, #0                     \n\t"
-				"mov     %[out], #0                 \n\t"
-				"ldr     r5, =0x1fff<<1             \n\t"
-				"ldr     r6, =0xff<<1               \n\t"
-				"mov     r2, #29                    \n"
+				"add     r10, r10, r0, lsl #11      \n\t"
+				"ldr     r11, =%c[exprom]           \n\t"
+				"ldr     r12, =0x1fff<<1            \n\t"
+				"ldr     lr, =0xff<<1               \n\t"
+				"movs    r2, #29                    \n"
 				"1:                                 \n\t"
 				// phase_feedback = (wave_out + wave_last) >> 2;
-				"add     %[p_fb], %[out], r4        \n\t"
-				"asr     %[p_fb], %[p_fb], #2       \n\t"
+				"adds    r3, r5, r6                 \n\t"
+				"asrs    r3, r3, #2                 \n\t"
 				// wave_last = wave_out
-				"mov     r4, %[out]                 \n\t"
+				"mov     r6, r5                     \n\t"
 				// phase = phase_feedback >> mod_in_shift;
-				"asr     r0, %[p_fb], %[mod_in]     \n\t"
+				"asr     r0, r3, r8                 \n\t"
 				// phase += phase_acc >> 9;
-				"add     r0, r0, %[p_acc], asr #9   \n\t"
+				"add     r0, r0, r4, asr #9         \n\t"
 				// lookup = logsinrom[(waveform << 10) | (phase & 0x3ff)];
-				"lsl     r0, r0, #22                \n\t"
-				"add     r0, r3, r0, lsr #21        \n\t"
-				"ldrsh   r1, [r0]                   \n\t"
+				"lsls    r0, r0, #22                \n\t"
+				"lsrs    r0, r0, #21                \n\t"
+				"ldrsh   r1, [r3, r0]               \n\t"
 				// level = (lookup & 0x1fff) + (envelope << 3);
-				"and     r0, r5, r1, lsl #1         \n\t"
-				"add     r0, r0, %[eg_out], lsl #4  \n\t"
+				"and     r0, r12, r1, lsl #1        \n\t"
+				"add     r0, r0, r9, lsl #4         \n\t"
 				// if (level > 0x1fff) level = 0x1fff;
-				"cmp     r0, r5                     \n\t"
-				"movhi   r0, r5                     \n\t"
+				"cmp     r0, r12                    \n\t"
+				"it      hi                         \n\t"
+				"movhi   r0, r12                    \n\t"
 				// wave_out = exprom[level & 0xff] >> (level >> 8);
-				"lsr     %[out], r0, #9             \n\t"
-				"and     r0, r0, r6                 \n\t"
-				"ldrh    r0, [%[exprom], r0]        \n\t"
-				"lsr     %[out], r0, %[out]         \n\t"
+				"lsrs    r5, r0, #9                 \n\t"
+				"and     r0, r0, lr                 \n\t"
+				"ldrh    r0, [r11, r0]              \n\t"
+				"lsr     r5, r0, r5                 \n\t"
 				// if (lookup & 0x8000) wave_out = -wave_out;
 				// in other words, lookup is negative
 				"tst     r1, r1                     \n\t"
-				"negmi   %[out], %[out]             \n\t"
+				"it      mi                         \n\t"
+				"negmi   r5, r5                     \n\t"
 				// phase_acc += phase_offset
-				"add     %[p_acc], %[p_acc], %[p_off]\n\t"
+				"add     r4, r4, r7                 \n\t"
 				// loop
 				"subs    r2, r2, #1                 \n\t"
 				"bne     1b                         \n\t"
-				: [p_fb]   "=&r" (phase_feedback),
-				  [p_acc]  "+r"  (phase_acc),
-				  [out]    "=&r" (wave_out)
-				: [p_off]  "r"   (phase_offset),
-				  [mod_in] "r"   (mod_in_shift),
+				"str     r3, %[p_fb]                \n\t"
+				"str     r4, %[p_acc]               \n\t"
+				"str     r5, %[out]                 \n\t"
+				: [p_fb]   "=m"  (phase_feedback),
+				  [p_acc]  "+m"  (phase_acc),
+				  [out]    "=m"  (wave_out)
+				: [p_off]  "m"   (phase_offset),
+				  [mod_in] "m"   (mod_in_shift),
 				  [wave]   "m"   (waveform),
-				  [eg_out] "r"   (eg_output),
+				  [eg_out] "m"   (eg_output),
 				  [sinrom] "i"   (logsinrom),
-				  [exprom] "r"   (exprom)
-				: "cc", "r0", "r1", "r2", "r3", "r4", "r5", "r6"
+				  [exprom] "i"   (exprom)
+				: "cc", "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12", "lr"
 			);
 #else
 			wave_out = 0;
