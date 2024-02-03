@@ -606,6 +606,8 @@ src/engine/platform/sound/ted-sound.c
 
 src/engine/platform/sound/c140_c219.c
 
+src/engine/platform/sound/dave/dave.cpp
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
