@@ -2270,6 +2270,23 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_SFX_BEEPER_QUADTONE: {
+      bool sysPal=flags.getInt("clockSel",0);
+      bool noHiss=flags.getBool("noHiss",false);
+      if (ImGui::Checkbox("PAL",&sysPal)) {
+        altered=true;
+      }
+      if (ImGui::Checkbox("Disable hissing",&noHiss)) {
+        altered=true;
+      }
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",(int)sysPal);
+          flags.set("noHiss",noHiss);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:

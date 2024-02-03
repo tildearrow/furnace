@@ -189,7 +189,9 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].isNewSegaPCM=(ins->type==DIV_INS_SEGAPCM);
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
         }
         if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
           chan[c.chan].pcm.sample=-1;
@@ -297,7 +299,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.value2<<7);
+      int destFreq=((c.value2+chan[c.chan].sampleNoteDelta)<<7);
       int newFreq;
       int mul=(oldSlides || parent->song.linearPitch!=2)?8:1;
       bool return2=false;
@@ -323,7 +325,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=(c.value<<7);
+      chan[c.chan].baseFreq=((c.value+chan[c.chan].sampleNoteDelta)<<7);
       chan[c.chan].freqChanged=true;
       break;
     }

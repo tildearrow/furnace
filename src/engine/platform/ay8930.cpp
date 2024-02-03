@@ -406,7 +406,12 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
+            chan[c.chan].sampleNote=c.value;
             c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+            chan[c.chan].dac.sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
           }
           if (chan[c.chan].dac.sample<0 || chan[c.chan].dac.sample>=parent->song.sampleLen) {
             chan[c.chan].dac.sample=-1;
@@ -458,6 +463,8 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
         break;
       }
       if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
@@ -520,7 +527,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -543,7 +550,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta);
       chan[c.chan].freqChanged=true;
       break;
     }

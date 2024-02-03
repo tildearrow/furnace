@@ -515,6 +515,18 @@ static const int cycleMapDrums[18]={
   0, 1, 2, 3, 4, 5, 3, 4, 5,
 };
 
+static const int cycleMap3[36]={
+  14, 12, 13, 14, 0, 2, 4, 0, 2,
+  4, 1, 3, 5, 1, 3, 5, 15, 16,
+  17, 15, 16, 17, 6, 8, 10, 6, 8, 10, 7, 9, 11, 7, 9, 11, 12, 13
+};
+
+static const int cycleMap3Drums[36]={
+  14, 12, 13, 14, 0, 2, 4, 0, 2,
+  4, 1, 3, 5, 1, 3, 5, 15, 19,
+  17, 15, 16, 18, 6, 8, 10, 6, 8, 10, 7, 9, 11, 7, 9, 11, 12, 13
+};
+
 void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
   int chOut[11];
   thread_local ymfm::ymfm_output<2> aOut;
@@ -662,10 +674,11 @@ void DivPlatformOPL::acquire_nukedLLE2(short** buf, size_t len) {
 
 void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
   int chOut[20];
+  int ch=0;
 
   for (size_t h=0; h<len; h++) {
-    //int curCycle=0;
-    //unsigned char subCycle=0;
+    int curCycle=0;
+    unsigned char subCycle=0;
 
     for (int i=0; i<20; i++) {
       chOut[i]=0;
@@ -721,10 +734,24 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
         if (--delay<0) waitingBusy=false;
       }
 
-      /*if (!(++subCycle&3)) {
-        // TODO: chan osc
+      if (!(++subCycle&1)) {
+        if (properDrums) {
+          ch=cycleMap3Drums[curCycle];
+        } else {
+          ch=cycleMap3[curCycle];
+        }
+
+        if (ch<12 && !(ch&1) && chan[ch&(~1)].state.alg>0) ch|=1;
+
+        if (ch>=12 || (ch&1) || !chan[ch&(~1)].fourOp) {
+          if (fm_lle3.op_value_debug&0x1000) {
+            chOut[ch]+=(fm_lle3.op_value_debug|0xfffff000)<<1;
+          } else {
+            chOut[ch]+=(fm_lle3.op_value_debug)<<1;
+          }
+        }
         curCycle++;
-      }*/
+      }
 
       if (fm_lle3.o_sy && !lastSY) {
         dacVal>>=1;
@@ -746,11 +773,11 @@ void DivPlatformOPL::acquire_nukedLLE3(short** buf, size_t len) {
     }
 
     for (int i=0; i<20; i++) {
-      if (i>=15 && properDrums) {
+      /*if (i>=15 && properDrums) {
         chOut[i]<<=1;
       } else {
         chOut[i]<<=2;
-      }
+      }*/
       if (chOut[i]<-32768) chOut[i]=-32768;
       if (chOut[i]>32767) chOut[i]=32767;
       oscBuf[i]->data[oscBuf[i]->needle++]=chOut[i];

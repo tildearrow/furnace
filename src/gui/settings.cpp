@@ -44,7 +44,7 @@
 #endif
 
 #ifdef HAVE_FREETYPE
-#define FONT_BACKEND_DEFAULT 1
+#define FONT_BACKEND_DEFAULT 0
 #else
 #define FONT_BACKEND_DEFAULT 0
 #endif
@@ -1520,10 +1520,10 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("YM2612");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,3)) settingsChanged=true;
+          if (ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2)) settingsChanged=true;
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,3)) settingsChanged=true;
+          if (ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,2)) settingsChanged=true;
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();

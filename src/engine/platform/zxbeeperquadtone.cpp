@@ -30,13 +30,14 @@ const char** DivPlatformZXBeeperQuadTone::getRegisterSheet() {
 }
 
 void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
-  bool o=false;
   for (size_t h=0; h<len; h++) {
-    if (curSample>=0 && curSample<parent->song.sampleLen && !isMuted[4]) {
+    bool sampleActive=false;
+    if (curSample>=0 && curSample<parent->song.sampleLen) {
+      sampleActive=!isMuted[4];
       while (curSamplePeriod>=chan[4].freq) {
         DivSample* s=parent->getSample(curSample);
         if (s->samples>0) {
-          if (!isMuted[4]) o=(s->data8[curSamplePos++]>0);
+          chan[4].out=(s->data8[curSamplePos++]>0);
           if (curSamplePos>=s->samples) curSample=-1;
           // (theoretical) 32KiB limit
           if (curSamplePos>=32768*8) curSample=-1;
@@ -46,46 +47,47 @@ void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
         curSamplePeriod-=chan[4].freq;
       }
       curSamplePeriod+=40;
-      if ((outputClock&3)==0) {
+    }
+    if (sampleActive) {
+      buf[0][h]=chan[4].out?32767:0;
+      if (outputClock==0) {
         oscBuf[0]->data[oscBuf[0]->needle++]=0;
         oscBuf[1]->data[oscBuf[1]->needle++]=0;
         oscBuf[2]->data[oscBuf[2]->needle++]=0;
         oscBuf[3]->data[oscBuf[3]->needle++]=0;
-        oscBuf[4]->data[oscBuf[4]->needle++]=o?32767:0;
       }
+      oscBuf[4]->data[oscBuf[4]->needle++]=buf[0][h];
     } else {
       int ch=outputClock/2;
       int b=ch*4;
+      bool o=false;
       if ((outputClock&1)==0) {
+        short oscOut;
         chan[ch].sPosition+=(regPool[1+b]<<8)|regPool[0+b];
         chan[ch].out=regPool[3+b]+((((chan[ch].sPosition>>8)&0xff)<regPool[2+b])?1:0);
-        if (isMuted[ch]) chan[ch].out=0;
-      }
-      if ((outputClock&3)==0) {
-        oscBuf[4]->data[oscBuf[4]->needle++]=0;
-      }
-      o=chan[ch].out&0x10;
-      oscBuf[ch]->data[oscBuf[ch]->needle++]=o?32767:0;
-      chan[ch].out<<=1;
-
-      // if muted, ztill run sample
-      if (curSample>=0 && curSample<parent->song.sampleLen && isMuted[4]) {
-        while (curSamplePeriod>=chan[4].freq) {
-          DivSample* s=parent->getSample(curSample);
-          if (s->samples>0) {
-            if (curSamplePos>=s->samples) curSample=-1;
-            // (theoretical) 32KiB limit
-            if (curSamplePos>=32768*8) curSample=-1;
-          } else {
-            curSample=-1;
-          }
-          curSamplePeriod-=chan[4].freq;
+        if (isMuted[ch] || ((chan[ch].out&0x18)==0)) {
+          oscOut=0;
+        } else if ((chan[ch].out&0x18)==0x18) {
+          oscOut=32767;
+        } else {
+          oscOut=16383;
         }
-        curSamplePeriod+=40;
+        oscBuf[ch]->data[oscBuf[ch]->needle++]=oscOut;
       }
+      if (!isMuted[ch]) o=chan[ch].out&0x10;
+      if (noHiss) {
+        deHisser[outputClock]=o;
+        buf[0][h]=-1;
+        for (int i=0; i<8; i++) {
+          buf[0][h]+=deHisser[i]?4096:0;
+        }
+      } else {
+        buf[0][h]=o?32767:0;
+      }
+      chan[ch].out<<=1;
+      oscBuf[4]->data[oscBuf[4]->needle++]=0;
     }
     outputClock=(outputClock+1)&7;
-    buf[0][h]=o?32767:0;
   }
 }
 
@@ -157,6 +159,7 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
       chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,chan[4].fixedArp?chan[4].baseNoteOverride:chan[4].arpOff,chan[4].fixedArp,true,2,chan[4].pitch2,chipClock,off);
       if (chan[4].freq>258) chan[4].freq=258;
       if (chan[4].freq<3) chan[4].freq=3;
+      rWrite(16,(chan[4].freq-2)&255);
       chan[4].freq*=13;
     }
     if (chan[4].keyOn) chan[4].keyOn=false;
@@ -187,10 +190,18 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
         if (c.value!=DIV_NOTE_NULL) {
           curSample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
           chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
+          // TODO support offset commands
+          curSamplePos=0;
+          curSamplePeriod=0;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          curSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
           // TODO support offset commands
           curSamplePos=0;
           curSamplePeriod=0;
@@ -241,7 +252,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -268,7 +279,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
       if (c.chan<4) rWrite(2+c.chan*4,chan[c.chan].duty^0xff);
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -332,11 +343,12 @@ unsigned char* DivPlatformZXBeeperQuadTone::getRegisterPool() {
 }
 
 int DivPlatformZXBeeperQuadTone::getRegisterPoolSize() {
-  return 16;
+  return 17;
 }
 
 void DivPlatformZXBeeperQuadTone::reset() {
-  memset(regPool,0,16);
+  memset(regPool,0,17);
+  memset(deHisser,0,8);
   for (int i=0; i<5; i++) {
     chan[i]=DivPlatformZXBeeperQuadTone::Channel();
     chan[i].std.setEngine(parent);
@@ -345,7 +357,6 @@ void DivPlatformZXBeeperQuadTone::reset() {
   cycles=0;
   curChan=0;
   sOffTimer=0;
-  ulaOut=0;
   curSample=-1;
   curSamplePos=0;
   curSamplePeriod=0;
@@ -373,9 +384,11 @@ void DivPlatformZXBeeperQuadTone::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/40;
+  noHiss=flags.getBool("noHiss",false);
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate/4;
+    oscBuf[i]->rate=rate/8;
   }
+  oscBuf[4]->rate=rate;
 }
 
 void DivPlatformZXBeeperQuadTone::poke(unsigned int addr, unsigned short val) {

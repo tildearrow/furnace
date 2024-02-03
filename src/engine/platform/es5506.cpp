@@ -719,27 +719,51 @@ void DivPlatformES5506::tick(bool sysTick) {
   }
 }
 
+// man this code
+// part of the reason why it's so messy is because the chip is
+// overly complex and because when this pull request was made,
+// Furnace still was in an early state with no support for sample
+// maps or whatever...
+// one day I'll come back and clean this up
 int DivPlatformES5506::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ES5506);
       bool sampleValid=false;
-      if (((ins->amiga.useNoteMap) && (c.value>=0 && c.value<120)) ||
-          ((!ins->amiga.useNoteMap) && (ins->amiga.initSample>=0 && ins->amiga.initSample<parent->song.sampleLen))) {
+      if (c.value!=DIV_NOTE_NULL) {
         int sample=ins->amiga.getSample(c.value);
+        chan[c.chan].sampleNote=c.value;
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleValid=true;
           chan[c.chan].volMacroMax=ins->type==DIV_INS_AMIGA?64:0xfff;
           chan[c.chan].panMacroMax=ins->type==DIV_INS_AMIGA?127:0xfff;
           chan[c.chan].pcm.next=ins->amiga.useNoteMap?c.value:sample;
           c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
           chan[c.chan].pcm.note=c.value;
           chan[c.chan].filter=ins->es5506.filter;
           chan[c.chan].envelope=ins->es5506.envelope;
+        } else {
+          chan[c.chan].sampleNoteDelta=0;
+        }
+      } else {
+        int sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+        if (sample>=0 && sample<parent->song.sampleLen) {
+          sampleValid=true;
+          chan[c.chan].volMacroMax=ins->type==DIV_INS_AMIGA?64:0xfff;
+          chan[c.chan].panMacroMax=ins->type==DIV_INS_AMIGA?127:0xfff;
+          chan[c.chan].pcm.next=ins->amiga.useNoteMap?chan[c.chan].sampleNote:sample;
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
+          chan[c.chan].pcm.note=c.value;
+          chan[c.chan].filter=ins->es5506.filter;
+          chan[c.chan].envelope=ins->es5506.envelope;
+        } else {
+          chan[c.chan].sampleNoteDelta=0;
         }
       }
       if (!sampleValid) {
         chan[c.chan].pcm.index=chan[c.chan].pcm.next=-1;
+        chan[c.chan].sampleNoteDelta=0;
         chan[c.chan].filter=DivInstrumentES5506::Filter();
         chan[c.chan].envelope=DivInstrumentES5506::Envelope();
       }
@@ -962,7 +986,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       break;
     case DIV_CMD_NOTE_PORTA: {
       int nextFreq=chan[c.chan].baseFreq;
-      const int destFreq=NOTE_ES5506(c.chan,c.value2);
+      const int destFreq=NOTE_ES5506(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>nextFreq) {
         nextFreq+=c.value;
@@ -987,7 +1011,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       chan[c.chan].note=c.value;
-      chan[c.chan].nextNote=chan[c.chan].note+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0));
+      chan[c.chan].nextNote=chan[c.chan].note+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0));
       chan[c.chan].noteChanged.note=1;
       break;
     }

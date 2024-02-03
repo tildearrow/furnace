@@ -257,6 +257,8 @@ int DivPlatformSwan::dispatch(DivCommand c) {
           pcm=true;
         } else if (furnaceDac) {
           pcm=false;
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
         }
         if (pcm) {
           if (skipRegisterWrites) break;
@@ -265,7 +267,12 @@ int DivPlatformSwan::dispatch(DivCommand c) {
           if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
             if (c.value!=DIV_NOTE_NULL) {
               dacSample=ins->amiga.getSample(c.value);
+              chan[c.chan].sampleNote=c.value;
               c.value=ins->amiga.getFreq(c.value);
+              chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+            } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+              dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+              c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
             }
             if (dacSample<0 || dacSample>=parent->song.sampleLen) {
               dacSample=-1;
@@ -332,6 +339,8 @@ int DivPlatformSwan::dispatch(DivCommand c) {
         dacSample=-1;
         if (dumpWrites) postWrite(0xffff0002,0);
         pcm=false;
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
       }
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
@@ -383,7 +392,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -412,7 +421,13 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_SAMPLE_MODE:
-      if (c.chan==1) pcm=c.value;
+      if (c.chan==1) {
+        pcm=c.value;
+        if (!pcm) {
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
+        }
+      }
       break;
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;
@@ -426,7 +441,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
