@@ -3672,8 +3672,9 @@ bool FurnaceGUI::loop() {
           // used for MIDI wake up
           break;
         case SDL_QUIT:
-          if (requestQuit())
+          if (requestQuit()) {
             return true;
+          }
           break;
       }
     }
