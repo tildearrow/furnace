@@ -1908,7 +1908,7 @@ ESFM_process_feedback(esfm_chip *chip)
 				  [i]      "m"   (iter_counter)
 				: "cc", "ax", "bx", "cx", "di"
 			);
-#elif defined(__GNUC__) && defined(__arm__)
+#elif defined(__GNUC__) && defined(__arm__) && 0 // TODO: FIX
 			asm (
 				"ldr     r3, =%[sinrom]             \n\t"
 				"ldrb    r0, %[wave]                \n\t"
