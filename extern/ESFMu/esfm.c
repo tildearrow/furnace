@@ -1925,37 +1925,37 @@ ESFM_process_feedback(esfm_chip *chip)
 				"movs    r2, #29                    \n"
 				"1:                                 \n\t"
 				// phase_feedback = (wave_out + wave_last) >> 2;
-				"adds    r3, r5, r6        			\n\t"
-				"asrs    r3, r3, #2       			\n\t"
+				"adds    r3, r5, r6                 \n\t"
+				"asrs    r3, r3, #2                 \n\t"
 				// wave_last = wave_out
-				"mov     r6, r5                 	\n\t"
+				"mov     r6, r5                     \n\t"
 				// phase = phase_feedback >> mod_in_shift;
-				"asr     r0, r3, r8     			\n\t"
+				"asr     r0, r3, r8                 \n\t"
 				// phase += phase_acc >> 9;
-				"add     r0, r0, r4, asr #9   		\n\t"
+				"add     r0, r0, r4, asr #9         \n\t"
 				// lookup = logsinrom[(waveform << 10) | (phase & 0x3ff)];
 				"lsls    r0, r0, #22                \n\t"
-				"lsrs    r0, r0, #21        		\n\t"
+				"lsrs    r0, r0, #21                \n\t"
 				"ldrsh   r1, [r3, r0]               \n\t"
 				// level = (lookup & 0x1fff) + (envelope << 3);
 				"and     r0, r12, r1, lsl #1        \n\t"
-				"add     r0, r0, r9, lsl #4  		\n\t"
+				"add     r0, r0, r9, lsl #4         \n\t"
 				// if (level > 0x1fff) level = 0x1fff;
 				"cmp     r0, r12                    \n\t"
-				"it      hi                     	\n\t"
+				"it      hi                         \n\t"
 				"movhi   r0, r12                    \n\t"
 				// wave_out = exprom[level & 0xff] >> (level >> 8);
-				"lsrs    r5, r0, #9             	\n\t"
+				"lsrs    r5, r0, #9                 \n\t"
 				"and     r0, r0, lr                 \n\t"
-				"ldrh    r0, [r11, r0]        		\n\t"
-				"lsr     r5, r0, r5         		\n\t"
+				"ldrh    r0, [r11, r0]              \n\t"
+				"lsr     r5, r0, r5                 \n\t"
 				// if (lookup & 0x8000) wave_out = -wave_out;
 				// in other words, lookup is negative
 				"tst     r1, r1                     \n\t"
-				"it      mi                     	\n\t"
-				"negmi   r5, r5             		\n\t"
+				"it      mi                         \n\t"
+				"negmi   r5, r5                     \n\t"
 				// phase_acc += phase_offset
-				"add     r4, r4, r7					\n\t"
+				"add     r4, r4, r7                 \n\t"
 				// loop
 				"subs    r2, r2, #1                 \n\t"
 				"bne     1b                         \n\t"
