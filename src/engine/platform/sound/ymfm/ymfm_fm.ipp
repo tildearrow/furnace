@@ -1198,7 +1198,7 @@ fm_engine_base<RegisterType>::fm_engine_base(ymfm_interface &intf) :
 	m_clock_prescale(RegisterType::DEFAULT_PRESCALE),
 	m_irq_mask(STATUS_TIMERA | STATUS_TIMERB),
 	m_irq_state(0),
-	m_timer_running{0,0},
+	m_timer_running{0,0,0,0},
 	m_total_clocks(0),
 	m_active_channels(ALL_CHANNELS),
 	m_modified_channels(ALL_CHANNELS),

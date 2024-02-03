@@ -459,7 +459,7 @@ protected:
 	uint8_t m_clock_prescale;        // prescale factor (2/3/6)
 	uint8_t m_irq_mask;              // mask of which bits signal IRQs
 	uint8_t m_irq_state;             // current IRQ state
-	uint8_t m_timer_running[2];      // current timer running state
+	uint8_t m_timer_running[4];      // current timer running state
 	uint8_t m_total_clocks;          // low 8 bits of the total number of clocks processed
 	uint32_t m_active_channels;      // mask of active channels (computed by prepare)
 	uint32_t m_modified_channels;    // mask of channels that have been modified

@@ -2,7 +2,7 @@ name: Build furnace
 
 on:
   push:
-    branches: [master, esfm-contest]
+    branches: master
   pull_request:
     branches: master
 
@@ -22,8 +22,8 @@ jobs:
           - { name: 'Windows MSVC x86_64', os: windows-latest, compiler: msvc, arch: x86_64 }
           #- { name: 'Windows MinGW x86', os: ubuntu-20.04, compiler: mingw, arch: x86 }
           #- { name: 'Windows MinGW x86_64', os: ubuntu-20.04, compiler: mingw, arch: x86_64 }
-          #- { name: 'macOS x86_64', os: macos-latest, arch: x86_64 }
-          #- { name: 'macOS ARM', os: macos-latest, arch: arm64 }
+          - { name: 'macOS x86_64', os: macos-latest, arch: x86_64 }
+          - { name: 'macOS ARM', os: macos-latest, arch: arm64 }
           - { name: 'Linux x86_64', os: ubuntu-20.04, arch: x86_64 }
           #- { name: 'Linux ARM', os: ubuntu-18.04, arch: armhf }
       fail-fast: false
@@ -33,7 +33,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3.1.0
+      uses: actions/checkout@v4.1.1
       with:
         submodules: recursive
 
@@ -106,7 +106,7 @@ jobs:
 
     - name: Setup Toolchain [Windows MSVC]
       if: ${{ matrix.config.compiler == 'msvc' }}
-      uses: vadz/gha-setup-vsdevenv@avoid-deprecation-warnings
+      uses: lunathir/gha-setup-vsdevenv@avoid-deprecation-warnings
       with:
         arch: ${{ steps.windows-identify.outputs.vswhere-target }}
 
@@ -149,57 +149,6 @@ jobs:
           zlib1g-dev:armhf \
           libjack-jackd2-dev:armhf
         ls /usr/arm-linux-gnueabihf/lib
-
-    - name: Configure (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
-      run: |
-        export USE_WAE=ON
-        export CMAKE_EXTRA_ARGS=()
-        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
-          CMAKE_EXTRA_ARGS+=('-DCMAKE_GENERATOR_PLATFORM=${{ steps.windows-identify.outputs.msvc-target }}')
-        elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
-          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake')
-        else
-          # Test with system libs
-          CMAKE_EXTRA_ARGS+=(
-            '-DSYSTEM_FMT=OFF'
-            '-DSYSTEM_LIBSNDFILE=ON'
-            '-DSYSTEM_RTMIDI=ON'
-            '-DSYSTEM_ZLIB=ON'
-            '-DWITH_JACK=ON'
-          )
-          # Too old on Ubuntu
-          if [ '${{ runner.os }}' == 'macOS' ]; then
-            CMAKE_EXTRA_ARGS+=('-DSYSTEM_SDL2=ON')
-          fi
-        fi
-
-        cmake \
-          -B ${PWD}/build \
-          -DCMAKE_INSTALL_PREFIX=${PWD}/target \
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DWARNINGS_ARE_ERRORS=${USE_WAE} \
-          "${CMAKE_EXTRA_ARGS[@]}"
-
-    - name: Build (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
-      run: |
-        cmake \
-          --build ${PWD}/build \
-          --config ${{ env.BUILD_TYPE }} \
-          --parallel ${{ steps.build-cores.outputs.amount }}
-
-    - name: Install (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
-      run: |
-        cmake \
-          --install ${PWD}/build \
-          --config ${{ env.BUILD_TYPE }}
-
-    - name: Cleanup (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
-      run: |
-        rm -rf build/ target/
 
     - name: Configure
       run: |
@@ -284,15 +233,31 @@ jobs:
       if: ${{ runner.os == 'macOS' }}
       run: |
         pushd build
-        cpack
+        retries=0
+        while ! cpack; do
+          echo "TRYING AGAIN..."
+          retries=$((retries+1))
+          if [ $retries -gt 5 ]; then
+            echo "OH NO, WE'VE FAILED..."
+            exit 1
+            break
+          fi
+        done
 
+        echo "making dirs"
         mkdir orig
         mkdir new
+        echo "attaching"
         echo "y" | hdiutil attach Furnace-*-Darwin.dmg -readonly -mount required -mountpoint orig
 
+        echo "copying"
         cp -v -r orig/Furnace.app new/Furnace.app
+        echo "synchronizing"
+        sync
+        echo "detaching"
         hdiutil detach orig
 
+        echo "removing orig"
         rmdir orig
         rm Furnace-*-Darwin.dmg
 
@@ -301,6 +266,7 @@ jobs:
           rmdir new/Furnace.app/Contents/Resources/bin
         fi
 
+        echo "copying extra stuff"
         cp -v ../LICENSE new/LICENSE.txt
         cp -v ../res/releaseReadme/stable-mac.txt new/README
         cp -v -r ../demos new/demos
@@ -310,7 +276,18 @@ jobs:
         wget https://tildearrow.org/furnace/doc/latest/manual.pdf
         cd ..
 
-        hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg
+        echo "creating new image"
+        retries=0
+        while ! hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg; do
+          echo "TRYING AGAIN..."
+          retries=$((retries+1))
+          if [ $retries -gt 5 ]; then
+            echo "OH NO, WE'VE FAILED..."
+            exit 1
+            break
+          fi
+          sleep 5
+        done
         
         mv furnace.dmg ../${{ steps.package-identify.outputs.filename }}
         popd
@@ -356,7 +333,7 @@ jobs:
 
     - name: Upload artifact
       if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'master' }}
-      uses: actions/upload-artifact@v3.1.1
+      uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.package-identify.outputs.id }}
         path: ${{ steps.package-identify.outputs.filename }}

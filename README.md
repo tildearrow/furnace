@@ -31,6 +31,7 @@ for other operating systems, you may [build the source](#developer-info).
     - YM3812 (OPL2)
     - YMF262 (OPL3) with full 4-op support!
     - Y8950 (OPL with ADPCM)
+  - ESS ESFM (like OPL3 but with more features)
   - square wave chips:
     - AY-3-8910/YM2149(F) used in several computers and game consoles
     - Commodore VIC used in the VIC-20
@@ -86,6 +87,7 @@ for other operating systems, you may [build the source](#developer-info).
   - modern/fantasy:
     - Commander X16 VERA
     - tildearrow Sound Unit
+    - PowerNoise
     - Generic PCM DAC
 - mix and match sound chips!
   - over 200 ready to use presets from computers, game consoles and arcade boards...

@@ -4253,7 +4253,7 @@ public:
     }
 
 #ifdef _WIN32
-    MessageBox(NULL,"Error","Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.",MB_OK|MB_ICONERROR);
+    MessageBox(NULL,"Error","Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.\r\n\r\nif Furnace keeps crashing and you believe it is caused by a configuration problem, you may start Furnace with the -safemode parameter.",MB_OK|MB_ICONERROR);
     std::string crashLocation;
     char* userProfile=getenv("USERPROFILE");
     if (userProfile==NULL) {
@@ -4492,7 +4492,7 @@ private:
     printer.print(st, std::cerr);
 
 #ifdef _WIN32
-    MessageBox(NULL,"Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.","Error",MB_OK|MB_ICONERROR);
+    MessageBox(NULL,"Furnace has crashed! please report this to the issue tracker immediately:\r\nhttps://github.com/tildearrow/furnace/issues/new\r\n\r\na file called furnace_crash.txt will be created in your user directory.\r\nthis will be important for locating the origin of the crash.\r\n\r\nif Furnace keeps crashing and you believe it is caused by a configuration problem, you may start Furnace with the -safemode parameter.","Error",MB_OK|MB_ICONERROR);
     std::string crashLocation;
     char* userProfile=getenv("USERPROFILE");
     if (userProfile==NULL) {

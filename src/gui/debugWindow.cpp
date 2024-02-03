@@ -432,6 +432,13 @@ void FurnaceGUI::drawDebug() {
 
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("MIDI Debug")) {
+      if (ImGui::Button("Enable Debug (go to log viewer)")) {
+        e->setMidiDebug(true);
+        nextWindow=GUI_WINDOW_LOG;
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Visualizer Debug")) {
       if (ImGui::BeginTable("visX",3,ImGuiTableFlags_Borders)) {
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);

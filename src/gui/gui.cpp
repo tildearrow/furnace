@@ -2760,7 +2760,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
       } else if (latchIns==-1) {
         strcpy(id,"..##LatchIns");
       } else {
-        snprintf(id,63,"%.2x##LatchIns",latchIns&0xff);
+        snprintf(id,63,"%.2X##LatchIns",latchIns&0xff);
       }
       if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
         latchTarget=1;
@@ -2780,7 +2780,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
       if (latchVol==-1) {
         strcpy(id,"..##LatchVol");
       } else {
-        snprintf(id,63,"%.2x##LatchVol",latchVol&0xff);
+        snprintf(id,63,"%.2X##LatchVol",latchVol&0xff);
       }
       if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
         latchTarget=2;
@@ -2796,7 +2796,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
       } else {
         const unsigned char data=latchEffect;
-        snprintf(id,63,"%.2x##LatchFX",data);
+        snprintf(id,63,"%.2X##LatchFX",data);
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
       }
 
@@ -2811,7 +2811,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
       if (latchEffectVal==-1) {
         strcpy(id,"..##LatchFXV");
       } else {
-        snprintf(id,63,"%.2x##LatchFXV",latchEffectVal&0xff);
+        snprintf(id,63,"%.2X##LatchFXV",latchEffectVal&0xff);
       }
       if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
         latchTarget=4;
@@ -3411,7 +3411,7 @@ bool FurnaceGUI::detectOutOfBoundsWindow(SDL_Rect& failing) {
 }
 
 #define DECLARE_METRIC(_n) \
-  int __perfM##_n;
+  uint64_t __perfM##_n;
 
 #define MEASURE_BEGIN(_n) \
   __perfM##_n=SDL_GetPerformanceCounter();
@@ -3425,6 +3425,10 @@ bool FurnaceGUI::detectOutOfBoundsWindow(SDL_Rect& failing) {
   MEASURE_BEGIN(_n) \
   _x; \
   MEASURE_END(_n)
+
+#define IMPORT_CLOSE(x) \
+  if (x) pendingLayoutImportReopen.push(&x); \
+  x=false;
 
 bool FurnaceGUI::loop() {
   DECLARE_METRIC(calcChanOsc)
@@ -4000,6 +4004,62 @@ bool FurnaceGUI::loop() {
     bool fontsFailed=false;
 
     layoutTimeBegin=SDL_GetPerformanceCounter();
+
+    if (pendingLayoutImport!=NULL) {
+      if (pendingLayoutImportStep==0) {
+        IMPORT_CLOSE(editControlsOpen);
+        IMPORT_CLOSE(ordersOpen);
+        IMPORT_CLOSE(insListOpen);
+        IMPORT_CLOSE(songInfoOpen);
+        IMPORT_CLOSE(patternOpen);
+        IMPORT_CLOSE(insEditOpen);
+        IMPORT_CLOSE(waveListOpen);
+        IMPORT_CLOSE(waveEditOpen);
+        IMPORT_CLOSE(sampleListOpen);
+        IMPORT_CLOSE(sampleEditOpen);
+        IMPORT_CLOSE(aboutOpen);
+        IMPORT_CLOSE(settingsOpen);
+        IMPORT_CLOSE(mixerOpen);
+        IMPORT_CLOSE(debugOpen);
+        IMPORT_CLOSE(inspectorOpen);
+        IMPORT_CLOSE(oscOpen);
+        IMPORT_CLOSE(volMeterOpen);
+        IMPORT_CLOSE(statsOpen);
+        IMPORT_CLOSE(compatFlagsOpen);
+        IMPORT_CLOSE(pianoOpen);
+        IMPORT_CLOSE(notesOpen);
+        IMPORT_CLOSE(channelsOpen);
+        IMPORT_CLOSE(regViewOpen);
+        IMPORT_CLOSE(logOpen);
+        IMPORT_CLOSE(effectListOpen);
+        IMPORT_CLOSE(chanOscOpen);
+        IMPORT_CLOSE(subSongsOpen);
+        IMPORT_CLOSE(findOpen);
+        IMPORT_CLOSE(spoilerOpen);
+        IMPORT_CLOSE(patManagerOpen);
+        IMPORT_CLOSE(sysManagerOpen);
+        IMPORT_CLOSE(clockOpen);
+        IMPORT_CLOSE(speedOpen);
+        IMPORT_CLOSE(groovesOpen);
+        IMPORT_CLOSE(xyOscOpen);
+      } else if (pendingLayoutImportStep==1) {
+        // let the UI settle
+      } else if (pendingLayoutImportStep==2) {
+        ImGui::LoadIniSettingsFromMemory((const char*)pendingLayoutImport,pendingLayoutImportLen);
+      } else if (pendingLayoutImportStep==3) {
+        // restore open windows
+        while (!pendingLayoutImportReopen.empty()) {
+          bool* next=pendingLayoutImportReopen.front();
+          *next=true;
+          pendingLayoutImportReopen.pop();
+        }
+      } else if (pendingLayoutImportStep==4) {
+        delete[] pendingLayoutImport;
+        pendingLayoutImport=NULL;
+      }
+      pendingLayoutImportStep++;
+      if (pendingLayoutImport==NULL) pendingLayoutImportStep=0;
+    }
 
     if (!rend->newFrame()) {
       fontsFailed=true;
@@ -5833,6 +5893,26 @@ bool FurnaceGUI::loop() {
 
     if (ImGui::BeginPopup("InsTypeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
       char temp[1024];
+      if (displayInsTypeListMakeInsSample==-2) {
+        ImGui::Text("Drum kit mode:");
+        if (ImGui::RadioButton("Normal",!makeDrumkitMode)) {
+          makeDrumkitMode=false;
+        }
+        if (ImGui::RadioButton("12 samples per octave",makeDrumkitMode)) {
+          makeDrumkitMode=true;
+        }
+
+        if (!makeDrumkitMode) {
+          ImGui::Text("Starting octave");
+          ImGui::SameLine();
+          if (ImGui::InputInt("##DKOctave",&makeDrumkitOctave,1,3)) {
+            if (makeDrumkitOctave<0) makeDrumkitOctave=0;
+            if (makeDrumkitOctave>9) makeDrumkitOctave=9;
+          }
+        }
+
+        ImGui::Separator();
+      }
       for (DivInstrumentType& i: makeInsTypeList) {
         strncpy(temp,insTypes[i][0],1023);
         if (ImGui::MenuItem(temp)) {
@@ -5841,7 +5921,36 @@ bool FurnaceGUI::loop() {
           if (curIns==-1) {
             showError("too many instruments!");
           } else {
-            if (displayInsTypeListMakeInsSample>=0 && displayInsTypeListMakeInsSample<(int)e->song.sample.size()) {
+            if (displayInsTypeListMakeInsSample==-2) {
+              e->song.ins[curIns]->type=i;
+              e->song.ins[curIns]->name="Drum Kit";
+              e->song.ins[curIns]->amiga.useNoteMap=true;
+              if (i!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
+
+              if (makeDrumkitMode) {
+                for (int j=0; j<120; j++) {
+                  e->song.ins[curIns]->amiga.noteMap[j].freq=48;
+                  e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
+                  e->song.ins[curIns]->amiga.noteMap[j].map=j%12;
+                  if ((j%12)>=e->song.sampleLen) continue;
+                }
+              } else {
+                int index=-makeDrumkitOctave*12;
+                for (int j=0; j<120; j++) {
+                  e->song.ins[curIns]->amiga.noteMap[j].freq=48;
+                  e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
+                  if (index<0 || index>=e->song.sampleLen) {
+                    index++;
+                    continue;
+                  }
+                  e->song.ins[curIns]->amiga.noteMap[j].map=index++;
+                }
+              }
+
+              nextWindow=GUI_WINDOW_INS_EDIT;
+              wavePreviewInit=true;
+              updateFMPreview=true;
+            } else if (displayInsTypeListMakeInsSample>=0 && displayInsTypeListMakeInsSample<(int)e->song.sample.size()) {
               e->song.ins[curIns]->type=i;
               e->song.ins[curIns]->name=e->song.sample[displayInsTypeListMakeInsSample]->name;
               e->song.ins[curIns]->amiga.initSample=displayInsTypeListMakeInsSample;
@@ -6880,10 +6989,6 @@ bool FurnaceGUI::init() {
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
   toggleMobileUI(mobileUI,true);
 
-  for (int i=0; i<DIV_MAX_CHANS; i++) {
-    oldPat[i]=new DivPattern;
-  }
-
   firstFrame=true;
 
   userEvents=SDL_RegisterEvents(1);
@@ -7132,10 +7237,6 @@ bool FurnaceGUI::finish() {
     }
   }
 
-  for (int i=0; i<DIV_MAX_CHANS; i++) {
-    delete oldPat[i];
-  }
-
   if (backupTask.valid()) {
     backupTask.get();
   }
@@ -7200,6 +7301,7 @@ FurnaceGUI::FurnaceGUI():
   killGraphics(false),
   safeMode(false),
   midiWakeUp(true),
+  makeDrumkitMode(false),
   audioEngineChanged(false),
   settingsChanged(false),
   debugFFT(false),
@@ -7210,6 +7312,7 @@ FurnaceGUI::FurnaceGUI():
   macroPointSize(16),
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
+  makeDrumkitOctave(3),
   mobileEditPage(0),
   wheelCalmDown(0),
   shallDetectScale(0),
@@ -7271,6 +7374,9 @@ FurnaceGUI::FurnaceGUI():
   headFont(NULL),
   fontRange(NULL),
   prevInsData(NULL),
+  pendingLayoutImport(NULL),
+  pendingLayoutImportLen(0),
+  pendingLayoutImportStep(0),
   curIns(0),
   curWave(0),
   curSample(0),

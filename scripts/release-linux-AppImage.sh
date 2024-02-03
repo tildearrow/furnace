@@ -8,11 +8,11 @@ fi
 
 cd /tmp/furnace
 
-if [ ! -e linuxbuild ]; then
-  mkdir linuxbuild || exit 1
+if [ ! -e aibuild ]; then
+  mkdir aibuild || exit 1
 fi
 
-cd linuxbuild
+cd aibuild
 
 cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Werror" -DWITH_DEMOS=OFF -DWITH_INSTRUMENTS=OFF -DWITH_WAVETABLES=OFF .. || exit 1
 make -j4 || exit 1
@@ -20,7 +20,7 @@ make -j4 || exit 1
 cd ..
 
 mkdir -p release/linux/furnace.AppDir || exit 1
-cd linuxbuild
+cd aibuild
 
 make DESTDIR=/tmp/furnace/release/linux/furnace.AppDir install || exit 1
 

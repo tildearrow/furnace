@@ -253,6 +253,10 @@ bool DivInstrumentESFM::Operator::operator==(const DivInstrumentESFM::Operator& 
   );
 }
 
+bool DivInstrumentPowerNoise::operator==(const DivInstrumentPowerNoise& other) {
+  return _C(octave);
+}
+
 #undef _C
 
 #define FEATURE_BEGIN(x) \
@@ -782,6 +786,14 @@ void DivInstrument::writeFeatureEF(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeaturePN(SafeWriter* w) {
+  FEATURE_BEGIN("PN");
+
+  w->writeC(powernoise.octave);
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -826,6 +838,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureX1=false;
   bool featureNE=false;
   bool featureEF=false;
+  bool featurePN=false;
 
   bool checkForWL=false;
 
@@ -1043,6 +1056,12 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureFM=true;
         featureEF=true;
         break;
+      case DIV_INS_POWERNOISE:
+        featurePN=true;
+        break;
+      case DIV_INS_POWERNOISE_SLOPE:
+        featurePN=true;
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1092,6 +1111,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (esfm!=defaultIns.esfm) {
       featureEF=true;
+    }
+    if (powernoise!=defaultIns.powernoise) {
+      featurePN=true;
     }
   }
 
@@ -1237,6 +1259,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureEF) {
     writeFeatureEF(w);
+  }
+  if (featurePN) {
+    writeFeaturePN(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -2673,6 +2698,14 @@ void DivInstrument::readFeatureEF(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeaturePN(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  powernoise.octave=reader.readC();
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -2743,6 +2776,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureNE(reader,version);
     } else if (memcmp(featCode,"EF",2)==0) { // ESFM
       readFeatureEF(reader,version);
+    } else if (memcmp(featCode,"PN",2)==0) { // PowerNoise
+      readFeaturePN(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing

@@ -52,10 +52,10 @@ class DivWorkPool;
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-#define DIV_UNSTABLE
+//#define DIV_UNSTABLE
 
-#define DIV_VERSION "dev191"
-#define DIV_ENGINE_VERSION 191
+#define DIV_VERSION "0.6.1"
+#define DIV_ENGINE_VERSION 192
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -174,7 +174,7 @@ struct DivChannelState {
 
 struct DivNoteEvent {
   signed char channel;
-  unsigned char ins;
+  short ins;
   signed char note, volume;
   bool on, nop, insChange, fromMIDI;
   DivNoteEvent(int c, int i, int n, int v, bool o, bool ic=false, bool fm=false):
@@ -497,6 +497,7 @@ class DivEngine {
   short effectSlotMap[4096];
   int midiBaseChan;
   bool midiPoly;
+  bool midiDebug;
   size_t midiAgeCounter;
 
   blip_buffer_t* samp_bb;
@@ -1208,6 +1209,9 @@ class DivEngine {
     // send MIDI message
     bool sendMidiMessage(TAMidiMessage& msg);
 
+    // enable MIDI debug
+    void setMidiDebug(bool enable);
+
     // perform secure/sync operation
     void synchronized(const std::function<void()>& what);
 
@@ -1329,6 +1333,7 @@ class DivEngine {
       cmdStreamInt(NULL),
       midiBaseChan(0),
       midiPoly(true),
+      midiDebug(false),
       midiAgeCounter(0),
       samp_bb(NULL),
       samp_bbInLen(0),

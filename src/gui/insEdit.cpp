@@ -328,6 +328,14 @@ const char* es5506FilterModes[4]={
   "HP/K2, HP/K2", "HP/K2, LP/K1", "LP/K2, LP/K2", "LP/K2, LP/K1",
 };
 
+const char* powerNoiseControlBits[3]={
+  "enable tap B", "AM with slope", NULL
+};
+
+const char* powerNoiseSlopeControlBits[7]={
+  "invert B", "invert A", "reset B", "reset A", "clip B", "clip A", NULL
+};
+
 const char* panBits[5]={
   "right", "left", "rear right", "rear left", NULL
 };
@@ -1477,7 +1485,7 @@ void FurnaceGUI::kvsConfig(DivInstrument* ins, bool supportsKVS) {
         ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
         for (int i=0; i<4; i++) {
-          int o=(opCount==4)?orderedOps[i]:i;
+          int o=(opCount==4 && ins->type!=DIV_INS_ESFM)?orderedOps[i]:i;
           if (!(i&1)) ImGui::TableNextRow();
           const char* label="AUTO##OPKVS";
           if (ins->fm.op[o].kvs==0) {
@@ -2916,7 +2924,11 @@ void FurnaceGUI::drawInsEdit() {
     ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
-    if (curIns<0 || curIns>=(int)e->song.ins.size()) {
+    if (curIns==-2) {
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()+ImGui::GetStyle().ItemSpacing.y)*0.5f);
+      CENTER_TEXT("waiting...");
+      ImGui::Text("waiting...");
+    } else if (curIns<0 || curIns>=(int)e->song.ins.size()) {
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*(e->song.ins.empty()?2.0f:3.0f)+ImGui::GetStyle().ItemSpacing.y)*0.5f);
       CENTER_TEXT("no instrument selected");
       ImGui::Text("no instrument selected");
@@ -6898,6 +6910,12 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="OP4 Noise Mode";
             dutyMax=3;
           }
+          if (ins->type==DIV_INS_POWERNOISE) {
+            dutyMax=0;
+          }
+          if (ins->type==DIV_INS_POWERNOISE_SLOPE) {
+            dutyMax=0;
+          }
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
@@ -6932,6 +6950,8 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TED) waveMax=0;
           if (ins->type==DIV_INS_C140) waveMax=0;
           if (ins->type==DIV_INS_C219) waveMax=0;
+          if (ins->type==DIV_INS_POWERNOISE) waveMax=0;
+          if (ins->type==DIV_INS_POWERNOISE_SLOPE) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -7070,6 +7090,12 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             panMax=4095;
           }
+          if (ins->type==DIV_INS_POWERNOISE) {
+            panMax=15;
+          }
+          if (ins->type==DIV_INS_POWERNOISE_SLOPE) {
+            panMax=15;
+          }
 
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
@@ -7157,7 +7183,9 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_C140 ||
               ins->type==DIV_INS_C219 ||
               ins->type==DIV_INS_TED ||
-              ins->type==DIV_INS_ESFM) {
+              ins->type==DIV_INS_ESFM ||
+              ins->type==DIV_INS_POWERNOISE ||
+              ins->type==DIV_INS_POWERNOISE_SLOPE) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -7250,9 +7278,34 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM5232) {
             macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
+          if (ins->type==DIV_INS_POWERNOISE) {
+            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,powerNoiseControlBits));
+            macroList.push_back(FurnaceGUIMacroDesc("Tap A Location",&ins->std.ex4Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Tap B Location",&ins->std.ex5Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Load LFSR",&ins->std.ex8Macro,0,16,256,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+          }
+          if (ins->type==DIV_INS_POWERNOISE_SLOPE) {
+            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,6,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,powerNoiseSlopeControlBits));
+            macroList.push_back(FurnaceGUIMacroDesc("Portion A Length",&ins->std.ex2Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Portion B Length",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Portion A Offset",&ins->std.ex6Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Portion B Offset",&ins->std.ex7Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+          }
 
           drawMacros(macroList,macroEditStateMacros);
           ImGui::EndTabItem();
+        }
+        if (ins->type==DIV_INS_POWERNOISE || ins->type==DIV_INS_POWERNOISE_SLOPE) {
+          if (ImGui::BeginTabItem("PowerNoise")) {
+            int pnOctave=ins->powernoise.octave;
+            if (ImGui::InputInt("Octave offset",&pnOctave,1,4)) { PARAMETER
+              if (pnOctave<0) pnOctave=0;
+              if (pnOctave>15) pnOctave=15;
+              ins->powernoise.octave=pnOctave;
+            }
+            ImGui::Text("go to Macros for other parameters.");
+            ImGui::EndTabItem();
+          }
         }
         if (ins->type==DIV_INS_NES ||
             ins->type==DIV_INS_AY ||

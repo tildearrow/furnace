@@ -9,10 +9,8 @@ alternatively, window > instrument editor displays it.
 
 ![top of instrument editor](instrument-editor-top.png)
 
-**TODO: add descriptions to buttons in the image. it really needs them.**
-
-- **Instrument Selector**: displays a list of instruments in the song.
-- **Open**: open an instrument file.
+- **Select**: displays a list of instruments in the song.
+- **Load**: open an instrument file.
 - **Save**: save current instrument to a file.
   - right-click to see additional options, such as saving in DefleMask preset format (.dmp).
 - **Name**: changes the instrument name.
@@ -76,6 +74,7 @@ the following instrument types are available:
 - [TED](ted.md) - for use with Commodore Plus/4 and Commodore 16's TED chip.
 - [C140](c140.md) - for use with C140 sample chip.
 - [C219](c219.md) - for use with C219 sample chip.
+- [PowerNoise](powernoise.md) - for use with PowerNoise chip.
 
 ## macros
 
@@ -93,9 +92,6 @@ each macro has the following parameters:
   - **Step Length (ticks)**: determines the number of ticks between macro steps. default is 1.
   - **Delay**: delays the macro until this many ticks have elapsed. default is 0.
   - the button is highlighted if either of these parameters is set to non-default values.
-- release mode: determines how macro release (`===` or `REL` in the pattern) is handled:
-  - **Active**: jumps to release position on release.
-  - **Passive**: does not jump to release position. this will result in delay if release position has not been reached yet.
 
 ## macro types
 
@@ -114,8 +110,6 @@ this is the most basic macro type. when the instrument is played, every value in
 ![clipped sequence macro editor](macro-seq-clip.png)
 
 ![bitmask sequence macro editor](macro-seq-bitmask.png)
-
-**TODO: once again, text in the image. this sucks.**
 
 the Length field allows you to set the number of steps in the sequence.
 
@@ -170,6 +164,10 @@ the sequence can be edited in the text input field at the very bottom. the follo
 - in arpeggio macros, `@` prefixed to a value indicates that it is a fixed value as described above.
 
 in bitmask-style macros, the values are added up in binary and converted to decimal.
+
+the release mode parameter determines how macro release (`===` or `REL` in the pattern) is handled:
+- **Active**: jumps to release position on release.
+- **Passive**: does not jump to release position. this will result in delay if release position has not been reached yet.
 
 ### ADSR
 

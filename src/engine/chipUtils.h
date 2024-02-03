@@ -20,6 +20,7 @@
 #ifndef _CHIP_UTILS_H
 #define _CHIP_UTILS_H
 
+#include "defines.h"
 #include "macroInt.h"
 
 // custom clock limits
@@ -29,7 +30,7 @@
 // common shared channel struct
 template<typename T> struct SharedChannel {
   int freq, baseFreq, baseNoteOverride, pitch, pitch2, arpOff;
-  int ins, note;
+  int ins, note, sampleNote, sampleNoteDelta;
   bool active, insChanged, freqChanged, fixedArp, keyOn, keyOff, portaPause, inPorta;
   T vol, outVol;
   DivMacroInt std;
@@ -71,6 +72,8 @@ template<typename T> struct SharedChannel {
     arpOff(0),
     ins(-1),
     note(0),
+    sampleNote(DIV_NOTE_NULL),
+    sampleNoteDelta(0),
     active(false),
     insChanged(true),
     freqChanged(false),

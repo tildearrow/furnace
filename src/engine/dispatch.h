@@ -25,10 +25,9 @@
 #include "../pch.h"
 #include "config.h"
 #include "chipUtils.h"
+#include "defines.h"
 
 #define ONE_SEMITONE 2200
-
-#define DIV_NOTE_NULL 0x7fffffff
 
 #define addWrite(a,v) regWrites.push_back(DivRegWrite(a,v));
 
@@ -249,6 +248,9 @@ enum DivDispatchCmds {
   DIV_CMD_ESFM_ENV_DELAY, // (op, value)
 
   DIV_CMD_MACRO_RESTART, // (which)
+
+  DIV_CMD_POWERNOISE_COUNTER_LOAD, // (which, val)
+  DIV_CMD_POWERNOISE_IO_WRITE, // (port, value)
 
   DIV_CMD_MAX
 };
