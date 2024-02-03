@@ -547,7 +547,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
 #else
   D("REDO", "Redo", FURKMOD_CMD|SDLK_y),
 #endif
-  D("QUIT", "Exit", FURKMOD_CMD|SDLK_q),
+  D("QUIT", "Exit", 0),
   D("PLAY_TOGGLE", "Play/Stop (toggle)", SDLK_RETURN),
   D("PLAY", "Play", 0),
   D("STOP", "Stop", 0),
