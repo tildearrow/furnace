@@ -1211,6 +1211,7 @@ const int availableSystems[]={
   DIV_SYSTEM_ESFM,
   DIV_SYSTEM_PONG,
   DIV_SYSTEM_POWERNOISE,
+  DIV_SYSTEM_DAVE,
   0 // don't remove this last one!
 };
 
@@ -1246,7 +1247,6 @@ const int chipsFM[]={
   DIV_SYSTEM_OPL3_DRUMS,
   DIV_SYSTEM_OPZ,
   DIV_SYSTEM_ESFM,
-  DIV_SYSTEM_DAVE,
   0 // don't remove this last one!
 };
 
