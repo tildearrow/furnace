@@ -9,10 +9,8 @@ alternatively, window > instrument editor displays it.
 
 ![top of instrument editor](instrument-editor-top.png)
 
-**TODO: add descriptions to buttons in the image. it really needs them.**
-
-- **Instrument Selector**: displays a list of instruments in the song.
-- **Open**: open an instrument file.
+- **Select**: displays a list of instruments in the song.
+- **Load**: open an instrument file.
 - **Save**: save current instrument to a file.
   - right-click to see additional options, such as saving in DefleMask preset format (.dmp).
 - **Name**: changes the instrument name.
@@ -114,8 +112,6 @@ this is the most basic macro type. when the instrument is played, every value in
 ![clipped sequence macro editor](macro-seq-clip.png)
 
 ![bitmask sequence macro editor](macro-seq-bitmask.png)
-
-**TODO: once again, text in the image. this sucks.**
 
 the Length field allows you to set the number of steps in the sequence.
 
