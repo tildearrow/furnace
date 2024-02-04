@@ -498,7 +498,9 @@ DivMacroInt* DivPlatformDave::getChanMacroInt(int ch) {
 }
 
 unsigned short DivPlatformDave::getPan(int ch) {
-  return (chan[ch].panL<<2)|chan[ch].panR;
+  if (ch==5) return 1;
+  if (ch==4) return 0x100;
+  return (chan[ch].panL<<8)|chan[ch].panR;
 }
 
 // TODO: the rest
@@ -546,6 +548,7 @@ void DivPlatformDave::reset() {
     addWrite(0xffffffff,0);
   }
   writeControl=false;
+  clockDiv=false;
   dave->reset(true);
 }
 
