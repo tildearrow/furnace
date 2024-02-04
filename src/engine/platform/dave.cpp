@@ -67,7 +67,7 @@ void DivPlatformDave::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     for (int i=4; i<6; i++) {
       if (chan[i].dacSample!=-1) {
-        chan[i].dacPeriod+=chan[i].freq;
+        chan[i].dacPeriod+=chan[i].dacRate;
         if (chan[i].dacPeriod>rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
           if (s->samples<=0) {
@@ -230,6 +230,13 @@ void DivPlatformDave::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i>=4) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,1,1);
+
+        double off=1.0;
+        if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
+          DivSample* s=parent->getSample(chan[i].dacSample);
+          off=(double)s->centerRate/8363.0;
+        }
+        chan[i].dacRate=chan[i].freq*off;
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       }
