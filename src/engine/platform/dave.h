@@ -63,6 +63,7 @@ class DivPlatformDave: public DivDispatch {
   };
   FixedQueue<QueuedWrite,512> writes;
   bool writeControl;
+  bool clockDiv;
 
   Ep128::Dave* dave;
   unsigned char regPool[32];
@@ -78,7 +79,6 @@ class DivPlatformDave: public DivDispatch {
     DivChannelModeHints getModeHints(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
-    int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

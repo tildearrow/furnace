@@ -2011,9 +2011,13 @@ void DivEngine::registerSystems() {
     {DIV_INS_DAVE, DIV_INS_DAVE, DIV_INS_DAVE, DIV_INS_DAVE, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
     {
-      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (0 to 7)"}},
-      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set AUDCTL"}},
-      {0x12, {DIV_CMD_STD_NOISE_FREQ, "12xx: Toggle two-tone mode"}},
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (0 to 4; 0 to 3 on noise)"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set noise frequency source (0: fixed; 1-3: channels 1 to 3)"}},
+      {0x12, {DIV_CMD_DAVE_HIGH_PASS, "12xx: Toggle high-pass with next channel"}},
+      {0x13, {DIV_CMD_DAVE_RING_MOD, "13xx: Toggle ring modulation with channel+2"}},
+      {0x14, {DIV_CMD_DAVE_SWAP_COUNTERS, "14xx: Toggle swap counters (noise only)"}},
+      {0x15, {DIV_CMD_DAVE_LOW_PASS, "15xx: Toggle low pass (noise only)"}},
+      {0x16, {DIV_CMD_DAVE_CLOCK_DIV, "16xx: Set clock divider (0: /2; 1: /3)"}},
     }
   );
 

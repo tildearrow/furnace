@@ -19,7 +19,6 @@
 
 #include "dave.h"
 #include "../engine.h"
-#include "furIcons.h"
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
@@ -106,6 +105,36 @@ void DivPlatformDave::acquire(short** buf, size_t len) {
     unsigned short nextL=next&0xffff;
     unsigned short nextR=next>>16;
     
+    if ((regPool[7]&0x18)==0x18) {
+      oscBuf[0]->data[oscBuf[0]->needle++]=0;
+      oscBuf[1]->data[oscBuf[1]->needle++]=0;
+      oscBuf[2]->data[oscBuf[2]->needle++]=0;
+      oscBuf[3]->data[oscBuf[3]->needle++]=0;
+      oscBuf[4]->data[oscBuf[4]->needle++]=dave->chn0_left<<9;
+      oscBuf[5]->data[oscBuf[5]->needle++]=dave->chn0_right<<9;
+    } else if (regPool[7]&0x08) {
+      oscBuf[0]->data[oscBuf[0]->needle++]=dave->chn0_state?(dave->chn0_right<<8):0;
+      oscBuf[1]->data[oscBuf[1]->needle++]=dave->chn1_state?(dave->chn1_right<<8):0;
+      oscBuf[2]->data[oscBuf[2]->needle++]=dave->chn2_state?(dave->chn2_right<<8):0;
+      oscBuf[3]->data[oscBuf[3]->needle++]=dave->chn3_state?(dave->chn3_right<<8):0;
+      oscBuf[4]->data[oscBuf[4]->needle++]=dave->chn0_left<<9;
+      oscBuf[5]->data[oscBuf[5]->needle++]=0;
+    } else if (regPool[7]&0x10) {
+      oscBuf[0]->data[oscBuf[0]->needle++]=dave->chn0_state?(dave->chn0_left<<8):0;
+      oscBuf[1]->data[oscBuf[1]->needle++]=dave->chn1_state?(dave->chn1_left<<8):0;
+      oscBuf[2]->data[oscBuf[2]->needle++]=dave->chn2_state?(dave->chn2_left<<8):0;
+      oscBuf[3]->data[oscBuf[3]->needle++]=dave->chn3_state?(dave->chn3_left<<8):0;
+      oscBuf[4]->data[oscBuf[4]->needle++]=0;
+      oscBuf[5]->data[oscBuf[5]->needle++]=dave->chn0_right<<9;
+    } else {
+      oscBuf[0]->data[oscBuf[0]->needle++]=dave->chn0_state?((dave->chn0_left+dave->chn0_right)<<8):0;
+      oscBuf[1]->data[oscBuf[1]->needle++]=dave->chn1_state?((dave->chn1_left+dave->chn1_right)<<8):0;
+      oscBuf[2]->data[oscBuf[2]->needle++]=dave->chn2_state?((dave->chn2_left+dave->chn2_right)<<8):0;
+      oscBuf[3]->data[oscBuf[3]->needle++]=dave->chn3_state?((dave->chn3_left+dave->chn3_right)<<8):0;
+      oscBuf[4]->data[oscBuf[4]->needle++]=0;
+      oscBuf[5]->data[oscBuf[5]->needle++]=0;
+    }
+    
     buf[0][h]=(short)nextL;
     buf[1][h]=(short)nextR;
   }
@@ -180,17 +209,17 @@ void DivPlatformDave::tick(bool sysTick) {
     if (chan[i].writeVol) {
       if (i<4) {
         if (chan[i].active && !isMuted[i]) {
-          if (i!=0 || chan[4].dacSample<0) {
+          if (i!=0 || chan[4].dacSample<0 || isMuted[4]) {
             rWrite(8+i,(63+chan[i].outVol*chan[i].panL)>>6);
           }
-          if (i!=0 || chan[5].dacSample<0) {
+          if (i!=0 || chan[5].dacSample<0 || isMuted[5]) {
             rWrite(12+i,(63+chan[i].outVol*chan[i].panR)>>6);
           }
         } else {
-          if (i!=0 || chan[4].dacSample<0) {
+          if (i!=0 || chan[4].dacSample<0 || isMuted[4]) {
             rWrite(8+i,0);
           }
-          if (i!=0 || chan[5].dacSample<0) {
+          if (i!=0 || chan[5].dacSample<0 || isMuted[5]) {
             rWrite(12+i,0);
           }
         }
@@ -253,8 +282,8 @@ void DivPlatformDave::tick(bool sysTick) {
   }
 
   if (writeControl) {
-    rWrite(7,(chan[0].resetPhase?1:0)|(chan[1].resetPhase?2:0)|(chan[2].resetPhase?4:0)|((chan[4].dacSample>=0)?8:0)|((chan[5].dacSample>=0)?16:0));
-    rWrite(7,((chan[4].dacSample>=0)?8:0)|((chan[5].dacSample>=0)?16:0));
+    rWrite(7,(chan[0].resetPhase?1:0)|(chan[1].resetPhase?2:0)|(chan[2].resetPhase?4:0)|((chan[4].dacSample>=0 && !isMuted[4])?8:0)|((chan[5].dacSample>=0 && !isMuted[5])?16:0));
+    rWrite(7,((chan[4].dacSample>=0 && !isMuted[4])?8:0)|((chan[5].dacSample>=0 && !isMuted[5])?16:0));
     chan[0].resetPhase=false;
     chan[1].resetPhase=false;
     chan[2].resetPhase=false;
@@ -355,7 +384,33 @@ int DivPlatformDave::dispatch(DivCommand c) {
       break;
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
+      if (chan[c.chan].wave>4) chan[c.chan].wave=4;
+      if (c.chan==3 && chan[c.chan].wave>3) chan[c.chan].wave=3;
       chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_STD_NOISE_MODE:
+      chan[c.chan].noiseFreq=c.value&3;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_DAVE_HIGH_PASS:
+      chan[c.chan].highPass=c.value;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_DAVE_RING_MOD:
+      chan[c.chan].ringMod=c.value;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_DAVE_SWAP_COUNTERS:
+      chan[c.chan].swapCounters=c.value;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_DAVE_LOW_PASS:
+      chan[c.chan].lowPass=c.value;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_DAVE_CLOCK_DIV:
+      clockDiv=c.value;
+      rWrite(31,clockDiv?2:0);
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
@@ -418,6 +473,10 @@ int DivPlatformDave::dispatch(DivCommand c) {
 void DivPlatformDave::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   chan[ch].writeVol=true;
+  if (ch>=4) {
+    chan[0].writeVol=true;
+    writeControl=true;
+  }
 }
 
 void DivPlatformDave::forceIns() {
@@ -427,6 +486,7 @@ void DivPlatformDave::forceIns() {
     chan[i].writeVol=true;
   }
   writeControl=true;
+  rWrite(31,clockDiv?2:0);
 }
 
 void* DivPlatformDave::getChanState(int ch) {
@@ -441,7 +501,11 @@ unsigned short DivPlatformDave::getPan(int ch) {
   return (chan[ch].panL<<2)|chan[ch].panR;
 }
 
+// TODO: the rest
 DivChannelPair DivPlatformDave::getPaired(int ch) {
+  if (chan[ch].highPass) {
+    DivChannelPair("high",(ch+1)&3);
+  }
   return DivChannelPair();
 }
 
@@ -461,10 +525,6 @@ DivSamplePos DivPlatformDave::getSamplePos(int ch) {
 
 DivDispatchOscBuffer* DivPlatformDave::getOscBuffer(int ch) {
   return oscBuf[ch];
-}
-
-int DivPlatformDave::mapVelocity(int ch, float vel) {
-  return round(31.0*pow(vel,0.22));
 }
 
 unsigned char* DivPlatformDave::getRegisterPool() {

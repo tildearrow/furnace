@@ -68,6 +68,7 @@ this is the full list of chips that Furnace supports.
 - [AY-3-8910/8914/YM2149(F)/Sunsoft 5B](ay8910.md)
 - [Microship AY8930](ay8930.md)
 - [MOS 6581/8580 (SID)](c64.md)
+- [Dave](dave.md)
 - [Ensoniq ES5506](es5506.md)
 - [Konami SCC](scc.md)
 - [FDS](fds.md)

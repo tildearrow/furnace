@@ -41,7 +41,7 @@ namespace Ep128 {
   };
 
   class Dave {
-   private:
+   public:
     DaveTables t;
     int     clockDiv;               // 2 if bit 1 of port 0xBF is 0, 3 otherwise
     int     clockCnt;               // counts from 'clockDiv' towards zero
