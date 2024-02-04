@@ -88,6 +88,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_ESFM=55,
   DIV_INS_POWERNOISE=56,
   DIV_INS_POWERNOISE_SLOPE=57,
+  DIV_INS_DAVE=58,
   DIV_INS_MAX,
   DIV_INS_NULL
 };

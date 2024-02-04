@@ -607,6 +607,8 @@ src/engine/platform/sound/ted-sound.c
 
 src/engine/platform/sound/c140_c219.c
 
+src/engine/platform/sound/dave/dave.cpp
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -707,6 +709,7 @@ src/engine/platform/ted.cpp
 src/engine/platform/c140.cpp
 src/engine/platform/esfm.cpp
 src/engine/platform/powernoise.cpp
+src/engine/platform/dave.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
@@ -916,8 +919,19 @@ set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} ${CLI_SOURCES} src/main.cpp)
 
 if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)
-  if (WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
+  if (WIN32)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+      include(CheckCXXCompilerFlag)
+      check_cxx_compiler_flag(-gcodeview GCC_CODEVIEW)
+      if (GCC_CODEVIEW)
+        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--pdb= ")
+        add_compile_options(-gcodeview)
+        message(STATUS "Enabling -gcodeview flag for backward-cpp.")
+      else()
+        message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
+      endif()
+      list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
+    endif()
   endif()
   find_library(EXECINFO_IS_LIBRARY execinfo)
   if (EXECINFO_IS_LIBRARY)

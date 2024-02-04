@@ -953,6 +953,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Enterprise 128", {
+      CH(DIV_SYSTEM_DAVE, 1.0f, 0, "")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
     "BBC Micro", {
       CH(DIV_SYSTEM_SMS, 1.0f, 0,
         "clockSel=2\n"
@@ -2860,6 +2866,12 @@ void FurnaceGUI::initSystemPresets() {
     "PowerNoise", {
       CH(DIV_SYSTEM_POWERNOISE, 1.0f, 0, "")
     }
+  );
+  ENTRY(
+    "Dave", {
+      CH(DIV_SYSTEM_DAVE, 1.0f, 0, "")
+    },
+    "tickRate=50"
   );
   CATEGORY_END;
 
