@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _PCE_H
-#define _PCE_H
+#ifndef _DAVE_H
+#define _DAVE_H
 
 #include "../dispatch.h"
 #include "../../fixedQueue.h"
@@ -29,31 +29,25 @@ class DivPlatformDave: public DivDispatch {
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
     int dacSample;
-    unsigned char pan;
-    bool noise, pcm, furnaceDac, deferredWaveUpdate;
-    signed short wave;
-    int macroVolMul, noiseSeek;
+    unsigned char panL;
+    unsigned char panR;
+    unsigned char wave;
+    bool writeVol;
     Channel():
-      SharedChannel<signed char>(31),
+      SharedChannel<signed char>(63),
       dacPeriod(0),
       dacRate(0),
       dacOut(0),
       dacPos(0),
       dacSample(-1),
-      pan(255),
-      noise(false),
-      pcm(false),
-      furnaceDac(false),
-      deferredWaveUpdate(false),
-      wave(-1),
-      macroVolMul(31),
-      noiseSeek(0) {}
+      panL(63),
+      panR(63),
+      wave(0),
+      writeVol(false) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
-  bool antiClickEnabled;
-  bool updateLFO;
   struct QueuedWrite {
     unsigned char addr;
     unsigned char val;
@@ -63,12 +57,9 @@ class DivPlatformDave: public DivDispatch {
   FixedQueue<QueuedWrite,512> writes;
   unsigned char lastPan;
 
-  int cycles, curChan, delay;
-  int tempL[32];
-  int tempR[32];
-  unsigned char sampleBank, lfoMode, lfoSpeed;
+  int cycles, curChan;
   Ep128::Dave* dave;
-  unsigned char regPool[128];
+  unsigned char regPool[32];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:

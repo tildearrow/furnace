@@ -6726,7 +6726,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SM8521) {
             volMax=31;
           }
-          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_ESFM) {
+          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_ESFM || ins->type==DIV_INS_DAVE) {
             volMax=63;
           }
           if (ins->type==DIV_INS_AMIGA) {
@@ -6953,6 +6953,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_POWERNOISE) waveMax=0;
           if (ins->type==DIV_INS_POWERNOISE_SLOPE) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
+          if (ins->type==DIV_INS_DAVE) waveMax=3;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
             waveBitMode=true;

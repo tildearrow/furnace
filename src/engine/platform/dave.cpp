@@ -55,8 +55,8 @@ const char** DivPlatformDave::getRegisterSheet() {
 void DivPlatformDave::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     // PCM part
-    for (int i=0; i<6; i++) {
-      if (chan[i].pcm && chan[i].dacSample!=-1) {
+    for (int i=4; i<6; i++) {
+      if (chan[i].dacSample!=-1) {
         chan[i].dacPeriod+=chan[i].dacRate;
         if (chan[i].dacPeriod>rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
@@ -77,24 +77,19 @@ void DivPlatformDave::acquire(short** buf, size_t len) {
       }
     }
   
-    // PCE part
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
+      dave->writePort(w.addr,w.val);
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
 
-    tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
-    tempR[0]=(tempR[0]>>1)+(tempR[0]>>2);
-
-    if (tempL[0]<-32768) tempL[0]=-32768;
-    if (tempL[0]>32767) tempL[0]=32767;
-    if (tempR[0]<-32768) tempR[0]=-32768;
-    if (tempR[0]>32767) tempR[0]=32767;
+    unsigned int next=dave->runOneCycle();
+    unsigned short nextL=next&0xffff;
+    unsigned short nextR=next>>16;
     
-    //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    buf[0][h]=tempL[0];
-    buf[1][h]=tempR[0];
+    buf[0][h]=(short)nextL;
+    buf[1][h]=(short)nextR;
   }
 }
 
@@ -102,39 +97,32 @@ void DivPlatformDave::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
-      if (chan[i].furnaceDac && chan[i].pcm) {
-        // ignore for now
-      } else {
-      }
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&63,MIN(63,chan[i].std.vol.val),63);
+      chan[i].writeVol=true;
     }
-    if (chan[i].std.duty.had && i>=4) {
-      chan[i].noise=chan[i].std.duty.val;
+    if (chan[i].std.duty.had) {
       chan[i].freqChanged=true;
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
-        if (noiseSeek<0) noiseSeek=0;
-        chan[i].noiseSeek=noiseSeek;
+        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val);
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.wave.had && !chan[i].pcm) {
-      // TODO: this
+    if (chan[i].std.wave.had) {
+      chan[i].wave=chan[i].std.wave.val;
+      chan[i].freqChanged=true;
     }
     if (chan[i].std.panL.had) {
-      chan[i].pan&=0x0f;
-      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+      chan[i].panL=chan[i].std.panL.val&63;
     }
     if (chan[i].std.panR.had) {
-      chan[i].pan&=0xf0;
-      chan[i].pan|=chan[i].std.panR.val&15;
+      chan[i].panR=chan[i].std.panR.val&63;
     }
     if (chan[i].std.panL.had || chan[i].std.panR.had) {
+      chan[i].writeVol=true;
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -146,7 +134,7 @@ void DivPlatformDave::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
-      if (chan[i].furnaceDac && chan[i].pcm) {
+      if (i>=4) {
         if (chan[i].active && chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
           chan[i].dacPos=0;
           chan[i].dacPeriod=0;
@@ -154,23 +142,27 @@ void DivPlatformDave::tick(bool sysTick) {
         }
       }
     }
+
+    if (chan[i].writeVol) {
+      if (chan[i].active) {
+        rWrite(8+i,(63+chan[i].outVol*chan[i].panL)>>6);
+        rWrite(12+i,(63+chan[i].outVol*chan[i].panR)>>6);
+      } else {
+        rWrite(8+i,0);
+        rWrite(12+i,0);
+      }
+    }
+
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[i].furnaceDac && chan[i].pcm) {
-        double off=1.0;
-        if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(chan[i].dacSample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=8363.0/(double)s->centerRate;
-          }
-        }
-        chan[i].dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
-      }
       if (chan[i].freq<1) chan[i].freq=1;
       if (chan[i].freq>4095) chan[i].freq=4095;
+
+      if (i<3) {
+        rWrite((i<<1),chan[i].freq&0xff);
+        rWrite(1+(i<<1),(chan[i].freq>>8)|((chan[i].wave&3)<<4));
+      }
 
       if (chan[i].keyOn) {
       }
@@ -181,83 +173,14 @@ void DivPlatformDave::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
   }
-  if (updateLFO) {
-    rWrite(0x08,lfoSpeed);
-    rWrite(0x09,lfoMode);
-    updateLFO=false;
-  }
 }
 
 int DivPlatformDave::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
-      chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:31;
-      if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-        chan[c.chan].pcm=true;
-      } else if (chan[c.chan].furnaceDac) {
-        chan[c.chan].pcm=false;
-        chan[c.chan].sampleNote=DIV_NOTE_NULL;
-        chan[c.chan].sampleNoteDelta=0;
-      }
-      if (chan[c.chan].pcm) {
-        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-          chan[c.chan].furnaceDac=true;
-          if (skipRegisterWrites) break;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].dacSample=ins->amiga.getSample(c.value);
-            chan[c.chan].sampleNote=c.value;
-            c.value=ins->amiga.getFreq(c.value);
-            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
-            chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
-            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
-          }
-          if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
-            chan[c.chan].dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-            break;
-          } else {
-             if (dumpWrites) {
-             }
-          }
-          chan[c.chan].dacPos=0;
-          chan[c.chan].dacPeriod=0;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
-            chan[c.chan].freqChanged=true;
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].active=true;
-          chan[c.chan].macroInit(ins);
-          if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
-            chan[c.chan].outVol=chan[c.chan].vol;
-          }
-          //chan[c.chan].keyOn=true;
-        } else {
-          chan[c.chan].furnaceDac=false;
-          chan[c.chan].sampleNote=DIV_NOTE_NULL;
-          chan[c.chan].sampleNoteDelta=0;
-          if (skipRegisterWrites) break;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (chan[c.chan].dacSample>=parent->song.sampleLen) {
-            chan[c.chan].dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-            break;
-          } else {
-            if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
-          }
-          chan[c.chan].dacPos=0;
-          chan[c.chan].dacPeriod=0;
-          chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
-          if (dumpWrites) {
-          }
-        }
-        break;
-      }
+      // TODO: handle DAC
+      if (c.chan>=4) break;
       chan[c.chan].sampleNote=DIV_NOTE_NULL;
       chan[c.chan].sampleNoteDelta=0;
       if (c.value!=DIV_NOTE_NULL) {
@@ -267,6 +190,7 @@ int DivPlatformDave::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
+      chan[c.chan].writeVol=true;
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
@@ -275,11 +199,9 @@ int DivPlatformDave::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      chan[c.chan].dacSample=-1;
-      if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-      chan[c.chan].pcm=false;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
+      chan[c.chan].writeVol=true;
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
@@ -297,7 +219,7 @@ int DivPlatformDave::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active && !chan[c.chan].pcm) {
+          if (chan[c.chan].active) {
           }
         }
       }
@@ -315,18 +237,6 @@ int DivPlatformDave::dispatch(DivCommand c) {
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
       chan[c.chan].keyOn=true;
-      break;
-    case DIV_CMD_PCE_LFO_MODE:
-      if (c.value==0) {
-        lfoMode=0;
-      } else {
-        lfoMode=c.value;
-      }
-      updateLFO=true;
-      break;
-    case DIV_CMD_PCE_LFO_SPEED:
-      lfoSpeed=255-c.value;
-      updateLFO=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
@@ -352,7 +262,8 @@ int DivPlatformDave::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_PANNING: {
-      chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
+      chan[c.chan].panL=c.value>>2;
+      chan[c.chan].panR=c.value2>>2;
       break;
     }
     case DIV_CMD_LEGATO:
@@ -387,8 +298,7 @@ int DivPlatformDave::dispatch(DivCommand c) {
 
 void DivPlatformDave::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (!isMuted[ch] && (chan[ch].pcm && chan[ch].dacSample!=-1)) {
-  }
+  // TODO
 }
 
 void DivPlatformDave::forceIns() {
@@ -407,31 +317,20 @@ DivMacroInt* DivPlatformDave::getChanMacroInt(int ch) {
 }
 
 unsigned short DivPlatformDave::getPan(int ch) {
-  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+  return (chan[ch].panL<<2)|chan[ch].panR;
 }
 
 DivChannelPair DivPlatformDave::getPaired(int ch) {
-  if (ch==1 && lfoMode>0) {
-    return DivChannelPair("mod",0);
-  }
   return DivChannelPair();
 }
 
 DivChannelModeHints DivPlatformDave::getModeHints(int ch) {
   DivChannelModeHints ret;
-  if (ch<4) return ret;
-  ret.count=1;
-  ret.hint[0]=ICON_FUR_NOISE;
-  ret.type[0]=0;
-
-  if (chan[ch].noise) ret.type[0]=4;
-  
   return ret;
 }
 
 DivSamplePos DivPlatformDave::getSamplePos(int ch) {
-  if (ch>=6) return DivSamplePos();
-  if (!chan[ch].pcm) return DivSamplePos();
+  if (ch<4 || ch>=6) return DivSamplePos();
   return DivSamplePos(
     chan[ch].dacSample,
     chan[ch].dacPos,
@@ -452,12 +351,12 @@ unsigned char* DivPlatformDave::getRegisterPool() {
 }
 
 int DivPlatformDave::getRegisterPoolSize() {
-  return 112;
+  return 32;
 }
 
 void DivPlatformDave::reset() {
   writes.clear();
-  memset(regPool,0,128);
+  memset(regPool,0,32);
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformDave::Channel();
     chan[i].std.setEngine(parent);
@@ -465,23 +364,16 @@ void DivPlatformDave::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
+  dave->reset(true);
   lastPan=0xff;
-  memset(tempL,0,32*sizeof(int));
-  memset(tempR,0,32*sizeof(int));
   cycles=0;
   curChan=-1;
-  sampleBank=0;
-  lfoMode=0;
-  lfoSpeed=255;
   // set global volume
   rWrite(0,0);
   rWrite(0x01,0xff);
-  // set LFO
-  updateLFO=true;
   // set per-channel initial panning
   for (int i=0; i<6; i++) {
   }
-  delay=500;
 }
 
 int DivPlatformDave::getOutputCount() {
@@ -501,8 +393,7 @@ void DivPlatformDave::notifyInsDeletion(void* ins) {
 void DivPlatformDave::setFlags(const DivConfig& flags) {
   chipClock=8000000.0;
   CHECK_CUSTOM_CLOCK;
-  antiClickEnabled=!flags.getBool("noAntiClick",false);
-  rate=chipClock/12;
+  rate=chipClock/16;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -520,7 +411,7 @@ int DivPlatformDave::init(DivEngine* p, int channels, int sugRate, const DivConf
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
-  updateLFO=false;
+  dave=new Ep128::Dave;
   for (int i=0; i<6; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
@@ -534,6 +425,7 @@ void DivPlatformDave::quit() {
   for (int i=0; i<6; i++) {
     delete oscBuf[i];
   }
+  delete dave;
 }
 
 DivPlatformDave::~DivPlatformDave() {
