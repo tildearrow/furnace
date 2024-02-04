@@ -2003,7 +2003,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_DAVE]=new DivSysDef(
-    "Dave", NULL, 0xd5, 0, 6, false, true, 0, false, 0, 0, 0,
+    "Dave", NULL, 0xd5, 0, 6, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     "this chip was featured in the Enterprise 128 computer. it is similar to POKEY, but with stereo output.",
     {"Channel 1", "Channel 2", "Channel 3", "Noise", "DAC Left", "DAC Right"},
     {"CH1", "CH2", "CH3", "NO", "L", "R"},

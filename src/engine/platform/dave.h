@@ -29,10 +29,11 @@ class DivPlatformDave: public DivDispatch {
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
     int dacSample;
+    unsigned char noiseFreq;
     unsigned char panL;
     unsigned char panR;
     unsigned char wave;
-    bool writeVol;
+    bool writeVol, highPass, ringMod, swapCounters, lowPass, resetPhase;
     Channel():
       SharedChannel<signed char>(63),
       dacPeriod(0),
@@ -40,10 +41,16 @@ class DivPlatformDave: public DivDispatch {
       dacOut(0),
       dacPos(0),
       dacSample(-1),
+      noiseFreq(0),
       panL(63),
       panR(63),
       wave(0),
-      writeVol(false) {}
+      writeVol(false),
+      highPass(false),
+      ringMod(false),
+      swapCounters(false),
+      lowPass(false),
+      resetPhase(false) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
@@ -55,9 +62,8 @@ class DivPlatformDave: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,512> writes;
-  unsigned char lastPan;
+  bool writeControl;
 
-  int cycles, curChan;
   Ep128::Dave* dave;
   unsigned char regPool[32];
   friend void putDispatchChip(void*,int);
