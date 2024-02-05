@@ -109,7 +109,7 @@ option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be tre
 option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
-option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" ON)
+option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" OFF)
 
 set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
 
