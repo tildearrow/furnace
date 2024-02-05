@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,6 +131,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -152,7 +153,6 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     bool isSampleLoaded(int index, int sample);
     void renderSamples(int chipID);
     const char** getRegisterSheet();
-    void setBanked(bool banked);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformX1_010():

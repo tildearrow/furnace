@@ -1,12 +1,7 @@
 # instruments
 
 a directory of ready-to-use instruments.
-these are organized in the following categories:
-
-- **FM**: FM instruments for OPN/OPM.
-- **OPL**: FM instruments for OPL.
-- **OPLL**: FM instruments for OPLL.
-- **other**: instruments for any other system.
+these are organized in the respective chip folders.
 
 # contributors
 
@@ -23,7 +18,6 @@ these are organized in the following categories:
 - jvsTSX
 - Laggy
 - LovelyA72
-- nicco1690
 - PacorexTheTrex
 - paynspch
 - pedipanol
@@ -48,5 +42,6 @@ you may submit your own instruments by creating a pull request or contacting me!
 - I (strongly) prefer original instruments.
 - your instruments have to be free of restrictions (these may be used in any project).
   - be careful if your instrument contains samples.
+- please be careful to put new instruments in the right folders.
 
 thanks for your contribution!

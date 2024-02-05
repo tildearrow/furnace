@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,11 @@
 
 // portions based on imgui_widgets.cpp
 
-#include "plot_nolerp.h"
-#include "imgui.h"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
+#include "plot_nolerp.h"
+#include "imgui.h"
 #include "imgui_internal.h"
 
 struct FurnacePlotArrayGetterData
@@ -78,7 +78,7 @@ int PlotNoLerpEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     ImGui::ItemSize(total_bb, style.FramePadding.y);
     if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
-    const bool hovered = ImGui::ItemHoverable(frame_bb, id);
+    const bool hovered = ImGui::ItemHoverable(frame_bb, id, 0);
 
     // Determine scale from values if not specified
     if (scale_min == FLT_MAX || scale_max == FLT_MAX)
@@ -205,7 +205,7 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
     ImGui::ItemSize(total_bb, style.FramePadding.y);
     if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
-    const bool hovered = ImGui::ItemHoverable(frame_bb, id);
+    const bool hovered = ImGui::ItemHoverable(frame_bb, id, 0);
 
     ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
@@ -315,7 +315,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     ImGui::ItemSize(total_bb, style.FramePadding.y);
     if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
-    const bool hovered = ImGui::ItemHoverable(frame_bb, id);
+    const bool hovered = ImGui::ItemHoverable(frame_bb, id, 0);
 
     // Determine scale from values if not specified
     if (scale_min == FLT_MAX || scale_max == FLT_MAX)
@@ -394,6 +394,8 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
           window->DrawList->AddLine(ImLerp(inner_bb.Min,inner_bb.Max,ImVec2(0.0f,histogram_zero_line_t)),ImLerp(inner_bb.Min,inner_bb.Max,ImVec2(1.0f,histogram_zero_line_t)),col_base);
         }
 
+        ImVec2 chevron[3];
+
         for (int n = 0; n < res_w; n++)
         {
             const float t1 = t0 + t_step;
@@ -421,11 +423,30 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
                 if (values_highlight!=NULL) {
                   if (values_highlight[v1_idx]) rCol=ImGui::GetColorU32(highlightColor);
                 }
-                window->DrawList->AddRectFilled(pos0, pos1, rCol);
+                if (blockMode) {
+                  if ((int)v0>=(int)(scale_max+0.5)) {
+                    float chScale=(pos1.x-pos0.x)*0.125;
+                    chevron[0]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.25,pos1.y+4.0f*chScale);
+                    chevron[1]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.5,pos1.y+2.0f*chScale);
+                    chevron[2]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.75,pos1.y+4.0f*chScale);
+                    window->DrawList->AddPolyline(chevron, 3, rCol, 0, chScale);
+                  } else if ((int)v0<(int)(scale_min)) {
+                    float chScale=(pos1.x-pos0.x)*0.125;
+                    chevron[0]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.25,pos1.y-4.0f*chScale);
+                    chevron[1]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.5,pos1.y-2.0f*chScale);
+                    chevron[2]=ImVec2(pos0.x+(pos1.x-pos0.x)*0.75,pos1.y-4.0f*chScale);
+                    window->DrawList->AddPolyline(chevron, 3, rCol, 0, chScale);
+                  } else {
+                    window->DrawList->AddRectFilled(pos0, pos1, rCol);
+                  }
+                } else {
+                  window->DrawList->AddRectFilled(pos0, pos1, rCol);
+                }
             }
 
             t0 = t1;
             tp0 = tp1;
+            v0 = v1;
         }
     }
 

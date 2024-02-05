@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 extern "C" {
   #include "../../../extern/Nuked-PSG/ympsg.h"
 }
-#include <queue>
+#include "../../fixedQueue.h"
 
 class DivPlatformSMS: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
@@ -59,9 +59,10 @@ class DivPlatformSMS: public DivDispatch {
     unsigned short addr;
     unsigned char val;
     bool addrOrVal;
+    QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,128> writes;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
@@ -76,7 +77,9 @@ class DivPlatformSMS: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
@@ -86,6 +89,7 @@ class DivPlatformSMS: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    bool getLegacyAlwaysSetVolume();
     float getPostAmp();
     int getPortaFloor(int ch);
     void setFlags(const DivConfig& flags);

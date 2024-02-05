@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(((c)<<3)+(a),v)
 
 void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
@@ -49,7 +49,7 @@ void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
     buf[1][h]=os[1];
 
     for (int i=0; i<16; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=pcm.lastOut[i][0]+pcm.lastOut[i][1];
+      oscBuf[i]->data[oscBuf[i]->needle++]=(pcm.lastOut[i][0]+pcm.lastOut[i][1])>>1;
     }
   }
 }
@@ -121,7 +121,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
           DivSample* s=parent->getSample(chan[i].pcm.sample);
           off=(double)s->centerRate/8363.0;
         }
-        chan[i].pcm.freq=MIN(255,(15625+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+512)/(128.0*12.0)))*255)/31250)+(oldSlides?chan[i].pitch2:0);
+        chan[i].pcm.freq=MIN(255,((rate*0.5)+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+512)/(128.0*12.0)))*255)/rate)+(oldSlides?chan[i].pitch2:0);
         rWrite(7+(i<<3),chan[i].pcm.freq);
       }
       chan[i].freqChanged=false;
@@ -138,7 +138,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
             rWrite(0x84+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample])&0xff);
             rWrite(0x85+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample]>>8)&0xff);
             rWrite(6+(i<<3),sampleEndSegaPCM[chan[i].pcm.sample]);
-            if (loopStart<0 || loopStart>=actualLength) {
+            if (!s->isLoopable()) {
               rWrite(0x86+(i<<3),2+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
             } else {
               int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart;
@@ -156,7 +156,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
             rWrite(0x84+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample])&0xff);
             rWrite(0x85+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample]>>8)&0xff);
             rWrite(6+(i<<3),sampleEndSegaPCM[chan[i].pcm.sample]);
-            if (loopStart<0 || loopStart>=actualLength) {
+            if (!s->isLoopable()) {
               rWrite(0x86+(i<<3),2+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
             } else {
               int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart;
@@ -189,15 +189,14 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].isNewSegaPCM=(ins->type==DIV_INS_SEGAPCM);
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
         }
         if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
           chan[c.chan].pcm.sample=-1;
           rWrite(0x86+(c.chan<<3),3);
           chan[c.chan].macroInit(NULL);
-          if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
-            chan[c.chan].outVol=chan[c.chan].vol;
-          }
           break;
         }
         if (c.value!=DIV_NOTE_NULL) {
@@ -207,6 +206,16 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         }
         chan[c.chan].furnacePCM=true;
         chan[c.chan].macroInit(ins);
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+
+          if (parent->song.newSegaPCM) {
+            chan[c.chan].chVolL=(chan[c.chan].outVol*chan[c.chan].chPanL)/127;
+            chan[c.chan].chVolR=(chan[c.chan].outVol*chan[c.chan].chPanR)/127;
+            rWrite(2+(c.chan<<3),chan[c.chan].chVolL);
+            rWrite(3+(c.chan<<3),chan[c.chan].chVolR);
+          }
+        }
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;
       } else {
@@ -220,7 +229,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           rWrite(0x86+(c.chan<<3),3);
           break;
         }
-        chan[c.chan].pcm.freq=MIN(255,(parent->getSample(chan[c.chan].pcm.sample)->rate*255)/31250);
+        chan[c.chan].pcm.freq=MIN(255,(parent->getSample(chan[c.chan].pcm.sample)->rate*255)/rate);
         chan[c.chan].furnacePCM=false;
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;
@@ -290,7 +299,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.value2<<7);
+      int destFreq=((c.value2+chan[c.chan].sampleNoteDelta)<<7);
       int newFreq;
       int mul=(oldSlides || parent->song.linearPitch!=2)?8:1;
       bool return2=false;
@@ -316,7 +325,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=(c.value<<7);
+      chan[c.chan].baseFreq=((c.value+chan[c.chan].sampleNoteDelta)<<7);
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -332,8 +341,8 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
@@ -365,6 +374,10 @@ void DivPlatformSegaPCM::forceIns() {
   }
 }
 
+bool DivPlatformSegaPCM::getLegacyAlwaysSetVolume() {
+  return false;
+}
+
 void DivPlatformSegaPCM::notifyInsChange(int ins) {
   for (int i=0; i<16; i++) {
     if (chan[i].ins==ins) {
@@ -385,6 +398,10 @@ void* DivPlatformSegaPCM::getChanState(int ch) {
 
 DivMacroInt* DivPlatformSegaPCM::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformSegaPCM::getPan(int ch) {
+  return (chan[ch].chPanL<<8)|chan[ch].chPanR;
 }
 
 DivSamplePos DivPlatformSegaPCM::getSamplePos(int ch) {
@@ -423,7 +440,7 @@ const void* DivPlatformSegaPCM::getSampleMem(int index) {
 }
 
 size_t DivPlatformSegaPCM::getSampleMemCapacity(int index) {
-  return index == 0 ? 16777216 : 0;
+  return index == 0 ? 2097152 : 0;
 }
 
 size_t DivPlatformSegaPCM::getSampleMemUsage(int index) {
@@ -465,7 +482,7 @@ void DivPlatformSegaPCM::reset() {
 void DivPlatformSegaPCM::renderSamples(int sysID) {
   size_t memPos=0;
 
-  memset(sampleMem,0,16777216);
+  memset(sampleMem,0,2097152);
   memset(sampleLoaded,0,256*sizeof(bool));
   memset(sampleOffSegaPCM,0,256*sizeof(unsigned int));
   memset(sampleEndSegaPCM,0,256);
@@ -482,7 +499,7 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
     }
     logV("- sample %d will be at %x with length %x",i,memPos,alignedSize);
     sampleLoaded[i]=true;
-    if (memPos>=16777216) break;
+    if (memPos>=2097152) break;
     sampleOffSegaPCM[i]=memPos;
     for (unsigned int j=0; j<alignedSize; j++) {
       if (j>=sample->samples) {
@@ -491,10 +508,10 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
         sampleMem[memPos++]=((unsigned char)sample->data8[j]+0x80);
       }
       sampleEndSegaPCM[i]=((memPos+0xff)>>8)-1;
-      if (memPos>=16777216) break;
+      if (memPos>=2097152) break;
     }
     logV("  and it ends in %d",sampleEndSegaPCM[i]);
-    if (memPos>=16777216) break;
+    if (memPos>=2097152) break;
   }
   sampleMemLen=memPos;
 }
@@ -522,10 +539,10 @@ int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, const DivC
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  sampleMem=new unsigned char[16777216];
+  sampleMem=new unsigned char[2097152];
   pcm.set_bank(segapcm_device::BANK_12M|segapcm_device::BANK_MASKF8);
   pcm.set_read([this](unsigned int addr) -> unsigned char {
-    return sampleMem[addr&0xffffff];
+    return sampleMem[addr&0x1fffff];
   });
   setFlags(flags);
   reset();

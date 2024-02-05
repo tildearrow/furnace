@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,14 +130,15 @@ class DivPlatformOPN: public DivPlatformFMBase {
       unsigned char freqH, freqL;
       int portaPauseFreq;
       signed char konCycles;
-      bool mask;
+      bool mask, hardReset;
       OPNOpChannel():
         SharedChannel<int>(0),
         freqH(0),
         freqL(0),
         portaPauseFreq(0),
         konCycles(0),
-        mask(true) {}
+        mask(true),
+        hardReset(false) {}
     };
 
     struct OPNOpChannelStereo: public OPNOpChannel {
@@ -154,6 +155,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
     unsigned int ayDiv;
     unsigned char csmChan;
     unsigned char lfoValue;
+    unsigned char lastExtChPan;
     unsigned short ssgVol;
     unsigned short fmVol;
     bool extSys, useCombo, fbAllOps;
@@ -174,6 +176,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
       ayDiv(a),
       csmChan(cc),
       lfoValue(0),
+      lastExtChPan(3),
       ssgVol(128),
       fmVol(256),
       extSys(isExtSys),
@@ -182,6 +185,17 @@ class DivPlatformOPN: public DivPlatformFMBase {
   public:
     void setCombo(bool combo) {
       useCombo=combo;
+    }
+    virtual int mapVelocity(int ch, float vel) {
+      if (ch==csmChan) return vel*127.0;
+      if (ch==adpcmBChanOffs) return vel*255.0;
+      if (ch>=adpcmAChanOffs) {
+        if (vel==0) return 0;
+        if (vel>=1.0) return 31;
+        return CLAMP(round(32.0-(56.0-log2(vel*127.0)*8.0)),0,31);
+      }
+      if (ch>=psgChanOffs) return round(15.0*pow(vel,0.33));
+      return DivPlatformFMBase::mapVelocity(ch,vel);
     }
 };
 

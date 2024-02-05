@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -305,8 +305,8 @@ void DivPlatformYM2610B::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformYM2610B::acquire_combo(short** buf, size_t len) {
-  static int os[2];
-  static short ignored[2];
+  thread_local int os[2];
+  thread_local short ignored[2];
 
   ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
   ymfm::adpcm_a_engine* aae=fm->debug_adpcm_a_engine();
@@ -401,24 +401,24 @@ void DivPlatformYM2610B::acquire_combo(short** buf, size_t len) {
 
     
     for (int i=0; i<psgChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i];
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm_nuked.ch_out[i]<<1,-32768,32767);
     }
 
     ssge->get_last_out(ssgOut);
     for (int i=psgChanOffs; i<adpcmAChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-psgChanOffs];
+      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-psgChanOffs]<<1;
     }
 
     for (int i=adpcmAChanOffs; i<adpcmBChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=adpcmAChan[i-adpcmAChanOffs]->get_last_out(0)+adpcmAChan[i-adpcmAChanOffs]->get_last_out(1);
+      oscBuf[i]->data[oscBuf[i]->needle++]=(adpcmAChan[i-adpcmAChanOffs]->get_last_out(0)+adpcmAChan[i-adpcmAChanOffs]->get_last_out(1))>>1;
     }
 
-    oscBuf[adpcmBChanOffs]->data[oscBuf[adpcmBChanOffs]->needle++]=abe->get_last_out(0)+abe->get_last_out(1);
+    oscBuf[adpcmBChanOffs]->data[oscBuf[adpcmBChanOffs]->needle++]=(abe->get_last_out(0)+abe->get_last_out(1))>>1;
   }
 }
 
 void DivPlatformYM2610B::acquire_ymfm(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   ymfm::ym2610b::fm_engine* fme=fm->debug_fm_engine();
   ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
@@ -471,19 +471,20 @@ void DivPlatformYM2610B::acquire_ymfm(short** buf, size_t len) {
 
     
     for (int i=0; i<psgChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1));
+      int out=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(out,-32768,32767);
     }
 
     ssge->get_last_out(ssgOut);
     for (int i=psgChanOffs; i<adpcmAChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-psgChanOffs];
+      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-psgChanOffs]<<1;
     }
 
     for (int i=adpcmAChanOffs; i<adpcmBChanOffs; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=adpcmAChan[i-adpcmAChanOffs]->get_last_out(0)+adpcmAChan[i-adpcmAChanOffs]->get_last_out(1);
+      oscBuf[i]->data[oscBuf[i]->needle++]=(adpcmAChan[i-adpcmAChanOffs]->get_last_out(0)+adpcmAChan[i-adpcmAChanOffs]->get_last_out(1))>>1;
     }
 
-    oscBuf[adpcmBChanOffs]->data[oscBuf[adpcmBChanOffs]->needle++]=abe->get_last_out(0)+abe->get_last_out(1);
+    oscBuf[adpcmBChanOffs]->data[oscBuf[adpcmBChanOffs]->needle++]=(abe->get_last_out(0)+abe->get_last_out(1))>>1;
   }
 }
 
@@ -606,7 +607,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
@@ -784,6 +785,8 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       } else {
         chan[adpcmBChanOffs].freq=0;
       }
+      if (chan[adpcmBChanOffs].freq<0) chan[adpcmBChanOffs].freq=0;
+      if (chan[adpcmBChanOffs].freq>65535) chan[adpcmBChanOffs].freq=65535;
       immWrite(0x19,chan[adpcmBChanOffs].freq&0xff);
       immWrite(0x1a,(chan[adpcmBChanOffs].freq>>8)&0xff);
       hardResetElapsed+=2;
@@ -914,7 +917,9 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
           }
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].sample=ins->amiga.getSample(c.value);
+            chan[c.chan].sampleNote=c.value;
             c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
           }
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
@@ -1145,7 +1150,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (c.chan>=psgChanOffs || parent->song.linearPitch==2) { // PSG, ADPCM-B
-        int destFreq=NOTE_OPNB(c.chan,c.value2);
+        int destFreq=NOTE_OPNB(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -1186,12 +1191,13 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
           chan[c.chan].insChanged=false;
         }
       }
-      chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value);
+      chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value+chan[c.chan].sampleNoteDelta);
       chan[c.chan].freqChanged=true;
       break;
     }
     case DIV_CMD_FM_EXTCH: {
       if (extSys) {
+        if (extMode==(bool)c.value) break;
         extMode=c.value;
         immWrite(0x27,extMode?0x40:0);
       }
@@ -1387,8 +1393,8 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       if (c.chan>=adpcmBChanOffs) return 255;
@@ -1487,6 +1493,11 @@ DivMacroInt* DivPlatformYM2610B::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformYM2610B::getPan(int ch) {
+  if (ch>=psgChanOffs && ch<adpcmAChanOffs) return 0;
+  return ((chan[ch].pan&2)<<7)|(chan[ch].pan&1);
+}
+
 DivDispatchOscBuffer* DivPlatformYM2610B::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -1508,7 +1519,7 @@ void DivPlatformYM2610B::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformYM2610B::reset() {
-  while (!writes.empty()) writes.pop_front();
+  writes.clear();
   memset(regPool,0,512);
   if (dumpWrites) {
     addWrite(0xffffffff,0);

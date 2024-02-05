@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 #include "../engine.h"
 #include "../../ta-log.h"
 #include <math.h>
-#include <map>
 
 #define CHIP_DIVIDER (1248*2)
 #define QS_NOTE_FREQUENCY(x) parent->calcBaseFreq(440,4096,(x)-3,false)
@@ -272,7 +271,7 @@ void DivPlatformQSound::acquire(short** buf, size_t len) {
     buf[1][h]=chip.out[1];
 
     for (int i=0; i<19; i++) {
-      int data=chip.voice_output[i]<<2;
+      int data=chip.voice_output[i]<<1;
       if (data<-32768) data=-32768;
       if (data>32767) data=32767;
       oscBuf[i]->data[oscBuf[i]->needle++]=data;
@@ -319,7 +318,7 @@ void DivPlatformQSound::tick(bool sysTick) {
       if (length > 65536 - 16) {
         length = 65536 - 16;
       }
-      if (loopStart == -1 || loopStart >= length) {
+      if (!s->isLoopable()) {
         if (i<16) {
           qsound_end = offPCM[chan[i].sample] + length + 15;
         } else {
@@ -452,7 +451,9 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       chan[c.chan].isNewQSound=(ins->type==DIV_INS_QSOUND);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
+        chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value);
@@ -466,6 +467,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
+      chan[c.chan].keyOff=false;
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
@@ -543,7 +545,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=QS_NOTE_FREQUENCY(c.value2);
+      int destFreq=QS_NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -566,7 +568,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -587,8 +589,8 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -609,6 +611,7 @@ void DivPlatformQSound::forceIns() {
   for (int i=0; i<19; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chan[i].keyOff=true;
     //chan[i].sample=-1;
   }
 }
@@ -619,6 +622,10 @@ void* DivPlatformQSound::getChanState(int ch) {
 
 DivMacroInt* DivPlatformQSound::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformQSound::getPan(int ch) {
+  return parent->convertPanLinearToSplit(chan[ch].panning,8,32);
 }
 
 DivDispatchOscBuffer* DivPlatformQSound::getOscBuffer(int ch) {

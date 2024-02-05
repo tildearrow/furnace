@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,9 +85,9 @@ void DivPlatformMMC5::acquire(short** buf, size_t len) {
 
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:((mmc5->S3.output*10)<<7);
-      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:((mmc5->S4.output*10)<<7);
-      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:((mmc5->pcm.output*2)<<6);
+      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:((mmc5->S3.output)<<11);
+      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:((mmc5->S4.output)<<11);
+      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:((mmc5->pcm.output)<<7);
     }
   }
 }
@@ -178,7 +178,12 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
         if (ins->type==DIV_INS_AMIGA) {
           if (c.value!=DIV_NOTE_NULL) {
             dacSample=ins->amiga.getSample(c.value);
+            chan[c.chan].sampleNote=c.value;
             c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+            dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
           }
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
@@ -189,8 +194,8 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
           }
           dacPos=0;
           dacPeriod=0;
-          chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
           if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
             chan[c.chan].freqChanged=true;
             chan[c.chan].note=c.value;
           }
@@ -270,7 +275,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.chan==2)?(parent->calcBaseFreq(1,1,c.value2,false)):(NOTE_PERIODIC(c.value2));
+      int destFreq=(c.chan==2)?(parent->calcBaseFreq(1,1,c.value2+chan[c.chan].sampleNoteDelta,false)):(NOTE_PERIODIC(c.value2));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -304,7 +309,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO:
       if (c.chan==2) {
-        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)),false);
+        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)),false);
       } else {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       }
@@ -327,8 +332,8 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -455,7 +455,7 @@ void FurnaceGUI::drawWaveEdit() {
 
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(80.0f*dpiScale);
-        if (ImGui::InputInt("##CurWave",&curWave,1,1)) {
+        if (ImGui::InputInt("##CurWave",&curWave,1,10)) {
           if (curWave<0) curWave=0;
           if (curWave>=(int)e->song.wave.size()) curWave=e->song.wave.size()-1;
         }
@@ -499,7 +499,7 @@ void FurnaceGUI::drawWaveEdit() {
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
-        if (ImGui::InputInt("##_WTW",&wave->len,1,2)) {
+        if (ImGui::InputInt("##_WTW",&wave->len,1,16)) {
           if (wave->len>256) wave->len=256;
           if (wave->len<1) wave->len=1;
           e->notifyWaveChange(curWave);
@@ -514,7 +514,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
         int realMax=wave->max+1;
-        if (ImGui::InputInt("##_WTH",&realMax,1,2)) {
+        if (ImGui::InputInt("##_WTH",&realMax,1,16)) {
           if (realMax>256) realMax=256;
           if (realMax<2) realMax=2;
           wave->max=realMax-1;
@@ -593,6 +593,7 @@ void FurnaceGUI::drawWaveEdit() {
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("Duty");
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -602,6 +603,7 @@ void FurnaceGUI::drawWaveEdit() {
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("Exponent");
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -611,6 +613,7 @@ void FurnaceGUI::drawWaveEdit() {
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("XOR Point");
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -630,6 +633,7 @@ void FurnaceGUI::drawWaveEdit() {
                     for (int i=0; i<16; i++) {
                       ImGui::TableNextRow();
                       ImGui::TableNextColumn();
+                      ImGui::AlignTextToFramePadding();
                       ImGui::Text("%d",i+1);
                       ImGui::TableNextColumn();
                       ImGui::PushID(140+i);
@@ -683,6 +687,7 @@ void FurnaceGUI::drawWaveEdit() {
                   for (int i=0; i<4; i++) {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
+                    ImGui::AlignTextToFramePadding();
                     ImGui::Text("%d",i+1);
 
                     ImGui::TableNextColumn();
@@ -727,6 +732,7 @@ void FurnaceGUI::drawWaveEdit() {
                   for (int i=0; i<4; i++) {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
+                    ImGui::AlignTextToFramePadding();
                     ImGui::Text("%d",i+1);
 
                     ImGui::TableNextColumn();
@@ -760,6 +766,7 @@ void FurnaceGUI::drawWaveEdit() {
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("1");
                   ImGui::TableNextColumn();
                   if (ImGui::Checkbox("##ConO1",&waveGenFMCon0[0])) {
@@ -784,6 +791,7 @@ void FurnaceGUI::drawWaveEdit() {
                   
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("2");
                   ImGui::TableNextColumn();
                   if (ImGui::Checkbox("##Con11",&waveGenFMCon1[0])) {
@@ -808,6 +816,7 @@ void FurnaceGUI::drawWaveEdit() {
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("3");
                   ImGui::TableNextColumn();
                   if (ImGui::Checkbox("##Con21",&waveGenFMCon2[0])) {
@@ -832,6 +841,7 @@ void FurnaceGUI::drawWaveEdit() {
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
+                  ImGui::AlignTextToFramePadding();
                   ImGui::Text("4");
                   ImGui::TableNextColumn();
                   if (ImGui::Checkbox("##Con31",&waveGenFMCon3[0])) {
@@ -1083,10 +1093,22 @@ void FurnaceGUI::drawWaveEdit() {
                     MARK_MODIFIED;
                   });
                 }
-                if (ImGui::Button("Invert",buttonSize)) {
+                if (ImGui::Button("Invert",buttonSizeHalf)) {
                   e->lockEngine([this,wave]() {
                     for (int i=0; i<wave->len; i++) {
                       wave->data[i]=wave->max-wave->data[i];
+                    }
+                    MARK_MODIFIED;
+                  });
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Reverse",buttonSizeHalf)) {
+                  e->lockEngine([this,wave]() {
+                    int origData[256];
+                    memcpy(origData,wave->data,wave->len*sizeof(int));
+
+                    for (int i=0; i<wave->len; i++) {
+                      wave->data[i]=origData[wave->len-1-i];
                     }
                     MARK_MODIFIED;
                   });

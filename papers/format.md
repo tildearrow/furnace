@@ -32,105 +32,30 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
-- 155: Furnace dev155
-- 154: Furnace dev154
-- 153: Furnace dev153
-- 152: Furnace dev152
-- 151: Furnace dev151
-- 150: Furnace dev150
-- 149: Furnace dev149
-- 148: Furnace dev148
-- 147: Furnace dev147
+- 192: Furnace 0.6.1
+- 181: Furnace 0.6
+- 180: Furnace 0.6pre18
+- 179: Furnace 0.6pre17
+- 178: Furnace 0.6pre16
+- 177: Furnace 0.6pre15
+- 175: Furnace 0.6pre14
+- 174: Furnace 0.6pre13
+- 173: Furnace 0.6pre12
+- 172: Furnace 0.6pre11
+- 171: Furnace 0.6pre10
+- 169: Furnace 0.6pre9
+- 166: Furnace 0.6pre8
+- 162: Furnace 0.6pre7
+- 161: Furnace 0.6pre6
+- 158: Furnace 0.6pre5
 - 146: Furnace Pro (joke version)
-- 145: Furnace dev145
-- 144: Furnace dev144
 - 143: Furnace 0.6pre4
-- 142: Furnace dev142
 - 141: Furnace Tournament Edition (for intro tune contest)
-- 140: Furnace dev140
-- 139: Furnace dev139
-- 138: Furnace dev138
-- 137: Furnace dev137
-- 136: Furnace dev136
-- 135: Furnace dev135
-- 134: Furnace dev134
 - 133: Furnace 0.6pre3
 - 132: Furnace 0.6pre2
-- 131: Furnace dev131
-- 130: Furnace dev130
-- 129: Furnace dev129
-- 128: Furnace dev128
-- 127: Furnace dev127
-- 126: Furnace dev126
-- 125: Furnace dev125
-- 124: Furnace dev124
-- 123: Furnace dev123
-- 122: Furnace dev122
-- 121: Furnace dev121
-- 120: Furnace dev120
-- 119: Furnace dev119
-- 118: Furnace dev118
-- 117: Furnace dev117
 - 116: Furnace 0.6pre1.5
-- 115: Furnace dev115
-- 114: Furnace dev114
-- 113: Furnace dev113
-- 112: Furnace dev112
-- 111: Furnace dev111
-- 110: Furnace dev110
-- 109: Furnace dev109
-- 108: Furnace dev108
-- 107: Furnace dev107
-- 106: Furnace dev106
-- 105: Furnace dev105
-- 104: Furnace dev104
-- 103: Furnace dev103
-- 102: Furnace 0.6pre1 (dev102)
-- 101: Furnace 0.6pre1 (dev101)
 - 100: Furnace 0.6pre1
-- 99: Furnace dev99
-- 98: Furnace dev98
-- 97: Furnace dev97
-- 96: Furnace dev96
-- 95: Furnace dev95
-- 94: Furnace dev94
-- 93: Furnace dev93
-- 92: Furnace dev92
-- 91: Furnace dev91
-- 90: Furnace dev90
-- 89: Furnace dev89
-- 88: Furnace dev88
-- 87: Furnace dev87
-- 86: Furnace dev86
-- 85: Furnace dev85
-- 84: Furnace dev84
-- 83: Furnace dev83
-- 82: Furnace dev82
-- 81: Furnace dev81
-- 80: Furnace dev80
-- 79: Furnace dev79
-- 78: Furnace dev78
-- 77: Furnace dev77
-- 76: Furnace dev76
 - 75: Furnace dev75/April Fools' 0.6pre0
-- 74: Furnace dev74
-- 73: Furnace dev73
-- 72: Furnace dev72
-- 71: Furnace dev71
-- 70: Furnace dev70
-- 69: Furnace dev69
-- 68: Furnace dev68
-- 67: Furnace dev67
-- 66: Furnace dev66
-- 65: Furnace dev65
-- 64: Furnace dev64
-- 63: Furnace dev63
-- 62: Furnace dev62
-- 61: Furnace dev61
-- 60: Furnace dev60
-- 59: Furnace dev59
-- 58: Furnace dev58
-- 57: Furnace dev57
 
 - 54: Furnace 0.5.8
 - 53: Furnace 0.5.7
@@ -168,6 +93,8 @@ the format versions are:
 - 14: Furnace 0.2.2
 - 13: Furnace 0.2.1
 - 12: Furnace 0.2
+
+versions that do not appear in this list are `dev???` ones.
 
 # header
 
@@ -229,8 +156,8 @@ size | description
      |   - 0x49: Neo Geo CD extended - 16 channels
      |   - 0x80: AY-3-8910 - 3 channels
      |   - 0x81: Amiga - 4 channels
-     |   - 0x82: YM2151 alone - 8 channels
-     |   - 0x83: YM2612 alone - 6 channels
+     |   - 0x82: YM2151 - 8 channels
+     |   - 0x83: YM2612 - 6 channels
      |   - 0x84: TIA - 2 channels
      |   - 0x85: VIC-20 - 4 channels
      |   - 0x86: PET - 1 channel
@@ -245,7 +172,7 @@ size | description
      |   - 0x8f: OPL (YM3526) - 9 channels
      |   - 0x90: OPL2 (YM3812) - 9 channels
      |   - 0x91: OPL3 (YMF262) - 18 channels
-     |   - 0x92: MultiPCM - 28 channels
+     |   - 0x92: MultiPCM - 28 channels (UNAVAILABLE)
      |   - 0x93: Intel 8253 (beeper) - 1 channel
      |   - 0x94: POKEY - 4 channels
      |   - 0x95: RF5C68 - 8 channels
@@ -273,8 +200,8 @@ size | description
      |   - 0xab: MSM6258 - 1 channel
      |   - 0xac: Commander X16 (VERA) - 17 channels
      |   - 0xad: Bubble System WSG - 2 channels
-     |   - 0xae: OPL4 (YMF278B) - 42 channels
-     |   - 0xaf: OPL4 drums (YMF278B) - 44 channels
+     |   - 0xae: OPL4 (YMF278B) - 42 channels (UNAVAILABLE)
+     |   - 0xaf: OPL4 drums (YMF278B) - 44 channels (UNAVAILABLE)
      |   - 0xb0: Seta/Allumer X1-010 - 16 channels
      |   - 0xb1: Ensoniq ES5506 - 32 channels
      |   - 0xb2: Yamaha Y8950 - 10 channels
@@ -285,24 +212,33 @@ size | description
      |   - 0xb7: YM2608 extended - 19 channels
      |   - 0xb8: YMZ280B - 8 channels
      |   - 0xb9: Namco WSG - 3 channels
-     |   - 0xba: Namco 15xx - 8 channels
-     |   - 0xbb: Namco CUS30 - 8 channels
+     |   - 0xba: Namco C15 - 8 channels
+     |   - 0xbb: Namco C30 - 8 channels
      |   - 0xbc: MSM5232 - 8 channels
-     |   - 0xbd: YM2612 extra features extended - 11 channels
-     |   - 0xbe: YM2612 extra features - 7 channels
+     |   - 0xbd: YM2612 DualPCM extended - 11 channels
+     |   - 0xbe: YM2612 DualPCM - 7 channels
      |   - 0xbf: T6W28 - 4 channels
      |   - 0xc0: PCM DAC - 1 channel
      |   - 0xc1: YM2612 CSM - 10 channels
-     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
-     |   - 0xc3: YM2203 CSM - 10 channels
-     |   - 0xc4: YM2608 CSM - 20 channels
-     |   - 0xc5: YM2610B CSM - 20 channels
+     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels (UNAVAILABLE)
+     |   - 0xc3: YM2203 CSM - 10 channels (UNAVAILABLE)
+     |   - 0xc4: YM2608 CSM - 20 channels (UNAVAILABLE)
+     |   - 0xc5: YM2610B CSM - 20 channels (UNAVAILABLE)
      |   - 0xc6: K007232 - 2 channels
      |   - 0xc7: GA20 - 4 channels
      |   - 0xc8: SM8521 - 3 channels
-     |   - 0xc9: M114S - 16 channels
+     |   - 0xc9: M114S - 16 channels (UNAVAILABLE)
      |   - 0xca: ZX Spectrum (beeper, QuadTone engine) - 5 channels
      |   - 0xcb: Casio PV-1000 - 3 channels
+     |   - 0xcc: K053260 - 4 channels
+     |   - 0xcd: TED - 2 channels
+     |   - 0xce: Namco C140 - 24 channels
+     |   - 0xcf: Namco C219 - 16 channels
+     |   - 0xd0: Namco C352 - 32 channels (UNAVAILABLE)
+     |   - 0xd1: ESFM - 18 channels
+     |   - 0xd2: Ensoniq ES5503 (hard pan) - 32 channels (UNAVAILABLE)
+     |   - 0xd4: PowerNoise - 4 channels
+     |   - 0xd5: Dave - 6 channels (UNAVAILABLE)
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel
@@ -311,6 +247,8 @@ size | description
      |   - 0xff: reserved for development
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.
+     | - (UNAVAILABLE) means that the chip hasn't been implemented in Furnace
+     |   yet.
  32  | sound chip volumes (<135) or reserved
      | - signed char, 64=1.0, 127=~2.0
      | - as of version 135 these fields only exist for compatibility reasons.
@@ -426,7 +364,12 @@ size | description
  --- | **a couple more compat flags** (>=138)
   1  | broken portamento during legato
   1  | broken macro during note off in some FM chips (>=155)
-  6  | reserved
+  1  | pre note (C64) does not compensate for portamento or legato (>=168)
+  1  | disable new NES DPCM features (>=183)
+  1  | reset arp effect phase on new note (>=184)
+  1  | linear volume scaling rounds up (>=188)
+  1  | legacy "always set volume" behavior (>=191)
+  1  | reserved
  --- | **speed pattern of first song** (>=139)
   1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
@@ -435,12 +378,16 @@ size | description
  ??? | groove entries. the format is:
      | - 1 byte: length of groove
      | - 16 bytes: groove pattern
+ --- | **pointers to asset directories** (>=156)
+  4  | instrument directories
+  4  | wavetable directories
+  4  | sample directories
 ```
 
 # patchbay
 
 Furnace dev135 adds a "patchbay" which allows for arbitrary connection of chip outputs to system outputs.
-it eventually will allow connecting outputs to effects and so on.
+it also allows connecting outputs to effects and so on.
 
 a connection is represented as an unsigned int in the following format:
 
@@ -526,6 +473,22 @@ clock=4000000
 stereo=true
 ```
 
+# asset directories (>=156)
+
+also known as "folder" in the user interface.
+
+```
+size | description
+-----|------------------------------------
+  4  | "ADIR" block ID
+  4  | size of this block
+  4  | number of directories
+ --- | **asset directory** (×numberOfDirs)
+ STR | name (if empty, this is the uncategorized directory)
+  2  | number of assets
+ 1?? | assets in this directory
+```
+
 # instrument (>=127)
 
 Furnace dev127 and higher use the new instrument format.
@@ -544,626 +507,25 @@ see [newIns.md](newIns.md) for more information.
 
 # old instrument (<127)
 
-notes:
+instruments in older versions of Furnace used a different format. see [oldIns.md](oldIns.md) for more information.
 
-- the entire instrument is stored, regardless of instrument type.
-- the macro range varies depending on the instrument type.
-- "macro open" indicates whether the macro is collapsed or not in the instrument editor.
-  - as of format version 120, bit 1-2 indicates macro mode:
-    - 0: sequence (normal)
-    - 1: ADSR
-    - 2: LFO
-  - see sub-section for information on how to interpret parameters.
-- FM operator order is:
-  - 1/3/2/4 (internal order) for OPN, OPM, OPZ and OPL 4-op
-  - 1/2/?/? (? = unused) for OPL 2-op and OPLL
-- meaning of extended macros varies depending on instrument type.
-- meaning of panning macros varies depending on instrument type:
-  - for hard-panned chips (e.g. FM and Game Boy): left panning is 2-bit panning macro (left/right)
-  - otherwise both left and right panning macros are used
+## C64 compatibility note (>=187)
 
-```
-size | description
------|------------------------------------
-  4  | "INST" block ID
-  4  | size of this block
-  2  | format version (see header)
-  1  | instrument type
-     | - 0: SN76489/standard
-     | - 1: FM (OPN)
-     | - 2: Game Boy
-     | - 3: C64
-     | - 4: Amiga/sample
-     | - 5: PC Engine
-     | - 6: AY-3-8910
-     | - 7: AY8930
-     | - 8: TIA
-     | - 9: SAA1099
-     | - 10: VIC
-     | - 11: PET
-     | - 12: VRC6
-     | - 13: OPLL
-     | - 14: OPL
-     | - 15: FDS
-     | - 16: Virtual Boy
-     | - 17: Namco 163
-     | - 18: SCC
-     | - 19: OPZ
-     | - 20: POKEY
-     | - 21: PC Speaker
-     | - 22: WonderSwan
-     | - 23: Lynx
-     | - 24: VERA
-     | - 25: X1-010
-     | - 26: VRC6 (saw)
-     | - 27: ES5506
-     | - 28: MultiPCM
-     | - 29: SNES
-     | - 30: Sound Unit
-     | - 31: Namco WSG
-     | - 32: OPL (drums)
-     | - 33: FM (OPM)
-     | - 34: NES
-     | - 35: MSM6258
-     | - 36: MSM6295
-     | - 37: ADPCM-A
-     | - 38: ADPCM-B
-     | - 39: SegaPCM
-     | - 40: QSound
-     | - 41: YMZ280B
-     | - 42: RF5C68
-     | - 43: MSM5232
-     | - 44: T6W28
-  1  | reserved
- STR | instrument name
- --- | **FM instrument data**
-  1  | alg (SUS on OPLL)
-  1  | feedback
-  1  | fms (DC on OPLL)
-  1  | ams (DM on OPLL)
-  1  | operator count
-     | - this is either 2 or 4, and is ignored on non-OPL systems.
-     | - always read 4 ops regardless of this value.
-  1  | OPLL preset (>=60) or reserved
-     | - 0: custom
-     | - 1-15: pre-defined patches
-     | - 16: drums (compatibility only!)
-  2  | reserved
- --- | **FM operator data** × 4
-  1  | am
-  1  | ar
-  1  | dr
-  1  | mult
-  1  | rr
-  1  | sl
-  1  | tl
-  1  | dt2
-  1  | rs
-  1  | dt
-  1  | d2r
-  1  | ssgEnv
-     | - bit 4: on (EG-S on OPLL)
-     | - bit 0-3: envelope type
-  1  | dam (for YMU759 compat; REV on OPZ)
-  1  | dvb (for YMU759 compat; FINE on OPZ)
-  1  | egt (for YMU759 compat; FixedFreq on OPZ)
-  1  | ksl (EGShift on OPZ)
-  1  | sus
-  1  | vib
-  1  | ws
-  1  | ksr
-  1  | operator enabled (>=114) or reserved
-  1  | KVS mode (>=115) or reserved
-     | - 0: off
-     | - 1: on
-     | - 2: auto (depending on alg)
- 10  | reserved
- --- | **Game Boy instrument data**
-  1  | volume
-  1  | direction
-  1  | length
-  1  | sound length
- --- | **C64 instrument data**
-  1  | triangle
-  1  | saw
-  1  | pulse
-  1  | noise
-  1  | attack
-  1  | decay
-  1  | sustain
-  1  | release
-  2  | duty
-  1  | ring mod
-  1  | osc sync
-  1  | to filter
-  1  | init filter
-  1  | vol macro is cutoff
-  1  | resonance
-  1  | low pass
-  1  | band pass
-  1  | high pass
-  1  | channel 3 off
-  2  | cutoff
-  1  | duty macro is absolute
-  1  | filter macro is absolute
- --- | **Amiga instrument data**
-  2  | initial sample
-  1  | mode (>=82) or reserved
-     | - 0: sample
-     | - 1: wavetable
-  1  | wavetable length (-1) (>=82) or reserved
- 12  | reserved
- --- | **standard instrument data**
-  4  | volume macro length
-  4  | arp macro length
-  4  | duty macro length
-  4  | wave macro length
-  4  | pitch macro length (>=17)
-  4  | extra 1 macro length (>=17)
-  4  | extra 2 macro length (>=17)
-  4  | extra 3 macro length (>=17)
-  4  | volume macro loop
-  4  | arp macro loop
-  4  | duty macro loop
-  4  | wave macro loop
-  4  | pitch macro loop (>=17)
-  4  | extra 1 macro loop (>=17)
-  4  | extra 2 macro loop (>=17)
-  4  | extra 3 macro loop (>=17)
-  1  | arp macro mode (<112) or reserved
-     | - treat this value in a special way.
-     | - before version 112, this byte indicates whether the arp macro mode is fixed or not.
-     | - from that version onwards, the fixed mode is part of the macro values.
-     | - to convert a <112 macro mode to a modern one, do the following:
-     |   - is the macro mode set to fixed?
-     |     - if yes, then:
-     |       - set bit 30 of all arp macro values (this is the fixed mode bit)
-     |       - does the macro loop?
-     |         - if yes, then do nothing else
-     |         - if no, then add one to the macro length, and set the last macro value to 0
-     |     - if no, then do nothing
-  1  | reserved (>=17) or volume macro height (>=15) or reserved
-  1  | reserved (>=17) or duty macro height (>=15) or reserved
-  1  | reserved (>=17) or wave macro height (>=15) or reserved
- 4?? | volume macro
-     | - before version 87, if this is the C64 relative cutoff macro, its values were stored offset by 18.
- 4?? | arp macro
-     | - before version 31, this macro's values were stored offset by 12.
-     | - from version 112 onward, bit 30 of a value indicates fixed mode.
- 4?? | duty macro
-     | - before version 87, if this is the C64 relative duty macro, its values were stored offset by 12.
- 4?? | wave macro
- 4?? | pitch macro (>=17)
- 4?? | extra 1 macro (>=17)
- 4?? | extra 2 macro (>=17)
- 4?? | extra 3 macro (>=17)
-  4  | alg macro length (>=29)
-  4  | fb macro length (>=29)
-  4  | fms macro length (>=29)
-  4  | ams macro length (>=29)
-  4  | alg macro loop (>=29)
-  4  | fb macro loop (>=29)
-  4  | fms macro loop (>=29)
-  4  | ams macro loop (>=29)
-  1  | volume macro open (>=29)
-  1  | arp macro open (>=29)
-  1  | duty macro open (>=29)
-  1  | wave macro open (>=29)
-  1  | pitch macro open (>=29)
-  1  | extra 1 macro open (>=29)
-  1  | extra 2 macro open (>=29)
-  1  | extra 3 macro open (>=29)
-  1  | alg macro open (>=29)
-  1  | fb macro open (>=29)
-  1  | fms macro open (>=29)
-  1  | ams macro open (>=29)
- 4?? | alg macro (>=29)
- 4?? | fb macro (>=29)
- 4?? | fms macro (>=29)
- 4?? | ams macro (>=29)
- --- | **operator macro headers** × 4 (>=29)
-  4  | AM macro length
-  4  | AR macro length
-  4  | DR macro length
-  4  | MULT macro length
-  4  | RR macro length
-  4  | SL macro length
-  4  | TL macro length
-  4  | DT2 macro length
-  4  | RS macro length
-  4  | DT macro length
-  4  | D2R macro length
-  4  | SSG-EG macro length
-  4  | AM macro loop
-  4  | AR macro loop
-  4  | DR macro loop
-  4  | MULT macro loop
-  4  | RR macro loop
-  4  | SL macro loop
-  4  | TL macro loop
-  4  | DT2 macro loop
-  4  | RS macro loop
-  4  | DT macro loop
-  4  | D2R macro loop
-  4  | SSG-EG macro loop
-  1  | AM macro open
-  1  | AR macro open
-  1  | DR macro open
-  1  | MULT macro open
-  1  | RR macro open
-  1  | SL macro open
-  1  | TL macro open
-  1  | DT2 macro open
-  1  | RS macro open
-  1  | DT macro open
-  1  | D2R macro open
-  1  | SSG-EG macro open
- --- | **operator macros** × 4 (>=29)
- 1?? | AM macro
- 1?? | AR macro
- 1?? | DR macro
- 1?? | MULT macro
- 1?? | RR macro
- 1?? | SL macro
- 1?? | TL macro
- 1?? | DT2 macro
- 1?? | RS macro
- 1?? | DT macro
- 1?? | D2R macro
- 1?? | SSG-EG macro
- --- | **release points** (>=44)
-  4  | volume macro release
-  4  | arp macro release
-  4  | duty macro release
-  4  | wave macro release
-  4  | pitch macro release
-  4  | extra 1 macro release
-  4  | extra 2 macro release
-  4  | extra 3 macro release
-  4  | alg macro release
-  4  | fb macro release
-  4  | fms macro release
-  4  | ams macro release
- --- | **operator release points** × 4 (>=44)
-  4  | AM macro release
-  4  | AR macro release
-  4  | DR macro release
-  4  | MULT macro release
-  4  | RR macro release
-  4  | SL macro release
-  4  | TL macro release
-  4  | DT2 macro release
-  4  | RS macro release
-  4  | DT macro release
-  4  | D2R macro release
-  4  | SSG-EG macro release
- --- | **extended op macro headers** × 4 (>=61)
-  4  | DAM macro length
-  4  | DVB macro length
-  4  | EGT macro length
-  4  | KSL macro length
-  4  | SUS macro length
-  4  | VIB macro length
-  4  | WS macro length
-  4  | KSR macro length
-  4  | DAM macro loop
-  4  | DVB macro loop
-  4  | EGT macro loop
-  4  | KSL macro loop
-  4  | SUS macro loop
-  4  | VIB macro loop
-  4  | WS macro loop
-  4  | KSR macro loop
-  4  | DAM macro release
-  4  | DVB macro release
-  4  | EGT macro release
-  4  | KSL macro release
-  4  | SUS macro release
-  4  | VIB macro release
-  4  | WS macro release
-  4  | KSR macro release
-  1  | DAM macro open
-  1  | DVB macro open
-  1  | EGT macro open
-  1  | KSL macro open
-  1  | SUS macro open
-  1  | VIB macro open
-  1  | WS macro open
-  1  | KSR macro open
- --- | **extended op macros** × 4 (>=61)
- 1?? | DAM macro
- 1?? | DVB macro
- 1?? | EGT macro
- 1?? | KSL macro
- 1?? | SUS macro
- 1?? | VIB macro
- 1?? | WS macro
- 1?? | KSR macro
- --- | **OPL drums mode data** (>=63)
-  1  | fixed frequency mode
-  1  | reserved
-  2  | kick frequency
-  2  | snare/hi-hat frequency
-  2  | tom/top frequency
- --- | **Sample instrument extra data** (>=67)
-  1  | use note map
-     | - only read the following two data structures if this is true!
- 4?? | note frequency × 120
-     | - 480 bytes
- 2?? | note sample × 120
-     | - 240 bytes
- --- | **Namco 163 data** (>=73)
-  4  | initial waveform
-  1  | wave position
-  1  | wave length
-  1  | wave mode:
-     | - bit 1: update on change
-     | - bit 0: load on playback
-  1  | reserved
- --- | **even more macros** (>=76)
-  4  | left panning macro length
-  4  | right panning macro length
-  4  | phase reset macro length
-  4  | extra 4 macro length
-  4  | extra 5 macro length
-  4  | extra 6 macro length
-  4  | extra 7 macro length
-  4  | extra 8 macro length
-  4  | left panning macro loop
-  4  | right panning macro loop
-  4  | phase reset macro loop
-  4  | extra 4 macro loop
-  4  | extra 5 macro loop
-  4  | extra 6 macro loop
-  4  | extra 7 macro loop
-  4  | extra 8 macro loop
-  4  | left panning macro release
-  4  | right panning macro release
-  4  | phase reset macro release
-  4  | extra 4 macro release
-  4  | extra 5 macro release
-  4  | extra 6 macro release
-  4  | extra 7 macro release
-  4  | extra 8 macro release
-  1  | left panning macro open
-  1  | right panning macro open
-  1  | phase reset macro open
-  1  | extra 4 macro open
-  1  | extra 5 macro open
-  1  | extra 6 macro open
-  1  | extra 7 macro open
-  1  | extra 8 macro open
- --- | **even more macro data** (>=76)
- 4?? | left panning macro
- 4?? | right panning macro
- 4?? | phase reset macro
- 4?? | extra 4 macro
- 4?? | extra 5 macro
- 4?? | extra 6 macro
- 4?? | extra 7 macro
- 4?? | extra 8 macro
- --- | **FDS instrument data** (>=76)
-  4  | modulation speed
-  4  | modulation depth
-  1  | init modulation table with first wave
-  3  | reserved
- 32  | modulation table
- --- | **OPZ instrument extra data** (>=77)
-  1  | fms2
-  1  | ams2
- --- | **wavetable synth data** (>=79)
-  4  | first wave
-  4  | second wave
-  1  | rate divider
-  1  | effect
-     | - bit 7: single or dual effect
-  1  | enabled
-  1  | global
-  1  | speed (+1)
-  1  | parameter 1
-  1  | parameter 2
-  1  | parameter 3
-  1  | parameter 4
- --- | **additional macro mode flags** (>=84)
-  1  | volume macro mode
-  1  | duty macro mode
-  1  | wave macro mode
-  1  | pitch macro mode
-  1  | extra 1 macro mode
-  1  | extra 2 macro mode
-  1  | extra 3 macro mode
-  1  | alg macro mode
-  1  | fb macro mode
-  1  | fms macro mode
-  1  | ams macro mode
-  1  | left panning macro mode
-  1  | right panning macro mode
-  1  | phase reset macro mode
-  1  | extra 4 macro mode
-  1  | extra 5 macro mode
-  1  | extra 6 macro mode
-  1  | extra 7 macro mode
-  1  | extra 8 macro mode
- --- | **extra C64 data** (>=89)
-  1  | don't test/gate before new note
- --- | **MultiPCM data** (>=93)
-  1  | attack rate
-  1  | decay 1 rate
-  1  | decay level
-  1  | decay 2 rate
-  1  | release rate
-  1  | rate correction
-  1  | lfo rate
-  1  | vib depth
-  1  | am depth
- 23  | reserved
- --- | **Sound Unit data** (>=104)
-  1  | use sample
-  1  | switch roles of phase reset timer and frequency
- --- | **Game Boy envelope sequence** (>=105)
-  1  | length
- ??? | hardware sequence data
-     | size is length*3:
-     | 1 byte: command
-     | - 0: set envelope
-     | - 1: set sweep
-     | - 2: wait
-     | - 3: wait for release
-     | - 4: loop
-     | - 5: loop until release
-     | 2 bytes: data
-     | - for set envelope:
-     |   - 1 byte: parameter
-     |     - bit 4-7: volume
-     |     - bit 3: direction
-     |     - bit 0-2: length
-     |   - 1 byte: sound length
-     | - for set sweep:
-     |   - 1 byte: parameter
-     |     - bit 4-6: length
-     |     - bit 3: direction
-     |     - bit 0-2: shift
-     |   - 1 byte: nothing
-     | - for wait:
-     |   - 1 byte: length (in ticks)
-     |   - 1 byte: nothing
-     | - for wait for release:
-     |   - 2 bytes: nothing
-     | - for loop/loop until release:
-     |   - 2 bytes: position
- --- | **Game Boy extra flags** (>=106)
-  1  | use software envelope
-  1  | always init hard env on new note
- --- | **ES5506 data** (>=107)
-  1  | filter mode
-     | - 0: HPK2_HPK2
-     | - 1: HPK2_LPK1
-     | - 2: LPK2_LPK2
-     | - 3: LPK2_LPK1
-  2  | K1
-  2  | K2
-  2  | envelope count
-  1  | left volume ramp
-  1  | right volume ramp
-  1  | K1 ramp
-  1  | K2 ramp
-  1  | K1 slow
-  1  | K2 slow
- --- | **SNES data** (>=109)
-  1  | use envelope
-  1  | gain mode
-  1  | gain
-  1  | attack
-  1  | decay
-  1  | sustain
-     | - bit 3: sustain mode (>=118)
-  1  | release
- --- | **macro speeds/delays** (>=111)
-  1  | volume macro speed
-  1  | arp macro speed
-  1  | duty macro speed
-  1  | wave macro speed
-  1  | pitch macro speed
-  1  | extra 1 macro speed
-  1  | extra 2 macro speed
-  1  | extra 3 macro speed
-  1  | alg macro speed
-  1  | fb macro speed
-  1  | fms macro speed
-  1  | ams macro speed
-  1  | left panning macro speed
-  1  | right panning macro speed
-  1  | phase reset macro speed
-  1  | extra 4 macro speed
-  1  | extra 5 macro speed
-  1  | extra 6 macro speed
-  1  | extra 7 macro speed
-  1  | extra 8 macro speed
-  1  | volume macro delay
-  1  | arp macro delay
-  1  | duty macro delay
-  1  | wave macro delay
-  1  | pitch macro delay
-  1  | extra 1 macro delay
-  1  | extra 2 macro delay
-  1  | extra 3 macro delay
-  1  | alg macro delay
-  1  | fb macro delay
-  1  | fms macro delay
-  1  | ams macro delay
-  1  | left panning macro delay
-  1  | right panning macro delay
-  1  | phase reset macro delay
-  1  | extra 4 macro delay
-  1  | extra 5 macro delay
-  1  | extra 6 macro delay
-  1  | extra 7 macro delay
-  1  | extra 8 macro delay
- --- | **operator macro speeds/delay** × 4 (>=111)
-  1  | AM macro speed
-  1  | AR macro speed
-  1  | DR macro speed
-  1  | MULT macro speed
-  1  | RR macro speed
-  1  | SL macro speed
-  1  | TL macro speed
-  1  | DT2 macro speed
-  1  | RS macro speed
-  1  | DT macro speed
-  1  | D2R macro speed
-  1  | SSG-EG macro speed
-  1  | DAM macro speed
-  1  | DVB macro speed
-  1  | EGT macro speed
-  1  | KSL macro speed
-  1  | SUS macro speed
-  1  | VIB macro speed
-  1  | WS macro speed
-  1  | KSR macro speed
-  1  | AM macro delay
-  1  | AR macro delay
-  1  | DR macro delay
-  1  | MULT macro delay
-  1  | RR macro delay
-  1  | SL macro delay
-  1  | TL macro delay
-  1  | DT2 macro delay
-  1  | RS macro delay
-  1  | DT macro delay
-  1  | D2R macro delay
-  1  | SSG-EG macro delay
-  1  | DAM macro delay
-  1  | DVB macro delay
-  1  | EGT macro delay
-  1  | KSL macro delay
-  1  | SUS macro delay
-  1  | VIB macro delay
-  1  | WS macro delay
-  1  | KSR macro delay
-```
+in Furnace dev187 the volume and cutoff macros have been separated, as noted above.
+however, there are two other changes as well: **inverted relative (non-absolute) cutoff macro**; and a new, improved Special macro.
 
-## interpreting macro mode values
+if version is less than 187, you must convert the Special macro:
+1. do not continue if ex4 is not a Sequence type macro!
+2. move bit 0 of ex4 macro data into bit 3.
+3. set bit 0 on all steps of ex4 macro to 1.
+4. if ex3 is not a Sequence type macro, stop here.
+5. if ex3 macro length is 0, stop here.
+6. merge the ex3 macro (former Special) into ex4 (former Test).
+  - use the largest size (between ex3 and ex4).
+  - if the ex3 macro is shorter than the ex4 one, use the last value of ex3, and vice-versa.
+  - if the ex4 macro length is 0, expand it to the largest size, and set all steps to 1.
 
-- sequence (normal): I think this is obvious...
-- ADSR:
-  - `val[0]`: bottom
-  - `val[1]`: top
-  - `val[2]`: attack
-  - `val[3]`: hold time
-  - `val[4]`: decay
-  - `val[5]`: sustain level
-  - `val[6]`: sustain hold time
-  - `val[7]`: decay 2
-  - `val[8]`: release
-- LFO:
-  - `val[11]`: speed
-  - `val[12]`: waveform
-    - 0: triangle
-    - 1: saw
-    - 2: pulse
-  - `val[13]`: phase
-  - `val[14]`: loop
-  - `val[15]`: global (not sure how will I implement this)
+don't worry about loop or release...
 
 # wavetable
 
@@ -1209,7 +571,8 @@ size | description
      | - 2: ping-pong
   1  | flags (>=129) or reserved
      | - 0: BRR emphasis
-  1  | reserved
+  1  | flags 2 (>=159) or reserved
+     | - 0: dither
   4  | loop start
      | - -1 means no loop
   4  | loop end
@@ -1257,7 +620,58 @@ size | description
      | - version>=58 size is length
 ```
 
-# pattern
+# pattern (>=157)
+
+```
+size | description
+-----|------------------------------------
+  4  | "PATN" block ID
+  4  | size of this block
+  1  | subsong
+  1  | channel
+  2  | pattern index
+ STR | pattern name (>=51)
+ ??? | pattern data
+     | - read a byte per row.
+     | - if it is 0xff, end of data. the rest of the pattern is empty.
+     | - if bit 7 is set, then read bit 0-6 as "skip N+2 rows".
+     | - if bit 7 is clear, then:
+     |   - bit 0: note present
+     |   - bit 1: ins present
+     |   - bit 2: volume present
+     |   - bit 3: effect 0 present
+     |   - bit 4: effect value 0 present
+     |   - bit 5: other effects (0-3) present
+     |   - bit 6: other effects (4-7) present
+     | - if bit 5 is set, read another byte:
+     |   - bit 0: effect 0 present
+     |   - bit 1: effect value 0 present
+     |   - bit 2: effect 1 present
+     |   - bit 3: effect value 1 present
+     |   - bit 4: effect 2 present
+     |   - bit 5: effect value 2 present
+     |   - bit 6: effect 3 present
+     |   - bit 7: effect value 3 present
+     | - if bit 6 is set, read another byte:
+     |   - bit 0: effect 4 present
+     |   - bit 1: effect value 4 present
+     |   - bit 2: effect 5 present
+     |   - bit 3: effect value 5 present
+     |   - bit 4: effect 6 present
+     |   - bit 5: effect value 6 present
+     |   - bit 6: effect 7 present
+     |   - bit 7: effect value 7 present
+     | - then read note, ins, volume, effects and effect values depending on what is present.
+     | - for note:
+     |   - 0 is C-(-5)
+     |   - 179 is B-9
+     |   - 180 is note off
+     |   - 181 is note release
+     |   - 182 is macro release
+```
+
+
+# old pattern (<157)
 
 ```
 size | description
@@ -1287,8 +701,8 @@ size | description
      |     - 12: C (of next octave)
      |       - this is actually a leftover of the .dmf format.
      |     - 100: note off
-     |     - 100: note release
-     |     - 100: macro release
+     |     - 101: note release
+     |     - 102: macro release
      |   - octave
      |     - this is an signed char stored in a short.
      |     - therefore octave value 255 is actually octave -1.
@@ -1300,26 +714,6 @@ size | description
      | - for instrument, volume, effect and effect data, a value of -1 means empty.
  STR | pattern name (>=51)
 ```
-
-# the Furnace instrument format (.fui)
-
-the instrument format is pretty similar to the file format, but it also stores wavetables and samples used by the instrument.
-
-```
-size | description
------|------------------------------------
- 16  | "-Furnace instr.-" format magic
-  2  | format version
-  2  | reserved
-  4  | pointer to instrument data
-  2  | wavetable count
-  2  | sample count
-  4  | reserved
- 4?? | pointers to wavetables
- 4?? | pointers to samples
-```
-
-instrument data follows.
 
 # the Furnace wavetable format (.fuw)
 

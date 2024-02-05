@@ -33,7 +33,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3.1.0
+      uses: actions/checkout@v4.1.1
       with:
         submodules: recursive
 
@@ -82,7 +82,7 @@ jobs:
           package_ext=".dmg"
         else
           package_name="${package_name}-Linux-${{ matrix.config.arch }}"
-          package_ext=".AppImage"
+          package_ext=".tar.gz"
         fi
 
         echo "Package identifier: ${package_name}"
@@ -106,7 +106,7 @@ jobs:
 
     - name: Setup Toolchain [Windows MSVC]
       if: ${{ matrix.config.compiler == 'msvc' }}
-      uses: vadz/gha-setup-vsdevenv@avoid-deprecation-warnings
+      uses: lunathir/gha-setup-vsdevenv@avoid-deprecation-warnings
       with:
         arch: ${{ steps.windows-identify.outputs.vswhere-target }}
 
@@ -128,10 +128,7 @@ jobs:
           librtmidi-dev \
           libsndfile1-dev \
           zlib1g-dev \
-          libjack-jackd2-dev \
-          appstream
-        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" || wget "https://tildearrow.org/storage/furnace/ci/appimagetool-x86_64.AppImage"
-        chmod +x appimagetool-x86_64.AppImage
+          libjack-jackd2-dev
 
     - name: Install Dependencies [Linux armhf]
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'armhf' }}
@@ -151,61 +148,7 @@ jobs:
           libsndfile1-dev:armhf \
           zlib1g-dev:armhf \
           libjack-jackd2-dev:armhf
-        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" || wget "https://tildearrow.org/storage/furnace/ci/appimagetool-x86_64.AppImage"
-        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-armhf" || wget "https://tildearrow.org/storage/furnace/ci/runtime-armhf"
-        chmod +x appimagetool-x86_64.AppImage
         ls /usr/arm-linux-gnueabihf/lib
-
-    - name: Configure (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
-      run: |
-        export USE_WAE=ON
-        export CMAKE_EXTRA_ARGS=()
-        if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
-          CMAKE_EXTRA_ARGS+=('-DCMAKE_GENERATOR_PLATFORM=${{ steps.windows-identify.outputs.msvc-target }}')
-        elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
-          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake')
-        else
-          # Test with system libs
-          CMAKE_EXTRA_ARGS+=(
-            '-DSYSTEM_FMT=OFF'
-            '-DSYSTEM_LIBSNDFILE=ON'
-            '-DSYSTEM_RTMIDI=ON'
-            '-DSYSTEM_ZLIB=ON'
-            '-DWITH_JACK=ON'
-          )
-          # Too old on Ubuntu
-          if [ '${{ runner.os }}' == 'macOS' ]; then
-            CMAKE_EXTRA_ARGS+=('-DSYSTEM_SDL2=ON')
-          fi
-        fi
-
-        cmake \
-          -B ${PWD}/build \
-          -DCMAKE_INSTALL_PREFIX=${PWD}/target \
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DWARNINGS_ARE_ERRORS=${USE_WAE} \
-          "${CMAKE_EXTRA_ARGS[@]}"
-
-    - name: Build (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
-      run: |
-        cmake \
-          --build ${PWD}/build \
-          --config ${{ env.BUILD_TYPE }} \
-          --parallel ${{ steps.build-cores.outputs.amount }}
-
-    - name: Install (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
-      run: |
-        cmake \
-          --install ${PWD}/build \
-          --config ${{ env.BUILD_TYPE }}
-
-    - name: Cleanup (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
-      run: |
-        rm -rf build/ target/
 
     - name: Configure
       run: |
@@ -243,6 +186,7 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=/usr \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DWARNINGS_ARE_ERRORS=${USE_WAE} \
+          -DWITH_DEMOS=OFF -DWITH_INSTRUMENTS=OFF -DWITH_WAVETABLES=OFF \
           "${CMAKE_EXTRA_ARGS[@]}"
 
     - name: Build
@@ -276,7 +220,7 @@ jobs:
         pushd ${{ steps.package-identify.outputs.filename }}
 
         cp -v ../LICENSE LICENSE.txt
-        cp -v ../README.md README.txt
+        cp -v ../res/releaseReadme/unstable-win.txt README.txt
         cp -vr ../papers ../${binPath}/furnace.exe ./
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
           cp -v ../${binPath}/furnace.pdb ./
@@ -289,8 +233,63 @@ jobs:
       if: ${{ runner.os == 'macOS' }}
       run: |
         pushd build
-        cpack
-        mv Furnace-*-Darwin.dmg ../${{ steps.package-identify.outputs.filename }}
+        retries=0
+        while ! cpack; do
+          echo "TRYING AGAIN..."
+          retries=$((retries+1))
+          if [ $retries -gt 5 ]; then
+            echo "OH NO, WE'VE FAILED..."
+            exit 1
+            break
+          fi
+        done
+
+        echo "making dirs"
+        mkdir orig
+        mkdir new
+        echo "attaching"
+        echo "y" | hdiutil attach Furnace-*-Darwin.dmg -readonly -mount required -mountpoint orig
+
+        echo "copying"
+        cp -v -r orig/Furnace.app new/Furnace.app
+        echo "synchronizing"
+        sync
+        echo "detaching"
+        hdiutil detach orig
+
+        echo "removing orig"
+        rmdir orig
+        rm Furnace-*-Darwin.dmg
+
+        if [ -e new/Furnace.app/Contents/Resources/bin/furnace ]; then
+          rm -v new/Furnace.app/Contents/Resources/bin/furnace
+          rmdir new/Furnace.app/Contents/Resources/bin
+        fi
+
+        echo "copying extra stuff"
+        cp -v ../LICENSE new/LICENSE.txt
+        cp -v ../res/releaseReadme/stable-mac.txt new/README
+        cp -v -r ../demos new/demos
+        cp -v -r ../instruments new/instruments
+        cp -v -r ../wavetables new/wavetables
+        cd new
+        wget https://tildearrow.org/furnace/doc/latest/manual.pdf
+        cd ..
+
+        echo "creating new image"
+        retries=0
+        while ! hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg; do
+          echo "TRYING AGAIN..."
+          retries=$((retries+1))
+          if [ $retries -gt 5 ]; then
+            echo "OH NO, WE'VE FAILED..."
+            exit 1
+            break
+          fi
+          sleep 5
+        done
+        
+        mv furnace.dmg ../${{ steps.package-identify.outputs.filename }}
         popd
 
     - name: Package [Linux]
@@ -300,28 +299,41 @@ jobs:
         #  strip -s build/furnace
         #fi
 
-        mkdir -p target/furnace.AppDir
-        make -C ${PWD}/build DESTDIR=${PWD}/target/furnace.AppDir install
-        pushd target
+        mkdir -p target/furnace
+        make -C ${PWD}/build DESTDIR=${PWD}/target/furnace install
+        pushd target/furnace
 
-        pushd furnace.AppDir
-        cp -v usr/share/{icons/hicolor/1024x1024/apps/furnace.png,applications/furnace.desktop} ./
-        ln -s furnace.png .DirIcon
-        mv -v usr/share/metainfo/{furnace.appdata,org.tildearrow.furnace.metainfo}.xml
-        cp -v ../../res/AppRun ./
+        cp -v ../../res/logo.png .DirIcon
+
+        cd usr
+
+        mv bin/furnace ..
+        rmdir bin
+
+        rm -r share/applications
+        rm -r share/doc
+        rm -r share/icons
+        rm -r share/licenses
+        rm -r share/metainfo
+
+        rmdir share
+
+        cd ..
+
+        cp ../../LICENSE .
+        cp ../../res/releaseReadme/unstable-other.txt .
+        cp -r ../../papers papers
+        rmdir usr
+
         popd
 
-        if [ '${{ matrix.config.arch }}' == 'armhf' ]; then
-          ../appimagetool-x86_64.AppImage --runtime-file=../runtime-armhf furnace.AppDir
-        else
-          ../appimagetool-x86_64.AppImage furnace.AppDir
-        fi
-        mv Furnace-*.AppImage ../${{ steps.package-identify.outputs.filename }}
-        popd
+        cd target
+
+        tar -zcv -f ../${{ steps.package-identify.outputs.filename }} furnace
 
     - name: Upload artifact
       if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'master' }}
-      uses: actions/upload-artifact@v3.1.1
+      uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.package-identify.outputs.id }}
         path: ${{ steps.package-identify.outputs.filename }}

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -258,8 +258,8 @@ int DivPlatformTIA::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
@@ -340,6 +340,10 @@ bool DivPlatformTIA::keyOffAffectsArp(int ch) {
   return true;
 }
 
+bool DivPlatformTIA::getLegacyAlwaysSetVolume() {
+  return false;
+}
+
 void DivPlatformTIA::notifyInsDeletion(void* ins) {
   for (int i=0; i<2; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
@@ -356,12 +360,12 @@ void DivPlatformTIA::poke(std::vector<DivRegWrite>& wlist) {
 
 void DivPlatformTIA::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) {
-    rate=COLOR_PAL*4.0/5.0;
+    chipClock=COLOR_PAL*4.0/5.0;
   } else {
-    rate=COLOR_NTSC;
+    chipClock=COLOR_NTSC;
   }
   CHECK_CUSTOM_CLOCK;
-  chipClock=rate;
+  rate=chipClock;
   mixingType=flags.getInt("mixingType",0)&3;
   for (int i=0; i<2; i++) {
     oscBuf[i]->rate=rate/114;

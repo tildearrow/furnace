@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #define _POKEY_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 
 extern "C" {
 #include "sound/pokey/mzpokeysnd.h"
@@ -43,13 +43,14 @@ class DivPlatformPOKEY: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
-  unsigned char audctl;
-  bool audctlChanged;
+  FixedQueue<QueuedWrite,128> writes;
+  unsigned char audctl, skctl;
+  bool audctlChanged, skctlChanged;
   unsigned char oscBufDelay;
   PokeyState pokey;
   AltASAP::Pokey altASAP;
@@ -64,6 +65,7 @@ class DivPlatformPOKEY: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    DivChannelPair getPaired(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

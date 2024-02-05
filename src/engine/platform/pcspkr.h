@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,8 @@
 #define _PCSPKR_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 #include <thread>
-#include <mutex>
 #include <condition_variable>
 
 class DivPlatformPCSpeaker: public DivDispatch {
@@ -40,19 +39,26 @@ class DivPlatformPCSpeaker: public DivDispatch {
   struct RealQueueVal {
     int tv_sec, tv_nsec;
     unsigned short val;
+    RealQueueVal():
+      tv_sec(0),
+      tv_nsec(0),
+      val(0) {}
     RealQueueVal(int sec, int nsec, unsigned short v):
       tv_sec(sec),
       tv_nsec(nsec),
       val(v) {}
   };
-  std::queue<RealQueueVal> realQueue;
+  FixedQueue<RealQueueVal,2048> realQueue;
   std::mutex realQueueLock;
   bool isMuted[1];
-  bool on, flip, lastOn, realOutEnabled;
+  bool on, flip, lastOn, realOutEnabled, resetPhase;
   int pos, speakerType, beepFD, realOutMethod;
   float low, band;
   float low2, high2, band2;
   float low3, band3;
+  float cut;
+  float reso;
+
   unsigned short freq, lastFreq;
   unsigned char regPool[2];
 

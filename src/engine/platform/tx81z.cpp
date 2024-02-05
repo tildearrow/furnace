@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ const char** DivPlatformTX81Z::getRegisterSheet() {
 }
 
 void DivPlatformTX81Z::acquire(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   ymfm::ym2414::fm_engine* fme=fm_ymfm->debug_engine();
 
@@ -78,7 +78,7 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
     fm_ymfm->generate(&out_ymfm);
 
     for (int i=0; i<8; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1));
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1),-32768,32767);
     }
 
     os[0]=out_ymfm.data[0];
@@ -134,7 +134,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
     if (chan[i].std.duty.had) {
       if (chan[i].std.duty.val>0) {
-        rWrite(0x0f,0x80|(0x20-chan[i].std.duty.val));
+        rWrite(0x0f,0x80|(chan[i].std.duty.val-1));
       } else {
         rWrite(0x0f,0);
       }
@@ -147,10 +147,10 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+        chan[i].pitch2+=chan[i].std.pitch.val*(brokenPitch?2:1);
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.pitch.val*(brokenPitch?2:1);
       }
       chan[i].freqChanged=true;
     }
@@ -206,7 +206,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
     if (chan[i].std.alg.had) {
       chan[i].state.alg=chan[i].std.alg.val;
-      immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0:0x40)|(chan[i].chVolR<<7));
+      immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0x40:0)|(chan[i].chVolR<<7));
       if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -223,7 +223,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
     }
     if (chan[i].std.fb.had) {
       chan[i].state.fb=chan[i].std.fb.val;
-      immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0:0x40)|(chan[i].chVolR<<7));
+      immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0x40:0)|(chan[i].chVolR<<7));
     }
     if (chan[i].std.fms.had) {
       chan[i].state.fms=chan[i].std.fms.val;
@@ -262,7 +262,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
@@ -337,18 +337,18 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64+chan[i].pitch2;
+      chan[i].freq=chan[i].baseFreq+chan[i].pitch-128+chan[i].pitch2;
       if (!parent->song.oldArpStrategy) {
         if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<6)+(chan[i].pitch>>1)-64+chan[i].pitch2;
+          chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+chan[i].pitch2;
         } else {
-          chan[i].freq+=chan[i].arpOff<<6;
+          chan[i].freq+=chan[i].arpOff<<7;
         }
       }
       if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>=(95<<6)) chan[i].freq=(95<<6)-1;
-      immWrite(i+0x28,hScale(chan[i].freq>>6));
-      immWrite(i+0x30,(chan[i].freq<<2)|(chan[i].chVolL==chan[i].chVolR));
+      if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
+      immWrite(i+0x28,hScale(chan[i].freq>>7));
+      immWrite(i+0x30,((chan[i].freq<<1)&0xfc)|(chan[i].chVolL==chan[i].chVolR));
       hardResetElapsed+=2;
       chan[i].freqChanged=false;
     }
@@ -523,13 +523,13 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value;
+        newFreq=chan[c.chan].baseFreq+c.value*(brokenPitch?2:1);
         if (newFreq>=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       } else {
-        newFreq=chan[c.chan].baseFreq-c.value;
+        newFreq=chan[c.chan].baseFreq-c.value*(brokenPitch?2:1);
         if (newFreq<=destFreq) {
           newFreq=destFreq;
           return2=true;
@@ -865,9 +865,9 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       if (c.chan!=7) break;
       if (c.value) {
         if (c.value>0x1f) {
-          rWrite(0x0f,0x80);
+          rWrite(0x0f,0x80|0x1f);
         } else {
-          rWrite(0x0f,0x80|(0x1f-c.value));
+          rWrite(0x0f,0x80|(c.value-1));
         }
       } else {
         rWrite(0x0f,0);
@@ -880,8 +880,8 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
@@ -965,6 +965,10 @@ DivMacroInt* DivPlatformTX81Z::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformTX81Z::getPan(int ch) {
+  return (chan[ch].chVolL<<8)|(chan[ch].chVolR);
+}
+
 DivDispatchOscBuffer* DivPlatformTX81Z::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -986,7 +990,7 @@ void DivPlatformTX81Z::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformTX81Z::reset() {
-  while (!writes.empty()) writes.pop_front();
+  writes.clear();
   memset(regPool,0,330);
   fm_ymfm->reset();
   if (dumpWrites) {
@@ -1039,7 +1043,9 @@ void DivPlatformTX81Z::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
 
-  baseFreqOff=round(768.0*(log((COLOR_NTSC/(double)chipClock))/log(2.0)));
+  baseFreqOff=round(1536.0*(log((COLOR_NTSC/(double)chipClock))/log(2.0)));
+
+  brokenPitch=flags.getBool("brokenPitch",false);
 
   rate=chipClock/64;
   for (int i=0; i<8; i++) {

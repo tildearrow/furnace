@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #define _MSM6258_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 #include "sound/oki/okim6258.h"
 
 class DivPlatformMSM6258: public DivDispatch {
@@ -42,26 +42,30 @@ class DivPlatformMSM6258: public DivDispatch {
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
+      QueuedWrite(): addr(0), val(0) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
     };
-    std::queue<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,256> writes;
     okim6258_device* msm;
-    unsigned char lastBusy;
 
     unsigned char sampleBank, msmPan, msmDivider, rateSel, msmClock, clockSel;
     signed char msmDividerCount, msmClockCount;
+    bool updateSampleFreq;
     short msmOut;
 
     int delay, updateOsc, sample, samplePos;
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
+
+    int calcVGMRate();
   
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -71,6 +75,7 @@ class DivPlatformMSM6258: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool getLegacyAlwaysSetVolume();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

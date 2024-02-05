@@ -14,37 +14,49 @@ fi
 
 cd linuxbuild
 
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Werror" .. || exit 1
+# -DWITH_PORTAUDIO=OFF: Ubuntu 16.04 doesn't like it
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3" -DCMAKE_CXX_FLAGS="-O3 -Wall -Wextra -Wno-unused-parameter -Werror" -DWITH_PORTAUDIO=OFF -DWITH_DEMOS=ON -DWITH_INSTRUMENTS=ON -DWITH_WAVETABLES=ON .. || exit 1
 make -j4 || exit 1
 
 cd ..
 
-mkdir -p release/linux/furnace.AppDir || exit 1
+mkdir -p release/linux/furnace || exit 1
 cd linuxbuild
 
-make DESTDIR=/tmp/furnace/release/linux/furnace.AppDir install || exit 1
+make DESTDIR=/tmp/furnace/release/linux/furnace install || exit 1
 
-cd ../release/linux/furnace.AppDir
+cd ../release/linux/furnace
 
-cp -v ../../../res/logo.png furnace.png || exit 1
-ln -s furnace.png .DirIcon || exit 1
-cp -v ../../../res/furnace.desktop . || exit 1
-#mkdir -p usr/share/metainfo || exit 1
-cp -v ../../../res/furnace.appdata.xml usr/share/metainfo/org.tildearrow.furnace.metainfo.xml || exit 1
-cp -v ../../../res/AppRun . || exit 1
+cp -v ../../../res/logo.png .DirIcon || exit 1
+#cp -v ../../../res/furnace.desktop . || exit 1
 
-#cp /usr/lib/libm.so.6 usr/lib/ || exit 1
-#cp /usr/lib/libstdc++.so.6 usr/lib/ || exit 1
-#cp /usr/lib/libc.so.6 usr/lib/ || exit 1
-#cp /usr/lib/libgcc_s.so.1 usr/lib/ || exit 1
+cd usr
 
-cd usr/bin
+mv bin/furnace .. || exit 1
+rmdir bin || exit 1
+
+rm -r share/applications
+rm -r share/doc
+mv share/icons ..
+rm -r share/licenses
+rm -r share/metainfo
+
+mv share/furnace/demos ..
+mv share/furnace/instruments ..
+mv share/furnace/wavetables ..
+rmdir share/furnace || exit 1
+rmdir share || exit 1
+
+cd ..
+
+cp ../../../LICENSE . || exit 1
+cp ../../../res/releaseReadme/stable-linux.txt README.md || exit 1
+cp -r ../../../papers papers || exit 1
+curl "https://tildearrow.org/furnace/doc/latest/manual.pdf" > manual.pdf
+rmdir usr || exit 1
+
 strip -s furnace
 
-cd ../../..
+cd ..
 
-[ -e appimagetool-x86_64.AppImage ] || { wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" && chmod 755 appimagetool-x86_64.AppImage; }
-./appimagetool-x86_64.AppImage --appimage-extract
-ARCH=$(uname -m) ./squashfs-root/AppRun furnace.AppDir
-
-#zip -r furnace.zip LICENSE.txt Furnace*.dmg README.txt papers
+tar -zcv -f furnace.tar.gz furnace

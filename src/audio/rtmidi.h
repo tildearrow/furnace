@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ class TAMidiInRtMidi: public TAMidiIn {
 
 class TAMidiOutRtMidi: public TAMidiOut {
   RtMidiOut* port;
-  bool isOpen;
+  bool isOpen, isWorking;
   public:
     bool send(const TAMidiMessage& what);
     bool isDeviceOpen();
@@ -49,5 +49,6 @@ class TAMidiOutRtMidi: public TAMidiOut {
     bool init();
     TAMidiOutRtMidi():
       port(NULL),
-      isOpen(false) {}
+      isOpen(false),
+      isWorking(false) {}
 };

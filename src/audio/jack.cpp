@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -198,8 +198,17 @@ String TAAudioJACK::printStatus(jack_status_t status) {
 
 bool TAAudioJACK::init(TAAudioDesc& request, TAAudioDesc& response) {
   if (initialized) return false;
-  if (jack_client_open==NULL) {
+  int haveJACK=have_libjack();
+  if (haveJACK==-1) {
+    logE("JACK library not initialized!");
+    return false;
+  }
+  if (haveJACK==-2) {
     logE("JACK not installed!");
+    return false;
+  }
+  if (haveJACK!=0) {
+    logE("JACK symbol error!");
     return false;
   }
   desc=request;

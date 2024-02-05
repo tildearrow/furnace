@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,12 +36,13 @@ class DivPlatformZXBeeperQuadTone: public DivDispatch {
   Channel chan[5];
   DivDispatchOscBuffer* oscBuf[5];
   bool isMuted[5];
-  unsigned char ulaOut;
+  bool noHiss;
+  bool deHisser[8];
 
   int cycles, curChan, sOffTimer, delay, curSample, curSamplePeriod;
   unsigned int curSamplePos;
   unsigned int outputClock;
-  unsigned char regPool[16];
+  unsigned char regPool[17];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:

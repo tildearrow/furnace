@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +72,7 @@ class DivPlatformLynx: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -83,6 +84,7 @@ class DivPlatformLynx: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    bool getLegacyAlwaysSetVolume();
     //int getPortaFloor(int ch);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

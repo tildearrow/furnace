@@ -7,6 +7,12 @@
 
 #ifdef __MINGW32__
 // Explicitly setting NTDDI version, this is necessary for the MinGW compiler
+#ifdef NTDDI_VERSION
+#undef NTDDI_VERSION
+#endif
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
 #define NTDDI_VERSION NTDDI_VISTA
 #define _WIN32_WINNT _WIN32_WINNT_VISTA
 #endif
@@ -61,7 +67,7 @@ class NFDWinEvents: public IFileDialogEvents {
       return ret;
     }
 
-    IFACEMETHODIMP OnFileOk(IFileDialog*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnFileOk(IFileDialog*) { return S_OK; }
     IFACEMETHODIMP OnFolderChange(IFileDialog*) { return E_NOTIMPL; }
     IFACEMETHODIMP OnFolderChanging(IFileDialog*, IShellItem*) { return E_NOTIMPL; }
     IFACEMETHODIMP OnOverwrite(IFileDialog*, IShellItem*, FDE_OVERWRITE_RESPONSE*) { return E_NOTIMPL; }
@@ -532,6 +538,9 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     nfdselcallback_t selCallback )
 {
     nfdresult_t nfdResult = NFD_ERROR;
+    NFDWinEvents* winEvents;
+    bool hasEvents=true;
+    DWORD eventID=0;
 
 
     HRESULT coResult = COMInit();
@@ -564,6 +573,16 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
     if ( !SetDefaultPath( fileOpenDialog, defaultPath ) )
     {
         goto end;
+    }
+
+    // Pass the callback
+    winEvents=new NFDWinEvents(selCallback);
+    if ( !SUCCEEDED(fileOpenDialog->Advise(winEvents,&eventID)) ) {
+      // error... ignore
+      hasEvents=false;
+      winEvents->Release();
+    } else {
+      winEvents->Release();
     }
 
     // Set a flag for multiple options
@@ -613,8 +632,12 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
     }
 
 end:
-    if ( fileOpenDialog )
+    if (fileOpenDialog) {
+        if (hasEvents) {
+          fileOpenDialog->Unadvise(eventID);
+        }
         fileOpenDialog->Release();
+    }
 
     COMUninit(coResult);
     
@@ -657,6 +680,21 @@ nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
     // Set the default path
     if ( !SetDefaultPath( fileSaveDialog, defaultPath ) )
     {
+        goto end;
+    }
+
+    // Set a flag for no history
+    DWORD dwFlags;
+    result = fileSaveDialog->GetOptions(&dwFlags);
+    if ( !SUCCEEDED(result) )
+    {
+        NFDi_SetError("Could not get options.");
+        goto end;
+    }
+    result = fileSaveDialog->SetOptions(dwFlags | FOS_DONTADDTORECENT);
+    if ( !SUCCEEDED(result) )
+    {
+        NFDi_SetError("Could not set options.");
         goto end;
     }
 

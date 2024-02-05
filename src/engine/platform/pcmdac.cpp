@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,12 +42,65 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
         while (chan[0].audSub>=0x10000) {
           chan[0].audSub-=0x10000;
           chan[0].audPos+=((!chan[0].useWave) && chan[0].audDir)?-1:1;
+          if (chan[0].audPos>=(int)chan[0].audLen) {
+            chan[0].audPos%=chan[0].audLen;
+            chan[0].audDir=false;
+          }
+          chan[0].audDat[0]=chan[0].audDat[1];
+          chan[0].audDat[1]=chan[0].audDat[2];
+          chan[0].audDat[2]=chan[0].audDat[3];
+          chan[0].audDat[3]=chan[0].audDat[4];
+          chan[0].audDat[4]=chan[0].audDat[5];
+          chan[0].audDat[5]=chan[0].audDat[6];
+          chan[0].audDat[6]=chan[0].audDat[7];
+          chan[0].audDat[7]=(chan[0].ws.output[chan[0].audPos]-0x80)<<8;
         }
-        if (chan[0].audPos>=(int)chan[0].audLen) {
-          chan[0].audPos%=chan[0].audLen;
-          chan[0].audDir=false;
+
+        const short s0=chan[0].audDat[0];
+        const short s1=chan[0].audDat[1];
+        const short s2=chan[0].audDat[2];
+        const short s3=chan[0].audDat[3];
+        const short s4=chan[0].audDat[4];
+        const short s5=chan[0].audDat[5];
+        const short s6=chan[0].audDat[6];
+        const short s7=chan[0].audDat[7];
+
+        switch (interp) {
+          case 1: // linear
+            output=s6+(((int)((int)s7-(int)s6)*((chan[0].audSub>>1)&0x7fff))>>15);
+            break;
+          case 2: { // cubic
+            float* cubicTable=DivFilterTables::getCubicTable();
+            float* t=&cubicTable[((chan[0].audSub&0xffff)>>6)<<2];
+            float result=(float)s4*t[0]+(float)s5*t[1]+(float)s6*t[2]+(float)s7*t[3];
+            if (result<-32768) result=-32768;
+            if (result>32767) result=32767;
+            output=result;
+            break;
+          }
+          case 3: { // sinc
+            float* sincTable=DivFilterTables::getSincTable8();
+            float* t1=&sincTable[(8191-((chan[0].audSub&0xffff)>>3))<<2];
+            float* t2=&sincTable[((chan[0].audSub&0xffff)>>3)<<2];
+            float result=(
+              s0*t2[3]+
+              s1*t2[2]+
+              s2*t2[1]+
+              s3*t2[0]+
+              s4*t1[0]+
+              s5*t1[1]+
+              s6*t1[2]+
+              s7*t1[3]
+            );
+            if (result<-32768) result=-32768;
+            if (result>32767) result=32767;
+            output=result;
+            break;
+          }
+          default: // none
+            output=s7;
+            break;
         }
-        output=(chan[0].ws.output[chan[0].audPos]-0x80)<<8;
       } else {
         DivSample* s=parent->getSample(chan[0].sample);
         if (s->samples>0) {
@@ -135,7 +188,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
 
         switch (interp) {
           case 1: // linear
-            output=s6+((s7-s6)*(chan[0].audSub&0xffff)>>16);
+            output=s6+(((int)((int)s7-(int)s6)*((chan[0].audSub>>1)&0x7fff))>>15);
             break;
           case 2: { // cubic
             float* cubicTable=DivFilterTables::getCubicTable();
@@ -176,7 +229,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
     } else {
       output=output*chan[0].vol*chan[0].envVol/16384;
     }
-    oscBuf->data[oscBuf->needle++]=output;
+    oscBuf->data[oscBuf->needle++]=((output>>depthScale)<<depthScale)>>1;
     if (outStereo) {
       buf[0][h]=((output*chan[0].panL)>>(depthScale+8))<<depthScale;
       buf[1][h]=((output*chan[0].panR)>>(depthScale+8))<<depthScale;
@@ -261,6 +314,8 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
         chan[0].useWave=true;
         chan[0].audLen=ins->amiga.waveLen+1;
         if (chan[0].insChanged) {
@@ -273,7 +328,12 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[0].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
         chan[0].useWave=false;
       }
@@ -282,6 +342,8 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       }
       if (chan[0].useWave || chan[0].sample<0 || chan[0].sample>=parent->song.sampleLen) {
         chan[0].sample=-1;
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
       }
       if (chan[0].setPos) {
         chan[0].setPos=false;
@@ -349,9 +411,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       chan[0].ws.changeWave1(chan[0].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
-      chan[0].sample=ins->amiga.getSample(c.value2);
-      int destFreq=round(NOTE_FREQUENCY(c.value2));
+      int destFreq=round(NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta));
       bool return2=false;
       if (destFreq>chan[0].baseFreq) {
         chan[0].baseFreq+=c.value;
@@ -374,7 +434,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0))));
+      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0))));
       chan[0].freqChanged=true;
       chan[0].note=c.value;
       break;
@@ -399,8 +459,8 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -442,6 +502,10 @@ int DivPlatformPCMDAC::getOutputCount() {
 
 DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {
   return &chan[0].std;
+}
+
+unsigned short DivPlatformPCMDAC::getPan(int ch) {
+  return (chan[0].panL<<8)|chan[0].panR;
 }
 
 DivSamplePos DivPlatformPCMDAC::getSamplePos(int ch) {

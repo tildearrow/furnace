@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -149,7 +149,7 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
           } else if (waveNum<65536) {
             seq->writeC((i<<4)|4);
             seq->writeS_BE(waveNum);
-          } else{
+          } else {
             seq->writeC((i<<4)|1);
             seq->writeC(waves[waveNum].pos>>16);
             seq->writeC(waves[waveNum].pos>>8);
@@ -266,6 +266,7 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   }
 
   // finish
+  ret.reserve(5);
   ret.push_back(DivROMExportOutput("sbook.bin",sbook));
   ret.push_back(DivROMExportOutput("wbook.bin",wbook));
   ret.push_back(DivROMExportOutput("sample.bin",sample));

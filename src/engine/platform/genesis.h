@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 #include "fmshared_OPN.h"
 #include "sound/ymfm/ymfm_opn.h"
-
+#include "../../../extern/YMF276-LLE/fmopn2.h"
 
 class DivYM2612Interface: public ymfm::ymfm_interface {
   int setA, setB;
@@ -55,8 +55,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
       unsigned int dacPos;
       int dacSample;
       int dacDelay;
-      bool dacReady;
       bool dacDirection;
+      bool setPos;
       unsigned char sampleBank;
       signed char dacOutput;
       Channel():
@@ -68,8 +68,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
         dacPos(0),
         dacSample(-1),
         dacDelay(0),
-        dacReady(true),
         dacDirection(false),
+        setPos(false),
         sampleBank(0),
         dacOutput(0) {}
     };
@@ -77,6 +77,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     DivDispatchOscBuffer* oscBuf[10];
     bool isMuted[10];
     ym3438_t fm;
+    fmopn2_t fm_276;
 
     ymfm::ym2612* fm_ymfm;
     ymfm::ym2612::output_data out_ymfm;
@@ -84,8 +85,10 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     int softPCMTimer;
 
-    bool extMode, softPCM, noExtMacros, useYMFM;
+    bool extMode, softPCM, noExtMacros, canWriteDAC;
+    unsigned char useYMFM;
     unsigned char chipType;
+    short dacWrite;
   
     unsigned char dacVolTable[128];
   
@@ -95,6 +98,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     inline void processDAC(int iRate);
     inline void commitState(int ch, DivInstrument* ins);
     void acquire_nuked(short** buf, size_t len);
+    void acquire_nuked276(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
   
     friend void putDispatchChip(void*,int);
@@ -105,8 +109,10 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    virtual unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    virtual int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
@@ -114,7 +120,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
-    void setYMFM(bool use);
+    void setYMFM(unsigned char use);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     float getPostAmp();

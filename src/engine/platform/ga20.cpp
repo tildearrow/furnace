@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if(!skipRegisterWrites) {writes.emplace(a,v); if(dumpWrites) addWrite(a,v);}}
+#define rWrite(a,v) {if(!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if(dumpWrites) addWrite(a,v);}}
 
 #define CHIP_DIVIDER 64
 
@@ -68,14 +68,19 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
         ga20.write(w.addr,w.val);
         regPool[w.addr]=w.val;
         writes.pop();
-        delay=w.delay;
+        delay=1;
       }
     }
-    short *buffer[4] = {&ga20Buf[0][h],&ga20Buf[1][h],&ga20Buf[2][h],&ga20Buf[3][h]};
-    ga20.sound_stream_update(buffer, 1);
+    short *buffer[4]={
+      &ga20Buf[0][h],
+      &ga20Buf[1][h],
+      &ga20Buf[2][h],
+      &ga20Buf[3][h]
+    };
+    ga20.sound_stream_update(buffer,1);
     buf[0][h]=(signed int)(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h])>>2;
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h];
+      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h]>>1;
     }
   }
 }
@@ -202,7 +207,9 @@ int DivPlatformGA20::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
+        chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -258,7 +265,7 @@ int DivPlatformGA20::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      const int destFreq=NOTE_PERIODIC(c.value2);
+      const int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -281,7 +288,7 @@ int DivPlatformGA20::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -306,8 +313,8 @@ int DivPlatformGA20::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -356,9 +363,7 @@ DivDispatchOscBuffer* DivPlatformGA20::getOscBuffer(int ch) {
 }
 
 void DivPlatformGA20::reset() {
-  while (!writes.empty()) {
-    writes.pop();
-  }
+  writes.clear();
   memset(regPool,0,32);
   ga20.device_reset();
   delay=0;
@@ -385,8 +390,6 @@ void DivPlatformGA20::notifyInsChange(int ins) {
 }
 
 void DivPlatformGA20::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
-  // TODO they probably won't be added unless the samples reside in RAM
 }
 
 void DivPlatformGA20::notifyInsDeletion(void* ins) {

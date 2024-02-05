@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -212,6 +212,7 @@ void FurnaceGUI::drawDebug() {
     }
     if (ImGui::TreeNode("Oscilloscope Debug")) {
       int c=0;
+      ImGui::Checkbox("FFT debug view",&debugFFT);
       for (int i=0; i<e->song.systemLen; i++) {
         DivSystem system=e->song.system[i];
         if (e->getChannelCount(system)>0) {
@@ -308,6 +309,21 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Do Action")) {
+      char bindID[1024];
+      for (int j=0; j<GUI_ACTION_MAX; j++) {
+        if (strcmp(guiActions[j].friendlyName,"")==0) continue;
+        if (strstr(guiActions[j].friendlyName,"---")==guiActions[j].friendlyName) {
+          ImGui::TextUnformatted(guiActions[j].friendlyName);
+        } else {
+          snprintf(bindID,1024,"%s##DO_%d",guiActions[j].friendlyName,j);
+          if (ImGui::Button(bindID)) {
+            doAction(j);
+          }
+        }
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Pitch Table Calculator")) {
       ImGui::InputDouble("Clock",&ptcClock);
       ImGui::InputDouble("Divider/FreqBase",&ptcDivider);
@@ -380,12 +396,47 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
-    if (ImGui::TreeNode("Window Debug")) {
+    if (ImGui::TreeNodeEx("Window Debug",ImGuiTreeNodeFlags_DefaultOpen)) {
       ImGui::Text("Screen: %dx%d+%d+%d",scrW,scrH,scrX,scrY);
       ImGui::Text("Screen (Conf): %dx%d+%d+%d",scrConfW,scrConfH,scrConfX,scrConfY);
       ImGui::Text("Canvas: %dx%d",canvasW,canvasH);
       ImGui::Text("Maximized: %d",scrMax);
       ImGui::Text("System Managed Scale: %d",sysManagedScale);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Audio Debug")) {
+      TAAudioDesc& audioWant=e->getAudioDescWant();
+      TAAudioDesc& audioGot=e->getAudioDescGot();
+
+      ImGui::Text("want:");
+      ImGui::Text("- name: %s",audioWant.name.c_str());
+      ImGui::Text("- device name: %s",audioWant.deviceName.c_str());
+      ImGui::Text("- rate: %f",audioWant.rate);
+      ImGui::Text("- buffer size: %d",audioWant.bufsize);
+      ImGui::Text("- fragments: %d",audioWant.fragments);
+      ImGui::Text("- inputs: %d",audioWant.inChans);
+      ImGui::Text("- outputs: %d",audioWant.outChans);
+      ImGui::Text("- format: %d",audioWant.outFormat);
+
+      ImGui::Text("got:");
+      ImGui::Text("- name: %s",audioGot.name.c_str());
+      ImGui::Text("- device name: %s",audioGot.deviceName.c_str());
+      ImGui::Text("- rate: %f",audioGot.rate);
+      ImGui::Text("- buffer size: %d",audioGot.bufsize);
+      ImGui::Text("- fragments: %d",audioGot.fragments);
+      ImGui::Text("- inputs: %d",audioGot.inChans);
+      ImGui::Text("- outputs: %d",audioGot.outChans);
+      ImGui::Text("- format: %d",audioGot.outFormat);
+
+      ImGui::Text("last call to nextBuf(): in %d, out %d, size %d",e->lastNBIns,e->lastNBOuts,e->lastNBSize);
+
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("MIDI Debug")) {
+      if (ImGui::Button("Enable Debug (go to log viewer)")) {
+        e->setMidiDebug(true);
+        nextWindow=GUI_WINDOW_LOG;
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Visualizer Debug")) {
@@ -458,6 +509,7 @@ void FurnaceGUI::drawDebug() {
         pgProgram.clear();
       }
       
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Address");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(100.0f*dpiScale);
@@ -529,12 +581,25 @@ void FurnaceGUI::drawDebug() {
       ImGui::PlotLines("##DebugFMPreview",asFloat,FM_PREVIEW_SIZE,0,"Preview",-1.0,1.0,ImVec2(300.0f*dpiScale,150.0f*dpiScale));
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Recent Files")) {
+      ImGui::Text("Items: %d - Max: %d",(int)recentFile.size(),settings.maxRecentFile);
+      ImGui::Text("readPos: %d - writePos: %d",(int)recentFile.readPos,(int)recentFile.writePos);
+      ImGui::Indent();
+      for (size_t i=0; i<recentFile.size(); i++) {
+        ImGui::Text("%d: %s",(int)i,recentFile[i].c_str());
+      }
+      ImGui::Unindent();
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("User Interface")) {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;
       }
       if (ImGui::Button("Spoiler")) {
         spoilerOpen=!spoilerOpen;
+      }
+      if (ImGui::Button("Kill Graphics")) {
+        killGraphics=true;
       }
       ImGui::TreePop();
     }
@@ -549,6 +614,7 @@ void FurnaceGUI::drawDebug() {
 
       ImGui::Text("audio: %dµs",lastProcTime);
       ImGui::Text("render: %.0fµs",(double)renderTimeDelta/perfFreq);
+      ImGui::Text("draw: %.0fµs",(double)drawTimeDelta/perfFreq);
       ImGui::Text("layout: %.0fµs",(double)layoutTimeDelta/perfFreq);
       ImGui::Text("event: %.0fµs",(double)eventTimeDelta/perfFreq);
       ImGui::Separator();

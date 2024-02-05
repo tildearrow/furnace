@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ const char* queryReplaceModes[GUI_QUERY_REPLACE_MAX]={
   "set",
   "add",
   "add (overflow)",
-  "scale",
+  "scale %",
   "clear"
 };
 
@@ -103,6 +103,8 @@ void FurnaceGUI::doFind() {
   int lastRow=e->curSubSong->patLen-1;
 
   if (curQueryRangeY==1) {
+    finishSelection();
+
     firstRow=selStart.y;
     lastRow=selEnd.y;
   }
@@ -595,6 +597,7 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.25);
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
               ImGui::Text("Note");
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -662,152 +665,89 @@ void FurnaceGUI::drawFindReplace() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
               ImGui::Text("Ins");
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
               ImGui::Combo("##ICondition",&i.insMode,queryModes,GUI_QUERY_MAX);
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.insMode)) {
-                snprintf(tempID,1024,"%.2X",i.ins);
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo("II1",tempID)) {
-                  for (int j=0; j<256; j++) {
-                    snprintf(tempID,1024,"%.2X",j);
-                    if (ImGui::Selectable(tempID,i.ins==j)) {
-                      i.ins=j;
-                    }
-                  }
-                  ImGui::EndCombo();
-                }
+                ImGui::InputScalar("##II1",ImGuiDataType_U8,&i.ins,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
               }
               ImGui::TableNextColumn();
               if (SECOND_VISIBLE(i.insMode)) {
-                snprintf(tempID,1024,"%.2X",i.insMax);
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo("II2",tempID)) {
-                  for (int j=0; j<256; j++) {
-                    snprintf(tempID,1024,"%.2X",j);
-                    if (ImGui::Selectable(tempID,i.insMax==j)) {
-                      i.insMax=j;
-                    }
-                  }
-                  ImGui::EndCombo();
-                }
+                ImGui::InputScalar("##II2",ImGuiDataType_U8,&i.insMax,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
               }
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
               ImGui::Text("Volume");
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
               ImGui::Combo("##VCondition",&i.volMode,queryModes,GUI_QUERY_MAX);
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.volMode)) {
-                snprintf(tempID,1024,"%.2X",i.vol);
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo("VV1",tempID)) {
-                  for (int j=0; j<256; j++) {
-                    snprintf(tempID,1024,"%.2X",j);
-                    if (ImGui::Selectable(tempID,i.vol==j)) {
-                      i.vol=j;
-                    }
-                  }
-                  ImGui::EndCombo();
-                }
+                ImGui::InputScalar("##VV1",ImGuiDataType_U8,&i.vol,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
               }
               ImGui::TableNextColumn();
               if (SECOND_VISIBLE(i.volMode)) {
-                snprintf(tempID,1024,"%.2X",i.volMax);
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo("VV2",tempID)) {
-                  for (int j=0; j<256; j++) {
-                    snprintf(tempID,1024,"%.2X",j);
-                    if (ImGui::Selectable(tempID,i.volMax==j)) {
-                      i.volMax=j;
-                    }
-                  }
-                  ImGui::EndCombo();
-                }
+                ImGui::InputScalar("##VV2",ImGuiDataType_U8,&i.volMax,NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
               }
 
               for (int j=0; j<i.effectCount; j++) {
                 ImGui::PushID(0x1000+j);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
                 ImGui::Text("Effect");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 ImGui::Combo("##ECondition",&i.effectMode[j],queryModes,GUI_QUERY_MAX);
                 ImGui::TableNextColumn();
                 if (FIRST_VISIBLE(i.effectMode[j])) {
-                  snprintf(tempID,1024,"%.2X",i.effect[j]);
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("EE1",tempID)) {
-                    for (int k=0; k<256; k++) {
-                      snprintf(tempID,1024,"%.2X",k);
-                      if (ImGui::Selectable(tempID,i.effect[j]==k)) {
-                        i.effect[j]=k;
-                      }
-                    }
-                    ImGui::EndCombo();
-                  }
+                  ImGui::InputScalar("##EE1",ImGuiDataType_U8,&i.effect[j],NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
                 }
                 ImGui::TableNextColumn();
                 if (SECOND_VISIBLE(i.effectMode[j])) {
-                  snprintf(tempID,1024,"%.2X",i.effectMax[j]);
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("EE2",tempID)) {
-                    for (int k=0; k<256; k++) {
-                      snprintf(tempID,1024,"%.2X",k);
-                      if (ImGui::Selectable(tempID,i.effectMax[j]==k)) {
-                        i.effectMax[j]=k;
-                      }
-                    }
-                    ImGui::EndCombo();
-                  }
+                  ImGui::InputScalar("##EE2",ImGuiDataType_U8,&i.effectMax[j],NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
                 }
                 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
                 ImGui::Text("Value");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 ImGui::Combo("##EVCondition",&i.effectValMode[j],queryModes,GUI_QUERY_MAX);
                 ImGui::TableNextColumn();
                 if (FIRST_VISIBLE(i.effectValMode[j])) {
-                  snprintf(tempID,1024,"%.2X",i.effectVal[j]);
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("EV1",tempID)) {
-                    for (int k=0; k<256; k++) {
-                      snprintf(tempID,1024,"%.2X",k);
-                      if (ImGui::Selectable(tempID,i.effectVal[j]==k)) {
-                        i.effectVal[j]=k;
-                      }
-                    }
-                    ImGui::EndCombo();
-                  }
+                  ImGui::InputScalar("##EV1",ImGuiDataType_U8,&i.effectVal[j],NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
                 }
                 ImGui::TableNextColumn();
                 if (SECOND_VISIBLE(i.effectValMode[j])) {
-                  snprintf(tempID,1024,"%.2X",i.effectValMax[j]);
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("EV2",tempID)) {
-                    for (int k=0; k<256; k++) {
-                      snprintf(tempID,1024,"%.2X",k);
-                      if (ImGui::Selectable(tempID,i.effectValMax[j]==k)) {
-                        i.effectValMax[j]=k;
-                      }
-                    }
-                    ImGui::EndCombo();
-                  }
+                  ImGui::InputScalar("##EV2",ImGuiDataType_U8,&i.effectValMax[j],NULL,NULL,"%.2X",ImGuiInputTextFlags_CharsHexadecimal);
                 }
 
                 ImGui::PopID();
               }
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              pushDestColor();
               if (ImGui::Button(ICON_FA_MINUS "##DelQuery")) {
                 eraseIndex=index;
+              }
+              popDestColor();
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Delete query");
               }
               ImGui::TableNextColumn();
               if (i.effectCount<8) {
@@ -817,9 +757,11 @@ void FurnaceGUI::drawFindReplace() {
               }
               ImGui::TableNextColumn();
               if (i.effectCount>0) {
+                pushDestColor();
                 if (ImGui::Button("Remove effect")) {
                   i.effectCount--;
                 }
+                popDestColor();
               }
               ImGui::EndTable();
             }
@@ -982,14 +924,14 @@ void FurnaceGUI::drawFindReplace() {
               if (queryReplaceIns>255) queryReplaceIns=255;
             }
           } else if (queryReplaceInsMode==GUI_QUERY_REPLACE_ADD || queryReplaceInsMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
-            if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,12)) {
+            if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,16)) {
               if (queryReplaceIns<-255) queryReplaceIns=-255;
               if (queryReplaceIns>255) queryReplaceIns=255;
             }
           } else if (queryReplaceInsMode==GUI_QUERY_REPLACE_SCALE) {
             if (queryReplaceIns<0) queryReplaceIns=0;
             if (queryReplaceIns>400) queryReplaceIns=400;
-            if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,12)) {
+            if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,10)) {
               if (queryReplaceIns<0) queryReplaceIns=0;
               if (queryReplaceIns>400) queryReplaceIns=400;
             }
@@ -1011,14 +953,14 @@ void FurnaceGUI::drawFindReplace() {
               if (queryReplaceVol>255) queryReplaceVol=255;
             }
           } else if (queryReplaceVolMode==GUI_QUERY_REPLACE_ADD || queryReplaceVolMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
-            if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,12)) {
+            if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,16)) {
               if (queryReplaceVol<-255) queryReplaceVol=-255;
               if (queryReplaceVol>255) queryReplaceVol=255;
             }
           } else if (queryReplaceVolMode==GUI_QUERY_REPLACE_SCALE) {
             if (queryReplaceVol<0) queryReplaceVol=0;
             if (queryReplaceVol>400) queryReplaceVol=400;
-            if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,12)) {
+            if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,10)) {
               if (queryReplaceVol<0) queryReplaceVol=0;
               if (queryReplaceVol>400) queryReplaceVol=400;
             }
@@ -1042,14 +984,14 @@ void FurnaceGUI::drawFindReplace() {
                 if (queryReplaceEffect[i]>255) queryReplaceEffect[i]=255;
               }
             } else if (queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_ADD || queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
-              if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,12)) {
+              if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,16)) {
                 if (queryReplaceEffect[i]<-255) queryReplaceEffect[i]=-255;
                 if (queryReplaceEffect[i]>255) queryReplaceEffect[i]=255;
               }
             } else if (queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_SCALE) {
               if (queryReplaceEffect[i]<0) queryReplaceEffect[i]=0;
               if (queryReplaceEffect[i]>400) queryReplaceEffect[i]=400;
-              if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,12)) {
+              if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,10)) {
                 if (queryReplaceEffect[i]<0) queryReplaceEffect[i]=0;
                 if (queryReplaceEffect[i]>400) queryReplaceEffect[i]=400;
               }
@@ -1071,14 +1013,14 @@ void FurnaceGUI::drawFindReplace() {
                 if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
               }
             } else if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_ADD || queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
-              if (ImGui::InputInt("##ERValueV",&queryReplaceEffectVal[i],1,12)) {
+              if (ImGui::InputInt("##ERValueV",&queryReplaceEffectVal[i],1,16)) {
                 if (queryReplaceEffectVal[i]<-255) queryReplaceEffectVal[i]=-255;
                 if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
               }
             } else if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_SCALE) {
               if (queryReplaceEffectVal[i]<0) queryReplaceEffectVal[i]=0;
               if (queryReplaceEffectVal[i]>400) queryReplaceEffectVal[i]=400;
-              if (ImGui::InputInt("##ERValueV",&queryReplaceEffectVal[i],1,12)) {
+              if (ImGui::InputInt("##ERValueV",&queryReplaceEffectVal[i],1,10)) {
                 if (queryReplaceEffectVal[i]<0) queryReplaceEffectVal[i]=0;
                 if (queryReplaceEffectVal[i]>400) queryReplaceEffectVal[i]=400;
               }
@@ -1098,9 +1040,11 @@ void FurnaceGUI::drawFindReplace() {
           }
           ImGui::TableNextColumn();
           if (queryReplaceEffectCount>0) {
+            pushDestColor();
             if (ImGui::Button("Remove effect")) {
               queryReplaceEffectCount--;
             }
+            popDestColor();
           }
 
           ImGui::EndTable();

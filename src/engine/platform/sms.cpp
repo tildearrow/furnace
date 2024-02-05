@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);}}}
+#define rWrite(a,v) {if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);}}}
 
 const char* regCheatSheetSN[]={
   "DATA", "0",
@@ -296,6 +296,10 @@ void DivPlatformSMS::tick(bool sysTick) {
       rWrite(0,0x90|(i<<5)|(isMuted[i]?15:(15-(chan[i].outVol&15))));
       chan[i].writeVol=false;
     }
+    if (chan[i].keyOff) {
+      rWrite(0,0x9f|i<<5);
+      chan[i].keyOff=false;
+    }
   }
 }
 
@@ -309,6 +313,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         chan[c.chan].actualNote=c.value;
       }
       chan[c.chan].active=true;
+      chan[c.chan].keyOff=false;
       //if (!parent->song.brokenOutVol2) {
         chan[c.chan].writeVol=true;
         chan[c.chan].outVol=chan[c.chan].vol;
@@ -321,7 +326,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
-      rWrite(0,0x9f|c.chan<<5);
+      chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
@@ -415,8 +420,8 @@ int DivPlatformSMS::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -447,8 +452,18 @@ DivMacroInt* DivPlatformSMS::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformSMS::getPan(int ch) {
+  if (!stereo) return 0;
+  unsigned char p=lastPan&(0x11<<ch);
+  return ((p&0xf0)?0x100:0)|((p&0x0f)?1:0);
+}
+
 DivDispatchOscBuffer* DivPlatformSMS::getOscBuffer(int ch) {
   return oscBuf[ch];
+}
+
+int DivPlatformSMS::mapVelocity(int ch, float vel) {
+  return round(15.0*pow(vel,0.33));
 }
 
 unsigned char* DivPlatformSMS::getRegisterPool() {
@@ -492,6 +507,10 @@ bool DivPlatformSMS::keyOffAffectsArp(int ch) {
 
 bool DivPlatformSMS::keyOffAffectsPorta(int ch) {
   return true;
+}
+
+bool DivPlatformSMS::getLegacyAlwaysSetVolume() {
+  return false;
 }
 
 int DivPlatformSMS::getPortaFloor(int ch) {

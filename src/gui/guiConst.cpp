@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 #include "gui.h"
 #include "guiConst.h"
 #include "../engine/song.h"
+#include "IconsFontAwesome4.h"
+#include "furIcons.h"
 
 const int opOrder[4]={
   0, 2, 1, 3
@@ -62,6 +64,42 @@ const char* noteNamesG[180]={
   "C-9", "C#9", "D-9", "D#9", "E-9", "F-9", "F#9", "G-9", "G#9", "A-9", "A#9", "H-9"
 };
 
+const char* noteNamesF[180]={
+  "c_5", "dd5", "d_5", "ed5", "e_5", "f_5", "gd5", "g_5", "ad5", "a_5", "bd5", "b_5",
+  "c_4", "dd4", "d_4", "ed4", "e_4", "f_4", "gd4", "g_4", "ad4", "a_4", "bd4", "b_4",
+  "c_3", "dd3", "d_3", "ed3", "e_3", "f_3", "gd3", "g_3", "ad3", "a_3", "bd3", "b_3",
+  "c_2", "dd2", "d_2", "ed2", "e_2", "f_2", "gd2", "g_2", "ad2", "a_2", "bd2", "b_2",
+  "c_1", "dd1", "d_1", "ed1", "e_1", "f_1", "gd1", "g_1", "ad1", "a_1", "bd1", "b_1",
+  "C-0", "Db0", "D-0", "Eb0", "E-0", "F-0", "Gb0", "G-0", "Ab0", "A-0", "Bb0", "B-0",
+  "C-1", "Db1", "D-1", "Eb1", "E-1", "F-1", "Gb1", "G-1", "Ab1", "A-1", "Bb1", "B-1",
+  "C-2", "Db2", "D-2", "Eb2", "E-2", "F-2", "Gb2", "G-2", "Ab2", "A-2", "Bb2", "B-2",
+  "C-3", "Db3", "D-3", "Eb3", "E-3", "F-3", "Gb3", "G-3", "Ab3", "A-3", "Bb3", "B-3",
+  "C-4", "Db4", "D-4", "Eb4", "E-4", "F-4", "Gb4", "G-4", "Ab4", "A-4", "Bb4", "B-4",
+  "C-5", "Db5", "D-5", "Eb5", "E-5", "F-5", "Gb5", "G-5", "Ab5", "A-5", "Bb5", "B-5",
+  "C-6", "Db6", "D-6", "Eb6", "E-6", "F-6", "Gb6", "G-6", "Ab6", "A-6", "Bb6", "B-6",
+  "C-7", "Db7", "D-7", "Eb7", "E-7", "F-7", "Gb7", "G-7", "Ab7", "A-7", "Bb7", "B-7",
+  "C-8", "Db8", "D-8", "Eb8", "E-8", "F-8", "Gb8", "G-8", "Ab8", "A-8", "Bb8", "B-8",
+  "C-9", "Db9", "D-9", "Eb9", "E-9", "F-9", "Gb9", "G-9", "Ab9", "A-9", "Bb9", "B-9"
+};
+
+const char* noteNamesGF[180]={
+  "c_5", "dd5", "d_5", "ed5", "e_5", "f_5", "gd5", "g_5", "ad5", "a_5", "b_5", "h_5",
+  "c_4", "dd4", "d_4", "ed4", "e_4", "f_4", "gd4", "g_4", "ad4", "a_4", "b_4", "h_4",
+  "c_3", "dd3", "d_3", "ed3", "e_3", "f_3", "gd3", "g_3", "ad3", "a_3", "b_3", "h_3",
+  "c_2", "dd2", "d_2", "ed2", "e_2", "f_2", "gd2", "g_2", "ad2", "a_2", "b_2", "h_2",
+  "c_1", "dd1", "d_1", "ed1", "e_1", "f_1", "gd1", "g_1", "ad1", "a_1", "b_1", "h_1",
+  "C-0", "Db0", "D-0", "Eb0", "E-0", "F-0", "Gb0", "G-0", "Ab0", "A-0", "B-0", "H-0",
+  "C-1", "Db1", "D-1", "Eb1", "E-1", "F-1", "Gb1", "G-1", "Ab1", "A-1", "B-1", "H-1",
+  "C-2", "Db2", "D-2", "Eb2", "E-2", "F-2", "Gb2", "G-2", "Ab2", "A-2", "B-2", "H-2",
+  "C-3", "Db3", "D-3", "Eb3", "E-3", "F-3", "Gb3", "G-3", "Ab3", "A-3", "B-3", "H-3",
+  "C-4", "Db4", "D-4", "Eb4", "E-4", "F-4", "Gb4", "G-4", "Ab4", "A-4", "B-4", "H-4",
+  "C-5", "Db5", "D-5", "Eb5", "E-5", "F-5", "Gb5", "G-5", "Ab5", "A-5", "B-5", "H-5",
+  "C-6", "Db6", "D-6", "Eb6", "E-6", "F-6", "Gb6", "G-6", "Ab6", "A-6", "B-6", "H-6",
+  "C-7", "Db7", "D-7", "Eb7", "E-7", "F-7", "Gb7", "G-7", "Ab7", "A-7", "B-7", "H-7",
+  "C-8", "Db8", "D-8", "Eb8", "E-8", "F-8", "Gb8", "G-8", "Ab8", "A-8", "B-8", "H-8",
+  "C-9", "Db9", "D-9", "Eb9", "E-9", "F-9", "Gb9", "G-9", "Ab9", "A-9", "B-9", "H-9"
+};
+
 const char* pitchLabel[11]={
   "1/6", "1/5", "1/4", "1/3", "1/2", "1x", "2x", "3x", "4x", "5x", "6x"
 };
@@ -80,58 +118,68 @@ const int vgmVersions[7]={
   0x172
 };
 
-const char* insTypes[DIV_INS_MAX+1]={
-  "SN76489/Sega PSG",
-  "FM (OPN)",
-  "Game Boy",
-  "C64",
-  "Generic Sample",
-  "PC Engine",
-  "AY-3-8910/SSG",
-  "AY8930",
-  "TIA",
-  "SAA1099",
-  "VIC",
-  "PET",
-  "VRC6",
-  "FM (OPLL)",
-  "FM (OPL)",
-  "FDS",
-  "Virtual Boy",
-  "Namco 163",
-  "Konami SCC/Bubble System WSG",
-  "FM (OPZ)",
-  "POKEY",
-  "Beeper",
-  "WonderSwan",
-  "Atari Lynx",
-  "VERA",
-  "X1-010",
-  "VRC6 (saw)",
-  "ES5506",
-  "MultiPCM",
-  "SNES",
-  "Sound Unit",
-  "Namco WSG",
-  "OPL (drums)",
-  "FM (OPM)",
-  "NES",
-  "MSM6258",
-  "MSM6295",
-  "ADPCM-A",
-  "ADPCM-B",
-  "SegaPCM",
-  "QSound",
-  "YMZ280B",
-  "RF5C68",
-  "MSM5232",
-  "T6W28",
-  "K007232",
-  "GA20",
-  "Pokémon Mini/QuadTone",
-  "SM8521",
-  "PV-1000",
-  NULL
+// name, icon, letter icon
+const char* insTypes[DIV_INS_MAX+1][3]={
+  {"SN76489/Sega PSG",ICON_FA_BAR_CHART,ICON_FUR_INS_STD},
+  {"FM (OPN)",ICON_FA_AREA_CHART,ICON_FUR_INS_FM},
+  {"Game Boy",ICON_FA_GAMEPAD,ICON_FUR_INS_GB},
+  {"C64",ICON_FA_KEYBOARD_O,ICON_FUR_INS_C64},
+  {"Generic Sample",ICON_FA_VOLUME_UP,ICON_FUR_INS_AMIGA},
+  {"PC Engine",ICON_FA_ID_BADGE,ICON_FUR_INS_PCE},
+  {"AY-3-8910/SSG",ICON_FA_BAR_CHART,ICON_FUR_INS_AY},
+  {"AY8930",ICON_FA_BAR_CHART,ICON_FUR_INS_AY8930},
+  {"TIA",ICON_FA_BAR_CHART,ICON_FUR_INS_TIA},
+  {"SAA1099",ICON_FA_BAR_CHART,ICON_FUR_INS_SAA1099},
+  {"VIC",ICON_FA_BAR_CHART,ICON_FUR_INS_VIC},
+  {"PET",ICON_FA_SQUARE,ICON_FUR_INS_PET},
+  {"VRC6",ICON_FA_BAR_CHART,ICON_FUR_INS_VRC6},
+  {"FM (OPLL)",ICON_FA_AREA_CHART,ICON_FUR_INS_OPLL},
+  {"FM (OPL)",ICON_FA_AREA_CHART,ICON_FUR_INS_OPL},
+  {"FDS",ICON_FA_FLOPPY_O,ICON_FUR_INS_FDS},
+  {"Virtual Boy",ICON_FA_BINOCULARS,ICON_FUR_INS_VBOY},
+  {"Namco 163",ICON_FA_CALCULATOR,ICON_FUR_INS_N163},
+  {"Konami SCC/Bubble System WSG",ICON_FA_CALCULATOR,ICON_FUR_INS_SCC},
+  {"FM (OPZ)",ICON_FA_AREA_CHART,ICON_FUR_INS_OPZ},
+  {"POKEY",ICON_FA_BAR_CHART,ICON_FUR_INS_POKEY},
+  {"Beeper",ICON_FA_SQUARE,ICON_FUR_INS_BEEPER},
+  {"WonderSwan",ICON_FA_GAMEPAD,ICON_FUR_INS_SWAN},
+  {"Atari Lynx",ICON_FA_BAR_CHART,ICON_FUR_INS_MIKEY},
+  {"VERA",ICON_FA_KEYBOARD_O,ICON_FUR_INS_VERA},
+  {"X1-010",ICON_FA_BAR_CHART,ICON_FUR_INS_X1_010},
+  {"VRC6 (saw)",ICON_FA_BAR_CHART,ICON_FUR_INS_VRC6_SAW},
+  {"ES5506",ICON_FA_VOLUME_UP,ICON_FUR_INS_ES5506},
+  {"MultiPCM",ICON_FA_VOLUME_UP,ICON_FUR_INS_MULTIPCM},
+  {"SNES",ICON_FA_VOLUME_UP,ICON_FUR_INS_SNES},
+  {"Sound Unit",ICON_FA_MICROCHIP,ICON_FUR_INS_SU},
+  {"Namco WSG",ICON_FA_PIE_CHART,ICON_FUR_INS_NAMCO},
+  {"OPL (drums)",ICON_FA_COFFEE,ICON_FUR_INS_OPL_DRUMS},
+  {"FM (OPM)",ICON_FA_AREA_CHART,ICON_FUR_INS_OPM},
+  {"NES",ICON_FA_GAMEPAD,ICON_FUR_INS_NES},
+  {"MSM6258",ICON_FA_VOLUME_UP,ICON_FUR_INS_MSM6258},
+  {"MSM6295",ICON_FA_VOLUME_UP,ICON_FUR_INS_MSM6295},
+  {"ADPCM-A",ICON_FA_VOLUME_UP,ICON_FUR_INS_ADPCMA},
+  {"ADPCM-B",ICON_FA_VOLUME_UP,ICON_FUR_INS_ADPCMB},
+  {"SegaPCM",ICON_FA_VOLUME_UP,ICON_FUR_INS_SEGAPCM},
+  {"QSound",ICON_FA_VOLUME_UP,ICON_FUR_INS_QSOUND},
+  {"YMZ280B",ICON_FA_VOLUME_UP,ICON_FUR_INS_YMZ280B},
+  {"RF5C68",ICON_FA_VOLUME_UP,ICON_FUR_INS_RF5C68},
+  {"MSM5232",ICON_FA_BAR_CHART,ICON_FUR_INS_MSM5232},
+  {"T6W28",ICON_FA_BAR_CHART,ICON_FUR_INS_T6W28},
+  {"K007232",ICON_FA_BAR_CHART,ICON_FUR_INS_K007232},
+  {"GA20",ICON_FA_BAR_CHART,ICON_FUR_INS_GA20},
+  {"Pokémon Mini/QuadTone",ICON_FA_BAR_CHART,ICON_FUR_INS_POKEMINI},
+  {"SM8521",ICON_FA_GAMEPAD,ICON_FUR_INS_SM8521},
+  {"PV-1000",ICON_FA_GAMEPAD,ICON_FUR_INS_PV1000},
+  {"K053260",ICON_FA_BAR_CHART,ICON_FUR_INS_K053260},
+  {"SCSP",ICON_FA_QUESTION,ICON_FUR_INS_SCSP},
+  {"TED",ICON_FA_BAR_CHART,ICON_FUR_INS_TED},
+  {"C140",ICON_FA_VOLUME_UP,ICON_FUR_INS_C140},
+  {"C219",ICON_FA_VOLUME_UP,ICON_FUR_INS_C219},
+  {"FM (ESFM)",ICON_FA_AREA_CHART,ICON_FUR_INS_ESFM},
+  {"PowerNoise (noise)",ICON_FUR_NOISE,ICON_FUR_INS_POWERNOISE},
+  {"PowerNoise (slope)",ICON_FUR_SAW,ICON_FUR_INS_POWERNOISE_SAW},
+  {"Dave",ICON_FA_BAR_CHART,ICON_FUR_INS_DAVE},
+  {NULL,ICON_FA_QUESTION,ICON_FA_QUESTION}
 };
 
 const char* sampleLoopModes[DIV_SAMPLE_LOOP_MAX]={
@@ -148,12 +196,12 @@ const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "QSound ADPCM",
   "ADPCM-A",
   "ADPCM-B",
-  NULL,
+  "K05 ADPCM",
   "8-bit PCM",
   "BRR",
   "VOX",
-  NULL,
-  NULL,
+  "8-bit µ-law PCM",
+  "C219 PCM",
   NULL,
   NULL,
   NULL,
@@ -167,6 +215,19 @@ const char* resampleStrats[]={
   "blep synthesis",
   "sinc",
   "best possible"
+};
+
+const char* fxColorsNames[]={
+  "Invalid",
+  "Pitch",
+  "Volume",
+  "Panning",
+  "Song",
+  "Time",
+  "Speed",
+  "System (Primary)",
+  "System (Secondary)",
+  "Miscellaneous"
 };
 
 const FurnaceGUIColors fxColors[256]={
@@ -445,7 +506,7 @@ const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // F4
   GUI_COLOR_PATTERN_EFFECT_MISC, // F5
   GUI_COLOR_PATTERN_EFFECT_MISC, // F6
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // F7
+  GUI_COLOR_PATTERN_EFFECT_MISC, // F7
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // F8
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // F9
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // FA
@@ -467,8 +528,14 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("OPEN_BACKUP", "Restore backup", 0),
   D("SAVE", "Save file", FURKMOD_CMD|SDLK_s),
   D("SAVE_AS", "Save as", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_s),
+  D("EXPORT", "Export", 0),
   D("UNDO", "Undo", FURKMOD_CMD|SDLK_z),
+#ifdef __APPLE__
+  D("REDO", "Redo", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_z),
+#else
   D("REDO", "Redo", FURKMOD_CMD|SDLK_y),
+#endif
+  D("QUIT", "Exit", 0),
   D("PLAY_TOGGLE", "Play/Stop (toggle)", SDLK_RETURN),
   D("PLAY", "Play", 0),
   D("STOP", "Stop", 0),
@@ -504,9 +571,13 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_SAMPLE_LIST", "Sample List", 0),
   D("WINDOW_SAMPLE_EDIT", "Sample Editor", 0),
   D("WINDOW_ABOUT", "About", 0),
+#ifdef __APPLE__
+  D("WINDOW_SETTINGS", "Settings", FURKMOD_CMD|SDLK_COMMA),
+#else
   D("WINDOW_SETTINGS", "Settings", 0),
+#endif
   D("WINDOW_MIXER", "Mixer", 0),
-  D("WINDOW_DEBUG", "Debug Menu", 0),
+  D("WINDOW_DEBUG", "Debug Menu", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_d),
   D("WINDOW_OSCILLOSCOPE", "Oscilloscope (master)", 0),
   D("WINDOW_VOL_METER", "Volume Meter", 0),
   D("WINDOW_STATS", "Statistics", 0),
@@ -518,12 +589,13 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_SYS_MANAGER", "Chip Manager", 0),
   D("WINDOW_REGISTER_VIEW", "Register View", 0),
   D("WINDOW_LOG", "Log Viewer", 0),
-  D("EFFECT_LIST", "Effect List", 0),
+  D("WINDOW_EFFECT_LIST", "Effect List", 0),
   D("WINDOW_CHAN_OSC", "Oscilloscope (per-channel)", 0),
   D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("WINDOW_FIND", "Find/Replace", FURKMOD_CMD|SDLK_f),
   D("WINDOW_CLOCK", "Clock", 0),
   D("WINDOW_GROOVES", "Grooves", 0),
+  D("WINDOW_XY_OSC", "Oscilloscope (X-Y)", 0),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
   D("CLOSE_WINDOW", "Close current window", FURKMOD_SHIFT|SDLK_ESCAPE),
@@ -554,8 +626,8 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("PAT_CURSOR_DOWN_ONE", "Move cursor down by one (override Edit Step)", FURKMOD_SHIFT|SDLK_END),
   D("PAT_CURSOR_LEFT_CHANNEL", "Move cursor to previous channel", 0),
   D("PAT_CURSOR_RIGHT_CHANNEL", "Move cursor to next channel", 0),
-  D("PAT_CURSOR_NEXT_CHANNEL", "Move cursor to previous channel (overflow)", 0),
-  D("PAT_CURSOR_PREVIOUS_CHANNEL", "Move cursor to next channel (overflow)", 0),
+  D("PAT_CURSOR_NEXT_CHANNEL", "Move cursor to next channel (overflow)", 0),
+  D("PAT_CURSOR_PREVIOUS_CHANNEL", "Move cursor to previous channel (overflow)", 0),
   D("PAT_CURSOR_BEGIN", "Move cursor to beginning of pattern", SDLK_HOME),
   D("PAT_CURSOR_END", "Move cursor to end of pattern", SDLK_END),
   D("PAT_CURSOR_UP_COARSE", "Move cursor up (coarse)", SDLK_PAGEUP),
@@ -602,7 +674,6 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("INS_LIST_OPEN", "Open", 0),
   D("INS_LIST_OPEN_REPLACE", "Open (replace current)", 0),
   D("INS_LIST_SAVE", "Save", 0),
-  D("INS_LIST_SAVE_OLD", "Save (legacy .fui)", 0),
   D("INS_LIST_SAVE_DMP", "Save (.dmp)", 0),
   D("INS_LIST_MOVE_UP", "Move up", FURKMOD_SHIFT|SDLK_UP),
   D("INS_LIST_MOVE_DOWN", "Move down", FURKMOD_SHIFT|SDLK_DOWN),
@@ -610,6 +681,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("INS_LIST_EDIT", "Edit", FURKMOD_SHIFT|SDLK_RETURN),
   D("INS_LIST_UP", "Cursor up", SDLK_UP),
   D("INS_LIST_DOWN", "Cursor down", SDLK_DOWN),
+  D("INS_LIST_DIR_VIEW", "Toggle folders/standard view", FURKMOD_CMD|SDLK_v),
   D("INS_LIST_MAX", "", NOT_AN_ACTION),
 
   D("WAVE_LIST_MIN", "---Wavetable list", NOT_AN_ACTION),
@@ -626,6 +698,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WAVE_LIST_EDIT", "Edit", FURKMOD_SHIFT|SDLK_RETURN),
   D("WAVE_LIST_UP", "Cursor up", SDLK_UP),
   D("WAVE_LIST_DOWN", "Cursor down", SDLK_DOWN),
+  D("WAVE_LIST_DIR_VIEW", "Toggle folders/standard view", FURKMOD_CMD|SDLK_v),
   D("WAVE_LIST_MAX", "", NOT_AN_ACTION),
 
   D("SAMPLE_LIST_MIN", "---Sample list", NOT_AN_ACTION),
@@ -645,6 +718,8 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_LIST_DOWN", "Cursor down", SDLK_DOWN),
   D("SAMPLE_LIST_PREVIEW", "Preview", 0),
   D("SAMPLE_LIST_STOP_PREVIEW", "Stop preview", 0),
+  D("SAMPLE_LIST_DIR_VIEW", "Toggle folders/standard view", FURKMOD_CMD|SDLK_v),
+  D("SAMPLE_LIST_MAKE_MAP", "Make me a drum kit", 0),
   D("SAMPLE_LIST_MAX", "", NOT_AN_ACTION),
 
   D("SAMPLE_MIN", "---Sample editor", NOT_AN_ACTION),
@@ -670,6 +745,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_INVERT", "Invert", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_t),
   D("SAMPLE_SIGN", "Signed/unsigned exchange", FURKMOD_CMD|SDLK_u),
   D("SAMPLE_FILTER", "Apply filter", FURKMOD_CMD|SDLK_f),
+  D("SAMPLE_CROSSFADE_LOOP", "Crossfade loop points", NOT_AN_ACTION),
   D("SAMPLE_PREVIEW", "Preview sample", 0),
   D("SAMPLE_STOP_PREVIEW", "Stop sample preview", 0),
   D("SAMPLE_ZOOM_IN", "Zoom in", FURKMOD_CMD|SDLK_EQUALS),
@@ -707,17 +783,73 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
 const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_BACKGROUND,"Background",ImVec4(0.1f,0.1f,0.1f,1.0f)),
   D(GUI_COLOR_FRAME_BACKGROUND,"",ImVec4(0.0f,0.0f,0.0f,0.85f)),
+  D(GUI_COLOR_FRAME_BACKGROUND_CHILD,"",ImVec4(0.0f,0.0f,0.0f,0.0f)),
+  D(GUI_COLOR_FRAME_BACKGROUND_POPUP,"",ImVec4(0.08f,0.08f,0.08f,0.94f)),
   D(GUI_COLOR_MODAL_BACKDROP,"",ImVec4(0.0f,0.0f,0.0f,0.55f)),
   D(GUI_COLOR_HEADER,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_TEXT,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_TEXT_DISABLED,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
   D(GUI_COLOR_ACCENT_PRIMARY,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
   D(GUI_COLOR_ACCENT_SECONDARY,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_TITLE_INACTIVE,"",ImVec4(0.04f,0.04f,0.04f,1.0f)),
+  D(GUI_COLOR_TITLE_COLLAPSED,"",ImVec4(0.0f,0.0f,0.0f,0.51f)),
+  D(GUI_COLOR_MENU_BAR,"",ImVec4(0.14f,0.14f,0.14f,1.0f)),
   D(GUI_COLOR_BORDER,"",ImVec4(0.43f,0.43f,0.5f,0.5f)),
   D(GUI_COLOR_BORDER_SHADOW,"",ImVec4(0.0f,0.0f,0.0f,0.0f)),
+  D(GUI_COLOR_SCROLL_BACKGROUND,"",ImVec4(0.02f,0.02f,0.02f,0.33f)),
+  D(GUI_COLOR_SCROLL,"",ImVec4(0.31f,0.31f,0.31f,1.0f)),
+  D(GUI_COLOR_SCROLL_HOVER,"",ImVec4(0.41f,0.41f,0.41f,1.0f)),
+  D(GUI_COLOR_SCROLL_ACTIVE,"",ImVec4(0.51f,0.51f,0.51f,1.0f)),
+  D(GUI_COLOR_SEPARATOR,"",ImVec4(0.43f,0.43f,0.5f,0.5f)),
+  D(GUI_COLOR_SEPARATOR_HOVER,"",ImVec4(0.1f,0.4f,0.75f,0.78f)),
+  D(GUI_COLOR_SEPARATOR_ACTIVE,"",ImVec4(0.1f,0.4f,0.75f,1.0f)),
+  D(GUI_COLOR_DOCKING_PREVIEW,"",ImVec4(0.26f,0.59f,0.98f,0.7f)),
+  D(GUI_COLOR_DOCKING_EMPTY,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_TABLE_HEADER,"",ImVec4(0.19f,0.19f,0.2f,1.0f)),
+  D(GUI_COLOR_TABLE_BORDER_HARD,"",ImVec4(0.31f,0.31f,0.35f,1.0f)),
+  D(GUI_COLOR_TABLE_BORDER_SOFT,"",ImVec4(0.23f,0.23f,0.25f,1.0f)),
+  D(GUI_COLOR_DRAG_DROP_TARGET,"",ImVec4(1.0f,1.0f,0.0f,0.9f)),
+  D(GUI_COLOR_NAV_HIGHLIGHT,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_NAV_WIN_HIGHLIGHT,"",ImVec4(1.0f,1.0f,1.0f,0.7f)),
+  D(GUI_COLOR_NAV_WIN_BACKDROP,"",ImVec4(0.8f,0.8f,0.8f,0.2f)),
+  D(GUI_COLOR_PLOT_LINES,"",ImVec4(0.61f,0.61f,0.61f,1.0f)),
+  D(GUI_COLOR_PLOT_LINES_HOVER,"",ImVec4(1.00f,0.43f,0.35f,1.00f)),
+  D(GUI_COLOR_PLOT_HISTOGRAM,"",ImVec4(0.0f,0.9f,1.0f,1.0f)),
+  D(GUI_COLOR_PLOT_HISTOGRAM_HOVER,"",ImVec4(0.0f,0.9f,1.0f,1.0f)),
+
+  D(GUI_COLOR_BUTTON,"",ImVec4(0.085f,0.216f,0.343f,1.0f)),
+  D(GUI_COLOR_BUTTON_HOVER,"",ImVec4(0.075f,0.287f,0.49f,1.0f)),
+  D(GUI_COLOR_BUTTON_ACTIVE,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
+  D(GUI_COLOR_TAB,"",ImVec4(0.085f,0.216f,0.343f,1.0f)),
+  D(GUI_COLOR_TAB_HOVER,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
+  D(GUI_COLOR_TAB_ACTIVE,"",ImVec4(0.25f,0.47f,0.735f,1.0f)),
+  D(GUI_COLOR_TAB_UNFOCUSED,"",ImVec4(0.085f,0.216f,0.343f,1.0f)),
+  D(GUI_COLOR_TAB_UNFOCUSED_ACTIVE,"",ImVec4(0.075f,0.287f,0.49f,1.0f)),
+  D(GUI_COLOR_IMGUI_HEADER,"",ImVec4(0.083f,0.156f,0.245f,1.0f)),
+  D(GUI_COLOR_IMGUI_HEADER_HOVER,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
+  D(GUI_COLOR_IMGUI_HEADER_ACTIVE,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_RESIZE_GRIP,"",ImVec4(0.083f,0.156f,0.245f,1.0f)),
+  D(GUI_COLOR_RESIZE_GRIP_HOVER,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
+  D(GUI_COLOR_RESIZE_GRIP_ACTIVE,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_WIDGET_BACKGROUND,"",ImVec4(0.083f,0.156f,0.245f,1.0f)),
+  D(GUI_COLOR_WIDGET_BACKGROUND_HOVER,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
+  D(GUI_COLOR_WIDGET_BACKGROUND_ACTIVE,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_SLIDER_GRAB,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
+  D(GUI_COLOR_SLIDER_GRAB_ACTIVE,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
+  D(GUI_COLOR_TITLE_BACKGROUND_ACTIVE,"",ImVec4(0.085f,0.216f,0.343f,1.0f)),
+  D(GUI_COLOR_CHECK_MARK,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
+  D(GUI_COLOR_TEXT_SELECTION,"",ImVec4(0.165f,0.313f,0.49f,1.0f)),
+  D(GUI_COLOR_TABLE_ROW_EVEN,"",ImVec4(0.0f,0.0f,0.0f,0.0f)),
+  D(GUI_COLOR_TABLE_ROW_ODD,"",ImVec4(1.0f,1.0f,1.0f,0.06f)),
+
   D(GUI_COLOR_TOGGLE_OFF,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_TOGGLE_ON,"",ImVec4(0.2f,0.6f,0.2f,1.0f)),
   D(GUI_COLOR_EDITING,"",ImVec4(0.2f,0.1f,0.1f,1.0f)),
+  D(GUI_COLOR_EDITING_CLONE,"",ImVec4(0.2f,0.1f,0.3f,1.0f)),
   D(GUI_COLOR_SONG_LOOP,"",ImVec4(0.3f,0.5f,0.8f,0.4f)),
+  D(GUI_COLOR_DESTRUCTIVE,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_WARNING,"",ImVec4(0.98f,0.98f,0.06f,1.0f)),
+  D(GUI_COLOR_ERROR,"",ImVec4(0.98f,0.06f,0.11f,1.0f)),
 
   D(GUI_COLOR_FILE_DIR,"",ImVec4(0.0f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_FILE_SONG_NATIVE,"",ImVec4(0.5f,1.0f,0.5f,1.0f)),
@@ -737,6 +869,22 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_OSC_BORDER,"",ImVec4(0.4f,0.6f,0.95f,1.0f)),
   D(GUI_COLOR_OSC_WAVE,"",ImVec4(0.95f,0.95f,1.0f,1.0f)),
   D(GUI_COLOR_OSC_WAVE_PEAK,"",ImVec4(0.95f,0.95f,1.0f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH0,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH1,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH2,"",ImVec4(0.1f,0.5f,1.0f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH3,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH4,"",ImVec4(0.7f,0.2f,0.7f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH5,"",ImVec4(0.2f,1.0f,0.2f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH6,"",ImVec4(1.0f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH7,"",ImVec4(1.0f,0.5f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH8,"",ImVec4(0.9f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH9,"",ImVec4(0.8f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH10,"",ImVec4(0.7f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH11,"",ImVec4(0.6f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH12,"",ImVec4(0.5f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH13,"",ImVec4(0.4f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH14,"",ImVec4(0.3f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_OSC_WAVE_CH15,"",ImVec4(0.2f,1.0f,0.1f,1.0f)),
   D(GUI_COLOR_OSC_REF,"",ImVec4(0.3,0.65f,1.0f,0.15f)),
   D(GUI_COLOR_OSC_GUIDE,"",ImVec4(0.3,0.65f,1.0f,0.13f)),
 
@@ -824,6 +972,15 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_POKEMINI,"",ImVec4(1.0f,1.0f,0.3f,1.0f)),
   D(GUI_COLOR_INSTR_SM8521,"",ImVec4(0.5f,0.55f,0.6f,1.0f)),
   D(GUI_COLOR_INSTR_PV1000,"",ImVec4(0.4f,0.6f,0.7f,1.0f)),
+  D(GUI_COLOR_INSTR_K053260,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
+  D(GUI_COLOR_INSTR_SCSP,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
+  D(GUI_COLOR_INSTR_TED,"",ImVec4(0.7f,0.6f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_C140,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
+  D(GUI_COLOR_INSTR_C219,"",ImVec4(1.0f,0.8f,0.0f,1.0f)),
+  D(GUI_COLOR_INSTR_ESFM,"",ImVec4(0.1f,0.9f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_POWERNOISE,"",ImVec4(1.0f,1.0f,0.8f,1.0f)),
+  D(GUI_COLOR_INSTR_POWERNOISE_SLOPE,"",ImVec4(1.0f,0.6f,0.3f,1.0f)),
+  D(GUI_COLOR_INSTR_DAVE,"",ImVec4(0.7f,0.7f,0.8f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -870,6 +1027,33 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,"",ImVec4(0.5f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"",ImVec4(0.0f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_MISC,"",ImVec4(0.3f,0.3f,1.0f,1.0f)),
+
+  D(GUI_COLOR_PATTERN_STATUS_OFF,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_REL,"",ImVec4(0.7f,0.1f,0.1f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_REL_ON,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_ON,"",ImVec4(0.3f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_VOLUME,"",ImVec4(0.0f,1.0f,0.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_PITCH,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_PANNING,"",ImVec4(0.0f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_SYS1,"",ImVec4(0.5f,1.0f,0.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_SYS2,"",ImVec4(0.0f,1.0f,0.5f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_MIXING,"",ImVec4(1.0f,0.3f,1.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_DSP,"",ImVec4(0.3f,0.6f,1.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_NOTE,"",ImVec4(0.3f,0.3f,1.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_MISC1,"",ImVec4(1.0f,0.5f,0.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_MISC2,"",ImVec4(0.7f,0.5f,1.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_MISC3,"",ImVec4(1.0f,0.1f,0.1f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_ATTACK,"",ImVec4(1.0f,0.1f,0.1f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_DECAY,"",ImVec4(0.1f,0.4f,0.5f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_SUSTAIN,"",ImVec4(0.1f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_RELEASE,"",ImVec4(1.0f,0.1f,1.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_DEC_LINEAR,"",ImVec4(0.0f,0.6f,0.7f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_DEC_EXP,"",ImVec4(1.0f,0.3f,0.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_INC,"",ImVec4(0.1f,0.1f,1.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_BENT,"",ImVec4(1.0f,1.0f,0.1f,1.0f)),
+  D(GUI_COLOR_PATTERN_STATUS_DIRECT,"",ImVec4(1.0f,0.5f,0.2f,1.0f)),
+
+  D(GUI_COLOR_PATTERN_PAIR,"",ImVec4(0.6f,0.8f,1.0f,1.0f)),
 
   D(GUI_COLOR_SAMPLE_BG,"",ImVec4(0.04f,0.13f,0.2f,1.0f)),
   D(GUI_COLOR_SAMPLE_FG,"",ImVec4(0.7f,0.7f,0.7f,1.0f)),
@@ -1007,8 +1191,15 @@ const int availableSystems[]={
   DIV_SYSTEM_GA20,
   DIV_SYSTEM_SM8521,
   DIV_SYSTEM_PV1000,
+  DIV_SYSTEM_K053260,
+  DIV_SYSTEM_TED,
+  DIV_SYSTEM_C140,
+  DIV_SYSTEM_C219,
   DIV_SYSTEM_PCM_DAC,
+  DIV_SYSTEM_ESFM,
   DIV_SYSTEM_PONG,
+  DIV_SYSTEM_POWERNOISE,
+  DIV_SYSTEM_DAVE,
   0 // don't remove this last one!
 };
 
@@ -1043,6 +1234,7 @@ const int chipsFM[]={
   DIV_SYSTEM_OPL3,
   DIV_SYSTEM_OPL3_DRUMS,
   DIV_SYSTEM_OPZ,
+  DIV_SYSTEM_ESFM,
   0 // don't remove this last one!
 };
 
@@ -1057,6 +1249,7 @@ const int chipsSquare[]={
   DIV_SYSTEM_MSM5232,
   DIV_SYSTEM_T6W28,
   DIV_SYSTEM_PV1000,
+  DIV_SYSTEM_TED,
   0 // don't remove this last one!
 };
 
@@ -1096,6 +1289,8 @@ const int chipsSpecial[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_MMC5,
   DIV_SYSTEM_SM8521,
+  DIV_SYSTEM_POWERNOISE,
+  DIV_SYSTEM_DAVE,
   0 // don't remove this last one!
 };
 
@@ -1115,6 +1310,9 @@ const int chipsSample[]={
   DIV_SYSTEM_GA20,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_ES5506,
+  DIV_SYSTEM_K053260,
+  DIV_SYSTEM_C140,
+  DIV_SYSTEM_C219,
   0 // don't remove this last one!
 };
 

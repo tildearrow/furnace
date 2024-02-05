@@ -305,6 +305,8 @@ public:
 	// simple getters for debugging
 	fm_operator<RegisterType> *debug_operator(uint32_t index) const { return m_op[index]; }
   int32_t debug_output(uint32_t index) const { return m_output[index]; }
+  int32_t debug_special1() const { return m_special1; }
+  int32_t debug_special2() const { return m_special2; }
 
 private:
 	// helper to add values to the outputs based on channel enables
@@ -343,6 +345,8 @@ private:
 	RegisterType &m_regs;                  // direct reference to registers
 	fm_engine_base<RegisterType> &m_owner; // reference to the owning engine
   mutable int32_t m_output[4];
+  mutable int32_t m_special1;
+  mutable int32_t m_special2;
 };
 
 
@@ -455,7 +459,7 @@ protected:
 	uint8_t m_clock_prescale;        // prescale factor (2/3/6)
 	uint8_t m_irq_mask;              // mask of which bits signal IRQs
 	uint8_t m_irq_state;             // current IRQ state
-	uint8_t m_timer_running[2];      // current timer running state
+	uint8_t m_timer_running[4];      // current timer running state
 	uint8_t m_total_clocks;          // low 8 bits of the total number of clocks processed
 	uint32_t m_active_channels;      // mask of active channels (computed by prepare)
 	uint32_t m_modified_channels;    // mask of channels that have been modified

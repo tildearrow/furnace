@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,14 @@
 #define _OPL_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 #include "../../../extern/opl/opl3.h"
+extern "C" {
+#include "../../../extern/YM3812-LLE/fmopl2.h"
+#include "../../../extern/YMF262-LLE/fmopl3.h"
+}
 #include "sound/ymfm/ymfm_adpcm.h"
+#include "sound/ymfm/ymfm_opl.h"
 
 class DivOPLAInterface: public ymfm::ymfm_interface {
   public:
@@ -64,10 +69,20 @@ class DivPlatformOPL: public DivDispatch {
       unsigned short addr;
       unsigned char val;
       bool addrOrVal;
+      QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    std::queue<QueuedWrite> writes;
-    opl3_chip fm;
+    FixedQueue<QueuedWrite,2048> writes;
+
+    unsigned int dacVal;
+    unsigned int dacVal2;
+    int dacOut;
+    int dacOut3[4];
+    bool lastSH;
+    bool lastSH2;
+    bool lastSY;
+    bool waitingBusy;
+    
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     DivOPLAInterface iface;
@@ -81,7 +96,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
     int chipFreqBase, chipRateBase;
-    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank;
+    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank, totalOutputs;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -92,10 +107,24 @@ class DivPlatformOPL: public DivDispatch {
 
     unsigned char lfoValue;
 
-    bool useYMFM, update4OpMask, pretendYMU, downsample, compatPan;
+    // 0: Nuked-OPL3
+    // 1: ymfm
+    // 2: YM3812-LLE/YMF262-LLE
+    unsigned char emuCore;
+
+    bool update4OpMask, pretendYMU, downsample, compatPan;
   
     short oldWrites[512];
     short pendingWrites[512];
+
+    // chips
+    opl3_chip fm;
+    ymfm::ym3526* fm_ymfm1;
+    ymfm::ym3812* fm_ymfm2;
+    ymfm::y8950* fm_ymfm8950;
+    ymfm::ymf262* fm_ymfm3;
+    fmopl2_t fm_lle2;
+    fmopl3_t fm_lle3;
 
     int octave(int freq);
     int toFreq(int freq);
@@ -105,15 +134,23 @@ class DivPlatformOPL: public DivDispatch {
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
+    void acquire_nukedLLE2(short** buf, size_t len);
+    void acquire_nukedLLE3(short** buf, size_t len);
     void acquire_nuked(short** buf, size_t len);
-    //void acquire_ymfm(short** buf, size_t len);
+    void acquire_ymfm3(short** buf, size_t len);
+    void acquire_ymfm8950(short** buf, size_t len);
+    void acquire_ymfm2(short** buf, size_t len);
+    void acquire_ymfm1(short** buf, size_t len);
   
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
+    DivChannelPair getPaired(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
@@ -121,10 +158,11 @@ class DivPlatformOPL: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
-    void setYMFM(bool use);
+    void setCore(unsigned char which);
     void setOPLType(int type, bool drums);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    bool getLegacyAlwaysSetVolume();
     void toggleRegisterDump(bool enable);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);

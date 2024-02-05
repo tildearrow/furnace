@@ -158,6 +158,7 @@ struct _opl3_chip {
 void OPL3_Generate(opl3_chip *chip, int16_t *buf);
 void OPL3_GenerateResampled(opl3_chip *chip, int16_t *buf);
 void OPL3_Reset(opl3_chip *chip, uint32_t samplerate);
+void OPL3_Resample(opl3_chip *chip, uint32_t samplerate);
 void OPL3_WriteReg(opl3_chip *chip, uint16_t reg, uint8_t v);
 void OPL3_WriteRegBuffered(opl3_chip *chip, uint16_t reg, uint8_t v);
 void OPL3_GenerateStream(opl3_chip *chip, int16_t *sndptr, uint32_t numsamples);

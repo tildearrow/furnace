@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #include "defines.h"
 #include "safeWriter.h"
 #include "dataErrors.h"
-#include <deque>
+#include "../fixedQueue.h"
 
 enum DivSampleLoopMode: unsigned char {
   DIV_SAMPLE_LOOP_FORWARD=0,
@@ -40,9 +40,12 @@ enum DivSampleDepth: unsigned char {
   DIV_SAMPLE_DEPTH_QSOUND_ADPCM=4,
   DIV_SAMPLE_DEPTH_ADPCM_A=5,
   DIV_SAMPLE_DEPTH_ADPCM_B=6,
+  DIV_SAMPLE_DEPTH_ADPCM_K=7,
   DIV_SAMPLE_DEPTH_8BIT=8,
   DIV_SAMPLE_DEPTH_BRR=9,
   DIV_SAMPLE_DEPTH_VOX=10,
+  DIV_SAMPLE_DEPTH_MULAW=11,
+  DIV_SAMPLE_DEPTH_C219=12,
   DIV_SAMPLE_DEPTH_16BIT=16,
   DIV_SAMPLE_DEPTH_MAX // boundary for sample depth
 };
@@ -61,10 +64,10 @@ struct DivSampleHistory {
   unsigned int length, samples;
   DivSampleDepth depth;
   int rate, centerRate, loopStart, loopEnd;
-  bool loop, brrEmphasis;
+  bool loop, brrEmphasis, dither;
   DivSampleLoopMode loopMode;
   bool hasSample;
-  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, DivSampleLoopMode lm):
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool di, DivSampleLoopMode lm):
     data((unsigned char*)d),
     length(l),
     samples(s),
@@ -75,9 +78,10 @@ struct DivSampleHistory {
     loopEnd(le),
     loop(lp),
     brrEmphasis(be),
+    dither(di),
     loopMode(lm),
     hasSample(true) {}
-  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, DivSampleLoopMode lm):
+  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool di, DivSampleLoopMode lm):
     data(NULL),
     length(0),
     samples(0),
@@ -88,6 +92,7 @@ struct DivSampleHistory {
     loopEnd(le),
     loop(lp),
     brrEmphasis(be),
+    dither(di),
     loopMode(lm),
     hasSample(false) {}
   ~DivSampleHistory();
@@ -103,12 +108,15 @@ struct DivSample {
   // - 4: QSound ADPCM
   // - 5: ADPCM-A
   // - 6: ADPCM-B
+  // - 7: K053260 4-bit simple ADPCM
   // - 8: 8-bit PCM
   // - 9: BRR (SNES)
   // - 10: VOX ADPCM
+  // - 11: 8-bit µ-law PCM
+  // - 12: C219 "µ-law" PCM
   // - 16: 16-bit PCM
   DivSampleDepth depth;
-  bool loop, brrEmphasis;
+  bool loop, brrEmphasis, dither;
   // valid values are:
   // - 0: Forward loop
   // - 1: Backward loop
@@ -126,15 +134,18 @@ struct DivSample {
   unsigned char* dataQSoundA; // 4
   unsigned char* dataA; // 5
   unsigned char* dataB; // 6
+  unsigned char* dataK; // 7
   unsigned char* dataBRR; // 9
   unsigned char* dataVOX; // 10
+  unsigned char* dataMuLaw; // 11
+  unsigned char* dataC219; // 12
 
-  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX;
+  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthK, lengthBRR, lengthVOX, lengthMuLaw, lengthC219;
 
   unsigned int samples;
 
-  std::deque<DivSampleHistory*> undoHist;
-  std::deque<DivSampleHistory*> redoHist;
+  FixedQueue<DivSampleHistory*,128> undoHist;
+  FixedQueue<DivSampleHistory*,128> redoHist;
 
   /**
    * put sample data.
@@ -188,11 +199,11 @@ struct DivSample {
   /**
    * @warning DO NOT USE - internal functions
    */
-  bool resampleNone(double rate);
-  bool resampleLinear(double rate);
-  bool resampleCubic(double rate);
-  bool resampleBlep(double rate);
-  bool resampleSinc(double rate);
+  bool resampleNone(double sRate, double tRate);
+  bool resampleLinear(double sRate, double tRate);
+  bool resampleCubic(double sRate, double tRate);
+  bool resampleBlep(double sRate, double tRate);
+  bool resampleSinc(double sRate, double tRate);
 
   /**
    * save this sample to a file.
@@ -262,11 +273,19 @@ struct DivSample {
   /**
    * change the sample rate.
    * @warning do not attempt to resample outside of a synchronized block!
-   * @param rate number of samples.
+   * @param sRate source rate.
+   * @param tRate target rate.
    * @param filter the interpolation filter.
    * @return whether it was successful.
    */
-  bool resample(double rate, int filter);
+  bool resample(double sRate, double tRate, int filter);
+
+  /**
+   * convert sample depth.
+   * @warning do not attempt to do this outside of a synchronized block!
+   * @param newDepth the new depth.
+   */
+  void convert(DivSampleDepth newDepth);
 
   /**
    * initialize the rest of sample formats for this sample.
@@ -315,6 +334,7 @@ struct DivSample {
     depth(DIV_SAMPLE_DEPTH_16BIT),
     loop(false),
     brrEmphasis(true),
+    dither(false),
     loopMode(DIV_SAMPLE_LOOP_FORWARD),
     data8(NULL),
     data16(NULL),
@@ -324,8 +344,11 @@ struct DivSample {
     dataQSoundA(NULL),
     dataA(NULL),
     dataB(NULL),
+    dataK(NULL),
     dataBRR(NULL),
     dataVOX(NULL),
+    dataMuLaw(NULL),
+    dataC219(NULL),
     length8(0),
     length16(0),
     length1(0),
@@ -334,8 +357,11 @@ struct DivSample {
     lengthQSoundA(0),
     lengthA(0),
     lengthB(0),
+    lengthK(0),
     lengthBRR(0),
     lengthVOX(0),
+    lengthMuLaw(0),
+    lengthC219(0),
     samples(0) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       for (int j=0; j<DIV_MAX_SAMPLE_TYPE; j++) {

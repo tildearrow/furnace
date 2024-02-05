@@ -20,7 +20,8 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
-//  2022-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2023-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2022-10-11: Using 'nullptr' instead of 'NULL' as per our switch to C++11.
 //  2021-12-08: OpenGL: Fixed mishandling of the the ImDrawCmd::IdxOffset field! This is an old bug but it never had an effect until some internal rendering changes in 1.86.
 //  2021-06-29: Reorganized backend to pull data from a single structure to facilitate usage with multiple-contexts (all g_XXXX access changed to bd->XXXX).
 //  2021-05-19: OpenGL: Replaced direct access to ImDrawCmd::TextureId with a call to ImDrawCmd::GetTexID(). (will become a requirement)
@@ -38,11 +39,15 @@
 //  2016-09-05: OpenGL: Fixed save and restore of current scissor rectangle.
 
 #include "imgui.h"
+#ifndef IMGUI_DISABLE
 #include "imgui_impl_opengl2.h"
-#if defined(_MSC_VER) && _MSC_VER <= 1500 // MSVC 2008 or earlier
-#include <stddef.h>     // intptr_t
-#else
 #include <stdint.h>     // intptr_t
+
+// Clang/GCC warnings with -Weverything
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-macros"                      // warning: macro is not used
+#pragma clang diagnostic ignored "-Wnonportable-system-include-path"
 #endif
 
 // Include OpenGL header (without an OpenGL loader) requires a bit of fiddling
@@ -70,7 +75,7 @@ struct ImGui_ImplOpenGL2_Data
 // It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
 static ImGui_ImplOpenGL2_Data* ImGui_ImplOpenGL2_GetBackendData()
 {
-    return ImGui::GetCurrentContext() ? (ImGui_ImplOpenGL2_Data*)ImGui::GetIO().BackendRendererUserData : NULL;
+    return ImGui::GetCurrentContext() ? (ImGui_ImplOpenGL2_Data*)ImGui::GetIO().BackendRendererUserData : nullptr;
 }
 
 // Forward Declarations
@@ -81,7 +86,7 @@ static void ImGui_ImplOpenGL2_ShutdownPlatformInterface();
 bool    ImGui_ImplOpenGL2_Init()
 {
     ImGuiIO& io = ImGui::GetIO();
-    IM_ASSERT(io.BackendRendererUserData == NULL && "Already initialized a renderer backend!");
+    IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
 
     // Setup backend capabilities flags
     ImGui_ImplOpenGL2_Data* bd = IM_NEW(ImGui_ImplOpenGL2_Data)();
@@ -98,20 +103,21 @@ bool    ImGui_ImplOpenGL2_Init()
 void    ImGui_ImplOpenGL2_Shutdown()
 {
     ImGui_ImplOpenGL2_Data* bd = ImGui_ImplOpenGL2_GetBackendData();
-    IM_ASSERT(bd != NULL && "No renderer backend to shutdown, or already shutdown?");
+    IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
     ImGuiIO& io = ImGui::GetIO();
 
     ImGui_ImplOpenGL2_ShutdownPlatformInterface();
     ImGui_ImplOpenGL2_DestroyDeviceObjects();
-    io.BackendRendererName = NULL;
-    io.BackendRendererUserData = NULL;
+    io.BackendRendererName = nullptr;
+    io.BackendRendererUserData = nullptr;
+    io.BackendFlags &= ~ImGuiBackendFlags_RendererHasViewports;
     IM_DELETE(bd);
 }
 
 void    ImGui_ImplOpenGL2_NewFrame()
 {
     ImGui_ImplOpenGL2_Data* bd = ImGui_ImplOpenGL2_GetBackendData();
-    IM_ASSERT(bd != NULL && "Did you call ImGui_ImplOpenGL2_Init()?");
+    IM_ASSERT(bd != nullptr && "Did you call ImGui_ImplOpenGL2_Init()?");
 
     if (!bd->FontTexture)
         ImGui_ImplOpenGL2_CreateDeviceObjects();
@@ -219,7 +225,7 @@ void ImGui_ImplOpenGL2_RenderDrawData(ImDrawData* draw_data)
                     continue;
 
                 // Apply scissor/clipping rectangle (Y is inverted in OpenGL)
-                glScissor((int)clip_min.x, (int)(fb_height - clip_max.y), (int)(clip_max.x - clip_min.x), (int)(clip_max.y - clip_min.y));
+                glScissor((int)clip_min.x, (int)((float)fb_height - clip_max.y), (int)(clip_max.x - clip_min.x), (int)(clip_max.y - clip_min.y));
 
                 // Bind texture, Draw
                 glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID());
@@ -296,6 +302,7 @@ void    ImGui_ImplOpenGL2_DestroyDeviceObjects()
     ImGui_ImplOpenGL2_DestroyFontsTexture();
 }
 
+
 //--------------------------------------------------------------------------------------------------------
 // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
 // This is an _advanced_ and _optional_ feature, allowing the backend to create and handle multiple viewports simultaneously.
@@ -323,3 +330,11 @@ static void ImGui_ImplOpenGL2_ShutdownPlatformInterface()
 {
     ImGui::DestroyPlatformWindows();
 }
+
+//-----------------------------------------------------------------------------
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
+#endif // #ifndef IMGUI_DISABLE

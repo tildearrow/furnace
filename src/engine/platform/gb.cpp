@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,11 @@
 
 #include "gb.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
-#define immWrite(a,v) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) {writes.push(QueuedWrite(a,v)); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 16
 
@@ -253,7 +254,7 @@ void DivPlatformGB::tick(bool sysTick) {
               chan[i].sweepChanged=true;
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_WAIT:
-              chan[i].hwSeqDelay=data+1;
+              chan[i].hwSeqDelay=(data+1)*parent->tickMult;
               leave=true;
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_WAIT_REL:
@@ -299,6 +300,7 @@ void DivPlatformGB::tick(bool sysTick) {
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave
+          rWrite(16+i*5,0x00);
           rWrite(16+i*5,0x80);
           rWrite(16+i*5+2,gbVolMap[chan[i].outVol]);
         } else {
@@ -319,7 +321,7 @@ void DivPlatformGB::tick(bool sysTick) {
         rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<64)<<6));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
-        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<63)<<6));
+        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||(chan[i].keyOff && i!=2))?0x80:0x00)|((chan[i].soundLen<63)<<6));
       }
       if (enoughAlready) { // more compat garbage
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
@@ -394,6 +396,14 @@ int DivPlatformGB::dispatch(DivCommand c) {
           chan[c.chan].vol=chan[c.chan].envVol;
           chan[c.chan].outVol=chan[c.chan].envVol;
         }
+      } else if (chan[c.chan].softEnv && c.chan!=2) {
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+          chan[c.chan].envVol=chan[c.chan].outVol;
+        }
+        chan[c.chan].envLen=0;
+        chan[c.chan].envDir=1;
+        chan[c.chan].soundLen=64;
       }
       if (c.chan==2 && chan[c.chan].softEnv) {
         chan[c.chan].soundLen=64;
@@ -448,7 +458,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         }
         chan[c.chan].envVol=chan[c.chan].outVol;
         
-        if (!chan[c.chan].keyOn) chan[c.chan].killIt=true;
+        if (!chan[c.chan].keyOn && chan[c.chan].active) chan[c.chan].killIt=true;
         chan[c.chan].freqChanged=true;
       }
       break;
@@ -463,7 +473,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (c.chan!=2) break;
       chan[c.chan].wave=c.value;
       ws.changeWave1(chan[c.chan].wave);
-      chan[c.chan].keyOn=true;
+      if (chan[c.chan].active) {
+        chan[c.chan].keyOn=true;
+      }
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
@@ -541,8 +553,8 @@ int DivPlatformGB::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -564,6 +576,11 @@ void* DivPlatformGB::getChanState(int ch) {
 
 DivMacroInt* DivPlatformGB::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformGB::getPan(int ch) {
+  unsigned char p=lastPan&(0x11<<ch);
+  return ((p&0xf0)?0x100:0)|((p&0x0f)?1:0);
 }
 
 DivDispatchOscBuffer* DivPlatformGB::getOscBuffer(int ch) {
@@ -664,22 +681,27 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
   }
   invertWave=flags.getBool("invertWave",true);
   enoughAlready=flags.getBool("enoughAlready",false);
-}
 
-int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   chipClock=4194304;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
-    isMuted[i]=false;
-    oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;
   }
+}
+
+int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
   model=GB_MODEL_DMG_B;
   gb=new GB_gameboy_t;
+
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
+
   setFlags(flags);
   reset();
   return 4;

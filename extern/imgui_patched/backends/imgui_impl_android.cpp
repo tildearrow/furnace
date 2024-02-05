@@ -3,6 +3,7 @@
 
 // Implemented features:
 //  [X] Platform: Keyboard support. Since 1.87 we are using the io.AddKeyEvent() function. Pass ImGuiKey values to all key functions e.g. ImGui::IsKeyPressed(ImGuiKey_Space). [Legacy AKEYCODE_* values will also be supported unless IMGUI_DISABLE_OBSOLETE_KEYIO is set]
+//  [X] Platform: Mouse support. Can discriminate Mouse/TouchScreen/Pen.
 // Missing features:
 //  [ ] Platform: Clipboard support.
 //  [ ] Platform: Gamepad support. Enable with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
@@ -19,12 +20,14 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
-//  2022-01-26: Inputs: replaced short-lived io.AddKeyModsEvent() (added two weeks ago)with io.AddKeyEvent() using ImGuiKey_ModXXX flags. Sorry for the confusion.
+//  2022-09-26: Inputs: Renamed ImGuiKey_ModXXX introduced in 1.87 to ImGuiMod_XXX (old names still supported).
+//  2022-01-26: Inputs: replaced short-lived io.AddKeyModsEvent() (added two weeks ago) with io.AddKeyEvent() using ImGuiKey_ModXXX flags. Sorry for the confusion.
 //  2022-01-17: Inputs: calling new io.AddMousePosEvent(), io.AddMouseButtonEvent(), io.AddMouseWheelEvent() API (1.87+).
 //  2022-01-10: Inputs: calling new io.AddKeyEvent(), io.AddKeyModsEvent() + io.SetKeyEventNativeData() API (1.87+). Support for full ImGuiKey range.
 //  2021-03-04: Initial version.
 
 #include "imgui.h"
+#ifndef IMGUI_DISABLE
 #include "imgui_impl_android.h"
 #include <time.h>
 #include <android/native_window.h>
@@ -163,10 +166,10 @@ int32_t ImGui_ImplAndroid_HandleInputEvent(AInputEvent* input_event)
         int32_t event_action = AKeyEvent_getAction(input_event);
         int32_t event_meta_state = AKeyEvent_getMetaState(input_event);
 
-        io.AddKeyEvent(ImGuiKey_ModCtrl,  (event_meta_state & AMETA_CTRL_ON)  != 0);
-        io.AddKeyEvent(ImGuiKey_ModShift, (event_meta_state & AMETA_SHIFT_ON) != 0);
-        io.AddKeyEvent(ImGuiKey_ModAlt,   (event_meta_state & AMETA_ALT_ON)   != 0);
-        io.AddKeyEvent(ImGuiKey_ModSuper, (event_meta_state & AMETA_META_ON)  != 0);
+        io.AddKeyEvent(ImGuiMod_Ctrl,  (event_meta_state & AMETA_CTRL_ON)  != 0);
+        io.AddKeyEvent(ImGuiMod_Shift, (event_meta_state & AMETA_SHIFT_ON) != 0);
+        io.AddKeyEvent(ImGuiMod_Alt,   (event_meta_state & AMETA_ALT_ON)   != 0);
+        io.AddKeyEvent(ImGuiMod_Super, (event_meta_state & AMETA_META_ON)  != 0);
 
         switch (event_action)
         {
@@ -195,6 +198,22 @@ int32_t ImGui_ImplAndroid_HandleInputEvent(AInputEvent* input_event)
         int32_t event_action = AMotionEvent_getAction(input_event);
         int32_t event_pointer_index = (event_action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
         event_action &= AMOTION_EVENT_ACTION_MASK;
+
+        switch (AMotionEvent_getToolType(input_event, event_pointer_index))
+        {
+        case AMOTION_EVENT_TOOL_TYPE_MOUSE:
+            io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
+            break;
+        case AMOTION_EVENT_TOOL_TYPE_STYLUS:
+        case AMOTION_EVENT_TOOL_TYPE_ERASER:
+            io.AddMouseSourceEvent(ImGuiMouseSource_Pen);
+            break;
+        case AMOTION_EVENT_TOOL_TYPE_FINGER:
+        default:
+            io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+            break;
+        }
+
         switch (event_action)
         {
         case AMOTION_EVENT_ACTION_DOWN:
@@ -251,6 +270,8 @@ bool ImGui_ImplAndroid_Init(ANativeWindow* window)
 
 void ImGui_ImplAndroid_Shutdown()
 {
+    ImGuiIO& io = ImGui::GetIO();
+    io.BackendPlatformName = nullptr;
 }
 
 void ImGui_ImplAndroid_NewFrame()
@@ -274,3 +295,7 @@ void ImGui_ImplAndroid_NewFrame()
     io.DeltaTime = g_Time > 0.0 ? (float)(current_time - g_Time) : (float)(1.0f / 60.0f);
     g_Time = current_time;
 }
+
+//-----------------------------------------------------------------------------
+
+#endif // #ifndef IMGUI_DISABLE

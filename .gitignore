@@ -6,6 +6,7 @@ release/
 t/
 winbuild/
 win32build/
+xpbuild/
 macbuild/
 linuxbuild/
 *.swp
@@ -15,6 +16,8 @@ test/songs/
 test/delta/
 test/result/
 test/assert_delta
+android/local.properties
+android/.idea/
 android/.gradle/
 android/app/build/
 android/app/.cxx/
@@ -24,3 +27,11 @@ CMakePresets.json
 extern/imgui_patched/examples/
 src/asm/68k/amigatest/*.bin
 src/asm/68k/amigatest/player
+src/check/calc_checksum
+res/binary_to_compressed_c
+res/binary_to_compressed_c.exe
+res/docpdf/manual.html
+res/docpdf/manual.pdf
+res/docpdf/.venv
+res/docpdf/htmldoc/
+res/furnace.appdata.xml

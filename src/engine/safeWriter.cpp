@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,6 +85,10 @@ int SafeWriter::writeS_BE(short val) {
 int SafeWriter::writeS(short val) {
   unsigned char bytes[2]{(unsigned char)((val>>8)&0xff), (unsigned char)(val&0xff)};
   return write(bytes,2);
+}
+
+int SafeWriter::writeI_BE(int val) {
+  return write(&val,4);
 }
 
 int SafeWriter::writeI(int val) {

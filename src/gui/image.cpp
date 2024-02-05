@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,9 +15,6 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * this license only applies to the code. for the license of each font used,
- * see `papers/`.
  */
 
 #include "gui.h"
@@ -49,7 +46,7 @@ const unsigned int imageLen[GUI_IMAGE_MAX]={
   image_pat_size
 };
 
-SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image, SDL_BlendMode blendMode) {
+FurnaceGUITexture* FurnaceGUI::getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode) {
   FurnaceGUIImage* img=getImage(image);
 
   if (img==NULL) return NULL;
@@ -57,14 +54,14 @@ SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image, SDL_BlendMode blendM
   if (img->width<=0 || img->height<=0) return NULL;
 
   if (img->tex==NULL) {
-    img->tex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STATIC,img->width,img->height);
+    img->tex=rend->createTexture(false,img->width,img->height);
     if (img->tex==NULL) {
       logE("error while creating image %d texture! %s",(int)image,SDL_GetError());
       return NULL;
     }
-    SDL_SetTextureBlendMode(img->tex,blendMode);
+    rend->setTextureBlendMode(img->tex,blendMode);
 
-    if (SDL_UpdateTexture(img->tex,NULL,img->data,img->width*4)!=0) {
+    if (!rend->updateTexture(img->tex,img->data,img->width*4)) {
       logE("error while updating texture of image %d! %s",(int)image,SDL_GetError());
     }
   }
@@ -89,6 +86,20 @@ FurnaceGUIImage* FurnaceGUI::getImage(FurnaceGUIImages image) {
     }
 
     logV("%dx%d",ret->width,ret->height);
+
+#ifdef TA_BIG_ENDIAN
+    if (ret->ch==4) {
+      size_t total=ret->width*ret->height*ret->ch;
+      for (size_t i=0; i<total; i+=4) {
+        ret->data[i]^=ret->data[i|3];
+        ret->data[i|3]^=ret->data[i];
+        ret->data[i]^=ret->data[i|3];
+        ret->data[i|1]^=ret->data[i|2];
+        ret->data[i|2]^=ret->data[i|1];
+        ret->data[i|1]^=ret->data[i|2];
+      }
+    }
+#endif
 
     images[image]=ret;
   }

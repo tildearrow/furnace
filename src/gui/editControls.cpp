@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -169,7 +169,7 @@ const bool mobileButtonPersist[32]={
 };
 
 void FurnaceGUI::drawMobileControls() {
-  float timeScale=1.0f/(60.0f*ImGui::GetIO().DeltaTime);
+  float timeScale=60.0*ImGui::GetIO().DeltaTime;
   if (dragMobileMenu) {
     if (portrait) {
       mobileMenuPos=(dragMobileMenuOrigin.y-ImGui::GetMousePos().y)/(canvasH*0.65);
@@ -374,7 +374,7 @@ void FurnaceGUI::drawMobileControls() {
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne",buttonSize)) {
       e->stepOne(cursor.y);
-      pendingStepUpdate=true;
+      pendingStepUpdate=1;
     }
 
     bool repeatPattern=e->getRepeatPattern();
@@ -463,181 +463,188 @@ void FurnaceGUI::drawMobileControls() {
 
     ImGui::Separator();
 
-    if (settings.unifiedDataView) {
-      drawInsList(true);
-    } else {
-      switch (mobScene) {
-        case GUI_SCENE_PATTERN:
-        case GUI_SCENE_ORDERS:
-        case GUI_SCENE_INSTRUMENT:
+    switch (mobScene) {
+      case GUI_SCENE_PATTERN:
+      case GUI_SCENE_ORDERS:
+      case GUI_SCENE_INSTRUMENT:
+        drawInsList(true);
+        break;
+      case GUI_SCENE_WAVETABLE:
+        if (settings.unifiedDataView) {
           drawInsList(true);
-          break;
-        case GUI_SCENE_WAVETABLE:
+        } else {
           drawWaveList(true);
-          break;
-        case GUI_SCENE_SAMPLE:
+        }
+        break;
+      case GUI_SCENE_SAMPLE:
+        if (settings.unifiedDataView) {
+          drawInsList(true);
+        } else {
           drawSampleList(true);
-          break;
-        case GUI_SCENE_SONG: {
-          if (ImGui::Button("New")) {
-            mobileMenuOpen=false;
-            //doAction(GUI_ACTION_NEW);
-            if (modified) {
-              showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
-            } else {
-              displayNew=true;
-            }
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Open")) {
-            mobileMenuOpen=false;
-            doAction(GUI_ACTION_OPEN);
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Save")) {
-            mobileMenuOpen=false;
-            doAction(GUI_ACTION_SAVE);
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Save as...")) {
-            mobileMenuOpen=false;
-            doAction(GUI_ACTION_SAVE_AS);
-          }
-
-          ImGui::Button("1.1+ .dmf");
-          ImGui::SameLine();
-          ImGui::Button("Legacy .dmf");
-          ImGui::SameLine();
-          if (ImGui::Button("Export Audio")) {
-            openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Export VGM")) {
-            openFileDialog(GUI_FILE_EXPORT_VGM);
-          }
-
-          if (ImGui::Button("CmdStream")) {
-            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM_BINARY);
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("CmdStream Text")) {
-            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
-          }
-
-          if (ImGui::Button("Restore Backup")) {
-            mobileMenuOpen=false;
-            doAction(GUI_ACTION_OPEN_BACKUP);
-          }
-
-          ImGui::Separator();
-
-          if (ImGui::BeginTabBar("MobileSong")) {
-            if (ImGui::BeginTabItem("Song Info")) {
-              drawSongInfo(true);
-              ImGui::EndTabItem();
-            }
-            if (ImGui::BeginTabItem("Subsongs")) {
-              drawSubSongs(true);
-              ImGui::EndTabItem();
-            }
-            if (ImGui::BeginTabItem("Speed")) {
-              drawSpeed(true);
-              ImGui::EndTabItem();
-            }
-            ImGui::EndTabBar();
-          }
-          break;
         }
-        case GUI_SCENE_CHANNELS:
-          ImGui::Text("Channels here...");
-          break;
-        case GUI_SCENE_CHIPS:
-          ImGui::Text("Chips here...");
-          break;
-        case GUI_SCENE_MIXER:
-          ImGui::Text("What the hell...");
-          break;
-        case GUI_SCENE_OTHER: {
-          if (ImGui::Button("Osc")) {
-            oscOpen=!oscOpen;
+        break;
+      case GUI_SCENE_SONG: {
+        if (ImGui::Button("New")) {
+          mobileMenuOpen=false;
+          //doAction(GUI_ACTION_NEW);
+          if (modified) {
+            showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
+          } else {
+            displayNew=true;
           }
-          ImGui::SameLine();
-          if (ImGui::Button("ChanOsc")) {
-            chanOscOpen=!chanOscOpen;
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("RegView")) {
-            regViewOpen=!regViewOpen;
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Stats")) {
-            statsOpen=!statsOpen;
-          }
-          if (ImGui::Button("Compat Flags")) {
-            compatFlagsOpen=!compatFlagsOpen;
-          }
-
-          ImGui::Separator();
-
-          ImGui::Button("Panic");
-          ImGui::SameLine();
-          if (ImGui::Button("Settings")) {
-            mobileMenuOpen=false;
-            settingsOpen=true;
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Log")) {
-            logOpen=!logOpen;
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Debug")) {
-            debugOpen=!debugOpen;
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("About")) {
-            mobileMenuOpen=false;
-            mobileMenuPos=0.0f;
-            aboutOpen=true;
-          }
-          if (ImGui::Button("Switch to Desktop Mode")) {
-            toggleMobileUI(!mobileUI);
-          }
-
-          int numAmiga=0;
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
-          }
-
-          if (numAmiga) {
-            ImGui::Text(
-              "this is NOT ROM export! only use for making sure the\n"
-              "Furnace Amiga emulator is working properly by\n"
-              "comparing it with real Amiga output."
-            );
-            ImGui::Text("Directory");
-            ImGui::SameLine();
-            ImGui::InputText("##AVDPath",&workingDirROMExport);
-            if (ImGui::Button("Bake Data")) {
-              std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
-              if (workingDirROMExport.size()>0) {
-                if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
-              }
-              for (DivROMExportOutput& i: out) {
-                String path=workingDirROMExport+i.name;
-                FILE* outFile=ps_fopen(path.c_str(),"wb");
-                if (outFile!=NULL) {
-                  fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
-                  fclose(outFile);
-                }
-                i.data->finish();
-                delete i.data;
-              }
-              showError(fmt::sprintf("Done! Baked %d files.",(int)out.size()));
-            }
-          }
-
-          break;
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Open")) {
+          mobileMenuOpen=false;
+          doAction(GUI_ACTION_OPEN);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Save")) {
+          mobileMenuOpen=false;
+          doAction(GUI_ACTION_SAVE);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Save as...")) {
+          mobileMenuOpen=false;
+          doAction(GUI_ACTION_SAVE_AS);
+        }
+
+        if (ImGui::Button("1.1+ .dmf")) {
+          mobileMenuOpen=false;
+          openFileDialog(GUI_FILE_SAVE_DMF);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Legacy .dmf")) {
+          mobileMenuOpen=false;
+          openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Export")) {
+          doAction(GUI_ACTION_EXPORT);
+        }
+
+        if (ImGui::Button("Restore Backup")) {
+          mobileMenuOpen=false;
+          doAction(GUI_ACTION_OPEN_BACKUP);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::BeginTabBar("MobileSong")) {
+          if (ImGui::BeginTabItem("Song Info")) {
+            drawSongInfo(true);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Subsongs")) {
+            drawSubSongs(true);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Speed")) {
+            drawSpeed(true);
+            ImGui::EndTabItem();
+          }
+          ImGui::EndTabBar();
+        }
+        break;
+      }
+      case GUI_SCENE_CHANNELS:
+        ImGui::Text("Channels here...");
+        break;
+      case GUI_SCENE_CHIPS:
+        ImGui::Text("Chips here...");
+        break;
+      case GUI_SCENE_MIXER:
+        ImGui::Text("What the hell...");
+        break;
+      case GUI_SCENE_OTHER: {
+        if (ImGui::Button("Osc")) {
+          oscOpen=!oscOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("ChanOsc")) {
+          chanOscOpen=!chanOscOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("RegView")) {
+          regViewOpen=!regViewOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Stats")) {
+          statsOpen=!statsOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Grooves")) {
+          groovesOpen=!groovesOpen;
+        }
+        if (ImGui::Button("Compat Flags")) {
+          compatFlagsOpen=!compatFlagsOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("XYOsc")) {
+          xyOscOpen=!xyOscOpen;
+        }
+
+        ImGui::Separator();
+
+        ImGui::Button("Panic");
+        ImGui::SameLine();
+        if (ImGui::Button("Settings")) {
+          mobileMenuOpen=false;
+          settingsOpen=true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Log")) {
+          logOpen=!logOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Debug")) {
+          debugOpen=!debugOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("About")) {
+          mobileMenuOpen=false;
+          mobileMenuPos=0.0f;
+          aboutOpen=true;
+        }
+        if (ImGui::Button("Switch to Desktop Mode")) {
+          toggleMobileUI(!mobileUI);
+        }
+
+        int numAmiga=0;
+        for (int i=0; i<e->song.systemLen; i++) {
+          if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
+        }
+
+        if (numAmiga) {
+          ImGui::Text(
+            "this is NOT ROM export! only use for making sure the\n"
+            "Furnace Amiga emulator is working properly by\n"
+            "comparing it with real Amiga output."
+          );
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Directory");
+          ImGui::SameLine();
+          ImGui::InputText("##AVDPath",&workingDirROMExport);
+          if (ImGui::Button("Bake Data")) {
+            std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
+            if (workingDirROMExport.size()>0) {
+              if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
+            }
+            for (DivROMExportOutput& i: out) {
+              String path=workingDirROMExport+i.name;
+              FILE* outFile=ps_fopen(path.c_str(),"wb");
+              if (outFile!=NULL) {
+                fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
+                fclose(outFile);
+              }
+              i.data->finish();
+              delete i.data;
+            }
+            showError(fmt::sprintf("Done! Baked %d files.",(int)out.size()));
+          }
+        }
+
+        break;
       }
     }
   }
@@ -660,6 +667,7 @@ void FurnaceGUI::drawEditControls() {
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Octave");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -667,6 +675,7 @@ void FurnaceGUI::drawEditControls() {
             if (curOctave>7) curOctave=7;
             if (curOctave<-5) curOctave=-5;
             e->autoNoteOffAll();
+            failedNoteOn=false;
 
             if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
               nextWindow=GUI_WINDOW_PATTERN;
@@ -675,6 +684,7 @@ void FurnaceGUI::drawEditControls() {
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Edit Step");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -713,6 +723,7 @@ void FurnaceGUI::drawEditControls() {
           e->setMetronome(metro);
         }
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Follow");
         ImGui::SameLine();
         unimportant(ImGui::Checkbox("Orders",&followOrders));
@@ -726,7 +737,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
-          pendingStepUpdate=true;
+          pendingStepUpdate=1;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Step one row");
@@ -766,7 +777,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
-          pendingStepUpdate=true;
+          pendingStepUpdate=1;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Step one row");
@@ -812,6 +823,7 @@ void FurnaceGUI::drawEditControls() {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
+          failedNoteOn=false;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -871,7 +883,7 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne",buttonSize)) {
           e->stepOne(cursor.y);
-          pendingStepUpdate=true;
+          pendingStepUpdate=1;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Step one row");
@@ -916,6 +928,7 @@ void FurnaceGUI::drawEditControls() {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
+          failedNoteOn=false;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
@@ -1005,7 +1018,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
-          pendingStepUpdate=true;
+          pendingStepUpdate=1;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Step one row");
@@ -1059,6 +1072,7 @@ void FurnaceGUI::drawEditControls() {
 
       if (ImGui::Begin("Edit Controls",&editControlsOpen,globalWinFlags)) {
         ImGui::Columns(2);
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Octave");
         ImGui::SameLine();
         float cursor=ImGui::GetCursorPosX();
@@ -1068,12 +1082,14 @@ void FurnaceGUI::drawEditControls() {
           if (curOctave>7) curOctave=7;
           if (curOctave<-5) curOctave=-5;
           e->autoNoteOffAll();
+          failedNoteOn=false;
 
           if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
           }
         }
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Step");
         ImGui::SameLine();
         ImGui::SetCursorPosX(cursor);

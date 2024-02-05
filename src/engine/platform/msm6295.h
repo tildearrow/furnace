@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #define _MSM6295_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 #include "vgsound_emu/src/msm6295/msm6295.hpp"
 
 class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
@@ -41,14 +41,14 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
       unsigned short addr;
       unsigned char val;
       unsigned short delay;
+      QueuedWrite(): addr(0), val(0), delay(96) {}
       QueuedWrite(unsigned short a, unsigned char v, unsigned short d=96):
         addr(a),
         val(v),
         delay(d) {}
     };
-    std::queue<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,256> writes;
     msm6295_core msm;
-    unsigned char lastBusy;
 
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
@@ -57,7 +57,18 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
 
     int delay, updateOsc;
 
-    bool rateSel=false, rateSelInit=false;
+    bool rateSel=false, rateSelInit=false, isBanked=false;
+
+    unsigned int bank[4];
+    struct BankedPhrase {
+      unsigned char bank=0;
+      unsigned char phrase=0;
+      unsigned int length=0;
+      BankedPhrase():
+        bank(0),
+        phrase(0),
+        length(0) {}
+    } bankedPhrase[256];
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
@@ -76,6 +87,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
     virtual bool keyOffAffectsArp(int ch) override;
+    virtual bool getLegacyAlwaysSetVolume() override;
     virtual float getPostAmp() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyInsDeletion(void* ins) override;

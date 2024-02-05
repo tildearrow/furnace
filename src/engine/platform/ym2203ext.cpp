@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -138,6 +138,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
         opChan[ch].insChanged=true;
       }
       opChan[ch].ins=c.value;
+      chan[extChanOffs].ins=opChan[ch].ins;
       break;
     case DIV_CMD_PITCH: {
       opChan[ch].pitch=c.value;
@@ -182,8 +183,15 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_EXTCH: {
+      if (extMode==(bool)c.value) break;
       extMode=c.value;
       immWrite(0x27,extMode?0x40:0);
+      if (!extMode) {
+        for (int i=0; i<4; i++) {
+          opChan[i].insChanged=true;
+        }
+        chan[extChanOffs].insChanged=true;
+      }
       break;
     }
     case DIV_CMD_FM_FB: {
@@ -355,6 +363,9 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_HARD_RESET:
+      opChan[ch].hardReset=c.value;
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
@@ -363,9 +374,6 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       break;
     case DIV_CMD_MACRO_ON:
       opChan[ch].std.mask(c.value,false);
-      break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
       break;
     case DIV_CMD_PRE_PORTA:
       break;
@@ -385,6 +393,9 @@ static int opChanOffsH[4]={
 };
 
 void DivPlatformYM2203Ext::tick(bool sysTick) {
+  int hardResetElapsed=0;
+  bool mustHardReset=false;
+
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -394,6 +405,12 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
         writeSomething=true;
         writeMask&=~(1<<(4+i));
         opChan[i].keyOff=false;
+      }
+      if (opChan[i].hardReset && opChan[i].keyOn) {
+        mustHardReset=true;
+        unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[i];
+        immWrite(baseAddr+ADDR_SL_RR,0x0f);
+        hardResetElapsed++;
       }
     }
     if (writeSomething) {
@@ -432,6 +449,27 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       opChan[i].freqChanged=true;
     }
 
+    // channel macros
+    if (opChan[i].std.alg.had) {
+      chan[extChanOffs].state.alg=opChan[i].std.alg.val;
+      rWrite(chanOffs[extChanOffs]+ADDR_FB_ALG,(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
+      if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
+        unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[j];
+        DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[j];
+        if (isOpMuted[j] || !op.enable) {
+          rWrite(baseAddr+0x40,127);
+        } else {
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[j].outVol&0x7f,127));
+        }
+      }
+    }
+    if (i==0 || fbAllOps) {
+      if (opChan[i].std.fb.had) {
+        chan[extChanOffs].state.fb=opChan[i].std.fb.val;
+        rWrite(chanOffs[extChanOffs]+ADDR_FB_ALG,(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
+      }
+    }
+
     // param macros
     unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[i]];
     DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[i]];
@@ -461,7 +499,7 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
     }
     if (m.tl.had) {
-      op.tl=127-m.tl.val;
+      op.tl=m.tl.val;
       if (isOpMuted[i]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
@@ -491,6 +529,7 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
 
   bool writeNoteOn=false;
   unsigned char writeMask=2;
+  unsigned char hardResetMask=0;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
@@ -517,12 +556,36 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       writeNoteOn=true;
       if (opChan[i].mask) {
         writeMask|=1<<(4+i);
+        if (opChan[i].hardReset) {
+          hardResetMask|=1<<(4+i);
+        }
       }
-      opChan[i].keyOn=false;
+      if (!opChan[i].hardReset) {
+        opChan[i].keyOn=false;
+      }
     }
   }
   if (writeNoteOn) {
+    writeMask^=hardResetMask;
     immWrite(0x28,writeMask);
+    writeMask^=hardResetMask;
+
+    // hard reset handling
+    if (mustHardReset) {
+      for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
+        immWrite(0xf0,i&0xff);
+      }
+      for (int i=0; i<4; i++) {
+        if (opChan[i].keyOn && opChan[i].hardReset) {
+          // restore SL/RR
+          unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[i];
+          DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[i];
+          immWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+          opChan[i].keyOn=false;
+        }
+      }
+      immWrite(0x28,writeMask);
+    }
   }
 }
 
@@ -537,13 +600,19 @@ void DivPlatformYM2203Ext::muteChannel(int ch, bool mute) {
   }
   isOpMuted[ch-2]=mute;
   
-  int ordch=orderedOps[ch-2];
-  unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-  DivInstrumentFM::Operator op=chan[2].state.op[ordch];
-  if (isOpMuted[ch-2] || !op.enable) {
-    rWrite(baseAddr+0x40,127);
-  } else {
-    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].outVol&0x7f,127));
+  DivPlatformYM2203::muteChannel(extChanOffs,IS_EXTCH_MUTED);
+  
+  if (extMode) {
+    for (int i=0; i<4; i++) {
+      int ordch=orderedOps[i];
+      unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
+      DivInstrumentFM::Operator op=chan[2].state.op[ordch];
+      if (isOpMuted[i] || !op.enable) {
+        rWrite(baseAddr+0x40,127);
+      } else {
+        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[i].outVol&0x7f,127));
+      }
+    }
   }
 }
 
@@ -555,10 +624,8 @@ void DivPlatformYM2203Ext::forceIns() {
       if (i==2 && extMode) { // extended channel
         if (isOpMuted[orderedOps[j]] || !op.enable) {
           rWrite(baseAddr+0x40,127);
-        } else if (KVS(i,j)) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));
         } else {
-          rWrite(baseAddr+0x40,op.tl);
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));
         }
       } else {
         if (isMuted[i]) {
@@ -599,6 +666,9 @@ void DivPlatformYM2203Ext::forceIns() {
       opChan[i].freqChanged=true;
     }
   }
+  if (!extMode) {
+    immWrite(0x27,0x00);
+  }
 }
 
 void* DivPlatformYM2203Ext::getChanState(int ch) {
@@ -617,6 +687,12 @@ DivDispatchOscBuffer* DivPlatformYM2203Ext::getOscBuffer(int ch) {
   if (ch>=6) return oscBuf[ch-3];
   if (ch<3) return oscBuf[ch];
   return NULL;
+}
+
+int DivPlatformYM2203Ext::mapVelocity(int ch, float vel) {
+  if (ch>=extChanOffs+4) return DivPlatformOPN::mapVelocity(ch-3,vel);
+  if (ch>=extChanOffs) return DivPlatformOPN::mapVelocity(extChanOffs,vel);
+  return DivPlatformOPN::mapVelocity(ch,vel);
 }
 
 void DivPlatformYM2203Ext::reset() {

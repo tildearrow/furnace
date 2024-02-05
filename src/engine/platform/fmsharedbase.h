@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 #include "../dispatch.h"
 #include "../instrument.h"
-#include <deque>
+#include "../../fixedQueue.h"
 
 #define KVS(x,y) ((chan[x].state.op[y].kvs==2 && isOutput[chan[x].state.alg][y]) || chan[x].state.op[y].kvs==1)
 
@@ -79,9 +79,10 @@ class DivPlatformFMBase: public DivDispatch {
       unsigned short addr;
       unsigned char val;
       bool addrOrVal;
+      QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    std::deque<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,2048> writes;
 
     unsigned char lastBusy;
     int delay;
@@ -104,19 +105,39 @@ class DivPlatformFMBase: public DivDispatch {
         }
       }
     }
+    // only used by OPN2 for DAC writes
     inline void urgentWrite(unsigned short a, unsigned char v) {
       if (!skipRegisterWrites && !flushFirst) {
-        if (writes.empty()) {
-          writes.push_back(QueuedWrite(a,v));
-        } else if (writes.size()>16 || writes.front().addrOrVal) {
-          writes.push_back(QueuedWrite(a,v));
-        } else {
-          writes.push_front(QueuedWrite(a,v));
+        if (!writes.empty()) {
+          // check for hard reset
+          if (writes.front().addr==0xf0) {
+            // replace hard reset with DAC write
+            writes.pop_front();
+          }
         }
+        writes.push_front(QueuedWrite(a,v));
         if (dumpWrites) {
           addWrite(a,v);
         }
       }
+    }
+    
+    virtual int mapVelocity(int ch, float vel) {
+      // -0.75dB per step
+      // -6: 64: 8
+      // -12: 32: 16
+      // -18: 16: 24
+      // -24: 8: 32
+      // -30: 4: 40
+      // -36: 2: 48
+      // -42: 1: 56
+      if (vel==0) return 0;
+      if (vel>=1.0) return 127;
+      return CLAMP(round(128.0-(56.0-log2(vel*127.0)*8.0)),0,127);
+    }
+
+    bool getLegacyAlwaysSetVolume() {
+      return true;
     }
 
     friend void putDispatchChan(void*,int,int);

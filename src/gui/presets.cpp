@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -278,6 +278,12 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Commodore VIC-20", {
       CH(DIV_SYSTEM_VIC20, 1.0f, 0, "clockSel=1")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
+    "Commodore Plus/4", {
+      CH(DIV_SYSTEM_TED, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -762,6 +768,34 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "NEC PC-98 (with PC-9801-86) stereo", { // -73 also has OPNA
+      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, -1.0f, // 2x 16-bit Burr Brown DAC
+        "rate=44100\n"
+        "outDepth=15\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 1.0f,
+        "rate=44100\n"
+        "outDepth=15\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+    }
+  );
+  ENTRY(
+    "NEC PC-98 (with PC-9801-86; extended channel 3) stereo", { // -73 also has OPNA
+      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, -1.0f,
+        "rate=44100\n"
+        "outDepth=15\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 1.0f,
+        "rate=44100\n"
+        "outDepth=15\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+    }
+  );
+  ENTRY(
     "NEC PC-98 (with PC-9801-73)", {
       CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
@@ -822,8 +856,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "ZX Spectrum (48K)", {
+    "ZX Spectrum (48K, SFX-like engine)", {
       CH(DIV_SYSTEM_SFX_BEEPER, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "ZX Spectrum (48K, QuadTone engine)", {
+      CH(DIV_SYSTEM_SFX_BEEPER_QUADTONE, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -914,6 +953,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Enterprise 128", {
+      CH(DIV_SYSTEM_DAVE, 1.0f, 0, "")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
     "BBC Micro", {
       CH(DIV_SYSTEM_SMS, 1.0f, 0,
         "clockSel=2\n"
@@ -965,7 +1010,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "PC + AdLib (drums mode)", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
     }
   );
@@ -980,7 +1025,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "PC + AdLib/Sound Blaster (drums mode)", {
+    "PC + Sound Blaster (drums mode)", {
       CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
@@ -1060,6 +1105,17 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "PC + ESS AudioDrive ES1488 (native ESFM mode)", {
+      CH(DIV_SYSTEM_ESFM, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+        "rate=44100\n"
+        "outDepth=15\n"
+        "stereo=true\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     "PC + PC-FXGA", {
       CH(DIV_SYSTEM_PCE, 1.0f, 0, ""), // HuC6230 (WSG from HuC6280 but with built in 2 OKI ADPCM playback engines)
       CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
@@ -1087,7 +1143,7 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Sharp X68000", {
       CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_MSM6258, 1.0f, 0, "")
+      CH(DIV_SYSTEM_MSM6258, 1.0f, 0, "clockSel=2")
     }
   );
   ENTRY(
@@ -1258,6 +1314,42 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Konami Rollergames", {
+      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""),  // ""
+    }
+  );
+  ENTRY(
+    "Konami Rollergames (drums mode)", {
+      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+    }
+  );
+  ENTRY(
+    "Konami Golfing Greats", {
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // 3.58MHz
+    }
+  );
+  ENTRY(
+    "Konami Lightning Fighters", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+    }
+  );
+  ENTRY(
+    "Konami Over Drive", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+    }
+  );
+  ENTRY(
+    "Konami Asterix", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, "clockSel=1"), // ""
+    }
+  );
+  ENTRY(
     "Konami Hexion", {
       CH(DIV_SYSTEM_SCC, 1.0f, 0, "clockSel=2"), // 1.5MHz (3MHz input)
       CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=1")
@@ -1360,28 +1452,40 @@ void FurnaceGUI::initSystemPresets() {
     "Sega System 32", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n" 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on first OPN2C)", {
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n" 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on second OPN2C)", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n" 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on both OPN2Cs)", {
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n" 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
@@ -1475,6 +1579,89 @@ void FurnaceGUI::initSystemPresets() {
         "clockSel=2\n"
         "rateSel=true\n"
       ) // ^^
+    }
+  );
+  ENTRY(
+    "NMK 16-bit Arcade (w/NMK112 bankswitching)", {
+      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ) // ^^
+    }
+  );
+  ENTRY(
+    "NMK 16-bit Arcade (w/NMK112 bankswitching, extended channel 3)", {
+      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ) // ^^
+    }
+  );
+  ENTRY(
+    "Atlus Power Instinct 2", {
+      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=13\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=13\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ) // ^^
+    }
+  );
+  ENTRY(
+    "Atlus Power Instinct 2 (extended channel 3)", {
+      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=13\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=13\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ) // ^^
+    }
+  );
+  ENTRY(
+    "Raizing/Eighting Battle Garegga", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=8\n"
+        "isBanked=true\n"
+      ) // 2MHz
+    }
+  );
+  ENTRY(
+    "Raizing/Eighting Batrider", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=15\n"
+        "isBanked=true\n"
+      ), // 3.2MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=15\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ) // 3.2MHz
     }
   );
   ENTRY(
@@ -1966,6 +2153,17 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Namco System 2", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_C140, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Namco NA-1/2", {
+      CH(DIV_SYSTEM_C219, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     "Taito Arcade", {
       CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
     }
@@ -2031,7 +2229,10 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Seta 2", {
-      CH(DIV_SYSTEM_X1_010, 1.0f, 0, "clockSel=1")
+      CH(DIV_SYSTEM_X1_010, 1.0f, 0,
+         "clockSel=1\n"
+         "isBanked=true\n"
+      )
     }
   );
   ENTRY(
@@ -2275,6 +2476,27 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "Yamaha YMF289B (OPL3-L)", {
+      CH(DIV_SYSTEM_OPL3, 1.0f, 0, 
+         "clockSel=5\n"
+         "chipType=1\n"
+      )
+    }
+  );
+  ENTRY(
+    "Yamaha YMF289B (drums mode)", {
+      CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, 
+         "clockSel=5\n"
+         "chipType=1\n"
+      )
+    }
+  );
+  ENTRY(
+    "ESS ES1xxx series (ESFM)", {
+      CH(DIV_SYSTEM_ESFM, 1.0f, 0, "")
+    }
+  );
   if (settings.hiddenSystems) {
     ENTRY(
       "Yamaha YMU759 (MA-2)", {
@@ -2392,6 +2614,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "MOS Technology TED", {
+      CH(DIV_SYSTEM_TED, 1.0f, 0, "clockSel=1")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Sample","chips/systems which use PCM or ADPCM samples for sound synthesis.");
@@ -2459,6 +2686,21 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Ensoniq ES5506 (OTTO)", {
       CH(DIV_SYSTEM_ES5506, 1.0f, 0, "channels=31")
+    }
+  );
+  ENTRY(
+    "Konami K053260", {
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Namco C140", {
+      CH(DIV_SYSTEM_C140, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Namco C219", {
+      CH(DIV_SYSTEM_C219, 1.0f, 0, "")
     }
   );
   CATEGORY_END;
@@ -2594,8 +2836,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "ZX Spectrum (beeper only)", {
+    "ZX Spectrum (beeper only, SFX-like engine)", {
       CH(DIV_SYSTEM_SFX_BEEPER, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "ZX Spectrum (beeper only, QuadTone engine)", {
+      CH(DIV_SYSTEM_SFX_BEEPER_QUADTONE, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -2614,6 +2861,17 @@ void FurnaceGUI::initSystemPresets() {
     "tildearrow Sound Unit", {
       CH(DIV_SYSTEM_SOUND_UNIT, 1.0f, 0, "")
     }
+  );
+  ENTRY(
+    "PowerNoise", {
+      CH(DIV_SYSTEM_POWERNOISE, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Dave", {
+      CH(DIV_SYSTEM_DAVE, 1.0f, 0, "")
+    },
+    "tickRate=50"
   );
   CATEGORY_END;
 

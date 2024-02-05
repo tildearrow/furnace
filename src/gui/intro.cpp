@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +19,13 @@
 
 #define _USE_MATH_DEFINES
 #include "gui.h"
+#include "../ta-log.h"
 #include "imgui_internal.h"
 #include <fmt/printf.h>
 
 void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor) {
   FurnaceGUIImage* imgI=getImage(image);
-  SDL_Texture* img=getTexture(image);
+  FurnaceGUITexture* img=getTexture(image);
 
   float squareSize=MAX(introMax.x-introMin.x,introMax.y-introMin.y);
   float uDiff=uvMax.x-uvMin.x;
@@ -69,10 +70,12 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
 
   ImU32 colorConverted=ImGui::GetColorU32(imgColor);
 
-  dl->AddImageQuad(img,quad0,quad1,quad2,quad3,uv0,uv1,uv2,uv3,colorConverted);
+  dl->AddImageQuad(rend->getTextureID(img),quad0,quad1,quad2,quad3,uv0,uv1,uv2,uv3,colorConverted);
 }
 
 void FurnaceGUI::endIntroTune() {
+  if (introStopped) return;
+  logV("ending intro");
   stop();
   if (curFileName.empty()) {
     e->createNewFromDefaults();
@@ -95,14 +98,13 @@ void FurnaceGUI::endIntroTune() {
   selEnd=SelectionPoint();
   cursor=SelectionPoint();
   updateWindowTitle();
+  updateScroll(0);
+  introStopped=true;
 }
 
 void FurnaceGUI::drawIntro(double introTime, bool monitor) {
   if (monitor) {
-    if (introTime<0.0) introTime=0.0;
-    if (introTime>11.0) introTime=11.0;
-    if (!introMonOpen) return;
-    if (introPos<(shortIntro?1.0:11.0)) return;
+    return;
   }
   if (introPos<(shortIntro?1.0:11.0) || monitor) {
     if (!monitor) {
@@ -112,7 +114,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
       ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
       if (introPos<0.1) ImGui::SetNextWindowFocus();
     }
-    if (ImGui::Begin(monitor?"IntroMon X":"Intro",monitor?(&introMonOpen):NULL,monitor?globalWinFlags:(ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground))) {
+    if (ImGui::Begin(monitor?"IntroMon X":"Intro",NULL,monitor?globalWinFlags:(ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground))) {
       if (monitor) {
         if (ImGui::Button("Preview")) {
           introPos=0;
@@ -162,7 +164,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
         getTexture(GUI_IMAGE_TALOGO);
         getTexture(GUI_IMAGE_TACHIP);
         getTexture(GUI_IMAGE_LOGO);
-        getTexture(GUI_IMAGE_INTROBG,SDL_BLENDMODE_ADD);
+        getTexture(GUI_IMAGE_INTROBG,GUI_BLEND_MODE_ADD);
 
         if (monitor) {
           ImVec2 textPos=ImLerp(top,bottom,ImVec2(0.5,0.5));
@@ -290,7 +292,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
           if (introSkipDo) {
             introSkip+=ImGui::GetIO().DeltaTime;
             if (introSkip>=0.5) {
-              if (e->isPlaying()) endIntroTune();
+              if (!shortIntro) endIntroTune();
               introPos=0.1;
               if (introSkip>=0.75) introPos=12.0;
             }
@@ -317,7 +319,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
         e->setRepeatPattern(false);
         play();
       }
-      if (e->isPlaying() && introPos>=10.0 && !shortIntro) endIntroTune();
+      if (introPos>=10.0 && !shortIntro) endIntroTune();
       introPos+=ImGui::GetIO().DeltaTime;
       if (introPos>=(shortIntro?1.0:11.0)) {
         introPos=12.0;
@@ -325,5 +327,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
         commitTutorial();
       }
     }
+  } else if (!shortIntro) {
+    endIntroTune();
   }
 }

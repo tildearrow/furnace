@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,11 @@
 
 #include "pce.h"
 #include "../engine.h"
+#include "furIcons.h"
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) \
   if (!skipRegisterWrites) { \
     if (curChan!=c) { \
@@ -101,7 +102,7 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
     pce->ResetTS(0);
 
     for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP((pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1,-32768,32767);
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1],-32768,32767);
     }
 
     tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
@@ -277,6 +278,8 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].pcm=true;
       } else if (chan[c.chan].furnaceDac) {
         chan[c.chan].pcm=false;
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
       }
       if (chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
@@ -284,7 +287,12 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           if (skipRegisterWrites) break;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+            chan[c.chan].sampleNote=c.value;
             c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+            chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
           }
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
@@ -311,6 +319,8 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           //chan[c.chan].keyOn=true;
         } else {
           chan[c.chan].furnaceDac=false;
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
           if (skipRegisterWrites) break;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
@@ -333,6 +343,8 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         }
         break;
       }
+      chan[c.chan].sampleNote=DIV_NOTE_NULL;
+      chan[c.chan].sampleNoteDelta=0;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -412,7 +424,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       updateLFO=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -453,7 +465,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -473,8 +485,8 @@ int DivPlatformPCE::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -508,6 +520,29 @@ DivMacroInt* DivPlatformPCE::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformPCE::getPan(int ch) {
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
+DivChannelPair DivPlatformPCE::getPaired(int ch) {
+  if (ch==1 && lfoMode>0) {
+    return DivChannelPair("mod",0);
+  }
+  return DivChannelPair();
+}
+
+DivChannelModeHints DivPlatformPCE::getModeHints(int ch) {
+  DivChannelModeHints ret;
+  if (ch<4) return ret;
+  ret.count=1;
+  ret.hint[0]=ICON_FUR_NOISE;
+  ret.type[0]=0;
+
+  if (chan[ch].noise) ret.type[0]=4;
+  
+  return ret;
+}
+
 DivSamplePos DivPlatformPCE::getSamplePos(int ch) {
   if (ch>=6) return DivSamplePos();
   if (!chan[ch].pcm) return DivSamplePos();
@@ -522,6 +557,10 @@ DivDispatchOscBuffer* DivPlatformPCE::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+int DivPlatformPCE::mapVelocity(int ch, float vel) {
+  return round(31.0*pow(vel,0.22));
+}
+
 unsigned char* DivPlatformPCE::getRegisterPool() {
   return regPool;
 }
@@ -531,7 +570,7 @@ int DivPlatformPCE::getRegisterPoolSize() {
 }
 
 void DivPlatformPCE::reset() {
-  while (!writes.empty()) writes.pop();
+  writes.clear();
   memset(regPool,0,128);
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformPCE::Channel();

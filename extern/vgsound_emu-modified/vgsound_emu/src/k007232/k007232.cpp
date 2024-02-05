@@ -67,7 +67,7 @@ void k007232_core::voice_t::tick(u8 ne)
 			}
 		}
 
-		m_out = s8(m_data) - 0x40;	// send to output (ASD/BSD) pin
+		m_out = s8(m_data&0x7f) - 0x40;	// send to output (ASD/BSD) pin
 	}
 	else
 	{

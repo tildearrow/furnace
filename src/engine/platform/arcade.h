@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 #ifndef _ARCADE_H
 #define _ARCADE_H
 #include "fmshared_OPM.h"
-#include <queue>
 #include "../../../extern/opm/opm.h"
 #include "sound/ymfm/ymfm_opm.h"
 
@@ -76,6 +75,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void setFlags(const DivConfig& flags);
