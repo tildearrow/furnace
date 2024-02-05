@@ -613,6 +613,14 @@ src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
 
+src/engine/fileOps/fileOpsCommon.cpp
+src/engine/fileOps/dmf.cpp
+src/engine/fileOps/fc.cpp
+src/engine/fileOps/ftm.cpp
+src/engine/fileOps/fur.cpp
+src/engine/fileOps/mod.cpp
+src/engine/fileOps/s3m.cpp
+
 src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
@@ -625,7 +633,6 @@ src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
 src/engine/export.cpp
-src/engine/fileOps.cpp
 src/engine/fileOpsIns.cpp
 src/engine/fileOpsSample.cpp
 src/engine/filter.cpp
