@@ -3678,13 +3678,16 @@ bool DivInstrument::saveDMP(const char* path) {
   // guess the system
   switch (type) {
     case DIV_INS_FM:
-      // we can't tell between Genesis, Neo Geo and Arcade ins type yet
+      // we can't tell Genesis and Neo Geo apart
       w->writeC(0x02);
       w->writeC(1);
       break;
     case DIV_INS_STD:
-      // we can't tell between SMS and NES ins type yet
       w->writeC(0x03);
+      w->writeC(0);
+      break;
+    case DIV_INS_NES:
+      w->writeC(0x06);
       w->writeC(0);
       break;
     case DIV_INS_GB:
@@ -3696,12 +3699,16 @@ bool DivInstrument::saveDMP(const char* path) {
       w->writeC(0);
       break;
     case DIV_INS_PCE:
-      w->writeC(0x06);
+      w->writeC(0x05);
       w->writeC(0);
       break;
     case DIV_INS_OPLL:
       // ???
       w->writeC(0x13);
+      w->writeC(1);
+      break;
+    case DIV_INS_OPM:
+      w->writeC(0x08);
       w->writeC(1);
       break;
     case DIV_INS_OPZ:
@@ -3720,7 +3727,7 @@ bool DivInstrument::saveDMP(const char* path) {
       return false;
   }
 
-  if (type==DIV_INS_FM || type==DIV_INS_OPLL || type==DIV_INS_OPZ) {
+  if (type==DIV_INS_FM || type==DIV_INS_OPM || type==DIV_INS_OPLL || type==DIV_INS_OPZ) {
     w->writeC(fm.fms);
     w->writeC(fm.fb);
     w->writeC(fm.alg);
