@@ -94,7 +94,7 @@ void FurnaceGUI::drawPalette() {
         paletteSearchResults.push_back(0);
       }
       for (int i=0; i<e->song.insLen; i++) {
-        String s=fmt::sprintf("%02x: %s", i, e->song.ins[i]->name.c_str());
+        String s=fmt::sprintf("%02X: %s", i, e->song.ins[i]->name.c_str());
         if (matchFuzzy(s.c_str(),paletteQuery.c_str())) {
           paletteSearchResults.push_back(i+1); // because over here ins=0 is 'None'
         }
@@ -166,7 +166,7 @@ void FurnaceGUI::drawPalette() {
         if (id==0) {
           s="- None -";
         } else {
-          s=fmt::sprintf("%02d: %s", id-1, e->song.ins[id-1]->name.c_str());
+          s=fmt::sprintf("%02X: %s", id-1, e->song.ins[id-1]->name.c_str());
         }
         break;
       case CMDPAL_TYPE_SAMPLES:
