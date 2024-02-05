@@ -1916,8 +1916,9 @@ ESFM_process_feedback(esfm_chip *chip)
 				"ldr     r7, %[p_off]               \n\t"
 				"ldrb    r8, %[mod_in]              \n\t"
 				"ldrh    r9, %[eg_out]              \n\t"
-				"ldr     r10, =%c[sinrom]           \n\t"
 				"ldrb    r0, %[wave]                \n\t"
+				"push    {r10-r12,lr}               \n\t"
+				"ldr     r10, =%c[sinrom]           \n\t"
 				"add     r10, r10, r0, lsl #11      \n\t"
 				"ldr     r11, =%c[exprom]           \n\t"
 				"ldr     r12, =0x1fff<<1            \n\t"
@@ -1959,6 +1960,7 @@ ESFM_process_feedback(esfm_chip *chip)
 				// loop
 				"subs    r2, r2, #1                 \n\t"
 				"bne     1b                         \n\t"
+				"pop     {r10-r12,lr}               \n\t"
 				"str     r3, %[p_fb]                \n\t"
 				"str     r4, %[p_acc]               \n\t"
 				"str     r5, %[out]                 \n\t"
@@ -1971,7 +1973,7 @@ ESFM_process_feedback(esfm_chip *chip)
 				  [eg_out] "m"   (eg_output),
 				  [sinrom] "i"   (logsinrom),
 				  [exprom] "i"   (exprom)
-				: "cc", "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12", "lr"
+				: "cc", "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9"
 			);
 #else
 			wave_out = 0;
