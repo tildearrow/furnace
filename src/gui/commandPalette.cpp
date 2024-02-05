@@ -23,10 +23,10 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 #include <algorithm>
-#include <cctype>
+#include <ctype.h>
 #include "../ta-log.h"
 
-static inline bool matchFuzzy(const char* haystack,const char* needle) {
+static inline bool matchFuzzy(const char* haystack, const char* needle) {
   size_t h_i=0; // haystack idx
   size_t n_i=0; // needle idx
   while (needle[n_i]!='\0') {
