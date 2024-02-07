@@ -3503,6 +3503,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_ESFM,"ESFM");
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_POWERNOISE,"PowerNoise (noise)");
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_POWERNOISE_SLOPE,"PowerNoise (slope)");
+          UI_COLOR_CONFIG(GUI_COLOR_INSTR_DAVE,"Dave");
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
           ImGui::TreePop();
         }
