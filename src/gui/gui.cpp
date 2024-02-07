@@ -2264,6 +2264,17 @@ int FurnaceGUI::load(String path) {
   return 0;
 }
 
+void FurnaceGUI::openRecentFile(String path) {
+  if (modified) {
+    nextFile=path;
+    showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
+  } else {
+    if (load(path)>0) {
+      showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+    }
+  }
+}
+
 void FurnaceGUI::pushRecentFile(String path) {
   if (path.empty()) return;
   if (path.find(backupPath)==0) return;
@@ -4126,10 +4137,8 @@ bool FurnaceGUI::loop() {
               } else {
                 recentFile.erase(i);
                 i--;
-                if (load(item)>0) {
-                  showError(fmt::sprintf("Error while loading file! (%s)",lastError));
-                }
               }
+              openRecentFile(item);
             }
           }
           if (recentFile.empty()) {
@@ -4382,6 +4391,8 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu(settings.capitalMenuBar?"Window":"window")) {
+        if (ImGui::MenuItem("command palette",BIND_FOR(GUI_ACTION_COMMAND_PALETTE)))
+          displayPalette=true;
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
         if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
@@ -5437,6 +5448,15 @@ bool FurnaceGUI::loop() {
       }
     }
 
+    if (displayPalette) {
+      paletteSearchResults.clear();
+      paletteQuery="";
+      paletteFirstFrame=true;
+      curPaletteChoice=0;
+      displayPalette=false;
+      ImGui::OpenPopup("Command Palette");
+    }
+
     if (displayExport) {
       displayExport=false;
       ImGui::OpenPopup("Export");
@@ -5480,6 +5500,14 @@ bool FurnaceGUI::loop() {
         ImGui::SetWindowSize(newSongMinSize,ImGuiCond_Always);
       }
       drawNewSong();
+      ImGui::EndPopup();
+    }
+
+    ImVec2 wsize=ImVec2(canvasW*0.9,canvasH*0.4);
+    ImGui::SetNextWindowPos(ImVec2((canvasW-wsize.x)*0.5,50*dpiScale));
+    ImGui::SetNextWindowSize(wsize,ImGuiCond_Always);
+    if (ImGui::BeginPopup("Command Palette",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings)) {
+      drawPalette();
       ImGui::EndPopup();
     }
 
@@ -7289,6 +7317,7 @@ FurnaceGUI::FurnaceGUI():
   oldWantCaptureKeyboard(false),
   displayMacroMenu(false),
   displayNew(false),
+  displayPalette(false),
   fullScreen(false),
   preserveChanPos(false),
   wantScrollList(false),
@@ -7409,6 +7438,8 @@ FurnaceGUI::FurnaceGUI():
   oldBar(-1),
   curGroove(-1),
   exitDisabledTimer(0),
+  curPaletteChoice(0),
+  curPaletteType(0),
   soloTimeout(0.0f),
   exportFadeOut(5.0),
   patExtraButtons(false),
