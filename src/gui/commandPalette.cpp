@@ -208,44 +208,38 @@ void FurnaceGUI::drawPalette() {
     if (paletteSearchResults.size()>0) {
       int i=paletteSearchResults[curPaletteChoice];
       switch (curPaletteType) {
-      case CMDPAL_TYPE_MAIN:
-        doAction(i);
-        break;
-
-      case CMDPAL_TYPE_RECENT:
-        openRecentFile(recentFile[i]);
-        break;
-
-      case CMDPAL_TYPE_INSTRUMENTS:
-        curIns=i-1;
-        break;
-
-      case CMDPAL_TYPE_SAMPLES:
-        curSample=i;
-        break;
-
-      case CMDPAL_TYPE_INSTRUMENT_CHANGE:
-        doChangeIns(i-1);
-        break;
-
-      case CMDPAL_TYPE_ADD_CHIP:
-        if (i!=DIV_SYSTEM_NULL) {
-          if (!e->addSystem((DivSystem)i)) {
-            showError("cannot add chip! ("+e->getLastError()+")");
-          } else {
-            MARK_MODIFIED;
+        case CMDPAL_TYPE_MAIN:
+          doAction(i);
+          break;
+        case CMDPAL_TYPE_RECENT:
+          openRecentFile(recentFile[i]);
+          break;
+        case CMDPAL_TYPE_INSTRUMENTS:
+          curIns=i-1;
+          break;
+        case CMDPAL_TYPE_SAMPLES:
+          curSample=i;
+          break;
+        case CMDPAL_TYPE_INSTRUMENT_CHANGE:
+          doChangeIns(i-1);
+          break;
+        case CMDPAL_TYPE_ADD_CHIP:
+          if (i!=DIV_SYSTEM_NULL) {
+            if (!e->addSystem((DivSystem)i)) {
+              showError("cannot add chip! ("+e->getLastError()+")");
+            } else {
+              MARK_MODIFIED;
+            }
+            ImGui::CloseCurrentPopup();
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+            }
+            updateWindowTitle();
           }
-          ImGui::CloseCurrentPopup();
-          if (e->song.autoSystem) {
-            autoDetectSystem();
-          }
-          updateWindowTitle();
-        }
-        break;
-
-      default:
-        logE("invalid command palette type");
-        break;
+          break;
+        default:
+          logE("invalid command palette type");
+          break;
       };
     }
     ImGui::CloseCurrentPopup();
