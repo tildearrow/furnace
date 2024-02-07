@@ -4391,8 +4391,6 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu(settings.capitalMenuBar?"Window":"window")) {
-        if (ImGui::MenuItem("command palette",BIND_FOR(GUI_ACTION_COMMAND_PALETTE)))
-          displayPalette=true;
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
         if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
