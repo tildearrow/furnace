@@ -1435,6 +1435,7 @@ class FurnaceGUIRender {
     virtual void destroyFontsTexture();
     virtual void renderGUI();
     virtual void wipe(float alpha);
+    virtual void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color);
     virtual void present();
     virtual bool getOutputSize(int& w, int& h);
     virtual int getWindowFlags();

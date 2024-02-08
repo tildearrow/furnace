@@ -71,6 +71,9 @@ void FurnaceGUIRender::renderGUI() {
 void FurnaceGUIRender::wipe(float alpha) {
 }
 
+void FurnaceGUIRender::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color) {
+}
+
 void FurnaceGUIRender::present() {
 }
 

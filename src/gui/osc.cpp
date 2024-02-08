@@ -281,7 +281,8 @@ void FurnaceGUI::drawOsc() {
             }
             waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
           }
-          
+
+          /*          
           if (settings.oscEscapesBoundary) {
             dl->PushClipRectFullScreen();
             dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
@@ -289,6 +290,7 @@ void FurnaceGUI::drawOsc() {
           } else {
             dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
           }
+          */
         } else {
           for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
             for (int i=0; i<oscWidth-24; i++) {
@@ -305,6 +307,7 @@ void FurnaceGUI::drawOsc() {
               color=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_WAVE_CH0+ch]);
             }
             
+            /*
             if (settings.oscEscapesBoundary) {
               dl->PushClipRectFullScreen();
               dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
@@ -312,6 +315,7 @@ void FurnaceGUI::drawOsc() {
             } else {
               dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
             }
+            */
           }
         }
       }

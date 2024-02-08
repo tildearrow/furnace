@@ -49,6 +49,9 @@ PFNGLGETPROGRAMIVPROC furGetProgramiv=NULL;
 PFNGLUSEPROGRAMPROC furUseProgram=NULL;
 PFNGLGETUNIFORMLOCATIONPROC furGetUniformLocation=NULL;
 PFNGLUNIFORM1FPROC furUniform1f=NULL;
+PFNGLUNIFORM2FPROC furUniform2f=NULL;
+PFNGLUNIFORM1IPROC furUniform1i=NULL;
+PFNGLUNIFORM4FVPROC furUniform4fv=NULL;
 PFNGLGETSHADERINFOLOGPROC furGetShaderInfoLog=NULL;
 
 #ifndef USE_GLES
@@ -79,6 +82,39 @@ const char* sh_wipe_srcF=
   "void main() {\n"
   "  gl_FragColor=vec4(0.0,0.0,0.0,uAlpha);\n"
   "}\n";
+
+const char* sh_oscRender_srcV=
+  "attribute vec4 fur_position;\n"
+  "attribute vec2 fur_texCoord;\n"
+  "varying vec2 fur_fragCoord;\n"
+  "void main() {\n"
+  "  gl_Position=fur_position;\n"
+  "  fur_fragCoord=fur_texCoord;\n"
+  "}\n";
+
+// thank you akumanatt
+const char* sh_oscRender_srcF=
+  "uniform vec4 uColor;\n"
+  "uniform vec2 uResolution;\n"
+  "uniform float uLineWidth;\n"
+  "uniform sampler2D oscVal;\n"
+  "varying vec2 fur_fragCoord;\n"
+  "void main() {\n"
+  "  vec2 uv = fur_fragCoord/uResolution;\n"
+  "  vec2 tresh = vec2(uLineWidth)/uResolution;\n"
+  "  float xoff = tresh.x/2.0;\n"
+  "  float x1 = uv.x-xoff;\n"
+  "  float x2 = uv.x;\n"
+  "  float x3 = uv.x+xoff;\n"
+  "  float val1 = texture2D(oscVal,vec2(x1,1.0)).x;\n"
+  "  float val2 = texture2D(oscVal,vec2(x2,1.0)).x;\n"
+  "  float val3 = texture2D(oscVal,vec2(x3,1.0)).x;\n"
+  "  float valmax = max(max(val1,val2),val3);\n"
+  "  float valmin = min(min(val1,val2),val3);\n"
+  "  float vald = abs(valmax-valmin);\n"
+  "  float alpha = 1.0-abs(uv.y-val2)/max(tresh.y,vald);\n"
+  "  gl_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
+  "}\n";
 #else
 const char* sh_wipe_srcV=
   "#version 130\n"
@@ -95,17 +131,29 @@ const char* sh_wipe_srcF=
   "  fur_FragColor=vec4(0.0,0.0,0.0,uAlpha);\n"
   "}\n";
 
+const char* sh_oscRender_srcV=
+  "#version 130\n"
+  "in vec4 fur_position;\n"
+  "in vec2 fur_texCoord;\n"
+  "out vec2 fur_fragCoord;\n"
+  "void main() {\n"
+  "  gl_Position=fur_position;\n"
+  "  fur_fragCoord=fur_texCoord;\n"
+  "}\n";
+
+// thank you akumanatt
+// TODO: update from ES version
 const char* sh_oscRender_srcF=
   "#version 130\n"
+  "uniform vec4 uColor;\n"
+  "uniform vec2 uResolution;\n"
+  "uniform float uLineWidth;\n"
   "uniform sampler1D oscVal;\n"
-  "uniform vec4 color;\n"
   "in vec2 fur_fragCoord;\n"
   "out vec4 fur_FragColor;\n"
   "void main() {\n"
-  "  vec3 color = vec3(1.0);\n"
-  "  float lineWidth = 2.0;\n"
-  "  vec2 uv = fragCoord/iResolution.xy;\n"
-  "  vec2 tresh = vec2(lineWidth)/iResolution.xy;\n"
+  "  vec2 uv = fur_fragCoord/uResolution.xy;\n"
+  "  vec2 tresh = vec2(uLineWidth)/uResolution.xy;\n"
   "  float xoff = tresh.x/2.0;\n"
   "  float x1 = uv.x-xoff;\n"
   "  float x2 = uv.x;\n"
@@ -117,11 +165,22 @@ const char* sh_oscRender_srcF=
   "  float valmin = min(min(val1,val2),val3);\n"
   "  float vald = abs(valmax-valmin);\n"
   "  float alpha = 1.0-abs(uv.y-val2)/max(tresh.y,vald);\n"
-  "  fur_FragColor = vec4(vec3(color*alpha),1.0);\n"
+  "  fur_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
   "}\n";
 #endif
 
-bool FurnaceGUIRenderGL::createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program) {
+const char* sh_wipe_attrib[]={
+  "fur_position",
+  NULL
+};
+
+const char* sh_oscRender_attrib[]={
+  "fur_position",
+  "fur_texCoord",
+  NULL
+};
+
+bool FurnaceGUIRenderGL::createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program, const char** attribNames) {
   int status;
   char infoLog[4096];
   int infoLogLen;
@@ -151,13 +210,20 @@ bool FurnaceGUIRenderGL::createShader(const char* vertexS, const char* fragmentS
   furGetShaderiv(fragment,GL_COMPILE_STATUS,&status);
   if (!status) {
     logW("failed to compile fragment shader");
+    furGetShaderInfoLog(fragment,4095,&infoLogLen,infoLog);
+    infoLog[infoLogLen]=0;
+    logW("%s",infoLog);
     return false;
   }
 
   program=furCreateProgram();
   furAttachShader(program,vertex);
   furAttachShader(program,fragment);
-  furBindAttribLocation(program,0,"fur_position");
+  if (attribNames!=NULL) {
+    for (int i=0; attribNames[i]; i++) {
+      furBindAttribLocation(program,i,attribNames[i]);
+    }
+  }
   furLinkProgram(program);
   furGetProgramiv(program,GL_LINK_STATUS,&status);
   if (!status) {
@@ -303,6 +369,62 @@ void FurnaceGUIRenderGL::wipe(float alpha) {
   C(glDrawArrays(GL_TRIANGLE_STRIP,0,4));
 }
 
+void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color) {
+  if (!furUseProgram) return;
+
+  memcpy(oscData,data,len*sizeof(float));
+
+#ifdef USE_GLES
+  C(glBindTexture(GL_TEXTURE_2D,oscDataTex));
+  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RED_EXT,2048,1,0,GL_RED_EXT,GL_FLOAT,oscData));
+#else
+  C(glBindTexture(GL_TEXTURE_1D,oscDataTex));
+  C(glTexImage1D(GL_TEXTURE_1D,0,GL_RED,2048,0,GL_RED,GL_FLOAT,oscData));
+#endif
+
+  C(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
+  C(glEnable(GL_BLEND));
+
+  oscVertex[0][0]=pos0.x;
+  oscVertex[0][1]=pos1.y;
+  oscVertex[0][2]=0.0f;
+  oscVertex[0][3]=0.0f;
+  oscVertex[0][4]=1.0f;
+  oscVertex[1][0]=pos1.x;
+  oscVertex[1][1]=pos1.y;
+  oscVertex[1][2]=0.0f;
+  oscVertex[1][3]=1.0f;
+  oscVertex[1][4]=1.0f;
+  oscVertex[2][0]=pos0.x;
+  oscVertex[2][1]=pos0.y;
+  oscVertex[2][2]=0.0f;
+  oscVertex[2][3]=0.0f;
+  oscVertex[2][4]=0.0f;
+  oscVertex[3][0]=pos1.x;
+  oscVertex[3][1]=pos0.y;
+  oscVertex[3][2]=0.0f;
+  oscVertex[3][3]=1.0f;
+  oscVertex[3][4]=0.0f;
+
+  C(furBindBuffer(GL_ARRAY_BUFFER,oscVertexBuf));
+  C(furBufferData(GL_ARRAY_BUFFER,sizeof(oscVertex),oscVertex,GL_STATIC_DRAW));
+  C(furVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5,NULL));
+  C(furVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,5,(void*)3));
+  C(furEnableVertexAttribArray(0));
+  C(furEnableVertexAttribArray(1));
+  C(furActiveTexture(GL_TEXTURE0));
+  C(glBindTexture(GL_TEXTURE_2D,oscDataTex));
+
+  C(furUseProgram(sh_oscRender_program));
+  C(furUniform4fv(sh_oscRender_uColor,1,(float*)&color));
+  C(furUniform1f(sh_oscRender_uLineWidth,2.0f));
+  C(furUniform2f(sh_oscRender_uResolution,1.0f,1.0f));
+  C(furUniform1i(sh_oscRender_oscVal,0));
+
+  C(glDrawArrays(GL_TRIANGLE_STRIP,0,4));
+  C(glBindTexture(GL_TEXTURE_2D,0));
+}
+
 void FurnaceGUIRenderGL::present() {
   SDL_GL_SwapWindow(sdlWin);
   C(glFlush());
@@ -385,14 +507,40 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   LOAD_PROC_OPTIONAL(furUseProgram,PFNGLUSEPROGRAMPROC,"glUseProgram");
   LOAD_PROC_OPTIONAL(furGetUniformLocation,PFNGLGETUNIFORMLOCATIONPROC,"glGetUniformLocation");
   LOAD_PROC_OPTIONAL(furUniform1f,PFNGLUNIFORM1FPROC,"glUniform1f");
+  LOAD_PROC_OPTIONAL(furUniform2f,PFNGLUNIFORM2FPROC,"glUniform2f");
+  LOAD_PROC_OPTIONAL(furUniform1i,PFNGLUNIFORM1IPROC,"glUniform1i");
+  LOAD_PROC_OPTIONAL(furUniform4fv,PFNGLUNIFORM4FVPROC,"glUniform4fv");
   LOAD_PROC_OPTIONAL(furGetShaderInfoLog,PFNGLGETSHADERINFOLOGPROC,"glGetShaderInfoLog");
 
 #ifndef USE_GLES
   LOAD_PROC_OPTIONAL(furGetGraphicsResetStatusARB,PFNGLGETGRAPHICSRESETSTATUSARBPROC,"glGetGraphicsResetStatusARB");
 #endif
 
-  if (createShader(sh_wipe_srcV,sh_wipe_srcF,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program)) {
+  // texture for osc renderer
+  C(glGenTextures(1,&oscDataTex));
+#ifdef USE_GLES
+  C(glBindTexture(GL_TEXTURE_2D,oscDataTex));
+  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
+  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RED_EXT,2048,1,0,GL_RED_EXT,GL_FLOAT,NULL));
+#else
+  C(glBindTexture(GL_TEXTURE_1D,oscDataTex));
+  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
+  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  C(glTexImage1D(GL_TEXTURE_1D,0,GL_RED,2048,0,GL_RED,GL_FLOAT,NULL));
+#endif
+  C(furActiveTexture(GL_TEXTURE0));
+
+  // create shaders
+  if (createShader(sh_wipe_srcV,sh_wipe_srcF,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program,sh_wipe_attrib)) {
     sh_wipe_uAlpha=furGetUniformLocation(sh_wipe_program,"uAlpha");
+  }
+
+  if (createShader(sh_oscRender_srcV,sh_oscRender_srcF,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib)) {
+    sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
+    sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
+    sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
+    sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
   }
 
   C(furGenBuffers(1,&quadBuf));
