@@ -94,6 +94,31 @@ const char* sh_wipe_srcF=
   "void main() {\n"
   "  fur_FragColor=vec4(0.0,0.0,0.0,uAlpha);\n"
   "}\n";
+
+const char* sh_oscRender_srcF=
+  "#version 130\n"
+  "uniform sampler1D oscVal;\n"
+  "uniform vec4 color;\n"
+  "in vec2 fur_fragCoord;\n"
+  "out vec4 fur_FragColor;\n"
+  "void main() {\n"
+  "  vec3 color = vec3(1.0);\n"
+  "  float lineWidth = 2.0;\n"
+  "  vec2 uv = fragCoord/iResolution.xy;\n"
+  "  vec2 tresh = vec2(lineWidth)/iResolution.xy;\n"
+  "  float xoff = tresh.x/2.0;\n"
+  "  float x1 = uv.x-xoff;\n"
+  "  float x2 = uv.x;\n"
+  "  float x3 = uv.x+xoff;\n"
+  "  float val1 = texture(oscVal,vec2(x1,1.0)).x;\n"
+  "  float val2 = texture(oscVal,vec2(x2,1.0)).x;\n"
+  "  float val3 = texture(oscVal,vec2(x3,1.0)).x;\n"
+  "  float valmax = max(max(val1,val2),val3);\n"
+  "  float valmin = min(min(val1,val2),val3);\n"
+  "  float vald = abs(valmax-valmin);\n"
+  "  float alpha = 1.0-abs(uv.y-val2)/max(tresh.y,vald);\n"
+  "  fur_FragColor = vec4(vec3(color*alpha),1.0);\n"
+  "}\n";
 #endif
 
 bool FurnaceGUIRenderGL::createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program) {
