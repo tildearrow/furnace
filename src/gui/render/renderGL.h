@@ -64,6 +64,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
     void present();
     bool getOutputSize(int& w, int& h);
+    bool supportsDrawOsc();
     int getWindowFlags();
     void preInit();
     bool init(SDL_Window* win);

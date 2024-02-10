@@ -114,8 +114,7 @@ const char* sh_oscRender_srcF=
   "  float valmin = min(min(val1,val2),val3);\n"
   "  float vald = abs(valmax-valmin);\n"
   "  float alpha = 1.0-abs(uv.y-val2)/max(tresh.y,vald);\n"
-  "  //gl_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
-  "  gl_FragColor = vec4(clamp(0.5+val2*0.5,0.0,1.0),0.0,0.0,1.0);\n"
+  "  gl_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
   "}\n";
 #else
 const char* sh_wipe_srcV=
@@ -407,6 +406,8 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   //C(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
   //C(glEnable(GL_BLEND));
 
+  float height=fabs(pos1.y-pos0.y)*0.5;
+
   pos0.x=(2.0f*pos0.x/canvasSize.x)-1.0f;
   pos0.y=1.0f-(2.0f*pos0.y/canvasSize.y);
   pos1.x=(2.0f*pos1.x/canvasSize.x)-1.0f;
@@ -415,19 +416,19 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   oscVertex[0][0]=pos0.x;
   oscVertex[0][1]=pos1.y;
   oscVertex[0][2]=0.0f;
-  oscVertex[0][3]=1.0f;
+  oscVertex[0][3]=height;
   oscVertex[1][0]=pos1.x;
   oscVertex[1][1]=pos1.y;
   oscVertex[1][2]=(float)len;
-  oscVertex[1][3]=1.0f;
+  oscVertex[1][3]=height;
   oscVertex[2][0]=pos0.x;
   oscVertex[2][1]=pos0.y;
   oscVertex[2][2]=0.0f;
-  oscVertex[2][3]=-1.0f;
+  oscVertex[2][3]=-height;
   oscVertex[3][0]=pos1.x;
   oscVertex[3][1]=pos0.y;
   oscVertex[3][2]=(float)len;
-  oscVertex[3][3]=-1.0f;
+  oscVertex[3][3]=-height;
 
   C(glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&lastArrayBuf));
   C(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING,&lastElemArrayBuf));
@@ -445,7 +446,7 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   C(furUseProgram(sh_oscRender_program));
   C(furUniform4fv(sh_oscRender_uColor,1,(float*)&color));
   C(furUniform1f(sh_oscRender_uLineWidth,lineWidth));
-  C(furUniform2f(sh_oscRender_uResolution,2048.0f,1.0f));
+  C(furUniform2f(sh_oscRender_uResolution,2048.0f,height));
   C(furUniform1i(sh_oscRender_oscVal,0));
 
   C(glDrawArrays(GL_TRIANGLE_STRIP,0,4));
@@ -472,6 +473,10 @@ void FurnaceGUIRenderGL::present() {
 
 bool FurnaceGUIRenderGL::getOutputSize(int& w, int& h) {
   SDL_GL_GetDrawableSize(sdlWin,&w,&h);
+  return true;
+}
+
+bool FurnaceGUIRenderGL::supportsDrawOsc() {
   return true;
 }
 
