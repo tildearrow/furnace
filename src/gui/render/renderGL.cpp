@@ -98,23 +98,25 @@ const char* sh_oscRender_srcF=
   "uniform vec4 uColor;\n"
   "uniform vec2 uResolution;\n"
   "uniform float uLineWidth;\n"
+  "uniform float uAdvance;\n"
   "uniform sampler2D oscVal;\n"
   "varying vec2 fur_fragCoord;\n"
   "void main() {\n"
   "  vec2 uv = fur_fragCoord/uResolution;\n"
   "  vec2 tresh = vec2(uLineWidth)/uResolution;\n"
-  "  float xoff = tresh.x/2.0;\n"
-  "  float x1 = uv.x-xoff;\n"
   "  float x2 = uv.x;\n"
-  "  float x3 = uv.x+xoff;\n"
-  "  float val1 = texture2D(oscVal,vec2(x1,1.0)).x;\n"
+  "  float x3 = uv.x+uAdvance;\n"
   "  float val2 = texture2D(oscVal,vec2(x2,1.0)).x;\n"
   "  float val3 = texture2D(oscVal,vec2(x3,1.0)).x;\n"
-  "  float valmax = max(max(val1,val2),val3);\n"
-  "  float valmin = min(min(val1,val2),val3);\n"
+  "  float valmax = max(val2,val3);\n"
+  "  float valmin = min(val2,val3);\n"
   "  float vald = abs(valmax-valmin);\n"
   "  float alpha = 1.0-abs(uv.y-val2)/max(tresh.y,vald);\n"
-  "  gl_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
+  "  if (vald>(1.0/uResolution.y)) {\n"
+  "    gl_FragColor = vec4(1.0,0.0,0.0,uColor.w*alpha);\n"
+  "  } else {\n"
+  "    gl_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
+  "  }\n"
   "}\n";
 #else
 const char* sh_wipe_srcV=
@@ -406,6 +408,7 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   //C(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
   //C(glEnable(GL_BLEND));
 
+  float width=fabs(pos1.x-pos0.x);
   float height=fabs(pos1.y-pos0.y)*0.5;
 
   pos0.x=(2.0f*pos0.x/canvasSize.x)-1.0f;
@@ -446,6 +449,7 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   C(furUseProgram(sh_oscRender_program));
   C(furUniform4fv(sh_oscRender_uColor,1,(float*)&color));
   C(furUniform1f(sh_oscRender_uLineWidth,lineWidth));
+  C(furUniform1f(sh_oscRender_uAdvance,(1.0f/2048.0f)*((float)len/width)));
   C(furUniform2f(sh_oscRender_uResolution,2048.0f,height));
   C(furUniform1i(sh_oscRender_oscVal,0));
 
@@ -584,6 +588,7 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
 
   if (createShader(sh_oscRender_srcV,sh_oscRender_srcF,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib)) {
     sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
+    sh_oscRender_uAdvance=furGetUniformLocation(sh_oscRender_program,"uAdvance");
     sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
     sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
     sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");

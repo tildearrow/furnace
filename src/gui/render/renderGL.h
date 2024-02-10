@@ -41,6 +41,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   int sh_oscRender_program;
   int sh_oscRender_uColor;
   int sh_oscRender_uLineWidth;
+  int sh_oscRender_uAdvance;
   int sh_oscRender_uResolution;
   int sh_oscRender_oscVal;
 
