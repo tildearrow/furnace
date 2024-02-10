@@ -377,6 +377,8 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   if (!furUniform2f) return;
   if (!furUniform1i) return;
 
+  if (furBufferData) return;
+
   logV("%d",oscVertexBuf);
   if (len>2048) len=2048;
 
@@ -418,9 +420,9 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   C(furBindBuffer(GL_ARRAY_BUFFER,oscVertexBuf));
   C(furBufferData(GL_ARRAY_BUFFER,sizeof(oscVertex),oscVertex,GL_STATIC_DRAW));
   C(furVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,4*sizeof(float),NULL));
-  C(furVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float))));
+  //C(furVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float))));
   C(furEnableVertexAttribArray(0));
-  C(furEnableVertexAttribArray(1));
+  //C(furEnableVertexAttribArray(1));
   C(furActiveTexture(GL_TEXTURE0));
   C(glBindTexture(GL_TEXTURE_2D,oscDataTex));
 
@@ -431,7 +433,7 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   C(furUniform1i(sh_oscRender_oscVal,0));
 
   C(glDrawArrays(GL_TRIANGLE_STRIP,0,4));
-  C(furDisableVertexAttribArray(1));
+  //C(furDisableVertexAttribArray(1));
   C(furUseProgram(0));
   C(glBindTexture(GL_TEXTURE_2D,0));
 }
