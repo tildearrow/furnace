@@ -319,6 +319,7 @@ void FurnaceGUI::drawOsc() {
           _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
 
           dl->AddCallback(_drawOsc,&_do);
+          dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
         } else {
           for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
             for (int i=0; i<oscWidth-24; i++) {
