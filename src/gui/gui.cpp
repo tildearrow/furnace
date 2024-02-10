@@ -7260,6 +7260,10 @@ bool FurnaceGUI::finish() {
       oscValues[i]=NULL;
     }
   }
+  if (oscValuesAverage) {
+    delete[] oscValuesAverage;
+    oscValuesAverage=NULL;
+  }
 
   if (backupTask.valid()) {
     backupTask.get();
@@ -7700,6 +7704,7 @@ FurnaceGUI::FurnaceGUI():
   subPortPos(0.0f,0.0f),
   oscTotal(0),
   oscWidth(512),
+  oscValuesAverage(NULL),
   oscZoom(0.5f),
   oscWindowSize(20.0f),
   oscInput(0.0f),

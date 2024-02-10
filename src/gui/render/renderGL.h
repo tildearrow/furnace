@@ -24,7 +24,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   SDL_Window* sdlWin;
   float quadVertex[4][3];
   unsigned int quadBuf;
-  float oscVertex[4][5];
+  float oscVertex[4][4];
   unsigned int oscVertexBuf;
   unsigned int oscDataTex;
   float oscData[2048];
@@ -61,7 +61,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     void destroyFontsTexture();
     void renderGUI();
     void wipe(float alpha);
-    void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color);
+    void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
     void present();
     bool getOutputSize(int& w, int& h);
     int getWindowFlags();

@@ -35,6 +35,7 @@ PFNGLBINDBUFFERPROC furBindBuffer=NULL;
 PFNGLBUFFERDATAPROC furBufferData=NULL;
 PFNGLVERTEXATTRIBPOINTERPROC furVertexAttribPointer=NULL;
 PFNGLENABLEVERTEXATTRIBARRAYPROC furEnableVertexAttribArray=NULL;
+PFNGLDISABLEVERTEXATTRIBARRAYPROC furDisableVertexAttribArray=NULL;
 PFNGLACTIVETEXTUREPROC furActiveTexture=NULL;
 
 PFNGLCREATESHADERPROC furCreateShader=NULL;
@@ -369,8 +370,15 @@ void FurnaceGUIRenderGL::wipe(float alpha) {
   C(glDrawArrays(GL_TRIANGLE_STRIP,0,4));
 }
 
-void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color) {
+void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth) {
   if (!furUseProgram) return;
+  if (!furUniform4fv) return;
+  if (!furUniform1f) return;
+  if (!furUniform2f) return;
+  if (!furUniform1i) return;
+
+  logV("%d",oscVertexBuf);
+  if (len>2048) len=2048;
 
   memcpy(oscData,data,len*sizeof(float));
 
@@ -385,31 +393,32 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   C(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
   C(glEnable(GL_BLEND));
 
+  pos0.x=(2.0f*pos0.x/canvasSize.x)-1.0f;
+  pos0.y=(2.0f*pos0.y/canvasSize.y)-1.0f;
+  pos1.x=(2.0f*pos1.x/canvasSize.x)-1.0f;
+  pos1.y=(2.0f*pos1.y/canvasSize.y)-1.0f;
+
   oscVertex[0][0]=pos0.x;
   oscVertex[0][1]=pos1.y;
   oscVertex[0][2]=0.0f;
-  oscVertex[0][3]=0.0f;
-  oscVertex[0][4]=1.0f;
+  oscVertex[0][3]=1.0f;
   oscVertex[1][0]=pos1.x;
   oscVertex[1][1]=pos1.y;
-  oscVertex[1][2]=0.0f;
+  oscVertex[1][2]=1.0f;
   oscVertex[1][3]=1.0f;
-  oscVertex[1][4]=1.0f;
   oscVertex[2][0]=pos0.x;
   oscVertex[2][1]=pos0.y;
   oscVertex[2][2]=0.0f;
   oscVertex[2][3]=0.0f;
-  oscVertex[2][4]=0.0f;
   oscVertex[3][0]=pos1.x;
   oscVertex[3][1]=pos0.y;
-  oscVertex[3][2]=0.0f;
-  oscVertex[3][3]=1.0f;
-  oscVertex[3][4]=0.0f;
+  oscVertex[3][2]=1.0f;
+  oscVertex[3][3]=0.0f;
 
   C(furBindBuffer(GL_ARRAY_BUFFER,oscVertexBuf));
   C(furBufferData(GL_ARRAY_BUFFER,sizeof(oscVertex),oscVertex,GL_STATIC_DRAW));
-  C(furVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5,NULL));
-  C(furVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,5,(void*)3));
+  C(furVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,4*sizeof(float),NULL));
+  C(furVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float))));
   C(furEnableVertexAttribArray(0));
   C(furEnableVertexAttribArray(1));
   C(furActiveTexture(GL_TEXTURE0));
@@ -417,11 +426,13 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
 
   C(furUseProgram(sh_oscRender_program));
   C(furUniform4fv(sh_oscRender_uColor,1,(float*)&color));
-  C(furUniform1f(sh_oscRender_uLineWidth,2.0f));
+  C(furUniform1f(sh_oscRender_uLineWidth,lineWidth));
   C(furUniform2f(sh_oscRender_uResolution,1.0f,1.0f));
   C(furUniform1i(sh_oscRender_oscVal,0));
 
   C(glDrawArrays(GL_TRIANGLE_STRIP,0,4));
+  C(furDisableVertexAttribArray(1));
+  C(furUseProgram(0));
   C(glBindTexture(GL_TEXTURE_2D,0));
 }
 
@@ -493,6 +504,7 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   LOAD_PROC_MANDATORY(furBufferData,PFNGLBUFFERDATAPROC,"glBufferData");
   LOAD_PROC_MANDATORY(furVertexAttribPointer,PFNGLVERTEXATTRIBPOINTERPROC,"glVertexAttribPointer");
   LOAD_PROC_MANDATORY(furEnableVertexAttribArray,PFNGLENABLEVERTEXATTRIBARRAYPROC,"glEnableVertexAttribArray");
+  LOAD_PROC_MANDATORY(furDisableVertexAttribArray,PFNGLDISABLEVERTEXATTRIBARRAYPROC,"glDisableVertexAttribArray");
   LOAD_PROC_MANDATORY(furActiveTexture,PFNGLACTIVETEXTUREPROC,"glActiveTexture");
 
   LOAD_PROC_OPTIONAL(furCreateShader,PFNGLCREATESHADERPROC,"glCreateShader");
