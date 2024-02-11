@@ -57,10 +57,10 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
-  virtual inline u8 read_byte(u32 addr) override;
-  virtual inline void write_byte(u32 addr, u8 data) override;
-
   public:
+    virtual inline u8 read_byte(u32 addr) override;
+    virtual inline void write_byte(u32 addr, u8 data) override;
+
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
