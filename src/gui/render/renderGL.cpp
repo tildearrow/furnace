@@ -145,14 +145,13 @@ const char* sh_oscRender_srcV=
   "}\n";
 
 // thank you akumanatt
-// TODO: update from ES version
 const char* sh_oscRender_srcF=
   "#version 130\n"
   "uniform vec4 uColor;\n"
   "uniform vec2 uResolution;\n"
   "uniform float uLineWidth;\n"
   "uniform float uAdvance;\n"
-  "uniform sampler2D oscVal;\n"
+  "uniform sampler1D oscVal;\n"
   "in vec2 fur_fragCoord;\n"
   "out vec4 fur_FragColor;\n"
   "void main() {\n"
@@ -404,7 +403,7 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   C(glTexImage2D(GL_TEXTURE_2D,0,GL_RED_EXT,2048,1,0,GL_RED_EXT,GL_FLOAT,oscData));
 #else
   C(glBindTexture(GL_TEXTURE_1D,oscDataTex));
-  C(glTexImage1D(GL_TEXTURE_1D,0,GL_RED,2048,0,GL_RED,GL_FLOAT,oscData));
+  C(glTexImage1D(GL_TEXTURE_1D,0,GL_R32F,2048,0,GL_RED,GL_FLOAT,oscData));
 #endif
 
   //C(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
