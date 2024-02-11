@@ -175,7 +175,7 @@ void DivPlatformNDS::tick(bool sysTick) {
           }
           if (chan[i].audPos>0) {
             switch (s->depth) {
-              //case DIV_SAMPLE_DEPTH_YMZ_ADPCM: start+=chan[i].audPos/2; break;
+              //case DIV_SAMPLE_DEPTH_YMZ_ADPCM: start+=chan[i].audPos/2; end-=(chan[i].audPos/8); break;
               case DIV_SAMPLE_DEPTH_8BIT: start+=chan[i].audPos; end-=(chan[i].audPos/4); break;
               case DIV_SAMPLE_DEPTH_16BIT: start+=chan[i].audPos*2; end-=(chan[i].audPos/2); break;
               default: break;
@@ -184,7 +184,16 @@ void DivPlatformNDS::tick(bool sysTick) {
           if (s->isLoopable()) {
             if (chan[i].audPos>0) {
               switch (s->depth) {
-                //case DIV_SAMPLE_DEPTH_YMZ_ADPCM: loopStart=s->loopStart/8; loopEnd=(s->loopEnd-s->loopStart)/8; break;
+                /*
+                case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+                  loopStart=(s->loopStart-chan[i].audPos)/8;
+                  loopEnd=(s->loopEnd-s->loopStart)/8;
+                  if (chan[i].audPos>(unsigned int)s->loopStart) {
+                    loopStart=0;
+                    loopEnd-=(chan[i].audPos-s->loopStart)/8;
+                  }
+                  break;
+                */
                 case DIV_SAMPLE_DEPTH_8BIT:
                   loopStart=(s->loopStart-chan[i].audPos)/4;
                   loopEnd=(s->loopEnd-s->loopStart)/4;
