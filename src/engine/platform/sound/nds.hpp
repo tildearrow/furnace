@@ -76,11 +76,11 @@ namespace nds_sound_emu
 			{
 			}
 
-			virtual inline u8 read_byte(u32 addr) { return 0; }
+			virtual u8 read_byte(u32 addr) { return 0; }
 			inline u16 read_word(u32 addr) { return read_byte(addr) | (u16(read_byte(addr + 1)) << 8); }
 			inline u32 read_dword(u32 addr) { return read_word(addr) | (u16(read_word(addr + 2)) << 16); }
 
-			virtual inline void write_byte(u32 addr, u8 data) {}
+			virtual void write_byte(u32 addr, u8 data) {}
 			inline void write_word(u32 addr, u16 data)
 			{
 				write_byte(addr, data & 0xff);
