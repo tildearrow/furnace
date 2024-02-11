@@ -296,7 +296,7 @@ void FurnaceGUI::drawMixer() {
         }
         ImGui::EndTabItem();
       }
-      if (!basicMode) if (ImGui::BeginTabItem("Patchbay")) {
+      if (ImGui::BeginTabItem("Patchbay")) {
         std::map<unsigned int,ImVec2> portPos;
 
         if (ImGui::BeginTable("PatchbayOptions",3)) {
