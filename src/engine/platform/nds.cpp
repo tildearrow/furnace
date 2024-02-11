@@ -307,6 +307,13 @@ int DivPlatformNDS::dispatch(DivCommand c) {
         chan[c.chan].ins=c.value;
       }
       break;
+    case DIV_CMD_ADPCMA_GLOBAL_VOLUME: {
+      if (globalVolume!=(c.value&0x7f)) {
+        globalVolume=c.value&0x7f;
+        rWrite32(0x100,0x8000|globalVolume);
+      }
+      break;
+    }
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
@@ -435,7 +442,8 @@ DivDispatchOscBuffer* DivPlatformNDS::getOscBuffer(int ch) {
 void DivPlatformNDS::reset() {
   memset(regPool,0,288);
   nds.reset();
-  rWrite32(0x100,0x807f); // enable keyon
+  globalVolume=0x7f;
+  rWrite32(0x100,0x8000|globalVolume); // enable keyon
   rWrite32(0x104,0x200); // initialize bias
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformNDS::Channel();
