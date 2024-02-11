@@ -609,6 +609,8 @@ src/engine/platform/sound/c140_c219.c
 
 src/engine/platform/sound/dave/dave.cpp
 
+src/engine/platform/sound/nds.cpp
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -717,6 +719,7 @@ src/engine/platform/c140.cpp
 src/engine/platform/esfm.cpp
 src/engine/platform/powernoise.cpp
 src/engine/platform/dave.cpp
+src/engine/platform/nds.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
