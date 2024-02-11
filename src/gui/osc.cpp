@@ -303,22 +303,25 @@ void FurnaceGUI::drawOsc() {
             waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
           }
 
-          if (settings.oscEscapesBoundary) {
-            dl->PushClipRectFullScreen();
-            dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
-            dl->PopClipRect();
+          if (rend->supportsDrawOsc()) {
+            _do.gui=this;
+            _do.data=&oscValuesAverage[12];
+            _do.len=oscWidth-24;
+            _do.pos0=inRect.Min;
+            _do.pos1=inRect.Max;
+            _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
+
+            dl->AddCallback(_drawOsc,&_do);
+            dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
           } else {
-            dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+            if (settings.oscEscapesBoundary) {
+              dl->PushClipRectFullScreen();
+              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+              dl->PopClipRect();
+            } else {
+              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+            }
           }
-
-          _do.gui=this;
-          _do.data=&oscValuesAverage[12];
-          _do.len=oscWidth-24;
-          _do.pos0=inRect.Min;
-          _do.pos1=inRect.Max;
-          _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
-
-          dl->AddCallback(_drawOsc,&_do);
         } else {
           for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
             for (int i=0; i<oscWidth-24; i++) {

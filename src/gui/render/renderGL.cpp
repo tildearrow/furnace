@@ -98,23 +98,25 @@ const char* sh_oscRender_srcF=
   "uniform vec4 uColor;\n"
   "uniform vec2 uResolution;\n"
   "uniform float uLineWidth;\n"
+  "uniform float uAdvance;\n"
   "uniform sampler2D oscVal;\n"
   "varying vec2 fur_fragCoord;\n"
   "void main() {\n"
   "  vec2 uv = fur_fragCoord/uResolution;\n"
   "  vec2 tresh = vec2(uLineWidth)/uResolution;\n"
-  "  float xoff = tresh.x/2.0;\n"
-  "  float x1 = uv.x-xoff;\n"
   "  float x2 = uv.x;\n"
-  "  float x3 = uv.x+xoff;\n"
-  "  float val1 = texture2D(oscVal,vec2(x1,1.0)).x;\n"
+  "  float x3 = uv.x+uAdvance;\n"
   "  float val2 = texture2D(oscVal,vec2(x2,1.0)).x;\n"
   "  float val3 = texture2D(oscVal,vec2(x3,1.0)).x;\n"
-  "  float valmax = max(max(val1,val2),val3);\n"
-  "  float valmin = min(min(val1,val2),val3);\n"
+  "  float valmax = max(val2,val3);\n"
+  "  float valmin = min(val2,val3);\n"
   "  float vald = abs(valmax-valmin);\n"
   "  float alpha = 1.0-abs(uv.y-val2)/max(tresh.y,vald);\n"
-  "  gl_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
+  "  if (vald>(1.0/uResolution.y)) {\n"
+  "    gl_FragColor = vec4(1.0,0.0,0.0,uColor.w*alpha);\n"
+  "  } else {\n"
+  "    gl_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
+  "  }\n"
   "}\n";
 #else
 const char* sh_wipe_srcV=
@@ -149,24 +151,26 @@ const char* sh_oscRender_srcF=
   "uniform vec4 uColor;\n"
   "uniform vec2 uResolution;\n"
   "uniform float uLineWidth;\n"
-  "uniform sampler1D oscVal;\n"
+  "uniform float uAdvance;\n"
+  "uniform sampler2D oscVal;\n"
   "in vec2 fur_fragCoord;\n"
   "out vec4 fur_FragColor;\n"
   "void main() {\n"
-  "  vec2 uv = fur_fragCoord/uResolution.xy;\n"
-  "  vec2 tresh = vec2(uLineWidth)/uResolution.xy;\n"
-  "  float xoff = tresh.x/2.0;\n"
-  "  float x1 = uv.x-xoff;\n"
+  "  vec2 uv = fur_fragCoord/uResolution;\n"
+  "  vec2 tresh = vec2(uLineWidth)/uResolution;\n"
   "  float x2 = uv.x;\n"
-  "  float x3 = uv.x+xoff;\n"
-  "  float val1 = texture(oscVal,vec2(x1,1.0)).x;\n"
-  "  float val2 = texture(oscVal,vec2(x2,1.0)).x;\n"
-  "  float val3 = texture(oscVal,vec2(x3,1.0)).x;\n"
-  "  float valmax = max(max(val1,val2),val3);\n"
-  "  float valmin = min(min(val1,val2),val3);\n"
+  "  float x3 = uv.x+uAdvance;\n"
+  "  float val2 = texture(oscVal,x2).x;\n"
+  "  float val3 = texture(oscVal,x3).x;\n"
+  "  float valmax = max(val2,val3);\n"
+  "  float valmin = min(val2,val3);\n"
   "  float vald = abs(valmax-valmin);\n"
   "  float alpha = 1.0-abs(uv.y-val2)/max(tresh.y,vald);\n"
-  "  fur_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
+  "  if (vald>(1.0/uResolution.y)) {\n"
+  "    fur_FragColor = vec4(1.0,0.0,0.0,uColor.w*alpha);\n"
+  "  } else {\n"
+  "    fur_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
+  "  }\n"
   "}\n";
 #endif
 
@@ -377,12 +381,23 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   if (!furUniform2f) return;
   if (!furUniform1i) return;
 
-  if (furBufferData) return;
-
-  logV("%d",oscVertexBuf);
   if (len>2048) len=2048;
 
   memcpy(oscData,data,len*sizeof(float));
+
+  int lastArrayBuf=0;
+  int lastElemArrayBuf=0;
+  int lastTex=0;
+  int lastProgram=0;
+  int lastActiveTex=0;
+  C(glGetIntegerv(GL_ACTIVE_TEXTURE,&lastActiveTex));
+  C(furActiveTexture(GL_TEXTURE0));
+
+#ifdef USE_GLES
+  C(glGetIntegerv(GL_TEXTURE_BINDING_2D,&lastTex));
+#else
+  C(glGetIntegerv(GL_TEXTURE_BINDING_1D,&lastTex));
+#endif
 
 #ifdef USE_GLES
   C(glBindTexture(GL_TEXTURE_2D,oscDataTex));
@@ -392,50 +407,69 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   C(glTexImage1D(GL_TEXTURE_1D,0,GL_RED,2048,0,GL_RED,GL_FLOAT,oscData));
 #endif
 
-  C(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
-  C(glEnable(GL_BLEND));
+  //C(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
+  //C(glEnable(GL_BLEND));
+
+  float width=fabs(pos1.x-pos0.x);
+  float height=fabs(pos1.y-pos0.y)*0.5;
 
   pos0.x=(2.0f*pos0.x/canvasSize.x)-1.0f;
-  pos0.y=(2.0f*pos0.y/canvasSize.y)-1.0f;
+  pos0.y=1.0f-(2.0f*pos0.y/canvasSize.y);
   pos1.x=(2.0f*pos1.x/canvasSize.x)-1.0f;
-  pos1.y=(2.0f*pos1.y/canvasSize.y)-1.0f;
+  pos1.y=1.0f-(2.0f*pos1.y/canvasSize.y);
 
   oscVertex[0][0]=pos0.x;
   oscVertex[0][1]=pos1.y;
   oscVertex[0][2]=0.0f;
-  oscVertex[0][3]=1.0f;
+  oscVertex[0][3]=height;
   oscVertex[1][0]=pos1.x;
   oscVertex[1][1]=pos1.y;
-  oscVertex[1][2]=1.0f;
-  oscVertex[1][3]=1.0f;
+  oscVertex[1][2]=(float)len;
+  oscVertex[1][3]=height;
   oscVertex[2][0]=pos0.x;
   oscVertex[2][1]=pos0.y;
   oscVertex[2][2]=0.0f;
-  oscVertex[2][3]=0.0f;
+  oscVertex[2][3]=-height;
   oscVertex[3][0]=pos1.x;
   oscVertex[3][1]=pos0.y;
-  oscVertex[3][2]=1.0f;
-  oscVertex[3][3]=0.0f;
+  oscVertex[3][2]=(float)len;
+  oscVertex[3][3]=-height;
+
+  C(glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&lastArrayBuf));
+  C(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING,&lastElemArrayBuf));
 
   C(furBindBuffer(GL_ARRAY_BUFFER,oscVertexBuf));
+  C(furBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0));
   C(furBufferData(GL_ARRAY_BUFFER,sizeof(oscVertex),oscVertex,GL_STATIC_DRAW));
   C(furVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,4*sizeof(float),NULL));
-  //C(furVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float))));
+  C(furVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float))));
   C(furEnableVertexAttribArray(0));
-  //C(furEnableVertexAttribArray(1));
-  C(furActiveTexture(GL_TEXTURE0));
-  C(glBindTexture(GL_TEXTURE_2D,oscDataTex));
+  C(furEnableVertexAttribArray(1));
+
+  C(glGetIntegerv(GL_CURRENT_PROGRAM,&lastProgram));
 
   C(furUseProgram(sh_oscRender_program));
   C(furUniform4fv(sh_oscRender_uColor,1,(float*)&color));
   C(furUniform1f(sh_oscRender_uLineWidth,lineWidth));
-  C(furUniform2f(sh_oscRender_uResolution,1.0f,1.0f));
+  C(furUniform1f(sh_oscRender_uAdvance,(1.0f/2048.0f)*((float)len/width)));
+  C(furUniform2f(sh_oscRender_uResolution,2048.0f,height));
   C(furUniform1i(sh_oscRender_oscVal,0));
 
   C(glDrawArrays(GL_TRIANGLE_STRIP,0,4));
-  //C(furDisableVertexAttribArray(1));
-  C(furUseProgram(0));
-  C(glBindTexture(GL_TEXTURE_2D,0));
+  C(furDisableVertexAttribArray(1));
+
+  // restore state
+  C(furUseProgram(lastProgram));
+
+  C(furBindBuffer(GL_ARRAY_BUFFER,lastArrayBuf));
+  C(furBindBuffer(GL_ELEMENT_ARRAY_BUFFER,lastElemArrayBuf));
+
+#ifdef USE_GLES
+  C(glBindTexture(GL_TEXTURE_2D,lastTex));
+#else
+  C(glBindTexture(GL_TEXTURE_1D,lastTex));
+#endif
+  C(furActiveTexture(lastActiveTex));
 }
 
 void FurnaceGUIRenderGL::present() {
@@ -445,6 +479,10 @@ void FurnaceGUIRenderGL::present() {
 
 bool FurnaceGUIRenderGL::getOutputSize(int& w, int& h) {
   SDL_GL_GetDrawableSize(sdlWin,&w,&h);
+  return true;
+}
+
+bool FurnaceGUIRenderGL::supportsDrawOsc() {
   return true;
 }
 
@@ -552,12 +590,14 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
 
   if (createShader(sh_oscRender_srcV,sh_oscRender_srcF,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib)) {
     sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
+    sh_oscRender_uAdvance=furGetUniformLocation(sh_oscRender_program,"uAdvance");
     sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
     sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
     sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
   }
 
   C(furGenBuffers(1,&quadBuf));
+  C(furGenBuffers(1,&oscVertexBuf));
   return true;
 }
 

@@ -81,6 +81,10 @@ bool FurnaceGUIRender::getOutputSize(int& w, int& h) {
   return false;
 }
 
+bool FurnaceGUIRender::supportsDrawOsc() {
+  return false;
+}
+
 int FurnaceGUIRender::getWindowFlags() {
   return 0;
 }
