@@ -2316,6 +2316,28 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_NDS: {
+      int chipType=flags.getInt("chipType",0);
+
+      ImGui::Text("Model:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("DS (4MB RAM)",chipType==0)) {
+        chipType=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("DSi (16MB RAM)",chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("chipType",chipType);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:

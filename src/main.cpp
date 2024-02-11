@@ -248,6 +248,8 @@ TAParamResult pVersion(String) {
   printf("- D65010G031 emulator (modified version) by cam900 (zlib license)\n");
   printf("- C140/C219 emulator (modified version) by cam900 (zlib license)\n");
   printf("- PowerNoise emulator by scratchminer (MIT)\n");
+  printf("- ep128emu by Istvan Varga (GPLv2)\n");
+  printf("- NDS sound emulator by cam900 (zlib license)\n");
   return TA_PARAM_QUIT;
 }
 

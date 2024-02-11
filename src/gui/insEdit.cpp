@@ -2501,7 +2501,8 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ins->type==DIV_INS_AY ||
         ins->type==DIV_INS_AY8930 ||
         ins->type==DIV_INS_VRC6 ||
-        ins->type==DIV_INS_SU) {
+        ins->type==DIV_INS_SU ||
+        ins->type==DIV_INS_NDS) {
       P(ImGui::Checkbox("Use sample",&ins->amiga.useSample));
       if (ins->type==DIV_INS_X1_010) {
         if (ImGui::InputInt("Sample bank slot##BANKSLOT",&ins->x1_010.bankSlot,1,4)) { PARAMETER
@@ -6021,7 +6022,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_GA20 ||
             ins->type==DIV_INS_K053260 ||
             ins->type==DIV_INS_C140 ||
-            ins->type==DIV_INS_C219) {
+            ins->type==DIV_INS_C219 ||
+            ins->type==DIV_INS_NDS) {
           insTabSample(ins);
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
@@ -6736,7 +6738,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_SEGAPCM || ins->type==DIV_INS_MIKEY ||
               ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU || ins->type==DIV_INS_OPZ ||
               ins->type==DIV_INS_OPM || ins->type==DIV_INS_SNES || ins->type==DIV_INS_MSM5232 ||
-              ins->type==DIV_INS_K053260) {
+              ins->type==DIV_INS_K053260 || ins->type==DIV_INS_NDS) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
@@ -6921,6 +6923,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Noise Freq";
             dutyMax=3;
           }
+          if (ins->type==DIV_INS_NDS) {
+            dutyLabel="Duty";
+            dutyMax=ins->amiga.useSample?0:7;
+          }
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
@@ -6959,6 +6965,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_POWERNOISE_SLOPE) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_DAVE) waveMax=4;
+          if (ins->type==DIV_INS_NDS) waveMax=0;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
             waveBitMode=true;
@@ -7111,6 +7118,11 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_DAVE) {
             panMax=63;
           }
+          if (ins->type==DIV_INS_NDS) {
+            panMin=-64;
+            panMax=63;
+            panSingleNoBit=true;
+          }
 
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
@@ -7201,7 +7213,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_ESFM ||
               ins->type==DIV_INS_POWERNOISE ||
               ins->type==DIV_INS_POWERNOISE_SLOPE ||
-              ins->type==DIV_INS_DAVE) {
+              ins->type==DIV_INS_DAVE ||
+              ins->type==DIV_INS_NDS) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {

@@ -253,6 +253,8 @@ const char* aboutLine[]={
   "D65010G031 emulator (modified version) by cam900",
   "Namco C140/C219 emulator (modified version) by cam900",
   "PowerNoise emulator by scratchminer",
+  "ep128emu by Istvan Varga",
+  "NDS sound emulator by cam900",
   "",
   "greetings to:",
   "NEOART Costa Rica",
