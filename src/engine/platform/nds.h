@@ -47,6 +47,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
   DivDispatchOscBuffer* oscBuf[16];
   bool isMuted[16];
   bool isDSi;
+  int globalVolume;
   unsigned int sampleOff[256];
   bool sampleLoaded[256];
 
