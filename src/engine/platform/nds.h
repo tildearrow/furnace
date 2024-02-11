@@ -61,34 +61,34 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
   virtual inline void write_byte(u32 addr, u8 data) override;
 
   public:
-    void acquire(short** buf, size_t len);
-    int dispatch(DivCommand c);
-    void* getChanState(int chan);
-    DivMacroInt* getChanMacroInt(int ch);
-    unsigned short getPan(int chan);
-    DivDispatchOscBuffer* getOscBuffer(int chan);
-    unsigned char* getRegisterPool();
-    int getRegisterPoolSize();
-    void reset();
-    void forceIns();
-    void tick(bool sysTick=true);
-    void muteChannel(int ch, bool mute);
-    float getPostAmp();
-    int getOutputCount();
-    void notifyInsChange(int ins);
-    void notifyWaveChange(int wave);
-    void notifyInsDeletion(void* ins);
-    void poke(unsigned int addr, unsigned short val);
-    void poke(std::vector<DivRegWrite>& wlist);
-    const char** getRegisterSheet();
-    const void* getSampleMem(int index = 0);
-    size_t getSampleMemCapacity(int index = 0);
-    size_t getSampleMemUsage(int index = 0);
-    bool isSampleLoaded(int index, int sample);
-    void renderSamples(int chipID);
-    void setFlags(const DivConfig& flags);
-    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
-    void quit();
+    virtual void acquire(short** buf, size_t len) override;
+    virtual int dispatch(DivCommand c) override;
+    virtual void* getChanState(int chan) override;
+    virtual DivMacroInt* getChanMacroInt(int ch) override;
+    virtual unsigned short getPan(int chan) override;
+    virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
+    virtual unsigned char* getRegisterPool() override;
+    virtual int getRegisterPoolSize() override;
+    virtual void reset() override;
+    virtual void forceIns() override;
+    virtual void tick(bool sysTick=true) override;
+    virtual void muteChannel(int ch, bool mute) override;
+    virtual float getPostAmp() override;
+    virtual int getOutputCount() override;
+    virtual void notifyInsChange(int ins) override;
+    virtual void notifyWaveChange(int wave) override;
+    virtual void notifyInsDeletion(void* ins) override;
+    virtual void poke(unsigned int addr, unsigned short val) override;
+    virtual void poke(std::vector<DivRegWrite>& wlist) override;
+    virtual const char** getRegisterSheet() override;
+    virtual const void* getSampleMem(int index = 0) override;
+    virtual size_t getSampleMemCapacity(int index = 0) override;
+    virtual size_t getSampleMemUsage(int index = 0) override;
+    virtual bool isSampleLoaded(int index, int sample) override;
+    virtual void renderSamples(int chipID) override;
+    virtual void setFlags(const DivConfig& flags) override;
+    virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
+    virtual void quit() override;
     DivPlatformNDS():
       DivDispatch(),
       nds_sound_intf(),
