@@ -87,14 +87,14 @@ void DivPlatformNDS::acquire(short** buf, size_t len) {
   }
 }
 
-inline u8 DivPlatformNDS::read_byte(u32 addr) {
+u8 DivPlatformNDS::read_byte(u32 addr) {
   if (addr<getSampleMemCapacity()) {
     return sampleMem[addr];
   }
   return 0;
 }
 
-inline void DivPlatformNDS::write_byte(u32 addr, u8 data) {
+void DivPlatformNDS::write_byte(u32 addr, u8 data) {
   if (addr<getSampleMemCapacity()) {
     sampleMem[addr]=data;
   }
