@@ -1774,6 +1774,7 @@ class FurnaceGUI {
     int fontAntiAlias;
     int selectAssetOnLoad;
     int basicColors;
+    int playbackTime;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1973,6 +1974,7 @@ class FurnaceGUI {
       fontAntiAlias(1),
       selectAssetOnLoad(1),
       basicColors(1),
+      playbackTime(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
