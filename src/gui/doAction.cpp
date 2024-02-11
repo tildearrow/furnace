@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "commandPalette.h"
 #include "../ta-log.h"
 #include <fmt/printf.h>
 #include <imgui.h>
@@ -82,6 +83,9 @@ void FurnaceGUI::doAction(int what) {
       } else {
         doRedo();
       }
+      break;
+    case GUI_ACTION_QUIT:
+      requestQuit();
       break;
     case GUI_ACTION_PLAY_TOGGLE:
       if (e->isPlaying() && !e->isStepping()) {
@@ -192,7 +196,30 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_CLEAR:
       showWarning("Select an option: (cannot be undone!)",GUI_WARN_CLEAR);
       break;
-
+    case GUI_ACTION_COMMAND_PALETTE:
+      displayPalette=true;
+      curPaletteType=CMDPAL_TYPE_MAIN;
+      break;
+    case GUI_ACTION_CMDPAL_RECENT:
+      displayPalette=true;
+      curPaletteType=CMDPAL_TYPE_RECENT;
+      break;
+    case GUI_ACTION_CMDPAL_INSTRUMENTS:
+      displayPalette=true;
+      curPaletteType=CMDPAL_TYPE_INSTRUMENTS;
+      break;
+    case GUI_ACTION_CMDPAL_SAMPLES:
+      displayPalette=true;
+      curPaletteType=CMDPAL_TYPE_SAMPLES;
+      break;
+    case GUI_ACTION_CMDPAL_INSTRUMENT_CHANGE:
+      displayPalette=true;
+      curPaletteType=CMDPAL_TYPE_INSTRUMENT_CHANGE;
+      break;
+    case GUI_ACTION_CMDPAL_ADD_CHIP:
+      displayPalette=true;
+      curPaletteType=CMDPAL_TYPE_ADD_CHIP;
+      break;
     case GUI_ACTION_WINDOW_EDIT_CONTROLS:
       nextWindow=GUI_WINDOW_EDIT_CONTROLS;
       break;

@@ -336,6 +336,10 @@ const char* powerNoiseSlopeControlBits[7]={
   "invert B", "invert A", "reset B", "reset A", "clip B", "clip A", NULL
 };
 
+const char* daveControlBits[5]={
+  "high pass", "ring mod", "swap counters (noise)", "low pass (noise)", NULL
+};
+
 const char* panBits[5]={
   "right", "left", "rear right", "rear left", NULL
 };
@@ -6232,7 +6236,7 @@ void FurnaceGUI::drawInsEdit() {
             // envelope
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            P(CWSliderScalar("Envelope count",ImGuiDataType_U16,&ins->es5506.envelope.ecount,&_ZERO,&_FIVE_HUNDRED_ELEVEN)); rightClickable
+            P(CWSliderScalar("Envelope length",ImGuiDataType_U16,&ins->es5506.envelope.ecount,&_ZERO,&_FIVE_HUNDRED_ELEVEN)); rightClickable
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             P(CWSliderScalar("Left Volume Ramp",ImGuiDataType_S8,&ins->es5506.envelope.lVRamp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
@@ -6726,7 +6730,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SM8521) {
             volMax=31;
           }
-          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_ESFM) {
+          if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_ESFM || ins->type==DIV_INS_DAVE) {
             volMax=63;
           }
           if (ins->type==DIV_INS_AMIGA) {
@@ -6916,6 +6920,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_POWERNOISE_SLOPE) {
             dutyMax=0;
           }
+          if (ins->type==DIV_INS_DAVE) {
+            dutyLabel="Noise Freq";
+            dutyMax=3;
+          }
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
@@ -6953,6 +6961,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_POWERNOISE) waveMax=0;
           if (ins->type==DIV_INS_POWERNOISE_SLOPE) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
+          if (ins->type==DIV_INS_DAVE) waveMax=4;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
             waveBitMode=true;
@@ -7019,12 +7028,15 @@ void FurnaceGUI::drawInsEdit() {
             ex1Max=5;
             ex2Max=11;
           }
+          if (ins->type==DIV_INS_DAVE) {
+            ex1Max=4;
+          }
 
           int panMin=0;
           int panMax=0;
           bool panSingle=false;
           bool panSingleNoBit=false;
-          if (ins->type==DIV_INS_STD ||//Game Gear
+          if (ins->type==DIV_INS_STD || // Game Gear
               ins->type==DIV_INS_FM ||
               ins->type==DIV_INS_OPM ||
               ins->type==DIV_INS_GB ||
@@ -7095,6 +7107,9 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_POWERNOISE_SLOPE) {
             panMax=15;
+          }
+          if (ins->type==DIV_INS_DAVE) {
+            panMax=63;
           }
 
           if (volMax>0) {
@@ -7185,7 +7200,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_TED ||
               ins->type==DIV_INS_ESFM ||
               ins->type==DIV_INS_POWERNOISE ||
-              ins->type==DIV_INS_POWERNOISE_SLOPE) {
+              ins->type==DIV_INS_POWERNOISE_SLOPE ||
+              ins->type==DIV_INS_DAVE) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -7219,6 +7235,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,snesModeBits));
             } else if (ins->type==DIV_INS_MSM5232) {
               macroList.push_back(FurnaceGUIMacroDesc("Group Attack",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+            } else if (ins->type==DIV_INS_DAVE) {
+              macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,daveControlBits));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }

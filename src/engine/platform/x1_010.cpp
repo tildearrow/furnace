@@ -534,11 +534,21 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       if ((ins->type==DIV_INS_AMIGA || ins->amiga.useSample) || chan[c.chan].pcm) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           chan[c.chan].furnacePCM=true;
+          chan[c.chan].pcm=true;
         } else {
           chan[c.chan].furnacePCM=false;
+          chan[c.chan].pcm=false;
           chan[c.chan].sampleNote=DIV_NOTE_NULL;
           chan[c.chan].sampleNoteDelta=0;
+          chWrite(c.chan,0,0); // reset
+          chWrite(c.chan,1,0);
+          chWrite(c.chan,2,0);
+          chWrite(c.chan,4,0);
+          chWrite(c.chan,5,0);
+          updateWave(c.chan);
         }
+      }
+      if (chan[c.chan].pcm) {
         if (skipRegisterWrites) break;
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].pcm=true;

@@ -2002,6 +2002,25 @@ void DivEngine::registerSystems() {
     {}
   );
 
+  sysDefs[DIV_SYSTEM_DAVE]=new DivSysDef(
+    "Dave", NULL, 0xd5, 0, 6, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
+    "this chip was featured in the Enterprise 128 computer. it is similar to POKEY, but with stereo output.",
+    {"Channel 1", "Channel 2", "Channel 3", "Noise", "DAC Left", "DAC Right"},
+    {"CH1", "CH2", "CH3", "NO", "L", "R"},
+    {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_DAVE, DIV_INS_DAVE, DIV_INS_DAVE, DIV_INS_DAVE, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (0 to 4; 0 to 3 on noise)"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set noise frequency source (0: fixed; 1-3: channels 1 to 3)"}},
+      {0x12, {DIV_CMD_DAVE_HIGH_PASS, "12xx: Toggle high-pass with next channel"}},
+      {0x13, {DIV_CMD_DAVE_RING_MOD, "13xx: Toggle ring modulation with channel+2"}},
+      {0x14, {DIV_CMD_DAVE_SWAP_COUNTERS, "14xx: Toggle swap counters (noise only)"}},
+      {0x15, {DIV_CMD_DAVE_LOW_PASS, "15xx: Toggle low pass (noise only)"}},
+      {0x16, {DIV_CMD_DAVE_CLOCK_DIV, "16xx: Set clock divider (0: /2; 1: /3)"}},
+    }
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0, 0, 0,
     "this is a system designed for testing purposes.",

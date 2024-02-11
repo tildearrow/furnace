@@ -75,6 +75,7 @@ the following instrument types are available:
 - [C140](c140.md) - for use with C140 sample chip.
 - [C219](c219.md) - for use with C219 sample chip.
 - [PowerNoise](powernoise.md) - for use with PowerNoise chip.
+- [Dave](dave.md) - for use with Dave chip.
 
 ## macros
 

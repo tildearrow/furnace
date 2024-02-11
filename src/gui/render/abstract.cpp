@@ -71,10 +71,17 @@ void FurnaceGUIRender::renderGUI() {
 void FurnaceGUIRender::wipe(float alpha) {
 }
 
+void FurnaceGUIRender::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth) {
+}
+
 void FurnaceGUIRender::present() {
 }
 
 bool FurnaceGUIRender::getOutputSize(int& w, int& h) {
+  return false;
+}
+
+bool FurnaceGUIRender::supportsDrawOsc() {
   return false;
 }
 
