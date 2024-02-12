@@ -140,6 +140,8 @@ void DivPlatformNDS::tick(bool sysTick) {
       if ((chan[i].std.phaseReset.val==1) && chan[i].active) {
         chan[i].audPos=0;
         chan[i].setPos=true;
+        if ((rRead8(0x03+i*16)&0x80)==0)
+          chan[i].busy=true;
       }
     }
     if (chan[i].setPos) {
@@ -164,8 +166,8 @@ void DivPlatformNDS::tick(bool sysTick) {
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
         if ((!chan[i].keyOn) && ((rRead8(0x03+i*16)&0x80)==0))
-          chan[i].active=false;
-        ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x08:0x10);
+          chan[i].busy=false;
+        ctrl|=(chan[i].busy?0x80:0)|((s->isLoopable())?0x08:0x10);
         if (chan[i].keyOn) {
           unsigned int start=0;
           int loopStart=0;
@@ -287,6 +289,7 @@ int DivPlatformNDS::dispatch(DivCommand c) {
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
+      chan[c.chan].busy=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
@@ -297,6 +300,7 @@ int DivPlatformNDS::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].sample=-1;
       chan[c.chan].active=false;
+      chan[c.chan].busy=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
       break;
