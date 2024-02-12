@@ -293,16 +293,6 @@ void FurnaceGUI::drawOsc() {
 
       if ((oscWidth-24)>0) {
         if (settings.oscMono) {
-          for (int i=0; i<oscWidth-24; i++) {
-            float x=(float)i/(float)(oscWidth-24);
-            float y=oscValuesAverage[i+12]*oscZoom;
-            if (!settings.oscEscapesBoundary) {
-              if (y<-0.5f) y=-0.5f;
-              if (y>0.5f) y=0.5f;
-            }
-            waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
-          }
-
           if (rend->supportsDrawOsc()) {
             _do.gui=this;
             _do.data=&oscValuesAverage[12];
@@ -314,6 +304,16 @@ void FurnaceGUI::drawOsc() {
             dl->AddCallback(_drawOsc,&_do);
             dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
           } else {
+            for (int i=0; i<oscWidth-24; i++) {
+              float x=(float)i/(float)(oscWidth-24);
+              float y=oscValuesAverage[i+12]*oscZoom;
+              if (!settings.oscEscapesBoundary) {
+                if (y<-0.5f) y=-0.5f;
+                if (y>0.5f) y=0.5f;
+              }
+              waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+            }
+
             if (settings.oscEscapesBoundary) {
               dl->PushClipRectFullScreen();
               dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);

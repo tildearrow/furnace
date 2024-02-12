@@ -552,7 +552,6 @@ enum FurnaceGUIWarnings {
   GUI_WARN_SUBSONG_DEL,
   GUI_WARN_SYSTEM_DEL,
   GUI_WARN_CLEAR_HISTORY,
-  GUI_WARN_BASIC_MODE,
   GUI_WARN_GENERIC
 };
 
@@ -1776,6 +1775,7 @@ class FurnaceGUI {
     int fontAntiAlias;
     int selectAssetOnLoad;
     int basicColors;
+    int playbackTime;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1975,6 +1975,7 @@ class FurnaceGUI {
       fontAntiAlias(1),
       selectAssetOnLoad(1),
       basicColors(1),
+      playbackTime(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2036,7 +2037,7 @@ class FurnaceGUI {
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen;
 
-  bool basicMode, shortIntro;
+  bool shortIntro;
   bool insListDir, waveListDir, sampleListDir;
 
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;

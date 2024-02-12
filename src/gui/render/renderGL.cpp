@@ -104,12 +104,14 @@ const char* sh_oscRender_srcF=
   "void main() {\n"
   "  vec2 uv = fur_fragCoord/uResolution;\n"
   "  vec2 tresh = vec2(uLineWidth)/uResolution;\n"
+  "  float x1 = uv.x-uAdvance;\n"
   "  float x2 = uv.x;\n"
   "  float x3 = uv.x+uAdvance;\n"
+  "  float val1 = texture2D(oscVal,vec2(x2,1.0)).x;\n"
   "  float val2 = texture2D(oscVal,vec2(x2,1.0)).x;\n"
   "  float val3 = texture2D(oscVal,vec2(x3,1.0)).x;\n"
-  "  float valmax = max(val2,val3);\n"
-  "  float valmin = min(val2,val3);\n"
+  "  float valmax = max(max(val1,val2),val3);\n"
+  "  float valmin = min(min(val1,val2),val3);\n"
   "  float vald = abs(valmax-valmin);\n"
   "  float alpha = 1.0-abs(uv.y-val2)/max(tresh.y,vald);\n"
   "  if (vald>(1.0/uResolution.y)) {\n"
@@ -145,14 +147,13 @@ const char* sh_oscRender_srcV=
   "}\n";
 
 // thank you akumanatt
-// TODO: update from ES version
 const char* sh_oscRender_srcF=
   "#version 130\n"
   "uniform vec4 uColor;\n"
   "uniform vec2 uResolution;\n"
   "uniform float uLineWidth;\n"
   "uniform float uAdvance;\n"
-  "uniform sampler2D oscVal;\n"
+  "uniform sampler1D oscVal;\n"
   "in vec2 fur_fragCoord;\n"
   "out vec4 fur_FragColor;\n"
   "void main() {\n"
@@ -404,7 +405,7 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   C(glTexImage2D(GL_TEXTURE_2D,0,GL_RED_EXT,2048,1,0,GL_RED_EXT,GL_FLOAT,oscData));
 #else
   C(glBindTexture(GL_TEXTURE_1D,oscDataTex));
-  C(glTexImage1D(GL_TEXTURE_1D,0,GL_RED,2048,0,GL_RED,GL_FLOAT,oscData));
+  C(glTexImage1D(GL_TEXTURE_1D,0,GL_R32F,2048,0,GL_RED,GL_FLOAT,oscData));
 #endif
 
   //C(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
