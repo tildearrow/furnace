@@ -163,6 +163,8 @@ void DivPlatformNDS::tick(bool sysTick) {
         chan[i].freq=0x10000-(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
+        if ((!chan[i].keyOn) && ((rRead8(0x03+i*16)&0x80)==0))
+          chan[i].active=false;
         ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x08:0x10);
         if (chan[i].keyOn) {
           unsigned int start=0;
