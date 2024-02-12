@@ -103,7 +103,8 @@ const char* sh_oscRender_srcF=
   "varying vec2 fur_fragCoord;\n"
   "void main() {\n"
   "  vec2 uv = fur_fragCoord/uResolution;\n"
-  "  vec2 tresh = vec2(uLineWidth)/uResolution;\n"
+  "  uv.y *= 2.0;\n"
+  "  vec2 tresh = vec2(1.0,1.0)/uResolution;\n"
   "  float x1 = uv.x-uAdvance;\n"
   "  float x2 = uv.x;\n"
   "  float x3 = uv.x+uAdvance;\n"
@@ -113,12 +114,8 @@ const char* sh_oscRender_srcF=
   "  float valmax = max(max(val1,val2),val3);\n"
   "  float valmin = min(min(val1,val2),val3);\n"
   "  float vald = abs(valmax-valmin);\n"
-  "  float alpha = 1.0-abs(uv.y-val2)/max(tresh.y,vald);\n"
-  "  if (vald>(1.0/uResolution.y)) {\n"
-  "    gl_FragColor = vec4(1.0,0.0,0.0,uColor.w*alpha);\n"
-  "  } else {\n"
-  "    gl_FragColor = vec4(uColor.xyz,uColor.w*alpha);\n"
-  "  }\n"
+  "  float alpha = (uLineWidth*0.75)-abs(uv.y-val2)/max(tresh.y,vald);\n"
+  "  gl_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha,0.0,1.0));\n"
   "}\n";
 #else
 const char* sh_wipe_srcV=
@@ -381,10 +378,17 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   if (!furUniform1f) return;
   if (!furUniform2f) return;
   if (!furUniform1i) return;
+  if (len<0) return;
 
-  if (len>2048) len=2048;
+  if (len>2048) {
+    logW("len is %d!",len);
+    len=2048;
+  }
 
   memcpy(oscData,data,len*sizeof(float));
+  if (len<2048) {
+    oscData[len]=oscData[len-1];
+  }
 
   int lastArrayBuf=0;
   int lastElemArrayBuf=0;
@@ -422,19 +426,19 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   oscVertex[0][0]=pos0.x;
   oscVertex[0][1]=pos1.y;
   oscVertex[0][2]=0.0f;
-  oscVertex[0][3]=height;
+  oscVertex[0][3]=-height;
   oscVertex[1][0]=pos1.x;
   oscVertex[1][1]=pos1.y;
   oscVertex[1][2]=(float)len;
-  oscVertex[1][3]=height;
+  oscVertex[1][3]=-height;
   oscVertex[2][0]=pos0.x;
   oscVertex[2][1]=pos0.y;
   oscVertex[2][2]=0.0f;
-  oscVertex[2][3]=-height;
+  oscVertex[2][3]=height;
   oscVertex[3][0]=pos1.x;
   oscVertex[3][1]=pos0.y;
   oscVertex[3][2]=(float)len;
-  oscVertex[3][3]=-height;
+  oscVertex[3][3]=height;
 
   C(glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&lastArrayBuf));
   C(glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING,&lastElemArrayBuf));
@@ -453,7 +457,7 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   C(furUniform4fv(sh_oscRender_uColor,1,(float*)&color));
   C(furUniform1f(sh_oscRender_uLineWidth,lineWidth));
   C(furUniform1f(sh_oscRender_uAdvance,(1.0f/2048.0f)*((float)len/width)));
-  C(furUniform2f(sh_oscRender_uResolution,2048.0f,height));
+  C(furUniform2f(sh_oscRender_uResolution,2048.0f,2.0f*height));
   C(furUniform1i(sh_oscRender_oscVal,0));
 
   C(glDrawArrays(GL_TRIANGLE_STRIP,0,4));
@@ -484,7 +488,7 @@ bool FurnaceGUIRenderGL::getOutputSize(int& w, int& h) {
 }
 
 bool FurnaceGUIRenderGL::supportsDrawOsc() {
-  return true;
+  return sh_oscRender_have;
 }
 
 int FurnaceGUIRenderGL::getWindowFlags() {
@@ -585,11 +589,11 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   C(furActiveTexture(GL_TEXTURE0));
 
   // create shaders
-  if (createShader(sh_wipe_srcV,sh_wipe_srcF,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program,sh_wipe_attrib)) {
+  if ((sh_wipe_have=createShader(sh_wipe_srcV,sh_wipe_srcF,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program,sh_wipe_attrib))==true) {
     sh_wipe_uAlpha=furGetUniformLocation(sh_wipe_program,"uAlpha");
   }
 
-  if (createShader(sh_oscRender_srcV,sh_oscRender_srcF,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib)) {
+  if ((sh_oscRender_have=createShader(sh_oscRender_srcV,sh_oscRender_srcF,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib))==true) {
     sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
     sh_oscRender_uAdvance=furGetUniformLocation(sh_oscRender_program,"uAdvance");
     sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");

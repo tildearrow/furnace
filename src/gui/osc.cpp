@@ -141,7 +141,7 @@ void FurnaceGUI::readOsc() {
 
 PendingDrawOsc _do;
 
-void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
     if (cmd->UserCallbackData!=NULL) {
       ((FurnaceGUI*)(((PendingDrawOsc*)cmd->UserCallbackData)->gui))->runPendingDrawOsc((PendingDrawOsc*)cmd->UserCallbackData);
@@ -293,7 +293,7 @@ void FurnaceGUI::drawOsc() {
 
       if ((oscWidth-24)>0) {
         if (settings.oscMono) {
-          if (rend->supportsDrawOsc()) {
+          if (rend->supportsDrawOsc() && newOscCode) {
             _do.gui=this;
             _do.data=&oscValuesAverage[12];
             _do.len=oscWidth-24;

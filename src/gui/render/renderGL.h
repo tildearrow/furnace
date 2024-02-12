@@ -35,6 +35,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   int sh_wipe_fragment;
   int sh_wipe_program;
   int sh_wipe_uAlpha;
+  bool sh_wipe_have;
   // -> oscRender
   int sh_oscRender_vertex;
   int sh_oscRender_fragment;
@@ -44,6 +45,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   int sh_oscRender_uAdvance;
   int sh_oscRender_uResolution;
   int sh_oscRender_oscVal;
+  bool sh_oscRender_have;
 
   bool createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program, const char** attribNames);
 
