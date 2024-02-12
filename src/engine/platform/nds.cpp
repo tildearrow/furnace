@@ -532,7 +532,7 @@ void DivPlatformNDS::renderSamples(int sysID) {
       continue;
     }
 
-    int length=MIN(16777215,s->getCurBufLen());
+    int length=MIN(16777216,s->getCurBufLen());
     unsigned char* src=(unsigned char*)s->getCurBuf();
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos),length);
     if (actualLength>0) {
