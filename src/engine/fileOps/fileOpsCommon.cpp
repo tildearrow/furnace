@@ -136,7 +136,7 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
   }
 
   // step 3: try loading as .mod
-  if (loadMod(f,slen)) {
+  if (loadMod(file,len)) {
     delete[] f;
     return true;
   }
