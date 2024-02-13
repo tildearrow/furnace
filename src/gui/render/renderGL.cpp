@@ -378,7 +378,6 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   if (!furUniform1f) return;
   if (!furUniform2f) return;
   if (!furUniform1i) return;
-  if (len<0) return;
 
   if (len>2048) {
     logW("len is %d!",len);
