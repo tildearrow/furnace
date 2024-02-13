@@ -114,7 +114,12 @@ const char* sh_oscRender_srcF=
   "  float valmax = max(max(val1,val2),val3);\n"
   "  float valmin = min(min(val1,val2),val3);\n"
   "  float vald = abs(valmax-valmin);\n"
-  "  float alpha = (uLineWidth*0.75)-abs(uv.y-val2)/max(tresh.y,vald);\n"
+  "  float alpha = 0.0;\n"
+  "  if (uv.y>valmin) {\n"
+  "    alpha=valmax*uResolution.y*0.5-fur_fragCoord.y+uLineWidth*0.5;\n"
+  "  } else {\n"
+  "    alpha=fur_fragCoord.y-valmin*uResolution.y*0.5+uLineWidth*0.5;\n"
+  "  }\n"
   "  gl_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha,0.0,1.0));\n"
   "}\n";
 #else
