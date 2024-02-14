@@ -120,11 +120,11 @@ const char* sh_oscRender_srcF=
   "  } else {\n"
   "    alpha=fur_fragCoord.y-valmin*uResolution.y*0.5+uLineWidth*0.5;\n"
   "  }\n"
+  "  alpha=clamp(alpha,0.0,1.0);\n"
   "  if (slope>1.0) {\n"
-  "    gl_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha,0.0,1.0));\n"
-  "  } else {\n"
-  "    gl_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha,0.0,1.0));\n"
+  "    alpha*=clamp(1.0-(1.0*abs(uv.y-val2)/abs(valmax-valmin)),0.0,1.0);\n"
   "  }\n"
+  "  gl_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha,0.0,1.0));\n"
   "}\n";
 #else
 const char* sh_wipe_srcV=
