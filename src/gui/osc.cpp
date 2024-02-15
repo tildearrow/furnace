@@ -150,7 +150,7 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
 }
 
 void FurnaceGUI::runPendingDrawOsc(PendingDrawOsc* which) {
-  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),dpiScale);
+  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),newOscLineWidth);
 }
 
 void FurnaceGUI::drawOsc() {

@@ -76,10 +76,10 @@ void DivPlatformC140::acquire_219(short** buf, size_t len) {
       writes.pop();
     }
 
-    c219_tick(&c219, 1);
+    c219_tick(&c219,1);
     // scale as 16bit
-    c219.lout >>= 10;
-    c219.rout >>= 10;
+    c219.lout>>=10;
+    c219.rout>>=10;
 
     if (c219.lout<-32768) c219.lout=-32768;
     if (c219.lout>32767) c219.lout=32767;
@@ -91,7 +91,11 @@ void DivPlatformC140::acquire_219(short** buf, size_t len) {
     buf[1][h]=c219.rout;
 
     for (int i=0; i<totalChans; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(c219.voice[i].lout+c219.voice[i].rout)>>10;
+      if (c219.voice[i].inv_lout) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=(c219.voice[i].lout-c219.voice[i].rout)>>10;
+      } else {
+        oscBuf[i]->data[oscBuf[i]->needle++]=(c219.voice[i].lout+c219.voice[i].rout)>>10;
+      }
     }
   }
 }
