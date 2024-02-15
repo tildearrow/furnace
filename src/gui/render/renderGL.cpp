@@ -105,6 +105,11 @@ const char* sh_oscRender_srcF=
   "  vec2 uv = fur_fragCoord/uResolution;\n"
   "  uv.y *= 2.0;\n"
   "  vec2 tresh = vec2(1.0,1.0)/uResolution;\n"
+  "  float x = uv.x-uAdvance*uLineWidth*0.5;\n"
+  "  float xMax = uv.x+uAdvance*uLineWidth*0.5;\n"
+  "  for (; x<xMax; x+=uAdvance) {\n"
+
+  "  }\n"
   "  float x1 = uv.x-uAdvance;\n"
   "  float x2 = uv.x;\n"
   "  float x3 = uv.x+uAdvance;\n"
