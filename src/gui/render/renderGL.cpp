@@ -112,7 +112,7 @@ const char* sh_oscRender_srcF=
   "  float valmin = 1024.0;\n"
   "  for (; x<xMax; x+=uAdvance) {\n"
   "    float val=texture2D(oscVal,vec2(x,1.0)).x;\n"
-  "    alphaX+=
+  "    alphaX+=0;\n"
   "    if (val>valmax) valmax=val;\n"
   "    if (val<valmin) valmin=val;\n"
   "  }\n"
