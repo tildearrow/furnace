@@ -22,6 +22,7 @@ public:
     std::vector<int> gateTick = {0,0,0,0};
     std::vector<Byte> reg,regenvl,regwt;
     std::vector<int> noise;
+    std::vector<double> sintable;
     std::vector<EnvGenerator> envl;
     EnvGenerator _envl;
     double prev = 0;
@@ -29,12 +30,20 @@ public:
     std::vector<std::vector<Byte>> pcm_ram; 
 
     Cpt100_sound() {
-    }
+    };
     
     #define CPT100_SAMPLE_FREQ 48000
 
     double sind(double theta) {
         return sin(theta*2*M_PI);
+    }
+
+    std::vector<double> modulate(std::vector<double> carrier, std::vector<double> modulator) {
+        std::vector<double> modulated(256,0);
+        for (int i=0; i<255; i++) {
+            modulated.at(i) = carrier.at(((int)modulator.at(i))&0xff);
+        }
+        return modulated;
     }
 
     double generateFMWave(double t1, double v1, double t2, double v2, double t3, double v3, double t4, double v4) {
@@ -152,7 +161,7 @@ public:
                 if (regwt.at(ch+8).toInt() == 0) {
                     result[ch+4] += (double)(val)*255*vt;
                 } else {
-                    result[ch+4] += (double)(output)*255*vt;
+                    result[ch+4] += std::min(std::max((double)output*255*vt,-32768.0),32767.0);
                 }
             }
             for(int ch=0; ch<6; ch++) {
@@ -171,8 +180,12 @@ public:
         
         envl.resize(16,_envl);
         noise.resize(65536,0);
+        sintable.resize(256,0);
         for (int i=0;i<65536;i++) {
             noise[i] = mt()%2;
+        }
+        for (int i=0; i<256; i++) {
+            sintable.at(i) = sind((double)i/256);
         }
         
         for (int addr=0x10090;addr<0x100d0;addr++) {

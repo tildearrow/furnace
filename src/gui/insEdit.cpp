@@ -5849,7 +5849,7 @@ void FurnaceGUI::drawInsEdit() {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op2f,&_ZERO,&_FIFTEEN)); rightClickable
+            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op2f,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Volume",sliderSize,ImGuiDataType_U8,&ins->cpt.op2v,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
@@ -5899,7 +5899,7 @@ void FurnaceGUI::drawInsEdit() {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op3f,&_ZERO,&_FIFTEEN)); rightClickable
+            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op3f,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Volume",sliderSize,ImGuiDataType_U8,&ins->cpt.op3v,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
@@ -5949,7 +5949,7 @@ void FurnaceGUI::drawInsEdit() {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op4f,&_ZERO,&_FIFTEEN)); rightClickable
+            P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op4f,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Volume",sliderSize,ImGuiDataType_U8,&ins->cpt.op4v,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
@@ -7115,6 +7115,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_CPT100) {
             dutyLabel="Wave/Noise";
             dutyMax=1;
+          }
           if (ins->type==DIV_INS_ESFM) {
             dutyLabel="OP4 Noise Mode";
             dutyMax=3;

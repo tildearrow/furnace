@@ -58,7 +58,7 @@ void DivPlatformCPT100::tick(bool sysTick) {
     
     if (chan[i].std.vol.had) {
       if(i>=4 && i<=5) {
-      chan[i].outVol=(MIN(255,chan[i].std.vol.val)*(chan[i].vol))/(chan[i].pcm?16:256);
+      chan[i].outVol=(MIN(255,chan[i].std.vol.val)*(chan[i].vol))/(256);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (chan[i].outVol>255) chan[i].outVol=255;
       } else {
@@ -124,7 +124,7 @@ void DivPlatformCPT100::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,0,2,chan[i].pitch2,chipClock,CHIP_FREQBASE)/16;
-      if (chan[i].pcm) {
+      if (chan[i].pcm && i>=4 && i<=5) {
         DivSample* sample=parent->getSample(chan[i].sample);
         if (sample!=NULL) {
           double off=0.5;
@@ -222,9 +222,9 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
       if (c.chan<4)
       {
         cpt->resetGate(c.chan);
-        rWrite(0x10002 + 16*c.chan,ins->cpt.op2f*16);
-        rWrite(0x10003 + 16*c.chan,ins->cpt.op3f*16);
-        rWrite(0x10004 + 16*c.chan,ins->cpt.op4f*16);
+        rWrite(0x10002 + 16*c.chan,ins->cpt.op2f);
+        rWrite(0x10003 + 16*c.chan,ins->cpt.op3f);
+        rWrite(0x10004 + 16*c.chan,ins->cpt.op4f);
         rWrite(0x10009 + 16*c.chan,ins->cpt.op1v);
         rWrite(0x1000a + 16*c.chan,ins->cpt.op2v);
         rWrite(0x1000b + 16*c.chan,ins->cpt.op3v);
@@ -276,7 +276,7 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       chan[c.chan].vol=c.value;
       //chan[c.chan].vol=255;
-      if (chan[c.chan].vol>16) chan[c.chan].vol=16;
+      if (chan[c.chan].vol>255) chan[c.chan].vol=255;
       break;
     case DIV_CMD_GET_VOLUME:
       return chan[c.chan].vol;
@@ -316,7 +316,7 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 16;
+      return 255;
       break;
     case DIV_CMD_WAVE:
       if (chan[c.chan].wave!=c.value) {
