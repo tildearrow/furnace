@@ -22,7 +22,7 @@ public:
     std::vector<int> gateTick = {0,0,0,0};
     std::vector<Byte> reg,regenvl,regwt;
     std::vector<int> noise;
-    std::vector<double> sintable;
+    std::vector<std::vector<double>> sintable;
     std::vector<EnvGenerator> envl;
     EnvGenerator _envl;
     double prev = 0;
@@ -38,17 +38,13 @@ public:
         return sin(theta*2*M_PI);
     }
 
-    std::vector<double> modulate(std::vector<double> carrier, std::vector<double> modulator) {
-        std::vector<double> modulated(256,0);
-        for (int i=0; i<255; i++) {
-            modulated.at(i) = carrier.at(((int)modulator.at(i))&0xff);
-        }
-        return modulated;
+    double modulate(double theta, int wf) {
+        return sintable.at(wf).at(((int)(theta*256))%256);
     }
 
-    double generateFMWave(double t1, double v1, double t2, double v2, double t3, double v3, double t4, double v4) {
+    double generateFMWave(double t1, double v1, double t2, double v2, double t3, double v3, double t4, double v4, int w1, int w2, int w3, int w4) {
 
-        double value = sind(t1+sind(t2+sind(t3+sind(t4)*v4)*v3)*v2)*v1*255*127;
+        double value = modulate(t1+modulate(t2+modulate(t3+modulate(t4,w4)*v4,w3)*v3,w2)*v2,w1)*v1*255*127;
         return value;
 
     }
@@ -116,7 +112,11 @@ public:
                 double v3 = ((double)reg.at(addr+7).toInt())/128;
                 t4[ch] = t4[ch] + ((double)(f1*reg.at(addr+4).toInt()))/16/CPT100_SAMPLE_FREQ;
                 double v4 = ((double)reg.at(addr+8).toInt())/128;
-                result[ch] += generateFMWave(t1[ch],v1,t2[ch],v2,t3[ch],v3,t4[ch],v4);
+                int w1 = reg.at(addr+13).toInt()>>4;
+                int w2 = reg.at(addr+13).toInt()&0xf;
+                int w3 = reg.at(addr+14).toInt()>>4;
+                int w4 = reg.at(addr+14).toInt()&0xf;
+                result[ch] += generateFMWave(t1[ch],v1,t2[ch],v2,t3[ch],v3,t4[ch],v4,w1,w2,w3,w4);
             }
             for(int ch=0; ch<2; ch++) {
                 double ft = ((double)regwt.at(ch*2+0).toInt()*256+regwt.at(ch*2+1).toInt());
@@ -180,12 +180,23 @@ public:
         
         envl.resize(16,_envl);
         noise.resize(65536,0);
-        sintable.resize(256,0);
+        std::vector<double> _sintable;
+        _sintable.resize(256,0);
+        sintable.resize(16,_sintable);
         for (int i=0;i<65536;i++) {
             noise[i] = mt()%2;
         }
         for (int i=0; i<256; i++) {
-            sintable.at(i) = sind((double)i/256);
+            sintable.at(0).at(i) = sind((double)i/256);
+            sintable.at(1).at(i) = std::max(0.0,sind((double)i/256));
+            sintable.at(4).at(i) = i<128?(double)i/64-1.0:(double)i/-64+3.0;
+            sintable.at(5).at(i) = (double)i/128-1.0;
+            if (i<128) {
+                sintable.at(2).at(i) = sind((double)i/128);
+                sintable.at(3).at(i) = 1.0;
+            } else {
+                sintable.at(3).at(i) = -1.0;
+            }
         }
         
         for (int addr=0x10090;addr<0x100d0;addr++) {

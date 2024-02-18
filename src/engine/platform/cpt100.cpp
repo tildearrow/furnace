@@ -229,6 +229,8 @@ int DivPlatformCPT100::dispatch(DivCommand c) {
         rWrite(0x1000a + 16*c.chan,ins->cpt.op2v);
         rWrite(0x1000b + 16*c.chan,ins->cpt.op3v);
         rWrite(0x1000c + 16*c.chan,ins->cpt.op4v);
+        rWrite(0x1000d + 16*c.chan,ins->cpt.op1w*16+ins->cpt.op2w);
+        rWrite(0x1000e + 16*c.chan,ins->cpt.op3w*16+ins->cpt.op4w);
         rWrite(0x10040 + 16*c.chan,ins->cpt.op1a);
         rWrite(0x10041 + 16*c.chan,ins->cpt.op1d);
         rWrite(0x10042 + 16*c.chan,ins->cpt.op1s);

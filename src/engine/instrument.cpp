@@ -235,6 +235,10 @@ bool DivInstrumentCPT100::operator==(const DivInstrumentCPT100& other) {
     _C(op2f) &&
     _C(op3f) &&
     _C(op4f) &&
+    _C(op1w) &&
+    _C(op2w) &&
+    _C(op3w) &&
+    _C(op4w) &&
     _C(op1v) &&
     _C(op1a) &&
     _C(op1d) &&
@@ -1935,6 +1939,10 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(cpt.op2f);
   w->writeC(cpt.op3f);
   w->writeC(cpt.op4f);
+  w->writeC(cpt.op1w);
+  w->writeC(cpt.op2w);
+  w->writeC(cpt.op3w);
+  w->writeC(cpt.op4w);
   w->writeC(cpt.op1v);
   w->writeC(cpt.op1a);
   w->writeC(cpt.op1d);
@@ -2772,6 +2780,10 @@ void DivInstrument::readFeatureCP(SafeReader& reader, short version) {
   cpt.op2f=reader.readC();
   cpt.op3f=reader.readC();
   cpt.op4f=reader.readC();
+  cpt.op1w=reader.readC();
+  cpt.op2w=reader.readC();
+  cpt.op3w=reader.readC();
+  cpt.op4w=reader.readC();
   cpt.op1v=reader.readC();
   cpt.op1a=reader.readC();
   cpt.op1d=reader.readC();

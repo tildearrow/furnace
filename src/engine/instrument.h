@@ -777,6 +777,7 @@ struct DivInstrumentSNES {
 
 struct DivInstrumentCPT100 {
   unsigned char op2f, op3f, op4f;
+  unsigned char op1w, op2w, op3w, op4w;
   unsigned char op1v, op1a, op1d, op1s, op1r;
   unsigned char op2v, op2a, op2d, op2s, op2r;
   unsigned char op3v, op3a, op3d, op3s, op3r;
@@ -792,6 +793,10 @@ struct DivInstrumentCPT100 {
     op2f(0),
     op3f(0),
     op4f(0),
+    op1w(0),
+    op2w(0),
+    op3w(0),
+    op4w(0),
     op1v(0),
     op1a(0),
     op1d(0),

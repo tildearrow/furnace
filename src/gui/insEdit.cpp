@@ -5771,15 +5771,19 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::Text("FM Params");
           ImVec2 sliderSize=ImVec2(30.0f*dpiScale,128.0*dpiScale);
           ImGui::Text("Operator 1");
-          if (ImGui::BeginTable("OP1Params",6,ImGuiTableFlags_NoHostExtendX)) {
+          if (ImGui::BeginTable("OP1Params",7,ImGuiTableFlags_NoHostExtendX)) {
             ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-            ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthStretch);
 
             ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            CENTER_TEXT("WF");
+            ImGui::TextUnformatted("WF");
             ImGui::TableNextColumn();
             CENTER_TEXT("V*");
             ImGui::TextUnformatted("V*");
@@ -5801,6 +5805,8 @@ void FurnaceGUI::drawInsEdit() {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            P(CWVSliderScalar("##Waveform",sliderSize,ImGuiDataType_U8,&ins->cpt.op1w,&_ZERO,&_FIFTEEN)); rightClickable
+            ImGui::TableNextColumn();
             P(CWVSliderScalar("##Volume",sliderSize,ImGuiDataType_U8,&ins->cpt.op1v,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->cpt.op1a,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
@@ -5815,16 +5821,20 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTable();
           }
           ImGui::Text("Operator 2");
-          if (ImGui::BeginTable("OP2Params",7,ImGuiTableFlags_NoHostExtendX)) {
+          if (ImGui::BeginTable("OP2Params",8,ImGuiTableFlags_NoHostExtendX)) {
             ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+            ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthStretch);
 
             ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            CENTER_TEXT("WF");
+            ImGui::TextUnformatted("WF");
             ImGui::TableNextColumn();
             CENTER_TEXT("F*");
             ImGui::TextUnformatted("F*");
@@ -5848,6 +5858,8 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::TextUnformatted("Envelope");
 
             ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWVSliderScalar("##Waveform",sliderSize,ImGuiDataType_U8,&ins->cpt.op2w,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op2f,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
@@ -5865,16 +5877,20 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTable();
           }
           ImGui::Text("Operator 3");
-          if (ImGui::BeginTable("OP3Params",7,ImGuiTableFlags_NoHostExtendX)) {
+          if (ImGui::BeginTable("OP3Params",8,ImGuiTableFlags_NoHostExtendX)) {
             ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+            ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthStretch);
 
             ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            CENTER_TEXT("WF");
+            ImGui::TextUnformatted("WF");
             ImGui::TableNextColumn();
             CENTER_TEXT("F*");
             ImGui::TextUnformatted("F*");
@@ -5898,6 +5914,8 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::TextUnformatted("Envelope");
 
             ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWVSliderScalar("##Waveform",sliderSize,ImGuiDataType_U8,&ins->cpt.op3w,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op3f,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
@@ -5915,16 +5933,20 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTable();
           }
           ImGui::Text("Operator 4");
-          if (ImGui::BeginTable("OP4Params",7,ImGuiTableFlags_NoHostExtendX)) {
+          if (ImGui::BeginTable("OP4Params",8,ImGuiTableFlags_NoHostExtendX)) {
             ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+            ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthStretch);
 
             ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            CENTER_TEXT("WF");
+            ImGui::TextUnformatted("WF");
             ImGui::TableNextColumn();
             CENTER_TEXT("F*");
             ImGui::TextUnformatted("F*");
@@ -5948,6 +5970,8 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::TextUnformatted("Envelope");
 
             ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWVSliderScalar("##Waveform",sliderSize,ImGuiDataType_U8,&ins->cpt.op4w,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Frequency",sliderSize,ImGuiDataType_U8,&ins->cpt.op4f,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
             ImGui::TableNextColumn();
