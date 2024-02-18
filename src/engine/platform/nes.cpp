@@ -407,7 +407,14 @@ int DivPlatformNES::dispatch(DivCommand c) {
           if (c.value!=DIV_NOTE_NULL) {
             dacSample=ins->amiga.getSample(c.value);
             if (ins->type==DIV_INS_AMIGA) {
+              chan[c.chan].sampleNote=c.value;
               c.value=ins->amiga.getFreq(c.value);
+              chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+            }
+          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+            dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+            if (ins->type==DIV_INS_AMIGA) {
+              c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
             }
           }
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
@@ -535,7 +542,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.chan==4)?(parent->calcBaseFreq(1,1,c.value2,false)):(NOTE_PERIODIC(c.value2));
+      int destFreq=(c.chan==4)?(parent->calcBaseFreq(1,1,c.value2+chan[c.chan].sampleNoteDelta,false)):(NOTE_PERIODIC(c.value2));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -636,7 +643,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
       if (c.chan==4) {
-        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)),false);
+        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)),false);
       } else {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       }

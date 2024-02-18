@@ -17,12 +17,14 @@ void FurnaceGUI::drawEffectList() {
       ImGui::PushTextWrapPos(availB);
       ImGui::TextWrapped("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
       ImGui::PopTextWrapPos();
-      ImGui::SameLine();
     }
+    effectSearch.Draw("Search");
+    ImGui::SameLine();
     ImGui::Button(ICON_FA_BARS "##SortEffects");
     if (ImGui::BeginPopupContextItem("effectSort",ImGuiPopupFlags_MouseButtonLeft)) {
-      for (int i=0; i<9; i++) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColorsSort[i]]);
+      ImGui::Text("Effect types to show:");
+      for (int i=1; i<10; i++) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[i+GUI_COLOR_PATTERN_EFFECT_INVALID]);
         ImGui::Checkbox(fxColorsNames[i],&effectsShow[i]);
         ImGui::PopStyleColor();
       }
@@ -47,58 +49,26 @@ void FurnaceGUI::drawEffectList() {
       const char* prevName=NULL;
       for (int i=0; i<256; i++) {
         const char* name=e->getEffectDesc(i,cursor.xCoarse);
-        bool effectShow=true;
         if (name==prevName) {
           continue;
         }
         prevName=name;
-        switch (fxColors[i]) {
-          case GUI_COLOR_PATTERN_EFFECT_MISC:
-            effectShow=effectsShow[8];
-            break;
-          case GUI_COLOR_PATTERN_EFFECT_SONG:
-            effectShow=effectsShow[1];
-            break;
-          case GUI_COLOR_PATTERN_EFFECT_SPEED:
-            effectShow=effectsShow[3];
-            break;
-          case GUI_COLOR_PATTERN_EFFECT_TIME:
-            effectShow=effectsShow[2];
-            break;
-          case GUI_COLOR_PATTERN_EFFECT_PITCH:
-            effectShow=effectsShow[0];
-            break;
-          case GUI_COLOR_PATTERN_EFFECT_PANNING:
-            effectShow=effectsShow[4];
-            break;
-          case GUI_COLOR_PATTERN_EFFECT_VOLUME:
-            effectShow=effectsShow[5];
-            break;
-          case GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY:
-            effectShow=effectsShow[6];
-            break;
-          case GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY:
-            effectShow=effectsShow[7];
-            break;
-          default:
-            effectShow=true;
-            break;
-        }
         if (fxColors[i]==GUI_COLOR_PATTERN_EFFECT_PANNING) {
           DivDispatch* dispatch=e->getDispatch(e->dispatchOfChan[cursor.xCoarse]);
           if (dispatch!=NULL) {
             int outputs=dispatch->getOutputCount();
             if (outputs<2) {
-              effectShow=false;
+              continue;
             }
             if (outputs<3) {
               if (i>=0x88 && i<=0x8f) {
-                effectShow=false;
+                continue;
               }
             }
           }
         }
-        if (name!=NULL && effectShow) {
+        if (name==NULL) continue;
+        if (effectSearch.PassFilter(name) && effectsShow[fxColors[i]-GUI_COLOR_PATTERN_EFFECT_INVALID]) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::PushFont(patFont);

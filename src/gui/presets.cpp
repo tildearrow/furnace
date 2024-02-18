@@ -953,6 +953,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Enterprise 128", {
+      CH(DIV_SYSTEM_DAVE, 1.0f, 0, "")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
     "BBC Micro", {
       CH(DIV_SYSTEM_SMS, 1.0f, 0,
         "clockSel=2\n"
@@ -1573,6 +1579,89 @@ void FurnaceGUI::initSystemPresets() {
         "clockSel=2\n"
         "rateSel=true\n"
       ) // ^^
+    }
+  );
+  ENTRY(
+    "NMK 16-bit Arcade (w/NMK112 bankswitching)", {
+      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ) // ^^
+    }
+  );
+  ENTRY(
+    "NMK 16-bit Arcade (w/NMK112 bankswitching, extended channel 3)", {
+      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ) // ^^
+    }
+  );
+  ENTRY(
+    "Atlus Power Instinct 2", {
+      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=13\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=13\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ) // ^^
+    }
+  );
+  ENTRY(
+    "Atlus Power Instinct 2 (extended channel 3)", {
+      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=13\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=13\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ) // ^^
+    }
+  );
+  ENTRY(
+    "Raizing/Eighting Battle Garegga", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=8\n"
+        "isBanked=true\n"
+      ) // 2MHz
+    }
+  );
+  ENTRY(
+    "Raizing/Eighting Batrider", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=15\n"
+        "isBanked=true\n"
+      ), // 3.2MHz
+      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+        "clockSel=15\n"
+        "rateSel=true\n"
+        "isBanked=true\n"
+      ) // 3.2MHz
     }
   );
   ENTRY(
@@ -2779,9 +2868,10 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "CPT100", {
-      CH(DIV_SYSTEM_CPT100, 1.0f, 0, "")
-    }
+    "Dave", {
+      CH(DIV_SYSTEM_DAVE, 1.0f, 0, "")
+    },
+    "tickRate=50"
   );
   CATEGORY_END;
 

@@ -25,10 +25,9 @@
 #include "../pch.h"
 #include "config.h"
 #include "chipUtils.h"
+#include "defines.h"
 
 #define ONE_SEMITONE 2200
-
-#define DIV_NOTE_NULL 0x7fffffff
 
 #define addWrite(a,v) regWrites.push_back(DivRegWrite(a,v));
 
@@ -252,6 +251,12 @@ enum DivDispatchCmds {
 
   DIV_CMD_POWERNOISE_COUNTER_LOAD, // (which, val)
   DIV_CMD_POWERNOISE_IO_WRITE, // (port, value)
+
+  DIV_CMD_DAVE_HIGH_PASS,
+  DIV_CMD_DAVE_RING_MOD,
+  DIV_CMD_DAVE_SWAP_COUNTERS,
+  DIV_CMD_DAVE_LOW_PASS,
+  DIV_CMD_DAVE_CLOCK_DIV,
 
   DIV_CMD_MAX
 };

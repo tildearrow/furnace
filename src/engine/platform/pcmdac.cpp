@@ -314,6 +314,8 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
         chan[0].useWave=true;
         chan[0].audLen=ins->amiga.waveLen+1;
         if (chan[0].insChanged) {
@@ -326,7 +328,12 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[0].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
         chan[0].useWave=false;
       }
@@ -335,6 +342,8 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       }
       if (chan[0].useWave || chan[0].sample<0 || chan[0].sample>=parent->song.sampleLen) {
         chan[0].sample=-1;
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
       }
       if (chan[0].setPos) {
         chan[0].setPos=false;
@@ -402,9 +411,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       chan[0].ws.changeWave1(chan[0].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
-      chan[0].sample=ins->amiga.getSample(c.value2);
-      int destFreq=round(NOTE_FREQUENCY(c.value2));
+      int destFreq=round(NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta));
       bool return2=false;
       if (destFreq>chan[0].baseFreq) {
         chan[0].baseFreq+=c.value;
@@ -427,7 +434,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0))));
+      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0))));
       chan[0].freqChanged=true;
       chan[0].note=c.value;
       break;

@@ -376,6 +376,9 @@ void FurnaceGUI::drawSampleEdit() {
             if (sample->loop) {
               SAMPLE_WARN(warnLoop,"MSM6295: samples can't loop");
             }
+            if (sample->samples>129024) {
+              SAMPLE_WARN(warnLength,"MSM6295: maximum bankswitched sample length is 129024");
+            }
           default:
             break;
         }

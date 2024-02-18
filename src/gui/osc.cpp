@@ -100,6 +100,19 @@ void FurnaceGUI::readOsc() {
     }
   }
 
+  if (oscValuesAverage==NULL) {
+    oscValuesAverage=new float[2048];
+  }
+  memset(oscValuesAverage,0,2048*sizeof(float));
+  for (int i=0; i<oscWidth; i++) {
+    float avg=0;
+    for (int j=0; j<e->getAudioDescGot().outChans; j++) {
+      avg+=oscValues[j][i];
+    }
+    avg/=e->getAudioDescGot().outChans;
+    oscValuesAverage[i]=avg;
+  }
+
   /*for (int i=0; i<oscWidth; i++) {
     oscValues[i]=(i&1)?0.3:0;
   }*/
@@ -124,6 +137,20 @@ void FurnaceGUI::readOsc() {
 
   readPos=(readPos+total)&0x7fff;
   e->oscReadPos=readPos;
+}
+
+PendingDrawOsc _do;
+
+static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+  if (cmd!=NULL) {
+    if (cmd->UserCallbackData!=NULL) {
+      ((FurnaceGUI*)(((PendingDrawOsc*)cmd->UserCallbackData)->gui))->runPendingDrawOsc((PendingDrawOsc*)cmd->UserCallbackData);
+    }
+  }
+}
+
+void FurnaceGUI::runPendingDrawOsc(PendingDrawOsc* which) {
+  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),newOscLineWidth);
 }
 
 void FurnaceGUI::drawOsc() {
@@ -266,28 +293,34 @@ void FurnaceGUI::drawOsc() {
 
       if ((oscWidth-24)>0) {
         if (settings.oscMono) {
-          for (int i=0; i<oscWidth-24; i++) {
-            float x=(float)i/(float)(oscWidth-24);
-            float avg=0;
-            for (int j=0; j<e->getAudioDescGot().outChans; j++) {
-              avg+=oscValues[j][i+12];
-            }
-            avg/=e->getAudioDescGot().outChans;
+          if (rend->supportsDrawOsc() && newOscCode) {
+            _do.gui=this;
+            _do.data=&oscValuesAverage[12];
+            _do.len=oscWidth-24;
+            _do.pos0=inRect.Min;
+            _do.pos1=inRect.Max;
+            _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
 
-            float y=avg*oscZoom;
-            if (!settings.oscEscapesBoundary) {
-              if (y<-0.5f) y=-0.5f;
-              if (y>0.5f) y=0.5f;
-            }
-            waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
-          }
-          
-          if (settings.oscEscapesBoundary) {
-            dl->PushClipRectFullScreen();
-            dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
-            dl->PopClipRect();
+            dl->AddCallback(_drawOsc,&_do);
+            dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
           } else {
-            dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+            for (int i=0; i<oscWidth-24; i++) {
+              float x=(float)i/(float)(oscWidth-24);
+              float y=oscValuesAverage[i+12]*oscZoom;
+              if (!settings.oscEscapesBoundary) {
+                if (y<-0.5f) y=-0.5f;
+                if (y>0.5f) y=0.5f;
+              }
+              waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+            }
+
+            if (settings.oscEscapesBoundary) {
+              dl->PushClipRectFullScreen();
+              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+              dl->PopClipRect();
+            } else {
+              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+            }
           }
         } else {
           for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
@@ -302,9 +335,10 @@ void FurnaceGUI::drawOsc() {
             }
 
             if (!isClipping) {
-              color=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_WAVE_CH0+ch]);
+              //color=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_WAVE_CH0+ch]);
             }
             
+            /*
             if (settings.oscEscapesBoundary) {
               dl->PushClipRectFullScreen();
               dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
@@ -312,6 +346,7 @@ void FurnaceGUI::drawOsc() {
             } else {
               dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
             }
+            */
           }
         }
       }

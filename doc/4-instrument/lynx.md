@@ -24,6 +24,20 @@ note that using samples on Lynx is CPU expensive!
 
 Atari Lynx generates sound using a 12-bit linear feedback shift register with configurable tap. nine separate bits can be enabled to be the source of feedback: 0, 1, 2, 3, 4, 5, 7, 10 and 11. to generate _any_ sound at least one bit _must_ be enabled.
 
+### LFSR-based synthesis
+
+a linear-feedback shift register is one method used for random number generation.
+it works by shifting a sequence of binary numbers (bits), taking the last bit into the output. then some of the bits are combined with others, doing a XOR (exclusive or) operation and then being pushed back.
+
+think of it as a conveyor carrying glass bottles. each bottle may be empty or carrying water.
+the bottle at the end is taken. if there's water, then the output is 1. if it's empty, the output is 0.
+depending on the LFSR configuration, many bottles at specific positions ("taps") are looked at. these are combined from left to right, two by two:
+- if two bottles are identical, an empty bottle is pushed.
+- if one bottle has water but the other is empty, a water bottle is pushed.
+the process is repeated indefinitely.
+
+unlike PowerNoise, Lynx's taps are in fixed positions, but it has many of them.
+
 ### square wave
 
 the LFSR is shifted at the rate define by sound pitch and generates square wave by setting channel output value to +volume or -volume, depending on the bit shifted in.

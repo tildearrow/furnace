@@ -356,6 +356,10 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **/path/to/file.fur - Furnace**
 - **Display system name on title bar**
 - **Display chip names instead of "multi-system" in title bar**
+- **Export options layout:**
+  - **Sub-menus in File menu**: export options appear in the File menu as sub-menus.
+  - **Modal window with tabs**: a single "export..." option that opens a dialog with export options. this is the default.
+  - **Modal windows with options in File menu**: like Sub-menus in File menu, but instead of being sub-menus, selecting one opens a dialog with export settings.
 - **Status bar:**
   - **Cursor details**
   - **File path**

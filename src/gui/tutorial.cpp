@@ -279,29 +279,13 @@ void FurnaceGUI::drawTutorial() {
 
     ImGui::Separator();
 
-    ImGui::TextWrapped(
-      "there are two interface modes: Basic, and Advanced.\n"
-      "the Basic Mode only shows essential features. use it if you are new to trackers or prefer simplicity.\n"
-      "Advanced Mode allows you to use all Furnace features, but it may be confusing."
-    );
-
-    ImGui::TextWrapped("pick a mode to begin your journey! (you can always switch by going to Settings > Basic Mode)");
-
-    if (ImGui::Button("Start in Basic Mode")) {
-      basicMode=true;
-      tutorial.protoWelcome=true;
-      commitTutorial();
-      ImGui::CloseCurrentPopup();
-    }
-    if (ImGui::Button("Start in Advanced Mode")) {
-      basicMode=false;
-      tutorial.protoWelcome=true;
-      commitTutorial();
-      ImGui::CloseCurrentPopup();
-    }
-
     ImGui::TextWrapped("if you find any issues, be sure to report them! the issue tracker is here: https://github.com/tildearrow/furnace/issues");
 
+    if (ImGui::Button("OK")) {
+      tutorial.protoWelcome=true;
+      commitTutorial();
+      ImGui::CloseCurrentPopup();
+    }
 
     ImGui::SetWindowPos(ImVec2(
       (canvasW-ImGui::GetWindowSize().x)*0.5,

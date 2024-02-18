@@ -44,7 +44,7 @@
 #endif
 
 #ifdef HAVE_FREETYPE
-#define FONT_BACKEND_DEFAULT 1
+#define FONT_BACKEND_DEFAULT 0
 #else
 #define FONT_BACKEND_DEFAULT 0
 #endif
@@ -1520,10 +1520,10 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("YM2612");
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,3)) settingsChanged=true;
+          if (ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2)) settingsChanged=true;
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,3)) settingsChanged=true;
+          if (ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,2)) settingsChanged=true;
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -1744,6 +1744,11 @@ void FurnaceGUI::drawSettings() {
           UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ABOUT);
           UI_KEYBIND_CONFIG(GUI_ACTION_COLLAPSE_WINDOW);
           UI_KEYBIND_CONFIG(GUI_ACTION_CLOSE_WINDOW);
+
+          UI_KEYBIND_CONFIG(GUI_ACTION_COMMAND_PALETTE);
+          UI_KEYBIND_CONFIG(GUI_ACTION_CMDPAL_RECENT);
+          UI_KEYBIND_CONFIG(GUI_ACTION_CMDPAL_INSTRUMENTS);
+          UI_KEYBIND_CONFIG(GUI_ACTION_CMDPAL_SAMPLES);
 
           KEYBIND_CONFIG_END;
           ImGui::TreePop();
@@ -2668,6 +2673,12 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
+        bool playbackTimeB=settings.playbackTime;
+        if (ImGui::Checkbox("Display playback status when playing",&playbackTimeB)) {
+          settings.playbackTime=playbackTimeB;
+          settingsChanged=true;
+        }
+
         ImGui::Text("Export options layout:");
         ImGui::Indent();
         if (ImGui::RadioButton("Sub-menus in File menu##eol0",settings.exportOptionsLayout==0)) {
@@ -3498,6 +3509,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_ESFM,"ESFM");
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_POWERNOISE,"PowerNoise (noise)");
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_POWERNOISE_SLOPE,"PowerNoise (slope)");
+          UI_COLOR_CONFIG(GUI_COLOR_INSTR_DAVE,"Dave");
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
           ImGui::TreePop();
         }
@@ -3990,6 +4002,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.orderRowsBase=conf.getInt("orderRowsBase",1);
     settings.fmNames=conf.getInt("fmNames",0);
     settings.statusDisplay=conf.getInt("statusDisplay",0);
+    settings.playbackTime=conf.getInt("playbackTime",1);
     settings.viewPrevPattern=conf.getInt("viewPrevPattern",1);
     settings.susPosition=conf.getInt("susPosition",0);
 
@@ -4231,6 +4244,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.fontAntiAlias,0,1);
   clampSetting(settings.selectAssetOnLoad,0,1);
   clampSetting(settings.basicColors,0,1);
+  clampSetting(settings.playbackTime,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4452,6 +4466,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("orderRowsBase",settings.orderRowsBase);
     conf.set("fmNames",settings.fmNames);
     conf.set("statusDisplay",settings.statusDisplay);
+    conf.set("playbackTime",settings.playbackTime);
     conf.set("viewPrevPattern",settings.viewPrevPattern);
     conf.set("susPosition",settings.susPosition);
 

@@ -4,6 +4,10 @@
   
   <name>Furnace</name>
   <summary>Open-source chiptune tracker</summary>
+  <developer id="tildearrow.org">
+    <name>tildearrow and contributors</name>
+  </developer>
+  <developer_name>tildearrow and contributors</developer_name>
   <url type="homepage">https://github.com/tildearrow/furnace</url>
   
   <metadata_license>CC0-1.0</metadata_license>
@@ -32,7 +36,8 @@
   <launchable type="desktop-id">furnace.desktop</launchable>
   <screenshots>
     <screenshot type="default">
-      <image>https://tildearrow.org/storage/images/furnace.png</image>
+      <caption>Furnace during playback</caption>
+      <image>https://raw.githubusercontent.com/tildearrow/furnace/94cce861800c0473bdddb8270e462ebcdd18202a/papers/screenshot3.png</image>
     </screenshot>
   </screenshots>
 

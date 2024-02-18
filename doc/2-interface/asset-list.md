@@ -60,7 +60,22 @@ right-clicking the Save button brings up a menu with the following options:
 
 right-clicking a sample in the list brings up a menu:
 - **make instrument**: creates a new instrument which is set to use the selected sample.
+- **make me a drum kit**: allows you to instantly create a drum kit using all the samples in the list. see the next section for more information.
 - **duplicate**: makes a copy of the selected sample.
 - **replace...**: opens a file dialog to choose a replacement sample.
 - **save**: opens a file dialog to choose where to save the sample.
 - **delete**: removes the sample.
+
+### make me a drum kit
+
+I have added this option to make it easier for you to create a drum kit.
+it puts all the samples into a new instrument with sample map.
+
+after selecting this option, a list of parameters appears:
+
+- **Drum kit mode**: select how to arrange the samples in the sample map.
+  - **Normal**: put all samples from the starting octave onwards.
+  - **12 samples per octave**: map the first 12 samples to all octaves, DefleMask-style.
+- **Starting octave**: change the octave where the first sample will be at.
+
+following that is a list of viable instrument types. click on one of them to proceed with drum kit creation!

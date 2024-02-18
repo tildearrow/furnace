@@ -1130,6 +1130,8 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
       case DIV_INS_POWERNOISE_SLOPE:
         featurePN=true;
         break;
+      case DIV_INS_DAVE:
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1935,34 +1937,6 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(snes.d);
   w->writeC((snes.s&7)|(snes.sus?8:0));
   w->writeC(snes.r);
-
-  w->writeC(cpt.op2f);
-  w->writeC(cpt.op3f);
-  w->writeC(cpt.op4f);
-  w->writeC(cpt.op1w);
-  w->writeC(cpt.op2w);
-  w->writeC(cpt.op3w);
-  w->writeC(cpt.op4w);
-  w->writeC(cpt.op1v);
-  w->writeC(cpt.op1a);
-  w->writeC(cpt.op1d);
-  w->writeC(cpt.op1s);
-  w->writeC(cpt.op1r);
-  w->writeC(cpt.op2v);
-  w->writeC(cpt.op2a);
-  w->writeC(cpt.op2d);
-  w->writeC(cpt.op2s);
-  w->writeC(cpt.op2r);
-  w->writeC(cpt.op3v);
-  w->writeC(cpt.op3a);
-  w->writeC(cpt.op3d);
-  w->writeC(cpt.op3s);
-  w->writeC(cpt.op3r);
-  w->writeC(cpt.op4v);
-  w->writeC(cpt.op4a);
-  w->writeC(cpt.op4d);
-  w->writeC(cpt.op4s);
-  w->writeC(cpt.op4r);
 
   // macro speed/delay
   w->writeC(std.volMacro.speed);
@@ -3762,32 +3736,11 @@ void DivInstrument::convertC64SpecialMacro() {
   std.ex3Macro=DivInstrumentMacro(DIV_MACRO_EX3);
 }
 
-bool DivInstrument::save(const char* path, bool oldFormat, DivSong* song, bool writeInsName) {
+bool DivInstrument::save(const char* path, DivSong* song, bool writeInsName) {
   SafeWriter* w=new SafeWriter();
   w->init();
 
-  if (oldFormat) {
-    // write magic
-    w->write("-Furnace instr.-",16);
-
-    // write version
-    w->writeS(DIV_ENGINE_VERSION);
-
-    // reserved
-    w->writeS(0);
-
-    // pointer to data
-    w->writeI(32);
-
-    // reserved
-    w->writeS(0);
-    w->writeS(0);
-    w->writeI(0);
-
-    putInsData(w);
-  } else {
-    putInsData2(w,true,song,writeInsName);
-  }
+  putInsData2(w,true,song,writeInsName);
 
   FILE* outFile=ps_fopen(path,"wb");
   if (outFile==NULL) {
@@ -3813,13 +3766,16 @@ bool DivInstrument::saveDMP(const char* path) {
   // guess the system
   switch (type) {
     case DIV_INS_FM:
-      // we can't tell between Genesis, Neo Geo and Arcade ins type yet
+      // we can't tell Genesis and Neo Geo apart
       w->writeC(0x02);
       w->writeC(1);
       break;
     case DIV_INS_STD:
-      // we can't tell between SMS and NES ins type yet
       w->writeC(0x03);
+      w->writeC(0);
+      break;
+    case DIV_INS_NES:
+      w->writeC(0x06);
       w->writeC(0);
       break;
     case DIV_INS_GB:
@@ -3831,12 +3787,16 @@ bool DivInstrument::saveDMP(const char* path) {
       w->writeC(0);
       break;
     case DIV_INS_PCE:
-      w->writeC(0x06);
+      w->writeC(0x05);
       w->writeC(0);
       break;
     case DIV_INS_OPLL:
       // ???
       w->writeC(0x13);
+      w->writeC(1);
+      break;
+    case DIV_INS_OPM:
+      w->writeC(0x08);
       w->writeC(1);
       break;
     case DIV_INS_OPZ:
@@ -3855,7 +3815,7 @@ bool DivInstrument::saveDMP(const char* path) {
       return false;
   }
 
-  if (type==DIV_INS_FM || type==DIV_INS_OPLL || type==DIV_INS_OPZ) {
+  if (type==DIV_INS_FM || type==DIV_INS_OPM || type==DIV_INS_OPLL || type==DIV_INS_OPZ) {
     w->writeC(fm.fms);
     w->writeC(fm.fb);
     w->writeC(fm.alg);

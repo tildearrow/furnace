@@ -24,6 +24,10 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   SDL_Window* sdlWin;
   float quadVertex[4][3];
   unsigned int quadBuf;
+  float oscVertex[4][4];
+  unsigned int oscVertexBuf;
+  unsigned int oscDataTex;
+  float oscData[2048];
 
   // SHADERS //
   // -> wipe
@@ -31,8 +35,19 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   int sh_wipe_fragment;
   int sh_wipe_program;
   int sh_wipe_uAlpha;
+  bool sh_wipe_have;
+  // -> oscRender
+  int sh_oscRender_vertex;
+  int sh_oscRender_fragment;
+  int sh_oscRender_program;
+  int sh_oscRender_uColor;
+  int sh_oscRender_uLineWidth;
+  int sh_oscRender_uAdvance;
+  int sh_oscRender_uResolution;
+  int sh_oscRender_oscVal;
+  bool sh_oscRender_have;
 
-  bool createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program);
+  bool createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program, const char** attribNames);
 
   public:
     ImTextureID getTextureID(FurnaceGUITexture* which);
@@ -49,8 +64,10 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     void destroyFontsTexture();
     void renderGUI();
     void wipe(float alpha);
+    void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
     void present();
     bool getOutputSize(int& w, int& h);
+    bool supportsDrawOsc();
     int getWindowFlags();
     void preInit();
     bool init(SDL_Window* win);
@@ -62,5 +79,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
       context(NULL),
       sdlWin(NULL) {
       memset(quadVertex,0,4*3*sizeof(float));
+      memset(oscVertex,0,4*5*sizeof(float));
+      memset(oscData,0,2048*sizeof(float));
     }
 };
