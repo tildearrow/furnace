@@ -1455,13 +1455,15 @@ struct PendingDrawOsc {
   ImVec2 pos0;
   ImVec2 pos1;
   ImVec4 color;
+  float lineSize;
   PendingDrawOsc():
     gui(NULL),
     data(NULL),
     len(0),
     pos0(0,0),
     pos1(0,0),
-    color(0,0,0,0) {}
+    color(0,0,0,0),
+    lineSize(0.0f) {}
 };
 
 class FurnaceGUI {
@@ -1521,7 +1523,7 @@ class FurnaceGUI {
   int wheelCalmDown;
   int shallDetectScale;
   int cpuCores;
-  float secondTimer, newOscLineWidth;
+  float secondTimer;
   unsigned int userEvents;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
@@ -1684,6 +1686,7 @@ class FurnaceGUI {
     int oscEscapesBoundary;
     int oscMono;
     int oscAntiAlias;
+    float oscLineSize;
     int separateFMColors;
     int insEditColorize;
     int metroVol;
@@ -1886,6 +1889,7 @@ class FurnaceGUI {
       oscEscapesBoundary(0),
       oscMono(1),
       oscAntiAlias(1),
+      oscLineSize(1.0f),
       separateFMColors(0),
       insEditColorize(0),
       metroVol(100),
@@ -2284,7 +2288,7 @@ class FurnaceGUI {
 
   // per-channel oscilloscope
   int chanOscCols, chanOscAutoColsType, chanOscColorX, chanOscColorY;
-  float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify;
+  float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify, chanOscLineSize;
   bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize, chanOscRandomPhase;
   String chanOscTextFormat;
   ImVec4 chanOscColor, chanOscTextColor;

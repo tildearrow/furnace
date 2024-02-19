@@ -110,7 +110,7 @@ void FurnaceGUI::readOsc() {
       avg+=oscValues[j][i];
     }
     avg/=e->getAudioDescGot().outChans;
-    oscValuesAverage[i]=avg;
+    oscValuesAverage[i]=avg*oscZoom;
   }
 
   /*for (int i=0; i<oscWidth; i++) {
@@ -150,7 +150,7 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
 }
 
 void FurnaceGUI::runPendingDrawOsc(PendingDrawOsc* which) {
-  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),newOscLineWidth);
+  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),which->lineSize);
 }
 
 void FurnaceGUI::drawOsc() {
@@ -300,6 +300,7 @@ void FurnaceGUI::drawOsc() {
             _do.pos0=inRect.Min;
             _do.pos1=inRect.Max;
             _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
+            _do.lineSize=dpiScale*settings.oscLineSize;
 
             dl->AddCallback(_drawOsc,&_do);
             dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
@@ -316,37 +317,49 @@ void FurnaceGUI::drawOsc() {
 
             if (settings.oscEscapesBoundary) {
               dl->PushClipRectFullScreen();
-              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
               dl->PopClipRect();
             } else {
-              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
             }
           }
         } else {
           for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
-            for (int i=0; i<oscWidth-24; i++) {
-              float x=(float)i/(float)(oscWidth-24);
-              float y=oscValues[ch][i+12]*oscZoom;
-              if (!settings.oscEscapesBoundary) {
-                if (y<-0.5f) y=-0.5f;
-                if (y>0.5f) y=0.5f;
-              }
-              waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+            if (!isClipping) {
+              color=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_WAVE_CH0+ch]);
             }
 
-            if (!isClipping) {
-              //color=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_WAVE_CH0+ch]);
-            }
-            
-            /*
-            if (settings.oscEscapesBoundary) {
-              dl->PushClipRectFullScreen();
-              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
-              dl->PopClipRect();
+            if (rend->supportsDrawOsc() && settings.shaderOsc) {
+              _do.gui=this;
+              _do.data=&oscValues[ch][12];
+              _do.len=oscWidth-24;
+              _do.pos0=inRect.Min;
+              _do.pos1=inRect.Max;
+              _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE_CH0+ch];
+              _do.lineSize=dpiScale*settings.oscLineSize;
+
+              dl->AddCallback(_drawOsc,&_do);
+              dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
             } else {
-              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale);
+              for (int i=0; i<oscWidth-24; i++) {
+                float x=(float)i/(float)(oscWidth-24);
+                float y=oscValues[ch][i+12]*oscZoom;
+                if (!settings.oscEscapesBoundary) {
+                  if (y<-0.5f) y=-0.5f;
+                  if (y>0.5f) y=0.5f;
+                }
+                waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+              }
+
+              
+              if (settings.oscEscapesBoundary) {
+                dl->PushClipRectFullScreen();
+                dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+                dl->PopClipRect();
+              } else {
+                dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+              }
             }
-            */
           }
         }
       }

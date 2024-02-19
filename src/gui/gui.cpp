@@ -6613,6 +6613,7 @@ bool FurnaceGUI::init() {
   chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
   chanOscTextY=e->getConfFloat("chanOscTextY",0.0f);
   chanOscAmplify=e->getConfFloat("chanOscAmplify",0.95f);
+  chanOscLineSize=e->getConfFloat("chanOscLineSize",1.0f);
   chanOscWindowSize=e->getConfFloat("chanOscWindowSize",20.0f);
   chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
   chanOscOptions=e->getConfBool("chanOscOptions",false);
@@ -6935,8 +6936,6 @@ bool FurnaceGUI::init() {
     }
   }
 
-  newOscLineWidth=dpiScale;
-
   updateWindowTitle();
 
   rend->clear(ImVec4(0.0,0.0,0.0,1.0));
@@ -7165,6 +7164,7 @@ void FurnaceGUI::commitState() {
   e->setConf("chanOscTextX",chanOscTextX);
   e->setConf("chanOscTextY",chanOscTextY);
   e->setConf("chanOscAmplify",chanOscAmplify);
+  e->setConf("chanOscLineSize",chanOscLineSize);
   e->setConf("chanOscWindowSize",chanOscWindowSize);
   e->setConf("chanOscWaveCorr",chanOscWaveCorr);
   e->setConf("chanOscOptions",chanOscOptions);
@@ -7314,7 +7314,6 @@ FurnaceGUI::FurnaceGUI():
   shallDetectScale(0),
   cpuCores(0),
   secondTimer(0.0f),
-  newOscLineWidth(2.0f),
   userEvents(0xffffffff),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
@@ -7680,6 +7679,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscTextX(0.0f),
   chanOscTextY(0.0f),
   chanOscAmplify(0.95f),
+  chanOscLineSize(1.0f),
   chanOscWaveCorr(true),
   chanOscOptions(false),
   updateChanOscGradTex(true),

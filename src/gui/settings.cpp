@@ -3200,6 +3200,12 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        if (ImGui::SliderFloat("Line size",&settings.oscLineSize,0.25f,16.0f,"%.1f")) {
+          if (settings.oscLineSize<0.25f) settings.oscLineSize=0.25f;
+          if (settings.oscLineSize>16.0f) settings.oscLineSize=16.0f;
+          settingsChanged=true;
+        } rightClickable
+
         // SUBSECTION WINDOWS
         CONFIG_SUBSECTION("Windows");
         bool roundedWindowsB=settings.roundedWindows;
@@ -3977,6 +3983,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.oscEscapesBoundary=conf.getInt("oscEscapesBoundary",0);
     settings.oscMono=conf.getInt("oscMono",1);
     settings.oscAntiAlias=conf.getInt("oscAntiAlias",1);
+    settings.oscLineSize=conf.getFloat("oscLineSize",1.0f);
 
     settings.channelColors=conf.getInt("channelColors",1);
     settings.channelTextColors=conf.getInt("channelTextColors",0);
@@ -4263,6 +4270,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.basicColors,0,1);
   clampSetting(settings.playbackTime,0,1);
   clampSetting(settings.shaderOsc,0,1);
+  clampSetting(settings.oscLineSize,0.25f,16.0f);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4443,6 +4451,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("oscEscapesBoundary",settings.oscEscapesBoundary);
     conf.set("oscMono",settings.oscMono);
     conf.set("oscAntiAlias",settings.oscAntiAlias);
+    conf.set("oscLineSize",settings.oscLineSize);
 
     conf.set("channelColors",settings.channelColors);
     conf.set("channelTextColors",settings.channelTextColors);
