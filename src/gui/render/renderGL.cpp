@@ -95,6 +95,7 @@ const char* sh_oscRender_srcV=
 
 // thank you akumanatt
 const char* sh_oscRender_srcF=
+  "precision highp float;\n"
   "uniform vec4 uColor;\n"
   "uniform vec2 uResolution;\n"
   "uniform float uLineWidth;\n"
@@ -116,8 +117,7 @@ const char* sh_oscRender_srcF=
   "  float slope=abs(valmax-valmin)*uResolution.y*0.5;\n"
   "  float slopeDiv=min(uAdvance,(uAdvance/slope));\n"
   "  float xRight=uv.x+((uLineWidth)/uResolution.x);\n"
-  "  for (float s=0.0; s<max(1,slope); s+=1.0) {\n"
-  "    float x=max(0.0,uv.x-(uLineWidth/uResolution.x)+s*slopeDiv);\n"
+  "  for (float x=max(0.0,uv.x-(uLineWidth/uResolution.x)); x<=xRight; x+=slopeDiv) {\n"
   "    float val=texture2D(oscVal,vec2(x,1.0)).x*uResolution.y*0.5;\n"
   "    alpha+=clamp(uLineWidth-distance(vec2(fur_fragCoord.x,fur_fragCoord.y),vec2(x*uResolution.x,val)),0.0,1.0);\n"
   "  }\n"

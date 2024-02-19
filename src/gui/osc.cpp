@@ -307,7 +307,7 @@ void FurnaceGUI::drawOsc() {
           } else {
             for (int i=0; i<oscWidth-24; i++) {
               float x=(float)i/(float)(oscWidth-24);
-              float y=oscValuesAverage[i+12]*oscZoom;
+              float y=oscValuesAverage[i+12];
               if (!settings.oscEscapesBoundary) {
                 if (y<-0.5f) y=-0.5f;
                 if (y>0.5f) y=0.5f;

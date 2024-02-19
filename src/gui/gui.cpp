@@ -4629,6 +4629,7 @@ bool FurnaceGUI::loop() {
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
       MEASURE(xyOsc,drawXYOsc());
+      MEASURE(volMeter,drawVolMeter());
       MEASURE(grooves,drawGrooves());
       MEASURE(regView,drawRegView());
     } else {

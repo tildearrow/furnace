@@ -606,7 +606,7 @@ void FurnaceGUI::drawChanOsc() {
             ImGui::ItemSize(size,style.FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID("chOscDisplay"))) {
               if (!e->isRunning()) {
-                if (settings.shaderOsc) {
+                if (rend->supportsDrawOsc() && settings.shaderOsc) {
                   memset(fft->oscTex,0,2048*sizeof(float));
                 } else {
                   for (unsigned short j=0; j<precision; j++) {
@@ -631,7 +631,7 @@ void FurnaceGUI::drawChanOsc() {
                   }
                   if (maxavg>0.0000001) maxavg=0.5/maxavg;
 
-                  if (settings.shaderOsc) {
+                  if (rend->supportsDrawOsc() && settings.shaderOsc) {
                     for (unsigned short j=0; j<precision && j<2048; j++) {
                       float y;
                       if (j>=precision/2) {
@@ -680,7 +680,7 @@ void FurnaceGUI::drawChanOsc() {
                   }
                   dcOff=(minLevel+maxLevel)*0.5f;
 
-                  if (settings.shaderOsc) {
+                  if (rend->supportsDrawOsc() && settings.shaderOsc) {
                     for (unsigned short j=0; j<precision; j++) {
                       float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
                       y-=dcOff;
