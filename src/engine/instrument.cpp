@@ -1525,6 +1525,14 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
     }
   }
 
+  if (version<193) {
+    if (type==DIV_INS_AY || type==DIV_INS_AY8930) {
+      for (int j=0; j<std.waveMacro.len; j++) {
+        std.waveMacro.val[j]++;
+      }
+    }
+  }
+
   READ_FEAT_END;
 }
 
@@ -2323,6 +2331,13 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     }
     if (!c64.dutyIsAbs) for (int j=0; j<std.dutyMacro.len; j++) {
       std.dutyMacro.val[j]-=12;
+    }
+  }
+  if (version<193) {
+    if (type==DIV_INS_AY || type==DIV_INS_AY8930) {
+      for (int j=0; j<std.waveMacro.len; j++) {
+        std.waveMacro.val[j]++;
+      }
     }
   }
   if (version>=17) {

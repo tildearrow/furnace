@@ -1529,6 +1529,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
   static float bit30Indicator[256];
   static bool doHighlight[256];
 
+  // TODO: clean up
+  assert(i.bitOffset==0);
+
   if ((i.macro->open&6)==0) {
     for (int j=0; j<256; j++) {
       bit30Indicator[j]=0;
@@ -7136,7 +7139,7 @@ void FurnaceGUI::drawInsEdit() {
             }
           }
           if (waveMax>0) {
-            macroList.push_back(FurnaceGUIMacroDesc(waveLabel,&ins->std.waveMacro,0,waveMax,(waveBitMode && ins->type!=DIV_INS_PET)?64:160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,waveBitMode,waveNames,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0)));
+            macroList.push_back(FurnaceGUIMacroDesc(waveLabel,&ins->std.waveMacro,0,waveMax,(waveBitMode && ins->type!=DIV_INS_PET)?64:160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,waveBitMode,waveNames,0));
           }
           if (panMax>0) {
             if (panSingle) {
