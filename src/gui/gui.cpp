@@ -4673,25 +4673,6 @@ bool FurnaceGUI::loop() {
       MEASURE(effectList,drawEffectList());
     }
 
-    // after done, remove
-    if (ImGui::Begin("NewCode",NULL,ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_AlwaysAutoResize)) {
-      if (rend->supportsDrawOsc()) {
-        pushToggleColors(newOscCode);
-        if (ImGui::Button("New Code")) newOscCode=!newOscCode;
-        popToggleColors();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Line size");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(120.0f*dpiScale);
-        ImGui::InputFloat("##NewCodeLS",&newOscLineWidth,1,1,"%.1f");
-      } else if (renderBackend==GUI_BACKEND_GL) {
-        ImGui::Text("Master, are you playing a trick on me?\nThat's not very nice!");
-      } else {
-        ImGui::Text("That would seem unwise given the\ncurrently selected Render Backend.");
-      }
-    }
-    ImGui::End();
-
     // release selection if mouse released
     if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && selecting) {
       if (!selectingFull) cursor=selEnd;
