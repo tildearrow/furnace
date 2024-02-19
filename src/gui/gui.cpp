@@ -6395,14 +6395,17 @@ bool FurnaceGUI::loop() {
       }
     }
     drawTimeEnd=SDL_GetPerformanceCounter();
+    swapTimeBegin=SDL_GetPerformanceCounter();
     rend->present();
     if (settings.renderClearPos) {
       rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
     }
+    swapTimeEnd=SDL_GetPerformanceCounter();
 
     layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
     drawTimeDelta=drawTimeEnd-drawTimeBegin;
+    swapTimeDelta=swapTimeEnd-swapTimeBegin;
     eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
     soloTimeout-=ImGui::GetIO().DeltaTime;
@@ -7595,6 +7598,9 @@ FurnaceGUI::FurnaceGUI():
   drawTimeBegin(0),
   drawTimeEnd(0),
   drawTimeDelta(0),
+  swapTimeBegin(0),
+  swapTimeEnd(0),
+  swapTimeDelta(0),
   eventTimeBegin(0),
   eventTimeEnd(0),
   eventTimeDelta(0),

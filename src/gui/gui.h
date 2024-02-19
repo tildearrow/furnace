@@ -2209,6 +2209,7 @@ class FurnaceGUI {
   uint64_t layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
   uint64_t renderTimeBegin, renderTimeEnd, renderTimeDelta;
   uint64_t drawTimeBegin, drawTimeEnd, drawTimeDelta;
+  uint64_t swapTimeBegin, swapTimeEnd, swapTimeDelta;
   uint64_t eventTimeBegin, eventTimeEnd, eventTimeDelta;
 
   FurnaceGUIPerfMetric perfMetrics[64];

@@ -382,6 +382,10 @@ void FurnaceGUI::drawOsc() {
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
       oscZoomSlider=!oscZoomSlider;
     }
+    if (mobileUI && ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+      oscZoomSlider=!oscZoomSlider;
+      NOTIFY_LONG_HOLD;
+    }
   }
   if (settings.oscTakesEntireWindow) {
     ImGui::PopStyleVar(3);
