@@ -1507,7 +1507,6 @@ class FurnaceGUI {
   bool safeMode;
   bool midiWakeUp;
   bool makeDrumkitMode;
-  bool newOscCode;
   bool audioEngineChanged, settingsChanged, debugFFT;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
@@ -1776,6 +1775,7 @@ class FurnaceGUI {
     int selectAssetOnLoad;
     int basicColors;
     int playbackTime;
+    int shaderOsc;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1976,6 +1976,7 @@ class FurnaceGUI {
       selectAssetOnLoad(1),
       basicColors(1),
       playbackTime(1),
+      shaderOsc(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

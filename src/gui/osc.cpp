@@ -293,7 +293,7 @@ void FurnaceGUI::drawOsc() {
 
       if ((oscWidth-24)>0) {
         if (settings.oscMono) {
-          if (rend->supportsDrawOsc() && newOscCode) {
+          if (rend->supportsDrawOsc() && settings.shaderOsc) {
             _do.gui=this;
             _do.data=&oscValuesAverage[12];
             _do.len=oscWidth-24;

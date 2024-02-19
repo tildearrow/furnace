@@ -465,6 +465,22 @@ void FurnaceGUI::drawSettings() {
         }
         popWarningColor();
 
+        ImGui::Text("Oscilloscope rendering engine:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("ImGui line plot",settings.shaderOsc==0)) {
+          settings.shaderOsc=0;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("render using Dear ImGui's built-in line drawing functions.");
+        }
+        if (ImGui::RadioButton("GLSL/HLSL (if available)",settings.shaderOsc==1)) {
+          settings.shaderOsc=1;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("render using shaders that run on the graphics card.\nonly available in OpenGL render backend.");
+        }
+        ImGui::Unindent();
+
         // SUBSECTION FILE
         CONFIG_SUBSECTION("File");
 
@@ -3805,6 +3821,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     settings.chanOscThreads=conf.getInt("chanOscThreads",0);
     settings.renderPoolThreads=conf.getInt("renderPoolThreads",0);
+    settings.shaderOsc=conf.getInt("shaderOsc",1);
     settings.showPool=conf.getInt("showPool",0);
     settings.writeInsNames=conf.getInt("writeInsNames",0);
     settings.readInsNames=conf.getInt("readInsNames",1);
@@ -4245,6 +4262,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.selectAssetOnLoad,0,1);
   clampSetting(settings.basicColors,0,1);
   clampSetting(settings.playbackTime,0,1);
+  clampSetting(settings.shaderOsc,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4270,6 +4288,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     
     conf.set("chanOscThreads",settings.chanOscThreads);
     conf.set("renderPoolThreads",settings.renderPoolThreads);
+    conf.set("shaderOsc",settings.shaderOsc);
     conf.set("showPool",settings.showPool);
     conf.set("writeInsNames",settings.writeInsNames);
     conf.set("readInsNames",settings.readInsNames);
