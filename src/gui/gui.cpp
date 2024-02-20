@@ -4675,7 +4675,7 @@ bool FurnaceGUI::loop() {
     }
 
     // NEW CODE - REMOVE WHEN DONE
-    if (ImGui::Begin("Shader Editor 2024",NULL)) {
+    if (ImGui::Begin("Shader Editor 2024",NULL,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
       ImGui::PushFont(patFont);
       ImGui::InputTextMultiline("##SHFragment",&newOscFragment,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()),ImGuiInputTextFlags_UndoRedo);
       ImGui::PopFont();
