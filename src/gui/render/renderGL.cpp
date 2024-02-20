@@ -46,6 +46,8 @@ PFNGLATTACHSHADERPROC furAttachShader=NULL;
 PFNGLBINDATTRIBLOCATIONPROC furBindAttribLocation=NULL;
 PFNGLCREATEPROGRAMPROC furCreateProgram=NULL;
 PFNGLLINKPROGRAMPROC furLinkProgram=NULL;
+PFNGLDELETEPROGRAMPROC furDeleteProgram=NULL;
+PFNGLDELETESHADERPROC furDeleteShader=NULL;
 PFNGLGETPROGRAMIVPROC furGetProgramiv=NULL;
 PFNGLUSEPROGRAMPROC furUseProgram=NULL;
 PFNGLGETUNIFORMLOCATIONPROC furGetUniformLocation=NULL;
@@ -115,9 +117,9 @@ const char* sh_oscRender_srcF=
   "  if ((fur_fragCoord.y-uLineWidth)>valmax*uResolution.y) discard;\n"
   "  if ((fur_fragCoord.y+uLineWidth)<valmin*uResolution.y) discard;\n"
   "  float slope=abs(valmax-valmin)*uResolution.y;\n"
-  "  float slopeDiv=min(1.0,1.0/slope);\n"
-  "  float xRight=fur_fragCoord.x+uLineWidth;\n"
-  "  for (float x=max(0.0,fur_fragCoord.x-uLineWidth); x<=xRight; x+=slopeDiv) {\n"
+  "  float slopeDiv=min(1.0,2.0/ceil(slope));\n"
+  "  float xRight=ceil(fur_fragCoord.x+uLineWidth);\n"
+  "  for (float x=max(0.0,floor(fur_fragCoord.x-uLineWidth)); x<=xRight; x+=slopeDiv) {\n"
   "    float val0=texture2D(oscVal,vec2(floor(x)*oneStep,1.0)).x*uResolution.y;\n"
   "    float val1=texture2D(oscVal,vec2(floor(x+1.0)*oneStep,1.0)).x*uResolution.y;\n"
   "    float val=mix(val0,val1,fract(x));\n"
@@ -437,7 +439,7 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   //C(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
   //C(glEnable(GL_BLEND));
 
-  float width=fabs(pos1.x-pos0.x);
+  //float width=fabs(pos1.x-pos0.x);
   float height=fabs(pos1.y-pos0.y)*0.5;
 
   pos0.x=(2.0f*pos0.x/canvasSize.x)-1.0f;
@@ -587,6 +589,8 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   LOAD_PROC_OPTIONAL(furLinkProgram,PFNGLLINKPROGRAMPROC,"glLinkProgram");
   LOAD_PROC_OPTIONAL(furGetProgramiv,PFNGLGETPROGRAMIVPROC,"glGetProgramiv");
   LOAD_PROC_OPTIONAL(furUseProgram,PFNGLUSEPROGRAMPROC,"glUseProgram");
+  LOAD_PROC_OPTIONAL(furDeleteProgram,PFNGLDELETEPROGRAMPROC,"glDeleteProgram");
+  LOAD_PROC_OPTIONAL(furDeleteShader,PFNGLDELETESHADERPROC,"glDeleteShader");
   LOAD_PROC_OPTIONAL(furGetUniformLocation,PFNGLGETUNIFORMLOCATIONPROC,"glGetUniformLocation");
   LOAD_PROC_OPTIONAL(furUniform1f,PFNGLUNIFORM1FPROC,"glUniform1f");
   LOAD_PROC_OPTIONAL(furUniform2f,PFNGLUNIFORM2FPROC,"glUniform2f");
@@ -628,6 +632,28 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   C(furGenBuffers(1,&quadBuf));
   C(furGenBuffers(1,&oscVertexBuf));
   return true;
+}
+
+const char* FurnaceGUIRenderGL::getStupidFragment() {
+  return sh_oscRender_srcF;
+}
+
+bool FurnaceGUIRenderGL::regenOscShader(const char* fragment) {
+  if (sh_oscRender_have) {
+    furDeleteProgram(sh_oscRender_program);
+    furDeleteShader(sh_oscRender_vertex);
+    furDeleteShader(sh_oscRender_fragment);
+  }
+  
+  if ((sh_oscRender_have=createShader(sh_oscRender_srcV,fragment,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib))==true) {
+    sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
+    sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
+    sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
+    sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
+    return true;
+  }
+
+  return false;
 }
 
 void FurnaceGUIRenderGL::initGUI(SDL_Window* win) {

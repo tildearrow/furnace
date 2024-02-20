@@ -4674,6 +4674,30 @@ bool FurnaceGUI::loop() {
       MEASURE(effectList,drawEffectList());
     }
 
+    // NEW CODE - REMOVE WHEN DONE
+    if (ImGui::Begin("Shader Editor 2024",NULL)) {
+      ImGui::PushFont(patFont);
+      ImGui::InputTextMultiline("##SHFragment",&newOscFragment,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()),ImGuiInputTextFlags_UndoRedo);
+      ImGui::PopFont();
+      if (ImGui::Button("Save")) {
+        FILE* f=ps_fopen("/storage/emulated/0/osc.fsh","w");
+        if (f==NULL) {
+          showError("Something happened");
+        } else {
+          fwrite(newOscFragment.c_str(),1,newOscFragment.size(),f);
+          fclose(f);
+          showError("Saved!");
+        }
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Apply")) {
+        if (!rend->regenOscShader(newOscFragment.c_str())) {
+          showError("Of course you screwed it up, again!");
+        }
+      }
+    }
+    ImGui::End();
+
     // release selection if mouse released
     if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && selecting) {
       if (!selectingFull) cursor=selEnd;
@@ -6949,6 +6973,9 @@ bool FurnaceGUI::init() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   rend->initGUI(sdlWin);
+
+  // NEW CODE - REMOVE WHEN DONE
+  newOscFragment=rend->getStupidFragment();
 
   applyUISettings();
 
