@@ -2453,14 +2453,14 @@ String FurnaceGUI::getLastError() {
       macroDragLastY=y; \
       if (macroDragInitialValueSet) { \
         if (macroDragInitialValue) { \
-          t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(~(1<<y)))-macroDragBitOff; \
+          t[x]=(((t[x])&((1<<macroDragMax)-1))&(~(1<<y))); \
         } else { \
-          t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))|(1<<y))-macroDragBitOff; \
+          t[x]=(((t[x])&((1<<macroDragMax)-1))|(1<<y)); \
         } \
       } else { \
-        macroDragInitialValue=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(1<<y)); \
+        macroDragInitialValue=(((t[x])&((1<<macroDragMax)-1))&(1<<y)); \
         macroDragInitialValueSet=true; \
-        t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))^(1<<y))-macroDragBitOff; \
+        t[x]=(((t[x])&((1<<macroDragMax)-1))^(1<<y)); \
       } \
       t[x]&=(1<<macroDragMax)-1; \
     } \
@@ -7547,7 +7547,6 @@ FurnaceGUI::FurnaceGUI():
   macroDragMax(0),
   macroDragLastX(-1),
   macroDragLastY(-1),
-  macroDragBitOff(0),
   macroDragScroll(0),
   macroDragBitMode(false),
   macroDragInitialValueSet(false),

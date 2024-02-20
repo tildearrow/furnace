@@ -1529,9 +1529,6 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
   static float bit30Indicator[256];
   static bool doHighlight[256];
 
-  // TODO: clean up
-  assert(i.bitOffset==0);
-
   if ((i.macro->open&6)==0) {
     for (int j=0; j<256; j++) {
       bit30Indicator[j]=0;
@@ -1540,7 +1537,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         asInt[j]=0;
       } else {
         asFloat[j]=deBit30(i.macro->val[j+macroDragScroll]);
-        asInt[j]=deBit30(i.macro->val[j+macroDragScroll])+i.bitOffset;
+        asInt[j]=deBit30(i.macro->val[j+macroDragScroll]);
         if (i.bit30) bit30Indicator[j]=enBit30(i.macro->val[j+macroDragScroll]);
       }
       if (j+macroDragScroll>=i.macro->len || (j+macroDragScroll>i.macro->rel && i.macro->loop<i.macro->rel)) {
@@ -1605,7 +1602,6 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         macroDragMin=i.min+i.macro->vScroll;
         macroDragMax=i.min+i.macro->vScroll+i.macro->vZoom;
       }
-      macroDragBitOff=i.bitOffset;
       macroDragBitMode=i.isBitfield;
       macroDragInitialValueSet=false;
       macroDragInitialValue=false;
@@ -5360,8 +5356,8 @@ void FurnaceGUI::drawInsEdit() {
                   macroList.push_back(FurnaceGUIMacroDesc("Block",&ins->std.opMacros[ordi].ssgMacro,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER],true));
                   macroList.push_back(FurnaceGUIMacroDesc("FreqNum",&ins->std.opMacros[ordi].dtMacro,0,1023,160,uiColors[GUI_COLOR_MACRO_OTHER]));
                 } else {
-                  macroList.push_back(FurnaceGUIMacroDesc("Op. Arpeggio",&ins->std.opMacros[ordi].ssgMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.opMacros[ordi].ssgMacro.val,true));
-                  macroList.push_back(FurnaceGUIMacroDesc("Op. Pitch",&ins->std.opMacros[ordi].dtMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,0,false,NULL,false,true));
+                  macroList.push_back(FurnaceGUIMacroDesc("Op. Arpeggio",&ins->std.opMacros[ordi].ssgMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.opMacros[ordi].ssgMacro.val,true));
+                  macroList.push_back(FurnaceGUIMacroDesc("Op. Pitch",&ins->std.opMacros[ordi].dtMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
                 }
 
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),&ins->std.opMacros[ordi].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
@@ -6130,7 +6126,6 @@ void FurnaceGUI::drawInsEdit() {
             macroDragAreaSize=modTableSize;
             macroDragMin=-4;
             macroDragMax=3;
-            macroDragBitOff=0;
             macroDragBitMode=false;
             macroDragInitialValueSet=false;
             macroDragInitialValue=false;
@@ -6182,7 +6177,6 @@ void FurnaceGUI::drawInsEdit() {
             macroDragAreaSize=modTableSize;
             macroDragMin=-128;
             macroDragMax=127;
-            macroDragBitOff=0;
             macroDragBitMode=false;
             macroDragInitialValueSet=false;
             macroDragInitialValue=false;
@@ -7119,7 +7113,7 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
           if (ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295 && ins->type!=DIV_INS_ADPCMA) {
-            macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.arpMacro.val));
+            macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
           }
           if (dutyMax>0) {
             if (ins->type==DIV_INS_MIKEY) {
@@ -7139,7 +7133,7 @@ void FurnaceGUI::drawInsEdit() {
             }
           }
           if (waveMax>0) {
-            macroList.push_back(FurnaceGUIMacroDesc(waveLabel,&ins->std.waveMacro,0,waveMax,(waveBitMode && ins->type!=DIV_INS_PET)?64:160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,waveBitMode,waveNames,0));
+            macroList.push_back(FurnaceGUIMacroDesc(waveLabel,&ins->std.waveMacro,0,waveMax,(waveBitMode && ins->type!=DIV_INS_PET)?64:160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,waveBitMode,waveNames));
           }
           if (panMax>0) {
             if (panSingle) {

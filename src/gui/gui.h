@@ -1263,21 +1263,19 @@ struct FurnaceGUIMacroDesc {
   const char** bitfieldBits;
   const char* modeName;
   ImVec4 color;
-  unsigned int bitOffset;
   bool isBitfield, blockMode, bit30;
   String (*hoverFunc)(int,float,void*);
   void* hoverFuncUser;
   bool isArp;
   bool isPitch;
 
-  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float,void*)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false, void* hfu=NULL, bool isArp=false, bool isPitch=false):
+  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float,void*)=NULL, bool bitfield=false, const char** bfVal=NULL, bool bit30Special=false, void* hfu=NULL, bool isArp=false, bool isPitch=false):
     macro(m),
     height(macroHeight),
     displayName(name),
     bitfieldBits(bfVal),
     modeName(mName),
     color(col),
-    bitOffset(bitOff),
     isBitfield(bitfield),
     blockMode(block),
     bit30(bit30Special),
@@ -2165,7 +2163,6 @@ class FurnaceGUI {
   int macroDragLen;
   int macroDragMin, macroDragMax;
   int macroDragLastX, macroDragLastY;
-  int macroDragBitOff;
   int macroDragScroll;
   bool macroDragBitMode;
   bool macroDragInitialValueSet;
