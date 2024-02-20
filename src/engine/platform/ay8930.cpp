@@ -256,7 +256,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
     }
     if (chan[i].std.wave.had) {
       if (!(chan[i].nextPSGMode.val&8)) {
-        chan[i].nextPSGMode.val=(chan[i].std.wave.val+1)&7;
+        chan[i].nextPSGMode.val=chan[i].std.wave.val&7;
         if (chan[i].active) {
           chan[i].curPSGMode.val=chan[i].nextPSGMode.val;
         }

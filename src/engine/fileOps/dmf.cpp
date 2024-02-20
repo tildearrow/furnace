@@ -558,6 +558,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           } else {
             ins->std.waveMacro.val[j]=reader.readI();
           }
+
+          // piece of crap offset by 1
+          if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
+            ins->std.waveMacro.val[j]++;
+          }
         }
         if (ins->std.waveMacro.len>0) {
           ins->std.waveMacro.open=true;
@@ -1435,7 +1440,12 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       if (realWaveMacroLen>127) realWaveMacroLen=127;
       w->writeC(realWaveMacroLen);
       for (int j=0; j<realWaveMacroLen; j++) {
-        w->writeI(i->std.waveMacro.val[j]);
+        // piece of crap offset by 1
+        if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
+          w->writeI(i->std.waveMacro.val[j]-1);
+        } else {
+          w->writeI(i->std.waveMacro.val[j]);
+        }
       }
       if (realWaveMacroLen>0) {
         w->writeC(i->std.waveMacro.loop);

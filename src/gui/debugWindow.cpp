@@ -615,6 +615,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("audio: %dµs",lastProcTime);
       ImGui::Text("render: %.0fµs",(double)renderTimeDelta/perfFreq);
       ImGui::Text("draw: %.0fµs",(double)drawTimeDelta/perfFreq);
+      ImGui::Text("swap: %.0fµs",(double)swapTimeDelta/perfFreq);
       ImGui::Text("layout: %.0fµs",(double)layoutTimeDelta/perfFreq);
       ImGui::Text("event: %.0fµs",(double)eventTimeDelta/perfFreq);
       ImGui::Separator();
