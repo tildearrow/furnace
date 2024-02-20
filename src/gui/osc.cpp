@@ -110,7 +110,7 @@ void FurnaceGUI::readOsc() {
       avg+=oscValues[j][i];
     }
     avg/=e->getAudioDescGot().outChans;
-    oscValuesAverage[i]=avg*oscZoom;
+    oscValuesAverage[i]=avg*oscZoom*2.0f;
   }
 
   /*for (int i=0; i<oscWidth; i++) {
