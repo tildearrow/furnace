@@ -4284,12 +4284,15 @@ bool FurnaceGUI::loop() {
               if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
                 DivSystem picked=systemPicker();
                 if (picked!=DIV_SYSTEM_NULL) {
-                  e->changeSystem(i,picked,preserveChanPos);
-                  MARK_MODIFIED;
-                  if (e->song.autoSystem) {
-                    autoDetectSystem();
+                  if (e->changeSystem(i,picked,preserveChanPos)) {
+                    MARK_MODIFIED;
+                    if (e->song.autoSystem) {
+                      autoDetectSystem();
+                    }
+                    updateWindowTitle();
+                  } else {
+                    showError("cannot change chip! ("+e->getLastError()+")");
                   }
-                  updateWindowTitle();
                   ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();

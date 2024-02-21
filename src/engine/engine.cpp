@@ -1003,7 +1003,16 @@ void DivEngine::delUnusedSamples() {
   BUSY_END;
 }
 
-void DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
+bool DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
+  if (index<0 || index>=song.systemLen) {
+    lastError="invalid index";
+    return false;
+  }
+  if (chans-getChannelCount(song.system[index])+getChannelCount(which)>DIV_MAX_CHANS) {
+    lastError=fmt::sprintf("max number of total channels is %d",DIV_MAX_CHANS);
+    return false;
+  }
+
   int chanCount=chans;
   quitDispatch();
   BUSY_BEGIN;
@@ -1045,6 +1054,8 @@ void DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
   renderSamples();
   reset();
   BUSY_END;
+
+  return true;
 }
 
 bool DivEngine::addSystem(DivSystem which) {
@@ -1089,6 +1100,65 @@ bool DivEngine::addSystem(DivSystem which) {
         }
       }
     }
+  }
+  saveLock.unlock();
+  renderSamples();
+  reset();
+  BUSY_END;
+  return true;
+}
+
+bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
+  if (index<0 || index>=song.systemLen) {
+    lastError="invalid index";
+    return false;
+  }
+  if (song.systemLen>DIV_MAX_CHIPS) {
+    lastError=fmt::sprintf("max number of systems is %d",DIV_MAX_CHIPS);
+    return false;
+  }
+  if (chans+getChannelCount(song.system[index])>DIV_MAX_CHANS) {
+    lastError=fmt::sprintf("max number of total channels is %d",DIV_MAX_CHANS);
+    return false;
+  }
+  quitDispatch();
+  BUSY_BEGIN;
+  saveLock.lock();
+  song.system[song.systemLen]=song.system[index];
+  song.systemVol[song.systemLen]=song.systemVol[index];
+  song.systemPan[song.systemLen]=song.systemPan[index];
+  song.systemPanFR[song.systemLen]=song.systemPanFR[index];
+  song.systemFlags[song.systemLen++]=song.systemFlags[index];
+  recalcChans();
+  saveLock.unlock();
+  BUSY_END;
+  initDispatch();
+  BUSY_BEGIN;
+  saveLock.lock();
+  if (song.patchbayAuto) {
+    autoPatchbay();
+  } else {
+    int i=song.systemLen-1;
+    if (disCont[i].dispatch!=NULL) {
+      unsigned int outs=disCont[i].dispatch->getOutputCount();
+      if (outs>16) outs=16;
+      if (outs<2) {
+        song.patchbay.reserve(DIV_MAX_OUTPUTS);
+        for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
+          song.patchbay.push_back((i<<20)|j);
+        }
+      } else {
+        if (outs>0) song.patchbay.reserve(outs);
+        for (unsigned int j=0; j<outs; j++) {
+          song.patchbay.push_back((i<<20)|(j<<16)|j);
+        }
+      }
+    }
+  }
+
+  // duplicate patterns
+  if (pat) {
+    
   }
   saveLock.unlock();
   renderSamples();

@@ -1155,10 +1155,13 @@ class DivEngine {
     void delUnusedSamples();
 
     // change system
-    void changeSystem(int index, DivSystem which, bool preserveOrder=true);
+    bool changeSystem(int index, DivSystem which, bool preserveOrder=true);
 
     // add system
     bool addSystem(DivSystem which);
+
+    // duplicate system
+    bool duplicateSystem(int index, bool pat=true, bool end=false);
 
     // remove system
     bool removeSystem(int index, bool preserveOrder=true);
