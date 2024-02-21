@@ -40,6 +40,8 @@ void FurnaceGUI::drawSysManager() {
   }
   if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags)) {
     ImGui::Checkbox("Preserve channel order",&preserveChanPos);
+    ImGui::SameLine();
+    ImGui::Checkbox("Clone channel data",&sysDupCloneChannels);
     if (ImGui::BeginTable("SystemList",3)) {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
@@ -84,7 +86,7 @@ void FurnaceGUI::drawSysManager() {
         }
         ImGui::TableNextColumn();
         if (ImGui::Button("Clone##SysDup")) {
-          if (!e->duplicateSystem(i)) {
+          if (!e->duplicateSystem(i,sysDupCloneChannels)) {
             showError("cannot clone chip! ("+e->getLastError()+")");
           } else {
             MARK_MODIFIED;

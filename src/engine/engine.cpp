@@ -1158,7 +1158,33 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
 
   // duplicate patterns
   if (pat) {
-    
+    int srcChan=0;
+    int destChan=0;
+    for (int i=0; i<index; i++) {
+      srcChan+=getChannelCount(song.system[i]);
+    }
+    for (int i=0; i<song.systemLen-1; i++) {
+      destChan+=getChannelCount(song.system[i]);
+    }
+    for (DivSubSong* i: song.subsong) {
+      for (int j=0; j<getChannelCount(song.system[index]); j++) {
+        i->pat[destChan+j].effectCols=i->pat[srcChan+j].effectCols;
+        i->chanShow[destChan+j]=i->chanShow[srcChan+j];
+        i->chanShowChanOsc[destChan+j]=i->chanShowChanOsc[srcChan+j];
+        i->chanCollapse[destChan+j]=i->chanCollapse[srcChan+j];
+        i->chanName[destChan+j]=i->chanName[srcChan+j];
+        i->chanShortName[destChan+j]=i->chanShortName[srcChan+j];
+        for (int k=0; k<DIV_MAX_PATTERNS; k++) {
+          if (i->pat[srcChan+j].data[k]!=NULL) {
+            i->pat[srcChan+j].data[k]->copyOn(i->pat[destChan+j].getPattern(k,true));
+          }
+        }
+
+        for (int k=0; k<DIV_MAX_PATTERNS; k++) {
+          i->orders.ord[destChan+j][k]=i->orders.ord[srcChan+j][k];
+        }
+      }
+    }
   }
   saveLock.unlock();
   renderSamples();

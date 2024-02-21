@@ -7318,6 +7318,7 @@ FurnaceGUI::FurnaceGUI():
   displayPalette(false),
   fullScreen(false),
   preserveChanPos(false),
+  sysDupCloneChannels(true),
   wantScrollList(false),
   noteInputPoly(true),
   notifyWaveChange(false),
