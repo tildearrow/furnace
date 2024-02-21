@@ -1035,7 +1035,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
         else 
         {
           unsigned int val=0;
-          if (sscanf(note,"%2X",&val)!=1) 
+          if (sscanf(note,"%2d",&val)!=1) 
           {
             invalidData=true;
             break;
@@ -1043,7 +1043,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
 
           if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || pat->data[j][iFine+1]==-1) 
           {
-            pat->data[j][iFine+1]=val;
+            pat->data[j][iFine+1]=val - 1;
           }
         }
       }
