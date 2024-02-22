@@ -610,6 +610,9 @@ void FurnaceGUI::drawMobileControls() {
           mobileMenuPos=0.0f;
           aboutOpen=true;
         }
+        if (ImGui::Button("Shader Editor")) {
+          shaderEditor=!shaderEditor;
+        }
         if (ImGui::Button("Switch to Desktop Mode")) {
           toggleMobileUI(!mobileUI);
         }

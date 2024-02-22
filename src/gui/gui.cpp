@@ -4423,6 +4423,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
         if (ImGui::MenuItem("inspector")) inspectorOpen=!inspectorOpen;
+        if (ImGui::MenuItem("shader editor")) shaderEditor=!shaderEditor;
         if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
         if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
           aboutOpen=true;
@@ -4678,28 +4679,30 @@ bool FurnaceGUI::loop() {
     }
 
     // NEW CODE - REMOVE WHEN DONE
-    if (ImGui::Begin("Shader Editor 2024",NULL,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
-      ImGui::PushFont(patFont);
-      ImGui::InputTextMultiline("##SHFragment",&newOscFragment,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()),ImGuiInputTextFlags_UndoRedo);
-      ImGui::PopFont();
-      if (ImGui::Button("Save")) {
-        FILE* f=ps_fopen("/storage/emulated/0/osc.fsh","w");
-        if (f==NULL) {
-          showError("Something happened");
-        } else {
-          fwrite(newOscFragment.c_str(),1,newOscFragment.size(),f);
-          fclose(f);
-          showError("Saved!");
+    if (shaderEditor) {
+      if (ImGui::Begin("Shader Editor 2024",&shaderEditor,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+        ImGui::PushFont(patFont);
+        ImGui::InputTextMultiline("##SHFragment",&newOscFragment,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()),ImGuiInputTextFlags_UndoRedo);
+        ImGui::PopFont();
+        if (ImGui::Button("Save")) {
+          FILE* f=ps_fopen("/storage/emulated/0/osc.fsh","w");
+          if (f==NULL) {
+            showError("Something happened");
+          } else {
+            fwrite(newOscFragment.c_str(),1,newOscFragment.size(),f);
+            fclose(f);
+            showError("Saved!");
+          }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Apply")) {
+          if (!rend->regenOscShader(newOscFragment.c_str())) {
+            showError("Of course you screwed it up, again!");
+          }
         }
       }
-      ImGui::SameLine();
-      if (ImGui::Button("Apply")) {
-        if (!rend->regenOscShader(newOscFragment.c_str())) {
-          showError("Of course you screwed it up, again!");
-        }
-      }
+      ImGui::End();
     }
-    ImGui::End();
 
     // release selection if mouse released
     if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && selecting) {
@@ -7329,6 +7332,7 @@ FurnaceGUI::FurnaceGUI():
   snesFilterHex(false),
   modTableHex(false),
   displayEditString(false),
+  shaderEditor(false),
   mobileEdit(false),
   killGraphics(false),
   safeMode(false),
