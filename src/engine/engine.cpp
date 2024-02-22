@@ -1190,6 +1190,25 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
   renderSamples();
   reset();
   BUSY_END;
+
+  if (!end) {
+    quitDispatch();
+    BUSY_BEGIN;
+    saveLock.lock();
+
+    for (int i=song.systemLen-1; i>index; i--) {
+      swapSystemUnsafe(i,i-1,false);
+    }
+
+    recalcChans();
+    saveLock.unlock();
+    BUSY_END;
+    initDispatch();
+    BUSY_BEGIN;
+    renderSamples();
+    reset();
+    BUSY_END;
+  }
   return true;
 }
 
@@ -1247,24 +1266,7 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
   return true;
 }
 
-bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
-  if (src==dest) {
-    lastError="source and destination are equal";
-    return false;
-  }
-  if (src<0 || src>=song.systemLen) {
-    lastError="invalid source index";
-    return false;
-  }
-  if (dest<0 || dest>=song.systemLen) {
-    lastError="invalid destination index";
-    return false;
-  }
-  //int chanCount=chans;
-  quitDispatch();
-  BUSY_BEGIN;
-  saveLock.lock();
-
+void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
   if (!preserveOrder) {
     // move channels
     unsigned char unswappedChannels[DIV_MAX_CHANS];
@@ -1380,6 +1382,27 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
       i=(i&(~0xfff00000))|((unsigned int)src<<20);
     }
   }
+}
+
+bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
+  if (src==dest) {
+    lastError="source and destination are equal";
+    return false;
+  }
+  if (src<0 || src>=song.systemLen) {
+    lastError="invalid source index";
+    return false;
+  }
+  if (dest<0 || dest>=song.systemLen) {
+    lastError="invalid destination index";
+    return false;
+  }
+  //int chanCount=chans;
+  quitDispatch();
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  swapSystemUnsafe(src,dest,preserveOrder);
 
   recalcChans();
   saveLock.unlock();
