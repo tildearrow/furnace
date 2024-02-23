@@ -23,7 +23,26 @@
 #include "IconsFontAwesome4.h"
 #include <SDL_timer.h>
 #include <fmt/printf.h>
-#include <imgui.h>
+#include "imgui.h"
+#include "imgui_internal.h"
+
+PendingDrawOsc _debugDo;
+static float oscDebugData[2048];
+static int oscDebugLen=800;
+static int oscDebugHeight=400;
+static float oscDebugLineSize=1.0;
+static float oscDebugMin=-1.0;
+static float oscDebugMax=1.0;
+static float oscDebugPower=1.0;
+static int oscDebugRepeat=1;
+
+static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+  if (cmd!=NULL) {
+    if (cmd->UserCallbackData!=NULL) {
+      ((FurnaceGUI*)(((PendingDrawOsc*)cmd->UserCallbackData)->gui))->runPendingDrawOsc((PendingDrawOsc*)cmd->UserCallbackData);
+    }
+  }
+}
 
 void FurnaceGUI::drawDebug() {
   static int bpOrder;
@@ -589,6 +608,56 @@ void FurnaceGUI::drawDebug() {
         ImGui::Text("%d: %s",(int)i,recentFile[i].c_str());
       }
       ImGui::Unindent();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Osc Render Test")) {
+      ImGui::InputInt("Length",&oscDebugLen);
+      ImGui::InputInt("Height",&oscDebugHeight);
+      ImGui::InputFloat("Line Size",&oscDebugLineSize);
+      ImGui::InputFloat("Min",&oscDebugMin);
+      ImGui::InputFloat("Max",&oscDebugMax);
+      ImGui::InputFloat("Power",&oscDebugPower);
+      ImGui::InputInt("Repeat",&oscDebugRepeat);
+
+      if (oscDebugLen<1) oscDebugLen=1;
+      if (oscDebugLen>2048) oscDebugLen=2048;
+
+      if (oscDebugHeight<1) oscDebugHeight=1;
+      if (oscDebugHeight>2048) oscDebugHeight=2048;
+
+      memset(oscDebugData,0,2048*sizeof(float));
+      for (int i=0; i<oscDebugLen; i++) {
+        oscDebugData[i]=oscDebugMin+(oscDebugMax-oscDebugMin)*pow((float)((i*oscDebugRepeat)%oscDebugLen)/(float)oscDebugLen,oscDebugPower);
+      }
+      
+      if (rend->supportsDrawOsc()) {
+        ImDrawList* dl=ImGui::GetWindowDrawList();
+        ImGuiWindow* window=ImGui::GetCurrentWindow();
+
+        ImVec2 size=ImVec2(oscDebugLen,oscDebugHeight);
+        ImVec2 minArea=window->DC.CursorPos;
+        ImVec2 maxArea=ImVec2(
+          minArea.x+size.x,
+          minArea.y+size.y
+        );
+        ImRect rect=ImRect(minArea,maxArea);
+        ImGuiStyle& style=ImGui::GetStyle();
+        ImGui::ItemSize(size,style.FramePadding.y);
+        if (ImGui::ItemAdd(rect,ImGui::GetID("debugOsc"))) {
+          _debugDo.gui=this;
+          _debugDo.data=oscDebugData;
+          _debugDo.len=oscDebugLen;
+          _debugDo.pos0=rect.Min;
+          _debugDo.pos1=rect.Max;
+          _debugDo.color=ImVec4(1.0,1.0,1.0,1.0);
+          _debugDo.lineSize=dpiScale*oscDebugLineSize;
+
+          dl->AddCallback(_drawOsc,&_debugDo);
+          dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
+        }
+      } else {
+        ImGui::Text("Render Backend does not support osc rendering.");
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("User Interface")) {

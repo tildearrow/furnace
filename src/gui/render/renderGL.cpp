@@ -116,7 +116,7 @@ const char* sh_oscRender_srcF=
   "  }\n"
   "  if ((fur_fragCoord.y-uLineWidth)>valmax*uResolution.y) discard;\n"
   "  if ((fur_fragCoord.y+uLineWidth)<valmin*uResolution.y) discard;\n"
-  "  float slope=sqrt(abs(valmax-valmin)*uResolution.y);\n"
+  "  float slope=abs(valmax-valmin)*uResolution.y;\n"
   "  float slopeDiv=min(1.0,1.0/ceil(slope));\n"
   "  float xRight=ceil(fur_fragCoord.x+uLineWidth);\n"
   "  for (float x=max(0.0,floor(fur_fragCoord.x-uLineWidth)); x<=xRight; x+=slopeDiv) {\n"
@@ -605,13 +605,13 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   C(glGenTextures(1,&oscDataTex));
 #ifdef USE_GLES
   C(glBindTexture(GL_TEXTURE_2D,oscDataTex));
-  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
-  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
+  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
   C(glTexImage2D(GL_TEXTURE_2D,0,GL_RED_EXT,2048,1,0,GL_RED_EXT,GL_FLOAT,NULL));
 #else
   C(glBindTexture(GL_TEXTURE_1D,oscDataTex));
-  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
-  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
+  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
   C(glTexImage1D(GL_TEXTURE_1D,0,GL_RED,2048,0,GL_RED,GL_FLOAT,NULL));
 #endif
   C(furActiveTexture(GL_TEXTURE0));
