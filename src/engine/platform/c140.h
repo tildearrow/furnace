@@ -75,6 +75,7 @@ class DivPlatformC140: public DivDispatch {
   struct c140_t c140;
   struct c219_t c219;
   unsigned char regPool[512];
+  char bankLabel[4][4];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
@@ -87,6 +88,7 @@ class DivPlatformC140: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
+    DivChannelPair getPaired(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
