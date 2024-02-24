@@ -642,6 +642,7 @@ void DivEngine::swapChannels(int src, int dest) {
   curSubSong->chanName[src]=curSubSong->chanName[dest];
   curSubSong->chanShortName[src]=curSubSong->chanShortName[dest];
   curSubSong->chanShow[src]=curSubSong->chanShow[dest];
+  curSubSong->chanShowChanOsc[src]=curSubSong->chanShowOsc[dest];
   curSubSong->chanCollapse[src]=curSubSong->chanCollapse[dest];
   curSubSong->chanName[dest]=prevChanName;
   curSubSong->chanShortName[dest]=prevChanShortName;
