@@ -7265,6 +7265,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_DAVE) {
             ex1Max=4;
           }
+          if (ins->type==DIV_INS_CPT100) {
+            ex1Max=255;
+          }
 
           int panMin=0;
           int panMax=0;
@@ -7471,6 +7474,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Group Attack",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_DAVE) {
               macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,daveControlBits));
+            } else if (ins->type==DIV_INS_CPT100) {
+              macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }

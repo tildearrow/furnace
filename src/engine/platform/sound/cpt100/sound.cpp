@@ -39,7 +39,7 @@ public:
     }
 
     double modulate(double theta, int wf) {
-        return sintable.at(wf).at(((int)(theta*256))%256);
+        return sintable.at(wf).at((int)((theta*256))&0xff);
     }
 
     double generateFMWave(double t1, double v1, double t2, double v2, double t3, double v3, double t4, double v4, int w1, int w2, int w3, int w4) {
