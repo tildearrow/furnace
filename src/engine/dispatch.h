@@ -430,6 +430,38 @@ struct DivChannelModeHints {
     count(0) {}
 };
 
+enum DivMemoryEntryType {
+  DIV_MEMORY_FREE=0, // shouldn't be used
+  DIV_MEMORY_PADDING,
+  DIV_MEMORY_RESERVED,
+  DIV_MEMORY_SAMPLE,
+  DIV_MEMORY_SAMPLE_ALT1,
+  DIV_MEMORY_SAMPLE_ALT2,
+  DIV_MEMORY_SAMPLE_ALT3,
+  DIV_MEMORY_WAVE_RAM,
+  DIV_MEMORY_WAVE_STATIC,
+  DIV_MEMORY_ECHO,
+  DIV_MEMORY_BANK0,
+  DIV_MEMORY_BANK1,
+  DIV_MEMORY_BANK2,
+  DIV_MEMORY_BANK3,
+  DIV_MEMORY_BANK4,
+  DIV_MEMORY_BANK5,
+  DIV_MEMORY_BANK6,
+  DIV_MEMORY_BANK7,
+};
+
+struct DivMemoryEntry {
+  DivMemoryEntryType type;
+  String name;
+  int asset;
+  size_t begin, end;
+};
+
+struct DivMemoryComposition {
+  std::vector<DivMemoryEntry> entries;
+};
+
 class DivEngine;
 class DivMacroInt;
 
