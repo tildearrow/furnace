@@ -287,6 +287,7 @@ void DivPlatformSCC::forceIns() {
     if (isPlus || i<3) {
       updateWave(i);
     }
+    rWrite(regBase+10+i,chan[i].outVol);
   }
   if (!isPlus) {
     if (lastUpdated34>=3) {

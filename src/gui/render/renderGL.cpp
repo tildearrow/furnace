@@ -46,6 +46,8 @@ PFNGLATTACHSHADERPROC furAttachShader=NULL;
 PFNGLBINDATTRIBLOCATIONPROC furBindAttribLocation=NULL;
 PFNGLCREATEPROGRAMPROC furCreateProgram=NULL;
 PFNGLLINKPROGRAMPROC furLinkProgram=NULL;
+PFNGLDELETEPROGRAMPROC furDeleteProgram=NULL;
+PFNGLDELETESHADERPROC furDeleteShader=NULL;
 PFNGLGETPROGRAMIVPROC furGetProgramiv=NULL;
 PFNGLUSEPROGRAMPROC furUseProgram=NULL;
 PFNGLGETUNIFORMLOCATIONPROC furGetUniformLocation=NULL;
@@ -95,38 +97,40 @@ const char* sh_oscRender_srcV=
 
 // thank you akumanatt
 const char* sh_oscRender_srcF=
+  "precision highp float;\n"
   "uniform vec4 uColor;\n"
   "uniform vec2 uResolution;\n"
   "uniform float uLineWidth;\n"
-  "uniform float uAdvance;\n"
   "uniform sampler2D oscVal;\n"
   "varying vec2 fur_fragCoord;\n"
+  "const float oneStep=1.0/2048.0;\n"
   "void main() {\n"
-  "  vec2 uv = fur_fragCoord/uResolution;\n"
-  "  uv.y *= 2.0;\n"
-  "  vec2 tresh = vec2(1.0,1.0)/uResolution;\n"
-  "  float x = uv.x-uAdvance*uLineWidth*0.5;\n"
-  "  float xMax = uv.x+uAdvance*uLineWidth*0.5;\n"
-  "  float alphaX = 0.0;\n"
-  "  float valmax = -1024.0;\n"
-  "  float valmin = 1024.0;\n"
-  "  for (; x<xMax; x+=uAdvance) {\n"
-  "    float val=texture2D(oscVal,vec2(x,1.0)).x;\n"
-  "    alphaX+=0;\n"
+  "  float alpha=0.0;\n"
+  "  float xMax=ceil(fur_fragCoord.x+uLineWidth);\n"
+  "  float valmax=-1024.0;\n"
+  "  float valmin=1024.0;\n"
+  "  for (float x=floor(fur_fragCoord.x-uLineWidth); x<=xMax; x+=1.0) {\n"
+  "    float val=texture2D(oscVal,vec2(x*oneStep,1.0)).x;\n"
   "    if (val>valmax) valmax=val;\n"
   "    if (val<valmin) valmin=val;\n"
   "  }\n"
-  "  float slope = abs(valmax-valmin)*uResolution.y*0.5;\n"
-  "  if (uv.y>valmin) {\n"
-  "    alpha=valmax*uResolution.y*0.5-fur_fragCoord.y+uLineWidth*0.5;\n"
-  "  } else {\n"
-  "    alpha=fur_fragCoord.y-valmin*uResolution.y*0.5+uLineWidth*0.5;\n"
+  "  if ((fur_fragCoord.y-uLineWidth)>valmax*uResolution.y) discard;\n"
+  "  if ((fur_fragCoord.y+uLineWidth)<valmin*uResolution.y) discard;\n"
+  "  float slope=abs(valmax-valmin)*uResolution.y;\n"
+  "  float slopeMul=pow(2.0,ceil(log2(ceil(slope))));\n"
+  "  float slopeDiv=min(1.0,1.0/slopeMul);\n"
+  "  float xRight=ceil(fur_fragCoord.x+uLineWidth);\n"
+  "  for (float x=max(0.0,floor(fur_fragCoord.x-uLineWidth)); x<=xRight; x+=slopeDiv) {\n"
+  "    float val0=texture2D(oscVal,vec2(floor(x)*oneStep,1.0)).x;\n"
+  "    float val1=texture2D(oscVal,vec2(floor(x+1.0)*oneStep,1.0)).x;\n"
+  "    float val=mix(val0,val1,fract(x))*uResolution.y;\n"
+  "    alpha+=clamp(uLineWidth-distance(vec2(fur_fragCoord.x,fur_fragCoord.y),vec2(x,val)),0.0,1.0);\n"
   "  }\n"
-  "  alpha=clamp(alpha,0.0,1.0);\n"
   "  if (slope>1.0) {\n"
-  "    alpha*=clamp(alphaX,0.0,1.0);\n"
+  "    gl_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha*(1.0+uResolution.y*pow(slope/uResolution.y,2.0))/(uLineWidth*slopeMul),0.0,1.0));\n"
+  "  } else {\n"
+  "    gl_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha/uLineWidth,0.0,1.0));\n"
   "  }\n"
-  "  gl_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha,0.0,1.0));\n"
   "}\n";
 #else
 const char* sh_wipe_srcV=
@@ -160,37 +164,36 @@ const char* sh_oscRender_srcF=
   "uniform vec4 uColor;\n"
   "uniform vec2 uResolution;\n"
   "uniform float uLineWidth;\n"
-  "uniform float uAdvance;\n"
   "uniform sampler1D oscVal;\n"
   "in vec2 fur_fragCoord;\n"
   "out vec4 fur_FragColor;\n"
   "void main() {\n"
-  "  vec2 uv = fur_fragCoord/uResolution;\n"
-  "  uv.y *= 2.0;\n"
-  "  vec2 tresh = vec2(1.0,1.0)/uResolution;\n"
-  "  float x = uv.x-uAdvance*uLineWidth*0.5;\n"
-  "  float xMax = uv.x+uAdvance*uLineWidth*0.5;\n"
-  "  float alphaX = 0.0;\n"
-  "  float alpha = 0.0;\n"
-  "  float valmax = -1024.0;\n"
-  "  float valmin = 1024.0;\n"
-  "  for (; x<xMax; x+=uAdvance) {\n"
-  "    float val=texture(oscVal,x).x;\n"
-  "    alphaX+=0;\n"
+  "  float alpha=0.0;\n"
+  "  float xMax=ceil(fur_fragCoord.x+uLineWidth);\n"
+  "  float valmax=-1024.0;\n"
+  "  float valmin=1024.0;\n"
+  "  for (float x=floor(fur_fragCoord.x-uLineWidth); x<=xMax; x+=1.0) {\n"
+  "    float val=texelFetch(oscVal,int(x),0).x;\n"
   "    if (val>valmax) valmax=val;\n"
   "    if (val<valmin) valmin=val;\n"
   "  }\n"
-  "  float slope = abs(valmax-valmin)*uResolution.y*0.5;\n"
-  "  if (uv.y>valmin) {\n"
-  "    alpha=valmax*uResolution.y*0.5-fur_fragCoord.y+uLineWidth*0.5;\n"
-  "  } else {\n"
-  "    alpha=fur_fragCoord.y-valmin*uResolution.y*0.5+uLineWidth*0.5;\n"
+  "  if ((fur_fragCoord.y-uLineWidth)>valmax*uResolution.y) discard;\n"
+  "  if ((fur_fragCoord.y+uLineWidth)<valmin*uResolution.y) discard;\n"
+  "  float slope=abs(valmax-valmin)*uResolution.y;\n"
+  "  float slopeMul=pow(2.0,ceil(log2(ceil(slope))));\n"
+  "  float slopeDiv=min(1.0,1.0/slopeMul);\n"
+  "  float xRight=ceil(fur_fragCoord.x+uLineWidth);\n"
+  "  for (float x=max(0.0,floor(fur_fragCoord.x-uLineWidth)); x<=xRight; x+=slopeDiv) {\n"
+  "    float val0=texelFetch(oscVal,int(x),0).x;\n"
+  "    float val1=texelFetch(oscVal,int(x)+1,0).x;\n"
+  "    float val=mix(val0,val1,fract(x))*uResolution.y;\n"
+  "    alpha+=max(uLineWidth-distance(vec2(fur_fragCoord.x,fur_fragCoord.y),vec2(x,val)),0.0);\n"
   "  }\n"
-  "  alpha=clamp(alpha,0.0,1.0);\n"
   "  if (slope>1.0) {\n"
-  "    alpha*=clamp(alphaX,0.0,1.0);\n"
+  "    fur_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha*(1.0+uResolution.y*pow(slope/uResolution.y,2.0))/(uLineWidth*slopeMul),0.0,1.0));\n"
+  "  } else {\n"
+  "    fur_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha/uLineWidth,0.0,1.0));\n"
   "  }\n"
-  "  gl_FragColor = vec4(uColor.xyz,uColor.w*clamp(alpha,0.0,1.0));\n"
   "}\n";
 #endif
 
@@ -436,7 +439,7 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
   //C(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
   //C(glEnable(GL_BLEND));
 
-  float width=fabs(pos1.x-pos0.x);
+  //float width=fabs(pos1.x-pos0.x);
   float height=fabs(pos1.y-pos0.y)*0.5;
 
   pos0.x=(2.0f*pos0.x/canvasSize.x)-1.0f;
@@ -476,9 +479,12 @@ void FurnaceGUIRenderGL::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 po
 
   C(furUseProgram(sh_oscRender_program));
   C(furUniform4fv(sh_oscRender_uColor,1,(float*)&color));
-  C(furUniform1f(sh_oscRender_uLineWidth,lineWidth));
-  C(furUniform1f(sh_oscRender_uAdvance,(1.0f/2048.0f)*((float)len/width)));
-  C(furUniform2f(sh_oscRender_uResolution,2048.0f,2.0f*height));
+  if (lineWidth<=1.0) {
+    C(furUniform1f(sh_oscRender_uLineWidth,lineWidth));
+  } else {
+    C(furUniform1f(sh_oscRender_uLineWidth,0.5+lineWidth*0.5));
+  }
+  C(furUniform2f(sh_oscRender_uResolution,2048.0f,height));
   C(furUniform1i(sh_oscRender_oscVal,0));
 
   C(glDrawArrays(GL_TRIANGLE_STRIP,0,4));
@@ -583,6 +589,8 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   LOAD_PROC_OPTIONAL(furLinkProgram,PFNGLLINKPROGRAMPROC,"glLinkProgram");
   LOAD_PROC_OPTIONAL(furGetProgramiv,PFNGLGETPROGRAMIVPROC,"glGetProgramiv");
   LOAD_PROC_OPTIONAL(furUseProgram,PFNGLUSEPROGRAMPROC,"glUseProgram");
+  LOAD_PROC_OPTIONAL(furDeleteProgram,PFNGLDELETEPROGRAMPROC,"glDeleteProgram");
+  LOAD_PROC_OPTIONAL(furDeleteShader,PFNGLDELETESHADERPROC,"glDeleteShader");
   LOAD_PROC_OPTIONAL(furGetUniformLocation,PFNGLGETUNIFORMLOCATIONPROC,"glGetUniformLocation");
   LOAD_PROC_OPTIONAL(furUniform1f,PFNGLUNIFORM1FPROC,"glUniform1f");
   LOAD_PROC_OPTIONAL(furUniform2f,PFNGLUNIFORM2FPROC,"glUniform2f");
@@ -598,13 +606,13 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   C(glGenTextures(1,&oscDataTex));
 #ifdef USE_GLES
   C(glBindTexture(GL_TEXTURE_2D,oscDataTex));
-  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
-  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
+  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
   C(glTexImage2D(GL_TEXTURE_2D,0,GL_RED_EXT,2048,1,0,GL_RED_EXT,GL_FLOAT,NULL));
 #else
   C(glBindTexture(GL_TEXTURE_1D,oscDataTex));
-  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
-  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
+  C(glTexParameteri(GL_TEXTURE_1D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
   C(glTexImage1D(GL_TEXTURE_1D,0,GL_RED,2048,0,GL_RED,GL_FLOAT,NULL));
 #endif
   C(furActiveTexture(GL_TEXTURE0));
@@ -616,7 +624,6 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
 
   if ((sh_oscRender_have=createShader(sh_oscRender_srcV,sh_oscRender_srcF,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib))==true) {
     sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
-    sh_oscRender_uAdvance=furGetUniformLocation(sh_oscRender_program,"uAdvance");
     sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
     sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
     sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
@@ -625,6 +632,28 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   C(furGenBuffers(1,&quadBuf));
   C(furGenBuffers(1,&oscVertexBuf));
   return true;
+}
+
+const char* FurnaceGUIRenderGL::getStupidFragment() {
+  return sh_oscRender_srcF;
+}
+
+bool FurnaceGUIRenderGL::regenOscShader(const char* fragment) {
+  if (sh_oscRender_have) {
+    furDeleteProgram(sh_oscRender_program);
+    furDeleteShader(sh_oscRender_vertex);
+    furDeleteShader(sh_oscRender_fragment);
+  }
+  
+  if ((sh_oscRender_have=createShader(sh_oscRender_srcV,fragment,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib))==true) {
+    sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
+    sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
+    sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
+    sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
+    return true;
+  }
+
+  return false;
 }
 
 void FurnaceGUIRenderGL::initGUI(SDL_Window* win) {

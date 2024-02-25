@@ -2239,6 +2239,14 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
     }
   }
 
+  if (version<193) {
+    if (type==DIV_INS_AY || type==DIV_INS_AY8930) {
+      for (int j=0; j<std.waveMacro.len; j++) {
+        std.waveMacro.val[j]++;
+      }
+    }
+  }
+
   READ_FEAT_END;
 }
 
@@ -3074,6 +3082,13 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
       std.dutyMacro.val[j]-=12;
     }
   }
+  if (version<193) {
+    if (type==DIV_INS_AY || type==DIV_INS_AY8930) {
+      for (int j=0; j<std.waveMacro.len; j++) {
+        std.waveMacro.val[j]++;
+      }
+    }
+  }
   if (version>=17) {
     READ_MACRO_VALS(std.pitchMacro.val,std.pitchMacro.len);
     READ_MACRO_VALS(std.ex1Macro.val,std.ex1Macro.len);
@@ -3890,13 +3905,17 @@ bool DivInstrument::saveDMP(const char* path) {
 
     w->writeC(std.dutyMacro.len);
     for (int i=0; i<std.dutyMacro.len; i++) {
-      w->writeI(std.dutyMacro.val[i]+12);
+      w->writeI(std.dutyMacro.val[i]);
     }
     if (std.dutyMacro.len>0) w->writeC(std.dutyMacro.loop);
 
     w->writeC(std.waveMacro.len);
     for (int i=0; i<std.waveMacro.len; i++) {
-      w->writeI(std.waveMacro.val[i]+12);
+      if (type==DIV_INS_AY) {
+        w->writeI(std.waveMacro.val[i]-1);
+      } else {
+        w->writeI(std.waveMacro.val[i]);
+      }
     }
     if (std.waveMacro.len>0) w->writeC(std.waveMacro.loop);
 

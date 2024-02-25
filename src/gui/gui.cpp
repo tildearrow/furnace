@@ -2453,14 +2453,14 @@ String FurnaceGUI::getLastError() {
       macroDragLastY=y; \
       if (macroDragInitialValueSet) { \
         if (macroDragInitialValue) { \
-          t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(~(1<<y)))-macroDragBitOff; \
+          t[x]=(((t[x])&((1<<macroDragMax)-1))&(~(1<<y))); \
         } else { \
-          t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))|(1<<y))-macroDragBitOff; \
+          t[x]=(((t[x])&((1<<macroDragMax)-1))|(1<<y)); \
         } \
       } else { \
-        macroDragInitialValue=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(1<<y)); \
+        macroDragInitialValue=(((t[x])&((1<<macroDragMax)-1))&(1<<y)); \
         macroDragInitialValueSet=true; \
-        t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))^(1<<y))-macroDragBitOff; \
+        t[x]=(((t[x])&((1<<macroDragMax)-1))^(1<<y)); \
       } \
       t[x]&=(1<<macroDragMax)-1; \
     } \
@@ -4284,12 +4284,15 @@ bool FurnaceGUI::loop() {
               if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
                 DivSystem picked=systemPicker();
                 if (picked!=DIV_SYSTEM_NULL) {
-                  e->changeSystem(i,picked,preserveChanPos);
-                  MARK_MODIFIED;
-                  if (e->song.autoSystem) {
-                    autoDetectSystem();
+                  if (e->changeSystem(i,picked,preserveChanPos)) {
+                    MARK_MODIFIED;
+                    if (e->song.autoSystem) {
+                      autoDetectSystem();
+                    }
+                    updateWindowTitle();
+                  } else {
+                    showError("cannot change chip! ("+e->getLastError()+")");
                   }
-                  updateWindowTitle();
                   ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndMenu();
@@ -4420,6 +4423,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
         if (ImGui::MenuItem("inspector")) inspectorOpen=!inspectorOpen;
+        if (ImGui::MenuItem("shader editor")) shaderEditor=!shaderEditor;
         if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
         if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
           aboutOpen=true;
@@ -4629,6 +4633,7 @@ bool FurnaceGUI::loop() {
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
       MEASURE(xyOsc,drawXYOsc());
+      MEASURE(volMeter,drawVolMeter());
       MEASURE(grooves,drawGrooves());
       MEASURE(regView,drawRegView());
     } else {
@@ -4673,24 +4678,31 @@ bool FurnaceGUI::loop() {
       MEASURE(effectList,drawEffectList());
     }
 
-    // after done, remove
-    if (ImGui::Begin("NewCode",NULL,ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_AlwaysAutoResize)) {
-      if (rend->supportsDrawOsc()) {
-        pushToggleColors(newOscCode);
-        if (ImGui::Button("New Code")) newOscCode=!newOscCode;
-        popToggleColors();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Line size");
+    // NEW CODE - REMOVE WHEN DONE
+    if (shaderEditor) {
+      if (ImGui::Begin("Shader Editor 2024",&shaderEditor,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+        ImGui::PushFont(patFont);
+        ImGui::InputTextMultiline("##SHFragment",&newOscFragment,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()),ImGuiInputTextFlags_UndoRedo);
+        ImGui::PopFont();
+        if (ImGui::Button("Save")) {
+          FILE* f=ps_fopen("/storage/emulated/0/osc.fsh","w");
+          if (f==NULL) {
+            showError("Something happened");
+          } else {
+            fwrite(newOscFragment.c_str(),1,newOscFragment.size(),f);
+            fclose(f);
+            showError("Saved!");
+          }
+        }
         ImGui::SameLine();
-        ImGui::SetNextItemWidth(120.0f*dpiScale);
-        ImGui::InputFloat("##NewCodeLS",&newOscLineWidth,1,1,"%.1f");
-      } else if (renderBackend==GUI_BACKEND_GL) {
-        ImGui::Text("Master, are you playing a trick on me?\nThat's not very nice!");
-      } else {
-        ImGui::Text("That would seem unwise given the\ncurrently selected Render Backend.");
+        if (ImGui::Button("Apply")) {
+          if (!rend->regenOscShader(newOscFragment.c_str())) {
+            showError("Of course you screwed it up, again!");
+          }
+        }
       }
+      ImGui::End();
     }
-    ImGui::End();
 
     // release selection if mouse released
     if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && selecting) {
@@ -6413,14 +6425,17 @@ bool FurnaceGUI::loop() {
       }
     }
     drawTimeEnd=SDL_GetPerformanceCounter();
+    swapTimeBegin=SDL_GetPerformanceCounter();
     rend->present();
     if (settings.renderClearPos) {
       rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
     }
+    swapTimeEnd=SDL_GetPerformanceCounter();
 
     layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
     drawTimeDelta=drawTimeEnd-drawTimeBegin;
+    swapTimeDelta=swapTimeEnd-swapTimeBegin;
     eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
     soloTimeout-=ImGui::GetIO().DeltaTime;
@@ -6632,6 +6647,7 @@ bool FurnaceGUI::init() {
   chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
   chanOscTextY=e->getConfFloat("chanOscTextY",0.0f);
   chanOscAmplify=e->getConfFloat("chanOscAmplify",0.95f);
+  chanOscLineSize=e->getConfFloat("chanOscLineSize",1.0f);
   chanOscWindowSize=e->getConfFloat("chanOscWindowSize",20.0f);
   chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
   chanOscOptions=e->getConfBool("chanOscOptions",false);
@@ -6954,8 +6970,6 @@ bool FurnaceGUI::init() {
     }
   }
 
-  newOscLineWidth=dpiScale;
-
   updateWindowTitle();
 
   rend->clear(ImVec4(0.0,0.0,0.0,1.0));
@@ -6965,6 +6979,9 @@ bool FurnaceGUI::init() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   rend->initGUI(sdlWin);
+
+  // NEW CODE - REMOVE WHEN DONE
+  newOscFragment=rend->getStupidFragment();
 
   applyUISettings();
 
@@ -7184,6 +7201,7 @@ void FurnaceGUI::commitState() {
   e->setConf("chanOscTextX",chanOscTextX);
   e->setConf("chanOscTextY",chanOscTextY);
   e->setConf("chanOscAmplify",chanOscAmplify);
+  e->setConf("chanOscLineSize",chanOscLineSize);
   e->setConf("chanOscWindowSize",chanOscWindowSize);
   e->setConf("chanOscWaveCorr",chanOscWaveCorr);
   e->setConf("chanOscOptions",chanOscOptions);
@@ -7303,6 +7321,8 @@ FurnaceGUI::FurnaceGUI():
   displayPalette(false),
   fullScreen(false),
   preserveChanPos(false),
+  sysDupCloneChannels(true),
+  sysDupEnd(false),
   wantScrollList(false),
   noteInputPoly(true),
   notifyWaveChange(false),
@@ -7312,12 +7332,12 @@ FurnaceGUI::FurnaceGUI():
   snesFilterHex(false),
   modTableHex(false),
   displayEditString(false),
+  shaderEditor(false),
   mobileEdit(false),
   killGraphics(false),
   safeMode(false),
   midiWakeUp(true),
   makeDrumkitMode(false),
-  newOscCode(true),
   audioEngineChanged(false),
   settingsChanged(false),
   debugFFT(false),
@@ -7334,7 +7354,6 @@ FurnaceGUI::FurnaceGUI():
   shallDetectScale(0),
   cpuCores(0),
   secondTimer(0.0f),
-  newOscLineWidth(2.0f),
   userEvents(0xffffffff),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
@@ -7564,7 +7583,6 @@ FurnaceGUI::FurnaceGUI():
   macroDragMax(0),
   macroDragLastX(-1),
   macroDragLastY(-1),
-  macroDragBitOff(0),
   macroDragScroll(0),
   macroDragBitMode(false),
   macroDragInitialValueSet(false),
@@ -7615,6 +7633,9 @@ FurnaceGUI::FurnaceGUI():
   drawTimeBegin(0),
   drawTimeEnd(0),
   drawTimeDelta(0),
+  swapTimeBegin(0),
+  swapTimeEnd(0),
+  swapTimeDelta(0),
   eventTimeBegin(0),
   eventTimeEnd(0),
   eventTimeDelta(0),
@@ -7700,6 +7721,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscTextX(0.0f),
   chanOscTextY(0.0f),
   chanOscAmplify(0.95f),
+  chanOscLineSize(1.0f),
   chanOscWaveCorr(true),
   chanOscOptions(false),
   updateChanOscGradTex(true),

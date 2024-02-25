@@ -40,6 +40,10 @@ void FurnaceGUI::drawSysManager() {
   }
   if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags)) {
     ImGui::Checkbox("Preserve channel order",&preserveChanPos);
+    ImGui::SameLine();
+    ImGui::Checkbox("Clone channel data",&sysDupCloneChannels);
+    ImGui::SameLine();
+    ImGui::Checkbox("Clone at end",&sysDupEnd);
     if (ImGui::BeginTable("SystemList",3)) {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
@@ -83,16 +87,27 @@ void FurnaceGUI::drawSysManager() {
           ImGui::TreePop();
         }
         ImGui::TableNextColumn();
+        if (ImGui::Button("Clone##SysDup")) {
+          if (!e->duplicateSystem(i,sysDupCloneChannels,sysDupEnd)) {
+            showError("cannot clone chip! ("+e->getLastError()+")");
+          } else {
+            MARK_MODIFIED;
+          }
+        }
+        ImGui::SameLine();
         ImGui::Button("Change##SysChange");
         if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
           DivSystem picked=systemPicker();
           if (picked!=DIV_SYSTEM_NULL) {
-            e->changeSystem(i,picked,preserveChanPos);
-            MARK_MODIFIED;
-            if (e->song.autoSystem) {
-              autoDetectSystem();
+            if (e->changeSystem(i,picked,preserveChanPos)) {
+              MARK_MODIFIED;
+              if (e->song.autoSystem) {
+                autoDetectSystem();
+              }
+              updateWindowTitle();
+            } else {
+              showError("cannot change chip! ("+e->getLastError()+")");
             }
-            updateWindowTitle();
             ImGui::CloseCurrentPopup();
           }
           ImGui::EndPopup();

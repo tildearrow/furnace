@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev192 new osc"
-#define DIV_ENGINE_VERSION 192
+#define DIV_VERSION "dev193"
+#define DIV_ENGINE_VERSION 193
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -583,6 +583,8 @@ class DivEngine {
 
   // change song (UNSAFE)
   void changeSong(size_t songIndex);
+
+  void swapSystemUnsafe(int src, int dest, bool preserveOrder=true);
 
   // move an asset
   void moveAsset(std::vector<DivAssetDir>& dir, int before, int after);
@@ -1155,10 +1157,13 @@ class DivEngine {
     void delUnusedSamples();
 
     // change system
-    void changeSystem(int index, DivSystem which, bool preserveOrder=true);
+    bool changeSystem(int index, DivSystem which, bool preserveOrder=true);
 
     // add system
     bool addSystem(DivSystem which);
+
+    // duplicate system
+    bool duplicateSystem(int index, bool pat=true, bool end=false);
 
     // remove system
     bool removeSystem(int index, bool preserveOrder=true);
