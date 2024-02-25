@@ -181,7 +181,7 @@ const char* sh_oscRender_srcF=
   "  if ((fur_fragCoord.y+uLineWidth)<valmin*uResolution.y) discard;\n"
   "  float slope=abs(valmax-valmin)*uResolution.y;\n"
   "  float slopeMul=pow(2.0,ceil(log2(ceil(slope))));\n"
-  "  float slopeDiv=1.0/slopeMul;\n"
+  "  float slopeDiv=min(1.0,1.0/slopeMul);\n"
   "  float xRight=ceil(fur_fragCoord.x+uLineWidth);\n"
   "  for (float x=max(0.0,floor(fur_fragCoord.x-uLineWidth)); x<=xRight; x+=slopeDiv) {\n"
   "    float val0=texelFetch(oscVal,int(x),0).x;\n"
