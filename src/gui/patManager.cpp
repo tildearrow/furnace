@@ -33,7 +33,9 @@ void FurnaceGUI::drawPatManager() {
   unsigned char isUsed[DIV_MAX_PATTERNS];
   bool isNull[DIV_MAX_PATTERNS];
   if (ImGui::Begin("Pattern Manager",&patManagerOpen,globalWinFlags)) {
-    ImGui::Text("Global Tasks");
+    ImGui::Text("Global Tasks:");
+
+    ImGui::SameLine();
 
     if (ImGui::Button("De-duplicate patterns")) {
       e->lockEngine([this]() {
@@ -45,6 +47,20 @@ void FurnaceGUI::drawPatManager() {
     if (ImGui::Button("Re-arrange patterns")) {
       e->lockEngine([this]() {
         e->curSubSong->rearrangePatterns();
+      });
+      MARK_MODIFIED;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Sort orders")) {
+      e->lockEngine([this]() {
+        e->curSubSong->sortOrders();
+      });
+      MARK_MODIFIED;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Make patterns unique")) {
+      e->lockEngine([this]() {
+        e->curSubSong->makePatUnique();
       });
       MARK_MODIFIED;
     }

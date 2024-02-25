@@ -6,7 +6,11 @@ the **chip manager** window allows you to manage chips, including adding, changi
 
 **Preserve channel order**: make existing pattern data stay in place even when chips are rearranged. when turned off, pattern data will be arranged to match (the default, and usually desired behavior).
 
+**Clone channel data**: when cloning chips, also copy patterns, pattern names, channel names and other parameters to the clone.
+
 to move a chip around, click and drag the ![crossed-arrows](chip-manager-move.png) button to the left.
+
+to duplicate a chip, click the **Clone** button.
 
 to replace a chip with a different one, click the **Change** button. this will display the chip selector.
 

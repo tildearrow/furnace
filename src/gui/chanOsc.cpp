@@ -182,16 +182,30 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::TableNextColumn();
         if (ImGui::Checkbox("Randomize phase on note",&chanOscRandomPhase)) {
         }
-        ImGui::EndTable();
-      }
 
-      ImGui::AlignTextToFramePadding();
-      ImGui::Text("Amplitude");
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-      if (CWSliderFloat("##COSAmp",&chanOscAmplify,0.0f,2.0f)) {
-        if (chanOscAmplify<0.0f) chanOscAmplify=0.0f;
-        if (chanOscAmplify>2.0f) chanOscAmplify=2.0f;
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Amplitude");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (CWSliderFloat("##COSAmp",&chanOscAmplify,0.0f,2.0f)) {
+          if (chanOscAmplify<0.0f) chanOscAmplify=0.0f;
+          if (chanOscAmplify>2.0f) chanOscAmplify=2.0f;
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Line size");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (CWSliderFloat("##COSLine",&chanOscLineSize,0.25f,16.0f)) {
+          if (chanOscLineSize<0.25f) chanOscLineSize=0.26f;
+          if (chanOscLineSize>16.0f) chanOscLineSize=16.0f;
+        }
+
+
+        ImGui::EndTable();
       }
 
       ImGui::Checkbox("Gradient",&chanOscUseGrad);
@@ -592,7 +606,7 @@ void FurnaceGUI::drawChanOsc() {
             ImGui::ItemSize(size,style.FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID("chOscDisplay"))) {
               if (!e->isRunning()) {
-                if (newOscCode) {
+                if (rend->supportsDrawOsc() && settings.shaderOsc) {
                   memset(fft->oscTex,0,2048*sizeof(float));
                 } else {
                   for (unsigned short j=0; j<precision; j++) {
@@ -617,7 +631,7 @@ void FurnaceGUI::drawChanOsc() {
                   }
                   if (maxavg>0.0000001) maxavg=0.5/maxavg;
 
-                  if (newOscCode) {
+                  if (rend->supportsDrawOsc() && settings.shaderOsc) {
                     for (unsigned short j=0; j<precision && j<2048; j++) {
                       float y;
                       if (j>=precision/2) {
@@ -666,7 +680,7 @@ void FurnaceGUI::drawChanOsc() {
                   }
                   dcOff=(minLevel+maxLevel)*0.5f;
 
-                  if (newOscCode) {
+                  if (rend->supportsDrawOsc() && settings.shaderOsc) {
                     for (unsigned short j=0; j<precision; j++) {
                       float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
                       y-=dcOff;
@@ -699,13 +713,14 @@ void FurnaceGUI::drawChanOsc() {
                 color=chanOscGrad.get(xVal,1.0f-yVal);
               }
 
-              if (rend->supportsDrawOsc() && newOscCode) {
+              if (rend->supportsDrawOsc() && settings.shaderOsc) {
                 fft->drawOp.gui=this;
                 fft->drawOp.data=fft->oscTex;
                 fft->drawOp.len=precision;
                 fft->drawOp.pos0=inRect.Min;
                 fft->drawOp.pos1=inRect.Max;
                 fft->drawOp.color=ImGui::ColorConvertU32ToFloat4(color);
+                fft->drawOp.lineSize=dpiScale*chanOscLineSize;
 
                 dl->AddCallback(_drawOsc,&fft->drawOp);
                 dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
@@ -713,7 +728,7 @@ void FurnaceGUI::drawChanOsc() {
                 //ImGui::PushClipRect(inRect.Min,inRect.Max,false);
                 //ImDrawListFlags prevFlags=dl->Flags;
                 //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
-                dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale);
+                dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale*chanOscLineSize);
                 //dl->Flags=prevFlags;
                 //ImGui::PopClipRect();
               }

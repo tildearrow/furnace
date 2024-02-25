@@ -94,6 +94,9 @@ just put your demo song in `demos/`! be noted there are some guidelines:
 - avoid Nintendo song covers.
 - avoid big label song covers.
 - low effort compositions/covers may not be accepted at all.
+- the following systems are not acceptable:
+  - YMU759/MA-2: exists only for compatibility.
+  - Pong: it is a joke system.
 
 # Finishing
 

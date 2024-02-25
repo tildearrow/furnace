@@ -636,15 +636,18 @@ void DivEngine::swapChannels(int src, int dest) {
   String prevChanName=curSubSong->chanName[src];
   String prevChanShortName=curSubSong->chanShortName[src];
   bool prevChanShow=curSubSong->chanShow[src];
+  bool prevChanShowChanOsc=curSubSong->chanShowChanOsc[src];
   unsigned char prevChanCollapse=curSubSong->chanCollapse[src];
 
   curSubSong->chanName[src]=curSubSong->chanName[dest];
   curSubSong->chanShortName[src]=curSubSong->chanShortName[dest];
   curSubSong->chanShow[src]=curSubSong->chanShow[dest];
+  curSubSong->chanShowChanOsc[src]=curSubSong->chanShowChanOsc[dest];
   curSubSong->chanCollapse[src]=curSubSong->chanCollapse[dest];
   curSubSong->chanName[dest]=prevChanName;
   curSubSong->chanShortName[dest]=prevChanShortName;
   curSubSong->chanShow[dest]=prevChanShow;
+  curSubSong->chanShowChanOsc[dest]=prevChanShowChanOsc;
   curSubSong->chanCollapse[dest]=prevChanCollapse;
 }
 
@@ -658,6 +661,7 @@ void DivEngine::stompChannel(int ch) {
   curSubSong->chanName[ch]="";
   curSubSong->chanShortName[ch]="";
   curSubSong->chanShow[ch]=true;
+  curSubSong->chanShowChanOsc[ch]=true;
   curSubSong->chanCollapse[ch]=false;
 }
 
@@ -804,6 +808,7 @@ int DivEngine::duplicateSubSong(int index) {
   theCopy->orders=theOrig->orders;
   
   memcpy(theCopy->chanShow,theOrig->chanShow,DIV_MAX_CHANS*sizeof(bool));
+  memcpy(theCopy->chanShowChanOsc,theOrig->chanShowChanOsc,DIV_MAX_CHANS*sizeof(bool));
   memcpy(theCopy->chanCollapse,theOrig->chanCollapse,DIV_MAX_CHANS);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -1003,7 +1008,16 @@ void DivEngine::delUnusedSamples() {
   BUSY_END;
 }
 
-void DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
+bool DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
+  if (index<0 || index>=song.systemLen) {
+    lastError="invalid index";
+    return false;
+  }
+  if (chans-getChannelCount(song.system[index])+getChannelCount(which)>DIV_MAX_CHANS) {
+    lastError=fmt::sprintf("max number of total channels is %d",DIV_MAX_CHANS);
+    return false;
+  }
+
   int chanCount=chans;
   quitDispatch();
   BUSY_BEGIN;
@@ -1045,6 +1059,8 @@ void DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
   renderSamples();
   reset();
   BUSY_END;
+
+  return true;
 }
 
 bool DivEngine::addSystem(DivSystem which) {
@@ -1094,6 +1110,110 @@ bool DivEngine::addSystem(DivSystem which) {
   renderSamples();
   reset();
   BUSY_END;
+  return true;
+}
+
+bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
+  if (index<0 || index>=song.systemLen) {
+    lastError="invalid index";
+    return false;
+  }
+  if (song.systemLen>DIV_MAX_CHIPS) {
+    lastError=fmt::sprintf("max number of systems is %d",DIV_MAX_CHIPS);
+    return false;
+  }
+  if (chans+getChannelCount(song.system[index])>DIV_MAX_CHANS) {
+    lastError=fmt::sprintf("max number of total channels is %d",DIV_MAX_CHANS);
+    return false;
+  }
+  quitDispatch();
+  BUSY_BEGIN;
+  saveLock.lock();
+  song.system[song.systemLen]=song.system[index];
+  song.systemVol[song.systemLen]=song.systemVol[index];
+  song.systemPan[song.systemLen]=song.systemPan[index];
+  song.systemPanFR[song.systemLen]=song.systemPanFR[index];
+  song.systemFlags[song.systemLen++]=song.systemFlags[index];
+  recalcChans();
+  saveLock.unlock();
+  BUSY_END;
+  initDispatch();
+  BUSY_BEGIN;
+  saveLock.lock();
+  if (song.patchbayAuto) {
+    autoPatchbay();
+  } else {
+    int i=song.systemLen-1;
+    if (disCont[i].dispatch!=NULL) {
+      unsigned int outs=disCont[i].dispatch->getOutputCount();
+      if (outs>16) outs=16;
+      if (outs<2) {
+        song.patchbay.reserve(DIV_MAX_OUTPUTS);
+        for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
+          song.patchbay.push_back((i<<20)|j);
+        }
+      } else {
+        if (outs>0) song.patchbay.reserve(outs);
+        for (unsigned int j=0; j<outs; j++) {
+          song.patchbay.push_back((i<<20)|(j<<16)|j);
+        }
+      }
+    }
+  }
+
+  // duplicate patterns
+  if (pat) {
+    int srcChan=0;
+    int destChan=0;
+    for (int i=0; i<index; i++) {
+      srcChan+=getChannelCount(song.system[i]);
+    }
+    for (int i=0; i<song.systemLen-1; i++) {
+      destChan+=getChannelCount(song.system[i]);
+    }
+    for (DivSubSong* i: song.subsong) {
+      for (int j=0; j<getChannelCount(song.system[index]); j++) {
+        i->pat[destChan+j].effectCols=i->pat[srcChan+j].effectCols;
+        i->chanShow[destChan+j]=i->chanShow[srcChan+j];
+        i->chanShowChanOsc[destChan+j]=i->chanShowChanOsc[srcChan+j];
+        i->chanCollapse[destChan+j]=i->chanCollapse[srcChan+j];
+        i->chanName[destChan+j]=i->chanName[srcChan+j];
+        i->chanShortName[destChan+j]=i->chanShortName[srcChan+j];
+        for (int k=0; k<DIV_MAX_PATTERNS; k++) {
+          if (i->pat[srcChan+j].data[k]!=NULL) {
+            i->pat[srcChan+j].data[k]->copyOn(i->pat[destChan+j].getPattern(k,true));
+          }
+        }
+
+        for (int k=0; k<DIV_MAX_PATTERNS; k++) {
+          i->orders.ord[destChan+j][k]=i->orders.ord[srcChan+j][k];
+        }
+      }
+    }
+  }
+  saveLock.unlock();
+  renderSamples();
+  reset();
+  BUSY_END;
+
+  if (!end) {
+    quitDispatch();
+    BUSY_BEGIN;
+    saveLock.lock();
+
+    for (int i=song.systemLen-1; i>index; i--) {
+      swapSystemUnsafe(i,i-1,false);
+    }
+
+    recalcChans();
+    saveLock.unlock();
+    BUSY_END;
+    initDispatch();
+    BUSY_BEGIN;
+    renderSamples();
+    reset();
+    BUSY_END;
+  }
   return true;
 }
 
@@ -1151,24 +1271,7 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
   return true;
 }
 
-bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
-  if (src==dest) {
-    lastError="source and destination are equal";
-    return false;
-  }
-  if (src<0 || src>=song.systemLen) {
-    lastError="invalid source index";
-    return false;
-  }
-  if (dest<0 || dest>=song.systemLen) {
-    lastError="invalid destination index";
-    return false;
-  }
-  //int chanCount=chans;
-  quitDispatch();
-  BUSY_BEGIN;
-  saveLock.lock();
-
+void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
   if (!preserveOrder) {
     // move channels
     unsigned char unswappedChannels[DIV_MAX_CHANS];
@@ -1225,6 +1328,7 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
       String prevChanName[DIV_MAX_CHANS];
       String prevChanShortName[DIV_MAX_CHANS];
       bool prevChanShow[DIV_MAX_CHANS];
+      bool prevChanShowChanOsc[DIV_MAX_CHANS];
       unsigned char prevChanCollapse[DIV_MAX_CHANS];
 
       for (int j=0; j<tchans; j++) {
@@ -1236,6 +1340,7 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
         prevChanName[j]=song.subsong[i]->chanName[j];
         prevChanShortName[j]=song.subsong[i]->chanShortName[j];
         prevChanShow[j]=song.subsong[i]->chanShow[j];
+        prevChanShowChanOsc[j]=song.subsong[i]->chanShowChanOsc[j];
         prevChanCollapse[j]=song.subsong[i]->chanCollapse[j];
       }
 
@@ -1249,6 +1354,7 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
         song.subsong[i]->chanName[j]=prevChanName[swappedChannels[j]];
         song.subsong[i]->chanShortName[j]=prevChanShortName[swappedChannels[j]];
         song.subsong[i]->chanShow[j]=prevChanShow[swappedChannels[j]];
+        song.subsong[i]->chanShowChanOsc[j]=prevChanShowChanOsc[swappedChannels[j]];
         song.subsong[i]->chanCollapse[j]=prevChanCollapse[swappedChannels[j]];
       }
     }
@@ -1284,6 +1390,27 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
       i=(i&(~0xfff00000))|((unsigned int)src<<20);
     }
   }
+}
+
+bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
+  if (src==dest) {
+    lastError="source and destination are equal";
+    return false;
+  }
+  if (src<0 || src>=song.systemLen) {
+    lastError="invalid source index";
+    return false;
+  }
+  if (dest<0 || dest>=song.systemLen) {
+    lastError="invalid destination index";
+    return false;
+  }
+  //int chanCount=chans;
+  quitDispatch();
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  swapSystemUnsafe(src,dest,preserveOrder);
 
   recalcChans();
   saveLock.unlock();

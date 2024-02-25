@@ -57,6 +57,12 @@ void DivSubSong::rearrangePatterns() {
   }
 }
 
+void DivSubSong::sortOrders() {
+}
+
+void DivSubSong::makePatUnique() {
+}
+
 void DivSong::clearSongData() {
   for (DivSubSong* i: subsong) {
     i->clearData();
