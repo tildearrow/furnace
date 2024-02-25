@@ -110,5 +110,13 @@ bool FurnaceGUIRender::isDead() {
   return false;
 }
 
+const char* FurnaceGUIRender::getStupidFragment() {
+  return "Only OpenGL";
+}
+
+bool FurnaceGUIRender::regenOscShader(const char* fragment) {
+  return false;
+}
+
 FurnaceGUIRender::~FurnaceGUIRender() {
 }

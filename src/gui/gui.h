@@ -1436,6 +1436,8 @@ class FurnaceGUIRender {
     virtual void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
     virtual void present();
     virtual bool supportsDrawOsc();
+    virtual const char* getStupidFragment();
+    virtual bool regenOscShader(const char* fragment);
     virtual bool getOutputSize(int& w, int& h);
     virtual int getWindowFlags();
     virtual void preInit();
@@ -1479,6 +1481,7 @@ class FurnaceGUI {
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
 
+  String newOscFragment;
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
@@ -1501,8 +1504,9 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, wantScrollList, noteInputPoly, notifyWaveChange;
+  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, wantScrollList, noteInputPoly, notifyWaveChange;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
+  bool shaderEditor;
   bool mobileEdit;
   bool killGraphics;
   bool safeMode;

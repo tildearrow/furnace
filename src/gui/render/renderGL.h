@@ -42,7 +42,6 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   int sh_oscRender_program;
   int sh_oscRender_uColor;
   int sh_oscRender_uLineWidth;
-  int sh_oscRender_uAdvance;
   int sh_oscRender_uResolution;
   int sh_oscRender_oscVal;
   bool sh_oscRender_have;
@@ -58,6 +57,8 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     bool destroyTexture(FurnaceGUITexture* which);
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
+    const char* getStupidFragment();
+    bool regenOscShader(const char* fragment);
     void clear(ImVec4 color);
     bool newFrame();
     void createFontsTexture();

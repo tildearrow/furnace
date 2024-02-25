@@ -18,6 +18,7 @@
  */
 
 #include "safeWriter.h"
+#include "../ta-log.h"
 
 #define WRITER_BUF_SIZE 16384
 
@@ -27,11 +28,18 @@ unsigned char* SafeWriter::getFinalBuf() {
 
 void SafeWriter::checkSize(size_t amount) {
   while ((curSeek+amount)>=bufLen) {
-    unsigned char* newBuf=new unsigned char[bufLen+WRITER_BUF_SIZE];
+    size_t newSize=WRITER_BUF_SIZE*(1+((curSeek+amount)/WRITER_BUF_SIZE));
+    if (newSize<(bufLen+WRITER_BUF_SIZE)) {
+      logE("REPORT NOW: newSize is too small! case 1... %d<%d",(int)newSize,(int)(bufLen+WRITER_BUF_SIZE));
+    }
+    if (newSize<(curSeek+amount)) {
+      logE("REPORT NOW: newSize is too small! case 2... %d<%d",(int)newSize,(int)(curSeek+amount));
+    }
+    unsigned char* newBuf=new unsigned char[newSize];
     memcpy(newBuf,buf,bufLen);
     delete[] buf;
     buf=newBuf;
-    bufLen+=WRITER_BUF_SIZE;
+    bufLen=newSize;
   }
 }
 
