@@ -605,6 +605,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_CLOCK", "Clock", 0),
   D("WINDOW_GROOVES", "Grooves", 0),
   D("WINDOW_XY_OSC", "Oscilloscope (X-Y)", 0),
+  D("WINDOW_MEMORY", "Memory Compositiom", 0),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
   D("CLOSE_WINDOW", "Close current window", FURKMOD_SHIFT|SDLK_ESCAPE),
