@@ -283,8 +283,6 @@ int DivPlatformNDS::dispatch(DivCommand c) {
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
-      }
-      if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
