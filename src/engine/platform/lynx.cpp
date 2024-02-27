@@ -200,6 +200,11 @@ void DivPlatformLynx::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
 
+    if (chan[i].std.ex1.had) {
+      WRITE_LFSR(i, chan[i].std.ex1.val&0xff);
+      WRITE_OTHER(i, (chan[i].std.ex1.val&0xf00)>>4);
+    }
+
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
