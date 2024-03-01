@@ -4392,8 +4392,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::BeginMenu("assets")) {
           if (settings.unifiedDataView) {
             if (ImGui::MenuItem("assets", BIND_FOR(GUI_ACTION_WINDOW_INS_LIST), insListOpen)) insListOpen = !insListOpen;
-          }
-          else {
+          } else {
             if (ImGui::MenuItem("instruments", BIND_FOR(GUI_ACTION_WINDOW_INS_LIST), insListOpen)) insListOpen = !insListOpen;
             if (ImGui::MenuItem("samples", BIND_FOR(GUI_ACTION_WINDOW_SAMPLE_LIST), sampleListOpen)) sampleListOpen = !sampleListOpen;
             if (ImGui::MenuItem("wavetables", BIND_FOR(GUI_ACTION_WINDOW_WAVE_LIST), waveListOpen)) waveListOpen = !waveListOpen;
