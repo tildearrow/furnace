@@ -460,6 +460,7 @@ struct DivMemoryEntry {
 
 struct DivMemoryComposition {
   std::vector<DivMemoryEntry> entries;
+  String name;
   size_t capacity;
   size_t used;
 };
@@ -785,12 +786,18 @@ class DivDispatch {
 
     /**
      * check whether sample has been loaded in memory.
-     * @param memory index.
+     * @param index index.
      * @param sample the sample in question.
      * @return whether it did.
      */
     virtual bool isSampleLoaded(int index, int sample);
     
+    /**
+     * get memory composition.
+     * @param index the memory index.
+     * @return a pointer to DivMemoryComposition, or NULL.
+     */
+    virtual const DivMemoryComposition* getMemCompo(int index);
 
     /**
      * Render samples into sample memory.
