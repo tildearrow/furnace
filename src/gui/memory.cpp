@@ -29,7 +29,15 @@ void FurnaceGUI::drawMemory() {
   }
   if (!memoryOpen) return;
   if (ImGui::Begin("Memory Composition",&memoryOpen,globalWinFlags)) {
-    ImGui::Text("Contents here...");
+    for (int i=0; i<e->song.systemLen; i++) {
+      DivDispatch* dispatch=e->getDispatch(i);
+      for (int j=0; j<4; j++) {
+        const DivMemoryComposition* mc=dispatch->getMemCompo(j);
+        if (mc==NULL) break;
+
+        ImGui::Text("%s: %s",e->getSystemName(e->song.system[i]),mc->name.c_str());
+      }
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_MEMORY;
   ImGui::End();

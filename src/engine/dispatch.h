@@ -460,6 +460,7 @@ struct DivMemoryEntry {
 
 struct DivMemoryComposition {
   std::vector<DivMemoryEntry> entries;
+  String name;
   size_t capacity;
   size_t used;
 };
