@@ -82,9 +82,22 @@ void FurnaceGUI::drawSysManager() {
           ImGui::EndDragDropTarget();
         }
         ImGui::TableNextColumn();
+        bool isNotCollapsed=true; // IM SORRY
         if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSM%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
           drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
+          isNotCollapsed=false;
           ImGui::TreePop();
+        }
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_Stationary) && isNotCollapsed) {
+          if (e->song.system[i]!=DIV_SYSTEM_NULL) {
+            const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
+            if (ImGui::BeginTooltip()) { // why not SetTooltip()? so i can wrap the text
+              ImGui::PushTextWrapPos(ImGui::GetCursorPos().x+420); // arbitrary constant
+              ImGui::TextWrapped("%s",sysDef->description);
+              ImGui::PopTextWrapPos();
+              ImGui::EndTooltip();
+            }
+          }
         }
         ImGui::TableNextColumn();
         if (ImGui::Button("Clone##SysDup")) {

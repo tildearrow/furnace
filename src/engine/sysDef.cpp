@@ -691,7 +691,8 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_SMS]=new DivSysDef(
     "TI SN76489", NULL, 0x03, 0x03, 4, false, true, 0x150, false, 0, 0, 0,
-    "a square/noise sound chip found on the Sega Master System, ColecoVision, Tandy, TI's own 99/4A and a few other places.",
+    "a square/noise sound chip found on the Sega Master System, ColecoVision, Tandy, TI's own 99/4A and a few other places."
+    "\n\n3 x Square, 1 x Noise",
     {"Square 1", "Square 2", "Square 3", "Noise"},
     {"S1", "S2", "S3", "NO"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
