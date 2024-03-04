@@ -7138,8 +7138,8 @@ void FurnaceGUI::drawInsEdit() {
             dutyMax=32767;
           }
           if (ins->type==DIV_INS_CPT100) {
-            dutyLabel="Wave/Noise";
-            dutyMax=1;
+            dutyLabel="Wave 4/8b, Noise S/L";
+            dutyMax=3;
           }
           if (ins->type==DIV_INS_ESFM) {
             dutyLabel="OP4 Noise Mode";
