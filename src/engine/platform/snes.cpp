@@ -971,6 +971,7 @@ void DivPlatformSNES::renderSamples(int sysID) {
       if (s->loop) {
         copyOfSampleMem[memPos+actualLength-9]|=3;
       }
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength));
       memPos+=actualLength;
     }
     if (actualLength<length) {
@@ -982,6 +983,8 @@ void DivPlatformSNES::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+  memCompo.capacity=65536;
+  memCompo.used=sampleMemLen;
   memcpy(sampleMem,copyOfSampleMem,65536);
 }
 
