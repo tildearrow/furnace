@@ -479,6 +479,11 @@ void DivPlatformSegaPCM::reset() {
   }
 }
 
+const DivMemoryComposition* DivPlatformSegaPCM::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformSegaPCM::renderSamples(int sysID) {
   size_t memPos=0;
 

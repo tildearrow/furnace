@@ -74,6 +74,7 @@ class DivPlatformC140: public DivDispatch {
   FixedQueue<QueuedWrite,2048> writes;
   struct c140_t c140;
   struct c219_t c219;
+  DivMemoryComposition memCompo;
   unsigned char regPool[512];
   char bankLabel[4][4];
   friend void putDispatchChip(void*,int);
@@ -108,6 +109,7 @@ class DivPlatformC140: public DivDispatch {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     int getClockRangeMin();
     int getClockRangeMax();

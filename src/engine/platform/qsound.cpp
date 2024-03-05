@@ -735,6 +735,11 @@ const char* DivPlatformQSound::getSampleMemName(int index) {
   return index == 0 ? "PCM" : index == 1 ? "ADPCM" : NULL;
 }
 
+const DivMemoryComposition* DivPlatformQSound::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformQSound::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleLoaded,0,256*sizeof(bool));

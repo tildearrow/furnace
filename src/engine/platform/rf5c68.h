@@ -50,6 +50,7 @@ class DivPlatformRF5C68: public DivDispatch {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   rf5c68_device rf5c68;
+  DivMemoryComposition memCompo;
   unsigned char regPool[144];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -80,6 +81,7 @@ class DivPlatformRF5C68: public DivDispatch {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

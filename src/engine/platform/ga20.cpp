@@ -441,6 +441,11 @@ bool DivPlatformGA20::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformGA20::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformGA20::renderSamples(int sysID) {
   memset(sampleMem,0x00,getSampleMemCapacity());
   memset(sampleOffGA20,0,256*sizeof(unsigned int));

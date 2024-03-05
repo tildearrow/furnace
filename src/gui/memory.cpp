@@ -84,9 +84,20 @@ void FurnaceGUI::drawMemory() {
               const DivMemoryEntry& entry=mc->entries[curHover];
               if (ImGui::BeginTooltip()) {
                 switch (entry.type) {
-                  case DIV_MEMORY_SAMPLE: {
+                  case DIV_MEMORY_SAMPLE:
+                  case DIV_MEMORY_BANK0:
+                  case DIV_MEMORY_BANK1:
+                  case DIV_MEMORY_BANK2:
+                  case DIV_MEMORY_BANK3:
+                  case DIV_MEMORY_BANK4:
+                  case DIV_MEMORY_BANK5:
+                  case DIV_MEMORY_BANK6:
+                  case DIV_MEMORY_BANK7: {
                     DivSample* sample=e->getSample(entry.asset);
                     ImGui::Text("%d: %s",curHover,sample->name.c_str());
+                    if ((int)entry.type>=(int)DIV_MEMORY_BANK0) {
+                      ImGui::Text("bank %d",(int)entry.type-(int)DIV_MEMORY_BANK0);
+                    }
                     ImGui::Text("%d-%d ($%x-$%x): %d bytes ($%x)",(int)entry.begin,(int)entry.end-1,(int)entry.begin,(int)entry.end-1,(int)(entry.end-entry.begin),(int)(entry.end-entry.begin));
                     ImGui::Text("click to open sample editor");
                     break;

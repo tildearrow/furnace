@@ -370,6 +370,11 @@ bool DivPlatformMSM6295::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformMSM6295::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformMSM6295::renderSamples(int sysID) {
   unsigned int sampleOffVOX[256];
 

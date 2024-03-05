@@ -657,6 +657,11 @@ bool DivPlatformSoundUnit::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformSoundUnit::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformSoundUnit::renderSamples(int sysID) {
   memset(sampleMem,0,sampleMemSize?65536:8192);
   memset(sampleOffSU,0,256*sizeof(unsigned int));
