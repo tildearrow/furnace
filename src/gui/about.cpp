@@ -163,6 +163,7 @@ const char* aboutLine[]={
   "System64",
   "TakuikaNinja",
   "tapekeep",
+  "TapeStone",
   "TCORPStudios",
   "Teuthida",
   "ThaCuber",

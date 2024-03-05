@@ -940,10 +940,18 @@ bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformSNES::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformSNES::renderSamples(int sysID) {
   memset(copyOfSampleMem,0,65536);
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="SPC/DSP Memory";
 
   // skip past sample table and wavetable buffer
   size_t memPos=sampleTableBase+8*4+8*9*16;
@@ -963,6 +971,7 @@ void DivPlatformSNES::renderSamples(int sysID) {
       if (s->loop) {
         copyOfSampleMem[memPos+actualLength-9]|=3;
       }
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength));
       memPos+=actualLength;
     }
     if (actualLength<length) {
@@ -974,6 +983,8 @@ void DivPlatformSNES::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+  memCompo.capacity=65536;
+  memCompo.used=sampleMemLen;
   memcpy(sampleMem,copyOfSampleMem,65536);
 }
 
