@@ -827,6 +827,13 @@ void DivPlatformSNES::initEcho() {
     rWrite(0x7d,0);
     rWrite(0x6d,0xff);
   }
+
+  for (DivMemoryEntry& i: memCompo.entries) {
+    if (i.type==DIV_MEMORY_ECHO) {
+      i.begin=(65536-echoDelay*2048);
+    }
+  }
+  memCompo.used=sampleMemLen+echoDelay*2048;
 }
 
 void DivPlatformSNES::reset() {
@@ -953,6 +960,10 @@ void DivPlatformSNES::renderSamples(int sysID) {
   memCompo=DivMemoryComposition();
   memCompo.name="SPC/DSP Memory";
 
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"State",-1,0,sampleTableBase));
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Sample Directory",-1,sampleTableBase,sampleTableBase+8*4));
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM,"Wave RAM",-1,sampleTableBase+8*4,sampleTableBase+8*4+8*9*16));
+
   // skip past sample table and wavetable buffer
   size_t memPos=sampleTableBase+8*4+8*9*16;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -971,6 +982,7 @@ void DivPlatformSNES::renderSamples(int sysID) {
       if (s->loop) {
         copyOfSampleMem[memPos+actualLength-9]|=3;
       }
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength));
       memPos+=actualLength;
     }
     if (actualLength<length) {
@@ -982,6 +994,11 @@ void DivPlatformSNES::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_ECHO,"Echo Buffer",-1,(65536-echoDelay*2048),65536));
+
+  memCompo.capacity=65536;
+  memCompo.used=sampleMemLen+echoDelay*2048;
   memcpy(sampleMem,copyOfSampleMem,65536);
 }
 
