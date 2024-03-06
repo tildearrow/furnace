@@ -745,6 +745,9 @@ void DivPlatformQSound::renderSamples(int sysID) {
   memset(sampleLoaded,0,256*sizeof(bool));
   memset(sampleLoadedBS,0,256*sizeof(bool));
 
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample ROM";
+
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
@@ -776,6 +779,7 @@ void DivPlatformQSound::renderSamples(int sysID) {
       sampleLoaded[i]=true;
     }
     offPCM[i]=memPos^0x8000;
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"PCM",i,memPos,memPos+length));
     memPos+=length+16;
   }
   sampleMemLen=memPos+256;
@@ -813,9 +817,13 @@ void DivPlatformQSound::renderSamples(int sysID) {
       sampleLoadedBS[i]=true;
     }
     offBS[i]=memPos;
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE_ALT1,"ADPCM",i,memPos,memPos+length));
     memPos+=length+16;
   }
   sampleMemLenBS=memPos+256;
+
+  memCompo.used=sampleMemLenBS;
+  memCompo.capacity=getSampleMemCapacity(0);
 }
 
 int DivPlatformQSound::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

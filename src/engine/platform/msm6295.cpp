@@ -386,6 +386,11 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
     bankedPhrase[i].phrase=0;
   }
 
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample ROM";
+
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Phrase Book",-1,0,128*8));
+
   // sample data
   size_t memPos=128*8;
   if (isBanked) {
@@ -424,6 +429,7 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
       bankedPhrase[i].bank=bankInd;
       bankedPhrase[i].phrase=phraseInd;
       bankedPhrase[i].length=paddedLen;
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
       memPos+=paddedLen;
       phraseInd++;
     }
@@ -465,6 +471,7 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
         sampleLoaded[i]=true;
       }
       sampleOffVOX[i]=memPos;
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
       memPos+=paddedLen;
     }
     adpcmMemLen=memPos+256;
@@ -481,6 +488,9 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
       adpcmMem[5+i*8]=(endPos)&0xff;
     }
   }
+
+  memCompo.capacity=getSampleMemCapacity(0);
+  memCompo.used=adpcmMemLen;
 }
 
 void DivPlatformMSM6295::setFlags(const DivConfig& flags) {

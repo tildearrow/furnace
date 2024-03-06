@@ -491,6 +491,9 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
   memset(sampleLoaded,0,256*sizeof(bool));
   memset(sampleOffSegaPCM,0,256*sizeof(unsigned int));
   memset(sampleEndSegaPCM,0,256);
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample ROM";
   
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* sample=parent->getSample(i);
@@ -506,6 +509,7 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
     sampleLoaded[i]=true;
     if (memPos>=2097152) break;
     sampleOffSegaPCM[i]=memPos;
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+alignedSize));
     for (unsigned int j=0; j<alignedSize; j++) {
       if (j>=sample->samples) {
         sampleMem[memPos++]=0;
@@ -519,6 +523,9 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
     if (memPos>=2097152) break;
   }
   sampleMemLen=memPos;
+
+  memCompo.used=sampleMemLen;
+  memCompo.capacity=getSampleMemCapacity(0);
 }
 
 void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
