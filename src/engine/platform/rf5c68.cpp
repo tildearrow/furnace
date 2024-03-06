@@ -425,6 +425,9 @@ void DivPlatformRF5C68::renderSamples(int sysID) {
   memset(sampleOffRFC,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample Memory";
+
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
@@ -437,6 +440,7 @@ void DivPlatformRF5C68::renderSamples(int sysID) {
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-32,length);
     if (actualLength>0) {
       sampleOffRFC[i]=memPos;
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+32));
       for (int j=0; j<actualLength; j++) {
         // convert to signed magnitude
         signed char val=s->data8[j];
@@ -456,6 +460,9 @@ void DivPlatformRF5C68::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+
+  memCompo.used=sampleMemLen;
+  memCompo.capacity=getSampleMemCapacity(0);
 }
 
 int DivPlatformRF5C68::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
