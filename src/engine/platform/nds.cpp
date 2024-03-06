@@ -517,10 +517,18 @@ bool DivPlatformNDS::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformNDS::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformNDS::renderSamples(int sysID) {
   memset(sampleMem,0,16777216);
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="Main Memory";
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -536,7 +544,8 @@ void DivPlatformNDS::renderSamples(int sysID) {
     if (actualLength>0) {
       memcpy(&sampleMem[memPos],src,actualLength);
       sampleOff[i]=memPos;
-      memPos+=length;
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength));
+      memPos+=actualLength;
     }
     if (actualLength<length) {
       logW("out of NDS PCM memory for sample %d!",i);
@@ -547,6 +556,9 @@ void DivPlatformNDS::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+
+  memCompo.capacity=(isDSi?16777216:4194304);
+  memCompo.used=sampleMemLen;
 }
 
 void DivPlatformNDS::setFlags(const DivConfig& flags) {

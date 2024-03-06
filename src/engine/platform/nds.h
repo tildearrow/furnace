@@ -55,6 +55,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   nds_sound_t nds;
+  DivMemoryComposition memCompo;
   unsigned char regPool[288];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -87,6 +88,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual size_t getSampleMemCapacity(int index = 0) override;
     virtual size_t getSampleMemUsage(int index = 0) override;
     virtual bool isSampleLoaded(int index, int sample) override;
+    virtual const DivMemoryComposition* getMemCompo(int index) override;
     virtual void renderSamples(int chipID) override;
     virtual void setFlags(const DivConfig& flags) override;
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
