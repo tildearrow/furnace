@@ -52,6 +52,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   k053260_core k053260;
+  DivMemoryComposition memCompo;
   unsigned char regPool[64];
   void updatePanning(unsigned char mask);
 
@@ -84,6 +85,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
     virtual size_t getSampleMemCapacity(int index = 0) override;
     virtual size_t getSampleMemUsage(int index = 0) override;
     virtual bool isSampleLoaded(int index, int sample) override;
+    virtual const DivMemoryComposition* getMemCompo(int index) override;
     virtual void renderSamples(int chipID) override;
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;

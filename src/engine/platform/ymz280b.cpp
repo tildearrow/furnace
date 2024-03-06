@@ -442,6 +442,11 @@ bool DivPlatformYMZ280B::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformYMZ280B::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformYMZ280B::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOff,0,256*sizeof(unsigned int));

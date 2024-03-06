@@ -995,6 +995,11 @@ bool DivPlatformX1_010::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformX1_010::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformX1_010::renderSamples(int sysID) {
   memset(sampleMem,0,16777216);
   memset(sampleOffX1,0,256*sizeof(unsigned int));

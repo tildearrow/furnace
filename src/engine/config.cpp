@@ -243,6 +243,13 @@ bool DivConfig::getBool(String key, bool fallback) const {
       return true;
     } else if (val->second=="false") {
       return false;
+    } else {
+      try {
+        int ret=std::stoi(val->second);
+        return (ret!=0);
+      } catch (std::out_of_range& e) {
+      } catch (std::invalid_argument& e) {
+      }
     }
   }
   return fallback;

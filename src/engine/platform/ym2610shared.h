@@ -73,6 +73,9 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
 
+    DivMemoryComposition memCompoA;
+    DivMemoryComposition memCompoB;
+
     double NOTE_OPNB(int ch, int note) {
       if (ch>=adpcmBChanOffs) { // ADPCM
         return NOTE_ADPCMB(note);
@@ -143,6 +146,12 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       if (index<0 || index>1) return false;
       if (sample<0 || sample>255) return false;
       return sampleLoaded[index][sample];
+    }
+    
+    const DivMemoryComposition* getMemCompo(int index) {
+      if (index==0) return &memCompoA;
+      if (index==1) return &memCompoB;
+      return NULL;
     }
 
     void renderSamples(int sysID) {

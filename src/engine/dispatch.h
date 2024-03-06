@@ -430,6 +430,57 @@ struct DivChannelModeHints {
     count(0) {}
 };
 
+enum DivMemoryEntryType {
+  DIV_MEMORY_FREE=0, // shouldn't be used
+  DIV_MEMORY_PADDING,
+  DIV_MEMORY_RESERVED,
+  DIV_MEMORY_SAMPLE,
+  DIV_MEMORY_SAMPLE_ALT1,
+  DIV_MEMORY_SAMPLE_ALT2,
+  DIV_MEMORY_SAMPLE_ALT3,
+  DIV_MEMORY_WAVE_RAM,
+  DIV_MEMORY_WAVE_STATIC,
+  DIV_MEMORY_ECHO,
+  DIV_MEMORY_BANK0,
+  DIV_MEMORY_BANK1,
+  DIV_MEMORY_BANK2,
+  DIV_MEMORY_BANK3,
+  DIV_MEMORY_BANK4,
+  DIV_MEMORY_BANK5,
+  DIV_MEMORY_BANK6,
+  DIV_MEMORY_BANK7,
+};
+
+struct DivMemoryEntry {
+  DivMemoryEntryType type;
+  String name;
+  int asset;
+  size_t begin, end;
+  DivMemoryEntry(DivMemoryEntryType t, String n, int a, size_t b, size_t e):
+    type(t),
+    name(n),
+    asset(a),
+    begin(b),
+    end(e) {}
+  DivMemoryEntry():
+    type(DIV_MEMORY_FREE),
+    name(""),
+    asset(-1),
+    begin(0),
+    end(0) {}
+};
+
+struct DivMemoryComposition {
+  std::vector<DivMemoryEntry> entries;
+  String name;
+  size_t capacity;
+  size_t used;
+  DivMemoryComposition():
+    name(""),
+    capacity(0),
+    used(0) {}
+};
+
 class DivEngine;
 class DivMacroInt;
 
@@ -751,12 +802,18 @@ class DivDispatch {
 
     /**
      * check whether sample has been loaded in memory.
-     * @param memory index.
+     * @param index index.
      * @param sample the sample in question.
      * @return whether it did.
      */
     virtual bool isSampleLoaded(int index, int sample);
     
+    /**
+     * get memory composition.
+     * @param index the memory index.
+     * @return a pointer to DivMemoryComposition, or NULL.
+     */
+    virtual const DivMemoryComposition* getMemCompo(int index);
 
     /**
      * Render samples into sample memory.
