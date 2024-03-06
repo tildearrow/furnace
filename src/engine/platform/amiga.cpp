@@ -922,10 +922,21 @@ bool DivPlatformAmiga::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformAmiga::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformAmiga::renderSamples(int sysID) {
   memset(sampleMem,0,2097152);
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="Chip Memory";
+
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM,"Wave RAM",-1,0,1024));
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"End of Sample",-1,1024,1026));
 
   // first 1024 bytes reserved for wavetable
   // the next 2 bytes are reserved for end of sample
@@ -947,6 +958,7 @@ void DivPlatformAmiga::renderSamples(int sysID) {
     if (actualLength>0) {
       sampleOff[i]=memPos;
       memcpy(&sampleMem[memPos],s->data8,actualLength);
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength));
       memPos+=actualLength;
     }
     // align memPos to short
@@ -954,6 +966,9 @@ void DivPlatformAmiga::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+
+  memCompo.capacity=1<<chipMem;
+  memCompo.used=sampleMemLen;
 }
 
 int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

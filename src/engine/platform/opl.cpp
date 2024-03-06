@@ -2539,6 +2539,12 @@ bool DivPlatformOPL::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformOPL::getMemCompo(int index) {
+  if (adpcmChan<0) return NULL;
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformOPL::renderSamples(int sysID) {
   if (adpcmChan<0) return;
   memset(adpcmBMem,0,getSampleMemCapacity(0));

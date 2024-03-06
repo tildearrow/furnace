@@ -64,6 +64,8 @@ class DivPlatformYM2608: public DivPlatformOPN {
 
     bool extMode, noExtMacros;
     unsigned char prescale, nukedMult;
+
+    DivMemoryComposition memCompo;
   
     double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
@@ -100,6 +102,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);

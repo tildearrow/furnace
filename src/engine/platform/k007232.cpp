@@ -528,6 +528,11 @@ bool DivPlatformK007232::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformK007232::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformK007232::renderSamples(int sysID) {
   memset(sampleMem,0xc0,getSampleMemCapacity());
   memset(sampleOffK007232,0,256*sizeof(unsigned int));

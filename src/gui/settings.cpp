@@ -3666,6 +3666,29 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::TreePop();
         }
+        if (ImGui::TreeNode("Memory Composition")) {
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BG,"Background");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_FREE,"Unknown");
+          //UI_COLOR_CONFIG(GUI_COLOR_MEMORY_PADDING,"");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_RESERVED,"Reserved");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_SAMPLE,"Sample");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_SAMPLE_ALT1,"Sample (alternate 1)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_SAMPLE_ALT2,"Sample (alternate 2)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_SAMPLE_ALT3,"Sample (alternate 3)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_WAVE_RAM,"Wave RAM");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_WAVE_STATIC,"Wavetable (static)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_ECHO,"Echo buffer");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK0,"Sample (bank 0)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK1,"Sample (bank 1)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK2,"Sample (bank 2)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK3,"Sample (bank 3)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK4,"Sample (bank 4)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK5,"Sample (bank 5)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK6,"Sample (bank 6)");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK7,"Sample (bank 7)");
+
+          ImGui::TreePop();
+        }
         if (ImGui::TreeNode("Log Viewer")) {
           UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_ERROR,"Log level: Error");
           UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_WARNING,"Log level: Warning");
