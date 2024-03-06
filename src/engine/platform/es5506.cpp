@@ -1213,6 +1213,9 @@ void DivPlatformES5506::renderSamples(int sysID) {
   memset(sampleOffES5506,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample Memory";
+
   size_t memPos=128; // add silent at begin and end of each bank for reverse playback
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
@@ -1241,9 +1244,13 @@ void DivPlatformES5506::renderSamples(int sysID) {
     }
     sampleOffES5506[i]=memPos;
     sampleLoaded[i]=true;
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+length));
     memPos+=length;
   }
   sampleMemLen=memPos+256;
+
+  memCompo.used=sampleMemLen;
+  memCompo.capacity=16777216;
 }
 
 int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
