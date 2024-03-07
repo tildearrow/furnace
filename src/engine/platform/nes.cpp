@@ -839,9 +839,17 @@ bool DivPlatformNES::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformNES::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformNES::renderSamples(int sysID) {
-  memset(dpcmMem,0,getSampleMemCapacity(0));\
+  memset(dpcmMem,0,getSampleMemCapacity(0));
   memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="DPCM";
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -871,9 +879,13 @@ void DivPlatformNES::renderSamples(int sysID) {
       sampleLoaded[i]=true;
     }
     sampleOffDPCM[i]=memPos;
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
     memPos+=paddedLen;
   }
   dpcmMemLen=memPos;
+
+  memCompo.capacity=262144;
+  memCompo.used=dpcmMemLen;
 }
 
 int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

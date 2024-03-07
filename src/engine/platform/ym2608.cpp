@@ -1605,10 +1605,18 @@ bool DivPlatformYM2608::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformYM2608::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformYM2608::renderSamples(int sysID) {
   memset(adpcmBMem,0,getSampleMemCapacity(0));
   memset(sampleOffB,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="ADPCM";
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -1634,9 +1642,13 @@ void DivPlatformYM2608::renderSamples(int sysID) {
       sampleLoaded[i]=true;
     }
     sampleOffB[i]=memPos;
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
     memPos+=paddedLen;
   }
   adpcmBMemLen=memPos+256;
+
+  memCompo.used=adpcmBMemLen;
+  memCompo.capacity=getSampleMemCapacity(0);
 }
 
 void DivPlatformYM2608::setFlags(const DivConfig& flags) {

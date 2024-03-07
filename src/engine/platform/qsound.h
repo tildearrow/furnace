@@ -58,6 +58,8 @@ class DivPlatformQSound: public DivDispatch {
   unsigned int offPCM[256];
   unsigned int offBS[256];
 
+  DivMemoryComposition memCompo;
+
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
@@ -89,6 +91,7 @@ class DivPlatformQSound: public DivDispatch {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

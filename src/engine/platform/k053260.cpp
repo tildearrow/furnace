@@ -466,10 +466,18 @@ bool DivPlatformK053260::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformK053260::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformK053260::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOffK053260,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample ROM";
 
   size_t memPos=1; // for avoid silence
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -486,6 +494,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
       actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
       if (actualLength>0) {
         sampleOffK053260[i]=memPos-1;
+        memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
         for (int j=0; j<actualLength; j++) {
           sampleMem[memPos++]=s->dataK[j];
         }
@@ -496,6 +505,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
       actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
       if (actualLength>0) {
         sampleOffK053260[i]=memPos-1;
+        memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
         for (int j=0; j<actualLength; j++) {
           sampleMem[memPos++]=s->data8[j];
         }
@@ -509,6 +519,9 @@ void DivPlatformK053260::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+
+  memCompo.capacity=2097152;
+  memCompo.used=sampleMemLen;
 }
 
 int DivPlatformK053260::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
