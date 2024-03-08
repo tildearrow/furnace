@@ -35,8 +35,30 @@ bool DivCSChannelState::doCall(unsigned int addr) {
   return true;
 }
 
+unsigned char* DivCSPlayer::getData() {
+  return b;
+}
+
+size_t DivCSPlayer::getDataLen() {
+  return bLen;
+}
+
+DivCSChannelState* DivCSPlayer::getChanState(int ch) {
+  return &chan[ch];
+}
+
+unsigned char* DivCSPlayer::getFastDelays() {
+  return fastDelays;
+}
+
+unsigned char* DivCSPlayer::getFastCmds() {
+  return fastCmds;
+}
+
 void DivCSPlayer::cleanup() {
   delete b;
+  b=NULL;
+  bLen=0;
 }
 
 bool DivCSPlayer::tick() {
@@ -383,7 +405,8 @@ bool DivCSPlayer::init() {
       stream.readI();
       continue;
     }
-    chan[i].readPos=stream.readI();
+    chan[i].startPos=stream.readI();
+    chan[i].readPos=chan[i].startPos;
   }
 
   stream.read(fastDelays,16);
@@ -424,6 +447,20 @@ bool DivEngine::playStream(unsigned char* f, size_t length) {
     freelance=true;
     playing=true;
   }
+  BUSY_END;
+  return true;
+}
+
+DivCSPlayer* DivEngine::getStreamPlayer() {
+  return cmdStreamInt;
+}
+
+bool DivEngine::killStream() {
+  if (!cmdStreamInt) return false;
+  BUSY_BEGIN;
+  cmdStreamInt->cleanup();
+  delete cmdStreamInt;
+  cmdStreamInt=NULL;
   BUSY_END;
   return true;
 }

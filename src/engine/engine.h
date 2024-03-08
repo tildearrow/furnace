@@ -633,6 +633,10 @@ class DivEngine {
     bool load(unsigned char* f, size_t length);
     // play a binary command stream.
     bool playStream(unsigned char* f, size_t length);
+    // get the playing stream.
+    DivCSPlayer* getStreamPlayer();
+    // destroy command stream player.
+    bool killStream();
     // save as .dmf.
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.

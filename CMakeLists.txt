@@ -789,6 +789,7 @@ src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
 src/gui/compatFlags.cpp
+src/gui/csPlayer.cpp
 src/gui/cursor.cpp
 src/gui/dataList.cpp
 src/gui/debugWindow.cpp

@@ -478,6 +478,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_XY_OSC,
   GUI_WINDOW_INTRO_MON,
   GUI_WINDOW_MEMORY,
+  GUI_WINDOW_CS_PLAYER,
   GUI_WINDOW_SPOILER
 };
 
@@ -669,6 +670,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_GROOVES,
   GUI_ACTION_WINDOW_XY_OSC,
   GUI_ACTION_WINDOW_MEMORY,
+  GUI_ACTION_WINDOW_CS_PLAYER,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -2064,7 +2066,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen, xyOscOpen, memoryOpen;
+  bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen;
 
   bool shortIntro;
   bool insListDir, waveListDir, sampleListDir;
@@ -2449,6 +2451,9 @@ class FurnaceGUI {
   // tutorial
   int curTutorial, curTutorialStep;
 
+  // command stream player
+  ImGuiListClipper csClipper;
+
   // export options
   int audioExportType;
   FurnaceGUIExportTypes curExportType;
@@ -2573,6 +2578,7 @@ class FurnaceGUI {
   void drawIntro(double introTime, bool monitor=false);
   void drawSettings();
   void drawDebug();
+  void drawCSPlayer();
   void drawNewSong();
   void drawPalette();
   void drawExport();

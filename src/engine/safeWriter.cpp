@@ -227,3 +227,9 @@ void SafeWriter::finish() {
   buf=NULL;
   operative=false;
 }
+
+void SafeWriter::disown() {
+  if (!operative) return;
+  buf=NULL;
+  operative=false;
+}

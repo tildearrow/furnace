@@ -3463,6 +3463,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(volMeter)
   DECLARE_METRIC(settings)
   DECLARE_METRIC(debug)
+  DECLARE_METRIC(csPlayer)
   DECLARE_METRIC(stats)
   DECLARE_METRIC(memory)
   DECLARE_METRIC(compatFlags)
@@ -4046,6 +4047,7 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(groovesOpen);
         IMPORT_CLOSE(xyOscOpen);
         IMPORT_CLOSE(memoryOpen);
+        IMPORT_CLOSE(csPlayerOpen);
       } else if (pendingLayoutImportStep==1) {
         // let the UI settle
       } else if (pendingLayoutImportStep==2) {
@@ -4629,6 +4631,7 @@ bool FurnaceGUI::loop() {
       globalWinFlags=0;
       MEASURE(settings,drawSettings());
       MEASURE(debug,drawDebug());
+      MEASURE(csPlayer,drawCSPlayer());
       MEASURE(log,drawLog());
       MEASURE(compatFlags,drawCompatFlags());
       MEASURE(stats,drawStats());
@@ -4669,6 +4672,7 @@ bool FurnaceGUI::loop() {
       MEASURE(volMeter,drawVolMeter());
       MEASURE(settings,drawSettings());
       MEASURE(debug,drawDebug());
+      MEASURE(csPlayer,drawCSPlayer());
       MEASURE(stats,drawStats());
       MEASURE(memory,drawMemory());
       MEASURE(compatFlags,drawCompatFlags());
@@ -7495,6 +7499,7 @@ FurnaceGUI::FurnaceGUI():
   groovesOpen(false),
   xyOscOpen(false),
   memoryOpen(false),
+  csPlayerOpen(false),
   shortIntro(false),
   insListDir(false),
   waveListDir(false),
