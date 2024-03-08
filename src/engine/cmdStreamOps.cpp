@@ -297,6 +297,7 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
   while (!done) {
     if (nextTick(false,true) || !playing) {
       done=true;
+      break;
     }
     // get command stream
     wroteTickGlobal=false;
