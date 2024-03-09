@@ -655,7 +655,7 @@ class DivEngine {
     // dump to ZSM.
     SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true, bool optimize=true);
     // dump command stream.
-    SafeWriter* saveCommand(bool binary=false);
+    SafeWriter* saveCommand();
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file

@@ -44,7 +44,7 @@ void FurnaceGUI::drawCSPlayer() {
     }
     ImGui::SameLine();
     if (ImGui::Button("Burn Current Song")) {
-      SafeWriter* w=e->saveCommand(true);
+      SafeWriter* w=e->saveCommand();
       if (w!=NULL) {
         if (!e->playStream(w->getFinalBuf(),w->size())) {
           showError(e->getLastError());
