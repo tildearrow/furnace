@@ -21,6 +21,10 @@
 #include <fmt/printf.h>
 #include "imgui.h"
 
+String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr) {
+  return "TODO";
+}
+
 void FurnaceGUI::drawCSPlayer() {
   if (nextWindow==GUI_WINDOW_CS_PLAYER) {
     csPlayerOpen=true;
@@ -58,6 +62,71 @@ void FurnaceGUI::drawCSPlayer() {
       if (ImGui::BeginTabBar("CSOptions")) {
         int chans=e->getTotalChannelCount();
         if (ImGui::BeginTabItem("Status")) {
+          if (ImGui::BeginTable("CSStat",11,ImGuiTableFlags_SizingFixedSame|ImGuiTableFlags_ScrollX|ImGuiTableFlags_Borders)) {
+            ImGui::TableSetupScrollFreeze(1,1);
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::Text("channel");
+            ImGui::TableNextColumn();
+            ImGui::Text("start");
+            ImGui::TableNextColumn();
+            ImGui::Text("PC");
+            ImGui::TableNextColumn();
+            ImGui::Text("wait");
+            ImGui::TableNextColumn();
+            ImGui::Text("SP");
+            ImGui::TableNextColumn();
+            ImGui::Text("note");
+            ImGui::TableNextColumn();
+            ImGui::Text("pitch");
+            ImGui::TableNextColumn();
+            ImGui::Text("vol");
+            ImGui::TableNextColumn();
+            ImGui::Text("vols");
+            ImGui::TableNextColumn();
+            ImGui::Text("vib");
+            ImGui::TableNextColumn();
+            ImGui::Text("porta");
+            ImGui::TableNextColumn();
+            ImGui::Text("arp");
+
+            for (int i=0; i<chans; i++) {
+              DivCSChannelState* state=cs->getChanState(i);
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("%d",i);
+              ImGui::TableNextColumn();
+              ImGui::Text("$%.4x",state->startPos);
+              ImGui::TableNextColumn();
+              ImGui::Text("$%.4x",state->readPos);
+              ImGui::TableNextColumn();
+              ImGui::Text("%d/%d",state->waitTicks,state->lastWaitLen);
+              ImGui::TableNextColumn();
+              ImGui::Text("%d",state->callStackPos);
+              ImGui::TableNextColumn();
+              ImGui::Text("%d",state->note);
+              ImGui::TableNextColumn();
+              ImGui::Text("%d",state->pitch);
+              ImGui::TableNextColumn();
+              ImGui::Text("$%.4X",state->volume);
+              ImGui::TableNextColumn();
+              ImGui::Text("%+d",state->volSpeed);
+              ImGui::TableNextColumn();
+              ImGui::Text("%d/%d (%d)",state->vibratoDepth,state->vibratoRate,state->vibratoPos);
+              ImGui::TableNextColumn();
+              ImGui::Text("-> %d (%d)",state->portaTarget,state->portaSpeed);
+              ImGui::TableNextColumn();
+              ImGui::Text("$%.2X",state->arp);
+            }
+
+            ImGui::EndTable();
+          }
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Trace")) {
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Disassemble")) {
           ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Hex")) {
