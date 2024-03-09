@@ -72,7 +72,7 @@ void FurnaceGUI::drawCSPlayer() {
             for (int i=0; i<chans; i++) {
               DivCSChannelState* state=cs->getChanState(i);
               ImGui::TableNextColumn();
-              ImGui::Text("$%x",state->readPos);
+              ImGui::Text("$%.4x",state->readPos);
             }
             ImGui::EndTable();
           }
@@ -80,11 +80,12 @@ void FurnaceGUI::drawCSPlayer() {
           float oneCharSize=ImGui::CalcTextSize("A").x;
           float threeCharSize=ImGui::CalcTextSize("AA").x;
           float charViewSize=ImGui::CalcTextSize("0123456789ABCDEF").x;
+          float fiveCharSize=ImGui::CalcTextSize("AAAAA").x;
 
-          if (ImGui::BeginTable("CSHexPos",19)) {
+          if (ImGui::BeginTable("CSHexView",19,ImGuiTableFlags_ScrollY)) {
             char charView[17];
             ImGui::TableSetupScrollFreeze(1,1);
-            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed,fiveCharSize);
             ImGui::TableSetupColumn("d0",ImGuiTableColumnFlags_WidthFixed,threeCharSize);
             ImGui::TableSetupColumn("d1",ImGuiTableColumnFlags_WidthFixed,threeCharSize);
             ImGui::TableSetupColumn("d2",ImGuiTableColumnFlags_WidthFixed,threeCharSize);
@@ -105,7 +106,7 @@ void FurnaceGUI::drawCSPlayer() {
             ImGui::TableSetupColumn("char",ImGuiTableColumnFlags_WidthFixed,charViewSize);
 
             // header
-            ImGui::TableNextRow();
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
             ImGui::TableNextColumn();
             for (int i=0; i<16; i++) {
               ImGui::TableNextColumn();
@@ -134,6 +135,7 @@ void FurnaceGUI::drawCSPlayer() {
               for (int i=csClipper.DisplayStart; i<csClipper.DisplayEnd; i++) {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
                 ImGui::Text("%.4X",i<<4);
 
                 for (int j=0; j<16; j++) {

@@ -1105,6 +1105,9 @@ float FurnaceGUI::calcBPM(const DivGroovePattern& speeds, float hz, int vN, int 
 }
 
 void FurnaceGUI::play(int row) {
+  if (e->getStreamPlayer()) {
+    e->killStream();
+  }
   memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     chanOscChan[i].pitch=0.0f;
