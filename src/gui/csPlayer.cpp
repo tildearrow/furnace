@@ -141,7 +141,7 @@ void FurnaceGUI::drawCSPlayer() {
                   ImGui::TableNextColumn();
                   if (pos>=(int)bufSize) continue;
                   if (pos==nextHighlight) {
-                    ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_Header));
+                    ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_HeaderActive));
                     highlightPos++;
                     if (highlightPos>=(int)highlights.size()) {
                       nextHighlight=-1;

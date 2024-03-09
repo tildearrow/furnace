@@ -79,6 +79,7 @@ bool DivCSPlayer::tick() {
       }
       unsigned char next=stream.readC();
       unsigned char command=0;
+      bool mustTell=true;
 
       if (next<0xb3) { // note
         e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,(int)next-60));
@@ -143,9 +144,11 @@ bool DivCSPlayer::tick() {
             break;
           }
           chan[i].readPos=chan[i].callStack[--chan[i].callStackPos];
+          mustTell=false;
           break;
         case 0xfa:
           chan[i].readPos=stream.readI();
+          mustTell=false;
           break;
         case 0xfb:
           logE("TODO: RATE");
@@ -161,8 +164,9 @@ bool DivCSPlayer::tick() {
           chan[i].waitTicks=1;
           break;
         case 0xff:
-          chan[i].readPos=0;
-          logI("%d: stop",i);
+          chan[i].readPos=chan[i].startPos;
+          mustTell=false;
+          logI("%d: stop go back to %x",i,chan[i].readPos);
           break;
         default:
           logE("%d: illegal instruction $%.2x! $%.x",i,next,chan[i].readPos);
@@ -337,7 +341,7 @@ bool DivCSPlayer::tick() {
         }
       }
 
-      chan[i].readPos=stream.tell();
+      if (mustTell) chan[i].readPos=stream.tell();
     }
 
     if (sendVolume || chan[i].volSpeed!=0) {
