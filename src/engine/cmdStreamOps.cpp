@@ -260,14 +260,12 @@ SafeWriter* DivEngine::saveCommand() {
   int lastTick[DIV_MAX_CHANS];
 
   memset(lastTick,0,DIV_MAX_CHANS*sizeof(int));
-  bool wroteTickGlobal=false;
   while (!done) {
     if (nextTick(false,true) || !playing) {
       done=true;
       break;
     }
     // get command stream
-    wroteTickGlobal=false;
     memset(wroteTick,0,DIV_MAX_CHANS*sizeof(bool));
     if (curDivider!=divider) {
       curDivider=divider;
@@ -300,7 +298,6 @@ SafeWriter* DivEngine::saveCommand() {
     cmdStream.clear();
     tick++;
   }
-  wroteTickGlobal=false;
   memset(wroteTick,0,DIV_MAX_CHANS*sizeof(bool));
   for (int i=0; i<chans; i++) {
     WRITE_TICK(i);
