@@ -77,6 +77,12 @@ bool DivCSPlayer::tick() {
         chan[i].readPos=0;
         break;
       }
+
+      chan[i].trace[chan[i].tracePos++]=chan[i].readPos;
+      if (chan[i].tracePos>=DIV_MAX_CSTRACE) {
+        chan[i].tracePos=0;
+      }
+
       unsigned char next=stream.readC();
       unsigned char command=0;
       bool mustTell=true;
