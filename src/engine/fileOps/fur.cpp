@@ -2052,6 +2052,18 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // OPLL fixedAll compat
+    if (ds.version<194) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_OPLL ||
+            ds.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
+          if (!ds.systemFlags[i].has("fixedAll")) {
+            ds.systemFlags[i].set("fixedAll",false);
+          }
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
