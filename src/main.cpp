@@ -212,7 +212,7 @@ TAParamResult pVersion(String) {
   printf("- YM3812-LLE by nukeykt (GPLv2)\n");
   printf("- YMF262-LLE by nukeykt (GPLv2)\n");
   printf("- YMF276-LLE by nukeykt (GPLv2)\n");
-  printf("- ESFMu by Kagamiin~ (LGPLv2.1)\n");
+  printf("- ESFMu (modified version) by Kagamiin~ (LGPLv2.1)\n");
   printf("- ymfm by Aaron Giles (BSD 3-clause)\n");
   printf("- adpcm by superctr (public domain)\n");
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");

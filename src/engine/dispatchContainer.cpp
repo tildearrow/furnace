@@ -649,6 +649,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_ESFM:
       dispatch=new DivPlatformESFM;
+      if (isRender) {
+        ((DivPlatformESFM*)dispatch)->setFast(eng->getConfInt("esfmCoreRender",0));
+      } else {
+        ((DivPlatformESFM*)dispatch)->setFast(eng->getConfInt("esfmCore",0));
+      }
       break;
     case DIV_SYSTEM_POWERNOISE:
       dispatch=new DivPlatformPowerNoise;

@@ -350,7 +350,7 @@ void FurnaceGUI::renderFMPreviewESFM(const DivInstrumentFM& params, const DivIns
   bool mult0=false;
 
   if (pos==0) {
-    ESFM_init((esfm_chip*)fmPreviewESFM);
+    ESFM_init((esfm_chip*)fmPreviewESFM,0);
     // set native mode
     ESFM_WRITE(0x105, 0x80);
 

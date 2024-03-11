@@ -948,7 +948,7 @@ ESFM_set_mode (esfm_chip *chip, bool native_mode)
 
 /* ------------------------------------------------------------------------- */
 void
-ESFM_init (esfm_chip *chip)
+ESFM_init (esfm_chip *chip, uint8_t fast)
 {
 	esfm_slot *slot;
 	esfm_channel *channel;
@@ -999,5 +999,6 @@ ESFM_init (esfm_chip *chip)
 	}
 
 	chip->lfsr = 1;
+	chip->fast_mode = fast;
 }
 

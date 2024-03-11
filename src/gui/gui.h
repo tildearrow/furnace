@@ -1638,6 +1638,7 @@ class FurnaceGUI {
     int opnCore;
     int opl2Core;
     int opl3Core;
+    int esfmCore;
     int arcadeCoreRender;
     int ym2612CoreRender;
     int snCoreRender;
@@ -1648,6 +1649,7 @@ class FurnaceGUI {
     int opnCoreRender;
     int opl2CoreRender;
     int opl3CoreRender;
+    int esfmCoreRender;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -1843,6 +1845,7 @@ class FurnaceGUI {
       opnCore(1),
       opl2Core(0),
       opl3Core(0),
+      esfmCore(0),
       arcadeCoreRender(1),
       ym2612CoreRender(0),
       snCoreRender(0),
@@ -1853,6 +1856,7 @@ class FurnaceGUI {
       opnCoreRender(1),
       opl2CoreRender(0),
       opl3CoreRender(0),
+      esfmCoreRender(0),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
