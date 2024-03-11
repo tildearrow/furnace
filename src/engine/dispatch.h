@@ -456,10 +456,29 @@ struct DivMemoryEntry {
   String name;
   int asset;
   size_t begin, end;
+  DivMemoryEntry(DivMemoryEntryType t, String n, int a, size_t b, size_t e):
+    type(t),
+    name(n),
+    asset(a),
+    begin(b),
+    end(e) {}
+  DivMemoryEntry():
+    type(DIV_MEMORY_FREE),
+    name(""),
+    asset(-1),
+    begin(0),
+    end(0) {}
 };
 
 struct DivMemoryComposition {
   std::vector<DivMemoryEntry> entries;
+  String name;
+  size_t capacity;
+  size_t used;
+  DivMemoryComposition():
+    name(""),
+    capacity(0),
+    used(0) {}
 };
 
 class DivEngine;
@@ -783,12 +802,18 @@ class DivDispatch {
 
     /**
      * check whether sample has been loaded in memory.
-     * @param memory index.
+     * @param index index.
      * @param sample the sample in question.
      * @return whether it did.
      */
     virtual bool isSampleLoaded(int index, int sample);
     
+    /**
+     * get memory composition.
+     * @param index the memory index.
+     * @return a pointer to DivMemoryComposition, or NULL.
+     */
+    virtual const DivMemoryComposition* getMemCompo(int index);
 
     /**
      * Render samples into sample memory.

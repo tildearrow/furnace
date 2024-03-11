@@ -68,7 +68,7 @@ void DivPlatformDave::acquire(short** buf, size_t len) {
     for (int i=4; i<6; i++) {
       if (chan[i].dacSample!=-1) {
         chan[i].dacPeriod+=chan[i].dacRate;
-        if (chan[i].dacPeriod>rate) {
+        while (chan[i].dacPeriod>rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
           if (s->samples<=0) {
             chan[i].dacSample=-1;

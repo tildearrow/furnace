@@ -73,6 +73,9 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
 
+    DivMemoryComposition memCompoA;
+    DivMemoryComposition memCompoB;
+
     double NOTE_OPNB(int ch, int note) {
       if (ch>=adpcmBChanOffs) { // ADPCM
         return NOTE_ADPCMB(note);
@@ -144,12 +147,24 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       if (sample<0 || sample>255) return false;
       return sampleLoaded[index][sample];
     }
+    
+    const DivMemoryComposition* getMemCompo(int index) {
+      if (index==0) return &memCompoA;
+      if (index==1) return &memCompoB;
+      return NULL;
+    }
 
     void renderSamples(int sysID) {
       memset(adpcmAMem,0,getSampleMemCapacity(0));
       memset(sampleOffA,0,256*sizeof(unsigned int));
       memset(sampleOffB,0,256*sizeof(unsigned int));
       memset(sampleLoaded,0,256*2*sizeof(bool));
+
+      memCompoA=DivMemoryComposition();
+      memCompoA.name="ADPCM-A";
+
+      memCompoB=DivMemoryComposition();
+      memCompoB.name="ADPCM-B";
 
       size_t memPos=0;
       for (int i=0; i<parent->song.sampleLen; i++) {
@@ -175,9 +190,13 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
           sampleLoaded[0][i]=true;
         }
         sampleOffA[i]=memPos;
+        memCompoA.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
         memPos+=paddedLen;
       }
       adpcmAMemLen=memPos+256;
+
+      memCompoA.used=adpcmAMemLen;
+      memCompoA.capacity=getSampleMemCapacity(0);
 
       memset(adpcmBMem,0,getSampleMemCapacity(1));
 
@@ -205,9 +224,13 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
           sampleLoaded[1][i]=true;
         }
         sampleOffB[i]=memPos;
+        memCompoB.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
         memPos+=paddedLen;
       }
       adpcmBMemLen=memPos+256;
+
+      memCompoB.used=adpcmBMemLen;
+      memCompoB.capacity=getSampleMemCapacity(1);
     }
 
     void setFlags(const DivConfig& flags) {

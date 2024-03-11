@@ -1776,6 +1776,14 @@ ESFM_process_feedback(esfm_chip *chip)
 			phase_acc = (uint32_t)(slot->in.phase_acc - phase_offset * 28);
 			eg_output = slot->in.eg_output;
 
+			if (chip->fast_mode) {
+				phase_feedback = (slot->in.fb_out0 + slot->in.fb_out1) >> 2;
+				slot->in.fb_out1 = slot->in.fb_out0;
+				phase = phase_feedback >> mod_in_shift;
+				phase += phase_acc >> 9;
+				wave_out = slot->in.fb_out0 = ESFM_envelope_wavegen(waveform, phase, eg_output);
+				phase_acc += phase_offset;
+			} else {
 			// ASM optimizaions!
 #if defined(__GNUC__) && defined(__x86_64__)
 			asm (
@@ -1974,6 +1982,7 @@ ESFM_process_feedback(esfm_chip *chip)
 				phase_acc += phase_offset;
 			}
 #endif
+			}
 
 			// TODO: Figure out - is this how the ESFM chip does it, like the
 			// patent literally says? (it's really hacky...)

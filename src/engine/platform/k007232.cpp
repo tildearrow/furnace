@@ -528,10 +528,18 @@ bool DivPlatformK007232::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformK007232::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformK007232::renderSamples(int sysID) {
   memset(sampleMem,0xc0,getSampleMemCapacity());
   memset(sampleOffK007232,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample ROM";
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -551,6 +559,7 @@ void DivPlatformK007232::renderSamples(int sysID) {
         memPos=(memPos+0x1ffff)&0xfe0000;
       }
       sampleOffK007232[i]=memPos;
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
       for (int j=0; j<actualLength; j++) {
         // convert to 7 bit unsigned
         unsigned char val=(unsigned char)(s->data8[j])^0x80;
@@ -568,6 +577,9 @@ void DivPlatformK007232::renderSamples(int sysID) {
     }
   }
   sampleMemLen=memPos;
+
+  memCompo.used=sampleMemLen;
+  memCompo.capacity=16777216;
 }
 
 int DivPlatformK007232::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

@@ -410,6 +410,26 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATCHBAY_CONNECTION_BG,
   GUI_COLOR_PATCHBAY_CONNECTION_HI,
 
+  GUI_COLOR_MEMORY_BG,
+  GUI_COLOR_MEMORY_FREE,
+  GUI_COLOR_MEMORY_PADDING,
+  GUI_COLOR_MEMORY_RESERVED,
+  GUI_COLOR_MEMORY_SAMPLE,
+  GUI_COLOR_MEMORY_SAMPLE_ALT1,
+  GUI_COLOR_MEMORY_SAMPLE_ALT2,
+  GUI_COLOR_MEMORY_SAMPLE_ALT3,
+  GUI_COLOR_MEMORY_WAVE_RAM,
+  GUI_COLOR_MEMORY_WAVE_STATIC,
+  GUI_COLOR_MEMORY_ECHO,
+  GUI_COLOR_MEMORY_BANK0,
+  GUI_COLOR_MEMORY_BANK1,
+  GUI_COLOR_MEMORY_BANK2,
+  GUI_COLOR_MEMORY_BANK3,
+  GUI_COLOR_MEMORY_BANK4,
+  GUI_COLOR_MEMORY_BANK5,
+  GUI_COLOR_MEMORY_BANK6,
+  GUI_COLOR_MEMORY_BANK7,
+
   GUI_COLOR_LOGLEVEL_ERROR,
   GUI_COLOR_LOGLEVEL_WARNING,
   GUI_COLOR_LOGLEVEL_INFO,
@@ -458,6 +478,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_XY_OSC,
   GUI_WINDOW_INTRO_MON,
   GUI_WINDOW_MEMORY,
+  GUI_WINDOW_CS_PLAYER,
   GUI_WINDOW_SPOILER
 };
 
@@ -516,7 +537,6 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_ZSM,
   GUI_FILE_EXPORT_CMDSTREAM,
-  GUI_FILE_EXPORT_CMDSTREAM_BINARY,
   GUI_FILE_EXPORT_TEXT,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
@@ -649,6 +669,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_GROOVES,
   GUI_ACTION_WINDOW_XY_OSC,
   GUI_ACTION_WINDOW_MEMORY,
+  GUI_ACTION_WINDOW_CS_PLAYER,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1617,6 +1638,7 @@ class FurnaceGUI {
     int opnCore;
     int opl2Core;
     int opl3Core;
+    int esfmCore;
     int arcadeCoreRender;
     int ym2612CoreRender;
     int snCoreRender;
@@ -1627,6 +1649,7 @@ class FurnaceGUI {
     int opnCoreRender;
     int opl2CoreRender;
     int opl3CoreRender;
+    int esfmCoreRender;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -1822,6 +1845,7 @@ class FurnaceGUI {
       opnCore(1),
       opl2Core(0),
       opl3Core(0),
+      esfmCore(0),
       arcadeCoreRender(1),
       ym2612CoreRender(0),
       snCoreRender(0),
@@ -1832,6 +1856,7 @@ class FurnaceGUI {
       opnCoreRender(1),
       opl2CoreRender(0),
       opl3CoreRender(0),
+      esfmCoreRender(0),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
@@ -2044,7 +2069,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen, xyOscOpen, memoryOpen;
+  bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen;
 
   bool shortIntro;
   bool insListDir, waveListDir, sampleListDir;
@@ -2429,6 +2454,9 @@ class FurnaceGUI {
   // tutorial
   int curTutorial, curTutorialStep;
 
+  // command stream player
+  ImGuiListClipper csClipper;
+
   // export options
   int audioExportType;
   FurnaceGUIExportTypes curExportType;
@@ -2553,6 +2581,7 @@ class FurnaceGUI {
   void drawIntro(double introTime, bool monitor=false);
   void drawSettings();
   void drawDebug();
+  void drawCSPlayer();
   void drawNewSong();
   void drawPalette();
   void drawExport();

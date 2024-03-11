@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev193"
-#define DIV_ENGINE_VERSION 193
+#define DIV_VERSION "dev194"
+#define DIV_ENGINE_VERSION 194
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -633,6 +633,10 @@ class DivEngine {
     bool load(unsigned char* f, size_t length);
     // play a binary command stream.
     bool playStream(unsigned char* f, size_t length);
+    // get the playing stream.
+    DivCSPlayer* getStreamPlayer();
+    // destroy command stream player.
+    bool killStream();
     // save as .dmf.
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
@@ -651,7 +655,7 @@ class DivEngine {
     // dump to ZSM.
     SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true, bool optimize=true);
     // dump command stream.
-    SafeWriter* saveCommand(bool binary=false);
+    SafeWriter* saveCommand();
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
