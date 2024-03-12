@@ -69,6 +69,8 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
         phrase(0),
         length(0) {}
     } bankedPhrase[256];
+
+    DivMemoryComposition memCompo;
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
@@ -99,6 +101,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual size_t getSampleMemCapacity(int index) override;
     virtual size_t getSampleMemUsage(int index) override;
     virtual bool isSampleLoaded(int index, int sample) override;
+    virtual const DivMemoryComposition* getMemCompo(int index) override;
     virtual void renderSamples(int chipID) override;
 
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;

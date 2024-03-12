@@ -62,6 +62,7 @@ class SafeWriter {
     void init();
     SafeReader* toReader();
     void finish();
+    void disown();
 
     SafeWriter():
       operative(false),

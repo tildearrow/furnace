@@ -1099,7 +1099,7 @@ void DivPlatformOPLL::setFlags(const DivConfig& flags) {
     oscBuf[i]->rate=rate/2;
   }
   noTopHatFreq=flags.getBool("noTopHatFreq",false);
-  fixedAll=flags.getBool("fixedAll",false);
+  fixedAll=flags.getBool("fixedAll",true);
 }
 
 int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

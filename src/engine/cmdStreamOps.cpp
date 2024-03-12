@@ -21,26 +21,19 @@
 #include "../ta-log.h"
 
 #define WRITE_TICK(x) \
-  if (binary) { \
-    if (!wroteTick[x]) { \
-      wroteTick[x]=true; \
-      if (tick-lastTick[x]>255) { \
-        chanStream[x]->writeC(0xfc); \
-        chanStream[x]->writeS(tick-lastTick[x]); \
-      } else if (tick-lastTick[x]>1) { \
-        delayPopularity[tick-lastTick[x]]++; \
-        chanStream[x]->writeC(0xfd); \
-        chanStream[x]->writeC(tick-lastTick[x]); \
-      } else if (tick-lastTick[x]>0) { \
-        chanStream[x]->writeC(0xfe); \
-      } \
-      lastTick[x]=tick; \
+  if (!wroteTick[x]) { \
+    wroteTick[x]=true; \
+    if (tick-lastTick[x]>255) { \
+      chanStream[x]->writeC(0xfc); \
+      chanStream[x]->writeS(tick-lastTick[x]); \
+    } else if (tick-lastTick[x]>1) { \
+      delayPopularity[tick-lastTick[x]]++; \
+      chanStream[x]->writeC(0xfd); \
+      chanStream[x]->writeC(tick-lastTick[x]); \
+    } else if (tick-lastTick[x]>0) { \
+      chanStream[x]->writeC(0xfe); \
     } \
-  } else { \
-    if (!wroteTickGlobal) { \
-      wroteTickGlobal=true; \
-      w->writeText(fmt::sprintf(">> TICK %d\n",tick)); \
-    } \
+    lastTick[x]=tick; \
   }
 
 void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
@@ -205,7 +198,7 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
   }
 }
 
-SafeWriter* DivEngine::saveCommand(bool binary) {
+SafeWriter* DivEngine::saveCommand() {
   stop();
   repeatPattern=false;
   shallStop=false;
@@ -243,49 +236,23 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
   w->init();
 
   // write header
-  if (binary) {
-    w->write("FCS",4);
-    w->writeI(chans);
-    // offsets
-    for (int i=0; i<chans; i++) {
-      chanStream[i]=new SafeWriter;
-      chanStream[i]->init();
-      w->writeI(0);
-    }
-    // preset delays and speed dial
-    for (int i=0; i<32; i++) {
-      w->writeC(0);
-    }
-  } else {
-    w->writeText("# Furnace Command Stream\n\n");
-
-    w->writeText("[Information]\n");
-    w->writeText(fmt::sprintf("name: %s\n",song.name));
-    w->writeText(fmt::sprintf("author: %s\n",song.author));
-    w->writeText(fmt::sprintf("category: %s\n",song.category));
-    w->writeText(fmt::sprintf("system: %s\n",song.systemName));
-
-    w->writeText("\n");
-
-    w->writeText("[SubSongInformation]\n");
-    w->writeText(fmt::sprintf("name: %s\n",curSubSong->name));
-    w->writeText(fmt::sprintf("tickRate: %f\n",curSubSong->hz));
-
-    w->writeText("\n");
-
-    w->writeText("[SysDefinition]\n");
-    // TODO
-
-    w->writeText("\n");
+  w->write("FCS",4);
+  w->writeI(chans);
+  // offsets
+  for (int i=0; i<chans; i++) {
+    chanStream[i]=new SafeWriter;
+    chanStream[i]->init();
+    w->writeI(0);
+  }
+  // preset delays and speed dial
+  for (int i=0; i<32; i++) {
+    w->writeC(0);
   }
 
   // play the song ourselves
   bool done=false;
   playSub(false);
   
-  if (!binary) {
-    w->writeText("[Stream]\n");
-  }
   int tick=0;
   bool oldCmdStreamEnabled=cmdStreamEnabled;
   cmdStreamEnabled=true;
@@ -296,19 +263,15 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
   while (!done) {
     if (nextTick(false,true) || !playing) {
       done=true;
+      break;
     }
     // get command stream
-    bool wroteTickGlobal=false;
     memset(wroteTick,0,DIV_MAX_CHANS*sizeof(bool));
     if (curDivider!=divider) {
       curDivider=divider;
       WRITE_TICK(0);
-      if (binary) {
-        chanStream[0]->writeC(0xfb);
-        chanStream[0]->writeI((int)(curDivider*65536));
-      } else {
-        w->writeText(fmt::sprintf(">> SET_RATE %f\n",curDivider));
-      }
+      chanStream[0]->writeC(0xfb);
+      chanStream[0]->writeI((int)(curDivider*65536));
     }
     for (DivCommand& i: cmdStream) {
       switch (i.cmd) {
@@ -327,206 +290,198 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
           break;
         default:
           WRITE_TICK(i.chan);
-          if (binary) {
-            cmdPopularity[i.cmd]++;
-            writePackedCommandValues(chanStream[i.chan],i);
-          } else {
-            w->writeText(fmt::sprintf("  %d: %s %d %d\n",i.chan,cmdName[i.cmd],i.value,i.value2));
-          }
+          cmdPopularity[i.cmd]++;
+          writePackedCommandValues(chanStream[i.chan],i);
           break;
       }
     }
     cmdStream.clear();
     tick++;
   }
+  memset(wroteTick,0,DIV_MAX_CHANS*sizeof(bool));
+  for (int i=0; i<chans; i++) {
+    WRITE_TICK(i);
+  }
   cmdStreamEnabled=oldCmdStreamEnabled;
 
-  if (binary) {
-    int sortCand=-1;
-    int sortPos=0;
-    while (sortPos<16) {
-      sortCand=-1;
-      for (int i=DIV_CMD_SAMPLE_MODE; i<256; i++) {
-        if (cmdPopularity[i]) {
-          if (sortCand==-1) {
-            sortCand=i;
-          } else if (cmdPopularity[sortCand]<cmdPopularity[i]) {
-            sortCand=i;
-          }
-        }
-      }
-      if (sortCand==-1) break;
-
-      sortedCmdPopularity[sortPos]=cmdPopularity[sortCand];
-      sortedCmd[sortPos]=sortCand;
-      cmdPopularity[sortCand]=0;
-      sortPos++;
-    }
-
+  int sortCand=-1;
+  int sortPos=0;
+  while (sortPos<16) {
     sortCand=-1;
-    sortPos=0;
-    while (sortPos<16) {
-      sortCand=-1;
-      for (int i=0; i<256; i++) {
-        if (delayPopularity[i]) {
-          if (sortCand==-1) {
-            sortCand=i;
-          } else if (delayPopularity[sortCand]<delayPopularity[i]) {
-            sortCand=i;
-          }
+    for (int i=DIV_CMD_SAMPLE_MODE; i<256; i++) {
+      if (cmdPopularity[i]) {
+        if (sortCand==-1) {
+          sortCand=i;
+        } else if (cmdPopularity[sortCand]<cmdPopularity[i]) {
+          sortCand=i;
         }
       }
-      if (sortCand==-1) break;
-
-      sortedDelayPopularity[sortPos]=delayPopularity[sortCand];
-      sortedDelay[sortPos]=sortCand;
-      delayPopularity[sortCand]=0;
-      sortPos++;
     }
+    if (sortCand==-1) break;
 
-    for (int i=0; i<chans; i++) {
-      chanStream[i]->writeC(0xff);
-      // optimize stream
-      SafeWriter* oldStream=chanStream[i];
-      SafeReader* reader=oldStream->toReader();
-      chanStream[i]=new SafeWriter;
-      chanStream[i]->init();
+    sortedCmdPopularity[sortPos]=cmdPopularity[sortCand];
+    sortedCmd[sortPos]=sortCand;
+    cmdPopularity[sortCand]=0;
+    sortPos++;
+  }
 
-      while (1) {
-        try {
-          unsigned char next=reader->readC();
-          switch (next) {
-            case 0xb8: // instrument
-            case 0xc0: // pre porta
-            case 0xc3: // vibrato range
-            case 0xc4: // vibrato shape
-            case 0xc5: // pitch
-            case 0xc7: // volume
-            case 0xca: // legato
-              chanStream[i]->writeC(next);
-              next=reader->readC();
-              chanStream[i]->writeC(next);
-              break;
-            case 0xbe: // panning
-            case 0xc2: // vibrato
-            case 0xc6: // arpeggio
-            case 0xc8: // vol slide
-            case 0xc9: // porta
-              chanStream[i]->writeC(next);
-              next=reader->readC();
-              chanStream[i]->writeC(next);
-              next=reader->readC();
-              chanStream[i]->writeC(next);
-              break;
-            case 0xf0: { // full command (pre)
-              unsigned char cmd=reader->readC();
-              bool foundShort=false;
-              for (int j=0; j<16; j++) {
-                if (sortedCmd[j]==cmd) {
-                  chanStream[i]->writeC(0xd0+j);
-                  foundShort=true;
-                  break;
-                }
-              }
-              if (!foundShort) {
-                chanStream[i]->writeC(0xf7); // full command
-                chanStream[i]->writeC(cmd);
-              }
-
-              unsigned char cmdLen=reader->readC();
-              logD("cmdLen: %d",cmdLen);
-              for (unsigned char j=0; j<cmdLen; j++) {
-                next=reader->readC();
-                chanStream[i]->writeC(next);
-              }
-              break;
-            }
-            case 0xfb: // tick rate
-              chanStream[i]->writeC(next);
-              next=reader->readC();
-              chanStream[i]->writeC(next);
-              next=reader->readC();
-              chanStream[i]->writeC(next);
-              next=reader->readC();
-              chanStream[i]->writeC(next);
-              next=reader->readC();
-              chanStream[i]->writeC(next);
-              break;
-            case 0xfc: { // 16-bit wait
-              unsigned short delay=reader->readS();
-              bool foundShort=false;
-              for (int j=0; j<16; j++) {
-                if (sortedDelay[j]==delay) {
-                  chanStream[i]->writeC(0xe0+j);
-                  foundShort=true;
-                  break;
-                }
-              }
-              if (!foundShort) {
-                chanStream[i]->writeC(next);
-                chanStream[i]->writeS(delay);
-              }
-              break;
-            }
-            case 0xfd: { // 8-bit wait
-              unsigned char delay=reader->readC();
-              bool foundShort=false;
-              for (int j=0; j<16; j++) {
-                if (sortedDelay[j]==delay) {
-                  chanStream[i]->writeC(0xe0+j);
-                  foundShort=true;
-                  break;
-                }
-              }
-              if (!foundShort) {
-                chanStream[i]->writeC(next);
-                chanStream[i]->writeC(delay);
-              }
-              break;
-            }
-            default:
-              chanStream[i]->writeC(next);
-              break;
-          }
-        } catch (EndOfFileException& e) {
-          break;
+  sortCand=-1;
+  sortPos=0;
+  while (sortPos<16) {
+    sortCand=-1;
+    for (int i=0; i<256; i++) {
+      if (delayPopularity[i]) {
+        if (sortCand==-1) {
+          sortCand=i;
+        } else if (delayPopularity[sortCand]<delayPopularity[i]) {
+          sortCand=i;
         }
       }
+    }
+    if (sortCand==-1) break;
 
-      oldStream->finish();
-      delete oldStream;
+    sortedDelayPopularity[sortPos]=delayPopularity[sortCand];
+    sortedDelay[sortPos]=sortCand;
+    delayPopularity[sortCand]=0;
+    sortPos++;
+  }
+
+  for (int i=0; i<chans; i++) {
+    chanStream[i]->writeC(0xff);
+    // optimize stream
+    SafeWriter* oldStream=chanStream[i];
+    SafeReader* reader=oldStream->toReader();
+    chanStream[i]=new SafeWriter;
+    chanStream[i]->init();
+
+    while (1) {
+      try {
+        unsigned char next=reader->readC();
+        switch (next) {
+          case 0xb8: // instrument
+          case 0xc0: // pre porta
+          case 0xc3: // vibrato range
+          case 0xc4: // vibrato shape
+          case 0xc5: // pitch
+          case 0xc7: // volume
+          case 0xca: // legato
+            chanStream[i]->writeC(next);
+            next=reader->readC();
+            chanStream[i]->writeC(next);
+            break;
+          case 0xbe: // panning
+          case 0xc2: // vibrato
+          case 0xc6: // arpeggio
+          case 0xc8: // vol slide
+          case 0xc9: // porta
+            chanStream[i]->writeC(next);
+            next=reader->readC();
+            chanStream[i]->writeC(next);
+            next=reader->readC();
+            chanStream[i]->writeC(next);
+            break;
+          case 0xf0: { // full command (pre)
+            unsigned char cmd=reader->readC();
+            bool foundShort=false;
+            for (int j=0; j<16; j++) {
+              if (sortedCmd[j]==cmd) {
+                chanStream[i]->writeC(0xd0+j);
+                foundShort=true;
+                break;
+              }
+            }
+            if (!foundShort) {
+              chanStream[i]->writeC(0xf7); // full command
+              chanStream[i]->writeC(cmd);
+            }
+
+            unsigned char cmdLen=reader->readC();
+            logD("cmdLen: %d",cmdLen);
+            for (unsigned char j=0; j<cmdLen; j++) {
+              next=reader->readC();
+              chanStream[i]->writeC(next);
+            }
+            break;
+          }
+          case 0xfb: // tick rate
+            chanStream[i]->writeC(next);
+            next=reader->readC();
+            chanStream[i]->writeC(next);
+            next=reader->readC();
+            chanStream[i]->writeC(next);
+            next=reader->readC();
+            chanStream[i]->writeC(next);
+            next=reader->readC();
+            chanStream[i]->writeC(next);
+            break;
+          case 0xfc: { // 16-bit wait
+            unsigned short delay=reader->readS();
+            bool foundShort=false;
+            for (int j=0; j<16; j++) {
+              if (sortedDelay[j]==delay) {
+                chanStream[i]->writeC(0xe0+j);
+                foundShort=true;
+                break;
+              }
+            }
+            if (!foundShort) {
+              chanStream[i]->writeC(next);
+              chanStream[i]->writeS(delay);
+            }
+            break;
+          }
+          case 0xfd: { // 8-bit wait
+            unsigned char delay=reader->readC();
+            bool foundShort=false;
+            for (int j=0; j<16; j++) {
+              if (sortedDelay[j]==delay) {
+                chanStream[i]->writeC(0xe0+j);
+                foundShort=true;
+                break;
+              }
+            }
+            if (!foundShort) {
+              chanStream[i]->writeC(next);
+              chanStream[i]->writeC(delay);
+            }
+            break;
+          }
+          default:
+            chanStream[i]->writeC(next);
+            break;
+        }
+      } catch (EndOfFileException& e) {
+        break;
+      }
     }
 
-    for (int i=0; i<chans; i++) {
-      chanStreamOff[i]=w->tell();
-      logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
-      w->write(chanStream[i]->getFinalBuf(),chanStream[i]->size());
-      chanStream[i]->finish();
-      delete chanStream[i];
-    }
+    oldStream->finish();
+    delete oldStream;
+  }
 
-    w->seek(8,SEEK_SET);
-    for (int i=0; i<chans; i++) {
-      w->writeI(chanStreamOff[i]);
-    }
+  for (int i=0; i<chans; i++) {
+    chanStreamOff[i]=w->tell();
+    logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
+    w->write(chanStream[i]->getFinalBuf(),chanStream[i]->size());
+    chanStream[i]->finish();
+    delete chanStream[i];
+  }
 
-    logD("delay popularity:");
-    for (int i=0; i<16; i++) {
-      w->writeC(sortedDelay[i]);
-      if (sortedDelayPopularity[i]) logD("- %d: %d",sortedDelay[i],sortedDelayPopularity[i]);
-    }
+  w->seek(8,SEEK_SET);
+  for (int i=0; i<chans; i++) {
+    w->writeI(chanStreamOff[i]);
+  }
 
-    logD("command popularity:");
-    for (int i=0; i<16; i++) {
-      w->writeC(sortedCmd[i]);
-      if (sortedCmdPopularity[i]) logD("- %s: %d",cmdName[sortedCmd[i]],sortedCmdPopularity[i]);
-    }
-  } else {
-    if (!playing) {
-      w->writeText(">> END\n");
-    } else {
-      w->writeText(">> LOOP 0\n");
-    }
+  logD("delay popularity:");
+  for (int i=0; i<16; i++) {
+    w->writeC(sortedDelay[i]);
+    if (sortedDelayPopularity[i]) logD("- %d: %d",sortedDelay[i],sortedDelayPopularity[i]);
+  }
+
+  logD("command popularity:");
+  for (int i=0; i<16; i++) {
+    w->writeC(sortedCmd[i]);
+    if (sortedCmdPopularity[i]) logD("- %s: %d",cmdName[sortedCmd[i]],sortedCmdPopularity[i]);
   }
 
   remainingLoops=-1;

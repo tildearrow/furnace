@@ -456,6 +456,18 @@ struct DivMemoryEntry {
   String name;
   int asset;
   size_t begin, end;
+  DivMemoryEntry(DivMemoryEntryType t, String n, int a, size_t b, size_t e):
+    type(t),
+    name(n),
+    asset(a),
+    begin(b),
+    end(e) {}
+  DivMemoryEntry():
+    type(DIV_MEMORY_FREE),
+    name(""),
+    asset(-1),
+    begin(0),
+    end(0) {}
 };
 
 struct DivMemoryComposition {
@@ -463,6 +475,10 @@ struct DivMemoryComposition {
   String name;
   size_t capacity;
   size_t used;
+  DivMemoryComposition():
+    name(""),
+    capacity(0),
+    used(0) {}
 };
 
 class DivEngine;

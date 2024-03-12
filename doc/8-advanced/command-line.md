@@ -83,7 +83,6 @@ the following parameters may be used:
 
 - `-cmdout path`: output command stream dump to `path`.
   - you must provide a file, otherwise Furnace will quit.
-- `-binary`: set command stream output format to binary.
 
 ## COMMAND LINE INTERFACE
 
