@@ -1033,11 +1033,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemFlags[0].set("dpcmMode",false);
     }
 
-    // C64 no key priority, reset time and multiply relative
+    // C64 no key priority, reset time, multiply relative and macro race
     if (ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) {
       ds.systemFlags[0].set("keyPriority",false);
       ds.systemFlags[0].set("initResetTime",1);
       ds.systemFlags[0].set("multiplyRel",true);
+      ds.systemFlags[0].set("macroRace",true);
     }
 
     // OPM broken pitch

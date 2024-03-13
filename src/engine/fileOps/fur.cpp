@@ -2064,6 +2064,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // C64 macro race
+    if (ds.version<195) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_C64_8580 || ds.system[i]==DIV_SYSTEM_C64_6581) {
+          ds.systemFlags[i].set("macroRace",true);
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
