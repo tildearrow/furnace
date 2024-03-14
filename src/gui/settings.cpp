@@ -3685,6 +3685,7 @@ void FurnaceGUI::drawSettings() {
         }
         if (ImGui::TreeNode("Memory Composition")) {
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BG,"Background");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_DATA,"Waveform data");
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_FREE,"Unknown");
           //UI_COLOR_CONFIG(GUI_COLOR_MEMORY_PADDING,"");
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_RESERVED,"Reserved");
@@ -3695,6 +3696,8 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_WAVE_RAM,"Wave RAM");
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_WAVE_STATIC,"Wavetable (static)");
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_ECHO,"Echo buffer");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_N163_LOAD,"Namco 163 load pos");
+          UI_COLOR_CONFIG(GUI_COLOR_MEMORY_N163_PLAY,"Namco 163 play pos");
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK0,"Sample (bank 0)");
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK1,"Sample (bank 1)");
           UI_COLOR_CONFIG(GUI_COLOR_MEMORY_BANK2,"Sample (bank 2)");

@@ -542,7 +542,7 @@ class DivEngine {
   void testFunction();
 
   bool loadDMF(unsigned char* file, size_t len);
-  bool loadFur(unsigned char* file, size_t len);
+  bool loadFur(unsigned char* file, size_t len, int variantID=0);
   bool loadMod(unsigned char* file, size_t len);
   bool loadS3M(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len);
