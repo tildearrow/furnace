@@ -220,7 +220,7 @@ struct DivDispatchContainer {
   void fillBuf(size_t runtotal, size_t offset, size_t size);
   void clear();
   void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags, bool isRender=false);
-  void quit(bool saveConfig=true);
+  void quit();
   DivDispatchContainer():
     dispatch(NULL),
     bbInLen(0),
@@ -1252,7 +1252,7 @@ class DivEngine {
     void everythingOK();
 
     // terminate the engine.
-    bool quit();
+    bool quit(bool saveConfig=true);
 
     unsigned char* yrw801ROM;
     unsigned char* tg100ROM;
