@@ -7242,8 +7242,12 @@ void FurnaceGUI::commitState() {
   }
 }
 
-bool FurnaceGUI::finish() {
+bool FurnaceGUI::finish(bool saveConfig) {
   commitState();
+  if (saveConfig) {
+    logI("saving config.");
+    saveConf();
+  }
   rend->quitGUI();
   ImGui_ImplSDL2_Shutdown();
   quitRender();
