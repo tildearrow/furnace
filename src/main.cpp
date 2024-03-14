@@ -759,13 +759,13 @@ int main(int argc, char** argv) {
 
   g.loop();
   logI("closing GUI.");
-  g.finish();
+  g.finish(true);
 #else
   logE("GUI requested but GUI not compiled!");
 #endif
 
   logI("stopping engine.");
-  e.quit();
+  e.quit(false);
 
   finishLogFile();
 
