@@ -4419,8 +4419,6 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("debug")) {
-          if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
-          if (ImGui::MenuItem("inspector")) inspectorOpen=!inspectorOpen;
           if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
           if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
           if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
@@ -4439,6 +4437,8 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu(settings.capitalMenuBar?"Help":"help")) {
+        if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
+        if (ImGui::MenuItem("inspector")) inspectorOpen=!inspectorOpen;
         if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
         if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
           aboutOpen=true;
