@@ -4358,6 +4358,12 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
           lockLayout=!lockLayout;
         }
+        if (ImGui::MenuItem("pattern visualizer",NULL,fancyPattern)) {
+          fancyPattern=!fancyPattern;
+          e->enableCommandStream(fancyPattern);
+          e->getCommandStream(cmdStream);
+          cmdStream.clear();
+        }
         if (ImGui::MenuItem("reset layout")) {
           showWarning("Are you sure you want to reset the workspace layout?",GUI_WARN_RESET_LAYOUT);
         }
@@ -4404,12 +4410,6 @@ bool FurnaceGUI::loop() {
           if (ImGui::MenuItem("oscilloscope (per-channel)",BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
           if (ImGui::MenuItem("oscilloscope (X-Y)",BIND_FOR(GUI_ACTION_WINDOW_XY_OSC),xyOscOpen)) xyOscOpen=!xyOscOpen;
           if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
-          if (ImGui::MenuItem("pattern visualizer",NULL,fancyPattern)) {
-            fancyPattern=!fancyPattern;
-            e->enableCommandStream(fancyPattern);
-            e->getCommandStream(cmdStream);
-            cmdStream.clear();
-          }
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("tempo")) {
@@ -4424,9 +4424,6 @@ bool FurnaceGUI::loop() {
           if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
           if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
           if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
-          ImGui::Separator();
-          ImGui::Text("work in progress");
-          ImGui::Separator();
           if (ImGui::MenuItem("memory composition",BIND_FOR(GUI_ACTION_WINDOW_MEMORY),memoryOpen)) memoryOpen=!memoryOpen;
           if (ImGui::MenuItem("shader editor")) shaderEditor=!shaderEditor;
           ImGui::EndMenu();
