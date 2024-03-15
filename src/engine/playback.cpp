@@ -950,6 +950,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         dispatchCmd(DivCommand(DIV_CMD_HINT_PITCH,i,chan[i].pitch));
         break;
+      case 0xe7: // delayed macro release
+        // "Bruh"
+        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+          chan[i].cut=effectVal+1;
+          chan[i].cutType=2;
+        }
+        break;
       case 0xea: // legato mode
         chan[i].legato=effectVal;
         break;
@@ -959,6 +966,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xec: // delayed note cut
         if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
           chan[i].cut=effectVal+1;
+          chan[i].cutType=0;
         }
         break;
       case 0xee: // external command
@@ -1044,6 +1052,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].volSpeed=0;
         }
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
+        break;
+
+      case 0xfc: // delayed note release
+        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+          chan[i].cut=effectVal+1;
+          chan[i].cutType=1;
+        }
         break;
       
       case 0xff: // stop song
@@ -1333,7 +1348,10 @@ void DivEngine::nextRow() {
                 }
               }
             }
-            if (doPrepareCut && !wantPreNote && chan[i].cut<=0) chan[i].cut=ticks+addition;
+            if (doPrepareCut && !wantPreNote && chan[i].cut<=0) {
+              chan[i].cut=ticks+addition;
+              chan[i].cutType=0;
+            }
           }
         }
       }
@@ -1530,30 +1548,36 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         }
         if (chan[i].cut>0) {
           if (--chan[i].cut<1) {
-            chan[i].oldNote=chan[i].note;
-            //chan[i].note=-1;
-            if (chan[i].inPorta && song.noteOffResetsSlides) {
-              chan[i].keyOff=true;
-              chan[i].keyOn=false;
-              if (chan[i].stopOnOff) {
-                chan[i].portaNote=-1;
-                chan[i].portaSpeed=-1;
-                dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-                chan[i].stopOnOff=false;
+            if (chan[i].cutType==2) {
+              dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
+              chan[i].releasing=true;
+            } else {
+              chan[i].oldNote=chan[i].note;
+              //chan[i].note=-1;
+              if (chan[i].inPorta && song.noteOffResetsSlides) {
+                chan[i].keyOff=true;
+                chan[i].keyOn=false;
+                if (chan[i].stopOnOff) {
+                  chan[i].portaNote=-1;
+                  chan[i].portaSpeed=-1;
+                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+                  chan[i].stopOnOff=false;
+                }
+                if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+                  chan[i].portaNote=-1;
+                  chan[i].portaSpeed=-1;
+                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+                }
+                dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+                chan[i].scheduledSlideReset=true;
               }
-              if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
-                chan[i].portaNote=-1;
-                chan[i].portaSpeed=-1;
-                dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-                /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
-                  chan[i+1].portaNote=-1;
-                  chan[i+1].portaSpeed=-1;
-                }*/
+              if (chan[i].cutType==1) {
+                dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
+              } else {
+                dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
               }
-              dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
-              chan[i].scheduledSlideReset=true;
+              chan[i].releasing=true;
             }
-            dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
           }
         }
         if (chan[i].resetArp) {

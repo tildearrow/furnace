@@ -80,8 +80,10 @@ not all chips support these effects.
 
 - `0Cxx`: **Retrigger.** repeats current note every `xx` ticks.
   - this effect is not continuous; it must be entered on every row.
-- `ECxx`: **Note cut.** ends current note after `xx` ticks. for FM instruments, it's equivalent to a "key off".
+- `ECxx`: **Note cut.** triggers note off after `xx` ticks. this triggers key off in FM/hardware envelope chips, or cuts note otherwise.
 - `EDxx`: **Note delay.** delays note by `x` ticks.
+- `FCxx`: **Note release.** releases current note after `xx` ticks. this releases macros and triggers key off in FM/hardware envelope chips.
+- `E7xx`: **Macro release.** releases macros after `xx` ticks. this does not trigger key off.
 
 ## other
 

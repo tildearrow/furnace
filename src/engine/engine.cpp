@@ -105,6 +105,8 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "E4xx: Set vibrato range";
     case 0xe5:
       return "E5xx: Set pitch (80: center)";
+    case 0xe7:
+      return "E7xx: Macro release";
     case 0xea:
       return "EAxx: Legato";
     case 0xeb:
@@ -137,6 +139,8 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "F9xx: Single tick volume slide down";
     case 0xfa:
       return "FAxx: Fast volume slide (0y: down; x0: up)";
+    case 0xfc:
+      return "FCxx: Note release";
     case 0xff:
       return "FFxx: Stop song";
     default:
@@ -1687,6 +1691,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   }
   for (int i=0; i<chans; i++) {
     chan[i].cut=-1;
+    chan[i].cutType=0;
   }
   repeatPattern=oldRepeatPattern;
   if (preserveDrift) {
