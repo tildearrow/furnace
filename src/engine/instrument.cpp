@@ -2952,6 +2952,8 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
     type=0;
   } else if (memcmp(magic,"INS2",4)==0) {
     type=1;
+  } else if (memcmp(magic,"IN2B",4)==0) { // DIV_FUR_VARIANT_B
+    type=1;
   } else if (memcmp(magic,"FINS",4)==0) {
     type=2;
   } else {

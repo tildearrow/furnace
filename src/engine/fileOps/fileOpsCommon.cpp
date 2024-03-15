@@ -131,6 +131,8 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     return loadFTM(file,len);
   } else if (memcmp(file,DIV_FUR_MAGIC,16)==0) {
     return loadFur(file,len);
+  } else if (memcmp(file,DIV_FUR_MAGIC_DS0,16)==0) {
+    return loadFur(file,len,DIV_FUR_VARIANT_B);
   } else if (memcmp(file,DIV_FC13_MAGIC,4)==0 || memcmp(file,DIV_FC14_MAGIC,4)==0) {
     return loadFC(file,len);
   }

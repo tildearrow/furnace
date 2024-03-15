@@ -4013,11 +4013,13 @@ bool DivEngine::init() {
   return true;
 }
 
-bool DivEngine::quit() {
+bool DivEngine::quit(bool saveConfig) {
   deinitAudioBackend();
   quitDispatch();
-  logI("saving config.");
-  saveConf();
+  if (saveConfig) {
+    logI("saving config.");
+    saveConf();
+  }
   active=false;
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
     if (oscBuf[i]!=NULL) delete[] oscBuf[i];

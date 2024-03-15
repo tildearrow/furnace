@@ -56,17 +56,28 @@ void FurnaceGUI::drawMemory() {
           minArea.y+size.y
         );
         ImRect rect=ImRect(minArea,maxArea);
+        ImRect dataRect=rect;
+        ImRect entryRect=rect;
         ImGuiStyle& style=ImGui::GetStyle();
         ImGui::ItemSize(size,style.FramePadding.y);
         snprintf(tempID,1023,"MC%d_%d",i,j);
         if (ImGui::ItemAdd(rect,ImGui::GetID(tempID))) {
           dl->AddRectFilled(rect.Min,rect.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_MEMORY_BG]));
 
+          if (mc->memory!=NULL && mc->waveformView!=DIV_MEMORY_WAVE_NONE) {
+            dataRect.Max.y-=8.0f*dpiScale;
+            entryRect.Min.y=entryRect.Max.y-8.0f*dpiScale;
+          }
+
           int curHover=-1;
           int kIndex=0;
           if (mc->capacity>0) for (const DivMemoryEntry& k: mc->entries) {
-            ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2((double)k.begin/(double)mc->capacity,0.0f));
-            ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2((double)k.end/(double)mc->capacity,1.0f));
+            if (k.begin==k.end) {
+              kIndex++;
+              continue;
+            }
+            ImVec2 pos1=ImLerp(entryRect.Min,entryRect.Max,ImVec2((double)k.begin/(double)mc->capacity,(k.type==DIV_MEMORY_N163_LOAD)?0.5f:0.0f));
+            ImVec2 pos2=ImLerp(entryRect.Min,entryRect.Max,ImVec2((double)k.end/(double)mc->capacity,(k.type==DIV_MEMORY_N163_PLAY)?0.5f:1.0f));
             ImVec2 linePos=pos1;
             linePos.y=rect.Max.y;
 
@@ -77,6 +88,27 @@ void FurnaceGUI::drawMemory() {
               curHover=kIndex;
             }
             kIndex++;
+          }
+
+          if (mc->memory!=NULL) {
+            switch (mc->waveformView) {
+              case DIV_MEMORY_WAVE_4BIT:
+                for (int k=0; k<(int)(mc->capacity<<1); k++) {
+                  unsigned char nibble=mc->memory[k>>1];
+                  if (k&1) {
+                    nibble&=15;
+                  } else {
+                    nibble>>=4;
+                  }
+
+                  ImVec2 pos1=ImLerp(dataRect.Min,dataRect.Max,ImVec2((double)k/(double)(mc->capacity<<1),1.0f-((float)(nibble+1)/16.0f)));
+                  ImVec2 pos2=ImLerp(dataRect.Min,dataRect.Max,ImVec2((double)(k+1)/(double)(mc->capacity<<1),1.0f));
+                  dl->AddRectFilled(pos1,pos2,ImGui::GetColorU32(uiColors[GUI_COLOR_MEMORY_DATA]));
+                }
+                break;
+              default:
+                break;
+            }
           }
 
           if (ImGui::ItemHoverable(rect,ImGui::GetID(tempID),0)) {

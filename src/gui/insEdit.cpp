@@ -7028,6 +7028,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_DAVE) {
             ex1Max=4;
           }
+          if (ins->type==DIV_INS_MIKEY) {
+            ex1Max=12;
+          }
 
           int panMin=0;
           int panMax=0;
@@ -7234,6 +7237,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Group Attack",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_DAVE) {
               macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,daveControlBits));
+            } else if (ins->type==DIV_INS_MIKEY) {
+              macroList.push_back(FurnaceGUIMacroDesc("Load LFSR",&ins->std.ex1Macro,0,12,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
