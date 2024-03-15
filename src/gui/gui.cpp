@@ -4423,7 +4423,6 @@ bool FurnaceGUI::loop() {
           if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
           if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
           if (ImGui::MenuItem("memory composition",BIND_FOR(GUI_ACTION_WINDOW_MEMORY),memoryOpen)) memoryOpen=!memoryOpen;
-          if (ImGui::MenuItem("shader editor")) shaderEditor=!shaderEditor;
           ImGui::EndMenu();
         }
         ImGui::Separator();
