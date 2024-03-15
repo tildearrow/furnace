@@ -84,7 +84,10 @@ void FurnaceGUI::drawMemory() {
             dl->AddRectFilled(pos1,pos2,ImGui::GetColorU32(uiColors[GUI_COLOR_MEMORY_FREE+(int)k.type]));
             dl->AddLine(pos1,linePos,ImGui::GetColorU32(ImGuiCol_Border),dpiScale);
 
-            if (ImGui::GetMousePos().x>=pos1.x && ImGui::GetMousePos().x<=pos2.x) {
+            if (ImGui::GetMousePos().x>=pos1.x &&
+                ImGui::GetMousePos().x<=pos2.x &&
+                ImGui::GetMousePos().y>=pos1.y &&
+                ImGui::GetMousePos().y<=pos2.y) {
               curHover=kIndex;
             }
             kIndex++;
@@ -96,9 +99,9 @@ void FurnaceGUI::drawMemory() {
                 for (int k=0; k<(int)(mc->capacity<<1); k++) {
                   unsigned char nibble=mc->memory[k>>1];
                   if (k&1) {
-                    nibble&=15;
-                  } else {
                     nibble>>=4;
+                  } else {
+                    nibble&=15;
                   }
 
                   ImVec2 pos1=ImLerp(dataRect.Min,dataRect.Max,ImVec2((double)k/(double)(mc->capacity<<1),1.0f-((float)(nibble+1)/16.0f)));

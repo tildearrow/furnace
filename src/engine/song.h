@@ -222,67 +222,6 @@ struct DivEffectStorage {
 };
 
 struct DivSong {
-  // version number used for saving the song.
-  // Furnace will save using the latest possible version,
-  // known version numbers:
-  // - 26: v1.1.3
-  //   - changes height of FDS wave to 6-bit (it was 4-bit before)
-  // - 25: v1.1
-  //   - adds pattern names (in a rather odd way)
-  //   - introduces SMS+OPLL system
-  // - 24: v0.12/0.13/1.0
-  //   - current format version
-  //   - changes pattern length from char to int, probably to allow for size 256
-  // - 23: ???
-  //   - what happened here?
-  // - 20: v11.1 (?)
-  //   - E5xx effect range is now ±1 semitone
-  // - 19: v11
-  //   - introduces Arcade system
-  //   - changes to the FM instrument format due to YMU759 being dropped
-  // - 18: v10
-  //   - radically changes STD instrument for Game Boy
-  // - 17: v9
-  //   - changes C64 volIsCutoff flag from int to char for unknown reasons
-  // - 16: v8 (?)
-  //   - introduces C64 system
-  // - 15: v7 (?)
-  // - 14: v6 (?)
-  //   - introduces NES system
-  //   - changes macro and wave values from char to int
-  // - 13: v5.1
-  //   - introduces PC Engine system in later version (how?)
-  //   - stores highlight in file
-  // - 12: v5 (?)
-  //   - introduces Game Boy system
-  //   - introduces wavetables
-  // - 11: ???
-  //   - introduces Sega Master System
-  //   - custom Hz support
-  //   - instrument type (FM/STD) present
-  //   - prior to this version the instrument type depended on the system
-  // - 10: ???
-  //   - introduces multiple effect columns
-  // - 9: v3.9
-  //   - introduces Genesis system
-  //   - introduces system number
-  //   - patterns now stored in current known format
-  // - 8: ???
-  //   - only used in the Medivo YMU cover
-  // - 7: ???
-  //   - only present in a later version of First.dmf
-  //   - pattern format changes: empty field is 0xFF instead of 0x80
-  //   - instrument now stored in pattern
-  // - 5: BETA 3
-  //   - adds arpeggio tick
-  // - 4: BETA 2
-  //   - possibly adds instrument number (stored in channel)?
-  //   - cannot confirm as I don't have any version 4 modules
-  // - 3: BETA 1
-  //   - possibly the first version that could save
-  //   - basic format, no system number, 16 instruments, one speed, YMU759-only
-  //   - patterns were stored in a different format (chars instead of shorts) and no instrument
-  //   - if somebody manages to find a version 2 or even 1 module, please tell me as it will be worth more than a luxury vehicle
   unsigned short version;
   bool isDMF;
 
