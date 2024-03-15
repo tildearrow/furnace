@@ -487,6 +487,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
             if (effectVal>0) speeds.val[0]=effectVal;
           }
           break;
+        case 0xfd: // virtual tempo num
+          if (effectVal>0) virtualTempoN=effectVal;
+          break;
+        case 0xfe: // virtual tempo den
+          if (effectVal>0) virtualTempoD=effectVal;
+          break;
         case 0x0b: // change order
           if (changeOrd==-1 || song.jumpTreatment==0) {
             changeOrd=effectVal;
@@ -1442,9 +1448,9 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       subticks=tickMult;
 
       if (stepPlay!=1) {
-        tempoAccum+=(skipping && curSubSong->virtualTempoN<curSubSong->virtualTempoD)?curSubSong->virtualTempoD:curSubSong->virtualTempoN;
-        while (tempoAccum>=curSubSong->virtualTempoD) {
-          tempoAccum-=curSubSong->virtualTempoD;
+        tempoAccum+=(skipping && virtualTempoN<virtualTempoD)?virtualTempoD:virtualTempoN;
+        while (tempoAccum>=virtualTempoD) {
+          tempoAccum-=virtualTempoD;
           if (--ticks<=0) {
             ret=endOfSong;
             if (shallStopSched) {
@@ -1693,7 +1699,7 @@ void DivEngine::runMidiClock(int totalCycles) {
     if (hl<=0.0) hl=4.0;
     double timeBase=curSubSong->timeBase+1;
     double speedSum=0;
-    double vD=curSubSong->virtualTempoD;
+    double vD=virtualTempoD;
     for (int i=0; i<MIN(16,speeds.len); i++) {
       speedSum+=speeds.val[i];
     }
@@ -1701,7 +1707,7 @@ void DivEngine::runMidiClock(int totalCycles) {
     if (timeBase<1.0) timeBase=1.0;
     if (speedSum<1.0) speedSum=1.0;
     if (vD<1) vD=1;
-    double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)curSubSong->virtualTempoN/vD;
+    double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)virtualTempoN/vD;
     if (bpm<1.0) bpm=1.0;
     int increment=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
 

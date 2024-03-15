@@ -442,6 +442,7 @@ class DivEngine {
   int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
   DivGroovePattern speeds;
+  short virtualTempoN, virtualTempoD;
   short tempoAccum;
   DivStatusView view;
   DivHaltPositions haltOn;
@@ -891,6 +892,13 @@ class DivEngine {
     // get current Hz
     float getCurHz();
 
+    // get virtual tempo
+    short getVirtualTempoN();
+    short getVirtualTempoD();
+
+    // tell engine about virtual tempo changes
+    void virtualTempoChanged();
+
     // get time
     int getTotalTicks(); // 1/1000000th of a second
     int getTotalSeconds();
@@ -1334,6 +1342,8 @@ class DivEngine {
       curMidiTimeCode(0),
       extValue(0),
       pendingMetroTick(0),
+      virtualTempoN(150),
+      virtualTempoD(150),
       tempoAccum(0),
       view(DIV_STATUS_NOTHING),
       haltOn(DIV_HALT_NONE),

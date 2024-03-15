@@ -141,6 +141,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "FAxx: Fast volume slide (0y: down; x0: up)";
     case 0xfc:
       return "FCxx: Note release";
+    case 0xfd:
+      return "FDxx: Set virtual tempo numerator";
+    case 0xfe:
+      return "FExx: Set virtual tempo denominator";
     case 0xff:
       return "FFxx: Stop song";
     default:
@@ -1683,7 +1687,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
       runMidiTime(cycles);
     }
     if (oldOrder!=curOrder) break;
-    if (ticks-((tempoAccum+curSubSong->virtualTempoN)/MAX(1,curSubSong->virtualTempoD))<1 && curRow>=goalRow) break;
+    if (ticks-((tempoAccum+virtualTempoN)/MAX(1,virtualTempoD))<1 && curRow>=goalRow) break;
   }
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
   if (goal>0 || goalRow>0) {
@@ -2121,6 +2125,8 @@ void DivEngine::reset() {
   extValue=0;
   extValuePresent=0;
   speeds=curSubSong->speeds;
+  virtualTempoN=curSubSong->virtualTempoN;
+  virtualTempoD=curSubSong->virtualTempoD;
   firstTick=false;
   shallStop=false;
   shallStopSched=false;
@@ -2366,6 +2372,21 @@ float DivEngine::getHz() {
 
 float DivEngine::getCurHz() {
   return divider;
+}
+
+short DivEngine::getVirtualTempoN() {
+  return virtualTempoN;
+}
+
+short DivEngine::getVirtualTempoD() {
+  return virtualTempoD;
+}
+
+void DivEngine::virtualTempoChanged() {
+  BUSY_BEGIN;
+  virtualTempoN=curSubSong->virtualTempoN;
+  virtualTempoD=curSubSong->virtualTempoD;
+  BUSY_END;
 }
 
 int DivEngine::getTotalSeconds() {

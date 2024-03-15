@@ -70,6 +70,9 @@ not all chips support these effects.
   - `xxx` may be from `000` to `3FF`.
 - `F0xx`: **Set BPM.** changes tick rate according to beats per minute. range is `01` to `FF`.
   - ---
+- `FDxx`: **Set virtual tempo numerator.** sets the virtual tempo's numerator to the effect value.
+- `FExx`: **Set virtual tempo denominator.** sets the virtual tempo's denominator to the effect value.
+  - ---
 - `0Bxx`: **Jump to order.** `x` is the order to play after the current row.
   - this marks the end of a loop with order `x` as the loop start.
 - `0Dxx`: **Jump to next pattern.** skips the current row and remainder of current order. `x` is the row at which to start playing the next pattern.

@@ -4446,7 +4446,7 @@ bool FurnaceGUI::loop() {
           info="| Groove";
         }
 
-        info+=fmt::sprintf(" @ %gHz (%g BPM) ",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
+        info+=fmt::sprintf(" @ %gHz (%g BPM) ",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->getVirtualTempoN(),e->getVirtualTempoD()));
 
         if (settings.orderRowsBase) {
           info+=fmt::sprintf("| Order %.2X/%.2X ",playOrder,e->curSubSong->ordersLen-1);
