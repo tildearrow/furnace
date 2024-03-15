@@ -81,7 +81,7 @@ void DivPlatformK053260::acquire(short** buf, size_t len) {
     buf[1][i]=rout;
 
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(k053260.voice_out(i,0)+k053260.voice_out(i,1))>>2;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(k053260.voice_out(i,0)+k053260.voice_out(i,1))>>1;
     }
   }
 }
