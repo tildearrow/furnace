@@ -20,10 +20,11 @@
 // most of this code written by LTVA
 // ported to Furnace by tildearrow
 
+// portions apparently taken from FamiTracker source, which is under GPLv2+
+
 // TODO:
 // - audit for CVEs
 // - Namco 163 waves
-// - fix virtual tempo
 // - format code?
 
 #include "fileOpsCommon.h"
@@ -438,7 +439,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     unsigned char map_channels[DIV_MAX_CHANS];
     unsigned int hilightA = 4;
     unsigned int hilightB = 16;
-    double customHz = 60;
+    double customHz = 60.0;
 
     unsigned char fds_chan = 0xff;
     unsigned char vrc6_saw_chan = 0xff;
@@ -819,8 +820,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           ds.subsong[i]->hilightB = hilightB;
           if (customHz != 0) {
             ds.subsong[i]->hz = customHz;
-
-            ds.subsong[i]->virtualTempoN = (short)(150.0 / (float)customHz * (pal ? (50.0) : (60.0)));
+            ds.subsong[i]->virtualTempoD = (short)(2.5 * customHz);
           }
           logV("- %s", subSongName);
         }
@@ -1470,7 +1470,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             s->speeds.val[0] = reader.readI();
           }
           if (blockVersion >= 2) {
-            int temp = s->virtualTempoN;
             int tempo = reader.readI();
 
             logV("tempo %d", tempo);
@@ -1478,7 +1477,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             if (tempo == 0) {
               s->virtualTempoN = 150.0; // TODO: make it properly
             } else {
-              s->virtualTempoN = (short)((float)temp * (float)tempo / 150.0);
+              s->virtualTempoN = tempo;
             }
 
             s->patLen = reader.readI();
