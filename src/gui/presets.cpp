@@ -137,7 +137,17 @@ void FurnaceGUI::initSystemPresets() {
         "extendWave=true\n"
         "dacDepth=9\n"
       ),
-      CH(DIV_SYSTEM_GBA_DMA, 0.5f, 0, "dacDepth=9"),
+      CH(DIV_SYSTEM_GBA_DMA, 0.5f, 0, ""),
+    }
+  );
+  ENTRY(
+    "Game Boy Advance (with MinMod)", {
+      CH(DIV_SYSTEM_GB, 1.0f, 0,
+        "chipType=3\n"
+        "extendWave=true\n"
+        "dacDepth=9\n"
+      ),
+      CH(DIV_SYSTEM_GBA_MINMOD, 0.5f, 0, ""),
     }
   );
   ENTRY(

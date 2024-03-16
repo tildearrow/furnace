@@ -251,6 +251,10 @@ enum DivDispatchCmds {
 
   DIV_CMD_POWERNOISE_COUNTER_LOAD, // (which, val)
   DIV_CMD_POWERNOISE_IO_WRITE, // (port, value)
+  
+  DIV_CMD_MINMOD_ECHO,
+
+  DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_DAVE_HIGH_PASS,
   DIV_CMD_DAVE_RING_MOD,

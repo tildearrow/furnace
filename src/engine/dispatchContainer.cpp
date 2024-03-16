@@ -82,6 +82,7 @@
 #include "platform/ted.h"
 #include "platform/c140.h"
 #include "platform/gbadma.h"
+#include "platform/gbaminmod.h"
 #include "platform/pcmdac.h"
 #include "platform/esfm.h"
 #include "platform/powernoise.h"
@@ -647,6 +648,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_GBA_DMA:
       dispatch=new DivPlatformGBADMA;
+      break;
+    case DIV_SYSTEM_GBA_MINMOD:
+      dispatch=new DivPlatformGBAMinMod;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;
