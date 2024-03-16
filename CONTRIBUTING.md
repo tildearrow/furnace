@@ -97,6 +97,7 @@ just put your demo song in `demos/`! be noted there are some guidelines:
 - the following systems are not acceptable:
   - YMU759/MA-2: exists only for compatibility.
   - Pong: it is a joke system.
+- the song shall be in Furnace file format.
 
 # Finishing
 
