@@ -61,7 +61,6 @@ class DivPlatformGBAMinMod: public DivDispatch {
 
   // emulator part
   unsigned int mixBufs;
-  unsigned int mixBufSize;
   unsigned int dacDepth;
   unsigned int sampCycles;
   unsigned int sampTimer;

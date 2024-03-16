@@ -67,12 +67,12 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
       // the driver generates 4 samples at a time and can be start-offset
       sampPos=mixBufReadPos&3;
       if (sampPos==mixBufOffset) {
-        for (int j=mixBufOffset; j<4; j++) {
+        for (size_t j=mixBufOffset; j<4; j++) {
           mixOut[0][j]=0;
           mixOut[1][j]=0;
         }
         for (int i=0; i<chanMax; i++) {
-          for (int j=mixBufOffset; j<4; j++) {
+          for (size_t j=mixBufOffset; j<4; j++) {
             unsigned int lastAddr=chState[i].address>>32;
             chState[i].address+=((unsigned long long)chState[i].freq)<<8;
             unsigned int newAddr=chState[i].address>>32;
@@ -114,7 +114,7 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
             oscOut[i][j]=volScale>0?outA*64/volScale:0;
           }
         }
-        for (int j=mixBufOffset; j<4; j++) {
+        for (size_t j=mixBufOffset; j<4; j++) {
           mixBuf[mixBufPage][mixBufWritePos]=mixOut[0][j];
           mixBuf[mixBufPage+1][mixBufWritePos]=mixOut[1][j];
           mixBufWritePos++;
@@ -152,7 +152,7 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
       mixBufOffset=(4-(mixBufReadPos&3))&3;
       mixBufReadPos=0;
       mixBufWritePos=mixBufOffset;
-      for (int j=0; j<mixBufOffset; j++) {
+      for (size_t j=0; j<mixBufOffset; j++) {
         mixOut[0][j]=mixOut[0][4-mixBufOffset+j];
         mixOut[1][j]=mixOut[1][4-mixBufOffset+j];
         mixBuf[mixBufPage][j]=mixOut[0][j];
@@ -164,7 +164,7 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
         if(echoDelay) {
           echoDelay=echoDelay*2-((chan[i].echo&0x10)?0:1);
           size_t echoPage=(mixBufPage+mixBufs*2-echoDelay)%(mixBufs*2);
-          chState[i].address=(0x03000800+echoPage*1024)<<32;
+          chState[i].address=(0x03000800ULL+echoPage*1024)<<32;
           chState[i].loopStart=0-echoDelay;
           chState[i].loopEnd=0-echoDelay;
         }
@@ -739,7 +739,7 @@ void DivPlatformGBAMinMod::setFlags(const DivConfig& flags) {
   for (int i=0; i<chanMax; i++) {
     wtMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Channel %d",i),-1,i*256,i*256));
   }
-  for (int i=0; i<mixBufs; i++) {
+  for (int i=0; i<(int)mixBufs; i++) {
     mixMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Buffer %d Left",i),-1,i*2048,i*2048));
     mixMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Buffer %d Right",i),-1,i*2048+1024,i*2048+1024));
   }
