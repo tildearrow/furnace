@@ -1061,7 +1061,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
 
       case 0xfc: // delayed note release
-        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+        if (song.delayBehavior==2 || effectVal<nextSpeed) {
           chan[i].cut=effectVal+1;
           chan[i].cutType=1;
         }

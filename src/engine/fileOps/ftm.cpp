@@ -111,7 +111,7 @@ const int ftEffectMap[]={
   0x21, // 050B Sunsoft noise period
   -1,   // VRC7 "custom patch port" - not supported?
   -1,   // VRC7 "custom patch write"
-  0xe7, // delayed release - not supported yet
+  0xfc, // delayed release
   0x09, // select groove
   0xe6, // delayed note transpose
   0x11, // Namco 163 wave RAM offset
@@ -225,7 +225,7 @@ const int eftEffectMap[] = {
   0x100, // // // AY8930 extra volume bit
   -1,    // VRC7 "custom patch port" - not supported?
   -1,    // VRC7 "custom patch write"
-  0xe7,  // delayed release - not supported yet
+  0xfc,  // delayed release
   0x09,  // select groove
   0xe6,  // delayed note transpose
   0x11,  // Namco 163 wave RAM offset
@@ -1579,11 +1579,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                 pat->data[row][3] = nextVol;
                 if (map_channels[ch] == vrc6_saw_chan) // scale volume
                 {
-                  pat->data[row][3] = pat->data[row][3] * 42 / 15;
+                  pat->data[row][3] = (pat->data[row][3] * 42) / 15;
                 }
 
                 if (map_channels[ch] == fds_chan) {
-                  pat->data[row][3] = pat->data[row][3] * 31 / 15;
+                  pat->data[row][3] = (pat->data[row][3] * 31) / 15;
                 }
               } else {
                 pat->data[row][3] = -1;
