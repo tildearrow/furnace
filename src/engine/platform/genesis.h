@@ -22,7 +22,9 @@
 
 #include "fmshared_OPN.h"
 #include "sound/ymfm/ymfm_opn.h"
+extern "C" {
 #include "../../../extern/YMF276-LLE/fmopn2.h"
+}
 
 class DivYM2612Interface: public ymfm::ymfm_interface {
   int setA, setB;
@@ -89,6 +91,11 @@ class DivPlatformGenesis: public DivPlatformOPN {
     unsigned char useYMFM;
     unsigned char chipType;
     short dacWrite;
+
+    int lleCycle;
+    int llePrevCycle;
+    int lleOscData[6];
+    int dacShifter, o_lro, o_bco;
   
     unsigned char dacVolTable[128];
   
@@ -97,6 +104,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     inline void processDAC(int iRate);
     inline void commitState(int ch, DivInstrument* ins);
+    void acquire276OscSub();
     void acquire_nuked(short** buf, size_t len);
     void acquire_nuked276(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);

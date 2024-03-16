@@ -242,15 +242,10 @@ void FurnaceGUI::drawExportCommand(bool onWindow) {
   );
   if (onWindow) {
     ImGui::Separator();
-    if (ImGui::Button("Cancel",ImVec2(133.3f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
     ImGui::SameLine();
   }
-  if (ImGui::Button("Export (binary)",ImVec2(133.3f*dpiScale,0))) {
-    openFileDialog(GUI_FILE_EXPORT_CMDSTREAM_BINARY);
-    ImGui::CloseCurrentPopup();
-  }
-  ImGui::SameLine();
-  if (ImGui::Button("Export (text)",ImVec2(133.3f*dpiScale,0))) {
+  if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
     openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
     ImGui::CloseCurrentPopup();
   }

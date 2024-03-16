@@ -240,6 +240,8 @@ size | description
      |   - 0xd4: PowerNoise - 4 channels
      |   - 0xd5: Dave - 6 channels
      |   - 0xd6: NDS - 16 channels (UNAVAILABLE)
+     |   - 0xd7: Game Boy Advance (direct) - 2 channels (UNAVAILABLE)
+     |   - 0xd8: Game Boy Advance (MinMod) - 16 channels (UNAVAILABLE)
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel

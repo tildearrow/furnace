@@ -279,6 +279,19 @@ void DivPlatformN163::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
   }
+
+  // update memory composition positions
+  for (int i=0; i<=chanMax; i++) {
+    memCompo.entries[i].begin=chan[i].wavePos>>1;
+    memCompo.entries[i].end=(chan[i].wavePos+chan[i].waveLen)>>1;
+    memCompo.entries[i+8].begin=chan[i].curWavePos>>1;
+    memCompo.entries[i+8].end=(chan[i].curWavePos+chan[i].curWaveLen)>>1;
+  }
+
+  // update register pool
+  for (int i=0; i<128; i++) {
+    regPool[i]=n163.reg(i);
+  }
 }
 
 int DivPlatformN163::dispatch(DivCommand c) {
@@ -387,6 +400,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
     }
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
+      chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       if (chan[c.chan].waveMode) {
         chan[c.chan].waveUpdated=true;
       }
@@ -476,6 +490,7 @@ void DivPlatformN163::forceIns() {
       chan[i].waveChanged=true;
     }
   }
+  memCompo.entries[16].begin=120-chanMax*8;
 }
 
 void DivPlatformN163::notifyWaveChange(int wave) {
@@ -516,9 +531,6 @@ DivDispatchOscBuffer* DivPlatformN163::getOscBuffer(int ch) {
 }
 
 unsigned char* DivPlatformN163::getRegisterPool() {
-  for (int i=0; i<128; i++) {
-    regPool[i]=n163.reg(i);
-  }
   return regPool;
 }
 
@@ -544,6 +556,8 @@ void DivPlatformN163::reset() {
   loadWave=-1;
   loadPos=0;
   rWrite(0x7f,initChanMax<<4);
+
+  memCompo.entries[16].begin=120-chanMax*8;
 }
 
 void DivPlatformN163::poke(unsigned int addr, unsigned short val) {
@@ -552,6 +566,11 @@ void DivPlatformN163::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformN163::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+const DivMemoryComposition* DivPlatformN163::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
 }
 
 void DivPlatformN163::setFlags(const DivConfig& flags) {
@@ -591,6 +610,20 @@ int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, const DivConf
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+
+  memCompo.used=0;
+  memCompo.capacity=128;
+  memCompo.memory=regPool;
+  memCompo.waveformView=DIV_MEMORY_WAVE_4BIT;
+
+  for (int i=0; i<8; i++) {
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_N163_LOAD,fmt::sprintf("Channel %d (load)",i),-1,0,0));
+  }
+  for (int i=0; i<8; i++) {
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_N163_PLAY,fmt::sprintf("Channel %d (play)",i),-1,0,0));
+  }
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Registers",-1,127,128));
+
   setFlags(flags);
 
   reset();

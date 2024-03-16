@@ -259,6 +259,40 @@ bool DivInstrumentPowerNoise::operator==(const DivInstrumentPowerNoise& other) {
 
 #undef _C
 
+#define CONSIDER(x,t) \
+  case t: \
+    return &x; \
+    break;
+
+DivInstrumentMacro* DivInstrumentSTD::macroByType(DivMacroType type) {
+  switch (type) {
+    CONSIDER(volMacro,DIV_MACRO_VOL)
+    CONSIDER(arpMacro,DIV_MACRO_ARP)
+    CONSIDER(dutyMacro,DIV_MACRO_DUTY)
+    CONSIDER(waveMacro,DIV_MACRO_WAVE)
+    CONSIDER(pitchMacro,DIV_MACRO_PITCH)
+    CONSIDER(ex1Macro,DIV_MACRO_EX1)
+    CONSIDER(ex2Macro,DIV_MACRO_EX2)
+    CONSIDER(ex3Macro,DIV_MACRO_EX3)
+    CONSIDER(algMacro,DIV_MACRO_ALG)
+    CONSIDER(fbMacro,DIV_MACRO_FB)
+    CONSIDER(fmsMacro,DIV_MACRO_FMS)
+    CONSIDER(amsMacro,DIV_MACRO_AMS)
+    CONSIDER(panLMacro,DIV_MACRO_PAN_LEFT)
+    CONSIDER(panRMacro,DIV_MACRO_PAN_RIGHT)
+    CONSIDER(phaseResetMacro,DIV_MACRO_PHASE_RESET)
+    CONSIDER(ex4Macro,DIV_MACRO_EX4)
+    CONSIDER(ex5Macro,DIV_MACRO_EX5)
+    CONSIDER(ex6Macro,DIV_MACRO_EX6)
+    CONSIDER(ex7Macro,DIV_MACRO_EX7)
+    CONSIDER(ex8Macro,DIV_MACRO_EX8)
+  }
+
+  return NULL;
+}
+
+#undef CONSIDER
+
 #define FEATURE_BEGIN(x) \
   w->write(x,2); \
   size_t featStartSeek=w->tell(); \
@@ -2955,6 +2989,8 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
   if (memcmp(magic,"INST",4)==0) {
     type=0;
   } else if (memcmp(magic,"INS2",4)==0) {
+    type=1;
+  } else if (memcmp(magic,"IN2B",4)==0) { // DIV_FUR_VARIANT_B
     type=1;
   } else if (memcmp(magic,"FINS",4)==0) {
     type=2;

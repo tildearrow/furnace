@@ -58,7 +58,7 @@ typedef struct _esfm_channel esfm_channel;
 typedef struct _esfm_chip esfm_chip;
 
 
-void ESFM_init (esfm_chip *chip);
+void ESFM_init (esfm_chip *chip, uint8_t fast);
 void ESFM_write_reg (esfm_chip *chip, uint16_t address, uint8_t data);
 void ESFM_write_reg_buffered (esfm_chip *chip, uint16_t address, uint8_t data);
 void ESFM_write_reg_buffered_fast (esfm_chip *chip, uint16_t address, uint8_t data);
@@ -148,6 +148,8 @@ typedef struct _esfm_slot_internal
 	uint16 eg_delay_counter;
 	uint16 eg_delay_counter_compare;
 
+	uint16 fb_out0;
+	uint16 fb_out1;
 } esfm_slot_internal;
 
 struct _esfm_slot
@@ -270,6 +272,8 @@ struct _esfm_chip
 	size_t write_buf_start;
 	size_t write_buf_end;
 	uint64_t write_buf_timestamp;
+
+        flag fast_mode;
 };
 
 #ifdef __cplusplus

@@ -171,6 +171,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       if (ImGui::InputScalar("##VTempoN",ImGuiDataType_S16,&e->curSubSong->virtualTempoN,&_ONE,&_TEN)) { MARK_MODIFIED
         if (e->curSubSong->virtualTempoN<1) e->curSubSong->virtualTempoN=1;
         if (e->curSubSong->virtualTempoN>255) e->curSubSong->virtualTempoN=255;
+        e->virtualTempoChanged();
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Numerator");
@@ -180,6 +181,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       if (ImGui::InputScalar("##VTempoD",ImGuiDataType_S16,&e->curSubSong->virtualTempoD,&_ONE,&_TEN)) { MARK_MODIFIED
         if (e->curSubSong->virtualTempoD<1) e->curSubSong->virtualTempoD=1;
         if (e->curSubSong->virtualTempoD>255) e->curSubSong->virtualTempoD=255;
+        e->virtualTempoChanged();
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Denominator (set to base tempo)");

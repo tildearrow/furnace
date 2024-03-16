@@ -35,8 +35,30 @@ bool DivCSChannelState::doCall(unsigned int addr) {
   return true;
 }
 
+unsigned char* DivCSPlayer::getData() {
+  return b;
+}
+
+size_t DivCSPlayer::getDataLen() {
+  return bLen;
+}
+
+DivCSChannelState* DivCSPlayer::getChanState(int ch) {
+  return &chan[ch];
+}
+
+unsigned char* DivCSPlayer::getFastDelays() {
+  return fastDelays;
+}
+
+unsigned char* DivCSPlayer::getFastCmds() {
+  return fastCmds;
+}
+
 void DivCSPlayer::cleanup() {
   delete b;
+  b=NULL;
+  bLen=0;
 }
 
 bool DivCSPlayer::tick() {
@@ -55,8 +77,15 @@ bool DivCSPlayer::tick() {
         chan[i].readPos=0;
         break;
       }
+
+      chan[i].trace[chan[i].tracePos++]=chan[i].readPos;
+      if (chan[i].tracePos>=DIV_MAX_CSTRACE) {
+        chan[i].tracePos=0;
+      }
+
       unsigned char next=stream.readC();
       unsigned char command=0;
+      bool mustTell=true;
 
       if (next<0xb3) { // note
         e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,(int)next-60));
@@ -66,6 +95,7 @@ bool DivCSPlayer::tick() {
         command=fastCmds[next&15];
       } else if (next>=0xe0 && next<=0xef) { // preset delay
         chan[i].waitTicks=fastDelays[next&15];
+        chan[i].lastWaitLen=chan[i].waitTicks;
       } else switch (next) {
         case 0xb4: // note on null
           e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
@@ -121,9 +151,11 @@ bool DivCSPlayer::tick() {
             break;
           }
           chan[i].readPos=chan[i].callStack[--chan[i].callStackPos];
+          mustTell=false;
           break;
         case 0xfa:
           chan[i].readPos=stream.readI();
+          mustTell=false;
           break;
         case 0xfb:
           logE("TODO: RATE");
@@ -131,16 +163,20 @@ bool DivCSPlayer::tick() {
           break;
         case 0xfc:
           chan[i].waitTicks=(unsigned short)stream.readS();
+          chan[i].lastWaitLen=chan[i].waitTicks;
           break;
         case 0xfd:
           chan[i].waitTicks=(unsigned char)stream.readC();
+          chan[i].lastWaitLen=chan[i].waitTicks;
           break;
         case 0xfe:
           chan[i].waitTicks=1;
+          chan[i].lastWaitLen=chan[i].waitTicks;
           break;
         case 0xff:
-          chan[i].readPos=0;
-          logI("%d: stop",i);
+          chan[i].readPos=chan[i].startPos;
+          mustTell=false;
+          logI("%d: stop go back to %x",i,chan[i].readPos);
           break;
         default:
           logE("%d: illegal instruction $%.2x! $%.x",i,next,chan[i].readPos);
@@ -315,7 +351,7 @@ bool DivCSPlayer::tick() {
         }
       }
 
-      chan[i].readPos=stream.tell();
+      if (mustTell) chan[i].readPos=stream.tell();
     }
 
     if (sendVolume || chan[i].volSpeed!=0) {
@@ -383,7 +419,8 @@ bool DivCSPlayer::init() {
       stream.readI();
       continue;
     }
-    chan[i].readPos=stream.readI();
+    chan[i].startPos=stream.readI();
+    chan[i].readPos=chan[i].startPos;
   }
 
   stream.read(fastDelays,16);
@@ -424,6 +461,20 @@ bool DivEngine::playStream(unsigned char* f, size_t length) {
     freelance=true;
     playing=true;
   }
+  BUSY_END;
+  return true;
+}
+
+DivCSPlayer* DivEngine::getStreamPlayer() {
+  return cmdStreamInt;
+}
+
+bool DivEngine::killStream() {
+  if (!cmdStreamInt) return false;
+  BUSY_BEGIN;
+  cmdStreamInt->cleanup();
+  delete cmdStreamInt;
+  cmdStreamInt=NULL;
   BUSY_END;
   return true;
 }

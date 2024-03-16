@@ -1005,6 +1005,9 @@ void DivPlatformX1_010::renderSamples(int sysID) {
   memset(sampleOffX1,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample ROM";
+
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
@@ -1035,9 +1038,13 @@ void DivPlatformX1_010::renderSamples(int sysID) {
       sampleLoaded[i]=true;
     }
     sampleOffX1[i]=memPos;
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
     memPos+=paddedLen;
   }
   sampleMemLen=memPos+256;
+
+  memCompo.used=sampleMemLen;
+  memCompo.capacity=getSampleMemCapacity(0);
 }
 
 int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

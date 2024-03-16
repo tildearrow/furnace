@@ -23,11 +23,15 @@
 #include "defines.h"
 #include "safeReader.h"
 
+#define DIV_MAX_CSTRACE 64
+
 class DivEngine;
 
 struct DivCSChannelState {
+  unsigned int startPos;
   unsigned int readPos;
   int waitTicks;
+  int lastWaitLen;
 
   int note, pitch;
   int volume, volMax, volSpeed;
@@ -38,11 +42,7 @@ struct DivCSChannelState {
   unsigned int callStack[8];
   unsigned char callStackPos;
 
-  struct TraceEntry {
-    unsigned int addr;
-    unsigned char length;
-    unsigned char data[11];
-  } trace[32];
+  unsigned int trace[DIV_MAX_CSTRACE];
   unsigned char tracePos;
 
   bool doCall(unsigned int addr);
@@ -50,6 +50,7 @@ struct DivCSChannelState {
   DivCSChannelState():
     readPos(0),
     waitTicks(0),
+    lastWaitLen(0),
     note(-1),
     pitch(0),
     volume(0x7f00),
@@ -63,12 +64,18 @@ struct DivCSChannelState {
     arp(0),
     arpStage(0),
     arpTicks(0),
-    callStackPos(0) {}
+    callStackPos(0),
+    tracePos(0) {
+    for (int i=0; i<DIV_MAX_CSTRACE; i++) {
+      trace[i]=0;
+    }
+  }
 };
 
 class DivCSPlayer {
   DivEngine* e;
   unsigned char* b;
+  size_t bLen;
   SafeReader stream;
   DivCSChannelState chan[DIV_MAX_CHANS];
   unsigned char fastDelays[16];
@@ -77,12 +84,18 @@ class DivCSPlayer {
 
   short vibTable[64];
   public:
+    unsigned char* getData();
+    size_t getDataLen();
+    DivCSChannelState* getChanState(int ch);
+    unsigned char* getFastDelays();
+    unsigned char* getFastCmds();
     void cleanup();
     bool tick();
     bool init();
     DivCSPlayer(DivEngine* en, unsigned char* buf, size_t len):
       e(en),
       b(buf),
+      bLen(len),
       stream(buf,len) {}
 };
 

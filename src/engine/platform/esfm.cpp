@@ -983,7 +983,7 @@ int DivPlatformESFM::getRegisterPoolSize() {
 void DivPlatformESFM::reset() {
   while (!writes.empty()) writes.pop();
 
-  ESFM_init(&chip);
+  ESFM_init(&chip,isFast?1:0);
   // set chip to native mode
   ESFM_write_reg(&chip, 0x105, 0x80);
   // ensure NTS bit in register 0x408 is reset, for smooth envelope rate scaling
@@ -1051,6 +1051,10 @@ void DivPlatformESFM::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformESFM::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC*4.0;
   rate=chipClock/288.0;
+}
+
+void DivPlatformESFM::setFast(bool fast) {
+  isFast=fast;
 }
 
 int DivPlatformESFM::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

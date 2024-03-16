@@ -691,7 +691,7 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
   }
 }
 
-bool DivEngine::loadFur(unsigned char* file, size_t len) {
+bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
   unsigned int insPtr[256];
   unsigned int wavePtr[256];
   unsigned int samplePtr[256];
@@ -719,6 +719,11 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
     ds.version=reader.readS();
     logI("module version %d (0x%.2x)",ds.version,ds.version);
+
+    if (variantID!=DIV_FUR_VARIANT_VANILLA) {
+      logW("Furnace variant detected: %d",variantID);
+      addWarning("this module was created with a downstream version of Furnace. certain features may not be compatible.");
+    }
 
     if (ds.version>DIV_ENGINE_VERSION) {
       logW("this module was created with a more recent version of Furnace!");
@@ -2048,6 +2053,27 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         if (ds.system[i]==DIV_SYSTEM_C64_8580 || ds.system[i]==DIV_SYSTEM_C64_6581) {
           ds.systemFlags[i].set("initResetTime",1);
           ds.systemFlags[i].set("multiplyRel",true);
+        }
+      }
+    }
+
+    // OPLL fixedAll compat
+    if (ds.version<194) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_OPLL ||
+            ds.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
+          if (!ds.systemFlags[i].has("fixedAll")) {
+            ds.systemFlags[i].set("fixedAll",false);
+          }
+        }
+      }
+    }
+
+    // C64 macro race
+    if (ds.version<195) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_C64_8580 || ds.system[i]==DIV_SYSTEM_C64_6581) {
+          ds.systemFlags[i].set("macroRace",true);
         }
       }
     }

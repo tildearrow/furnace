@@ -667,6 +667,9 @@ void DivPlatformSoundUnit::renderSamples(int sysID) {
   memset(sampleOffSU,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample RAM";
+
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
@@ -689,12 +692,20 @@ void DivPlatformSoundUnit::renderSamples(int sysID) {
       sampleLoaded[i]=true;
     }
     sampleOffSU[i]=memPos;
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+paddedLen));
     memPos+=paddedLen;
   }
   sampleMemLen=memPos;
   sysIDCache=sysID;
 
   memcpy(su->pcm,sampleMem,sampleMemSize?65536:8192);
+
+  memCompo.used=sampleMemLen;
+  memCompo.capacity=sampleMemSize?65536:8192;
+
+  if (initIlSize&64) {
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_ECHO,"Echo Buffer",-1,memCompo.capacity-((1+(initIlSize&63))<<7),memCompo.capacity));
+  }
 }
 
 int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

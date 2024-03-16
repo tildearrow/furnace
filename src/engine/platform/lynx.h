@@ -35,6 +35,7 @@ class DivPlatformLynx: public DivDispatch {
   struct MikeyDuty {
     unsigned char int_feedback7;
     unsigned char feedback;
+    int val;
 
     MikeyDuty(int duty);
   };
@@ -64,6 +65,7 @@ class DivPlatformLynx: public DivDispatch {
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
+  bool tuned;
   std::unique_ptr<Lynx::Mikey> mikey;  
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -86,6 +88,7 @@ class DivPlatformLynx: public DivDispatch {
     bool keyOffAffectsPorta(int ch);
     bool getLegacyAlwaysSetVolume();
     //int getPortaFloor(int ch);
+    void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

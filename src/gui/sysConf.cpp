@@ -396,7 +396,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int clockSel=flags.getInt("clockSel",0);
       int patchSet=flags.getInt("patchSet",0);
       bool noTopHatFreq=flags.getBool("noTopHatFreq",false);
-      bool fixedAll=flags.getBool("fixedAll",false);
+      bool fixedAll=flags.getBool("fixedAll",true);
 
       ImGui::Text("Clock rate:");
       ImGui::Indent();
@@ -588,6 +588,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       bool keyPriority=flags.getBool("keyPriority",true);
       bool no1EUpdate=flags.getBool("no1EUpdate",false);
       bool multiplyRel=flags.getBool("multiplyRel",false);
+      bool macroRace=flags.getBool("macroRace",false);
       int testAttack=flags.getInt("testAttack",0);
       int testDecay=flags.getInt("testDecay",0);
       int testSustain=flags.getInt("testSustain",0);
@@ -667,6 +668,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
 
+      if (ImGui::Checkbox("Cutoff macro race conditions (compatibility)",&macroRace)) {
+        altered=true;
+      }
+
 
       if (altered) {
         e->lockSave([&]() {
@@ -674,6 +679,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("keyPriority",keyPriority);
           flags.set("no1EUpdate",no1EUpdate);
           flags.set("multiplyRel",multiplyRel);
+          flags.set("macroRace",macroRace);
           flags.set("testAttack",testAttack);
           flags.set("testDecay",testDecay);
           flags.set("testSustain",testSustain);
@@ -1593,6 +1599,19 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
         });
+      }
+      break;
+    }
+    case DIV_SYSTEM_LYNX: {
+      bool tuned=flags.getBool("tuned",false);
+      if (ImGui::Checkbox("Consistent frequency across all duties",&tuned)) {
+        altered=true;
+        e->lockSave([&]() {
+          flags.set("tuned",tuned);
+        });
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("note: only works for an initial LFSR value of 0!");
       }
       break;
     }
