@@ -33,13 +33,12 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
     // internal mixing is always 10-bit
     for (int i=0; i<2; i++) {
       bool newSamp=h==0;
+      chan[i].audDat=0;
       if (chan[i].active && (chan[i].useWave || (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen))) {
         chan[i].audSub+=(1<<outDepth);
         if (chan[i].useWave) {
           if (chan[i].audPos<(int)chan[i].audLen) {
-            chan[i].audDat=chan[i].ws.output[chan[i].audPos]-0x80;
-          } else {
-            chan[i].audDat=0;
+            chan[i].audDat=wtMem[i*256+chan[i].audPos];
           }
           newSamp=true;
           if (chan[i].audSub>=chan[i].freq) {
@@ -52,13 +51,12 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
             }
             chan[i].dmaCount&=15;
           }
-        } else {
+        } else if (sampleLoaded[chan[i].sample]) {
           DivSample* s=parent->getSample(chan[i].sample);
           if (s->samples>0) {
-            if (chan[i].audPos>=0 && chan[i].audPos<(int)s->samples) {
-              chan[i].audDat=s->data8[chan[i].audPos];
-            } else {
-              chan[i].audDat=0;
+            if (chan[i].audPos>=0) {
+              unsigned int pos=(sampleOff[chan[i].sample]+chan[i].audPos)&0x01ffffff;
+              chan[i].audDat=sampleMem[pos];
             }
             newSamp=true;
             if (chan[i].audSub>=chan[i].freq) {
@@ -68,8 +66,9 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
               chan[i].dmaCount+=posInc;
               if (s->isLoopable()) {
                 if (chan[i].dmaCount>=16 && chan[i].audPos>=s->loopEnd) {
-                  int loopPos=chan[i].audPos-s->loopStart;
-                  chan[i].audPos=(loopPos%(s->loopEnd-s->loopStart))+s->loopStart;
+                  int loopStart=s->loopStart&~3;
+                  int loopPos=chan[i].audPos-loopStart;
+                  chan[i].audPos=(loopPos%(s->loopEnd-s->loopStart))+loopStart;
                 }
               } else if (chan[i].audPos>=(int)s->samples) {
                 chan[i].sample=-1;
@@ -82,8 +81,6 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
             chan[i].audPos=0;
           }
         }
-      } else {
-        chan[i].audDat=0;
       }
       if (!isMuted[i] && newSamp) {
         int out=chan[i].audDat*(chan[i].vol*chan[i].envVol/2)<<1;
@@ -112,6 +109,7 @@ void DivPlatformGBADMA::tick(bool sysTick) {
     if (chan[i].std.vol.had) {
       chan[i].envVol=chan[i].std.vol.val;
       if (ins->type==DIV_INS_AMIGA) chan[i].envVol/=32;
+      else if (chan[i].envVol>2) chan[i].envVol=2;
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
@@ -129,7 +127,9 @@ void DivPlatformGBADMA::tick(bool sysTick) {
       }
     }
     if (chan[i].useWave && chan[i].active) {
-      chan[i].ws.tick();
+      if (chan[i].ws.tick()) {
+        updateWave(i);
+      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -257,7 +257,7 @@ int DivPlatformGBADMA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
-        chan[c.chan].vol=c.value;
+        chan[c.chan].vol=MIN(c.value,2);
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].envVol=2;
         }
@@ -341,6 +341,13 @@ int DivPlatformGBADMA::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformGBADMA::updateWave(int ch) {
+  int addr=ch*256;
+  for (unsigned int i=0; i<chan[ch].audLen; i++) {
+    wtMem[addr+i]=(signed char)(chan[ch].ws.output[i]-128);
+  }
+}
+
 void DivPlatformGBADMA::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
 }
@@ -405,6 +412,7 @@ void DivPlatformGBADMA::notifyWaveChange(int wave) {
   for (int i=0; i<2; i++) {
     if (chan[i].useWave && chan[i].wave==wave) {
       chan[i].ws.changeWave1(wave);
+      updateWave(i);
     }
   }
 }
@@ -413,6 +421,53 @@ void DivPlatformGBADMA::notifyInsDeletion(void* ins) {
   for (int i=0; i<2; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+const void* DivPlatformGBADMA::getSampleMem(int index) {
+  return index == 0 ? sampleMem : NULL;
+}
+
+size_t DivPlatformGBADMA::getSampleMemCapacity(int index) {
+  return index == 0 ? 33554432 : 0;
+}
+
+size_t DivPlatformGBADMA::getSampleMemUsage(int index) {
+  return index == 0 ? sampleMemLen : 0;
+}
+
+bool DivPlatformGBADMA::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
+void DivPlatformGBADMA::renderSamples(int sysID) {
+  size_t maxPos=getSampleMemCapacity();
+  memset(sampleMem,0,maxPos);
+
+  size_t memPos=0;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      sampleOff[i]=0;
+      continue;
+    }
+    int length=s->length8;
+    int actualLength=MIN((int)(maxPos-memPos),length);
+    if (actualLength>0) {
+      sampleOff[i]=memPos;
+      memcpy(&sampleMem[memPos],s->data8,actualLength);
+      memPos+=actualLength;
+    }
+    if (actualLength<length) {
+      logW("out of GBA DMA PCM memory for sample %d!",i);
+      break;
+    }
+    sampleLoaded[i]=true;
+    // pad to multiple of 16 bytes
+    memPos=(memPos+15)&~15;
+  }
+  sampleMemLen=memPos;
 }
 
 void DivPlatformGBADMA::setFlags(const DivConfig& flags) {
@@ -433,12 +488,15 @@ int DivPlatformGBADMA::init(DivEngine* p, int channels, int sugRate, const DivCo
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+  sampleMem=new signed char[getSampleMemCapacity()];
+  sampleMemLen=0;
   setFlags(flags);
   reset();
   return 2;
 }
 
 void DivPlatformGBADMA::quit() {
+  delete[] sampleMem;
   for (int i=0; i<2; i++) {
     delete oscBuf[i];
   }
