@@ -329,6 +329,9 @@ struct DivInstrumentSTD {
       damMacro(DIV_MACRO_OP_DAM), dvbMacro(DIV_MACRO_OP_DVB), egtMacro(DIV_MACRO_OP_EGT), kslMacro(DIV_MACRO_OP_KSL),
       susMacro(DIV_MACRO_OP_SUS), vibMacro(DIV_MACRO_OP_VIB), wsMacro(DIV_MACRO_OP_WS), ksrMacro(DIV_MACRO_OP_KSR) {}
   } opMacros[4];
+
+  DivInstrumentMacro* macroByType(DivMacroType type);
+
   DivInstrumentSTD():
     volMacro(DIV_MACRO_VOL,true),
     arpMacro(DIV_MACRO_ARP),
