@@ -24,7 +24,6 @@
 
 // TODO:
 // - audit for CVEs
-// - Namco 163 waves
 // - format code?
 
 #include "fileOpsCommon.h"
@@ -1090,7 +1089,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
               break;
             }
-            case DIV_INS_N163: { // TODO: add local wavetables and finish this!
+            case DIV_INS_N163: {
               unsigned int totalSeqs = reader.readI();
               if (totalSeqs > 5) {
                 logE("%d: too many sequences!", insIndex);
@@ -1115,6 +1114,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               }
 
               unsigned int wave_count = reader.readI();
+              size_t waveOff = ds.wave.size();
 
               for (unsigned int ii = 0; ii < wave_count; ii++) {
                 DivWavetable* wave = new DivWavetable();
@@ -1126,15 +1126,22 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                   wave->data[jj] = val;
                 }
 
-                // TODO: port to global waves
-                //ins->std.local_waves.push_back(wave);
-                delete wave;
+                if (ds.wave.size()<256) {
+                  ds.wave.push_back(wave);
+                } else {
+                  delete wave;
+                }
               }
 
+              // offset wave macro
               if (ins->std.waveMacro.len == 0) // empty wave macro
               {
                 ins->std.waveMacro.len = 1;
-                ins->std.waveMacro.val[0] = 0 | (1 << 30); // force local wave number 0
+                ins->std.waveMacro.val[0] = waveOff;
+              } else {
+                for (int p=0; p<ins->std.waveMacro.len; p++) {
+                  ins->std.waveMacro.val[p] += waveOff;
+                }
               }
 
               break;
@@ -1475,7 +1482,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             logV("tempo %d", tempo);
 
             if (tempo == 0) {
-              s->virtualTempoN = 150.0; // TODO: make it properly
+              s->virtualTempoN = 150.0;
             } else {
               s->virtualTempoN = tempo;
             }
