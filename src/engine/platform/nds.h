@@ -37,7 +37,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
       audPos(0),
       sample(-1),
       wave(-1),
-      panning(8),
+      panning(64),
       duty(0),
       setPos(false),
       pcm(false),
