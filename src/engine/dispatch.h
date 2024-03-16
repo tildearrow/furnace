@@ -480,6 +480,7 @@ enum DivMemoryWaveView: unsigned char {
   DIV_MEMORY_WAVE_NONE=0,
   DIV_MEMORY_WAVE_4BIT, // Namco 163
   DIV_MEMORY_WAVE_6BIT, // Virtual Boy
+  DIV_MEMORY_WAVE_8BIT_SIGNED, // SCC
 };
 
 struct DivMemoryComposition {

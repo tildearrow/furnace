@@ -195,6 +195,7 @@ int DivPlatformGBADMA::dispatch(DivCommand c) {
       if (ins->amiga.useWave) {
         chan[c.chan].useWave=true;
         chan[c.chan].audLen=ins->amiga.waveLen+1;
+        wtMemCompo.entries[c.chan].end=wtMemCompo.entries[c.chan].begin+chan[c.chan].audLen;
         if (chan[c.chan].insChanged) {
           if (chan[c.chan].wave<0) {
             chan[c.chan].wave=0;
@@ -392,11 +393,14 @@ unsigned short DivPlatformGBADMA::getPan(int ch) {
 }
 
 DivSamplePos DivPlatformGBADMA::getSamplePos(int ch) {
-  if (ch>=2) return DivSamplePos();
+  if (ch>=2 || !chan[ch].active ||
+    chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) {
+      return DivSamplePos();
+  }
   return DivSamplePos(
     chan[ch].sample,
     chan[ch].audPos,
-    chan[ch].freq
+    chipClock/chan[ch].freq
   );
 }
 
@@ -441,9 +445,19 @@ bool DivPlatformGBADMA::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformGBADMA::getMemCompo(int index) {
+  switch (index) {
+    case 0: return &romMemCompo;
+    case 1: return &wtMemCompo;
+  }
+  return NULL;
+}
+
 void DivPlatformGBADMA::renderSamples(int sysID) {
   size_t maxPos=getSampleMemCapacity();
   memset(sampleMem,0,maxPos);
+  romMemCompo.entries.clear();
+  romMemCompo.capacity=maxPos;
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -466,8 +480,10 @@ void DivPlatformGBADMA::renderSamples(int sysID) {
     sampleLoaded[i]=true;
     // pad to multiple of 16 bytes
     memPos=(memPos+15)&~15;
+    romMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"PCM",i,sampleOff[i],memPos));
   }
   sampleMemLen=memPos;
+  romMemCompo.used=sampleMemLen;
 }
 
 void DivPlatformGBADMA::setFlags(const DivConfig& flags) {
@@ -484,9 +500,18 @@ int DivPlatformGBADMA::init(DivEngine* p, int channels, int sugRate, const DivCo
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  romMemCompo=DivMemoryComposition();
+  romMemCompo.name="Sample ROM";
+  wtMemCompo=DivMemoryComposition();
+  wtMemCompo.name="Wavetable RAM";
+  wtMemCompo.used=256*2;
+  wtMemCompo.capacity=256*2;
+  wtMemCompo.memory=(unsigned char*)wtMem;
+  wtMemCompo.waveformView=DIV_MEMORY_WAVE_8BIT_SIGNED;
   for (int i=0; i<2; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
+    wtMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Channel %d",i),-1,i*256,i*256));
   }
   sampleMem=new signed char[getSampleMemCapacity()];
   sampleMemLen=0;

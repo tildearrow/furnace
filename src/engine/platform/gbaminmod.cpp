@@ -142,6 +142,8 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
     while (updTimer>=updCycles) {
       // flip buffer
       // logV("ut=%d,pg=%d,w=%d,r=%d,sc=%d,st=%d",updTimer,mixBufPage,mixBufWritePos,mixBufReadPos,sampCycles,sampTimer);
+      mixMemCompo.entries[mixBufPage].end=mixMemCompo.entries[mixBufPage].begin+mixBufWritePos;
+      mixMemCompo.entries[mixBufPage+1].end=mixMemCompo.entries[mixBufPage+1].begin+mixBufWritePos;
       mixBufPage=(mixBufPage+2)%(mixBufs*2);
       memset(mixBuf[mixBufPage],0,sizeof(mixBuf[mixBufPage]));
       memset(mixBuf[mixBufPage+1],0,sizeof(mixBuf[mixBufPage+1]));
@@ -298,9 +300,9 @@ void DivPlatformGBAMinMod::tick(bool sysTick) {
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].keyOn) {
         unsigned int start, end, loop;
-        if (chan[i].echo!=0) {
+        if ((chan[i].echo&0xf)!=0) {
           // make sure echo channels' frequency can't be faster than the sample rate
-          if (chan[i].echo!=0 && chan[i].freq>CHIP_FREQBASE) {
+          if (chan[i].freq>CHIP_FREQBASE) {
             chan[i].freq=CHIP_FREQBASE;
           }
           // this is only to match the HLE implementation
@@ -381,6 +383,9 @@ int DivPlatformGBAMinMod::dispatch(DivCommand c) {
       if (ins->amiga.useWave) {
         chan[c.chan].useWave=true;
         chan[c.chan].wtLen=ins->amiga.waveLen+1;
+        if (c.chan<chanMax) {
+          wtMemCompo.entries[c.chan].end=wtMemCompo.entries[c.chan].begin+chan[c.chan].wtLen;
+        }
         if (chan[c.chan].insChanged) {
           if (chan[c.chan].wave<0) {
             chan[c.chan].wave=0;
@@ -558,6 +563,20 @@ unsigned short DivPlatformGBAMinMod::getPan(int ch) {
   return (chan[ch].chPanL<<8)|(chan[ch].chPanR);
 }
 
+DivSamplePos DivPlatformGBAMinMod::getSamplePos(int ch) {
+  if (ch>=chanMax ||
+    chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen ||
+    !chan[ch].active || (chan[ch].echo&0xf)!=0
+  ) {
+    return DivSamplePos();
+  }
+  return DivSamplePos(
+    chan[ch].sample,
+    (((int)regPool[ch*16+2]|((int)regPool[ch*16+3]<<16))&0x01ffffff)-sampleOff[chan[ch].sample],
+    (long long)chan[ch].freq*chipClock/CHIP_FREQBASE
+  );
+}
+
 DivDispatchOscBuffer* DivPlatformGBAMinMod::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -577,6 +596,7 @@ void DivPlatformGBAMinMod::reset() {
 void DivPlatformGBAMinMod::resetMixer() {
   sampTimer=sampCycles;
   updTimer=0;
+  updCycles=0;
   mixBufReadPos=0;
   mixBufWritePos=0;
   mixBufPage=0;
@@ -651,9 +671,20 @@ bool DivPlatformGBAMinMod::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformGBAMinMod::getMemCompo(int index) {
+  switch (index) {
+    case 0: return &romMemCompo;
+    case 1: return &wtMemCompo;
+    case 2: return &mixMemCompo;
+  }
+  return NULL;
+}
+
 void DivPlatformGBAMinMod::renderSamples(int sysID) {
   size_t maxPos=getSampleMemCapacity();
   memset(sampleMem,0,maxPos);
+  romMemCompo.entries.clear();
+  romMemCompo.capacity=maxPos;
 
   // dummy zero-length samples are at pos 0 as the engine still outputs them
   size_t memPos=1;
@@ -677,6 +708,7 @@ void DivPlatformGBAMinMod::renderSamples(int sysID) {
         memset(&sampleMem[memPos],0,oneShotLen);
         memPos+=oneShotLen;
       }
+      romMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"PCM",i,sampleOff[i],memPos));
     }
     if (actualLength<length) {
       logW("out of GBA MinMod PCM memory for sample %d!",i);
@@ -685,6 +717,7 @@ void DivPlatformGBAMinMod::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+  romMemCompo.used=sampleMemLen;
 }
 
 void DivPlatformGBAMinMod::setFlags(const DivConfig& flags) {
@@ -699,12 +732,35 @@ void DivPlatformGBAMinMod::setFlags(const DivConfig& flags) {
   sampCycles=16777216/flags.getInt("sampRate",21845);
   chipClock=16777216/sampCycles;
   resetMixer();
+  wtMemCompo.used=256*chanMax;
+  mixMemCompo.used=2048*mixBufs;
+  wtMemCompo.entries.clear();
+  mixMemCompo.entries.clear();
+  for (int i=0; i<chanMax; i++) {
+    wtMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Channel %d",i),-1,i*256,i*256));
+  }
+  for (int i=0; i<mixBufs; i++) {
+    mixMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Buffer %d Left",i),-1,i*2048,i*2048));
+    mixMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Buffer %d Right",i),-1,i*2048+1024,i*2048+1024));
+  }
 }
 
 int DivPlatformGBAMinMod::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  romMemCompo=DivMemoryComposition();
+  romMemCompo.name="Sample ROM";
+  wtMemCompo=DivMemoryComposition();
+  wtMemCompo.name="Wavetable RAM";
+  wtMemCompo.capacity=256*16;
+  wtMemCompo.memory=(unsigned char*)wtMem;
+  wtMemCompo.waveformView=DIV_MEMORY_WAVE_8BIT_SIGNED;
+  mixMemCompo=DivMemoryComposition();
+  mixMemCompo.name="Mix/Echo Buffer";
+  mixMemCompo.capacity=2048*15;
+  mixMemCompo.memory=(unsigned char*)mixBuf;
+  mixMemCompo.waveformView=DIV_MEMORY_WAVE_8BIT_SIGNED;
   for (int i=0; i<16; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;

@@ -81,8 +81,12 @@ class DivPlatformGBAMinMod: public DivDispatch {
   signed char* sampleMem;
   size_t sampleMemLen;
   // maximum wavetable length is currently hardcoded to 256
-  signed char wtMem[256*16];
   unsigned short regPool[16*16];
+  signed char wtMem[256*16];
+  DivMemoryComposition romMemCompo;
+  DivMemoryComposition mixMemCompo;
+  DivMemoryComposition wtMemCompo;
+
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
@@ -92,6 +96,7 @@ class DivPlatformGBAMinMod: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
+    DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -111,6 +116,7 @@ class DivPlatformGBAMinMod: public DivDispatch {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
