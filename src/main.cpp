@@ -612,7 +612,7 @@ int main(int argc, char** argv) {
       return 1;
     }
     fclose(f);
-    if (!e.load(file,(size_t)len)) {
+    if (!e.load(file,(size_t)len,fileName.c_str())) {
       reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
       e.everythingOK();
       finishLogFile();

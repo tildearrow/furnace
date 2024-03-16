@@ -632,7 +632,7 @@ class DivEngine {
     void createNew(const char* description, String sysName, bool inBase64=true);
     void createNewFromDefaults();
     // load a file.
-    bool load(unsigned char* f, size_t length);
+    bool load(unsigned char* f, size_t length, const char* nameHint=NULL);
     // play a binary command stream.
     bool playStream(unsigned char* f, size_t length);
     // get the playing stream.

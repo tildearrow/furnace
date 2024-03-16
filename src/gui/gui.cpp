@@ -2215,7 +2215,7 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
     fclose(f);
-    if (!e->load(file,(size_t)len)) {
+    if (!e->load(file,(size_t)len,path.c_str())) {
       lastError=e->getLastError();
       logE("could not open file!");
       return 1;
