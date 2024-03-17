@@ -1014,7 +1014,8 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_GA20 ||
             i==DIV_INS_K053260 ||
             i==DIV_INS_C140 ||
-            i==DIV_INS_C219) {
+            i==DIV_INS_C219 ||
+            i==DIV_INS_NDS) {
           makeInsTypeList.push_back(i);
         }
       }
@@ -1541,6 +1542,7 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_K053260 ||
             i==DIV_INS_C140 ||
             i==DIV_INS_C219 ||
+            i==DIV_INS_NDS ||
             i==DIV_INS_GBA_DMA ||
             i==DIV_INS_GBA_MINMOD) {
           makeInsTypeList.push_back(i);

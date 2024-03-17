@@ -205,7 +205,7 @@ const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "VOX",
   "8-bit µ-law PCM",
   "C219 PCM",
-  NULL,
+  "IMA ADPCM",
   NULL,
   NULL,
   "16-bit PCM"
@@ -1242,6 +1242,7 @@ const int availableSystems[]={
   DIV_SYSTEM_PONG,
   DIV_SYSTEM_POWERNOISE,
   DIV_SYSTEM_DAVE,
+  DIV_SYSTEM_NDS,
   0 // don't remove this last one!
 };
 
@@ -1333,6 +1334,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_SM8521,
   DIV_SYSTEM_POWERNOISE,
   DIV_SYSTEM_DAVE,
+  DIV_SYSTEM_NDS,
   0 // don't remove this last one!
 };
 
@@ -1355,6 +1357,7 @@ const int chipsSample[]={
   DIV_SYSTEM_K053260,
   DIV_SYSTEM_C140,
   DIV_SYSTEM_C219,
+  DIV_SYSTEM_NDS,
   DIV_SYSTEM_GBA_DMA,
   DIV_SYSTEM_GBA_MINMOD,
   0 // don't remove this last one!

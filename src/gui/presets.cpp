@@ -286,6 +286,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "NDS", {
+      CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Computers","let's get to work on chiptune today.");
@@ -2723,6 +2728,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_C219, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "NDS", {
+      CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Wavetable","chips which use user-specified waveforms to generate sound.");
@@ -2892,6 +2902,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_DAVE, 1.0f, 0, "")
     },
     "tickRate=50"
+  );
+  ENTRY(
+    "NDS", {
+      CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
+    }
   );
   CATEGORY_END;
 
