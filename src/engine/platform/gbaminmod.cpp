@@ -700,6 +700,7 @@ void DivPlatformGBAMinMod::renderSamples(int sysID) {
       sampleOff[i]=memPos;
       memcpy(&sampleMem[memPos],s->data8,actualLength);
       memPos+=actualLength;
+      romMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"PCM",i,sampleOff[i],memPos));
       // if it's one-shot, add 16 silent samples for looping area
       // this should be enough for most cases even though the
       // frequency register can make position jump by up to 256 samples
@@ -708,7 +709,6 @@ void DivPlatformGBAMinMod::renderSamples(int sysID) {
         memset(&sampleMem[memPos],0,oneShotLen);
         memPos+=oneShotLen;
       }
-      romMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"PCM",i,sampleOff[i],memPos));
     }
     if (actualLength<length) {
       logW("out of GBA MinMod PCM memory for sample %d!",i);
@@ -740,8 +740,8 @@ void DivPlatformGBAMinMod::setFlags(const DivConfig& flags) {
     wtMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Channel %d",i),-1,i*256,i*256));
   }
   for (int i=0; i<(int)mixBufs; i++) {
-    mixMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Buffer %d Left",i),-1,i*2048,i*2048));
-    mixMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Buffer %d Right",i),-1,i*2048+1024,i*2048+1024));
+    mixMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_ECHO, fmt::sprintf("Buffer %d Left",i),-1,i*2048,i*2048));
+    mixMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_ECHO, fmt::sprintf("Buffer %d Right",i),-1,i*2048+1024,i*2048+1024));
   }
 }
 
@@ -749,6 +749,12 @@ int DivPlatformGBAMinMod::init(DivEngine* p, int channels, int sugRate, const Di
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  for (int i=0; i<16; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
+  sampleMem=new signed char[getSampleMemCapacity()];
+  sampleMemLen=0;
   romMemCompo=DivMemoryComposition();
   romMemCompo.name="Sample ROM";
   wtMemCompo=DivMemoryComposition();
@@ -761,12 +767,6 @@ int DivPlatformGBAMinMod::init(DivEngine* p, int channels, int sugRate, const Di
   mixMemCompo.capacity=2048*15;
   mixMemCompo.memory=(unsigned char*)mixBuf;
   mixMemCompo.waveformView=DIV_MEMORY_WAVE_8BIT_SIGNED;
-  for (int i=0; i<16; i++) {
-    isMuted[i]=false;
-    oscBuf[i]=new DivDispatchOscBuffer;
-  }
-  sampleMem=new signed char[getSampleMemCapacity()];
-  sampleMemLen=0;
   setFlags(flags);
   reset();
 

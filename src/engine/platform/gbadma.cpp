@@ -478,9 +478,9 @@ void DivPlatformGBADMA::renderSamples(int sysID) {
       break;
     }
     sampleLoaded[i]=true;
+    romMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"PCM",i,sampleOff[i],memPos));
     // pad to multiple of 16 bytes
     memPos=(memPos+15)&~15;
-    romMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"PCM",i,sampleOff[i],memPos));
   }
   sampleMemLen=memPos;
   romMemCompo.used=sampleMemLen;
@@ -500,6 +500,13 @@ int DivPlatformGBADMA::init(DivEngine* p, int channels, int sugRate, const DivCo
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  for (int i=0; i<2; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+    wtMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Channel %d",i),-1,i*256,i*256));
+  }
+  sampleMem=new signed char[getSampleMemCapacity()];
+  sampleMemLen=0;
   romMemCompo=DivMemoryComposition();
   romMemCompo.name="Sample ROM";
   wtMemCompo=DivMemoryComposition();
@@ -508,13 +515,6 @@ int DivPlatformGBADMA::init(DivEngine* p, int channels, int sugRate, const DivCo
   wtMemCompo.capacity=256*2;
   wtMemCompo.memory=(unsigned char*)wtMem;
   wtMemCompo.waveformView=DIV_MEMORY_WAVE_8BIT_SIGNED;
-  for (int i=0; i<2; i++) {
-    isMuted[i]=false;
-    oscBuf[i]=new DivDispatchOscBuffer;
-    wtMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM, fmt::sprintf("Channel %d",i),-1,i*256,i*256));
-  }
-  sampleMem=new signed char[getSampleMemCapacity()];
-  sampleMemLen=0;
   setFlags(flags);
   reset();
   return 2;
