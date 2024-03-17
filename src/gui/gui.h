@@ -587,7 +587,8 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_ZSM,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_AMIGA_VAL,
-  GUI_EXPORT_TEXT
+  GUI_EXPORT_TEXT,
+  GUI_EXPORT_DMF
 };
 
 enum FurnaceGUIFMAlgs {
@@ -2463,6 +2464,7 @@ class FurnaceGUI {
 
   // export options
   int audioExportType;
+  int dmfExportVersion;
   FurnaceGUIExportTypes curExportType;
 
   void drawExportAudio(bool onWindow=false);
@@ -2471,6 +2473,7 @@ class FurnaceGUI {
   void drawExportAmigaVal(bool onWindow=false);
   void drawExportText(bool onWindow=false);
   void drawExportCommand(bool onWindow=false);
+  void drawExportDMF(bool onWindow=false);
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
