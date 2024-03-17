@@ -83,7 +83,8 @@ bool DivInstrumentGB::operator==(const DivInstrumentGB& other) {
     _C(soundLen) &&
     _C(hwSeqLen) &&
     _C(softEnv) &&
-    _C(alwaysInit)
+    _C(alwaysInit) &&
+    _C(doubleWave)
   );
 }
 
@@ -484,6 +485,7 @@ void DivInstrument::writeFeatureGB(SafeWriter* w) {
   w->writeC(gb.soundLen);
 
   w->writeC(
+    (gb.doubleWave?4:0)|
     (gb.alwaysInit?2:0)|
     (gb.softEnv?1:0)
   );
@@ -1633,6 +1635,7 @@ void DivInstrument::readFeatureGB(SafeReader& reader, short version) {
   gb.soundLen=reader.readC();
 
   next=reader.readC();
+  if (version>=196) gb.doubleWave=next&4;
   gb.alwaysInit=next&2;
   gb.softEnv=next&1;
 

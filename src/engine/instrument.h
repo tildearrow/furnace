@@ -384,7 +384,7 @@ struct DivInstrumentSTD {
 
 struct DivInstrumentGB {
   unsigned char envVol, envDir, envLen, soundLen, hwSeqLen;
-  bool softEnv, alwaysInit, doubleWave; // TODO file save/load of doubleWave
+  bool softEnv, alwaysInit, doubleWave;
   enum HWSeqCommands: unsigned char {
     DIV_GB_HWCMD_ENVELOPE=0,
     DIV_GB_HWCMD_SWEEP,
