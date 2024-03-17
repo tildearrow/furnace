@@ -400,6 +400,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
     }
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
+      chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       if (chan[c.chan].waveMode) {
         chan[c.chan].waveUpdated=true;
       }

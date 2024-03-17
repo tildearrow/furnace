@@ -959,11 +959,45 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         dispatchCmd(DivCommand(DIV_CMD_HINT_PITCH,i,chan[i].pitch));
         break;
+      case 0xe6: // Delayed legato
+        // why does this have to follow FamiTracker verbatim
+        // couldn't you do better?
+        if ((effectVal&15)!=0) {
+          chan[i].legatoDelay=(((effectVal&0xf0)>>4)&7)+1;
+          if (effectVal&128) {
+            chan[i].legatoTarget=-(effectVal&15);
+          } else {
+            chan[i].legatoTarget=(effectVal&15);
+          }
+        } else {
+          chan[i].legatoDelay=-1;
+          chan[i].legatoTarget=0;
+        }
+        break;
       case 0xe7: // delayed macro release
         // "Bruh"
         if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
           chan[i].cut=effectVal+1;
           chan[i].cutType=2;
+        }
+        break;
+      case 0xe8: // delayed legato up
+        // see? you COULD do better!
+        if ((effectVal&15)!=0) {
+          chan[i].legatoDelay=((effectVal&0xf0)>>4)+1;
+          chan[i].legatoTarget=(effectVal&15);
+        } else {
+          chan[i].legatoDelay=-1;
+          chan[i].legatoTarget=0;
+        }
+        break;
+      case 0xe9: // delayed legato down
+        if ((effectVal&15)!=0) {
+          chan[i].legatoDelay=((effectVal&0xf0)>>4)+1;
+          chan[i].legatoTarget=-(effectVal&15);
+        } else {
+          chan[i].legatoDelay=-1;
+          chan[i].legatoTarget=0;
         }
         break;
       case 0xea: // legato mode
@@ -1064,7 +1098,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
 
       case 0xfc: // delayed note release
-        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+        if (song.delayBehavior==2 || effectVal<nextSpeed) {
           chan[i].cut=effectVal+1;
           chan[i].cutType=1;
         }
@@ -1540,6 +1574,15 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             default: // both
               dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
               break;
+          }
+        }
+        if (chan[i].legatoDelay>0) {
+          if (--chan[i].legatoDelay<1) {
+            chan[i].note+=chan[i].legatoTarget;
+            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+            dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
+            chan[i].legatoDelay=-1;
+            chan[i].legatoTarget=0;
           }
         }
         if (!song.noSlidesOnFirstTick || !firstTick) {

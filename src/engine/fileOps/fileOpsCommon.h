@@ -49,6 +49,7 @@ struct NotZlibException {
 #define DIV_DMF_MAGIC ".DelekDefleMask."
 #define DIV_FUR_MAGIC "-Furnace module-"
 #define DIV_FTM_MAGIC "FamiTracker Module"
+#define DIV_DNM_MAGIC "Dn-FamiTracker Module"
 #define DIV_FC13_MAGIC "SMOD"
 #define DIV_FC14_MAGIC "FC14"
 #define DIV_S3M_MAGIC "SCRM"
