@@ -152,6 +152,7 @@ const char* aboutLine[]={
   "RevvoBolt",
   "Rockyfan75000",
   "scooblee",
+  "sheffield^2",
   "sillygoose",
   "smaybius",
   "SnugglyBun",

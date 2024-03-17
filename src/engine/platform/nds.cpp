@@ -239,11 +239,9 @@ void DivPlatformNDS::tick(bool sysTick) {
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
         ctrl=(chan[i].active?0xe8:0)|(chan[i].duty&7);
-        rWrite8(0x03+i*16,ctrl&~0x80); // force keyoff first
-      }
-      if (!chan[i].std.vol.had) {
-        chan[i].outVol=chan[i].vol;
-        writeOutVol(i);
+        if (chan[i].keyOff || chan[i].keyOn) {
+          rWrite8(0x03+i*16,ctrl&~0x80); // force keyoff first
+        }
       }
       chan[i].keyOn=false;
       if (chan[i].keyOff) {
@@ -422,6 +420,7 @@ void DivPlatformNDS::forceIns() {
     chan[i].sample=-1;
 
     rWrite8(0x02+i*16,chan[i].panning);
+    writeOutVol(i);
   }
 }
 
