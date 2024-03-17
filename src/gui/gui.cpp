@@ -4156,12 +4156,6 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("save as...",BIND_FOR(GUI_ACTION_SAVE_AS))) {
           openFileDialog(GUI_FILE_SAVE);
         }
-        if (ImGui::MenuItem("save as .dmf (1.1.3+)...")) {
-          openFileDialog(GUI_FILE_SAVE_DMF);
-        }
-        if (ImGui::MenuItem("save as .dmf (1.0/legacy)...")) {
-          openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
-        }
         ImGui::Separator();
         if (settings.exportOptionsLayout==0) {
           if (ImGui::BeginMenu("export audio...")) {
@@ -4200,6 +4194,10 @@ bool FurnaceGUI::loop() {
             drawExportCommand();
             ImGui::EndMenu();
           }
+          if (ImGui::BeginMenu("export .dmf...")) {
+            drawExportDMF();
+            ImGui::EndMenu();
+          }
         } else if (settings.exportOptionsLayout==2) {
           if (ImGui::MenuItem("export audio...")) {
             curExportType=GUI_EXPORT_AUDIO;
@@ -4235,6 +4233,10 @@ bool FurnaceGUI::loop() {
           }
           if (ImGui::MenuItem("export command stream...")) {
             curExportType=GUI_EXPORT_CMD_STREAM;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem("export .dmf...")) {
+            curExportType=GUI_EXPORT_DMF;
             displayExport=true;
           }
         } else {
@@ -7813,6 +7815,7 @@ FurnaceGUI::FurnaceGUI():
   curTutorial(-1),
   curTutorialStep(0),
   audioExportType(0),
+  dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE) {
   // value keys
   valueKeys[SDLK_0]=0;
