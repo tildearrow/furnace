@@ -2141,13 +2141,17 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
     }
 
+    ds.insLen = ds.ins.size();
+
     if (ds.insLen > 0) {
       for (int tries = 0; tries < 5; tries++) // de-duplicating instruments
       {
         for (int i = 0; i < 128; i++) {
+          if (ds.ins.empty()) break;
           int index = i >= (int)ds.insLen ? ((int)ds.insLen - 1) : i;
           if (index < 0)
             index = 0;
+
           DivInstrument* ins = ds.ins[index];
 
           if (ins->type == DIV_INS_FM) {
