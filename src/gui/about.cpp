@@ -177,7 +177,6 @@ const char* aboutLine[]={
   "tom_atom",
   "traumatized",
   "Tytanium654",
-  "Uhrwerk Klockwerx",
   "Ultraprogramer",
   "UserSniper",
   "Weeppiko",
