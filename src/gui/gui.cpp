@@ -1637,7 +1637,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Open File",
-        {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft",
+        {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub",
          "all files", "*"},
         workingDirSong,
         dpiScale
