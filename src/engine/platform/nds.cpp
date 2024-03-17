@@ -420,6 +420,7 @@ void DivPlatformNDS::forceIns() {
     chan[i].sample=-1;
 
     rWrite8(0x02+i*16,chan[i].panning);
+    writeOutVol(i);
   }
 }
 
