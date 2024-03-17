@@ -214,6 +214,7 @@ const char* aboutLine[]={
   "FFTW by Matteo Frigo and Steven G. Johnson",
   "backward-cpp by Google",
   "adpcm by superctr",
+  "adpcm-xq by David Bryant",
   "Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt",
   "YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt",
   "ESFMu (modified version) by Kagamiin~",
