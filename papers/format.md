@@ -564,9 +564,13 @@ size | description
      | - 4: QSound ADPCM
      | - 5: ADPCM-A
      | - 6: ADPCM-B
+     | - 7: K05 ADPCM
      | - 8: 8-bit PCM
      | - 9: BRR (SNES)
      | - 10: VOX
+     | - 11: 8-bit μ-law PCM
+     | - 12: C219 PCM
+     | - 13: IMA ADPCM
      | - 16: 16-bit PCM
   1  | loop direction (>=123) or reserved
      | - 0: forward

@@ -124,6 +124,8 @@ the following instrument types are available:
 - 55: ESFM
 - 56: PowerNoise (noise)
 - 57: PowerNoise (slope)
+- 58: Dave
+- 59: NDS
 
 the following feature codes are recognized:
 
