@@ -1667,7 +1667,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_SAVE_DMF:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openSave(
-        "Save File",
+        "Export DMF",
         {"DefleMask 1.1.3 module", "*.dmf"},
         workingDirSong,
         dpiScale
@@ -1676,7 +1676,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_SAVE_DMF_LEGACY:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openSave(
-        "Save File",
+        "Export DMF",
         {"DefleMask 1.0/legacy module", "*.dmf"},
         workingDirSong,
         dpiScale
