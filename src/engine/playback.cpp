@@ -247,6 +247,8 @@ const char* cmdName[]={
   "ESFM_MODIN",
   "ESFM_ENV_DELAY",
 
+  "MACRO_RESTART",
+
   "POWERNOISE_COUNTER_LOAD",
   "POWERNOISE_IO_WRITE",
 
@@ -256,10 +258,7 @@ const char* cmdName[]={
   "DAVE_LOW_PASS",
   "DAVE_CLOCK_DIV",
 
-  "MACRO_RESTART",
   "MINMOD_ECHO",
-
-  "ALWAYS_SET_VOLUME"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
