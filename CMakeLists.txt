@@ -624,6 +624,7 @@ src/engine/fileOps/ftm.cpp
 src/engine/fileOps/fur.cpp
 src/engine/fileOps/mod.cpp
 src/engine/fileOps/s3m.cpp
+src/engine/fileOps/text.cpp
 
 src/engine/blip_buf.c
 src/engine/brrUtils.c
