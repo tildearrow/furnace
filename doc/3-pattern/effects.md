@@ -34,6 +34,11 @@ however, effects are continuous, which means you only need to type it once and t
 - `E2xy`: **Note slide down.** `x` is the speed, while `y` is how many semitones to slide down.
   - ---
 - `EAxx`: **Toggle legato.** while on, new notes instantly change the pitch of the currently playing sound instead of starting it over.
+- `E6xy`: **Quick legato (compatibility).** transposes note by `y` semitones after `x` ticks.
+  - if `x` is between 0 and 7, it transposes up.
+  - if `x` is between 8 and F, it transposes down.
+- `E8xy`: **Quick legato up**. transposes note up by `y` semitones after `x` ticks.
+- `E9xy`: **Quick legato down**. transposes note down by `y` semitones after `x` ticks.
 - `00xy`: **Arpeggio.** this effect produces a rapid cycle between the current note, the note plus `x` semitones and the note plus `y` semitones.
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
   - ---

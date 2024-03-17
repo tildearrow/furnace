@@ -100,7 +100,7 @@ enum DivMIDIModes {
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, oldNote, lastIns, pitch, portaSpeed, portaNote;
-  int volume, volSpeed, cut, rowDelay, volMax;
+  int volume, volSpeed, cut, legatoDelay, legatoTarget, rowDelay, volMax;
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoPosGiant, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
@@ -123,6 +123,8 @@ struct DivChannelState {
     volume(0x7f00),
     volSpeed(0),
     cut(-1),
+    legatoDelay(-1),
+    legatoTarget(0),
     rowDelay(0),
     volMax(0),
     delayOrder(0),
