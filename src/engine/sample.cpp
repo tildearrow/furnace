@@ -35,6 +35,7 @@ extern "C" {
 #include "../../extern/adpcm/ymb_codec.h"
 #include "../../extern/adpcm/ymz_codec.h"
 }
+#include "../../extern/adpcm-xq/adpcm-lib.h"
 #include "brrUtils.h"
 
 DivSampleHistory::~DivSampleHistory() {
@@ -599,7 +600,7 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       break;
     case DIV_SAMPLE_DEPTH_IMA_ADPCM: // IMA ADPCM
       if (dataIMA!=NULL) delete[] dataIMA;
-      lengthIMA=(count+1)/2;
+      lengthIMA=4+((count+1)/2);
       dataIMA=new unsigned char[lengthIMA];
       memset(dataIMA,0,lengthIMA);
       break;
@@ -1288,7 +1289,7 @@ void DivSample::render(unsigned int formatMask) {
         }
         break;
       case DIV_SAMPLE_DEPTH_IMA_ADPCM: // IMA ADPCM
-        // TODO: decode
+        if (adpcm_decode_block(data16,dataIMA,lengthIMA,1)==0) logE("oh crap!");
         break;
       default:
         return;
@@ -1461,9 +1462,22 @@ void DivSample::render(unsigned int formatMask) {
       dataC219[i]=x|(negate?0x80:0);
     }
   }
-  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_IMA_ADPCM)) { // C219
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_IMA_ADPCM)) { // IMA ADPCM
     if (!initInternal(DIV_SAMPLE_DEPTH_IMA_ADPCM,samples)) return;
-    // TODO: encode
+    int delta[2];
+    delta[0]=0;
+    delta[1]=0;
+
+    void* codec=adpcm_create_context(1,4,NOISE_SHAPING_OFF,delta);
+    if (codec==NULL) {
+      logE("oh no IMA encoder could not be created!");
+    } else {
+      size_t whyPointer=0;
+      adpcm_encode_block(codec,dataIMA,&whyPointer,data16,samples);
+      if (whyPointer!=lengthIMA) logW("IMA length mismatch! %d -> %d!=%d",(int)samples,(int)whyPointer,(int)lengthIMA);
+
+      adpcm_free_context(codec);
+    }
   }
 }
 

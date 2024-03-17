@@ -156,7 +156,7 @@ void DivPlatformNDS::tick(bool sysTick) {
       if (chan[i].pcm || i<8) {
         DivSample* s=parent->getSample(chan[i].sample);
         switch (s->depth) {
-          //case DIV_SAMPLE_DEPTH_YMZ_ADPCM: ctrl=0x40; break;
+          case DIV_SAMPLE_DEPTH_IMA_ADPCM: ctrl=0x40; break;
           case DIV_SAMPLE_DEPTH_8BIT: ctrl=0x00; break;
           case DIV_SAMPLE_DEPTH_16BIT: ctrl=0x20; break;
           default: break;
@@ -179,7 +179,7 @@ void DivPlatformNDS::tick(bool sysTick) {
           }
           if (chan[i].audPos>0) {
             switch (s->depth) {
-              //case DIV_SAMPLE_DEPTH_YMZ_ADPCM: start+=chan[i].audPos/2; end-=(chan[i].audPos/8); break;
+              case DIV_SAMPLE_DEPTH_IMA_ADPCM: start+=chan[i].audPos/2; end-=(chan[i].audPos/8); break;
               case DIV_SAMPLE_DEPTH_8BIT: start+=chan[i].audPos; end-=(chan[i].audPos/4); break;
               case DIV_SAMPLE_DEPTH_16BIT: start+=chan[i].audPos*2; end-=(chan[i].audPos/2); break;
               default: break;
@@ -188,8 +188,7 @@ void DivPlatformNDS::tick(bool sysTick) {
           if (s->isLoopable()) {
             if (chan[i].audPos>0) {
               switch (s->depth) {
-                /*
-                case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+                case DIV_SAMPLE_DEPTH_IMA_ADPCM:
                   loopStart=(s->loopStart-chan[i].audPos)/8;
                   loopEnd=(s->loopEnd-s->loopStart)/8;
                   if (chan[i].audPos>(unsigned int)s->loopStart) {
@@ -197,7 +196,6 @@ void DivPlatformNDS::tick(bool sysTick) {
                     loopEnd-=(chan[i].audPos-s->loopStart)/8;
                   }
                   break;
-                */
                 case DIV_SAMPLE_DEPTH_8BIT:
                   loopStart=(s->loopStart-chan[i].audPos)/4;
                   loopEnd=(s->loopEnd-s->loopStart)/4;
@@ -218,7 +216,7 @@ void DivPlatformNDS::tick(bool sysTick) {
               }
             } else {
               switch (s->depth) {
-                //case DIV_SAMPLE_DEPTH_YMZ_ADPCM: loopStart=s->loopStart/8; loopEnd=(s->loopEnd-s->loopStart)/8; break;
+                case DIV_SAMPLE_DEPTH_IMA_ADPCM: loopStart=s->loopStart/8; loopEnd=(s->loopEnd-s->loopStart)/8; break;
                 case DIV_SAMPLE_DEPTH_8BIT: loopStart=s->loopStart/4; loopEnd=(s->loopEnd-s->loopStart)/4; break;
                 case DIV_SAMPLE_DEPTH_16BIT: loopStart=s->loopStart/2; loopEnd=(s->loopEnd-s->loopStart)/2; break;
                 default: break;
