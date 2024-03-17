@@ -341,7 +341,7 @@ void copyMacro(DivInstrument* ins, DivInstrumentMacro* from, int macro_type, int
     }
 
     if ((DivMacroType)convertMacrosN163[macro_type] == DIV_MACRO_WAVE && ins->type == DIV_INS_N163) {
-      to->val[i] |= (1 << 30); // referencing local wavetables!
+      // pfffff
     }
 
     if ((DivMacroType)convertMacrosN163[macro_type] == DIV_MACRO_PITCH && (ins->type == DIV_INS_N163 || ins->type == DIV_INS_C64)) {
