@@ -49,13 +49,13 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
   bool newSamp=true;
   // cache channel registers that might change
   struct {
-    unsigned long long address;
+    uint64_t address;
     unsigned int freq, loopEnd, loopStart;
     short volL, volR;
   } chState[16];
   for (int i=0; i<chanMax; i++) {
     unsigned short* chReg=&regPool[i*16];
-    chState[i].address=chReg[0]|((unsigned long long)chReg[1]<<16)|((unsigned long long)chReg[2]<<32)|((unsigned long long)chReg[3]<<48);
+    chState[i].address=chReg[0]|((uint64_t)chReg[1]<<16)|((uint64_t)chReg[2]<<32)|((uint64_t)chReg[3]<<48);
     chState[i].freq=chReg[8]|((unsigned int)chReg[9]<<16);
     chState[i].loopEnd=chReg[10]|((unsigned int)chReg[11]<<16);
     chState[i].loopStart=chReg[12]|((unsigned int)chReg[13]<<16);
@@ -74,12 +74,12 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
         for (int i=0; i<chanMax; i++) {
           for (size_t j=mixBufOffset; j<4; j++) {
             unsigned int lastAddr=chState[i].address>>32;
-            chState[i].address+=((unsigned long long)chState[i].freq)<<8;
+            chState[i].address+=((uint64_t)chState[i].freq)<<8;
             unsigned int newAddr=chState[i].address>>32;
             if (newAddr!=lastAddr) {
               if (newAddr>=chState[i].loopEnd) {
                 newAddr=newAddr-chState[i].loopEnd+chState[i].loopStart;
-                chState[i].address=(chState[i].address&0xffffffff)|((unsigned long long)newAddr<<32);
+                chState[i].address=(chState[i].address&0xffffffff)|((uint64_t)newAddr<<32);
               }
               int newSamp=0;
               switch (newAddr>>24) {
@@ -573,7 +573,7 @@ DivSamplePos DivPlatformGBAMinMod::getSamplePos(int ch) {
   return DivSamplePos(
     chan[ch].sample,
     (((int)regPool[ch*16+2]|((int)regPool[ch*16+3]<<16))&0x01ffffff)-sampleOff[chan[ch].sample],
-    (long long)chan[ch].freq*chipClock/CHIP_FREQBASE
+    (int64_t)chan[ch].freq*chipClock/CHIP_FREQBASE
   );
 }
 
