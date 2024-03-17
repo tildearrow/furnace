@@ -808,11 +808,13 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         ds.systemName = "NES";
       } else if (blockName == "HEADER") {
         CHECK_BLOCK_VERSION(4);
-        unsigned char totalSongs = reader.readC();
+        unsigned char totalSongs=0;
+        if (blockVersion>=2) totalSongs=reader.readC();
         logV("%d songs:", totalSongs + 1);
         ds.subsong.reserve(totalSongs);
         for (int i = 0; i <= totalSongs; i++) {
-          String subSongName = reader.readString();
+          String subSongName;
+          if (blockVersion>=3) subSongName=reader.readString();
           ds.subsong.push_back(new DivSubSong);
           ds.subsong[i]->name = subSongName;
           ds.subsong[i]->hilightA = hilightA;
@@ -1326,101 +1328,122 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
       } else if (blockName == "SEQUENCES") {
         CHECK_BLOCK_VERSION(6);
-        // reader.seek(blockSize,SEEK_CUR);
 
-        if (blockVersion < 3) {
+        if (blockVersion < 2) {
           lastError = "sequences block version is too old";
           delete[] file;
           return false;
         }
 
-        unsigned char* Indices = new unsigned char[128 * 5];
-        unsigned char* Types = new unsigned char[128 * 5];
-
         unsigned int seq_count = reader.readI();
 
-        for (unsigned int i = 0; i < seq_count; i++) {
-          unsigned int index = reader.readI();
-          Indices[i] = index;
-          unsigned int type = reader.readI();
-          Types[i] = type;
+        if (blockVersion == 2) {
+          for (unsigned int i = 0; i < seq_count; i++) {
+            unsigned int index = reader.readI();
+            unsigned int type = reader.readI();
+            unsigned char size = reader.readC();
+            macros[index][type].len = size;
 
-          unsigned char size = reader.readC();
-          unsigned int setting = 0;
-
-          macros[index][type].len = size;
-
-          unsigned int loop = reader.readI();
-
-          macros[index][type].loop = loop;
-
-          if (blockVersion == 4) {
-            unsigned int release = reader.readI();
-            setting = reader.readI();
-
-            macros[index][type].rel = release;
-            macro_types[index][type] = setting;
-          }
-
-          for (int j = 0; j < size; j++) {
-            unsigned char seq = reader.readC();
-            macros[index][type].val[j] = seq;
-          }
-
-          for (int k = 0; k < (int)ds.ins.size(); k++) {
-            DivInstrument* ins = ds.ins[k];
-            if (sequenceIndex[k][Types[i]] == Indices[i] && ins->type == DIV_INS_NES && hasSequence[k][Types[i]]) {
-              copyMacro(ins, &macros[index][type], Types[i], setting);
-              // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)Types[i], true), &macros[sequenceIndex[index][type]][type], sizeof(DivInstrumentMacro));
+            for (int j = 0; j < size; j++) {
+              unsigned char seq = reader.readC();
+              reader.readC(); // reserved?
+              macros[index][type].val[j] = seq;
             }
-          }
-        }
 
-        if (blockVersion == 5) // Version 5 saved the release points incorrectly, this is fixed in ver 6
-        {
-          for (int i = 0; i < 128; i++) {
-            for (int j = 0; j < 5; j++) {
-              unsigned int release = reader.readI();
-              unsigned int setting = reader.readI();
-
-              for (int k = 0; k < (int)ds.ins.size(); k++) {
-                DivInstrument* ins = ds.ins[k];
-                if (sequenceIndex[k][j] == i && ins->type == DIV_INS_NES && hasSequence[k][j]) {
-                  macros[k][j].rel = release;
-                  macro_types[k][j] = setting;
-
-                  copyMacro(ins, &macros[sequenceIndex[k][j]][j], j, setting);
-                  // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)j, true), &macros[sequenceIndex[k][j]][j], sizeof(DivInstrumentMacro));
-                }
+            for (int k = 0; k < (int)ds.ins.size(); k++) {
+              DivInstrument* ins=ds.ins[k];
+              if (sequenceIndex[k][type] == index && ins->type == DIV_INS_NES && hasSequence[k][type]) {
+                copyMacro(ins, &macros[index][type], type, 0);
               }
             }
           }
-        }
+        } else {
+          unsigned char* Indices = new unsigned char[128 * 5];
+          unsigned char* Types = new unsigned char[128 * 5];
 
-        if (blockVersion >= 6) // Read release points correctly stored
-        {
           for (unsigned int i = 0; i < seq_count; i++) {
-            unsigned int release = reader.readI();
-            unsigned int setting = reader.readI();
+            unsigned int index = reader.readI();
+            Indices[i] = index;
+            unsigned int type = reader.readI();
+            Types[i] = type;
 
-            // macros[index][type].rel = release;
-            // macro_types[index][type] = setting;
+            unsigned char size = reader.readC();
+            unsigned int setting = 0;
+
+            macros[index][type].len = size;
+
+            unsigned int loop = reader.readI();
+
+            macros[index][type].loop = loop;
+
+            if (blockVersion == 4) {
+              unsigned int release = reader.readI();
+              setting = reader.readI();
+
+              macros[index][type].rel = release;
+              macro_types[index][type] = setting;
+            }
+
+            for (int j = 0; j < size; j++) {
+              unsigned char seq = reader.readC();
+              macros[index][type].val[j] = seq;
+            }
 
             for (int k = 0; k < (int)ds.ins.size(); k++) {
               DivInstrument* ins = ds.ins[k];
               if (sequenceIndex[k][Types[i]] == Indices[i] && ins->type == DIV_INS_NES && hasSequence[k][Types[i]]) {
-                macros[sequenceIndex[k][Types[i]]][Types[i]].rel = release;
-                macro_types[k][Types[i]] = setting;
-
-                copyMacro(ins, &macros[sequenceIndex[k][Types[i]]][Types[i]], Types[i], setting);
-                // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)Types[i], true), &macros[sequenceIndex[k][Types[i]]][Types[i]], sizeof(DivInstrumentMacro));
+                copyMacro(ins, &macros[index][type], Types[i], setting);
+                // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)Types[i], true), &macros[sequenceIndex[index][type]][type], sizeof(DivInstrumentMacro));
               }
             }
           }
-        }
 
-        delete[] Indices;
-        delete[] Types;
+          if (blockVersion == 5) // Version 5 saved the release points incorrectly, this is fixed in ver 6
+          {
+            for (int i = 0; i < 128; i++) {
+              for (int j = 0; j < 5; j++) {
+                unsigned int release = reader.readI();
+                unsigned int setting = reader.readI();
+
+                for (int k = 0; k < (int)ds.ins.size(); k++) {
+                  DivInstrument* ins = ds.ins[k];
+                  if (sequenceIndex[k][j] == i && ins->type == DIV_INS_NES && hasSequence[k][j]) {
+                    macros[k][j].rel = release;
+                    macro_types[k][j] = setting;
+
+                    copyMacro(ins, &macros[sequenceIndex[k][j]][j], j, setting);
+                    // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)j, true), &macros[sequenceIndex[k][j]][j], sizeof(DivInstrumentMacro));
+                  }
+                }
+              }
+            }
+          }
+
+          if (blockVersion >= 6) // Read release points correctly stored
+          {
+            for (unsigned int i = 0; i < seq_count; i++) {
+              unsigned int release = reader.readI();
+              unsigned int setting = reader.readI();
+
+              // macros[index][type].rel = release;
+              // macro_types[index][type] = setting;
+
+              for (int k = 0; k < (int)ds.ins.size(); k++) {
+                DivInstrument* ins = ds.ins[k];
+                if (sequenceIndex[k][Types[i]] == Indices[i] && ins->type == DIV_INS_NES && hasSequence[k][Types[i]]) {
+                  macros[sequenceIndex[k][Types[i]]][Types[i]].rel = release;
+                  macro_types[k][Types[i]] = setting;
+
+                  copyMacro(ins, &macros[sequenceIndex[k][Types[i]]][Types[i]], Types[i], setting);
+                  // memcpy(ins->std.get_macro(DIV_MACRO_VOL + (DivMacroType)Types[i], true), &macros[sequenceIndex[k][Types[i]]][Types[i]], sizeof(DivInstrumentMacro));
+                }
+              }
+            }
+          }
+
+          delete[] Indices;
+          delete[] Types;
+        }
       } else if (blockName == "GROOVES") {
         CHECK_BLOCK_VERSION(6);
         // reader.seek(blockSize,SEEK_CUR);
@@ -1525,20 +1548,18 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           int patNum = reader.readI();
           int numRows = reader.readI();
 
-          /*
           logV("ch: %d",ch);
           logV("subs: %d. map_channels[ch]: %d",subs,map_channels[ch]);
           logV("patNum: %d",patNum);
           logV("rows: %d",numRows);
-          */
 
           DivPattern* pat = ds.subsong[subs]->pat[map_channels[ch]].getPattern(patNum, true);
           for (int i = 0; i < numRows; i++) {
             unsigned int row = 0;
-            if (blockVersion >= 2 && blockVersion < 6) { // row index
-              row = reader.readI();
-            } else {
+            if (ds.version==0x200 || blockVersion >= 6) { // row index
               row = (unsigned char)reader.readC();
+            } else {
+              row = reader.readI();
             }
 
             unsigned char nextNote = reader.readC();
@@ -1600,9 +1621,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             if (blockVersion >= 6)
               effectCols = 4;
 
-            if (ds.version == 0x020) {
+            if (ds.version == 0x200) {
               effectCols = 1;
             }
+
+            logV("effectCols: %d",effectCols);
 
             unsigned char nextEffectVal = 0;
             unsigned char nextEffect = 0;
@@ -1793,7 +1816,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
           memset(sample->dataDPCM, 0xAA, true_size);
 
-          reader.read(sample->dataDPCM, true_size);
+          reader.read(sample->dataDPCM, sample_len);
         }
 
         int last_non_empty_sample = 0xff;
