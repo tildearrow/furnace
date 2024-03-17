@@ -907,6 +907,7 @@ static inline uint16_t effective_channel4_counter(GB_gameboy_t *gb)
             }
             break;
         case GB_MODEL_AGB:
+        case GB_MODEL_AGB_NATIVE:
             /* TODO: AGBs are not affected, but AGSes are. They don't seem to follow a simple
                pattern like the other revisions. */
             /* For the most part, AGS seems to do:
