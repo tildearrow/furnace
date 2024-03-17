@@ -203,7 +203,7 @@ const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "VOX",
   "8-bit µ-law PCM",
   "C219 PCM",
-  NULL,
+  "IMA ADPCM",
   NULL,
   NULL,
   "16-bit PCM"
