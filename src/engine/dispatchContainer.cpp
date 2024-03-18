@@ -310,6 +310,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformNES*)dispatch)->setNSFPlay(eng->getConfInt("nesCore",0)==1);
       }
+      ((DivPlatformNES*)dispatch)->set5E01(false);
       break;
     case DIV_SYSTEM_C64_6581:
       dispatch=new DivPlatformC64;
@@ -672,6 +673,15 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_NDS:
       dispatch=new DivPlatformNDS;
+      break;
+    case DIV_SYSTEM_5E01:
+      dispatch=new DivPlatformNES;
+      if (isRender) {
+        ((DivPlatformNES*)dispatch)->setNSFPlay(eng->getConfInt("nesCoreRender",0)==1);
+      } else {
+        ((DivPlatformNES*)dispatch)->setNSFPlay(eng->getConfInt("nesCore",0)==1);
+      }
+      ((DivPlatformNES*)dispatch)->set5E01(true);
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;

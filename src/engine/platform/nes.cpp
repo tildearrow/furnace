@@ -817,6 +817,10 @@ void DivPlatformNES::setNSFPlay(bool use) {
   useNP=use;
 }
 
+void DivPlatformNES::set5E01(bool use) {
+  isE=use;
+}
+
 unsigned char DivPlatformNES::readDMC(unsigned short addr) {
   return dpcmMem[(addr&0x3fff)|((dpcmBank&15)<<14)];
 }

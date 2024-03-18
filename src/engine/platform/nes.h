@@ -62,6 +62,7 @@ class DivPlatformNES: public DivDispatch {
   bool useNP;
   bool goingToLoop;
   bool countMode;
+  bool isE;
   struct NESAPU* nes;
   xgm::NES_APU* nes1_NP;
   xgm::NES_DMC* nes2_NP;
@@ -93,6 +94,7 @@ class DivPlatformNES: public DivDispatch {
     float getPostAmp();
     unsigned char readDMC(unsigned short addr);
     void setNSFPlay(bool use);
+    void set5E01(bool use);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

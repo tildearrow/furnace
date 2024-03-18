@@ -239,11 +239,12 @@ size | description
      |   - 0xd2: Ensoniq ES5503 (hard pan) - 32 channels (UNAVAILABLE)
      |   - 0xd4: PowerNoise - 4 channels
      |   - 0xd5: Dave - 6 channels
-     |   - 0xd6: NDS - 16 channels (UNAVAILABLE)
-     |   - 0xd7: Game Boy Advance (direct) - 2 channels (UNAVAILABLE)
-     |   - 0xd8: Game Boy Advance (MinMod) - 16 channels (UNAVAILABLE)
+     |   - 0xd6: NDS - 16 channels
+     |   - 0xd7: Game Boy Advance (direct) - 2 channels
+     |   - 0xd8: Game Boy Advance (MinMod) - 16 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
+     |   - 0xf1: 5E01 - 5 channels
      |   - 0xfc: Pong - 1 channel
      |   - 0xfd: Dummy System - 8 channels
      |   - 0xfe: reserved for development

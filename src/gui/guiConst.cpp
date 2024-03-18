@@ -1243,6 +1243,7 @@ const int availableSystems[]={
   DIV_SYSTEM_POWERNOISE,
   DIV_SYSTEM_DAVE,
   DIV_SYSTEM_NDS,
+  DIV_SYSTEM_5E01,
   0 // don't remove this last one!
 };
 
@@ -1335,6 +1336,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_POWERNOISE,
   DIV_SYSTEM_DAVE,
   DIV_SYSTEM_NDS,
+  DIV_SYSTEM_5E01,
   0 // don't remove this last one!
 };
 
