@@ -361,6 +361,7 @@ size | description
   1  | sound length
      | - 64 is infinity
   1  | flags
+     | - bit 2: double wave width for GBA (>=196)
      | - bit 1: always init envelope
      | - bit 0: software envelope (zombie mode)
   1  | hardware sequence length

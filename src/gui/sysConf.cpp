@@ -18,6 +18,7 @@
  */
 
 #include "../engine/chipUtils.h"
+#include "../engine/platform/gbaminmod.h"
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
@@ -386,6 +387,78 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("noAntiClick",noAntiClick);
           flags.set("invertWave",invertWave);
           flags.set("enoughAlready",enoughAlready);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_GBA_DMA: {
+      int dacDepth=flags.getInt("dacDepth",9);
+
+      ImGui::Text("DAC bit depth (reduces output rate):");
+      if (CWSliderInt("##DACDepth",&dacDepth,6,9)) {
+        if (dacDepth<6) dacDepth=6;
+        if (dacDepth>9) dacDepth=9;
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("dacDepth",dacDepth);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_GBA_MINMOD: {
+      supportsCustomRate=false;
+      int volScale=flags.getInt("volScale",4096);
+      int mixBufs=flags.getInt("mixBufs",15);
+      int dacDepth=flags.getInt("dacDepth",9);
+      int channels=flags.getInt("channels",16);
+      int sampRate=flags.getInt("sampRate",21845);
+      ImGui::Text("Volume scale:");
+      if (CWSliderInt("##VolScale",&volScale,0,32768)) {
+        if (volScale<0) volScale=0;
+        if (volScale>32768) volScale=32768;
+        altered=true;
+      } rightClickable
+      ImGui::Text("Mix buffers (allows longer echo delay):");
+      if (CWSliderInt("##MixBufs",&mixBufs,2,15)) {
+        if (mixBufs<2) mixBufs=2;
+        if (mixBufs>16) mixBufs=16;
+        altered=true;
+      } rightClickable
+      ImGui::Text("DAC bit depth (reduces output rate):");
+      if (CWSliderInt("##DACDepth",&dacDepth,6,9)) {
+        if (dacDepth<6) dacDepth=6;
+        if (dacDepth>9) dacDepth=9;
+        altered=true;
+      } rightClickable
+      ImGui::Text("Channel limit:");
+      if (CWSliderInt("##Channels",&channels,1,16)) {
+        if (channels<1) channels=1;
+        if (channels>16) channels=16;
+        altered=true;
+      } rightClickable
+      ImGui::Text("Sample rate:");
+      if (CWSliderInt("##SampRate",&sampRate,256,65536)) {
+        if (sampRate<1) sampRate=21845;
+        if (sampRate>65536) sampRate=65536;
+        altered=true;
+      } rightClickable
+      DivPlatformGBAMinMod* dispatch=(DivPlatformGBAMinMod*)e->getDispatch(chan);
+      float maxCPU=dispatch->maxCPU*100;
+      ImGui::Text("Actual sample rate: %d Hz", dispatch->chipClock);
+      if (maxCPU>90) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_WARNING]);
+      ImGui::Text("Max mixer CPU usage: %.0f%%", maxCPU);
+      if (maxCPU>90) ImGui::PopStyleColor();
+      FurnaceGUI::popWarningColor();
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("volScale",volScale);
+          flags.set("mixBufs",mixBufs);
+          flags.set("dacDepth",dacDepth);
+          flags.set("channels",channels);
+          flags.set("sampRate",sampRate);
         });
       }
       break;

@@ -251,12 +251,14 @@ enum DivDispatchCmds {
 
   DIV_CMD_POWERNOISE_COUNTER_LOAD, // (which, val)
   DIV_CMD_POWERNOISE_IO_WRITE, // (port, value)
-
+  
   DIV_CMD_DAVE_HIGH_PASS,
   DIV_CMD_DAVE_RING_MOD,
   DIV_CMD_DAVE_SWAP_COUNTERS,
   DIV_CMD_DAVE_LOW_PASS,
   DIV_CMD_DAVE_CLOCK_DIV,
+
+  DIV_CMD_MINMOD_ECHO,
 
   DIV_CMD_MAX
 };
@@ -476,6 +478,7 @@ enum DivMemoryWaveView: unsigned char {
   DIV_MEMORY_WAVE_NONE=0,
   DIV_MEMORY_WAVE_4BIT, // Namco 163
   DIV_MEMORY_WAVE_6BIT, // Virtual Boy
+  DIV_MEMORY_WAVE_8BIT_SIGNED, // SCC
 };
 
 struct DivMemoryComposition {

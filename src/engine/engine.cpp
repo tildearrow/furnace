@@ -989,7 +989,9 @@ void DivEngine::delUnusedSamples() {
         i->type==DIV_INS_K053260 ||
         i->type==DIV_INS_C140 ||
         i->type==DIV_INS_C219 ||
-        i->type==DIV_INS_NDS) {
+        i->type==DIV_INS_NDS ||
+        i->type==DIV_INS_GBA_DMA ||
+        i->type==DIV_INS_GBA_MINMOD) {
       if (i->amiga.initSample>=0 && i->amiga.initSample<song.sampleLen) {
         isUsed[i->amiga.initSample]=true;
       }

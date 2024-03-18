@@ -59,6 +59,8 @@ class DivPlatformGB: public DivDispatch {
   bool antiClickEnabled;
   bool invertWave;
   bool enoughAlready;
+  bool doubleWave;
+  bool lastDoubleWave;
   unsigned char lastPan;
   DivWaveSynth ws;
   struct QueuedWrite {

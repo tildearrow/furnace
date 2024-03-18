@@ -131,6 +131,18 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Game Boy Advance (no software mixing)", {
+      CH(DIV_SYSTEM_GB, 1.0f, 0, "chipType=3"),
+      CH(DIV_SYSTEM_GBA_DMA, 0.5f, 0, ""),
+    }
+  );
+  ENTRY(
+    "Game Boy Advance (with MinMod)", {
+      CH(DIV_SYSTEM_GB, 1.0f, 0, "chipType=3"),
+      CH(DIV_SYSTEM_GBA_MINMOD, 0.5f, 0, ""),
+    }
+  );
+  ENTRY(
     "Neo Geo Pocket", {
       CH(DIV_SYSTEM_T6W28, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 1.0f, -1.0f, 

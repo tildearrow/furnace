@@ -722,6 +722,8 @@ src/engine/platform/c140.cpp
 src/engine/platform/esfm.cpp
 src/engine/platform/powernoise.cpp
 src/engine/platform/dave.cpp
+src/engine/platform/gbadma.cpp
+src/engine/platform/gbaminmod.cpp
 src/engine/platform/nds.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp

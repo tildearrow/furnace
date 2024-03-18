@@ -109,6 +109,14 @@ void FurnaceGUI::drawMemory() {
                   dl->AddRectFilled(pos1,pos2,ImGui::GetColorU32(uiColors[GUI_COLOR_MEMORY_DATA]));
                 }
                 break;
+              case DIV_MEMORY_WAVE_8BIT_SIGNED:
+                for (int k=0; k<(int)mc->capacity; k++) {
+                  signed char val=(signed char)mc->memory[k];
+                  ImVec2 pos1=ImLerp(dataRect.Min,dataRect.Max,ImVec2((double)k/(double)(mc->capacity),1.0f-((float)(val+129)/256.0f)));
+                  ImVec2 pos2=ImLerp(dataRect.Min,dataRect.Max,ImVec2((double)(k+1)/(double)(mc->capacity),1.0f));
+                  dl->AddRectFilled(pos1,pos2,ImGui::GetColorU32(uiColors[GUI_COLOR_MEMORY_DATA]));
+                }
+                break;
               default:
                 break;
             }
