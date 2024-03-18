@@ -1245,6 +1245,7 @@ struct FurnaceGUISysDef {
   const char* extra;
   String definition;
   std::vector<FurnaceGUISysDefChip> orig;
+  std::vector<FurnaceGUISysDef> subDefs;
   FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL);
 };
 
