@@ -448,8 +448,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       DivPlatformGBAMinMod* dispatch=(DivPlatformGBAMinMod*)e->getDispatch(chan);
       float maxCPU=dispatch->maxCPU*100;
       ImGui::Text("Actual sample rate: %d Hz", dispatch->chipClock);
-      FurnaceGUI::pushWarningColor(maxCPU>90);
+      if (maxCPU>90) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_WARNING]);
       ImGui::Text("Max mixer CPU usage: %.0f%%", maxCPU);
+      if (maxCPU>90) ImGui::PopStyleColor();
       FurnaceGUI::popWarningColor();
       if (altered) {
         e->lockSave([&]() {

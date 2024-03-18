@@ -219,10 +219,10 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
 void DivPlatformGBAMinMod::tick(bool sysTick) {
   // collect stats for display in chip config
   // logV("rendered=%d,updTot=%d",sampsRendered,updCyclesTotal);
-  if (sysTick && sampsRendered>0) {
+  if (sysTick && updCyclesTotal>0) {
     // assuming new sample, L!=R and lowest ROM access wait in all channels
     // this gives 39.5 cycles/sample, rounded up to 40 for loops
-    maxCPU=(float)sampsRendered*chanMax*40/updCyclesTotal;
+    maxCPU=(float)sampsRendered*chanMax*40/(float)updCyclesTotal;
   }
   sampsRendered=0;
   updCyclesTotal=0;
