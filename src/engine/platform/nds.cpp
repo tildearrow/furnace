@@ -449,7 +449,7 @@ void DivPlatformNDS::reset() {
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformNDS::Channel();
     chan[i].std.setEngine(parent);
-    rWrite32(0x00+i*16,0x40007f);
+    rWrite32(0x00+i*16,isMuted[i]?0x400000:0x40007f);
   }
 }
 
