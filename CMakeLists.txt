@@ -516,6 +516,8 @@ src/engine/platform/sound/nes/mmc5.c
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
 
+src/engine/platform/sound/nes_nsfplay/5e01_apu.cpp
+src/engine/platform/sound/nes_nsfplay/5e01_dmc.cpp
 src/engine/platform/sound/nes_nsfplay/nes_apu.cpp
 src/engine/platform/sound/nes_nsfplay/nes_dmc.cpp
 src/engine/platform/sound/nes_nsfplay/nes_fds.cpp

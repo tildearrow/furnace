@@ -23,6 +23,7 @@
 #include "../dispatch.h"
 
 #include "sound/nes_nsfplay/nes_apu.h"
+#include "sound/nes_nsfplay/5e01_apu.h"
 
 class DivPlatformNES: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
@@ -66,6 +67,8 @@ class DivPlatformNES: public DivDispatch {
   struct NESAPU* nes;
   xgm::NES_APU* nes1_NP;
   xgm::NES_DMC* nes2_NP;
+  xgm::I5E01_APU* e1_NP;
+  xgm::I5E01_DMC* e2_NP;
   unsigned char regPool[128];
   unsigned int sampleOffDPCM[256];
   DivMemoryComposition memCompo;
@@ -77,6 +80,7 @@ class DivPlatformNES: public DivDispatch {
   unsigned char calcDPCMRate(int inRate);
   void acquire_puNES(short** buf, size_t len);
   void acquire_NSFPlay(short** buf, size_t len);
+  void acquire_NSFPlayE(short** buf, size_t len);
 
   public:
     void acquire(short** buf, size_t len);
