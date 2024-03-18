@@ -345,6 +345,7 @@ int DivPlatformGBADMA::dispatch(DivCommand c) {
 void DivPlatformGBADMA::updateWave(int ch) {
   int addr=ch*256;
   for (unsigned int i=0; i<chan[ch].audLen; i++) {
+    if (addr+i>=512) break;
     wtMem[addr+i]=(signed char)(chan[ch].ws.output[i]-128);
   }
 }
