@@ -1766,7 +1766,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                     for (int v = 0; v < 8; v++) {
                       if (map_channels[ch] == n163_chans[v]) {
                         if (pat->data[row][4 + (j * 2)] == 0x12) {
-                          pat->data[row][4 + (j * 2)] = 0x17; // local wave
+                          pat->data[row][4 + (j * 2)] = 0x10; // TODO: map wave
                         }
                       }
                     }
