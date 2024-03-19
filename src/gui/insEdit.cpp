@@ -7234,7 +7234,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_POWERNOISE_SLOPE ||
               ins->type==DIV_INS_DAVE ||
               ins->type==DIV_INS_NDS ||
-              ins->type==DIV_INS_GBA_DMA) {
+              ins->type==DIV_INS_GBA_DMA ||
+              ins->type==DIV_INS_GBA_MINMOD) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
