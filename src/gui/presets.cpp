@@ -31,6 +31,7 @@
 //     }
 //   );
 // flags are a string of new line-separated values.
+// use SUB_ENTRY instead of ENTRY to add sub-entries to the previous entry.
 
 #define CH FurnaceGUISysDefChip
 #define CATEGORY_BEGIN(x,y) cat=FurnaceGUISysCategory(x,y);
@@ -38,7 +39,7 @@
 #define ENTRY(...) \
   cat.systems.push_back(FurnaceGUISysDef(__VA_ARGS__));
 #define SUB_ENTRY(...) \
-  cat.system[cat.size()-1].subDefs.push_back(FurnaceGUISysDef(__VA_ARGS__));
+  cat.systems[cat.systems.size()-1].subDefs.push_back(FurnaceGUISysDef(__VA_ARGS__));
 
 void FurnaceGUI::initSystemPresets() {
   sysCategories.clear();
