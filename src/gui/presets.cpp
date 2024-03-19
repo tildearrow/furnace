@@ -35,7 +35,10 @@
 #define CH FurnaceGUISysDefChip
 #define CATEGORY_BEGIN(x,y) cat=FurnaceGUISysCategory(x,y);
 #define CATEGORY_END sysCategories.push_back(cat);
-#define ENTRY(...) cat.systems.push_back(FurnaceGUISysDef(__VA_ARGS__));
+#define ENTRY(...) \
+  cat.systems.push_back(FurnaceGUISysDef(__VA_ARGS__));
+#define SUB_ENTRY(...) \
+  cat.system[cat.size()-1].subDefs.push_back(FurnaceGUISysDef(__VA_ARGS__));
 
 void FurnaceGUI::initSystemPresets() {
   sysCategories.clear();
@@ -49,60 +52,60 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
     }
   );
-  ENTRY(
-    "Sega Genesis (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega Genesis (CSM)", {
-      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega Genesis (DualPCM)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega Genesis (DualPCM, extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega Genesis (with Sega CD)", {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
-        "clockSel=2\n"
-        "chipType=1\n"
-      )
-    }
-  );
-  ENTRY(
-    "Sega Genesis (extended channel 3 with Sega CD)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
-        "clockSel=2\n"
-        "chipType=1\n"
-      )
-    }
-  );
-  ENTRY(
-    "Sega Genesis (CSM with Sega CD)", {
-      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
-        "clockSel=2\n"
-        "chipType=1\n"
-      )
-    }
-  );
+    SUB_ENTRY(
+      "Sega Genesis (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (CSM)", {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (DualPCM)", {
+        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (DualPCM, extended channel 3)", {
+        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (with Sega CD)", {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
+          "clockSel=2\n"
+          "chipType=1\n"
+        )
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (extended channel 3 with Sega CD)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
+          "clockSel=2\n"
+          "chipType=1\n"
+        )
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (CSM with Sega CD)", {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
+          "clockSel=2\n"
+          "chipType=1\n"
+        )
+      }
+    );
   ENTRY(
     "Sega Master System", {
       CH(DIV_SYSTEM_SMS, 1.0f, 0, "")
