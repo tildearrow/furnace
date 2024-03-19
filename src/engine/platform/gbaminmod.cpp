@@ -44,9 +44,8 @@ const char** DivPlatformGBAMinMod::getRegisterSheet() {
 }
 
 void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
-  short sampL, sampR;
   size_t sampPos=mixBufReadPos&3;
-  bool newSamp=true;
+  bool newSamp=false;
   // cache channel registers that might change
   struct {
     uint64_t address;
@@ -149,15 +148,15 @@ void DivPlatformGBAMinMod::acquire(short** buf, size_t len) {
       memset(mixBuf[mixBufPage+1],0,sizeof(mixBuf[mixBufPage+1]));
       // emulate buffer loss prevention and buffer copying
       sampsRendered+=mixBufReadPos;
-      mixBufOffset=(4-(mixBufReadPos&3))&3;
-      mixBufReadPos=0;
-      mixBufWritePos=mixBufOffset;
+      mixBufOffset=mixBufWritePos-mixBufReadPos;
       for (size_t j=0; j<mixBufOffset; j++) {
-        mixOut[0][j]=mixOut[0][4-mixBufOffset+j];
-        mixOut[1][j]=mixOut[1][4-mixBufOffset+j];
+        mixOut[0][j]=mixOut[0][(mixBufReadPos&3)+j];
+        mixOut[1][j]=mixOut[1][(mixBufReadPos&3)+j];
         mixBuf[mixBufPage][j]=mixOut[0][j];
         mixBuf[mixBufPage+1][j]=mixOut[1][j];
       }
+      mixBufReadPos=0;
+      mixBufWritePos=mixBufOffset;
       // check for echo channels and give them proper addresses
       for (int i=0; i<chanMax; i++) {
         unsigned char echoDelay=MIN(chan[i].echo&0x0f,mixBufs-1);
@@ -602,6 +601,8 @@ void DivPlatformGBAMinMod::resetMixer() {
   mixBufPage=0;
   mixBufOffset=0;
   sampsRendered=0;
+  sampL=0;
+  sampR=0;
   memset(mixBuf,0,sizeof(mixBuf));
   memset(chanOut,0,sizeof(chanOut));
 }

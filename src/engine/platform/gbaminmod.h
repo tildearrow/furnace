@@ -76,6 +76,7 @@ class DivPlatformGBAMinMod: public DivDispatch {
   size_t mixBufReadPos;
   size_t mixBufWritePos;
   size_t mixBufOffset;
+  short sampL, sampR;
 
   signed char* sampleMem;
   size_t sampleMemLen;
