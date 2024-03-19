@@ -2418,6 +2418,31 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Yamaha YMF276 (OPN2)", {
+      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=2")
+    }
+  );
+  ENTRY(
+    "Yamaha YMF276 (extended channel 3)", {
+      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=2")
+    }
+  );
+  ENTRY(
+    "Yamaha YMF276 (OPN2) CSM", {
+      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=2")
+    }
+  );
+  ENTRY(
+    "Yamaha YMF276 (OPN2) with DualPCM", {
+      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=2")
+    }
+  );
+  ENTRY(
+    "Yamaha YMF276 (extended channel 3) with DualPCM", {
+      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=2")
+    }
+  );
+  ENTRY(
     "Yamaha YM2413 (OPLL)", {
       CH(DIV_SYSTEM_OPLL, 1.0f, 0, "")
     }
