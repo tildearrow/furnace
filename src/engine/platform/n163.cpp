@@ -376,7 +376,9 @@ int DivPlatformN163::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      double destFreqD=NOTE_FREQUENCY(c.value2);
+      if (destFreqD>2000000000.0) destFreqD=2000000000.0;
+      int destFreq=destFreqD;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch==2)?1:16);
