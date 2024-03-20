@@ -77,7 +77,13 @@ void FurnaceGUI::renderFMPreviewOPN(const DivInstrumentFM& params, int pos) {
     OPN_WRITE(0xb4,0xc0|(params.fms&7)|((params.ams&3)<<4));
     OPN_WRITE(0xa4,mult0?0x1c:0x14); // frequency
     OPN_WRITE(0xa0,0);
-    OPN_WRITE(0x28,0xf0); // key on
+    OPN_WRITE(
+     0x28,
+     (params.op[0].enable?0x10:0)|
+     (params.op[2].enable?0x20:0)|
+     (params.op[1].enable?0x40:0)|
+     (params.op[3].enable?0x80:0)
+    ); // key on
   }
 
   // render
@@ -138,7 +144,13 @@ void FurnaceGUI::renderFMPreviewOPM(const DivInstrumentFM& params, int pos) {
     OPM_WRITE(0x38,((params.fms&7)<<4)|(params.ams&3));
     OPM_WRITE(0x28,mult0?0x39:0x29); // frequency
     OPM_WRITE(0x30,0xe6);
-    OPM_WRITE(0x08,0x78); // key on
+    OPM_WRITE(
+     0x08,
+     (params.op[0].enable?0x08:0)|
+     (params.op[2].enable?0x10:0)|
+     (params.op[1].enable?0x20:0)|
+     (params.op[3].enable?0x40:0)
+    ); // key on
   }
 
   // render
