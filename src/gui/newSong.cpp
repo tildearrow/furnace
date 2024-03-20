@@ -24,19 +24,21 @@
 
 void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted) {
   for (FurnaceGUISysDef& i: category) {
+    bool treeNode=false;
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     if (!i.subDefs.empty()) {
-      if (ImGui::TreeNode("##TreeShit")) {
-        drawSysDefs(i.subDefs,accepted);
-        ImGui::TreePop();
-      }
+      treeNode=ImGui::TreeNode("##TreeShit");
       ImGui::SameLine();
     }
     if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
       nextDesc=i.definition;
       nextDescName=i.name;
       accepted=true;
+    }
+    if (treeNode) {
+      drawSysDefs(i.subDefs,accepted);
+      ImGui::TreePop();
     }
     if (ImGui::IsItemHovered()) {
       if (ImGui::BeginTooltip()) {
