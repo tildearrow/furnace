@@ -653,10 +653,10 @@ void FurnaceGUI::autoDetectSystemIter(std::vector<FurnaceGUISysDef>& category, b
       }
       if (defCountMap.size()==sysCountMap.size()) {
         isMatch=true;
-        logV("trying on defCountMap: %s",j.name);
+        /*logV("trying on defCountMap: %s",j.name);
         for (std::pair<DivSystem,int> k: defCountMap) {
           logV("- %s: %d",e->getSystemName(k.first),k.second);
-        }
+        }*/
         for (std::pair<DivSystem,int> k: defCountMap) {
           auto countI=sysCountMap.find(k.first);
           if (countI==sysCountMap.cend()) {
