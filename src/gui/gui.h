@@ -2549,7 +2549,7 @@ class FurnaceGUI {
   void waveListItem(int index, float* wavePreview, int dir, int asset);
   void sampleListItem(int index, int dir, int asset);
 
-  void drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted);
+  void drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted, std::vector<int>& sysDefStack);
 
   void toggleMobileUI(bool enable, bool force=false);
 

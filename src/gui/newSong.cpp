@@ -22,24 +22,44 @@
 #include <fmt/printf.h>
 #include <algorithm>
 
-void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted) {
+String sysDefID;
+
+void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted, std::vector<int>& sysDefStack) {
+  int index=0;
+  String sysDefIDLeader="##NS";
+  for (int i: sysDefStack) {
+    sysDefIDLeader+=fmt::sprintf("/%d",i);
+  }
   for (FurnaceGUISysDef& i: category) {
     bool treeNode=false;
     bool isHovered=false;
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     if (!i.subDefs.empty()) {
-      treeNode=ImGui::TreeNode("##TreeShit");
+      if (i.orig.empty()) {
+        sysDefID=fmt::sprintf("%s%s/%dS",i.name,sysDefIDLeader,index);
+      } else {
+        sysDefID=fmt::sprintf("%s/%dS",sysDefIDLeader,index);
+      }
+      treeNode=ImGui::TreeNode(sysDefID.c_str());
       ImGui::SameLine();
     }
-    if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
-      nextDesc=i.definition;
-      nextDescName=i.name;
-      accepted=true;
+    if (!i.orig.empty()) {
+      sysDefID=fmt::sprintf("%s%s/%d",i.name,sysDefIDLeader,index);
+      if (ImGui::Selectable(sysDefID.c_str(),false,ImGuiSelectableFlags_DontClosePopups)) {
+        nextDesc=i.definition;
+        nextDescName=i.name;
+        accepted=true;
+      }
+      if (ImGui::IsItemHovered()) isHovered=true;
+    } else if (i.subDefs.empty()) {
+      ImGui::TextUnformatted(i.name);
+      if (ImGui::IsItemHovered()) isHovered=true;
     }
-    if (ImGui::IsItemHovered()) isHovered=true;
     if (treeNode) {
-      drawSysDefs(i.subDefs,accepted);
+      sysDefStack.push_back(index);
+      drawSysDefs(i.subDefs,accepted,sysDefStack);
+      sysDefStack.erase(sysDefStack.end()-1);
       ImGui::TreePop();
     }
     if (isHovered) {
@@ -69,11 +89,13 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
         ImGui::EndTooltip();
       }
     }
+    index++;
   }
 }
 
 void FurnaceGUI::drawNewSong() {
   bool accepted=false;
+  std::vector<int> sysDefStack;
 
   ImGui::PushFont(bigFont);
   ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Choose a System!").x)*0.5);
@@ -155,7 +177,9 @@ void FurnaceGUI::drawNewSong() {
       ImGui::TableNextColumn();
       if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
         std::vector<FurnaceGUISysDef>& category=(newSongQuery.empty())?(sysCategories[newSongCategory].systems):(newSongSearchResults);
-        drawSysDefs(category,accepted);
+        sysDefStack.push_back(newSongQuery.empty()?newSongCategory:-1);
+        drawSysDefs(category,accepted,sysDefStack);
+        sysDefStack.erase(sysDefStack.end()-1);
         ImGui::EndTable();
       }
 
