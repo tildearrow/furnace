@@ -41,7 +41,7 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
       } else {
         sysDefID=fmt::sprintf("%s/%dS",sysDefIDLeader,index);
       }
-      treeNode=ImGui::TreeNode(sysDefID.c_str());
+      treeNode=ImGui::TreeNodeEx(sysDefID.c_str(),i.orig.empty()?ImGuiTreeNodeFlags_SpanAvailWidth:0);
       ImGui::SameLine();
     }
     if (!i.orig.empty()) {
