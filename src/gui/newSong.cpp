@@ -30,7 +30,6 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
     ImGui::TableNextColumn();
     if (!i.subDefs.empty()) {
       treeNode=ImGui::TreeNode("##TreeShit");
-      if (ImGui::IsItemHovered()) isHovered=true;
       ImGui::SameLine();
     }
     if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
