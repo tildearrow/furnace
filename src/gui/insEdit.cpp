@@ -356,6 +356,10 @@ const char* es5506ControlModes[3]={
   "pause", "reverse", NULL
 };
 
+const char* minModModeBits[3]={
+  "invert right", "invert left", NULL
+};
+
 const int orderedOps[4]={
   0, 2, 1, 3
 };
@@ -2501,7 +2505,8 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ins->type==DIV_INS_AY ||
         ins->type==DIV_INS_AY8930 ||
         ins->type==DIV_INS_VRC6 ||
-        ins->type==DIV_INS_SU) {
+        ins->type==DIV_INS_SU ||
+        ins->type==DIV_INS_NDS) {
       P(ImGui::Checkbox("Use sample",&ins->amiga.useSample));
       if (ins->type==DIV_INS_X1_010) {
         if (ImGui::InputInt("Sample bank slot##BANKSLOT",&ins->x1_010.bankSlot,1,4)) { PARAMETER
@@ -2525,14 +2530,15 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
       ImGui::EndCombo();
     }
     // Wavetable
-    if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SNES) {
+    if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SNES || ins->type==DIV_INS_GBA_DMA || ins->type==DIV_INS_GBA_MINMOD) {
+      const char* useWaveText=ins->type==DIV_INS_AMIGA?"Use wavetable (Amiga/Generic DAC only)":"Use wavetable";
       ImGui::BeginDisabled(ins->amiga.useNoteMap);
-      P(ImGui::Checkbox("Use wavetable (Amiga/SNES/Generic DAC only)",&ins->amiga.useWave));
+      P(ImGui::Checkbox(useWaveText,&ins->amiga.useWave));
       if (ins->amiga.useWave) {
         int len=ins->amiga.waveLen+1;
         int origLen=len;
         if (ImGui::InputInt("Width",&len,2,16)) {
-          if (ins->type==DIV_INS_SNES) {
+          if (ins->type==DIV_INS_SNES || ins->type==DIV_INS_GBA_DMA) {
             if (len<16) len=16;
             if (len>256) len=256;
             if (len>origLen) {
@@ -5395,6 +5401,7 @@ void FurnaceGUI::drawInsEdit() {
         if (ins->type==DIV_INS_GB) if (ImGui::BeginTabItem("Game Boy")) {
           P(ImGui::Checkbox("Use software envelope",&ins->gb.softEnv));
           P(ImGui::Checkbox("Initialize envelope on every note",&ins->gb.alwaysInit));
+          P(ImGui::Checkbox("Double wave length (GBA only)",&ins->gb.doubleWave));
 
           ImGui::BeginDisabled(ins->gb.softEnv);
           if (ImGui::BeginTable("GBParams",2)) {
@@ -6021,7 +6028,10 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_GA20 ||
             ins->type==DIV_INS_K053260 ||
             ins->type==DIV_INS_C140 ||
-            ins->type==DIV_INS_C219) {
+            ins->type==DIV_INS_C219 ||
+            ins->type==DIV_INS_NDS ||
+            ins->type==DIV_INS_GBA_DMA ||
+            ins->type==DIV_INS_GBA_MINMOD) {
           insTabSample(ins);
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
@@ -6456,6 +6466,7 @@ void FurnaceGUI::drawInsEdit() {
         }
         if (ins->type==DIV_INS_GB ||
             (ins->type==DIV_INS_AMIGA && ins->amiga.useWave) ||
+            (ins->type==DIV_INS_GBA_DMA && ins->amiga.useWave) ||
             (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample) ||
             ins->type==DIV_INS_N163 ||
             ins->type==DIV_INS_FDS ||
@@ -6465,7 +6476,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_SCC ||
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_NAMCO ||
-            ins->type==DIV_INS_SM8521) {
+            ins->type==DIV_INS_SM8521 ||
+            (ins->type==DIV_INS_GBA_MINMOD && ins->amiga.useWave)) {
           if (ImGui::BeginTabItem("Wavetable")) {
             switch (ins->type) {
               case DIV_INS_GB:
@@ -6500,12 +6512,17 @@ void FurnaceGUI::drawInsEdit() {
                 wavePreviewHeight=255;
                 break;
               case DIV_INS_AMIGA:
+              case DIV_INS_GBA_DMA:
                 wavePreviewLen=ins->amiga.waveLen+1;
                 wavePreviewHeight=255;
                 break;
               case DIV_INS_SNES:
                 wavePreviewLen=ins->amiga.waveLen+1;
                 wavePreviewHeight=15;
+                break;
+              case DIV_INS_GBA_MINMOD:
+                wavePreviewLen=ins->amiga.waveLen+1;
+                wavePreviewHeight=255;
                 break;
               default:
                 wavePreviewLen=32;
@@ -6736,7 +6753,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_SEGAPCM || ins->type==DIV_INS_MIKEY ||
               ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU || ins->type==DIV_INS_OPZ ||
               ins->type==DIV_INS_OPM || ins->type==DIV_INS_SNES || ins->type==DIV_INS_MSM5232 ||
-              ins->type==DIV_INS_K053260) {
+              ins->type==DIV_INS_K053260 || ins->type==DIV_INS_NDS) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
@@ -6765,13 +6782,13 @@ void FurnaceGUI::drawInsEdit() {
             volMax=31;
           }
           if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219) {
+              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219 || ins->type==DIV_INS_GBA_MINMOD) {
             volMax=255;
           }
           if (ins->type==DIV_INS_QSOUND) {
             volMax=16383;
           }
-          if (ins->type==DIV_INS_POKEMINI) {
+          if (ins->type==DIV_INS_POKEMINI || ins->type==DIV_INS_GBA_DMA) {
             volMax=2;
           }
 
@@ -6830,7 +6847,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_PET || ins->type==DIV_INS_SEGAPCM ||
               ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
               ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000 || ins->type==DIV_INS_K053260 ||
-              ins->type==DIV_INS_C140) {
+              ins->type==DIV_INS_C140 || ins->type==DIV_INS_GBA_DMA || ins->type==DIV_INS_GBA_MINMOD) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -6921,6 +6938,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Noise Freq";
             dutyMax=3;
           }
+          if (ins->type==DIV_INS_NDS) {
+            dutyLabel="Duty";
+            dutyMax=ins->amiga.useSample?0:7;
+          }
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
@@ -6959,6 +6980,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_POWERNOISE_SLOPE) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_DAVE) waveMax=4;
+          if (ins->type==DIV_INS_NDS) waveMax=0;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
             waveBitMode=true;
@@ -7028,6 +7050,12 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_DAVE) {
             ex1Max=4;
           }
+          if (ins->type==DIV_INS_MIKEY) {
+            ex1Max=12;
+          }
+          if (ins->type==DIV_INS_GBA_MINMOD) {
+            ex1Max=2;
+          }
 
           int panMin=0;
           int panMax=0;
@@ -7042,7 +7070,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_VERA ||
               ins->type==DIV_INS_ADPCMA ||
               ins->type==DIV_INS_ADPCMB ||
-              ins->type==DIV_INS_ESFM) {
+              ins->type==DIV_INS_ESFM ||
+              ins->type==DIV_INS_GBA_DMA) {
             panMax=2;
             panSingle=true;
           }
@@ -7092,7 +7121,7 @@ void FurnaceGUI::drawInsEdit() {
             panMin=0;
             panMax=127;
           }
-          if (ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219) {
+          if (ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219 || ins->type==DIV_INS_GBA_MINMOD) {
             panMin=0;
             panMax=255;
           }
@@ -7107,6 +7136,11 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_DAVE) {
             panMax=63;
+          }
+          if (ins->type==DIV_INS_NDS) {
+            panMin=-64;
+            panMax=63;
+            panSingleNoBit=true;
           }
 
           if (volMax>0) {
@@ -7198,7 +7232,10 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_ESFM ||
               ins->type==DIV_INS_POWERNOISE ||
               ins->type==DIV_INS_POWERNOISE_SLOPE ||
-              ins->type==DIV_INS_DAVE) {
+              ins->type==DIV_INS_DAVE ||
+              ins->type==DIV_INS_NDS ||
+              ins->type==DIV_INS_GBA_DMA ||
+              ins->type==DIV_INS_GBA_MINMOD) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -7234,6 +7271,10 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Group Attack",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_DAVE) {
               macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,daveControlBits));
+            } else if (ins->type==DIV_INS_MIKEY) {
+              macroList.push_back(FurnaceGUIMacroDesc("Load LFSR",&ins->std.ex1Macro,0,12,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+            } else if (ins->type==DIV_INS_GBA_MINMOD) {
+              macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,minModModeBits));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }

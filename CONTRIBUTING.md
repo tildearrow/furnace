@@ -54,7 +54,8 @@ the coding style is described here:
 - in float/double operations, always use decimal and `f` if single-precision.
   - e.g. `1.0f` or `1.0` instead of `1`.
 - prefer `NULL` over `nullptr` or any other proprietary null.
-- don't use `auto` unless needed.
+- only use `auto` if needed.
+- avoid using `goto` unless absolutely required.
 - use `String` for `std::string` (this is typedef'd in ta-utils.h).
 - prefer using operator for String (std::string) comparisons (a=="").
 - if you have to work with C strings, only use safe C string operations:
@@ -97,6 +98,7 @@ just put your demo song in `demos/`! be noted there are some guidelines:
 - the following systems are not acceptable:
   - YMU759/MA-2: exists only for compatibility.
   - Pong: it is a joke system.
+- the song shall be in Furnace file format.
 
 # Finishing
 

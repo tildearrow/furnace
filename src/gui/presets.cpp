@@ -31,11 +31,15 @@
 //     }
 //   );
 // flags are a string of new line-separated values.
+// use SUB_ENTRY instead of ENTRY to add sub-entries to the previous entry.
 
 #define CH FurnaceGUISysDefChip
 #define CATEGORY_BEGIN(x,y) cat=FurnaceGUISysCategory(x,y);
 #define CATEGORY_END sysCategories.push_back(cat);
-#define ENTRY(...) cat.systems.push_back(FurnaceGUISysDef(__VA_ARGS__));
+#define ENTRY(...) \
+  cat.systems.push_back(FurnaceGUISysDef(__VA_ARGS__));
+#define SUB_ENTRY(...) \
+  cat.systems[cat.systems.size()-1].subDefs.push_back(FurnaceGUISysDef(__VA_ARGS__));
 
 void FurnaceGUI::initSystemPresets() {
   sysCategories.clear();
@@ -49,60 +53,60 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
     }
   );
-  ENTRY(
-    "Sega Genesis (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega Genesis (CSM)", {
-      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega Genesis (DualPCM)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega Genesis (DualPCM, extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega Genesis (with Sega CD)", {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
-        "clockSel=2\n"
-        "chipType=1\n"
-      )
-    }
-  );
-  ENTRY(
-    "Sega Genesis (extended channel 3 with Sega CD)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
-        "clockSel=2\n"
-        "chipType=1\n"
-      )
-    }
-  );
-  ENTRY(
-    "Sega Genesis (CSM with Sega CD)", {
-      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
-        "clockSel=2\n"
-        "chipType=1\n"
-      )
-    }
-  );
+    SUB_ENTRY(
+      "Sega Genesis (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (CSM)", {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (DualPCM)", {
+        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (DualPCM, extended channel 3)", {
+        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (with Sega CD)", {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
+          "clockSel=2\n"
+          "chipType=1\n"
+        )
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (extended channel 3 with Sega CD)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
+          "clockSel=2\n"
+          "chipType=1\n"
+        )
+      }
+    );
+    SUB_ENTRY(
+      "Sega Genesis (CSM with Sega CD)", {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 0.5f, 0, ""),
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0,
+          "clockSel=2\n"
+          "chipType=1\n"
+        )
+      }
+    );
   ENTRY(
     "Sega Master System", {
       CH(DIV_SYSTEM_SMS, 1.0f, 0, "")
@@ -128,6 +132,18 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Game Boy", {
       CH(DIV_SYSTEM_GB, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Game Boy Advance (no software mixing)", {
+      CH(DIV_SYSTEM_GB, 1.0f, 0, "chipType=3"),
+      CH(DIV_SYSTEM_GBA_DMA, 0.5f, 0, ""),
+    }
+  );
+  ENTRY(
+    "Game Boy Advance (with MinMod)", {
+      CH(DIV_SYSTEM_GB, 1.0f, 0, "chipType=3"),
+      CH(DIV_SYSTEM_GBA_MINMOD, 0.5f, 0, ""),
     }
   );
   ENTRY(
@@ -264,6 +280,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Casio PV-1000", {
       CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "NDS", {
+      CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
     }
   );
   CATEGORY_END;
@@ -2397,6 +2418,31 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Yamaha YMF276 (OPN2)", {
+      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=2")
+    }
+  );
+  ENTRY(
+    "Yamaha YMF276 (extended channel 3)", {
+      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=2")
+    }
+  );
+  ENTRY(
+    "Yamaha YMF276 (OPN2) CSM", {
+      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=2")
+    }
+  );
+  ENTRY(
+    "Yamaha YMF276 (OPN2) with DualPCM", {
+      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=2")
+    }
+  );
+  ENTRY(
+    "Yamaha YMF276 (extended channel 3) with DualPCM", {
+      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=2")
+    }
+  );
+  ENTRY(
     "Yamaha YM2413 (OPLL)", {
       CH(DIV_SYSTEM_OPLL, 1.0f, 0, "")
     }
@@ -2703,6 +2749,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_C219, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "NDS", {
+      CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Wavetable","chips which use user-specified waveforms to generate sound.");
@@ -2872,6 +2923,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_DAVE, 1.0f, 0, "")
     },
     "tickRate=50"
+  );
+  ENTRY(
+    "NDS", {
+      CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
+    }
   );
   CATEGORY_END;
 

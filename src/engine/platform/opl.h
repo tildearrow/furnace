@@ -126,6 +126,8 @@ class DivPlatformOPL: public DivDispatch {
     fmopl2_t fm_lle2;
     fmopl3_t fm_lle3;
 
+    DivMemoryComposition memCompo;
+
     int octave(int freq);
     int toFreq(int freq);
     double NOTE_ADPCMB(int note);
@@ -174,6 +176,7 @@ class DivPlatformOPL: public DivDispatch {
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

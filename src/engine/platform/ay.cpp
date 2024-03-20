@@ -818,7 +818,6 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
     clockSel=false;
     dacRate=chipClock/dacRateDiv;
   } else {
-    clockSel=flags.getBool("halfClock",false);
     switch (flags.getInt("clockSel",0)) {
       case 1:
         chipClock=COLOR_PAL*2.0/5.0;
@@ -880,6 +879,7 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
   if (ay!=NULL) delete ay;
   switch (flags.getInt("chipType",0)) {
     case 1:
+      clockSel=flags.getBool("halfClock",false);
       ay=new ym2149_device(rate,clockSel);
       sunsoft=false;
       intellivision=false;
@@ -888,16 +888,19 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
       ay=new sunsoft_5b_sound_device(rate);
       sunsoft=true;
       intellivision=false;
+      clockSel=false;
       break;
     case 3:
       ay=new ay8914_device(rate);
       sunsoft=false;
       intellivision=true;
+      clockSel=false;
       break;
     default:
       ay=new ay8910_device(rate);
       sunsoft=false;
       intellivision=false;
+      clockSel=false;
       break;
   }
   ay->device_start();

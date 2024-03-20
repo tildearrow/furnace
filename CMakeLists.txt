@@ -485,6 +485,8 @@ extern/adpcm/yma_codec.c
 extern/adpcm/ymb_codec.c
 extern/adpcm/ymz_codec.c
 
+extern/adpcm-xq/adpcm-lib.c
+
 extern/opn/ym3438.c
 extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
@@ -514,6 +516,8 @@ src/engine/platform/sound/nes/mmc5.c
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
 
+src/engine/platform/sound/nes_nsfplay/5e01_apu.cpp
+src/engine/platform/sound/nes_nsfplay/5e01_dmc.cpp
 src/engine/platform/sound/nes_nsfplay/nes_apu.cpp
 src/engine/platform/sound/nes_nsfplay/nes_dmc.cpp
 src/engine/platform/sound/nes_nsfplay/nes_fds.cpp
@@ -609,6 +613,8 @@ src/engine/platform/sound/c140_c219.c
 
 src/engine/platform/sound/dave/dave.cpp
 
+src/engine/platform/sound/nds.cpp
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -620,6 +626,7 @@ src/engine/fileOps/ftm.cpp
 src/engine/fileOps/fur.cpp
 src/engine/fileOps/mod.cpp
 src/engine/fileOps/s3m.cpp
+src/engine/fileOps/text.cpp
 
 src/engine/blip_buf.c
 src/engine/brrUtils.c
@@ -717,6 +724,9 @@ src/engine/platform/c140.cpp
 src/engine/platform/esfm.cpp
 src/engine/platform/powernoise.cpp
 src/engine/platform/dave.cpp
+src/engine/platform/gbadma.cpp
+src/engine/platform/gbaminmod.cpp
+src/engine/platform/nds.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
@@ -789,6 +799,7 @@ src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
 src/gui/compatFlags.cpp
+src/gui/csPlayer.cpp
 src/gui/cursor.cpp
 src/gui/dataList.cpp
 src/gui/debugWindow.cpp

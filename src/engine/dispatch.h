@@ -251,12 +251,14 @@ enum DivDispatchCmds {
 
   DIV_CMD_POWERNOISE_COUNTER_LOAD, // (which, val)
   DIV_CMD_POWERNOISE_IO_WRITE, // (port, value)
-
+  
   DIV_CMD_DAVE_HIGH_PASS,
   DIV_CMD_DAVE_RING_MOD,
   DIV_CMD_DAVE_SWAP_COUNTERS,
   DIV_CMD_DAVE_LOW_PASS,
   DIV_CMD_DAVE_CLOCK_DIV,
+
+  DIV_CMD_MINMOD_ECHO,
 
   DIV_CMD_MAX
 };
@@ -441,6 +443,8 @@ enum DivMemoryEntryType {
   DIV_MEMORY_WAVE_RAM,
   DIV_MEMORY_WAVE_STATIC,
   DIV_MEMORY_ECHO,
+  DIV_MEMORY_N163_LOAD,
+  DIV_MEMORY_N163_PLAY,
   DIV_MEMORY_BANK0,
   DIV_MEMORY_BANK1,
   DIV_MEMORY_BANK2,
@@ -456,6 +460,25 @@ struct DivMemoryEntry {
   String name;
   int asset;
   size_t begin, end;
+  DivMemoryEntry(DivMemoryEntryType t, String n, int a, size_t b, size_t e):
+    type(t),
+    name(n),
+    asset(a),
+    begin(b),
+    end(e) {}
+  DivMemoryEntry():
+    type(DIV_MEMORY_FREE),
+    name(""),
+    asset(-1),
+    begin(0),
+    end(0) {}
+};
+
+enum DivMemoryWaveView: unsigned char {
+  DIV_MEMORY_WAVE_NONE=0,
+  DIV_MEMORY_WAVE_4BIT, // Namco 163
+  DIV_MEMORY_WAVE_6BIT, // Virtual Boy
+  DIV_MEMORY_WAVE_8BIT_SIGNED, // SCC
 };
 
 struct DivMemoryComposition {
@@ -463,6 +486,14 @@ struct DivMemoryComposition {
   String name;
   size_t capacity;
   size_t used;
+  const unsigned char* memory;
+  DivMemoryWaveView waveformView;
+  DivMemoryComposition():
+    name(""),
+    capacity(0),
+    used(0),
+    memory(NULL),
+    waveformView(DIV_MEMORY_WAVE_NONE) {}
 };
 
 class DivEngine;

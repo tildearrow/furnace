@@ -587,6 +587,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button("Meter")) {
           volMeterOpen=!volMeterOpen;
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Memory")) {
+          memoryOpen=!memoryOpen;
+        }
 
         ImGui::Separator();
 

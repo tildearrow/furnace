@@ -113,6 +113,8 @@ class DivPlatformAmiga: public DivDispatch {
 
   unsigned short regPool[256];
 
+  DivMemoryComposition memCompo;
+
   unsigned char* sampleMem;
   size_t sampleMemLen;
 
@@ -162,6 +164,7 @@ class DivPlatformAmiga: public DivDispatch {
     size_t getSampleMemCapacity(int index=0);
     size_t getSampleMemUsage(int index=0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
 };

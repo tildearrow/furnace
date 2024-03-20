@@ -34,6 +34,11 @@ however, effects are continuous, which means you only need to type it once and t
 - `E2xy`: **Note slide down.** `x` is the speed, while `y` is how many semitones to slide down.
   - ---
 - `EAxx`: **Toggle legato.** while on, new notes instantly change the pitch of the currently playing sound instead of starting it over.
+- `E6xy`: **Quick legato (compatibility).** transposes note by `y` semitones after `x` ticks.
+  - if `x` is between 0 and 7, it transposes up.
+  - if `x` is between 8 and F, it transposes down.
+- `E8xy`: **Quick legato up**. transposes note up by `y` semitones after `x` ticks.
+- `E9xy`: **Quick legato down**. transposes note down by `y` semitones after `x` ticks.
 - `00xy`: **Arpeggio.** this effect produces a rapid cycle between the current note, the note plus `x` semitones and the note plus `y` semitones.
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
   - ---
@@ -70,6 +75,9 @@ not all chips support these effects.
   - `xxx` may be from `000` to `3FF`.
 - `F0xx`: **Set BPM.** changes tick rate according to beats per minute. range is `01` to `FF`.
   - ---
+- `FDxx`: **Set virtual tempo numerator.** sets the virtual tempo's numerator to the effect value.
+- `FExx`: **Set virtual tempo denominator.** sets the virtual tempo's denominator to the effect value.
+  - ---
 - `0Bxx`: **Jump to order.** `x` is the order to play after the current row.
   - this marks the end of a loop with order `x` as the loop start.
 - `0Dxx`: **Jump to next pattern.** skips the current row and remainder of current order. `x` is the row at which to start playing the next pattern.
@@ -80,8 +88,10 @@ not all chips support these effects.
 
 - `0Cxx`: **Retrigger.** repeats current note every `xx` ticks.
   - this effect is not continuous; it must be entered on every row.
-- `ECxx`: **Note cut.** ends current note after `xx` ticks. for FM instruments, it's equivalent to a "key off".
+- `ECxx`: **Note cut.** triggers note off after `xx` ticks. this triggers key off in FM/hardware envelope chips, or cuts note otherwise.
 - `EDxx`: **Note delay.** delays note by `x` ticks.
+- `FCxx`: **Note release.** releases current note after `xx` ticks. this releases macros and triggers key off in FM/hardware envelope chips.
+- `E7xx`: **Macro release.** releases macros after `xx` ticks. this does not trigger key off.
 
 ## other
 

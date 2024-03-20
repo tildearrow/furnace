@@ -99,6 +99,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   unsigned char regPool[128];
+  DivMemoryComposition memCompo;
   double NOTE_SU(int ch, int note);
   void writeControl(int ch);
   void writeControlUpper(int ch);
@@ -129,6 +130,7 @@ class DivPlatformSoundUnit: public DivDispatch {
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

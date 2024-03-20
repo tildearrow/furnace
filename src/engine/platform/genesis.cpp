@@ -143,7 +143,7 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
       if (!writes.empty()) {
         QueuedWrite& w=writes.front();
         if (w.addrOrVal) {
-          //logV("%.3x = %.2x",w.addr,w.val);
+          //logV("%.3x=%.2x",w.addr,w.val);
           OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
           regPool[w.addr&0x1ff]=w.val;
           writes.pop_front();
@@ -289,8 +289,279 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
   }
 }
 
+const unsigned char chanMap276[6]={
+  1, 5, 3, 0, 4, 2
+};
+
+// thanks LTVA
+void DivPlatformGenesis::acquire276OscSub() {
+  if (fm_276.fsm_cnt2[1]==0 && llePrevCycle!=0) {
+    lleCycle=0;
+  }
+
+  llePrevCycle=fm_276.fsm_cnt2[1];
+
+  if (fm_276.flags==fmopn2_flags_ym3438) {
+    lleOscData[lleCycle/(24*2)]+=fm_276.out_l+fm_276.out_r;
+
+    lleCycle++;
+
+    if (lleCycle==(144*2)) {
+      lleCycle=0;
+
+      for (int i=0; i<6; i++) {
+        if ((softPCM && ((chanMap276[i]!=5) || !chan[5].dacMode)) || (!softPCM)) {
+          oscBuf[chanMap276[i]]->data[oscBuf[chanMap276[i]]->needle++]=lleOscData[i];
+        }
+        lleOscData[i]=0;
+      }
+
+      if (softPCM && chan[5].dacMode) {
+        oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
+        oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
+      } else {
+        oscBuf[6]->data[oscBuf[6]->needle++]=0;
+      }
+    }
+  } else {
+    for (int i=0; i<6; i++) {
+      if (lleCycle==((7+i)*12)) {
+        oscBuf[i]->data[oscBuf[i]->needle]=(fm_276.osc_out>>1)*8;
+      }
+    }
+
+    lleCycle++;
+
+    if (lleCycle==(144*2)) {
+      lleCycle=0;
+
+      for (int i=0; i<6; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle]>>=1;
+      }
+
+      if (softPCM && chan[5].dacMode) {
+        oscBuf[5]->data[oscBuf[5]->needle]=chan[5].dacOutput<<6;
+        oscBuf[6]->data[oscBuf[6]->needle]=chan[6].dacOutput<<6;
+      } else {
+        oscBuf[6]->data[oscBuf[6]->needle]=0;
+      }
+
+      for (int i=0; i<7; i++) {
+        oscBuf[i]->needle++;
+      }
+    }
+  }
+}
+
+// thanks LTVA
 void DivPlatformGenesis::acquire_nuked276(short** buf, size_t len) {
-  // TODO
+  for (size_t h=0; h<len; h++) {
+    processDAC(rate);
+
+    int sum_l=0;
+    int sum_r=0;
+
+    int sample_l=0;
+    int sample_r=0;
+
+    bool was_reg_write=false;
+
+    //lleCycle=0;
+
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      if (w.addrOrVal) {
+        //logV("%.3x=%.2x",w.addr,w.val);
+        //OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
+        was_reg_write=true;
+
+        fm_276.input.address=w.addr<0x100?0:2;
+        fm_276.input.data=w.addr&0xff;
+        fm_276.input.wr=1;
+        FMOPN2_Clock(&fm_276,0);
+        sum_l+=fm_276.out_l;
+        sum_r+=fm_276.out_r;
+
+        acquire276OscSub();
+
+        fm_276.input.wr=0;
+        FMOPN2_Clock(&fm_276,1);
+        sum_l+=fm_276.out_l;
+        sum_r+=fm_276.out_r;
+
+        acquire276OscSub();
+
+        if (chipType==2) {
+          if (!o_bco && fm_276.o_bco) {
+            dacShifter=(dacShifter<<1)|fm_276.o_so;
+
+            if (o_lro!=fm_276.o_lro) {
+              if (o_lro)
+                sample_l=dacShifter;
+              else
+                sample_r=dacShifter;
+            }
+
+            o_lro=fm_276.o_lro;
+          }
+          o_bco=fm_276.o_bco;
+        }
+
+        for (int c=0; c<17; c++) {
+          FMOPN2_Clock(&fm_276,0);
+          sum_l+=fm_276.out_l;
+          sum_r+=fm_276.out_r;
+
+          acquire276OscSub();
+
+          FMOPN2_Clock(&fm_276,1);
+          sum_l+=fm_276.out_l;
+          sum_r+=fm_276.out_r;
+
+          acquire276OscSub();
+
+          if (chipType==2) {
+            if (!o_bco && fm_276.o_bco) {
+              dacShifter=(dacShifter<<1)|fm_276.o_so;
+
+              if (o_lro!=fm_276.o_lro) {
+                if (o_lro)
+                  sample_l=dacShifter;
+                else
+                  sample_r=dacShifter;
+              }
+
+              o_lro=fm_276.o_lro;
+            }
+            o_bco=fm_276.o_bco;
+          }
+        }
+
+        fm_276.input.address=w.addr<0x100?1:3;
+        fm_276.input.data=w.val;
+        fm_276.input.wr=1;
+        FMOPN2_Clock(&fm_276,0);
+        sum_l+=fm_276.out_l;
+        sum_r+=fm_276.out_r;
+        fm_276.input.wr=0;
+
+        acquire276OscSub();
+
+        FMOPN2_Clock(&fm_276,1);
+        sum_l+=fm_276.out_l;
+        sum_r+=fm_276.out_r;
+
+        acquire276OscSub();
+
+        if (chipType==2) {
+          if (!o_bco && fm_276.o_bco) {
+            dacShifter=(dacShifter<<1)|fm_276.o_so;
+
+            if (o_lro!=fm_276.o_lro) {
+              if (o_lro)
+                sample_l=dacShifter;
+              else
+                sample_r=dacShifter;
+            }
+
+            o_lro=fm_276.o_lro;
+          }
+          o_bco=fm_276.o_bco;
+        }
+
+        for (int c=0; c<83; c++) {
+          FMOPN2_Clock(&fm_276,0);
+          sum_l+=fm_276.out_l;
+          sum_r+=fm_276.out_r;
+
+          acquire276OscSub();
+
+          FMOPN2_Clock(&fm_276,1);
+          sum_l+=fm_276.out_l;
+          sum_r+=fm_276.out_r;
+
+          acquire276OscSub();
+
+          if (chipType==2) {
+            if (!o_bco && fm_276.o_bco) {
+              dacShifter=(dacShifter<<1)|fm_276.o_so;
+
+              if (o_lro!=fm_276.o_lro) {
+                if (o_lro) {
+                  sample_l=dacShifter;
+                } else {
+                  sample_r=dacShifter;
+                }
+              }
+
+              o_lro=fm_276.o_lro;
+            }
+            o_bco=fm_276.o_bco;
+          }
+        }
+
+        regPool[w.addr&0x1ff]=w.val;
+        writes.pop_front();
+
+        if (dacWrite>=0) {
+          if (!canWriteDAC) {
+            canWriteDAC=true;
+          } else {
+            urgentWrite(0x2a,dacWrite);
+            dacWrite=-1;
+            canWriteDAC=writes.empty();
+          }
+        }
+      } else {
+        w.addrOrVal=true;
+      }
+    } else {
+      canWriteDAC=true;
+      if (dacWrite>=0) {
+        urgentWrite(0x2a,dacWrite);
+        dacWrite=-1;
+      }
+      flushFirst=false;
+    }
+
+    for (int j=0; j<(was_reg_write?(144-83-19):144); j++) {
+      FMOPN2_Clock(&fm_276,0);
+      sum_l+=fm_276.out_l;
+      sum_r+=fm_276.out_r;
+
+      acquire276OscSub();
+
+      FMOPN2_Clock(&fm_276,1);
+      sum_l+=fm_276.out_l;
+      sum_r+=fm_276.out_r;
+
+      acquire276OscSub();
+
+      if (chipType==2) {
+        if (!o_bco && fm_276.o_bco) {
+          dacShifter=(dacShifter<<1)|fm_276.o_so;
+
+          if (o_lro!=fm_276.o_lro) {
+            if (o_lro)
+              sample_l=dacShifter;
+            else
+              sample_r=dacShifter;
+          }
+
+          o_lro=fm_276.o_lro;
+        }
+        o_bco=fm_276.o_bco;
+      }
+    }
+
+    if (chipType==2) {
+      buf[0][h]=sample_l;
+      buf[1][h]=sample_r;
+    } else {
+      buf[0][h]=(sum_l*3)>>2;
+      buf[1][h]=(sum_r*3)>>2;
+    }
+  }
 }
 
 void DivPlatformGenesis::acquire(short** buf, size_t len) {
@@ -1333,7 +1604,48 @@ void DivPlatformGenesis::reset() {
   writes.clear();
   memset(regPool,0,512);
   if (useYMFM==2) {
+    dacShifter=0;
+    o_bco=0;
+    o_lro=0;
+
+    lleCycle=0;
+    llePrevCycle=0;
+
+    for (int i=0; i<6; i++) {
+      lleOscData[i]=0;
+    }
+
     memset(&fm_276,0,sizeof(fmopn2_t));
+
+    fm_276.input.cs=1;
+    fm_276.input.rd=0;
+    fm_276.input.wr=0;
+    fm_276.input.address=0;
+    fm_276.input.data=0;
+
+    if (chipType==2) {
+      fm_276.flags=0;
+    } else {
+      fm_276.flags=fmopn2_flags_ym3438;
+    }
+
+    fm_276.input.ic=0;
+    for (int i=0; i<288; i++) {
+      FMOPN2_Clock(&fm_276,0);
+      FMOPN2_Clock(&fm_276,1);
+    }
+
+    fm_276.input.ic=1;
+    for (int i=0; i<288*2; i++) {
+      FMOPN2_Clock(&fm_276,0);
+      FMOPN2_Clock(&fm_276,1);
+    }
+
+    fm_276.input.ic=0;
+    for (int i=0; i<288*2; i++) {
+      FMOPN2_Clock(&fm_276,0);
+      FMOPN2_Clock(&fm_276,1);
+    }
   } else if (useYMFM==1) {
     fm_ymfm->reset();
   }
@@ -1473,6 +1785,8 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
     } else {
       fm_ymfm=new ymfm::ym3438(iface);
     }
+    rate=chipClock/144;
+  } else if (useYMFM==2) {
     rate=chipClock/144;
   } else {
     rate=chipClock/36;

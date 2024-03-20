@@ -66,6 +66,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   iremga20_device ga20;
+  DivMemoryComposition memCompo;
   unsigned char regPool[32];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -97,6 +98,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     virtual size_t getSampleMemCapacity(int index = 0) override;
     virtual size_t getSampleMemUsage(int index = 0) override;
     virtual bool isSampleLoaded(int index, int sample) override;
+    virtual const DivMemoryComposition* getMemCompo(int index) override;
     virtual void renderSamples(int chipID) override;
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;

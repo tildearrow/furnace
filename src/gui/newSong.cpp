@@ -91,7 +91,7 @@ void FurnaceGUI::drawNewSong() {
         ImGui::TableNextColumn();
         int index=0;
         for (FurnaceGUISysCategory& i: sysCategories) {
-          if (ImGui::Selectable(i.name,newSongCategory==index,ImGuiSelectableFlags_DontClosePopups)) { \
+          if (ImGui::Selectable(i.name,newSongCategory==index,ImGuiSelectableFlags_DontClosePopups)) {
             newSongCategory=index;
           }
           if (ImGui::IsItemHovered()) {
