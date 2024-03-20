@@ -25,10 +25,12 @@
 void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted) {
   for (FurnaceGUISysDef& i: category) {
     bool treeNode=false;
+    bool isHovered=false;
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     if (!i.subDefs.empty()) {
       treeNode=ImGui::TreeNode("##TreeShit");
+      if (ImGui::IsItemHovered()) isHovered=true;
       ImGui::SameLine();
     }
     if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
@@ -36,11 +38,12 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
       nextDescName=i.name;
       accepted=true;
     }
+    if (ImGui::IsItemHovered()) isHovered=true;
     if (treeNode) {
       drawSysDefs(i.subDefs,accepted);
       ImGui::TreePop();
     }
-    if (ImGui::IsItemHovered()) {
+    if (isHovered) {
       if (ImGui::BeginTooltip()) {
         std::map<DivSystem,int> chipCounts;
         std::vector<DivSystem> chips;
