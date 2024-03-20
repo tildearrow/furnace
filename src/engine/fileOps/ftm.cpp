@@ -931,6 +931,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                 dpcmNotes = notes;
               }
 
+              // should dpcmNotes be 96 always?
               for (int j = 0; j < dpcmNotes; j++) {
                 int note = j;
                 if (blockVersion >= 7) {
@@ -1504,7 +1505,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             logV("tempo %d", tempo);
 
             if (tempo == 0) {
-              s->virtualTempoN = 150.0;
+              s->virtualTempoN = s->virtualTempoD;
             } else {
               s->virtualTempoN = tempo;
             }
