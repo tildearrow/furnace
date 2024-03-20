@@ -2428,6 +2428,8 @@ void FurnaceGUI::initSystemPresets() {
     );
   CATEGORY_END;
 
+  CATEGORY_BEGIN("User","system presets that you have saved.");
+  CATEGORY_END;
 
   CATEGORY_BEGIN("FM","chips which use frequency modulation (FM) to generate sound.\nsome of these also pack more (like square and sample channels).");
   ENTRY(

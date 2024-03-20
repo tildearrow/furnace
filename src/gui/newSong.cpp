@@ -169,6 +169,7 @@ void FurnaceGUI::drawNewSong() {
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s",i.description);
           }
+          if (strcmp(i.name,"User")==0) ImGui::Separator();
           index++;
         }
       }
@@ -177,9 +178,19 @@ void FurnaceGUI::drawNewSong() {
       ImGui::TableNextColumn();
       if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
         std::vector<FurnaceGUISysDef>& category=(newSongQuery.empty())?(sysCategories[newSongCategory].systems):(newSongSearchResults);
-        sysDefStack.push_back(newSongQuery.empty()?newSongCategory:-1);
-        drawSysDefs(category,accepted,sysDefStack);
-        sysDefStack.erase(sysDefStack.end()-1);
+        if (category.empty()) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          if (newSongQuery.empty()) {
+            ImGui::Text("no systems here yet!");
+          } else {
+            ImGui::Text("no results");
+          }
+        } else {
+          sysDefStack.push_back(newSongQuery.empty()?newSongCategory:-1);
+          drawSysDefs(category,accepted,sysDefStack);
+          sysDefStack.erase(sysDefStack.end()-1);
+        }
         ImGui::EndTable();
       }
 
