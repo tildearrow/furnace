@@ -2717,8 +2717,8 @@ class FurnaceGUI {
   void initTutorial();
   void activateTutorial(FurnaceGUITutorials which);
 
-  bool loadUserPresets();
-  bool saveUserPresets();
+  bool loadUserPresets(bool redundancy=true);
+  bool saveUserPresets(bool redundancy=true);
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false, bool bit30=false);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);

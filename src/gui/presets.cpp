@@ -3121,3 +3121,12 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceG
     definition+=extra;
   }
 }
+
+// functions for loading/saving user presets
+bool loadUserPresets(bool redundancy) {
+  return true;
+}
+
+bool saveUserPresets(bool redundancy) {
+  return true;
+}
