@@ -233,6 +233,17 @@ const char* fxColorsNames[]={
   "Miscellaneous"
 };
 
+const char* chanNames[]={
+  "FM",
+  "Pulse",
+  "Noise",
+  "Wavetable",
+  "Sample",
+  "Square",
+  "Channel", // if neither
+  "Channels"
+};
+
 const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_MISC, // 00
   GUI_COLOR_PATTERN_EFFECT_PITCH, // 01
