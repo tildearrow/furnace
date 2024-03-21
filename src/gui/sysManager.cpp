@@ -24,12 +24,15 @@
 #include <imgui.h>
 
 void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
-  for (int i=0; i<whichDef->channels; i++) {
+  for (int i=0; i<whichDef->channels-1; i++) {
     ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]));
     ImGui::SmallButton("##ChanTypeColorThing");
     ImGui::SameLine();
     ImGui::PopStyleColor();
   }
+  ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[whichDef->chanTypes[whichDef->channels-1]+GUI_COLOR_CHANNEL_FM]));
+  ImGui::SmallButton("##ChanTypeColorThing");
+  ImGui::PopStyleColor(); // so we don't get an extra sameline
 }
 
 void FurnaceGUI::drawSysManager() {

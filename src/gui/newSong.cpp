@@ -80,6 +80,7 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
           ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
           ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
           ImGui::Text("%s",sysDef->description);
+          if (settings.sysTooltipChannelColors) drawSystemChannelInfo(sysDef);
           ImGui::PopTextWrapPos();
           if (chipIndex+1<chips.size()) {
             ImGui::Separator();
