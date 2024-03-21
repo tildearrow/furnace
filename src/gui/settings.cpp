@@ -2754,6 +2754,18 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool chipManagerTooltipB=settings.chipManagerTooltip;
+        if (ImGui::Checkbox("Show system tooltips in the chip manager",&chipManagerTooltipB)) {
+          settings.chipManagerTooltip=chipManagerTooltipB;
+          settingsChanged=true;
+        }
+
+        bool sysTooltipChannelColorsB=settings.sysTooltipChannelColors;
+        if (ImGui::Checkbox("Show channel count with colors in the system info tooltips",&sysTooltipChannelColorsB)) { // poor wording
+          settings.sysTooltipChannelColors=sysTooltipChannelColorsB;
+          settingsChanged=true;
+        }
+
         // SUBSECTION ORDERS
         CONFIG_SUBSECTION("Orders");
         // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
@@ -4119,6 +4131,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.macroLayout=conf.getInt("macroLayout",0);
     settings.controlLayout=conf.getInt("controlLayout",3);
     settings.classicChipOptions=conf.getInt("classicChipOptions",0);
+    settings.chipManagerTooltip=conf.getInt("chipManagerTooltip",0);
+    settings.sysTooltipChannelColors=conf.getInt("sysTooltipChannelColors",0);
   }
 
   if (groups&GUI_SETTINGS_COLOR) {
@@ -4337,6 +4351,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
   clampSetting(settings.cursorWheelStep,0,1);
+  clampSetting(settings.chipManagerTooltip,0,1);
+  clampSetting(settings.sysTooltipChannelColors,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4594,6 +4610,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("macroLayout",settings.macroLayout);
     conf.set("controlLayout",settings.controlLayout);
     conf.set("classicChipOptions",settings.classicChipOptions);
+    conf.set("chipManagerTooltip",settings.chipManagerTooltip);
+    conf.set("sysTooltipChannelColors",settings.sysTooltipChannelColors);
   }
 
   // color

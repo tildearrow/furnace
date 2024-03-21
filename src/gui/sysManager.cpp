@@ -97,14 +97,14 @@ void FurnaceGUI::drawSysManager() {
           isNotCollapsed=false;
           ImGui::TreePop();
         }
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_Stationary) && isNotCollapsed) {
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_Stationary) && isNotCollapsed && settings.chipManagerTooltip) {
           if (e->song.system[i]!=DIV_SYSTEM_NULL) {
             const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
             if (ImGui::BeginTooltip()) { // why not SetTooltip()? so i can wrap the text
               ImGui::PushTextWrapPos(ImGui::GetCursorPos().x+420); // arbitrary constant
               ImGui::TextWrapped("%s",sysDef->description);
               ImGui::PopTextWrapPos();
-              drawSystemChannelInfo(sysDef);
+              if (settings.sysTooltipChannelColors) drawSystemChannelInfo(sysDef);
               ImGui::EndTooltip();
             }
           }
