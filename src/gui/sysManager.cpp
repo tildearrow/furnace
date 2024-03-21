@@ -23,6 +23,15 @@
 #include <fmt/printf.h>
 #include <imgui.h>
 
+void FurnaceGUI::drawSystemChannelInfo(DivSystem which) {
+  for (int i=0; i<e->getSystemDef(which)->channels; i++) {
+    ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[e->getSystemDef(which)->chanTypes[i]+GUI_COLOR_CHANNEL_FM]));
+    ImGui::SmallButton("##ChanTypeColorThing");
+    ImGui::SameLine();
+    ImGui::PopStyleColor();
+  }
+}
+
 void FurnaceGUI::drawSysManager() {
   if (nextWindow==GUI_WINDOW_SYS_MANAGER) {
     sysManagerOpen=true;
@@ -95,14 +104,7 @@ void FurnaceGUI::drawSysManager() {
               ImGui::PushTextWrapPos(ImGui::GetCursorPos().x+420); // arbitrary constant
               ImGui::TextWrapped("%s",sysDef->description);
               ImGui::PopTextWrapPos();
-              // ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[GUI_COLOR_CHANNEL_PULSE]));
-              // ImGui::SmallButton("##");ImGui::SameLine();
-              // ImGui::SmallButton("##");ImGui::SameLine();
-              // ImGui::SmallButton("##");ImGui::SameLine();
-              // ImGui::PopStyleColor();
-              // ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[GUI_COLOR_CHANNEL_NOISE]));
-              // ImGui::SmallButton("##");
-              // ImGui::PopStyleColor();
+              drawSystemChannelInfo(e->song.system[i]);
               ImGui::EndTooltip();
             }
           }
