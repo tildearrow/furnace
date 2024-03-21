@@ -2608,7 +2608,7 @@ class FurnaceGUI {
   void drawClock();
   void drawTutorial();
   void drawXYOsc();
-  void drawSystemChannelInfo(DivSystem which);
+  void drawSystemChannelInfo(const DivSysDef* whichDef);
 
   void parseKeybinds();
   void promptKey(int which);

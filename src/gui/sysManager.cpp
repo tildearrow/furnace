@@ -23,9 +23,9 @@
 #include <fmt/printf.h>
 #include <imgui.h>
 
-void FurnaceGUI::drawSystemChannelInfo(DivSystem which) {
-  for (int i=0; i<e->getSystemDef(which)->channels; i++) {
-    ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[e->getSystemDef(which)->chanTypes[i]+GUI_COLOR_CHANNEL_FM]));
+void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
+  for (int i=0; i<whichDef->channels; i++) {
+    ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]));
     ImGui::SmallButton("##ChanTypeColorThing");
     ImGui::SameLine();
     ImGui::PopStyleColor();
@@ -104,7 +104,7 @@ void FurnaceGUI::drawSysManager() {
               ImGui::PushTextWrapPos(ImGui::GetCursorPos().x+420); // arbitrary constant
               ImGui::TextWrapped("%s",sysDef->description);
               ImGui::PopTextWrapPos();
-              drawSystemChannelInfo(e->song.system[i]);
+              drawSystemChannelInfo(sysDef);
               ImGui::EndTooltip();
             }
           }
