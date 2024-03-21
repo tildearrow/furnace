@@ -95,6 +95,14 @@ void FurnaceGUI::drawSysManager() {
               ImGui::PushTextWrapPos(ImGui::GetCursorPos().x+420); // arbitrary constant
               ImGui::TextWrapped("%s",sysDef->description);
               ImGui::PopTextWrapPos();
+              // ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[GUI_COLOR_CHANNEL_PULSE]));
+              // ImGui::SmallButton("##");ImGui::SameLine();
+              // ImGui::SmallButton("##");ImGui::SameLine();
+              // ImGui::SmallButton("##");ImGui::SameLine();
+              // ImGui::PopStyleColor();
+              // ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[GUI_COLOR_CHANNEL_NOISE]));
+              // ImGui::SmallButton("##");
+              // ImGui::PopStyleColor();
               ImGui::EndTooltip();
             }
           }
