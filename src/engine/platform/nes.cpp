@@ -608,6 +608,8 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].duty=c.value;
       if (c.chan==3) { // noise
         chan[c.chan].freqChanged=true;
+      } else if (c.chan==2 && isE) {
+        rWrite(0x4000+9,chan[c.chan].duty);
       } else if (c.chan<2) {
         rWrite(0x4000+c.chan*4,(chan[c.chan].active?((chan[c.chan].envMode<<4)|chan[c.chan].outVol):0x30)|((chan[c.chan].duty&3)<<6));
       }
