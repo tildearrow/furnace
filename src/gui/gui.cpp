@@ -635,6 +635,73 @@ void FurnaceGUI::updateWindowTitle() {
   }
 }
 
+void FurnaceGUI::autoDetectSystemIter(std::vector<FurnaceGUISysDef>& category, bool& isMatch, std::map<DivSystem,int>& defCountMap, std::map<DivSystem,DivConfig>& defConfMap, std::map<DivSystem,int>& sysCountMap, std::map<DivSystem,DivConfig>& sysConfMap) {
+  for (FurnaceGUISysDef& j: category) {
+    if (!j.orig.empty()) {
+      defCountMap.clear();
+      defConfMap.clear();
+      for (FurnaceGUISysDefChip& k: j.orig) {
+        auto it=defCountMap.find(k.sys);
+        if (it==defCountMap.cend()) {
+          defCountMap[k.sys]=1;
+        } else {
+          it->second++;
+        }
+        DivConfig dc;
+        dc.loadFromMemory(k.flags);
+        defConfMap[k.sys]=dc;
+      }
+      if (defCountMap.size()==sysCountMap.size()) {
+        isMatch=true;
+        /*logV("trying on defCountMap: %s",j.name);
+        for (std::pair<DivSystem,int> k: defCountMap) {
+          logV("- %s: %d",e->getSystemName(k.first),k.second);
+        }*/
+        for (std::pair<DivSystem,int> k: defCountMap) {
+          auto countI=sysCountMap.find(k.first);
+          if (countI==sysCountMap.cend()) {
+            isMatch=false;
+            break;
+          } else if (countI->second!=k.second) {
+            isMatch=false;
+            break;
+          }
+
+          auto confI=sysConfMap.find(k.first);
+          if (confI==sysConfMap.cend()) {
+            isMatch=false;
+            break;
+          }
+          DivConfig& sysDC=confI->second;
+          auto defConfI=defConfMap.find(k.first);
+          if (defConfI==defConfMap.cend()) {
+            isMatch=false;
+            break;
+          }
+          for (std::pair<String,String> l: defConfI->second.configMap()) {
+            if (!sysDC.has(l.first)) {
+              isMatch=false;
+              break;
+            }
+            if (sysDC.getString(l.first,"")!=l.second) {
+              isMatch=false;
+              break;
+            }
+          }
+          if (!isMatch) break;
+        }
+        if (isMatch) {
+          logV("match found!");
+          e->song.systemName=j.name;
+          break;
+        }
+      }
+    }
+    if (!j.subDefs.empty()) autoDetectSystemIter(j.subDefs,isMatch,defCountMap,defConfMap,sysCountMap,sysConfMap);
+    if (isMatch) break;
+  }
+}
+
 void FurnaceGUI::autoDetectSystem() {
   std::map<DivSystem,int> sysCountMap;
   std::map<DivSystem,DivConfig> sysConfMap;
@@ -657,65 +724,7 @@ void FurnaceGUI::autoDetectSystem() {
   std::map<DivSystem,int> defCountMap;
   std::map<DivSystem,DivConfig> defConfMap;
   for (FurnaceGUISysCategory& i: sysCategories) {
-    for (FurnaceGUISysDef& j: i.systems) {
-      defCountMap.clear();
-      defConfMap.clear();
-      for (FurnaceGUISysDefChip& k: j.orig) {
-        auto it=defCountMap.find(k.sys);
-        if (it==defCountMap.cend()) {
-          defCountMap[k.sys]=1;
-        } else {
-          it->second++;
-        }
-        DivConfig dc;
-        dc.loadFromMemory(k.flags);
-        defConfMap[k.sys]=dc;
-      }
-      if (defCountMap.size()!=sysCountMap.size()) continue;
-      isMatch=true;
-      /*logV("trying on defCountMap: %s",j.name);
-      for (std::pair<DivSystem,int> k: defCountMap) {
-        logV("- %s: %d",e->getSystemName(k.first),k.second);
-      }*/
-      for (std::pair<DivSystem,int> k: defCountMap) {
-        auto countI=sysCountMap.find(k.first);
-        if (countI==sysCountMap.cend()) {
-          isMatch=false;
-          break;
-        } else if (countI->second!=k.second) {
-          isMatch=false;
-          break;
-        }
-
-        auto confI=sysConfMap.find(k.first);
-        if (confI==sysConfMap.cend()) {
-          isMatch=false;
-          break;
-        }
-        DivConfig& sysDC=confI->second;
-        auto defConfI=defConfMap.find(k.first);
-        if (defConfI==defConfMap.cend()) {
-          isMatch=false;
-          break;
-        }
-        for (std::pair<String,String> l: defConfI->second.configMap()) {
-          if (!sysDC.has(l.first)) {
-            isMatch=false;
-            break;
-          }
-          if (sysDC.getString(l.first,"")!=l.second) {
-            isMatch=false;
-            break;
-          }
-        }
-        if (!isMatch) break;
-      }
-      if (isMatch) {
-        logV("match found!");
-        e->song.systemName=j.name;
-        break;
-      }
-    }
+    autoDetectSystemIter(i.systems,isMatch,defCountMap,defConfMap,sysCountMap,sysConfMap);
     if (isMatch) break;
   }
 

@@ -1468,7 +1468,7 @@ void DivSample::render(unsigned int formatMask) {
     delta[0]=0;
     delta[1]=0;
 
-    void* codec=adpcm_create_context(1,4,NOISE_SHAPING_OFF,delta);
+    void* codec=adpcm_create_context(1,1,NOISE_SHAPING_OFF,delta);
     if (codec==NULL) {
       logE("oh no IMA encoder could not be created!");
     } else {

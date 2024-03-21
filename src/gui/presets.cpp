@@ -40,6 +40,8 @@
   cat.systems.push_back(FurnaceGUISysDef(__VA_ARGS__));
 #define SUB_ENTRY(...) \
   cat.systems[cat.systems.size()-1].subDefs.push_back(FurnaceGUISysDef(__VA_ARGS__));
+#define SUB_SUB_ENTRY(...) \
+  cat.systems[cat.systems.size()-1].subDefs[cat.systems[cat.systems.size()-1].subDefs.size()-1].subDefs.push_back(FurnaceGUISysDef(__VA_ARGS__));
 
 void FurnaceGUI::initSystemPresets() {
   sysCategories.clear();
@@ -112,18 +114,18 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SMS, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Sega Master System (with FM expansion)", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_OPLL, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega Master System (with FM expansion in drums mode)", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Sega Master System (with FM expansion)", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_OPLL, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega Master System (with FM expansion in drums mode)", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Sega Game Gear", {
       CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=3")
@@ -169,42 +171,42 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_NES, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Famicom with Konami VRC6", {
-      CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_VRC6, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Famicom with Konami VRC7", {
-      CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_VRC7, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Famicom with MMC5", {
-      CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_MMC5, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Famicom with Sunsoft 5B", {
-      CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=2")
-    }
-  );
-  ENTRY(
-    "Famicom with Namco 163", {
-      CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_N163, 1.0f, 0, "channels=7")
-    }
-  );
-  ENTRY(
-    "Famicom Disk System", {
-      CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_FDS, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Famicom with Konami VRC6", {
+        CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_VRC6, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Famicom with Konami VRC7", {
+        CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_VRC7, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Famicom with MMC5", {
+        CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MMC5, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Famicom with Sunsoft 5B", {
+        CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=2")
+      }
+    );
+    SUB_ENTRY(
+      "Famicom with Namco 163", {
+        CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_N163, 1.0f, 0, "channels=7")
+      }
+    );
+    SUB_ENTRY(
+      "Famicom Disk System", {
+        CH(DIV_SYSTEM_NES, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_FDS, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "SNES", {
       CH(DIV_SYSTEM_SNES, 1.0f, 0, "")
@@ -225,11 +227,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "clockSel=1")
     }
   );
-  ENTRY(
-    "Neo Geo AES (extended channel 2)", {
-      CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "clockSel=1")
-    }
-  );
+    SUB_ENTRY(
+      "Neo Geo AES (extended channel 2)", {
+        CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "clockSel=1")
+      }
+    );
   ENTRY(
     "Atari 2600/7800", {
       CH(DIV_SYSTEM_TIA, 1.0f, 0, "")
@@ -283,7 +285,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "NDS", {
+    "Nintendo DS", {
       CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
     }
   );
@@ -308,73 +310,76 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "Commodore 64 (6581 SID)", {
-      CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1")
-    },
-    "tickRate=50.1245421"
+    "Commodore 64 (SID)", {}
   );
-  ENTRY(
-    "Commodore 64 (8580 SID)", {
-      CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1")
-    },
-    "tickRate=50.1245421"
-  );
-  ENTRY(
-    "Commodore 64 (6581 SID + Sound Expander)", {
-      CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "")
-    },
-    "tickRate=50.1245421"
-  );
-  ENTRY(
-    "Commodore 64 (6581 SID + Sound Expander in drums mode)", {
-      CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "")
-    },
-    "tickRate=50.1245421"
-  );
-  ENTRY(
-    "Commodore 64 (8580 SID + Sound Expander)", {
-      CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "")
-    },
-    "tickRate=50.1245421"
-  );
-  ENTRY(
-    "Commodore 64 (8580 SID + Sound Expander in drums mode)", {
-      CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "")
-    },
-    "tickRate=50.1245421"
-  );
-  ENTRY(
-    "Commodore 64 (6581 SID + FM-YAM)", {
-      CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "")
-    },
-    "tickRate=50.1245421"
-  );
-  ENTRY(
-    "Commodore 64 (6581 SID + FM-YAM in drums mode)", {
-      CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "")
-    },
-    "tickRate=50.1245421"
-  );
-  ENTRY(
-    "Commodore 64 (8580 SID + FM-YAM)", {
-      CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "")
-    },
-    "tickRate=50.1245421"
-  );
-  ENTRY(
-    "Commodore 64 (8580 SID + FM-YAM in drums mode)", {
-      CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "")
-    },
-    "tickRate=50.1245421"
-  );
+    SUB_ENTRY(
+      "Commodore 64 (6581 SID)", {
+        CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1")
+      },
+      "tickRate=50.1245421"
+    );
+      SUB_SUB_ENTRY(
+        "Commodore 64 (6581 SID + Sound Expander)", {
+          CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_OPL, 1.0f, 0, "")
+        },
+        "tickRate=50.1245421"
+      );
+      SUB_SUB_ENTRY(
+        "Commodore 64 (6581 SID + Sound Expander in drums mode)", {
+          CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "")
+        },
+        "tickRate=50.1245421"
+      );
+      SUB_SUB_ENTRY(
+        "Commodore 64 (6581 SID + FM-YAM)", {
+          CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_OPL2, 1.0f, 0, "")
+        },
+        "tickRate=50.1245421"
+      );
+      SUB_SUB_ENTRY(
+        "Commodore 64 (6581 SID + FM-YAM in drums mode)", {
+          CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "")
+        },
+        "tickRate=50.1245421"
+      );
+    SUB_ENTRY(
+      "Commodore 64 (8580 SID)", {
+        CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1")
+      },
+      "tickRate=50.1245421"
+    );
+      SUB_SUB_ENTRY(
+        "Commodore 64 (8580 SID + Sound Expander)", {
+          CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_OPL, 1.0f, 0, "")
+        },
+        "tickRate=50.1245421"
+      );
+      SUB_SUB_ENTRY(
+        "Commodore 64 (8580 SID + Sound Expander in drums mode)", {
+          CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "")
+        },
+        "tickRate=50.1245421"
+      );
+      SUB_SUB_ENTRY(
+        "Commodore 64 (8580 SID + FM-YAM)", {
+          CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_OPL2, 1.0f, 0, "")
+        },
+        "tickRate=50.1245421"
+      );
+      SUB_SUB_ENTRY(
+        "Commodore 64 (8580 SID + FM-YAM in drums mode)", {
+          CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "")
+        },
+        "tickRate=50.1245421"
+      );
   ENTRY(
     "Amiga", {
       CH(DIV_SYSTEM_AMIGA, 1.0f, 0, "clockSel=1")
@@ -386,546 +391,555 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=0\nchipType=1")
     }
   );
-  ENTRY(
-    "MSX + SFG-01", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + MSX-AUDIO", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_Y8950, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + MSX-AUDIO (drums mode)", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + MSX-MUSIC", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_OPLL, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + MSX-MUSIC (drums mode)", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + Darky", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_AY8930, 1.0f, 0,
-        "clockSel=11\n"
-        "halfClock=true\n"
-      ), // 3.58MHz
-      CH(DIV_SYSTEM_AY8930, 1.0f, 0,
-        "clockSel=11\n"
-        "halfClock=true\n"
-      ) // 3.58MHz or 3.6MHz selectable via register
-      // per-channel mixer (soft panning, post processing) isn't emulated at all
-    }
-  );
-    ENTRY(
-    "MSX + Playsoniq", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, ""), // Sega VDP
-      CH(DIV_SYSTEM_C64_8580, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SCC_PLUS, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + SCC", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_SCC, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + SCC+", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_SCC_PLUS, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + Neotron", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + Neotron (extended channel 2)", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + Neotron (with YM2610B)", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + Neotron (with YM2610B; extended channel 3)", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_YM2610B_EXT, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "MSX + SIMPL", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=55930\n"
-        "outDepth=7\n"
-      ) // variable rate, Mono DAC
-    }
-  );
-  ENTRY(
-    "NEC PC-88 (with PC-8801-10)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15"), // external
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15") // ""
-    }
-  );
-  ENTRY(
-    "NEC PC-88 (with PC-8801-11)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-88 (with PC-8801-11; extended channel 3)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-88 (with PC-8801-23)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-88 (with PC-8801-23; extended channel 3)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-88 (with HMB-20 HIBIKI-8800)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2") // external; 4.0000MHz
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with PC-8801-10)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15"), // external
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15") // ""
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with PC-8801-10; extended channel 3)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15"), // external
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15") // ""
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with PC-8801-11)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on internal OPN)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on external OPN)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on both OPNs)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with PC-8801-23)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on internal OPN)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on external OPN)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on both OPNs)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2") // external; 4.0000MHz
-    }
-  );
-  ENTRY(
-    "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800; extended channel 3)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2") // external; 4.0000MHz
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with PC-8801-10)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15"), // external
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15") // ""
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with PC-8801-10; extended channel 3)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15"), // external
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15") // ""
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with PC-8801-11)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with PC-8801-11; extended channel 3 on internal OPN)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with PC-8801-11; extended channel 3 on external OPN)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with PC-8801-11; extended channel 3 on both OPNs)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with PC-8801-23)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with PC-8801-23; extended channel 3 on internal OPN)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with PC-8801-23; extended channel 3 on external OPN)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with PC-8801-23; extended channel 3 on both OPNs)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with HMB-20 HIBIKI-8800)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2") // external; 4.0000MHz
-    }
-  );
-  ENTRY(
-    "NEC PC-8801FA (with HMB-20 HIBIKI-8800; extended channel 3)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2") // external; 4.0000MHz
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with PC-9801-26/K)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // 3.9936MHz but some compatible card has 4MHz
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with PC-9801-26/K; extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // 3.9936MHz but some compatible card has 4MHz
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Orchestra)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Orchestra; extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Orchestra in drums mode)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Orchestra in drums mode; extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Orchestra V)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Orchestra V; extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Orchestra V in drums mode)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=4"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with PC-9801-86)", { // -73 also has OPNA
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, // 2x 16-bit Burr Brown DAC
-        "rate=44100\n"
-        "outDepth=15\n"
-      ),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=44100\n"
-        "outDepth=15\n"
-      ),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with PC-9801-86; extended channel 3)", { // -73 also has OPNA
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=44100\n"
-        "outDepth=15\n"
-      ),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=44100\n"
-        "outDepth=15\n"
-      ),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with PC-9801-86) stereo", { // -73 also has OPNA
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, -1.0f, // 2x 16-bit Burr Brown DAC
-        "rate=44100\n"
-        "outDepth=15\n"
-      ),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 1.0f,
-        "rate=44100\n"
-        "outDepth=15\n"
-      ),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with PC-9801-86; extended channel 3) stereo", { // -73 also has OPNA
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, -1.0f,
-        "rate=44100\n"
-        "outDepth=15\n"
-      ),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 1.0f,
-        "rate=44100\n"
-        "outDepth=15\n"
-      ),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with PC-9801-73)", {
-      CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with PC-9801-73; extended channel 3)", {
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=44100\n"
-        "outDepth=15\n"
-        "stereo=true\n"
-      ),
-      CH(DIV_SYSTEM_OPL3, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=44100\n"
-        "outDepth=15\n"
-        "stereo=true\n"
-      ),
-      CH(DIV_SYSTEM_OPL3, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=44100\n"
-        "outDepth=15\n"
-        "stereo=true\n"
-      ),
-      CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode; extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=44100\n"
-        "outDepth=15\n"
-        "stereo=true\n"
-      ),
-      CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "ZX Spectrum (48K, SFX-like engine)", {
-      CH(DIV_SYSTEM_SFX_BEEPER, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "ZX Spectrum (48K, QuadTone engine)", {
-      CH(DIV_SYSTEM_SFX_BEEPER_QUADTONE, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "MSX + SFG-01", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + MSX-AUDIO", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_Y8950, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + MSX-AUDIO (drums mode)", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + MSX-MUSIC", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_OPLL, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + MSX-MUSIC (drums mode)", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + Darky", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_AY8930, 1.0f, 0,
+          "clockSel=11\n"
+          "halfClock=true\n"
+        ), // 3.58MHz
+        CH(DIV_SYSTEM_AY8930, 1.0f, 0,
+          "clockSel=11\n"
+          "halfClock=true\n"
+        ) // 3.58MHz or 3.6MHz selectable via register
+        // per-channel mixer (soft panning, post processing) isn't emulated at all
+      }
+    );
+      SUB_ENTRY(
+      "MSX + Playsoniq", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, ""), // Sega VDP
+        CH(DIV_SYSTEM_C64_8580, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SCC_PLUS, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + SCC", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_SCC, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + SCC+", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_SCC_PLUS, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + Neotron", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + Neotron (extended channel 2)", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + Neotron (with YM2610B)", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + Neotron (with YM2610B; extended channel 3)", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_YM2610B_EXT, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "MSX + SIMPL", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=55930\n"
+          "outDepth=7\n"
+        ) // variable rate, Mono DAC
+      }
+    );
+  ENTRY(
+    "NEC PC-88", {}
+  );
+    SUB_ENTRY(
+      "NEC PC-88 (with PC-8801-10)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15"), // external
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15") // ""
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-88 (with PC-8801-11)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-88 (with PC-8801-11; extended channel 3)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-88 (with PC-8801-23)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-88 (with PC-8801-23; extended channel 3)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-88 (with HMB-20 HIBIKI-8800)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2") // external; 4.0000MHz
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with PC-8801-10)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15"), // external
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15") // ""
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with PC-8801-10; extended channel 3)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15"), // external
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15") // ""
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with PC-8801-11)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on internal OPN)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on external OPN)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on both OPNs)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with PC-8801-23)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on internal OPN)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on external OPN)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on both OPNs)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2") // external; 4.0000MHz
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800; extended channel 3)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2") // external; 4.0000MHz
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with PC-8801-10)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15"), // external
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15") // ""
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with PC-8801-10; extended channel 3)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=4"), // internal
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15"), // external
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=15") // ""
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with PC-8801-11)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"), // internal
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with PC-8801-11; extended channel 3 on internal OPN)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"), // internal
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with PC-8801-11; extended channel 3 on external OPN)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"), // internal
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with PC-8801-11; extended channel 3 on both OPNs)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"), // internal
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with PC-8801-23)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"), // internal
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with PC-8801-23; extended channel 3 on internal OPN)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"), // internal
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with PC-8801-23; extended channel 3 on external OPN)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"), // internal
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with PC-8801-23; extended channel 3 on both OPNs)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"), // internal
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1") // external
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with HMB-20 HIBIKI-8800)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"), // internal
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2") // external; 4.0000MHz
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-8801FA (with HMB-20 HIBIKI-8800; extended channel 3)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"), // internal
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2") // external; 4.0000MHz
+      }
+    );
+  ENTRY(
+    "NEC PC-98", {}
+  );
+    SUB_ENTRY(
+      "NEC PC-98 (with PC-9801-26/K)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"), // 3.9936MHz but some compatible card has 4MHz
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with PC-9801-26/K; extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"), // 3.9936MHz but some compatible card has 4MHz
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Orchestra)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Orchestra; extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Orchestra in drums mode)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Orchestra in drums mode; extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Orchestra V)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Orchestra V; extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Orchestra V in drums mode)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=4"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with PC-9801-86)", { // -73 also has OPNA
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, // 2x 16-bit Burr Brown DAC
+          "rate=44100\n"
+          "outDepth=15\n"
+        ),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=44100\n"
+          "outDepth=15\n"
+        ),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with PC-9801-86; extended channel 3)", { // -73 also has OPNA
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=44100\n"
+          "outDepth=15\n"
+        ),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=44100\n"
+          "outDepth=15\n"
+        ),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with PC-9801-86) stereo", { // -73 also has OPNA
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, -1.0f, // 2x 16-bit Burr Brown DAC
+          "rate=44100\n"
+          "outDepth=15\n"
+        ),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 1.0f,
+          "rate=44100\n"
+          "outDepth=15\n"
+        ),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with PC-9801-86; extended channel 3) stereo", { // -73 also has OPNA
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, -1.0f,
+          "rate=44100\n"
+          "outDepth=15\n"
+        ),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 1.0f,
+          "rate=44100\n"
+          "outDepth=15\n"
+        ),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with PC-9801-73)", {
+        CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with PC-9801-73; extended channel 3)", {
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=44100\n"
+          "outDepth=15\n"
+          "stereo=true\n"
+        ),
+        CH(DIV_SYSTEM_OPL3, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=44100\n"
+          "outDepth=15\n"
+          "stereo=true\n"
+        ),
+        CH(DIV_SYSTEM_OPL3, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=44100\n"
+          "outDepth=15\n"
+          "stereo=true\n"
+        ),
+        CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode; extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=44100\n"
+          "outDepth=15\n"
+          "stereo=true\n"
+        ),
+        CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
+      }
+    );
+  ENTRY(
+    "ZX Spectrum (48K) beeper", {}
+  );
+    SUB_ENTRY(
+      "ZX Spectrum (48K, SFX-like engine)", {
+        CH(DIV_SYSTEM_SFX_BEEPER, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "ZX Spectrum (48K, QuadTone engine)", {
+        CH(DIV_SYSTEM_SFX_BEEPER_QUADTONE, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "ZX Spectrum (128K)", {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1") //beeper was also included
     }
   );
-  ENTRY(
-    "ZX Spectrum (128K) with TurboSound FM", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "ZX Spectrum (128K) with TurboSound", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"), // or YM2149
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1") // or YM2149
-    }
-  );
+    SUB_ENTRY(
+      "ZX Spectrum (128K) with TurboSound FM", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1")
+      }
+    );
+      SUB_SUB_ENTRY(
+        "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)", {
+          CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1")
+        }
+      );
+      SUB_SUB_ENTRY(
+        "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)", {
+          CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1")
+        }
+      );
+      SUB_SUB_ENTRY(
+        "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)", {
+          CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1"),
+          CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=1")
+        }
+      );
+    SUB_ENTRY(
+      "ZX Spectrum (128K) with TurboSound", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1"), // or YM2149
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=1") // or YM2149
+      }
+    );
   ENTRY(
     "Amstrad CPC", {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=5")
@@ -937,13 +951,13 @@ void FurnaceGUI::initSystemPresets() {
     },
     "tickRate=50"
   );
-  ENTRY(
-    "Atari 800 (stereo)", {
-      CH(DIV_SYSTEM_POKEY, 1.0f, -1.0f, "clockSel=1"),
-      CH(DIV_SYSTEM_POKEY, 1.0f, 1.0f, "clockSel=1"),
-    },
-    "tickRate=50"
-  );
+    SUB_ENTRY(
+      "Atari 800 (stereo)", {
+        CH(DIV_SYSTEM_POKEY, 1.0f, -1.0f, "clockSel=1"),
+        CH(DIV_SYSTEM_POKEY, 1.0f, 1.0f, "clockSel=1"),
+      },
+      "tickRate=50"
+    );
   ENTRY(
     "Atari ST", {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0,
@@ -988,179 +1002,182 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "PC (barebones)", {
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
+    "IBM PC", {}
   );
-  ENTRY(
-    "IBM PCjr", {
-      // it can be enable sound output at once
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=5") // SN76496
-    }
-  );
-  ENTRY(
-    "Tandy 1000", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=5"), // NCR 8496 or SN76496 or Tandy PSSJ(with 8 bit DAC)
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + Covox Sound Master", {
-      CH(DIV_SYSTEM_AY8930, 1.0f, 0, "clockSel=3"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + SSI 2001", {
-      CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + Game Blaster", {
-      CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + AdLib", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + AdLib (drums mode)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + Sound Blaster", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-        "rate=22050\n"
-        "outDepth=7\n"
-      )
-    }
-  );
-  ENTRY(
-    "PC + Sound Blaster (drums mode)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-        "rate=22050\n"
-        "outDepth=7\n"
-      )
-    }
-  );
-  ENTRY(
-    "PC + Sound Blaster w/Game Blaster Compatible", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-        "rate=22050\n"
-        "outDepth=7\n"
-      ),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + Sound Blaster w/Game Blaster Compatible (drums mode)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-        "rate=22050\n"
-        "outDepth=7\n"
-      ),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + Sound Blaster Pro", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, -1.0f, ""),
-      CH(DIV_SYSTEM_OPL2, 1.0f, 1.0f, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-        "rate=22050\n"
-        "outDepth=7\n"
-        "stereo=true\n"
-      ), //alternatively 44.1 khz mono
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + Sound Blaster Pro (drums mode)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, -1.0f, ""),
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 1.0f, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-        "rate=22050\n"
-        "outDepth=7\n"
-        "stereo=true\n"
-      ), //alternatively 44.1 khz mono
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + Sound Blaster Pro 2", {
-      CH(DIV_SYSTEM_OPL3, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-        "rate=44100\n"
-        "outDepth=15\n"
-        "stereo=true\n"
-      ),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + Sound Blaster Pro 2 (drums mode)", {
-      CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-        "rate=44100\n"
-        "outDepth=15\n"
-        "stereo=true\n"
-      ),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + ESS AudioDrive ES1488 (native ESFM mode)", {
-      CH(DIV_SYSTEM_ESFM, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-        "rate=44100\n"
-        "outDepth=15\n"
-        "stereo=true\n"
-      ),
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + PC-FXGA", {
-      CH(DIV_SYSTEM_PCE, 1.0f, 0, ""), // HuC6230 (WSG from HuC6280 but with built in 2 OKI ADPCM playback engines)
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "PC + SAAYM", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz or 4MHz selectable via jumper
-      CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"), // 7.16MHz or 8MHz selectable via jumper
-      CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"), // ""
-      CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "PC (barebones)", {
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "IBM PCjr", {
+        // it can be enable sound output at once
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=5") // SN76496
+      }
+    );
+    SUB_ENTRY(
+      "Tandy 1000", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=5"), // NCR 8496 or SN76496 or Tandy PSSJ(with 8 bit DAC)
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + Covox Sound Master", {
+        CH(DIV_SYSTEM_AY8930, 1.0f, 0, "clockSel=3"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + SSI 2001", {
+        CH(DIV_SYSTEM_C64_6581, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + Game Blaster", {
+        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + AdLib", {
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + AdLib (drums mode)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + Sound Blaster", {
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+          "rate=22050\n"
+          "outDepth=7\n"
+        )
+      }
+    );
+    SUB_ENTRY(
+      "PC + Sound Blaster (drums mode)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+          "rate=22050\n"
+          "outDepth=7\n"
+        )
+      }
+    );
+    SUB_ENTRY(
+      "PC + Sound Blaster w/Game Blaster Compatible", {
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+          "rate=22050\n"
+          "outDepth=7\n"
+        ),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + Sound Blaster w/Game Blaster Compatible (drums mode)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+          "rate=22050\n"
+          "outDepth=7\n"
+        ),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + Sound Blaster Pro", {
+        CH(DIV_SYSTEM_OPL2, 1.0f, -1.0f, ""),
+        CH(DIV_SYSTEM_OPL2, 1.0f, 1.0f, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+          "rate=22050\n"
+          "outDepth=7\n"
+          "stereo=true\n"
+        ), //alternatively 44.1 khz mono
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + Sound Blaster Pro (drums mode)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, -1.0f, ""),
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 1.0f, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+          "rate=22050\n"
+          "outDepth=7\n"
+          "stereo=true\n"
+        ), //alternatively 44.1 khz mono
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + Sound Blaster Pro 2", {
+        CH(DIV_SYSTEM_OPL3, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+          "rate=44100\n"
+          "outDepth=15\n"
+          "stereo=true\n"
+        ),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + Sound Blaster Pro 2 (drums mode)", {
+        CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+          "rate=44100\n"
+          "outDepth=15\n"
+          "stereo=true\n"
+        ),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + ESS AudioDrive ES1488 (native ESFM mode)", {
+        CH(DIV_SYSTEM_ESFM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+          "rate=44100\n"
+          "outDepth=15\n"
+          "stereo=true\n"
+        ),
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + PC-FXGA", {
+        CH(DIV_SYSTEM_PCE, 1.0f, 0, ""), // HuC6230 (WSG from HuC6280 but with built in 2 OKI ADPCM playback engines)
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "PC + SAAYM", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz or 4MHz selectable via jumper
+        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"), // 7.16MHz or 8MHz selectable via jumper
+        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"), // ""
+        CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Sharp X1", {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3")
     }
   );
-  ENTRY(
-    "Sharp X1 + FM Addon", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3"),
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2")
-    }
-  );
+    SUB_ENTRY(
+      "Sharp X1 + FM Addon", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3"),
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2")
+      }
+    );
   ENTRY(
     "Sharp X68000", {
       CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"),
@@ -1173,36 +1190,36 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "")
     }
   );
+    SUB_ENTRY(
+      "FM Towns (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // YM3438
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "FM Towns (CSM)", {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "clockSel=2"), // YM3438
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "")
+      }
+    );
   ENTRY(
-    "FM Towns (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // YM3438
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "FM Towns (CSM)", {
-      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "clockSel=2"), // YM3438
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Commander X16 (VERA only)", {
-      CH(DIV_SYSTEM_VERA, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Commander X16 (with OPM)", {
+    "Commander X16", {
       CH(DIV_SYSTEM_VERA, 1.0f, 0, ""),
       CH(DIV_SYSTEM_YM2151, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Commander X16 (with Twin OPL3)", {
-      CH(DIV_SYSTEM_VERA, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_OPL3, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_OPL3, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Commander X16 (VERA only)", {
+        CH(DIV_SYSTEM_VERA, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Commander X16 (with Twin OPL3)", {
+        CH(DIV_SYSTEM_VERA, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_OPL3, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_OPL3, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "TI-99/4A", {
       CH(DIV_SYSTEM_SMS, 1.0f, 0,
@@ -1214,1137 +1231,1205 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_END;
 
   CATEGORY_BEGIN("Arcade systems","INSERT COIN");
-  ENTRY(
-    "Pong", {
-      CH(DIV_SYSTEM_PONG, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Bally Midway MCR", {
-      // SSIO sound board
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3"), // 2MHz
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3") // 2MHz
-      // additional sound boards, mostly software controlled DAC
-    }
-  );
-  ENTRY(
-    "Williams/Midway Y/T unit w/ADPCM sound board", {
-      // ADPCM sound board
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=15625\n"
-        "outDepth=7\n"
-      ), // variable via OPM timer?
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Konami Gyruss", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "")
-      // additional discrete sound logics
-    }
-  );
-  ENTRY(
-    "Konami Bubble System", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_BUBSYS_WSG, 1.0f, 0, "")
-      // VLM5030 exists but not used for music at all
-    }
-  );
-  ENTRY(
-    "Konami MX5000", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
-    }
-  );
-  ENTRY(
-    "Konami Battlantis", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3")  // ""
-    }
-  );
-  ENTRY(
-    "Konami Battlantis (drums mode on first OPL2)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3") // ""
-    }
-  );
-  ENTRY(
-    "Konami Battlantis (drums mode on second OPL2)", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3") // ""
-    }
-  );
-  ENTRY(
-    "Konami Battlantis (drums mode on both OPL2s)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3") // ""
-    }
-  );
-  ENTRY(
-    "Konami Fast Lane", {
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, ""),  // 3.58MHz
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
-    }
-  );
-  ENTRY(
-    "Konami Chequered Flag", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "stereo=true"),  // ""
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
-    }
-  );
-  ENTRY(
-    "Konami Haunted Castle", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_SCC, 1.0f, 0, ""),  // ""
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
-    }
-  );
-  ENTRY(
-    "Konami Haunted Castle (drums mode)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_SCC, 1.0f, 0, ""), // ""
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
-    }
-  );
-  ENTRY(
-    "Konami Hot Chase", {
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "stereo=true"),  // 3.58MHz
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "stereo=true"),  // ""
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "stereo=true")  // ""
-    }
-  );
-  ENTRY(
-    "Konami S.P.Y.", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, ""),  // ""
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
-    }
-  );
-  ENTRY(
-    "Konami S.P.Y. (drums mode)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, ""), // ""
-      CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
-    }
-  );
-  ENTRY(
-    "Konami Rollergames", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""),  // ""
-    }
-  );
-  ENTRY(
-    "Konami Rollergames (drums mode)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
-    }
-  );
-  ENTRY(
-    "Konami Golfing Greats", {
-      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // 3.58MHz
-    }
-  );
-  ENTRY(
-    "Konami Lightning Fighters", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
-    }
-  );
-  ENTRY(
-    "Konami Over Drive", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
-      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
-    }
-  );
-  ENTRY(
-    "Konami Asterix", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_K053260, 1.0f, 0, "clockSel=1"), // ""
-    }
-  );
-  ENTRY(
-    "Konami Hexion", {
-      CH(DIV_SYSTEM_SCC, 1.0f, 0, "clockSel=2"), // 1.5MHz (3MHz input)
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=1")
-    }
-  );
-  ENTRY(
-    "Sega Kyugo", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=14"),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=14")
-    }
-  );
-  ENTRY(
-    "Sega System 1", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0,
-        "clockSel=2\n"
-        "chipType=4\n"
-      ), // SN76489A 4MHz
-      CH(DIV_SYSTEM_SMS, 1.0f, 0,
-        "clockSel=5\n"
-        "chipType=4\n"
-      ) // SN76489A 2MHz
-    }
-  );
-  ENTRY(
-    "Sega System E", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega System E (with FM expansion)", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_OPLL, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega System E (with FM expansion in drums mode)", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Sega Hang-On", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "") // discrete logics, 62.5KHz output rate
-    }
-  );
-  ENTRY(
-    "Sega Hang-On (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "") // discrete logics, 62.5KHz output rate
-    }
-  );
-  ENTRY(
-    "Sega OutRun/X Board", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "") // ASIC, 31.25KHz output rate
-    }
-  );
-  ENTRY(
-    "Sega System 24", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=61500\n"
-        "outDepth=7\n"
-      ) // software controlled, variable rate via configurable timers
-    }
-  );
-  ENTRY(
-    "Sega System 18", {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // discrete 8MHz YM3438
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=1") // 10MHz
-    }
-  );
-  ENTRY(
-    "Sega System 18 (extended channel 3 on first OPN2C)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // discrete 8MHz YM3438
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=1") // 10MHz
-    }
-  );
-  ENTRY(
-    "Sega System 18 (extended channel 3 on second OPN2C)", {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // discrete 8MHz YM3438
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=1") // 10MHz
-    }
-  );
-  ENTRY(
-    "Sega System 18 (extended channel 3 on both OPN2Cs)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // discrete 8MHz YM3438
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=1") // 10MHz
-    }
-  );
-  ENTRY(
-    "Sega System 32", {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
-        "clockSel=2\n" 
-        "chipType=1\n"
-      ) // 12.5MHz
-    }
-  );
-  ENTRY(
-    "Sega System 32 (extended channel 3 on first OPN2C)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
-        "clockSel=2\n" 
-        "chipType=1\n"
-      ) // 12.5MHz
-    }
-  );
-  ENTRY(
-    "Sega System 32 (extended channel 3 on second OPN2C)", {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
-        "clockSel=2\n" 
-        "chipType=1\n"
-      ) // 12.5MHz
-    }
-  );
-  ENTRY(
-    "Sega System 32 (extended channel 3 on both OPN2Cs)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
-        "clockSel=2\n" 
-        "chipType=1\n"
-      ) // 12.5MHz
-    }
-  );
-  ENTRY(
-    "Capcom Exed Eyes", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=4"), // 1.5MHz
-      CH(DIV_SYSTEM_SMS, 1.0f, 0,
-        "clockSel=4\n"
-        "chipType=1\n"
-      ), // SN76489 3MHz
-      CH(DIV_SYSTEM_SMS, 1.0f, 0,
-        "clockSel=4\n"
-        "chipType=1\n"
-      ) // SN76489 3MHz
-    }
-  );
-  ENTRY(
-    "Capcom Arcade", { // 1943, Side arms, etc
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 4 or 1.5MHz; various per games
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5")
-    }
-  );
-  ENTRY(
-    "Capcom Arcade (extended channel 3 on first OPN)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"),
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5")
-    }
-  );
-  ENTRY(
-    "Capcom Arcade (extended channel 3 on second OPN)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5")
-    }
-  );
-  ENTRY(
-    "Capcom Arcade (extended channel 3 on both OPNs)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"),
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5")
-    }
-  );
-  ENTRY(
-    "Capcom CPS-1", { 
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Capcom CPS-2 (QSound)", {
-      CH(DIV_SYSTEM_QSOUND, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Jaleco Ginga NinkyouDen", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"), // 1.79MHz
-      CH(DIV_SYSTEM_Y8950, 1.0f, 0, "") // 3.58MHz
-    }
-  );
-  ENTRY(
-    "Jaleco Ginga NinkyouDen (drums mode)", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"), // 1.79MHz
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "") // 3.58MHz
-    }
-  );
-  ENTRY(
-    "Jaleco Mega System 1", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=1"), // 3.5MHz (7MHz / 2)
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=2") // 4MHz
-    }
-  );
-  ENTRY(
-    "NMK 16-bit Arcade", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=2\n"
-        "rateSel=true\n"
-      ), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=2\n"
-        "rateSel=true\n"
-      ) // ^^
-    }
-  );
-  ENTRY(
-    "NMK 16-bit Arcade (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=2\n"
-        "rateSel=true\n"
-      ), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=2\n"
-        "rateSel=true\n"
-      ) // ^^
-    }
-  );
-  ENTRY(
-    "NMK 16-bit Arcade (w/NMK112 bankswitching)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=2\n"
-        "rateSel=true\n"
-        "isBanked=true\n"
-      ), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=2\n"
-        "rateSel=true\n"
-        "isBanked=true\n"
-      ) // ^^
-    }
-  );
-  ENTRY(
-    "NMK 16-bit Arcade (w/NMK112 bankswitching, extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=2\n"
-        "rateSel=true\n"
-        "isBanked=true\n"
-      ), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=2\n"
-        "rateSel=true\n"
-        "isBanked=true\n"
-      ) // ^^
-    }
-  );
-  ENTRY(
-    "Atlus Power Instinct 2", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=13\n"
-        "rateSel=true\n"
-        "isBanked=true\n"
-      ), // 3MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=13\n"
-        "rateSel=true\n"
-        "isBanked=true\n"
-      ) // ^^
-    }
-  );
-  ENTRY(
-    "Atlus Power Instinct 2 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=13\n"
-        "rateSel=true\n"
-        "isBanked=true\n"
-      ), // 3MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=13\n"
-        "rateSel=true\n"
-        "isBanked=true\n"
-      ) // ^^
-    }
-  );
-  ENTRY(
-    "Raizing/Eighting Battle Garegga", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=8\n"
-        "isBanked=true\n"
-      ) // 2MHz
-    }
-  );
-  ENTRY(
-    "Raizing/Eighting Batrider", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=15\n"
-        "isBanked=true\n"
-      ), // 3.2MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=15\n"
-        "rateSel=true\n"
-        "isBanked=true\n"
-      ) // 3.2MHz
-    }
-  );
-  ENTRY(
-    "Kaneko DJ Boy", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, -1.0f, "clockSel=12"), // 1.5MHz, Left output
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 1.0f, "clockSel=12"), // 1.5MHz, Right output
-    }
-  );
-  ENTRY(
-    "Kaneko DJ Boy (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, -1.0f, "clockSel=12"), // 1.5MHz, Left output
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 1.0f, "clockSel=12") // 1.5MHz, Right output
-    }
-  );
-  ENTRY(
-    "Kaneko Air Buster", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=13\n"
-        "rateSel=true\n"
-      ) // 3MHz
-    }
-  );
-  ENTRY(
-    "Kaneko Air Buster (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
-        "clockSel=13\n"
-        "rateSel=true\n"
-      ) // 3MHz
-    }
-  );
-  ENTRY(
-    "Kaneko Toybox System", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0,
-        "clockSel=3\n"
-        "chipType=1\n"
-      ), // YM2149 2MHz
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0,
-        "clockSel=3\n"
-        "chipType=1\n"
-      ), // ^^
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2MHz
-    }
-  );
-  ENTRY(
-    "Kaneko Jackie Chan", {
-      CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "clockSel=3") // 16MHz
-    }
-  );
-  ENTRY(
-    "Super Kaneko Nova System", {
-      CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "clockSel=4") // 16.67MHz (33.33MHz / 2)
-    }
-  );
-  ENTRY(
-    "Tecmo Ninja Gaiden", { // Ninja Gaiden, Raiga, etc
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1MHz
-    }
-  );
-  ENTRY(
-    "Tecmo Ninja Gaiden (extended channel 3 on first OPN)", { // Ninja Gaiden, Raiga, etc
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1MHz
-    }
-  );
-  ENTRY(
-    "Tecmo Ninja Gaiden (extended channel 3 on second OPN)", { // Ninja Gaiden, Raiga, etc
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1MHz
-    }
-  );
-  ENTRY(
-    "Tecmo Ninja Gaiden (extended channel 3 on both OPNs)", { // Ninja Gaiden, Raiga, etc
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1MHz
-    }
-  );
-  ENTRY(
-    "Tecmo System", {
-      CH(DIV_SYSTEM_OPL3, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2MHz
-    }
-  );
-  ENTRY(
-    "Tecmo System (drums mode)", {
-      CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2MHz
-    }
-  );
-  ENTRY(
-    "Seibu Kaihatsu Raiden", { // Raiden, Seibu cup soccer, Zero team, etc
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // YM3812 3.58MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 or 1.023MHz (28.636363MHz / 28); various per games
-    }
-  );
-  ENTRY(
-    "Seibu Kaihatsu Raiden (drums mode)", { // Raiden, Seibu cup soccer, Zero team, etc
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // YM3812 3.58MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 or 1.023MHz (28.636363MHz / 28); various per games
-    }
-  );
-  ENTRY(
-    "Sunsoft Shanghai 3", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0,
-        "clockSel=4\n"
-        "chipType=1\n"
-      ), // YM2149 1.5MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=1") // 1.056MHz
-    }
-  );
-  ENTRY(
-    "Sunsoft Arcade", {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // discrete YM3438 8MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=1") // 1.056MHz
-    }
-  );
-  ENTRY(
-    "Sunsoft Arcade (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // discrete YM3438 8MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=1") // 1.056MHz
-    }
-  );
-  ENTRY(
-    "Atari Klax", { 
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=7") // 0.895MHz (3.579545MHz / 4)
-    }
-  );
-  ENTRY(
-    "Atari Rampart", {
-      CH(DIV_SYSTEM_OPLL, 1.0f, 0, ""), // 3.579545MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=14") // 1.193MHz (3.579545MHz / 3)
-    }
-  );
-  ENTRY(
-    "Atari Rampart (drums mode)", { 
-      CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, ""), // 3.579545MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=14") // 1.193MHz (3.579545MHz / 3)
-    }
-  );
-  ENTRY(
-    "Atari JSA IIIs", { 
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.579545MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, -1.0f, "clockSel=14"), // 1.193MHz (3.579545MHz / 3), Left output
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 1.0f, "clockSel=14") // 1.193MHz (3.579545MHz / 3), Right output
-    }
-  );
-  ENTRY(
-    "Atari Marble Madness", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_POKEY, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Atari Championship Sprint", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_POKEY, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_POKEY, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Atari Tetris", {
-      CH(DIV_SYSTEM_POKEY, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_POKEY, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Atari I, Robot", {
-      CH(DIV_SYSTEM_POKEY, 1.0f, 0, "customClock=1512000"),
-      CH(DIV_SYSTEM_POKEY, 1.0f, 0, "customClock=1512000"),
-      CH(DIV_SYSTEM_POKEY, 1.0f, 0, "customClock=1512000"),
-      CH(DIV_SYSTEM_POKEY, 1.0f, 0, "customClock=1512000")
-    }
-  );
-  ENTRY(
-    "Data East Karnov", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=3") // 3MHz
-    }
-  );
-  ENTRY(
-    "Data East Karnov (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=3") // 3MHz
-    }
-  );
-  ENTRY(
-    "Data East Karnov (drums mode)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=3") // 3MHz
-    }
-  );
-  ENTRY(
-    "Data East Karnov (extended channel 3; drums mode)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=3") // 3MHz
-    }
-  );
-  ENTRY(
-    "Data East Arcade", { // Bad dudes, Robocop, etc
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
-    }
-  );
-  ENTRY(
-    "Data East Arcade (extended channel 3)", { // Bad dudes, Robocop, etc
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
-    }
-  );
-  ENTRY(
-    "Data East Arcade (drums mode)", { // Bad dudes, Robocop, etc
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
-    }
-  );
-  ENTRY(
-    "Data East Arcade (extended channel 3; drums mode)", { // Bad dudes, Robocop, etc
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
-    }
-  );
-  ENTRY(
-    "Data East PCX", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
-      CH(DIV_SYSTEM_PCE, 1.0f, 0, "")
-      // software controlled MSM5205
-    }
-  );
-  ENTRY(
-    "Data East PCX (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
-      CH(DIV_SYSTEM_PCE, 1.0f, 0, "")
-      // software controlled MSM5205
-    }
-  );
-  ENTRY(
-    "Data East Dark Seal", { // Dark Seal, Crude Buster, Vapor Trail, etc
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.580MHz (32.22MHz / 9)
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, ""), // 1.007MHz (32.22MHz / 32)
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
-      // HuC6280 is for control them, internal sound isn't used
-    }
-  );
-  ENTRY(
-    "Data East Dark Seal (extended channel 3)", { // Dark Seal, Crude Buster, Vapor Trail, etc
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.580MHz (32.22MHz / 9)
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, ""), // 1.007MHz (32.22MHz / 32)
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
-      // HuC6280 is for control them, internal sound isn't used
-    }
-  );
-  ENTRY(
-    "Data East Deco 156", {
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=0"), // 1 or 1.007MHz (32.22MHz / 32); various per games
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 1 or 2 or 2.014MHz (32.22MHz / 16); various per games
-    }
-  );
-  ENTRY(
-    "Data East MLC", {
-      CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "clockSel=5") // 14MHz
-    }
-  );
-  ENTRY(
-    "SNK Ikari Warriors", {
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Ikari Warriors (drums mode on first OPL)", {
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Ikari Warriors (drums mode on second OPL)", {
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Ikari Warriors (drums mode on both OPLs)", {
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Triple Z80", {
-      CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Triple Z80 (drums mode on Y8950)", {
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Triple Z80 (drums mode on OPL)", {
-      CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Triple Z80 (drums mode on Y8950 and OPL)", {
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Chopper I", {
-      CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Chopper I (drums mode on Y8950)", {
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Chopper I (drums mode on OPL2)", {
-      CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Chopper I (drums mode on Y8950 and OPL2)", {
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Touchdown Fever", {
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Touchdown Fever (drums mode on OPL)", {
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Touchdown Fever (drums mode on Y8950)", {
-      CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Touchdown Fever (drums mode on OPL and Y8950)", {
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "Alpha denshi Alpha-68K", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_OPLL, 1.0f, 0, "clockSel=0"), // 3.58MHz
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=7614\n"
-        "outDepth=7\n"
-      ) // software controlled 8 bit DAC
-    }
-  );
-  ENTRY(
-    "Alpha denshi Alpha-68K (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_OPLL, 1.0f, 0, "clockSel=0"), // 3.58MHz
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=7614\n"
-        "outDepth=7\n"
-      ) // software controlled 8 bit DAC
-    }
-  );
-  ENTRY(
-    "Alpha denshi Alpha-68K (drums mode)", {
-      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "clockSel=0"), // 3.58MHz
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=7614\n"
-        "outDepth=7\n"
-      ) // software controlled 8 bit DAC
-    }
-  );
-  ENTRY(
-    "Alpha denshi Alpha-68K (extended channel 3; drums mode)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
-      CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "clockSel=0"), // 3.58MHz
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=7614\n"
-        "outDepth=7\n"
-      ) // software controlled 8 bit DAC
-    }
-  );
-  ENTRY(
-    "Alpha denshi Equites", {
-      CH(DIV_SYSTEM_MSM5232, 1.0f, 0, "customClock=6144000"),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=14"),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-         "rate=11025\n" 
-         "outDepth=5\n"
-      ),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-         "rate=11025\n" 
-         "outDepth=5\n"
-      ) // don't know what the actual sample rate is
-    }
-  );
-  ENTRY(
-    "Neo Geo MVS", {
-      CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Neo Geo MVS (extended channel 2)", {
-      CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Nichibutsu Mag Max", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=13"),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=13"),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=13")
-    }
-  );
-  ENTRY(
-    "Namco (3-channel WSG)", { // Pac-Man, Galaga, Xevious, etc
-      CH(DIV_SYSTEM_NAMCO, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Namco Mappy", { // Mappy, Super Pac-Man, Libble Rabble, etc
-      CH(DIV_SYSTEM_NAMCO_15XX, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Namco Pac-Land", { // Pac-Land, Baraduke, Sky kid, etc
-      CH(DIV_SYSTEM_NAMCO_CUS30, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Namco System 86", { // without expansion board case; Hopping Mappy, etc
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_NAMCO_CUS30, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Namco Thunder Ceptor", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_NAMCO_CUS30, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-        "rate=8000\n"
-        "outDepth=7\n"
-      ) // M65C02 software driven, correct sample rate?
-    }
-  );
-  ENTRY(
-    "Namco System 1", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_NAMCO_CUS30, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=6000\n"
-        "outDepth=7\n"
-      ), // sample rate verified from https://github.com/mamedev/mame/blob/master/src/devices/sound/n63701x.cpp
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=6000\n"
-        "outDepth=7\n"
-      ) // ""
-    }
-  );
-  ENTRY(
-    "Namco System 2", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_C140, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Namco NA-1/2", {
-      CH(DIV_SYSTEM_C219, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Taito Arcade", {
-      CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Taito Arcade (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2610B_EXT, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Taito Metal Soldier Isaac II", {
-      CH(DIV_SYSTEM_MSM5232, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3"),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3")
-    }
-  );
-  ENTRY(
-    "Taito The Fairyland Story", {
-      CH(DIV_SYSTEM_MSM5232, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, 
-         "clockSel=3\n"
-         "chipType=1\n"
-      ),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-         "rate=11025\n" 
-         "outDepth=7\n"
-      ) // don't know what the actual sample rate is
-    }
-  );
-  ENTRY(
-    "Taito Wyvern F-0", {
-      CH(DIV_SYSTEM_MSM5232, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, 
-         "clockSel=3\n"
-         "chipType=1\n"
-      ),
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, 
-         "clockSel=3\n"
-         "chipType=1\n"
-      ),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
-         "rate=11025\n" 
-         "outDepth=7\n"
-      ) // don't know what the actual sample rate is
-    }
-  );
-  ENTRY(
-    "Seta 1", {
-      CH(DIV_SYSTEM_X1_010, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Seta 1 + FM addon", {
-      CH(DIV_SYSTEM_X1_010, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2") // Discrete YM3438
-    }
-  );
-  ENTRY(
-    "Seta 1 + FM addon (extended channel 3)", {
-      CH(DIV_SYSTEM_X1_010, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2") // Discrete YM3438
-    }
-  );
-  ENTRY(
-    "Seta 2", {
-      CH(DIV_SYSTEM_X1_010, 1.0f, 0,
-         "clockSel=1\n"
-         "isBanked=true\n"
-      )
-    }
-  );
-  ENTRY(
-    "Sammy/Seta/Visco SSV", {
-      CH(DIV_SYSTEM_ES5506, 1.0f, 0, "channels=31")
-    }
-  );
-  ENTRY(
-    "Cave 68000", {
-      CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Coreland Cyber Tank", {
-      CH(DIV_SYSTEM_Y8950, 1.0f, -1.0f, ""), // 3.58MHz, Left output
-      CH(DIV_SYSTEM_Y8950, 1.0f, 1.0f, "") // 3.58MHz, Right output
-    }
-  );
-  ENTRY(
-    "Coreland Cyber Tank (drums mode)", {
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, -1.0f, ""), // 3.58MHz, Left output
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 1.0f, "") // 3.58MHz, Right output
-    }
-  );
-  ENTRY(
-    "ICE Skimaxx", {
-      CH(DIV_SYSTEM_MSM6295, 1.0f, -1.0f,
-        "clockSel=2\n"
-        "rateSel=true\n"
-      ), // 4MHz, Left output
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 1.0f,
-        "clockSel=2\n"
-        "rateSel=true\n"
-      ), // 4MHz, Right output
-      CH(DIV_SYSTEM_MSM6295, 1.0f, -1.0f, "clockSel=8"), // 2MHz, Left output
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 1.0f, "clockSel=8") // 2MHz, Right output
-    }
-  );
-  ENTRY(
-    "Toaplan 1", {
-      CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=5") // 3.5MHz
-    }
-  );
-  ENTRY(
-    "Toaplan 1 (drums mode)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=5") // 3.5MHz
-    }
-  );
-  ENTRY(
-    "Dynax/Nakanihon 3rd generation hardware", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""), // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
-      CH(DIV_SYSTEM_OPLL, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=6") // 1.023MHz mostly
-    }
-  );
-  ENTRY(
-    "Dynax/Nakanihon 3rd generation hardware (drums mode)", {
-      CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""), // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
-      CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=6") // 1.023MHz mostly
-    }
-  );
-  ENTRY(
-    "Dynax/Nakanihon Real Break", {
-      CH(DIV_SYSTEM_OPLL, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Dynax/Nakanihon Real Break (drums mode)", {
-      CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Irem M72", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
-        "rate=7812\n"
-        "outDepth=7\n"
-      )
-    }
-  );
-  ENTRY(
-    "Irem M92/M107", {
-      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_GA20, 1.0f, 0, "")
-    }
-  );
+  // MANUFACTURERS
+  ENTRY(
+    "Alpha Denshi", {}
+  );
+    SUB_ENTRY(
+      "Alpha denshi Alpha-68K", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_OPLL, 1.0f, 0, "clockSel=0"), // 3.58MHz
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=7614\n"
+          "outDepth=7\n"
+        ) // software controlled 8 bit DAC
+      }
+    );
+    SUB_ENTRY(
+      "Alpha denshi Alpha-68K (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_OPLL, 1.0f, 0, "clockSel=0"), // 3.58MHz
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=7614\n"
+          "outDepth=7\n"
+        ) // software controlled 8 bit DAC
+      }
+    );
+    SUB_ENTRY(
+      "Alpha denshi Alpha-68K (drums mode)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "clockSel=0"), // 3.58MHz
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=7614\n"
+          "outDepth=7\n"
+        ) // software controlled 8 bit DAC
+      }
+    );
+    SUB_ENTRY(
+      "Alpha denshi Alpha-68K (extended channel 3; drums mode)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "clockSel=0"), // 3.58MHz
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=7614\n"
+          "outDepth=7\n"
+        ) // software controlled 8 bit DAC
+      }
+    );
+    SUB_ENTRY(
+      "Alpha denshi Equites", {
+        CH(DIV_SYSTEM_MSM5232, 1.0f, 0, "customClock=6144000"),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=14"),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+           "rate=11025\n" 
+           "outDepth=5\n"
+        ),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+           "rate=11025\n" 
+           "outDepth=5\n"
+        ) // don't know what the actual sample rate is
+      }
+    );
+
+  ENTRY(
+    "Atari", {}
+  );
+    SUB_ENTRY(
+      "Pong", {
+        CH(DIV_SYSTEM_PONG, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Atari Klax", { 
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=7") // 0.895MHz (3.579545MHz / 4)
+      }
+    );
+    SUB_ENTRY(
+      "Atari Rampart", {
+        CH(DIV_SYSTEM_OPLL, 1.0f, 0, ""), // 3.579545MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=14") // 1.193MHz (3.579545MHz / 3)
+      }
+    );
+    SUB_ENTRY(
+      "Atari Rampart (drums mode)", { 
+        CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, ""), // 3.579545MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=14") // 1.193MHz (3.579545MHz / 3)
+      }
+    );
+    SUB_ENTRY(
+      "Atari JSA IIIs", { 
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.579545MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, -1.0f, "clockSel=14"), // 1.193MHz (3.579545MHz / 3), Left output
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 1.0f, "clockSel=14") // 1.193MHz (3.579545MHz / 3), Right output
+      }
+    );
+    SUB_ENTRY(
+      "Atari Marble Madness", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Atari Championship Sprint", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Atari Tetris", {
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Atari I, Robot", {
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, "customClock=1512000"),
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, "customClock=1512000"),
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, "customClock=1512000"),
+        CH(DIV_SYSTEM_POKEY, 1.0f, 0, "customClock=1512000")
+      }
+    );
+
+  ENTRY(
+    "Capcom", {}
+  );
+    SUB_ENTRY(
+      "Capcom Exed Eyes", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=4"), // 1.5MHz
+        CH(DIV_SYSTEM_SMS, 1.0f, 0,
+          "clockSel=4\n"
+          "chipType=1\n"
+        ), // SN76489 3MHz
+        CH(DIV_SYSTEM_SMS, 1.0f, 0,
+          "clockSel=4\n"
+          "chipType=1\n"
+        ) // SN76489 3MHz
+      }
+    );
+    SUB_ENTRY(
+      "Capcom Arcade", { // 1943, Side arms, etc
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 4 or 1.5MHz; various per games
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5")
+      }
+    );
+    SUB_ENTRY(
+      "Capcom Arcade (extended channel 3 on first OPN)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"),
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5")
+      }
+    );
+    SUB_ENTRY(
+      "Capcom Arcade (extended channel 3 on second OPN)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"),
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5")
+      }
+    );
+    SUB_ENTRY(
+      "Capcom Arcade (extended channel 3 on both OPNs)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"),
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5")
+      }
+    );
+    SUB_ENTRY(
+      "Capcom CPS-1", { 
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Capcom CPS-2 (QSound)", {
+        CH(DIV_SYSTEM_QSOUND, 1.0f, 0, "")
+      }
+    );
+
+  ENTRY(
+    "Data East", {}
+  );
+    SUB_ENTRY(
+      "Data East Karnov", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
+        CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=3") // 3MHz
+      }
+    );
+    SUB_ENTRY(
+      "Data East Karnov (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
+        CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=3") // 3MHz
+      }
+    );
+    SUB_ENTRY(
+      "Data East Karnov (drums mode)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=3") // 3MHz
+      }
+    );
+    SUB_ENTRY(
+      "Data East Karnov (extended channel 3; drums mode)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=3") // 3MHz
+      }
+    );
+    SUB_ENTRY(
+      "Data East Arcade", { // Bad dudes, Robocop, etc
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
+      }
+    );
+    SUB_ENTRY(
+      "Data East Arcade (extended channel 3)", { // Bad dudes, Robocop, etc
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
+      }
+    );
+    SUB_ENTRY(
+      "Data East Arcade (drums mode)", { // Bad dudes, Robocop, etc
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
+      }
+    );
+    SUB_ENTRY(
+      "Data East Arcade (extended channel 3; drums mode)", { // Bad dudes, Robocop, etc
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
+      }
+    );
+    SUB_ENTRY(
+      "Data East PCX", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
+        CH(DIV_SYSTEM_PCE, 1.0f, 0, "")
+        // software controlled MSM5205
+      }
+    );
+    SUB_ENTRY(
+      "Data East PCX (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
+        CH(DIV_SYSTEM_PCE, 1.0f, 0, "")
+        // software controlled MSM5205
+      }
+    );
+    SUB_ENTRY(
+      "Data East Dark Seal", { // Dark Seal, Crude Buster, Vapor Trail, etc
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.580MHz (32.22MHz / 9)
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, ""), // 1.007MHz (32.22MHz / 32)
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
+        // HuC6280 is for control them, internal sound isn't used
+      }
+    );
+    SUB_ENTRY(
+      "Data East Dark Seal (extended channel 3)", { // Dark Seal, Crude Buster, Vapor Trail, etc
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.580MHz (32.22MHz / 9)
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, ""), // 1.007MHz (32.22MHz / 32)
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
+        // HuC6280 is for control them, internal sound isn't used
+      }
+    );
+    SUB_ENTRY(
+      "Data East Deco 156", {
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=0"), // 1 or 1.007MHz (32.22MHz / 32); various per games
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 1 or 2 or 2.014MHz (32.22MHz / 16); various per games
+      }
+    );
+    SUB_ENTRY(
+      "Data East MLC", {
+        CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "clockSel=5") // 14MHz
+      }
+    );
+
+  ENTRY(
+    "Irem", {}
+  );
+    SUB_ENTRY(
+      "Irem M72", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=7812\n"
+          "outDepth=7\n"
+        )
+      }
+    );
+    SUB_ENTRY(
+      "Irem M92/M107", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_GA20, 1.0f, 0, "")
+      }
+    );
+
+  ENTRY(
+    "Jaleco", {}
+  );
+    SUB_ENTRY(
+      "Jaleco Ginga NinkyouDen", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"), // 1.79MHz
+        CH(DIV_SYSTEM_Y8950, 1.0f, 0, "") // 3.58MHz
+      }
+    );
+    SUB_ENTRY(
+      "Jaleco Ginga NinkyouDen (drums mode)", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"), // 1.79MHz
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "") // 3.58MHz
+      }
+    );
+    SUB_ENTRY(
+      "Jaleco Mega System 1", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=1"), // 3.5MHz (7MHz / 2)
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=2") // 4MHz
+      }
+    );
+
+  ENTRY(
+    "Kaneko", {}
+  );
+    SUB_ENTRY(
+      "Kaneko DJ Boy", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, -1.0f, "clockSel=12"), // 1.5MHz, Left output
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 1.0f, "clockSel=12"), // 1.5MHz, Right output
+      }
+    );
+    SUB_ENTRY(
+      "Kaneko DJ Boy (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, -1.0f, "clockSel=12"), // 1.5MHz, Left output
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 1.0f, "clockSel=12") // 1.5MHz, Right output
+      }
+    );
+    SUB_ENTRY(
+      "Kaneko Air Buster", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=13\n"
+          "rateSel=true\n"
+        ) // 3MHz
+      }
+    );
+    SUB_ENTRY(
+      "Kaneko Air Buster (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=13\n"
+          "rateSel=true\n"
+        ) // 3MHz
+      }
+    );
+    SUB_ENTRY(
+      "Kaneko Toybox System", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0,
+          "clockSel=3\n"
+          "chipType=1\n"
+        ), // YM2149 2MHz
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0,
+          "clockSel=3\n"
+          "chipType=1\n"
+        ), // ^^
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2MHz
+      }
+    );
+    SUB_ENTRY(
+      "Kaneko Jackie Chan", {
+        CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "clockSel=3") // 16MHz
+      }
+    );
+    SUB_ENTRY(
+      "Super Kaneko Nova System", {
+        CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "clockSel=4") // 16.67MHz (33.33MHz / 2)
+      }
+    );
+
+  ENTRY(
+    "Konami", {}
+  );
+    SUB_ENTRY(
+      "Konami Gyruss", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "")
+        // additional discrete sound logics
+      }
+    );
+    SUB_ENTRY(
+      "Konami Bubble System", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_BUBSYS_WSG, 1.0f, 0, "")
+        // VLM5030 exists but not used for music at all
+      }
+    );
+    SUB_ENTRY(
+      "Konami MX5000", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Battlantis", {
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3")  // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Battlantis (drums mode on first OPL2)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3") // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Battlantis (drums mode on second OPL2)", {
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3") // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Battlantis (drums mode on both OPL2s)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3") // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Fast Lane", {
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, ""),  // 3.58MHz
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Chequered Flag", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "stereo=true"),  // ""
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Haunted Castle", {
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_SCC, 1.0f, 0, ""),  // ""
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Haunted Castle (drums mode)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_SCC, 1.0f, 0, ""), // ""
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Hot Chase", {
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "stereo=true"),  // 3.58MHz
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "stereo=true"),  // ""
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "stereo=true")  // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami S.P.Y.", {
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, ""),  // ""
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami S.P.Y. (drums mode)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, ""), // ""
+        CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Rollergames", {
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_K053260, 1.0f, 0, ""),  // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Rollergames (drums mode)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Golfing Greats", {
+        CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // 3.58MHz
+      }
+    );
+    SUB_ENTRY(
+      "Konami Lightning Fighters", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Over Drive", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+        CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Asterix", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_K053260, 1.0f, 0, "clockSel=1"), // ""
+      }
+    );
+    SUB_ENTRY(
+      "Konami Hexion", {
+        CH(DIV_SYSTEM_SCC, 1.0f, 0, "clockSel=2"), // 1.5MHz (3MHz input)
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=1")
+      }
+    );
+
+  ENTRY(
+    "Namco", {}
+  );
+    SUB_ENTRY(
+      "Namco (3-channel WSG)", { // Pac-Man, Galaga, Xevious, etc
+        CH(DIV_SYSTEM_NAMCO, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Namco Mappy", { // Mappy, Super Pac-Man, Libble Rabble, etc
+        CH(DIV_SYSTEM_NAMCO_15XX, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Namco Pac-Land", { // Pac-Land, Baraduke, Sky kid, etc
+        CH(DIV_SYSTEM_NAMCO_CUS30, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Namco System 86", { // without expansion board case; Hopping Mappy, etc
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_NAMCO_CUS30, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Namco Thunder Ceptor", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_NAMCO_CUS30, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+          "rate=8000\n"
+          "outDepth=7\n"
+        ) // M65C02 software driven, correct sample rate?
+      }
+    );
+    SUB_ENTRY(
+      "Namco System 1", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_NAMCO_CUS30, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=6000\n"
+          "outDepth=7\n"
+        ), // sample rate verified from https://github.com/mamedev/mame/blob/master/src/devices/sound/n63701x.cpp
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=6000\n"
+          "outDepth=7\n"
+        ) // ""
+      }
+    );
+    SUB_ENTRY(
+      "Namco System 2", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_C140, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Namco NA-1/2", {
+        CH(DIV_SYSTEM_C219, 1.0f, 0, "")
+      }
+    );
+
+  ENTRY(
+    "Sega", {}
+  );
+    SUB_ENTRY(
+      "Sega Kyugo", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=14"),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=14")
+      }
+    );
+    SUB_ENTRY(
+      "Sega System 1", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0,
+          "clockSel=2\n"
+          "chipType=4\n"
+        ), // SN76489A 4MHz
+        CH(DIV_SYSTEM_SMS, 1.0f, 0,
+          "clockSel=5\n"
+          "chipType=4\n"
+        ) // SN76489A 2MHz
+      }
+    );
+    SUB_ENTRY(
+      "Sega System E", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega System E (with FM expansion)", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_OPLL, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega System E (with FM expansion in drums mode)", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Sega Hang-On", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "") // discrete logics, 62.5KHz output rate
+      }
+    );
+    SUB_ENTRY(
+      "Sega Hang-On (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "") // discrete logics, 62.5KHz output rate
+      }
+    );
+    SUB_ENTRY(
+      "Sega OutRun/X Board", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "") // ASIC, 31.25KHz output rate
+      }
+    );
+    SUB_ENTRY(
+      "Sega System 24", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=61500\n"
+          "outDepth=7\n"
+        ) // software controlled, variable rate via configurable timers
+      }
+    );
+    SUB_ENTRY(
+      "Sega System 18", {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // ^^
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=1") // 10MHz
+      }
+    );
+    SUB_ENTRY(
+      "Sega System 18 (extended channel 3 on first OPN2C)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // ^^
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=1") // 10MHz
+      }
+    );
+    SUB_ENTRY(
+      "Sega System 18 (extended channel 3 on second OPN2C)", {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // ^^
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=1") // 10MHz
+      }
+    );
+    SUB_ENTRY(
+      "Sega System 18 (extended channel 3 on both OPN2Cs)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // ^^
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=1") // 10MHz
+      }
+    );
+    SUB_ENTRY(
+      "Sega System 32", {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+          "clockSel=2\n" 
+          "chipType=1\n"
+        ) // 12.5MHz
+      }
+    );
+    SUB_ENTRY(
+      "Sega System 32 (extended channel 3 on first OPN2C)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+          "clockSel=2\n" 
+          "chipType=1\n"
+        ) // 12.5MHz
+      }
+    );
+    SUB_ENTRY(
+      "Sega System 32 (extended channel 3 on second OPN2C)", {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+          "clockSel=2\n" 
+          "chipType=1\n"
+        ) // 12.5MHz
+      }
+    );
+    SUB_ENTRY(
+      "Sega System 32 (extended channel 3 on both OPN2Cs)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
+        CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+          "clockSel=2\n" 
+          "chipType=1\n"
+        ) // 12.5MHz
+      }
+    );
+
+  ENTRY(
+    "Seta", {}
+  );
+    SUB_ENTRY(
+      "Seta 1", {
+        CH(DIV_SYSTEM_X1_010, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Seta 1 + FM addon", {
+        CH(DIV_SYSTEM_X1_010, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2") // Discrete YM3438
+      }
+    );
+    SUB_ENTRY(
+      "Seta 1 + FM addon (extended channel 3)", {
+        CH(DIV_SYSTEM_X1_010, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2") // Discrete YM3438
+      }
+    );
+    SUB_ENTRY(
+      "Seta 2", {
+        CH(DIV_SYSTEM_X1_010, 1.0f, 0,
+           "clockSel=1\n"
+           "isBanked=true\n"
+        )
+      }
+    );
+    SUB_ENTRY(
+      "Sammy/Seta/Visco SSV", {
+        CH(DIV_SYSTEM_ES5506, 1.0f, 0, "channels=31")
+      }
+    );
+
+  ENTRY(
+    "SNK", {}
+  );
+    SUB_ENTRY(
+      "Neo Geo MVS", {
+        CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Neo Geo MVS (extended channel 2)", {
+        CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Ikari Warriors", {
+        CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Ikari Warriors (drums mode on first OPL)", {
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Ikari Warriors (drums mode on second OPL)", {
+        CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Ikari Warriors (drums mode on both OPLs)", {
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Triple Z80", {
+        CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Triple Z80 (drums mode on Y8950)", {
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Triple Z80 (drums mode on OPL)", {
+        CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Triple Z80 (drums mode on Y8950 and OPL)", {
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Chopper I", {
+        CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Chopper I (drums mode on Y8950)", {
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Chopper I (drums mode on OPL2)", {
+        CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Chopper I (drums mode on Y8950 and OPL2)", {
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Touchdown Fever", {
+        CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Touchdown Fever (drums mode on OPL)", {
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_Y8950, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Touchdown Fever (drums mode on Y8950)", {
+        CH(DIV_SYSTEM_OPL, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2")
+      }
+    );
+    SUB_ENTRY(
+      "SNK Touchdown Fever (drums mode on OPL and Y8950)", {
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "clockSel=2"),
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "clockSel=2")
+      }
+    );
+
+  ENTRY(
+    "Sunsoft", {}
+  );
+    SUB_ENTRY(
+      "Sunsoft Shanghai 3", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0,
+          "clockSel=4\n"
+          "chipType=1\n"
+        ), // YM2149 1.5MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=1") // 1.056MHz
+      }
+    );
+    SUB_ENTRY(
+      "Sunsoft Arcade", {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // discrete YM3438 8MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=1") // 1.056MHz
+      }
+    );
+    SUB_ENTRY(
+      "Sunsoft Arcade (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=2"), // discrete YM3438 8MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=1") // 1.056MHz
+      }
+    );
+
+  ENTRY(
+    "Taito", {}
+  );
+    SUB_ENTRY(
+      "Taito Arcade", {
+        CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Taito Arcade (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2610B_EXT, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Taito Metal Soldier Isaac II", {
+        CH(DIV_SYSTEM_MSM5232, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3"),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3")
+      }
+    );
+    SUB_ENTRY(
+      "Taito The Fairyland Story", {
+        CH(DIV_SYSTEM_MSM5232, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, 
+           "clockSel=3\n"
+           "chipType=1\n"
+        ),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+           "rate=11025\n" 
+           "outDepth=7\n"
+        ) // don't know what the actual sample rate is
+      }
+    );
+    SUB_ENTRY(
+      "Taito Wyvern F-0", {
+        CH(DIV_SYSTEM_MSM5232, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, 
+           "clockSel=3\n"
+           "chipType=1\n"
+        ),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, 
+           "clockSel=3\n"
+           "chipType=1\n"
+        ),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
+           "rate=11025\n" 
+           "outDepth=7\n"
+        ) // don't know what the actual sample rate is
+      }
+    );
+
+  ENTRY(
+    "Tecmo", {}
+  );
+    SUB_ENTRY(
+      "Tecmo Ninja Gaiden", { // Ninja Gaiden, Raiga, etc
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1MHz
+      }
+    );
+    SUB_ENTRY(
+      "Tecmo Ninja Gaiden (extended channel 3 on first OPN)", { // Ninja Gaiden, Raiga, etc
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1MHz
+      }
+    );
+    SUB_ENTRY(
+      "Tecmo Ninja Gaiden (extended channel 3 on second OPN)", { // Ninja Gaiden, Raiga, etc
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1MHz
+      }
+    );
+    SUB_ENTRY(
+      "Tecmo Ninja Gaiden (extended channel 3 on both OPNs)", { // Ninja Gaiden, Raiga, etc
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1MHz
+      }
+    );
+    SUB_ENTRY(
+      "Tecmo System", {
+        CH(DIV_SYSTEM_OPL3, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2MHz
+      }
+    );
+    SUB_ENTRY(
+      "Tecmo System (drums mode)", {
+        CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2MHz
+      }
+    );
+    SUB_ENTRY(
+      "Seibu Kaihatsu Raiden", { // Raiden, Seibu cup soccer, Zero team, etc
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // YM3812 3.58MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 or 1.023MHz (28.636363MHz / 28); various per games
+      }
+    );
+    SUB_ENTRY(
+      "Seibu Kaihatsu Raiden (drums mode)", { // Raiden, Seibu cup soccer, Zero team, etc
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // YM3812 3.58MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 or 1.023MHz (28.636363MHz / 28); various per games
+      }
+    );
+
+  ENTRY(
+    "Other", {}
+  );
+
+  // UNSORTED
+    SUB_ENTRY(
+      "Bally Midway MCR", {
+        // SSIO sound board
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3"), // 2MHz
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=3") // 2MHz
+        // additional sound boards, mostly software controlled DAC
+      }
+    );
+    SUB_ENTRY(
+      "Williams/Midway Y/T unit w/ADPCM sound board", {
+        // ADPCM sound board
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
+          "rate=15625\n"
+          "outDepth=7\n"
+        ), // variable via OPM timer?
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "NMK 16-bit Arcade", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=2\n"
+          "rateSel=true\n"
+        ), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=2\n"
+          "rateSel=true\n"
+        ) // ^^
+      }
+    );
+    SUB_ENTRY(
+      "NMK 16-bit Arcade (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=2\n"
+          "rateSel=true\n"
+        ), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=2\n"
+          "rateSel=true\n"
+        ) // ^^
+      }
+    );
+    SUB_ENTRY(
+      "NMK 16-bit Arcade (w/NMK112 bankswitching)", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=2\n"
+          "rateSel=true\n"
+          "isBanked=true\n"
+        ), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=2\n"
+          "rateSel=true\n"
+          "isBanked=true\n"
+        ) // ^^
+      }
+    );
+    SUB_ENTRY(
+      "NMK 16-bit Arcade (w/NMK112 bankswitching, extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz; optional
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=2\n"
+          "rateSel=true\n"
+          "isBanked=true\n"
+        ), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=2\n"
+          "rateSel=true\n"
+          "isBanked=true\n"
+        ) // ^^
+      }
+    );
+    SUB_ENTRY(
+      "Atlus Power Instinct 2", {
+        CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=13\n"
+          "rateSel=true\n"
+          "isBanked=true\n"
+        ), // 3MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=13\n"
+          "rateSel=true\n"
+          "isBanked=true\n"
+        ) // ^^
+      }
+    );
+    SUB_ENTRY(
+      "Atlus Power Instinct 2 (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=13\n"
+          "rateSel=true\n"
+          "isBanked=true\n"
+        ), // 3MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=13\n"
+          "rateSel=true\n"
+          "isBanked=true\n"
+        ) // ^^
+      }
+    );
+    SUB_ENTRY(
+      "Raizing/Eighting Battle Garegga", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=8\n"
+          "isBanked=true\n"
+        ) // 2MHz
+      }
+    );
+    SUB_ENTRY(
+      "Raizing/Eighting Batrider", {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=15\n"
+          "isBanked=true\n"
+        ), // 3.2MHz
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0,
+          "clockSel=15\n"
+          "rateSel=true\n"
+          "isBanked=true\n"
+        ) // 3.2MHz
+      }
+    );
+    SUB_ENTRY(
+      "Nichibutsu Mag Max", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=13"),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=13"),
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=13")
+      }
+    );
+    SUB_ENTRY(
+      "Cave 68000", {
+        CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Coreland Cyber Tank", {
+        CH(DIV_SYSTEM_Y8950, 1.0f, -1.0f, ""), // 3.58MHz, Left output
+        CH(DIV_SYSTEM_Y8950, 1.0f, 1.0f, "") // 3.58MHz, Right output
+      }
+    );
+    SUB_ENTRY(
+      "Coreland Cyber Tank (drums mode)", {
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, -1.0f, ""), // 3.58MHz, Left output
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 1.0f, "") // 3.58MHz, Right output
+      }
+    );
+    SUB_ENTRY(
+      "ICE Skimaxx", {
+        CH(DIV_SYSTEM_MSM6295, 1.0f, -1.0f,
+          "clockSel=2\n"
+          "rateSel=true\n"
+        ), // 4MHz, Left output
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 1.0f,
+          "clockSel=2\n"
+          "rateSel=true\n"
+        ), // 4MHz, Right output
+        CH(DIV_SYSTEM_MSM6295, 1.0f, -1.0f, "clockSel=8"), // 2MHz, Left output
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 1.0f, "clockSel=8") // 2MHz, Right output
+      }
+    );
+    SUB_ENTRY(
+      "Toaplan 1", {
+        CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=5") // 3.5MHz
+      }
+    );
+    SUB_ENTRY(
+      "Toaplan 1 (drums mode)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=5") // 3.5MHz
+      }
+    );
+    SUB_ENTRY(
+      "Dynax/Nakanihon 3rd generation hardware", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""), // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
+        CH(DIV_SYSTEM_OPLL, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=6") // 1.023MHz mostly
+      }
+    );
+    SUB_ENTRY(
+      "Dynax/Nakanihon 3rd generation hardware (drums mode)", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, ""), // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
+        CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=6") // 1.023MHz mostly
+      }
+    );
+    SUB_ENTRY(
+      "Dynax/Nakanihon Real Break", {
+        CH(DIV_SYSTEM_OPLL, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Dynax/Nakanihon Real Break (drums mode)", {
+        CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "")
+      }
+    );
   CATEGORY_END;
 
+  CATEGORY_BEGIN("User","system presets that you have saved.");
+  CATEGORY_END;
 
   CATEGORY_BEGIN("FM","chips which use frequency modulation (FM) to generate sound.\nsome of these also pack more (like square and sample channels).");
   ENTRY(
@@ -2357,101 +2442,101 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3")
     }
   );
-  ENTRY(
-    "Yamaha YM2203 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YM2203 (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3")
+      }
+    );
   ENTRY(
     "Yamaha YM2608 (OPNA)", {
       CH(DIV_SYSTEM_YM2608, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Yamaha YM2608 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YM2608 (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2608_EXT, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Yamaha YM2610 (OPNB)", {
       CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Yamaha YM2610 (extended channel 2)", {
-      CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YM2610 (extended channel 2)", {
+        CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Yamaha YM2610B (OPNB2)", {
       CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Yamaha YM2610B (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2610B_EXT, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YM2610B (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2610B_EXT, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Yamaha YM2612 (OPN2)", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=1")
     }
   );
-  ENTRY(
-    "Yamaha YM2612 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=1")
-    }
-  );
-  ENTRY(
-    "Yamaha YM2612 (OPN2) CSM", {
-      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=1")
-    }
-  );
-  ENTRY(
-    "Yamaha YM2612 (OPN2) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=1")
-    }
-  );
-  ENTRY(
-    "Yamaha YM2612 (extended channel 3) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=1")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YM2612 (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=1")
+      }
+    );
+    SUB_ENTRY(
+      "Yamaha YM2612 (OPN2) CSM", {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=1")
+      }
+    );
+    SUB_ENTRY(
+      "Yamaha YM2612 (OPN2) with DualPCM", {
+        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=1")
+      }
+    );
+    SUB_ENTRY(
+      "Yamaha YM2612 (extended channel 3) with DualPCM", {
+        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=1")
+      }
+    );
   ENTRY(
     "Yamaha YMF276 (OPN2)", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=2")
     }
   );
-  ENTRY(
-    "Yamaha YMF276 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=2")
-    }
-  );
-  ENTRY(
-    "Yamaha YMF276 (OPN2) CSM", {
-      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=2")
-    }
-  );
-  ENTRY(
-    "Yamaha YMF276 (OPN2) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=2")
-    }
-  );
-  ENTRY(
-    "Yamaha YMF276 (extended channel 3) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=2")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YMF276 (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=2")
+      }
+    );
+    SUB_ENTRY(
+      "Yamaha YMF276 (OPN2) CSM", {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=2")
+      }
+    );
+    SUB_ENTRY(
+      "Yamaha YMF276 (OPN2) with DualPCM", {
+        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=2")
+      }
+    );
+    SUB_ENTRY(
+      "Yamaha YMF276 (extended channel 3) with DualPCM", {
+        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=2")
+      }
+    );
   ENTRY(
     "Yamaha YM2413 (OPLL)", {
       CH(DIV_SYSTEM_OPLL, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Yamaha YM2413 (drums mode)", {
-      CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YM2413 (drums mode)", {
+        CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Yamaha YM2414 (OPZ)", {
       CH(DIV_SYSTEM_OPZ, 1.0f, 0, "")
@@ -2462,66 +2547,66 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Yamaha YM3438 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Yamaha YM3438 (OPN2C) CSM", {
-      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Yamaha YM3438 (OPN2C) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
-    "Yamaha YM3438 (extended channel 3) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YM3438 (extended channel 3)", {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Yamaha YM3438 (OPN2C) CSM", {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Yamaha YM3438 (OPN2C) with DualPCM", {
+        CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Yamaha YM3438 (extended channel 3) with DualPCM", {
+        CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Yamaha YM3526 (OPL)", {
       CH(DIV_SYSTEM_OPL, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Yamaha YM3526 (drums mode)", {
-      CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YM3526 (drums mode)", {
+        CH(DIV_SYSTEM_OPL_DRUMS, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Yamaha Y8950", {
       CH(DIV_SYSTEM_Y8950, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Yamaha Y8950 (drums mode)", {
-      CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha Y8950 (drums mode)", {
+        CH(DIV_SYSTEM_Y8950_DRUMS, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Yamaha YM3812 (OPL2)", {
       CH(DIV_SYSTEM_OPL2, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Yamaha YM3812 (drums mode)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YM3812 (drums mode)", {
+        CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Yamaha YMF262 (OPL3)", {
       CH(DIV_SYSTEM_OPL3, 1.0f, 0, "")
     }
   );
-  ENTRY(
-    "Yamaha YMF262 (drums mode)", {
-      CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, "")
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YMF262 (drums mode)", {
+        CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Yamaha YMF289B (OPL3-L)", {
       CH(DIV_SYSTEM_OPL3, 1.0f, 0, 
@@ -2530,14 +2615,14 @@ void FurnaceGUI::initSystemPresets() {
       )
     }
   );
-  ENTRY(
-    "Yamaha YMF289B (drums mode)", {
-      CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, 
-         "clockSel=5\n"
-         "chipType=1\n"
-      )
-    }
-  );
+    SUB_ENTRY(
+      "Yamaha YMF289B (drums mode)", {
+        CH(DIV_SYSTEM_OPL3_DRUMS, 1.0f, 0, 
+           "clockSel=5\n"
+           "chipType=1\n"
+        )
+      }
+    );
   ENTRY(
     "ESS ES1xxx series (ESFM)", {
       CH(DIV_SYSTEM_ESFM, 1.0f, 0, "")
@@ -2558,53 +2643,53 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=1")
     }
   );
-  ENTRY(
-    "TI SN76489A", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=4")
-    }
-  );
-  ENTRY(
-    "TI SN76496", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=5")
-    }
-  );
-  ENTRY(
-    "NCR 8496", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=6")
-    }
-  );
-  ENTRY(
-    "Tandy PSSJ 3-voice sound", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=7")
-      // 8 bit DAC
-    }
-  );
-  ENTRY(
-    "Sega PSG (SN76489-like)", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
-    }
-  );
-  ENTRY(
-    "Sega PSG (SN76489-like, Stereo)", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=3")
-    }
-  );
-  ENTRY(
-    "TI SN94624", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0,
-        "clockSel=6\n"
-        "chipType=8\n"
-      )
-    }
-  );
-  ENTRY(
-    "TI SN76494", {
-      CH(DIV_SYSTEM_SMS, 1.0f, 0,
-        "clockSel=6\n"
-        "chipType=9\n"
-      )
-    }
-  );
+    SUB_ENTRY(
+      "TI SN76489A", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=4")
+      }
+    );
+    SUB_ENTRY(
+      "TI SN76496", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=5")
+      }
+    );
+    SUB_ENTRY(
+      "NCR 8496", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=6")
+      }
+    );
+    SUB_ENTRY(
+      "Tandy PSSJ 3-voice sound", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=7")
+        // 8 bit DAC
+      }
+    );
+    SUB_ENTRY(
+      "Sega PSG (SN76489-like)", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, ""),
+      }
+    );
+    SUB_ENTRY(
+      "Sega PSG (SN76489-like, Stereo)", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=3")
+      }
+    );
+    SUB_ENTRY(
+      "TI SN94624", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0,
+          "clockSel=6\n"
+          "chipType=8\n"
+        )
+      }
+    );
+    SUB_ENTRY(
+      "TI SN76494", {
+        CH(DIV_SYSTEM_SMS, 1.0f, 0,
+          "clockSel=6\n"
+          "chipType=9\n"
+        )
+      }
+    );
   ENTRY(
     "Toshiba T6W28", {
       CH(DIV_SYSTEM_T6W28, 1.0f, 0, "")
@@ -2925,7 +3010,7 @@ void FurnaceGUI::initSystemPresets() {
     "tickRate=50"
   );
   ENTRY(
-    "NDS", {
+    "Nintendo DS", {
       CH(DIV_SYSTEM_NDS, 1.0f, 0, "")
     }
   );
@@ -3035,4 +3120,13 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceG
   if (extra) {
     definition+=extra;
   }
+}
+
+// functions for loading/saving user presets
+bool loadUserPresets(bool redundancy) {
+  return true;
+}
+
+bool saveUserPresets(bool redundancy) {
+  return true;
 }

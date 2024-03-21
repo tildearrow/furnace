@@ -22,8 +22,80 @@
 #include <fmt/printf.h>
 #include <algorithm>
 
+String sysDefID;
+
+void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted, std::vector<int>& sysDefStack) {
+  int index=0;
+  String sysDefIDLeader="##NS";
+  for (int i: sysDefStack) {
+    sysDefIDLeader+=fmt::sprintf("/%d",i);
+  }
+  for (FurnaceGUISysDef& i: category) {
+    bool treeNode=false;
+    bool isHovered=false;
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (!i.subDefs.empty()) {
+      if (i.orig.empty()) {
+        sysDefID=fmt::sprintf("%s%s/%dS",i.name,sysDefIDLeader,index);
+      } else {
+        sysDefID=fmt::sprintf("%s/%dS",sysDefIDLeader,index);
+      }
+      treeNode=ImGui::TreeNodeEx(sysDefID.c_str(),i.orig.empty()?ImGuiTreeNodeFlags_SpanAvailWidth:0);
+      ImGui::SameLine();
+    }
+    if (!i.orig.empty()) {
+      sysDefID=fmt::sprintf("%s%s/%d",i.name,sysDefIDLeader,index);
+      if (ImGui::Selectable(sysDefID.c_str(),false,ImGuiSelectableFlags_DontClosePopups)) {
+        nextDesc=i.definition;
+        nextDescName=i.name;
+        accepted=true;
+      }
+      if (ImGui::IsItemHovered()) isHovered=true;
+    } else if (i.subDefs.empty()) {
+      ImGui::TextUnformatted(i.name);
+      if (ImGui::IsItemHovered()) isHovered=true;
+    }
+    if (treeNode) {
+      sysDefStack.push_back(index);
+      drawSysDefs(i.subDefs,accepted,sysDefStack);
+      sysDefStack.erase(sysDefStack.end()-1);
+      ImGui::TreePop();
+    }
+    if (isHovered) {
+      if (ImGui::BeginTooltip()) {
+        std::map<DivSystem,int> chipCounts;
+        std::vector<DivSystem> chips;
+        for (FurnaceGUISysDefChip chip: i.orig) {
+          if (chipCounts.find(chip.sys)==chipCounts.end()) {
+            chipCounts[chip.sys]=1;
+            chips.push_back(chip.sys);
+          } else {
+            chipCounts[chip.sys]+=1;
+          }
+        }
+        for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) {
+          DivSystem chip=chips[chipIndex];
+          const DivSysDef* sysDef=e->getSystemDef(chip);
+          ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
+          ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
+          ImGui::Text("%s",sysDef->description);
+          ImGui::PopTextWrapPos();
+          if (chipIndex+1<chips.size()) {
+            ImGui::Separator();
+          }
+        }
+
+        ImGui::EndTooltip();
+      }
+    }
+    index++;
+  }
+}
+
 void FurnaceGUI::drawNewSong() {
   bool accepted=false;
+  std::vector<int> sysDefStack;
 
   ImGui::PushFont(bigFont);
   ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Choose a System!").x)*0.5);
@@ -97,6 +169,7 @@ void FurnaceGUI::drawNewSong() {
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s",i.description);
           }
+          if (strcmp(i.name,"User")==0) ImGui::Separator();
           index++;
         }
       }
@@ -105,43 +178,19 @@ void FurnaceGUI::drawNewSong() {
       ImGui::TableNextColumn();
       if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
         std::vector<FurnaceGUISysDef>& category=(newSongQuery.empty())?(sysCategories[newSongCategory].systems):(newSongSearchResults);
-        for (FurnaceGUISysDef& i: category) {
+        if (category.empty()) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
-          if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
-            nextDesc=i.definition;
-            nextDescName=i.name;
-            accepted=true;
+          if (newSongQuery.empty()) {
+            ImGui::Text("no systems here yet!");
+          } else {
+            ImGui::Text("no results");
           }
-          if (ImGui::IsItemHovered()) {
-            if (ImGui::BeginTooltip()) {
-              std::map<DivSystem,int> chipCounts;
-              std::vector<DivSystem> chips;
-              for (FurnaceGUISysDefChip chip: i.orig) {
-                if (chipCounts.find(chip.sys)==chipCounts.end()) {
-                  chipCounts[chip.sys]=1;
-                  chips.push_back(chip.sys);
-                } else {
-                  chipCounts[chip.sys]+=1;
-                }
-              }
-              for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) {
-                DivSystem chip=chips[chipIndex];
-                const DivSysDef* sysDef=e->getSystemDef(chip);
-                ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
-                ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
-                ImGui::Text("%s",sysDef->description);
-                ImGui::PopTextWrapPos();
-                if (chipIndex+1<chips.size()) {
-                  ImGui::Separator();
-                }
-              }
-
-              ImGui::EndTooltip();
-            }
-          }
+        } else {
+          sysDefStack.push_back(newSongQuery.empty()?newSongCategory:-1);
+          drawSysDefs(category,accepted,sysDefStack);
+          sysDefStack.erase(sysDefStack.end()-1);
         }
-
         ImGui::EndTable();
       }
 

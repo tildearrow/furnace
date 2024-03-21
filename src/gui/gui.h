@@ -1814,6 +1814,7 @@ class FurnaceGUI {
     int basicColors;
     int playbackTime;
     int shaderOsc;
+    int cursorWheelStep;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -2018,6 +2019,7 @@ class FurnaceGUI {
       basicColors(1),
       playbackTime(1),
       shaderOsc(1),
+      cursorWheelStep(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2511,6 +2513,7 @@ class FurnaceGUI {
 
   void updateWindowTitle();
   void autoDetectSystem();
+  void autoDetectSystemIter(std::vector<FurnaceGUISysDef>& category, bool& isMatch, std::map<DivSystem,int>& defCountMap, std::map<DivSystem,DivConfig>& defConfMap, std::map<DivSystem,int>& sysCountMap, std::map<DivSystem,DivConfig>& sysConfMap);
   void prepareLayout();
   ImVec4 channelColor(int ch);
   ImVec4 channelTextColor(int ch);
@@ -2548,6 +2551,8 @@ class FurnaceGUI {
   void insListItem(int index, int dir, int asset);
   void waveListItem(int index, float* wavePreview, int dir, int asset);
   void sampleListItem(int index, int dir, int asset);
+
+  void drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted, std::vector<int>& sysDefStack);
 
   void toggleMobileUI(bool enable, bool force=false);
 
@@ -2711,6 +2716,9 @@ class FurnaceGUI {
   void initSystemPresets();
   void initTutorial();
   void activateTutorial(FurnaceGUITutorials which);
+
+  bool loadUserPresets(bool redundancy=true);
+  bool saveUserPresets(bool redundancy=true);
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false, bool bit30=false);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);

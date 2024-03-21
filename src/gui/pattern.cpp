@@ -469,7 +469,10 @@ void FurnaceGUI::drawPattern() {
       nextAddScroll=0.0f;
     }
     ImDrawList* tdl=NULL;
-    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
+
+    if (chans<1) {
+      ImGui::Text("there aren't any channels to show.");
+    } else if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|((settings.cursorFollowsWheel || wheelCalmDown)?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
@@ -1176,7 +1179,13 @@ void FurnaceGUI::drawPattern() {
       // cursor follows wheel
       if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
         if (wheelX!=0 || wheelY!=0) {
-          moveCursor(wheelX,(settings.cursorFollowsWheel==2)?wheelY:-wheelY,false);
+          int xAmount=wheelX;
+          int yAmount=(settings.cursorFollowsWheel==2)?wheelY:-wheelY;
+          if (settings.cursorWheelStep==1) {
+            xAmount*=MAX(1,editStep);
+            yAmount*=MAX(1,editStep);
+          }
+          moveCursor(xAmount,yAmount,false);
         }
       }
 

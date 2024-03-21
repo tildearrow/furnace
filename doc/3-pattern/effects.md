@@ -2,7 +2,7 @@
 
 some of the effect numbers are taken from ProTracker / FastTracker 2.
 
-however, effects are continuous, which means you only need to type it once and then stop it with an effect value of `00` or no effect value at all.
+however, effects are continuous (unless specified), which means you only need to type it once and then stop it with an effect value of `00` or no effect value at all.
 
 ## volume
 
