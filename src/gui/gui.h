@@ -1814,6 +1814,7 @@ class FurnaceGUI {
     int basicColors;
     int playbackTime;
     int shaderOsc;
+    int cursorWheelStep;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -2018,6 +2019,7 @@ class FurnaceGUI {
       basicColors(1),
       playbackTime(1),
       shaderOsc(1),
+      cursorWheelStep(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

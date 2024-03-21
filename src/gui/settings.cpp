@@ -2423,6 +2423,18 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
+        if (settings.cursorFollowsWheel) {
+          ImGui::Text("How many steps to move with each scroll wheel step?");
+          if (ImGui::RadioButton("One##cws0",settings.cursorWheelStep==0)) {
+            settings.cursorWheelStep=0;
+            settingsChanged=true;
+          }
+          if (ImGui::RadioButton("Edit Step##cws1",settings.cursorWheelStep==1)) {
+            settings.cursorWheelStep=1;
+            settingsChanged=true;
+          }
+        }
+
         // SUBSECTION ASSETS
         CONFIG_SUBSECTION("Assets");
 
@@ -3992,6 +4004,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.insertBehavior=conf.getInt("insertBehavior",1);
     settings.pullDeleteRow=conf.getInt("pullDeleteRow",1);
     settings.cursorFollowsWheel=conf.getInt("cursorFollowsWheel",0);
+    settings.cursorWheelStep=conf.getInt("cursorWheelStep",0);
     settings.removeInsOff=conf.getInt("removeInsOff",0);
     settings.removeVolOff=conf.getInt("removeVolOff",0);
     settings.insTypeMenu=conf.getInt("insTypeMenu",1);
@@ -4323,6 +4336,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.playbackTime,0,1);
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
+  clampSetting(settings.cursorWheelStep,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4462,6 +4476,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("insertBehavior",settings.insertBehavior);
     conf.set("pullDeleteRow",settings.pullDeleteRow);
     conf.set("cursorFollowsWheel",settings.cursorFollowsWheel);
+    conf.set("cursorWheelStep",settings.cursorWheelStep);
     conf.set("removeInsOff",settings.removeInsOff);
     conf.set("removeVolOff",settings.removeVolOff);
     conf.set("insTypeMenu",settings.insTypeMenu);
