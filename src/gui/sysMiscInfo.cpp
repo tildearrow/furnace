@@ -289,12 +289,15 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
 }
 
 void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  const ImVec2 p=ImGui::GetCursorScreenPos();
+  float scaler=5.0f*dpiScale;
+  float x=p.x+dpiScale;
   for (int i=0; i<whichDef->channels; i++) {
-    ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]));
-    ImGui::SmallButton("##ChanTypeColorThing");
-    if (i<whichDef->channels-1) ImGui::SameLine();
-    ImGui::PopStyleColor();
+    dl->AddRectFilled(ImVec2(x,p.y),ImVec2(x+2.0f*scaler,p.y+4.0f*scaler),ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]),scaler);
+    x+=3.0f*scaler;
   }
+  ImGui::Dummy(ImVec2(0,4*scaler));
 }
 
 void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
