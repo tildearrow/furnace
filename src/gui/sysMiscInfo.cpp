@@ -18,6 +18,9 @@
  */
  
 #include "gui.h"
+#include "guiConst.h"
+#include "misc/cpp/imgui_stdlib.h"
+#include <fmt/printf.h>
 
 const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   switch (sys) {
@@ -283,4 +286,64 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return FurnaceGUI::getSystemName(sys);
       break;
   }
+}
+
+void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
+  for (int i=0; i<whichDef->channels; i++) {
+    ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]));
+    ImGui::SmallButton("##ChanTypeColorThing");
+    if (i<whichDef->channels-1) ImGui::SameLine();
+    ImGui::PopStyleColor();
+  }
+}
+
+void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
+  String info="";
+  unsigned char chanCount[8]={0,0,0,0,0,0,0,0};
+  for (int i=0; i<whichDef->channels; i++) {
+    switch (whichDef->chanInsType[i][0]) {
+      case DIV_INS_STD: // square
+        switch (whichDef->chanTypes[i]) {
+          case DIV_CH_NOISE:
+            chanCount[2]++;
+            break;
+          default: // DIV_CH_PULSE ?
+            chanCount[5]++;
+            break;
+        }
+        break;
+      case DIV_INS_NES:
+        if (whichDef->chanTypes[i]==DIV_CH_WAVE) {
+          chanCount[6]++; // trianlge
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_C64:
+      case DIV_INS_TIA:
+      case DIV_INS_PET:
+      case DIV_INS_SU:
+        chanCount[7]++;
+        break;
+      default:
+        chanCount[whichDef->chanTypes[i]]++;
+        break;
+    }
+  }
+  for (int i=0; i<8; i++) {
+    if (chanCount[i]==0) continue;
+    if (info.length()!=0) {
+      info+=", ";
+    }
+    if (i==7) {
+      if (chanCount[i]>1) {
+        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[8]);
+      } else {
+        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[7]);
+      }
+      continue;
+    }
+    info+=fmt::sprintf("%d x %s",chanCount[i],chanNames[i]);
+  }
+  ImGui::Text("%s",info.c_str());
 }

@@ -2613,6 +2613,7 @@ class FurnaceGUI {
   void drawTutorial();
   void drawXYOsc();
   void drawSystemChannelInfo(const DivSysDef* whichDef);
+  void drawSystemChannelInfoText(const DivSysDef* whichDef);
 
   void parseKeybinds();
   void promptKey(int which);

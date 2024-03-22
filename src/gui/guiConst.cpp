@@ -240,6 +240,7 @@ const char* chanNames[]={
   "Wavetable",
   "Sample",
   "Square",
+  "Triangle",
   "Channel", // if neither
   "Channels"
 };

@@ -23,15 +23,6 @@
 #include <fmt/printf.h>
 #include <imgui.h>
 
-void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
-  for (int i=0; i<whichDef->channels; i++) {
-    ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]));
-    ImGui::SmallButton("##ChanTypeColorThing");
-    if (i<whichDef->channels-1) ImGui::SameLine();
-    ImGui::PopStyleColor();
-  }
-}
-
 void FurnaceGUI::drawSysManager() {
   if (nextWindow==GUI_WINDOW_SYS_MANAGER) {
     sysManagerOpen=true;
@@ -100,9 +91,10 @@ void FurnaceGUI::drawSysManager() {
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_Stationary) && isNotCollapsed && settings.chipManagerTooltip) {
           if (e->song.system[i]!=DIV_SYSTEM_NULL) {
             const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
-            if (ImGui::BeginTooltip()) { // why not SetTooltip()? so i can wrap the text
+            if (ImGui::BeginTooltip()) {
               ImGui::PushTextWrapPos(ImGui::GetCursorPos().x+420); // arbitrary constant
               ImGui::TextWrapped("%s",sysDef->description);
+              drawSystemChannelInfoText(sysDef);
               ImGui::PopTextWrapPos();
               if (settings.sysTooltipChannelColors) drawSystemChannelInfo(sysDef);
               ImGui::EndTooltip();
