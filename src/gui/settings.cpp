@@ -2760,11 +2760,25 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        bool sysTooltipChannelColorsB=settings.sysTooltipChannelColors;
-        if (ImGui::Checkbox("Show channel count with colors in the system info tooltips",&sysTooltipChannelColorsB)) { // poor wording
-          settings.sysTooltipChannelColors=sysTooltipChannelColorsB;
+        ImGui::Text("System tooltip channel information style:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("None##stciNO",settings.sysTooltipChanInfoStyle==0)) {
+          settings.sysTooltipChanInfoStyle=0;
           settingsChanged=true;
         }
+        if (ImGui::RadioButton("Text##stciTX",settings.sysTooltipChanInfoStyle==1)) {
+          settings.sysTooltipChanInfoStyle=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Color... things?##stciCO",settings.sysTooltipChanInfoStyle==2)) {
+          settings.sysTooltipChanInfoStyle=2; // retext!!!
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Both##stciTC",settings.sysTooltipChanInfoStyle==3)) {
+          settings.sysTooltipChanInfoStyle=3;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
 
         // SUBSECTION ORDERS
         CONFIG_SUBSECTION("Orders");
@@ -4132,7 +4146,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.controlLayout=conf.getInt("controlLayout",3);
     settings.classicChipOptions=conf.getInt("classicChipOptions",0);
     settings.chipManagerTooltip=conf.getInt("chipManagerTooltip",0);
-    settings.sysTooltipChannelColors=conf.getInt("sysTooltipChannelColors",0);
+    settings.sysTooltipChanInfoStyle=conf.getInt("sysTooltipChanInfoStyle",0);
   }
 
   if (groups&GUI_SETTINGS_COLOR) {
@@ -4352,7 +4366,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.oscLineSize,0.25f,16.0f);
   clampSetting(settings.cursorWheelStep,0,1);
   clampSetting(settings.chipManagerTooltip,0,1);
-  clampSetting(settings.sysTooltipChannelColors,0,1);
+  clampSetting(settings.sysTooltipChanInfoStyle,0,3);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4611,7 +4625,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("controlLayout",settings.controlLayout);
     conf.set("classicChipOptions",settings.classicChipOptions);
     conf.set("chipManagerTooltip",settings.chipManagerTooltip);
-    conf.set("sysTooltipChannelColors",settings.sysTooltipChannelColors);
+    conf.set("sysTooltipChanInfoStyle",settings.sysTooltipChanInfoStyle);
   }
 
   // color

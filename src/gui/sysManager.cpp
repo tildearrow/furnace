@@ -94,9 +94,9 @@ void FurnaceGUI::drawSysManager() {
             if (ImGui::BeginTooltip()) {
               ImGui::PushTextWrapPos(ImGui::GetCursorPos().x+420); // arbitrary constant
               ImGui::TextWrapped("%s",sysDef->description);
-              drawSystemChannelInfoText(sysDef);
+              if (settings.sysTooltipChanInfoStyle&1) drawSystemChannelInfoText(sysDef);
+              if (settings.sysTooltipChanInfoStyle&2) drawSystemChannelInfo(sysDef);
               ImGui::PopTextWrapPos();
-              if (settings.sysTooltipChannelColors) drawSystemChannelInfo(sysDef);
               ImGui::EndTooltip();
             }
           }

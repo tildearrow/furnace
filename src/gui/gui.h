@@ -1816,7 +1816,7 @@ class FurnaceGUI {
     int shaderOsc;
     int cursorWheelStep;
     int chipManagerTooltip;
-    int sysTooltipChannelColors;
+    int sysTooltipChanInfoStyle;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -2023,7 +2023,7 @@ class FurnaceGUI {
       shaderOsc(1),
       cursorWheelStep(0),
       chipManagerTooltip(1), // poll?
-      sysTooltipChannelColors(1), // poll?
+      sysTooltipChanInfoStyle(3), // poll?
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
