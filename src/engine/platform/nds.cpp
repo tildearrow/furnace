@@ -23,7 +23,7 @@
 #include <math.h>
 
 #define CHIP_DIVIDER 32
-#define CLOCK_DIVIDER 512 // for match to output rate
+#define CLOCK_DIVIDER 128 // for match to output rate
 
 #define rRead8(a) (nds.read8(a))
 #define rWrite8(a,v) {if(!skipRegisterWrites) {nds.write8((a),(v)); regPool[(a)]=(v); if(dumpWrites) addWrite((a),(v)); }}
