@@ -1,7 +1,12 @@
-# IMPORTANT NOTICE
+# EXTREMELY IMPORTANT NOTICE - PLEASE **READ**!!!!!!!
 
-1. this section is exclusively for ISSUES related to Furnace (bugs, major annoyances and others).
-2. this section is NOT for Suggestions, Questions, Showcase or any other Discussions that do not meet the criteria and definition of an ISSUE.
+BY SUBMITTING AN ISSUE, YOU HEREBY AGREE TO COMPLY WITH THESE TERMS.
+FAILURE TO DO SO MAY RESULT IN YOUR ISSUE BEING DECLARED VOID.
+
+**ADDITIONALLY, FAILURE TO COMPLY WITH POINTS 1 AND 2 WILL RESULT IN THE INABILITY TO ISSUE FURTHER ISSUE REPORTS.**
+
+1. this section is exclusively for ISSUES related to Furnace (bugs, major annoyances and others). ONLY THINGS THAT COUNT AS **ISSUES** (ad pedem litterae).
+2. **THIS SECTION IS NOT FOR SUGGESTIONS, REQUESTS, QUESTIONS, SHOWCASE OR ANY OTHER DISCUSSIONS THAT DO NOT MEET THE CRITERIA AND DEFINITION OF AN __ISSUE__.**
   - see the Discussions section if you wish to submit these.
 3. check whether your issue has been reported already.
   - go to the Issues section, and use the search bar that appears on top of the Issues list.
@@ -33,7 +38,11 @@
     - Linux: `~/.config/furnace/furnace.log`
     - make sure to remove any personal information for privacy reasons.
 
-BY SUBMITTING A TICKET, YOU HEREBY AGREE TO COMPLY WITH THESE TERMS.
-FAILURE TO DO SO MAY RESULT IN YOUR TICKET BEING DECLARED VOID.
+BY SUBMITTING AN ISSUE, YOU HEREBY AGREE TO COMPLY WITH THESE TERMS.
+FAILURE TO DO SO MAY RESULT IN YOUR ISSUE BEING DECLARED VOID.
 
-***END OF NOTICE*** --- REMOVE THIS NOTICE AFTER READING!
+**ADDITIONALLY, FAILURE TO COMPLY WITH POINTS 1 AND 2 WILL RESULT IN THE INABILITY TO ISSUE FURTHER ISSUE REPORTS.**
+
+***END OF NOTICE***
+PLEASE REMOVE THIS NOTICE AFTER READING.
+FAILURE TO REMOVE THIS NOTICE IS NEGLIGENCE.

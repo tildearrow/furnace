@@ -2,7 +2,19 @@
 
 contributions to Furnace are welcome!
 
-# Getting ready
+# Issue reports
+
+if you find an issue with Furnace, see the Issues section.
+
+# Suggestions and other types of discussions
+
+see the Discussions section.
+
+**DO NOT USE THE ISSUES SECTION FOR THESE - it is only for ISSUES.**
+
+# Other
+
+## Getting ready
 
 log into your Github account, and click the Fork button in the header of the project's page.
 
@@ -14,9 +26,9 @@ git clone git@github.com:USERNAME/furnace.git
 
 (replace `USERNAME` with your username)
 
-# Working
+## Working
 
-## Code
+### Code
 
 bug fixes, improvements and several other things accepted.
 
@@ -84,11 +96,11 @@ additional guidelines:
 - on a switch block, **always** put `default` last and not in any other position.
   - I have fear of some C/C++ compilers ignoring the rest of cases upon hitting default.
 
-## Do NOT Force-Push after submitting Pull Request
+### Do NOT Force-Push after submitting Pull Request
 
 if you do so, your pull request will be closed.
 
-## Demo Songs
+### Demo Songs
 
 just put your demo song in `demos/`! be noted there are some guidelines:
 
@@ -100,11 +112,11 @@ just put your demo song in `demos/`! be noted there are some guidelines:
   - Pong: it is a joke system.
 - the song shall be in Furnace file format.
 
-# Finishing
+## Finishing
 
 after you've done your modifications, commit the changes and push.
 then open your fork on GitHub and send a pull request.
 
-# I don't know how to use Git but I want to contribute with a demo song
+## I don't know how to use Git but I want to contribute with a demo song
 
 you can also contact me directly! [find me here.](https://tildearrow.org/?p=contact)

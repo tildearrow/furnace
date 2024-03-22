@@ -202,16 +202,43 @@ void FurnaceGUI::drawNewSong() {
 
   if (ImGui::Button("I'm feeling lucky")) {
     if (sysCategories.size()==0) {
+      showError("no categories available! what in the world.");
       ImGui::CloseCurrentPopup();
     } else {
-      FurnaceGUISysCategory* newSystemCat=&sysCategories[rand()%sysCategories.size()];
-      if (newSystemCat->systems.size()==0) {
+      int tries=0;
+      for (tries=0; tries<50; tries++) {
+        FurnaceGUISysCategory* newSystemCat=&sysCategories[rand()%sysCategories.size()];
+        if (newSystemCat->systems.empty()) {
+          continue;
+        } else {
+          unsigned int selection=rand()%newSystemCat->systems.size();
+
+          if (newSystemCat->systems[selection].orig.empty() && newSystemCat->systems[selection].subDefs.empty()) continue;
+          if (!newSystemCat->systems[selection].subDefs.empty()) {
+            if (rand()%2) {
+              unsigned int subSel=rand()%newSystemCat->systems[selection].subDefs.size();
+              nextDesc=newSystemCat->systems[selection].subDefs[subSel].definition;
+              nextDescName=newSystemCat->systems[selection].subDefs[subSel].name;
+              accepted=true;
+            } else {
+              if (newSystemCat->systems[selection].orig.empty()) continue;
+              nextDesc=newSystemCat->systems[selection].definition;
+              nextDescName=newSystemCat->systems[selection].name;
+              accepted=true;
+            }
+          } else {
+            nextDesc=newSystemCat->systems[selection].definition;
+            nextDescName=newSystemCat->systems[selection].name;
+            accepted=true;
+          }
+        }
+
+        if (accepted) break;
+      }
+
+      if (tries>=50) {
+        showError("it appears you're extremely lucky today!");
         ImGui::CloseCurrentPopup();
-      } else {
-        unsigned int selection=rand()%newSystemCat->systems.size();
-        nextDesc=newSystemCat->systems[selection].definition;
-        nextDescName=newSystemCat->systems[selection].name;
-        accepted=true;
       }
     }
   }
