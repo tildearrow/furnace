@@ -1632,7 +1632,7 @@ class FurnaceGUI {
   struct Settings {
     bool settingsChanged;
     int mainFontSize, patFontSize, headFontSize, iconSize;
-    int audioEngine;
+    int audioEngine, audioFallbackEngine;
     int audioQuality;
     int audioHiPass;
     int audioChans;
@@ -1820,6 +1820,7 @@ class FurnaceGUI {
     String headFontPath;
     String patFontPath;
     String audioDevice;
+    String audioFallbackDevice;
     String midiInDevice;
     String midiOutDevice;
     String renderBackend;
@@ -1831,6 +1832,7 @@ class FurnaceGUI {
     String emptyLabel;
     String emptyLabel2;
     String sdlAudioDriver;
+    String sdlAudioFallbackDriver;
     String defaultAuthorName;
     DivConfig initialSys;
 
@@ -1841,6 +1843,7 @@ class FurnaceGUI {
       headFontSize(27),
       iconSize(16),
       audioEngine(DIV_AUDIO_SDL),
+      audioFallbackEngine(audioEngine),
       audioQuality(0),
       audioHiPass(1),
       audioChans(2),
@@ -2025,6 +2028,7 @@ class FurnaceGUI {
       headFontPath(""),
       patFontPath(""),
       audioDevice(""),
+      audioFallbackDevice(""),
       midiInDevice(""),
       midiOutDevice(""),
       renderBackend(""),
@@ -2036,6 +2040,7 @@ class FurnaceGUI {
       emptyLabel("..."),
       emptyLabel2(".."),
       sdlAudioDriver(""),
+      sdlAudioFallbackDriver(""),
       defaultAuthorName("") {}
   } settings;
 
