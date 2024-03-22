@@ -328,6 +328,12 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
       case DIV_INS_SU:
         chanCount[7]++;
         break;
+      case DIV_INS_OPL_DRUMS:
+      case DIV_INS_OPLL:
+        // TODO: drums
+      
+      // TODO: ext. ch.s
+
       default:
         chanCount[whichDef->chanTypes[i]]++;
         break;
