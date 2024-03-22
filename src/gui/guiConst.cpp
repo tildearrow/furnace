@@ -239,10 +239,14 @@ const char* chanNames[]={
   "Noise",
   "Wavetable",
   "Sample",
-  "Square",
+
+  "Square", // the "freaks"
   "Triangle",
+  "Ext. Operator", 
+  "Drums",
+
   "Channel", // if neither
-  "Channels"
+  "Channels" // in case this makes l10n easier
 };
 
 const FurnaceGUIColors fxColors[256]={

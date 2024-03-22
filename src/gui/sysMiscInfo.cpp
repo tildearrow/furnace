@@ -302,22 +302,47 @@ void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
 
 void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
   String info="";
-  unsigned char chanCount[8]={0,0,0,0,0,0,0,0};
+  // same order as chanNames
+  // helper: FM|PU|NO|WA|SP|SQ|TR|OP|DR|CH
+  unsigned char chanCount[10]={0,0,0,0,0,0,0,0,0,0};
   for (int i=0; i<whichDef->channels; i++) {
     switch (whichDef->chanInsType[i][0]) {
       case DIV_INS_STD: // square
-        switch (whichDef->chanTypes[i]) {
-          case DIV_CH_NOISE:
-            chanCount[2]++;
-            break;
-          default: // DIV_CH_PULSE ?
-            chanCount[5]++;
-            break;
+        if (whichDef->id==0xfd) { // dummy
+          chanCount[9]++;
+          break;
+        }
+        if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
+          chanCount[2]++;
+        } else { // DIV_CH_PULSE
+          chanCount[5]++;
         }
         break;
       case DIV_INS_NES:
         if (whichDef->chanTypes[i]==DIV_CH_WAVE) {
-          chanCount[6]++; // trianlge
+          chanCount[6]++; // triangle
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_OPL_DRUMS:
+      case DIV_INS_OPL:
+      case DIV_INS_OPLL:
+        if (whichDef->chanTypes[i]==DIV_CH_OP) {
+          chanCount[0]++; // opl3 4op
+          break;
+        }
+        if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
+          chanCount[8]++; // drums
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_FM:
+        if (whichDef->chanTypes[i]==DIV_CH_OP) {
+          chanCount[7]++; // ext. ops
+        } else if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
+          break; // csm timer
         } else {
           chanCount[whichDef->chanTypes[i]]++;
         }
@@ -326,29 +351,23 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
       case DIV_INS_TIA:
       case DIV_INS_PET:
       case DIV_INS_SU:
-        chanCount[7]++;
+        chanCount[9]++;
         break;
-      case DIV_INS_OPL_DRUMS:
-      case DIV_INS_OPLL:
-        // TODO: drums
-      
-      // TODO: ext. ch.s
-
       default:
         chanCount[whichDef->chanTypes[i]]++;
         break;
     }
   }
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<10; i++) {
     if (chanCount[i]==0) continue;
     if (info.length()!=0) {
       info+=", ";
     }
-    if (i==7) {
+    if (i==9) {
       if (chanCount[i]>1) {
-        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[8]);
+        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[10]);
       } else {
-        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[7]);
+        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[9]);
       }
       continue;
     }
