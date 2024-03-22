@@ -474,12 +474,14 @@ void FurnaceGUI::drawSettings() {
         ImGui::Indent();
         if (ImGui::RadioButton("ImGui line plot",settings.shaderOsc==0)) {
           settings.shaderOsc=0;
+          settingsChanged=true;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("render using Dear ImGui's built-in line drawing functions.");
         }
         if (ImGui::RadioButton("GLSL/HLSL (if available)",settings.shaderOsc==1)) {
           settings.shaderOsc=1;
+          settingsChanged=true;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("render using shaders that run on the graphics card.\nonly available in OpenGL render backend.");
