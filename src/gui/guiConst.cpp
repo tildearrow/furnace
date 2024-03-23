@@ -251,6 +251,9 @@ const char* chanNames[]={
   "Channels" // in case this makes l10n easier
 };
 
+// because someone will complain about the ordering
+unsigned char chanNamesHierarchy[]={0,5,1,2,3,6,9,10,8,4,7,11,12};
+
 const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_MISC, // 00
   GUI_COLOR_PATTERN_EFFECT_PITCH, // 01

@@ -312,6 +312,7 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
       case DIV_INS_BEEPER:
       case DIV_INS_TED:
       case DIV_INS_VIC:
+      case DIV_INS_T6W28:
         if (whichDef->id==0xfd) { // dummy
           chanCount[11]++;
           break;
@@ -320,7 +321,7 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
           chanCount[1]++;
           break;
         }
-        if (whichDef->chanTypes[i]==DIV_CH_NOISE) { // sn noise
+        if (whichDef->chanTypes[i]==DIV_CH_NOISE) { // sn/t6w noise
           chanCount[2]++;
         } else { // DIV_CH_PULSE, any sqr chan
           chanCount[5]++;
@@ -395,7 +396,8 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
     }
   }
 
-  for (int i=0; i<12; i++) {
+  for (int j=0; j<12; j++) {
+    unsigned char i=chanNamesHierarchy[j];
     if (chanCount[i]==0) continue;
     if (info.length()!=0) {
       info+=", ";
