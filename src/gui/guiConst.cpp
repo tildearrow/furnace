@@ -239,11 +239,13 @@ const char* chanNames[]={
   "Noise",
   "Wavetable",
   "Sample",
-
-  "Square", // the "freaks"
-  "Triangle",
+  // the "freaks":
+  "Square",
+  "Triangle", // nes
   "Ext. Operator", 
   "Drums",
+  "Slope", // powernoiseee
+  "VERA", // Daviiid!!
 
   "Channel", // if neither
   "Channels" // in case this makes l10n easier
