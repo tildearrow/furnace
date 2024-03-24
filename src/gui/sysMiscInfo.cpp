@@ -372,7 +372,7 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
         if (whichDef->chanTypes[i]==DIV_CH_PULSE) {
           chanCount[10]++;
         } else { // sample chan
-          chanCount[5]++;
+          chanCount[4]++;
         }
         break;
       case DIV_INS_DAVE:
