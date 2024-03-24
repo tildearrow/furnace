@@ -58,5 +58,6 @@ extern const FurnaceGUIColorDef guiColors[];
 extern const int altValues[24];
 extern const int vgmVersions[7];
 extern const FurnaceGUIColors fxColors[256];
-extern const FurnaceGUIColors fxColorsSort[10];
 extern const char* fxColorsNames[10];
+extern const char* chanNames[];
+extern unsigned char chanNamesHierarchy[];

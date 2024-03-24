@@ -474,12 +474,14 @@ void FurnaceGUI::drawSettings() {
         ImGui::Indent();
         if (ImGui::RadioButton("ImGui line plot",settings.shaderOsc==0)) {
           settings.shaderOsc=0;
+          settingsChanged=true;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("render using Dear ImGui's built-in line drawing functions.");
         }
         if (ImGui::RadioButton("GLSL/HLSL (if available)",settings.shaderOsc==1)) {
           settings.shaderOsc=1;
+          settingsChanged=true;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("render using shaders that run on the graphics card.\nonly available in OpenGL render backend.");
@@ -2754,6 +2756,32 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool chipManagerTooltipB=settings.chipManagerTooltip;
+        if (ImGui::Checkbox("Show system tooltips in the chip manager",&chipManagerTooltipB)) {
+          settings.chipManagerTooltip=chipManagerTooltipB;
+          settingsChanged=true;
+        }
+
+        ImGui::Text("System tooltip channel information style:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("None##stciNO",settings.sysTooltipChanInfoStyle==0)) {
+          settings.sysTooltipChanInfoStyle=0;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Text##stciTX",settings.sysTooltipChanInfoStyle==1)) {
+          settings.sysTooltipChanInfoStyle=1;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Color... things?##stciCO",settings.sysTooltipChanInfoStyle==2)) {
+          settings.sysTooltipChanInfoStyle=2; // retext!!!
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton("Both##stciTC",settings.sysTooltipChanInfoStyle==3)) {
+          settings.sysTooltipChanInfoStyle=3;
+          settingsChanged=true;
+        }
+        ImGui::Unindent();
+
         // SUBSECTION ORDERS
         CONFIG_SUBSECTION("Orders");
         // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
@@ -4119,6 +4147,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.macroLayout=conf.getInt("macroLayout",0);
     settings.controlLayout=conf.getInt("controlLayout",3);
     settings.classicChipOptions=conf.getInt("classicChipOptions",0);
+    settings.chipManagerTooltip=conf.getInt("chipManagerTooltip",0);
+    settings.sysTooltipChanInfoStyle=conf.getInt("sysTooltipChanInfoStyle",0);
   }
 
   if (groups&GUI_SETTINGS_COLOR) {
@@ -4337,6 +4367,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
   clampSetting(settings.cursorWheelStep,0,1);
+  clampSetting(settings.chipManagerTooltip,0,1);
+  clampSetting(settings.sysTooltipChanInfoStyle,0,3);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4594,6 +4626,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("macroLayout",settings.macroLayout);
     conf.set("controlLayout",settings.controlLayout);
     conf.set("classicChipOptions",settings.classicChipOptions);
+    conf.set("chipManagerTooltip",settings.chipManagerTooltip);
+    conf.set("sysTooltipChanInfoStyle",settings.sysTooltipChanInfoStyle);
   }
 
   // color

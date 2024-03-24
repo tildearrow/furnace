@@ -1815,6 +1815,8 @@ class FurnaceGUI {
     int playbackTime;
     int shaderOsc;
     int cursorWheelStep;
+    int chipManagerTooltip;
+    int sysTooltipChanInfoStyle;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -2020,6 +2022,8 @@ class FurnaceGUI {
       playbackTime(1),
       shaderOsc(1),
       cursorWheelStep(0),
+      chipManagerTooltip(1), // poll?
+      sysTooltipChanInfoStyle(3), // poll?
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2608,6 +2612,8 @@ class FurnaceGUI {
   void drawClock();
   void drawTutorial();
   void drawXYOsc();
+  void drawSystemChannelInfo(const DivSysDef* whichDef);
+  void drawSystemChannelInfoText(const DivSysDef* whichDef);
 
   void parseKeybinds();
   void promptKey(int which);
