@@ -3179,8 +3179,8 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        // SUBSECTION STATISTICS
-        CONFIG_SUBSECTION("Statistics");
+        // SUBSECTION MEMORY COMPOSITION
+        CONFIG_SUBSECTION("Memory Composition");
         ImGui::Text("Chip memory usage unit:");
         ImGui::Indent();
         if (ImGui::RadioButton("Bytes##MUU0",settings.memUsageUnit==0)) {

@@ -479,9 +479,9 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Use separate colors for carriers/modulators in FM editor**
 - **Unsigned FM detune values**: uses the internal representation of detune values, such that detune amounts of -1, -2, and -3 are shown as 5, 6, and 7.
 
-### Statistics
+### Memory Composition
 
-- **Chip memory usage unit:** unit for displaying memory usage in the Statistics window.
+- **Chip memory usage unit:** unit for displaying memory usage in the Memory Composition window.
   - **Bytes**
   - **Kilobytes**
 

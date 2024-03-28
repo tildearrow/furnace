@@ -47,7 +47,11 @@ void FurnaceGUI::drawMemory() {
 
         ImGui::Text("%s: %s",e->getSystemName(e->song.system[i]),mc->name.c_str());
         ImGui::SameLine();
-        ImGui::Text("%d/%d (%.1f%%)",(int)mc->used,(int)mc->capacity,100.0*(double)mc->used/(double)mc->capacity);
+        if (mc->capacity>=1024 && settings.memUsageUnit==1) {
+          ImGui::Text("%dK/%dK (%.1f%%)",(int)mc->used>>10,(int)mc->capacity>>10,100.0*(double)mc->used/(double)mc->capacity);
+        } else {
+          ImGui::Text("%d/%d (%.1f%%)",(int)mc->used,(int)mc->capacity,100.0*(double)mc->used/(double)mc->capacity);
+        }
 
         ImVec2 size=ImVec2(ImGui::GetContentRegionAvail().x,36.0f*dpiScale);
         ImVec2 minArea=window->DC.CursorPos;
@@ -141,13 +145,20 @@ void FurnaceGUI::drawMemory() {
                     if ((int)entry.type>=(int)DIV_MEMORY_BANK0) {
                       ImGui::Text("bank %d",(int)entry.type-(int)DIV_MEMORY_BANK0);
                     }
-                    ImGui::Text("%d-%d ($%x-$%x): %d bytes ($%x)",(int)entry.begin,(int)entry.end-1,(int)entry.begin,(int)entry.end-1,(int)(entry.end-entry.begin),(int)(entry.end-entry.begin));
-                    ImGui::Text("click to open sample editor");
+                    if ((entry.end-entry.begin)>=1024 && settings.memUsageUnit==1) {
+                      ImGui::Text("%d-%d ($%x-$%x): %dK ($%x)",(int)entry.begin,(int)entry.end-1,(int)entry.begin,(int)entry.end-1,(int)(entry.end-entry.begin)>>10,(int)(entry.end-entry.begin));
+                    } else {
+                      ImGui::Text("%d-%d ($%x-$%x): %d bytes ($%x)",(int)entry.begin,(int)entry.end-1,(int)entry.begin,(int)entry.end-1,(int)(entry.end-entry.begin),(int)(entry.end-entry.begin));
+                    }
                     break;
                   }
                   default:
                     ImGui::Text("%d: %s",curHover,entry.name.c_str());
-                    ImGui::Text("%d-%d ($%x-$%x): %d bytes ($%x)",(int)entry.begin,(int)entry.end-1,(int)entry.begin,(int)entry.end-1,(int)(entry.end-entry.begin),(int)(entry.end-entry.begin));
+                    if ((entry.end-entry.begin)>=1024 && settings.memUsageUnit==1) {
+                      ImGui::Text("%d-%d ($%x-$%x): %dK ($%x)",(int)entry.begin,(int)entry.end-1,(int)entry.begin,(int)entry.end-1,(int)(entry.end-entry.begin)>>10,(int)(entry.end-entry.begin));
+                    } else {
+                      ImGui::Text("%d-%d ($%x-$%x): %d bytes ($%x)",(int)entry.begin,(int)entry.end-1,(int)entry.begin,(int)entry.end-1,(int)(entry.end-entry.begin),(int)(entry.end-entry.begin));
+                    }
                     break;
                 }
 
