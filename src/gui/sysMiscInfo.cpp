@@ -18,6 +18,9 @@
  */
  
 #include "gui.h"
+#include "guiConst.h"
+#include "misc/cpp/imgui_stdlib.h"
+#include <fmt/printf.h>
 
 const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   switch (sys) {
@@ -283,4 +286,131 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return FurnaceGUI::getSystemName(sys);
       break;
   }
+}
+
+void FurnaceGUI::drawSystemChannelInfo(const DivSysDef* whichDef) {
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  const ImVec2 p=ImGui::GetCursorScreenPos();
+  float scaler=5.0f*dpiScale;
+  float x=p.x+dpiScale;
+  for (int i=0; i<whichDef->channels; i++) {
+    dl->AddRectFilled(ImVec2(x,p.y),ImVec2(x+2.0f*scaler,p.y+4.0f*scaler),ImGui::GetColorU32(uiColors[whichDef->chanTypes[i]+GUI_COLOR_CHANNEL_FM]),scaler);
+    x+=3.0f*scaler;
+  }
+  ImGui::Dummy(ImVec2(0,4*scaler));
+}
+
+void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
+  String info="";
+  // same order as chanNames
+  // helper: FM|PU|NO|WA|SA|SQ|TR|OP|DR|SL|VE|CH
+  unsigned char chanCount[12];
+  memset(chanCount,0,sizeof(chanCount));
+  for (int i=0; i<whichDef->channels; i++) {
+    switch (whichDef->chanInsType[i][0]) {
+      case DIV_INS_STD: // square
+      case DIV_INS_BEEPER:
+      case DIV_INS_TED:
+      case DIV_INS_VIC:
+      case DIV_INS_T6W28:
+        if (whichDef->id==0xfd) { // dummy
+          chanCount[11]++;
+          break;
+        }
+        if (whichDef->id==0x9f) { // zx sfx
+          chanCount[1]++;
+          break;
+        }
+        if (whichDef->chanTypes[i]==DIV_CH_NOISE) { // sn/t6w noise
+          chanCount[2]++;
+        } else { // DIV_CH_PULSE, any sqr chan
+          chanCount[5]++;
+        }
+        break;
+      case DIV_INS_NES:
+        if (whichDef->chanTypes[i]==DIV_CH_WAVE) {
+          chanCount[6]++; // triangle
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_OPL_DRUMS:
+      case DIV_INS_OPL:
+      case DIV_INS_OPLL:
+        if (whichDef->chanTypes[i]==DIV_CH_OP) {
+          chanCount[0]++; // opl3 4op
+          break;
+        }
+        if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
+          chanCount[8]++; // drums
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_FM:
+        if (whichDef->chanTypes[i]==DIV_CH_OP) {
+          chanCount[7]++; // ext. ops
+        } else if (whichDef->chanTypes[i]==DIV_CH_NOISE) {
+          break; // csm timer
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_POWERNOISE_SLOPE:
+        chanCount[9]++;
+        break;
+      case DIV_INS_QSOUND:
+        chanCount[4]++;
+        break;
+      case DIV_INS_NDS:
+        if (whichDef->chanTypes[i]!=DIV_CH_PCM) { // the psg chans can also play samples??
+          chanCount[4]++;
+        }
+        chanCount[whichDef->chanTypes[i]]++;
+        break;
+      case DIV_INS_VERA:
+        if (whichDef->chanTypes[i]==DIV_CH_PULSE) {
+          chanCount[10]++;
+        } else { // sample chan
+          chanCount[4]++;
+        }
+        break;
+      case DIV_INS_DAVE:
+        if (whichDef->chanTypes[i]==DIV_CH_WAVE) {
+          chanCount[11]++;
+        } else {
+          chanCount[whichDef->chanTypes[i]]++;
+        }
+        break;
+      case DIV_INS_C64: // uncategorizable (by me)
+      case DIV_INS_TIA:
+      case DIV_INS_PET:
+      case DIV_INS_SU:
+      case DIV_INS_POKEY:
+      case DIV_INS_MIKEY:
+        chanCount[11]++;
+        break;
+      default:
+        chanCount[whichDef->chanTypes[i]]++;
+        break;
+    }
+  }
+
+  for (int j=0; j<12; j++) {
+    unsigned char i=chanNamesHierarchy[j];
+    if (chanCount[i]==0) continue;
+    if (info.length()!=0) {
+      info+=", ";
+    }
+    if (i==11) {
+      if (chanCount[i]>1) {
+        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[12]);
+      } else {
+        info+=fmt::sprintf("%d %s",chanCount[i],chanNames[11]);
+      }
+      continue;
+    }
+    info+=fmt::sprintf("%d x %s",chanCount[i],chanNames[i]);
+  }
+  ImGui::Text("%s",info.c_str());
 }
