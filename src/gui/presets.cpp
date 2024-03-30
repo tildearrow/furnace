@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include "../baseutils.h"
+#include "../fileutils.h"
 #include <fmt/printf.h>
 
 // add system configurations here.
@@ -3100,7 +3101,7 @@ void FurnaceGUI::initSystemPresets() {
 
 FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e):
   name(n),
-  extra(e) {
+  extra((e==NULL)?"":e) {
   orig=def;
   int index=0;
   for (FurnaceGUISysDefChip& i: orig) {
@@ -3117,16 +3118,188 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceG
     );
     index++;
   }
-  if (extra) {
+  if (!extra.empty()) {
     definition+=extra;
   }
 }
 
+FurnaceGUISysDef::FurnaceGUISysDef(const char* n, const char* def, DivEngine* e):
+  name(n),
+  definition(def) {
+  // extract definition
+  DivConfig conf;
+  conf.loadFromBase64(def);
+  for (int i=0; i<DIV_MAX_CHIPS; i++) {
+    String nextStr=fmt::sprintf("id%d",i);
+    int id=conf.getInt(nextStr.c_str(),0);
+    if (id==0) break;
+    conf.remove(nextStr.c_str());
+
+    nextStr=fmt::sprintf("vol%d",i);
+    float vol=conf.getFloat(nextStr.c_str(),1.0f);
+    conf.remove(nextStr.c_str());
+    nextStr=fmt::sprintf("pan%d",i);
+    float pan=conf.getFloat(nextStr.c_str(),0.0f);
+    conf.remove(nextStr.c_str());
+    nextStr=fmt::sprintf("fr%d",i);
+    float panFR=conf.getFloat(nextStr.c_str(),0.0f);
+    conf.remove(nextStr.c_str());
+    nextStr=fmt::sprintf("flags%d",i);
+    String flags=conf.getString(nextStr.c_str(),"");
+    conf.remove(nextStr.c_str());
+
+    orig.push_back(FurnaceGUISysDefChip(e->systemFromFileFur(id),vol,pan,flags.c_str(),panFR));
+  }
+  // extract extra
+  extra=conf.toString();
+}
+
 // functions for loading/saving user presets
-bool loadUserPresets(bool redundancy) {
+#ifdef _WIN32
+#define PRESETS_FILE "\\presets.cfg"
+#else
+#define PRESETS_FILE "/presets.cfg"
+#endif
+
+#define REDUNDANCY_NUM_ATTEMPTS 5
+#define CHECK_BUF_SIZE 8192
+
+bool FurnaceGUI::loadUserPresets(bool redundancy) {
+  String path=e->getConfigPath()+PRESETS_FILE;
+  String line;
+  logD("opening user presets: %s",path);
+
+  FILE* f=NULL;
+
+  if (redundancy) {
+    unsigned char* readBuf=new unsigned char[CHECK_BUF_SIZE];
+    size_t readBufLen=0;
+    for (int i=0; i<REDUNDANCY_NUM_ATTEMPTS; i++) {
+      bool viable=false;
+      if (i>0) {
+        line=fmt::sprintf("%s.%d",path,i);
+      } else {
+        line=path;
+      }
+      logV("trying: %s",line);
+
+      // try to open config
+      f=ps_fopen(line.c_str(),"rb");
+      // check whether we could open it
+      if (f==NULL) {
+        logV("fopen(): %s",strerror(errno));
+        continue;
+      }
+
+      // check whether there's something
+      while (!feof(f)) {
+        readBufLen=fread(readBuf,1,CHECK_BUF_SIZE,f);
+        if (ferror(f)) {
+          logV("fread(): %s",strerror(errno));
+          break;
+        }
+
+        for (size_t j=0; j<readBufLen; j++) {
+          if (readBuf[j]==0) {
+            viable=false;
+            logW("a zero?");
+            break;
+          }
+          if (readBuf[j]!='\r' && readBuf[j]!='\n' && readBuf[j]!=' ') {
+            viable=true;
+          }
+        }
+
+        if (viable) break;
+      }
+
+      // there's something
+      if (viable) {
+        if (fseek(f,0,SEEK_SET)==-1) {
+          logV("fseek(): %s",strerror(errno));
+          viable=false;
+        } else {
+          break;
+        }
+      }
+      
+      // close it (because there's nothing)
+      fclose(f);
+      f=NULL;
+    }
+    delete[] readBuf;
+
+    // we couldn't read at all
+    if (f==NULL) {
+      logD("config does not exist");
+      return false;
+    }
+  } else {
+    f=ps_fopen(path.c_str(),"rb");
+    if (f==NULL) {
+      logD("config does not exist");
+      return false;
+    }
+  }
+
+  // now read stuff
+  FurnaceGUISysCategory* userCategory=NULL;
+
+  for (FurnaceGUISysCategory& i: sysCategories) {
+    if (strcmp(i.name,"User")==0) {
+      userCategory=&i;
+      break;
+    }
+  }
+
+  if (userCategory==NULL) {
+    logE("could not find user category!");
+    fclose(f);
+    return false;
+  }
+
+  char nextLine[4096];
+  while (!feof(f)) {
+    if (fgets(nextLine,4095,f)==NULL) {
+      break;
+    }
+    int indent=0;
+    bool readIndent=true;
+    bool keyOrValue=false;
+    String key="";
+    String value="";
+    for (char* i=nextLine; *i; i++) {
+      if ((*i)=='\n') break;
+      if (readIndent) {
+        if ((*i)==' ') {
+          indent++;
+        } else {
+          readIndent=false;
+        }
+      }
+      if (!readIndent) {
+        if (keyOrValue) {
+          value+=*i;
+        } else {
+          if ((*i)=='=') {
+            keyOrValue=true;
+          } else {
+            key+=*i;
+          }
+        }
+      }
+    }
+
+    // TODO: nesting
+    if (!key.empty() && !value.empty()) {
+      userCategory->systems.push_back(FurnaceGUISysDef(key.c_str(),value.c_str(),e));
+    }
+  }
+
+  fclose(f);
   return true;
 }
 
-bool saveUserPresets(bool redundancy) {
+bool FurnaceGUI::saveUserPresets(bool redundancy) {
   return true;
 }

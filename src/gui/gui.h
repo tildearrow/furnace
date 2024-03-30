@@ -1231,22 +1231,24 @@ struct Gradient2D {
 
 struct FurnaceGUISysDefChip {
   DivSystem sys;
-  float vol, pan;
-  const char* flags;
-  FurnaceGUISysDefChip(DivSystem s, float v, float p, const char* f):
+  float vol, pan, panFR;
+  String flags;
+  FurnaceGUISysDefChip(DivSystem s, float v, float p, const char* f, float pf=0.0):
     sys(s),
     vol(v),
     pan(p),
+    panFR(pf),
     flags(f) {}
 };
 
 struct FurnaceGUISysDef {
-  const char* name;
-  const char* extra;
+  String name;
+  String extra;
   String definition;
   std::vector<FurnaceGUISysDefChip> orig;
   std::vector<FurnaceGUISysDef> subDefs;
   FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL);
+  FurnaceGUISysDef(const char* n, const char* def, DivEngine* e);
 };
 
 struct FurnaceGUISysCategory {

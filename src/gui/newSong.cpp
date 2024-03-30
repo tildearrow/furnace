@@ -53,7 +53,7 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
       }
       if (ImGui::IsItemHovered()) isHovered=true;
     } else if (i.subDefs.empty()) {
-      ImGui::TextUnformatted(i.name);
+      ImGui::TextUnformatted(i.name.c_str());
       if (ImGui::IsItemHovered()) isHovered=true;
     }
     if (treeNode) {
@@ -134,10 +134,10 @@ void FurnaceGUI::drawNewSong() {
           }
         }
         std::sort(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
-          return strcmp(a.name,b.name)<0;
+          return strcmp(a.name.c_str(),b.name.c_str())<0;
         });
         auto lastItem=std::unique(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
-          return strcmp(a.name,b.name)==0;
+          return a.name==b.name;
         });
         newSongSearchResults.erase(lastItem,newSongSearchResults.end());
       }

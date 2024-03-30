@@ -648,7 +648,7 @@ void FurnaceGUI::autoDetectSystemIter(std::vector<FurnaceGUISysDef>& category, b
           it->second++;
         }
         DivConfig dc;
-        dc.loadFromMemory(k.flags);
+        dc.loadFromMemory(k.flags.c_str());
         defConfMap[k.sys]=dc;
       }
       if (defCountMap.size()==sysCountMap.size()) {
