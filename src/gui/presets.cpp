@@ -21,6 +21,7 @@
 #include "../baseutils.h"
 #include "../fileutils.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 
 // add system configurations here.
 // every entry is written in the following format:
@@ -3164,6 +3165,20 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, const char* def, DivEngine* e)
 #define REDUNDANCY_NUM_ATTEMPTS 5
 #define CHECK_BUF_SIZE 8192
 
+std::vector<FurnaceGUISysDef>* digDeep(std::vector<FurnaceGUISysDef>& entries, int depth) {
+  if (depth==0) return &entries;
+  std::vector<FurnaceGUISysDef>& result=entries;
+
+  for (int i=0; i<depth; i++) {
+    if (result.empty()) {
+      logW("digDeep: %d is as far as it goes!",depth);
+      break;
+    }
+    result=result.at(result.size()).subDefs;
+  }
+  return &result;
+}
+
 bool FurnaceGUI::loadUserPresets(bool redundancy) {
   String path=e->getConfigPath()+PRESETS_FILE;
   String line;
@@ -3231,13 +3246,13 @@ bool FurnaceGUI::loadUserPresets(bool redundancy) {
 
     // we couldn't read at all
     if (f==NULL) {
-      logD("config does not exist");
+      logD("presets file does not exist");
       return false;
     }
   } else {
     f=ps_fopen(path.c_str(),"rb");
     if (f==NULL) {
-      logD("config does not exist");
+      logD("presets file does not exist");
       return false;
     }
   }
@@ -3257,6 +3272,8 @@ bool FurnaceGUI::loadUserPresets(bool redundancy) {
     fclose(f);
     return false;
   }
+
+  userCategory->systems.clear();
 
   char nextLine[4096];
   while (!feof(f)) {
@@ -3289,10 +3306,11 @@ bool FurnaceGUI::loadUserPresets(bool redundancy) {
         }
       }
     }
+    indent>>=1;
 
-    // TODO: nesting
     if (!key.empty() && !value.empty()) {
-      userCategory->systems.push_back(FurnaceGUISysDef(key.c_str(),value.c_str(),e));
+      std::vector<FurnaceGUISysDef>* where=digDeep(userCategory->systems,indent);
+      where->push_back(FurnaceGUISysDef(key.c_str(),value.c_str(),e));
     }
   }
 
@@ -3300,6 +3318,109 @@ bool FurnaceGUI::loadUserPresets(bool redundancy) {
   return true;
 }
 
+void writeSubEntries(FILE* f, std::vector<FurnaceGUISysDef>& entries, int depth) {
+  for (FurnaceGUISysDef& i: entries) {
+    String safeName;
+    safeName.reserve(i.name.size());
+    bool beginning=false;
+    for (char j: i.name) {
+      if (beginning && j==' ') continue;
+      if (j=='=') continue;
+      if (j<0x20) continue;
+      safeName+=j;
+    }
+    
+    String data;
+    for (int i=0; i<depth; i++) {
+      data+="  ";
+    }
+    data+=fmt::sprintf("%s=%s\n",safeName,i.definition);
+    fputs(data.c_str(),f);
+
+    writeSubEntries(f,i.subDefs,depth+1);
+  }
+}
+
 bool FurnaceGUI::saveUserPresets(bool redundancy) {
+  String path=e->getConfigPath()+PRESETS_FILE;
+  FurnaceGUISysCategory* userCategory=NULL;
+
+  for (FurnaceGUISysCategory& i: sysCategories) {
+    if (strcmp(i.name,"User")==0) {
+      userCategory=&i;
+      break;
+    }
+  }
+
+  if (userCategory==NULL) {
+    logE("could not find user category!");
+    return false;
+  }
+
+  if (redundancy) {
+    char oldPath[4096];
+    char newPath[4096];
+
+    if (fileExists(path.c_str())==1) {
+      logD("rotating preset files...");
+      for (int i=4; i>=0; i--) {
+        if (i>0) {
+          snprintf(oldPath,4095,"%s.%d",path.c_str(),i);
+        } else {
+          strncpy(oldPath,path.c_str(),4095);
+        }
+        snprintf(newPath,4095,"%s.%d",path.c_str(),i+1);
+
+        if (i>=4) {
+          logV("remove %s",oldPath);
+          deleteFile(oldPath);
+        } else {
+          logV("move %s to %s",oldPath,newPath);
+          moveFiles(oldPath,newPath);
+        }
+      }
+    }
+  }
+  logD("saving user presets: %s",path);
+  FILE* f=ps_fopen(path.c_str(),"wb");
+  if (f==NULL) {
+    logW("could not write presets! %s",strerror(errno));
+    return false;
+  }
+
+  writeSubEntries(f,userCategory->systems,0);
+
+  fclose(f);
+  logD("presets written successfully.");
   return true;
+}
+
+// user presets management
+void FurnaceGUI::drawUserPresets() {
+  if (nextWindow==GUI_WINDOW_USER_PRESETS) {
+    userPresetsOpen=true;
+    ImGui::SetNextWindowFocus();
+    nextWindow=GUI_WINDOW_NOTHING;
+  }
+  if (!userPresetsOpen) return;
+  if (ImGui::Begin("User Presets",&userPresetsOpen,globalWinFlags)) {
+    if (ImGui::BeginTable("UserPresets",2,ImGuiTableFlags_BordersInnerV)) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Presets...");
+      ImGui::TableNextColumn();
+      ImGui::Text("Edit...");
+
+      ImGui::EndTable();
+    }
+
+    if (ImGui::Button("Save and Close")) {
+      userPresetsOpen=false;
+    }
+  }
+  if (!userPresetsOpen) {
+    saveUserPresets(true);
+  }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_USER_PRESETS;
+  ImGui::End();
 }

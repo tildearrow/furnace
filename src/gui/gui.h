@@ -485,6 +485,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_INTRO_MON,
   GUI_WINDOW_MEMORY,
   GUI_WINDOW_CS_PLAYER,
+  GUI_WINDOW_USER_PRESETS,
   GUI_WINDOW_SPOILER
 };
 
@@ -677,6 +678,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_XY_OSC,
   GUI_ACTION_WINDOW_MEMORY,
   GUI_ACTION_WINDOW_CS_PLAYER,
+  GUI_ACTION_WINDOW_USER_PRESETS,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -2081,7 +2083,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen;
+  bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, userPresetsOpen;
 
   bool shortIntro;
   bool insListDir, waveListDir, sampleListDir;
@@ -2610,6 +2612,7 @@ class FurnaceGUI {
   void drawClock();
   void drawTutorial();
   void drawXYOsc();
+  void drawUserPresets();
 
   void parseKeybinds();
   void promptKey(int which);

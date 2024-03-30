@@ -319,6 +319,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_CS_PLAYER:
       nextWindow=GUI_WINDOW_CS_PLAYER;
       break;
+    case GUI_ACTION_WINDOW_USER_PRESETS:
+      nextWindow=GUI_WINDOW_USER_PRESETS;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -424,6 +427,8 @@ void FurnaceGUI::doAction(int what) {
         case GUI_WINDOW_CS_PLAYER:
           csPlayerOpen=false;
           break;
+        case GUI_WINDOW_USER_PRESETS:
+          userPresetsOpen=false;
         default:
           break;
       }

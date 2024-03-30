@@ -3479,6 +3479,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(regView)
   DECLARE_METRIC(log)
   DECLARE_METRIC(effectList)
+  DECLARE_METRIC(userPresets)
   DECLARE_METRIC(popup)
 
 #ifdef IS_MOBILE
@@ -4051,6 +4052,7 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(xyOscOpen);
         IMPORT_CLOSE(memoryOpen);
         IMPORT_CLOSE(csPlayerOpen);
+        IMPORT_CLOSE(userPresetsOpen);
       } else if (pendingLayoutImportStep==1) {
         // let the UI settle
       } else if (pendingLayoutImportStep==2) {
@@ -4383,6 +4385,9 @@ bool FurnaceGUI::loop() {
           toggleMobileUI(!mobileUI);
         }
 #endif
+        if (ImGui::MenuItem("manage presets...",BIND_FOR(GUI_ACTION_WINDOW_USER_PRESETS))) {
+          userPresetsOpen=true;
+        }
         if (ImGui::MenuItem("settings...",BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
           syncSettings();
           settingsOpen=true;
@@ -4664,6 +4669,7 @@ bool FurnaceGUI::loop() {
       MEASURE(grooves,drawGrooves());
       MEASURE(regView,drawRegView());
       MEASURE(memory,drawMemory());
+      MEASURE(userPresets,drawUserPresets());
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -4706,6 +4712,7 @@ bool FurnaceGUI::loop() {
       MEASURE(regView,drawRegView());
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
+      MEASURE(userPresets,drawUserPresets());
     }
 
     // NEW CODE - REMOVE WHEN DONE
@@ -6610,6 +6617,7 @@ bool FurnaceGUI::init() {
   subSongsOpen=e->getConfBool("subSongsOpen",true);
   findOpen=e->getConfBool("findOpen",false);
   spoilerOpen=e->getConfBool("spoilerOpen",false);
+  userPresetsOpen=e->getConfBool("userPresetsOpen",false);
 
   insListDir=e->getConfBool("insListDir",false);
   waveListDir=e->getConfBool("waveListDir",false);
@@ -7007,6 +7015,8 @@ bool FurnaceGUI::init() {
   ImGui::CreateContext();
   rend->initGUI(sdlWin);
 
+  loadUserPresets(true);
+
   // NEW CODE - REMOVE WHEN DONE
   newOscFragment=rend->getStupidFragment();
 
@@ -7169,6 +7179,7 @@ void FurnaceGUI::commitState() {
   e->setConf("subSongsOpen",subSongsOpen);
   e->setConf("findOpen",findOpen);
   e->setConf("spoilerOpen",spoilerOpen);
+  e->setConf("userPresetsOpen",userPresetsOpen);
 
   // commit dir state
   e->setConf("insListDir",insListDir);
@@ -7271,6 +7282,9 @@ void FurnaceGUI::commitState() {
 
 bool FurnaceGUI::finish(bool saveConfig) {
   commitState();
+  if (userPresetsOpen) {
+    saveUserPresets(true);
+  }
   if (saveConfig) {
     logI("saving config.");
     e->saveConf();
@@ -7521,6 +7535,7 @@ FurnaceGUI::FurnaceGUI():
   xyOscOpen(false),
   memoryOpen(false),
   csPlayerOpen(false),
+  userPresetsOpen(false),
   shortIntro(false),
   insListDir(false),
   waveListDir(false),
