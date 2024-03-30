@@ -3404,12 +3404,26 @@ void FurnaceGUI::drawUserPresets() {
   }
   if (!userPresetsOpen) return;
   if (ImGui::Begin("User Presets",&userPresetsOpen,globalWinFlags)) {
-    if (ImGui::BeginTable("UserPresets",2,ImGuiTableFlags_BordersInnerV)) {
+    FurnaceGUISysCategory* userCategory=NULL;
+    for (FurnaceGUISysCategory& i: sysCategories) {
+      if (strcmp(i.name,"User")==0) {
+        userCategory=&i;
+        break;
+      }
+    }
+
+    if (userCategory==NULL) {
+      ImGui::Text("Error! User category does not exist!");
+    } else if (ImGui::BeginTable("UserPresets",2,ImGuiTableFlags_BordersInnerV)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Presets...");
       ImGui::TableNextColumn();
-      ImGui::Text("Edit...");
+      if (selectedUserPreset<0 || selectedUserPreset>=(int)userCategory->systems.size()) {
+        ImGui::Text("select a preset");
+      } else {
+        ImGui::Text("Edit...");
+      }
 
       ImGui::EndTable();
     }
