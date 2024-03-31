@@ -316,7 +316,7 @@ void DivPlatformGBAMinMod::tick(bool sysTick) {
           size_t maxPos=getSampleMemCapacity();
           start=sampleOff[chan[i].sample];
           if (s->isLoopable()) {
-            end=MIN(start+MAX(s->length8,1),maxPos);
+            end=MIN(start+MAX(s->loopEnd,1),maxPos);
             loop=start+s->loopStart;
           } else {
             end=MIN(start+s->length8+16,maxPos);
