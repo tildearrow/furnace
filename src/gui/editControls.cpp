@@ -592,6 +592,10 @@ void FurnaceGUI::drawMobileControls() {
           memoryOpen=!memoryOpen;
         }
 
+        if (ImGui::Button("CV")) {
+          cvOpen=!cvOpen;
+        }
+
         ImGui::Separator();
 
         ImGui::Button("Panic");
@@ -613,9 +617,6 @@ void FurnaceGUI::drawMobileControls() {
           mobileMenuOpen=false;
           mobileMenuPos=0.0f;
           aboutOpen=true;
-        }
-        if (ImGui::Button("Shader Editor")) {
-          shaderEditor=!shaderEditor;
         }
         if (ImGui::Button("Switch to Desktop Mode")) {
           toggleMobileUI(!mobileUI);

@@ -44,6 +44,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
+      bool msw=flags.getBool("msw",false);
 
       ImGui::Text("Clock rate:");
       ImGui::Indent();
@@ -93,6 +94,15 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           altered=true;
         }
       }
+
+      if (msw || shaderEditor) {
+        if (ImGui::Checkbox("Modified sine wave",&msw)) {
+          altered=true;
+        }
+        if (msw && shaderEditor) {
+          ImGui::Text("Oopsie...");
+        }
+      }
       
       if (altered) {
         e->lockSave([&]() {
@@ -100,6 +110,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("chipType",chipType);
           flags.set("noExtMacros",noExtMacros);
           flags.set("fbAllOps",fbAllOps);
+          flags.set("msw",msw);
         });
       }
       break;

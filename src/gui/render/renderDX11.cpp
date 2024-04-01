@@ -199,7 +199,7 @@ bool FurnaceGUIRenderDX11::updateTexture(FurnaceGUITexture* which, void* data, i
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height, bool interpolate) {
   D3D11_TEXTURE2D_DESC texDesc;
   D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
   ID3D11Texture2D* tex=NULL;

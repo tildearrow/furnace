@@ -374,6 +374,16 @@ void FurnaceGUI::drawAbout() {
     while (aboutSin>=2400) aboutSin-=2400;
     if (aboutScroll>(42*dpiScale*aboutCount+canvasH)) aboutScroll=-20*dpiScale;
 
+    if (ImGui::IsKeyPressed(ImGuiKey_Space) && !shaderEditor) {
+      aboutOpen=false;
+      if (modified) {
+        showWarning("Unsaved changes! Save changes before playing?",GUI_WARN_CV);
+      } else {
+        cvOpen=true;
+        cvNotSerious=true;
+      }
+    }
+
     WAKE_UP;
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ABOUT;

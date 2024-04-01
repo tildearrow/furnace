@@ -87,7 +87,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     int softPCMTimer;
 
-    bool extMode, softPCM, noExtMacros, canWriteDAC;
+    bool extMode, softPCM, noExtMacros, canWriteDAC, msw;
     unsigned char useYMFM;
     unsigned char chipType;
     short dacWrite;

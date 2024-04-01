@@ -1661,6 +1661,7 @@ void DivPlatformGenesis::reset() {
       OPN2_SetChipType(&fm,0);
       break;
   }
+  OPN2_SetMSW(&fm,msw?1:0);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -1766,6 +1767,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
   }
   noExtMacros=flags.getBool("noExtMacros",false);
   fbAllOps=flags.getBool("fbAllOps",false);
+  msw=flags.getBool("msw",false);
   switch (chipType) {
     case 1: // YM2612
       OPN2_SetChipType(&fm,ym3438_mode_ym2612);
@@ -1777,6 +1779,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
       OPN2_SetChipType(&fm,0);
       break;
   }
+  OPN2_SetMSW(&fm,msw?1:0);
   CHECK_CUSTOM_CLOCK;
   if (useYMFM==1) {
     if (fm_ymfm!=NULL) delete fm_ymfm;

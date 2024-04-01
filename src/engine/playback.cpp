@@ -36,6 +36,17 @@ void DivEngine::nextOrder() {
     endOfSong=true;
     memset(walked,0,8192);
     curOrder=0;
+    if (numTimesPlayed>=0) {
+      numTimesPlayed++;
+      divider=curSubSong->hz*(1.0+(double)(MAX(numTimesPlayed-6,0))*0.04);
+    }
+  }
+  if (numTimesPlayed>2 && !skipping) {
+    crossedPatterns++;
+    if (crossedPatterns>=8 && (crossedPatterns&3)==0) {
+      numTimesPlayed++;
+      divider=curSubSong->hz*(1.0+(double)(MAX(numTimesPlayed-6,0))*0.04);
+    }
   }
 }
 
@@ -621,6 +632,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
   } else if (!(pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0)) {
     chan[i].oldNote=chan[i].note;
     chan[i].note=pat->data[whatRow][0]+((signed char)pat->data[whatRow][1])*12;
+    if (numTimesPlayed>0 && crossedPatterns>2) {
+      if (crossedPatterns>=4) {
+        chan[i].note+=(int)(MAX(0,pow(MAX(0,crossedPatterns-4),1.2)))>>2;
+      }
+      if ((rand()%MAX(1,60-crossedPatterns))==0) {
+        chan[i].note=12+(rand()&63);
+      }
+    }
     if (!chan[i].keyOn) {
       if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsArp(dispatchChanOfChan[i])) {
         chan[i].arp=0;
@@ -890,6 +909,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
         divider=(double)(((effect&0x3)<<8)|effectVal);
+        if (numTimesPlayed>=0) {
+          divider*=1.0+(double)(MAX(numTimesPlayed-6,0))*0.04;
+        }
         if (divider<1) divider=1;
         cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
@@ -1022,6 +1044,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xf0: // set Hz by tempo
         divider=(double)effectVal*2.0/5.0;
+        if (numTimesPlayed>=0) {
+          divider*=1.0+(double)(MAX(numTimesPlayed-6,0))*0.04;
+        }
         if (divider<1) divider=1;
         cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
         clockDrift=0;

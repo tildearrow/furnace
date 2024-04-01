@@ -26,7 +26,7 @@ class FurnaceGUIRenderSDL: public FurnaceGUIRender {
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     bool unlockTexture(FurnaceGUITexture* which);
     bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
-    FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    FurnaceGUITexture* createTexture(bool dynamic, int width, int height, bool interpolate=true);
     bool destroyTexture(FurnaceGUITexture* which);
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);

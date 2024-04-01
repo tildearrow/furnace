@@ -190,7 +190,6 @@ void ImGui_ImplSDLRenderer2_RenderDrawData(ImDrawData* draw_data)
 
                 // Bind texture, Draw
 				SDL_Texture* tex = (SDL_Texture*)pcmd->GetTexID();
-                SDL_SetTextureScaleMode(tex, SDL_ScaleModeBest); // ???
                 SDL_RenderGeometryRaw(bd->SDLRenderer, tex,
                     xy, (int)sizeof(ImDrawVert),
                     color, (int)sizeof(ImDrawVert),

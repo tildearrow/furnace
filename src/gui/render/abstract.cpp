@@ -35,7 +35,7 @@ bool FurnaceGUIRender::updateTexture(FurnaceGUITexture* which, void* data, int p
   return false;
 }
 
-FurnaceGUITexture* FurnaceGUIRender::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRender::createTexture(bool dynamic, int width, int height, bool interpolate) {
   return NULL;
 }
 

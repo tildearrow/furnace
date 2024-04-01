@@ -301,12 +301,17 @@ bool FurnaceGUIRenderGL::updateTexture(FurnaceGUITexture* which, void* data, int
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height, bool interpolate) {
   FurnaceGLTexture* t=new FurnaceGLTexture;
   C(glGenTextures(1,&t->id));
   C(glBindTexture(GL_TEXTURE_2D,t->id));
-  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
-  C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  if (interpolate) {
+    C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
+    C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  } else {
+    C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST));
+    C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST));
+  }
   C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,PIXEL_FORMAT,NULL));
   C(furActiveTexture(GL_TEXTURE0));
   t->width=width;
