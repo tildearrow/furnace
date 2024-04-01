@@ -879,12 +879,12 @@ void FurnaceGUI::initRandomDemoSong() {
     HANDLE d1=FindFirstFileW(utf8To16(realI.c_str()).c_str(),&de1);
     if (d1==INVALID_HANDLE_VALUE) continue;
     do {
-      String u8Name=utf16To8(de.cFileName);
+      String u8Name=utf16To8(de1.cFileName);
       String newPath=i;
       newPath+=DIR_SEPARATOR_STR;
       newPath+=u8Name;
       randomDemoSong.push_back(newPath);
-    } while (FindNextFileW(d,&de)!=0);
+    } while (FindNextFileW(d1,&de1)!=0);
     FindClose(d1);
 #else
     DIR* d1=opendir(i.c_str());
