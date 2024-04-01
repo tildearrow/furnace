@@ -88,6 +88,7 @@
 #include "platform/powernoise.h"
 #include "platform/dave.h"
 #include "platform/nds.h"
+#include "platform/bifurcator.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -653,6 +654,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_GBA_MINMOD:
       dispatch=new DivPlatformGBAMinMod;
+      break;
+    case DIV_SYSTEM_BIFURCATOR:
+      dispatch=new DivPlatformBifurcator;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;

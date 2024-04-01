@@ -182,6 +182,7 @@ const char* insTypes[DIV_INS_MAX+1][3]={
   {"Nintendo DS",ICON_FA_BAR_CHART,ICON_FUR_INS_NDS},
   {"GBA DMA",ICON_FA_GAMEPAD,ICON_FUR_INS_GBA_DMA},
   {"GBA MinMod",ICON_FA_VOLUME_UP,ICON_FUR_INS_GBA_MINMOD},
+  {"Bifurcator",ICON_FA_LINE_CHART,ICON_FA_QUESTION},
   {NULL,ICON_FA_QUESTION,ICON_FA_QUESTION}
 };
 
@@ -999,6 +1000,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_NDS,"",ImVec4(0.7f,0.7f,0.8f,1.0f)),
   D(GUI_COLOR_INSTR_GBA_DMA,"",ImVec4(0.6f,0.4f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_GBA_MINMOD,"",ImVec4(0.5f,0.45f,0.7f,1.0f)),
+  D(GUI_COLOR_INSTR_BIFURCATOR,"",ImVec4(0.8925f,0.8925f,0.8925f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -1245,6 +1247,7 @@ const int availableSystems[]={
   DIV_SYSTEM_DAVE,
   DIV_SYSTEM_NDS,
   DIV_SYSTEM_5E01,
+  DIV_SYSTEM_BIFURCATOR,
   0 // don't remove this last one!
 };
 
@@ -1338,6 +1341,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_DAVE,
   DIV_SYSTEM_NDS,
   DIV_SYSTEM_5E01,
+  DIV_SYSTEM_BIFURCATOR,
   0 // don't remove this last one!
 };
 

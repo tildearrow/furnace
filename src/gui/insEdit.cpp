@@ -6782,7 +6782,8 @@ void FurnaceGUI::drawInsEdit() {
             volMax=31;
           }
           if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219 || ins->type==DIV_INS_GBA_MINMOD) {
+              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219 || ins->type==DIV_INS_GBA_MINMOD ||
+              ins->type==DIV_INS_BIFURCATOR) {
             volMax=255;
           }
           if (ins->type==DIV_INS_QSOUND) {
@@ -6942,6 +6943,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Duty";
             dutyMax=ins->amiga.useSample?0:7;
           }
+          if (ins->type==DIV_INS_BIFURCATOR) {
+            dutyLabel="Parameter";
+            dutyMax=65535;
+          }
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
@@ -6981,6 +6986,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_DAVE) waveMax=4;
           if (ins->type==DIV_INS_NDS) waveMax=0;
+          if (ins->type==DIV_INS_BIFURCATOR) waveMax=0;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
             waveBitMode=true;
@@ -7056,6 +7062,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_GBA_MINMOD) {
             ex1Max=2;
           }
+          if (ins->type==DIV_INS_BIFURCATOR) {
+            ex1Max=65535;
+          }
 
           int panMin=0;
           int panMax=0;
@@ -7121,7 +7130,8 @@ void FurnaceGUI::drawInsEdit() {
             panMin=0;
             panMax=127;
           }
-          if (ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219 || ins->type==DIV_INS_GBA_MINMOD) {
+          if (ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219 || ins->type==DIV_INS_GBA_MINMOD ||
+              ins->type==DIV_INS_BIFURCATOR) {
             panMin=0;
             panMax=255;
           }
@@ -7275,6 +7285,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Load LFSR",&ins->std.ex1Macro,0,12,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
             } else if (ins->type==DIV_INS_GBA_MINMOD) {
               macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,minModModeBits));
+            } else if (ins->type==DIV_INS_BIFURCATOR) {
+              macroList.push_back(FurnaceGUIMacroDesc("Load Value",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
