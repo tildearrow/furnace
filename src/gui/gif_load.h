@@ -35,7 +35,7 @@ extern "C" {
 #include <stdint.h> /** imports uint8_t, uint16_t and uint32_t **/
 #ifndef GIF_MGET
     #include <stdlib.h>
-    #define GIF_MGET(m,s,a,c) m = (uint8_t*)realloc((c)? 0 : m, (c)? s : 0UL);
+    #define GIF_MGET(m,s,a,c) m = (uint8_t*)realloc((c)? 0 : m, (c)? s : 1UL);
 #endif
 #ifndef GIF_BIGE
     #define GIF_BIGE 0
