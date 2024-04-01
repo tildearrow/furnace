@@ -16,7 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
-set(CMAKE_PROJECT_VERSION_PATCH 1)
+set(CMAKE_PROJECT_VERSION_PATCH 2)
 
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
@@ -137,18 +137,19 @@ else()
   set(SYSTEM_SDL_MIN_VER 2.0.0)
 endif()
 
-if (WIN32)
-  # support Windows XP
-  if (SUPPORT_XP)
-    add_compile_definitions("_WIN32_WINNT=0x0501")
-  endif()
-endif()
-
 #list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
 list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/vgsound_emu-modified")
 
 find_package(Threads REQUIRED)
 list(APPEND DEPENDENCIES_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+
+
+if (WIN32)
+  # support Windows XP
+  if (SUPPORT_XP)
+    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
+  endif()
+endif()
 
 if (SYSTEM_FFTW)
   find_package(PkgConfig REQUIRED)
@@ -1045,7 +1046,6 @@ else()
 endif()
 
 target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
-target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES})
 target_compile_options(furnace PRIVATE ${DEPENDENCIES_COMPILE_OPTIONS})
 target_link_libraries(furnace PRIVATE ${DEPENDENCIES_LIBRARIES})
 if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYSTEM_SDL2 OR SYSTEM_RTMIDI OR WITH_JACK))
@@ -1098,9 +1098,9 @@ if (NOT ANDROID OR TERMUX)
       if (WITH_WAVETABLES)
         install(DIRECTORY wavetables DESTINATION ${FURNACE_DATADIR})
       endif()
-      add_compile_definitions(FURNACE_DATADIR="${FURNACE_DATADIR}")
+      list(APPEND DEPENDENCIES_DEFINES FURNACE_DATADIR="${FURNACE_DATADIR}")
       if (SHOW_OPEN_ASSETS_MENU_ENTRY)
-        add_compile_definitions(SHOW_OPEN_ASSETS_MENU_ENTRY)
+        list(APPEND DEPENDENCIES_DEFINES SHOW_OPEN_ASSETS_MENU_ENTRY)
       endif()
     endif()
     foreach(num 16 32 64 128 256 512)
@@ -1131,3 +1131,5 @@ if (NOT ANDROID OR TERMUX)
   
   include(CPack)
 endif()
+
+target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES})

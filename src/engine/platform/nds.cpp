@@ -565,6 +565,7 @@ void DivPlatformNDS::setFlags(const DivConfig& flags) {
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
   }
+  memCompo.capacity=(isDSi?16777216:4194304);
 }
 
 int DivPlatformNDS::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

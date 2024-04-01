@@ -26,7 +26,10 @@
 
 #define TS FurnaceGUITutorialStep
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#include "../utfutils.h"
+#else
 #include <dirent.h>
 #endif
 
@@ -482,8 +485,8 @@ struct FurnaceCV {
 static const char* cvText[]={
   // intro
   "Play demo songs?\n"
-  "- Down: no\n"
-  "- Up: yes",
+  "- Down: Play current song\n"
+  "- Up: Play demo songs",
 
   "Well, well, well. You wanna\n"
   "enable Serious Mode, right?\n",
@@ -495,7 +498,8 @@ static const char* cvText[]={
   "April 1st\n",
 
   "The plot is left\n"
-  "as an exercise for the player.",
+  "as an exercise for the player.\n\n"
+  "X - Shoot      Arrow Key - Move",
 
   "GAME OVER",
 
@@ -795,15 +799,18 @@ void FurnaceGUI::initRandomDemoSong() {
 
 #ifdef _WIN32
   WIN32_FIND_DATAW de;
-  demoPath+=DIR_SEPARATOR_STR;
-  HANDLE d=FindFirstFileW(utf8To16(demoPath.c_str()).c_str(),&de);
+  String realDemoPath=demoPath;
+  realDemoPath+=DIR_SEPARATOR_STR;
+  realDemoPath+="*";
+  HANDLE d=FindFirstFileW(utf8To16(realDemoPath.c_str()).c_str(),&de);
   if (d==INVALID_HANDLE_VALUE) {
-    demoPath="..";
-    demoPath+=DIR_SEPARATOR_STR;
-    demoPath+="demos";
-    demoPath+=DIR_SEPARATOR_STR;
+    realDemoPath="..";
+    realDemoPath+=DIR_SEPARATOR_STR;
+    realDemoPath+="demos";
+    realDemoPath+=DIR_SEPARATOR_STR;
+    realDemoPath+="*";
     logW("OH NO");
-    HANDLE d=FindFirstFileW(utf8To16(demoPath.c_str()).c_str(),&de);
+    HANDLE d=FindFirstFileW(utf8To16(realDemoPath.c_str()).c_str(),&de);
     if (d==INVALID_HANDLE_VALUE) {
       logW("dang it");
       return;
@@ -866,13 +873,14 @@ void FurnaceGUI::initRandomDemoSong() {
   for (String& i: subDirs) {
 #ifdef _WIN32
     WIN32_FIND_DATAW de1;
-    i+=DIR_SEPARATOR_STR;
-    i+="*.fur";
-    HANDLE d1=FindFirstFileW(utf8To16(i.c_str()).c_str(),&de1);
+    String realI=i;
+    realI+=DIR_SEPARATOR_STR;
+    realI+="*.fur";
+    HANDLE d1=FindFirstFileW(utf8To16(realI.c_str()).c_str(),&de1);
     if (d1==INVALID_HANDLE_VALUE) continue;
     do {
       String u8Name=utf16To8(de.cFileName);
-      String newPath=demoPath;
+      String newPath=i;
       newPath+=DIR_SEPARATOR_STR;
       newPath+=u8Name;
       randomDemoSong.push_back(newPath);
@@ -1983,6 +1991,7 @@ void FurnaceCVPlayer::collision(FurnaceCVObject* other) {
     if (!invincible) {
       dead=true;
       cv->respawnTime=48;
+      cv->shotType=0;
       cv->soundEffect(SE_DEATH_C1);
       cv->soundEffect(SE_DEATH_C2);
       cv->createObject<FurnaceCVExplMedium>(x-8,y);

@@ -93,6 +93,26 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
   }
 }
 
+void findInSubs(std::vector<FurnaceGUISysDef>& where, std::vector<FurnaceGUISysDef>& newSongSearchResults, String lowerCase) {
+  for (FurnaceGUISysDef& j: where) {
+    if (!j.orig.empty()) {
+      String lowerCase1=j.name;
+      for (char& i: lowerCase1) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+      auto lastItem=std::remove_if(lowerCase1.begin(),lowerCase1.end(),[](char c) {
+        return (c==' ' || c=='_' || c=='-');
+      });
+      lowerCase1.erase(lastItem,lowerCase1.end());
+      if (lowerCase1.find(lowerCase)!=String::npos) {
+        newSongSearchResults.push_back(j);
+        newSongSearchResults[newSongSearchResults.size()-1].subDefs.clear();
+      }
+    }
+    findInSubs(j.subDefs,newSongSearchResults,lowerCase);
+  }
+}
+
 void FurnaceGUI::drawNewSong() {
   bool accepted=false;
   std::vector<int> sysDefStack;
@@ -121,26 +141,30 @@ void FurnaceGUI::drawNewSong() {
       newSongSearchResults.clear();
       for (FurnaceGUISysCategory& i: sysCategories) {
         for (FurnaceGUISysDef& j: i.systems) {
-          String lowerCase1=j.name;
-          for (char& i: lowerCase1) {
-            if (i>='A' && i<='Z') i+='a'-'A';
+          if (!j.orig.empty()) {
+            String lowerCase1=j.name;
+            for (char& i: lowerCase1) {
+              if (i>='A' && i<='Z') i+='a'-'A';
+            }
+            auto lastItem=std::remove_if(lowerCase1.begin(),lowerCase1.end(),[](char c) {
+              return (c==' ' || c=='_' || c=='-');
+            });
+            lowerCase1.erase(lastItem,lowerCase1.end());
+            if (lowerCase1.find(lowerCase)!=String::npos) {
+              newSongSearchResults.push_back(j);
+              newSongSearchResults[newSongSearchResults.size()-1].subDefs.clear();
+            }
           }
-          auto lastItem=std::remove_if(lowerCase1.begin(),lowerCase1.end(),[](char c) {
-            return (c==' ' || c=='_' || c=='-');
-          });
-          lowerCase1.erase(lastItem,lowerCase1.end());
-          if (lowerCase1.find(lowerCase)!=String::npos) {
-            newSongSearchResults.push_back(j);
-          }
+          findInSubs(j.subDefs,newSongSearchResults,lowerCase);
         }
-        std::sort(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
-          return strcmp(a.name.c_str(),b.name.c_str())<0;
-        });
-        auto lastItem=std::unique(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
-          return a.name==b.name;
-        });
-        newSongSearchResults.erase(lastItem,newSongSearchResults.end());
       }
+      std::sort(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
+        return strcmp(a.name.c_str(),b.name.c_str())<0;
+      });
+      auto lastItem1=std::unique(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
+        return a.name==b.name;
+      });
+      newSongSearchResults.erase(lastItem1,newSongSearchResults.end());
     }
     if (ImGui::BeginTable("sysPicker",newSongQuery.empty()?2:1,ImGuiTableFlags_BordersInnerV)) {
       if (newSongQuery.empty()) {

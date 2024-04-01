@@ -84,6 +84,10 @@ for other operating systems, you may [build the source](#developer-info).
   - **Game Boy**
     - including SOFTWARE ENVELOPES (zombie mode)
   - Virtual Boy
+  - Game Boy Advance
+    - DMA (direct memory access) two channel mode
+    - MinMod software driver by Natt Akuma
+  - Nintendo DS
   - modern/fantasy:
     - Commander X16 VERA
     - tildearrow Sound Unit
