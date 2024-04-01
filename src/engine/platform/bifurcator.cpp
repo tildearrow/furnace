@@ -249,6 +249,12 @@ int DivPlatformBifurcator::dispatch(DivCommand c) {
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
+    case DIV_CMD_BIFURCATOR_STATE_LOAD:
+      rWrite(c.chan*8+c.value,c.value2);
+      break;
+    case DIV_CMD_BIFURCATOR_PARAMETER:
+      rWrite(c.chan*8+2+c.value,c.value2);
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 255;
       break;

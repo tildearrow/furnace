@@ -259,6 +259,9 @@ const char* cmdName[]={
   "DAVE_CLOCK_DIV",
 
   "MINMOD_ECHO",
+
+  "BIFURCATOR_STATE_LOAD",
+  "BIFURCATOR_PARAMETER"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
