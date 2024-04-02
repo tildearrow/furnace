@@ -488,18 +488,10 @@ static const char* cvText[]={
   "- Down: Play current song\n"
   "- Up: Play demo songs",
 
-  "Well, well, well. You wanna\n"
-  "enable Serious Mode, right?\n",
-
-  "Sure, if you can beat the\n"
-  "high score in this boring game.\n",
-
-  "A. D. 2xxx\n"
-  "April 1st\n",
-
-  "The plot is left\n"
-  "as an exercise for the player.\n\n"
-  "X - Shoot      Arrow Key - Move",
+  "Welcome to Combat Vehicle!\n\n"
+  "Controls:\n"
+  "X - Shoot      Arrow Key - Move\n"
+  "Z - Special    Esc - Quit",
 
   "GAME OVER",
 
@@ -1751,13 +1743,13 @@ void FurnaceCV::render(unsigned char joyIn) {
             }
             memset(tile0,0,80*56*sizeof(short));
             memset(tile1,0,80*56*sizeof(short));
-            startTyping(cvText[6],2,3);
+            startTyping(cvText[3],2,3);
             e->setConf("cvHiScore",hiScore);
             e->saveConf();
-            curText=6;
+            curText=4;
             textWait=90;
           } else {
-            startTyping(cvText[5],15,13);
+            startTyping(cvText[2],15,13);
           }
         }
       }
@@ -1815,7 +1807,7 @@ void FurnaceCV::render(unsigned char joyIn) {
       }
       if (typeAddr==NULL) {
         if (--textWait<0) {
-          if (curText==5) {
+          if (curText==2) {
             memset(tile1,0,80*56*sizeof(short));
             inGame=true;
           } else {
