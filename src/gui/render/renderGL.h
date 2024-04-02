@@ -46,6 +46,8 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   int sh_oscRender_oscVal;
   bool sh_oscRender_have;
 
+  bool swapIntervalSet;
+
   bool createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program, const char** attribNames);
 
   public:
@@ -61,6 +63,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     bool regenOscShader(const char* fragment);
     void clear(ImVec4 color);
     bool newFrame();
+    bool canVSync();
     void createFontsTexture();
     void destroyFontsTexture();
     void renderGUI();
@@ -70,15 +73,17 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     bool getOutputSize(int& w, int& h);
     bool supportsDrawOsc();
     int getWindowFlags();
+    void setSwapInterval(int swapInterval);
     void preInit();
-    bool init(SDL_Window* win);
+    bool init(SDL_Window* win, int swapInterval);
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();
     bool isDead();
     FurnaceGUIRenderGL():
       context(NULL),
-      sdlWin(NULL) {
+      sdlWin(NULL),
+      swapIntervalSet(true) {
       memset(quadVertex,0,4*3*sizeof(float));
       memset(oscVertex,0,4*5*sizeof(float));
       memset(oscData,0,2048*sizeof(float));

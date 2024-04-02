@@ -293,6 +293,11 @@ bool FurnaceGUIRenderDX11::newFrame() {
   return ImGui_ImplDX11_NewFrame();
 }
 
+bool FurnaceGUIRenderDX11::canVSync() {
+  // TODO: find out how to retrieve VSync status
+  return true;
+}
+
 void FurnaceGUIRenderDX11::createFontsTexture() {
   ImGui_ImplDX11_CreateDeviceObjects();
 }
@@ -345,7 +350,7 @@ void FurnaceGUIRenderDX11::wipe(float alpha) {
 }
 
 void FurnaceGUIRenderDX11::present() {
-  HRESULT result=swapchain->Present(1,0);
+  HRESULT result=swapchain->Present(swapInterval,0);
   if (result==DXGI_ERROR_DEVICE_REMOVED || result==DXGI_ERROR_DEVICE_RESET) {
     dead=true;
   } else if (result!=S_OK && result!=DXGI_STATUS_OCCLUDED) {
@@ -363,6 +368,10 @@ int FurnaceGUIRenderDX11::getWindowFlags() {
   return 0;
 }
 
+void FurnaceGUIRenderDX11::setSwapInterval(int swapInt) {
+  swapInterval=swapInt;
+}
+
 void FurnaceGUIRenderDX11::preInit() {
 }
 
@@ -373,7 +382,7 @@ const float wipeVertices[4][4]={
   { 1.0,  1.0, 0.0, 1.0}
 };
 
-bool FurnaceGUIRenderDX11::init(SDL_Window* win) {
+bool FurnaceGUIRenderDX11::init(SDL_Window* win, int swapInt) {
   SDL_SysWMinfo sysWindow;
   D3D_FEATURE_LEVEL featureLevel;
 
@@ -383,6 +392,8 @@ bool FurnaceGUIRenderDX11::init(SDL_Window* win) {
     return false;
   }
   HWND window=(HWND)sysWindow.info.win.window;
+
+  swapInterval=swapInt;
 
   DXGI_SWAP_CHAIN_DESC chainDesc;
   memset(&chainDesc,0,sizeof(chainDesc));

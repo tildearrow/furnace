@@ -493,64 +493,7 @@ static const char* cvText[]={
 
   "GAME OVER",
 
-  "Conglaturation!\n"
-  "\n"
-  "With high score beat, it\n"
-  "enables Serious Mode.\n"
-  "The User is now peace.",
-
-  "Restart Furnace to apply\n"
-  "changes.",
-
-  "Restart Furnace to apply\n"
-  "changes.",
-
-  "Restart Furnace to apply\n"
-  "changes.",
-
-  "Restart Furnace to apply\n"
-  "changes.",
-
-  "Restart Furnace to apply\n"
-  "changes.",
-
-  "Never gonna give STOP posting\n"
-  "about Rick Astley",
-
-  "I'M TIRED OF SEEING IT",
-
-  "My friends on TikTok rickroll\n"
-  "me",
-
-  "On Discord's fucking rickroll",
-
-  "I was in a server. Right?",
-
-  "And AAAAALLL of the channels\n"
-  "are just Never Gonna Give You Up.",
-
-  "I've searched for Half-Life 3\n"
-  "and the video I watched it and\n"
-  "I said: Hey Babe, Never Gonna\n"
-  "Give You Up HAHA",
-
-  "Diiiiiiiing Diiiiiiiiiiiing\n"
-  "Diiing Diiiiiiing Diiiiiiiiiing\n"
-  "Didididiiiiiiiing",
-
-  "I fucking looked at the DefleMask\n"
-  "1.2 teaser trailer and I said\n"
-  "That's a rickroll",
-
-  "I've looked at my [REDACTED],\n"
-  "I think of the scientist and I go\n"
-  "[REDACTED], more like never gonna\n"
-  "[REDACTED] up\n",
-
-  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-
-  // this is totally intentional. do not attempt to fix it.
-  (const char*)1
+  "High Score!"
 };
 
 void FurnaceGUI::syncTutorial() {

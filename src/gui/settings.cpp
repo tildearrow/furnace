@@ -409,6 +409,24 @@ void FurnaceGUI::drawSettings() {
           }
         }
 
+        bool vsyncB=settings.vsync;
+        if (ImGui::Checkbox("VSync",&vsyncB)) {
+          settings.vsync=vsyncB;
+          settingsChanged=true;
+          if (rend!=NULL) {
+            rend->setSwapInterval(settings.vsync);
+          }
+        }
+
+        if (ImGui::SliderInt("Frame rate limit",&settings.frameRateLimit,0,250,settings.frameRateLimit==0?"Unlimited":"%d")) {
+          settingsChanged=true;
+        }
+        if (settings.frameRateLimit<0) settings.frameRateLimit=0;
+        if (settings.frameRateLimit>1000) settings.frameRateLimit=1000;
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("only applies when VSync is disabled.");
+        }
+
         bool renderClearPosB=settings.renderClearPos;
         if (ImGui::Checkbox("Late render clear",&renderClearPosB)) {
           settings.renderClearPos=renderClearPosB;
@@ -3885,6 +3903,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.renderBackend=conf.getString("renderBackend",GUI_BACKEND_DEFAULT_NAME);
     settings.renderClearPos=conf.getInt("renderClearPos",0);
 
+    settings.vsync=conf.getInt("vsync",1);
+    settings.frameRateLimit=conf.getInt("frameRateLimit",100);
+
     settings.chanOscThreads=conf.getInt("chanOscThreads",0);
     settings.renderPoolThreads=conf.getInt("renderPoolThreads",0);
     settings.shaderOsc=conf.getInt("shaderOsc",0);
@@ -4337,6 +4358,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
   clampSetting(settings.cursorWheelStep,0,1);
+  clampSetting(settings.vsync,0,4);
+  clampSetting(settings.frameRateLimit,0,1000);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4359,7 +4382,10 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("renderBackend",settings.renderBackend);
     conf.set("renderClearPos",settings.renderClearPos);
-    
+
+    conf.set("vsync",settings.vsync);
+    conf.set("frameRateLimit",settings.frameRateLimit);
+
     conf.set("chanOscThreads",settings.chanOscThreads);
     conf.set("renderPoolThreads",settings.renderPoolThreads);
     conf.set("shaderOsc",settings.shaderOsc);
@@ -4654,6 +4680,10 @@ void FurnaceGUI::syncSettings() {
   e->setMidiVolExp(midiMap.volExp);
   e->setMetronomeVol(((float)settings.metroVol)/100.0f);
   e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
+
+  if (rend!=NULL) {
+    rend->setSwapInterval(settings.vsync);
+  }
 }
 
 void FurnaceGUI::commitSettings() {

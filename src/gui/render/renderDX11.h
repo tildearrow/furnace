@@ -41,7 +41,7 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
   ID3D11BlendState* omBlendState;
 
   ID3D11Buffer* quadVertex;
-  int outW, outH;
+  int outW, outH, swapInterval;
 
   bool dead;
 
@@ -71,6 +71,7 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
     void resized(const SDL_Event& ev);
     void clear(ImVec4 color);
     bool newFrame();
+    bool canVSync();
     void createFontsTexture();
     void destroyFontsTexture();
     void renderGUI();
@@ -78,8 +79,9 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
     void present();
     bool getOutputSize(int& w, int& h);
     int getWindowFlags();
+    void setSwapInterval(int swapInterval);
     void preInit();
-    bool init(SDL_Window* win);
+    bool init(SDL_Window* win, int swapInterval);
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();
@@ -94,6 +96,7 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
       quadVertex(NULL),
       outW(0),
       outH(0),
+      swapInterval(1),
       dead(false),
       sh_wipe_vertex(NULL),
       sh_wipe_fragment(NULL),

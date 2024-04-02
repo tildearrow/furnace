@@ -112,6 +112,10 @@ bool FurnaceGUIRenderSDL::newFrame() {
   return ImGui_ImplSDLRenderer2_NewFrame();
 }
 
+bool FurnaceGUIRenderSDL::canVSync() {
+  return swapIntervalSet;
+}
+
 void FurnaceGUIRenderSDL::createFontsTexture() {
   ImGui_ImplSDLRenderer2_CreateFontsTexture();
 }
@@ -142,12 +146,27 @@ int FurnaceGUIRenderSDL::getWindowFlags() {
   return 0;
 }
 
+void FurnaceGUIRenderSDL::setSwapInterval(int swapInterval) {
+  if (SDL_RenderSetVSync(sdlRend,(swapInterval>=0)?1:0)!=0) {
+    swapIntervalSet=false;
+    logW("tried to enable VSync but couldn't!");
+  } else {
+    swapIntervalSet=true;
+  }
+}
+
 void FurnaceGUIRenderSDL::preInit() {
 }
 
-bool FurnaceGUIRenderSDL::init(SDL_Window* win) {
+bool FurnaceGUIRenderSDL::init(SDL_Window* win, int swapInterval) {
   logV("creating SDL renderer...");
-  sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
+  sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|((swapInterval>0)?SDL_RENDERER_PRESENTVSYNC:0)|SDL_RENDERER_TARGETTEXTURE);
+  if (SDL_RenderSetVSync(sdlRend,(swapInterval>=0)?1:0)!=0) {
+    swapIntervalSet=false;
+    logW("tried to enable VSync but couldn't!");
+  } else {
+    swapIntervalSet=true;
+  }
   logV("(post creation)");
   return (sdlRend!=NULL);
 }

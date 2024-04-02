@@ -1433,6 +1433,7 @@ class FurnaceGUIRender {
     virtual void resized(const SDL_Event& ev);
     virtual void clear(ImVec4 color);
     virtual bool newFrame();
+    virtual bool canVSync();
     virtual void createFontsTexture();
     virtual void destroyFontsTexture();
     virtual void renderGUI();
@@ -1444,8 +1445,9 @@ class FurnaceGUIRender {
     virtual bool regenOscShader(const char* fragment);
     virtual bool getOutputSize(int& w, int& h);
     virtual int getWindowFlags();
+    virtual void setSwapInterval(int swapInterval);
     virtual void preInit();
-    virtual bool init(SDL_Window* win);
+    virtual bool init(SDL_Window* win, int swapInterval);
     virtual void initGUI(SDL_Window* win);
     virtual void quitGUI();
     virtual bool quit();
@@ -1796,6 +1798,8 @@ class FurnaceGUI {
     int playbackTime;
     int shaderOsc;
     int cursorWheelStep;
+    int vsync;
+    int frameRateLimit;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -2001,6 +2005,8 @@ class FurnaceGUI {
       playbackTime(1),
       shaderOsc(1),
       cursorWheelStep(0),
+      vsync(1),
+      frameRateLimit(60),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2227,6 +2233,7 @@ class FurnaceGUI {
   uint64_t drawTimeBegin, drawTimeEnd, drawTimeDelta;
   uint64_t swapTimeBegin, swapTimeEnd, swapTimeDelta;
   uint64_t eventTimeBegin, eventTimeEnd, eventTimeDelta;
+  uint64_t nextPresentTime;
 
   FurnaceGUIPerfMetric perfMetrics[64];
   int perfMetricsLen;

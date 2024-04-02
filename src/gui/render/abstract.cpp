@@ -59,6 +59,10 @@ bool FurnaceGUIRender::newFrame() {
   return true;
 }
 
+bool FurnaceGUIRender::canVSync() {
+  return true;
+}
+
 void FurnaceGUIRender::createFontsTexture() {
 }
 
@@ -89,10 +93,13 @@ int FurnaceGUIRender::getWindowFlags() {
   return 0;
 }
 
+void FurnaceGUIRender::setSwapInterval(int swapInterval) {
+}
+
 void FurnaceGUIRender::preInit() {
 }
 
-bool FurnaceGUIRender::init(SDL_Window* win) {
+bool FurnaceGUIRender::init(SDL_Window* win, int swapInterval) {
   return false;
 }
 
