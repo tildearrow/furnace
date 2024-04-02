@@ -395,7 +395,7 @@ namespace nds_sound_emu
 					m_cur_bitaddr = (m_cur_bitaddr + 1) & 7;
 				else if (m_noise) // noise
 				{
-					if (bitfield(m_lfsr, 1))
+					if (bitfield(m_lfsr, 0))
 					{
 						m_lfsr = (m_lfsr >> 1) ^ 0x6000;
 						m_lfsr_out = -0x8000;
