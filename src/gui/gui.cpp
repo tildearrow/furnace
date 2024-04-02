@@ -4811,8 +4811,6 @@ bool FurnaceGUI::loop() {
       if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
     }
 
-    activateTutorial(GUI_TUTORIAL_OVERVIEW);
-
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
     if (firstFrame) {
@@ -6806,7 +6804,6 @@ bool FurnaceGUI::init() {
   }
 
   initSystemPresets();
-  initTutorial();
 
   e->setAutoNotePoly(noteInputPoly);
 
