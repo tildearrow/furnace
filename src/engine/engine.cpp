@@ -253,12 +253,6 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
   }
 }
 
-void DivEngine::setNumTimesPlayed(int count) {
-  numTimesPlayed=count;
-  crossedPatterns=count;
-  if (count==-1) crossedPatterns=0;
-}
-
 #define EXPORT_BUFSIZE 2048
 
 double DivEngine::benchmarkPlayback() {
@@ -2150,9 +2144,6 @@ void DivEngine::reset() {
   elapsedBeats=0;
   nextSpeed=speeds.val[0];
   divider=curSubSong->hz;
-  if (numTimesPlayed>=0) {
-    divider*=1.0+(double)(MAX(numTimesPlayed-6,0))*0.04;
-  }
   globalPitch=0;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->reset();
@@ -3375,8 +3366,6 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   int finalChan=midiBaseChan;
   int finalChanType=getChannelType(finalChan);
 
-  if (note==84 && numTimesPlayed>=0) return false;
-
   if (!playing) {
     reset();
     freelance=true;
@@ -3504,9 +3493,6 @@ void DivEngine::setSongRate(float hz) {
   saveLock.lock();
   curSubSong->hz=hz;
   divider=curSubSong->hz;
-  if (numTimesPlayed>=0) {
-    divider*=1.0+(double)(MAX(numTimesPlayed-6,0))*0.04;
-  }
   saveLock.unlock();
   BUSY_END;
 }

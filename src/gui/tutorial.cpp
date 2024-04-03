@@ -785,8 +785,6 @@ void FurnaceGUI::drawTutorial() {
         cv=new FurnaceCV;
         cv->init(e);
         cv->hiScore=cvHiScore;
-        e->setNumTimesPlayed(-1);
-        shaderEditor=false;
       }
       if (cvTex==NULL) {
         cvTex=rend->createTexture(true,320,224,false);
@@ -861,34 +859,12 @@ void FurnaceGUI::drawTutorial() {
     ImGui::End();
 
     if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-      time_t timet=time(NULL);
-      struct tm* curtm=localtime(&timet);
-      if (curtm!=NULL) {
-        if (curtm->tm_mon==3 && curtm->tm_mday==1) {
-          if (cvHiScore>25000) {
-            if (cv!=NULL) {
-              cv->unload();
-              delete cv;
-              cv=NULL;
-            }
-            cvOpen=false;
-          }
-        } else {
-          if (cv!=NULL) {
-            cv->unload();
-            delete cv;
-            cv=NULL;
-          }
-          cvOpen=false;
-        }
-      } else {
-        if (cv!=NULL) {
-          cv->unload();
-          delete cv;
-          cv=NULL;
-        }
-        cvOpen=false;
+      if (cv!=NULL) {
+        cv->unload();
+        delete cv;
+        cv=NULL;
       }
+      cvOpen=false;
     }
   }
 }

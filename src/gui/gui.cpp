@@ -1117,12 +1117,6 @@ void FurnaceGUI::play(int row) {
   if (e->getStreamPlayer()) {
     e->killStream();
   }
-  if (shaderEditor) {
-    numTimesPlayed++;
-    e->setNumTimesPlayed(numTimesPlayed);
-  } else {
-    e->setNumTimesPlayed(-1);
-  }
   memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     chanOscChan[i].pitch=0.0f;
@@ -1153,50 +1147,6 @@ void FurnaceGUI::setOrder(unsigned char order, bool forced) {
 }
 
 void FurnaceGUI::stop() {
-  if (shaderEditor) {
-    if (numTimesPlayed>=25) {
-      switch (numTimesPlayed) {
-        case 25:
-          showError("*bleep*\n\n\nAccess Denied");
-          break;
-        case 26:
-          showError("*bleep*\n\n\nAccess Is Denied");
-          break;
-        case 27:
-          showError("*bleep*\n\n\nUnauthorized Access");
-          break;
-        case 28:
-          showError("*bleep*\n\n\nIllegal Access");
-          break;
-        case 29:
-          showError("Please, move away from the stop button");
-          break;
-        case 30:
-          showError("You will not stop the song");
-          break;
-        case 31:
-          showError("Move on immediately");
-          break;
-        case 32:
-          showError("You will not stop the song!");
-          break;
-        case 33:
-          showError("No, no and no!");
-          break;
-        case 34:
-          showError("Will we do this all day?");
-          break;
-        case 35:
-          showError("");
-          break;
-        default:
-          showError("YOU HAVE NO CHOICE.");
-          break;
-      }
-      numTimesPlayed++;
-      return;
-    }
-  }
   bool wasPlaying=e->isPlaying();
   e->walkSong(loopOrder,loopRow,loopEnd);
   e->stop();
@@ -1243,11 +1193,6 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 void FurnaceGUI::noteInput(int num, int key, int vol) {
   DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
   bool removeIns=false;
-
-  if (shaderEditor && num==84) {
-    showError("This note is reserved for the Master. You may not use it.");
-    return;
-  }
 
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
@@ -2319,18 +2264,6 @@ int FurnaceGUI::load(String path) {
   } else {
     // warn the user
     showWarning("you have loaded a backup!\nif you need to, please save it somewhere.\n\nDO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\nFurnace will not save backups of backups.",GUI_WARN_GENERIC);
-  }
-  if (!cvOpen && shaderEditor) {
-    for (int i=0; i<e->song.systemLen; i++) {
-      if (e->song.system[i]==DIV_SYSTEM_YM2612 ||
-          e->song.system[i]==DIV_SYSTEM_YM2612_EXT ||
-          e->song.system[i]==DIV_SYSTEM_YM2612_CSM ||
-          e->song.system[i]==DIV_SYSTEM_YM2612_DUALPCM ||
-          e->song.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT) {
-        showWarning("pure sine wave YM2612s are becoming expensive!\nwhy not try out the new Modified Sine Wave YM2612?\nequivalent quality, without the price!\ngo to file > manage chips for more details.",GUI_WARN_GENERIC);
-        break;
-      }
-    }
   }
   return 0;
 }
@@ -4412,11 +4345,6 @@ bool FurnaceGUI::loop() {
         ImGui::Separator();
         if (ImGui::MenuItem("restore backup",BIND_FOR(GUI_ACTION_OPEN_BACKUP))) {
           doAction(GUI_ACTION_OPEN_BACKUP);
-        }
-        if (numTimesPlayed>3) {
-          if (ImGui::MenuItem("Enable Serious Mode")) {
-            cvOpen=true;
-          }
         }
         ImGui::Separator();
         if (ImGui::MenuItem("exit...",BIND_FOR(GUI_ACTION_QUIT))) {
@@ -7147,20 +7075,6 @@ bool FurnaceGUI::init() {
 
   firstFrame=true;
 
-  time_t timet=time(NULL);
-  struct tm* curtm=localtime(&timet);
-  if (curtm!=NULL) {
-    if (curtm->tm_mon==3 && curtm->tm_mday==1) {
-      if (cvHiScore<=25000) {
-        shaderEditor=true;
-      }
-    }
-  }
-
-  if (!shaderEditor) {
-    e->setNumTimesPlayed(-1);
-  }
-
   userEvents=SDL_RegisterEvents(1);
 
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
@@ -7491,7 +7405,6 @@ FurnaceGUI::FurnaceGUI():
   snesFilterHex(false),
   modTableHex(false),
   displayEditString(false),
-  shaderEditor(false),
   mobileEdit(false),
   killGraphics(false),
   safeMode(false),
@@ -7512,7 +7425,6 @@ FurnaceGUI::FurnaceGUI():
   wheelCalmDown(0),
   shallDetectScale(0),
   cpuCores(0),
-  numTimesPlayed(0),
   secondTimer(0.0f),
   userEvents(0xffffffff),
   mobileMenuPos(0.0f),

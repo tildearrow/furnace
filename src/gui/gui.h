@@ -1517,7 +1517,6 @@ class FurnaceGUI {
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd, wantScrollList, noteInputPoly, notifyWaveChange;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
-  bool shaderEditor;
   bool mobileEdit;
   bool killGraphics;
   bool safeMode;
@@ -1538,7 +1537,6 @@ class FurnaceGUI {
   int wheelCalmDown;
   int shallDetectScale;
   int cpuCores;
-  int numTimesPlayed;
   float secondTimer;
   unsigned int userEvents;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;

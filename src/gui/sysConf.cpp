@@ -95,12 +95,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         }
       }
 
-      if (msw || shaderEditor) {
-        if (ImGui::Checkbox("Modified sine wave",&msw)) {
+      if (msw) {
+        if (ImGui::Checkbox("Modified sine wave (joke)",&msw)) {
           altered=true;
-        }
-        if (msw && shaderEditor) {
-          ImGui::Text("Oopsie...");
         }
       }
       
