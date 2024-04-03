@@ -93,8 +93,18 @@ void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
 void DivPlatformOPLL::acquire_ymfm(short** buf, size_t len) {
 }
 
+void DivPlatformOPLL::acquire_emu(short** buf, size_t len) {
+}
+
 void DivPlatformOPLL::acquire(short** buf, size_t len) {
-  acquire_nuked(buf,len);
+  switch (selCore) {
+    case 0:
+      acquire_nuked(buf,len);
+      break;
+    case 1:
+      acquire_emu(buf,len);
+      break;
+  }
 }
 
 void DivPlatformOPLL::tick(bool sysTick) {
@@ -1073,8 +1083,8 @@ int DivPlatformOPLL::getPortaFloor(int ch) {
   return (ch>5)?12:0;
 }
 
-void DivPlatformOPLL::setYMFM(bool use) {
-  useYMFM=use;
+void DivPlatformOPLL::setCore(unsigned char which) {
+  selCore=which;
 }
 
 float DivPlatformOPLL::getPostAmp() {

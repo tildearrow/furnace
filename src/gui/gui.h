@@ -1628,6 +1628,18 @@ class FurnaceGUI {
     int opl2Core;
     int opl3Core;
     int esfmCore;
+    int opllCore;
+    int bubsysQuality;
+    int dsidQuality;
+    int gbQuality;
+    int ndsQuality;
+    int pceQuality;
+    int pnQuality;
+    int saaQuality;
+    int sccQuality;
+    int smQuality; 
+    int swanQuality;
+    int vbQuality;
     int arcadeCoreRender;
     int ym2612CoreRender;
     int snCoreRender;
@@ -1639,6 +1651,18 @@ class FurnaceGUI {
     int opl2CoreRender;
     int opl3CoreRender;
     int esfmCoreRender;
+    int opllCoreRender;
+    int bubsysQualityRender;
+    int dsidQualityRender;
+    int gbQualityRender;
+    int ndsQualityRender;
+    int pceQualityRender;
+    int pnQualityRender;
+    int saaQualityRender;
+    int sccQualityRender;
+    int smQualityRender; 
+    int swanQualityRender;
+    int vbQualityRender;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -1838,6 +1862,7 @@ class FurnaceGUI {
       opl2Core(0),
       opl3Core(0),
       esfmCore(0),
+      opllCore(0),
       arcadeCoreRender(1),
       ym2612CoreRender(0),
       snCoreRender(0),
@@ -1849,6 +1874,7 @@ class FurnaceGUI {
       opl2CoreRender(0),
       opl3CoreRender(0),
       esfmCoreRender(0),
+      opllCoreRender(0),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),

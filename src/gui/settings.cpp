@@ -174,6 +174,20 @@ const char* esfmCores[]={
   "ESFMu (fast)"
 };
 
+const char* opllCores[]={
+  "Nuked-OPLL",
+  "emu2413"
+};
+
+const char* coreQualities[]={
+  "Horrible",
+  "Low",
+  "Medium",
+  "High",
+  "Ultra",
+  "Ultimate"
+};
+
 const char* pcspkrOutMethods[]={
   "evdev SND_TONE",
   "KIOCSOUND on /dev/tty1",
@@ -1662,6 +1676,17 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::Combo("##ESFMCoreRender",&settings.esfmCoreRender,esfmCores,2)) settingsChanged=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPLL");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPLLCore",&settings.opllCore,opllCores,2)) settingsChanged=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPLLCoreRender",&settings.opllCoreRender,opllCores,2)) settingsChanged=true;
 
           ImGui::EndTable();
         }
@@ -4165,6 +4190,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opl2Core=conf.getInt("opl2Core",0);
     settings.opl3Core=conf.getInt("opl3Core",0);
     settings.esfmCore=conf.getInt("esfmCore",0);
+    settings.opllCore=conf.getInt("opllCore",0);
     settings.arcadeCoreRender=conf.getInt("arcadeCoreRender",1);
     settings.ym2612CoreRender=conf.getInt("ym2612CoreRender",0);
     settings.snCoreRender=conf.getInt("snCoreRender",0);
@@ -4176,6 +4202,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opl2CoreRender=conf.getInt("opl2CoreRender",0);
     settings.opl3CoreRender=conf.getInt("opl3CoreRender",0);
     settings.esfmCoreRender=conf.getInt("esfmCoreRender",0);
+    settings.opllCoreRender=conf.getInt("opllCoreRender",0);
 
     settings.pcSpeakerOutMethod=conf.getInt("pcSpeakerOutMethod",0);
 
@@ -4205,6 +4232,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opl2Core,0,2);
   clampSetting(settings.opl3Core,0,2);
   clampSetting(settings.esfmCore,0,1);
+  clampSetting(settings.opllCore,0,1);
   clampSetting(settings.arcadeCoreRender,0,1);
   clampSetting(settings.ym2612CoreRender,0,2);
   clampSetting(settings.snCoreRender,0,1);
@@ -4216,6 +4244,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opl2CoreRender,0,2);
   clampSetting(settings.opl3CoreRender,0,2);
   clampSetting(settings.esfmCoreRender,0,1);
+  clampSetting(settings.opllCoreRender,0,1);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
@@ -4647,6 +4676,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opl2Core",settings.opl2Core);
     conf.set("opl3Core",settings.opl3Core);
     conf.set("esfmCore",settings.esfmCore);
+    conf.set("opllCore",settings.opllCore);
     conf.set("arcadeCoreRender",settings.arcadeCoreRender);
     conf.set("ym2612CoreRender",settings.ym2612CoreRender);
     conf.set("snCoreRender",settings.snCoreRender);
@@ -4658,6 +4688,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opl2CoreRender",settings.opl2CoreRender);
     conf.set("opl3CoreRender",settings.opl3CoreRender);
     conf.set("esfmCoreRender",settings.esfmCoreRender);
+    conf.set("opllCoreRender",settings.opllCoreRender);
 
     conf.set("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
 
@@ -4703,6 +4734,7 @@ void FurnaceGUI::commitSettings() {
     settings.opl2Core!=e->getConfInt("opl2Core",0) ||
     settings.opl3Core!=e->getConfInt("opl3Core",0) ||
     settings.esfmCore!=e->getConfInt("esfmCore",0) ||
+    settings.opllCore!=e->getConfInt("opllCore",0) ||
     settings.arcadeCoreRender!=e->getConfInt("arcadeCoreRender",0) ||
     settings.ym2612CoreRender!=e->getConfInt("ym2612CoreRender",0) ||
     settings.snCoreRender!=e->getConfInt("snCoreRender",0) ||
@@ -4714,6 +4746,7 @@ void FurnaceGUI::commitSettings() {
     settings.opl2CoreRender!=e->getConfInt("opl2CoreRender",0) ||
     settings.opl3CoreRender!=e->getConfInt("opl3CoreRender",0) ||
     settings.esfmCoreRender!=e->getConfInt("esfmCoreRender",0) ||
+    settings.opllCoreRender!=e->getConfInt("opllCoreRender",0) ||
     settings.audioQuality!=e->getConfInt("audioQuality",0) ||
     settings.audioHiPass!=e->getConfInt("audioHiPass",1)
   );

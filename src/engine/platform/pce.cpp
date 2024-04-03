@@ -88,12 +88,10 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
     }
   
     // PCE part
-    cycles=0;
-    while (!writes.empty() && cycles<24) {
+    while (!writes.empty()) {
       QueuedWrite w=writes.front();
-      pce->Write(cycles,w.addr,w.val);
+      pce->Write(0,w.addr,w.val);
       regPool[w.addr&0x0f]=w.val;
-      //cycles+=2;
       writes.pop();
     }
     memset(tempL,0,24*sizeof(int));
@@ -585,7 +583,6 @@ void DivPlatformPCE::reset() {
   lastPan=0xff;
   memset(tempL,0,32*sizeof(int));
   memset(tempR,0,32*sizeof(int));
-  cycles=0;
   curChan=-1;
   sampleBank=0;
   lfoMode=0;
@@ -599,7 +596,6 @@ void DivPlatformPCE::reset() {
   for (int i=0; i<6; i++) {
     chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
   }
-  delay=500;
 }
 
 int DivPlatformPCE::getOutputCount() {

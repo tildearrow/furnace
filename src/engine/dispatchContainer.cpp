@@ -428,6 +428,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_VRC7:
       dispatch=new DivPlatformOPLL;
+      if (isRender) {
+        ((DivPlatformOPLL*)dispatch)->setCore(eng->getConfInt("opllCoreRender",0));
+      } else {
+        ((DivPlatformOPLL*)dispatch)->setCore(eng->getConfInt("opllCore",0));
+      }
       ((DivPlatformOPLL*)dispatch)->setVRC7(sys==DIV_SYSTEM_VRC7);
       ((DivPlatformOPLL*)dispatch)->setProperDrums(sys==DIV_SYSTEM_OPLL_DRUMS);
       break;

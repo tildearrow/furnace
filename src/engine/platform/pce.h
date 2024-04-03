@@ -68,7 +68,7 @@ class DivPlatformPCE: public DivDispatch {
   FixedQueue<QueuedWrite,512> writes;
   unsigned char lastPan;
 
-  int cycles, curChan, delay;
+  int curChan;
   int tempL[32];
   int tempR[32];
   unsigned char sampleBank, lfoMode, lfoSpeed;
