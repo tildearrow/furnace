@@ -4836,41 +4836,22 @@ bool FurnaceGUI::exportColors(String path) {
 }
 
 bool FurnaceGUI::importKeybinds(String path) {
-  FILE* f=ps_fopen(path.c_str(),"rb");
-  if (f==NULL) {
+  DivConfig c;
+  if (!c.loadFromFile(path.c_str(),false,false)) {
     logW("error while opening keybind file for import: %s",strerror(errno));
     return false;
   }
   resetKeybinds();
-  char line[4096];
-  while (!feof(f)) {
-    String key="";
-    String value="";
-    bool keyOrValue=false;
-    if (fgets(line,4095,f)==NULL) {
-      break;
-    }
-    for (char* i=line; *i; i++) {
-      if (*i=='\n') continue;
-      if (keyOrValue) {
-        value+=*i;
-      } else {
-        if (*i=='=') {
-          keyOrValue=true;
-        } else {
-          key+=*i;
-        }
-      }
-    }
-    if (keyOrValue) {
-      // unoptimal
-      const char* cs=key.c_str();
-      bool found=false;
+  if (c.has("configVersion")) {
+    // new
+    readConfig(c,GUI_SETTINGS_KEYBOARD);
+  } else {
+    // unoptimal
+    for (auto& key: c.configMap()) {
       for (int i=0; i<GUI_ACTION_MAX; i++) {
         try {
-          if (strcmp(cs,guiActions[i].name)==0) {
-            actionKeys[i]=std::stoi(value);
-            found=true;
+          if (key.first==guiActions[i].name) {
+            actionKeys[i]=std::stoi(key.second);
             break;
           }
         } catch (std::out_of_range& e) {
@@ -4879,26 +4860,29 @@ bool FurnaceGUI::importKeybinds(String path) {
           break;
         }
       }
-      if (!found) logW("line invalid: %s",line);
     }
   }
-  fclose(f);
   return true;
 }
 
 bool FurnaceGUI::exportKeybinds(String path) {
+  DivConfig c;
+
+  c.set("configVersion",DIV_ENGINE_VERSION);
+  writeConfig(c,GUI_SETTINGS_KEYBOARD);
+
   FILE* f=ps_fopen(path.c_str(),"wb");
   if (f==NULL) {
     logW("error while opening keybind file for export: %s",strerror(errno));
     return false;
   }
-  for (int i=0; i<GUI_ACTION_MAX; i++) {
-    if (guiActions[i].defaultBind==-1) continue;
-    if (fprintf(f,"%s=%d\n",guiActions[i].name,actionKeys[i])<0) {
-      logW("error while exporting keybinds: %s",strerror(errno));
-      break;
-    }
+
+  String result=c.toString();
+
+  if (fwrite(result.c_str(),1,result.size(),f)!=result.size()) {
+    logW("couldn't write keybind file entirely.");
   }
+
   fclose(f);
   return true;
 }
