@@ -278,7 +278,7 @@ jobs:
 
         echo "creating new image"
         retries=0
-        while ! hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg; do
+        while ! hdiutil create -srcfolder new -volname Furnace -format UDZO -fs HFS+ furnace.dmg; do
           echo "TRYING AGAIN..."
           retries=$((retries+1))
           if [ $retries -gt 5 ]; then
