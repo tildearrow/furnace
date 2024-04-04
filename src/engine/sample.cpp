@@ -807,8 +807,8 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
   return false;
 }
 
-void DivSample::convert(DivSampleDepth newDepth) {
-  render();
+void DivSample::convert(DivSampleDepth newDepth, unsigned int formatMask) {
+  render(formatMask|(1U<<newDepth));
   depth=newDepth;
   switch (depth) {
     case DIV_SAMPLE_DEPTH_1BIT:
@@ -845,7 +845,7 @@ void DivSample::convert(DivSampleDepth newDepth) {
     default:
       break;
   }
-  render();
+  render(formatMask|(1U<<newDepth));
 }
 
 #define RESAMPLE_BEGIN \
@@ -1309,6 +1309,7 @@ void DivSample::render(unsigned int formatMask) {
     if (!initInternal(DIV_SAMPLE_DEPTH_1BIT_DPCM,samples)) return;
     int accum=63;
     int next=63;
+    
     for (unsigned int i=0; (i<samples && (i>>3)<lengthDPCM); i++) {
       next=((unsigned short)(data16[i]^0x8000))>>9;
       if (next>accum) {

@@ -498,7 +498,7 @@ void FurnaceGUI::drawSampleEdit() {
               if (ImGui::Selectable(sampleDepths[i])) {
                 sample->prepareUndo(true);
                 e->lockEngine([this,sample,i]() {
-                  sample->convert((DivSampleDepth)i);
+                  sample->convert((DivSampleDepth)i,e->getSampleFormatMask());
                   e->renderSamples(curSample);
                 });
                 updateSampleTex=true;

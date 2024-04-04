@@ -288,7 +288,7 @@ struct DivSample {
    * @warning do not attempt to do this outside of a synchronized block!
    * @param newDepth the new depth.
    */
-  void convert(DivSampleDepth newDepth);
+  void convert(DivSampleDepth newDepth, unsigned int formatMask=0xffffffff);
 
   /**
    * initialize the rest of sample formats for this sample.
