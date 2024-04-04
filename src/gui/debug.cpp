@@ -315,9 +315,7 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("> PCEngine");
       COMMON_CHIP_DEBUG;
       ImGui::Text("- lastPan: %d",ch->lastPan);
-      ImGui::Text("- cycles: %d",ch->cycles);
       ImGui::Text("- curChan: %d",ch->curChan);
-      ImGui::Text("- delay: %d",ch->delay);
       ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- lfoMode: %d",ch->lfoMode);
       ImGui::Text("- lfoSpeed: %d",ch->lfoSpeed);
