@@ -1289,7 +1289,7 @@ void DivSample::render(unsigned int formatMask) {
         }
         break;
       case DIV_SAMPLE_DEPTH_IMA_ADPCM: // IMA ADPCM
-        if (adpcm_decode_block(data16,dataIMA,lengthIMA,samples,1)==0) logE("oh crap!");
+        if (adpcm_decode_block(data16,dataIMA,lengthIMA,samples)==0) logE("oh crap!");
         break;
       default:
         return;

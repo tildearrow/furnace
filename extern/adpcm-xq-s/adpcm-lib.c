@@ -340,74 +340,67 @@ int adpcm_encode_block (void *p, uint8_t *outbuf, size_t *outbufsize, const int1
  * Returns number of converted composite samples (total samples divided by number of channels)
  */ 
 
-int adpcm_decode_block (int16_t *outbuf, const uint8_t *inbuf, size_t inbufsize, size_t outbufsize, int channels)
+int adpcm_decode_block (int16_t *outbuf, const uint8_t *inbuf, size_t inbufsize, size_t outbufsize)
 {
-    int ch, samples = 1, chunks;
+    int samples = 1, chunks;
     int32_t pcmdata[2];
     int8_t index[2];
 
-    if (inbufsize < (uint32_t) channels * 4)
+    if (inbufsize < 4)
         return 0;
 
-    for (ch = 0; ch < channels; ch++) {
-        *outbuf++ = pcmdata[ch] = (int16_t) (inbuf [0] | (inbuf [1] << 8));
-        index[ch] = inbuf [2];
+    *outbuf++ = pcmdata[0] = (int16_t) (inbuf [0] | (inbuf [1] << 8));
+    index[0] = inbuf [2];
 
-        if (index [ch] < 0 || index [ch] > 88 || inbuf [3])     // sanitize the input a little...
-            return 0;
+    if (index [0] < 0 || index [0] > 88 || inbuf [3])     // sanitize the input a little...
+        return 0;
 
-        inbufsize -= 4;
-        inbuf += 4;
-    }
+    inbufsize -= 4;
+    inbuf += 4;
 
-    chunks = inbufsize / (channels * 4);
+    chunks = inbufsize / 4;
     samples += chunks * 8;
 
     while (chunks--) {
-        int ch, i;
+        int i;
 
-        for (ch = 0; ch < channels; ++ch) {
+        for (i = 0; i < 4; ++i) {
+            uint16_t step = step_table [index [0]], delta = step >> 3;
 
-            for (i = 0; i < 4; ++i) {
-                uint16_t step = step_table [index [ch]], delta = step >> 3;
+            if (*inbuf & 1) delta += (step >> 2);
+            if (*inbuf & 2) delta += (step >> 1);
+            if (*inbuf & 4) delta += step;
+            
+            if (*inbuf & 8)
+                pcmdata[0] -= delta;
+            else
+                pcmdata[0] += delta;
 
-                if (*inbuf & 1) delta += (step >> 2);
-                if (*inbuf & 2) delta += (step >> 1);
-                if (*inbuf & 4) delta += step;
-                
-                if (*inbuf & 8)
-                    pcmdata[ch] -= delta;
-                else
-                    pcmdata[ch] += delta;
+            index[0] += index_table [*inbuf & 0x7];
+            CLIP(index[0], 0, 88);
+            CLIP(pcmdata[0], -32768, 32767);
+            outbuf [i * 2] = pcmdata[0];
 
-                index[ch] += index_table [*inbuf & 0x7];
-                CLIP(index[ch], 0, 88);
-                CLIP(pcmdata[ch], -32768, 32767);
-                outbuf [i * 2 * channels] = pcmdata[ch];
+            step = step_table [index [0]]; delta = step >> 3;
 
-                step = step_table [index [ch]]; delta = step >> 3;
+            if (*inbuf & 0x10) delta += (step >> 2);
+            if (*inbuf & 0x20) delta += (step >> 1);
+            if (*inbuf & 0x40) delta += step;
 
-                if (*inbuf & 0x10) delta += (step >> 2);
-                if (*inbuf & 0x20) delta += (step >> 1);
-                if (*inbuf & 0x40) delta += step;
+            if (*inbuf & 0x80)
+                pcmdata[0] -= delta;
+            else
+                pcmdata[0] += delta;
+            
+            index[0] += index_table [(*inbuf >> 4) & 0x7];
+            CLIP(index[0], 0, 88);
+            CLIP(pcmdata[0], -32768, 32767);
+            outbuf [(i * 2 + 1)] = pcmdata[0];
 
-                if (*inbuf & 0x80)
-                    pcmdata[ch] -= delta;
-                else
-                    pcmdata[ch] += delta;
-                
-                index[ch] += index_table [(*inbuf >> 4) & 0x7];
-                CLIP(index[ch], 0, 88);
-                CLIP(pcmdata[ch], -32768, 32767);
-                outbuf [(i * 2 + 1) * channels] = pcmdata[ch];
-
-                inbuf++;
-            }
-
-            outbuf++;
+            inbuf++;
         }
 
-        outbuf += channels * 7;
+        outbuf += 8;
     }
 
     return samples;
