@@ -486,7 +486,7 @@ extern/adpcm/yma_codec.c
 extern/adpcm/ymb_codec.c
 extern/adpcm/ymz_codec.c
 
-extern/adpcm-xq/adpcm-lib.c
+extern/adpcm-xq-s/adpcm-lib.c
 
 extern/opn/ym3438.c
 extern/Nuked-PSG/ympsg.c

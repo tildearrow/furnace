@@ -35,7 +35,7 @@ extern "C" {
 #include "../../extern/adpcm/ymb_codec.h"
 #include "../../extern/adpcm/ymz_codec.h"
 }
-#include "../../extern/adpcm-xq/adpcm-lib.h"
+#include "../../extern/adpcm-xq-s/adpcm-lib.h"
 #include "brrUtils.h"
 
 DivSampleHistory::~DivSampleHistory() {
