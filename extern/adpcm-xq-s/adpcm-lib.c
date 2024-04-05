@@ -340,7 +340,7 @@ int adpcm_encode_block (void *p, uint8_t *outbuf, size_t *outbufsize, const int1
  * Returns number of converted composite samples (total samples divided by number of channels)
  */ 
 
-int adpcm_decode_block (int16_t *outbuf, const uint8_t *inbuf, size_t inbufsize, int channels)
+int adpcm_decode_block (int16_t *outbuf, const uint8_t *inbuf, size_t inbufsize, size_t outbufsize, int channels)
 {
     int ch, samples = 1, chunks;
     int32_t pcmdata[2];
