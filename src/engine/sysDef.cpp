@@ -1749,6 +1749,20 @@ void DivEngine::registerSystems() {
     }
   );
 
+    sysDefs[DIV_SYSTEM_MSM5205]=new DivSysDef(
+    "OKI MSM5205", NULL, 0xab, 0, 1, false, true, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_VOX, 0, 0,
+    "The Earliest PCM chip was used in many arcade games and TurboGrafx-CD",
+    {"Sample"},
+    {"PCM"},
+    {DIV_CH_PCM},
+    {DIV_INS_MSM5205},
+    {DIV_INS_AMIGA},
+    {
+      {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set frequency divider (0-2)"}},
+      {0x21, {DIV_CMD_SAMPLE_MODE, "21xx: Select clock rate (0: full; 1: half)"}},
+    }
+  );
+
   sysDefs[DIV_SYSTEM_YMZ280B]=new DivSysDef(
     "Yamaha YMZ280B (PCMD8)", NULL, 0xb8, 0, 8, false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_YMZ_ADPCM, 0, 0,
     "used in some arcade boards. Can play back either 4-bit ADPCM, 8-bit PCM or 16-bit PCM.",
