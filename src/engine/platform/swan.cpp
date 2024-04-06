@@ -84,8 +84,8 @@ void DivPlatformSwan::acquire(short** buf, size_t len) {
       writes.pop();
     }
     int16_t samp[2]{0, 0};
-    ws->SoundUpdate(16);
-    ws->SoundFlush(samp, 1);
+    ws->SoundUpdate(coreQuality);
+    ws->SoundFlush(samp,1);
     buf[0][h]=samp[0];
     buf[1][h]=samp[1];
     for (int i=0; i<4; i++) {
@@ -596,9 +596,35 @@ void DivPlatformSwan::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformSwan::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/16; // = 192000kHz, should be enough
+  rate=chipClock/coreQuality;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
+  }
+}
+
+void DivPlatformSwan::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=96;
+      break;
+    case 1:
+      coreQuality=64;
+      break;
+    case 2:
+      coreQuality=32;
+      break;
+    case 3:
+      coreQuality=16;
+      break;
+    case 4:
+      coreQuality=4;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=16;
+      break;
   }
 }
 

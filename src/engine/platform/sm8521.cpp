@@ -55,7 +55,7 @@ void DivPlatformSM8521::acquire(short** buf, size_t len) {
     writes.pop();
   }
   for (size_t h=0; h<len; h++) {
-    sm8521_sound_tick(&sm8521,8);
+    sm8521_sound_tick(&sm8521,coreQuality);
     buf[0][h]=sm8521.out<<6;
     for (int i=0; i<2; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=sm8521.sg[i].base.out<<7;
@@ -367,7 +367,7 @@ void DivPlatformSM8521::setFlags(const DivConfig& flags) {
   chipClock=11059200;
   CHECK_CUSTOM_CLOCK;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
-  rate=chipClock/4/8; // CKIN -> fCLK(/2) -> Function blocks (/2)
+  rate=chipClock/4/coreQuality; // CKIN -> fCLK(/2) -> Function blocks (/2)
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -379,6 +379,32 @@ void DivPlatformSM8521::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformSM8521::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+void DivPlatformSM8521::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=64;
+      break;
+    case 1:
+      coreQuality=32;
+      break;
+    case 2:
+      coreQuality=16;
+      break;
+    case 3:
+      coreQuality=8;
+      break;
+    case 4:
+      coreQuality=4;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=8;
+      break;
+  }
 }
 
 int DivPlatformSM8521::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
