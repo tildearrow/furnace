@@ -34,4 +34,5 @@ res/docpdf/manual.html
 res/docpdf/manual.pdf
 res/docpdf/.venv
 res/docpdf/htmldoc/
+res/fonts/compressed/
 res/furnace.appdata.xml

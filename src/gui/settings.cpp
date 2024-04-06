@@ -5704,7 +5704,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
     // two fallback fonts
     mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_liberationSans_compressed_data,font_liberationSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
-    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
+    if (settings.loadJapanese || settings.loadChinese || settings.loadChineseTraditional || settings.loadKorean) {
+      mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
+    }
 
     ImFontConfig fc;
     fc.MergeMode=true;
