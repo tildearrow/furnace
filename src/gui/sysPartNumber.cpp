@@ -238,6 +238,9 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
     case DIV_SYSTEM_MSM6258:
       return "MSM6258";
       break;
+   case DIV_SYSTEM_MSM5205:
+      return "MSM5205";
+      break;
     case DIV_SYSTEM_YMZ280B:
       return "YMZ280B";
       break;
