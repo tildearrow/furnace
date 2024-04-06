@@ -598,6 +598,7 @@ src/engine/platform/sound/t6w28/T6W28_Apu.cpp
 
 src/engine/platform/sound/rf5c68.cpp
 
+src/engine/platform/sound/oki/okim5205.cpp
 src/engine/platform/sound/oki/msm5232.cpp
 src/engine/platform/sound/oki/okim6258.cpp
 
@@ -687,6 +688,7 @@ src/engine/platform/fds.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp
 src/engine/platform/amiga.cpp
+src/engine/platform/msm5205.cpp
 src/engine/platform/msm5232.cpp
 src/engine/platform/msm6258.cpp
 src/engine/platform/msm6295.cpp
