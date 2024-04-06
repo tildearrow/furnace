@@ -73,6 +73,7 @@ class DivPlatformGB: public DivDispatch {
 
   int antiClickPeriodCount, antiClickWavePos;
 
+  int coreQuality;
   GB_gameboy_t* gb;
   GB_model_t model;
   unsigned char regPool[128];
@@ -104,6 +105,7 @@ class DivPlatformGB: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     void setFlags(const DivConfig& flags);
+    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformGB();

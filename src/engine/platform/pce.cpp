@@ -94,8 +94,8 @@ void DivPlatformPCE::acquire(short** buf, size_t len) {
       regPool[w.addr&0x0f]=w.val;
       writes.pop();
     }
-    memset(tempL,0,24*sizeof(int));
-    memset(tempR,0,24*sizeof(int));
+    tempL[0]=0;
+    tempR[0]=0;
     pce->Update(coreQuality);
     pce->ResetTS(0);
 

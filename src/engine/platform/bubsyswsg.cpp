@@ -44,7 +44,7 @@ void DivPlatformBubSysWSG::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     signed int out=0;
     // K005289 part
-    k005289.tick(8);
+    k005289.tick(coreQuality);
 
     // Wavetable part
     for (int i=0; i<2; i++) {
@@ -332,7 +332,7 @@ void DivPlatformBubSysWSG::notifyInsDeletion(void* ins) {
 void DivPlatformBubSysWSG::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/8;
+  rate=chipClock/coreQuality;
   for (int i=0; i<2; i++) {
     oscBuf[i]->rate=rate/8;
   }
@@ -344,6 +344,32 @@ void DivPlatformBubSysWSG::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformBubSysWSG::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+void DivPlatformBubSysWSG::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=64;
+      break;
+    case 1:
+      coreQuality=32;
+      break;
+    case 2:
+      coreQuality=16;
+      break;
+    case 3:
+      coreQuality=8;
+      break;
+    case 4:
+      coreQuality=4;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=8;
+      break;
+  }
 }
 
 int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
