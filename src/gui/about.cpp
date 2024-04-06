@@ -219,6 +219,7 @@ const char* aboutLine[]={
   "YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt",
   "ESFMu (modified version) by Kagamiin~",
   "ymfm by Aaron Giles",
+  "emu2413 by Digital Sound Antiques",
   "MAME SN76496 by Nicola Salmoria",
   "MAME AY-3-8910 by Couriersud",
   "with AY8930 fixes by Eulous, cam900 and Grauw",
