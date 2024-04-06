@@ -56,7 +56,7 @@
 // for now
 #define NOTIFY_LONG_HOLD \
   if (vibrator && vibratorAvailable) { \
-    if (SDL_HapticRumblePlay(vibrator,0.5f,20)!=0) { \
+    if (SDL_HapticRumblePlay(vibrator,settings.vibrationStrength,settings.vibrationLength)!=0) { \
       logV("could not vibrate: %s!",SDL_GetError()); \
     } \
   } else { \
@@ -1823,6 +1823,8 @@ class FurnaceGUI {
     int vsync;
     int frameRateLimit;
     unsigned int maxUndoSteps;
+    float vibrationStrength;
+    int vibrationLength;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2054,6 +2056,8 @@ class FurnaceGUI {
       vsync(1),
       frameRateLimit(60),
       maxUndoSteps(100),
+      vibrationStrength(0.5f),
+      vibrationLength(100),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
