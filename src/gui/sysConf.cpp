@@ -1468,6 +1468,47 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_MSM5205: {
+      int clockSel=flags.getInt("clockSel",0);
+
+      ImGui::Text("Clock rate:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("0.375MHz",clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("0.384MHz",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("0.4MHz",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton("0.5MHz",clockSel==3)) {
+        clockSel=3;
+        altered=true;
+      }
+      ImGui::Unindent();
+      
+      int chipClock=flags.getInt("customClock",0);
+      if (!chipClock) {
+        switch (clockSel) {
+          case 0:
+            chipClock=375000;
+            break;
+          case 1:
+            chipClock=384000;
+            break;
+          case 2:
+            chipClock=400000;
+            break;
+          case 3:
+            chipClock=500000;
+            break;
+        }
+      }
+
     case DIV_SYSTEM_MSM6258: {
       int clockSel=flags.getInt("clockSel",0);
 
