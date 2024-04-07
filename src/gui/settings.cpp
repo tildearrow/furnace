@@ -539,11 +539,15 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("render using Dear ImGui's built-in line drawing functions.");
         }
-        if (ImGui::RadioButton("GLSL/HLSL (if available)",settings.shaderOsc==1)) {
+        if (ImGui::RadioButton("GLSL (if available)",settings.shaderOsc==1)) {
           settings.shaderOsc=1;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("render using shaders that run on the graphics card.\nonly available in OpenGL render backend.");
+#ifdef USE_GLES
+          ImGui::SetTooltip("render using shaders that run on the graphics card.\nonly available in OpenGL ES 2.0 render backend.");
+#else
+          ImGui::SetTooltip("render using shaders that run on the graphics card.\nonly available in OpenGL 3.0 render backend.");
+#endif
         }
         ImGui::Unindent();
 
