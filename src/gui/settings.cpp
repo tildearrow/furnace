@@ -406,8 +406,21 @@ void FurnaceGUI::drawSettings() {
           }
 #endif
 #ifdef HAVE_RENDER_GL
-          if (ImGui::Selectable("OpenGL",curRenderBackend=="OpenGL")) {
-            settings.renderBackend="OpenGL";
+#ifdef USE_GLES
+#else
+          if (ImGui::Selectable("OpenGL 3.0",curRenderBackend=="OpenGL 3.0")) {
+            settings.renderBackend="OpenGL 3.0";
+            settingsChanged=true;
+          }
+          if (ImGui::Selectable("OpenGL 2.0",curRenderBackend=="OpenGL 2.0")) {
+            settings.renderBackend="OpenGL 2.0";
+            settingsChanged=true;
+          }
+#endif
+#endif
+#ifdef HAVE_RENDER_GL1
+          if (ImGui::Selectable("OpenGL 1.1",curRenderBackend=="OpenGL 1.1")) {
+            settings.renderBackend="OpenGL 1.1";
             settingsChanged=true;
           }
 #endif

@@ -7042,9 +7042,6 @@ bool FurnaceGUI::init() {
 
   loadUserPresets(true);
 
-  // NEW CODE - REMOVE WHEN DONE
-  newOscFragment=rend->getStupidFragment();
-
   applyUISettings();
 
   logD("building font...");

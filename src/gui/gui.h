@@ -70,8 +70,11 @@
 
 enum FurnaceGUIRenderBackend {
   GUI_BACKEND_SDL=0,
-  GUI_BACKEND_GL,
-  GUI_BACKEND_DX11
+  GUI_BACKEND_GL3,
+  GUI_BACKEND_GL2,
+  GUI_BACKEND_GL1,
+  GUI_BACKEND_DX11,
+  GUI_BACKEND_DX9
 };
 
 #ifdef HAVE_RENDER_DX11
@@ -79,7 +82,7 @@ enum FurnaceGUIRenderBackend {
 #define GUI_BACKEND_DEFAULT_NAME "DirectX 11"
 #else
 #ifdef HAVE_RENDER_GL
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_GL
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_GL3
 #define GUI_BACKEND_DEFAULT_NAME "OpenGL"
 #else
 #ifdef HAVE_RENDER_SDL
@@ -1441,8 +1444,6 @@ class FurnaceGUIRender {
     virtual void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
     virtual void present();
     virtual bool supportsDrawOsc();
-    virtual const char* getStupidFragment();
-    virtual bool regenOscShader(const char* fragment);
     virtual bool getOutputSize(int& w, int& h);
     virtual int getWindowFlags();
     virtual void setSwapInterval(int swapInterval);
@@ -1492,7 +1493,6 @@ class FurnaceGUI {
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
 
-  String newOscFragment;
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;

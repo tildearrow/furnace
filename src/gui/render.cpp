@@ -25,6 +25,9 @@
 #ifdef HAVE_RENDER_GL
 #include "render/renderGL.h"
 #endif
+#ifdef HAVE_RENDER_GL1
+#include "render/renderGL1.h"
+#endif
 #ifdef HAVE_RENDER_DX11
 #include "render/renderDX11.h"
 #endif
@@ -34,10 +37,16 @@ bool FurnaceGUI::initRender() {
 
   if (safeMode) {
     renderBackend=GUI_BACKEND_SDL;
-  } else if (settings.renderBackend=="OpenGL") {
-    renderBackend=GUI_BACKEND_GL;
+  } else if (settings.renderBackend=="OpenGL" || settings.renderBackend=="OpenGL 3.0" || settings.renderBackend=="OpenGL ES 2.0") {
+    renderBackend=GUI_BACKEND_GL3;
+  } else if (settings.renderBackend=="OpenGL 2.0") {
+    renderBackend=GUI_BACKEND_GL2;
+  } else if (settings.renderBackend=="OpenGL 1.1") {
+    renderBackend=GUI_BACKEND_GL1;
   } else if (settings.renderBackend=="DirectX 11") {
     renderBackend=GUI_BACKEND_DX11;
+  } else if (settings.renderBackend=="DirectX 9") {
+    renderBackend=GUI_BACKEND_DX9;
   } else if (settings.renderBackend=="SDL") {
     renderBackend=GUI_BACKEND_SDL;
   } else {
@@ -46,15 +55,42 @@ bool FurnaceGUI::initRender() {
   
   switch (renderBackend) {
 #ifdef HAVE_RENDER_GL
-    case GUI_BACKEND_GL:
-      logI("render backend: OpenGL");
+#ifdef USE_GLES
+    case GUI_BACKEND_GL3:
+    case GUI_BACKEND_GL2:
+      logI("render backend: OpenGL ES 2.0");
       rend=new FurnaceGUIRenderGL;
+      ((FurnaceGUIRenderGL*)rend)->setVersion(2);
+      break;
+#else
+    case GUI_BACKEND_GL3:
+      logI("render backend: OpenGL 3.0");
+      rend=new FurnaceGUIRenderGL;
+      ((FurnaceGUIRenderGL*)rend)->setVersion(3);
+      break;
+    case GUI_BACKEND_GL2:
+      logI("render backend: OpenGL 2.0");
+      rend=new FurnaceGUIRenderGL;
+      ((FurnaceGUIRenderGL*)rend)->setVersion(2);
+      break;
+#endif
+#endif
+#ifdef HAVE_RENDER_GL1
+    case GUI_BACKEND_GL1:
+      logI("render backend: OpenGL 1.1");
+      rend=new FurnaceGUIRenderGL1;
       break;
 #endif
 #ifdef HAVE_RENDER_DX11
     case GUI_BACKEND_DX11:
       logI("render backend: DirectX 11");
       rend=new FurnaceGUIRenderDX11;
+      break;
+#endif
+#ifdef HAVE_RENDER_DX9
+    case GUI_BACKEND_DX9:
+      logI("render backend: DirectX 9");
+      rend=new FurnaceGUIRenderDX9;
       break;
 #endif
 #ifdef HAVE_RENDER_SDL

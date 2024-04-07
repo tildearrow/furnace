@@ -114,13 +114,15 @@ void    ImGui_ImplOpenGL2_Shutdown()
     IM_DELETE(bd);
 }
 
-void    ImGui_ImplOpenGL2_NewFrame()
+bool    ImGui_ImplOpenGL2_NewFrame()
 {
     ImGui_ImplOpenGL2_Data* bd = ImGui_ImplOpenGL2_GetBackendData();
     IM_ASSERT(bd != nullptr && "Did you call ImGui_ImplOpenGL2_Init()?");
 
     if (!bd->FontTexture)
         ImGui_ImplOpenGL2_CreateDeviceObjects();
+
+    return true;
 }
 
 static void ImGui_ImplOpenGL2_SetupRenderState(ImDrawData* draw_data, int fb_width, int fb_height)
