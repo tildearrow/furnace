@@ -74,13 +74,13 @@ class FurnaceGLTexture: public FurnaceGUITexture {
 };
 
 #ifdef USE_GLES
-const char* sh_wipe_srcV=
+const char* sh_wipe_srcV_ES2=
   "attribute vec4 fur_position;\n"
   "void main() {\n"
   " gl_Position=fur_position;\n"
   "}\n";
 
-const char* sh_wipe_srcF=
+const char* sh_wipe_srcF_ES2=
   "uniform float uAlpha;\n"
   "void main() {\n"
   "  gl_FragColor=vec4(0.0,0.0,0.0,uAlpha);\n"
@@ -660,6 +660,18 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win, int swapInterval) {
   }
 
   // create shaders
+#ifdef USE_GLES
+  if ((sh_wipe_have=createShader(sh_wipe_srcV_ES2,sh_wipe_srcF_ES2,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program,sh_wipe_attrib))==true) {
+    sh_wipe_uAlpha=furGetUniformLocation(sh_wipe_program,"uAlpha");
+  }
+
+  if ((sh_oscRender_have=createShader(sh_oscRender_srcV,sh_oscRender_srcF,sh_oscRender_vertex,sh_oscRender_fragment,sh_oscRender_program,sh_oscRender_attrib))==true) {
+    sh_oscRender_uColor=furGetUniformLocation(sh_oscRender_program,"uColor");
+    sh_oscRender_uLineWidth=furGetUniformLocation(sh_oscRender_program,"uLineWidth");
+    sh_oscRender_uResolution=furGetUniformLocation(sh_oscRender_program,"uResolution");
+    sh_oscRender_oscVal=furGetUniformLocation(sh_oscRender_program,"oscVal");
+  }
+#else
   if (glVer==3) {
     if ((sh_wipe_have=createShader(sh_wipe_srcV_130,sh_wipe_srcF_130,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program,sh_wipe_attrib))==true) {
       sh_wipe_uAlpha=furGetUniformLocation(sh_wipe_program,"uAlpha");
@@ -678,6 +690,7 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win, int swapInterval) {
 
     sh_oscRender_have=false;
   }
+#endif
 
   C(furGenBuffers(1,&quadBuf));
   C(furGenBuffers(1,&oscVertexBuf));
