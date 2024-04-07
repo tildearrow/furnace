@@ -102,7 +102,7 @@ void DivPlatformOPLL::acquire_emu(short** buf, size_t len) {
       OPLL_writeReg(fm_emu,w.addr,w.val);
       writes.pop();
     }
-    os=OPLL_calc(fm_emu);
+    os=-OPLL_calc(fm_emu);
     os=os+(os<<1);
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
@@ -111,9 +111,9 @@ void DivPlatformOPLL::acquire_emu(short** buf, size_t len) {
 
     for (int i=0; i<11; i++) {
       if (i>=6 && properDrums) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=fm_emu->ch_out[i+3]<<3;
+        oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[i+3])<<3;
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=fm_emu->ch_out[i]<<3;
+        oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[i])<<3;
       }
     }
   }
