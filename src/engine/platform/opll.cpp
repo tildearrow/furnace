@@ -1011,7 +1011,7 @@ int DivPlatformOPLL::getRegisterPoolSize() {
 }
 
 static const unsigned char nukedToEmuPatch[4]={
-  0, 2, 0 /* TODO */, 1
+  0, 2, 3, 1
 };
 
 void DivPlatformOPLL::reset() {
@@ -1042,7 +1042,7 @@ void DivPlatformOPLL::reset() {
   if (selCore==1) {
     OPLL_reset(fm_emu);
     OPLL_setChipType(fm_emu,vrc7?1:0);
-    OPLL_resetPatch(fm_emu,nukedToEmuPatch[patchSet&3]);
+    OPLL_resetPatch(fm_emu,vrc7?1:nukedToEmuPatch[patchSet&3]);
   }
   for (int i=0; i<11; i++) {
     chan[i]=DivPlatformOPLL::Channel();
