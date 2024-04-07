@@ -407,6 +407,10 @@ void FurnaceGUI::drawSettings() {
 #endif
 #ifdef HAVE_RENDER_GL
 #ifdef USE_GLES
+          if (ImGui::Selectable("OpenGL ES 2.0",curRenderBackend=="OpenGL ES 2.0")) {
+            settings.renderBackend="OpenGL ES 2.0";
+            settingsChanged=true;
+          }
 #else
           if (ImGui::Selectable("OpenGL 3.0",curRenderBackend=="OpenGL 3.0")) {
             settings.renderBackend="OpenGL 3.0";
