@@ -2779,6 +2779,8 @@ class FurnaceGUI {
   bool initRender();
   bool quitRender();
 
+  ImFont* addFontZlib(const void* data, size_t len, float size_pixels, const ImFontConfig* font_cfg=NULL, const ImWchar* glyph_ranges=NULL);
+
   const char* getSystemName(DivSystem which);
   const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
 

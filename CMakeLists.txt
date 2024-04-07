@@ -788,6 +788,7 @@ src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
 src/gui/font_furicon.cpp
 src/gui/fonts.cpp
+src/gui/fontzlib.cpp
 
 src/gui/image_icon.cpp
 src/gui/image_talogo.cpp
