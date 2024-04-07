@@ -86,8 +86,13 @@ enum FurnaceGUIRenderBackend {
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_GL1
 #define GUI_BACKEND_DEFAULT_NAME "OpenGL 1.1"
 #else
+#ifdef USE_GLES
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_GL3
+#define GUI_BACKEND_DEFAULT_NAME "OpenGL ES 2.0"
+#else
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_GL3
 #define GUI_BACKEND_DEFAULT_NAME "OpenGL 3.0"
+#endif
 #endif
 #else
 #ifdef HAVE_RENDER_SDL

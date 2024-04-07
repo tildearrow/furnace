@@ -60,7 +60,7 @@ bool FurnaceGUI::initRender() {
     case GUI_BACKEND_GL2:
       logI("render backend: OpenGL ES 2.0");
       rend=new FurnaceGUIRenderGL;
-      ((FurnaceGUIRenderGL*)rend)->setVersion(2);
+      ((FurnaceGUIRenderGL*)rend)->setVersion(3);
       break;
 #else
     case GUI_BACKEND_GL3:
