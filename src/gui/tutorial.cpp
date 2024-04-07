@@ -1439,13 +1439,15 @@ void FurnaceCV::render(unsigned char joyIn) {
             textWait=0;
           }
         }
-      } else if (joyPressed&15 && curText<5) {
+      } else if (joyPressed&15 && curText<3) {
         textWait=1;
         typeAddr=NULL;
       }
       if (typeAddr==NULL) {
         if (--textWait<0) {
-          if (curText==2) {
+          if (curText==4) {
+            textWait=90;
+          } else if (curText==2) {
             memset(tile1,0,80*56*sizeof(short));
             inGame=true;
           } else {
