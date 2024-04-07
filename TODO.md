@@ -2,6 +2,7 @@
 
 - compress fonts further if possible
 - 9xxx for more chips
+- user presets
 
 # to-do long term
 
