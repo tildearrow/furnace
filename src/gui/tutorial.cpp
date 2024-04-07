@@ -843,7 +843,7 @@ void FurnaceGUI::drawTutorial() {
 
         dl->AddRectFilled(ImVec2(0,0),ImVec2(canvasW,canvasH),0xff000000);
 
-        dl->AddImage(rend->getTextureID(cvTex),p0,p1);
+        dl->AddImage(rend->getTextureID(cvTex),p0,p1,ImVec2(0,0),ImVec2(rend->getTextureU(cvTex),rend->getTextureV(cvTex)));
 
         if (mobileUI) {
           dl->AddRect(dpadUpStart,dpadUpEnd,0xff0000ff,0,0,dpiScale);

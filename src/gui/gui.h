@@ -1426,6 +1426,8 @@ enum FurnaceGUIBlendMode {
 class FurnaceGUIRender {
   public:
     virtual ImTextureID getTextureID(FurnaceGUITexture* which);
+    virtual float getTextureU(FurnaceGUITexture* which);
+    virtual float getTextureV(FurnaceGUITexture* which);
     virtual bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     virtual bool unlockTexture(FurnaceGUITexture* which);
     virtual bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);

@@ -44,13 +44,23 @@ ImTextureID FurnaceGUIRenderGL1::getTextureID(FurnaceGUITexture* which) {
   return (ImTextureID)ret;
 }
 
+float FurnaceGUIRenderGL1::getTextureU(FurnaceGUITexture* which) {
+  FurnaceGL1Texture* t=(FurnaceGL1Texture*)which;
+  return (float)t->width/(float)t->widthReal;
+}
+
+float FurnaceGUIRenderGL1::getTextureV(FurnaceGUITexture* which) {
+  FurnaceGL1Texture* t=(FurnaceGL1Texture*)which;
+  return (float)t->height/(float)t->heightReal;
+}
+
 bool FurnaceGUIRenderGL1::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   FurnaceGL1Texture* t=(FurnaceGL1Texture*)which;
   if (t->lockedData!=NULL) return false;
-  t->lockedData=new unsigned char[t->width*t->height*4];
+  t->lockedData=new unsigned char[t->widthReal*t->heightReal*4];
 
   *data=t->lockedData;
-  *pitch=t->width*4;
+  *pitch=t->widthReal*4;
   return true;
 }
 
@@ -59,7 +69,7 @@ bool FurnaceGUIRenderGL1::unlockTexture(FurnaceGUITexture* which) {
   if (t->lockedData==NULL) return false;
 
   C(glBindTexture(GL_TEXTURE_2D,t->id));
-  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->width,t->height,0,GL_RGBA,GL_UNSIGNED_BYTE,t->lockedData));
+  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->widthReal,t->heightReal,0,GL_RGBA,GL_UNSIGNED_BYTE,t->lockedData));
   
   C(glFlush());
   delete[] t->lockedData;
@@ -73,8 +83,10 @@ bool FurnaceGUIRenderGL1::updateTexture(FurnaceGUITexture* which, void* data, in
 
   if (t->width*4!=pitch) return false;
 
+  logV("GL1 updateTexture...");
+
   C(glBindTexture(GL_TEXTURE_2D,t->id));
-  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->width,t->height,0,GL_RGBA,GL_UNSIGNED_BYTE,data));
+  C(glTexSubImage2D(GL_TEXTURE_2D,0,0,0,t->width,t->height,GL_RGBA,GL_UNSIGNED_BYTE,data));
   return true;
 }
 

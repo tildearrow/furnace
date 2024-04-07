@@ -23,6 +23,14 @@ ImTextureID FurnaceGUIRender::getTextureID(FurnaceGUITexture* which) {
   return NULL;
 }
 
+float FurnaceGUIRender::getTextureU(FurnaceGUITexture* which) {
+  return 1.0;
+}
+
+float FurnaceGUIRender::getTextureV(FurnaceGUITexture* which) {
+  return 1.0;
+}
+
 bool FurnaceGUIRender::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   return false;
 }
