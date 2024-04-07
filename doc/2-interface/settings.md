@@ -1,19 +1,33 @@
 # settings
 
-settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the dialog.
+the Settings window allows you to change Furnace setting.
+
+settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the window.
 
 ## General
 
 ### Program
 
-- **Render backend**: changing this may help with performace issues.
+- **Render backend**: changing this may help with performace or compatibility issues. the available render backends are:
+  - OpenGL 3.0: works with the majority of graphics chips/cards (from 2010 onwards). default on Linux.
+  - OpenGL 2.0: use if you have a card without OpenGL 3.0 support.
+  - OpenGL 1.1: use if your card doesn't even support OpenGL 2.0.
+  - DirectX 11: works with the majority of graphics chips/cards and is optimized specifically for Windows.
+  - SDL Renderer: this was the only available render backend prior to the addition of dedicated OpenGL/DirectX backends in 0.6. default on macOS.
+    - it is slower than the other backends.
+- **Render driver**: this setting appears when using the SDL Renderer backend. it allows you to select an SDL render driver.
+- **VSync**: synchronizes rendering to VBlank and eliminates tearing.
+- **Frame rate limit**: allows you to set a frame rate limit (in frames per second).
+  - only has effect when VSync is off or not available (e.g. software rendering or force-disabled on driver settings).
 - **Late render clear**: this option is only useful when using old versions of Mesa drivers. it force-waits for VBlank by clearing after present, reducing latency.
 - **Power-saving mode**: saves power by lowering the frame rate to 2fps when idle.
   - may cause issues under Mesa drivers!
 - **Disable threaded input (restart after changing!)**: processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.
-  - however, crashes have been reported when threaded input is on. enable this option if that is the case.
 - **Enable event delay**: may cause issues with high-polling-rate mice when previewing notes.
 - **Per-channel oscilloscope threads**: runs the per-channel oscilloscope in separate threads for a performance boost when there are lots of channels.
+- **Oscilloscope rendering engine**: allows you to select between the following rendering engines for oscilloscope views (master and per-channel):
+  - **ImGui line plot**: the default engine. uses Dear ImGui line plotting functions for rendering.
+  - **GLSL**: uses OpenGL shaders for rendering. higher quality, but very GPU-intensive! only available in OpenGL 3.0 backend.
 
 ### File
 
@@ -186,15 +200,30 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 
 all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
 
+### Quality
+
+some chips have output quality settings. these may be used to increase quality or lower CPU usage.
+
+the available quality settings are:
+
+- Lower: fastest but worst quality.
+- Low
+- Medium
+- High: the default quality.
+- Ultra
+- Ultimate: highest available quality. may be very CPU heavy!
+
+### Other
+
 - **PC Speaker strategy**: this is covered in the [PC speaker page](../7-systems/pcspkr.md).
 
 ## Keyboard
 
 ### Keyboard
 
-- **Import**
-- **Export**
-- **Reset defaults**
+- **Import**: imports keyboard layout in `.cfgk` format.
+- **Export**: exports keyboard layout in `.cfgk` format.
+- **Reset defaults**: resets all keybinds to default values.
 
 a list of keybinds is displayed.
 - click on a keybind. then enter a key or key combination to change it.
