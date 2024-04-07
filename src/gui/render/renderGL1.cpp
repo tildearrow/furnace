@@ -59,7 +59,7 @@ bool FurnaceGUIRenderGL1::unlockTexture(FurnaceGUITexture* which) {
   if (t->lockedData==NULL) return false;
 
   C(glBindTexture(GL_TEXTURE_2D,t->id));
-  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->width,t->height,0,GL_RGBA,GL_RGBA,t->lockedData));
+  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->width,t->height,0,GL_RGBA,GL_UNSIGNED_BYTE,t->lockedData));
   
   C(glFlush());
   delete[] t->lockedData;
@@ -74,7 +74,7 @@ bool FurnaceGUIRenderGL1::updateTexture(FurnaceGUITexture* which, void* data, in
   if (t->width*4!=pitch) return false;
 
   C(glBindTexture(GL_TEXTURE_2D,t->id));
-  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->width,t->height,0,GL_RGBA,GL_RGBA,data));
+  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->width,t->height,0,GL_RGBA,GL_UNSIGNED_BYTE,data));
   return true;
 }
 
@@ -102,7 +102,7 @@ FurnaceGUITexture* FurnaceGUIRenderGL1::createTexture(bool dynamic, int width, i
   logV("width: %d (requested)... %d (actual)",width,widthReal);
   logV("height: %d (requested)... %d (actual)",height,heightReal);
 
-  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,widthReal,heightReal,0,GL_RGBA,GL_RGBA,NULL));
+  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,widthReal,heightReal,0,GL_RGBA,GL_UNSIGNED_BYTE,NULL));
   t->width=width;
   t->height=height;
   t->widthReal=widthReal;
