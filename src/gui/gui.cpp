@@ -6468,19 +6468,20 @@ bool FurnaceGUI::loop() {
     drawTimeEnd=SDL_GetPerformanceCounter();
     swapTimeBegin=SDL_GetPerformanceCounter();
     if (!settings.vsync || !rend->canVSync()) {
-      unsigned int presentDelay=SDL_GetPerformanceFrequency()/settings.frameRateLimit;
-      if ((nextPresentTime-swapTimeBegin)<presentDelay) {
+      if (settings.frameRateLimit>0) {
+        unsigned int presentDelay=SDL_GetPerformanceFrequency()/settings.frameRateLimit;
+        if ((nextPresentTime-swapTimeBegin)<presentDelay) {
 #ifdef _WIN32
-        unsigned int mDivider=SDL_GetPerformanceFrequency()/1000;
-        Sleep((unsigned int)(nextPresentTime-swapTimeBegin)/mDivider);
+          unsigned int mDivider=SDL_GetPerformanceFrequency()/1000;
+          Sleep((unsigned int)(nextPresentTime-swapTimeBegin)/mDivider);
 #else
-        unsigned int mDivider=SDL_GetPerformanceFrequency()/1000000;
-        usleep((unsigned int)(nextPresentTime-swapTimeBegin)/mDivider);
+          unsigned int mDivider=SDL_GetPerformanceFrequency()/1000000;
+          usleep((unsigned int)(nextPresentTime-swapTimeBegin)/mDivider);
 #endif
-
-        nextPresentTime+=presentDelay;
-      } else {
-        nextPresentTime=swapTimeBegin+presentDelay;
+          nextPresentTime+=presentDelay;
+        } else {
+          nextPresentTime=swapTimeBegin+presentDelay;
+        }
       }
     }
     rend->present();
