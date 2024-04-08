@@ -198,16 +198,17 @@ static void paint_uniform_rectangle(const PaintTarget &target,
   uint32_t last_output = blend(*lastColorRef, color);
 
   for (int y = min_y_i; y < max_y_i; ++y) {
+    uint32_t* target_pixel = &target.pixels[y * target.width + min_x_i - 1];
     for (int x = min_x_i; x < max_x_i; ++x) {
-      uint32_t& target_pixel = target.pixels[y * target.width + x];
-      if (target_pixel == last_target_pixel) {
-        target_pixel = last_output;
+      ++target_pixel;
+      if (*target_pixel == last_target_pixel) {
+        *target_pixel = last_output;
         continue;
       }
-      last_target_pixel = target_pixel;
-      const ColorInt* colorRef = (const ColorInt*)(&target_pixel);
-      target_pixel = blend(*colorRef, color);
-      last_output = target_pixel;
+      last_target_pixel = *target_pixel;
+      const ColorInt* colorRef = (const ColorInt*)(target_pixel);
+      *target_pixel = blend(*colorRef, color);
+      last_output = *target_pixel;
     }
   }
 }
