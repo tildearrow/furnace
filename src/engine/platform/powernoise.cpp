@@ -464,7 +464,7 @@ void DivPlatformPowerNoise::reset() {
   rWrite(0,0x87);
   // set per-channel panning
   for (int i=0; i<4; i++) {
-    chWrite(i,0x06,volPan(chan[i].outVol,chan[i].pan));
+    chWrite(i,0x06,isMuted[i]?0:volPan(chan[i].outVol,chan[i].pan));
   }
   // set default params so we have sound
   // noise
