@@ -37,7 +37,6 @@ struct PaintTarget
   uint32_t *pixels;
   int width;
   int height;
-  ImVec2 DisplayPos;
 };
 
 // ----------------------------------------------------------------------------
@@ -133,7 +132,7 @@ inline ImU32 color_convert_float4_to_u32(const ImVec4 &in)
 // To keep the code simple we use 64 bits to avoid overflows.
 // TODO: make it 32-bit or else
 
-using Int = int64_t;
+using Int = int32_t;
 const Int kFixedBias = 256;
 
 struct Point
@@ -171,7 +170,7 @@ inline float barycentric(const ImVec2 &a, const ImVec2 &b, const ImVec2 &point)
 
 inline uint8_t sample_font_texture(const SWTexture &texture, int x, int y)
 {
-  return reinterpret_cast<const uint8_t *>(texture.pixels)[x + y * texture.width];
+  return ((const uint8_t*)texture.pixels)[x + y * texture.width];
 }
 
 inline uint32_t sample_texture(const SWTexture &texture, int x, int y) { return texture.pixels[x + y * texture.width]; }
@@ -182,10 +181,10 @@ static void paint_uniform_rectangle(const PaintTarget &target,
   const ColorInt &color)
 {
   // Integer bounding box [min, max):
-  int min_x_i = static_cast<int>(min_f.x + 0.5f);
-  int min_y_i = static_cast<int>(min_f.y + 0.5f);
-  int max_x_i = static_cast<int>(max_f.x + 0.5f);
-  int max_y_i = static_cast<int>(max_f.y + 0.5f);
+  int min_x_i = (int)(min_f.x + 0.5f);
+  int min_y_i = (int)(min_f.y + 0.5f);
+  int max_x_i = (int)(max_f.x + 0.5f);
+  int max_y_i = (int)(max_f.y + 0.5f);
 
   // Clamp to render target:
   min_x_i = std::max(min_x_i, 0);
@@ -195,18 +194,18 @@ static void paint_uniform_rectangle(const PaintTarget &target,
 
   // We often blend the same colors over and over again, so optimize for this (saves 25% total cpu):
   uint32_t last_target_pixel = target.pixels[min_y_i * target.width + min_x_i];
-  const auto *lastColorRef = reinterpret_cast<const ColorInt *>(&last_target_pixel);
+  const ColorInt* lastColorRef = (const ColorInt*)(&last_target_pixel);
   uint32_t last_output = blend(*lastColorRef, color);
 
   for (int y = min_y_i; y < max_y_i; ++y) {
     for (int x = min_x_i; x < max_x_i; ++x) {
-      uint32_t &target_pixel = target.pixels[y * target.width + x];
+      uint32_t& target_pixel = target.pixels[y * target.width + x];
       if (target_pixel == last_target_pixel) {
         target_pixel = last_output;
         continue;
       }
       last_target_pixel = target_pixel;
-      const auto *colorRef = reinterpret_cast<const ColorInt *>(&target_pixel);
+      const ColorInt* colorRef = (const ColorInt*)(&target_pixel);
       target_pixel = blend(*colorRef, color);
       last_output = target_pixel;
     }
@@ -233,16 +232,16 @@ static void paint_uniform_textured_rectangle(const PaintTarget &target,
   float max_y_f = max_p.y;
 
   // Clip against clip_rect:
-  min_x_f = std::max(min_x_f, clip_rect.x - target.DisplayPos.x);
-  min_y_f = std::max(min_y_f, clip_rect.y - target.DisplayPos.y);
-  max_x_f = std::min(max_x_f, clip_rect.z - 0.5f - target.DisplayPos.x);
-  max_y_f = std::min(max_y_f, clip_rect.w - 0.5f - target.DisplayPos.y);
+  min_x_f = std::max(min_x_f, clip_rect.x);
+  min_y_f = std::max(min_y_f, clip_rect.y);
+  max_x_f = std::min(max_x_f, clip_rect.z - 0.5f);
+  max_y_f = std::min(max_y_f, clip_rect.w - 0.5f);
 
   // Integer bounding box [min, max):
-  int min_x_i = static_cast<int>(min_x_f);
-  int min_y_i = static_cast<int>(min_y_f);
-  int max_x_i = static_cast<int>(max_x_f + 1.0f);
-  int max_y_i = static_cast<int>(max_y_f + 1.0f);
+  int min_x_i = (int)(min_x_f);
+  int min_y_i = (int)(min_y_f);
+  int max_x_i = (int)(max_x_f + 1.0f);
+  int max_y_i = (int)(max_y_f + 1.0f);
 
   // Clip against render target:
   min_x_i = std::max(min_x_i, 0);
@@ -271,10 +270,11 @@ static void paint_uniform_textured_rectangle(const PaintTarget &target,
 
   for (int y = min_y_i; y < max_y_i; ++y) {
     currentX = startX;
+    uint32_t* target_pixel = &target.pixels[y * target.width - 1 + min_x_i];
     for (int x = min_x_i; x < max_x_i; ++x) {
-      uint32_t& target_pixel = target.pixels[y * target.width + x];
-      const ColorInt targetColorRef = ColorInt(target_pixel);
-      const ColorInt colorRef = ColorInt(min_v.col);
+      ++target_pixel;
+      const ColorInt* targetColorRef = (const ColorInt*)(target_pixel);
+      const ColorInt* colorRef = (const ColorInt*)(&min_v.col);
 
       if (texture.isAlpha) {
         uint8_t texel = sample_font_texture(texture, currentX, currentY);
@@ -283,7 +283,7 @@ static void paint_uniform_textured_rectangle(const PaintTarget &target,
         // The font texture is all black or all white, so optimize for this:
         if (texel == 0) { continue; }
         if (texel == 255) {
-          target_pixel = blend(targetColorRef, colorRef);
+          *target_pixel = blend(*targetColorRef, *colorRef);
           continue;
         }
 
@@ -293,8 +293,8 @@ static void paint_uniform_textured_rectangle(const PaintTarget &target,
 
         if (deltaX != 0 && currentX < texture.width - 1) { currentX += 1; }
 
-        src_color *= colorRef;
-        target_pixel = blend(targetColorRef, src_color);
+        src_color *= *colorRef;
+        *target_pixel = blend(*targetColorRef, src_color);
       }
     }
     if (deltaY != 0 && currentY < texture.height - 1) { currentY += 1; }
@@ -334,16 +334,16 @@ static void paint_triangle(const PaintTarget &target,
   float max_y_f = max3(p0.y, p1.y, p2.y);
 
   // Clip against clip_rect:
-  min_x_f = std::max(min_x_f, clip_rect.x - target.DisplayPos.x);
-  min_y_f = std::max(min_y_f, clip_rect.y - target.DisplayPos.y);
-  max_x_f = std::min(max_x_f, clip_rect.z - 0.5f - target.DisplayPos.x);
-  max_y_f = std::min(max_y_f, clip_rect.w - 0.5f - target.DisplayPos.y);
+  min_x_f = std::max(min_x_f, clip_rect.x);
+  min_y_f = std::max(min_y_f, clip_rect.y);
+  max_x_f = std::min(max_x_f, clip_rect.z - 0.5f);
+  max_y_f = std::min(max_y_f, clip_rect.w - 0.5f);
 
   // Integer bounding box [min, max):
-  int min_x_i = static_cast<int>(min_x_f);
-  int min_y_i = static_cast<int>(min_y_f);
-  int max_x_i = static_cast<int>(max_x_f + 1.0f);
-  int max_y_i = static_cast<int>(max_y_f + 1.0f);
+  int min_x_i = (int)(min_x_f);
+  int min_y_i = (int)(min_y_f);
+  int max_x_i = (int)(max_x_f + 1.0f);
+  int max_y_i = (int)(max_y_f + 1.0f);
 
   // Clip against render target:
   min_x_i = std::max(min_x_i, 0);
@@ -404,8 +404,8 @@ static void paint_triangle(const PaintTarget &target,
 
   // We often blend the same colors over and over again, so optimize for this (saves 10% total cpu):
   uint32_t last_target_pixel = 0;
-  const auto *lastColorRef = reinterpret_cast<const ColorInt *>(&last_target_pixel);
-  const auto *colorRef = reinterpret_cast<const ColorInt *>(&v0.col);
+  const ColorInt* lastColorRef = (const ColorInt*)(&last_target_pixel);
+  const ColorInt* colorRef = (const ColorInt*)(&v0.col);
   uint32_t last_output = blend(*lastColorRef, *colorRef);
 
   for (int y = min_y_i; y < max_y_i; ++y) {
@@ -487,7 +487,7 @@ static void paint_draw_cmd(const PaintTarget &target,
   const ImDrawCmd &pcmd,
   const SwOptions &options)
 {
-  const auto texture = reinterpret_cast<const SWTexture *>(pcmd.TextureId);
+  const SWTexture* texture = (const SWTexture*)(pcmd.TextureId);
   IM_ASSERT(texture);
 
   // ImGui uses the first pixel for "white".
@@ -495,22 +495,14 @@ static void paint_draw_cmd(const PaintTarget &target,
 
   for (unsigned int i = 0; i + 3 <= pcmd.ElemCount;) {
     ImDrawVert v0 = vertices[idx_buffer[i + 0]];
-    v0.pos.x -= target.DisplayPos.x;
-    v0.pos.y -= target.DisplayPos.y;
     ImDrawVert v1 = vertices[idx_buffer[i + 1]];
-    v1.pos.x -= target.DisplayPos.x;
-    v1.pos.y -= target.DisplayPos.y;
     ImDrawVert v2 = vertices[idx_buffer[i + 2]];
-    v2.pos.x -= target.DisplayPos.x;
-    v2.pos.y -= target.DisplayPos.y;
 
     // Text is common, and is made of textured rectangles. So let's optimize for it.
     // This assumes the ImGui way to layout text does not change.
     if (options.optimize_text && i + 6 <= pcmd.ElemCount && idx_buffer[i + 3] == idx_buffer[i + 0]
         && idx_buffer[i + 4] == idx_buffer[i + 2]) {
       ImDrawVert v3 = vertices[idx_buffer[i + 5]];
-      v3.pos.x -= target.DisplayPos.x;
-      v3.pos.y -= target.DisplayPos.y;
 
       if (v0.pos.x == v3.pos.x && v1.pos.x == v2.pos.x && v0.pos.y == v1.pos.y && v2.pos.y == v3.pos.y
           && v0.uv.x == v3.uv.x && v1.uv.x == v2.uv.x && v0.uv.y == v1.uv.y && v2.uv.y == v3.uv.y) {
@@ -530,20 +522,14 @@ static void paint_draw_cmd(const PaintTarget &target,
     // so we can save a lot of CPU by detecting them:
     if (options.optimize_rectangles && i + 6 <= pcmd.ElemCount) {
       ImDrawVert v3 = vertices[idx_buffer[i + 3]];
-      v3.pos.x -= target.DisplayPos.x;
-      v3.pos.y -= target.DisplayPos.y;
       ImDrawVert v4 = vertices[idx_buffer[i + 4]];
-      v4.pos.x -= target.DisplayPos.x;
-      v4.pos.y -= target.DisplayPos.y;
       ImDrawVert v5 = vertices[idx_buffer[i + 5]];
-      v5.pos.x -= target.DisplayPos.x;
-      v5.pos.y -= target.DisplayPos.y;
 
       ImVec2 min, max;
-      min.x = min3(v0.pos.x - target.DisplayPos.x, v1.pos.x - target.DisplayPos.x, v2.pos.x - target.DisplayPos.x);
-      min.y = min3(v0.pos.y - target.DisplayPos.y, v1.pos.y - target.DisplayPos.y, v2.pos.y - target.DisplayPos.y);
-      max.x = max3(v0.pos.x - target.DisplayPos.x, v1.pos.x - target.DisplayPos.x, v2.pos.x - target.DisplayPos.x);
-      max.y = max3(v0.pos.y - target.DisplayPos.y, v1.pos.y - target.DisplayPos.y, v2.pos.y - target.DisplayPos.y);
+      min.x = min3(v0.pos.x, v1.pos.x, v2.pos.x);
+      min.y = min3(v0.pos.y, v1.pos.y, v2.pos.y);
+      max.x = max3(v0.pos.x, v1.pos.x, v2.pos.x);
+      max.y = max3(v0.pos.y, v1.pos.y, v2.pos.y);
 
       // Not the prettiest way to do this, but it catches all cases
       // of a rectangle split into two triangles.
@@ -557,10 +543,10 @@ static void paint_draw_cmd(const PaintTarget &target,
         const bool has_uniform_color =
           v0.col == v1.col && v0.col == v2.col && v0.col == v3.col && v0.col == v4.col && v0.col == v5.col;
 
-        min.x = std::max(min.x, pcmd.ClipRect.x - target.DisplayPos.x);
-        min.y = std::max(min.y, pcmd.ClipRect.y - target.DisplayPos.y);
-        max.x = std::min(max.x, pcmd.ClipRect.z - 0.5f - target.DisplayPos.x);
-        max.y = std::min(max.y, pcmd.ClipRect.w - 0.5f - target.DisplayPos.y);
+        min.x = std::max(min.x, pcmd.ClipRect.x);
+        min.y = std::max(min.y, pcmd.ClipRect.y);
+        max.x = std::min(max.x, pcmd.ClipRect.z - 0.5f);
+        max.y = std::min(max.y, pcmd.ClipRect.w - 0.5f);
 
         if (max.x < min.x || max.y < min.y) {
           i += 6;
@@ -568,7 +554,7 @@ static void paint_draw_cmd(const PaintTarget &target,
         }// Completely clipped
 
         if (has_uniform_color) {
-          const auto *colorRef = reinterpret_cast<const ColorInt *>(&v0.col);
+          const ColorInt* colorRef = (const ColorInt*)(&v0.col);
           paint_uniform_rectangle(target, min, max, *colorRef);
           i += 6;
           continue;
@@ -602,7 +588,7 @@ static void paint_imgui(uint32_t *pixels, ImDrawData *drawData, int fb_width, in
 {
   if (fb_width <= 0 || fb_height <= 0) return;
 
-  PaintTarget target{ pixels, fb_width, fb_height, drawData->DisplayPos };
+  PaintTarget target{ pixels, fb_width, fb_height };
 
   for (int i = 0; i < drawData->CmdListsCount; ++i) {
     paint_draw_list(target, drawData->CmdLists[i], options);
