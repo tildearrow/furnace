@@ -1233,7 +1233,11 @@ void OPLL_writeReg(OPLL *opll, uint32_t reg, uint8_t data) {
     reg -= 9;
   }
 
-  opll->reg[reg] = (uint8_t)data;
+  // is the compiler stupid or what?
+  // -Wstringop-overflow seems to be the buggiest thing known to humanity...
+  if (reg<0x40) {
+    opll->reg[reg] = (uint8_t)data;
+  }
 
   switch (reg) {
   case 0x00:

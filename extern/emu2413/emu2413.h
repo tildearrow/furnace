@@ -96,7 +96,7 @@ typedef struct __OPLL {
   double out_step;
   double out_time;
 
-  uint8_t reg[0x40];
+  uint8_t reg[64];
   uint8_t test_flag;
   uint32_t slot_key_status;
   uint8_t rhythm_mode;
