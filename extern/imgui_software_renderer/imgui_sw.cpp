@@ -66,12 +66,17 @@ union ColorInt
 };
 #pragma pack(pop)
 
-uint32_t blend(const ColorInt &target, const ColorInt &source)
+static inline uint32_t blend(const ColorInt &target, const ColorInt &source)
 {
+  if (source.a == 0) return target.u32;
   if (source.a >= 255) return source.u32;
-  return (target.a << 24u) | (((source.b * source.a + target.b * (255 - source.a)) / 255) << 16u)
-          | (((source.g * source.a + target.g * (255 - source.a)) / 255) << 8u)
-          | ((source.r * source.a + target.r * (255 - source.a)) / 255);
+  const unsigned char ia=255-source.a;
+  return (
+    (target.a << 24u) |
+    (((source.b * source.a + target.b * ia + 255) >> 8) << 16u) |
+    (((source.g * source.a + target.g * ia + 255) >> 8) << 8u) |
+    (((source.r * source.a + target.r * ia + 255) >> 8))
+  );
 }
 
 // ----------------------------------------------------------------------------
