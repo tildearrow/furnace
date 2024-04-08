@@ -103,7 +103,7 @@ void FurnaceGUIRenderSoftware::wipe(float alpha) {
 }
 
 void FurnaceGUIRenderSoftware::present() {
-  // TODO?
+  SDL_UpdateWindowSurface(sdlWin);
 }
 
 bool FurnaceGUIRenderSoftware::getOutputSize(int& w, int& h) {
