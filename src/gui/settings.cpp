@@ -5524,7 +5524,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameShading=(float)settings.guiColorsShading/100.0f;
   }
 
-  if (safeMode) {
+  if (safeMode || renderBackend==GUI_BACKEND_SOFTWARE) {
     sty.WindowRounding=0.0f;
     sty.FrameRounding=0.0f;
     sty.GrabRounding=0.0f;
@@ -5647,6 +5647,17 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     fontConfB.OversampleH=1;
     fontConfH.OversampleV=1;
     fontConfH.OversampleH=1;
+
+    if (safeMode || renderBackend==GUI_BACKEND_SOFTWARE) {
+      fontConf.OversampleV=1;
+      fontConf.OversampleH=1;
+      fontConfP.OversampleV=1;
+      fontConfP.OversampleH=1;
+      fontConfB.OversampleV=1;
+      fontConfB.OversampleH=1;
+      fontConfH.OversampleV=1;
+      fontConfH.OversampleH=1;
+    }
 
     //fontConf.RasterizerMultiply=1.5;
     //fontConfP.RasterizerMultiply=1.5;
