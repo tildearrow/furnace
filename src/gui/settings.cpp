@@ -428,6 +428,10 @@ void FurnaceGUI::drawSettings() {
             settingsChanged=true;
           }
 #endif
+          if (ImGui::Selectable("Software",curRenderBackend=="Software")) {
+            settings.renderBackend="Software";
+            settingsChanged=true;
+          }
           ImGui::EndCombo();
         }
         if (ImGui::IsItemHovered()) {
