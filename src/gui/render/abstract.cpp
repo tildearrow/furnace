@@ -101,6 +101,30 @@ int FurnaceGUIRender::getWindowFlags() {
   return 0;
 }
 
+int FurnaceGUIRender::getMaxTextureWidth() {
+  return 0;
+}
+
+int FurnaceGUIRender::getMaxTextureHeight() {
+  return 0;
+}
+
+const char* FurnaceGUIRender::getBackendName() {
+  return "Dummy";
+}
+
+const char* FurnaceGUIRender::getVendorName() {
+  return "N/A";
+}
+
+const char* FurnaceGUIRender::getDeviceName() {
+  return "N/A";
+}
+
+const char* FurnaceGUIRender::getAPIVersion() {
+  return "N/A";
+}
+
 void FurnaceGUIRender::setSwapInterval(int swapInterval) {
 }
 

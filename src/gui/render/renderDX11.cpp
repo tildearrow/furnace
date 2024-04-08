@@ -22,6 +22,7 @@
 #include <SDL_syswm.h>
 #include "backends/imgui_impl_dx11.h"
 #include "../../ta-log.h"
+#include "../../utfutils.h"
 
 typedef HRESULT (__stdcall *D3DCompile_t)(LPCVOID,SIZE_T,LPCSTR,D3D_SHADER_MACRO*,ID3DInclude*,LPCSTR,LPCSTR,UINT,UINT,ID3DBlob**,ID3DBlob*);
 
@@ -368,6 +369,30 @@ int FurnaceGUIRenderDX11::getWindowFlags() {
   return 0;
 }
 
+int FurnaceGUIRenderDX11::getMaxTextureWidth() {
+  return maxWidth;
+}
+
+int FurnaceGUIRenderDX11::getMaxTextureHeight() {
+  return maxHeight;
+}
+
+const char* FurnaceGUIRenderDX11::getBackendName() {
+  return "DirectX 11";
+}
+
+const char* FurnaceGUIRenderDX11::getVendorName() {
+  return vendorName.c_str();
+}
+
+const char* FurnaceGUIRenderDX11::getDeviceName() {
+  return deviceName.c_str();
+}
+
+const char* FurnaceGUIRenderDX11::getAPIVersion() {
+  return apiVersion.c_str();
+}
+
 void FurnaceGUIRenderDX11::setSwapInterval(int swapInt) {
   swapInterval=swapInt;
 }
@@ -393,6 +418,7 @@ bool FurnaceGUIRenderDX11::init(SDL_Window* win, int swapInt) {
   }
   HWND window=(HWND)sysWindow.info.win.window;
 
+  // prepare swapchain
   swapInterval=swapInt;
 
   DXGI_SWAP_CHAIN_DESC chainDesc;
@@ -411,11 +437,50 @@ bool FurnaceGUIRenderDX11::init(SDL_Window* win, int swapInt) {
   chainDesc.SwapEffect=DXGI_SWAP_EFFECT_DISCARD;
   chainDesc.Flags=DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
+  // initialize
   HRESULT result=D3D11CreateDeviceAndSwapChain(NULL,D3D_DRIVER_TYPE_HARDWARE,NULL,0,possibleFeatureLevels,2,D3D11_SDK_VERSION,&chainDesc,&swapchain,&device,&featureLevel,&context);
   if (result!=S_OK) {
     logE("could not create device and/or swap chain! %.8x",result);
     return false;
   }
+
+  IDXGIDevice* giDevice=NULL;
+  IDXGIAdapter* adapter=NULL;
+
+  result=device->QueryInterface(__uuidof(IDXGIDevice),(void**)&giDevice);
+  if (result==S_OK) {
+    result=giDevice->GetAdapter(&adapter);
+    if (result==S_OK) {
+      DXGI_ADAPTER_DESC adapterDesc;
+
+      result=adapter->GetDesc(&adapterDesc);
+      if (result!=S_OK) {
+        logE("could not get adapter info! %.8x",result);
+      } else {
+        deviceName=utf16To8(adapterDesc.Description);
+        vendorName=fmt::sprintf("%.4x:%.4x",adapterDesc.VendorId,adapterDesc.DeviceId);
+        logV("device: %s",deviceName);
+      }
+    } else {
+      logE("could not get adapter! %.8x",result);
+      logE("won't be able to get adapter info...");
+    }
+  } else {
+    logE("could not query interface! %.8x",result);
+    logE("won't be able to get adapter info...");
+  }
+
+  if (featureLevel>=0xb000) {
+    maxWidth=16384;
+    maxHeight=16384;
+  } else if (featureLevel>=0xa000) {
+    maxWidth=8192;
+    maxHeight=8192;
+  } else {
+    maxWidth=4096;
+    maxHeight=4096;
+  }
+  apiVersion=fmt::sprintf("%d.%d",((int)featureLevel)>>12,((int)featureLevel)>>8);
 
   // https://github.com/ocornut/imgui/pull/638
   D3DCompile_t D3DCompile=NULL;

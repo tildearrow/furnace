@@ -49,6 +49,9 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   bool swapIntervalSet;
   unsigned char glVer;
 
+  int maxWidth, maxHeight;
+  String backendName, vendorName, deviceName, apiVersion;
+
   bool createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program, const char** attribNames);
 
   public:
@@ -72,6 +75,12 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     bool getOutputSize(int& w, int& h);
     bool supportsDrawOsc();
     int getWindowFlags();
+    int getMaxTextureWidth();
+    int getMaxTextureHeight();
+    const char* getBackendName();
+    const char* getVendorName();
+    const char* getDeviceName();
+    const char* getAPIVersion();
     void setSwapInterval(int swapInterval);
     void preInit();
     bool init(SDL_Window* win, int swapInterval);
@@ -83,7 +92,11 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     FurnaceGUIRenderGL():
       context(NULL),
       sdlWin(NULL),
-      swapIntervalSet(true) {
+      swapIntervalSet(true),
+      glVer(3),
+      maxWidth(0),
+      maxHeight(0),
+      backendName("What?") {
       memset(quadVertex,0,4*3*sizeof(float));
       memset(oscVertex,0,4*5*sizeof(float));
       memset(oscData,0,2048*sizeof(float));

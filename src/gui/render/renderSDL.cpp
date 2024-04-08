@@ -146,6 +146,33 @@ int FurnaceGUIRenderSDL::getWindowFlags() {
   return 0;
 }
 
+int FurnaceGUIRenderSDL::getMaxTextureWidth() {
+  if (!hasInfo) return 2048;
+  return renderInfo.max_texture_width;
+}
+
+int FurnaceGUIRenderSDL::getMaxTextureHeight() {
+  if (!hasInfo) return 2048;
+  return renderInfo.max_texture_height;
+}
+
+const char* FurnaceGUIRenderSDL::getBackendName() {
+  return "SDL Renderer";
+}
+
+const char* FurnaceGUIRenderSDL::getVendorName() {
+  return "SDL";
+}
+
+const char* FurnaceGUIRenderSDL::getDeviceName() {
+  if (!hasInfo) return "???";
+  return renderInfo.name;
+}
+
+const char* FurnaceGUIRenderSDL::getAPIVersion() {
+  return "N/A";
+}
+
 void FurnaceGUIRenderSDL::setSwapInterval(int swapInterval) {
   if (SDL_RenderSetVSync(sdlRend,(swapInterval>=0)?1:0)!=0) {
     swapIntervalSet=false;
@@ -161,6 +188,13 @@ void FurnaceGUIRenderSDL::preInit() {
 bool FurnaceGUIRenderSDL::init(SDL_Window* win, int swapInterval) {
   logV("creating SDL renderer...");
   sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|((swapInterval>0)?SDL_RENDERER_PRESENTVSYNC:0)|SDL_RENDERER_TARGETTEXTURE);
+  if (sdlRend==NULL) return false;
+  if (SDL_GetRendererInfo(sdlRend,&renderInfo)==0) {
+    hasInfo=true;
+  } else {
+    logE("could not get renderer info! %s",SDL_GetError());
+    hasInfo=false;
+  }
   if (SDL_RenderSetVSync(sdlRend,(swapInterval>=0)?1:0)!=0) {
     swapIntervalSet=false;
     logW("tried to enable VSync but couldn't!");

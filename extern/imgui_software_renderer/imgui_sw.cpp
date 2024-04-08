@@ -46,10 +46,14 @@ namespace {
   // ----------------------------------------------------------------------------
 
 #pragma pack(push, 1)
-  struct ColorInt
+  union ColorInt
   {
-    uint8_t r, g, b, a = 0;
-    ColorInt(const std::string &) {}
+    struct {
+      uint8_t r, g, b, a;
+    };
+    uint32_t u32;
+    ColorInt():
+      u32(0) {}
 
 
     ColorInt &operator*=(const ColorInt &other)

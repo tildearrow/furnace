@@ -24,7 +24,9 @@ class FurnaceGUIRenderGL1: public FurnaceGUIRender {
   SDL_Window* sdlWin;
 
   bool swapIntervalSet;
-  unsigned char glVer;
+
+  int maxWidth, maxHeight;
+  String vendorName, deviceName, apiVersion;
 
   public:
     ImTextureID getTextureID(FurnaceGUITexture* which);
@@ -47,6 +49,12 @@ class FurnaceGUIRenderGL1: public FurnaceGUIRender {
     void present();
     bool getOutputSize(int& w, int& h);
     int getWindowFlags();
+    int getMaxTextureWidth();
+    int getMaxTextureHeight();
+    const char* getBackendName();
+    const char* getVendorName();
+    const char* getDeviceName();
+    const char* getAPIVersion();
     void setSwapInterval(int swapInterval);
     void preInit();
     bool init(SDL_Window* win, int swapInterval);
@@ -57,6 +65,8 @@ class FurnaceGUIRenderGL1: public FurnaceGUIRender {
     FurnaceGUIRenderGL1():
       context(NULL),
       sdlWin(NULL),
-      swapIntervalSet(true) {
+      swapIntervalSet(true),
+      maxWidth(0),
+      maxHeight(0) {
     }
 };

@@ -1460,6 +1460,12 @@ class FurnaceGUIRender {
     virtual bool supportsDrawOsc();
     virtual bool getOutputSize(int& w, int& h);
     virtual int getWindowFlags();
+    virtual int getMaxTextureWidth();
+    virtual int getMaxTextureHeight();
+    virtual const char* getBackendName();
+    virtual const char* getVendorName();
+    virtual const char* getDeviceName();
+    virtual const char* getAPIVersion();
     virtual void setSwapInterval(int swapInterval);
     virtual void preInit();
     virtual bool init(SDL_Window* win, int swapInterval);

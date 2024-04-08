@@ -456,6 +456,8 @@ void FurnaceGUI::drawSettings() {
           }
         }
 
+        ImGui::TextWrapped("current backend: %s\n%s\n%s\n%s",rend->getBackendName(),rend->getVendorName(),rend->getDeviceName(),rend->getAPIVersion());
+
         bool vsyncB=settings.vsync;
         if (ImGui::Checkbox("VSync",&vsyncB)) {
           settings.vsync=vsyncB;

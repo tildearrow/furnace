@@ -118,6 +118,30 @@ int FurnaceGUIRenderSoftware::getWindowFlags() {
   return 0;
 }
 
+int FurnaceGUIRenderSoftware::getMaxTextureWidth() {
+  return 16384;
+}
+
+int FurnaceGUIRenderSoftware::getMaxTextureHeight() {
+  return 16384;
+}
+
+const char* FurnaceGUIRenderSoftware::getBackendName() {
+  return "Software";
+}
+
+const char* FurnaceGUIRenderSoftware::getVendorName() {
+  return "emilk, JesusKrists and tildearrow";
+}
+
+const char* FurnaceGUIRenderSoftware::getDeviceName() {
+  return "imgui_sw Software Renderer";
+}
+
+const char* FurnaceGUIRenderSoftware::getAPIVersion() {
+  return "N/A";
+}
+
 void FurnaceGUIRenderSoftware::setSwapInterval(int swapInterval) {
 }
 

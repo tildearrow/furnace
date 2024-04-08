@@ -56,6 +56,9 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
     float padding[7];
   };
 
+  int maxWidth, maxHeight;
+  String vendorName, deviceName, apiVersion;
+
   bool destroyRenderTarget();
   bool createRenderTarget();
 
@@ -79,6 +82,12 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
     void present();
     bool getOutputSize(int& w, int& h);
     int getWindowFlags();
+    int getMaxTextureWidth();
+    int getMaxTextureHeight();
+    const char* getBackendName();
+    const char* getVendorName();
+    const char* getDeviceName();
+    const char* getAPIVersion();
     void setSwapInterval(int swapInterval);
     void preInit();
     bool init(SDL_Window* win, int swapInterval);
@@ -101,6 +110,8 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
       sh_wipe_vertex(NULL),
       sh_wipe_fragment(NULL),
       sh_wipe_inputLayout(NULL),
-      sh_wipe_uniform(NULL) {
+      sh_wipe_uniform(NULL),
+      maxWidth(8192),
+      maxHeight(8192) {
     }
 };

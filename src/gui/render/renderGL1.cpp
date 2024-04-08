@@ -211,6 +211,30 @@ int FurnaceGUIRenderGL1::getWindowFlags() {
   return SDL_WINDOW_OPENGL;
 }
 
+int FurnaceGUIRenderGL1::getMaxTextureWidth() {
+  return maxWidth;
+}
+
+int FurnaceGUIRenderGL1::getMaxTextureHeight() {
+  return maxHeight;
+}
+
+const char* FurnaceGUIRenderGL1::getBackendName() {
+  return "OpenGL 1.1";
+}
+
+const char* FurnaceGUIRenderGL1::getVendorName() {
+  return vendorName.c_str();
+}
+
+const char* FurnaceGUIRenderGL1::getDeviceName() {
+  return deviceName.c_str();
+}
+
+const char* FurnaceGUIRenderGL1::getAPIVersion() {
+  return apiVersion.c_str();
+}
+
 void FurnaceGUIRenderGL1::setSwapInterval(int swapInterval) {
   SDL_GL_SetSwapInterval(swapInterval);
   if (swapInterval>0 && SDL_GL_GetSwapInterval()==0) {
@@ -262,6 +286,31 @@ bool FurnaceGUIRenderGL1::init(SDL_Window* win, int swapInterval) {
   } else {
     swapIntervalSet=true;
   }
+
+  const char* next=(const char*)glGetString(GL_VENDOR);
+  if (next==NULL) {
+    vendorName="???";
+  } else {
+    vendorName=next;
+  }
+  next=(const char*)glGetString(GL_RENDERER);
+  if (next==NULL) {
+    deviceName="???";
+  } else {
+    deviceName=next;
+  }
+  next=(const char*)glGetString(GL_VERSION);
+  if (next==NULL) {
+    apiVersion="???";
+  } else {
+    apiVersion=next;
+  }
+
+  int maxSize=1024;
+  glGetIntegerv(GL_MAX_TEXTURE_SIZE,&maxSize);
+
+  maxWidth=maxSize;
+  maxHeight=maxSize;
 
   return true;
 }

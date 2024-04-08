@@ -40,6 +40,12 @@ class FurnaceGUIRenderSoftware: public FurnaceGUIRender {
     void present();
     bool getOutputSize(int& w, int& h);
     int getWindowFlags();
+    int getMaxTextureWidth();
+    int getMaxTextureHeight();
+    const char* getBackendName();
+    const char* getVendorName();
+    const char* getDeviceName();
+    const char* getAPIVersion();
     void setSwapInterval(int swapInterval);
     void preInit();
     bool init(SDL_Window* win, int swapInterval);
