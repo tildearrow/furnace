@@ -531,12 +531,20 @@ void FurnaceGUI::drawSettings() {
         ImGui::Unindent();
 
 #ifdef IS_MOBILE
-        // SUBSECTION HAPTIC
+        // SUBSECTION VIBRATION
         CONFIG_SUBSECTION("Vibration");
 
         ImGui::Indent();
-        if (ImGui::SliderFloat("Strength",&settings.vibrationStrength,0.0f,1.0f)) settingsChanged=true;
-        if (ImGui::SliderInt("Length",&settings.vibrationLength,50,500)) settingsChanged=true;
+        if (ImGui::SliderFloat("Strength",&settings.vibrationStrength,0.0f,1.0f)) {
+          if (settings.vibrationStrength<0.0f) settings.vibrationStrength=0.0f;
+          if (settings.vibrationStrength>1.0f) settings.vibrationStrength=1.0f;
+          settingsChanged=true;
+        }
+
+        if (ImGui::SliderInt("Length",&settings.vibrationLength,10,500)) {
+          if (settings.vibrationLength<10) settings.vibrationLength=10;
+          if (settings.vibrationLength>500) settings.vibrationLength=500;
+          settingsChanged=true;
         ImGui::Unindent();
 #endif
 
@@ -4499,7 +4507,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
   clampSetting(settings.vibrationStrength,0.0f,1.0f);
-  clampSetting(settings.vibrationLength,50,500);
+  clampSetting(settings.vibrationLength,10,500);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
