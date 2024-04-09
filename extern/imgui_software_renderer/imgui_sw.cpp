@@ -147,7 +147,7 @@ inline ImU32 color_convert_float4_to_u32(const ImVec4 &in)
 // TODO: make it 32-bit or else
 
 using Int = int32_t;
-const Int kFixedBias = 256;
+const Int kFixedBias = 1;
 
 struct Point
 {

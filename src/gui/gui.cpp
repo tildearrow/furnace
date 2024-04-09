@@ -6296,6 +6296,17 @@ bool FurnaceGUI::loop() {
     }
 #endif
 
+    if (settings.displayRenderTime) {
+      String renderTime=fmt::sprintf("%.0fµs",ImGui::GetIO().DeltaTime*1000000.0);
+      String renderTime2=fmt::sprintf("%.1f FPS",1.0/ImGui::GetIO().DeltaTime);
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      ImVec2 markPos=ImVec2(canvasW-ImGui::CalcTextSize(renderTime.c_str()).x-60.0*dpiScale,4.0*dpiScale);
+      ImVec2 markPos2=ImVec2(canvasW-ImGui::CalcTextSize(renderTime2.c_str()).x-160.0*dpiScale,4.0*dpiScale);
+
+      dl->AddText(markPos,0xffffffff,renderTime.c_str());
+      dl->AddText(markPos2,0xffffffff,renderTime2.c_str());
+    }
+
     layoutTimeEnd=SDL_GetPerformanceCounter();
 
     // backup trigger

@@ -476,6 +476,12 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip("only applies when VSync is disabled.");
         }
 
+        bool displayRenderTimeB=settings.displayRenderTime;
+        if (ImGui::Checkbox("Display render time",&displayRenderTimeB)) {
+          settings.displayRenderTime=displayRenderTimeB;
+          settingsChanged=true;
+        }
+
         bool renderClearPosB=settings.renderClearPos;
         if (ImGui::Checkbox("Late render clear",&renderClearPosB)) {
           settings.renderClearPos=renderClearPosB;
@@ -4006,6 +4012,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     settings.vsync=conf.getInt("vsync",1);
     settings.frameRateLimit=conf.getInt("frameRateLimit",100);
+    settings.displayRenderTime=conf.getInt("displayRenderTime",0);
 
     settings.chanOscThreads=conf.getInt("chanOscThreads",0);
     settings.renderPoolThreads=conf.getInt("renderPoolThreads",0);
@@ -4512,6 +4519,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.cursorWheelStep,0,1);
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
+  clampSetting(settings.displayRenderTime,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4537,6 +4545,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("vsync",settings.vsync);
     conf.set("frameRateLimit",settings.frameRateLimit);
+    conf.set("displayRenderTime",settings.displayRenderTime);
 
     conf.set("chanOscThreads",settings.chanOscThreads);
     conf.set("renderPoolThreads",settings.renderPoolThreads);
@@ -5531,6 +5540,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameRounding=0.0f;
     sty.GrabRounding=0.0f;
     sty.FrameShading=0.0f;
+    sty.TabRounding=0.0f;
+    sty.ScrollbarRounding=0.0f;
+    sty.ChildRounding=0.0f;
+    sty.PopupRounding=0.0f;
     sty.AntiAliasedLines=false;
     sty.AntiAliasedLinesUseTex=false;
     sty.AntiAliasedFill=false;

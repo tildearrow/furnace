@@ -1842,6 +1842,7 @@ class FurnaceGUI {
     int cursorWheelStep;
     int vsync;
     int frameRateLimit;
+    int displayRenderTime;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -2073,6 +2074,7 @@ class FurnaceGUI {
       cursorWheelStep(0),
       vsync(1),
       frameRateLimit(60),
+      displayRenderTime(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
