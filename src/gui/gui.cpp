@@ -6305,6 +6305,8 @@ bool FurnaceGUI::loop() {
 
       dl->AddText(markPos,0xffffffff,renderTime.c_str());
       dl->AddText(markPos2,0xffffffff,renderTime2.c_str());
+
+      //logV("%s (%s)",renderTime,renderTime2);
     }
 
     layoutTimeEnd=SDL_GetPerformanceCounter();
