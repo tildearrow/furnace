@@ -75,7 +75,22 @@ void FurnaceGUIRenderSoftware::setBlendMode(FurnaceGUIBlendMode mode) {
 }
 
 void FurnaceGUIRenderSoftware::clear(ImVec4 color) {
-  // TODO
+  SDL_Surface* surf=SDL_GetWindowSurface(sdlWin);
+  if (!surf) return;
+  ImU32 clearToWhat=ImGui::ColorConvertFloat4ToU32(color);
+  clearToWhat=(clearToWhat&0xff00ff00)|((clearToWhat&0xff)<<16)|((clearToWhat&0xff0000)>>16);
+
+  bool mustLock=SDL_MUSTLOCK(surf);
+  if (mustLock) {
+    if (SDL_LockSurface(surf)!=0) return;
+  }
+  unsigned int* pixels=(unsigned int*)surf->pixels;
+  for (size_t total=surf->w*surf->h; total; total--) {
+    *(pixels++)=clearToWhat;
+  }
+  if (mustLock) {
+    SDL_UnlockSurface(surf);
+  }
 }
 
 bool FurnaceGUIRenderSoftware::newFrame() {

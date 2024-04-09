@@ -59,6 +59,12 @@ union ColorInt
   ColorInt(uint32_t c):
     u32(c) {}
 
+  ColorInt(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha):
+    b(blue),
+    g(green),
+    r(red),
+    a(alpha) {}
+
   static ColorInt bgra(uint32_t c) {
     return ColorInt((c&0xff00ff00)|((c&0xff)<<16)|((c&0xff0000)>>16));
   }
@@ -118,6 +124,21 @@ ImVec2 operator*(const float f, const ImVec2 &v) { return ImVec2{ f * v.x, f * v
 bool operator!=(const ImVec2 &a, const ImVec2 &b) { return a.x != b.x || a.y != b.y; }
 
 ImVec4 operator*(const float f, const ImVec4 &v) { return ImVec4{ f * v.x, f * v.y, f * v.z, f * v.w }; }
+
+
+ColorInt operator*(const float other, const ColorInt& that)
+{
+  return ColorInt(
+    (that.r * (int)(other * 256.0f)) >> 8,
+    (that.g * (int)(other * 256.0f)) >> 8,
+    (that.b * (int)(other * 256.0f)) >> 8,
+    (that.a * (int)(other * 256.0f)) >> 8
+  );
+}
+
+ColorInt operator+(const ColorInt& l, const ColorInt& r) {
+  return ColorInt(l.u32+r.u32);
+}
 
 // ----------------------------------------------------------------------------
 // Copies of functions in ImGui, inlined for speed:
@@ -428,9 +449,9 @@ static void paint_triangle(const PaintTarget &target,
 
   const bool has_uniform_color = (v0.col == v1.col && v0.col == v2.col);
 
-  const ImVec4 c0 = color_convert_u32_to_float4(v0.col);
-  const ImVec4 c1 = color_convert_u32_to_float4(v1.col);
-  const ImVec4 c2 = color_convert_u32_to_float4(v2.col);
+  const ColorInt c0 = ColorInt::bgra(v0.col);
+  const ColorInt c1 = ColorInt::bgra(v1.col);
+  const ColorInt c2 = ColorInt::bgra(v2.col);
 
   // We often blend the same colors over and over again, so optimize for this (saves 10% total cpu):
   uint32_t last_target_pixel = 0;
@@ -443,11 +464,15 @@ static void paint_triangle(const PaintTarget &target,
 
     bool has_been_inside_this_row = false;
 
+    uint32_t* target_pixel = &target.pixels[y * target.width + min_x_i - 1];
+
     for (int x = min_x_i; x < max_x_i; ++x) {
       const auto w0 = bary.w0;
       const auto w1 = bary.w1;
       const auto w2 = bary.w2;
       bary += bary_dx;
+
+      ++target_pixel;
 
       {
         // Inside/outside test:
@@ -465,20 +490,19 @@ static void paint_triangle(const PaintTarget &target,
       }
       has_been_inside_this_row = true;
 
-      uint32_t &target_pixel = target.pixels[y * target.width + x];
 
       if (has_uniform_color && !texture) {
-        if (target_pixel == last_target_pixel) {
-          target_pixel = last_output;
+        if (*target_pixel == last_target_pixel) {
+          *target_pixel = last_output;
           continue;
         }
-        last_target_pixel = target_pixel;
-        target_pixel = blend(*lastColorRef, colorRef);
-        last_output = target_pixel;
+        last_target_pixel = *target_pixel;
+        *target_pixel = blend(*lastColorRef, colorRef);
+        last_output = *target_pixel;
         continue;
       }
 
-      ImVec4 src_color;
+      ColorInt src_color;
 
       if (has_uniform_color) {
         src_color = c0;
@@ -492,19 +516,18 @@ static void paint_triangle(const PaintTarget &target,
         const ImVec2 uv = w0 * v0.uv + w1 * v1.uv + w2 * v2.uv;
         int x = uv.x * (texture->width - 1.0f) + 0.5f;
         int y = uv.y * (texture->height - 1.0f) + 0.5f;
-        src_color.w *= sample_font_texture(*texture, x, y) / 255.0f;
+        src_color.a = (src_color.a * sample_font_texture(*texture, x, y) + 255) >> 8;
       }
 
-      if (src_color.w <= 0.0f) { continue; }// Transparent.
-      if (src_color.w >= 1.0f) {
+      if (!src_color.a) { continue; }// Transparent.
+      if (src_color.a == 255) {
         // Opaque, no blending needed:
-        target_pixel = color_convert_float4_to_u32(src_color);
+        *target_pixel = src_color.u32;
         continue;
       }
 
-      ImVec4 target_color = color_convert_u32_to_float4(target_pixel);
-      const auto blended_color = src_color.w * src_color + (1.0f - src_color.w) * target_color;
-      target_pixel = color_convert_float4_to_u32(blended_color);
+      const ColorInt* target_color = (const ColorInt*)target_pixel;
+      *target_pixel = blend(*target_color, src_color);
     }
 
     bary_current_row += bary_dy;
