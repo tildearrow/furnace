@@ -5,6 +5,7 @@
 //   publish, and distribute this file as you see fit.
 
 #include "imgui.h"
+#include "imgui_internal.h"
 #ifndef IMGUI_DISABLE
 #include "imgui_sw.hpp"
 
@@ -45,7 +46,11 @@ struct PaintTarget
 union ColorInt
 {
   struct {
-    uint8_t r, g, b, a;
+#ifdef TA_BIG_ENDIAN
+    uint8_t a, r, g, b;
+#else
+    uint8_t b, g, r, a;
+#endif
   };
   uint32_t u32;
   ColorInt():
@@ -53,6 +58,10 @@ union ColorInt
 
   ColorInt(uint32_t c):
     u32(c) {}
+
+  static ColorInt bgra(uint32_t c) {
+    return ColorInt((c&0xff00ff00)|((c&0xff)<<16)|((c&0xff0000)>>16));
+  }
 
 
   ColorInt &operator*=(const ColorInt &other)
@@ -73,9 +82,9 @@ static inline uint32_t blend(const ColorInt &target, const ColorInt &source)
   const unsigned char ia=255-source.a;
   return (
     (target.a << 24u) |
-    (((source.b * source.a + target.b * ia + 255) >> 8) << 16u) |
+    (((source.r * source.a + target.r * ia + 255) >> 8) << 16u) |
     (((source.g * source.a + target.g * ia + 255) >> 8) << 8u) |
-    (((source.r * source.a + target.r * ia + 255) >> 8))
+    (((source.b * source.a + target.b * ia + 255) >> 8) << 0u)
   );
 }
 
@@ -125,9 +134,9 @@ inline ImVec4 color_convert_u32_to_float4(ImU32 in)
 inline ImU32 color_convert_float4_to_u32(const ImVec4 &in)
 {
   ImU32 out;
-  out = uint32_t(in.x * 255.0f + 0.5f) << IM_COL32_R_SHIFT;
+  out = uint32_t(in.x * 255.0f + 0.5f) << IM_COL32_B_SHIFT;
   out |= uint32_t(in.y * 255.0f + 0.5f) << IM_COL32_G_SHIFT;
-  out |= uint32_t(in.z * 255.0f + 0.5f) << IM_COL32_B_SHIFT;
+  out |= uint32_t(in.z * 255.0f + 0.5f) << IM_COL32_R_SHIFT;
   out |= uint32_t(in.w * 255.0f + 0.5f) << IM_COL32_A_SHIFT;
   return out;
 }
@@ -175,16 +184,19 @@ inline float barycentric(const ImVec2 &a, const ImVec2 &b, const ImVec2 &point)
 
 inline uint8_t sample_font_texture(const SWTexture &texture, int x, int y)
 {
-  return ((const uint8_t*)texture.pixels)[x + y * texture.width];
+  return ((const uint8_t*)texture.pixels)[x + y];
 }
 
-inline uint32_t sample_texture(const SWTexture &texture, int x, int y) { return texture.pixels[x + y * texture.width]; }
+inline uint32_t sample_texture(const SWTexture &texture, int x, int y) { return texture.pixels[x + y]; }
 
 static void paint_uniform_rectangle(const PaintTarget &target,
   const ImVec2 &min_f,
   const ImVec2 &max_f,
   const ColorInt &color)
 {
+  // don't if our rectangle is transparent
+  if (color.a==0) return;
+
   // Integer bounding box [min, max):
   int min_x_i = (int)(min_f.x + 0.5f);
   int min_y_i = (int)(min_f.y + 0.5f);
@@ -197,23 +209,34 @@ static void paint_uniform_rectangle(const PaintTarget &target,
   max_x_i = std::min(max_x_i, target.width);
   max_y_i = std::min(max_y_i, target.height);
 
-  // We often blend the same colors over and over again, so optimize for this (saves 25% total cpu):
-  uint32_t last_target_pixel = target.pixels[min_y_i * target.width + min_x_i];
-  const ColorInt* lastColorRef = (const ColorInt*)(&last_target_pixel);
-  uint32_t last_output = blend(*lastColorRef, color);
-
-  for (int y = min_y_i; y < max_y_i; ++y) {
-    uint32_t* target_pixel = &target.pixels[y * target.width + min_x_i - 1];
-    for (int x = min_x_i; x < max_x_i; ++x) {
-      ++target_pixel;
-      if (*target_pixel == last_target_pixel) {
-        *target_pixel = last_output;
-        continue;
+  if (color.a==255) {
+    // fast path if alpha blending is not necessary
+    for (int y = min_y_i; y < max_y_i; ++y) {
+      uint32_t* target_pixel = &target.pixels[y * target.width + min_x_i - 1];
+      for (int x = min_x_i; x < max_x_i; ++x) {
+        ++target_pixel;
+        *target_pixel = color.u32;
       }
-      last_target_pixel = *target_pixel;
-      const ColorInt* colorRef = (const ColorInt*)(target_pixel);
-      *target_pixel = blend(*colorRef, color);
-      last_output = *target_pixel;
+    }
+  } else {
+    // We often blend the same colors over and over again, so optimize for this (saves 25% total cpu):
+    uint32_t last_target_pixel = target.pixels[min_y_i * target.width + min_x_i];
+    const ColorInt* lastColorRef = (const ColorInt*)(&last_target_pixel);
+    uint32_t last_output = blend(*lastColorRef, color);
+
+    for (int y = min_y_i; y < max_y_i; ++y) {
+      uint32_t* target_pixel = &target.pixels[y * target.width + min_x_i - 1];
+      for (int x = min_x_i; x < max_x_i; ++x) {
+        ++target_pixel;
+        if (*target_pixel == last_target_pixel) {
+          *target_pixel = last_output;
+          continue;
+        }
+        last_target_pixel = *target_pixel;
+        const ColorInt* colorRef = (const ColorInt*)(target_pixel);
+        *target_pixel = blend(*colorRef, color);
+        last_output = *target_pixel;
+      }
     }
   }
 }
@@ -269,10 +292,12 @@ static void paint_uniform_textured_rectangle(const PaintTarget &target,
   int startY = uv_topleft.y * (texture.height - 1.0f) + 0.5f;
 
   int currentX = startX;
-  int currentY = startY;
+  int currentY = startY * texture.width;
 
   float deltaX = delta_uv_per_pixel.x * texture.width;
   float deltaY = delta_uv_per_pixel.y * texture.height;
+
+  const ColorInt colorRef = ColorInt::bgra(min_v.col);
 
   for (int y = min_y_i; y < max_y_i; ++y) {
     currentX = startX;
@@ -280,18 +305,17 @@ static void paint_uniform_textured_rectangle(const PaintTarget &target,
     for (int x = min_x_i; x < max_x_i; ++x) {
       ++target_pixel;
       const ColorInt* targetColorRef = (const ColorInt*)(target_pixel);
-      const ColorInt* colorRef = (const ColorInt*)(&min_v.col);
 
       if (texture.isAlpha) {
         uint8_t texel = sample_font_texture(texture, currentX, currentY);
         if (deltaX != 0 && currentX < texture.width - 1) { currentX += 1; }
 
         // The font texture is all black or all white, so optimize for this:
-        if (texel == 0) { continue; }
-        if (texel == 255) {
-          *target_pixel = blend(*targetColorRef, *colorRef);
-          continue;
+        // anti-aliasing will be lost, but it doesn't matter
+        if (texel & 0x80) {
+          *target_pixel = blend(*targetColorRef, colorRef);
         }
+        continue;
 
       } else {
         uint32_t texColor = sample_texture(texture, currentX, currentY);
@@ -299,11 +323,11 @@ static void paint_uniform_textured_rectangle(const PaintTarget &target,
 
         if (deltaX != 0 && currentX < texture.width - 1) { currentX += 1; }
 
-        src_color *= *colorRef;
+        src_color *= colorRef;
         *target_pixel = blend(*targetColorRef, src_color);
       }
     }
-    if (deltaY != 0 && currentY < texture.height - 1) { currentY += 1; }
+    if (deltaY != 0 && currentY < (texture.height - 1)*texture.width) { currentY += texture.width; }
   }
 }
 
@@ -411,8 +435,8 @@ static void paint_triangle(const PaintTarget &target,
   // We often blend the same colors over and over again, so optimize for this (saves 10% total cpu):
   uint32_t last_target_pixel = 0;
   const ColorInt* lastColorRef = (const ColorInt*)(&last_target_pixel);
-  const ColorInt* colorRef = (const ColorInt*)(&v0.col);
-  uint32_t last_output = blend(*lastColorRef, *colorRef);
+  const ColorInt colorRef = ColorInt::bgra(v0.col);
+  uint32_t last_output = blend(*lastColorRef, colorRef);
 
   for (int y = min_y_i; y < max_y_i; ++y) {
     auto bary = bary_current_row;
@@ -449,7 +473,7 @@ static void paint_triangle(const PaintTarget &target,
           continue;
         }
         last_target_pixel = target_pixel;
-        target_pixel = blend(*lastColorRef, *colorRef);
+        target_pixel = blend(*lastColorRef, colorRef);
         last_output = target_pixel;
         continue;
       }
@@ -491,13 +515,11 @@ static void paint_draw_cmd(const PaintTarget &target,
   const ImDrawVert *vertices,
   const ImDrawIdx *idx_buffer,
   const ImDrawCmd &pcmd,
-  const SwOptions &options)
+  const SwOptions &options,
+  const ImVec2& white_uv)
 {
   const SWTexture* texture = (const SWTexture*)(pcmd.TextureId);
   IM_ASSERT(texture);
-
-  // ImGui uses the first pixel for "white".
-  const ImVec2 white_uv = ImVec2(0.5f / texture->width, 0.5f / texture->height);
 
   for (unsigned int i = 0; i + 3 <= pcmd.ElemCount;) {
     ImDrawVert v0 = vertices[idx_buffer[i + 0]];
@@ -560,8 +582,8 @@ static void paint_draw_cmd(const PaintTarget &target,
         }// Completely clipped
 
         if (has_uniform_color) {
-          const ColorInt* colorRef = (const ColorInt*)(&v0.col);
-          paint_uniform_rectangle(target, min, max, *colorRef);
+          const ColorInt colorRef = ColorInt::bgra(v0.col);
+          paint_uniform_rectangle(target, min, max, colorRef);
           i += 6;
           continue;
         }
@@ -578,13 +600,14 @@ static void paint_draw_list(const PaintTarget &target, const ImDrawList *cmd_lis
 {
   const ImDrawIdx *idx_buffer = &cmd_list->IdxBuffer[0];
   const ImDrawVert *vertices = cmd_list->VtxBuffer.Data;
+  const ImVec2 white_uv = cmd_list->_Data->TexUvWhitePixel;
 
   for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.size(); cmd_i++) {
     const ImDrawCmd &pcmd = cmd_list->CmdBuffer[cmd_i];
     if (pcmd.UserCallback) {
       pcmd.UserCallback(cmd_list, &pcmd);
     } else {
-      paint_draw_cmd(target, vertices, idx_buffer, pcmd, options);
+      paint_draw_cmd(target, vertices, idx_buffer, pcmd, options, white_uv);
     }
     idx_buffer += pcmd.ElemCount;
   }
@@ -651,6 +674,7 @@ void ImGui_ImplSW_RenderDrawData(ImDrawData* draw_data) {
     if (SDL_LockSurface(surf)!=0) return;
   }
   paint_imgui((uint32_t*)surf->pixels,draw_data,surf->w,surf->h);
+  // 0xAARRGGBB
   if (mustLock) {
     SDL_UnlockSurface(surf);
   }
