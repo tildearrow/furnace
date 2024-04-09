@@ -595,6 +595,10 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button("CV")) {
           cvOpen=!cvOpen;
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Presets")) {
+          userPresetsOpen=!userPresetsOpen;
+        }
 
         ImGui::Separator();
 

@@ -2430,10 +2430,8 @@ void FurnaceGUI::initSystemPresets() {
     );
   CATEGORY_END;
 
-  /*
   CATEGORY_BEGIN("User","system presets that you have saved.");
   CATEGORY_END;
-  */
 
   CATEGORY_BEGIN("FM","chips which use frequency modulation (FM) to generate sound.\nsome of these also pack more (like square and sample channels).");
   ENTRY(
@@ -3398,6 +3396,19 @@ bool FurnaceGUI::saveUserPresets(bool redundancy) {
 }
 
 // user presets management
+void FurnaceGUI::printPresets(std::vector<FurnaceGUISysDef>& items, int depth) {
+  if (depth>0) ImGui::Indent();
+  for (FurnaceGUISysDef& i: items) {
+    if (ImGui::Selectable(i.name.c_str())) {
+      // TODO
+    }
+    if (!i.subDefs.empty()) {
+      printPresets(i.subDefs,depth+1);
+    }
+  }
+  if (depth>0) ImGui::Unindent();
+}
+
 void FurnaceGUI::drawUserPresets() {
   if (nextWindow==GUI_WINDOW_USER_PRESETS) {
     userPresetsOpen=true;
@@ -3414,16 +3425,23 @@ void FurnaceGUI::drawUserPresets() {
       }
     }
 
+    //std::vector<int> depthStack;
+
     if (userCategory==NULL) {
       ImGui::Text("Error! User category does not exist!");
     } else if (ImGui::BeginTable("UserPresets",2,ImGuiTableFlags_BordersInnerV)) {
+      // preset list
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Presets...");
+      printPresets(userCategory->systems,0);
+
+      // editor
       ImGui::TableNextColumn();
       if (selectedUserPreset<0 || selectedUserPreset>=(int)userCategory->systems.size()) {
         ImGui::Text("select a preset");
       } else {
+        
         ImGui::Text("Edit...");
       }
 

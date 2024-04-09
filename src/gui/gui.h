@@ -2527,6 +2527,8 @@ class FurnaceGUI {
 
   // user presets window
   int selectedUserPreset;
+  std::vector<int> selectedUserPresetSub;
+
   std::vector<String> randomDemoSong;
 
   void drawExportAudio(bool onWindow=false);
@@ -2610,6 +2612,7 @@ class FurnaceGUI {
   void sampleListItem(int index, int dir, int asset);
 
   void drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted, std::vector<int>& sysDefStack);
+  void printPresets(std::vector<FurnaceGUISysDef>& items, int depth);
 
   void toggleMobileUI(bool enable, bool force=false);
 
