@@ -4575,7 +4575,7 @@ bool FurnaceGUI::loop() {
                   info=fmt::sprintf("Set volume: %d (%.2X, INVALID!)",p->data[cursor.y][3],p->data[cursor.y][3]);
                 } else {
                   float realVol=e->mapVelocity(cursor.xCoarse,(float)p->data[cursor.y][3]/(float)maxVol);
-                  info=fmt::sprintf("Set volume: %d (%.2X, %d%%)",p->data[cursor.y][3],p->data[cursor.y][3],(int)(realVol*100.0f));
+                  info=fmt::sprintf("Set volume: %d (%.2X, %d%%)",p->data[cursor.y][3],p->data[cursor.y][3],(int)(realVol*100.0f/(float)maxVol));
                 }
                 hasInfo=true;
               }
