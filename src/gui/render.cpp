@@ -39,7 +39,7 @@ bool FurnaceGUI::initRender() {
   logV("requested backend: %s",settings.renderBackend);
 
   if (safeMode) {
-    renderBackend=GUI_BACKEND_SDL;
+    renderBackend=GUI_BACKEND_SOFTWARE;
   } else if (settings.renderBackend=="OpenGL" || settings.renderBackend=="OpenGL 3.0" || settings.renderBackend=="OpenGL ES 2.0") {
     renderBackend=GUI_BACKEND_GL3;
   } else if (settings.renderBackend=="OpenGL 2.0") {
