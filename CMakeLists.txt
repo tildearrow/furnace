@@ -759,6 +759,13 @@ if (WIN32)
   list(APPEND ENGINE_SOURCES res/furnace.rc)
 endif()
 
+if (APPLE)
+  if (CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 10.12)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/macports-legacy-support/include)
+    list(APPEND ENGINE_SOURCES extern/macports-legacy-support/src/time.c)
+  endif()
+endif()
+
 set(CLI_SOURCES
 src/cli/cli.cpp
 )

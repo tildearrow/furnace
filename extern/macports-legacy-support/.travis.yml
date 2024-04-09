@@ -1,0 +1,3 @@
+language: c
+os: osx
+script: make && sudo make install && make test

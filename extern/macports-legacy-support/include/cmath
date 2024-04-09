@@ -1,0 +1,96 @@
+/* -*- c++ -*- */
+/*
+ * Copyright (c) 2019 Michael Dickens <michaelld@macports.org>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#ifndef _MACPORTS_CMATH_
+#define _MACPORTS_CMATH_
+
+/* include MP support header to see if c++11 cmath support is needed */
+#include "MacportsLegacySupport.h"
+
+#if __MP_LEGACY_SUPPORT_CXX11_CMATH__
+
+/*
+ * NOTE: This has to come -before- the include_next, so that the
+ * setting is valid for any subsequently included header.
+ */
+
+#undef L_GLIBCXX_USE_C99_MATH_TR1
+#ifndef _GLIBCXX_USE_C99_MATH_TR1
+#define L_GLIBCXX_USE_C99_MATH_TR1 1
+
+/*
+ * this macro enables c++11 math support in g++. It just needs to be
+ * defined; not to any particular value; use 1 just because.
+ */
+#define _GLIBCXX_USE_C99_MATH_TR1 1
+#endif
+
+/*
+ * Include our local math.h. NOTE: This has to come -before- the
+ * include_next for <cmath>, so that the top-level functions are
+ * all declared before they are referenced.
+ */
+#include <math.h>
+#endif /* __MP_LEGACY_SUPPORT_CXX11_CMATH__ */
+
+/*
+ * Include the next cmath, which might be from the primary system or
+ * it might be within GCC's c++ headers; either is OK here.
+ */
+#include_next <cmath>
+
+#if __MP_LEGACY_SUPPORT_CXX11_CMATH__
+
+#ifdef L_GLIBCXX_USE_C99_MATH_TR1
+#undef _GLIBCXX_USE_C99_MATH_TR1
+#undef L_GLIBCXX_USE_C99_MATH_TR1
+#endif
+
+/*
+ * this is the same condition that defines the function prototypes in
+ * the system <math.h>.
+ */
+#if ( defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L ) || ! defined( __STRICT_ANSI__ )  || ! defined( __GNUC__ )
+#else
+#ifdef _GLIBCXX_NO_C99_ROUNDING_FUNCS
+/* have to define these ourselves because GCC doesn't properly */
+#if __cplusplus >= 201103L
+
+#undef llrint
+#undef llrintf
+#undef llrintl
+#undef llround
+#undef llroundf
+#undef llroundl
+
+namespace std _GLIBCXX_VISIBILITY(default)
+{
+_GLIBCXX_BEGIN_NAMESPACE_VERSION
+  using ::llrint;
+  using ::llrintf;
+  using ::llrintl;
+  using ::llround;
+  using ::llroundf;
+  using ::llroundl;
+_GLIBCXX_END_NAMESPACE_VERSION
+} // namespace
+
+#endif /* __cplusplus >= 201103L */
+#endif /* _GLIBCXX_NO_C99_ROUNDING_FUNCS */
+#endif /* various */
+#endif /* __MP_LEGACY_SUPPORT_CXX11_CMATH__ */
+#endif /* _MACPORTS_CMATH_ */
