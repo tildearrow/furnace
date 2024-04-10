@@ -567,7 +567,6 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION VIBRATION
         CONFIG_SUBSECTION("Vibration");
 
-        ImGui::Indent();
         if (ImGui::SliderFloat("Strength",&settings.vibrationStrength,0.0f,1.0f)) {
           if (settings.vibrationStrength<0.0f) settings.vibrationStrength=0.0f;
           if (settings.vibrationStrength>1.0f) settings.vibrationStrength=1.0f;
@@ -578,7 +577,7 @@ void FurnaceGUI::drawSettings() {
           if (settings.vibrationLength<10) settings.vibrationLength=10;
           if (settings.vibrationLength>500) settings.vibrationLength=500;
           settingsChanged=true;
-        ImGui::Unindent();
+        }
 #endif
 
         // SUBSECTION FILE

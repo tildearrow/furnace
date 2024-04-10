@@ -24,7 +24,7 @@
 
 String sysDefID;
 
-void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted, std::vector<int>& sysDefStack) {
+void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted, std::vector<int>& sysDefStack, bool& alreadyHover) {
   int index=0;
   String sysDefIDLeader="##NS";
   for (int i: sysDefStack) {
@@ -58,11 +58,12 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
     }
     if (treeNode) {
       sysDefStack.push_back(index);
-      drawSysDefs(i.subDefs,accepted,sysDefStack);
+      drawSysDefs(i.subDefs,accepted,sysDefStack,alreadyHover);
       sysDefStack.erase(sysDefStack.end()-1);
       ImGui::TreePop();
     }
-    if (isHovered) {
+    if (isHovered && !alreadyHover) {
+      alreadyHover=true;
       if (ImGui::BeginTooltip()) {
         std::map<DivSystem,int> chipCounts;
         std::vector<DivSystem> chips;
@@ -211,8 +212,9 @@ void FurnaceGUI::drawNewSong() {
             ImGui::Text("no results");
           }
         } else {
+          bool alreadyHover=false;
           sysDefStack.push_back(newSongQuery.empty()?newSongCategory:-1);
-          drawSysDefs(category,accepted,sysDefStack);
+          drawSysDefs(category,accepted,sysDefStack,alreadyHover);
           sysDefStack.erase(sysDefStack.end()-1);
         }
         ImGui::EndTable();
