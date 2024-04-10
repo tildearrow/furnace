@@ -45,7 +45,9 @@ class TFMRLEReader {
     do {
       rleTag=readC();
       tagLenLeft|=(rleTag&0x7F)<<lenShift;
-      lenShift++;
+      lenShift += 7;
+      logD("RLE tag: %X, len shift: %d, len left: %d", rleTag, lenShift, tagLenLeft);
+
       // sync back since we've already read one character
       tagLenLeft--;
     } while (!(rleTag&0x80));
@@ -107,7 +109,9 @@ public:
   void read(unsigned char* b, size_t l) {
     int i=0;
     while(l--) {
-      b[i++]=readC();
+      unsigned char nextChar = readC();
+      b[i++]=nextChar;
+      logD("read next char: %x, index: %d", nextChar, i);
     }
   }
 
@@ -200,13 +204,24 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
 
     // notes
     logD("parsing notes");
-    reader.read(buffer, 384);
+    reader.read(buffer,384);
     String notes((const char*)buffer,strnlen((const char*)buffer,384));
 
     // fix \r\n to \n
     for (auto& c : notes) {
       if (c=='\r') {
         notes.erase(c,1);
+      }
+    }
+
+    // order list
+    logD("parsing order list");
+    unsigned char orderList[256];
+    reader.read(orderList,256);
+
+    for (int i=0; i<ds.subsong[0]->ordersLen;i++) {
+      for (int j=0; j<6; j++) {
+        ds.subsong[0]->orders.ord[j][i]=orderList[i];
       }
     }
 
