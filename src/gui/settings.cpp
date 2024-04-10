@@ -563,6 +563,24 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
+#ifdef IS_MOBILE
+        // SUBSECTION VIBRATION
+        CONFIG_SUBSECTION("Vibration");
+
+        ImGui::Indent();
+        if (ImGui::SliderFloat("Strength",&settings.vibrationStrength,0.0f,1.0f)) {
+          if (settings.vibrationStrength<0.0f) settings.vibrationStrength=0.0f;
+          if (settings.vibrationStrength>1.0f) settings.vibrationStrength=1.0f;
+          settingsChanged=true;
+        }
+
+        if (ImGui::SliderInt("Length",&settings.vibrationLength,10,500)) {
+          if (settings.vibrationLength<10) settings.vibrationLength=10;
+          if (settings.vibrationLength>500) settings.vibrationLength=500;
+          settingsChanged=true;
+        ImGui::Unindent();
+#endif
+
         // SUBSECTION FILE
         CONFIG_SUBSECTION("File");
 
@@ -4049,6 +4067,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.newSongBehavior=conf.getInt("newSongBehavior",0);
     settings.playOnLoad=conf.getInt("playOnLoad",0);
     settings.centerPopup=conf.getInt("centerPopup",1);
+
+    settings.vibrationStrength=conf.getFloat("vibrationStrength",0.5f);
+    settings.vibrationLength=conf.getInt("vibrationLength",100);
   }
 
   if (groups&GUI_SETTINGS_AUDIO) {
@@ -4520,6 +4541,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
   clampSetting(settings.displayRenderTime,0,1);
+  clampSetting(settings.vibrationStrength,0.0f,1.0f);
+  clampSetting(settings.vibrationLength,10,500);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4582,6 +4605,9 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("newSongBehavior",settings.newSongBehavior);
     conf.set("playOnLoad",settings.playOnLoad);
     conf.set("centerPopup",settings.centerPopup);
+
+    conf.set("vibrationStrength",settings.vibrationStrength);
+    conf.set("vibrationLength",settings.vibrationLength);
   }
 
   // audio

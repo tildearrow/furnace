@@ -222,6 +222,10 @@ void FurnaceGUI::drawXYOsc() {
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         xyOscOptions=true;
       }
+      if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+        NOTIFY_LONG_HOLD;
+        xyOscOptions=true;
+      }
     }
   }
   if (noPadding) {
