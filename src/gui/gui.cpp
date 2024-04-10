@@ -7876,8 +7876,7 @@ FurnaceGUI::FurnaceGUI():
   curTutorialStep(0),
   audioExportType(0),
   dmfExportVersion(0),
-  curExportType(GUI_EXPORT_NONE),
-  selectedUserPreset(-1) {
+  curExportType(GUI_EXPORT_NONE) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
