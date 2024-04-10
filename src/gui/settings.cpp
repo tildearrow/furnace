@@ -2746,6 +2746,15 @@ void FurnaceGUI::drawSettings() {
           ImGui::Unindent();
         }
 
+        bool loadFallbackB=settings.loadFallback;
+        if (ImGui::Checkbox("Load fallback font",&loadFallbackB)) {
+          settings.loadFallback=loadFallbackB;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("disable to save video memory.");
+        }
+
         bool loadJapaneseB=settings.loadJapanese;
         if (ImGui::Checkbox("Display Japanese characters",&loadJapaneseB)) {
           settings.loadJapanese=loadJapaneseB;
@@ -4178,6 +4187,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.loadChinese=conf.getInt("loadChinese",0);
     settings.loadChineseTraditional=conf.getInt("loadChineseTraditional",0);
     settings.loadKorean=conf.getInt("loadKorean",0);
+    settings.loadFallback=conf.getInt("loadFallback",1);
 
     settings.fontBackend=conf.getInt("fontBackend",FONT_BACKEND_DEFAULT);
     settings.fontHinting=conf.getInt("fontHinting",0);
@@ -4435,6 +4445,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.loadChinese,0,1);
   clampSetting(settings.loadChineseTraditional,0,1);
   clampSetting(settings.loadKorean,0,1);
+  clampSetting(settings.loadFallback,0,1);
   clampSetting(settings.fmLayout,0,6);
   clampSetting(settings.susPosition,0,1);
   clampSetting(settings.effectCursorDir,0,2);
@@ -4714,6 +4725,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("loadChinese",settings.loadChinese);
     conf.set("loadChineseTraditional",settings.loadChineseTraditional);
     conf.set("loadKorean",settings.loadKorean);
+    conf.set("loadFallback",settings.loadFallback);
 
     conf.set("fontBackend",settings.fontBackend);
     conf.set("fontHinting",settings.fontHinting);
@@ -5779,7 +5791,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
 
     // two fallback fonts
-    mainFont=addFontZlib(font_liberationSans_compressed_data,font_liberationSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
+    if (settings.loadFallback) {
+      mainFont=addFontZlib(font_liberationSans_compressed_data,font_liberationSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
+    }
     if (settings.loadJapanese || settings.loadChinese || settings.loadChineseTraditional || settings.loadKorean) {
       mainFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
     }

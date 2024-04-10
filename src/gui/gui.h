@@ -1730,6 +1730,7 @@ class FurnaceGUI {
     int loadChinese;
     int loadChineseTraditional;
     int loadKorean;
+    int loadFallback;
     int fmLayout;
     int sampleLayout;
     int waveLayout;
@@ -1965,6 +1966,7 @@ class FurnaceGUI {
       loadChinese(0),
       loadChineseTraditional(0),
       loadKorean(0),
+      loadFallback(1),
       fmLayout(4),
       sampleLayout(0),
       waveLayout(0),
