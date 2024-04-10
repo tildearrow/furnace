@@ -45,12 +45,11 @@ class TFMRLEReader {
     do {
       rleTag=readC();
       tagLenLeft|=(rleTag&0x7F)<<lenShift;
-      lenShift += 7;
-      logD("RLE tag: %X, len shift: %d, len left: %d", rleTag, lenShift, tagLenLeft);
-
-      // sync back since we've already read one character
-      tagLenLeft--;
+      lenShift+=7;
+      logD("RLE tag: %X, len shift: %d, len left: %d",rleTag,lenShift,tagLenLeft);
     } while (!(rleTag&0x80));
+    // sync back since we've already read one character
+    tagLenLeft--;
     inTag=true;
     tagChar=prevChar;
   }
@@ -66,14 +65,14 @@ public:
 
   // these functions may throw TFMEndOfFileException
   unsigned char readC() {
-    if (curSeek>len) throw TFMEndOfFileException(this, len);
+    if (curSeek>len) throw TFMEndOfFileException(this,len);
     if (inTag) {
       if (!tagLenLeft) {
         inTag=false;
         return readC();
       }
       tagLenLeft--;
-      logD("one char RLE decompressed, tag left: %d, char: %d", tagLenLeft, tagChar);
+      logD("one char RLE decompressed, tag left: %d, char: %d",tagLenLeft,tagChar);
       return tagChar;
     }
 
@@ -102,16 +101,16 @@ public:
   }
 
   char readCNoRLE() {
-    if (curSeek+1>len) throw TFMEndOfFileException(this, len);
+    if (curSeek+1>len) throw TFMEndOfFileException(this,len);
     return buf[curSeek++];
   }
 
   void read(unsigned char* b, size_t l) {
     int i=0;
     while(l--) {
-      unsigned char nextChar = readC();
+      unsigned char nextChar=readC();
       b[i++]=nextChar;
-      logD("read next char: %x, index: %d", nextChar, i);
+      logD("read next char: %x, index: %d",nextChar,i);
     }
   }
 
@@ -119,7 +118,7 @@ public:
     int i=0;
     while (l--) {
       b[i++]=buf[curSeek++];
-      if (curSeek>len) throw TFMEndOfFileException(this, len);
+      if (curSeek>len) throw TFMEndOfFileException(this,len);
     }
   }
 
@@ -128,21 +127,25 @@ public:
   }
 
   short readSNoRLE() {
-    if (curSeek+2>len) throw TFMEndOfFileException(this, len);
+    if (curSeek+2>len) throw TFMEndOfFileException(this,len);
     short ret=buf[curSeek]|buf[curSeek+1]<<8;
     curSeek+=2;
     return ret;
   }
+
+  void skip(size_t l) {
+    while (l--) readC();
+  }
 };
 
 String TFMparseDate(short date) {
-  return fmt::sprintf("%02d.%02d.%02d", date>>11, (date>>7)&0xF, date&0x7F);
+  return fmt::sprintf("%02d.%02d.%02d",date>>11,(date>>7)&0xF,date&0x7F);
 }
 
 bool DivEngine::loadTFM(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
-  TFMRLEReader reader=TFMRLEReader(file, len);
+  TFMRLEReader reader=TFMRLEReader(file,len);
 
   try {
     DivSong ds;
@@ -219,9 +222,58 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
     unsigned char orderList[256];
     reader.read(orderList,256);
 
-    for (int i=0; i<ds.subsong[0]->ordersLen;i++) {
+    for (int i=0; i<ds.subsong[0]->ordersLen; i++) {
       for (int j=0; j<6; j++) {
         ds.subsong[0]->orders.ord[j][i]=orderList[i];
+      }
+    }
+
+    DivInstrument* insMaps[256];
+
+    // instrument names
+    logD("parsing instruments");
+    unsigned char insName[16];
+    int insCount=0;
+    for (int i=0; i<255; i++) {
+      reader.read(insName,16);
+
+      if (memcmp(insName,"\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",16)==0) {
+        logD("instrument unused");
+        insMaps[i]=NULL;
+        continue;
+      }
+
+      DivInstrument* ins=new DivInstrument;
+      ins->type=DIV_INS_FM;
+      ins->name=String((const char*)insName,strnlen((const char*)insName,16));
+      ds.ins.push_back(ins);
+      insCount++;
+      insMaps[i]=ins;
+    }
+
+    ds.insLen=insCount;
+
+    // instrument data
+    for (int i=0; i<255; i++) {
+      if (!insMaps[i]) {
+        reader.skip(42);
+        continue;
+      }
+
+      insMaps[i]->fm.alg=reader.readC();
+      insMaps[i]->fm.fb=reader.readC();
+
+      for (int j=0; j<4; j++) {
+        insMaps[i]->fm.op[j].mult=reader.readC();
+        insMaps[i]->fm.op[j].dt=reader.readC();
+        insMaps[i]->fm.op[j].tl=reader.readC()^0x7F;
+        insMaps[i]->fm.op[j].rs=reader.readC();
+        insMaps[i]->fm.op[j].ar=reader.readC()^0x1F;
+        insMaps[i]->fm.op[j].dr=reader.readC()^0x1F;
+        insMaps[i]->fm.op[j].d2r=reader.readC()^0x1F;
+        insMaps[i]->fm.op[j].rr=reader.readC()^0xF;
+        insMaps[i]->fm.op[j].sl=reader.readC();
+        insMaps[i]->fm.op[j].ssgEnv=reader.readC();
       }
     }
 
