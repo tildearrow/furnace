@@ -152,8 +152,8 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
     ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
     ds.subsong[0]->hz=50;
     ds.systemLen = 1;
-    ds.system[0]=DIV_SYSTEM_YM2612;
 
+    ds.system[0]=DIV_SYSTEM_YM2608;
     unsigned char magic[8]={0};
 
     reader.readNoRLE(magic, 8);
@@ -278,6 +278,8 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
     }
 
     ds.notes=notes;
+
+    if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
@@ -286,6 +288,13 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
     recalcChans();
     saveLock.unlock();
     BUSY_END;
+    if (active) {
+      initDispatch();
+      BUSY_BEGIN;
+      renderSamples();
+      reset();
+      BUSY_END;
+    }
     success=true;
   } catch(TFMEndOfFileException& e) {
     lastError="incomplete file!";
