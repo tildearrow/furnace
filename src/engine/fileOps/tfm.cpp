@@ -1,0 +1,230 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2024 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#include "fileOpsCommon.h"
+
+class TFMRLEReader;
+
+struct TFMEndOfFileException {
+  TFMRLEReader* reader;
+  size_t finalSize;
+  TFMEndOfFileException(TFMRLEReader* r, size_t fs):
+    reader(r),
+    finalSize(fs) {}
+};
+
+
+class TFMRLEReader {
+  const unsigned char* buf;
+  size_t len;
+  size_t curSeek;
+  bool inTag;
+  int tagLenLeft;
+  char tagChar;
+
+  void decodeRLE(char prevChar) {
+    int lenShift=0;
+    tagLenLeft=0;
+    char rleTag=0;
+    do {
+      rleTag=readC();
+      tagLenLeft|=(rleTag&0x7F)<<lenShift;
+      lenShift++;
+      // sync back since we've already read one character
+      tagLenLeft--;
+    } while (!(rleTag&0x80));
+    inTag=true;
+    tagChar=prevChar;
+  }
+
+public:
+  TFMRLEReader(const void* b, size_t l) :
+    buf((const unsigned char*)b),
+    len(l),
+    curSeek(0),
+    inTag(false),
+    tagLenLeft(0),
+    tagChar(0) {}
+
+  // these functions may throw TFMEndOfFileException
+  unsigned char readC() {
+    if (curSeek>len) throw TFMEndOfFileException(this, len);
+    if (inTag) {
+      if (!tagLenLeft) {
+        inTag=false;
+        return readC();
+      }
+      tagLenLeft--;
+      logD("one char RLE decompressed, tag left: %d, char: %d", tagLenLeft, tagChar);
+      return tagChar;
+    }
+
+    unsigned char ret=buf[curSeek++];
+
+    // MISLEADING DOCUMENTATION: while TFM music maker's documentation says if the next byte
+    // is zero, then it's not a tag but just 0x80 (for example: 0x00 0x80 0x00 = 0x00 0x80)
+    // this is actually wrong
+    // through research and experimentation, there are times that TFM music maker
+    // will use 0x80 0x00 for actual tags (for example: 0x00 0x80 0x00 0x84 = 512 times 0x00
+    // in certain parts of the header and footer)
+    // TFM music maker actually uses double 0x80 to escape the 0x80
+    // for example: 0xDA 0x80 0x80 0x00 0x23 = 0xDA 0x80 0x00 0x23)
+    if (ret==0x80 && curSeek+1<len) {
+      if (buf[curSeek+1]!=0x80) {
+        decodeRLE(buf[curSeek-2]);
+        tagLenLeft--;
+        return tagChar;
+      } else {
+        // to avoid outputting the extra 0x80
+        curSeek++;
+        return ret;
+      }
+    }
+    return ret;
+  }
+
+  char readCNoRLE() {
+    if (curSeek+1>len) throw TFMEndOfFileException(this, len);
+    return buf[curSeek++];
+  }
+
+  void read(unsigned char* b, size_t l) {
+    int i=0;
+    while(l--) {
+      b[i++]=readC();
+    }
+  }
+
+  void readNoRLE(unsigned char *b, size_t l) {
+    int i=0;
+    while (l--) {
+      b[i++]=buf[curSeek++];
+      if (curSeek>len) throw TFMEndOfFileException(this, len);
+    }
+  }
+
+  short readS() {
+    return readC()|readC()<<8;
+  }
+
+  short readSNoRLE() {
+    if (curSeek+2>len) throw TFMEndOfFileException(this, len);
+    short ret=buf[curSeek]|buf[curSeek+1]<<8;
+    curSeek+=2;
+    return ret;
+  }
+};
+
+String TFMparseDate(short date) {
+  return fmt::sprintf("%02d.%02d.%02d", date>>11, (date>>7)&0xF, date&0x7F);
+}
+
+bool DivEngine::loadTFM(unsigned char* file, size_t len) {
+  struct InvalidHeaderException {};
+  bool success=false;
+  TFMRLEReader reader=TFMRLEReader(file, len);
+
+  try {
+    DivSong ds;
+    ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
+    ds.subsong[0]->hz=50;
+    ds.systemLen = 1;
+    ds.system[0]=DIV_SYSTEM_YM2612;
+
+    unsigned char magic[8]={0};
+
+    reader.readNoRLE(magic, 8);
+    if (memcmp(magic,DIV_TFM_MAGIC,8)!=0) throw InvalidHeaderException();
+
+    unsigned char speedEven=reader.readCNoRLE();
+    unsigned char speedOdd=reader.readCNoRLE();
+    unsigned char interleaveFactor=reader.readCNoRLE();
+
+    // TODO: due to limitations with the groove pattern, only interleave factors up to 8
+    // are allowed in furnace
+    if (interleaveFactor>8) {
+      logW("interleave factor is bigger than 8, speed information may be inaccurate");
+      interleaveFactor=8;
+    }
+
+    if (speedEven==speedOdd) {
+      ds.subsong[0]->speeds.val[0]=speedEven;
+      ds.subsong[0]->speeds.len=1;
+    } else {
+      for (int i=0; i<interleaveFactor; i++) {
+        ds.subsong[0]->speeds.val[i]=speedEven;
+        ds.subsong[0]->speeds.val[i+interleaveFactor]=speedOdd;
+      }
+      ds.subsong[0]->speeds.len=interleaveFactor*2;
+    }
+    ds.subsong[0]->ordersLen=reader.readCNoRLE();
+
+    // order loop position, unused
+    (void)reader.readCNoRLE();
+
+    ds.createdDate=TFMparseDate(reader.readSNoRLE());
+    ds.revisionDate=TFMparseDate(reader.readSNoRLE());
+
+    // TODO: use this for something, number of saves
+    (void)reader.readSNoRLE();
+
+    unsigned char buffer[384];
+
+    // author
+    logD("parsing author");
+    reader.read(buffer,64);
+    ds.author=String((const char*)buffer,strnlen((const char*)buffer,64));
+    memset(buffer, 0, 64);
+
+    // name
+    logD("parsing name");
+    reader.read(buffer,64);
+    ds.name=String((const char*)buffer,strnlen((const char*)buffer,64));
+    memset(buffer, 0, 64);
+
+    // notes
+    logD("parsing notes");
+    reader.read(buffer, 384);
+    String notes((const char*)buffer,strnlen((const char*)buffer,384));
+
+    // fix \r\n to \n
+    for (auto& c : notes) {
+      if (c=='\r') {
+        notes.erase(c,1);
+      }
+    }
+
+    ds.notes=notes;
+    BUSY_BEGIN_SOFT;
+    saveLock.lock();
+    song.unload();
+    song=ds;
+    changeSong(0);
+    recalcChans();
+    saveLock.unlock();
+    BUSY_END;
+    success=true;
+  } catch(TFMEndOfFileException& e) {
+    lastError="incomplete file!";
+  } catch(InvalidHeaderException& e) {
+    lastError="invalid info header!";
+  }
+
+  return success;
+}
