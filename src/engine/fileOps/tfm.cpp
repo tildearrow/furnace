@@ -86,7 +86,7 @@ public:
     // in certain parts of the header and footer)
     // TFM music maker actually uses double 0x80 to escape the 0x80
     // for example: 0xDA 0x80 0x80 0x00 0x23 = 0xDA 0x80 0x00 0x23)
-    if (ret==0x80 && curSeek+1<len) {
+    if (ret==0x80 && curSeek+1<=len) {
       if (buf[curSeek+1]!=0x80) {
         decodeRLE(buf[curSeek-2]);
         tagLenLeft--;
@@ -356,6 +356,10 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
 
         // put a "jump to next pattern" effect if the pattern is smaller than the maximum pattern lengths
         if (patLens[i]!=0 && patLens[i]<ds.subsong[0]->patLen) {
+          if (pat->data[patLens[i]-1][4]==-1 && pat->data[patLens[i]-1][5]==-1) {
+            pat->data[patLens[i]-1][4]=0x0D;
+            pat->data[patLens[i]-1][5]=0x00;
+          }
           pat->data[patLens[i]][4]=0x0D;
           pat->data[patLens[i]][5]=0x00;
         }
@@ -374,14 +378,48 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
         logD("parsing instruments of pattern %d channel %d",i,j);
         for (int k=0; k<256; k++) {
           if (patDataBuf[k]==0) continue;
-          else {
-            pat->data[k][2]=insNumMaps[patDataBuf[k]-1];
-          }
+          pat->data[k][2]=insNumMaps[patDataBuf[k]-1];
         }
 
-        logD("ignoring unused data of pattern %d channel %d",i,j);
-        reader.read(patDataBuf,256);
-        reader.read(patDataBuf,256);
+        // effects
+
+        unsigned char effectNum[256];
+        unsigned char effectVal[256];
+        reader.read(effectNum,256);
+        reader.read(effectVal,256);
+
+        for (int k=0; k<256; k++) {
+          switch (effectNum[k]) {
+          case 0:
+            // arpeggio or no effect (if effect val is 0)
+            if (effectVal[k]==0) break;
+            pat->data[k][4]=effectNum[k];
+            pat->data[k][5]=effectVal[k];
+            break;
+          case 1:
+            // pitch slide up
+          case 2:
+            // pitch slide down
+          case 3:
+            // portamento
+          case 4:
+            // vibrato
+            pat->data[k][4]=effectNum[k];
+            pat->data[k][5]=effectVal[k];
+            break;
+          case 5:
+            // poramento + volume slide
+            pat->data[k][4]=0x06;
+            pat->data[k][5]=effectVal[k];
+            break;
+          case 6:
+            // vibrato + volume slide
+            pat->data[k][4]=0x05;
+            pat->data[k][5]=effectVal[k];
+          default:
+            break;
+          }
+        }
 
         reader.skip(1536);
       }
