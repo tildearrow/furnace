@@ -1836,6 +1836,7 @@ class FurnaceGUI {
     int fontBitmap;
     int fontAutoHint;
     int fontAntiAlias;
+    int fontOversample;
     int selectAssetOnLoad;
     int basicColors;
     int playbackTime;
@@ -2071,6 +2072,7 @@ class FurnaceGUI {
       fontBitmap(0),
       fontAutoHint(1),
       fontAntiAlias(1),
+      fontOversample(2),
       selectAssetOnLoad(1),
       basicColors(1),
       playbackTime(1),
