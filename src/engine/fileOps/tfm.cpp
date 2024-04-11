@@ -65,7 +65,6 @@ public:
 
   // these functions may throw TFMEndOfFileException
   unsigned char readC() {
-    if (curSeek>len) throw TFMEndOfFileException(this,len);
     if (inTag) {
       if (!tagLenLeft) {
         inTag=false;
@@ -75,6 +74,7 @@ public:
       logD("one char RLE decompressed, tag left: %d, char: %d",tagLenLeft,tagChar);
       return tagChar;
     }
+    if (curSeek>len) throw TFMEndOfFileException(this,len);
 
     unsigned char ret=buf[curSeek++];
 
@@ -134,8 +134,13 @@ public:
   }
 
   void skip(size_t l) {
-    while (l--) readC();
+    // quick and dirty
+    while (l--) {
+      logD("skipping l %d", l);
+      readC();
+    }
   }
+
 };
 
 String TFMparseDate(short date) {
@@ -222,13 +227,20 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
     unsigned char orderList[256];
     reader.read(orderList,256);
 
+    bool patExists[256];
+    unsigned char maxPat=0;
     for (int i=0; i<ds.subsong[0]->ordersLen; i++) {
+      patExists[orderList[i]]=true;
+      if (maxPat<orderList[i]) maxPat=orderList[i];
+
       for (int j=0; j<6; j++) {
         ds.subsong[0]->orders.ord[j][i]=orderList[i];
+        ds.subsong[0]->pat[j].data[orderList[i]]=new DivPattern;
       }
     }
 
     DivInstrument* insMaps[256];
+    int insNumMaps[256];
 
     // instrument names
     logD("parsing instruments");
@@ -239,6 +251,7 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
 
       if (memcmp(insName,"\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",16)==0) {
         logD("instrument unused");
+        insNumMaps[i]=i;
         insMaps[i]=NULL;
         continue;
       }
@@ -247,7 +260,10 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
       ins->type=DIV_INS_FM;
       ins->name=String((const char*)insName,strnlen((const char*)insName,16));
       ds.ins.push_back(ins);
+
+      insNumMaps[i]=insCount;
       insCount++;
+
       insMaps[i]=ins;
     }
 
@@ -279,6 +295,88 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
 
     ds.notes=notes;
 
+    unsigned char patLens[256];
+    int maxPatLen=0;
+    reader.read(patLens, 256);
+    for (int i=0;i<256;i++) {
+      if (patLens[i]==0) {
+        maxPatLen=256;
+        break;
+      } else if (patLens[i]>maxPatLen) {
+        maxPatLen=patLens[i];
+      }
+    }
+
+    ds.subsong[0]->patLen=maxPatLen;
+
+    // PATTERN DATA FORMAT (not described properly in the documentation)
+    // for each channel in a pattern:
+    //  - note data (256 bytes)
+    //  - volume data (256 bytes, values always 0x00-0x1F)
+    //  - instrument number data (256 bytes)
+    //  - effect number (256 bytes, values 0x0-0x23 (to represent 0-F and G-Z))
+    //  - effect value (256 bytes)
+    //  - padding(?) (1536 bytes, always set to 0)
+    // notes are stored as an inverted value of note+octave*12
+    // key-offs are stored in the note data as 0x01
+    unsigned char patDataBuf[256];
+
+    for (int i=0; i<256; i++) {
+      if (i>maxPat) break;
+      else if (!patExists[i]) {
+        logD("skipping pattern %d", i);
+        reader.skip(16896);
+        continue;
+      }
+
+      logD("parsing pattern %d", i);
+      for (int j=0; j<6; j++) {
+        DivPattern* pat = ds.subsong[0]->pat[j].data[i];
+
+        // notes
+        reader.read(patDataBuf, 256);
+
+        logD("parsing notes of pattern %d channel %d", i, j);
+        for (int k=0; k<256; k++) {
+          if (patDataBuf[k]==0) continue;
+          else if (patDataBuf[k]==1) {
+            // note off
+            pat->data[k][0]=100;
+          } else {
+            unsigned char invertedNote=~patDataBuf[k];
+            pat->data[k][0]=invertedNote%12;
+            pat->data[k][1]=(invertedNote/12)-1;
+          }
+        }
+
+        // volume
+        reader.read(patDataBuf, 256);
+
+        logD("parsing volumes of pattern %d channel %d", i, j);
+        for (int k=0; k<256; k++) {
+          if (patDataBuf[k]==0) continue;
+          else pat->data[k][3]=patDataBuf[k]*4;
+        }
+
+        // instrument
+        reader.read(patDataBuf, 256);
+
+        logD("parsing instruments of pattern %d channel %d", i, j);
+        for (int k=0; k<256; k++) {
+          if (patDataBuf[k]==0) continue;
+          else {
+            pat->data[k][2]=insNumMaps[patDataBuf[k]-1];
+          }
+        }
+
+        logD("ignoring unused data of pattern %d channel %d", i, j);
+        reader.read(patDataBuf, 256);
+        reader.read(patDataBuf, 256);
+
+        reader.skip(1536);
+      }
+
+    }
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
