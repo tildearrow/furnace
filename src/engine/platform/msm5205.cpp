@@ -413,7 +413,7 @@ int DivPlatformMSM5205::init(DivEngine* p, int channels, int sugRate, const DivC
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   msm=new okim5205_device(500000);
-  msm->set_start_div(okim5205_device::FOSC_DIV_BY_1024);
+  msm->set_start_div(okim5205_device::FOSC_DIV_BY_128);
   msm->set_type(okim5205_device::TYPE_4BITS);
   msm->set_outbits(okim5205_device::OUTPUT_12BITS);
   msm->device_start();
