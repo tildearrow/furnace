@@ -21,7 +21,6 @@
 #include "engine.h"
 #include "platform/genesis.h"
 #include "platform/genesisext.h"
-#include "platform/msm5205.h"
 #include "platform/msm5232.h"
 #include "platform/msm6258.h"
 #include "platform/msm6295.h"
@@ -89,6 +88,7 @@
 #include "platform/powernoise.h"
 #include "platform/dave.h"
 #include "platform/nds.h"
+#include "platform/msm5205.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -609,9 +609,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_MSM6295:
       dispatch=new DivPlatformMSM6295;
       break;
-    case DIV_SYSTEM_MSM5205:
-      dispatch=new DivPlatformMSM5205;
-      break;
     case DIV_SYSTEM_MSM5232:
       dispatch=new DivPlatformMSM5232;
       break;
@@ -691,6 +688,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
         ((DivPlatformNES*)dispatch)->setNSFPlay(eng->getConfInt("nesCore",0)==1);
       }
       ((DivPlatformNES*)dispatch)->set5E01(true);
+      break;
+    case DIV_SYSTEM_MSM5205:
+      dispatch=new DivPlatformMSM5205;
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;
