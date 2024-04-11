@@ -346,9 +346,19 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
             unsigned char invertedNote=~patDataBuf[k];
             pat->data[k][0]=invertedNote%12;
             pat->data[k][1]=(invertedNote/12)-1;
+
+            if (pat->data[k][0]==0) {
+              pat->data[k][0]=12;
+              pat->data[k][1]--;
+            }
           }
         }
 
+        // put a "jump to next pattern" effect if the pattern is smaller than the maximum pattern lengths
+        if (patLens[i]!=0 && patLens[i]<ds.subsong[0]->patLen) {
+          pat->data[patLens[i]][4]=0x0D;
+          pat->data[patLens[i]][5]=0x00;
+        }
         // volume
         reader.read(patDataBuf, 256);
 
