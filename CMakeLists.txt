@@ -598,7 +598,6 @@ src/engine/platform/sound/t6w28/T6W28_Apu.cpp
 
 src/engine/platform/sound/rf5c68.cpp
 
-src/engine/platform/sound/oki/okim5205.cpp
 src/engine/platform/sound/oki/msm5232.cpp
 src/engine/platform/sound/oki/okim6258.cpp
 
@@ -617,6 +616,8 @@ src/engine/platform/sound/c140_c219.c
 src/engine/platform/sound/dave/dave.cpp
 
 src/engine/platform/sound/nds.cpp
+
+src/engine/platform/sound/oki/okim5205.cpp
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
@@ -688,7 +689,6 @@ src/engine/platform/fds.cpp
 src/engine/platform/tia.cpp
 src/engine/platform/saa.cpp
 src/engine/platform/amiga.cpp
-src/engine/platform/msm5205.cpp
 src/engine/platform/msm5232.cpp
 src/engine/platform/msm6258.cpp
 src/engine/platform/msm6295.cpp
@@ -731,6 +731,7 @@ src/engine/platform/dave.cpp
 src/engine/platform/gbadma.cpp
 src/engine/platform/gbaminmod.cpp
 src/engine/platform/nds.cpp
+src/engine/platform/msm5205.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
