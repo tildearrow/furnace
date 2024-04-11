@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,17 +24,23 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
 }
 
+static const int msmRates[4]={
+  4, 3, 2, 2
+};
+
+int DivPlatformMSM6258::calcVGMRate() {
+  int ret=chipClock/((clockSel+1)*512*msmRates[rateSel&3]);
+  logD("MSM rate: %d",ret);
+  return ret;
+}
+
 void DivPlatformMSM6258::acquire(short** buf, size_t len) {
-  short* outs[2]={
-    &msmOut,
-    NULL
-  };
   for (size_t h=0; h<len; h++) {
     if (--msmClockCount<0) {
       if (--msmDividerCount<=0) {
@@ -71,7 +77,7 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
           }
         }
         
-        msm->sound_stream_update(outs,1);
+        msm->sound_stream_update(&msmOut,1);
         msmDividerCount=msmDivider;
       }
       msmClockCount=msmClock;
@@ -97,6 +103,7 @@ void DivPlatformMSM6258::tick(bool sysTick) {
         if (rateSel!=(chan[i].std.duty.val&3)) {
           rateSel=chan[i].std.duty.val&3;
           rWrite(12,rateSel);
+          updateSampleFreq=true;
         }
       }
       if (chan[i].std.panL.had) {
@@ -109,6 +116,7 @@ void DivPlatformMSM6258::tick(bool sysTick) {
         if (clockSel!=(chan[i].std.ex1.val&1)) {
           clockSel=chan[i].std.ex1.val&1;
           rWrite(8,clockSel);
+          updateSampleFreq=true;
         }
       }
       if (chan[i].std.phaseReset.had) {
@@ -117,12 +125,23 @@ void DivPlatformMSM6258::tick(bool sysTick) {
         }
       }
     }
+    if (updateSampleFreq) {
+      int newRate=calcVGMRate();
+      if (dumpWrites) addWrite(0xffff0001,newRate);
+      updateSampleFreq=false;
+    }
     if (chan[i].keyOn || chan[i].keyOff) {
       samplePos=0;
-      rWrite(0,1); // turn off
+      // turn off
+      if (dumpWrites) addWrite(0xffff0002,0);
+      rWrite(0,1);
       if (chan[i].active && !chan[i].keyOff) {
         if (sample>=0 && sample<parent->song.sampleLen) {
+          // turn on
           rWrite(0,2);
+          if (dumpWrites) addWrite(0xffff0000,sample);
+          int newRate=calcVGMRate();
+          if (dumpWrites) addWrite(0xffff0001,newRate);
         } else {
           sample=-1;
         }
@@ -224,10 +243,12 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_FREQ:
       rateSel=c.value&3;
       rWrite(12,rateSel);
+      updateSampleFreq=true;
       break;
     case DIV_CMD_SAMPLE_MODE:
       clockSel=c.value&1;
       rWrite(8,clockSel);
+      updateSampleFreq=true;
       break;
     case DIV_CMD_PANNING: {
       if (c.value==0 && c.value2==0) {
@@ -247,8 +268,8 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 8;
@@ -286,6 +307,10 @@ DivMacroInt* DivPlatformMSM6258::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformMSM6258::getPan(int ch) {
+  return ((chan[ch].pan&2)<<7)|(chan[ch].pan&1);
+}
+
 DivDispatchOscBuffer* DivPlatformMSM6258::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -317,8 +342,10 @@ void DivPlatformMSM6258::reset() {
   msmPan=3;
   rateSel=2;
   clockSel=0;
+  updateSampleFreq=true;
   if (dumpWrites) {
     addWrite(0xffffffff,0);
+    addWrite(0xffff0001,calcVGMRate());
   }
   for (int i=0; i<1; i++) {
     chan[i]=DivPlatformMSM6258::Channel();
@@ -341,6 +368,10 @@ int DivPlatformMSM6258::getOutputCount() {
 }
 
 bool DivPlatformMSM6258::keyOffAffectsArp(int ch) {
+  return false;
+}
+
+bool DivPlatformMSM6258::getLegacyAlwaysSetVolume() {
   return false;
 }
 
@@ -390,6 +421,9 @@ int DivPlatformMSM6258::init(DivEngine* p, int channels, int sugRate, const DivC
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   msm=new okim6258_device(4000000);
+  msm->set_start_div(okim6258_device::FOSC_DIV_BY_1024);
+  msm->set_type(okim6258_device::TYPE_4BITS);
+  msm->set_outbits(okim6258_device::OUTPUT_12BITS);
   msm->device_start();
   setFlags(flags);
   reset();

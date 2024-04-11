@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,10 @@ void FurnaceGUI::drawSysManager() {
   }
   if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags)) {
     ImGui::Checkbox("Preserve channel order",&preserveChanPos);
+    ImGui::SameLine();
+    ImGui::Checkbox("Clone channel data",&sysDupCloneChannels);
+    ImGui::SameLine();
+    ImGui::Checkbox("Clone at end",&sysDupEnd);
     if (ImGui::BeginTable("SystemList",3)) {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
@@ -79,33 +83,43 @@ void FurnaceGUI::drawSysManager() {
         }
         ImGui::TableNextColumn();
         if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSM%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-          drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
+          drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true);
           ImGui::TreePop();
         }
         ImGui::TableNextColumn();
-        ImGui::Button(ICON_FA_CHEVRON_DOWN "##SysChange");
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Change");
+        if (ImGui::Button("Clone##SysDup")) {
+          if (!e->duplicateSystem(i,sysDupCloneChannels,sysDupEnd)) {
+            showError("cannot clone chip! ("+e->getLastError()+")");
+          } else {
+            MARK_MODIFIED;
+          }
         }
+        ImGui::SameLine();
+        ImGui::Button("Change##SysChange");
         if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
           DivSystem picked=systemPicker();
           if (picked!=DIV_SYSTEM_NULL) {
-            e->changeSystem(i,picked,preserveChanPos);
-            MARK_MODIFIED;
-            if (e->song.autoSystem) {
-              autoDetectSystem();
+            if (e->changeSystem(i,picked,preserveChanPos)) {
+              MARK_MODIFIED;
+              if (e->song.autoSystem) {
+                autoDetectSystem();
+              }
+              updateWindowTitle();
+            } else {
+              showError("cannot change chip! ("+e->getLastError()+")");
             }
-            updateWindowTitle();
             ImGui::CloseCurrentPopup();
           }
           ImGui::EndPopup();
         }
         ImGui::SameLine();
         ImGui::BeginDisabled(e->song.systemLen<=1);
+        pushDestColor();
         if (ImGui::Button(ICON_FA_TIMES "##SysRemove")) {
           sysToDelete=i;
           showWarning("Are you sure you want to remove this chip?",GUI_WARN_SYSTEM_DEL);
         }
+        popDestColor();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Remove");
         }

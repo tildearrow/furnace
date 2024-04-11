@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include "../dispatch.h"
 #include "../instrument.h"
 #include "sound/segapcm.h"
-#include <queue>
+#include "../../fixedQueue.h"
 
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
@@ -59,9 +59,10 @@ class DivPlatformSegaPCM: public DivDispatch {
       unsigned short addr;
       unsigned char val;
       bool addrOrVal;
+      QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    std::queue<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,1024> writes;
     segapcm_device pcm;
     int delay;
     int pcmL, pcmR, pcmCycles;
@@ -79,6 +80,8 @@ class DivPlatformSegaPCM: public DivDispatch {
     unsigned int sampleOffSegaPCM[256];
     unsigned char sampleEndSegaPCM[256];
     bool sampleLoaded[256];
+
+    DivMemoryComposition memCompo;
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
@@ -88,6 +91,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -101,12 +105,14 @@ class DivPlatformSegaPCM: public DivDispatch {
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
+    bool getLegacyAlwaysSetVolume();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const void* getSampleMem(int index=0);
     size_t getSampleMemCapacity(int index=0);
     size_t getSampleMemUsage(int index=0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSegaPCM();

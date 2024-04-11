@@ -8,6 +8,7 @@ project(furnace)
 
 if (APPLE)
   enable_language(OBJC)
+  enable_language(OBJCXX)
 endif()
 
 set(CMAKE_CXX_STANDARD 14)
@@ -15,7 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
-set(CMAKE_PROJECT_VERSION_PATCH 0)
+set(CMAKE_PROJECT_VERSION_PATCH 2)
 
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
@@ -25,8 +26,18 @@ set(SYSTEM_SDL2_DEFAULT OFF)
 include(CheckIncludeFile)
 include(TestBigEndian)
 
+execute_process(COMMAND git status RESULT_VARIABLE DONT_HAVE_GIT WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+if (NOT DONT_HAVE_GIT)
+  message(STATUS "Git is available")
+else()
+  message(WARNING "either Git is not available, or this Git repository has not been initialized.
+if you have used the \"Source code\" option in the GitHub release page, you are doing it wrong! unless you manually initialize submodules, the build is guaranteed to FAIL spectacularly!
+read the \"developer info\" section of README.md for more information.")
+endif()
+
 if (ANDROID)
   set(USE_RTMIDI_DEFAULT OFF)
+  set(WITH_PORTAUDIO_DEFAULT OFF)
   set(USE_BACKWARD_DEFAULT OFF)
   find_library(TERMUX rt)
   if (TERMUX)
@@ -34,6 +45,7 @@ if (ANDROID)
   endif()
 else()
   set(USE_RTMIDI_DEFAULT ON)
+  set(WITH_PORTAUDIO_DEFAULT ON)
   if (WIN32 OR APPLE)
     set(USE_BACKWARD_DEFAULT ON)
   else()
@@ -55,15 +67,13 @@ else()
 endif()
 
 set(WITH_RENDER_SDL_DEFAULT ON)
-if (APPLE)
-  set(WITH_RENDER_OPENGL_DEFAULT OFF)
-else()
-  set(WITH_RENDER_OPENGL_DEFAULT ON)
-endif()
+set(WITH_RENDER_OPENGL_DEFAULT ON)
 if (WIN32)
   set(WITH_RENDER_DX11_DEFAULT ON)
+  set(WITH_RENDER_DX9_DEFAULT ON)
 else()
   set(WITH_RENDER_DX11_DEFAULT OFF)
+  set(WITH_RENDER_DX9_DEFAULT OFF)
 endif()
 if (APPLE)
   set(WITH_RENDER_METAL_DEFAULT ON)
@@ -73,8 +83,14 @@ endif()
 
 if (ANDROID)
   set(USE_GLES_DEFAULT ON)
+  set(WITH_RENDER_OPENGL1_DEFAULT OFF)
 else()
   set(USE_GLES_DEFAULT OFF)
+  if (APPLE)
+    set(WITH_RENDER_OPENGL1_DEFAULT OFF)
+  else()
+    set(WITH_RENDER_OPENGL1_DEFAULT ON)
+  endif()
 endif()
 
 option(BUILD_GUI "Build the tracker (disable to build only a headless player)" ${BUILD_GUI_DEFAULT})
@@ -83,14 +99,20 @@ option(USE_SDL2 "Build with SDL2. Required to build with GUI." ${USE_SDL2_DEFAUL
 option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio files." ${USE_SNDFILE_DEFAULT})
 option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
+option(WITH_PORTAUDIO "Whether to build with PortAudio for audio output." ${WITH_PORTAUDIO_DEFAULT})
 option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." ${WITH_RENDER_SDL_DEFAULT})
 option(WITH_RENDER_OPENGL "Whether to build with the OpenGL render backend." ${WITH_RENDER_OPENGL_DEFAULT})
+option(WITH_RENDER_OPENGL1 "Whether to build with the OpenGL 1.1 render backend." ${WITH_RENDER_OPENGL1_DEFAULT})
 option(WITH_RENDER_DX11 "Whether to build with the DirectX 11 render backend." ${WITH_RENDER_DX11_DEFAULT})
+option(WITH_RENDER_DX9 "Whether to build with the DirectX 9 render backend." ${WITH_RENDER_DX9_DEFAULT})
 option(WITH_RENDER_METAL "Whether to build with the Metal render backend." ${WITH_RENDER_METAL_DEFAULT})
 option(USE_GLES "Use OpenGL ES for the OpenGL render backend." ${USE_GLES_DEFAULT})
+option(USE_FREETYPE "Use FreeType for font rendering." ON)
 option(SYSTEM_FFTW "Use a system-installed version of FFTW instead of the vendored one" OFF)
 option(SYSTEM_FMT "Use a system-installed version of fmt instead of the vendored one" OFF)
+option(SYSTEM_FREETYPE "Use a system-installed version of FreeType instead of the vendored one" OFF)
 option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead of the vendored one" OFF)
+option(SYSTEM_PORTAUDIO "Use a system-installed version of PortAudio instead of the vendored one" OFF)
 option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the vendored one" OFF)
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
@@ -99,8 +121,9 @@ option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be tre
 option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
+option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" OFF)
 
-set(DEPENDENCIES_INCLUDE_DIRS "")
+set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
 
 if (ANDROID AND NOT TERMUX)
   set(DEPENDENCIES_DEFINES "IS_MOBILE")
@@ -126,18 +149,19 @@ else()
   set(SYSTEM_SDL_MIN_VER 2.0.0)
 endif()
 
-if (WIN32)
-  # support Windows XP
-  if (SUPPORT_XP)
-    add_compile_definitions("_WIN32_WINNT=0x0501")
-  endif()
-endif()
-
-list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
+#list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
 list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/vgsound_emu-modified")
 
 find_package(Threads REQUIRED)
 list(APPEND DEPENDENCIES_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
+
+
+if (WIN32)
+  # support Windows XP
+  if (SUPPORT_XP)
+    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
+  endif()
+endif()
 
 if (SYSTEM_FFTW)
   find_package(PkgConfig REQUIRED)
@@ -184,6 +208,39 @@ else()
   message(STATUS "Using vendored fmt")
 endif()
 
+if (BUILD_GUI AND USE_FREETYPE)
+  # TODO: FIX FIX FIX FIX FIX
+  if (SYSTEM_FREETYPE)
+    if (PKG_CONFIG_FOUND)
+      pkg_check_modules(FREETYPE freetype2>=2.0.0)
+      if (FREETYPE_FOUND)
+        list(APPEND DEPENDENCIES_INCLUDE_DIRS ${FREETYPE_INCLUDE_DIRS})
+        list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${FREETYPE_CFLAGS_OTHER})
+        list(APPEND DEPENDENCIES_LIBRARIES ${FREETYPE_LIBRARIES})
+        list(APPEND DEPENDENCIES_LIBRARY_DIRS ${FREETYPE_LIBRARY_DIRS})
+        list(APPEND DEPENDENCIES_LINK_OPTIONS ${FREETYPE_LDFLAGS_OTHER})
+        list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${FREETYPE_LDFLAGS})
+      endif()
+    endif()
+    if (NOT FREETYPE_FOUND)
+      find_package(freetype REQUIRED)
+      list(APPEND DEPENDENCIES_LIBRARIES freetype::freetype)
+    endif()
+    message(STATUS "Using system-installed FreeType")
+  else()
+    set(FT_DISABLE_BROTLI ON CACHE BOOL "one" FORCE)
+    set(FT_DISABLE_BZIP2 ON CACHE BOOL "two" FORCE)
+    set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "three" FORCE)
+    set(FT_DISABLE_PNG ON CACHE BOOL "four" FORCE)
+    set(FT_DISABLE_ZLIB ON CACHE BOOL "five" FORCE)
+    add_subdirectory(extern/freetype EXCLUDE_FROM_ALL)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/freetype/include)
+    list(APPEND DEPENDENCIES_LIBRARIES freetype)
+    message(STATUS "Using vendored FreeType")
+  endif()
+  list(APPEND DEPENDENCIES_DEFINES HAVE_FREETYPE)
+endif()
+
 if (USE_SNDFILE)
   list(APPEND DEPENDENCIES_DEFINES HAVE_SNDFILE)
   if (SYSTEM_LIBSNDFILE)
@@ -208,6 +265,27 @@ if (USE_SNDFILE)
   endif()
 else()
   message(STATUS "Not using libsndfile")
+endif()
+
+if (WITH_PORTAUDIO)
+  if (SYSTEM_PORTAUDIO)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS ${PORTAUDIO_INCLUDE_DIRS})
+    list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${PORTAUDIO_CFLAGS_OTHER})
+    list(APPEND DEPENDENCIES_LIBRARIES ${PORTAUDIO_LIBRARIES})
+    list(APPEND DEPENDENCIES_LIBRARY_DIRS ${PORTAUDIO_LIBRARY_DIRS})
+    list(APPEND DEPENDENCIES_LINK_OPTIONS ${PORTAUDIO_LDFLAGS_OTHER})
+    list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${PORTAUDIO_LDFLAGS})
+    message(STATUS "Using system-installed PortAudio")
+  else()
+    set(PA_BUILD_SHARED_LIBS OFF CACHE BOOL "Build dynamic library" FORCE)
+    # don't - Furnace has its own implementation
+    set(PA_USE_JACK OFF CACHE BOOL "Enable support for JACK Audio Connection Kit" FORCE)
+    add_subdirectory(extern/portaudio EXCLUDE_FROM_ALL)
+    list(APPEND DEPENDENCIES_LIBRARIES PortAudio)
+    message(STATUS "Using vendored PortAudio")
+  endif()
 endif()
 
 if (USE_RTMIDI)
@@ -289,6 +367,18 @@ if (USE_SDL2)
     #   If you link SDL statically, you also need to define HAVE_LIBC so it builds with the C runtime that your application uses.
     #   This should probably go in a FAQ.
     set(SDL_LIBC ON CACHE BOOL "Tell SDL that we want it to use our C runtime (required for proper static linking)" FORCE)
+
+    # https://github.com/tildearrow/furnace/issues/1237
+    # enabling this will result in SDL finding the Direct3D headers, forcing _WIN32_WINNT to an undesirable value (which makes the Wine headers define GetTickCount64)
+    if (SUPPORT_XP)
+      set(SDL_RENDER_D3D OFF CACHE BOOL "Enable the Direct3D render driver" FORCE)
+    endif()
+
+    CHECK_INCLUDE_FILE(GLES/gl.h GLES_GL_FOUND)
+    if (NOT GLES_GL_FOUND AND NOT USE_GLES)
+      set(SDL_OPENGLES OFF CACHE BOOL "Enable OpenGL ES" FORCE)
+    endif()
+
     add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_DEFINES HAVE_SDL2)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
@@ -313,12 +403,6 @@ else()
   endif()
 endif()
 
-if (BUILD_GUI)
-  if (NOT WITH_RENDER_SDL AND NOT WITH_RENDER_OPENGL AND NOT WITH_RENDER_DX11 AND NOT WITH_RENDER_METAL)
-    message(FATAL_ERROR "No render backends selected!")
-  endif()
-endif()
-
 set(AUDIO_SOURCES
 src/audio/abstract.cpp
 src/audio/midi.cpp
@@ -331,17 +415,27 @@ endif()
 if (WITH_JACK)
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(JACK REQUIRED jack)
+  list(APPEND AUDIO_SOURCES extern/weakjack/weak_libjack.c)
   list(APPEND AUDIO_SOURCES src/audio/jack.cpp)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS ${JACK_INCLUDE_DIRS})
   list(APPEND DEPENDENCIES_DEFINES HAVE_JACK)
-  list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${JACK_CFLAGS_OTHER})
-  list(APPEND DEPENDENCIES_LIBRARIES ${JACK_LIBRARIES})
-  list(APPEND DEPENDENCIES_LIBRARY_DIRS ${JACK_LIBRARY_DIRS})
-  list(APPEND DEPENDENCIES_LINK_OPTIONS ${JACK_LDFLAGS_OTHER})
-  list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${JACK_LDFLAGS})
+  list(APPEND DEPENDENCIES_DEFINES USE_WEAK_JACK)
+  #list(APPEND DEPENDENCIES_COMPILE_OPTIONS ${JACK_CFLAGS_OTHER})
+  #list(APPEND DEPENDENCIES_LIBRARIES ${JACK_LIBRARIES})
+  #list(APPEND DEPENDENCIES_LIBRARY_DIRS ${JACK_LIBRARY_DIRS})
+  #list(APPEND DEPENDENCIES_LINK_OPTIONS ${JACK_LDFLAGS_OTHER})
+  #list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${JACK_LDFLAGS})
   message(STATUS "Building with JACK support")
 else()
   message(STATUS "Building without JACK support")
+endif()
+
+if (WITH_PORTAUDIO)
+  list(APPEND AUDIO_SOURCES src/audio/pa.cpp)
+  message(STATUS "Building with PortAudio")
+  list(APPEND DEPENDENCIES_DEFINES HAVE_PA)
+else()
+  message(STATUS "Building without PortAudio")
 endif()
 
 if (USE_RTMIDI)
@@ -398,11 +492,24 @@ extern/adpcm/yma_codec.c
 extern/adpcm/ymb_codec.c
 extern/adpcm/ymz_codec.c
 
+extern/adpcm-xq-s/adpcm-lib.c
+
 extern/opn/ym3438.c
 extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+extern/YM3812-LLE/fmopl2.c
+extern/YMF262-LLE/fmopl3.c
+extern/YMF276-LLE/fmopn2.c
+extern/ESFMu/esfm.c
+extern/ESFMu/esfm_registers.c
+extern/emu2413/emu2413.c
+
+extern/pwrnoise/pwrnoise.c
+
+src/pch.cpp
+
 src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
@@ -417,6 +524,8 @@ src/engine/platform/sound/nes/mmc5.c
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
 
+src/engine/platform/sound/nes_nsfplay/5e01_apu.cpp
+src/engine/platform/sound/nes_nsfplay/5e01_dmc.cpp
 src/engine/platform/sound/nes_nsfplay/nes_apu.cpp
 src/engine/platform/sound/nes_nsfplay/nes_dmc.cpp
 src/engine/platform/sound/nes_nsfplay/nes_fds.cpp
@@ -461,13 +570,17 @@ src/engine/platform/sound/c64_fp/WaveformCalculator.cpp
 src/engine/platform/sound/c64_fp/WaveformGenerator.cpp
 src/engine/platform/sound/c64_fp/resample/SincResampler.cpp
 
+src/engine/platform/sound/c64_d/dsid.c
+
 src/engine/platform/sound/tia/AudioChannel.cpp
 src/engine/platform/sound/tia/Audio.cpp
 
 src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
+src/engine/platform/sound/ymfm/ymfm_opl.cpp
 src/engine/platform/sound/ymfm/ymfm_opm.cpp
 src/engine/platform/sound/ymfm/ymfm_opn.cpp
 src/engine/platform/sound/ymfm/ymfm_opz.cpp
+src/engine/platform/sound/ymfm/ymfm_pcm.cpp
 src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 
 src/engine/platform/sound/lynx/Mikey.cpp
@@ -502,32 +615,53 @@ src/engine/platform/sound/sm8521.c
 
 src/engine/platform/sound/d65modified.c
 
+src/engine/platform/sound/ted-sound.c
+
+src/engine/platform/sound/c140_c219.c
+
+src/engine/platform/sound/dave/dave.cpp
+
+src/engine/platform/sound/nds.cpp
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
+
+src/engine/fileOps/fileOpsCommon.cpp
+src/engine/fileOps/dmf.cpp
+src/engine/fileOps/fc.cpp
+src/engine/fileOps/ftm.cpp
+src/engine/fileOps/fur.cpp
+src/engine/fileOps/mod.cpp
+src/engine/fileOps/s3m.cpp
+src/engine/fileOps/text.cpp
 
 src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
+src/engine/workPool.cpp
 src/engine/cmdStream.cpp
+src/engine/cmdStreamOps.cpp
 src/engine/config.cpp
 src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
 src/engine/export.cpp
-src/engine/fileOps.cpp
 src/engine/fileOpsIns.cpp
+src/engine/fileOpsSample.cpp
 src/engine/filter.cpp
 src/engine/instrument.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp
+src/engine/pitchTable.cpp
 src/engine/playback.cpp
 src/engine/sample.cpp
 src/engine/song.cpp
 src/engine/sysDef.cpp
 src/engine/wavetable.cpp
 src/engine/waveSynth.cpp
+src/engine/wavOps.cpp
 src/engine/vgmOps.cpp
 src/engine/zsmOps.cpp
 src/engine/zsm.cpp
@@ -592,6 +726,15 @@ src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
 src/engine/platform/pv1000.cpp
+src/engine/platform/k053260.cpp
+src/engine/platform/ted.cpp
+src/engine/platform/c140.cpp
+src/engine/platform/esfm.cpp
+src/engine/platform/powernoise.cpp
+src/engine/platform/dave.cpp
+src/engine/platform/gbadma.cpp
+src/engine/platform/gbaminmod.cpp
+src/engine/platform/nds.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
@@ -612,6 +755,13 @@ if (WIN32)
   list(APPEND ENGINE_SOURCES res/furnace.rc)
 endif()
 
+if (APPLE)
+  if (CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 10.12)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/macports-legacy-support/include)
+    list(APPEND ENGINE_SOURCES extern/macports-legacy-support/src/time.c)
+  endif()
+endif()
+
 set(CLI_SOURCES
 src/cli/cli.cpp
 )
@@ -622,6 +772,7 @@ extern/imgui_patched/imgui_draw.cpp
 extern/imgui_patched/imgui_tables.cpp
 extern/imgui_patched/imgui_widgets.cpp
 extern/imgui_patched/backends/imgui_impl_sdl2.cpp
+extern/imgui_software_renderer/imgui_sw.cpp
 extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
@@ -629,6 +780,7 @@ src/gui/plot_nolerp.cpp
 
 src/gui/render.cpp
 src/gui/render/abstract.cpp
+src/gui/render/renderSoftware.cpp
 
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
@@ -639,7 +791,9 @@ src/gui/font_proggyClean.cpp
 src/gui/font_ptMono.cpp
 src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
+src/gui/font_furicon.cpp
 src/gui/fonts.cpp
+src/gui/fontzlib.cpp
 
 src/gui/image_icon.cpp
 src/gui/image_talogo.cpp
@@ -663,6 +817,7 @@ src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
 src/gui/compatFlags.cpp
+src/gui/csPlayer.cpp
 src/gui/cursor.cpp
 src/gui/dataList.cpp
 src/gui/debugWindow.cpp
@@ -670,6 +825,7 @@ src/gui/doAction.cpp
 src/gui/editing.cpp
 src/gui/editControls.cpp
 src/gui/effectList.cpp
+src/gui/exportOptions.cpp
 src/gui/findReplace.cpp
 src/gui/fmPreview.cpp
 src/gui/gradient.cpp
@@ -677,9 +833,11 @@ src/gui/grooves.cpp
 src/gui/insEdit.cpp
 src/gui/intro.cpp
 src/gui/log.cpp
+src/gui/memory.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
 src/gui/newSong.cpp
+src/gui/commandPalette.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp
 src/gui/patManager.cpp
@@ -699,17 +857,23 @@ src/gui/subSongs.cpp
 src/gui/sysConf.cpp
 src/gui/sysEx.cpp
 src/gui/sysManager.cpp
+src/gui/sysPartNumber.cpp
 src/gui/sysPicker.cpp
 src/gui/tutorial.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp
+src/gui/xyOsc.cpp
 src/gui/gui.cpp
 )
 
 if (WIN32 AND NOT SUPPORT_XP)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_win.cpp)
+endif()
+
+if (USE_FREETYPE)
+  list(APPEND GUI_SOURCES extern/imgui_patched/misc/freetype/imgui_freetype.cpp)
 endif()
 
 if (APPLE)
@@ -735,12 +899,32 @@ if (WITH_RENDER_OPENGL)
   endif()
   if (WIN32)
     list(APPEND DEPENDENCIES_LIBRARIES opengl32)
+  elseif(APPLE)
+    list(APPEND DEPENDENCIES_LIBRARIES "-framework OpenGL")
   elseif(USE_GLES)
     list(APPEND DEPENDENCIES_LIBRARIES GLESv2)
   else()
     list(APPEND DEPENDENCIES_LIBRARIES GL)
   endif()
-  message(STATUS "UI render backend: OpenGL")
+  if (USE_GLES)
+    message(STATUS "UI render backend: OpenGL ES 2.0")
+  else()
+    message(STATUS "UI render backend: OpenGL 3.0/2.0")
+  endif()
+endif()
+
+if (WITH_RENDER_OPENGL1)
+  list(APPEND GUI_SOURCES src/gui/render/renderGL1.cpp)
+  list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_opengl2.cpp)
+  list(APPEND DEPENDENCIES_DEFINES HAVE_RENDER_GL1)
+  if (NOT WITH_RENDER_OPENGL)
+    if (WIN32)
+      list(APPEND DEPENDENCIES_LIBRARIES opengl32)
+    else()
+      list(APPEND DEPENDENCIES_LIBRARIES GL)
+    endif()
+  endif()
+  message(STATUS "UI render backend: OpenGL 1.1")
 endif()
 
 if (WITH_RENDER_DX11)
@@ -751,7 +935,7 @@ if (WITH_RENDER_DX11)
       list(APPEND GUI_SOURCES src/gui/render/renderDX11.cpp)
       list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_dx11.cpp)
       list(APPEND DEPENDENCIES_DEFINES HAVE_RENDER_DX11)
-      list(APPEND DEPENDENCIES_LIBRARIES d3d11)
+      list(APPEND DEPENDENCIES_LIBRARIES d3d11 dxgi)
       message(STATUS "UI render backend: DirectX 11")
     endif()
   else()
@@ -759,13 +943,25 @@ if (WITH_RENDER_DX11)
   endif()
 endif()
 
+#if (WITH_RENDER_DX9)
+#  if (WIN32)
+#    list(APPEND GUI_SOURCES src/gui/render/renderDX9.cpp)
+#    list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_dx9.cpp)
+#    list(APPEND DEPENDENCIES_DEFINES HAVE_RENDER_DX9)
+#    list(APPEND DEPENDENCIES_LIBRARIES d3d9)
+#    message(STATUS "UI render backend: DirectX 9")
+#  else()
+#    message(FATAL_ERROR "DirectX 9 render backend only for Windows!")
+#  endif()
+#endif()
+
 if (WITH_RENDER_METAL)
   if (APPLE)
     list(APPEND GUI_SOURCES src/gui/render/renderMetal.cpp)
     list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_metal.cpp)
     list(APPEND DEPENDENCIES_DEFINES HAVE_RENDER_METAL)
-    # TODO: what is being used?
-    #list(APPEND DEPENDENCIES_LIBRARIES d3d11)
+    list(APPEND DEPENDENCIES_LIBRARIES "-framework Metal")
+    list(APPEND DEPENDENCIES_LIBRARIES "-framework MetalKit")
     message(STATUS "UI render backend: Metal")
   else()
     message(FATAL_ERROR "Metal render backend only for Apple operating systems!")
@@ -806,8 +1002,19 @@ set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} ${CLI_SOURCES} src/main.cpp)
 
 if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)
-  if (WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
+  if (WIN32)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+      include(CheckCXXCompilerFlag)
+      check_cxx_compiler_flag(-gcodeview GCC_CODEVIEW)
+      if (GCC_CODEVIEW)
+        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--pdb= ")
+        add_compile_options(-gcodeview)
+        message(STATUS "Enabling -gcodeview flag for backward-cpp.")
+      else()
+        message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
+      endif()
+      list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
+    endif()
   endif()
   find_library(EXECINFO_IS_LIBRARY execinfo)
   if (EXECINFO_IS_LIBRARY)
@@ -822,9 +1029,8 @@ if (BUILD_GUI)
   list(APPEND USED_SOURCES ${GUI_SOURCES})
   list(APPEND DEPENDENCIES_INCLUDE_DIRS
     extern/imgui_patched
-    extern/imgui_conf
     extern/imgui_patched/backends
-    extern/IconFontCppHeaders
+    extern/imgui_software_renderer
     extern/igfd
   )
   if (WIN32 OR APPLE)
@@ -879,10 +1085,19 @@ endif()
 string(REPLACE ";" " " WARNING_FLAGS_STRING "${WARNING_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS_STRING}")
 if (WARNINGS_ARE_ERRORS)
-  message(WARNING
+  message(STATUS
     "Treating all warnings in furnace's C++ code as errors! "
     "Please report any errors you encounter on the bug tracker."
   )
+endif()
+
+if (NOT ANDROID OR TERMUX)
+  if (NOT WIN32 AND NOT APPLE)
+    if (NOT DONT_HAVE_GIT)
+      add_custom_command(OUTPUT furnace.appdata.xml COMMAND res/make-appdata.sh ARGS ${CMAKE_SOURCE_DIR}/res/furnace.appdata.xml.in ${CMAKE_BINARY_DIR}/furnace.appdata.xml DEPENDS res/furnace.appdata.xml.in WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+      list(APPEND USED_SOURCES furnace.appdata.xml)
+    endif()
+  endif()
 endif()
 
 if(ANDROID AND NOT TERMUX)
@@ -894,7 +1109,6 @@ else()
 endif()
 
 target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
-target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES} IMGUI_USER_CONFIG="imconfig_fur.h")
 target_compile_options(furnace PRIVATE ${DEPENDENCIES_COMPILE_OPTIONS})
 target_link_libraries(furnace PRIVATE ${DEPENDENCIES_LIBRARIES})
 if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYSTEM_SDL2 OR SYSTEM_RTMIDI OR WITH_JACK))
@@ -910,23 +1124,47 @@ if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYST
   endif()
 endif()
 
+# why 3.16..... why not 3.0?
+if (NOT "${CMAKE_VERSION}" VERSION_LESS "3.16")
+  if (BUILD_GUI)
+  target_precompile_headers(furnace PUBLIC
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui.h>
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui_internal.h>
+  )
+  else()
+    target_precompile_headers(furnace PUBLIC
+      $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
+    )
+  endif()
+endif()
+
 if (NOT ANDROID OR TERMUX)
   if (NOT WIN32 AND NOT APPLE)
     include(GNUInstallDirs)
     install(TARGETS furnace RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
-    install(FILES res/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    if (NOT DONT_HAVE_GIT)
+      install(FILES ${CMAKE_BINARY_DIR}/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
+    endif()
     install(DIRECTORY doc DESTINATION ${CMAKE_INSTALL_DOCDIR})
     install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR}/other)
     install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)
-    if (WITH_DEMOS)
-      install(DIRECTORY demos DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
-    endif()
-    if (WITH_INSTRUMENTS)
-      install(DIRECTORY instruments DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
-    endif()
-    if (WITH_WAVETABLES)
-      install(DIRECTORY wavetables DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
+    if (WITH_DEMOS OR WITH_INSTRUMENTS OR WITH_WAVETABLES)
+      set(FURNACE_DATADIR ${CMAKE_INSTALL_FULL_DATADIR}/furnace)
+      if (WITH_DEMOS)
+        install(DIRECTORY demos DESTINATION ${FURNACE_DATADIR})
+      endif()
+      if (WITH_INSTRUMENTS)
+        install(DIRECTORY instruments DESTINATION ${FURNACE_DATADIR})
+      endif()
+      if (WITH_WAVETABLES)
+        install(DIRECTORY wavetables DESTINATION ${FURNACE_DATADIR})
+      endif()
+      list(APPEND DEPENDENCIES_DEFINES FURNACE_DATADIR="${FURNACE_DATADIR}")
+      if (SHOW_OPEN_ASSETS_MENU_ENTRY)
+        list(APPEND DEPENDENCIES_DEFINES SHOW_OPEN_ASSETS_MENU_ENTRY)
+      endif()
     endif()
     foreach(num 16 32 64 128 256 512)
       set(res ${num}x${num})
@@ -951,7 +1189,10 @@ if (NOT ANDROID OR TERMUX)
     set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist)
     set(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/res/icon.icns)
     set(CPACK_BUNDLE_STARTUP_COMMAND "furnace")
+    set(CPACK_BUNDLE_APPLE_CERT_APP "-")
   endif()
   
   include(CPack)
 endif()
+
+target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES})

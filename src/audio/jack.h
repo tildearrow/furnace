@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,7 @@
  */
 
 #include "taAudio.h"
-#include <jack/weakjack.h>
-#include <jack/jack.h>
+#include "../../extern/weakjack/weak_libjack.h"
 
 class TAAudioJACK: public TAAudio {
   jack_client_t* ac;

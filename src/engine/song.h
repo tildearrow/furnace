@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #ifndef _SONG_H
 #define _SONG_H
 #include <stdio.h>
-#include <vector>
+#include "../pch.h"
 
 #include "defines.h"
 #include "../ta-utils.h"
@@ -127,7 +127,18 @@ enum DivSystem {
   DIV_SYSTEM_YM2203_CSM,
   DIV_SYSTEM_YM2608_CSM,
   DIV_SYSTEM_SM8521,
-  DIV_SYSTEM_PV1000
+  DIV_SYSTEM_PV1000,
+  DIV_SYSTEM_K053260,
+  DIV_SYSTEM_TED,
+  DIV_SYSTEM_C140,
+  DIV_SYSTEM_C219,
+  DIV_SYSTEM_ESFM,
+  DIV_SYSTEM_POWERNOISE,
+  DIV_SYSTEM_DAVE,
+  DIV_SYSTEM_NDS,
+  DIV_SYSTEM_GBA_DMA,
+  DIV_SYSTEM_GBA_MINMOD,
+  DIV_SYSTEM_5E01,
 };
 
 enum DivEffectType: unsigned short {
@@ -160,6 +171,7 @@ struct DivSubSong {
   DivChannelData pat[DIV_MAX_CHANS];
 
   bool chanShow[DIV_MAX_CHANS];
+  bool chanShowChanOsc[DIV_MAX_CHANS];
   unsigned char chanCollapse[DIV_MAX_CHANS];
   String chanName[DIV_MAX_CHANS];
   String chanShortName[DIV_MAX_CHANS];
@@ -167,6 +179,8 @@ struct DivSubSong {
   void clearData();
   void optimizePatterns();
   void rearrangePatterns();
+  void sortOrders();
+  void makePatUnique();
 
   DivSubSong(): 
     hilightA(4),
@@ -180,6 +194,7 @@ struct DivSubSong {
     ordersLen(1) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       chanShow[i]=true;
+      chanShowChanOsc[i]=true;
       chanCollapse[i]=0;
     }
   }
@@ -211,67 +226,6 @@ struct DivEffectStorage {
 };
 
 struct DivSong {
-  // version number used for saving the song.
-  // Furnace will save using the latest possible version,
-  // known version numbers:
-  // - 26: v1.1.3
-  //   - changes height of FDS wave to 6-bit (it was 4-bit before)
-  // - 25: v1.1
-  //   - adds pattern names (in a rather odd way)
-  //   - introduces SMS+OPLL system
-  // - 24: v0.12/0.13/1.0
-  //   - current format version
-  //   - changes pattern length from char to int, probably to allow for size 256
-  // - 23: ???
-  //   - what happened here?
-  // - 20: v11.1 (?)
-  //   - E5xx effect range is now ±1 semitone
-  // - 19: v11
-  //   - introduces Arcade system
-  //   - changes to the FM instrument format due to YMU759 being dropped
-  // - 18: v10
-  //   - radically changes STD instrument for Game Boy
-  // - 17: v9
-  //   - changes C64 volIsCutoff flag from int to char for unknown reasons
-  // - 16: v8 (?)
-  //   - introduces C64 system
-  // - 15: v7 (?)
-  // - 14: v6 (?)
-  //   - introduces NES system
-  //   - changes macro and wave values from char to int
-  // - 13: v5.1
-  //   - introduces PC Engine system in later version (how?)
-  //   - stores highlight in file
-  // - 12: v5 (?)
-  //   - introduces Game Boy system
-  //   - introduces wavetables
-  // - 11: ???
-  //   - introduces Sega Master System
-  //   - custom Hz support
-  //   - instrument type (FM/STD) present
-  //   - prior to this version the instrument type depended on the system
-  // - 10: ???
-  //   - introduces multiple effect columns
-  // - 9: v3.9
-  //   - introduces Genesis system
-  //   - introduces system number
-  //   - patterns now stored in current known format
-  // - 8: ???
-  //   - only used in the Medivo YMU cover
-  // - 7: ???
-  //   - only present in a later version of First.dmf
-  //   - pattern format changes: empty field is 0xFF instead of 0x80
-  //   - instrument now stored in pattern
-  // - 5: BETA 3
-  //   - adds arpeggio tick
-  // - 4: BETA 2
-  //   - possibly adds instrument number (stored in channel)?
-  //   - cannot confirm as I don't have any version 4 modules
-  // - 3: BETA 1
-  //   - possibly the first version that could save
-  //   - basic format, no system number, 16 instruments, one speed, YMU759-only
-  //   - patterns were stored in a different format (chars instead of shorts) and no instrument
-  //   - if somebody manages to find a version 2 or even 1 module, please tell me as it will be worth more than a luxury vehicle
   unsigned short version;
   bool isDMF;
 
@@ -372,6 +326,11 @@ struct DivSong {
   bool patchbayAuto;
   bool brokenPortaLegato;
   bool brokenFMOff;
+  bool preNoteNoEffect;
+  bool oldDPCM;
+  bool resetArpPhaseOnNewNote;
+  bool ceilVolumeScaling;
+  bool oldAlwaysSetVolume;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -387,7 +346,7 @@ struct DivSong {
 
   std::vector<DivEffectStorage> effects;
 
-  DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound;
+  DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound, nullInsESFM;
   DivWavetable nullWave;
   DivSample nullSample;
 
@@ -490,7 +449,12 @@ struct DivSong {
     oldArpStrategy(false),
     patchbayAuto(true),
     brokenPortaLegato(false),
-    brokenFMOff(false) {
+    brokenFMOff(false),
+    preNoteNoEffect(false),
+    oldDPCM(false),
+    resetArpPhaseOnNewNote(false),
+    ceilVolumeScaling(false),
+    oldAlwaysSetVolume(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;
@@ -593,6 +557,49 @@ struct DivSong {
     nullInsOPLDrums.fm.op[3].mult=2;
 
     nullInsQSound.std.panLMacro.mode=true;
+
+    // ESFM default instrument - port of OPN default instrument
+    nullInsESFM.esfm.noise=0;
+    nullInsESFM.esfm.op[0].outLvl=0;
+    nullInsESFM.esfm.op[0].modIn=4;
+    nullInsESFM.esfm.op[0].dt=2;
+    nullInsESFM.fm.op[0].tl=42;
+    nullInsESFM.fm.op[0].ar=15;
+    nullInsESFM.fm.op[0].dr=3;
+    nullInsESFM.fm.op[0].sl=15;
+    nullInsESFM.fm.op[0].rr=3;
+    nullInsESFM.fm.op[0].mult=5;
+
+    nullInsESFM.esfm.op[1].outLvl=0;
+    nullInsESFM.esfm.op[1].modIn=7;
+    nullInsESFM.esfm.op[1].dt=-3;
+    nullInsESFM.fm.op[1].tl=18;
+    nullInsESFM.fm.op[1].ar=15;
+    nullInsESFM.fm.op[1].dr=3;
+    nullInsESFM.fm.op[1].sl=15;
+    nullInsESFM.fm.op[1].rr=4;
+    nullInsESFM.fm.op[1].mult=1;
+
+    nullInsESFM.esfm.op[2].outLvl=0;
+    nullInsESFM.esfm.op[2].modIn=7;
+    nullInsESFM.esfm.op[2].dt=2;
+    nullInsESFM.fm.op[2].tl=48;
+    nullInsESFM.fm.op[2].ar=15;
+    nullInsESFM.fm.op[2].dr=2;
+    nullInsESFM.fm.op[2].sl=11;
+    nullInsESFM.fm.op[2].rr=1;
+    nullInsESFM.fm.op[2].mult=1;
+    nullInsESFM.fm.op[2].sus=1;
+
+    nullInsESFM.esfm.op[3].outLvl=7;
+    nullInsESFM.esfm.op[3].modIn=7;
+    nullInsESFM.esfm.op[3].dt=-3;
+    nullInsESFM.fm.op[3].tl=0;
+    nullInsESFM.fm.op[3].ar=15;
+    nullInsESFM.fm.op[3].dr=3;
+    nullInsESFM.fm.op[3].sl=15;
+    nullInsESFM.fm.op[3].rr=9;
+    nullInsESFM.fm.op[3].mult=1;
   }
 };
 

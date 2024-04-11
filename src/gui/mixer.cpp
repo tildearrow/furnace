@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,7 +105,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
   bool hovered=false;
   bool active=false;
   if (visible) {
-    hovered=ImGui::ItemHoverable(rect,ImGui::GetID(portID.c_str()));
+    hovered=ImGui::ItemHoverable(rect,ImGui::GetID(portID.c_str()),0);
     active=(hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left));
 
     if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
@@ -244,6 +244,7 @@ void FurnaceGUI::drawMixer() {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
             ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
             ImGui::TableNextColumn();
             if (ImGui::Checkbox("Invert",&doInvert)) {
@@ -295,7 +296,7 @@ void FurnaceGUI::drawMixer() {
         }
         ImGui::EndTabItem();
       }
-      if (!basicMode) if (ImGui::BeginTabItem("Patchbay")) {
+      if (ImGui::BeginTabItem("Patchbay")) {
         std::map<unsigned int,ImVec2> portPos;
 
         if (ImGui::BeginTable("PatchbayOptions",3)) {
@@ -337,9 +338,11 @@ void FurnaceGUI::drawMixer() {
               if (selectedSubPort>=0) {
                 portDragActive=true;
                 ImGui::InhibitInertialScroll();
-                try {
-                  subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
-                } catch (std::out_of_range& e) {
+
+                auto subPortI=portPos.find((selectedPortSet<<4)|selectedSubPort);
+                if (subPortI!=portPos.cend()) {
+                  subPortPos=subPortI->second;
+                } else {
                   portDragActive=false;
                 }
               }
@@ -353,9 +356,10 @@ void FurnaceGUI::drawMixer() {
               if (selectedSubPort>=0) {
                 portDragActive=true;
                 ImGui::InhibitInertialScroll();
-                try {
-                  subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
-                } catch (std::out_of_range& e) {
+                auto subPortI=portPos.find((selectedPortSet<<4)|selectedSubPort);
+                if (subPortI!=portPos.cend()) {
+                  subPortPos=subPortI->second;
+                } else {
                   portDragActive=false;
                 }
               }
@@ -365,9 +369,10 @@ void FurnaceGUI::drawMixer() {
               if (selectedSubPort>=0) {
                 portDragActive=true;
                 ImGui::InhibitInertialScroll();
-                try {
-                  subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
-                } catch (std::out_of_range& e) {
+                auto subPortI=portPos.find((selectedPortSet<<4)|selectedSubPort);
+                if (subPortI!=portPos.cend()) {
+                  subPortPos=subPortI->second;
+                } else {
                   portDragActive=false;
                 }
               }
@@ -380,9 +385,10 @@ void FurnaceGUI::drawMixer() {
             if (selectedSubPort>=0) {
               portDragActive=true;
               ImGui::InhibitInertialScroll();
-              try {
-                subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
-              } catch (std::out_of_range& e) {
+              auto subPortI=portPos.find((selectedPortSet<<4)|selectedSubPort);
+              if (subPortI!=portPos.cend()) {
+                subPortPos=subPortI->second;
+              } else {
                 portDragActive=false;
               }
             }
@@ -415,22 +421,24 @@ void FurnaceGUI::drawMixer() {
           // draw connections
           for (unsigned int i: e->song.patchbay) {
             if ((i>>20)==selectedPortSet) continue;
-            try {
-              ImVec2 portSrc=portPos.at(i>>16);
-              ImVec2 portDest=portPos.at(0x10000|(i&0xffff));
+            auto portSrcI=portPos.find(i>>16);
+            auto portDestI=portPos.find(0x10000|(i&0xffff));
+            if (portSrcI!=portPos.cend() && portDestI!=portPos.cend()) {
+              ImVec2 portSrc=portSrcI->second;
+              ImVec2 portDest=portDestI->second;
               dl->AddLine(portSrc,portDest,ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION_BG]),2.0f*dpiScale);
-            } catch (std::out_of_range& e) {
             }
           }
 
           // foreground
           for (unsigned int i: e->song.patchbay) {
             if ((i>>20)!=selectedPortSet) continue;
-            try {
-              ImVec2 portSrc=portPos.at(i>>16);
-              ImVec2 portDest=portPos.at(0x10000|(i&0xffff));
+            auto portSrcI=portPos.find(i>>16);
+            auto portDestI=portPos.find(0x10000|(i&0xffff));
+            if (portSrcI!=portPos.cend() && portDestI!=portPos.cend()) {
+              ImVec2 portSrc=portSrcI->second;
+              ImVec2 portDest=portDestI->second;
               dl->AddLine(portSrc,portDest,ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION]),2.0f*dpiScale);
-            } catch (std::out_of_range& e) {
             }
           }
         }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #define _PLATFORM_VB_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 #include "../waveSynth.h"
 #include "sound/vsu.h"
 
@@ -44,11 +44,12 @@ class DivPlatformVB: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
   struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
+    unsigned short addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,2048> writes;
   unsigned char lastPan;
 
   int cycles, curChan, delay;
@@ -56,10 +57,13 @@ class DivPlatformVB: public DivDispatch {
   int tempR;
   unsigned char modulation;
   bool modType;
+  bool romMode;
   signed char modTable[32];
+  int coreQuality;
   VSU* vb;
   unsigned char regPool[0x600];
   void updateWave(int ch);
+  void updateROMWaves();
   void writeEnv(int ch, bool upperByteToo=false);
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -68,6 +72,7 @@ class DivPlatformVB: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -85,6 +90,7 @@ class DivPlatformVB: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformVB();

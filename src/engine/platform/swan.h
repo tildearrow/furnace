@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include "../dispatch.h"
 #include "../waveSynth.h"
 #include "sound/swan.h"
-#include <queue>
+#include "../../fixedQueue.h"
 
 class DivPlatformSwan: public DivDispatch {
   struct Channel: public SharedChannel<int> {
@@ -46,12 +46,14 @@ class DivPlatformSwan: public DivDispatch {
 
   unsigned char regPool[0x80];
   struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
-  std::queue<DivRegWrite> postDACWrites;
+  FixedQueue<QueuedWrite,256> writes;
+  FixedQueue<DivRegWrite,2048> postDACWrites;
+  int coreQuality;
   WSwan* ws;
   void updateWave(int ch);
   friend void putDispatchChip(void*,int);
@@ -61,6 +63,8 @@ class DivPlatformSwan: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
+    DivChannelModeHints getModeHints(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -68,12 +72,14 @@ class DivPlatformSwan: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSwan();

@@ -4,6 +4,10 @@
 
 it has 16-level stereo panning, up to 16-bit PCM and up to 16MB of external PCM data.
 
-# effects
+## effects
 
 none so far.
+
+## info
+
+this chip uses the [YMZ280B](../4-instrument/ymz280b.md) instrument editor.

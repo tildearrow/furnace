@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #define _AMIGA_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 #include "../waveSynth.h"
 
 class DivPlatformAmiga: public DivDispatch {
@@ -60,12 +60,14 @@ class DivPlatformAmiga: public DivDispatch {
   bool amigaModel;
   bool filterOn;
   bool updateADKCon;
+  short delay;
 
   struct Amiga {
     // register state
     bool audInt[4]; // interrupt on
     bool audIr[4]; // interrupt request
     bool audEn[4]; // audio DMA on
+    bool mustDMA[4]; // audio DMA must run
     bool useP[4]; // period modulation
     bool useV[4]; // volume modulation
 
@@ -92,6 +94,8 @@ class DivPlatformAmiga: public DivDispatch {
     unsigned short hPos; // horizontal position of beam
     unsigned char state[4]; // current channel state
 
+    void write(unsigned short addr, unsigned short val);
+
     Amiga() {
       memset(this,0,sizeof(*this));
     }
@@ -109,10 +113,20 @@ class DivPlatformAmiga: public DivDispatch {
 
   unsigned short regPool[256];
 
+  DivMemoryComposition memCompo;
+
   unsigned char* sampleMem;
   size_t sampleMemLen;
 
   int sep1, sep2;
+
+  struct QueuedWrite {
+    unsigned short addr;
+    unsigned short val;
+    QueuedWrite(): addr(0), val(9) {}
+    QueuedWrite(unsigned short a, unsigned short v): addr(a), val(v) {}
+  };
+  FixedQueue<QueuedWrite,512> writes;
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -150,6 +164,7 @@ class DivPlatformAmiga: public DivDispatch {
     size_t getSampleMemCapacity(int index=0);
     size_t getSampleMemUsage(int index=0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
 };

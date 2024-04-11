@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #include "../engine.h"
 #include "../../ta-log.h"
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 1
 
@@ -321,6 +321,7 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
       chan[c.chan].ctlChanged=true;
+      chan[c.chan].freqChanged=true; //round freq for specific waves
       break;
     case DIV_CMD_STD_NOISE_MODE:
       audctl=c.value&0xff;
@@ -374,8 +375,8 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -404,6 +405,24 @@ void* DivPlatformPOKEY::getChanState(int ch) {
 
 DivMacroInt* DivPlatformPOKEY::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+DivChannelPair DivPlatformPOKEY::getPaired(int ch) {
+  switch (ch) {
+    case 0:
+      if (audctl&4) return DivChannelPair("filter",2);
+      break;
+    case 1:
+      if (audctl&16) return DivChannelPair("16-bit",0);
+      break;
+    case 2:
+      if (audctl&8) return DivChannelPair("16-bit",3);
+      break;
+    case 3:
+      if (audctl&2) return DivChannelPair("filter",1);
+      break;
+  }
+  return DivChannelPair();
 }
 
 DivDispatchOscBuffer* DivPlatformPOKEY::getOscBuffer(int ch) {

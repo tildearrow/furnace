@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,13 +29,13 @@ void FurnaceGUI::drawClock() {
   }
   if (!clockOpen) return;
   if (ImGui::Begin("Clock",&clockOpen,globalWinFlags)) {
-    int row=e->getRow();
+    int row=oldRow;
     int elapsedBars=e->getElapsedBars();
     int elapsedBeats=e->getElapsedBeats();
     bool playing=e->isPlaying();
     if (clockShowRow) {
       ImGui::PushFont(bigFont);
-      ImGui::Text("%.3d:%.3d",e->getOrder(),row);
+      ImGui::Text("%.3d:%.3d",playOrder,row);
       ImGui::PopFont();
     }
     if (clockShowBeat) {

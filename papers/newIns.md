@@ -117,6 +117,15 @@ the following instrument types are available:
 - 47: Pokémon Mini/QuadTone
 - 48: SM8521
 - 49: PV-1000
+- 50: K053260
+- 52: TED
+- 53: C140
+- 54: C219
+- 55: ESFM
+- 56: PowerNoise (noise)
+- 57: PowerNoise (slope)
+- 58: Dave
+- 59: NDS
 
 the following feature codes are recognized:
 
@@ -141,6 +150,9 @@ the following feature codes are recognized:
 - `SU`: Sound Unit ins data
 - `ES`: ES5506 ins data
 - `X1`: X1-010 ins data
+- `NE`: NES DPCM sample map data
+- `EF`: ESFM ins data
+- `PN`: PowerNoise ins data
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there sample/wave lists.
@@ -247,6 +259,7 @@ size | description
      |   - 1: 8-bit signed
      |   - 2: 16-bit signed
      |   - 3: 32-bit signed
+     | - bit 3: instant release (>=182)
      | - bit 1-2: type
      |   - 0: normal
      |   - 1: ADSR
@@ -289,7 +302,9 @@ size | description
   1  | flags 1
      | - bit 7: dutyIsAbs
      | - bit 6: initFilter
-     | - bit 5: volIsCutoff
+     | - bit 5: volIsCutoff (<187)
+     | - from version 187 onwards, volume and cutoff macros are separate.
+     | - if this is on and the version is less than 187, move the volume macro into the ALG one.
      | - bit 4: toFilter
      | - bit 3: noise on
      | - bit 2: pulse on
@@ -316,6 +331,24 @@ size | description
      | - bit 0-10: cutoff
 ```
 
+## C64 compatibility note (>=187)
+
+in Furnace dev187 the volume and cutoff macros have been separated, as noted above.
+however, there are two other changes as well: **inverted relative (non-absolute) cutoff macro**; and a new, improved Special macro.
+
+if version is less than 187, you must convert the Special macro:
+1. do not continue if ex4 is not a Sequence type macro!
+2. move bit 0 of ex4 macro data into bit 3.
+3. set bit 0 on all steps of ex4 macro to 1.
+4. if ex3 is not a Sequence type macro, stop here.
+5. if ex3 macro length is 0, stop here.
+6. merge the ex3 macro (former Special) into ex4 (former Test).
+  - use the largest size (between ex3 and ex4).
+  - if the ex3 macro is shorter than the ex4 one, use the last value of ex3, and vice-versa.
+  - if the ex4 macro length is 0, expand it to the largest size, and set all steps to 1.
+
+don't worry about loop or release...
+
 # Game Boy data (GB)
 
 ```
@@ -328,6 +361,7 @@ size | description
   1  | sound length
      | - 64 is infinity
   1  | flags
+     | - bit 2: double wave width for GBA (>=196)
      | - bit 1: always init envelope
      | - bit 0: software envelope (zombie mode)
   1  | hardware sequence length
@@ -468,6 +502,12 @@ size | description
   1  | wave pos
   1  | wave len
   1  | wave mode
+     | **extra info** (>=164)
+  1  | enable per channel wave pos/len
+  8  | per channel wave pos
+     | - only read if enabled.
+  8  | per channel wave len
+     | - only read if enabled.
 ```
 
 # FDS/Virtual Boy data (FD)
@@ -544,6 +584,31 @@ size | description
 size | description
 -----|------------------------------------
   1  | switch roles of phase reset timer and frequency
+  1  | hardware sequence length (>=185)
+ ??? | hardware sequence...
+     | - length: 5*hwSeqLen
+```
+
+a value in the hardware sequence has the following format:
+
+```
+size | description
+-----|------------------------------------
+  1  | command
+     | - 0: set volume sweep
+     | - 1: set frequency sweep
+     | - 2: set cutoff sweep
+     | - 3: wait
+     | - 4: wait for release
+     | - 5: loop
+     | - 6: loop until release
+  1  | sweep bound
+  1  | sweep amount/command data
+     | - if "set sweep", this is amount.
+     | - for wait: length in ticks
+     | - for wait for release: nothing
+     | - for loop/loop until release: position
+  2  | sweep period
 ```
 
 # ES5506 data (ES)
@@ -573,4 +638,34 @@ size | description
 size | description
 -----|------------------------------------
   4  | bank slot
+```
+
+# NES DPCM sample map data (NE)
+
+```
+size | description
+-----|------------------------------------
+  1  | use sample map
+ 2?? | DPCM sample map... (120 entries)
+     | - only read if sample map is enabled
+```
+
+the DPCM sample map format:
+
+```
+size | description
+-----|------------------------------------
+  1  | pitch (0-15; otherwise no change)
+  1  | delta counter value (0-127; otherwise no change)
+```
+
+if some fields are missing, that's because they are defined in the SM feature.
+NES instruments with DPCM sample maps have both SM and NE features.
+
+# PowerNoise data (PN)
+
+```
+size | description
+-----|------------------------------------
+  1  | octave
 ```

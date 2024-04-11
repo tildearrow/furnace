@@ -123,11 +123,11 @@ void es5506_core::voice_t::tick(u8 voice)
 		// Left and Right volume
 		if (bitfield(m_lvramp, 0, 8) != 0)
 		{
-			m_lvol = VGS_CLAMP(m_lvol + sign_ext<s32>(bitfield(m_lvramp, 0, 8), 8), 0, 0xffff);
+			m_lvol = VGS_CLAMP(m_lvol + sign_ext_nomax<s32>(bitfield(m_lvramp, 0, 8), 8), 0, 0xffff);
 		}
 		if (bitfield(m_rvramp, 0, 8) != 0)
 		{
-			m_rvol = VGS_CLAMP(m_rvol + sign_ext<s32>(bitfield(m_rvramp, 0, 8), 8), 0, 0xffff);
+			m_rvol = VGS_CLAMP(m_rvol + sign_ext_nomax<s32>(bitfield(m_rvramp, 0, 8), 8), 0, 0xffff);
 		}
 
 		// Filter coeffcient
@@ -135,13 +135,13 @@ void es5506_core::voice_t::tick(u8 voice)
 			((m_k1ramp.slow() == 0) || (bitfield(m_filtcount, 0, 3) == 0)))
 		{
 			m_filter.set_k1(
-			  VGS_CLAMP(m_filter.k1() + sign_ext<s32>(m_k1ramp.ramp(), 8), 0, 0xffff));
+			  VGS_CLAMP(m_filter.k1() + sign_ext_nomax<s32>(m_k1ramp.ramp(), 8), 0, 0xffff));
 		}
 		if ((m_k2ramp.ramp() != 0) &&
 			((m_k2ramp.slow() == 0) || (bitfield(m_filtcount, 0, 3) == 0)))
 		{
 			m_filter.set_k2(
-			  VGS_CLAMP(m_filter.k2() + sign_ext<s32>(m_k2ramp.ramp(), 8), 0, 0xffff));
+			  VGS_CLAMP(m_filter.k2() + sign_ext_nomax<s32>(m_k2ramp.ramp(), 8), 0, 0xffff));
 		}
 
 		m_ecount--;
@@ -531,7 +531,7 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 				case 8:	  // CH4L (Channel 4 Left)
 				case 10:  // CH5L (Channel 5 Left)
 					m_ch[bitfield(address, 1, 3)].set_left(
-					  sign_ext<s32>(bitfield(data, 0, 23), 23));
+					  sign_ext_nomax<s32>(bitfield(data, 0, 23), 23));
 					break;
 				case 1:	  // CH0R (Channel 0 Right)
 				case 3:	  // CH1R (Channel 1 Right)
@@ -540,7 +540,7 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 				case 9:	  // CH4R (Channel 4 Right)
 				case 11:  // CH5R (Channel 5 Right)
 					m_ch[bitfield(address, 1, 3)].set_right(
-					  sign_ext<s32>(bitfield(data, 0, 23), 23));
+					  sign_ext_nomax<s32>(bitfield(data, 0, 23), 23));
 					break;
 			}
 		}
@@ -574,22 +574,22 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 						v.alu().set_accum(data);
 						break;
 					case 4:	 // O4(n-1) (Filter 4 Temp Register)
-						v.filter().set_o4_1(sign_ext<s32>(bitfield(data, 0, 18), 18));
+						v.filter().set_o4_1(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
 						break;
 					case 5:	 // O3(n-2) (Filter 3 Temp Register #2)
-						v.filter().set_o3_2(sign_ext<s32>(bitfield(data, 0, 18), 18));
+						v.filter().set_o3_2(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
 						break;
 					case 6:	 // O3(n-1) (Filter 3 Temp Register #1)
-						v.filter().set_o3_1(sign_ext<s32>(bitfield(data, 0, 18), 18));
+						v.filter().set_o3_1(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
 						break;
 					case 7:	 // O2(n-2) (Filter 2 Temp Register #2)
-						v.filter().set_o2_2(sign_ext<s32>(bitfield(data, 0, 18), 18));
+						v.filter().set_o2_2(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
 						break;
 					case 8:	 // O2(n-1) (Filter 2 Temp Register #1)
-						v.filter().set_o2_1(sign_ext<s32>(bitfield(data, 0, 18), 18));
+						v.filter().set_o2_1(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
 						break;
 					case 9:	 // O1(n-1) (Filter 1 Temp Register)
-						v.filter().set_o1_1(sign_ext<s32>(bitfield(data, 0, 18), 18));
+						v.filter().set_o1_1(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
 						break;
 					case 10:  // W_ST (Word Clock Start Register)
 						m_w_st = bitfield(data, 0, 7);

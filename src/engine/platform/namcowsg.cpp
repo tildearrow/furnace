@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_FREQBASE 4194304
 
@@ -199,9 +199,9 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
   for (int i=0; i<chans; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol,chan[i].std.vol.val,15);
     }
-    if (chan[i].std.duty.had && i>=4) {
+    if (chan[i].std.duty.had) {
       chan[i].noise=chan[i].std.duty.val;
       chan[i].freqChanged=true;
     }
@@ -418,6 +418,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].noise=c.value;
+      chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
@@ -444,8 +445,8 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -471,6 +472,11 @@ void* DivPlatformNamcoWSG::getChanState(int ch) {
 
 DivMacroInt* DivPlatformNamcoWSG::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformNamcoWSG::getPan(int ch) {
+  if (devType!=30) return 0;
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
 }
 
 DivDispatchOscBuffer* DivPlatformNamcoWSG::getOscBuffer(int ch) {
@@ -571,7 +577,7 @@ void DivPlatformNamcoWSG::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/32;
-  namco->device_clock_changed(rate);
+  namco->device_clock_changed(96000);
   for (int i=0; i<chans; i++) {
     oscBuf[i]->rate=rate;
   }

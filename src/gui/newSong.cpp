@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,101 @@
 #include <fmt/printf.h>
 #include <algorithm>
 
+String sysDefID;
+
+void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& accepted, std::vector<int>& sysDefStack, bool& alreadyHover) {
+  int index=0;
+  String sysDefIDLeader="##NS";
+  for (int i: sysDefStack) {
+    sysDefIDLeader+=fmt::sprintf("/%d",i);
+  }
+  for (FurnaceGUISysDef& i: category) {
+    bool treeNode=false;
+    bool isHovered=false;
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (!i.subDefs.empty()) {
+      if (i.orig.empty()) {
+        sysDefID=fmt::sprintf("%s%s/%dS",i.name,sysDefIDLeader,index);
+      } else {
+        sysDefID=fmt::sprintf("%s/%dS",sysDefIDLeader,index);
+      }
+      treeNode=ImGui::TreeNodeEx(sysDefID.c_str(),i.orig.empty()?ImGuiTreeNodeFlags_SpanAvailWidth:0);
+      ImGui::SameLine();
+    }
+    if (!i.orig.empty()) {
+      sysDefID=fmt::sprintf("%s%s/%d",i.name,sysDefIDLeader,index);
+      if (ImGui::Selectable(sysDefID.c_str(),false,ImGuiSelectableFlags_DontClosePopups)) {
+        nextDesc=i.definition;
+        nextDescName=i.name;
+        accepted=true;
+      }
+      if (ImGui::IsItemHovered()) isHovered=true;
+    } else if (i.subDefs.empty()) {
+      ImGui::TextUnformatted(i.name.c_str());
+      if (ImGui::IsItemHovered()) isHovered=true;
+    }
+    if (treeNode) {
+      sysDefStack.push_back(index);
+      drawSysDefs(i.subDefs,accepted,sysDefStack,alreadyHover);
+      sysDefStack.erase(sysDefStack.end()-1);
+      ImGui::TreePop();
+    }
+    if (isHovered && !alreadyHover) {
+      alreadyHover=true;
+      if (ImGui::BeginTooltip()) {
+        std::map<DivSystem,int> chipCounts;
+        std::vector<DivSystem> chips;
+        for (FurnaceGUISysDefChip chip: i.orig) {
+          if (chipCounts.find(chip.sys)==chipCounts.end()) {
+            chipCounts[chip.sys]=1;
+            chips.push_back(chip.sys);
+          } else {
+            chipCounts[chip.sys]+=1;
+          }
+        }
+        for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) {
+          DivSystem chip=chips[chipIndex];
+          const DivSysDef* sysDef=e->getSystemDef(chip);
+          ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
+          ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
+          ImGui::Text("%s",sysDef->description);
+          ImGui::PopTextWrapPos();
+          if (chipIndex+1<chips.size()) {
+            ImGui::Separator();
+          }
+        }
+
+        ImGui::EndTooltip();
+      }
+    }
+    index++;
+  }
+}
+
+void findInSubs(std::vector<FurnaceGUISysDef>& where, std::vector<FurnaceGUISysDef>& newSongSearchResults, String lowerCase) {
+  for (FurnaceGUISysDef& j: where) {
+    if (!j.orig.empty()) {
+      String lowerCase1=j.name;
+      for (char& i: lowerCase1) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+      auto lastItem=std::remove_if(lowerCase1.begin(),lowerCase1.end(),[](char c) {
+        return (c==' ' || c=='_' || c=='-');
+      });
+      lowerCase1.erase(lastItem,lowerCase1.end());
+      if (lowerCase1.find(lowerCase)!=String::npos) {
+        newSongSearchResults.push_back(j);
+        newSongSearchResults[newSongSearchResults.size()-1].subDefs.clear();
+      }
+    }
+    findInSubs(j.subDefs,newSongSearchResults,lowerCase);
+  }
+}
+
 void FurnaceGUI::drawNewSong() {
   bool accepted=false;
+  std::vector<int> sysDefStack;
 
   ImGui::PushFont(bigFont);
   ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Choose a System!").x)*0.5);
@@ -49,26 +142,30 @@ void FurnaceGUI::drawNewSong() {
       newSongSearchResults.clear();
       for (FurnaceGUISysCategory& i: sysCategories) {
         for (FurnaceGUISysDef& j: i.systems) {
-          String lowerCase1=j.name;
-          for (char& i: lowerCase1) {
-            if (i>='A' && i<='Z') i+='a'-'A';
+          if (!j.orig.empty()) {
+            String lowerCase1=j.name;
+            for (char& i: lowerCase1) {
+              if (i>='A' && i<='Z') i+='a'-'A';
+            }
+            auto lastItem=std::remove_if(lowerCase1.begin(),lowerCase1.end(),[](char c) {
+              return (c==' ' || c=='_' || c=='-');
+            });
+            lowerCase1.erase(lastItem,lowerCase1.end());
+            if (lowerCase1.find(lowerCase)!=String::npos) {
+              newSongSearchResults.push_back(j);
+              newSongSearchResults[newSongSearchResults.size()-1].subDefs.clear();
+            }
           }
-          auto lastItem=std::remove_if(lowerCase1.begin(),lowerCase1.end(),[](char c) {
-            return (c==' ' || c=='_' || c=='-');
-          });
-          lowerCase1.erase(lastItem,lowerCase1.end());
-          if (lowerCase1.find(lowerCase)!=String::npos) {
-            newSongSearchResults.push_back(j);
-          }
+          findInSubs(j.subDefs,newSongSearchResults,lowerCase);
         }
-        std::sort(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
-          return strcmp(a.name,b.name)<0;
-        });
-        auto lastItem=std::unique(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
-          return strcmp(a.name,b.name)==0;
-        });
-        newSongSearchResults.erase(lastItem,newSongSearchResults.end());
       }
+      std::sort(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
+        return strcmp(a.name.c_str(),b.name.c_str())<0;
+      });
+      auto lastItem1=std::unique(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
+        return a.name==b.name;
+      });
+      newSongSearchResults.erase(lastItem1,newSongSearchResults.end());
     }
     if (ImGui::BeginTable("sysPicker",newSongQuery.empty()?2:1,ImGuiTableFlags_BordersInnerV)) {
       if (newSongQuery.empty()) {
@@ -91,12 +188,13 @@ void FurnaceGUI::drawNewSong() {
         ImGui::TableNextColumn();
         int index=0;
         for (FurnaceGUISysCategory& i: sysCategories) {
-          if (ImGui::Selectable(i.name,newSongCategory==index,ImGuiSelectableFlags_DontClosePopups)) { \
+          if (ImGui::Selectable(i.name,newSongCategory==index,ImGuiSelectableFlags_DontClosePopups)) {
             newSongCategory=index;
           }
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s",i.description);
           }
+          if (strcmp(i.name,"User")==0) ImGui::Separator();
           index++;
         }
       }
@@ -105,14 +203,19 @@ void FurnaceGUI::drawNewSong() {
       ImGui::TableNextColumn();
       if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
         std::vector<FurnaceGUISysDef>& category=(newSongQuery.empty())?(sysCategories[newSongCategory].systems):(newSongSearchResults);
-        for (FurnaceGUISysDef& i: category) {
+        if (category.empty()) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
-          if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
-            nextDesc=i.definition;
-            nextDescName=i.name;
-            accepted=true;
+          if (newSongQuery.empty()) {
+            ImGui::Text("no systems here yet!");
+          } else {
+            ImGui::Text("no results");
           }
+        } else {
+          bool alreadyHover=false;
+          sysDefStack.push_back(newSongQuery.empty()?newSongCategory:-1);
+          drawSysDefs(category,accepted,sysDefStack,alreadyHover);
+          sysDefStack.erase(sysDefStack.end()-1);
         }
         ImGui::EndTable();
       }
@@ -124,23 +227,50 @@ void FurnaceGUI::drawNewSong() {
 
   if (ImGui::Button("I'm feeling lucky")) {
     if (sysCategories.size()==0) {
+      showError("no categories available! what in the world.");
       ImGui::CloseCurrentPopup();
     } else {
-      FurnaceGUISysCategory* newSystemCat=&sysCategories[rand()%sysCategories.size()];
-      if (newSystemCat->systems.size()==0) {
+      int tries=0;
+      for (tries=0; tries<50; tries++) {
+        FurnaceGUISysCategory* newSystemCat=&sysCategories[rand()%sysCategories.size()];
+        if (newSystemCat->systems.empty()) {
+          continue;
+        } else {
+          unsigned int selection=rand()%newSystemCat->systems.size();
+
+          if (newSystemCat->systems[selection].orig.empty() && newSystemCat->systems[selection].subDefs.empty()) continue;
+          if (!newSystemCat->systems[selection].subDefs.empty()) {
+            if (rand()%2) {
+              unsigned int subSel=rand()%newSystemCat->systems[selection].subDefs.size();
+              nextDesc=newSystemCat->systems[selection].subDefs[subSel].definition;
+              nextDescName=newSystemCat->systems[selection].subDefs[subSel].name;
+              accepted=true;
+            } else {
+              if (newSystemCat->systems[selection].orig.empty()) continue;
+              nextDesc=newSystemCat->systems[selection].definition;
+              nextDescName=newSystemCat->systems[selection].name;
+              accepted=true;
+            }
+          } else {
+            nextDesc=newSystemCat->systems[selection].definition;
+            nextDescName=newSystemCat->systems[selection].name;
+            accepted=true;
+          }
+        }
+
+        if (accepted) break;
+      }
+
+      if (tries>=50) {
+        showError("it appears you're extremely lucky today!");
         ImGui::CloseCurrentPopup();
-      } else {
-        unsigned int selection=rand()%newSystemCat->systems.size();
-        nextDesc=newSystemCat->systems[selection].definition;
-        nextDescName=newSystemCat->systems[selection].name;
-        accepted=true;
       }
     }
   }
 
   ImGui::SameLine();
 
-  if (ImGui::Button("Cancel")) {
+  if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
     ImGui::CloseCurrentPopup();
   }
 

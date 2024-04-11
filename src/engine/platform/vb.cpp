@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(0x400+((c)<<6)+((a)<<2),v);
 
 #define CHIP_DIVIDER 16
@@ -96,13 +96,13 @@ const char** DivPlatformVB::getRegisterSheet() {
 void DivPlatformVB::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     cycles=0;
-    while (!writes.empty()) {
+    if (!writes.empty()) {
       QueuedWrite w=writes.front();
       vb->Write(cycles,w.addr,w.val);
       regPool[w.addr>>2]=w.val;
       writes.pop();
     }
-    vb->EndFrame(16);
+    vb->EndFrame(coreQuality);
 
     tempL=0;
     tempR=0;
@@ -123,6 +123,7 @@ void DivPlatformVB::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformVB::updateWave(int ch) {
+  if (romMode) return;
   if (ch>=5) return;
 
   for (int i=0; i<32; i++) {
@@ -162,6 +163,9 @@ void DivPlatformVB::tick(bool sysTick) {
     if (chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
+        if (romMode) {
+          chWrite(i,0x06,chan[i].wave);
+        }
         chan[i].ws.changeWave1(chan[i].wave);
         if (!chan[i].keyOff) chan[i].keyOn=true;
       }
@@ -282,6 +286,9 @@ int DivPlatformVB::dispatch(DivCommand c) {
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
       chan[c.chan].ws.changeWave1(chan[c.chan].wave);
+      if (romMode) {
+        chWrite(c.chan,0x06,chan[c.chan].wave);
+      }
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
@@ -388,8 +395,8 @@ int DivPlatformVB::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -407,7 +414,13 @@ void DivPlatformVB::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     updateWave(i);
+    if (romMode) {
+      chWrite(i,0x06,chan[i].wave);
+    }
     chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
+  }
+  if (chan[5].active) {
+    writeEnv(5,true);
   }
 }
 
@@ -417,6 +430,10 @@ void* DivPlatformVB::getChanState(int ch) {
 
 DivMacroInt* DivPlatformVB::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformVB::getPan(int ch) {
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
 }
 
 DivDispatchOscBuffer* DivPlatformVB::getOscBuffer(int ch) {
@@ -460,8 +477,13 @@ void DivPlatformVB::reset() {
     chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
     chWrite(i,0x05,0x00);
     chWrite(i,0x00,0x80);
-    chWrite(i,0x06,i);
+    if (romMode) {
+      chWrite(i,0x06,0);
+    } else {
+      chWrite(i,0x06,i);
+    }
   }
+  updateROMWaves();
   delay=500;
 }
 
@@ -477,6 +499,27 @@ float DivPlatformVB::getPostAmp() {
   return 6.0f;
 }
 
+void DivPlatformVB::updateROMWaves() {
+  if (romMode) {
+    // copy wavetables
+    for (int i=0; i<5; i++) {
+      int data=0;
+      DivWavetable* w=parent->getWave(i);
+
+      for (int j=0; j<32; j++) {
+        if (w->max<1 || w->len<1) {
+          data=0;
+        } else {
+          data=w->data[j*w->len/32]*63/w->max;
+          if (data<0) data=0;
+          if (data>63) data=63;
+        }
+        rWrite((i<<7)+(j<<2),data);
+      }
+    }
+  }
+}
+
 void DivPlatformVB::notifyWaveChange(int wave) {
   for (int i=0; i<6; i++) {
     if (chan[i].wave==wave) {
@@ -484,6 +527,7 @@ void DivPlatformVB::notifyWaveChange(int wave) {
       updateWave(i);
     }
   }
+  updateROMWaves();
 }
 
 void DivPlatformVB::notifyInsDeletion(void* ins) {
@@ -495,10 +539,12 @@ void DivPlatformVB::notifyInsDeletion(void* ins) {
 void DivPlatformVB::setFlags(const DivConfig& flags) {
   chipClock=5000000.0;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/16;
+  rate=chipClock/coreQuality;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
   }
+
+  romMode=flags.getBool("romMode",false);
 
   if (vb!=NULL) {
     delete vb;
@@ -513,6 +559,32 @@ void DivPlatformVB::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformVB::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+void DivPlatformVB::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=128;
+      break;
+    case 1:
+      coreQuality=64;
+      break;
+    case 2:
+      coreQuality=32;
+      break;
+    case 3:
+      coreQuality=16;
+      break;
+    case 4:
+      coreQuality=4;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=16;
+      break;
+  }
 }
 
 int DivPlatformVB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

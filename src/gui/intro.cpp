@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,10 +63,13 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
     posAbs.y+rectMin.x*sin(rotate)+rectMax.y*cos(rotate)
   );
 
-  ImVec2 uv0=ImVec2(uvMin.x,uvMin.y);
-  ImVec2 uv1=ImVec2(uvMax.x,uvMin.y);
-  ImVec2 uv2=ImVec2(uvMax.x,uvMax.y);
-  ImVec2 uv3=ImVec2(uvMin.x,uvMax.y);
+  float uScale=rend->getTextureU(img);
+  float vScale=rend->getTextureV(img);
+
+  ImVec2 uv0=ImVec2(uvMin.x*uScale,uvMin.y*vScale);
+  ImVec2 uv1=ImVec2(uvMax.x*uScale,uvMin.y*vScale);
+  ImVec2 uv2=ImVec2(uvMax.x*uScale,uvMax.y*vScale);
+  ImVec2 uv3=ImVec2(uvMin.x*uScale,uvMax.y*vScale);
 
   ImU32 colorConverted=ImGui::GetColorU32(imgColor);
 
@@ -104,10 +107,7 @@ void FurnaceGUI::endIntroTune() {
 
 void FurnaceGUI::drawIntro(double introTime, bool monitor) {
   if (monitor) {
-    if (introTime<0.0) introTime=0.0;
-    if (introTime>11.0) introTime=11.0;
-    if (!introMonOpen) return;
-    if (introPos<(shortIntro?1.0:11.0)) return;
+    return;
   }
   if (introPos<(shortIntro?1.0:11.0) || monitor) {
     if (!monitor) {
@@ -117,7 +117,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
       ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
       if (introPos<0.1) ImGui::SetNextWindowFocus();
     }
-    if (ImGui::Begin(monitor?"IntroMon X":"Intro",monitor?(&introMonOpen):NULL,monitor?globalWinFlags:(ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground))) {
+    if (ImGui::Begin(monitor?"IntroMon X":"Intro",NULL,monitor?globalWinFlags:(ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground))) {
       if (monitor) {
         if (ImGui::Button("Preview")) {
           introPos=0;

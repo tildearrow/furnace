@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
 
         switch (interp) {
           case 1: // linear
-            output=s6+((s7-s6)*(chan[0].audSub&0xffff)>>16);
+            output=s6+(((int)((int)s7-(int)s6)*((chan[0].audSub>>1)&0x7fff))>>15);
             break;
           case 2: { // cubic
             float* cubicTable=DivFilterTables::getCubicTable();
@@ -188,7 +188,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
 
         switch (interp) {
           case 1: // linear
-            output=s6+((s7-s6)*(chan[0].audSub&0xffff)>>16);
+            output=s6+(((int)((int)s7-(int)s6)*((chan[0].audSub>>1)&0x7fff))>>15);
             break;
           case 2: { // cubic
             float* cubicTable=DivFilterTables::getCubicTable();
@@ -229,7 +229,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
     } else {
       output=output*chan[0].vol*chan[0].envVol/16384;
     }
-    oscBuf->data[oscBuf->needle++]=output>>1;
+    oscBuf->data[oscBuf->needle++]=((output>>depthScale)<<depthScale)>>1;
     if (outStereo) {
       buf[0][h]=((output*chan[0].panL)>>(depthScale+8))<<depthScale;
       buf[1][h]=((output*chan[0].panR)>>(depthScale+8))<<depthScale;
@@ -314,6 +314,8 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
         chan[0].useWave=true;
         chan[0].audLen=ins->amiga.waveLen+1;
         if (chan[0].insChanged) {
@@ -326,7 +328,12 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[0].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
         chan[0].useWave=false;
       }
@@ -335,6 +342,8 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       }
       if (chan[0].useWave || chan[0].sample<0 || chan[0].sample>=parent->song.sampleLen) {
         chan[0].sample=-1;
+        chan[c.chan].sampleNote=DIV_NOTE_NULL;
+        chan[c.chan].sampleNoteDelta=0;
       }
       if (chan[0].setPos) {
         chan[0].setPos=false;
@@ -402,9 +411,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       chan[0].ws.changeWave1(chan[0].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
-      chan[0].sample=ins->amiga.getSample(c.value2);
-      int destFreq=round(NOTE_FREQUENCY(c.value2));
+      int destFreq=round(NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta));
       bool return2=false;
       if (destFreq>chan[0].baseFreq) {
         chan[0].baseFreq+=c.value;
@@ -427,7 +434,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0))));
+      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0))));
       chan[0].freqChanged=true;
       chan[0].note=c.value;
       break;
@@ -452,8 +459,8 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -495,6 +502,10 @@ int DivPlatformPCMDAC::getOutputCount() {
 
 DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {
   return &chan[0].std;
+}
+
+unsigned short DivPlatformPCMDAC::getPan(int ch) {
+  return (chan[0].panL<<8)|chan[0].panR;
 }
 
 DivSamplePos DivPlatformPCMDAC::getSamplePos(int ch) {

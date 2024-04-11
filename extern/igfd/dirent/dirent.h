@@ -524,7 +524,15 @@ _wreaddir_r(
         entry->d_off = 0;
         entry->d_reclen = sizeof (struct _wdirent);
 
+#ifdef _WIN64
         entry->dwin_size = ((size_t)datap->nFileSizeHigh<<32) | datap->nFileSizeLow;
+#else
+        if (datap->nFileSizeHigh) {
+          entry->dwin_size = 0xffffffff;
+        } else {
+          entry->dwin_size = datap->nFileSizeLow;
+        }
+#endif
         entry->dwin_mtime = datap->ftLastWriteTime;
 
         /* Set result address */
@@ -817,7 +825,15 @@ readdir_r(
             entry->d_off = 0;
             entry->d_reclen = sizeof (struct dirent);
 
+#ifdef _WIN64
             entry->dwin_size = ((size_t)datap->nFileSizeHigh<<32) | datap->nFileSizeLow;
+#else
+            if (datap->nFileSizeHigh) {
+              entry->dwin_size = 0xffffffff;
+            } else {
+              entry->dwin_size = datap->nFileSizeLow;
+            }
+#endif
             entry->dwin_mtime = datap->ftLastWriteTime;
 
         } else {
@@ -1098,11 +1114,20 @@ static int u8to16s(wchar_t* dest, const char* src, size_t limit) {
   int ch, p;
   char chs;
   p=0;
-  while (src[p]!=0 && ret<limit) {
+  while (src[p]!=0 && ret<limit-1) {
     ch=decodeUTF8s((const unsigned char*)&src[p],&chs);
-    dest[ret++]=(unsigned short)ch;
+    // surrogates
+    if (ch>=0x10000) {
+      ch-=0x10000;
+      if (ret+1>=limit-1) break;
+      dest[ret++]=(unsigned short)(0xd800|((ch>>10)&0x3ff));
+      dest[ret++]=(unsigned short)(0xdc00|(ch&0x3ff));
+    } else if (ch<0xd800 || ch>0xdfff) {
+      dest[ret++]=(unsigned short)ch;
+    }
     p+=chs;
   }
+  dest[ret]=0;
   return ret;
 }
 
@@ -1160,19 +1185,34 @@ dirent_mbstowcs_s(
 
 static int u16to8s(char* dest, const wchar_t* src, size_t limit) {
   size_t ret=0;
+  unsigned int next=0;
   for (; (*src)!=0; src++) {
-    if ((*src)<0x80) {
-      if (ret+1>=limit-1) break;
-      dest[ret++]=(*src);
-    } else if ((*src)<0x800) {
-      if (ret+2>=limit-1) break;
-      dest[ret++]=(0xc0+(((*src)>>6)&31));
-      dest[ret++]=(0x80+((*src)&63));
+    if ((*src)>=0xd800 && (*src)<0xdc00) {
+      next=0x10000+(((*src)&0x3ff)<<10);
+      continue;
+    } else if ((*src)>=0xdc00 && (*src)<0xe000) {
+      next|=(*src)&0x3ff;
     } else {
+      next=(*src);
+    }
+    if (next<0x80) {
+      if (ret+1>=limit-1) break;
+      dest[ret++]=next;
+    } else if (next<0x800) {
+      if (ret+2>=limit-1) break;
+      dest[ret++]=(0xc0+((next>>6)&31));
+      dest[ret++]=(0x80+(next&63));
+    } else if (next<0x10000) {
       if (ret+3>=limit-1) break;
-      dest[ret++]=(0xe0+(((*src)>>12)&15));
-      dest[ret++]=(0x80+(((*src)>>6)&63));
-      dest[ret++]=(0x80+((*src)&63));
+      dest[ret++]=(0xe0+((next>>12)&15));
+      dest[ret++]=(0x80+((next>>6)&63));
+      dest[ret++]=(0x80+(next&63));
+    } else {
+      if (ret+4>=limit-1) break;
+      dest[ret++]=(0xf0+((next>>18)&7));
+      dest[ret++]=(0x80+((next>>12)&63));
+      dest[ret++]=(0x80+((next>>6)&63));
+      dest[ret++]=(0x80+(next&63));
     }
   }
   dest[ret]=0;

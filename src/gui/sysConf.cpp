@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,13 +18,15 @@
  */
 
 #include "../engine/chipUtils.h"
+#include "../engine/platform/gbaminmod.h"
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
-bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange) {
+bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
-  bool restart=settings.restartOnFlagChange && modifyOnChange;
+  bool mustRender=false;
+  bool restart=modifyOnChange;
   bool supportsCustomRate=true;
 
   switch (type) {
@@ -42,8 +44,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
+      bool msw=flags.getBool("msw",false);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("NTSC (7.67MHz)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -64,8 +68,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=4;
         altered=true;
       }
+      ImGui::Unindent();
 
       ImGui::Text("Chip type:");
+      ImGui::Indent();
       if (ImGui::RadioButton("YM3438 (9-bit DAC)",chipType==0)) {
         chipType=0;
         altered=true;
@@ -78,12 +84,19 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         chipType=2;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_DUALPCM_EXT || type==DIV_SYSTEM_YM2612_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
         }
         if (ImGui::Checkbox("Ins change in ExtCh operator 2-4 affects FB (compatibility)",&fbAllOps)) {
+          altered=true;
+        }
+      }
+
+      if (msw) {
+        if (ImGui::Checkbox("Modified sine wave (joke)",&msw)) {
           altered=true;
         }
       }
@@ -94,6 +107,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("chipType",chipType);
           flags.set("noExtMacros",noExtMacros);
           flags.set("fbAllOps",fbAllOps);
+          flags.set("msw",msw);
         });
       }
       break;
@@ -105,6 +119,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       bool noEasyNoise=flags.getBool("noEasyNoise",false);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -133,7 +148,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=6;
         altered=true;
       }
+      ImGui::Unindent();
       ImGui::Text("Chip type:");
+      ImGui::Indent();
       if (ImGui::RadioButton("Sega VDP/Master System",chipType==0)) {
         chipType=0;
         altered=true;
@@ -174,6 +191,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         chipType=9;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (ImGui::Checkbox("Disable noise period change phase reset",&noPhaseReset)) {
         altered=true;
@@ -205,6 +223,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
       ImGui::Text("Chip revision:");
+      ImGui::Indent();
       if (ImGui::RadioButton("HuC6280 (original)",chipType==0)) {
         chipType=0;
         altered=true;
@@ -213,6 +232,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         chipType=1;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (altered) {
         e->lockSave([&]() {
@@ -235,6 +255,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int echoVol=(signed char)flags.getInt("echoVol",0);
 
       ImGui::Text("CPU rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("6.18MHz (NTSC)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -243,7 +264,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=1;
         altered=true;
       }
+      ImGui::Unindent();
       ImGui::Text("Sample memory:");
+      ImGui::Indent();
       if (ImGui::RadioButton("8K (rev A/B/E)",sampleMemSize==0)) {
         sampleMemSize=0;
         altered=true;
@@ -252,7 +275,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         sampleMemSize=1;
         altered=true;
       }
+      ImGui::Unindent();
       ImGui::Text("DAC resolution:");
+      ImGui::Indent();
       if (ImGui::RadioButton("16-bit (rev A/B/D/F)",pdm==0)) {
         pdm=false;
         altered=true;
@@ -261,6 +286,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         pdm=true;
         altered=true;
       }
+      ImGui::Unindent();
       if (ImGui::Checkbox("Enable echo",&echo)) {
         altered=true;
       }
@@ -317,6 +343,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
       ImGui::Text("Chip revision:");
+      ImGui::Indent();
       if (ImGui::RadioButton("Original (DMG)",chipType==0)) {
         chipType=0;
         altered=true;
@@ -333,8 +360,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         chipType=3;
         altered=true;
       }
+      ImGui::Unindent();
       ImGui::Text("Wave channel orientation:");
       if (chipType==3) {
+        ImGui::Indent();
         if (ImGui::RadioButton("Normal",!invertWave)) {
           invertWave=false;
           altered=true;
@@ -343,7 +372,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           invertWave=true;
           altered=true;
         }
+        ImGui::Unindent();
       } else {
+        ImGui::Indent();
         if (ImGui::RadioButton("Exact data (inverted)",!invertWave)) {
           invertWave=false;
           altered=true;
@@ -352,6 +383,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           invertWave=true;
           altered=true;
         }
+        ImGui::Unindent();
       }
       if (ImGui::Checkbox("Pretty please one more compat flag when I use arpeggio and my sound length",&enoughAlready)) {
         altered=true;
@@ -367,14 +399,88 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
+    case DIV_SYSTEM_GBA_DMA: {
+      int dacDepth=flags.getInt("dacDepth",9);
+
+      ImGui::Text("DAC bit depth (reduces output rate):");
+      if (CWSliderInt("##DACDepth",&dacDepth,6,9)) {
+        if (dacDepth<6) dacDepth=6;
+        if (dacDepth>9) dacDepth=9;
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("dacDepth",dacDepth);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_GBA_MINMOD: {
+      supportsCustomRate=false;
+      int volScale=flags.getInt("volScale",4096);
+      int mixBufs=flags.getInt("mixBufs",15);
+      int dacDepth=flags.getInt("dacDepth",9);
+      int channels=flags.getInt("channels",16);
+      int sampRate=flags.getInt("sampRate",21845);
+      ImGui::Text("Volume scale:");
+      if (CWSliderInt("##VolScale",&volScale,0,32768)) {
+        if (volScale<0) volScale=0;
+        if (volScale>32768) volScale=32768;
+        altered=true;
+      } rightClickable
+      ImGui::Text("Mix buffers (allows longer echo delay):");
+      if (CWSliderInt("##MixBufs",&mixBufs,2,15)) {
+        if (mixBufs<2) mixBufs=2;
+        if (mixBufs>16) mixBufs=16;
+        altered=true;
+      } rightClickable
+      ImGui::Text("DAC bit depth (reduces output rate):");
+      if (CWSliderInt("##DACDepth",&dacDepth,6,9)) {
+        if (dacDepth<6) dacDepth=6;
+        if (dacDepth>9) dacDepth=9;
+        altered=true;
+      } rightClickable
+      ImGui::Text("Channel limit:");
+      if (CWSliderInt("##Channels",&channels,1,16)) {
+        if (channels<1) channels=1;
+        if (channels>16) channels=16;
+        altered=true;
+      } rightClickable
+      ImGui::Text("Sample rate:");
+      if (CWSliderInt("##SampRate",&sampRate,256,65536)) {
+        if (sampRate<1) sampRate=21845;
+        if (sampRate>65536) sampRate=65536;
+        altered=true;
+      } rightClickable
+      DivPlatformGBAMinMod* dispatch=(DivPlatformGBAMinMod*)e->getDispatch(chan);
+      float maxCPU=dispatch->maxCPU*100;
+      ImGui::Text("Actual sample rate: %d Hz", dispatch->chipClock);
+      if (maxCPU>90) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_WARNING]);
+      ImGui::Text("Max mixer CPU usage: %.0f%%", maxCPU);
+      if (maxCPU>90) ImGui::PopStyleColor();
+      FurnaceGUI::popWarningColor();
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("volScale",volScale);
+          flags.set("mixBufs",mixBufs);
+          flags.set("dacDepth",dacDepth);
+          flags.set("channels",channels);
+          flags.set("sampRate",sampRate);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_VRC7: {
       int clockSel=flags.getInt("clockSel",0);
       int patchSet=flags.getInt("patchSet",0);
       bool noTopHatFreq=flags.getBool("noTopHatFreq",false);
+      bool fixedAll=flags.getBool("fixedAll",true);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("NTSC (3.58MHz)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -391,8 +497,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=3;
         altered=true;
       }
+      ImGui::Unindent();
       if (type!=DIV_SYSTEM_VRC7) {
         ImGui::Text("Patch set:");
+        ImGui::Indent();
         if (ImGui::RadioButton("Yamaha YM2413",patchSet==0)) {
           patchSet=0;
           altered=true;
@@ -409,10 +517,14 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           patchSet=3;
           altered=true;
         }
+        ImGui::Unindent();
       }
 
       if (type==DIV_SYSTEM_OPLL_DRUMS) {
         if (ImGui::Checkbox("Ignore top/hi-hat frequency changes",&noTopHatFreq)) {
+          altered=true;
+        }
+        if (ImGui::Checkbox("Apply fixed frequency to all drums at once",&fixedAll)) {
           altered=true;
         }
       }
@@ -424,13 +536,16 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
             flags.set("patchSet",patchSet);
           }
           flags.set("noTopHatFreq",noTopHatFreq);
+          flags.set("fixedAll",fixedAll);
         });
       }
       break;
     }
     case DIV_SYSTEM_YM2151: {
       int clockSel=flags.getInt("clockSel",0);
+      bool brokenPitch=flags.getBool("brokenPitch",false);
 
+      ImGui::Indent();
       if (ImGui::RadioButton("NTSC/X16 (3.58MHz)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -443,23 +558,48 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=2;
         altered=true;
       }
+      ImGui::Unindent();
+
+      if (ImGui::Checkbox("Broken pitch macro/slides (compatibility)",&brokenPitch)) {
+        altered=true;
+      }
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("brokenPitch",brokenPitch);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_OPZ: {
+      bool clockSel=flags.getInt("clockSel",0);
+      bool brokenPitch=flags.getBool("brokenPitch",false);
+
+      if (ImGui::Checkbox("Pseudo-PAL",&clockSel)) {
+        altered=true;
+      }
+
+      if (ImGui::Checkbox("Broken pitch macro/slides (compatibility)",&brokenPitch)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",(int)clockSel);
+          flags.set("brokenPitch",brokenPitch);
         });
       }
       break;
     }
     case DIV_SYSTEM_NES:
-    case DIV_SYSTEM_VRC6:
-    case DIV_SYSTEM_FDS:
-    case DIV_SYSTEM_MMC5: {
+    case DIV_SYSTEM_5E01: {
       int clockSel=flags.getInt("clockSel",0);
       bool dpcmMode=flags.getBool("dpcmMode",true);
 
       ImGui::Text("Clock rate:");
 
+      ImGui::Indent();
       if (ImGui::RadioButton("NTSC (1.79MHz)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -472,9 +612,11 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=2;
         altered=true;
       }
+      ImGui::Unindent();
 
       ImGui::Text("DPCM channel mode:");
 
+      ImGui::Indent();
       if (ImGui::RadioButton("DPCM (muffled samples; low CPU usage)",dpcmMode)) {
         dpcmMode=true;
         altered=true;
@@ -483,6 +625,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         dpcmMode=false;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (altered) {
         e->lockSave([&]() {
@@ -492,10 +635,51 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
+    case DIV_SYSTEM_VRC6:
+    case DIV_SYSTEM_FDS:
+    case DIV_SYSTEM_MMC5: {
+      int clockSel=flags.getInt("clockSel",0);
+
+      ImGui::Text("Clock rate:");
+
+      ImGui::Indent();
+      if (ImGui::RadioButton("NTSC (1.79MHz)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("PAL (1.67MHz)",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Dendy (1.77MHz)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_C64_8580:
     case DIV_SYSTEM_C64_6581: {
       int clockSel=flags.getInt("clockSel",0);
+      bool keyPriority=flags.getBool("keyPriority",true);
+      bool no1EUpdate=flags.getBool("no1EUpdate",false);
+      bool multiplyRel=flags.getBool("multiplyRel",false);
+      bool macroRace=flags.getBool("macroRace",false);
+      int testAttack=flags.getInt("testAttack",0);
+      int testDecay=flags.getInt("testDecay",0);
+      int testSustain=flags.getInt("testSustain",0);
+      int testRelease=flags.getInt("testRelease",0);
+      int initResetTime=flags.getInt("initResetTime",2);
 
+      ImGui::Text("Clock rate:");
+
+      ImGui::Indent();
       if (ImGui::RadioButton("NTSC (1.02MHz)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -508,10 +692,81 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=2;
         altered=true;
       }
+      ImGui::Unindent();
+
+      ImGui::Text("Global parameter priority:");
+
+      ImGui::Indent();
+      if (ImGui::RadioButton("Left to right",!keyPriority)) {
+        keyPriority=false;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Last used channel",keyPriority)) {
+        keyPriority=true;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      ImGui::Text("Hard reset envelope:");
+
+      if (CWSliderInt("Attack",&testAttack,0,15)) {
+        if (testAttack<0) testAttack=0;
+        if (testAttack>15) testAttack=15;
+        altered=true;
+      }
+      if (CWSliderInt("Decay",&testDecay,0,15)) {
+        if (testDecay<0) testDecay=0;
+        if (testDecay>15) testDecay=15;
+        altered=true;
+      }
+      if (CWSliderInt("Sustain",&testSustain,0,15)) {
+        if (testSustain<0) testSustain=0;
+        if (testSustain>15) testSustain=15;
+        altered=true;
+      }
+      if (CWSliderInt("Release",&testRelease,0,15)) {
+        if (testRelease<0) testRelease=0;
+        if (testRelease>15) testRelease=15;
+        altered=true;
+      }
+
+      ImGui::Text("Envelope reset time:");
+
+      pushWarningColor(initResetTime<1 || initResetTime>4);
+      if (CWSliderInt("##InitReset",&initResetTime,0,16)) {
+        if (initResetTime<0) initResetTime=0;
+        if (initResetTime>16) initResetTime=16;
+        altered=true;
+      }
+      popWarningColor();
+      
+      ImGui::Text("- 0 disables envelope reset. not recommended!\n- 1 may trigger SID envelope bugs.\n- values that are too high may result in notes being skipped.");
+
+      if (ImGui::Checkbox("Disable 1Exy env update (compatibility)",&no1EUpdate)) {
+        altered=true;
+      }
+
+      if (ImGui::Checkbox("Relative duty and cutoff macros are coarse (compatibility)",&multiplyRel)) {
+        altered=true;
+      }
+
+      if (ImGui::Checkbox("Cutoff macro race conditions (compatibility)",&macroRace)) {
+        altered=true;
+      }
+
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("keyPriority",keyPriority);
+          flags.set("no1EUpdate",no1EUpdate);
+          flags.set("multiplyRel",multiplyRel);
+          flags.set("macroRace",macroRace);
+          flags.set("testAttack",testAttack);
+          flags.set("testDecay",testDecay);
+          flags.set("testSustain",testSustain);
+          flags.set("testRelease",testRelease);
+          flags.set("initResetTime",initResetTime);
         });
       }
       break;
@@ -530,6 +785,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int ssgVol=flags.getInt("ssgVol",128);
       int fmVol=flags.getInt("fmVol",256);
 
+      ImGui::Indent();
       if (ImGui::RadioButton("8MHz (Neo Geo MVS)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -538,6 +794,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=1;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (type==DIV_SYSTEM_YM2610_EXT || type==DIV_SYSTEM_YM2610_FULL_EXT || type==DIV_SYSTEM_YM2610B_EXT || type==DIV_SYSTEM_YM2610_CSM || type==DIV_SYSTEM_YM2610B_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
@@ -580,44 +837,53 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int stereoSep=flags.getInt("stereoSep",0);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("1.79MHz (ZX Spectrum NTSC/MSX)",clockSel==0)) {
         clockSel=0;
         altered=true;
       }
-      if (ImGui::RadioButton("1.77MHz (ZX Spectrum)",clockSel==1)) {
+      if (ImGui::RadioButton("1.77MHz (ZX Spectrum PAL)",clockSel==1)) {
         clockSel=1;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.75MHz (ZX Spectrum)",clockSel==2)) {
-        clockSel=2;
-        altered=true;
-      }
-      if (ImGui::RadioButton("2MHz (Atari ST/Sharp X1)",clockSel==3)) {
-        clockSel=3;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.5MHz (Vectrex)",clockSel==4)) {
-        clockSel=4;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1MHz (Amstrad CPC)",clockSel==5)) {
-        clockSel=5;
-        altered=true;
-      }
-      if (ImGui::RadioButton("0.89MHz (Pre-divided Sunsoft 5B)",clockSel==6)) {
-        clockSel=6;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.67MHz (?)",clockSel==7)) {
-        clockSel=7;
         altered=true;
       }
       if (ImGui::RadioButton("0.83MHz (Pre-divided Sunsoft 5B on PAL)",clockSel==8)) {
         clockSel=8;
         altered=true;
       }
+      if (ImGui::RadioButton("0.89MHz (Pre-divided Sunsoft 5B)",clockSel==6)) {
+        clockSel=6;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1MHz (Amstrad CPC)",clockSel==5)) {
+        clockSel=5;
+        altered=true;
+      }
       if (ImGui::RadioButton("1.10MHz (Gamate/VIC-20 PAL)",clockSel==9)) {
         clockSel=9;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.25MHz (Mag Max)",clockSel==13)) {
+        clockSel=13;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.5MHz (Vectrex)",clockSel==4)) {
+        clockSel=4;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.536MHz (Kyugo)",clockSel==14)) {
+        clockSel=14;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.67MHz (?)",clockSel==7)) {
+        clockSel=7;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.75MHz (ZX Spectrum 48K)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton("2MHz (Atari ST/Sharp X1)",clockSel==3)) {
+        clockSel=3;
         altered=true;
       }
       if (ImGui::RadioButton("2^21Hz (Game Boy)",clockSel==10)) {
@@ -632,16 +898,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=12;
         altered=true;
       }
-      if (ImGui::RadioButton("1.25MHz (Mag Max)",clockSel==13)) {
-        clockSel=13;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.536MHz (Kyugo)",clockSel==14)) {
-        clockSel=14;
-        altered=true;
-      }
+      ImGui::Unindent();
       if (type==DIV_SYSTEM_AY8910) {
         ImGui::Text("Chip type:");
+        ImGui::Indent();
         if (ImGui::RadioButton("AY-3-8910",chipType==0)) {
           chipType=0;
           altered=true;
@@ -658,6 +918,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           chipType=3;
           altered=true;
         }
+        ImGui::Unindent();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("note: AY-3-8914 is not supported by the VGM format!");
         }
@@ -698,6 +959,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_SAA1099: {
       int clockSel=flags.getInt("clockSel",0);
 
+      ImGui::Indent();
       if (ImGui::RadioButton("SAM Coupé (8MHz)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -710,6 +972,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=2;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (altered) {
         e->lockSave([&]() {
@@ -733,6 +996,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       } rightClickable
 
       ImGui::Text("Model:");
+      ImGui::Indent();
       if (ImGui::RadioButton("Amiga 500 (OCS)",chipType==0)) {
         chipType=0;
         altered=true;
@@ -741,24 +1005,31 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         chipType=1;
         altered=true;
       }
+      ImGui::Unindent();
 
       ImGui::Text("Chip memory:");
+      ImGui::Indent();
       if (ImGui::RadioButton("2MB (ECS/AGA max)",chipMem==21)) {
         chipMem=21;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton("1MB",chipMem==20)) {
         chipMem=20;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton("512KB (OCS max)",chipMem==19)) {
         chipMem=19;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton("256KB",chipMem==18)) {
         chipMem=18;
         altered=true;
+        mustRender=true;
       }
+      ImGui::Unindent();
 
 
       if (ImGui::Checkbox("PAL",&clockSel)) {
@@ -784,6 +1055,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int mixingType=flags.getInt("mixingType",0);
 
       ImGui::Text("Mixing mode:");
+      ImGui::Indent();
       if (ImGui::RadioButton("Mono",mixingType==0)) {
         mixingType=0;
         altered=true;
@@ -796,6 +1068,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         mixingType=2;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (ImGui::Checkbox("PAL",&clockSel)) {
         altered=true;
@@ -812,8 +1085,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_PCSPKR: {
       int clockSel=flags.getInt("clockSel",0);
       int speakerType=flags.getInt("speakerType",0);
+      bool resetPhase=flags.getBool("resetPhase",false);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("1.19MHz (PC)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -826,8 +1101,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=2;
         altered=true;
       }
+      ImGui::Unindent();
 
       ImGui::Text("Speaker type:");
+      ImGui::Indent();
       if (ImGui::RadioButton("Unfiltered",speakerType==0)) {
         speakerType=0;
         altered=true;
@@ -844,11 +1121,17 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         speakerType=3;
         altered=true;
       }
+      ImGui::Unindent();
+
+      if (ImGui::Checkbox("Reset phase on frequency change",&resetPhase)) {
+        altered=true;
+      }
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("speakerType",speakerType);
+          flags.set("resetPhase",resetPhase);
         });
       }
       break;
@@ -885,8 +1168,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_X1_010: {
       int clockSel=flags.getInt("clockSel",0);
       bool stereo=flags.getBool("stereo",false);
+      bool isBanked=flags.getBool("isBanked",false);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("16MHz (Seta 1)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -899,8 +1184,13 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=2;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (ImGui::Checkbox("Stereo",&stereo)) {
+        altered=true;
+      }
+
+      if (ImGui::Checkbox("Bankswitched (Seta 2)",&isBanked)) {
         altered=true;
       }
 
@@ -908,6 +1198,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("stereo",stereo);
+          flags.set("isBanked",isBanked);
         });
       }
       break;
@@ -916,8 +1207,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
       int channels=flags.getInt("channels",0)+1;
       bool multiplex=flags.getBool("multiplex",false);
+      bool lenCompensate=flags.getBool("lenCompensate",false);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("NTSC (1.79MHz)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -930,6 +1223,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=2;
         altered=true;
       }
+      ImGui::Unindent();
       ImGui::Text("Initial channel limit:");
       if (CWSliderInt("##N163_InitialChannelLimit",&channels,1,8)) {
         if (channels<1) channels=1;
@@ -939,12 +1233,16 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (ImGui::Checkbox("Disable hissing",&multiplex)) {
         altered=true;
       }
+      if (ImGui::Checkbox("Scale frequency to wave length",&lenCompensate)) {
+        altered=true;
+      }
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("channels",channels-1);
           flags.set("multiplex",multiplex);
+          flags.set("lenCompensate",lenCompensate);
         });
       }
       break;
@@ -986,6 +1284,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int fmVol=flags.getInt("fmVol",256);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -1010,7 +1309,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=5;
         altered=true;
       }
+      ImGui::Unindent();
       ImGui::Text("Output rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("FM: clock / 72, SSG: clock / 16",prescale==0)) {
         prescale=0;
         altered=true;
@@ -1023,6 +1324,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         prescale=2;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (CWSliderInt("SSG Volume",&ssgVol,0,256)) {
         if (ssgVol<0) ssgVol=0;
@@ -1068,6 +1370,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int fmVol=flags.getInt("fmVol",256);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("8MHz (Arcade)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -1076,7 +1379,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=1;
         altered=true;
       }
+      ImGui::Unindent();
       ImGui::Text("Output rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("FM: clock / 144, SSG: clock / 32",prescale==0)) {
         prescale=0;
         altered=true;
@@ -1089,6 +1394,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         prescale=2;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (CWSliderInt("SSG Volume",&ssgVol,0,256)) {
         if (ssgVol<0) ssgVol=0;
@@ -1128,6 +1434,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int chipType=flags.getInt("chipType",0);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("8MHz (FM Towns)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -1140,7 +1447,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=2;
         altered=true;
       }
+      ImGui::Unindent();
       ImGui::Text("Chip type:");
+      ImGui::Indent();
       if (ImGui::RadioButton("RF5C68 (10-bit output)",chipType==0)) {
         chipType=0;
         altered=true;
@@ -1149,6 +1458,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         chipType=1;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (altered) {
         e->lockSave([&]() {
@@ -1162,6 +1472,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("4MHz",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -1178,6 +1489,65 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=3;
         altered=true;
       }
+      ImGui::Unindent();
+      
+      int chipClock=flags.getInt("customClock",0);
+      if (!chipClock) {
+        switch (clockSel) {
+          case 0:
+            chipClock=4000000;
+            break;
+          case 1:
+            chipClock=4096000;
+            break;
+          case 2:
+            chipClock=8000000;
+            break;
+          case 3:
+            chipClock=8192000;
+            break;
+        }
+      }
+
+      ImGui::Text("Sample rate table:");
+      if (ImGui::BeginTable("6258Rate",3)) {
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        ImGui::TableNextColumn();
+        ImGui::Text("divider \\ clock");
+        ImGui::TableNextColumn();
+        ImGui::Text("full");
+        ImGui::TableNextColumn();
+        ImGui::Text("half");
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("/512");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/512);
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/1024);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("/768");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/768);
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/1536);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("/1024");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/1024);
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/2048);
+
+        ImGui::EndTable();
+      }
 
       if (altered) {
         e->lockSave([&]() {
@@ -1189,38 +1559,44 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_MSM6295: {
       int clockSel=flags.getInt("clockSel",0);
       bool rateSel=flags.getBool("rateSel",false);
+      bool isBanked=flags.getBool("isBanked",false);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("0.875MHz",clockSel==10)) {
+        clockSel=10;
+        altered=true;
+      }
+      if (ImGui::RadioButton("0.89MHz",clockSel==7)) {
+        clockSel=7;
+        altered=true;
+      }
+      if (ImGui::RadioButton("0.9375MHz",clockSel==11)) {
+        clockSel=11;
+        altered=true;
+      }
       if (ImGui::RadioButton("1MHz",clockSel==0)) {
         clockSel=0;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.056MHz",clockSel==1)) {
-        clockSel=1;
-        altered=true;
-      }
-      if (ImGui::RadioButton("4MHz",clockSel==2)) {
-        clockSel=2;
-        altered=true;
-      }
-      if (ImGui::RadioButton("4.224MHz",clockSel==3)) {
-        clockSel=3;
-        altered=true;
-      }
-      if (ImGui::RadioButton("3.58MHz",clockSel==4)) {
-        clockSel=4;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.79MHz",clockSel==5)) {
-        clockSel=5;
         altered=true;
       }
       if (ImGui::RadioButton("1.02MHz",clockSel==6)) {
         clockSel=6;
         altered=true;
       }
-      if (ImGui::RadioButton("0.89MHz",clockSel==7)) {
-        clockSel=7;
+      if (ImGui::RadioButton("1.056MHz",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.193MHz (Atari)",clockSel==14)) {
+        clockSel=14;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.5MHz",clockSel==12)) {
+        clockSel=12;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.79MHz",clockSel==5)) {
+        clockSel=5;
         altered=true;
       }
       if (ImGui::RadioButton("2MHz",clockSel==8)) {
@@ -1231,27 +1607,29 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=9;
         altered=true;
       }
-      if (ImGui::RadioButton("0.875MHz",clockSel==10)) {
-        clockSel=10;
-        altered=true;
-      }
-      if (ImGui::RadioButton("0.9375MHz",clockSel==11)) {
-        clockSel=11;
-        altered=true;
-      }
-      if (ImGui::RadioButton("1.5MHz",clockSel==12)) {
-        clockSel=12;
-        altered=true;
-      }
       if (ImGui::RadioButton("3MHz",clockSel==13)) {
         clockSel=13;
         altered=true;
       }
-      if (ImGui::RadioButton("1.193MHz (Atari)",clockSel==14)) {
-        clockSel=14;
+      if (ImGui::RadioButton("3.2MHz",clockSel==15)) {
+        clockSel=15;
         altered=true;
       }
+      if (ImGui::RadioButton("3.58MHz",clockSel==4)) {
+        clockSel=4;
+        altered=true;
+      }
+      if (ImGui::RadioButton("4MHz",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton("4.224MHz",clockSel==3)) {
+        clockSel=3;
+        altered=true;
+      }
+      ImGui::Unindent();
       ImGui::Text("Output rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("clock / 132",rateSel==0)) {
         rateSel=false;
         altered=true;
@@ -1260,11 +1638,17 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         rateSel=true;
         altered=true;
       }
+      ImGui::Unindent();
+
+      if (ImGui::Checkbox("Bankswitched (NMK112)",&isBanked)) {
+        altered=true;
+      }
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("rateSel",rateSel);
+          flags.set("isBanked",isBanked);
         });
       }
       break;
@@ -1274,6 +1658,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("1.79MHz (NTSC/MSX)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -1290,11 +1675,25 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=3;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
         });
+      }
+      break;
+    }
+    case DIV_SYSTEM_LYNX: {
+      bool tuned=flags.getBool("tuned",false);
+      if (ImGui::Checkbox("Consistent frequency across all duties",&tuned)) {
+        altered=true;
+        e->lockSave([&]() {
+          flags.set("tuned",tuned);
+        });
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("note: only works for an initial LFSR value of 0!");
       }
       break;
     }
@@ -1307,6 +1706,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -1331,6 +1731,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=5;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (altered) {
         e->lockSave([&]() {
@@ -1342,9 +1743,11 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_OPL3:
     case DIV_SYSTEM_OPL3_DRUMS: {
       int clockSel=flags.getInt("clockSel",0);
+      int chipType=flags.getInt("chipType",0);
       bool compatPan=flags.getBool("compatPan",false);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("14.32MHz (NTSC)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -1365,6 +1768,20 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=4;
         altered=true;
       }
+      if (ImGui::RadioButton("33.8688MHz (OPL3-L)",clockSel==5)) {
+        clockSel=5;
+        altered=true;
+      }
+      ImGui::Text("Chip type:");
+      if (ImGui::RadioButton("OPL3 (YMF262)",chipType==0)) {
+        chipType=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("OPL3-L (YMF289B)",chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
+      ImGui::Unindent();
 
       if (ImGui::Checkbox("Compatible panning (0800)",&compatPan)) {
         altered=true;
@@ -1373,6 +1790,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("chipType",chipType);
           flags.set("compatPan",compatPan);
         });
       }
@@ -1382,6 +1800,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
 
       ImGui::Text("Clock rate:");
+      ImGui::Indent();
       if (ImGui::RadioButton("16.9344MHz",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -1406,6 +1825,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=5;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (altered) {
         e->lockSave([&]() {
@@ -1438,6 +1858,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
 
       ImGui::Text("Interpolation:");
+      ImGui::Indent();
       if (ImGui::RadioButton("None",interpolation==0)) {
         interpolation=0;
         altered=true;
@@ -1454,6 +1875,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         interpolation=3;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (altered) {
         e->lockSave([&]() {
@@ -1465,7 +1887,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
-    case DIV_SYSTEM_SNES: { // TODO: echo
+    case DIV_SYSTEM_SNES: {
       char temp[64];
       int vsL=127-(flags.getInt("volScaleL",0)&127);
       int vsR=127-(flags.getInt("volScaleR",0)&127);
@@ -1513,7 +1935,13 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           }
           altered=true;
         }
-        if (i<7) ImGui::SameLine();
+        if (i<7) {
+          if (fromMenu) {
+            ImGui::SameLine();
+          } else {
+            sameLineMaybe();
+          }
+        }
       }
 
       if (CWSliderInt("Delay##EchoDelay",&echoDelay,0,15)) {
@@ -1555,11 +1983,11 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
-      if (ImGui::InputText("##MMLWave",&mmlStringSNES)) {
+      if (ImGui::InputText("##MMLWave",&mmlStringSNES[sysPos])) {
         int actualData[256];
         int discardIt=0;
         memset(actualData,0,256*sizeof(int));
-        decodeMMLStrW(mmlStringSNES,actualData,discardIt,snesFilterHex?0:-128,snesFilterHex?255:127,snesFilterHex);
+        decodeMMLStrW(mmlStringSNES[sysPos],actualData,discardIt,snesFilterHex?0:-128,snesFilterHex?255:127,snesFilterHex);
         if (snesFilterHex) {
           for (int i=0; i<8; i++) {
             if (actualData[i]>=128) actualData[i]-=256;
@@ -1577,7 +2005,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
             actualData[i]=echoFilter[i];
           }
         }
-        encodeMMLStr(mmlStringSNES,actualData,8,-1,-1,snesFilterHex);
+        encodeMMLStr(mmlStringSNES[sysPos],actualData,8,-1,-1,snesFilterHex);
       }
 
       int filterSum=(
@@ -1684,6 +2112,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
 
       ImGui::Text("Envelope mode (channel 1-4):");
+      ImGui::Indent();
       if (ImGui::RadioButton("Capacitor (attack/decay)##EM00",groupEnv[0])) {
         groupEnv[0]=true;
         altered=true;
@@ -1692,8 +2121,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         groupEnv[0]=false;
         altered=true;
       }
+      ImGui::Unindent();
 
       ImGui::Text("Envelope mode (channel 5-8):");
+      ImGui::Indent();
       if (ImGui::RadioButton("Capacitor (attack/decay)##EM10",groupEnv[1])) {
         groupEnv[1]=true;
         altered=true;
@@ -1702,6 +2133,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         groupEnv[1]=false;
         altered=true;
       }
+      ImGui::Unindent();
 
       ImGui::Text("Global vibrato:");
 
@@ -1777,6 +2209,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       bool romMode=flags.getBool("romMode",false);
 
       ImGui::Text("Waveform storage mode:");
+      ImGui::Indent();
       if (ImGui::RadioButton("RAM",!romMode)) {
         romMode=false;
         altered=true;
@@ -1785,6 +2218,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         romMode=true;
         altered=true;
       }
+      ImGui::Unindent();
 
       if (altered) {
         e->lockSave([&]() {
@@ -1836,15 +2270,166 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }*/
+    case DIV_SYSTEM_K053260: {
+      int clockSel=flags.getInt("clockSel",0);
+
+      ImGui::Text("Clock rate:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("4MHz",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_TED: {
+      int clockSel=flags.getInt("clockSel",0);
+      bool keyPriority=flags.getBool("keyPriority",true);
+
+      ImGui::Text("Clock rate:");
+
+      ImGui::Indent();
+      if (ImGui::RadioButton("NTSC (1.79MHz)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("PAL (1.77MHz)",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      ImGui::Text("Global parameter priority:");
+
+      ImGui::Indent();
+      if (ImGui::RadioButton("Left to right",!keyPriority)) {
+        keyPriority=false;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Last used channel",keyPriority)) {
+        keyPriority=true;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+          flags.set("keyPriority",keyPriority);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_C140: {
+      int bankType=flags.getInt("bankType",0);
+
+      ImGui::Text("Banking style:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("Namco System 2 (2MB)",bankType==0)) {
+        bankType=0;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton("Namco System 21 (4MB)",bankType==1)) {
+        bankType=1;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton("Raw (16MB; no VGM export!)",bankType==2)) {
+        bankType=2;
+        altered=true;
+        mustRender=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("bankType",bankType);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_VBOY: {
+      bool romMode=flags.getBool("romMode",false);
+
+      ImGui::Text("Waveform storage mode:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("Dynamic (unconfirmed)",!romMode)) {
+        romMode=false;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Static (up to 5 waves)",romMode)) {
+        romMode=true;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("romMode",romMode);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_SFX_BEEPER_QUADTONE: {
+      bool sysPal=flags.getInt("clockSel",0);
+      bool noHiss=flags.getBool("noHiss",false);
+      if (ImGui::Checkbox("PAL",&sysPal)) {
+        altered=true;
+      }
+      if (ImGui::Checkbox("Disable hissing",&noHiss)) {
+        altered=true;
+      }
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",(int)sysPal);
+          flags.set("noHiss",noHiss);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_NDS: {
+      int chipType=flags.getInt("chipType",0);
+
+      ImGui::Text("Model:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("DS (4MB RAM)",chipType==0)) {
+        chipType=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("DSi (16MB RAM)",chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("chipType",chipType);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
-    case DIV_SYSTEM_VBOY:
     case DIV_SYSTEM_GA20:
     case DIV_SYSTEM_PV1000:
     case DIV_SYSTEM_VERA:
+    case DIV_SYSTEM_C219:
       break;
     case DIV_SYSTEM_YMU759:
+    case DIV_SYSTEM_ESFM:
       supportsCustomRate=false;
       ImGui::Text("nothing to configure");
       break;
@@ -1877,11 +2462,13 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       altered=true;
     }
-    if (ImGui::InputInt("Hz",&customClock)) {
+    ImGui::Indent();
+    if (ImGui::InputInt("Hz",&customClock,100,10000)) {
       if (customClock<MIN_CUSTOM_CLOCK) customClock=0;
       if (customClock>MAX_CUSTOM_CLOCK) customClock=MAX_CUSTOM_CLOCK;
       altered=true;
     }
+    ImGui::Unindent();
 
     if (altered) {
       e->lockSave([&]() {
@@ -1892,7 +2479,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
 
   if (altered) {
     if (chan>=0) {
-      e->updateSysFlags(chan,restart);
+      e->updateSysFlags(chan,restart,mustRender);
       if (e->song.autoSystem) {
         autoDetectSystem();
       }

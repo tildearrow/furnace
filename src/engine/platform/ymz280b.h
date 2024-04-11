@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 #define _YMZ280B_H
 
 #include "../dispatch.h"
-#include <queue>
 #include "sound/ymz280b.h"
 
 class DivPlatformYMZ280B: public DivDispatch {
@@ -51,6 +50,7 @@ class DivPlatformYMZ280B: public DivDispatch {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   ymz280b_device ymz280b;
+  DivMemoryComposition memCompo;
   unsigned char regPool[256];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -60,6 +60,7 @@ class DivPlatformYMZ280B: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -80,6 +81,7 @@ class DivPlatformYMZ280B: public DivDispatch {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);

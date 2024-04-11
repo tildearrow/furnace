@@ -6,18 +6,25 @@ the default layout of Furnace is depicted below.
 
 ![interface](interface1.png)
 
-primary topics:
+## general info
 
+- [UI components](components.md): read first!
+- [global keyboard shortcuts](keyboard.md)
 - [menu bar](menu-bar.md)
+
+## primary windows
+
+- [orders](order-list.md)
 - [play/edit controls](play-edit-controls.md)
 - [instrument/wavetable/sample list](asset-list.md)
 - [song information](song-info.md)
+- [effect list window](effect-list-window.md)
 - [pattern view](../3-pattern/README.md)
 - [instrument editor](../4-instrument/README.md)
 - [wavetable editor](../5-wave/README.md)
 - [sample editor](../6-sample/README.md)
 
-advanced topics:
+## advanced topics
 
 - [mixer](../8-advanced/mixer.md)
 - [grooves](../8-advanced/grooves.md)
@@ -34,8 +41,7 @@ advanced topics:
 - [log viewer](../8-advanced/log-viewer.md)
 - [statistics](../8-advanced/stats.md)
 
-other topics:
+## other topics
 
-- [UI components](components.md)
-- [global keyboard shortcuts](keyboard.md)
 - [basic mode](basic-mode.md)
+- [settings](settings.md)

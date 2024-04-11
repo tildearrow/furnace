@@ -146,7 +146,7 @@ public:
         counter_enabled(true),
         gate(false),
         resetLfsr(false),
-        envelope_counter(0xaa),
+        envelope_counter(0),
         attack(0),
         decay(0),
         sustain(0),

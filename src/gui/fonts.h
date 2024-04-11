@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,27 +23,29 @@
 #ifndef _FONTS_H
 #define _FONTS_H
 extern const unsigned int font_exo_compressed_size;
-extern const unsigned int font_exo_compressed_data[];
+extern const unsigned char font_exo_compressed_data[];
 extern const unsigned int font_liberationSans_compressed_size;
-extern const unsigned int font_liberationSans_compressed_data[];
+extern const unsigned char font_liberationSans_compressed_data[];
 extern const unsigned int font_mononoki_compressed_size;
-extern const unsigned int font_mononoki_compressed_data[];
+extern const unsigned char font_mononoki_compressed_data[];
 extern const unsigned int font_plexSans_compressed_size;
-extern const unsigned int font_plexSans_compressed_data[];
+extern const unsigned char font_plexSans_compressed_data[];
 extern const unsigned int font_plexMono_compressed_size;
-extern const unsigned int font_plexMono_compressed_data[];
+extern const unsigned char font_plexMono_compressed_data[];
 extern const unsigned int font_proggyClean_compressed_size;
-extern const unsigned int font_proggyClean_compressed_data[];
+extern const unsigned char font_proggyClean_compressed_data[];
 extern const unsigned int font_ptMono_compressed_size;
-extern const unsigned int font_ptMono_compressed_data[];
+extern const unsigned char font_ptMono_compressed_data[];
 extern const unsigned int font_unifont_compressed_size;
-extern const unsigned int font_unifont_compressed_data[];
+extern const unsigned char font_unifont_compressed_data[];
 extern const unsigned int iconFont_compressed_size;
-extern const unsigned int iconFont_compressed_data[];
+extern const unsigned char iconFont_compressed_data[];
+extern const unsigned int furIcons_compressed_size;
+extern const unsigned char furIcons_compressed_data[];
 
-extern const unsigned int* builtinFont[];
+extern const unsigned char* builtinFont[];
 extern const unsigned int builtinFontLen[];
-extern const unsigned int* builtinFontM[];
+extern const unsigned char* builtinFontM[];
 extern const unsigned int builtinFontMLen[];
 #endif
 

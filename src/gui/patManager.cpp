@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,18 +33,36 @@ void FurnaceGUI::drawPatManager() {
   unsigned char isUsed[DIV_MAX_PATTERNS];
   bool isNull[DIV_MAX_PATTERNS];
   if (ImGui::Begin("Pattern Manager",&patManagerOpen,globalWinFlags)) {
-    ImGui::Text("Global Tasks");
+    ImGui::Text("Global Tasks:");
+
+    ImGui::SameLine();
 
     if (ImGui::Button("De-duplicate patterns")) {
       e->lockEngine([this]() {
         e->curSubSong->optimizePatterns();
       });
+      MARK_MODIFIED;
     }
     ImGui::SameLine();
     if (ImGui::Button("Re-arrange patterns")) {
       e->lockEngine([this]() {
         e->curSubSong->rearrangePatterns();
       });
+      MARK_MODIFIED;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Sort orders")) {
+      e->lockEngine([this]() {
+        e->curSubSong->sortOrders();
+      });
+      MARK_MODIFIED;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Make patterns unique")) {
+      e->lockEngine([this]() {
+        e->curSubSong->makePatUnique();
+      });
+      MARK_MODIFIED;
     }
 
     if (ImGui::BeginTable("PatManTable",257,ImGuiTableFlags_ScrollX|ImGuiTableFlags_SizingFixedFit)) {
@@ -98,6 +116,7 @@ void FurnaceGUI::drawPatManager() {
               delete e->curSubSong->pat[i].data[k];
               e->curSubSong->pat[i].data[k]=NULL;
             });
+            MARK_MODIFIED;
           }
           ImGui::PopStyleColor();
         }

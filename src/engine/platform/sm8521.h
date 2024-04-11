@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #define _SM8521_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 #include "../waveSynth.h"
 #include "sound/sm8521.h"
 
@@ -46,13 +46,15 @@ class DivPlatformSM8521: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
   struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
+    unsigned short addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,128> writes;
 
   bool antiClickEnabled;
+  int coreQuality;
   struct sm8521_t sm8521;
   unsigned char regPool[256];
   void updateWave(int ch);
@@ -78,6 +80,7 @@ class DivPlatformSM8521: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSM8521();

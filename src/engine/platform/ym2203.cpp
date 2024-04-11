@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -165,8 +165,8 @@ void DivPlatformYM2203::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
-  static int os;
-  static short ignored[2];
+  thread_local int os;
+  thread_local short ignored[2];
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
@@ -231,7 +231,7 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
     buf[0][h]=os;
     
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i]<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm_nuked.ch_out[i]<<1,-32768,32767);
     }
 
     for (int i=3; i<6; i++) {
@@ -241,7 +241,7 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
 }
 
 void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
-  static int os;
+  thread_local int os;
 
   ymfm::ym2203::fm_engine* fme=fm->debug_fm_engine();
 
@@ -282,7 +282,8 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
 
     
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
+      int out=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(out,-32768,32767);
     }
 
     for (int i=3; i<6; i++) {
@@ -402,7 +403,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
@@ -670,6 +671,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_EXTCH: {
       if (extSys) {
+        if (extMode==(bool)c.value) break;
         extMode=c.value;
         immWrite(0x27,extMode?0x40:0);
       }
@@ -859,8 +861,8 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       if (c.chan>2) return 15;
@@ -974,7 +976,7 @@ void DivPlatformYM2203::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformYM2203::reset() {
-  while (!writes.empty()) writes.pop_front();
+  writes.clear();
   memset(regPool,0,256);
   if (dumpWrites) {
     addWrite(0xffffffff,0);

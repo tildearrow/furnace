@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -184,7 +184,9 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
+        chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
@@ -243,7 +245,7 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -266,7 +268,7 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -291,8 +293,8 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -320,6 +322,10 @@ void* DivPlatformRF5C68::getChanState(int ch) {
 
 DivMacroInt* DivPlatformRF5C68::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformRF5C68::getPan(int ch) {
+  return ((chan[ch].panning&15)<<8)|((chan[ch].panning&0xf0)>>4);
 }
 
 DivDispatchOscBuffer* DivPlatformRF5C68::getOscBuffer(int ch) {
@@ -351,8 +357,6 @@ void DivPlatformRF5C68::notifyInsChange(int ins) {
 }
 
 void DivPlatformRF5C68::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
-  // TODO they probably won't be added unless the samples reside in RAM
 }
 
 void DivPlatformRF5C68::notifyInsDeletion(void* ins) {
@@ -411,10 +415,18 @@ bool DivPlatformRF5C68::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformRF5C68::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformRF5C68::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOffRFC,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample Memory";
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -428,6 +440,7 @@ void DivPlatformRF5C68::renderSamples(int sysID) {
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-32,length);
     if (actualLength>0) {
       sampleOffRFC[i]=memPos;
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+32));
       for (int j=0; j<actualLength; j++) {
         // convert to signed magnitude
         signed char val=s->data8[j];
@@ -447,6 +460,9 @@ void DivPlatformRF5C68::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+
+  memCompo.used=sampleMemLen;
+  memCompo.capacity=getSampleMemCapacity(0);
 }
 
 int DivPlatformRF5C68::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

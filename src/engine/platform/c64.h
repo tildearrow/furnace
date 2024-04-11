@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,14 @@
 #define _C64_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 #include "sound/c64/sid.h"
 #include "sound/c64_fp/SID.h"
+#include "sound/c64_d/dsid.h"
+
+// TODO:
+// - ex3 (special) unify with ex4 (gate/test)
+// - ex4 (test) compatibility
 
 class DivPlatformC64: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
@@ -31,7 +36,7 @@ class DivPlatformC64: public DivDispatch {
     unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
     bool sweepChanged, filter;
-    bool resetMask, resetFilter, resetDuty, ring, sync, test;
+    bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
     Channel():
       SharedChannel<signed char>(15),
       prevFreq(65535),
@@ -48,6 +53,7 @@ class DivPlatformC64: public DivDispatch {
       resetMask(false),
       resetFilter(false),
       resetDuty(false),
+      gate(true),
       ring(false),
       sync(false),
       test(false) {}
@@ -55,24 +61,36 @@ class DivPlatformC64: public DivDispatch {
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
+  float fakeLow[3];
+  float fakeBand[3];
+  float fakeCutTable[2048];
   struct QueuedWrite {
       unsigned char addr;
       unsigned char val;
+      QueuedWrite(): addr(0), val(0) {}
       QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,128> writes;
 
   unsigned char filtControl, filtRes, vol;
   unsigned char writeOscBuf;
-  int filtCut, resetTime;
-  bool isFP;
+  unsigned char sidCore;
+  int filtCut, resetTime, initResetTime;
 
-  SID sid;
-  reSIDfp::SID sid_fp;
+  bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel, macroRace;
+  unsigned char chanOrder[3];
+  unsigned char testAD, testSR;
+
+  SID* sid;
+  reSIDfp::SID* sid_fp;
+  struct SID_chip* sid_d;
+  int coreQuality;
   unsigned char regPool[32];
   
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+
+  inline short runFakeFilter(unsigned char ch, int in);
 
   void acquire_classic(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_fp(short* bufL, short* bufR, size_t start, size_t len);
@@ -93,15 +111,18 @@ class DivPlatformC64: public DivDispatch {
     void notifyInsChange(int ins);
     bool getDCOffRequired();
     bool getWantPreNote();
+    bool isVolGlobal();
     float getPostAmp();
     DivMacroInt* getChanMacroInt(int ch);
+    DivChannelModeHints getModeHints(int chan);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void setChipModel(bool is6581);
-    void setFP(bool fp);
+    void setCore(unsigned char which);
+    void setCoreQuality(unsigned char q);
     void quit();
     ~DivPlatformC64();
 };

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 2
 
@@ -316,8 +316,8 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
@@ -363,6 +363,10 @@ void* DivPlatformSAA1099::getChanState(int ch) {
 
 DivMacroInt* DivPlatformSAA1099::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformSAA1099::getPan(int ch) {
+  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
 }
 
 DivDispatchOscBuffer* DivPlatformSAA1099::getOscBuffer(int ch) {
@@ -431,6 +435,10 @@ bool DivPlatformSAA1099::keyOffAffectsArp(int ch) {
   return true;
 }
 
+bool DivPlatformSAA1099::getLegacyAlwaysSetVolume() {
+  return false;
+}
+
 void DivPlatformSAA1099::notifyInsDeletion(void* ins) {
   for (int i=0; i<6; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
@@ -447,7 +455,7 @@ void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
     chipClock=8000000;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/32;
+  rate=chipClock/coreQuality;
 
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
@@ -463,6 +471,32 @@ void DivPlatformSAA1099::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformSAA1099::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+void DivPlatformSAA1099::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=256;
+      break;
+    case 1:
+      coreQuality=128;
+      break;
+    case 2:
+      coreQuality=64;
+      break;
+    case 3:
+      coreQuality=32;
+      break;
+    case 4:
+      coreQuality=8;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=32;
+      break;
+  }
 }
 
 int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

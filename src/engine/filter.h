@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ class DivFilterTables {
     static float* sincTable;
     static float* sincTable8;
     static float* sincIntegralTable;
+    static float* sincIntegralSmallTable;
 
     /**
      * get a 1024x4 cubic spline table.
@@ -47,4 +48,10 @@ class DivFilterTables {
      * @return the table.
      */
     static float* getSincIntegralTable();
+
+    /**
+     * get a 32x8 one-side sine-windowed sinc integral table.
+     * @return the table.
+     */
+    static float* getSincIntegralSmallTable();
 };

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
 
-SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
+SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop, bool optimize) {
   int VERA=-1;
   int YM=-1;
   int IGNORED=0;
@@ -52,7 +52,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
         break;
       default:
         IGNORED++;
-        logD("Ignoring chip %d systemID %d",i,song.system[i]);
+        logD("Ignoring chip %d systemID %d",i,(int)song.system[i]);
         break;
     }
   }
@@ -94,6 +94,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   playSub(false);
   //size_t tickCount=0;
   bool done=false;
+  bool loopNow=false;
   int loopPos=-1;
   int fracWait=0; // accumulates fractional ticks
   if (VERA>=0) disCont[VERA].dispatch->toggleRegisterDump(true);
@@ -106,12 +107,34 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
     // TODO: incorporate the Furnace meta-command for init data and filter
     //       out writes to otherwise-unused channels.
   }
+  // Indicate the song's tuning as a sync meta-event
+  // specified in terms of how many 1/256th semitones
+  // the song is offset from standard A-440 tuning.
+  // This is mainly to benefit visualizations in players
+  // for non-standard tunings so that they can avoid
+  // displaying the entire song held in pitch bend.
+  // Tunings offsets that exceed a half semitone
+  // will simply be represented in a different key
+  // by nature of overflowing the signed char value
+  signed char tuningoffset=(signed char)(round(3072*(log(song.tuning/440.0)/log(2))))&0xff;
+  zsm.writeSync(0x01,tuningoffset);
+  // Set optimize flag, which mainly buffers PSG writes
+  // whenever the channel is silent
+  zsm.setOptimize(optimize);
 
   while (!done) {
     if (loopPos==-1) {
-      if (loopOrder==curOrder && loopRow==curRow && ticks==1 && loop) {
-        loopPos=zsm.getoffset();
-        zsm.setLoopPoint();
+      if (loopOrder==curOrder && loopRow==curRow && loop)
+        loopNow=true;
+      if (loopNow) {
+        // If Virtual Tempo is in use, our exact loop point
+        // might be skipped due to quantization error.
+        // If this happens, the tick immediately following is our loop point.
+        if (ticks==1 || !(loopOrder==curOrder && loopRow==curRow)) {
+          loopPos=zsm.getoffset();
+          zsm.setLoopPoint();
+          loopNow=false;
+        }
       }
     }
     if (nextTick() || !playing) {
@@ -150,7 +173,10 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
         logD("zsmOps: Writing %d messages to chip %d",writes.size(),i);
       for (DivRegWrite& write: writes) {
         if (i==YM) zsm.writeYM(write.addr&0xff,write.val);
-        if (i==VERA) zsm.writePSG(write.addr&0xff,write.val);
+        if (i==VERA) {
+          if (done && write.addr>=64) continue; // don't process any PCM or sync events on the loop lookahead
+          zsm.writePSG(write.addr&0xff,write.val);
+        }
       }
       writes.clear();
     }
@@ -160,7 +186,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
     fracWait+=cycles&MASTER_CLOCK_MASK;
     totalWait+=fracWait>>MASTER_CLOCK_PREC;
     fracWait&=MASTER_CLOCK_MASK;
-    if (totalWait>0) {
+    if (totalWait>0 && !done) {
       zsm.tick(totalWait);
       //tickCount+=totalWait;
     }

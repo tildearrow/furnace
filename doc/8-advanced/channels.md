@@ -1,11 +1,12 @@
 # channels
 
-The "Channels" dialog allows manipulation of the song's channels.
+the "Channels" dialog allows manipulation of the song's channels.
 
 ![channels dialog](channels.png)
 
-Each channel has the following options:
-- **Visible**: uncheck the box to hide the channel from view. Pattern data will be kept.
-- Crossed-arrows button: Click and drag to rearrange pattern data throughout the song. _Note:_ This does _not_ move channels around within a chip! It only affects pattern data.
-- **Name** is the name displayed at the top of each channel in the tracker view.
-- To the right of that is the abbreviation used above each channel in the order view.
+each channel has the following options:
+- **Visible**: uncheck the box to hide the channel from the pattern view. pattern data will be kept.
+- crossed-arrows button: click and drag to rearrange pattern data throughout the song.
+  - note: this does **not** move channels around! it only moves the channel's pattern data.
+- **Name**: the name displayed at the top of each channel in the pattern view.
+- the next setting is "short name", which is displayed in the orders view and/or when a channel is collapsed.

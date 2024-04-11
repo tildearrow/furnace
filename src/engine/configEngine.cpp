@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,9 +61,11 @@ void DivEngine::initConfDir() {
     return;
   }
 #else
-  // TODO this should check XDG_CONFIG_HOME first
+  char* xdgConfigHome=getenv("XDG_CONFIG_HOME");
   char* home=getenv("HOME");
-  if (home==NULL) {
+  if (xdgConfigHome) {
+    configPath=xdgConfigHome;
+  } else if (home==NULL) {
     int uid=getuid();
     struct passwd* entry=getpwuid(uid);
     if (entry==NULL) {
@@ -79,8 +81,9 @@ void DivEngine::initConfDir() {
 #ifdef __APPLE__
   configPath+="/Library/Application Support";
 #else
-  // FIXME this doesn't honour XDG_CONFIG_HOME *at all*
-  configPath+="/.config";
+  if (xdgConfigHome==NULL) {
+    configPath+="/.config";
+  }
 #endif // __APPLE__
 #endif // __HAIKU__
 #ifdef __APPLE__
@@ -164,4 +167,8 @@ void DivEngine::setConf(String key, String value) {
 
 bool DivEngine::hasConf(String key) {
   return conf.has(key);
+}
+
+DivConfig& DivEngine::getConfObject() {
+  return conf;
 }

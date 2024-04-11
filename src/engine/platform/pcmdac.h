@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 #define _PCM_DAC_H
 
 #include "../dispatch.h"
-#include <queue>
 #include "../waveSynth.h"
 
 class DivPlatformPCMDAC: public DivDispatch {
@@ -79,6 +78,7 @@ class DivPlatformPCMDAC: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);

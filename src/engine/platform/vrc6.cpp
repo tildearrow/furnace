@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include <cstddef>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(0x9000+(c<<12)+(a&3),v)
 
 const char* regCheatSheetVRC6[]={
@@ -236,13 +236,20 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
           chan[c.chan].pcm=true;
         } else if (chan[c.chan].furnaceDac) {
           chan[c.chan].pcm=false;
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
         }
         if (chan[c.chan].pcm) {
           if (skipRegisterWrites) break;
           if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+              chan[c.chan].sampleNote=c.value;
               c.value=ins->amiga.getFreq(c.value);
+              chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+            } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+              chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+              c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
             }
             if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
               chan[c.chan].dacSample=-1;
@@ -270,6 +277,8 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
             //chan[c.chan].keyOn=true;
             chan[c.chan].furnaceDac=true;
           } else {
+            chan[c.chan].sampleNote=DIV_NOTE_NULL;
+            chan[c.chan].sampleNoteDelta=0;
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
             }
@@ -314,6 +323,8 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       chan[c.chan].dacSample=-1;
       if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
       chan[c.chan].pcm=false;
+      chan[c.chan].sampleNote=DIV_NOTE_NULL;
+      chan[c.chan].sampleNoteDelta=0;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
@@ -352,7 +363,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -382,6 +393,10 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_MODE:
       if (c.chan!=2) { // pulse
         chan[c.chan].pcm=c.value;
+        if (!chan[c.chan].pcm) {
+          chan[c.chan].sampleNote=DIV_NOTE_NULL;
+          chan[c.chan].sampleNoteDelta=0;
+        }
       }
       break;
     case DIV_CMD_SAMPLE_BANK:
@@ -391,7 +406,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -412,8 +427,8 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;

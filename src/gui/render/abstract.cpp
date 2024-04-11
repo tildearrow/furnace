@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,14 @@ ImTextureID FurnaceGUIRender::getTextureID(FurnaceGUITexture* which) {
   return NULL;
 }
 
+float FurnaceGUIRender::getTextureU(FurnaceGUITexture* which) {
+  return 1.0;
+}
+
+float FurnaceGUIRender::getTextureV(FurnaceGUITexture* which) {
+  return 1.0;
+}
+
 bool FurnaceGUIRender::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   return false;
 }
@@ -35,7 +43,7 @@ bool FurnaceGUIRender::updateTexture(FurnaceGUITexture* which, void* data, int p
   return false;
 }
 
-FurnaceGUITexture* FurnaceGUIRender::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRender::createTexture(bool dynamic, int width, int height, bool interpolate) {
   return NULL;
 }
 
@@ -59,6 +67,10 @@ bool FurnaceGUIRender::newFrame() {
   return true;
 }
 
+bool FurnaceGUIRender::canVSync() {
+  return true;
+}
+
 void FurnaceGUIRender::createFontsTexture() {
 }
 
@@ -71,6 +83,9 @@ void FurnaceGUIRender::renderGUI() {
 void FurnaceGUIRender::wipe(float alpha) {
 }
 
+void FurnaceGUIRender::drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth) {
+}
+
 void FurnaceGUIRender::present() {
 }
 
@@ -78,14 +93,45 @@ bool FurnaceGUIRender::getOutputSize(int& w, int& h) {
   return false;
 }
 
+bool FurnaceGUIRender::supportsDrawOsc() {
+  return false;
+}
+
 int FurnaceGUIRender::getWindowFlags() {
   return 0;
+}
+
+int FurnaceGUIRender::getMaxTextureWidth() {
+  return 0;
+}
+
+int FurnaceGUIRender::getMaxTextureHeight() {
+  return 0;
+}
+
+const char* FurnaceGUIRender::getBackendName() {
+  return "Dummy";
+}
+
+const char* FurnaceGUIRender::getVendorName() {
+  return "N/A";
+}
+
+const char* FurnaceGUIRender::getDeviceName() {
+  return "N/A";
+}
+
+const char* FurnaceGUIRender::getAPIVersion() {
+  return "N/A";
+}
+
+void FurnaceGUIRender::setSwapInterval(int swapInterval) {
 }
 
 void FurnaceGUIRender::preInit() {
 }
 
-bool FurnaceGUIRender::init(SDL_Window* win) {
+bool FurnaceGUIRender::init(SDL_Window* win, int swapInterval) {
   return false;
 }
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ const char** DivPlatformArcade::getRegisterSheet() {
 }
 
 void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
-  static int o[2];
+  thread_local int o[2];
 
   for (size_t h=0; h<len; h++) {
     for (int i=0; i<8; i++) {
@@ -92,7 +92,7 @@ void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
 }
 
 void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
-  static int os[2];
+  thread_local int os[2];
 
   ymfm::ym2151::fm_engine* fme=fm_ymfm->debug_engine();
 
@@ -175,7 +175,7 @@ void DivPlatformArcade::tick(bool sysTick) {
 
     if (chan[i].std.duty.had) {
       if (chan[i].std.duty.val>0) {
-        rWrite(0x0f,0x80|(0x20-chan[i].std.duty.val));
+        rWrite(0x0f,0x80|(chan[i].std.duty.val-1));
       } else {
         rWrite(0x0f,0);
       }
@@ -197,10 +197,10 @@ void DivPlatformArcade::tick(bool sysTick) {
 
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
-        chan[i].pitch2+=chan[i].std.pitch.val;
+        chan[i].pitch2+=chan[i].std.pitch.val*(brokenPitch?2:1);
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
       } else {
-        chan[i].pitch2=chan[i].std.pitch.val;
+        chan[i].pitch2=chan[i].std.pitch.val*(brokenPitch?2:1);
       }
       chan[i].freqChanged=true;
     }
@@ -299,7 +299,7 @@ void DivPlatformArcade::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
       }
       if (m.tl.had) {
-        op.tl=127-m.tl.val;
+        op.tl=m.tl.val;
         if (!op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else if (KVS(i,j)) {
@@ -354,18 +354,18 @@ void DivPlatformArcade::tick(bool sysTick) {
 
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64+chan[i].pitch2;
+      chan[i].freq=chan[i].baseFreq+chan[i].pitch-128+chan[i].pitch2;
       if (!parent->song.oldArpStrategy) {
         if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<6)+(chan[i].pitch>>1)-64+chan[i].pitch2;
+          chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+chan[i].pitch2;
         } else {
-          chan[i].freq+=chan[i].arpOff<<6;
+          chan[i].freq+=chan[i].arpOff<<7;
         }
       }
       if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>=(95<<6)) chan[i].freq=(95<<6)-1;
-      immWrite(i+0x28,hScale(chan[i].freq>>6));
-      immWrite(i+0x30,chan[i].freq<<2);
+      if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
+      immWrite(i+0x28,hScale(chan[i].freq>>7));
+      immWrite(i+0x30,((chan[i].freq<<1)&0xfc));
       hardResetElapsed+=2;
       chan[i].freqChanged=false;
     }
@@ -534,13 +534,13 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        newFreq=chan[c.chan].baseFreq+c.value;
+        newFreq=chan[c.chan].baseFreq+c.value*(brokenPitch?2:1);
         if (newFreq>=destFreq) {
           newFreq=destFreq;
           return2=true;
         }
       } else {
-        newFreq=chan[c.chan].baseFreq-c.value;
+        newFreq=chan[c.chan].baseFreq-c.value*(brokenPitch?2:1);
         if (newFreq<=destFreq) {
           newFreq=destFreq;
           return2=true;
@@ -560,7 +560,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         commitState(c.chan,ins);
         chan[c.chan].insChanged=false;
       }
-      chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
+      chan[c.chan].baseFreq=NOTE_LINEAR(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -768,9 +768,9 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       if (c.chan!=7) break;
       if (c.value) {
         if (c.value>0x1f) {
-          rWrite(0x0f,0x80);
+          rWrite(0x0f,0x80|0x1f);
         } else {
-          rWrite(0x0f,0x80|(0x1f-c.value));
+          rWrite(0x0f,0x80|(c.value-1));
         }
       } else {
         rWrite(0x0f,0);
@@ -783,8 +783,8 @@ int DivPlatformArcade::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 0;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
@@ -857,6 +857,10 @@ DivMacroInt* DivPlatformArcade::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+unsigned short DivPlatformArcade::getPan(int ch) {
+  return (chan[ch].chVolL<<8)|(chan[ch].chVolR);
+}
+
 DivDispatchOscBuffer* DivPlatformArcade::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -878,7 +882,7 @@ void DivPlatformArcade::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformArcade::reset() {
-  while (!writes.empty()) writes.pop_front();
+  writes.clear();
   memset(regPool,0,256);
   if (useYMFM) {
     fm_ymfm->reset();
@@ -928,7 +932,9 @@ void DivPlatformArcade::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
 
-  baseFreqOff=round(768.0*(log((COLOR_NTSC/(double)chipClock))/log(2.0)));
+  baseFreqOff=round(1536.0*(log((COLOR_NTSC/(double)chipClock))/log(2.0)));
+
+  brokenPitch=flags.getBool("brokenPitch",false);
 
   rate=chipClock/64;
   for (int i=0; i<8; i++) {

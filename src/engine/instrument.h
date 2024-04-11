@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "safeWriter.h"
 #include "dataErrors.h"
 #include "../ta-utils.h"
-#include <vector>
+#include "../pch.h"
 
 struct DivSong;
 
@@ -80,8 +80,66 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_POKEMINI=47,
   DIV_INS_SM8521=48,
   DIV_INS_PV1000=49,
+  DIV_INS_K053260=50,
+  // DIV_INS_YMF292=51,
+  DIV_INS_TED=52,
+  DIV_INS_C140=53,
+  DIV_INS_C219=54,
+  DIV_INS_ESFM=55,
+  DIV_INS_POWERNOISE=56,
+  DIV_INS_POWERNOISE_SLOPE=57,
+  DIV_INS_DAVE=58,
+  DIV_INS_NDS=59,
+  DIV_INS_GBA_DMA=60,
+  DIV_INS_GBA_MINMOD=61,
   DIV_INS_MAX,
   DIV_INS_NULL
+};
+
+enum DivMacroType: unsigned char {
+  DIV_MACRO_VOL=0,
+  DIV_MACRO_ARP,
+  DIV_MACRO_DUTY,
+  DIV_MACRO_WAVE,
+  DIV_MACRO_PITCH,
+  DIV_MACRO_EX1,
+  DIV_MACRO_EX2,
+  DIV_MACRO_EX3,
+  DIV_MACRO_ALG,
+  DIV_MACRO_FB,
+  DIV_MACRO_FMS,
+  DIV_MACRO_AMS,
+  DIV_MACRO_PAN_LEFT,
+  DIV_MACRO_PAN_RIGHT,
+  DIV_MACRO_PHASE_RESET,
+  DIV_MACRO_EX4,
+  DIV_MACRO_EX5,
+  DIV_MACRO_EX6,
+  DIV_MACRO_EX7,
+  DIV_MACRO_EX8
+};
+
+enum DivMacroTypeOp: unsigned char {
+  DIV_MACRO_OP_AM=32,
+  DIV_MACRO_OP_AR,
+  DIV_MACRO_OP_DR,
+  DIV_MACRO_OP_MULT,
+  DIV_MACRO_OP_RR,
+  DIV_MACRO_OP_SL,
+  DIV_MACRO_OP_TL,
+  DIV_MACRO_OP_DT2,
+  DIV_MACRO_OP_RS,
+  DIV_MACRO_OP_DT,
+  DIV_MACRO_OP_D2R,
+  DIV_MACRO_OP_SSG,
+  DIV_MACRO_OP_DAM,
+  DIV_MACRO_OP_DVB,
+  DIV_MACRO_OP_EGT,
+  DIV_MACRO_OP_KSL,
+  DIV_MACRO_OP_SUS,
+  DIV_MACRO_OP_VIB,
+  DIV_MACRO_OP_WS,
+  DIV_MACRO_OP_KSR,
 };
 
 // FM operator structure:
@@ -193,19 +251,20 @@ struct DivInstrumentFM {
 
 // this is getting out of hand
 struct DivInstrumentMacro {
-  String name;
   int val[256];
   unsigned int mode;
   unsigned char open;
   unsigned char len, delay, speed, loop, rel;
+  // 0-31: normal
+  // 32+: operator (top 3 bits select operator, starting from 1)
+  unsigned char macroType;
   
   // the following variables are used by the GUI and not saved in the file
   int vScroll, vZoom;
   int typeMemory[16];
   unsigned char lenMemory;
 
-  explicit DivInstrumentMacro(const String& n, bool initOpen=false):
-    name(n),
+  explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
     mode(0),
     open(initOpen),
     len(0),
@@ -213,6 +272,7 @@ struct DivInstrumentMacro {
     speed(1),
     loop(255),
     rel(255),
+    macroType(initType),
     vScroll(0),
     vZoom(-1),
     lenMemory(0) {
@@ -266,38 +326,65 @@ struct DivInstrumentSTD {
     DivInstrumentMacro wsMacro;
     DivInstrumentMacro ksrMacro;
     OpMacro():
-      amMacro("am"), arMacro("ar"), drMacro("dr"), multMacro("mult"),
-      rrMacro("rr"), slMacro("sl"), tlMacro("tl",true), dt2Macro("dt2"),
-      rsMacro("rs"), dtMacro("dt"), d2rMacro("d2r"), ssgMacro("ssg"),
-      damMacro("dam"), dvbMacro("dvb"), egtMacro("egt"), kslMacro("ksl"),
-      susMacro("sus"), vibMacro("vib"), wsMacro("ws"), ksrMacro("ksr") {}
+      amMacro(DIV_MACRO_OP_AM), arMacro(DIV_MACRO_OP_AR), drMacro(DIV_MACRO_OP_DR), multMacro(DIV_MACRO_OP_MULT),
+      rrMacro(DIV_MACRO_OP_RR), slMacro(DIV_MACRO_OP_SL), tlMacro(DIV_MACRO_OP_TL,true), dt2Macro(DIV_MACRO_OP_DT2),
+      rsMacro(DIV_MACRO_OP_RS), dtMacro(DIV_MACRO_OP_DT), d2rMacro(DIV_MACRO_OP_D2R), ssgMacro(DIV_MACRO_OP_SSG),
+      damMacro(DIV_MACRO_OP_DAM), dvbMacro(DIV_MACRO_OP_DVB), egtMacro(DIV_MACRO_OP_EGT), kslMacro(DIV_MACRO_OP_KSL),
+      susMacro(DIV_MACRO_OP_SUS), vibMacro(DIV_MACRO_OP_VIB), wsMacro(DIV_MACRO_OP_WS), ksrMacro(DIV_MACRO_OP_KSR) {}
   } opMacros[4];
+
+  DivInstrumentMacro* macroByType(DivMacroType type);
+
   DivInstrumentSTD():
-    volMacro("vol",true),
-    arpMacro("arp"),
-    dutyMacro("duty"),
-    waveMacro("wave"),
-    pitchMacro("pitch"),
-    ex1Macro("ex1"),
-    ex2Macro("ex2"),
-    ex3Macro("ex3"),
-    algMacro("alg"),
-    fbMacro("fb"),
-    fmsMacro("fms"),
-    amsMacro("ams"),
-    panLMacro("panL"),
-    panRMacro("panR"),
-    phaseResetMacro("phaseReset"),
-    ex4Macro("ex4"),
-    ex5Macro("ex5"),
-    ex6Macro("ex6"), 
-    ex7Macro("ex7"),
-    ex8Macro("ex8") {}
+    volMacro(DIV_MACRO_VOL,true),
+    arpMacro(DIV_MACRO_ARP),
+    dutyMacro(DIV_MACRO_DUTY),
+    waveMacro(DIV_MACRO_WAVE),
+    pitchMacro(DIV_MACRO_PITCH),
+    ex1Macro(DIV_MACRO_EX1),
+    ex2Macro(DIV_MACRO_EX2),
+    ex3Macro(DIV_MACRO_EX3),
+    algMacro(DIV_MACRO_ALG),
+    fbMacro(DIV_MACRO_FB),
+    fmsMacro(DIV_MACRO_FMS),
+    amsMacro(DIV_MACRO_AMS),
+    panLMacro(DIV_MACRO_PAN_LEFT),
+    panRMacro(DIV_MACRO_PAN_RIGHT),
+    phaseResetMacro(DIV_MACRO_PHASE_RESET),
+    ex4Macro(DIV_MACRO_EX4),
+    ex5Macro(DIV_MACRO_EX5),
+    ex6Macro(DIV_MACRO_EX6),
+    ex7Macro(DIV_MACRO_EX7),
+    ex8Macro(DIV_MACRO_EX8) {
+    for (int i=0; i<4; i++) {
+      opMacros[i].amMacro.macroType=DIV_MACRO_OP_AM+(i<<5);
+      opMacros[i].arMacro.macroType=DIV_MACRO_OP_AR+(i<<5);
+      opMacros[i].drMacro.macroType=DIV_MACRO_OP_DR+(i<<5);
+      opMacros[i].multMacro.macroType=DIV_MACRO_OP_MULT+(i<<5);
+      opMacros[i].rrMacro.macroType=DIV_MACRO_OP_RR+(i<<5);
+      opMacros[i].slMacro.macroType=DIV_MACRO_OP_SL+(i<<5);
+      opMacros[i].tlMacro.macroType=DIV_MACRO_OP_TL+(i<<5);
+      opMacros[i].dt2Macro.macroType=DIV_MACRO_OP_DT2+(i<<5);
+      opMacros[i].rsMacro.macroType=DIV_MACRO_OP_RS+(i<<5);
+      opMacros[i].dtMacro.macroType=DIV_MACRO_OP_DT+(i<<5);
+      opMacros[i].d2rMacro.macroType=DIV_MACRO_OP_D2R+(i<<5);
+      opMacros[i].ssgMacro.macroType=DIV_MACRO_OP_SSG+(i<<5);
+
+      opMacros[i].damMacro.macroType=DIV_MACRO_OP_DAM+(i<<5);
+      opMacros[i].dvbMacro.macroType=DIV_MACRO_OP_DVB+(i<<5);
+      opMacros[i].egtMacro.macroType=DIV_MACRO_OP_EGT+(i<<5);
+      opMacros[i].kslMacro.macroType=DIV_MACRO_OP_KSL+(i<<5);
+      opMacros[i].susMacro.macroType=DIV_MACRO_OP_SUS+(i<<5);
+      opMacros[i].vibMacro.macroType=DIV_MACRO_OP_VIB+(i<<5);
+      opMacros[i].wsMacro.macroType=DIV_MACRO_OP_WS+(i<<5);
+      opMacros[i].ksrMacro.macroType=DIV_MACRO_OP_KSR+(i<<5);
+    }
+  }
 };
 
 struct DivInstrumentGB {
   unsigned char envVol, envDir, envLen, soundLen, hwSeqLen;
-  bool softEnv, alwaysInit;
+  bool softEnv, alwaysInit, doubleWave;
   enum HWSeqCommands: unsigned char {
     DIV_GB_HWCMD_ENVELOPE=0,
     DIV_GB_HWCMD_SWEEP,
@@ -308,7 +395,7 @@ struct DivInstrumentGB {
 
     DIV_GB_HWCMD_MAX
   };
-  struct HWSeqCommand {
+  struct HWSeqCommandGB {
     unsigned char cmd;
     unsigned short data;
   } hwSeq[256];
@@ -325,8 +412,9 @@ struct DivInstrumentGB {
     soundLen(64),
     hwSeqLen(0),
     softEnv(false),
-    alwaysInit(false) {
-    memset(hwSeq,0,256*sizeof(int));
+    alwaysInit(false),
+    doubleWave(false) {
+    memset(hwSeq,0,256*sizeof(HWSeqCommandGB));
   }
 };
 
@@ -335,7 +423,7 @@ struct DivInstrumentC64 {
   unsigned char a, d, s, r;
   unsigned short duty;
   unsigned char ringMod, oscSync;
-  bool toFilter, volIsCutoff, initFilter, dutyIsAbs, filterIsAbs, noTest;
+  bool toFilter, initFilter, dutyIsAbs, filterIsAbs, noTest;
   unsigned char res;
   unsigned short cut;
   bool hp, lp, bp, ch3off;
@@ -358,7 +446,6 @@ struct DivInstrumentC64 {
     ringMod(0),
     oscSync(0),
     toFilter(false),
-    volIsCutoff(false),
     initFilter(false),
     dutyIsAbs(false),
     filterIsAbs(false),
@@ -375,9 +462,13 @@ struct DivInstrumentAmiga {
   struct SampleMap {
     int freq;
     short map;
-    SampleMap(int f=0, short m=-1):
+    signed char dpcmFreq;
+    signed char dpcmDelta;
+    SampleMap(int f=0, short m=-1, signed char df=15, signed char dd=-1):
       freq(f),
-      map(m) {}
+      map(m),
+      dpcmFreq(df),
+      dpcmDelta(dd) {}
   };
   short initSample;
   bool useNoteMap;
@@ -405,8 +496,8 @@ struct DivInstrumentAmiga {
   }
 
   /**
-   * get the sample frequency at specified note.
-   * @return the frequency, or -1 if not using note map.
+   * get the sample playback note at specified note.
+   * @return the note, or -1 if not using note map.
    */
   inline int getFreq(int note) {
     if (useNoteMap) {
@@ -415,6 +506,32 @@ struct DivInstrumentAmiga {
       return noteMap[note].freq;
     }
     return note;
+  }
+
+  /**
+   * get the DPCM pitch at specified note.
+   * @return the pitch, or -1 if not using note map.
+   */
+  inline signed char getDPCMFreq(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteMap[note].dpcmFreq;
+    }
+    return -1;
+  }
+
+  /**
+   * get the DPCM delta counter value at specified note.
+   * @return the delta counter value, or -1 if not using note map.
+   */
+  inline signed char getDPCMDelta(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteMap[note].dpcmDelta;
+    }
+    return -1;
   }
 
   DivInstrumentAmiga():
@@ -445,6 +562,9 @@ struct DivInstrumentX1_010 {
 struct DivInstrumentN163 {
   int wave, wavePos, waveLen;
   unsigned char waveMode;
+  bool perChanPos;
+  int wavePosCh[8];
+  int waveLenCh[8];
 
   bool operator==(const DivInstrumentN163& other);
   bool operator!=(const DivInstrumentN163& other) {
@@ -455,7 +575,13 @@ struct DivInstrumentN163 {
     wave(-1),
     wavePos(0),
     waveLen(32),
-    waveMode(3) {}
+    waveMode(3),
+    perChanPos(false) {
+    for (int i=0; i<8; i++) {
+      wavePosCh[i]=(i&3)<<5;
+      waveLenCh[i]=32;
+    }
+  }
 };
 
 struct DivInstrumentFDS {
@@ -547,6 +673,25 @@ struct DivInstrumentWaveSynth {
 
 struct DivInstrumentSoundUnit {
   bool switchRoles;
+  unsigned char hwSeqLen;
+  enum HWSeqCommands: unsigned char {
+    DIV_SU_HWCMD_VOL=0,
+    DIV_SU_HWCMD_PITCH,
+    DIV_SU_HWCMD_CUT,
+    DIV_SU_HWCMD_WAIT,
+    DIV_SU_HWCMD_WAIT_REL,
+    DIV_SU_HWCMD_LOOP,
+    DIV_SU_HWCMD_LOOP_REL,
+
+    DIV_SU_HWCMD_MAX
+  };
+  struct HWSeqCommandSU {
+    unsigned char cmd;
+    unsigned char bound;
+    unsigned char val;
+    unsigned short speed;
+    unsigned short padding;
+  } hwSeq[256];
 
   bool operator==(const DivInstrumentSoundUnit& other);
   bool operator!=(const DivInstrumentSoundUnit& other) {
@@ -554,7 +699,10 @@ struct DivInstrumentSoundUnit {
   }
 
   DivInstrumentSoundUnit():
-    switchRoles(false) {}
+    switchRoles(false),
+    hwSeqLen(0) {
+    memset(hwSeq,0,256*sizeof(HWSeqCommandSU));
+  }
 };
 
 struct DivInstrumentES5506 {
@@ -634,6 +782,67 @@ struct DivInstrumentSNES {
     d2(0) {}
 };
 
+// ESFM operator structure:
+// - DELAY, OUT, MOD, L, R, NOISE
+//   - Virtual: CT, DT, FIXED
+//   - In FM struct: AM, DAM, AR, DR, MULT, RR, SL, TL
+//   - In FM struct: KSL, VIB, DVB, WS, SUS, KSR
+//   - Not in struct: FNUML, FNUMH, BLOCK
+
+struct DivInstrumentESFM {
+  bool operator==(const DivInstrumentESFM& other);
+  bool operator!=(const DivInstrumentESFM& other) {
+    return !(*this==other);
+  }
+
+  // Only works on OP4, so putting it outside the Operator struct instead
+  unsigned char noise;
+  struct Operator {
+    unsigned char delay, outLvl, modIn, left, right, fixed;
+    signed char ct, dt;
+
+    bool operator==(const Operator& other);
+    bool operator!=(const Operator& other) {
+      return !(*this==other);
+    }
+    Operator():
+      delay(0),
+      outLvl(0),
+      modIn(0),
+      left(1),
+      right(1),
+      fixed(0),
+      ct(0),
+      dt(0) {}
+  } op[4];
+  DivInstrumentESFM():
+    noise(0)
+    {
+      op[0].modIn=4;
+      op[0].outLvl=0;
+
+      op[1].modIn=7;
+      op[1].outLvl=0;
+
+      op[2].modIn=7;
+      op[2].outLvl=0;
+
+      op[3].modIn=7;
+      op[3].outLvl=7;
+    }
+};
+
+struct DivInstrumentPowerNoise {
+  unsigned char octave;
+
+  bool operator==(const DivInstrumentPowerNoise& other);
+  bool operator!=(const DivInstrumentPowerNoise& other) {
+    return !(*this==other);
+  }
+  DivInstrumentPowerNoise():
+    octave(0) {}
+};
+
 struct DivInstrument {
   String name;
   DivInstrumentType type;
@@ -650,11 +859,13 @@ struct DivInstrument {
   DivInstrumentSoundUnit su;
   DivInstrumentES5506 es5506;
   DivInstrumentSNES snes;
+  DivInstrumentESFM esfm;
+  DivInstrumentPowerNoise powernoise;
 
   /**
    * these are internal functions.
    */
-  void writeMacro(SafeWriter* w, const DivInstrumentMacro& m, unsigned char macroCode);
+  void writeMacro(SafeWriter* w, const DivInstrumentMacro& m);
   void writeFeatureNA(SafeWriter* w);
   void writeFeatureFM(SafeWriter* w, bool fui);
   void writeFeatureMA(SafeWriter* w);
@@ -673,11 +884,14 @@ struct DivInstrument {
   void writeFeatureSU(SafeWriter* w);
   void writeFeatureES(SafeWriter* w);
   void writeFeatureX1(SafeWriter* w);
+  void writeFeatureNE(SafeWriter* w);
+  void writeFeatureEF(SafeWriter* w);
+  void writeFeaturePN(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
   void readFeatureMA(SafeReader& reader, short version);
-  void readFeature64(SafeReader& reader, short version);
+  void readFeature64(SafeReader& reader, bool& volIsCutoff, short version);
   void readFeatureGB(SafeReader& reader, short version);
   void readFeatureSM(SafeReader& reader, short version);
   void readFeatureOx(SafeReader& reader, int op, short version);
@@ -692,21 +906,20 @@ struct DivInstrument {
   void readFeatureSU(SafeReader& reader, short version);
   void readFeatureES(SafeReader& reader, short version);
   void readFeatureX1(SafeReader& reader, short version);
+  void readFeatureNE(SafeReader& reader, short version);
+  void readFeatureEF(SafeReader& reader, short version);
+  void readFeaturePN(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
-  
+
+  void convertC64SpecialMacro();
+
   /**
    * save the instrument to a SafeWriter.
    * @param w the SafeWriter in question.
    */
-  void putInsData(SafeWriter* w);
-
-  /**
-   * save the instrument to a SafeWriter using new format.
-   * @param w the SafeWriter in question.
-   */
-  void putInsData2(SafeWriter* w, bool fui=false, const DivSong* song=NULL);
+  void putInsData2(SafeWriter* w, bool fui=false, const DivSong* song=NULL, bool insName=true);
 
   /**
    * read instrument data in .fui format.
@@ -719,11 +932,11 @@ struct DivInstrument {
   /**
    * save this instrument to a file.
    * @param path file path.
-   * @param oldFormat whether to save in legacy Furnace ins format.
    * @param song if new format, a DivSong to read wavetables and samples.
+   * @param writeInsName whether to write the instrument name or not. ignored if old format.
    * @return whether it was successful.
    */
-  bool save(const char* path, bool oldFormat=false, DivSong* song=NULL);
+  bool save(const char* path, DivSong* song=NULL, bool writeInsName=true);
 
   /**
    * save this instrument to a file in .dmp format.

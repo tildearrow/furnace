@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,7 +102,7 @@ void FurnaceGUI::drawOrderButtons() {
   int buttonColumns=(settings.orderButtonPos==0)?8:1;
   int buttonColumn=0;
 
-  while (buttonColumns<8 && ((8/buttonColumns)*ImGui::GetFrameHeightWithSpacing())>ImGui::GetContentRegionAvail().y) {
+  while (buttonColumns<8 && ((int)(8/buttonColumns)*ImGui::GetFrameHeightWithSpacing())>ImGui::GetContentRegionAvail().y) {
     buttonColumns++;
   }
 
@@ -115,10 +115,12 @@ void FurnaceGUI::drawOrderButtons() {
   }
   NEXT_BUTTON;
 
+  pushDestColor();
   if (ImGui::Button(ICON_FA_MINUS)) { handleUnimportant
     // remove this order row
     doAction(GUI_ACTION_ORDERS_REMOVE);
   }
+  popDestColor();
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Remove order");
   } 
@@ -162,7 +164,7 @@ void FurnaceGUI::drawOrderButtons() {
     doAction(GUI_ACTION_ORDERS_DEEP_CLONE_END);
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Duplicate order at end of song (right-click to deep clone)");
+    ImGui::SetTooltip("Place copy of current order at end of song (right-click to deep clone)");
   }
   NEXT_BUTTON;
 
@@ -179,6 +181,10 @@ void FurnaceGUI::drawOrderButtons() {
   }
   NEXT_BUTTON;
 
+  if (orderEditMode==0 && mobileUI) {
+    orderEditMode=1;
+  }
+
   const char* orderEditModeLabel="?##OrderEditMode";
   if (orderEditMode==3) {
     orderEditModeLabel=ICON_FA_ARROWS_V "##OrderEditMode";
@@ -191,7 +197,7 @@ void FurnaceGUI::drawOrderButtons() {
   }
   if (ImGui::Button(orderEditModeLabel)) { handleUnimportant
     orderEditMode++;
-    if (orderEditMode>3) orderEditMode=0;
+    if (orderEditMode>3) orderEditMode=mobileUI?1:0;
     curNibble=false;
   }
   if (ImGui::IsItemHovered()) {
@@ -217,7 +223,7 @@ void FurnaceGUI::drawOrders() {
   if (!ordersOpen) return;
   if (mobileUI) {
     patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
-    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)):ImVec2(canvasW-(0.16*canvasH),canvasH));
+    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(pianoOpen?(0.4*canvasW):0.0f)):ImVec2(canvasW-(0.16*canvasH),canvasH-(pianoOpen?(0.3*canvasH):0.0f)));
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   } else {
@@ -257,17 +263,18 @@ void FurnaceGUI::drawOrders() {
       }
       ImGui::PushFont(patFont);
       bool tooSmall=((displayChans+1)>((ImGui::GetContentRegionAvail().x)/(ImGui::CalcTextSize("AA").x+2.0*ImGui::GetStyle().ItemInnerSpacing.x)));
-      ImGui::PopFont();
+      float yHeight=ImGui::GetContentRegionAvail().y;
+      float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
+      if (e->isPlaying()) {
+        if (followOrders) {
+          float nextOrdScroll=(playOrder+1)*lineHeight-((yHeight-(tooSmall?ImGui::GetStyle().ScrollbarSize:0.0f))/2.0f);
+          if (nextOrdScroll<0.0f) nextOrdScroll=0.0f;
+          ImGui::SetNextWindowScroll(ImVec2(-1.0f,nextOrdScroll));
+        }
+      }
       if (ImGui::BeginTable("OrdersTable",1+displayChans,(tooSmall?ImGuiTableFlags_SizingFixedFit:ImGuiTableFlags_SizingStretchSame)|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY)) {
-        ImGui::PushFont(patFont);
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,prevSpacing);
         ImGui::TableSetupScrollFreeze(1,1);
-        float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
-        if (e->isPlaying()) {
-          if (followOrders) {
-            ImGui::SetScrollY((e->getOrder()+1)*lineHeight-(ImGui::GetContentRegionAvail().y/2));
-          }
-        }
         ImGui::TableNextRow(0,lineHeight);
         ImVec2 ra=ImGui::GetContentRegionAvail();
         ImGui::TableNextColumn();
@@ -280,9 +287,9 @@ void FurnaceGUI::drawOrders() {
         ImGui::PopStyleColor();
         for (int i=0; i<e->curSubSong->ordersLen; i++) {
           ImGui::TableNextRow(0,lineHeight);
-          if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_ACTIVE]));
+          if (playOrder==i && e->isPlaying()) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_ACTIVE]));
           ImGui::TableNextColumn();
-          if ((!followPattern && curOrder==i) || (followPattern && oldOrder1==i)) {
+          if (curOrder==i) {
             // draw a border
             ImDrawList* dl=ImGui::GetWindowDrawList();
             ImVec2 rBegin=ImGui::GetCursorScreenPos();
@@ -319,7 +326,7 @@ void FurnaceGUI::drawOrders() {
             //}
 
             ImGui::PushStyleColor(ImGuiCol_Text,(curOrder==i || e->curOrders->ord[j][i]==e->curOrders->ord[j][curOrder])?uiColors[GUI_COLOR_ORDER_SIMILAR]:uiColors[GUI_COLOR_ORDER_INACTIVE]);
-            if (ImGui::Selectable(selID,settings.ordersCursor?(cursor.xCoarse==j && oldOrder1!=i):false)) {
+            if (ImGui::Selectable(selID,settings.ordersCursor?(cursor.xCoarse==j && curOrder!=i):false)) {
               if (curOrder==i) {
                 if (orderEditMode==0) {
                   prepareUndo(GUI_UNDO_CHANGE_ORDER);
@@ -391,9 +398,9 @@ void FurnaceGUI::drawOrders() {
           }
         }
         ImGui::PopStyleVar();
-        ImGui::PopFont();
         ImGui::EndTable();
       }
+      ImGui::PopFont();
 
       if (settings.orderButtonPos==2) {
         ImGui::TableNextColumn();
@@ -408,6 +415,5 @@ void FurnaceGUI::drawOrders() {
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_ORDERS;
-  oldOrder1=e->getOrder();
   ImGui::End();
 }

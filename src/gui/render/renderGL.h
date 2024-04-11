@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,10 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   SDL_Window* sdlWin;
   float quadVertex[4][3];
   unsigned int quadBuf;
+  float oscVertex[4][4];
+  unsigned int oscVertexBuf;
+  unsigned int oscDataTex;
+  float oscData[2048];
 
   // SHADERS //
   // -> wipe
@@ -31,36 +35,70 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
   int sh_wipe_fragment;
   int sh_wipe_program;
   int sh_wipe_uAlpha;
+  bool sh_wipe_have;
+  // -> oscRender
+  int sh_oscRender_vertex;
+  int sh_oscRender_fragment;
+  int sh_oscRender_program;
+  int sh_oscRender_uColor;
+  int sh_oscRender_uLineWidth;
+  int sh_oscRender_uResolution;
+  int sh_oscRender_oscVal;
+  bool sh_oscRender_have;
 
-  bool createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program);
+  bool swapIntervalSet;
+  unsigned char glVer;
+
+  int maxWidth, maxHeight;
+  String backendName, vendorName, deviceName, apiVersion;
+
+  bool createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program, const char** attribNames);
 
   public:
     ImTextureID getTextureID(FurnaceGUITexture* which);
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     bool unlockTexture(FurnaceGUITexture* which);
     bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
-    FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    FurnaceGUITexture* createTexture(bool dynamic, int width, int height, bool interpolate=true);
     bool destroyTexture(FurnaceGUITexture* which);
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
     void clear(ImVec4 color);
     bool newFrame();
+    bool canVSync();
     void createFontsTexture();
     void destroyFontsTexture();
     void renderGUI();
     void wipe(float alpha);
+    void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
     void present();
     bool getOutputSize(int& w, int& h);
+    bool supportsDrawOsc();
     int getWindowFlags();
+    int getMaxTextureWidth();
+    int getMaxTextureHeight();
+    const char* getBackendName();
+    const char* getVendorName();
+    const char* getDeviceName();
+    const char* getAPIVersion();
+    void setSwapInterval(int swapInterval);
     void preInit();
-    bool init(SDL_Window* win);
+    bool init(SDL_Window* win, int swapInterval);
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();
     bool isDead();
+    void setVersion(unsigned char ver);
     FurnaceGUIRenderGL():
       context(NULL),
-      sdlWin(NULL) {
+      sdlWin(NULL),
+      swapIntervalSet(true),
+      glVer(3),
+      maxWidth(0),
+      maxHeight(0),
+      backendName("What?") {
       memset(quadVertex,0,4*3*sizeof(float));
+      memset(oscVertex,0,4*5*sizeof(float));
+      memset(oscData,0,2048*sizeof(float));
     }
 };

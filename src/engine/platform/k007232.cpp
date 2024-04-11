@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if(!skipRegisterWrites) {writes.emplace(a,v); if(dumpWrites) addWrite(a,v);}}
+#define rWrite(a,v) {if(!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if(dumpWrites) addWrite(a,v);}}
 
 #define CHIP_DIVIDER 64
 
@@ -78,15 +78,21 @@ void DivPlatformK007232::acquire(short** buf, size_t len) {
       const signed int rout[2]={(k007232.output(0)*((vol1>>4)&0xf)),(k007232.output(1)*((vol2>>4)&0xf))};
       buf[0][h]=(lout[0]+lout[1])<<4;
       buf[1][h]=(rout[0]+rout[1])<<4;
-      for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<3;
+      if (++oscDivider>=8) {
+        oscDivider=0;
+        for (int i=0; i<2; i++) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<3;
+        }
       }
     } else {
       const unsigned char vol=regPool[0xc];
       const signed int out[2]={(k007232.output(0)*(vol&0xf)),(k007232.output(1)*((vol>>4)&0xf))};
       buf[0][h]=(out[0]+out[1])<<4;
-      for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<4;
+      if (++oscDivider>=8) {
+        oscDivider=0;
+        for (int i=0; i<2; i++) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<4;
+        }
       }
     }
   }
@@ -275,7 +281,9 @@ int DivPlatformK007232::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:15;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
+        chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -341,7 +349,7 @@ int DivPlatformK007232::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      const int destFreq=NOTE_PERIODIC(c.value2);
+      const int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -364,7 +372,7 @@ int DivPlatformK007232::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -389,8 +397,8 @@ int DivPlatformK007232::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
-    case DIV_ALWAYS_SET_VOLUME:
-      return 1;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     default:
       break;
@@ -422,6 +430,10 @@ void* DivPlatformK007232::getChanState(int ch) {
 
 DivMacroInt* DivPlatformK007232::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+unsigned short DivPlatformK007232::getPan(int ch) {
+  return stereo?(((chan[ch].panning&15)<<8)|((chan[ch].panning&0xf0)>>4)):0;
 }
 
 DivDispatchOscBuffer* DivPlatformK007232::getOscBuffer(int ch) {
@@ -463,8 +475,6 @@ void DivPlatformK007232::notifyInsChange(int ins) {
 }
 
 void DivPlatformK007232::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
-  // TODO they probably won't be added unless the samples reside in RAM
 }
 
 void DivPlatformK007232::notifyInsDeletion(void* ins) {
@@ -480,7 +490,7 @@ void DivPlatformK007232::setFlags(const DivConfig& flags) {
   stereo=flags.getBool("stereo",false);
   for (int i=0; i<2; i++) {
     chan[i].volumeChanged=true;
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->rate=rate/8;
   }
 }
 
@@ -518,10 +528,18 @@ bool DivPlatformK007232::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformK007232::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformK007232::renderSamples(int sysID) {
   memset(sampleMem,0xc0,getSampleMemCapacity());
   memset(sampleOffK007232,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample ROM";
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -541,6 +559,7 @@ void DivPlatformK007232::renderSamples(int sysID) {
         memPos=(memPos+0x1ffff)&0xfe0000;
       }
       sampleOffK007232[i]=memPos;
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
       for (int j=0; j<actualLength; j++) {
         // convert to 7 bit unsigned
         unsigned char val=(unsigned char)(s->data8[j])^0x80;
@@ -558,6 +577,9 @@ void DivPlatformK007232::renderSamples(int sysID) {
     }
   }
   sampleMemLen=memPos;
+
+  memCompo.used=sampleMemLen;
+  memCompo.capacity=16777216;
 }
 
 int DivPlatformK007232::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -571,6 +593,7 @@ int DivPlatformK007232::init(DivEngine* p, int channels, int sugRate, const DivC
   }
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
+  oscDivider=0;
   setFlags(flags);
   reset();
   

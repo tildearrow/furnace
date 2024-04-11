@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #define _GA20_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 #include "../macroInt.h"
 #include "sound/ga20/iremga20.h"
 
@@ -47,15 +47,14 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   struct QueuedWrite {
-    unsigned short addr;
+    unsigned char addr;
     unsigned char val;
-    unsigned short delay;
-    QueuedWrite(unsigned short a, unsigned char v, unsigned short d=1):
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned char a, unsigned char v):
       addr(a),
-      val(v),
-      delay(d) {}
+      val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,256> writes;
   unsigned int sampleOffGA20[256];
   bool sampleLoaded[256];
 
@@ -67,6 +66,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   iremga20_device ga20;
+  DivMemoryComposition memCompo;
   unsigned char regPool[32];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -98,6 +98,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     virtual size_t getSampleMemCapacity(int index = 0) override;
     virtual size_t getSampleMemUsage(int index = 0) override;
     virtual bool isSampleLoaded(int index, int sample) override;
+    virtual const DivMemoryComposition* getMemCompo(int index) override;
     virtual void renderSamples(int chipID) override;
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;

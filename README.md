@@ -9,13 +9,15 @@ the biggest multi-system chiptune tracker ever made!
 ---
 ## downloads
 
-check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
+check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux.
+
+for other operating systems, you may [build the source](#developer-info).
 
 [see here](https://nightly.link/tildearrow/furnace/workflows/build/master) for the latest unstable build.
 
 ## features
 
-- over 50 sound chips - and counting:
+- a large selection of sound chips:
   - Yamaha FM chips:
     - YM2151 (OPM)
     - YM2203 (OPN)
@@ -29,6 +31,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
     - YM3812 (OPL2)
     - YMF262 (OPL3) with full 4-op support!
     - Y8950 (OPL with ADPCM)
+  - ESS ESFM (like OPL3 but with more features)
   - square wave chips:
     - AY-3-8910/YM2149(F) used in several computers and game consoles
     - Commodore VIC used in the VIC-20
@@ -46,8 +49,11 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
     - Ricoh RF5C68 used in Sega CD and FM Towns
     - OKI MSM6258 and MSM6295
     - Konami K007232
+    - Konami K053260
     - Irem GA20
     - Ensoniq ES5506
+    - Namco C140
+    - Namco C219
   - wavetable chips:
     - HuC6280 used in PC Engine
     - Konami Bubble System WSG
@@ -71,14 +77,22 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
     - QuadTone engine
   - Pokémon Mini
   - Commodore PET
+  - TED used in Commodore Plus/4
   - Casio PV-1000
   - TIA used in Atari 2600
   - POKEY used in Atari 8-bit computers
-  - Game Boy
+  - **Game Boy**
+    - including SOFTWARE ENVELOPES (zombie mode)
   - Virtual Boy
+  - Game Boy Advance
+    - DMA (direct memory access) two channel mode
+    - MinMod software driver by Natt Akuma
+  - Nintendo DS
   - modern/fantasy:
     - Commander X16 VERA
     - tildearrow Sound Unit
+    - PowerNoise
+    - Generic PCM DAC
 - mix and match sound chips!
   - over 200 ready to use presets from computers, game consoles and arcade boards...
   - ...or create your own - up to 32 of them or a total of 128 channels!
@@ -90,12 +104,13 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - clean-room design (guesswork and ABX tests only, no decompilation involved)
   - some bug/quirk implementation for increased playback accuracy through compatibility flags
 - VGM export
+- ZSM export for Commander X16
 - modular layout that you may adapt to your needs
 - audio file export - entire song, per chip or per channel
 - quality emulation cores (Nuked, MAME, SameBoy, Mednafen PCE, NSFplay, puNES, reSID, Stella, SAASound, vgsound_emu and ymfm)
 - wavetable synthesizer
   - available on wavetable chips
-  - create complex sounds with ease - provide up to two wavetables, select and effect and let go!
+  - create complex sounds with ease - provide up to two wavetables, select an effect and let go!
 - MIDI input support
 - additional features:
   - FM macros!
@@ -120,18 +135,22 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
 # quick references
 
 - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, the [official Revolt](https://rvlt.gg/GRPS6tmc) or the [official Discord server](https://discord.gg/EfrwT2wq7z).
-- **help**: check out the [documentation](doc/README.md). it's incomplete though.
+- **help**: check out the [documentation](doc/README.md).
 
 ## packages
 
-[![Packaging status](https://repology.org/badge/tiny-repos/furnace.svg)](https://repology.org/project/furnace/versions)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/furnace.svg)](https://repology.org/project/furnace/versions)
 
 some people have provided packages for Unix/Unix-like distributions. here's a list.
 
+- **Flatpak**: yes! Furnace is now available on [Flathub](https://flathub.org/apps/org.tildearrow.furnace) thanks to ColinKinloch.
+
 - **Arch Linux**: [furnace](https://archlinux.org/packages/extra/x86_64/furnace/) is in the official repositories.
-- **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt (warning: 0.5.8!).
+- **Chimera Linux**: [furnace](https://pkgs.chimera-linux.org/package/current/contrib/x86_64/furnace) is in the contrib repository.
+- **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
 - **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
 - **openSUSE**: [a package](https://software.opensuse.org/package/furnace) is available, courtesy of fpesari.
+- **Void Linux**: [furnace](https://github.com/void-linux/void-packages/tree/master/srcpkgs/furnace) is available in the official repository.
 
 ---
 # developer info
@@ -156,6 +175,7 @@ otherwise, you may also need the following:
 - libx11
 - libasound
 - libGL
+- any other libraries which may be used by SDL
 
 some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev` versions of these.
 
@@ -242,18 +262,37 @@ Available options:
 | `USE_SDL2` | `ON` | Build with SDL2 (required to build with GUI) |
 | `USE_SNDFILE` | `ON` | Build with libsndfile (required in order to work with audio files) |
 | `USE_BACKWARD` | `ON` | Use backward-cpp to print a backtrace on crash/abort |
-| `WITH_JACK` | `ON` if system-installed JACK detected, otherwise `OFF` | Whether to build with JACK support. Auto-detects if JACK is available |
+| `USE_FREETYPE` | `OFF` | Build with FreeType support |
+| `WITH_JACK` | auto\* | Whether to build with JACK support. Auto-detects if JACK is available |
+| `WITH_PORTAUDIO` | `ON` | Whether to build with PortAudio. |
 | `SYSTEM_FFTW` | `OFF` | Use a system-installed version of FFTW instead of the vendored one |
 | `SYSTEM_FMT` | `OFF` | Use a system-installed version of fmt instead of the vendored one |
 | `SYSTEM_LIBSNDFILE` | `OFF` | Use a system-installed version of libsndfile instead of the vendored one |
 | `SYSTEM_RTMIDI` | `OFF` | Use a system-installed version of RtMidi instead of the vendored one |
 | `SYSTEM_ZLIB` | `OFF` | Use a system-installed version of zlib instead of the vendored one |
 | `SYSTEM_SDL2` | `OFF` | Use a system-installed version of SDL2 instead of the vendored one |
+| `SYSTEM_FREETYPE` | `OFF` | Use a system-installed version of FreeType instead of the vendored one |
 | `SUPPORT_XP` | `OFF` | Build a Windows XP-compatible binary |
-| `WARNINGS_ARE_ERRORS` | `OFF` (but consider enabling this & reporting any errors that arise from it!) | Whether warnings in furnace's C++ code should be treated as errors |
+| `WARNINGS_ARE_ERRORS` | `OFF`\*\* | Whether warnings in furnace's C++ code should be treated as errors |
 | `WITH_DEMOS` | `ON` | Install demo songs on `make install` |
 | `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
 | `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
+| `SHOW_OPEN_ASSETS_MENU_ENTRY` | `OFF` | Show option to open built-in assets directory (on supported platforms) |
+
+(\*) `ON` if system-installed JACK detected, otherwise `OFF`
+
+(\*\*) but consider enabling this & reporting any errors that arise from it!
+
+## CMake Error
+
+if it says something about a missing subdirectory in `extern`, then either:
+
+1. you didn't set up submodules, or
+2. you downloaded the source as a .zip or .tar.gz. don't do this.
+
+if 1, you may run `git submodule update --init --recursive`. this will initialize submodules.
+
+if 2, clone this repo.
 
 ## console usage
 
@@ -289,7 +328,7 @@ this is due to Apple's application signing policy. a workaround is to right clic
 > it says "Furnace" is damaged and can't be opened!
 
 **as of Monterey, this workaround no longer works (especially on ARM).** yeah, Apple has decided to be strict on the matter.
-if you happen to be on that version, use this workaround instead (on a Terminal):
+if you happen to be on that version (or later), use this workaround instead (on a Terminal):
 
 ```
 xattr -d com.apple.quarantine /path/to/Furnace.app
@@ -301,11 +340,11 @@ you may need to log out and/or reboot after doing this.
 
 > where's the manual?
 
-see [doc/](doc/README.md). it's kind of incomplete though.
+it is in [doc/](doc/README.md).
 
 > is there a tutorial?
 
-sadly, the in-program tutorial isn't ready yet. however, [a video tutorial is available on YouTube](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1), made by Spinning Square Waves.
+[a video tutorial (of a previous version) is available on YouTube](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1), made by Spinning Square Waves.
 
 > I've lost my song!
 
@@ -330,7 +369,7 @@ you should only save as .dmf if you're really sure, because the DefleMask format
 ---
 # footnotes
 
-copyright (C) 2021-2023 tildearrow and contributors.
+copyright (C) 2021-2024 tildearrow and contributors.
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 

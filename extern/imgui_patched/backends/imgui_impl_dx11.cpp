@@ -35,6 +35,7 @@
 // DISCLAIMER: modified with d3dcompiler patch (see https://github.com/ocornut/imgui/pull/638).
 
 #include "imgui.h"
+#ifndef IMGUI_DISABLE
 #include "imgui_impl_dx11.h"
 
 // DirectX
@@ -56,12 +57,14 @@ struct ImGui_ImplDX11_Data
     ID3D11Buffer*               pVertexConstantBuffer;
     ID3D11PixelShader*          pPixelShader;
     ID3D11SamplerState*         pFontSampler;
+    ID3D11SamplerState*         pTexSampler;
     ID3D11ShaderResourceView*   pFontTextureView;
     ID3D11RasterizerState*      pRasterizerState;
     ID3D11BlendState*           pBlendState;
     ID3D11DepthStencilState*    pDepthStencilState;
     int                         VertexBufferSize;
     int                         IndexBufferSize;
+    bool                        SamplersSet;
 
     ImGui_ImplDX11_Data()       { memset((void*)this, 0, sizeof(*this)); VertexBufferSize = 5000; IndexBufferSize = 10000; }
 };
@@ -108,6 +111,7 @@ static void ImGui_ImplDX11_SetupRenderState(ImDrawData* draw_data, ID3D11DeviceC
     ctx->VSSetConstantBuffers(0, 1, &bd->pVertexConstantBuffer);
     ctx->PSSetShader(bd->pPixelShader, nullptr, 0);
     ctx->PSSetSamplers(0, 1, &bd->pFontSampler);
+    bd->SamplersSet=false;
     ctx->GSSetShader(nullptr, nullptr, 0);
     ctx->HSSetShader(nullptr, nullptr, 0); // In theory we should backup and restore this as well.. very infrequently used..
     ctx->DSSetShader(nullptr, nullptr, 0); // In theory we should backup and restore this as well.. very infrequently used..
@@ -282,6 +286,13 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
 
                 // Bind texture, Draw
                 ID3D11ShaderResourceView* texture_srv = (ID3D11ShaderResourceView*)pcmd->GetTexID();
+                if (texture_srv == bd->pFontTextureView && bd->SamplersSet) {
+                  ctx->PSSetSamplers(0, 1, &bd->pFontSampler);
+                  bd->SamplersSet=false;
+                } else if (texture_srv != bd->pFontTextureView && !bd->SamplersSet) {
+                  ctx->PSSetSamplers(0, 1, &bd->pTexSampler);
+                  bd->SamplersSet=true;
+                }
                 ctx->PSSetShaderResources(0, 1, &texture_srv);
                 ctx->DrawIndexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
             }
@@ -339,17 +350,22 @@ static void ImGui_ImplDX11_CreateFontsTexture()
         subResource.SysMemPitch = desc.Width * 4;
         subResource.SysMemSlicePitch = 0;
         bd->pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
-        IM_ASSERT(pTexture != nullptr);
 
-        // Create texture view
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-        ZeroMemory(&srvDesc, sizeof(srvDesc));
-        srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MipLevels = desc.MipLevels;
-        srvDesc.Texture2D.MostDetailedMip = 0;
-        bd->pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &bd->pFontTextureView);
-        pTexture->Release();
+        if (pTexture != nullptr) {
+          // Create texture view
+          D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+          ZeroMemory(&srvDesc, sizeof(srvDesc));
+          srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+          srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+          srvDesc.Texture2D.MipLevels = desc.MipLevels;
+          srvDesc.Texture2D.MostDetailedMip = 0;
+          bd->pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &bd->pFontTextureView);
+          pTexture->Release();
+        } else {
+          bd->pFontTextureView=NULL;
+          bd->pFontSampler=NULL;
+          return;
+        }
     }
 
     // Store our identifier
@@ -361,14 +377,29 @@ static void ImGui_ImplDX11_CreateFontsTexture()
         D3D11_SAMPLER_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
         desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-        desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-        desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-        desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+        desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+        desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+        desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
         desc.MipLODBias = 0.f;
         desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
         desc.MinLOD = 0.f;
         desc.MaxLOD = 0.f;
         bd->pd3dDevice->CreateSamplerState(&desc, &bd->pFontSampler);
+    }
+
+    // Create other sampler
+    {
+        D3D11_SAMPLER_DESC desc;
+        ZeroMemory(&desc, sizeof(desc));
+        desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+        desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+        desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+        desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+        desc.MipLODBias = 0.f;
+        desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+        desc.MinLOD = 0.f;
+        desc.MaxLOD = 0.f;
+        bd->pd3dDevice->CreateSamplerState(&desc, &bd->pTexSampler);
     }
 }
 
@@ -544,6 +575,7 @@ void    ImGui_ImplDX11_InvalidateDeviceObjects()
         return;
 
     if (bd->pFontSampler)           { bd->pFontSampler->Release(); bd->pFontSampler = nullptr; }
+    if (bd->pTexSampler)            { bd->pTexSampler->Release(); bd->pTexSampler = nullptr; }
     if (bd->pFontTextureView)       { bd->pFontTextureView->Release(); bd->pFontTextureView = nullptr; ImGui::GetIO().Fonts->SetTexID(0); } // We copied data->pFontTextureView to io.Fonts->TexID so let's clear that as well.
     if (bd->pIB)                    { bd->pIB->Release(); bd->pIB = nullptr; }
     if (bd->pVB)                    { bd->pVB->Release(); bd->pVB = nullptr; }
@@ -609,13 +641,15 @@ void ImGui_ImplDX11_Shutdown()
     IM_DELETE(bd);
 }
 
-void ImGui_ImplDX11_NewFrame()
+bool ImGui_ImplDX11_NewFrame()
 {
     ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
     IM_ASSERT(bd != nullptr && "Did you call ImGui_ImplDX11_Init()?");
 
     if (!bd->pFontSampler)
         ImGui_ImplDX11_CreateDeviceObjects();
+    
+    return bd->pFontSampler!=NULL;
 }
 
 //--------------------------------------------------------------------------------------------------------
@@ -740,3 +774,7 @@ static void ImGui_ImplDX11_ShutdownPlatformInterface()
 {
     ImGui::DestroyPlatformWindows();
 }
+
+//-----------------------------------------------------------------------------
+
+#endif // #ifndef IMGUI_DISABLE

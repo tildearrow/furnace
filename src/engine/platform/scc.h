@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 #define _SCC_H
 
 #include "../dispatch.h"
-#include <queue>
 #include "../waveSynth.h"
 #include "vgsound_emu/src/scc/scc.hpp"
 
@@ -42,6 +41,7 @@ class DivPlatformSCC: public DivDispatch {
   unsigned char writeOscBuf;
   int lastUpdated34;
 
+  int coreQuality;
   scc_core* scc;
   bool isPlus;
   unsigned char regBase;
@@ -69,6 +69,7 @@ class DivPlatformSCC: public DivDispatch {
     const char** getRegisterSheet();
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
+    void setCoreQuality(unsigned char q);
     void setChipModel(bool isPlus);
     void quit();
     ~DivPlatformSCC();

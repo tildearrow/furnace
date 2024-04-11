@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "../dispatch.h"
 
 #include "sound/nes_nsfplay/nes_apu.h"
+#include "sound/nes_nsfplay/5e01_apu.h"
 
 class DivPlatformNES: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
@@ -54,17 +55,23 @@ class DivPlatformNES: public DivDispatch {
   unsigned char apuType;
   unsigned char linearCount;
   signed char nextDPCMFreq;
+  signed char nextDPCMDelta;
+  signed char lastDPCMFreq;
   bool dpcmMode;
   bool dpcmModeDefault;
   bool dacAntiClickOn;
   bool useNP;
   bool goingToLoop;
   bool countMode;
+  bool isE;
   struct NESAPU* nes;
   xgm::NES_APU* nes1_NP;
   xgm::NES_DMC* nes2_NP;
+  xgm::I5E01_APU* e1_NP;
+  xgm::I5E01_DMC* e2_NP;
   unsigned char regPool[128];
   unsigned int sampleOffDPCM[256];
+  DivMemoryComposition memCompo;
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -73,6 +80,7 @@ class DivPlatformNES: public DivDispatch {
   unsigned char calcDPCMRate(int inRate);
   void acquire_puNES(short** buf, size_t len);
   void acquire_NSFPlay(short** buf, size_t len);
+  void acquire_NSFPlayE(short** buf, size_t len);
 
   public:
     void acquire(short** buf, size_t len);
@@ -90,6 +98,7 @@ class DivPlatformNES: public DivDispatch {
     float getPostAmp();
     unsigned char readDMC(unsigned short addr);
     void setNSFPlay(bool use);
+    void set5E01(bool use);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
@@ -99,6 +108,7 @@ class DivPlatformNES: public DivDispatch {
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

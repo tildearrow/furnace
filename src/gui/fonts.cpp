@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 #include "fonts.h"
 
-const unsigned int* builtinFont[]={
+const unsigned char* builtinFont[]={
   font_plexSans_compressed_data,
   font_liberationSans_compressed_data,
   font_exo_compressed_data,
@@ -38,7 +38,7 @@ const unsigned int builtinFontLen[]={
   font_unifont_compressed_size
 };
 
-const unsigned int* builtinFontM[]={
+const unsigned char* builtinFontM[]={
   font_plexMono_compressed_data,
   font_mononoki_compressed_data,
   font_ptMono_compressed_data,

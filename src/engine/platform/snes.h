@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 #include "../dispatch.h"
 #include "../waveSynth.h"
-#include <queue>
+#include "../../fixedQueue.h"
 #include "sound/snes/SPC_DSP.h"
 
 class DivPlatformSNES: public DivDispatch {
@@ -81,15 +81,17 @@ class DivPlatformSNES: public DivDispatch {
   struct QueuedWrite {
     unsigned char addr;
     unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,256> writes;
 
   signed char sampleMem[65536];
   signed char copyOfSampleMem[65536];
   size_t sampleMemLen;
   unsigned int sampleOff[256];
   bool sampleLoaded[256];
+  DivMemoryComposition memCompo;
   unsigned char regPool[0x80];
   SPC_DSP dsp;
   friend void putDispatchChan(void*,int,int);
@@ -99,6 +101,9 @@ class DivPlatformSNES: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    unsigned short getPan(int chan);
+    DivChannelPair getPaired(int chan);
+    DivChannelModeHints getModeHints(int chan);
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -119,6 +124,7 @@ class DivPlatformSNES: public DivDispatch {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

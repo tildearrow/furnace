@@ -2,7 +2,19 @@
 
 contributions to Furnace are welcome!
 
-# Getting ready
+# Issue reports
+
+if you find an issue with Furnace, see the Issues section.
+
+# Suggestions and other types of discussions
+
+see the Discussions section.
+
+**DO NOT USE THE ISSUES SECTION FOR THESE - it is only for ISSUES.**
+
+# Other
+
+## Getting ready
 
 log into your Github account, and click the Fork button in the header of the project's page.
 
@@ -14,9 +26,9 @@ git clone git@github.com:USERNAME/furnace.git
 
 (replace `USERNAME` with your username)
 
-# Working
+## Working
 
-## Code
+### Code
 
 bug fixes, improvements and several other things accepted.
 
@@ -35,6 +47,7 @@ the coding style is described here:
   - preprocessor directives not intended
   - if macro comprises more than one line, indent
   - no new line after `template<>`
+- do not use `_t` types, except for 64-bit integers and `size_t`.
 - prefer built-in types:
   - `bool`
   - `signed char` or `unsigned char` are 8-bit
@@ -48,11 +61,13 @@ the coding style is described here:
   - `long long int` or `unsigned long long int` are 64-bit
     - avoid using 64-bit numbers as I still build for 32-bit systems.
     - two `long`s are required to make Windows happy.
+    - prefer using `int64_t` or `uint64_t` for this specific case.
   - `size_t` are 32-bit or 64-bit, depending on architecture.
 - in float/double operations, always use decimal and `f` if single-precision.
   - e.g. `1.0f` or `1.0` instead of `1`.
 - prefer `NULL` over `nullptr` or any other proprietary null.
-- don't use `auto` unless needed.
+- only use `auto` if needed.
+- avoid using `goto` unless absolutely required.
 - use `String` for `std::string` (this is typedef'd in ta-utils.h).
 - prefer using operator for String (std::string) comparisons (a=="").
 - if you have to work with C strings, only use safe C string operations:
@@ -81,19 +96,27 @@ additional guidelines:
 - on a switch block, **always** put `default` last and not in any other position.
   - I have fear of some C/C++ compilers ignoring the rest of cases upon hitting default.
 
-## Demo Songs
+### Do NOT Force-Push after submitting Pull Request
+
+if you do so, your pull request will be closed.
+
+### Demo Songs
 
 just put your demo song in `demos/`! be noted there are some guidelines:
 
 - avoid Nintendo song covers.
 - avoid big label song covers.
 - low effort compositions/covers may not be accepted at all.
+- the following systems are not acceptable:
+  - YMU759/MA-2: exists only for compatibility.
+  - Pong: it is a joke system.
+- the song shall be in Furnace file format.
 
-# Finishing
+## Finishing
 
 after you've done your modifications, commit the changes and push.
 then open your fork on GitHub and send a pull request.
 
-# I don't know how to use Git but I want to contribute with a demo song
+## I don't know how to use Git but I want to contribute with a demo song
 
 you can also contact me directly! [find me here.](https://tildearrow.org/?p=contact)

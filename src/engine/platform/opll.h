@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,11 +21,12 @@
 #define _OPLL_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../../fixedQueue.h"
 
 extern "C" {
 #include "../../../extern/Nuked-OPLL/opll.h"
 }
+#include "../../../extern/emu2413/emu2413.h"
 
 class DivPlatformOPLL: public DivDispatch {
   protected:
@@ -50,20 +51,28 @@ class DivPlatformOPLL: public DivDispatch {
       unsigned short addr;
       unsigned char val;
       bool addrOrVal;
+      QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    std::queue<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,512> writes;
     opll_t fm;
+    OPLL* fm_emu;
     int delay, lastCustomMemory;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
+    bool drumActivated[5];
+    
+    // -1: undefined
+    // 0: snare/tom
+    // 1: hi-hat/top
+    signed char lastFreqSH, lastFreqTT;
 
     unsigned char regPool[256];
 
-    bool useYMFM;
-    bool drums;
-    bool properDrums, properDrumsSys, noTopHatFreq;
+    unsigned char selCore;
+    bool crapDrums;
+    bool properDrums, properDrumsSys, noTopHatFreq, fixedAll;
     bool vrc7;
 
     unsigned char patchSet;
@@ -74,12 +83,14 @@ class DivPlatformOPLL: public DivDispatch {
     int octave(int freq);
     int toFreq(int freq);
     void commitState(int ch, DivInstrument* ins);
+    void switchMode(bool mode);
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
     void acquire_nuked(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
+    void acquire_emu(short** buf, size_t len);
   
   public:
     void acquire(short** buf, size_t len);
@@ -87,15 +98,17 @@ class DivPlatformOPLL: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    void setYMFM(bool use);
+    void setCore(unsigned char which);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    bool getLegacyAlwaysSetVolume();
     float getPostAmp();
     void toggleRegisterDump(bool enable);
     void setVRC7(bool vrc);

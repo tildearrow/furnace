@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  */
 
 #include <string.h>
-#include <vector>
 #include "../ta-log.h"
 #include "sdlAudio.h"
 
@@ -127,19 +126,28 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
   ac.callback=taSDLProcess;
   ac.userdata=this;
 
-  ai=SDL_OpenAudioDevice(request.deviceName.empty()?NULL:request.deviceName.c_str(),0,&ac,&ar,SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
+  logV("opening audio device...");
+  ai=SDL_OpenAudioDevice(request.deviceName.empty()?NULL:request.deviceName.c_str(),0,&ac,&ar,0);
   if (ai==0) {
     logE("could not open audio device: %s",SDL_GetError());
     return false;
   }
 
+  const char* backendName=SDL_GetCurrentAudioDriver();
+
   desc.deviceName=request.deviceName;
-  desc.name="";
+  if (backendName==NULL) {
+    desc.name="";
+  } else {
+    desc.name=backendName;
+  }
   desc.rate=ar.freq;
   desc.inChans=0;
   desc.outChans=ar.channels;
   desc.bufsize=ar.samples;
   desc.fragments=1;
+
+  logV("got info: %d channels, %d bufsize",desc.outChans,desc.bufsize);
 
   if (desc.outChans>0) {
     outBufs=new float*[desc.outChans];

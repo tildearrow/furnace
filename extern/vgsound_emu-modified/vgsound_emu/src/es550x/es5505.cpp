@@ -231,8 +231,8 @@ void es5505_core::voice_t::tick(u8 voice)
 	if (m_alu.busy())
 	{
 		// Send to output
-		m_output[0] = volume_calc(m_lvol, sign_ext<s32>(m_filter.o4_1(), 16));
-		m_output[1] = volume_calc(m_rvol, sign_ext<s32>(m_filter.o4_1(), 16));
+		m_output[0] = volume_calc(m_lvol, sign_ext_nomax<s32>(m_filter.o4_1(), 16));
+		m_output[1] = volume_calc(m_rvol, sign_ext_nomax<s32>(m_filter.o4_1(), 16));
 
 		m_ch.set_left(m_output[0]);
 		m_ch.set_right(m_output[1]);
@@ -583,22 +583,22 @@ void es5505_core::regs_w(u8 page, u8 address, u16 data)
 				switch (address)
 				{
 					case 1:	 // O4(n-1) (Filter 4 Temp Register)
-						v.filter().set_o4_1(sign_ext<s32>(data, 16));
+						v.filter().set_o4_1(sign_ext_nomax<s32>(data, 16));
 						break;
 					case 2:	 // O3(n-2) (Filter 3 Temp Register #2)
-						v.filter().set_o3_2(sign_ext<s32>(data, 16));
+						v.filter().set_o3_2(sign_ext_nomax<s32>(data, 16));
 						break;
 					case 3:	 // O3(n-1) (Filter 3 Temp Register #1)
-						v.filter().set_o3_1(sign_ext<s32>(data, 16));
+						v.filter().set_o3_1(sign_ext_nomax<s32>(data, 16));
 						break;
 					case 4:	 // O2(n-2) (Filter 2 Temp Register #2)
-						v.filter().set_o2_2(sign_ext<s32>(data, 16));
+						v.filter().set_o2_2(sign_ext_nomax<s32>(data, 16));
 						break;
 					case 5:	 // O2(n-1) (Filter 2 Temp Register #1)
-						v.filter().set_o2_1(sign_ext<s32>(data, 16));
+						v.filter().set_o2_1(sign_ext_nomax<s32>(data, 16));
 						break;
 					case 6:	 // O1(n-1) (Filter 1 Temp Register)
-						v.filter().set_o1_1(sign_ext<s32>(data, 16));
+						v.filter().set_o1_1(sign_ext_nomax<s32>(data, 16));
 						break;
 				}
 			}

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #include "defines.h"
 #include "safeWriter.h"
 #include "dataErrors.h"
-#include <deque>
+#include "../fixedQueue.h"
 
 enum DivSampleLoopMode: unsigned char {
   DIV_SAMPLE_LOOP_FORWARD=0,
@@ -40,9 +40,13 @@ enum DivSampleDepth: unsigned char {
   DIV_SAMPLE_DEPTH_QSOUND_ADPCM=4,
   DIV_SAMPLE_DEPTH_ADPCM_A=5,
   DIV_SAMPLE_DEPTH_ADPCM_B=6,
+  DIV_SAMPLE_DEPTH_ADPCM_K=7,
   DIV_SAMPLE_DEPTH_8BIT=8,
   DIV_SAMPLE_DEPTH_BRR=9,
   DIV_SAMPLE_DEPTH_VOX=10,
+  DIV_SAMPLE_DEPTH_MULAW=11,
+  DIV_SAMPLE_DEPTH_C219=12,
+  DIV_SAMPLE_DEPTH_IMA_ADPCM=13,
   DIV_SAMPLE_DEPTH_16BIT=16,
   DIV_SAMPLE_DEPTH_MAX // boundary for sample depth
 };
@@ -105,9 +109,13 @@ struct DivSample {
   // - 4: QSound ADPCM
   // - 5: ADPCM-A
   // - 6: ADPCM-B
+  // - 7: K053260 4-bit simple ADPCM
   // - 8: 8-bit PCM
   // - 9: BRR (SNES)
   // - 10: VOX ADPCM
+  // - 11: 8-bit µ-law PCM
+  // - 12: C219 "µ-law" PCM
+  // - 13: IMA ADPCM
   // - 16: 16-bit PCM
   DivSampleDepth depth;
   bool loop, brrEmphasis, dither;
@@ -128,15 +136,19 @@ struct DivSample {
   unsigned char* dataQSoundA; // 4
   unsigned char* dataA; // 5
   unsigned char* dataB; // 6
+  unsigned char* dataK; // 7
   unsigned char* dataBRR; // 9
   unsigned char* dataVOX; // 10
+  unsigned char* dataMuLaw; // 11
+  unsigned char* dataC219; // 12
+  unsigned char* dataIMA; // 13
 
-  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX;
+  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthK, lengthBRR, lengthVOX, lengthMuLaw, lengthC219, lengthIMA;
 
   unsigned int samples;
 
-  std::deque<DivSampleHistory*> undoHist;
-  std::deque<DivSampleHistory*> redoHist;
+  FixedQueue<DivSampleHistory*,128> undoHist;
+  FixedQueue<DivSampleHistory*,128> redoHist;
 
   /**
    * put sample data.
@@ -276,7 +288,7 @@ struct DivSample {
    * @warning do not attempt to do this outside of a synchronized block!
    * @param newDepth the new depth.
    */
-  void convert(DivSampleDepth newDepth);
+  void convert(DivSampleDepth newDepth, unsigned int formatMask=0xffffffff);
 
   /**
    * initialize the rest of sample formats for this sample.
@@ -335,8 +347,12 @@ struct DivSample {
     dataQSoundA(NULL),
     dataA(NULL),
     dataB(NULL),
+    dataK(NULL),
     dataBRR(NULL),
     dataVOX(NULL),
+    dataMuLaw(NULL),
+    dataC219(NULL),
+    dataIMA(NULL),
     length8(0),
     length16(0),
     length1(0),
@@ -345,8 +361,12 @@ struct DivSample {
     lengthQSoundA(0),
     lengthA(0),
     lengthB(0),
+    lengthK(0),
     lengthBRR(0),
     lengthVOX(0),
+    lengthMuLaw(0),
+    lengthC219(0),
+    lengthIMA(0),
     samples(0) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       for (int j=0; j<DIV_MAX_SAMPLE_TYPE; j++) {

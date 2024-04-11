@@ -4,6 +4,11 @@ Author  : Shay Green <gblargg@gmail.com>
 Website : http://www.slack.net/~ant/
 License : GNU Lesser General Public License (LGPL)
 
+MODIFICATION DISCLAIMER
+-----------------------
+I have modified this library in order to add a function that disables the DC offset correction high-pass filter.
+  - tildearrow
+
 
 Contents
 --------

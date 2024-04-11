@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("delay arpeggio by one tick on every new note.");
         }
-        ImGui::Checkbox("Broken DAC mode",&e->song.brokenDACMode);
+        ImGui::Checkbox("Disable DAC when sample ends",&e->song.brokenDACMode);
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing.");
         }
@@ -184,6 +184,18 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("behavior changed in 0.6pre5");
         }
+        ImGui::Checkbox("Pre-note does not take effects into consideration",&e->song.preNoteNoEffect);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6pre9");
+        }
+        ImGui::Checkbox("Disable new NES DPCM features",&e->song.oldDPCM);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6.1");
+        }
+        ImGui::Checkbox("Legacy technical ALWAYS_SET_VOLUME behavior",&e->song.oldAlwaysSetVolume);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6.1\nthis flag will be removed if I find out that none of the songs break after disabling it.");
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(".mod import")) {
@@ -199,17 +211,22 @@ void FurnaceGUI::drawCompatFlags() {
       }
       if (ImGui::BeginTabItem("Pitch/Playback")) {
         ImGui::Text("Pitch linearity:");
+        ImGui::Indent();
         if (ImGui::RadioButton("None",e->song.linearPitch==0)) {
           e->song.linearPitch=0;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("like ProTracker/FamiTracker");
         }
-        if (ImGui::RadioButton("Partial (only 04xy/E5xx)",e->song.linearPitch==1)) {
-          e->song.linearPitch=1;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("like DefleMask");
+        if (e->song.linearPitch==1) {
+          pushWarningColor(true);
+          if (ImGui::RadioButton("Partial (only 04xy/E5xx)",e->song.linearPitch==1)) {
+            e->song.linearPitch=1;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("like DefleMask\n\nthis pitch linearity mode is deprecated due to:\n- excessive complexity\n- lack of possible optimization\n\nit is recommended to change it now because I will remove this option in the future!");
+          }
+          popWarningColor();
         }
         if (ImGui::RadioButton("Full",e->song.linearPitch==2)) {
           e->song.linearPitch=2;
@@ -217,6 +234,7 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("like Impulse Tracker");
         }
+        ImGui::Unindent();
 
         if (e->song.linearPitch==2) {
           ImGui::SameLine();
@@ -228,6 +246,7 @@ void FurnaceGUI::drawCompatFlags() {
         }
 
         ImGui::Text("Loop modality:");
+        ImGui::Indent();
         if (ImGui::RadioButton("Reset channels",e->song.loopModality==0)) {
           e->song.loopModality=0;
         }
@@ -246,8 +265,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("select to not reset channels on loop.");
         }
+        ImGui::Unindent();
 
         ImGui::Text("Cut/delay effect policy:");
+        ImGui::Indent();
         if (ImGui::RadioButton("Strict",e->song.delayBehavior==0)) {
           e->song.delayBehavior=0;
         }
@@ -266,8 +287,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("no checks");
         }
+        ImGui::Unindent();
 
         ImGui::Text("Simultaneous jump (0B+0D) treatment:");
+        ImGui::Indent();
         if (ImGui::RadioButton("Normal",e->song.jumpTreatment==0)) {
           e->song.jumpTreatment=0;
         }
@@ -286,6 +309,7 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("only accept 0Dxx");
         }
+        ImGui::Unindent();
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Other")) {
@@ -306,11 +330,19 @@ void FurnaceGUI::drawCompatFlags() {
         }
         ImGui::Checkbox("Continuous vibrato",&e->song.continuousVibrato);
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("when enabled, vibrato will not be reset on a new note.");
+          ImGui::SetTooltip("when enabled, vibrato phase/position will not be reset on a new note.");
         }
         InvCheckbox("Pitch macro is not linear",&e->song.pitchMacroIsLinear);
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("when enabled, the pitch macro of an instrument is in frequency/period space.");
+        }
+        ImGui::Checkbox("Reset arpeggio effect position on new note",&e->song.resetArpPhaseOnNewNote);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("when enabled, arpeggio effect (00xy) position is reset on a new note.");
+        }
+        ImGui::Checkbox("Volume scaling rounds up",&e->song.ceilVolumeScaling);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels");
         }
         ImGui::EndTabItem();
       }

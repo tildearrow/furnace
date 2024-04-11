@@ -2,7 +2,7 @@
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2023 tildearrow and contributors
+ * Copyright (C) 2021-2024 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,9 +77,21 @@ bool Particle::update(float frameTime) {
   return (life>0);
 }
 
+void FurnaceGUI::centerNextWindow(const char* name, float w, float h) {
+  if (ImGui::IsPopupOpen(name)) {
+    if (settings.centerPopup) {
+      ImGui::SetNextWindowPos(ImVec2(w*0.5,h*0.5),ImGuiCond_Always,ImVec2(0.5,0.5));
+    }
+  }
+}
+
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
   wavePreview.setEngine(e);
+}
+
+void FurnaceGUI::enableSafeMode() {
+  safeMode=true;
 }
 
 const char* FurnaceGUI::noteName(short note, short octave) {
@@ -97,6 +109,10 @@ const char* FurnaceGUI::noteName(short note, short octave) {
   int seek=(note+(signed char)octave*12)+60;
   if (seek<0 || seek>=180) {
     return "???";
+  }
+  if (settings.flatNotes) {
+    if (settings.germanNotation) return noteNamesGF[seek];
+    return noteNamesF[seek];
   }
   if (settings.germanNotation) return noteNamesG[seek];
   return noteNames[seek];
@@ -405,6 +421,7 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
   }
 
 bool FurnaceGUI::CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {
+  flags^=ImGuiSliderFlags_AlwaysClamp;
   if (ImGui::SliderScalar(label,data_type,p_data,p_min,p_max,format,flags)) {
     return true;
   }
@@ -441,6 +458,7 @@ bool FurnaceGUI::CWSliderScalar(const char* label, ImGuiDataType data_type, void
 }
 
 bool FurnaceGUI::CWVSliderScalar(const char* label, const ImVec2& size, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags) {
+  flags^=ImGuiSliderFlags_AlwaysClamp;
   if (ImGui::VSliderScalar(label,size,data_type,p_data,p_min,p_max,format,flags)) {
     return true;
   }
@@ -600,16 +618,99 @@ void FurnaceGUI::updateWindowTitle() {
   }
 
   if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
+
+  if (e->song.insLen==1) {
+    unsigned int checker=0x11111111;
+    unsigned int checker1=0;
+    DivInstrument* ins=e->getIns(0);
+    if (ins->name.size()==15 && e->curSubSong->ordersLen==8) {
+      for (int i=0; i<15; i++) {
+        checker^=ins->name[i]<<i;
+        checker1+=ins->name[i];
+        checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
+        checker1<<=1;
+      }
+      if (checker==0x5ec4497d && checker1==0x6347ee) nonLatchNibble=true;
+    }
+  }
+}
+
+void FurnaceGUI::autoDetectSystemIter(std::vector<FurnaceGUISysDef>& category, bool& isMatch, std::map<DivSystem,int>& defCountMap, std::map<DivSystem,DivConfig>& defConfMap, std::map<DivSystem,int>& sysCountMap, std::map<DivSystem,DivConfig>& sysConfMap) {
+  for (FurnaceGUISysDef& j: category) {
+    if (!j.orig.empty()) {
+      defCountMap.clear();
+      defConfMap.clear();
+      for (FurnaceGUISysDefChip& k: j.orig) {
+        auto it=defCountMap.find(k.sys);
+        if (it==defCountMap.cend()) {
+          defCountMap[k.sys]=1;
+        } else {
+          it->second++;
+        }
+        DivConfig dc;
+        dc.loadFromMemory(k.flags.c_str());
+        defConfMap[k.sys]=dc;
+      }
+      if (defCountMap.size()==sysCountMap.size()) {
+        isMatch=true;
+        /*logV("trying on defCountMap: %s",j.name);
+        for (std::pair<DivSystem,int> k: defCountMap) {
+          logV("- %s: %d",e->getSystemName(k.first),k.second);
+        }*/
+        for (std::pair<DivSystem,int> k: defCountMap) {
+          auto countI=sysCountMap.find(k.first);
+          if (countI==sysCountMap.cend()) {
+            isMatch=false;
+            break;
+          } else if (countI->second!=k.second) {
+            isMatch=false;
+            break;
+          }
+
+          auto confI=sysConfMap.find(k.first);
+          if (confI==sysConfMap.cend()) {
+            isMatch=false;
+            break;
+          }
+          DivConfig& sysDC=confI->second;
+          auto defConfI=defConfMap.find(k.first);
+          if (defConfI==defConfMap.cend()) {
+            isMatch=false;
+            break;
+          }
+          for (std::pair<String,String> l: defConfI->second.configMap()) {
+            if (!sysDC.has(l.first)) {
+              isMatch=false;
+              break;
+            }
+            if (sysDC.getString(l.first,"")!=l.second) {
+              isMatch=false;
+              break;
+            }
+          }
+          if (!isMatch) break;
+        }
+        if (isMatch) {
+          logV("match found!");
+          e->song.systemName=j.name;
+          break;
+        }
+      }
+    }
+    if (!j.subDefs.empty()) autoDetectSystemIter(j.subDefs,isMatch,defCountMap,defConfMap,sysCountMap,sysConfMap);
+    if (isMatch) break;
+  }
 }
 
 void FurnaceGUI::autoDetectSystem() {
   std::map<DivSystem,int> sysCountMap;
   std::map<DivSystem,DivConfig> sysConfMap;
   for (int i=0; i<e->song.systemLen; i++) {
-    try {
-      sysCountMap.at(e->song.system[i])++;
-    } catch (std::exception& ex) {
+    auto it=sysCountMap.find(e->song.system[i]);
+    if (it==sysCountMap.cend()) {
       sysCountMap[e->song.system[i]]=1;
+    } else {
+      it->second++;
     }
     sysConfMap[e->song.system[i]]=e->song.systemFlags[i];
   }
@@ -623,54 +724,7 @@ void FurnaceGUI::autoDetectSystem() {
   std::map<DivSystem,int> defCountMap;
   std::map<DivSystem,DivConfig> defConfMap;
   for (FurnaceGUISysCategory& i: sysCategories) {
-    for (FurnaceGUISysDef& j: i.systems) {
-      defCountMap.clear();
-      defConfMap.clear();
-      for (FurnaceGUISysDefChip& k: j.orig) {
-        try {
-          defCountMap.at(k.sys)++;
-        } catch (std::exception& ex) {
-          defCountMap[k.sys]=1;
-        }
-        DivConfig dc;
-        dc.loadFromMemory(k.flags);
-        defConfMap[k.sys]=dc;
-      }
-      if (defCountMap.size()!=sysCountMap.size()) continue;
-      isMatch=true;
-      /*logV("trying on defCountMap: %s",j.name);
-      for (std::pair<DivSystem,int> k: defCountMap) {
-        logV("- %s: %d",e->getSystemName(k.first),k.second);
-      }*/
-      for (std::pair<DivSystem,int> k: defCountMap) {
-        try {
-          if (sysCountMap.at(k.first)!=k.second) {
-            isMatch=false;
-            break;
-          }
-          DivConfig& sysDC=sysConfMap.at(k.first);
-          for (std::pair<String,String> l: defConfMap.at(k.first).configMap()) {
-            if (!sysDC.has(l.first)) {
-              isMatch=false;
-              break;
-            }
-            if (sysDC.getString(l.first,"")!=l.second) {
-              isMatch=false;
-              break;
-            }
-          }
-          if (!isMatch) break;
-        } catch (std::exception& ex) {
-          isMatch=false;
-          break;
-        }
-      }
-      if (isMatch) {
-        logV("match found!");
-        e->song.systemName=j.name;
-        break;
-      }
-    }
+    autoDetectSystemIter(i.systems,isMatch,defCountMap,defConfMap,sysCountMap,sysConfMap);
     if (isMatch) break;
   }
 
@@ -682,11 +736,7 @@ void FurnaceGUI::autoDetectSystem() {
       if (k.second>1) {
         e->song.systemName+=fmt::sprintf("%d×",k.second);
       }
-      if (k.first==DIV_SYSTEM_N163) {
-        e->song.systemName+=settings.c163Name;
-      } else {
-        e->song.systemName+=e->getSystemName(k.first);
-      }
+      e->song.systemName+=e->getSystemName(k.first);
       isFirst=false;
     }
   }
@@ -995,6 +1045,11 @@ Pos=60,60\n\
 Size=145,184\n\
 Collapsed=0\n\
 \n\
+[Window][Oscilloscope (X-Y)]\n\
+Pos=60,60\n\
+Size=300,300\n\
+Collapsed=0\n\
+\n\
 [Docking][Data]\n\
 DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Split=Y Selected=0x6C01C512\n\
   DockNode            ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,217 Split=X Selected=0xF3094A52\n\
@@ -1059,16 +1114,25 @@ float FurnaceGUI::calcBPM(const DivGroovePattern& speeds, float hz, int vN, int 
 }
 
 void FurnaceGUI::play(int row) {
+  if (e->getStreamPlayer()) {
+    e->killStream();
+  }
   memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
-  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    chanOscChan[i].pitch=0.0f;
+  }
   memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
   e->walkSong(loopOrder,loopRow,loopEnd);
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (!followPattern) e->setOrder(curOrder);
   if (row>0) {
-    e->playToRow(row);
+    if (!e->playToRow(row)) {
+      showError("the song is over!");
+    }
   } else {
-    e->play();
+    if (!e->play()) {
+      showError("the song is over!");
+    }
   }
   curNibble=false;
   orderNibble=false;
@@ -1083,22 +1147,34 @@ void FurnaceGUI::setOrder(unsigned char order, bool forced) {
 }
 
 void FurnaceGUI::stop() {
+  bool wasPlaying=e->isPlaying();
   e->walkSong(loopOrder,loopRow,loopEnd);
   e->stop();
   curNibble=false;
   orderNibble=false;
+  if (followPattern && wasPlaying) {
+    nextScroll=-1.0f;
+    nextAddScroll=0.0f;
+    cursor.y=oldRow;
+    if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && !selecting) {
+      selStart=cursor;
+      selEnd=cursor;
+    }
+    updateScroll(cursor.y);
+  }
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
   e->setMidiBaseChan(refChan);
   e->synchronized([this,note]() {
-    e->autoNoteOn(-1,curIns,note);
+    if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
   });
 }
 
 void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
-  try {
-    int key=noteKeys.at(scancode);
+  auto it=noteKeys.find(scancode);
+  if (it!=noteKeys.cend()) {
+    int key=it->second;
     int num=12*curOctave+key;
     if (num<-60) num=-60; // C-(-5)
     if (num>119) num=119; // B-9
@@ -1109,25 +1185,29 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 
     e->synchronized([this,num]() {
       e->autoNoteOff(-1,num);
+      failedNoteOn=false;
     });
-  } catch (std::out_of_range& e) {
   }
 }
 
 void FurnaceGUI::noteInput(int num, int key, int vol) {
   DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
+  bool removeIns=false;
 
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
   if (key==GUI_NOTE_OFF) { // note off
     pat->data[cursor.y][0]=100;
     pat->data[cursor.y][1]=0;
+    removeIns=true;
   } else if (key==GUI_NOTE_OFF_RELEASE) { // note off + env release
     pat->data[cursor.y][0]=101;
     pat->data[cursor.y][1]=0;
+    removeIns=true;
   } else if (key==GUI_NOTE_RELEASE) { // env release only
     pat->data[cursor.y][0]=102;
     pat->data[cursor.y][1]=0;
+    removeIns=true;
   } else {
     pat->data[cursor.y][0]=num%12;
     pat->data[cursor.y][1]=num/12;
@@ -1148,10 +1228,18 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
     if (latchVol!=-1) {
       pat->data[cursor.y][3]=MIN(maxVol,latchVol);
     } else if (vol!=-1) {
-      pat->data[cursor.y][3]=(vol*maxVol)/127;
+      pat->data[cursor.y][3]=e->mapVelocity(cursor.xCoarse,pow((float)vol/127.0f,midiMap.volExp));
     }
     if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
     if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
+  }
+  if (removeIns) {
+    if (settings.removeInsOff) {
+      pat->data[cursor.y][2]=-1;
+    }
+    if (settings.removeVolOff) {
+      pat->data[cursor.y][3]=-1;
+    }
   }
   makeUndo(GUI_UNDO_PATTERN_EDIT);
   editAdvance();
@@ -1208,6 +1296,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
     } else {
       if (e->getMaxVolumeChan(cursor.xCoarse)<16) {
         curNibble=false;
+        if (pat->data[cursor.y][target]>e->getMaxVolumeChan(cursor.xCoarse)) pat->data[cursor.y][target]=e->getMaxVolumeChan(cursor.xCoarse);
         editAdvance();
       } else {
         curNibble=!curNibble;
@@ -1242,6 +1331,32 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   }
 }
 
+void FurnaceGUI::orderInput(int num) {
+  if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
+    prepareUndo(GUI_UNDO_CHANGE_ORDER);
+    e->lockSave([this,num]() {
+      if (!curNibble && !settings.pushNibble) e->curOrders->ord[orderCursor][curOrder]=0;
+      e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
+    });
+    MARK_MODIFIED;
+    curNibble=!curNibble;
+    if (orderEditMode==2 || orderEditMode==3) {
+      if (!curNibble) {
+        if (orderEditMode==2) {
+          orderCursor++;
+          if (orderCursor>=e->getTotalChannelCount()) orderCursor=0;
+        } else if (orderEditMode==3) {
+          if (curOrder<e->curSubSong->ordersLen-1) {
+            setOrder(curOrder+1);
+          }
+        }
+      }
+    }
+    e->walkSong(loopOrder,loopRow,loopEnd);
+    makeUndo(GUI_UNDO_CHANGE_ORDER);
+  }
+}
+
 #define changeLatch(x) \
   if (x<0) x=0; \
   if (!latchNibble && !settings.pushNibble) x=0; \
@@ -1255,6 +1370,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   if (introPos<11.0 && !shortIntro) return;
   if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
+  if (cvOpen) return;
 
   int mapped=ev.key.keysym.sym;
   if (ev.key.keysym.mod&KMOD_CTRL) {
@@ -1310,8 +1426,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           break;
       }
     } else {
-      try {
-        int num=valueKeys.at(ev.key.keysym.sym);
+      auto it=valueKeys.find(ev.key.keysym.sym);
+      if (it!=valueKeys.cend()) {
+        int num=it->second;
         switch (latchTarget) {
           case 1: // instrument
             changeLatch(latchIns);
@@ -1326,64 +1443,97 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             changeLatch(latchEffectVal);
             break;
         }
-      } catch (std::out_of_range& e) {
       }
     }
     return;
   }
 
   if (sampleMapWaitingInput) {
-    if (sampleMapColumn==1) {
-      // TODO: map?
-      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-        alterSampleMap(true,-1);
-        return;
-      }
-      try {
-        int key=noteKeys.at(ev.key.keysym.scancode);
-        int num=12*curOctave+key;
-
-        if (num<-60) num=-60; // C-(-5)
-        if (num>119) num=119; // B-9
-
-        alterSampleMap(true,num);
-        return;
-      } catch (std::out_of_range& e) {
-      }
-    } else {
-      // TODO: map?
-      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
-        alterSampleMap(false,-1);
-        return;
-      }
-      try {
-        int num=valueKeys.at(ev.key.keysym.sym);
-        if (num<10) {
-          alterSampleMap(false,num);
+    switch (sampleMapColumn) {
+      case 0: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(0,-1);
           return;
         }
-      } catch (std::out_of_range& e) {
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<10) {
+            alterSampleMap(0,num);
+            return;
+          }
+        }
+        break;
+      }
+      case 1: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(1,-1);
+          return;
+        }
+        auto it=noteKeys.find(ev.key.keysym.scancode);
+        if (it!=noteKeys.cend()) {
+          int key=it->second;
+          int num=12*curOctave+key;
+
+          if (num<-60) num=-60; // C-(-5)
+          if (num>119) num=119; // B-9
+
+          alterSampleMap(1,num);
+          return;
+        }
+        break;
+      }
+      case 2: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(2,-1);
+          return;
+        }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<10) {
+            alterSampleMap(2,num);
+            return;
+          }
+        }
+        break;
+      }
+      case 3: {
+        if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+          alterSampleMap(3,-1);
+          return;
+        }
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          if (num<16) {
+            alterSampleMap(3,num);
+            return;
+          }
+        }
+        break;
       }
     }
   }
 
   // PER-WINDOW KEYS
   switch (curWindow) {
-    case GUI_WINDOW_PATTERN:
-      try {
-        int action=actionMapPat.at(mapped);
+    case GUI_WINDOW_PATTERN: {
+      auto actionI=actionMapPat.find(mapped);
+      if (actionI!=actionMapPat.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       // pattern input otherwise
       if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
       if (!ev.key.repeat) {
         if (cursor.xFine==0) { // note
-          try {
-            int key=noteKeys.at(ev.key.keysym.scancode);
+          auto it=noteKeys.find(ev.key.keysym.scancode);
+          if (it!=noteKeys.cend()) {
+            int key=it->second;
             int num=12*curOctave+key;
 
             if (num<-60) num=-60; // C-(-5)
@@ -1392,107 +1542,93 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             if (edit) {
               noteInput(num,key);
             }
-          } catch (std::out_of_range& e) {
           }
         } else if (edit) { // value
-          try {
-            int num=valueKeys.at(ev.key.keysym.sym);
+          auto it=valueKeys.find(ev.key.keysym.sym);
+          if (it!=valueKeys.cend()) {
+            int num=it->second;
             valueInput(num);
-          } catch (std::out_of_range& e) {
           }
         }
       }
       break;
-    case GUI_WINDOW_ORDERS:
-      try {
-        int action=actionMapOrders.at(mapped);
+    }
+    case GUI_WINDOW_ORDERS: {
+      auto actionI=actionMapOrders.find(mapped);
+      if (actionI!=actionMapOrders.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       // order input otherwise
       if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
       if (orderEditMode!=0) {
-        try {
-          int num=valueKeys.at(ev.key.keysym.sym);
-          if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
-            e->lockSave([this,num]() {
-              e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
-            });
-            MARK_MODIFIED;
-            if (orderEditMode==2 || orderEditMode==3) {
-              curNibble=!curNibble;
-              if (!curNibble) {
-                if (orderEditMode==2) {
-                  orderCursor++;
-                  if (orderCursor>=e->getTotalChannelCount()) orderCursor=0;
-                } else if (orderEditMode==3) {
-                  if (curOrder<e->curSubSong->ordersLen-1) {
-                    setOrder(curOrder+1);
-                  }
-                }
-              }
-            }
-            e->walkSong(loopOrder,loopRow,loopEnd);
-          }
-        } catch (std::out_of_range& e) {
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
+          orderInput(num);
         }
       }
       break;
-    case GUI_WINDOW_SAMPLE_EDIT:
-      try {
-        int action=actionMapSample.at(mapped);
+    }
+    case GUI_WINDOW_SAMPLE_EDIT: {
+      auto actionI=actionMapSample.find(mapped);
+      if (actionI!=actionMapSample.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       break;
-    case GUI_WINDOW_INS_LIST:
-      try {
-        int action=actionMapInsList.at(mapped);
+    }
+    case GUI_WINDOW_INS_LIST: {
+      auto actionI=actionMapInsList.find(mapped);
+      if (actionI!=actionMapInsList.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       break;
-    case GUI_WINDOW_WAVE_LIST:
-      try {
-        int action=actionMapWaveList.at(mapped);
+    }
+    case GUI_WINDOW_WAVE_LIST: {
+      auto actionI=actionMapWaveList.find(mapped);
+      if (actionI!=actionMapWaveList.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       break;
-    case GUI_WINDOW_SAMPLE_LIST:
-      try {
-        int action=actionMapSampleList.at(mapped);
+    }
+    case GUI_WINDOW_SAMPLE_LIST: {
+      auto actionI=actionMapSampleList.find(mapped);
+      if (actionI!=actionMapSampleList.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       break;
+    }
     default:
       break;
   }
 
   // GLOBAL KEYS
-  try {
-    int action=actionMapGlobal.at(mapped);
+  auto actionI=actionMapGlobal.find(mapped);
+  if (actionI!=actionMapGlobal.cend()) {
+    int action=actionI->second;
     if (action>0) {
       doAction(action);
       return;
     }
-  } catch (std::out_of_range& e) {
   }
 }
 
@@ -1511,9 +1647,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Open File",
-        {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc",
+        {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub",
          "all files", "*"},
-        "compatible files{.fur,.dmf,.mod,.fc13,.fc14,.smod,.fc},.*",
         workingDirSong,
         dpiScale
       );
@@ -1526,7 +1661,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Restore Backup",
         {"Furnace song", "*.fur"},
-        "Furnace song{.fur}",
         backupPath+String(DIR_SEPARATOR_STR),
         dpiScale
       );
@@ -1536,7 +1670,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save File",
         {"Furnace song", "*.fur"},
-        "Furnace song{.fur}",
         workingDirSong,
         dpiScale
       );
@@ -1544,9 +1677,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_SAVE_DMF:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openSave(
-        "Save File",
+        "Export DMF",
         {"DefleMask 1.1.3 module", "*.dmf"},
-        "DefleMask 1.1.3 module{.dmf}",
         workingDirSong,
         dpiScale
       );
@@ -1554,9 +1686,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_SAVE_DMF_LEGACY:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openSave(
-        "Save File",
+        "Export DMF",
         {"DefleMask 1.0/legacy module", "*.dmf"},
-        "DefleMask 1.0/legacy module{.dmf}",
         workingDirSong,
         dpiScale
       );
@@ -1573,8 +1704,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
-        // TODO supply loadable formats in a dynamic, scalable, "DRY" way.
-        // thank the author of IGFD for making things impossible
         {"all compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
          "Furnace instrument", "*.fui",
          "DefleMask preset", "*.dmp",
@@ -1592,7 +1721,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "Wohlstand WOPL bank", "*.wopl",
          "Wohlstand WOPN bank", "*.wopn",
          "all files", "*"},
-        "all compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.gyb,.opm,.wopl,.wopn},.*",
         workingDirIns,
         dpiScale,
         [this](const char* path) {
@@ -1627,17 +1755,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Instrument",
         {"Furnace instrument", "*.fui"},
-        "Furnace instrument{.fui}",
-        workingDirIns,
-        dpiScale
-      );
-      break;
-    case GUI_FILE_INS_SAVE_OLD:
-      if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
-      hasOpened=fileDialog->openSave(
-        "Save Instrument",
-        {"Furnace instrument", "*.fui"},
-        "Furnace instrument{.fui}",
         workingDirIns,
         dpiScale
       );
@@ -1647,7 +1764,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Instrument",
         {"DefleMask preset", "*.dmp"},
-        "DefleMask preset{.dmp}",
         workingDirIns,
         dpiScale
       );
@@ -1659,7 +1775,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Load Wavetable",
         {"compatible files", "*.fuw *.dmw",
          "all files", "*"},
-        "compatible files{.fuw,.dmw},.*",
         workingDirWave,
         dpiScale,
         NULL, // TODO
@@ -1671,7 +1786,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Wavetable",
         {"Furnace wavetable", ".fuw"},
-        "Furnace wavetable{.fuw}",
         workingDirWave,
         dpiScale
       );
@@ -1681,7 +1795,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Wavetable",
         {"DefleMask wavetable", ".dmw"},
-        "DefleMask wavetable{.dmw}",
         workingDirWave,
         dpiScale
       );
@@ -1691,7 +1804,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Wavetable",
         {"raw data", ".raw"},
-        "raw data{.raw}",
         workingDirWave,
         dpiScale
       );
@@ -1703,7 +1815,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Load Sample",
         {"compatible files", "*.wav *.dmc *.brr",
          "all files", "*"},
-        "compatible files{.wav,.dmc,.brr},.*",
         workingDirSample,
         dpiScale,
         NULL, // TODO
@@ -1716,7 +1827,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load Raw Sample",
         {"all files", "*"},
-        ".*",
         workingDirSample,
         dpiScale
       );
@@ -1726,7 +1836,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Save Sample",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirSample,
         dpiScale
       );
@@ -1734,9 +1843,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_SAMPLE_SAVE_RAW:
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
       hasOpened=fileDialog->openSave(
-        "Load Raw Sample",
+        "Save Raw Sample",
         {"all files", "*"},
-        ".*",
         workingDirSample,
         dpiScale
       );
@@ -1746,7 +1854,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Audio",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirAudioExport,
         dpiScale
       );
@@ -1756,7 +1863,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Audio",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirAudioExport,
         dpiScale
       );
@@ -1766,7 +1872,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Audio",
         {"Wave file", "*.wav"},
-        "Wave file{.wav}",
         workingDirAudioExport,
         dpiScale
       );
@@ -1776,7 +1881,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export VGM",
         {"VGM file", "*.vgm"},
-        "VGM file{.vgm}",
         workingDirVGMExport,
         dpiScale
       );
@@ -1786,8 +1890,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export ZSM",
         {"ZSM file", "*.zsm"},
-        "ZSM file{.zsm}",
         workingDirZSMExport,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_EXPORT_TEXT:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Export Command Stream",
+        {"text file", "*.txt"},
+        workingDirROMExport,
         dpiScale
       );
       break;
@@ -1795,18 +1907,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
         "Export Command Stream",
-        {"text file", "*.txt"},
-        "text file{.txt}",
-        workingDirROMExport,
-        dpiScale
-      );
-      break;
-    case GUI_FILE_EXPORT_CMDSTREAM_BINARY:
-      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
-      hasOpened=fileDialog->openSave(
-        "Export Command Stream",
         {"binary file", "*.bin"},
-        "binary file{.bin}",
         workingDirROMExport,
         dpiScale
       );
@@ -1818,8 +1919,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
-        "compatible files{.ttf,.otf,.ttc}",
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
+        workingDirFont,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_LOAD_HEAD_FONT:
+      if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -1828,8 +1937,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
-        {"compatible files", "*.ttf *.otf *.ttc"},
-        "compatible files{.ttf,.otf,.ttc}",
+        {"compatible files", "*.ttf *.otf *.ttc *.dfont *.pcf *.psf *.fon"},
         workingDirFont,
         dpiScale
       );
@@ -1839,7 +1947,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Color File",
         {"configuration files", "*.cfgc"},
-        "configuration files{.cfgc}",
         workingDirColors,
         dpiScale
       );
@@ -1849,7 +1956,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Keybind File",
         {"configuration files", "*.cfgk"},
-        "configuration files{.cfgk}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1859,7 +1965,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Select Layout File",
         {".ini files", "*.ini"},
-        ".ini files{.ini}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1869,7 +1974,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Colors",
         {"configuration files", "*.cfgc"},
-        "configuration files{.cfgc}",
         workingDirColors,
         dpiScale
       );
@@ -1879,7 +1983,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Keybinds",
         {"configuration files", "*.cfgk"},
-        "configuration files{.cfgk}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1889,7 +1992,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         "Export Layout",
         {".ini files", "*.ini"},
-        ".ini files{.ini}",
         workingDirKeybinds,
         dpiScale
       );
@@ -1902,7 +2004,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Load ROM",
         {"compatible files", "*.rom *.bin",
          "all files", "*"},
-        "compatible files{.rom,.bin},.*",
         workingDirROM,
         dpiScale
       );
@@ -1913,7 +2014,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Play Command Stream",
         {"command stream", "*.bin",
          "all files", "*"},
-        "command stream{.bin},.*",
         workingDirROM,
         dpiScale
       );
@@ -1925,7 +2025,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
          "all files", "*"},
-        "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
         [](const char* path) {
@@ -1944,7 +2043,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
          "all files", "*"},
-        "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
         [](const char* path) {
@@ -1963,7 +2061,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Save Test",
         {"Furnace song", "*.fur",
          "DefleMask module", "*.dmf"},
-        "Furnace song{.fur},DefleMask module{.dmf}",
         workingDirTest,
         dpiScale
       );
@@ -2074,11 +2171,13 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
   pushRecentFile(path);
+  pushRecentSys(path.c_str());
   logD("save complete.");
   return 0;
 }
 
 int FurnaceGUI::load(String path) {
+  bool wasPlaying=e->isPlaying();
   if (!path.empty()) {
     logI("loading module...");
     FILE* f=ps_fopen(path.c_str(),"rb");
@@ -2126,7 +2225,7 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
     fclose(f);
-    if (!e->load(file,(size_t)len)) {
+    if (!e->load(file,(size_t)len,path.c_str())) {
       lastError=e->getLastError();
       logE("could not open file!");
       return 1;
@@ -2155,7 +2254,29 @@ int FurnaceGUI::load(String path) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
   pushRecentFile(path);
+  // walk song
+  e->walkSong(loopOrder,loopRow,loopEnd);
+  // do not auto-play a backup
+  if (path.find(backupPath)!=0) {
+    if (settings.playOnLoad==2 || (settings.playOnLoad==1 && wasPlaying)) {
+      play();
+    }
+  } else {
+    // warn the user
+    showWarning("you have loaded a backup!\nif you need to, please save it somewhere.\n\nDO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\nFurnace will not save backups of backups.",GUI_WARN_GENERIC);
+  }
   return 0;
+}
+
+void FurnaceGUI::openRecentFile(String path) {
+  if (modified) {
+    nextFile=path;
+    showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
+  } else {
+    if (load(path)>0) {
+      showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+    }
+  }
 }
 
 void FurnaceGUI::pushRecentFile(String path) {
@@ -2163,7 +2284,7 @@ void FurnaceGUI::pushRecentFile(String path) {
   if (path.find(backupPath)==0) return;
   for (int i=0; i<(int)recentFile.size(); i++) {
     if (recentFile[i]==path) {
-      recentFile.erase(recentFile.begin()+i);
+      recentFile.erase(i);
       i--;
     }
   }
@@ -2172,6 +2293,13 @@ void FurnaceGUI::pushRecentFile(String path) {
   while (!recentFile.empty() && (int)recentFile.size()>settings.maxRecentFile) {
     recentFile.pop_back();
   }
+}
+
+void FurnaceGUI::pushRecentSys(const char* path) {
+#ifdef _WIN32
+  WString widePath=utf8To16(path);
+  SHAddToRecentDocs(SHARD_PATHW,widePath.c_str());
+#endif
 }
 
 void FurnaceGUI::delFirstBackup(String name) {
@@ -2329,14 +2457,14 @@ String FurnaceGUI::getLastError() {
       macroDragLastY=y; \
       if (macroDragInitialValueSet) { \
         if (macroDragInitialValue) { \
-          t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(~(1<<y)))-macroDragBitOff; \
+          t[x]=(((t[x])&((1<<macroDragMax)-1))&(~(1<<y))); \
         } else { \
-          t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))|(1<<y))-macroDragBitOff; \
+          t[x]=(((t[x])&((1<<macroDragMax)-1))|(1<<y)); \
         } \
       } else { \
-        macroDragInitialValue=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))&(1<<y)); \
+        macroDragInitialValue=(((t[x])&((1<<macroDragMax)-1))&(1<<y)); \
         macroDragInitialValueSet=true; \
-        t[x]=(((t[x]+macroDragBitOff)&((1<<macroDragMax)-1))^(1<<y))-macroDragBitOff; \
+        t[x]=(((t[x])&((1<<macroDragMax)-1))^(1<<y)); \
       } \
       t[x]&=(1<<macroDragMax)-1; \
     } \
@@ -2415,11 +2543,11 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       int x=(dragX-waveDragStart.x)*waveDragLen/MAX(1,waveDragAreaSize.x);
       if (x<0) x=0;
       if (x>=waveDragLen) x=waveDragLen-1;
-      int y=round(waveDragMax-((dragY-waveDragStart.y)*(double(waveDragMax-waveDragMin)/(double)MAX(1,waveDragAreaSize.y))));
+      int y=(waveDragMax+1)-((dragY-waveDragStart.y)*(double((waveDragMax+1)-waveDragMin)/(double)MAX(1,waveDragAreaSize.y)));
       if (y>waveDragMax) y=waveDragMax;
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
-      e->notifyWaveChange(curWave);
+      notifyWaveChange=true;
       MARK_MODIFIED;
     }
   }
@@ -2537,7 +2665,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true,true,selStart,selEnd);
   if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false,true,selStart,selEnd);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
-  if (!basicMode) if (ImGui::BeginMenu("paste special...")) {
+  if (ImGui::BeginMenu("paste special...")) {
     if (ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX))) doPaste(GUI_PASTE_MODE_MIX_FG);
     if (ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG))) doPaste(GUI_PASTE_MODE_MIX_BG);
     if (ImGui::BeginMenu("paste with ins (foreground)")) {
@@ -2574,164 +2702,162 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   ImGui::Separator();
 
-  if (!basicMode) {
-    if (ImGui::BeginMenu("operation mask...")) {
-      drawOpMask(opMaskDelete);
-      ImGui::SameLine();
-      ImGui::Text("delete");
-
-      drawOpMask(opMaskPullDelete);
-      ImGui::SameLine();
-      ImGui::Text("pull delete");
-
-      drawOpMask(opMaskInsert);
-      ImGui::SameLine();
-      ImGui::Text("insert");
-
-      drawOpMask(opMaskPaste);
-      ImGui::SameLine();
-      ImGui::Text("paste");
-
-      drawOpMask(opMaskTransposeNote);
-      ImGui::SameLine();
-      ImGui::Text("transpose (note)");
-
-      drawOpMask(opMaskTransposeValue);
-      ImGui::SameLine();
-      ImGui::Text("transpose (value)");
-
-      drawOpMask(opMaskInterpolate);
-      ImGui::SameLine();
-      ImGui::Text("interpolate");
-
-      drawOpMask(opMaskFade);
-      ImGui::SameLine();
-      ImGui::Text("fade");
-
-      drawOpMask(opMaskInvertVal);
-      ImGui::SameLine();
-      ImGui::Text("invert values");
-
-      drawOpMask(opMaskScale);
-      ImGui::SameLine();
-      ImGui::Text("scale");
-
-      drawOpMask(opMaskRandomize);
-      ImGui::SameLine();
-      ImGui::Text("randomize");
-
-      drawOpMask(opMaskFlip);
-      ImGui::SameLine();
-      ImGui::Text("flip");
-
-      drawOpMask(opMaskCollapseExpand);
-      ImGui::SameLine();
-      ImGui::Text("collapse/expand");
-
-      ImGui::EndMenu();
-    }
-
-    ImGui::Text("input latch");
-    ImGui::PushFont(patFont);
-    if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
-      static char id[64];
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-      ImGui::Text("C-4");
-      ImGui::PopStyleColor();
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
-      if (latchIns==-2) {
-        strcpy(id,"&&##LatchIns");
-      } else if (latchIns==-1) {
-        strcpy(id,"..##LatchIns");
-      } else {
-        snprintf(id,63,"%.2x##LatchIns",latchIns&0xff);
-      }
-      if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=1;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchIns=-2;
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-        ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
-        ImGui::PopStyleColor();
-      }
-      ImGui::PopStyleColor();
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
-      if (latchVol==-1) {
-        strcpy(id,"..##LatchVol");
-      } else {
-        snprintf(id,63,"%.2x##LatchVol",latchVol&0xff);
-      }
-      if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=2;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchVol=-1;
-      }
-      ImGui::PopStyleColor();
-      ImGui::TableNextColumn();
-      if (latchEffect==-1) {
-        strcpy(id,"..##LatchFX");
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-      } else {
-        const unsigned char data=latchEffect;
-        snprintf(id,63,"%.2x##LatchFX",data);
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
-      }
-
-      if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=3;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchEffect=-1;
-      }
-      ImGui::TableNextColumn();
-      if (latchEffectVal==-1) {
-        strcpy(id,"..##LatchFXV");
-      } else {
-        snprintf(id,63,"%.2x##LatchFXV",latchEffectVal&0xff);
-      }
-      if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
-        latchTarget=4;
-        latchNibble=false;
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        latchEffectVal=-1;
-      }
-      ImGui::PopStyleColor();
-      ImGui::EndTable();
-    }
-    ImGui::PopFont();
+  if (ImGui::BeginMenu("operation mask...")) {
+    drawOpMask(opMaskDelete);
     ImGui::SameLine();
-    if (ImGui::Button("Set")) {
-      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
-      latchIns=pat->data[cursor.y][2];
-      latchVol=pat->data[cursor.y][3];
-      latchEffect=pat->data[cursor.y][4];
-      latchEffectVal=pat->data[cursor.y][5];
-      latchTarget=0;
-      latchNibble=false;
-    }
+    ImGui::Text("delete");
+
+    drawOpMask(opMaskPullDelete);
     ImGui::SameLine();
-    if (ImGui::Button("Reset")) {
-      latchIns=-2;
-      latchVol=-1;
-      latchEffect=-1;
-      latchEffectVal=-1;
-      latchTarget=0;
-      latchNibble=false;
-    }
-    ImGui::Separator();
+    ImGui::Text("pull delete");
+
+    drawOpMask(opMaskInsert);
+    ImGui::SameLine();
+    ImGui::Text("insert");
+
+    drawOpMask(opMaskPaste);
+    ImGui::SameLine();
+    ImGui::Text("paste");
+
+    drawOpMask(opMaskTransposeNote);
+    ImGui::SameLine();
+    ImGui::Text("transpose (note)");
+
+    drawOpMask(opMaskTransposeValue);
+    ImGui::SameLine();
+    ImGui::Text("transpose (value)");
+
+    drawOpMask(opMaskInterpolate);
+    ImGui::SameLine();
+    ImGui::Text("interpolate");
+
+    drawOpMask(opMaskFade);
+    ImGui::SameLine();
+    ImGui::Text("fade");
+
+    drawOpMask(opMaskInvertVal);
+    ImGui::SameLine();
+    ImGui::Text("invert values");
+
+    drawOpMask(opMaskScale);
+    ImGui::SameLine();
+    ImGui::Text("scale");
+
+    drawOpMask(opMaskRandomize);
+    ImGui::SameLine();
+    ImGui::Text("randomize");
+
+    drawOpMask(opMaskFlip);
+    ImGui::SameLine();
+    ImGui::Text("flip");
+
+    drawOpMask(opMaskCollapseExpand);
+    ImGui::SameLine();
+    ImGui::Text("collapse/expand");
+
+    ImGui::EndMenu();
   }
+
+  ImGui::Text("input latch");
+  ImGui::PushFont(patFont);
+  if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
+    static char id[64];
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+    ImGui::Text("C-4");
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+    if (latchIns==-2) {
+      strcpy(id,"&&##LatchIns");
+    } else if (latchIns==-1) {
+      strcpy(id,"..##LatchIns");
+    } else {
+      snprintf(id,63,"%.2X##LatchIns",latchIns&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=1;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchIns=-2;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
+      ImGui::PopStyleColor();
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
+    if (latchVol==-1) {
+      strcpy(id,"..##LatchVol");
+    } else {
+      snprintf(id,63,"%.2X##LatchVol",latchVol&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=2;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchVol=-1;
+    }
+    ImGui::PopStyleColor();
+    ImGui::TableNextColumn();
+    if (latchEffect==-1) {
+      strcpy(id,"..##LatchFX");
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+    } else {
+      const unsigned char data=latchEffect;
+      snprintf(id,63,"%.2X##LatchFX",data);
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+    }
+
+    if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=3;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchEffect=-1;
+    }
+    ImGui::TableNextColumn();
+    if (latchEffectVal==-1) {
+      strcpy(id,"..##LatchFXV");
+    } else {
+      snprintf(id,63,"%.2X##LatchFXV",latchEffectVal&0xff);
+    }
+    if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
+      latchTarget=4;
+      latchNibble=false;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      latchEffectVal=-1;
+    }
+    ImGui::PopStyleColor();
+    ImGui::EndTable();
+  }
+  ImGui::PopFont();
+  ImGui::SameLine();
+  if (ImGui::Button("Set")) {
+    DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
+    latchIns=pat->data[cursor.y][2];
+    latchVol=pat->data[cursor.y][3];
+    latchEffect=pat->data[cursor.y][4];
+    latchEffectVal=pat->data[cursor.y][5];
+    latchTarget=0;
+    latchNibble=false;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Reset")) {
+    latchIns=-2;
+    latchVol=-1;
+    latchEffect=-1;
+    latchEffectVal=-1;
+    latchTarget=0;
+    latchNibble=false;
+  }
+  ImGui::Separator();
 
   if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1,opMaskTransposeNote);
   if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1,opMaskTransposeNote);
@@ -2743,10 +2869,11 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("values up (+16)",BIND_FOR(GUI_ACTION_PAT_VALUE_UP_COARSE))) doTranspose(16,opMaskTransposeValue);
   if (ImGui::MenuItem("values down (-16)",BIND_FOR(GUI_ACTION_PAT_VALUE_DOWN_COARSE)))  doTranspose(-16,opMaskTransposeValue);
   ImGui::Separator();
+  ImGui::AlignTextToFramePadding();
   ImGui::Text("transpose");
   ImGui::SameLine();
   ImGui::SetNextItemWidth(120.0f*dpiScale);
-  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,1)) {
+  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,12)) {
     if (transposeAmount<-96) transposeAmount=-96;
     if (transposeAmount>96) transposeAmount=96;
   }
@@ -2776,104 +2903,102 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::EndMenu();
   }
 
-  if (!basicMode) {
-    if (ImGui::BeginMenu("gradient/fade...")) {
-      if (ImGui::InputInt("Start",&fadeMin,1,1)) {
-        if (fadeMin<0) fadeMin=0;
-        if (fadeMode) {
-          if (fadeMin>15) fadeMin=15;
-        } else {
-          if (fadeMin>255) fadeMin=255;
-        }
+  if (ImGui::BeginMenu("gradient/fade...")) {
+    if (ImGui::InputInt("Start",&fadeMin,1,16)) {
+      if (fadeMin<0) fadeMin=0;
+      if (fadeMode) {
+        if (fadeMin>15) fadeMin=15;
+      } else {
+        if (fadeMin>255) fadeMin=255;
       }
-      if (ImGui::InputInt("End",&fadeMax,1,1)) {
-        if (fadeMax<0) fadeMax=0;
-        if (fadeMode) {
-          if (fadeMax>15) fadeMax=15;
-        } else {
-          if (fadeMax>255) fadeMax=255;
-        }
-      }
-      if (ImGui::Checkbox("Nibble mode",&fadeMode)) {
-        if (fadeMode) {
-          if (fadeMin>15) fadeMin=15;
-          if (fadeMax>15) fadeMax=15;
-        } else {
-          if (fadeMin>255) fadeMin=255;
-          if (fadeMax>255) fadeMax=255;
-        }
-      }
-      if (ImGui::Button("Go ahead")) {
-        doFade(fadeMin,fadeMax,fadeMode);
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("scale...")) {
-      if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,1,"%.1f%%")) {
-        if (scaleMax<0.0f) scaleMax=0.0f;
-        if (scaleMax>25600.0f) scaleMax=25600.0f;
+    if (ImGui::InputInt("End",&fadeMax,1,16)) {
+      if (fadeMax<0) fadeMax=0;
+      if (fadeMode) {
+        if (fadeMax>15) fadeMax=15;
+      } else {
+        if (fadeMax>255) fadeMax=255;
       }
-      if (ImGui::Button("Scale")) {
-        doScale(scaleMax);
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("randomize...")) {
-      if (ImGui::InputInt("Minimum",&randomizeMin,1,1)) {
-        if (randomizeMin<0) randomizeMin=0;
-        if (randomMode) {
-          if (randomizeMin>15) randomizeMin=15;
-        } else {
-          if (randomizeMin>255) randomizeMin=255;
-        }
-        if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
+    if (ImGui::Checkbox("Nibble mode",&fadeMode)) {
+      if (fadeMode) {
+        if (fadeMin>15) fadeMin=15;
+        if (fadeMax>15) fadeMax=15;
+      } else {
+        if (fadeMin>255) fadeMin=255;
+        if (fadeMax>255) fadeMax=255;
       }
-      if (ImGui::InputInt("Maximum",&randomizeMax,1,1)) {
-        if (randomizeMax<0) randomizeMax=0;
-        if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
-        if (randomMode) {
-          if (randomizeMax>15) randomizeMax=15;
-        } else {
-          if (randomizeMax>255) randomizeMax=255;
-        }
-      }
-      if (ImGui::Checkbox("Nibble mode",&randomMode)) {
-        if (randomMode) {
-          if (randomizeMin>15) randomizeMin=15;
-          if (randomizeMax>15) randomizeMax=15;
-        } else {
-          if (randomizeMin>255) randomizeMin=255;
-          if (randomizeMax>255) randomizeMax=255;
-        }
-      }
-      // TODO: add an option to set effect to specific value?
-      if (ImGui::Button("Randomize")) {
-        doRandomize(randomizeMin,randomizeMax,randomMode);
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndMenu();
     }
-    if (ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES))) doInvertValues();
+    if (ImGui::Button("Go ahead")) {
+      doFade(fadeMin,fadeMax,fadeMode);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("scale...")) {
+    if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,10,"%.1f%%")) {
+      if (scaleMax<0.0f) scaleMax=0.0f;
+      if (scaleMax>25600.0f) scaleMax=25600.0f;
+    }
+    if (ImGui::Button("Scale")) {
+      doScale(scaleMax);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::BeginMenu("randomize...")) {
+    if (ImGui::InputInt("Minimum",&randomizeMin,1,16)) {
+      if (randomizeMin<0) randomizeMin=0;
+      if (randomMode) {
+        if (randomizeMin>15) randomizeMin=15;
+      } else {
+        if (randomizeMin>255) randomizeMin=255;
+      }
+      if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
+    }
+    if (ImGui::InputInt("Maximum",&randomizeMax,1,16)) {
+      if (randomizeMax<0) randomizeMax=0;
+      if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
+      if (randomMode) {
+        if (randomizeMax>15) randomizeMax=15;
+      } else {
+        if (randomizeMax>255) randomizeMax=255;
+      }
+    }
+    if (ImGui::Checkbox("Nibble mode",&randomMode)) {
+      if (randomMode) {
+        if (randomizeMin>15) randomizeMin=15;
+        if (randomizeMax>15) randomizeMax=15;
+      } else {
+        if (randomizeMin>255) randomizeMin=255;
+        if (randomizeMax>255) randomizeMax=255;
+      }
+    }
+    // TODO: add an option to set effect to specific value?
+    if (ImGui::Button("Randomize")) {
+      doRandomize(randomizeMin,randomizeMax,randomMode);
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndMenu();
+  }
+  if (ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES))) doInvertValues();
 
+  ImGui::Separator();
+
+  if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
+
+  ImGui::SetNextItemWidth(120.0f*dpiScale);
+  if (ImGui::InputInt("collapse/expand amount##CollapseAmount",&collapseAmount,1,4)) {
+    if (collapseAmount<2) collapseAmount=2;
+    if (collapseAmount>256) collapseAmount=256;
+  }
+  if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(collapseAmount,selStart,selEnd);
+  if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(collapseAmount,selStart,selEnd);
+
+  if (topMenu) {
     ImGui::Separator();
-
-    if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
-
-    ImGui::SetNextItemWidth(120.0f*dpiScale);
-    if (ImGui::InputInt("collapse/expand amount##CollapseAmount",&collapseAmount,1,1)) {
-      if (collapseAmount<2) collapseAmount=2;
-      if (collapseAmount>256) collapseAmount=256;
-    }
-    if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(collapseAmount,selStart,selEnd);
-    if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(collapseAmount,selStart,selEnd);
-
-    if (topMenu) {
-      ImGui::Separator();
-      if (ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT))) doAction(GUI_ACTION_PAT_COLLAPSE_PAT);
-      if (ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT))) doAction(GUI_ACTION_PAT_EXPAND_PAT);
-    }
+    if (ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT))) doAction(GUI_ACTION_PAT_COLLAPSE_PAT);
+    if (ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT))) doAction(GUI_ACTION_PAT_EXPAND_PAT);
   }
 
   if (topMenu) {
@@ -2882,15 +3007,13 @@ void FurnaceGUI::editOptions(bool topMenu) {
     if (ImGui::MenuItem("expand song",BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG))) doAction(GUI_ACTION_PAT_EXPAND_SONG);
   }
 
-  if (!basicMode) {
-    if (topMenu) {
-      ImGui::Separator();
-      if (ImGui::MenuItem("find/replace",BIND_FOR(GUI_ACTION_WINDOW_FIND),findOpen)) {
-        if (findOpen) {
-          findOpen=false;
-        } else {
-          nextWindow=GUI_WINDOW_FIND;
-        }
+  if (topMenu) {
+    ImGui::Separator();
+    if (ImGui::MenuItem("find/replace",BIND_FOR(GUI_ACTION_WINDOW_FIND),findOpen)) {
+      if (findOpen) {
+        findOpen=false;
+      } else {
+        nextWindow=GUI_WINDOW_FIND;
       }
     }
   }
@@ -2973,14 +3096,16 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
     e->saveConf();
   }
 #endif
+  if (cvOpen) return 1;
   if (ev->type==SDL_KEYDOWN) {
     if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && !sampleMapWaitingInput && (ev->key.keysym.mod&(~(VALID_MODS)))==0) {
       if (settings.notePreviewBehavior==0) return 1;
       switch (curWindow) {
         case GUI_WINDOW_SAMPLE_EDIT:
-        case GUI_WINDOW_SAMPLE_LIST:
-          try {
-            int key=noteKeys.at(ev->key.keysym.scancode);
+        case GUI_WINDOW_SAMPLE_LIST: {
+          auto it=noteKeys.find(ev->key.keysym.scancode);
+          if (it!=noteKeys.cend()) {
+            int key=it->second;
             int num=12*curOctave+key;
             if (key!=100 && key!=101 && key!=102) {
               int pStart=-1;
@@ -3001,13 +3126,14 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
               samplePreviewKey=ev->key.keysym.scancode;
               samplePreviewNote=num;
             }
-          } catch (std::out_of_range& e) {
           }
           break;
+        }
         case GUI_WINDOW_WAVE_LIST:
-        case GUI_WINDOW_WAVE_EDIT:
-          try {
-            int key=noteKeys.at(ev->key.keysym.scancode);
+        case GUI_WINDOW_WAVE_EDIT: {
+          auto it=noteKeys.find(ev->key.keysym.scancode);
+          if (it!=noteKeys.cend()) {
+            int key=it->second;
             int num=12*curOctave+key;
             if (key!=100 && key!=101 && key!=102) {
               e->previewWave(curWave,num);
@@ -3015,9 +3141,9 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
               wavePreviewKey=ev->key.keysym.scancode;
               wavePreviewNote=num;
             }
-          } catch (std::out_of_range& e) {
           }
           break;
+        }
         case GUI_WINDOW_ORDERS: // ignore here
           break;
         case GUI_WINDOW_PATTERN:
@@ -3027,9 +3153,10 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             if (edit && cursor.xFine!=0) break;
           }
           // fall-through
-        default:
-          try {
-            int key=noteKeys.at(ev->key.keysym.scancode);
+        default: {
+          auto it=noteKeys.find(ev->key.keysym.scancode);
+          if (it!=noteKeys.cend()) {
+            int key=it->second;
             int num=12*curOctave+key;
 
             if (num<-60) num=-60; // C-(-5)
@@ -3038,9 +3165,9 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             if (key!=100 && key!=101 && key!=102) {
               previewNote(cursor.xCoarse,num);
             }
-          } catch (std::out_of_range& e) {
           }
           break;
+        }
       }
     }
   } else if (ev->type==SDL_KEYUP) {
@@ -3203,7 +3330,7 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   if (sampleDragActive) {
     logD("stopping sample drag");
     if (sampleDragMode) {
-      e->renderSamplesP();
+      e->renderSamplesP(curSample);
     } else {
       if (sampleSelStart>sampleSelEnd) {
         sampleSelStart^=sampleSelEnd;
@@ -3234,19 +3361,6 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   }
   if (dragMobileEditButton) {
     dragMobileEditButton=false;
-  }
-  if (selecting) {
-    if (!selectingFull) cursor=selEnd;
-    finishSelection();
-    if (!mobileUI) {
-      demandScrollX=true;
-      if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
-          cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
-        if (!settings.cursorMoveNoScroll) {
-          updateScroll(cursor.y);
-        }
-      }
-    }
   }
 }
 
@@ -3307,7 +3421,7 @@ bool FurnaceGUI::detectOutOfBoundsWindow(SDL_Rect& failing) {
 }
 
 #define DECLARE_METRIC(_n) \
-  int __perfM##_n;
+  uint64_t __perfM##_n;
 
 #define MEASURE_BEGIN(_n) \
   __perfM##_n=SDL_GetPerformanceCounter();
@@ -3321,6 +3435,10 @@ bool FurnaceGUI::detectOutOfBoundsWindow(SDL_Rect& failing) {
   MEASURE_BEGIN(_n) \
   _x; \
   MEASURE_END(_n)
+
+#define IMPORT_CLOSE(x) \
+  if (x) pendingLayoutImportReopen.push(&x); \
+  x=false;
 
 bool FurnaceGUI::loop() {
   DECLARE_METRIC(calcChanOsc)
@@ -3346,10 +3464,13 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(readOsc)
   DECLARE_METRIC(osc)
   DECLARE_METRIC(chanOsc)
+  DECLARE_METRIC(xyOsc)
   DECLARE_METRIC(volMeter)
   DECLARE_METRIC(settings)
   DECLARE_METRIC(debug)
+  DECLARE_METRIC(csPlayer)
   DECLARE_METRIC(stats)
+  DECLARE_METRIC(memory)
   DECLARE_METRIC(compatFlags)
   DECLARE_METRIC(piano)
   DECLARE_METRIC(notes)
@@ -3360,6 +3481,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(regView)
   DECLARE_METRIC(log)
   DECLARE_METRIC(effectList)
+  DECLARE_METRIC(userPresets)
   DECLARE_METRIC(popup)
 
 #ifdef IS_MOBILE
@@ -3372,6 +3494,11 @@ bool FurnaceGUI::loop() {
     SDL_SetEventFilter(_processEvent,this);
   } else {
     logD("key input: main thread");
+  }
+
+  if (safeMode) {
+    showError("Furnace has been started in Safe Mode.\nthis means that:\n\n- software rendering is being used\n- audio output may not work\n- font loading is disabled\n\ncheck any settings which may have made Furnace start up in this mode.\nfont loading is one of these.");
+    settingsOpen=true;
   }
 
   while (!quit) {
@@ -3433,6 +3560,7 @@ bool FurnaceGUI::loop() {
               scrX=ev.window.data1;
               scrY=ev.window.data2;
               updateWindow=true;
+              shallDetectScale=2;
               logV("window moved to %dx%d",scrX,scrY);
               break;
             case SDL_WINDOWEVENT_SIZE_CHANGED:
@@ -3473,10 +3601,12 @@ bool FurnaceGUI::loop() {
             case SDL_DISPLAYEVENT_CONNECTED:
               logD("display %d connected!",ev.display.display);
               updateWindow=true;
+              shallDetectScale=16;
               break;
             case SDL_DISPLAYEVENT_DISCONNECTED:
               logD("display %d disconnected!",ev.display.display);
               updateWindow=true;
+              shallDetectScale=16;
               break;
             case SDL_DISPLAYEVENT_ORIENTATION:
               logD("display oriented to %d",ev.display.data1);
@@ -3499,8 +3629,12 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
+            if (introPos<11.0) {
+              SDL_free(ev.drop.file);
+              break;
+            }
             int sampleCountBefore=e->song.sampleLen;
-            std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file);
+            std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file,true,settings.readInsNames);
             DivWavetable* droppedWave=NULL;
             DivSample* droppedSample=NULL;
             if (!instruments.empty()) {
@@ -3510,17 +3644,30 @@ bool FurnaceGUI::loop() {
               if (!e->getWarnings().empty()) {
                 showWarning(e->getWarnings(),GUI_WARN_GENERIC);
               }
+              int instrumentCount=-1;
               for (DivInstrument* i: instruments) {
-                e->addInstrumentPtr(i);
+                instrumentCount=e->addInstrumentPtr(i);
+              }
+              if (instrumentCount>=0 && settings.selectAssetOnLoad) {
+                curIns=instrumentCount-1;
               }
               nextWindow=GUI_WINDOW_INS_LIST;
               MARK_MODIFIED;
             } else if ((droppedWave=e->waveFromFile(ev.drop.file,false))!=NULL) {
-              e->addWavePtr(droppedWave);
+              int waveCount=-1;
+              waveCount=e->addWavePtr(droppedWave);
+              if (waveCount>=0 && settings.selectAssetOnLoad) {
+                curWave=waveCount-1;
+              }
               nextWindow=GUI_WINDOW_WAVE_LIST;
               MARK_MODIFIED;
             } else if ((droppedSample=e->sampleFromFile(ev.drop.file))!=NULL) {
-              e->addSamplePtr(droppedSample);
+              int sampleCount=-1;
+              sampleCount=e->addSamplePtr(droppedSample);
+              if (sampleCount>=0 && settings.selectAssetOnLoad) {
+                curSample=sampleCount;
+                updateSampleTex=true;
+              }
               nextWindow=GUI_WINDOW_SAMPLE_LIST;
               MARK_MODIFIED;
             } else if (modified) {
@@ -3534,11 +3681,11 @@ bool FurnaceGUI::loop() {
             SDL_free(ev.drop.file);
           }
           break;
+        case SDL_USEREVENT:
+          // used for MIDI wake up
+          break;
         case SDL_QUIT:
-          if (modified) {
-            showWarning("Unsaved changes! Save changes before quitting?",GUI_WARN_QUIT);
-          } else {
-            quit=true;
+          if (requestQuit()) {
             return true;
           }
           break;
@@ -3555,6 +3702,10 @@ bool FurnaceGUI::loop() {
         scrConfW=scrW;
         scrConfH=scrH;
       }
+      if (rend!=NULL) {
+        logV("restoring swap interval...");
+        rend->setSwapInterval(settings.vsync);
+      }
     }
     // update canvas size as well
     if (!rend->getOutputSize(canvasW,canvasH)) {
@@ -3568,6 +3719,8 @@ bool FurnaceGUI::loop() {
       if (prevScrW!=scrW || prevScrH!=scrH) {
         logV("size change 2: %dx%d (from %dx%d)",scrW,scrH,prevScrW,prevScrH);
       }
+
+      ImGui::GetIO().InputScale=(float)canvasW/(float)scrW;
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
@@ -3595,6 +3748,7 @@ bool FurnaceGUI::loop() {
 
     while (true) {
       midiLock.lock();
+      midiWakeUp=true;
       if (midiQueue.empty()) {
         midiLock.unlock();
         break;
@@ -3646,7 +3800,7 @@ bool FurnaceGUI::loop() {
                 noteInput(
                   msg.data[0]-12,
                   0,
-                  midiMap.volInput?((int)(pow((double)msg.data[1]/127.0,midiMap.volExp)*127.0)):-1
+                  midiMap.volInput?msg.data[1]:-1
                 );
               }
             } else {
@@ -3673,7 +3827,7 @@ bool FurnaceGUI::loop() {
             }
             break;
           case TA_MIDI_PROGRAM:
-            if (midiMap.programChange) {
+            if (midiMap.programChange && !(midiMap.directChannel && midiMap.directProgram)) {
               curIns=msg.data[0];
               if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
               wavePreviewInit=true;
@@ -3746,6 +3900,11 @@ bool FurnaceGUI::loop() {
       midiLock.unlock();
     }
 
+    if (notifyWaveChange) {
+      notifyWaveChange=false;
+      e->notifyWaveChange(curWave);
+    }
+
     eventTimeEnd=SDL_GetPerformanceCounter();
 
     if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
@@ -3754,7 +3913,7 @@ bool FurnaceGUI::loop() {
       continue;
     }
 
-    if (firstFrame) {
+    if (firstFrame && !safeMode) {
       if (!tutorial.introPlayed || settings.alwaysPlayIntro==3 || (settings.alwaysPlayIntro==2 && curFileName.empty())) {
         unsigned char* introTemp=new unsigned char[intro_fur_len];
         memcpy(introTemp,intro_fur,intro_fur_len);
@@ -3765,7 +3924,9 @@ bool FurnaceGUI::loop() {
     if (!e->isRunning()) {
       activeNotes.clear();
       memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
-      memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+      for (int i=0; i<DIV_MAX_CHANS; i++) {
+        chanOscChan[i].pitch=0.0f;
+      }
       memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
 
       e->synchronized([this]() {
@@ -3813,7 +3974,7 @@ bool FurnaceGUI::loop() {
 
       logD("starting render backend...");
       while (++initAttempts<=5) {
-        if (rend->init(sdlWin)) {
+        if (rend->init(sdlWin,settings.vsync)) {
           break;
         }
         SDL_Delay(1000);
@@ -3839,6 +4000,8 @@ bool FurnaceGUI::loop() {
         ImGui::GetIO().Fonts->Clear();
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         patFont=mainFont;
+        bigFont=mainFont;
+        headFont=mainFont;
         if (rend) rend->destroyFontsTexture();
         if (!ImGui::GetIO().Fonts->Build()) {
           logE("error again while building font atlas!");
@@ -3856,19 +4019,108 @@ bool FurnaceGUI::loop() {
 
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
+    if (pendingLayoutImport!=NULL) {
+      if (pendingLayoutImportStep==0) {
+        IMPORT_CLOSE(editControlsOpen);
+        IMPORT_CLOSE(ordersOpen);
+        IMPORT_CLOSE(insListOpen);
+        IMPORT_CLOSE(songInfoOpen);
+        IMPORT_CLOSE(patternOpen);
+        IMPORT_CLOSE(insEditOpen);
+        IMPORT_CLOSE(waveListOpen);
+        IMPORT_CLOSE(waveEditOpen);
+        IMPORT_CLOSE(sampleListOpen);
+        IMPORT_CLOSE(sampleEditOpen);
+        IMPORT_CLOSE(aboutOpen);
+        IMPORT_CLOSE(settingsOpen);
+        IMPORT_CLOSE(mixerOpen);
+        IMPORT_CLOSE(debugOpen);
+        IMPORT_CLOSE(inspectorOpen);
+        IMPORT_CLOSE(oscOpen);
+        IMPORT_CLOSE(volMeterOpen);
+        IMPORT_CLOSE(statsOpen);
+        IMPORT_CLOSE(compatFlagsOpen);
+        IMPORT_CLOSE(pianoOpen);
+        IMPORT_CLOSE(notesOpen);
+        IMPORT_CLOSE(channelsOpen);
+        IMPORT_CLOSE(regViewOpen);
+        IMPORT_CLOSE(logOpen);
+        IMPORT_CLOSE(effectListOpen);
+        IMPORT_CLOSE(chanOscOpen);
+        IMPORT_CLOSE(subSongsOpen);
+        IMPORT_CLOSE(findOpen);
+        IMPORT_CLOSE(spoilerOpen);
+        IMPORT_CLOSE(patManagerOpen);
+        IMPORT_CLOSE(sysManagerOpen);
+        IMPORT_CLOSE(clockOpen);
+        IMPORT_CLOSE(speedOpen);
+        IMPORT_CLOSE(groovesOpen);
+        IMPORT_CLOSE(xyOscOpen);
+        IMPORT_CLOSE(memoryOpen);
+        IMPORT_CLOSE(csPlayerOpen);
+        IMPORT_CLOSE(userPresetsOpen);
+      } else if (pendingLayoutImportStep==1) {
+        // let the UI settle
+      } else if (pendingLayoutImportStep==2) {
+        ImGui::LoadIniSettingsFromMemory((const char*)pendingLayoutImport,pendingLayoutImportLen);
+      } else if (pendingLayoutImportStep==3) {
+        // restore open windows
+        while (!pendingLayoutImportReopen.empty()) {
+          bool* next=pendingLayoutImportReopen.front();
+          *next=true;
+          pendingLayoutImportReopen.pop();
+        }
+      } else if (pendingLayoutImportStep==4) {
+        delete[] pendingLayoutImport;
+        pendingLayoutImport=NULL;
+      }
+      pendingLayoutImportStep++;
+      if (pendingLayoutImport==NULL) pendingLayoutImportStep=0;
+    }
+
     if (!rend->newFrame()) {
       fontsFailed=true;
     }
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
 
+    // one second counter
+    secondTimer+=ImGui::GetIO().DeltaTime;
+    if (secondTimer>=1.0f) secondTimer=fmod(secondTimer,1.0f);
+
     curWindowLast=curWindow;
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
 
+    int nextPlayOrder=0;
+    int nextOldRow=0;
+    e->getPlayPos(nextPlayOrder,nextOldRow);
+    oldRowChanged=false;
+    playOrder=nextPlayOrder;
+    if (followPattern) {
+      curOrder=playOrder;
+    }
+    if (e->isPlaying()) {
+      if (oldRow!=nextOldRow) oldRowChanged=true;
+      oldRow=nextOldRow;
+    }
+
+    // check whether pattern of channel(s) at cursor/selection is/are unique
+    isPatUnique=true;
+    if (curOrder>=0 && curOrder<e->curSubSong->ordersLen && selStart.xCoarse>=0 && selStart.xCoarse<e->getTotalChannelCount() && selEnd.xCoarse>=0 && selEnd.xCoarse<e->getTotalChannelCount()) {
+      for (int i=0; i<e->curSubSong->ordersLen; i++) {
+        if (i==curOrder) continue;
+        for (int j=selStart.xCoarse; j<=selEnd.xCoarse; j++) {
+          if (e->curSubSong->orders.ord[j][i]==e->curSubSong->orders.ord[j][curOrder]) isPatUnique=false;
+          break;
+        }
+        if (!isPatUnique) break;
+      }
+    }
+
     if (!mobileUI) {
       ImGui::BeginMainMenuBar();
-      if (ImGui::BeginMenu("file")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"File":"file")) {
         if (ImGui::MenuItem("new...",BIND_FOR(GUI_ACTION_NEW))) {
           if (modified) {
             showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
@@ -3892,12 +4144,10 @@ bool FurnaceGUI::loop() {
                 nextFile=item;
                 showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
               } else {
-                recentFile.erase(recentFile.begin()+i);
+                recentFile.erase(i);
                 i--;
-                if (load(item)>0) {
-                  showError(fmt::sprintf("Error while loading file! (%s)",lastError));
-                }
               }
+              openRecentFile(item);
             }
           }
           if (recentFile.empty()) {
@@ -3923,275 +4173,189 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("save as...",BIND_FOR(GUI_ACTION_SAVE_AS))) {
           openFileDialog(GUI_FILE_SAVE);
         }
-        if (ImGui::MenuItem("save as .dmf (1.1.3+)...")) {
-          openFileDialog(GUI_FILE_SAVE_DMF);
-        }
-        if (ImGui::MenuItem("save as .dmf (1.0/legacy)...")) {
-          openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
-        }
         ImGui::Separator();
-        if (ImGui::BeginMenu("export audio...")) {
-          exitDisabledTimer=1;
-          if (ImGui::MenuItem("one file")) {
-            openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
-          }
-          if (ImGui::MenuItem("multiple files (one per chip)")) {
-            openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_SYS);
-          }
-          if (ImGui::MenuItem("multiple files (one per channel)")) {
-            openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_CHANNEL);
-          }
-          if (ImGui::InputInt("Loops",&exportLoops,1,2)) {
-            if (exportLoops<0) exportLoops=0;
-          }
-          if (ImGui::InputDouble("Fade out (seconds)",&exportFadeOut,1.0,2.0,"%.1f")) {
-            if (exportFadeOut<0.0) exportFadeOut=0.0;
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("export VGM...")) {
-          exitDisabledTimer=1;
-          ImGui::Text("settings:");
-          if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
-            for (int i=0; i<7; i++) {
-              if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
-                vgmExportVersion=vgmVersions[i];
-              }
-            }
-            ImGui::EndCombo();
-          }
-          ImGui::Checkbox("loop",&vgmExportLoop);
-          if (vgmExportLoop && e->song.loopModality==2) {
-            ImGui::Text("loop trail:");
-            if (ImGui::RadioButton("auto-detect",vgmExportTrailingTicks==-1)) {
-              vgmExportTrailingTicks=-1;
-            }
-            if (ImGui::RadioButton("add one loop",vgmExportTrailingTicks==-2)) {
-              vgmExportTrailingTicks=-2;
-            }
-            if (ImGui::RadioButton("custom",vgmExportTrailingTicks>=0)) {
-              vgmExportTrailingTicks=0;
-            }
-            if (vgmExportTrailingTicks>=0) {
-              ImGui::SameLine();
-              if (ImGui::InputInt("##TrailTicks",&vgmExportTrailingTicks,1,100)) {
-                if (vgmExportTrailingTicks<0) vgmExportTrailingTicks=0;
-              }
-            }
-          }
-          ImGui::Checkbox("add pattern change hints",&vgmExportPatternHints);
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(
-              "inserts data blocks on pattern changes.\n"
-              "useful if you are writing a playback routine.\n\n"
-
-              "the format of a pattern change data block is:\n"
-              "67 66 FE ll ll ll ll 01 oo rr pp pp pp ...\n"
-              "- ll: length, a 32-bit little-endian number\n"
-              "- oo: order\n"
-              "- rr: initial row (a 0Dxx effect is able to select a different row)\n"
-              "- pp: pattern index (one per channel)\n\n"
-
-              "pattern indexes are ordered as they appear in the song."
-            );
-          }
-          ImGui::Checkbox("direct stream mode",&vgmExportDirectStream);
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(
-              "required for DualPCM and MSM6258 export.\n\n"
-              "allows for volume/direction changes when playing samples,\n"
-              "at the cost of a massive increase in file size."
-            );
-          }
-          ImGui::Text("chips to export:");
-          bool hasOneAtLeast=false;
-          for (int i=0; i<e->song.systemLen; i++) {
-            int minVersion=e->minVGMVersion(e->song.system[i]);
-            ImGui::BeginDisabled(minVersion>vgmExportVersion || minVersion==0);
-            ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
-            ImGui::EndDisabled();
-            if (minVersion>vgmExportVersion) {
-              if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                ImGui::SetTooltip("this chip is only available in VGM %d.%.2x and higher!",minVersion>>8,minVersion&0xff);
-              }
-            } else if (minVersion==0) {
-              if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                ImGui::SetTooltip("this chip is not supported by the VGM format!");
-              }
-            } else {
-              if (willExport[i]) hasOneAtLeast=true;
-            }
-          }
-          ImGui::Text("select the chip you wish to export,");
-          ImGui::Text("but only up to %d of each type.",(vgmExportVersion>=0x151)?2:1);
-          if (hasOneAtLeast) {
-            if (ImGui::MenuItem("click to export")) {
-              openFileDialog(GUI_FILE_EXPORT_VGM);
-            }
-          } else {
-            ImGui::Text("nothing to export");
-          }
-          ImGui::EndMenu();
-        }
-        int numZSMCompat=0;
-        for (int i=0; i<e->song.systemLen; i++) {
-          if ((e->song.system[i] == DIV_SYSTEM_VERA) || (e->song.system[i] == DIV_SYSTEM_YM2151)) numZSMCompat++;
-        }
-        if (numZSMCompat > 0) {
-          if (ImGui::BeginMenu("export ZSM...")) {
-            exitDisabledTimer=1;
-            ImGui::Text("Commander X16 Zsound Music File");
-            if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
-              if (zsmExportTickRate<1) zsmExportTickRate=1;
-              if (zsmExportTickRate>44100) zsmExportTickRate=44100;
-            }
-            ImGui::Checkbox("loop",&zsmExportLoop);
-            ImGui::SameLine();
-            if (ImGui::Button("Begin Export")) {
-              openFileDialog(GUI_FILE_EXPORT_ZSM);
-              ImGui::CloseCurrentPopup();
-            }
+        if (settings.exportOptionsLayout==0) {
+          if (ImGui::BeginMenu("export audio...")) {
+            drawExportAudio();
             ImGui::EndMenu();
           }
-        }
-        int numAmiga=0;
-        for (int i=0; i<e->song.systemLen; i++) {
-          if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
-        }
-        if (numAmiga && settings.iCannotWait) {
-          if (ImGui::BeginMenu("export Amiga validation data...")) {
-            exitDisabledTimer=1;
-            ImGui::Text(
-              "this is NOT ROM export! only use for making sure the\n"
-              "Furnace Amiga emulator is working properly by\n"
-              "comparing it with real Amiga output."
-            );
-            ImGui::Text("Directory");
-            ImGui::SameLine();
-            ImGui::InputText("##AVDPath",&workingDirROMExport);
-            if (ImGui::Button("Bake Data")) {
-              std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
-              if (workingDirROMExport.size()>0) {
-                if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
-              }
-              for (DivROMExportOutput& i: out) {
-                String path=workingDirROMExport+i.name;
-                FILE* outFile=ps_fopen(path.c_str(),"wb");
-                if (outFile!=NULL) {
-                  fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
-                  fclose(outFile);
-                }
-                i.data->finish();
-                delete i.data;
-              }
-              showError(fmt::sprintf("Done! Baked %d files.",(int)out.size()));
-              ImGui::CloseCurrentPopup();
-            }
+          if (ImGui::BeginMenu("export VGM...")) {
+            drawExportVGM();
             ImGui::EndMenu();
           }
-        }
-        if (ImGui::BeginMenu("export command stream...")) {
-          exitDisabledTimer=1;
-          ImGui::Text(
-            "this option exports a text or binary file which\n"
-            "contains a dump of the internal command stream\n"
-            "produced when playing the song.\n\n"
-
-            "technical/development use only!"
-          );
-          if (ImGui::Button("export (binary)")) {
-            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM_BINARY);
-          }
-          if (ImGui::Button("export (text)")) {
-            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
-          }
-          ImGui::EndMenu();
-        }
-        ImGui::Separator();
-        if (ImGui::BeginMenu("add chip...")) {
-          exitDisabledTimer=1;
-          DivSystem picked=systemPicker();
-          if (picked!=DIV_SYSTEM_NULL) {
-            if (!e->addSystem(picked)) {
-              showError("cannot add chip! ("+e->getLastError()+")");
-            } else {
-              MARK_MODIFIED;
-            }
-            ImGui::CloseCurrentPopup();
-            if (e->song.autoSystem) {
-              autoDetectSystem();
-            }
-            updateWindowTitle();
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("configure chip...")) {
-          exitDisabledTimer=1;
+          int numZSMCompat=0;
           for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
-              ImGui::TreePop();
-            }
+            if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
           }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("change chip...")) {
-          exitDisabledTimer=1;
-          ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              DivSystem picked=systemPicker();
-              if (picked!=DIV_SYSTEM_NULL) {
-                e->changeSystem(i,picked,preserveChanPos);
-                MARK_MODIFIED;
-                if (e->song.autoSystem) {
-                  autoDetectSystem();
-                }
-                updateWindowTitle();
-                ImGui::CloseCurrentPopup();
-              }
+          if (numZSMCompat>0) {
+            if (ImGui::BeginMenu("export ZSM...")) {
+              drawExportZSM();
               ImGui::EndMenu();
             }
           }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("remove chip...")) {
-          exitDisabledTimer=1;
-          ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+          int numAmiga=0;
           for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              if (!e->removeSystem(i,preserveChanPos)) {
-                showError("cannot remove chip! ("+e->getLastError()+")");
+            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
+          }
+          if (numAmiga && settings.iCannotWait) {
+            if (ImGui::BeginMenu("export Amiga validation data...")) {
+              drawExportAmigaVal();
+              ImGui::EndMenu();
+            }
+          }
+          if (ImGui::BeginMenu("export text...")) {
+            drawExportText();
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("export command stream...")) {
+            drawExportCommand();
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("export .dmf...")) {
+            drawExportDMF();
+            ImGui::EndMenu();
+          }
+        } else if (settings.exportOptionsLayout==2) {
+          if (ImGui::MenuItem("export audio...")) {
+            curExportType=GUI_EXPORT_AUDIO;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem("export VGM...")) {
+            curExportType=GUI_EXPORT_VGM;
+            displayExport=true;
+          }
+          int numZSMCompat=0;
+          for (int i=0; i<e->song.systemLen; i++) {
+            if ((e->song.system[i]==DIV_SYSTEM_VERA) || (e->song.system[i]==DIV_SYSTEM_YM2151)) numZSMCompat++;
+          }
+          if (numZSMCompat>0) {
+            if (ImGui::MenuItem("export ZSM...")) {
+              curExportType=GUI_EXPORT_ZSM;
+              displayExport=true;
+            }
+          }
+          int numAmiga=0;
+          for (int i=0; i<e->song.systemLen; i++) {
+            if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
+          }
+          if (numAmiga && settings.iCannotWait) {
+            if (ImGui::MenuItem("export Amiga validation data...")) {
+              curExportType=GUI_EXPORT_AMIGA_VAL;
+              displayExport=true;
+            }
+          }
+          if (ImGui::MenuItem("export text...")) {
+            curExportType=GUI_EXPORT_TEXT;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem("export command stream...")) {
+            curExportType=GUI_EXPORT_CMD_STREAM;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem("export .dmf...")) {
+            curExportType=GUI_EXPORT_DMF;
+            displayExport=true;
+          }
+        } else {
+          if (ImGui::MenuItem("export...",BIND_FOR(GUI_ACTION_EXPORT))) {
+            displayExport=true;
+          }
+        }
+        ImGui::Separator();
+        if (!settings.classicChipOptions) {
+          if (ImGui::MenuItem("manage chips")) {
+            nextWindow=GUI_WINDOW_SYS_MANAGER;
+          }
+        } else {
+          if (ImGui::BeginMenu("add chip...")) {
+            exitDisabledTimer=1;
+            DivSystem picked=systemPicker();
+            if (picked!=DIV_SYSTEM_NULL) {
+              if (!e->addSystem(picked)) {
+                showError("cannot add chip! ("+e->getLastError()+")");
               } else {
                 MARK_MODIFIED;
               }
+              ImGui::CloseCurrentPopup();
               if (e->song.autoSystem) {
                 autoDetectSystem();
-                updateWindowTitle();
+              }
+              updateWindowTitle();
+            }
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("configure chip...")) {
+            exitDisabledTimer=1;
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],true,true);
+                ImGui::TreePop();
               }
             }
+            ImGui::EndMenu();
           }
-          ImGui::EndMenu();
+          if (ImGui::BeginMenu("change chip...")) {
+            exitDisabledTimer=1;
+            ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                DivSystem picked=systemPicker();
+                if (picked!=DIV_SYSTEM_NULL) {
+                  if (e->changeSystem(i,picked,preserveChanPos)) {
+                    MARK_MODIFIED;
+                    if (e->song.autoSystem) {
+                      autoDetectSystem();
+                    }
+                    updateWindowTitle();
+                  } else {
+                    showError("cannot change chip! ("+e->getLastError()+")");
+                  }
+                  ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndMenu();
+              }
+            }
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("remove chip...")) {
+            exitDisabledTimer=1;
+            ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                if (!e->removeSystem(i,preserveChanPos)) {
+                  showError("cannot remove chip! ("+e->getLastError()+")");
+                } else {
+                  MARK_MODIFIED;
+                }
+                if (e->song.autoSystem) {
+                  autoDetectSystem();
+                  updateWindowTitle();
+                }
+              }
+            }
+            ImGui::EndMenu();
+          }
         }
+#if defined(FURNACE_DATADIR) && defined(SHOW_OPEN_ASSETS_MENU_ENTRY)
+        if (ImGui::MenuItem("open built-in assets directory")) {
+          SDL_OpenURL("file://" FURNACE_DATADIR);
+        }
+#endif
         ImGui::BeginDisabled(exitDisabledTimer);
         ImGui::Separator();
         if (ImGui::MenuItem("restore backup",BIND_FOR(GUI_ACTION_OPEN_BACKUP))) {
           doAction(GUI_ACTION_OPEN_BACKUP);
         }
         ImGui::Separator();
-        if (ImGui::MenuItem("exit")) {
-          if (modified) {
-            showWarning("Unsaved changes! Save before quitting?",GUI_WARN_QUIT);
-          } else {
-            quit=true;
-          }
+        if (ImGui::MenuItem("exit...",BIND_FOR(GUI_ACTION_QUIT))) {
+          requestQuit();
         }
         ImGui::EndDisabled();
         ImGui::EndMenu();
       } else {
         exitDisabledTimer=0;
       }
-      if (ImGui::BeginMenu("edit")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Edit":"edit")) {
         ImGui::Text("...");
         ImGui::Separator();
         if (ImGui::MenuItem("undo",BIND_FOR(GUI_ACTION_UNDO))) doUndo();
@@ -4204,23 +4368,16 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("settings")) {
-  #ifndef IS_MOBILE
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Settings":"settings")) {
+#ifndef IS_MOBILE
         if (ImGui::MenuItem("full screen",BIND_FOR(GUI_ACTION_FULLSCREEN),fullScreen)) {
           doAction(GUI_ACTION_FULLSCREEN);
         }
-  #endif
+#endif
         if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
           lockLayout=!lockLayout;
         }
-        if (ImGui::MenuItem("basic mode",NULL,basicMode)) {
-          if (basicMode) {
-            showWarning("prepare to unlock the full power of Furnace!",GUI_WARN_BASIC_MODE);
-          } else {
-            showWarning("are you sure? this will disable several things.",GUI_WARN_BASIC_MODE);
-          }
-        }
-        if (ImGui::MenuItem("visualizer",NULL,fancyPattern)) {
+        if (ImGui::MenuItem("pattern visualizer",NULL,fancyPattern)) {
           fancyPattern=!fancyPattern;
           e->enableCommandStream(fancyPattern);
           e->getCommandStream(cmdStream);
@@ -4234,58 +4391,76 @@ bool FurnaceGUI::loop() {
           toggleMobileUI(!mobileUI);
         }
 #endif
+        if (ImGui::MenuItem("manage presets...",BIND_FOR(GUI_ACTION_WINDOW_USER_PRESETS))) {
+          userPresetsOpen=true;
+        }
         if (ImGui::MenuItem("settings...",BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
           syncSettings();
           settingsOpen=true;
         }
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("window")) {
-        if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
-        if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
-        if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
-        if (settings.unifiedDataView) {
-          if (ImGui::MenuItem("assets",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
-        } else {
-          if (ImGui::MenuItem("instruments",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
-          if (ImGui::MenuItem("wavetables",BIND_FOR(GUI_ACTION_WINDOW_WAVE_LIST),waveListOpen)) waveListOpen=!waveListOpen;
-          if (ImGui::MenuItem("samples",BIND_FOR(GUI_ACTION_WINDOW_SAMPLE_LIST),sampleListOpen)) sampleListOpen=!sampleListOpen;
-        }
-        if (ImGui::MenuItem("orders",BIND_FOR(GUI_ACTION_WINDOW_ORDERS),ordersOpen)) ordersOpen=!ordersOpen;
-        if (ImGui::MenuItem("pattern",BIND_FOR(GUI_ACTION_WINDOW_PATTERN),patternOpen)) patternOpen=!patternOpen;
-        if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
-        if (!basicMode) {
-          if (ImGui::MenuItem("grooves",BIND_FOR(GUI_ACTION_WINDOW_GROOVES),groovesOpen)) groovesOpen=!groovesOpen;
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Window":"window")) {
+        if (ImGui::BeginMenu("song")) {
+          if (ImGui::MenuItem("song comments", BIND_FOR(GUI_ACTION_WINDOW_NOTES), notesOpen)) notesOpen = !notesOpen;
+          if (ImGui::MenuItem("song information", BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO), songInfoOpen)) songInfoOpen = !songInfoOpen;
+          if (ImGui::MenuItem("subsongs", BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS), subSongsOpen)) subSongsOpen = !subSongsOpen;
+          ImGui::Separator();
           if (ImGui::MenuItem("channels",BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
-        }
-        if (ImGui::MenuItem("pattern manager",BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
-        if (!basicMode) {
           if (ImGui::MenuItem("chip manager",BIND_FOR(GUI_ACTION_WINDOW_SYS_MANAGER),sysManagerOpen)) sysManagerOpen=!sysManagerOpen;
+          if (ImGui::MenuItem("orders",BIND_FOR(GUI_ACTION_WINDOW_ORDERS),ordersOpen)) ordersOpen=!ordersOpen;
+          if (ImGui::MenuItem("pattern",BIND_FOR(GUI_ACTION_WINDOW_PATTERN),patternOpen)) patternOpen=!patternOpen;
+          if (ImGui::MenuItem("pattern manager",BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
+          if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
           if (ImGui::MenuItem("compatibility flags",BIND_FOR(GUI_ACTION_WINDOW_COMPAT_FLAGS),compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
+          ImGui::EndMenu();
         }
-        if (ImGui::MenuItem("song comments",BIND_FOR(GUI_ACTION_WINDOW_NOTES),notesOpen)) notesOpen=!notesOpen;
+        if (ImGui::BeginMenu("assets")) {
+          if (settings.unifiedDataView) {
+            if (ImGui::MenuItem("assets", BIND_FOR(GUI_ACTION_WINDOW_INS_LIST), insListOpen)) insListOpen = !insListOpen;
+          } else {
+            if (ImGui::MenuItem("instruments", BIND_FOR(GUI_ACTION_WINDOW_INS_LIST), insListOpen)) insListOpen = !insListOpen;
+            if (ImGui::MenuItem("samples", BIND_FOR(GUI_ACTION_WINDOW_SAMPLE_LIST), sampleListOpen)) sampleListOpen = !sampleListOpen;
+            if (ImGui::MenuItem("wavetables", BIND_FOR(GUI_ACTION_WINDOW_WAVE_LIST), waveListOpen)) waveListOpen = !waveListOpen;
+          }
+          ImGui::Separator();
+          if (ImGui::MenuItem("instrument editor", BIND_FOR(GUI_ACTION_WINDOW_INS_EDIT), insEditOpen)) insEditOpen = !insEditOpen;
+          if (ImGui::MenuItem("sample editor", BIND_FOR(GUI_ACTION_WINDOW_SAMPLE_EDIT), sampleEditOpen)) sampleEditOpen = !sampleEditOpen;
+          if (ImGui::MenuItem("wavetable editor", BIND_FOR(GUI_ACTION_WINDOW_WAVE_EDIT), waveEditOpen)) waveEditOpen = !waveEditOpen;
+          ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("visualizers")) {
+          if (ImGui::MenuItem("oscilloscope (master)",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
+          if (ImGui::MenuItem("oscilloscope (per-channel)",BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
+          if (ImGui::MenuItem("oscilloscope (X-Y)",BIND_FOR(GUI_ACTION_WINDOW_XY_OSC),xyOscOpen)) xyOscOpen=!xyOscOpen;
+          if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
+          ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("tempo")) {
+          if (ImGui::MenuItem("clock",BIND_FOR(GUI_ACTION_WINDOW_CLOCK),clockOpen)) clockOpen=!clockOpen;
+          if (ImGui::MenuItem("grooves",BIND_FOR(GUI_ACTION_WINDOW_GROOVES),groovesOpen)) groovesOpen=!groovesOpen;
+          if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
+          ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("debug")) {
+          if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
+          if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
+          if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
+          if (ImGui::MenuItem("memory composition",BIND_FOR(GUI_ACTION_WINDOW_MEMORY),memoryOpen)) memoryOpen=!memoryOpen;
+          ImGui::EndMenu();
+        }
         ImGui::Separator();
-        if (ImGui::MenuItem("instrument editor",BIND_FOR(GUI_ACTION_WINDOW_INS_EDIT),insEditOpen)) insEditOpen=!insEditOpen;
-        if (ImGui::MenuItem("wavetable editor",BIND_FOR(GUI_ACTION_WINDOW_WAVE_EDIT),waveEditOpen)) waveEditOpen=!waveEditOpen;
-        if (ImGui::MenuItem("sample editor",BIND_FOR(GUI_ACTION_WINDOW_SAMPLE_EDIT),sampleEditOpen)) sampleEditOpen=!sampleEditOpen;
-        ImGui::Separator();
+        if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("play/edit controls",BIND_FOR(GUI_ACTION_WINDOW_EDIT_CONTROLS),editControlsOpen)) editControlsOpen=!editControlsOpen;
         if (ImGui::MenuItem("piano/input pad",BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
-        if (ImGui::MenuItem("oscilloscope (master)",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
-        if (ImGui::MenuItem("oscilloscope (per-channel)",BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
-        if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
-        if (ImGui::MenuItem("clock",BIND_FOR(GUI_ACTION_WINDOW_CLOCK),clockOpen)) clockOpen=!clockOpen;
-        if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
-        if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
-        if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
         if (spoilerOpen) if (ImGui::MenuItem("spoiler",NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
 
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("help")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Help":"help")) {
         if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
-        if (ImGui::MenuItem("inspector",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) inspectorOpen=!inspectorOpen;
+        if (ImGui::MenuItem("inspector")) inspectorOpen=!inspectorOpen;
         if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
         if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
           aboutOpen=true;
@@ -4294,7 +4469,7 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
-      if (e->isPlaying()) {
+      if (e->isPlaying() && settings.playbackTime) {
         int totalTicks=e->getTotalTicks();
         int totalSeconds=e->getTotalSeconds();
 
@@ -4309,7 +4484,57 @@ bool FurnaceGUI::loop() {
           info="| Groove";
         }
 
-        info+=fmt::sprintf(" @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD),e->getOrder(),e->curSubSong->ordersLen,e->getRow(),e->curSubSong->patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+        info+=fmt::sprintf(" @ %gHz (%g BPM) ",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->getVirtualTempoN(),e->getVirtualTempoD()));
+
+        if (settings.orderRowsBase) {
+          info+=fmt::sprintf("| Order %.2X/%.2X ",playOrder,e->curSubSong->ordersLen-1);
+        } else {
+          info+=fmt::sprintf("| Order %d/%d ",playOrder,e->curSubSong->ordersLen-1);
+        }
+
+        if (settings.patRowsBase) {
+          info+=fmt::sprintf("| Row %.2X/%.2X ",oldRow,e->curSubSong->patLen);
+        } else {
+          info+=fmt::sprintf("| Row %d/%d ",oldRow,e->curSubSong->patLen);
+        }
+
+        info+="| ";
+
+        if (totalSeconds==0x7fffffff) {
+          info+="Don't you have anything better to do?";
+        } else {
+          if (totalSeconds>=86400) {
+            int totalDays=totalSeconds/86400;
+            int totalYears=totalDays/365;
+            totalDays%=365;
+            int totalMonths=totalDays/30;
+            totalDays%=30;
+
+            if (totalYears>1) {
+              info+=fmt::sprintf("%d years ",totalYears);
+            } else if (totalYears) {
+              info+=fmt::sprintf("%d year ",totalYears);
+            }
+
+            if (totalMonths>1) {
+              info+=fmt::sprintf("%d months ",totalMonths);
+            } else if (totalMonths) {
+              info+=fmt::sprintf("%d month ",totalMonths);
+            }
+
+            if (totalDays>1) {
+              info+=fmt::sprintf("%d days ",totalDays);
+            } else {
+              info+=fmt::sprintf("%d day ",totalDays);
+            }
+          }
+
+          if (totalSeconds>=3600) {
+            info+=fmt::sprintf("%.2d:",(totalSeconds/3600)%24);
+          }
+
+          info+=fmt::sprintf("%.2d:%.2d.%.2d",(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+        }
 
         ImGui::TextUnformatted(info.c_str());
       } else {
@@ -4349,7 +4574,8 @@ bool FurnaceGUI::loop() {
                 if (maxVol<1 || p->data[cursor.y][3]>maxVol) {
                   info=fmt::sprintf("Set volume: %d (%.2X, INVALID!)",p->data[cursor.y][3],p->data[cursor.y][3]);
                 } else {
-                  info=fmt::sprintf("Set volume: %d (%.2X, %d%%)",p->data[cursor.y][3],p->data[cursor.y][3],(p->data[cursor.y][3]*100)/maxVol);
+                  float realVol=e->mapVelocity(cursor.xCoarse,(float)p->data[cursor.y][3]/(float)maxVol);
+                  info=fmt::sprintf("Set volume: %d (%.2X, %d%%)",p->data[cursor.y][3],p->data[cursor.y][3],(int)(realVol*100.0f/(float)maxVol));
                 }
                 hasInfo=true;
               }
@@ -4388,6 +4614,7 @@ bool FurnaceGUI::loop() {
           ordersOpen=true;
           curWindow=GUI_WINDOW_ORDERS;
           MEASURE(orders,drawOrders());
+          MEASURE(piano,drawPiano());
           break;
         case GUI_SCENE_INSTRUMENT:
           insEditOpen=true;
@@ -4437,10 +4664,19 @@ bool FurnaceGUI::loop() {
       globalWinFlags=0;
       MEASURE(settings,drawSettings());
       MEASURE(debug,drawDebug());
+      MEASURE(csPlayer,drawCSPlayer());
       MEASURE(log,drawLog());
       MEASURE(compatFlags,drawCompatFlags());
       MEASURE(stats,drawStats());
+      MEASURE(readOsc,readOsc());
+      MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
+      MEASURE(xyOsc,drawXYOsc());
+      MEASURE(volMeter,drawVolMeter());
+      MEASURE(grooves,drawGrooves());
+      MEASURE(regView,drawRegView());
+      MEASURE(memory,drawMemory());
+      MEASURE(userPresets,drawUserPresets());
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -4451,22 +4687,9 @@ bool FurnaceGUI::loop() {
       MEASURE(pattern,drawPattern());
       MEASURE(editControls,drawEditControls());
       MEASURE(speed,drawSpeed());
-      if (!basicMode) {
-        MEASURE(grooves,drawGrooves());
-      }
+      MEASURE(grooves,drawGrooves());
       MEASURE(songInfo,drawSongInfo());
       MEASURE(orders,drawOrders());
-      if (introMonOpen) {
-        int totalTicks=e->getTotalTicks();
-        int totalSeconds=e->getTotalSeconds();
-        double newMonitorPos=totalSeconds+((double)totalTicks/1000000.0);
-
-        if (fabs(newMonitorPos-monitorPos)>0.08) monitorPos=newMonitorPos;
-
-        drawIntro(monitorPos,true);
-
-        if (e->isPlaying()) monitorPos+=ImGui::GetIO().DeltaTime;
-      }
       MEASURE(sampleList,drawSampleList());
       MEASURE(sampleEdit,drawSampleEdit());
       MEASURE(waveList,drawWaveList());
@@ -4479,29 +4702,45 @@ bool FurnaceGUI::loop() {
 
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
+      MEASURE(xyOsc,drawXYOsc());
       MEASURE(volMeter,drawVolMeter());
       MEASURE(settings,drawSettings());
       MEASURE(debug,drawDebug());
+      MEASURE(csPlayer,drawCSPlayer());
       MEASURE(stats,drawStats());
-      if (!basicMode) {
-        MEASURE(compatFlags,drawCompatFlags());
-      }
+      MEASURE(memory,drawMemory());
+      MEASURE(compatFlags,drawCompatFlags());
       MEASURE(piano,drawPiano());
       MEASURE(notes,drawNotes());
-      if (!basicMode) {
-        MEASURE(channels,drawChannels());
-      }
+      MEASURE(channels,drawChannels());
       MEASURE(patManager,drawPatManager());
-      if (!basicMode) {
-        MEASURE(sysManager,drawSysManager());
-      }
+      MEASURE(sysManager,drawSysManager());
       MEASURE(clock,drawClock());
       MEASURE(regView,drawRegView());
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
+      MEASURE(userPresets,drawUserPresets());
     }
 
-    activateTutorial(GUI_TUTORIAL_OVERVIEW);
+    // release selection if mouse released
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && selecting) {
+      if (!selectingFull) cursor=selEnd;
+      finishSelection();
+      if (!mobileUI) {
+        demandScrollX=true;
+        if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
+            cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
+          if (!settings.cursorMoveNoScroll) {
+            updateScroll(cursor.y);
+          }
+        }
+      }
+    }
+
+    for (int i=0; i<e->getTotalChannelCount(); i++) {
+      keyHit1[i]-=0.2f;
+      if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
+    }
 
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
@@ -4562,7 +4801,6 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_INS_OPEN:
         case GUI_FILE_INS_OPEN_REPLACE:
         case GUI_FILE_INS_SAVE:
-        case GUI_FILE_INS_SAVE_OLD:
         case GUI_FILE_INS_SAVE_DMP:
           workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -4593,11 +4831,12 @@ bool FurnaceGUI::loop() {
           workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_ROM:
+        case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
-        case GUI_FILE_EXPORT_CMDSTREAM_BINARY:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
+        case GUI_FILE_LOAD_HEAD_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
           workingDirFont=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -4665,9 +4904,6 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_INS_SAVE) {
             checkExtension(".fui");
           }
-          if (curFileDialog==GUI_FILE_INS_SAVE_OLD) {
-            checkExtension(".fui");
-          }
           if (curFileDialog==GUI_FILE_INS_SAVE_DMP) {
             checkExtension(".dmp");
           }
@@ -4686,10 +4922,10 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_ZSM) {
             checkExtension(".zsm");
           }
-          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM) {
+          if (curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
           }
-          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM_BINARY) {
+          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM) {
             checkExtension(".bin");
           }
           if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
@@ -4735,6 +4971,9 @@ bool FurnaceGUI::loop() {
                   case GUI_WARN_OPEN_BACKUP:
                     openFileDialog(GUI_FILE_OPEN_BACKUP);
                     break;
+                  case GUI_WARN_CV:
+                    cvOpen=true;
+                    break;
                   default:
                     break;
                 }
@@ -4758,38 +4997,43 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_INS_SAVE:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song);
-              }
-              break;
-            case GUI_FILE_INS_SAVE_OLD:
-              if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                e->song.ins[curIns]->save(copyOfName.c_str(),true);
+                if (e->song.ins[curIns]->save(copyOfName.c_str(),&e->song,settings.writeInsNames)) {
+                  pushRecentSys(copyOfName.c_str());
+                }
               }
               break;
             case GUI_FILE_INS_SAVE_DMP:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
                 if (!e->song.ins[curIns]->saveDMP(copyOfName.c_str())) {
-                  showError("error while saving instrument! make sure your instrument is compatible.");
+                  showError("error while saving instrument! only the following instrument types are supported:\n- FM (OPN)\n- SN76489/Sega PSG\n- Game Boy\n- PC Engine\n- NES\n- C64\n- FM (OPLL)\n- FDS");
+                } else {
+                  pushRecentSys(copyOfName.c_str());
                 }
               }
               break;
             case GUI_FILE_WAVE_SAVE:
               if (curWave>=0 && curWave<(int)e->song.wave.size()) {
-                e->song.wave[curWave]->save(copyOfName.c_str());
+                if (e->song.wave[curWave]->save(copyOfName.c_str())) {
+                  pushRecentSys(copyOfName.c_str());
+                }
               }
               break;
             case GUI_FILE_WAVE_SAVE_DMW:
               if (curWave>=0 && curWave<(int)e->song.wave.size()) {
-                e->song.wave[curWave]->saveDMW(copyOfName.c_str());
+                if (e->song.wave[curWave]->saveDMW(copyOfName.c_str())) {
+                  pushRecentSys(copyOfName.c_str());
+                }
               }
               break;
             case GUI_FILE_WAVE_SAVE_RAW:
               if (curWave>=0 && curWave<(int)e->song.wave.size()) {
-                e->song.wave[curWave]->saveRaw(copyOfName.c_str());
+                if (e->song.wave[curWave]->saveRaw(copyOfName.c_str())) {
+                  pushRecentSys(copyOfName.c_str());
+                }
               }
               break;
             case GUI_FILE_SAMPLE_OPEN: {
-              String errs="there were some errors while loading wavetables:\n";
+              String errs="there were some errors while loading samples:\n";
               bool warn=false;
               for (String i: fileDialog->getFileName()) {
                 DivSample* s=e->sampleFromFile(i.c_str());
@@ -4832,6 +5076,7 @@ bool FurnaceGUI::loop() {
                     e->renderSamples();
                     MARK_MODIFIED;
                   });
+                  updateSampleTex=true;
                 } else {
                   showError("...but you haven't selected a sample!");
                   delete s;
@@ -4842,12 +5087,15 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_SAMPLE_OPEN_RAW:
             case GUI_FILE_SAMPLE_OPEN_REPLACE_RAW:
               pendingRawSample=copyOfName;
+              pendingRawSampleReplace=(curFileDialog==GUI_FILE_SAMPLE_OPEN_REPLACE_RAW);
               displayPendingRawSample=true;
               break;
             case GUI_FILE_SAMPLE_SAVE:
               if (curSample>=0 && curSample<(int)e->song.sample.size()) {
                 if (!e->song.sample[curSample]->save(copyOfName.c_str())) {
                   showError("could not save sample! open Log Viewer for more information.");
+                } else {
+                  pushRecentSys(copyOfName.c_str());
                 }
               }
               break;
@@ -4855,6 +5103,8 @@ bool FurnaceGUI::loop() {
               if (curSample>=0 && curSample<(int)e->song.sample.size()) {
                 if (!e->song.sample[curSample]->saveRaw(copyOfName.c_str())) {
                   showError("could not save sample! open Log Viewer for more information.");
+                } else {
+                  pushRecentSys(copyOfName.c_str());
                 }
               }
               break;
@@ -4874,7 +5124,7 @@ bool FurnaceGUI::loop() {
               String warns="there were some warnings/errors while loading instruments:\n";
               int sampleCountBefore=e->song.sampleLen;
               for (String i: fileDialog->getFileName()) {
-                std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str());
+                std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str(),true,settings.readInsNames);
                 if (insTemp.empty()) {
                   warn=true;
                   warns+=fmt::sprintf("> %s: cannot load instrument! (%s)\n",i,e->getLastError());
@@ -4911,8 +5161,12 @@ bool FurnaceGUI::loop() {
                   displayPendingIns=true;
                   pendingInsSingle=false;
                 } else { // load the only instrument
+                  int instrumentCount=-1;
                   for (DivInstrument* i: instruments) {
-                    e->addInstrumentPtr(i);
+                    instrumentCount=e->addInstrumentPtr(i);
+                  }
+                  if (instrumentCount>=0 && settings.selectAssetOnLoad) {
+                    curIns=instrumentCount-1;
                   }
                 }
               }
@@ -4920,7 +5174,7 @@ bool FurnaceGUI::loop() {
             }
             case GUI_FILE_INS_OPEN_REPLACE: {
               int sampleCountBefore=e->song.sampleLen;
-              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str());
+              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str(),true,settings.readInsNames);
               if (!instruments.empty()) {
                 if (e->song.sampleLen!=sampleCountBefore) {
                   e->renderSamplesP();
@@ -4962,7 +5216,9 @@ bool FurnaceGUI::loop() {
                     showError("cannot load wavetable! ("+e->getLastError()+")");
                   }
                 } else {
-                  if (e->addWavePtr(wave)==-1) {
+                  int waveCount=-1;
+                  waveCount=e->addWavePtr(wave);
+                  if (waveCount==-1) {
                     if (fileDialog->getFileName().size()>1) {
                       warn=true;
                       errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
@@ -4970,6 +5226,9 @@ bool FurnaceGUI::loop() {
                       showError("cannot load wavetable! ("+e->getLastError()+")");
                     }
                   } else {
+                    if (settings.selectAssetOnLoad) {
+                      curWave=waveCount-1;
+                    }
                     MARK_MODIFIED;
                     RESET_WAVE_MACRO_ZOOM;
                   }
@@ -5004,6 +5263,7 @@ bool FurnaceGUI::loop() {
                 if (f!=NULL) {
                   fwrite(w->getFinalBuf(),1,w->size(),f);
                   fclose(f);
+                  pushRecentSys(copyOfName.c_str());
                 } else {
                   showError("could not open file!");
                 }
@@ -5018,12 +5278,13 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_ZSM: {
-              SafeWriter* w=e->saveZSM(zsmExportTickRate,zsmExportLoop);
+              SafeWriter* w=e->saveZSM(zsmExportTickRate,zsmExportLoop,zsmExportOptimize);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
                   fwrite(w->getFinalBuf(),1,w->size(),f);
                   fclose(f);
+                  pushRecentSys(copyOfName.c_str());
                 } else {
                   showError("could not open file!");
                 }
@@ -5040,16 +5301,35 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");
               break;
-            case GUI_FILE_EXPORT_CMDSTREAM:
-            case GUI_FILE_EXPORT_CMDSTREAM_BINARY: {
-              bool isBinary=(curFileDialog==GUI_FILE_EXPORT_CMDSTREAM_BINARY);
-
-              SafeWriter* w=e->saveCommand(isBinary);
+            case GUI_FILE_EXPORT_TEXT: {
+              SafeWriter* w=e->saveText(false);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
                   fwrite(w->getFinalBuf(),1,w->size(),f);
                   fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError("could not open file!");
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf("could not write text! (%s)",e->getLastError()));
+              }
+              break;
+            }
+            case GUI_FILE_EXPORT_CMDSTREAM: {
+              SafeWriter* w=e->saveCommand();
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
                 } else {
                   showError("could not open file!");
                 }
@@ -5065,6 +5345,9 @@ bool FurnaceGUI::loop() {
             }
             case GUI_FILE_LOAD_MAIN_FONT:
               settings.mainFontPath=copyOfName;
+              break;
+            case GUI_FILE_LOAD_HEAD_FONT:
+              settings.headFontPath=copyOfName;
               break;
             case GUI_FILE_LOAD_PAT_FONT:
               settings.patFontPath=copyOfName;
@@ -5152,6 +5435,11 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("InsTypeList");
     }
 
+    if (displayWaveSizeList) {
+      displayWaveSizeList=false;
+      ImGui::OpenPopup("WaveSizeList");
+    }
+
     if (displayExporting) {
       displayExporting=false;
       ImGui::OpenPopup("Rendering...");
@@ -5181,6 +5469,20 @@ bool FurnaceGUI::loop() {
       }
     }
 
+    if (displayPalette) {
+      paletteSearchResults.clear();
+      paletteQuery="";
+      paletteFirstFrame=true;
+      curPaletteChoice=0;
+      displayPalette=false;
+      ImGui::OpenPopup("Command Palette");
+    }
+
+    if (displayExport) {
+      displayExport=false;
+      ImGui::OpenPopup("Export");
+    }
+
     if (displayEditString) {
       ImGui::OpenPopup("EditString");
     }
@@ -5193,6 +5495,7 @@ bool FurnaceGUI::loop() {
 
     MEASURE_BEGIN(popup);
 
+    centerNextWindow("Rendering...",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Rendering...",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Please wait...");
       if (ImGui::Button("Abort")) {
@@ -5201,6 +5504,7 @@ bool FurnaceGUI::loop() {
         }
       }
       if (!e->isExporting()) {
+        e->finishAudioFile();
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -5220,6 +5524,21 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    ImVec2 wsize=ImVec2(canvasW*0.9,canvasH*0.4);
+    ImGui::SetNextWindowPos(ImVec2((canvasW-wsize.x)*0.5,50*dpiScale));
+    ImGui::SetNextWindowSize(wsize,ImGuiCond_Always);
+    if (ImGui::BeginPopup("Command Palette",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings)) {
+      drawPalette();
+      ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopupModal("Export",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
+      drawExport();
+      ImGui::EndPopup();
+    }
+
+    centerNextWindow("Error",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Error",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",errorString.c_str());
       if (ImGui::Button("OK")) {
@@ -5228,6 +5547,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    centerNextWindow("Warning",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Warning",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",warnString.c_str());
       switch (warnAction) {
@@ -5251,7 +5571,7 @@ bool FurnaceGUI::loop() {
             quit=true;
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -5275,7 +5595,7 @@ bool FurnaceGUI::loop() {
             displayNew=true;
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -5299,7 +5619,31 @@ bool FurnaceGUI::loop() {
             openFileDialog(GUI_FILE_OPEN);
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_CV:
+          if (ImGui::Button("Yes")) {
+            ImGui::CloseCurrentPopup();
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
+              openFileDialog(GUI_FILE_SAVE);
+              postWarnAction=GUI_WARN_CV;
+            } else {
+              if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
+                showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+              } else {
+                cvOpen=true;
+              }
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+            cvOpen=true;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -5323,7 +5667,7 @@ bool FurnaceGUI::loop() {
             openFileDialog(GUI_FILE_OPEN_BACKUP);
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -5354,7 +5698,7 @@ bool FurnaceGUI::loop() {
             nextFile="";
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
             nextFile="";
           }
@@ -5368,6 +5712,7 @@ bool FurnaceGUI::loop() {
                 reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
               }
             }
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5378,6 +5723,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
             resetKeybinds();
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5389,6 +5735,7 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             resetColors();
             applyUISettings(false);
+            settingsChanged=true;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
@@ -5400,103 +5747,153 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             settingsOpen=false;
             willCommit=true;
+            settingsChanged=false;
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
             ImGui::CloseCurrentPopup();
             settingsOpen=false;
             syncSettings();
+            settingsChanged=false;
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
         case GUI_WARN_CLEAR:
-          if (ImGui::Button("All subsongs")) {
-            stop();
-            e->clearSubSongs();
-            curOrder=0;
-            oldOrder=0;
-            oldOrder1=0;
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Current subsong")) {
-            stop();
-            e->lockEngine([this]() {
-              e->curSubSong->clearData();
-            });
-            e->setOrder(0);
-            curOrder=0;
-            oldOrder=0;
-            oldOrder1=0;
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Orders")) {
-            stop();
-            e->lockEngine([this]() {
-              memset(e->curOrders->ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
-              e->curSubSong->ordersLen=1;
-            });
-            e->setOrder(0);
-            curOrder=0;
-            oldOrder=0;
-            oldOrder1=0;
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Pattern")) {
-            stop();
-            e->lockEngine([this]() {
-              for (int i=0; i<e->getTotalChannelCount(); i++) {
-                DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
-                memset(pat->data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
-                for (int j=0; j<DIV_MAX_ROWS; j++) {
-                  pat->data[j][0]=0;
-                  pat->data[j][1]=0;
+          if (ImGui::BeginTable("EraseOpt",2,ImGuiTableFlags_BordersInnerV)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::PushFont(headFont);
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Erasing");
+            ImGui::PopFont();
+
+            if (ImGui::Button("All subsongs")) {
+              stop();
+              e->clearSubSongs();
+              curOrder=0;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Current subsong")) {
+              stop();
+              e->lockEngine([this]() {
+                e->curSubSong->clearData();
+              });
+              e->setOrder(0);
+              curOrder=0;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Orders")) {
+              stop();
+              e->lockEngine([this]() {
+                memset(e->curOrders->ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
+                e->curSubSong->ordersLen=1;
+              });
+              e->setOrder(0);
+              curOrder=0;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Pattern")) {
+              stop();
+              e->lockEngine([this]() {
+                for (int i=0; i<e->getTotalChannelCount(); i++) {
+                  DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
+                  memset(pat->data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
+                  for (int j=0; j<DIV_MAX_ROWS; j++) {
+                    pat->data[j][0]=0;
+                    pat->data[j][1]=0;
+                  }
                 }
-              }
-            });
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Instruments")) {
-            stop();
-            e->lockEngine([this]() {
-              e->song.clearInstruments();
-            });
-            curIns=-1;
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Wavetables")) {
-            stop();
-            e->lockEngine([this]() {
-              e->song.clearWavetables();
-            });
-            curWave=0;
-            MARK_MODIFIED;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("Samples")) {
-            stop();
-            e->lockEngine([this]() {
-              e->song.clearSamples();
-            });
-            curSample=0;
-            ImGui::CloseCurrentPopup();
+              });
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Instruments")) {
+              stop();
+              e->lockEngine([this]() {
+                e->song.clearInstruments();
+              });
+              curIns=-1;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Wavetables")) {
+              stop();
+              e->lockEngine([this]() {
+                e->song.clearWavetables();
+              });
+              curWave=0;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Samples")) {
+              stop();
+              e->lockEngine([this]() {
+                e->song.clearSamples();
+              });
+              curSample=0;
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::PushFont(headFont);
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Optimization");
+            ImGui::PopFont();
+
+            if (ImGui::Button("De-duplicate patterns")) {
+              stop();
+              e->lockEngine([this]() {
+                e->curSubSong->optimizePatterns();
+                e->curSubSong->rearrangePatterns();
+              });
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Button("Remove unused instruments")) {
+              stop();
+              e->delUnusedIns();
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+            /*
+            if (ImGui::Button("Remove unused wavetables")) {
+              stop();
+              e->delUnusedWaves();
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }*/
+            if (ImGui::Button("Remove unused samples")) {
+              stop();
+              e->delUnusedSamples();
+              MARK_MODIFIED;
+              ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndTable();
           }
 
-          if (ImGui::Button("Wait! What am I doing? Cancel!")) {
-            ImGui::CloseCurrentPopup();
+          if (ImGui::BeginTable("EraseOptFooter",3)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TableNextColumn();
+            if (ImGui::Button("Never mind! Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::TableNextColumn();
+            ImGui::EndTable();
           }
           break;
         case GUI_WARN_SUBSONG_DEL:
@@ -5505,8 +5902,6 @@ bool FurnaceGUI::loop() {
               undoHist.clear();
               redoHist.clear();
               updateScroll(0);
-              oldOrder=0;
-              oldOrder1=0;
               oldRow=0;
               cursor.xCoarse=0;
               cursor.xFine=0;
@@ -5548,16 +5943,6 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           break;
-        case GUI_WARN_BASIC_MODE:
-          if (ImGui::Button("Yes")) {
-            basicMode=!basicMode;
-            ImGui::CloseCurrentPopup();
-          }
-          ImGui::SameLine();
-          if (ImGui::Button("No")) {
-            ImGui::CloseCurrentPopup();
-          }
-          break;
         case GUI_WARN_GENERIC:
           if (ImGui::Button("OK")) {
             ImGui::CloseCurrentPopup();
@@ -5569,15 +5954,64 @@ bool FurnaceGUI::loop() {
 
     if (ImGui::BeginPopup("InsTypeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
       char temp[1024];
+      if (displayInsTypeListMakeInsSample==-2) {
+        ImGui::Text("Drum kit mode:");
+        if (ImGui::RadioButton("Normal",!makeDrumkitMode)) {
+          makeDrumkitMode=false;
+        }
+        if (ImGui::RadioButton("12 samples per octave",makeDrumkitMode)) {
+          makeDrumkitMode=true;
+        }
+
+        if (!makeDrumkitMode) {
+          ImGui::Text("Starting octave");
+          ImGui::SameLine();
+          if (ImGui::InputInt("##DKOctave",&makeDrumkitOctave,1,3)) {
+            if (makeDrumkitOctave<0) makeDrumkitOctave=0;
+            if (makeDrumkitOctave>9) makeDrumkitOctave=9;
+          }
+        }
+
+        ImGui::Separator();
+      }
       for (DivInstrumentType& i: makeInsTypeList) {
-        strncpy(temp,insTypes[i],1023);
+        strncpy(temp,insTypes[i][0],1023);
         if (ImGui::MenuItem(temp)) {
           // create ins
           curIns=e->addInstrument(-1,i);
           if (curIns==-1) {
             showError("too many instruments!");
           } else {
-            if (displayInsTypeListMakeInsSample>=0 && displayInsTypeListMakeInsSample<(int)e->song.sample.size()) {
+            if (displayInsTypeListMakeInsSample==-2) {
+              e->song.ins[curIns]->type=i;
+              e->song.ins[curIns]->name="Drum Kit";
+              e->song.ins[curIns]->amiga.useNoteMap=true;
+              if (i!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
+
+              if (makeDrumkitMode) {
+                for (int j=0; j<120; j++) {
+                  e->song.ins[curIns]->amiga.noteMap[j].freq=48;
+                  e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
+                  e->song.ins[curIns]->amiga.noteMap[j].map=j%12;
+                  if ((j%12)>=e->song.sampleLen) continue;
+                }
+              } else {
+                int index=-makeDrumkitOctave*12;
+                for (int j=0; j<120; j++) {
+                  e->song.ins[curIns]->amiga.noteMap[j].freq=48;
+                  e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
+                  if (index<0 || index>=e->song.sampleLen) {
+                    index++;
+                    continue;
+                  }
+                  e->song.ins[curIns]->amiga.noteMap[j].map=index++;
+                }
+              }
+
+              nextWindow=GUI_WINDOW_INS_EDIT;
+              wavePreviewInit=true;
+              updateFMPreview=true;
+            } else if (displayInsTypeListMakeInsSample>=0 && displayInsTypeListMakeInsSample<(int)e->song.sample.size()) {
               e->song.ins[curIns]->type=i;
               e->song.ins[curIns]->name=e->song.sample[displayInsTypeListMakeInsSample]->name;
               e->song.ins[curIns]->amiga.initSample=displayInsTypeListMakeInsSample;
@@ -5586,7 +6020,43 @@ bool FurnaceGUI::loop() {
               wavePreviewInit=true;
               updateFMPreview=true;
             }
+
+            if (settings.blankIns) {
+              e->song.ins[curIns]->fm.fb=0;
+              for (int i=0; i<4; i++) {
+                e->song.ins[curIns]->fm.op[i]=DivInstrumentFM::Operator();
+                e->song.ins[curIns]->fm.op[i].ar=31;
+                e->song.ins[curIns]->fm.op[i].dr=31;
+                e->song.ins[curIns]->fm.op[i].rr=15;
+                e->song.ins[curIns]->fm.op[i].tl=127;
+                e->song.ins[curIns]->fm.op[i].dt=3;
+              }
+            }
+
             MARK_MODIFIED;
+          }
+        }
+      }
+      ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopup("WaveSizeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      char temp[1024];
+      for (FurnaceGUIWaveSizeEntry i: waveSizeList) {
+        snprintf(temp,1023,"%d×%d (%s)",i.width,i.height,i.sys);
+        if (ImGui::MenuItem(temp)) {
+          // create wave
+          curWave=e->addWave();
+          if (curWave==-1) {
+            showError("too many wavetables!");
+          } else {
+            e->song.wave[curWave]->len=i.width;
+            e->song.wave[curWave]->max=i.height-1;
+            for (int j=0; j<i.width; j++) {
+              e->song.wave[curWave]->data[j]=(j*i.height)/i.width;
+            }
+            MARK_MODIFIED;
+            RESET_WAVE_MACRO_ZOOM;
           }
         }
       }
@@ -5596,11 +6066,13 @@ bool FurnaceGUI::loop() {
     // TODO:
     // - multiple selection
     // - replace instrument
+    centerNextWindow("Select Instrument",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Select Instrument",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       bool quitPlease=false;
       if (pendingInsSingle) {
         ImGui::Text("this is an instrument bank! select which one to use:");
       } else {
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("this is an instrument bank! select which ones to load:");
         ImGui::SameLine();
         if (ImGui::Button("All")) {
@@ -5646,7 +6118,7 @@ bool FurnaceGUI::loop() {
         ImGui::EndDisabled();
         ImGui::SameLine();
       }
-      if (ImGui::Button("Cancel")) {
+      if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         for (std::pair<DivInstrument*,bool>& i: pendingIns) {
           i.second=false;
         }
@@ -5673,6 +6145,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    centerNextWindow("Import Raw Sample",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Import Raw Sample",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Data type:");
       for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {
@@ -5682,43 +6155,94 @@ bool FurnaceGUI::loop() {
 
       if (pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_8BIT && pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT) {
         pendingRawSampleChannels=1;
-      }
-      if (pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT) {
         pendingRawSampleBigEndian=false;
       }
 
-      ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_8BIT && pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::Text("Channels");
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Sample rate");
       ImGui::SameLine();
-      if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      if (ImGui::InputInt("##RSRate",&pendingRawSampleRate,100,1000)) {
+        if (pendingRawSampleRate<100) pendingRawSampleRate=100;
+        if (pendingRawSampleRate>384000) pendingRawSampleRate=384000;
       }
-      ImGui::Text("(will be mixed down to mono)");
-      ImGui::Checkbox("Unsigned",&pendingRawSampleUnsigned);
-      ImGui::EndDisabled();
 
-      ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::Checkbox("Big endian",&pendingRawSampleBigEndian);
-      ImGui::EndDisabled();
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Channels");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(120.0f*dpiScale);
+        if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels,1,2)) {
+        }
+        ImGui::Text("(will be mixed down to mono)");
+        ImGui::Checkbox("Unsigned",&pendingRawSampleUnsigned);
+      }
 
-      ImGui::BeginDisabled(pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
-      ImGui::EndDisabled();
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
+        ImGui::Checkbox("Big endian",&pendingRawSampleBigEndian);
+      }
+
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_YMZ_ADPCM ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_QSOUND_ADPCM ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_ADPCM_A ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_ADPCM_B ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_VOX) {
+        ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
+      }
+
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT) {
+        ImGui::Checkbox("Swap words",&pendingRawSampleBigEndian);
+      }
+
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_MULAW) {
+        ImGui::Text("Encoding:");
+        ImGui::Indent();
+        if (ImGui::RadioButton("G.711",pendingRawSampleSwapNibbles==0)) {
+          pendingRawSampleSwapNibbles=0;
+        }
+        if (ImGui::RadioButton("Namco",pendingRawSampleSwapNibbles==1)) {
+          pendingRawSampleSwapNibbles=1;
+        }
+        ImGui::Unindent();
+      }
+
+      if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_1BIT ||
+          pendingRawSampleDepth==DIV_SAMPLE_DEPTH_1BIT_DPCM) {
+        ImGui::Checkbox("Reverse bit order",&pendingRawSampleSwapNibbles);
+      }
 
       if (ImGui::Button("OK")) {
-        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles);
+        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles,pendingRawSampleRate);
         if (s==NULL) {
           showError(e->getLastError());
         } else {
-          if (e->addSamplePtr(s)==-1) {
-            showError(e->getLastError());
+          if (pendingRawSampleReplace) {
+            if (curSample>=0 && curSample<(int)e->song.sample.size()) {
+              e->lockEngine([this,s]() {
+                // if it crashes here please tell me...
+                DivSample* oldSample=e->song.sample[curSample];
+                e->song.sample[curSample]=s;
+                delete oldSample;
+                e->renderSamples();
+                MARK_MODIFIED;
+              });
+              updateSampleTex=true;
+            } else {
+              showError("...but you haven't selected a sample!");
+              delete s;
+            }
           } else {
-            MARK_MODIFIED;
+            if (e->addSamplePtr(s)==-1) {
+              showError(e->getLastError());
+            } else {
+              MARK_MODIFIED;
+            }
           }
         }
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();
-      if (ImGui::Button("Cancel")) {
+      if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -5757,6 +6281,30 @@ bool FurnaceGUI::loop() {
       MEASURE_END(intro);
     } else {
       introPos=12.0;
+    }
+
+#ifdef DIV_UNSTABLE
+    {
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      ImVec2 markPos=ImVec2(canvasW-ImGui::CalcTextSize(DIV_VERSION).x-6.0*dpiScale,4.0*dpiScale);
+      ImVec4 markColor=uiColors[GUI_COLOR_TEXT];
+      markColor.w=0.67f;
+
+      dl->AddText(markPos,ImGui::ColorConvertFloat4ToU32(markColor),DIV_VERSION);
+    }
+#endif
+
+    if (settings.displayRenderTime) {
+      String renderTime=fmt::sprintf("%.0fµs",ImGui::GetIO().DeltaTime*1000000.0);
+      String renderTime2=fmt::sprintf("%.1f FPS",1.0/ImGui::GetIO().DeltaTime);
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      ImVec2 markPos=ImVec2(canvasW-ImGui::CalcTextSize(renderTime.c_str()).x-60.0*dpiScale,4.0*dpiScale);
+      ImVec2 markPos2=ImVec2(canvasW-ImGui::CalcTextSize(renderTime2.c_str()).x-160.0*dpiScale,4.0*dpiScale);
+
+      dl->AddText(markPos,0xffffffff,renderTime.c_str());
+      dl->AddText(markPos2,0xffffffff,renderTime2.c_str());
+
+      //logV("%s (%s)",renderTime,renderTime2);
     }
 
     layoutTimeEnd=SDL_GetPerformanceCounter();
@@ -5837,13 +6385,12 @@ bool FurnaceGUI::loop() {
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
                   logW("did not write backup entirely: %s!",strerror(errno));
-                  w->finish();
                 }
                 fclose(outFile);
               } else {
                 logW("could not save backup: %s!",strerror(errno));
-                w->finish();
               }
+              w->finish();
 
               // delete previous backup if there are too many
               delFirstBackup(backupBaseName);
@@ -5896,6 +6443,7 @@ bool FurnaceGUI::loop() {
         switch (lastWindowCat) {
           case 0:
             e->autoNoteOffAll();
+            failedNoteOn=false;
             break;
           case 1:
             e->stopWavePreview();
@@ -5918,6 +6466,7 @@ bool FurnaceGUI::loop() {
     if (mustClear) {
       rend->clear(ImVec4(0,0,0,0));
       mustClear--;
+      if (mustClear==0) e->everythingOK();
     } else {
       if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;
@@ -5928,14 +6477,34 @@ bool FurnaceGUI::loop() {
       }
     }
     drawTimeEnd=SDL_GetPerformanceCounter();
+    swapTimeBegin=SDL_GetPerformanceCounter();
+    if (!settings.vsync || !rend->canVSync()) {
+      if (settings.frameRateLimit>0) {
+        unsigned int presentDelay=SDL_GetPerformanceFrequency()/settings.frameRateLimit;
+        if ((nextPresentTime-swapTimeBegin)<presentDelay) {
+#ifdef _WIN32
+          unsigned int mDivider=SDL_GetPerformanceFrequency()/1000;
+          Sleep((unsigned int)(nextPresentTime-swapTimeBegin)/mDivider);
+#else
+          unsigned int mDivider=SDL_GetPerformanceFrequency()/1000000;
+          usleep((unsigned int)(nextPresentTime-swapTimeBegin)/mDivider);
+#endif
+          nextPresentTime+=presentDelay;
+        } else {
+          nextPresentTime=swapTimeBegin+presentDelay;
+        }
+      }
+    }
     rend->present();
     if (settings.renderClearPos) {
       rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
     }
+    swapTimeEnd=SDL_GetPerformanceCounter();
 
     layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
     drawTimeDelta=drawTimeEnd-drawTimeBegin;
+    swapTimeDelta=swapTimeEnd-swapTimeBegin;
     eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
     soloTimeout-=ImGui::GetIO().DeltaTime;
@@ -5961,12 +6530,53 @@ bool FurnaceGUI::loop() {
       willCommit=false;
     }
 
+    if (shallDetectScale) {
+      if (--shallDetectScale<1) {
+        if (settings.dpiScale<0.5f) {
+          const char* videoBackend=SDL_GetCurrentVideoDriver();      
+          double newScale=getScaleFactor(videoBackend,sdlWin);
+          if (newScale<0.1f) {
+            logW("scale what?");
+            newScale=1.0f;
+          }
+
+          if (newScale!=dpiScale) {
+            logD("auto UI scale changed (%f != %f) - applying settings...",newScale,dpiScale);
+            ImGui::GetIO().Fonts->Clear();
+
+            applyUISettings();
+
+            if (rend) rend->destroyFontsTexture();
+            if (!ImGui::GetIO().Fonts->Build()) {
+              logE("error while building font atlas!");
+              showError("error while loading fonts! please check your settings.");
+              ImGui::GetIO().Fonts->Clear();
+              mainFont=ImGui::GetIO().Fonts->AddFontDefault();
+              patFont=mainFont;
+              bigFont=mainFont;
+              headFont=mainFont;
+              if (rend) rend->destroyFontsTexture();
+              if (!ImGui::GetIO().Fonts->Build()) {
+                logE("error again while building font atlas!");
+              } else {
+                rend->createFontsTexture();
+              }
+            } else {
+              rend->createFontsTexture();
+            }
+          }
+        }
+      }
+    }
+
     if (fontsFailed) {
       showError("it appears I couldn't load these fonts. any setting you can check?");
       logE("couldn't load fonts");
       ImGui::GetIO().Fonts->Clear();
       mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       patFont=mainFont;
+      bigFont=mainFont;
+      headFont=mainFont;
       if (rend) rend->destroyFontsTexture();
       if (!ImGui::GetIO().Fonts->Build()) {
         logE("error again while building font atlas!");
@@ -6020,6 +6630,8 @@ bool FurnaceGUI::init() {
   mixerOpen=e->getConfBool("mixerOpen",false);
   oscOpen=e->getConfBool("oscOpen",true);
   chanOscOpen=e->getConfBool("chanOscOpen",false);
+  xyOscOpen=e->getConfBool("xyOscOpen",false);
+  memoryOpen=e->getConfBool("memoryOpen",false);
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
@@ -6035,19 +6647,13 @@ bool FurnaceGUI::init() {
   clockOpen=e->getConfBool("clockOpen",false);
   speedOpen=e->getConfBool("speedOpen",true);
   groovesOpen=e->getConfBool("groovesOpen",false);
-  introMonOpen=e->getConfBool("introMonOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",true);
   subSongsOpen=e->getConfBool("subSongsOpen",true);
   findOpen=e->getConfBool("findOpen",false);
   spoilerOpen=e->getConfBool("spoilerOpen",false);
-
-  if (e->hasConf("lastDir")) {
-    basicMode=e->getConfBool("basicMode",false);
-  } else {
-    basicMode=true;
-  }
+  userPresetsOpen=e->getConfBool("userPresetsOpen",false);
 
   insListDir=e->getConfBool("insListDir",false);
   waveListDir=e->getConfBool("waveListDir",false);
@@ -6058,7 +6664,19 @@ bool FurnaceGUI::init() {
   waveSigned=e->getConfBool("waveSigned",false);
   waveGenVisible=e->getConfBool("waveGenVisible",false);
   waveEditStyle=e->getConfInt("waveEditStyle",0);
-  extraChannelButtons=e->getConfInt("extraChannelButtons",0);
+  int extraChannelButtons=e->getConfInt("extraChannelButtons",0);
+  if (!e->hasConf("patExtraButtons")) {
+    patExtraButtons=(extraChannelButtons==1);
+  } else {
+    patExtraButtons=e->getConfBool("patExtraButtons",false);
+  }
+  if (!e->hasConf("patChannelNames")) {
+    patChannelNames=(extraChannelButtons==2);
+  } else {
+    patChannelNames=e->getConfBool("patChannelNames",false);
+  }
+  patChannelPairs=e->getConfBool("patChannelPairs",true);
+  patChannelHints=e->getConfInt("patChannelHints",0);
   lockLayout=e->getConfBool("lockLayout",false);
 #ifdef IS_MOBILE
   fullScreen=true;
@@ -6094,15 +6712,18 @@ bool FurnaceGUI::init() {
   pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
 
   chanOscCols=e->getConfInt("chanOscCols",3);
+  chanOscAutoColsType=e->getConfInt("chanOscAutoColsType",0);
   chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
   chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
   chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
   chanOscTextY=e->getConfFloat("chanOscTextY",0.0f);
   chanOscAmplify=e->getConfFloat("chanOscAmplify",0.95f);
+  chanOscLineSize=e->getConfFloat("chanOscLineSize",1.0f);
   chanOscWindowSize=e->getConfFloat("chanOscWindowSize",20.0f);
   chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
   chanOscOptions=e->getConfBool("chanOscOptions",false);
   chanOscNormalize=e->getConfBool("chanOscNormalize",false);
+  chanOscRandomPhase=e->getConfBool("chanOscRandomPhase",false);
   chanOscTextFormat=e->getConfString("chanOscTextFormat","%c");
   chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
   chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
@@ -6115,6 +6736,18 @@ bool FurnaceGUI::init() {
   chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
   chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
   chanOscGrad.render();
+
+  xyOscXChannel=e->getConfInt("xyOscXChannel",0);
+  xyOscXInvert=e->getConfBool("xyOscXInvert",false);
+  xyOscYChannel=e->getConfInt("xyOscYChannel",1);
+  xyOscYInvert=e->getConfBool("xyOscYInvert",false);
+  xyOscZoom=e->getConfFloat("xyOscZoom",1.0f);
+  xyOscSamples=e->getConfInt("xyOscSamples",32768);
+  xyOscDecayTime=e->getConfFloat("xyOscDecayTime",10.0f);
+  xyOscIntensity=e->getConfFloat("xyOscIntensity",2.0f);
+  xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
+
+  cvHiScore=e->getConfInt("cvHiScore",25000);
 
   syncSettings();
   syncTutorial();
@@ -6132,7 +6765,6 @@ bool FurnaceGUI::init() {
   }
 
   initSystemPresets();
-  initTutorial();
 
   e->setAutoNotePoly(noteInputPoly);
 
@@ -6182,7 +6814,7 @@ bool FurnaceGUI::init() {
     dpiScale=settings.dpiScale;
   } else {
     logD("auto-detecting UI scale factor.");
-    dpiScale=getScaleFactor(videoBackend);
+    dpiScale=getScaleFactor(videoBackend,sdlWin);
     logD("scale factor: %f",dpiScale);
     if (dpiScale<0.1f) {
       logW("scale what?");
@@ -6261,18 +6893,18 @@ bool FurnaceGUI::init() {
   logV("window size: %dx%d",scrW,scrH);
 
   if (!initRender()) {
-    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
-      settings.renderBackend="";
-      e->setConf("renderBackend","");
+    if (settings.renderBackend!="SDL") {
+      settings.renderBackend="SDL";
+      e->setConf("renderBackend","SDL");
       e->saveConf();
-      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+      lastError=fmt::sprintf("could not init renderer!\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {
         settings.renderDriver="";
         e->setConf("renderDriver","");
         e->saveConf();
-        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+        lastError+=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
       }
     }
     return false;
@@ -6329,15 +6961,30 @@ bool FurnaceGUI::init() {
   }
 #endif
 
+  int numDriversA=SDL_GetNumAudioDrivers();
+  if (numDriversA<0) {
+    logW("could not list audio drivers! %s",SDL_GetError());
+  } else {
+    for (int i=0; i<numDriversA; i++) {
+      const char* r=SDL_GetAudioDriver(i);
+      if (r==NULL) continue;
+      if (strcmp(r,"disk")==0) continue;
+      if (strcmp(r,"dummy")==0) continue;
+      availAudioDrivers.push_back(String(r));
+    }
+  }
+
   int numDrivers=SDL_GetNumRenderDrivers();
   if (numDrivers<0) {
     logW("could not list render drivers! %s",SDL_GetError());
   } else {
     SDL_RendererInfo ri;
+    logV("available render drivers:");
     for (int i=0; i<numDrivers; i++) {
       int r=SDL_GetRenderDriverInfo(i,&ri);
       if (r!=0) continue;
       availRenderDrivers.push_back(String(ri.name));
+      logV("- %s",ri.name);
     }
   }
 
@@ -6346,23 +6993,25 @@ bool FurnaceGUI::init() {
   }
 
   logD("starting render backend...");
-  if (!rend->init(sdlWin)) {
-    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
-      settings.renderBackend="";
-      //e->setConf("renderBackend","");
-      //e->saveConf();
-      //lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+  if (!rend->init(sdlWin,settings.vsync)) {
+    logE("it failed...");
+    if (settings.renderBackend!="SDL") {
+      settings.renderBackend="SDL";
+      e->setConf("renderBackend","SDL");
+      e->saveConf();
+      lastError=fmt::sprintf("could not init renderer!\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {
         settings.renderDriver="";
         e->setConf("renderDriver","");
         e->saveConf();
-        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+        lastError+=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
       }
     }
     return false;
   }
+  logV("render backend started");
 
   // try acquiring the canvas size
   if (!rend->getOutputSize(canvasW,canvasH)) {
@@ -6399,6 +7048,8 @@ bool FurnaceGUI::init() {
   ImGui::CreateContext();
   rend->initGUI(sdlWin);
 
+  loadUserPresets(true);
+
   applyUISettings();
 
   logD("building font...");
@@ -6408,6 +7059,8 @@ bool FurnaceGUI::init() {
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
+    bigFont=mainFont;
+    headFont=mainFont;
     if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
@@ -6426,17 +7079,22 @@ bool FurnaceGUI::init() {
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
   toggleMobileUI(mobileUI,true);
 
-  for (int i=0; i<DIV_MAX_CHANS; i++) {
-    oldPat[i]=new DivPattern;
-  }
-
   firstFrame=true;
 
-  // TODO: MIDI mapping time!
+  userEvents=SDL_RegisterEvents(1);
+
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
     if (introPos<11.0) return -2;
     midiLock.lock();
     midiQueue.push(msg);
+    if (userEvents!=0xffffffff && midiWakeUp) {
+      midiWakeUp=false;
+      userEvent.user.type=userEvents;
+      userEvent.user.code=0;
+      userEvent.user.data1=NULL;
+      userEvent.user.data2=NULL;
+      SDL_PushEvent(&userEvent);
+    }
     midiLock.unlock();
     e->setMidiBaseChan(cursor.xCoarse);
     if (msg.type==TA_MIDI_SYSEX) return -2;
@@ -6469,6 +7127,7 @@ bool FurnaceGUI::init() {
       return -2;
     }
 
+    if (midiMap.directChannel && midiMap.directProgram) return -1;
     return curIns;
   });
 
@@ -6484,6 +7143,9 @@ bool FurnaceGUI::init() {
     }
   }
 #endif
+
+  cpuCores=SDL_GetCPUCount();
+  if (cpuCores<1) cpuCores=1;
 
   logI("done!");
   return true;
@@ -6528,6 +7190,8 @@ void FurnaceGUI::commitState() {
   e->setConf("mixerOpen",mixerOpen);
   e->setConf("oscOpen",oscOpen);
   e->setConf("chanOscOpen",chanOscOpen);
+  e->setConf("xyOscOpen",xyOscOpen);
+  e->setConf("memoryOpen",memoryOpen);
   e->setConf("volMeterOpen",volMeterOpen);
   e->setConf("statsOpen",statsOpen);
   e->setConf("compatFlagsOpen",compatFlagsOpen);
@@ -6539,14 +7203,13 @@ void FurnaceGUI::commitState() {
   e->setConf("clockOpen",clockOpen);
   e->setConf("speedOpen",speedOpen);
   e->setConf("groovesOpen",groovesOpen);
-  e->setConf("introMonOpen",introMonOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
   e->setConf("subSongsOpen",subSongsOpen);
   e->setConf("findOpen",findOpen);
   e->setConf("spoilerOpen",spoilerOpen);
-  e->setConf("basicMode",basicMode);
+  e->setConf("userPresetsOpen",userPresetsOpen);
 
   // commit dir state
   e->setConf("insListDir",insListDir);
@@ -6565,7 +7228,10 @@ void FurnaceGUI::commitState() {
   e->setConf("waveSigned",waveSigned);
   e->setConf("waveGenVisible",waveGenVisible);
   e->setConf("waveEditStyle",waveEditStyle);
-  e->setConf("extraChannelButtons",extraChannelButtons);
+  e->setConf("patExtraButtons",patExtraButtons);
+  e->setConf("patChannelNames",patChannelNames);
+  e->setConf("patChannelPairs",patChannelPairs);
+  e->setConf("patChannelHints",(int)patChannelHints);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
   e->setConf("mobileUI",mobileUI);
@@ -6598,15 +7264,18 @@ void FurnaceGUI::commitState() {
 
   // commit per-chan osc state
   e->setConf("chanOscCols",chanOscCols);
+  e->setConf("chanOscAutoColsType",chanOscAutoColsType);
   e->setConf("chanOscColorX",chanOscColorX);
   e->setConf("chanOscColorY",chanOscColorY);
   e->setConf("chanOscTextX",chanOscTextX);
   e->setConf("chanOscTextY",chanOscTextY);
   e->setConf("chanOscAmplify",chanOscAmplify);
+  e->setConf("chanOscLineSize",chanOscLineSize);
   e->setConf("chanOscWindowSize",chanOscWindowSize);
   e->setConf("chanOscWaveCorr",chanOscWaveCorr);
   e->setConf("chanOscOptions",chanOscOptions);
   e->setConf("chanOscNormalize",chanOscNormalize);
+  e->setConf("chanOscRandomPhase",chanOscRandomPhase);
   e->setConf("chanOscTextFormat",chanOscTextFormat);
   e->setConf("chanOscColorR",chanOscColor.x);
   e->setConf("chanOscColorG",chanOscColor.y);
@@ -6619,6 +7288,17 @@ void FurnaceGUI::commitState() {
   e->setConf("chanOscUseGrad",chanOscUseGrad);
   e->setConf("chanOscGrad",chanOscGrad.toString());
 
+  // commit x-y osc state
+  e->setConf("xyOscXChannel",xyOscXChannel);
+  e->setConf("xyOscXInvert",xyOscXInvert);
+  e->setConf("xyOscYChannel",xyOscYChannel);
+  e->setConf("xyOscYInvert",xyOscYInvert);
+  e->setConf("xyOscZoom",xyOscZoom);
+  e->setConf("xyOscSamples",xyOscSamples);
+  e->setConf("xyOscDecayTime",xyOscDecayTime);
+  e->setConf("xyOscIntensity",xyOscIntensity);
+  e->setConf("xyOscThickness",xyOscThickness);
+
   // commit recent files
   for (int i=0; i<30; i++) {
     String key=fmt::sprintf("recentFile%d",i);
@@ -6628,10 +7308,19 @@ void FurnaceGUI::commitState() {
       e->setConf(key,recentFile[i]);
     }
   }
+
+  e->setConf("cvHiScore",cvHiScore);
 }
 
-bool FurnaceGUI::finish() {
+bool FurnaceGUI::finish(bool saveConfig) {
   commitState();
+  if (userPresetsOpen) {
+    saveUserPresets(true);
+  }
+  if (saveConfig) {
+    logI("saving config.");
+    e->saveConf();
+  }
   rend->quitGUI();
   ImGui_ImplSDL2_Shutdown();
   quitRender();
@@ -6642,15 +7331,35 @@ bool FurnaceGUI::finish() {
     SDL_HapticClose(vibrator);
   }
 
-  for (int i=0; i<DIV_MAX_CHANS; i++) {
-    delete oldPat[i];
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (oscValues[i]) {
+      delete[] oscValues[i];
+      oscValues[i]=NULL;
+    }
+  }
+  if (oscValuesAverage) {
+    delete[] oscValuesAverage;
+    oscValuesAverage=NULL;
   }
 
   if (backupTask.valid()) {
     backupTask.get();
   }
 
+  if (chanOscWorkPool!=NULL) {
+    delete chanOscWorkPool;
+  }
+
   return true;
+}
+
+bool FurnaceGUI::requestQuit() {
+  if (modified && !cvOpen) {
+    showWarning("Unsaved changes! Save changes before quitting?",GUI_WARN_QUIT);
+  } else {
+    quit=true;
+  }
+  return quit;
 }
 
 FurnaceGUI::FurnaceGUI():
@@ -6660,6 +7369,7 @@ FurnaceGUI::FurnaceGUI():
   sdlWin(NULL),
   vibrator(NULL),
   vibratorAvailable(false),
+  cv(NULL),
   sampleTex(NULL),
   sampleTexW(0),
   sampleTexH(0),
@@ -6668,11 +7378,14 @@ FurnaceGUI::FurnaceGUI():
   warnQuit(false),
   willCommit(false),
   edit(false),
+  editClone(false),
+  isPatUnique(false),
   modified(false),
   displayError(false),
   displayExporting(false),
   vgmExportLoop(true),
   zsmExportLoop(true),
+  zsmExportOptimize(true),
   vgmExportPatternHints(false),
   vgmExportDirectStream(false),
   displayInsTypeList(false),
@@ -6684,10 +7397,14 @@ FurnaceGUI::FurnaceGUI():
   oldWantCaptureKeyboard(false),
   displayMacroMenu(false),
   displayNew(false),
+  displayPalette(false),
   fullScreen(false),
   preserveChanPos(false),
+  sysDupCloneChannels(true),
+  sysDupEnd(false),
   wantScrollList(false),
   noteInputPoly(true),
+  notifyWaveChange(false),
   displayPendingIns(false),
   pendingInsSingle(false),
   displayPendingRawSample(false),
@@ -6696,6 +7413,12 @@ FurnaceGUI::FurnaceGUI():
   displayEditString(false),
   mobileEdit(false),
   killGraphics(false),
+  safeMode(false),
+  midiWakeUp(true),
+  makeDrumkitMode(false),
+  audioEngineChanged(false),
+  settingsChanged(false),
+  debugFFT(false),
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),
   drawHalt(10),
@@ -6703,7 +7426,13 @@ FurnaceGUI::FurnaceGUI():
   macroPointSize(16),
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
+  makeDrumkitOctave(3),
   mobileEditPage(0),
+  wheelCalmDown(0),
+  shallDetectScale(0),
+  cpuCores(0),
+  secondTimer(0.0f),
+  userEvents(0xffffffff),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   mobileEditAnim(0.0f),
@@ -6714,12 +7443,19 @@ FurnaceGUI::FurnaceGUI():
   fmPreviewOn(false),
   fmPreviewPaused(false),
   fmPreviewOPN(NULL),
+  fmPreviewOPM(NULL),
+  fmPreviewOPL(NULL),
+  fmPreviewOPLL(NULL),
+  fmPreviewOPZ(NULL),
+  fmPreviewOPZInterface(NULL),
   editString(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
+  pendingRawSampleRate(32000),
   pendingRawSampleUnsigned(false),
   pendingRawSampleBigEndian(false),
   pendingRawSampleSwapNibbles(false),
+  pendingRawSampleReplace(false),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
@@ -6746,19 +7482,23 @@ FurnaceGUI::FurnaceGUI():
   learning(-1),
   mainFont(NULL),
   iconFont(NULL),
+  furIconFont(NULL),
   patFont(NULL),
   bigFont(NULL),
+  headFont(NULL),
   fontRange(NULL),
   prevInsData(NULL),
+  pendingLayoutImport(NULL),
+  pendingLayoutImportLen(0),
+  pendingLayoutImportStep(0),
   curIns(0),
   curWave(0),
   curSample(0),
   curOctave(3),
   curOrder(0),
+  playOrder(0),
   prevIns(0),
   oldRow(0),
-  oldOrder(0),
-  oldOrder1(0),
   editStep(1),
   exportLoops(0),
   soloChan(-1),
@@ -6768,7 +7508,6 @@ FurnaceGUI::FurnaceGUI():
   loopRow(-1),
   loopEnd(-1),
   isClipping(0),
-  extraChannelButtons(0),
   newSongCategory(0),
   latchTarget(0),
   wheelX(0),
@@ -6781,8 +7520,16 @@ FurnaceGUI::FurnaceGUI():
   oldBar(-1),
   curGroove(-1),
   exitDisabledTimer(0),
+  curPaletteChoice(0),
+  curPaletteType(0),
   soloTimeout(0.0f),
   exportFadeOut(5.0),
+  patExtraButtons(false),
+  patChannelNames(false),
+  patChannelPairs(true),
+  patChannelHints(0),
+  newSongFirstFrame(false),
+  oldRowChanged(false),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),
@@ -6817,8 +7564,12 @@ FurnaceGUI::FurnaceGUI():
   clockOpen(false),
   speedOpen(true),
   groovesOpen(false),
-  introMonOpen(false),
-  basicMode(true),
+  xyOscOpen(false),
+  memoryOpen(false),
+  csPlayerOpen(false),
+  cvOpen(false),
+  userPresetsOpen(false),
+  cvNotSerious(false),
   shortIntro(false),
   insListDir(false),
   waveListDir(false),
@@ -6861,6 +7612,7 @@ FurnaceGUI::FurnaceGUI():
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
+  failedNoteOn(false),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
   buttonLongThreshold(0.20f),
@@ -6914,7 +7666,6 @@ FurnaceGUI::FurnaceGUI():
   macroDragMax(0),
   macroDragLastX(-1),
   macroDragLastY(-1),
-  macroDragBitOff(0),
   macroDragScroll(0),
   macroDragBitMode(false),
   macroDragInitialValueSet(false),
@@ -6965,9 +7716,13 @@ FurnaceGUI::FurnaceGUI():
   drawTimeBegin(0),
   drawTimeEnd(0),
   drawTimeDelta(0),
+  swapTimeBegin(0),
+  swapTimeEnd(0),
+  swapTimeDelta(0),
   eventTimeBegin(0),
   eventTimeEnd(0),
   eventTimeDelta(0),
+  nextPresentTime(0),
   perfMetricsLen(0),
   chanToMove(-1),
   sysToMove(-1),
@@ -6985,7 +7740,7 @@ FurnaceGUI::FurnaceGUI():
   fadeMode(false),
   randomMode(false),
   haveHitBounds(false),
-  pendingStepUpdate(false),
+  pendingStepUpdate(0),
   oldOrdersLen(0),
   sampleZoom(1.0),
   prevSampleZoom(1.0),
@@ -7015,6 +7770,8 @@ FurnaceGUI::FurnaceGUI():
   sampleFilterRes(0.25f),
   sampleFilterCutStart(16000.0f),
   sampleFilterCutEnd(100.0f),
+  sampleCrossFadeLoopLength(0),
+  sampleCrossFadeLoopLaw(50),
   sampleFilterPower(1),
   sampleClipboard(NULL),
   sampleClipboardLen(0),
@@ -7023,6 +7780,7 @@ FurnaceGUI::FurnaceGUI():
   openSampleAmplifyOpt(false),
   openSampleSilenceOpt(false),
   openSampleFilterOpt(false),
+  openSampleCrossFadeOpt(false),
   selectedPortSet(0x1fff),
   selectedSubPort(-1),
   hoveredPortSet(0x1fff),
@@ -7032,26 +7790,45 @@ FurnaceGUI::FurnaceGUI():
   displayInternalPorts(false),
   subPortPos(0.0f,0.0f),
   oscTotal(0),
+  oscWidth(512),
+  oscValuesAverage(NULL),
   oscZoom(0.5f),
   oscWindowSize(20.0f),
+  oscInput(0.0f),
+  oscInput1(0.0f),
   oscZoomSlider(false),
   chanOscCols(3),
+  chanOscAutoColsType(0),
   chanOscColorX(GUI_OSCREF_CENTER),
   chanOscColorY(GUI_OSCREF_CENTER),
   chanOscWindowSize(20.0f),
   chanOscTextX(0.0f),
   chanOscTextY(0.0f),
   chanOscAmplify(0.95f),
+  chanOscLineSize(1.0f),
   chanOscWaveCorr(true),
   chanOscOptions(false),
   updateChanOscGradTex(true),
   chanOscUseGrad(false),
   chanOscNormalize(false),
+  chanOscRandomPhase(false),
   chanOscTextFormat("%c"),
   chanOscColor(1.0f,1.0f,1.0f,1.0f),
   chanOscTextColor(1.0f,1.0f,1.0f,0.75f),
   chanOscGrad(64,64),
   chanOscGradTex(NULL),
+  chanOscWorkPool(NULL),
+  xyOscPointTex(NULL),
+  xyOscOptions(false),
+  xyOscXChannel(0),
+  xyOscXInvert(false),
+  xyOscYChannel(1),
+  xyOscYInvert(false),
+  xyOscZoom(1.0f),
+  xyOscSamples(32768),
+  xyOscDecayTime(10.0f),
+  xyOscIntensity(2.0f),
+  xyOscThickness(2.0f),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),
@@ -7096,7 +7873,10 @@ FurnaceGUI::FurnaceGUI():
   introSkipDo(false),
   introStopped(false),
   curTutorial(-1),
-  curTutorialStep(0) {
+  curTutorialStep(0),
+  audioExportType(0),
+  dmfExportVersion(0),
+  curExportType(GUI_EXPORT_NONE) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
@@ -7146,12 +7926,14 @@ FurnaceGUI::FurnaceGUI():
   memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
-  memset(oscValues,0,sizeof(float)*512);
+  memset(oscValues,0,sizeof(void*)*DIV_MAX_OUTPUTS);
 
   memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
   memset(chanOscLP1,0,sizeof(float)*DIV_MAX_CHANS);
   memset(chanOscVol,0,sizeof(float)*DIV_MAX_CHANS);
-  memset(chanOscPitch,0,sizeof(float)*DIV_MAX_CHANS);
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    chanOscChan[i].pitch=0.0f;
+  }
   memset(chanOscBright,0,sizeof(float)*DIV_MAX_CHANS);
   memset(lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
 
@@ -7180,15 +7962,15 @@ FurnaceGUI::FurnaceGUI():
 
   waveGenAmp[0]=1.0f;
   waveGenFMCon0[0]=false;
-  waveGenFMCon1[0]= true;
-  waveGenFMCon2[1]= true;
-  waveGenFMCon3[2] = true;
-  waveGenFMCon4[0]= false;
+  waveGenFMCon1[0]=true;
+  waveGenFMCon2[1]=true;
+  waveGenFMCon3[2]=true;
+  waveGenFMCon4[0]=false;
 
-  waveGenFMCon0[4] = false;
-  waveGenFMCon1[4] = false;
-  waveGenFMCon2[4] = false;
-  waveGenFMCon3[4] = true;
+  waveGenFMCon0[4]=false;
+  waveGenFMCon1[4]=false;
+  waveGenFMCon2[4]=false;
+  waveGenFMCon3[4]=true;
 
   memset(keyHit,0,sizeof(float)*DIV_MAX_CHANS);
   memset(keyHit1,0,sizeof(float)*DIV_MAX_CHANS);
@@ -7210,6 +7992,8 @@ FurnaceGUI::FurnaceGUI():
   memset(macroRelLabel,0,32);
   memset(emptyLabel,0,32);
   memset(emptyLabel2,0,32);
+  // effect sorting
+  memset(effectsShow,1,sizeof(bool)*10);
 
   strncpy(noteOffLabel,"OFF",32);
   strncpy(noteRelLabel,"===",32);
