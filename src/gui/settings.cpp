@@ -4570,7 +4570,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.fontBitmap,0,1);
   clampSetting(settings.fontAutoHint,0,2);
   clampSetting(settings.fontAntiAlias,0,1);
-  clampSetting(settings.fontOversample,0,2);
+  clampSetting(settings.fontOversample,1,3);
   clampSetting(settings.selectAssetOnLoad,0,1);
   clampSetting(settings.basicColors,0,1);
   clampSetting(settings.playbackTime,0,1);
@@ -5724,7 +5724,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     fontConf.OversampleV=1;
     fontConf.OversampleH=settings.fontOversample;
     fontConfP.OversampleV=1;
-    fontConfP.OversampleH=2;
+    fontConfP.OversampleH=settings.fontOversample;
     fontConfB.OversampleV=1;
     fontConfB.OversampleH=1;
     fontConfH.OversampleV=1;
