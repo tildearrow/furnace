@@ -136,7 +136,7 @@ public:
   void skip(size_t l) {
     // quick and dirty
     while (l--) {
-      logD("skipping l %d", l);
+      logD("skipping l %d",l);
       readC();
     }
   }
@@ -336,7 +336,7 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
         // notes
         reader.read(patDataBuf, 256);
 
-        logD("parsing notes of pattern %d channel %d", i, j);
+        logD("parsing notes of pattern %d channel %d",i,j);
         for (int k=0; k<256; k++) {
           if (patDataBuf[k]==0) continue;
           else if (patDataBuf[k]==1) {
@@ -360,18 +360,18 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
           pat->data[patLens[i]][5]=0x00;
         }
         // volume
-        reader.read(patDataBuf, 256);
+        reader.read(patDataBuf,256);
 
-        logD("parsing volumes of pattern %d channel %d", i, j);
+        logD("parsing volumes of pattern %d channel %d",i,j);
         for (int k=0; k<256; k++) {
           if (patDataBuf[k]==0) continue;
           else pat->data[k][3]=patDataBuf[k]*4;
         }
 
         // instrument
-        reader.read(patDataBuf, 256);
+        reader.read(patDataBuf,256);
 
-        logD("parsing instruments of pattern %d channel %d", i, j);
+        logD("parsing instruments of pattern %d channel %d",i,j);
         for (int k=0; k<256; k++) {
           if (patDataBuf[k]==0) continue;
           else {
@@ -379,9 +379,9 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
           }
         }
 
-        logD("ignoring unused data of pattern %d channel %d", i, j);
-        reader.read(patDataBuf, 256);
-        reader.read(patDataBuf, 256);
+        logD("ignoring unused data of pattern %d channel %d",i,j);
+        reader.read(patDataBuf,256);
+        reader.read(patDataBuf,256);
 
         reader.skip(1536);
       }
