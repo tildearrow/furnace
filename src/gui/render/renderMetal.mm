@@ -33,7 +33,7 @@ struct FurnaceGUIRenderMetalPrivate {
 
 class FurnaceMetalTexture: public FurnaceGUITexture {
   public:
-  MTLTexture* tex;
+  id<MTLTexture> tex;
   FurnaceMetalTexture():
     tex(NULL) {}
 };
