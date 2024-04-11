@@ -158,7 +158,7 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
     ds.subsong[0]->hz=50;
     ds.systemLen = 1;
 
-    ds.system[0]=DIV_SYSTEM_YM2608;
+    ds.system[0]=DIV_SYSTEM_YM2612;
     unsigned char magic[8]={0};
 
     reader.readNoRLE(magic, 8);
