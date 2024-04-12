@@ -105,7 +105,7 @@ void FurnaceGUIRenderMetal::clear(ImVec4 color) {
   priv->renderPass.colorAttachments[0].texture=priv->drawable.texture;
   priv->renderPass.colorAttachments[0].loadAction=MTLLoadActionClear;
   priv->renderPass.colorAttachments[0].storeAction=MTLStoreActionStore;
-  priv->renderEncoder=[priv->cmdBuf renderCommandEncoderWithDescriptor:renderPassDescriptor];
+  priv->renderEncoder=[priv->cmdBuf renderCommandEncoderWithDescriptor:priv->renderPass];
 }
 
 bool FurnaceGUIRenderMetal::newFrame() {
@@ -113,7 +113,7 @@ bool FurnaceGUIRenderMetal::newFrame() {
 }
 
 void FurnaceGUIRenderMetal::createFontsTexture() {
-  ImGui_ImplMetal_CreateFontsTexture(priv->context);
+  ImGui_ImplMetal_CreateFontsTexture(priv->context.device);
 }
 
 void FurnaceGUIRenderMetal::destroyFontsTexture() {
