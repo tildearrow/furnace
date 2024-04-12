@@ -203,7 +203,7 @@ void writeSubEntries(FILE* f, std::vector<FurnaceGUISysDef>& entries, int depth)
     for (int i=0; i<depth; i++) {
       data+="  ";
     }
-    data+=fmt::sprintf("%s=%s\n",safeName,i.definition);
+    data+=fmt::sprintf("%s=%s\n",safeName,taEncodeBase64(i.definition));
     fputs(data.c_str(),f);
 
     writeSubEntries(f,i.subDefs,depth+1);
@@ -360,7 +360,95 @@ void FurnaceGUI::drawUserPresets() {
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::InputText("##PName",&preset->name);
           ImGui::Separator();
-          ImGui::Text("the rest...");
+
+          int doRemove=-1;
+          bool mustBake=false;
+
+          for (size_t i=0; i<preset->orig.size(); i++) {
+            String tempID;
+            FurnaceGUISysDefChip& chip=preset->orig[i];
+
+            bool doInvert=(chip.vol<0);
+            float vol=fabs(chip.vol);
+            ImGui::PushID(i);
+
+            tempID=fmt::sprintf("%s##USystem",getSystemName(chip.sys));
+            ImGui::Button(tempID.c_str(),ImVec2(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Invert").x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0,0));
+            if (ImGui::BeginPopupContextItem("SysPickerCU",ImGuiPopupFlags_MouseButtonLeft)) {
+              DivSystem picked=systemPicker();
+              if (picked!=DIV_SYSTEM_NULL) {
+                chip.sys=picked;
+                mustBake=true;
+                ImGui::CloseCurrentPopup();
+              }
+              ImGui::EndPopup();
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Checkbox("Invert",&doInvert)) {
+              chip.vol=-chip.vol;
+              mustBake=true;
+            }
+            ImGui::SameLine();
+            pushDestColor();
+            if (ImGui::Button(ICON_FA_MINUS "##USysRemove")) {
+              doRemove=i;
+              mustBake=true;
+            }
+            popDestColor();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+            if (CWSliderFloat("Volume",&vol,0.0f,3.0f)) {
+              if (doInvert) {
+                if (vol<0.0001) vol=0.0001;
+              }
+              if (vol<0) vol=0;
+              if (vol>10) vol=10;
+              chip.vol=doInvert?-vol:vol;
+              mustBake=true;
+            } rightClickable
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+            if (CWSliderFloat("Panning",&chip.pan,-1.0f,1.0f)) {
+              if (chip.pan<-1.0f) chip.pan=-1.0f;
+              if (chip.pan>1.0f) chip.pan=1.0f;
+              mustBake=true;
+            } rightClickable
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+            if (CWSliderFloat("Front/Rear",&chip.panFR,-1.0f,1.0f)) {
+              if (chip.panFR<-1.0f) chip.panFR=-1.0f;
+              if (chip.panFR>1.0f) chip.panFR=1.0f;
+              mustBake=true;
+            } rightClickable
+
+            if (ImGui::TreeNode("Configure")) {
+              DivConfig sysFlags;
+              sysFlags.loadFromBase64(chip.flags.c_str());
+              if (drawSysConf(-1,i,chip.sys,sysFlags,false)) {
+                chip.flags=sysFlags.toBase64();
+                mustBake=true;
+              }
+              ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+          }
+
+          if (doRemove>=0) {
+            preset->orig.erase(preset->orig.begin()+doRemove);
+            mustBake=true;
+          }
+
+          ImGui::Button(ICON_FA_PLUS "##SysAddU");
+          if (ImGui::BeginPopupContextItem("SysPickerU",ImGuiPopupFlags_MouseButtonLeft)) {
+            DivSystem picked=systemPicker();
+            if (picked!=DIV_SYSTEM_NULL) {
+              preset->orig.push_back(FurnaceGUISysDefChip(picked,1.0f,0.0f,""));
+              mustBake=true;
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+          }
+
+          if (mustBake) preset->bake();
         }
       }
 
