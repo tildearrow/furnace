@@ -28,6 +28,9 @@
 struct FurnaceGUIRenderMetalPrivate {
   CAMetalLayer* context;
   id<MTLCommandQueue> cmdQueue;
+  id<MTLCommandBuffer> cmdBuf;
+  id<MTLRenderCommandEncoder> renderEncoder;
+  id<CAMetalDrawable> drawable;
   MTLRenderPassDescriptor* renderPass;
 };
 
@@ -39,39 +42,47 @@ class FurnaceMetalTexture: public FurnaceGUITexture {
 };
 
 ImTextureID FurnaceGUIRenderMetal::getTextureID(FurnaceGUITexture* which) {
-  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
+  FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
   return t->tex;
 }
 
 bool FurnaceGUIRenderMetal::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
-  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
-  return SDL_LockTexture(t->tex,NULL,data,pitch)==0;
+  return false;
+  /*
+  FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
+  return SDL_LockTexture(t->tex,NULL,data,pitch)==0;*/
 }
 
 bool FurnaceGUIRenderMetal::unlockTexture(FurnaceGUITexture* which) {
-  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
+  return false;
+  /*
+  FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
   SDL_UnlockTexture(t->tex);
-  return true;
+  return true;*/
 }
 
 bool FurnaceGUIRenderMetal::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
+  return false;
+  /*
   FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
-  return SDL_UpdateTexture(t->tex,NULL,data,pitch)==0;
+  return SDL_UpdateTexture(t->tex,NULL,data,pitch)==0;*/
 }
 
 FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width, int height, bool interpolate) {
-  SDL_Texture* t=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,dynamic?SDL_TEXTUREACCESS_STREAMING:SDL_TEXTUREACCESS_STATIC,width,height);
+  MTLTextureDescriptor* texDesc=[MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:(NSUInteger)width height:(NSUInteger)height mipmapped:NO];
+  texDesc.usage=MTLTextureUsageShaderRead;
+  texDesc.storageMode=MTLStorageModeManaged;
 
-  if (t==NULL) return NULL;
-  FurnaceSDLTexture* ret=new FurnaceSDLTexture;
-  ret->tex=t;
+  id<MTLTexture> texture=[priv->context.device newTextureWithDescriptor:texDesc];
+
+  if (texture==NULL) return NULL;
+  FurnaceMetalTexture* ret=new FurnaceMetalTexture;
+  ret->tex=texture;
   return ret;
 }
 
 bool FurnaceGUIRenderMetal::destroyTexture(FurnaceGUITexture* which) {
-  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
-
-  SDL_DestroyTexture(t->tex);
+  FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
   delete t;
   return true;
 }
@@ -82,7 +93,19 @@ void FurnaceGUIRenderMetal::setTextureBlendMode(FurnaceGUITexture* which, Furnac
 void FurnaceGUIRenderMetal::setBlendMode(FurnaceGUIBlendMode mode) {
 }
 
+// you should only call this once!!!
 void FurnaceGUIRenderMetal::clear(ImVec4 color) {
+  int outW, outH;
+  getOutputSize(outW,outH);
+  priv->context.drawableSize=CGSizeMake(outW,outH);
+  priv->drawable=[priv->context nextDrawable];
+
+  priv->cmdBuf=[priv->cmdQueue commandBuffer];
+  priv->renderPass.colorAttachments[0].clearColor=MTLClearColorMake(color.x,color.y,color.z,color.w);
+  priv->renderPass.colorAttachments[0].texture=drawable.texture;
+  priv->renderPass.colorAttachments[0].loadAction=MTLLoadActionClear;
+  priv->renderPass.colorAttachments[0].storeAction=MTLStoreActionStore;
+  priv->renderEncoder=[commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
 }
 
 bool FurnaceGUIRenderMetal::newFrame() {
@@ -90,19 +113,26 @@ bool FurnaceGUIRenderMetal::newFrame() {
 }
 
 void FurnaceGUIRenderMetal::createFontsTexture() {
+  ImGui_ImplMetal_CreateFontsTexture(priv->context);
 }
 
 void FurnaceGUIRenderMetal::destroyFontsTexture() {
+  ImGui_ImplMetal_DestroyFontsTexture();
 }
 
 void FurnaceGUIRenderMetal::renderGUI() {
-  ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData());
+  ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(),priv->cmdBuf,priv->renderEncoder);
 }
 
 void FurnaceGUIRenderMetal::wipe(float alpha) {
+  // TODO
 }
 
 void FurnaceGUIRenderMetal::present() {
+  [priv->renderEncoder endEncoding];
+
+  [priv->cmdBuf presentDrawable:priv->drawable];
+  [priv->cmdBuf commit];
 }
 
 bool FurnaceGUIRenderMetal::getOutputSize(int& w, int& h) {
