@@ -36,12 +36,12 @@ class TFMRLEReader {
   size_t curSeek;
   bool inTag;
   int tagLenLeft;
-  char tagChar;
+  signed char tagChar;
 
-  void decodeRLE(char prevChar) {
+  void decodeRLE(signed char prevChar) {
     int lenShift=0;
     tagLenLeft=0;
-    char rleTag=0;
+    signed char rleTag=0;
     do {
       rleTag=readC();
       tagLenLeft|=(rleTag&0x7F)<<lenShift;
@@ -64,7 +64,7 @@ public:
     tagChar(0) {}
 
   // these functions may throw TFMEndOfFileException
-  unsigned char readC() {
+  signed char readC() {
     if (inTag) {
       if (!tagLenLeft) {
         inTag=false;
@@ -100,7 +100,7 @@ public:
     return ret;
   }
 
-  char readCNoRLE() {
+  signed char readCNoRLE() {
     if (curSeek+1>len) throw TFMEndOfFileException(this,len);
     return buf[curSeek++];
   }
@@ -369,7 +369,7 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
         logD("parsing volumes of pattern %d channel %d",i,j);
         for (int k=0; k<256; k++) {
           if (patDataBuf[k]==0) continue;
-          else pat->data[k][3]=patDataBuf[k]*4;
+          else pat->data[k][3]=0x41+(patDataBuf[k]*2);
         }
 
         // instrument
@@ -416,6 +416,7 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
             // vibrato + volume slide
             pat->data[k][4]=0x05;
             pat->data[k][5]=effectVal[k];
+            break;
           default:
             break;
           }
