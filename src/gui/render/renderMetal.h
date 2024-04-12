@@ -29,7 +29,7 @@ class FurnaceGUIRenderMetal: public FurnaceGUIRender {
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     bool unlockTexture(FurnaceGUITexture* which);
     bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
-    FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    FurnaceGUITexture* createTexture(bool dynamic, int width, int height, bool interpolate=true);
     bool destroyTexture(FurnaceGUITexture* which);
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
@@ -43,7 +43,7 @@ class FurnaceGUIRenderMetal: public FurnaceGUIRender {
     bool getOutputSize(int& w, int& h);
     int getWindowFlags();
     void preInit();
-    bool init(SDL_Window* win);
+    bool init(SDL_Window* win, int swapInterval);
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();

@@ -59,7 +59,7 @@ bool FurnaceGUIRenderMetal::updateTexture(FurnaceGUITexture* which, void* data, 
   return SDL_UpdateTexture(t->tex,NULL,data,pitch)==0;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width, int height, bool interpolate) {
   SDL_Texture* t=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,dynamic?SDL_TEXTUREACCESS_STREAMING:SDL_TEXTUREACCESS_STATIC,width,height);
 
   if (t==NULL) return NULL;
@@ -118,7 +118,7 @@ void FurnaceGUIRenderMetal::preInit() {
   priv=new FurnaceGUIRenderMetalPrivate;
 }
 
-bool FurnaceGUIRenderMetal::init(SDL_Window* win) {
+bool FurnaceGUIRenderMetal::init(SDL_Window* win, int swapInterval) {
   SDL_SetHint(SDL_HINT_RENDER_DRIVER,"metal");
 
   sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
