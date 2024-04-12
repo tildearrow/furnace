@@ -153,7 +153,7 @@ bool FurnaceGUIRenderMetal::init(SDL_Window* win, int swapInterval) {
 
   sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
 
-  if (sdlRend==NULL) return NULL;
+  if (sdlRend==NULL) return false;
 
   priv->context=(__bridge CAMetalLayer*)SDL_RenderGetMetalLayer(sdlRend);
   priv->context.pixelFormat=MTLPixelFormatBGRA8Unorm;
@@ -161,7 +161,7 @@ bool FurnaceGUIRenderMetal::init(SDL_Window* win, int swapInterval) {
 }
 
 void FurnaceGUIRenderMetal::initGUI(SDL_Window* win) {
-  ImGui_ImplMetal_Init(context.device);
+  ImGui_ImplMetal_Init(priv->context.device);
   ImGui_ImplSDL2_InitForMetal(win);
 
   priv->cmdQueue=[priv->context.device newCommandQueue];
@@ -169,7 +169,7 @@ void FurnaceGUIRenderMetal::initGUI(SDL_Window* win) {
 }
 
 void FurnaceGUIRenderMetal::quitGUI() {
-  ImGui_ImplSDLRenderer2_Shutdown();
+  ImGui_ImplMetal_Shutdown();
   [priv->renderPass release];
   [priv->cmdQueue release];
 }
