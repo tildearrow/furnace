@@ -134,6 +134,14 @@ public:
     return ret;
   }
 
+  String readString(size_t l) {
+    String ret;
+    ret.reserve(l);
+    while (l--) {
+      ret += readC();
+    }
+    return ret;
+  }
   void skip(size_t l) {
     // quick and dirty
     while (l--) {
@@ -157,12 +165,13 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
     DivSong ds;
     ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
     ds.subsong[0]->hz=50;
-    ds.systemLen = 1;
+    ds.systemLen=1;
+    ds.resetEffectsOnNewNote=true;
 
     ds.system[0]=DIV_SYSTEM_YM2612;
     unsigned char magic[8]={0};
 
-    reader.readNoRLE(magic, 8);
+    reader.readNoRLE(magic,8);
     if (memcmp(magic,DIV_TFM_MAGIC,8)!=0) throw InvalidHeaderException();
 
     unsigned char speedEven=reader.readCNoRLE();
@@ -197,24 +206,17 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
     // TODO: use this for something, number of saves
     (void)reader.readSNoRLE();
 
-    unsigned char buffer[384];
-
     // author
     logD("parsing author");
-    reader.read(buffer,64);
-    ds.author=String((const char*)buffer,strnlen((const char*)buffer,64));
-    memset(buffer, 0, 64);
+    ds.author=reader.readString(64);
 
     // name
     logD("parsing name");
-    reader.read(buffer,64);
-    ds.name=String((const char*)buffer,strnlen((const char*)buffer,64));
-    memset(buffer, 0, 64);
+    ds.name=reader.readString(64);
 
     // notes
     logD("parsing notes");
-    reader.read(buffer,384);
-    String notes((const char*)buffer,strnlen((const char*)buffer,384));
+    String notes=reader.readString(384);
 
     // fix \r\n to \n
     for (auto& c : notes) {
@@ -398,9 +400,12 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
             pat->data[k][5]=effectVal[k];
             break;
           case 1:
-            // pitch slide up
+            // note slide up
           case 2:
-            // pitch slide down
+            // note slide down
+            pat->data[k][4]=0xF0|effectNum[k];
+            pat->data[k][5]=effectVal[k];
+            break;
           case 3:
             // portamento
           case 4:
