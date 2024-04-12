@@ -38,20 +38,27 @@ class TFMRLEReader {
   int tagLenLeft;
   signed char tagChar;
 
-  void decodeRLE(signed char prevChar) {
+  void decodeRLE(unsigned char prevChar) {
     int lenShift=0;
     tagLenLeft=0;
-    signed char rleTag=0;
+    unsigned char rleTag=0;
+
     do {
-      rleTag=readC();
+      rleTag=readCNoRLE();
       tagLenLeft|=(rleTag&0x7F)<<lenShift;
       lenShift+=7;
-      logD("RLE tag: %X, len shift: %d, len left: %d",rleTag,lenShift,tagLenLeft);
+      logD("offset: %x, RLE tag: %X, len shift: %d, len left: %d",curSeek,rleTag,lenShift,tagLenLeft);
     } while (!(rleTag&0x80));
-    // sync back since we've already read one character
-    tagLenLeft--;
-    inTag=true;
-    tagChar=prevChar;
+
+    if (tagLenLeft) {
+      // sync back since we've already read one character
+      inTag=true;
+      tagLenLeft--;
+      tagChar=prevChar;
+    } else {
+      tagChar=0x80;
+    }
+    logD("tag finished: len left: %d, char: %X",tagLenLeft,tagChar);
   }
 
 public:
@@ -64,9 +71,9 @@ public:
     tagChar(0) {}
 
   // these functions may throw TFMEndOfFileException
-  signed char readC() {
+  unsigned char readC() {
     if (inTag) {
-      if (!tagLenLeft) {
+      if (tagLenLeft<=0) {
         inTag=false;
         return readC();
       }
@@ -86,22 +93,16 @@ public:
     // in certain parts of the header and footer)
     // TFM music maker actually uses double 0x80 to escape the 0x80
     // for example: 0xDA 0x80 0x80 0x00 0x23 = 0xDA 0x80 0x00 0x23)
-    if (ret==0x80 && curSeek+1<=len) {
-      if (buf[curSeek+1]!=0x80) {
-        decodeRLE(buf[curSeek-2]);
-        tagLenLeft--;
-        return tagChar;
-      } else {
-        // to avoid outputting the extra 0x80
-        curSeek++;
-        return ret;
-      }
+    if (ret==0x80) {
+      decodeRLE(buf[curSeek-2]);
+      tagLenLeft--;
+      return tagChar;
     }
     return ret;
   }
 
   signed char readCNoRLE() {
-    if (curSeek+1>len) throw TFMEndOfFileException(this,len);
+    if (curSeek>len) throw TFMEndOfFileException(this,len);
     return buf[curSeek++];
   }
 
