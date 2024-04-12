@@ -102,7 +102,7 @@ void FurnaceGUIRenderMetal::clear(ImVec4 color) {
 
   priv->cmdBuf=[priv->cmdQueue commandBuffer];
   priv->renderPass.colorAttachments[0].clearColor=MTLClearColorMake(color.x,color.y,color.z,color.w);
-  priv->renderPass.colorAttachments[0].texture=drawable.texture;
+  priv->renderPass.colorAttachments[0].texture=priv->drawable.texture;
   priv->renderPass.colorAttachments[0].loadAction=MTLLoadActionClear;
   priv->renderPass.colorAttachments[0].storeAction=MTLStoreActionStore;
   priv->renderEncoder=[commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
