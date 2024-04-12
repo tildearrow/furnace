@@ -177,7 +177,7 @@ bool FurnaceGUI::loadUserPresets(bool redundancy) {
     }
     indent>>=1;
 
-    if (!key.empty() && !value.empty()) {
+    if (!key.empty()) {
       std::vector<FurnaceGUISysDef>* where=digDeep(userCategory->systems,indent);
       where->push_back(FurnaceGUISysDef(key.c_str(),value.c_str(),e));
     }
