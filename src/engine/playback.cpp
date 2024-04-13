@@ -1138,24 +1138,24 @@ void DivEngine::processRow(int i, bool afterDelay) {
     dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
   }
 
-  if (song.resetEffectsOnRowChange) {
-     if (chan[i].lastArp) {
-       chan[i].lastArp=0;
-     } else {
-       chan[i].arp=0;
-       dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
-     }
-
-     if (chan[i].lastVibrato2) {
-       chan[i].lastVibrato2=0;
-     } else {
-       chan[i].vibratoDepth=0;
-       chan[i].vibratoRate=0;
-       dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
-     }
-   }
-
   if (chan[i].doNote) {
+    if (song.resetEffectsOnRowChange) {
+       if (chan[i].lastArp) {
+         chan[i].lastArp=0;
+       } else {
+         chan[i].arp=0;
+         dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
+       }
+
+       if (chan[i].lastVibrato2) {
+         chan[i].lastVibrato2=0;
+       } else {
+         chan[i].vibratoDepth=0;
+         chan[i].vibratoRate=0;
+         dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
+       }
+     }
+
     if (!song.continuousVibrato) {
       chan[i].vibratoPos=0;
     }
