@@ -467,8 +467,16 @@ void FurnaceGUI::drawUserPresets() {
 
             ImGui::Separator();
 
+            ImGui::Text("Advanced");
             if (ImGui::InputTextMultiline("##UExtra",&preset->extra,ImVec2(ImGui::GetContentRegionAvail().x,120.0f*dpiScale),ImGuiInputTextFlags_UndoRedo)) {
               mustBake=true;
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(
+                "insert additional settings in `option=value` format.\n"
+                "available options:\n"
+                "- tickRate"
+              );
             }
 
             if (mustBake) preset->bake();
