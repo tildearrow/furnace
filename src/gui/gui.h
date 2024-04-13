@@ -2084,7 +2084,7 @@ class FurnaceGUI {
       displayRenderTime(0),
       maxUndoSteps(100),
       vibrationStrength(0.5f),
-      vibrationLength(100),
+      vibrationLength(20),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
