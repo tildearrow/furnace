@@ -653,6 +653,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
   bool surroundPanChanged=false;
 
   // effects
+  if (song.resetEffectsOnRowChange) {
+    chan[i].portaSpeed=-1;
+    chan[i].portaNote=-1;
+    dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+    chan[i].inPorta=false;
+    if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+  }
+
   for (int j=0; j<curPat[i].effectCols; j++) {
     short effect=pat->data[whatRow][4+(j<<1)];
     short effectVal=pat->data[whatRow][5+(j<<1)];
@@ -697,6 +705,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0x01: // ramp up
         if (song.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
+        chan[i].lastPorta2=effectVal;
         lastSlide=0x01;
         if (effectVal==0) {
           chan[i].portaNote=-1;
@@ -719,6 +728,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0x02: // ramp down
         if (song.ignoreDuplicateSlides && (lastSlide==0x02 || lastSlide==0x1337)) break;
+        chan[i].lastPorta2=effectVal;
         lastSlide=0x02;
         if (effectVal==0) {
           chan[i].portaNote=-1;
@@ -1116,33 +1126,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
   }
 
-  if (song.resetEffectsOnNewNote) {
-    if (chan[i].lastArp) {
-      chan[i].lastArp=0;
-    } else {
-      chan[i].arp=0;
-      dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
-    }
-
-    if (chan[i].lastVibrato2) {
-      chan[i].lastVibrato2=0;
-    } else {
-      chan[i].vibratoDepth=0;
-      chan[i].vibratoRate=0;
-      dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
-    }
-
-    if (chan[i].lastPorta2) {
-      chan[i].lastPorta2=0;
-    } else {
-      chan[i].portaSpeed=-1;
-      chan[i].portaNote=-1;
-      dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-      chan[i].inPorta=false;
-      dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
-    }
-  }
-
   if (panChanged) {
     dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
   }
@@ -1155,10 +1138,28 @@ void DivEngine::processRow(int i, bool afterDelay) {
     dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
   }
 
+  if (song.resetEffectsOnRowChange) {
+     if (chan[i].lastArp) {
+       chan[i].lastArp=0;
+     } else {
+       chan[i].arp=0;
+       dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
+     }
+
+     if (chan[i].lastVibrato2) {
+       chan[i].lastVibrato2=0;
+     } else {
+       chan[i].vibratoDepth=0;
+       chan[i].vibratoRate=0;
+       dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
+     }
+   }
+
   if (chan[i].doNote) {
     if (!song.continuousVibrato) {
       chan[i].vibratoPos=0;
     }
+
     dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
     if (chan[i].legato && (!chan[i].inPorta || song.brokenPortaLegato)) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
@@ -1187,6 +1188,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       }
     }
     chan[i].doNote=false;
+
     if (!chan[i].keyOn && chan[i].scheduledSlideReset) {
       chan[i].portaNote=-1;
       chan[i].portaSpeed=-1;

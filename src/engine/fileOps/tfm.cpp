@@ -246,6 +246,7 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
       info.reader->read(effectNum,256);
       info.reader->read(effectVal,256);
 
+      unsigned short lastSlide=0;
       for (int k=0; k<256; k++) {
         switch (effectNum[k]) {
         case 0:
@@ -258,6 +259,14 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
           // pitch slide up
         case 2:
           // pitch slide down
+          pat->data[k][4]=effectNum[k];
+          if (effectVal[k]) {
+            lastSlide=effectVal[k];
+            pat->data[k][5]=effectVal[k];
+          } else {
+            pat->data[k][5]=lastSlide;
+          }
+          break;
         case 3:
           // portamento
         case 4:
@@ -297,7 +306,7 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
     ds.subsong[0]->hz=50;
     ds.systemLen=1;
-    ds.resetEffectsOnNewNote=true;
+    ds.resetEffectsOnRowChange=true;
 
     ds.system[0]=DIV_SYSTEM_YM2612;
 
@@ -483,7 +492,7 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
     ds.subsong[0]->hz=50;
     ds.systemLen=1;
-    ds.resetEffectsOnNewNote=true;
+    ds.resetEffectsOnRowChange=true;
 
     ds.system[0]=DIV_SYSTEM_YM2612;
     unsigned char magic[8]={0};

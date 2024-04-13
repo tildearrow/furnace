@@ -331,7 +331,7 @@ struct DivSong {
   bool resetArpPhaseOnNewNote;
   bool ceilVolumeScaling;
   bool oldAlwaysSetVolume;
-  bool resetEffectsOnNewNote;
+  bool resetEffectsOnRowChange;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -456,7 +456,7 @@ struct DivSong {
     resetArpPhaseOnNewNote(false),
     ceilVolumeScaling(false),
     oldAlwaysSetVolume(false),
-    resetEffectsOnNewNote(false) {
+    resetEffectsOnRowChange(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;
