@@ -335,124 +335,165 @@ void FurnaceGUI::drawUserPresets() {
 
     if (userCategory==NULL) {
       ImGui::Text("Error! User category does not exist!");
-    } else if (ImGui::BeginTable("UserPresets",2,ImGuiTableFlags_BordersInnerV)) {
+    } else if (ImGui::BeginTable("UserPresets",2,ImGuiTableFlags_BordersInnerV,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()))) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.25f);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.75f);
       // preset list
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      if (ImGui::Button(ICON_FA_PLUS "##AddPreset")) {
-        userCategory->systems.push_back(FurnaceGUISysDef("New Preset",{}));
-        selectedUserPreset.clear();
-        selectedUserPreset.push_back(userCategory->systems.size()-1);
+      if (ImGui::BeginChild("UList",ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()))) {
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Systems");
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_PLUS "##AddPreset")) {
+          userCategory->systems.push_back(FurnaceGUISysDef("New Preset",{}));
+          selectedUserPreset.clear();
+          selectedUserPreset.push_back(userCategory->systems.size()-1);
+        }
+        printPresets(userCategory->systems,0,depthStack);
       }
-      printPresets(userCategory->systems,0,depthStack);
+      ImGui::EndChild();
 
       // editor
       ImGui::TableNextColumn();
-      if (selectedUserPreset.empty()) {
-        ImGui::Text("select a preset");
-      } else {
-        FurnaceGUISysDef* preset=selectPreset(userCategory->systems);
+      if (ImGui::BeginChild("UEdit",ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()))) {
+        if (selectedUserPreset.empty()) {
+          ImGui::Text("select a preset");
+        } else {
+          FurnaceGUISysDef* preset=selectPreset(userCategory->systems);
+          bool doRemovePreset=false;
 
-        if (preset!=NULL) {
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("Name");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          ImGui::InputText("##PName",&preset->name);
-          ImGui::Separator();
+          if (preset!=NULL) {
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Name");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Remove").x-ImGui::GetStyle().ItemSpacing.x*2.0-ImGui::GetStyle().ItemInnerSpacing.x*2.0);
+            ImGui::InputText("##PName",&preset->name);
+            ImGui::SameLine();
+            pushDestColor();
+            if (ImGui::Button("Remove##UPresetRemove")) {
+              doRemovePreset=true;
+            }
+            popDestColor();
 
-          int doRemove=-1;
-          bool mustBake=false;
+            ImGui::Separator();
 
-          for (size_t i=0; i<preset->orig.size(); i++) {
-            String tempID;
-            FurnaceGUISysDefChip& chip=preset->orig[i];
+            int doRemove=-1;
+            bool mustBake=false;
 
-            bool doInvert=(chip.vol<0);
-            float vol=fabs(chip.vol);
-            ImGui::PushID(i);
+            for (size_t i=0; i<preset->orig.size(); i++) {
+              String tempID;
+              FurnaceGUISysDefChip& chip=preset->orig[i];
 
-            tempID=fmt::sprintf("%s##USystem",getSystemName(chip.sys));
-            ImGui::Button(tempID.c_str(),ImVec2(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Invert").x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0,0));
-            if (ImGui::BeginPopupContextItem("SysPickerCU",ImGuiPopupFlags_MouseButtonLeft)) {
+              bool doInvert=(chip.vol<0);
+              float vol=fabs(chip.vol);
+              ImGui::PushID(i);
+
+              tempID=fmt::sprintf("%s##USystem",getSystemName(chip.sys));
+              ImGui::Button(tempID.c_str(),ImVec2(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Invert").x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0,0));
+              if (ImGui::BeginPopupContextItem("SysPickerCU",ImGuiPopupFlags_MouseButtonLeft)) {
+                DivSystem picked=systemPicker();
+                if (picked!=DIV_SYSTEM_NULL) {
+                  chip.sys=picked;
+                  mustBake=true;
+                  ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+              }
+
+              ImGui::SameLine();
+              if (ImGui::Checkbox("Invert",&doInvert)) {
+                chip.vol=-chip.vol;
+                mustBake=true;
+              }
+              ImGui::SameLine();
+              pushDestColor();
+              if (ImGui::Button(ICON_FA_MINUS "##USysRemove")) {
+                doRemove=i;
+                mustBake=true;
+              }
+              popDestColor();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+              if (CWSliderFloat("Volume",&vol,0.0f,3.0f)) {
+                if (doInvert) {
+                  if (vol<0.0001) vol=0.0001;
+                }
+                if (vol<0) vol=0;
+                if (vol>10) vol=10;
+                chip.vol=doInvert?-vol:vol;
+                mustBake=true;
+              } rightClickable
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+              if (CWSliderFloat("Panning",&chip.pan,-1.0f,1.0f)) {
+                if (chip.pan<-1.0f) chip.pan=-1.0f;
+                if (chip.pan>1.0f) chip.pan=1.0f;
+                mustBake=true;
+              } rightClickable
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+              if (CWSliderFloat("Front/Rear",&chip.panFR,-1.0f,1.0f)) {
+                if (chip.panFR<-1.0f) chip.panFR=-1.0f;
+                if (chip.panFR>1.0f) chip.panFR=1.0f;
+                mustBake=true;
+              } rightClickable
+
+              if (ImGui::TreeNode("Configure")) {
+                DivConfig sysFlags;
+                sysFlags.loadFromBase64(chip.flags.c_str());
+                if (drawSysConf(-1,i,chip.sys,sysFlags,false)) {
+                  chip.flags=sysFlags.toBase64();
+                  mustBake=true;
+                }
+                ImGui::TreePop();
+              }
+
+              ImGui::PopID();
+            }
+
+            if (doRemove>=0) {
+              preset->orig.erase(preset->orig.begin()+doRemove);
+              mustBake=true;
+            }
+
+            ImGui::Button(ICON_FA_PLUS "##SysAddU");
+            if (ImGui::BeginPopupContextItem("SysPickerU",ImGuiPopupFlags_MouseButtonLeft)) {
               DivSystem picked=systemPicker();
               if (picked!=DIV_SYSTEM_NULL) {
-                chip.sys=picked;
+                preset->orig.push_back(FurnaceGUISysDefChip(picked,1.0f,0.0f,""));
                 mustBake=true;
                 ImGui::CloseCurrentPopup();
               }
               ImGui::EndPopup();
             }
 
-            ImGui::SameLine();
-            if (ImGui::Checkbox("Invert",&doInvert)) {
-              chip.vol=-chip.vol;
+            ImGui::Separator();
+
+            if (ImGui::InputTextMultiline("##UExtra",&preset->extra,ImVec2(ImGui::GetContentRegionAvail().x,120.0f*dpiScale),ImGuiInputTextFlags_UndoRedo)) {
               mustBake=true;
             }
-            ImGui::SameLine();
-            pushDestColor();
-            if (ImGui::Button(ICON_FA_MINUS "##USysRemove")) {
-              doRemove=i;
-              mustBake=true;
-            }
-            popDestColor();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
-            if (CWSliderFloat("Volume",&vol,0.0f,3.0f)) {
-              if (doInvert) {
-                if (vol<0.0001) vol=0.0001;
+
+            if (mustBake) preset->bake();
+          } else {
+            selectedUserPreset.clear();
+          }
+
+          if (doRemovePreset) {
+            std::vector<FurnaceGUISysDef>& items=userCategory->systems;
+            FurnaceGUISysDef* target=NULL;
+            for (size_t i=0; i<selectedUserPreset.size(); i++) {
+              if (selectedUserPreset[i]<0 || selectedUserPreset[i]>(int)items.size()) break;
+              target=&items[selectedUserPreset[i]];
+              if (i<selectedUserPreset.size()-1) {
+                items=target->subDefs;
+              } else {
+                items.erase(items.begin()+selectedUserPreset[i]);
               }
-              if (vol<0) vol=0;
-              if (vol>10) vol=10;
-              chip.vol=doInvert?-vol:vol;
-              mustBake=true;
-            } rightClickable
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
-            if (CWSliderFloat("Panning",&chip.pan,-1.0f,1.0f)) {
-              if (chip.pan<-1.0f) chip.pan=-1.0f;
-              if (chip.pan>1.0f) chip.pan=1.0f;
-              mustBake=true;
-            } rightClickable
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
-            if (CWSliderFloat("Front/Rear",&chip.panFR,-1.0f,1.0f)) {
-              if (chip.panFR<-1.0f) chip.panFR=-1.0f;
-              if (chip.panFR>1.0f) chip.panFR=1.0f;
-              mustBake=true;
-            } rightClickable
-
-            if (ImGui::TreeNode("Configure")) {
-              DivConfig sysFlags;
-              sysFlags.loadFromBase64(chip.flags.c_str());
-              if (drawSysConf(-1,i,chip.sys,sysFlags,false)) {
-                chip.flags=sysFlags.toBase64();
-                mustBake=true;
-              }
-              ImGui::TreePop();
             }
 
-            ImGui::PopID();
+            selectedUserPreset.clear();
           }
-
-          if (doRemove>=0) {
-            preset->orig.erase(preset->orig.begin()+doRemove);
-            mustBake=true;
-          }
-
-          ImGui::Button(ICON_FA_PLUS "##SysAddU");
-          if (ImGui::BeginPopupContextItem("SysPickerU",ImGuiPopupFlags_MouseButtonLeft)) {
-            DivSystem picked=systemPicker();
-            if (picked!=DIV_SYSTEM_NULL) {
-              preset->orig.push_back(FurnaceGUISysDefChip(picked,1.0f,0.0f,""));
-              mustBake=true;
-              ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-          }
-
-          if (mustBake) preset->bake();
         }
       }
+      ImGui::EndChild();
 
       ImGui::EndTable();
     }
