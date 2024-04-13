@@ -156,7 +156,327 @@ String TFMparseDate(short date) {
   return fmt::sprintf("%02d.%02d.%02d",date>>11,(date>>7)&0xF,date&0x7F);
 }
 
-bool DivEngine::loadTFM(unsigned char* file, size_t len) {
+struct TFMparsePatternInfo {
+  TFMRLEReader* reader;
+  unsigned char maxPat;
+  unsigned char* patLens;
+  bool* patExists;
+  DivSong* ds;
+  int* insNumMaps;
+  bool v2;
+};
+
+void TFMparsePattern(struct TFMparsePatternInfo info) {
+  // PATTERN DATA FORMAT (not described properly in the documentation)
+  // for each channel in a pattern:
+  //  - note data (256 bytes)
+  //  - volume data (256 bytes, values always 0x00-0x1F)
+  //  - instrument number data (256 bytes)
+  //  - effect number (256 bytes, values 0x0-0x23 (to represent 0-F and G-Z))
+  //  - effect value (256 bytes)
+  //  - padding(?) (1536 bytes, always set to 0) (ONLY ON V2)
+  // notes are stored as an inverted value of note+octave*12
+  // key-offs are stored in the note data as 0x01
+  unsigned char patDataBuf[256];
+
+  for (int i=0; i<256; i++) {
+    if (i>info.maxPat) break;
+    else if (!info.patExists[i]) {
+      logD("skipping pattern %d", i);
+      info.reader->skip(16896);
+      continue;
+    }
+
+    logD("parsing pattern %d", i);
+    for (int j=0; j<6; j++) {
+      DivPattern* pat = info.ds->subsong[0]->pat[j].data[i];
+
+      // notes
+      info.reader->read(patDataBuf, 256);
+
+      logD("parsing notes of pattern %d channel %d",i,j);
+      for (int k=0; k<256; k++) {
+        if (patDataBuf[k]==0) continue;
+        else if (patDataBuf[k]==1) {
+          // note off
+          pat->data[k][0]=100;
+        } else {
+          unsigned char invertedNote=~patDataBuf[k];
+          pat->data[k][0]=invertedNote%12;
+          pat->data[k][1]=(invertedNote/12)-1;
+
+          if (pat->data[k][0]==0) {
+            pat->data[k][0]=12;
+            pat->data[k][1]--;
+          }
+        }
+      }
+
+      // put a "jump to next pattern" effect if the pattern is smaller than the maximum pattern lengths
+      if (info.patLens[i]!=0 && info.patLens[i]<info.ds->subsong[0]->patLen) {
+        if (pat->data[info.patLens[i]-1][4]==-1 && pat->data[info.patLens[i]-1][5]==-1) {
+          pat->data[info.patLens[i]-1][4]=0x0D;
+          pat->data[info.patLens[i]-1][5]=0x00;
+        }
+        pat->data[info.patLens[i]][4]=0x0D;
+        pat->data[info.patLens[i]][5]=0x00;
+      }
+      // volume
+      info.reader->read(patDataBuf,256);
+
+      logD("parsing volumes of pattern %d channel %d",i,j);
+      for (int k=0; k<256; k++) {
+        if (patDataBuf[k]==0) continue;
+        else pat->data[k][3]=0x41+(patDataBuf[k]*2);
+      }
+
+      // instrument
+      info.reader->read(patDataBuf,256);
+
+      logD("parsing instruments of pattern %d channel %d",i,j);
+      for (int k=0; k<256; k++) {
+        if (patDataBuf[k]==0) continue;
+        pat->data[k][2]=info.insNumMaps[patDataBuf[k]-1];
+      }
+
+      // effects
+
+      unsigned char effectNum[256];
+      unsigned char effectVal[256];
+      info.reader->read(effectNum,256);
+      info.reader->read(effectVal,256);
+
+      for (int k=0; k<256; k++) {
+        switch (effectNum[k]) {
+        case 0:
+          // arpeggio or no effect (if effect val is 0)
+          if (effectVal[k]==0) break;
+          pat->data[k][4]=effectNum[k];
+          pat->data[k][5]=effectVal[k];
+          break;
+        case 1:
+          // note slide up
+        case 2:
+          // note slide down
+          pat->data[k][4]=0xF0|effectNum[k];
+          pat->data[k][5]=effectVal[k];
+          break;
+        case 3:
+          // portamento
+        case 4:
+          // vibrato
+          pat->data[k][4]=effectNum[k];
+          pat->data[k][5]=effectVal[k];
+          break;
+        case 5:
+          // poramento + volume slide
+          pat->data[k][4]=0x06;
+          pat->data[k][5]=effectVal[k];
+          break;
+        case 6:
+          // vibrato + volume slide
+          pat->data[k][4]=0x05;
+          pat->data[k][5]=effectVal[k];
+          break;
+        default:
+          break;
+        }
+      }
+
+      if (info.v2) info.reader->skip(1536);
+    }
+
+  }
+}
+
+bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
+  // the documentation for this version is in russian only
+  struct InvalidHeaderException {};
+  bool success=false;
+  TFMRLEReader reader=TFMRLEReader(file,len);
+
+  try {
+    DivSong ds;
+    ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
+    ds.subsong[0]->hz=50;
+    ds.systemLen=1;
+    ds.resetEffectsOnNewNote=true;
+
+    ds.system[0]=DIV_SYSTEM_YM2612;
+
+    unsigned char speed=reader.readCNoRLE();
+    unsigned char interleaveFactor=reader.readCNoRLE();
+
+    // TODO: due to limitations with the groove pattern, only interleave factors up to 8
+    // are allowed in furnace
+    if (interleaveFactor>8) {
+      logW("interleave factor is bigger than 8, speed information may be inaccurate");
+      interleaveFactor=8;
+    }
+    if (!((speed>>4)^(speed&0xF))) {
+      ds.subsong[0]->speeds.val[0]=speed&0xF;
+      ds.subsong[0]->speeds.len=1;
+    } else {
+      for (int i=0; i<interleaveFactor; i++) {
+        ds.subsong[0]->speeds.val[i]=speed>>4;
+        ds.subsong[0]->speeds.val[i+interleaveFactor]=speed&0xF;
+      }
+      ds.subsong[0]->speeds.len=interleaveFactor*2;
+    }
+    ds.subsong[0]->ordersLen=reader.readCNoRLE();
+
+    // order loop position, unused
+    (void)reader.readCNoRLE();
+
+    ds.createdDate=TFMparseDate(reader.readSNoRLE());
+    ds.revisionDate=TFMparseDate(reader.readSNoRLE());
+
+    // TODO: use this for something, number of saves
+    (void)reader.readSNoRLE();
+
+    // author
+    logD("parsing author");
+    ds.author=reader.readString(64);
+
+    // name
+    logD("parsing name");
+    ds.name=reader.readString(64);
+
+    // notes
+    logD("parsing notes");
+    String notes=reader.readString(384);
+
+    // fix \r\n to \n
+    for (auto& c : notes) {
+      if (c=='\r') {
+        notes.erase(c,1);
+      }
+    }
+
+    // order list
+    logD("parsing order list");
+    unsigned char orderList[256];
+    reader.read(orderList,256);
+
+    bool patExists[256];
+    unsigned char maxPat=0;
+    for (int i=0; i<ds.subsong[0]->ordersLen; i++) {
+      patExists[orderList[i]]=true;
+      if (maxPat<orderList[i]) maxPat=orderList[i];
+
+      for (int j=0; j<6; j++) {
+        ds.subsong[0]->orders.ord[j][i]=orderList[i];
+        ds.subsong[0]->pat[j].data[orderList[i]]=new DivPattern;
+      }
+    }
+
+    DivInstrument* insMaps[256];
+    int insNumMaps[256];
+
+    // instrument names
+    logD("parsing instruments");
+    unsigned char insName[16];
+    int insCount=0;
+    for (int i=0; i<255; i++) {
+      reader.read(insName,16);
+
+      if (memcmp(insName,"\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF",16)==0) {
+        logD("instrument unused");
+        insNumMaps[i]=i;
+        insMaps[i]=NULL;
+        continue;
+      }
+
+      DivInstrument* ins=new DivInstrument;
+      ins->type=DIV_INS_FM;
+      ins->name=String((const char*)insName,strnlen((const char*)insName,16));
+      ds.ins.push_back(ins);
+
+      insNumMaps[i]=insCount;
+      insCount++;
+
+      insMaps[i]=ins;
+    }
+
+    ds.insLen=insCount;
+
+    // instrument data
+    for (int i=0; i<255; i++) {
+      if (!insMaps[i]) {
+        reader.skip(42);
+        continue;
+      }
+
+      insMaps[i]->fm.alg=reader.readC();
+      insMaps[i]->fm.fb=reader.readC();
+
+      for (int j=0; j<4; j++) {
+        insMaps[i]->fm.op[j].mult=reader.readC();
+        insMaps[i]->fm.op[j].dt=reader.readC();
+        insMaps[i]->fm.op[j].tl=reader.readC()^0x7F;
+        insMaps[i]->fm.op[j].rs=reader.readC();
+        insMaps[i]->fm.op[j].ar=reader.readC();
+        insMaps[i]->fm.op[j].dr=reader.readC();
+        insMaps[i]->fm.op[j].d2r=reader.readC();
+        insMaps[i]->fm.op[j].rr=reader.readC();
+        insMaps[i]->fm.op[j].sl=reader.readC();
+        insMaps[i]->fm.op[j].ssgEnv=reader.readC();
+      }
+    }
+
+    ds.notes=notes;
+
+    unsigned char patLens[256];
+    int maxPatLen=0;
+    reader.read(patLens, 256);
+    for (int i=0;i<256;i++) {
+      if (patLens[i]==0) {
+        maxPatLen=256;
+        break;
+      } else if (patLens[i]>maxPatLen) {
+        maxPatLen=patLens[i];
+      }
+    }
+
+    ds.subsong[0]->patLen=maxPatLen;
+
+    struct TFMparsePatternInfo info;
+    info.ds=&ds;
+    info.insNumMaps=insNumMaps;
+    info.maxPat=maxPat;
+    info.patExists=patExists;
+    info.patLens=patLens;
+    info.reader=&reader;
+    info.v2=false;
+    TFMparsePattern(info);
+
+    if (active) quitDispatch();
+    BUSY_BEGIN_SOFT;
+    saveLock.lock();
+    song.unload();
+    song=ds;
+    changeSong(0);
+    recalcChans();
+    saveLock.unlock();
+    BUSY_END;
+    if (active) {
+      initDispatch();
+      BUSY_BEGIN;
+      renderSamples();
+      reset();
+      BUSY_END;
+    }
+    success=true;
+  } catch(TFMEndOfFileException& e) {
+    lastError="incomplete file!";
+  } catch(InvalidHeaderException& e) {
+    lastError="invalid info header!";
+  }
+
+  return success;
+}
+
+bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
   TFMRLEReader reader=TFMRLEReader(file,len);
@@ -312,126 +632,16 @@ bool DivEngine::loadTFM(unsigned char* file, size_t len) {
 
     ds.subsong[0]->patLen=maxPatLen;
 
-    // PATTERN DATA FORMAT (not described properly in the documentation)
-    // for each channel in a pattern:
-    //  - note data (256 bytes)
-    //  - volume data (256 bytes, values always 0x00-0x1F)
-    //  - instrument number data (256 bytes)
-    //  - effect number (256 bytes, values 0x0-0x23 (to represent 0-F and G-Z))
-    //  - effect value (256 bytes)
-    //  - padding(?) (1536 bytes, always set to 0)
-    // notes are stored as an inverted value of note+octave*12
-    // key-offs are stored in the note data as 0x01
-    unsigned char patDataBuf[256];
+    struct TFMparsePatternInfo info;
+    info.ds=&ds;
+    info.insNumMaps=insNumMaps;
+    info.maxPat=maxPat;
+    info.patExists=patExists;
+    info.patLens=patLens;
+    info.reader=&reader;
+    info.v2=true;
+    TFMparsePattern(info);
 
-    for (int i=0; i<256; i++) {
-      if (i>maxPat) break;
-      else if (!patExists[i]) {
-        logD("skipping pattern %d", i);
-        reader.skip(16896);
-        continue;
-      }
-
-      logD("parsing pattern %d", i);
-      for (int j=0; j<6; j++) {
-        DivPattern* pat = ds.subsong[0]->pat[j].data[i];
-
-        // notes
-        reader.read(patDataBuf, 256);
-
-        logD("parsing notes of pattern %d channel %d",i,j);
-        for (int k=0; k<256; k++) {
-          if (patDataBuf[k]==0) continue;
-          else if (patDataBuf[k]==1) {
-            // note off
-            pat->data[k][0]=100;
-          } else {
-            unsigned char invertedNote=~patDataBuf[k];
-            pat->data[k][0]=invertedNote%12;
-            pat->data[k][1]=(invertedNote/12)-1;
-
-            if (pat->data[k][0]==0) {
-              pat->data[k][0]=12;
-              pat->data[k][1]--;
-            }
-          }
-        }
-
-        // put a "jump to next pattern" effect if the pattern is smaller than the maximum pattern lengths
-        if (patLens[i]!=0 && patLens[i]<ds.subsong[0]->patLen) {
-          if (pat->data[patLens[i]-1][4]==-1 && pat->data[patLens[i]-1][5]==-1) {
-            pat->data[patLens[i]-1][4]=0x0D;
-            pat->data[patLens[i]-1][5]=0x00;
-          }
-          pat->data[patLens[i]][4]=0x0D;
-          pat->data[patLens[i]][5]=0x00;
-        }
-        // volume
-        reader.read(patDataBuf,256);
-
-        logD("parsing volumes of pattern %d channel %d",i,j);
-        for (int k=0; k<256; k++) {
-          if (patDataBuf[k]==0) continue;
-          else pat->data[k][3]=0x41+(patDataBuf[k]*2);
-        }
-
-        // instrument
-        reader.read(patDataBuf,256);
-
-        logD("parsing instruments of pattern %d channel %d",i,j);
-        for (int k=0; k<256; k++) {
-          if (patDataBuf[k]==0) continue;
-          pat->data[k][2]=insNumMaps[patDataBuf[k]-1];
-        }
-
-        // effects
-
-        unsigned char effectNum[256];
-        unsigned char effectVal[256];
-        reader.read(effectNum,256);
-        reader.read(effectVal,256);
-
-        for (int k=0; k<256; k++) {
-          switch (effectNum[k]) {
-          case 0:
-            // arpeggio or no effect (if effect val is 0)
-            if (effectVal[k]==0) break;
-            pat->data[k][4]=effectNum[k];
-            pat->data[k][5]=effectVal[k];
-            break;
-          case 1:
-            // note slide up
-          case 2:
-            // note slide down
-            pat->data[k][4]=0xF0|effectNum[k];
-            pat->data[k][5]=effectVal[k];
-            break;
-          case 3:
-            // portamento
-          case 4:
-            // vibrato
-            pat->data[k][4]=effectNum[k];
-            pat->data[k][5]=effectVal[k];
-            break;
-          case 5:
-            // poramento + volume slide
-            pat->data[k][4]=0x06;
-            pat->data[k][5]=effectVal[k];
-            break;
-          case 6:
-            // vibrato + volume slide
-            pat->data[k][4]=0x05;
-            pat->data[k][5]=effectVal[k];
-            break;
-          default:
-            break;
-          }
-        }
-
-        reader.skip(1536);
-      }
-
-    }
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
