@@ -255,12 +255,9 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
           pat->data[k][5]=effectVal[k];
           break;
         case 1:
-          // note slide up
+          // pitch slide up
         case 2:
-          // note slide down
-          pat->data[k][4]=0xF0|effectNum[k];
-          pat->data[k][5]=effectVal[k];
-          break;
+          // pitch slide down
         case 3:
           // portamento
         case 4:
