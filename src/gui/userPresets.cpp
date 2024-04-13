@@ -336,6 +336,8 @@ void FurnaceGUI::drawUserPresets() {
     if (userCategory==NULL) {
       ImGui::Text("Error! User category does not exist!");
     } else if (ImGui::BeginTable("UserPresets",2,ImGuiTableFlags_BordersInnerV)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.25f);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.75f);
       // preset list
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
