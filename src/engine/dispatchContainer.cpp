@@ -88,6 +88,7 @@
 #include "platform/powernoise.h"
 #include "platform/dave.h"
 #include "platform/nds.h"
+#include "platform/msm5205.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -746,6 +747,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
         ((DivPlatformNES*)dispatch)->setNSFPlay(eng->getConfInt("nesCore",0)==1);
       }
       ((DivPlatformNES*)dispatch)->set5E01(true);
+      break;
+    case DIV_SYSTEM_MSM5205:
+      dispatch=new DivPlatformMSM5205;
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;
