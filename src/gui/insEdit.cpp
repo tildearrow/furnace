@@ -6031,7 +6031,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_C219 ||
             ins->type==DIV_INS_NDS ||
             ins->type==DIV_INS_GBA_DMA ||
-            ins->type==DIV_INS_GBA_MINMOD) {
+            ins->type==DIV_INS_GBA_MINMOD ||
+            ins->type==DIV_INS_MSM5205) {
           insTabSample(ins);
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
@@ -6772,7 +6773,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             volMax=4095;
           }
-          if (ins->type==DIV_INS_MSM6258) {
+          if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_MSM5205) {
             volMax=0;
           }
           if (ins->type==DIV_INS_MSM6295 || ins->type==DIV_INS_TED) {
@@ -6905,7 +6906,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Filter Mode";
             dutyMax=3;
           }
-          if (ins->type==DIV_INS_MSM6258) {
+          if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_MSM5205) {
             dutyLabel="Frequency Divider";
             dutyMax=2;
           }
@@ -6964,7 +6965,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_YMZ280B) waveMax=0;
           if (ins->type==DIV_INS_RF5C68) waveMax=0;
           if (ins->type==DIV_INS_MSM5232) waveMax=0;
-          if (ins->type==DIV_INS_MSM6258) waveMax=0;
+          if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_MSM5205) waveMax=0;
           if (ins->type==DIV_INS_MSM6295) waveMax=0;
           if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
           if (ins->type==DIV_INS_K007232) waveMax=0;
@@ -7027,7 +7028,7 @@ void FurnaceGUI::drawInsEdit() {
             ex1Max=16383;
             ex2Max=255;
           }
-          if (ins->type==DIV_INS_MSM6258) {
+          if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_MSM5205) {
             ex1Max=1;
           }
           if (ins->type==DIV_INS_QSOUND) {
@@ -7071,7 +7072,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_ADPCMA ||
               ins->type==DIV_INS_ADPCMB ||
               ins->type==DIV_INS_ESFM ||
-              ins->type==DIV_INS_GBA_DMA) {
+              ins->type==DIV_INS_GBA_DMA ||
+              ins->type==DIV_INS_MSM5205) {
             panMax=2;
             panSingle=true;
           }
@@ -7146,7 +7148,7 @@ void FurnaceGUI::drawInsEdit() {
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
-          if (ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295 && ins->type!=DIV_INS_ADPCMA) {
+          if (ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295 && ins->type!=DIV_INS_ADPCMA && ins->type!=DIV_INS_MSM5205) {
             macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
           }
           if (dutyMax>0) {
@@ -7190,7 +7192,7 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
           }
-          if (ins->type!=DIV_INS_MSM5232 && ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295 && ins->type!=DIV_INS_ADPCMA) {
+          if (ins->type!=DIV_INS_MSM5232 && ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295 && ins->type!=DIV_INS_ADPCMA && ins->type!=DIV_INS_MSM5205) {
             macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
           }
           if (ins->type==DIV_INS_FM ||
@@ -7235,7 +7237,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_DAVE ||
               ins->type==DIV_INS_NDS ||
               ins->type==DIV_INS_GBA_DMA ||
-              ins->type==DIV_INS_GBA_MINMOD) {
+              ins->type==DIV_INS_GBA_MINMOD ||
+              ins->type==DIV_INS_MSM5205) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -7261,7 +7264,7 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_ES5506) {
               macroList.push_back(FurnaceGUIMacroDesc("Filter K1",&ins->std.ex1Macro,((ins->std.ex1Macro.mode==1)?(-ex1Max):0),ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
-            } else if (ins->type==DIV_INS_MSM6258) {
+            } else if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_MSM5205) {
               macroList.push_back(FurnaceGUIMacroDesc("Clock Divider",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_QSOUND) {
               macroList.push_back(FurnaceGUIMacroDesc("Echo Feedback",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
