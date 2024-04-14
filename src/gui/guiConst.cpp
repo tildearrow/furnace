@@ -182,6 +182,7 @@ const char* insTypes[DIV_INS_MAX+1][3]={
   {"Nintendo DS",ICON_FA_BAR_CHART,ICON_FUR_INS_NDS},
   {"GBA DMA",ICON_FA_GAMEPAD,ICON_FUR_INS_GBA_DMA},
   {"GBA MinMod",ICON_FA_VOLUME_UP,ICON_FUR_INS_GBA_MINMOD},
+  {"MSM5205",ICON_FA_VOLUME_UP,ICON_FUR_INS_MSM5205},
   {NULL,ICON_FA_QUESTION,ICON_FA_QUESTION}
 };
 
@@ -1245,6 +1246,7 @@ const int availableSystems[]={
   DIV_SYSTEM_DAVE,
   DIV_SYSTEM_NDS,
   DIV_SYSTEM_5E01,
+  DIV_SYSTEM_MSM5205,
   0 // don't remove this last one!
 };
 
@@ -1363,6 +1365,7 @@ const int chipsSample[]={
   DIV_SYSTEM_NDS,
   DIV_SYSTEM_GBA_DMA,
   DIV_SYSTEM_GBA_MINMOD,
+  DIV_SYSTEM_MSM5205,
   0 // don't remove this last one!
 };
 
