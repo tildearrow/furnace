@@ -182,17 +182,17 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
   for (int i=0; i<256; i++) {
     if (i>info.maxPat) break;
     else if (!info.patExists[i]) {
-      logD("skipping pattern %d", i);
-      info.reader->skip(16896);
+      logD("skipping pattern %d",i);
+      info.reader->skip((info.v2) ? 16896 : 7680);
       continue;
     }
 
-    logD("parsing pattern %d", i);
+    logD("parsing pattern %d",i);
     for (int j=0; j<6; j++) {
       DivPattern* pat = info.ds->subsong[0]->pat[j].data[i];
 
       // notes
-      info.reader->read(patDataBuf, 256);
+      info.reader->read(patDataBuf,256);
 
       logD("parsing notes of pattern %d channel %d",i,j);
       for (int k=0; k<256; k++) {
@@ -247,6 +247,7 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
       info.reader->read(effectVal,256);
 
       unsigned short lastSlide=0;
+      unsigned short lastVibrato=0;
       for (int k=0; k<256; k++) {
         switch (effectNum[k]) {
         case 0:
@@ -271,8 +272,19 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
           // portamento
         case 4:
           // vibrato
+          pat->data[k][5]=0;
+          if (effectVal[k]&0xF0) {
+            pat->data[k][5]|=effectVal[k]&0xF0;
+          } else {
+            pat->data[k][5]|=lastVibrato&0xF0;
+          }
+          if (effectVal[k]&0x0F) {
+            pat->data[k][5]|=effectVal[k]&0x0F;
+          } else {
+            pat->data[k][5]|=lastVibrato&0x0F;
+          }
           pat->data[k][4]=effectNum[k];
-          pat->data[k][5]=effectVal[k];
+          lastVibrato=pat->data[k][5];
           break;
         case 5:
           // poramento + volume slide
@@ -284,14 +296,66 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
           pat->data[k][4]=0x05;
           pat->data[k][5]=effectVal[k];
           break;
+        case 8:
+          // modify TL of operator 1
+          pat->data[k][4]=0x12;
+          pat->data[k][5]=effectVal[k];
+          break;
+        case 9:
+          // modify TL of operator 2
+          pat->data[k][4]=0x13;
+          pat->data[k][5]=effectVal[k];
+          break;
+        case 10:
+          // volume slide
+          pat->data[k][4]=0xA;
+          pat->data[k][5]=effectVal[k];
+          break;
+        case 11:
+          // multi-frequency mode of CH3 control
+          // TODO
+        case 12:
+          // modify TL of operator 3
+          pat->data[k][4]=0x14;
+          pat->data[k][5]=effectVal[k];
+          break;
+        case 13:
+          // modify TL of operator 2
+          pat->data[k][4]=0x15;
+          pat->data[k][5]=effectVal[k];
+          break;
+        case 14:
+          switch (effectVal[k]>>4) {
+          case 0:
+          case 1:
+          case 2:
+          case 3:
+            // modify multiplier of operators
+            pat->data[k][4]=0x16;
+            pat->data[k][5]=((effectVal[k]&0xF0)+0x100)|(effectVal[k]&0xF);
+            break;
+          case 8:
+            // pan
+            pat->data[k][4]=0x80;
+            if (effectVal[k]==1) {
+              pat->data[k][5]=0;
+            } else if (effectVal[k]==2) {
+              pat->data[k][5]=0xFF;
+            } else {
+              pat->data[k][5]=0x80;
+            }
+            break;
+          }
+          break;
         default:
+          pat->data[k][4]=effectNum[k];
+          pat->data[k][5]=effectVal[k];
           break;
         }
       }
 
       if (info.v2) info.reader->skip(1536);
     }
-
   }
 }
 
@@ -307,6 +371,8 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     ds.subsong[0]->hz=50;
     ds.systemLen=1;
     ds.resetEffectsOnRowChange=true;
+    addWarning("this song relies on a compatibility flag to make the sound more accurate," \
+        " it will not be preserved when you save it");
 
     ds.system[0]=DIV_SYSTEM_YM2612;
 
@@ -493,6 +559,8 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     ds.subsong[0]->hz=50;
     ds.systemLen=1;
     ds.resetEffectsOnRowChange=true;
+    addWarning("this song relies on a compatibility flag to make the sound more accurate," \
+        " it will not be preserved when you save it");
 
     ds.system[0]=DIV_SYSTEM_YM2612;
     unsigned char magic[8]={0};
@@ -507,7 +575,7 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     // TODO: due to limitations with the groove pattern, only interleave factors up to 8
     // are allowed in furnace
     if (interleaveFactor>8) {
-      logW("interleave factor is bigger than 8, speed information may be inaccurate");
+      addWarning("interleave factor is bigger than 8, speed information may be inaccurate");
       interleaveFactor=8;
     }
 
