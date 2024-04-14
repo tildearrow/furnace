@@ -3005,6 +3005,8 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
     type=1;
   } else if (memcmp(magic,"FINS",4)==0) {
     type=2;
+  } else if (memcmp(magic,"FINB",4)==0) { // DIV_FUR_VARIANT_B
+    type=2;
   } else {
     logE("invalid instrument header!");
     return DIV_DATA_INVALID_HEADER;

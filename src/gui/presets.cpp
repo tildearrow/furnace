@@ -3102,11 +3102,9 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_END;
 }
 
-FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e):
-  name(n),
-  extra((e==NULL)?"":e) {
-  orig=def;
+void FurnaceGUISysDef::bake() {
   int index=0;
+  definition="";
   for (FurnaceGUISysDefChip& i: orig) {
     definition+=fmt::sprintf(
       "id%d=%d\nvol%d=%f\npan%d=%f\nflags%d=%s\n",
@@ -3126,12 +3124,19 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceG
   }
 }
 
+FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e):
+  name(n),
+  extra((e==NULL)?"":e) {
+  orig=def;
+  bake();
+}
+
 FurnaceGUISysDef::FurnaceGUISysDef(const char* n, const char* def, DivEngine* e):
   name(n),
-  definition(def) {
+  definition(taDecodeBase64(def)) {
   // extract definition
   DivConfig conf;
-  conf.loadFromBase64(def);
+  conf.loadFromMemory(definition.c_str());
   for (int i=0; i<DIV_MAX_CHIPS; i++) {
     String nextStr=fmt::sprintf("id%d",i);
     int id=conf.getInt(nextStr.c_str(),0);

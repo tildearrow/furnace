@@ -1265,6 +1265,7 @@ struct FurnaceGUISysDef {
   String definition;
   std::vector<FurnaceGUISysDefChip> orig;
   std::vector<FurnaceGUISysDef> subDefs;
+  void bake();
   FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL);
   FurnaceGUISysDef(const char* n, const char* def, DivEngine* e);
 };
@@ -2089,7 +2090,7 @@ class FurnaceGUI {
       displayRenderTime(0),
       maxUndoSteps(100),
       vibrationStrength(0.5f),
-      vibrationLength(100),
+      vibrationLength(20),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),

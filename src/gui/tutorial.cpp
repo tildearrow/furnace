@@ -453,7 +453,7 @@ struct FurnaceCV {
     newHiScore(false),
     playSongs(true),
     pleaseInitSongs(false),
-    lives(3),
+    lives(5),
     respawnTime(0),
     stage(0),
     shotType(0),

@@ -4110,7 +4110,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.centerPopup=conf.getInt("centerPopup",1);
 
     settings.vibrationStrength=conf.getFloat("vibrationStrength",0.5f);
-    settings.vibrationLength=conf.getInt("vibrationLength",100);
+    settings.vibrationLength=conf.getInt("vibrationLength",20);
   }
 
   if (groups&GUI_SETTINGS_AUDIO) {

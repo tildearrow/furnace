@@ -7469,7 +7469,7 @@ void FurnaceGUI::drawInsEdit() {
           memset(oldData,0,256*sizeof(int));
           memcpy(oldData,lastMacroDesc.macro->val,lastMacroDesc.macro->len*sizeof(int));
 
-          lastMacroDesc.macro->len=MIN(128,((double)lastMacroDesc.macro->len*(macroScaleX/100.0)));
+          lastMacroDesc.macro->len=MIN(255,((double)lastMacroDesc.macro->len*(macroScaleX/100.0)));
 
           for (int i=0; i<lastMacroDesc.macro->len; i++) {
             int val=0;
