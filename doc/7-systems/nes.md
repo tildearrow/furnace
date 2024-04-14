@@ -2,7 +2,9 @@
 
 the console from Nintendo that plays Super Mario Bros. and helped revive the agonizing video game market in the US during mid-80s.
 
-also known as Famicom. it is a five-channel sound generator: first two channels play pulse wave with three different duty cycles, third is a fixed-volume triangle channel, fourth is a noise channel (can work in both pseudo-random and periodic modes) and fifth is a (D)PCM sample channel.
+also known as Family Computer (Famicom), especially in Japan.
+
+the console is powered by the Ricoh 2A03, a CPU with sound generator built-in. it has five channels: first two channels play pulse wave with three different duty cycles, third is a fixed-volume triangle channel, fourth is a noise channel (can work in both pseudo-random and periodic modes) and fifth is a (D)PCM sample channel.
 
 ## effects
 

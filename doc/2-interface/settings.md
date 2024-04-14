@@ -15,6 +15,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - DirectX 11: works with the majority of graphics chips/cards and is optimized specifically for Windows.
   - SDL Renderer: this was the only available render backend prior to the addition of dedicated OpenGL/DirectX backends in 0.6. default on macOS.
     - it is slower than the other backends.
+  - Software: this is a last resort backend which renders the interface in software. very slow!
 - **Render driver**: this setting appears when using the SDL Renderer backend. it allows you to select an SDL render driver.
 - **VSync**: synchronizes rendering to VBlank and eliminates tearing.
 - **Frame rate limit**: allows you to set a frame rate limit (in frames per second).
