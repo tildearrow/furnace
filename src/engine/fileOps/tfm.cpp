@@ -160,6 +160,7 @@ struct TFMparsePatternInfo {
   TFMRLEReader* reader;
   unsigned char maxPat;
   unsigned char* patLens;
+  unsigned char* orderList;
   bool* patExists;
   DivSong* ds;
   int* insNumMaps;
@@ -178,6 +179,8 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
   // notes are stored as an inverted value of note+octave*12
   // key-offs are stored in the note data as 0x01
   unsigned char patDataBuf[256];
+  unsigned short lastSlide=0;
+  unsigned short lastVibrato=0;
 
   for (int i=0; i<256; i++) {
     if (i>info.maxPat) break;
@@ -190,6 +193,7 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
     logD("parsing pattern %d",i);
     for (int j=0; j<6; j++) {
       DivPattern* pat = info.ds->subsong[0]->pat[j].data[i];
+      info.ds->subsong[0]->pat[j].effectCols=3;
 
       // notes
       info.reader->read(patDataBuf,256);
@@ -212,14 +216,10 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
         }
       }
 
-      // put a "jump to next pattern" effect if the pattern is smaller than the maximum pattern lengths
+      // put a "jump to next pattern" effect if the pattern is smaller than the maximum pattern length
       if (info.patLens[i]!=0 && info.patLens[i]<info.ds->subsong[0]->patLen) {
-        if (pat->data[info.patLens[i]-1][4]==-1 && pat->data[info.patLens[i]-1][5]==-1) {
-          pat->data[info.patLens[i]-1][4]=0x0D;
-          pat->data[info.patLens[i]-1][5]=0x00;
-        }
-        pat->data[info.patLens[i]][4]=0x0D;
-        pat->data[info.patLens[i]][5]=0x00;
+        pat->data[info.patLens[i]-1][8]=0x0D;
+        pat->data[info.patLens[i]-1][9]=0x00;
       }
       // volume
       info.reader->read(patDataBuf,256);
@@ -240,14 +240,11 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
       }
 
       // effects
-
       unsigned char effectNum[256];
       unsigned char effectVal[256];
       info.reader->read(effectNum,256);
       info.reader->read(effectVal,256);
 
-      unsigned short lastSlide=0;
-      unsigned short lastVibrato=0;
       for (int k=0; k<256; k++) {
         switch (effectNum[k]) {
         case 0:
@@ -357,6 +354,67 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
       if (info.v2) info.reader->skip(1536);
     }
   }
+
+  // 2nd pass: fixing pitch slides, arpeggios, etc. so the result doesn't sound weird.
+
+  bool chSlide[6]={false};
+  bool chVibrato[6]={false};
+  bool chVolumeSlide[6]={false};
+
+  for (int i=0; i<info.ds->subsong[0]->ordersLen; i++) {
+    for (int j=0; j<6; j++) {
+      DivPattern* pat = info.ds->subsong[0]->pat[j].data[info.orderList[i]];
+
+      // default instrument
+      if (i==0 && pat->data[0][2]==-1) pat->data[0][2]=0;
+
+      unsigned char truePatLen=(info.patLens[info.orderList[i]]<info.ds->subsong[0]->patLen) ? info.patLens[info.orderList[i]] : info.ds->subsong[0]->patLen;
+
+      for (int k=0; k<truePatLen; k++) {
+        if (chSlide[j] && pat->data[k][4]!=0x01 && pat->data[k][4]!=0x02) {
+          pat->data[k][6]=0x01;
+          pat->data[k][7]=0;
+          chSlide[j]=false;
+        }
+
+        if (chVibrato[j] && pat->data[k][4]!=0x03 && pat->data[k][4]!=0x04 && pat->data[k][0]!=-1) {
+          pat->data[k][6]=0x04;
+          pat->data[k][7]=0;
+          chVibrato[j]=false;
+        }
+        if (chVolumeSlide[j] && pat->data[k][4]!=0x0A) {
+          pat->data[k][6]=0x0A;
+          pat->data[k][7]=0;
+          chVolumeSlide[j]=false;
+        }
+
+        switch (pat->data[k][4]) {
+        case 1:
+        case 2:
+          chSlide[j]=true;
+          break;
+        case 3:
+        case 4:
+          chVibrato[j]=true;
+          break;
+        case 0xA:
+          chVolumeSlide[j]=true;
+          break;
+        case 0xF:
+          // correct speed
+
+          // if both speeds are equal
+          if ((pat->data[k][5]>>4)==(pat->data[k][5]&0xF)) {
+            unsigned char speed=pat->data[k][5]>>4;
+            pat->data[k][5]=speed;
+          }
+          break;
+        default:
+          break;
+        }
+      }
+    }
+  }
 }
 
 bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
@@ -382,7 +440,7 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
       logW("interleave factor is bigger than 8, speed information may be inaccurate");
       interleaveFactor=8;
     }
-    if (!((speed>>4)^(speed&0xF))) {
+    if ((speed>>4)==(speed&0xF)) {
       ds.subsong[0]->speeds.val[0]=speed&0xF;
       ds.subsong[0]->speeds.len=1;
     } else {
@@ -514,6 +572,7 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     info.insNumMaps=insNumMaps;
     info.maxPat=maxPat;
     info.patExists=patExists;
+    info.orderList=orderList;
     info.patLens=patLens;
     info.reader=&reader;
     info.v2=false;
@@ -705,6 +764,7 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     info.insNumMaps=insNumMaps;
     info.maxPat=maxPat;
     info.patExists=patExists;
+    info.orderList=orderList;
     info.patLens=patLens;
     info.reader=&reader;
     info.v2=true;
