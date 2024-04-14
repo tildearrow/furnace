@@ -4,7 +4,6 @@ body:
   - type: markdown
     attributes:
       value: |
-        Let's report an issue. |
         Suggestions, feature requests, questions, showcase or anything else? Go to the Discussions section.
   - type: textarea
     id: description
