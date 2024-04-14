@@ -170,6 +170,12 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PCE, 1.0f, 0, "")
     }
   );
+    SUB_ENTRY(
+      "NEC PC Engine/TurboGrafx-16 CD-ROM", {
+        CH(DIV_SYSTEM_PCE, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MSM5205, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "NES", {
       CH(DIV_SYSTEM_NES, 1.0f, 0, "")
@@ -1395,6 +1401,12 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
+      "Capcom Street Fighter", { 
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+        CH(DIV_SYSTEM_MSM5205, 1.0f, 0, ),
+      }
+    );
+    SUB_ENTRY(
       "Capcom CPS-1", { 
         CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "")
@@ -1508,6 +1520,13 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Irem", {}
   );
+    SUB_ENTRY(
+      "Irem M52", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=4"), // 0.89MHz
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=4"), // 0.89MHz
+        CH(DIV_SYSTEM_MSM5205, 1.0f, 0, ),
+      }
+    );
     SUB_ENTRY(
       "Irem M72", {
         CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
