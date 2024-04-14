@@ -92,6 +92,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_NDS=59,
   DIV_INS_GBA_DMA=60,
   DIV_INS_GBA_MINMOD=61,
+  DIV_INS_MSM5205=62,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
