@@ -1303,7 +1303,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_VRC7]=new DivSysDef(
     "Konami VRC7", NULL, 0x9d, 0, 6, true, false, 0x151, false, 0, 0, 0,
-    "like OPLL, but even more cost reductions applied. three less FM channels, and no drums mode...",
+    "like OPLL, but even more cost reductions applied. three FM channels went missing, and drums mode did as well...",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"},
     {"F1", "F2", "F3", "F4", "F5", "F6"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
