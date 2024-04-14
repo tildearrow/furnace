@@ -357,8 +357,9 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
 
   // 2nd pass: fixing pitch slides, arpeggios, etc. so the result doesn't sound weird.
 
-  bool chSlide[6]={false};
+  bool chArpeggio[6]={false};
   bool chVibrato[6]={false};
+  bool chPorta[6]={false};
   bool chVolumeSlide[6]={false};
 
   for (int i=0; i<info.ds->subsong[0]->ordersLen; i++) {
@@ -371,29 +372,33 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
       unsigned char truePatLen=(info.patLens[info.orderList[i]]<info.ds->subsong[0]->patLen) ? info.patLens[info.orderList[i]] : info.ds->subsong[0]->patLen;
 
       for (int k=0; k<truePatLen; k++) {
-        if (chSlide[j] && pat->data[k][4]!=0x01 && pat->data[k][4]!=0x02) {
-          pat->data[k][6]=0x01;
+        if (chArpeggio[j] && pat->data[k][4]!=0x00 && pat->data[k][0]!=-1) {
+          pat->data[k][6]=0x00;
           pat->data[k][7]=0;
-          chSlide[j]=false;
-        }
-
-        if (chVibrato[j] && pat->data[k][4]!=0x03 && pat->data[k][4]!=0x04 && pat->data[k][0]!=-1) {
+          chArpeggio[j]=false;
+        } else if (chPorta[j] && pat->data[k][4]!=0x03 && pat->data[k][4]!=0x01 && pat->data[k][4]!=0x02) {
+          pat->data[k][6]=0x03;
+          pat->data[k][7]=0;
+          chPorta[j]=false;
+        } else if (chVibrato[j] && pat->data[k][4]!=0x04 && pat->data[k][0]!=-1) {
           pat->data[k][6]=0x04;
           pat->data[k][7]=0;
           chVibrato[j]=false;
-        }
-        if (chVolumeSlide[j] && pat->data[k][4]!=0x0A) {
+        } else if (chVolumeSlide[j] && pat->data[k][4]!=0x0A) {
           pat->data[k][6]=0x0A;
           pat->data[k][7]=0;
           chVolumeSlide[j]=false;
         }
 
         switch (pat->data[k][4]) {
+        case 0:
+          chArpeggio[j]=true;
+          break;
         case 1:
         case 2:
-          chSlide[j]=true;
-          break;
         case 3:
+          chPorta[j]=true;
+          break;
         case 4:
           chVibrato[j]=true;
           break;
@@ -430,6 +435,7 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     ds.systemLen=1;
 
     ds.system[0]=DIV_SYSTEM_YM2612;
+    ds.loopModality=1;
 
     unsigned char speed=reader.readCNoRLE();
     unsigned char interleaveFactor=reader.readCNoRLE();
@@ -616,6 +622,8 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     ds.systemLen=1;
 
     ds.system[0]=DIV_SYSTEM_YM2612;
+    ds.loopModality=1;
+
     unsigned char magic[8]={0};
 
     reader.readNoRLE(magic,8);
