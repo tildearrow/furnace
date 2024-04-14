@@ -99,9 +99,9 @@ bool ImGui_ImplMetal_Init(MTL::Device* device)
     return ImGui_ImplMetal_Init((__bridge id<MTLDevice>)(device));
 }
 
-void ImGui_ImplMetal_NewFrame(MTL::RenderPassDescriptor* renderPassDescriptor)
+bool ImGui_ImplMetal_NewFrame(MTL::RenderPassDescriptor* renderPassDescriptor)
 {
-    ImGui_ImplMetal_NewFrame((__bridge MTLRenderPassDescriptor*)(renderPassDescriptor));
+    return ImGui_ImplMetal_NewFrame((__bridge MTLRenderPassDescriptor*)(renderPassDescriptor));
 }
 
 void ImGui_ImplMetal_RenderDrawData(ImDrawData* draw_data,
@@ -160,14 +160,16 @@ void ImGui_ImplMetal_Shutdown()
     io.BackendFlags &= ~(ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasViewports);
 }
 
-void ImGui_ImplMetal_NewFrame(MTLRenderPassDescriptor* renderPassDescriptor)
+bool ImGui_ImplMetal_NewFrame(MTLRenderPassDescriptor* renderPassDescriptor)
 {
     ImGui_ImplMetal_Data* bd = ImGui_ImplMetal_GetBackendData();
     IM_ASSERT(bd->SharedMetalContext != nil && "No Metal context. Did you call ImGui_ImplMetal_Init() ?");
     bd->SharedMetalContext.framebufferDescriptor = [[FramebufferDescriptor alloc] initWithRenderPassDescriptor:renderPassDescriptor];
 
     if (bd->SharedMetalContext.depthStencilState == nil)
-        ImGui_ImplMetal_CreateDeviceObjects(bd->SharedMetalContext.device);
+        return ImGui_ImplMetal_CreateDeviceObjects(bd->SharedMetalContext.device);
+
+    return true;
 }
 
 static void ImGui_ImplMetal_SetupRenderState(ImDrawData* drawData, id<MTLCommandBuffer> commandBuffer,
@@ -376,9 +378,7 @@ bool ImGui_ImplMetal_CreateDeviceObjects(id<MTLDevice> device)
     depthStencilDescriptor.depthCompareFunction = MTLCompareFunctionAlways;
     bd->SharedMetalContext.depthStencilState = [device newDepthStencilStateWithDescriptor:depthStencilDescriptor];
     ImGui_ImplMetal_CreateDeviceObjectsForPlatformWindows();
-    ImGui_ImplMetal_CreateFontsTexture(device);
-
-    return true;
+    return ImGui_ImplMetal_CreateFontsTexture(device);
 }
 
 void ImGui_ImplMetal_DestroyDeviceObjects()

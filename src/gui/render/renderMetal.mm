@@ -111,7 +111,7 @@ void FurnaceGUIRenderMetal::clear(ImVec4 color) {
 
 bool FurnaceGUIRenderMetal::newFrame() {
   logI("Metal: newFrame()");
-  ImGui_ImplMetal_NewFrame(priv->renderPass);
+  return ImGui_ImplMetal_NewFrame(priv->renderPass);
 }
 
 void FurnaceGUIRenderMetal::createFontsTexture() {
