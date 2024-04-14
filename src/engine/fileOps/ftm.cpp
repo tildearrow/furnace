@@ -577,7 +577,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           customHz = reader.readI();
         }
 
-        if (customHz<1.0) customHz=1.0;
+        logV("before clamp: %f",customHz);
+
         if (customHz>1000.0) customHz=1000.0;
 
         unsigned int newVibrato = 0;
