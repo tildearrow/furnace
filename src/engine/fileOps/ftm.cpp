@@ -1602,7 +1602,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           DivSubSong* s = ds.subsong[i];
 
           int framesLen=reader.readI();
-          if (framesLen<=1 || framesLen>=256) {
+          if (framesLen<=1 || framesLen>256) {
             logE("frames out of range");
             lastError = "frames out of range";
             delete[] file;
@@ -1625,7 +1625,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             }
 
             int patLen=reader.readI();
-            if (patLen<1 || patLen>=256) {
+            if (patLen<1 || patLen>256) {
               logE("pattern length out of range");
               lastError = "pattern length out of range";
               delete[] file;
