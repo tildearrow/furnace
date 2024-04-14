@@ -604,6 +604,8 @@ src/engine/platform/sound/t6w28/T6W28_Apu.cpp
 
 src/engine/platform/sound/rf5c68.cpp
 
+src/engine/platform/sound/oki/okim5205.cpp
+
 src/engine/platform/sound/oki/msm5232.cpp
 src/engine/platform/sound/oki/okim6258.cpp
 
@@ -735,6 +737,7 @@ src/engine/platform/dave.cpp
 src/engine/platform/gbadma.cpp
 src/engine/platform/gbaminmod.cpp
 src/engine/platform/nds.cpp
+src/engine/platform/msm5205.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
