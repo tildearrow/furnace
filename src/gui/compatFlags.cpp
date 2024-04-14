@@ -344,10 +344,6 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels");
         }
-        ImGui::Checkbox("Reset effects on row change",&e->song.resetEffectsOnRowChange);
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("when enabled, effects in a row will be canceled after the row changes");
-        }
         ImGui::EndTabItem();
       }
       ImGui::EndTabBar();

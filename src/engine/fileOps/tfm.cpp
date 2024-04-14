@@ -337,9 +337,9 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
           case 8:
             // pan
             pat->data[k][4]=0x80;
-            if (effectVal[k]==1) {
+            if ((effectVal[k]&0xF)==1) {
               pat->data[k][5]=0;
-            } else if (effectVal[k]==2) {
+            } else if ((effectVal[k]&0xF)==2) {
               pat->data[k][5]=0xFF;
             } else {
               pat->data[k][5]=0x80;
@@ -370,9 +370,6 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
     ds.subsong[0]->hz=50;
     ds.systemLen=1;
-    ds.resetEffectsOnRowChange=true;
-    addWarning("this song relies on a compatibility flag to make the sound more accurate," \
-        " it will not be preserved when you save it");
 
     ds.system[0]=DIV_SYSTEM_YM2612;
 
@@ -558,9 +555,6 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     ds.systemName="Sega Genesis/Mega Drive or TurboSound FM";
     ds.subsong[0]->hz=50;
     ds.systemLen=1;
-    ds.resetEffectsOnRowChange=true;
-    addWarning("this song relies on a compatibility flag to make the sound more accurate," \
-        " it will not be preserved when you save it");
 
     ds.system[0]=DIV_SYSTEM_YM2612;
     unsigned char magic[8]={0};
