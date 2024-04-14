@@ -2090,6 +2090,14 @@ void DivEngine::registerSystems() {
       {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set DPCM frequency (0 to F)"}}
     }
   );
+  sysDefs[DIV_SYSTEM_MSM5205]=new DivSysDef(
+    "OKI MSM5205", NULL, 0xab, 0, 1, false, true, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_VOX, 0, 0,
+    "The First OKI's PCM chip founded in arcades and PC-Engine CD add-on.",
+    {"Sample"},
+    {"PCM"},
+    {DIV_CH_PCM},
+    {DIV_INS_MSM5205},
+  );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0, 0, 0,
