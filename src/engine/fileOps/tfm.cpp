@@ -138,7 +138,12 @@ public:
     String ret;
     ret.reserve(l);
     while (l--) {
-      ret += readC();
+      unsigned char byte=readC();
+      if (!byte) {
+        skip(l);
+        break;
+      }
+      ret += byte;
     }
     return ret;
   }
@@ -562,7 +567,7 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     unsigned char patLens[256];
     int maxPatLen=0;
     reader.read(patLens, 256);
-    for (int i=0;i<256;i++) {
+    for (int i=0; i<256; i++) {
       if (patLens[i]==0) {
         maxPatLen=256;
         break;
