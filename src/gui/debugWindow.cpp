@@ -655,6 +655,7 @@ void FurnaceGUI::drawDebug() {
           rend->destroyTexture(t);
         }
       }
+      ImGui::TreePop();
     }
     if (ImGui::TreeNode("Osc Render Test")) {
       ImGui::InputInt("Length",&oscDebugLen);
