@@ -114,9 +114,6 @@ void FurnaceGUIRenderMetal::clear(ImVec4 color) {
   if (priv->cmdBuf) {
     [priv->cmdBuf release];
   }
-  if (priv->renderEncoder) {
-    [priv->renderEncoder release];
-  }
 
   priv->drawable=[priv->context nextDrawable];
 
@@ -158,6 +155,8 @@ void FurnaceGUIRenderMetal::present() {
 
   [priv->cmdBuf presentDrawable:priv->drawable];
   [priv->cmdBuf commit];
+
+  [priv->renderEncoder release];
 }
 
 bool FurnaceGUIRenderMetal::getOutputSize(int& w, int& h) {
