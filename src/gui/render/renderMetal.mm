@@ -130,6 +130,10 @@ bool FurnaceGUIRenderMetal::newFrame() {
   return ImGui_ImplMetal_NewFrame(priv->renderPass);
 }
 
+bool FurnaceGUIRenderMetal::canVSync() {
+  return swapIntervalSet;
+}
+
 void FurnaceGUIRenderMetal::createFontsTexture() {
   logI("Metal: createFontsTexture()");
   ImGui_ImplMetal_CreateFontsTexture(priv->context.device);
@@ -167,6 +171,15 @@ int FurnaceGUIRenderMetal::getWindowFlags() {
   return 0;
 }
 
+void FurnaceGUIRenderMetal::setSwapInterval(int swapInterval) {
+  if (SDL_RenderSetVSync(sdlRend,(swapInterval>=0)?1:0)!=0) {
+    swapIntervalSet=false;
+    logW("tried to enable VSync but couldn't!");
+  } else {
+    swapIntervalSet=true;
+  }
+}
+
 void FurnaceGUIRenderMetal::preInit() {
   SDL_SetHint(SDL_HINT_RENDER_DRIVER,"metal");
   priv=new FurnaceGUIRenderMetalPrivate;
@@ -179,6 +192,13 @@ bool FurnaceGUIRenderMetal::init(SDL_Window* win, int swapInterval) {
   sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
 
   if (sdlRend==NULL) return false;
+
+  if (SDL_RenderSetVSync(sdlRend,(swapInterval>=0)?1:0)!=0) {
+    swapIntervalSet=false;
+    logW("tried to enable VSync but couldn't!");
+  } else {
+    swapIntervalSet=true;
+  }
 
   logI("retrieving context...");
 
