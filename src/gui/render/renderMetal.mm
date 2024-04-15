@@ -48,8 +48,13 @@ struct FurnaceGUIRenderMetalPrivate {
 class FurnaceMetalTexture: public FurnaceGUITexture {
   public:
   id<MTLTexture> tex;
+  int width, height;
+  unsigned char* lockedData;
   FurnaceMetalTexture():
-    tex(NULL) {}
+    tex(NULL),
+    width(0),
+    height(0),
+    lockedData(NULL) {}
 };
 
 ImTextureID FurnaceGUIRenderMetal::getTextureID(FurnaceGUITexture* which) {
@@ -58,25 +63,30 @@ ImTextureID FurnaceGUIRenderMetal::getTextureID(FurnaceGUITexture* which) {
 }
 
 bool FurnaceGUIRenderMetal::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
-  return false;
-  /*
   FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
-  return SDL_LockTexture(t->tex,NULL,data,pitch)==0;*/
+  if (t->lockedData!=NULL) return false;
+  t->lockedData=new unsigned char[t->width*t->height*4];
+
+  *data=t->lockedData;
+  *pitch=t->width*4;
+  return true;
 }
 
 bool FurnaceGUIRenderMetal::unlockTexture(FurnaceGUITexture* which) {
-  return false;
-  /*
   FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
-  SDL_UnlockTexture(t->tex);
-  return true;*/
+  if (t->lockedData==NULL) return false;
+
+  [t->tex replaceRegion:MTLRegionMake2D(0,0,(NSUInteger)t->width,(NSUInteger)t->height) mipmapLevel:0 withBytes:t->lockedData bytesPerRow:(NSUInteger)t->width*4];
+  delete[] t->lockedData;
+  t->lockedData=NULL;
+
+  return true;
 }
 
 bool FurnaceGUIRenderMetal::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
-  return false;
-  /*
-  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
-  return SDL_UpdateTexture(t->tex,NULL,data,pitch)==0;*/
+  FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
+  [t->tex replaceRegion:MTLRegionMake2D(0,0,(NSUInteger)t->width,(NSUInteger)t->height) mipmapLevel:0 withBytes:data bytesPerRow:(NSUInteger)pitch];
+  return true;
 }
 
 FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width, int height, bool interpolate) {
@@ -89,6 +99,8 @@ FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width,
   if (texture==NULL) return NULL;
   FurnaceMetalTexture* ret=new FurnaceMetalTexture;
   ret->tex=texture;
+  ret->width=width;
+  ret->height=height;
   return ret;
 }
 
