@@ -161,18 +161,40 @@ String TFMparseDate(short date) {
   return fmt::sprintf("%02d.%02d.%02d",date>>11,(date>>7)&0xF,date&0x7F);
 }
 
-struct TFMparsePatternInfo {
+struct TFMSpeed {
+  unsigned char speedEven;
+  unsigned char speedOdd;
+  unsigned char interleaveFactor;
+
+  bool operator==(const TFMSpeed &s) const {
+    return speedEven==s.speedEven && speedOdd==s.speedOdd && interleaveFactor==s.interleaveFactor;
+  }
+};
+
+// to make it work with map
+template<>
+struct std::hash<TFMSpeed>
+{
+  size_t operator()(const TFMSpeed& s) const noexcept {
+    return s.speedEven<<16|s.speedOdd<<8|s.interleaveFactor;
+  }
+};
+
+struct TFMParsePatternInfo {
   TFMRLEReader* reader;
   unsigned char maxPat;
   unsigned char* patLens;
   unsigned char* orderList;
+  unsigned char speedEven;
+  unsigned char speedOdd;
+  unsigned char interleaveFactor;
   bool* patExists;
   DivSong* ds;
   int* insNumMaps;
   bool v2;
 };
 
-void TFMparsePattern(struct TFMparsePatternInfo info) {
+void TFMParsePattern(struct TFMParsePatternInfo info) {
   // PATTERN DATA FORMAT (not described properly in the documentation)
   // for each channel in a pattern:
   //  - note data (256 bytes)
@@ -186,6 +208,28 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
   unsigned char patDataBuf[256];
   unsigned short lastSlide=0;
   unsigned short lastVibrato=0;
+
+  struct TFMSpeed speed;
+  DivGroovePattern groove;
+  speed.speedEven=info.speedEven;
+  speed.speedOdd=info.speedOdd;
+  speed.interleaveFactor=info.interleaveFactor;
+  int speedGrooveIndex=1;
+
+  std::unordered_map<TFMSpeed, int> speeds({{speed, 0}});
+
+  // initialize the global groove pattern first
+  if (speed.interleaveFactor>8) {
+    logW("speed interleave factor is bigger than 8, speed information may be inaccurate");
+    speed.interleaveFactor=8;
+  }
+  for (int i=0; i<speed.interleaveFactor; i++) {
+    groove.val[i]=speed.speedEven;
+    groove.val[i+speed.interleaveFactor]=speed.speedOdd;
+  }
+  groove.len=speed.interleaveFactor*2;
+
+  info.ds->grooves.push_back(groove);
 
   for (int i=0; i<256; i++) {
     if (i>info.maxPat) break;
@@ -349,9 +393,50 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
             break;
           }
           break;
-        default:
-          pat->data[k][4]=effectNum[k];
-          pat->data[k][5]=effectVal[k];
+        case 15:
+          // speed
+
+          if (effectVal[k]==0) {
+            // if speed is set to zero (reset to global values)
+            speed.speedEven=info.speedEven;
+            speed.speedOdd=info.speedOdd;
+            speed.interleaveFactor=info.interleaveFactor;
+          } else if (effectVal[k]>>4==0) {
+            // if the top nibble is set to zero (set interleave factor)
+            speed.interleaveFactor=effectVal[k]&0xF;
+          } else if ((effectVal[k]>>4)==(effectVal[k]&0xF)) {
+            // if both speeds are equal
+            pat->data[k][4]=0x0F;
+            unsigned char speedSet=effectVal[k]>>4;
+            pat->data[k][5]=speedSet;
+            break;
+          } else {
+            speed.speedEven=effectVal[k]>>4;
+            speed.speedOdd=effectVal[k]&0xF;
+          }
+
+          auto speedIndex = speeds.find(speed);
+          if (speedIndex != speeds.end()) {
+            pat->data[k][4]=0x09;
+            pat->data[k][5]=speedIndex->second;
+            break;
+          }
+          if (speed.interleaveFactor>8) {
+            logW("speed interleave factor is bigger than 8, speed information may be inaccurate");
+            speed.interleaveFactor=8;
+          }
+          for (int i=0; i<speed.interleaveFactor; i++) {
+            groove.val[i]=speed.speedEven;
+            groove.val[i+speed.interleaveFactor]=speed.speedOdd;
+          }
+          groove.len=speed.interleaveFactor*2;
+
+          info.ds->grooves.push_back(groove);
+          speeds[speed]=speedGrooveIndex;
+
+          pat->data[k][4]=0x09;
+          pat->data[k][5]=speedGrooveIndex;
+          speedGrooveIndex++;
           break;
         }
       }
@@ -409,15 +494,6 @@ void TFMparsePattern(struct TFMparsePatternInfo info) {
           break;
         case 0xA:
           chVolumeSlide[j]=true;
-          break;
-        case 0xF:
-          // correct speed
-
-          // if both speeds are equal
-          if ((pat->data[k][5]>>4)==(pat->data[k][5]&0xF)) {
-            unsigned char speed=pat->data[k][5]>>4;
-            pat->data[k][5]=speed;
-          }
           break;
         default:
           break;
@@ -578,16 +654,19 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
 
     ds.subsong[0]->patLen=maxPatLen;
 
-    struct TFMparsePatternInfo info;
+    struct TFMParsePatternInfo info;
     info.ds=&ds;
     info.insNumMaps=insNumMaps;
     info.maxPat=maxPat;
     info.patExists=patExists;
     info.orderList=orderList;
+    info.speedEven=speed>>4;
+    info.speedOdd=speed&0xF;
+    info.interleaveFactor=interleaveFactor;
     info.patLens=patLens;
     info.reader=&reader;
     info.v2=false;
-    TFMparsePattern(info);
+    TFMParsePattern(info);
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
@@ -761,7 +840,7 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
     unsigned char patLens[256];
     int maxPatLen=0;
     reader.read(patLens, 256);
-    for (int i=0;i<256;i++) {
+    for (int i=0; i<256; i++) {
       if (patLens[i]==0) {
         maxPatLen=256;
         break;
@@ -772,16 +851,19 @@ bool DivEngine::loadTFMv2(unsigned char* file, size_t len) {
 
     ds.subsong[0]->patLen=maxPatLen;
 
-    struct TFMparsePatternInfo info;
+    struct TFMParsePatternInfo info;
     info.ds=&ds;
     info.insNumMaps=insNumMaps;
     info.maxPat=maxPat;
     info.patExists=patExists;
     info.orderList=orderList;
+    info.speedEven=speedEven;
+    info.speedOdd=speedOdd;
+    info.interleaveFactor=interleaveFactor;
     info.patLens=patLens;
     info.reader=&reader;
     info.v2=true;
-    TFMparsePattern(info);
+    TFMParsePattern(info);
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
