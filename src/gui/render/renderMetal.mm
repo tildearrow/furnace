@@ -103,7 +103,6 @@ void FurnaceGUIRenderMetal::setBlendMode(FurnaceGUIBlendMode mode) {
 
 // you should only call this once!!!
 void FurnaceGUIRenderMetal::clear(ImVec4 color) {
-  logI("Metal: clear()");
   int outW, outH;
   getOutputSize(outW,outH);
   priv->context.drawableSize=CGSizeMake(outW,outH);
@@ -126,7 +125,6 @@ void FurnaceGUIRenderMetal::clear(ImVec4 color) {
 }
 
 bool FurnaceGUIRenderMetal::newFrame() {
-  logI("Metal: newFrame()");
   return ImGui_ImplMetal_NewFrame(priv->renderPass);
 }
 
@@ -135,17 +133,14 @@ bool FurnaceGUIRenderMetal::canVSync() {
 }
 
 void FurnaceGUIRenderMetal::createFontsTexture() {
-  logI("Metal: createFontsTexture()");
   ImGui_ImplMetal_CreateFontsTexture(priv->context.device);
 }
 
 void FurnaceGUIRenderMetal::destroyFontsTexture() {
-  logI("Metal: destroyFontsTexture()");
   ImGui_ImplMetal_DestroyFontsTexture();
 }
 
 void FurnaceGUIRenderMetal::renderGUI() {
-  logI("Metal: renderGUI()");
   ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(),priv->cmdBuf,priv->renderEncoder);
 }
 
@@ -154,7 +149,6 @@ void FurnaceGUIRenderMetal::wipe(float alpha) {
 }
 
 void FurnaceGUIRenderMetal::present() {
-  logI("Metal: present()");
   [priv->renderEncoder endEncoding];
 
   [priv->cmdBuf presentDrawable:priv->drawable];
@@ -186,7 +180,6 @@ void FurnaceGUIRenderMetal::preInit() {
 }
 
 bool FurnaceGUIRenderMetal::init(SDL_Window* win, int swapInterval) {
-  logI("Metal: init()");
   SDL_SetHint(SDL_HINT_RENDER_DRIVER,"metal");
 
   sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
@@ -217,7 +210,6 @@ bool FurnaceGUIRenderMetal::init(SDL_Window* win, int swapInterval) {
 }
 
 void FurnaceGUIRenderMetal::initGUI(SDL_Window* win) {
-  logI("Metal: initGUI()");
   ImGui_ImplMetal_Init(priv->context.device);
   ImGui_ImplSDL2_InitForMetal(win);
 }
