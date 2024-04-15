@@ -298,7 +298,7 @@ namespace
         out_glyph_info->Height = (int)ft_bitmap->rows;
         out_glyph_info->OffsetX = Face->glyph->bitmap_left;
         out_glyph_info->OffsetY = -Face->glyph->bitmap_top;
-        out_glyph_info->AdvanceX = (float)FT_CEIL(slot->advance.x);
+        out_glyph_info->AdvanceX = (float)FT_CEIL(slot->advance.x-((LoadFlags&FT_LOAD_NO_HINTING)?31:0));
         out_glyph_info->IsColored = (ft_bitmap->pixel_mode == FT_PIXEL_MODE_BGRA);
 
         return ft_bitmap;
