@@ -17,7 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// TODO: everything
+// TODO:
+// - wipe
+// - textures
+// - maybe fix VSync
 
 #include "renderMetal.h"
 #include "backends/imgui_impl_metal.h"
