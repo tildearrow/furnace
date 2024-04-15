@@ -636,6 +636,7 @@ void FurnaceGUI::drawDebug() {
           rend->updateTexture(t,data,2048*4);
           rend->destroyTexture(t);
         }
+        delete[] data;
       }
       if (ImGui::Button("Write (lock)")) {
         unsigned char* data=NULL;
