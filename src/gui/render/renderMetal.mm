@@ -32,6 +32,14 @@ struct FurnaceGUIRenderMetalPrivate {
   id<MTLRenderCommandEncoder> renderEncoder;
   id<CAMetalDrawable> drawable;
   MTLRenderPassDescriptor* renderPass;
+
+  FurnaceGUIRenderMetalPrivate():
+    context(NULL),
+    cmdQueue(NULL),
+    cmdBuf(NULL),
+    renderEncoder(NULL),
+    drawable(NULL),
+    renderPass(NULL) {}
 };
 
 class FurnaceMetalTexture: public FurnaceGUITexture {
@@ -99,6 +107,20 @@ void FurnaceGUIRenderMetal::clear(ImVec4 color) {
   int outW, outH;
   getOutputSize(outW,outH);
   priv->context.drawableSize=CGSizeMake(outW,outH);
+
+  if (priv->drawable) {
+    [priv->drawable release];
+    priv->drawable=NULL;
+  }
+  if (priv->cmdBuf) {
+    [priv->cmdBuf release];
+    priv->cmdBuf=NULL;
+  }
+  if (priv->renderEncoder) {
+    [priv->renderEncoder release];
+    priv->renderEncoder=NULL;
+  }
+
   priv->drawable=[priv->context nextDrawable];
 
   priv->cmdBuf=[priv->cmdQueue commandBuffer];
