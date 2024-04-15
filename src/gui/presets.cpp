@@ -141,19 +141,6 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "Super Game Boy", {
-      CH(DIV_SYSTEM_GB, 1.0f, 0, "customClock=4295455"),
-      CH(DIV_SYSTEM_SNES, 1.0f, 0, "")
-    },
-    "tickRate=61.44697015935724"
-  );
-    SUB_ENTRY(
-      "Super Game Boy 2", {
-        CH(DIV_SYSTEM_GB, 1.0f, 0, ""),
-        CH(DIV_SYSTEM_SNES, 1.0f, 0, "")
-      }
-    );
-  ENTRY(
     "Game Boy Advance (no software mixing)", {
       CH(DIV_SYSTEM_GB, 1.0f, 0, "chipType=3"),
       CH(DIV_SYSTEM_GBA_DMA, 0.5f, 0, ""),
@@ -229,6 +216,19 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SNES, 1.0f, 0, "")
     }
   );
+    SUB_ENTRY(
+      "Super Game Boy", {
+        CH(DIV_SYSTEM_GB, 1.0f, 0, "customClock=4295455"),
+        CH(DIV_SYSTEM_SNES, 1.0f, 0, "")
+      },
+      "tickRate=61.44697015935724"
+    );
+    SUB_ENTRY(
+      "Super Game Boy 2", {
+        CH(DIV_SYSTEM_GB, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_SNES, 1.0f, 0, "")
+      }
+    );
   ENTRY(
     "Mattel Intellivision", {
       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=3")
