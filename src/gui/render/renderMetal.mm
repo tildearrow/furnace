@@ -106,6 +106,7 @@ FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width,
 
 bool FurnaceGUIRenderMetal::destroyTexture(FurnaceGUITexture* which) {
   FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
+  [t->tex release];
   delete t;
   return true;
 }
