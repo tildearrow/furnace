@@ -19,7 +19,6 @@
 
 // TODO:
 // - wipe
-// - textures
 // - maybe fix VSync
 
 #include "renderMetal.h"
@@ -101,12 +100,16 @@ FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width,
   ret->tex=texture;
   ret->width=width;
   ret->height=height;
+  
+  [texDesc release];
+
   return ret;
 }
 
 bool FurnaceGUIRenderMetal::destroyTexture(FurnaceGUITexture* which) {
   FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
   [t->tex release];
+  t->tex=NULL;
   delete t;
   return true;
 }
