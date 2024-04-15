@@ -122,6 +122,12 @@ option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" OFF)
+if (APPLE)
+  option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
+else()
+  # not Apple - not needed
+  set(FORCE_APPLE_BIN OFF)
+endif()
 
 set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
 
@@ -1174,7 +1180,9 @@ if (NOT ANDROID OR TERMUX)
     endforeach()
     install(FILES res/logo.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps)
   else()
-    install(TARGETS furnace RUNTIME DESTINATION bin)
+    if (NOT APPLE OR FORCE_APPLE_BIN)
+      install(TARGETS furnace RUNTIME DESTINATION bin)
+    endif()
   endif()
 
   set(CPACK_PACKAGE_NAME "Furnace")

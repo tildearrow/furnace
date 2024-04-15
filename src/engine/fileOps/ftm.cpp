@@ -543,7 +543,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
         tchans = reader.readI();
 
-        if (tchans<0 || tchans>=DIV_MAX_CHANS) {
+        if (tchans>=DIV_MAX_CHANS) {
           logE("invalid channel count! %d",tchans);
           lastError = "invalid channel count";
           delete[] file;

@@ -278,6 +278,7 @@ Available options:
 | `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
 | `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
 | `SHOW_OPEN_ASSETS_MENU_ENTRY` | `OFF` | Show option to open built-in assets directory (on supported platforms) |
+| `FORCE_APPLE_BIN` | `OFF` | Enable installation of binaries (when doing `make install`) to PREFIX/bin on Apple platforms |
 
 (\*) `ON` if system-installed JACK detected, otherwise `OFF`
 
