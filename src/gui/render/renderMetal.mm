@@ -110,15 +110,12 @@ void FurnaceGUIRenderMetal::clear(ImVec4 color) {
 
   if (priv->drawable) {
     [priv->drawable release];
-    priv->drawable=NULL;
   }
   if (priv->cmdBuf) {
     [priv->cmdBuf release];
-    priv->cmdBuf=NULL;
   }
   if (priv->renderEncoder) {
     [priv->renderEncoder release];
-    priv->renderEncoder=NULL;
   }
 
   priv->drawable=[priv->context nextDrawable];
