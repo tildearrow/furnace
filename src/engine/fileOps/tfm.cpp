@@ -202,7 +202,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
   //  - instrument number data (256 bytes)
   //  - effect number (256 bytes, values 0x0-0x23 (to represent 0-F and G-Z))
   //  - effect value (256 bytes)
-  //  - padding(?) (1536 bytes, always set to 0) (ONLY ON V2)
+  //  - extra 3 effects (1536 bytes 256x3x2) (ONLY ON V2)
   // notes are stored as an inverted value of note+octave*12
   // key-offs are stored in the note data as 0x01
   unsigned char patDataBuf[256];
@@ -216,6 +216,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
   speed.interleaveFactor=info.interleaveFactor;
   int speedGrooveIndex=1;
 
+  int usedEffectsCol=0;
   std::unordered_map<TFMSpeed, int> speeds({{speed, 0}});
 
   // initialize the global groove pattern first
@@ -242,7 +243,6 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
     logD("parsing pattern %d",i);
     for (int j=0; j<6; j++) {
       DivPattern* pat = info.ds->subsong[0]->pat[j].data[i];
-      info.ds->subsong[0]->pat[j].effectCols=3;
 
       // notes
       info.reader->read(patDataBuf,256);
@@ -289,159 +289,163 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
       }
 
       // effects
-      unsigned char effectNum[256];
-      unsigned char effectVal[256];
-      info.reader->read(effectNum,256);
-      info.reader->read(effectVal,256);
 
-      for (int k=0; k<256; k++) {
-        switch (effectNum[k]) {
-        case 0:
-          // arpeggio or no effect (if effect val is 0)
-          if (effectVal[k]==0) break;
-          pat->data[k][4]=effectNum[k];
-          pat->data[k][5]=effectVal[k];
-          break;
-        case 1:
-          // pitch slide up
-        case 2:
-          // pitch slide down
-          pat->data[k][4]=effectNum[k];
-          if (effectVal[k]) {
-            lastSlide=effectVal[k];
-            pat->data[k][5]=effectVal[k];
-          } else {
-            pat->data[k][5]=lastSlide;
-          }
-          break;
-        case 3:
-          // portamento
-        case 4:
-          // vibrato
-          pat->data[k][5]=0;
-          if (effectVal[k]&0xF0) {
-            pat->data[k][5]|=effectVal[k]&0xF0;
-          } else {
-            pat->data[k][5]|=lastVibrato&0xF0;
-          }
-          if (effectVal[k]&0x0F) {
-            pat->data[k][5]|=effectVal[k]&0x0F;
-          } else {
-            pat->data[k][5]|=lastVibrato&0x0F;
-          }
-          pat->data[k][4]=effectNum[k];
-          lastVibrato=pat->data[k][5];
-          break;
-        case 5:
-          // poramento + volume slide
-          pat->data[k][4]=0x06;
-          pat->data[k][5]=effectVal[k];
-          break;
-        case 6:
-          // vibrato + volume slide
-          pat->data[k][4]=0x05;
-          pat->data[k][5]=effectVal[k];
-          break;
-        case 8:
-          // modify TL of operator 1
-          pat->data[k][4]=0x12;
-          pat->data[k][5]=effectVal[k];
-          break;
-        case 9:
-          // modify TL of operator 2
-          pat->data[k][4]=0x13;
-          pat->data[k][5]=effectVal[k];
-          break;
-        case 10:
-          // volume slide
-          pat->data[k][4]=0xA;
-          pat->data[k][5]=effectVal[k];
-          break;
-        case 11:
-          // multi-frequency mode of CH3 control
-          // TODO
-        case 12:
-          // modify TL of operator 3
-          pat->data[k][4]=0x14;
-          pat->data[k][5]=effectVal[k];
-          break;
-        case 13:
-          // modify TL of operator 2
-          pat->data[k][4]=0x15;
-          pat->data[k][5]=effectVal[k];
-          break;
-        case 14:
-          switch (effectVal[k]>>4) {
+      int numEffectsCol=(info.v2) ? 4 : 1;
+      for (int l=0; l<numEffectsCol; l++) {
+        unsigned char effectNum[256];
+        unsigned char effectVal[256];
+        info.reader->read(effectNum,256);
+        info.reader->read(effectVal,256);
+
+        for (int k=0; k<256; k++) {
+          if (effectNum[k] || effectVal[k]) usedEffectsCol=l+1;
+          switch (effectNum[k]) {
           case 0:
-          case 1:
-          case 2:
-          case 3:
-            // modify multiplier of operators
-            pat->data[k][4]=0x16;
-            pat->data[k][5]=((effectVal[k]&0xF0)+0x100)|(effectVal[k]&0xF);
+            // arpeggio or no effect (if effect val is 0)
+            if (effectVal[k]==0) break;
+            pat->data[k][4+(l*2)]=effectNum[k];
+            pat->data[k][5+(l*2)]=effectVal[k];
             break;
-          case 8:
-            // pan
-            pat->data[k][4]=0x80;
-            if ((effectVal[k]&0xF)==1) {
-              pat->data[k][5]=0;
-            } else if ((effectVal[k]&0xF)==2) {
-              pat->data[k][5]=0xFF;
+          case 1:
+            // pitch slide up
+          case 2:
+            // pitch slide down
+            pat->data[k][4+(l*2)]=effectNum[k];
+            if (effectVal[k]) {
+              lastSlide=effectVal[k];
+              pat->data[k][5+(l*2)]=effectVal[k];
             } else {
-              pat->data[k][5]=0x80;
+              pat->data[k][5+(l*2)]=lastSlide;
             }
             break;
-          }
-          break;
-        case 15:
-          // speed
-
-          if (effectVal[k]==0) {
-            // if speed is set to zero (reset to global values)
-            speed.speedEven=info.speedEven;
-            speed.speedOdd=info.speedOdd;
-            speed.interleaveFactor=info.interleaveFactor;
-          } else if (effectVal[k]>>4==0) {
-            // if the top nibble is set to zero (set interleave factor)
-            speed.interleaveFactor=effectVal[k]&0xF;
-          } else if ((effectVal[k]>>4)==(effectVal[k]&0xF)) {
-            // if both speeds are equal
-            pat->data[k][4]=0x0F;
-            unsigned char speedSet=effectVal[k]>>4;
-            pat->data[k][5]=speedSet;
+          case 3:
+            // portamento
+          case 4:
+            // vibrato
+            pat->data[k][5+(l*2)]=0;
+            if (effectVal[k]&0xF0) {
+              pat->data[k][5+(l*2)]|=effectVal[k]&0xF0;
+            } else {
+              pat->data[k][5+(l*2)]|=lastVibrato&0xF0;
+            }
+            if (effectVal[k]&0x0F) {
+              pat->data[k][5+(l*2)]|=effectVal[k]&0x0F;
+            } else {
+              pat->data[k][5+(l*2)]|=lastVibrato&0x0F;
+            }
+            pat->data[k][4+(l*2)]=effectNum[k];
+            lastVibrato=pat->data[k][5+(l*2)];
             break;
-          } else {
-            speed.speedEven=effectVal[k]>>4;
-            speed.speedOdd=effectVal[k]&0xF;
-          }
+          case 5:
+            // poramento + volume slide
+            pat->data[k][4+(l*2)]=0x06;
+            pat->data[k][5+(l*2)]=effectVal[k];
+            break;
+          case 6:
+            // vibrato + volume slide
+            pat->data[k][4+(l*2)]=0x05;
+            pat->data[k][5+(l*2)]=effectVal[k];
+            break;
+          case 8:
+            // modify TL of operator 1
+            pat->data[k][4+(l*2)]=0x12;
+            pat->data[k][5+(l*2)]=effectVal[k];
+            break;
+          case 9:
+            // modify TL of operator 2
+            pat->data[k][4+(l*2)]=0x13;
+            pat->data[k][5+(l*2)]=effectVal[k];
+            break;
+          case 10:
+            // volume slide
+            pat->data[k][4+(l*2)]=0xA;
+            pat->data[k][5+(l*2)]=effectVal[k];
+            break;
+          case 11:
+            // multi-frequency mode of CH3 control
+            // TODO
+          case 12:
+            // modify TL of operator 3
+            pat->data[k][4+(l*2)]=0x14;
+            pat->data[k][5+(l*2)]=effectVal[k];
+            break;
+          case 13:
+            // modify TL of operator 2
+            pat->data[k][4+(l*2)]=0x15;
+            pat->data[k][5+(l*2)]=effectVal[k];
+            break;
+          case 14:
+            switch (effectVal[k]>>4) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+              // modify multiplier of operators
+              pat->data[k][4+(l*2)]=0x16;
+              pat->data[k][5+(l*2)]=((effectVal[k]&0xF0)+0x100)|(effectVal[k]&0xF);
+              break;
+            case 8:
+              // pan
+              pat->data[k][4+(l*2)]=0x80;
+              if ((effectVal[k]&0xF)==1) {
+                pat->data[k][5+(l*2)]=0;
+              } else if ((effectVal[k]&0xF)==2) {
+                pat->data[k][5+(l*2)]=0xFF;
+              } else {
+                pat->data[k][5+(l*2)]=0x80;
+              }
+              break;
+            }
+            break;
+          case 15:
+            // speed
 
-          auto speedIndex = speeds.find(speed);
-          if (speedIndex != speeds.end()) {
-            pat->data[k][4]=0x09;
-            pat->data[k][5]=speedIndex->second;
+            if (effectVal[k]==0) {
+              // if speed is set to zero (reset to global values)
+              speed.speedEven=info.speedEven;
+              speed.speedOdd=info.speedOdd;
+              speed.interleaveFactor=info.interleaveFactor;
+            } else if (effectVal[k]>>4==0) {
+              // if the top nibble is set to zero (set interleave factor)
+              speed.interleaveFactor=effectVal[k]&0xF;
+            } else if ((effectVal[k]>>4)==(effectVal[k]&0xF)) {
+              // if both speeds are equal
+              pat->data[k][4+(l*2)]=0x0F;
+              unsigned char speedSet=effectVal[k]>>4;
+              pat->data[k][5+(l*2)]=speedSet;
+              break;
+            } else {
+              speed.speedEven=effectVal[k]>>4;
+              speed.speedOdd=effectVal[k]&0xF;
+            }
+
+            auto speedIndex = speeds.find(speed);
+            if (speedIndex != speeds.end()) {
+              pat->data[k][4+(l*2)]=0x09;
+              pat->data[k][5+(l*2)]=speedIndex->second;
+              break;
+            }
+            if (speed.interleaveFactor>8) {
+              logW("speed interleave factor is bigger than 8, speed information may be inaccurate");
+              speed.interleaveFactor=8;
+            }
+            for (int i=0; i<speed.interleaveFactor; i++) {
+              groove.val[i]=speed.speedEven;
+              groove.val[i+speed.interleaveFactor]=speed.speedOdd;
+            }
+            groove.len=speed.interleaveFactor*2;
+
+            info.ds->grooves.push_back(groove);
+            speeds[speed]=speedGrooveIndex;
+
+            pat->data[k][4+(l*2)]=0x09;
+            pat->data[k][5+(l*2)]=speedGrooveIndex;
+            speedGrooveIndex++;
             break;
           }
-          if (speed.interleaveFactor>8) {
-            logW("speed interleave factor is bigger than 8, speed information may be inaccurate");
-            speed.interleaveFactor=8;
-          }
-          for (int i=0; i<speed.interleaveFactor; i++) {
-            groove.val[i]=speed.speedEven;
-            groove.val[i+speed.interleaveFactor]=speed.speedOdd;
-          }
-          groove.len=speed.interleaveFactor*2;
-
-          info.ds->grooves.push_back(groove);
-          speeds[speed]=speedGrooveIndex;
-
-          pat->data[k][4]=0x09;
-          pat->data[k][5]=speedGrooveIndex;
-          speedGrooveIndex++;
-          break;
         }
+        info.ds->subsong[0]->pat[j].effectCols=(usedEffectsCol*2)+1;
       }
-
-      if (info.v2) info.reader->skip(1536);
     }
   }
 
@@ -454,49 +458,51 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
 
   for (int i=0; i<info.ds->subsong[0]->ordersLen; i++) {
     for (int j=0; j<6; j++) {
-      DivPattern* pat = info.ds->subsong[0]->pat[j].data[info.orderList[i]];
+      for (int l=0; l<usedEffectsCol; l++) {
+        DivPattern* pat = info.ds->subsong[0]->pat[j].data[info.orderList[i]];
 
-      // default instrument
-      if (i==0 && pat->data[0][2]==-1) pat->data[0][2]=0;
+        // default instrument
+        if (i==0 && pat->data[0][2]==-1) pat->data[0][2]=0;
 
-      unsigned char truePatLen=(info.patLens[info.orderList[i]]<info.ds->subsong[0]->patLen) ? info.patLens[info.orderList[i]] : info.ds->subsong[0]->patLen;
+        unsigned char truePatLen=(info.patLens[info.orderList[i]]<info.ds->subsong[0]->patLen) ? info.patLens[info.orderList[i]] : info.ds->subsong[0]->patLen;
 
-      for (int k=0; k<truePatLen; k++) {
-        if (chArpeggio[j] && pat->data[k][4]!=0x00 && pat->data[k][0]!=-1) {
-          pat->data[k][6]=0x00;
-          pat->data[k][7]=0;
-          chArpeggio[j]=false;
-        } else if (chPorta[j] && pat->data[k][4]!=0x03 && pat->data[k][4]!=0x01 && pat->data[k][4]!=0x02) {
-          pat->data[k][6]=0x03;
-          pat->data[k][7]=0;
-          chPorta[j]=false;
-        } else if (chVibrato[j] && pat->data[k][4]!=0x04 && pat->data[k][0]!=-1) {
-          pat->data[k][6]=0x04;
-          pat->data[k][7]=0;
-          chVibrato[j]=false;
-        } else if (chVolumeSlide[j] && pat->data[k][4]!=0x0A) {
-          pat->data[k][6]=0x0A;
-          pat->data[k][7]=0;
-          chVolumeSlide[j]=false;
-        }
+        for (int k=0; k<truePatLen; k++) {
+          if (chArpeggio[j] && pat->data[k][4+(l*2)]!=0x00 && pat->data[k][0]!=-1) {
+            pat->data[k][4+usedEffectsCol*2+(l*2)]=0x00;
+            pat->data[k][5+usedEffectsCol*2+(l*2)]=0;
+            chArpeggio[j]=false;
+          } else if (chPorta[j] && pat->data[k][4+(l*2)]!=0x03 && pat->data[k][4+(l*2)]!=0x01 && pat->data[k][4+(l*2)]!=0x02) {
+            pat->data[k][4+usedEffectsCol*2+(l*2)]=0x03;
+            pat->data[k][5+usedEffectsCol*2+(l*2)]=0;
+            chPorta[j]=false;
+          } else if (chVibrato[j] && pat->data[k][4+(l*2)]!=0x04 && pat->data[k][0]!=-1) {
+            pat->data[k][4+usedEffectsCol*2+(l*2)]=0x04;
+            pat->data[k][5+usedEffectsCol*2+(l*2)]=0;
+            chVibrato[j]=false;
+          } else if (chVolumeSlide[j] && pat->data[k][4+(l*2)]!=0x0A) {
+            pat->data[k][4+usedEffectsCol*2+(l*2)]=0x0A;
+            pat->data[k][5+usedEffectsCol*2+(l*2)]=0;
+            chVolumeSlide[j]=false;
+          }
 
-        switch (pat->data[k][4]) {
-        case 0:
-          chArpeggio[j]=true;
-          break;
-        case 1:
-        case 2:
-        case 3:
-          chPorta[j]=true;
-          break;
-        case 4:
-          chVibrato[j]=true;
-          break;
-        case 0xA:
-          chVolumeSlide[j]=true;
-          break;
-        default:
-          break;
+          switch (pat->data[k][4+l]) {
+          case 0:
+            chArpeggio[j]=true;
+            break;
+          case 1:
+          case 2:
+          case 3:
+            chPorta[j]=true;
+            break;
+          case 4:
+            chVibrato[j]=true;
+            break;
+          case 0xA:
+            chVolumeSlide[j]=true;
+            break;
+          default:
+            break;
+          }
         }
       }
     }
