@@ -164,6 +164,9 @@ bool ImGui_ImplMetal_NewFrame(MTLRenderPassDescriptor* renderPassDescriptor)
 {
     ImGui_ImplMetal_Data* bd = ImGui_ImplMetal_GetBackendData();
     IM_ASSERT(bd->SharedMetalContext != nil && "No Metal context. Did you call ImGui_ImplMetal_Init() ?");
+    if (bd->SharedMetalContext.framebufferDescriptor != nil) {
+      [bd->SharedMetalContext.framebufferDescriptor release];
+    }
     bd->SharedMetalContext.framebufferDescriptor = [[FramebufferDescriptor alloc] initWithRenderPassDescriptor:renderPassDescriptor];
 
     if (bd->SharedMetalContext.depthStencilState == nil)
@@ -233,6 +236,7 @@ void ImGui_ImplMetal_RenderDrawData(ImDrawData* drawData, id<MTLCommandBuffer> c
     id<MTLRenderPipelineState> renderPipelineState = ctx.renderPipelineStateCache[ctx.framebufferDescriptor];
     if (renderPipelineState == nil)
     {
+        printf("RPS NULL....\n");
         // No luck; make a new render pipeline state
         renderPipelineState = [ctx renderPipelineStateForFramebufferDescriptor:ctx.framebufferDescriptor device:commandBuffer.device];
 
