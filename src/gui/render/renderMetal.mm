@@ -17,10 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// TODO:
-// - wipe
-// - maybe fix VSync
-
 #include "renderMetal.h"
 #include "backends/imgui_impl_metal.h"
 
@@ -164,7 +160,12 @@ void FurnaceGUIRenderMetal::renderGUI() {
 }
 
 void FurnaceGUIRenderMetal::wipe(float alpha) {
-  // TODO
+  // you know what? cheat.
+  // I don't feel like learning yet another API just to please Apple.
+  // screw it.
+  SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
+  SDL_SetRenderDrawColor(sdlRend,0,0,0,255*alpha);
+  SDL_RenderFillRect(sdlRend,NULL);
 }
 
 void FurnaceGUIRenderMetal::present() {
