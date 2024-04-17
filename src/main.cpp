@@ -393,7 +393,7 @@ void reportError(String what) {
   logE("%s",what);
   MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
 }
-#elif defined(ANDROID)
+#elif defined(ANDROID) || defined(__APPLE__)
 void reportError(String what) {
   logE("%s",what);
 #ifdef HAVE_SDL2

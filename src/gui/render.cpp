@@ -31,6 +31,9 @@
 #ifdef HAVE_RENDER_DX11
 #include "render/renderDX11.h"
 #endif
+#ifdef HAVE_RENDER_METAL
+#include "render/renderMetal.h"
+#endif
 #include "render/renderSoftware.h"
 
 bool FurnaceGUI::initRender() {
@@ -50,6 +53,8 @@ bool FurnaceGUI::initRender() {
     renderBackend=GUI_BACKEND_DX11;
   } else if (settings.renderBackend=="DirectX 9") {
     renderBackend=GUI_BACKEND_DX9;
+  } else if (settings.renderBackend=="Metal") {
+    renderBackend=GUI_BACKEND_METAL;
   } else if (settings.renderBackend=="SDL") {
     renderBackend=GUI_BACKEND_SDL;
   } else if (settings.renderBackend=="Software") {
@@ -96,6 +101,12 @@ bool FurnaceGUI::initRender() {
     case GUI_BACKEND_DX9:
       logI("render backend: DirectX 9");
       rend=new FurnaceGUIRenderDX9;
+      break;
+#endif
+#ifdef HAVE_RENDER_METAL
+    case GUI_BACKEND_METAL:
+      logI("render backend: Metal");
+      rend=new FurnaceGUIRenderMetal;
       break;
 #endif
 #ifdef HAVE_RENDER_SDL

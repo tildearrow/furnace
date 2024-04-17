@@ -75,12 +75,17 @@ enum FurnaceGUIRenderBackend {
   GUI_BACKEND_GL1,
   GUI_BACKEND_DX11,
   GUI_BACKEND_DX9,
+  GUI_BACKEND_METAL,
   GUI_BACKEND_SOFTWARE
 };
 
 #ifdef HAVE_RENDER_DX11
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_DX11
 #define GUI_BACKEND_DEFAULT_NAME "DirectX 11"
+#else
+#ifdef HAVE_RENDER_METAL
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_METAL
+#define GUI_BACKEND_DEFAULT_NAME "Metal"
 #else
 #ifdef HAVE_RENDER_GL
 #ifdef SUPPORT_XP
@@ -102,6 +107,7 @@ enum FurnaceGUIRenderBackend {
 #else
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_SOFTWARE
 #define GUI_BACKEDN_DEFAULT_NAME "Software"
+#endif
 #endif
 #endif
 #endif

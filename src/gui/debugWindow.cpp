@@ -610,6 +610,54 @@ void FurnaceGUI::drawDebug() {
       ImGui::Unindent();
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Texture Test")) {
+      ImGui::Text("Create and Destroy 128 Textures");
+      if (ImGui::Button("No Write")) {
+        for (int i=0; i<128; i++) {
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048);
+          if (t==NULL) {
+            showError(fmt::sprintf("Failure! %d",i));
+            break;
+          }
+          rend->destroyTexture(t);
+        }
+      }
+      if (ImGui::Button("Write (update)")) {
+        unsigned char* data=new unsigned char[2048*2048*4];
+        for (int i=0; i<2048*2048*4; i++) {
+          data[i]=rand();
+        }
+        for (int i=0; i<128; i++) {
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048);
+          if (t==NULL) {
+            showError(fmt::sprintf("Failure! %d",i));
+            break;
+          }
+          rend->updateTexture(t,data,2048*4);
+          rend->destroyTexture(t);
+        }
+        delete[] data;
+      }
+      if (ImGui::Button("Write (lock)")) {
+        unsigned char* data=NULL;
+        int pitch=0;
+        for (int i=0; i<128; i++) {
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048);
+          if (t==NULL) {
+            showError(fmt::sprintf("Failure! %d",i));
+            break;
+          }
+          if (rend->lockTexture(t,(void**)&data,&pitch)) {
+            for (int i=0; i<2048*2048*4; i++) {
+              data[i]=rand();
+            }
+            rend->unlockTexture(t);
+          }
+          rend->destroyTexture(t);
+        }
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Osc Render Test")) {
       ImGui::InputInt("Length",&oscDebugLen);
       ImGui::InputInt("Height",&oscDebugHeight);

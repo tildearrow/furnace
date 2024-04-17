@@ -405,6 +405,12 @@ void FurnaceGUI::drawSettings() {
             settingsChanged=true;
           }
 #endif
+#ifdef HAVE_RENDER_METAL
+          if (ImGui::Selectable("Metal",curRenderBackend=="Metal")) {
+            settings.renderBackend="Metal";
+            settingsChanged=true;
+          }
+#endif
 #ifdef HAVE_RENDER_GL
 #ifdef USE_GLES
           if (ImGui::Selectable("OpenGL ES 2.0",curRenderBackend=="OpenGL ES 2.0")) {
