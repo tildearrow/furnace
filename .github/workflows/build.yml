@@ -2,7 +2,7 @@ name: Build furnace
 
 on:
   push:
-    branches: [master, metal]
+    branches: master
   pull_request:
     branches: master
 
