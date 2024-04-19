@@ -265,11 +265,6 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
         }
       }
 
-      // put a "jump to next pattern" effect if the pattern is smaller than the maximum pattern length
-      if (info.patLens[i]!=0 && info.patLens[i]<info.ds->subsong[0]->patLen) {
-        pat->data[info.patLens[i]-1][8]=0x0D;
-        pat->data[info.patLens[i]-1][9]=0x00;
-      }
       // volume
       info.reader->read(patDataBuf,256);
 
@@ -445,6 +440,12 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
           }
         }
         info.ds->subsong[0]->pat[j].effectCols=(usedEffectsCol*2)+1;
+
+        // put a "jump to next pattern" effect if the pattern is smaller than the maximum pattern length
+        if (info.patLens[i]!=0 && info.patLens[i]<info.ds->subsong[0]->patLen) {
+          pat->data[info.patLens[i]-1][4+(usedEffectsCol*4)]=0x0D;
+          pat->data[info.patLens[i]-1][5+(usedEffectsCol*4)]=0x00;
+        }
       }
     }
   }
