@@ -52,7 +52,7 @@ void FurnaceGUI::initSystemPresets() {
 
   FurnaceGUISysCategory cat;
 
-  CATEGORY_BEGIN("Game consoles","let's play some chiptune making games!");
+  CATEGORY_BEGIN("Game Consoles","let's play some chiptune making games!");
   ENTRY(
     "Sega Genesis", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
@@ -1034,7 +1034,7 @@ void FurnaceGUI::initSystemPresets() {
     );
     SUB_ENTRY(
       "Tandy 1000", {
-        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=5"), // NCR 8496 or SN76496 or Tandy PSSJ(with 8 bit DAC)
+        CH(DIV_SYSTEM_SMS, 1.0f, 0, "chipType=5"), // NCR 8496 or SN76496 or Tandy PSSJ (with 8 bit DAC)
         CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
       }
     );
@@ -1247,13 +1247,13 @@ void FurnaceGUI::initSystemPresets() {
   );
   CATEGORY_END;
 
-  CATEGORY_BEGIN("Arcade systems","INSERT COIN");
+  CATEGORY_BEGIN("Arcade Systems","INSERT COIN");
   // MANUFACTURERS
   ENTRY(
     "Alpha Denshi", {}
   );
     SUB_ENTRY(
-      "Alpha denshi Alpha-68K", {
+      "Alpha Denshi Alpha-68K", {
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_OPLL, 1.0f, 0, "clockSel=0"), // 3.58MHz
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
@@ -1263,7 +1263,7 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Alpha denshi Alpha-68K (extended channel 3)", {
+      "Alpha Denshi Alpha-68K (extended channel 3)", {
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_OPLL, 1.0f, 0, "clockSel=0"), // 3.58MHz
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
@@ -1273,7 +1273,7 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Alpha denshi Alpha-68K (drums mode)", {
+      "Alpha Denshi Alpha-68K (drums mode)", {
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "clockSel=0"), // 3.58MHz
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
@@ -1283,7 +1283,7 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Alpha denshi Alpha-68K (extended channel 3; drums mode)", {
+      "Alpha Denshi Alpha-68K (extended channel 3; drums mode)", {
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_OPLL_DRUMS, 1.0f, 0, "clockSel=0"), // 3.58MHz
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0,
@@ -1293,7 +1293,7 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Alpha denshi Equites", {
+      "Alpha Denshi Equites", {
         CH(DIV_SYSTEM_MSM5232, 1.0f, 0, "customClock=6144000"),
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=14"),
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
@@ -1371,7 +1371,7 @@ void FurnaceGUI::initSystemPresets() {
     "Capcom", {}
   );
     SUB_ENTRY(
-      "Capcom Exed Eyes", {
+      "Capcom Exed Exes", {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=4"), // 1.5MHz
         CH(DIV_SYSTEM_SMS, 1.0f, 0,
           "clockSel=4\n"
@@ -1447,28 +1447,28 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Data East Arcade", { // Bad dudes, Robocop, etc
+      "Data East Arcade", { // Bad Dudes, RoboCop, etc
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
         CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
       }
     );
     SUB_ENTRY(
-      "Data East Arcade (extended channel 3)", { // Bad dudes, Robocop, etc
+      "Data East Arcade (extended channel 3)", { // Bad Dudes, RoboCop, etc
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
         CH(DIV_SYSTEM_OPL2, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
       }
     );
     SUB_ENTRY(
-      "Data East Arcade (drums mode)", { // Bad dudes, Robocop, etc
+      "Data East Arcade (drums mode)", { // Bad Dudes, RoboCop, etc
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5"), // 1.5MHz
         CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
       }
     );
     SUB_ENTRY(
-      "Data East Arcade (extended channel 3; drums mode)", { // Bad dudes, Robocop, etc
+      "Data East Arcade (extended channel 3; drums mode)", { // Bad Dudes, RoboCop, etc
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5"), // 1.5MHz
         CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, "clockSel=3"), // 3MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 to 1.056MHz; various per games or optional
@@ -1494,7 +1494,7 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, ""), // 1.007MHz (32.22MHz / 32)
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
-        // HuC6280 is for control them, internal sound isn't used
+        // HuC6280 is for controlling them; internal sound isn't used
       }
     );
     SUB_ENTRY(
@@ -1503,7 +1503,7 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, ""), // 1.007MHz (32.22MHz / 32)
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
-        // HuC6280 is for control them, internal sound isn't used
+        // HuC6280 is for controlling them; internal sound isn't used
       }
     );
     SUB_ENTRY(
@@ -2224,13 +2224,13 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "Seibu Kaihatsu Raiden", { // Raiden, Seibu cup soccer, Zero team, etc
+      "Seibu Kaihatsu Raiden", { // Raiden, Seibu Cup Soccer, Zero Team, etc
         CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // YM3812 3.58MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 or 1.023MHz (28.636363MHz / 28); various per games
       }
     );
     SUB_ENTRY(
-      "Seibu Kaihatsu Raiden (drums mode)", { // Raiden, Seibu cup soccer, Zero team, etc
+      "Seibu Kaihatsu Raiden (drums mode)", { // Raiden, Seibu Cup Soccer, Zero Team, etc
         CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // YM3812 3.58MHz
         CH(DIV_SYSTEM_MSM6295, 1.0f, 0, "") // 1 or 1.023MHz (28.636363MHz / 28); various per games
       }
