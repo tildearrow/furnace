@@ -3036,6 +3036,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_BIFURCATOR, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "SID2", {
+      CH(DIV_SYSTEM_SID2, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("DefleMask-compatible","these configurations are compatible with DefleMask.\nselect this if you need to save as .dmf or work with that program.");
