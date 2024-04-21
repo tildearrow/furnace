@@ -2431,6 +2431,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_PV1000:
     case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_C219:
+    case DIV_SYSTEM_BIFURCATOR:
       break;
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_ESFM:
