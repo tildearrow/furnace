@@ -142,19 +142,16 @@ void DivPlatformSID2::tick(bool sysTick) {
 
       chan[i].freqChanged=true; //to update freq (if only noise was enabled/disabled)
     }
-    // TODO: re-enable
-    /*
-    if (chan[i].std.ex10.had) {
-      chan[i].noise_mode=chan[i].std.ex10.val;
+    if (chan[i].std.fms.had) {
+      chan[i].noise_mode=chan[i].std.fms.val;
       rWrite(0x1e, (chan[0].noise_mode) | (chan[1].noise_mode << 2) | (chan[2].noise_mode << 4) | ((chan[0].freq >> 16) << 6) | ((chan[1].freq >> 16) << 7));
 
       chan[i].freqChanged=true; //to update freq (if only noise was enabled and periodic noise mode is set)
     }
-    if (chan[i].std.ex11.had) {
-      chan[i].mix_mode=chan[i].std.ex11.val;
+    if (chan[i].std.ams.had) {
+      chan[i].mix_mode=chan[i].std.ams.val;
       rWrite(0x1f, (chan[0].mix_mode) | (chan[1].mix_mode << 2) | (chan[2].mix_mode << 4) | ((chan[2].freq >> 16) << 6));
     }
-    */
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
@@ -188,8 +185,9 @@ void DivPlatformSID2::tick(bool sysTick) {
       willUpdateFilter=true;
     }
     if (chan[i].std.ex4.had) {
-      chan[i].sync=chan[i].std.ex4.val&1;
-      chan[i].ring=chan[i].std.ex4.val&2;
+      chan[i].gate=chan[i].std.ex4.val&1;
+      chan[i].sync=chan[i].std.ex4.val&2;
+      chan[i].ring=chan[i].std.ex4.val&4;
       chan[i].freqChanged=true;
       rWrite(i*7+4,(chan[i].wave<<4)|0|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active && chan[i].gate));
     }
@@ -200,14 +198,6 @@ void DivPlatformSID2::tick(bool sysTick) {
       rWrite(i*7+4,(chan[i].wave<<4)|0|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active && chan[i].gate));
       chan[i].test = false;
     }
-
-    // TODO: re-enable
-    /*
-    if (chan[i].std.ex9.had) {
-      chan[i].gate=(chan[i].std.ex9.val&1);
-      rWrite(i*7+4,(chan[i].wave<<4)|0|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active && chan[i].gate));
-    }
-    */
 
     if (chan[i].std.ex5.had) {
       chan[i].attack=chan[i].std.ex5.val&15;
