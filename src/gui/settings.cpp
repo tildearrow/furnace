@@ -5437,10 +5437,12 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
   }
   
-  // chan osc work pool
-  if (chanOscWorkPool!=NULL) {
-    delete chanOscWorkPool;
-    chanOscWorkPool=NULL;
+  if (updateFonts) {
+    // chan osc work pool
+    if (chanOscWorkPool!=NULL) {
+      delete chanOscWorkPool;
+      chanOscWorkPool=NULL;
+    }
   }
 
   for (int i=0; i<64; i++) {
