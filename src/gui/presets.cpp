@@ -52,7 +52,7 @@ void FurnaceGUI::initSystemPresets() {
 
   FurnaceGUISysCategory cat;
 
-  CATEGORY_BEGIN("Game Consoles","let's play some chiptune making games!");
+  CATEGORY_BEGIN("Game consoles","let's play some chiptune making games!");
   ENTRY(
     "Sega Genesis", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, ""),
@@ -1247,7 +1247,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   CATEGORY_END;
 
-  CATEGORY_BEGIN("Arcade Systems","INSERT COIN");
+  CATEGORY_BEGIN("Arcade systems","INSERT COIN");
   // MANUFACTURERS
   ENTRY(
     "Alpha Denshi", {}
