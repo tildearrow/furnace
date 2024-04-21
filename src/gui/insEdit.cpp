@@ -174,6 +174,10 @@ const char* esfmNoiseModeDescriptions[4]={
   "Noise disabled", "Square + noise", "Ringmod from OP3 + noise", "Ringmod from OP3 + double pitch ModInput\nWARNING - has emulation issues, subject to change"
 };
 
+const char* sid2WaveMixModes[5]={
+  "Normal", "Bitwise AND", "Bitwise OR", "Bitwise XOR", NULL
+};
+
 const bool opIsOutput[8][4]={
   {false,false,false,true},
   {false,false,false,true},
@@ -6818,7 +6822,7 @@ void FurnaceGUI::drawInsEdit() {
           const char* dutyLabel="Duty/Noise";
           int dutyMin=0;
           int dutyMax=3;
-          if (ins->type==DIV_INS_C64) {
+          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) {
             dutyLabel="Duty";
             if (ins->c64.dutyIsAbs) {
               dutyMax=4095;
@@ -6973,14 +6977,14 @@ void FurnaceGUI::drawInsEdit() {
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
           bool waveBitMode=false;
-          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SAA1099) {
+          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_SID2) {
             waveBitMode=true;
           }
           if (ins->type==DIV_INS_STD || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_NES ||
               ins->type==DIV_INS_T6W28 || ins->type==DIV_INS_PV1000)
               waveMax=0;
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC || ins->type==DIV_INS_OPLL) waveMax=15;
-          if (ins->type==DIV_INS_C64) waveMax=4;
+          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
@@ -7028,13 +7032,13 @@ void FurnaceGUI::drawInsEdit() {
 
           const char** waveNames=NULL;
           if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) waveNames=ayShapeBits;
-          if (ins->type==DIV_INS_C64) waveNames=c64ShapeBits;
+          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) waveNames=c64ShapeBits;
 
           int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
           int ex2Max=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?4:0;
           bool ex2Bit=true;
 
-          if (ins->type==DIV_INS_C64) {
+          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) {
             ex1Max=4;
             ex2Max=15;
           }
@@ -7271,7 +7275,7 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
-            if (ins->type==DIV_INS_C64) {
+            if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) {
               int cutoffMin=-2047;
               int cutoffMax=2047;
 
@@ -7314,7 +7318,7 @@ void FurnaceGUI::drawInsEdit() {
             }
           }
           if (ex2Max>0) {
-            if (ins->type==DIV_INS_C64) {
+            if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) {
               macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_FDS) {
               macroList.push_back(FurnaceGUIMacroDesc("Mod Speed",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -7334,6 +7338,13 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_C64) {
             macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex4Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c64TestGateBits));
+            macroList.push_back(FurnaceGUIMacroDesc("Attack",&ins->std.ex5Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Decay",&ins->std.ex6Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Sustain",&ins->std.ex7Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Release",&ins->std.ex8Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+          }
+          if (ins->type==DIV_INS_SID2) {
+            macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex4Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,sid2ControlBits));
             macroList.push_back(FurnaceGUIMacroDesc("Attack",&ins->std.ex5Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Decay",&ins->std.ex6Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Sustain",&ins->std.ex7Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
