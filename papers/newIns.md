@@ -126,6 +126,10 @@ the following instrument types are available:
 - 57: PowerNoise (slope)
 - 58: Dave
 - 59: NDS
+- 60: GBA DMA
+- 61: GBA MinMod
+- 62: Bifurcator
+- 63: SID2
 
 the following feature codes are recognized:
 
@@ -153,6 +157,7 @@ the following feature codes are recognized:
 - `NE`: NES DPCM sample map data
 - `EF`: ESFM ins data
 - `PN`: PowerNoise ins data
+- `S2`: SID2 ins data
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there sample/wave lists.
@@ -668,4 +673,15 @@ NES instruments with DPCM sample maps have both SM and NE features.
 size | description
 -----|------------------------------------
   1  | octave
+```
+
+# SID2 data (S2)
+
+```
+size | description
+-----|------------------------------------
+  1  | parameters
+     | - bit 6-7: noise mode
+     | - bit 4-5: wave mix mode
+     | - bit 0-3: volume
 ```

@@ -841,35 +841,7 @@ void DivInstrument::writeFeaturePN(SafeWriter* w) {
 void DivInstrument::writeFeatureS2(SafeWriter* w) {
   FEATURE_BEGIN("S2");
 
-  // this is for compatibility.
-  w->writeC(
-    (c64.dutyIsAbs?0x80:0)|
-    (c64.initFilter?0x40:0)|
-    (c64.toFilter?0x10:0)|
-    (c64.noiseOn?8:0)|
-    (c64.pulseOn?4:0)|
-    (c64.sawOn?2:0)|
-    (c64.triOn?1:0)
-  );
-
-  w->writeC(
-    (c64.oscSync?0x80:0)|
-    (c64.ringMod?0x40:0)|
-    (c64.noTest?0x20:0)|
-    (c64.filterIsAbs?0x10:0)|
-    (c64.ch3off?8:0)|
-    (c64.bp?4:0)|
-    (c64.hp?2:0)|
-    (c64.lp?1:0)
-  );
-
-  w->writeC(((c64.a&15)<<4)|(c64.d&15));
-  w->writeC(((c64.s&15)<<4)|(c64.r&15));
-  w->writeS(c64.duty);
-  w->writeS(c64.cut&4095);
-  w->writeC(c64.res);
-
-  w->writeC(sid2.volume|(sid2.mixMode<<4)|(sid2.noiseMode<<6));
+  w->writeC((sid2.volume&15)|((sid2.mixMode&3)<<4)|((sid2.noiseMode&3)<<6));
 
   FEATURE_END;
 }
@@ -2184,16 +2156,6 @@ void DivInstrument::readFeaturePN(SafeReader& reader, short version) {
 
 void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
-
-  // these are reserved.
-  reader.readC();
-  reader.readC();
-  reader.readC();
-  reader.readC();
-  reader.readS();
-
-  reader.readS();
-  reader.readC();
 
   unsigned char next=reader.readC();
 
