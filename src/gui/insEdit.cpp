@@ -5651,7 +5651,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndDisabled();
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
+        if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) if (ImGui::BeginTabItem((ins->type==DIV_INS_SID2)?"SID2":"C64")) {
           ImGui::AlignTextToFramePadding();
           ImGui::Text("Waveform");
           ImGui::SameLine();
@@ -5686,6 +5686,9 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+            if (ins->type==DIV_INS_SID2) {
+              ImGui::TableSetupColumn("c3_s2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+            }
             ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
 
             ImGui::TableNextRow();
@@ -5701,6 +5704,11 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::TableNextColumn();
             CENTER_TEXT("R");
             ImGui::TextUnformatted("R");
+            if (ins->type==DIV_INS_SID2) {
+              ImGui::TableNextColumn();
+              CENTER_TEXT("TL");
+              ImGui::TextUnformatted("TL");
+            }
             ImGui::TableNextColumn();
             CENTER_TEXT("Envelope");
             ImGui::TextUnformatted("Envelope");
@@ -5714,8 +5722,12 @@ void FurnaceGUI::drawInsEdit() {
             P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN)); rightClickable
+            if (ins->type==DIV_INS_SID2) {
+              ImGui::TableNextColumn();
+              P(CWVSliderScalar("##Volume",sliderSize,ImGuiDataType_U8,&ins->sid2.volume,&_ZERO,&_FIFTEEN)); rightClickable
+            }
             ImGui::TableNextColumn();
-            drawFMEnv(0,16-ins->c64.a,16-ins->c64.d,15-ins->c64.r,15-ins->c64.r,15-ins->c64.s,0,0,0,15,16,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
+            drawFMEnv((ins->type==DIV_INS_SID2)?(15-ins->sid2.volume):0,16-ins->c64.a,16-ins->c64.d,15-ins->c64.r,15-ins->c64.r,15-ins->c64.s,0,0,0,15,16,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
 
             ImGui::EndTable();
           }
@@ -5757,12 +5769,19 @@ void FurnaceGUI::drawInsEdit() {
             ins->c64.hp=!ins->c64.hp;
           }
           popToggleColors();
-          ImGui::SameLine();
-          pushToggleColors(ins->c64.ch3off);
-          if (ImGui::Button("ch3off")) { PARAMETER
-            ins->c64.ch3off=!ins->c64.ch3off;
+          if (ins->type!=DIV_INS_SID2) {
+            ImGui::SameLine();
+            pushToggleColors(ins->c64.ch3off);
+            if (ImGui::Button("ch3off")) { PARAMETER
+              ins->c64.ch3off=!ins->c64.ch3off;
+            }
+            popToggleColors();
           }
-          popToggleColors();
+
+          if (ins->type==DIV_INS_SID2) {
+            P(CWSliderScalar("Noise Mode",ImGuiDataType_U8,&ins->sid2.noiseMode,&_ZERO,&_THREE));
+            P(CWSliderScalar("Wave Mix Mode",ImGuiDataType_U8,&ins->sid2.mixMode,&_ZERO,&_THREE,sid2WaveMixModes[ins->sid2.mixMode&3]));
+          }
 
           if (ImGui::Checkbox("Absolute Cutoff Macro",&ins->c64.filterIsAbs)) {
             ins->std.algMacro.vZoom=-1;
@@ -5772,7 +5791,10 @@ void FurnaceGUI::drawInsEdit() {
             ins->std.dutyMacro.vZoom=-1;
             PARAMETER;
           }
-          P(ImGui::Checkbox("Don't test before new note",&ins->c64.noTest));
+
+          if (ins->type!=DIV_INS_SID2) {
+            P(ImGui::Checkbox("Don't test before new note",&ins->c64.noTest));
+          }
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_SU) if (ImGui::BeginTabItem("Sound Unit")) {
