@@ -258,6 +258,14 @@ bool DivInstrumentPowerNoise::operator==(const DivInstrumentPowerNoise& other) {
   return _C(octave);
 }
 
+bool DivInstrumentSID2::operator==(const DivInstrumentSID2& other) {
+  return (
+    _C(volume) &&
+    _C(mixMode) &&
+    _C(noiseMode)
+  );
+}
+
 #undef _C
 
 #define CONSIDER(x,t) \
@@ -830,6 +838,14 @@ void DivInstrument::writeFeaturePN(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureS2(SafeWriter* w) {
+  FEATURE_BEGIN("S2");
+
+  w->writeC((sid2.volume&15)|((sid2.mixMode&3)<<4)|((sid2.noiseMode&3)<<6));
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -875,6 +891,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureNE=false;
   bool featureEF=false;
   bool featurePN=false;
+  bool featureS2=false;
 
   bool checkForWL=false;
 
@@ -1114,6 +1131,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         break;
       case DIV_INS_BIFURCATOR:
         break;
+      case DIV_INS_SID2:
+        feature64=true;
+        featureS2=true;
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1166,6 +1187,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (powernoise!=defaultIns.powernoise) {
       featurePN=true;
+    }
+    if (sid2!=defaultIns.sid2) {
+      featureS2=true;
     }
   }
 
@@ -1314,6 +1338,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featurePN) {
     writeFeaturePN(w);
+  }
+  if (featureS2) {
+    writeFeatureS2(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -2127,6 +2154,18 @@ void DivInstrument::readFeaturePN(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  unsigned char next=reader.readC();
+
+  sid2.volume=next&0xf;
+  sid2.mixMode=(next>>4)&3;
+  sid2.noiseMode=next>>6;
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -2199,6 +2238,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureEF(reader,version);
     } else if (memcmp(featCode,"PN",2)==0) { // PowerNoise
       readFeaturePN(reader,version);
+    } else if (memcmp(featCode,"S2",2)==0) { // SID2
+      readFeatureS2(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing

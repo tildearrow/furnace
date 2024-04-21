@@ -629,6 +629,17 @@ src/engine/platform/sound/dave/dave.cpp
 
 src/engine/platform/sound/nds.cpp
 
+src/engine/platform/sound/sid2/envelope.cc
+src/engine/platform/sound/sid2/filter.cc
+src/engine/platform/sound/sid2/sid.cc
+src/engine/platform/sound/sid2/version.cc
+src/engine/platform/sound/sid2/voice.cc
+src/engine/platform/sound/sid2/wave8580_PS_.cc
+src/engine/platform/sound/sid2/wave8580_PST.cc
+src/engine/platform/sound/sid2/wave8580_P_T.cc
+src/engine/platform/sound/sid2/wave8580__ST.cc
+src/engine/platform/sound/sid2/wave.cc
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -742,6 +753,7 @@ src/engine/platform/gbadma.cpp
 src/engine/platform/gbaminmod.cpp
 src/engine/platform/nds.cpp
 src/engine/platform/bifurcator.cpp
+src/engine/platform/sid2.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 

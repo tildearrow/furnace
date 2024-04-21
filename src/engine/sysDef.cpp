@@ -665,6 +665,20 @@ void DivEngine::registerSystems() {
     fmESFMPostEffectHandlerMap.emplace(0x30+i,fmESFMFixFreqFNumHandler[i/4]);
   }
 
+  EffectHandlerMap SID2PostEffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise)"}},
+    {0x11, {DIV_CMD_C64_RESONANCE, "11xx: Set resonance (0 to FF)"}},
+    {0x12, {DIV_CMD_C64_FILTER_MODE, "12xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"}},
+    {0x13, {DIV_CMD_C64_RESET_MASK, "13xx: Disable envelope reset for this channel (1 disables; 0 enables)"}},
+    {0x14, {DIV_CMD_C64_FILTER_RESET, "14xy: Reset cutoff (x: on new note; y: now)"}},
+    {0x15, {DIV_CMD_C64_DUTY_RESET, "15xy: Reset pulse width (x: on new note; y: now)"}},
+    {0x16, {DIV_CMD_C64_EXTENDED, "16xy: Change other parameters"}},
+  };
+  const EffectHandler SID2FineDutyHandler(DIV_CMD_C64_FINE_DUTY, "3xxx: Set pulse width (0 to FFF)", effectValLong<12>);
+  const EffectHandler SID2FineCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, "4xxx: Set cutoff (0 to FFF)", effectValLong<11>);
+  for (int i=0; i<16; i++) SID2PostEffectHandlerMap.emplace(0x30+i,SID2FineDutyHandler);
+  for (int i=0; i<16; i++) SID2PostEffectHandlerMap.emplace(0x40+i,SID2FineCutoffHandler);
+
   // SysDefs
 
   // this chip uses YMZ ADPCM, but the emulator uses ADPCM-B because I got it wrong back then.
@@ -2105,6 +2119,18 @@ void DivEngine::registerSystems() {
       {0x12, {DIV_CMD_BIFURCATOR_PARAMETER, "12xx: Set low byte of channel parameter", constVal<0>, effectVal}},
       {0x13, {DIV_CMD_BIFURCATOR_PARAMETER, "13xx: Set high byte of channel parameter", constVal<1>, effectVal}},
     }
+  );
+
+  sysDefs[DIV_SYSTEM_SID2]=new DivSysDef(   
+    "SID2", NULL, 0xf0, 0, 3, false, true, 0, false, 0, 0, 0,
+    "a fantasy sound chip created by LTVA. it is similar to the SID chip, but with many of its problems fixed.",
+    {"Channel 1", "Channel 2", "Channel 3"},
+    {"CH1", "CH2", "CH3"},
+    {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
+    {DIV_INS_SID2, DIV_INS_SID2, DIV_INS_SID2},
+    {},
+    {}, 
+    SID2PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
