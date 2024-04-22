@@ -1438,6 +1438,7 @@ void DivPlatformYM2608::forceIns() {
       chan[i].freqChanged=true;
     }
   }
+  immWrite(0x11,globalRSSVolume&0x3f);
   immWrite(0x22,lfoValue);
   for (int i=9; i<16; i++) {
     chan[i].insChanged=true;

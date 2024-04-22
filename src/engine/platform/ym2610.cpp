@@ -1403,6 +1403,7 @@ void DivPlatformYM2610::forceIns() {
       chan[i].freqChanged=true;
     }
   }
+  immWrite(0x101,globalADPCMAVolume&0x3f);
   immWrite(0x22,lfoValue);
   for (int i=adpcmAChanOffs; i<=adpcmBChanOffs; i++) {
     chan[i].insChanged=true;
