@@ -11,7 +11,7 @@ if (APPLE)
   enable_language(OBJCXX)
 endif()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
@@ -359,6 +359,14 @@ if (USE_SDL2)
     if (ANDROID AND NOT TERMUX)
       set(SDL_SHARED ON CACHE BOOL "Force no dynamically-linked SDL" FORCE)
       set(SDL_STATIC OFF CACHE BOOL "Force statically-linked SDL" FORCE)
+      set(SDL2IMAGE_INSTALL OFF CACHE BOOL "" FORCE) 
+      set(SDL2TTF_INSTALL OFF CACHE BOOL "" FORCE) 
+      set(SDL2NET_INSTALL OFF CACHE BOOL "" FORCE)
+      set(SDL2IMAGE_SAMPLES OFF CACHE BOOL "" FORCE)
+      set(SDL2NET_SAMPLES OFF CACHE BOOL "" FORCE) 
+      set(SDL2TTF_SAMPLES OFF CACHE BOOL "" FORCE) 
+      set(SDL2MIXER_SAMPLES OFF CACHE BOOL "" FORCE)
+      set(SDL2TTF_VENDORED ON CACHE BOOL "" FORCE)
     else()
       set(SDL_SHARED OFF CACHE BOOL "Force no dynamically-linked SDL" FORCE)
       set(SDL_STATIC ON CACHE BOOL "Force statically-linked SDL" FORCE)
@@ -756,6 +764,8 @@ src/engine/platform/bifurcator.cpp
 src/engine/platform/sid2.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
+
+src/engine/platform/cpt100.cpp
 
 src/engine/export/abstract.cpp
 src/engine/export/amigaValidation.cpp

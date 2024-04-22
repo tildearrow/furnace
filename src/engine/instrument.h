@@ -82,6 +82,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_PV1000=49,
   DIV_INS_K053260=50,
   // DIV_INS_YMF292=51,
+  DIV_INS_CPT100=51,
   DIV_INS_TED=52,
   DIV_INS_C140=53,
   DIV_INS_C219=54,
@@ -784,6 +785,50 @@ struct DivInstrumentSNES {
     d2(0) {}
 };
 
+struct DivInstrumentCPT100 {
+  unsigned char op2f, op3f, op4f;
+  unsigned char op1w, op2w, op3w, op4w;
+  unsigned char op1v, op1a, op1d, op1s, op1r;
+  unsigned char op2v, op2a, op2d, op2s, op2r;
+  unsigned char op3v, op3a, op3d, op3s, op3r;
+  unsigned char op4v, op4a, op4d, op4s, op4r;
+  int wave;
+
+  bool operator==(const DivInstrumentCPT100& other);
+  bool operator!=(const DivInstrumentCPT100& other) {
+    return !(*this==other);
+  }
+
+  DivInstrumentCPT100():
+    op2f(0),
+    op3f(0),
+    op4f(0),
+    op1w(0),
+    op2w(0),
+    op3w(0),
+    op4w(0),
+    op1v(0),
+    op1a(0),
+    op1d(0),
+    op1s(0),
+    op1r(0),
+    op2v(0),
+    op2a(0),
+    op2d(0),
+    op2s(0),
+    op2r(0),
+    op3v(0),
+    op3a(0),
+    op3d(0),
+    op3s(0),
+    op3r(0),
+    op4v(0),
+    op4a(0),
+    op4d(0),
+    op4s(0),
+    op4r(0)
+    {}
+};
 // ESFM operator structure:
 // - DELAY, OUT, MOD, L, R, NOISE
 //   - Virtual: CT, DT, FIXED
@@ -876,6 +921,7 @@ struct DivInstrument {
   DivInstrumentSoundUnit su;
   DivInstrumentES5506 es5506;
   DivInstrumentSNES snes;
+  DivInstrumentCPT100 cpt;
   DivInstrumentESFM esfm;
   DivInstrumentPowerNoise powernoise;
   DivInstrumentSID2 sid2;
@@ -903,6 +949,7 @@ struct DivInstrument {
   void writeFeatureES(SafeWriter* w);
   void writeFeatureX1(SafeWriter* w);
   void writeFeatureNE(SafeWriter* w);
+  void writeFeatureCP(SafeWriter* w);
   void writeFeatureEF(SafeWriter* w);
   void writeFeaturePN(SafeWriter* w);
   void writeFeatureS2(SafeWriter* w);
@@ -926,6 +973,7 @@ struct DivInstrument {
   void readFeatureES(SafeReader& reader, short version);
   void readFeatureX1(SafeReader& reader, short version);
   void readFeatureNE(SafeReader& reader, short version);
+  void readFeatureCP(SafeReader& reader, short version);
   void readFeatureEF(SafeReader& reader, short version);
   void readFeaturePN(SafeReader& reader, short version);
   void readFeatureS2(SafeReader& reader, short version);

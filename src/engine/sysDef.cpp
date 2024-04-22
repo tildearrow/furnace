@@ -2142,6 +2142,17 @@ void DivEngine::registerSystems() {
     {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}
   );
 
+  sysDefs[DIV_SYSTEM_CPT100]=new DivSysDef(
+    "CPT100", NULL, 0xfe, 0, 6, false, true, 0, false, 0, 32, 256,
+    "src3453's fantasy console is now ported to furnace! Please enjoy!",
+    {"FM 1", "FM 2", "FM 3", "FM 4", "Channel 5", "Channel 6"},
+    {"FM1", "FM2", "FM3", "FM4", "CH5", "CH6"},
+    {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_WAVE, DIV_CH_WAVE},
+    {DIV_INS_CPT100, DIV_INS_CPT100, DIV_INS_CPT100, DIV_INS_CPT100, DIV_INS_CPT100, DIV_INS_CPT100},
+    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    waveOnlyEffectHandlerMap
+  );
+
   for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
     if (sysDefs[i]==NULL) continue;
     if (sysDefs[i]->id!=0) {

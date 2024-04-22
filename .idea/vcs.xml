@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/SDL" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/adpcm" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/fmt" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/libsndfile" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/extern/portaudio" vcs="Git" />
+  </component>
+</project>

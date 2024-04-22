@@ -231,6 +231,38 @@ bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
   );
 }
 
+bool DivInstrumentCPT100::operator==(const DivInstrumentCPT100& other) {
+  return (
+    _C(op2f) &&
+    _C(op3f) &&
+    _C(op4f) &&
+    _C(op1w) &&
+    _C(op2w) &&
+    _C(op3w) &&
+    _C(op4w) &&
+    _C(op1v) &&
+    _C(op1a) &&
+    _C(op1d) &&
+    _C(op1s) &&
+    _C(op1r) &&
+    _C(op2v) &&
+    _C(op2a) &&
+    _C(op2d) &&
+    _C(op2s) &&
+    _C(op2r) &&
+    _C(op3v) &&
+    _C(op3a) &&
+    _C(op3d) &&
+    _C(op3s) &&
+    _C(op3r) &&
+    _C(op4v) &&
+    _C(op4a) &&
+    _C(op4d) &&
+    _C(op4s) &&
+    _C(op4r)
+  );
+}
+
 bool DivInstrumentESFM::operator==(const DivInstrumentESFM& other) {
   return (
     _C(noise) &&
@@ -814,6 +846,39 @@ void DivInstrument::writeFeatureNE(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureCP(SafeWriter* w) {
+  FEATURE_BEGIN("CP");
+
+    w->writeC(cpt.op2f);
+    w->writeC(cpt.op3f);
+    w->writeC(cpt.op4f);
+    w->writeC(cpt.op1w);
+    w->writeC(cpt.op2w);
+    w->writeC(cpt.op3w);
+    w->writeC(cpt.op4w);
+    w->writeC(cpt.op1v);
+    w->writeC(cpt.op1a);
+    w->writeC(cpt.op1d);
+    w->writeC(cpt.op1s);
+    w->writeC(cpt.op1r);
+    w->writeC(cpt.op2v);
+    w->writeC(cpt.op2a);
+    w->writeC(cpt.op2d);
+    w->writeC(cpt.op2s);
+    w->writeC(cpt.op2r);
+    w->writeC(cpt.op3v);
+    w->writeC(cpt.op3a);
+    w->writeC(cpt.op3d);
+    w->writeC(cpt.op3s);
+    w->writeC(cpt.op3r);
+    w->writeC(cpt.op4v);
+    w->writeC(cpt.op4a);
+    w->writeC(cpt.op4d);
+    w->writeC(cpt.op4s);
+    w->writeC(cpt.op4r);
+    
+  FEATURE_END;
+}
 void DivInstrument::writeFeatureEF(SafeWriter* w) {
   FEATURE_BEGIN("EF");
 
@@ -889,6 +954,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureES=false;
   bool featureX1=false;
   bool featureNE=false;
+  bool featureCP=false;
   bool featureEF=false;
   bool featurePN=false;
   bool featureS2=false;
@@ -1105,6 +1171,12 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureSM=true;
         featureSL=true;
         break;
+      case DIV_INS_CPT100:
+        checkForWL=true;
+        featureSM=true;
+        if (amiga.useSample) featureSL=true;
+        if (ws.enabled) featureWS=true;
+        featureCP=true;
       case DIV_INS_ESFM:
         featureFM=true;
         featureEF=true;
@@ -1181,6 +1253,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (x1_010!=defaultIns.x1_010) {
       featureX1=true;
+    }
+    if (cpt!=defaultIns.cpt) {
+      featureCP=true;
     }
     if (esfm!=defaultIns.esfm) {
       featureEF=true;
@@ -1332,6 +1407,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureNE) {
     writeFeatureNE(w);
+  }
+  if (featureCP) {
+    writeFeatureCP(w);
   }
   if (featureEF) {
     writeFeatureEF(w);
@@ -2120,6 +2198,39 @@ void DivInstrument::readFeatureNE(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureCP(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  cpt.op2f=reader.readC();
+  cpt.op3f=reader.readC();
+  cpt.op4f=reader.readC();
+  cpt.op1w=reader.readC();
+  cpt.op2w=reader.readC();
+  cpt.op3w=reader.readC();
+  cpt.op4w=reader.readC();
+  cpt.op1v=reader.readC();
+  cpt.op1a=reader.readC();
+  cpt.op1d=reader.readC();
+  cpt.op1s=reader.readC();
+  cpt.op1r=reader.readC();
+  cpt.op2v=reader.readC();
+  cpt.op2a=reader.readC();
+  cpt.op2d=reader.readC();
+  cpt.op2s=reader.readC();
+  cpt.op2r=reader.readC();
+  cpt.op3v=reader.readC();
+  cpt.op3a=reader.readC();
+  cpt.op3d=reader.readC();
+  cpt.op3s=reader.readC();
+  cpt.op3r=reader.readC();
+  cpt.op4v=reader.readC();
+  cpt.op4a=reader.readC();
+  cpt.op4d=reader.readC();
+  cpt.op4s=reader.readC();
+  cpt.op4r=reader.readC();
+
+  READ_FEAT_END;
+}
 void DivInstrument::readFeatureEF(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
@@ -2234,6 +2345,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureX1(reader,version);
     } else if (memcmp(featCode,"NE",2)==0) { // NES (DPCM)
       readFeatureNE(reader,version);
+    } else if (memcmp(featCode,"CP",2)==0) { // CPT100
+      readFeatureCP(reader,version);
     } else if (memcmp(featCode,"EF",2)==0) { // ESFM
       readFeatureEF(reader,version);
     } else if (memcmp(featCode,"PN",2)==0) { // PowerNoise
