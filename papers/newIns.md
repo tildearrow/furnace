@@ -333,7 +333,8 @@ size | description
   2  | duty
   2  | cutoff/resonance
      | - bit 12-15: resonance
-     | - bit 0-10: cutoff
+     | - bit 0-10: cutoff (0-11 on SID2)
+  1  | upper nibble of resonance (for SID2) (>=199)
 ```
 
 ## C64 compatibility note (>=187)

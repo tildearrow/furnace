@@ -5754,8 +5754,13 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Enable filter",&ins->c64.toFilter));
           P(ImGui::Checkbox("Initialize filter",&ins->c64.initFilter));
           
-          P(CWSliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_TWO_THOUSAND_FORTY_SEVEN)); rightClickable
-          P(CWSliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_FIFTEEN)); rightClickable
+          if (ins->type==DIV_INS_SID2) {
+            P(CWSliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE)); rightClickable
+            P(CWSliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+          } else {
+            P(CWSliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_TWO_THOUSAND_FORTY_SEVEN)); rightClickable
+            P(CWSliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_FIFTEEN)); rightClickable
+          }
 
           ImGui::AlignTextToFramePadding();
           ImGui::Text("Filter Mode");
@@ -7048,7 +7053,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_SID2) {
             ex1Max=3;
-            ex2Max=15;
+            ex2Max=255;
           }
           if (ins->type==DIV_INS_X1_010) {
             dutyMax=0;
@@ -7292,6 +7297,17 @@ void FurnaceGUI::drawInsEdit() {
                 cutoffMin=0;
                 cutoffMax=2047;
               }
+
+              if (ins->type==DIV_INS_SID2) {
+                if (ins->c64.filterIsAbs) {
+                  cutoffMin=0;
+                  cutoffMax=4095;
+                } else {
+                  cutoffMin=-4095;
+                  cutoffMax=4095;
+                }
+              }
+
               macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.algMacro,cutoffMin,cutoffMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,filtModeBits));
             } else if (ins->type==DIV_INS_SAA1099) {
@@ -7327,8 +7343,10 @@ void FurnaceGUI::drawInsEdit() {
             }
           }
           if (ex2Max>0) {
-            if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) {
+            if (ins->type==DIV_INS_C64) {
               macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+            } else if (ins->type==DIV_INS_SID2) {
+              macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_FDS) {
               macroList.push_back(FurnaceGUIMacroDesc("Mod Speed",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SU) {
