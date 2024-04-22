@@ -6455,7 +6455,7 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    if (!settings.renderClearPos) {
+    if (!settings.renderClearPos || renderBackend==GUI_BACKEND_METAL) {
       rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
     }
     renderTimeBegin=SDL_GetPerformanceCounter();
@@ -6496,7 +6496,7 @@ bool FurnaceGUI::loop() {
       }
     }
     rend->present();
-    if (settings.renderClearPos) {
+    if (settings.renderClearPos && renderBackend!=GUI_BACKEND_METAL) {
       rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
     }
     swapTimeEnd=SDL_GetPerformanceCounter();
