@@ -324,7 +324,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chan[c.chan].envHigh&=~3;
       chan[c.chan].envHigh|=(c.value>>4)&3;
       chan[c.chan].envLow=c.value&15;
-      writeEnv(c.chan);
+      writeEnv(c.chan,true);
       break;
     case DIV_CMD_FDS_MOD_DEPTH: // set modulation
       if (c.chan!=4) break;
