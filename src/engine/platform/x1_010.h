@@ -119,6 +119,8 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
   unsigned int sampleOffX1[256];
   bool sampleLoaded[256];
 
+  DivMemoryComposition memCompo;
+
   unsigned char regPool[0x2000];
   double NoteX1_010(int ch, int note);
   void updateWave(int ch);
@@ -151,6 +153,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     void renderSamples(int chipID);
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);

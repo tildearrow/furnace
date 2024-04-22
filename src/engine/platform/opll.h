@@ -26,6 +26,7 @@
 extern "C" {
 #include "../../../extern/Nuked-OPLL/opll.h"
 }
+#include "../../../extern/emu2413/emu2413.h"
 
 class DivPlatformOPLL: public DivDispatch {
   protected:
@@ -55,6 +56,7 @@ class DivPlatformOPLL: public DivDispatch {
     };
     FixedQueue<QueuedWrite,512> writes;
     opll_t fm;
+    OPLL* fm_emu;
     int delay, lastCustomMemory;
     unsigned char lastBusy;
     unsigned char drumState;
@@ -68,7 +70,7 @@ class DivPlatformOPLL: public DivDispatch {
 
     unsigned char regPool[256];
 
-    bool useYMFM;
+    unsigned char selCore;
     bool crapDrums;
     bool properDrums, properDrumsSys, noTopHatFreq, fixedAll;
     bool vrc7;
@@ -88,6 +90,7 @@ class DivPlatformOPLL: public DivDispatch {
 
     void acquire_nuked(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
+    void acquire_emu(short** buf, size_t len);
   
   public:
     void acquire(short** buf, size_t len);
@@ -102,7 +105,7 @@ class DivPlatformOPLL: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    void setYMFM(bool use);
+    void setCore(unsigned char which);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     bool getLegacyAlwaysSetVolume();

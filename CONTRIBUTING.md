@@ -2,7 +2,19 @@
 
 contributions to Furnace are welcome!
 
-# Getting ready
+# Issue reports
+
+if you find an issue with Furnace, see the Issues section.
+
+# Suggestions and other types of discussions
+
+see the Discussions section.
+
+**DO NOT USE THE ISSUES SECTION FOR THESE - it is only for ISSUES.**
+
+# Other
+
+## Getting ready
 
 log into your Github account, and click the Fork button in the header of the project's page.
 
@@ -14,9 +26,9 @@ git clone git@github.com:USERNAME/furnace.git
 
 (replace `USERNAME` with your username)
 
-# Working
+## Working
 
-## Code
+### Code
 
 bug fixes, improvements and several other things accepted.
 
@@ -54,7 +66,8 @@ the coding style is described here:
 - in float/double operations, always use decimal and `f` if single-precision.
   - e.g. `1.0f` or `1.0` instead of `1`.
 - prefer `NULL` over `nullptr` or any other proprietary null.
-- don't use `auto` unless needed.
+- only use `auto` if needed.
+- avoid using `goto` unless absolutely required.
 - use `String` for `std::string` (this is typedef'd in ta-utils.h).
 - prefer using operator for String (std::string) comparisons (a=="").
 - if you have to work with C strings, only use safe C string operations:
@@ -83,11 +96,11 @@ additional guidelines:
 - on a switch block, **always** put `default` last and not in any other position.
   - I have fear of some C/C++ compilers ignoring the rest of cases upon hitting default.
 
-## Do NOT Force-Push after submitting Pull Request
+### Do NOT Force-Push after submitting Pull Request
 
 if you do so, your pull request will be closed.
 
-## Demo Songs
+### Demo Songs
 
 just put your demo song in `demos/`! be noted there are some guidelines:
 
@@ -97,12 +110,13 @@ just put your demo song in `demos/`! be noted there are some guidelines:
 - the following systems are not acceptable:
   - YMU759/MA-2: exists only for compatibility.
   - Pong: it is a joke system.
+- the song shall be in Furnace file format.
 
-# Finishing
+## Finishing
 
 after you've done your modifications, commit the changes and push.
 then open your fork on GitHub and send a pull request.
 
-# I don't know how to use Git but I want to contribute with a demo song
+## I don't know how to use Git but I want to contribute with a demo song
 
 you can also contact me directly! [find me here.](https://tildearrow.org/?p=contact)

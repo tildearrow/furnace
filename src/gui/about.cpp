@@ -70,8 +70,8 @@ const char* aboutLine[]={
   "Abstract 64",
   "Aburtos",
   "ActualNK358",
-  "airconmanws",
   "akumanatt",
+  "aloelucidity",
   "AmigaX",
   "AquaDoesStuff",
   "AURORA*FIELDS",
@@ -99,6 +99,7 @@ const char* aboutLine[]={
   "dumbut",
   "Eknous",
   "Electric Keet",
+  "EntropyAuthor",
   "EpicTyphlosion",
   "FΛDE",
   "Forte",
@@ -133,6 +134,7 @@ const char* aboutLine[]={
   "NeoWar",
   "Nerreave",
   "niffuM",
+  "Nikku4211",
   "<nk>",
   "Notakin",
   "nwcr",
@@ -152,6 +154,7 @@ const char* aboutLine[]={
   "RevvoBolt",
   "Rockyfan75000",
   "scooblee",
+  "sheffield^2",
   "sillygoose",
   "smaybius",
   "SnugglyBun",
@@ -163,6 +166,7 @@ const char* aboutLine[]={
   "System64",
   "TakuikaNinja",
   "tapekeep",
+  "TapeStone",
   "TCORPStudios",
   "Teuthida",
   "ThaCuber",
@@ -175,7 +179,6 @@ const char* aboutLine[]={
   "tom_atom",
   "traumatized",
   "Tytanium654",
-  "Uhrwerk Klockwerx",
   "Ultraprogramer",
   "UserSniper",
   "Weeppiko",
@@ -196,6 +199,12 @@ const char* aboutLine[]={
   "plane",
   "TheEssem",
   "",
+  "-- Metal backend test team --",
+  "Diggo",
+  "konard",
+  "NaxeCode",
+  "scratchminer",
+  "",
   "powered by:",
   "Dear ImGui by Omar Cornut",
   "SDL2 by Sam Lantinga",
@@ -213,10 +222,12 @@ const char* aboutLine[]={
   "FFTW by Matteo Frigo and Steven G. Johnson",
   "backward-cpp by Google",
   "adpcm by superctr",
+  "adpcm-xq by David Bryant",
   "Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt",
   "YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt",
-  "ESFMu by Kagamiin~",
+  "ESFMu (modified version) by Kagamiin~",
   "ymfm by Aaron Giles",
+  "emu2413 by Digital Sound Antiques",
   "MAME SN76496 by Nicola Salmoria",
   "MAME AY-3-8910 by Couriersud",
   "with AY8930 fixes by Eulous, cam900 and Grauw",
@@ -252,6 +263,8 @@ const char* aboutLine[]={
   "D65010G031 emulator (modified version) by cam900",
   "Namco C140/C219 emulator (modified version) by cam900",
   "PowerNoise emulator by scratchminer",
+  "ep128emu by Istvan Varga",
+  "NDS sound emulator by cam900",
   "",
   "greetings to:",
   "NEOART Costa Rica",
@@ -369,6 +382,16 @@ void FurnaceGUI::drawAbout() {
     while (aboutHue>1) aboutHue--;
     while (aboutSin>=2400) aboutSin-=2400;
     if (aboutScroll>(42*dpiScale*aboutCount+canvasH)) aboutScroll=-20*dpiScale;
+
+    if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
+      aboutOpen=false;
+      if (modified) {
+        showWarning("Unsaved changes! Save changes before playing?",GUI_WARN_CV);
+      } else {
+        cvOpen=true;
+        cvNotSerious=true;
+      }
+    }
 
     WAKE_UP;
   }

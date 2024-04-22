@@ -455,7 +455,7 @@ void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
     chipClock=8000000;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/32;
+  rate=chipClock/coreQuality;
 
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
@@ -471,6 +471,32 @@ void DivPlatformSAA1099::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformSAA1099::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+void DivPlatformSAA1099::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=256;
+      break;
+    case 1:
+      coreQuality=128;
+      break;
+    case 2:
+      coreQuality=64;
+      break;
+    case 3:
+      coreQuality=32;
+      break;
+    case 4:
+      coreQuality=8;
+      break;
+    case 5:
+      coreQuality=1;
+      break;
+    default:
+      coreQuality=32;
+      break;
+  }
 }
 
 int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

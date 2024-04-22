@@ -247,6 +247,8 @@ const char* cmdName[]={
   "ESFM_MODIN",
   "ESFM_ENV_DELAY",
 
+  "MACRO_RESTART",
+
   "POWERNOISE_COUNTER_LOAD",
   "POWERNOISE_IO_WRITE",
 
@@ -256,7 +258,10 @@ const char* cmdName[]={
   "DAVE_LOW_PASS",
   "DAVE_CLOCK_DIV",
 
-  "MACRO_RESTART",
+  "MINMOD_ECHO",
+
+  "BIFURCATOR_STATE_LOAD",
+  "BIFURCATOR_PARAMETER"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
@@ -486,6 +491,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
           } else {
             if (effectVal>0) speeds.val[0]=effectVal;
           }
+          break;
+        case 0xfd: // virtual tempo num
+          if (effectVal>0) virtualTempoN=effectVal;
+          break;
+        case 0xfe: // virtual tempo den
+          if (effectVal>0) virtualTempoD=effectVal;
           break;
         case 0x0b: // change order
           if (changeOrd==-1 || song.jumpTreatment==0) {
@@ -950,6 +961,47 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         dispatchCmd(DivCommand(DIV_CMD_HINT_PITCH,i,chan[i].pitch));
         break;
+      case 0xe6: // Delayed legato
+        // why does this have to follow FamiTracker verbatim
+        // couldn't you do better?
+        if ((effectVal&15)!=0) {
+          chan[i].legatoDelay=(((effectVal&0xf0)>>4)&7)+1;
+          if (effectVal&128) {
+            chan[i].legatoTarget=-(effectVal&15);
+          } else {
+            chan[i].legatoTarget=(effectVal&15);
+          }
+        } else {
+          chan[i].legatoDelay=-1;
+          chan[i].legatoTarget=0;
+        }
+        break;
+      case 0xe7: // delayed macro release
+        // "Bruh"
+        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+          chan[i].cut=effectVal+1;
+          chan[i].cutType=2;
+        }
+        break;
+      case 0xe8: // delayed legato up
+        // see? you COULD do better!
+        if ((effectVal&15)!=0) {
+          chan[i].legatoDelay=((effectVal&0xf0)>>4)+1;
+          chan[i].legatoTarget=(effectVal&15);
+        } else {
+          chan[i].legatoDelay=-1;
+          chan[i].legatoTarget=0;
+        }
+        break;
+      case 0xe9: // delayed legato down
+        if ((effectVal&15)!=0) {
+          chan[i].legatoDelay=((effectVal&0xf0)>>4)+1;
+          chan[i].legatoTarget=-(effectVal&15);
+        } else {
+          chan[i].legatoDelay=-1;
+          chan[i].legatoTarget=0;
+        }
+        break;
       case 0xea: // legato mode
         chan[i].legato=effectVal;
         break;
@@ -959,6 +1011,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xec: // delayed note cut
         if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
           chan[i].cut=effectVal+1;
+          chan[i].cutType=0;
         }
         break;
       case 0xee: // external command
@@ -1044,6 +1097,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].volSpeed=0;
         }
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
+        break;
+
+      case 0xfc: // delayed note release
+        if (song.delayBehavior==2 || effectVal<nextSpeed) {
+          chan[i].cut=effectVal+1;
+          chan[i].cutType=1;
+        }
         break;
       
       case 0xff: // stop song
@@ -1333,7 +1393,10 @@ void DivEngine::nextRow() {
                 }
               }
             }
-            if (doPrepareCut && !wantPreNote && chan[i].cut<=0) chan[i].cut=ticks+addition;
+            if (doPrepareCut && !wantPreNote && chan[i].cut<=0) {
+              chan[i].cut=ticks+addition;
+              chan[i].cutType=0;
+            }
           }
         }
       }
@@ -1424,9 +1487,9 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       subticks=tickMult;
 
       if (stepPlay!=1) {
-        tempoAccum+=(skipping && curSubSong->virtualTempoN<curSubSong->virtualTempoD)?curSubSong->virtualTempoD:curSubSong->virtualTempoN;
-        while (tempoAccum>=curSubSong->virtualTempoD) {
-          tempoAccum-=curSubSong->virtualTempoD;
+        tempoAccum+=(skipping && virtualTempoN<virtualTempoD)?virtualTempoD:virtualTempoN;
+        while (tempoAccum>=virtualTempoD) {
+          tempoAccum-=virtualTempoD;
           if (--ticks<=0) {
             ret=endOfSong;
             if (shallStopSched) {
@@ -1515,6 +1578,15 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               break;
           }
         }
+        if (chan[i].legatoDelay>0) {
+          if (--chan[i].legatoDelay<1) {
+            chan[i].note+=chan[i].legatoTarget;
+            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+            dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
+            chan[i].legatoDelay=-1;
+            chan[i].legatoTarget=0;
+          }
+        }
         if (!song.noSlidesOnFirstTick || !firstTick) {
           if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
             if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.targetResetsSlides) {
@@ -1530,30 +1602,36 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         }
         if (chan[i].cut>0) {
           if (--chan[i].cut<1) {
-            chan[i].oldNote=chan[i].note;
-            //chan[i].note=-1;
-            if (chan[i].inPorta && song.noteOffResetsSlides) {
-              chan[i].keyOff=true;
-              chan[i].keyOn=false;
-              if (chan[i].stopOnOff) {
-                chan[i].portaNote=-1;
-                chan[i].portaSpeed=-1;
-                dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-                chan[i].stopOnOff=false;
+            if (chan[i].cutType==2) {
+              dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
+              chan[i].releasing=true;
+            } else {
+              chan[i].oldNote=chan[i].note;
+              //chan[i].note=-1;
+              if (chan[i].inPorta && song.noteOffResetsSlides) {
+                chan[i].keyOff=true;
+                chan[i].keyOn=false;
+                if (chan[i].stopOnOff) {
+                  chan[i].portaNote=-1;
+                  chan[i].portaSpeed=-1;
+                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+                  chan[i].stopOnOff=false;
+                }
+                if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
+                  chan[i].portaNote=-1;
+                  chan[i].portaSpeed=-1;
+                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+                }
+                dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+                chan[i].scheduledSlideReset=true;
               }
-              if (disCont[dispatchOfChan[i]].dispatch->keyOffAffectsPorta(dispatchChanOfChan[i])) {
-                chan[i].portaNote=-1;
-                chan[i].portaSpeed=-1;
-                dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-                /*if (i==2 && sysOfChan[i]==DIV_SYSTEM_SMS) {
-                  chan[i+1].portaNote=-1;
-                  chan[i+1].portaSpeed=-1;
-                }*/
+              if (chan[i].cutType==1) {
+                dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
+              } else {
+                dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
               }
-              dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
-              chan[i].scheduledSlideReset=true;
+              chan[i].releasing=true;
             }
-            dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
           }
         }
         if (chan[i].resetArp) {
@@ -1595,9 +1673,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
   if (subticks==tickMult && cmdStreamInt) {
     if (!cmdStreamInt->tick()) {
-      cmdStreamInt->cleanup();
-      delete cmdStreamInt;
-      cmdStreamInt=NULL;
+      // !!!
     }
   }
 
@@ -1671,7 +1747,7 @@ void DivEngine::runMidiClock(int totalCycles) {
     if (hl<=0.0) hl=4.0;
     double timeBase=curSubSong->timeBase+1;
     double speedSum=0;
-    double vD=curSubSong->virtualTempoD;
+    double vD=virtualTempoD;
     for (int i=0; i<MIN(16,speeds.len); i++) {
       speedSum+=speeds.val[i];
     }
@@ -1679,7 +1755,7 @@ void DivEngine::runMidiClock(int totalCycles) {
     if (timeBase<1.0) timeBase=1.0;
     if (speedSum<1.0) speedSum=1.0;
     if (vD<1) vD=1;
-    double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)curSubSong->virtualTempoN/vD;
+    double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)virtualTempoN/vD;
     if (bpm<1.0) bpm=1.0;
     int increment=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
 

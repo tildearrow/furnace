@@ -68,10 +68,11 @@ class DivPlatformPCE: public DivDispatch {
   FixedQueue<QueuedWrite,512> writes;
   unsigned char lastPan;
 
-  int cycles, curChan, delay;
+  int curChan;
   int tempL[32];
   int tempR[32];
   unsigned char sampleBank, lfoMode, lfoSpeed;
+  int coreQuality;
   PCE_PSG* pce;
   unsigned char regPool[128];
   void updateWave(int ch);
@@ -96,6 +97,7 @@ class DivPlatformPCE: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    void setCoreQuality(unsigned char q);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);

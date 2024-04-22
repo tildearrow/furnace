@@ -40,7 +40,7 @@ these apply to each operator:
 ![FM ADSR chart](FM-ADSRchart.png)
 
 - **Key Scale Rate (KSR)**: also known as "Rate Scale". determines the degree to which the envelope execution speed increases according to the pitch.
-- **Frequency Multiplier (MULT)**: sets the coarse pitch offset in relation to the note (0 to 15). 0 is -1 octave, 1 is 0 octaves, 2 is 1 octave, 3 is 1 octave 7 semitones, and so on.
+- **Frequency Multiplier (MULT)**: sets the coarse pitch offset in relation to the note (0 to 15). the values follow the harmonic scale. for example, 0 is -1 octave, 1 is 0 octaves, 2 is 1 octave, 3 is 1 octave 7 semitones, and so on.
   - note that values 11, 13 and 14 behave as 10, 12 and 12 respectively.
 - **Waveform Select (WS)**: changes the waveform of the operator (OPL2 and OPL3 only, 0-3 range on OPL2 and 0-7 on OPL3).
 - **Vibrato (VIB)**: makes the operator affected by LFO vibrato.

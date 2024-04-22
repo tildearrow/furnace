@@ -313,6 +313,15 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_XY_OSC:
       nextWindow=GUI_WINDOW_XY_OSC;
       break;
+    case GUI_ACTION_WINDOW_MEMORY:
+      nextWindow=GUI_WINDOW_MEMORY;
+      break;
+    case GUI_ACTION_WINDOW_CS_PLAYER:
+      nextWindow=GUI_WINDOW_CS_PLAYER;
+      break;
+    case GUI_ACTION_WINDOW_USER_PRESETS:
+      nextWindow=GUI_WINDOW_USER_PRESETS;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -412,6 +421,14 @@ void FurnaceGUI::doAction(int what) {
         case GUI_WINDOW_XY_OSC:
           xyOscOpen=false;
           break;
+        case GUI_WINDOW_MEMORY:
+          memoryOpen=false;
+          break;
+        case GUI_WINDOW_CS_PLAYER:
+          csPlayerOpen=false;
+          break;
+        case GUI_WINDOW_USER_PRESETS:
+          userPresetsOpen=false;
         default:
           break;
       }
@@ -755,9 +772,19 @@ void FurnaceGUI::doAction(int what) {
 
     
     case GUI_ACTION_WAVE_LIST_ADD: {
+      std::vector<DivSystem> alreadyDone;
       waveSizeList.clear();
       for (int i=0; i<e->song.systemLen; i++) {
+        bool skip=false;
+        for (DivSystem j: alreadyDone) {
+          if (e->song.system[i]==j) {
+            skip=true;
+            break;
+          }
+        }
+        if (skip) continue;
         const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
+        alreadyDone.push_back(e->song.system[i]);
         if (sysDef==NULL) continue;
 
         if (sysDef->waveHeight==0) continue;
@@ -1002,7 +1029,8 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_GA20 ||
             i==DIV_INS_K053260 ||
             i==DIV_INS_C140 ||
-            i==DIV_INS_C219) {
+            i==DIV_INS_C219 ||
+            i==DIV_INS_NDS) {
           makeInsTypeList.push_back(i);
         }
       }
@@ -1528,7 +1556,10 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_GA20 ||
             i==DIV_INS_K053260 ||
             i==DIV_INS_C140 ||
-            i==DIV_INS_C219) {
+            i==DIV_INS_C219 ||
+            i==DIV_INS_NDS ||
+            i==DIV_INS_GBA_DMA ||
+            i==DIV_INS_GBA_MINMOD) {
           makeInsTypeList.push_back(i);
         }
       }

@@ -379,6 +379,20 @@ void FurnaceGUI::drawSampleEdit() {
             if (sample->samples>129024) {
               SAMPLE_WARN(warnLength,"MSM6295: maximum bankswitched sample length is 129024");
             }
+            break;
+          case DIV_SYSTEM_GBA_DMA:
+            if (sample->loop) {
+              if (sample->loopStart&3) {
+                SAMPLE_WARN(warnLoopStart,"GBA DMA: loop start must be a multiple of 4");
+              }
+              if ((sample->loopEnd-sample->loopStart)&15) {
+                SAMPLE_WARN(warnLoopEnd,"GBA DMA: loop length must be a multiple of 16");
+              }
+            }
+            if (sample->samples&15) {
+              SAMPLE_WARN(warnLength,"GBA DMA: sample length will be padded to multiple of 16");
+            }
+            break;
           default:
             break;
         }
@@ -484,7 +498,7 @@ void FurnaceGUI::drawSampleEdit() {
               if (ImGui::Selectable(sampleDepths[i])) {
                 sample->prepareUndo(true);
                 e->lockEngine([this,sample,i]() {
-                  sample->convert((DivSampleDepth)i);
+                  sample->convert((DivSampleDepth)i,e->getSampleFormatMask());
                   e->renderSamples(curSample);
                 });
                 updateSampleTex=true;
@@ -1575,7 +1589,7 @@ void FurnaceGUI::drawSampleEdit() {
           updateSampleTex=false;
         }
 
-        ImGui::ImageButton(rend->getTextureID(sampleTex),avail,ImVec2(0,0),ImVec2(1,1),0);
+        ImGui::ImageButton(rend->getTextureID(sampleTex),avail,ImVec2(0,0),ImVec2(rend->getTextureU(sampleTex),rend->getTextureV(sampleTex)),0);
 
         ImVec2 rectMin=ImGui::GetItemRectMin();
         ImVec2 rectMax=ImGui::GetItemRectMax();

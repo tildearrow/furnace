@@ -2066,6 +2066,8 @@ void FMOPN2_YMF276Accumulator1(fmopn2_t *chip)
     int acc_l = 0;
     int acc_r = 0;
 
+    chip->osc_out = 0;
+
     for (i = 0; i < 14; i++)
         accm += ((chip->ch_accm[i][1] >> 5) & 1) << i;
     if (chip->alg_output && !test_dac)
@@ -2106,12 +2108,12 @@ void FMOPN2_YMF276Accumulator1(fmopn2_t *chip)
     chip->fsm_op1_sel_l3[0] = chip->fsm_op1_sel;
 
     if (sel_dac)
-        out |= chip->mode_dac_data[1] << 6;
+        chip->osc_out |= chip->mode_dac_data[1] << 6;
     if (sel_fm)
-        out |= accm;
+        chip->osc_out |= accm;
 
-    if (out & 0x2000)
-        out |= 0x1c000;
+    if (chip->osc_out & 0x2000)
+        chip->osc_out |= 0x1c000;
 
     for (i = 0; i < 2; i++)
         pan |= (((chip->chan_pan[i][1] >> 5) & 1) ^ 1) << i;
@@ -2130,8 +2132,8 @@ void FMOPN2_YMF276Accumulator1(fmopn2_t *chip)
         acc_r = chip->ch_accm_r[1];
     }
 
-    chip->ch_accm_l[0] = acc_l + ((pan & 2) != 0 ? out : 0);
-    chip->ch_accm_r[0] = acc_r + ((pan & 1) != 0 ? out : 0);
+    chip->ch_accm_l[0] = acc_l + ((pan & 2) != 0 ? chip->osc_out : 0);
+    chip->ch_accm_r[0] = acc_r + ((pan & 1) != 0 ? chip->osc_out : 0);
 }
 
 void FMOPN2_YMF276Accumulator2(fmopn2_t *chip)

@@ -65,6 +65,7 @@ class DivPlatformN163: public DivDispatch {
 
   n163_core n163;
   unsigned char regPool[128];
+  DivMemoryComposition memCompo;
   void updateWave(int ch, int wave, int pos, int len);
   void updateWaveCh(int ch);
   friend void putDispatchChip(void*,int);
@@ -82,6 +83,7 @@ class DivPlatformN163: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    const DivMemoryComposition* getMemCompo(int index);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsChange(int ins);

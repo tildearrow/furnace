@@ -321,6 +321,7 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
       chan[c.chan].ctlChanged=true;
+      chan[c.chan].freqChanged=true; //round freq for specific waves
       break;
     case DIV_CMD_STD_NOISE_MODE:
       audctl=c.value&0xff;

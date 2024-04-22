@@ -63,10 +63,13 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
     posAbs.y+rectMin.x*sin(rotate)+rectMax.y*cos(rotate)
   );
 
-  ImVec2 uv0=ImVec2(uvMin.x,uvMin.y);
-  ImVec2 uv1=ImVec2(uvMax.x,uvMin.y);
-  ImVec2 uv2=ImVec2(uvMax.x,uvMax.y);
-  ImVec2 uv3=ImVec2(uvMin.x,uvMax.y);
+  float uScale=rend->getTextureU(img);
+  float vScale=rend->getTextureV(img);
+
+  ImVec2 uv0=ImVec2(uvMin.x*uScale,uvMin.y*vScale);
+  ImVec2 uv1=ImVec2(uvMax.x*uScale,uvMin.y*vScale);
+  ImVec2 uv2=ImVec2(uvMax.x*uScale,uvMax.y*vScale);
+  ImVec2 uv3=ImVec2(uvMin.x*uScale,uvMax.y*vScale);
 
   ImU32 colorConverted=ImGui::GetColorU32(imgColor);
 

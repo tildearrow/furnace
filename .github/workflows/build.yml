@@ -261,11 +261,6 @@ jobs:
         rmdir orig
         rm Furnace-*-Darwin.dmg
 
-        if [ -e new/Furnace.app/Contents/Resources/bin/furnace ]; then
-          rm -v new/Furnace.app/Contents/Resources/bin/furnace
-          rmdir new/Furnace.app/Contents/Resources/bin
-        fi
-
         echo "copying extra stuff"
         cp -v ../LICENSE new/LICENSE.txt
         cp -v ../res/releaseReadme/stable-mac.txt new/README
@@ -278,7 +273,7 @@ jobs:
 
         echo "creating new image"
         retries=0
-        while ! hdiutil create -srcfolder new -volname Furnace -format UDZO furnace.dmg; do
+        while ! hdiutil create -srcfolder new -volname Furnace -format UDZO -fs HFS+ furnace.dmg; do
           echo "TRYING AGAIN..."
           retries=$((retries+1))
           if [ $retries -gt 5 ]; then
@@ -333,6 +328,13 @@ jobs:
 
     - name: Upload artifact
       if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'master' }}
+      uses: actions/upload-artifact@v4.3.0
+      with:
+        name: ${{ steps.package-identify.outputs.id }}
+        path: ${{ steps.package-identify.outputs.filename }}
+
+    - name: Upload Metal artifact
+      if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'metal' }}
       uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.package-identify.outputs.id }}

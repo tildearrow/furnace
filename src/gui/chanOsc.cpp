@@ -239,7 +239,7 @@ void FurnaceGUI::drawChanOsc() {
 
             ImVec2 gradLeft=ImGui::GetCursorPos();
             ImVec2 gradSize=ImVec2(400.0f*dpiScale,400.0f*dpiScale);
-            ImGui::Image(rend->getTextureID(chanOscGradTex),gradSize);
+            ImGui::Image(rend->getTextureID(chanOscGradTex),gradSize,ImVec2(0,0),ImVec2(rend->getTextureU(chanOscGradTex),rend->getTextureV(chanOscGradTex)));
             ImVec2 gradLeftAbs=ImGui::GetItemRectMin();
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
               if (chanOscGrad.points.size()<32) {

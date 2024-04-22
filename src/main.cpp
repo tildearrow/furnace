@@ -72,7 +72,6 @@ bool consoleMode=true;
 #endif
 
 bool displayEngineFailError=false;
-bool cmdOutBinary=false;
 bool vgmOutDirect=false;
 
 bool safeMode=false;
@@ -153,11 +152,6 @@ TAParamResult pSafeModeAudio(String val) {
 #endif
 }
 
-TAParamResult pBinary(String val) {
-  cmdOutBinary=true;
-  return TA_PARAM_SUCCESS;
-}
-
 TAParamResult pDirect(String val) {
   vgmOutDirect=true;
   return TA_PARAM_SUCCESS;
@@ -218,9 +212,11 @@ TAParamResult pVersion(String) {
   printf("- YM3812-LLE by nukeykt (GPLv2)\n");
   printf("- YMF262-LLE by nukeykt (GPLv2)\n");
   printf("- YMF276-LLE by nukeykt (GPLv2)\n");
-  printf("- ESFMu by Kagamiin~ (LGPLv2.1)\n");
+  printf("- ESFMu (modified version) by Kagamiin~ (LGPLv2.1)\n");
   printf("- ymfm by Aaron Giles (BSD 3-clause)\n");
+  printf("- emu2413 by Digital Sound Antiques (MIT)\n");
   printf("- adpcm by superctr (public domain)\n");
+  printf("- adpcm-xq by David Bryant (BSD 3-clause)\n");
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");
   printf("- MAME AY-3-8910 emulation core by Couriersud (BSD 3-clause)\n");
   printf("- MAME SAA1099 emulation core by Juergen Buchmueller and Manuel Abadia (BSD 3-clause)\n");
@@ -254,6 +250,8 @@ TAParamResult pVersion(String) {
   printf("- D65010G031 emulator (modified version) by cam900 (zlib license)\n");
   printf("- C140/C219 emulator (modified version) by cam900 (zlib license)\n");
   printf("- PowerNoise emulator by scratchminer (MIT)\n");
+  printf("- ep128emu by Istvan Varga (GPLv2)\n");
+  printf("- NDS sound emulator by cam900 (zlib license)\n");
   return TA_PARAM_QUIT;
 }
 
@@ -373,7 +371,6 @@ void initParams() {
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("Z","zsmout",true,pZSMOut,"<filename>","output .zsm data for Commander X16 Zsound"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
-  params.push_back(TAParam("b","binary",false,pBinary,"","set command stream output format to binary"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
   params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
@@ -396,7 +393,7 @@ void reportError(String what) {
   logE("%s",what);
   MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
 }
-#elif defined(ANDROID)
+#elif defined(ANDROID) || defined(__APPLE__)
 void reportError(String what) {
   logE("%s",what);
 #ifdef HAVE_SDL2
@@ -619,7 +616,7 @@ int main(int argc, char** argv) {
       return 1;
     }
     fclose(f);
-    if (!e.load(file,(size_t)len)) {
+    if (!e.load(file,(size_t)len,fileName.c_str())) {
       reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
       e.everythingOK();
       finishLogFile();
@@ -660,7 +657,7 @@ int main(int argc, char** argv) {
 
   if (outName!="" || vgmOutName!="" || cmdOutName!="") {
     if (cmdOutName!="") {
-      SafeWriter* w=e.saveCommand(cmdOutBinary);
+      SafeWriter* w=e.saveCommand();
       if (w!=NULL) {
         FILE* f=fopen(cmdOutName.c_str(),"wb");
         if (f!=NULL) {
@@ -766,13 +763,13 @@ int main(int argc, char** argv) {
 
   g.loop();
   logI("closing GUI.");
-  g.finish();
+  g.finish(true);
 #else
   logE("GUI requested but GUI not compiled!");
 #endif
 
   logI("stopping engine.");
-  e.quit();
+  e.quit(false);
 
   finishLogFile();
 

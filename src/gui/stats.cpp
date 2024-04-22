@@ -36,24 +36,6 @@ void FurnaceGUI::drawStats() {
     ImGui::Text("Audio load");
     ImGui::SameLine();
     ImGui::ProgressBar((double)lastProcTime/maxGot,ImVec2(-FLT_MIN,0),procStr.c_str());
-    ImGui::Separator();
-    for (int i=0; i<e->song.systemLen; i++) {
-      DivDispatch* dispatch=e->getDispatch(i);
-      for (int j=0; dispatch!=NULL && dispatch->getSampleMemCapacity(j)>0; j++) {
-        size_t capacity=dispatch->getSampleMemCapacity(j);
-        size_t usage=dispatch->getSampleMemUsage(j);
-        String usageStr;
-        if (settings.memUsageUnit==1) {
-          usageStr=fmt::sprintf("%d/%dKB",usage/1024,capacity/1024);
-        } else {
-          usageStr=fmt::sprintf("%d/%d",usage,capacity);
-        }
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s [%d]", e->getSystemName(e->song.system[i]), j);
-        ImGui::SameLine();
-        ImGui::ProgressBar(((float)usage)/((float)capacity),ImVec2(-FLT_MIN,0),usageStr.c_str());
-      }
-    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_STATS;
   ImGui::End();

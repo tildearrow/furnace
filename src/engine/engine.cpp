@@ -105,6 +105,14 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "E4xx: Set vibrato range";
     case 0xe5:
       return "E5xx: Set pitch (80: center)";
+    case 0xe6:
+      return "E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)";
+    case 0xe7:
+      return "E7xx: Macro release";
+    case 0xe8:
+      return "E8xy: Quick legato up (x: time; y: semitones)";
+    case 0xe9:
+      return "E9xy: Quick legato down (x: time; y: semitones)";
     case 0xea:
       return "EAxx: Legato";
     case 0xeb:
@@ -137,6 +145,12 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "F9xx: Single tick volume slide down";
     case 0xfa:
       return "FAxx: Fast volume slide (0y: down; x0: up)";
+    case 0xfc:
+      return "FCxx: Note release";
+    case 0xfd:
+      return "FDxx: Set virtual tempo numerator";
+    case 0xfe:
+      return "FExx: Set virtual tempo denominator";
     case 0xff:
       return "FFxx: Stop song";
     default:
@@ -974,7 +988,10 @@ void DivEngine::delUnusedSamples() {
         i->type==DIV_INS_GA20 ||
         i->type==DIV_INS_K053260 ||
         i->type==DIV_INS_C140 ||
-        i->type==DIV_INS_C219) {
+        i->type==DIV_INS_C219 ||
+        i->type==DIV_INS_NDS ||
+        i->type==DIV_INS_GBA_DMA ||
+        i->type==DIV_INS_GBA_MINMOD) {
       if (i->amiga.initSample>=0 && i->amiga.initSample<song.sampleLen) {
         isUsed[i->amiga.initSample]=true;
       }
@@ -1679,7 +1696,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
       runMidiTime(cycles);
     }
     if (oldOrder!=curOrder) break;
-    if (ticks-((tempoAccum+curSubSong->virtualTempoN)/MAX(1,curSubSong->virtualTempoD))<1 && curRow>=goalRow) break;
+    if (ticks-((tempoAccum+virtualTempoN)/MAX(1,virtualTempoD))<1 && curRow>=goalRow) break;
   }
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
   if (goal>0 || goalRow>0) {
@@ -1687,6 +1704,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   }
   for (int i=0; i<chans; i++) {
     chan[i].cut=-1;
+    chan[i].cutType=0;
   }
   repeatPattern=oldRepeatPattern;
   if (preserveDrift) {
@@ -2116,6 +2134,8 @@ void DivEngine::reset() {
   extValue=0;
   extValuePresent=0;
   speeds=curSubSong->speeds;
+  virtualTempoN=curSubSong->virtualTempoN;
+  virtualTempoD=curSubSong->virtualTempoD;
   firstTick=false;
   shallStop=false;
   shallStopSched=false;
@@ -2361,6 +2381,21 @@ float DivEngine::getHz() {
 
 float DivEngine::getCurHz() {
   return divider;
+}
+
+short DivEngine::getVirtualTempoN() {
+  return virtualTempoN;
+}
+
+short DivEngine::getVirtualTempoD() {
+  return virtualTempoD;
+}
+
+void DivEngine::virtualTempoChanged() {
+  BUSY_BEGIN;
+  virtualTempoN=curSubSong->virtualTempoN;
+  virtualTempoD=curSubSong->virtualTempoD;
+  BUSY_END;
 }
 
 int DivEngine::getTotalSeconds() {
@@ -4013,11 +4048,13 @@ bool DivEngine::init() {
   return true;
 }
 
-bool DivEngine::quit() {
+bool DivEngine::quit(bool saveConfig) {
   deinitAudioBackend();
   quitDispatch();
-  logI("saving config.");
-  saveConf();
+  if (saveConfig) {
+    logI("saving config.");
+    saveConf();
+  }
   active=false;
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
     if (oscBuf[i]!=NULL) delete[] oscBuf[i];

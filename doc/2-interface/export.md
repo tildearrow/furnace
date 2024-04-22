@@ -76,10 +76,9 @@ click on **Begin Export** to... you know.
 
 ## export command stream
 
-this option exports a text or binary file which contains a dump of the internal command stream produced when playing the song.
+this option exports a binary file which contains a dump of the internal command stream produced when playing the song.
 
 it's not really useful, unless you're a developer and want to use a command stream dump for some reason (e.g. writing a hardware sound driver).
 
-- **export (binary)**: exports in Furnace's own command stream format (FCS). see `export-tech.md` in `papers/` for details.
-- **export (text)**: exports the command stream as a text file. only useful for analysis, really.
+- **export**: exports in Furnace's own command stream format (FCS). see `export-tech.md` in `papers/` for details.
 

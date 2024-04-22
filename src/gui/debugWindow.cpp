@@ -77,7 +77,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::SameLine();
       if (ImGui::Button("Pattern Advance")) e->haltWhen(DIV_HALT_PATTERN);
 
-      if (ImGui::Button("Play Command Stream")) openFileDialog(GUI_FILE_CMDSTREAM_OPEN);
+      if (ImGui::Button("Play Command Stream")) nextWindow=GUI_WINDOW_CS_PLAYER;
 
       if (ImGui::Button("Panic")) e->syncReset();
       ImGui::SameLine();
@@ -608,6 +608,54 @@ void FurnaceGUI::drawDebug() {
         ImGui::Text("%d: %s",(int)i,recentFile[i].c_str());
       }
       ImGui::Unindent();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Texture Test")) {
+      ImGui::Text("Create and Destroy 128 Textures");
+      if (ImGui::Button("No Write")) {
+        for (int i=0; i<128; i++) {
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048);
+          if (t==NULL) {
+            showError(fmt::sprintf("Failure! %d",i));
+            break;
+          }
+          rend->destroyTexture(t);
+        }
+      }
+      if (ImGui::Button("Write (update)")) {
+        unsigned char* data=new unsigned char[2048*2048*4];
+        for (int i=0; i<2048*2048*4; i++) {
+          data[i]=rand();
+        }
+        for (int i=0; i<128; i++) {
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048);
+          if (t==NULL) {
+            showError(fmt::sprintf("Failure! %d",i));
+            break;
+          }
+          rend->updateTexture(t,data,2048*4);
+          rend->destroyTexture(t);
+        }
+        delete[] data;
+      }
+      if (ImGui::Button("Write (lock)")) {
+        unsigned char* data=NULL;
+        int pitch=0;
+        for (int i=0; i<128; i++) {
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048);
+          if (t==NULL) {
+            showError(fmt::sprintf("Failure! %d",i));
+            break;
+          }
+          if (rend->lockTexture(t,(void**)&data,&pitch)) {
+            for (int i=0; i<2048*2048*4; i++) {
+              data[i]=rand();
+            }
+            rend->unlockTexture(t);
+          }
+          rend->destroyTexture(t);
+        }
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Osc Render Test")) {

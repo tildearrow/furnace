@@ -57,7 +57,7 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("delay arpeggio by one tick on every new note.");
         }
-        ImGui::Checkbox("Broken DAC mode",&e->song.brokenDACMode);
+        ImGui::Checkbox("Disable DAC when sample ends",&e->song.brokenDACMode);
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("when enabled, the DAC in YM2612 will be disabled if there isn't any sample playing.");
         }

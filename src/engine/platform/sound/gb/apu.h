@@ -93,12 +93,15 @@ typedef struct
         uint8_t shift; // NR32
         uint16_t sample_length; // NR33, NR34, in APU ticks
         bool length_enabled; // NR34
+        bool double_length; // NR30
+        bool bank_select; // NR30
+        bool force_3; // NR32
 
         uint16_t sample_countdown; // in APU ticks (Reloaded from sample_length, xorred $7FF)
         uint8_t current_sample_index;
         uint8_t current_sample; // Current sample before shifting.
 
-        int8_t wave_form[32];
+        int8_t wave_form[64];
         bool wave_form_just_read;
     } wave_channel;
 

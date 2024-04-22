@@ -34,13 +34,47 @@
 #define WRITE_ATTEN(ch,v) rWrite((0x40+ch),(v))
 #define WRITE_STEREO(v) rWrite(0x50,(v))
 
-#define CHIP_DIVIDER 64
 #define CHIP_FREQBASE 16000000
 
 static int32_t clamp(int32_t v, int32_t lo, int32_t hi)
 {
   return v<lo?lo:(v>hi?hi:v);
 }
+
+const int DUTY_DIVIDERS[]={
+     1,   2,   4,   3,   6,   7,   7,   4,   8,  15,   6,  14,  15,  12,  14,   5,
+    10,  21,  31,  28,  31,  30,  12,  31,  21,   8,  30,  31,  28,  31,  31,   6,
+    12,  63,  14,  62,   9,  28,  62,  15,  14,  42,   8,  21,  62,  63,  15,  60,
+    63,  20,  42,  63,  28,  12,  63,  62,  62,  63,  21,  24,  15,  62,  60,   7,
+    16,  63,  30, 254, 217,  84, 186, 217,  12, 254,  28,  15, 254,  51, 255,  84,
+   217, 120, 210,  63,  60, 255, 255, 254, 254, 217,  63, 252,  17,  42, 124,  85,
+    30, 254,  24, 217, 210,  21, 255, 252,  28, 217,  10, 186,  63, 124, 254, 255,
+   186, 255, 255,  56, 255,  70,  36,  30, 255,  60, 254,  85, 124,  85,  21, 254,
+    22,1533,2047, 868,1953,2046, 420, 651,1533,2044,2046,2047,1016,1785, 105, 126,
+   595, 630, 204,1533,1302,2047,2047,2044,2044, 119, 372,1778,1953, 120, 682,1905,
+   595, 868, 510,2047,2044, 762, 279, 682, 210,1953, 595,1524,1533, 210, 248, 635,
+    60,2047,2047,  62,1905,2044,2046,  42,2047, 510, 252,1905,1778,2047,1533,1016,
+  1953,1860,1778, 219,  48,1905,2047,1778, 682,2047, 465,1020,1785, 126,2044, 434,
+  2044,  63,2047,2046,2047, 280,  30,1953, 210, 682, 868,  89,2046,2047,2047,1524,
+  1302,1785,2047,1860,2047,2046,1016, 372,2047,  84, 630,  70, 252,2047,1533, 682,
+  1905,2046, 372,1905,  90,1533, 217, 168, 340,2047,2047,1302,1533,  28, 186,2047,
+    24,3255, 126,1190,  45,4092, 178, 315,  28, 438, 124, 315,3570, 255,1023,2044,
+   819,1016, 930,3937,1260,1302, 511,4094,3810, 819, 195,2604,1023,4094,  84,1365,
+    18,3810,  56,1023,  42,3937, 819,4092, 124,4095,  30,4094,  85,1524,3906,  63,
+  3906,1023,3255, 120,4095,3570,1020,3937,2667,3556,4094, 195,2044,4095,4095, 762,
+    28,1302,  84,4095,3906,1023, 255, 292,  16,1085,  42,3066, 315,3556,4094,4095,
+  3066,4095,3937, 372, 511,4094, 620,1302, 273, 504,1190, 819,4092,4095,1023, 210,
+   124,1023, 126,3570,3937, 252, 438,4095,  30,4094, 120,4095,4094, 255,  63,1020,
+  4095,1364, 558,2667, 420,4095, 105,1270,1190,3255,  93,1016,  91, 372,4092,3937,
+  3255,  44,3066,1365,1736, 510,  91,4094,1302, 511,3937, 420, 105,3906,4092, 819,
+   252, 585, 255, 210,3937,1016,3570,1023, 455,3066,2044,1365,4094, 126,2667,4092,
+  3810,  93,  63,1364,1365,3906, 120,  28,1023,2044, 238,4095,3556, 255,4095, 372,
+   511,1190,1260,1023,3066, 255, 819, 408,2044, 255,1302,4094, 455,2604,4094, 585,
+   438, 511, 455, 292, 455, 434,1364, 102,1085, 204,3570, 255, 240,4095,  93,4094,
+  3937,4094,  84,  63,4094, 315, 819, 140,1260,3937,4095,3066,2667, 680,4094, 511,
+  4095,2044, 178,1023,1020, 819,  21,3810,4094,  20,1023,3556,3937, 210,2040, 273,
+   252,2667,4095,3906,  63, 124, 930, 455, 510,4094,4092, 511,3570,4095,  30, 744
+};
 
 const char* regCheatSheetLynx[]={
   "AUDIO0_VOLCNTRL", "20",
@@ -134,6 +168,7 @@ void DivPlatformLynx::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
+        double CHIP_DIVIDER=tuned?DUTY_DIVIDERS[chan[i].duty.val&0x1ff]*8:64;
         chan[i].actualNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].actualNote);
         if (chan[i].pcm) chan[i].sampleBaseFreq=NOTE_FREQUENCY(chan[i].actualNote);
@@ -165,6 +200,11 @@ void DivPlatformLynx::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
 
+    if (chan[i].std.ex1.had) {
+      WRITE_LFSR(i, chan[i].std.ex1.val&0xff);
+      WRITE_OTHER(i, (chan[i].std.ex1.val&0xf00)>>4);
+    }
+
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
@@ -194,28 +234,35 @@ void DivPlatformLynx::tick(bool sysTick) {
           WRITE_OTHER(i, ((chan[i].lfsr&0xf00)>>4));
           chan[i].lfsr=-1;
         }
-        chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
         if (chan[i].std.duty.had) {
           chan[i].duty=chan[i].std.duty.val;
           if (!chan[i].pcm) {
             WRITE_FEEDBACK(i, chan[i].duty.feedback);
           }
         }
+        double divider=tuned?DUTY_DIVIDERS[chan[i].duty.val&0x1ff]*8:64;
+        chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,divider);
         WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
         WRITE_BACKUP( i, chan[i].fd.backup );
       }
       chan[i].freqChanged=false;
     } else if (chan[i].std.duty.had) {
-      chan[i].duty = chan[i].std.duty.val;
+      chan[i].duty=chan[i].std.duty.val;
       if (!chan[i].pcm) {
+        if (tuned) {
+          double divider=DUTY_DIVIDERS[chan[i].duty.val&0x1ff]*8;
+          chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,divider);
+        }
         WRITE_FEEDBACK(i, chan[i].duty.feedback);
         WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
+        if (tuned) WRITE_BACKUP( i, chan[i].fd.backup );
       }
     }
   }
 }
 
 int DivPlatformLynx::dispatch(DivCommand c) {
+  double CHIP_DIVIDER=tuned?DUTY_DIVIDERS[chan[c.chan].duty.val&0x1ff]*8:64;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       bool prevPCM=chan[c.chan].pcm;
@@ -455,6 +502,16 @@ bool DivPlatformLynx::getLegacyAlwaysSetVolume() {
 //  return 12;
 //}
 
+void DivPlatformLynx::setFlags(const DivConfig& flags) {
+  tuned=flags.getBool("tuned",false);
+  chipClock=16000000;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock/128;
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->rate=rate;
+  }
+}
+
 void DivPlatformLynx::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
@@ -478,14 +535,7 @@ int DivPlatformLynx::init(DivEngine* p, int channels, int sugRate, const DivConf
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-
-  chipClock = 16000000;
-  CHECK_CUSTOM_CLOCK;
-  rate = chipClock/128;
-
-  for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
-  }
+  setFlags(flags);
 
   reset();
   return 4;
@@ -533,6 +583,7 @@ DivPlatformLynx::MikeyDuty::MikeyDuty(int duty) {
   //1: f1
   //0: f0
 
+  val=duty;
   //f7 moved to bit 7 and int moved to bit 5
   int_feedback7=((duty&0x40)<<1)|((duty&0x200)>>4);
   //f11 and f10 moved to bits 7 & 6

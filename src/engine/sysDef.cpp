@@ -665,6 +665,20 @@ void DivEngine::registerSystems() {
     fmESFMPostEffectHandlerMap.emplace(0x30+i,fmESFMFixFreqFNumHandler[i/4]);
   }
 
+  EffectHandlerMap SID2PostEffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise)"}},
+    {0x11, {DIV_CMD_C64_RESONANCE, "11xx: Set resonance (0 to FF)"}},
+    {0x12, {DIV_CMD_C64_FILTER_MODE, "12xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"}},
+    {0x13, {DIV_CMD_C64_RESET_MASK, "13xx: Disable envelope reset for this channel (1 disables; 0 enables)"}},
+    {0x14, {DIV_CMD_C64_FILTER_RESET, "14xy: Reset cutoff (x: on new note; y: now)"}},
+    {0x15, {DIV_CMD_C64_DUTY_RESET, "15xy: Reset pulse width (x: on new note; y: now)"}},
+    {0x16, {DIV_CMD_C64_EXTENDED, "16xy: Change other parameters"}},
+  };
+  const EffectHandler SID2FineDutyHandler(DIV_CMD_C64_FINE_DUTY, "3xxx: Set pulse width (0 to FFF)", effectValLong<12>);
+  const EffectHandler SID2FineCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, "4xxx: Set cutoff (0 to FFF)", effectValLong<11>);
+  for (int i=0; i<16; i++) SID2PostEffectHandlerMap.emplace(0x30+i,SID2FineDutyHandler);
+  for (int i=0; i<16; i++) SID2PostEffectHandlerMap.emplace(0x40+i,SID2FineCutoffHandler);
+
   // SysDefs
 
   // this chip uses YMZ ADPCM, but the emulator uses ADPCM-B because I got it wrong back then.
@@ -1303,7 +1317,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_VRC7]=new DivSysDef(
     "Konami VRC7", NULL, 0x9d, 0, 6, true, false, 0x151, false, 0, 0, 0,
-    "like OPLL, but even more cost reductions applied. three less FM channels, and no drums mode...",
+    "like OPLL, but even more cost reductions applied. three FM channels went missing, and drums mode did as well...",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"},
     {"F1", "F2", "F3", "F4", "F5", "F6"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
@@ -1862,7 +1876,11 @@ void DivEngine::registerSystems() {
     {"Sample"},
     {"PCM"},
     {DIV_CH_PCM},
-    {DIV_INS_AMIGA}
+    {DIV_INS_AMIGA},
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+    }
   );
 
   sysDefs[DIV_SYSTEM_K007232]=new DivSysDef(
@@ -2019,6 +2037,100 @@ void DivEngine::registerSystems() {
       {0x15, {DIV_CMD_DAVE_LOW_PASS, "15xx: Toggle low pass (noise only)"}},
       {0x16, {DIV_CMD_DAVE_CLOCK_DIV, "16xx: Set clock divider (0: /2; 1: /3)"}},
     }
+  );
+  
+  sysDefs[DIV_SYSTEM_GBA_DMA]=new DivSysDef(
+    "Game Boy Advance DMA Sound", NULL, 0xd7, 0, 2, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 256,
+    "additional PCM FIFO channels in Game Boy Advance driven directly by its DMA hardware.",
+    {"PCM 1", "PCM 2"},
+    {"P1", "P2"},
+    {DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_GBA_DMA, DIV_INS_GBA_DMA},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_GBA_MINMOD]=new DivSysDef(
+    "Game Boy Advance MinMod", NULL, 0xd8, 0, 16, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 256,
+    "additional PCM FIFO channels in Game Boy Advance driven by software mixing to provide up to sixteen sample channels",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
+    {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD, DIV_INS_GBA_MINMOD},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+      {0x11, {DIV_CMD_MINMOD_ECHO, "11xy: Set echo channel (x: left/right source; y: delay (0 disables))"}},
+      {0x12, {DIV_CMD_SNES_INVERT, "12xy: Toggle invert (x: left; y: right)"}},
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_NDS]=new DivSysDef(
+    "Nintendo DS", NULL, 0xd6, 0, 16, false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_IMA_ADPCM)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 32, 32,
+    "a handheld video game console with two screens. it uses a stylus.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16"},
+    {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE},
+    {DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS, DIV_INS_NDS},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {
+      {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle (pulse: 0 to 7)"}},
+      {0x1f, {DIV_CMD_ADPCMA_GLOBAL_VOLUME, "1Fxx: Set global volume (0 to 7F)"}},
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_5E01]=new DivSysDef(
+    "5E01", NULL, 0xf1, 0, 5, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_1BIT_DPCM)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
+    "a fantasy sound chip created by Euly. it is based on Ricoh 2A03, adding a couple features such as 32 noise pitches, an extra duty cycle, and three waveforms (besides triangle).",
+    {"Pulse 1", "Pulse 2", "Wave", "Noise", "DPCM"},
+    {"S1", "S2", "WA", "NO", "DMC"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM},
+    {DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES},
+    {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
+    {
+      {0x11, {DIV_CMD_NES_DMC, "11xx: Write to delta modulation counter (0 to 7F)"}},
+      {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle/noise mode/waveform (pulse/wave: 0 to 3; noise: 0 or 1)"}},
+      {0x13, {DIV_CMD_NES_SWEEP, "13xy: Sweep up (x: time; y: shift)",constVal<0>,effectVal}},
+      {0x14, {DIV_CMD_NES_SWEEP, "14xy: Sweep down (x: time; y: shift)",constVal<1>,effectVal}},
+      {0x15, {DIV_CMD_NES_ENV_MODE, "15xx: Set envelope mode (0: envelope, 1: length, 2: looping, 3: constant)"}},
+      {0x16, {DIV_CMD_NES_LENGTH, "16xx: Set length counter (refer to manual for a list of values)"}},
+      {0x17, {DIV_CMD_NES_COUNT_MODE, "17xx: Set frame counter mode (0: 4-step, 1: 5-step)"}},
+      {0x18, {DIV_CMD_SAMPLE_MODE, "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)"}},
+      {0x19, {DIV_CMD_NES_LINEAR_LENGTH, "19xx: Set triangle linear counter (0 to 7F; 80 and higher halt)"}},
+      {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set DPCM frequency (0 to F)"}}
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_BIFURCATOR]=new DivSysDef(
+    "Bifurcator", NULL, 0xd9, 0, 4, false, true, 0, false, 0, 0, 0,
+    "a fantasy sound chip using logistic map iterations to generate sound.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
+    {"CH1", "CH2", "CH3", "CH4"},
+    {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
+    {DIV_INS_BIFURCATOR, DIV_INS_BIFURCATOR, DIV_INS_BIFURCATOR, DIV_INS_BIFURCATOR},
+    {},
+    {
+      {0x10, {DIV_CMD_BIFURCATOR_STATE_LOAD, "10xx: Load low byte of channel sample state", constVal<0>, effectVal}},
+      {0x11, {DIV_CMD_BIFURCATOR_STATE_LOAD, "11xx: Load high byte of channel sample state", constVal<1>, effectVal}},
+      {0x12, {DIV_CMD_BIFURCATOR_PARAMETER, "12xx: Set low byte of channel parameter", constVal<0>, effectVal}},
+      {0x13, {DIV_CMD_BIFURCATOR_PARAMETER, "13xx: Set high byte of channel parameter", constVal<1>, effectVal}},
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_SID2]=new DivSysDef(   
+    "SID2", NULL, 0xf0, 0, 3, false, true, 0, false, 0, 0, 0,
+    "a fantasy sound chip created by LTVA. it is similar to the SID chip, but with many of its problems fixed.",
+    {"Channel 1", "Channel 2", "Channel 3"},
+    {"CH1", "CH2", "CH3"},
+    {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
+    {DIV_INS_SID2, DIV_INS_SID2, DIV_INS_SID2},
+    {},
+    {}, 
+    SID2PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

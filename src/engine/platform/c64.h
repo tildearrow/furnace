@@ -77,13 +77,14 @@ class DivPlatformC64: public DivDispatch {
   unsigned char sidCore;
   int filtCut, resetTime, initResetTime;
 
-  bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel;
+  bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel, macroRace;
   unsigned char chanOrder[3];
   unsigned char testAD, testSR;
 
   SID* sid;
   reSIDfp::SID* sid_fp;
   struct SID_chip* sid_d;
+  int coreQuality;
   unsigned char regPool[32];
   
   friend void putDispatchChip(void*,int);
@@ -121,6 +122,7 @@ class DivPlatformC64: public DivDispatch {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void setChipModel(bool is6581);
     void setCore(unsigned char which);
+    void setCoreQuality(unsigned char q);
     void quit();
     ~DivPlatformC64();
 };

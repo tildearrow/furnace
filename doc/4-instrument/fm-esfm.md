@@ -49,7 +49,7 @@ these apply to each operator:
 ![FM ADSR chart](FM-ADSRchart.png)
 
 - **Key Scale Rate (KSR)**: also known as "Rate Scale". determines the degree to which the envelope execution speed increases according to the pitch.
-- **Frequency Multiplier (MULT)**: sets the coarse pitch offset in relation to the note (0 to 15). 0 is -1 octave, 1 is 0 octaves, 2 is 1 octave, 3 is 1 octave 7 semitones, and so on.
+- **Frequency Multiplier (MULT)**: sets the coarse pitch offset in relation to the note (0 to 15). the values follow the harmonic scale. for example, 0 is -1 octave, 1 is 0 octaves, 2 is 1 octave, 3 is 1 octave 7 semitones, and so on.
   - note that values 11, 13 and 14 behave as 10, 12 and 15 respectively.
 - **Tune (CT)**: sets the semitone offset in relation to the note (-24 to 24).
   - this is a software effect.

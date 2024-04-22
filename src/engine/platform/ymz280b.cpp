@@ -442,10 +442,18 @@ bool DivPlatformYMZ280B::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+const DivMemoryComposition* DivPlatformYMZ280B::getMemCompo(int index) {
+  if (index!=0) return NULL;
+  return &memCompo;
+}
+
 void DivPlatformYMZ280B::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sample ROM";
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -471,6 +479,7 @@ void DivPlatformYMZ280B::renderSamples(int sysID) {
       }
 #endif
       sampleOff[i]=memPos;
+      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+length));
       memPos+=length;
     }
     if (actualLength<length) {
@@ -480,6 +489,9 @@ void DivPlatformYMZ280B::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+
+  memCompo.used=sampleMemLen;
+  memCompo.capacity=getSampleMemCapacity(0);
 }
 
 void DivPlatformYMZ280B::setChipModel(int type) {

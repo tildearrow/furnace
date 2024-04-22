@@ -242,16 +242,38 @@ void FurnaceGUI::drawExportCommand(bool onWindow) {
   );
   if (onWindow) {
     ImGui::Separator();
-    if (ImGui::Button("Cancel",ImVec2(133.3f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
     ImGui::SameLine();
   }
-  if (ImGui::Button("Export (binary)",ImVec2(133.3f*dpiScale,0))) {
-    openFileDialog(GUI_FILE_EXPORT_CMDSTREAM_BINARY);
+  if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
     ImGui::CloseCurrentPopup();
   }
-  ImGui::SameLine();
-  if (ImGui::Button("Export (text)",ImVec2(133.3f*dpiScale,0))) {
-    openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
+}
+
+void FurnaceGUI::drawExportDMF(bool onWindow) {
+  exitDisabledTimer=1;
+
+  ImGui::Text(
+    "export in DefleMask module format.\n"
+    "only do it if you really, really need to, or are downgrading an existing .dmf."
+  );
+
+  ImGui::Text("format version:");
+  ImGui::RadioButton("1.1.3 and higher",&dmfExportVersion,0);
+  ImGui::RadioButton("1.0/legacy (0.12)",&dmfExportVersion,1);
+
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
+    if (dmfExportVersion==1) {
+      openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
+    } else {
+      openFileDialog(GUI_FILE_SAVE_DMF);
+    }
     ImGui::CloseCurrentPopup();
   }
 }
@@ -295,6 +317,10 @@ void FurnaceGUI::drawExport() {
         drawExportCommand(true);
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem("DMF")) {
+        drawExportDMF(true);
+        ImGui::EndTabItem();
+      }
       ImGui::EndTabBar();
     }
   } else switch (curExportType) {
@@ -315,6 +341,9 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_CMD_STREAM:
       drawExportCommand(true);
+      break;
+    case GUI_EXPORT_DMF:
+      drawExportDMF(true);
       break;
     default:
       ImGui::Text("congratulations! you've unlocked a secret panel.");

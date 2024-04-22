@@ -1,3 +1,7 @@
+# MODIFIED
+
+this is a modified version of ESFMu which adds a "fast" mode that uses OPL3 feedback calculation rather than patent workaround calculation (which is slow but accurate).
+
 # ESFMu
 
 An emulator for the ESS "ESFM" enhanced OPL3 clone, based on Nuke.YKT's **Nuked OPL3** and reverse-engineering efforts from the community.

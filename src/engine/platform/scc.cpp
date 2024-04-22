@@ -82,7 +82,7 @@ const char** DivPlatformSCC::getRegisterSheet() {
 
 void DivPlatformSCC::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
-    scc->tick(16);
+    scc->tick(coreQuality);
     short out=(short)scc->out()<<5;
     buf[0][h]=out;
 
@@ -383,9 +383,35 @@ void DivPlatformSCC::setFlags(const DivConfig& flags) {
       break;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/8;
+  rate=chipClock/(coreQuality>>1);
   for (int i=0; i<5; i++) {
     oscBuf[i]->rate=rate;
+  }
+}
+
+void DivPlatformSCC::setCoreQuality(unsigned char q) {
+  switch (q) {
+    case 0:
+      coreQuality=128;
+      break;
+    case 1:
+      coreQuality=64;
+      break;
+    case 2:
+      coreQuality=32;
+      break;
+    case 3:
+      coreQuality=16;
+      break;
+    case 4:
+      coreQuality=8;
+      break;
+    case 5:
+      coreQuality=2;
+      break;
+    default:
+      coreQuality=16;
+      break;
   }
 }
 

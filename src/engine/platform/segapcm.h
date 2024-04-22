@@ -80,6 +80,8 @@ class DivPlatformSegaPCM: public DivDispatch {
     unsigned int sampleOffSegaPCM[256];
     unsigned char sampleEndSegaPCM[256];
     bool sampleLoaded[256];
+
+    DivMemoryComposition memCompo;
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
@@ -110,6 +112,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     size_t getSampleMemCapacity(int index=0);
     size_t getSampleMemUsage(int index=0);
     bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSegaPCM();

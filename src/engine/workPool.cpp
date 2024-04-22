@@ -95,7 +95,11 @@ bool DivWorkThread::busy() {
 void DivWorkThread::finish() {
   lock.lock();
   terminate=true;
-  notify.set_value();
+  try {
+    notify.set_value();
+  } catch (std::future_error& e) {
+    logE("future error! beware!");
+  }
   lock.unlock();
   thread->join();
 }
@@ -196,9 +200,11 @@ DivWorkPool::DivWorkPool(unsigned int threads):
 
 DivWorkPool::~DivWorkPool() {
   if (threaded) {
-    for (unsigned int i=0; i<count; i++) {
-      workThreads[i].finish();
+    if (workThreads!=NULL) {
+      for (unsigned int i=0; i<count; i++) {
+        workThreads[i].finish();
+      }
+      delete[] workThreads;
     }
-    delete[] workThreads;
   }
 }
