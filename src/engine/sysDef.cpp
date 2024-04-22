@@ -791,7 +791,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_C64_6581]=new DivSysDef(
-    "Commodore 64 (6581 SID)", NULL, 0x47, 0x47, 3, false, true, 0, false, 0, 0, 0,
+    "Commodore 64 (6581)", NULL, 0x47, 0x47, 3, false, true, 0, false, 0, 0, 0,
     "this computer is powered by the SID chip, which had synthesizer features like a filter and ADSR.",
     {"Channel 1", "Channel 2", "Channel 3"},
     {"CH1", "CH2", "CH3"},
@@ -803,7 +803,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_C64_8580]=new DivSysDef(
-    "Commodore 64 (8580 SID)", NULL, 0x07, 0x07, 3, false, true, 0, false, 0, 0, 0,
+    "Commodore 64 (8580)", NULL, 0x07, 0x07, 3, false, true, 0, false, 0, 0, 0,
     "this computer is powered by the SID chip, which had synthesizer features like a filter and ADSR.\nthis is the newer revision of the chip.",
     {"Channel 1", "Channel 2", "Channel 3"},
     {"CH1", "CH2", "CH3"},
@@ -834,7 +834,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_YM2610_EXT]=new DivSysDef(
     "Neo Geo CD Extended Channel 2", NULL, 0x49, 0x49, 16, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
-    "like Neo GeoTIAt lacking the ADPCM-B channel since they couldn't connect the pins.\nthis one is in Extended Channel mode, which turns the second FM channel into four operators with independent notes/frequencies.",
+    "like Neo Geo, but lacking the ADPCM-B channel since they couldn't connect the pins.\nthis one is in Extended Channel mode, which turns the second FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6"},
     {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"},
     {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -899,7 +899,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_TIA]=new DivSysDef(
-    "Atari TIA", NULL, 0x84, 0, 2, false, true, 0, false, 0, 0, 0,
+    "Atari 2600", NULL, 0x84, 0, 2, false, true, 0, false, 0, 0, 0,
     "it's a challenge to make music on this chip which barely has musical capabilities...",
     {"Channel 1", "Channel 2"},
     {"CH1", "CH2"},
@@ -1330,7 +1330,7 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_YM2610B]=new DivSysDef(
     "Yamaha YM2610B (OPNB2)", NULL, 0x9e, 0, 16, true, false, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_A)|(1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     "so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.",
-    {"FM 1", "FM TIA"FM 3", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
+    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMA, DIV_INS_ADPCMB},
