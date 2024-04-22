@@ -791,7 +791,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_C64_6581]=new DivSysDef(
-    "Commodore 64 (6581)", NULL, 0x47, 0x47, 3, false, true, 0, false, 0, 0, 0,
+    "Commodore 64 (SID 6581)", NULL, 0x47, 0x47, 3, false, true, 0, false, 0, 0, 0,
     "this computer is powered by the SID chip, which had synthesizer features like a filter and ADSR.",
     {"Channel 1", "Channel 2", "Channel 3"},
     {"CH1", "CH2", "CH3"},
@@ -803,7 +803,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_C64_8580]=new DivSysDef(
-    "Commodore 64 (8580)", NULL, 0x07, 0x07, 3, false, true, 0, false, 0, 0, 0,
+    "Commodore 64 (SID 8580)", NULL, 0x07, 0x07, 3, false, true, 0, false, 0, 0, 0,
     "this computer is powered by the SID chip, which had synthesizer features like a filter and ADSR.\nthis is the newer revision of the chip.",
     {"Channel 1", "Channel 2", "Channel 3"},
     {"CH1", "CH2", "CH3"},
@@ -899,7 +899,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_TIA]=new DivSysDef(
-    "Atari 2600", NULL, 0x84, 0, 2, false, true, 0, false, 0, 0, 0,
+    "Atari TIA", NULL, 0x84, 0, 2, false, true, 0, false, 0, 0, 0,
     "it's a challenge to make music on this chip which barely has musical capabilities...",
     {"Channel 1", "Channel 2"},
     {"CH1", "CH2"},
