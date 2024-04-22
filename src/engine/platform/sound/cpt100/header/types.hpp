@@ -1,4 +1,3 @@
-#include <stdexcept>
 #include <tuple>
 
 class Byte {
@@ -8,7 +7,8 @@ public:
         if (val >= 0 && val <= 255) {
             value = val;
         } else {
-            throw std::out_of_range("byte type can store only int values from 0 to 255");
+            value = 0; //fallback
+            //throw std::runtime_error("byte type can store only int values from 0 to 255");
         }
     }
 
