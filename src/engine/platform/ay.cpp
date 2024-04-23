@@ -122,7 +122,7 @@ void DivPlatformAY8910::runDAC() {
       int prevOut=chan[i].dac.out;
       while (chan[i].dac.period>dacRate && !end) {
         DivSample* s=parent->getSample(chan[i].dac.sample);
-        if (s->samples<=0) {
+        if (s->samples<=0 || chan[i].dac.pos<0 || chan[i].dac.pos>=(int)s->samples) {
           chan[i].dac.sample=-1;
           immWrite(0x08+i,0);
           end=true;
@@ -297,7 +297,11 @@ void DivPlatformAY8910::tick(bool sysTick) {
               rWrite(0x08+i,0);
               addWrite(0xffff0000+(i<<8),chan[i].dac.sample);
             }
-            chan[i].dac.pos=0;
+            if (chan[i].dac.setPos) {
+              chan[i].dac.setPos=false;
+            } else {
+              chan[i].dac.pos=0;
+            }
             chan[i].dac.period=0;
             chan[i].keyOn=true;
           }
@@ -422,7 +426,11 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
               addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
             }
           }
-          chan[c.chan].dac.pos=0;
+          if (chan[c.chan].dac.setPos) {
+            chan[c.chan].dac.setPos=false;
+          } else {
+            chan[c.chan].dac.pos=0;
+          }
           chan[c.chan].dac.period=0;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -448,7 +456,11 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
           } else {
             if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
           }
-          chan[c.chan].dac.pos=0;
+          if (chan[c.chan].dac.setPos) {
+            chan[c.chan].dac.setPos=false;
+          } else {
+            chan[c.chan].dac.pos=0;
+          }
           chan[c.chan].dac.period=0;
           chan[c.chan].dac.rate=parent->getSample(chan[c.chan].dac.sample)->rate*2048;
           if (dumpWrites) {
@@ -651,6 +663,11 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       if (sampleBank>(parent->song.sample.size()/12)) {
         sampleBank=parent->song.sample.size()/12;
       }
+      break;
+    case DIV_CMD_SAMPLE_POS:
+      chan[c.chan].dac.pos=c.value;
+      chan[c.chan].dac.setPos=true;
+      if (dumpWrites) addWrite(0xffff0005,chan[c.chan].dac.pos);
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
