@@ -71,6 +71,9 @@ bool consoleMode=false;
 bool consoleMode=true;
 #endif
 
+bool consoleNoStatus=false;
+bool consoleNoControls=false;
+
 bool displayEngineFailError=false;
 bool vgmOutDirect=false;
 
@@ -105,8 +108,11 @@ TAParamResult pAudio(String val) {
     e.setAudio(DIV_AUDIO_SDL);
   } else if (val=="portaudio") {
     e.setAudio(DIV_AUDIO_PORTAUDIO);
+  } else if (val=="pipe") {
+    e.setAudio(DIV_AUDIO_PIPE);
+    changeLogOutput(stderr);
   } else {
-    logE("invalid value for audio engine! valid values are: jack, sdl, portaudio.");
+    logE("invalid value for audio engine! valid values are: jack, sdl, portaudio, pipe.");
     return TA_PARAM_ERROR;
   }
   return TA_PARAM_SUCCESS;
@@ -128,6 +134,16 @@ TAParamResult pView(String val) {
 
 TAParamResult pConsole(String val) {
   consoleMode=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pNoStatus(String val) {
+  consoleNoStatus=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pNoControls(String val) {
+  consoleNoControls=true;
   return TA_PARAM_SUCCESS;
 }
 
@@ -365,7 +381,7 @@ bool needsValue(String param) {
 void initParams() {
   params.push_back(TAParam("h","help",false,pHelp,"","display this help"));
 
-  params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl|portaudio","set audio engine (SDL by default)"));
+  params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl|portaudio|pipe","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
@@ -375,6 +391,8 @@ void initParams() {
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
   params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
+  params.push_back(TAParam("n","nostatus",false,pNoStatus,"","disable playback status in console mode"));
+  params.push_back(TAParam("N","nocontrols",false,pNoControls,"","disable standard input controls in console mode"));
 
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
   params.push_back(TAParam("s","subsong",true,pSubSong,"<number>","set sub-song"));
@@ -436,7 +454,7 @@ int main(int argc, char** argv) {
 
   srand(time(NULL));
 
-  initLog();
+  initLog(stdout);
 #ifdef _WIN32
   // set DPI awareness
   HMODULE shcore=LoadLibraryW(L"shcore.dll");
@@ -513,7 +531,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  e.setConsoleMode(consoleMode);
+  e.setConsoleMode(consoleMode,!consoleNoStatus);
 
 #ifdef _WIN32
   if (consoleMode) {
@@ -699,6 +717,12 @@ int main(int argc, char** argv) {
 
   if (consoleMode) {
     bool cliSuccess=false;
+    if (consoleNoStatus) {
+      cli.noStatus();
+    }
+    if (consoleNoControls) {
+      cli.noControls();
+    }
     cli.bindEngine(&e);
     if (!cli.init()) {
       reportError("error while starting CLI!");

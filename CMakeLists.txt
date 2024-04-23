@@ -412,6 +412,7 @@ endif()
 set(AUDIO_SOURCES
 src/audio/abstract.cpp
 src/audio/midi.cpp
+src/audio/pipe.cpp
 )
 
 if (USE_SDL2)

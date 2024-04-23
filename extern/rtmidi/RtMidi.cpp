@@ -1718,14 +1718,14 @@ static void *alsaMidiHandler( void *ptr )
 
     case SND_SEQ_EVENT_PORT_SUBSCRIBED:
 #if defined(__RTMIDI_DEBUG__)
-      std::cout << "MidiInAlsa::alsaMidiHandler: port connection made!\n";
+      std::cerr << "MidiInAlsa::alsaMidiHandler: port connection made!\n";
 #endif
       break;
 
     case SND_SEQ_EVENT_PORT_UNSUBSCRIBED:
 #if defined(__RTMIDI_DEBUG__)
       std::cerr << "MidiInAlsa::alsaMidiHandler: port connection has closed!\n";
-      std::cout << "sender = " << (int) ev->data.connect.sender.client << ":"
+      std::cerr << "sender = " << (int) ev->data.connect.sender.client << ":"
                 << (int) ev->data.connect.sender.port
                 << ", dest = " << (int) ev->data.connect.dest.client << ":"
                 << (int) ev->data.connect.dest.port

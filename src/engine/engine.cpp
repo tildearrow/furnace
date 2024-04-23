@@ -36,6 +36,7 @@
 #ifdef HAVE_PA
 #include "../audio/pa.h"
 #endif
+#include "../audio/pipe.h"
 #include <math.h>
 #include <float.h>
 #include <fmt/printf.h>
@@ -3522,8 +3523,9 @@ void DivEngine::setSamplePreviewVol(float vol) {
   previewVol=vol;
 }
 
-void DivEngine::setConsoleMode(bool enable) {
+void DivEngine::setConsoleMode(bool enable, bool statusOut) {
   consoleMode=enable;
+  disableStatusOut=!statusOut;
 }
 
 bool DivEngine::switchMaster(bool full) {
@@ -3799,6 +3801,9 @@ bool DivEngine::initAudioBackend() {
       logE("Furnace was not compiled with SDL support!");
       output=new TAAudio;
 #endif
+      break;
+    case DIV_AUDIO_PIPE:
+      output=new TAAudioPipe;
       break;
     case DIV_AUDIO_DUMMY:
       output=new TAAudio;

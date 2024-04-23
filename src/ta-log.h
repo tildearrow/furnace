@@ -78,7 +78,8 @@ template<typename... T> int logE(const char* msg, const T&... args) {
   return writeLog(LOGLEVEL_ERROR,msg,fmt::make_printf_args(args...));
 }
 
-void initLog();
+void initLog(FILE* where);
+void changeLogOutput(FILE* where);
 bool startLogFile(const char* path);
 bool finishLogFile();
 #endif

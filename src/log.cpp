@@ -32,6 +32,7 @@ int logLevel=LOGLEVEL_TRACE;
 int logLevel=LOGLEVEL_TRACE; // until done
 #endif
 
+FILE* logOut;
 FILE* logFile;
 char* logFileBuf;
 char* logFileWriteBuf;
@@ -128,20 +129,22 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
   if (logLevel<level) return 0;
   switch (level) {
     case LOGLEVEL_ERROR:
-      return fmt::printf("\x1b[1;31m[ERROR]\x1b[m %s\n",logEntries[pos].text);
+      return fmt::fprintf(logOut,"\x1b[1;31m[ERROR]\x1b[m %s\n",logEntries[pos].text);
     case LOGLEVEL_WARN:
-      return fmt::printf("\x1b[1;33m[warning]\x1b[m %s\n",logEntries[pos].text);
+      return fmt::fprintf(logOut,"\x1b[1;33m[warning]\x1b[m %s\n",logEntries[pos].text);
     case LOGLEVEL_INFO:
-      return fmt::printf("\x1b[1;32m[info]\x1b[m %s\n",logEntries[pos].text);
+      return fmt::fprintf(logOut,"\x1b[1;32m[info]\x1b[m %s\n",logEntries[pos].text);
     case LOGLEVEL_DEBUG:
-      return fmt::printf("\x1b[1;34m[debug]\x1b[m %s\n",logEntries[pos].text);
+      return fmt::fprintf(logOut,"\x1b[1;34m[debug]\x1b[m %s\n",logEntries[pos].text);
     case LOGLEVEL_TRACE:
-      return fmt::printf("\x1b[1;37m[trace]\x1b[m %s\n",logEntries[pos].text);
+      return fmt::fprintf(logOut,"\x1b[1;37m[trace]\x1b[m %s\n",logEntries[pos].text);
   }
   return -1;
 }
 
-void initLog() {
+void initLog(FILE* where) {
+  logOut=where;
+
   // initialize coloring on Windows
 #ifdef _WIN32
   HANDLE winout=GetStdHandle(STD_OUTPUT_HANDLE);
@@ -159,6 +162,10 @@ void initLog() {
 
   // initialize log to file thread
   logFileAvail=false;
+}
+
+void changeLogOutput(FILE* where) {
+  logOut=where;
 }
 
 void _logFileThread() {

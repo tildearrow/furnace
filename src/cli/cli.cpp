@@ -28,11 +28,30 @@ static void handleTerm(int) {
 }
 #endif
 
+void FurnaceCLI::noStatus() {
+  disableStatus=true;
+}
+
+void FurnaceCLI::noControls() {
+  disableControls=true;
+}
+
 void FurnaceCLI::bindEngine(DivEngine* eng) {
   e=eng;
 }
 
 bool FurnaceCLI::loop() {
+  if (disableControls) {
+    while (!cliQuit) {
+#ifdef _WIN32
+      Sleep(1000);
+#else
+      pause();
+#endif
+    }
+    return true;
+  }
+
   bool escape=false;
   bool escapeSecondStage=false;
   while (!cliQuit) {
@@ -98,6 +117,7 @@ bool FurnaceCLI::loop() {
 }
 
 bool FurnaceCLI::finish() {
+  if (disableControls) return true;
 #ifdef _WIN32
 #else
   if (tcsetattr(0,TCSAFLUSH,&termpropold)!=0) {
@@ -112,6 +132,8 @@ bool FurnaceCLI::finish() {
 // blatantly copied from tildearrow/tfmxplay
 bool FurnaceCLI::init() {
 #ifdef _WIN32
+  if (disableControls) return true;
+  
   winin=GetStdHandle(STD_INPUT_HANDLE);
   winout=GetStdHandle(STD_OUTPUT_HANDLE);
   int termprop=0;
@@ -127,6 +149,8 @@ bool FurnaceCLI::init() {
   intsa.sa_flags=0;
   intsa.sa_handler=handleTerm;
   sigaction(SIGINT,&intsa,NULL);
+
+  if (disableControls) return true;
 
   if (tcgetattr(0,&termprop)!=0) {
     logE("could not get console attributes!");
