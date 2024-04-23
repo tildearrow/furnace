@@ -488,7 +488,7 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
-        if (settings.renderBackend!=GUI_BACKEND_METAL) {
+        if (settings.renderBackend!="Metal") {
           bool renderClearPosB=settings.renderClearPos;
           if (ImGui::Checkbox("Late render clear",&renderClearPosB)) {
             settings.renderClearPos=renderClearPosB;
