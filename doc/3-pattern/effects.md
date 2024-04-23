@@ -93,10 +93,25 @@ not all chips support these effects.
 - `FCxx`: **Note release.** releases current note after `xx` ticks. this releases macros and triggers key off in FM/hardware envelope chips.
 - `E7xx`: **Macro release.** releases macros after `xx` ticks. this does not trigger key off.
 
+## sample offset
+
+these effects make the current playing sample on the channel jump to a specific position.
+only some chips support this effect.
+
+sample offset is a 24-bit (3 byte) number.
+
+- `90xx`: **Set sample offset (first byte).**
+- `91xx`: **Set sample offset (second byte).**
+- `92xx`: **Set sample offset (third byte).**
+
+you may use these effects simultaneously in a row.
+
+if you do not set a byte, its last value will be used.
+
+in previous versions of Furnace a `9xxx` effect existed which set the sample position to `$xxx00` (`xxx` was effectively multiplied by 256). this maps to `920x 91xx` in current Furnace.
+
 ## other
 
-- `9xxx`: **Set sample position.** jumps current sample to position `xxx * 0x100`.
-  - not all chips support this effect.
 - `EBxx`: **Set LEGACY sample mode bank.** selects sample bank. used only for compatibility.
   - does not apply on Amiga.
 - `EExx`: **Send external command.**

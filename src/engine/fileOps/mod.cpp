@@ -322,7 +322,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               setEffectState[3]=fxVal;
               break;
             case 9: // set offset
-              writeFxCol(0x90,fxVal);
+              writeFxCol(0x91,fxVal);
               break;
             case 10: // vol slide
               effectState[4]=fxVal;
