@@ -698,6 +698,7 @@ bool DivEngine::loadTFMv1(unsigned char* file, size_t len) {
     lastError="invalid info header!";
   }
 
+  delete[] file;
   return success;
 }
 
