@@ -152,10 +152,14 @@ bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint) {
     return loadFur(file,len,DIV_FUR_VARIANT_B);
   } else if (memcmp(file,DIV_FC13_MAGIC,4)==0 || memcmp(file,DIV_FC14_MAGIC,4)==0) {
     return loadFC(file,len);
+  } else if (memcmp(file,DIV_TFM_MAGIC,8)==0) {
+    return loadTFMv2(file,len);
   }
 
-  // step 3: try loading as .mod
-  if (loadMod(file,len)) {
+  // step 3: try loading as .mod or TFEv1 (if the file extension matches)
+  if (extS==".tfe") {
+    return loadTFMv1(file,len);
+  } else if (loadMod(file,len)) {
     delete[] f;
     return true;
   }
