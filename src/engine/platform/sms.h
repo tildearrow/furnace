@@ -22,6 +22,7 @@
 
 #include "../dispatch.h"
 #include "sound/sn76496.h"
+#include "sound/ay8910.h"
 extern "C" {
   #include "../../../extern/Nuked-PSG/ympsg.h"
 }
@@ -55,6 +56,7 @@ class DivPlatformSMS: public DivDispatch {
   bool easyNoise;
   sn76496_base_device* sn;
   ympsg_t sn_nuked;
+  ay8910_device* ay;
   struct QueuedWrite {
     unsigned short addr;
     unsigned char val;
@@ -63,6 +65,8 @@ class DivPlatformSMS: public DivDispatch {
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
   };
   FixedQueue<QueuedWrite,128> writes;
+  short* ayBuf[3];
+  size_t ayBufLen;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 

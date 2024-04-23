@@ -51,11 +51,99 @@ void DivPlatformSMS::poolWrite(unsigned short a, unsigned char v) {
       regPool[(v>>4)&7]&=~15;
       regPool[(v>>4)&7]|=v&15;
       chanLatch=(v>>5)&3;
+
+      if (v&0x10) {
+        if (chanLatch<2) {
+          ay->address_w(8+chanLatch);
+          ay->data_w(15-(v&15));
+        } else {
+          ay->address_w(10);
+          ay->data_w((15-MIN(regPool[5]&15,regPool[7]&15))|(((regPool[6]&4) || regPool[7]==15)?0:16));
+        }
+        ay->address_w(7);
+        ay->data_w(
+          0xd8|
+          (((regPool[1]&15)==15)?1:0)|
+          (((regPool[3]&15)==15)?2:0)|
+          (((regPool[5]&15)==15)?4:0)|
+          (((regPool[7]&15)==15 || !(regPool[6]&4))?0x20:0)
+        );
+      } else if (chanLatch<3) {
+        ay->address_w(chanLatch<<1);
+        ay->data_w(regPool[chanLatch<<1]);
+        ay->address_w(1+(chanLatch<<1));
+        ay->data_w(regPool[1+(chanLatch<<1)]>>4);
+
+        if ((regPool[6]&3)==3) {
+          ay->address_w(11);
+          ay->data_w(regPool[4]);
+          ay->address_w(12);
+          ay->data_w(regPool[5]>>4);
+          ay->address_w(6);
+          ay->data_w(MIN(31,((regPool[4]|regPool[5]<<8)&0x3ff)>>1));
+        }
+      } else {
+        // noise mode
+        switch (regPool[6]&3) {
+          case 0:
+            ay->address_w(11);
+            ay->data_w(0x10);
+            ay->address_w(12);
+            ay->data_w(0);
+            ay->address_w(6);
+            ay->data_w(7);
+            break;
+          case 1:
+            ay->address_w(11);
+            ay->data_w(0x20);
+            ay->address_w(12);
+            ay->data_w(0);
+            ay->address_w(6);
+            ay->data_w(15);
+            break;
+          case 2:
+            ay->address_w(11);
+            ay->data_w(0x40);
+            ay->address_w(12);
+            ay->data_w(0);
+            ay->address_w(6);
+            ay->data_w(31);
+            break;
+          case 3:
+            ay->address_w(11);
+            ay->data_w(regPool[4]);
+            ay->address_w(12);
+            ay->data_w(regPool[5]>>4);
+            ay->address_w(6);
+            ay->data_w(MIN(31,((regPool[4]|regPool[5]<<8)&0x3ff)>>1));
+            break;
+        }
+        // restart envelope
+        ay->address_w(13);
+        ay->data_w(8);
+
+        ay->address_w(10);
+        ay->data_w((15-MIN(regPool[5]&15,regPool[7]&15))|(((regPool[6]&4) || regPool[7]==15)?0:16));
+      }
     } else {
       regPool[chanLatch<<1]&=15;
       regPool[chanLatch<<1]|=((v&15)<<4);
       regPool[1+(chanLatch<<1)]&=15;
       regPool[1+(chanLatch<<1)]|=v&0xf0;
+
+      ay->address_w(chanLatch<<1);
+      ay->data_w(regPool[chanLatch<<1]);
+      ay->address_w(1+(chanLatch<<1));
+      ay->data_w(regPool[1+(chanLatch<<1)]>>4);
+
+      if ((regPool[6]&3)==3) {
+        ay->address_w(11);
+        ay->data_w(regPool[4]);
+        ay->address_w(12);
+        ay->data_w(regPool[5]>>4);
+        ay->address_w(6);
+        ay->data_w(MIN(31,((regPool[4]|regPool[5]<<8)&0x3ff)>>1));
+      }
     }
   }
 }
@@ -110,31 +198,28 @@ void DivPlatformSMS::acquire_nuked(short** buf, size_t len) {
 }
 
 void DivPlatformSMS::acquire_mame(short** buf, size_t len) {
+  if (ayBufLen<len) {
+    ayBufLen=len;
+    for (int i=0; i<3; i++) {
+      delete[] ayBuf[i];
+      ayBuf[i]=new short[ayBufLen];
+    }
+  }
+
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
-    if (stereo && (w.addr==1))
-      sn->stereo_w(w.val);
-    else if (w.addr==0) {
-      sn->write(w.val);
-    }
-
     poolWrite(w.addr,w.val);
 
     writes.pop();
   }
-  for (size_t h=0; h<len; h++) {
-    short* outs[2]={
-      &buf[0][h],
-      stereo?(&buf[1][h]):NULL
-    };
-    sn->sound_stream_update(outs,1);
-    for (int i=0; i<4; i++) {
-      if (isMuted[i]) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
-      } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i)*3;
-      }
-    }
+
+  for (size_t i=0; i<len; i++) {
+    ay->sound_stream_update(ayBuf,1);
+    buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
+
+    oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
+    oscBuf[1]->data[oscBuf[1]->needle++]=ayBuf[1][0]<<2;
+    oscBuf[2]->data[oscBuf[2]->needle++]=ayBuf[2][0]<<2;
   }
 }
 
@@ -486,6 +571,7 @@ void DivPlatformSMS::reset() {
     addWrite(0xffffffff,0);
   }
   sn->device_start();
+  ay->device_reset();
   YMPSG_Init(&sn_nuked,isRealSN,12,isRealSN?13:15,isRealSN?16383:32767);
   snNoiseMode=3;
   rWrite(0,0xe7);
@@ -631,6 +717,11 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
   }
+
+  if (ay!=NULL) delete ay;
+  ay=new ay8910_device(rate);
+  ay->device_start();
+  ay->device_reset();
 }
 
 void DivPlatformSMS::setNuked(bool value) {
@@ -648,7 +739,12 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, const DivConfi
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+
+  ayBufLen=65536;
+  for (int i=0; i<3; i++) ayBuf[i]=new short[ayBufLen];
+
   sn=NULL;
+  ay=NULL;
   setFlags(flags);
   reset();
   return 4;
@@ -658,7 +754,11 @@ void DivPlatformSMS::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
   }
+  for (int i=0; i<3; i++) {
+    delete[] ayBuf[i];
+  }
   if (sn!=NULL) delete sn;
+  if (ay!=NULL) delete ay;
 }
 
 DivPlatformSMS::~DivPlatformSMS() {
