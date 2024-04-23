@@ -54,8 +54,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev199"
-#define DIV_ENGINE_VERSION 199
+#define DIV_VERSION "dev200"
+#define DIV_ENGINE_VERSION 200
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -105,9 +105,10 @@ struct DivChannelState {
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoPosGiant, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
+  int sampleOff;
   unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR, lastVibrato, lastPorta, cutType;
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff, releasing;
-  bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp;
+  bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp, sampleOffSet;
   bool wentThroughNote, goneThroughNote;
 
   int midiNote, curMidiNote, midiPitch;
@@ -141,6 +142,7 @@ struct DivChannelState {
     tremoloDepth(0),
     tremoloRate(0),
     tremoloPos(0),
+    sampleOff(0),
     arp(0),
     arpStage(-1),
     arpTicks(1),
@@ -167,6 +169,7 @@ struct DivChannelState {
     wasShorthandPorta(false),
     noteOnInhibit(false),
     resetArp(false),
+    sampleOffSet(false),
     wentThroughNote(false),
     goneThroughNote(false),
     midiNote(-1),

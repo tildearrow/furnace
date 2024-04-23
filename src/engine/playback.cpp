@@ -654,6 +654,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   bool calledPorta=false;
   bool panChanged=false;
   bool surroundPanChanged=false;
+  bool sampleOffSet=false;
 
   // effects
   for (int j=0; j<curPat[i].effectCols; j++) {
@@ -889,7 +890,15 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0x94: case 0x95: case 0x96: case 0x97: 
       case 0x98: case 0x99: case 0x9a: case 0x9b:
       case 0x9c: case 0x9d: case 0x9e: case 0x9f: // set samp. pos
-        dispatchCmd(DivCommand(DIV_CMD_SAMPLE_POS,i,(((effect&0x0f)<<8)|effectVal)*256));
+        if (song.oldSampleOffset) {
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_POS,i,(((effect&0x0f)<<8)|effectVal)*256));
+        } else {
+          if (effect<0x93) {
+            chan[i].sampleOff&=~(0xff<<((effect-0x90)<<3));
+            chan[i].sampleOff|=effectVal<<((effect-0x90)<<3);
+            sampleOffSet=true;
+          }
+        }
         break;
       case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
         divider=(double)(((effect&0x3)<<8)|effectVal);
@@ -1111,6 +1120,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
         logV("scheduling stop");
         break;
     }
+  }
+
+  if (sampleOffSet) {
+    dispatchCmd(DivCommand(DIV_CMD_SAMPLE_POS,i,chan[i].sampleOff));
   }
 
   if (panChanged) {
