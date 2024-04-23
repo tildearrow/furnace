@@ -47,6 +47,7 @@ const char* aboutLine[]={
   "scratchminer",
   "superctr",
   "System64",
+  "techmetx11",
   "",
   "-- graphics/UI design --",
   "tildearrow",
