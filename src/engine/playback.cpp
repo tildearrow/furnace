@@ -782,7 +782,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].vibratoDepth=chan[i].lastVibrato&15;
           chan[i].vibratoRate=chan[i].lastVibrato>>4;
         }
-
         dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
         // TODO: non-0x-or-x0 value should be treated as 00
@@ -1127,7 +1126,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
     if (!song.continuousVibrato) {
       chan[i].vibratoPos=0;
     }
-
     dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
     if (chan[i].legato && (!chan[i].inPorta || song.brokenPortaLegato)) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
@@ -1148,7 +1146,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
         chan[i].releasing=false;
         if (song.resetArpPhaseOnNewNote) {
-            chan[i].arpStage=-1;
+           chan[i].arpStage=-1;
         }
         chan[i].goneThroughNote=true;
         chan[i].wentThroughNote=true;
@@ -1156,7 +1154,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
       }
     }
     chan[i].doNote=false;
-
     if (!chan[i].keyOn && chan[i].scheduledSlideReset) {
       chan[i].portaNote=-1;
       chan[i].portaSpeed=-1;
