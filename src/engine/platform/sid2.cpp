@@ -133,6 +133,7 @@ void DivPlatformSID2::tick(bool sysTick) {
       } else {
         chan[i].duty-=chan[i].std.duty.val;
       }
+      chan[i].duty&=4095;
       rWrite(i*7+2,chan[i].duty&0xff);
       rWrite(i*7+3,(chan[i].duty>>8) | (chan[i].outVol << 4));
     }
