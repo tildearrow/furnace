@@ -310,6 +310,7 @@ jobs:
         rm -r share/icons
         rm -r share/licenses
         rm -r share/metainfo
+        rm -r share/mime
 
         rmdir share
 
