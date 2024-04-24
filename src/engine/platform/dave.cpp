@@ -468,6 +468,7 @@ int DivPlatformDave::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
+      if (c.chan<4) break;
       chan[c.chan].dacPos=c.value;
       chan[c.chan].setPos=true;
       break;

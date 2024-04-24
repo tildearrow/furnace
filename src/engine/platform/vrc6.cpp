@@ -54,7 +54,7 @@ void DivPlatformVRC6::acquire(short** buf, size_t len) {
         chan[i].dacPeriod+=chan[i].dacRate;
         if (chan[i].dacPeriod>rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
-          if (s->samples<=0) {
+          if (s->samples<=0 || chan[i].dacPos>=s->samples) {
             chan[i].dacSample=-1;
             chWrite(i,0,0);
             continue;
@@ -185,7 +185,11 @@ void DivPlatformVRC6::tick(bool sysTick) {
               chWrite(i,0,isMuted[i]?0:0x80);
               addWrite(0xffff0000+(i<<8),chan[i].dacSample);
             }
-            chan[i].dacPos=0;
+            if (chan[i].setPos) {
+              chan[i].setPos=false;
+            } else {
+              chan[i].dacPos=0;
+            }
             chan[i].dacPeriod=0;
             chan[i].keyOn=true;
           }
@@ -262,7 +266,11 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
                 addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
               }
             }
-            chan[c.chan].dacPos=0;
+            if (chan[c.chan].setPos) {
+              chan[c.chan].setPos=false;
+            } else {
+              chan[c.chan].dacPos=0;
+            }
             chan[c.chan].dacPeriod=0;
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
@@ -290,7 +298,11 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
             } else {
               if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
             }
-            chan[c.chan].dacPos=0;
+            if (chan[c.chan].setPos) {
+              chan[c.chan].setPos=false;
+            } else {
+              chan[c.chan].dacPos=0;
+            }
             chan[c.chan].dacPeriod=0;
             chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
             if (dumpWrites) {
@@ -404,6 +416,10 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       if (sampleBank>(parent->song.sample.size()/12)) {
         sampleBank=parent->song.sample.size()/12;
       }
+      break;
+    case DIV_CMD_SAMPLE_POS:
+      chan[c.chan].dacPos=c.value;
+      chan[c.chan].setPos=true;
       break;
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));

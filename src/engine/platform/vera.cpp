@@ -56,6 +56,7 @@ const char** DivPlatformVERA::getRegisterSheet() {
   return regCheatSheetVERA;
 }
 
+// TODO: possible sample offset latency...
 void DivPlatformVERA::acquire(short** buf, size_t len) {
   // both PSG part and PCM part output a full 16-bit range, putting bufL/R
   // argument right into both could cause an overflow
@@ -63,7 +64,7 @@ void DivPlatformVERA::acquire(short** buf, size_t len) {
   size_t pos=0;
   DivSample* s=parent->getSample(chan[16].pcm.sample);
   while (len>0) {
-    if (s->samples>0) {
+    if (s->samples>0 && chan[16].pcm.pos<s->samples) {
       while (pcm_is_fifo_almost_empty(pcm)) {
         short tmp_l=0;
         short tmp_r=0;
@@ -312,7 +313,11 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
           chan[16].pcm.sample=-1;
         }
-        chan[16].pcm.pos=0;
+        if (chan[16].pcm.setPos) {
+          chan[16].pcm.setPos=false;
+        } else {
+          chan[16].pcm.pos=0;
+        }
         DivSample* s=parent->getSample(chan[16].pcm.sample);
         unsigned char ctrl=0x90|chan[16].vol; // always stereo
         if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
@@ -426,8 +431,13 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_SAMPLE_POS:
+      if (c.chan!=16) break;
+      chan[c.chan].pcm.pos=c.value;
+      chan[c.chan].pcm.setPos=true;
+      break;
     case DIV_CMD_GET_VOLMAX:
-      if(c.chan<16) {
+      if (c.chan<16) {
         return 63;
       } else {
         return 15;

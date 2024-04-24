@@ -49,7 +49,7 @@ void DivPlatformMMC5::acquire(short** buf, size_t len) {
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
-        if (s->samples>0) {
+        if (s->samples>0 && dacPos<s->samples) {
           if (!isMuted[2]) {
             rWrite(0x5011,((unsigned char)s->data8[dacPos]+0x80));
           }
@@ -192,7 +192,11 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
           } else {
             if (dumpWrites) addWrite(0xffff0000,dacSample);
           }
-          dacPos=0;
+          if (chan[c.chan].setPos) {
+            chan[c.chan].setPos=false;
+          } else {
+            dacPos=0;
+          }
           dacPeriod=0;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
@@ -214,7 +218,11 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
           } else {
             if (dumpWrites) addWrite(0xffff0000,dacSample);
           }
-          dacPos=0;
+          if (chan[c.chan].setPos) {
+            chan[c.chan].setPos=false;
+          } else {
+            dacPos=0;
+          }
           dacPeriod=0;
           dacRate=parent->getSample(dacSample)->rate;
           if (dumpWrites) addWrite(0xffff0001,dacRate);
@@ -306,6 +314,11 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       if (sampleBank>(parent->song.sample.size()/12)) {
         sampleBank=parent->song.sample.size()/12;
       }
+      break;
+    case DIV_CMD_SAMPLE_POS:
+      if (c.chan!=2) break;
+      dacPos=c.value;
+      chan[c.chan].setPos=true;
       break;
     case DIV_CMD_LEGATO:
       if (c.chan==2) {

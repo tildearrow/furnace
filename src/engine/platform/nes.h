@@ -44,7 +44,7 @@ class DivPlatformNES: public DivDispatch {
   Channel chan[5];
   DivDispatchOscBuffer* oscBuf[5];
   bool isMuted[5];
-  int dacPeriod, dacRate;
+  int dacPeriod, dacRate, dpcmPos;
   unsigned int dacPos, dacAntiClick;
   int dacSample;
   unsigned char* dpcmMem;

@@ -391,17 +391,23 @@ void DivPlatformQSound::tick(bool sysTick) {
       chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,440.0,4096.0);
       if (chan[i].freq>0xefff) chan[i].freq=0xefff;
       if (chan[i].keyOn) {
+        if (chan[i].setPos) {
+          chan[i].setPos=false;
+        } else {
+          chan[i].audPos=0;
+        }
+
         if (i<16) {
           rWrite(q1_reg_map[Q1V_BANK][i], qsound_bank);
           rWrite(q1_reg_map[Q1V_END][i], qsound_end);
           rWrite(q1_reg_map[Q1V_LOOP][i], qsound_loop);
-          rWrite(q1_reg_map[Q1V_START][i], qsound_addr);
+          rWrite(q1_reg_map[Q1V_START][i], qsound_addr+chan[i].audPos);
           rWrite(q1_reg_map[Q1V_PHASE][i], 0x8000);
         } else {
           rWrite(Q1A_KEYON+(i-16),0);
           rWrite(q1a_bank_map[i-16], qsound_bank);
           rWrite(q1a_end_map[i-16], qsound_end);
-          rWrite(q1a_start_map[i-16], qsound_addr);
+          rWrite(q1a_start_map[i-16], qsound_addr+chan[i].audPos);
           rWrite(Q1A_KEYON+(i-16),1);
         }
         //logV("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
@@ -579,6 +585,13 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
+      break;
+    case DIV_CMD_SAMPLE_POS:
+      chan[c.chan].audPos=c.value;
+      chan[c.chan].setPos=true;
+      if (chan[c.chan].active) {
+        chan[c.chan].keyOn=true;
+      }
       break;
     case DIV_CMD_GET_VOLMAX:
       return 255;
