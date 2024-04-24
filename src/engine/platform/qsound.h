@@ -29,7 +29,7 @@ class DivPlatformQSound: public DivDispatch {
     int sample, wave;
     int panning;
     int echo;
-    bool useWave, surround, isNewQSound;
+    bool useWave, surround, isNewQSound, setPos;
     Channel():
       SharedChannel<int>(255),
       resVol(4095),
@@ -39,7 +39,8 @@ class DivPlatformQSound: public DivDispatch {
       echo(0),
       useWave(false),
       surround(true),
-      isNewQSound(false) {}
+      isNewQSound(false),
+      setPos(false) {}
   };
   Channel chan[19];
   DivDispatchOscBuffer* oscBuf[19];

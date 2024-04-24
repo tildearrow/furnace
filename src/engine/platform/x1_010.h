@@ -70,7 +70,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     int fixedFreq;
     int wave, sample;
     unsigned char pan, autoEnvNum, autoEnvDen;
-    bool envChanged, furnacePCM, pcm;
+    bool envChanged, furnacePCM, pcm, setPos;
     int lvol, rvol;
     int macroVolMul;
     unsigned char waveBank;
@@ -84,7 +84,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
         autoEnvNum=autoEnvDen=0;
         active=false;
         insChanged=envChanged=freqChanged=true;
-        keyOn=keyOff=inPorta=furnacePCM=pcm=false;
+        keyOn=keyOff=inPorta=furnacePCM=pcm=setPos=false;
         vol=outVol=lvol=rvol=15;
         waveBank=0;
     }
@@ -99,6 +99,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
       envChanged(true),
       furnacePCM(false),
       pcm(false),
+      setPos(false),
       lvol(15),
       rvol(15),
       macroVolMul(15),

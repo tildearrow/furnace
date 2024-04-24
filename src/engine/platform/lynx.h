@@ -45,7 +45,7 @@ class DivPlatformLynx: public DivDispatch {
     MikeyDuty duty;
     int actualNote, lfsr, sample, samplePos, sampleAccum, sampleBaseFreq, sampleFreq;
     unsigned char pan;
-    bool pcm;
+    bool pcm, setPos;
     int macroVolMul;
     Channel():
       SharedChannel<signed char>(127),
@@ -60,6 +60,7 @@ class DivPlatformLynx: public DivDispatch {
       sampleFreq(0),
       pan(0xff),
       pcm(false),
+      setPos(false),
       macroVolMul(127) {}
   };
   Channel chan[4];

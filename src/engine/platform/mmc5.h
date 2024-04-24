@@ -26,14 +26,15 @@ class DivPlatformMMC5: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     int prevFreq;
     unsigned char duty, sweep;
-    bool sweepChanged, furnaceDac;
+    bool sweepChanged, furnaceDac, setPos;
     Channel():
       SharedChannel<signed char>(15),
       prevFreq(65535),
       duty(0),
       sweep(8),
       sweepChanged(false),
-      furnaceDac(false) {}
+      furnaceDac(false),
+      setPos(false) {}
   };
   Channel chan[5];
   DivDispatchOscBuffer* oscBuf[3];

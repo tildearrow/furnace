@@ -556,6 +556,7 @@ void DivPlatformSwan::reset() {
   pcm=false;
   sweep=false;
   furnaceDac=false;
+  setPos=false;
   noise=0;
   dacPeriod=0;
   dacRate=0;
