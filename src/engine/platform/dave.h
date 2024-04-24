@@ -33,7 +33,7 @@ class DivPlatformDave: public DivDispatch {
     unsigned char panL;
     unsigned char panR;
     unsigned char wave;
-    bool writeVol, highPass, ringMod, swapCounters, lowPass, resetPhase;
+    bool writeVol, highPass, ringMod, swapCounters, lowPass, resetPhase, setPos;
     Channel():
       SharedChannel<signed char>(63),
       dacPeriod(0),
@@ -50,7 +50,8 @@ class DivPlatformDave: public DivDispatch {
       ringMod(false),
       swapCounters(false),
       lowPass(false),
-      resetPhase(false) {}
+      resetPhase(false),
+      setPos(false) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
