@@ -3176,7 +3176,7 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, const char* def, DivEngine* e)
     float panFR=conf.getFloat(nextStr.c_str(),0.0f);
     conf.remove(nextStr.c_str());
     nextStr=fmt::sprintf("flags%d",i);
-    String flags=conf.getString(nextStr.c_str(),"");
+    String flags=taDecodeBase64(conf.getString(nextStr.c_str(),"").c_str());
     conf.remove(nextStr.c_str());
 
     orig.push_back(FurnaceGUISysDefChip(e->systemFromFileFur(id),vol,pan,flags.c_str(),panFR));

@@ -438,9 +438,9 @@ void FurnaceGUI::drawUserPresets() {
 
               if (ImGui::TreeNode("Configure")) {
                 DivConfig sysFlags;
-                sysFlags.loadFromBase64(chip.flags.c_str());
+                sysFlags.loadFromMemory(chip.flags.c_str());
                 if (drawSysConf(-1,i,chip.sys,sysFlags,false)) {
-                  chip.flags=sysFlags.toBase64();
+                  chip.flags=sysFlags.toString();
                   mustBake=true;
                 }
                 ImGui::TreePop();
