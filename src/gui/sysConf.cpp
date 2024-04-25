@@ -886,6 +886,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         clockSel=2;
         altered=true;
       }
+      if (ImGui::RadioButton("1.99MHz (PC-88)",clockSel==15)) {
+        clockSel=15;
+        altered=true;
+      }
       if (ImGui::RadioButton("2MHz (Atari ST/Sharp X1)",clockSel==3)) {
         clockSel=3;
         altered=true;
