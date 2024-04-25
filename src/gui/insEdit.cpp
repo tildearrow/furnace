@@ -5689,14 +5689,11 @@ void FurnaceGUI::drawInsEdit() {
 
           ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
 
-          if (ImGui::BeginTable("C64EnvParams",(ins->type==DIV_INS_SID2)?6:5,ImGuiTableFlags_NoHostExtendX)) {
+          if (ImGui::BeginTable("C64EnvParams",5,ImGuiTableFlags_NoHostExtendX)) {
             ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
             ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-            if (ins->type==DIV_INS_SID2) {
-              ImGui::TableSetupColumn("c3_s2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-            }
             ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
 
             ImGui::TableNextRow();
@@ -5712,11 +5709,6 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::TableNextColumn();
             CENTER_TEXT("R");
             ImGui::TextUnformatted("R");
-            if (ins->type==DIV_INS_SID2) {
-              ImGui::TableNextColumn();
-              CENTER_TEXT("TL");
-              ImGui::TextUnformatted("TL");
-            }
             ImGui::TableNextColumn();
             CENTER_TEXT("Envelope");
             ImGui::TextUnformatted("Envelope");
@@ -5730,10 +5722,6 @@ void FurnaceGUI::drawInsEdit() {
             P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN)); rightClickable
-            if (ins->type==DIV_INS_SID2) {
-              ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Volume",sliderSize,ImGuiDataType_U8,&ins->sid2.volume,&_ZERO,&_FIFTEEN)); rightClickable
-            }
             ImGui::TableNextColumn();
             drawFMEnv((ins->type==DIV_INS_SID2)?(15-ins->sid2.volume):0,16-ins->c64.a,16-ins->c64.d,15-ins->c64.r,15-ins->c64.r,15-ins->c64.s,0,0,0,15,16,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
 
