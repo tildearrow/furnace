@@ -61,6 +61,37 @@ void DivSubSong::sortOrders() {
 }
 
 void DivSubSong::makePatUnique() {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    logD("making channel %d unique...",i);
+    bool seen[DIV_MAX_PATTERNS];
+    bool used[DIV_MAX_PATTERNS];
+
+    memset(seen,0,DIV_MAX_PATTERNS*sizeof(bool));
+    memset(used,0,DIV_MAX_PATTERNS*sizeof(bool));
+
+    // 1. populate used patterns
+    for (int j=0; j<ordersLen; j++) {
+      used[orders.ord[i][j]]=true;
+    }
+
+    // 2. make patterns unique
+    for (int j=0; j<ordersLen; j++) {
+      if (seen[orders.ord[i][j]]) {
+        for (int k=0; k<DIV_MAX_PATTERNS; k++) {
+          if (!used[k]) {
+            // copy here
+            DivPattern* dest=pat[i].getPattern(k,true);
+            DivPattern* src=pat[i].getPattern(orders.ord[i][j],false);
+            src->copyOn(dest);
+            orders.ord[i][j]=k;
+            break;
+          }
+        }
+      } else {
+        seen[orders.ord[i][j]]=true;
+      }
+    }
+  }
 }
 
 void DivSong::clearSongData() {
