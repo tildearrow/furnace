@@ -715,6 +715,8 @@ void DivPlatformAY8930::muteChannel(int ch, bool mute) {
 void DivPlatformAY8930::forceIns() {
   for (int i=0; i<3; i++) {
     chan[i].insChanged=true;
+    chan[i].curPSGMode.val&=~8;
+    chan[i].nextPSGMode.val&=~8;
     immWrite(regPeriodL[i],chan[i].envelope.period);
     immWrite(regPeriodH[i],chan[i].envelope.period>>8);
     immWrite(regMode[i],chan[i].envelope.mode);

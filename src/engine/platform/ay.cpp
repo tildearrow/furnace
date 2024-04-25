@@ -714,6 +714,8 @@ void DivPlatformAY8910::muteChannel(int ch, bool mute) {
 
 void DivPlatformAY8910::forceIns() {
   for (int i=0; i<3; i++) {
+    chan[i].curPSGMode.val&=~8;
+    chan[i].nextPSGMode.val&=~8;
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
   }
