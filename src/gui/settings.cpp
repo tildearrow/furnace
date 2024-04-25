@@ -5189,6 +5189,14 @@ bool FurnaceGUI::exportLayout(String path) {
   return true;
 }
 
+bool FurnaceGUI::importConfig(String path) {
+  return false;
+}
+
+bool FurnaceGUI::exportConfig(String path) {
+  return false;
+}
+
 void FurnaceGUI::resetColors() {
   for (int i=0; i<GUI_COLOR_MAX; i++) {
     uiColors[i]=ImGui::ColorConvertU32ToFloat4(guiColors[i].defaultColor);

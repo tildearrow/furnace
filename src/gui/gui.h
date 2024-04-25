@@ -575,9 +575,14 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_IMPORT_COLORS,
   GUI_FILE_IMPORT_KEYBINDS,
   GUI_FILE_IMPORT_LAYOUT,
+  GUI_FILE_IMPORT_USER_PRESETS,
+  GUI_FILE_IMPORT_USER_PRESETS_REPLACE,
+  GUI_FILE_IMPORT_CONFIG,
   GUI_FILE_EXPORT_COLORS,
   GUI_FILE_EXPORT_KEYBINDS,
   GUI_FILE_EXPORT_LAYOUT,
+  GUI_FILE_EXPORT_USER_PRESETS,
+  GUI_FILE_EXPORT_CONFIG,
   GUI_FILE_YRW801_ROM_OPEN,
   GUI_FILE_TG100_ROM_OPEN,
   GUI_FILE_MU5_ROM_OPEN,
@@ -1526,6 +1531,7 @@ class FurnaceGUI {
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
+  String workingDirConfig;
   String mmlString[32];
   String mmlStringW, grooveString, grooveListString, mmlStringModTable;
   String mmlStringSNES[DIV_MAX_CHIPS];
@@ -2697,6 +2703,8 @@ class FurnaceGUI {
   bool exportKeybinds(String path);
   bool importLayout(String path);
   bool exportLayout(String path);
+  bool importConfig(String path);
+  bool exportConfig(String path);
 
   float computeGradPos(int type, int chan);
 
@@ -2796,8 +2804,8 @@ class FurnaceGUI {
   void initRandomDemoSong();
   bool loadRandomDemoSong();
 
-  bool loadUserPresets(bool redundancy=true);
-  bool saveUserPresets(bool redundancy=true);
+  bool loadUserPresets(bool redundancy=true, String path="", bool append=false);
+  bool saveUserPresets(bool redundancy=true, String path="");
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false, bool bit30=false);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);

@@ -48,8 +48,8 @@ std::vector<FurnaceGUISysDef>* digDeep(std::vector<FurnaceGUISysDef>& entries, i
   return &result;
 }
 
-bool FurnaceGUI::loadUserPresets(bool redundancy) {
-  String path=e->getConfigPath()+PRESETS_FILE;
+bool FurnaceGUI::loadUserPresets(bool redundancy, String path, bool append) {
+  if (path.empty()) path=e->getConfigPath()+PRESETS_FILE;
   String line;
   logD("opening user presets: %s",path);
 
@@ -142,7 +142,7 @@ bool FurnaceGUI::loadUserPresets(bool redundancy) {
     return false;
   }
 
-  userCategory->systems.clear();
+  if (!append) userCategory->systems.clear();
 
   char nextLine[4096];
   while (!feof(f)) {
@@ -210,8 +210,8 @@ void writeSubEntries(FILE* f, std::vector<FurnaceGUISysDef>& entries, int depth)
   }
 }
 
-bool FurnaceGUI::saveUserPresets(bool redundancy) {
-  String path=e->getConfigPath()+PRESETS_FILE;
+bool FurnaceGUI::saveUserPresets(bool redundancy, String path) {
+  if (path.empty()) path=e->getConfigPath()+PRESETS_FILE;
   FurnaceGUISysCategory* userCategory=NULL;
 
   for (FurnaceGUISysCategory& i: sysCategories) {
@@ -508,6 +508,20 @@ void FurnaceGUI::drawUserPresets() {
 
     if (ImGui::Button("Save and Close")) {
       userPresetsOpen=false;
+    }
+    ImGui::SameLine();
+    ImGui::Dummy(ImVec2(8.0f*dpiScale,1.0f));
+    ImGui::SameLine();
+    if (ImGui::Button("Import")) {
+      openFileDialog(GUI_FILE_IMPORT_USER_PRESETS);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Import (replace)")) {
+      openFileDialog(GUI_FILE_IMPORT_USER_PRESETS_REPLACE);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Export")) {
+      openFileDialog(GUI_FILE_EXPORT_USER_PRESETS);
     }
   }
   if (!userPresetsOpen) {
