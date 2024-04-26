@@ -3951,6 +3951,22 @@ bool DivEngine::preInit(bool noSafeMode) {
   
   loadConf();
 
+  if (!conf.has("opn1Core")) {
+    if (conf.has("opnCore")) {
+      conf.set("opn1Core",conf.getString("opnCore",""));
+    }
+  }
+  if (!conf.has("opnaCore")) {
+    if (conf.has("opnCore")) {
+      conf.set("opnaCore",conf.getString("opnCore",""));
+    }
+  }
+  if (!conf.has("opnbCore")) {
+    if (conf.has("opnCore")) {
+      conf.set("opnbCore",conf.getString("opnCore",""));
+    }
+  }
+
 #ifdef HAVE_SDL2
   String audioDriver=getConfString("sdlAudioDriver","");
   if (!audioDriver.empty()) {
