@@ -273,7 +273,7 @@ bool FurnaceGUIRenderMetal::init(SDL_Window* win, int swapInterval) {
     return false;
   }
 
-  vendorName=[priv->context.device.architecture.name UTF8String];
+  vendorName="N/A";
   deviceName=[priv->context.device.name UTF8String];
   apiVersion="";
 
