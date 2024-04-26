@@ -1,8 +1,8 @@
-#include "sound/cpt100/sound.cpp"
+#include "sound/s3hs88pwn4/sound.cpp"
 #include "../waveSynth.h"
 #include "../dispatch.h"
 
-class DivPlatformCPT100: public DivDispatch {
+class DivPlatformS3HS: public DivDispatch {
   struct Channel : public SharedChannel<int> {
     int freq, baseFreq, pitch;
     int wave, sample;
@@ -16,6 +16,7 @@ class DivPlatformCPT100: public DivDispatch {
     signed char amp;
     bool pcmLoop;
     int hasOffset;
+    int pan;
     DivWaveSynth ws;
     Channel(): 
       SharedChannel<int>(0),
@@ -36,14 +37,15 @@ class DivPlatformCPT100: public DivDispatch {
       resVol(0),
       amp(0),
       pcmLoop(false),
-      hasOffset(0){}
+      hasOffset(0),
+      pan(0){}
   };
-  Cpt100_sound* cpt;
-  unsigned char regPool[208];
+  S3HS_sound* cpt;
+  unsigned char regPool[704];
   DivMemoryComposition memCompo;
-  Channel chan[6];
-  DivDispatchOscBuffer* oscBuf[6];
-  bool isMuted[6];
+  Channel chan[12];
+  DivDispatchOscBuffer* oscBuf[12];
+  bool isMuted[12];
   unsigned char chans;  
   unsigned int sampleMemSize;
   unsigned char ilCtrl, ilSize, fil1;
@@ -72,6 +74,8 @@ class DivPlatformCPT100: public DivDispatch {
     DivDispatchOscBuffer* getOscBuffer(int chan);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    int getOutputCount();
+    unsigned short getPan(int ch);
     void reset();
     void tick(bool sysTick=true);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
@@ -85,5 +89,5 @@ class DivPlatformCPT100: public DivDispatch {
     bool isSampleLoaded(int index, int sample);
     void renderSamples(int chipID);
     void doWrite(unsigned int addr, unsigned char data);
-    ~DivPlatformCPT100();
+    ~DivPlatformS3HS();
 };

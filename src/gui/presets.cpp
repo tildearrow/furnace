@@ -3046,6 +3046,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_CPT100, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "3HS88PWN4", {
+      CH(DIV_SYSTEM_S3HS, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("DefleMask-compatible","these configurations are compatible with DefleMask.\nselect this if you need to save as .dmf or work with that program.");

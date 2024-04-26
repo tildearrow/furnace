@@ -263,6 +263,74 @@ bool DivInstrumentCPT100::operator==(const DivInstrumentCPT100& other) {
   );
 }
 
+bool DivInstrumentS3HS::operator==(const DivInstrumentS3HS& other) {
+  return (
+    _C(op2fu) && 
+    _C(op3fu) && 
+    _C(op4fu) && 
+    _C(op5fu) && 
+    _C(op6fu) && 
+    _C(op7fu) && 
+    _C(op8fu) &&
+    _C(op2fl) &&
+    _C(op3fl) &&
+    _C(op4fl) &&
+    _C(op5fl) &&
+    _C(op6fl) &&
+    _C(op7fl) &&
+    _C(op8fl) &&
+    _C(op1w) && 
+    _C(op2w) && 
+    _C(op3w) && 
+    _C(op4w) && 
+    _C(op5w) && 
+    _C(op6w) && 
+    _C(op7w) && 
+    _C(op8w) &&
+    _C(op1v) && 
+    _C(op1a) && 
+    _C(op1d) && 
+    _C(op1s) && 
+    _C(op1r) &&
+    _C(op2v) && 
+    _C(op2a) && 
+    _C(op2d) && 
+    _C(op2s) && 
+    _C(op2r) &&
+    _C(op3v) && 
+    _C(op3a) && 
+    _C(op3d) && 
+    _C(op3s) && 
+    _C(op3r) &&
+    _C(op4v) && 
+    _C(op4a) && 
+    _C(op4d) && 
+    _C(op4s) && 
+    _C(op4r) &&
+    _C(op5v) && 
+    _C(op5a) && 
+    _C(op5d) && 
+    _C(op5s) && 
+    _C(op5r) &&
+    _C(op6v) && 
+    _C(op6a) && 
+    _C(op6d) && 
+    _C(op6s) && 
+    _C(op6r) &&
+    _C(op7v) && 
+    _C(op7a) && 
+    _C(op7d) && 
+    _C(op7s) && 
+    _C(op7r) &&
+    _C(op8v) && 
+    _C(op8a) && 
+    _C(op8d) && 
+    _C(op8s) && 
+    _C(op8r) && 
+    _C(mode)    
+  );
+}
+
 bool DivInstrumentESFM::operator==(const DivInstrumentESFM& other) {
   return (
     _C(noise) &&
@@ -879,6 +947,76 @@ void DivInstrument::writeFeatureCP(SafeWriter* w) {
     
   FEATURE_END;
 }
+
+void DivInstrument::writeFeature3H(SafeWriter* w) {
+  FEATURE_BEGIN("3H");
+
+  w->writeC(s3hs.op2fu);
+  w->writeC(s3hs.op3fu);
+  w->writeC(s3hs.op4fu);
+  w->writeC(s3hs.op5fu);
+  w->writeC(s3hs.op6fu);
+  w->writeC(s3hs.op7fu);
+  w->writeC(s3hs.op8fu);
+  w->writeC(s3hs.op2fl);
+  w->writeC(s3hs.op3fl);
+  w->writeC(s3hs.op4fl);
+  w->writeC(s3hs.op5fl);
+  w->writeC(s3hs.op6fl);
+  w->writeC(s3hs.op7fl);
+  w->writeC(s3hs.op8fl);
+  w->writeC(s3hs.op1w);
+  w->writeC(s3hs.op2w);
+  w->writeC(s3hs.op3w);
+  w->writeC(s3hs.op4w);
+  w->writeC(s3hs.op5w);
+  w->writeC(s3hs.op6w);
+  w->writeC(s3hs.op7w);
+  w->writeC(s3hs.op8w);
+  w->writeC(s3hs.op1v);
+  w->writeC(s3hs.op1a);
+  w->writeC(s3hs.op1d);
+  w->writeC(s3hs.op1s);
+  w->writeC(s3hs.op1r);
+  w->writeC(s3hs.op2v);
+  w->writeC(s3hs.op2a);
+  w->writeC(s3hs.op2d);
+  w->writeC(s3hs.op2s);
+  w->writeC(s3hs.op2r);
+  w->writeC(s3hs.op3v);
+  w->writeC(s3hs.op3a);
+  w->writeC(s3hs.op3d);
+  w->writeC(s3hs.op3s);
+  w->writeC(s3hs.op3r);
+  w->writeC(s3hs.op4v);
+  w->writeC(s3hs.op4a);
+  w->writeC(s3hs.op4d);
+  w->writeC(s3hs.op4s);
+  w->writeC(s3hs.op4r);
+  w->writeC(s3hs.op5v);
+  w->writeC(s3hs.op5a);
+  w->writeC(s3hs.op5d);
+  w->writeC(s3hs.op5s);
+  w->writeC(s3hs.op5r);
+  w->writeC(s3hs.op6v);
+  w->writeC(s3hs.op6a);
+  w->writeC(s3hs.op6d);
+  w->writeC(s3hs.op6s);
+  w->writeC(s3hs.op6r);
+  w->writeC(s3hs.op7v);
+  w->writeC(s3hs.op7a);
+  w->writeC(s3hs.op7d);
+  w->writeC(s3hs.op7s);
+  w->writeC(s3hs.op7r);
+  w->writeC(s3hs.op8v);
+  w->writeC(s3hs.op8a);
+  w->writeC(s3hs.op8d);
+  w->writeC(s3hs.op8s);
+  w->writeC(s3hs.op8r);
+  w->writeC(s3hs.mode);
+  FEATURE_END;
+}
+
 void DivInstrument::writeFeatureEF(SafeWriter* w) {
   FEATURE_BEGIN("EF");
 
@@ -958,6 +1096,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureEF=false;
   bool featurePN=false;
   bool featureS2=false;
+  bool feature3H=false;
 
   bool checkForWL=false;
 
@@ -1207,6 +1346,12 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         feature64=true;
         featureS2=true;
         break;
+      case DIV_INS_S3HS:
+        checkForWL=true;
+        featureSM=true;
+        if (amiga.useSample) featureSL=true;
+        if (ws.enabled) featureWS=true;
+        feature3H=true;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1265,6 +1410,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (sid2!=defaultIns.sid2) {
       featureS2=true;
+    }
+    if (s3hs!=defaultIns.s3hs) {
+      feature3H=true;
     }
   }
 
@@ -1419,6 +1567,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureS2) {
     writeFeatureS2(w);
+  }
+  if (feature3H) {
+    writeFeature3H(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -2231,6 +2382,76 @@ void DivInstrument::readFeatureCP(SafeReader& reader, short version) {
 
   READ_FEAT_END;
 }
+
+void DivInstrument::readFeature3H(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  s3hs.op2fu=reader.readC();
+  s3hs.op3fu=reader.readC();
+  s3hs.op4fu=reader.readC();
+  s3hs.op5fu=reader.readC();
+  s3hs.op6fu=reader.readC();
+  s3hs.op7fu=reader.readC();
+  s3hs.op8fu=reader.readC();
+  s3hs.op2fl=reader.readC();
+  s3hs.op3fl=reader.readC();
+  s3hs.op4fl=reader.readC();
+  s3hs.op5fl=reader.readC();
+  s3hs.op6fl=reader.readC();
+  s3hs.op7fl=reader.readC();
+  s3hs.op8fl=reader.readC();
+  s3hs.op1w=reader.readC();
+  s3hs.op2w=reader.readC();
+  s3hs.op3w=reader.readC();
+  s3hs.op4w=reader.readC();
+  s3hs.op5w=reader.readC();
+  s3hs.op6w=reader.readC();
+  s3hs.op7w=reader.readC();
+  s3hs.op8w=reader.readC();
+  s3hs.op1v=reader.readC();
+  s3hs.op1a=reader.readC();
+  s3hs.op1d=reader.readC();
+  s3hs.op1s=reader.readC();
+  s3hs.op1r=reader.readC();
+  s3hs.op2v=reader.readC();
+  s3hs.op2a=reader.readC();
+  s3hs.op2d=reader.readC();
+  s3hs.op2s=reader.readC();
+  s3hs.op2r=reader.readC();
+  s3hs.op3v=reader.readC();
+  s3hs.op3a=reader.readC();
+  s3hs.op3d=reader.readC();
+  s3hs.op3s=reader.readC();
+  s3hs.op3r=reader.readC();
+  s3hs.op4v=reader.readC();
+  s3hs.op4a=reader.readC();
+  s3hs.op4d=reader.readC();
+  s3hs.op4s=reader.readC();
+  s3hs.op4r=reader.readC();
+  s3hs.op5v=reader.readC();
+  s3hs.op5a=reader.readC();
+  s3hs.op5d=reader.readC();
+  s3hs.op5s=reader.readC();
+  s3hs.op5r=reader.readC();
+  s3hs.op6v=reader.readC();
+  s3hs.op6a=reader.readC();
+  s3hs.op6d=reader.readC();
+  s3hs.op6s=reader.readC();
+  s3hs.op6r=reader.readC();
+  s3hs.op7v=reader.readC();
+  s3hs.op7a=reader.readC();
+  s3hs.op7d=reader.readC();
+  s3hs.op7s=reader.readC();
+  s3hs.op7r=reader.readC();
+  s3hs.op8v=reader.readC();
+  s3hs.op8a=reader.readC();
+  s3hs.op8d=reader.readC();
+  s3hs.op8s=reader.readC();
+  s3hs.op8r=reader.readC();
+  s3hs.mode=reader.readC();
+  READ_FEAT_END;
+}
+
 void DivInstrument::readFeatureEF(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
@@ -2353,6 +2574,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeaturePN(reader,version);
     } else if (memcmp(featCode,"S2",2)==0) { // SID2
       readFeatureS2(reader,version);
+    } else if (memcmp(featCode,"3H",2)==0) { // S3HS
+      readFeature3H(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing
