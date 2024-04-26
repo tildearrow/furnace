@@ -1529,7 +1529,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
       }
       // pattern input otherwise
       if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
-      if (!ev.key.repeat) {
+      if (!ev.key.repeat || settings.inputRepeat) {
         if (cursor.xFine==0) { // note
           auto it=noteKeys.find(ev.key.keysym.scancode);
           if (it!=noteKeys.cend()) {

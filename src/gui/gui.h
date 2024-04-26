@@ -1864,6 +1864,7 @@ class FurnaceGUI {
     int vsync;
     int frameRateLimit;
     int displayRenderTime;
+    int inputRepeat;
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
@@ -2104,6 +2105,7 @@ class FurnaceGUI {
       vsync(1),
       frameRateLimit(60),
       displayRenderTime(0),
+      inputRepeat(0),
       maxUndoSteps(100),
       vibrationStrength(0.5f),
       vibrationLength(20),

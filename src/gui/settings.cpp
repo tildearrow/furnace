@@ -2431,6 +2431,12 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        bool inputRepeatB=settings.inputRepeat;
+        if (ImGui::Checkbox("Keyboard note/value input repeat (hold key to input continuously)",&inputRepeatB)) {
+          settings.inputRepeat=inputRepeatB;
+          settingsChanged=true;
+        }
+
         ImGui::Text("Effect input behavior:");
         ImGui::Indent();
         if (ImGui::RadioButton("Move down##eicb0",settings.effectCursorDir==0)) {
@@ -4229,6 +4235,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.insTypeMenu=conf.getInt("insTypeMenu",1);
 
     settings.selectAssetOnLoad=conf.getInt("selectAssetOnLoad",1);
+
+    settings.inputRepeat=conf.getInt("inputRepeat",0);
   }
 
   if (groups&GUI_SETTINGS_FONT) {
@@ -4624,6 +4632,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.displayRenderTime,0,1);
   clampSetting(settings.vibrationStrength,0.0f,1.0f);
   clampSetting(settings.vibrationLength,10,500);
+  clampSetting(settings.inputRepeat,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4776,6 +4785,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("insTypeMenu",settings.insTypeMenu);
     
     conf.set("selectAssetOnLoad",settings.selectAssetOnLoad);
+
+    conf.set("inputRepeat",settings.inputRepeat);
   }
 
   // font
