@@ -225,7 +225,7 @@ const char* aboutLine[]={
   "adpcm by superctr",
   "adpcm-xq by David Bryant",
   "Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt",
-  "YM3812-LLE, YMF262-LLE and YMF276-LLE by nukeykt",
+  "YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt",
   "ESFMu (modified version) by Kagamiin~",
   "ymfm by Aaron Giles",
   "emu2413 by Digital Sound Antiques",
