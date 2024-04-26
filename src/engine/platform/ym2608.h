@@ -22,6 +22,9 @@
 
 #include "fmshared_OPN.h"
 #include "sound/ymfm/ymfm_opn.h"
+extern "C" {
+#include "../../../extern/YM2608-LLE/fmopna_2608.h"
+}
 
 #include "ay.h"
 
@@ -50,6 +53,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     ym3438_t fm_nuked;
     ymfm::ym2608* fm;
     ymfm::ym2608::output_data fmout;
+    fmopna_t fm_lle;
 
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
@@ -76,6 +80,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
 
     void acquire_combo(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
+    void acquire_lle(short** buf, size_t len);
 
   public:
     void acquire(short** buf, size_t len);

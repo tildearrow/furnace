@@ -158,7 +158,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
     unsigned char lastExtChPan;
     unsigned short ssgVol;
     unsigned short fmVol;
-    bool extSys, useCombo, fbAllOps;
+    bool extSys, fbAllOps;
+    unsigned char useCombo;
 
     DivConfig ayFlags;
 
@@ -180,10 +181,10 @@ class DivPlatformOPN: public DivPlatformFMBase {
       ssgVol(128),
       fmVol(256),
       extSys(isExtSys),
-      useCombo(false),
-      fbAllOps(false) {}
+      fbAllOps(false),
+      useCombo(0) {}
   public:
-    void setCombo(bool combo) {
+    void setCombo(unsigned char combo) {
       useCombo=combo;
     }
     virtual int mapVelocity(int ch, float vel) {
