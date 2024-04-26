@@ -492,23 +492,29 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
 
 void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
-    bool canWeWrite=true;
     bool have0=false;
     bool have1=false;
     unsigned char howLong=0;
     while (true) {
+      bool canWeWrite=fm_lle.prescaler_latch[1]&1;
+
       lastS=fm_lle.o_s;
       lastSH=fm_lle.o_sh1;
       lastSH2=fm_lle.o_sh2;
 
       if (canWeWrite) {
         if (delay>0) {
-          fm_lle.input.cs=0;
-          fm_lle.input.rd=0;
-          fm_lle.input.wr=1;
-          fm_lle.input.a0=0;
-          fm_lle.input.a1=0;
-          delay=1;
+          if (delay==3) {
+            delay=0;
+          } else {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=0;
+            fm_lle.input.wr=1;
+            fm_lle.input.a0=0;
+            fm_lle.input.a1=0;
+            fm_lle.input.data=0;
+            delay=1;
+          }
         } else if (!writes.empty()) {
           QueuedWrite& w=writes.front();
           if (w.addrOrVal) {
@@ -521,7 +527,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
 
             delay=2;
 
-            //logV("%.3x = %.2x",w.addr,w.val);
+            //logV("%.2x",w.val);
 
             regPool[w.addr&0x1ff]=w.val;
             writes.pop_front();
@@ -534,6 +540,8 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
             fm_lle.input.data=w.addr&0xff;
 
             delay=2;
+
+            //logV("%.2x =",w.addr);
 
             w.addrOrVal=true;
           }
@@ -561,8 +569,6 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
         }
       }
 
-      canWeWrite=false;
-
       if (fm_lle.o_s && !lastS) {
         dacVal>>=1;
         dacVal|=(fm_lle.o_opo&1)<<23;
@@ -586,13 +592,14 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
       if (have0 && have1) break;
 
       // ADPCM data bus
-      //if (fm_lle.input.!=0) {
-        //logV("%x",fm_lle.input.ad);
-      //}
+      if (fm_lle.o_dm!=0) {
+        //logV("%x",fm_lle.o_dm);
+      }
     }
 
-    // TODO: o_analog
-    if (howLong!=48) logW("NOT 48! %d",howLong);
+    if (howLong!=48) {
+      //logW("NOT 48! %d",howLong);
+    }
 
     // DAC
     int accm1=dacOut[0]-0x4000;
