@@ -32,6 +32,7 @@ as the parameter approaches 32768, a decaying square wave is produced.
 the square wave stops decaying past 32768 and becomes louder until the parameter hits ~47496 (`r = 1 + sqrt(6)`).
 a second square wave one octave lower then starts appearing, until the parameter reaches ~51443 (`r ≈ 3.56995`). this is where chaos begins.
 anything higher results in a total mess.
+however, at ~59914 (`r = 1 + sqrt(8)`) you can hear a 33% pulse wave.
 
 ## the importance of loading the value
 
