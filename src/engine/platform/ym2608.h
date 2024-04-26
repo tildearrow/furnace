@@ -54,6 +54,12 @@ class DivPlatformYM2608: public DivPlatformOPN {
     ymfm::ym2608* fm;
     ymfm::ym2608::output_data fmout;
     fmopna_t fm_lle;
+    unsigned int dacVal;
+    unsigned int dacVal2;
+    int dacOut[2];
+    bool lastSH;
+    bool lastSH2;
+    bool lastS;
 
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
