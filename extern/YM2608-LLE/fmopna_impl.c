@@ -2670,10 +2670,12 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
 
             chip->rss_tl_shift[1] = chip->rss_tl_shift[0];
         }
-        int tl = (chip->rss_params[1] & 0x1f) + chip->rss_tl_l;
+        int tl = (((chip->rss_params[1] & 0x1f) | 0x20) + chip->rss_tl_l + 1) ^ 63;
         int key = (chip->rss_key[1] & 0x20) != 0;
-        if ((tl & 64) != 0 || !key)
+        if ((tl & 64) == 0 || !key)
             tl = 63;
+        else
+            tl &= 63;
         if (chip->rss_cnt1[1] == 5)
         {
             chip->rss_tl_shift[0] = (tl >> 3);
