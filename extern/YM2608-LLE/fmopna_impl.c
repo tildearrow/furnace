@@ -386,9 +386,9 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
 #ifdef FMOPNA_YM2608
         if (chip->mclk1)
         {
-            int addr2d = chip->write0_en && ADDRESS_MATCH(0x2d);
-            int addr2e = chip->write0_en && ADDRESS_MATCH(0x2e);
-            int addr2f = chip->write0_en && ADDRESS_MATCH(0x2f);
+            int addr2d = chip->write2_en && ADDRESS_MATCH(0x2d);
+            int addr2e = chip->write2_en && ADDRESS_MATCH(0x2e);
+            int addr2f = chip->write2_en && ADDRESS_MATCH(0x2f);
             chip->prescaler_sel[0] = chip->prescaler_sel[1];
             if (addr2f)
                 chip->prescaler_sel[0] = 0;
