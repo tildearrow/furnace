@@ -532,6 +532,13 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
             fm_lle.input.a0=1;
             fm_lle.input.data=w.val;
 
+            // TEMPORARY: until we can determine whether volumes are actually inverted in hardware
+            if (w.addr==0x11) {
+              fm_lle.input.data=w.val^0x3f;
+            } else if (w.addr>=0x18 && w.addr<=0x1d) {
+              fm_lle.input.data=w.val^0x1f;
+            }
+
             delay=2;
 
             //logV("VAL %.2x",w.val);
