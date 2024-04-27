@@ -597,8 +597,6 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
         have1=true;
       }
 
-      if (have0 && have1) break;
-
       // ADPCM data bus
       // thanks nukeykt
       const int newAddr=(fm_lle.o_dm&255)|(fm_lle.o_a8<<8);
@@ -617,6 +615,8 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
       }
       cas=fm_lle.o_cas;
       ras=fm_lle.o_ras;
+
+      if (have0 && have1) break;
     }
 
     if (howLong!=48) {
