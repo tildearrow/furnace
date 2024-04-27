@@ -505,6 +505,12 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
       if (canWeWrite) {
         if (delay>0) {
           if (delay==3) {
+            fm_lle.input.cs=1;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=1;
+            fm_lle.input.a0=0;
+            fm_lle.input.a1=0;
+            //logV("preparing a delay");
             delay=0;
           } else {
             fm_lle.input.cs=0;
@@ -513,6 +519,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
             fm_lle.input.a0=0;
             fm_lle.input.a1=0;
             fm_lle.input.data=0;
+            //logV("preparing a read");
             delay=1;
           }
         } else if (!writes.empty()) {
@@ -527,7 +534,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
 
             delay=2;
 
-            //logV("%.2x",w.val);
+            //logV("VAL %.2x",w.val);
 
             regPool[w.addr&0x1ff]=w.val;
             writes.pop_front();
@@ -541,7 +548,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
 
             delay=2;
 
-            //logV("%.2x =",w.addr);
+            //logV("ADDR %.2x =",w.addr);
 
             w.addrOrVal=true;
           }
@@ -551,6 +558,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
           fm_lle.input.wr=1;
           fm_lle.input.a0=0;
           fm_lle.input.a1=0;
+          //logV("nothing to do");
         }
       }
 
@@ -562,7 +570,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
           // check busy status here
           //if (!(fm_lle.o_data&0x80)) {
           if (!fm_lle.busy_cnt_en[1]) {
-            delay=0;
+            delay=3;
           } else {
             //logV("AM BUSY");
           }
