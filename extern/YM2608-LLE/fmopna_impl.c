@@ -5308,7 +5308,7 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
                 chip->ad_reg_l && chip->ad_start_l[2])
                 accm1 += chip->ac_ad_output;
             chip->ac_fm_accm1[0] = chip->ac_da_sync2 ? accm1 : chip->ac_fm_accm1[1];
-            if (chip->ac_fm_pan & 2)
+            if ((chip->ac_fm_pan & 2) != 0 && chip->ac_fm_output_en)
                 chip->ac_fm_accm1[0] += chip->ac_fm_output;
             chip->ac_fm_accm1[0] &= 0x3ffff;
 
@@ -5322,7 +5322,7 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
                 chip->ad_reg_r && chip->ad_start_l[2])
                 accm2 += chip->ac_ad_output;
             chip->ac_fm_accm2[0] = chip->ac_da_sync ? accm2 : chip->ac_fm_accm2[1];
-            if (chip->ac_fm_pan & 1)
+            if ((chip->ac_fm_pan & 1) != 0 && chip->ac_fm_output_en)
                 chip->ac_fm_accm2[0] += chip->ac_fm_output;
             chip->ac_fm_accm2[0] &= 0x3ffff;
 
