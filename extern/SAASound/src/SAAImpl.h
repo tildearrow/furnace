@@ -41,7 +41,7 @@ private:
 	SAAConfig m_Config;
 #endif
 #if defined(DEBUGSAA) || defined(USE_CONFIG_FILE)
-	unsigned long m_nDebugSample;
+	unsigned int m_nDebugSample;
 	std::ofstream m_dbgfile, m_pcmfile;
 #if defined(USE_CONFIG_FILE)
 	std::ofstream m_channel_pcmfile[6];
@@ -64,12 +64,12 @@ public:
 	void Clear(void);
 
 	SAAPARAM GetCurrentSoundParameters(void);
-	unsigned long GetCurrentSampleRate(void);
-	static unsigned long GetSampleRate(SAAPARAM uParam);
+	unsigned int GetCurrentSampleRate(void);
+	static unsigned int GetSampleRate(SAAPARAM uParam);
 	unsigned short GetCurrentBytesPerSample(void);
 	static unsigned short GetBytesPerSample(SAAPARAM uParam);
 
-	void GenerateMany(BYTE * pBuffer, unsigned long nSamples, DivDispatchOscBuffer** oscBuf);
+	void GenerateMany(BYTE * pBuffer, unsigned int nSamples, DivDispatchOscBuffer** oscBuf);
 
 };
 

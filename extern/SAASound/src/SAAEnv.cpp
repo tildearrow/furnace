@@ -266,7 +266,7 @@ inline void CSAAEnv::Tick(void)
 	else // (m_nPhasePosition < 16)
 	{
 		// still within the same phase;
-		// but, importantly, we are no longer at the start of the phase ...
+		// but, importantly, we are no inter at the start of the phase ...
 		// so new data cannot be acted on immediately, and must
 		// be buffered
 		m_bEnvelopeEnded = false;
@@ -365,7 +365,7 @@ inline void CSAAEnv::SetNewEnvData(int nData)
 		m_bEnvelopeEnded = false;
 		// is this right?
 		// YES.  See test case EnvExt_34c (setting data multiple times
-		// when at a point (3) resets the waveform so you're no longer
+		// when at a point (3) resets the waveform so you're no inter
 		// at a point (3).
 	}
 	else

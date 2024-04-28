@@ -173,7 +173,7 @@ void CSAAFreq::_SetClockRate(int nClockRate)
 	// initialise the frequency table based on the SAA clockrate
 	// Each item in m_FreqTable corresponds to the frequency calculated by
 	// the standard formula   (15625 << octave) / (511 - offset)
-	// then multiplied by 8192 (and represented as a long integer value).
+	// then multiplied by 8192 (and represented as a int integer value).
 	// We are therefore using 12 bits (i.e. 2^12 = 4096) as fractional part.
 	// The reason we multiply by 8192, not 4096, is that we use this as a counter
 	// to toggle the oscillator state, so we need to count half-waves (i.e. twice
@@ -188,7 +188,7 @@ void CSAAFreq::_SetClockRate(int nClockRate)
 		int ix = 0;
 		for (int nOctave = 0; nOctave < 8; nOctave++)
 			for (int nOffset = 0; nOffset < 256; nOffset++)
-				m_FreqTable[ix++] = (unsigned long)((8192.0 * 15625.0 * double(1 << nOctave) * (double(nClockRate) / 8000000.0)) / (511.0 - double(nOffset)));
+				m_FreqTable[ix++] = (unsigned int)((8192.0 * 15625.0 * double(1 << nOctave) * (double(nClockRate) / 8000000.0)) / (511.0 - double(nOffset)));
 	}
 }
 #endif

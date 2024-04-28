@@ -17,18 +17,18 @@ private:
 	// 'load in' the data for the static frequency lookup table
 	// precomputed for a fixed clockrate
 	// See: tools/freqdat.py
-	const static unsigned long m_FreqTable[2048];
+	const static unsigned int m_FreqTable[2048];
 #else
 	// we'll calculate the frequency lookup table at runtime.
-	unsigned long m_FreqTable[2048];
-	unsigned long m_nClockRate;
+	unsigned int m_FreqTable[2048];
+	unsigned int m_nClockRate;
 #endif
 
-	unsigned long m_nCounter;
-	unsigned long m_nAdd;
-	unsigned long m_nCounter_low;
+	uint64_t m_nCounter;
+	uint64_t m_nAdd;
+	unsigned int m_nCounter_low;
 	unsigned int m_nOversample;
-	unsigned long m_nCounterLimit_low;
+	unsigned int m_nCounterLimit_low;
 	int m_nLevel;
 
 	int m_nCurrentOffset;
@@ -39,7 +39,7 @@ private:
 	bool m_bNewData;
 	bool m_bSync;
 
-	unsigned long m_nSampleRate;
+	uint64_t m_nSampleRate;
 	CSAANoise * const m_pcConnectedNoiseGenerator;
 	CSAAEnv * const m_pcConnectedEnvGenerator;
 	const int m_nConnectedMode; // 0 = nothing; 1 = envgenerator; 2 = noisegenerator

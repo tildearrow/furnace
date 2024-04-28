@@ -35,7 +35,7 @@
 #define SAAP_MONO 0x00000001
 
 // Bitmasks for use with GetCurrentSoundParameters, for example,
-// unsigned long CurrentSampleRateParameter = GetCurrentSoundParameters()
+// unsigned int CurrentSampleRateParameter = GetCurrentSoundParameters()
 #define SAAP_MASK_FILTER 0x00000f00
 #define SAAP_MASK_FILTER_HIGHPASS 0x00000c00
 #define SAAP_MASK_FILTER_OVERSAMPLE 0x00000300
@@ -43,7 +43,7 @@
 #define SAAP_MASK_BITDEPTH 0x0000000c
 #define SAAP_MASK_CHANNELS 0x00000003
 
-typedef unsigned long SAAPARAM;
+typedef unsigned int SAAPARAM;
 
 
 #ifndef BYTE
@@ -85,10 +85,10 @@ BYTE EXTAPI SAASNDReadAddress(SAASND object);
 SAAPARAM EXTAPI SAASNDGetCurrentSoundParameters(SAASND object);
 unsigned short EXTAPI SAASNDGetCurrentBytesPerSample(SAASND object);
 unsigned short EXTAPI SAASNDGetBytesPerSample(SAAPARAM uParam);
-unsigned long EXTAPI SAASNDGetCurrentSampleRate(SAASND object);
-unsigned long EXTAPI SAASNDGetSampleRate(SAAPARAM uParam);
+unsigned int EXTAPI SAASNDGetCurrentSampleRate(SAASND object);
+unsigned int EXTAPI SAASNDGetSampleRate(SAAPARAM uParam);
 
-void EXTAPI SAASNDGenerateMany(SAASND object, BYTE * pBuffer, unsigned long nSamples);
+void EXTAPI SAASNDGenerateMany(SAASND object, BYTE * pBuffer, unsigned int nSamples);
 
 void EXTAPI SAASNDSetClockRate(SAASND object, unsigned int nClockRate);
 void EXTAPI SAASNDSetSampleRate(SAASND object, unsigned int nSampleRate);

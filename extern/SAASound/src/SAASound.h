@@ -3,12 +3,12 @@
 // SAASound.h: interface for the CSAASound class.
 //
 // This corresponds to the public (exported) DLL interface, so all
-// APIs and client factory methods belong here.
+// APIs and client factory methods beint here.
 //
 // Compatibility notes : the intention is for this to be fully backwards
 // compatible across minor and patch versions.  Any backwards breaking changes
 // should be reflected as a major version increment.  New functionality can be added
-// in minor versions so long as backwards compatiblity is maintained
+// in minor versions so int as backwards compatiblity is maintained
 // 
 // Version 3.3.0 (4th Dec 2018)
 //
@@ -37,7 +37,7 @@
 #define SAAP_MONO 0x00000001
 
 // Bitmasks for use with GetCurrentSoundParameters, for example,
-// unsigned long CurrentSampleRateParameter = GetCurrentSoundParameters()
+// unsigned int CurrentSampleRateParameter = GetCurrentSoundParameters()
 #define SAAP_MASK_FILTER 0x00000f00
 #define SAAP_MASK_FILTER_HIGHPASS 0x00000c00
 #define SAAP_MASK_FILTER_OVERSAMPLE 0x00000300
@@ -45,7 +45,7 @@
 #define SAAP_MASK_BITDEPTH 0x0000000c
 #define SAAP_MASK_CHANNELS 0x00000003
 
-typedef unsigned long SAAPARAM;
+typedef unsigned int SAAPARAM;
 
 
 #ifndef BYTE
@@ -76,12 +76,12 @@ public:
 	virtual BYTE ReadAddress () = 0;
 
 	virtual SAAPARAM GetCurrentSoundParameters () = 0;
-	virtual unsigned long GetCurrentSampleRate () = 0;
-	static unsigned long GetSampleRate (SAAPARAM uParam);
+	virtual unsigned int GetCurrentSampleRate () = 0;
+	static unsigned int GetSampleRate (SAAPARAM uParam);
 	virtual unsigned short GetCurrentBytesPerSample () = 0;
 	static unsigned short GetBytesPerSample (SAAPARAM uParam);
 
-	virtual void GenerateMany (BYTE * pBuffer, unsigned long nSamples, DivDispatchOscBuffer** oscBuf) = 0;
+	virtual void GenerateMany (BYTE * pBuffer, unsigned int nSamples, DivDispatchOscBuffer** oscBuf) = 0;
 
 	virtual void SetClockRate(unsigned int nClockRate) = 0;
 	virtual void SetSampleRate(unsigned int nSampleRate) = 0;
@@ -115,10 +115,10 @@ void SAAAPI SAASNDClear(SAASND object);
 SAAPARAM SAAAPI SAASNDGetCurrentSoundParameters(SAASND object);
 unsigned short SAAAPI SAASNDGetCurrentBytesPerSample(SAASND object);
 unsigned short SAAAPI SAASNDGetBytesPerSample(SAAPARAM uParam);
-unsigned long SAAAPI SAASNDGetCurrentSampleRate(SAASND object);
-unsigned long SAAAPI SAASNDGetSampleRate(SAAPARAM uParam);
+unsigned int SAAAPI SAASNDGetCurrentSampleRate(SAASND object);
+unsigned int SAAAPI SAASNDGetSampleRate(SAAPARAM uParam);
 
-void SAAAPI SAASNDGenerateMany(SAASND object, BYTE * pBuffer, unsigned long nSamples);
+void SAAAPI SAASNDGenerateMany(SAASND object, BYTE * pBuffer, unsigned int nSamples);
 void SAAAPI SAASNDSetClockRate(SAASND object, unsigned int nClockRate);
 void SAAAPI SAASNDSetSampleRate(SAASND object, unsigned int nSampleRate);
 void SAAAPI SAASNDSetOversample(SAASND object, unsigned int nOversample);

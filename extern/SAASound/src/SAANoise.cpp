@@ -36,7 +36,7 @@ m_nRand(1)
 	m_nAdd = m_nAddBase;
 }
 
-CSAANoise::CSAANoise(unsigned long seed)
+CSAANoise::CSAANoise(unsigned int seed)
 :
 m_nCounter(0),
 m_nCounter_low(0),
@@ -65,7 +65,7 @@ void CSAANoise::_SetClockRate(int nClockRate)
 	m_nAddBase = nClockRate << (12 - 8);
 }
 
-void CSAANoise::Seed(unsigned long seed)
+void CSAANoise::Seed(unsigned int seed)
 {
 	m_nRand = seed;
 }
