@@ -930,6 +930,8 @@ typedef struct {
     int o_pad;
     int o_pad_d;
     int o_pa8;
+
+    int ym2610b;
 #endif
 
 #ifndef FMOPNA_YM2612

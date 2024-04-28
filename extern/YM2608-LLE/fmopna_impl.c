@@ -939,7 +939,8 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
 #endif
                     )
 #ifdef FMOPNA_YM2610
-                && (chip->reg_kon_channel[0] & 3) != 0
+                // tildearrow: changed to allow YM2610B emulation
+                && (chip->ym2610b || (chip->reg_kon_channel[0] & 3) != 0)
 #endif
                 ;
 

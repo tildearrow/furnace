@@ -1763,7 +1763,6 @@ void DivPlatformYM2608::reset() {
     lastS=false;
     cas=0;
     ras=0;
-    adReadCount=0;
     adMemAddr=0;
   }
 

@@ -63,7 +63,6 @@ class DivPlatformYM2608: public DivPlatformOPN {
     bool lastS;
     unsigned char cas, ras, rssCycle, rssSubCycle;
     unsigned int adMemAddr;
-    int adReadCount;
 
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
