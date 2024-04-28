@@ -5164,10 +5164,10 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
         if ((chip->ad_dsp_w43[1] & 1) != 0 && (chip->ad_dsp_w43[0] & 2) == 0)
             chip->ad_dsp_w45 = chip->ad_dsp_w40;
 
-        if (chip->ad_dsp_w45 == 0x1fff || (chip->ad_dsp_w45 & 0x1ffe) == 0)
+        if ((chip->ad_dsp_w45 >> 3) == 0x1fff || ((chip->ad_dsp_w45 >> 3) & 0x1ffe) == 0)
             chip->ad_output = 0;
         else
-            chip->ad_output = chip->ad_dsp_w45;
+            chip->ad_output = chip->ad_dsp_w45 >> 3;
 
         if ((chip->ad_code_ctrl_l & 0x4000) != 0 && (chip->ad_dsp_load_alu1[0] & 1) == 0)
         {
