@@ -532,7 +532,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
           }
         } else if (!writes.empty()) {
           QueuedWrite& w=writes.front();
-          if (w.addr>=0x2d && w.addr<=0x2f) {
+          if (w.addr==0x2e || w.addr==0x2f) {
             // ignore prescaler writes since it doesn't work too well
             fm_lle.input.cs=1;
             fm_lle.input.rd=1;
@@ -543,7 +543,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
 
             regPool[w.addr&0x1ff]=w.val;
             writes.pop_front();
-          } if (w.addrOrVal) {
+          } else if (w.addrOrVal) {
             fm_lle.input.cs=0;
             fm_lle.input.rd=1;
             fm_lle.input.wr=0;
