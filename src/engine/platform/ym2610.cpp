@@ -507,13 +507,13 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
         if (++subCycle>=6) subCycle=0;
       }
 
-      /*if (fm_lle.rss_eclk1) {
+      if (fm_lle.rss_eclk1) {
         if (++rssSubCycle>=24) {
           rssSubCycle=0;
           rssOut[rssCycle]=(short)fm_lle.last_rss_sample;
           if (++rssCycle>=6) rssCycle=0;
         }
-      }*/
+      }
 
       if (canWeWrite) {
         if (delay==1) {
