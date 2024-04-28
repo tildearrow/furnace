@@ -1142,11 +1142,11 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::Text("Cutoff:");
         if (ImGui::InputFloat("From",&sampleFilterCutStart,10.0f,1000.0f,"%.0f")) {
           if (sampleFilterCutStart<0.0) sampleFilterCutStart=0.0;
-          if (sampleFilterCutStart>sample->rate*0.5) sampleFilterCutStart=sample->rate*0.5;
+          if (sampleFilterCutStart>sample->centerRate*0.5) sampleFilterCutStart=sample->centerRate*0.5;
         }
         if (ImGui::InputFloat("To",&sampleFilterCutEnd,10.0f,1000.0f,"%.0f")) {
           if (sampleFilterCutEnd<0.0) sampleFilterCutEnd=0.0;
-          if (sampleFilterCutEnd>sample->rate*0.5) sampleFilterCutEnd=sample->rate*0.5;
+          if (sampleFilterCutEnd>sample->centerRate*0.5) sampleFilterCutEnd=sample->centerRate*0.5;
         }
         ImGui::Separator();
         if (ImGui::SliderFloat("Resonance",&resP,0.0f,99.0f,"%.1f%%")) {
@@ -1194,12 +1194,17 @@ void FurnaceGUI::drawSampleEdit() {
             float band=0;
             float high=0;
 
+            if (sampleFilterCutStart<0.0) sampleFilterCutStart=0.0;
+            if (sampleFilterCutStart>sample->centerRate*0.5) sampleFilterCutStart=sample->centerRate*0.5;
+            if (sampleFilterCutEnd<0.0) sampleFilterCutEnd=0.0;
+            if (sampleFilterCutEnd>sample->centerRate*0.5) sampleFilterCutEnd=sample->centerRate*0.5;
+
             double power=(sampleFilterCutStart>sampleFilterCutEnd)?0.5:2.0;
 
             if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
               for (unsigned int i=start; i<end; i++) {
                 double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
-                double cut=sin((freq/double(sample->rate))*M_PI);
+                double cut=sin((freq/double(sample->centerRate))*M_PI);
 
                 for (int j=0; j<sampleFilterPower; j++) {
                   low=low+cut*band;
@@ -1215,7 +1220,7 @@ void FurnaceGUI::drawSampleEdit() {
             } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
               for (unsigned int i=start; i<end; i++) {
                 double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
-                double cut=sin((freq/double(sample->rate))*M_PI);
+                double cut=sin((freq/double(sample->centerRate))*M_PI);
 
                 for (int j=0; j<sampleFilterPower; j++) {
                   low=low+cut*band;
