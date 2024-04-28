@@ -65,7 +65,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     bool lastSH;
     bool lastSH2;
     bool lastS;
-    unsigned char rmpx, pmpx, rssCycle, rssSubCycle;
+    unsigned char rmpx, pmpx, roe, poe, rssCycle, rssSubCycle;
     unsigned int adMemAddrA;
     unsigned int adMemAddrB;
   
@@ -158,6 +158,8 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         lastS=0;
         rmpx=0;
         pmpx=0;
+        roe=0;
+        poe=0;
         rssCycle=0;
         rssSubCycle=0;
         adMemAddrA=0;

@@ -551,20 +551,33 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
 
       lastS=fm_lle.o_s;
 
-      // ADPCM data bus
+      // ADPCM-A data bus
+      if (fm_lle.o_rmpx && !rmpx) {
+        adMemAddrA&=~0x3ff;
+        adMemAddrA|=(fm_lle.o_rad&0xff)|((fm_lle.o_ra8&3)<<8);
+      }
+      if (!fm_lle.o_rmpx && rmpx) {
+        adMemAddrA&=0x3ff;
+        adMemAddrA|=((fm_lle.o_rad&0xff)|(fm_lle.o_ra8<<8)|(fm_lle.o_ra20<<10))<<10;
+      }
       if (!fm_lle.o_roe) {
         fm_lle.input.rad=adpcmAMem[adMemAddrA&0xffffff];
-      } else {
-        if (!fm_lle.o_rmpx && rmpx) {
-          adMemAddrA&=~0x3ff;
-          adMemAddrA=(fm_lle.o_rad&0xff)|(fm_lle.o_ra8<<8);
-        }
-        if (fm_lle.o_rmpx && !rmpx) {
-          adMemAddrA&=0x3ff;
-          adMemAddrA=((fm_lle.o_rad&0xff)|(fm_lle.o_ra8<<8)|(fm_lle.o_ra20<<10))<<10;
-        }
-        rmpx=fm_lle.o_rmpx;
       }
+      rmpx=fm_lle.o_rmpx;
+
+      // ADPCM-B data bus
+      if (fm_lle.o_pmpx && !pmpx) {
+        adMemAddrB&=~0xfff;
+        adMemAddrB|=(fm_lle.o_pad&0xff)|((fm_lle.o_pa8&15)<<8);
+      }
+      if (!fm_lle.o_pmpx && pmpx) {
+        adMemAddrB&=0xfff;
+        adMemAddrB|=((fm_lle.o_pad&0xff)|((fm_lle.o_pa8&15)<<8))<<12;
+      }
+      if (!fm_lle.o_poe) {
+        fm_lle.input.pad=adpcmBMem[adMemAddrB&0xffffff];
+      }
+      pmpx=fm_lle.o_pmpx;
 
       if (have0 && have1) break;
     }
