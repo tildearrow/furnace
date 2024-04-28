@@ -494,14 +494,12 @@ static const unsigned char subCycleMap[6]={
   3, 4, 5, 0, 1, 2
 };
 
-// ac_fm_output
 void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
   thread_local int fmOut[6];
 
   for (size_t h=0; h<len; h++) {
     bool have0=false;
     bool have1=false;
-    unsigned char howLong=0;
     signed char subCycle=0;
     unsigned char subSubCycle=0;
 
@@ -624,7 +622,6 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
 
         dacVal>>=1;
         dacVal|=(fm_lle.o_opo&1)<<15;
-        howLong++;
 
         lastSH=fm_lle.o_sh1;
         lastSH2=fm_lle.o_sh2;
@@ -654,10 +651,6 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
       if (have0 && have1) break;
     }
 
-    if (howLong!=48) {
-      logW("NOT 48! %d",howLong);
-    }
-    
     // chan osc
     // FM
     for (int i=0; i<6; i++) {

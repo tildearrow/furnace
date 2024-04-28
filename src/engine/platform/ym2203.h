@@ -22,6 +22,9 @@
 
 #include "fmshared_OPN.h"
 #include "sound/ymfm/ymfm_opn.h"
+extern "C" {
+#include "../../../extern/YM2608-LLE/fmopna_2608.h"
+}
 
 #include "ay.h"
 
@@ -46,6 +49,14 @@ class DivPlatformYM2203: public DivPlatformOPN {
     ymfm::ym2203* fm;
     ymfm::ym2203::output_data fmout;
     DivYM2203Interface iface;
+    fmopna_t fm_lle;
+    unsigned int dacVal;
+    unsigned int dacVal2;
+    int dacOut[2];
+    int rssOut[6];
+    bool lastSH;
+    bool lastSH2;
+    bool lastS;
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
@@ -59,6 +70,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
 
     void acquire_combo(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
+    void acquire_lle(short** buf, size_t len);
 
   public:
     void acquire(short** buf, size_t len);
