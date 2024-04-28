@@ -2430,10 +2430,11 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
         };
 
 
+        // tildearrow: per-channel oscilloscope for SSG
         chip->o_analog = 0;
-        chip->o_analog += volume_lut[sign_a ? 0 : vol_a];
-        chip->o_analog += volume_lut[sign_b ? 0 : vol_b];
-        chip->o_analog += volume_lut[sign_c ? 0 : vol_c];
+        chip->o_analog += chip->o_analog_ch[0] = volume_lut[sign_a ? 0 : vol_a];
+        chip->o_analog += chip->o_analog_ch[1] = volume_lut[sign_b ? 0 : vol_b];
+        chip->o_analog += chip->o_analog_ch[2] = volume_lut[sign_c ? 0 : vol_c];
     }
 
     {
@@ -5368,6 +5369,8 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
 
             chip->ac_rss_load = chip->rss_cnt2[1] == 0;
 
+            // tildearrow: per-channel osc
+            chip->last_rss_sample = rss_sample & 0xffff;
         }
         if (chip->rss_eclk2)
         {

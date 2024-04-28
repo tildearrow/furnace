@@ -845,6 +845,8 @@ typedef struct {
     int sh1_l;
     int sh2_l;
     int opo_fm;
+
+    int last_rss_sample;
 #endif
 
     int busy_cnt[2];
@@ -932,6 +934,7 @@ typedef struct {
 
 #ifndef FMOPNA_YM2612
     float o_analog;
+    float o_analog_ch[3];
     int o_sh1;
     int o_sh2;
     int o_opo;

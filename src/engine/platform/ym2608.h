@@ -57,10 +57,11 @@ class DivPlatformYM2608: public DivPlatformOPN {
     unsigned int dacVal;
     unsigned int dacVal2;
     int dacOut[2];
+    int rssOut[6];
     bool lastSH;
     bool lastSH2;
     bool lastS;
-    unsigned char cas, ras;
+    unsigned char cas, ras, rssCycle, rssSubCycle;
     unsigned short adMemAddr;
     int adReadCount;
 

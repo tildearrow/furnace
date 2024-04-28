@@ -490,20 +490,27 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
   }
 }
 
+static const unsigned char subCycleMap[6]={
+  3, 4, 5, 0, 1, 2
+};
+
 // ac_fm_output
 void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
+  thread_local int fmOut[6];
+
   for (size_t h=0; h<len; h++) {
     bool have0=false;
     bool have1=false;
     unsigned char howLong=0;
-    unsigned char subCycle=0x100-12;
+    signed char subCycle=0;
     unsigned char subSubCycle=0;
+
+    for (int i=0; i<6; i++) {
+      fmOut[i]=0;
+    }
+
     while (true) {
       bool canWeWrite=fm_lle.prescaler_latch[1]&1;
-
-      lastS=fm_lle.o_s;
-      lastSH=fm_lle.o_sh1;
-      lastSH2=fm_lle.o_sh2;
 
       if (canWeWrite) {
         if (delay>0) {
@@ -563,10 +570,18 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
 
       if (++subSubCycle>=6) {
         subSubCycle=0;
-        if (subCycle<12) {
-          oscBuf[subCycle]->data[oscBuf[subCycle]->needle++]=fm_lle.ac_fm_output;
+        if (subCycle>=0 && subCycle<6 && fm_lle.ac_fm_output_en) {
+          fmOut[subCycleMap[subCycle]]+=((short)fm_lle.ac_fm_output)<<2;
         }
-        subCycle++;
+        if (++subCycle>=6) subCycle=0;
+      }
+
+      if (fm_lle.rss_eclk1) {
+        if (++rssSubCycle>=24) {
+          rssSubCycle=0;
+          rssOut[rssCycle]=(short)fm_lle.last_rss_sample;
+          if (++rssCycle>=6) rssCycle=0;
+        }
       }
 
       if (canWeWrite) {
@@ -577,45 +592,26 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
           }
         }
       }
+      if (!fm_lle.o_s && lastS) {
+        if (!fm_lle.o_sh1 && lastSH) {
+          dacOut[0]=dacVal^0x8000;
+          have0=true;
+        }
 
-      if (fm_lle.o_s && !lastS) {
+        if (!fm_lle.o_sh2 && lastSH2) {
+          dacOut[1]=dacVal^0x8000;
+          have1=true;
+        }
+
         dacVal>>=1;
-        dacVal|=(fm_lle.o_opo&1)<<14;
+        dacVal|=(fm_lle.o_opo&1)<<15;
         howLong++;
+
+        lastSH=fm_lle.o_sh1;
+        lastSH2=fm_lle.o_sh2;
       }
 
-      if (!fm_lle.o_sh1 && lastSH) {
-        if (dacVal&0x2000) { // positive
-          int e=(dacVal>>10)&7;
-          int m=(dacVal>>0)&1023;
-          dacOut[0]=m<<e;
-          if (e) dacOut[0]+=512<<e;
-        } else { // negative
-          int e=((dacVal>>10)&7)^7;
-          int m=((dacVal>>0)&1023)^1023;
-          dacOut[0]=-(m<<e);
-          if (e) dacOut[0]-=512<<e;
-        }
-        //int e=(dacVal>>10)&7;
-        //int m=(dacVal>>0)&1023;
-        //m-=512;
-        have0=true;
-      }
-
-      if (!fm_lle.o_sh2 && lastSH2) {
-        if (dacVal&0x2000) { // positive
-          int e=(dacVal>>10)&7;
-          int m=(dacVal>>0)&1023;
-          dacOut[1]=(m<<e);
-          if (e) dacOut[1]+=512<<e;
-        } else { // negative
-          int e=((dacVal>>10)&7)^7;
-          int m=((dacVal>>0)&1023)^1023;
-          dacOut[1]=-(m<<e);
-          if (e) dacOut[1]-=512<<e;
-        }
-        have1=true;
-      }
+      lastS=fm_lle.o_s;
 
       // ADPCM data bus
       // thanks nukeykt
@@ -642,13 +638,33 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
     if (howLong!=48) {
       //logW("NOT 48! %d",howLong);
     }
+    
+    // chan osc
+    // FM
+    for (int i=0; i<6; i++) {
+      if (fmOut[i]<-32768) fmOut[i]=-32768;
+      if (fmOut[i]>32767) fmOut[i]=32767;
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmOut[i];
+    }
+    // SSG
+    for (int i=0; i<3; i++) {
+      oscBuf[i+6]->data[oscBuf[i+6]->needle++]=fm_lle.o_analog_ch[i]*32767;
+    }
+    // RSS
+    for (int i=0; i<6; i++) {
+      if (rssOut[i]<-32768) rssOut[i]=-32768;
+      if (rssOut[i]>32767) rssOut[i]=32767;
+      oscBuf[9+i]->data[oscBuf[9+i]->needle++]=rssOut[i];
+    }
+    // ADPCM
+    oscBuf[15]->data[oscBuf[15]->needle++]=fm_lle.ac_ad_output;
 
     // DAC
-    int accm1=dacOut[0];
-    int accm2=dacOut[1];
+    int accm1=(short)dacOut[0];
+    int accm2=(short)dacOut[1];
 
-    int outL=(accm1<<1)+fm_lle.o_analog*ssgVol*42;
-    int outR=(accm2<<1)+fm_lle.o_analog*ssgVol*42;
+    int outL=(accm1)+fm_lle.o_analog*ssgVol*42;
+    int outR=(accm2)+fm_lle.o_analog*ssgVol*42;
 
     if (outL<-32768) outL=-32768;
     if (outL>32767) outL=32767;
@@ -1745,6 +1761,12 @@ void DivPlatformYM2608::reset() {
   writeRSSOff=0;
   writeRSSOn=0;
   globalRSSVolume=0x3f;
+  rssCycle=0;
+  rssSubCycle=0;
+
+  for (int i=0; i<6; i++) {
+    rssOut[i]=0;
+  }
 
   delay=0;
 
