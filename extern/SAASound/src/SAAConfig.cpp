@@ -20,7 +20,7 @@ m_bGenerateRegisterLogs(false),
 m_bGeneratePcmLogs(false),
 m_bGeneratePcmSeparateChannels(false),
 m_nBoost(DEFAULT_BOOST),
-m_bHighpass(true),
+m_bHighpass(false),
 m_nOversample(DEFAULT_OVERSAMPLE),
 m_minIni(_T(CONFIG_FILE_PATH))
 {
@@ -74,7 +74,7 @@ void SAAConfig::ReadConfig()
 		m_bGeneratePcmSeparateChannels = m_minIni.getbool(u8"Debug", u8"PCMSeparateChannels", false);
 	}
 
-	m_bHighpass = m_minIni.getbool(u8"Quality", u8"Highpass", true);
+	m_bHighpass = m_minIni.getbool(u8"Quality", u8"Highpass", false);
 
 	m_nOversample = m_minIni.geti(u8"Quality", u8"Oversample", DEFAULT_OVERSAMPLE);
 	if (m_nOversample < 1)

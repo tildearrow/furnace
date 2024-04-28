@@ -187,8 +187,6 @@ void CSAASoundInternal::SetSoundParameters(SAAPARAM uParam)
 
 	// set filter properties from uParam
 	m_uParam = (m_uParam & ~SAAP_MASK_FILTER) | (uParam & SAAP_MASK_FILTER);
-	 
-	m_bHighpass=true;
 }
 
 void CSAASoundInternal::SetSampleRate(unsigned int nSampleRate)
