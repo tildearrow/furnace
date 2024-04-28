@@ -332,6 +332,10 @@ void DivPlatformNES::tick(bool sysTick) {
         if (chan[i].freq<0) chan[i].freq=0;
       }
       if (chan[i].keyOn) {
+        // retrigger if sweep is on
+        if (chan[i].sweep!=0x08) {
+          chan[i].prevFreq=-1;
+        }
       }
       if (chan[i].keyOff) {
         //rWrite(16+i*5+2,8);
