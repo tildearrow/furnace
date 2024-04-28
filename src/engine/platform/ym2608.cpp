@@ -490,11 +490,14 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
   }
 }
 
+// ac_fm_output
 void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     bool have0=false;
     bool have1=false;
     unsigned char howLong=0;
+    unsigned char subCycle=0x100-12;
+    unsigned char subSubCycle=0;
     while (true) {
       bool canWeWrite=fm_lle.prescaler_latch[1]&1;
 
@@ -557,6 +560,14 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
 
       FMOPNA_Clock(&fm_lle,0);
       FMOPNA_Clock(&fm_lle,1);
+
+      if (++subSubCycle>=6) {
+        subSubCycle=0;
+        if (subCycle<12) {
+          oscBuf[subCycle]->data[oscBuf[subCycle]->needle++]=fm_lle.ac_fm_output;
+        }
+        subCycle++;
+      }
 
       if (canWeWrite) {
         if (delay==1) {
