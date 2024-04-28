@@ -532,7 +532,18 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
           }
         } else if (!writes.empty()) {
           QueuedWrite& w=writes.front();
-          if (w.addrOrVal) {
+          if (w.addr>=0x2d && w.addr<=0x2f) {
+            // ignore prescaler writes since it doesn't work too well
+            fm_lle.input.cs=1;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=1;
+            fm_lle.input.a1=0;
+            fm_lle.input.a0=0;
+            fm_lle.input.data=0;
+
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
+          } if (w.addrOrVal) {
             fm_lle.input.cs=0;
             fm_lle.input.rd=1;
             fm_lle.input.wr=0;
@@ -594,12 +605,20 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
       }
       if (!fm_lle.o_s && lastS) {
         if (!fm_lle.o_sh1 && lastSH) {
-          dacOut[0]=dacVal^0x8000;
-          have0=true;
+          dacVal2=dacVal;
         }
 
         if (!fm_lle.o_sh2 && lastSH2) {
-          dacOut[1]=dacVal^0x8000;
+          dacVal2=dacVal;
+        }
+
+        if (fm_lle.o_sh1 && !lastSH) {
+          dacOut[0]=dacVal2^0x8000;
+          have0=true;
+        }
+
+        if (fm_lle.o_sh2 && !lastSH2) {
+          dacOut[1]=dacVal2^0x8000;
           have1=true;
         }
 
@@ -636,7 +655,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
     }
 
     if (howLong!=48) {
-      //logW("NOT 48! %d",howLong);
+      logW("NOT 48! %d",howLong);
     }
     
     // chan osc
@@ -663,8 +682,8 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
     int accm1=(short)dacOut[0];
     int accm2=(short)dacOut[1];
 
-    int outL=(accm1)+fm_lle.o_analog*ssgVol*42;
-    int outR=(accm2)+fm_lle.o_analog*ssgVol*42;
+    int outL=((accm1*fmVol)>>8)+fm_lle.o_analog*ssgVol*42;
+    int outR=((accm2*fmVol)>>8)+fm_lle.o_analog*ssgVol*42;
 
     if (outL<-32768) outL=-32768;
     if (outL>32767) outL=32767;
@@ -1931,7 +1950,7 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   ssgVol=flags.getInt("ssgVol",128);
   fmVol=flags.getInt("fmVol",256);
   if (useCombo==2) {
-    rate=chipClock/144;
+    rate=chipClock/(fmDivBase*2);
   } else {
     rate=fm->sample_rate(chipClock);
   }
