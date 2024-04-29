@@ -180,6 +180,11 @@ const char* opllCores[]={
   "emu2413"
 };
 
+const char* ayCores[]={
+  "MAME",
+  "AtomicSSG"
+};
+
 const char* coreQualities[]={
   "Lower",
   "Low",
@@ -1780,6 +1785,17 @@ void FurnaceGUI::drawSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::Combo("##OPLLCoreRender",&settings.opllCoreRender,opllCores,2)) settingsChanged=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("AY-3-8910/SSG");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##AYCore",&settings.ayCore,ayCores,2)) settingsChanged=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##AYCoreRender",&settings.ayCoreRender,ayCores,2)) settingsChanged=true;
 
           ImGui::EndTable();
         }
@@ -4376,6 +4392,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opl3Core=conf.getInt("opl3Core",0);
     settings.esfmCore=conf.getInt("esfmCore",0);
     settings.opllCore=conf.getInt("opllCore",0);
+    settings.ayCore=conf.getInt("ayCore",0);
 
     settings.bubsysQuality=conf.getInt("bubsysQuality",3);
     settings.dsidQuality=conf.getInt("dsidQuality",3);
@@ -4403,6 +4420,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opl3CoreRender=conf.getInt("opl3CoreRender",0);
     settings.esfmCoreRender=conf.getInt("esfmCoreRender",0);
     settings.opllCoreRender=conf.getInt("opllCoreRender",0);
+    settings.ayCoreRender=conf.getInt("ayCoreRender",0);
 
     settings.bubsysQualityRender=conf.getInt("bubsysQualityRender",3);
     settings.dsidQualityRender=conf.getInt("dsidQualityRender",3);
@@ -4447,6 +4465,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opl3Core,0,2);
   clampSetting(settings.esfmCore,0,1);
   clampSetting(settings.opllCore,0,1);
+  clampSetting(settings.ayCore,0,1);
   clampSetting(settings.bubsysQuality,0,5);
   clampSetting(settings.dsidQuality,0,5);
   clampSetting(settings.gbQuality,0,5);
@@ -4472,6 +4491,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opl3CoreRender,0,2);
   clampSetting(settings.esfmCoreRender,0,1);
   clampSetting(settings.opllCoreRender,0,1);
+  clampSetting(settings.ayCoreRender,0,1);
   clampSetting(settings.bubsysQualityRender,0,5);
   clampSetting(settings.dsidQualityRender,0,5);
   clampSetting(settings.gbQualityRender,0,5);
@@ -4931,6 +4951,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opl3Core",settings.opl3Core);
     conf.set("esfmCore",settings.esfmCore);
     conf.set("opllCore",settings.opllCore);
+    conf.set("ayCore",settings.ayCore);
 
     conf.set("bubsysQuality",settings.bubsysQuality);
     conf.set("dsidQuality",settings.dsidQuality);
@@ -4958,6 +4979,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opl3CoreRender",settings.opl3CoreRender);
     conf.set("esfmCoreRender",settings.esfmCoreRender);
     conf.set("opllCoreRender",settings.opllCoreRender);
+    conf.set("ayCoreRender",settings.ayCoreRender);
 
     conf.set("bubsysQualityRender",settings.bubsysQualityRender);
     conf.set("dsidQualityRender",settings.dsidQualityRender);
@@ -5018,6 +5040,7 @@ void FurnaceGUI::commitSettings() {
     settings.opl3Core!=e->getConfInt("opl3Core",0) ||
     settings.esfmCore!=e->getConfInt("esfmCore",0) ||
     settings.opllCore!=e->getConfInt("opllCore",0) ||
+    settings.ayCore!=e->getConfInt("ayCore",0) ||
     settings.bubsysQuality!=e->getConfInt("bubsysQuality",3) ||
     settings.dsidQuality!=e->getConfInt("dsidQuality",3) ||
     settings.gbQuality!=e->getConfInt("gbQuality",3) ||

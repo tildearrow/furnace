@@ -22,6 +22,9 @@
 #include "../dispatch.h"
 #include "../../fixedQueue.h"
 #include "sound/ay8910.h"
+extern "C" {
+#include "sound/atomicssg/ssg.h"
+}
 
 class DivPlatformAY8910: public DivDispatch {
   protected:
@@ -97,6 +100,9 @@ class DivPlatformAY8910: public DivDispatch {
   
     unsigned char sampleBank;
     unsigned char stereoSep;
+    unsigned char selCore;
+
+    ssg_t ay_atomic;
 
     int delay;
 
@@ -106,7 +112,7 @@ class DivPlatformAY8910: public DivDispatch {
     unsigned char extDiv;
     unsigned char dacRateDiv;
 
-    bool stereo, sunsoft, intellivision, clockSel;
+    bool stereo, sunsoft, intellivision, clockSel, yamaha;
     bool ioPortA, ioPortB;
     unsigned char portAVal, portBVal;
   
@@ -121,6 +127,9 @@ class DivPlatformAY8910: public DivDispatch {
 
     void checkWrites();
     void updateOutSel(bool immediate=false);
+
+    void acquire_mame(short** buf, size_t len);
+    void acquire_atomic(short** buf, size_t len);
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
@@ -135,6 +144,7 @@ class DivPlatformAY8910: public DivDispatch {
     int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void setCore(unsigned char core);
     void flushWrites();
     void reset();
     void forceIns();

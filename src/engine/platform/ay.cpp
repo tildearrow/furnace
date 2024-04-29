@@ -169,7 +169,7 @@ void DivPlatformAY8910::checkWrites() {
   }
 }
 
-void DivPlatformAY8910::acquire(short** buf, size_t len) {
+void DivPlatformAY8910::acquire_mame(short** buf, size_t len) {
   if (ayBufLen<len) {
     ayBufLen=len;
     for (int i=0; i<3; i++) {
@@ -209,6 +209,42 @@ void DivPlatformAY8910::acquire(short** buf, size_t len) {
       oscBuf[1]->data[oscBuf[1]->needle++]=ayBuf[1][0]<<2;
       oscBuf[2]->data[oscBuf[2]->needle++]=ayBuf[2][0]<<2;
     }
+  }
+}
+
+void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
+    runDAC();
+
+    if (!writes.empty()) {
+      QueuedWrite w=writes.front();
+      SSG_Write(&ay_atomic,w.addr&0x0f,w.val);
+      regPool[w.addr&0x0f]=w.val;
+      writes.pop();
+    }
+
+    SSG_Clock(&ay_atomic,0);
+    SSG_Clock(&ay_atomic,1);
+
+    if (stereo) {
+      buf[0][i]=ay_atomic.o_analog[0]+ay_atomic.o_analog[1]+((ay_atomic.o_analog[2]*stereoSep)>>8);
+      buf[1][i]=((ay_atomic.o_analog[0]*stereoSep)>>8)+ay_atomic.o_analog[1]+ay_atomic.o_analog[2];
+    } else {
+      buf[0][i]=ay_atomic.o_analog[0]+ay_atomic.o_analog[1]+ay_atomic.o_analog[2];
+      buf[1][i]=buf[0][i];
+    }
+
+    oscBuf[0]->data[oscBuf[0]->needle++]=ay_atomic.o_analog[0];
+    oscBuf[1]->data[oscBuf[1]->needle++]=ay_atomic.o_analog[1];
+    oscBuf[2]->data[oscBuf[2]->needle++]=ay_atomic.o_analog[2];
+  }
+}
+
+void DivPlatformAY8910::acquire(short** buf, size_t len) {
+  if (selCore) {
+    acquire_atomic(buf,len);
+  } else {
+    acquire_mame(buf,len);
   }
 }
 
@@ -778,6 +814,12 @@ void DivPlatformAY8910::reset() {
     addWrite(0xffffffff,0);
   }
 
+  SSG_Reset(&ay_atomic);
+  SSG_SetType(&ay_atomic,
+    (yamaha?0:1)|
+    (intellivision?2:0)
+  );
+
   for (int i=0; i<16; i++) {
     oldWrites[i]=-1;
     pendingWrites[i]=-1;
@@ -828,6 +870,10 @@ void DivPlatformAY8910::setExtClockDiv(unsigned int eclk, unsigned char ediv) {
     extClock=eclk;
     extDiv=ediv;
   }
+}
+
+void DivPlatformAY8910::setCore(unsigned char core) {
+  selCore=core;
 }
 
 void DivPlatformAY8910::setFlags(const DivConfig& flags) {
@@ -888,8 +934,13 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
         break;
     }
     CHECK_CUSTOM_CLOCK;
-    rate=chipClock/8;
-    dacRate=rate;
+    if (selCore) {
+      rate=chipClock/2;
+      dacRate=chipClock*2;
+    } else {
+      rate=chipClock/8;
+      dacRate=rate;
+    }
   }
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;
@@ -900,23 +951,27 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
     case 1:
       clockSel=flags.getBool("halfClock",false);
       ay=new ym2149_device(rate,clockSel);
+      yamaha=true;
       sunsoft=false;
       intellivision=false;
       break;
     case 2:
       ay=new sunsoft_5b_sound_device(rate);
+      yamaha=true;
       sunsoft=true;
       intellivision=false;
       clockSel=false;
       break;
     case 3:
       ay=new ay8914_device(rate);
+      yamaha=false;
       sunsoft=false;
       intellivision=true;
       clockSel=false;
       break;
     default:
       ay=new ay8910_device(rate);
+      yamaha=false;
       sunsoft=false;
       intellivision=false;
       clockSel=false;

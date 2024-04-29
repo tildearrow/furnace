@@ -393,6 +393,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_AY8910:
       dispatch=new DivPlatformAY8910;
+      if (isRender) {
+        ((DivPlatformAY8910*)dispatch)->setCore(eng->getConfInt("ayCoreRender",0)==1);
+      } else {
+        ((DivPlatformAY8910*)dispatch)->setCore(eng->getConfInt("ayCore",0)==1);
+      }
       break;
     case DIV_SYSTEM_AY8930:
       dispatch=new DivPlatformAY8930;

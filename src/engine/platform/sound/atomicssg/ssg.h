@@ -25,7 +25,6 @@ typedef struct {
     int wr; // neg
     int rd; // neg
     int a0;
-    int a1;
     int data;
     int test; // set to 1
     int gpio_a;
@@ -35,6 +34,12 @@ ssg_input_t;
 
 typedef struct {
     ssg_input_t input;
+
+    // bitfield
+    // bit 0: AY-3-8910 (16-step envelope)
+    // bit 1: AY-3-8914 (different register map and envelope volume)
+    // bit 2: AY8930 (TODO)
+    int type;
 
     int ic;
 
@@ -143,11 +148,14 @@ typedef struct {
     int o_gpio_b;
     int o_gpio_b_d;
 
-    float o_analog[3];
+    int o_analog[3];
 
     int o_data;
     int o_data_d;
 }
 ssg_t;
 
+void SSG_SetType(ssg_t* chip, int type);
+void SSG_Reset(ssg_t* chip);
 void SSG_Clock(ssg_t* chip, int clk);
+void SSG_Write(ssg_t* chip, unsigned char addr, unsigned char val);

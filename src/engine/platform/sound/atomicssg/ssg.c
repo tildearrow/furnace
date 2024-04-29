@@ -34,76 +34,19 @@ void SSG_Clock(ssg_t* chip, int clk)
 
     {
         int read = !chip->ic && !chip->input.rd && !chip->input.cs;
-        chip->read0 = !chip->ic && !chip->input.rd && !chip->input.cs && !chip->input.a1 && !chip->input.a0;
+        chip->read0 = !chip->ic && !chip->input.rd && !chip->input.cs;
         int write = !chip->input.wr && !chip->input.cs;
-        int writeaddr = chip->ic || (!chip->input.wr && !chip->input.cs && !chip->input.a0);
-        int writedata = !chip->ic && !chip->input.wr && !chip->input.cs && chip->input.a0;
-        int read1 = !chip->ic && !chip->input.rd && !chip->input.cs && !chip->input.a1 && chip->input.a0;
-        chip->read2 = !chip->ic && !chip->input.rd && !chip->input.cs && chip->input.a1 && !chip->input.a0;
-        chip->read3 = !chip->ic && !chip->input.rd && !chip->input.cs && chip->input.a1 && chip->input.a0;
-        chip->write2 = !chip->ic && !chip->input.wr && !chip->input.cs && chip->input.a1 && !chip->input.a0;
-        chip->write3 = !chip->ic && !chip->input.wr && !chip->input.cs && chip->input.a1 && chip->input.a0;
-        chip->ssg_write0 = writeaddr && !chip->input.a1;
-        chip->ssg_write1 = (writedata && !chip->input.a1) || chip->ic;
+        int writeaddr = chip->ic || (!chip->input.wr && !chip->input.cs);
+        int writedata = !chip->ic && !chip->input.wr && !chip->input.cs;
+        int read1 = !chip->ic && !chip->input.rd && !chip->input.cs;
+        chip->ssg_write0 = writeaddr;
+        chip->ssg_write1 = writedata || chip->ic;
         chip->ssg_read1 = read1;
 
         chip->o_data_d = !read;
 
-        if (writeaddr)
-            chip->write0_trig0 = 1;
-        else if (chip->write0_l[0])
-            chip->write0_trig0 = 0;
-        if (chip->clk1)
-        {
-            chip->write0_trig1 = chip->write0_trig0;
-            chip->write0_l[1] = chip->write0_l[0];
-        }
-        if (chip->clk2)
-        {
-            chip->write0_l[0] = chip->write0_trig1;
-            chip->write0_l[2] = chip->write0_l[1];
-        }
-        chip->write0_en = chip->write0_l[0] && !chip->write0_l[2];
-
-        if (writedata)
-            chip->write1_trig0 = 1;
-        else if (chip->write1_l[0])
-            chip->write1_trig0 = 0;
-        if (chip->clk1)
-        {
-            chip->write1_trig1 = chip->write1_trig0;
-            chip->write1_l[1] = chip->write1_l[0];
-        }
-        if (chip->clk2)
-        {
-            chip->write1_l[0] = chip->write1_trig1;
-            chip->write1_l[2] = chip->write1_l[1];
-        }
-        chip->write1_en = chip->write1_l[0] && !chip->write1_l[2];
-
-        if (writeaddr)
-            chip->write2_trig0 = 1;
-        else if (chip->write2_l[0])
-            chip->write2_trig0 = 0;
-        if (chip->clk1)
-        {
-            chip->write2_trig1 = chip->write2_trig0;
-            chip->write2_l[1] = chip->write2_l[0];
-        }
-        if (chip->clk2)
-        {
-            chip->write2_l[0] = chip->write2_trig1;
-            chip->write2_l[2] = chip->write2_l[1];
-        }
-        chip->write2_en = chip->write2_l[0] && !chip->write2_l[2];
-
-        if (writedata)
-            chip->write3_trig0 = 1;
-        else if (chip->write3_l[0])
-            chip->write3_trig0 = 0;
-
         if (write)
-            chip->data_l = (chip->input.data & 255) | (chip->input.a1 << 8);
+            chip->data_l = (chip->input.data & 255);
 
         if (chip->ic)
             chip->data_bus2 |= 0x2f;
@@ -128,12 +71,12 @@ void SSG_Clock(ssg_t* chip, int clk)
         if (chip->ic)
             chip->ssg_ssg_addr = 0;
         else if (chip->ssg_write0)
-            chip->ssg_ssg_addr = (chip->data_bus1 & 0xf0) == 0;
+            chip->ssg_ssg_addr = 1;
 
         if (chip->ic)
             chip->ssg_address = 0;
-        else if (chip->ssg_write0 && (chip->data_bus1 & 0xe0) == 0)
-            chip->ssg_address = chip->data_bus1 & 0x1f;
+        else if (chip->ssg_write0)
+            chip->ssg_address = chip->input.a0 & 0x1f;
         
         int ssg_access = chip->ssg_ssg_addr && (chip->ssg_write1 || chip->ssg_read1);
 
@@ -443,26 +386,99 @@ void SSG_Clock(ssg_t* chip, int clk)
         int sign_b = ((chip->ssg_mode & 2) == 0 && (chip->ssg_sign[0] & 2) != 0) || ((chip->ssg_mode & 16) == 0 && chip->ssg_noise_bit);
         int sign_c = ((chip->ssg_mode & 4) == 0 && (chip->ssg_sign[0] & 4) != 0) || ((chip->ssg_mode & 32) == 0 && chip->ssg_noise_bit);
 
-        static const float volume_lut[32] = {
+        static const float volume_lut_ay[32] = {
+          0.0000,
+          0.0000,
+          0.0106,
+          0.0106,
+          0.0150,
+          0.0150,
+          0.0222,
+          0.0222,
+          0.0320,
+          0.0320,
+          0.0466,
+          0.0466,
+          0.0665,
+          0.0665,
+          0.1039,
+          0.1039,
+          0.1237,
+          0.1237,
+          0.1986,
+          0.1986,
+          0.2803,
+          0.2803,
+          0.3548,
+          0.3548,
+          0.4702,
+          0.4702,
+          0.6030,
+          0.6030,
+          0.7530,
+          0.7530,
+          0.9250,
+          0.9250
+        };
+
+        static const float volume_lut_ssg[32] = {
             0.0000, 0.0000, 0.0049, 0.0075, 0.0105, 0.0131, 0.0156, 0.0183,
             0.0228, 0.0276, 0.0321, 0.0367, 0.0448, 0.0535, 0.0626, 0.0713,
             0.0884, 0.1057, 0.1225, 0.1392, 0.1691, 0.2013, 0.2348, 0.2670,
             0.3307, 0.3951, 0.4573, 0.5196, 0.6316, 0.7528, 0.8787, 1.0000
         };
 
-
-        chip->o_analog[0] = volume_lut[sign_a ? 0 : vol_a];
-        chip->o_analog[1] = volume_lut[sign_b ? 0 : vol_b];
-        chip->o_analog[2] = volume_lut[sign_c ? 0 : vol_c];
+        if (chip->type & 1) {
+          chip->o_analog[0] = volume_lut_ay[sign_a ? 0 : vol_a] * 11806;
+          chip->o_analog[1] = volume_lut_ay[sign_b ? 0 : vol_b] * 11806;
+          chip->o_analog[2] = volume_lut_ay[sign_c ? 0 : vol_c] * 11806;
+        } else {
+          chip->o_analog[0] = volume_lut_ssg[sign_a ? 0 : vol_a] * 10922;
+          chip->o_analog[1] = volume_lut_ssg[sign_b ? 0 : vol_b] * 10922;
+          chip->o_analog[2] = volume_lut_ssg[sign_c ? 0 : vol_c] * 10922;
+        }
     }
 
     {
         chip->read_bus = 0; // FIXME
-        if (chip->ssg_read1
-            || chip->read3
-            )
+        if (chip->ssg_read1)
             chip->read_bus = chip->data_bus1 & 255;
 
         chip->o_data = chip->read_bus;
     }
+
+    if (clk)
+        chip->input.cs=1;
+}
+
+void SSG_Reset(ssg_t* chip) {
+  memset(chip,0,sizeof(ssg_t));
+
+  chip->input.test=1;
+  chip->input.ic=1;
+  SSG_Clock(chip,0);
+  SSG_Clock(chip,1);
+
+  chip->input.ic=0;
+  SSG_Clock(chip,0);
+  SSG_Clock(chip,1);
+
+  chip->input.ic=1;
+  SSG_Clock(chip,0);
+  SSG_Clock(chip,1);
+
+  chip->input.cs=1;
+}
+
+void SSG_Write(ssg_t* chip, unsigned char addr, unsigned char val) {
+  chip->input.cs=0;
+  chip->input.rd=1;
+  chip->input.wr=0;
+
+  chip->input.a0=addr;
+  chip->input.data=val;
+}
+
+void SSG_SetType(ssg_t* chip, int type) {
+  chip->type=type;
 }
