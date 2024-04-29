@@ -116,6 +116,8 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       OPN2_Reset(&fm_nuked);
       OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
 
+      memset(&fm_lle,0,sizeof(fmopna_2610_t));
+
       if (useCombo==2) {
         fm_lle.input.cs=1;
         fm_lle.input.rd=0;

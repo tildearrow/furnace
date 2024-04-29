@@ -399,20 +399,12 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
       }
       if (!fm_lle.o_s && lastS) {
         if (!fm_lle.o_sh1 && lastSH) {
-          dacVal2=dacVal;
-        }
-
-        if (!fm_lle.o_sh2 && lastSH2) {
-          dacVal2=dacVal;
-        }
-
-        if (fm_lle.o_sh1 && !lastSH) {
-          dacOut[0]=dacVal2^0x8000;
+          dacOut[0]=dacVal^0x8000;
           have0=true;
         }
 
-        if (fm_lle.o_sh2 && !lastSH2) {
-          dacOut[1]=dacVal2^0x8000;
+        if (!fm_lle.o_sh2 && lastSH2) {
+          dacOut[1]=dacVal^0x8000;
           have1=true;
         }
 
