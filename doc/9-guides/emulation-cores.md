@@ -56,3 +56,7 @@ Furnace achieves the authentic sound of videogame hardware by emulating sound ch
 - **OPLL core**:
   - **Nuked-OPLL**: this core is accurate and the default.
   - **emu2413**: a less accurate core that uses less CPU.
+
+- **AY-3-8910/SSG core**:
+  - **MAME**: default core.
+  - **AtomicSSG**: SSG core extracted from YM2608-LLE.
