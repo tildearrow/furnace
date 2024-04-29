@@ -58,6 +58,39 @@ void DivSubSong::rearrangePatterns() {
 }
 
 void DivSubSong::sortOrders() {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    DivPattern* patPointer[DIV_MAX_PATTERNS];
+    unsigned char orderMap[DIV_MAX_PATTERNS];
+    bool seen[DIV_MAX_PATTERNS];
+    int orderMapLen=0;
+
+    memcpy(patPointer,pat[i].data,DIV_MAX_PATTERNS*sizeof(void*));
+    memset(orderMap,0,DIV_MAX_PATTERNS);
+    memset(seen,0,DIV_MAX_PATTERNS*sizeof(bool));
+
+    // 1. sort orders
+    for (int j=0; j<ordersLen; j++) {
+      if (!seen[orders.ord[i][j]]) {
+        orderMap[orders.ord[i][j]]=orderMapLen++;
+        seen[orders.ord[i][j]]=true;
+      }
+    }
+
+    // 2. populate the rest
+    for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+      if (!seen[j]) orderMap[j]=orderMapLen++;
+    }
+    
+    // 3. swap pattern pointers
+    for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+      pat[i].data[orderMap[j]]=patPointer[j];
+    }
+
+    // 4. swap orders
+    for (int j=0; j<ordersLen; j++) {
+      orders.ord[i][j]=orderMap[orders.ord[i][j]];
+    }
+  }
 }
 
 void DivSubSong::makePatUnique() {
