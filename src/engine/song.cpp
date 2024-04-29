@@ -116,6 +116,7 @@ void DivSubSong::makePatUnique() {
             DivPattern* dest=pat[i].getPattern(k,true);
             DivPattern* src=pat[i].getPattern(orders.ord[i][j],false);
             src->copyOn(dest);
+            used[k]=true;
             orders.ord[i][j]=k;
             break;
           }
