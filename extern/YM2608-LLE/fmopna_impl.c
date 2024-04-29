@@ -2336,7 +2336,7 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
 
             chip->ssg_test = chip->input.test;
 
-            chip->ssg_noise_step = chip->ssg_noise_of || chip->ssg_test;
+            chip->ssg_noise_step = chip->ssg_noise_of || !chip->ssg_test;
         }
         if (chip->ssg_clk2)
         {
