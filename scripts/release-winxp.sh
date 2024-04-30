@@ -36,9 +36,8 @@ cp ../../res/docpdf/manual.pdf . || exit 1
 i686-w64-mingw32-strip -s furnace.exe || exit 1
 
 # patch to remove GetTickCount64
-xxd -c 256 -ps furnace.exe | sed "s/4765745469636b436f756e743634/4765745469636b436f756e740000/g" | xxd -ps -r > furnace-patched.exe
-rm furnace.exe
-mv furnace-patched.exe furnace.exe
+gcc -o patch_xp ../../scripts/patch_xp.c || exit 1
+./patch_xp furnace.exe || exit 1
 
 zip -r furnace.zip LICENSE.txt furnace.exe README.txt manual.pdf papers demos instruments wavetables
 
