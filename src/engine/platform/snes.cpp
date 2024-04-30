@@ -981,6 +981,9 @@ void DivPlatformSNES::renderSamples(int sysID) {
       // inject loop if needed
       if (s->loop) {
         copyOfSampleMem[memPos+actualLength-9]|=3;
+      } else {
+        copyOfSampleMem[memPos+actualLength-9]&=~3;
+        copyOfSampleMem[memPos+actualLength-9]|=1;
       }
       memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength));
       memPos+=actualLength;
