@@ -5279,6 +5279,7 @@ void FurnaceGUI::resetKeybinds() {
     if (guiActions[i].defaultBind==-1) continue;
     actionKeys[i]=guiActions[i].defaultBind;
   }
+  decodeKeyMap(noteKeys,DEFAULT_NOTE_KEYS);
   parseKeybinds();
 }
 
