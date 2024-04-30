@@ -2461,7 +2461,11 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
       switch (flags.getInt("chipType",0)) {
         case 1: // YMF289B
           chipFreqBase=32768*684;
-          rate=chipClock/768;
+          if (emuCore==2) {
+            rate=chipClock/684;
+          } else {
+            rate=chipClock/768;
+          }
           chipRateBase=chipClock/684;
           downsample=true;
           totalOutputs=2; // Stereo output only

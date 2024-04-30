@@ -82,6 +82,7 @@ class DivPlatformOPL: public DivDispatch {
     bool lastSH2;
     bool lastSY;
     bool waitingBusy;
+    int downsamplerStep;
     
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
