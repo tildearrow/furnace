@@ -93,6 +93,10 @@ void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
 void DivPlatformOPLL::acquire_ymfm(short** buf, size_t len) {
 }
 
+static const unsigned char freakingDrumMap[5]={
+  9, 11, 12, 13, 10
+};
+
 void DivPlatformOPLL::acquire_emu(short** buf, size_t len) {
   thread_local int os;
 
@@ -111,7 +115,7 @@ void DivPlatformOPLL::acquire_emu(short** buf, size_t len) {
 
     for (int i=0; i<11; i++) {
       if (i>=6 && properDrums) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[i+3])<<3;
+        oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[freakingDrumMap[i-6]])<<3;
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=(-fm_emu->ch_out[i])<<3;
       }
@@ -1004,7 +1008,7 @@ DivMacroInt* DivPlatformOPLL::getChanMacroInt(int ch) {
 }
 
 DivDispatchOscBuffer* DivPlatformOPLL::getOscBuffer(int ch) {
-  if (ch>=9) return NULL;
+  if (ch>=9 && selCore==0) return NULL;
   return oscBuf[ch];
 }
 
