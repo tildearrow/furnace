@@ -1173,7 +1173,11 @@ void DivPlatformOPLL::setFlags(const DivConfig& flags) {
     if (selCore==1) {
       oscBuf[i]->rate=rate;
     } else {
-      oscBuf[i]->rate=rate/2;
+      if (i>=6 && properDrumsSys) {
+        oscBuf[i]->rate=rate;
+      } else {
+        oscBuf[i]->rate=rate/2;
+      }
     }
   }
   noTopHatFreq=flags.getBool("noTopHatFreq",false);
