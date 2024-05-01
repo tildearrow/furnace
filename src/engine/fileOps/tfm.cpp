@@ -427,7 +427,9 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
             }
             for (int i=0; i<speed.interleaveFactor; i++) {
               groove.val[i]=speed.speedEven;
-              groove.val[i+speed.interleaveFactor]=speed.speedOdd;
+              if (i+speed.interleaveFactor<16) {
+                groove.val[i+speed.interleaveFactor]=speed.speedOdd;
+              }
             }
             groove.len=speed.interleaveFactor*2;
 
