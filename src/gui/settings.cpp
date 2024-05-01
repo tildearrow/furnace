@@ -4261,9 +4261,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.patFontSize=conf.getInt("patFontSize",18);
     settings.iconSize=conf.getInt("iconSize",16);
 
-    settings.mainFont=conf.getInt("mainFont",0);
+    settings.mainFont=conf.getInt("mainFont",GUI_MAIN_FONT_DEFAULT);
     settings.headFont=conf.getInt("headFont",0);
-    settings.patFont=conf.getInt("patFont",0);
+    settings.patFont=conf.getInt("patFont",GUI_PAT_FONT_DEFAULT);
     settings.mainFontPath=conf.getString("mainFontPath","");
     settings.headFontPath=conf.getString("headFontPath","");
     settings.patFontPath=conf.getString("patFontPath","");
@@ -4283,7 +4283,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   }
 
   if (groups&GUI_SETTINGS_APPEARANCE) {
-    settings.oscRoundedCorners=conf.getInt("oscRoundedCorners",1);
+    settings.oscRoundedCorners=conf.getInt("oscRoundedCorners",GUI_DECORATIONS_DEFAULT);
     settings.oscTakesEntireWindow=conf.getInt("oscTakesEntireWindow",0);
     settings.oscBorder=conf.getInt("oscBorder",1);
     settings.oscEscapesBoundary=conf.getInt("oscEscapesBoundary",0);
@@ -4299,11 +4299,11 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.channelFont=conf.getInt("channelFont",1);
     settings.channelTextCenter=conf.getInt("channelTextCenter",1);
 
-    settings.roundedWindows=conf.getInt("roundedWindows",1);
-    settings.roundedButtons=conf.getInt("roundedButtons",1);
+    settings.roundedWindows=conf.getInt("roundedWindows",GUI_DECORATIONS_DEFAULT);
+    settings.roundedButtons=conf.getInt("roundedButtons",GUI_DECORATIONS_DEFAULT);
     settings.roundedMenus=conf.getInt("roundedMenus",0);
-    settings.roundedTabs=conf.getInt("roundedTabs",1);
-    settings.roundedScrollbars=conf.getInt("roundedScrollbars",1);
+    settings.roundedTabs=conf.getInt("roundedTabs",GUI_DECORATIONS_DEFAULT);
+    settings.roundedScrollbars=conf.getInt("roundedScrollbars",GUI_DECORATIONS_DEFAULT);
 
     settings.separateFMColors=conf.getInt("separateFMColors",0);
     settings.insEditColorize=conf.getInt("insEditColorize",0);
@@ -5867,7 +5867,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
     if (settings.mainFont==6 && settings.mainFontPath.empty()) {
       logW("UI font path is empty! reverting to default font");
-      settings.mainFont=0;
+      settings.mainFont=GUI_MAIN_FONT_DEFAULT;
     }
     if (settings.headFont==6 && settings.headFontPath.empty()) {
       logW("header font path is empty! reverting to default font");
@@ -5875,7 +5875,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
     if (settings.patFont==6 && settings.patFontPath.empty()) {
       logW("pattern font path is empty! reverting to default font");
-      settings.patFont=0;
+      settings.patFont=GUI_PAT_FONT_DEFAULT;
     }
 
     ImFontConfig fc1;
@@ -5887,7 +5887,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     if (settings.mainFont==6) { // custom font
       if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
         logW("could not load UI font! reverting to default font");
-        settings.mainFont=0;
+        settings.mainFont=GUI_MAIN_FONT_DEFAULT;
         if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
           logE("could not load UI font! falling back to Proggy Clean.");
           mainFont=ImGui::GetIO().Fonts->AddFontDefault();
@@ -5898,7 +5898,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
         if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
           if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
             logW("could not load UI font! reverting to default font");
-            settings.mainFont=0;
+            settings.mainFont=GUI_MAIN_FONT_DEFAULT;
             if ((mainFont=addFontZlib(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fontConf,fontRange))==NULL) {
               logE("could not load UI font! falling back to Proggy Clean.");
               mainFont=ImGui::GetIO().Fonts->AddFontDefault();
@@ -5944,7 +5944,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       if (settings.patFont==6) { // custom font
         if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
           logW("could not load pattern font! reverting to default font");
-          settings.patFont=0;
+          settings.patFont=GUI_PAT_FONT_DEFAULT;
           if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
             logE("could not load pattern font! falling back to Proggy Clean.");
             patFont=ImGui::GetIO().Fonts->AddFontDefault();
@@ -5955,7 +5955,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
             if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
               logW("could not load pattern font! reverting to default font");
-              settings.patFont=0;
+              settings.patFont=GUI_PAT_FONT_DEFAULT;
               if ((patFont=addFontZlib(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fontConfP,upTo800))==NULL) {
                 logE("could not load pattern font! falling back to Proggy Clean.");
                 patFont=ImGui::GetIO().Fonts->AddFontDefault();

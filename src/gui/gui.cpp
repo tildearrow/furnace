@@ -6912,8 +6912,8 @@ bool FurnaceGUI::init() {
   scrX=0;
   scrY=0;
 #else
-  scrW=scrConfW=e->getConfInt("lastWindowWidth",1280);
-  scrH=scrConfH=e->getConfInt("lastWindowHeight",800);
+  scrW=scrConfW=e->getConfInt("lastWindowWidth",GUI_WIDTH_DEFAULT);
+  scrH=scrConfH=e->getConfInt("lastWindowHeight",GUI_HEIGHT_DEFAULT);
   scrX=scrConfX=e->getConfInt("lastWindowX",SDL_WINDOWPOS_CENTERED);
   scrY=scrConfY=e->getConfInt("lastWindowY",SDL_WINDOWPOS_CENTERED);
   scrMax=e->getConfBool("lastWindowMax",false);
@@ -7537,12 +7537,12 @@ FurnaceGUI::FurnaceGUI():
   postWarnAction(GUI_WARN_GENERIC),
   mobScene(GUI_SCENE_PATTERN),
   fileDialog(NULL),
-  scrW(1280),
-  scrH(800),
-  scrConfW(1280),
-  scrConfH(800),
-  canvasW(1280),
-  canvasH(800),
+  scrW(GUI_WIDTH_DEFAULT),
+  scrH(GUI_HEIGHT_DEFAULT),
+  scrConfW(GUI_WIDTH_DEFAULT),
+  scrConfH(GUI_HEIGHT_DEFAULT),
+  canvasW(GUI_WIDTH_DEFAULT),
+  canvasH(GUI_HEIGHT_DEFAULT),
   scrX(SDL_WINDOWPOS_CENTERED),
   scrY(SDL_WINDOWPOS_CENTERED),
   scrConfX(SDL_WINDOWPOS_CENTERED),
