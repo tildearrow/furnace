@@ -44,7 +44,7 @@
 #endif
 
 #ifdef HAVE_FREETYPE
-#define FONT_BACKEND_DEFAULT 0
+#define FONT_BACKEND_DEFAULT 1
 #else
 #define FONT_BACKEND_DEFAULT 0
 #endif
@@ -4256,10 +4256,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   }
 
   if (groups&GUI_SETTINGS_FONT) {
-    settings.mainFontSize=conf.getInt("mainFontSize",18);
+    settings.mainFontSize=conf.getInt("mainFontSize",GUI_FONT_SIZE_DEFAULT);
     settings.headFontSize=conf.getInt("headFontSize",27);
-    settings.patFontSize=conf.getInt("patFontSize",18);
-    settings.iconSize=conf.getInt("iconSize",16);
+    settings.patFontSize=conf.getInt("patFontSize",GUI_FONT_SIZE_DEFAULT);
+    settings.iconSize=conf.getInt("iconSize",GUI_ICON_SIZE_DEFAULT);
 
     settings.mainFont=conf.getInt("mainFont",GUI_MAIN_FONT_DEFAULT);
     settings.headFont=conf.getInt("headFont",0);
@@ -4275,11 +4275,11 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.loadFallback=conf.getInt("loadFallback",1);
 
     settings.fontBackend=conf.getInt("fontBackend",FONT_BACKEND_DEFAULT);
-    settings.fontHinting=conf.getInt("fontHinting",0);
+    settings.fontHinting=conf.getInt("fontHinting",GUI_FONT_HINTING_DEFAULT);
     settings.fontBitmap=conf.getInt("fontBitmap",0);
     settings.fontAutoHint=conf.getInt("fontAutoHint",1);
-    settings.fontAntiAlias=conf.getInt("fontAntiAlias",1);
-    settings.fontOversample=conf.getInt("fontOversample",2);
+    settings.fontAntiAlias=conf.getInt("fontAntiAlias",GUI_FONT_ANTIALIAS_DEFAULT);
+    settings.fontOversample=conf.getInt("fontOversample",GUI_OVERSAMPLE_DEFAULT);
   }
 
   if (groups&GUI_SETTINGS_APPEARANCE) {

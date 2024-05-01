@@ -497,7 +497,11 @@ static const char* cvText[]={
 };
 
 void FurnaceGUI::syncTutorial() {
+#ifdef SUPPORT_XP
+  tutorial.introPlayed=e->getConfBool("tutIntroPlayed",true);
+#else
   tutorial.introPlayed=e->getConfBool("tutIntroPlayed",false);
+#endif
   tutorial.protoWelcome=e->getConfBool("tutProtoWelcome2",false);
 }
 
