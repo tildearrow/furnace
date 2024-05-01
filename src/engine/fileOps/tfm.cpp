@@ -172,13 +172,14 @@ struct TFMSpeed {
 };
 
 // to make it work with map
-template<>
-struct std::hash<TFMSpeed>
-{
-  size_t operator()(const TFMSpeed& s) const noexcept {
-    return s.speedEven<<16|s.speedOdd<<8|s.interleaveFactor;
-  }
-};
+namespace std {
+  template<> struct hash<TFMSpeed>
+  {
+    size_t operator()(const TFMSpeed& s) const noexcept {
+      return s.speedEven<<16|s.speedOdd<<8|s.interleaveFactor;
+    }
+  };
+}
 
 struct TFMParsePatternInfo {
   TFMRLEReader* reader;
