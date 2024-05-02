@@ -664,8 +664,8 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
     oscBuf[15]->data[oscBuf[15]->needle++]=fm_lle.ac_ad_output;
 
     // DAC
-    int accm1=(short)dacOut[0];
-    int accm2=(short)dacOut[1];
+    int accm1=(short)dacOut[1];
+    int accm2=(short)dacOut[0];
 
     int outL=((accm1*fmVol)>>8)+fm_lle.o_analog*ssgVol*42;
     int outR=((accm2*fmVol)>>8)+fm_lle.o_analog*ssgVol*42;
