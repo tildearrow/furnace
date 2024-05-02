@@ -312,6 +312,11 @@ static void paint_uniform_textured_rectangle(const PaintTarget &target,
   int startX = uv_topleft.x * (texture.width - 1.0f) + 0.5f;
   int startY = uv_topleft.y * (texture.height - 1.0f) + 0.5f;
 
+  if (startX<0) startX=0;
+  if (startX>texture.width-1) startX=texture.width-1;
+  if (startY<0) startY=0;
+  if (startY>texture.height-1) startY=texture.height-1;
+
   int currentX = startX;
   int currentY = startY * texture.width;
 
