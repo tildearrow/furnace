@@ -6760,819 +6760,585 @@ void FurnaceGUI::drawInsEdit() {
           }
         }
         if (ins->type<DIV_INS_MAX) if (ImGui::BeginTabItem("Macros")) {
-          // OLD CODE
-          int dutyMax=3;
-          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) {
-            dutyMax=4095;
-          }
-          if (ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ) {
-            dutyMax=32;
-          }
-          if (ins->type==DIV_INS_AY) {
-            dutyMax=31;
-          }
-          if (ins->type==DIV_INS_POKEY) {
-            dutyMax=8;
-          }
-          if (ins->type==DIV_INS_MIKEY) {
-            dutyMax=10;
-          }
-          if (ins->type==DIV_INS_MSM5232) {
-            dutyMax=5;
-          }
-          if (ins->type==DIV_INS_C219) {
-            dutyMax=3;
-          }
-          if (ins->type==DIV_INS_BEEPER || ins->type==DIV_INS_POKEMINI) {
-            dutyMax=255;
-          }
-          if (ins->type==DIV_INS_T6W28) {
-            dutyMax=1;
-          }
-          if (ins->type==DIV_INS_AY8930) {
-            dutyMax=255;
-          }
-          if (ins->type==DIV_INS_VBOY) {
-            dutyMax=7;
-          }
-          if (ins->type==DIV_INS_PCE) {
-            dutyMax=1;
-          }
-          if (ins->type==DIV_INS_NAMCO) {
-            dutyMax=1;
-          }
-          if (ins->type==DIV_INS_VIC) {
-            dutyMax=1;
-          }
-          if (ins->type==DIV_INS_TED) {
-            dutyMax=2;
-          }
-          if (ins->type==DIV_INS_SWAN) {
-            dutyMax=8;
-          }
-          if (ins->type==DIV_INS_SNES) {
-            dutyMax=31;
-          }
-          if (ins->type==DIV_INS_VERA) {
-            dutyMax=63;
-          }
-          if (ins->type==DIV_INS_N163) {
-            dutyMax=255;
-          }
-          if (ins->type==DIV_INS_VRC6) {
-            dutyMax=7;
-          }
-          if (ins->type==DIV_INS_ES5506) {
-            dutyMax=3;
-          }
-          if (ins->type==DIV_INS_SU) {
-            dutyMax=127;
-          }
-          if (ins->type==DIV_INS_MSM6258) {
-            dutyMax=2;
-          }
-          if (ins->type==DIV_INS_MSM6295) {
-            dutyMax=1;
-          }
-          if (ins->type==DIV_INS_ADPCMA) {
-            dutyMax=63;
-          }
-          if (ins->type==DIV_INS_QSOUND) {
-            dutyMax=32767;
-          }
-          if (ins->type==DIV_INS_ESFM) {
-            dutyMax=3;
-          }
-          if (ins->type==DIV_INS_DAVE) {
-            dutyMax=3;
-          }
-          if (ins->type==DIV_INS_NDS) {
-            dutyMax=7;
-          }
-          if (ins->type==DIV_INS_BIFURCATOR) {
-            dutyMax=65535;
-          }
-
           // NEW CODE
           // this is only the first part of an insEdit refactor.
           // don't complain yet!
+          int waveCount=MAX(1,e->song.waveLen-1);
+
           switch (ins->type) {
             case DIV_INS_STD:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_FM:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_GB:
               if (ins->gb.softEnv) {
                 macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               }
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Duty/Noise",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Duty/Noise",&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_C64:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,ins->c64.dutyIsAbs?0:-4095,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,ins->c64.dutyIsAbs?0:-4095,4095,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,4,64,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,c64ShapeBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.algMacro,ins->c64.filterIsAbs?0:-2047,2047,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",&ins->std.ex1Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,filtModeBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex4Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c64TestGateBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Attack",&ins->std.ex5Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Decay",&ins->std.ex6Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Sustain",&ins->std.ex7Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Release",&ins->std.ex8Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               break;
             case DIV_INS_AMIGA:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,64,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              if (ins->std.panLMacro.mode) {
+                macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,-16,16,63,uiColors[GUI_COLOR_MACRO_OTHER],false,macroQSoundMode));
+                macroList.push_back(FurnaceGUIMacroDesc("Surround",&ins->std.panRMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              } else {
+                macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,127,158,uiColors[GUI_COLOR_MACRO_OTHER],false,macroQSoundMode));
+                macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,127,158,uiColors[GUI_COLOR_MACRO_OTHER]));
+              }
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_PCE:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,31,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
               if (!ins->amiga.useSample) {
-                macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.dutyMacro,0,1,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               }
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_AY:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
               if (!ins->amiga.useSample) {
-                macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,31,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,3,64,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,ayShapeBits));
               }
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex2Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,ayEnvBits));
+              macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Num",&ins->std.ex3Macro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Den",&ins->std.algMacro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               break;
             case DIV_INS_AY8930:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,31,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
               if (!ins->amiga.useSample) {
-                macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,3,64,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,ayShapeBits));
               }
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,8,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex2Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,ayEnvBits));
+              macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Num",&ins->std.ex3Macro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Den",&ins->std.algMacro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise AND Mask",&ins->std.fbMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise OR Mask",&ins->std.fmsMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_TIA:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,15,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_SAA1099:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Duty/Noise",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Duty/Noise",&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,2,64,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,ayShapeBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex1Macro,0,8,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,saaEnvBits));
               break;
             case DIV_INS_VIC:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("On/Off",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("On/Off",&ins->std.dutyMacro,0,1,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,15,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_PET:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,1,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,8,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_VRC6:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
               if (!ins->amiga.useSample) {
-                macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,0,7,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              } else {
+                macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              }
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              if (ins->amiga.useSample) {
+                macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               }
               break;
             case DIV_INS_OPLL:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Patch",&ins->std.waveMacro,0,15,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_OPL:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,63,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,4,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_FDS:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,32,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Mod Depth",&ins->std.ex1Macro,0,63,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Mod Speed",&ins->std.ex2Macro,0,4095,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Mod Position",&ins->std.ex3Macro,0,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               break;
             case DIV_INS_VBOY:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Noise Length",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise Length",&ins->std.dutyMacro,0,7,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_N163:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Wave Pos",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Wave Pos",&ins->std.dutyMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Wave Length",&ins->std.ex1Macro,0,252,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               break;
             case DIV_INS_SCC:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_OPZ:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Duty/Noise",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,32,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_POKEY:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("AUDCTL",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,pokeyCtlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("AUDCTL",&ins->std.dutyMacro,0,8,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,pokeyCtlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,7,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_BEEPER:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,1,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Pulse Width",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pulse Width",&ins->std.dutyMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_SWAN:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
               if (!ins->amiga.useSample) {
-                macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.dutyMacro,0,8,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               }
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_MIKEY:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
               if (!ins->amiga.useSample) {
-                macroList.push_back(FurnaceGUIMacroDesc("Duty/Int",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));
+                macroList.push_back(FurnaceGUIMacroDesc("Duty/Int",&ins->std.dutyMacro,0,10,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));
               }
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Load LFSR",&ins->std.ex1Macro,0,12,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_VERA:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,63,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,0,63,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,3,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_X1_010:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              if (ins->amiga.useSample) {
+                macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              } else {
+                macroList.push_back(FurnaceGUIMacroDesc("Envelope Mode",&ins->std.ex1Macro,0,7,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,x1_010EnvBits));
+                macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,false,ayEnvBits));
+                macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Num",&ins->std.ex3Macro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Den",&ins->std.algMacro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              }
               break;
             case DIV_INS_VRC6_SAW:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,63,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_ES5506:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,4095,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,&macroHoverES5506FilterMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,&macroHoverES5506FilterMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,4095,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,4095,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Filter K1",&ins->std.ex1Macro,((ins->std.ex1Macro.mode==1)?(-65535):0),65535,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Filter K2",&ins->std.ex2Macro,((ins->std.ex2Macro.mode==1)?(-65535):0),65535,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Outputs",&ins->std.fbMacro,0,5,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.algMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,es5506ControlModes));
               break;
             case DIV_INS_MULTIPCM:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,-7,7,45,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_SNES:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,31,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,127,158,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,127,158,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex1Macro,0,5,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,snesModeBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Gain",&ins->std.ex2Macro,0,255,256,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,macroHoverGain,false));
               break;
             case DIV_INS_SU:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Duty/Noise",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Duty/Noise",&ins->std.dutyMacro,0,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,7,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,-127,127,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.ex1Macro,0,16383,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex3Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,suControlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset Timer",&ins->std.ex4Macro,0,65535,160,uiColors[GUI_COLOR_MACRO_OTHER])); // again reuse code from resonance macro but use ex4 instead
               break;
             case DIV_INS_NAMCO:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.dutyMacro,0,1,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_OPL_DRUMS:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,63,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,4,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_OPM:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,32,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_NES:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Duty/Noise",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Duty/Noise",&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_MSM6258:
-              macroList.push_back(FurnaceGUIMacroDesc("Freq Divider",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Freq Divider",&ins->std.dutyMacro,0,2,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Clock Divider",&ins->std.ex1Macro,0,1,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               break;
             case DIV_INS_MSM6295:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,8,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
-              macroList.push_back(FurnaceGUIMacroDesc("Freq Divider",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Freq Divider",&ins->std.dutyMacro,0,1,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_ADPCMA:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,31,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
-              macroList.push_back(FurnaceGUIMacroDesc("Global Volume",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Global Volume",&ins->std.dutyMacro,0,63,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_ADPCMB:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_SEGAPCM:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,127,158,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,127,158,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_QSOUND:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,16383,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Echo Level",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Echo Level",&ins->std.dutyMacro,0,32767,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,-16,16,63,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Surround",&ins->std.panRMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Echo Feedback",&ins->std.ex1Macro,0,16383,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Echo Length",&ins->std.ex2Macro,0,2725,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               break;
             case DIV_INS_YMZ280B:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,-7,7,45,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_RF5C68:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_MSM5232:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Group Ctrl",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,msm5232ControlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Group Ctrl",&ins->std.dutyMacro,0,5,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,msm5232ControlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Group Attack",&ins->std.ex1Macro,0,5,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Group Decay",&ins->std.ex2Macro,0,11,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_T6W28:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Noise Type",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise Type",&ins->std.dutyMacro,0,1,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_K007232:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_GA20:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_POKEMINI:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,2,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Pulse Width",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pulse Width",&ins->std.dutyMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_SM8521:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,31,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_PV1000:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,1,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               break;
             case DIV_INS_K053260:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,-3,3,37,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_TED:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,8,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Square/Noise",&ins->std.dutyMacro,0,dutyMax,80,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,tedControlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Square/Noise",&ins->std.dutyMacro,0,2,80,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,tedControlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_C140:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_C219:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.dutyMacro,0,dutyMax,120,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c219ControlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.dutyMacro,0,3,120,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c219ControlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_ESFM:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,63,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("OP4 Noise Mode",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("OP4 Noise Mode",&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_POWERNOISE:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,powerNoiseControlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Tap A Location",&ins->std.ex4Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Tap B Location",&ins->std.ex5Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Load LFSR",&ins->std.ex8Macro,0,16,256,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_POWERNOISE_SLOPE:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,6,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,powerNoiseSlopeControlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Portion A Length",&ins->std.ex2Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Portion B Length",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Portion A Offset",&ins->std.ex6Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Portion B Offset",&ins->std.ex7Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
               break;
             case DIV_INS_DAVE:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,63,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise Freq",&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,4,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,63,94,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,63,94,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,daveControlBits));
               break;
             case DIV_INS_NDS:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
               if (!ins->amiga.useSample) {
-                macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+                macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,0,7,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               }
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,-64,63,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_GBA_DMA:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,2,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_GBA_MINMOD:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex1Macro,0,2,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,minModModeBits));
               break;
             case DIV_INS_BIFURCATOR:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Parameter",&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Parameter",&ins->std.dutyMacro,0,65535,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Load Value",&ins->std.ex1Macro,0,65535,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               break;
             case DIV_INS_SID2:
               macroList.push_back(FurnaceGUIMacroDesc("Volume",&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,ins->c64.dutyIsAbs?0:-4095,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.dutyMacro,ins->c64.dutyIsAbs?0:-4095,4095,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Waveform",&ins->std.waveMacro,0,4,64,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,c64ShapeBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.algMacro,ins->c64.filterIsAbs?0:-4095,4095,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",&ins->std.ex1Macro,0,3,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,filtModeBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Filter Toggle",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex4Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,sid2ControlBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Attack",&ins->std.ex5Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Decay",&ins->std.ex6Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Sustain",&ins->std.ex7Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Release",&ins->std.ex8Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Noise Mode",&ins->std.fmsMacro,0,3,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Wave Mix",&ins->std.amsMacro,0,3,64,uiColors[GUI_COLOR_MACRO_OTHER]));
               break;
 
             case DIV_INS_MAX:
             case DIV_INS_NULL:
               break;
-          }
-
-          // OLD CODE
-          const char* waveLabel="Waveform";
-          int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
-          bool waveBitMode=false;
-          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_SID2) {
-            waveBitMode=true;
-          }
-          if (ins->type==DIV_INS_STD || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_NES ||
-              ins->type==DIV_INS_T6W28 || ins->type==DIV_INS_PV1000)
-              waveMax=0;
-          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC || ins->type==DIV_INS_OPLL) waveMax=15;
-          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) waveMax=4;
-          if (ins->type==DIV_INS_SAA1099) waveMax=2;
-          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) waveMax=0;
-          if (ins->type==DIV_INS_MIKEY) waveMax=0;
-          if (ins->type==DIV_INS_MULTIPCM) waveMax=0;
-          if (ins->type==DIV_INS_ADPCMA) waveMax=0;
-          if (ins->type==DIV_INS_ADPCMB) waveMax=0;
-          if (ins->type==DIV_INS_QSOUND) waveMax=0;
-          if (ins->type==DIV_INS_YMZ280B) waveMax=0;
-          if (ins->type==DIV_INS_RF5C68) waveMax=0;
-          if (ins->type==DIV_INS_MSM5232) waveMax=0;
-          if (ins->type==DIV_INS_MSM6258) waveMax=0;
-          if (ins->type==DIV_INS_MSM6295) waveMax=0;
-          if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
-          if (ins->type==DIV_INS_K007232) waveMax=0;
-          if (ins->type==DIV_INS_ES5506) waveMax=0;
-          if (ins->type==DIV_INS_GA20) waveMax=0;
-          if (ins->type==DIV_INS_K053260) waveMax=0;
-          if (ins->type==DIV_INS_BEEPER) waveMax=0;
-          if (ins->type==DIV_INS_POKEMINI) waveMax=0;
-          if (ins->type==DIV_INS_TED) waveMax=0;
-          if (ins->type==DIV_INS_C140) waveMax=0;
-          if (ins->type==DIV_INS_C219) waveMax=0;
-          if (ins->type==DIV_INS_POWERNOISE) waveMax=0;
-          if (ins->type==DIV_INS_POWERNOISE_SLOPE) waveMax=0;
-          if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
-          if (ins->type==DIV_INS_DAVE) waveMax=4;
-          if (ins->type==DIV_INS_NDS) waveMax=0;
-          if (ins->type==DIV_INS_BIFURCATOR) waveMax=0;
-          if (ins->type==DIV_INS_PET) {
-            waveMax=8;
-            waveBitMode=true;
-          }
-          if (ins->type==DIV_INS_VRC6) {
-            waveMax=ins->amiga.useSample?(MAX(1,e->song.waveLen-1)):0;
-          }
-          
-          if (ins->type==DIV_INS_OPLL) {
-            waveLabel="Patch";
-          }
-
-          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
-            waveMax=ins->amiga.useSample?0:3;
-            waveBitMode=ins->amiga.useSample?false:true;
-          }
-
-          const char** waveNames=NULL;
-          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) waveNames=ayShapeBits;
-          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) waveNames=c64ShapeBits;
-
-          int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
-          int ex2Max=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?4:0;
-          bool ex2Bit=true;
-
-          if (ins->type==DIV_INS_C64) {
-            ex1Max=4;
-            ex2Max=15;
-          }
-          if (ins->type==DIV_INS_SID2) {
-            ex1Max=3;
-            ex2Max=255;
-          }
-          if (ins->type==DIV_INS_X1_010) {
-            ex1Max=ins->amiga.useSample?0:7;
-            ex2Max=ins->amiga.useSample?0:255;
-            ex2Bit=false;
-          }
-          if (ins->type==DIV_INS_N163) {
-            ex1Max=252;
-          }
-          if (ins->type==DIV_INS_FDS) {
-            ex1Max=63;
-            ex2Max=4095;
-          }
-          if (ins->type==DIV_INS_SU) {
-            ex1Max=16383;
-            ex2Max=255;
-          }
-          if (ins->type==DIV_INS_MSM6258) {
-            ex1Max=1;
-          }
-          if (ins->type==DIV_INS_QSOUND) {
-            ex1Max=16383;
-            ex2Max=2725;
-          }
-          if (ins->type==DIV_INS_SAA1099) ex1Max=8;
-          if (ins->type==DIV_INS_ES5506) {
-            ex1Max=65535;
-            ex2Max=65535;
-          }
-          if (ins->type==DIV_INS_SNES) {
-            ex1Max=5;
-            ex2Max=255;
-          }
-          if (ins->type==DIV_INS_MSM5232) {
-            ex1Max=5;
-            ex2Max=11;
-          }
-          if (ins->type==DIV_INS_DAVE) {
-            ex1Max=4;
-          }
-          if (ins->type==DIV_INS_MIKEY) {
-            ex1Max=12;
-          }
-          if (ins->type==DIV_INS_GBA_MINMOD) {
-            ex1Max=2;
-          }
-          if (ins->type==DIV_INS_BIFURCATOR) {
-            ex1Max=65535;
-          }
-
-          int panMin=0;
-          int panMax=0;
-          bool panSingle=false;
-          bool panSingleNoBit=false;
-          if (ins->type==DIV_INS_STD || // Game Gear
-              ins->type==DIV_INS_FM ||
-              ins->type==DIV_INS_OPM ||
-              ins->type==DIV_INS_GB ||
-              ins->type==DIV_INS_OPZ ||
-              ins->type==DIV_INS_MSM6258 ||
-              ins->type==DIV_INS_VERA ||
-              ins->type==DIV_INS_ADPCMA ||
-              ins->type==DIV_INS_ADPCMB ||
-              ins->type==DIV_INS_ESFM ||
-              ins->type==DIV_INS_GBA_DMA) {
-            panMax=2;
-            panSingle=true;
-          }
-          if (ins->type==DIV_INS_OPL ||
-              ins->type==DIV_INS_OPL_DRUMS) {
-            panMax=4;
-            panSingle=true;
-          }
-          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY ||
-              ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_NAMCO || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_VBOY || ins->type==DIV_INS_T6W28 || ins->type==DIV_INS_K007232) {
-            panMax=15;
-          }
-          if (ins->type==DIV_INS_SEGAPCM) {
-            panMax=127;
-          }
-          if (ins->type==DIV_INS_AMIGA) {
-            if (ins->std.panLMacro.mode) {
-              panMin=-16;
-              panMax=16;
-            } else {
-              panMin=0;
-              panMax=127;
-            }
-          }
-          if (ins->type==DIV_INS_QSOUND) {
-            panMin=-16;
-            panMax=16;
-            panSingleNoBit=true;
-          }
-          if (ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_YMZ280B) {
-            panMin=-7;
-            panMax=7;
-            panSingleNoBit=true;
-          }
-          if (ins->type==DIV_INS_K053260) {
-            panMin=-3;
-            panMax=3;
-            panSingleNoBit=true;
-          }
-          if (ins->type==DIV_INS_SU) {
-            panMin=-127;
-            panMax=127;
-            panSingleNoBit=true;
-          }
-          if (ins->type==DIV_INS_SNES) {
-            panMin=0;
-            panMax=127;
-          }
-          if (ins->type==DIV_INS_C140 || ins->type==DIV_INS_C219 || ins->type==DIV_INS_GBA_MINMOD ||
-              ins->type==DIV_INS_BIFURCATOR) {
-            panMin=0;
-            panMax=255;
-          }
-          if (ins->type==DIV_INS_ES5506) {
-            panMax=4095;
-          }
-          if (ins->type==DIV_INS_POWERNOISE) {
-            panMax=15;
-          }
-          if (ins->type==DIV_INS_POWERNOISE_SLOPE) {
-            panMax=15;
-          }
-          if (ins->type==DIV_INS_DAVE) {
-            panMax=63;
-          }
-          if (ins->type==DIV_INS_NDS) {
-            panMin=-64;
-            panMax=63;
-            panSingleNoBit=true;
-          }
-
-          if (waveMax>0) {
-            macroList.push_back(FurnaceGUIMacroDesc(waveLabel,&ins->std.waveMacro,0,waveMax,(waveBitMode && ins->type!=DIV_INS_PET)?64:160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,waveBitMode,waveNames));
-          }
-          if (panMax>0) {
-            if (panSingle) {
-              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,panMax,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
-            } else if (ins->type==DIV_INS_QSOUND) {
-              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc("Surround",&ins->std.panRMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-            } else {
-              if (panSingleNoBit || (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode)) {
-                macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
-              } else {
-                macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
-              }
-              if (!panSingleNoBit) {
-                if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
-                  macroList.push_back(FurnaceGUIMacroDesc("Surround",&ins->std.panRMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-                } else {
-                  macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER]));
-                }
-              }
-            }
-          }
-          if (ins->type!=DIV_INS_MSM5232 && ins->type!=DIV_INS_MSM6258 && ins->type!=DIV_INS_MSM6295 && ins->type!=DIV_INS_ADPCMA) {
-            macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
-          }
-          if (ins->type==DIV_INS_FM ||
-              ins->type==DIV_INS_OPM ||
-              ins->type==DIV_INS_STD ||
-              ins->type==DIV_INS_NES ||
-              ins->type==DIV_INS_OPL ||
-              ins->type==DIV_INS_OPL_DRUMS ||
-              ins->type==DIV_INS_OPZ ||
-              ins->type==DIV_INS_PCE ||
-              ins->type==DIV_INS_GB ||
-              ins->type==DIV_INS_MSM6258 ||
-              ins->type==DIV_INS_MSM6295 ||
-              ins->type==DIV_INS_ADPCMA ||
-              ins->type==DIV_INS_ADPCMB ||
-              ins->type==DIV_INS_SEGAPCM ||
-              ins->type==DIV_INS_QSOUND ||
-              ins->type==DIV_INS_YMZ280B ||
-              ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_AMIGA ||
-              ins->type==DIV_INS_OPLL ||
-              ins->type==DIV_INS_AY ||
-              ins->type==DIV_INS_AY8930 ||
-              ins->type==DIV_INS_SWAN ||
-              ins->type==DIV_INS_MULTIPCM ||
-              (ins->type==DIV_INS_VRC6 && ins->amiga.useSample) ||
-              ins->type==DIV_INS_SU ||
-              ins->type==DIV_INS_MIKEY ||
-              ins->type==DIV_INS_ES5506 ||
-              ins->type==DIV_INS_T6W28 ||
-              ins->type==DIV_INS_VBOY ||
-              (ins->type==DIV_INS_X1_010 && ins->amiga.useSample) ||
-              ins->type==DIV_INS_K007232 ||
-              ins->type==DIV_INS_GA20 ||
-              ins->type==DIV_INS_K053260 ||
-              ins->type==DIV_INS_C140 ||
-              ins->type==DIV_INS_C219 ||
-              ins->type==DIV_INS_TED ||
-              ins->type==DIV_INS_ESFM ||
-              ins->type==DIV_INS_POWERNOISE ||
-              ins->type==DIV_INS_POWERNOISE_SLOPE ||
-              ins->type==DIV_INS_DAVE ||
-              ins->type==DIV_INS_NDS ||
-              ins->type==DIV_INS_GBA_DMA ||
-              ins->type==DIV_INS_GBA_MINMOD ||
-              ins->type==DIV_INS_SID2) {
-            macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-          }
-          if (ex1Max>0) {
-            if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SID2) {
-              int cutoffMin=-2047;
-              int cutoffMax=2047;
-
-              if (ins->c64.filterIsAbs) {
-                cutoffMin=0;
-                cutoffMax=2047;
-              }
-
-              if (ins->type==DIV_INS_SID2) {
-                if (ins->c64.filterIsAbs) {
-                  cutoffMin=0;
-                  cutoffMax=4095;
-                } else {
-                  cutoffMin=-4095;
-                  cutoffMax=4095;
-                }
-              }
-
-              macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.algMacro,cutoffMin,cutoffMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,filtModeBits));
-            } else if (ins->type==DIV_INS_SAA1099) {
-              macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,saaEnvBits));
-            } else if (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample) {
-              macroList.push_back(FurnaceGUIMacroDesc("Envelope Mode",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,x1_010EnvBits));
-            } else if (ins->type==DIV_INS_N163) {
-              macroList.push_back(FurnaceGUIMacroDesc("Wave Length",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_FDS) {
-              macroList.push_back(FurnaceGUIMacroDesc("Mod Depth",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_SU) {
-              macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_ES5506) {
-              macroList.push_back(FurnaceGUIMacroDesc("Filter K1",&ins->std.ex1Macro,((ins->std.ex1Macro.mode==1)?(-ex1Max):0),ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
-            } else if (ins->type==DIV_INS_MSM6258) {
-              macroList.push_back(FurnaceGUIMacroDesc("Clock Divider",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_QSOUND) {
-              macroList.push_back(FurnaceGUIMacroDesc("Echo Feedback",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_SNES) {
-              macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,snesModeBits));
-            } else if (ins->type==DIV_INS_MSM5232) {
-              macroList.push_back(FurnaceGUIMacroDesc("Group Attack",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_DAVE) {
-              macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,daveControlBits));
-            } else if (ins->type==DIV_INS_MIKEY) {
-              macroList.push_back(FurnaceGUIMacroDesc("Load LFSR",&ins->std.ex1Macro,0,12,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-            } else if (ins->type==DIV_INS_GBA_MINMOD) {
-              macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,minModModeBits));
-            } else if (ins->type==DIV_INS_BIFURCATOR) {
-              macroList.push_back(FurnaceGUIMacroDesc("Load Value",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else {
-              macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            }
-          }
-          if (ex2Max>0) {
-            if (ins->type==DIV_INS_C64) {
-              macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_SID2) {
-              macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_FDS) {
-              macroList.push_back(FurnaceGUIMacroDesc("Mod Speed",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_SU) {
-              macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_ES5506) {
-              macroList.push_back(FurnaceGUIMacroDesc("Filter K2",&ins->std.ex2Macro,((ins->std.ex2Macro.mode==1)?(-ex2Max):0),ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
-            } else if (ins->type==DIV_INS_QSOUND) {
-              macroList.push_back(FurnaceGUIMacroDesc("Echo Length",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else if (ins->type==DIV_INS_SNES) {
-              macroList.push_back(FurnaceGUIMacroDesc("Gain",&ins->std.ex2Macro,0,ex2Max,256,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,macroHoverGain,false));
-            } else if (ins->type==DIV_INS_MSM5232) {
-              macroList.push_back(FurnaceGUIMacroDesc("Group Decay",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            } else {
-              macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex2Macro,0,ex2Max,ex2Bit?64:160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,ex2Bit,ayEnvBits));
-            }
-          }
-          if (ins->type==DIV_INS_C64) {
-            macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex4Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c64TestGateBits));
-            macroList.push_back(FurnaceGUIMacroDesc("Attack",&ins->std.ex5Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Decay",&ins->std.ex6Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Sustain",&ins->std.ex7Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Release",&ins->std.ex8Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-          }
-          if (ins->type==DIV_INS_SID2) {
-            macroList.push_back(FurnaceGUIMacroDesc("Filter Toggle",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-            macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex4Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,sid2ControlBits));
-            macroList.push_back(FurnaceGUIMacroDesc("Attack",&ins->std.ex5Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Decay",&ins->std.ex6Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Sustain",&ins->std.ex7Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Release",&ins->std.ex8Macro,0,15,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Noise Mode",&ins->std.fmsMacro,0,3,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Wave Mix",&ins->std.amsMacro,0,3,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-          }
-          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample)) {
-            macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Num",&ins->std.ex3Macro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Den",&ins->std.algMacro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-          }
-          if (ins->type==DIV_INS_AY8930) {
-            // oh my i am running out of macros
-            macroList.push_back(FurnaceGUIMacroDesc("Noise AND Mask",&ins->std.fbMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-            macroList.push_back(FurnaceGUIMacroDesc("Noise OR Mask",&ins->std.fmsMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-          }
-          if (ins->type==DIV_INS_FDS) {
-            macroList.push_back(FurnaceGUIMacroDesc("Mod Position",&ins->std.ex3Macro,0,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-          }
-          if (ins->type==DIV_INS_SU) {
-            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex3Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,suControlBits));
-            macroList.push_back(FurnaceGUIMacroDesc("Phase Reset Timer",&ins->std.ex4Macro,0,65535,160,uiColors[GUI_COLOR_MACRO_OTHER])); // again reuse code from resonance macro but use ex4 instead
-          }
-          if (ins->type==DIV_INS_ES5506) {
-            macroList.push_back(FurnaceGUIMacroDesc("Outputs",&ins->std.fbMacro,0,5,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.algMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,es5506ControlModes));
-          }
-          if (ins->type==DIV_INS_MSM5232) {
-            macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-          }
-          if (ins->type==DIV_INS_POWERNOISE) {
-            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,powerNoiseControlBits));
-            macroList.push_back(FurnaceGUIMacroDesc("Tap A Location",&ins->std.ex4Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Tap B Location",&ins->std.ex5Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Load LFSR",&ins->std.ex8Macro,0,16,256,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-          }
-          if (ins->type==DIV_INS_POWERNOISE_SLOPE) {
-            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex1Macro,0,6,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,powerNoiseSlopeControlBits));
-            macroList.push_back(FurnaceGUIMacroDesc("Portion A Length",&ins->std.ex2Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Portion B Length",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Portion A Offset",&ins->std.ex6Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("Portion B Offset",&ins->std.ex7Macro,0,15,96,uiColors[GUI_COLOR_MACRO_OTHER]));
           }
 
           drawMacros(macroList,macroEditStateMacros);
