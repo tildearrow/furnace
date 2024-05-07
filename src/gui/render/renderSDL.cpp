@@ -182,7 +182,7 @@ void FurnaceGUIRenderSDL::setSwapInterval(int swapInterval) {
   }
 }
 
-void FurnaceGUIRenderSDL::preInit() {
+void FurnaceGUIRenderSDL::preInit(const DivConfig& conf) {
 }
 
 bool FurnaceGUIRenderSDL::init(SDL_Window* win, int swapInterval) {

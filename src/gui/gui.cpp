@@ -6982,7 +6982,7 @@ bool FurnaceGUI::init() {
     return false;
   }
 
-  rend->preInit();
+  rend->preInit(e->getConfObject());
 
   logD("creating window...");
   sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW,scrH,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0)|rend->getWindowFlags());

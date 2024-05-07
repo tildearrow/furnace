@@ -128,7 +128,7 @@ const char* FurnaceGUIRender::getAPIVersion() {
 void FurnaceGUIRender::setSwapInterval(int swapInterval) {
 }
 
-void FurnaceGUIRender::preInit() {
+void FurnaceGUIRender::preInit(const DivConfig& conf) {
 }
 
 bool FurnaceGUIRender::init(SDL_Window* win, int swapInterval) {

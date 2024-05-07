@@ -449,22 +449,60 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
         }
-        if (curRenderBackend=="SDL") {
-          if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
-            if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
-              settings.renderDriver="";
-              settingsChanged=true;
-            }
-            for (String& i: availRenderDrivers) {
-              if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
-                settings.renderDriver=i;
+
+        if (ImGui::TreeNode("Advanced render backend settings")) {
+          if (curRenderBackend=="SDL") {
+            if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
+              if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
+                settings.renderDriver="";
                 settingsChanged=true;
               }
+              for (String& i: availRenderDrivers) {
+                if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
+                  settings.renderDriver=i;
+                  settingsChanged=true;
+                }
+              }
+              ImGui::EndCombo();
             }
-            ImGui::EndCombo();
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
+            }
+          } else if (curRenderBackend.find("OpenGL")==0) {
+            ImGui::TextWrapped("beware: changing these settings may render Furnace unusable! do so at your own risk.\nstart Furnace with -safemode if you mess something up.");
+            if (ImGui::InputInt("Red bits",&settings.glRedSize)) {
+              if (settings.glRedSize<0) settings.glRedSize=0;
+              if (settings.glRedSize>32) settings.glRedSize=32;
+              settingsChanged=true;
+            }
+            if (ImGui::InputInt("Green bits",&settings.glGreenSize)) {
+              if (settings.glGreenSize<0) settings.glGreenSize=0;
+              if (settings.glGreenSize>32) settings.glGreenSize=32;
+              settingsChanged=true;
+            }
+            if (ImGui::InputInt("Blue bits",&settings.glBlueSize)) {
+              if (settings.glBlueSize<0) settings.glBlueSize=0;
+              if (settings.glBlueSize>32) settings.glBlueSize=32;
+              settingsChanged=true;
+            }
+            if (ImGui::InputInt("Alpha bits",&settings.glAlphaSize)) {
+              if (settings.glAlphaSize<0) settings.glAlphaSize=0;
+              if (settings.glAlphaSize>32) settings.glAlphaSize=32;
+              settingsChanged=true;
+            }
+            if (ImGui::InputInt("Color depth",&settings.glDepthSize)) {
+              if (settings.glDepthSize<0) settings.glDepthSize=0;
+              if (settings.glDepthSize>128) settings.glDepthSize=128;
+              settingsChanged=true;
+            }
+            bool glDoubleBufferB=settings.glDoubleBuffer;
+            if (ImGui::Checkbox("Double buffer",&glDoubleBufferB)) {
+              settings.glDoubleBuffer=glDoubleBufferB;
+              settingsChanged=true;
+            }
+
+            ImGui::TextWrapped("the following values are common (in red, green, blue, alpha order):\n- 24 bits: 8, 8, 8, 0\n- 16 bits: 5, 6, 5, 0\n- 32 bits (with alpha): 8, 8, 8, 8\n- 30 bits (deep): 10, 10, 10, 0");
+            
           }
         }
 
@@ -4123,6 +4161,13 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.renderBackend=conf.getString("renderBackend",GUI_BACKEND_DEFAULT_NAME);
     settings.renderClearPos=conf.getInt("renderClearPos",0);
 
+    settings.glRedSize=conf.getInt("glRedSize",8);
+    settings.glGreenSize=conf.getInt("glGreenSize",8);
+    settings.glBlueSize=conf.getInt("glBlueSize",8);
+    settings.glAlphaSize=conf.getInt("glAlphaSize",0);
+    settings.glDepthSize=conf.getInt("glDepthSize",24);
+    settings.glDoubleBuffer=conf.getInt("glDoubleBuffer",1);
+
     settings.vsync=conf.getInt("vsync",1);
     settings.frameRateLimit=conf.getInt("frameRateLimit",100);
     settings.displayRenderTime=conf.getInt("displayRenderTime",0);
@@ -4657,6 +4702,12 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.vibrationStrength,0.0f,1.0f);
   clampSetting(settings.vibrationLength,10,500);
   clampSetting(settings.inputRepeat,0,1);
+  clampSetting(settings.glRedSize,0,32);
+  clampSetting(settings.glGreenSize,0,32);
+  clampSetting(settings.glBlueSize,0,32);
+  clampSetting(settings.glAlphaSize,0,32);
+  clampSetting(settings.glDepthSize,0,128);
+  clampSetting(settings.glDoubleBuffer,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4679,6 +4730,13 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("renderBackend",settings.renderBackend);
     conf.set("renderClearPos",settings.renderClearPos);
+
+    conf.set("glRedSize",settings.glRedSize);
+    conf.set("glGreenSize",settings.glGreenSize);
+    conf.set("glBlueSize",settings.glBlueSize);
+    conf.set("glAlphaSize",settings.glAlphaSize);
+    conf.set("glDepthSize",settings.glDepthSize);
+    conf.set("glDoubleBuffer",settings.glDoubleBuffer);
 
     conf.set("vsync",settings.vsync);
     conf.set("frameRateLimit",settings.frameRateLimit);

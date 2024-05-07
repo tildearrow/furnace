@@ -397,7 +397,7 @@ void FurnaceGUIRenderDX11::setSwapInterval(int swapInt) {
   swapInterval=swapInt;
 }
 
-void FurnaceGUIRenderDX11::preInit() {
+void FurnaceGUIRenderDX11::preInit(const DivConfig& conf) {
 }
 
 const float wipeVertices[4][4]={
