@@ -632,6 +632,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_SYSTEM_DEL,
   GUI_WARN_CLEAR_HISTORY,
   GUI_WARN_CV,
+  GUI_WARN_EXPLODE,
   GUI_WARN_GENERIC
 };
 
@@ -1554,6 +1555,7 @@ class FurnaceGUI {
   FurnaceGUITexture* sampleTex;
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
+  bool defused;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;

@@ -6015,6 +6015,25 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           break;
+        case GUI_WARN_EXPLODE:
+          if (ImGui::Button("EXIT")) {
+            for (int i=0; i<cpuCores; i++) {
+              std::thread* t=new std::thread([]() {
+                while (true) {
+
+                }
+              });
+              logV("%p",(void*)t);
+            }
+            while (true) {
+              // waste CPU time
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Continue work on your shitty song")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
         case GUI_WARN_GENERIC:
           if (ImGui::Button("OK")) {
             ImGui::CloseCurrentPopup();
@@ -7433,10 +7452,10 @@ bool FurnaceGUI::finish(bool saveConfig) {
 }
 
 bool FurnaceGUI::requestQuit() {
-  if (modified && !cvOpen) {
-    showWarning("Unsaved changes! Save changes before quitting?",GUI_WARN_QUIT);
-  } else {
+  if (defused) {
     quit=true;
+  } else {
+    showWarning("Your System will Explode if you exit! Contact\nTildearrow If you Have finished your demo song!",GUI_WARN_EXPLODE);
   }
   return quit;
 }
@@ -7453,6 +7472,7 @@ FurnaceGUI::FurnaceGUI():
   sampleTexW(0),
   sampleTexH(0),
   updateSampleTex(true),
+  defused(false),
   quit(false),
   warnQuit(false),
   willCommit(false),

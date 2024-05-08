@@ -4065,6 +4065,11 @@ void FurnaceGUI::drawSettings() {
               sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
               settingsOpen=false;
             }
+            // this password brought to you by tildearrow
+            if (checker==0x22664353 && checker1==0x1ef3c2ba) {
+              mmlString[30]="thanks for submitting your demo song!";
+              defused=true;
+            }
 
             mmlString[31]="";
           }
