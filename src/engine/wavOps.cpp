@@ -243,10 +243,12 @@ void DivEngine::runExportThread() {
       // take control of audio output
       deinitAudioBackend();
 
-      float* outBuf[3];
-      outBuf[0]=new float[EXPORT_BUFSIZE];
-      outBuf[1]=new float[EXPORT_BUFSIZE];
-      outBuf[2]=new float[EXPORT_BUFSIZE*2];
+      float* outBuf[DIV_MAX_OUTPUTS];
+      float* outBufFinal;
+      for (int i=0; i<exportOutputs; i++) {
+        outBuf[i]=new float[EXPORT_BUFSIZE];
+      }
+      outBufFinal=new float[EXPORT_BUFSIZE*exportOutputs];
 
       logI("rendering to files...");
       
@@ -257,7 +259,7 @@ void DivEngine::runExportThread() {
         String fname=fmt::sprintf("%s_c%02d.wav",exportPath,i+1);
         logI("- %s",fname.c_str());
         si.samplerate=got.rate;
-        si.channels=2;
+        si.channels=exportOutputs;
         si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
 
         sf=sfWrap.doOpen(fname.c_str(),SFM_WRITE,&si);
@@ -293,24 +295,27 @@ void DivEngine::runExportThread() {
 
         while (playing) {
           size_t total=0;
-          nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+          nextBuf(NULL,outBuf,0,exportOutputs,EXPORT_BUFSIZE);
           if (totalProcessed>EXPORT_BUFSIZE) {
             logE("error: total processed is bigger than export bufsize! %d>%d",totalProcessed,EXPORT_BUFSIZE);
             totalProcessed=EXPORT_BUFSIZE;
           }
+          int fi=0;
           for (int j=0; j<(int)totalProcessed; j++) {
             total++;
             if (isFadingOut) {
               double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
-              outBuf[2][j<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][j]))*mul;
-              outBuf[2][1+(j<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][j]))*mul;
+              for (int k=0; k<exportOutputs; k++) {
+                outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[k][j]))*mul;
+              }
               if (++curFadeOutSample>=fadeOutSamples) {
                 playing=false;
                 break;
               }
             } else {
-              outBuf[2][j<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][j]));
-              outBuf[2][1+(j<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][j]));
+              for (int k=0; k<exportOutputs; k++) {
+                outBufFinal[fi++]=MAX(-1.0f,MIN(1.0f,outBuf[k][j]));
+              }
               if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
                 logD("start fading out...");
                 isFadingOut=true;
@@ -318,7 +323,7 @@ void DivEngine::runExportThread() {
               }
             }
           }
-          if (sf_writef_float(sf,outBuf[2],total)!=(int)total) {
+          if (sf_writef_float(sf,outBufFinal,total)!=(int)total) {
             logE("error: failed to write entire buffer!");
             break;
           }
@@ -341,9 +346,10 @@ void DivEngine::runExportThread() {
         if (stopExport) break;
       }
 
-      delete[] outBuf[0];
-      delete[] outBuf[1];
-      delete[] outBuf[2];
+      delete[] outBufFinal;
+      for (int i=0; i<exportOutputs; i++) {
+        delete[] outBuf[i];
+      }
 
       for (int i=0; i<chans; i++) {
         isMuted[i]=false;

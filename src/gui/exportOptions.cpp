@@ -45,9 +45,11 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
     if (audioExportOptions.sampleRate>384000) audioExportOptions.sampleRate=384000;
   }
 
-  if (ImGui::InputInt("Channels in file",&audioExportOptions.chans,1,1)) {
-    if (audioExportOptions.chans<1) audioExportOptions.chans=1;
-    if (audioExportOptions.chans>16) audioExportOptions.chans=16;
+  if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
+    if (ImGui::InputInt("Channels in file",&audioExportOptions.chans,1,1)) {
+      if (audioExportOptions.chans<1) audioExportOptions.chans=1;
+      if (audioExportOptions.chans>16) audioExportOptions.chans=16;
+    }
   }
 
   if (ImGui::InputInt("Loops",&audioExportOptions.loops,1,2)) {
