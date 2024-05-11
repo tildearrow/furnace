@@ -46,7 +46,11 @@ void DivEngine::runExportThread() {
       SFWrapper sfWrap;
       si.samplerate=got.rate;
       si.channels=exportOutputs;
-      si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+      if (exportFormat==DIV_EXPORT_FORMAT_S16) {
+        si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+      } else {
+        si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+      }
 
       sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
       if (sf==NULL) {
@@ -253,6 +257,7 @@ void DivEngine::runExportThread() {
       logI("rendering to files...");
       
       for (int i=0; i<chans; i++) {
+        if (!exportChannelMask[i]) continue;
         SNDFILE* sf;
         SF_INFO si;
         SFWrapper sfWrap;
@@ -260,7 +265,11 @@ void DivEngine::runExportThread() {
         logI("- %s",fname.c_str());
         si.samplerate=got.rate;
         si.channels=exportOutputs;
-        si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+        if (exportFormat==DIV_EXPORT_FORMAT_S16) {
+          si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
+        } else {
+          si.format=SF_FORMAT_WAV|SF_FORMAT_FLOAT;
+        }
 
         sf=sfWrap.doOpen(fname.c_str(),SFM_WRITE,&si);
         if (sf==NULL) {
@@ -391,7 +400,9 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
 #else
   exportPath=path;
   exportMode=options.mode;
+  exportFormat=options.format;
   exportFadeOut=options.fadeOut;
+  memcpy(exportChannelMask,options.channelMask,DIV_MAX_CHANS*sizeof(bool));
   if (exportMode!=DIV_EXPORT_MODE_ONE) {
     // remove extension
     String lowerCase=exportPath;

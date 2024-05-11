@@ -98,8 +98,14 @@ enum DivMIDIModes {
   DIV_MIDI_MODE_LIGHT_SHOW
 };
 
+enum DivAudioExportFormats {
+  DIV_EXPORT_FORMAT_S16=0,
+  DIV_EXPORT_FORMAT_F32
+};
+
 struct DivAudioExportOptions {
   DivAudioExportModes mode;
+  DivAudioExportFormats format;
   int sampleRate;
   int chans;
   int loops;
@@ -108,6 +114,7 @@ struct DivAudioExportOptions {
   bool channelMask[DIV_MAX_CHANS];
   DivAudioExportOptions():
     mode(DIV_EXPORT_MODE_ONE),
+    format(DIV_EXPORT_FORMAT_S16),
     sampleRate(44100),
     chans(2),
     loops(0),
@@ -478,8 +485,10 @@ class DivEngine {
   DivChannelState chan[DIV_MAX_CHANS];
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
+  DivAudioExportFormats exportFormat;
   double exportFadeOut;
   int exportOutputs;
+  bool exportChannelMask[DIV_MAX_CHANS];
   DivConfig conf;
   FixedQueue<DivNoteEvent,8192> pendingNotes;
   // bitfield
@@ -1382,6 +1391,7 @@ class DivEngine {
       haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
+      exportFormat(DIV_EXPORT_FORMAT_S16),
       exportFadeOut(0.0),
       exportOutputs(2),
       cmdStreamInt(NULL),
@@ -1435,6 +1445,7 @@ class DivEngine {
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
+      memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
 
       for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;
