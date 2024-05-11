@@ -403,6 +403,7 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
   repeatPattern=false;
   setOrder(0);
   remainingLoops=-1;
+  got.rate=options.sampleRate;
 
   if (shallSwitchCores()) {
     bool isMutedBefore[DIV_MAX_CHANS];
@@ -417,7 +418,6 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
     }
   }
 
-  got.rate=options.sampleRate;
   exportOutputs=options.chans;
   if (exportOutputs<1) exportOutputs=1;
   if (exportOutputs>DIV_MAX_OUTPUTS) exportOutputs=DIV_MAX_OUTPUTS;
