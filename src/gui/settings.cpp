@@ -705,13 +705,13 @@ void FurnaceGUI::drawSettings() {
         ImGui::BeginDisabled(settings.persistFadeOut);
         ImGui::Indent();
         if (ImGui::InputInt("Loops",&settings.exportLoops,1,2)) {
-          if (exportLoops<0) exportLoops=0;
-          exportLoops=settings.exportLoops;
+          if (settings.exportLoops<0) settings.exportLoops=0;
+          audioExportOptions.loops=settings.exportLoops;
           settingsChanged=true;
         }
         if (ImGui::InputDouble("Fade out (seconds)",&settings.exportFadeOut,1.0,2.0,"%.1f")) {
-          if (exportFadeOut<0.0) exportFadeOut=0.0;
-          exportFadeOut=settings.exportFadeOut;
+          if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
+          audioExportOptions.fadeOut=settings.exportFadeOut;
           settingsChanged=true;
         }
         ImGui::Unindent();

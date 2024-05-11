@@ -98,6 +98,28 @@ enum DivMIDIModes {
   DIV_MIDI_MODE_LIGHT_SHOW
 };
 
+struct DivAudioExportOptions {
+  DivAudioExportModes mode;
+  int sampleRate;
+  int chans;
+  int loops;
+  double fadeOut;
+  int orderBegin, orderEnd;
+  bool channelMask[DIV_MAX_CHANS];
+  DivAudioExportOptions():
+    mode(DIV_EXPORT_MODE_ONE),
+    sampleRate(44100),
+    chans(2),
+    loops(0),
+    fadeOut(0.0),
+    orderBegin(-1),
+    orderEnd(-1) {
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      channelMask[i]=true;
+    }
+  }
+};
+
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, oldNote, lastIns, pitch, portaSpeed, portaNote;
@@ -457,6 +479,7 @@ class DivEngine {
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
   double exportFadeOut;
+  int exportOutputs;
   DivConfig conf;
   FixedQueue<DivNoteEvent,8192> pendingNotes;
   // bitfield
@@ -670,7 +693,7 @@ class DivEngine {
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
-    bool saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime=0.0);
+    bool saveAudio(const char* path, DivAudioExportOptions options);
     // wait for audio export to finish
     void waitAudioFile();
     // stop audio file export
@@ -1360,6 +1383,7 @@ class DivEngine {
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
       exportFadeOut(0.0),
+      exportOutputs(2),
       cmdStreamInt(NULL),
       midiBaseChan(0),
       midiPoly(true),

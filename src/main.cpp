@@ -66,10 +66,9 @@ String outName;
 String vgmOutName;
 String zsmOutName;
 String cmdOutName;
-int loops=1;
 int benchMode=0;
 int subsong=-1;
-DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
+DivAudioExportOptions exportOptions;
 
 #ifdef HAVE_GUI
 bool consoleMode=false;
@@ -299,9 +298,9 @@ TAParamResult pLoops(String val) {
   try {
     int count=std::stoi(val);
     if (count<0) {
-      loops=0;
+      exportOptions.loops=0;
     } else {
-      loops=count+1;
+      exportOptions.loops=count;
     }
   } catch (std::exception& e) {
     logE("loop count shall be a number.");
@@ -327,11 +326,11 @@ TAParamResult pSubSong(String val) {
 
 TAParamResult pOutMode(String val) {
   if (val=="one") {
-    outMode=DIV_EXPORT_MODE_ONE;
+    exportOptions.mode=DIV_EXPORT_MODE_ONE;
   } else if (val=="persys") {
-    outMode=DIV_EXPORT_MODE_MANY_SYS;
+    exportOptions.mode=DIV_EXPORT_MODE_MANY_SYS;
   } else if (val=="perchan") {
-    outMode=DIV_EXPORT_MODE_MANY_CHAN;
+    exportOptions.mode=DIV_EXPORT_MODE_MANY_CHAN;
   } else {
     logE("invalid value for outmode! valid values are: one, persys and perchan.");
     return TA_PARAM_ERROR;
@@ -401,7 +400,7 @@ void initParams() {
   params.push_back(TAParam("n","nostatus",false,pNoStatus,"","disable playback status in console mode"));
   params.push_back(TAParam("N","nocontrols",false,pNoControls,"","disable standard input controls in console mode"));
 
-  params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
+  params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops"));
   params.push_back(TAParam("s","subsong",true,pSubSong,"<number>","set sub-song"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
   params.push_back(TAParam("S","safemode",false,pSafeMode,"","enable safe mode (software rendering and no audio)"));
@@ -716,7 +715,7 @@ int main(int argc, char** argv) {
     }
     if (outName!="") {
       e.setConsoleMode(true);
-      e.saveAudio(outName.c_str(),loops,outMode);
+      e.saveAudio(outName.c_str(),exportOptions);
       e.waitAudioFile();
     }
     finishLogFile();

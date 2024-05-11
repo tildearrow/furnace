@@ -26,14 +26,35 @@
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
 
-  ImGui::RadioButton("one file",&audioExportType,0);
-  ImGui::RadioButton("multiple files (one per chip)",&audioExportType,1);
-  ImGui::RadioButton("multiple files (one per channel)",&audioExportType,2);
-  if (ImGui::InputInt("Loops",&exportLoops,1,2)) {
-    if (exportLoops<0) exportLoops=0;
+  ImGui::Text("Export type:");
+
+  ImGui::Indent();
+  if (ImGui::RadioButton("one file",audioExportOptions.mode==DIV_EXPORT_MODE_ONE)) {
+    audioExportOptions.mode=DIV_EXPORT_MODE_ONE;
   }
-  if (ImGui::InputDouble("Fade out (seconds)",&exportFadeOut,1.0,2.0,"%.1f")) {
-    if (exportFadeOut<0.0) exportFadeOut=0.0;
+  if (ImGui::RadioButton("multiple files (one per chip)",audioExportOptions.mode==DIV_EXPORT_MODE_MANY_SYS)) {
+    audioExportOptions.mode=DIV_EXPORT_MODE_MANY_SYS;
+  }
+  if (ImGui::RadioButton("multiple files (one per channel)",audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN)) {
+    audioExportOptions.mode=DIV_EXPORT_MODE_MANY_CHAN;
+  }
+  ImGui::Unindent();
+
+  if (ImGui::InputInt("Sample rate",&audioExportOptions.sampleRate,100,10000)) {
+    if (audioExportOptions.sampleRate<8000) audioExportOptions.sampleRate=8000;
+    if (audioExportOptions.sampleRate>384000) audioExportOptions.sampleRate=384000;
+  }
+
+  if (ImGui::InputInt("Channels in file",&audioExportOptions.chans,1,1)) {
+    if (audioExportOptions.chans<1) audioExportOptions.chans=1;
+    if (audioExportOptions.chans>16) audioExportOptions.chans=16;
+  }
+
+  if (ImGui::InputInt("Loops",&audioExportOptions.loops,1,2)) {
+    if (audioExportOptions.loops<0) audioExportOptions.loops=0;
+  }
+  if (ImGui::InputDouble("Fade out (seconds)",&audioExportOptions.fadeOut,1.0,2.0,"%.1f")) {
+    if (audioExportOptions.fadeOut<0.0) audioExportOptions.fadeOut=0.0;
   }
 
   if (onWindow) {
@@ -43,14 +64,14 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   }
 
   if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
-    switch (audioExportType) {
-      case 0:
+    switch (audioExportOptions.mode) {
+      case DIV_EXPORT_MODE_ONE:
         openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
         break;
-      case 1:
+      case DIV_EXPORT_MODE_MANY_SYS:
         openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_SYS);
         break;
-      case 2:
+      case DIV_EXPORT_MODE_MANY_CHAN:
         openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_CHANNEL);
         break;
     }
