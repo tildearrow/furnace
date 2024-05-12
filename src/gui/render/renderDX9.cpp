@@ -26,136 +26,37 @@
 
 class FurnaceDX9Texture: public FurnaceGUITexture {
   public:
-  ID3D11Texture2D* tex;
-  ID3D11ShaderResourceView* view;
+  IDirect3DTexture9* tex;
   int width, height;
   unsigned char* lockedData;
   bool dynamic;
   FurnaceDX9Texture():
     tex(NULL),
-    view(NULL),
     width(0),
     height(0),
     lockedData(NULL),
     dynamic(false) {}
 };
 
-bool FurnaceGUIRenderDX9::destroyRenderTarget() {
-  if (renderTarget!=NULL) {
-    renderTarget->Release();
-    renderTarget=NULL;
-    return true;
-  }
-  return false;
-}
-
-bool FurnaceGUIRenderDX9::createRenderTarget() {
-  ID3D11Texture2D* screen=NULL;
-  HRESULT result;
-
-  destroyRenderTarget();
-
-  if (swapchain==NULL || device==NULL) {
-    logW("createRenderTarget: swapchain or device are NULL!");
-    return false;
-  }
-
-  DXGI_SWAP_CHAIN_DESC chainDesc;
-  memset(&chainDesc,0,sizeof(chainDesc));
-  if (swapchain->GetDesc(&chainDesc)!=S_OK) {
-    logW("createRenderTarget: could not get swapchain desc!");
-  } else {
-    outW=chainDesc.BufferDesc.Width;
-    outH=chainDesc.BufferDesc.Height;
-    logI("DX9: buffer desc sizes: %d, %d",chainDesc.BufferDesc.Width,chainDesc.BufferDesc.Height);
-  }
-
-  result=swapchain->GetBuffer(0,IID_PPV_ARGS(&screen));
-  if (result!=S_OK) {
-    logW("createRenderTarget: could not get buffer! %.8x",result);
-    return false;
-  }
-  if (screen==NULL) {
-    logW("createRenderTarget: screen is null!");
-    return false;
-  }
-
-  result=device->CreateRenderTargetView(screen,NULL,&renderTarget);
-  if (result!=S_OK) {
-    logW("createRenderTarget: could not create render target view! %.8x",result);
-    screen->Release();
-    return false;
-  }
-  if (renderTarget==NULL) {
-    logW("createRenderTarget: what the hell the render target is null?");
-    screen->Release();
-    return false;
-  }
-
-  screen->Release();
-  return true;
-}
-
 ImTextureID FurnaceGUIRenderDX9::getTextureID(FurnaceGUITexture* which) {
   FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
-  return (ImTextureID)t->view;
+  return (ImTextureID)t->tex;
 }
 
 bool FurnaceGUIRenderDX9::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
-  FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
-  if (t->lockedData!=NULL) return false;
-
-  D3D11_MAPPED_SUBRESOURCE mappedRes;
-  memset(&mappedRes,0,sizeof(mappedRes));
-
-  HRESULT result=context->Map(t->tex,D3D11CalcSubresource(0,0,1),D3D11_MAP_WRITE_DISCARD,0,&mappedRes);
-  if (result!=S_OK) {
-    logW("could not map texture! %.8x",result);
-    return false;
-  }
-  t->lockedData=(unsigned char*)mappedRes.pData;
-  *data=mappedRes.pData;
-  *pitch=mappedRes.RowPitch;
-
-  logV("texture locked... pitch: %d",mappedRes.RowPitch);
-  return true;
+  return false;
 }
 
 bool FurnaceGUIRenderDX9::unlockTexture(FurnaceGUITexture* which) {
-  FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
-  if (t->lockedData==NULL) return false;
-  context->Unmap(t->tex,D3D11CalcSubresource(0,0,1));
-  t->lockedData=NULL;
-  return true;
+  return false;
 }
 
 bool FurnaceGUIRenderDX9::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
-  FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
-  if (t->dynamic) {
-    unsigned char* d=NULL;
-    int p=0;
-    if (!lockTexture(t,(void**)&d,&p)) return false;
-    if (p==pitch) {
-      memcpy(d,data,p*t->height);
-    } else {
-      unsigned char* ucData=(unsigned char*)data;
-      int srcPos=0;
-      int destPos=0;
-      for (int i=0; i<t->height; i++) {
-        memcpy(&d[destPos],&ucData[srcPos],pitch);
-        srcPos+=pitch;
-        destPos+=p;
-      }
-    }
-    unlockTexture(t);
-  } else {
-    context->UpdateSubresource(t->tex,D3D11CalcSubresource(0,0,1),NULL,data,pitch,pitch*t->height);
-  }
-  return true;
+  return false;
 }
 
 FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, int height, bool interpolate) {
-  return ret;
+  return NULL;
 }
 
 bool FurnaceGUIRenderDX9::destroyTexture(FurnaceGUITexture* which) {
@@ -171,18 +72,13 @@ void FurnaceGUIRenderDX9::setBlendMode(FurnaceGUIBlendMode mode) {
 }
 
 void FurnaceGUIRenderDX9::resized(const SDL_Event& ev) {
-  destroyRenderTarget();
   logI("DX9: resizing buffers");
-  HRESULT result=swapchain->ResizeBuffers(0,(unsigned int)ev.window.data1,(unsigned int)ev.window.data2,DXGI_FORMAT_UNKNOWN,DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
-  if (result!=S_OK) {
-    if (result==DXGI_ERROR_DEVICE_REMOVED || result==DXGI_ERROR_DEVICE_RESET) {
-      dead=true;
-    }
-    logW("error while resizing swapchain buffers! %.8x",result);
+  ImGui_ImplDX9_InvalidateDeviceObjects();
+  HRESULT result=g_pd3dDevice->Reset(&priv->present);
+  if (result==D3DERR_INVALIDCALL) {
+    logE("OH NO");
   }
-  if (!dead) {
-    createRenderTarget();
-  }
+  ImGui_ImplDX9_CreateDeviceObjects();
 }
 
 void FurnaceGUIRenderDX9::clear(ImVec4 color) {
@@ -193,8 +89,11 @@ void FurnaceGUIRenderDX9::clear(ImVec4 color) {
     color.w,
   };
 
-  context->OMSetRenderTargets(1,&renderTarget,NULL);
-  context->ClearRenderTargetView(renderTarget,floatColor);
+  device->Clear(0,NULL,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,ImGui::ColorConvertFloat4ToU32(floatColor),0,0);
+}
+
+void FurnaceGUIRenderDX9::present() {
+  device->Present(NULL,NULL,NULL,NULL);
 }
 
 bool FurnaceGUIRenderDX9::newFrame() {
@@ -215,7 +114,13 @@ void FurnaceGUIRenderDX9::destroyFontsTexture() {
 }
 
 void FurnaceGUIRenderDX9::renderGUI() {
-  ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+  HRESULT result=device->BeginScene();
+  if (result==D3D_OK) {
+    ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+    device->EndScene();
+  } else {
+    logW("couldn't render GUI! %.8x",result);
+  }
 }
 
 void FurnaceGUIRenderDX9::wipe(float alpha) {
@@ -259,12 +164,11 @@ void FurnaceGUIRenderDX9::setSwapInterval(int swapInt) {
   swapInterval=swapInt;
 }
 
-void FurnaceGUIRenderDX9::preInit() {
+void FurnaceGUIRenderDX9::preInit(const DivConfig& conf) {
 }
 
 bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
   SDL_SysWMinfo sysWindow;
-  D3D_FEATURE_LEVEL featureLevel;
 
   SDL_VERSION(&sysWindow.version);
   if (SDL_GetWindowWMInfo(win,&sysWindow)==SDL_FALSE) {
@@ -272,6 +176,35 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
     return false;
   }
   HWND window=(HWND)sysWindow.info.win.window;
+
+  iface=Direct3DCreate9(D3D_SDK_VERSION);
+  if (iface==NULL) {
+    logE("could not create Direct3D 9!");
+    return false;
+  }
+
+  priv=new FurnaceGUIRenderDX9Private;
+
+  memset(priv->present,0,sizeof(D3DPRESENT_PARAMETERS);
+  priv->present.Windowed=TRUE;
+  priv->present.SwapEffect=D3DSWAPEFFECT_DISCARD;
+  priv->present.BackBufferFormat=D3DFMT_UNKNOWN;
+  priv->present.EnableAutoDepthStencil=TRUE;
+  priv->present.AutoDepthStencilFormat=D3DFMT_D16;
+  if (swapInt>0) {
+    priv->present.PresentationInterval=D3DPRESENT_INTERVAL_ONE;
+  } else {
+    priv->present.PresentationInterval=D3DPRESENT_INTERVAL_IMMEDIATE;
+  }
+  
+  HRESULT result=iface->CreateDevice(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,window,D3DCREATE_HARDWARE_VERTEXPROCESSING,&priv->present,&device);
+
+  if (result!=D3D_OK) {
+    logE("could not create device! %.8x",result);
+    iface->Release();
+    iface=NULL;
+    return false;
+  }
 
   return true;
 }
@@ -282,6 +215,14 @@ void FurnaceGUIRenderDX9::initGUI(SDL_Window* win) {
 }
 
 bool FurnaceGUIRenderDX9::quit() {
+  if (device) {
+    device->Release();
+    device=NULL;
+  }
+  if (iface) {
+    iface->Release();
+    iface=NULL;
+  }
   dead=false;
   return true;
 }

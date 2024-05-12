@@ -20,12 +20,20 @@
 #include "../gui.h"
 #ifdef INCLUDE_D3D9
 #include <d3d9.h>
-#else
 
+struct FurnaceGUIRenderDX9Private {
+  D3DPRESENT_PARAMETERS present;
+};
+#else
+typedef void IDirect3D9;
+typedef void IDirect3DDevice9;
+typedef void FurnaceGUIRenderDX9Private;
 #endif
 
 class FurnaceGUIRenderDX9: public FurnaceGUIRender {
+  IDirect3D9* iface;
   IDirect3DDevice9* device;
+  FurnaceGUIRenderDX9Private* priv;
 
   int outW, outH, swapInterval;
 
@@ -63,14 +71,16 @@ class FurnaceGUIRenderDX9: public FurnaceGUIRender {
     const char* getDeviceName();
     const char* getAPIVersion();
     void setSwapInterval(int swapInterval);
-    void preInit();
+    void preInit(const DivConfig& conf);
     bool init(SDL_Window* win, int swapInterval);
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();
     bool isDead();
     FurnaceGUIRenderDX9():
+      iface(NULL),
       device(NULL),
+      priv(NULL),
       outW(0),
       outH(0),
       swapInterval(1),
