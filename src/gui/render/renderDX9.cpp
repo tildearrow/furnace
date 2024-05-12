@@ -74,7 +74,7 @@ void FurnaceGUIRenderDX9::setBlendMode(FurnaceGUIBlendMode mode) {
 void FurnaceGUIRenderDX9::resized(const SDL_Event& ev) {
   logI("DX9: resizing buffers");
   ImGui_ImplDX9_InvalidateDeviceObjects();
-  HRESULT result=g_pd3dDevice->Reset(&priv->present);
+  HRESULT result=device->Reset(&priv->present);
   if (result==D3DERR_INVALIDCALL) {
     logE("OH NO");
   }
@@ -82,14 +82,7 @@ void FurnaceGUIRenderDX9::resized(const SDL_Event& ev) {
 }
 
 void FurnaceGUIRenderDX9::clear(ImVec4 color) {
-  float floatColor[4]={
-    color.x*color.w,
-    color.y*color.w,
-    color.z*color.w,
-    color.w,
-  };
-
-  device->Clear(0,NULL,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,ImGui::ColorConvertFloat4ToU32(floatColor),0,0);
+  device->Clear(0,NULL,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,ImGui::ColorConvertFloat4ToU32(color),0,0);
 }
 
 void FurnaceGUIRenderDX9::present() {
@@ -97,7 +90,8 @@ void FurnaceGUIRenderDX9::present() {
 }
 
 bool FurnaceGUIRenderDX9::newFrame() {
-  return ImGui_ImplDX9_NewFrame();
+  ImGui_ImplDX9_NewFrame();
+  return true;
 }
 
 bool FurnaceGUIRenderDX9::canVSync() {
@@ -185,7 +179,7 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
 
   priv=new FurnaceGUIRenderDX9Private;
 
-  memset(priv->present,0,sizeof(D3DPRESENT_PARAMETERS);
+  memset(&priv->present,0,sizeof(D3DPRESENT_PARAMETERS));
   priv->present.Windowed=TRUE;
   priv->present.SwapEffect=D3DSWAPEFFECT_DISCARD;
   priv->present.BackBufferFormat=D3DFMT_UNKNOWN;
@@ -211,7 +205,7 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
 
 void FurnaceGUIRenderDX9::initGUI(SDL_Window* win) {
   ImGui_ImplSDL2_InitForD3D(win);
-  ImGui_ImplDX9_Init(device,context);
+  ImGui_ImplDX9_Init(device);
 }
 
 bool FurnaceGUIRenderDX9::quit() {

@@ -26,7 +26,6 @@ struct FurnaceGUIRenderDX9Private {
 };
 #else
 typedef void IDirect3D9;
-typedef void IDirect3DDevice9;
 typedef void FurnaceGUIRenderDX9Private;
 #endif
 
