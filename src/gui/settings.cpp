@@ -104,17 +104,6 @@ const bool isProAudio[]={
   false
 };
 
-const char* nonProAudioOuts[]={
-  "Mono",
-  "Stereo",
-  "What?",
-  "Quadraphonic",
-  "What?",
-  "5.1 Surround",
-  "What?",
-  "7.1 Surround"
-};
-
 const char* audioQualities[]={
   "High",
   "Low"
@@ -272,12 +261,6 @@ const char* specificControls[18]={
 #define BUFFER_SIZE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioBufSize==x)) { \
     settings.audioBufSize=x; \
-    settingsChanged=true; \
-  }
-
-#define CHANS_SELECTABLE(x) \
-  if (ImGui::Selectable(nonProAudioOuts[x-1],settings.audioChans==x)) { \
-    settings.audioChans=x; \
     settingsChanged=true; \
   }
 
@@ -1120,28 +1103,16 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
-          if (isProAudio[settings.audioEngine]) {
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("Outputs");
-            ImGui::TableNextColumn();
-            if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,2)) {
-              if (settings.audioChans<1) settings.audioChans=1;
-              if (settings.audioChans>16) settings.audioChans=16;
-              settingsChanged=true;
-            }
-          } else {
-            ImGui::AlignTextToFramePadding();
-            ImGui::Text("Channels");
-            ImGui::TableNextColumn();
-            String chStr=(settings.audioChans<1 || settings.audioChans>8)?"What?":nonProAudioOuts[settings.audioChans-1];
-            if (ImGui::BeginCombo("##AudioChans",chStr.c_str())) {
-              CHANS_SELECTABLE(1);
-              CHANS_SELECTABLE(2);
-              CHANS_SELECTABLE(4);
-              CHANS_SELECTABLE(6);
-              CHANS_SELECTABLE(8);
-              ImGui::EndCombo();
-            }
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Outputs");
+          ImGui::TableNextColumn();
+          if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,2)) {
+            if (settings.audioChans<1) settings.audioChans=1;
+            if (settings.audioChans>16) settings.audioChans=16;
+            settingsChanged=true;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("common values:\n- 1 for mono\n- 2 for stereo\n- 4 for quadraphonic\n- 6 for 5.1 surround\n- 8 for 7.1 surround");
           }
 
           ImGui::TableNextRow();
