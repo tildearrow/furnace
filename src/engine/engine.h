@@ -98,6 +98,35 @@ enum DivMIDIModes {
   DIV_MIDI_MODE_LIGHT_SHOW
 };
 
+enum DivAudioExportFormats {
+  DIV_EXPORT_FORMAT_S16=0,
+  DIV_EXPORT_FORMAT_F32
+};
+
+struct DivAudioExportOptions {
+  DivAudioExportModes mode;
+  DivAudioExportFormats format;
+  int sampleRate;
+  int chans;
+  int loops;
+  double fadeOut;
+  int orderBegin, orderEnd;
+  bool channelMask[DIV_MAX_CHANS];
+  DivAudioExportOptions():
+    mode(DIV_EXPORT_MODE_ONE),
+    format(DIV_EXPORT_FORMAT_S16),
+    sampleRate(44100),
+    chans(2),
+    loops(0),
+    fadeOut(0.0),
+    orderBegin(-1),
+    orderEnd(-1) {
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      channelMask[i]=true;
+    }
+  }
+};
+
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, oldNote, lastIns, pitch, portaSpeed, portaNote;
@@ -456,7 +485,10 @@ class DivEngine {
   DivChannelState chan[DIV_MAX_CHANS];
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
+  DivAudioExportFormats exportFormat;
   double exportFadeOut;
+  int exportOutputs;
+  bool exportChannelMask[DIV_MAX_CHANS];
   DivConfig conf;
   FixedQueue<DivNoteEvent,8192> pendingNotes;
   // bitfield
@@ -670,7 +702,7 @@ class DivEngine {
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
-    bool saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime=0.0);
+    bool saveAudio(const char* path, DivAudioExportOptions options);
     // wait for audio export to finish
     void waitAudioFile();
     // stop audio file export
@@ -1359,7 +1391,9 @@ class DivEngine {
       haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
+      exportFormat(DIV_EXPORT_FORMAT_S16),
       exportFadeOut(0.0),
+      exportOutputs(2),
       cmdStreamInt(NULL),
       midiBaseChan(0),
       midiPoly(true),
@@ -1411,6 +1445,7 @@ class DivEngine {
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
+      memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
 
       for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;

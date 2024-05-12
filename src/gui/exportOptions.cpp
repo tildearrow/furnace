@@ -26,14 +26,83 @@
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
 
-  ImGui::RadioButton("one file",&audioExportType,0);
-  ImGui::RadioButton("multiple files (one per chip)",&audioExportType,1);
-  ImGui::RadioButton("multiple files (one per channel)",&audioExportType,2);
-  if (ImGui::InputInt("Loops",&exportLoops,1,2)) {
-    if (exportLoops<0) exportLoops=0;
+  ImGui::Text("Export type:");
+
+  ImGui::Indent();
+  if (ImGui::RadioButton("one file",audioExportOptions.mode==DIV_EXPORT_MODE_ONE)) {
+    audioExportOptions.mode=DIV_EXPORT_MODE_ONE;
   }
-  if (ImGui::InputDouble("Fade out (seconds)",&exportFadeOut,1.0,2.0,"%.1f")) {
-    if (exportFadeOut<0.0) exportFadeOut=0.0;
+  if (ImGui::RadioButton("multiple files (one per chip)",audioExportOptions.mode==DIV_EXPORT_MODE_MANY_SYS)) {
+    audioExportOptions.mode=DIV_EXPORT_MODE_MANY_SYS;
+        }
+  if (ImGui::RadioButton("multiple files (one per channel)",audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN)) {
+    audioExportOptions.mode=DIV_EXPORT_MODE_MANY_CHAN;
+  }
+  ImGui::Unindent();
+
+  if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
+    ImGui::Text("Bit depth:");
+    ImGui::Indent();
+    if (ImGui::RadioButton("16-bit integer",audioExportOptions.format==DIV_EXPORT_FORMAT_S16)) {
+      audioExportOptions.format=DIV_EXPORT_FORMAT_S16;
+    }
+    if (ImGui::RadioButton("32-bit float",audioExportOptions.format==DIV_EXPORT_FORMAT_F32)) {
+      audioExportOptions.format=DIV_EXPORT_FORMAT_F32;
+    }
+    ImGui::Unindent();
+  }
+
+  if (ImGui::InputInt("Sample rate",&audioExportOptions.sampleRate,100,10000)) {
+    if (audioExportOptions.sampleRate<8000) audioExportOptions.sampleRate=8000;
+    if (audioExportOptions.sampleRate>384000) audioExportOptions.sampleRate=384000;
+  }
+
+  if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
+    if (ImGui::InputInt("Channels in file",&audioExportOptions.chans,1,1)) {
+      if (audioExportOptions.chans<1) audioExportOptions.chans=1;
+      if (audioExportOptions.chans>16) audioExportOptions.chans=16;
+    }
+  }
+
+  if (ImGui::InputInt("Loops",&audioExportOptions.loops,1,2)) {
+    if (audioExportOptions.loops<0) audioExportOptions.loops=0;
+  }
+  if (ImGui::InputDouble("Fade out (seconds)",&audioExportOptions.fadeOut,1.0,2.0,"%.1f")) {
+    if (audioExportOptions.fadeOut<0.0) audioExportOptions.fadeOut=0.0;
+  }
+
+  bool isOneOn=false;
+  if (audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN) {
+    ImGui::Text("Channels to export:");
+    ImGui::SameLine();
+    if (ImGui::SmallButton("All")) {
+      for (int i=0; i<DIV_MAX_CHANS; i++) {
+        audioExportOptions.channelMask[i]=true;
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("None")) {
+      for (int i=0; i<DIV_MAX_CHANS; i++) {
+        audioExportOptions.channelMask[i]=false;
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Invert")) {
+      for (int i=0; i<DIV_MAX_CHANS; i++) {
+        audioExportOptions.channelMask[i]=!audioExportOptions.channelMask[i];
+      }
+    }
+
+    if (ImGui::BeginChild("Channel Selection",ImVec2(0,200.0f*dpiScale))) {
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
+        String name=fmt::sprintf("%d. %s##_CE%d",i+1,e->getChannelName(i),i);
+        ImGui::Checkbox(name.c_str(),&audioExportOptions.channelMask[i]);
+        if (audioExportOptions.channelMask[i]) isOneOn=true;
+      }
+    }
+    ImGui::EndChild();
+  } else {
+    isOneOn=true;
   }
 
   if (onWindow) {
@@ -42,19 +111,23 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
     ImGui::SameLine();
   }
 
-  if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
-    switch (audioExportType) {
-      case 0:
-        openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
-        break;
-      case 1:
-        openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_SYS);
-        break;
-      case 2:
-        openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_CHANNEL);
-        break;
+  if (isOneOn) {
+    if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
+      switch (audioExportOptions.mode) {
+        case DIV_EXPORT_MODE_ONE:
+          openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
+          break;
+        case DIV_EXPORT_MODE_MANY_SYS:
+          openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_SYS);
+          break;
+        case DIV_EXPORT_MODE_MANY_CHAN:
+          openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_CHANNEL);
+          break;
+      }
+      ImGui::CloseCurrentPopup();
     }
-    ImGui::CloseCurrentPopup();
+  } else {
+    ImGui::Text("select at least one channel");
   }
 }
 

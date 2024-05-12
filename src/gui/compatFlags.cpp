@@ -196,6 +196,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("behavior changed in 0.6.1\nthis flag will be removed if I find out that none of the songs break after disabling it.");
         }
+        ImGui::Checkbox("Old sample offset effect",&e->song.oldSampleOffset);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6.3");
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(".mod import")) {

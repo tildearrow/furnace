@@ -218,7 +218,7 @@ void FurnaceGUIRenderMetal::setSwapInterval(int swapInterval) {
   }
 }
 
-void FurnaceGUIRenderMetal::preInit() {
+void FurnaceGUIRenderMetal::preInit(const DivConfig& conf) {
   SDL_SetHint(SDL_HINT_RENDER_DRIVER,"metal");
   priv=new FurnaceGUIRenderMetalPrivate;
 }

@@ -245,18 +245,18 @@ void FurnaceGUIRenderGL1::setSwapInterval(int swapInterval) {
   }
 }
 
-void FurnaceGUIRenderGL1::preInit() {
+void FurnaceGUIRenderGL1::preInit(const DivConfig& conf) {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,0);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,0);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,1);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION,1);
 
-  SDL_GL_SetAttribute(SDL_GL_RED_SIZE,8);
-  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,8);
-  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,8);
-  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,0);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,24);
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE,conf.getInt("glRedSize",8));
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,conf.getInt("glGreenSize",8));
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,conf.getInt("glBlueSize",8));
+  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,conf.getInt("glAlphaSize",0));
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,conf.getInt("glDoubleBuffer",1));
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,conf.getInt("glDepthSize",24));
 }
 
 #define LOAD_PROC_MANDATORY(_v,_t,_s) \

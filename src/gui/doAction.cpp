@@ -555,6 +555,18 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_PAT_SELECTION_DOWN_COARSE:
       moveCursor(0,editStepCoarse,true);
       break;
+    case GUI_ACTION_PAT_MOVE_UP:
+      moveSelected(0,-1);
+      break;
+    case GUI_ACTION_PAT_MOVE_DOWN:
+      moveSelected(0,1);
+      break;
+    case GUI_ACTION_PAT_MOVE_LEFT_CHANNEL:
+      moveSelected(-1,0);
+      break;
+    case GUI_ACTION_PAT_MOVE_RIGHT_CHANNEL:
+      moveSelected(1,0);
+      break;
     case GUI_ACTION_PAT_DELETE:
       doDelete();
       if (settings.stepOnDelete) {

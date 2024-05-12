@@ -1842,6 +1842,25 @@ void FurnaceGUI::doDrag() {
   makeUndo(GUI_UNDO_PATTERN_DRAG);
 }
 
+void FurnaceGUI::moveSelected(int x, int y) {
+  prepareUndo(GUI_UNDO_PATTERN_DRAG);
+
+  // copy and clear
+  String c=doCopy(true,false,selStart,selEnd);
+
+  logV("copy: %s",c);
+
+  // replace
+  selStart.xCoarse+=x;
+  selEnd.xCoarse+=x;
+  selStart.y+=y;
+  selEnd.y+=y;
+  cursor=selStart;
+  doPaste(GUI_PASTE_MODE_NORMAL,0,false,c);
+
+  makeUndo(GUI_UNDO_PATTERN_DRAG);
+}
+
 void FurnaceGUI::doUndo() {
   if (undoHist.empty()) return;
   UndoStep& us=undoHist.back();

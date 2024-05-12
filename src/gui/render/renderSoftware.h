@@ -47,7 +47,7 @@ class FurnaceGUIRenderSoftware: public FurnaceGUIRender {
     const char* getDeviceName();
     const char* getAPIVersion();
     void setSwapInterval(int swapInterval);
-    void preInit();
+    void preInit(const DivConfig& conf);
     bool init(SDL_Window* win, int swapInterval);
     void initGUI(SDL_Window* win);
     void quitGUI();
