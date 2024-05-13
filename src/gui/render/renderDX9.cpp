@@ -131,6 +131,9 @@ void FurnaceGUIRenderDX9::resized(const SDL_Event& ev) {
     logE("OH NO");
   }
   ImGui_ImplDX9_CreateDeviceObjects();
+
+  outW=ev.window.data1;
+  outH=ev.window.data2;
 }
 
 void FurnaceGUIRenderDX9::clear(ImVec4 color) {
@@ -261,6 +264,8 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
     maxWidth=caps.MaxTextureWidth;
     maxHeight=caps.MaxTextureHeight;
   }
+
+  SDL_GetWindowSize(win,&outW,&outH);
 
   return true;
 }
