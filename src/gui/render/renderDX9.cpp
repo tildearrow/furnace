@@ -99,7 +99,7 @@ FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, i
     return NULL;
   }
 
-  FurnaceDXTexture* ret=new FurnaceDXTexture;
+  FurnaceDX9Texture* ret=new FurnaceDX9Texture;
   ret->width=width;
   ret->height=height;
   ret->widthReal=widthReal;
