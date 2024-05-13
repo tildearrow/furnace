@@ -23,6 +23,7 @@
 #include "backends/imgui_impl_dx9.h"
 #include "../../ta-log.h"
 #include "../../utfutils.h"
+#include "../engine/bsr.h"
 
 class FurnaceDX9Texture: public FurnaceGUITexture {
   public:
