@@ -27,13 +27,15 @@
 class FurnaceDX9Texture: public FurnaceGUITexture {
   public:
   IDirect3DTexture9* tex;
-  int width, height;
+  int width, height, widthReal, heightReal;
   unsigned char* lockedData;
   bool dynamic;
   FurnaceDX9Texture():
     tex(NULL),
     width(0),
     height(0),
+    widthReal(0),
+    heightReal(0),
     lockedData(NULL),
     dynamic(false) {}
 };
@@ -44,23 +46,72 @@ ImTextureID FurnaceGUIRenderDX9::getTextureID(FurnaceGUITexture* which) {
 }
 
 bool FurnaceGUIRenderDX9::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
-  return false;
+  FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
+  D3DLOCKED_RECT lockedRect;
+
+  HRESULT result=t->tex->LockRect(0,&lockedRect,NULL,D3DLOCK_DISCARD);
+
+  if (result!=D3D_OK) {
+    logW("could not lock texture!");
+    return false;
+  }
+
+  *data=lockedRect.pBits;
+  *pitch=lockedRect.Pitch;
+  return true;
 }
 
 bool FurnaceGUIRenderDX9::unlockTexture(FurnaceGUITexture* which) {
-  return false;
+  FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
+  HRESULT result=t->tex->UnlockRect(0);
+
+  if (result!=D3D_OK) {
+    logW("could not unlock texture!");
+    return false;
+  }
+
+  return true;
 }
 
 bool FurnaceGUIRenderDX9::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
+  // TODO
   return false;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, int height, bool interpolate) {
-  return NULL;
+FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, int height, bool interpolate) {  
+  IDirect3DTexture9* tex=NULL;
+  int widthReal=width;
+  int heightReal=height;
+
+  if ((widthReal&(widthReal-1))!=0) {
+    widthReal=1<<bsr(width);
+  }
+  if ((heightReal&(heightReal-1))!=0) {
+    heightReal=1<<bsr(height);
+  }
+  logV("width: %d (requested)... %d (actual)",width,widthReal);
+  logV("height: %d (requested)... %d (actual)",height,heightReal);
+
+  HRESULT result=device->CreateTexture(widthReal,heightReal,1,dynamic?D3DUSAGE_DYNAMIC:0,D3DFMT_A8R8G8B8,D3DPOOL_DEFAULT,&tex,NULL);
+
+  if (result!=D3D_OK) {
+    logW("could not create texture! %.8x",result);
+    return NULL;
+  }
+
+  FurnaceDXTexture* ret=new FurnaceDXTexture;
+  ret->width=width;
+  ret->height=height;
+  ret->widthReal=widthReal;
+  ret->heightReal=heightReal;
+  ret->tex=tex;
+  ret->dynamic=dynamic;
+  return ret;
 }
 
 bool FurnaceGUIRenderDX9::destroyTexture(FurnaceGUITexture* which) {
   FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
+  t->tex->Release();
   delete t;
   return true;
 }
@@ -90,13 +141,11 @@ void FurnaceGUIRenderDX9::present() {
 }
 
 bool FurnaceGUIRenderDX9::newFrame() {
-  ImGui_ImplDX9_NewFrame();
-  return true;
+  return ImGui_ImplDX9_NewFrame();
 }
 
 bool FurnaceGUIRenderDX9::canVSync() {
-  // TODO: find out how to retrieve VSync status
-  return true;
+  return supportsVSync;
 }
 
 void FurnaceGUIRenderDX9::createFontsTexture() {
@@ -190,6 +239,7 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
   } else {
     priv->present.PresentationInterval=D3DPRESENT_INTERVAL_IMMEDIATE;
   }
+  priv->present.hDeviceWindow=window;
   
   HRESULT result=iface->CreateDevice(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,window,D3DCREATE_HARDWARE_VERTEXPROCESSING,&priv->present,&device);
 
@@ -198,6 +248,17 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
     iface->Release();
     iface=NULL;
     return false;
+  }
+
+  D3DCAPS9 caps;
+
+  result=device->GetDeviceCaps(&caps);
+
+  if (result==D3D_OK) {
+    supportsDynamicTex=(caps.Caps2&D3DCAPS2_DYNAMICTEXTURES);
+    supportsVSync=(caps.PresentationIntervals&D3DPRESENT_INTERVAL_ONE);
+    maxWidth=caps.MaxTextureWidth;
+    maxHeight=caps.MaxTextureHeight;
   }
 
   return true;

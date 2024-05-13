@@ -391,13 +391,15 @@ void ImGui_ImplDX9_InvalidateDeviceObjects()
     ImGui_ImplDX9_InvalidateDeviceObjectsForPlatformWindows();
 }
 
-void ImGui_ImplDX9_NewFrame()
+bool ImGui_ImplDX9_NewFrame()
 {
     ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
     IM_ASSERT(bd != nullptr && "Did you call ImGui_ImplDX9_Init()?");
 
     if (!bd->FontTexture)
-        ImGui_ImplDX9_CreateDeviceObjects();
+        return ImGui_ImplDX9_CreateDeviceObjects();
+
+    return true;
 }
 
 //--------------------------------------------------------------------------------------------------------

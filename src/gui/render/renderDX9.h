@@ -36,7 +36,7 @@ class FurnaceGUIRenderDX9: public FurnaceGUIRender {
 
   int outW, outH, swapInterval;
 
-  bool dead, haveScene;
+  bool dead, haveScene, supportsDynamicTex, supportsVSync;
 
   // SHADERS //
 
@@ -85,6 +85,8 @@ class FurnaceGUIRenderDX9: public FurnaceGUIRender {
       swapInterval(1),
       dead(false),
       haveScene(false),
+      supportsDynamicTex(false),
+      supportsVSync(false),
       maxWidth(8192),
       maxHeight(8192) {
     }
