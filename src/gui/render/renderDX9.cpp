@@ -156,6 +156,13 @@ FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, i
   if ((heightReal&(heightReal-1))!=0) {
     heightReal=1<<bsr(height);
   }
+  if (squareTex) {
+    if (widthReal>heightReal) {
+      heightReal=widthReal;
+    } else {
+      widthReal=heightReal;
+    }
+  }
   logV("width: %d (requested)... %d (actual)",width,widthReal);
   logV("height: %d (requested)... %d (actual)",height,heightReal);
 
@@ -407,12 +414,16 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
 
   if (result==D3D_OK) {
     supportsDynamicTex=(caps.Caps2&D3DCAPS2_DYNAMICTEXTURES);
+    squareTex=(caps.TextureCaps&D3DPTEXTURECAPS_SQUAREONLY);
     supportsVSync=(caps.PresentationIntervals&D3DPRESENT_INTERVAL_ONE);
     maxWidth=caps.MaxTextureWidth;
     maxHeight=caps.MaxTextureHeight;
 
     if (!supportsDynamicTex) {
       logI("no support for dynamic textures");
+    }
+    if (squareTex) {
+      logI("square textures only");
     }
   }
 

@@ -38,7 +38,7 @@ class FurnaceGUIRenderDX9: public FurnaceGUIRender {
 
   int outW, outH, swapInterval;
 
-  bool dead, haveScene, supportsDynamicTex, supportsVSync, mustResize;
+  bool dead, haveScene, supportsDynamicTex, supportsVSync, mustResize, squareTex;
 
   // SHADERS //
 
@@ -93,6 +93,7 @@ class FurnaceGUIRenderDX9: public FurnaceGUIRender {
       supportsDynamicTex(false),
       supportsVSync(false),
       mustResize(false),
+      squareTex(false),
       maxWidth(8192),
       maxHeight(8192) {
     }
