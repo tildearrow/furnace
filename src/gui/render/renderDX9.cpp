@@ -382,10 +382,14 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
   HRESULT result=iface->CreateDevice(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,window,D3DCREATE_HARDWARE_VERTEXPROCESSING,&priv->present,&device);
 
   if (result!=D3D_OK) {
-    logE("could not create device! %.8x",result);
-    iface->Release();
-    iface=NULL;
-    return false;
+    logW("no hardware vertex processing!");
+    result=iface->CreateDevice(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,window,D3DCREATE_SOFTWARE_VERTEXPROCESSING,&priv->present,&device);
+    if (result!=D3D_OK) {
+      logE("could not create device! %.8x",result);
+      iface->Release();
+      iface=NULL;
+      return false;
+    }
   }
 
   D3DCAPS9 caps;
