@@ -26,6 +26,7 @@ struct FurnaceGUIRenderDX9Private {
 };
 #else
 typedef void IDirect3D9;
+typedef void IDirect3DVertexBuffer9;
 typedef void FurnaceGUIRenderDX9Private;
 #endif
 
@@ -33,6 +34,7 @@ class FurnaceGUIRenderDX9: public FurnaceGUIRender {
   IDirect3D9* iface;
   IDirect3DDevice9* device;
   FurnaceGUIRenderDX9Private* priv;
+  IDirect3DVertexBuffer9* wipeBuf;
 
   int outW, outH, swapInterval;
 
@@ -82,6 +84,7 @@ class FurnaceGUIRenderDX9: public FurnaceGUIRender {
       iface(NULL),
       device(NULL),
       priv(NULL),
+      wipeBuf(NULL),
       outW(0),
       outH(0),
       swapInterval(1),

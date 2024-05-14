@@ -28,11 +28,13 @@
 class FurnaceDX9Texture: public FurnaceGUITexture {
   public:
   IDirect3DTexture9* tex;
+  IDirect3DTexture9* texPre;
   int width, height, widthReal, heightReal;
   unsigned char* lockedData;
   bool dynamic;
   FurnaceDX9Texture():
     tex(NULL),
+    texPre(NULL),
     width(0),
     height(0),
     widthReal(0),
@@ -85,13 +87,62 @@ bool FurnaceGUIRenderDX9::unlockTexture(FurnaceGUITexture* which) {
 }
 
 bool FurnaceGUIRenderDX9::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
-  // TODO
+  FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
+  IDirect3DTexture9* which=NULL;
   
-  return false;
+  if (t->texPre==NULL) {
+    // update by locking
+    if (!t->dynamic) {
+      logW("updating static texture but texPre does not exist!");
+      return false;
+    }
+    which=t->tex;
+  } else {
+    // update by calling UpdateTexture
+    which=t->texPre;
+  }
+
+  D3DLOCKED_RECT lockedRect;
+  HRESULT result=which->LockRect(0,&lockedRect,NULL,D3DLOCK_DISCARD);
+  if (result!=D3D_OK) {
+    logW("could not update texture (lock)! %.8x",result);
+    return false;
+  }
+
+  if (lockedRect.Pitch==pitch) {
+    memcpy(lockedRect.pBits,data,pitch*t->height);
+  } else {
+    unsigned char* ucData=(unsigned char*)data;
+    unsigned char* d=(unsigned char*)lockedRect.pBits;
+    int srcPos=0;
+    int destPos=0;
+    for (int i=0; i<t->height; i++) {
+      memcpy(&d[destPos],&ucData[srcPos],pitch);
+      srcPos+=pitch;
+      destPos+=lockedRect.Pitch;
+    }
+  }
+  
+  which->UnlockRect(0);
+
+  if (t->texPre!=NULL) {
+    result=t->tex->AddDirtyRect(NULL);
+    if (result!=D3D_OK) {
+      logW("could not taint texture! %.8x",result);
+    }
+    result=device->UpdateTexture(t->texPre,t->tex);
+    if (result!=D3D_OK) {
+      logW("could not update texture! %.8x",result);
+      return false;
+    }
+  }
+
+  return true;
 }
 
 FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, int height, bool interpolate) {  
   IDirect3DTexture9* tex=NULL;
+  IDirect3DTexture9* texPre=NULL;
   int widthReal=width;
   int heightReal=height;
 
@@ -113,12 +164,23 @@ FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, i
     return NULL;
   }
 
+  if (!dynamic) {
+    HRESULT result=device->CreateTexture(widthReal,heightReal,1,0,D3DFMT_A8B8G8R8,D3DPOOL_SYSTEMMEM,&texPre,NULL);
+
+    if (result!=D3D_OK) {
+      logW("could not create pre-texture! %.8x",result);
+      tex->Release();
+      return NULL;
+    }
+  }
+
   FurnaceDX9Texture* ret=new FurnaceDX9Texture;
   ret->width=width;
   ret->height=height;
   ret->widthReal=widthReal;
   ret->heightReal=heightReal;
   ret->tex=tex;
+  ret->texPre=texPre;
   ret->dynamic=dynamic;
   return ret;
 }
@@ -189,7 +251,57 @@ void FurnaceGUIRenderDX9::renderGUI() {
   }
 }
 
+struct WipeVertex {
+  float x, y, z;
+  unsigned int color;
+
+  WipeVertex(float _x, float _y, float _z, unsigned int c):
+    x(_x),
+    y(_y),
+    z(_z),
+    color(c) {}
+  WipeVertex():
+    x(0),
+    y(0),
+    z(0),
+    color(0) {}
+};
+
 void FurnaceGUIRenderDX9::wipe(float alpha) {
+  if (wipeBuf==NULL) return;
+
+  HRESULT result=device->BeginScene();
+  if (result==D3D_OK) {
+    D3DVIEWPORT9 view;
+    view.X=0;
+    view.Y=0;
+    view.Width=outW;
+    view.Height=outH;
+    view.MinZ=0.0f;
+    view.MaxZ=1.0f;
+    device->SetViewport(view);
+
+    unsigned int color=alpha*255;
+
+    void* lockedData;
+    WipeVertex vertex[4];
+    vertex[0]=WipeVertex(0,0,0,color);
+    vertex[1]=WipeVertex(outW,0,0,color);
+    vertex[2]=WipeVertex(outW,outH,0,color);
+    vertex[3]=WipeVertex(0,outH,0,color);
+
+    result=wipeBuf->Lock(0,0,&lockedData,D3DLOCK_DISCARD);
+    if (result==D3D_OK) {
+      memcpy(lockedData,vertex,sizeof(WipeVertex)*4);
+      wipeBuf->Unlock();
+
+      device->SetStreamSource(0,wipeBuf,0,sizeof(WipeVertex));
+      device->SetFVF(D3DFVF_XYZ|D3DFVF_DIFFUSE);
+      device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,1);
+    }
+    
+    device->EndScene();
+  }
 }
 
 bool FurnaceGUIRenderDX9::getOutputSize(int& w, int& h) {
@@ -282,6 +394,16 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
     supportsVSync=(caps.PresentationIntervals&D3DPRESENT_INTERVAL_ONE);
     maxWidth=caps.MaxTextureWidth;
     maxHeight=caps.MaxTextureHeight;
+
+    if (!supportsDynamicTex) {
+      logI("no support for dynamic textures");
+    }
+  }
+
+  result=device->CreateVertexBuffer(sizeof(WipeVertex)*4,0,D3DFVF_XYZ|D3DFVF_DIFFUSE,D3DPOOL_DEFAULT,&wipeBuf,NULL);
+
+  if (result!=D3D_OK) {
+    logE("could not create wipe buffer! %.8x",result);
   }
 
   SDL_GetWindowSize(win,&outW,&outH);
@@ -295,6 +417,10 @@ void FurnaceGUIRenderDX9::initGUI(SDL_Window* win) {
 }
 
 bool FurnaceGUIRenderDX9::quit() {
+  if (wipeBuf) {
+    wipeBuf->Release();
+    wipeBuf=NULL;
+  }
   if (device) {
     device->Release();
     device=NULL;
