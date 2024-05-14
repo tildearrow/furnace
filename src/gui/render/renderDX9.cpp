@@ -93,6 +93,8 @@ FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, i
   logV("width: %d (requested)... %d (actual)",width,widthReal);
   logV("height: %d (requested)... %d (actual)",height,heightReal);
 
+  if (!supportsDynamicTex) dynamic=false;
+
   HRESULT result=device->CreateTexture(widthReal,heightReal,1,dynamic?D3DUSAGE_DYNAMIC:0,D3DFMT_A8R8G8B8,D3DPOOL_DEFAULT,&tex,NULL);
 
   if (result!=D3D_OK) {
@@ -124,14 +126,7 @@ void FurnaceGUIRenderDX9::setBlendMode(FurnaceGUIBlendMode mode) {
 }
 
 void FurnaceGUIRenderDX9::resized(const SDL_Event& ev) {
-  logI("DX9: resizing buffers");
-  ImGui_ImplDX9_InvalidateDeviceObjects();
-  HRESULT result=device->Reset(&priv->present);
-  if (result==D3DERR_INVALIDCALL) {
-    logE("OH NO");
-  }
-  ImGui_ImplDX9_CreateDeviceObjects();
-
+  mustResize=true;
   outW=ev.window.data1;
   outH=ev.window.data2;
 }
@@ -145,6 +140,19 @@ void FurnaceGUIRenderDX9::present() {
 }
 
 bool FurnaceGUIRenderDX9::newFrame() {
+  if (mustResize) {
+    logI("DX9: resizing buffers");
+    ImGui_ImplDX9_InvalidateDeviceObjects();
+    priv->present.BackBufferWidth=outW;
+    priv->present.BackBufferHeight=outH;
+    HRESULT result=device->Reset(&priv->present);
+    if (result==D3DERR_INVALIDCALL) {
+      logE("OH NO");
+    }
+    ImGui_ImplDX9_CreateDeviceObjects();
+    mustResize=false;
+  }
+
   return ImGui_ImplDX9_NewFrame();
 }
 
