@@ -50,11 +50,15 @@ ImTextureID FurnaceGUIRenderDX9::getTextureID(FurnaceGUITexture* which) {
 
 float FurnaceGUIRenderDX9::getTextureU(FurnaceGUITexture* which) {
   FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
+  if (which==NULL) return 0.0;
+  if (t->widthReal<1) return 0.0f;
   return (float)t->width/(float)t->widthReal;
 }
 
 float FurnaceGUIRenderDX9::getTextureV(FurnaceGUITexture* which) {
   FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
+  if (which==NULL) return 0.0;
+  if (t->heightReal<1) return 0.0f;
   return (float)t->height/(float)t->heightReal;
 }
 

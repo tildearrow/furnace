@@ -46,11 +46,13 @@ ImTextureID FurnaceGUIRenderGL1::getTextureID(FurnaceGUITexture* which) {
 
 float FurnaceGUIRenderGL1::getTextureU(FurnaceGUITexture* which) {
   FurnaceGL1Texture* t=(FurnaceGL1Texture*)which;
+  if (t->widthReal<1) return 0.0f;
   return (float)t->width/(float)t->widthReal;
 }
 
 float FurnaceGUIRenderGL1::getTextureV(FurnaceGUITexture* which) {
   FurnaceGL1Texture* t=(FurnaceGL1Texture*)which;
+  if (t->heightReal<1) return 0.0f;
   return (float)t->height/(float)t->heightReal;
 }
 
