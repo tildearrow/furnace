@@ -46,6 +46,16 @@ ImTextureID FurnaceGUIRenderDX9::getTextureID(FurnaceGUITexture* which) {
   return (ImTextureID)t->tex;
 }
 
+float FurnaceGUIRenderDX9::getTextureU(FurnaceGUITexture* which) {
+  FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
+  return (float)t->width/(float)t->widthReal;
+}
+
+float FurnaceGUIRenderDX9::getTextureV(FurnaceGUITexture* which) {
+  FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
+  return (float)t->height/(float)t->heightReal;
+}
+
 bool FurnaceGUIRenderDX9::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
   D3DLOCKED_RECT lockedRect;
@@ -76,6 +86,7 @@ bool FurnaceGUIRenderDX9::unlockTexture(FurnaceGUITexture* which) {
 
 bool FurnaceGUIRenderDX9::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
   // TODO
+  
   return false;
 }
 
@@ -95,7 +106,7 @@ FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, i
 
   if (!supportsDynamicTex) dynamic=false;
 
-  HRESULT result=device->CreateTexture(widthReal,heightReal,1,dynamic?D3DUSAGE_DYNAMIC:0,D3DFMT_A8R8G8B8,D3DPOOL_DEFAULT,&tex,NULL);
+  HRESULT result=device->CreateTexture(widthReal,heightReal,1,dynamic?D3DUSAGE_DYNAMIC:0,D3DFMT_A8B8G8R8,D3DPOOL_DEFAULT,&tex,NULL);
 
   if (result!=D3D_OK) {
     logW("could not create texture! %.8x",result);
