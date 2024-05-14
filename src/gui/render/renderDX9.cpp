@@ -88,7 +88,7 @@ bool FurnaceGUIRenderDX9::unlockTexture(FurnaceGUITexture* which) {
 
 bool FurnaceGUIRenderDX9::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
   FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
-  IDirect3DTexture9* which=NULL;
+  IDirect3DTexture9* crap=NULL;
   
   if (t->texPre==NULL) {
     // update by locking
@@ -96,14 +96,14 @@ bool FurnaceGUIRenderDX9::updateTexture(FurnaceGUITexture* which, void* data, in
       logW("updating static texture but texPre does not exist!");
       return false;
     }
-    which=t->tex;
+    crap=t->tex;
   } else {
     // update by calling UpdateTexture
-    which=t->texPre;
+    crap=t->texPre;
   }
 
   D3DLOCKED_RECT lockedRect;
-  HRESULT result=which->LockRect(0,&lockedRect,NULL,D3DLOCK_DISCARD);
+  HRESULT result=crap->LockRect(0,&lockedRect,NULL,D3DLOCK_DISCARD);
   if (result!=D3D_OK) {
     logW("could not update texture (lock)! %.8x",result);
     return false;
@@ -123,7 +123,7 @@ bool FurnaceGUIRenderDX9::updateTexture(FurnaceGUITexture* which, void* data, in
     }
   }
   
-  which->UnlockRect(0);
+  crap->UnlockRect(0);
 
   if (t->texPre!=NULL) {
     result=t->tex->AddDirtyRect(NULL);
@@ -279,7 +279,10 @@ void FurnaceGUIRenderDX9::wipe(float alpha) {
     view.Height=outH;
     view.MinZ=0.0f;
     view.MaxZ=1.0f;
-    device->SetViewport(view);
+    result=device->SetViewport(&view);
+    if (result!=D3D_OK) {
+      logW("could not set viewport! %.8x",result);
+    }
 
     unsigned int color=alpha*255;
 
