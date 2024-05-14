@@ -370,12 +370,17 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
 
   priv=new FurnaceGUIRenderDX9Private;
 
+  SDL_GetWindowSize(win,&outW,&outH);
+
   memset(&priv->present,0,sizeof(D3DPRESENT_PARAMETERS));
   priv->present.Windowed=TRUE;
   priv->present.SwapEffect=D3DSWAPEFFECT_DISCARD;
+  priv->present.BackBufferWidth=outW;
+  priv->present.BackBufferHeight=outH;
+  priv->present.BackBufferCount=1;
   priv->present.BackBufferFormat=D3DFMT_UNKNOWN;
-  priv->present.EnableAutoDepthStencil=TRUE;
-  priv->present.AutoDepthStencilFormat=D3DFMT_D16;
+  //priv->present.EnableAutoDepthStencil=TRUE;
+  //priv->present.AutoDepthStencilFormat=D3DFMT_D16;
   if (swapInt>0) {
     priv->present.PresentationInterval=D3DPRESENT_INTERVAL_ONE;
   } else {
@@ -416,8 +421,6 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
   if (result!=D3D_OK) {
     logE("could not create wipe buffer! %.8x",result);
   }
-
-  SDL_GetWindowSize(win,&outW,&outH);
 
   return true;
 }
