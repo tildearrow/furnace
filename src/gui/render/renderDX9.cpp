@@ -45,6 +45,23 @@ class FurnaceDX9Texture: public FurnaceGUITexture {
     dynamic(false) {}
 };
 
+struct WipeVertex {
+  float x, y, z;
+  unsigned int color;
+
+  WipeVertex(float _x, float _y, float _z, unsigned int c):
+    x(_x),
+    y(_y),
+    z(_z),
+    color(c) {}
+  WipeVertex():
+    x(0),
+    y(0),
+    z(0),
+    color(0) {}
+};
+
+
 ImTextureID FurnaceGUIRenderDX9::getTextureID(FurnaceGUITexture* which) {
   FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
   return (ImTextureID)t->tex;
@@ -232,6 +249,12 @@ void FurnaceGUIRenderDX9::clear(ImVec4 color) {
   if (mustResize) {
     logI("DX9: resizing buffers");
     ImGui_ImplDX9_InvalidateDeviceObjects();
+
+    if (wipeBuf!=NULL) {
+      wipeBuf->Release();
+      wipeBuf=NULL;
+    }
+
     priv->present.BackBufferWidth=outW;
     priv->present.BackBufferHeight=outH;
     priv->present.BackBufferCount=1;
@@ -242,7 +265,15 @@ void FurnaceGUIRenderDX9::clear(ImVec4 color) {
     if (result==D3DERR_INVALIDCALL) {
       logE("OH NO");
     }
+
     ImGui_ImplDX9_CreateDeviceObjects();
+
+    result=device->CreateVertexBuffer(sizeof(WipeVertex)*4,0,D3DFVF_XYZ|D3DFVF_DIFFUSE,D3DPOOL_DEFAULT,&wipeBuf,NULL);
+
+    if (result!=D3D_OK) {
+      logE("could not create wipe buffer! %.8x",result);
+    }
+
     mustResize=false;
   }
 
@@ -278,22 +309,6 @@ void FurnaceGUIRenderDX9::renderGUI() {
     logW("couldn't render GUI! %.8x",result);
   }
 }
-
-struct WipeVertex {
-  float x, y, z;
-  unsigned int color;
-
-  WipeVertex(float _x, float _y, float _z, unsigned int c):
-    x(_x),
-    y(_y),
-    z(_z),
-    color(c) {}
-  WipeVertex():
-    x(0),
-    y(0),
-    z(0),
-    color(0) {}
-};
 
 void FurnaceGUIRenderDX9::wipe(float alpha) {
   if (wipeBuf==NULL) return;
