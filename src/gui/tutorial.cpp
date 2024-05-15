@@ -791,7 +791,7 @@ void FurnaceGUI::drawTutorial() {
         cv->hiScore=cvHiScore;
       }
       if (cvTex==NULL) {
-        cvTex=rend->createTexture(true,320,224,false);
+        cvTex=rend->createTexture(true,320,224,false,bestTexFormat);
       }
 
       if (cv->pleaseInitSongs) {

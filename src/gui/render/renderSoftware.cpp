@@ -52,7 +52,11 @@ bool FurnaceGUIRenderSoftware::updateTexture(FurnaceGUITexture* which, void* dat
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderSoftware::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderSoftware::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ARGB32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
   FurnaceSoftwareTexture* ret=new FurnaceSoftwareTexture;
   ret->tex=new SWTexture(width,height);
   return ret;
@@ -139,6 +143,10 @@ int FurnaceGUIRenderSoftware::getMaxTextureWidth() {
 
 int FurnaceGUIRenderSoftware::getMaxTextureHeight() {
   return 16384;
+}
+
+unsigned int FurnaceGUIRenderSoftware::getTextureFormats() {
+  return GUI_TEXFORMAT_ARGB32;
 }
 
 const char* FurnaceGUIRenderSoftware::getBackendName() {

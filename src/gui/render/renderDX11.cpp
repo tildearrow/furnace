@@ -200,7 +200,7 @@ bool FurnaceGUIRenderDX11::updateTexture(FurnaceGUITexture* which, void* data, i
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
   D3D11_TEXTURE2D_DESC texDesc;
   D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
   ID3D11Texture2D* tex=NULL;
@@ -214,7 +214,23 @@ FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, 
   texDesc.Height=height;
   texDesc.MipLevels=1;
   texDesc.ArraySize=1;
-  texDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM; // ???
+  switch (format) {
+    case GUI_TEXFORMAT_ABGR32:
+      texDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM;
+      break;
+    case GUI_TEXFORMAT_ARGB32:
+      texDesc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;
+      break;
+    case GUI_TEXFORMAT_BGRA32:
+      texDesc.Format=DXGI_FORMAT_A8R8G8B8_UNORM;
+      break;
+    case GUI_TEXFORMAT_RGBA32:
+      texDesc.Format=DXGI_FORMAT_A8B8G8R8_UNORM;
+      break;
+    default:
+      logE("unsupported texture format!");
+      return NULL;
+  }
   texDesc.SampleDesc.Count=1;
   texDesc.SampleDesc.Quality=0;
   texDesc.Usage=dynamic?D3D11_USAGE_DYNAMIC:D3D11_USAGE_DEFAULT;
@@ -375,6 +391,10 @@ int FurnaceGUIRenderDX11::getMaxTextureWidth() {
 
 int FurnaceGUIRenderDX11::getMaxTextureHeight() {
   return maxHeight;
+}
+
+unsigned int FurnaceGUIRenderDX11::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32|GUI_TEXFORMAT_ARGB32|GUI_TEXFORMAT_BGRA32|GUI_TEXFORMAT_RGBA32;
 }
 
 const char* FurnaceGUIRenderDX11::getBackendName() {

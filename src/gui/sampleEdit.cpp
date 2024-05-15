@@ -1476,7 +1476,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
         if (avail.x>=1 && avail.y>=1) {
           logD("recreating sample texture.");
-          sampleTex=rend->createTexture(true,avail.x,avail.y);
+          sampleTex=rend->createTexture(true,avail.x,avail.y,true,bestTexFormat);
           sampleTexW=avail.x;
           sampleTexH=avail.y;
           if (sampleTex==NULL) {

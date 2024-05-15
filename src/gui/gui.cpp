@@ -7091,6 +7091,18 @@ bool FurnaceGUI::init() {
   }
   logV("render backend started");
 
+  // set best texture format
+  unsigned int availTexFormats=rend->getTextureFormats();
+  if (availTexFormats&GUI_TEXFORMAT_ABGR32) {
+    bestTexFormat=GUI_TEXFORMAT_ABGR32;
+  } else if (availTexFormats&GUI_TEXFORMAT_ARGB32) {
+    bestTexFormat=GUI_TEXFORMAT_ARGB32;
+  } else if (availTexFormats&GUI_TEXFORMAT_RGBA32) {
+    bestTexFormat=GUI_TEXFORMAT_RGBA32;
+  } else if (availTexFormats&GUI_TEXFORMAT_BGRA32) {
+    bestTexFormat=GUI_TEXFORMAT_BGRA32;
+  }
+
   // try acquiring the canvas size
   if (!rend->getOutputSize(canvasW,canvasH)) {
     logW("could not get renderer output size!");

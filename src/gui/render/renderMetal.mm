@@ -84,7 +84,11 @@ bool FurnaceGUIRenderMetal::updateTexture(FurnaceGUITexture* which, void* data, 
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ABGR32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
   MTLTextureDescriptor* texDesc=[MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:(NSUInteger)width height:(NSUInteger)height mipmapped:NO];
   texDesc.usage=MTLTextureUsageShaderRead;
   texDesc.storageMode=MTLStorageModeManaged;
@@ -191,6 +195,10 @@ int FurnaceGUIRenderMetal::getMaxTextureWidth() {
 
 int FurnaceGUIRenderMetal::getMaxTextureHeight() {
   return bigTextures?16384:8192;
+}
+
+unsigned int FurnaceGUIRenderMetal::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32;
 }
 
 const char* FurnaceGUIRenderMetal::getBackendName() {

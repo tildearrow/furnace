@@ -54,7 +54,7 @@ FurnaceGUITexture* FurnaceGUI::getTexture(FurnaceGUIImages image, FurnaceGUIBlen
   if (img->width<=0 || img->height<=0) return NULL;
 
   if (img->tex==NULL) {
-    img->tex=rend->createTexture(false,img->width,img->height);
+    img->tex=rend->createTexture(false,img->width,img->height,true,bestTexFormat);
     if (img->tex==NULL) {
       logE("error while creating image %d texture! %s",(int)image,SDL_GetError());
       return NULL;

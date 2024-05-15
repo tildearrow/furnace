@@ -144,11 +144,16 @@ bool FurnaceGUIRenderDX9::updateTexture(FurnaceGUITexture* which, void* data, in
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, int height, bool interpolate) {  
+FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {  
   IDirect3DTexture9* tex=NULL;
   IDirect3DTexture9* texPre=NULL;
   int widthReal=width;
   int heightReal=height;
+
+  if (format!=GUI_TEXFORMAT_ARGB32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
 
   if ((widthReal&(widthReal-1))!=0) {
     widthReal=1<<bsr(width);
@@ -337,6 +342,10 @@ int FurnaceGUIRenderDX9::getMaxTextureWidth() {
 
 int FurnaceGUIRenderDX9::getMaxTextureHeight() {
   return maxHeight;
+}
+
+unsigned int FurnaceGUIRenderDX9::getTextureFormats() {
+  return GUI_TEXFORMAT_ARGB32;
 }
 
 const char* FurnaceGUIRenderDX9::getBackendName() {

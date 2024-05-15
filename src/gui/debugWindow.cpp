@@ -614,7 +614,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("Create and Destroy 128 Textures");
       if (ImGui::Button("No Write")) {
         for (int i=0; i<128; i++) {
-          FurnaceGUITexture* t=rend->createTexture(false,2048,2048);
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048,true,bestTexFormat);
           if (t==NULL) {
             showError(fmt::sprintf("Failure! %d",i));
             break;
@@ -628,7 +628,7 @@ void FurnaceGUI::drawDebug() {
           data[i]=rand();
         }
         for (int i=0; i<128; i++) {
-          FurnaceGUITexture* t=rend->createTexture(false,2048,2048);
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048,true,bestTexFormat);
           if (t==NULL) {
             showError(fmt::sprintf("Failure! %d",i));
             break;
@@ -642,7 +642,7 @@ void FurnaceGUI::drawDebug() {
         unsigned char* data=NULL;
         int pitch=0;
         for (int i=0; i<128; i++) {
-          FurnaceGUITexture* t=rend->createTexture(false,2048,2048);
+          FurnaceGUITexture* t=rend->createTexture(false,2048,2048,true,bestTexFormat);
           if (t==NULL) {
             showError(fmt::sprintf("Failure! %d",i));
             break;

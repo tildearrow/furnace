@@ -1443,6 +1443,14 @@ struct FurnaceGUIWaveSizeEntry {
     sys(NULL) {}
 };
 
+enum FurnaceGUITextureFormat: unsigned int {
+  GUI_TEXFORMAT_UNKNOWN=0,
+  GUI_TEXFORMAT_ABGR32=1,
+  GUI_TEXFORMAT_ARGB32=2,
+  GUI_TEXFORMAT_BGRA32=4,
+  GUI_TEXFORMAT_RGBA32=8,
+};
+
 class FurnaceGUITexture {
 };
 
@@ -1482,10 +1490,11 @@ class FurnaceGUIRender {
     virtual ImTextureID getTextureID(FurnaceGUITexture* which);
     virtual float getTextureU(FurnaceGUITexture* which);
     virtual float getTextureV(FurnaceGUITexture* which);
+    virtual FurnaceGUITextureFormat getTextureFormat(FurnaceGUITexture* which);
     virtual bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     virtual bool unlockTexture(FurnaceGUITexture* which);
     virtual bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
-    virtual FurnaceGUITexture* createTexture(bool dynamic, int width, int height, bool interpolate=true);
+    virtual FurnaceGUITexture* createTexture(bool dynamic, int width, int height, bool interpolate=true, FurnaceGUITextureFormat format=GUI_TEXFORMAT_ABGR32);
     virtual bool destroyTexture(FurnaceGUITexture* which);
     virtual void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     virtual void setBlendMode(FurnaceGUIBlendMode mode);
@@ -1504,6 +1513,7 @@ class FurnaceGUIRender {
     virtual int getWindowFlags();
     virtual int getMaxTextureWidth();
     virtual int getMaxTextureHeight();
+    virtual unsigned int getTextureFormats();
     virtual const char* getBackendName();
     virtual const char* getVendorName();
     virtual const char* getDeviceName();
@@ -1543,6 +1553,7 @@ class FurnaceGUI {
 
   FurnaceGUIRenderBackend renderBackend;
   FurnaceGUIRender* rend;
+  FurnaceGUITextureFormat bestTexFormat;
 
   SDL_Window* sdlWin;
   SDL_Haptic* vibrator;

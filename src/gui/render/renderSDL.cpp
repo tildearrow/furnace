@@ -49,7 +49,11 @@ bool FurnaceGUIRenderSDL::updateTexture(FurnaceGUITexture* which, void* data, in
   return SDL_UpdateTexture(t->tex,NULL,data,pitch)==0;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderSDL::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderSDL::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ABGR32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,interpolate?"1":"0");
   SDL_Texture* t=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,dynamic?SDL_TEXTUREACCESS_STREAMING:SDL_TEXTUREACCESS_STATIC,width,height);
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
@@ -154,6 +158,10 @@ int FurnaceGUIRenderSDL::getMaxTextureWidth() {
 int FurnaceGUIRenderSDL::getMaxTextureHeight() {
   if (!hasInfo) return 2048;
   return renderInfo.max_texture_height;
+}
+
+unsigned int FurnaceGUIRenderSDL::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32;
 }
 
 const char* FurnaceGUIRenderSDL::getBackendName() {

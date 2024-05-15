@@ -31,6 +31,10 @@ float FurnaceGUIRender::getTextureV(FurnaceGUITexture* which) {
   return 1.0;
 }
 
+FurnaceGUITextureFormat FurnaceGUIRender::getTextureFormat(FurnaceGUITexture* which) {
+  return GUI_TEXFORMAT_UNKNOWN;
+}
+
 bool FurnaceGUIRender::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   return false;
 }
@@ -43,7 +47,7 @@ bool FurnaceGUIRender::updateTexture(FurnaceGUITexture* which, void* data, int p
   return false;
 }
 
-FurnaceGUITexture* FurnaceGUIRender::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRender::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
   return NULL;
 }
 
@@ -106,6 +110,10 @@ int FurnaceGUIRender::getMaxTextureWidth() {
 }
 
 int FurnaceGUIRender::getMaxTextureHeight() {
+  return 0;
+}
+
+unsigned int FurnaceGUIRender::getTextureFormats() {
   return 0;
 }
 

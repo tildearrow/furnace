@@ -315,7 +315,11 @@ bool FurnaceGUIRenderGL::updateTexture(FurnaceGUITexture* which, void* data, int
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ABGR32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
   FurnaceGLTexture* t=new FurnaceGLTexture;
   C(glGenTextures(1,&t->id));
   C(glBindTexture(GL_TEXTURE_2D,t->id));
@@ -552,6 +556,10 @@ int FurnaceGUIRenderGL::getMaxTextureWidth() {
 
 int FurnaceGUIRenderGL::getMaxTextureHeight() {
   return maxHeight;
+}
+
+unsigned int FurnaceGUIRenderGL::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32;
 }
 
 const char* FurnaceGUIRenderGL::getBackendName() {
