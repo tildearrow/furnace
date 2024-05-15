@@ -229,6 +229,23 @@ void FurnaceGUIRenderDX9::resized(const SDL_Event& ev) {
 }
 
 void FurnaceGUIRenderDX9::clear(ImVec4 color) {
+  if (mustResize) {
+    logI("DX9: resizing buffers");
+    ImGui_ImplDX9_InvalidateDeviceObjects();
+    priv->present.BackBufferWidth=outW;
+    priv->present.BackBufferHeight=outH;
+    priv->present.BackBufferCount=1;
+    HRESULT result=device->Reset(&priv->present);
+    priv->present.BackBufferWidth=outW;
+    priv->present.BackBufferHeight=outH;
+    priv->present.BackBufferCount=1;
+    if (result==D3DERR_INVALIDCALL) {
+      logE("OH NO");
+    }
+    ImGui_ImplDX9_CreateDeviceObjects();
+    mustResize=false;
+  }
+
   device->Clear(0,NULL,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,ImGui::ColorConvertFloat4ToU32(color),0,0);
 }
 
@@ -237,19 +254,6 @@ void FurnaceGUIRenderDX9::present() {
 }
 
 bool FurnaceGUIRenderDX9::newFrame() {
-  if (mustResize) {
-    logI("DX9: resizing buffers");
-    ImGui_ImplDX9_InvalidateDeviceObjects();
-    priv->present.BackBufferWidth=outW;
-    priv->present.BackBufferHeight=outH;
-    HRESULT result=device->Reset(&priv->present);
-    if (result==D3DERR_INVALIDCALL) {
-      logE("OH NO");
-    }
-    ImGui_ImplDX9_CreateDeviceObjects();
-    mustResize=false;
-  }
-
   return ImGui_ImplDX9_NewFrame();
 }
 
