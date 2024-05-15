@@ -31,6 +31,15 @@
 #include "sampleUtil.h"
 #include "util.h"
 
+#define SWAP_COLOR_ARGB(x) \
+  x=(x&0xff00ff00)|((x&0xff)<<16)|((x&0xff0000)>>16);
+
+#define SWAP_COLOR_BGRA(x) \
+  x=((x&0xff0000000)>>24)|((x&0xffffff)<<8);
+
+#define SWAP_COLOR_RGBA(x) \
+  x=((x&0xff)<<24)|((x&0xff00)<<8)|((x&0xff0000)>>8)|((x&0xff000000)>>24);
+
 const double timeDivisors[10]={
   1000.0, 500.0, 200.0, 100.0, 50.0, 20.0, 10.0, 5.0, 2.0, 1.0
 };
@@ -1501,6 +1510,30 @@ void FurnaceGUI::drawSampleEdit() {
             ImU32 bgColorLoop=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP]);
             ImU32 lineColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_FG]);
             ImU32 centerLineColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_CENTER]);
+
+            switch (rend->getTextureFormat(sampleTex)) {
+              case GUI_TEXFORMAT_ARGB32:
+                SWAP_COLOR_ARGB(bgColor);
+                SWAP_COLOR_ARGB(bgColorLoop);
+                SWAP_COLOR_ARGB(lineColor);
+                SWAP_COLOR_ARGB(centerLineColor);
+                break;
+              case GUI_TEXFORMAT_BGRA32:
+                SWAP_COLOR_BGRA(bgColor);
+                SWAP_COLOR_BGRA(bgColorLoop);
+                SWAP_COLOR_BGRA(lineColor);
+                SWAP_COLOR_BGRA(centerLineColor);
+                break;
+              case GUI_TEXFORMAT_RGBA32:
+                SWAP_COLOR_RGBA(bgColor);
+                SWAP_COLOR_RGBA(bgColorLoop);
+                SWAP_COLOR_RGBA(lineColor);
+                SWAP_COLOR_RGBA(centerLineColor);
+                break;
+              default:
+                break;
+            }
+
             int ij=0;
             for (int i=0; i<availY; i++) {
               for (int j=0; j<availX; j++) {

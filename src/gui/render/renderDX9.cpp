@@ -30,6 +30,7 @@ class FurnaceDX9Texture: public FurnaceGUITexture {
   IDirect3DTexture9* tex;
   IDirect3DTexture9* texPre;
   int width, height, widthReal, heightReal;
+  FurnaceGUITextureFormat format;
   unsigned char* lockedData;
   bool dynamic;
   FurnaceDX9Texture():
@@ -39,6 +40,7 @@ class FurnaceDX9Texture: public FurnaceGUITexture {
     height(0),
     widthReal(0),
     heightReal(0),
+    format(GUI_TEXFORMAT_UNKNOWN),
     lockedData(NULL),
     dynamic(false) {}
 };
@@ -60,6 +62,11 @@ float FurnaceGUIRenderDX9::getTextureV(FurnaceGUITexture* which) {
   if (which==NULL) return 0.0;
   if (t->heightReal<1) return 0.0f;
   return (float)t->height/(float)t->heightReal;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderDX9::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderDX9::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -198,6 +205,7 @@ FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, i
   ret->tex=tex;
   ret->texPre=texPre;
   ret->dynamic=dynamic;
+  ret->format=format;
   return ret;
 }
 

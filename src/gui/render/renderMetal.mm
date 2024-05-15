@@ -44,17 +44,24 @@ class FurnaceMetalTexture: public FurnaceGUITexture {
   public:
   id<MTLTexture> tex;
   int width, height;
+  FurnaceGUITextureFormat format;
   unsigned char* lockedData;
   FurnaceMetalTexture():
     tex(NULL),
     width(0),
     height(0),
+    format(GUI_TEXFORMAT_UNKNOWN),
     lockedData(NULL) {}
 };
 
 ImTextureID FurnaceGUIRenderMetal::getTextureID(FurnaceGUITexture* which) {
   FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
   return t->tex;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderMetal::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderMetal::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {

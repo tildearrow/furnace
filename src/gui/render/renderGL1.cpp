@@ -29,6 +29,7 @@ class FurnaceGL1Texture: public FurnaceGUITexture {
   public:
   GLuint id;
   int width, height, widthReal, heightReal;
+  FurnaceGUITextureFormat format;
   unsigned char* lockedData;
   FurnaceGL1Texture():
     id(0),
@@ -36,6 +37,7 @@ class FurnaceGL1Texture: public FurnaceGUITexture {
     height(0),
     widthReal(0),
     heightReal(0),
+    format(GUI_TEXFORMAT_UNKNOWN),
     lockedData(NULL) {}
 };
 
@@ -54,6 +56,11 @@ float FurnaceGUIRenderGL1::getTextureV(FurnaceGUITexture* which) {
   FurnaceGL1Texture* t=(FurnaceGL1Texture*)which;
   if (t->heightReal<1) return 0.0f;
   return (float)t->height/(float)t->heightReal;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderGL1::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceGL1Texture* t=(FurnaceGL1Texture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderGL1::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -125,6 +132,7 @@ FurnaceGUITexture* FurnaceGUIRenderGL1::createTexture(bool dynamic, int width, i
   t->height=height;
   t->widthReal=widthReal;
   t->heightReal=heightReal;
+  t->format=format;
   return t;
 }
 

@@ -24,13 +24,20 @@
 class FurnaceSDLTexture: public FurnaceGUITexture {
   public:
   SDL_Texture* tex;
+  FurnaceGUITextureFormat format;
   FurnaceSDLTexture():
-    tex(NULL) {}
+    tex(NULL),
+    format(GUI_TEXFORMAT_UNKNOWN) {}
 };
 
 ImTextureID FurnaceGUIRenderSDL::getTextureID(FurnaceGUITexture* which) {
   FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
   return t->tex;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderSDL::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderSDL::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -61,6 +68,7 @@ FurnaceGUITexture* FurnaceGUIRenderSDL::createTexture(bool dynamic, int width, i
   if (t==NULL) return NULL;
   FurnaceSDLTexture* ret=new FurnaceSDLTexture;
   ret->tex=t;
+  ret->format=format;
   return ret;
 }
 

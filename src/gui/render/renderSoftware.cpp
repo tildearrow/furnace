@@ -24,13 +24,20 @@
 class FurnaceSoftwareTexture: public FurnaceGUITexture {
   public:
   SWTexture* tex;
+  FurnaceGUITextureFormat format;
   FurnaceSoftwareTexture():
-    tex(NULL) {}
+    tex(NULL),
+    format(GUI_TEXFORMAT_UNKNOWN) {}
 };
 
 ImTextureID FurnaceGUIRenderSoftware::getTextureID(FurnaceGUITexture* which) {
   FurnaceSoftwareTexture* t=(FurnaceSoftwareTexture*)which;
   return t->tex;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderSoftware::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceSoftwareTexture* t=(FurnaceSoftwareTexture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderSoftware::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -59,6 +66,7 @@ FurnaceGUITexture* FurnaceGUIRenderSoftware::createTexture(bool dynamic, int wid
   }
   FurnaceSoftwareTexture* ret=new FurnaceSoftwareTexture;
   ret->tex=new SWTexture(width,height);
+  ret->format=format;
   return ret;
 }
 

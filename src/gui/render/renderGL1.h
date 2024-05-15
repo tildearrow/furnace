@@ -32,6 +32,7 @@ class FurnaceGUIRenderGL1: public FurnaceGUIRender {
     ImTextureID getTextureID(FurnaceGUITexture* which);
     float getTextureU(FurnaceGUITexture* which);
     float getTextureV(FurnaceGUITexture* which);
+    FurnaceGUITextureFormat getTextureFormat(FurnaceGUITexture* which);
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     bool unlockTexture(FurnaceGUITexture* which);
     bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);

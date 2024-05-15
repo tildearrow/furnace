@@ -101,6 +101,44 @@ FurnaceGUIImage* FurnaceGUI::getImage(FurnaceGUIImages image) {
     }
 #endif
 
+    if (ret->ch==4) {
+      size_t total=ret->width*ret->height*ret->ch;
+      switch (bestTexFormat) {
+        case GUI_TEXFORMAT_ARGB32:
+          for (size_t i=0; i<total; i+=4) {
+            ret->data[i]^=ret->data[i|2];
+            ret->data[i|2]^=ret->data[i];
+            ret->data[i]^=ret->data[i|2];
+          }
+          break;
+        case GUI_TEXFORMAT_BGRA32:
+          for (size_t i=0; i<total; i+=4) {
+            ret->data[i]^=ret->data[i|3];
+            ret->data[i|3]^=ret->data[i];
+            ret->data[i]^=ret->data[i|3];
+            ret->data[i|1]^=ret->data[i|2];
+            ret->data[i|2]^=ret->data[i|1];
+            ret->data[i|1]^=ret->data[i|2];
+            ret->data[i|1]^=ret->data[i|3];
+            ret->data[i|3]^=ret->data[i|1];
+            ret->data[i|1]^=ret->data[i|3];
+          }
+          break;
+        case GUI_TEXFORMAT_RGBA32:
+          for (size_t i=0; i<total; i+=4) {
+            ret->data[i]^=ret->data[i|3];
+            ret->data[i|3]^=ret->data[i];
+            ret->data[i]^=ret->data[i|3];
+            ret->data[i|1]^=ret->data[i|2];
+            ret->data[i|2]^=ret->data[i|1];
+            ret->data[i|1]^=ret->data[i|2];
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
     images[image]=ret;
   }
 

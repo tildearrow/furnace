@@ -65,11 +65,13 @@ class FurnaceGLTexture: public FurnaceGUITexture {
   public:
   GLuint id;
   int width, height;
+  FurnaceGUITextureFormat format;
   unsigned char* lockedData;
   FurnaceGLTexture():
     id(0),
     width(0),
     height(0),
+    format(GUI_TEXFORMAT_UNKNOWN),
     lockedData(NULL) {}
 };
 
@@ -281,6 +283,11 @@ ImTextureID FurnaceGUIRenderGL::getTextureID(FurnaceGUITexture* which) {
   return (ImTextureID)ret;
 }
 
+FurnaceGUITextureFormat FurnaceGUIRenderGL::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceGLTexture* t=(FurnaceGLTexture*)which;
+  return t->format;
+}
+
 bool FurnaceGUIRenderGL::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   FurnaceGLTexture* t=(FurnaceGLTexture*)which;
   if (t->lockedData!=NULL) return false;
@@ -334,6 +341,7 @@ FurnaceGUITexture* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, in
   C(furActiveTexture(GL_TEXTURE0));
   t->width=width;
   t->height=height;
+  t->format=format;
   return t;
 }
 

@@ -75,6 +75,7 @@ class FurnaceDXTexture: public FurnaceGUITexture {
   ID3D11Texture2D* tex;
   ID3D11ShaderResourceView* view;
   int width, height;
+  FurnaceGUITextureFormat format;
   unsigned char* lockedData;
   bool dynamic;
   FurnaceDXTexture():
@@ -82,6 +83,7 @@ class FurnaceDXTexture: public FurnaceGUITexture {
     view(NULL),
     width(0),
     height(0),
+    format(GUI_TEXFORMAT_UNKNOWN),
     lockedData(NULL),
     dynamic(false) {}
 };
@@ -145,6 +147,11 @@ bool FurnaceGUIRenderDX11::createRenderTarget() {
 ImTextureID FurnaceGUIRenderDX11::getTextureID(FurnaceGUITexture* which) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   return (ImTextureID)t->view;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderDX11::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceDXTexture* t=(FurnaceDXTexture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderDX11::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -256,6 +263,7 @@ FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, 
   ret->tex=tex;
   ret->view=view;
   ret->dynamic=dynamic;
+  ret->format=format;
   return ret;
 }
 
