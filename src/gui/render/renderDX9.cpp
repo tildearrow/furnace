@@ -168,7 +168,7 @@ FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, i
 
   if (!supportsDynamicTex) dynamic=false;
 
-  HRESULT result=device->CreateTexture(widthReal,heightReal,1,dynamic?D3DUSAGE_DYNAMIC:0,D3DFMT_A8B8G8R8,D3DPOOL_DEFAULT,&tex,NULL);
+  HRESULT result=device->CreateTexture(widthReal,heightReal,1,dynamic?D3DUSAGE_DYNAMIC:0,D3DFMT_A8R8G8B8,D3DPOOL_DEFAULT,&tex,NULL);
 
   if (result!=D3D_OK) {
     logW("could not create texture! %.8x",result);
@@ -176,7 +176,7 @@ FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, i
   }
 
   if (!dynamic) {
-    HRESULT result=device->CreateTexture(widthReal,heightReal,1,0,D3DFMT_A8B8G8R8,D3DPOOL_SYSTEMMEM,&texPre,NULL);
+    HRESULT result=device->CreateTexture(widthReal,heightReal,1,0,D3DFMT_A8R8G8B8,D3DPOOL_SYSTEMMEM,&texPre,NULL);
 
     if (result!=D3D_OK) {
       logW("could not create pre-texture! %.8x",result);
