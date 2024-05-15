@@ -45,6 +45,11 @@ class FurnaceDX9Texture: public FurnaceGUITexture {
     dynamic(false) {}
 };
 
+struct FurnaceGUIRenderDX9Private {
+  D3DPRESENT_PARAMETERS present;
+  std::vector<FurnaceDX9Texture*> texPool;
+};
+
 struct WipeVertex {
   float x, y, z;
   unsigned int color;
@@ -223,13 +228,23 @@ FurnaceGUITexture* FurnaceGUIRenderDX9::createTexture(bool dynamic, int width, i
   ret->texPre=texPre;
   ret->dynamic=dynamic;
   ret->format=format;
+
+  priv->texPool.push_back(ret);
   return ret;
 }
 
 bool FurnaceGUIRenderDX9::destroyTexture(FurnaceGUITexture* which) {
   FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
-  t->tex->Release();
+  if (t->texPre!=NULL) t->texPre->Release();
+  if (t->tex!=NULL) t->tex->Release();
   delete t;
+
+  for (size_t i=0; i<priv->texPool.size(); i++) {
+    if (priv->texPool[i]==t) {
+      priv->texPool.erase(priv->texPool.begin()+i);
+      break;
+    }
+  }
   return true;
 }
 
@@ -246,13 +261,30 @@ void FurnaceGUIRenderDX9::resized(const SDL_Event& ev) {
 }
 
 void FurnaceGUIRenderDX9::clear(ImVec4 color) {
+  device->Clear(0,NULL,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,ImGui::ColorConvertFloat4ToU32(color),0,0);
+}
+
+void FurnaceGUIRenderDX9::present() {
+  device->Present(NULL,NULL,NULL,NULL);
+
   if (mustResize) {
     logI("DX9: resizing buffers");
     ImGui_ImplDX9_InvalidateDeviceObjects();
 
-    if (wipeBuf!=NULL) {
+    if (wipeBuf) {
       wipeBuf->Release();
       wipeBuf=NULL;
+    }
+
+    for (FurnaceDX9Texture* i: priv->texPool) {
+      if (i->tex) {
+        i->tex->Release();
+        i->tex=NULL;
+      }
+      if (i->texPre) {
+        i->texPre->Release();
+        i->texPre=NULL;
+      }
     }
 
     priv->present.BackBufferWidth=outW;
@@ -276,12 +308,6 @@ void FurnaceGUIRenderDX9::clear(ImVec4 color) {
 
     mustResize=false;
   }
-
-  device->Clear(0,NULL,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,ImGui::ColorConvertFloat4ToU32(color),0,0);
-}
-
-void FurnaceGUIRenderDX9::present() {
-  device->Present(NULL,NULL,NULL,NULL);
 }
 
 bool FurnaceGUIRenderDX9::newFrame() {

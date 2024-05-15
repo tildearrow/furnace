@@ -20,10 +20,7 @@
 #include "../gui.h"
 #ifdef INCLUDE_D3D9
 #include <d3d9.h>
-
-struct FurnaceGUIRenderDX9Private {
-  D3DPRESENT_PARAMETERS present;
-};
+struct FurnaceGUIRenderDX9Private;
 #else
 typedef void IDirect3D9;
 typedef void IDirect3DVertexBuffer9;
