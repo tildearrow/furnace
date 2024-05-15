@@ -221,12 +221,6 @@ FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, 
     case GUI_TEXFORMAT_ARGB32:
       texDesc.Format=DXGI_FORMAT_B8G8R8A8_UNORM;
       break;
-    case GUI_TEXFORMAT_BGRA32:
-      texDesc.Format=DXGI_FORMAT_A8R8G8B8_UNORM;
-      break;
-    case GUI_TEXFORMAT_RGBA32:
-      texDesc.Format=DXGI_FORMAT_A8B8G8R8_UNORM;
-      break;
     default:
       logE("unsupported texture format!");
       return NULL;
@@ -394,7 +388,7 @@ int FurnaceGUIRenderDX11::getMaxTextureHeight() {
 }
 
 unsigned int FurnaceGUIRenderDX11::getTextureFormats() {
-  return GUI_TEXFORMAT_ABGR32|GUI_TEXFORMAT_ARGB32|GUI_TEXFORMAT_BGRA32|GUI_TEXFORMAT_RGBA32;
+  return GUI_TEXFORMAT_ABGR32|GUI_TEXFORMAT_ARGB32;
 }
 
 const char* FurnaceGUIRenderDX11::getBackendName() {
