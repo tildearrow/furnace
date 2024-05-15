@@ -281,6 +281,8 @@ struct WipeVertex {
 void FurnaceGUIRenderDX9::wipe(float alpha) {
   if (wipeBuf==NULL) return;
 
+  /*
+
   HRESULT result=device->BeginScene();
   if (result==D3D_OK) {
     D3DVIEWPORT9 view;
@@ -316,6 +318,7 @@ void FurnaceGUIRenderDX9::wipe(float alpha) {
     
     device->EndScene();
   }
+  */
 }
 
 bool FurnaceGUIRenderDX9::getOutputSize(int& w, int& h) {
