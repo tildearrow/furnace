@@ -271,7 +271,11 @@ void FurnaceGUIRenderDX9::clear(ImVec4 color) {
 }
 
 void FurnaceGUIRenderDX9::present() {
-  device->Present(NULL,NULL,NULL,NULL);
+  if (device->Present(NULL,NULL,NULL,NULL)==D3DERR_DEVICEREMOVED) {
+    logI("device is gone");
+    dead=true;
+    return false;
+  }
 
   if (mustResize) {
     logI("DX9: resizing buffers");
@@ -302,6 +306,9 @@ void FurnaceGUIRenderDX9::present() {
     priv->present.BackBufferCount=1;
     if (result==D3DERR_INVALIDCALL) {
       logE("OH NO");
+      dead=true;
+      mustResize=false;
+      return;
     }
 
     ImGui_ImplDX9_CreateDeviceObjects();
