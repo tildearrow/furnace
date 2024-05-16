@@ -550,6 +550,7 @@ void DivEngine::registerSystems() {
   });
 
   EffectHandlerMap fmOPLLPostEffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, "10xx: Set patch (0 to F)"}},
     {0x11, {DIV_CMD_FM_FB, "11xx: Set feedback (0 to 7)"}},
     {0x12, {DIV_CMD_FM_TL, "12xx: Set level of operator 1 (0 highest, 3F lowest)", constVal<0>, effectVal}},
     {0x13, {DIV_CMD_FM_TL, "13xx: Set level of operator 2 (0 highest, 3F lowest)", constVal<1>, effectVal}},
