@@ -170,7 +170,7 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
     {
         if (bd->pIB) { bd->pIB->Release(); bd->pIB = nullptr; }
         bd->IndexBufferSize = draw_data->TotalIdxCount + 10000;
-        if (bd->pd3dDevice->CreateIndexBuffer(bd->IndexBufferSize * sizeof(ImDrawIdx), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, sizeof(ImDrawIdx) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, D3DPOOL_DEFAULT, &bd->pIB, nullptr) < 0)
+        if (bd->pd3dDevice->CreateIndexBuffer(bd->IndexBufferSize * sizeof(unsigned short), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &bd->pIB, nullptr) < 0)
             return;
     }
 
@@ -195,13 +195,13 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
 
     // Allocate buffers
     CUSTOMVERTEX* vtx_dst;
-    ImDrawIdx* idx_dst;
+    unsigned short* idx_dst;
     if (bd->pVB->Lock(0, (UINT)(draw_data->TotalVtxCount * sizeof(CUSTOMVERTEX)), (void**)&vtx_dst, D3DLOCK_DISCARD) < 0)
     {
         //d3d9_state_block->Release();
         return;
     }
-    if (bd->pIB->Lock(0, (UINT)(draw_data->TotalIdxCount * sizeof(ImDrawIdx)), (void**)&idx_dst, D3DLOCK_DISCARD) < 0)
+    if (bd->pIB->Lock(0, (UINT)(draw_data->TotalIdxCount * sizeof(unsigned short)), (void**)&idx_dst, D3DLOCK_DISCARD) < 0)
     {
         bd->pVB->Unlock();
         //d3d9_state_block->Release();
@@ -227,7 +227,14 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
             vtx_dst++;
             vtx_src++;
         }
-        memcpy(idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
+        if (sizeof(ImDrawIdx) == sizeof(unsigned short)) {
+          memcpy(idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
+        } else {
+          // slower, but works on VIA
+          for (int i=0; i<cmd_list->IdxBuffer.Size; i++) {
+            idx_dst[i]=cmd_list->IdxBuffer.Data[i];
+          }
+        }
         idx_dst += cmd_list->IdxBuffer.Size;
     }
     bd->pVB->Unlock();
