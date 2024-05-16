@@ -473,6 +473,7 @@ void FurnaceGUIRenderDX9::preInit(const DivConfig& conf) {
 }
 
 bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
+  D3DADAPTER_IDENTIFIER9 adapterInfo;
   SDL_SysWMinfo sysWindow;
 
   SDL_VERSION(&sysWindow.version);
@@ -507,8 +508,18 @@ bool FurnaceGUIRenderDX9::init(SDL_Window* win, int swapInt) {
     priv->present.PresentationInterval=D3DPRESENT_INTERVAL_IMMEDIATE;
   }
   priv->present.hDeviceWindow=window;
+
+  HRESULT result=iface->GetAdapterIdentifier(D3DADAPTER_DEFAULT,0,&adapterInfo);
+
+  if (result==D3D_OK) {
+    vendorName=fmt::sprintf("0x%.4X",adapterInfo.VendorId);
+    deviceName=fmt::sprintf("%s (%s)",adapterInfo.Description,adapterInfo.DeviceName);
+    apiVersion=fmt::sprintf("%.8X %.8X %s",adapterInfo.DriverVersion.HighPart,adapterInfo.DriverVersion.LowPart,adapterInfo.Driver);
+  } else {
+    logW("could not get adapter info! %.8x",result);
+  }
   
-  HRESULT result=iface->CreateDevice(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,window,D3DCREATE_HARDWARE_VERTEXPROCESSING,&priv->present,&device);
+  result=iface->CreateDevice(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,window,D3DCREATE_HARDWARE_VERTEXPROCESSING,&priv->present,&device);
 
   if (result!=D3D_OK) {
     logW("no hardware vertex processing!");
