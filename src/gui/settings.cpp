@@ -98,12 +98,6 @@ const char* audioBackends[]={
   "PortAudio"
 };
 
-const bool isProAudio[]={
-  true,
-  false,
-  false
-};
-
 const char* audioQualities[]={
   "High",
   "Low"
@@ -1019,7 +1013,7 @@ void FurnaceGUI::drawSettings() {
             if (settings.audioEngine!=prevAudioEngine) {
               audioEngineChanged=true;
               settings.audioDevice="";
-              if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
+              settings.audioChans=2;
             }
             ImGui::EndCombo();
           }
