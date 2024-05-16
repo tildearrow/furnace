@@ -227,7 +227,7 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
             vtx_dst++;
             vtx_src++;
         }
-        if (sizeof(ImDrawIdx) == sizeof(unsigned short) {
+        if (sizeof(ImDrawIdx) == sizeof(unsigned short)) {
           memcpy(idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
         } else {
           // slower, but works on VIA
