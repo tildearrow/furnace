@@ -271,10 +271,15 @@ void FurnaceGUIRenderDX9::clear(ImVec4 color) {
 }
 
 void FurnaceGUIRenderDX9::present() {
+  if (inScene) {
+    device->EndScene();
+    inScene=false;
+  }
+
   if (device->Present(NULL,NULL,NULL,NULL)==D3DERR_DEVICEREMOVED) {
     logI("device is gone");
     dead=true;
-    return false;
+    return;
   }
 
   if (mustResize) {
@@ -340,56 +345,86 @@ void FurnaceGUIRenderDX9::destroyFontsTexture() {
 }
 
 void FurnaceGUIRenderDX9::renderGUI() {
-  HRESULT result=device->BeginScene();
-  if (result==D3D_OK) {
-    ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-    device->EndScene();
-  } else {
-    logW("couldn't render GUI! %.8x",result);
+  if (!inScene) {
+    HRESULT result=device->BeginScene();
+    if (result!=D3D_OK) {
+      logW("couldn't render GUI! %.8x",result);
+      return;
+    }
+    inScene=true;
   }
+
+  ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 }
 
 void FurnaceGUIRenderDX9::wipe(float alpha) {
   if (wipeBuf==NULL) return;
 
-  /*
+  logV("WIPE...");
 
-  HRESULT result=device->BeginScene();
-  if (result==D3D_OK) {
-    D3DVIEWPORT9 view;
-    view.X=0;
-    view.Y=0;
-    view.Width=outW;
-    view.Height=outH;
-    view.MinZ=0.0f;
-    view.MaxZ=1.0f;
-    result=device->SetViewport(&view);
+  if (!inScene) {
+    HRESULT result=device->BeginScene();
     if (result!=D3D_OK) {
-      logW("could not set viewport! %.8x",result);
+      logW("couldn't render GUI! %.8x",result);
+      return;
     }
-
-    unsigned int color=alpha*255;
-
-    void* lockedData;
-    WipeVertex vertex[4];
-    vertex[0]=WipeVertex(0,0,0,color);
-    vertex[1]=WipeVertex(outW,0,0,color);
-    vertex[2]=WipeVertex(outW,outH,0,color);
-    vertex[3]=WipeVertex(0,outH,0,color);
-
-    result=wipeBuf->Lock(0,0,&lockedData,D3DLOCK_DISCARD);
-    if (result==D3D_OK) {
-      memcpy(lockedData,vertex,sizeof(WipeVertex)*4);
-      wipeBuf->Unlock();
-
-      device->SetStreamSource(0,wipeBuf,0,sizeof(WipeVertex));
-      device->SetFVF(D3DFVF_XYZ|D3DFVF_DIFFUSE);
-      device->DrawPrimitive(D3DPT_TRIANGLESTRIP,0,1);
-    }
-    
-    device->EndScene();
+    inScene=true;
   }
-  */
+
+  D3DVIEWPORT9 view;
+  view.X=0;
+  view.Y=0;
+  view.Width=outW;
+  view.Height=outH;
+  view.MinZ=0.0f;
+  view.MaxZ=1.0f;
+  HRESULT result=device->SetViewport(&view);
+  if (result!=D3D_OK) {
+    logW("could not set viewport! %.8x",result);
+  }
+
+  unsigned char alphaU=alpha*255.0f;
+  unsigned int color=alphaU<<24;
+
+  void* lockedData;
+  WipeVertex vertex[4];
+  vertex[0]=WipeVertex(0,0,0,color);
+  vertex[1]=WipeVertex(outW,0,0,color);
+  vertex[2]=WipeVertex(outW,outH,0,color);
+  vertex[3]=WipeVertex(0,outH,0,color);
+
+  result=wipeBuf->Lock(0,0,&lockedData,D3DLOCK_DISCARD);
+  if (result==D3D_OK) {
+    memcpy(lockedData,vertex,sizeof(WipeVertex)*4);
+    wipeBuf->Unlock();
+
+    result=device->SetRenderState(D3DRS_SCISSORTESTENABLE,FALSE);
+    if (result!=D3D_OK) {
+      logE("SHIT! scissor, %.8x",result);
+    }
+    result=device->SetTexture(0,NULL);
+    if (result!=D3D_OK) {
+      logE("SHIT! set texture, %.8x",result);
+    }
+    result=device->SetStreamSource(0,wipeBuf,0,sizeof(WipeVertex));
+    if (result!=D3D_OK) {
+      logE("SHIT! set stream source, %.8x",result);
+    }
+    result=device->SetTexture(0,NULL);
+    if (result!=D3D_OK) {
+      logE("SHIT! set texture, %.8x",result);
+    }
+    result=device->SetFVF(D3DFVF_XYZ|D3DFVF_DIFFUSE);
+    if (result!=D3D_OK) {
+      logE("SHIT! set FVF, %.8x",result);
+    }
+    result=device->DrawPrimitive(D3DPT_TRIANGLEFAN,0,2);
+    if (result!=D3D_OK) {
+      logE("SHIT! draw primitive, %.8x",result);
+    }
+  } else {
+    logE("SHIT! lock, %.8x",result);
+  }
 }
 
 bool FurnaceGUIRenderDX9::getOutputSize(int& w, int& h) {

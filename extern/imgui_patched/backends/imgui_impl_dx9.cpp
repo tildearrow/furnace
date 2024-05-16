@@ -175,6 +175,7 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
     }
 
     // Backup the DX9 state
+    /*
     IDirect3DStateBlock9* d3d9_state_block = nullptr;
     if (bd->pd3dDevice->CreateStateBlock(D3DSBT_ALL, &d3d9_state_block) < 0)
         return;
@@ -182,26 +183,28 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
     {
         d3d9_state_block->Release();
         return;
-    }
+    }*/
 
     // Backup the DX9 transform (DX9 documentation suggests that it is included in the StateBlock but it doesn't appear to)
+    /*
     D3DMATRIX last_world, last_view, last_projection;
     bd->pd3dDevice->GetTransform(D3DTS_WORLD, &last_world);
     bd->pd3dDevice->GetTransform(D3DTS_VIEW, &last_view);
     bd->pd3dDevice->GetTransform(D3DTS_PROJECTION, &last_projection);
+    */
 
     // Allocate buffers
     CUSTOMVERTEX* vtx_dst;
     ImDrawIdx* idx_dst;
     if (bd->pVB->Lock(0, (UINT)(draw_data->TotalVtxCount * sizeof(CUSTOMVERTEX)), (void**)&vtx_dst, D3DLOCK_DISCARD) < 0)
     {
-        d3d9_state_block->Release();
+        //d3d9_state_block->Release();
         return;
     }
     if (bd->pIB->Lock(0, (UINT)(draw_data->TotalIdxCount * sizeof(ImDrawIdx)), (void**)&idx_dst, D3DLOCK_DISCARD) < 0)
     {
         bd->pVB->Unlock();
-        d3d9_state_block->Release();
+        //d3d9_state_block->Release();
         return;
     }
 
@@ -282,13 +285,18 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
         bd->pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, 0, 0, 0);
 
     // Restore the DX9 transform
+    // don't. I like this transform.
+    /*
     bd->pd3dDevice->SetTransform(D3DTS_WORLD, &last_world);
     bd->pd3dDevice->SetTransform(D3DTS_VIEW, &last_view);
     bd->pd3dDevice->SetTransform(D3DTS_PROJECTION, &last_projection);
+    */
 
     // Restore the DX9 state
+    /*
     d3d9_state_block->Apply();
     d3d9_state_block->Release();
+    */
 }
 
 bool ImGui_ImplDX9_Init(IDirect3DDevice9* device)
