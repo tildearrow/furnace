@@ -53,7 +53,19 @@ FurnaceGUITexture* FurnaceGUI::getTexture(FurnaceGUIImages image, FurnaceGUIBlen
   if (img->data==NULL) return NULL;
   if (img->width<=0 || img->height<=0) return NULL;
 
+  bool createTex=false;
+
   if (img->tex==NULL) {
+    createTex=true;
+  } else {
+    if (!rend->isTextureValid(img->tex)) {
+      rend->destroyTexture(img->tex);
+      img->tex=NULL;
+      createTex=true;
+    }
+  }
+
+  if (createTex) {
     img->tex=rend->createTexture(false,img->width,img->height,true,bestTexFormat);
     if (img->tex==NULL) {
       logE("error while creating image %d texture! %s",(int)image,SDL_GetError());

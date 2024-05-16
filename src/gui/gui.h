@@ -1491,6 +1491,7 @@ class FurnaceGUIRender {
     virtual float getTextureU(FurnaceGUITexture* which);
     virtual float getTextureV(FurnaceGUITexture* which);
     virtual FurnaceGUITextureFormat getTextureFormat(FurnaceGUITexture* which);
+    virtual bool isTextureValid(FurnaceGUITexture* which);
     virtual bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     virtual bool unlockTexture(FurnaceGUITexture* which);
     virtual bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);

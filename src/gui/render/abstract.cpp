@@ -35,6 +35,10 @@ FurnaceGUITextureFormat FurnaceGUIRender::getTextureFormat(FurnaceGUITexture* wh
   return GUI_TEXFORMAT_UNKNOWN;
 }
 
+bool FurnaceGUIRender::isTextureValid(FurnaceGUITexture* which) {
+  return (which!=NULL);
+}
+
 bool FurnaceGUIRender::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   return false;
 }

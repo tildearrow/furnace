@@ -1478,7 +1478,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
       }
 
-      if (sampleTex==NULL || sampleTexW!=avail.x || sampleTexH!=avail.y) {
+      if (sampleTex==NULL || sampleTexW!=avail.x || sampleTexH!=avail.y || !rend->isTextureValid(sampleTex)) {
         if (sampleTex!=NULL) {
           rend->destroyTexture(sampleTex);
           sampleTex=NULL;

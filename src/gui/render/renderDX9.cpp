@@ -91,6 +91,12 @@ FurnaceGUITextureFormat FurnaceGUIRenderDX9::getTextureFormat(FurnaceGUITexture*
   return t->format;
 }
 
+bool FurnaceGUIRenderDX9::isTextureValid(FurnaceGUITexture* which) {
+  if (which==NULL) return false;
+  FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
+  return (t->tex!=NULL);
+}
+
 bool FurnaceGUIRenderDX9::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   FurnaceDX9Texture* t=(FurnaceDX9Texture*)which;
   D3DLOCKED_RECT lockedRect;
@@ -519,6 +525,7 @@ bool FurnaceGUIRenderDX9::quit() {
     iface->Release();
     iface=NULL;
   }
+  priv->texPool.clear();
   dead=false;
   return true;
 }
