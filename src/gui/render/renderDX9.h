@@ -47,6 +47,7 @@ class FurnaceGUIRenderDX9: public FurnaceGUIRender {
     float getTextureU(FurnaceGUITexture* which);
     float getTextureV(FurnaceGUITexture* which);
     FurnaceGUITextureFormat getTextureFormat(FurnaceGUITexture* which);
+    bool isTextureValid(FurnaceGUITexture* which);
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     bool unlockTexture(FurnaceGUITexture* which);
     bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
