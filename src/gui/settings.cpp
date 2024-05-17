@@ -980,6 +980,21 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        // SUBSECTION CONFIGURATION
+        CONFIG_SUBSECTION("Configuration");
+        if (ImGui::Button("Import")) {
+          openFileDialog(GUI_FILE_IMPORT_CONFIG);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Export")) {
+          openFileDialog(GUI_FILE_EXPORT_CONFIG);
+        }
+        pushDestColor();
+        if (ImGui::Button("Factory Reset")) {
+          showWarning("Are you sure you want to reset all Furnace settings?\nYou must restart Furnace after doing so.",GUI_WARN_RESET_CONFIG);
+        }
+        popDestColor();
+
         END_SECTION;
       }
       CONFIG_SECTION("Audio") {
