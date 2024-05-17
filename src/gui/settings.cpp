@@ -388,6 +388,12 @@ void FurnaceGUI::drawSettings() {
             settingsChanged=true;
           }
 #endif
+#ifdef HAVE_RENDER_DX9
+          if (ImGui::Selectable("DirectX 9",curRenderBackend=="DirectX 9")) {
+            settings.renderBackend="DirectX 9";
+            settingsChanged=true;
+          }
+#endif
 #ifdef HAVE_RENDER_METAL
           if (ImGui::Selectable("Metal",curRenderBackend=="Metal")) {
             settings.renderBackend="Metal";
