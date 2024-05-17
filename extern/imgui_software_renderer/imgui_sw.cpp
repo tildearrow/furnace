@@ -230,14 +230,10 @@ static void paint_uniform_rectangle(const PaintTarget &target,
   max_x_i = std::min(max_x_i, target.width);
   max_y_i = std::min(max_y_i, target.height);
 
-  // multiply Y for speed
-  min_y_i *= target.width;
-  max_y_i *= target.width;
-
   if (color.a==255) {
     // fast path if alpha blending is not necessary
-    for (int y = min_y_i; y < max_y_i; y+=target.width) {
-      uint32_t* target_pixel = &target.pixels[y + min_x_i - 1];
+    for (int y = min_y_i; y < max_y_i; ++y) {
+      uint32_t* target_pixel = &target.pixels[y * target.width + min_x_i - 1];
       for (int x = min_x_i; x < max_x_i; ++x) {
         ++target_pixel;
         *target_pixel = color.u32;
@@ -245,12 +241,12 @@ static void paint_uniform_rectangle(const PaintTarget &target,
     }
   } else {
     // We often blend the same colors over and over again, so optimize for this (saves 25% total cpu):
-    uint32_t last_target_pixel = target.pixels[min_y_i + min_x_i];
+    uint32_t last_target_pixel = target.pixels[min_y_i * target.width + min_x_i];
     const ColorInt* lastColorRef = (const ColorInt*)(&last_target_pixel);
     uint32_t last_output = blend(*lastColorRef, color);
 
-    for (int y = min_y_i; y < max_y_i; y+=target.width) {
-      uint32_t* target_pixel = &target.pixels[y + min_x_i - 1];
+    for (int y = min_y_i; y < max_y_i; ++y) {
+      uint32_t* target_pixel = &target.pixels[y * target.width + min_x_i - 1];
       for (int x = min_x_i; x < max_x_i; ++x) {
         ++target_pixel;
         if (*target_pixel == last_target_pixel) {
@@ -329,13 +325,9 @@ static void paint_uniform_textured_rectangle(const PaintTarget &target,
 
   const ColorInt colorRef = ColorInt::bgra(min_v.col);
 
-  // multiply Y for speed
-  min_y_i *= target.width;
-  max_y_i *= target.width;
-
-  for (int y = min_y_i; y < max_y_i; y+=target.width) {
+  for (int y = min_y_i; y < max_y_i; ++y) {
     currentX = startX;
-    uint32_t* target_pixel = &target.pixels[y - 1 + min_x_i];
+    uint32_t* target_pixel = &target.pixels[y * target.width - 1 + min_x_i];
     for (int x = min_x_i; x < max_x_i; ++x) {
       ++target_pixel;
       const ColorInt* targetColorRef = (const ColorInt*)(target_pixel);
