@@ -43,7 +43,7 @@
 #define unimportant(x) if (x) {handleUnimportant}
 
 #define MARK_MODIFIED modified=true;
-#define WAKE_UP drawHalt=16;
+#define WAKE_UP drawHalt=5;
 
 #define RESET_WAVE_MACRO_ZOOM \
   for (DivInstrument* _wi: e->song.ins) { \
