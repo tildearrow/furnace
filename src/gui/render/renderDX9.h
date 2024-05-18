@@ -18,45 +18,36 @@
  */
 
 #include "../gui.h"
+#ifdef INCLUDE_D3D9
+#include <d3d9.h>
+struct FurnaceGUIRenderDX9Private;
+#else
+typedef void IDirect3D9;
+typedef void IDirect3DVertexBuffer9;
+typedef void FurnaceGUIRenderDX9Private;
+#endif
 
-class FurnaceGUIRenderGL: public FurnaceGUIRender {
-  SDL_GLContext context;
-  SDL_Window* sdlWin;
-  float quadVertex[4][3];
-  unsigned int quadBuf;
-  float oscVertex[4][4];
-  unsigned int oscVertexBuf;
-  unsigned int oscDataTex;
-  float oscData[2048];
+class FurnaceGUIRenderDX9: public FurnaceGUIRender {
+  IDirect3D9* iface;
+  IDirect3DDevice9* device;
+  FurnaceGUIRenderDX9Private* priv;
+  IDirect3DVertexBuffer9* wipeBuf;
+
+  int outW, outH, swapInterval;
+
+  bool dead, haveScene, supportsDynamicTex, supportsVSync, mustResize, squareTex, inScene;
 
   // SHADERS //
-  // -> wipe
-  int sh_wipe_vertex;
-  int sh_wipe_fragment;
-  int sh_wipe_program;
-  int sh_wipe_uAlpha;
-  bool sh_wipe_have;
-  // -> oscRender
-  int sh_oscRender_vertex;
-  int sh_oscRender_fragment;
-  int sh_oscRender_program;
-  int sh_oscRender_uColor;
-  int sh_oscRender_uLineWidth;
-  int sh_oscRender_uResolution;
-  int sh_oscRender_oscVal;
-  bool sh_oscRender_have;
-
-  bool swapIntervalSet;
-  unsigned char glVer;
 
   int maxWidth, maxHeight;
-  String backendName, vendorName, deviceName, apiVersion;
-
-  bool createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program, const char** attribNames);
+  String vendorName, deviceName, apiVersion;
 
   public:
     ImTextureID getTextureID(FurnaceGUITexture* which);
+    float getTextureU(FurnaceGUITexture* which);
+    float getTextureV(FurnaceGUITexture* which);
     FurnaceGUITextureFormat getTextureFormat(FurnaceGUITexture* which);
+    bool isTextureValid(FurnaceGUITexture* which);
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     bool unlockTexture(FurnaceGUITexture* which);
     bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
@@ -64,6 +55,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     bool destroyTexture(FurnaceGUITexture* which);
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
+    void resized(const SDL_Event& ev);
     void clear(ImVec4 color);
     bool newFrame();
     bool canVSync();
@@ -71,10 +63,8 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     void destroyFontsTexture();
     void renderGUI();
     void wipe(float alpha);
-    void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
     void present();
     bool getOutputSize(int& w, int& h);
-    bool supportsDrawOsc();
     int getWindowFlags();
     int getMaxTextureWidth();
     int getMaxTextureHeight();
@@ -90,17 +80,22 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     void quitGUI();
     bool quit();
     bool isDead();
-    void setVersion(unsigned char ver);
-    FurnaceGUIRenderGL():
-      context(NULL),
-      sdlWin(NULL),
-      swapIntervalSet(true),
-      glVer(3),
-      maxWidth(0),
-      maxHeight(0),
-      backendName("What?") {
-      memset(quadVertex,0,4*3*sizeof(float));
-      memset(oscVertex,0,4*5*sizeof(float));
-      memset(oscData,0,2048*sizeof(float));
+    FurnaceGUIRenderDX9():
+      iface(NULL),
+      device(NULL),
+      priv(NULL),
+      wipeBuf(NULL),
+      outW(0),
+      outH(0),
+      swapInterval(1),
+      dead(false),
+      haveScene(false),
+      supportsDynamicTex(false),
+      supportsVSync(false),
+      mustResize(false),
+      squareTex(false),
+      inScene(false),
+      maxWidth(8192),
+      maxHeight(8192) {
     }
 };

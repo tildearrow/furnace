@@ -27,6 +27,8 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
   FurnaceGUIImage* imgI=getImage(image);
   FurnaceGUITexture* img=getTexture(image);
 
+  if (img==NULL) return;
+
   float squareSize=MAX(introMax.x-introMin.x,introMax.y-introMin.y);
   float uDiff=uvMax.x-uvMin.x;
   float vDiff=uvMax.y-uvMin.y;

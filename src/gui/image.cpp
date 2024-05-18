@@ -53,8 +53,20 @@ FurnaceGUITexture* FurnaceGUI::getTexture(FurnaceGUIImages image, FurnaceGUIBlen
   if (img->data==NULL) return NULL;
   if (img->width<=0 || img->height<=0) return NULL;
 
+  bool createTex=false;
+
   if (img->tex==NULL) {
-    img->tex=rend->createTexture(false,img->width,img->height);
+    createTex=true;
+  } else {
+    if (!rend->isTextureValid(img->tex)) {
+      rend->destroyTexture(img->tex);
+      img->tex=NULL;
+      createTex=true;
+    }
+  }
+
+  if (createTex) {
+    img->tex=rend->createTexture(false,img->width,img->height,true,bestTexFormat);
     if (img->tex==NULL) {
       logE("error while creating image %d texture! %s",(int)image,SDL_GetError());
       return NULL;
@@ -100,6 +112,44 @@ FurnaceGUIImage* FurnaceGUI::getImage(FurnaceGUIImages image) {
       }
     }
 #endif
+
+    if (ret->ch==4) {
+      size_t total=ret->width*ret->height*ret->ch;
+      switch (bestTexFormat) {
+        case GUI_TEXFORMAT_ARGB32:
+          for (size_t i=0; i<total; i+=4) {
+            ret->data[i]^=ret->data[i|2];
+            ret->data[i|2]^=ret->data[i];
+            ret->data[i]^=ret->data[i|2];
+          }
+          break;
+        case GUI_TEXFORMAT_BGRA32:
+          for (size_t i=0; i<total; i+=4) {
+            ret->data[i]^=ret->data[i|3];
+            ret->data[i|3]^=ret->data[i];
+            ret->data[i]^=ret->data[i|3];
+            ret->data[i|1]^=ret->data[i|2];
+            ret->data[i|2]^=ret->data[i|1];
+            ret->data[i|1]^=ret->data[i|2];
+            ret->data[i|1]^=ret->data[i|3];
+            ret->data[i|3]^=ret->data[i|1];
+            ret->data[i|1]^=ret->data[i|3];
+          }
+          break;
+        case GUI_TEXFORMAT_RGBA32:
+          for (size_t i=0; i<total; i+=4) {
+            ret->data[i]^=ret->data[i|3];
+            ret->data[i|3]^=ret->data[i];
+            ret->data[i]^=ret->data[i|3];
+            ret->data[i|1]^=ret->data[i|2];
+            ret->data[i|2]^=ret->data[i|1];
+            ret->data[i|1]^=ret->data[i|2];
+          }
+          break;
+        default:
+          break;
+      }
+    }
 
     images[image]=ret;
   }

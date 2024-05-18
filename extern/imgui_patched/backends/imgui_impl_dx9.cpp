@@ -170,11 +170,12 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
     {
         if (bd->pIB) { bd->pIB->Release(); bd->pIB = nullptr; }
         bd->IndexBufferSize = draw_data->TotalIdxCount + 10000;
-        if (bd->pd3dDevice->CreateIndexBuffer(bd->IndexBufferSize * sizeof(ImDrawIdx), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, sizeof(ImDrawIdx) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, D3DPOOL_DEFAULT, &bd->pIB, nullptr) < 0)
+        if (bd->pd3dDevice->CreateIndexBuffer(bd->IndexBufferSize * sizeof(unsigned short), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &bd->pIB, nullptr) < 0)
             return;
     }
 
     // Backup the DX9 state
+    /*
     IDirect3DStateBlock9* d3d9_state_block = nullptr;
     if (bd->pd3dDevice->CreateStateBlock(D3DSBT_ALL, &d3d9_state_block) < 0)
         return;
@@ -182,26 +183,28 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
     {
         d3d9_state_block->Release();
         return;
-    }
+    }*/
 
     // Backup the DX9 transform (DX9 documentation suggests that it is included in the StateBlock but it doesn't appear to)
+    /*
     D3DMATRIX last_world, last_view, last_projection;
     bd->pd3dDevice->GetTransform(D3DTS_WORLD, &last_world);
     bd->pd3dDevice->GetTransform(D3DTS_VIEW, &last_view);
     bd->pd3dDevice->GetTransform(D3DTS_PROJECTION, &last_projection);
+    */
 
     // Allocate buffers
     CUSTOMVERTEX* vtx_dst;
-    ImDrawIdx* idx_dst;
+    unsigned short* idx_dst;
     if (bd->pVB->Lock(0, (UINT)(draw_data->TotalVtxCount * sizeof(CUSTOMVERTEX)), (void**)&vtx_dst, D3DLOCK_DISCARD) < 0)
     {
-        d3d9_state_block->Release();
+        //d3d9_state_block->Release();
         return;
     }
-    if (bd->pIB->Lock(0, (UINT)(draw_data->TotalIdxCount * sizeof(ImDrawIdx)), (void**)&idx_dst, D3DLOCK_DISCARD) < 0)
+    if (bd->pIB->Lock(0, (UINT)(draw_data->TotalIdxCount * sizeof(unsigned short)), (void**)&idx_dst, D3DLOCK_DISCARD) < 0)
     {
         bd->pVB->Unlock();
-        d3d9_state_block->Release();
+        //d3d9_state_block->Release();
         return;
     }
 
@@ -224,7 +227,14 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
             vtx_dst++;
             vtx_src++;
         }
-        memcpy(idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
+        if (sizeof(ImDrawIdx) == sizeof(unsigned short)) {
+          memcpy(idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
+        } else {
+          // slower, but works on VIA
+          for (int i=0; i<cmd_list->IdxBuffer.Size; i++) {
+            idx_dst[i]=cmd_list->IdxBuffer.Data[i];
+          }
+        }
         idx_dst += cmd_list->IdxBuffer.Size;
     }
     bd->pVB->Unlock();
@@ -282,13 +292,18 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
         bd->pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, 0, 0, 0);
 
     // Restore the DX9 transform
+    // don't. I like this transform.
+    /*
     bd->pd3dDevice->SetTransform(D3DTS_WORLD, &last_world);
     bd->pd3dDevice->SetTransform(D3DTS_VIEW, &last_view);
     bd->pd3dDevice->SetTransform(D3DTS_PROJECTION, &last_projection);
+    */
 
     // Restore the DX9 state
+    /*
     d3d9_state_block->Apply();
     d3d9_state_block->Release();
+    */
 }
 
 bool ImGui_ImplDX9_Init(IDirect3DDevice9* device)
@@ -391,13 +406,15 @@ void ImGui_ImplDX9_InvalidateDeviceObjects()
     ImGui_ImplDX9_InvalidateDeviceObjectsForPlatformWindows();
 }
 
-void ImGui_ImplDX9_NewFrame()
+bool ImGui_ImplDX9_NewFrame()
 {
     ImGui_ImplDX9_Data* bd = ImGui_ImplDX9_GetBackendData();
     IM_ASSERT(bd != nullptr && "Did you call ImGui_ImplDX9_Init()?");
 
     if (!bd->FontTexture)
-        ImGui_ImplDX9_CreateDeviceObjects();
+        return ImGui_ImplDX9_CreateDeviceObjects();
+
+    return true;
 }
 
 //--------------------------------------------------------------------------------------------------------
@@ -506,9 +523,7 @@ static void ImGui_ImplDX9_RenderWindow(ImGuiViewport* viewport, void*)
 static void ImGui_ImplDX9_SwapBuffers(ImGuiViewport* viewport, void*)
 {
     ImGui_ImplDX9_ViewportData* vd = (ImGui_ImplDX9_ViewportData*)viewport->RendererUserData;
-    HRESULT hr = vd->SwapChain->Present(nullptr, nullptr, vd->d3dpp.hDeviceWindow, nullptr, 0);
-    // Let main application handle D3DERR_DEVICELOST by resetting the device.
-    IM_ASSERT(hr == D3D_OK || hr == D3DERR_DEVICELOST);
+    vd->SwapChain->Present(nullptr, nullptr, vd->d3dpp.hDeviceWindow, nullptr, 0);
 }
 
 static void ImGui_ImplDX9_InitPlatformInterface()
