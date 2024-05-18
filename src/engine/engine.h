@@ -766,6 +766,9 @@ class DivEngine {
     // get whether config value exists
     bool hasConf(String key);
 
+    // reset all settings
+    void factoryReset();
+
     // calculate base frequency/period
     double calcBaseFreq(double clock, double divider, int note, bool period);
 

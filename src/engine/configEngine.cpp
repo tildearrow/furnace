@@ -19,11 +19,13 @@
 
 #include "engine.h"
 #include "../ta-log.h"
+#include "../fileutils.h"
 
 #ifdef _WIN32
 #include "winStuff.h"
 #define CONFIG_FILE "\\furnace.cfg"
 #define LOG_FILE "\\furnace.log"
+#define LAYOUT_INI "\\layout.ini"
 #else
 #ifdef __HAIKU__
 #include <support/SupportDefs.h>
@@ -33,6 +35,8 @@
 #include <pwd.h>
 #include <sys/stat.h>
 #define CONFIG_FILE "/furnace.cfg"
+#define LOG_FILE "/furnace.log"
+#define LAYOUT_INI "/layout.ini"
 #endif
 
 #ifdef IS_MOBILE
@@ -171,4 +175,24 @@ bool DivEngine::hasConf(String key) {
 
 DivConfig& DivEngine::getConfObject() {
   return conf;
+}
+
+void DivEngine::factoryReset() {
+  conf.clear();
+  String confPath=configPath+String(CONFIG_FILE);
+  String layoutPath=configPath+String(LAYOUT_INI);
+
+  for (int i=0; i<10; i++) {
+    String path=confPath;
+    if (i>0) path+=fmt::sprintf(".%d",i);
+    deleteFile(path.c_str());
+  }
+
+  for (int i=0; i<10; i++) {
+    String path=layoutPath;
+    if (i>0) path+=fmt::sprintf(".%d",i);
+    deleteFile(path.c_str());
+  }
+
+  exit(0);
 }

@@ -3129,7 +3129,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
   if (ev->type==SDL_APP_TERMINATING) {
     // TODO: save last song state here
   } else if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
-    commitState();
+    commitState(e->getConfObject());
     e->saveConf();
   }
 #endif
@@ -4000,7 +4000,7 @@ bool FurnaceGUI::loop() {
         }
       }
 
-      commitState();
+      commitState(e->getConfObject());
       rend->quitGUI();
       rend->quit();
       ImGui_ImplSDL2_Shutdown();
@@ -6016,10 +6016,13 @@ bool FurnaceGUI::loop() {
           }
           break;
         case GUI_WARN_RESET_CONFIG:
+          pushDestColor();
           if (ImGui::Button("Yes")) {
+            e->factoryReset();
             quit=true;
             ImGui::CloseCurrentPopup();
           }
+          popDestColor();
           ImGui::SameLine();
           if (ImGui::Button("No")) {
             ImGui::CloseCurrentPopup();
@@ -6682,169 +6685,13 @@ bool FurnaceGUI::loop() {
 bool FurnaceGUI::init() {
   logI("initializing GUI.");
 
-  String homeDir=getHomeDir();
-  workingDir=e->getConfString("lastDir",homeDir);
-  workingDirSong=e->getConfString("lastDirSong",workingDir);
-  workingDirIns=e->getConfString("lastDirIns",workingDir);
-  workingDirWave=e->getConfString("lastDirWave",workingDir);
-  workingDirSample=e->getConfString("lastDirSample",workingDir);
-  workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
-  workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
-  workingDirZSMExport=e->getConfString("lastDirZSMExport",workingDir);
-  workingDirROMExport=e->getConfString("lastDirROMExport",workingDir);
-  workingDirFont=e->getConfString("lastDirFont",workingDir);
-  workingDirColors=e->getConfString("lastDirColors",workingDir);
-  workingDirKeybinds=e->getConfString("lastDirKeybinds",workingDir);
-  workingDirLayout=e->getConfString("lastDirLayout",workingDir);
-  workingDirConfig=e->getConfString("lastDirConfig",workingDir);
-  workingDirTest=e->getConfString("lastDirTest",workingDir);
-
-  editControlsOpen=e->getConfBool("editControlsOpen",true);
-  ordersOpen=e->getConfBool("ordersOpen",true);
-  insListOpen=e->getConfBool("insListOpen",true);
-  songInfoOpen=e->getConfBool("songInfoOpen",true);
-  patternOpen=e->getConfBool("patternOpen",true);
-  insEditOpen=e->getConfBool("insEditOpen",false);
-  waveListOpen=e->getConfBool("waveListOpen",true);
-  waveEditOpen=e->getConfBool("waveEditOpen",false);
-  sampleListOpen=e->getConfBool("sampleListOpen",true);
-  sampleEditOpen=e->getConfBool("sampleEditOpen",false);
-  settingsOpen=e->getConfBool("settingsOpen",false);
-  mixerOpen=e->getConfBool("mixerOpen",false);
-  oscOpen=e->getConfBool("oscOpen",true);
-  chanOscOpen=e->getConfBool("chanOscOpen",false);
-  xyOscOpen=e->getConfBool("xyOscOpen",false);
-  memoryOpen=e->getConfBool("memoryOpen",false);
-  volMeterOpen=e->getConfBool("volMeterOpen",true);
-  statsOpen=e->getConfBool("statsOpen",false);
-  compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
-#ifdef IS_MOBILE
-  pianoOpen=e->getConfBool("pianoOpen",true);
-#else
-  pianoOpen=e->getConfBool("pianoOpen",false);
-#endif
-  notesOpen=e->getConfBool("notesOpen",false);
-  channelsOpen=e->getConfBool("channelsOpen",false);
-  patManagerOpen=e->getConfBool("patManagerOpen",false);
-  sysManagerOpen=e->getConfBool("sysManagerOpen",false);
-  clockOpen=e->getConfBool("clockOpen",false);
-  speedOpen=e->getConfBool("speedOpen",true);
-  groovesOpen=e->getConfBool("groovesOpen",false);
-  regViewOpen=e->getConfBool("regViewOpen",false);
-  logOpen=e->getConfBool("logOpen",false);
-  effectListOpen=e->getConfBool("effectListOpen",true);
-  subSongsOpen=e->getConfBool("subSongsOpen",true);
-  findOpen=e->getConfBool("findOpen",false);
-  spoilerOpen=e->getConfBool("spoilerOpen",false);
-  userPresetsOpen=e->getConfBool("userPresetsOpen",false);
-
-  insListDir=e->getConfBool("insListDir",false);
-  waveListDir=e->getConfBool("waveListDir",false);
-  sampleListDir=e->getConfBool("sampleListDir",false);
-
-  tempoView=e->getConfBool("tempoView",true);
-  waveHex=e->getConfBool("waveHex",false);
-  waveSigned=e->getConfBool("waveSigned",false);
-  waveGenVisible=e->getConfBool("waveGenVisible",false);
-  waveEditStyle=e->getConfInt("waveEditStyle",0);
-  int extraChannelButtons=e->getConfInt("extraChannelButtons",0);
-  if (!e->hasConf("patExtraButtons")) {
-    patExtraButtons=(extraChannelButtons==1);
-  } else {
-    patExtraButtons=e->getConfBool("patExtraButtons",false);
-  }
-  if (!e->hasConf("patChannelNames")) {
-    patChannelNames=(extraChannelButtons==2);
-  } else {
-    patChannelNames=e->getConfBool("patChannelNames",false);
-  }
-  patChannelPairs=e->getConfBool("patChannelPairs",true);
-  patChannelHints=e->getConfInt("patChannelHints",0);
-  lockLayout=e->getConfBool("lockLayout",false);
-#ifdef IS_MOBILE
-  fullScreen=true;
-#else
-  fullScreen=e->getConfBool("fullScreen",false);
-#endif
-  mobileUI=e->getConfBool("mobileUI",MOBILE_UI_DEFAULT);
-  edit=e->getConfBool("edit",false);
-  followOrders=e->getConfBool("followOrders",true);
-  followPattern=e->getConfBool("followPattern",true);
-  noteInputPoly=e->getConfBool("noteInputPoly",true);
-  audioExportOptions.loops=e->getConfInt("exportLoops",0);
-  if (audioExportOptions.loops<0) audioExportOptions.loops=0;
-  audioExportOptions.fadeOut=e->getConfDouble("exportFadeOut",0.0);
-  if (audioExportOptions.fadeOut<0.0) audioExportOptions.fadeOut=0.0;
-  orderEditMode=e->getConfInt("orderEditMode",0);
-  if (orderEditMode<0) orderEditMode=0;
-  if (orderEditMode>3) orderEditMode=3;
-
-  oscZoom=e->getConfFloat("oscZoom",0.5f);
-  oscZoomSlider=e->getConfBool("oscZoomSlider",false);
-  oscWindowSize=e->getConfFloat("oscWindowSize",20.0f);
-
-  pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
-  pianoOctavesEdit=e->getConfInt("pianoOctavesEdit",pianoOctavesEdit);
-  pianoOptions=e->getConfBool("pianoOptions",pianoOptions);
-  pianoSharePosition=e->getConfBool("pianoSharePosition",pianoSharePosition);
-  pianoOptionsSet=e->getConfBool("pianoOptionsSet",pianoOptionsSet);
-  pianoReadonly=e->getConfBool("pianoReadonly",false);
-  pianoOffset=e->getConfInt("pianoOffset",pianoOffset);
-  pianoOffsetEdit=e->getConfInt("pianoOffsetEdit",pianoOffsetEdit);
-  pianoView=e->getConfInt("pianoView",pianoView);
-  pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
-
-  chanOscCols=e->getConfInt("chanOscCols",3);
-  chanOscAutoColsType=e->getConfInt("chanOscAutoColsType",0);
-  chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
-  chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
-  chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
-  chanOscTextY=e->getConfFloat("chanOscTextY",0.0f);
-  chanOscAmplify=e->getConfFloat("chanOscAmplify",0.95f);
-  chanOscLineSize=e->getConfFloat("chanOscLineSize",1.0f);
-  chanOscWindowSize=e->getConfFloat("chanOscWindowSize",20.0f);
-  chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
-  chanOscOptions=e->getConfBool("chanOscOptions",false);
-  chanOscNormalize=e->getConfBool("chanOscNormalize",false);
-  chanOscRandomPhase=e->getConfBool("chanOscRandomPhase",false);
-  chanOscTextFormat=e->getConfString("chanOscTextFormat","%c");
-  chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
-  chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
-  chanOscColor.z=e->getConfFloat("chanOscColorB",1.0f);
-  chanOscColor.w=e->getConfFloat("chanOscColorA",1.0f);
-  chanOscTextColor.x=e->getConfFloat("chanOscTextColorR",1.0f);
-  chanOscTextColor.y=e->getConfFloat("chanOscTextColorG",1.0f);
-  chanOscTextColor.z=e->getConfFloat("chanOscTextColorB",1.0f);
-  chanOscTextColor.w=e->getConfFloat("chanOscTextColorA",0.75f);
-  chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
-  chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
-  chanOscGrad.render();
-
-  xyOscXChannel=e->getConfInt("xyOscXChannel",0);
-  xyOscXInvert=e->getConfBool("xyOscXInvert",false);
-  xyOscYChannel=e->getConfInt("xyOscYChannel",1);
-  xyOscYInvert=e->getConfBool("xyOscYInvert",false);
-  xyOscZoom=e->getConfFloat("xyOscZoom",1.0f);
-  xyOscSamples=e->getConfInt("xyOscSamples",32768);
-  xyOscDecayTime=e->getConfFloat("xyOscDecayTime",10.0f);
-  xyOscIntensity=e->getConfFloat("xyOscIntensity",2.0f);
-  xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
-
-  cvHiScore=e->getConfInt("cvHiScore",25000);
-
+  syncState();
   syncSettings();
   syncTutorial();
 
   if (!settings.persistFadeOut) {
     audioExportOptions.loops=settings.exportLoops;
     audioExportOptions.fadeOut=settings.exportFadeOut;
-  }
-
-  for (int i=0; i<settings.maxRecentFile; i++) {
-    String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
-    if (!r.empty()) {
-      recentFile.push_back(r);
-    }
   }
 
   initSystemPresets();
@@ -7251,170 +7098,330 @@ bool FurnaceGUI::init() {
   return true;
 }
 
-void FurnaceGUI::commitState() {
+void FurnaceGUI::syncState() {
+  String homeDir=getHomeDir();
+  workingDir=e->getConfString("lastDir",homeDir);
+  workingDirSong=e->getConfString("lastDirSong",workingDir);
+  workingDirIns=e->getConfString("lastDirIns",workingDir);
+  workingDirWave=e->getConfString("lastDirWave",workingDir);
+  workingDirSample=e->getConfString("lastDirSample",workingDir);
+  workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
+  workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
+  workingDirZSMExport=e->getConfString("lastDirZSMExport",workingDir);
+  workingDirROMExport=e->getConfString("lastDirROMExport",workingDir);
+  workingDirFont=e->getConfString("lastDirFont",workingDir);
+  workingDirColors=e->getConfString("lastDirColors",workingDir);
+  workingDirKeybinds=e->getConfString("lastDirKeybinds",workingDir);
+  workingDirLayout=e->getConfString("lastDirLayout",workingDir);
+  workingDirConfig=e->getConfString("lastDirConfig",workingDir);
+  workingDirTest=e->getConfString("lastDirTest",workingDir);
+
+  editControlsOpen=e->getConfBool("editControlsOpen",true);
+  ordersOpen=e->getConfBool("ordersOpen",true);
+  insListOpen=e->getConfBool("insListOpen",true);
+  songInfoOpen=e->getConfBool("songInfoOpen",true);
+  patternOpen=e->getConfBool("patternOpen",true);
+  insEditOpen=e->getConfBool("insEditOpen",false);
+  waveListOpen=e->getConfBool("waveListOpen",true);
+  waveEditOpen=e->getConfBool("waveEditOpen",false);
+  sampleListOpen=e->getConfBool("sampleListOpen",true);
+  sampleEditOpen=e->getConfBool("sampleEditOpen",false);
+  settingsOpen=e->getConfBool("settingsOpen",false);
+  mixerOpen=e->getConfBool("mixerOpen",false);
+  oscOpen=e->getConfBool("oscOpen",true);
+  chanOscOpen=e->getConfBool("chanOscOpen",false);
+  xyOscOpen=e->getConfBool("xyOscOpen",false);
+  memoryOpen=e->getConfBool("memoryOpen",false);
+  volMeterOpen=e->getConfBool("volMeterOpen",true);
+  statsOpen=e->getConfBool("statsOpen",false);
+  compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
+#ifdef IS_MOBILE
+  pianoOpen=e->getConfBool("pianoOpen",true);
+#else
+  pianoOpen=e->getConfBool("pianoOpen",false);
+#endif
+  notesOpen=e->getConfBool("notesOpen",false);
+  channelsOpen=e->getConfBool("channelsOpen",false);
+  patManagerOpen=e->getConfBool("patManagerOpen",false);
+  sysManagerOpen=e->getConfBool("sysManagerOpen",false);
+  clockOpen=e->getConfBool("clockOpen",false);
+  speedOpen=e->getConfBool("speedOpen",true);
+  groovesOpen=e->getConfBool("groovesOpen",false);
+  regViewOpen=e->getConfBool("regViewOpen",false);
+  logOpen=e->getConfBool("logOpen",false);
+  effectListOpen=e->getConfBool("effectListOpen",true);
+  subSongsOpen=e->getConfBool("subSongsOpen",true);
+  findOpen=e->getConfBool("findOpen",false);
+  spoilerOpen=e->getConfBool("spoilerOpen",false);
+  userPresetsOpen=e->getConfBool("userPresetsOpen",false);
+
+  insListDir=e->getConfBool("insListDir",false);
+  waveListDir=e->getConfBool("waveListDir",false);
+  sampleListDir=e->getConfBool("sampleListDir",false);
+
+  tempoView=e->getConfBool("tempoView",true);
+  waveHex=e->getConfBool("waveHex",false);
+  waveSigned=e->getConfBool("waveSigned",false);
+  waveGenVisible=e->getConfBool("waveGenVisible",false);
+  waveEditStyle=e->getConfInt("waveEditStyle",0);
+  int extraChannelButtons=e->getConfInt("extraChannelButtons",0);
+  if (!e->hasConf("patExtraButtons")) {
+    patExtraButtons=(extraChannelButtons==1);
+  } else {
+    patExtraButtons=e->getConfBool("patExtraButtons",false);
+  }
+  if (!e->hasConf("patChannelNames")) {
+    patChannelNames=(extraChannelButtons==2);
+  } else {
+    patChannelNames=e->getConfBool("patChannelNames",false);
+  }
+  patChannelPairs=e->getConfBool("patChannelPairs",true);
+  patChannelHints=e->getConfInt("patChannelHints",0);
+  lockLayout=e->getConfBool("lockLayout",false);
+#ifdef IS_MOBILE
+  fullScreen=true;
+#else
+  fullScreen=e->getConfBool("fullScreen",false);
+#endif
+  mobileUI=e->getConfBool("mobileUI",MOBILE_UI_DEFAULT);
+  edit=e->getConfBool("edit",false);
+  followOrders=e->getConfBool("followOrders",true);
+  followPattern=e->getConfBool("followPattern",true);
+  noteInputPoly=e->getConfBool("noteInputPoly",true);
+  audioExportOptions.loops=e->getConfInt("exportLoops",0);
+  if (audioExportOptions.loops<0) audioExportOptions.loops=0;
+  audioExportOptions.fadeOut=e->getConfDouble("exportFadeOut",0.0);
+  if (audioExportOptions.fadeOut<0.0) audioExportOptions.fadeOut=0.0;
+  orderEditMode=e->getConfInt("orderEditMode",0);
+  if (orderEditMode<0) orderEditMode=0;
+  if (orderEditMode>3) orderEditMode=3;
+
+  oscZoom=e->getConfFloat("oscZoom",0.5f);
+  oscZoomSlider=e->getConfBool("oscZoomSlider",false);
+  oscWindowSize=e->getConfFloat("oscWindowSize",20.0f);
+
+  pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
+  pianoOctavesEdit=e->getConfInt("pianoOctavesEdit",pianoOctavesEdit);
+  pianoOptions=e->getConfBool("pianoOptions",pianoOptions);
+  pianoSharePosition=e->getConfBool("pianoSharePosition",pianoSharePosition);
+  pianoOptionsSet=e->getConfBool("pianoOptionsSet",pianoOptionsSet);
+  pianoReadonly=e->getConfBool("pianoReadonly",false);
+  pianoOffset=e->getConfInt("pianoOffset",pianoOffset);
+  pianoOffsetEdit=e->getConfInt("pianoOffsetEdit",pianoOffsetEdit);
+  pianoView=e->getConfInt("pianoView",pianoView);
+  pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
+
+  chanOscCols=e->getConfInt("chanOscCols",3);
+  chanOscAutoColsType=e->getConfInt("chanOscAutoColsType",0);
+  chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
+  chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
+  chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
+  chanOscTextY=e->getConfFloat("chanOscTextY",0.0f);
+  chanOscAmplify=e->getConfFloat("chanOscAmplify",0.95f);
+  chanOscLineSize=e->getConfFloat("chanOscLineSize",1.0f);
+  chanOscWindowSize=e->getConfFloat("chanOscWindowSize",20.0f);
+  chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
+  chanOscOptions=e->getConfBool("chanOscOptions",false);
+  chanOscNormalize=e->getConfBool("chanOscNormalize",false);
+  chanOscRandomPhase=e->getConfBool("chanOscRandomPhase",false);
+  chanOscTextFormat=e->getConfString("chanOscTextFormat","%c");
+  chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
+  chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
+  chanOscColor.z=e->getConfFloat("chanOscColorB",1.0f);
+  chanOscColor.w=e->getConfFloat("chanOscColorA",1.0f);
+  chanOscTextColor.x=e->getConfFloat("chanOscTextColorR",1.0f);
+  chanOscTextColor.y=e->getConfFloat("chanOscTextColorG",1.0f);
+  chanOscTextColor.z=e->getConfFloat("chanOscTextColorB",1.0f);
+  chanOscTextColor.w=e->getConfFloat("chanOscTextColorA",0.75f);
+  chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
+  chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
+  chanOscGrad.render();
+
+  xyOscXChannel=e->getConfInt("xyOscXChannel",0);
+  xyOscXInvert=e->getConfBool("xyOscXInvert",false);
+  xyOscYChannel=e->getConfInt("xyOscYChannel",1);
+  xyOscYInvert=e->getConfBool("xyOscYInvert",false);
+  xyOscZoom=e->getConfFloat("xyOscZoom",1.0f);
+  xyOscSamples=e->getConfInt("xyOscSamples",32768);
+  xyOscDecayTime=e->getConfFloat("xyOscDecayTime",10.0f);
+  xyOscIntensity=e->getConfFloat("xyOscIntensity",2.0f);
+  xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
+
+  cvHiScore=e->getConfInt("cvHiScore",25000);
+
+  recentFile.clear();
+  for (int i=0; i<settings.maxRecentFile; i++) {
+    String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
+    if (!r.empty()) {
+      recentFile.push_back(r);
+    }
+  }
+}
+
+void FurnaceGUI::commitState(DivConfig& conf) {
   if (!mobileUI) {
     if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
       reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
     }
   }
 
-  e->setConf("configVersion",(int)DIV_ENGINE_VERSION);
+  conf.set("configVersion",(int)DIV_ENGINE_VERSION);
 
-  e->setConf("lastDir",workingDir);
-  e->setConf("lastDirSong",workingDirSong);
-  e->setConf("lastDirIns",workingDirIns);
-  e->setConf("lastDirWave",workingDirWave);
-  e->setConf("lastDirSample",workingDirSample);
-  e->setConf("lastDirAudioExport",workingDirAudioExport);
-  e->setConf("lastDirVGMExport",workingDirVGMExport);
-  e->setConf("lastDirZSMExport",workingDirZSMExport);
-  e->setConf("lastDirROMExport",workingDirROMExport);
-  e->setConf("lastDirFont",workingDirFont);
-  e->setConf("lastDirColors",workingDirColors);
-  e->setConf("lastDirKeybinds",workingDirKeybinds);
-  e->setConf("lastDirLayout",workingDirLayout);
-  e->setConf("lastDirConfig",workingDirConfig);
-  e->setConf("lastDirTest",workingDirTest);
+  conf.set("lastDir",workingDir);
+  conf.set("lastDirSong",workingDirSong);
+  conf.set("lastDirIns",workingDirIns);
+  conf.set("lastDirWave",workingDirWave);
+  conf.set("lastDirSample",workingDirSample);
+  conf.set("lastDirAudioExport",workingDirAudioExport);
+  conf.set("lastDirVGMExport",workingDirVGMExport);
+  conf.set("lastDirZSMExport",workingDirZSMExport);
+  conf.set("lastDirROMExport",workingDirROMExport);
+  conf.set("lastDirFont",workingDirFont);
+  conf.set("lastDirColors",workingDirColors);
+  conf.set("lastDirKeybinds",workingDirKeybinds);
+  conf.set("lastDirLayout",workingDirLayout);
+  conf.set("lastDirConfig",workingDirConfig);
+  conf.set("lastDirTest",workingDirTest);
 
   // commit last open windows
-  e->setConf("editControlsOpen",editControlsOpen);
-  e->setConf("ordersOpen",ordersOpen);
-  e->setConf("insListOpen",insListOpen);
-  e->setConf("songInfoOpen",songInfoOpen);
-  e->setConf("patternOpen",patternOpen);
-  e->setConf("insEditOpen",insEditOpen);
-  e->setConf("waveListOpen",waveListOpen);
-  e->setConf("waveEditOpen",waveEditOpen);
-  e->setConf("sampleListOpen",sampleListOpen);
-  e->setConf("sampleEditOpen",sampleEditOpen);
-  e->setConf("settingsOpen",settingsOpen);
-  e->setConf("mixerOpen",mixerOpen);
-  e->setConf("oscOpen",oscOpen);
-  e->setConf("chanOscOpen",chanOscOpen);
-  e->setConf("xyOscOpen",xyOscOpen);
-  e->setConf("memoryOpen",memoryOpen);
-  e->setConf("volMeterOpen",volMeterOpen);
-  e->setConf("statsOpen",statsOpen);
-  e->setConf("compatFlagsOpen",compatFlagsOpen);
-  e->setConf("pianoOpen",pianoOpen);
-  e->setConf("notesOpen",notesOpen);
-  e->setConf("channelsOpen",channelsOpen);
-  e->setConf("patManagerOpen",patManagerOpen);
-  e->setConf("sysManagerOpen",sysManagerOpen);
-  e->setConf("clockOpen",clockOpen);
-  e->setConf("speedOpen",speedOpen);
-  e->setConf("groovesOpen",groovesOpen);
-  e->setConf("regViewOpen",regViewOpen);
-  e->setConf("logOpen",logOpen);
-  e->setConf("effectListOpen",effectListOpen);
-  e->setConf("subSongsOpen",subSongsOpen);
-  e->setConf("findOpen",findOpen);
-  e->setConf("spoilerOpen",spoilerOpen);
-  e->setConf("userPresetsOpen",userPresetsOpen);
+  conf.set("editControlsOpen",editControlsOpen);
+  conf.set("ordersOpen",ordersOpen);
+  conf.set("insListOpen",insListOpen);
+  conf.set("songInfoOpen",songInfoOpen);
+  conf.set("patternOpen",patternOpen);
+  conf.set("insEditOpen",insEditOpen);
+  conf.set("waveListOpen",waveListOpen);
+  conf.set("waveEditOpen",waveEditOpen);
+  conf.set("sampleListOpen",sampleListOpen);
+  conf.set("sampleEditOpen",sampleEditOpen);
+  conf.set("settingsOpen",settingsOpen);
+  conf.set("mixerOpen",mixerOpen);
+  conf.set("oscOpen",oscOpen);
+  conf.set("chanOscOpen",chanOscOpen);
+  conf.set("xyOscOpen",xyOscOpen);
+  conf.set("memoryOpen",memoryOpen);
+  conf.set("volMeterOpen",volMeterOpen);
+  conf.set("statsOpen",statsOpen);
+  conf.set("compatFlagsOpen",compatFlagsOpen);
+  conf.set("pianoOpen",pianoOpen);
+  conf.set("notesOpen",notesOpen);
+  conf.set("channelsOpen",channelsOpen);
+  conf.set("patManagerOpen",patManagerOpen);
+  conf.set("sysManagerOpen",sysManagerOpen);
+  conf.set("clockOpen",clockOpen);
+  conf.set("speedOpen",speedOpen);
+  conf.set("groovesOpen",groovesOpen);
+  conf.set("regViewOpen",regViewOpen);
+  conf.set("logOpen",logOpen);
+  conf.set("effectListOpen",effectListOpen);
+  conf.set("subSongsOpen",subSongsOpen);
+  conf.set("findOpen",findOpen);
+  conf.set("spoilerOpen",spoilerOpen);
+  conf.set("userPresetsOpen",userPresetsOpen);
 
   // commit dir state
-  e->setConf("insListDir",insListDir);
-  e->setConf("waveListDir",waveListDir);
-  e->setConf("sampleListDir",sampleListDir);
+  conf.set("insListDir",insListDir);
+  conf.set("waveListDir",waveListDir);
+  conf.set("sampleListDir",sampleListDir);
 
   // commit last window size
-  e->setConf("lastWindowWidth",scrConfW);
-  e->setConf("lastWindowHeight",scrConfH);
-  e->setConf("lastWindowX",settings.saveWindowPos?scrConfX:(int)SDL_WINDOWPOS_CENTERED);
-  e->setConf("lastWindowY",settings.saveWindowPos?scrConfY:(int)SDL_WINDOWPOS_CENTERED);
-  e->setConf("lastWindowMax",scrMax);
+  conf.set("lastWindowWidth",scrConfW);
+  conf.set("lastWindowHeight",scrConfH);
+  conf.set("lastWindowX",settings.saveWindowPos?scrConfX:(int)SDL_WINDOWPOS_CENTERED);
+  conf.set("lastWindowY",settings.saveWindowPos?scrConfY:(int)SDL_WINDOWPOS_CENTERED);
+  conf.set("lastWindowMax",scrMax);
 
-  e->setConf("tempoView",tempoView);
-  e->setConf("waveHex",waveHex);
-  e->setConf("waveSigned",waveSigned);
-  e->setConf("waveGenVisible",waveGenVisible);
-  e->setConf("waveEditStyle",waveEditStyle);
-  e->setConf("patExtraButtons",patExtraButtons);
-  e->setConf("patChannelNames",patChannelNames);
-  e->setConf("patChannelPairs",patChannelPairs);
-  e->setConf("patChannelHints",(int)patChannelHints);
-  e->setConf("lockLayout",lockLayout);
-  e->setConf("fullScreen",fullScreen);
-  e->setConf("mobileUI",mobileUI);
-  e->setConf("edit",edit);
-  e->setConf("followOrders",followOrders);
-  e->setConf("followPattern",followPattern);
-  e->setConf("orderEditMode",orderEditMode);
-  e->setConf("noteInputPoly",noteInputPoly);
+  conf.set("tempoView",tempoView);
+  conf.set("waveHex",waveHex);
+  conf.set("waveSigned",waveSigned);
+  conf.set("waveGenVisible",waveGenVisible);
+  conf.set("waveEditStyle",waveEditStyle);
+  conf.set("patExtraButtons",patExtraButtons);
+  conf.set("patChannelNames",patChannelNames);
+  conf.set("patChannelPairs",patChannelPairs);
+  conf.set("patChannelHints",(int)patChannelHints);
+  conf.set("lockLayout",lockLayout);
+  conf.set("fullScreen",fullScreen);
+  conf.set("mobileUI",mobileUI);
+  conf.set("edit",edit);
+  conf.set("followOrders",followOrders);
+  conf.set("followPattern",followPattern);
+  conf.set("orderEditMode",orderEditMode);
+  conf.set("noteInputPoly",noteInputPoly);
   if (settings.persistFadeOut) {
-    e->setConf("exportLoops",audioExportOptions.loops);
-    e->setConf("exportFadeOut",audioExportOptions.fadeOut);
+    conf.set("exportLoops",audioExportOptions.loops);
+    conf.set("exportFadeOut",audioExportOptions.fadeOut);
   }
 
   // commit oscilloscope state
-  e->setConf("oscZoom",oscZoom);
-  e->setConf("oscZoomSlider",oscZoomSlider);
-  e->setConf("oscWindowSize",oscWindowSize);
+  conf.set("oscZoom",oscZoom);
+  conf.set("oscZoomSlider",oscZoomSlider);
+  conf.set("oscWindowSize",oscWindowSize);
 
   // commit piano state
-  e->setConf("pianoOctaves",pianoOctaves);
-  e->setConf("pianoOctavesEdit",pianoOctavesEdit);
-  e->setConf("pianoOptions",pianoOptions);
-  e->setConf("pianoSharePosition",pianoSharePosition);
-  e->setConf("pianoOptionsSet",pianoOptionsSet);
-  e->setConf("pianoReadonly",pianoReadonly);
-  e->setConf("pianoOffset",pianoOffset);
-  e->setConf("pianoOffsetEdit",pianoOffsetEdit);
-  e->setConf("pianoView",pianoView);
-  e->setConf("pianoInputPadMode",pianoInputPadMode);
+  conf.set("pianoOctaves",pianoOctaves);
+  conf.set("pianoOctavesEdit",pianoOctavesEdit);
+  conf.set("pianoOptions",pianoOptions);
+  conf.set("pianoSharePosition",pianoSharePosition);
+  conf.set("pianoOptionsSet",pianoOptionsSet);
+  conf.set("pianoReadonly",pianoReadonly);
+  conf.set("pianoOffset",pianoOffset);
+  conf.set("pianoOffsetEdit",pianoOffsetEdit);
+  conf.set("pianoView",pianoView);
+  conf.set("pianoInputPadMode",pianoInputPadMode);
 
   // commit per-chan osc state
-  e->setConf("chanOscCols",chanOscCols);
-  e->setConf("chanOscAutoColsType",chanOscAutoColsType);
-  e->setConf("chanOscColorX",chanOscColorX);
-  e->setConf("chanOscColorY",chanOscColorY);
-  e->setConf("chanOscTextX",chanOscTextX);
-  e->setConf("chanOscTextY",chanOscTextY);
-  e->setConf("chanOscAmplify",chanOscAmplify);
-  e->setConf("chanOscLineSize",chanOscLineSize);
-  e->setConf("chanOscWindowSize",chanOscWindowSize);
-  e->setConf("chanOscWaveCorr",chanOscWaveCorr);
-  e->setConf("chanOscOptions",chanOscOptions);
-  e->setConf("chanOscNormalize",chanOscNormalize);
-  e->setConf("chanOscRandomPhase",chanOscRandomPhase);
-  e->setConf("chanOscTextFormat",chanOscTextFormat);
-  e->setConf("chanOscColorR",chanOscColor.x);
-  e->setConf("chanOscColorG",chanOscColor.y);
-  e->setConf("chanOscColorB",chanOscColor.z);
-  e->setConf("chanOscColorA",chanOscColor.w);
-  e->setConf("chanOscTextColorR",chanOscTextColor.x);
-  e->setConf("chanOscTextColorG",chanOscTextColor.y);
-  e->setConf("chanOscTextColorB",chanOscTextColor.z);
-  e->setConf("chanOscTextColorA",chanOscTextColor.w);
-  e->setConf("chanOscUseGrad",chanOscUseGrad);
-  e->setConf("chanOscGrad",chanOscGrad.toString());
+  conf.set("chanOscCols",chanOscCols);
+  conf.set("chanOscAutoColsType",chanOscAutoColsType);
+  conf.set("chanOscColorX",chanOscColorX);
+  conf.set("chanOscColorY",chanOscColorY);
+  conf.set("chanOscTextX",chanOscTextX);
+  conf.set("chanOscTextY",chanOscTextY);
+  conf.set("chanOscAmplify",chanOscAmplify);
+  conf.set("chanOscLineSize",chanOscLineSize);
+  conf.set("chanOscWindowSize",chanOscWindowSize);
+  conf.set("chanOscWaveCorr",chanOscWaveCorr);
+  conf.set("chanOscOptions",chanOscOptions);
+  conf.set("chanOscNormalize",chanOscNormalize);
+  conf.set("chanOscRandomPhase",chanOscRandomPhase);
+  conf.set("chanOscTextFormat",chanOscTextFormat);
+  conf.set("chanOscColorR",chanOscColor.x);
+  conf.set("chanOscColorG",chanOscColor.y);
+  conf.set("chanOscColorB",chanOscColor.z);
+  conf.set("chanOscColorA",chanOscColor.w);
+  conf.set("chanOscTextColorR",chanOscTextColor.x);
+  conf.set("chanOscTextColorG",chanOscTextColor.y);
+  conf.set("chanOscTextColorB",chanOscTextColor.z);
+  conf.set("chanOscTextColorA",chanOscTextColor.w);
+  conf.set("chanOscUseGrad",chanOscUseGrad);
+  conf.set("chanOscGrad",chanOscGrad.toString());
 
   // commit x-y osc state
-  e->setConf("xyOscXChannel",xyOscXChannel);
-  e->setConf("xyOscXInvert",xyOscXInvert);
-  e->setConf("xyOscYChannel",xyOscYChannel);
-  e->setConf("xyOscYInvert",xyOscYInvert);
-  e->setConf("xyOscZoom",xyOscZoom);
-  e->setConf("xyOscSamples",xyOscSamples);
-  e->setConf("xyOscDecayTime",xyOscDecayTime);
-  e->setConf("xyOscIntensity",xyOscIntensity);
-  e->setConf("xyOscThickness",xyOscThickness);
+  conf.set("xyOscXChannel",xyOscXChannel);
+  conf.set("xyOscXInvert",xyOscXInvert);
+  conf.set("xyOscYChannel",xyOscYChannel);
+  conf.set("xyOscYInvert",xyOscYInvert);
+  conf.set("xyOscZoom",xyOscZoom);
+  conf.set("xyOscSamples",xyOscSamples);
+  conf.set("xyOscDecayTime",xyOscDecayTime);
+  conf.set("xyOscIntensity",xyOscIntensity);
+  conf.set("xyOscThickness",xyOscThickness);
 
   // commit recent files
   for (int i=0; i<30; i++) {
     String key=fmt::sprintf("recentFile%d",i);
     if (i>=settings.maxRecentFile || i>=(int)recentFile.size()) {
-      e->setConf(key,"");
+      conf.set(key,"");
     } else {
-      e->setConf(key,recentFile[i]);
+      conf.set(key,recentFile[i]);
     }
   }
 
-  e->setConf("cvHiScore",cvHiScore);
+  conf.set("cvHiScore",cvHiScore);
 }
 
 bool FurnaceGUI::finish(bool saveConfig) {
-  commitState();
+  commitState(e->getConfObject());
   if (userPresetsOpen) {
     saveUserPresets(true);
   }

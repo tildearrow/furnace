@@ -5311,11 +5311,39 @@ bool FurnaceGUI::exportLayout(String path) {
 }
 
 bool FurnaceGUI::importConfig(String path) {
-  return false;
+  DivConfig prevConf=e->getConfObject();
+  DivConfig& conf=e->getConfObject();
+  conf.clear();
+  if (!conf.loadFromFile(path.c_str(),false,false)) {
+    showError(fmt::sprintf("error while loading config! (%s)",strerror(errno)));
+    conf=prevConf;
+    return false;
+  }
+  syncState();
+  syncSettings();
+  commitSettings();
+  return true;
 }
 
 bool FurnaceGUI::exportConfig(String path) {
-  return false;
+  DivConfig exConf=e->getConfObject();
+  writeConfig(exConf,GUI_SETTINGS_ALL);
+  commitState(exConf);
+
+  FILE* f=ps_fopen(path.c_str(),"wb");
+  if (f==NULL) {
+    logW("error while exporting config: %s",strerror(errno));
+    return false;
+  }
+
+  String result=exConf.toString();
+
+  if (fwrite(result.c_str(),1,result.size(),f)!=result.size()) {
+    logW("couldn't write config entirely.");
+  }
+
+  fclose(f);
+  return true;
 }
 
 void FurnaceGUI::resetColors() {
