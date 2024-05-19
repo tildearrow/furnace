@@ -3998,6 +3998,11 @@ void FurnaceGUI::drawSettings() {
         }
         END_SECTION;
       }
+      CONFIG_SECTION("Backup") {
+        // SUBSECTION SETTINGS
+        CONFIG_SUBSECTION("Configuration");
+        END_SECTION;
+      }
       if (nonLatchNibble) {
         // ok, so you decided to read the code.
         // these are the cheat codes:
