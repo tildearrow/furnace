@@ -336,6 +336,10 @@ String stripName(String what) {
   return ret;
 }
 
+void FurnaceGUI::purgeBackups(int year, int month, int day) {
+  refreshBackups=true;
+}
+
 void FurnaceGUI::promptKey(int which) {
   bindSetTarget=which;
   bindSetActive=true;
@@ -4030,14 +4034,16 @@ void FurnaceGUI::drawSettings() {
         CONFIG_SUBSECTION("Backup Management");
         bool purgeDateChanged=false;
 
-        ImGui::Text("Delete before (year/month/day):");
-        ImGui::SetNextItemWidth(80.0f*dpiScale);
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Purge before:");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(60.0f*dpiScale);
         if (ImGui::InputInt("##PYear",&purgeYear,0,0)) purgeDateChanged=true;
         ImGui::SameLine();
-        ImGui::SetNextItemWidth(60.0f*dpiScale);
+        ImGui::SetNextItemWidth(40.0f*dpiScale);
         if (ImGui::InputInt("##PMonth",&purgeMonth,0,0)) purgeDateChanged=true;
         ImGui::SameLine();
-        ImGui::SetNextItemWidth(60.0f*dpiScale);
+        ImGui::SetNextItemWidth(40.0f*dpiScale);
         if (ImGui::InputInt("##PDay",&purgeDay,0,0)) purgeDateChanged=true;
 
         if (purgeDateChanged) {
@@ -4103,11 +4109,12 @@ void FurnaceGUI::drawSettings() {
         }
 
         ImGui::SameLine();
-        ImGui::Button("Go##PDate");
-
-        ImGui::Button("Delete all");
+        if (ImGui::Button("Go##PDate")) {
+          purgeBackups(purgeYear,purgeMonth,purgeDay);
+        }
 
         backupEntryLock.lock();
+        ImGui::AlignTextToFramePadding();
         if (totalBackupSize>=(1ULL<<50ULL)) {
           ImGui::Text("%" PRIu64 "PB used",totalBackupSize>>50);
         } else if (totalBackupSize>=(1ULL<<40ULL)) {
@@ -4120,6 +4127,16 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("%" PRIu64 "KB used",totalBackupSize>>10);
         } else {
           ImGui::Text("%" PRIu64 " bytes used",totalBackupSize);
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Refresh")) {
+          refreshBackups=true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Delete all")) {
+          purgeBackups(0,0,0);
         }
 
         if (ImGui::BeginTable("BackupList",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders)) {
@@ -4156,9 +4173,11 @@ void FurnaceGUI::drawSettings() {
         backupEntryLock.unlock();
         if (refreshBackups) {
           refreshBackups=false;
+          if (backupEntryTask.valid()) backupEntryTask.get();
           backupEntryTask=std::async(std::launch::async,[this]() -> bool {
             backupEntryLock.lock();
             backupEntries.clear();
+            totalBackupSize=0;
             backupEntryLock.unlock();
 
 #ifdef _WIN32
@@ -5665,6 +5684,14 @@ bool FurnaceGUI::importConfig(String path) {
   syncState();
   syncSettings();
   commitSettings();
+
+  recentFile.clear();
+  for (int i=0; i<settings.maxRecentFile; i++) {
+    String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
+    if (!r.empty()) {
+      recentFile.push_back(r);
+    }
+  }
   return true;
 }
 

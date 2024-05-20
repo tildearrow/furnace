@@ -2806,6 +2806,8 @@ class FurnaceGUI {
   void resetColors();
   void resetKeybinds();
 
+  void purgeBackups(int year, int month, int day);
+
   void readConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
   void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
 

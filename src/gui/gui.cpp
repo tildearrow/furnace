@@ -6689,6 +6689,14 @@ bool FurnaceGUI::init() {
   syncSettings();
   syncTutorial();
 
+  recentFile.clear();
+  for (int i=0; i<settings.maxRecentFile; i++) {
+    String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
+    if (!r.empty()) {
+      recentFile.push_back(r);
+    }
+  }
+
   if (!settings.persistFadeOut) {
     audioExportOptions.loops=settings.exportLoops;
     audioExportOptions.fadeOut=settings.exportFadeOut;
@@ -7271,14 +7279,6 @@ void FurnaceGUI::syncState() {
   xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
 
   cvHiScore=e->getConfInt("cvHiScore",25000);
-
-  recentFile.clear();
-  for (int i=0; i<settings.maxRecentFile; i++) {
-    String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
-    if (!r.empty()) {
-      recentFile.push_back(r);
-    }
-  }
 }
 
 void FurnaceGUI::commitState(DivConfig& conf) {
