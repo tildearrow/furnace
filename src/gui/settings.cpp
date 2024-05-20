@@ -4109,17 +4109,17 @@ void FurnaceGUI::drawSettings() {
 
         backupEntryLock.lock();
         if (totalBackupSize>=(1ULL<<50ULL)) {
-          ImGui::Text("%luPB used",totalBackupSize>>50);
+          ImGui::Text("%" PRIu64 "PB used",totalBackupSize>>50);
         } else if (totalBackupSize>=(1ULL<<40ULL)) {
-          ImGui::Text("%luTB used",totalBackupSize>>40);
+          ImGui::Text("%" PRIu64 "TB used",totalBackupSize>>40);
         } else if (totalBackupSize>=(1ULL<<30ULL)) {
-          ImGui::Text("%luGB used",totalBackupSize>>30);
+          ImGui::Text("%" PRIu64 "GB used",totalBackupSize>>30);
         } else if (totalBackupSize>=(1ULL<<20ULL)) {
-          ImGui::Text("%luMB used",totalBackupSize>>20);
+          ImGui::Text("%" PRIu64 "MB used",totalBackupSize>>20);
         } else if (totalBackupSize>=(1ULL<<10ULL)) {
-          ImGui::Text("%luKB used",totalBackupSize>>10);
+          ImGui::Text("%" PRIu64 "KB used",totalBackupSize>>10);
         } else {
-          ImGui::Text("%lu bytes used",totalBackupSize);
+          ImGui::Text("%" PRIu64 " bytes used",totalBackupSize);
         }
 
         if (ImGui::BeginTable("BackupList",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders)) {
@@ -4135,17 +4135,17 @@ void FurnaceGUI::drawSettings() {
             ImGui::TextUnformatted(i.name.c_str());
             ImGui::TableNextColumn();
             if (i.size>=(1ULL<<50ULL)) {
-              ImGui::Text("%luP",i.size>>50);
+              ImGui::Text("%" PRIu64 "P",i.size>>50);
             } else if (i.size>=(1ULL<<40ULL)) {
-              ImGui::Text("%luT",i.size>>40);
+              ImGui::Text("%" PRIu64 "T",i.size>>40);
             } else if (i.size>=(1ULL<<30ULL)) {
-              ImGui::Text("%luG",i.size>>30);
+              ImGui::Text("%" PRIu64 "G",i.size>>30);
             } else if (i.size>=(1ULL<<20ULL)) {
-              ImGui::Text("%luM",i.size>>20);
+              ImGui::Text("%" PRIu64 "M",i.size>>20);
             } else if (i.size>=(1ULL<<10ULL)) {
-              ImGui::Text("%luK",i.size>>10);
+              ImGui::Text("%" PRIu64 "K",i.size>>10);
             } else {
-              ImGui::Text("%lu",i.size);
+              ImGui::Text("%" PRIu64 "",i.size);
             }
             ImGui::TableNextColumn();
             ImGui::Text("%d-%02d-%02d",i.lastEntryTime.tm_year+1900,i.lastEntryTime.tm_mon+1,i.lastEntryTime.tm_mday);
