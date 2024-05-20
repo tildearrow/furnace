@@ -6854,7 +6854,7 @@ bool FurnaceGUI::init() {
   if (sdlWin==NULL) {
     const char* sdlErr=SDL_GetError();
     lastError=fmt::sprintf("could not open window! %s",sdlErr);
-    if (settings.renderBackend!="Software" && strcmp(sdlErr,"No matching GL pixel format available")==0) {
+    if (settings.renderBackend!="Software" && strstr(sdlErr,"matching")!=NULL) {
       settings.renderBackend="Software";
       e->setConf("renderBackend","Software");
       e->saveConf();
