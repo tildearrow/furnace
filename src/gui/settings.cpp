@@ -336,6 +336,101 @@ String stripName(String what) {
   return ret;
 }
 
+bool FurnaceGUI::splitBackupName(const char* input, String& backupName, struct tm& backupTime) {
+  size_t len=strlen(input);
+  if (len<4) return false;
+
+  const char* firstHyphen=NULL;
+  const char* secondHyphen=NULL;
+  bool whichHyphen=false;
+  bool isDateValid=true;
+  // -YYYYMMDD-hhmmss.fur
+  if (strcmp(&input[len-4],".fur")!=0) return false;
+  // find two hyphens
+  for (const char* i=input+len; i!=input; i--) {
+    if ((*i)=='-') {
+      if (whichHyphen) {
+        firstHyphen=i;
+        break;
+      } else {
+        secondHyphen=i;
+        whichHyphen=true;
+      }
+    }
+  }
+  if (firstHyphen==NULL) return false;
+  if (secondHyphen==NULL) return false;
+
+  // get the time
+  int whichChar=0;
+  for (const char* i=secondHyphen+1; *i; i++) {
+    if ((*i)<'0' || (*i)>'9') {
+      isDateValid=false;
+      break;
+    }
+    switch (whichChar++) {
+      case 0:
+        backupTime.tm_hour=((*i)-'0')*10;
+        break;
+      case 1:
+        backupTime.tm_hour+=(*i)-'0';
+        break;
+      case 2:
+        backupTime.tm_min=((*i)-'0')*10;
+        break;
+      case 3:
+        backupTime.tm_min+=(*i)-'0';
+        break;
+      case 4:
+        backupTime.tm_sec=((*i)-'0')*10;
+        break;
+      case 5:
+        backupTime.tm_sec+=(*i)-'0';
+        break;
+    }
+    if (whichChar>=6) break;
+  }
+  if (whichChar!=6) return false;
+  if (!isDateValid) return false;
+  if (backupTime.tm_hour>23) return false;
+  if (backupTime.tm_min>59) return false;
+  // intentional
+  if (backupTime.tm_sec>60) return false;
+
+  // get the date
+  String theDate="";
+  for (const char* i=firstHyphen+1; *i; i++) {
+    if ((*i)=='-') break;
+    if ((*i)<'0' || (*i)>'9') {
+      isDateValid=false;
+      break;
+    }
+    theDate+=*i;
+  }
+  if (!isDateValid) return false;
+  if (theDate.size()<5) return false;
+  if (theDate.size()>14) return false;
+  String mmdd=theDate.substr(theDate.size()-4);
+  if (mmdd.size()!=4) return false;
+  backupTime.tm_mon=(mmdd[0]-'0')*10+(mmdd[1]-'0')-1;
+  backupTime.tm_mday=(mmdd[2]-'0')*10+(mmdd[3]-'0');
+  if (backupTime.tm_mon>12) return false;
+  if (backupTime.tm_mday>31) return false;
+  String yyyy=theDate.substr(0,theDate.size()-4);
+  try {
+    backupTime.tm_year=std::stoi(yyyy)-1900;
+  } catch (std::exception& e) {
+    return false;
+  }
+
+  backupName="";
+  for (const char* i=input; i!=firstHyphen && (*i); i++) {
+    backupName+=*i;
+  }
+
+  return true;
+}
+
 void FurnaceGUI::purgeBackups(int year, int month, int day) {
   refreshBackups=true;
 }
@@ -4205,101 +4300,12 @@ void FurnaceGUI::drawSettings() {
               if (next==NULL) break;
               if (strcmp(next->d_name,".")==0) continue;
               if (strcmp(next->d_name,"..")==0) continue;
-              size_t len=strlen(next->d_name);
-              if (len<4) continue;
-
-              const char* firstHyphen=NULL;
-              const char* secondHyphen=NULL;
-              bool whichHyphen=false;
-              bool isDateValid=true;
-              // -YYYYMMDD-hhmmss.fur
-              if (strcmp(&next->d_name[len-4],".fur")!=0) continue;
-              // find two hyphens
-              for (const char* i=next->d_name+len; i!=next->d_name; i--) {
-                if ((*i)=='-') {
-                  if (whichHyphen) {
-                    firstHyphen=i;
-                    break;
-                  } else {
-                    secondHyphen=i;
-                    whichHyphen=true;
-                  }
-                }
-              }
-              if (firstHyphen==NULL) continue;
-              if (secondHyphen==NULL) continue;
-
-              // get the time
-              int whichChar=0;
-              for (const char* i=secondHyphen+1; *i; i++) {
-                if ((*i)<'0' || (*i)>'9') {
-                  isDateValid=false;
-                  break;
-                }
-                switch (whichChar++) {
-                  case 0:
-                    nextEntry.lastEntryTime.tm_hour=((*i)-'0')*10;
-                    break;
-                  case 1:
-                    nextEntry.lastEntryTime.tm_hour+=(*i)-'0';
-                    break;
-                  case 2:
-                    nextEntry.lastEntryTime.tm_min=((*i)-'0')*10;
-                    break;
-                  case 3:
-                    nextEntry.lastEntryTime.tm_min+=(*i)-'0';
-                    break;
-                  case 4:
-                    nextEntry.lastEntryTime.tm_sec=((*i)-'0')*10;
-                    break;
-                  case 5:
-                    nextEntry.lastEntryTime.tm_sec+=(*i)-'0';
-                    break;
-                }
-                if (whichChar>=6) break;
-              }
-              if (whichChar!=6) continue;
-              if (!isDateValid) continue;
-              if (nextEntry.lastEntryTime.tm_hour>23) continue;
-              if (nextEntry.lastEntryTime.tm_min>59) continue;
-              // intentional
-              if (nextEntry.lastEntryTime.tm_sec>60) continue;
-
-              // get the date
-              String theDate="";
-              for (const char* i=firstHyphen+1; *i; i++) {
-                if ((*i)=='-') break;
-                if ((*i)<'0' || (*i)>'9') {
-                  isDateValid=false;
-                  break;
-                }
-                theDate+=*i;
-              }
-              if (!isDateValid) continue;
-              if (theDate.size()<5) continue;
-              if (theDate.size()>14) continue;
-              String mmdd=theDate.substr(theDate.size()-4);
-              if (mmdd.size()!=4) continue;
-              nextEntry.lastEntryTime.tm_mon=(mmdd[0]-'0')*10+(mmdd[1]-'0')-1;
-              nextEntry.lastEntryTime.tm_mday=(mmdd[2]-'0')*10+(mmdd[3]-'0');
-              if (nextEntry.lastEntryTime.tm_mon>12) continue;
-              if (nextEntry.lastEntryTime.tm_mday>31) continue;
-              String yyyy=theDate.substr(0,theDate.size()-4);
-              try {
-                nextEntry.lastEntryTime.tm_year=std::stoi(yyyy)-1900;
-              } catch (std::exception& e) {
-                continue;
-              }
+              if (!splitBackupName(next->d_name,nextEntry.name,nextEntry.lastEntryTime)) continue;
 
               String nextPath=backupPath+DIR_SEPARATOR_STR+next->d_name;
 
               if (stat(nextPath.c_str(),&nextStat)>=0) {
                 nextEntry.size=nextStat.st_size;
-              }
-
-              nextEntry.name="";
-              for (const char* i=next->d_name; i!=firstHyphen && (*i); i++) {
-                nextEntry.name+=*i;
               }
 
               backupEntryLock.lock();

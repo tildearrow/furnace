@@ -2810,6 +2810,7 @@ class FurnaceGUI {
   void resetColors();
   void resetKeybinds();
 
+  bool splitBackupName(const char* input, String& backupName, struct tm& backupTime);
   void purgeBackups(int year, int month, int day);
 
   void readConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
