@@ -1479,6 +1479,16 @@ struct FurnaceGUIPerfMetric {
     elapsed(0) {}
 };
 
+struct FurnaceGUIBackupEntry {
+  String name;
+  uint64_t size;
+  struct tm lastEntryTime;
+  FurnaceGUIBackupEntry():
+    size(0) {
+    memset(&lastEntryTime,0,sizeof(struct tm));
+  }
+};
+
 enum FurnaceGUIBlendMode {
   GUI_BLEND_MODE_NONE=0,
   GUI_BLEND_MODE_BLEND,
@@ -1658,6 +1668,12 @@ class FurnaceGUI {
   std::future<bool> backupTask;
   std::mutex backupLock;
   String backupPath;
+
+  std::vector<FurnaceGUIBackupEntry> backupEntries;
+  std::future<bool> backupEntryTask;
+  std::mutex backupEntryLock;
+  uint64_t totalBackupSize;
+  bool refreshBackups;
 
   std::mutex midiLock;
   FixedQueue<TAMidiMessage,4096> midiQueue;
@@ -1915,6 +1931,9 @@ class FurnaceGUI {
     int glAlphaSize;
     int glDepthSize;
     int glDoubleBuffer;
+    int backupEnable;
+    int backupInterval;
+    int backupMaxCopies;
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
@@ -2164,6 +2183,9 @@ class FurnaceGUI {
       glAlphaSize(0),
       glDepthSize(24),
       glDoubleBuffer(1),
+      backupEnable(1),
+      backupInterval(30),
+      backupMaxCopies(5),
       maxUndoSteps(100),
       vibrationStrength(0.5f),
       vibrationLength(20),
@@ -2213,6 +2235,8 @@ class FurnaceGUI {
   int curGroove, exitDisabledTimer;
   int curPaletteChoice, curPaletteType;
   float soloTimeout;
+
+  int purgeYear, purgeMonth, purgeDay;
 
   bool patExtraButtons, patChannelNames, patChannelPairs;
   unsigned char patChannelHints;

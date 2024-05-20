@@ -2370,7 +2370,7 @@ void FurnaceGUI::delFirstBackup(String name) {
     return strcmp(a.c_str(),b.c_str())<0;
   });
 
-  int totalDelete=((int)listOfFiles.size())-5;
+  int totalDelete=((int)listOfFiles.size())-settings.backupMaxCopies;
   for (int i=0; i<totalDelete; i++) {
     String toDelete=backupPath+String(DIR_SEPARATOR_STR)+listOfFiles[i];
     deleteFile(toDelete.c_str());
@@ -6395,7 +6395,7 @@ bool FurnaceGUI::loop() {
     layoutTimeEnd=SDL_GetPerformanceCounter();
 
     // backup trigger
-    if (modified) {
+    if (modified && settings.backupEnable) {
       if (backupTimer>0) {
         backupTimer=(backupTimer-ImGui::GetIO().DeltaTime);
         if (backupTimer<=0) {
@@ -6405,14 +6405,14 @@ bool FurnaceGUI::loop() {
             logV("curFileName: %s",curFileName);
             if (curFileName.find(backupPath)==0) {
               logD("backup file open. not saving backup.");
-              backupTimer=30.0;
+              backupTimer=settings.backupInterval;
               backupLock.unlock();
               return true;
             }
             if (!dirExists(backupPath.c_str())) {
               if (!makeDir(backupPath.c_str())) {
                 logW("could not create backup directory!");
-                backupTimer=30.0;
+                backupTimer=settings.backupInterval;
                 backupLock.unlock();
                 return false;
               }
@@ -6481,7 +6481,7 @@ bool FurnaceGUI::loop() {
               delFirstBackup(backupBaseName);
             }
             logD("backup saved.");
-            backupTimer=30.0;
+            backupTimer=settings.backupInterval;
             backupLock.unlock();
             return true;
           });
@@ -7094,6 +7094,29 @@ bool FurnaceGUI::init() {
   cpuCores=SDL_GetCPUCount();
   if (cpuCores<1) cpuCores=1;
 
+  time_t thisMakesNoSense=time(NULL);
+  struct tm curTime;
+#ifdef _WIN32
+  struct tm* tempTM=localtime(&thisMakesNoSense);
+  if (tempTM==NULL) {
+    memset(&curTime,0,sizeof(struct tm));
+  } else {
+    memcpy(&curTime,tempTM,sizeof(struct tm));
+    purgeYear=1900+curTime.tm_year-1;
+    purgeMonth=curTime.tm_mon+1;
+    purgeDay=curTime.tm_mday;
+  }
+#else
+  if (localtime_r(&thisMakesNoSense,&curTime)==NULL) {
+    memset(&curTime,0,sizeof(struct tm));
+  } else {
+    purgeYear=1900+curTime.tm_year-1;
+    purgeMonth=curTime.tm_mon+1;
+    purgeDay=curTime.tm_mday;
+  }
+#endif
+
+
   logI("done!");
   return true;
 }
@@ -7587,7 +7610,9 @@ FurnaceGUI::FurnaceGUI():
   aboutScroll(0),
   aboutSin(0),
   aboutHue(0.0f),
-  backupTimer(15.0),
+  backupTimer(0.0),
+  totalBackupSize(0),
+  refreshBackups(true),
   learning(-1),
   mainFont(NULL),
   iconFont(NULL),
@@ -7632,6 +7657,9 @@ FurnaceGUI::FurnaceGUI():
   curPaletteChoice(0),
   curPaletteType(0),
   soloTimeout(0.0f),
+  purgeYear(2021),
+  purgeMonth(4),
+  purgeDay(4),
   patExtraButtons(false),
   patChannelNames(false),
   patChannelPairs(true),

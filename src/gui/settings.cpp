@@ -34,6 +34,14 @@
 #include "scaling.h"
 #include <fmt/printf.h>
 
+#ifdef _WIN32
+#else
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
+#endif
+
 #define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
 #if defined(_WIN32) || defined(__APPLE__) || defined(IS_MOBILE)
@@ -4001,6 +4009,323 @@ void FurnaceGUI::drawSettings() {
       CONFIG_SECTION("Backup") {
         // SUBSECTION SETTINGS
         CONFIG_SUBSECTION("Configuration");
+
+        bool backupEnableB=settings.backupEnable;
+        if (ImGui::Checkbox("Enable backup system",&backupEnableB)) {
+          settings.backupEnable=backupEnableB;
+          settingsChanged=true;
+        }
+
+        if (ImGui::InputInt("Interval (in seconds)",&settings.backupInterval)) {
+          if (settings.backupInterval<10) settings.backupInterval=10;
+          if (settings.backupInterval>86400) settings.backupInterval=86400;
+        }
+
+        if (ImGui::InputInt("Backups per file",&settings.backupMaxCopies)) {
+          if (settings.backupMaxCopies<1) settings.backupMaxCopies=1;
+          if (settings.backupMaxCopies>100) settings.backupMaxCopies=100;
+        }
+
+        // SUBSECTION SETTINGS
+        CONFIG_SUBSECTION("Backup Management");
+        bool purgeDateChanged=false;
+
+        ImGui::Text("Delete before (year/month/day):");
+        ImGui::SetNextItemWidth(80.0f*dpiScale);
+        if (ImGui::InputInt("##PYear",&purgeYear,0,0)) purgeDateChanged=true;
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(60.0f*dpiScale);
+        if (ImGui::InputInt("##PMonth",&purgeMonth,0,0)) purgeDateChanged=true;
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(60.0f*dpiScale);
+        if (ImGui::InputInt("##PDay",&purgeDay,0,0)) purgeDateChanged=true;
+
+        if (purgeDateChanged) {
+          // check month/day validity
+          time_t thisMakesNoSense=time(NULL);
+          bool tmFailed=false;
+          struct tm curTime;
+#ifdef _WIN32
+          struct tm* tempTM=localtime(&thisMakesNoSense);
+          if (tempTM==NULL) {
+            memset(&curTime,0,sizeof(struct tm));
+            tmFailed=true;
+          } else {
+            memcpy(&curTime,tempTM,sizeof(struct tm));
+          }
+#else
+          if (localtime_r(&thisMakesNoSense,&curTime)==NULL) {
+            memset(&curTime,0,sizeof(struct tm));
+            tmFailed=true;
+          }
+#endif
+
+          // don't allow dates in the future
+          if (!tmFailed) {
+            int curYear=curTime.tm_year+1900;
+            int curMonth=curTime.tm_mon+1;
+            int curDay=curTime.tm_mday;
+
+            if (purgeYear<1) purgeYear=1;
+            if (purgeYear>curYear) purgeYear=curYear;
+
+            if (purgeYear==curYear) {
+              if (purgeMonth>curMonth) purgeMonth=curMonth;
+
+              if (purgeMonth==curMonth) {
+                if (purgeDay>curDay) purgeDay=curDay;
+              }
+            }
+          }
+
+          // general checks
+          if (purgeYear<1) purgeYear=1;
+          if (purgeMonth<1) purgeMonth=1;
+          if (purgeMonth>12) purgeMonth=12;
+          if (purgeDay<1) purgeDay=1;
+
+          // 1752 calendar alignment
+          if (purgeYear==1752 && purgeMonth==9) {
+            if (purgeDay>2 && purgeDay<14) purgeDay=2;
+          }
+          if (purgeMonth==2) {
+            // leap year
+            if ((purgeYear&3)==0 && ((purgeYear%100)!=0 || (purgeYear%400)==0)) {
+              if (purgeDay>29) purgeDay=29;
+            } else {
+              if (purgeDay>28) purgeDay=28;
+            }
+          } else if (purgeMonth==1 || purgeMonth==3 || purgeMonth==5 || purgeMonth==7 || purgeMonth==8 || purgeMonth==10 || purgeMonth==12) {
+            if (purgeDay>31) purgeDay=31;
+          } else {
+            if (purgeDay>30) purgeDay=30;
+          }
+        }
+
+        ImGui::SameLine();
+        ImGui::Button("Go##PDate");
+
+        ImGui::Button("Delete all");
+
+        backupEntryLock.lock();
+        if (totalBackupSize>=(1ULL<<50ULL)) {
+          ImGui::Text("%luPB used",totalBackupSize>>50);
+        } else if (totalBackupSize>=(1ULL<<40ULL)) {
+          ImGui::Text("%luTB used",totalBackupSize>>40);
+        } else if (totalBackupSize>=(1ULL<<30ULL)) {
+          ImGui::Text("%luGB used",totalBackupSize>>30);
+        } else if (totalBackupSize>=(1ULL<<20ULL)) {
+          ImGui::Text("%luMB used",totalBackupSize>>20);
+        } else if (totalBackupSize>=(1ULL<<10ULL)) {
+          ImGui::Text("%luKB used",totalBackupSize>>10);
+        } else {
+          ImGui::Text("%lu bytes used",totalBackupSize);
+        }
+
+        if (ImGui::BeginTable("BackupList",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders)) {
+          ImGui::TableSetupColumn("Name",ImGuiTableColumnFlags_WidthStretch,0.6f);
+          ImGui::TableSetupColumn("Size",ImGuiTableColumnFlags_WidthStretch,0.15f);
+          ImGui::TableSetupColumn("Latest",ImGuiTableColumnFlags_WidthStretch,0.25f);
+
+          ImGui::TableHeadersRow();
+
+          for (FurnaceGUIBackupEntry& i: backupEntries) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(i.name.c_str());
+            ImGui::TableNextColumn();
+            if (i.size>=(1ULL<<50ULL)) {
+              ImGui::Text("%luP",i.size>>50);
+            } else if (i.size>=(1ULL<<40ULL)) {
+              ImGui::Text("%luT",i.size>>40);
+            } else if (i.size>=(1ULL<<30ULL)) {
+              ImGui::Text("%luG",i.size>>30);
+            } else if (i.size>=(1ULL<<20ULL)) {
+              ImGui::Text("%luM",i.size>>20);
+            } else if (i.size>=(1ULL<<10ULL)) {
+              ImGui::Text("%luK",i.size>>10);
+            } else {
+              ImGui::Text("%lu",i.size);
+            }
+            ImGui::TableNextColumn();
+            ImGui::Text("%d-%02d-%02d",i.lastEntryTime.tm_year+1900,i.lastEntryTime.tm_mon+1,i.lastEntryTime.tm_mday);
+          }
+
+          ImGui::EndTable();
+        }
+        backupEntryLock.unlock();
+        if (refreshBackups) {
+          refreshBackups=false;
+          backupEntryTask=std::async(std::launch::async,[this]() -> bool {
+            backupEntryLock.lock();
+            backupEntries.clear();
+            backupEntryLock.unlock();
+
+#ifdef _WIN32
+            // I will do it later...
+#else
+            DIR* backDir=opendir(backupPath.c_str());
+            if (backDir==NULL) {
+              logW("could not open backups dir!");
+              return false;
+            }
+            while (true) {
+              FurnaceGUIBackupEntry nextEntry;
+              struct stat nextStat;
+              struct dirent* next=readdir(backDir);
+              if (next==NULL) break;
+              if (strcmp(next->d_name,".")==0) continue;
+              if (strcmp(next->d_name,"..")==0) continue;
+              size_t len=strlen(next->d_name);
+              if (len<4) continue;
+
+              const char* firstHyphen=NULL;
+              const char* secondHyphen=NULL;
+              bool whichHyphen=false;
+              bool isDateValid=true;
+              // -YYYYMMDD-hhmmss.fur
+              if (strcmp(&next->d_name[len-4],".fur")!=0) continue;
+              // find two hyphens
+              for (const char* i=next->d_name+len; i!=next->d_name; i--) {
+                if ((*i)=='-') {
+                  if (whichHyphen) {
+                    firstHyphen=i;
+                    break;
+                  } else {
+                    secondHyphen=i;
+                    whichHyphen=true;
+                  }
+                }
+              }
+              if (firstHyphen==NULL) continue;
+              if (secondHyphen==NULL) continue;
+
+              // get the time
+              int whichChar=0;
+              for (const char* i=secondHyphen+1; *i; i++) {
+                if ((*i)<'0' || (*i)>'9') {
+                  isDateValid=false;
+                  break;
+                }
+                switch (whichChar++) {
+                  case 0:
+                    nextEntry.lastEntryTime.tm_hour=((*i)-'0')*10;
+                    break;
+                  case 1:
+                    nextEntry.lastEntryTime.tm_hour+=(*i)-'0';
+                    break;
+                  case 2:
+                    nextEntry.lastEntryTime.tm_min=((*i)-'0')*10;
+                    break;
+                  case 3:
+                    nextEntry.lastEntryTime.tm_min+=(*i)-'0';
+                    break;
+                  case 4:
+                    nextEntry.lastEntryTime.tm_sec=((*i)-'0')*10;
+                    break;
+                  case 5:
+                    nextEntry.lastEntryTime.tm_sec+=(*i)-'0';
+                    break;
+                }
+                if (whichChar>=6) break;
+              }
+              if (whichChar!=6) continue;
+              if (!isDateValid) continue;
+              if (nextEntry.lastEntryTime.tm_hour>23) continue;
+              if (nextEntry.lastEntryTime.tm_min>59) continue;
+              // intentional
+              if (nextEntry.lastEntryTime.tm_sec>60) continue;
+
+              // get the date
+              String theDate="";
+              for (const char* i=firstHyphen+1; *i; i++) {
+                if ((*i)=='-') break;
+                if ((*i)<'0' || (*i)>'9') {
+                  isDateValid=false;
+                  break;
+                }
+                theDate+=*i;
+              }
+              if (!isDateValid) continue;
+              if (theDate.size()<5) continue;
+              if (theDate.size()>14) continue;
+              String mmdd=theDate.substr(theDate.size()-4);
+              if (mmdd.size()!=4) continue;
+              nextEntry.lastEntryTime.tm_mon=(mmdd[0]-'0')*10+(mmdd[1]-'0')-1;
+              nextEntry.lastEntryTime.tm_mday=(mmdd[2]-'0')*10+(mmdd[3]-'0');
+              if (nextEntry.lastEntryTime.tm_mon>12) continue;
+              if (nextEntry.lastEntryTime.tm_mday>31) continue;
+              String yyyy=theDate.substr(0,theDate.size()-4);
+              try {
+                nextEntry.lastEntryTime.tm_year=std::stoi(yyyy)-1900;
+              } catch (std::exception& e) {
+                continue;
+              }
+
+              String nextPath=backupPath+DIR_SEPARATOR_STR+next->d_name;
+
+              if (stat(nextPath.c_str(),&nextStat)>=0) {
+                nextEntry.size=nextStat.st_size;
+              }
+
+              nextEntry.name="";
+              for (const char* i=next->d_name; i!=firstHyphen && (*i); i++) {
+                nextEntry.name+=*i;
+              }
+
+              backupEntryLock.lock();
+              backupEntries.push_back(nextEntry);
+              totalBackupSize+=nextEntry.size;
+              backupEntryLock.unlock();
+            }
+            closedir(backDir);
+#endif
+
+            // sort and merge
+            backupEntryLock.lock();
+            std::sort(backupEntries.begin(),backupEntries.end(),[](const FurnaceGUIBackupEntry& a, const FurnaceGUIBackupEntry& b) -> bool {
+              int sc=strcmp(a.name.c_str(),b.name.c_str());
+              if (sc==0) {
+                if (a.lastEntryTime.tm_year==b.lastEntryTime.tm_year) {
+                  if (a.lastEntryTime.tm_mon==b.lastEntryTime.tm_mon) {
+                    if (a.lastEntryTime.tm_mday==b.lastEntryTime.tm_mday) {
+                      if (a.lastEntryTime.tm_hour==b.lastEntryTime.tm_hour) {
+                        if (a.lastEntryTime.tm_min==b.lastEntryTime.tm_min) {
+                          return (a.lastEntryTime.tm_sec<b.lastEntryTime.tm_sec);
+                        } else {
+                          return (a.lastEntryTime.tm_min<b.lastEntryTime.tm_min);
+                        }
+                      } else {
+                        return (a.lastEntryTime.tm_hour<b.lastEntryTime.tm_hour);
+                      }
+                    } else {
+                      return (a.lastEntryTime.tm_mday<b.lastEntryTime.tm_mday);
+                    }
+                  } else {
+                    return (a.lastEntryTime.tm_mon<b.lastEntryTime.tm_mon);
+                  }
+                } else {
+                  return (a.lastEntryTime.tm_year<b.lastEntryTime.tm_year);
+                }
+              }
+
+              return sc<0;
+            });
+            for (size_t i=1; i<backupEntries.size(); i++) {
+              FurnaceGUIBackupEntry& prevEntry=backupEntries[i-1];
+              FurnaceGUIBackupEntry& thisEntry=backupEntries[i];
+
+              if (thisEntry.name==prevEntry.name) {
+                thisEntry.size+=prevEntry.size;
+                backupEntries.erase(backupEntries.begin()+i);
+                i--;
+              }
+            }
+            backupEntryLock.unlock();
+            return true;
+          });
+        }
+
         END_SECTION;
       }
       if (nonLatchNibble) {
@@ -4203,6 +4528,10 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     settings.vibrationStrength=conf.getFloat("vibrationStrength",0.5f);
     settings.vibrationLength=conf.getInt("vibrationLength",20);
+
+    settings.backupEnable=conf.getInt("backupEnable",1);
+    settings.backupInterval=conf.getInt("backupInterval",30);
+    settings.backupMaxCopies=conf.getInt("backupMaxCopies",5);
   }
 
   if (groups&GUI_SETTINGS_AUDIO) {
@@ -4701,6 +5030,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.glAlphaSize,0,32);
   clampSetting(settings.glDepthSize,0,128);
   clampSetting(settings.glDoubleBuffer,0,1);
+  clampSetting(settings.backupEnable,0,1);
+  clampSetting(settings.backupInterval,10,86400);
+  clampSetting(settings.backupMaxCopies,1,100);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -4773,6 +5105,10 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("vibrationStrength",settings.vibrationStrength);
     conf.set("vibrationLength",settings.vibrationLength);
+
+    conf.set("backupEnable",settings.backupEnable);
+    conf.set("backupInterval",settings.backupInterval);
+    conf.set("backupMaxCopies",settings.backupMaxCopies);
   }
 
   // audio
@@ -5073,6 +5409,8 @@ void FurnaceGUI::syncSettings() {
   if (rend!=NULL) {
     rend->setSwapInterval(settings.vsync);
   }
+
+  backupTimer=settings.backupInterval;
 }
 
 void FurnaceGUI::commitSettings() {
