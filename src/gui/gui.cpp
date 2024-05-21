@@ -6605,7 +6605,9 @@ bool FurnaceGUI::loop() {
 
     wheelX=0;
     wheelY=0;
-    wantScrollList=false;
+    wantScrollListIns=false;
+    wantScrollListWave=false;
+    wantScrollListSample=false;
 
     pressedPoints.clear();
     releasedPoints.clear();
@@ -7533,9 +7535,11 @@ FurnaceGUI::FurnaceGUI():
   preserveChanPos(false),
   sysDupCloneChannels(true),
   sysDupEnd(false),
-  wantScrollList(false),
   noteInputPoly(true),
   notifyWaveChange(false),
+  wantScrollListIns(false),
+  wantScrollListWave(false),
+  wantScrollListSample(false),
   displayPendingIns(false),
   pendingInsSingle(false),
   displayPendingRawSample(false),

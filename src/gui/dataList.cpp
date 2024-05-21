@@ -113,7 +113,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
     if (settings.insFocusesPattern && patternOpen)
       nextWindow=GUI_WINDOW_PATTERN;
   }
-  if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
+  if (wantScrollListIns && curIns==i) ImGui::SetScrollHereY();
   if (ImGui::IsItemHovered() && i>=0 && !mobileUI) {
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
     ImGui::SetTooltip("%s",insType);
@@ -183,7 +183,7 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
   }
   ImGui::PopStyleVar();
   curPos.x+=ImGui::CalcTextSize("2222").x;
-  if (wantScrollList && curWave==i) ImGui::SetScrollHereY();
+  if (wantScrollListWave && curWave==i) ImGui::SetScrollHereY();
   if (ImGui::IsItemHovered()) {
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
       waveEditOpen=true;
@@ -272,7 +272,7 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     ImGui::PopStyleColor();
     ImGui::EndPopup();
   }
-  if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
+  if (wantScrollListSample && curSample==i) ImGui::SetScrollHereY();
   ImGui::PopID();
 }
 

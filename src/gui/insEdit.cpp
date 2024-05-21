@@ -6718,7 +6718,7 @@ void FurnaceGUI::drawInsEdit() {
                   if (curWave==-1) {
                     showError("too many wavetables!");
                   } else {
-                    wantScrollList=true;
+                    wantScrollListWave=true;
                     MARK_MODIFIED;
                     RESET_WAVE_MACRO_ZOOM;
                     nextWindow=GUI_WINDOW_WAVE_EDIT;
