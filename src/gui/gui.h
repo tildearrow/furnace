@@ -80,36 +80,31 @@ enum FurnaceGUIRenderBackend {
 };
 
 #ifdef HAVE_RENDER_DX11
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_DX11
-#define GUI_BACKEND_DEFAULT_NAME "DirectX 11"
+  #define GUI_BACKEND_DEFAULT GUI_BACKEND_DX11
+  #define GUI_BACKEND_DEFAULT_NAME "DirectX 11"
 #else
-#ifdef HAVE_RENDER_METAL
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_METAL
-#define GUI_BACKEND_DEFAULT_NAME "Metal"
-#else
-#ifdef HAVE_RENDER_GL
-#ifdef SUPPORT_XP
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_GL1
-#define GUI_BACKEND_DEFAULT_NAME "OpenGL 1.1"
-#else
-#ifdef USE_GLES
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_GL3
-#define GUI_BACKEND_DEFAULT_NAME "OpenGL ES 2.0"
-#else
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_GL3
-#define GUI_BACKEND_DEFAULT_NAME "OpenGL 3.0"
-#endif
-#endif
-#else
-#ifdef HAVE_RENDER_SDL
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
-#define GUI_BACKEND_DEFAULT_NAME "SDL"
-#else
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_SOFTWARE
-#define GUI_BACKEDN_DEFAULT_NAME "Software"
-#endif
-#endif
-#endif
+  #ifdef HAVE_RENDER_GL
+    #ifdef SUPPORT_XP
+      #define GUI_BACKEND_DEFAULT GUI_BACKEND_GL1
+      #define GUI_BACKEND_DEFAULT_NAME "OpenGL 1.1"
+    #else
+      #ifdef USE_GLES
+        #define GUI_BACKEND_DEFAULT GUI_BACKEND_GL3
+        #define GUI_BACKEND_DEFAULT_NAME "OpenGL ES 2.0"
+      #else
+        #define GUI_BACKEND_DEFAULT GUI_BACKEND_GL3
+        #define GUI_BACKEND_DEFAULT_NAME "OpenGL 3.0"
+      #endif
+    #endif
+  #else
+    #ifdef HAVE_RENDER_SDL
+      #define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
+      #define GUI_BACKEND_DEFAULT_NAME "SDL"
+    #else
+      #define GUI_BACKEND_DEFAULT GUI_BACKEND_SOFTWARE
+      #define GUI_BACKEDN_DEFAULT_NAME "Software"
+    #endif
+  #endif
 #endif
 
 #ifdef SUPPORT_XP
