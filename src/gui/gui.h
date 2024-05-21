@@ -2441,7 +2441,7 @@ class FurnaceGUI {
   ImVec2 fourChars, threeChars, twoChars;
   ImVec2 noteCellSize, insCellSize, volCellSize, effectCellSize, effectValCellSize;
   SelectionPoint sel1, sel2;
-  int dummyRows, demandX;
+  int dummyRows;
   int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax, collapseAmount;
   float scaleMax;
   bool fadeMode, randomMode, haveHitBounds;

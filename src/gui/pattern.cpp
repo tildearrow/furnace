@@ -191,7 +191,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
       ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
       ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,noteCellSize);
-      demandX=ImGui::GetCursorPosX();
       ImGui::PopStyleColor(3);
     } else {
       if (selectedNote) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
@@ -235,7 +234,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
         ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,insCellSize);
-        demandX=ImGui::GetCursorPosX();
         ImGui::PopStyleColor(3);
       } else {
         if (selectedIns) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
@@ -273,7 +271,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
         ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,volCellSize);
-        demandX=ImGui::GetCursorPosX();
         ImGui::PopStyleColor(3);
       } else {
         if (selectedVol) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
@@ -326,7 +323,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
           ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
           ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,effectCellSize);
-          demandX=ImGui::GetCursorPosX();
           ImGui::PopStyleColor(3);
         } else {
           if (selectedEffect) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
@@ -356,7 +352,6 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_CURSOR_ACTIVE]);
           ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]);
           ImGui::Selectable(id,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,effectValCellSize);
-          demandX=ImGui::GetCursorPosX();
           ImGui::PopStyleColor(3);
         } else {
           if (selectedEffectVal) ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
@@ -407,7 +402,6 @@ void FurnaceGUI::drawPattern() {
       }
     }
   }
-  demandX=0;
   sel1=selStart;
   sel2=selEnd;
   if (sel2.y<sel1.y) {
@@ -1167,11 +1161,41 @@ void FurnaceGUI::drawPattern() {
       ImGui::EndDisabled();
       ImGui::PopStyleVar();
       if (demandScrollX) {
-        int totalDemand=demandX-ImGui::GetScrollX();
-        if (totalDemand<80) {
-          ImGui::SetScrollX(demandX-200*dpiScale);
-        } else if (totalDemand>(ImGui::GetWindowWidth()-200*dpiScale)) {
-          ImGui::SetScrollX(demandX+200*dpiScale);
+        float finalX=-fourChars.x;
+        // manually calculate X scroll
+        for (int i=0; i<=cursor.xCoarse; i++) {
+          int fine=(i==cursor.xCoarse)?cursor.xFine:9999;
+          if (!e->curSubSong->chanShow[i]) continue;
+
+          finalX+=noteCellSize.x;
+          // ins
+          if (fine==0) break;
+          if (e->curSubSong->chanCollapse[i]<3) {
+            finalX+=insCellSize.x;
+          }
+          // vol
+          if (fine==1) break;
+          if (e->curSubSong->chanCollapse[i]<2) {
+            finalX+=volCellSize.x;
+          }
+          // effects
+          if (fine==2) break;
+          if (e->curSubSong->chanCollapse[i]<1) {
+            for (int j=0; j<MIN(fine-2,e->curPat[i].effectCols*2); j++) {
+              if (j&1) {
+                finalX+=effectValCellSize.x;
+              } else {
+                finalX+=effectCellSize.x;
+              }
+            }
+          }
+        }
+        float totalDemand=finalX-ImGui::GetScrollX();
+        float availWidth=ImGui::GetWindowWidth();
+        if (totalDemand<(availWidth*0.25f)) {
+          ImGui::SetScrollX(finalX-availWidth*0.25f);
+        } else if (totalDemand>(availWidth*0.7f)) {
+          ImGui::SetScrollX(finalX-availWidth*0.7f);
         }
         demandScrollX=false;
       }
