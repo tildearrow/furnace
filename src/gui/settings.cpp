@@ -35,6 +35,9 @@
 #include <fmt/printf.h>
 
 #ifdef _WIN32
+#include <windows.h>
+#include <shlobj.h>
+#include <shlwapi.h>
 #else
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -433,7 +436,35 @@ bool FurnaceGUI::splitBackupName(const char* input, String& backupName, struct t
 
 void FurnaceGUI::purgeBackups(int year, int month, int day) {
 #ifdef _WIN32
-  // I will do it later...
+  String findPath=backupPath+String(DIR_SEPARATOR_STR)+String("*.fur");
+  WString findPathW=utf8To16(findPath.c_str());
+  WIN32_FIND_DATAW next;
+  HANDLE backDir=FindFirstFileW(findPathW.c_str(),&next);
+  if (backDir!=INVALID_HANDLE_VALUE) {
+    do {
+      String backupName;
+      struct tm backupTime;
+      String cFileNameU=utf16To8(next.cFileName);
+      bool deleteBackup=false;
+      if (!splitBackupName(cFileNameU.c_str(),backupName,backupTime)) continue;
+
+      if (year==0) {
+        deleteBackup=true;
+      } else if (backupTime.tm_year<(year-1900)) {
+        deleteBackup=true;
+      } else if (backupTime.tm_year==(year-1900) && backupTime.tm_mon<(month-1)) {
+        deleteBackup=true;
+      } else if (backupTime.tm_year==(year-1900) && backupTime.tm_mon==(month-1) && backupTime.tm_mday<day) {
+        deleteBackup=true;
+      }
+
+      if (deleteBackup) {
+        String nextPath=backupPath+DIR_SEPARATOR_STR+cFileNameU;
+        deleteFile(nextPath.c_str());
+      }
+    } while (FindNextFileW(backDir,&next)!=0);
+    FindClose(backDir);
+  }
 #else
   DIR* backDir=opendir(backupPath.c_str());
   if (backDir==NULL) {
@@ -441,7 +472,6 @@ void FurnaceGUI::purgeBackups(int year, int month, int day) {
     return;
   }
   while (true) {
-    FurnaceGUIBackupEntry nextEntry;
     String backupName;
     struct tm backupTime;
     struct dirent* next=readdir(backDir);
@@ -4322,7 +4352,25 @@ void FurnaceGUI::drawSettings() {
             backupEntryLock.unlock();
 
 #ifdef _WIN32
-            // I will do it later...
+            String findPath=backupPath+String(DIR_SEPARATOR_STR)+String("*.fur");
+            WString findPathW=utf8To16(findPath.c_str());
+            WIN32_FIND_DATAW next;
+            HANDLE backDir=FindFirstFileW(findPathW.c_str(),&next);
+            if (backDir!=INVALID_HANDLE_VALUE) {
+              do {
+                FurnaceGUIBackupEntry nextEntry;
+                String cFileNameU=utf16To8(next.cFileName);
+                if (!splitBackupName(cFileNameU.c_str(),nextEntry.name,nextEntry.lastEntryTime)) continue;
+
+                nextEntry.size=(((uint64_t)next.nFileSizeHigh)<<32)|next.nFileSizeLow;
+
+                backupEntryLock.lock();
+                backupEntries.push_back(nextEntry);
+                totalBackupSize+=nextEntry.size;
+                backupEntryLock.unlock();
+              } while (FindNextFileW(backDir,&next)!=0);
+              FindClose(backDir);
+            }
 #else
             DIR* backDir=opendir(backupPath.c_str());
             if (backDir==NULL) {
