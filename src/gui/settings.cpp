@@ -432,6 +432,42 @@ bool FurnaceGUI::splitBackupName(const char* input, String& backupName, struct t
 }
 
 void FurnaceGUI::purgeBackups(int year, int month, int day) {
+#ifdef _WIN32
+  // I will do it later...
+#else
+  DIR* backDir=opendir(backupPath.c_str());
+  if (backDir==NULL) {
+    logW("could not open backups dir!");
+    return;
+  }
+  while (true) {
+    FurnaceGUIBackupEntry nextEntry;
+    String backupName;
+    struct tm backupTime;
+    struct dirent* next=readdir(backDir);
+    bool deleteBackup=false;
+    if (next==NULL) break;
+    if (strcmp(next->d_name,".")==0) continue;
+    if (strcmp(next->d_name,"..")==0) continue;
+    if (!splitBackupName(next->d_name,backupName,backupTime)) continue;
+
+    if (year==0) {
+      deleteBackup=true;
+    } else if (backupTime.tm_year<(year-1900)) {
+      deleteBackup=true;
+    } else if (backupTime.tm_year==(year-1900) && backupTime.tm_mon<(month-1)) {
+      deleteBackup=true;
+    } else if (backupTime.tm_year==(year-1900) && backupTime.tm_mon==(month-1) && backupTime.tm_mday<day) {
+      deleteBackup=true;
+    }
+
+    if (deleteBackup) {
+      String nextPath=backupPath+DIR_SEPARATOR_STR+next->d_name;
+      deleteFile(nextPath.c_str());
+    }
+  }
+  closedir(backDir);
+#endif
   refreshBackups=true;
 }
 
