@@ -1649,7 +1649,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Open File",
         {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub *.tfe",
          "all files", "*"},
-        workingDirSong+"/CRAP",
+        workingDirSong,
         dpiScale
       );
       break;
@@ -1756,7 +1756,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Save Instrument",
         {"Furnace instrument", "*.fui"},
         workingDirIns,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?e->getIns(curIns)->name:""
       );
       break;
     case GUI_FILE_INS_SAVE_DMP:

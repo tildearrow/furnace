@@ -110,7 +110,7 @@ void FurnaceGUIFileDialog::convertFilterList(std::vector<String>& filter) {
   strncpy(noSysFilter,result.c_str(),4095);
 }
 
-bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, String path, double dpiScale, FileDialogSelectCallback clickCallback, bool allowMultiple) {
+bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, String path, double dpiScale, FileDialogSelectCallback clickCallback, bool allowMultiple, String hint) {
   if (opened) return false;
   saving=false;
   curPath=path;
@@ -189,13 +189,13 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, S
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
     ImGuiFileDialog::Instance()->mobileMode=mobileUI;
     ImGuiFileDialog::Instance()->homePath=getHomeDir();
-    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,allowMultiple?999:1,nullptr,0,clickCallback);
+    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,hint,allowMultiple?999:1,nullptr,0,clickCallback);
   }
   opened=true;
   return true;
 }
 
-bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, String path, double dpiScale) {
+bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, String path, double dpiScale, String hint) {
   if (opened) return false;
 
 #ifdef ANDROID
@@ -275,7 +275,7 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, S
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
     ImGuiFileDialog::Instance()->mobileMode=mobileUI;
     ImGuiFileDialog::Instance()->homePath=getHomeDir();
-    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,hint,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
   }
   opened=true;
   return true;
