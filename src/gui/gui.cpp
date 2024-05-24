@@ -1642,6 +1642,18 @@ bool dirExists(String s) {
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
   bool hasOpened=false;
+
+  String shortName;
+  size_t shortNamePos=curFileName.rfind(DIR_SEPARATOR);
+  if (shortNamePos!=String::npos && (shortNamePos+1)<curFileName.size()) {
+    shortName=curFileName.substr(shortNamePos+1);
+    // remove extension
+    shortNamePos=shortName.rfind('.');
+    if (shortNamePos!=String::npos) {
+      shortName=shortName.substr(0,shortNamePos);
+    }
+  }
+
   switch (type) {
     case GUI_FILE_OPEN:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
@@ -1680,7 +1692,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Export DMF",
         {"DefleMask 1.1.3 module", "*.dmf"},
         workingDirSong,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
       );
       break;
     case GUI_FILE_SAVE_DMF_LEGACY:
@@ -1689,7 +1702,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Export DMF",
         {"DefleMask 1.0/legacy module", "*.dmf"},
         workingDirSong,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
       );
       break;
     case GUI_FILE_INS_OPEN:
@@ -1766,7 +1780,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Save Instrument",
         {"DefleMask preset", "*.dmp"},
         workingDirIns,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?e->getIns(curIns)->name:""
       );
       break;
     case GUI_FILE_WAVE_OPEN:
@@ -1838,7 +1853,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Save Sample",
         {"Wave file", "*.wav"},
         workingDirSample,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?e->getSample(curSample)->name:""
       );
       break;
     case GUI_FILE_SAMPLE_SAVE_RAW:
@@ -1847,7 +1863,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Save Raw Sample",
         {"all files", "*"},
         workingDirSample,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?e->getSample(curSample)->name:""
       );
       break;
     case GUI_FILE_EXPORT_AUDIO_ONE:
@@ -1856,7 +1873,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Export Audio",
         {"Wave file", "*.wav"},
         workingDirAudioExport,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
       );
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_SYS:
@@ -1865,7 +1883,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Export Audio",
         {"Wave file", "*.wav"},
         workingDirAudioExport,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
       );
       break;
     case GUI_FILE_EXPORT_AUDIO_PER_CHANNEL:
@@ -1874,7 +1893,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Export Audio",
         {"Wave file", "*.wav"},
         workingDirAudioExport,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
       );
       break;
     case GUI_FILE_EXPORT_VGM:
@@ -1883,7 +1903,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Export VGM",
         {"VGM file", "*.vgm"},
         workingDirVGMExport,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
       );
       break;
     case GUI_FILE_EXPORT_ZSM:
@@ -1892,7 +1913,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Export ZSM",
         {"ZSM file", "*.zsm"},
         workingDirZSMExport,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
       );
       break;
     case GUI_FILE_EXPORT_TEXT:
@@ -1901,7 +1923,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Export Command Stream",
         {"text file", "*.txt"},
         workingDirROMExport,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
       );
       break;
     case GUI_FILE_EXPORT_CMDSTREAM:
@@ -1910,7 +1933,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Export Command Stream",
         {"binary file", "*.bin"},
         workingDirROMExport,
-        dpiScale
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
       );
       break;
     case GUI_FILE_EXPORT_ROM:
