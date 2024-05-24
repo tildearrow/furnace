@@ -124,6 +124,7 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, S
 
   logD("opening load file dialog with curPath %s",curPath.c_str());
   if (sysDialog) {
+    curPath+=hint;
 #ifdef USE_NFD
     dialogOK=false;
 #ifdef NFD_NON_THREADED
