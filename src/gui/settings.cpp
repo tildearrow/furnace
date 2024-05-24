@@ -908,6 +908,15 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip("when enabled, loading an instrument will use the stored name (if present).\notherwise, it will use the file name.");
         }
 
+        bool autoFillSaveB=settings.autoFillSave;
+        if (ImGui::Checkbox("Auto-fill file name when saving",&autoFillSaveB)) {
+          settings.autoFillSave=autoFillSaveB;
+          settingsChanged=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("fill the file name field with an appropriate file name when saving or exporting.");
+        }
+
         // SUBSECTION NEW SONG
         CONFIG_SUBSECTION("New Song");
         ImGui::AlignTextToFramePadding();
@@ -4653,6 +4662,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.backupEnable=conf.getInt("backupEnable",1);
     settings.backupInterval=conf.getInt("backupInterval",30);
     settings.backupMaxCopies=conf.getInt("backupMaxCopies",5);
+
+    settings.autoFillSave=conf.getInt("autoFillSave",0);
   }
 
   if (groups&GUI_SETTINGS_AUDIO) {
@@ -5155,6 +5166,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.backupEnable,0,1);
   clampSetting(settings.backupInterval,10,86400);
   clampSetting(settings.backupMaxCopies,1,100);
+  clampSetting(settings.autoFillSave,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -5232,6 +5244,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("backupEnable",settings.backupEnable);
     conf.set("backupInterval",settings.backupInterval);
     conf.set("backupMaxCopies",settings.backupMaxCopies);
+
+    conf.set("autoFillSave",settings.autoFillSave);
   }
 
   // audio

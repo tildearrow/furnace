@@ -1649,7 +1649,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Open File",
         {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub *.tfe",
          "all files", "*"},
-        workingDirSong,
+        workingDirSong+"/CRAP",
         dpiScale
       );
       break;
