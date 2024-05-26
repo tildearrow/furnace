@@ -1020,11 +1020,36 @@ void DivEngine::delUnusedSamples() {
   }
 
   // scan in pattern (legacy sample mode)
+  // disabled because it is unreliable
+  /*
   for (DivSubSong* i: song.subsong) {
-    for (int j=0; j<getChannelCount(song.system[index]); j++) {
-      
+    for (int j=0; j<getTotalChannelCount(); j++) {
+      bool is17On=false;
+      int bank=0;
+      for (int k=0; k<i->ordersLen; k++) {
+        DivPattern* p=i->pat[j].getPattern(i->orders.ord[j][k],false);
+        for (int l=0; l<i->patLen; l++) {
+          for (int m=0; m<i->pat[j].effectCols; m++) {
+            if (p->data[l][4+(m<<1)]==0x17) {
+              is17On=(p->data[l][5+(m<<1)]>0);
+            }
+            if (p->data[l][4+(m<<1)]==0xeb) {
+              bank=p->data[l][5+(m<<1)];
+              if (bank==-1) bank=0;
+            }
+          }
+          if (is17On) {
+            if (p->data[l][1]!=0 || p->data[l][0]!=0) {
+              if (p->data[l][0]<=12) {
+                int note=(12*bank)+(p->data[l][0]%12);
+                if (note<256) isUsed[note]=true;
+              }
+            }
+          }
+        }
+      }
     }
-  }
+  }*/
 
   // delete
   for (int i=0; i<song.sampleLen; i++) {
