@@ -976,7 +976,7 @@ void DivEngine::delUnusedSamples() {
   bool isUsed[256];
   memset(isUsed,0,256*sizeof(bool));
 
-  // scan
+  // scan in instruments
   for (DivInstrument* i: song.ins) {
     if ((i->type==DIV_INS_PCE && i->amiga.useSample) ||
         i->type==DIV_INS_MSM6258 ||
@@ -1016,6 +1016,13 @@ void DivEngine::delUnusedSamples() {
           }
         }
       }
+    }
+  }
+
+  // scan in pattern (legacy sample mode)
+  for (DivSubSong* i: song.subsong) {
+    for (int j=0; j<getChannelCount(song.system[index]); j++) {
+      
     }
   }
 
