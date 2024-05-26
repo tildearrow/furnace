@@ -489,6 +489,27 @@ int main(int argc, char** argv) {
   zsmOutName="";
   cmdOutName="";
 
+#ifdef HAVE_LOCALE
+  const char* localeRet=NULL;
+  if ((localeRet=setlocale(LC_ALL,""))==NULL) {
+    logE("could not set locale!");
+  } else {
+    logV("locale: %s",localeRet);
+  }
+  if ((localeRet=bindtextdomain("furnace","locale"))==NULL) {
+    logE("could not bind text domain!");
+  } else {
+    logV("text domain 1: %s",localeRet);
+  }
+  if ((localeRet=textdomain("furnace"))==NULL) {
+    logE("could not text domain!");
+  } else {
+    logV("text domain 2: %s",localeRet);
+  }
+
+  logV(_("this is a test!"));
+#endif
+
   initParams();
 
   // parse arguments

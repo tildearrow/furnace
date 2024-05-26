@@ -1,0 +1,19 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: furnace 0.6.3\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/gui/debugWindow.cpp:662
+msgid "This is a language test."
+msgstr ""
+
+#: src/gui/debugWindow.cpp:663
+msgid "This is another language test."
+msgstr ""
+
+#: src/main.cpp:510
+msgid "this is a test!"
+msgstr ""
