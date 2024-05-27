@@ -2,173 +2,179 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: furnace 0.6.3\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
-"Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: RevvoBolt\n"
+"Language-Team: RevvoBolt\n"
+"Language: sv\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: src/engine/sysDef.cpp:428 src/engine/sysDef.cpp:441
 msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
-msgstr ""
+msgstr "20xx: Ställ in kanalläge (bit 0: kvadrat; bit 1: brus, bit 2; envelope)"
 
 #: src/engine/sysDef.cpp:429
 msgid "21xx: Set noise frequency (0 to 1F)"
-msgstr ""
+msgstr "21xx: Ställ in brusfrekvens (0 till 1F)"
 
 #: src/engine/sysDef.cpp:430 src/engine/sysDef.cpp:443
 msgid "22xy: Set envelope mode (x: shape, y: enable for this channel)"
-msgstr ""
+msgstr "22xy: Ställ in ADSR (x: form, y: sätt på för kanalen)"
 
 #: src/engine/sysDef.cpp:431 src/engine/sysDef.cpp:444
 msgid "23xx: Set envelope period low byte"
-msgstr ""
+msgstr "23xx: Ställ in ADSR-period låg byte"
 
 #: src/engine/sysDef.cpp:432 src/engine/sysDef.cpp:445
 msgid "24xx: Set envelope period high byte"
-msgstr ""
+msgstr "24xx: Ställ in ADSR-period hög byte"
 
 #: src/engine/sysDef.cpp:433 src/engine/sysDef.cpp:446
 #: src/engine/sysDef.cpp:1599
 msgid "25xx: Envelope slide up"
-msgstr ""
+msgstr "25xx: ADSR-tonhöjdningen upp"
 
 #: src/engine/sysDef.cpp:434 src/engine/sysDef.cpp:447
 #: src/engine/sysDef.cpp:1600
 msgid "26xx: Envelope slide down"
-msgstr ""
+msgstr "26xx: ADSR-tonhöjdningen ner"
 
 #: src/engine/sysDef.cpp:435 src/engine/sysDef.cpp:448
 #: src/engine/sysDef.cpp:1601
 msgid "29xy: Set auto-envelope (x: numerator; y: denominator)"
-msgstr ""
+msgstr "29xy: Ställ in auto-ADSR (x: täljare; y: nämnare)"
 
 #: src/engine/sysDef.cpp:436 src/engine/sysDef.cpp:449
 msgid "2Exx: Write to I/O port A"
-msgstr ""
+msgstr "2Exx: Skriv till I/O-port A"
 
 #: src/engine/sysDef.cpp:437 src/engine/sysDef.cpp:450
 msgid "2Fxx: Write to I/O port B"
-msgstr ""
+msgstr "2FXX: Skriv till I/O-port B"
 
 #: src/engine/sysDef.cpp:442
 msgid "21xx: Set noise frequency (0 to FF)"
-msgstr ""
+msgstr "21xx: Ställ in brusfrekvens (0 till FF)"
 
 #: src/engine/sysDef.cpp:451
 msgid "12xx: Set duty cycle (0 to 8)"
-msgstr ""
+msgstr "12xx: Ställ in arbetscykel (0 till 8)"
 
 #: src/engine/sysDef.cpp:453
 msgid "27xx: Set noise AND mask"
-msgstr ""
+msgstr "Ställ in brus OCH mask"
 
 #: src/engine/sysDef.cpp:454
 msgid "28xx: Set noise OR mask"
-msgstr ""
+msgstr "Ställ in brus ELLER mask"
 
 #: src/engine/sysDef.cpp:455
 msgid ""
 "2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR "
 "mask); y: offset"
 msgstr ""
+"2Cxy: Automatisk brusfrekvens (x: läge (0: inaktivera, 1: frekv, 2: frekv + ELLER "
+"mask); y: offset"
 
 #: src/engine/sysDef.cpp:456
 msgid "2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER"
-msgstr ""
+msgstr "2Dxx: FÅR EJ ANSTÄLLAS AV KOMPOSITÖREN"
 
 #: src/engine/sysDef.cpp:460
 msgid "30xx: Toggle hard envelope reset on new notes"
-msgstr ""
+msgstr "30xx: Växla hård ADSR-återställning på nya toner"
 
 #: src/engine/sysDef.cpp:465
 msgid "18xx: Toggle extended channel 3 mode"
-msgstr ""
+msgstr "18xx: Växla utökat kanal 3-läge"
 
 #: src/engine/sysDef.cpp:470 src/engine/sysDef.cpp:766
 #: src/engine/sysDef.cpp:1025 src/engine/sysDef.cpp:1272
 #: src/engine/sysDef.cpp:1593
 msgid "17xx: Toggle PCM mode (LEGACY)"
-msgstr ""
+msgstr "17xx: Växla PCM-läge (LEGAT)"
 
 #: src/engine/sysDef.cpp:471 src/engine/sysDef.cpp:1653
 #: src/engine/sysDef.cpp:1963
 msgid "DFxx: Set sample playback direction (0: normal; 1: reverse)"
-msgstr ""
+msgstr "DFxx: Ställ in provuppspelningsriktning (0: normal; 1: omvänd)"
 
 #: src/engine/sysDef.cpp:476
 msgid "18xx: Toggle drums mode (1: enabled; 0: disabled)"
-msgstr ""
+msgstr "18xx: Växla trumläge (1: aktiverat; 0: inaktiverat)"
 
 #: src/engine/sysDef.cpp:480 src/engine/sysDef.cpp:554
 #: src/engine/sysDef.cpp:575
 msgid "11xx: Set feedback (0 to 7)"
-msgstr ""
+msgstr "11xx: Ställ in feedback (0 till 7)"
 
 #: src/engine/sysDef.cpp:481
 msgid "12xx: Set level of operator 1 (0 highest, 7F lowest)"
-msgstr ""
+msgstr "12xx: Ställ in nivå för operator 1 (0 högst, 7F lägst)"
 
 #: src/engine/sysDef.cpp:482
 msgid "13xx: Set level of operator 2 (0 highest, 7F lowest)"
-msgstr ""
+msgstr "13xx: Ställ in nivå för operator 2 (0 högst, 7F lägst)"
 
 #: src/engine/sysDef.cpp:483
 msgid "14xx: Set level of operator 3 (0 highest, 7F lowest)"
-msgstr ""
+msgstr "14xx: Ställ in nivå för operator 3 (0 högst, 7F lägst)"
 
 #: src/engine/sysDef.cpp:484
 msgid "15xx: Set level of operator 4 (0 highest, 7F lowest)"
-msgstr ""
+msgstr "Ställ in nivå för operator 4 (0 högst, 7F lägst)"
 
 #: src/engine/sysDef.cpp:485 src/engine/sysDef.cpp:580
 #: src/engine/sysDef.cpp:635
 msgid "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)"
-msgstr ""
+msgstr "16xy: Ställ in operatörsmultiplikator (x: operator från 1 till 4; y: multiplikator)"
 
 #: src/engine/sysDef.cpp:486
 msgid "19xx: Set attack of all operators (0 to 1F)"
-msgstr ""
+msgstr "19xx: Ange attack av alla operatorer (0 till 1F)"
 
 #: src/engine/sysDef.cpp:487
 msgid "1Axx: Set attack of operator 1 (0 to 1F)"
-msgstr ""
+msgstr "1Axx: Ange attack av operator 1 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:488
 msgid "1Bxx: Set attack of operator 2 (0 to 1F)"
-msgstr ""
+msgstr "1Bxx: Ange attack av operator 2 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:489
 msgid "1Cxx: Set attack of operator 3 (0 to 1F)"
-msgstr ""
+msgstr "1Cxx: Ange attack av operator 3 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:490
 msgid "1Dxx: Set attack of operator 4 (0 to 1F)"
-msgstr ""
+msgstr "1Dxx: Ange attack av operator 4 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:491 src/engine/sysDef.cpp:588
 #: src/engine/sysDef.cpp:656
 msgid "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)"
-msgstr ""
+msgstr "50xy: Ställ in AM (x: operator från 1 till 4 (0 för alla operatörer); y: AM)"
 
 #: src/engine/sysDef.cpp:492 src/engine/sysDef.cpp:589
 #: src/engine/sysDef.cpp:657
 msgid ""
 "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)"
 msgstr ""
+"51xy: Ställ in sustainnivå (x: operator från 1 till 4 (0 för alla operatörer); y: sustain)"
 
 #: src/engine/sysDef.cpp:493 src/engine/sysDef.cpp:590
 #: src/engine/sysDef.cpp:658
 msgid "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)"
 msgstr ""
+"51xy: Ställ in releasenivå (x: operator från 1 till 4 (0 för alla operatörer); y: release)"
 
 #: src/engine/sysDef.cpp:494
 msgid ""
 "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 "
 "is center)"
 msgstr ""
+"53xy: Ställ in detune (x: operator från 1 till 4 (0 för alla operatörer); y: detune där 3 "
+"är mitten)"
 
 #: src/engine/sysDef.cpp:495 src/engine/sysDef.cpp:592
 #: src/engine/sysDef.cpp:660
@@ -176,222 +182,244 @@ msgid ""
 "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale "
 "from 0 to 3)"
 msgstr ""
+"54xy: Ställ in ADSR-skalan (x: operator from 1 to 4 (0 for all operatörer); y: skala "
+"från 0 till 3)"
 
 #: src/engine/sysDef.cpp:496
 msgid "56xx: Set decay of all operators (0 to 1F)"
-msgstr ""
+msgstr "56xx: Ställ in decay för alla operatorer (0 till 1F)"
 
 #: src/engine/sysDef.cpp:497
 msgid "57xx: Set decay of operator 1 (0 to 1F)"
-msgstr ""
+msgstr "57xx: Ställ in decay för operator 1 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:498
 msgid "58xx: Set decay of operator 2 (0 to 1F)"
-msgstr ""
+msgstr "58xx: Ställ in decay för operator 2 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:499
 msgid "59xx: Set decay of operator 3 (0 to 1F)"
-msgstr ""
+msgstr "59xx: Ställ in decay för operator 3 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:500
 msgid "5Axx: Set decay of operator 4 (0 to 1F)"
-msgstr ""
+msgstr "Ställ in decay för operator 4 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:501
 msgid "5Bxx: Set decay 2 of all operators (0 to 1F)"
-msgstr ""
+msgstr "5Bxx: Ställ in decay 2 för alla operatorer (0 till 1F)"
 
 #: src/engine/sysDef.cpp:502
 msgid "5Cxx: Set decay 2 of operator 1 (0 to 1F)"
-msgstr ""
+msgstr "5Cxx: Ställ in decay 2 för operator 1 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:503
 msgid "5Dxx: Set decay 2 of operator 2 (0 to 1F)"
-msgstr ""
+msgstr "5Dxx: Ställ in decay 2 för operator 2 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:504
 msgid "5Exx: Set decay 2 of operator 3 (0 to 1F)"
-msgstr ""
+msgstr "5Exx: Ställ in decay 2 för operator 3 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:505
 msgid "5Fxx: Set decay 2 of operator 4 (0 to 1F)"
-msgstr ""
+msgstr "5Fxx: Ställ in decay 2 för operator 4 (0 till 1F)"
 
 #: src/engine/sysDef.cpp:510
 msgid "10xx: Set noise frequency (xx: value; 0 disables noise)"
-msgstr ""
+msgstr "10xx: Ställ in brusfrekvens (xx: värde; 0 inaktiverar brus)"
 
 #: src/engine/sysDef.cpp:511
 msgid "17xx: Set LFO speed"
-msgstr ""
+msgstr "17xx: Ställ in LFO-hastighet"
 
 #: src/engine/sysDef.cpp:512
 msgid "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)"
-msgstr ""
+msgstr "18xx: Ställ in LFO-vågform (0 såg, 1 kvadrat, 2 triangel, 3 brus)"
 
 #: src/engine/sysDef.cpp:513
 msgid "1Exx: Set AM depth (0 to 7F)"
-msgstr ""
+msgstr "1Exx: Ställ in AM-djup (0 till 7F)"
 
 #: src/engine/sysDef.cpp:514
 msgid "1Fxx: Set PM depth (0 to 7F)"
-msgstr ""
+msgstr "1Fxx: Ställ in PM-djup (0 till 7F)"
 
 #: src/engine/sysDef.cpp:515
 msgid ""
 "55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from "
 "0 to 3)"
 msgstr ""
+"55xy: Ställ in detune 2 (x: operator från 1 till 4 (0 för alla operatorer); y: detune från "
+"0 till 3)"
 
 #: src/engine/sysDef.cpp:520
 msgid "24xx: Set LFO 2 speed"
-msgstr ""
+msgstr "24xx: Ställ in LFO 2-hastighet"
 
 #: src/engine/sysDef.cpp:521
 msgid "25xx: Set LFO 2 waveform (0 saw, 1 square, 2 triangle, 3 noise)"
-msgstr ""
+msgstr "25xx: Ställ in LFO 2-vågform (0 såg, 1 kvadrat, 2 triangel, 3 brus)"
 
 #: src/engine/sysDef.cpp:522
 msgid "26xx: Set AM 2 depth (0 to 7F)"
-msgstr ""
+msgstr "26xx: Ställ in AM 2-djup (0 till 7F)"
 
 #: src/engine/sysDef.cpp:523
 msgid "27xx: Set PM 2 depth (0 to 7F)"
-msgstr ""
+msgstr "27xx: Ställ in PM 2-djup (0 till 7F)"
 
 #: src/engine/sysDef.cpp:524
 msgid ""
 "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 "
 "to 7)"
 msgstr ""
+"28xy: Ställ in reverb (x: operator från 1 till 4 (0 för alla operatorer); y: reverb från 0 "
+"till 7)"
 
 #: src/engine/sysDef.cpp:525 src/engine/sysDef.cpp:650
 msgid ""
 "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform "
 "from 0 to 7)"
 msgstr ""
+"2Axy: Ställ in vågform (x: operator från 1 till 4 (0 för alla operatorer); y: vågform "
+"från 0 till 7)"
 
 #: src/engine/sysDef.cpp:526
 msgid ""
 "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); "
 "y: shift from 0 to 3)"
 msgstr ""
+"2Bxy: Ställ in ADSR-generatorskifte (x: operator från 1 till 4 (0 för alla operatorer); "
+"y: skift från 0 till 3)"
 
 #: src/engine/sysDef.cpp:527
 msgid ""
 "2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)"
 msgstr ""
+"2Cxy: Ställ in finmultiplikator (x: operator från 1 till 4 (0 för alla operationer); y: fin)"
 
 #: src/engine/sysDef.cpp:530
 msgid ""
 "3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)"
 msgstr ""
+"3xyy: Ställ in fast frekvens för operator 1 (x: oktav från 0 till 7; y: frekvens)"
 
 #: src/engine/sysDef.cpp:531
 msgid ""
 "3xyy: Set fixed frequency of operator 2 (x: octave from 8 to F; y: frequency)"
 msgstr ""
+"3xyy: Ställ in fast frekvens för operator 2 (x: oktav från 8 till F; y: frekvens)"
 
 #: src/engine/sysDef.cpp:532
 msgid ""
 "4xyy: Set fixed frequency of operator 3 (x: octave from 0 to 7; y: frequency)"
 msgstr ""
+"4xyy: Ställ in fast frekvens för operator 3 (x: oktav från 0 till 7; y: frekvens)"
 
 #: src/engine/sysDef.cpp:533
 msgid ""
 "4xyy: Set fixed frequency of operator 4 (x: octave from 8 to F; y: frequency)"
 msgstr ""
+"4xyy: Ställ in fast frekvens för operator 4 (x: oktav från 8 till F; y: frekvens)"
 
 #: src/engine/sysDef.cpp:540
 msgid "10xy: Setup LFO (x: enable; y: speed)"
-msgstr ""
+msgstr "10xy: Ställ in LFO (x: aktivera; y: hastighet)"
 
 #: src/engine/sysDef.cpp:541
 msgid ""
 "55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, "
 "8 off)"
 msgstr ""
+"55xy: Ställ in SSG-ADSR (x: operator från 1 till 4 (0 för alla operatorer); y: 0-7 på, "
+"8 av)"
 
 #: src/engine/sysDef.cpp:549
 msgid "1Fxx: Set ADPCM-A global volume (0 to 3F)"
-msgstr ""
+msgstr "1Fxx: Ställ in ADPCM-A globalvolym (0 till 3F)"
 
 #: src/engine/sysDef.cpp:553
 msgid "10xx: Set patch (0 to F)"
-msgstr ""
+msgstr "10xx: Ställ in patch (0 till F)"
 
 #: src/engine/sysDef.cpp:555 src/engine/sysDef.cpp:576
 #: src/engine/sysDef.cpp:631
 msgid "12xx: Set level of operator 1 (0 highest, 3F lowest)"
-msgstr ""
+msgstr "12xx: Ställ in nivå för operator 1 (0 högst, 3F lägst)"
 
 #: src/engine/sysDef.cpp:556 src/engine/sysDef.cpp:577
 #: src/engine/sysDef.cpp:632
 msgid "13xx: Set level of operator 2 (0 highest, 3F lowest)"
-msgstr ""
+msgstr "13xx: Ställ in nivå för operator 2 (0 högst, 3F lägst)"
 
 #: src/engine/sysDef.cpp:557
 msgid "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)"
-msgstr ""
+msgstr "16xy: Ställ in operatormultiplikator (x: operator från 1 till 2; y: multiplikator)"
 
 #: src/engine/sysDef.cpp:558 src/engine/sysDef.cpp:582
 #: src/engine/sysDef.cpp:637
 msgid "19xx: Set attack of all operators (0 to F)"
-msgstr ""
+msgstr "19xx: Ange attack av alla operatorer (0 till F)"
 
 #: src/engine/sysDef.cpp:559 src/engine/sysDef.cpp:583
 #: src/engine/sysDef.cpp:638
 msgid "1Axx: Set attack of operator 1 (0 to F)"
-msgstr ""
+msgstr "1Axx: Ange attack av operator 1 (0 till F)"
 
 #: src/engine/sysDef.cpp:560 src/engine/sysDef.cpp:584
 #: src/engine/sysDef.cpp:639
 msgid "1Bxx: Set attack of operator 2 (0 to F)"
-msgstr ""
+msgstr "1Bxx: Ange attack av operator 2 (0 till F)"
 
 #: src/engine/sysDef.cpp:561
 msgid "50xy: Set AM (x: operator from 1 to 2 (0 for all ops); y: AM)"
-msgstr ""
+msgstr "50xy: Ställ in AM (x: operator från 1 till 2 (0 för alla operatorer); y: AM)"
 
 #: src/engine/sysDef.cpp:562
 msgid ""
 "51xy: Set sustain level (x: operator from 1 to 2 (0 for all ops); y: sustain)"
 msgstr ""
+"51xy: Ställ in sustainnivå (x: operator från 1 till 2 (0 för alla operatorer); y: sustain)"
 
 #: src/engine/sysDef.cpp:563
 msgid "52xy: Set release (x: operator from 1 to 2 (0 for all ops); y: release)"
-msgstr ""
+msgstr "52xy: Ställ in release (x: operator från 1 till 2 (0 för alla operatorer); y: release)"
 
 #: src/engine/sysDef.cpp:564
 msgid "53xy: Set vibrato (x: operator from 1 to 2 (0 for all ops); y: enabled)"
-msgstr ""
+msgstr "53xy: Ställ in vibrato (x: operator från 1 till 2 (0 för alla operatorer); y: aktiverad)"
 
 #: src/engine/sysDef.cpp:565
 msgid ""
 "54xy: Set envelope scale (x: operator from 1 to 2 (0 for all ops); y: scale "
 "from 0 to 3)"
 msgstr ""
+"54xy: Ställ in ADSR-skalan (x: operator från 1 till 2 (0 för alla operatorer); y: skala "
+"från 0 till 3)"
 
 #: src/engine/sysDef.cpp:566
 msgid ""
 "55xy: Set envelope sustain (x: operator from 1 to 2 (0 for all ops); y: "
 "enabled)"
 msgstr ""
+"55xy: Ställ in ADSR-sustain (x: operator från 1 till 2 (0 för alla operatorer); y: "
+"aktiverad)"
 
 #: src/engine/sysDef.cpp:567 src/engine/sysDef.cpp:594
 #: src/engine/sysDef.cpp:662
 msgid "56xx: Set decay of all operators (0 to F)"
-msgstr ""
+msgstr "56xx: Ställ in decay för alla operatorer (0 till F)"
 
 #: src/engine/sysDef.cpp:568 src/engine/sysDef.cpp:595
 #: src/engine/sysDef.cpp:663
 msgid "57xx: Set decay of operator 1 (0 to F)"
-msgstr ""
+msgstr "57xx: Ställ in decay för operator 1 (0 till F)"
 
 #: src/engine/sysDef.cpp:569 src/engine/sysDef.cpp:596
 #: src/engine/sysDef.cpp:664
 msgid "58xx: Set decay of operator 2 (0 to F)"
-msgstr ""
+msgstr "58xx: Ställ in decay för operator 2 (0 till F)"
 
 #: src/engine/sysDef.cpp:570
 msgid ""
@@ -986,11 +1014,11 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:765
 msgid "13xx: Set LFO speed"
-msgstr ""
+msgstr "13xx: Ställ in LFO-hastighet"
 
 #: src/engine/sysDef.cpp:771
 msgid "NES (Ricoh 2A03)"
-msgstr ""
+msgstr "NES (Ricoh 2A03)"
 
 #: src/engine/sysDef.cpp:772
 msgid ""
@@ -15411,144 +15439,144 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:7122 src/gui/insEdit.cpp:7343
 msgid "Pulse Width"
-msgstr ""
+msgstr "Pulsbredd"
 
 #: src/gui/insEdit.cpp:7139
 msgid "Duty/Int"
-msgstr ""
+msgstr "Arbete/Int"
 
 #: src/gui/insEdit.cpp:7145 src/gui/insEdit.cpp:7406
 msgid "Load LFSR"
-msgstr ""
+msgstr "Ladda in LFSR"
 
 #: src/gui/insEdit.cpp:7165
 msgid "Envelope Mode"
-msgstr ""
+msgstr "ADSR-läge"
 
 #: src/gui/insEdit.cpp:7218
 msgid "Phase Reset Timer"
-msgstr ""
+msgstr "Fasåterställningstimer"
 
 #: src/gui/insEdit.cpp:7252 src/gui/insEdit.cpp:7259
 msgid "Freq Divider"
-msgstr ""
+msgstr "Frekvensdelare"
 
 #: src/gui/insEdit.cpp:7255
 msgid "Clock Divider"
-msgstr ""
+msgstr "Klockavdelare"
 
 #: src/gui/insEdit.cpp:7264
 msgid "Global Volume"
-msgstr ""
+msgstr "Globalvolym"
 
 #: src/gui/insEdit.cpp:7286
 msgid "Echo Level"
-msgstr ""
+msgstr "Ekonivå"
 
 #: src/gui/insEdit.cpp:7291
 msgid "Echo Feedback"
-msgstr ""
+msgstr "Ekofeedback"
 
 #: src/gui/insEdit.cpp:7292
 msgid "Echo Length"
-msgstr ""
+msgstr "Ekolängd"
 
 #: src/gui/insEdit.cpp:7312
 msgid "Group Ctrl"
-msgstr ""
+msgstr "Grupp-Ctrl"
 
 #: src/gui/insEdit.cpp:7313
 msgid "Group Attack"
-msgstr ""
+msgstr "Gruppattack"
 
 #: src/gui/insEdit.cpp:7314
 msgid "Group Decay"
-msgstr ""
+msgstr "Gruppdecay"
 
 #: src/gui/insEdit.cpp:7320
 msgid "Noise Type"
-msgstr ""
+msgstr "Brustyp"
 
 #: src/gui/insEdit.cpp:7367
 msgid "Square/Noise"
-msgstr ""
+msgstr "Kvadrat/Brus"
 
 #: src/gui/insEdit.cpp:7404
 msgid "Tap A Location"
-msgstr ""
+msgstr "Tryck på A Plats"
 
 #: src/gui/insEdit.cpp:7405
 msgid "Tap B Location"
-msgstr ""
+msgstr "Tryck på B Plats"
 
 #: src/gui/insEdit.cpp:7416
 msgid "Portion A Length"
-msgstr ""
+msgstr "Del A Längd"
 
 #: src/gui/insEdit.cpp:7417
 msgid "Portion B Length"
-msgstr ""
+msgstr "Del B Längd"
 
 #: src/gui/insEdit.cpp:7418
 msgid "Portion A Offset"
-msgstr ""
+msgstr "Del A Offset"
 
 #: src/gui/insEdit.cpp:7419
 msgid "Portion B Offset"
-msgstr ""
+msgstr "Del B Offset"
 
 #: src/gui/insEdit.cpp:7463
 msgid "Parameter"
-msgstr ""
+msgstr "Parameter"
 
 #: src/gui/insEdit.cpp:7467
 msgid "Load Value"
-msgstr ""
+msgstr "Ladda värde"
 
 #: src/gui/insEdit.cpp:7479
 msgid "Filter Toggle"
-msgstr ""
+msgstr "Växla filter"
 
 #: src/gui/insEdit.cpp:7486
 msgid "Wave Mix"
-msgstr ""
+msgstr "Vågmix"
 
 #: src/gui/insEdit.cpp:7500
 msgid "Octave offset"
-msgstr ""
+msgstr "Oktavoffset"
 
 #: src/gui/insEdit.cpp:7505
 msgid "go to Macros for other parameters."
-msgstr ""
+msgstr "gå till makron för andra parametrar."
 
 #: src/gui/insEdit.cpp:7521
 msgid "invalid instrument type! change it first."
-msgstr ""
+msgstr "ogiltig instrumenttyp! ändra det först."
 
 #: src/gui/insEdit.cpp:7565
 msgid "clear contents"
-msgstr ""
+msgstr "rensa innehållen"
 
 #: src/gui/insEdit.cpp:7571
 msgid "offset..."
-msgstr ""
+msgstr "offset..."
 
 #: src/gui/insEdit.cpp:7572 src/gui/insEdit.cpp:7605
 msgid "X"
-msgstr ""
+msgstr "X"
 
 #: src/gui/insEdit.cpp:7573 src/gui/insEdit.cpp:7609
 msgid "Y"
-msgstr ""
+msgstr "Y"
 
 #: src/gui/insEdit.cpp:7574
 msgid "offset"
-msgstr ""
+msgstr "offset"
 
 #: src/gui/insEdit.cpp:7637
 msgid "Min"
-msgstr ""
+msgstr "Min"
 
 #: src/gui/insEdit.cpp:7638
 msgid "Max"
-msgstr ""
+msgstr "Max"
