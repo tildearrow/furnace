@@ -48,124 +48,124 @@ void process(void* u, float** in, float** out, int inChans, int outChans, unsign
 const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNull) {
   switch (effect) {
     case 0x00:
-      return "00xy: Arpeggio";
+      return _("00xy: Arpeggio");
     case 0x01:
-      return "01xx: Pitch slide up";
+      return _("01xx: Pitch slide up");
     case 0x02:
-      return "02xx: Pitch slide down";
+      return _("02xx: Pitch slide down");
     case 0x03:
-      return "03xx: Portamento";
+      return _("03xx: Portamento");
     case 0x04:
-      return "04xy: Vibrato (x: speed; y: depth)";
+      return _("04xy: Vibrato (x: speed; y: depth)");
     case 0x05:
-      return "05xy: Volume slide + vibrato (compatibility only!)";
+      return _("05xy: Volume slide + vibrato (compatibility only!)");
     case 0x06:
-      return "06xy: Volume slide + portamento (compatibility only!)";
+      return _("06xy: Volume slide + portamento (compatibility only!)");
     case 0x07:
-      return "07xy: Tremolo (x: speed; y: depth)";
+      return _("07xy: Tremolo (x: speed; y: depth)");
     case 0x08:
-      return "08xy: Set panning (x: left; y: right)";
+      return _("08xy: Set panning (x: left; y: right)");
     case 0x09:
-      return "09xx: Set groove pattern (speed 1 if no grooves exist)";
+      return _("09xx: Set groove pattern (speed 1 if no grooves exist)");
     case 0x0a:
-      return "0Axy: Volume slide (0y: down; x0: up)";
+      return _("0Axy: Volume slide (0y: down; x0: up)");
     case 0x0b:
-      return "0Bxx: Jump to pattern";
+      return _("0Bxx: Jump to pattern");
     case 0x0c:
-      return "0Cxx: Retrigger";
+      return _("0Cxx: Retrigger");
     case 0x0d:
-      return "0Dxx: Jump to next pattern";
+      return _("0Dxx: Jump to next pattern");
     case 0x0f:
-      return "0Fxx: Set speed (speed 2 if no grooves exist)";
+      return _("0Fxx: Set speed (speed 2 if no grooves exist)");
     case 0x80:
-      return "80xx: Set panning (00: left; 80: center; FF: right)";
+      return _("80xx: Set panning (00: left; 80: center; FF: right)");
     case 0x81:
-      return "81xx: Set panning (left channel)";
+      return _("81xx: Set panning (left channel)");
     case 0x82:
-      return "82xx: Set panning (right channel)";
+      return _("82xx: Set panning (right channel)");
     case 0x88:
-      return "88xy: Set panning (rear channels; x: left; y: right)";
+      return _("88xy: Set panning (rear channels; x: left; y: right)");
       break;
     case 0x89:
-      return "89xx: Set panning (rear left channel)";
+      return _("89xx: Set panning (rear left channel)");
       break;
     case 0x8a:
-      return "8Axx: Set panning (rear right channel)";
+      return _("8Axx: Set panning (rear right channel)");
       break;
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
-      return "Cxxx: Set tick rate (hz)";
+      return _("Cxxx: Set tick rate (hz)");
     case 0xe0:
-      return "E0xx: Set arp speed";
+      return _("E0xx: Set arp speed");
     case 0xe1:
-      return "E1xy: Note slide up (x: speed; y: semitones)";
+      return _("E1xy: Note slide up (x: speed; y: semitones)");
     case 0xe2:
-      return "E2xy: Note slide down (x: speed; y: semitones)";
+      return _("E2xy: Note slide down (x: speed; y: semitones)");
     case 0xe3:
-      return "E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)";
+      return _("E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)");
     case 0xe4:
-      return "E4xx: Set vibrato range";
+      return _("E4xx: Set vibrato range");
     case 0xe5:
-      return "E5xx: Set pitch (80: center)";
+      return _("E5xx: Set pitch (80: center)");
     case 0xe6:
-      return "E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)";
+      return _("E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)");
     case 0xe7:
-      return "E7xx: Macro release";
+      return _("E7xx: Macro release");
     case 0xe8:
-      return "E8xy: Quick legato up (x: time; y: semitones)";
+      return _("E8xy: Quick legato up (x: time; y: semitones)");
     case 0xe9:
-      return "E9xy: Quick legato down (x: time; y: semitones)";
+      return _("E9xy: Quick legato down (x: time; y: semitones)");
     case 0xea:
-      return "EAxx: Legato";
+      return _("EAxx: Legato");
     case 0xeb:
-      return "EBxx: Set LEGACY sample mode bank";
+      return _("EBxx: Set LEGACY sample mode bank");
     case 0xec:
-      return "ECxx: Note cut";
+      return _("ECxx: Note cut");
     case 0xed:
-      return "EDxx: Note delay";
+      return _("EDxx: Note delay");
     case 0xee:
-      return "EExx: Send external command";
+      return _("EExx: Send external command");
     case 0xf0:
-      return "F0xx: Set tick rate (bpm)";
+      return _("F0xx: Set tick rate (bpm)");
     case 0xf1:
-      return "F1xx: Single tick note slide up";
+      return _("F1xx: Single tick note slide up");
     case 0xf2:
-      return "F2xx: Single tick note slide down";
+      return _("F2xx: Single tick note slide down");
     case 0xf3:
-      return "F3xx: Fine volume slide up";
+      return _("F3xx: Fine volume slide up");
     case 0xf4:
-      return "F4xx: Fine volume slide down";
+      return _("F4xx: Fine volume slide down");
     case 0xf5:
-      return "F5xx: Disable macro (see manual)";
+      return _("F5xx: Disable macro (see manual)");
     case 0xf6:
-      return "F6xx: Enable macro (see manual)";
+      return _("F6xx: Enable macro (see manual)");
     case 0xf7:
-      return "F7xx: Restart macro (see manual)";
+      return _("F7xx: Restart macro (see manual)");
     case 0xf8:
-      return "F8xx: Single tick volume slide up";
+      return _("F8xx: Single tick volume slide up");
     case 0xf9:
-      return "F9xx: Single tick volume slide down";
+      return _("F9xx: Single tick volume slide down");
     case 0xfa:
-      return "FAxx: Fast volume slide (0y: down; x0: up)";
+      return _("FAxx: Fast volume slide (0y: down; x0: up)");
     case 0xfc:
-      return "FCxx: Note release";
+      return _("FCxx: Note release");
     case 0xfd:
-      return "FDxx: Set virtual tempo numerator";
+      return _("FDxx: Set virtual tempo numerator");
     case 0xfe:
-      return "FExx: Set virtual tempo denominator";
+      return _("FExx: Set virtual tempo denominator");
     case 0xff:
-      return "FFxx: Stop song";
+      return _("FFxx: Stop song");
     default:
       if ((effect&0xf0)==0x90) {
         if (song.oldSampleOffset) {
-          return "9xxx: Set sample offset*256";
+          return _("9xxx: Set sample offset*256");
         }
         switch (effect) {
           case 0x90:
-            return "90xx: Set sample offset (first byte)";
+            return _("90xx: Set sample offset (first byte)");
           case 0x91:
-            return "91xx: Set sample offset (second byte, ×256)";
+            return _("91xx: Set sample offset (second byte, ×256)");
           case 0x92:
-            return "92xx: Set sample offset (third byte, ×65536)";
+            return _("92xx: Set sample offset (third byte, ×65536)");
         }
       } else if (chan>=0 && chan<chans) {
         DivSysDef* sysDef=sysDefs[sysOfChan[chan]];
@@ -184,7 +184,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       }
       break;
   }
-  return notNull?"Invalid effect":NULL;
+  return notNull?_("Invalid effect"):NULL;
 }
 
 void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
@@ -351,43 +351,43 @@ int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& 
   }
   if (fseek(f,0,SEEK_END)<0) {
     logE("size error: %s",strerror(errno));
-    lastError=fmt::sprintf("on seek: %s",strerror(errno));
+    lastError=fmt::sprintf(_("on seek: %s"),strerror(errno));
     fclose(f);
     return -1;
   }
   ssize_t len=ftell(f);
   if (len==(SIZE_MAX>>1)) {
     logE("could not get file length: %s",strerror(errno));
-    lastError=fmt::sprintf("on pre tell: %s",strerror(errno));
+    lastError=fmt::sprintf(_("on pre tell: %s"),strerror(errno));
     fclose(f);
     return -1;
   }
   if (len<1) {
     if (len==0) {
       logE("that file is empty!");
-      lastError="file is empty";
+      lastError=_("file is empty");
     } else {
       logE("tell error: %s",strerror(errno));
-      lastError=fmt::sprintf("on tell: %s",strerror(errno));
+      lastError=fmt::sprintf(_("on tell: %s"),strerror(errno));
     }
     fclose(f);
     return -1;
   }
   if (len!=expectedSize) {
     logE("ROM size mismatch, expected: %d bytes, was: %d bytes", expectedSize, len);
-    lastError=fmt::sprintf("ROM size mismatch, expected: %d bytes, was: %d", expectedSize, len);
+    lastError=fmt::sprintf(_("ROM size mismatch, expected: %d bytes, was: %d"), expectedSize, len);
     return -1;
   }
   if (fseek(f,0,SEEK_SET)<0) {
     logE("size error: %s",strerror(errno));
-    lastError=fmt::sprintf("on get size: %s",strerror(errno));
+    lastError=fmt::sprintf(_("on get size: %s"),strerror(errno));
     fclose(f);
     return -1;
   }
   unsigned char* file=new unsigned char[len];
   if (fread(file,1,(size_t)len,f)!=(size_t)len) {
     logE("read error: %s",strerror(errno));
-    lastError=fmt::sprintf("on read: %s",strerror(errno));
+    lastError=fmt::sprintf(_("on read: %s"),strerror(errno));
     fclose(f);
     delete[] file;
     return -1;
@@ -1073,11 +1073,11 @@ void DivEngine::delUnusedSamples() {
 
 bool DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
   if (index<0 || index>=song.systemLen) {
-    lastError="invalid index";
+    lastError=_("invalid index");
     return false;
   }
   if (chans-getChannelCount(song.system[index])+getChannelCount(which)>DIV_MAX_CHANS) {
-    lastError=fmt::sprintf("max number of total channels is %d",DIV_MAX_CHANS);
+    lastError=fmt::sprintf(_("max number of total channels is %d"),DIV_MAX_CHANS);
     return false;
   }
 
@@ -1128,11 +1128,11 @@ bool DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
 
 bool DivEngine::addSystem(DivSystem which) {
   if (song.systemLen>=DIV_MAX_CHIPS) {
-    lastError=fmt::sprintf("max number of systems is %d",DIV_MAX_CHIPS);
+    lastError=fmt::sprintf(_("max number of systems is %d"),DIV_MAX_CHIPS);
     return false;
   }
   if (chans+getChannelCount(which)>DIV_MAX_CHANS) {
-    lastError=fmt::sprintf("max number of total channels is %d",DIV_MAX_CHANS);
+    lastError=fmt::sprintf(_("max number of total channels is %d"),DIV_MAX_CHANS);
     return false;
   }
   quitDispatch();
@@ -1178,15 +1178,15 @@ bool DivEngine::addSystem(DivSystem which) {
 
 bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
   if (index<0 || index>=song.systemLen) {
-    lastError="invalid index";
+    lastError=_("invalid index");
     return false;
   }
   if (song.systemLen>=DIV_MAX_CHIPS) {
-    lastError=fmt::sprintf("max number of systems is %d",DIV_MAX_CHIPS);
+    lastError=fmt::sprintf(_("max number of systems is %d"),DIV_MAX_CHIPS);
     return false;
   }
   if (chans+getChannelCount(song.system[index])>DIV_MAX_CHANS) {
-    lastError=fmt::sprintf("max number of total channels is %d",DIV_MAX_CHANS);
+    lastError=fmt::sprintf(_("max number of total channels is %d"),DIV_MAX_CHANS);
     return false;
   }
   quitDispatch();
@@ -1283,11 +1283,11 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
 // TODO: maybe issue with subsongs?
 bool DivEngine::removeSystem(int index, bool preserveOrder) {
   if (song.systemLen<=1) {
-    lastError="cannot remove the last one";
+    lastError=_("cannot remove the last one");
     return false;
   }
   if (index<0 || index>=song.systemLen) {
-    lastError="invalid index";
+    lastError=_("invalid index");
     return false;
   }
   int chanCount=chans;
@@ -1457,15 +1457,15 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
 
 bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
   if (src==dest) {
-    lastError="source and destination are equal";
+    lastError=_("source and destination are equal");
     return false;
   }
   if (src<0 || src>=song.systemLen) {
-    lastError="invalid source index";
+    lastError=_("invalid source index");
     return false;
   }
   if (dest<0 || dest>=song.systemLen) {
-    lastError="invalid destination index";
+    lastError=_("invalid destination index");
     return false;
   }
   //int chanCount=chans;
@@ -2633,7 +2633,7 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
       *ins=song.nullInsQSound;
     }
   }
-  ins->name=fmt::sprintf("Instrument %d",insCount);
+  ins->name=fmt::sprintf(_("Instrument %d"),insCount);
   if (prefType!=DIV_INS_NULL) {
     ins->type=prefType;
   }
@@ -2707,7 +2707,7 @@ void DivEngine::delInstrument(int index) {
 
 int DivEngine::addWave() {
   if (song.wave.size()>=256) {
-    lastError="too many wavetables!";
+    lastError=_("too many wavetables!");
     return -1;
   }
   BUSY_BEGIN;
@@ -2724,7 +2724,7 @@ int DivEngine::addWave() {
 
 int DivEngine::addWavePtr(DivWavetable* which) {
   if (song.wave.size()>=256) {
-    lastError="too many wavetables!";
+    lastError=_("too many wavetables!");
     delete which;
     return -1;
   }
@@ -2749,35 +2749,35 @@ DivWavetable* DivEngine::waveFromFile(const char* path, bool addRaw) {
   ssize_t len;
   if (fseek(f,0,SEEK_END)!=0) {
     fclose(f);
-    lastError=fmt::sprintf("could not seek to end: %s",strerror(errno));
+    lastError=fmt::sprintf(_("could not seek to end: %s"),strerror(errno));
     return NULL;
   }
   len=ftell(f);
   if (len<0) {
     fclose(f);
-    lastError=fmt::sprintf("could not determine file size: %s",strerror(errno));
+    lastError=fmt::sprintf(_("could not determine file size: %s"),strerror(errno));
     return NULL;
   }
   if (len==(SIZE_MAX>>1)) {
     fclose(f);
-    lastError="file size is invalid!";
+    lastError=_("file size is invalid!");
     return NULL;
   }
   if (len==0) {
     fclose(f);
-    lastError="file is empty";
+    lastError=_("file is empty");
     return NULL;
   }
   if (fseek(f,0,SEEK_SET)!=0) {
     fclose(f);
-    lastError=fmt::sprintf("could not seek to beginning: %s",strerror(errno));
+    lastError=fmt::sprintf(_("could not seek to beginning: %s"),strerror(errno));
     return NULL;
   }
   buf=new unsigned char[len];
   if (fread(buf,1,len,f)!=(size_t)len) {
     logW("did not read entire wavetable file buffer!");
     delete[] buf;
-    lastError=fmt::sprintf("could not read entire file: %s",strerror(errno));
+    lastError=fmt::sprintf(_("could not read entire file: %s"),strerror(errno));
     return NULL;
   }
   fclose(f);
@@ -2803,7 +2803,7 @@ DivWavetable* DivEngine::waveFromFile(const char* path, bool addRaw) {
       reader.readS(); // reserved
       reader.seek(20,SEEK_SET);
       if (wave->readWaveData(reader,version)!=DIV_DATA_SUCCESS) {
-        lastError="invalid wavetable header/data!";
+        lastError=_("invalid wavetable header/data!");
         delete wave;
         delete[] buf;
         return NULL;
@@ -2874,7 +2874,7 @@ DivWavetable* DivEngine::waveFromFile(const char* path, bool addRaw) {
   } catch (EndOfFileException& e) {
     delete wave;
     delete[] buf;
-    lastError="premature end of file";
+    lastError=_("premature end of file");
     return NULL;
   }
   
@@ -2901,14 +2901,14 @@ void DivEngine::delWave(int index) {
 
 int DivEngine::addSample() {
   if (song.sample.size()>=256) {
-    lastError="too many samples!";
+    lastError=_("too many samples!");
     return -1;
   }
   BUSY_BEGIN;
   saveLock.lock();
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
-  sample->name=fmt::sprintf("Sample %d",sampleCount);
+  sample->name=fmt::sprintf(_("Sample %d"),sampleCount);
   song.sample.push_back(sample);
   song.sampleLen=sampleCount+1;
   sPreview.sample=-1;
@@ -2923,7 +2923,7 @@ int DivEngine::addSample() {
 
 int DivEngine::addSamplePtr(DivSample* which) {
   if (song.sample.size()>=256) {
-    lastError="too many samples!";
+    lastError=_("too many samples!");
     delete which;
     return -1;
   }
@@ -3053,7 +3053,7 @@ void DivEngine::deepCloneOrder(int pos, bool where) {
       }
     }
     if (didNotFind) {
-      addWarning(fmt::sprintf("no free patterns in channel %d!",i));
+      addWarning(fmt::sprintf(_("no free patterns in channel %d!"),i));
     }
   }
   if (where) { // at the end

@@ -7022,6 +7022,27 @@ bool FurnaceGUI::init() {
   ImGui::CreateContext();
   rend->initGUI(sdlWin);
 
+  ImGuiLocEntry guiLocalization[8];
+
+  guiLocalization[0].Key=ImGuiLocKey_TableSizeOne;
+  guiLocalization[0].Text=_("Size column to fit###SizeOne");
+  guiLocalization[1].Key=ImGuiLocKey_TableSizeAllFit;
+  guiLocalization[1].Text=_("Size all columns to fit###SizeAll");
+  guiLocalization[2].Key=ImGuiLocKey_TableSizeAllDefault;
+  guiLocalization[2].Text=_("Size all columns to default###SizeAll");
+  guiLocalization[3].Key=ImGuiLocKey_TableResetOrder;
+  guiLocalization[3].Text=_("Reset order###ResetOrder");
+  guiLocalization[4].Key=ImGuiLocKey_WindowingMainMenuBar;
+  guiLocalization[4].Text=_("(Main menu bar)");
+  guiLocalization[5].Key=ImGuiLocKey_WindowingPopup;
+  guiLocalization[5].Text=_("(Popup)");
+  guiLocalization[6].Key=ImGuiLocKey_WindowingUntitled;
+  guiLocalization[6].Text=_("(Untitled)");
+  guiLocalization[7].Key=ImGuiLocKey_DockingHideTabBar;
+  guiLocalization[7].Text=_("Hide tab bar###HideTabBar");
+
+  ImGui::LocalizeRegisterEntries(guiLocalization,8);
+
   loadUserPresets(true);
 
   applyUISettings();
