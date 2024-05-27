@@ -43,6 +43,8 @@ cd path/to/Furnace/repo
 
 if successful, a new file will be created in the `po` directory that you can edit using a text editor.
 
+be sure to edit CMakeLists.txt as well, to make sure the translation file is compiled. add the language code to `FURNACE_LANGUAGES`.
+
 ## editing an existing translation
 
 just open the translation file in your text editor.
