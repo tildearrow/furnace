@@ -896,19 +896,19 @@ msgstr ""
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 1"
-msgstr ""
+msgstr "Pulso 1"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 2"
-msgstr ""
+msgstr "Pulso 2"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 3"
-msgstr ""
+msgstr "Pulso 3"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:739
 #: src/engine/sysDef.cpp:773 src/engine/sysDef.cpp:955
@@ -918,7 +918,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:6978 src/gui/insEdit.cpp:7129 src/gui/insEdit.cpp:7223
 #: src/gui/insEdit.cpp:7315
 msgid "Noise"
-msgstr ""
+msgstr "Ruido"
 
 #: src/engine/sysDef.cpp:726
 msgid "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"
@@ -939,12 +939,12 @@ msgstr ""
 #: src/engine/sysDef.cpp:739 src/engine/sysDef.cpp:773
 #: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:2100
 msgid "Pulse 1"
-msgstr ""
+msgstr "Pulso 1"
 
 #: src/engine/sysDef.cpp:739 src/engine/sysDef.cpp:773
 #: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:2100
 msgid "Pulse 2"
-msgstr ""
+msgstr "Pulso 2"
 
 #: src/engine/sysDef.cpp:739 src/gui/settings.cpp:3872
 #: src/gui/guiConst.cpp:1395 src/gui/insEdit.cpp:6652
@@ -996,12 +996,13 @@ msgstr ""
 msgid ""
 "also known as Famicom in Japan, it's the most well-known game console of the "
 "'80s."
-msgstr ""
+msgstr "tambien conocida como la 'Famicom' en Japón, es la consola de"
+"videojuegos más conocida de los 80s."
 
 #: src/engine/sysDef.cpp:773 src/gui/waveEdit.cpp:31 src/gui/waveEdit.cpp:217
 #: src/gui/insEdit.cpp:200 src/gui/insEdit.cpp:324 src/gui/insEdit.cpp:658
 msgid "Triangle"
-msgstr ""
+msgstr "Triángulo"
 
 #: src/engine/sysDef.cpp:773 src/engine/sysDef.cpp:2100
 #: src/gui/insEdit.cpp:2629
@@ -1010,44 +1011,44 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:779 src/engine/sysDef.cpp:2106
 msgid "11xx: Write to delta modulation counter (0 to 7F)"
-msgstr ""
+msgstr "11xx: Sobreescribe el contador de modulación delta (de 0 a 7F)"
 
 #: src/engine/sysDef.cpp:780 src/engine/sysDef.cpp:1068
 msgid "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"
-msgstr ""
+msgstr "12xx: Cambiar modo de ruido/ancho de pulso (pulso: 0 a 3; ruido: 0 o 1)"
 
 #: src/engine/sysDef.cpp:781 src/engine/sysDef.cpp:2108
 msgid "13xy: Sweep up (x: time; y: shift)"
-msgstr ""
+msgstr "13xy: Barrido hacia arriba (x: tiempo; y: cambio)"
 
 #: src/engine/sysDef.cpp:782 src/engine/sysDef.cpp:2109
 msgid "14xy: Sweep down (x: time; y: shift)"
-msgstr ""
+msgstr "13xy: Barrido hacia abajo (x: tiempo; y: cambio)"
 
 #: src/engine/sysDef.cpp:783 src/engine/sysDef.cpp:2110
 msgid ""
 "15xx: Set envelope mode (0: envelope, 1: length, 2: looping, 3: constant)"
-msgstr ""
+msgstr "15xx: Ajustar modo de envoltura (0: normal, 1: longitud, 2: en bucle, 3: constante)"
 
 #: src/engine/sysDef.cpp:784 src/engine/sysDef.cpp:2111
 msgid "16xx: Set length counter (refer to manual for a list of values)"
-msgstr ""
+msgstr "16xx: Sobreescribir contador de longitud (refiérase al manual para una lista de valores)"
 
 #: src/engine/sysDef.cpp:785 src/engine/sysDef.cpp:2112
 msgid "17xx: Set frame counter mode (0: 4-step, 1: 5-step)"
-msgstr ""
+msgstr "17xx: Cambiar modo de contador de frames (0: 4 pasos, 1: 5 pasos)"
 
 #: src/engine/sysDef.cpp:786 src/engine/sysDef.cpp:2113
 msgid "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)"
-msgstr ""
+msgstr "18xx: Cambiar entre PCM y DPCM (0: PCM; 1: DPCM)"
 
 #: src/engine/sysDef.cpp:787 src/engine/sysDef.cpp:2114
 msgid "19xx: Set triangle linear counter (0 to 7F; 80 and higher halt)"
-msgstr ""
+msgstr "19xx: Sobreescribir contador lineal del triángulo (va de 0 a 7F; 80 y mayores lo detienen)"
 
 #: src/engine/sysDef.cpp:788 src/engine/sysDef.cpp:2115
 msgid "20xx: Set DPCM frequency (0 to F)"
-msgstr ""
+msgstr "20xx: Cambiar frecuencia del DPCM (de 0 a F)"
 
 #: src/engine/sysDef.cpp:793
 msgid "NES + Konami VRC7"
@@ -1597,7 +1598,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1024 src/engine/sysDef.cpp:2092
 msgid "12xx: Set duty cycle (pulse: 0 to 7)"
-msgstr ""
+msgstr "12xx: Cambiar ancho de pulso (pulso: de 0 a 7)"
 
 #: src/engine/sysDef.cpp:1030
 msgid "Yamaha YM2413 (OPLL)"
@@ -2094,7 +2095,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1262
 msgid "Wave/Noise"
-msgstr ""
+msgstr "Onda/Ruido"
 
 #: src/engine/sysDef.cpp:1269
 msgid "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)"
@@ -3083,18 +3084,20 @@ msgid ""
 "a fantasy sound chip designed by jvsTSX and The Beesh-Spweesh!\n"
 "used in the Hexheld fantasy console."
 msgstr ""
+"un chip de sonido diseñado por jvsTSX y The Beesh-Spweesh!\n"
+"es usado en la consola de fantasia 'Hexheld'."
 
 #: src/engine/sysDef.cpp:2020
 msgid "Noise 1"
-msgstr ""
+msgstr "Ruido 1"
 
 #: src/engine/sysDef.cpp:2020
 msgid "Noise 2"
-msgstr ""
+msgstr "Ruido 2"
 
 #: src/engine/sysDef.cpp:2020
 msgid "Noise 3"
-msgstr ""
+msgstr "Ruido 3"
 
 #: src/engine/sysDef.cpp:2020
 msgid "Slope"
@@ -3105,18 +3108,20 @@ msgid ""
 "20xx: Load low byte of noise channel LFSR (00 to FF) or slope channel "
 "accumulator (00 to 7F)"
 msgstr ""
+"20xx: Cargar el byte bajo del canal del LFSR de los canales de ruido (de 00 a FF) o el acumulador "
+"del canal Slope (de 00 a 7F)"
 
 #: src/engine/sysDef.cpp:2027
 msgid "21xx: Load high byte of noise channel LFSR (00 to FF)"
-msgstr ""
+msgstr "21xx: Cargar el byte alto del LFSR del canal de ruido (de 00 a FF)"
 
 #: src/engine/sysDef.cpp:2028
 msgid "22xx: Write to I/O port A"
-msgstr ""
+msgstr "22xx: Escribir al puerto de entrada/salida A"
 
 #: src/engine/sysDef.cpp:2029
 msgid "23xx: Write to I/O port B"
-msgstr ""
+msgstr "23xx: Escribir al puerto de entrada/salida B"
 
 #: src/engine/sysDef.cpp:2035 src/gui/settings.cpp:4021
 msgid "Dave"
@@ -3264,231 +3269,231 @@ msgstr ""
 
 #: src/engine/engine.cpp:51
 msgid "00xy: Arpeggio"
-msgstr ""
+msgstr "00xy: Arpegio"
 
 #: src/engine/engine.cpp:53
 msgid "01xx: Pitch slide up"
-msgstr ""
+msgstr "01xx: Deslizamiento de tono hacia arriba"
 
 #: src/engine/engine.cpp:55
 msgid "02xx: Pitch slide down"
-msgstr ""
+msgstr "02xx: Deslizamiento de tono hacia abajo"
 
 #: src/engine/engine.cpp:57
 msgid "03xx: Portamento"
-msgstr ""
+msgstr "03xx: Portamento"
 
 #: src/engine/engine.cpp:59
 msgid "04xy: Vibrato (x: speed; y: depth)"
-msgstr ""
+msgstr "04xy: Vibrato (x: velocidad; y: profundidad)"
 
 #: src/engine/engine.cpp:61
 msgid "05xy: Volume slide + vibrato (compatibility only!)"
-msgstr ""
+msgstr "05xy: Deslizamiento de volumen y vibrato (solo para compatibilidad!)"
 
 #: src/engine/engine.cpp:63
 msgid "06xy: Volume slide + portamento (compatibility only!)"
-msgstr ""
+msgstr "06xy: Deslizamiento de volumen y portamento (solo para compatibilidad!)"
 
 #: src/engine/engine.cpp:65
 msgid "07xy: Tremolo (x: speed; y: depth)"
-msgstr ""
+msgstr "07xy: Tremolo (x: velocidad; y: profundidad)"
 
 #: src/engine/engine.cpp:67
 msgid "08xy: Set panning (x: left; y: right)"
-msgstr ""
+msgstr "08xy: Ajustar paneo (x: izquierdo; y: derecho)"
 
 #: src/engine/engine.cpp:69
 msgid "09xx: Set groove pattern (speed 1 if no grooves exist)"
-msgstr ""
+msgstr "09xx: Cambiar patrón de groove (cambia la velocidad 1 si no hay grooves)"
 
 #: src/engine/engine.cpp:71
 msgid "0Axy: Volume slide (0y: down; x0: up)"
-msgstr ""
+msgstr "0Axy: Deslizamiento de volumen (0y: hacia abajo; x0: hacia arriba)"
 
 #: src/engine/engine.cpp:73
 msgid "0Bxx: Jump to pattern"
-msgstr ""
+msgstr "0Bxx: Saltar a un patrón"
 
 #: src/engine/engine.cpp:75
 msgid "0Cxx: Retrigger"
-msgstr ""
+msgstr "0Cxx: Reactivar"
 
 #: src/engine/engine.cpp:77
 msgid "0Dxx: Jump to next pattern"
-msgstr ""
+msgstr "0Dxx: Saltar al patrón siguiente"
 
 #: src/engine/engine.cpp:79
 msgid "0Fxx: Set speed (speed 2 if no grooves exist)"
-msgstr ""
+msgstr "0Fxx: Cambiar velocidad 1 (ajusta la 2 si no hay grooves)"
 
 #: src/engine/engine.cpp:81
 msgid "80xx: Set panning (00: left; 80: center; FF: right)"
-msgstr ""
+msgstr "80xx: Ajustar paneo (00: izquierda total; 80: centro; FF: derecha total )"
 
 #: src/engine/engine.cpp:83
 msgid "81xx: Set panning (left channel)"
-msgstr ""
+msgstr "81xx: Ajustar el paneo del canal izquierdo"
 
 #: src/engine/engine.cpp:85
 msgid "82xx: Set panning (right channel)"
-msgstr ""
+msgstr "82xx: Ajustar el paneo del canal derecho"
 
 #: src/engine/engine.cpp:87
 msgid "88xy: Set panning (rear channels; x: left; y: right)"
-msgstr ""
+msgstr "88xy: Ajustar el paneo de los canales traseros (x: izquierdo; y: derecho)"
 
 #: src/engine/engine.cpp:90
 msgid "89xx: Set panning (rear left channel)"
-msgstr ""
+msgstr "89xx: Ajustar el paneo del canal izquierdo trasero"
 
 #: src/engine/engine.cpp:93
 msgid "8Axx: Set panning (rear right channel)"
-msgstr ""
+msgstr "8Axx: Ajustar el paneo del canal izquierdo trasero"
 
 #: src/engine/engine.cpp:96
 msgid "Cxxx: Set tick rate (hz)"
-msgstr ""
+msgstr "Cxxx: Cambiar la frecuencia de ticks (en hz)"
 
 #: src/engine/engine.cpp:98
 msgid "E0xx: Set arp speed"
-msgstr ""
+msgstr "E0xx: Cambiar velocidad del arpegio"
 
 #: src/engine/engine.cpp:100
 msgid "E1xy: Note slide up (x: speed; y: semitones)"
-msgstr ""
+msgstr "E1xy: Deslizamiento de nota hacia arriba (x: velocidad; y: semitonos)"
 
 #: src/engine/engine.cpp:102
 msgid "E2xy: Note slide down (x: speed; y: semitones)"
-msgstr ""
+msgstr "E2xy: Deslizamiento de nota hacia abajo (x: velocidad; y: semitonos)"
 
 #: src/engine/engine.cpp:104
 msgid "E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)"
-msgstr ""
+msgstr "E3xx: Ajustar forma del vibrato (0: arriba y abajo; 1: solo arriba; 2: solo abajo)"
 
 #: src/engine/engine.cpp:106
 msgid "E4xx: Set vibrato range"
-msgstr ""
+msgstr "E4xx: Ajustar rango del vibrato"
 
 #: src/engine/engine.cpp:108
 msgid "E5xx: Set pitch (80: center)"
-msgstr ""
+msgstr "E5xx: Cambiar tono (80: centro, nota original)"
 
 #: src/engine/engine.cpp:110
 msgid "E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)"
-msgstr ""
+msgstr "E6xy: Legato rápido (x: tiempo (0-7 mueven hacia arriba; 8-F hacia abajo); y: semitonos)"
 
 #: src/engine/engine.cpp:112
 msgid "E7xx: Macro release"
-msgstr ""
+msgstr "E7xx: Ajustar relajación (release) del macro"
 
 #: src/engine/engine.cpp:114
 msgid "E8xy: Quick legato up (x: time; y: semitones)"
-msgstr ""
+msgstr "E8xy: Legato rápido hacia arriba (x: tiempo; y: semitonos)"
 
 #: src/engine/engine.cpp:116
 msgid "E9xy: Quick legato down (x: time; y: semitones)"
-msgstr ""
+msgstr "E9xy: Legato rápido hacia abajo (x: tiempo; y: semitonos)"
 
 #: src/engine/engine.cpp:118
 msgid "EAxx: Legato"
-msgstr ""
+msgstr "EAxx: Legato"
 
 #: src/engine/engine.cpp:120
 msgid "EBxx: Set LEGACY sample mode bank"
-msgstr ""
+msgstr "EBxx: Establecer modo del banco de samples DE COMPATIBILIDAD"
 
 #: src/engine/engine.cpp:122
 msgid "ECxx: Note cut"
-msgstr ""
+msgstr "ECxx: Corte de nota"
 
 #: src/engine/engine.cpp:124
 msgid "EDxx: Note delay"
-msgstr ""
+msgstr "EDxx: Retraso de nota"
 
 #: src/engine/engine.cpp:126
 msgid "EExx: Send external command"
-msgstr ""
+msgstr "EExx: Enviar comando externo"
 
 #: src/engine/engine.cpp:128
 msgid "F0xx: Set tick rate (bpm)"
-msgstr ""
+msgstr "F0xx: Ajustar velocidad de ticks (en ppm)"
 
 #: src/engine/engine.cpp:130
 msgid "F1xx: Single tick note slide up"
-msgstr ""
+msgstr "F1xx: Deslizamiento de nota hacia arriba de un solo tick"
 
 #: src/engine/engine.cpp:132
 msgid "F2xx: Single tick note slide down"
-msgstr ""
+msgstr "F2xx: Deslizamiento de nota hacia abajo de un solo tick"
 
 #: src/engine/engine.cpp:134
 msgid "F3xx: Fine volume slide up"
-msgstr ""
+msgstr "F3xx: Deslizamiento de volumen hacia arriba (fino)"
 
 #: src/engine/engine.cpp:136
 msgid "F4xx: Fine volume slide down"
-msgstr ""
+msgstr "F4xx: Deslizamiento de volumen hacia arriba (fino)"
 
 #: src/engine/engine.cpp:138
 msgid "F5xx: Disable macro (see manual)"
-msgstr ""
+msgstr "F5xx: Desactivar macro (revisa el manual)"
 
 #: src/engine/engine.cpp:140
 msgid "F6xx: Enable macro (see manual)"
-msgstr ""
+msgstr "F6xx: Activar macro (revisa el manual)"
 
 #: src/engine/engine.cpp:142
 msgid "F7xx: Restart macro (see manual)"
-msgstr ""
+msgstr "F7xx: Reiniciar macro (que revises el manual)"
 
 #: src/engine/engine.cpp:144
 msgid "F8xx: Single tick volume slide up"
-msgstr ""
+msgstr "F8xx: Deslizamiento de volumen hacia arriba de un solo tick"
 
 #: src/engine/engine.cpp:146
 msgid "F9xx: Single tick volume slide down"
-msgstr ""
+msgstr "F9xx: Deslizamiento de volumen hacia abajo de un solo tick"
 
 #: src/engine/engine.cpp:148
 msgid "FAxx: Fast volume slide (0y: down; x0: up)"
-msgstr ""
+msgstr "FAxx: Deslizamiento de volumen rápido (0y: abajo; x0: arriba)"
 
 #: src/engine/engine.cpp:150
 msgid "FCxx: Note release"
-msgstr ""
+msgstr "FCxx: Ajustar relajación (release) de nota"
 
 #: src/engine/engine.cpp:152
 msgid "FDxx: Set virtual tempo numerator"
-msgstr ""
+msgstr "FDxx: Ajustar numerador virtual del tempo"
 
 #: src/engine/engine.cpp:154
 msgid "FExx: Set virtual tempo denominator"
-msgstr ""
+msgstr "FExx: Ajustar denominador virtual del tempo"
 
 #: src/engine/engine.cpp:156
 msgid "FFxx: Stop song"
-msgstr ""
+msgstr "FFxx: Parar la canción"
 
 #: src/engine/engine.cpp:160
 msgid "9xxx: Set sample offset*256"
-msgstr ""
+msgstr "9xxx: Ajustar punto de comienzo del sample * 256"
 
 #: src/engine/engine.cpp:164
 msgid "90xx: Set sample offset (first byte)"
-msgstr ""
+msgstr "90xx: Ajustar el primer byte del punto de comienzo del sample"
 
 #: src/engine/engine.cpp:166
 msgid "91xx: Set sample offset (second byte, ×256)"
-msgstr ""
+msgstr "91xx: Ajustar el segundo byte del punto de comienzo del sample"
 
 #: src/engine/engine.cpp:168
 msgid "92xx: Set sample offset (third byte, ×65536)"
-msgstr ""
+msgstr "92xx: Ajustar el tercer byte del punto de comienzo del sample"
 
 #: src/engine/engine.cpp:187 src/gui/settings.cpp:4069
 msgid "Invalid effect"
-msgstr ""
+msgstr "Efecto inválido"
 
 #: src/engine/engine.cpp:354 src/gui/gui.cpp:2259 src/gui/gui.cpp:2422
 #, c-format
@@ -3647,7 +3652,7 @@ msgstr ""
 #: src/gui/waveEdit.cpp:1096 src/gui/sampleEdit.cpp:1128
 #: src/gui/insEdit.cpp:519
 msgid "Invert"
-msgstr ""
+msgstr "Invertir"
 
 #: src/gui/mixer.cpp:268 src/gui/chanOsc.cpp:37 src/gui/userPresets.cpp:417
 #: src/gui/settings.cpp:241 src/gui/settings.cpp:1056 src/gui/settings.cpp:1434
@@ -3724,29 +3729,29 @@ msgstr ""
 #: src/gui/editControls.cpp:1093 src/gui/settings.cpp:1432
 #: src/gui/guiConst.cpp:558
 msgid "Metronome"
-msgstr ""
+msgstr "Metrónomo"
 
 #: src/gui/mixer.cpp:446
 msgid "disconnect all"
-msgstr ""
+msgstr "desconectar todo"
 
 #: src/gui/editing.cpp:200
 #, c-format
 msgid "no data in oldPatMap for channel %d!"
-msgstr ""
+msgstr "no hay datos en oldPatMap para el canal %d!"
 
 #: src/gui/editing.cpp:664 src/gui/editing.cpp:1203
 #, c-format
 msgid "invalid clipboard data! failed at line %d char %d"
-msgstr ""
+msgstr "datos de portapapeles inválidos! falló en la línea %d, columna %d!"
 
 #: src/gui/editing.cpp:1565 src/gui/editing.cpp:1669
 msgid "can't collapse any further!"
-msgstr ""
+msgstr "no se puede colapsar más!"
 
 #: src/gui/editing.cpp:1749
 msgid "can't expand any further!"
-msgstr ""
+msgstr "no se puede expandir más!"
 
 #: src/gui/editing.cpp:1836 src/gui/editing.cpp:1851
 #, c-format
@@ -3775,7 +3780,7 @@ msgstr ""
 
 #: src/gui/intro.cpp:176 src/gui/intro.cpp:177 src/gui/intro.cpp:178
 msgid "SORRY  NOTHING"
-msgstr ""
+msgstr "DISCULPA  NADA"
 
 #: src/gui/intro.cpp:310
 msgid "hold to skip"
@@ -3792,20 +3797,20 @@ msgstr ""
 
 #: src/gui/dataList.cpp:136 src/gui/dataList.cpp:260
 msgid "duplicate"
-msgstr ""
+msgstr "duplicar"
 
 #: src/gui/dataList.cpp:139 src/gui/dataList.cpp:263 src/gui/dataList.cpp:388
 #: src/gui/dataList.cpp:731 src/gui/dataList.cpp:867
 msgid "replace..."
-msgstr ""
+msgstr "reemplazar"
 
 #: src/gui/dataList.cpp:142 src/gui/dataList.cpp:266 src/gui/gui.cpp:4232
 msgid "save"
-msgstr ""
+msgstr "guardar"
 
 #: src/gui/dataList.cpp:145
 msgid "save (.dmp)"
-msgstr ""
+msgstr "guardar (.dmp)"
 
 #: src/gui/dataList.cpp:148 src/gui/dataList.cpp:269 src/gui/dataList.cpp:617
 #: src/gui/dataList.cpp:994 src/gui/dataList.cpp:1040
@@ -3815,133 +3820,133 @@ msgstr ""
 
 #: src/gui/dataList.cpp:243
 msgid "out of memory for this sample!"
-msgstr ""
+msgstr "no queda memoria para este sample!"
 
 #: src/gui/dataList.cpp:254
 msgid "make instrument"
-msgstr ""
+msgstr "crear instrumento"
 
 #: src/gui/dataList.cpp:257
 msgid "make me a drum kit"
-msgstr ""
+msgstr "hazme un kit de bateria :P"
 
 #: src/gui/dataList.cpp:312 src/gui/dataList.cpp:714 src/gui/dataList.cpp:846
 #: src/gui/subSongs.cpp:88 src/gui/insEdit.cpp:520
 msgid "Add"
-msgstr ""
+msgstr "Añadir"
 
 #: src/gui/dataList.cpp:338 src/gui/dataList.cpp:721 src/gui/dataList.cpp:853
 #: src/gui/subSongs.cpp:108
 msgid "Duplicate"
-msgstr ""
+msgstr "Duplicar"
 
 #: src/gui/dataList.cpp:359 src/gui/dataList.cpp:728 src/gui/dataList.cpp:860
 #: src/gui/editControls.cpp:497 src/gui/waveEdit.cpp:435
 #: src/gui/waveEdit.cpp:467 src/gui/sampleEdit.cpp:122
 #: src/gui/sampleEdit.cpp:171 src/gui/insEdit.cpp:5239 src/gui/insEdit.cpp:5304
 msgid "Open"
-msgstr ""
+msgstr "Abrir"
 
 #: src/gui/dataList.cpp:363
 msgid "replace instrument..."
-msgstr ""
+msgstr "reemplazar instrumento..."
 
 #: src/gui/dataList.cpp:366
 msgid "load instrument from TX81Z"
-msgstr ""
+msgstr "cargar un instrumento del TX81Z"
 
 #: src/gui/dataList.cpp:372
 msgid "replace wavetable..."
-msgstr ""
+msgstr "reemplazar wavetable..."
 
 #: src/gui/dataList.cpp:378
 msgid "replace sample..."
-msgstr ""
+msgstr "reemplazar sample..."
 
 #: src/gui/dataList.cpp:381
 msgid "import raw sample..."
-msgstr ""
+msgstr "importar sample en bruto..."
 
 #: src/gui/dataList.cpp:384
 msgid "import raw sample (replace)..."
-msgstr ""
+msgstr "importar sample en bruto (reemplazar)..."
 
 #: src/gui/dataList.cpp:392
 msgid "load from TX81Z"
-msgstr ""
+msgstr "cargar del TX81Z"
 
 #: src/gui/dataList.cpp:399
 msgid "Open (insert; right-click to replace)"
-msgstr ""
+msgstr "Abrir (insertar; click derecho para reemplazar)"
 
 #: src/gui/dataList.cpp:420 src/gui/dataList.cpp:741 src/gui/dataList.cpp:884
 #: src/gui/editControls.cpp:502 src/gui/waveEdit.cpp:474
 #: src/gui/sampleEdit.cpp:184 src/gui/insEdit.cpp:5311
 msgid "Save"
-msgstr ""
+msgstr "Guardar"
 
 #: src/gui/dataList.cpp:424
 msgid "save instrument as .dmp..."
-msgstr ""
+msgstr "guardar instrumento como .dmp..."
 
 #: src/gui/dataList.cpp:430
 msgid "save wavetable as .dmw..."
-msgstr ""
+msgstr "guardar wavetable como .dmw..."
 
 #: src/gui/dataList.cpp:433
 msgid "save raw wavetable..."
-msgstr ""
+msgstr "guardar wavetable en bruto..."
 
 #: src/gui/dataList.cpp:439
 msgid "save raw sample..."
-msgstr ""
+msgstr "guardar sample en bruto"
 
 #: src/gui/dataList.cpp:443 src/gui/insEdit.cpp:5314
 msgid "save as .dmp..."
-msgstr ""
+msgstr "guardar como .dmp..."
 
 #: src/gui/dataList.cpp:456 src/gui/dataList.cpp:761 src/gui/dataList.cpp:903
 msgid "Toggle folders/standard view"
-msgstr ""
+msgstr "Cambiar entre vista de folders y estándar"
 
 #: src/gui/dataList.cpp:478 src/gui/dataList.cpp:769 src/gui/dataList.cpp:911
 #: src/gui/subSongs.cpp:55
 msgid "Move up"
-msgstr ""
+msgstr "Mover hacia arriba"
 
 #: src/gui/dataList.cpp:499 src/gui/dataList.cpp:776 src/gui/dataList.cpp:918
 #: src/gui/subSongs.cpp:62
 msgid "Move down"
-msgstr ""
+msgstr "Mover hacia abajo"
 
 #: src/gui/dataList.cpp:510 src/gui/dataList.cpp:787 src/gui/dataList.cpp:929
 msgid "Create"
-msgstr ""
+msgstr "Crear"
 
 #: src/gui/dataList.cpp:540 src/gui/dataList.cpp:797 src/gui/dataList.cpp:939
 msgid "New folder"
-msgstr ""
+msgstr "Nuevo folder"
 
 #: src/gui/dataList.cpp:549 src/gui/dataList.cpp:947
 msgid "Preview (right click to stop)"
-msgstr ""
+msgstr "Previsualizar (click derecho para detener)"
 
 #: src/gui/dataList.cpp:576 src/gui/dataList.cpp:807 src/gui/dataList.cpp:959
 #: src/gui/guiConst.cpp:666 src/gui/sampleEdit.cpp:1105
 msgid "Delete"
-msgstr ""
+msgstr "Borrar"
 
 #: src/gui/dataList.cpp:593 src/gui/gui.cpp:5908
 msgid "Instruments"
-msgstr ""
+msgstr "Instrumentos"
 
 #: src/gui/dataList.cpp:608 src/gui/dataList.cpp:985 src/gui/dataList.cpp:1031
 msgid "<uncategorized>"
-msgstr ""
+msgstr "<no categorizado>"
 
 #: src/gui/dataList.cpp:614 src/gui/dataList.cpp:991 src/gui/dataList.cpp:1037
 msgid "rename..."
-msgstr ""
+msgstr "renombrar..."
 
 #: src/gui/dataList.cpp:663 src/gui/gui.cpp:5917
 msgid "Wavetables"
@@ -3954,78 +3959,78 @@ msgstr ""
 
 #: src/gui/dataList.cpp:745 src/gui/waveEdit.cpp:477
 msgid "save as .dmw..."
-msgstr ""
+msgstr "guardar como .dmw..."
 
 #: src/gui/dataList.cpp:748 src/gui/dataList.cpp:891 src/gui/waveEdit.cpp:480
 #: src/gui/sampleEdit.cpp:187
 msgid "save raw..."
-msgstr ""
+msgstr "guardar en bruto..."
 
 #: src/gui/dataList.cpp:871 src/gui/sampleEdit.cpp:174
 msgid "import raw..."
-msgstr ""
+msgstr "importar desde archivo en bruto..."
 
 #: src/gui/dataList.cpp:874
 msgid "import raw (replace)..."
-msgstr ""
+msgstr "importar desde archivo en bruto (reemplazar)..."
 
 #: src/gui/exportOptions.cpp:29
 msgid "Export type:"
-msgstr ""
+msgstr "Tipo de exportación"
 
 #: src/gui/exportOptions.cpp:32
 msgid "one file"
-msgstr ""
+msgstr "un archivo"
 
 #: src/gui/exportOptions.cpp:35
 msgid "multiple files (one per chip)"
-msgstr ""
+msgstr "múltiples archivos (uno por chip)"
 
 #: src/gui/exportOptions.cpp:38
 msgid "multiple files (one per channel)"
-msgstr ""
+msgstr "multiples archivos (uno por canal)"
 
 #: src/gui/exportOptions.cpp:44
 msgid "Bit depth:"
-msgstr ""
+msgstr "Profundidad de bits"
 
 #: src/gui/exportOptions.cpp:46
 msgid "16-bit integer"
-msgstr ""
+msgstr "entero de 16 bits"
 
 #: src/gui/exportOptions.cpp:49
 msgid "32-bit float"
-msgstr ""
+msgstr "flotante de 32-bits"
 
 #: src/gui/exportOptions.cpp:55 src/gui/settings.cpp:1299 src/gui/gui.cpp:6264
 msgid "Sample rate"
-msgstr ""
+msgstr "Tasa de samples"
 
 #: src/gui/exportOptions.cpp:61
 msgid "Channels in file"
-msgstr ""
+msgstr "Canales en el archivo"
 
 #: src/gui/exportOptions.cpp:67 src/gui/settings.cpp:877
 msgid "Loops"
-msgstr ""
+msgstr "Bucles"
 
 #: src/gui/exportOptions.cpp:70 src/gui/settings.cpp:882
 msgid "Fade out (seconds)"
-msgstr ""
+msgstr "Fade out (en segundos)"
 
 #: src/gui/exportOptions.cpp:76
 msgid "Channels to export:"
-msgstr ""
+msgstr "Canales para exportar:"
 
 #: src/gui/exportOptions.cpp:78 src/gui/effectList.cpp:32 src/gui/gui.cpp:6180
 msgid "All"
-msgstr ""
+msgstr "Todos"
 
 #: src/gui/exportOptions.cpp:84 src/gui/sysConf.cpp:1870
 #: src/gui/effectList.cpp:34 src/gui/compatFlags.cpp:219
 #: src/gui/waveEdit.cpp:37 src/gui/gui.cpp:6186 src/gui/insEdit.cpp:518
 msgid "None"
-msgstr ""
+msgstr "Ninguno"
 
 #: src/gui/exportOptions.cpp:110 src/gui/exportOptions.cpp:214
 #: src/gui/exportOptions.cpp:225 src/gui/exportOptions.cpp:243
@@ -4046,44 +4051,44 @@ msgstr "Cancelar"
 #: src/gui/settings.cpp:2499 src/gui/settings.cpp:3742 src/gui/guiConst.cpp:536
 #: src/gui/gui.cpp:5572 src/gui/gui.cpp:5624
 msgid "Export"
-msgstr ""
+msgstr "Exportar"
 
 #: src/gui/exportOptions.cpp:130
 msgid "select at least one channel"
-msgstr ""
+msgstr "selecciona al menos un canal"
 
 #: src/gui/exportOptions.cpp:137
 msgid "settings:"
-msgstr ""
+msgstr "ajustes:"
 
 #: src/gui/exportOptions.cpp:138
 msgid "format version"
-msgstr ""
+msgstr "version del formato"
 
 #: src/gui/exportOptions.cpp:146 src/gui/exportOptions.cpp:238
 #: src/gui/insEdit.cpp:362
 msgid "loop"
-msgstr ""
+msgstr "en bucle"
 
 #: src/gui/exportOptions.cpp:148
 msgid "loop trail:"
-msgstr ""
+msgstr "cola del bucle:"
 
 #: src/gui/exportOptions.cpp:150
 msgid "auto-detect"
-msgstr ""
+msgstr "auto-detectar"
 
 #: src/gui/exportOptions.cpp:153
 msgid "add one loop"
-msgstr ""
+msgstr "añadir una"
 
 #: src/gui/exportOptions.cpp:156
 msgid "custom"
-msgstr ""
+msgstr "personalizada"
 
 #: src/gui/exportOptions.cpp:167
 msgid "add pattern change hints"
-msgstr ""
+msgstr "añadir pistas de cambio de patrón"
 
 #: src/gui/exportOptions.cpp:170
 msgid ""
@@ -4099,10 +4104,21 @@ msgid ""
 "\n"
 "pattern indexes are ordered as they appear in the song."
 msgstr ""
+"inserta bloques de datos en cada cambio de patrón.\n"
+"es util si estás escribiendo una rutina de playback.\n"
+"\n"
+"el formato de un bloque de datos de cambio de patrón es:\n"
+"67 66 FE ll ll ll ll 01 oo rr pp pp pp ...\n"
+"- ll: la longitud, un número little-endian de 32 bits\n"
+"- oo: el orden\n"
+"- rr: la fila inicial (un efecto 0Dxx puede selecionar una fila distinta)\n"
+"- pp: el índice del patrón (uno por canal)\n"
+"\n"
+"los índices de patrón están ordenados tal y como aparecen en la canción."
 
 #: src/gui/exportOptions.cpp:183
 msgid "direct stream mode"
-msgstr ""
+msgstr "modo de corriente directa"
 
 #: src/gui/exportOptions.cpp:186
 msgid ""
@@ -4111,40 +4127,44 @@ msgid ""
 "allows for volume/direction changes when playing samples,\n"
 "at the cost of a massive increase in file size."
 msgstr ""
+"requerido para la exportación de DualPCM y MSM6258.\n"
+"\n"
+"permite cambios de volumen o dirección al reproducir samples,\n"
+"a cambio de un increible aumento en el tamaño del archivo."
 
 #: src/gui/exportOptions.cpp:191
 msgid "chips to export:"
-msgstr ""
+msgstr "chips para exportar:"
 
 #: src/gui/exportOptions.cpp:200
 #, c-format
 msgid "this chip is only available in VGM %d.%.2x and higher!"
-msgstr ""
+msgstr "este chip solo está disponible a partir de VGM %d.%.2x!"
 
 #: src/gui/exportOptions.cpp:204
 msgid "this chip is not supported by the VGM format!"
-msgstr ""
+msgstr "este chip no está soportado por el formato VGM!"
 
 #: src/gui/exportOptions.cpp:210
 #, c-format
 msgid "select the chip you wish to export, but only up to %d of each type."
-msgstr ""
+msgstr "selecciona el chip que quieras exportar, pero solo hasta %d de cada tipo."
 
 #: src/gui/exportOptions.cpp:222
 msgid "nothing to export"
-msgstr ""
+msgstr "no hay nada que exportar"
 
 #: src/gui/exportOptions.cpp:233
 msgid "Commander X16 Zsound Music File"
-msgstr ""
+msgstr "Archivo de música Commander X16 Zsound"
 
 #: src/gui/exportOptions.cpp:234
 msgid "Tick Rate (Hz)"
-msgstr ""
+msgstr "Velocidad de ticks (en Hz)"
 
 #: src/gui/exportOptions.cpp:240
 msgid "optimize size"
-msgstr ""
+msgstr "optimizar tamaño"
 
 #: src/gui/exportOptions.cpp:256 src/gui/editControls.cpp:630
 msgid ""
@@ -4152,24 +4172,27 @@ msgid ""
 "Furnace Amiga emulator is working properly by\n"
 "comparing it with real Amiga output."
 msgstr ""
+"esto NO EXPORTA ROMS! solo úsalo para asegurar que\n"
+"el emulador de Amiga de Furnace está funcionando correctamente\n"
+"comparandolo con la salida de una Amiga real."
 
 #: src/gui/exportOptions.cpp:261 src/gui/editControls.cpp:635
 #: src/gui/settings.cpp:3867
 msgid "Directory"
-msgstr ""
+msgstr "Directorio"
 
 #: src/gui/exportOptions.cpp:269 src/gui/editControls.cpp:638
 msgid "Bake Data"
-msgstr ""
+msgstr "Hornear datos"
 
 #: src/gui/exportOptions.cpp:284 src/gui/editControls.cpp:653
 #, c-format
 msgid "Done! Baked %d files."
-msgstr ""
+msgstr "Hecho! Se hornearon %d archivos."
 
 #: src/gui/exportOptions.cpp:293
 msgid "this option exports the song to a text file.\n"
-msgstr ""
+msgstr "esta opción exporta la canción a un archivo de texto.\n"
 
 #: src/gui/exportOptions.cpp:310
 msgid ""
@@ -4179,6 +4202,11 @@ msgid ""
 "\n"
 "technical/development use only!"
 msgstr ""
+"esta opción exporta a un archivo binario o de texto, el cual\n"
+"contiene un volcado de la corriente de comandos interna\n"
+"producida al reproducir la canción.\n"
+"\n"
+"solo para uso técnico o de desarrollo!"
 
 #: src/gui/exportOptions.cpp:331
 msgid ""
@@ -4186,18 +4214,20 @@ msgid ""
 "only do it if you really, really need to, or are downgrading an existing ."
 "dmf."
 msgstr ""
+"exporta al formato de módulos de DefleMask.\n"
+"solo hazlo si de verdad tienes que, o si estas degradando un .dmf existente."
 
 #: src/gui/exportOptions.cpp:335
 msgid "format version:"
-msgstr ""
+msgstr "version del formato:"
 
 #: src/gui/exportOptions.cpp:336
 msgid "1.1.3 and higher"
-msgstr ""
+msgstr "de 1.1.3 en adelante"
 
 #: src/gui/exportOptions.cpp:337
 msgid "1.0/legacy (0.12)"
-msgstr ""
+msgstr "1.0 o legacy (0.12)"
 
 #: src/gui/exportOptions.cpp:357 src/gui/settings.cpp:1200
 #: src/gui/settings.cpp:3871
@@ -4214,16 +4244,16 @@ msgstr ""
 
 #: src/gui/exportOptions.cpp:380
 msgid "Amiga Validation"
-msgstr ""
+msgstr "Validación de Amiga"
 
 #: src/gui/exportOptions.cpp:385 src/gui/settings.cpp:2901
 #: src/gui/settings.cpp:3833
 msgid "Text"
-msgstr ""
+msgstr "Texto"
 
 #: src/gui/exportOptions.cpp:389
 msgid "Command Stream"
-msgstr ""
+msgstr "Corriente de comandos"
 
 #: src/gui/exportOptions.cpp:393
 msgid "DMF"
@@ -4231,41 +4261,42 @@ msgstr ""
 
 #: src/gui/exportOptions.cpp:422
 msgid "congratulations! you've unlocked a secret panel."
-msgstr ""
+msgstr "felicitaciones! haz desbloqueado un panel secreto."
 
 #: src/gui/exportOptions.cpp:423
 msgid "Toggle hidden systems"
-msgstr ""
+msgstr "Activar sistemas escondidos"
 
 #: src/gui/exportOptions.cpp:427
 msgid "Toggle all instrument types"
-msgstr ""
+msgstr "Activar todos los tipos de instrumento"
 
 #: src/gui/exportOptions.cpp:431
 msgid "Set pitch linearity to Partial"
-msgstr ""
+msgstr "Cambiar la linealidad del tono a Parcial"
 
 #: src/gui/exportOptions.cpp:435
 msgid "Enable multi-threading settings"
-msgstr ""
+msgstr "Activar ajustes de multi-threading"
 
 #: src/gui/exportOptions.cpp:439
 msgid "Set fat to max"
-msgstr ""
+msgstr "Haz que todo sea tan gordo como tu mamá"
 
 #: src/gui/exportOptions.cpp:446
 msgid "Set muscle and fat to zero"
-msgstr ""
+msgstr "Reduce la musculatura al zero"
 
 #: src/gui/exportOptions.cpp:453
 msgid "Tell tildearrow this must be a mistake"
-msgstr ""
+msgstr "Dile a tildearrow que esto tiene que ser un error"
 
 #: src/gui/exportOptions.cpp:454
 msgid ""
 "yeah, it's a bug. write a bug report in the GitHub page and tell me how did "
 "you get here."
 msgstr ""
+"sip, es un bug. escribe un reporte de bug en GitHub que diga como rayos llegaste aquí."
 
 #: src/gui/speed.cpp:41
 msgid "Base Tempo##TempoOrHz"
@@ -10617,79 +10648,79 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:573
 msgid "Add chip (Palette)"
-msgstr ""
+msgstr "Añadir chip ()"
 
 #: src/gui/guiConst.cpp:576
 msgid "Edit Controls"
-msgstr ""
+msgstr "Controles de edición"
 
 #: src/gui/guiConst.cpp:578
 msgid "Instrument List"
-msgstr ""
+msgstr "Lista de instrumentos"
 
 #: src/gui/guiConst.cpp:579
 msgid "Instrument Editor"
-msgstr ""
+msgstr "Editor de instrumentos"
 
 #: src/gui/guiConst.cpp:580
 msgid "Song Information"
-msgstr ""
+msgstr "Información de la canción"
 
 #: src/gui/guiConst.cpp:583
 msgid "Wavetable List"
-msgstr ""
+msgstr "Lista de wavetables"
 
 #: src/gui/guiConst.cpp:584
 msgid "Wavetable Editor"
-msgstr ""
+msgstr "Editor de wavetables"
 
 #: src/gui/guiConst.cpp:585
 msgid "Sample List"
-msgstr ""
+msgstr "Lista de samples"
 
 #: src/gui/guiConst.cpp:594
 msgid "Debug Menu"
-msgstr ""
+msgstr "Menu de depuración"
 
 #: src/gui/guiConst.cpp:595
 msgid "Oscilloscope (master)"
-msgstr ""
+msgstr "Osciloscopio (maestro)"
 
 #: src/gui/guiConst.cpp:597
 msgid "Statistics"
-msgstr ""
+msgstr "Estadísticas"
 
 #: src/gui/guiConst.cpp:598
 msgid "Compatibility Flags"
-msgstr ""
+msgstr "Banderas de compatibilidad"
 
 #: src/gui/guiConst.cpp:600
 msgid "Song Comments"
-msgstr ""
+msgstr "Comentarios de la canción"
 
 #: src/gui/guiConst.cpp:603
 msgid "Chip Manager"
-msgstr ""
+msgstr "Gestor de chips"
 
 #: src/gui/guiConst.cpp:604
 msgid "Register View"
-msgstr ""
+msgstr "Vista de registros"
 
 #: src/gui/guiConst.cpp:606
 msgid "Effect List"
-msgstr ""
+msgstr "Lista de efectos"
 
 #: src/gui/guiConst.cpp:607
 msgid "Oscilloscope (per-channel)"
-msgstr ""
+msgstr "Osciloscopio (uno por canal)"
 
 #: src/gui/guiConst.cpp:609
 msgid "Find/Replace"
-msgstr ""
+msgstr "Buscar/Reemplazar"
 
 #: src/gui/guiConst.cpp:612
 msgid "Oscilloscope (X-Y)"
-msgstr ""
+msgstr "Osciloscopio (X-Y)"
 
 #: src/gui/guiConst.cpp:614
 msgid "Command Stream Player"
@@ -13113,7 +13144,7 @@ msgstr ""
 
 #: src/gui/gui.cpp:4502
 msgid "oscilloscope (per-channel)"
-msgstr ""
+msgstr "osciloscopio (uno por canal)"
 
 #: src/gui/gui.cpp:4503
 msgid "oscilloscope (X-Y)"
