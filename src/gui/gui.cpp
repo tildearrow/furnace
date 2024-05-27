@@ -515,6 +515,12 @@ bool FurnaceGUI::InvCheckbox(const char* label, bool* value) {
   return false;
 }
 
+bool FurnaceGUI::LocalizedComboGetter(void* data, int idx, const char** out_text) {
+  const char* const* items=(const char* const*)data;
+  if (out_text) *out_text=_(items[idx]);
+  return true;
+}
+
 void FurnaceGUI::sameLineMaybe(float width) {
   if (width<0.0f) width=ImGui::GetFrameHeight();
 

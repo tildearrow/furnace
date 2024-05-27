@@ -506,8 +506,6 @@ int main(int argc, char** argv) {
   } else {
     logV("text domain 2: %s",localeRet);
   }
-
-  logV(_("this is a test!"));
 #endif
 
   initParams();

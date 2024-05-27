@@ -953,7 +953,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (resampleTarget<0) resampleTarget=0;
           if (resampleTarget>96000) resampleTarget=96000;
         }
-        ImGui::Combo(_("Filter"),&resampleStrat,resampleStrats,6);
+        ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
         if (ImGui::Button(_("Resample"))) {
           sample->prepareUndo(true);
           e->lockEngine([this,sample,targetRate]() {

@@ -50,7 +50,7 @@ void FurnaceGUI::drawLog() {
     ImGui::Text(_("Level"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-    ImGui::Combo("##LogLevel",&logLevel,logLevels,5);
+    ImGui::Combo("##LogLevel",&logLevel,LocalizedComboGetter,logLevels,5);
     if (ImGui::BeginTable("LogView",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_BordersInnerV)) {
       ImGui::PushFont(patFont);
 

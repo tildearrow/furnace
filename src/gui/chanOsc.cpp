@@ -29,23 +29,23 @@
 #define FURNACE_FFT_CUTOFF 0.1
 
 const char* chanOscRefs[]={
-  "None (0%)",
-  "None (50%)",
-  "None (100%)",
+  _N("None (0%)"),
+  _N("None (50%)"),
+  _N("None (100%)"),
 
-  "Frequency",
-  "Volume",
-  "Channel",
-  "Brightness",
+  _N("Frequency"),
+  _N("Volume"),
+  _N("Channel"),
+  _N("Brightness"),
 
-  "Note Trigger"
+  _N("Note Trigger")
 };
 
 const char* autoColsTypes[]={
-  "Off",
-  "Mode 1",
-  "Mode 2",
-  "Mode 3"
+  _N("Off"),
+  _N("Mode 1"),
+  _N("Mode 2"),
+  _N("Mode 3")
 };
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
@@ -338,8 +338,8 @@ void FurnaceGUI::drawChanOsc() {
           if (ImGui::ColorEdit4(_("Background"),(float*)&chanOscGrad.bgColor)) {
             updateChanOscGradTex=true;
           }
-          ImGui::Combo(_("X Axis##AxisX"),&chanOscColorX,chanOscRefs,GUI_OSCREF_MAX);
-          ImGui::Combo(_("Y Axis##AxisY"),&chanOscColorY,chanOscRefs,GUI_OSCREF_MAX);
+          ImGui::Combo(_("X Axis##AxisX"),&chanOscColorX,LocalizedComboGetter,chanOscRefs,GUI_OSCREF_MAX);
+          ImGui::Combo(_("Y Axis##AxisY"),&chanOscColorY,LocalizedComboGetter,chanOscRefs,GUI_OSCREF_MAX);
 
           ImGui::EndTable();
         }

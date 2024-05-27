@@ -5643,7 +5643,7 @@ void FurnaceGUI::drawInsEdit() {
                 }
                 int cmd=ins->gb.hwSeq[i].cmd;
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::Combo("##HWSeqCmd",&cmd,gbHWSeqCmdTypes,DivInstrumentGB::DIV_GB_HWCMD_MAX)) {
+                if (ImGui::Combo("##HWSeqCmd",&cmd,LocalizedComboGetter,gbHWSeqCmdTypes,DivInstrumentGB::DIV_GB_HWCMD_MAX)) {
                   if (ins->gb.hwSeq[i].cmd!=cmd) {
                     ins->gb.hwSeq[i].cmd=cmd;
                     ins->gb.hwSeq[i].data=0;
@@ -5976,7 +5976,7 @@ void FurnaceGUI::drawInsEdit() {
                 }
                 int cmd=ins->su.hwSeq[i].cmd;
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::Combo("##HWSeqCmd",&cmd,suHWSeqCmdTypes,DivInstrumentSoundUnit::DIV_SU_HWCMD_MAX)) {
+                if (ImGui::Combo("##HWSeqCmd",&cmd,LocalizedComboGetter,suHWSeqCmdTypes,DivInstrumentSoundUnit::DIV_SU_HWCMD_MAX)) {
                   if (ins->su.hwSeq[i].cmd!=cmd) {
                     ins->su.hwSeq[i].cmd=cmd;
                     ins->su.hwSeq[i].val=0;

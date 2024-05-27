@@ -601,7 +601,7 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::Text(_("Note"));
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              ImGui::Combo("##NCondition",&i.noteMode,queryModes,GUI_QUERY_MAX);
+              ImGui::Combo("##NCondition",&i.noteMode,LocalizedComboGetter,queryModes,GUI_QUERY_MAX);
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.noteMode)) {
                 if ((i.noteMode==GUI_QUERY_RANGE || i.noteMode==GUI_QUERY_RANGE_NOT) && i.note>=120) {
@@ -669,7 +669,7 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::Text(_("Ins"));
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              ImGui::Combo("##ICondition",&i.insMode,queryModes,GUI_QUERY_MAX);
+              ImGui::Combo("##ICondition",&i.insMode,LocalizedComboGetter,queryModes,GUI_QUERY_MAX);
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.insMode)) {
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -687,7 +687,7 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::Text(_("Volume"));
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              ImGui::Combo("##VCondition",&i.volMode,queryModes,GUI_QUERY_MAX);
+              ImGui::Combo("##VCondition",&i.volMode,LocalizedComboGetter,queryModes,GUI_QUERY_MAX);
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.volMode)) {
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -707,7 +707,7 @@ void FurnaceGUI::drawFindReplace() {
                 ImGui::Text(_("Effect"));
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                ImGui::Combo("##ECondition",&i.effectMode[j],queryModes,GUI_QUERY_MAX);
+                ImGui::Combo("##ECondition",&i.effectMode[j],LocalizedComboGetter,queryModes,GUI_QUERY_MAX);
                 ImGui::TableNextColumn();
                 if (FIRST_VISIBLE(i.effectMode[j])) {
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -725,7 +725,7 @@ void FurnaceGUI::drawFindReplace() {
                 ImGui::Text(_("Value"));
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                ImGui::Combo("##EVCondition",&i.effectValMode[j],queryModes,GUI_QUERY_MAX);
+                ImGui::Combo("##EVCondition",&i.effectValMode[j],LocalizedComboGetter,queryModes,GUI_QUERY_MAX);
                 ImGui::TableNextColumn();
                 if (FIRST_VISIBLE(i.effectValMode[j])) {
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -865,7 +865,7 @@ void FurnaceGUI::drawFindReplace() {
           ImGui::TableNextColumn();
           ImGui::BeginDisabled(!queryReplaceNoteDo);
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          ImGui::Combo("##NRMode",&queryReplaceNoteMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+          ImGui::Combo("##NRMode",&queryReplaceNoteMode,LocalizedComboGetter,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (queryReplaceNoteMode==GUI_QUERY_REPLACE_SET) {
@@ -915,7 +915,7 @@ void FurnaceGUI::drawFindReplace() {
           ImGui::TableNextColumn();
           ImGui::BeginDisabled(!queryReplaceInsDo);
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          ImGui::Combo("##IRMode",&queryReplaceInsMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+          ImGui::Combo("##IRMode",&queryReplaceInsMode,LocalizedComboGetter,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (queryReplaceInsMode==GUI_QUERY_REPLACE_SET) {
@@ -944,7 +944,7 @@ void FurnaceGUI::drawFindReplace() {
           ImGui::TableNextColumn();
           ImGui::BeginDisabled(!queryReplaceVolDo);
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          ImGui::Combo("##VRMode",&queryReplaceVolMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+          ImGui::Combo("##VRMode",&queryReplaceVolMode,LocalizedComboGetter,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (queryReplaceVolMode==GUI_QUERY_REPLACE_SET) {
@@ -975,7 +975,7 @@ void FurnaceGUI::drawFindReplace() {
             ImGui::TableNextColumn();
             ImGui::BeginDisabled(!queryReplaceEffectDo[i]);
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::Combo("##ERMode",&queryReplaceEffectMode[i],queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+            ImGui::Combo("##ERMode",&queryReplaceEffectMode[i],LocalizedComboGetter,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_SET) {
@@ -1004,7 +1004,7 @@ void FurnaceGUI::drawFindReplace() {
             ImGui::TableNextColumn();
             ImGui::BeginDisabled(!queryReplaceEffectValDo[i]);
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::Combo("##ERModeV",&queryReplaceEffectValMode[i],queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+            ImGui::Combo("##ERModeV",&queryReplaceEffectValMode[i],LocalizedComboGetter,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_SET) {
