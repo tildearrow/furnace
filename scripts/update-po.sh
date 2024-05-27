@@ -2,7 +2,7 @@
 
 FUR_VERSION="0.6.3"
 
-EXPORT_LANGS=("es" "ru" "pl" "pt_BR")
+EXPORT_LANGS=("de" "es" "fr" "fi" "ko" "nl" "pl" "pt_BR" "ru" "tr")
 
 echo '#
 msgid ""
