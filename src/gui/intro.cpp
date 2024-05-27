@@ -119,7 +119,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
       ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
       if (introPos<0.1) ImGui::SetNextWindowFocus();
     }
-    if (ImGui::Begin(monitor?"IntroMon X":"Intro",NULL,monitor?globalWinFlags:(ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground))) {
+    if (ImGui::Begin(monitor?"IntroMon X":"Intro",NULL,monitor?globalWinFlags:(ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground),monitor?_("IntroMon X"):_("Intro"))) {
       if (monitor) {
         if (ImGui::Button(_("Preview"))) {
           introPos=0;

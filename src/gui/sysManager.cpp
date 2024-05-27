@@ -38,7 +38,7 @@ void FurnaceGUI::drawSysManager() {
   } else {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags)) {
+  if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags,_("Chip Manager"))) {
     ImGui::Checkbox(_("Preserve channel order"),&preserveChanPos);
     ImGui::SameLine();
     ImGui::Checkbox(_("Clone channel data"),&sysDupCloneChannels);

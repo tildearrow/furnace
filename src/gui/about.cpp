@@ -302,7 +302,7 @@ const size_t aboutCount=sizeof(aboutLine)/sizeof(aboutLine[0]);
 
 void FurnaceGUI::drawAbout() {
   // do stuff
-  if (ImGui::Begin("About Furnace",NULL,ImGuiWindowFlags_Modal|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar)) {
+  if (ImGui::Begin("About Furnace",NULL,ImGuiWindowFlags_Modal|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar,_("About Furnace"))) {
     ImGui::SetWindowPos(ImVec2(0,0));
     ImGui::SetWindowSize(ImVec2(canvasW,canvasH));
     ImGui::PushFont(bigFont);

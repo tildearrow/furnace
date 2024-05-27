@@ -14,7 +14,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
   if (!asChild) {
     ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  bool began=asChild?ImGui::BeginChild("Subsongs"):ImGui::Begin("Subsongs",&subSongsOpen,globalWinFlags);
+  bool began=asChild?ImGui::BeginChild("Subsongs"):ImGui::Begin("Subsongs",&subSongsOpen,globalWinFlags,_("Subsongs"));
   if (began) {
     char id[1024];
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*3.0f-ImGui::GetStyle().ItemSpacing.x*2.0f);

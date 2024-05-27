@@ -44,7 +44,7 @@ void FurnaceGUI::drawLog() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!logOpen) return;
-  if (ImGui::Begin("Log Viewer",&logOpen,globalWinFlags)) {
+  if (ImGui::Begin("Log Viewer",&logOpen,globalWinFlags,_("Log Viewer"))) {
     ImGui::Checkbox(_("Follow"),&followLog);
     ImGui::SameLine();
     ImGui::Text(_("Level"));

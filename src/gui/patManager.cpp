@@ -32,7 +32,7 @@ void FurnaceGUI::drawPatManager() {
   char id[1024];
   unsigned char isUsed[DIV_MAX_PATTERNS];
   bool isNull[DIV_MAX_PATTERNS];
-  if (ImGui::Begin("Pattern Manager",&patManagerOpen,globalWinFlags)) {
+  if (ImGui::Begin("Pattern Manager",&patManagerOpen,globalWinFlags,_("Pattern Manager"))) {
     if (ImGui::Button(_("De-duplicate patterns"))) {
       e->lockEngine([this]() {
         e->curSubSong->optimizePatterns();

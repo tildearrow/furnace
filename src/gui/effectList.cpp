@@ -11,7 +11,7 @@ void FurnaceGUI::drawEffectList() {
   }
   if (!effectListOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(60.0f*dpiScale,20.0f*dpiScale),ImVec2(canvasW,canvasH));
-  if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags)) {
+  if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags,_("Effect List"))) {
     float availB=ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing();
     if (availB>0) {
       ImGui::PushTextWrapPos(availB);

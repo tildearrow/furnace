@@ -29,7 +29,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!songInfoOpen && !asChild) return;
-  bool began=asChild?ImGui::BeginChild("Song Info##Song Information"):ImGui::Begin("Song Info##Song Information",&songInfoOpen,globalWinFlags);
+  bool began=asChild?ImGui::BeginChild("Song Info##Song Information"):ImGui::Begin("Song Info##Song Information",&songInfoOpen,globalWinFlags,_("Song Info##Song Information"));
   if (began) {
     if (ImGui::BeginTable("NameAuthor",2,ImGuiTableFlags_SizingStretchProp)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);

@@ -322,7 +322,7 @@ void FurnaceGUI::drawUserPresets() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!userPresetsOpen) return;
-  if (ImGui::Begin("User Systems",&userPresetsOpen,globalWinFlags)) {
+  if (ImGui::Begin("User Systems",&userPresetsOpen,globalWinFlags,_("User Systems"))) {
     FurnaceGUISysCategory* userCategory=NULL;
     for (FurnaceGUISysCategory& i: sysCategories) {
       if (strcmp(i.name,"User")==0) {

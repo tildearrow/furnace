@@ -37,7 +37,7 @@ void FurnaceGUI::drawXYOsc() {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
   }
-  if (ImGui::Begin("Oscilloscope (X-Y)",&xyOscOpen,globalWinFlags)) {
+  if (ImGui::Begin("Oscilloscope (X-Y)",&xyOscOpen,globalWinFlags,_("Oscilloscope (X-Y)"))) {
     if (xyOscOptions) {
       int xyOscXChannelP1 = xyOscXChannel+1;
       int xyOscYChannelP1 = xyOscYChannel+1;

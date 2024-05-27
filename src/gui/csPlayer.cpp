@@ -109,7 +109,7 @@ void FurnaceGUI::drawCSPlayer() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!csPlayerOpen) return;
-  if (ImGui::Begin("Command Stream Player",&csPlayerOpen,globalWinFlags)) {
+  if (ImGui::Begin("Command Stream Player",&csPlayerOpen,globalWinFlags,_("Command Stream Player"))) {
     if (ImGui::Button(_("Load"))) {
       openFileDialog(GUI_FILE_CMDSTREAM_OPEN);
     }

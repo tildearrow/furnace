@@ -29,7 +29,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!speedOpen && !asChild) return;
-  bool began=asChild?ImGui::BeginChild("Speed"):ImGui::Begin("Speed",&speedOpen,globalWinFlags);
+  bool began=asChild?ImGui::BeginChild("Speed"):ImGui::Begin("Speed",&speedOpen,globalWinFlags,_("Speed"));
   if (began) {
     if (ImGui::BeginTable("Props",2,ImGuiTableFlags_SizingStretchProp)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);

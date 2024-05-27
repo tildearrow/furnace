@@ -32,7 +32,7 @@ void FurnaceGUI::drawMemory() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!memoryOpen) return;
-  if (ImGui::Begin("Memory Composition",&memoryOpen,globalWinFlags)) {
+  if (ImGui::Begin("Memory Composition",&memoryOpen,globalWinFlags,_("Memory Composition"))) {
     ImDrawList* dl=ImGui::GetWindowDrawList();
     ImGuiWindow* window=ImGui::GetCurrentWindow();
     char tempID[1024];
