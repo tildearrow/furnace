@@ -1161,7 +1161,7 @@ else()
 endif()
 
 if (WITH_LOCALE)
-  set(FURNACE_LANGUAGES de es fr fi hy ko nl pl pt_BR ru sk sv tr uk)
+  set(FURNACE_LANGUAGES de es fr fi hy ko nl pl pt_BR ru sk sv th tr uk)
   set(FURNACE_LANGUAGE_DEPENDS "")
 
   foreach(I IN LISTS FURNACE_LANGUAGES)
