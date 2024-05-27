@@ -47,9 +47,9 @@ typedef std::string String;
 #define _(_str) gettext(_str)
 #else
 #define _(_str) _str
-#define ngettext(_strS,_strP,_cond) (((_cond)==1)?(_strS):(_strP))
 #endif
 
+#define _GN(_strS,_strP,_cond) (((_cond)==1)?(_strS):(_strP))
 #define _N(_str) _str
 
 typedef std::wstring WString;

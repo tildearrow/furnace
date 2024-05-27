@@ -4578,9 +4578,15 @@ bool FurnaceGUI::loop() {
             int totalMonths=totalDays/30;
             totalDays%=30;
 
+#ifdef HAVE_LOCALE
             info+=fmt::sprintf(ngettext("%d year ","%d years ",totalYears),totalYears);
             info+=fmt::sprintf(ngettext("%d month ","%d months ",totalMonths),totalMonths);
             info+=fmt::sprintf(ngettext("%d day ","%d days ",totalDays),totalDays);
+#else
+            info+=fmt::sprintf(_GN("%d year ","%d years ",totalYears),totalYears);
+            info+=fmt::sprintf(_GN("%d month ","%d months ",totalMonths),totalMonths);
+            info+=fmt::sprintf(_GN("%d day ","%d days ",totalDays),totalDays);
+#endif
           }
 
           if (totalSeconds>=3600) {
