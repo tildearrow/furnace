@@ -197,7 +197,7 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
 
           auto it=oldPatMap.find(id);
           if (it==oldPatMap.end()) {
-            logW("no data in oldPatMap for channel %d!",i);
+            logW(_("no data in oldPatMap for channel %d!"),i);
             continue;
           } else {
             op=it->second;
@@ -661,7 +661,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
     }
     
     if (invalidData) {
-      logW("invalid clipboard data! failed at line %d char %d",i,charPos);
+      logW(_("invalid clipboard data! failed at line %d char %d"),i,charPos);
       logW("%s",line.c_str());
       break;
     }
@@ -1200,7 +1200,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
     
     if (invalidData)
     {
-      logW("invalid clipboard data! failed at line %d char %d",i,charPos);
+      logW(_("invalid clipboard data! failed at line %d char %d"),i,charPos);
       logW("%s",line.c_str());
       break;
     }
@@ -1562,7 +1562,7 @@ void FurnaceGUI::doFlip() {
 void FurnaceGUI::doCollapse(int divider, const SelectionPoint& sStart, const SelectionPoint& sEnd) {
   if (divider<2) return;
   if (e->curSubSong->patLen<divider) {
-    showError("can't collapse any further!");
+    showError(_("can't collapse any further!"));
     return;
   }
 
@@ -1666,7 +1666,7 @@ void FurnaceGUI::doExpand(int multiplier, const SelectionPoint& sStart, const Se
 void FurnaceGUI::doCollapseSong(int divider) {
   if (divider<2) return;
   if (e->curSubSong->patLen<divider) {
-    showError("can't collapse any further!");
+    showError(_("can't collapse any further!"));
     return;
   }
   finishSelection();
@@ -1746,7 +1746,7 @@ void FurnaceGUI::doCollapseSong(int divider) {
 void FurnaceGUI::doExpandSong(int multiplier) {
   if (multiplier<2) return;
   if (e->curSubSong->patLen>(256/multiplier)) {
-    showError("can't expand any further!");
+    showError(_("can't expand any further!"));
     return;
   }
   finishSelection();
@@ -1833,7 +1833,7 @@ void FurnaceGUI::doDrag() {
   // copy and clear
   String c=doCopy(true,false,dragStart,dragEnd);
 
-  logV("copy: %s",c);
+  logV(_("copy: %s"),c);
 
   // replace
   cursor=selStart;
@@ -1848,7 +1848,7 @@ void FurnaceGUI::moveSelected(int x, int y) {
   // copy and clear
   String c=doCopy(true,false,selStart,selEnd);
 
-  logV("copy: %s",c);
+  logV(_("copy: %s"),c);
 
   // replace
   selStart.xCoarse+=x;

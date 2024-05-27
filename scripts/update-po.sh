@@ -13,7 +13,7 @@ echo '"MIME-Version: 1.0\n"
 "Content-Transfer-Encoding: 8bit\n"
 ' >> po/furnace.pot
 
-find src/ -type f -regex ".*\(cpp\|h\)$" | xargs xgettext --omit-header -k_ -L C++ -o - >> po/furnace.pot
+find src/ -type f -regex ".*\(cpp\|h\)$" | xargs xgettext --omit-header -k_ -k_N -L C++ -o - >> po/furnace.pot || exit 1
 
 cd po
 for i in ${EXPORT_LANGS[@]}; do

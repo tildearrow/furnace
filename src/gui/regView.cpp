@@ -35,7 +35,7 @@ void FurnaceGUI::drawRegView() {
       unsigned char* regPool=e->getRegisterPool(i,size,depth);
       unsigned short* regPoolW=(unsigned short*)regPool;
       if (regPool==NULL) {
-        ImGui::Text("- no register pool available");
+        ImGui::Text(_("- no register pool available"));
       } else {
         ImGui::PushFont(patFont);
         if (ImGui::BeginTable("Memory",17)) {

@@ -35,7 +35,7 @@ void FurnaceGUI::drawGrooves() {
   if (ImGui::Begin("Grooves",&groovesOpen,globalWinFlags)) {
     int delGroove=-1;
 
-    ImGui::Text("use effect 09xx to select a groove pattern.");
+    ImGui::Text(_("use effect 09xx to select a groove pattern."));
     if (!e->song.grooves.empty()) if (ImGui::BeginTable("GrooveList",3,ImGuiTableFlags_Borders)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
@@ -45,7 +45,7 @@ void FurnaceGUI::drawGrooves() {
       ImGui::TableNextColumn();
       ImGui::Text("#");
       ImGui::TableNextColumn();
-      ImGui::Text("pattern");
+      ImGui::Text(_("pattern"));
       ImGui::TableNextColumn();
       // ImGui::Text("remove"); removed because the text clips from the fixed width
 
@@ -129,7 +129,7 @@ void FurnaceGUI::drawGrooves() {
         }
         popDestColor();
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("remove");
+          ImGui::SetTooltip(_("remove"));
         }
 
         index++;

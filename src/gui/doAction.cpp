@@ -35,21 +35,21 @@ void FurnaceGUI::doAction(int what) {
   switch (what) {
     case GUI_ACTION_NEW:
       if (modified) {
-        showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
+        showWarning(_("Unsaved changes! Save changes before creating a new song?"),GUI_WARN_NEW);
       } else {
         displayNew=true;
       }
       break;
     case GUI_ACTION_OPEN:
       if (modified) {
-        showWarning("Unsaved changes! Save changes before opening another file?",GUI_WARN_OPEN);
+        showWarning(_("Unsaved changes! Save changes before opening another file?"),GUI_WARN_OPEN);
       } else {
         openFileDialog(GUI_FILE_OPEN);
       }
       break;
     case GUI_ACTION_OPEN_BACKUP:
       if (modified) {
-        showWarning("Unsaved changes! Save changes before opening backup?",GUI_WARN_OPEN_BACKUP);
+        showWarning(_("Unsaved changes! Save changes before opening backup?"),GUI_WARN_OPEN_BACKUP);
       } else {
         openFileDialog(GUI_FILE_OPEN_BACKUP);
       }
@@ -59,7 +59,7 @@ void FurnaceGUI::doAction(int what) {
         openFileDialog(GUI_FILE_SAVE);
       } else {
         if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
-          showError(fmt::sprintf("Error while saving file! (%s)",lastError));
+          showError(fmt::sprintf(_("Error while saving file! (%s)"),lastError));
         }
       }
       break;
@@ -186,7 +186,7 @@ void FurnaceGUI::doAction(int what) {
       msg.sysExLen=15;
       memcpy(msg.sysExData.get(),avRequest,15);
       if (!e->sendMidiMessage(msg)) {
-        showError("Error while sending request (MIDI output not configured?)");
+        showError(_("Error while sending request (MIDI output not configured?)"));
       }
       break;
     }
@@ -194,7 +194,7 @@ void FurnaceGUI::doAction(int what) {
       e->syncReset();
       break;
     case GUI_ACTION_CLEAR:
-      showWarning("Select an option: (cannot be undone!)",GUI_WARN_CLEAR);
+      showWarning(_("Select an option: (cannot be undone!)"),GUI_WARN_CLEAR);
       break;
     case GUI_ACTION_COMMAND_PALETTE:
       displayPalette=true;
@@ -688,7 +688,7 @@ void FurnaceGUI::doAction(int what) {
       }
       curIns=e->addInstrument(cursor.xCoarse);
       if (curIns==-1) {
-        showError("too many instruments!");
+        showError(_("too many instruments!"));
       } else {
         if (settings.blankIns) {
           e->song.ins[curIns]->fm.fb=0;
@@ -717,7 +717,7 @@ void FurnaceGUI::doAction(int what) {
         int prevIns=curIns;
         curIns=e->addInstrument(cursor.xCoarse);
         if (curIns==-1) {
-          showError("too many instruments!");
+          showError(_("too many instruments!"));
         } else {
           (*e->song.ins[curIns])=(*e->song.ins[prevIns]);
           wantScrollListIns=true;
@@ -822,7 +822,7 @@ void FurnaceGUI::doAction(int what) {
 
       curWave=e->addWave();
       if (curWave==-1) {
-        showError("too many wavetables!");
+        showError(_("too many wavetables!"));
       } else {
         wantScrollListWave=true;
         e->song.wave[curWave]->len=finalWidth;
@@ -840,7 +840,7 @@ void FurnaceGUI::doAction(int what) {
         int prevWave=curWave;
         curWave=e->addWave();
         if (curWave==-1) {
-          showError("too many wavetables!");
+          showError(_("too many wavetables!"));
         } else {
           (*e->song.wave[curWave])=(*e->song.wave[prevWave]);
           wantScrollListWave=true;
@@ -906,7 +906,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_LIST_ADD:
       curSample=e->addSample();
       if (curSample==-1) {
-        showError("too many samples!");
+        showError(_("too many samples!"));
       } else {
         wantScrollListSample=true;
         MARK_MODIFIED;
@@ -918,7 +918,7 @@ void FurnaceGUI::doAction(int what) {
         DivSample* prevSample=e->getSample(curSample);
         curSample=e->addSample();
         if (curSample==-1) {
-          showError("too many samples!");
+          showError(_("too many samples!"));
         } else {
           e->lockEngine([this,prevSample]() {
             DivSample* sample=e->getSample(curSample);
@@ -1121,7 +1121,7 @@ void FurnaceGUI::doAction(int what) {
 
       e->lockEngine([this,sample,pos]() {
         if (!sample->insert(pos,sampleClipboardLen)) {
-          showError("couldn't paste! make sure your sample is 8 or 16-bit.");
+          showError(_("couldn't paste! make sure your sample is 8 or 16-bit."));
         } else {
           if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
             for (size_t i=0; i<sampleClipboardLen; i++) {
@@ -1590,7 +1590,7 @@ void FurnaceGUI::doAction(int what) {
       DivSample* sample=e->song.sample[curSample];
       curIns=e->addInstrument(cursor.xCoarse);
       if (curIns==-1) {
-        showError("too many instruments!");
+        showError(_("too many instruments!"));
       } else {
         e->song.ins[curIns]->type=insType;
         e->song.ins[curIns]->name=sample->name;
@@ -1625,13 +1625,13 @@ void FurnaceGUI::doAction(int what) {
       DivSample* sample=e->song.sample[curSample];
       SAMPLE_OP_BEGIN;
       if (end-start<1) {
-        showError("select at least one sample!");
+        showError(_("select at least one sample!"));
       } else if (end-start>256) {
-        showError("maximum size is 256 samples!");
+        showError(_("maximum size is 256 samples!"));
       } else {
         curWave=e->addWave();
         if (curWave==-1) {
-          showError("too many wavetables!");
+          showError(_("too many wavetables!"));
         } else {
           DivWavetable* wave=e->song.wave[curWave];
           wave->min=0;

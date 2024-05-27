@@ -22,11 +22,11 @@
 #include <imgui.h>
 
 const char* logLevels[5]={
-  "ERROR",
-  "warning",
-  "info",
-  "debug",
-  "trace"
+  _N("ERROR"),
+  _N("warning"),
+  _N("info"),
+  _N("debug"),
+  _N("trace")
 };
 
 FurnaceGUIColors logColors[5]={
@@ -45,9 +45,9 @@ void FurnaceGUI::drawLog() {
   }
   if (!logOpen) return;
   if (ImGui::Begin("Log Viewer",&logOpen,globalWinFlags)) {
-    ImGui::Checkbox("Follow",&followLog);
+    ImGui::Checkbox(_("Follow"),&followLog);
     ImGui::SameLine();
-    ImGui::Text("Level");
+    ImGui::Text(_("Level"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     ImGui::Combo("##LogLevel",&logLevel,logLevels,5);
@@ -65,11 +65,11 @@ void FurnaceGUI::drawLog() {
 
       ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
       ImGui::TableNextColumn();
-      ImGui::TextUnformatted("time");
+      ImGui::TextUnformatted(_("time"));
       ImGui::TableNextColumn();
-      ImGui::TextUnformatted("level");
+      ImGui::TextUnformatted(_("level"));
       ImGui::TableNextColumn();
-      ImGui::TextUnformatted("message");
+      ImGui::TextUnformatted(_("message"));
 
       int pos=logPosition;
       for (int i=0; i<TA_LOG_SIZE; i++) {
@@ -80,7 +80,7 @@ void FurnaceGUI::drawLog() {
         ImGui::TableNextColumn();
         ImGui::Text("%02d:%02d:%02d",logEntry.time.tm_hour,logEntry.time.tm_min,logEntry.time.tm_sec);
         ImGui::TableNextColumn();
-        ImGui::TextColored(uiColors[logColors[logEntry.loglevel]],"%s",logLevels[logEntry.loglevel]);
+        ImGui::TextColored(uiColors[logColors[logEntry.loglevel]],"%s",_(logLevels[logEntry.loglevel]));
         ImGui::TableNextColumn();
         ImGui::TextWrapped("%s",logEntry.text.c_str());
       }

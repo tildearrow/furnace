@@ -202,7 +202,7 @@ void FurnaceGUI::finishSelection() {
     selEnd.xFine=2+e->curPat[selEnd.xCoarse].effectCols*2;
   }
 
-  logV("finish selection: %d.%d,%d - %d.%d,%d",selStart.xCoarse,selStart.xFine,selStart.y,selEnd.xCoarse,selEnd.xFine,selEnd.y);
+  logV(_("finish selection: %d.%d,%d - %d.%d,%d"),selStart.xCoarse,selStart.xFine,selStart.y,selEnd.xCoarse,selEnd.xFine,selEnd.y);
 
   e->setMidiBaseChan(cursor.xCoarse);
 }

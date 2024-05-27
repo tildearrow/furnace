@@ -90,23 +90,23 @@ String getKeyName(int key, bool emptyNone) {
     if (emptyNone) {
       return "";
     } else {
-      return "<nothing>";
+      return _("<nothing>");
     }
   }
   String ret;
-  if (key&FURKMOD_CTRL) ret+="Ctrl-";
+  if (key&FURKMOD_CTRL) ret+=_("Ctrl-");
   if (key&FURKMOD_META) ret+=META_MODIFIER_NAME;
-  if (key&FURKMOD_ALT) ret+="Alt-";
-  if (key&FURKMOD_SHIFT) ret+="Shift-";
+  if (key&FURKMOD_ALT) ret+=_("Alt-");
+  if (key&FURKMOD_SHIFT) ret+=_("Shift-");
   if ((key&FURK_MASK)==0xffffff) {
     ret+="...";
     return ret;
   }
   const char* name=SDL_GetKeyName(key&FURK_MASK);
   if (name==NULL) {
-    ret+="Unknown";
+    ret+=_("Unknown");
   } else if (name[0]==0) {
-    ret+="Unknown";
+    ret+=_("Unknown");
   } else {
     ret+=name;
   }

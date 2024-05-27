@@ -33,7 +33,7 @@ void FurnaceGUI::drawStats() {
     double maxGot=1000000000.0*(double)e->getAudioDescGot().bufsize/(double)e->getAudioDescGot().rate;
     String procStr=fmt::sprintf("%.1f%%",100.0*((double)lastProcTime/(double)maxGot));
     ImGui::AlignTextToFramePadding();
-    ImGui::Text("Audio load");
+    ImGui::Text(_("Audio load"));
     ImGui::SameLine();
     ImGui::ProgressBar((double)lastProcTime/maxGot,ImVec2(-FLT_MIN,0),procStr.c_str());
   }
