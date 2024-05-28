@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: furnace 0.6.3\n"
 "Last-Translator: Automatically generated\n"
-"Language-Team: freq-mod, PoznanskiSzybkowiec\n"
+"Language-Team: freq-mod, PoznańskiSzybkowiec\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13842,11 +13842,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:50
 msgid "AM"
-msgstr ""
+msgstr "AM"
 
 #: src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:5438 src/gui/insEdit.cpp:6516
 msgid "AM Depth"
-msgstr ""
+msgstr "Głębokość AM"
 
 #: src/gui/insEdit.cpp:50
 msgid "Vibrato Depth"
@@ -13882,7 +13882,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:50
 msgid "Reverb"
-msgstr ""
+msgstr "Pogłos"
 
 #: src/gui/insEdit.cpp:50
 msgid "Fine"
@@ -13898,7 +13898,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:56 src/gui/insEdit.cpp:68 src/gui/insEdit.cpp:7391
 msgid "OP4 Noise Mode"
-msgstr ""
+msgstr "Tryb szumu na OP4"
 
 #: src/gui/insEdit.cpp:57
 msgid "Envelope Delay"
@@ -13926,155 +13926,155 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:64
 msgid "Fixed Frequency Mode"
-msgstr ""
+msgstr "Tryb stałej częstotliwości"
 
 #: src/gui/insEdit.cpp:69
 msgid "Env. Delay"
-msgstr ""
+msgstr "Opóźnienie obw."
 
 #: src/gui/insEdit.cpp:71
 msgid "ModInput"
-msgstr ""
+msgstr "ModInput"
 
 #: src/gui/insEdit.cpp:72
 msgid "Left"
-msgstr ""
+msgstr "Lewy"
 
 #: src/gui/insEdit.cpp:73
 msgid "Right"
-msgstr ""
+msgstr "Prawy"
 
 #: src/gui/insEdit.cpp:74
 msgid "Tune"
-msgstr ""
+msgstr "Strojenie"
 
 #: src/gui/insEdit.cpp:76 src/gui/insEdit.cpp:610 src/gui/insEdit.cpp:3792
 #: src/gui/insEdit.cpp:4554 src/gui/insEdit.cpp:4848
 msgid "Fixed"
-msgstr ""
+msgstr "Stały"
 
 #: src/gui/insEdit.cpp:98 src/gui/insEdit.cpp:117 src/gui/insEdit.cpp:136
 #: src/gui/insEdit.cpp:156
 msgid "User"
-msgstr ""
+msgstr "Użytkownika"
 
 #: src/gui/insEdit.cpp:99
 msgid "1. Violin"
-msgstr ""
+msgstr "1. Skrzypce"
 
 #: src/gui/insEdit.cpp:100 src/gui/insEdit.cpp:138 src/gui/insEdit.cpp:158
 msgid "2. Guitar"
-msgstr ""
+msgstr "2. Gitara"
 
 #: src/gui/insEdit.cpp:101 src/gui/insEdit.cpp:159
 msgid "3. Piano"
-msgstr ""
+msgstr "3. Pianino"
 
 #: src/gui/insEdit.cpp:102 src/gui/insEdit.cpp:160
 msgid "4. Flute"
-msgstr ""
+msgstr "4. Flet"
 
 #: src/gui/insEdit.cpp:103 src/gui/insEdit.cpp:122 src/gui/insEdit.cpp:161
 msgid "5. Clarinet"
-msgstr ""
+msgstr "5. Klarnet"
 
 #: src/gui/insEdit.cpp:104
 msgid "6. Oboe"
-msgstr ""
+msgstr "6. Obój"
 
 #: src/gui/insEdit.cpp:105 src/gui/insEdit.cpp:124 src/gui/insEdit.cpp:143
 #: src/gui/insEdit.cpp:163
 msgid "7. Trumpet"
-msgstr ""
+msgstr "7. Trąbka"
 
 #: src/gui/insEdit.cpp:106
 msgid "8. Organ"
-msgstr ""
+msgstr "8. Organy"
 
 #: src/gui/insEdit.cpp:107
 msgid "9. Horn"
-msgstr ""
+msgstr "9. Róg"
 
 #: src/gui/insEdit.cpp:108
 msgid "10. Synth"
-msgstr ""
+msgstr "10. Syntezator"
 
 #: src/gui/insEdit.cpp:109
 msgid "11. Harpsichord"
-msgstr ""
+msgstr "11. Klawesyn"
 
 #: src/gui/insEdit.cpp:110 src/gui/insEdit.cpp:129 src/gui/insEdit.cpp:148
 msgid "12. Vibraphone"
-msgstr ""
+msgstr "12. Wibrafon"
 
 #: src/gui/insEdit.cpp:111
 msgid "13. Synth Bass"
-msgstr ""
+msgstr "13. Syntetyczny Bas"
 
 #: src/gui/insEdit.cpp:112
 msgid "14. Acoustic Bass"
-msgstr ""
+msgstr "14. Akustyczny Bas"
 
 #: src/gui/insEdit.cpp:113
 msgid "15. Electric Guitar"
-msgstr ""
+msgstr "15. Gitara Elektryczna"
 
 #: src/gui/insEdit.cpp:114 src/gui/insEdit.cpp:133 src/gui/insEdit.cpp:152
 #: src/gui/insEdit.cpp:172 src/gui/insEdit.cpp:3176
 msgid "Drums"
-msgstr ""
+msgstr "Perkusja"
 
 #: src/gui/insEdit.cpp:118
 msgid "1. Electric String"
-msgstr ""
+msgstr "1. Elektryczny Instr. Strunowy"
 
 #: src/gui/insEdit.cpp:119
 msgid "2. Bow wow"
-msgstr ""
+msgstr "2. Bow wow"
 
 #: src/gui/insEdit.cpp:120 src/gui/insEdit.cpp:139
 msgid "3. Electric Guitar"
-msgstr ""
+msgstr "3. Gitara Elektryczna"
 
 #: src/gui/insEdit.cpp:121
 msgid "4. Organ"
-msgstr ""
+msgstr "4. Organy"
 
 #: src/gui/insEdit.cpp:123
 msgid "6. Saxophone"
-msgstr ""
+msgstr "6. Saksofon"
 
 #: src/gui/insEdit.cpp:125
 msgid "8. Street Organ"
-msgstr ""
+msgstr "8. Katarynka"
 
 #: src/gui/insEdit.cpp:126
 msgid "9. Synth Brass"
-msgstr ""
+msgstr "9. Syntetyczny instrument dęty"
 
 #: src/gui/insEdit.cpp:127
 msgid "10. Electric Piano"
-msgstr ""
+msgstr "10. Pianino Elektryczne"
 
 #: src/gui/insEdit.cpp:128
 msgid "11. Bass"
-msgstr ""
+msgstr "Bas"
 
 #: src/gui/insEdit.cpp:130
 msgid "13. Chime"
-msgstr ""
+msgstr "13. Dzwonki"
 
 #: src/gui/insEdit.cpp:131
 msgid "14. Tom Tom II"
-msgstr ""
+msgstr "Tom-tom II"
 
 #: src/gui/insEdit.cpp:132
 msgid "15. Noise"
-msgstr ""
+msgstr "Szum"
 
 #: src/gui/insEdit.cpp:137
 msgid "1. Strings"
-msgstr ""
+msgstr "1. Smyczki"
 
 #: src/gui/insEdit.cpp:140
 msgid "4. Electric Piano"
@@ -14082,83 +14082,83 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:141
 msgid "5. Flute"
-msgstr ""
+msgstr "5. Flet"
 
 #: src/gui/insEdit.cpp:142
 msgid "6. Marimba"
-msgstr ""
+msgstr "6. Marimba"
 
 #: src/gui/insEdit.cpp:144
 msgid "8. Harmonica"
-msgstr ""
+msgstr "8. Harmonijka"
 
 #: src/gui/insEdit.cpp:145
 msgid "9. Tuba"
-msgstr ""
+msgstr "9. Puzon"
 
 #: src/gui/insEdit.cpp:146
 msgid "10. Synth Brass"
-msgstr ""
+msgstr "10. Syntetyczny instrument dęty"
 
 #: src/gui/insEdit.cpp:147
 msgid "11. Short Saw"
-msgstr ""
+msgstr "11. Krótka piła"
 
 #: src/gui/insEdit.cpp:149
 msgid "13. Electric Guitar 2"
-msgstr ""
+msgstr "13. Gitara Elektryczna 2"
 
 #: src/gui/insEdit.cpp:150
 msgid "14. Synth Bass"
-msgstr ""
+msgstr "14. Syntetyczny Bas"
 
 #: src/gui/insEdit.cpp:151
 msgid "15. Sitar"
-msgstr ""
+msgstr "15. Sitar"
 
 #: src/gui/insEdit.cpp:157
 msgid "1. Bell"
-msgstr ""
+msgstr "1. Dzwon"
 
 #: src/gui/insEdit.cpp:162
 msgid "6. Rattling Bell"
-msgstr ""
+msgstr "6. Grzechoczący dzwon"
 
 #: src/gui/insEdit.cpp:164
 msgid "8. Reed Organ"
-msgstr ""
+msgstr "8. Fisharmonia"
 
 #: src/gui/insEdit.cpp:165
 msgid "9. Soft Bell"
-msgstr ""
+msgstr "9. \"Miękki\" dzwon"
 
 #: src/gui/insEdit.cpp:166
 msgid "10. Xylophone"
-msgstr ""
+msgstr "10. Ksylofon"
 
 #: src/gui/insEdit.cpp:167
 msgid "11. Vibraphone"
-msgstr ""
+msgstr "11. Wibrafon"
 
 #: src/gui/insEdit.cpp:168
 msgid "12. Brass"
-msgstr ""
+msgstr "12. Instrument dęty"
 
 #: src/gui/insEdit.cpp:169
 msgid "13. Bass Guitar"
-msgstr ""
+msgstr "13. Gitara basowa"
 
 #: src/gui/insEdit.cpp:170
 msgid "14. Synth"
-msgstr ""
+msgstr "14. Syntezator"
 
 #: src/gui/insEdit.cpp:171
 msgid "15. Chorus"
-msgstr ""
+msgstr "15. Chór"
 
 #: src/gui/insEdit.cpp:178 src/gui/insEdit.cpp:189
 msgid "Half Sine"
-msgstr ""
+msgstr "Połowa sinusoidy"
 
 #: src/gui/insEdit.cpp:179 src/gui/insEdit.cpp:190
 msgid "Absolute Sine"
@@ -14210,15 +14210,15 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:224
 msgid "Noise disabled"
-msgstr ""
+msgstr "Szum wyłączony"
 
 #: src/gui/insEdit.cpp:225
 msgid "Square + noise"
-msgstr ""
+msgstr "Fala kwadratowa + szum"
 
 #: src/gui/insEdit.cpp:226
 msgid "Ringmod from OP3 + noise"
-msgstr ""
+msgstr "Modulacja kołowa op.3 + szum"
 
 #: src/gui/insEdit.cpp:227
 msgid ""
@@ -14240,15 +14240,15 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:239 src/gui/insEdit.cpp:390
 msgid "gate"
-msgstr ""
+msgstr "bramka obw."
 
 #: src/gui/insEdit.cpp:240 src/gui/insEdit.cpp:391
 msgid "sync"
-msgstr ""
+msgstr "synchro"
 
 #: src/gui/insEdit.cpp:241 src/gui/insEdit.cpp:392
 msgid "ring"
-msgstr ""
+msgstr "kołowa"
 
 #: src/gui/insEdit.cpp:327
 msgid "How did you even"
@@ -14269,15 +14269,15 @@ msgstr ""
 #: src/gui/insEdit.cpp:338 src/gui/insEdit.cpp:344 src/gui/insEdit.cpp:373
 #: src/gui/insEdit.cpp:424 src/gui/insEdit.cpp:429 src/gui/insEdit.cpp:5833
 msgid "noise"
-msgstr ""
+msgstr "szum"
 
 #: src/gui/insEdit.cpp:343
 msgid "tone"
-msgstr ""
+msgstr "ton"
 
 #: src/gui/insEdit.cpp:345
 msgid "envelope"
-msgstr ""
+msgstr "obwiednia"
 
 #: src/gui/insEdit.cpp:350
 msgid "hold"
@@ -14297,7 +14297,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:357 src/gui/insEdit.cpp:368
 msgid "enabled"
-msgstr ""
+msgstr "włączony"
 
 #: src/gui/insEdit.cpp:361
 msgid "mirror"
@@ -14305,11 +14305,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:365
 msgid "resolution"
-msgstr ""
+msgstr "rozdzielczość"
 
 #: src/gui/insEdit.cpp:366
 msgid "fixed"
-msgstr ""
+msgstr "stały"
 
 #: src/gui/insEdit.cpp:367
 msgid "N/A"
@@ -14317,11 +14317,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:374
 msgid "echo"
-msgstr ""
+msgstr "echo"
 
 #: src/gui/insEdit.cpp:375
 msgid "pitch mod"
-msgstr ""
+msgstr "mod. wysokości dźw."
 
 #: src/gui/insEdit.cpp:376 src/gui/insEdit.cpp:508
 msgid "invert right"
@@ -14345,31 +14345,31 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:385 src/gui/insEdit.cpp:5924
 msgid "ch3off"
-msgstr ""
+msgstr "kanał 3 wył."
 
 #: src/gui/insEdit.cpp:393
 msgid "test"
-msgstr ""
+msgstr "test"
 
 #: src/gui/insEdit.cpp:398
 msgid "15KHz"
-msgstr ""
+msgstr "15KHz"
 
 #: src/gui/insEdit.cpp:399
 msgid "filter 2+4"
-msgstr ""
+msgstr "filtr 2+4"
 
 #: src/gui/insEdit.cpp:400
 msgid "filter 1+3"
-msgstr ""
+msgstr "filtr 1+3"
 
 #: src/gui/insEdit.cpp:401
 msgid "16-bit 3+4"
-msgstr ""
+msgstr "16-bitowy 3+4"
 
 #: src/gui/insEdit.cpp:402
 msgid "16-bit 1+2"
-msgstr ""
+msgstr "16-bitowy 1+2"
 
 #: src/gui/insEdit.cpp:403
 msgid "high3"
@@ -14385,31 +14385,31 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:414
 msgid "16'"
-msgstr ""
+msgstr "16'"
 
 #: src/gui/insEdit.cpp:415
 msgid "8'"
-msgstr ""
+msgstr "8'"
 
 #: src/gui/insEdit.cpp:416
 msgid "4'"
-msgstr ""
+msgstr "4'"
 
 #: src/gui/insEdit.cpp:417
 msgid "2'"
-msgstr ""
+msgstr "2'"
 
 #: src/gui/insEdit.cpp:418
 msgid "sustain"
-msgstr ""
+msgstr "podtrzymanie"
 
 #: src/gui/insEdit.cpp:423
 msgid "square"
-msgstr ""
+msgstr "fala kwadratowa"
 
 #: src/gui/insEdit.cpp:431
 msgid "surround"
-msgstr ""
+msgstr "przestrzenny"
 
 #: src/gui/insEdit.cpp:437
 msgid "oneshot"
@@ -14437,7 +14437,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:447 src/gui/insEdit.cpp:476
 msgid "ring mod"
-msgstr ""
+msgstr "mod. kołowa"
 
 #: src/gui/insEdit.cpp:448
 msgid "low pass"
@@ -14485,23 +14485,23 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:477
 msgid "swap counters (noise)"
-msgstr ""
+msgstr "zamień liczniki (szum)"
 
 #: src/gui/insEdit.cpp:478
 msgid "low pass (noise)"
-msgstr ""
+msgstr "filtr dolnop. (szum)"
 
 #: src/gui/insEdit.cpp:485
 msgid "rear right"
-msgstr ""
+msgstr "tylny prawy"
 
 #: src/gui/insEdit.cpp:486
 msgid "rear left"
-msgstr ""
+msgstr "tylny lewy"
 
 #: src/gui/insEdit.cpp:491
 msgid "on"
-msgstr ""
+msgstr "wł."
 
 #: src/gui/insEdit.cpp:496
 msgid "k1 slowdown"
@@ -14565,7 +14565,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:536
 msgid "Phase Modulation"
-msgstr ""
+msgstr "Modulacja fazy"
 
 #: src/gui/insEdit.cpp:541
 msgid "Sweep"
@@ -14646,7 +14646,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:660
 msgid "Random"
-msgstr ""
+msgstr "Losowy"
 
 #: src/gui/insEdit.cpp:1610
 msgid ""
@@ -14671,15 +14671,15 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:1648
 msgid "AUTO##OPKVS"
-msgstr ""
+msgstr "AUTO"
 
 #: src/gui/insEdit.cpp:1650
 msgid "NO##OPKVS"
-msgstr ""
+msgstr "NIE"
 
 #: src/gui/insEdit.cpp:1652
 msgid "YES##OPKVS"
-msgstr ""
+msgstr "TAK"
 
 #: src/gui/insEdit.cpp:1900 src/gui/insEdit.cpp:2005
 msgid "Bottom"
@@ -14699,19 +14699,19 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:2047
 msgid "Shape"
-msgstr ""
+msgstr "Kształt"
 
 #: src/gui/insEdit.cpp:2100
 msgid "Macro type: Sequence"
-msgstr ""
+msgstr "Typ makra: Sekwencja"
 
 #: src/gui/insEdit.cpp:2103
 msgid "Macro type: ADSR"
-msgstr ""
+msgstr "Typ makra: ADSR"
 
 #: src/gui/insEdit.cpp:2106
 msgid "Macro type: LFO"
-msgstr ""
+msgstr "Typ makra: LFO"
 
 #: src/gui/insEdit.cpp:2109
 msgid "Macro type: What's going on here?"
@@ -14727,7 +14727,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:2129
 msgid "Delay##IMacroDelay"
-msgstr ""
+msgstr "Opóźnienie"
 
 #: src/gui/insEdit.cpp:2142
 msgid "Release mode: Active (jump to release pos)"
@@ -14739,11 +14739,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:2393
 msgid "StepLen"
-msgstr ""
+msgstr "Dł. kroku"
 
 #: src/gui/insEdit.cpp:2401
 msgid "Delay"
-msgstr ""
+msgstr "Opóźnienie"
 
 #: src/gui/insEdit.cpp:2425
 msgid "The heck? No, this isn't even working correctly..."
@@ -14777,11 +14777,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:2644
 msgid "none selected"
-msgstr ""
+msgstr "nie wybrano niczego"
 
 #: src/gui/insEdit.cpp:2657
 msgid "Use sample"
-msgstr ""
+msgstr "Uzyj sampla"
 
 #: src/gui/insEdit.cpp:2659
 msgid "Sample bank slot##BANKSLOT"
@@ -14793,7 +14793,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:2681
 msgid "Use wavetable"
-msgstr ""
+msgstr "Użyj tablicy fal"
 
 #: src/gui/insEdit.cpp:2708
 msgid "Use sample map"
@@ -14801,11 +14801,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:2730
 msgid "delta"
-msgstr ""
+msgstr "delta"
 
 #: src/gui/insEdit.cpp:2736
 msgid "sample name"
-msgstr ""
+msgstr "nazwa sampla"
 
 #: src/gui/insEdit.cpp:3001
 msgid "set entire map to this pitch"
@@ -14821,23 +14821,23 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:3027
 msgid "set entire map to this sample"
-msgstr ""
+msgstr "przypisz ten sampel do całej mapy"
 
 #: src/gui/insEdit.cpp:3037
 msgid "reset pitches"
-msgstr ""
+msgstr "resetuj wysokośći dźwięku"
 
 #: src/gui/insEdit.cpp:3042
 msgid "clear delta counter values"
-msgstr ""
+msgstr "wyczyść wartości licznika delta"
 
 #: src/gui/insEdit.cpp:3048
 msgid "reset notes"
-msgstr ""
+msgstr "resetuj nuty"
 
 #: src/gui/insEdit.cpp:3054
 msgid "clear map samples"
-msgstr ""
+msgstr "wyczyść mapę sampli"
 
 #: src/gui/insEdit.cpp:3148
 msgid "Request from TX81Z"
@@ -14846,11 +14846,11 @@ msgstr ""
 #: src/gui/insEdit.cpp:3234
 #, c-format
 msgid "%s name"
-msgstr ""
+msgstr " nazwa %s"
 
 #: src/gui/insEdit.cpp:3286
 msgid "Fixed frequency mode"
-msgstr ""
+msgstr "Tryb stałej częstotliwości"
 
 #: src/gui/insEdit.cpp:3288
 msgid ""
@@ -14860,13 +14860,13 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:3296
 msgid "Drum"
-msgstr ""
+msgstr "Perkusja"
 
 #: src/gui/insEdit.cpp:3298 src/gui/insEdit.cpp:3798 src/gui/insEdit.cpp:3904
 #: src/gui/insEdit.cpp:4404 src/gui/insEdit.cpp:4468 src/gui/insEdit.cpp:5068
 #: src/gui/insEdit.cpp:5518
 msgid "Block"
-msgstr ""
+msgstr "Blok"
 
 #: src/gui/insEdit.cpp:3300 src/gui/insEdit.cpp:3803 src/gui/insEdit.cpp:3909
 #: src/gui/insEdit.cpp:4993 src/gui/insEdit.cpp:5079 src/gui/insEdit.cpp:5519
@@ -14875,15 +14875,15 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:3303
 msgid "Snare/Hi-hat"
-msgstr ""
+msgstr "Werbel/Hi-hat"
 
 #: src/gui/insEdit.cpp:3304
 msgid "Tom/Top"
-msgstr ""
+msgstr "Tom/Talerz"
 
 #: src/gui/insEdit.cpp:3314
 msgid "Volume##TL"
-msgstr ""
+msgstr "Głośność"
 
 #: src/gui/insEdit.cpp:3316
 msgid "this volume slider only works in compatibility (non-drums) system."
@@ -14891,46 +14891,46 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:3626
 msgid "Env"
-msgstr ""
+msgstr "Obw."
 
 #: src/gui/insEdit.cpp:3980 src/gui/insEdit.cpp:4346 src/gui/insEdit.cpp:4396
 #: src/gui/insEdit.cpp:5104
 msgid "OPL2/3 only (last 4 waveforms are OPL3 only)"
-msgstr ""
+msgstr "Tylko dla OPL2/3 (ostatnie 4 kształty fal są dostępne tylko na OPL3)"
 
 #: src/gui/insEdit.cpp:4079 src/gui/insEdit.cpp:4788
 #, c-format
 msgid "Envelope 2 (kick only)"
-msgstr ""
+msgstr "Obwiednia 2 (tylko dla stopy)"
 
 #: src/gui/insEdit.cpp:4084
 #, c-format
 msgid "Operator %d"
-msgstr ""
+msgstr "Operator %d"
 
 #: src/gui/insEdit.cpp:4414
 msgid "Freq"
-msgstr ""
+msgstr "Częst."
 
 #: src/gui/insEdit.cpp:4443
 msgid "Only on YM2151 (OPM)"
-msgstr ""
+msgstr "Tylko na YM2151 OPM)"
 
 #: src/gui/insEdit.cpp:4466
 msgid "Blk"
-msgstr ""
+msgstr "Blok"
 
 #: src/gui/insEdit.cpp:4479
 msgid "F"
-msgstr ""
+msgstr "F"
 
 #: src/gui/insEdit.cpp:4481
 msgid "Frequency (F-Num)"
-msgstr ""
+msgstr "Częstotliwość (F-Num)"
 
 #: src/gui/insEdit.cpp:4833
 msgid "SSG On"
-msgstr ""
+msgstr "SSG Wł."
 
 #: src/gui/insEdit.cpp:5206 src/gui/insEdit.cpp:5207
 msgid "waiting..."
@@ -14938,7 +14938,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:5210 src/gui/insEdit.cpp:5211
 msgid "no instrument selected"
-msgstr ""
+msgstr "nie wybrano instrumentu"
 
 #: src/gui/insEdit.cpp:5393
 msgid ""
@@ -14947,99 +14947,99 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:5413
 msgid "FM Macros"
-msgstr ""
+msgstr "Makra FM"
 
 #: src/gui/insEdit.cpp:5435 src/gui/insEdit.cpp:5440
 msgid "LFO Speed"
-msgstr ""
+msgstr "Prędkość LFO"
 
 #: src/gui/insEdit.cpp:5439 src/gui/insEdit.cpp:6514
 msgid "PM Depth"
-msgstr ""
+msgstr "Głębokość PM"
 
 #: src/gui/insEdit.cpp:5441
 msgid "LFO Shape"
-msgstr ""
+msgstr "Kształt LFO"
 
 #: src/gui/insEdit.cpp:5444
 msgid "OpMask"
-msgstr ""
+msgstr "Maska op."
 
 #: src/gui/insEdit.cpp:5446
 msgid "AM Depth 2"
-msgstr ""
+msgstr "Głębokość AM 2"
 
 #: src/gui/insEdit.cpp:5447
 msgid "PM Depth 2"
-msgstr ""
+msgstr "Głębokość PM2"
 
 #: src/gui/insEdit.cpp:5448
 msgid "LFO2 Speed"
-msgstr ""
+msgstr "Prędkość LFO2"
 
 #: src/gui/insEdit.cpp:5449
 msgid "LFO2 Shape"
-msgstr ""
+msgstr "Kształt LFO2"
 
 #: src/gui/insEdit.cpp:5458
 #, c-format
 msgid "Operator Macros"
-msgstr ""
+msgstr "Makra operatorów"
 
 #: src/gui/insEdit.cpp:5460
 #, c-format
 msgid "OP%d Macros"
-msgstr ""
+msgstr "Makra op%d"
 
 #: src/gui/insEdit.cpp:5521
 msgid "Op. Arpeggio"
-msgstr ""
+msgstr "Arpeggio op."
 
 #: src/gui/insEdit.cpp:5522
 msgid "Op. Pitch"
-msgstr ""
+msgstr "Wyskokość op."
 
 #: src/gui/insEdit.cpp:5531
 msgid "Op. Panning"
-msgstr ""
+msgstr "Panning oper."
 
 #: src/gui/insEdit.cpp:5558
 msgid "Use software envelope"
-msgstr ""
+msgstr "Uzywaj obwiedni programowej"
 
 #: src/gui/insEdit.cpp:5559
 msgid "Initialize envelope on every note"
-msgstr ""
+msgstr "Inicjalizuj obwiednie przy każdej nucie"
 
 #: src/gui/insEdit.cpp:5560
 msgid "Double wave length (GBA only)"
-msgstr ""
+msgstr "Podwójna długość fali (tylko na GBA)"
 
 #: src/gui/insEdit.cpp:5589 src/gui/insEdit.cpp:5666
 msgid "Sound Length"
-msgstr ""
+msgstr "Długośc dźwięku"
 
 #: src/gui/insEdit.cpp:5592 src/gui/insEdit.cpp:5666
 msgid "Infinity"
-msgstr ""
+msgstr "Nieskończona"
 
 #: src/gui/insEdit.cpp:5596
 msgid "Direction"
-msgstr ""
+msgstr "Kierunek"
 
 #: src/gui/insEdit.cpp:5599 src/gui/insEdit.cpp:5669 src/gui/insEdit.cpp:5697
 #: src/gui/insEdit.cpp:6008 src/gui/insEdit.cpp:6051
 msgid "Up"
-msgstr ""
+msgstr "Góra"
 
 #: src/gui/insEdit.cpp:5604 src/gui/insEdit.cpp:5674 src/gui/insEdit.cpp:5702
 #: src/gui/insEdit.cpp:6013 src/gui/insEdit.cpp:6056
 msgid "Down"
-msgstr ""
+msgstr "Dół"
 
 #: src/gui/insEdit.cpp:5620 src/gui/insEdit.cpp:5953
 msgid "Hardware Sequence"
-msgstr ""
+msgstr "Sekwencja sprzętowa"
 
 #: src/gui/insEdit.cpp:5630 src/gui/insEdit.cpp:5963
 msgid "Tick"
@@ -15047,19 +15047,19 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:5632 src/gui/insEdit.cpp:5965
 msgid "Command"
-msgstr ""
+msgstr "Komenda"
 
 #: src/gui/insEdit.cpp:5634 src/gui/insEdit.cpp:5967
 msgid "Move/Remove"
-msgstr ""
+msgstr "Przenieś/usuń"
 
 #: src/gui/insEdit.cpp:5663
 msgid "Env Length"
-msgstr ""
+msgstr "Dł. obwiedni"
 
 #: src/gui/insEdit.cpp:5690
 msgid "Shift"
-msgstr ""
+msgstr "Przesunięcie"
 
 #: src/gui/insEdit.cpp:5717 src/gui/insEdit.cpp:6073
 msgid "Ticks"
@@ -15071,37 +15071,37 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:5815
 msgid "tri"
-msgstr ""
+msgstr "trój."
 
 #: src/gui/insEdit.cpp:5882
 msgid "Ring Modulation"
-msgstr ""
+msgstr "Modulacja kołowa"
 
 #: src/gui/insEdit.cpp:5886
 msgid "Oscillator Sync"
-msgstr ""
+msgstr "Synchr. oscylatorów"
 
 #: src/gui/insEdit.cpp:5890
 msgid "Enable filter"
-msgstr ""
+msgstr "Włącz filtr"
 
 #: src/gui/insEdit.cpp:5891
 msgid "Initialize filter"
-msgstr ""
+msgstr "Inicjalizuj filtr"
 
 #: src/gui/insEdit.cpp:5894 src/gui/insEdit.cpp:5897 src/gui/insEdit.cpp:6951
 #: src/gui/insEdit.cpp:7215 src/gui/insEdit.cpp:7476
 msgid "Cutoff"
-msgstr ""
+msgstr "Punkt odcięcia"
 
 #: src/gui/insEdit.cpp:5902 src/gui/insEdit.cpp:6408 src/gui/insEdit.cpp:6952
 #: src/gui/insEdit.cpp:7179 src/gui/insEdit.cpp:7477
 msgid "Filter Mode"
-msgstr ""
+msgstr "Tryb filtra"
 
 #: src/gui/insEdit.cpp:5931 src/gui/insEdit.cpp:7485
 msgid "Noise Mode"
-msgstr ""
+msgstr "Tryb szumu"
 
 #: src/gui/insEdit.cpp:5932
 msgid "Wave Mix Mode"
@@ -15141,7 +15141,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6210
 msgid "Load waveform"
-msgstr ""
+msgstr "Wczytaj falę"
 
 #: src/gui/insEdit.cpp:6215
 msgid ""
@@ -15159,11 +15159,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6237
 msgid "Ch"
-msgstr ""
+msgstr "K"
 
 #: src/gui/insEdit.cpp:6286
 msgid "Compatibility mode"
-msgstr ""
+msgstr "Tryb kompatybilności"
 
 #: src/gui/insEdit.cpp:6288
 msgid ""
@@ -15174,19 +15174,19 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6290
 msgid "Modulation depth"
-msgstr ""
+msgstr "Głębokość modulacji"
 
 #: src/gui/insEdit.cpp:6294
 msgid "Modulation speed"
-msgstr ""
+msgstr "Prędkość modulacji"
 
 #: src/gui/insEdit.cpp:6298
 msgid "Modulation table"
-msgstr ""
+msgstr "Tablica modulacji"
 
 #: src/gui/insEdit.cpp:6347
 msgid "Set modulation table (channel 5 only)"
-msgstr ""
+msgstr "Ustaw tablicę modulacji (tylko dla kanału 5)"
 
 #: src/gui/insEdit.cpp:6411 src/gui/insEdit.cpp:7184
 msgid "Filter K1"
@@ -15278,11 +15278,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6596 src/gui/insEdit.cpp:6597
 msgid "Gain Mode"
-msgstr ""
+msgstr "Tryb wzmocnienia"
 
 #: src/gui/insEdit.cpp:6599 src/gui/insEdit.cpp:6600 src/gui/insEdit.cpp:7205
 msgid "Gain"
-msgstr ""
+msgstr "Wzmocnienie"
 
 #: src/gui/insEdit.cpp:6633
 msgid ""
@@ -15293,7 +15293,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6703
 msgid "Enable synthesizer"
-msgstr ""
+msgstr "Włącz syntezator"
 
 #: src/gui/insEdit.cpp:6721
 msgid "Single-waveform"
@@ -15305,7 +15305,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6803 src/gui/insEdit.cpp:6812
 msgid "Wave 1"
-msgstr ""
+msgstr "Fala 1"
 
 #: src/gui/insEdit.cpp:6808 src/gui/insEdit.cpp:6823
 msgid ""
@@ -15315,7 +15315,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6829
 msgid "Wave 2"
-msgstr ""
+msgstr "Fala 2"
 
 #: src/gui/insEdit.cpp:6844
 msgid "Resume preview"
@@ -15323,11 +15323,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6846
 msgid "Pause preview"
-msgstr ""
+msgstr "Zatrzymaj podgląd"
 
 #: src/gui/insEdit.cpp:6854
 msgid "Restart preview"
-msgstr ""
+msgstr "Urochom podgląd ponownie"
 
 #: src/gui/insEdit.cpp:6874
 msgid "Copy to new wavetable"
@@ -15335,11 +15335,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6881
 msgid "Update Rate"
-msgstr ""
+msgstr "Współczynnik odświeżania"
 
 #: src/gui/insEdit.cpp:6902
 msgid "Global"
-msgstr ""
+msgstr "Globalne"
 
 #: src/gui/insEdit.cpp:6906
 msgid ""
@@ -15349,7 +15349,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6912
 msgid "Macros"
-msgstr ""
+msgstr "Makra"
 
 #: src/gui/insEdit.cpp:6921 src/gui/insEdit.cpp:6929 src/gui/insEdit.cpp:6938
 #: src/gui/insEdit.cpp:6947 src/gui/insEdit.cpp:6962 src/gui/insEdit.cpp:6976
@@ -15372,7 +15372,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7423 src/gui/insEdit.cpp:7434 src/gui/insEdit.cpp:7444
 #: src/gui/insEdit.cpp:7452 src/gui/insEdit.cpp:7462 src/gui/insEdit.cpp:7471
 msgid "Arpeggio"
-msgstr ""
+msgstr "Arpeggio"
 
 #: src/gui/insEdit.cpp:6925 src/gui/insEdit.cpp:6932 src/gui/insEdit.cpp:6943
 #: src/gui/insEdit.cpp:6972 src/gui/insEdit.cpp:6984 src/gui/insEdit.cpp:6994
@@ -15390,7 +15390,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7429 src/gui/insEdit.cpp:7440 src/gui/insEdit.cpp:7448
 #: src/gui/insEdit.cpp:7457 src/gui/insEdit.cpp:7475
 msgid "Phase Reset"
-msgstr ""
+msgstr "Reset fazy"
 
 #: src/gui/insEdit.cpp:6939 src/gui/insEdit.cpp:7024 src/gui/insEdit.cpp:7210
 #: src/gui/insEdit.cpp:7247
@@ -15399,7 +15399,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6966 src/gui/insEdit.cpp:7288
 msgid "Surround"
-msgstr ""
+msgstr "Przestrzeny"
 
 #: src/gui/insEdit.cpp:6968 src/gui/insEdit.cpp:6981 src/gui/insEdit.cpp:7026
 #: src/gui/insEdit.cpp:7085 src/gui/insEdit.cpp:7141 src/gui/insEdit.cpp:7159
@@ -15409,7 +15409,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7399 src/gui/insEdit.cpp:7411 src/gui/insEdit.cpp:7426
 #: src/gui/insEdit.cpp:7454 src/gui/insEdit.cpp:7464
 msgid "Panning (left)"
-msgstr ""
+msgstr "Panning (lewy)"
 
 #: src/gui/insEdit.cpp:6969 src/gui/insEdit.cpp:6982 src/gui/insEdit.cpp:7027
 #: src/gui/insEdit.cpp:7086 src/gui/insEdit.cpp:7142 src/gui/insEdit.cpp:7160
@@ -15419,205 +15419,205 @@ msgstr ""
 #: src/gui/insEdit.cpp:7400 src/gui/insEdit.cpp:7412 src/gui/insEdit.cpp:7427
 #: src/gui/insEdit.cpp:7455 src/gui/insEdit.cpp:7465
 msgid "Panning (right)"
-msgstr ""
+msgstr "Panning (prawy)"
 
 #: src/gui/insEdit.cpp:6990 src/gui/insEdit.cpp:7003 src/gui/insEdit.cpp:7107
 #: src/gui/insEdit.cpp:7199 src/gui/insEdit.cpp:7239 src/gui/insEdit.cpp:7424
 msgid "Noise Freq"
-msgstr ""
+msgstr "Częst. szumu"
 
 #: src/gui/insEdit.cpp:6996 src/gui/insEdit.cpp:7010 src/gui/insEdit.cpp:7167
 msgid "AutoEnv Num"
-msgstr ""
+msgstr "Licznik auto-obw."
 
 #: src/gui/insEdit.cpp:6997 src/gui/insEdit.cpp:7011 src/gui/insEdit.cpp:7168
 msgid "AutoEnv Den"
-msgstr ""
+msgstr "Mianownik auto-obw."
 
 #: src/gui/insEdit.cpp:7012
 msgid "Noise AND Mask"
-msgstr ""
+msgstr "Maska szumu AND"
 
 #: src/gui/insEdit.cpp:7013
 msgid "Noise OR Mask"
-msgstr ""
+msgstr "Maska szumu OR"
 
 #: src/gui/insEdit.cpp:7034
 msgid "On/Off"
-msgstr ""
+msgstr "Wł./wył."
 
 #: src/gui/insEdit.cpp:7060
 msgid "Patch"
-msgstr ""
+msgstr "Instrument" //ty no nie wiem
 
 #: src/gui/insEdit.cpp:7076
 msgid "Mod Depth"
-msgstr ""
+msgstr "Głębokość mod."
 
 #: src/gui/insEdit.cpp:7077
 msgid "Mod Speed"
-msgstr ""
+msgstr "Prędkość mod."
 
 #: src/gui/insEdit.cpp:7078
 msgid "Mod Position"
-msgstr ""
+msgstr "Pozycja mod."
 
 #: src/gui/insEdit.cpp:7083
 msgid "Noise Length"
-msgstr ""
+msgstr "Długość szumu"
 
 #: src/gui/insEdit.cpp:7093
 msgid "Wave Pos"
-msgstr ""
+msgstr "Poz. fali"
 
 #: src/gui/insEdit.cpp:7096
 msgid "Wave Length"
-msgstr ""
+msgstr "Długość fali"
 
 #: src/gui/insEdit.cpp:7115
 msgid "AUDCTL"
-msgstr ""
+msgstr "AUDCTL"
 
 #: src/gui/insEdit.cpp:7122 src/gui/insEdit.cpp:7343
 msgid "Pulse Width"
-msgstr ""
+msgstr "Szerokość fali prostokątnej"
 
 #: src/gui/insEdit.cpp:7139
 msgid "Duty/Int"
-msgstr ""
+msgstr "Szerokość fali prost./int."
 
 #: src/gui/insEdit.cpp:7145 src/gui/insEdit.cpp:7406
 msgid "Load LFSR"
-msgstr ""
+msgstr "Załaduj LFSR"
 
 #: src/gui/insEdit.cpp:7165
 msgid "Envelope Mode"
-msgstr ""
+msgstr "Tryb obwiedni"
 
 #: src/gui/insEdit.cpp:7218
 msgid "Phase Reset Timer"
-msgstr ""
+msgstr "Licznik resetu fazy"
 
 #: src/gui/insEdit.cpp:7252 src/gui/insEdit.cpp:7259
 msgid "Freq Divider"
-msgstr ""
+msgstr "Dzielnik częst."
 
 #: src/gui/insEdit.cpp:7255
 msgid "Clock Divider"
-msgstr ""
+msgstr "Dzielnik taktowania zegara"
 
 #: src/gui/insEdit.cpp:7264
 msgid "Global Volume"
-msgstr ""
+msgstr "Globalna głośność"
 
 #: src/gui/insEdit.cpp:7286
 msgid "Echo Level"
-msgstr ""
+msgstr "Poziom echo"
 
 #: src/gui/insEdit.cpp:7291
 msgid "Echo Feedback"
-msgstr ""
+msgstr "Sprzężenie zwrotne echo"
 
 #: src/gui/insEdit.cpp:7292
 msgid "Echo Length"
-msgstr ""
+msgstr "Długość echo"
 
 #: src/gui/insEdit.cpp:7312
 msgid "Group Ctrl"
-msgstr ""
+msgstr "Sterowanie grupą"
 
 #: src/gui/insEdit.cpp:7313
 msgid "Group Attack"
-msgstr ""
+msgstr "Czas narastania grupy"
 
 #: src/gui/insEdit.cpp:7314
 msgid "Group Decay"
-msgstr ""
+msgstr "Czas opadania grupy"
 
 #: src/gui/insEdit.cpp:7320
 msgid "Noise Type"
-msgstr ""
+msgstr "Typ szumu"
 
 #: src/gui/insEdit.cpp:7367
 msgid "Square/Noise"
-msgstr ""
+msgstr "Fala kwadratowa/szum"
 
 #: src/gui/insEdit.cpp:7404
 msgid "Tap A Location"
-msgstr ""
+msgstr "Pozycja przełącznika A"
 
 #: src/gui/insEdit.cpp:7405
 msgid "Tap B Location"
-msgstr ""
+msgstr "Pozycja przełącznika B"
 
 #: src/gui/insEdit.cpp:7416
 msgid "Portion A Length"
-msgstr ""
+msgstr "Długość części A"
 
 #: src/gui/insEdit.cpp:7417
 msgid "Portion B Length"
-msgstr ""
+msgstr "Długość części A"
 
 #: src/gui/insEdit.cpp:7418
 msgid "Portion A Offset"
-msgstr ""
+msgstr "Odchylenie części A"
 
 #: src/gui/insEdit.cpp:7419
 msgid "Portion B Offset"
-msgstr ""
+msgstr "Odchylenie części B"
 
 #: src/gui/insEdit.cpp:7463
 msgid "Parameter"
-msgstr ""
+msgstr "Parametr"
 
 #: src/gui/insEdit.cpp:7467
 msgid "Load Value"
-msgstr ""
+msgstr "Wczytaj wartość"
 
 #: src/gui/insEdit.cpp:7479
 msgid "Filter Toggle"
-msgstr ""
+msgstr "Włącz filtr"
 
 #: src/gui/insEdit.cpp:7486
 msgid "Wave Mix"
-msgstr ""
+msgstr "Łączenie fali"
 
 #: src/gui/insEdit.cpp:7500
 msgid "Octave offset"
-msgstr ""
+msgstr "Odchylenie oktawy"
 
 #: src/gui/insEdit.cpp:7505
 msgid "go to Macros for other parameters."
-msgstr ""
+msgstr "przejdź do Makr, by ustawić więcej parametrów"
 
 #: src/gui/insEdit.cpp:7521
 msgid "invalid instrument type! change it first."
-msgstr ""
+msgstr "niepoprawny typ instrumentu! najpierw go zmień."
 
 #: src/gui/insEdit.cpp:7565
 msgid "clear contents"
-msgstr ""
+msgstr "wyczyść zawartość"
 
 #: src/gui/insEdit.cpp:7571
 msgid "offset..."
-msgstr ""
+msgstr "odchylenie..."
 
 #: src/gui/insEdit.cpp:7572 src/gui/insEdit.cpp:7605
 msgid "X"
-msgstr ""
+msgstr "X"
 
 #: src/gui/insEdit.cpp:7573 src/gui/insEdit.cpp:7609
 msgid "Y"
-msgstr ""
+msgstr "Y"
 
 #: src/gui/insEdit.cpp:7574
 msgid "offset"
-msgstr ""
+msgstr "odchylenie"
 
 #: src/gui/insEdit.cpp:7637
 msgid "Min"
-msgstr ""
+msgstr "Min"
 
 #: src/gui/insEdit.cpp:7638
 msgid "Max"
-msgstr ""
+msgstr "Max"
