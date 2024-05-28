@@ -5396,34 +5396,8 @@ void DivLocale::addTranslationsPolish()
     strings["1Exx: Set AM depth (0 to 7F)##sesd"].plurals[0] = "1Exx: Ustaw głębokość AM (0-7F)";
     strings["1Fxx: Set PM depth (0 to 7F)##sesd"].plurals[0] = "1Fxx: Ustaw głębokość PM (0-7F)";
     strings["55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)##sesd"].plurals[0] = "55xy: Ustaw roztrojenie 2 (x: operator 1-4 (0 dla wszystkich operatorów); y: roztrojenie 0-3)";
-    strings["24xx: Set LFO 2 speed##sesd"].plurals[0] = "24xx: Ustaw prędkość LFO 2";
-    strings["25xx: Set LFO 2 waveform (0 saw, 1 square, 2 triangle, 3 noise)##sesd"].plurals[0] = "25xx: Ustaw kształt fali LFO 2 (0 fala piłokszt., 1 fala kwadratowa, 2 fala trójkątna, 3 szum)";
-    strings["26xx: Set AM 2 depth (0 to 7F)##sesd"].plurals[0] = "26xx: Ustaw głębokość AM 2 (0-7F)";
-    strings["27xx: Set PM 2 depth (0 to 7F)##sesd"].plurals[0] = "27xx: Ustaw głębokość PM 2 (0-7F)";
-    strings["28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 to 7)##sesd"].plurals[0] = "28xy: Ustaw reverb (x: operator 1-4 (0 dla wszystkich operatorów); y: reverb 0-7)";
-    strings["2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)##sesd0"].plurals[0] = "2Axy: Ustaw kształt fali (x: operator 1-4 (0 dla wszystkich operatorów); y: kształt fali 0-7)";
-    strings["2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)##sesd"].plurals[0] = "2Bxy: Ustaw przesunięcie generatora obwiedni (x: operator 1-4 (0 dla wszystkich operatorów); y: przesunięcie 0-3)";
-    strings["2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)##sesd"].plurals[0] = "2Cxy: Ustaw mnożnik dokładności(x: operator 1-4 (0 dla wszystkich operatorów); y: mnożnik)";
-    strings["3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)##sesd"].plurals[0] = "3xyy: Ustaw stalą częstotliwość operatora 1 (x: oktawa 0-7; y: częstotliwość)";
-    strings["3xyy: Set fixed frequency of operator 2 (x: octave from 8 to F; y: frequency)##sesd"].plurals[0] = "3xyy: Ustaw stalą częstotliwość operatora operatora 2 (x: oktawa 8-F; y: częstotliwość)";
-    strings["4xyy: Set fixed frequency of operator 3 (x: octave from 0 to 7; y: frequency)##sesd"].plurals[0] = "4xyy: Ustaw stalą częstotliwość operatora operatora 3 (x: oktawa 0-7; y: częstotliwość)";
-    strings["4xyy: Set fixed frequency of operator 4 (x: octave from 8 to F; y: frequency)##sesd"].plurals[0] = "4xyy: Ustaw stalą częstotliwość operatora operatora 4 (x: oktawa 8-F; y: częstotliwość)";
-    strings["10xy: Setup LFO (x: enable; y: speed)##sesd"].plurals[0] = "10xy: Ustaw LFO (x: włączone; y: szybkość)";
-    strings["55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, 8 off)##sesd"].plurals[0] = "55xy: Ustaw obwiednię SSG (x: operator 1-4 (0 dla wszystkich operatorów); y: 0-7 wł., 8 wył.)";
-    strings["1Fxx: Set ADPCM-A global volume (0 to 3F)##sesd"].plurals[0] = "1Fxx: Ustaw globalną głośność ADPCM-A (0-3F)";
-    strings["11xx: Set feedback (0 to 7)##sesd1"].plurals[0] = "11xx: Ustaw feedback (0-7)";
-    strings["12xx: Set level of operator 1 (0 highest, 3F lowest)##sesd0"].plurals[0] = "12xx: Ustaw poziom operatora 1 (0 maks., 3F min.)";
-    strings["13xx: Set level of operator 2 (0 highest, 3F lowest)##sesd0"].plurals[0] = "13xx: Ustaw poziom operatora 2 (0 maks., 3F min.)";
-    strings["16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)##sesd"].plurals[0] = "16xy:  Ustaw mnożnik częst. operatora (x: operator 1-2; y: mnożnik)";
-    strings["19xx: Set attack of all operators (0 to F)##sesd0"].plurals[0] = "19xx: Ustaw atak wszystkich operatorów (0-F)";
-    strings["1Axx: Set attack of operator 1 (0 to F)##sesd0"].plurals[0] = "1Axx: Ustaw atak operatora 1 (0-F)";
-    strings["1Bxx: Set attack of operator 2 (0 to F)##sesd0"].plurals[0] = "1Bxx: Ustaw atak operatora 2 (0-F)";
-    strings["50xy: Set AM (x: operator from 1 to 2 (0 for all ops); y: AM)##sesd"].plurals[0] = "50xy: Włącz AM (x: operator 1-2 (0 dla wszystkich operatorów); y: AM)";
-    strings["51xy: Set sustain level (x: operator from 1 to 2 (0 for all ops); y: sustain)##sesd"].plurals[0] = "51xy: Ustaw poziom podtrzymania (x: operator 1-2 (0 dla wszystkich operatorów); y: podtrzymanie)";
-    strings["52xy: Set release (x: operator from 1 to 2 (0 for all ops); y: release)##sesd"].plurals[0] = "52xy: Ustaw zwolnienie (x: operator 1-2 (0 dla wszystkich operatorów); y: zwolnienie)";
-    strings["53xy: Set vibrato (x: operator from 1 to 2 (0 for all ops); y: enabled)##sesd"].plurals[0] = "53xy: Vibrato (x: operator 1-2 (0 dla wszystkich operatorów); y: wł.)";
-    strings["54xy: Set envelope scale (x: operator from 1 to 2 (0 for all ops); y: scale from 0 to 3)##sesd"].plurals[0] = "54xy: Ustaw skalowanie obwiedni (x: operator 1-2 (0 dla wszystkich operatorów); y: skala 0-3)";
-    strings["55xy: Set envelope sustain (x: operator from 1 to 2 (0 for all ops); y: enabled)##sesd"].plurals[0] = "55xy: Ustaw podtrzymanie obwiedni (x: operator 1-2 (0 dla wszystkich operatorów); y: wł.)";
+
+";
     strings["56xx: Set decay of all operators (0 to F)##sesd0"].plurals[0] = "56xx: Ustaw opadanie wszystkich operatorów (0-F)";
     strings["57xx: Set decay of operator 1 (0 to F)##sesd0"].plurals[0] = "57xx: Ustaw opadanie operatora 1 (0-F)";
     strings["58xx: Set decay of operator 2 (0 to F)##sesd0"].plurals[0] = "58xx: Ustaw opadanie operatora 2 (0-F)";
@@ -5472,7 +5446,7 @@ void DivLocale::addTranslationsPolish()
     strings["25xx: Cutoff slide down##sesd"].plurals[0] = "25xx: Opadanie punktu odcięcia";
     strings["3xxx: Set pulse width (0 to FFF)##sesd"].plurals[0] = "3xxx: Ustaw szerokość fali prost. (0-FFF)";
     strings["4xxx: Set cutoff (0 to 7FF)##sesd"].plurals[0] = "4xxx: Ustaw punkt odcięcia (0-7FF)";
-    strings["10xx: Set waveform##sesd0"].plurals[0] = "10xx: Ustaw kształt fali";
+
     strings["13xx: Set waveform (local)##sesd"].plurals[0] = "13xx: Ustaw kształt fali (lokalny)";
     strings["11xx: Set raw period (0-1F)##sesd"].plurals[0] = "11xx: Ustaw absolutny okres (0-1F)";
     strings["11xx: Set waveform (local)##sesd"].plurals[0] = "11xx: Ustaw kształt fali (lokalny)";
@@ -5539,14 +5513,14 @@ void DivLocale::addTranslationsPolish()
     strings["20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)##sesd"].plurals[0] = "20xy: Ustaw tryb szumu (x: stała częst/częst. 3-go kanału; y: \"wąska\" fala prostokątna/szum)";
     strings["<COMPOUND SYSTEM!>##sesd2"].plurals[0] = "<SYSTEM ZŁOŻONY!>";
     strings["the most popular portable game console of the era.##sesd"].plurals[0] = "najbardziej popularna przenośna konsola tamtych czasów.";
-    strings["10xx: Set waveform##sesd1"].plurals[0] = "10xx: Ustaw kształt fali";
+
     strings["11xx: Set noise length (0: long; 1: short)##sesd"].plurals[0] = "11xx: Ustaw długość szumu (0: długi; 1: krótki)";
     strings["12xx: Set duty cycle (0 to 3)##sesd"].plurals[0] = "12xx: Ustaw szerokość fali prost. (0-3)";
     strings["13xy: Setup sweep (x: time; y: shift)##sesd"].plurals[0] = "13xy: Skonfiguruj sprzętowe portamento (x: okres trwania; y: przesunięcie)";
     strings["14xx: Set sweep direction (0: up; 1: down)##sesd"].plurals[0] = "14xx: Ustaw kierunek sprzętowego portamento (0: w górę; 1: w dół)";
     strings["15xx: Set waveform (local)##sesd"].plurals[0] = "15xx: Ustaw kształt fali (lokalny)";
     strings["an '80s game console with a wavetable sound chip, popular in Japan.##sesd"].plurals[0] = "konsola do gier z lat 80. z układem syntezy tablicowej. była popularna w Japonii.";
-    strings["10xx: Set waveform##sesd2"].plurals[0] = "10xx: Ustaw kształt fali";
+
     strings["11xx: Toggle noise mode##sesd0"].plurals[0] = "11xx: Włącz tryb szumu";
     strings["12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)##sesd"].plurals[0] = "12xx: Ustaw LFO (0: wł.; 1: głębokość 1x; 2: głębokość 16x; 3: głębokość 256x)";
     strings["13xx: Set LFO speed##sesd"].plurals[0] = "13xx: Ustaw szybkość LFO";
@@ -5603,7 +5577,7 @@ void DivLocale::addTranslationsPolish()
     strings["35xx: Set echo filter coefficient 5##sesd"].plurals[0] = "35xx: Ustaw współczynnik 5 filtra echo";
     strings["36xx: Set echo filter coefficient 6##sesd"].plurals[0] = "36xx: Ustaw współczynnik 6 filtra echo";
     strings["37xx: Set echo filter coefficient 7##sesd"].plurals[0] = "37xx: Ustaw współczynnik 7 filtra echo";
-    strings["10xx: Set waveform##sesd3"].plurals[0] = "10xx: Ustaw kształt fali";
+
     strings["11xx: Toggle noise mode##sesd1"].plurals[0] = "11xx: Włącz tryb szumu";
     strings["12xx: Toggle echo on this channel##sesd"].plurals[0] = "12xx: Włącz echo na tym kanale";
     strings["13xx: Toggle pitch modulation##sesd"].plurals[0] = "13xx: Włącz modulację wysokości dźwięku";
@@ -5621,7 +5595,7 @@ void DivLocale::addTranslationsPolish()
     strings["17xx: Toggle PCM mode (LEGACY)##sesd2"].plurals[0] = "17xx: włącz tryb PCM (PRZESTARZAŁY)";
     strings["cost-reduced version of the OPL with 16 patches and only one of them is user-configurable.##sesd"].plurals[0] = "tańsza wersja OPL z 16 wbudowanymi instrumentami, z których tylko jeden jest dostępny do dostosowania przez użytkownika.";
     strings["a disk drive for the Famicom which also contains one wavetable channel.##sesd"].plurals[0] = "stacja dyskietek dla Famicoma, która przy okazji dostarcza jeden kanał syntezy tablicowej";
-    strings["10xx: Set waveform##sesd4"].plurals[0] = "10xx: Ustaw kształt fali";
+
     strings["11xx: Set modulation depth##sesd"].plurals[0] = "11xx: Ustaw głębokość modulacji";
     strings["12xy: Set modulation speed high byte (x: enable; y: value)##sesd"].plurals[0] = "12xy: Ustaw wysoki bajt szybkości modulacji (x: wł.; y: wartość)";
     strings["13xx: Set modulation speed low byte##sesd"].plurals[0] = "13xx: Ustaw niski bajt szybkości modulacji";
@@ -5660,7 +5634,7 @@ void DivLocale::addTranslationsPolish()
     strings["14xx: Set raw period (higher byte; only for 16-bit mode)##sesd"].plurals[0] = "14xx: Ustaw absolutny okres (wysoki bajt; tylko w trybie 16-bitowym)";
     strings["this is like SNES' sound chip but without interpolation and the rest of nice bits.##sesd"].plurals[0] = "podobny do układu dźwiękowego SNES, ale bez interpolacji i innych fajnych ficzerów";
     strings["developed by the makers of the Game Boy and the Virtual Boy...##sesd"].plurals[0] = "zaprojektowany przez twórców Game Boy'a i Virtual Boy'a...";
-    strings["10xx: Set waveform##sesd5"].plurals[0] = "10xx: Ustaw kształt fali";
+
     strings["11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)##sesd"].plurals[0] = "11xx: Skonfiguruj tryb szumu (0: wył.; 1-8: wł./przełączniki)";
     strings["12xx: Setup sweep period (0: disabled; 1-20: enabled/period)##sesd"].plurals[0] = "12xx: Włącz okres sprętowego portamento (0: wył.; 1-20: wł./okres)";
     strings["13xx: Set sweep amount##sesd"].plurals[0] = "13xx: Ustaw wielkość sprzętowego portamento";
@@ -5671,7 +5645,7 @@ void DivLocale::addTranslationsPolish()
     strings["this one is like PC Speaker but has duty cycles.##sesd"].plurals[0] = "ten układ jest podobny do PC Speakera, ale ma zmienną szerokość fali prostokątnej";
     strings["used in some Sega arcade boards (like OutRun), and usually paired with a YM2151.##sesd"].plurals[0] = "był używany w niektórych automatach do gier Segi (np. OutRun) i był zwykle używany w połączeniu z YM2151.";
     strings["a console which failed to sell well due to its headache-inducing features.##sesd"].plurals[0] = "konsola, która się nie sprzedawałą, ponieważ jej funkcje przyprawiały graczy o ból głowy.";
-    strings["10xx: Set waveform##sesd6"].plurals[0] = "10xx: Ustaw kształt fali";
+
     strings["11xx: Set noise length (0 to 7)##sesd"].plurals[0] = "11xx: Ustaw długość szumu (0-7)";
     strings["12xy: Setup envelope (x: enabled/loop (1: enable, 3: enable+loop); y: speed/direction (0-7: down, 8-F: up))##sesd"].plurals[0] = "12xy: Skonfiguruj obwiednię (x: wł./zapętla (1: wł., 3: wł.i zapętla); y: prędkość/kierunek (0-7: w dół, 8-F: w górę))";
     strings["13xy: Setup sweep (x: speed; y: shift; channel 5 only)##sesd"].plurals[0] = "13xy: Skonfiguruj sprzętowe portamento (x: szybkość; y: zakres; tylko kanał 5)";
@@ -5707,7 +5681,7 @@ void DivLocale::addTranslationsPolish()
     strings["so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.\nthis one includes CSM mode control for special effects on Channel 3.##sesd"].plurals[0] = "a więc Taito poprosiło Yamahę o dodanie do YM2610 dwóch brakujących kanałów FM, a Yamaha z przyjemnością dostarczyła ów układ.\njest to układ w trybie rozszerzonego kanału, która zamienia trzeci kanał FM w cztery operatory z niezależnymi nutami/częstotliwościami.\nten układ posiada kontrolę trybu CSM dla efektów specjalnych na trzecim kanale.";
     strings["this is the same thing as SegaPCM, but only exposes 5 of the channels for compatibility with DefleMask.##sesd"].plurals[0] = "jest to to samo co SegaPCM, ale tylko pięć kanałów jest dostępnych dla kompatybilności z DefleMaskiem.";
     strings["a sound chip used in several Seta/Allumer-manufactured arcade boards with too many channels of wavetable sound, which also are capable of sampled sound.##sesd"].plurals[0] = "układ dźwiękowy używany w kilku automatach go gier firmy Seta/Allumer. posiada stanowczo za dużo kanałów syntezy tablicowej, zdolny również do odtwarzania sampli.";
-    strings["10xx: Set waveform##sesd7"].plurals[0] = "10xx: Ustaw kształt fali";
+
     strings["11xx: Set envelope shape##sesd"].plurals[0] = "11xx: Ustaw kształt obwiedni";
     strings["12xx: Set sample bank slot (0 to 7)##sesd"].plurals[0] = "12xx: Ustaw slot banków sampli (0-7)";
     strings["17xx: Toggle PCM mode (LEGACY)##sesd4"].plurals[0] = "17xx: Włącz tryb PCM (PRZESTARZAŁY)";
@@ -5771,9 +5745,9 @@ void DivLocale::addTranslationsPolish()
     strings["20xx: Set frequency divider (0-2)##sesd"].plurals[0] = "20xx: Ustaw dzielnik częstotliwości (0-2)";
     strings["21xx: Select clock rate (0: full; 1: half)##sesd"].plurals[0] = "21xx: Taktowanie zegara (0: pełne; 1: połowiczne)";
     strings["used in some arcade boards. Can play back either 4-bit ADPCM, 8-bit PCM or 16-bit PCM.##sesd"].plurals[0] = "używany w niektórych automatach do gier. może odtwarzać 4-bitowe próbki ADPCM, a także 8-bitowe i 16-bitowe próbki PCM";
-    strings["10xx: Set waveform##sesd8"].plurals[0] = "10xx: Ustaw kształt fali";
+
     strings["11xx: Select waveform (local)##sesd1"].plurals[0] = "11xx: Ustaw kształt fali (lokalny)";
-    strings["10xx: Set waveform##sesd9"].plurals[0] = "10xx: Ustaw kształt fali";
+
     strings["11xx: Toggle noise mode##sesd2"].plurals[0] = "11xx: Włącz tryb szumu";
     strings["a wavetable sound chip used in Pac-Man, among other early Namco arcade games.##sesd"].plurals[0] = "prosty syntezator tablicowy używany w automacie Pac-Mana i innych wczesnych grach Namco.";
     strings["successor of the original Namco WSG chip, used in later Namco arcade games.##sesd"].plurals[0] = "kolejny model po Namco WSG, używany w późniejszych automatach do gier Namco.";
