@@ -4359,30 +4359,30 @@ msgstr ""
 
 #: src/gui/channels.cpp:49
 msgid "Pat"
-msgstr ""
+msgstr "Пат."
 
 #: src/gui/channels.cpp:51 src/gui/editControls.cpp:550
 msgid "Osc"
-msgstr ""
+msgstr "Осц."
 
 #: src/gui/channels.cpp:53
 msgid "Swap"
-msgstr ""
+msgstr "Перем."
 
 #: src/gui/channels.cpp:55 src/gui/userPresets.cpp:368
 #: src/gui/effectList.cpp:45 src/gui/subSongs.cpp:125 src/gui/settings.cpp:1007
 #: src/gui/settings.cpp:4330 src/gui/sampleEdit.cpp:195 src/gui/songInfo.cpp:40
 #: src/gui/sysManager.cpp:54 src/gui/insEdit.cpp:5288
 msgid "Name"
-msgstr ""
+msgstr "Имя"
 
 #: src/gui/channels.cpp:64
 msgid "Show in pattern"
-msgstr ""
+msgstr "Показывать в окне паттернов"
 
 #: src/gui/channels.cpp:71
 msgid "Show in per-channel oscilloscope"
-msgstr ""
+msgstr "Показывать в окне осциллографов (для отдельных каналов)"
 
 #: src/gui/channels.cpp:82
 #, c-format
@@ -4390,35 +4390,37 @@ msgid ""
 "%s #%d\n"
 "(drag to swap channels)"
 msgstr ""
+"%s #%d\n"
+"(перетащите, чтобы поменять местами каналы)"
 
 #: src/gui/commandPalette.cpp:51 src/gui/sysPicker.cpp:35
 #: src/gui/newSong.cpp:133
 msgid "Search..."
-msgstr ""
+msgstr "Поиск..."
 
 #: src/gui/commandPalette.cpp:54
 msgid "Search recent files..."
-msgstr ""
+msgstr "Искать в недавних файлах..."
 
 #: src/gui/commandPalette.cpp:57
 msgid "Search instruments..."
-msgstr ""
+msgstr "Искать инструменты..."
 
 #: src/gui/commandPalette.cpp:60
 msgid "Search samples..."
-msgstr ""
+msgstr "Искать сэмплы..."
 
 #: src/gui/commandPalette.cpp:63
 msgid "Search instruments (to change to)..."
-msgstr ""
+msgstr "Искать инструменты (для замены)..."
 
 #: src/gui/commandPalette.cpp:66
 msgid "Search chip (to add)..."
-msgstr ""
+msgstr "Искать чипы (для добавления)..."
 
 #: src/gui/commandPalette.cpp:93 src/gui/commandPalette.cpp:167
 msgid "- None -"
-msgstr ""
+msgstr "- Нет -"
 
 #: src/gui/commandPalette.cpp:123 src/gui/commandPalette.cpp:179
 #: src/gui/commandPalette.cpp:241
@@ -4574,48 +4576,48 @@ msgstr ""
 
 #: src/gui/chanOsc.cpp:32
 msgid "None (0%)"
-msgstr ""
+msgstr "Нет (0%)"
 
 #: src/gui/chanOsc.cpp:33
 msgid "None (50%)"
-msgstr ""
+msgstr "Нет (50%)"
 
 #: src/gui/chanOsc.cpp:34
 msgid "None (100%)"
-msgstr ""
+msgstr "Нет (100%)"
 
 #: src/gui/chanOsc.cpp:36
 msgid "Frequency"
-msgstr ""
+msgstr "Частота"
 
 #: src/gui/chanOsc.cpp:38 src/gui/settings.cpp:1614 src/gui/settings.cpp:3353
 #: src/gui/settings.cpp:4035
 msgid "Channel"
-msgstr ""
+msgstr "Канал"
 
 #: src/gui/chanOsc.cpp:39
 msgid "Brightness"
-msgstr ""
+msgstr "Яркость"
 
 #: src/gui/chanOsc.cpp:41
 msgid "Note Trigger"
-msgstr ""
+msgstr "Новая нота"
 
 #: src/gui/chanOsc.cpp:45
 msgid "Off"
-msgstr ""
+msgstr "Выкл."
 
 #: src/gui/chanOsc.cpp:46
 msgid "Mode 1"
-msgstr ""
+msgstr "Режим 1"
 
 #: src/gui/chanOsc.cpp:47
 msgid "Mode 2"
-msgstr ""
+msgstr "Режим 2"
 
 #: src/gui/chanOsc.cpp:48
 msgid "Mode 3"
-msgstr ""
+msgstr "Режим 3"
 
 #: src/gui/chanOsc.cpp:135 src/gui/guiConst.cpp:607
 msgid "Oscilloscope (per-channel)"
@@ -4623,35 +4625,35 @@ msgstr ""
 
 #: src/gui/chanOsc.cpp:143
 msgid "Columns"
-msgstr ""
+msgstr "Столбцов"
 
 #: src/gui/chanOsc.cpp:152
 msgid "Size (ms)"
-msgstr ""
+msgstr "Ширина (в мс)"
 
 #: src/gui/chanOsc.cpp:163
 msgid "Automatic columns"
-msgstr ""
+msgstr "Автоматическое число столбцов"
 
 #: src/gui/chanOsc.cpp:177
 msgid "Center waveform"
-msgstr ""
+msgstr "Центрировать сигнал"
 
 #: src/gui/chanOsc.cpp:183
 msgid "Randomize phase on note"
-msgstr ""
+msgstr "Случайная фаза при запуске ноты"
 
 #: src/gui/chanOsc.cpp:189
 msgid "Amplitude"
-msgstr ""
+msgstr "Амплитуда"
 
 #: src/gui/chanOsc.cpp:199 src/gui/settings.cpp:3694
 msgid "Line size"
-msgstr ""
+msgstr "Толщина линии"
 
 #: src/gui/chanOsc.cpp:211
 msgid "Gradient"
-msgstr ""
+msgstr "Градиент"
 
 #: src/gui/chanOsc.cpp:218
 msgid "error while creating gradient texture!"
@@ -4663,37 +4665,37 @@ msgstr ""
 
 #: src/gui/chanOsc.cpp:292 src/gui/chanOsc.cpp:348 src/gui/settings.cpp:3740
 msgid "Color"
-msgstr ""
+msgstr "Цвет"
 
 #: src/gui/chanOsc.cpp:296
 msgid "Distance"
-msgstr ""
+msgstr "Расстояние"
 
 #: src/gui/chanOsc.cpp:305
 msgid "Spread"
-msgstr ""
+msgstr "Размыть"
 
 #: src/gui/chanOsc.cpp:314 src/gui/userPresets.cpp:370 src/gui/subSongs.cpp:121
 #: src/gui/settings.cpp:2228 src/gui/sysManager.cpp:124
 msgid "Remove"
-msgstr ""
+msgstr "Убрать"
 
 #: src/gui/chanOsc.cpp:338 src/gui/settings.cpp:3832 src/gui/settings.cpp:4112
 #: src/gui/settings.cpp:4139 src/gui/settings.cpp:4165
 msgid "Background"
-msgstr ""
+msgstr "Цвет фона"
 
 #: src/gui/chanOsc.cpp:341
 msgid "X Axis##AxisX"
-msgstr ""
+msgstr "Ось X##AxisX"
 
 #: src/gui/chanOsc.cpp:342
 msgid "Y Axis##AxisY"
-msgstr ""
+msgstr "Ось Y##AxisY"
 
 #: src/gui/chanOsc.cpp:352
 msgid "Text format:"
-msgstr ""
+msgstr "Форматирование текста:"
 
 #: src/gui/chanOsc.cpp:358
 msgid ""
@@ -4715,10 +4717,27 @@ msgid ""
 "- %l: new line\n"
 "- %%: percent sign"
 msgstr ""
+"инструкция по форматированию:\n"
+"- %c: имя канала\n"
+"- %C: короткое имя канала\n"
+"- %d: номер канала (начиная с 0)\n"
+"- %D: номер канала (начиная с 1)\n"
+"- %n: нота канала\n"
+"- %i: название инструмента\n"
+"- %I: номер инструмента (десятеричный)\n"
+"- %x: номер инструмента (шестнадцатеричный)\n"
+"- %s: название чипа\n"
+"- %p: настоящее название чипа\n"
+"- %S: идентификатор чипа\n"
+"- %v: громкость (десятеричная)\n"
+"- %V: громкость (в процентах)\n"
+"- %b: громкость (шестнадцатеричная)\n"
+"- %l: перенос на новую строку\n"
+"- %%: знак процента"
 
 #: src/gui/chanOsc.cpp:380
 msgid "Text color"
-msgstr ""
+msgstr "Цвет текста"
 
 #: src/gui/chanOsc.cpp:382 src/gui/xyOsc.cpp:80 src/gui/tutorial.cpp:687
 #: src/gui/gui.cpp:5639 src/gui/gui.cpp:6055 src/gui/gui.cpp:6223
@@ -9438,7 +9457,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:4148 src/gui/clock.cpp:31 src/gui/guiConst.cpp:610
 msgid "Clock"
-msgstr ""
+msgstr "Часы"
 
 #: src/gui/settings.cpp:4149
 msgid "Clock text"
@@ -9952,11 +9971,11 @@ msgstr ""
 
 #: src/gui/about.cpp:305
 msgid "About Furnace"
-msgstr ""
+msgstr "О Furnace"
 
 #: src/gui/compatFlags.cpp:31 src/gui/guiConst.cpp:598
 msgid "Compatibility Flags"
-msgstr ""
+msgstr "Флаги совместимости"
 
 #: src/gui/compatFlags.cpp:32
 msgid ""
@@ -9965,6 +9984,8 @@ msgid ""
 "it is recommended to disable most of these unless you rely on specific "
 "quirks."
 msgstr ""
+"эти флаги предназначены для лучшей совместимости с DefleMask/старыми версиями Furnace.\n"
+"рекомендуется отключать большинство из них, если вы не полагаетесь на специфику работы программы, которую они обеспечивают."
 
 #: src/gui/compatFlags.cpp:34 src/gui/compatFlags.cpp:310
 msgid "DefleMask"
@@ -9992,23 +10013,25 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:43
 msgid "Game Boy instrument duty is wave volume"
-msgstr ""
+msgstr "Макрос скважности инструмента Game Boy контролирует громкость канала волновых таблиц"
 
 #: src/gui/compatFlags.cpp:45
 msgid ""
 "if enabled, an instrument with duty macro in the wave channel will be mapped "
 "to wavetable volume."
 msgstr ""
+"при включении макрос скважности инструмента будет назначен для контроля громкости канала волновых таблиц."
 
 #: src/gui/compatFlags.cpp:48
 msgid "Restart macro on portamento"
-msgstr ""
+msgstr "Перезапуск макроса при портаменто"
 
 #: src/gui/compatFlags.cpp:50
 msgid ""
 "when enabled, a portamento effect will reset the channel's macro if used in "
 "combination with a note."
 msgstr ""
+"при включении этого флага эффект портаменто, будучи размещённым рядом с нотой, будет перезапускать макросы инструмента."
 
 #: src/gui/compatFlags.cpp:52
 msgid "Legacy volume slides"
@@ -13660,35 +13683,35 @@ msgstr ""
 
 #: src/gui/gui.cpp:7034
 msgid "Size column to fit###SizeOne"
-msgstr ""
+msgstr "Масштабировать столбец по размеру###SizeOne"
 
 #: src/gui/gui.cpp:7036
 msgid "Size all columns to fit###SizeAll"
-msgstr ""
+msgstr "Масштабировать все столбцы по размеру###SizeAll"
 
 #: src/gui/gui.cpp:7038
 msgid "Size all columns to default###SizeAll"
-msgstr ""
+msgstr "Масштабировать все столбцы по умолчанию###SizeAll"
 
 #: src/gui/gui.cpp:7040
 msgid "Reset order###ResetOrder"
-msgstr ""
+msgstr "Сбросить порядок###ResetOrder"
 
 #: src/gui/gui.cpp:7042
 msgid "(Main menu bar)"
-msgstr ""
+msgstr "(полоса главного меню)"
 
 #: src/gui/gui.cpp:7044
 msgid "(Popup)"
-msgstr ""
+msgstr "(Всплывающее окно)"
 
 #: src/gui/gui.cpp:7046
 msgid "(Untitled)"
-msgstr ""
+msgstr "(Без названия)"
 
 #: src/gui/gui.cpp:7048
 msgid "Hide tab bar###HideTabBar"
-msgstr ""
+msgstr "Скрыть полосу с вкладками###HideTabBar"
 
 #: src/gui/gui.cpp:7535
 msgid "Unsaved changes! Save changes before quitting?"
