@@ -701,7 +701,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2122
 #: src/engine/sysDef.cpp:2138 src/engine/sysDef.cpp:2150
 msgid "Channel 1"
-msgstr ""
+msgstr "Kanał 1"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:807 src/engine/sysDef.cpp:819
@@ -725,7 +725,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2122
 #: src/engine/sysDef.cpp:2138 src/engine/sysDef.cpp:2150
 msgid "Channel 2"
-msgstr ""
+msgstr "Kanał 2"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:807 src/engine/sysDef.cpp:819
@@ -747,7 +747,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:2122 src/engine/sysDef.cpp:2138
 #: src/engine/sysDef.cpp:2150
 msgid "Channel 3"
-msgstr ""
+msgstr "Kanał 3"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:874 src/engine/sysDef.cpp:977
@@ -766,7 +766,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 #: src/engine/sysDef.cpp:2122 src/engine/sysDef.cpp:2150
 msgid "Channel 4"
-msgstr ""
+msgstr "Kanał 4"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:977 src/engine/sysDef.cpp:1075
@@ -781,7 +781,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
 msgid "Channel 5"
-msgstr ""
+msgstr "Kanał 5"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:977 src/engine/sysDef.cpp:1075
@@ -794,7 +794,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
 msgid "Channel 6"
-msgstr ""
+msgstr "Kanał 6"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:977
 #: src/engine/sysDef.cpp:1075 src/engine/sysDef.cpp:1210
@@ -806,7 +806,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
 msgid "Channel 7"
-msgstr ""
+msgstr "Kanał 7"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:977
 #: src/engine/sysDef.cpp:1075 src/engine/sysDef.cpp:1210
@@ -818,7 +818,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
 msgid "Channel 8"
-msgstr ""
+msgstr "Kanał 8"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -826,7 +826,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 9"
-msgstr ""
+msgstr "Kanał 9"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -834,7 +834,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 10"
-msgstr ""
+msgstr "Kanał 10"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -842,7 +842,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 11"
-msgstr ""
+msgstr "Kanał 11"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -850,7 +850,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 12"
-msgstr ""
+msgstr "Kanał 12"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -858,7 +858,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 13"
-msgstr ""
+msgstr "Kanał 13"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -866,7 +866,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 14"
-msgstr ""
+msgstr "Kanał 14"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -874,7 +874,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 15"
-msgstr ""
+msgstr "Kanał 15"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -882,7 +882,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 16"
-msgstr ""
+msgstr "Kanał 16"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:700
 #: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:1532
@@ -890,19 +890,19 @@ msgstr ""
 #: src/engine/sysDef.cpp:1944 src/engine/sysDef.cpp:1945
 #: src/gui/settings.cpp:4041
 msgid "PCM"
-msgstr ""
+msgstr "PCM"
 
 #: src/engine/sysDef.cpp:706
 msgid "Sega Genesis/Mega Drive"
-msgstr ""
+msgstr "Sega Mega Drive"
 
 #: src/engine/sysDef.cpp:712
 msgid "Sega Genesis Extended Channel 3"
-msgstr ""
+msgstr "Sega Mega Drive z rozszerzonym kanałem 3"
 
 #: src/engine/sysDef.cpp:718 src/gui/sysConf.cpp:158
 msgid "TI SN76489"
-msgstr ""
+msgstr "TI SN76489"
 
 #: src/engine/sysDef.cpp:719
 msgid ""
@@ -914,19 +914,19 @@ msgstr ""
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 1"
-msgstr ""
+msgstr "Kwadrat 1"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 2"
-msgstr ""
+msgstr "Kwadrat 2"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 3"
-msgstr ""
+msgstr "Kwadrat 3"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:739
 #: src/engine/sysDef.cpp:773 src/engine/sysDef.cpp:955
@@ -936,7 +936,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:6978 src/gui/insEdit.cpp:7129 src/gui/insEdit.cpp:7223
 #: src/gui/insEdit.cpp:7315
 msgid "Noise"
-msgstr ""
+msgstr "Szum"
 
 #: src/engine/sysDef.cpp:726
 msgid "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"
@@ -1127,7 +1127,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1849 src/engine/sysDef.cpp:1861
 #: src/engine/sysDef.cpp:2006
 msgid "FM 1"
-msgstr ""
+msgstr "FM 1"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:891
 #: src/engine/sysDef.cpp:903 src/engine/sysDef.cpp:1032
@@ -1146,7 +1146,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1693 src/engine/sysDef.cpp:1849
 #: src/engine/sysDef.cpp:1861 src/engine/sysDef.cpp:2006
 msgid "FM 2"
-msgstr ""
+msgstr "FM 2"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:891 src/engine/sysDef.cpp:903
@@ -1160,7 +1160,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1681 src/engine/sysDef.cpp:1693
 #: src/engine/sysDef.cpp:1849 src/engine/sysDef.cpp:2006
 msgid "FM 3"
-msgstr ""
+msgstr "FM 3"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:891 src/engine/sysDef.cpp:903
@@ -1179,7 +1179,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1693 src/engine/sysDef.cpp:1849
 #: src/engine/sysDef.cpp:1861 src/engine/sysDef.cpp:2006
 msgid "FM 4"
-msgstr ""
+msgstr "FM 4"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:862 src/engine/sysDef.cpp:927
@@ -1324,7 +1324,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:889
 msgid "Yamaha YM2151 (OPM)"
-msgstr ""
+msgstr "Yamaha YM2151 (OPM)"
 
 #: src/engine/sysDef.cpp:890
 msgid ""
@@ -1481,11 +1481,11 @@ msgstr ""
 #: src/engine/sysDef.cpp:2100 src/gui/editControls.cpp:433
 #: src/gui/settings.cpp:3964 src/gui/settings.cpp:4042
 msgid "Wave"
-msgstr ""
+msgstr "Fala"
 
 #: src/engine/sysDef.cpp:975 src/gui/settings.cpp:3999
 msgid "SNES"
-msgstr ""
+msgstr "SNES"
 
 #: src/engine/sysDef.cpp:976
 msgid "FM? nah... samples! Nintendo's answer to Sega."
@@ -1603,23 +1603,23 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1018
 msgid "VRC6 1"
-msgstr ""
+msgstr "VRC6 1"
 
 #: src/engine/sysDef.cpp:1018
 msgid "VRC6 2"
-msgstr ""
+msgstr "VRC6 2"
 
 #: src/engine/sysDef.cpp:1018
 msgid "VRC6 Saw"
-msgstr ""
+msgstr "Piła VRC6"
 
 #: src/engine/sysDef.cpp:1024 src/engine/sysDef.cpp:2092
 msgid "12xx: Set duty cycle (pulse: 0 to 7)"
-msgstr ""
+msgstr "12xx: Ustaw szerokość fali prost. (fala prost.: 0-7)"
 
 #: src/engine/sysDef.cpp:1030
 msgid "Yamaha YM2413 (OPLL)"
-msgstr ""
+msgstr "Yamaha YM2413 (OPLL)"
 
 #: src/engine/sysDef.cpp:1031
 msgid ""
@@ -1631,7 +1631,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1185 src/engine/sysDef.cpp:1681
 #: src/engine/sysDef.cpp:2006
 msgid "FM 9"
-msgstr ""
+msgstr "FM 9"
 
 #: src/engine/sysDef.cpp:1042
 msgid "Famicom Disk System (chip)"
@@ -1744,7 +1744,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 #: src/engine/sysDef.cpp:1861
 msgid "FM 3 OP1"
-msgstr ""
+msgstr "FM 3 OP1"
 
 #: src/engine/sysDef.cpp:1109 src/engine/sysDef.cpp:1122
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
@@ -1752,7 +1752,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 #: src/engine/sysDef.cpp:1861
 msgid "FM 3 OP2"
-msgstr ""
+msgstr "FM 3 OP2"
 
 #: src/engine/sysDef.cpp:1109 src/engine/sysDef.cpp:1122
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
@@ -1760,7 +1760,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 #: src/engine/sysDef.cpp:1861
 msgid "FM 3 OP3"
-msgstr ""
+msgstr "FM 3 OP3"
 
 #: src/engine/sysDef.cpp:1109 src/engine/sysDef.cpp:1122
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
@@ -1768,7 +1768,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 #: src/engine/sysDef.cpp:1861
 msgid "FM 3 OP4"
-msgstr ""
+msgstr "FM 3 OP4"
 
 #: src/engine/sysDef.cpp:1120
 msgid "Yamaha YM2203 (OPN) CSM"
@@ -1802,7 +1802,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1481
 #: src/gui/insEdit.cpp:3302 src/gui/insEdit.cpp:3624
 msgid "Kick"
-msgstr ""
+msgstr "Stopa"
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1407
@@ -1810,7 +1810,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1481 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:1693 src/gui/insEdit.cpp:210 src/gui/insEdit.cpp:218
 msgid "Snare"
-msgstr ""
+msgstr "Werbel"
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1407
@@ -1819,7 +1819,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1693 src/gui/insEdit.cpp:212 src/gui/insEdit.cpp:220
 #: src/gui/insEdit.cpp:1909 src/gui/insEdit.cpp:2014
 msgid "Top"
-msgstr ""
+msgstr "Talerz"
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1407
@@ -1827,7 +1827,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1481 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:1693 src/gui/insEdit.cpp:213 src/gui/insEdit.cpp:219
 msgid "HiHat"
-msgstr ""
+msgstr "Hi-hat
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1407
@@ -1835,18 +1835,18 @@ msgstr ""
 #: src/engine/sysDef.cpp:1481 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:1693 src/gui/insEdit.cpp:211
 msgid "Tom"
-msgstr ""
+msgstr "Tom-tom"
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160
 msgid "Rim"
-msgstr ""
+msgstr "Rimshot"
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1681
 #: src/engine/sysDef.cpp:1693
 msgid "ADPCM"
-msgstr ""
+msgstr "ADPCM"
 
 #: src/engine/sysDef.cpp:1145
 msgid "Yamaha YM2608 (OPNA) Extended Channel 3"
@@ -1902,143 +1902,144 @@ msgstr ""
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "4OP 1"
-msgstr ""
+msgstr "4OP 1"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "4OP 3"
-msgstr ""
+msgstr "4OP 3"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "4OP 5"
-msgstr ""
+msgstr "4OP 5"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "4OP 7"
-msgstr ""
+msgstr "4OP 7"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "4OP 9"
-msgstr ""
+msgstr "4OP 9"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:2006
 msgid "FM 10"
-msgstr ""
+msgstr ""FM 10"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "4OP 11"
-msgstr ""
+msgstr ""4OP 11"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:2006
 msgid "FM 12"
-msgstr ""
+msgstr "FM 12"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:2006
 msgid "FM 13"
-msgstr ""
+msgstr "FM 13"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:2006
 msgid "FM 14"
-msgstr ""
+msgstr "FM 14"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:2006
 msgid "FM 15"
-msgstr ""
+msgstr "FM 15"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:2006
 msgid "FM 16"
-msgstr ""
+msgstr "FM 16"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:2006
 msgid "FM 17"
-msgstr ""
+msgstr "FM 17"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:2006
 msgid "FM 18"
-msgstr ""
+msgstr "FM 18"
 
 #: src/engine/sysDef.cpp:1208 src/gui/settings.cpp:3998
 msgid "MultiPCM"
-msgstr ""
+msgstr "MultiPCM"
 
 #: src/engine/sysDef.cpp:1209
 msgid ""
 "how many channels of PCM do you want?\n"
 "MultiPCM: yes"
-msgstr ""
+msgstr "ile kanałów PCM chcesz?\n"
+"MultiPCM: a dobrze"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 17"
-msgstr ""
+msgstr "Kanał 17"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 18"
-msgstr ""
+msgstr "Kanał 28"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 19"
-msgstr ""
+msgstr "Kanał 19"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 20"
-msgstr ""
+msgstr "Kanał 20"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 21"
-msgstr ""
+msgstr "Kanał 21"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 22"
-msgstr ""
+msgstr "Kanał 22"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 23"
-msgstr ""
+msgstr "Kanał 23"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 24"
-msgstr ""
+msgstr "Kanał 24"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 msgid "Channel 25"
-msgstr ""
+msgstr "Kanał 25"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 msgid "Channel 26"
-msgstr ""
+msgstr "Kanał 26"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 msgid "Channel 27"
-msgstr ""
+msgstr "Kanał 27"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 msgid "Channel 28"
-msgstr ""
+msgstr "Kanał 28"
 
 #: src/engine/sysDef.cpp:1217
 msgid "PC Speaker"
@@ -2104,7 +2105,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1262
 msgid "Wave/PCM"
-msgstr ""
+msgstr "Fala/PCM"
 
 #: src/engine/sysDef.cpp:1262
 msgid "Wave/Sweep"
@@ -2112,7 +2113,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1262
 msgid "Wave/Noise"
-msgstr ""
+msgstr "Fala/Szum"
 
 #: src/engine/sysDef.cpp:1269
 msgid "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)"
@@ -2151,7 +2152,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1293 src/gui/settings.cpp:4039 src/gui/waveEdit.cpp:33
 msgid "Pulse"
-msgstr ""
+msgstr "Fala prostokątna"
 
 #: src/engine/sysDef.cpp:1300
 msgid "SegaPCM"
@@ -2221,7 +2222,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 #: src/gui/settings.cpp:4008
 msgid "ADPCM-B"
-msgstr ""
+msgstr "ADPCM-B"
 
 #: src/engine/sysDef.cpp:1354
 msgid "ZX Spectrum Beeper"
@@ -3282,383 +3283,383 @@ msgstr ""
 
 #: src/engine/engine.cpp:51
 msgid "00xy: Arpeggio"
-msgstr ""
+msgstr "00xy: Arpeggio"
 
 #: src/engine/engine.cpp:53
 msgid "01xx: Pitch slide up"
-msgstr ""
+msgstr "01xx: Portamento w górę"
 
 #: src/engine/engine.cpp:55
 msgid "02xx: Pitch slide down"
-msgstr ""
+msgstr "02xx: Portamento w dół"
 
 #: src/engine/engine.cpp:57
 msgid "03xx: Portamento"
-msgstr ""
+msgstr "Auto-portamento (do wskazanej nuty)"
 
 #: src/engine/engine.cpp:59
 msgid "04xy: Vibrato (x: speed; y: depth)"
-msgstr ""
+msgstr "Vibrato (x: szybkość; y: głebokość)"
 
 #: src/engine/engine.cpp:61
 msgid "05xy: Volume slide + vibrato (compatibility only!)"
-msgstr ""
+msgstr "05xy: Zjazd głośności + vibrato (dla kompatybilności!)"
 
 #: src/engine/engine.cpp:63
 msgid "06xy: Volume slide + portamento (compatibility only!)"
-msgstr ""
+msgstr "06xy: Zjazd głośności + portamento (dla kompatybilności!)"
 
 #: src/engine/engine.cpp:65
 msgid "07xy: Tremolo (x: speed; y: depth)"
-msgstr ""
+msgstr "07xy: Tremolo (x: szybkość; y: głębokość)"
 
 #: src/engine/engine.cpp:67
 msgid "08xy: Set panning (x: left; y: right)"
-msgstr ""
+msgstr "08xy: Ustaw panning (x: lewo; y: prawo)"
 
 #: src/engine/engine.cpp:69
 msgid "09xx: Set groove pattern (speed 1 if no grooves exist)"
-msgstr ""
+msgstr "09xx: Ustaw wzór rytmu (prędkość nr.1 w przypadku ich nieobecności)"
 
 #: src/engine/engine.cpp:71
 msgid "0Axy: Volume slide (0y: down; x0: up)"
-msgstr ""
+msgstr "0Axy: Zjazd głośności (0y: góra; x0: dół)"
 
 #: src/engine/engine.cpp:73
 msgid "0Bxx: Jump to pattern"
-msgstr ""
+msgstr "0Bxx: Przeskocz do wzorca"
 
 #: src/engine/engine.cpp:75
 msgid "0Cxx: Retrigger"
-msgstr ""
+msgstr "0Cxx: Cykliczny restart nuty""
 
 #: src/engine/engine.cpp:77
 msgid "0Dxx: Jump to next pattern"
-msgstr ""
+msgstr "0Dxx: Przeskocz do nast. wzorca"
 
 #: src/engine/engine.cpp:79
 msgid "0Fxx: Set speed (speed 2 if no grooves exist)"
-msgstr ""
+msgstr "0Fxx: Ustaw prędkość (prędkość 2 jeśli nie zdefiniowano wzoru rytmu)"
 
 #: src/engine/engine.cpp:81
 msgid "80xx: Set panning (00: left; 80: center; FF: right)"
-msgstr ""
+msgstr "80xx: Ustaw panning (00: lewo; 80: środek; FF: prawo)"
 
 #: src/engine/engine.cpp:83
 msgid "81xx: Set panning (left channel)"
-msgstr ""
+msgstr "81xx: Ustaw panning (lewy kanał)"
 
 #: src/engine/engine.cpp:85
 msgid "82xx: Set panning (right channel)"
-msgstr ""
+msgstr "82xx: Ustaw panning (prawy kanał"
 
 #: src/engine/engine.cpp:87
 msgid "88xy: Set panning (rear channels; x: left; y: right)"
-msgstr ""
+msgstr "88xy: Ustaw panning (tylne kanały; x: lewy; y: prawy)"
 
 #: src/engine/engine.cpp:90
 msgid "89xx: Set panning (rear left channel)"
-msgstr ""
+msgstr "89xx: Ustaw panning (tylny lewy kanał)"
 
 #: src/engine/engine.cpp:93
 msgid "8Axx: Set panning (rear right channel)"
-msgstr ""
+msgstr "8Axx: Ustaw panning (tylny prawy kanał)"
 
 #: src/engine/engine.cpp:96
 msgid "Cxxx: Set tick rate (hz)"
-msgstr ""
+msgstr "Cxxx: Ustaw częstotliwość odświeżania utworu (Hz)"
 
 #: src/engine/engine.cpp:98
 msgid "E0xx: Set arp speed"
-msgstr ""
+msgstr "E0xx: Ustaw sszybkość arpeggio"
 
 #: src/engine/engine.cpp:100
 msgid "E1xy: Note slide up (x: speed; y: semitones)"
-msgstr ""
+msgstr "E1xy: Portamento nuty w górę (x: szybkość; y: półtony)"
 
 #: src/engine/engine.cpp:102
 msgid "E2xy: Note slide down (x: speed; y: semitones)"
-msgstr ""
+msgstr "E2xy: Portamento nuty w dół (x: szybkość; y: półtony)"
 
 #: src/engine/engine.cpp:104
 msgid "E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)"
-msgstr ""
+msgstr "E3xx: Ustaw typ vibrato (0: góra/dół; 1: tylko w górę; 2: tylko w dół)"
 
 #: src/engine/engine.cpp:106
 msgid "E4xx: Set vibrato range"
-msgstr ""
+msgstr "E4xx: Ustaw zakres vibrato"
 
 #: src/engine/engine.cpp:108
 msgid "E5xx: Set pitch (80: center)"
-msgstr ""
+msgstr "E5xx: Ustaw rozstrojenie (80: brak rozstrojenia)"
 
 #: src/engine/engine.cpp:110
 msgid "E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)"
-msgstr ""
+msgstr "E6xy: Uproszczone legato (x: 0-7 = w górę, 8-F = w dół (po (x % 7) krokach); y: półtony)"
 
 #: src/engine/engine.cpp:112
 msgid "E7xx: Macro release"
-msgstr ""
+msgstr "E7xx: Zwolnienie makra"
 
 #: src/engine/engine.cpp:114
 msgid "E8xy: Quick legato up (x: time; y: semitones)"
-msgstr ""
+msgstr "E8xy: Uproszczone legato w górę (x: kroki; y: półtony)"
 
 #: src/engine/engine.cpp:116
 msgid "E9xy: Quick legato down (x: time; y: semitones)"
-msgstr ""
+msgstr "E9xy: OUproszczone legato w dół (x: kroki; y: półtony)"
 
 #: src/engine/engine.cpp:118
 msgid "EAxx: Legato"
-msgstr ""
+msgstr "EAxx: Legato"
 
 #: src/engine/engine.cpp:120
 msgid "EBxx: Set LEGACY sample mode bank"
-msgstr ""
+msgstr "EBxx: (PRZESTARZAŁE) Zdefiniuj bank sampli"
 
 #: src/engine/engine.cpp:122
 msgid "ECxx: Note cut"
-msgstr ""
+msgstr "ECxx: Obcięcie nuty"
 
 #: src/engine/engine.cpp:124
 msgid "EDxx: Note delay"
-msgstr ""
+msgstr "EDxx: Opóźnienie nuty"
 
 #: src/engine/engine.cpp:126
 msgid "EExx: Send external command"
-msgstr ""
+msgstr "EExx: Wyślij zewnętrzną komendę"
 
 #: src/engine/engine.cpp:128
 msgid "F0xx: Set tick rate (bpm)"
-msgstr ""
+msgstr "F0xx: Ustaw tempo utworu (BPM)"
 
 #: src/engine/engine.cpp:130
 msgid "F1xx: Single tick note slide up"
-msgstr ""
+msgstr "F1xx: Portamento w górę (jeden krok)"
 
 #: src/engine/engine.cpp:132
 msgid "F2xx: Single tick note slide down"
-msgstr ""
+msgstr "F2xx: Portamento w dół (jeden krok)"
 
 #: src/engine/engine.cpp:134
 msgid "F3xx: Fine volume slide up"
-msgstr ""
+msgstr "F3xx: Precyzyjny wzrost głośności"
 
 #: src/engine/engine.cpp:136
 msgid "F4xx: Fine volume slide down"
-msgstr ""
+msgstr "F4xx: Precyzyjny zjazd głośności"
 
 #: src/engine/engine.cpp:138
 msgid "F5xx: Disable macro (see manual)"
-msgstr ""
+msgstr "F5xx: Wyłącz makro (patrz: instrukcja)"
 
 #: src/engine/engine.cpp:140
 msgid "F6xx: Enable macro (see manual)"
-msgstr ""
+msgstr "F6xx: Włącz makro (patrz: instrukcja)"
 
 #: src/engine/engine.cpp:142
 msgid "F7xx: Restart macro (see manual)"
-msgstr ""
+msgstr "F7xx: Zrestartuj makro (patrz: instrukcja)"
 
 #: src/engine/engine.cpp:144
 msgid "F8xx: Single tick volume slide up"
-msgstr ""
+msgstr "F8xx:  Wzrost głośności w górę (jeden krok)"
 
 #: src/engine/engine.cpp:146
 msgid "F9xx: Single tick volume slide down"
-msgstr ""
+msgstr "F9xx: Zjazd głośności w dół (jeden krok)"
 
 #: src/engine/engine.cpp:148
 msgid "FAxx: Fast volume slide (0y: down; x0: up)"
-msgstr ""
+msgstr "FAxx: Szybki zjazd głośności (0y: w górę; x0: w dół)"
 
 #: src/engine/engine.cpp:150
 msgid "FCxx: Note release"
-msgstr ""
+msgstr "FCxx: Zwolnienie nuty"
 
 #: src/engine/engine.cpp:152
 msgid "FDxx: Set virtual tempo numerator"
-msgstr ""
+msgstr "FDxx: Ustaw licznik wirtualnego tempa"
 
 #: src/engine/engine.cpp:154
 msgid "FExx: Set virtual tempo denominator"
-msgstr ""
+msgstr "FExx: Ustaw mianownik wirtualnego tempa"
 
 #: src/engine/engine.cpp:156
 msgid "FFxx: Stop song"
-msgstr ""
+msgstr "FFxx: Zatrzymaj utwór"
 
 #: src/engine/engine.cpp:160
 msgid "9xxx: Set sample offset*256"
-msgstr ""
+msgstr "9xxx: Ustaw przesunięcie pocz. sampla (xxx*256 kroków)"
 
 #: src/engine/engine.cpp:164
 msgid "90xx: Set sample offset (first byte)"
-msgstr ""
+msgstr "90xx: Ustaw przesunięcie sampla (pierwszy bajt)"
 
 #: src/engine/engine.cpp:166
 msgid "91xx: Set sample offset (second byte, ×256)"
-msgstr ""
+msgstr "Ustaw przesunięcie sampla (drugi bajt x 256)"
 
 #: src/engine/engine.cpp:168
 msgid "92xx: Set sample offset (third byte, ×65536)"
-msgstr ""
+msgstr "Ustaw przesunięcie sampla (trzeci bajt x 65536"
 
 #: src/engine/engine.cpp:187 src/gui/settings.cpp:4074
 msgid "Invalid effect"
-msgstr ""
+msgstr "nieprawidłowy efekt"
 
 #: src/engine/engine.cpp:354 src/gui/gui.cpp:2259 src/gui/gui.cpp:2422
 #, c-format
 msgid "on seek: %s"
-msgstr ""
+msgstr "podczas przejścia po pliku: %s"
 
 #: src/engine/engine.cpp:361 src/gui/gui.cpp:2266 src/gui/gui.cpp:2429
 #, c-format
 msgid "on pre tell: %s"
-msgstr ""
+msgstr "przed zażądaniem pozycji w pliku: %s"
 
 #: src/engine/engine.cpp:368 src/engine/engine.cpp:2768
 #: src/gui/settings.cpp:5754 src/gui/gui.cpp:2273 src/gui/gui.cpp:2436
 msgid "file is empty"
-msgstr ""
+msgstr "pusty plik"
 
 #: src/engine/engine.cpp:371 src/gui/gui.cpp:2276 src/gui/gui.cpp:2439
 #, c-format
 msgid "on tell: %s"
-msgstr ""
+msgstr "podczas żądania pozycji w pliku: %s"
 
 #: src/engine/engine.cpp:378
 #, c-format
 msgid "ROM size mismatch, expected: %d bytes, was: %d"
-msgstr ""
+msgstr "niezgodność rozmiaru pliku ROM, oczekiwano: %d bajtów, otrzymano: %d"
 
 #: src/engine/engine.cpp:383 src/gui/settings.cpp:5763 src/gui/gui.cpp:2283
 #: src/gui/gui.cpp:2446
 #, c-format
 msgid "on get size: %s"
-msgstr ""
+msgstr "przy pobraniu rozmiaru: %s"
 
 #: src/engine/engine.cpp:390 src/gui/settings.cpp:5770 src/gui/gui.cpp:2290
 #: src/gui/gui.cpp:2453
 #, c-format
 msgid "on read: %s"
-msgstr ""
+msgstr "przy odczycie: %s"
 
 #: src/engine/engine.cpp:1076 src/engine/engine.cpp:1181
 #: src/engine/engine.cpp:1290
 msgid "invalid index"
-msgstr ""
+msgstr "nieprawidłowy indeks"
 
 #: src/engine/engine.cpp:1080 src/engine/engine.cpp:1135
 #: src/engine/engine.cpp:1189
 #, c-format
 msgid "max number of total channels is %d"
-msgstr ""
+msgstr "maksymalna ilość wszystkich kanałów wynosi %d"
 
 #: src/engine/engine.cpp:1131 src/engine/engine.cpp:1185
 #, c-format
 msgid "max number of systems is %d"
-msgstr ""
+msgstr "maksymalna ilość systemów wynosi %d"
 
 #: src/engine/engine.cpp:1286
 msgid "cannot remove the last one"
-msgstr ""
+msgstr "nie można usunąć ostatniego"
 
 #: src/engine/engine.cpp:1460
 msgid "source and destination are equal"
-msgstr ""
+msgstr "systemy są takie same"
 
 #: src/engine/engine.cpp:1464
 msgid "invalid source index"
-msgstr ""
+msgstr "nieprawidłowy indeks oryginalnego systemu"
 
 #: src/engine/engine.cpp:1468
 msgid "invalid destination index"
-msgstr ""
+msgstr "ieprawidłowy indeks systemu docelowego"
 
 #: src/engine/engine.cpp:2636
 #, c-format
 msgid "Instrument %d"
-msgstr ""
+msgstr "Instrument %d"
 
 #: src/engine/engine.cpp:2710 src/engine/engine.cpp:2727
 #: src/gui/doAction.cpp:825 src/gui/doAction.cpp:843 src/gui/doAction.cpp:1634
 #: src/gui/gui.cpp:6159 src/gui/insEdit.cpp:6860
 msgid "too many wavetables!"
-msgstr ""
+msgstr "zbyt wiele tablic fal!"
 
 #: src/engine/engine.cpp:2752
 #, c-format
 msgid "could not seek to end: %s"
-msgstr ""
+msgstr "nie udało się przejść do końca pliku: %s"
 
 #: src/engine/engine.cpp:2758
 #, c-format
 msgid "could not determine file size: %s"
-msgstr ""
+msgstr "nie udało się określić rozmiaru pliku: %s"
 
 #: src/engine/engine.cpp:2763
 msgid "file size is invalid!"
-msgstr ""
+msgstr "rozmiar pliku jest nieprawidłowy!"
 
 #: src/engine/engine.cpp:2773
 #, c-format
 msgid "could not seek to beginning: %s"
-msgstr ""
+msgstr "nie udało się przejść do początku pliku: %s"
 
 #: src/engine/engine.cpp:2780
 #, c-format
 msgid "could not read entire file: %s"
-msgstr ""
+msgstr "nie udało się wczytać całego pliku: %s"
 
 #: src/engine/engine.cpp:2806
 msgid "invalid wavetable header/data!"
-msgstr ""
+msgstr "nieprawidłowy nagłówek/dane tablicy fal!"
 
 #: src/engine/engine.cpp:2877
 msgid "premature end of file"
-msgstr ""
+msgstr "przedwczesny koniec pliku"
 
 #: src/engine/engine.cpp:2904 src/engine/engine.cpp:2926
 #: src/gui/doAction.cpp:909 src/gui/doAction.cpp:921
 msgid "too many samples!"
-msgstr ""
+msgstr "zbyt wiele sampli!"
 
 #: src/engine/engine.cpp:2911
 #, c-format
 msgid "Sample %d"
-msgstr ""
+msgstr "Sampel %d"
 
 #: src/engine/engine.cpp:3056
 #, c-format
 msgid "no free patterns in channel %d!"
-msgstr ""
+msgstr "brak wolnych wzorców na kanale %d!"
 
 #: src/gui/mixer.cpp:28 src/gui/insEdit.cpp:484
 msgid "left"
-msgstr ""
+msgstr "lewo"
 
 #: src/gui/mixer.cpp:29 src/gui/insEdit.cpp:483
 msgid "right"
-msgstr ""
+msgstr "prawo"
 
 #: src/gui/mixer.cpp:128
 msgid "input"
-msgstr ""
+msgstr "wejście"
 
 #: src/gui/mixer.cpp:168
 msgid "output"
-msgstr ""
+msgstr "wyjście"
 
 #: src/gui/mixer.cpp:226 src/gui/mixer.cpp:228 src/gui/editControls.cpp:454
 #: src/gui/guiConst.cpp:593
 msgid "Mixer"
-msgstr ""
+msgstr "Mikser"
 
 #: src/gui/mixer.cpp:229
 msgid "Master Volume"
-msgstr ""
+msgstr "Główna głośność"
 
 #: src/gui/mixer.cpp:250 src/gui/exportOptions.cpp:90
 #: src/gui/userPresets.cpp:393 src/gui/userPresets.cpp:405
@@ -3666,7 +3667,7 @@ msgstr ""
 #: src/gui/waveEdit.cpp:1096 src/gui/sampleEdit.cpp:1128
 #: src/gui/insEdit.cpp:519
 msgid "Invert"
-msgstr ""
+msgstr "Odwróć"
 
 #: src/gui/mixer.cpp:268 src/gui/chanOsc.cpp:37 src/gui/userPresets.cpp:417
 #: src/gui/settings.cpp:241 src/gui/settings.cpp:1056 src/gui/settings.cpp:1439
@@ -3696,7 +3697,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7422 src/gui/insEdit.cpp:7433 src/gui/insEdit.cpp:7443
 #: src/gui/insEdit.cpp:7451 src/gui/insEdit.cpp:7461 src/gui/insEdit.cpp:7470
 msgid "Volume"
-msgstr ""
+msgstr "Głośność"
 
 #: src/gui/mixer.cpp:279 src/gui/userPresets.cpp:427 src/gui/settings.cpp:1067
 #: src/gui/guiConst.cpp:229 src/gui/insEdit.cpp:6923 src/gui/insEdit.cpp:6930
@@ -3707,137 +3708,137 @@ msgstr ""
 #: src/gui/insEdit.cpp:7287 src/gui/insEdit.cpp:7297 src/gui/insEdit.cpp:7360
 #: src/gui/insEdit.cpp:7392 src/gui/insEdit.cpp:7438 src/gui/insEdit.cpp:7446
 msgid "Panning"
-msgstr ""
+msgstr "Panning"
 
 #: src/gui/mixer.cpp:290 src/gui/userPresets.cpp:433 src/gui/settings.cpp:1074
 msgid "Front/Rear"
-msgstr ""
+msgstr "Przód/tył"
 
 #: src/gui/mixer.cpp:299 src/gui/settings.cpp:4155
 msgid "Patchbay"
-msgstr ""
+msgstr "Krosownica"
 
 #: src/gui/mixer.cpp:305
 msgid "Automatic patchbay"
-msgstr ""
+msgstr "Automatyczna krosownica"
 
 #: src/gui/mixer.cpp:310
 msgid "Display hidden ports"
-msgstr ""
+msgstr "Wyświetl ukryte porty
 
 #: src/gui/mixer.cpp:312
 msgid "Display internal"
-msgstr ""
+msgstr "Wyświetl wewnętrzne porty"
 
 #: src/gui/mixer.cpp:322 src/gui/mixer.cpp:383 src/gui/settings.cpp:1848
 #: src/gui/settings.cpp:2036 src/gui/songInfo.cpp:69
 msgid "System"
-msgstr ""
+msgstr "System"
 
 #: src/gui/mixer.cpp:354
 msgid "Sample Preview"
-msgstr ""
+msgstr "Podgląd sampla"
 
 #: src/gui/mixer.cpp:367 src/gui/editControls.cpp:745
 #: src/gui/editControls.cpp:837 src/gui/editControls.cpp:953
 #: src/gui/editControls.cpp:1093 src/gui/settings.cpp:1437
 #: src/gui/guiConst.cpp:558
 msgid "Metronome"
-msgstr ""
+msgstr "Metronom"
 
 #: src/gui/mixer.cpp:446
 msgid "disconnect all"
-msgstr ""
+msgstr "rozłącz wszystkie"
 
 #: src/gui/editing.cpp:200
 #, c-format
 msgid "no data in oldPatMap for channel %d!"
-msgstr ""
+msgstr "nie znaleziono danych w oldPatMap dla kanału %d!"
 
 #: src/gui/editing.cpp:664 src/gui/editing.cpp:1203
 #, c-format
-msgid "invalid clipboard data! failed at line %d char %d"
-msgstr ""
+msgid "invalid clipboard data! błąd przy linii %d znak %d"
+msgstr "nieprawidłowe dane schowka! "
 
 #: src/gui/editing.cpp:1565 src/gui/editing.cpp:1669
 msgid "can't collapse any further!"
-msgstr ""
+msgstr "nie da się skrócić jeszcze bardziej!"
 
 #: src/gui/editing.cpp:1749
 msgid "can't expand any further!"
-msgstr ""
+msgstr "nie da się rozszerzyć jeszcze bardziej!"
 
 #: src/gui/editing.cpp:1836 src/gui/editing.cpp:1851
 #, c-format
 msgid "copy: %s"
-msgstr ""
+msgstr "kopiuj: %s"
 
 #: src/gui/memory.cpp:35 src/gui/settings.cpp:3643 src/gui/settings.cpp:4164
 #: src/gui/guiConst.cpp:613
 msgid "Memory Composition"
-msgstr ""
+msgstr "Zawartość pamięci"
 
 #: src/gui/memory.cpp:146
 #, c-format
 msgid "bank %d"
-msgstr ""
+msgstr "bank %d"
 
 #: src/gui/memory.cpp:175 src/gui/memory.cpp:176
 msgid "no chips with memory"
-msgstr ""
+msgstr "brak układów z pamięcią wbudowaną!"
 
 #: src/gui/intro.cpp:89 src/gui/gui.cpp:2345 src/gui/gui.cpp:3746
 #: src/gui/gui.cpp:5019 src/gui/gui.cpp:5041 src/gui/gui.cpp:5479
 #: src/gui/gui.cpp:5781 src/gui/gui.cpp:5791
 #, c-format
 msgid "Error while loading file! (%s)"
-msgstr ""
+msgstr "Błąd podczas wczytywania pliku! (%s)"
 
 #: src/gui/intro.cpp:122
 msgid "IntroMon X"
-msgstr ""
+msgstr "IntroMon X"
 
 #: src/gui/intro.cpp:122
 msgid "Intro"
-msgstr ""
+msgstr "Intro"
 
 #: src/gui/intro.cpp:124
 msgid "Preview"
-msgstr ""
+msgstr "Podgląd"
 
 #: src/gui/intro.cpp:176 src/gui/intro.cpp:177 src/gui/intro.cpp:178
 msgid "SORRY  NOTHING"
-msgstr ""
+msgstr "SORRY  NOTHING"
 
 #: src/gui/intro.cpp:310
 msgid "hold to skip"
-msgstr ""
+msgstr "przytrzymaj by pominąć"
 
 #: src/gui/dataList.cpp:76
 msgid "Bug!"
-msgstr ""
+msgstr "Błąd!"
 
 #: src/gui/dataList.cpp:79 src/gui/util.cpp:107 src/gui/util.cpp:109
 #: src/gui/settings.cpp:4167 src/gui/insEdit.cpp:5334
 msgid "Unknown"
-msgstr ""
+msgstr "Nieznane"
 
 #: src/gui/dataList.cpp:136 src/gui/dataList.cpp:260
 msgid "duplicate"
-msgstr ""
+msgstr "duplikuj"
 
 #: src/gui/dataList.cpp:139 src/gui/dataList.cpp:263 src/gui/dataList.cpp:388
 #: src/gui/dataList.cpp:731 src/gui/dataList.cpp:867
 msgid "replace..."
-msgstr ""
+msgstr "zamień"
 
 #: src/gui/dataList.cpp:142 src/gui/dataList.cpp:266 src/gui/gui.cpp:4232
 msgid "save"
-msgstr ""
+msgstr "zapisz"
 
 #: src/gui/dataList.cpp:145
 msgid "save (.dmp)"
-msgstr ""
+msgstr "zapisz (.dmp)"
 
 #: src/gui/dataList.cpp:148 src/gui/dataList.cpp:269 src/gui/dataList.cpp:617
 #: src/gui/dataList.cpp:994 src/gui/dataList.cpp:1040
@@ -6449,7 +6450,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7382 src/gui/insEdit.cpp:7403 src/gui/insEdit.cpp:7415
 #: src/gui/insEdit.cpp:7430
 msgid "Control"
-msgstr ""
+msgstr "Sterowanie"
 
 #: src/gui/settings.cpp:229 src/gui/settings.cpp:551 src/gui/settings.cpp:3124
 msgid "Program"
@@ -7799,7 +7800,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3042
 msgid "2×##fos2"
-msgstr ""
+msgstr "2x"
 
 #: src/gui/settings.cpp:3047
 msgid "default."
@@ -9968,7 +9969,7 @@ msgid "Replace##QueryReplace"
 msgstr ""
 
 #: src/gui/about.cpp:305
-msgid "About Furnace"
+msgid "O Furnace"
 msgstr ""
 
 #: src/gui/compatFlags.cpp:31 src/gui/guiConst.cpp:598
@@ -14162,51 +14163,51 @@ msgstr "Połowa sinusoidy"
 
 #: src/gui/insEdit.cpp:179 src/gui/insEdit.cpp:190
 msgid "Absolute Sine"
-msgstr ""
+msgstr "Moduł sinusoidy"
 
 #: src/gui/insEdit.cpp:180
 msgid "Quarter Sine"
-msgstr ""
+msgstr "Ćwierć sinusoidy"
 
 #: src/gui/insEdit.cpp:181 src/gui/insEdit.cpp:203
 msgid "Squished Sine"
-msgstr ""
+msgstr "Spłaszczona sinusoida"
 
 #: src/gui/insEdit.cpp:182 src/gui/insEdit.cpp:205
 msgid "Squished AbsSine"
-msgstr ""
+msgstr "Spłaszczony moduł sinusoidy"
 
 #: src/gui/insEdit.cpp:184 src/gui/insEdit.cpp:195
 msgid "Derived Square"
-msgstr ""
+msgstr "Pochodna fali kwadratowej"
 
 #: src/gui/insEdit.cpp:191
 msgid "Pulse Sine"
-msgstr ""
+msgstr "Puls sinusoidalny"
 
 #: src/gui/insEdit.cpp:192
 msgid "Sine (Even Periods)"
-msgstr ""
+msgstr "Sinusoida (parzyste okresy)"
 
 #: src/gui/insEdit.cpp:193
 msgid "AbsSine (Even Periods)"
-msgstr ""
+msgstr "Moduł sinusoidy (parzyste okresy)"
 
 #: src/gui/insEdit.cpp:201
 msgid "Cut Sine"
-msgstr ""
+msgstr "Obcięta sinusoida"
 
 #: src/gui/insEdit.cpp:202
 msgid "Cut Triangle"
-msgstr ""
+msgstr "Obc. fala trójkątna"
 
 #: src/gui/insEdit.cpp:204
 msgid "Squished Triangle"
-msgstr ""
+msgstr "Spłaszczona fala trójkątna"
 
 #: src/gui/insEdit.cpp:206
 msgid "Squished AbsTriangle"
-msgstr ""
+msgstr "Spł. moduł fali trójk."
 
 #: src/gui/insEdit.cpp:224
 msgid "Noise disabled"
@@ -14224,19 +14225,20 @@ msgstr "Modulacja kołowa op.3 + szum"
 msgid ""
 "Ringmod from OP3 + double pitch ModInput\n"
 "WARNING - has emulation issues; subject to change"
-msgstr ""
+msgstr ""Modulacja kołowa OP3 + ModInput z podwojoną wysokością dźwięku\n"
+"nUWAGA - występują problemy z emulacją tego trybu, może on ulec zmianie""
 
 #: src/gui/insEdit.cpp:232
 msgid "Bitwise AND"
-msgstr ""
+msgstr "Bitowe AND"
 
 #: src/gui/insEdit.cpp:233
 msgid "Bitwise OR"
-msgstr ""
+msgstr "Bitowe OR"
 
 #: src/gui/insEdit.cpp:234
 msgid "Bitwise XOR"
-msgstr ""
+msgstr "Bitowe XOR"
 
 #: src/gui/insEdit.cpp:239 src/gui/insEdit.cpp:390
 msgid "gate"
@@ -14252,19 +14254,19 @@ msgstr "kołowa"
 
 #: src/gui/insEdit.cpp:327
 msgid "How did you even"
-msgstr ""
+msgstr "Jak Ci się udało?"
 
 #: src/gui/insEdit.cpp:335
 msgid "triangle"
-msgstr ""
+msgstr "fala trójk."
 
 #: src/gui/insEdit.cpp:336 src/gui/insEdit.cpp:5821
 msgid "saw"
-msgstr ""
+msgstr "fala piłokszt."
 
 #: src/gui/insEdit.cpp:337 src/gui/insEdit.cpp:5827
 msgid "pulse"
-msgstr ""
+msgstr "fala prost."
 
 #: src/gui/insEdit.cpp:338 src/gui/insEdit.cpp:344 src/gui/insEdit.cpp:373
 #: src/gui/insEdit.cpp:424 src/gui/insEdit.cpp:429 src/gui/insEdit.cpp:5833
@@ -14281,19 +14283,19 @@ msgstr "obwiednia"
 
 #: src/gui/insEdit.cpp:350
 msgid "hold"
-msgstr ""
+msgstr "podtrzymanie"
 
 #: src/gui/insEdit.cpp:351
 msgid "alternate"
-msgstr ""
+msgstr "zmiana"
 
 #: src/gui/insEdit.cpp:352 src/gui/insEdit.cpp:364
 msgid "direction"
-msgstr ""
+msgstr "kierunek"
 
 #: src/gui/insEdit.cpp:353 src/gui/insEdit.cpp:436
 msgid "enable"
-msgstr ""
+msgstr "włącz"
 
 #: src/gui/insEdit.cpp:357 src/gui/insEdit.cpp:368
 msgid "enabled"
@@ -14301,7 +14303,7 @@ msgstr "włączony"
 
 #: src/gui/insEdit.cpp:361
 msgid "mirror"
-msgstr ""
+msgstr "odbicie"
 
 #: src/gui/insEdit.cpp:365
 msgid "resolution"
@@ -14313,7 +14315,7 @@ msgstr "stały"
 
 #: src/gui/insEdit.cpp:367
 msgid "N/A"
-msgstr ""
+msgstr "brak"
 
 #: src/gui/insEdit.cpp:374
 msgid "echo"
@@ -14325,23 +14327,23 @@ msgstr "mod. wysokości dźw."
 
 #: src/gui/insEdit.cpp:376 src/gui/insEdit.cpp:508
 msgid "invert right"
-msgstr ""
+msgstr "odwróć prawo"
 
 #: src/gui/insEdit.cpp:377 src/gui/insEdit.cpp:509
 msgid "invert left"
-msgstr ""
+msgstr "odwróć lewo"
 
 #: src/gui/insEdit.cpp:382 src/gui/insEdit.cpp:5905
 msgid "low"
-msgstr ""
+msgstr "dolno"
 
 #: src/gui/insEdit.cpp:383 src/gui/insEdit.cpp:5911
 msgid "band"
-msgstr ""
+msgstr "środk."
 
 #: src/gui/insEdit.cpp:384 src/gui/insEdit.cpp:5917
 msgid "high"
-msgstr ""
+msgstr "górno"
 
 #: src/gui/insEdit.cpp:385 src/gui/insEdit.cpp:5924
 msgid "ch3off"
@@ -14373,15 +14375,15 @@ msgstr "16-bitowy 1+2"
 
 #: src/gui/insEdit.cpp:403
 msgid "high3"
-msgstr ""
+msgstr "górno3"
 
 #: src/gui/insEdit.cpp:404
 msgid "high1"
-msgstr ""
+msgstr "górno1"
 
 #: src/gui/insEdit.cpp:405
 msgid "poly9"
-msgstr ""
+msgstr "wielomian 9"
 
 #: src/gui/insEdit.cpp:414
 msgid "16'"
@@ -14413,27 +14415,27 @@ msgstr "przestrzenny"
 
 #: src/gui/insEdit.cpp:437
 msgid "oneshot"
-msgstr ""
+msgstr "jednokrotny"
 
 #: src/gui/insEdit.cpp:438
 msgid "split L/R"
-msgstr ""
+msgstr "rozdzielenie L/P"
 
 #: src/gui/insEdit.cpp:439
 msgid "HinvR"
-msgstr ""
+msgstr "HinvR"
 
 #: src/gui/insEdit.cpp:440
 msgid "VinvR"
-msgstr ""
+msgstr "VinvR"
 
 #: src/gui/insEdit.cpp:441
 msgid "HinvL"
-msgstr ""
+msgstr "HinvL"
 
 #: src/gui/insEdit.cpp:442
 msgid "VinvL"
-msgstr ""
+msgstr "VinvL"
 
 #: src/gui/insEdit.cpp:447 src/gui/insEdit.cpp:476
 msgid "ring mod"
@@ -14441,47 +14443,47 @@ msgstr "mod. kołowa"
 
 #: src/gui/insEdit.cpp:448
 msgid "low pass"
-msgstr ""
+msgstr "dolnoprzepustowy"
 
 #: src/gui/insEdit.cpp:449 src/gui/insEdit.cpp:475
 msgid "high pass"
-msgstr ""
+msgstr "górnoprzepustowy"
 
 #: src/gui/insEdit.cpp:450
 msgid "band pass"
-msgstr ""
+msgstr "środkowoprzepustowy"
 
 #: src/gui/insEdit.cpp:459
 msgid "enable tap B"
-msgstr ""
+msgstr "wł. przełącznik B"
 
 #: src/gui/insEdit.cpp:460
 msgid "AM with slope"
-msgstr ""
+msgstr "AM ze spadkiem"
 
 #: src/gui/insEdit.cpp:465
 msgid "invert B"
-msgstr ""
+msgstr "odwróć B"
 
 #: src/gui/insEdit.cpp:466
 msgid "invert A"
-msgstr ""
+msgstr "odwróć A"
 
 #: src/gui/insEdit.cpp:467
 msgid "reset B"
-msgstr ""
+msgstr "resetuj B"
 
 #: src/gui/insEdit.cpp:468
 msgid "reset A"
-msgstr ""
+msgstr "resetuj a"
 
 #: src/gui/insEdit.cpp:469
 msgid "clip B"
-msgstr ""
+msgstr "przytnij B"
 
 #: src/gui/insEdit.cpp:470
 msgid "clip A"
-msgstr ""
+msgstr "przytnij A"
 
 #: src/gui/insEdit.cpp:477
 msgid "swap counters (noise)"
@@ -14505,63 +14507,63 @@ msgstr "wł."
 
 #: src/gui/insEdit.cpp:496
 msgid "k1 slowdown"
-msgstr ""
+msgstr "spowolnienie k1"
 
 #: src/gui/insEdit.cpp:497
 msgid "k2 slowdown"
-msgstr ""
+msgstr "spowolnienie k2"
 
 #: src/gui/insEdit.cpp:502
 msgid "pause"
-msgstr ""
+msgstr "stop"
 
 #: src/gui/insEdit.cpp:503
 msgid "reverse"
-msgstr ""
+msgstr "odwr. kierunek"
 
 #: src/gui/insEdit.cpp:521
 msgid "Subtract"
-msgstr ""
+msgstr "Odejmij"
 
 #: src/gui/insEdit.cpp:522
 msgid "Average"
-msgstr ""
+msgstr "Uśrednij"
 
 #: src/gui/insEdit.cpp:523 src/gui/insEdit.cpp:2037
 msgid "Phase"
-msgstr ""
+msgstr "Faza"
 
 #: src/gui/insEdit.cpp:524
 msgid "Chorus"
-msgstr ""
+msgstr "Chór"
 
 #: src/gui/insEdit.cpp:528
 msgid "None (dual)"
-msgstr ""
+msgstr "Brak (podwójna tablica)"
 
 #: src/gui/insEdit.cpp:529
 msgid "Wipe"
-msgstr ""
+msgstr "Wzajemne wymazywanie"
 
 #: src/gui/insEdit.cpp:531
 msgid "Fade (ping-pong)"
-msgstr ""
+msgstr "Transformacja (tam i z powr.)"
 
 #: src/gui/insEdit.cpp:532
 msgid "Overlay"
-msgstr ""
+msgstr "Nakładanie"
 
 #: src/gui/insEdit.cpp:533
 msgid "Negative Overlay"
-msgstr ""
+msgstr "Odwrotne nakładanie"
 
 #: src/gui/insEdit.cpp:534
 msgid "Slide"
-msgstr ""
+msgstr "Zjazd"
 
 #: src/gui/insEdit.cpp:535
 msgid "Mix Chorus"
-msgstr ""
+msgstr "Miksowanie (chór)"
 
 #: src/gui/insEdit.cpp:536
 msgid "Phase Modulation"
@@ -14781,15 +14783,15 @@ msgstr "nie wybrano niczego"
 
 #: src/gui/insEdit.cpp:2657
 msgid "Use sample"
-msgstr "Uzyj sampla"
+msgstr "Użyj sampla"
 
 #: src/gui/insEdit.cpp:2659
 msgid "Sample bank slot##BANKSLOT"
-msgstr ""
+msgstr "Numer banka sampli"
 
 #: src/gui/insEdit.cpp:2681
 msgid "Use wavetable (Amiga/Generic DAC only)"
-msgstr ""
+msgstr "Użyj tablicy fal (tylko dla Amigi/przetwornika A/C)"
 
 #: src/gui/insEdit.cpp:2681
 msgid "Use wavetable"
@@ -14797,7 +14799,7 @@ msgstr "Użyj tablicy fal"
 
 #: src/gui/insEdit.cpp:2708
 msgid "Use sample map"
-msgstr ""
+msgstr "Użyj mapy sampli"
 
 #: src/gui/insEdit.cpp:2730
 msgid "delta"
@@ -14809,15 +14811,15 @@ msgstr "nazwa sampla"
 
 #: src/gui/insEdit.cpp:3001
 msgid "set entire map to this pitch"
-msgstr ""
+msgstr "przypisz tą wysokość dźwięku do całej mapy"
 
 #: src/gui/insEdit.cpp:3009
 msgid "set entire map to this delta counter value"
-msgstr ""
+msgstr "przypisz tą wartości licznika delta do całej mapy"
 
 #: src/gui/insEdit.cpp:3018
 msgid "set entire map to this note"
-msgstr ""
+msgstr "przypisz tą nutę do całej mapy"
 
 #: src/gui/insEdit.cpp:3027
 msgid "set entire map to this sample"

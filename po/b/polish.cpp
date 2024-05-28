@@ -1301,10 +1301,6 @@ void DivLocale::addTranslationsPolish()
     strings["Follow orders##sgec"].plurals[0] = "Podążaj za matrycą wzorców";
     strings["Follow pattern##sgec"].plurals[0] = "Podążaj za wzorcem";
 
-    //   sged  src/gui/editing.cpp
-
-    strings["can't collapse any further!##sged"].plurals[0] = "nie da się skrócić jeszcze bardziej!";
-    strings["can't expand any further!##sged"].plurals[0] = "nie da się rozzszerzyć jeszcze bardziej!";
 
     //   sgef  src/gui/effectList.cpp
 
@@ -1552,24 +1548,6 @@ void DivLocale::addTranslationsPolish()
     strings["randomize##sgie"].plurals[0] = "losuj";
 
     //   sgmx  src/gui/mixer.cpp
-
-    strings["input##sgmx"].plurals[0] = "wejście";
-    strings["output##sgmx"].plurals[0] = "wyjście";
-    strings["Mixer##sgmx"].plurals[0] = "Mikser";
-    strings["Master Volume##sgmx"].plurals[0] = "Główna Głośność";
-    strings["Invert##sgmx"].plurals[0] = "Odwróć";
-    strings["Volume##sgmx"].plurals[0] = "Głośność";
-    strings["Panning##sgmx"].plurals[0] = "Panning";
-    strings["Front/Rear##sgmx"].plurals[0] = "Przód/Tył";
-    strings["Patchbay##sgmx"].plurals[0] = "Połączenie kanałów";
-    strings["Automatic patchbay##sgmx"].plurals[0] = "Automatyczne poł. kanałów";
-    strings["Display hidden ports##sgmx"].plurals[0] = "Wyświetl ukryte porty";
-    strings["Display internal##sgmx"].plurals[0] = "Porty wewnętrzne";
-    strings["System##sgmx0"].plurals[0] = "System";
-    strings["Sample Preview##sgmx"].plurals[0] = "Podgląd sampla";
-    strings["Metronome##sgmx"].plurals[0] = "Metronom";
-    strings["System##sgmx1"].plurals[0] = "System";
-    strings["disconnect all##sgmx"].plurals[0] = "rozłącz wszystko";
 
     //   sgns  src/gui/newSong.cpp
 
@@ -4659,28 +4637,6 @@ void DivLocale::addTranslationsPolish()
     strings["User##sgistru0"].plurals[0] = "Użytkownika";
     strings["Drums##sgistru3"].plurals[0] = "Perkusja";
     strings["Sine##sgistru0"].plurals[0] = "Sinusoida";
-    strings["Absolute Sine##sgistru0"].plurals[0] = "Moduł sinusoidy";
-    strings["Quarter Sine##sgistru"].plurals[0] = "Cwierć sinusoidy";
-    strings["Squished Sine##sgistru0"].plurals[0] = "Spłaszczona sinusoida";
-    strings["Squished AbsSine##sgistru0"].plurals[0] = "Spł. moduł sinusoidy";
-    strings["Square##sgistru0"].plurals[0] = "Fala kwadratowa";
-    strings["Derived Square##sgistru0"].plurals[0] = "Pochodna fali kwadratowej";
-    strings["Sine##sgistru1"].plurals[0] = "Sinusoida";
-    strings["Half Sine##sgistru1"].plurals[0] = "Połowa sinusoidy";
-    strings["Absolute Sine##sgistru1"].plurals[0] = "Moduł sinusoidy";
-    strings["Pulse Sine##sgistru"].plurals[0] = "Puls sinusoidalny";
-    strings["Sine (Even Periods)##sgistru"].plurals[0] = "Sinusoida (parzyste okresy)";
-    strings["AbsSine (Even Periods)##sgistru"].plurals[0] = "Moduł sinusoidy (parzyste okresy)";
-    strings["Square##sgistru1"].plurals[0] = "Fala kwadratowa";
-    strings["Derived Square##sgistru1"].plurals[0] = "Pochodna fali kwadratowej";
-    strings["Sine##sgistru2"].plurals[0] = "Sinusoida";
-    strings["Triangle##sgistru"].plurals[0] = "Fala trójkątna";
-    strings["Cut Sine##sgistru"].plurals[0] = "Obcięta sinusoida";
-    strings["Cut Triangle##sgistru"].plurals[0] = "Obc. fala trójkątna";
-    strings["Squished Sine##sgistru1"].plurals[0] = "Spłaszczona sinusoida";
-    strings["Squished Triangle##sgistru"].plurals[0] = "Spłaszczona fala trójkątna";
-    strings["Squished AbsSine##sgistru1"].plurals[0] = "Spł. moduł sinusoidy";
-    strings["Squished AbsTriangle##sgistru"].plurals[0] = "Spł. moduł fali trójk.";
     strings["Snare##sgistru0"].plurals[0] = "Werbel";
     strings["Tom##sgistru"].plurals[0] = "Tom-tom";
     strings["Top##sgistru0"].plurals[0] = "Talerz";
@@ -4689,109 +4645,16 @@ void DivLocale::addTranslationsPolish()
     strings["Snare##sgistru1"].plurals[0] = "Werbel";
     strings["HiHat##sgistru1"].plurals[0] = "Hi-hat";
     strings["Top##sgistru1"].plurals[0] = "Talerz";
-    strings["Noise disabled##sgistru"].plurals[0] = "Szum wyłączony";
-    strings["Square + noise##sgistru"].plurals[0] = "Fala kwadratowa + szum";
-    strings["Ringmod from OP3 + noise##sgistru"].plurals[0] = "Modulacja kołowa od OP3 + szum";
-    strings["Ringmod from OP3 + double pitch ModInput\nWARNING - has emulation issues, subject to change##sgistru"].plurals[0] = "Modulacja kołowa od OP3 + ModInput z podwojoną wysokością dźwięku\nUWAGA - występują problemy z emulacją tego trybu, może on ulec zmianie";
     strings["op1##sgistru"].plurals[0] = "op1";
     strings["op2##sgistru"].plurals[0] = "op2";
     strings["op3##sgistru"].plurals[0] = "op3";
-    strings["op4##sgistru"].plurals[0] = "op4";
-    strings["triangle##sgistru"].plurals[0] = "fala trójkątna";
-    strings["saw##sgistru"].plurals[0] = "fala piłokszt.";
-    strings["pulse##sgistru"].plurals[0] = "fala kwadratowa";
-    strings["noise##sgistru0"].plurals[0] = "szum";
-    strings["tone##sgistru"].plurals[0] = "ton";
-    strings["noise##sgistru1"].plurals[0] = "szum";
-    strings["envelope##sgistru"].plurals[0] = "obwiednia";
-    strings["hold##sgistru"].plurals[0] = "podtrzymanie";
-    strings["alternate##sgistru"].plurals[0] = "zmiana";
-    strings["direction##sgistru0"].plurals[0] = "kierunek";
-    strings["enable##sgistru0"].plurals[0] = "wł.";
-    strings["enabled##sgistru0"].plurals[0] = "wł.";
-    strings["mirror##sgistru"].plurals[0] = "odbicie";
-    strings["loop##sgistru0"].plurals[0] = "pętla";
-    strings["cut##sgistru"].plurals[0] = "odcięcie";
-    strings["direction##sgistru1"].plurals[0] = "kierunek";
-    strings["resolution##sgistru"].plurals[0] = "rozdzielczość";
-    strings["fixed##sgistru1"].plurals[0] = "stały";
-    strings["N/A##sgistru"].plurals[0] = "-";
-    strings["enabled##sgistru1"].plurals[0] = "wł.";
-    strings["noise##sgistru2"].plurals[0] = "szum";
-    strings["echo##sgistru"].plurals[0] = "echo";
-    strings["pitch mod##sgistru"].plurals[0] = "mod. wysokości dźw.";
-    strings["invert right##sgistru"].plurals[0] = "odwróć prawo";
-    strings["invert left##sgistru"].plurals[0] = "odwróć lewo";
-    strings["low##sgistru"].plurals[0] = "dolno";
-    strings["band##sgistru"].plurals[0] = "środk.";
-    strings["high##sgistru"].plurals[0] = "górno";
-    strings["ch3off##sgistru"].plurals[0] = "wył. 3 kanał";
-    strings["##sgistru"].plurals[0] = "bramka obw.";
-    strings["sync##sgistru"].plurals[0] = "synchro.";
-    strings["ring##sgistru"].plurals[0] = "mod. kołowa";
-    strings["test##sgistru"].plurals[0] = "test";
-    strings["15kHz##sgistru"].plurals[0] = "15 kHz";
-    strings["filter 2+4##sgistru"].plurals[0] = "filtr 2+4";
-    strings["filter 1+3##sgistru"].plurals[0] = "filtr 1+3";
-    strings["16-bit 3+4##sgistru"].plurals[0] = "16-bitowy. 3+4";
-    strings["16-bit 1+2##sgistru"].plurals[0] = "16-bitowy. 1+2";
-    strings["high3##sgistru"].plurals[0] = "górno 3";
-    strings["high1##sgistru"].plurals[0] = "górno 1";
-    strings["poly9##sgistru"].plurals[0] = "wielomian 9";
-    strings["int##sgistru"].plurals[0] = "inter.";
-    strings["sustain##sgistru2"].plurals[0] = "podtrzymanie";
-    strings["square##sgistru2"].plurals[0] = "fala kwadratowa";
-    strings["noise##sgistru3"].plurals[0] = "szum";
-    strings["noise##sgistru4"].plurals[0] = "szum";
-    strings["invert##sgistru"].plurals[0] = "inwersja";
-    strings["surround##sgistru"].plurals[0] = "przestrzenny";
-    strings["enable##sgistru1"].plurals[0] = "wł.";
-    strings["oneshot##sgistru"].plurals[0] = "jednokrotny";
-    strings["split L/R##sgistru"].plurals[0] = "rozdzielenie lewo./prawo";
-    strings["HinvR##sgistru"].plurals[0] = "HinvR";
-    strings["VinvR##sgistru"].plurals[0] = "VinvR";
-    strings["HinvL##sgistru"].plurals[0] = "HinvL";
-    strings["VinvL##sgistru"].plurals[0] = "VinvL";
-    strings["ring mod##sgistru"].plurals[0] = "mod. kołowa";
-    strings["low pass##sgistru"].plurals[0] = "dolnoprzepustowy";
-    strings["high pass##sgistru"].plurals[0] = "górnoprzepustowy";
-    strings["band pass##sgistru"].plurals[0] = "środkowoprzepustowy";
+    strings["op4##sgistru"].plurals[0] = "op4"
+
     strings["HP/K2, HP/K2##sgistru"].plurals[0] = "HP/K2, HP/K2";
     strings["HP/K2, LP/K1##sgistru"].plurals[0] = "HP/K2, LP/K1";
     strings["LP/K2, LP/K2##sgistru"].plurals[0] = "LP/K2, LP/K2";
     strings["LP/K2, LP/K1##sgistru"].plurals[0] = "LP/K2, LP/K1";
-    strings["right##sgistru"].plurals[0] = "prawy";
-    strings["left##sgistru"].plurals[0] = "lewy";
-    strings["rear right##sgistru"].plurals[0] = "tylni prawy";
-    strings["rear left##sgistru"].plurals[0] = "tylni lewy";
-    strings["enable tap B##sgistru"].plurals[0] = "wł. przełącznik B";
-    strings["AM with slope##sgistru"].plurals[0] = "AM ze spadkiem";
-    strings["invert B##sgistru"].plurals[0] = "odwr. B";
-    strings["invert A##sgistru"].plurals[0] = "odwr. A";
-    strings["reset B##sgistru"].plurals[0] = "resetuj B";
-    strings["reset A##sgistru"].plurals[0] = "resetuj A";
-    strings["clip B##sgistru"].plurals[0] = "przytnij B";
-    strings["clip A##sgistru"].plurals[0] = "przytnij A";
-    strings["on##sgistru"].plurals[0] = "wł.";
-    strings["k1 slowdown##sgistru"].plurals[0] = "spowolnienie k1";
-    strings["k2 slowdown##sgistru"].plurals[0] = "spowolnienie k2";
-    strings["pause##sgistru"].plurals[0] = "stop";
-    strings["reverse##sgistru"].plurals[0] = "odwr. kierunek";
-    strings["high pass##sgistru1"].plurals[0] = "górno-przepustowy";
-    strings["ring mod##sgistru1"].plurals[0] = "modulacja kołowa";
-    strings["swap counters (noise)##sgistru"].plurals[0] = "zamień liczniki (szum)";
-    strings["sync##sgistru1"].plurals[0] = "synchro";
-    strings["ring##sgistru1"].plurals[0] = "mod. kołowa";
-    strings["low##sgistru1"].plurals[0] = "dolnop.";
-    strings["band##sgistru1"].plurals[0] = "środkowop.";
-    strings["high##sgistru1"].plurals[0] = "górnop.";
-    strings["8580 SID##sgistru"].plurals[0] = "8580 SID";
-    strings["bitwise AND##sgistru"].plurals[0] = "bitowe AND";
-    strings["bitwise OR##sgistru"].plurals[0] = "bitowe OR";
-    strings["bitwise XOR##sgistru"].plurals[0] = "bitowe XOR";
-    strings["low pass (noise)##sgistru"].plurals[0] = "dolnoprzepustowy (szum)";
-    strings["None##sgistru"].plurals[0] = "Brak";
-    strings["Invert##sgistru"].plurals[0] = "Odwróć";
+   
     strings["Add##sgistru"].plurals[0] = "Dodaj";
     strings["Subtract##sgistru"].plurals[0] = "Odejmij";
     strings["Average##sgistru"].plurals[0] = "Uśrednij";
@@ -5016,61 +4879,7 @@ void DivLocale::addTranslationsPolish()
 
     strings["not a command stream"].plurals[0] = "nie jest to strumień komend";
 
-    //   seen    src/engine/engine.cpp
 
-    strings["00xy: Arpeggio##seen"].plurals[0] = "00xy: Arpeggio";
-    strings["01xx: Pitch slide up##seen"].plurals[0] = "01xx: Portamento w górę";
-    strings["02xx: Pitch slide down##seen"].plurals[0] = "02xx: Portamento w dół";
-    strings["03xx: Portamento##seen"].plurals[0] = "03xx: Auto-portamento (do wskazanej nuty)";
-    strings["04xy: Vibrato (x: speed; y: depth)##seen"].plurals[0] = "04xy: Vibrato (x: szybkość; y: głebokość)";
-    strings["05xy: Volume slide + vibrato (compatibility only!)##seen"].plurals[0] = "05xy: Zjazd głośności + vibrato (dla kompatybilności!)";
-    strings["06xy: Volume slide + portamento (compatibility only!)##seen"].plurals[0] = "06xy: Zjazd głośności + portamento (dla kompatybilności!)";
-    strings["07xy: Tremolo (x: speed; y: depth)##seen"].plurals[0] = "07xy: Tremolo (x: szybkość; y: głębokość)";
-    strings["08xy: Set panning (x: left; y: right)##seen"].plurals[0] = "08xy: Ustaw panning (x: lewo; y: prawo)";
-    strings["09xx: Set groove pattern (speed 1 if no grooves exist)##seen"].plurals[0] = "09xx: Ustaw wzór rytmu (prędkość nr.1 w przypadku ich nieobecności)";
-    strings["0Axy: Volume slide (0y: down; x0: up)##seen"].plurals[0] = "0Axy: Zjazd głośności (0y: góra; x0: dół)";
-    strings["0Bxx: Jump to pattern##seen"].plurals[0] = "0Bxx: Przeskocz do wzorca";
-    strings["0Cxx: Retrigger##seen"].plurals[0] = "0Cxx: Cykliczny restart nuty";
-    strings["0Dxx: Jump to next pattern##seen"].plurals[0] = "0Dxx: Przeskocz do nast. wzorca";
-    strings["0Fxx: Set speed (speed 2 if no grooves exist)##seen"].plurals[0] = "0Fxx: Ustaw prędkość (prędkość 2 jeśli nie zdefiniowano wzoru rytmu)";
-    strings["80xx: Set panning (00: left; 80: center; FF: right)##seen"].plurals[0] = "80xx: Ustaw panning (00: lewo; 80: środek; FF: prawo)";
-    strings["81xx: Set panning (left channel)##seen"].plurals[0] = "81xx: Ustaw panning (lewy kanał)";
-    strings["82xx: Set panning (right channel)##seen"].plurals[0] = "82xx: Ustaw panning (prawy kanał)";
-    strings["88xy: Set panning (rear channels; x: left; y: right)##seen"].plurals[0] = "88xy: Ustaw panning (tylne kanały; x: lewy; y: prawy)";
-    strings["89xx: Set panning (rear left channel)##seen"].plurals[0] = "89xx: Ustaw panning (tylny lewy kanał)";
-    strings["8Axx: Set panning (rear right channel)##seen"].plurals[0] = "8Axx: Ustaw panning (tylny prawy kanał)";
-    strings["Cxxx: Set tick rate (hz)##seen"].plurals[0] = "Cxxx: Ustaw częstotliwość odświeżania utworu (Hz)";
-    strings["E0xx: Set arp speed##seen"].plurals[0] = "E0xx: Ustaw sszybkość arpeggio";
-    strings["E1xy: Note slide up (x: speed; y: semitones)##seen"].plurals[0] = "E1xy: Portamento nuty w górę (x: szybkość; y: półtony)";
-    strings["E2xy: Note slide down (x: speed; y: semitones)##seen"].plurals[0] = "E2xy: Portamento nuty w dół (x: szybkość; y: półtony)";
-    strings["E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)##seen"].plurals[0] = "E3xx: Ustaw typ vibrato (0: góra/dół; 1: tylko w górę; 2: tylko w dół)";
-    strings["E4xx: Set vibrato range##seen"].plurals[0] = "E4xx: Ustaw zakres vibrato";
-    strings["E5xx: Set pitch (80: center)##seen"].plurals[0] = "E5xx: Ustaw rozstrojenie (80: brak rozstrojenia)";
-    strings["E6xy: Delayed note transpose (x: 0-7 = up, 8-F = down (after (x % 7) ticks); y: semitones)##seen"].plurals[0] = "E6xy: Opóźnione transponowanie nuty (x: 0-7 = w górę, 8-F = w dół (po (x % 7) krokach); y: półtony)";
-    strings["E7xx: Macro release##seen"].plurals[0] = "E7xx: Puszczenie makr";
-    strings["E8xy: Delayed note transpose up (x: ticks; y: semitones)##seen"].plurals[0] = "E8xy: Opóźnione transponowanie nuty w górę (x: kroki; y: półtony)";
-    strings["E9xy: Delayed note transpose down (x: ticks; y: semitones)##seen"].plurals[0] = "E9xy: Opóźnione transponowanie nuty w dół (x: kroki; y: półtony)";
-    strings["EAxx: Legato##seen"].plurals[0] = "EAxx: Legato";
-    strings["EBxx: Set LEGACY sample mode bank##seen"].plurals[0] = "EBxx: (PRZESTARZAŁE) Zdefiniuj bank sampli";
-    strings["ECxx: Note cut##seen"].plurals[0] = "ECxx: Obcięcie nuty";
-    strings["EDxx: Note delay##seen"].plurals[0] = "EDxx: Opóźnienie nuty";
-    strings["EExx: Send external command##seen"].plurals[0] = "EExx: Wyślij zewnętrzną komendę";
-    strings["F0xx: Set tick rate (bpm)##seen"].plurals[0] = "F0xx: Ustaw tempo utworu (BPM)";
-    strings["F1xx: Single tick note slide up##seen"].plurals[0] = "F1xx: Portamento w górę (jeden krok)";
-    strings["F2xx: Single tick note slide down##seen"].plurals[0] = "F2xx: Portamento w dół (jeden krok)";
-    strings["F3xx: Fine volume slide up##seen"].plurals[0] = "F3xx: Precyzyjny wzrost głośności w górę";
-    strings["F4xx: Fine volume slide down##seen"].plurals[0] = "F4xx: Precyzyjny zjazd głośności w dół";
-    strings["F5xx: Disable macro (see manual)##seen"].plurals[0] = "F5xx: Wyłącz makro (patrz: instrukcja)";
-    strings["F6xx: Enable macro (see manual)##seen"].plurals[0] = "F6xx: Włącz makro (patrz: instrukcja)";
-    strings["F7xx: Restart macro (see manual)##seen"].plurals[0] = "F7xx: Zrestartuj makro (patrz: instrukcja)";
-    strings["F8xx: Single tick volume slide up##seen"].plurals[0] = "F8xx:  Wzrost głośności w górę (jeden krok)";
-    strings["F9xx: Single tick volume slide down##seen"].plurals[0] = "F9xx: Zjazd głośności w dół (jeden krok)";
-    strings["FAxx: Fast volume slide (0y: down; x0: up)##seen"].plurals[0] = "FAxx: Szybki zjazd głośności (0y: w górę; x0: w dół)";
-    strings["FCxx: Note release##seen"].plurals[0] = "FCxx: Zwolnienie nuty";
-    strings["FDxx: Set virtual tempo numerator##seen"].plurals[0] = "FDxx: Ustaw licznik wirtualnego tempa";
-    strings["FExx: Set virtual tempo denominator##seen"].plurals[0] = "FExx: Ustaw mianownik wirtualnego tempa";
-    strings["FFxx: Stop song##seen"].plurals[0] = "FFxx: Zatrzymaj utwór";
-    strings["9xxx: Set sample offset*256##seen"].plurals[0] = "9xxx: Ustaw przesunięcie pocz. sampla (xxx*256 kroków)";
 
     strings["on seek: %s"].plurals[0] = "podczas przejścia po pliku: %s";
     strings["on pre tell: %s"].plurals[0] = "przed zażądaniem pozycji w pliku: %s";
