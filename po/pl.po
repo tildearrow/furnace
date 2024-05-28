@@ -172,7 +172,7 @@ msgstr ""
 msgid "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)"
 msgstr ""
 "52xy: Ustaw zwolnienie (x: operatory od 1 do 4 (0 dla wszystkich operatorów); "
-"y: zanikanie)"
+"y: zwolnienie)"
 
 #: src/engine/sysDef.cpp:494
 msgid ""
@@ -193,7 +193,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:496
 msgid "56xx: Set decay of all operators (0 to 1F)"
-msgstr "56xx: Ustaw opadanie we wszystkich operatorach (0 do 1F)"
+msgstr "56xx: Ustaw opadania we wszystkich operatorach (0 do 1F)"
 
 #: src/engine/sysDef.cpp:497
 msgid "57xx: Set decay of operator 1 (0 to 1F)"
@@ -213,7 +213,7 @@ msgstr "5Axx: Ustaw opadanie operatora 4 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:501
 msgid "5Bxx: Set decay 2 of all operators (0 to 1F)"
-msgstr "5Bxx: Ustaw wtórne opadanie 2 na wszystkich operatorach (0 do 1F)"
+msgstr "5Bxx: Ustaw wtórne opadanie na wszystkich operatorach (0 do 1F)"
 
 #: src/engine/sysDef.cpp:502
 msgid "5Cxx: Set decay 2 of operator 1 (0 to 1F)"
@@ -271,17 +271,17 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:522
 msgid "26xx: Set AM 2 depth (0 to 7F)"
-msgstr "26xx: Ustaw głębokość AM 2"
+msgstr "26xx: Ustaw głębokość AM 2 (0 do 7F)"
 
 #: src/engine/sysDef.cpp:523
 msgid "27xx: Set PM 2 depth (0 to 7F)"
-msgstr "27xx: Ustaw głębokość PM 2"
+msgstr "27xx: Ustaw głębokość PM 2 (0 do 7F)"
 
 #: src/engine/sysDef.cpp:524
 msgid ""
 "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 "
 "to 7)"
-msgstr "28xy: Ustaw pogłos (x: operatory 1-4 (0 dla wszystkich operatorów); y: pogłos 0-7)"
+msgstr "28xy: Ustaw pogłos (x: operator 1-4 (0 dla wszystkich operatorów); y: pogłos 0-7)"
 
 #: src/engine/sysDef.cpp:525 src/engine/sysDef.cpp:650
 msgid ""
@@ -399,135 +399,135 @@ msgstr "55xy: Ustaw podtrzymanie obwiedni (x: operator 1-2 (0 dla wszystkich ope
 #: src/engine/sysDef.cpp:567 src/engine/sysDef.cpp:594
 #: src/engine/sysDef.cpp:662
 msgid "56xx: Set decay of all operators (0 to F)"
-msgstr ""
+msgstr "56xx: Ustaw opadanie dla wszystkich operatorów (0 do F)"
 
 #: src/engine/sysDef.cpp:568 src/engine/sysDef.cpp:595
 #: src/engine/sysDef.cpp:663
 msgid "57xx: Set decay of operator 1 (0 to F)"
-msgstr ""
+msgstr "57xx: Ustaw opadanie operatora 1 (0 do F)"
 
 #: src/engine/sysDef.cpp:569 src/engine/sysDef.cpp:596
 #: src/engine/sysDef.cpp:664
 msgid "58xx: Set decay of operator 2 (0 to F)"
-msgstr ""
+msgstr "58Xx: Ustaw opadanie operatora 2 (0 do F)"
 
 #: src/engine/sysDef.cpp:570
 msgid ""
 "5Bxy: Set whether key will scale envelope (x: operator from 1 to 2 (0 for "
 "all ops); y: enabled)"
-msgstr ""
+msgstr "5Bxy: Ustaw kiedy klawisz będzie skalował obwiednię (x: operator od 1 do 2 (0 dla wszystkich operatorów); y: włączone)"
 
 #: src/engine/sysDef.cpp:574
 msgid "10xx: Set global AM depth (0: 1dB, 1: 4.8dB)"
-msgstr ""
+msgstr "10xx: Ustaw głębokość globalną AM (0: 1dB, 1: 4.8dB)"
 
 #: src/engine/sysDef.cpp:578 src/engine/sysDef.cpp:633
 msgid "14xx: Set level of operator 3 (0 highest, 3F lowest)"
-msgstr ""
+msgstr "14xx: Ustaw poziom operatora 3 (0 max., 3F min.)"
 
 #: src/engine/sysDef.cpp:579 src/engine/sysDef.cpp:634
 msgid "15xx: Set level of operator 4 (0 highest, 3F lowest)"
-msgstr ""
+msgstr "15xx: Ustaw poziom operatora 4 (0 max., 3F min.)"
 
 #: src/engine/sysDef.cpp:581
 msgid "17xx: Set global vibrato depth (0: normal, 1: double)"
-msgstr ""
+msgstr "17xx: Ustaw głębokość globalną Vibrato (0: normalna, 1: podwójna)"
 
 #: src/engine/sysDef.cpp:585 src/engine/sysDef.cpp:640
 msgid "1Cxx: Set attack of operator 3 (0 to F)"
-msgstr ""
+msgstr "1Cxx: Ustaw czas narastania w operatorze 3 (0 do F)"
 
 #: src/engine/sysDef.cpp:586 src/engine/sysDef.cpp:641
 msgid "1Dxx: Set attack of operator 4 (0 to F)"
-msgstr ""
+msgstr "1Dxx: Ustaw czas narastania w operatorze 4 (0 do F)"
 
 #: src/engine/sysDef.cpp:587
 msgid ""
 "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform "
 "from 0 to 3 in OPL2 and 0 to 7 in OPL3)"
-msgstr ""
+msgstr "2Ax7: Ustaw kształt fali (x: operator 1-4 (0 dla wszystkich operatorów); y: kształt fali 0-3 dla OPL2 oraz 0-7 dla OPL3)"
 
 #: src/engine/sysDef.cpp:591 src/engine/sysDef.cpp:659
 msgid "53xy: Set vibrato (x: operator from 1 to 4 (0 for all ops); y: enabled)"
-msgstr ""
+msgstr "53xy: Ustaw vibrato (x: operator 1-4 (0 dla wszystkich operatorów); y: włączone"
 
 #: src/engine/sysDef.cpp:593 src/engine/sysDef.cpp:661
 msgid ""
 "55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: "
 "enabled)"
-msgstr ""
+msgstr "55xy: Ustaw podtrzymanie obwiedni (x: operator 1-4 (0 dla wszystkich operatorów); y: włączone)"
 
 #: src/engine/sysDef.cpp:597 src/engine/sysDef.cpp:665
 msgid "59xx: Set decay of operator 3 (0 to F)"
-msgstr ""
+msgstr "59xx: Ustaw zanikanie operatora 3 (0 do F)"
 
 #: src/engine/sysDef.cpp:598 src/engine/sysDef.cpp:666
 msgid "5Axx: Set decay of operator 4 (0 to F)"
-msgstr ""
+msgstr "5Axx: Ustaw zanikanie operatora 4 (0 do F)"
 
 #: src/engine/sysDef.cpp:599 src/engine/sysDef.cpp:667
 msgid ""
 "5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for "
 "all ops); y: enabled)"
-msgstr ""
+msgstr "5Bxy: Ustaw kiedy klawisz będzie skalował obwiednię (x: operator 1-4 (0 dla wszystkich operatorów); y: włączone)"
 
 #: src/engine/sysDef.cpp:603 src/engine/sysDef.cpp:680
 msgid ""
 "10xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise)"
-msgstr ""
+msgstr "10xx Ustaw kształt fali (bit 0: trójkątna; bit 1: piłokształtna; bit 2: prostokątna; bit 3: szum)"
 
 #: src/engine/sysDef.cpp:604
 msgid "11xx: Set coarse cutoff (not recommended; use 4xxx instead)"
-msgstr ""
+msgstr "11xx: Ustaw zgrubne odcięcie (nie zalecane; zamiast tego użyj 4xxx)"
 
 #: src/engine/sysDef.cpp:605
 msgid "12xx: Set coarse pulse width (not recommended; use 3xxx instead)"
-msgstr ""
+msgstr "12xx: Ustaw zgrubną szerokość fali prostokątnej (nie zalecane; zamiast tego użyj 3xxx)"
 
 #: src/engine/sysDef.cpp:606
 msgid "13xx: Set resonance (0 to F)"
-msgstr ""
+msgstr "13xx: Ustaw rezonans (0 do F)"
 
 #: src/engine/sysDef.cpp:607
 msgid ""
 "14xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"
-msgstr ""
+msgstr "14xx: Ustaw filtr (bit 0: dolnoprzepustowy; bit 1: środkowoprzepustowy; bit 2: górnoprzepustowy)"
 
 #: src/engine/sysDef.cpp:608
 msgid "15xx: Set envelope reset time"
-msgstr ""
+msgstr "15xx: Ustaw czas resetu obwiedni"
 
 #: src/engine/sysDef.cpp:609
 msgid "1Axx: Disable envelope reset for this channel (1 disables; 0 enables)"
-msgstr ""
+msgstr "1Axx: Wyłączanie resetowania obwiedni dla tego kanału (1 wyłącza; 0 włącza) "
 
 #: src/engine/sysDef.cpp:610
 msgid "1Bxy: Reset cutoff (x: on new note; y: now)"
-msgstr ""
+msgstr "1Bxy: Resetuj odcięcie (x: na nowej nucie; y: teraz)"
 
 #: src/engine/sysDef.cpp:611
 msgid "1Cxy: Reset pulse width (x: on new note; y: now)"
-msgstr ""
+msgstr "1Cxy: Resetuj szerokość fali prostokątnej (x: na nowej nucie; y: teraz)"
 
 #: src/engine/sysDef.cpp:612
 msgid "1Exy: Change other parameters (LEGACY)"
-msgstr ""
+msgstr "1Exy: Zmień inne parametry (PRZESTARZAŁE)"
 
 #: src/engine/sysDef.cpp:613
 msgid "20xy: Set attack/decay (x: attack; y: decay)"
-msgstr ""
+msgstr "20xy: Ustaw czas narastania/opadania (x: narastanie; y: opadanie)"
 
 #: src/engine/sysDef.cpp:614
 msgid "21xy: Set sustain/release (x: sustain; y: release)"
-msgstr ""
+msgstr "21xy: Ustaw czas podtrzymania/zwolnienia (x: podtrzymanie; y: zwolnienie)"
 
 #: src/engine/sysDef.cpp:616 src/engine/sysDef.cpp:688
 msgid "3xxx: Set pulse width (0 to FFF)"
-msgstr ""
+msgstr "3xxx: Ustaw szerokość fali prostokątnej (0 do FFF)"
 
 #: src/engine/sysDef.cpp:617
 msgid "4xxx: Set cutoff (0 to 7FF)"
-msgstr ""
+msgstr "4xxx: Ustaw odcięcie (0 do 7FF)"
 
 #: src/engine/sysDef.cpp:622 src/engine/sysDef.cpp:745
 #: src/engine/sysDef.cpp:762 src/engine/sysDef.cpp:1000
@@ -547,137 +547,137 @@ msgstr "20xx: Ustaw częstotliwość PCM"
 msgid ""
 "10xy: Set AM depth (x: operator from 1 to 4 (0 for all ops); y: depth (0: "
 "1dB, 1: 4.8dB))"
-msgstr ""
+msgstr "10xy: Ustaw głębokość AM (x: Operator 1-4 (0 dla wszystkich operatorów); y: głębokość (0: 1dB, 1: 4.8dB))"
 
 #: src/engine/sysDef.cpp:636
 msgid ""
 "17xy: Set vibrato depth (x: operator from 1 to 4 (0 for all ops); y: depth "
 "(0: normal, 1: double))"
-msgstr ""
+msgstr "17xy: Ustaw głębokość vibrato (x: operator 1-4 (0 dla wszystkich operatorów); y: głębokość (0: normalna, 1: podwójna)"
 
 #: src/engine/sysDef.cpp:642
 msgid "20xy: Set panning of operator 1 (x: left; y: right)"
-msgstr ""
+msgstr "20xy: Ustaw panoramowanie operatora 1 (x: w lewo; y: w prawo)"
 
 #: src/engine/sysDef.cpp:643
 msgid "21xy: Set panning of operator 2 (x: left; y: right)"
-msgstr ""
+msgstr "21xy: Ustaw panoramowanie operatora 2 (x: w lewo; y: w prawo)"
 
 #: src/engine/sysDef.cpp:644
 msgid "22xy: Set panning of operator 3 (x: left; y: right)"
-msgstr ""
+msgstr "22xy: Ustaw panoramowanie operatora 3 (x: w lewo; y: w prawo)"
 
 #: src/engine/sysDef.cpp:645
 msgid "23xy: Set panning of operator 4 (x: left; y: right)"
-msgstr ""
+msgstr "23xy: Ustaw panoramowanie operatora 4 (x: w lewo; y: w prawo)"
 
 #: src/engine/sysDef.cpp:646
 msgid ""
 "24xy: Set output level register (x: operator from 1 to 4 (0 for all ops); y: "
 "level from 0 to 7)"
-msgstr ""
+msgstr "24xy: Ustaw rejestr poziomu sygnału wyjściowego (x: operator 1-4 (0 dla wszystkich operatorów); y: poziomy 0-7)"
 
 #: src/engine/sysDef.cpp:647
 msgid ""
 "25xy: Set modulation input level (x: operator from 1 to 4 (0 for all ops); "
 "y: level from 0 to 7)"
-msgstr ""
+msgstr "25xy: Ustaw modulację poziomu sygnału wejściowego (x: operator 1-4 (0 dla wszystkich operatorów); y: poziomy 1-7)"
 
 #: src/engine/sysDef.cpp:648
 msgid ""
 "26xy: Set envelope delay (x: operator from 1 to 4 (0 for all ops); y: delay "
 "from 0 to 7)"
-msgstr ""
+msgstr "26xy: Ustaw opóźnienie obwiedni (x: operator 1-4 (0 dla wszystkich operatorów) y: opóźnienie 0-7)"
 
 #: src/engine/sysDef.cpp:649
 msgid "27xx: Set noise mode for operator 4 (x: mode from 0 to 3)"
-msgstr ""
+msgstr "27xx: Ustaw tryb szumu dla operatora 4 (x: tryb 1-3)"
 
 #: src/engine/sysDef.cpp:651
 msgid ""
 "2Fxy: Set fixed frequency block (x: operator from 1 to 4; y: octave from 0 "
 "to 7)"
-msgstr ""
+msgstr "2Fxy: Ustaw blok stałej częstotliwości (x: operator 1-4; y: oktawa 0-7)"
 
 #: src/engine/sysDef.cpp:652
 msgid "40xx: Set detune of operator 1 (80: center)"
-msgstr ""
+msgstr "40xx: Ustaw odstrojenie operatora 1 (80: środek)"
 
 #: src/engine/sysDef.cpp:653
 msgid "41xx: Set detune of operator 2 (80: center)"
-msgstr ""
+msgstr "41xx: Ustaw odstrojenie operatora 2 (80: środek)"
 
 #: src/engine/sysDef.cpp:654
 msgid "42xx: Set detune of operator 3 (80: center)"
-msgstr ""
+msgstr "42xx: Ustaw odstrojenie operatora 3 (80: środek)"
 
 #: src/engine/sysDef.cpp:655
 msgid "43xx: Set detune of operator 4 (80: center)"
-msgstr ""
+msgstr "43xx: Ustaw odstrojenie operatora 4 (80: środek)"
 
 #: src/engine/sysDef.cpp:670
 msgid ""
 "3xyy: Set fixed frequency F-num of operator 1 (x: high 2 bits from 0 to 3; "
 "y: low 8 bits of F-num)"
-msgstr ""
+msgstr "3xyy: Ustaw stałą częstotliwość F-num operatora 1 (x: 2 wysokie bity 0-3; y: niskie 8 bitów F-num)"
 
 #: src/engine/sysDef.cpp:671
 msgid ""
 "3xyy: Set fixed frequency F-num of operator 2 (x: high 2 bits from 4 to 7; "
 "y: low 8 bits of F-num)"
-msgstr ""
+msgstr "3xyy: Ustaw stałą częstotliwość F-num operatora 2 (x: 2 wysokie bity 0-3; y: niskie 8 bitów F-num"
 
 #: src/engine/sysDef.cpp:672
 msgid ""
 "3xyy: Set fixed frequency F-num of operator 3 (x: high 2 bits from 8 to B; "
 "y: low 8 bits of F-num)"
-msgstr ""
+msgstr "3xyy: Ustaw stała częstotliwość F-num operatora 3 (x: 2 wysokie bity 0-3; y: niskie 8 bitów F-num"
 
 #: src/engine/sysDef.cpp:673
 msgid ""
 "3xyy: Set fixed frequency F-num of operator 4 (x: high 2 bits from C to F; "
 "y: low 8 bits of F-num)"
-msgstr ""
+msgstr "3xyy: Ustaw stała częstotliwość F-num operatora 4 (x: 2 wysokie bity 0-3; y: niskie 8 bitów F-num"
 
 #: src/engine/sysDef.cpp:681
 msgid "11xx: Set resonance (0 to FF)"
-msgstr ""
+msgstr "11xx: Ustaw rezonans (0 do FF)"
 
 #: src/engine/sysDef.cpp:682
 msgid ""
 "12xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"
-msgstr ""
+msgstr "Ustaw filtr (bit 0: dolnoprzepustowy; bit 1: środkowoprzepustowy; bit 2: górnoprzepustowy)"
 
 #: src/engine/sysDef.cpp:683
 msgid "13xx: Disable envelope reset for this channel (1 disables; 0 enables)"
-msgstr ""
+msgstr "13xx: Wyłączanie resetu obwiedni dla tego kanału (1 wyłącza; 0 włącza)"
 
 #: src/engine/sysDef.cpp:684
 msgid "14xy: Reset cutoff (x: on new note; y: now)"
-msgstr ""
+msgstr "14xy: Resetuj odcięcie filtra (x: na nowej nucie; y: teraz)"
 
 #: src/engine/sysDef.cpp:685
 msgid "15xy: Reset pulse width (x: on new note; y: now)"
-msgstr ""
+msgstr "15xy: Resetuj szerokość fali prostokątnej (x: na nowej nucie; y: teraz)"
 
 #: src/engine/sysDef.cpp:686
 msgid "16xy: Change other parameters"
-msgstr ""
+msgstr "16xy: Zmień inne parametry"
 
 #: src/engine/sysDef.cpp:689 src/engine/sysDef.cpp:1733
 msgid "4xxx: Set cutoff (0 to FFF)"
-msgstr ""
+msgstr "4xxx: Ustaw odcięcie filtra (0 do FFF)"
 
 #: src/engine/sysDef.cpp:697
 msgid "Yamaha YMU759 (MA-2)"
-msgstr ""
+msgstr "Yamaha YMU759 (MA-2)"
 
 #: src/engine/sysDef.cpp:698
 msgid ""
 "a chip which found its way inside mobile phones in the 2000's.\n"
 "as proprietary as it is, it passed away after losing to MP3 in the mobile "
 "hardware battle."
-msgstr ""
+msgstr "układ scalony, który znalazł zastosowanie w telefonach komórkowych w latach 2000. Choć jest zastrzeżony, to odszedł po przegranej z MP3 walce o sprzęt mobilny."
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:807 src/engine/sysDef.cpp:819
@@ -894,11 +894,11 @@ msgstr "PCM"
 
 #: src/engine/sysDef.cpp:706
 msgid "Sega Genesis/Mega Drive"
-msgstr "Sega Mega Drive"
+msgstr "Sega Genesis/Mega Drive"
 
 #: src/engine/sysDef.cpp:712
 msgid "Sega Genesis Extended Channel 3"
-msgstr "Sega Mega Drive z rozszerzonym kanałem 3"
+msgstr "Sega Genesis z rozszerzonym kanałem 3"
 
 #: src/engine/sysDef.cpp:718 src/gui/sysConf.cpp:158
 msgid "TI SN76489"
@@ -908,7 +908,7 @@ msgstr "TI SN76489"
 msgid ""
 "a square/noise sound chip found on the Sega Master System, ColecoVision, "
 "Tandy, TI's own 99/4A and a few other places."
-msgstr ""
+msgstr "Kwadratowy/szumowy układ dźwiękowy używany przez Sega Master System, ColecoVision, Tandy, TI 99/4A i kilku innych"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
@@ -940,99 +940,99 @@ msgstr "Szum"
 
 #: src/engine/sysDef.cpp:726
 msgid "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"
-msgstr ""
+msgstr "20xy: Ustaw tryb szumu (x: wbudowana częstotliwość/częstotliwość z kanału 3; y: cienka fala impulsowa/szum)"
 
 #: src/engine/sysDef.cpp:731
 msgid "Sega Master System + FM Expansion"
-msgstr ""
+msgstr "Sega Master System + Rozszerzenie FM"
 
 #: src/engine/sysDef.cpp:737 src/gui/settings.cpp:3972
 msgid "Game Boy"
-msgstr ""
+msgstr "Game Boy"
 
 #: src/engine/sysDef.cpp:738
 msgid "the most popular portable game console of the era."
-msgstr ""
+msgstr "najbardziej popularna przenośna konsola wideo w tamtych czasach."
 
 #: src/engine/sysDef.cpp:739 src/engine/sysDef.cpp:773
 #: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:2100
 msgid "Pulse 1"
-msgstr ""
+msgstr "Fala prostokątna 1"
 
 #: src/engine/sysDef.cpp:739 src/engine/sysDef.cpp:773
 #: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:2100
 msgid "Pulse 2"
-msgstr ""
+msgstr "Fala prostokątna 2"
 
 #: src/engine/sysDef.cpp:739 src/gui/settings.cpp:3877
 #: src/gui/guiConst.cpp:1395 src/gui/insEdit.cpp:6652
 msgid "Wavetable"
-msgstr ""
+msgstr "Fala tablicowa"
 
 #: src/engine/sysDef.cpp:746
 msgid "11xx: Set noise length (0: long; 1: short)"
-msgstr ""
+msgstr "11xx: Ustaw długość szumu (0: długi; 1: krótki)"
 
 #: src/engine/sysDef.cpp:747
 msgid "12xx: Set duty cycle (0 to 3)"
-msgstr ""
+msgstr "12xx: Ustaw szerokość fali prostokątnej (0 do 3)"
 
 #: src/engine/sysDef.cpp:748
 msgid "13xy: Setup sweep (x: time; y: shift)"
-msgstr ""
+msgstr "13xy: Konfiguruj sprzętowe portamento (x: szybkość; y: prędkość)"
 
 #: src/engine/sysDef.cpp:749
 msgid "14xx: Set sweep direction (0: up; 1: down)"
-msgstr ""
+msgstr "14xx: Ustaw kierunek sprzętowego portamento (0: w górę; 1: w dół)"
 
 #: src/engine/sysDef.cpp:754
 msgid "PC Engine/TurboGrafx-16"
-msgstr ""
+msgstr "PC Engine/TurboGrafx-16"
 
 #: src/engine/sysDef.cpp:755
 msgid "an '80s game console with a wavetable sound chip, popular in Japan."
-msgstr ""
+msgstr "Konsola gier wideo z lat '80-tych z układem dźwiękowym wavetable, popularny w Japonii"
 
 #: src/engine/sysDef.cpp:763 src/engine/sysDef.cpp:1001
 #: src/engine/sysDef.cpp:1793
 msgid "11xx: Toggle noise mode"
-msgstr ""
+msgstr "11xx: Przełącz tryb szumu"
 
 #: src/engine/sysDef.cpp:764
 msgid "12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)"
-msgstr ""
+msgstr "12xx: Konfiguruj LFO (0: wyłączony; 1: 1-krotna głębokość; 2: 16-krotna głębokość; 3: 256-krotna głębokość) "
 
 #: src/engine/sysDef.cpp:765
 msgid "13xx: Set LFO speed"
-msgstr ""
+msgstr "13xx: Ustaw prędkość LFO"
 
 #: src/engine/sysDef.cpp:771
 msgid "NES (Ricoh 2A03)"
-msgstr ""
+msgstr "NES (Ricoh 2A03)"
 
 #: src/engine/sysDef.cpp:772
 msgid ""
 "also known as Famicom in Japan, it's the most well-known game console of the "
 "'80s."
-msgstr ""
+msgstr "znany też jako Famicom w Japonii, jest to najbardziej rozpowszechniona konsola gier wideo lat '80-tych"
 
 #: src/engine/sysDef.cpp:773 src/gui/waveEdit.cpp:31 src/gui/waveEdit.cpp:217
 #: src/gui/insEdit.cpp:200 src/gui/insEdit.cpp:324 src/gui/insEdit.cpp:658
 msgid "Triangle"
-msgstr ""
+msgstr "Fala trójkątna"
 
 #: src/engine/sysDef.cpp:773 src/engine/sysDef.cpp:2100
 #: src/gui/insEdit.cpp:2629
 msgid "DPCM"
-msgstr ""
+msgstr "DPCM"
 
 #: src/engine/sysDef.cpp:779 src/engine/sysDef.cpp:2106
 msgid "11xx: Write to delta modulation counter (0 to 7F)"
-msgstr ""
+msgstr "11xx: Zapisz do licznika Modulacji delta (0 do 7F)"
 
 #: src/engine/sysDef.cpp:780 src/engine/sysDef.cpp:1068
 msgid "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"
-msgstr ""
+msgstr "12xx: Ustaw szerokość fali prostokątnej/tryb szumu (fala prostokątna: 0 do 3; szum: 0 lub 1)"
 
 #: src/engine/sysDef.cpp:781 src/engine/sysDef.cpp:2108
 msgid "13xy: Sweep up (x: time; y: shift)"
@@ -1045,70 +1045,71 @@ msgstr ""
 #: src/engine/sysDef.cpp:783 src/engine/sysDef.cpp:2110
 msgid ""
 "15xx: Set envelope mode (0: envelope, 1: length, 2: looping, 3: constant)"
-msgstr ""
+msgstr "15xx: Ustaw tryb obwiedni (0: obwiednia, 1: długość, 2: zapętlenie, 3: stały)"
 
 #: src/engine/sysDef.cpp:784 src/engine/sysDef.cpp:2111
 msgid "16xx: Set length counter (refer to manual for a list of values)"
-msgstr ""
+msgstr "16xx: Ustaw licznik długości (lista wartości znajduje się w instrukcji obsługi)"
 
 #: src/engine/sysDef.cpp:785 src/engine/sysDef.cpp:2112
 msgid "17xx: Set frame counter mode (0: 4-step, 1: 5-step)"
-msgstr ""
+msgstr "17xx: Ustaw tryb licznika ramek (0: 4-stopniowy, 1: 5-stopniowy)"
 
 #: src/engine/sysDef.cpp:786 src/engine/sysDef.cpp:2113
 msgid "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)"
-msgstr ""
+msgstr "18xx: Wybierz tryb PCM/DPCM (0: PCM; 1: DPCM)"
 
 #: src/engine/sysDef.cpp:787 src/engine/sysDef.cpp:2114
 msgid "19xx: Set triangle linear counter (0 to 7F; 80 and higher halt)"
-msgstr ""
+msgstr "19xx: Ustaw trójkątny licznik liniowy (0 do 7F; 80 lub wyższe zatrzymuje)"
 
 #: src/engine/sysDef.cpp:788 src/engine/sysDef.cpp:2115
 msgid "20xx: Set DPCM frequency (0 to F)"
-msgstr ""
+msgstr "20xx: Ustaw częstotliwość kanału DPCM (0 do F)"
 
 #: src/engine/sysDef.cpp:793
 msgid "NES + Konami VRC7"
-msgstr ""
+msgstr "NES + Konami VRC7"
 
 #: src/engine/sysDef.cpp:799
 msgid "Famicom Disk System"
-msgstr ""
+msgstr "Famicom Disk System"
 
 #: src/engine/sysDef.cpp:805
 msgid "Commodore 64 (SID 6581)"
-msgstr ""
+msgstr "Commodore 64 (SID 6581)"
 
 #: src/engine/sysDef.cpp:806
 msgid ""
 "this computer is powered by the SID chip, which had synthesizer features "
 "like a filter and ADSR."
-msgstr ""
+msgstr "Ten komputer jest zasilany przez układ scalony SID, który ma funkcję syntezatora, takie jak filtr i ASDR."
 
 #: src/engine/sysDef.cpp:817
 msgid "Commodore 64 (SID 8580)"
-msgstr ""
+msgstr "Commodore 64 (SID 8580)"
 
 #: src/engine/sysDef.cpp:818
 msgid ""
 "this computer is powered by the SID chip, which had synthesizer features "
 "like a filter and ADSR.\n"
 "this is the newer revision of the chip."
-msgstr ""
+msgstr "Ten komputer jest zasilany przez układ scalony SID, który ma funkcję syntezatora, takie jak filtr i ASDR.\n"
+"To jest nowsza wersja tego układu scalonego."
 
 #: src/engine/sysDef.cpp:829
 msgid "DefleCade"
-msgstr ""
+msgstr "DefleCade"
 
 #: src/engine/sysDef.cpp:835
 msgid "Neo Geo CD"
-msgstr ""
+msgstr "Neo Geo CD"
 
 #: src/engine/sysDef.cpp:836
 msgid ""
 "like Neo Geo, but lacking the ADPCM-B channel since they couldn't connect "
 "the pins."
-msgstr ""
+msgstr "podobny do Neo Geo, ale brakuje kanału ADPCM-B ponieważ nie mogli podłączyć pinów"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:891 src/engine/sysDef.cpp:903
@@ -1189,7 +1190,7 @@ msgstr "FM 4"
 #: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:1468
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 msgid "PSG 1"
-msgstr ""
+msgstr "PSG 1"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:862 src/engine/sysDef.cpp:927
@@ -1199,7 +1200,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:1468
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 msgid "PSG 2"
-msgstr ""
+msgstr "PSG 2"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:862 src/engine/sysDef.cpp:927
@@ -1209,53 +1210,53 @@ msgstr ""
 #: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:1468
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 msgid "PSG 3"
-msgstr ""
+msgstr "PSG 3"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:1344 src/engine/sysDef.cpp:1443
 #: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:1468
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 msgid "ADPCM-A 1"
-msgstr ""
+msgstr "ADPCM-A 1"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:1344 src/engine/sysDef.cpp:1443
 #: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:1468
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 msgid "ADPCM-A 2"
-msgstr ""
+msgstr "ADPCM-A 2"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:1344 src/engine/sysDef.cpp:1443
 #: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:1468
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 msgid "ADPCM-A 3"
-msgstr ""
+msgstr "ADPCM-A 3"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:1344 src/engine/sysDef.cpp:1443
 #: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:1468
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 msgid "ADPCM-A 4"
-msgstr ""
+msgstr "ADPCM-A 4"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:1344 src/engine/sysDef.cpp:1443
 #: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:1468
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 msgid "ADPCM-A 5"
-msgstr ""
+msgstr "ADPCM-A 5"
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:1344 src/engine/sysDef.cpp:1443
 #: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:1468
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 msgid "ADPCM-A 6"
-msgstr ""
+msgstr "ADPCM-A 6"
 
 #: src/engine/sysDef.cpp:847
 msgid "Neo Geo CD Extended Channel 2"
-msgstr ""
+msgstr "Neo Geo CD z rozszerzonym kanałem 2"
 
 #: src/engine/sysDef.cpp:848
 msgid ""
@@ -1263,64 +1264,66 @@ msgid ""
 "the pins.\n"
 "this one is in Extended Channel mode, which turns the second FM channel into "
 "four operators with independent notes/frequencies."
-msgstr ""
+msgstr "podobny do Neo Geo, ale brakuje kanału ADPCM-B ponieważ nie mogli podłączyć pinów.\n"
+"ten układ scalony ma włączony tryb rozszerzonego kanału 2, który zmienia drugi kanał FM w 4 osobne operatory z osobnymi nutami/częstotliwościami"
 
 #: src/engine/sysDef.cpp:849 src/engine/sysDef.cpp:1455
 #: src/engine/sysDef.cpp:1468
 msgid "FM 2 OP1"
-msgstr ""
+msgstr "FM 2 OP1"
 
 #: src/engine/sysDef.cpp:849 src/engine/sysDef.cpp:1455
 #: src/engine/sysDef.cpp:1468
 msgid "FM 2 OP2"
-msgstr ""
+msgstr "FM 2 OP2"
 
 #: src/engine/sysDef.cpp:849 src/engine/sysDef.cpp:1455
 #: src/engine/sysDef.cpp:1468
 msgid "FM 2 OP3"
-msgstr ""
+msgstr "FM2 OP3"
 
 #: src/engine/sysDef.cpp:849 src/engine/sysDef.cpp:1455
 #: src/engine/sysDef.cpp:1468
 msgid "FM 2 OP4"
-msgstr ""
+msgstr "FM 2 OP4"
 
 #: src/engine/sysDef.cpp:860 src/gui/sysConf.cpp:913
 msgid "AY-3-8910"
-msgstr ""
+msgstr "AY-3-8910"
 
 #: src/engine/sysDef.cpp:861
 msgid ""
 "this chip is everywhere! ZX Spectrum, MSX, Amstrad CPC, Intellivision, "
 "Vectrex...\n"
 "the discovery of envelope bass helped it beat the SN76489 with ease."
-msgstr ""
+msgstr "ten układ scalony jest wszędzie! ZX Spectrum, MSX, Amstrad CPC, Intellivision, Vectrex, itd...\n"
+"odkrycie basu obwiedniowego pomogło pokonać SN76489 z łatwością."
 
 #: src/engine/sysDef.cpp:872
 msgid "Amiga"
-msgstr ""
+msgstr "Amiga"
 
 #: src/engine/sysDef.cpp:873
 msgid ""
 "a computer from the '80s with full sampling capabilities, giving it a sound "
 "ahead of its time."
-msgstr ""
+msgstr "Komputer z lat '80-tych z pełnymi możliwościami samplingu, nadający mu dźwięk który wyprzedził swoje czasy."
 
 #: src/engine/sysDef.cpp:881
 msgid "10xx: Toggle filter (0 disables; 1 enables)"
-msgstr ""
+msgstr "10xx: Przełącz filtr (0 wyłącza; 1 włącza)"
 
 #: src/engine/sysDef.cpp:882
 msgid "11xx: Toggle AM with next channel"
-msgstr ""
+msgstr "11xx: Przełącz AM z następnym kanałem"
 
 #: src/engine/sysDef.cpp:883
 msgid "12xx: Toggle period modulation with next channel"
-msgstr ""
+msgstr "12xx: Przełącz modulację okresową z następnym kanałem"
 
 #: src/engine/sysDef.cpp:884
 msgid "13xx: Set waveform"
-msgstr ""
+msgstr "Ustaw kształt fali"
 
 #: src/engine/sysDef.cpp:889
 msgid "Yamaha YM2151 (OPM)"
@@ -1330,7 +1333,8 @@ msgstr "Yamaha YM2151 (OPM)"
 msgid ""
 "this was Yamaha's first integrated FM chip.\n"
 "it was used in several synthesizers, computers and arcade boards."
-msgstr ""
+msgstr "to był pierwszy zintegrowany układ dźwiękowy FM od Yamahy.\n"
+"został użyty w wielu syntezatorach, komputerach oraz automatach do gier wideo."
 
 #: src/engine/sysDef.cpp:891 src/engine/sysDef.cpp:903
 #: src/engine/sysDef.cpp:1032 src/engine/sysDef.cpp:1135
@@ -1345,7 +1349,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1849 src/engine/sysDef.cpp:1861
 #: src/engine/sysDef.cpp:2006
 msgid "FM 5"
-msgstr ""
+msgstr "FM 5"
 
 #: src/engine/sysDef.cpp:891 src/engine/sysDef.cpp:903
 #: src/engine/sysDef.cpp:1032 src/engine/sysDef.cpp:1135
@@ -1361,14 +1365,14 @@ msgstr ""
 #: src/engine/sysDef.cpp:1681 src/engine/sysDef.cpp:1693
 #: src/engine/sysDef.cpp:2006
 msgid "FM 6"
-msgstr ""
+msgstr "FM 6"
 
 #: src/engine/sysDef.cpp:891 src/engine/sysDef.cpp:1032
 #: src/engine/sysDef.cpp:1173 src/engine/sysDef.cpp:1185
 #: src/engine/sysDef.cpp:1279 src/engine/sysDef.cpp:1681
 #: src/engine/sysDef.cpp:2006
 msgid "FM 7"
-msgstr ""
+msgstr "FM 7"
 
 #: src/engine/sysDef.cpp:891 src/engine/sysDef.cpp:1032
 #: src/engine/sysDef.cpp:1173 src/engine/sysDef.cpp:1185
@@ -1377,105 +1381,105 @@ msgstr ""
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1681
 #: src/engine/sysDef.cpp:2006
 msgid "FM 8"
-msgstr ""
+msgstr "FM 8"
 
 #: src/engine/sysDef.cpp:901
 msgid "Yamaha YM2612 (OPN2)"
-msgstr ""
+msgstr "Yamaha YM2612 (OPN2)"
 
 #: src/engine/sysDef.cpp:902
 msgid ""
 "this chip is mostly known for being in the Sega Genesis (but it also was on "
 "the FM Towns computer)."
-msgstr ""
+msgstr "ten układ scalony jest w większości znany z konsoli Sega Genesis (ale został także użyty w komputerze FM Towns)."
 
 #: src/engine/sysDef.cpp:913
 msgid "Atari TIA"
-msgstr ""
+msgstr "Atari TIA"
 
 #: src/engine/sysDef.cpp:914
 msgid ""
 "it's a challenge to make music on this chip which barely has musical "
 "capabilities..."
-msgstr ""
+msgstr "To jest trudne tworzyć muzykę w układzie scalonym który prawie nie ma żadnych możliwości muzycznych..."
 
 #: src/engine/sysDef.cpp:925
 msgid "Philips SAA1099"
-msgstr ""
+msgstr "Philips SAA1099"
 
 #: src/engine/sysDef.cpp:926
 msgid ""
 "supposedly an upgrade from the AY-3-8910, this was present on the Creative "
 "Music System (Game Blaster) and SAM Coupé."
-msgstr ""
+msgstr "jest to ponoć ulepszenie z AY-3-8910, ten układ jest obecny w karcie dźwiękowiej Creative Music System (Game Blaster) oraz SAM Coupé."
 
 #: src/engine/sysDef.cpp:927
 msgid "PSG 4"
-msgstr ""
+msgstr "PSG 4"
 
 #: src/engine/sysDef.cpp:927
 msgid "PSG 5"
-msgstr ""
+msgstr "PSG 5"
 
 #: src/engine/sysDef.cpp:927
 msgid "PSG 6"
-msgstr ""
+msgstr "PSG 6"
 
 #: src/engine/sysDef.cpp:934
 msgid "10xy: Set channel mode (x: noise; y: tone)"
-msgstr ""
+msgstr "10xy: Ustaw tryb kanału (x: szum; y: ton)"
 
 #: src/engine/sysDef.cpp:935
 msgid "11xx: Set noise frequency"
-msgstr ""
+msgstr "11xx: Ustaw częstotliwość szumu"
 
 #: src/engine/sysDef.cpp:936
 msgid "12xx: Setup envelope (refer to docs for more information)"
-msgstr ""
+msgstr "12xx: Konfiguruj obwiednię (szczegóły zobacz w instrukcji)"
 
 #: src/engine/sysDef.cpp:941
 msgid "Microchip AY8930"
-msgstr ""
+msgstr "Microchip AY8930"
 
 #: src/engine/sysDef.cpp:942
 msgid ""
 "an improved version of the AY-3-8910 with a bigger frequency range, duty "
 "cycles, configurable noise and per-channel envelopes!"
-msgstr ""
+msgstr "ulepszona wersja AY-3-8910 z szerszym pasmem częstotliwości, wypełnieniem fal prostokątnych, konfigurowalnym szumem oraz obwiedniami dla każdego kanału!"
 
 #: src/engine/sysDef.cpp:953
 msgid "Commodore VIC-20"
-msgstr ""
+msgstr "Commodore VIC-20"
 
 #: src/engine/sysDef.cpp:954
 msgid ""
 "Commodore's successor to the PET.\n"
 "its square wave channels are more than just square..."
-msgstr ""
+msgstr "jego kanały fal kwadratowych to coś więcej niż sam kwadrat..."
 
 #: src/engine/sysDef.cpp:955 src/gui/settings.cpp:114 src/gui/settings.cpp:184
 #: src/gui/settings.cpp:3917
 msgid "Low"
-msgstr ""
+msgstr "Niski"
 
 #: src/engine/sysDef.cpp:955
 msgid "Mid"
-msgstr ""
+msgstr "Średni"
 
 #: src/engine/sysDef.cpp:955 src/gui/settings.cpp:113 src/gui/settings.cpp:186
 #: src/gui/settings.cpp:3918
 msgid "High"
-msgstr ""
+msgstr "Wysoki"
 
 #: src/engine/sysDef.cpp:964
 msgid "Commodore PET"
-msgstr ""
+msgstr "Commodore PET"
 
 #: src/engine/sysDef.cpp:965
 msgid ""
 "one channel of 1-bit wavetable which is better (and worse) than the PC "
 "Speaker."
-msgstr ""
+msgstr "jeden kanał 1-bitowej fali, który jest lepszy (i gorszy) niż głośnik PC"
 
 #: src/engine/sysDef.cpp:966 src/engine/sysDef.cpp:1262
 #: src/engine/sysDef.cpp:2100 src/gui/editControls.cpp:433
@@ -1489,117 +1493,117 @@ msgstr "SNES"
 
 #: src/engine/sysDef.cpp:976
 msgid "FM? nah... samples! Nintendo's answer to Sega."
-msgstr ""
+msgstr "FM? nie... sample! Odpowiedź Nintendo na Segę"
 
 #: src/engine/sysDef.cpp:983
 msgid "18xx: Enable echo buffer"
-msgstr ""
+msgstr "18xx: Włącz bufor echa"
 
 #: src/engine/sysDef.cpp:984
 msgid "19xx: Set echo delay (0 to F)"
-msgstr ""
+msgstr "19xx: Ustaw opóźnienie echa (0 do F)"
 
 #: src/engine/sysDef.cpp:985
 msgid "1Axx: Set left echo volume"
-msgstr ""
+msgstr "1Axx: Ustaw głośność lewego echa"
 
 #: src/engine/sysDef.cpp:986
 msgid "1Bxx: Set right echo volume"
-msgstr ""
+msgstr "1Bxx: Ustaw głośność prawego echa"
 
 #: src/engine/sysDef.cpp:987
 msgid "1Cxx: Set echo feedback"
-msgstr ""
+msgstr "1Cxx: Ustaw sprężenie zwrotne echa"
 
 #: src/engine/sysDef.cpp:988
 msgid "1Exx: Set dry output volume (left)"
-msgstr ""
+msgstr "1Exx: Ustaw głośność suchego sygnału wyjściowego (po lewej)"
 
 #: src/engine/sysDef.cpp:989
 msgid "1Fxx: Set dry output volume (right)"
-msgstr ""
+msgstr "1Fxx: Ustaw głośność suchego sygnału wejściowego (po prawej)"
 
 #: src/engine/sysDef.cpp:990
 msgid "30xx: Set echo filter coefficient 0"
-msgstr ""
+msgstr "30xx: Ustaw współczynnik filtra echo 0"
 
 #: src/engine/sysDef.cpp:991
 msgid "31xx: Set echo filter coefficient 1"
-msgstr ""
+msgstr "31xx: Ustaw współczynnik filtra echo 1"
 
 #: src/engine/sysDef.cpp:992
 msgid "32xx: Set echo filter coefficient 2"
-msgstr ""
+msgstr "32xx: Ustaw współczynnik filtra echo 2"
 
 #: src/engine/sysDef.cpp:993
 msgid "33xx: Set echo filter coefficient 3"
-msgstr ""
+msgstr "33xx: Ustaw współczynnik filtra echo 3"
 
 #: src/engine/sysDef.cpp:994
 msgid "34xx: Set echo filter coefficient 4"
-msgstr ""
+msgstr "34xx: Ustaw współczynnik filtra echo 4"
 
 #: src/engine/sysDef.cpp:995
 msgid "35xx: Set echo filter coefficient 5"
-msgstr ""
+msgstr "35xx: Ustaw współczynnik filtra echo 5"
 
 #: src/engine/sysDef.cpp:996
 msgid "36xx: Set echo filter coefficient 6"
-msgstr ""
+msgstr "36xx: Ustaw współczynnik filtra echo 6"
 
 #: src/engine/sysDef.cpp:997
 msgid "37xx: Set echo filter coefficient 7"
-msgstr ""
+msgstr "37xx: Ustaw współczynnik filtra echo 7"
 
 #: src/engine/sysDef.cpp:1002
 msgid "12xx: Toggle echo on this channel"
-msgstr ""
+msgstr "12xx: Przełącz echo na tym kanale"
 
 #: src/engine/sysDef.cpp:1003
 msgid "13xx: Toggle pitch modulation"
-msgstr ""
+msgstr "13xx: Przełącz modulację wysokości tonu"
 
 #: src/engine/sysDef.cpp:1004
 msgid "14xy: Toggle invert (x: left; y: right)"
-msgstr ""
+msgstr "14xy: Przełącz inwersji (x: po lewej; y: po prawej)"
 
 #: src/engine/sysDef.cpp:1005
 msgid ""
 "15xx: Set envelope mode (0: ADSR, 1: gain/direct, 2: dec, 3: exp, 4: inc, 5: "
 "bent)"
-msgstr ""
+msgstr "15xx: Ustaw tryb obwiedni (0: ADSR, 1: zgłośnienie/bezpośrednie, 2: spadek, 3: wykładniczy, 4: "
 
 #: src/engine/sysDef.cpp:1006
 msgid "16xx: Set gain (00 to 7F if direct; 00 to 1F otherwise)"
-msgstr ""
+msgstr "16xx: Ustaw zgłośnienie (00 do 7F jeżeli bezpośrednie; 00 do 1F jeśli przeciwnie)"
 
 #: src/engine/sysDef.cpp:1007
 msgid "1Dxx: Set noise frequency (00 to 1F)"
-msgstr ""
+msgstr "1Dxx: Ustaw częstotliwość szumu (00 do 1F)"
 
 #: src/engine/sysDef.cpp:1008
 msgid "20xx: Set attack (0 to F)"
-msgstr ""
+msgstr "20xx: Ustaw czas narastania (0 do F)"
 
 #: src/engine/sysDef.cpp:1009
 msgid "21xx: Set decay (0 to 7)"
-msgstr ""
+msgstr "21xx: Ustaw opadanie (0 do 7)"
 
 #: src/engine/sysDef.cpp:1010
 msgid "22xx: Set sustain (0 to 7)"
-msgstr ""
+msgstr "22xx: Ustaw podtrzymywanie (0 do 7)"
 
 #: src/engine/sysDef.cpp:1011
 msgid "23xx: Set release (00 to 1F)"
-msgstr ""
+msgstr "23xx: Ustaw zwolnienie (00 do 1F)"
 
 #: src/engine/sysDef.cpp:1016
 msgid "Konami VRC6"
-msgstr ""
+msgstr "Konami VRC6"
 
 #: src/engine/sysDef.cpp:1017
 msgid "an expansion chip for the Famicom, featuring a quirky sawtooth channel."
-msgstr ""
+msgstr "układ rozszerzeń dla Famicomu, posiadający dziwaczny kanał piłokształtny"
 
 #: src/engine/sysDef.cpp:1018
 msgid "VRC6 1"
@@ -1611,11 +1615,11 @@ msgstr "VRC6 2"
 
 #: src/engine/sysDef.cpp:1018
 msgid "VRC6 Saw"
-msgstr "Piła VRC6"
+msgstr "VRC6 Piłokształtny"
 
 #: src/engine/sysDef.cpp:1024 src/engine/sysDef.cpp:2092
 msgid "12xx: Set duty cycle (pulse: 0 to 7)"
-msgstr "12xx: Ustaw szerokość fali prost. (fala prost.: 0-7)"
+msgstr "12xx: Ustaw szerokość fali prostokątnej (fala prostokątna: 0 do 7)"
 
 #: src/engine/sysDef.cpp:1030
 msgid "Yamaha YM2413 (OPLL)"
@@ -1625,7 +1629,7 @@ msgstr "Yamaha YM2413 (OPLL)"
 msgid ""
 "cost-reduced version of the OPL with 16 patches and only one of them is user-"
 "configurable."
-msgstr ""
+msgstr "Odchudzona wersja OPL z 16 instrumentami, i tylko jeden z nich jest konfigurowalny przez użytkownika."
 
 #: src/engine/sysDef.cpp:1032 src/engine/sysDef.cpp:1173
 #: src/engine/sysDef.cpp:1185 src/engine/sysDef.cpp:1681
@@ -1635,99 +1639,100 @@ msgstr "FM 9"
 
 #: src/engine/sysDef.cpp:1042
 msgid "Famicom Disk System (chip)"
-msgstr ""
+msgstr "Famicom Disk System (układ dźwiękowy)"
 
 #: src/engine/sysDef.cpp:1043
 msgid "a disk drive for the Famicom which also contains one wavetable channel."
-msgstr ""
+msgstr "napęd na dyskietki dla Famicomu, który posiada też jeden kanał fali tablicowej"
 
 #: src/engine/sysDef.cpp:1044 src/gui/settings.cpp:3986
 msgid "FDS"
-msgstr ""
+msgstr "FDS"
 
 #: src/engine/sysDef.cpp:1051
 msgid "11xx: Set modulation depth"
-msgstr ""
+msgstr "11xx: Ustaw głębokość modulacji"
 
 #: src/engine/sysDef.cpp:1052
 msgid "12xy: Set modulation speed high byte (x: enable; y: value)"
-msgstr ""
+msgstr "12xy: Ustaw modulację prędkości wysokich bitów (x: włącz; y: wartość)"
 
 #: src/engine/sysDef.cpp:1053
 msgid "13xx: Set modulation speed low byte"
-msgstr ""
+msgstr "13xx: Ustaw modulację prędkości niskich bitów"
 
 #: src/engine/sysDef.cpp:1054
 msgid "14xx: Set modulator position"
-msgstr ""
+msgstr "14xx: Ustaw pozycję modulatora"
 
 #: src/engine/sysDef.cpp:1055
 msgid "15xx: Set modulator table to waveform"
-msgstr ""
+msgstr "15xx: Ustaw tabeli modulatora na kształt fali"
 
 #: src/engine/sysDef.cpp:1060
 msgid "MMC5"
-msgstr ""
+msgstr "MMC5"
 
 #: src/engine/sysDef.cpp:1061
 msgid ""
 "an expansion chip for the Famicom, featuring a little-known PCM channel."
-msgstr ""
+msgstr "układ rozszerzeń dla Famicomu, posiadający mało znany kanał PCM. "
 
 #: src/engine/sysDef.cpp:1073 src/gui/settings.cpp:3988
 msgid "Namco 163"
-msgstr ""
+msgstr "Namco 163"
 
 #: src/engine/sysDef.cpp:1074
 msgid "an expansion chip for the Famicom, with full wavetable."
-msgstr ""
+msgstr "układ rozszerzeń dla Famicomu, z pełną syntezą tablicową"
 
 #: src/engine/sysDef.cpp:1081
 msgid "18xx: Change channel limits (0 to 7, x + 1)"
-msgstr ""
+msgstr "18xx: Zmień limity kanałów (0 do 7, x + 1)"
 
 #: src/engine/sysDef.cpp:1082
 msgid "20xx: Load a waveform into memory"
-msgstr ""
+msgstr "20xx: Wczytaj falę do pamięci"
 
 #: src/engine/sysDef.cpp:1083
 msgid "21xx: Set position for wave load"
-msgstr ""
+msgstr "21xx: Ustaw pozycję dla obciążenia falą"
 
 #: src/engine/sysDef.cpp:1086
 msgid "10xx: Select waveform"
-msgstr ""
+msgstr "10xx: Wybierz kształt fali"
 
 #: src/engine/sysDef.cpp:1087
 msgid "11xx: Set waveform position in RAM"
-msgstr ""
+msgstr "11xx: Ustaw pozycję kształtu fali w pamięci RAM"
 
 #: src/engine/sysDef.cpp:1088
 msgid "12xx: Set waveform length in RAM (04 to FC in steps of 4)"
-msgstr ""
+msgstr "12xx: Ustaw długość fali w pamięci RAM (04 do FC w stopniach co 4)"
 
 #: src/engine/sysDef.cpp:1089
 msgid "15xx: Set waveform load position"
-msgstr ""
+msgstr "15xx: Ustaw pozycję wczytania kształtu fali"
 
 #: src/engine/sysDef.cpp:1090
 msgid "16xx: Set waveform load length (04 to FC in steps of 4)"
-msgstr ""
+msgstr "16xx: Ustaw długość wczytania kształtu fali (04 do FC w stopniach co 4)"
 
 #: src/engine/sysDef.cpp:1095
 msgid "Yamaha YM2203 (OPN)"
-msgstr ""
+msgstr "Yamaha YM2203 (OPN)"
 
 #: src/engine/sysDef.cpp:1096
 msgid ""
 "cost-reduced version of the OPM with a different register layout and no "
 "stereo...\n"
 "...but it has a built-in AY-3-8910! (actually an YM2149)"
-msgstr ""
+msgstr "odchudzona wersja OPM z innym układem rejestrów i bez stereo...\n"
+"... ale za to ma wbudowany układ AY-3-8910 (tak naprawdę to YM2149)"
 
 #: src/engine/sysDef.cpp:1107
 msgid "Yamaha YM2203 (OPN) Extended Channel 3"
-msgstr ""
+msgstr "Yamaha YM2203 (OPN) z Rozszerzonym kanałem 3"
 
 #: src/engine/sysDef.cpp:1108
 msgid ""
@@ -1736,7 +1741,9 @@ msgid ""
 "...but it has a built-in AY-3-8910! (actually an YM2149)\n"
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies"
-msgstr ""
+msgstr "odchudzona wersja OPM z innym układem rejestrów i bez stereo...\n"
+"... ale za to ma wbudowany układ AY-3-8910 (tak naprawdę to YM2149)\n"
+"ten układ scalony ma włączony tryb rozszerzonego kanału 3, który zmienia trzeci kanał FM w 4 osobne operatory z osobnymi nutami/częstotliwościami"
 
 #: src/engine/sysDef.cpp:1109 src/engine/sysDef.cpp:1122
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
@@ -1772,7 +1779,7 @@ msgstr "FM 3 OP4"
 
 #: src/engine/sysDef.cpp:1120
 msgid "Yamaha YM2203 (OPN) CSM"
-msgstr ""
+msgstr "Yamaha YM2203 (OPN) CSM"
 
 #: src/engine/sysDef.cpp:1121
 msgid ""
@@ -1780,29 +1787,31 @@ msgid ""
 "stereo...\n"
 "...but it has a built-in AY-3-8910! (actually an YM2149)\n"
 "CSM blah blah"
-msgstr ""
+msgstr "odchudzona wersja OPM z innym układem rejestrów i bez dźwięku stereo...\n"
+"... ale za to ma wbudowany układ AY-3-8910 (tak naprawdę to YM2149)\n"
+"CSM bla bla"
 
 #: src/engine/sysDef.cpp:1122 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1383 src/engine/sysDef.cpp:1468
 #: src/engine/sysDef.cpp:1559 src/engine/sysDef.cpp:1861
 msgid "CSM Timer"
-msgstr ""
+msgstr "Zegar CSM"
 
 #: src/engine/sysDef.cpp:1133
 msgid "Yamaha YM2608 (OPNA)"
-msgstr ""
+msgstr "Yamaha YM2608 (OPNA)"
 
 #: src/engine/sysDef.cpp:1134
 msgid ""
 "OPN but twice the FM channels, stereo makes a come-back and has rhythm and "
 "ADPCM channels."
-msgstr ""
+msgstr "OPN ale ma 2x więcej kanałów FM, stereo powraca i posiada kanały rytmiczne i ADPCM."
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1481
 #: src/gui/insEdit.cpp:3302 src/gui/insEdit.cpp:3624
 msgid "Kick"
-msgstr "Stopa"
+msgstr "Bęben Basowy"
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1407
@@ -1819,7 +1828,7 @@ msgstr "Werbel"
 #: src/engine/sysDef.cpp:1693 src/gui/insEdit.cpp:212 src/gui/insEdit.cpp:220
 #: src/gui/insEdit.cpp:1909 src/gui/insEdit.cpp:2014
 msgid "Top"
-msgstr "Talerz"
+msgstr "Top"
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1407
@@ -1827,7 +1836,7 @@ msgstr "Talerz"
 #: src/engine/sysDef.cpp:1481 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:1693 src/gui/insEdit.cpp:213 src/gui/insEdit.cpp:219
 msgid "HiHat"
-msgstr "Hi-hat
+msgstr "Hi-Hat"
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1407
@@ -1840,7 +1849,7 @@ msgstr "Tom-tom"
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160
 msgid "Rim"
-msgstr "Rimshot"
+msgstr "Rim"
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1681
@@ -1850,7 +1859,7 @@ msgstr "ADPCM"
 
 #: src/engine/sysDef.cpp:1145
 msgid "Yamaha YM2608 (OPNA) Extended Channel 3"
-msgstr ""
+msgstr "Yamaha YM2608 (OPNA) z Rozszerzonym kanałem 3"
 
 #: src/engine/sysDef.cpp:1146
 msgid ""
@@ -1858,46 +1867,48 @@ msgid ""
 "ADPCM channels.\n"
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies"
-msgstr ""
+msgstr "OPN ale ma 2x więcej kanałów FM, stereo powraca i posiada kanały rytmiczne i ADPCM.\n"
+"ten układ scalony ma włączony tryb rozszerzonego kanału 3, który zmienia trzeci kanał FM w 4 osobne operatory z osobnymi nutami/częstotliwościami"
 
 #: src/engine/sysDef.cpp:1158
 msgid "Yamaha YM2608 (OPNA) CSM"
-msgstr ""
+msgstr "Yamaha YM2608 (OPNA) CSM"
 
 #: src/engine/sysDef.cpp:1159
 msgid ""
 "OPN but twice the FM channels, stereo makes a come-back and has rhythm and "
 "ADPCM channels.\n"
 "CSM blah blah"
-msgstr ""
+msgstr "OPN ale ma 2x więcej kanałów FM, stereo powraca i posiada kanały rytmiczne i ADPCM.\n"
+"CSM bla bla"
 
 #: src/engine/sysDef.cpp:1171
 msgid "Yamaha YM3526 (OPL)"
-msgstr ""
+msgstr "Yamaha YM3526 (OPL)"
 
 #: src/engine/sysDef.cpp:1172
 msgid ""
 "OPN, but what if you only had two operators, no stereo, no detune and a "
 "lower ADSR parameter range?"
-msgstr ""
+msgstr "OPN, ale co gdybyś miał tylko 2 operatory, bez stereo, bez rostrojenia i niższy zakres parametrów ADSR?"
 
 #: src/engine/sysDef.cpp:1183
 msgid "Yamaha YM3812 (OPL2)"
-msgstr ""
+msgstr "Yamaha YM3812 (OPL2)"
 
 #: src/engine/sysDef.cpp:1184
 msgid "OPL, but what if you had more waveforms to choose than the normal sine?"
-msgstr ""
+msgstr "OPL, ale co gdybyś miał więcej kształtów fali do wybrania niż tylko sinusoidę?"
 
 #: src/engine/sysDef.cpp:1195
 msgid "Yamaha YMF262 (OPL3)"
-msgstr ""
+msgstr "Yamaha YMF262 (OPL3)"
 
 #: src/engine/sysDef.cpp:1196
 msgid ""
 "OPL2, but what if you had twice the channels, 4-op mode, stereo and even "
 "more waveforms?"
-msgstr ""
+msgstr "OPL2, ale co gdybyś miał podwojoną ilość kanałów, tryb 4-operatorowy, stereo i więcej kształtów fali?"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
@@ -1928,12 +1939,12 @@ msgstr "4OP 9"
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:2006
 msgid "FM 10"
-msgstr ""FM 10"
+msgstr "FM 10"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "4OP 11"
-msgstr ""4OP 11"
+msgstr "4OP 11"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
@@ -1982,8 +1993,8 @@ msgstr "MultiPCM"
 msgid ""
 "how many channels of PCM do you want?\n"
 "MultiPCM: yes"
-msgstr "ile kanałów PCM chcesz?\n"
-"MultiPCM: a dobrze"
+msgstr "Ile byś chciał mieć kanałów PCM?\n"
+"MultiPCM: tak"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
@@ -1993,7 +2004,7 @@ msgstr "Kanał 17"
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 18"
-msgstr "Kanał 28"
+msgstr "Kanał 18"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
@@ -2043,65 +2054,66 @@ msgstr "Kanał 28"
 
 #: src/engine/sysDef.cpp:1217
 msgid "PC Speaker"
-msgstr ""
+msgstr "Głośnik PC"
 
 #: src/engine/sysDef.cpp:1218
 msgid "good luck! you get one square and no volume control."
-msgstr ""
+msgstr "powodzenia! masz do dyspozycji tylko jeden kanał kwadratowy, w dodatku bez regulacji głośności."
 
 #: src/engine/sysDef.cpp:1219 src/engine/sysDef.cpp:1228
 #: src/gui/guiConst.cpp:1394 src/gui/waveEdit.cpp:199 src/gui/insEdit.cpp:183
 #: src/gui/insEdit.cpp:194 src/gui/insEdit.cpp:326 src/gui/insEdit.cpp:656
 msgid "Square"
-msgstr ""
+msgstr "Kwadrat"
 
 #: src/engine/sysDef.cpp:1226
 msgid "Pong"
-msgstr ""
+msgstr "Pong"
 
 #: src/engine/sysDef.cpp:1227
 msgid "please don't use this chip. it was added as a joke."
-msgstr ""
+msgstr "proszę nie używać tego układu scalonego. on był dodany jako żart"
 
 #: src/engine/sysDef.cpp:1235 src/gui/settings.cpp:3991
 msgid "POKEY"
-msgstr ""
+msgstr "POKEY"
 
 #: src/engine/sysDef.cpp:1236
 msgid ""
 "TIA, but better and more flexible.\n"
 "used in the Atari 8-bit family of computers (400/800/XL/XE)."
-msgstr ""
+msgstr "TIA, ale lepsze i bardziej elastyczny.\n"
+"użyty w rodzinie komputerów 8-bitowych Atari (400/800/XL/XE)."
 
 #: src/engine/sysDef.cpp:1243 src/engine/sysDef.cpp:1714
 msgid "10xx: Set waveform (0 to 7)"
-msgstr ""
+msgstr "10xx: Ustaw kształt fali (0 do 7)"
 
 #: src/engine/sysDef.cpp:1244
 msgid "11xx: Set AUDCTL"
-msgstr ""
+msgstr "11xx: Ustaw AUDCTL"
 
 #: src/engine/sysDef.cpp:1245
 msgid "12xx: Toggle two-tone mode"
-msgstr ""
+msgstr "12xx: Przełącz tryb dwutonowy"
 
 #: src/engine/sysDef.cpp:1250
 msgid "Ricoh RF5C68"
-msgstr ""
+msgstr "Ricoh RF5C68"
 
 #: src/engine/sysDef.cpp:1251
 msgid ""
 "this is like SNES' sound chip but without interpolation and the rest of nice "
 "bits."
-msgstr ""
+msgstr "to jest jak układ dźwiękowy SNESa, lecz bez interpolacji i reszty fajnych bitów"
 
 #: src/engine/sysDef.cpp:1260 src/gui/settings.cpp:3993
 msgid "WonderSwan"
-msgstr ""
+msgstr "WonderSwan"
 
 #: src/engine/sysDef.cpp:1261
 msgid "developed by the makers of the Game Boy and the Virtual Boy..."
-msgstr ""
+msgstr "opracowany przez twórców Game Boy'a oraz Virtual Boy'a..."
 
 #: src/engine/sysDef.cpp:1262
 msgid "Wave/PCM"
@@ -2109,7 +2121,7 @@ msgstr "Fala/PCM"
 
 #: src/engine/sysDef.cpp:1262
 msgid "Wave/Sweep"
-msgstr ""
+msgstr "Fala/Sprzętowe Portamento"
 
 #: src/engine/sysDef.cpp:1262
 msgid "Wave/Noise"
@@ -2117,38 +2129,39 @@ msgstr "Fala/Szum"
 
 #: src/engine/sysDef.cpp:1269
 msgid "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)"
-msgstr ""
+msgstr "11xx: Konfiguruj tryb szumu (0: wyłączony; 1-8: włączony/przełącznik)"
 
 #: src/engine/sysDef.cpp:1270
 msgid "12xx: Setup sweep period (0: disabled; 1-20: enabled/period)"
-msgstr ""
+msgstr "12xx: Konfiguruj okres sprzętowego przesunięcia (0: wyłączony; 1-20: włączony/okres)"
 
 #: src/engine/sysDef.cpp:1271
 msgid "13xx: Set sweep amount"
-msgstr ""
+msgstr "13xx: Ustaw ilość sprzętowego przesunięcia"
 
 #: src/engine/sysDef.cpp:1277
 msgid "Yamaha YM2414 (OPZ)"
-msgstr ""
+msgstr "Yamaha YM2414 (OPZ)"
 
 #: src/engine/sysDef.cpp:1278
 msgid ""
 "like OPM, but with more waveforms, fixed frequency mode and totally... "
 "undocumented.\n"
 "used in the Yamaha TX81Z and some other synthesizers."
-msgstr ""
+msgstr "jak OPM, lecz posiada więcej kształtów fali, tryb stałej częstotliwości i jest totalnie... nieudokumentowany.\n"
+"został użyty w syntezatorze Yamaha TX81Z i kilku innych."
 
 #: src/engine/sysDef.cpp:1285
 msgid "2Fxx: Toggle hard envelope reset on new notes"
-msgstr ""
+msgstr "2Fxx: Przełącz twardy reset na nowych nutach"
 
 #: src/engine/sysDef.cpp:1291 src/gui/settings.cpp:4016
 msgid "Pokémon Mini"
-msgstr ""
+msgstr "Pokémon Mini"
 
 #: src/engine/sysDef.cpp:1292
 msgid "this one is like PC Speaker but has duty cycles."
-msgstr ""
+msgstr "ten układ jest jak PC Speaker, lecz ma wypełnialną falę prostokątną."
 
 #: src/engine/sysDef.cpp:1293 src/gui/settings.cpp:4039 src/gui/waveEdit.cpp:33
 msgid "Pulse"
@@ -2156,66 +2169,66 @@ msgstr "Fala prostokątna"
 
 #: src/engine/sysDef.cpp:1300
 msgid "SegaPCM"
-msgstr ""
+msgstr "SegaPCM"
 
 #: src/engine/sysDef.cpp:1301
 msgid ""
 "used in some Sega arcade boards (like OutRun), and usually paired with a "
 "YM2151."
-msgstr ""
+msgstr "użyty w kilku automatach Segi (tak jak OutRun), i często parowany z układem YM2151."
 
 #: src/engine/sysDef.cpp:1312 src/gui/settings.cpp:3987
 msgid "Virtual Boy"
-msgstr ""
+msgstr "Virtual Boy"
 
 #: src/engine/sysDef.cpp:1313
 msgid ""
 "a console which failed to sell well due to its headache-inducing features."
-msgstr ""
+msgstr "konsola której sprzedaż nie poszła dobrze ze względu na swoje przyprawiające o bóle głowy funkcje."
 
 #: src/engine/sysDef.cpp:1321
 msgid "11xx: Set noise length (0 to 7)"
-msgstr ""
+msgstr "11xx: Ustaw długość szumu (0 do 7)"
 
 #: src/engine/sysDef.cpp:1322
 msgid ""
 "12xy: Setup envelope (x: enabled/loop (1: enable, 3: enable+loop); y: speed/"
 "direction (0-7: down, 8-F: up))"
-msgstr ""
+msgstr "12xy: Ustaw obwiednię (x: włączona/zapętlenie (1: włączona, 3: włączona+zapętlenie); y: prędkość/kierunek (0-7: w dół, 8-F: w górę))"
 
 #: src/engine/sysDef.cpp:1323
 msgid "13xy: Setup sweep (x: speed; y: shift; channel 5 only)"
-msgstr ""
+msgstr "13xy: Konfiguruj sprzętowe portamento (x: prędkość; y: przesunięcie; tylko dla kanału 5)"
 
 #: src/engine/sysDef.cpp:1324
 msgid ""
 "14xy: Setup modulation (x: enabled/loop (1: enable, 3: enable+loop); y: "
 "speed; channel 5 only)"
-msgstr ""
+msgstr "14xy: Konfiguruj modulację (x: włączona/zapętlenie (1: włączona, 3: włączona+zapętlenie); y: Prędkość; tylko dla kanału 5)"
 
 #: src/engine/sysDef.cpp:1325
 msgid "15xx: Set modulation waveform (x: wavetable; channel 5 only)"
-msgstr ""
+msgstr "15xx: Ustaw modulację kształtu fali (x: fala tablicowa; tylko dla kanału 5)"
 
 #: src/engine/sysDef.cpp:1330
 msgid "Konami VRC7"
-msgstr ""
+msgstr "Konami VRC7"
 
 #: src/engine/sysDef.cpp:1331
 msgid ""
 "like OPLL, but even more cost reductions applied. three FM channels went "
 "missing, and drums mode did as well..."
-msgstr ""
+msgstr "podobny do OPLL, ale w ruch poszło więcej cięć kosztów. trzy kanały FM zniknęły, w tym też tryb perkusji..."
 
 #: src/engine/sysDef.cpp:1342
 msgid "Yamaha YM2610B (OPNB2)"
-msgstr ""
+msgstr "Yamaha YM2610B (OPNB2)"
 
 #: src/engine/sysDef.cpp:1343
 msgid ""
 "so Taito asked Yamaha if they could get the two missing FM channels back, "
 "and Yamaha gladly provided them with this chip."
-msgstr ""
+msgstr "więc Taito spytało Yamahę czy mogliby przywrócić 2 brakujące kanały FM, i Yamaha chętnie dostarczyła im ten układ scalony"
 
 #: src/engine/sysDef.cpp:1344 src/engine/sysDef.cpp:1443
 #: src/engine/sysDef.cpp:1455 src/engine/sysDef.cpp:1468
@@ -2226,18 +2239,18 @@ msgstr "ADPCM-B"
 
 #: src/engine/sysDef.cpp:1354
 msgid "ZX Spectrum Beeper"
-msgstr ""
+msgstr "Głośnik ZX Spectrum"
 
 #: src/engine/sysDef.cpp:1355
 msgid ""
 "the ZX Spectrum only had a basic beeper capable of...\n"
 "...a bunch of thin pulses and tons of other interesting stuff!\n"
 "Furnace provides a thin pulse system."
-msgstr ""
+msgstr "ZX Spectrum miał tylko zwyczajny głośnik "
 
 #: src/engine/sysDef.cpp:1362 src/engine/sysDef.cpp:1950
 msgid "12xx: Set pulse width"
-msgstr ""
+msgstr "12xx: Ustaw szerokość fali prostokątnej"
 
 #: src/engine/sysDef.cpp:1363
 msgid "17xx: Trigger overlay drum"
@@ -2245,7 +2258,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1368
 msgid "Yamaha YM2612 (OPN2) Extended Channel 3"
-msgstr ""
+msgstr "Yamaha YM2612 (OPN2) z Rozszerzonym kanałem 3"
 
 #: src/engine/sysDef.cpp:1369
 msgid ""
@@ -2253,76 +2266,80 @@ msgid ""
 "the FM Towns computer).\n"
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies."
-msgstr ""
+msgstr "ten układ scalony jest w większości znany z konsoli Sega Genesis (ale został także użyty w komputerze FM Towns).\n"
+"ten układ scalony ma włączony tryb rozszerzonego kanału 3, który zmienia trzeci kanał FM w 4 osobne operatory z osobnymi nutami/częstotliwościami"
 
 #: src/engine/sysDef.cpp:1381
 msgid "Yamaha YM2612 (OPN2) CSM"
-msgstr ""
+msgstr "Yamaha YM2612 (OPN2) CSM"
 
 #: src/engine/sysDef.cpp:1382
 msgid ""
 "this chip is mostly known for being in the Sega Genesis (but it also was on "
 "the FM Towns computer).\n"
 "this one includes CSM mode control for special effects on Channel 3."
-msgstr ""
+msgstr "ten układ scalony jest w większości znany z konsoli Sega Genesis (ale został także użyty w komputerze FM Towns).\n"
+"ten układ ma dodatkowo zegar CSM dla efektów specjalnych na Kanale 3."
 
 #: src/engine/sysDef.cpp:1394 src/gui/settings.cpp:3989
 msgid "Konami SCC"
-msgstr ""
+msgstr "Konami SCC"
 
 #: src/engine/sysDef.cpp:1395
 msgid ""
 "a wavetable chip made by Konami for use with the MSX.\n"
 "the last channel shares its wavetable with the previous one though."
-msgstr ""
+msgstr "Układ dźwiękowy wavetable stworzony przez Konami do użycia z komputerem MSX.\n"
+"jednakże ostatni kanał dzieli swoją falę z poprzednim kanałem."
 
 #: src/engine/sysDef.cpp:1405
 msgid "Yamaha YM3526 (OPL) with drums"
-msgstr ""
+msgstr "Yamaha YM3526 (OPL) z perkusją"
 
 #: src/engine/sysDef.cpp:1406
 msgid "the OPL chip but with drums mode enabled."
-msgstr ""
+msgstr "Układ scalony OPL ale z włączonym trybem perkusji"
 
 #: src/engine/sysDef.cpp:1407 src/engine/sysDef.cpp:1419
 #: src/engine/sysDef.cpp:1693
 msgid "Kick/FM 7"
-msgstr ""
+msgstr "Bęben Basowy/FM 7"
 
 #: src/engine/sysDef.cpp:1417
 msgid "Yamaha YM3812 (OPL2) with drums"
-msgstr ""
+msgstr "Yamaha YM3812 (OPL2) z perkusją"
 
 #: src/engine/sysDef.cpp:1418
 msgid "the OPL2 chip but with drums mode enabled."
-msgstr ""
+msgstr "Układ scalony OPL2 ale z włączonym trybem perkusji"
 
 #: src/engine/sysDef.cpp:1429
 msgid "Yamaha YMF262 (OPL3) with drums"
-msgstr ""
+msgstr "Yamaha YMF262 (OPL3) z perkusją"
 
 #: src/engine/sysDef.cpp:1430
 msgid "the OPL3 chip but with drums mode enabled."
-msgstr ""
+msgstr "Układ scalony OPL3 ale z włączonym trybem perkusji"
 
 #: src/engine/sysDef.cpp:1431 src/engine/sysDef.cpp:1631
 msgid "Kick/FM 16"
-msgstr ""
+msgstr "Bęben Basowy/FM 16"
 
 #: src/engine/sysDef.cpp:1441
 msgid "Yamaha YM2610 (OPNB)"
-msgstr ""
+msgstr "Yamaha YM2610 (OPNB)"
 
 #: src/engine/sysDef.cpp:1442
 msgid ""
 "this chip was used in SNK's Neo Geo arcade board and video game console.\n"
 "it's like OPNA but the rhythm channels are ADPCM channels and two FM "
 "channels went missing."
-msgstr ""
+msgstr "Ten układ został użyty w Automacie do gry pt. Neo Geo oraz konsoli do gier wideo o tej samej nazwie od SNK.\n"
+"on jest podobny do układu OPNA, lecz kanały rytmiczne są kanałami ADPCM i dwa kanały FM zaginęły."
 
 #: src/engine/sysDef.cpp:1453
 msgid "Yamaha YM2610 (OPNB) Extended Channel 2"
-msgstr ""
+msgstr "Yamaha YM2610 (OPNB) z Rozszerzonym kanałem 2"
 
 #: src/engine/sysDef.cpp:1454
 msgid ""
@@ -2331,11 +2348,13 @@ msgid ""
 "channels went missing.\n"
 "this one is in Extended Channel mode, which turns the second FM channel into "
 "four operators with independent notes/frequencies."
-msgstr ""
+msgstr "Ten układ został użyty w Automacie do gry pt. Neo Geo oraz konsoli do gier wideo o tej samej nazwie od SNK.\n"
+"on jest podobny do układu OPNA, lecz kanały rytmiczne są kanałami ADPCM i dwa kanały FM zaginęły."
+"ten układ scalony ma włączony tryb rozszerzonego kanału 2, który zmienia drugi kanał FM w 4 osobne operatory z osobnymi nutami/częstotliwościami"
 
 #: src/engine/sysDef.cpp:1466
 msgid "Yamaha YM2610 (OPNB) CSM"
-msgstr ""
+msgstr "Yamaha YM2610 (OPNB) CSM"
 
 #: src/engine/sysDef.cpp:1467
 msgid ""
@@ -2343,169 +2362,171 @@ msgid ""
 "it's like OPNA but the rhythm channels are ADPCM channels and two FM "
 "channels went missing.\n"
 "this one includes CSM mode control for special effects on Channel 2."
-msgstr ""
+msgstr "Ten układ został użyty w Automacie do gry pt. Neo Geo oraz konsoli do gier wideo o tej samej nazwie od SNK.\n"
+"on jest podobny do układu OPNA, lecz kanały rytmiczne są kanałami ADPCM i dwa kanały FM zaginęły."
+"ten układ ma dodatkowo zegar CSM dla efektów specjalnych na Kanale 2."
 
 #: src/engine/sysDef.cpp:1479
 msgid "Yamaha YM2413 (OPLL) with drums"
-msgstr ""
+msgstr "Yamaha YM2413 (OPLL) z perkusją"
 
 #: src/engine/sysDef.cpp:1480
 msgid "the OPLL chips but with drums mode turned on."
-msgstr ""
+msgstr "układy OPLL ale z włączonym trybem perkusji"
 
 #: src/engine/sysDef.cpp:1491
 msgid "3xxx: Load LFSR (0 to FFF)"
-msgstr ""
+msgstr "3xxx: Wczytaj LFSR (0 do FFF)"
 
 #: src/engine/sysDef.cpp:1497
 msgid "Atari Lynx"
-msgstr ""
+msgstr "Atari Lynx"
 
 #: src/engine/sysDef.cpp:1498
 msgid ""
 "a portable console made by Atari. it has all of Atari's trademark waveforms."
-msgstr ""
+msgstr "przenośnia konsola wideo stworzona przez Atari. ona posiada wszystkie charakterystyczne dla Atari kształty fal."
 
 #: src/engine/sysDef.cpp:1509
 msgid "10xx: Set echo feedback level (00 to FF)"
-msgstr ""
+msgstr "10xx: Ustaw poziom sprężenia zwrotnego echa (00 do FF)"
 
 #: src/engine/sysDef.cpp:1510
 msgid "11xx: Set channel echo level (00 to FF)"
-msgstr ""
+msgstr "11xx: Ustaw poziom echa na kanale (0 do FF)"
 
 #: src/engine/sysDef.cpp:1511
 msgid "12xx: Toggle QSound algorithm (0: disabled; 1: enabled)"
-msgstr ""
+msgstr "12xx: Przełącz algorytm QSound (0: wyłączony; 1: włączony)"
 
 #: src/engine/sysDef.cpp:1513
 msgid "3xxx: Set echo delay buffer length (000 to AA5)"
-msgstr ""
+msgstr "3xxx: Ustaw długość opóźnienia buforu echa (000 do AA5)"
 
 #: src/engine/sysDef.cpp:1519
 msgid "Capcom QSound"
-msgstr ""
+msgstr "Capcon QSound"
 
 #: src/engine/sysDef.cpp:1520
 msgid ""
 "used in some of Capcom's arcade boards. surround-like sampled sound with "
 "echo."
-msgstr ""
+msgstr "używany w niektórych grach automatowych firmy Capcom. z przestrzennym samplowanym dźwiękiem z echem."
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 #: src/engine/sysDef.cpp:2056
 msgid "PCM 1"
-msgstr ""
+msgstr "PCM 1"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 #: src/engine/sysDef.cpp:1849 src/engine/sysDef.cpp:1861
 #: src/engine/sysDef.cpp:2056
 msgid "PCM 2"
-msgstr ""
+msgstr "PCM 2"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 3"
-msgstr ""
+msgstr "PCM 3"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 4"
-msgstr ""
+msgstr "PCM 4"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 5"
-msgstr ""
+msgstr "PCM 5"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 6"
-msgstr ""
+msgstr "PCM 6"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 7"
-msgstr ""
+msgstr "PCM 7"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 8"
-msgstr ""
+msgstr "PCM 8"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 9"
-msgstr ""
+msgstr "PCM 9"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 10"
-msgstr ""
+msgstr "PCM 10"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 11"
-msgstr ""
+msgstr "PCM 11"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 12"
-msgstr ""
+msgstr "PCM 12"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 13"
-msgstr ""
+msgstr "PCM 13"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 14"
-msgstr ""
+msgstr "PCM 14"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 15"
-msgstr ""
+msgstr "PCM 15"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 16"
-msgstr ""
+msgstr "PCM 16"
 
 #: src/engine/sysDef.cpp:1521
 msgid "ADPCM 1"
-msgstr ""
+msgstr "ADPCM 1"
 
 #: src/engine/sysDef.cpp:1521
 msgid "ADPCM 2"
-msgstr ""
+msgstr "ADPCM 2"
 
 #: src/engine/sysDef.cpp:1521
 msgid "ADPCM 3"
-msgstr ""
+msgstr "ADPCM 3"
 
 #: src/engine/sysDef.cpp:1530 src/gui/settings.cpp:3995
 msgid "VERA"
-msgstr ""
+msgstr "VERA"
 
 #: src/engine/sysDef.cpp:1531
 msgid "the chip used in a computer design created by The 8-Bit Guy."
-msgstr ""
+msgstr "układ scalony używany w projekcie komputera stworzonym przez The 8-Bit Guy."
 
 #: src/engine/sysDef.cpp:1538
 msgid "20xx: Set waveform"
-msgstr ""
+msgstr "20xx: Ustaw kształt fali"
 
 #: src/engine/sysDef.cpp:1539
 msgid "22xx: Set duty cycle (0 to 3F)"
-msgstr ""
+msgstr "22xx: Ustaw szerokość fali prostokątnej (0 do 3F)"
 
 #: src/engine/sysDef.cpp:1544
 msgid "Yamaha YM2610B (OPNB2) Extended Channel 3"
-msgstr ""
+msgstr "Yamaha YM2610B (OPNB2) z Rozszerzonym kanałem 3"
 
 #: src/engine/sysDef.cpp:1545
 msgid ""
@@ -2513,43 +2534,45 @@ msgid ""
 "and Yamaha gladly provided them with this chip.\n"
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies."
-msgstr ""
+msgstr "więc Taito spytało Yamahę czy mogliby przywrócić 2 brakujące kanały FM, i Yamaha chętnie dostarczyła im ten układ scalony.\n"
+"ten układ scalony ma włączony tryb rozszerzonego kanału 3, który zmienia trzeci kanał FM w 4 osobne operatory z osobnymi nutami/częstotliwościami"
 
 #: src/engine/sysDef.cpp:1557
 msgid "Yamaha YM2610B (OPNB2) CSM"
-msgstr ""
+msgstr "Yamaha YM2610B (OPNB2) CSM"
 
 #: src/engine/sysDef.cpp:1558
 msgid ""
 "so Taito asked Yamaha if they could get the two missing FM channels back, "
 "and Yamaha gladly provided them with this chip.\n"
 "CSM blah blah"
-msgstr ""
+msgstr "więc Taito spytało Yamahę czy mogliby przywrócić 2 brakujące kanały FM, i Yamaha chętnie dostarczyła im ten układ scalony.\n"
+"CSM bla bla"
 
 #: src/engine/sysDef.cpp:1570
 msgid "SegaPCM (compatible 5-channel mode)"
-msgstr ""
+msgstr "SegaPCM (tryb kompatybilności z 5-cioma kanałami)"
 
 #: src/engine/sysDef.cpp:1571
 msgid ""
 "this is the same thing as SegaPCM, but only exposes 5 of the channels for "
 "compatibility with DefleMask."
-msgstr ""
+msgstr "to jest to samo co SegaPCM, ale pokazuje tylko 5 swoich kanałów dla kompatybilności z DefleMaskiem."
 
 #: src/engine/sysDef.cpp:1582
 msgid "Seta/Allumer X1-010"
-msgstr ""
+msgstr "Seta/Allumer X1-010"
 
 #: src/engine/sysDef.cpp:1583
 msgid ""
 "a sound chip used in several Seta/Allumer-manufactured arcade boards with "
 "too many channels of wavetable sound, which also are capable of sampled "
 "sound."
-msgstr ""
+msgstr "układ dźwiękowy używany w wielu produkowanych przez Seta/Allumera automatów do gier z nadmiarem kanałów z dźwiękiem syntezy tablicowej, które też są zdolne do otwarzania dźwięku samplowanego."
 
 #: src/engine/sysDef.cpp:1591
 msgid "11xx: Set envelope shape"
-msgstr ""
+msgstr "11xx: Ustaw kształt obwiedni"
 
 #: src/engine/sysDef.cpp:1592
 msgid "12xx: Set sample bank slot (0 to 7)"
@@ -2557,153 +2580,153 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1596
 msgid "20xx: Set PCM frequency (1 to FF)"
-msgstr ""
+msgstr "20xx: Ustaw częstotliwość PCM (1 do FF)"
 
 #: src/engine/sysDef.cpp:1597
 msgid ""
 "22xx: Set envelope mode (bit 0: enable; bit 1: one-shot; bit 2: split shape "
 "to L/R; bit 3/5: H.invert right/left; bit 4/6: V.invert right/left)"
-msgstr ""
+msgstr "Ustaw tryb obwiedni (bit 0: włącz; bit 1: jednorazowy; bit 2: podziel kształt do L/R; bit 3/5: H.invert prawy/lewy; bit 4/6: V.invert prawy/lewy)"
 
 #: src/engine/sysDef.cpp:1598
 msgid "23xx: Set envelope period"
-msgstr ""
+msgstr "23xx: Ustaw okres obwiedni"
 
 #: src/engine/sysDef.cpp:1606
 msgid "Konami Bubble System WSG"
-msgstr ""
+msgstr "Konami Bubble System WSG"
 
 #: src/engine/sysDef.cpp:1607
 msgid ""
 "this is the wavetable part of the Bubble System, which also had two "
 "AY-3-8910s."
-msgstr ""
+msgstr "To jest falowa część Bubble Systemu, który też posiada dwa układy AY-3-8910"
 
 #: src/engine/sysDef.cpp:1619
 msgid "Yamaha YMF278B (OPL4)"
-msgstr ""
+msgstr "Yamaha YMF278B (OPL4)"
 
 #: src/engine/sysDef.cpp:1620
 msgid "like OPL3, but this time it also has a 24-channel version of MultiPCM."
-msgstr ""
+msgstr "taki jak OPL3, jest tym razem posiada także 24-kanałową wersję układu MultiPCM"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 17"
-msgstr ""
+msgstr "PCM 17"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 18"
-msgstr ""
+msgstr "PCM 18"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 19"
-msgstr ""
+msgstr "PCM 19"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 20"
-msgstr ""
+msgstr "PCM 20"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 21"
-msgstr ""
+msgstr "PCM 21"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 22"
-msgstr ""
+msgstr "PCM 22"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 23"
-msgstr ""
+msgstr "PCM 23"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 24"
-msgstr ""
+msgstr "PCM 24"
 
 #: src/engine/sysDef.cpp:1629
 msgid "Yamaha YMF278B (OPL4) with drums"
-msgstr ""
+msgstr "Yamaha YMF278B (OPL4) z perkusją"
 
 #: src/engine/sysDef.cpp:1630
 msgid "the OPL4 but with drums mode turned on."
-msgstr ""
+msgstr "układ OPL4 ale z włączonym trybem perkusji"
 
 #: src/engine/sysDef.cpp:1638
 msgid "11xx: Set filter mode (00 to 03)"
-msgstr ""
+msgstr "11xx: Ustaw tryb filtra (00 do 03)"
 
 #: src/engine/sysDef.cpp:1639
 msgid "14xx: Set filter coefficient K1 low byte (00 to FF)"
-msgstr ""
+msgstr "14xx: Ustaw niski bajt współczynnika filtra K1 (00 do FF)"
 
 #: src/engine/sysDef.cpp:1640
 msgid "15xx: Set filter coefficient K1 high byte (00 to FF)"
-msgstr ""
+msgstr "15xx: Ustaw wysoki bajt współczynnika filtra K1 (00 do FF)"
 
 #: src/engine/sysDef.cpp:1641
 msgid "16xx: Set filter coefficient K2 low byte (00 to FF)"
-msgstr ""
+msgstr "16xx: Ustaw niski bajt współczynnika filtra K2 (00 do FF)"
 
 #: src/engine/sysDef.cpp:1642
 msgid "17xx: Set filter coefficient K2 high byte (00 to FF)"
-msgstr ""
+msgstr "17xx: Ustaw wysoki bajt współczynnika filtra K2 (00 do FF)"
 
 #: src/engine/sysDef.cpp:1643
 msgid "18xx: Set filter coefficient K1 slide up (00 to FF)"
-msgstr ""
+msgstr "18xx: Ustaw portamento współczynnika filtra K1 w górę (00 do FF)"
 
 #: src/engine/sysDef.cpp:1644
 msgid "19xx: Set filter coefficient K1 slide down (00 to FF)"
-msgstr ""
+msgstr "19xx: Ustaw portamento współczynnika filtra K1 w dół (00 do FF)"
 
 #: src/engine/sysDef.cpp:1645
 msgid "1Axx: Set filter coefficient K2 slide up (00 to FF)"
-msgstr ""
+msgstr "1Axx: Ustaw portamento współczynnika filtra K2 w górę (00 do FF)"
 
 #: src/engine/sysDef.cpp:1646
 msgid "1Bxx: Set filter coefficient K2 slide down (00 to FF)"
-msgstr ""
+msgstr "1Bxx: Ustaw portamento współczynnika filtra K2 w dół (00 do FF)"
 
 #: src/engine/sysDef.cpp:1647
 msgid "22xx: Set envelope left volume ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "22xx: Ustaw lewą rampę głośności obwiedni (rejestrowana) (00 do FF)"
 
 #: src/engine/sysDef.cpp:1648
 msgid "23xx: Set envelope right volume ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "23xx: Ustaw prawą rampę głośności obwiedni (rejestrowana) (00 do FF)"
 
 #: src/engine/sysDef.cpp:1649
 msgid "24xx: Set envelope filter coefficient k1 ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "24xx: Ustaw rampę obwiedni współczynnika filtra K1 (rejestrowana) (00 do FF)"
 
 #: src/engine/sysDef.cpp:1650
 msgid ""
 "25xx: Set envelope filter coefficient k1 ramp (signed, slower) (00 to FF)"
-msgstr ""
+msgstr "25xx: Ustaw rampę obwiedni współczynnika filtra K1 (rejestrowana, wolniejsza) (00 do FF)"
 
 #: src/engine/sysDef.cpp:1651
 msgid "26xx: Set envelope filter coefficient k2 ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "26xx: Ustaw rampę obwiedni współczynnika filtra K1 (rejestrowana) (00 do FF)"
 
 #: src/engine/sysDef.cpp:1652
 msgid ""
 "27xx: Set envelope filter coefficient k2 ramp (signed, slower) (00 to FF)"
-msgstr ""
+msgstr "27xx: Ustaw rampę obwiedni współczynnika filtra K2 (rejestrowana, wolniejsza) (00 do FF)"
 
 #: src/engine/sysDef.cpp:1656
 msgid "120x: Set pause (bit 0)"
-msgstr ""
+msgstr "120x: Ustaw pauzę (bit 0)"
 
 #: src/engine/sysDef.cpp:1658
 msgid "2xxx: Set envelope count (000 to 1FF)"
-msgstr ""
+msgstr "2xxx: Ustaw licznik obwiedni (000 do 1FF)"
 
 #: src/engine/sysDef.cpp:1659
 msgid "3xxx: Set filter coefficient K1 (000 to FFF)"
-msgstr ""
+msgstr "3xxx: Ustaw współczynnik filtra K1 (000 do FFF)"
 
 #: src/engine/sysDef.cpp:1660
 msgid "4xxx: Set filter coefficient K2 (000 to FFF)"
-msgstr ""
+msgstr "4xxx: Ustaw współczynnik filtra K1 (000 do FFF)"
 
 #: src/engine/sysDef.cpp:1667
 msgid "Ensoniq ES5506"
@@ -3283,383 +3306,383 @@ msgstr ""
 
 #: src/engine/engine.cpp:51
 msgid "00xy: Arpeggio"
-msgstr "00xy: Arpeggio"
+msgstr ""
 
 #: src/engine/engine.cpp:53
 msgid "01xx: Pitch slide up"
-msgstr "01xx: Portamento w górę"
+msgstr ""
 
 #: src/engine/engine.cpp:55
 msgid "02xx: Pitch slide down"
-msgstr "02xx: Portamento w dół"
+msgstr ""
 
 #: src/engine/engine.cpp:57
 msgid "03xx: Portamento"
-msgstr "Auto-portamento (do wskazanej nuty)"
+msgstr ""
 
 #: src/engine/engine.cpp:59
 msgid "04xy: Vibrato (x: speed; y: depth)"
-msgstr "Vibrato (x: szybkość; y: głebokość)"
+msgstr ""
 
 #: src/engine/engine.cpp:61
 msgid "05xy: Volume slide + vibrato (compatibility only!)"
-msgstr "05xy: Zjazd głośności + vibrato (dla kompatybilności!)"
+msgstr ""
 
 #: src/engine/engine.cpp:63
 msgid "06xy: Volume slide + portamento (compatibility only!)"
-msgstr "06xy: Zjazd głośności + portamento (dla kompatybilności!)"
+msgstr ""
 
 #: src/engine/engine.cpp:65
 msgid "07xy: Tremolo (x: speed; y: depth)"
-msgstr "07xy: Tremolo (x: szybkość; y: głębokość)"
+msgstr ""
 
 #: src/engine/engine.cpp:67
 msgid "08xy: Set panning (x: left; y: right)"
-msgstr "08xy: Ustaw panning (x: lewo; y: prawo)"
+msgstr ""
 
 #: src/engine/engine.cpp:69
 msgid "09xx: Set groove pattern (speed 1 if no grooves exist)"
-msgstr "09xx: Ustaw wzór rytmu (prędkość nr.1 w przypadku ich nieobecności)"
+msgstr ""
 
 #: src/engine/engine.cpp:71
 msgid "0Axy: Volume slide (0y: down; x0: up)"
-msgstr "0Axy: Zjazd głośności (0y: góra; x0: dół)"
+msgstr ""
 
 #: src/engine/engine.cpp:73
 msgid "0Bxx: Jump to pattern"
-msgstr "0Bxx: Przeskocz do wzorca"
+msgstr ""
 
 #: src/engine/engine.cpp:75
 msgid "0Cxx: Retrigger"
-msgstr "0Cxx: Cykliczny restart nuty""
+msgstr ""
 
 #: src/engine/engine.cpp:77
 msgid "0Dxx: Jump to next pattern"
-msgstr "0Dxx: Przeskocz do nast. wzorca"
+msgstr ""
 
 #: src/engine/engine.cpp:79
 msgid "0Fxx: Set speed (speed 2 if no grooves exist)"
-msgstr "0Fxx: Ustaw prędkość (prędkość 2 jeśli nie zdefiniowano wzoru rytmu)"
+msgstr ""
 
 #: src/engine/engine.cpp:81
 msgid "80xx: Set panning (00: left; 80: center; FF: right)"
-msgstr "80xx: Ustaw panning (00: lewo; 80: środek; FF: prawo)"
+msgstr ""
 
 #: src/engine/engine.cpp:83
 msgid "81xx: Set panning (left channel)"
-msgstr "81xx: Ustaw panning (lewy kanał)"
+msgstr ""
 
 #: src/engine/engine.cpp:85
 msgid "82xx: Set panning (right channel)"
-msgstr "82xx: Ustaw panning (prawy kanał"
+msgstr ""
 
 #: src/engine/engine.cpp:87
 msgid "88xy: Set panning (rear channels; x: left; y: right)"
-msgstr "88xy: Ustaw panning (tylne kanały; x: lewy; y: prawy)"
+msgstr ""
 
 #: src/engine/engine.cpp:90
 msgid "89xx: Set panning (rear left channel)"
-msgstr "89xx: Ustaw panning (tylny lewy kanał)"
+msgstr ""
 
 #: src/engine/engine.cpp:93
 msgid "8Axx: Set panning (rear right channel)"
-msgstr "8Axx: Ustaw panning (tylny prawy kanał)"
+msgstr ""
 
 #: src/engine/engine.cpp:96
 msgid "Cxxx: Set tick rate (hz)"
-msgstr "Cxxx: Ustaw częstotliwość odświeżania utworu (Hz)"
+msgstr ""
 
 #: src/engine/engine.cpp:98
 msgid "E0xx: Set arp speed"
-msgstr "E0xx: Ustaw sszybkość arpeggio"
+msgstr ""
 
 #: src/engine/engine.cpp:100
 msgid "E1xy: Note slide up (x: speed; y: semitones)"
-msgstr "E1xy: Portamento nuty w górę (x: szybkość; y: półtony)"
+msgstr ""
 
 #: src/engine/engine.cpp:102
 msgid "E2xy: Note slide down (x: speed; y: semitones)"
-msgstr "E2xy: Portamento nuty w dół (x: szybkość; y: półtony)"
+msgstr ""
 
 #: src/engine/engine.cpp:104
 msgid "E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)"
-msgstr "E3xx: Ustaw typ vibrato (0: góra/dół; 1: tylko w górę; 2: tylko w dół)"
+msgstr ""
 
 #: src/engine/engine.cpp:106
 msgid "E4xx: Set vibrato range"
-msgstr "E4xx: Ustaw zakres vibrato"
+msgstr ""
 
 #: src/engine/engine.cpp:108
 msgid "E5xx: Set pitch (80: center)"
-msgstr "E5xx: Ustaw rozstrojenie (80: brak rozstrojenia)"
+msgstr ""
 
 #: src/engine/engine.cpp:110
 msgid "E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)"
-msgstr "E6xy: Uproszczone legato (x: 0-7 = w górę, 8-F = w dół (po (x % 7) krokach); y: półtony)"
+msgstr ""
 
 #: src/engine/engine.cpp:112
 msgid "E7xx: Macro release"
-msgstr "E7xx: Zwolnienie makra"
+msgstr ""
 
 #: src/engine/engine.cpp:114
 msgid "E8xy: Quick legato up (x: time; y: semitones)"
-msgstr "E8xy: Uproszczone legato w górę (x: kroki; y: półtony)"
+msgstr ""
 
 #: src/engine/engine.cpp:116
 msgid "E9xy: Quick legato down (x: time; y: semitones)"
-msgstr "E9xy: OUproszczone legato w dół (x: kroki; y: półtony)"
+msgstr ""
 
 #: src/engine/engine.cpp:118
 msgid "EAxx: Legato"
-msgstr "EAxx: Legato"
+msgstr ""
 
 #: src/engine/engine.cpp:120
 msgid "EBxx: Set LEGACY sample mode bank"
-msgstr "EBxx: (PRZESTARZAŁE) Zdefiniuj bank sampli"
+msgstr ""
 
 #: src/engine/engine.cpp:122
 msgid "ECxx: Note cut"
-msgstr "ECxx: Obcięcie nuty"
+msgstr ""
 
 #: src/engine/engine.cpp:124
 msgid "EDxx: Note delay"
-msgstr "EDxx: Opóźnienie nuty"
+msgstr ""
 
 #: src/engine/engine.cpp:126
 msgid "EExx: Send external command"
-msgstr "EExx: Wyślij zewnętrzną komendę"
+msgstr ""
 
 #: src/engine/engine.cpp:128
 msgid "F0xx: Set tick rate (bpm)"
-msgstr "F0xx: Ustaw tempo utworu (BPM)"
+msgstr ""
 
 #: src/engine/engine.cpp:130
 msgid "F1xx: Single tick note slide up"
-msgstr "F1xx: Portamento w górę (jeden krok)"
+msgstr ""
 
 #: src/engine/engine.cpp:132
 msgid "F2xx: Single tick note slide down"
-msgstr "F2xx: Portamento w dół (jeden krok)"
+msgstr ""
 
 #: src/engine/engine.cpp:134
 msgid "F3xx: Fine volume slide up"
-msgstr "F3xx: Precyzyjny wzrost głośności"
+msgstr ""
 
 #: src/engine/engine.cpp:136
 msgid "F4xx: Fine volume slide down"
-msgstr "F4xx: Precyzyjny zjazd głośności"
+msgstr ""
 
 #: src/engine/engine.cpp:138
 msgid "F5xx: Disable macro (see manual)"
-msgstr "F5xx: Wyłącz makro (patrz: instrukcja)"
+msgstr ""
 
 #: src/engine/engine.cpp:140
 msgid "F6xx: Enable macro (see manual)"
-msgstr "F6xx: Włącz makro (patrz: instrukcja)"
+msgstr ""
 
 #: src/engine/engine.cpp:142
 msgid "F7xx: Restart macro (see manual)"
-msgstr "F7xx: Zrestartuj makro (patrz: instrukcja)"
+msgstr ""
 
 #: src/engine/engine.cpp:144
 msgid "F8xx: Single tick volume slide up"
-msgstr "F8xx:  Wzrost głośności w górę (jeden krok)"
+msgstr ""
 
 #: src/engine/engine.cpp:146
 msgid "F9xx: Single tick volume slide down"
-msgstr "F9xx: Zjazd głośności w dół (jeden krok)"
+msgstr ""
 
 #: src/engine/engine.cpp:148
 msgid "FAxx: Fast volume slide (0y: down; x0: up)"
-msgstr "FAxx: Szybki zjazd głośności (0y: w górę; x0: w dół)"
+msgstr ""
 
 #: src/engine/engine.cpp:150
 msgid "FCxx: Note release"
-msgstr "FCxx: Zwolnienie nuty"
+msgstr ""
 
 #: src/engine/engine.cpp:152
 msgid "FDxx: Set virtual tempo numerator"
-msgstr "FDxx: Ustaw licznik wirtualnego tempa"
+msgstr ""
 
 #: src/engine/engine.cpp:154
 msgid "FExx: Set virtual tempo denominator"
-msgstr "FExx: Ustaw mianownik wirtualnego tempa"
+msgstr ""
 
 #: src/engine/engine.cpp:156
 msgid "FFxx: Stop song"
-msgstr "FFxx: Zatrzymaj utwór"
+msgstr ""
 
 #: src/engine/engine.cpp:160
 msgid "9xxx: Set sample offset*256"
-msgstr "9xxx: Ustaw przesunięcie pocz. sampla (xxx*256 kroków)"
+msgstr ""
 
 #: src/engine/engine.cpp:164
 msgid "90xx: Set sample offset (first byte)"
-msgstr "90xx: Ustaw przesunięcie sampla (pierwszy bajt)"
+msgstr ""
 
 #: src/engine/engine.cpp:166
 msgid "91xx: Set sample offset (second byte, ×256)"
-msgstr "Ustaw przesunięcie sampla (drugi bajt x 256)"
+msgstr ""
 
 #: src/engine/engine.cpp:168
 msgid "92xx: Set sample offset (third byte, ×65536)"
-msgstr "Ustaw przesunięcie sampla (trzeci bajt x 65536"
+msgstr ""
 
 #: src/engine/engine.cpp:187 src/gui/settings.cpp:4074
 msgid "Invalid effect"
-msgstr "nieprawidłowy efekt"
+msgstr ""
 
 #: src/engine/engine.cpp:354 src/gui/gui.cpp:2259 src/gui/gui.cpp:2422
 #, c-format
 msgid "on seek: %s"
-msgstr "podczas przejścia po pliku: %s"
+msgstr ""
 
 #: src/engine/engine.cpp:361 src/gui/gui.cpp:2266 src/gui/gui.cpp:2429
 #, c-format
 msgid "on pre tell: %s"
-msgstr "przed zażądaniem pozycji w pliku: %s"
+msgstr ""
 
 #: src/engine/engine.cpp:368 src/engine/engine.cpp:2768
 #: src/gui/settings.cpp:5754 src/gui/gui.cpp:2273 src/gui/gui.cpp:2436
 msgid "file is empty"
-msgstr "pusty plik"
+msgstr ""
 
 #: src/engine/engine.cpp:371 src/gui/gui.cpp:2276 src/gui/gui.cpp:2439
 #, c-format
 msgid "on tell: %s"
-msgstr "podczas żądania pozycji w pliku: %s"
+msgstr ""
 
 #: src/engine/engine.cpp:378
 #, c-format
 msgid "ROM size mismatch, expected: %d bytes, was: %d"
-msgstr "niezgodność rozmiaru pliku ROM, oczekiwano: %d bajtów, otrzymano: %d"
+msgstr ""
 
 #: src/engine/engine.cpp:383 src/gui/settings.cpp:5763 src/gui/gui.cpp:2283
 #: src/gui/gui.cpp:2446
 #, c-format
 msgid "on get size: %s"
-msgstr "przy pobraniu rozmiaru: %s"
+msgstr ""
 
 #: src/engine/engine.cpp:390 src/gui/settings.cpp:5770 src/gui/gui.cpp:2290
 #: src/gui/gui.cpp:2453
 #, c-format
 msgid "on read: %s"
-msgstr "przy odczycie: %s"
+msgstr ""
 
 #: src/engine/engine.cpp:1076 src/engine/engine.cpp:1181
 #: src/engine/engine.cpp:1290
 msgid "invalid index"
-msgstr "nieprawidłowy indeks"
+msgstr ""
 
 #: src/engine/engine.cpp:1080 src/engine/engine.cpp:1135
 #: src/engine/engine.cpp:1189
 #, c-format
 msgid "max number of total channels is %d"
-msgstr "maksymalna ilość wszystkich kanałów wynosi %d"
+msgstr ""
 
 #: src/engine/engine.cpp:1131 src/engine/engine.cpp:1185
 #, c-format
 msgid "max number of systems is %d"
-msgstr "maksymalna ilość systemów wynosi %d"
+msgstr ""
 
 #: src/engine/engine.cpp:1286
 msgid "cannot remove the last one"
-msgstr "nie można usunąć ostatniego"
+msgstr ""
 
 #: src/engine/engine.cpp:1460
 msgid "source and destination are equal"
-msgstr "systemy są takie same"
+msgstr ""
 
 #: src/engine/engine.cpp:1464
 msgid "invalid source index"
-msgstr "nieprawidłowy indeks oryginalnego systemu"
+msgstr ""
 
 #: src/engine/engine.cpp:1468
 msgid "invalid destination index"
-msgstr "ieprawidłowy indeks systemu docelowego"
+msgstr ""
 
 #: src/engine/engine.cpp:2636
 #, c-format
 msgid "Instrument %d"
-msgstr "Instrument %d"
+msgstr ""
 
 #: src/engine/engine.cpp:2710 src/engine/engine.cpp:2727
 #: src/gui/doAction.cpp:825 src/gui/doAction.cpp:843 src/gui/doAction.cpp:1634
 #: src/gui/gui.cpp:6159 src/gui/insEdit.cpp:6860
 msgid "too many wavetables!"
-msgstr "zbyt wiele tablic fal!"
+msgstr ""
 
 #: src/engine/engine.cpp:2752
 #, c-format
 msgid "could not seek to end: %s"
-msgstr "nie udało się przejść do końca pliku: %s"
+msgstr ""
 
 #: src/engine/engine.cpp:2758
 #, c-format
 msgid "could not determine file size: %s"
-msgstr "nie udało się określić rozmiaru pliku: %s"
+msgstr ""
 
 #: src/engine/engine.cpp:2763
 msgid "file size is invalid!"
-msgstr "rozmiar pliku jest nieprawidłowy!"
+msgstr ""
 
 #: src/engine/engine.cpp:2773
 #, c-format
 msgid "could not seek to beginning: %s"
-msgstr "nie udało się przejść do początku pliku: %s"
+msgstr ""
 
 #: src/engine/engine.cpp:2780
 #, c-format
 msgid "could not read entire file: %s"
-msgstr "nie udało się wczytać całego pliku: %s"
+msgstr ""
 
 #: src/engine/engine.cpp:2806
 msgid "invalid wavetable header/data!"
-msgstr "nieprawidłowy nagłówek/dane tablicy fal!"
+msgstr ""
 
 #: src/engine/engine.cpp:2877
 msgid "premature end of file"
-msgstr "przedwczesny koniec pliku"
+msgstr ""
 
 #: src/engine/engine.cpp:2904 src/engine/engine.cpp:2926
 #: src/gui/doAction.cpp:909 src/gui/doAction.cpp:921
 msgid "too many samples!"
-msgstr "zbyt wiele sampli!"
+msgstr ""
 
 #: src/engine/engine.cpp:2911
 #, c-format
 msgid "Sample %d"
-msgstr "Sampel %d"
+msgstr ""
 
 #: src/engine/engine.cpp:3056
 #, c-format
 msgid "no free patterns in channel %d!"
-msgstr "brak wolnych wzorców na kanale %d!"
+msgstr ""
 
 #: src/gui/mixer.cpp:28 src/gui/insEdit.cpp:484
 msgid "left"
-msgstr "lewo"
+msgstr ""
 
 #: src/gui/mixer.cpp:29 src/gui/insEdit.cpp:483
 msgid "right"
-msgstr "prawo"
+msgstr ""
 
 #: src/gui/mixer.cpp:128
 msgid "input"
-msgstr "wejście"
+msgstr ""
 
 #: src/gui/mixer.cpp:168
 msgid "output"
-msgstr "wyjście"
+msgstr ""
 
 #: src/gui/mixer.cpp:226 src/gui/mixer.cpp:228 src/gui/editControls.cpp:454
 #: src/gui/guiConst.cpp:593
 msgid "Mixer"
-msgstr "Mikser"
+msgstr ""
 
 #: src/gui/mixer.cpp:229
 msgid "Master Volume"
-msgstr "Główna głośność"
+msgstr ""
 
 #: src/gui/mixer.cpp:250 src/gui/exportOptions.cpp:90
 #: src/gui/userPresets.cpp:393 src/gui/userPresets.cpp:405
@@ -3667,7 +3690,7 @@ msgstr "Główna głośność"
 #: src/gui/waveEdit.cpp:1096 src/gui/sampleEdit.cpp:1128
 #: src/gui/insEdit.cpp:519
 msgid "Invert"
-msgstr "Odwróć"
+msgstr ""
 
 #: src/gui/mixer.cpp:268 src/gui/chanOsc.cpp:37 src/gui/userPresets.cpp:417
 #: src/gui/settings.cpp:241 src/gui/settings.cpp:1056 src/gui/settings.cpp:1439
@@ -3697,7 +3720,7 @@ msgstr "Odwróć"
 #: src/gui/insEdit.cpp:7422 src/gui/insEdit.cpp:7433 src/gui/insEdit.cpp:7443
 #: src/gui/insEdit.cpp:7451 src/gui/insEdit.cpp:7461 src/gui/insEdit.cpp:7470
 msgid "Volume"
-msgstr "Głośność"
+msgstr ""
 
 #: src/gui/mixer.cpp:279 src/gui/userPresets.cpp:427 src/gui/settings.cpp:1067
 #: src/gui/guiConst.cpp:229 src/gui/insEdit.cpp:6923 src/gui/insEdit.cpp:6930
@@ -3708,137 +3731,137 @@ msgstr "Głośność"
 #: src/gui/insEdit.cpp:7287 src/gui/insEdit.cpp:7297 src/gui/insEdit.cpp:7360
 #: src/gui/insEdit.cpp:7392 src/gui/insEdit.cpp:7438 src/gui/insEdit.cpp:7446
 msgid "Panning"
-msgstr "Panning"
+msgstr ""
 
 #: src/gui/mixer.cpp:290 src/gui/userPresets.cpp:433 src/gui/settings.cpp:1074
 msgid "Front/Rear"
-msgstr "Przód/tył"
+msgstr ""
 
 #: src/gui/mixer.cpp:299 src/gui/settings.cpp:4155
 msgid "Patchbay"
-msgstr "Krosownica"
+msgstr ""
 
 #: src/gui/mixer.cpp:305
 msgid "Automatic patchbay"
-msgstr "Automatyczna krosownica"
+msgstr ""
 
 #: src/gui/mixer.cpp:310
 msgid "Display hidden ports"
-msgstr "Wyświetl ukryte porty
+msgstr ""
 
 #: src/gui/mixer.cpp:312
 msgid "Display internal"
-msgstr "Wyświetl wewnętrzne porty"
+msgstr ""
 
 #: src/gui/mixer.cpp:322 src/gui/mixer.cpp:383 src/gui/settings.cpp:1848
 #: src/gui/settings.cpp:2036 src/gui/songInfo.cpp:69
 msgid "System"
-msgstr "System"
+msgstr ""
 
 #: src/gui/mixer.cpp:354
 msgid "Sample Preview"
-msgstr "Podgląd sampla"
+msgstr ""
 
 #: src/gui/mixer.cpp:367 src/gui/editControls.cpp:745
 #: src/gui/editControls.cpp:837 src/gui/editControls.cpp:953
 #: src/gui/editControls.cpp:1093 src/gui/settings.cpp:1437
 #: src/gui/guiConst.cpp:558
 msgid "Metronome"
-msgstr "Metronom"
+msgstr ""
 
 #: src/gui/mixer.cpp:446
 msgid "disconnect all"
-msgstr "rozłącz wszystkie"
+msgstr ""
 
 #: src/gui/editing.cpp:200
 #, c-format
 msgid "no data in oldPatMap for channel %d!"
-msgstr "nie znaleziono danych w oldPatMap dla kanału %d!"
+msgstr ""
 
 #: src/gui/editing.cpp:664 src/gui/editing.cpp:1203
 #, c-format
-msgid "invalid clipboard data! błąd przy linii %d znak %d"
-msgstr "nieprawidłowe dane schowka! "
+msgid "invalid clipboard data! failed at line %d char %d"
+msgstr ""
 
 #: src/gui/editing.cpp:1565 src/gui/editing.cpp:1669
 msgid "can't collapse any further!"
-msgstr "nie da się skrócić jeszcze bardziej!"
+msgstr ""
 
 #: src/gui/editing.cpp:1749
 msgid "can't expand any further!"
-msgstr "nie da się rozszerzyć jeszcze bardziej!"
+msgstr ""
 
 #: src/gui/editing.cpp:1836 src/gui/editing.cpp:1851
 #, c-format
 msgid "copy: %s"
-msgstr "kopiuj: %s"
+msgstr ""
 
 #: src/gui/memory.cpp:35 src/gui/settings.cpp:3643 src/gui/settings.cpp:4164
 #: src/gui/guiConst.cpp:613
 msgid "Memory Composition"
-msgstr "Zawartość pamięci"
+msgstr ""
 
 #: src/gui/memory.cpp:146
 #, c-format
 msgid "bank %d"
-msgstr "bank %d"
+msgstr ""
 
 #: src/gui/memory.cpp:175 src/gui/memory.cpp:176
 msgid "no chips with memory"
-msgstr "brak układów z pamięcią wbudowaną!"
+msgstr ""
 
 #: src/gui/intro.cpp:89 src/gui/gui.cpp:2345 src/gui/gui.cpp:3746
 #: src/gui/gui.cpp:5019 src/gui/gui.cpp:5041 src/gui/gui.cpp:5479
 #: src/gui/gui.cpp:5781 src/gui/gui.cpp:5791
 #, c-format
 msgid "Error while loading file! (%s)"
-msgstr "Błąd podczas wczytywania pliku! (%s)"
+msgstr ""
 
 #: src/gui/intro.cpp:122
 msgid "IntroMon X"
-msgstr "IntroMon X"
+msgstr ""
 
 #: src/gui/intro.cpp:122
 msgid "Intro"
-msgstr "Intro"
+msgstr ""
 
 #: src/gui/intro.cpp:124
 msgid "Preview"
-msgstr "Podgląd"
+msgstr ""
 
 #: src/gui/intro.cpp:176 src/gui/intro.cpp:177 src/gui/intro.cpp:178
 msgid "SORRY  NOTHING"
-msgstr "SORRY  NOTHING"
+msgstr ""
 
 #: src/gui/intro.cpp:310
 msgid "hold to skip"
-msgstr "przytrzymaj by pominąć"
+msgstr ""
 
 #: src/gui/dataList.cpp:76
 msgid "Bug!"
-msgstr "Błąd!"
+msgstr ""
 
 #: src/gui/dataList.cpp:79 src/gui/util.cpp:107 src/gui/util.cpp:109
 #: src/gui/settings.cpp:4167 src/gui/insEdit.cpp:5334
 msgid "Unknown"
-msgstr "Nieznane"
+msgstr ""
 
 #: src/gui/dataList.cpp:136 src/gui/dataList.cpp:260
 msgid "duplicate"
-msgstr "duplikuj"
+msgstr ""
 
 #: src/gui/dataList.cpp:139 src/gui/dataList.cpp:263 src/gui/dataList.cpp:388
 #: src/gui/dataList.cpp:731 src/gui/dataList.cpp:867
 msgid "replace..."
-msgstr "zamień"
+msgstr ""
 
 #: src/gui/dataList.cpp:142 src/gui/dataList.cpp:266 src/gui/gui.cpp:4232
 msgid "save"
-msgstr "zapisz"
+msgstr ""
 
 #: src/gui/dataList.cpp:145
 msgid "save (.dmp)"
-msgstr "zapisz (.dmp)"
+msgstr ""
 
 #: src/gui/dataList.cpp:148 src/gui/dataList.cpp:269 src/gui/dataList.cpp:617
 #: src/gui/dataList.cpp:994 src/gui/dataList.cpp:1040
@@ -6450,7 +6473,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7382 src/gui/insEdit.cpp:7403 src/gui/insEdit.cpp:7415
 #: src/gui/insEdit.cpp:7430
 msgid "Control"
-msgstr "Sterowanie"
+msgstr ""
 
 #: src/gui/settings.cpp:229 src/gui/settings.cpp:551 src/gui/settings.cpp:3124
 msgid "Program"
@@ -7800,7 +7823,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3042
 msgid "2×##fos2"
-msgstr "2x"
+msgstr ""
 
 #: src/gui/settings.cpp:3047
 msgid "default."
@@ -9969,7 +9992,7 @@ msgid "Replace##QueryReplace"
 msgstr ""
 
 #: src/gui/about.cpp:305
-msgid "O Furnace"
+msgid "About Furnace"
 msgstr ""
 
 #: src/gui/compatFlags.cpp:31 src/gui/guiConst.cpp:598
@@ -13843,11 +13866,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:50
 msgid "AM"
-msgstr "AM"
+msgstr ""
 
 #: src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:5438 src/gui/insEdit.cpp:6516
 msgid "AM Depth"
-msgstr "Głębokość AM"
+msgstr ""
 
 #: src/gui/insEdit.cpp:50
 msgid "Vibrato Depth"
@@ -13883,7 +13906,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:50
 msgid "Reverb"
-msgstr "Pogłos"
+msgstr ""
 
 #: src/gui/insEdit.cpp:50
 msgid "Fine"
@@ -13899,7 +13922,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:56 src/gui/insEdit.cpp:68 src/gui/insEdit.cpp:7391
 msgid "OP4 Noise Mode"
-msgstr "Tryb szumu na OP4"
+msgstr ""
 
 #: src/gui/insEdit.cpp:57
 msgid "Envelope Delay"
@@ -13927,155 +13950,155 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:64
 msgid "Fixed Frequency Mode"
-msgstr "Tryb stałej częstotliwości"
+msgstr ""
 
 #: src/gui/insEdit.cpp:69
 msgid "Env. Delay"
-msgstr "Opóźnienie obw."
+msgstr ""
 
 #: src/gui/insEdit.cpp:71
 msgid "ModInput"
-msgstr "ModInput"
+msgstr ""
 
 #: src/gui/insEdit.cpp:72
 msgid "Left"
-msgstr "Lewy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:73
 msgid "Right"
-msgstr "Prawy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:74
 msgid "Tune"
-msgstr "Strojenie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:76 src/gui/insEdit.cpp:610 src/gui/insEdit.cpp:3792
 #: src/gui/insEdit.cpp:4554 src/gui/insEdit.cpp:4848
 msgid "Fixed"
-msgstr "Stały"
+msgstr ""
 
 #: src/gui/insEdit.cpp:98 src/gui/insEdit.cpp:117 src/gui/insEdit.cpp:136
 #: src/gui/insEdit.cpp:156
 msgid "User"
-msgstr "Użytkownika"
+msgstr ""
 
 #: src/gui/insEdit.cpp:99
 msgid "1. Violin"
-msgstr "1. Skrzypce"
+msgstr ""
 
 #: src/gui/insEdit.cpp:100 src/gui/insEdit.cpp:138 src/gui/insEdit.cpp:158
 msgid "2. Guitar"
-msgstr "2. Gitara"
+msgstr ""
 
 #: src/gui/insEdit.cpp:101 src/gui/insEdit.cpp:159
 msgid "3. Piano"
-msgstr "3. Pianino"
+msgstr ""
 
 #: src/gui/insEdit.cpp:102 src/gui/insEdit.cpp:160
 msgid "4. Flute"
-msgstr "4. Flet"
+msgstr ""
 
 #: src/gui/insEdit.cpp:103 src/gui/insEdit.cpp:122 src/gui/insEdit.cpp:161
 msgid "5. Clarinet"
-msgstr "5. Klarnet"
+msgstr ""
 
 #: src/gui/insEdit.cpp:104
 msgid "6. Oboe"
-msgstr "6. Obój"
+msgstr ""
 
 #: src/gui/insEdit.cpp:105 src/gui/insEdit.cpp:124 src/gui/insEdit.cpp:143
 #: src/gui/insEdit.cpp:163
 msgid "7. Trumpet"
-msgstr "7. Trąbka"
+msgstr ""
 
 #: src/gui/insEdit.cpp:106
 msgid "8. Organ"
-msgstr "8. Organy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:107
 msgid "9. Horn"
-msgstr "9. Róg"
+msgstr ""
 
 #: src/gui/insEdit.cpp:108
 msgid "10. Synth"
-msgstr "10. Syntezator"
+msgstr ""
 
 #: src/gui/insEdit.cpp:109
 msgid "11. Harpsichord"
-msgstr "11. Klawesyn"
+msgstr ""
 
 #: src/gui/insEdit.cpp:110 src/gui/insEdit.cpp:129 src/gui/insEdit.cpp:148
 msgid "12. Vibraphone"
-msgstr "12. Wibrafon"
+msgstr ""
 
 #: src/gui/insEdit.cpp:111
 msgid "13. Synth Bass"
-msgstr "13. Syntetyczny Bas"
+msgstr ""
 
 #: src/gui/insEdit.cpp:112
 msgid "14. Acoustic Bass"
-msgstr "14. Akustyczny Bas"
+msgstr ""
 
 #: src/gui/insEdit.cpp:113
 msgid "15. Electric Guitar"
-msgstr "15. Gitara Elektryczna"
+msgstr ""
 
 #: src/gui/insEdit.cpp:114 src/gui/insEdit.cpp:133 src/gui/insEdit.cpp:152
 #: src/gui/insEdit.cpp:172 src/gui/insEdit.cpp:3176
 msgid "Drums"
-msgstr "Perkusja"
+msgstr ""
 
 #: src/gui/insEdit.cpp:118
 msgid "1. Electric String"
-msgstr "1. Elektryczny Instr. Strunowy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:119
 msgid "2. Bow wow"
-msgstr "2. Bow wow"
+msgstr ""
 
 #: src/gui/insEdit.cpp:120 src/gui/insEdit.cpp:139
 msgid "3. Electric Guitar"
-msgstr "3. Gitara Elektryczna"
+msgstr ""
 
 #: src/gui/insEdit.cpp:121
 msgid "4. Organ"
-msgstr "4. Organy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:123
 msgid "6. Saxophone"
-msgstr "6. Saksofon"
+msgstr ""
 
 #: src/gui/insEdit.cpp:125
 msgid "8. Street Organ"
-msgstr "8. Katarynka"
+msgstr ""
 
 #: src/gui/insEdit.cpp:126
 msgid "9. Synth Brass"
-msgstr "9. Syntetyczny instrument dęty"
+msgstr ""
 
 #: src/gui/insEdit.cpp:127
 msgid "10. Electric Piano"
-msgstr "10. Pianino Elektryczne"
+msgstr ""
 
 #: src/gui/insEdit.cpp:128
 msgid "11. Bass"
-msgstr "Bas"
+msgstr ""
 
 #: src/gui/insEdit.cpp:130
 msgid "13. Chime"
-msgstr "13. Dzwonki"
+msgstr ""
 
 #: src/gui/insEdit.cpp:131
 msgid "14. Tom Tom II"
-msgstr "Tom-tom II"
+msgstr ""
 
 #: src/gui/insEdit.cpp:132
 msgid "15. Noise"
-msgstr "Szum"
+msgstr ""
 
 #: src/gui/insEdit.cpp:137
 msgid "1. Strings"
-msgstr "1. Smyczki"
+msgstr ""
 
 #: src/gui/insEdit.cpp:140
 msgid "4. Electric Piano"
@@ -14083,491 +14106,490 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:141
 msgid "5. Flute"
-msgstr "5. Flet"
+msgstr ""
 
 #: src/gui/insEdit.cpp:142
 msgid "6. Marimba"
-msgstr "6. Marimba"
+msgstr ""
 
 #: src/gui/insEdit.cpp:144
 msgid "8. Harmonica"
-msgstr "8. Harmonijka"
+msgstr ""
 
 #: src/gui/insEdit.cpp:145
 msgid "9. Tuba"
-msgstr "9. Puzon"
+msgstr ""
 
 #: src/gui/insEdit.cpp:146
 msgid "10. Synth Brass"
-msgstr "10. Syntetyczny instrument dęty"
+msgstr ""
 
 #: src/gui/insEdit.cpp:147
 msgid "11. Short Saw"
-msgstr "11. Krótka piła"
+msgstr ""
 
 #: src/gui/insEdit.cpp:149
 msgid "13. Electric Guitar 2"
-msgstr "13. Gitara Elektryczna 2"
+msgstr ""
 
 #: src/gui/insEdit.cpp:150
 msgid "14. Synth Bass"
-msgstr "14. Syntetyczny Bas"
+msgstr ""
 
 #: src/gui/insEdit.cpp:151
 msgid "15. Sitar"
-msgstr "15. Sitar"
+msgstr ""
 
 #: src/gui/insEdit.cpp:157
 msgid "1. Bell"
-msgstr "1. Dzwon"
+msgstr ""
 
 #: src/gui/insEdit.cpp:162
 msgid "6. Rattling Bell"
-msgstr "6. Grzechoczący dzwon"
+msgstr ""
 
 #: src/gui/insEdit.cpp:164
 msgid "8. Reed Organ"
-msgstr "8. Fisharmonia"
+msgstr ""
 
 #: src/gui/insEdit.cpp:165
 msgid "9. Soft Bell"
-msgstr "9. \"Miękki\" dzwon"
+msgstr ""
 
 #: src/gui/insEdit.cpp:166
 msgid "10. Xylophone"
-msgstr "10. Ksylofon"
+msgstr ""
 
 #: src/gui/insEdit.cpp:167
 msgid "11. Vibraphone"
-msgstr "11. Wibrafon"
+msgstr ""
 
 #: src/gui/insEdit.cpp:168
 msgid "12. Brass"
-msgstr "12. Instrument dęty"
+msgstr ""
 
 #: src/gui/insEdit.cpp:169
 msgid "13. Bass Guitar"
-msgstr "13. Gitara basowa"
+msgstr ""
 
 #: src/gui/insEdit.cpp:170
 msgid "14. Synth"
-msgstr "14. Syntezator"
+msgstr ""
 
 #: src/gui/insEdit.cpp:171
 msgid "15. Chorus"
-msgstr "15. Chór"
+msgstr ""
 
 #: src/gui/insEdit.cpp:178 src/gui/insEdit.cpp:189
 msgid "Half Sine"
-msgstr "Połowa sinusoidy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:179 src/gui/insEdit.cpp:190
 msgid "Absolute Sine"
-msgstr "Moduł sinusoidy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:180
 msgid "Quarter Sine"
-msgstr "Ćwierć sinusoidy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:181 src/gui/insEdit.cpp:203
 msgid "Squished Sine"
-msgstr "Spłaszczona sinusoida"
+msgstr ""
 
 #: src/gui/insEdit.cpp:182 src/gui/insEdit.cpp:205
 msgid "Squished AbsSine"
-msgstr "Spłaszczony moduł sinusoidy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:184 src/gui/insEdit.cpp:195
 msgid "Derived Square"
-msgstr "Pochodna fali kwadratowej"
+msgstr ""
 
 #: src/gui/insEdit.cpp:191
 msgid "Pulse Sine"
-msgstr "Puls sinusoidalny"
+msgstr ""
 
 #: src/gui/insEdit.cpp:192
 msgid "Sine (Even Periods)"
-msgstr "Sinusoida (parzyste okresy)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:193
 msgid "AbsSine (Even Periods)"
-msgstr "Moduł sinusoidy (parzyste okresy)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:201
 msgid "Cut Sine"
-msgstr "Obcięta sinusoida"
+msgstr ""
 
 #: src/gui/insEdit.cpp:202
 msgid "Cut Triangle"
-msgstr "Obc. fala trójkątna"
+msgstr ""
 
 #: src/gui/insEdit.cpp:204
 msgid "Squished Triangle"
-msgstr "Spłaszczona fala trójkątna"
+msgstr ""
 
 #: src/gui/insEdit.cpp:206
 msgid "Squished AbsTriangle"
-msgstr "Spł. moduł fali trójk."
+msgstr ""
 
 #: src/gui/insEdit.cpp:224
 msgid "Noise disabled"
-msgstr "Szum wyłączony"
+msgstr ""
 
 #: src/gui/insEdit.cpp:225
 msgid "Square + noise"
-msgstr "Fala kwadratowa + szum"
+msgstr ""
 
 #: src/gui/insEdit.cpp:226
 msgid "Ringmod from OP3 + noise"
-msgstr "Modulacja kołowa op.3 + szum"
+msgstr ""
 
 #: src/gui/insEdit.cpp:227
 msgid ""
 "Ringmod from OP3 + double pitch ModInput\n"
 "WARNING - has emulation issues; subject to change"
-msgstr ""Modulacja kołowa OP3 + ModInput z podwojoną wysokością dźwięku\n"
-"nUWAGA - występują problemy z emulacją tego trybu, może on ulec zmianie""
+msgstr ""
 
 #: src/gui/insEdit.cpp:232
 msgid "Bitwise AND"
-msgstr "Bitowe AND"
+msgstr ""
 
 #: src/gui/insEdit.cpp:233
 msgid "Bitwise OR"
-msgstr "Bitowe OR"
+msgstr ""
 
 #: src/gui/insEdit.cpp:234
 msgid "Bitwise XOR"
-msgstr "Bitowe XOR"
+msgstr ""
 
 #: src/gui/insEdit.cpp:239 src/gui/insEdit.cpp:390
 msgid "gate"
-msgstr "bramka obw."
+msgstr ""
 
 #: src/gui/insEdit.cpp:240 src/gui/insEdit.cpp:391
 msgid "sync"
-msgstr "synchro"
+msgstr ""
 
 #: src/gui/insEdit.cpp:241 src/gui/insEdit.cpp:392
 msgid "ring"
-msgstr "kołowa"
+msgstr ""
 
 #: src/gui/insEdit.cpp:327
 msgid "How did you even"
-msgstr "Jak Ci się udało?"
+msgstr ""
 
 #: src/gui/insEdit.cpp:335
 msgid "triangle"
-msgstr "fala trójk."
+msgstr ""
 
 #: src/gui/insEdit.cpp:336 src/gui/insEdit.cpp:5821
 msgid "saw"
-msgstr "fala piłokszt."
+msgstr ""
 
 #: src/gui/insEdit.cpp:337 src/gui/insEdit.cpp:5827
 msgid "pulse"
-msgstr "fala prost."
+msgstr ""
 
 #: src/gui/insEdit.cpp:338 src/gui/insEdit.cpp:344 src/gui/insEdit.cpp:373
 #: src/gui/insEdit.cpp:424 src/gui/insEdit.cpp:429 src/gui/insEdit.cpp:5833
 msgid "noise"
-msgstr "szum"
+msgstr ""
 
 #: src/gui/insEdit.cpp:343
 msgid "tone"
-msgstr "ton"
+msgstr ""
 
 #: src/gui/insEdit.cpp:345
 msgid "envelope"
-msgstr "obwiednia"
+msgstr ""
 
 #: src/gui/insEdit.cpp:350
 msgid "hold"
-msgstr "podtrzymanie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:351
 msgid "alternate"
-msgstr "zmiana"
+msgstr ""
 
 #: src/gui/insEdit.cpp:352 src/gui/insEdit.cpp:364
 msgid "direction"
-msgstr "kierunek"
+msgstr ""
 
 #: src/gui/insEdit.cpp:353 src/gui/insEdit.cpp:436
 msgid "enable"
-msgstr "włącz"
+msgstr ""
 
 #: src/gui/insEdit.cpp:357 src/gui/insEdit.cpp:368
 msgid "enabled"
-msgstr "włączony"
+msgstr ""
 
 #: src/gui/insEdit.cpp:361
 msgid "mirror"
-msgstr "odbicie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:365
 msgid "resolution"
-msgstr "rozdzielczość"
+msgstr ""
 
 #: src/gui/insEdit.cpp:366
 msgid "fixed"
-msgstr "stały"
+msgstr ""
 
 #: src/gui/insEdit.cpp:367
 msgid "N/A"
-msgstr "brak"
+msgstr ""
 
 #: src/gui/insEdit.cpp:374
 msgid "echo"
-msgstr "echo"
+msgstr ""
 
 #: src/gui/insEdit.cpp:375
 msgid "pitch mod"
-msgstr "mod. wysokości dźw."
+msgstr ""
 
 #: src/gui/insEdit.cpp:376 src/gui/insEdit.cpp:508
 msgid "invert right"
-msgstr "odwróć prawo"
+msgstr ""
 
 #: src/gui/insEdit.cpp:377 src/gui/insEdit.cpp:509
 msgid "invert left"
-msgstr "odwróć lewo"
+msgstr ""
 
 #: src/gui/insEdit.cpp:382 src/gui/insEdit.cpp:5905
 msgid "low"
-msgstr "dolno"
+msgstr ""
 
 #: src/gui/insEdit.cpp:383 src/gui/insEdit.cpp:5911
 msgid "band"
-msgstr "środk."
+msgstr ""
 
 #: src/gui/insEdit.cpp:384 src/gui/insEdit.cpp:5917
 msgid "high"
-msgstr "górno"
+msgstr ""
 
 #: src/gui/insEdit.cpp:385 src/gui/insEdit.cpp:5924
 msgid "ch3off"
-msgstr "kanał 3 wył."
+msgstr ""
 
 #: src/gui/insEdit.cpp:393
 msgid "test"
-msgstr "test"
+msgstr ""
 
 #: src/gui/insEdit.cpp:398
 msgid "15KHz"
-msgstr "15KHz"
+msgstr ""
 
 #: src/gui/insEdit.cpp:399
 msgid "filter 2+4"
-msgstr "filtr 2+4"
+msgstr ""
 
 #: src/gui/insEdit.cpp:400
 msgid "filter 1+3"
-msgstr "filtr 1+3"
+msgstr ""
 
 #: src/gui/insEdit.cpp:401
 msgid "16-bit 3+4"
-msgstr "16-bitowy 3+4"
+msgstr ""
 
 #: src/gui/insEdit.cpp:402
 msgid "16-bit 1+2"
-msgstr "16-bitowy 1+2"
+msgstr ""
 
 #: src/gui/insEdit.cpp:403
 msgid "high3"
-msgstr "górno3"
+msgstr ""
 
 #: src/gui/insEdit.cpp:404
 msgid "high1"
-msgstr "górno1"
+msgstr ""
 
 #: src/gui/insEdit.cpp:405
 msgid "poly9"
-msgstr "wielomian 9"
+msgstr ""
 
 #: src/gui/insEdit.cpp:414
 msgid "16'"
-msgstr "16'"
+msgstr ""
 
 #: src/gui/insEdit.cpp:415
 msgid "8'"
-msgstr "8'"
+msgstr ""
 
 #: src/gui/insEdit.cpp:416
 msgid "4'"
-msgstr "4'"
+msgstr ""
 
 #: src/gui/insEdit.cpp:417
 msgid "2'"
-msgstr "2'"
+msgstr ""
 
 #: src/gui/insEdit.cpp:418
 msgid "sustain"
-msgstr "podtrzymanie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:423
 msgid "square"
-msgstr "fala kwadratowa"
+msgstr ""
 
 #: src/gui/insEdit.cpp:431
 msgid "surround"
-msgstr "przestrzenny"
+msgstr ""
 
 #: src/gui/insEdit.cpp:437
 msgid "oneshot"
-msgstr "jednokrotny"
+msgstr ""
 
 #: src/gui/insEdit.cpp:438
 msgid "split L/R"
-msgstr "rozdzielenie L/P"
+msgstr ""
 
 #: src/gui/insEdit.cpp:439
 msgid "HinvR"
-msgstr "HinvR"
+msgstr ""
 
 #: src/gui/insEdit.cpp:440
 msgid "VinvR"
-msgstr "VinvR"
+msgstr ""
 
 #: src/gui/insEdit.cpp:441
 msgid "HinvL"
-msgstr "HinvL"
+msgstr ""
 
 #: src/gui/insEdit.cpp:442
 msgid "VinvL"
-msgstr "VinvL"
+msgstr ""
 
 #: src/gui/insEdit.cpp:447 src/gui/insEdit.cpp:476
 msgid "ring mod"
-msgstr "mod. kołowa"
+msgstr ""
 
 #: src/gui/insEdit.cpp:448
 msgid "low pass"
-msgstr "dolnoprzepustowy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:449 src/gui/insEdit.cpp:475
 msgid "high pass"
-msgstr "górnoprzepustowy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:450
 msgid "band pass"
-msgstr "środkowoprzepustowy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:459
 msgid "enable tap B"
-msgstr "wł. przełącznik B"
+msgstr ""
 
 #: src/gui/insEdit.cpp:460
 msgid "AM with slope"
-msgstr "AM ze spadkiem"
+msgstr ""
 
 #: src/gui/insEdit.cpp:465
 msgid "invert B"
-msgstr "odwróć B"
+msgstr ""
 
 #: src/gui/insEdit.cpp:466
 msgid "invert A"
-msgstr "odwróć A"
+msgstr ""
 
 #: src/gui/insEdit.cpp:467
 msgid "reset B"
-msgstr "resetuj B"
+msgstr ""
 
 #: src/gui/insEdit.cpp:468
 msgid "reset A"
-msgstr "resetuj a"
+msgstr ""
 
 #: src/gui/insEdit.cpp:469
 msgid "clip B"
-msgstr "przytnij B"
+msgstr ""
 
 #: src/gui/insEdit.cpp:470
 msgid "clip A"
-msgstr "przytnij A"
+msgstr ""
 
 #: src/gui/insEdit.cpp:477
 msgid "swap counters (noise)"
-msgstr "zamień liczniki (szum)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:478
 msgid "low pass (noise)"
-msgstr "filtr dolnop. (szum)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:485
 msgid "rear right"
-msgstr "tylny prawy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:486
 msgid "rear left"
-msgstr "tylny lewy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:491
 msgid "on"
-msgstr "wł."
+msgstr ""
 
 #: src/gui/insEdit.cpp:496
 msgid "k1 slowdown"
-msgstr "spowolnienie k1"
+msgstr ""
 
 #: src/gui/insEdit.cpp:497
 msgid "k2 slowdown"
-msgstr "spowolnienie k2"
+msgstr ""
 
 #: src/gui/insEdit.cpp:502
 msgid "pause"
-msgstr "stop"
+msgstr ""
 
 #: src/gui/insEdit.cpp:503
 msgid "reverse"
-msgstr "odwr. kierunek"
+msgstr ""
 
 #: src/gui/insEdit.cpp:521
 msgid "Subtract"
-msgstr "Odejmij"
+msgstr ""
 
 #: src/gui/insEdit.cpp:522
 msgid "Average"
-msgstr "Uśrednij"
+msgstr ""
 
 #: src/gui/insEdit.cpp:523 src/gui/insEdit.cpp:2037
 msgid "Phase"
-msgstr "Faza"
+msgstr ""
 
 #: src/gui/insEdit.cpp:524
 msgid "Chorus"
-msgstr "Chór"
+msgstr ""
 
 #: src/gui/insEdit.cpp:528
 msgid "None (dual)"
-msgstr "Brak (podwójna tablica)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:529
 msgid "Wipe"
-msgstr "Wzajemne wymazywanie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:531
 msgid "Fade (ping-pong)"
-msgstr "Transformacja (tam i z powr.)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:532
 msgid "Overlay"
-msgstr "Nakładanie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:533
 msgid "Negative Overlay"
-msgstr "Odwrotne nakładanie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:534
 msgid "Slide"
-msgstr "Zjazd"
+msgstr ""
 
 #: src/gui/insEdit.cpp:535
 msgid "Mix Chorus"
-msgstr "Miksowanie (chór)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:536
 msgid "Phase Modulation"
-msgstr "Modulacja fazy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:541
 msgid "Sweep"
@@ -14648,7 +14670,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:660
 msgid "Random"
-msgstr "Losowy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:1610
 msgid ""
@@ -14673,15 +14695,15 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:1648
 msgid "AUTO##OPKVS"
-msgstr "AUTO"
+msgstr ""
 
 #: src/gui/insEdit.cpp:1650
 msgid "NO##OPKVS"
-msgstr "NIE"
+msgstr ""
 
 #: src/gui/insEdit.cpp:1652
 msgid "YES##OPKVS"
-msgstr "TAK"
+msgstr ""
 
 #: src/gui/insEdit.cpp:1900 src/gui/insEdit.cpp:2005
 msgid "Bottom"
@@ -14701,19 +14723,19 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:2047
 msgid "Shape"
-msgstr "Kształt"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2100
 msgid "Macro type: Sequence"
-msgstr "Typ makra: Sekwencja"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2103
 msgid "Macro type: ADSR"
-msgstr "Typ makra: ADSR"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2106
 msgid "Macro type: LFO"
-msgstr "Typ makra: LFO"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2109
 msgid "Macro type: What's going on here?"
@@ -14729,7 +14751,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:2129
 msgid "Delay##IMacroDelay"
-msgstr "Opóźnienie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2142
 msgid "Release mode: Active (jump to release pos)"
@@ -14741,11 +14763,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:2393
 msgid "StepLen"
-msgstr "Dł. kroku"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2401
 msgid "Delay"
-msgstr "Opóźnienie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2425
 msgid "The heck? No, this isn't even working correctly..."
@@ -14779,67 +14801,67 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:2644
 msgid "none selected"
-msgstr "nie wybrano niczego"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2657
 msgid "Use sample"
-msgstr "Użyj sampla"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2659
 msgid "Sample bank slot##BANKSLOT"
-msgstr "Numer banka sampli"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2681
 msgid "Use wavetable (Amiga/Generic DAC only)"
-msgstr "Użyj tablicy fal (tylko dla Amigi/przetwornika A/C)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2681
 msgid "Use wavetable"
-msgstr "Użyj tablicy fal"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2708
 msgid "Use sample map"
-msgstr "Użyj mapy sampli"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2730
 msgid "delta"
-msgstr "delta"
+msgstr ""
 
 #: src/gui/insEdit.cpp:2736
 msgid "sample name"
-msgstr "nazwa sampla"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3001
 msgid "set entire map to this pitch"
-msgstr "przypisz tą wysokość dźwięku do całej mapy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3009
 msgid "set entire map to this delta counter value"
-msgstr "przypisz tą wartości licznika delta do całej mapy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3018
 msgid "set entire map to this note"
-msgstr "przypisz tą nutę do całej mapy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3027
 msgid "set entire map to this sample"
-msgstr "przypisz ten sampel do całej mapy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3037
 msgid "reset pitches"
-msgstr "resetuj wysokośći dźwięku"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3042
 msgid "clear delta counter values"
-msgstr "wyczyść wartości licznika delta"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3048
 msgid "reset notes"
-msgstr "resetuj nuty"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3054
 msgid "clear map samples"
-msgstr "wyczyść mapę sampli"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3148
 msgid "Request from TX81Z"
@@ -14848,11 +14870,11 @@ msgstr ""
 #: src/gui/insEdit.cpp:3234
 #, c-format
 msgid "%s name"
-msgstr " nazwa %s"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3286
 msgid "Fixed frequency mode"
-msgstr "Tryb stałej częstotliwości"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3288
 msgid ""
@@ -14862,13 +14884,13 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:3296
 msgid "Drum"
-msgstr "Perkusja"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3298 src/gui/insEdit.cpp:3798 src/gui/insEdit.cpp:3904
 #: src/gui/insEdit.cpp:4404 src/gui/insEdit.cpp:4468 src/gui/insEdit.cpp:5068
 #: src/gui/insEdit.cpp:5518
 msgid "Block"
-msgstr "Blok"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3300 src/gui/insEdit.cpp:3803 src/gui/insEdit.cpp:3909
 #: src/gui/insEdit.cpp:4993 src/gui/insEdit.cpp:5079 src/gui/insEdit.cpp:5519
@@ -14877,15 +14899,15 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:3303
 msgid "Snare/Hi-hat"
-msgstr "Werbel/Hi-hat"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3304
 msgid "Tom/Top"
-msgstr "Tom/Talerz"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3314
 msgid "Volume##TL"
-msgstr "Głośność"
+msgstr ""
 
 #: src/gui/insEdit.cpp:3316
 msgid "this volume slider only works in compatibility (non-drums) system."
@@ -14893,46 +14915,46 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:3626
 msgid "Env"
-msgstr "Obw."
+msgstr ""
 
 #: src/gui/insEdit.cpp:3980 src/gui/insEdit.cpp:4346 src/gui/insEdit.cpp:4396
 #: src/gui/insEdit.cpp:5104
 msgid "OPL2/3 only (last 4 waveforms are OPL3 only)"
-msgstr "Tylko dla OPL2/3 (ostatnie 4 kształty fal są dostępne tylko na OPL3)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:4079 src/gui/insEdit.cpp:4788
 #, c-format
 msgid "Envelope 2 (kick only)"
-msgstr "Obwiednia 2 (tylko dla stopy)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:4084
 #, c-format
 msgid "Operator %d"
-msgstr "Operator %d"
+msgstr ""
 
 #: src/gui/insEdit.cpp:4414
 msgid "Freq"
-msgstr "Częst."
+msgstr ""
 
 #: src/gui/insEdit.cpp:4443
 msgid "Only on YM2151 (OPM)"
-msgstr "Tylko na YM2151 OPM)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:4466
 msgid "Blk"
-msgstr "Blok"
+msgstr ""
 
 #: src/gui/insEdit.cpp:4479
 msgid "F"
-msgstr "F"
+msgstr ""
 
 #: src/gui/insEdit.cpp:4481
 msgid "Frequency (F-Num)"
-msgstr "Częstotliwość (F-Num)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:4833
 msgid "SSG On"
-msgstr "SSG Wł."
+msgstr ""
 
 #: src/gui/insEdit.cpp:5206 src/gui/insEdit.cpp:5207
 msgid "waiting..."
@@ -14940,7 +14962,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:5210 src/gui/insEdit.cpp:5211
 msgid "no instrument selected"
-msgstr "nie wybrano instrumentu"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5393
 msgid ""
@@ -14949,99 +14971,99 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:5413
 msgid "FM Macros"
-msgstr "Makra FM"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5435 src/gui/insEdit.cpp:5440
 msgid "LFO Speed"
-msgstr "Prędkość LFO"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5439 src/gui/insEdit.cpp:6514
 msgid "PM Depth"
-msgstr "Głębokość PM"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5441
 msgid "LFO Shape"
-msgstr "Kształt LFO"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5444
 msgid "OpMask"
-msgstr "Maska op."
+msgstr ""
 
 #: src/gui/insEdit.cpp:5446
 msgid "AM Depth 2"
-msgstr "Głębokość AM 2"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5447
 msgid "PM Depth 2"
-msgstr "Głębokość PM2"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5448
 msgid "LFO2 Speed"
-msgstr "Prędkość LFO2"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5449
 msgid "LFO2 Shape"
-msgstr "Kształt LFO2"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5458
 #, c-format
 msgid "Operator Macros"
-msgstr "Makra operatorów"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5460
 #, c-format
 msgid "OP%d Macros"
-msgstr "Makra op%d"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5521
 msgid "Op. Arpeggio"
-msgstr "Arpeggio op."
+msgstr ""
 
 #: src/gui/insEdit.cpp:5522
 msgid "Op. Pitch"
-msgstr "Wyskokość op."
+msgstr ""
 
 #: src/gui/insEdit.cpp:5531
 msgid "Op. Panning"
-msgstr "Panning oper."
+msgstr ""
 
 #: src/gui/insEdit.cpp:5558
 msgid "Use software envelope"
-msgstr "Uzywaj obwiedni programowej"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5559
 msgid "Initialize envelope on every note"
-msgstr "Inicjalizuj obwiednie przy każdej nucie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5560
 msgid "Double wave length (GBA only)"
-msgstr "Podwójna długość fali (tylko na GBA)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5589 src/gui/insEdit.cpp:5666
 msgid "Sound Length"
-msgstr "Długośc dźwięku"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5592 src/gui/insEdit.cpp:5666
 msgid "Infinity"
-msgstr "Nieskończona"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5596
 msgid "Direction"
-msgstr "Kierunek"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5599 src/gui/insEdit.cpp:5669 src/gui/insEdit.cpp:5697
 #: src/gui/insEdit.cpp:6008 src/gui/insEdit.cpp:6051
 msgid "Up"
-msgstr "Góra"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5604 src/gui/insEdit.cpp:5674 src/gui/insEdit.cpp:5702
 #: src/gui/insEdit.cpp:6013 src/gui/insEdit.cpp:6056
 msgid "Down"
-msgstr "Dół"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5620 src/gui/insEdit.cpp:5953
 msgid "Hardware Sequence"
-msgstr "Sekwencja sprzętowa"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5630 src/gui/insEdit.cpp:5963
 msgid "Tick"
@@ -15049,19 +15071,19 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:5632 src/gui/insEdit.cpp:5965
 msgid "Command"
-msgstr "Komenda"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5634 src/gui/insEdit.cpp:5967
 msgid "Move/Remove"
-msgstr "Przenieś/usuń"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5663
 msgid "Env Length"
-msgstr "Dł. obwiedni"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5690
 msgid "Shift"
-msgstr "Przesunięcie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5717 src/gui/insEdit.cpp:6073
 msgid "Ticks"
@@ -15073,37 +15095,37 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:5815
 msgid "tri"
-msgstr "trój."
+msgstr ""
 
 #: src/gui/insEdit.cpp:5882
 msgid "Ring Modulation"
-msgstr "Modulacja kołowa"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5886
 msgid "Oscillator Sync"
-msgstr "Synchr. oscylatorów"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5890
 msgid "Enable filter"
-msgstr "Włącz filtr"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5891
 msgid "Initialize filter"
-msgstr "Inicjalizuj filtr"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5894 src/gui/insEdit.cpp:5897 src/gui/insEdit.cpp:6951
 #: src/gui/insEdit.cpp:7215 src/gui/insEdit.cpp:7476
 msgid "Cutoff"
-msgstr "Punkt odcięcia"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5902 src/gui/insEdit.cpp:6408 src/gui/insEdit.cpp:6952
 #: src/gui/insEdit.cpp:7179 src/gui/insEdit.cpp:7477
 msgid "Filter Mode"
-msgstr "Tryb filtra"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5931 src/gui/insEdit.cpp:7485
 msgid "Noise Mode"
-msgstr "Tryb szumu"
+msgstr ""
 
 #: src/gui/insEdit.cpp:5932
 msgid "Wave Mix Mode"
@@ -15143,7 +15165,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6210
 msgid "Load waveform"
-msgstr "Wczytaj falę"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6215
 msgid ""
@@ -15161,11 +15183,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6237
 msgid "Ch"
-msgstr "K"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6286
 msgid "Compatibility mode"
-msgstr "Tryb kompatybilności"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6288
 msgid ""
@@ -15176,19 +15198,19 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6290
 msgid "Modulation depth"
-msgstr "Głębokość modulacji"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6294
 msgid "Modulation speed"
-msgstr "Prędkość modulacji"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6298
 msgid "Modulation table"
-msgstr "Tablica modulacji"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6347
 msgid "Set modulation table (channel 5 only)"
-msgstr "Ustaw tablicę modulacji (tylko dla kanału 5)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6411 src/gui/insEdit.cpp:7184
 msgid "Filter K1"
@@ -15280,11 +15302,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6596 src/gui/insEdit.cpp:6597
 msgid "Gain Mode"
-msgstr "Tryb wzmocnienia"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6599 src/gui/insEdit.cpp:6600 src/gui/insEdit.cpp:7205
 msgid "Gain"
-msgstr "Wzmocnienie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6633
 msgid ""
@@ -15295,7 +15317,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6703
 msgid "Enable synthesizer"
-msgstr "Włącz syntezator"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6721
 msgid "Single-waveform"
@@ -15307,7 +15329,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6803 src/gui/insEdit.cpp:6812
 msgid "Wave 1"
-msgstr "Fala 1"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6808 src/gui/insEdit.cpp:6823
 msgid ""
@@ -15317,7 +15339,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6829
 msgid "Wave 2"
-msgstr "Fala 2"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6844
 msgid "Resume preview"
@@ -15325,11 +15347,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6846
 msgid "Pause preview"
-msgstr "Zatrzymaj podgląd"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6854
 msgid "Restart preview"
-msgstr "Urochom podgląd ponownie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6874
 msgid "Copy to new wavetable"
@@ -15337,11 +15359,11 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6881
 msgid "Update Rate"
-msgstr "Współczynnik odświeżania"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6902
 msgid "Global"
-msgstr "Globalne"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6906
 msgid ""
@@ -15351,7 +15373,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6912
 msgid "Macros"
-msgstr "Makra"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6921 src/gui/insEdit.cpp:6929 src/gui/insEdit.cpp:6938
 #: src/gui/insEdit.cpp:6947 src/gui/insEdit.cpp:6962 src/gui/insEdit.cpp:6976
@@ -15374,7 +15396,7 @@ msgstr "Makra"
 #: src/gui/insEdit.cpp:7423 src/gui/insEdit.cpp:7434 src/gui/insEdit.cpp:7444
 #: src/gui/insEdit.cpp:7452 src/gui/insEdit.cpp:7462 src/gui/insEdit.cpp:7471
 msgid "Arpeggio"
-msgstr "Arpeggio"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6925 src/gui/insEdit.cpp:6932 src/gui/insEdit.cpp:6943
 #: src/gui/insEdit.cpp:6972 src/gui/insEdit.cpp:6984 src/gui/insEdit.cpp:6994
@@ -15392,7 +15414,7 @@ msgstr "Arpeggio"
 #: src/gui/insEdit.cpp:7429 src/gui/insEdit.cpp:7440 src/gui/insEdit.cpp:7448
 #: src/gui/insEdit.cpp:7457 src/gui/insEdit.cpp:7475
 msgid "Phase Reset"
-msgstr "Reset fazy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6939 src/gui/insEdit.cpp:7024 src/gui/insEdit.cpp:7210
 #: src/gui/insEdit.cpp:7247
@@ -15401,7 +15423,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6966 src/gui/insEdit.cpp:7288
 msgid "Surround"
-msgstr "Przestrzeny"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6968 src/gui/insEdit.cpp:6981 src/gui/insEdit.cpp:7026
 #: src/gui/insEdit.cpp:7085 src/gui/insEdit.cpp:7141 src/gui/insEdit.cpp:7159
@@ -15411,7 +15433,7 @@ msgstr "Przestrzeny"
 #: src/gui/insEdit.cpp:7399 src/gui/insEdit.cpp:7411 src/gui/insEdit.cpp:7426
 #: src/gui/insEdit.cpp:7454 src/gui/insEdit.cpp:7464
 msgid "Panning (left)"
-msgstr "Panning (lewy)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6969 src/gui/insEdit.cpp:6982 src/gui/insEdit.cpp:7027
 #: src/gui/insEdit.cpp:7086 src/gui/insEdit.cpp:7142 src/gui/insEdit.cpp:7160
@@ -15421,205 +15443,205 @@ msgstr "Panning (lewy)"
 #: src/gui/insEdit.cpp:7400 src/gui/insEdit.cpp:7412 src/gui/insEdit.cpp:7427
 #: src/gui/insEdit.cpp:7455 src/gui/insEdit.cpp:7465
 msgid "Panning (right)"
-msgstr "Panning (prawy)"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6990 src/gui/insEdit.cpp:7003 src/gui/insEdit.cpp:7107
 #: src/gui/insEdit.cpp:7199 src/gui/insEdit.cpp:7239 src/gui/insEdit.cpp:7424
 msgid "Noise Freq"
-msgstr "Częst. szumu"
+msgstr ""
 
 #: src/gui/insEdit.cpp:6996 src/gui/insEdit.cpp:7010 src/gui/insEdit.cpp:7167
 msgid "AutoEnv Num"
-msgstr "Licznik auto-obw."
+msgstr ""
 
 #: src/gui/insEdit.cpp:6997 src/gui/insEdit.cpp:7011 src/gui/insEdit.cpp:7168
 msgid "AutoEnv Den"
-msgstr "Mianownik auto-obw."
+msgstr ""
 
 #: src/gui/insEdit.cpp:7012
 msgid "Noise AND Mask"
-msgstr "Maska szumu AND"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7013
 msgid "Noise OR Mask"
-msgstr "Maska szumu OR"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7034
 msgid "On/Off"
-msgstr "Wł./wył."
+msgstr ""
 
 #: src/gui/insEdit.cpp:7060
 msgid "Patch"
-msgstr "Instrument" //ty no nie wiem
+msgstr ""
 
 #: src/gui/insEdit.cpp:7076
 msgid "Mod Depth"
-msgstr "Głębokość mod."
+msgstr ""
 
 #: src/gui/insEdit.cpp:7077
 msgid "Mod Speed"
-msgstr "Prędkość mod."
+msgstr ""
 
 #: src/gui/insEdit.cpp:7078
 msgid "Mod Position"
-msgstr "Pozycja mod."
+msgstr ""
 
 #: src/gui/insEdit.cpp:7083
 msgid "Noise Length"
-msgstr "Długość szumu"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7093
 msgid "Wave Pos"
-msgstr "Poz. fali"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7096
 msgid "Wave Length"
-msgstr "Długość fali"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7115
 msgid "AUDCTL"
-msgstr "AUDCTL"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7122 src/gui/insEdit.cpp:7343
 msgid "Pulse Width"
-msgstr "Szerokość fali prostokątnej"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7139
 msgid "Duty/Int"
-msgstr "Szerokość fali prost./int."
+msgstr ""
 
 #: src/gui/insEdit.cpp:7145 src/gui/insEdit.cpp:7406
 msgid "Load LFSR"
-msgstr "Załaduj LFSR"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7165
 msgid "Envelope Mode"
-msgstr "Tryb obwiedni"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7218
 msgid "Phase Reset Timer"
-msgstr "Licznik resetu fazy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7252 src/gui/insEdit.cpp:7259
 msgid "Freq Divider"
-msgstr "Dzielnik częst."
+msgstr ""
 
 #: src/gui/insEdit.cpp:7255
 msgid "Clock Divider"
-msgstr "Dzielnik taktowania zegara"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7264
 msgid "Global Volume"
-msgstr "Globalna głośność"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7286
 msgid "Echo Level"
-msgstr "Poziom echo"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7291
 msgid "Echo Feedback"
-msgstr "Sprzężenie zwrotne echo"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7292
 msgid "Echo Length"
-msgstr "Długość echo"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7312
 msgid "Group Ctrl"
-msgstr "Sterowanie grupą"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7313
 msgid "Group Attack"
-msgstr "Czas narastania grupy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7314
 msgid "Group Decay"
-msgstr "Czas opadania grupy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7320
 msgid "Noise Type"
-msgstr "Typ szumu"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7367
 msgid "Square/Noise"
-msgstr "Fala kwadratowa/szum"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7404
 msgid "Tap A Location"
-msgstr "Pozycja przełącznika A"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7405
 msgid "Tap B Location"
-msgstr "Pozycja przełącznika B"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7416
 msgid "Portion A Length"
-msgstr "Długość części A"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7417
 msgid "Portion B Length"
-msgstr "Długość części A"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7418
 msgid "Portion A Offset"
-msgstr "Odchylenie części A"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7419
 msgid "Portion B Offset"
-msgstr "Odchylenie części B"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7463
 msgid "Parameter"
-msgstr "Parametr"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7467
 msgid "Load Value"
-msgstr "Wczytaj wartość"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7479
 msgid "Filter Toggle"
-msgstr "Włącz filtr"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7486
 msgid "Wave Mix"
-msgstr "Łączenie fali"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7500
 msgid "Octave offset"
-msgstr "Odchylenie oktawy"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7505
 msgid "go to Macros for other parameters."
-msgstr "przejdź do Makr, by ustawić więcej parametrów"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7521
 msgid "invalid instrument type! change it first."
-msgstr "niepoprawny typ instrumentu! najpierw go zmień."
+msgstr ""
 
 #: src/gui/insEdit.cpp:7565
 msgid "clear contents"
-msgstr "wyczyść zawartość"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7571
 msgid "offset..."
-msgstr "odchylenie..."
+msgstr ""
 
 #: src/gui/insEdit.cpp:7572 src/gui/insEdit.cpp:7605
 msgid "X"
-msgstr "X"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7573 src/gui/insEdit.cpp:7609
 msgid "Y"
-msgstr "Y"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7574
 msgid "offset"
-msgstr "odchylenie"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7637
 msgid "Min"
-msgstr "Min"
+msgstr ""
 
 #: src/gui/insEdit.cpp:7638
 msgid "Max"
-msgstr "Max"
+msgstr ""
