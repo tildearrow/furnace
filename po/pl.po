@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: furnace 0.6.3\n"
 "Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"Language-Team: freq-mod, PoznanskiSzybkowiec\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -36,12 +36,12 @@ msgstr "24xx: Ustaw wysoki bajt okresu obwiedni"
 #: src/engine/sysDef.cpp:433 src/engine/sysDef.cpp:446
 #: src/engine/sysDef.cpp:1599
 msgid "25xx: Envelope slide up"
-msgstr "25xx: Przesuwanie obwiedni w górę"
+msgstr "25xx: Portamento obwiedni w górę"
 
 #: src/engine/sysDef.cpp:434 src/engine/sysDef.cpp:447
 #: src/engine/sysDef.cpp:1600
 msgid "26xx: Envelope slide down"
-msgstr "26xx: Przesuwanie obwiedni w dół"
+msgstr "26xx: Portamento obwiedni w dół"
 
 #: src/engine/sysDef.cpp:435 src/engine/sysDef.cpp:448
 #: src/engine/sysDef.cpp:1601
@@ -50,11 +50,11 @@ msgstr "29xy: Ustaw Auto-obwiednię (x: licznik; y: mianownik)"
 
 #: src/engine/sysDef.cpp:436 src/engine/sysDef.cpp:449
 msgid "2Exx: Write to I/O port A"
-msgstr "2Exx: Zapisz do portu I/O A"
+msgstr "2Exx: Zapisz do portu A I/O"
 
 #: src/engine/sysDef.cpp:437 src/engine/sysDef.cpp:450
 msgid "2Fxx: Write to I/O port B"
-msgstr "2Fxx: Zapisz do portu I/O B"
+msgstr "2Fxx: Zapisz do portu B I/O"
 
 #: src/engine/sysDef.cpp:442
 msgid "21xx: Set noise frequency (0 to FF)"
@@ -62,7 +62,7 @@ msgstr "21xx: Ustaw częstotliwość szumu (0 do FF)"
 
 #: src/engine/sysDef.cpp:451
 msgid "12xx: Set duty cycle (0 to 8)"
-msgstr "Ustaw współczynnik wypełnienia impulsu (0 do 8)"
+msgstr "Ustaw szerokość fali prostokątnej (0 do 8)"
 
 #: src/engine/sysDef.cpp:453
 msgid "27xx: Set noise AND mask"
@@ -86,17 +86,17 @@ msgstr "2Dxx: NIE DO UŻYCIA PRZEZ KOMPOZYTORA"
 
 #: src/engine/sysDef.cpp:460
 msgid "30xx: Toggle hard envelope reset on new notes"
-msgstr "30xx: Przełącz twardy reset obwiedni na nowych nutach"
+msgstr "30xx: Włącz twardy reset obwiedni na nowych nutach"
 
 #: src/engine/sysDef.cpp:465
 msgid "18xx: Toggle extended channel 3 mode"
-msgstr "18xx: Przełącz tryb wydłużonego kanału 3"
+msgstr "18xx: Włącz rozszerzony kanał 3"
 
 #: src/engine/sysDef.cpp:470 src/engine/sysDef.cpp:766
 #: src/engine/sysDef.cpp:1025 src/engine/sysDef.cpp:1272
 #: src/engine/sysDef.cpp:1593
 msgid "17xx: Toggle PCM mode (LEGACY)"
-msgstr "17xx: Przełącz tryb PCM (PRZESTARZAŁE)"
+msgstr "17xx: Włącz tryb PCM (PRZESTARZAŁE)"
 
 #: src/engine/sysDef.cpp:471 src/engine/sysDef.cpp:1653
 #: src/engine/sysDef.cpp:1963
@@ -139,19 +139,19 @@ msgstr "19xx: Ustaw czas narastania we wszystkich operatorach (0 do 1F)"
 
 #: src/engine/sysDef.cpp:487
 msgid "1Axx: Set attack of operator 1 (0 to 1F)"
-msgstr "1Axx: Ustaw czas narastania w operatorze 1 (0 do 1F)"
+msgstr "1Axx: Ustaw czas narastania operatora 1 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:488
 msgid "1Bxx: Set attack of operator 2 (0 to 1F)"
-msgstr "1Bxx: Ustaw czas narastania w operatorze 2 (0 do 1F)"
+msgstr "1Bxx: Ustaw czas narastania operatora 2 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:489
 msgid "1Cxx: Set attack of operator 3 (0 to 1F)"
-msgstr "1Cxx: Ustaw czas narastania w operatorze 3 (0 do 1F)"
+msgstr "1Cxx: Ustaw czas narastania operatora 3 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:490
 msgid "1Dxx: Set attack of operator 4 (0 to 1F)"
-msgstr "1Dxx: Ustaw czas narastania w operatorze 4 (0 do 1F)"
+msgstr "1Dxx: Ustaw czas narastania operatora 4 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:491 src/engine/sysDef.cpp:588
 #: src/engine/sysDef.cpp:656
@@ -171,7 +171,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:658
 msgid "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)"
 msgstr ""
-"52xy: Ustaw zanikanie (x: operatory od 1 do 4 (0 dla wszystkich operatorów); "
+"52xy: Ustaw zwolnienie (x: operatory od 1 do 4 (0 dla wszystkich operatorów); "
 "y: zanikanie)"
 
 #: src/engine/sysDef.cpp:494
@@ -179,8 +179,8 @@ msgid ""
 "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 "
 "is center)"
 msgstr ""
-"53xy: Ustaw odstrojenie (x: operatory od 1 do 4 (0 dla wszystkich "
-"operatorów); y: odstrojenie gdzie 3 \"to środek\")"
+"53xy: Ustaw rozstrojenie (x: operatory od 1 do 4 (0 dla wszystkich "
+"operatorów); y: rozstrojenie gdzie 3 \"to środek\")"
 
 #: src/engine/sysDef.cpp:495 src/engine/sysDef.cpp:592
 #: src/engine/sysDef.cpp:660
@@ -188,7 +188,7 @@ msgid ""
 "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale "
 "from 0 to 3)"
 msgstr ""
-"54xy: ustaw skalę obwiedni (x: operatory od 1 do 4 (0 dla wszystkich "
+"54xy: Ustaw skalę obwiedni (x: operatory od 1 do 4 (0 dla wszystkich "
 "operatorów); y: skala)"
 
 #: src/engine/sysDef.cpp:496
@@ -197,39 +197,39 @@ msgstr "56xx: Ustaw opadanie we wszystkich operatorach (0 do 1F)"
 
 #: src/engine/sysDef.cpp:497
 msgid "57xx: Set decay of operator 1 (0 to 1F)"
-msgstr "Ustaw opadanie w operatorze 1 (0 do 1F)"
+msgstr "Ustaw opadanie operatora 1 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:498
 msgid "58xx: Set decay of operator 2 (0 to 1F)"
-msgstr "58xx: Ustaw opadanie w operatorze 2 (0 do 1F)"
+msgstr "58xx: Ustaw opadanie operatora 2 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:499
 msgid "59xx: Set decay of operator 3 (0 to 1F)"
-msgstr "59xx: Ustaw opadanie w operatorze 3 (0 do 1F)"
+msgstr "59xx: Ustaw opadanie operatora 3 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:500
 msgid "5Axx: Set decay of operator 4 (0 to 1F)"
-msgstr "5Axx: Ustaw opadanie w operatorze 4 (0 do 1F)"
+msgstr "5Axx: Ustaw opadanie operatora 4 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:501
 msgid "5Bxx: Set decay 2 of all operators (0 to 1F)"
-msgstr "5Bxx: Ustaw opadanie 2 we wszystkich operatorach (0 do 1F)"
+msgstr "5Bxx: Ustaw wtórne opadanie 2 na wszystkich operatorach (0 do 1F)"
 
 #: src/engine/sysDef.cpp:502
 msgid "5Cxx: Set decay 2 of operator 1 (0 to 1F)"
-msgstr "5Cxx: Ustaw opadanie 2 w operatorze 1 (0 do 1F)"
+msgstr "5Cxx: Ustaw wtórne opadanie operatora 1 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:503
 msgid "5Dxx: Set decay 2 of operator 2 (0 to 1F)"
-msgstr "5Dxx: Ustaw opadanie 2 w operatorze 2 (0 do 1F)"
+msgstr "5Dxx: Ustaw wtórne opadanie operatora 2 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:504
 msgid "5Exx: Set decay 2 of operator 3 (0 to 1F)"
-msgstr "5Exx: Ustaw opadanie 2 w operatorze 3 (0 do 1F)"
+msgstr "5Exx: Ustaw wtórne opadanie operatora 3 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:505
 msgid "5Fxx: Set decay 2 of operator 4 (0 to 1F)"
-msgstr "5Fxx: Ustaw opadanie 2 w operatorze 4 (0 do 1F)"
+msgstr "5Fxx: Ustaw wtórne opadanie operatora 4 (0 do 1F)"
 
 #: src/engine/sysDef.cpp:510
 msgid "10xx: Set noise frequency (xx: value; 0 disables noise)"
@@ -242,7 +242,7 @@ msgstr "17xx: Ustaw prędkość LFO"
 #: src/engine/sysDef.cpp:512
 msgid "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)"
 msgstr ""
-"18xx: Ustaw falę LFO (0 piłokształna, 1 kwadratowa, 2 trójkątna, 3 szum)"
+"18xx: Ustaw kształt fali LFO (0 piłokształna, 1 kwadratowa, 2 trójkątna, 3 szum)"
 
 #: src/engine/sysDef.cpp:513
 msgid "1Exx: Set AM depth (0 to 7F)"
@@ -257,8 +257,8 @@ msgid ""
 "55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from "
 "0 to 3)"
 msgstr ""
-"Ustaw 2 odstrojenie (x: operatory od 1 do 4 (0 dla wszystkich operatorów); "
-"y: odstrojenie od 0 do 3)"
+"Ustaw 2 rozstrojenie (x: operatory od 1 do 4 (0 dla wszystkich operatorów); "
+"y: rozstrojenie od 0 do 3)"
 
 #: src/engine/sysDef.cpp:520
 msgid "24xx: Set LFO 2 speed"
@@ -267,134 +267,134 @@ msgstr "24xx: Ustaw prędkość LFO 2"
 #: src/engine/sysDef.cpp:521
 msgid "25xx: Set LFO 2 waveform (0 saw, 1 square, 2 triangle, 3 noise)"
 msgstr ""
-"25xx: Ustaw falę LF0 2 (0 piłokształtna, 1 kwadratowa, 2 trójkątna, 3 szum)"
+"25xx: Ustaw kształt fali LF0 2 (0 piłokształtna, 1 kwadratowa, 2 trójkątna, 3 szum)"
 
 #: src/engine/sysDef.cpp:522
 msgid "26xx: Set AM 2 depth (0 to 7F)"
-msgstr ""
+msgstr "26xx: Ustaw głębokość AM 2"
 
 #: src/engine/sysDef.cpp:523
 msgid "27xx: Set PM 2 depth (0 to 7F)"
-msgstr ""
+msgstr "27xx: Ustaw głębokość PM 2"
 
 #: src/engine/sysDef.cpp:524
 msgid ""
 "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 "
 "to 7)"
-msgstr ""
+msgstr "28xy: Ustaw pogłos (x: operatory 1-4 (0 dla wszystkich operatorów); y: pogłos 0-7)"
 
 #: src/engine/sysDef.cpp:525 src/engine/sysDef.cpp:650
 msgid ""
 "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform "
 "from 0 to 7)"
-msgstr ""
+msgstr "2Axy: Ustaw kształt fali (x: operator 1-4 (0 dla wszystkich operatorów); y: kształt fali 0-7)"
 
 #: src/engine/sysDef.cpp:526
 msgid ""
 "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); "
 "y: shift from 0 to 3)"
-msgstr ""
+msgstr "2Bxy: Ustaw przesunięcie generatora obwiedni (x: operator 1-4 (0 dla wszystkich operatorów); y: przesunięcie"
 
 #: src/engine/sysDef.cpp:527
 msgid ""
 "2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)"
-msgstr ""
+msgstr "2Cxy: Ustaw dokładny mnożnik(x: operator 1-4 (0 dla wszystkich operatorów); y: mnożnik)"
 
 #: src/engine/sysDef.cpp:530
 msgid ""
 "3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)"
-msgstr ""
+msgstr "3xyy: Ustaw stałą częstotliwość operatora 1 (x: oktawa 0-7; y: częstotliwość)"
 
 #: src/engine/sysDef.cpp:531
 msgid ""
 "3xyy: Set fixed frequency of operator 2 (x: octave from 8 to F; y: frequency)"
-msgstr ""
+msgstr "3xyy: Ustaw stałą częstotliwość operatora 2 (x: oktawa 0-7; y: częstotliwość)"
 
 #: src/engine/sysDef.cpp:532
 msgid ""
 "4xyy: Set fixed frequency of operator 3 (x: octave from 0 to 7; y: frequency)"
-msgstr ""
+msgstr "4xyy: Ustaw stałą częstotliwość operatora 3 (x: oktawa 0-7; y: częstotliwość)"
 
 #: src/engine/sysDef.cpp:533
 msgid ""
 "4xyy: Set fixed frequency of operator 4 (x: octave from 8 to F; y: frequency)"
-msgstr ""
+msgstr "4xyy: Ustaw stałą częstotliwość operatora operatora 4 (x: oktawa 8-F; y: częstotliwość)"
 
 #: src/engine/sysDef.cpp:540
 msgid "10xy: Setup LFO (x: enable; y: speed)"
-msgstr ""
+msgstr "10xy: Ustaw LFO (x: włączone; y: szybkość)"
 
 #: src/engine/sysDef.cpp:541
 msgid ""
 "55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, "
 "8 off)"
-msgstr ""
+msgstr "55xy: Ustaw obwiednię SSG (x: operator 1-4 (0 dla wszystkich operatorów); y: 0-7 wł., 8 wył.)"
 
 #: src/engine/sysDef.cpp:549
 msgid "1Fxx: Set ADPCM-A global volume (0 to 3F)"
-msgstr ""
+msgstr "1Fxx: Ustaw globalną głośność ADPCM-A (0-3F)"
 
 #: src/engine/sysDef.cpp:553
 msgid "10xx: Set patch (0 to F)"
-msgstr ""
+msgstr "Ustaw instrument (0-F)"
 
 #: src/engine/sysDef.cpp:555 src/engine/sysDef.cpp:576
 #: src/engine/sysDef.cpp:631
 msgid "12xx: Set level of operator 1 (0 highest, 3F lowest)"
-msgstr ""
+msgstr "12xx: Ustaw poziom operatora 1 (0 maks., 3F min.)"
 
 #: src/engine/sysDef.cpp:556 src/engine/sysDef.cpp:577
 #: src/engine/sysDef.cpp:632
 msgid "13xx: Set level of operator 2 (0 highest, 3F lowest)"
-msgstr ""
+msgstr "13xx: Ustaw poziom operatora 2 (0 maks., 3F min.)"
 
 #: src/engine/sysDef.cpp:557
 msgid "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)"
-msgstr ""
+msgstr "16xy:  Ustaw mnożnik częst. operatora (x: operator 1-2; y: mnożnik)"
 
 #: src/engine/sysDef.cpp:558 src/engine/sysDef.cpp:582
 #: src/engine/sysDef.cpp:637
 msgid "19xx: Set attack of all operators (0 to F)"
-msgstr ""
+msgstr "19xx: Ustaw czas narastania we wszystkich operatorach (0 do F)"
 
 #: src/engine/sysDef.cpp:559 src/engine/sysDef.cpp:583
 #: src/engine/sysDef.cpp:638
 msgid "1Axx: Set attack of operator 1 (0 to F)"
-msgstr ""
+msgstr "1Axx: Ustaw czas narastania operatora 1 (0 do F)"
 
 #: src/engine/sysDef.cpp:560 src/engine/sysDef.cpp:584
 #: src/engine/sysDef.cpp:639
 msgid "1Bxx: Set attack of operator 2 (0 to F)"
-msgstr ""
+msgstr "1Bxx: Ustaw czas narastania operatora 2 (0 do F)"
 
 #: src/engine/sysDef.cpp:561
 msgid "50xy: Set AM (x: operator from 1 to 2 (0 for all ops); y: AM)"
-msgstr ""
+msgstr "Włącz AM (x: operator 1-2 (0 dla wszystkich operatorów); y: AM)"
 
 #: src/engine/sysDef.cpp:562
 msgid ""
 "51xy: Set sustain level (x: operator from 1 to 2 (0 for all ops); y: sustain)"
-msgstr ""
+msgstr "51xy: Ustaw poziom podtrzymania (x: operator 1-2 (0 dla wszystkich operatorów); y: podtrzymanie)"
 
 #: src/engine/sysDef.cpp:563
 msgid "52xy: Set release (x: operator from 1 to 2 (0 for all ops); y: release)"
-msgstr ""
+msgstr "52xy: Ustaw zwolnienie (x: operator 1-2 (0 dla wszystkich operatorów); y: zwolnienie)"
 
 #: src/engine/sysDef.cpp:564
 msgid "53xy: Set vibrato (x: operator from 1 to 2 (0 for all ops); y: enabled)"
-msgstr ""
+msgstr "53xy: Vibrato (x: operator 1-2 (0 dla wszystkich operatorów); y: wł.)"
 
 #: src/engine/sysDef.cpp:565
 msgid ""
 "54xy: Set envelope scale (x: operator from 1 to 2 (0 for all ops); y: scale "
 "from 0 to 3)"
-msgstr ""
+msgstr "54xy: Ustaw skalowanie obwiedni (x: operator 1-2 (0 dla wszystkich operatorów); y: skala 0-3)"
 
 #: src/engine/sysDef.cpp:566
 msgid ""
 "55xy: Set envelope sustain (x: operator from 1 to 2 (0 for all ops); y: "
 "enabled)"
-msgstr ""
+msgstr "55xy: Ustaw podtrzymanie obwiedni (x: operator 1-2 (0 dla wszystkich operatorów); y: wł.)"
 
 #: src/engine/sysDef.cpp:567 src/engine/sysDef.cpp:594
 #: src/engine/sysDef.cpp:662
@@ -537,11 +537,11 @@ msgstr ""
 #: src/engine/sysDef.cpp:1893 src/engine/sysDef.cpp:2063
 #: src/engine/sysDef.cpp:2077
 msgid "10xx: Set waveform"
-msgstr ""
+msgstr "10xx: Ustaw kształt fali"
 
 #: src/engine/sysDef.cpp:626
 msgid "20xx: Set PCM frequency"
-msgstr ""
+msgstr "20xx: Ustaw częstotliwość PCM"
 
 #: src/engine/sysDef.cpp:630
 msgid ""
