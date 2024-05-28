@@ -452,7 +452,7 @@ void DivEngine::registerSystems() {
       [](unsigned char, unsigned char val) -> int { return 0x10+(val&15); }}},
     {0x27, {DIV_CMD_AY_NOISE_MASK_AND, _("27xx: Set noise AND mask")}},
     {0x28, {DIV_CMD_AY_NOISE_MASK_OR, _("28xx: Set noise OR mask")}},
-    {0x2c, {DIV_CMD_AY_AUTO_PWM, _("2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR mask); y: offset")}},
+    {0x2c, {DIV_CMD_AY_AUTO_PWM, _("2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR mask); y: offset)")}},
     {0x2d, {DIV_CMD_AY_IO_WRITE, _("2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER"), constVal<255>, effectVal}},
   };
 
