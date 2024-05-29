@@ -73,7 +73,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:455
 msgid ""
 "2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR "
-"mask); y: offset"
+"mask); y: offset)"
 msgstr ""
 
 #: src/engine/sysDef.cpp:456
@@ -3800,9 +3800,9 @@ msgstr ""
 msgid "Bug!"
 msgstr "Баг!"
 
+# TODO: this refers to instrument. it shouldn't.
 #: src/gui/dataList.cpp:79 src/gui/util.cpp:107 src/gui/util.cpp:109
 #: src/gui/settings.cpp:4167 src/gui/insEdit.cpp:5334
-# TODO: this refers to instrument. it shouldn't.
 msgid "Unknown"
 msgstr "Неизвестный тип инструмента"
 
@@ -4114,7 +4114,6 @@ msgid ""
 "- pp: pattern index (one per channel)\n"
 "\n"
 "pattern indexes are ordered as they appear in the song."
-
 msgstr ""
 "вставляет блоки данных в местах смены паттернов.\n"
 "полезно, если вы пишете программу для воспроизведения.\n"
@@ -4142,7 +4141,8 @@ msgid ""
 msgstr ""
 "необходим для экспорта DualPCM и MSM6258.\n"
 "\n"
-"повзоляет записывать изменение громкости/направления воспроизведения сэмплов\n"
+"повзоляет записывать изменение громкости/направления воспроизведения "
+"сэмплов\n"
 "ценой сильного увеличения размера файла."
 
 #: src/gui/exportOptions.cpp:191
@@ -7869,11 +7869,15 @@ msgid ""
 "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解"
 "決策です。"
 msgstr ""
-"Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
-"Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n"
+"Включайте эту настройку только в случае наличия достаточного количества "
+"графической памяти.\n"
+"Это временное решение, поскольку пока Dear ImGui не поддерживает "
+"динамический атлас шрифтов.\n"
 "\n"
-"このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
-"これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。"
+"このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてくださ"
+"い。\n"
+"これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解"
+"決策です。"
 
 #: src/gui/settings.cpp:3082
 msgid "Display Chinese (Simplified) characters"
@@ -7888,8 +7892,10 @@ msgid ""
 "请在确保你有足够的显存后再启动此设定\n"
 "这是一个在ImGui实现动态字体加载之前的临时解决方案"
 msgstr ""
-"Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
-"Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n"
+"Включайте эту настройку только в случае наличия достаточного количества "
+"графической памяти.\n"
+"Это временное решение, поскольку пока Dear ImGui не поддерживает "
+"динамический атлас шрифтов.\n"
 "\n"
 "请在确保你有足够的显存后再启动此设定\n"
 "这是一个在ImGui实现动态字体加载之前的临时解决方案"
@@ -7907,8 +7913,10 @@ msgid ""
 "請在確保你有足夠的顯存后再啟動此設定\n"
 "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
 msgstr ""
-"Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
-"Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n"
+"Включайте эту настройку только в случае наличия достаточного количества "
+"графической памяти.\n"
+"Это временное решение, поскольку пока Dear ImGui не поддерживает "
+"динамический атлас шрифтов.\n"
 "\n"
 "請在確保你有足夠的顯存后再啟動此設定\n"
 "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
@@ -7926,8 +7934,10 @@ msgid ""
 "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
 "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
 msgstr ""
-"Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
-"Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n"
+"Включайте эту настройку только в случае наличия достаточного количества "
+"графической памяти.\n"
+"Это временное решение, поскольку пока Dear ImGui не поддерживает "
+"динамический атлас шрифтов.\n"
 "\n"
 "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
 "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
@@ -10018,9 +10028,349 @@ msgstr ""
 msgid "Replace##QueryReplace"
 msgstr ""
 
+#: src/gui/about.cpp:26
+msgid "is proud to present"
+msgstr ""
+
+#: src/gui/about.cpp:30
+msgid "the biggest multi-system chiptune tracker!"
+msgstr ""
+
+#: src/gui/about.cpp:31
+msgid "featuring DefleMask song compatibility."
+msgstr ""
+
+#: src/gui/about.cpp:33
+msgid "> CREDITS <"
+msgstr ""
+
+#: src/gui/about.cpp:35
+msgid "-- program --"
+msgstr ""
+
+#: src/gui/about.cpp:37
+msgid "A M 4 N (intro tune)"
+msgstr ""
+
+#: src/gui/about.cpp:52
+msgid "-- graphics/UI design --"
+msgstr ""
+
+#: src/gui/about.cpp:59
+msgid "-- documentation --"
+msgstr ""
+
+#: src/gui/about.cpp:69
+msgid "-- demo songs --"
+msgstr ""
+
+#: src/gui/about.cpp:195
+msgid "-- additional feedback/fixes --"
+msgstr ""
+
+#: src/gui/about.cpp:206
+msgid "-- Metal backend test team --"
+msgstr ""
+
+#: src/gui/about.cpp:212
+msgid "-- DirectX 9 backend test team --"
+msgstr ""
+
+#: src/gui/about.cpp:219
+msgid "powered by:"
+msgstr ""
+
+#: src/gui/about.cpp:220
+msgid "Dear ImGui by Omar Cornut"
+msgstr ""
+
+#: src/gui/about.cpp:221
+msgid "SDL2 by Sam Lantinga"
+msgstr ""
+
+#: src/gui/about.cpp:225
+msgid "zlib by Jean-loup Gailly"
+msgstr ""
+
+#: src/gui/about.cpp:226
+msgid "and Mark Adler"
+msgstr ""
+
+#: src/gui/about.cpp:227
+msgid "libsndfile by Erik de Castro Lopo"
+msgstr ""
+
+#: src/gui/about.cpp:228
+msgid "Portable File Dialogs by Sam Hocevar"
+msgstr ""
+
+#: src/gui/about.cpp:229
+msgid "Native File Dialog by Frogtoss Games"
+msgstr ""
+
+#: src/gui/about.cpp:231
+msgid "Weak-JACK by x42"
+msgstr ""
+
+#: src/gui/about.cpp:232
+msgid "RtMidi by Gary P. Scavone"
+msgstr ""
+
+#: src/gui/about.cpp:233
+msgid "FFTW by Matteo Frigo and Steven G. Johnson"
+msgstr ""
+
+#: src/gui/about.cpp:234
+msgid "backward-cpp by Google"
+msgstr ""
+
+#: src/gui/about.cpp:235
+msgid "adpcm by superctr"
+msgstr ""
+
+#: src/gui/about.cpp:236
+msgid "adpcm-xq by David Bryant"
+msgstr ""
+
+#: src/gui/about.cpp:237
+msgid "Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"
+msgstr ""
+
+#: src/gui/about.cpp:238
+msgid "YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"
+msgstr ""
+
+#: src/gui/about.cpp:239
+msgid "ESFMu (modified version) by Kagamiin~"
+msgstr ""
+
+#: src/gui/about.cpp:240
+msgid "ymfm by Aaron Giles"
+msgstr ""
+
+#: src/gui/about.cpp:241
+msgid "emu2413 by Digital Sound Antiques"
+msgstr ""
+
+#: src/gui/about.cpp:242
+msgid "MAME SN76496 by Nicola Salmoria"
+msgstr ""
+
+#: src/gui/about.cpp:243
+msgid "MAME AY-3-8910 by Couriersud"
+msgstr ""
+
+#: src/gui/about.cpp:244
+msgid "with AY8930 fixes by Eulous, cam900 and Grauw"
+msgstr ""
+
+#: src/gui/about.cpp:245
+msgid "MAME SAA1099 by Juergen Buchmueller and Manuel Abadia"
+msgstr ""
+
+#: src/gui/about.cpp:246
+msgid "MAME Namco WSG by Nicola Salmoria and Aaron Giles"
+msgstr ""
+
+#: src/gui/about.cpp:247
+msgid "MAME RF5C68 core by Olivier Galibert and Aaron Giles"
+msgstr ""
+
+#: src/gui/about.cpp:248
+msgid "MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya"
+msgstr ""
+
+#: src/gui/about.cpp:249
+msgid "MAME MSM6258 core by Barry Rodewald"
+msgstr ""
+
+#: src/gui/about.cpp:250
+msgid "MAME YMZ280B core by Aaron Giles"
+msgstr ""
+
+#: src/gui/about.cpp:251
+msgid "MAME GA20 core by Acho A. Tang and R. Belmont"
+msgstr ""
+
+#: src/gui/about.cpp:252
+msgid "MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"
+msgstr ""
+
+#: src/gui/about.cpp:253
+msgid "SAASound by Dave Hooper and Simon Owen"
+msgstr ""
+
+#: src/gui/about.cpp:254
+msgid "SameBoy by Lior Halphon"
+msgstr ""
+
+#: src/gui/about.cpp:255
+msgid "Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"
+msgstr ""
+
+#: src/gui/about.cpp:256
+msgid "SNES DSP core by Blargg"
+msgstr ""
+
+#: src/gui/about.cpp:257
+msgid "puNES (NES, MMC5 and FDS) by FHorse"
+msgstr ""
+
+#: src/gui/about.cpp:258
+msgid "NSFPlay (NES and FDS) by Brad Smith and Brezza"
+msgstr ""
+
+#: src/gui/about.cpp:259
+msgid "reSID by Dag Lem"
+msgstr ""
+
+#: src/gui/about.cpp:260
+msgid "reSIDfp by Dag Lem, Antti Lankila"
+msgstr ""
+
+#: src/gui/about.cpp:261
+msgid "and Leandro Nini"
+msgstr ""
+
+#: src/gui/about.cpp:262
+msgid "dSID by DefleMask Team based on jsSID"
+msgstr ""
+
+#: src/gui/about.cpp:263
+msgid "Stella by Stella Team"
+msgstr ""
+
+#: src/gui/about.cpp:264
+msgid "QSound emulator by superctr and Valley Bell"
+msgstr ""
+
+#: src/gui/about.cpp:265
+msgid "VICE VIC-20 sound core by Rami Rasanen and viznut"
+msgstr ""
+
+#: src/gui/about.cpp:266
+msgid "VICE TED sound core by Andreas Boose, Tibor Biczo"
+msgstr ""
+
+#: src/gui/about.cpp:267
+msgid "and Marco van den Heuvel"
+msgstr ""
+
+#: src/gui/about.cpp:268
+msgid "VERA sound core by Frank van den Hoef"
+msgstr ""
+
+#: src/gui/about.cpp:269
+msgid "mzpokeysnd POKEY emulator by Michael Borisov"
+msgstr ""
+
+#: src/gui/about.cpp:270
+msgid "ASAP POKEY emulator by Piotr Fusik"
+msgstr ""
+
+#: src/gui/about.cpp:271
+msgid "ported by laoo to C++"
+msgstr ""
+
+#: src/gui/about.cpp:272
+msgid "vgsound_emu (second version, modified version) by cam900"
+msgstr ""
+
+#: src/gui/about.cpp:273
+msgid "SM8521 emulator (modified version) by cam900"
+msgstr ""
+
+#: src/gui/about.cpp:274
+msgid "D65010G031 emulator (modified version) by cam900"
+msgstr ""
+
+#: src/gui/about.cpp:275
+msgid "Namco C140/C219 emulator (modified version) by cam900"
+msgstr ""
+
+#: src/gui/about.cpp:276
+msgid "PowerNoise emulator by scratchminer"
+msgstr ""
+
+#: src/gui/about.cpp:277
+msgid "ep128emu by Istvan Varga"
+msgstr ""
+
+#: src/gui/about.cpp:278
+msgid "NDS sound emulator by cam900"
+msgstr ""
+
+#: src/gui/about.cpp:280
+msgid "greetings to:"
+msgstr ""
+
+#: src/gui/about.cpp:283
+msgid "all members of Deflers of Noice!"
+msgstr ""
+
+#: src/gui/about.cpp:285
+msgid "copyright © 2021-2024 tildearrow"
+msgstr ""
+
+#: src/gui/about.cpp:286
+msgid "(and contributors)."
+msgstr ""
+
+#: src/gui/about.cpp:287
+msgid "licensed under GPLv2+! see"
+msgstr ""
+
+#: src/gui/about.cpp:288
+msgid "LICENSE for more information."
+msgstr ""
+
+#: src/gui/about.cpp:290
+msgid "help Furnace grow:"
+msgstr ""
+
+#: src/gui/about.cpp:293
+msgid "contact tildearrow at:"
+msgstr ""
+
+#: src/gui/about.cpp:296
+msgid "disclaimer:"
+msgstr ""
+
+#: src/gui/about.cpp:297
+msgid "despite the fact this program works"
+msgstr ""
+
+#: src/gui/about.cpp:298
+msgid "with the .dmf file format, it is NOT"
+msgstr ""
+
+#: src/gui/about.cpp:299
+msgid "affiliated with Delek or DefleMask in"
+msgstr ""
+
+#: src/gui/about.cpp:300
+msgid "any way, nor it is a replacement for"
+msgstr ""
+
+#: src/gui/about.cpp:301
+msgid "the original program."
+msgstr ""
+
+#: src/gui/about.cpp:303
+msgid "it also comes with ABSOLUTELY NO WARRANTY."
+msgstr ""
+
 #: src/gui/about.cpp:305
+msgid "thanks to all contributors/bug reporters!"
+msgstr ""
+
+#: src/gui/about.cpp:312
 msgid "About Furnace"
 msgstr "О Furnace"
+
+#: src/gui/about.cpp:402
+msgid "Unsaved changes! Save changes before playing?"
+msgstr ""
 
 #: src/gui/compatFlags.cpp:31 src/gui/guiConst.cpp:598
 msgid "Compatibility Flags"
@@ -10033,8 +10383,10 @@ msgid ""
 "it is recommended to disable most of these unless you rely on specific "
 "quirks."
 msgstr ""
-"эти флаги предназначены для лучшей совместимости с DefleMask/старыми версиями Furnace.\n"
-"рекомендуется отключать большинство из них, если вы не полагаетесь на специфику работы программы, которую они обеспечивают."
+"эти флаги предназначены для лучшей совместимости с DefleMask/старыми "
+"версиями Furnace.\n"
+"рекомендуется отключать большинство из них, если вы не полагаетесь на "
+"специфику работы программы, которую они обеспечивают."
 
 #: src/gui/compatFlags.cpp:34 src/gui/compatFlags.cpp:310
 msgid "DefleMask"
@@ -10062,14 +10414,17 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:43
 msgid "Game Boy instrument duty is wave volume"
-msgstr "Макрос скважности инструмента Game Boy контролирует громкость канала волновых таблиц"
+msgstr ""
+"Макрос скважности инструмента Game Boy контролирует громкость канала "
+"волновых таблиц"
 
 #: src/gui/compatFlags.cpp:45
 msgid ""
 "if enabled, an instrument with duty macro in the wave channel will be mapped "
 "to wavetable volume."
 msgstr ""
-"при включении макрос скважности инструмента будет назначен для контроля громкости канала волновых таблиц."
+"при включении макрос скважности инструмента будет назначен для контроля "
+"громкости канала волновых таблиц."
 
 #: src/gui/compatFlags.cpp:48
 msgid "Restart macro on portamento"
@@ -10080,7 +10435,8 @@ msgid ""
 "when enabled, a portamento effect will reset the channel's macro if used in "
 "combination with a note."
 msgstr ""
-"при включении этого флага эффект портаменто, будучи размещённым рядом с нотой, будет перезапускать макросы инструмента."
+"при включении этого флага эффект портаменто, будучи размещённым рядом с "
+"нотой, будет перезапускать макросы инструмента."
 
 #: src/gui/compatFlags.cpp:52
 msgid "Legacy volume slides"
@@ -10128,7 +10484,8 @@ msgstr "Игнорировать дублирующиеся эффекты ав�
 msgid ""
 "if this is on, only the first slide of a row in a channel will be considered."
 msgstr ""
-"при включении этого флага только первый эффект авто-портаменто в данной строке будет эффективен."
+"при включении этого флага только первый эффект авто-портаменто в данной "
+"строке будет эффективен."
 
 #: src/gui/compatFlags.cpp:72
 msgid "Ignore 0Dxx on the last order"
@@ -10139,7 +10496,8 @@ msgid ""
 "if this is on, a jump to next row effect will not take place when it is on "
 "the last order of a song."
 msgstr ""
-"при включении флага эффект прыжка на следующий паттерн не будет работать, если паттерн проигрывается в последней строке матрицы паттернов."
+"при включении флага эффект прыжка на следующий паттерн не будет работать, "
+"если паттерн проигрывается в последней строке матрицы паттернов."
 
 #: src/gui/compatFlags.cpp:76
 msgid "Buggy portamento after pitch slide"
@@ -10166,15 +10524,21 @@ msgstr "Не применять огибающую Game Boy при смене и
 
 #: src/gui/compatFlags.cpp:86
 msgid "if this is on, an instrument change will not affect the envelope."
-msgstr "при включении этого флага смена инструмента без смены ноты не будет влиять на огибающую."
+msgstr ""
+"при включении этого флага смена инструмента без смены ноты не будет влиять "
+"на огибающую."
 
 #: src/gui/compatFlags.cpp:88
 msgid "Ignore DAC mode change outside of intended channel in ExtCh mode"
-msgstr "Игнорировать переключение режима ЦАП, если оно не происходит на соответствующем канале, в режиме расширенного канала"
+msgstr ""
+"Игнорировать переключение режима ЦАП, если оно не происходит на "
+"соответствующем канале, в режиме расширенного канала"
 
 #: src/gui/compatFlags.cpp:90
 msgid "if this is on, 17xx has no effect on the operator channels in YM2612."
-msgstr "при включении этого флага 17xx не работает, если размещён на каналах операторов расширенного канала (для YM2612)."
+msgstr ""
+"при включении этого флага 17xx не работает, если размещён на каналах "
+"операторов расширенного канала (для YM2612)."
 
 #: src/gui/compatFlags.cpp:92
 msgid "E1xy/E2xy also take priority over slide stops"
@@ -10201,7 +10565,8 @@ msgid ""
 "when enabled, duty macro will always reset phase, even if its value hasn't "
 "changed."
 msgstr ""
-"при включении этого флага макрос скважности всегда будет сбрасывать фазу, даже если значение скважности не меняется."
+"при включении этого флага макрос скважности всегда будет сбрасывать фазу, "
+"даже если значение скважности не меняется."
 
 #: src/gui/compatFlags.cpp:104
 msgid "Broken volume scaling strategy"
@@ -10226,7 +10591,8 @@ msgid ""
 "when enabled, a value in the volume column that happens after the volume "
 "macro is done will disregard the macro."
 msgstr ""
-"при включении этого флага значение в столбце громкости, расположенное после завершения макроса громкости, не будет учитывать значение макроса."
+"при включении этого флага значение в столбце громкости, расположенное после "
+"завершения макроса громкости, не будет учитывать значение макроса."
 
 #: src/gui/compatFlags.cpp:112
 msgid "Broken output volume on instrument change"
@@ -10413,7 +10779,9 @@ msgstr "Не исполнять авто-портаменто в первый ш
 msgid ""
 "simulates ProTracker's behavior of not applying volume/pitch slides on the "
 "first tick of a row."
-msgstr "симулирует поведение программы ProTracker, которая не исполняет изменения громкости и частоты на первом шаге движка каждого столбца."
+msgstr ""
+"симулирует поведение программы ProTracker, которая не исполняет изменения "
+"громкости и частоты на первом шаге движка каждого столбца."
 
 #: src/gui/compatFlags.cpp:210
 msgid "Reset arpeggio position on row change"
@@ -10423,7 +10791,9 @@ msgstr "Перезапуск позиции арпеджио при продви
 msgid ""
 "simulates ProTracker's behavior of arpeggio being bound to the current tick "
 "of a row."
-msgstr "симулирует поведение программы ProTracker, которая привязывает исполнение арпеджио к номеру шага движка в каждой строке паттерна."
+msgstr ""
+"симулирует поведение программы ProTracker, которая привязывает исполнение "
+"арпеджио к номеру шага движка в каждой строке паттерна."
 
 #: src/gui/compatFlags.cpp:216
 msgid "Pitch/Playback"
@@ -10436,6 +10806,7 @@ msgstr "Линейность частоты (в долях полутонов):"
 #: src/gui/compatFlags.cpp:223
 msgid "like ProTracker/FamiTracker"
 msgstr "как ProTracker/FamiTracker"
+
 #: src/gui/compatFlags.cpp:227
 msgid "Partial (only 04xy/E5xx)"
 msgstr ""
@@ -10475,7 +10846,9 @@ msgstr "Перезапуск каналов"
 #: src/gui/compatFlags.cpp:258
 msgid ""
 "select to reset channels on loop. may trigger a voltage click on every loop!"
-msgstr "выберите для перезапуска каналов каждый раз в начале цикла. может вызывать щелчок в каждом начале цикла из-за смены напряжения!"
+msgstr ""
+"выберите для перезапуска каналов каждый раз в начале цикла. может вызывать "
+"щелчок в каждом начале цикла из-за смены напряжения!"
 
 #: src/gui/compatFlags.cpp:260
 msgid "Soft reset channels"
@@ -10499,7 +10872,8 @@ msgstr "Поведение эффектов заглушения/задержк�
 
 #: src/gui/compatFlags.cpp:280
 msgid "only when time is less than speed (like DefleMask/ProTracker)"
-msgstr "только в случае, когда параметр меньше скорости (как DefleMask/ProTracker)"
+msgstr ""
+"только в случае, когда параметр меньше скорости (как DefleMask/ProTracker)"
 
 #: src/gui/compatFlags.cpp:282
 msgid "Strict (old)"
@@ -10519,7 +10893,9 @@ msgstr "Поведение при одновременном прыжке (0B+0D
 
 #: src/gui/compatFlags.cpp:302
 msgid "accept 0B+0D to jump to a specific row of an order"
-msgstr "принять 0B+0D как прыжок на конкретную строку паттерна на конкретной позиции матрицы паттернов"
+msgstr ""
+"принять 0B+0D как прыжок на конкретную строку паттерна на конкретной позиции "
+"матрицы паттернов"
 
 #: src/gui/compatFlags.cpp:308
 msgid "only accept the first jump effect"
@@ -10541,7 +10917,8 @@ msgid ""
 "\n"
 "ineffective on C64."
 msgstr ""
-"при включении этого флага между нотами без эффекта легато и авто-портаменто будет вставлено заглушение ноты длиной в один шаг движка.\n"
+"при включении этого флага между нотами без эффекта легато и авто-портаменто "
+"будет вставлено заглушение ноты длиной в один шаг движка.\n"
 "это симуляция повдения некоторых музыкальных драйверов Amiga/SNES.\n"
 "\n"
 "ничего не меняет для C64."
@@ -10552,7 +10929,9 @@ msgstr "Не переинициализировать авто-портамен�
 
 #: src/gui/compatFlags.cpp:329
 msgid "when enabled, note off will not reset the channel's slide effect."
-msgstr "при включении этого флага окончание ноты не будет останавливать авто-портаменто на этом канале."
+msgstr ""
+"при включении этого флага окончание ноты не будет останавливать авто-"
+"портаменто на этом канале."
 
 #: src/gui/compatFlags.cpp:331
 msgid "Don't reset portamento after reaching target"
@@ -10562,7 +10941,9 @@ msgstr "Не переинициализировать авто-портамен�
 msgid ""
 "when enabled, the slide effect will not be disabled after it reaches its "
 "target."
-msgstr "при включении этого флага эффект авто-портаменто не будет переинициализирован при достижении целевой частоты."
+msgstr ""
+"при включении этого флага эффект авто-портаменто не будет "
+"переинициализирован при достижении целевой частоты."
 
 #: src/gui/compatFlags.cpp:335
 msgid "Continuous vibrato"
@@ -10570,7 +10951,9 @@ msgstr "Непрерывное вибрато"
 
 #: src/gui/compatFlags.cpp:337
 msgid "when enabled, vibrato phase/position will not be reset on a new note."
-msgstr "при включении этого флага фаза/положение вибрато не будут сбрасываться на новой ноте."
+msgstr ""
+"при включении этого флага фаза/положение вибрато не будут сбрасываться на "
+"новой ноте."
 
 #: src/gui/compatFlags.cpp:339
 msgid "Pitch macro is not linear"
@@ -10579,7 +10962,9 @@ msgstr "Нелинейный макрос частоты"
 #: src/gui/compatFlags.cpp:341
 msgid ""
 "when enabled, the pitch macro of an instrument is in frequency/period space."
-msgstr "при включении этого флага макрос частоты будет работать относительно периода/частоты, а не долей полутона."
+msgstr ""
+"при включении этого флага макрос частоты будет работать относительно периода/"
+"частоты, а не долей полутона."
 
 #: src/gui/compatFlags.cpp:343
 msgid "Reset arpeggio effect position on new note"
@@ -10587,7 +10972,9 @@ msgstr "Сбрасывать положение эффекта арпеджио 
 
 #: src/gui/compatFlags.cpp:345
 msgid "when enabled, arpeggio effect (00xy) position is reset on a new note."
-msgstr "при включении этого флага положение эффекта арпеджио (00xy) сбрасывается на новой ноте."
+msgstr ""
+"при включении этого флага положение эффекта арпеджио (00xy) сбрасывается на "
+"новой ноте."
 
 #: src/gui/compatFlags.cpp:347
 msgid "Volume scaling rounds up"
@@ -10602,7 +10989,8 @@ msgid ""
 "ineffective on logarithmic channels"
 msgstr ""
 "при включении этого флага значения макросов громкости округляются вверх\n"
-"это предотвращает возникновение ситуации vol=0 при масштабировании громкости, что приводит к заглушению на некоторых чипах\n"
+"это предотвращает возникновение ситуации vol=0 при масштабировании "
+"громкости, что приводит к заглушению на некоторых чипах\n"
 "\n"
 "не эффективно на чипах с логарифмическим контролем громкости"
 
@@ -12422,8 +12810,8 @@ msgstr "Загрузить"
 msgid "Kill"
 msgstr "Остановить"
 
-#: src/gui/csPlayer.cpp:119
 # korean: 기계는 이미 죽었습니다!
+#: src/gui/csPlayer.cpp:119
 msgid "Kikai wa mou shindeiru!"
 msgstr "Кикенын ими чукотсыпнида!"
 
