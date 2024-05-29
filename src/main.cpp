@@ -491,8 +491,13 @@ int main(int argc, char** argv) {
 
 #ifdef HAVE_LOCALE
   const char* localeRet=NULL;
+  if ((localeRet=setlocale(LC_CTYPE,""))==NULL) {
+    logE("could not set locale (CTYPE)!");
+  } else {
+    logV("locale: %s",localeRet);
+  }
   if ((localeRet=setlocale(LC_MESSAGES,""))==NULL) {
-    logE("could not set locale!");
+    logE("could not set locale (MESSAGES)!");
   } else {
     logV("locale: %s",localeRet);
   }
