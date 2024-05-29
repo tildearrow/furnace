@@ -28,10 +28,11 @@ class FurnaceGUIRenderMetal: public FurnaceGUIRender {
   String vendorName, deviceName, apiVersion;
   public:
     ImTextureID getTextureID(FurnaceGUITexture* which);
+    FurnaceGUITextureFormat getTextureFormat(FurnaceGUITexture* which);
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
     bool unlockTexture(FurnaceGUITexture* which);
     bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
-    FurnaceGUITexture* createTexture(bool dynamic, int width, int height, bool interpolate=true);
+    FurnaceGUITexture* createTexture(bool dynamic, int width, int height, bool interpolate=true, FurnaceGUITextureFormat format=GUI_TEXFORMAT_ABGR32);
     bool destroyTexture(FurnaceGUITexture* which);
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
@@ -47,12 +48,13 @@ class FurnaceGUIRenderMetal: public FurnaceGUIRender {
     int getWindowFlags();
     int getMaxTextureWidth();
     int getMaxTextureHeight();
+    unsigned int getTextureFormats();
     const char* getBackendName();
     const char* getVendorName();
     const char* getDeviceName();
     const char* getAPIVersion();
     void setSwapInterval(int swapInterval);
-    void preInit();
+    void preInit(const DivConfig& conf);
     bool init(SDL_Window* win, int swapInterval);
     void initGUI(SDL_Window* win);
     void quitGUI();

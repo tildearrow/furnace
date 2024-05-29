@@ -52,10 +52,10 @@ class DivWorkPool;
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-//#define DIV_UNSTABLE
+#define DIV_UNSTABLE
 
-#define DIV_VERSION "0.6.3"
-#define DIV_ENGINE_VERSION 201
+#define DIV_VERSION "dev211"
+#define DIV_ENGINE_VERSION 211
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -96,6 +96,35 @@ enum DivMIDIModes {
   DIV_MIDI_MODE_OFF=0,
   DIV_MIDI_MODE_NOTE,
   DIV_MIDI_MODE_LIGHT_SHOW
+};
+
+enum DivAudioExportFormats {
+  DIV_EXPORT_FORMAT_S16=0,
+  DIV_EXPORT_FORMAT_F32
+};
+
+struct DivAudioExportOptions {
+  DivAudioExportModes mode;
+  DivAudioExportFormats format;
+  int sampleRate;
+  int chans;
+  int loops;
+  double fadeOut;
+  int orderBegin, orderEnd;
+  bool channelMask[DIV_MAX_CHANS];
+  DivAudioExportOptions():
+    mode(DIV_EXPORT_MODE_ONE),
+    format(DIV_EXPORT_FORMAT_S16),
+    sampleRate(44100),
+    chans(2),
+    loops(0),
+    fadeOut(0.0),
+    orderBegin(-1),
+    orderEnd(-1) {
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      channelMask[i]=true;
+    }
+  }
 };
 
 struct DivChannelState {
@@ -456,7 +485,10 @@ class DivEngine {
   DivChannelState chan[DIV_MAX_CHANS];
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
+  DivAudioExportFormats exportFormat;
   double exportFadeOut;
+  int exportOutputs;
+  bool exportChannelMask[DIV_MAX_CHANS];
   DivConfig conf;
   FixedQueue<DivNoteEvent,8192> pendingNotes;
   // bitfield
@@ -670,7 +702,7 @@ class DivEngine {
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
-    bool saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime=0.0);
+    bool saveAudio(const char* path, DivAudioExportOptions options);
     // wait for audio export to finish
     void waitAudioFile();
     // stop audio file export
@@ -733,6 +765,9 @@ class DivEngine {
 
     // get whether config value exists
     bool hasConf(String key);
+
+    // reset all settings
+    void factoryReset();
 
     // calculate base frequency/period
     double calcBaseFreq(double clock, double divider, int note, bool period);
@@ -1359,7 +1394,9 @@ class DivEngine {
       haltOn(DIV_HALT_NONE),
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
+      exportFormat(DIV_EXPORT_FORMAT_S16),
       exportFadeOut(0.0),
+      exportOutputs(2),
       cmdStreamInt(NULL),
       midiBaseChan(0),
       midiPoly(true),
@@ -1411,6 +1448,7 @@ class DivEngine {
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
+      memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
 
       for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;

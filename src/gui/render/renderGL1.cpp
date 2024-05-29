@@ -29,6 +29,7 @@ class FurnaceGL1Texture: public FurnaceGUITexture {
   public:
   GLuint id;
   int width, height, widthReal, heightReal;
+  FurnaceGUITextureFormat format;
   unsigned char* lockedData;
   FurnaceGL1Texture():
     id(0),
@@ -36,6 +37,7 @@ class FurnaceGL1Texture: public FurnaceGUITexture {
     height(0),
     widthReal(0),
     heightReal(0),
+    format(GUI_TEXFORMAT_UNKNOWN),
     lockedData(NULL) {}
 };
 
@@ -46,12 +48,19 @@ ImTextureID FurnaceGUIRenderGL1::getTextureID(FurnaceGUITexture* which) {
 
 float FurnaceGUIRenderGL1::getTextureU(FurnaceGUITexture* which) {
   FurnaceGL1Texture* t=(FurnaceGL1Texture*)which;
+  if (t->widthReal<1) return 0.0f;
   return (float)t->width/(float)t->widthReal;
 }
 
 float FurnaceGUIRenderGL1::getTextureV(FurnaceGUITexture* which) {
   FurnaceGL1Texture* t=(FurnaceGL1Texture*)which;
+  if (t->heightReal<1) return 0.0f;
   return (float)t->height/(float)t->heightReal;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderGL1::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceGL1Texture* t=(FurnaceGL1Texture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderGL1::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -90,7 +99,11 @@ bool FurnaceGUIRenderGL1::updateTexture(FurnaceGUITexture* which, void* data, in
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderGL1::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderGL1::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ABGR32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
   FurnaceGL1Texture* t=new FurnaceGL1Texture;
   C(glGenTextures(1,&t->id));
   C(glBindTexture(GL_TEXTURE_2D,t->id));
@@ -119,6 +132,7 @@ FurnaceGUITexture* FurnaceGUIRenderGL1::createTexture(bool dynamic, int width, i
   t->height=height;
   t->widthReal=widthReal;
   t->heightReal=heightReal;
+  t->format=format;
   return t;
 }
 
@@ -219,6 +233,10 @@ int FurnaceGUIRenderGL1::getMaxTextureHeight() {
   return maxHeight;
 }
 
+unsigned int FurnaceGUIRenderGL1::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32;
+}
+
 const char* FurnaceGUIRenderGL1::getBackendName() {
   return "OpenGL 1.1";
 }
@@ -245,18 +263,20 @@ void FurnaceGUIRenderGL1::setSwapInterval(int swapInterval) {
   }
 }
 
-void FurnaceGUIRenderGL1::preInit() {
+void FurnaceGUIRenderGL1::preInit(const DivConfig& conf) {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,0);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,0);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,1);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION,1);
 
-  SDL_GL_SetAttribute(SDL_GL_RED_SIZE,8);
-  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,8);
-  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,8);
-  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,0);
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,24);
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE,conf.getInt("glRedSize",8));
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,conf.getInt("glGreenSize",8));
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,conf.getInt("glBlueSize",8));
+  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,conf.getInt("glAlphaSize",0));
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,conf.getInt("glDoubleBuffer",1));
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,conf.getInt("glDepthSize",24));
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,conf.getInt("glStencilSize",0));
+  SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE,conf.getInt("glBufferSize",32));
 }
 
 #define LOAD_PROC_MANDATORY(_v,_t,_s) \

@@ -24,13 +24,20 @@
 class FurnaceSoftwareTexture: public FurnaceGUITexture {
   public:
   SWTexture* tex;
+  FurnaceGUITextureFormat format;
   FurnaceSoftwareTexture():
-    tex(NULL) {}
+    tex(NULL),
+    format(GUI_TEXFORMAT_UNKNOWN) {}
 };
 
 ImTextureID FurnaceGUIRenderSoftware::getTextureID(FurnaceGUITexture* which) {
   FurnaceSoftwareTexture* t=(FurnaceSoftwareTexture*)which;
   return t->tex;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderSoftware::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceSoftwareTexture* t=(FurnaceSoftwareTexture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderSoftware::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -52,9 +59,14 @@ bool FurnaceGUIRenderSoftware::updateTexture(FurnaceGUITexture* which, void* dat
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderSoftware::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderSoftware::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ARGB32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
   FurnaceSoftwareTexture* ret=new FurnaceSoftwareTexture;
   ret->tex=new SWTexture(width,height);
+  ret->format=format;
   return ret;
 }
 
@@ -141,6 +153,10 @@ int FurnaceGUIRenderSoftware::getMaxTextureHeight() {
   return 16384;
 }
 
+unsigned int FurnaceGUIRenderSoftware::getTextureFormats() {
+  return GUI_TEXFORMAT_ARGB32;
+}
+
 const char* FurnaceGUIRenderSoftware::getBackendName() {
   return "Software";
 }
@@ -160,7 +176,7 @@ const char* FurnaceGUIRenderSoftware::getAPIVersion() {
 void FurnaceGUIRenderSoftware::setSwapInterval(int swapInterval) {
 }
 
-void FurnaceGUIRenderSoftware::preInit() {
+void FurnaceGUIRenderSoftware::preInit(const DivConfig& conf) {
 }
 
 bool FurnaceGUIRenderSoftware::init(SDL_Window* win, int swapInterval) {

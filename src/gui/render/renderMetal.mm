@@ -44,17 +44,24 @@ class FurnaceMetalTexture: public FurnaceGUITexture {
   public:
   id<MTLTexture> tex;
   int width, height;
+  FurnaceGUITextureFormat format;
   unsigned char* lockedData;
   FurnaceMetalTexture():
     tex(NULL),
     width(0),
     height(0),
+    format(GUI_TEXFORMAT_UNKNOWN),
     lockedData(NULL) {}
 };
 
 ImTextureID FurnaceGUIRenderMetal::getTextureID(FurnaceGUITexture* which) {
   FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
   return t->tex;
+}
+
+FurnaceGUITextureFormat FurnaceGUIRenderMetal::getTextureFormat(FurnaceGUITexture* which) {
+  FurnaceMetalTexture* t=(FurnaceMetalTexture*)which;
+  return t->format;
 }
 
 bool FurnaceGUIRenderMetal::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
@@ -84,7 +91,11 @@ bool FurnaceGUIRenderMetal::updateTexture(FurnaceGUITexture* which, void* data, 
   return true;
 }
 
-FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width, int height, bool interpolate) {
+FurnaceGUITexture* FurnaceGUIRenderMetal::createTexture(bool dynamic, int width, int height, bool interpolate, FurnaceGUITextureFormat format) {
+  if (format!=GUI_TEXFORMAT_ABGR32) {
+    logE("unsupported texture format!");
+    return NULL;
+  }
   MTLTextureDescriptor* texDesc=[MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:(NSUInteger)width height:(NSUInteger)height mipmapped:NO];
   texDesc.usage=MTLTextureUsageShaderRead;
   texDesc.storageMode=MTLStorageModeManaged;
@@ -193,6 +204,10 @@ int FurnaceGUIRenderMetal::getMaxTextureHeight() {
   return bigTextures?16384:8192;
 }
 
+unsigned int FurnaceGUIRenderMetal::getTextureFormats() {
+  return GUI_TEXFORMAT_ABGR32;
+}
+
 const char* FurnaceGUIRenderMetal::getBackendName() {
   return "Metal";
 }
@@ -218,7 +233,7 @@ void FurnaceGUIRenderMetal::setSwapInterval(int swapInterval) {
   }
 }
 
-void FurnaceGUIRenderMetal::preInit() {
+void FurnaceGUIRenderMetal::preInit(const DivConfig& conf) {
   SDL_SetHint(SDL_HINT_RENDER_DRIVER,"metal");
   priv=new FurnaceGUIRenderMetalPrivate;
 }

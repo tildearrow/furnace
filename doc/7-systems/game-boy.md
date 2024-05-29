@@ -15,7 +15,7 @@ it has stereo sound, two pulse channels, a wave channel and a noise channel.
   - `1`: 25%
   - `2`: 50%
   - `3`: 75%
-- `13xy`: **setup sweep.** pulse channels only.
+- `13xy`: **setup sweep.** pulse 1 only.
   - `x` is the time.
   - `y` is the shift.
   - set to `0` to disable it.

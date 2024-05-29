@@ -5,6 +5,7 @@ nosdl/
 release/
 t/
 winbuild/
+winCbuild/
 win32build/
 xpbuild/
 macbuild/

@@ -362,6 +362,29 @@ void DivPlatformAY8930::tick(bool sysTick) {
         immWrite(regPeriodL[i],chan[i].envelope.period);
         immWrite(regPeriodH[i],chan[i].envelope.period>>8);
       }
+      if (chan[i].freqChanged && chan[i].autoNoiseMode) {
+        int noiseFreq=chan[i].freq;
+        switch (chan[i].autoNoiseMode) {
+          case 1: // noise
+            noiseFreq+=chan[i].autoNoiseOff;
+            if (noiseFreq<0) noiseFreq=0;
+            if (noiseFreq>255) noiseFreq=255;
+            rWrite(0x06,noiseFreq);
+            break;
+          case 2: { // noise + OR mask
+            if (noiseFreq<0) noiseFreq=0;
+            int noiseDiv=(noiseFreq>>8)+1;
+            noiseFreq/=noiseDiv;
+            ayNoiseOr=noiseDiv;
+            immWrite(0x1a,ayNoiseOr);
+            noiseFreq+=chan[i].autoNoiseOff;
+            if (noiseFreq<0) noiseFreq=0;
+            if (noiseFreq>255) noiseFreq=255;
+            rWrite(0x06,noiseFreq);
+            break;
+          }
+        }
+      }
       chan[i].freqChanged=false;
     }
 
@@ -630,6 +653,12 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_AY_AUTO_ENVELOPE:
       chan[c.chan].autoEnvNum=c.value>>4;
       chan[c.chan].autoEnvDen=c.value&15;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_AY_AUTO_PWM:
+      chan[c.chan].autoNoiseMode=c.value>>4;
+      chan[c.chan].autoNoiseOff=c.value&15;
+      if (chan[c.chan].autoNoiseOff>=8) chan[c.chan].autoNoiseOff-=16;
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_AY_IO_WRITE:

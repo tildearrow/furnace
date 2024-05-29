@@ -27,6 +27,7 @@ the YM2413 is equipped with the following features:
 
 ## effects
 
+- `10xx`: **change patch.**
 - `11xx`: **set feedback of channel.**
 - `12xx`: **set operator 1 level.**
 - `13xx`: **set operator 2 level.**
