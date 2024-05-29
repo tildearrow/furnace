@@ -22,7 +22,7 @@
 #include <math.h>
 
 const char* aboutLine[]={
-  _N("tildearrow"),
+  "tildearrow",
   _N("is proud to present"),
   "",
   ("Furnace " DIV_VERSION),
@@ -363,24 +363,26 @@ void FurnaceGUI::drawAbout() {
     }
 
     for (size_t i=0; i<aboutCount; i++) {
-      double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(_(aboutLine[i])).x*0.5);
+      // don't localize tildearrow or the version
+      const char* nextLine=(i==0 || i==3)?aboutLine[i]:_(aboutLine[i]);
+      double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(nextLine).x*0.5);
       double posY=(canvasH-aboutScroll+42*i*dpiScale);
       if (posY<-80*dpiScale || posY>canvasH) continue;
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX+dpiScale,posY+dpiScale),
-                  0xff000000,_(aboutLine[i]));
+                  0xff000000,nextLine);
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX+dpiScale,posY-dpiScale),
-                  0xff000000,_(aboutLine[i]));
+                  0xff000000,nextLine);
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX-dpiScale,posY+dpiScale),
-                  0xff000000,_(aboutLine[i]));
+                  0xff000000,nextLine);
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX-dpiScale,posY-dpiScale),
-                  0xff000000,_(aboutLine[i]));
+                  0xff000000,nextLine);
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX,posY),
-                  0xffffffff,_(aboutLine[i]));
+                  0xffffffff,nextLine);
     }
     ImGui::PopFont();
 
