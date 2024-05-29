@@ -1827,7 +1827,7 @@ msgstr "Talerz"
 #: src/engine/sysDef.cpp:1481 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:1693 src/gui/insEdit.cpp:213 src/gui/insEdit.cpp:219
 msgid "HiHat"
-msgstr "Hi-hat
+msgstr "Hi-hat"
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1407
@@ -1928,12 +1928,12 @@ msgstr "4OP 9"
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 #: src/engine/sysDef.cpp:2006
 msgid "FM 10"
-msgstr ""FM 10"
+msgstr "FM 10"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "4OP 11"
-msgstr ""4OP 11"
+msgstr "4OP 11"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
@@ -3331,7 +3331,7 @@ msgstr "0Bxx: Przeskocz do wzorca"
 
 #: src/engine/engine.cpp:75
 msgid "0Cxx: Retrigger"
-msgstr "0Cxx: Cykliczny restart nuty""
+msgstr "0Cxx: Cykliczny restart nuty"
 
 #: src/engine/engine.cpp:77
 msgid "0Dxx: Jump to next pattern"
@@ -3724,7 +3724,7 @@ msgstr "Automatyczna krosownica"
 
 #: src/gui/mixer.cpp:310
 msgid "Display hidden ports"
-msgstr "Wyświetl ukryte porty
+msgstr "Wyświetl ukryte porty"
 
 #: src/gui/mixer.cpp:312
 msgid "Display internal"
@@ -14225,8 +14225,9 @@ msgstr "Modulacja kołowa op.3 + szum"
 msgid ""
 "Ringmod from OP3 + double pitch ModInput\n"
 "WARNING - has emulation issues; subject to change"
-msgstr ""Modulacja kołowa OP3 + ModInput z podwojoną wysokością dźwięku\n"
-"nUWAGA - występują problemy z emulacją tego trybu, może on ulec zmianie""
+msgstr ""
+"Modulacja kołowa OP3 + ModInput z podwojoną wysokością dźwięku\n"
+"nUWAGA - występują problemy z emulacją tego trybu, może on ulec zmianie"
 
 #: src/gui/insEdit.cpp:232
 msgid "Bitwise AND"
@@ -15449,8 +15450,9 @@ msgid "On/Off"
 msgstr "Wł./wył."
 
 #: src/gui/insEdit.cpp:7060
+# ty no nie wiem
 msgid "Patch"
-msgstr "Instrument" //ty no nie wiem
+msgstr "Instrument"
 
 #: src/gui/insEdit.cpp:7076
 msgid "Mod Depth"
