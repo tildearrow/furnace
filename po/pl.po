@@ -9642,7 +9642,7 @@ msgstr "%<PRIu64>bajtów użytych"
 
 #: src/gui/settings.cpp:4321
 msgid "Refresh"
-msgstr Odśwież"
+msgstr "Odśwież"
 
 #: src/gui/settings.cpp:4325
 msgid "Delete all"
@@ -9669,17 +9669,17 @@ msgstr "%<PRIu64>T"
 #: src/gui/settings.cpp:4346
 #, c-format
 msgid "%<PRIu64>G"
-msgstr "%<PRIu64>G""
+msgstr "%<PRIu64>G"
 
 #: src/gui/settings.cpp:4348
 #, c-format
 msgid "%<PRIu64>M"
-msgstr "%<PRIu64>M""
+msgstr "%<PRIu64>M"
 
 #: src/gui/settings.cpp:4350
 #, c-format
 msgid "%<PRIu64>K"
-msgstr "%<PRIu64>K""
+msgstr "%<PRIu64>K"
 
 #: src/gui/settings.cpp:4352
 #, c-format
@@ -9766,11 +9766,11 @@ msgstr "Sklonuj wiersz (PPM by glęboko sklonować)"
 
 #: src/gui/orders.cpp:146 src/gui/guiConst.cpp:795
 msgid "Move order up"
-msgstr ""Przenieś wiersz w górę"
+msgstr "Przenieś wiersz w górę"
 
 #: src/gui/orders.cpp:155 src/gui/guiConst.cpp:796
 msgid "Move order down"
-msgstr ""Przenieś wiersz w dół"
+msgstr "Przenieś wiersz w dół"
 
 #: src/gui/orders.cpp:167
 msgid "Place copy of current order at end of song (right-click to deep clone)"
@@ -9854,7 +9854,7 @@ msgstr "Znajdź"
 
 #: src/gui/findReplace.cpp:526 src/gui/findReplace.cpp:535
 msgid "order"
-msgstr "wiersz matrycy wzorców";"
+msgstr "wiersz matrycy wzorców"
 
 #: src/gui/findReplace.cpp:527 src/gui/findReplace.cpp:537
 msgid "row"
@@ -12748,7 +12748,7 @@ msgstr "wklej na wierzch instrument (bez zastępowania istniejącego)"
 
 #: src/gui/gui.cpp:2741 src/gui/gui.cpp:2753 src/gui/gui.cpp:2963
 msgid "no instruments available"
-msgstr ""brak dostępnych instrumentów"
+msgstr "brak dostępnych instrumentów"
 
 #: src/gui/gui.cpp:2751
 msgid "paste with ins (background)"
