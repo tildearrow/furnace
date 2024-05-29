@@ -3798,235 +3798,236 @@ msgstr ""
 
 #: src/gui/dataList.cpp:76
 msgid "Bug!"
-msgstr ""
+msgstr "Баг!"
 
 #: src/gui/dataList.cpp:79 src/gui/util.cpp:107 src/gui/util.cpp:109
 #: src/gui/settings.cpp:4167 src/gui/insEdit.cpp:5334
+# TODO: this refers to instrument. it shouldn't.
 msgid "Unknown"
-msgstr ""
+msgstr "Неизвестный тип инструмента"
 
 #: src/gui/dataList.cpp:136 src/gui/dataList.cpp:260
 msgid "duplicate"
-msgstr ""
+msgstr "клонировать"
 
 #: src/gui/dataList.cpp:139 src/gui/dataList.cpp:263 src/gui/dataList.cpp:388
 #: src/gui/dataList.cpp:731 src/gui/dataList.cpp:867
 msgid "replace..."
-msgstr ""
+msgstr "заменить..."
 
 #: src/gui/dataList.cpp:142 src/gui/dataList.cpp:266 src/gui/gui.cpp:4232
 msgid "save"
-msgstr ""
+msgstr "сохранить"
 
 #: src/gui/dataList.cpp:145
 msgid "save (.dmp)"
-msgstr ""
+msgstr "экспортировать в .dmp"
 
 #: src/gui/dataList.cpp:148 src/gui/dataList.cpp:269 src/gui/dataList.cpp:617
 #: src/gui/dataList.cpp:994 src/gui/dataList.cpp:1040
 #: src/gui/editControls.cpp:50 src/gui/gui.cpp:2767 src/gui/gui.cpp:2776
 msgid "delete"
-msgstr ""
+msgstr "удалить"
 
 #: src/gui/dataList.cpp:243
 msgid "out of memory for this sample!"
-msgstr ""
+msgstr "недостаточно памяти для этого сэмпла!"
 
 #: src/gui/dataList.cpp:254
 msgid "make instrument"
-msgstr ""
+msgstr "создать инструмент"
 
 #: src/gui/dataList.cpp:257
 msgid "make me a drum kit"
-msgstr ""
+msgstr "создать инструмент с набором ударных"
 
 #: src/gui/dataList.cpp:290 src/gui/dataList.cpp:593 src/gui/gui.cpp:5914
 msgid "Instruments"
-msgstr ""
+msgstr "Инструменты"
 
 #: src/gui/dataList.cpp:312 src/gui/dataList.cpp:714 src/gui/dataList.cpp:846
 #: src/gui/subSongs.cpp:88 src/gui/insEdit.cpp:520
 msgid "Add"
-msgstr ""
+msgstr "Добавить"
 
 #: src/gui/dataList.cpp:338 src/gui/dataList.cpp:721 src/gui/dataList.cpp:853
 #: src/gui/subSongs.cpp:108
 msgid "Duplicate"
-msgstr ""
+msgstr "Клонировать"
 
 #: src/gui/dataList.cpp:359 src/gui/dataList.cpp:728 src/gui/dataList.cpp:860
 #: src/gui/editControls.cpp:497 src/gui/waveEdit.cpp:435
 #: src/gui/waveEdit.cpp:467 src/gui/sampleEdit.cpp:122
 #: src/gui/sampleEdit.cpp:171 src/gui/insEdit.cpp:5239 src/gui/insEdit.cpp:5304
 msgid "Open"
-msgstr ""
+msgstr "Открыть"
 
 #: src/gui/dataList.cpp:363
 msgid "replace instrument..."
-msgstr ""
+msgstr "заменить инструмент..."
 
 #: src/gui/dataList.cpp:366
 msgid "load instrument from TX81Z"
-msgstr ""
+msgstr "загрузить инструмент с TX81Z"
 
 #: src/gui/dataList.cpp:372
 msgid "replace wavetable..."
-msgstr ""
+msgstr "заменить волновую таблицу..."
 
 #: src/gui/dataList.cpp:378
 msgid "replace sample..."
-msgstr ""
+msgstr "заменить сэмпл..."
 
 #: src/gui/dataList.cpp:381
 msgid "import raw sample..."
-msgstr ""
+msgstr "загрузить сырые данные сэмпла..."
 
 #: src/gui/dataList.cpp:384
 msgid "import raw sample (replace)..."
-msgstr ""
+msgstr "загрузить сырые данные сэмпла (заменить)..."
 
 #: src/gui/dataList.cpp:392
 msgid "load from TX81Z"
-msgstr ""
+msgstr "загрузить с TX81Z"
 
 #: src/gui/dataList.cpp:399
 msgid "Open (insert; right-click to replace)"
-msgstr ""
+msgstr "Открыть (вставить; ПКМ для замены)"
 
 #: src/gui/dataList.cpp:420 src/gui/dataList.cpp:741 src/gui/dataList.cpp:884
 #: src/gui/editControls.cpp:502 src/gui/waveEdit.cpp:474
 #: src/gui/sampleEdit.cpp:184 src/gui/insEdit.cpp:5311
 msgid "Save"
-msgstr ""
+msgstr "Сохранить"
 
 #: src/gui/dataList.cpp:424
 msgid "save instrument as .dmp..."
-msgstr ""
+msgstr "сохранить инструмент как .dmp..."
 
 #: src/gui/dataList.cpp:430
 msgid "save wavetable as .dmw..."
-msgstr ""
+msgstr "сохранить волновую таблицу как .dmw..."
 
 #: src/gui/dataList.cpp:433
 msgid "save raw wavetable..."
-msgstr ""
+msgstr "сохранить сырые данные волновой таблицы..."
 
 #: src/gui/dataList.cpp:439
 msgid "save raw sample..."
-msgstr ""
+msgstr "сохранить сырые данные сэмпла..."
 
 #: src/gui/dataList.cpp:443 src/gui/insEdit.cpp:5314
 msgid "save as .dmp..."
-msgstr ""
+msgstr "сохранить как .dmp..."
 
 #: src/gui/dataList.cpp:456 src/gui/dataList.cpp:761 src/gui/dataList.cpp:903
 msgid "Toggle folders/standard view"
-msgstr ""
+msgstr "Переключиться между видом с разбиением по папкам и обычным видом"
 
 #: src/gui/dataList.cpp:478 src/gui/dataList.cpp:769 src/gui/dataList.cpp:911
 #: src/gui/subSongs.cpp:55
 msgid "Move up"
-msgstr ""
+msgstr "Переместить на одну позицию вверх"
 
 #: src/gui/dataList.cpp:499 src/gui/dataList.cpp:776 src/gui/dataList.cpp:918
 #: src/gui/subSongs.cpp:62
 msgid "Move down"
-msgstr ""
+msgstr "Переместить на одну позицию вниз"
 
 #: src/gui/dataList.cpp:510 src/gui/dataList.cpp:787 src/gui/dataList.cpp:929
 msgid "Create"
-msgstr ""
+msgstr "Создать"
 
 #: src/gui/dataList.cpp:540 src/gui/dataList.cpp:797 src/gui/dataList.cpp:939
 msgid "New folder"
-msgstr ""
+msgstr "Новая папка"
 
 #: src/gui/dataList.cpp:549 src/gui/dataList.cpp:947
 msgid "Preview (right click to stop)"
-msgstr ""
+msgstr "Превью (ПКМ для остановки)"
 
 #: src/gui/dataList.cpp:576 src/gui/dataList.cpp:807 src/gui/dataList.cpp:959
 #: src/gui/guiConst.cpp:666 src/gui/sampleEdit.cpp:1105
 msgid "Delete"
-msgstr ""
+msgstr "Удалить"
 
 #: src/gui/dataList.cpp:608 src/gui/dataList.cpp:985 src/gui/dataList.cpp:1031
 msgid "<uncategorized>"
-msgstr ""
+msgstr "<нерассортированные>"
 
 #: src/gui/dataList.cpp:614 src/gui/dataList.cpp:991 src/gui/dataList.cpp:1037
 msgid "rename..."
-msgstr ""
+msgstr "переименовать..."
 
 #: src/gui/dataList.cpp:663 src/gui/dataList.cpp:707 src/gui/gui.cpp:5923
 msgid "Wavetables"
-msgstr ""
+msgstr "Волновые таблицы"
 
 #: src/gui/dataList.cpp:674 src/gui/dataList.cpp:839 src/gui/xyOsc.cpp:68
 #: src/gui/sampleEdit.cpp:898 src/gui/sampleEdit.cpp:1072 src/gui/gui.cpp:5932
 msgid "Samples"
-msgstr ""
+msgstr "Сэмплы"
 
 #: src/gui/dataList.cpp:745 src/gui/waveEdit.cpp:477
 msgid "save as .dmw..."
-msgstr ""
+msgstr "сохранить как .dmw..."
 
 #: src/gui/dataList.cpp:748 src/gui/dataList.cpp:891 src/gui/waveEdit.cpp:480
 #: src/gui/sampleEdit.cpp:187
 msgid "save raw..."
-msgstr ""
+msgstr "сохранить сырые данные..."
 
 #: src/gui/dataList.cpp:871 src/gui/sampleEdit.cpp:174
 msgid "import raw..."
-msgstr ""
+msgstr "импорт сырых данных..."
 
 #: src/gui/dataList.cpp:874
 msgid "import raw (replace)..."
-msgstr ""
+msgstr "импорт сырых данных (заменить)..."
 
 #: src/gui/exportOptions.cpp:29
 msgid "Export type:"
-msgstr ""
+msgstr "Тип экспорта:"
 
 #: src/gui/exportOptions.cpp:32
 msgid "one file"
-msgstr ""
+msgstr "один файл"
 
 #: src/gui/exportOptions.cpp:35
 msgid "multiple files (one per chip)"
-msgstr ""
+msgstr "файлы (по одному на чип)"
 
 #: src/gui/exportOptions.cpp:38
 msgid "multiple files (one per channel)"
-msgstr ""
+msgstr "файлы (по одному на канал)"
 
 #: src/gui/exportOptions.cpp:44
 msgid "Bit depth:"
-msgstr ""
+msgstr "Глубина квантования:"
 
 #: src/gui/exportOptions.cpp:46
 msgid "16-bit integer"
-msgstr ""
+msgstr "16-битное целое число"
 
 #: src/gui/exportOptions.cpp:49
 msgid "32-bit float"
-msgstr ""
+msgstr "32-битное число с плавающей запятой"
 
 #: src/gui/exportOptions.cpp:55 src/gui/settings.cpp:1299 src/gui/gui.cpp:6270
 msgid "Sample rate"
-msgstr ""
+msgstr "Частота квантования"
 
 #: src/gui/exportOptions.cpp:61
 msgid "Channels in file"
-msgstr ""
+msgstr "Каналов аудио в файле"
 
 #: src/gui/exportOptions.cpp:67 src/gui/settings.cpp:877
 msgid "Loops"
-msgstr ""
+msgstr "Повторов трека"
 
 #: src/gui/exportOptions.cpp:70 src/gui/settings.cpp:882
 msgid "Fade out (seconds)"
-msgstr ""
+msgstr "Затухание (в секундах)"
 
 #: src/gui/exportOptions.cpp:76
 msgid "Channels to export:"
@@ -4073,32 +4074,32 @@ msgstr ""
 
 #: src/gui/exportOptions.cpp:138
 msgid "format version"
-msgstr ""
+msgstr "версия формата"
 
 #: src/gui/exportOptions.cpp:146 src/gui/exportOptions.cpp:238
 #: src/gui/insEdit.cpp:362
 msgid "loop"
-msgstr ""
+msgstr "зациклить"
 
 #: src/gui/exportOptions.cpp:148
 msgid "loop trail:"
-msgstr ""
+msgstr "маркер конца цикла:"
 
 #: src/gui/exportOptions.cpp:150
 msgid "auto-detect"
-msgstr ""
+msgstr "автоматически"
 
 #: src/gui/exportOptions.cpp:153
 msgid "add one loop"
-msgstr ""
+msgstr "добавить один цикл"
 
 #: src/gui/exportOptions.cpp:156
 msgid "custom"
-msgstr ""
+msgstr "пользовательский"
 
 #: src/gui/exportOptions.cpp:167
 msgid "add pattern change hints"
-msgstr ""
+msgstr "добавить метки концов паттернов"
 
 #: src/gui/exportOptions.cpp:170
 msgid ""
@@ -4113,7 +4114,20 @@ msgid ""
 "- pp: pattern index (one per channel)\n"
 "\n"
 "pattern indexes are ordered as they appear in the song."
+
 msgstr ""
+"вставляет блоки данных в местах смены паттернов.\n"
+"полезно, если вы пишете программу для воспроизведения.\n"
+"\n"
+"формат блока данных при смене паттерна:\n"
+"67 66 FE ll ll ll ll 01 oo rr pp pp pp ...\n"
+"- ll: длина, 32-битное число, прямой порядок байтов (little endian)\n"
+"- oo: строка матрицы паттернов\n"
+"- rr: начальная строка паттерна (эффект 0Dxx может её поменять)\n"
+"- pp: индекс паттерна (один на канал)\n"
+"\n"
+"индексы паттернов рассортированы в том порядке, в котором они\n"
+"встречаются в треке"
 
 #: src/gui/exportOptions.cpp:183
 msgid "direct stream mode"
@@ -4126,6 +4140,10 @@ msgid ""
 "allows for volume/direction changes when playing samples,\n"
 "at the cost of a massive increase in file size."
 msgstr ""
+"необходим для экспорта DualPCM и MSM6258.\n"
+"\n"
+"повзоляет записывать изменение громкости/направления воспроизведения сэмплов\n"
+"ценой сильного увеличения размера файла."
 
 #: src/gui/exportOptions.cpp:191
 msgid "chips to export:"
@@ -4167,6 +4185,9 @@ msgid ""
 "Furnace Amiga emulator is working properly by\n"
 "comparing it with real Amiga output."
 msgstr ""
+"это НЕ экспорт в файл ROM! используйте только для\n"
+"проверки того, что эмулятор Amiga в Furnace работает правильно,\n"
+"сравнивая звук настоящей Amiga и Furnace."
 
 #: src/gui/exportOptions.cpp:261 src/gui/editControls.cpp:635
 #: src/gui/settings.cpp:3872
@@ -4194,6 +4215,11 @@ msgid ""
 "\n"
 "technical/development use only!"
 msgstr ""
+"эта опция позволяет создать бинарный файл,\n"
+"в котором содержится дамп внутренних команд,\n"
+"созданных во время проигрыаания трека.\n"
+"\n"
+"используйте только при разработке!"
 
 #: src/gui/exportOptions.cpp:331
 msgid ""
@@ -6284,6 +6310,9 @@ msgid ""
 "available options:\n"
 "- tickRate"
 msgstr ""
+"вставьте дополнительные настройки в формате `параметр=значение`.\n"
+"доступные параметры:\n"
+"- tickRate (частота движка трекера)"
 
 #: src/gui/userPresets.cpp:509
 msgid "Save and Close"
@@ -7840,6 +7869,11 @@ msgid ""
 "これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解"
 "決策です。"
 msgstr ""
+"Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
+"Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n"
+"\n"
+"このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてください。\n"
+"これは、Dear ImGuiにダイナミックフォントアトラスが実装されるまでの一時的な解決策です。"
 
 #: src/gui/settings.cpp:3082
 msgid "Display Chinese (Simplified) characters"
@@ -7854,6 +7888,11 @@ msgid ""
 "请在确保你有足够的显存后再启动此设定\n"
 "这是一个在ImGui实现动态字体加载之前的临时解决方案"
 msgstr ""
+"Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
+"Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n"
+"\n"
+"请在确保你有足够的显存后再启动此设定\n"
+"这是一个在ImGui实现动态字体加载之前的临时解决方案"
 
 #: src/gui/settings.cpp:3096
 msgid "Display Chinese (Traditional) characters"
@@ -7868,6 +7907,11 @@ msgid ""
 "請在確保你有足夠的顯存后再啟動此設定\n"
 "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
 msgstr ""
+"Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
+"Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n"
+"\n"
+"請在確保你有足夠的顯存后再啟動此設定\n"
+"這是一個在ImGui實現動態字體加載之前的臨時解決方案"
 
 #: src/gui/settings.cpp:3110
 msgid "Display Korean characters"
@@ -7882,6 +7926,11 @@ msgid ""
 "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
 "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
 msgstr ""
+"Включайте эту настройку только в случае наличия достаточного количества графической памяти.\n"
+"Это временное решение, поскольку пока Dear ImGui не поддерживает динамический атлас шрифтов.\n"
+"\n"
+"그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
+"이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
 
 #: src/gui/settings.cpp:3125
 msgid "Title bar:"
@@ -10073,22 +10122,24 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:68
 msgid "Ignore duplicate slide effects"
-msgstr ""
+msgstr "Игнорировать дублирующиеся эффекты авто-портаменто"
 
 #: src/gui/compatFlags.cpp:70
 msgid ""
 "if this is on, only the first slide of a row in a channel will be considered."
 msgstr ""
+"при включении этого флага только первый эффект авто-портаменто в данной строке будет эффективен."
 
 #: src/gui/compatFlags.cpp:72
 msgid "Ignore 0Dxx on the last order"
-msgstr ""
+msgstr "Игнорировать 0Dxx на последней строке матрицы паттернов"
 
 #: src/gui/compatFlags.cpp:74
 msgid ""
 "if this is on, a jump to next row effect will not take place when it is on "
 "the last order of a song."
 msgstr ""
+"при включении флага эффект прыжка на следующий паттерн не будет работать, если паттерн проигрывается в последней строке матрицы паттернов."
 
 #: src/gui/compatFlags.cpp:76
 msgid "Buggy portamento after pitch slide"
@@ -10111,19 +10162,19 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:84
 msgid "Don't apply Game Boy envelope on note-less instrument change"
-msgstr ""
+msgstr "Не применять огибающую Game Boy при смене инструмента без ноты"
 
 #: src/gui/compatFlags.cpp:86
 msgid "if this is on, an instrument change will not affect the envelope."
-msgstr ""
+msgstr "при включении этого флага смена инструмента без смены ноты не будет влиять на огибающую."
 
 #: src/gui/compatFlags.cpp:88
 msgid "Ignore DAC mode change outside of intended channel in ExtCh mode"
-msgstr ""
+msgstr "Игнорировать переключение режима ЦАП, если оно не происходит на соответствующем канале, в режиме расширенного канала"
 
 #: src/gui/compatFlags.cpp:90
 msgid "if this is on, 17xx has no effect on the operator channels in YM2612."
-msgstr ""
+msgstr "при включении этого флага 17xx не работает, если размещён на каналах операторов расширенного канала (для YM2612)."
 
 #: src/gui/compatFlags.cpp:92
 msgid "E1xy/E2xy also take priority over slide stops"
@@ -10143,13 +10194,14 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:100
 msgid "SN76489 duty macro always resets phase"
-msgstr ""
+msgstr "Макрос скважности SN76489 всегда сбрасывает фазу"
 
 #: src/gui/compatFlags.cpp:102
 msgid ""
 "when enabled, duty macro will always reset phase, even if its value hasn't "
 "changed."
 msgstr ""
+"при включении этого флага макрос скважности всегда будет сбрасывать фазу, даже если значение скважности не меняется."
 
 #: src/gui/compatFlags.cpp:104
 msgid "Broken volume scaling strategy"
@@ -10167,13 +10219,14 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:108
 msgid "Don't persist volume macro after it finishes"
-msgstr ""
+msgstr "Не удерживать значение макроса громкости после его завершения"
 
 #: src/gui/compatFlags.cpp:110
 msgid ""
 "when enabled, a value in the volume column that happens after the volume "
 "macro is done will disregard the macro."
 msgstr ""
+"при включении этого флага значение в столбце громкости, расположенное после завершения макроса громкости, не будет учитывать значение макроса."
 
 #: src/gui/compatFlags.cpp:112
 msgid "Broken output volume on instrument change"
@@ -10342,48 +10395,47 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:199
 msgid "Old sample offset effect"
-msgstr ""
+msgstr "Старый эффект начального смещения сэмпла"
 
 #: src/gui/compatFlags.cpp:201
 msgid "behavior changed in 0.6.3"
-msgstr ""
+msgstr "поведение изменено в версии 0.6.3"
 
 #: src/gui/compatFlags.cpp:205
 msgid ".mod import"
-msgstr ""
+msgstr "импорт .mod"
 
 #: src/gui/compatFlags.cpp:206
 msgid "Don't slide on the first tick of a row"
-msgstr ""
+msgstr "Не исполнять авто-портаменто в первый шаг движка трекера каждой строки"
 
 #: src/gui/compatFlags.cpp:208
 msgid ""
 "simulates ProTracker's behavior of not applying volume/pitch slides on the "
 "first tick of a row."
-msgstr ""
+msgstr "симулирует поведение программы ProTracker, которая не исполняет изменения громкости и частоты на первом шаге движка каждого столбца."
 
 #: src/gui/compatFlags.cpp:210
 msgid "Reset arpeggio position on row change"
-msgstr ""
+msgstr "Перезапуск позиции арпеджио при продвижении по строкам паттерна"
 
 #: src/gui/compatFlags.cpp:212
 msgid ""
 "simulates ProTracker's behavior of arpeggio being bound to the current tick "
 "of a row."
-msgstr ""
+msgstr "симулирует поведение программы ProTracker, которая привязывает исполнение арпеджио к номеру шага движка в каждой строке паттерна."
 
 #: src/gui/compatFlags.cpp:216
 msgid "Pitch/Playback"
-msgstr ""
+msgstr "Частота/Воспроизведение"
 
 #: src/gui/compatFlags.cpp:217
 msgid "Pitch linearity:"
-msgstr ""
+msgstr "Линейность частоты (в долях полутонов):"
 
 #: src/gui/compatFlags.cpp:223
 msgid "like ProTracker/FamiTracker"
-msgstr ""
-
+msgstr "как ProTracker/FamiTracker"
 #: src/gui/compatFlags.cpp:227
 msgid "Partial (only 04xy/E5xx)"
 msgstr ""
@@ -10402,52 +10454,52 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:235
 msgid "Full"
-msgstr ""
+msgstr "Полная"
 
 #: src/gui/compatFlags.cpp:239
 msgid "like Impulse Tracker"
-msgstr ""
+msgstr "как Impulse Tracker"
 
 #: src/gui/compatFlags.cpp:246
 msgid "Pitch slide speed multiplier"
-msgstr ""
+msgstr "Множитель скорости команды авто-портаменто"
 
 #: src/gui/compatFlags.cpp:252
 msgid "Loop modality:"
-msgstr ""
+msgstr "Работа зацикливания:"
 
 #: src/gui/compatFlags.cpp:254
 msgid "Reset channels"
-msgstr ""
+msgstr "Перезапуск каналов"
 
 #: src/gui/compatFlags.cpp:258
 msgid ""
 "select to reset channels on loop. may trigger a voltage click on every loop!"
-msgstr ""
+msgstr "выберите для перезапуска каналов каждый раз в начале цикла. может вызывать щелчок в каждом начале цикла из-за смены напряжения!"
 
 #: src/gui/compatFlags.cpp:260
 msgid "Soft reset channels"
-msgstr ""
+msgstr "Мягкий перезапуск каналов"
 
 #: src/gui/compatFlags.cpp:264
 msgid "select to turn channels off on loop."
-msgstr ""
+msgstr "выберите для отключения каналов в начале цикла."
 
 #: src/gui/compatFlags.cpp:266
 msgid "Do nothing"
-msgstr ""
+msgstr "Ничего не делать"
 
 #: src/gui/compatFlags.cpp:270
 msgid "select to not reset channels on loop."
-msgstr ""
+msgstr "выберите, чтобы отключить перезапуск каналов в начале цикла."
 
 #: src/gui/compatFlags.cpp:274
 msgid "Cut/delay effect policy:"
-msgstr ""
+msgstr "Поведение эффектов заглушения/задержки ноты:"
 
 #: src/gui/compatFlags.cpp:280
 msgid "only when time is less than speed (like DefleMask/ProTracker)"
-msgstr ""
+msgstr "только в случае, когда параметр меньше скорости (как DefleMask/ProTracker)"
 
 #: src/gui/compatFlags.cpp:282
 msgid "Strict (old)"
@@ -10459,15 +10511,15 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:292
 msgid "no checks"
-msgstr ""
+msgstr "без проверок"
 
 #: src/gui/compatFlags.cpp:296
 msgid "Simultaneous jump (0B+0D) treatment:"
-msgstr ""
+msgstr "Поведение при одновременном прыжке (0B+0D):"
 
 #: src/gui/compatFlags.cpp:302
 msgid "accept 0B+0D to jump to a specific row of an order"
-msgstr ""
+msgstr "принять 0B+0D как прыжок на конкретную строку паттерна на конкретной позиции матрицы паттернов"
 
 #: src/gui/compatFlags.cpp:308
 msgid "only accept the first jump effect"
@@ -10479,7 +10531,7 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:320
 msgid "Auto-insert one tick gap between notes"
-msgstr ""
+msgstr "Автоматически вставлять паузу в 1 шаг движка между нотами"
 
 #: src/gui/compatFlags.cpp:322
 msgid ""
@@ -10489,53 +10541,57 @@ msgid ""
 "\n"
 "ineffective on C64."
 msgstr ""
+"при включении этого флага между нотами без эффекта легато и авто-портаменто будет вставлено заглушение ноты длиной в один шаг движка.\n"
+"это симуляция повдения некоторых музыкальных драйверов Amiga/SNES.\n"
+"\n"
+"ничего не меняет для C64."
 
 #: src/gui/compatFlags.cpp:327
 msgid "Don't reset slides after note off"
-msgstr ""
+msgstr "Не переинициализировать авто-портаменто после окончания ноты"
 
 #: src/gui/compatFlags.cpp:329
 msgid "when enabled, note off will not reset the channel's slide effect."
-msgstr ""
+msgstr "при включении этого флага окончание ноты не будет останавливать авто-портаменто на этом канале."
 
 #: src/gui/compatFlags.cpp:331
 msgid "Don't reset portamento after reaching target"
-msgstr ""
+msgstr "Не переинициализировать авто-портаменто после достижения цели"
 
 #: src/gui/compatFlags.cpp:333
 msgid ""
 "when enabled, the slide effect will not be disabled after it reaches its "
 "target."
-msgstr ""
+msgstr "при включении этого флага эффект авто-портаменто не будет переинициализирован при достижении целевой частоты."
 
 #: src/gui/compatFlags.cpp:335
 msgid "Continuous vibrato"
-msgstr ""
+msgstr "Непрерывное вибрато"
 
 #: src/gui/compatFlags.cpp:337
 msgid "when enabled, vibrato phase/position will not be reset on a new note."
-msgstr ""
+msgstr "при включении этого флага фаза/положение вибрато не будут сбрасываться на новой ноте."
 
 #: src/gui/compatFlags.cpp:339
 msgid "Pitch macro is not linear"
-msgstr ""
+msgstr "Нелинейный макрос частоты"
 
 #: src/gui/compatFlags.cpp:341
 msgid ""
 "when enabled, the pitch macro of an instrument is in frequency/period space."
-msgstr ""
+msgstr "при включении этого флага макрос частоты будет работать относительно периода/частоты, а не долей полутона."
 
 #: src/gui/compatFlags.cpp:343
 msgid "Reset arpeggio effect position on new note"
-msgstr ""
+msgstr "Сбрасывать положение эффекта арпеджио на новой ноте"
 
 #: src/gui/compatFlags.cpp:345
 msgid "when enabled, arpeggio effect (00xy) position is reset on a new note."
-msgstr ""
+msgstr "при включении этого флага положение эффекта арпеджио (00xy) сбрасывается на новой ноте."
 
 #: src/gui/compatFlags.cpp:347
 msgid "Volume scaling rounds up"
-msgstr ""
+msgstr "Масштабирование громкости округляется вверх"
 
 #: src/gui/compatFlags.cpp:349
 msgid ""
@@ -10545,6 +10601,10 @@ msgid ""
 "\n"
 "ineffective on logarithmic channels"
 msgstr ""
+"при включении этого флага значения макросов громкости округляются вверх\n"
+"это предотвращает возникновение ситуации vol=0 при масштабировании громкости, что приводит к заглушению на некоторых чипах\n"
+"\n"
+"не эффективно на чипах с логарифмическим контролем громкости"
 
 #: src/gui/guiConst.cpp:127
 msgid "Generic Sample"
@@ -10761,7 +10821,7 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:614 src/gui/csPlayer.cpp:112
 msgid "Command Stream Player"
-msgstr ""
+msgstr "Проигрыватель потока команд"
 
 #: src/gui/guiConst.cpp:615
 msgid "User Presets"
@@ -12356,23 +12416,24 @@ msgstr ""
 
 #: src/gui/csPlayer.cpp:113
 msgid "Load"
-msgstr ""
+msgstr "Загрузить"
 
 #: src/gui/csPlayer.cpp:117
 msgid "Kill"
-msgstr ""
+msgstr "Остановить"
 
 #: src/gui/csPlayer.cpp:119
+# korean: 기계는 이미 죽었습니다!
 msgid "Kikai wa mou shindeiru!"
-msgstr ""
+msgstr "Кикенын ими чукотсыпнида!"
 
 #: src/gui/csPlayer.cpp:123
 msgid "Burn Current Song"
-msgstr ""
+msgstr "Сохранить текущий трек"
 
 #: src/gui/csPlayer.cpp:141
 msgid "Status"
-msgstr ""
+msgstr "Статус"
 
 #: src/gui/csPlayer.cpp:148
 msgid "start"
@@ -13019,7 +13080,7 @@ msgstr ""
 #: src/gui/gui.cpp:4343 src/gui/sysManager.cpp:138
 #, c-format
 msgid "cannot add chip! (%s)"
-msgstr ""
+msgstr "не могу добавить чип! (%s)"
 
 #: src/gui/gui.cpp:4355
 msgid "configure chip..."
@@ -15396,7 +15457,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7429 src/gui/insEdit.cpp:7440 src/gui/insEdit.cpp:7448
 #: src/gui/insEdit.cpp:7457 src/gui/insEdit.cpp:7475
 msgid "Phase Reset"
-msgstr ""
+msgstr "Сброс фазы"
 
 #: src/gui/insEdit.cpp:6939 src/gui/insEdit.cpp:7024 src/gui/insEdit.cpp:7210
 #: src/gui/insEdit.cpp:7247
