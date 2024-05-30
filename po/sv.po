@@ -1475,7 +1475,7 @@ msgid ""
 "the FM Towns computer)."
 msgstr ""
 "detta ljudchip är mest känt för att vara i Sega Genesis (men det var också på "
-"FM Towns-datorn)".
+"FM Towns-datorn)."
 
 #: src/engine/sysDef.cpp:913
 msgid "Atari TIA"
