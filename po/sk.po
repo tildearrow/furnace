@@ -13,67 +13,69 @@ msgstr ""
 #: src/engine/sysDef.cpp:428 src/engine/sysDef.cpp:441
 msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
 msgstr ""
+"20xx: Nastav režím kanála (bit 0: štvorec; bit 1: biely šum; bit 2: obálka)"
 
 #: src/engine/sysDef.cpp:429
 msgid "21xx: Set noise frequency (0 to 1F)"
-msgstr ""
+msgstr "21xx: Nastav frekvenciu bielého šumu (od 0 do 1F)"
 
 #: src/engine/sysDef.cpp:430 src/engine/sysDef.cpp:443
 msgid "22xy: Set envelope mode (x: shape, y: enable for this channel)"
-msgstr ""
+msgstr "22xy: Nastav režím obálky (x: tvar, y: zapni pre tento kanál)"
 
 #: src/engine/sysDef.cpp:431 src/engine/sysDef.cpp:444
 msgid "23xx: Set envelope period low byte"
-msgstr ""
+msgstr "23xx: Nastav dolný bajt časa obálky"
 
 #: src/engine/sysDef.cpp:432 src/engine/sysDef.cpp:445
 msgid "24xx: Set envelope period high byte"
-msgstr ""
+msgstr "24xx: Nastav horný bajt časa obálky"
 
 #: src/engine/sysDef.cpp:433 src/engine/sysDef.cpp:446
 #: src/engine/sysDef.cpp:1599
 msgid "25xx: Envelope slide up"
-msgstr ""
+msgstr "25xx: Šmyk obálky nahor"
 
 #: src/engine/sysDef.cpp:434 src/engine/sysDef.cpp:447
 #: src/engine/sysDef.cpp:1600
 msgid "26xx: Envelope slide down"
-msgstr ""
+msgstr "26xx: Šmyk obálky nadol"
 
 #: src/engine/sysDef.cpp:435 src/engine/sysDef.cpp:448
 #: src/engine/sysDef.cpp:1601
 msgid "29xy: Set auto-envelope (x: numerator; y: denominator)"
-msgstr ""
+msgstr "29xy: Nastav automatskú obálku (x: čitateľ; y: činiteľ)"
 
 #: src/engine/sysDef.cpp:436 src/engine/sysDef.cpp:449
 msgid "2Exx: Write to I/O port A"
-msgstr ""
+msgstr "2Exx: Vpíš do I/O port A"
 
 #: src/engine/sysDef.cpp:437 src/engine/sysDef.cpp:450
 msgid "2Fxx: Write to I/O port B"
-msgstr ""
+msgstr "2Fxx: Vpíš do I/O port B"
 
 #: src/engine/sysDef.cpp:442
 msgid "21xx: Set noise frequency (0 to FF)"
-msgstr ""
+msgstr "21xx: Nastav frekvenciu bielého šumu (od 0 do FF)"
 
 #: src/engine/sysDef.cpp:451
 msgid "12xx: Set duty cycle (0 to 8)"
-msgstr ""
+msgstr "12xx: Nastav striedu štvorcovej vlny (od 0 do 8)"
 
 #: src/engine/sysDef.cpp:453
 msgid "27xx: Set noise AND mask"
-msgstr ""
+msgstr "27xx: Nastav AND masku bielého šumu"
 
 #: src/engine/sysDef.cpp:454
 msgid "28xx: Set noise OR mask"
-msgstr ""
+msgstr "28xx: Nastav OR masku bielého šumu"
 
 #: src/engine/sysDef.cpp:455
+#, fuzzy
 msgid ""
 "2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR "
 "mask); y: offset)"
-msgstr ""
+msgstr "2Cxy: Automat"
 
 #: src/engine/sysDef.cpp:456
 msgid "2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER"
@@ -876,39 +878,41 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:706
 msgid "Sega Genesis/Mega Drive"
-msgstr ""
+msgstr "Sega Mega Drive"
 
 #: src/engine/sysDef.cpp:712
 msgid "Sega Genesis Extended Channel 3"
-msgstr ""
+msgstr "Sega Mega Drive zo rošírenim 3. kanálom"
 
 #: src/engine/sysDef.cpp:718 src/gui/sysConf.cpp:158
 msgid "TI SN76489"
-msgstr ""
+msgstr "TI SN76489"
 
 #: src/engine/sysDef.cpp:719
 msgid ""
 "a square/noise sound chip found on the Sega Master System, ColecoVision, "
 "Tandy, TI's own 99/4A and a few other places."
 msgstr ""
+"štvorcoý/nojsový čip, ktorý sa môže najsť vo Sega Master System-e, "
+"ColecoVision-eTandy-ne, TI-ovom 99/4A a ešte na niektorých systémach"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 1"
-msgstr ""
+msgstr "Štvorec 1"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 2"
-msgstr ""
+msgstr "Štvorec 2"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 3"
-msgstr ""
+msgstr "Štvorec 3"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:739
 #: src/engine/sysDef.cpp:773 src/engine/sysDef.cpp:955
@@ -918,7 +922,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:6978 src/gui/insEdit.cpp:7129 src/gui/insEdit.cpp:7223
 #: src/gui/insEdit.cpp:7315
 msgid "Noise"
-msgstr ""
+msgstr "Noise"
 
 #: src/engine/sysDef.cpp:726
 msgid "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"
@@ -3296,7 +3300,7 @@ msgstr "07xy: Tremolo (x: rýchlosť; y: hĺbka)"
 
 #: src/engine/engine.cpp:67
 msgid "08xy: Set panning (x: left; y: right)"
-msgstr "08xy: Nastav "
+msgstr "08xy: Nastav stereo (x: ľavý kanál; y: pravý kanál)"
 
 #: src/engine/engine.cpp:69
 msgid "09xx: Set groove pattern (speed 1 if no grooves exist)"
@@ -3324,27 +3328,27 @@ msgstr "0Fxx: Nastav rýchlosť (rýchlosť 2 ak gróv neexistuje)"
 
 #: src/engine/engine.cpp:81
 msgid "80xx: Set panning (00: left; 80: center; FF: right)"
-msgstr ""
+msgstr "80xx: Nastav stereo (00: ľavý kanál; 80 stred; FF: pravý kanál)"
 
 #: src/engine/engine.cpp:83
 msgid "81xx: Set panning (left channel)"
-msgstr ""
+msgstr "81xx: Nastav stereo (ľavý kanál)"
 
 #: src/engine/engine.cpp:85
 msgid "82xx: Set panning (right channel)"
-msgstr ""
+msgstr "82xx: Nastav stereo (pravý kanál)"
 
 #: src/engine/engine.cpp:87
 msgid "88xy: Set panning (rear channels; x: left; y: right)"
-msgstr ""
+msgstr "88xy: Nastav stereo zadných kanálov (x: ľavý; y: pravý)"
 
 #: src/engine/engine.cpp:90
 msgid "89xx: Set panning (rear left channel)"
-msgstr ""
+msgstr "89xx: Nastav stereo zadného ľavého kanálu"
 
 #: src/engine/engine.cpp:93
 msgid "8Axx: Set panning (rear right channel)"
-msgstr ""
+msgstr "8Axx: Nastav stereo zadného pravého kanálu"
 
 #: src/engine/engine.cpp:96
 msgid "Cxxx: Set tick rate (hz)"
@@ -3372,7 +3376,7 @@ msgstr "E4xx: Nastav šírku vibráta"
 
 #: src/engine/engine.cpp:108
 msgid "E5xx: Set pitch (80: center)"
-msgstr "E5xx: Nastav Tón (80: center)"
+msgstr "E5xx: Nastav Tón (80: stred, pravá nota)"
 
 #: src/engine/engine.cpp:110
 msgid "E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)"
@@ -3472,23 +3476,23 @@ msgstr "FFxx: Zastav pieseň"
 
 #: src/engine/engine.cpp:160
 msgid "9xxx: Set sample offset*256"
-msgstr "9xxx: "
+msgstr "9xxx: Posuň začiatok snímky*256"
 
 #: src/engine/engine.cpp:164
 msgid "90xx: Set sample offset (first byte)"
-msgstr "90xx: "
+msgstr "90xx: Posuň začiatok snímky (prví bajt)"
 
 #: src/engine/engine.cpp:166
 msgid "91xx: Set sample offset (second byte, ×256)"
-msgstr "91xx: "
+msgstr "91xx: Posuň začiatok snímky (druhý bajt, x256)"
 
 #: src/engine/engine.cpp:168
 msgid "92xx: Set sample offset (third byte, ×65536)"
-msgstr ""
+msgstr "92xx: Posuň začiatok snímky (tretí bajt, x65536)"
 
 #: src/engine/engine.cpp:187 src/gui/settings.cpp:4074
 msgid "Invalid effect"
-msgstr ""
+msgstr "Effekt neexistuje"
 
 #: src/engine/engine.cpp:354 src/gui/gui.cpp:2259 src/gui/gui.cpp:2422
 #, c-format
@@ -3503,7 +3507,7 @@ msgstr ""
 #: src/engine/engine.cpp:368 src/engine/engine.cpp:2768
 #: src/gui/settings.cpp:5754 src/gui/gui.cpp:2273 src/gui/gui.cpp:2436
 msgid "file is empty"
-msgstr ""
+msgstr "fajl je prazdny"
 
 #: src/engine/engine.cpp:371 src/gui/gui.cpp:2276 src/gui/gui.cpp:2439
 #, c-format
@@ -3541,11 +3545,11 @@ msgstr ""
 #: src/engine/engine.cpp:1131 src/engine/engine.cpp:1185
 #, c-format
 msgid "max number of systems is %d"
-msgstr ""
+msgstr "Najviac môžete mať %d čipov"
 
 #: src/engine/engine.cpp:1286
 msgid "cannot remove the last one"
-msgstr ""
+msgstr "Nemožno vymazať posledný čip"
 
 #: src/engine/engine.cpp:1460
 msgid "source and destination are equal"
@@ -3562,13 +3566,13 @@ msgstr ""
 #: src/engine/engine.cpp:2636
 #, c-format
 msgid "Instrument %d"
-msgstr ""
+msgstr "Instrument %d"
 
 #: src/engine/engine.cpp:2710 src/engine/engine.cpp:2727
 #: src/gui/doAction.cpp:825 src/gui/doAction.cpp:843 src/gui/doAction.cpp:1634
 #: src/gui/gui.cpp:6159 src/gui/insEdit.cpp:6860
 msgid "too many wavetables!"
-msgstr ""
+msgstr "Priveľa wavetablou!"
 
 #: src/engine/engine.cpp:2752
 #, c-format
@@ -3582,7 +3586,7 @@ msgstr ""
 
 #: src/engine/engine.cpp:2763
 msgid "file size is invalid!"
-msgstr ""
+msgstr "Nesprávna veľkosť fajla!"
 
 #: src/engine/engine.cpp:2773
 #, c-format
@@ -3596,7 +3600,7 @@ msgstr ""
 
 #: src/engine/engine.cpp:2806
 msgid "invalid wavetable header/data!"
-msgstr ""
+msgstr "Nespravny záhlavie/data wavetabla!"
 
 #: src/engine/engine.cpp:2877
 msgid "premature end of file"
@@ -3605,17 +3609,17 @@ msgstr ""
 #: src/engine/engine.cpp:2904 src/engine/engine.cpp:2926
 #: src/gui/doAction.cpp:909 src/gui/doAction.cpp:921
 msgid "too many samples!"
-msgstr ""
+msgstr "Priveľa snímkou!"
 
 #: src/engine/engine.cpp:2911
 #, c-format
 msgid "Sample %d"
-msgstr ""
+msgstr "Snímka %d"
 
 #: src/engine/engine.cpp:3056
 #, c-format
 msgid "no free patterns in channel %d!"
-msgstr ""
+msgstr "nieto viacej slobodných obrazcob na kanále %d!"
 
 #: src/gui/mixer.cpp:28 src/gui/insEdit.cpp:484
 msgid "left"
@@ -10493,7 +10497,7 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:112
 msgid "Broken output volume on instrument change"
-msgstr ""
+msgstr "Pohubený hlas na zmene instrumenta"
 
 #: src/gui/compatFlags.cpp:114
 msgid ""
@@ -10504,8 +10508,9 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:116
 msgid "Broken output volume - Episode 2 (PLEASE KEEP ME DISABLED)"
-msgstr ""
+msgstr "Pohubený hlas - Časť dva (NECHAJ MA VYPNÚTI)"
 
+# its a mess, I'll have to do it again. Jebem ti slovenčinu.
 #: src/gui/compatFlags.cpp:118
 msgid ""
 "these compatibility flags are getting SO damn ridiculous and out of "
@@ -10523,6 +10528,19 @@ msgid ""
 "\n"
 "end of rant"
 msgstr ""
+"Tieto kompatibilné nastavenia sú toľko blbé a hlúpe.\n"
+"Možete uhadnuť, tento problem existuje kvôli EŠTE JEDNEJ DefleMask-ovej "
+"chybi.\n"
+"Prosím vás, nechajte toto vypnúte ako keby vám život závisel od tochto, lebo "
+"nebudem podržiavať toto keď príde ROM vývoz.\n"
+"Tak, nezačínajte spor vôkol tochto. Furnace nie je DefleMask 2.0,aj "
+"nechcem,\n"
+"Aby sa zdalo kvôli tíchto nastaveniach.\n"
+"\n"
+"No, a čo s týmito nastaveniami čo nemaju nič s DelfeMask-om?\n"
+"To sú pre .mod učítanie, budúce famitracker učitanie aj pre osobný vkus!\n"
+"\n"
+"koniec mojích mýšlienok"
 
 #: src/gui/compatFlags.cpp:120
 msgid "Treat SN76489 periods under 8 as 1"
