@@ -857,14 +857,6 @@ msgstr "Canal 11"
 #: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
-msgid "Channel 12"
-msgstr ""
-
-#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
-#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
-#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
-#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
-#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 13"
 msgstr "Canal 13"
 
@@ -912,12 +904,6 @@ msgstr "Sega Genesis Canal 3 Extendido"
 msgid "TI SN76489"
 msgstr "TI SN76489"
 
-#: src/engine/sysDef.cpp:719
-msgid ""
-"a square/noise sound chip found on the Sega Master System, ColecoVision, "
-"Tandy, TI's own 99/4A and a few other places."
-msgstr ""
-
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
@@ -945,10 +931,6 @@ msgstr "Quadrada 3"
 #: src/gui/insEdit.cpp:7315
 msgid "Noise"
 msgstr "Ruído"
-
-#: src/engine/sysDef.cpp:726
-msgid "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"
-msgstr ""
 
 #: src/engine/sysDef.cpp:731
 msgid "Sega Master System + FM Expansion"
