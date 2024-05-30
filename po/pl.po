@@ -2022,7 +2022,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1184
 msgid "OPL, but what if you had more waveforms to choose than the normal sine?"
-msgstr ""OPL, ale co gdybyś miał więcej kształtów fali do wybrania niż tylko sinusoidę?"
+msgstr "OPL, ale co gdybyś miał więcej kształtów fali do wybrania niż tylko sinusoidę?"
 
 #: src/engine/sysDef.cpp:1195
 msgid "Yamaha YMF262 (OPL3)"
@@ -2033,7 +2033,7 @@ msgid ""
 "OPL2, but what if you had twice the channels, 4-op mode, stereo and even "
 "more waveforms?"
 msgstr ""
-"OPL2, ale co gdybyś miał 2 razy więcej kanałów, tryb 4-operatorowy, stereo i jeszcze więcej kształtów fali?
+"OPL2, ale co gdybyś miał 2 razy więcej kanałów, tryb 4-operatorowy, stereo i jeszcze więcej kształtów fali?"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631

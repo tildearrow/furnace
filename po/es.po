@@ -72,7 +72,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:455
 msgid ""
 "2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR "
-"mask); y: offset"
+"mask); y: offset)"
 msgstr ""
 
 #: src/engine/sysDef.cpp:456
@@ -10055,8 +10055,352 @@ msgstr "Insertar en espacios libres"
 msgid "Replace##QueryReplace"
 msgstr "Reemplazar##QueryReplace"
 
+#: src/gui/about.cpp:26
+msgid "is proud to present"
+msgstr ""
+
+#: src/gui/about.cpp:30
+#, fuzzy
+msgid "the biggest multi-system chiptune tracker!"
+msgstr ""
+"bienvenido a Furnace, el tracker de chiptune de codigo abierto más grande de "
+"todos!"
+
+#: src/gui/about.cpp:31
+msgid "featuring DefleMask song compatibility."
+msgstr ""
+
+#: src/gui/about.cpp:33
+msgid "> CREDITS <"
+msgstr ""
+
+#: src/gui/about.cpp:35
+msgid "-- program --"
+msgstr ""
+
+#: src/gui/about.cpp:37
+msgid "A M 4 N (intro tune)"
+msgstr ""
+
+#: src/gui/about.cpp:52
+msgid "-- graphics/UI design --"
+msgstr ""
+
+#: src/gui/about.cpp:59
+msgid "-- documentation --"
+msgstr ""
+
+#: src/gui/about.cpp:69
+msgid "-- demo songs --"
+msgstr ""
+
+#: src/gui/about.cpp:195
+msgid "-- additional feedback/fixes --"
+msgstr ""
+
+#: src/gui/about.cpp:206
+msgid "-- Metal backend test team --"
+msgstr ""
+
+#: src/gui/about.cpp:212
+msgid "-- DirectX 9 backend test team --"
+msgstr ""
+
+#: src/gui/about.cpp:219
+msgid "powered by:"
+msgstr ""
+
+#: src/gui/about.cpp:220
+msgid "Dear ImGui by Omar Cornut"
+msgstr ""
+
+#: src/gui/about.cpp:221
+msgid "SDL2 by Sam Lantinga"
+msgstr ""
+
+#: src/gui/about.cpp:225
+msgid "zlib by Jean-loup Gailly"
+msgstr ""
+
+#: src/gui/about.cpp:226
+msgid "and Mark Adler"
+msgstr ""
+
+#: src/gui/about.cpp:227
+msgid "libsndfile by Erik de Castro Lopo"
+msgstr ""
+
+#: src/gui/about.cpp:228
+msgid "Portable File Dialogs by Sam Hocevar"
+msgstr ""
+
+#: src/gui/about.cpp:229
+msgid "Native File Dialog by Frogtoss Games"
+msgstr ""
+
+#: src/gui/about.cpp:231
+msgid "Weak-JACK by x42"
+msgstr ""
+
+#: src/gui/about.cpp:232
+msgid "RtMidi by Gary P. Scavone"
+msgstr ""
+
+#: src/gui/about.cpp:233
+msgid "FFTW by Matteo Frigo and Steven G. Johnson"
+msgstr ""
+
+#: src/gui/about.cpp:234
+msgid "backward-cpp by Google"
+msgstr ""
+
+#: src/gui/about.cpp:235
+msgid "adpcm by superctr"
+msgstr ""
+
+#: src/gui/about.cpp:236
+msgid "adpcm-xq by David Bryant"
+msgstr ""
+
+#: src/gui/about.cpp:237
+msgid "Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"
+msgstr ""
+
+#: src/gui/about.cpp:238
+msgid "YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"
+msgstr ""
+
+#: src/gui/about.cpp:239
+msgid "ESFMu (modified version) by Kagamiin~"
+msgstr ""
+
+#: src/gui/about.cpp:240
+msgid "ymfm by Aaron Giles"
+msgstr ""
+
+#: src/gui/about.cpp:241
+msgid "emu2413 by Digital Sound Antiques"
+msgstr ""
+
+#: src/gui/about.cpp:242
+msgid "MAME SN76496 by Nicola Salmoria"
+msgstr ""
+
+#: src/gui/about.cpp:243
+msgid "MAME AY-3-8910 by Couriersud"
+msgstr ""
+
+#: src/gui/about.cpp:244
+msgid "with AY8930 fixes by Eulous, cam900 and Grauw"
+msgstr ""
+
+#: src/gui/about.cpp:245
+msgid "MAME SAA1099 by Juergen Buchmueller and Manuel Abadia"
+msgstr ""
+
+#: src/gui/about.cpp:246
+msgid "MAME Namco WSG by Nicola Salmoria and Aaron Giles"
+msgstr ""
+
+#: src/gui/about.cpp:247
+msgid "MAME RF5C68 core by Olivier Galibert and Aaron Giles"
+msgstr ""
+
+#: src/gui/about.cpp:248
+msgid "MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya"
+msgstr ""
+
+#: src/gui/about.cpp:249
+msgid "MAME MSM6258 core by Barry Rodewald"
+msgstr ""
+
+#: src/gui/about.cpp:250
+msgid "MAME YMZ280B core by Aaron Giles"
+msgstr ""
+
+#: src/gui/about.cpp:251
+msgid "MAME GA20 core by Acho A. Tang and R. Belmont"
+msgstr ""
+
+#: src/gui/about.cpp:252
+msgid "MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"
+msgstr ""
+
+#: src/gui/about.cpp:253
+msgid "SAASound by Dave Hooper and Simon Owen"
+msgstr ""
+
+#: src/gui/about.cpp:254
+msgid "SameBoy by Lior Halphon"
+msgstr ""
+
+#: src/gui/about.cpp:255
+msgid "Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"
+msgstr ""
+
+#: src/gui/about.cpp:256
+msgid "SNES DSP core by Blargg"
+msgstr ""
+
+#: src/gui/about.cpp:257
+msgid "puNES (NES, MMC5 and FDS) by FHorse"
+msgstr ""
+
+#: src/gui/about.cpp:258
+msgid "NSFPlay (NES and FDS) by Brad Smith and Brezza"
+msgstr ""
+
+#: src/gui/about.cpp:259
+msgid "reSID by Dag Lem"
+msgstr ""
+
+#: src/gui/about.cpp:260
+msgid "reSIDfp by Dag Lem, Antti Lankila"
+msgstr ""
+
+#: src/gui/about.cpp:261
+msgid "and Leandro Nini"
+msgstr ""
+
+#: src/gui/about.cpp:262
+msgid "dSID by DefleMask Team based on jsSID"
+msgstr ""
+
+#: src/gui/about.cpp:263
+msgid "Stella by Stella Team"
+msgstr ""
+
+#: src/gui/about.cpp:264
+msgid "QSound emulator by superctr and Valley Bell"
+msgstr ""
+
+#: src/gui/about.cpp:265
+msgid "VICE VIC-20 sound core by Rami Rasanen and viznut"
+msgstr ""
+
+#: src/gui/about.cpp:266
+msgid "VICE TED sound core by Andreas Boose, Tibor Biczo"
+msgstr ""
+
+#: src/gui/about.cpp:267
+msgid "and Marco van den Heuvel"
+msgstr ""
+
+#: src/gui/about.cpp:268
+msgid "VERA sound core by Frank van den Hoef"
+msgstr ""
+
+#: src/gui/about.cpp:269
+msgid "mzpokeysnd POKEY emulator by Michael Borisov"
+msgstr ""
+
+#: src/gui/about.cpp:270
+msgid "ASAP POKEY emulator by Piotr Fusik"
+msgstr ""
+
+#: src/gui/about.cpp:271
+msgid "ported by laoo to C++"
+msgstr ""
+
+#: src/gui/about.cpp:272
+msgid "vgsound_emu (second version, modified version) by cam900"
+msgstr ""
+
+#: src/gui/about.cpp:273
+msgid "SM8521 emulator (modified version) by cam900"
+msgstr ""
+
+#: src/gui/about.cpp:274
+msgid "D65010G031 emulator (modified version) by cam900"
+msgstr ""
+
+#: src/gui/about.cpp:275
+msgid "Namco C140/C219 emulator (modified version) by cam900"
+msgstr ""
+
+#: src/gui/about.cpp:276
+msgid "PowerNoise emulator by scratchminer"
+msgstr ""
+
+#: src/gui/about.cpp:277
+msgid "ep128emu by Istvan Varga"
+msgstr ""
+
+#: src/gui/about.cpp:278
+msgid "NDS sound emulator by cam900"
+msgstr ""
+
+#: src/gui/about.cpp:280
+#, fuzzy
+msgid "greetings to:"
+msgstr "ajustes:"
+
+#: src/gui/about.cpp:283
+msgid "all members of Deflers of Noice!"
+msgstr ""
+
+#: src/gui/about.cpp:285
+msgid "copyright © 2021-2024 tildearrow"
+msgstr ""
+
+#: src/gui/about.cpp:286
+msgid "(and contributors)."
+msgstr ""
+
+#: src/gui/about.cpp:287
+msgid "licensed under GPLv2+! see"
+msgstr ""
+
+#: src/gui/about.cpp:288
+msgid "LICENSE for more information."
+msgstr ""
+
+#: src/gui/about.cpp:290
+msgid "help Furnace grow:"
+msgstr ""
+
+#: src/gui/about.cpp:293
+msgid "contact tildearrow at:"
+msgstr ""
+
+#: src/gui/about.cpp:296
+msgid "disclaimer:"
+msgstr ""
+
+#: src/gui/about.cpp:297
+msgid "despite the fact this program works"
+msgstr ""
+
+#: src/gui/about.cpp:298
+msgid "with the .dmf file format, it is NOT"
+msgstr ""
+
+#: src/gui/about.cpp:299
+msgid "affiliated with Delek or DefleMask in"
+msgstr ""
+
+#: src/gui/about.cpp:300
+msgid "any way, nor it is a replacement for"
+msgstr ""
+
+#: src/gui/about.cpp:301
+msgid "the original program."
+msgstr ""
+
+#: src/gui/about.cpp:303
+msgid "it also comes with ABSOLUTELY NO WARRANTY."
+msgstr ""
+
 #: src/gui/about.cpp:305
+msgid "thanks to all contributors/bug reporters!"
+msgstr ""
+
+#: src/gui/about.cpp:312
 msgid "About Furnace"
+msgstr ""
+
+#: src/gui/about.cpp:402
+msgid "Unsaved changes! Save changes before playing?"
 msgstr ""
 
 #: src/gui/compatFlags.cpp:31 src/gui/guiConst.cpp:598
