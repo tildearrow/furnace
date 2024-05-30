@@ -1,0 +1,1002 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: furnace 0.6.3\n"
+"Last-Translator: Diggo\n"
+"Language-Team: none\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/engine/sysDef.cpp:428 src/engine/sysDef.cpp:441
+msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
+msgstr "20xx: Definir modo de canal (bit 0: quadrado; bit 1: ruído; bit 2: envelope)"
+
+#: src/engine/sysDef.cpp:429
+msgid "21xx: Set noise frequency (0 to 1F)"
+msgstr "21xx: Definir frequência de ruído (0 a 1F)"
+
+#: src/engine/sysDef.cpp:430 src/engine/sysDef.cpp:443
+msgid "22xy: Set envelope mode (x: shape, y: enable for this channel)"
+msgstr "22xy: Definir modo de envelope (x: forma, y: habilitar para este canal)"
+
+#: src/engine/sysDef.cpp:431 src/engine/sysDef.cpp:444
+msgid "23xx: Set envelope period low byte"
+msgstr "23xx: Definir byte baixo do período de envelope"
+
+#: src/engine/sysDef.cpp:432 src/engine/sysDef.cpp:445
+msgid "24xx: Set envelope period high byte"
+msgstr "24xx: Definir byte alto do período de envelope"
+
+#: src/engine/sysDef.cpp:433 src/engine/sysDef.cpp:446
+#: src/engine/sysDef.cpp:1599
+msgid "25xx: Envelope slide up"
+msgstr "25xx: Deslizar envelope para cima"
+
+#: src/engine/sysDef.cpp:434 src/engine/sysDef.cpp:447
+#: src/engine/sysDef.cpp:1600
+msgid "26xx: Envelope slide down"
+msgstr "26xx: Deslizar envelope para baixo"
+
+#: src/engine/sysDef.cpp:435 src/engine/sysDef.cpp:448
+#: src/engine/sysDef.cpp:1601
+msgid "29xy: Set auto-envelope (x: numerator; y: denominator)"
+msgstr "29xy: Definir auto-envelope (x: numerador; y: denominador)"
+
+#: src/engine/sysDef.cpp:436 src/engine/sysDef.cpp:449
+msgid "2Exx: Write to I/O port A"
+msgstr "2Exx: Escrever no porto de E/S A"
+
+#: src/engine/sysDef.cpp:437 src/engine/sysDef.cpp:450
+msgid "2Fxx: Write to I/O port B"
+msgstr "2Fxx: Escrever no porto de E/S B"
+
+#: src/engine/sysDef.cpp:442
+msgid "21xx: Set noise frequency (0 to FF)"
+msgstr "21xx: Definir frequência de ruído (0 a FF)"
+
+#: src/engine/sysDef.cpp:451
+msgid "12xx: Set duty cycle (0 to 8)"
+msgstr "12xx: Definir ciclo de trabalho (0 a 8)"
+
+#: src/engine/sysDef.cpp:453
+msgid "27xx: Set noise AND mask"
+msgstr "27xx: Definir máscara AND de ruído"
+
+#: src/engine/sysDef.cpp:454
+msgid "28xx: Set noise OR mask"
+msgstr "28xx: Definir máscara OR de ruído"
+
+#: src/engine/sysDef.cpp:455
+msgid ""
+"2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR "
+"mask); y: offset"
+msgstr ""
+"2Cxy: Frequência de ruído automática (x: modo (0: desativar, 1: freq, 2: freq + máscara OR); y: compensação"
+
+#: src/engine/sysDef.cpp:456
+msgid "2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER"
+msgstr "2Dxx: NÃO DEVE SER UTILIZADO PELO COMPOSITOR"
+
+#: src/engine/sysDef.cpp:460
+msgid "30xx: Toggle hard envelope reset on new notes"
+msgstr "30xx: Alternar reinício rígido de envelope em novas notas"
+
+#: src/engine/sysDef.cpp:465
+msgid "18xx: Toggle extended channel 3 mode"
+msgstr "18xx: Alternar modo de canal estendido 3"
+
+#: src/engine/sysDef.cpp:470 src/engine/sysDef.cpp:766
+#: src/engine/sysDef.cpp:1025 src/engine/sysDef.cpp:1272
+#: src/engine/sysDef.cpp:1593
+msgid "17xx: Toggle PCM mode (LEGACY)"
+msgstr "17xx: Alternar modo PCM (LEGADO)"
+
+#: src/engine/sysDef.cpp:471 src/engine/sysDef.cpp:1653
+#: src/engine/sysDef.cpp:1963
+msgid "DFxx: Set sample playback direction (0: normal; 1: reverse)"
+msgstr "DFxx: Definir direção de reprodução da amostra (0: normal; 1: reverso)"
+
+#: src/engine/sysDef.cpp:476
+msgid "18xx: Toggle drums mode (1: enabled; 0: disabled)"
+msgstr "18xx: Alternar modo de bateria (1: habilitado; 0: desabilitado)"
+
+#: src/engine/sysDef.cpp:480 src/engine/sysDef.cpp:554
+#: src/engine/sysDef.cpp:575
+msgid "11xx: Set feedback (0 to 7)"
+msgstr "11xx: Definir feedback (0 a 7)"
+
+#: src/engine/sysDef.cpp:481
+msgid "12xx: Set level of operator 1 (0 highest, 7F lowest)"
+msgstr "12xx: Definir nível do operador 1 (0 mais alto, 7F mais baixo)"
+
+#: src/engine/sysDef.cpp:482
+msgid "13xx: Set level of operator 2 (0 highest, 7F lowest)"
+msgstr "13xx: Definir nível do operador 2 (0 mais alto, 7F mais baixo)"
+
+#: src/engine/sysDef.cpp:483
+msgid "14xx: Set level of operator 3 (0 highest, 7F lowest)"
+msgstr "14xx: Definir nível do operador 3 (0 mais alto, 7F mais baixo)"
+
+#: src/engine/sysDef.cpp:484
+msgid "15xx: Set level of operator 4 (0 highest, 7F lowest)"
+msgstr "15xx: Definir nível do operador 4 (0 mais alto, 7F mais baixo)"
+
+#: src/engine/sysDef.cpp:485 src/engine/sysDef.cpp:580
+#: src/engine/sysDef.cpp:635
+msgid "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)"
+msgstr "16xy: Definir multiplicador do operador (x: operador de 1 a 4; y: multiplicador)"
+
+#: src/engine/sysDef.cpp:486
+msgid "19xx: Set attack of all operators (0 to 1F)"
+msgstr "19xx: Definir ataque de todos os operadores (0 a 1F)"
+
+#: src/engine/sysDef.cpp:487
+msgid "1Axx: Set attack of operator 1 (0 to 1F)"
+msgstr "1Axx: Definir ataque do operador 1 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:488
+msgid "1Bxx: Set attack of operator 2 (0 to 1F)"
+msgstr "1Bxx: Definir ataque do operador 2 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:489
+msgid "1Cxx: Set attack of operator 3 (0 to 1F)"
+msgstr "1Cxx: Definir ataque do operador 3 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:490
+msgid "1Dxx: Set attack of operator 4 (0 to 1F)"
+msgstr "1Dxx: Definir ataque do operador 4 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:491 src/engine/sysDef.cpp:588
+#: src/engine/sysDef.cpp:656
+msgid "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)"
+msgstr "50xy: Definir AM (x: operador de 1 a 4 (0 para todos os ops); y: AM)"
+
+#: src/engine/sysDef.cpp:492 src/engine/sysDef.cpp:589
+#: src/engine/sysDef.cpp:657
+msgid ""
+"51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)"
+msgstr ""
+"51xy: Definir nível de sustain (x: operador de 1 a 4 (0 para todos os ops); y: sustain)"
+
+#: src/engine/sysDef.cpp:493 src/engine/sysDef.cpp:590
+#: src/engine/sysDef.cpp:658
+msgid "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)"
+msgstr "52xy: Definir release (x: operador de 1 a 4 (0 para todos os ops); y: release)"
+
+#: src/engine/sysDef.cpp:494
+msgid ""
+"53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 "
+"is center)"
+msgstr ""
+"53xy: Definir detune (x: operador de 1 a 4 (0 para todos os ops); y: detune onde 3 é o centro)"
+
+#: src/engine/sysDef.cpp:495 src/engine/sysDef.cpp:592
+#: src/engine/sysDef.cpp:660
+msgid ""
+"54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale "
+"from 0 to 3)"
+msgstr ""
+"54xy: Definir escala de envelope (x: operador de 1 a 4 (0 para todos os ops); y: escala de 0 a 3)"
+
+#: src/engine/sysDef.cpp:496
+msgid "56xx: Set decay of all operators (0 to 1F)"
+msgstr "56xx: Definir decay de todos os operadores (0 a 1F)"
+
+#: src/engine/sysDef.cpp:497
+msgid "57xx: Set decay of operator 1 (0 to 1F)"
+msgstr "57xx: Definir decay do operador 1 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:498
+msgid "58xx: Set decay of operator 2 (0 to 1F)"
+msgstr "58xx: Definir decay do operador 2 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:499
+msgid "59xx: Set decay of operator 3 (0 to 1F)"
+msgstr "59xx: Definir decay do operador 3 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:500
+msgid "5Axx: Set decay of operator 4 (0 to 1F)"
+msgstr "5Axx: Definir decay do operador 4 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:501
+msgid "5Bxx: Set decay 2 of all operators (0 to 1F)"
+msgstr "5Bxx: Definir decay 2 de todos os operadores (0 a 1F)"
+
+#: src/engine/sysDef.cpp:502
+msgid "5Cxx: Set decay 2 of operator 1 (0 to 1F)"
+msgstr "5Cxx: Definir decay 2 do operador 1 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:503
+msgid "5Dxx: Set decay 2 of operator 2 (0 to 1F)"
+msgstr "5Dxx: Definir decay 2 do operador 2 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:504
+msgid "5Exx: Set decay 2 of operator 3 (0 to 1F)"
+msgstr "5Exx: Definir decay 2 do operador 3 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:505
+msgid "5Fxx: Set decay 2 of operator 4 (0 to 1F)"
+msgstr "5Fxx: Definir decay 2 do operador 4 (0 a 1F)"
+
+#: src/engine/sysDef.cpp:510
+msgid "10xx: Set noise frequency (xx: value; 0 disables noise)"
+msgstr "10xx: Definir frequência de ruído (xx: valor; 0 desabilita o ruído)"
+
+#: src/engine/sysDef.cpp:511
+msgid "17xx: Set LFO speed"
+msgstr "17xx: Definir velocidade do LFO"
+
+#: src/engine/sysDef.cpp:512
+msgid "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)"
+msgstr "18xx: Definir forma de onda do LFO (0 serra, 1 quadrada, 2 triangular, 3 ruído)"
+
+#: src/engine/sysDef.cpp:513
+msgid "1Exx: Set AM depth (0 to 7F)"
+msgstr "1Exx: Definir profundidade de AM (0 a 7F)"
+
+#: src/engine/sysDef.cpp:514
+msgid "1Fxx: Set PM depth (0 to 7F)"
+msgstr "1Fxx: Definir profundidade de PM (0 a 7F)"
+
+#: src/engine/sysDef.cpp:515
+msgid ""
+"55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from "
+"0 to 3)"
+msgstr ""
+"55xy: Definir detune 2 (x: operador de 1 a 4 (0 para todos os ops); y: detune de 0 a 3)"
+
+#: src/engine/sysDef.cpp:520
+msgid "24xx: Set LFO 2 speed"
+msgstr "24xx: Definir velocidade do LFO 2"
+
+#: src/engine/sysDef.cpp:521
+msgid "25xx: Set LFO 2 waveform (0 saw, 1 square, 2 triangle, 3 noise)"
+msgstr "25xx: Definir forma de onda do LFO 2 (0 serra, 1 quadrada, 2 triangular, 3 ruído)"
+
+#: src/engine/sysDef.cpp:522
+msgid "26xx: Set AM 2 depth (0 to 7F)"
+msgstr "26xx: Definir profundidade de AM 2 (0 a 7F)"
+
+#: src/engine/sysDef.cpp:523
+msgid "27xx: Set PM 2 depth (0 to 7F)"
+msgstr "27xx: Definir profundidade de PM 2 (0 a 7F)"
+
+#: src/engine/sysDef.cpp:524
+msgid ""
+"28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 "
+"to 7)"
+msgstr ""
+"28xy: Definir reverb (x: operador de 1 a 4 (0 para todos os ops); y: reverb de 0 a 7)"
+
+#: src/engine/sysDef.cpp:525 src/engine/sysDef.cpp:650
+msgid ""
+"2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform "
+"from 0 to 7)"
+msgstr ""
+"2Axy: Definir forma de onda (x: operador de 1 a 4 (0 para todos os ops); y: forma de onda de 0 a 7)"
+
+#: src/engine/sysDef.cpp:526
+msgid ""
+"2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); "
+"y: shift from 0 to 3)"
+msgstr ""
+"2Bxy: Definir deslocamento do gerador de envelope (x: operador de 1 a 4 (0 para todos os ops); y: deslocamento de 0 a 3)"
+
+#: src/engine/sysDef.cpp:527
+msgid ""
+"2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)"
+msgstr ""
+"2Cxy: Definir multiplicador fino (x: operador de 1 a 4 (0 para todos os ops); y: fino)"
+
+#: src/engine/sysDef.cpp:530
+msgid ""
+"3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)"
+msgstr ""
+"3xyy: Definir frequência fixa do operador 1 (x: oitava de 0 a 7; y: frequência)"
+
+#: src/engine/sysDef.cpp:531
+msgid ""
+"3xyy: Set fixed frequency of operator 2 (x: octave from 8 to F; y: frequency)"
+msgstr ""
+"3xyy: Definir frequência fixa do operador 2 (x: oitava de 8 a F; y: frequência)"
+
+#: src/engine/sysDef.cpp:532
+msgid ""
+"4xyy: Set fixed frequency of operator 3 (x: octave from 0 to 7; y: frequency)"
+msgstr ""
+"4xyy: Definir frequência fixa do operador 3 (x: oitava de 0 a 7; y: frequência)"
+
+#: src/engine/sysDef.cpp:533
+msgid ""
+"4xyy: Set fixed frequency of operator 4 (x: octave from 8 to F; y: frequency)"
+msgstr ""
+"4xyy: Definir frequência fixa do operador 4 (x: oitava de 8 a F; y: frequência)"
+
+#: src/engine/sysDef.cpp:540
+msgid "10xy: Setup LFO (x: enable; y: speed)"
+msgstr "10xy: Configurar LFO (x: habilitar; y: velocidade)"
+
+#: src/engine/sysDef.cpp:541
+msgid ""
+"55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, "
+"8 off)"
+msgstr ""
+"55xy: Definir envelope SSG (x: operador de 1 a 4 (0 para todos os ops); y: 0-7 ligado, 8 desligado)"
+
+#: src/engine/sysDef.cpp:549
+msgid "1Fxx: Set ADPCM-A global volume (0 to 3F)"
+msgstr "1Fxx: Definir volume global ADPCM-A (0 a 3F)"
+
+#: src/engine/sysDef.cpp:553
+msgid "10xx: Set patch (0 to F)"
+msgstr "10xx: Definir patch (0 a F)"
+
+#: src/engine/sysDef.cpp:555 src/engine/sysDef.cpp:576
+#: src/engine/sysDef.cpp:631
+msgid "12xx: Set level of operator 1 (0 highest, 3F lowest)"
+msgstr "12xx: Definir nível do operador 1 (0 mais alto, 3F mais baixo)"
+
+#: src/engine/sysDef.cpp:556 src/engine/sysDef.cpp:577
+#: src/engine/sysDef.cpp:632
+msgid "13xx: Set level of operator 2 (0 highest, 3F lowest)"
+msgstr "13xx: Definir nível do operador 2 (0 mais alto, 3F mais baixo)"
+
+#: src/engine/sysDef.cpp:557
+msgid "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)"
+msgstr "16xy: Definir multiplicador do operador (x: operador de 1 a 2; y: multiplicador)"
+
+#: src/engine/sysDef.cpp:558 src/engine/sysDef.cpp:582
+#: src/engine/sysDef.cpp:637
+msgid "19xx: Set attack of all operators (0 to F)"
+msgstr "19xx: Definir ataque de todos os operadores (0 a F)"
+
+#: src/engine/sysDef.cpp:559 src/engine/sysDef.cpp:583
+#: src/engine/sysDef.cpp:638
+msgid "1Axx: Set attack of operator 1 (0 to F)"
+msgstr "1Axx: Definir ataque do operador 1 (0 a F)"
+
+#: src/engine/sysDef.cpp:560 src/engine/sysDef.cpp:584
+#: src/engine/sysDef.cpp:639
+msgid "1Bxx: Set attack of operator 2 (0 to F)"
+msgstr "1Bxx: Definir ataque do operador 2 (0 a F)"
+
+#: src/engine/sysDef.cpp:561
+msgid "50xy: Set AM (x: operator from 1 to 2 (0 for all ops); y: AM)"
+msgstr "50xy: Definir AM (x: operador de 1 a 2 (0 para todos os ops); y: AM)"
+
+#: src/engine/sysDef.cpp:562
+msgid ""
+"51xy: Set sustain level (x: operator from 1 to 2 (0 for all ops); y: sustain)"
+msgstr ""
+"51xy: Definir nível de sustain (x: operador de 1 a 2 (0 para todos os ops); y: sustain)"
+
+#: src/engine/sysDef.cpp:563
+msgid "52xy: Set release (x: operator from 1 to 2 (0 for all ops); y: release)"
+msgstr "52xy: Definir release (x: operador de 1 a 2 (0 para todos os ops); y: release)"
+
+#: src/engine/sysDef.cpp:564
+msgid "53xy: Set vibrato (x: operator from 1 to 2 (0 for all ops); y: enabled)"
+msgstr "53xy: Definir vibrato (x: operador de 1 a 2 (0 para todos os ops); y: ativado)"
+
+#: src/engine/sysDef.cpp:565
+msgid ""
+"54xy: Set envelope scale (x: operator from 1 to 2 (0 for all ops); y: scale "
+"from 0 to 3)"
+msgstr ""
+"54xy: Definir escala de envelope (x: operador de 1 a 2 (0 para todos os ops); y: escala de 0 a 3)"
+
+#: src/engine/sysDef.cpp:566
+msgid ""
+"55xy: Set envelope sustain (x: operator from 1 to 2 (0 for all ops); y: "
+"enabled)"
+msgstr ""
+"55xy: Definir sustain de envelope (x: operador de 1 a 2 (0 para todos os ops); y: ativado)"
+
+#: src/engine/sysDef.cpp:567 src/engine/sysDef.cpp:594
+#: src/engine/sysDef.cpp:662
+msgid "56xx: Set decay of all operators (0 to F)"
+msgstr "56xx: Definir decay de todos os operadores (0 a F)"
+
+#: src/engine/sysDef.cpp:568 src/engine/sysDef.cpp:595
+#: src/engine/sysDef.cpp:663
+msgid "57xx: Set decay of operator 1 (0 to F)"
+msgstr "57xx: Definir decay do operador 1 (0 a F)"
+
+#: src/engine/sysDef.cpp:569 src/engine/sysDef.cpp:596
+#: src/engine/sysDef.cpp:664
+msgid "58xx: Set decay of operator 2 (0 to F)"
+msgstr "58xx: Definir decay do operador 2 (0 a F)"
+
+#: src/engine/sysDef.cpp:570
+msgid ""
+"5Bxy: Set whether key will scale envelope (x: operator from 1 to 2 (0 for "
+"all ops); y: enabled)"
+msgstr ""
+"5Bxy: Definir se a tecla irá escalar o envelope (x: operador de 1 a 2 (0 para todos os ops); y: ativado)"
+
+#: src/engine/sysDef.cpp:574
+msgid "10xx: Set global AM depth (0: 1dB, 1: 4.8dB)"
+msgstr "10xx: Definir profundidade global de AM (0: 1dB, 1: 4.8dB)"
+
+#: src/engine/sysDef.cpp:578 src/engine/sysDef.cpp:633
+msgid "14xx: Set level of operator 3 (0 highest, 3F lowest)"
+msgstr "14xx: Definir nível do operador 3 (0 mais alto, 3F mais baixo)"
+
+#: src/engine/sysDef.cpp:579 src/engine/sysDef.cpp:634
+msgid "15xx: Set level of operator 4 (0 highest, 3F lowest)"
+msgstr "15xx: Definir nível do operador 4 (0 mais alto, 3F mais baixo)"
+
+#: src/engine/sysDef.cpp:581
+msgid "17xx: Set global vibrato depth (0: normal, 1: double)"
+msgstr "17xx: Definir profundidade global de vibrato (0: normal, 1: dobrado)"
+
+#: src/engine/sysDef.cpp:585 src/engine/sysDef.cpp:640
+msgid "1Cxx: Set attack of operator 3 (0 to F)"
+msgstr "1Cxx: Definir ataque do operador 3 (0 a F)"
+
+#: src/engine/sysDef.cpp:586 src/engine/sysDef.cpp:641
+msgid "1Dxx: Set attack of operator 4 (0 to F)"
+msgstr "1Dxx: Definir ataque do operador 4 (0 a F)"
+
+#: src/engine/sysDef.cpp:587
+msgid ""
+"2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform "
+"from 0 to 3 in OPL2 and 0 to 7 in OPL3)"
+msgstr ""
+"2Axy: Definir forma de onda (x: operador de 1 a 4 (0 para todos os ops); y: forma de onda de 0 a 3 no OPL2 e de 0 a 7 no OPL3)"
+
+#: src/engine/sysDef.cpp:591 src/engine/sysDef.cpp:659
+msgid "53xy: Set vibrato (x: operator from 1 to 4 (0 for all ops); y: enabled)"
+msgstr "53xy: Definir vibrato (x: operador de 1 a 4 (0 para todos os ops); y: ativado)"
+
+#: src/engine/sysDef.cpp:593 src/engine/sysDef.cpp:661
+msgid ""
+"55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: "
+"enabled)"
+msgstr ""
+"55xy: Definir sustain de envelope (x: operador de 1 a 4 (0 para todos os ops); y: ativado)"
+
+#: src/engine/sysDef.cpp:597 src/engine/sysDef.cpp:665
+msgid "59xx: Set decay of operator 3 (0 to F)"
+msgstr "59xx: Definir decay do operador 3 (0 a F)"
+
+#: src/engine/sysDef.cpp:598 src/engine/sysDef.cpp:666
+msgid "5Axx: Set decay of operator 4 (0 to F)"
+msgstr "5Axx: Definir decay do operador 4 (0 a F)"
+
+#: src/engine/sysDef.cpp:599 src/engine/sysDef.cpp:667
+msgid ""
+"5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for "
+"all ops); y: enabled)"
+msgstr ""
+"5Bxy: Definir se a tecla irá escalar o envelope (x: operador de 1 a 4 (0 para todos os ops); y: ativado)"
+
+#: src/engine/sysDef.cpp:603 src/engine/sysDef.cpp:680
+msgid ""
+"10xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise)"
+msgstr "10xx: Definir forma de onda (bit 0: triângulo; bit 1: dente de serra; bit 2: pulso; bit 3: ruído)"
+
+#: src/engine/sysDef.cpp:604
+msgid "11xx: Set coarse cutoff (not recommended; use 4xxx instead)"
+msgstr "11xx: Definir corte de agudos (não recomendado; use 4xxx em vez disso)"
+
+#: src/engine/sysDef.cpp:605
+msgid "12xx: Set coarse pulse width (not recommended; use 3xxx instead)"
+msgstr "12xx: Definir largura de pulso (não recomendado; use 3xxx em vez disso)"
+
+#: src/engine/sysDef.cpp:606
+msgid "13xx: Set resonance (0 to F)"
+msgstr "13xx: Definir ressonância (0 a F)"
+
+#: src/engine/sysDef.cpp:607
+msgid ""
+"14xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"
+msgstr "14xx: Definir modo de filtro (bit 0: low pass; bit 1: band pass; bit 2: high pass)"
+
+#: src/engine/sysDef.cpp:608
+msgid "15xx: Set envelope reset time"
+msgstr "15xx: Definir tempo de reset do envelope"
+
+#: src/engine/sysDef.cpp:609
+msgid "1Axx: Disable envelope reset for this channel (1 disables; 0 enables)"
+msgstr "1Axx: Desativar reset do envelope para este canal (1 desabilita; 0 habilita)"
+
+#: src/engine/sysDef.cpp:610
+msgid "1Bxy: Reset cutoff (x: on new note; y: now)"
+msgstr "1Bxy: Resetar corte (x: na nova nota; y: agora)"
+
+#: src/engine/sysDef.cpp:611
+msgid "1Cxy: Reset pulse width (x: on new note; y: now)"
+msgstr "1Cxy: Resetar largura de pulso (x: na nova nota; y: agora)"
+
+#: src/engine/sysDef.cpp:612
+msgid "1Exy: Change other parameters (LEGACY)"
+msgstr "1Exy: Mudar outros parâmetros (LEGACY)"
+
+#: src/engine/sysDef.cpp:613
+msgid "20xy: Set attack/decay (x: attack; y: decay)"
+msgstr "20xy: Definir ataque/decaimento (x: ataque; y: decaimento)"
+
+#: src/engine/sysDef.cpp:614
+msgid "21xy: Set sustain/release (x: sustain; y: release)"
+msgstr "21xy: Definir sustentação/liberação (x: sustentação; y: liberação)"
+
+#: src/engine/sysDef.cpp:616 src/engine/sysDef.cpp:688
+msgid "3xxx: Set pulse width (0 to FFF)"
+msgstr "3xxx: Definir largura de pulso (0 a FFF)"
+
+#: src/engine/sysDef.cpp:617
+msgid "4xxx: Set cutoff (0 to 7FF)"
+msgstr "4xxx: Definir corte (0 a 7FF)"
+
+
+#: src/engine/sysDef.cpp:622 src/engine/sysDef.cpp:745
+#: src/engine/sysDef.cpp:762 src/engine/sysDef.cpp:1000
+#: src/engine/sysDef.cpp:1050 src/engine/sysDef.cpp:1268
+#: src/engine/sysDef.cpp:1320 src/engine/sysDef.cpp:1590
+#: src/engine/sysDef.cpp:1788 src/engine/sysDef.cpp:1792
+#: src/engine/sysDef.cpp:1893 src/engine/sysDef.cpp:2063
+#: src/engine/sysDef.cpp:2077
+msgid "10xx: Set waveform"
+msgstr "10xx: Definir onda"
+
+#: src/engine/sysDef.cpp:626
+msgid "20xx: Set PCM frequency"
+msgstr "20xx: Definir frequência do PCM"
+
+#: src/engine/sysDef.cpp:630
+msgid ""
+"10xy: Set AM depth (x: operator from 1 to 4 (0 for all ops); y: depth (0: "
+"1dB, 1: 4.8dB))"
+msgstr "10xy: Definir AM depth (x: operator do 1 para o 4 (0 para todos ops); y: depth (0: "
+"1dB, 1: 4.8dB))"
+
+#: src/engine/sysDef.cpp:636
+msgid ""
+"17xy: Set vibrato depth (x: operator from 1 to 4 (0 for all ops); y: depth "
+"(0: normal, 1: double))"
+msgstr "17xy: Definir vibrato depth (x: operator do 1 para o 4 (0 para todos ops); y: depth "
+"(0: normal, 1: dobrado))"
+
+#: src/engine/sysDef.cpp:642
+msgid "20xy: Set panning of operator 1 (x: left; y: right)"
+msgstr "20xy: Definir panorama do operador 1 (x: esquerda; y: direita)"
+
+#: src/engine/sysDef.cpp:643
+msgid "21xy: Set panning of operator 2 (x: left; y: right)"
+msgstr "21xy: Definir panorama do operador 2 (x: esquerda; y: direita)"
+
+#: src/engine/sysDef.cpp:644
+msgid "22xy: Set panning of operator 3 (x: left; y: right)"
+msgstr "22xy: Definir panorama do operador 3 (x: esquerda; y: direita)"
+
+#: src/engine/sysDef.cpp:645
+msgid "23xy: Set panning of operator 4 (x: left; y: right)"
+msgstr "23xy: Definir panorama do operador 4 (x: esquerda; y: direita)"
+
+#: src/engine/sysDef.cpp:646
+msgid ""
+"24xy: Set output level register (x: operator from 1 to 4 (0 for all ops); y: "
+"level from 0 to 7)"
+msgstr "24xy: Definir registro de nível de saída (x: operador de 1 a 4 (0 para todas as operações); y: nível de 0 a 7)"
+
+#: src/engine/sysDef.cpp:647
+msgid ""
+"25xy: Set modulation input level (x: operator from 1 to 4 (0 for all ops); "
+"y: level from 0 to 7)"
+msgstr "25xy: Definir nível de entrada de modulação (x: operador de 1 a 4 (0 para todas as operações); y: nível de 0 a 7)"
+
+#: src/engine/sysDef.cpp:648
+msgid ""
+"26xy: Set envelope delay (x: operator from 1 to 4 (0 for all ops); y: delay "
+"from 0 to 7)"
+msgstr "26xy: Definir atraso de envelope (x: operador de 1 a 4 (0 para todas as operações); y: atraso de 0 a 7)"
+
+#: src/engine/sysDef.cpp:649
+msgid "27xx: Set noise mode for operator 4 (x: mode from 0 to 3)"
+msgstr "27xx: Definir modo de ruído para o operador 4 (x: modo de 0 a 3)"
+
+#: src/engine/sysDef.cpp:651
+msgid ""
+"2Fxy: Set fixed frequency block (x: operator from 1 to 4; y: octave from 0 "
+"to 7)"
+msgstr "2Fxy: Definir bloco de frequência fixa (x: operador de 1 a 4; y: oitava de 0 a 7)"
+
+#: src/engine/sysDef.cpp:652
+msgid "40xx: Set detune of operator 1 (80: center)"
+msgstr "40xx: Definir desafinação do operador 1 (80: centro)"
+
+#: src/engine/sysDef.cpp:653
+msgid "41xx: Set detune of operator 2 (80: center)"
+msgstr "41xx: Definir desafinação do operador 2 (80: centro)"
+
+#: src/engine/sysDef.cpp:654
+msgid "42xx: Set detune of operator 3 (80: center)"
+msgstr "42xx: Definir desafinação do operador 3 (80: centro)"
+
+#: src/engine/sysDef.cpp:655
+msgid "43xx: Set detune of operator 4 (80: center)"
+msgstr "43xx: Definir desafinação do operador 4 (80: centro)"
+
+#: src/engine/sysDef.cpp:670
+msgid ""
+"3xyy: Set fixed frequency F-num of operator 1 (x: high 2 bits from 0 to 3; "
+"y: low 8 bits of F-num)"
+msgstr "3xyy: Definir F-num fixo de frequência do operador 1 (x: bits altos 2 de 0 a 3; y: bits baixos 8 do F-num)"
+
+#: src/engine/sysDef.cpp:671
+msgid ""
+"3xyy: Set fixed frequency F-num of operator 2 (x: high 2 bits from 4 to 7; "
+"y: low 8 bits of F-num)"
+msgstr "3xyy: Definir F-num fixo de frequência do operador 2 (x: bits altos 2 de 4 a 7; y: bits baixos 8 do F-num)"
+
+#: src/engine/sysDef.cpp:672
+msgid ""
+"3xyy: Set fixed frequency F-num of operator 3 (x: high 2 bits from 8 to B; "
+"y: low 8 bits of F-num)"
+msgstr "3xyy: Definir F-num fixo de frequência do operador 3 (x: bits altos 2 de 8 a B; y: bits baixos 8 do F-num)"
+
+#: src/engine/sysDef.cpp:673
+msgid ""
+"3xyy: Set fixed frequency F-num of operator 4 (x: high 2 bits from C to F; "
+"y: low 8 bits of F-num)"
+msgstr "3xyy: Definir F-num fixo de frequência do operador 4 (x: bits altos 2 de C a F; y: bits baixos 8 do F-num)"
+
+#: src/engine/sysDef.cpp:681
+msgid "11xx: Set resonance (0 to FF)"
+msgstr "11xx: Definir ressonância (0 a FF)"
+
+#: src/engine/sysDef.cpp:682
+msgid ""
+"12xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"
+msgstr "12xx: Definir modo de filtro (bit 0: passa-baixa; bit 1: passa-banda; bit 2: passa-alta)"
+
+#: src/engine/sysDef.cpp:683
+msgid "13xx: Disable envelope reset for this channel (1 disables; 0 enables)"
+msgstr "13xx: Desativar reset de envelope para este canal (1 desativa; 0 habilita)"
+
+#: src/engine/sysDef.cpp:684
+msgid "14xy: Reset cutoff (x: on new note; y: now)"
+msgstr "14xy: Resetar corte (x: na nova nota; y: agora)"
+
+#: src/engine/sysDef.cpp:685
+msgid "15xy: Reset pulse width (x: on new note; y: now)"
+msgstr "15xy: Resetar largura de pulso (x: na nova nota; y: agora)"
+
+#: src/engine/sysDef.cpp:686
+msgid "16xy: Change other parameters"
+msgstr "16xy: Mudar outros parâmetros"
+
+#: src/engine/sysDef.cpp:689 src/engine/sysDef.cpp:1733
+msgid "4xxx: Set cutoff (0 to FFF)"
+msgstr "4xxx: Definir corte (0 a FFF)"
+
+#: src/engine/sysDef.cpp:697
+msgid "Yamaha YMU759 (MA-2)"
+msgstr "Yamaha YMU759 (MA-2)"
+
+#: src/engine/sysDef.cpp:698
+msgid ""
+"a chip which found its way inside mobile phones in the 2000's.\n"
+"as proprietary as it is, it passed away after losing to MP3 in the mobile "
+"hardware battle."
+msgstr ""
+"um chip que encontrou seu caminho dentro de telefones celulares nos anos 2000.\n"
+"tão proprietário quanto é, ele faleceu após perder para o MP3 na batalha de hardware móvel."
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
+#: src/engine/sysDef.cpp:807 src/engine/sysDef.cpp:819
+#: src/engine/sysDef.cpp:874 src/engine/sysDef.cpp:915
+#: src/engine/sysDef.cpp:977 src/engine/sysDef.cpp:1075
+#: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1237
+#: src/engine/sysDef.cpp:1252 src/engine/sysDef.cpp:1302
+#: src/engine/sysDef.cpp:1314 src/engine/sysDef.cpp:1356
+#: src/engine/sysDef.cpp:1396 src/engine/sysDef.cpp:1499
+#: src/engine/sysDef.cpp:1532 src/engine/sysDef.cpp:1572
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1608
+#: src/engine/sysDef.cpp:1669 src/engine/sysDef.cpp:1705
+#: src/engine/sysDef.cpp:1741 src/engine/sysDef.cpp:1753
+#: src/engine/sysDef.cpp:1799 src/engine/sysDef.cpp:1810
+#: src/engine/sysDef.cpp:1821 src/engine/sysDef.cpp:1832
+#: src/engine/sysDef.cpp:1900 src/engine/sysDef.cpp:1910
+#: src/engine/sysDef.cpp:1920 src/engine/sysDef.cpp:1944
+#: src/engine/sysDef.cpp:1957 src/engine/sysDef.cpp:1970
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2037 src/engine/sysDef.cpp:2070
+#: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2122
+#: src/engine/sysDef.cpp:2138 src/engine/sysDef.cpp:2150
+msgid "Channel 1"
+msgstr "Canal 1"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
+#: src/engine/sysDef.cpp:807 src/engine/sysDef.cpp:819
+#: src/engine/sysDef.cpp:874 src/engine/sysDef.cpp:915
+#: src/engine/sysDef.cpp:977 src/engine/sysDef.cpp:1075
+#: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1237
+#: src/engine/sysDef.cpp:1252 src/engine/sysDef.cpp:1302
+#: src/engine/sysDef.cpp:1314 src/engine/sysDef.cpp:1356
+#: src/engine/sysDef.cpp:1396 src/engine/sysDef.cpp:1499
+#: src/engine/sysDef.cpp:1532 src/engine/sysDef.cpp:1572
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1608
+#: src/engine/sysDef.cpp:1669 src/engine/sysDef.cpp:1705
+#: src/engine/sysDef.cpp:1741 src/engine/sysDef.cpp:1753
+#: src/engine/sysDef.cpp:1799 src/engine/sysDef.cpp:1810
+#: src/engine/sysDef.cpp:1821 src/engine/sysDef.cpp:1832
+#: src/engine/sysDef.cpp:1900 src/engine/sysDef.cpp:1910
+#: src/engine/sysDef.cpp:1920 src/engine/sysDef.cpp:1944
+#: src/engine/sysDef.cpp:1957 src/engine/sysDef.cpp:1970
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2037 src/engine/sysDef.cpp:2070
+#: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2122
+#: src/engine/sysDef.cpp:2138 src/engine/sysDef.cpp:2150
+msgid "Channel 2"
+msgstr "Canal 2"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
+#: src/engine/sysDef.cpp:807 src/engine/sysDef.cpp:819
+#: src/engine/sysDef.cpp:874 src/engine/sysDef.cpp:977
+#: src/engine/sysDef.cpp:1075 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1237 src/engine/sysDef.cpp:1252
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1314
+#: src/engine/sysDef.cpp:1356 src/engine/sysDef.cpp:1396
+#: src/engine/sysDef.cpp:1499 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1572 src/engine/sysDef.cpp:1584
+#: src/engine/sysDef.cpp:1669 src/engine/sysDef.cpp:1705
+#: src/engine/sysDef.cpp:1741 src/engine/sysDef.cpp:1753
+#: src/engine/sysDef.cpp:1799 src/engine/sysDef.cpp:1810
+#: src/engine/sysDef.cpp:1821 src/engine/sysDef.cpp:1832
+#: src/engine/sysDef.cpp:1910 src/engine/sysDef.cpp:1944
+#: src/engine/sysDef.cpp:1957 src/engine/sysDef.cpp:1980
+#: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2037
+#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
+#: src/engine/sysDef.cpp:2122 src/engine/sysDef.cpp:2138
+#: src/engine/sysDef.cpp:2150
+msgid "Channel 3"
+msgstr "Canal 3"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
+#: src/engine/sysDef.cpp:874 src/engine/sysDef.cpp:977
+#: src/engine/sysDef.cpp:1075 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1237 src/engine/sysDef.cpp:1252
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1314
+#: src/engine/sysDef.cpp:1356 src/engine/sysDef.cpp:1396
+#: src/engine/sysDef.cpp:1499 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1572 src/engine/sysDef.cpp:1584
+#: src/engine/sysDef.cpp:1669 src/engine/sysDef.cpp:1705
+#: src/engine/sysDef.cpp:1741 src/engine/sysDef.cpp:1753
+#: src/engine/sysDef.cpp:1810 src/engine/sysDef.cpp:1821
+#: src/engine/sysDef.cpp:1832 src/engine/sysDef.cpp:1910
+#: src/engine/sysDef.cpp:1944 src/engine/sysDef.cpp:1957
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
+#: src/engine/sysDef.cpp:2122 src/engine/sysDef.cpp:2150
+msgid "Channel 4"
+msgstr "Canal 4"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
+#: src/engine/sysDef.cpp:977 src/engine/sysDef.cpp:1075
+#: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1252
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1314
+#: src/engine/sysDef.cpp:1356 src/engine/sysDef.cpp:1396
+#: src/engine/sysDef.cpp:1532 src/engine/sysDef.cpp:1572
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
+#: src/engine/sysDef.cpp:1705 src/engine/sysDef.cpp:1741
+#: src/engine/sysDef.cpp:1810 src/engine/sysDef.cpp:1821
+#: src/engine/sysDef.cpp:1832 src/engine/sysDef.cpp:1980
+#: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
+#: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
+msgid "Channel 5"
+msgstr "Canal 5"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
+#: src/engine/sysDef.cpp:977 src/engine/sysDef.cpp:1075
+#: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1252
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1356
+#: src/engine/sysDef.cpp:1532 src/engine/sysDef.cpp:1584
+#: src/engine/sysDef.cpp:1669 src/engine/sysDef.cpp:1741
+#: src/engine/sysDef.cpp:1810 src/engine/sysDef.cpp:1821
+#: src/engine/sysDef.cpp:1832 src/engine/sysDef.cpp:1980
+#: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
+#: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
+msgid "Channel 6"
+msgstr "Canal 6"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:977
+#: src/engine/sysDef.cpp:1075 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1252 src/engine/sysDef.cpp:1302
+#: src/engine/sysDef.cpp:1532 src/engine/sysDef.cpp:1584
+#: src/engine/sysDef.cpp:1669 src/engine/sysDef.cpp:1741
+#: src/engine/sysDef.cpp:1810 src/engine/sysDef.cpp:1821
+#: src/engine/sysDef.cpp:1832 src/engine/sysDef.cpp:1980
+#: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
+#: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
+msgid "Channel 7"
+msgstr "Canal 7"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:977
+#: src/engine/sysDef.cpp:1075 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1252 src/engine/sysDef.cpp:1302
+#: src/engine/sysDef.cpp:1532 src/engine/sysDef.cpp:1584
+#: src/engine/sysDef.cpp:1669 src/engine/sysDef.cpp:1741
+#: src/engine/sysDef.cpp:1810 src/engine/sysDef.cpp:1821
+#: src/engine/sysDef.cpp:1832 src/engine/sysDef.cpp:1980
+#: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
+#: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
+msgid "Channel 8"
+msgstr "Canal 8"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
+msgid "Channel 9"
+msgstr "Canal 9"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
+msgid "Channel 10"
+msgstr "Canal 10"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
+msgid "Channel 11"
+msgstr "Canal 11"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
+msgid "Channel 12"
+msgstr ""
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
+msgid "Channel 13"
+msgstr "Canal 13"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
+msgid "Channel 14"
+msgstr "Canal 14"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
+msgid "Channel 15"
+msgstr "Canal 15"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
+#: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1584 src/engine/sysDef.cpp:1669
+#: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
+#: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
+msgid "Channel 16"
+msgstr "Canal 16"
+
+#: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:700
+#: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:1532
+#: src/engine/sysDef.cpp:1767 src/engine/sysDef.cpp:1888
+#: src/engine/sysDef.cpp:1944 src/engine/sysDef.cpp:1945
+#: src/gui/settings.cpp:4041
+msgid "PCM"
+msgstr "PCM"
+
+#: src/engine/sysDef.cpp:706
+msgid "Sega Genesis/Mega Drive"
+msgstr "Sega Genesis/Mega Drive"
+
+#: src/engine/sysDef.cpp:712
+msgid "Sega Genesis Extended Channel 3"
+msgstr "Sega Genesis Canal 3 Extendido"
+
+#: src/engine/sysDef.cpp:718 src/gui/sysConf.cpp:158
+msgid "TI SN76489"
+msgstr "TI SN76489"
+
+#: src/engine/sysDef.cpp:719
+msgid ""
+"a square/noise sound chip found on the Sega Master System, ColecoVision, "
+"Tandy, TI's own 99/4A and a few other places."
+msgstr ""
+
+#: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
+#: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
+#: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
+msgid "Square 1"
+msgstr "Quadrada 1"
+
+#: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
+#: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
+#: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
+msgid "Square 2"
+msgstr "Quadrada 2"
+
+#: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
+#: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
+#: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
+msgid "Square 3"
+msgstr "Quadrada 3"
+
+#: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:739
+#: src/engine/sysDef.cpp:773 src/engine/sysDef.cpp:955
+#: src/engine/sysDef.cpp:1314 src/engine/sysDef.cpp:1874
+#: src/engine/sysDef.cpp:1920 src/engine/sysDef.cpp:2037
+#: src/engine/sysDef.cpp:2100 src/gui/settings.cpp:4040
+#: src/gui/insEdit.cpp:6978 src/gui/insEdit.cpp:7129 src/gui/insEdit.cpp:7223
+#: src/gui/insEdit.cpp:7315
+msgid "Noise"
+msgstr "Ruído"
+
+#: src/engine/sysDef.cpp:726
+msgid "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"
+msgstr ""
+
+#: src/engine/sysDef.cpp:731
+msgid "Sega Master System + FM Expansion"
+msgstr "Sega Master System + FM Expansion"
+
+#: src/engine/sysDef.cpp:737 src/gui/settings.cpp:3972
+msgid "Game Boy"
+msgstr "Game Boy"
+
+#: src/engine/sysDef.cpp:738
+msgid "the most popular portable game console of the era."
+msgstr "o console de jogos portátil mais popular da época"
+
+#: src/engine/sysDef.cpp:739 src/engine/sysDef.cpp:773
+#: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:2100
+msgid "Pulse 1"
+msgstr "Pulse 1"
+
+#: src/engine/sysDef.cpp:739 src/engine/sysDef.cpp:773
+#: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:2100
+msgid "Pulse 2"
+msgstr "Pulse 2"
+
+#: src/engine/sysDef.cpp:739 src/gui/settings.cpp:3877
+#: src/gui/guiConst.cpp:1395 src/gui/insEdit.cpp:6652
+msgid "Wavetable"
+msgstr "Wavetable"
+
+#: src/engine/sysDef.cpp:746
+msgid "11xx: Set noise length (0: long; 1: short)"
+msgstr "11xx: Definir comprimento do ruído (0: longo; 1: curto)"
+
+#: src/engine/sysDef.cpp:747
+msgid "12xx: Set duty cycle (0 to 3)"
+msgstr "12xx: Definir ciclo de trabalho (0 a 3)"
+
+#: src/engine/sysDef.cpp:748
+msgid "13xy: Setup sweep (x: time; y: shift)"
+msgstr "13xy: Configurar varredura (x: tempo; y: deslocamento)"
+
+#: src/engine/sysDef.cpp:749
+msgid "14xx: Set sweep direction (0: up; 1: down)"
+msgstr "14xx: Definir direção de varredura (0: para cima; 1: para baixo)"
+
+#: src/engine/sysDef.cpp:754
+msgid "PC Engine/TurboGrafx-16"
+msgstr "PC Engine/TurboGrafx-16"
+
+#: src/engine/sysDef.cpp:755
+msgid "an '80s game console with a wavetable sound chip, popular in Japan."
+msgstr "um console de jogos dos anos 80 com chip de som wavetable, popular no Japão."
