@@ -208,7 +208,7 @@ const char* aboutLine[]={
   "konard",
   "NaxeCode",
   "scratchminer",
-  ""
+  "",
   _N("-- DirectX 9 backend test team --"),
   "EpicTyphlosion",
   "Lunathir",
@@ -363,8 +363,8 @@ void FurnaceGUI::drawAbout() {
     }
 
     for (size_t i=0; i<aboutCount; i++) {
-      // don't localize tildearrow or the version
-      const char* nextLine=(i==0 || i==3)?aboutLine[i]:_(aboutLine[i]);
+      // don't localize tildearrow, the version or an empty line
+      const char* nextLine=(i==0 || i==3 || aboutLine[i][0]==0)?aboutLine[i]:_(aboutLine[i]);
       double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(nextLine).x*0.5);
       double posY=(canvasH-aboutScroll+42*i*dpiScale);
       if (posY<-80*dpiScale || posY>canvasH) continue;
