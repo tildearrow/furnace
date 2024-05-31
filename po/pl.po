@@ -2395,7 +2395,7 @@ msgid ""
 msgstr ""
 "ZX Spectrum miał tylko prosty brzęczyk zdolny do generowania\n"
 "...kilku \"wąskich\" fal prostokątnych i wielu innych ciekawych dźwięków!\n"
-"Furnace dostarcza silnik z \"wąskimi\" falami prostokątnymi."
+"Furnace dostarcza system z \"wąskimi\" falami prostokątnymi."
 
 #: src/engine/sysDef.cpp:1362 src/engine/sysDef.cpp:1950
 msgid "12xx: Set pulse width"
@@ -4025,7 +4025,7 @@ msgstr "nie znaleziono danych w oldPatMap dla kanału %d!"
 #: src/gui/editing.cpp:664 src/gui/editing.cpp:1203
 #, c-format
 msgid "invalid clipboard data! failed at line %d char %d"
-msgstr ""
+msgstr "niepoprawne dane schowka? błąd przy linii %d, znaku %d"
 
 #: src/gui/editing.cpp:1565 src/gui/editing.cpp:1669
 msgid "can't collapse any further!"
@@ -4315,7 +4315,7 @@ msgstr "Zanikanie (w sekundach)"
 
 #: src/gui/exportOptions.cpp:76
 msgid "Channels to export:"
-msgstr ""
+msgstr "Kanały do eksportu:"
 
 #: src/gui/exportOptions.cpp:78 src/gui/effectList.cpp:32 src/gui/gui.cpp:6186
 msgid "All"
@@ -4350,7 +4350,7 @@ msgstr "Eksportuj"
 
 #: src/gui/exportOptions.cpp:130
 msgid "select at least one channel"
-msgstr ""
+msgstr "wybierz co najmniej jeden kanał"
 
 #: src/gui/exportOptions.cpp:137
 msgid "settings:"
@@ -4516,15 +4516,15 @@ msgstr ""
 
 #: src/gui/exportOptions.cpp:335
 msgid "format version:"
-msgstr ""
+msgstr "wersja formatu:"
 
 #: src/gui/exportOptions.cpp:336
 msgid "1.1.3 and higher"
-msgstr ""
+msgstr "1.1.3 i nowsze"
 
 #: src/gui/exportOptions.cpp:337
 msgid "1.0/legacy (0.12)"
-msgstr ""
+msgstr "1.0/0.12"
 
 #: src/gui/exportOptions.cpp:357 src/gui/settings.cpp:1200
 #: src/gui/settings.cpp:3876
@@ -4738,7 +4738,7 @@ msgstr "- Brak -"
 #: src/gui/commandPalette.cpp:123 src/gui/commandPalette.cpp:179
 #: src/gui/commandPalette.cpp:241
 msgid "invalid command palette type"
-msgstr ""
+msgstr "niepoprawny typ palety komend"
 
 #: src/gui/regView.cpp:30 src/gui/guiConst.cpp:604
 msgid "Register View"
@@ -4754,11 +4754,11 @@ msgstr "BŁĄD"
 
 #: src/gui/log.cpp:26
 msgid "warning"
-msgstr ""
+msgstr "ostrzeżenie"
 
 #: src/gui/log.cpp:27
 msgid "info"
-msgstr ""
+msgstr "info"
 
 #: src/gui/log.cpp:28 src/gui/gui.cpp:4513
 msgid "debug"
@@ -4766,7 +4766,7 @@ msgstr "debugowanie"
 
 #: src/gui/log.cpp:29
 msgid "trace"
-msgstr ""
+msgstr "szczegóły"
 
 #: src/gui/log.cpp:47 src/gui/settings.cpp:4190 src/gui/guiConst.cpp:605
 msgid "Log Viewer"
@@ -4783,15 +4783,15 @@ msgstr "Głośność"
 
 #: src/gui/log.cpp:68
 msgid "time"
-msgstr ""
+msgstr "godzina"
 
 #: src/gui/log.cpp:70
 msgid "level"
-msgstr ""
+msgstr "poziom"
 
 #: src/gui/log.cpp:72
 msgid "message"
-msgstr ""
+msgstr "wiadomość"
 
 #: src/gui/pattern.cpp:433 src/gui/editControls.cpp:421
 #: src/gui/editControls.cpp:754 src/gui/editControls.cpp:887
@@ -4837,11 +4837,11 @@ msgstr "Status kanału:"
 
 #: src/gui/pattern.cpp:519
 msgid "No##_PCS0"
-msgstr ""
+msgstr "Nie"
 
 #: src/gui/pattern.cpp:522
 msgid "Yes##_PCS1"
-msgstr ""
+msgstr "Tak"
 
 #: src/gui/pattern.cpp:1420 src/gui/pattern.cpp:1452
 msgid "WARNING!!"
@@ -4883,11 +4883,11 @@ msgstr "Menu debugowania"
 
 #: src/gui/debugWindow.cpp:662
 msgid "This is a language test."
-msgstr ""
+msgstr "To jest test systemu tłumaczeń."
 
 #: src/gui/debugWindow.cpp:663
 msgid "This is another language test."
-msgstr ""
+msgstr "To jest kolejny test systemu tłumaczeń."
 
 #: src/gui/chanOsc.cpp:32
 msgid "None (0%)"
@@ -4972,11 +4972,11 @@ msgstr "Gradient"
 
 #: src/gui/chanOsc.cpp:218
 msgid "error while creating gradient texture!"
-msgstr ""
+msgstr "błąd podczas tworzenia tekstury gradientu!"
 
 #: src/gui/chanOsc.cpp:236
 msgid "error while updating gradient texture!"
-msgstr ""
+msgstr "błąd podczas odświeżania tekstury gradientu!"
 
 #: src/gui/chanOsc.cpp:292 src/gui/chanOsc.cpp:348 src/gui/settings.cpp:3740
 msgid "Color"
@@ -5108,7 +5108,7 @@ msgstr ""
 
 #: src/gui/editControls.cpp:52
 msgid "piano"
-msgstr ""
+msgstr "pianino"
 
 #: src/gui/editControls.cpp:53 src/gui/gui.cpp:4429
 msgid "undo"
@@ -5212,7 +5212,7 @@ msgstr "wypełnij losowymi wartościami"
 
 #: src/gui/editControls.cpp:79
 msgid "opmask"
-msgstr ""
+msgstr "maska op."
 
 #: src/gui/editControls.cpp:80
 msgid ""
@@ -5245,7 +5245,7 @@ msgstr "wyczyść"
 
 #: src/gui/editControls.cpp:333
 msgid "Mobile Controls"
-msgstr ""
+msgstr "Mobilne menu ustawień"
 
 #: src/gui/editControls.cpp:408
 msgid "Mobile Menu"
@@ -5342,23 +5342,23 @@ msgstr "Osc. XY"
 
 #: src/gui/editControls.cpp:577
 msgid "Meter"
-msgstr ""
+msgstr "Miernik"
 
 #: src/gui/editControls.cpp:581
 msgid "Memory"
-msgstr ""
+msgstr "Pamięć"
 
 #: src/gui/editControls.cpp:585
 msgid "CV"
-msgstr ""
+msgstr "CV"
 
 #: src/gui/editControls.cpp:589
 msgid "Presets"
-msgstr ""
+msgstr "Presety"
 
 #: src/gui/editControls.cpp:593
 msgid "PatManager"
-msgstr ""
+msgstr "Men. wzorców"
 
 #: src/gui/editControls.cpp:599 src/gui/guiConst.cpp:564
 msgid "Panic"
@@ -5384,7 +5384,7 @@ msgstr "Przełącz na tryb komputerowy"
 #: src/gui/editControls.cpp:673 src/gui/editControls.cpp:784
 #: src/gui/editControls.cpp:904
 msgid "Play/Edit Controls"
-msgstr ""
+msgstr "Sterowanie odtwarzaniem/edycją"
 
 #: src/gui/editControls.cpp:681 src/gui/editControls.cpp:842
 #: src/gui/editControls.cpp:959 src/gui/editControls.cpp:1125
@@ -5468,7 +5468,7 @@ msgstr "Wz.##FollowPattern"
 
 #: src/gui/editControls.cpp:1033
 msgid "Play Controls"
-msgstr ""
+msgstr "Sterowanie odtwarzaniem"
 
 #: src/gui/editControls.cpp:1057
 msgid "Play from the beginning of this pattern"
@@ -5614,7 +5614,7 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:99
 msgid "Modified sine wave (joke)"
-msgstr ""
+msgstr "Zmodyfikowana sinusoida (żart)"
 
 #: src/gui/sysConf.cpp:123 src/gui/sysConf.cpp:1296 src/gui/sysConf.cpp:1718
 #: src/gui/sysConf.cpp:2286
@@ -6478,11 +6478,11 @@ msgstr "Tryb obwiedni(kanały 1-4):"
 
 #: src/gui/sysConf.cpp:2124
 msgid "Capacitor (attack/decay)##EM00"
-msgstr ""
+msgstr "Kondensator (narastanie/opadanie)"
 
 #: src/gui/sysConf.cpp:2128
 msgid "External (volume macro)##EM01"
-msgstr ""
+msgstr "Zewnętrzny (makro głośności)"
 
 #: src/gui/sysConf.cpp:2134
 msgid "Envelope mode (channel 5-8):"
@@ -6490,11 +6490,11 @@ msgstr "Tryb obwiedni(kanały 5-8):"
 
 #: src/gui/sysConf.cpp:2136
 msgid "Capacitor (attack/decay)##EM10"
-msgstr ""
+msgstr "Kondensator (narastanie/opadanie)"
 
 #: src/gui/sysConf.cpp:2140
 msgid "External (volume macro)##EM11"
-msgstr ""
+msgstr "Zewnętrzny (makro głośności)"
 
 #: src/gui/sysConf.cpp:2146
 msgid "Global vibrato:"
@@ -6893,7 +6893,7 @@ msgstr "Biblioteka renderownaia"
 
 #: src/gui/settings.cpp:608 src/gui/settings.cpp:627 src/gui/settings.cpp:1259
 msgid "you may need to restart Furnace for this setting to take effect."
-msgstr ""
+msgstr "może być konieczne ponowne uruchomienie Furnace, aby ta opcja została zastosowana."
 
 #: src/gui/settings.cpp:611
 msgid "Advanced render backend settings"
@@ -6957,7 +6957,7 @@ msgid ""
 "- 16 bits: 5, 6, 5, 0\n"
 "- 32 bits (with alpha): 8, 8, 8, 8\n"
 "- 30 bits (deep): 10, 10, 10, 0"
-msgstr ""
+msgstr "powszechne są następujące wartości (w kolejności czerwony, zielony, niebieski, przeźroczysty):\n- 24 bity: 8, 8, 8, 0\n- 16 bitów: 5, 6, 5, 0\n- 32 bity (z przeźroczystością): 8, 8, 8, 8\n- 30 bitów (głęboka kwantyzacja): 10, 10, 10, 0"
 
 #: src/gui/settings.cpp:679
 #, c-format
@@ -6982,7 +6982,7 @@ msgstr "Limit częstotliwośći generowania klatek"
 
 #: src/gui/settings.cpp:690
 msgid "Unlimited"
-msgstr ""
+msgstr "Bez limitu"
 
 #: src/gui/settings.cpp:696
 msgid "only applies when VSync is disabled."
@@ -7164,15 +7164,15 @@ msgstr "Odtawrzaj po otwarciu utworu:"
 
 #: src/gui/settings.cpp:855
 msgid "No##pol0"
-msgstr ""
+msgstr "Nie"
 
 #: src/gui/settings.cpp:859
 msgid "Only if already playing##pol1"
-msgstr ""
+msgstr "Tylko jeśli już jest odtwarzany"
 
 #: src/gui/settings.cpp:863
 msgid "Yes##pol0"
-msgstr ""
+msgstr "Tak"
 
 #: src/gui/settings.cpp:869
 msgid "Audio export loop/fade out time:"
@@ -7181,11 +7181,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:871
 msgid "Set to these values on start-up:##fot0"
-msgstr ""
+msgstr "Ustaw te wartości podczas uruchamiania:"
 
 #: src/gui/settings.cpp:889
 msgid "Remember last values##fot1"
-msgstr ""
+msgstr "Zapamiętuj ostatnie wartości"
 
 #: src/gui/settings.cpp:896
 msgid "Store instrument name in .fui"
@@ -7249,11 +7249,11 @@ msgstr "Przy tworzeniu nowego utworu:"
 
 #: src/gui/settings.cpp:1127
 msgid "Display system preset selector##NSB0"
-msgstr ""
+msgstr "Wyświetlaj okno wyboru domyślnego systemu"
 
 #: src/gui/settings.cpp:1131
 msgid "Start with initial system##NSB1"
-msgstr ""
+msgstr ""Rozpocznij od systemu domyślnego"
 
 #: src/gui/settings.cpp:1135
 msgid "Default author name"
@@ -7526,7 +7526,7 @@ msgstr "Sterowanie##valueCCS"
 
 #: src/gui/settings.cpp:1529 src/gui/settings.cpp:1554
 msgid "CC of upper nibble##valueCC1"
-msgstr ""
+msgstr "CC wyższego półbajta"
 
 #: src/gui/settings.cpp:1529 src/gui/settings.cpp:1554
 msgid "MSB CC##valueCC1"
@@ -7534,7 +7534,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1534 src/gui/settings.cpp:1559
 msgid "CC of lower nibble##valueCC2"
-msgstr ""
+msgstr "CC niższego półbajta"
 
 #: src/gui/settings.cpp:1534 src/gui/settings.cpp:1559
 msgid "LSB CC##valueCC2"
@@ -7790,19 +7790,19 @@ msgstr "Układ kontrolek odtwarzania/edycji:"
 
 #: src/gui/settings.cpp:2544
 msgid "Classic##ecl0"
-msgstr ""
+msgstr "Klasyczny"
 
 #: src/gui/settings.cpp:2548
 msgid "Compact##ecl1"
-msgstr ""
+msgstr "Kompaktowy"
 
 #: src/gui/settings.cpp:2552
 msgid "Compact (vertical)##ecl2"
-msgstr ""
+msgstr "Kompaktowy(pionowy)"
 
 #: src/gui/settings.cpp:2556
 msgid "Split##ecl3"
-msgstr ""
+msgstr "Podzielony"
 
 #: src/gui/settings.cpp:2562
 msgid "Position of buttons in Orders:"
@@ -7810,15 +7810,15 @@ msgstr "Pozycja przycisków w matrycy wzorców:"
 
 #: src/gui/settings.cpp:2564
 msgid "Top##obp0"
-msgstr ""
+msgstr "Na górze"
 
 #: src/gui/settings.cpp:2568
 msgid "Left##obp1"
-msgstr ""
+msgstr "Po lewej"
 
 #: src/gui/settings.cpp:2572
 msgid "Right##obp2"
-msgstr ""
+msgstr "Po prawej"
 
 #: src/gui/settings.cpp:2579
 msgid "Mouse"
@@ -7846,11 +7846,11 @@ msgstr "Nigdy"
 
 #: src/gui/settings.cpp:2607
 msgid "When cursor is in Note column##npb1"
-msgstr ""
+msgstr "Kiedy kursor jest na kolumnie nut"
 
 #: src/gui/settings.cpp:2611
 msgid "When cursor is in Note column or not in edit mode##npb2"
-msgstr ""
+msgstr "Kiedy kursor jest na kolumnie nut albo nie w trybie edycji"
 
 #: src/gui/settings.cpp:2615
 msgid "Always##npb3"
@@ -7870,7 +7870,7 @@ msgstr "Tak"
 
 #: src/gui/settings.cpp:2631
 msgid "Yes (while holding Ctrl only)##dms2"
-msgstr ""
+msgstr "Tak (tylko przy wciśniętym klawiuszu Ctrl)"
 
 #: src/gui/settings.cpp:2637
 msgid "Toggle channel solo on:"
@@ -7878,15 +7878,15 @@ msgstr "Włącz tryb solo dla kanału:"
 
 #: src/gui/settings.cpp:2639
 msgid "Right-click or double-click##soloA"
-msgstr ""
+msgstr "PPM alko podwójne kliknięcie"
 
 #: src/gui/settings.cpp:2643
 msgid "Right-click##soloR"
-msgstr ""
+msgstr "PPM"
 
 #: src/gui/settings.cpp:2647
 msgid "Double-click##soloD"
-msgstr ""
+msgstr "Podwójne kliknięcie"
 
 #: src/gui/settings.cpp:2654
 msgid "Double click selects entire column"
@@ -7923,15 +7923,15 @@ msgstr "Wprowadzanie efektów:"
 
 #: src/gui/settings.cpp:2687
 msgid "Move down##eicb0"
-msgstr ""
+msgstr "Przesuń w dół"
 
 #: src/gui/settings.cpp:2691
 msgid "Move to effect value (otherwise move down)##eicb1"
-msgstr ""
+msgstr "Przejdź do parametru efektu (w przeciwnym razie przejdź w dół)"
 
 #: src/gui/settings.cpp:2695
 msgid "Move to effect value/next effect and wrap around##eicb2"
-msgstr ""
+msgstr "Przeskocz do parametru efektu/następnego efektu i przeskocz do początku linii"
 
 #: src/gui/settings.cpp:2702
 msgid "Delete effect value when deleting effect"
@@ -7967,7 +7967,7 @@ msgstr "Tak"
 
 #: src/gui/settings.cpp:2738
 msgid "Yes, and move to next/prev row##wrapH2"
-msgstr ""
+msgstr "Tak, i przejdź do następnego wiersza"
 
 #: src/gui/settings.cpp:2744
 msgid "Wrap vertically:"
@@ -7975,19 +7975,19 @@ msgstr "Przenoszenie w pionie:"
 
 #: src/gui/settings.cpp:2746
 msgid "No##wrapV0"
-msgstr ""
+msgstr "Nie"
 
 #: src/gui/settings.cpp:2750
 msgid "Yes##wrapV1"
-msgstr ""
+msgstr "Tak"
 
 #: src/gui/settings.cpp:2754
 msgid "Yes, and move to next/prev pattern##wrapV2"
-msgstr ""
+msgstr "Tak, i przejdź do następnego/poprzedniego wzorca"
 
 #: src/gui/settings.cpp:2758
 msgid "Yes, and move to next/prev pattern (wrap around)##wrapV2"
-msgstr ""
+msgstr "Tak, i przejdź do następnego/poprzedniego wzorca (z przeniesieniem na początek/koniec)"
 
 #: src/gui/settings.cpp:2764
 msgid "Cursor movement keys behavior:"
@@ -7995,11 +7995,11 @@ msgstr "Zachowanie przesuwanie kursora:"
 
 #: src/gui/settings.cpp:2766
 msgid "Move by one##cmk0"
-msgstr ""
+msgstr "Przesuwaj o jeden"
 
 #: src/gui/settings.cpp:2770
 msgid "Move by Edit Step##cmk1"
-msgstr ""
+msgstr "Przesuwaj o krok edycji"
 
 #: src/gui/settings.cpp:2777
 msgid "Move cursor by edit step on delete"
@@ -8023,19 +8023,19 @@ msgstr "Przewijanie"
 
 #: src/gui/settings.cpp:2803
 msgid "Change order when scrolling outside of pattern bounds:"
-msgstr "Zmiana pozycji w matrycy wzorców podczas przewijania poza wzorcami:"
+msgstr "Zmień pozycję w matrycy wzorców podczas przewijania poza wzorcami:"
 
 #: src/gui/settings.cpp:2805
 msgid "No##pscroll0"
-msgstr ""
+msgstr "Nie"
 
 #: src/gui/settings.cpp:2809
 msgid "Yes##pscroll1"
-msgstr ""
+msgstr "Tak"
 
 #: src/gui/settings.cpp:2813
 msgid "Yes, and wrap around song##pscroll2"
-msgstr ""
+msgstr "Tak, i przenieś go na początek/koniec utworu."
 
 #: src/gui/settings.cpp:2820
 msgid "Cursor follows current order when moving it"
@@ -8055,11 +8055,11 @@ msgstr "Przesuwaj kursor za pomocą kółka myszy:"
 
 #: src/gui/settings.cpp:2836
 msgid "No##csw0"
-msgstr ""
+msgstr "Nie##csw0"
 
 #: src/gui/settings.cpp:2840
 msgid "Yes##csw1"
-msgstr ""
+msgstr "Tak##csw1"
 
 #: src/gui/settings.cpp:2844
 msgid "Inverted##csw2"
