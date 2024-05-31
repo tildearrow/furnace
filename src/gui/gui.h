@@ -2228,6 +2228,12 @@ class FurnaceGUI {
 
   char finalLayoutPath[4096];
 
+  bool localeRequiresJapanese;
+  bool localeRequiresChinese;
+  bool localeRequiresChineseTrad;
+  bool localeRequiresKorean;
+  std::vector<ImWchar> localeExtraRanges;
+
   DivInstrument* prevInsData;
 
   unsigned char* pendingLayoutImport;

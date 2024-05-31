@@ -6411,17 +6411,20 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     //fontConfP.RasterizerMultiply=1.5;
 
     range.AddRanges(upTo800);
-    if (settings.loadJapanese) {
+    if (settings.loadJapanese || localeRequiresJapanese) {
       range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
     }
-    if (settings.loadChinese) {
+    if (settings.loadChinese || localeRequiresChinese) {
       range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
     }
-    if (settings.loadChineseTraditional) {
+    if (settings.loadChineseTraditional || localeRequiresChineseTrad) {
       range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
     }
-    if (settings.loadKorean) {
+    if (settings.loadKorean || localeRequiresKorean) {
       range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesKorean());
+    }
+    if (!localeExtraRanges.empty()) {
+      range.AddRanges(localeExtraRanges.data());
     }
     // I'm terribly sorry
     range.UsedChars[0x80>>5]=0;

@@ -7049,6 +7049,35 @@ bool FurnaceGUI::init() {
 
   ImGui::LocalizeRegisterEntries(guiLocalization,8);
 
+  const char* localeSettings=_("LocaleSettings: ccjk");
+  if (strlen(localeSettings)<20) {
+    logE("the LocaleSettings string is incomplete!");
+  } else {
+    localeRequiresChinese=(localeSettings[16]=='C');
+    localeRequiresChineseTrad=(localeSettings[17]=='C');
+    localeRequiresJapanese=(localeSettings[18]=='J');
+    localeRequiresKorean=(localeSettings[19]=='K');
+    if (strlen(localeSettings)>21) {
+      if (localeSettings[20]==' ') {
+        ImWchar next=0;
+        for (const char* i=&localeSettings[21]; *i; i++) {
+          if (((*i)>='0' && (*i)<='9') || ((*i)>='A' && (*i)<='F')) {
+            next<<=4;
+            if ((*i)>='0' && (*i)<='9') {
+              next|=(*i)-'0';
+            } else {
+              next|=(*i)-'A'+10;
+            }
+          } else {
+            localeExtraRanges.push_back(next);
+            next=0;
+          }
+        }
+        localeExtraRanges.push_back(0);
+      }
+    }
+  }
+
   loadUserPresets(true);
 
   applyUISettings();
@@ -7669,6 +7698,10 @@ FurnaceGUI::FurnaceGUI():
   bigFont(NULL),
   headFont(NULL),
   fontRange(NULL),
+  localeRequiresJapanese(false),
+  localeRequiresChinese(false),
+  localeRequiresChineseTrad(false),
+  localeRequiresKorean(false),
   prevInsData(NULL),
   pendingLayoutImport(NULL),
   pendingLayoutImportLen(0),
