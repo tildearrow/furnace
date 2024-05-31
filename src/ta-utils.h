@@ -43,8 +43,13 @@ typedef std::string String;
 #define CLAMP(x,xMin,xMax) (MIN(MAX((x),(xMin)),(xMax)))
 
 #ifdef HAVE_LOCALE
+#ifdef HAVE_MOMO
+#include <momo.h>
+#define _(_str) momo_gettext(_str)
+#else
 #include <libintl.h>
 #define _(_str) gettext(_str)
+#endif
 #else
 #define _(_str) _str
 #endif
