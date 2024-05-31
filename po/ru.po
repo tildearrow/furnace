@@ -10153,7 +10153,7 @@ msgid "could not initialize audio!"
 msgstr "не смог инициализировать аудио!"
 
 #: src/gui/settings.cpp:5626 src/gui/gui.cpp:4067 src/gui/gui.cpp:6662
-#: src/gui/gui.cpp:7059
+#: src/gui/gui.cpp:7088
 msgid "error while loading fonts! please check your settings."
 msgstr "Ошибка при загрузке шрифтов! Проверьте свои настройки."
 
@@ -13773,7 +13773,7 @@ msgstr "расширить трек"
 msgid "find/replace"
 msgstr "найти/заменить"
 
-#: src/gui/gui.cpp:3094 src/gui/gui.cpp:5807 src/gui/gui.cpp:7333
+#: src/gui/gui.cpp:3094 src/gui/gui.cpp:5807 src/gui/gui.cpp:7362
 #, c-format
 msgid "could NOT save layout! %s"
 msgstr "Не получилось сохранить компоновку окон! %s"
@@ -14609,7 +14609,11 @@ msgstr "(Без названия)"
 msgid "Hide tab bar###HideTabBar"
 msgstr "Скрыть полосу с вкладками###HideTabBar"
 
-#: src/gui/gui.cpp:7535
+#: src/gui/gui.cpp:7052
+msgid "LocaleSettings: ccjk"
+msgstr ""
+
+#: src/gui/gui.cpp:7564
 msgid "Unsaved changes! Save changes before quitting?"
 msgstr "Остались несохранённые изменения! Сохранить их перед выходом?"
 

@@ -131,7 +131,8 @@ msgstr "15xx: Ustaw poziom operatora 4 (0 najwyższy, 7F najniższy)"
 #: src/engine/sysDef.cpp:485 src/engine/sysDef.cpp:580
 #: src/engine/sysDef.cpp:635
 msgid "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)"
-msgstr "16xy: Ustaw mnożnik częst. operatora (x: operator od 1 do 4; y: mnożnik)"
+msgstr ""
+"16xy: Ustaw mnożnik częst. operatora (x: operator od 1 do 4; y: mnożnik)"
 
 #: src/engine/sysDef.cpp:486
 msgid "19xx: Set attack of all operators (0 to 1F)"
@@ -241,8 +242,8 @@ msgstr "17xx: Ustaw prędkość LFO"
 #: src/engine/sysDef.cpp:512
 msgid "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)"
 msgstr ""
-"18xx: Ustaw kształt fali LFO (0 fala piłokształtna, 1 fala kwadratowa, 2 fala "
-"trójkątna, 3 szum)"
+"18xx: Ustaw kształt fali LFO (0 fala piłokształtna, 1 fala kwadratowa, 2 "
+"fala trójkątna, 3 szum)"
 
 #: src/engine/sysDef.cpp:513
 msgid "1Exx: Set AM depth (0 to 7F)"
@@ -519,8 +520,8 @@ msgstr ""
 #: src/engine/sysDef.cpp:605
 msgid "12xx: Set coarse pulse width (not recommended; use 3xxx instead)"
 msgstr ""
-"12xx: Ustaw przybliżoną szerokość fali prostokątnej (niezalecane, proszę używać "
-"3xxx)"
+"12xx: Ustaw przybliżoną szerokość fali prostokątnej (niezalecane, proszę "
+"używać 3xxx)"
 
 #: src/engine/sysDef.cpp:606
 msgid "13xx: Set resonance (0 to F)"
@@ -530,8 +531,8 @@ msgstr "13xx: Ustaw rezonans (0-F)"
 msgid ""
 "14xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"
 msgstr ""
-"14xx: Ustaw tryb filtra (bit 0:  dolnoprzepustowy; bit 1: środkowoprzepustowy; bit 2: "
-"górnoprzepustowy)"
+"14xx: Ustaw tryb filtra (bit 0:  dolnoprzepustowy; bit 1: "
+"środkowoprzepustowy; bit 2: górnoprzepustowy)"
 
 #: src/engine/sysDef.cpp:608
 msgid "15xx: Set envelope reset time"
@@ -620,16 +621,16 @@ msgid ""
 "24xy: Set output level register (x: operator from 1 to 4 (0 for all ops); y: "
 "level from 0 to 7)"
 msgstr ""
-"24xy: Ustaw rejestr poziomu sygnału wyjściowego (głośności) (x: operator 1-4 (0 dla "
-"wszystkich operatorów); y: poziom 0-7)"
+"24xy: Ustaw rejestr poziomu sygnału wyjściowego (głośności) (x: operator 1-4 "
+"(0 dla wszystkich operatorów); y: poziom 0-7)"
 
 #: src/engine/sysDef.cpp:647
 msgid ""
 "25xy: Set modulation input level (x: operator from 1 to 4 (0 for all ops); "
 "y: level from 0 to 7)"
 msgstr ""
-"25xy: Ustaw poziom sygnału wejściowego modulacji (x: operator 1-4 (0 dla wszystkich "
-"operatorów); y: poziom 0-7)"
+"25xy: Ustaw poziom sygnału wejściowego modulacji (x: operator 1-4 (0 dla "
+"wszystkich operatorów); y: poziom 0-7)"
 
 #: src/engine/sysDef.cpp:648
 msgid ""
@@ -705,8 +706,8 @@ msgstr "11xx: Ustaw rezonans (0-FF)"
 msgid ""
 "12xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"
 msgstr ""
-"12xx: Ustaw tryb filtra (bit 0: dolnoprzespustowy; bit 1: środkowoprzepustowy; bit 2: "
-"górnoprzepustowy)"
+"12xx: Ustaw tryb filtra (bit 0: dolnoprzespustowy; bit 1: "
+"środkowoprzepustowy; bit 2: górnoprzepustowy)"
 
 #: src/engine/sysDef.cpp:683
 msgid "13xx: Disable envelope reset for this channel (1 disables; 0 enables)"
@@ -1007,8 +1008,8 @@ msgstr "Szum"
 #: src/engine/sysDef.cpp:726
 msgid "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"
 msgstr ""
-"20xy: Ustaw tryb szumu (x: predefiniowane częstotliwości/częstostliwość z 3-go kanału; y: \"cienka\" fala "
-"prostokątna/szum)"
+"20xy: Ustaw tryb szumu (x: predefiniowane częstotliwości/częstostliwość z 3-"
+"go kanału; y: \"cienka\" fala prostokątna/szum)"
 
 #: src/engine/sysDef.cpp:731
 msgid "Sega Master System + FM Expansion"
@@ -1107,8 +1108,8 @@ msgstr "11xx: Zapisz do licznika modulacji delta (0-7F)"
 #: src/engine/sysDef.cpp:780 src/engine/sysDef.cpp:1068
 msgid "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"
 msgstr ""
-"12xx: Ustaw szerokość fali prostokątnej/tryb szumu (fala prostokątna: 0-3; szum: 0 lub "
-"1)"
+"12xx: Ustaw szerokość fali prostokątnej/tryb szumu (fala prostokątna: 0-3; "
+"szum: 0 lub 1)"
 
 #: src/engine/sysDef.cpp:781 src/engine/sysDef.cpp:2108
 msgid "13xy: Sweep up (x: time; y: shift)"
@@ -1387,8 +1388,8 @@ msgid ""
 msgstr ""
 "ten układ był wszędzie! ZX Spectrum, MSX, Amstrad CPC, Intellivision, "
 "Vectrex...\n"
-"odkrycie metody wykorzystania obwiedni dla basów pozwoliło temu "
-"układowi z łatwością pokonać SN76489."
+"odkrycie metody wykorzystania obwiedni dla basów pozwoliło temu układowi z "
+"łatwością pokonać SN76489."
 
 #: src/engine/sysDef.cpp:872
 msgid "Amiga"
@@ -1486,8 +1487,8 @@ msgid ""
 "this chip is mostly known for being in the Sega Genesis (but it also was on "
 "the FM Towns computer)."
 msgstr ""
-"układ ten jest głównie znany z konsoli Sega Mega Drive (ale "
-"był również używany w komputerze FM Towns)."
+"układ ten jest głównie znany z konsoli Sega Mega Drive (ale był również "
+"używany w komputerze FM Towns)."
 
 #: src/engine/sysDef.cpp:913
 msgid "Atari TIA"
@@ -1742,8 +1743,8 @@ msgid ""
 "cost-reduced version of the OPL with 16 patches and only one of them is user-"
 "configurable."
 msgstr ""
-"odchudzona wersja OPL z 16 wbudowanymi instrumentami, z których tylko jeden jest "
-"konfigurowalny przez użytkownika."
+"odchudzona wersja OPL z 16 wbudowanymi instrumentami, z których tylko jeden "
+"jest konfigurowalny przez użytkownika."
 
 #: src/engine/sysDef.cpp:1032 src/engine/sysDef.cpp:1173
 #: src/engine/sysDef.cpp:1185 src/engine/sysDef.cpp:1681
@@ -1801,8 +1802,7 @@ msgstr "Namco 163"
 #: src/engine/sysDef.cpp:1074
 msgid "an expansion chip for the Famicom, with full wavetable."
 msgstr ""
-"rozszerzenie dla Famicoma, który jest pełnoprawnym syntezatorem "
-"tablicowym."
+"rozszerzenie dla Famicoma, który jest pełnoprawnym syntezatorem tablicowym."
 
 #: src/engine/sysDef.cpp:1081
 msgid "18xx: Change channel limits (0 to 7, x + 1)"
@@ -1908,7 +1908,13 @@ msgid ""
 "stereo...\n"
 "...but it has a built-in AY-3-8910! (actually an YM2149)\n"
 "CSM blah blah"
-msgstr "tańsza wersja OPM z innym układem rejestrów i bez stereo...\n...ale za to z wbudowanym AY-3-8910! (tak naprawdę YM2149)\njest to układ w trybie rozszerzonego kanału, która zamienia trzeci kanał FM w cztery operatory z niezależnymi nutami/częstotliwościami\nten układ posiada kontrolę trybu CSM dla efektów specjalnych na trzecim kanale."
+msgstr ""
+"tańsza wersja OPM z innym układem rejestrów i bez stereo...\n"
+"...ale za to z wbudowanym AY-3-8910! (tak naprawdę YM2149)\n"
+"jest to układ w trybie rozszerzonego kanału, która zamienia trzeci kanał FM "
+"w cztery operatory z niezależnymi nutami/częstotliwościami\n"
+"ten układ posiada kontrolę trybu CSM dla efektów specjalnych na trzecim "
+"kanale."
 
 #: src/engine/sysDef.cpp:1122 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1383 src/engine/sysDef.cpp:1468
@@ -2003,7 +2009,13 @@ msgid ""
 "OPN but twice the FM channels, stereo makes a come-back and has rhythm and "
 "ADPCM channels.\n"
 "CSM blah blah"
-msgstr "OPN, ale z dwa razy większą ilością kanałów FM, stereo powrca, są też kanały perkusji i ADPCM.\njest to układ w trybie rozszerzonego kanału, która zamienia trzeci kanał FM w cztery operatory z niezależnymi nutami/częstotliwościami.\nten układ posiada kontrolę trybu CSM dla efektów specjalnych na trzecim kanale."
+msgstr ""
+"OPN, ale z dwa razy większą ilością kanałów FM, stereo powrca, są też kanały "
+"perkusji i ADPCM.\n"
+"jest to układ w trybie rozszerzonego kanału, która zamienia trzeci kanał FM "
+"w cztery operatory z niezależnymi nutami/częstotliwościami.\n"
+"ten układ posiada kontrolę trybu CSM dla efektów specjalnych na trzecim "
+"kanale."
 
 #: src/engine/sysDef.cpp:1171
 msgid "Yamaha YM3526 (OPL)"
@@ -2014,7 +2026,8 @@ msgid ""
 "OPN, but what if you only had two operators, no stereo, no detune and a "
 "lower ADSR parameter range?"
 msgstr ""
-"OPN, ale co gdybyś miał tylko 2 operatory, bez stereo, bez rostrajenia operatorów i niższy zakres parametrów ADSR?"
+"OPN, ale co gdybyś miał tylko 2 operatory, bez stereo, bez rostrajenia "
+"operatorów i niższy zakres parametrów ADSR?"
 
 #: src/engine/sysDef.cpp:1183
 msgid "Yamaha YM3812 (OPL2)"
@@ -2022,7 +2035,9 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1184
 msgid "OPL, but what if you had more waveforms to choose than the normal sine?"
-msgstr "OPL, ale co gdybyś miał więcej kształtów fali do wybrania niż tylko sinusoidę?"
+msgstr ""
+"OPL, ale co gdybyś miał więcej kształtów fali do wybrania niż tylko "
+"sinusoidę?"
 
 #: src/engine/sysDef.cpp:1195
 msgid "Yamaha YMF262 (OPL3)"
@@ -2033,7 +2048,8 @@ msgid ""
 "OPL2, but what if you had twice the channels, 4-op mode, stereo and even "
 "more waveforms?"
 msgstr ""
-"OPL2, ale co gdybyś miał 2 razy więcej kanałów, tryb 4-operatorowy, stereo i jeszcze więcej kształtów fali?"
+"OPL2, ale co gdybyś miał 2 razy więcej kanałów, tryb 4-operatorowy, stereo i "
+"jeszcze więcej kształtów fali?"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
@@ -2362,7 +2378,9 @@ msgstr ""
 msgid ""
 "like OPLL, but even more cost reductions applied. three FM channels went "
 "missing, and drums mode did as well..."
-msgstr "podobny do OPLL, ale w ruch poszło więcej cięć kosztów. trzy kanały FM zniknęły, w tym też tryb perkusji..."
+msgstr ""
+"podobny do OPLL, ale w ruch poszło więcej cięć kosztów. trzy kanały FM "
+"zniknęły, w tym też tryb perkusji..."
 
 #: src/engine/sysDef.cpp:1342
 msgid "Yamaha YM2610B (OPNB2)"
@@ -2523,7 +2541,14 @@ msgid ""
 "it's like OPNA but the rhythm channels are ADPCM channels and two FM "
 "channels went missing.\n"
 "this one includes CSM mode control for special effects on Channel 2."
-msgstr "układ ten był używany w automatach i konsolach do gier Neo Geo firmy SNK.\njest podobny do OPNA, ale kanały perkusyjne są teraz kanałami ADPCM i brakuje dwóch kanałów FM.\njest to układ w trybie rozszerzonego kanału, która zamienia drugi kanał FM w cztery operatory z niezależnymi nutami/częstotliwościami.\nten układ posiada kontrolę trybu CSM dla efektów specjalnych na trzecim kanale."
+msgstr ""
+"układ ten był używany w automatach i konsolach do gier Neo Geo firmy SNK.\n"
+"jest podobny do OPNA, ale kanały perkusyjne są teraz kanałami ADPCM i "
+"brakuje dwóch kanałów FM.\n"
+"jest to układ w trybie rozszerzonego kanału, która zamienia drugi kanał FM w "
+"cztery operatory z niezależnymi nutami/częstotliwościami.\n"
+"ten układ posiada kontrolę trybu CSM dla efektów specjalnych na trzecim "
+"kanale."
 
 #: src/engine/sysDef.cpp:1479
 msgid "Yamaha YM2413 (OPLL) with drums"
@@ -2712,7 +2737,13 @@ msgid ""
 "so Taito asked Yamaha if they could get the two missing FM channels back, "
 "and Yamaha gladly provided them with this chip.\n"
 "CSM blah blah"
-msgstr "a więc Taito poprosiło Yamahę o dodanie do YM2610 dwóch brakujących kanałów FM, a Yamaha z przyjemnością dostarczyła ów układ.\njest to układ w trybie rozszerzonego kanału, która zamienia trzeci kanał FM w cztery operatory z niezależnymi nutami/częstotliwościami.\nten układ posiada kontrolę trybu CSM dla efektów specjalnych na trzecim kanale."
+msgstr ""
+"a więc Taito poprosiło Yamahę o dodanie do YM2610 dwóch brakujących kanałów "
+"FM, a Yamaha z przyjemnością dostarczyła ów układ.\n"
+"jest to układ w trybie rozszerzonego kanału, która zamienia trzeci kanał FM "
+"w cztery operatory z niezależnymi nutami/częstotliwościami.\n"
+"ten układ posiada kontrolę trybu CSM dla efektów specjalnych na trzecim "
+"kanale."
 
 #: src/engine/sysDef.cpp:1570
 msgid "SegaPCM (compatible 5-channel mode)"
@@ -6893,7 +6924,9 @@ msgstr "Biblioteka renderownaia"
 
 #: src/gui/settings.cpp:608 src/gui/settings.cpp:627 src/gui/settings.cpp:1259
 msgid "you may need to restart Furnace for this setting to take effect."
-msgstr "może być konieczne ponowne uruchomienie Furnace, aby ta opcja została zastosowana."
+msgstr ""
+"może być konieczne ponowne uruchomienie Furnace, aby ta opcja została "
+"zastosowana."
 
 #: src/gui/settings.cpp:611
 msgid "Advanced render backend settings"
@@ -6957,7 +6990,13 @@ msgid ""
 "- 16 bits: 5, 6, 5, 0\n"
 "- 32 bits (with alpha): 8, 8, 8, 8\n"
 "- 30 bits (deep): 10, 10, 10, 0"
-msgstr "powszechne są następujące wartości (w kolejności czerwony, zielony, niebieski, przeźroczysty):\n- 24 bity: 8, 8, 8, 0\n- 16 bitów: 5, 6, 5, 0\n- 32 bity (z przeźroczystością): 8, 8, 8, 8\n- 30 bitów (głęboka kwantyzacja): 10, 10, 10, 0"
+msgstr ""
+"powszechne są następujące wartości (w kolejności czerwony, zielony, "
+"niebieski, przeźroczysty):\n"
+"- 24 bity: 8, 8, 8, 0\n"
+"- 16 bitów: 5, 6, 5, 0\n"
+"- 32 bity (z przeźroczystością): 8, 8, 8, 8\n"
+"- 30 bitów (głęboka kwantyzacja): 10, 10, 10, 0"
 
 #: src/gui/settings.cpp:679
 #, c-format
@@ -7253,7 +7292,7 @@ msgstr "Wyświetlaj okno wyboru domyślnego systemu"
 
 #: src/gui/settings.cpp:1131
 msgid "Start with initial system##NSB1"
-msgstr ""Rozpocznij od systemu domyślnego"
+msgstr "Rozpocznij od systemu domyślnego"
 
 #: src/gui/settings.cpp:1135
 msgid "Default author name"
@@ -7931,7 +7970,8 @@ msgstr "Przejdź do parametru efektu (w przeciwnym razie przejdź w dół)"
 
 #: src/gui/settings.cpp:2695
 msgid "Move to effect value/next effect and wrap around##eicb2"
-msgstr "Przeskocz do parametru efektu/następnego efektu i przeskocz do początku linii"
+msgstr ""
+"Przeskocz do parametru efektu/następnego efektu i przeskocz do początku linii"
 
 #: src/gui/settings.cpp:2702
 msgid "Delete effect value when deleting effect"
@@ -7987,7 +8027,9 @@ msgstr "Tak, i przejdź do następnego/poprzedniego wzorca"
 
 #: src/gui/settings.cpp:2758
 msgid "Yes, and move to next/prev pattern (wrap around)##wrapV2"
-msgstr "Tak, i przejdź do następnego/poprzedniego wzorca (z przeniesieniem na początek/koniec)"
+msgstr ""
+"Tak, i przejdź do następnego/poprzedniego wzorca (z przeniesieniem na "
+"początek/koniec)"
 
 #: src/gui/settings.cpp:2764
 msgid "Cursor movement keys behavior:"
@@ -10172,7 +10214,7 @@ msgid "could not initialize audio!"
 msgstr "nie udało się zainicjować dźwięku!"
 
 #: src/gui/settings.cpp:5626 src/gui/gui.cpp:4067 src/gui/gui.cpp:6662
-#: src/gui/gui.cpp:7059
+#: src/gui/gui.cpp:7088
 msgid "error while loading fonts! please check your settings."
 msgstr "błąd podczas ładowania czcionek! sprawdź swoje ustawienia."
 
@@ -13778,7 +13820,7 @@ msgstr "rozszerz utwór"
 msgid "find/replace"
 msgstr "znajdź/zamień"
 
-#: src/gui/gui.cpp:3094 src/gui/gui.cpp:5807 src/gui/gui.cpp:7333
+#: src/gui/gui.cpp:3094 src/gui/gui.cpp:5807 src/gui/gui.cpp:7362
 #, c-format
 msgid "could NOT save layout! %s"
 msgstr "nie udało się zapisać układu okna! %s"
@@ -14298,8 +14340,7 @@ msgid ""
 "- FM (OPLL)\n"
 "- FDS"
 msgstr ""
-"błąd podczas zapisywania! tylko następujące typy instrumentów są "
-"wspierane:\n"
+"błąd podczas zapisywania! tylko następujące typy instrumentów są wspierane:\n"
 "- FM (OPN)\n"
 "- SN76489/Sega PSG\n"
 "- Game Boy\n"
@@ -14616,7 +14657,11 @@ msgstr "(Bez tytułu)"
 msgid "Hide tab bar###HideTabBar"
 msgstr "Ukryj pasek zakładek###HideTabBar"
 
-#: src/gui/gui.cpp:7535
+#: src/gui/gui.cpp:7052
+msgid "LocaleSettings: ccjk"
+msgstr ""
+
+#: src/gui/gui.cpp:7564
 msgid "Unsaved changes! Save changes before quitting?"
 msgstr "Niezapisane zmiany! Czy chcesz je zapisać przed wyjściem?"
 
@@ -20309,8 +20354,8 @@ msgstr "maksimum"
 #~ "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1, wave: 0 to "
 #~ "3)"
 #~ msgstr ""
-#~ "12xx: Ustaw szerokość fali prostokątnej/tryb szumu (fala prosokątna.: 0-3; "
-#~ "szum: 0 lub 1; fala: 0-3)"
+#~ "12xx: Ustaw szerokość fali prostokątnej/tryb szumu (fala prosokątna.: "
+#~ "0-3; szum: 0 lub 1; fala: 0-3)"
 
 #~ msgid "19xx: Set wave linear counter (0 to 7F; 80 and higher halt)"
 #~ msgstr "19xx: Ustaw liniowy licznik fali (0-7F; 80 i wyższe zatrzymują)"
@@ -20329,8 +20374,8 @@ msgstr "maksimum"
 #~ "10xx: Set wave (bits: 0: noise, 1: pulse, 2: triangle, 3: sawtooth, 4: "
 #~ "metallic noise, 5: sine)"
 #~ msgstr ""
-#~ "10xx: Ustaw kształt fali (bity: 0: szum, 1: fala prostokątna, 2: fala trójkątna, "
-#~ "3: piłokształtna, 4: \"metaliczny\" szum, 5: sinusoida)"
+#~ "10xx: Ustaw kształt fali (bity: 0: szum, 1: fala prostokątna, 2: fala "
+#~ "trójkątna, 3: piłokształtna, 4: \"metaliczny\" szum, 5: sinusoida)"
 
 #~ msgid "11xy: PWM (pulsolo) with speed x and depth y"
 #~ msgstr "11xy: PWM (pulsolo) z szybkością (x) i głębokością (y)"

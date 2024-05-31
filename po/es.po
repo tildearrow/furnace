@@ -9911,7 +9911,7 @@ msgid "could not initialize audio!"
 msgstr "no se pudo inicializar el audio!"
 
 #: src/gui/settings.cpp:5626 src/gui/gui.cpp:4067 src/gui/gui.cpp:6662
-#: src/gui/gui.cpp:7059
+#: src/gui/gui.cpp:7088
 msgid "error while loading fonts! please check your settings."
 msgstr "error al cargar fuentes! por favor revisa tus ajustes."
 
@@ -13535,7 +13535,7 @@ msgstr "expandir canción"
 msgid "find/replace"
 msgstr "buscar/reemplazar"
 
-#: src/gui/gui.cpp:3094 src/gui/gui.cpp:5807 src/gui/gui.cpp:7333
+#: src/gui/gui.cpp:3094 src/gui/gui.cpp:5807 src/gui/gui.cpp:7362
 #, c-format
 msgid "could NOT save layout! %s"
 msgstr "NO SE PUDO GUARDAR el diseño! %s"
@@ -14362,7 +14362,11 @@ msgstr "(Sin título)"
 msgid "Hide tab bar###HideTabBar"
 msgstr "Ocultar barra de tabulación###HideTabBar"
 
-#: src/gui/gui.cpp:7535
+#: src/gui/gui.cpp:7052
+msgid "LocaleSettings: ccjk"
+msgstr ""
+
+#: src/gui/gui.cpp:7564
 msgid "Unsaved changes! Save changes before quitting?"
 msgstr ""
 
