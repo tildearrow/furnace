@@ -48,6 +48,16 @@ struct sigaction termsa;
 #define TUT_INTRO_PLAYED false
 #endif
 
+#ifdef HAVE_MOMO
+#define TA_SETLOCALE momo_setlocale
+#define TA_BINDTEXTDOMAIN momo_bindtextdomain
+#define TA_TEXTDOMAIN momo_textdomain
+#else
+#define TA_SETLOCALE setlocale
+#define TA_BINDTEXTDOMAIN bindtextdomain
+#define TA_TEXTDOMAIN textdomain
+#endif
+
 #include "cli/cli.h"
 
 #ifdef HAVE_GUI
@@ -491,22 +501,22 @@ int main(int argc, char** argv) {
 
 #ifdef HAVE_LOCALE
   const char* localeRet=NULL;
-  if ((localeRet=setlocale(LC_CTYPE,""))==NULL) {
+  if ((localeRet=TA_SETLOCALE(LC_CTYPE,""))==NULL) {
     logE("could not set locale (CTYPE)!");
   } else {
     logV("locale: %s",localeRet);
   }
-  if ((localeRet=setlocale(LC_MESSAGES,""))==NULL) {
+  if ((localeRet=TA_SETLOCALE(LC_MESSAGES,""))==NULL) {
     logE("could not set locale (MESSAGES)!");
   } else {
     logV("locale: %s",localeRet);
   }
-  if ((localeRet=bindtextdomain("furnace","locale"))==NULL) {
+  if ((localeRet=TA_BINDTEXTDOMAIN("furnace","locale"))==NULL) {
     logE("could not bind text domain!");
   } else {
     logV("text domain 1: %s",localeRet);
   }
-  if ((localeRet=textdomain("furnace"))==NULL) {
+  if ((localeRet=TA_TEXTDOMAIN("furnace"))==NULL) {
     logE("could not text domain!");
   } else {
     logV("text domain 2: %s",localeRet);
