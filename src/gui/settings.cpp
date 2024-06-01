@@ -68,25 +68,26 @@
 #define SYS_FILE_DIALOG_DEFAULT 1
 #endif
 
-const char* locales[][2]={
-  {"<System>", ""},
-  {"English", "en_US"},
-  {"Deutsch", "de_DE"},
-  {"Español", "es_ES"},
-  {"Suomi", "fi_FI"},
-  {"Français", "fr_FR"},
-  {"Հայերեն", "hy_AM"},
-  {"한국어", "ko_KR"},
-  {"Nederlands", "nl_NL"},
-  {"Polski", "pl_PL"},
-  {"Português (Brasil)", "pt_BR"},
-  {"Русский", "ru_RU"},
-  {"Slovenčina", "sk_SK"},
-  {"Svenska", "sv_SE"},
-  {"ไทย", "th_TH"},
-  {"Türkçe", "tr_TR"},
-  {"Українська", "uk_UA"},
-  {NULL, NULL}
+// name, locale, restart message
+const char* locales[][3]={
+  {"<System>", "", ""},
+  {"English", "en_US", "restart Furnace for this setting to take effect."},
+  {"Deutsch", "de_DE", "Starten Sie Furnace neu, damit diese Einstellung wirksam wird."},
+  {"Español", "es_ES", "reinicia Furnace para que esta opción tenga efecto."},
+  {"Suomi", "fi_FI", "käynnistä Furnace uudelleen, jotta tämä asetus tulee voimaan."},
+  {"Français", "fr_FR", "redémarrer Furnace pour que ce réglage soit effectif."},
+  {"Հայերեն", "hy_AM", "???"},
+  {"한국어", "ko_KR", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
+  {"Nederlands", "nl_NL", "start Furnace opnieuw op om deze instelling effectief te maken."},
+  {"Polski", "pl_PL", "aby to ustawienie było skuteczne, należy ponownie uruchomić program."},
+  {"Português (Brasil)", "pt_BR", "reinicie o Furnace para que essa configuração entre em vigor."},
+  {"Русский", "ru_RU", "перезапустите программу, чтобы эта настройка вступила в силу."},
+  {"Slovenčina", "sk_SK", "???"},
+  {"Svenska", "sv_SE", "starta om programmet för att denna inställning ska träda i kraft."},
+  {"ไทย", "th_TH", "???"},
+  {"Türkçe", "tr_TR", "bu ayarı etkin hale getirmek için programı yeniden başlatın."},
+  {"Українська", "uk_UA", "перезапустіть програму, щоб це налаштування набуло чинності."},
+  {NULL, NULL, NULL}
 };
 
 const char* fontBackends[]={
@@ -571,7 +572,9 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION PROGRAM
         CONFIG_SUBSECTION(_("Program"));
 
+#ifdef HAVE_LOCALE
         String curLocale=settings.locale;
+        const char* localeRestart=locales[0][2];
         if (curLocale=="") {
           curLocale="<System>";
         } else {
@@ -587,12 +590,17 @@ void FurnaceGUI::drawSettings() {
             if (ImGui::Selectable(locales[i][0],strcmp(settings.locale.c_str(),locales[i][1])==0)) {
               settings.locale=locales[i][1];
             }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("%s",locales[i][2]);
+            }
           }
           ImGui::EndCombo();
+        } else {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s",localeRestart);
+          }
         }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("you may need to restart Furnace for this setting to take effect."));
-        }
+#endif
 
         String curRenderBackend=settings.renderBackend.empty()?GUI_BACKEND_DEFAULT_NAME:settings.renderBackend;
         if (ImGui::BeginCombo(_("Render backend"),curRenderBackend.c_str())) {
