@@ -24,11 +24,13 @@
 extern "C" {
 #endif
 
+#define MOMO_FORMATARG __attribute__((format_arg(1)))
+
 const char* momo_setlocale(int type, const char* locale);
 const char* momo_bindtextdomain(const char* domainName, const char* dirName);
 const char* momo_textdomain(const char* domainName);
 
-const char* momo_gettext(const char* str);
+const char* momo_gettext(const char* str) MOMO_FORMATARG;
 const char* momo_ngettext(const char* str1, const char* str2, unsigned long amount);
 
 #ifdef __cplusplus

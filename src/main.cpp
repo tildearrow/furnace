@@ -58,6 +58,13 @@ struct sigaction termsa;
 #define TA_TEXTDOMAIN textdomain
 #endif
 
+#ifndef LC_CTYPE
+#define LC_CTYPE 0
+#endif
+#ifndef LC_MESSAGES
+#define LC_MESSAGES 1
+#endif
+
 #include "cli/cli.h"
 
 #ifdef HAVE_GUI
@@ -501,12 +508,12 @@ int main(int argc, char** argv) {
 
 #ifdef HAVE_LOCALE
   const char* localeRet=NULL;
-  if ((localeRet=TA_SETLOCALE(LC_CTYPE,""))==NULL) {
+  if ((localeRet=TA_SETLOCALE(LC_CTYPE,"pt_BR"))==NULL) {
     logE("could not set locale (CTYPE)!");
   } else {
     logV("locale: %s",localeRet);
   }
-  if ((localeRet=TA_SETLOCALE(LC_MESSAGES,""))==NULL) {
+  if ((localeRet=TA_SETLOCALE(LC_MESSAGES,"pt_BR"))==NULL) {
     logE("could not set locale (MESSAGES)!");
   } else {
     logV("locale: %s",localeRet);

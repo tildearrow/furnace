@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "libintl.h"
+#include "momo.h"
 
 static char curLocale[64];
 static char tempPath[4096];

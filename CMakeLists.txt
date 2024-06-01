@@ -1176,17 +1176,6 @@ else()
   add_executable(furnace ${USED_SOURCES})
 endif()
 
-if (WITH_LOCALE)
-  set(FURNACE_LANGUAGES de es fr fi hy ko nl pl pt_BR ru sk sv th tr uk)
-  set(FURNACE_LANGUAGE_DEPENDS "")
-
-  foreach(I IN LISTS FURNACE_LANGUAGES)
-    add_custom_command(OUTPUT "locale/${I}/LC_MESSAGES/furnace.mo" COMMAND mkdir -p "${CMAKE_BINARY_DIR}/locale/${I}/LC_MESSAGES/" COMMAND msgfmt ${CMAKE_SOURCE_DIR}/po/${I}.po -o "${CMAKE_BINARY_DIR}/locale/${I}/LC_MESSAGES/furnace.mo" DEPENDS po/${I}.po WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-    list(APPEND FURNACE_LANGUAGE_DEPENDS "locale/${I}/LC_MESSAGES/furnace.mo")
-  endforeach()
-  add_custom_target(furnace-locale ALL DEPENDS ${FURNACE_LANGUAGE_DEPENDS})
-endif()
-
 target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
 target_compile_options(furnace PRIVATE ${DEPENDENCIES_COMPILE_OPTIONS})
 target_link_libraries(furnace PRIVATE ${DEPENDENCIES_LIBRARIES})
