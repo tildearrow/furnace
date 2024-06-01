@@ -26,6 +26,13 @@
 #include <errno.h>
 #include "momo.h"
 
+#ifdef ANDROID
+#include <SDL_rwops.h>
+#define MO_FREE SDL_free
+#else
+#define MO_FREE free
+#endif
+
 static char curLocale[64];
 static char tempPath[4096];
 
@@ -171,6 +178,28 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
   if (newDomain->mo==NULL) {
     snprintf(tempPath,4096,"%s/%s/LC_MESSAGES/%s.mo",newDomain->path,curLocale,newDomain->name);
 
+#ifdef ANDROID
+   newDomain->mo=SDL_LoadFile(tempPath,&newDomain->moLen);
+   if (newDomain->mo==NULL) {
+      // try without country
+      char* cPos=strchr(curLocale,'_');
+      if (cPos) {
+        *cPos=0;
+      } 
+      snprintf(tempPath,4096,"%s/%s/LC_MESSAGES/%s.mo",newDomain->path,curLocale,newDomain->name);
+      newDomain->mo=SDL_LoadFile(tempPath,&newDomain->moLen);
+      if (newDomain->mo==NULL) {
+        // give up
+        if (found) {
+          if (newDomain==curDomain) curDomain=NULL;
+          domainsRemove(newDomain);
+        }
+        free(newDomain);
+        return NULL;
+      }
+
+   }
+#else
     FILE* f=fopen(tempPath,"rb");
     if (f==NULL) {
       // try without country
@@ -255,12 +284,13 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
       return NULL;
     }
     fclose(f);
+#endif
 
     // parse
     struct MOHeader* header=(struct MOHeader*)newDomain->mo;
     if (header->magic!=0x950412de) {
       // give up
-      free(newDomain->mo);
+      MO_FREE(newDomain->mo);
       if (found) {
         if (newDomain==curDomain) curDomain=NULL;
         domainsRemove(newDomain);
@@ -273,7 +303,7 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
         header->transPtr+(header->stringCount*8)>newDomain->moLen ||
         header->hashPtr+(header->hashSize*4)>newDomain->moLen) {
       // give up
-      free(newDomain->mo);
+      MO_FREE(newDomain->mo);
       if (found) {
         if (newDomain==curDomain) curDomain=NULL;
         domainsRemove(newDomain);
@@ -300,7 +330,7 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
   // add to domain list
   if (!found) {
     if (!domainsInsert(newDomain)) {
-      if (newDomain->mo) free(newDomain->mo);
+      if (newDomain->mo) MO_FREE(newDomain->mo);
       free(newDomain);
       errno=ENOMEM;
       return NULL;

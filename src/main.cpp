@@ -506,14 +506,18 @@ int main(int argc, char** argv) {
   zsmOutName="";
   cmdOutName="";
 
+  // load config for locale
+  e.prePreInit();
+
 #ifdef HAVE_LOCALE
+  String reqLocale=e.getConfString("locale","");
   const char* localeRet=NULL;
-  if ((localeRet=TA_SETLOCALE(LC_CTYPE,"pt_BR"))==NULL) {
+  if ((localeRet=TA_SETLOCALE(LC_CTYPE,reqLocale.c_str()))==NULL) {
     logE("could not set locale (CTYPE)!");
   } else {
     logV("locale: %s",localeRet);
   }
-  if ((localeRet=TA_SETLOCALE(LC_MESSAGES,"pt_BR"))==NULL) {
+  if ((localeRet=TA_SETLOCALE(LC_MESSAGES,reqLocale.c_str()))==NULL) {
     logE("could not set locale (MESSAGES)!");
   } else {
     logV("locale: %s",localeRet);

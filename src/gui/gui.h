@@ -1956,6 +1956,7 @@ class FurnaceGUI {
     String emptyLabel2;
     String sdlAudioDriver;
     String defaultAuthorName;
+    String locale;
     DivConfig initialSys;
 
     Settings():
@@ -2210,7 +2211,8 @@ class FurnaceGUI {
       emptyLabel("..."),
       emptyLabel2(".."),
       sdlAudioDriver(""),
-      defaultAuthorName("") {}
+      defaultAuthorName(""),
+      locale("") {}
   } settings;
 
   struct Tutorial {

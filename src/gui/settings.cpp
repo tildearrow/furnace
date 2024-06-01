@@ -68,6 +68,27 @@
 #define SYS_FILE_DIALOG_DEFAULT 1
 #endif
 
+const char* locales[][2]={
+  {"<System>", ""},
+  {"English", "en_US"},
+  {"Deutsch", "de_DE"},
+  {"Español", "es_ES"},
+  {"Suomi", "fi_FI"},
+  {"Français", "fr_FR"},
+  {"Հայերեն", "hy_AM"},
+  {"한국어", "ko_KR"},
+  {"Nederlands", "nl_NL"},
+  {"Polski", "pl_PL"},
+  {"Português (Brasil)", "pt_BR"},
+  {"Русский", "ru_RU"},
+  {"Slovenčina", "sk_SK"},
+  {"Svenska", "sv_SE"},
+  {"ไทย", "th_TH"},
+  {"Türkçe", "tr_TR"},
+  {"Українська", "uk_UA"},
+  {NULL, NULL}
+};
+
 const char* fontBackends[]={
   "stb_truetype",
   "FreeType"
@@ -549,6 +570,30 @@ void FurnaceGUI::drawSettings() {
       CONFIG_SECTION(_("General")) {
         // SUBSECTION PROGRAM
         CONFIG_SUBSECTION(_("Program"));
+
+        String curLocale=settings.locale;
+        if (curLocale=="") {
+          curLocale="<System>";
+        } else {
+          for (int i=1; locales[i][0]; i++) {
+            if (strcmp(curLocale.c_str(),locales[i][1])==0) {
+              curLocale=locales[i][0];
+              break;
+            }
+          }
+        }
+        if (ImGui::BeginCombo(_("Language"),curLocale.c_str())) {
+          for (int i=0; locales[i][0]; i++) {
+            if (ImGui::Selectable(locales[i][0],strcmp(settings.locale.c_str(),locales[i][1])==0)) {
+              settings.locale=locales[i][1];
+            }
+          }
+          ImGui::EndCombo();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("you may need to restart Furnace for this setting to take effect."));
+        }
+
         String curRenderBackend=settings.renderBackend.empty()?GUI_BACKEND_DEFAULT_NAME:settings.renderBackend;
         if (ImGui::BeginCombo(_("Render backend"),curRenderBackend.c_str())) {
 #ifdef HAVE_RENDER_SDL
@@ -4671,6 +4716,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.backupMaxCopies=conf.getInt("backupMaxCopies",5);
 
     settings.autoFillSave=conf.getInt("autoFillSave",0);
+
+    settings.locale=conf.getString("locale","");
   }
 
   if (groups&GUI_SETTINGS_AUDIO) {
@@ -5253,6 +5300,8 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("backupMaxCopies",settings.backupMaxCopies);
 
     conf.set("autoFillSave",settings.autoFillSave);
+
+    conf.set("locale",settings.locale);
   }
 
   // audio

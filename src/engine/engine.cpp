@@ -3956,14 +3956,23 @@ bool DivEngine::deinitAudioBackend(bool dueToSwitchMaster) {
   return true;
 }
 
-bool DivEngine::preInit(bool noSafeMode) {
-  bool wantSafe=false;
-  // register systems
-  if (!systemsRegistered) registerSystems();
-
+bool DivEngine::prePreInit() {
   // init config
   initConfDir();
   logD("config path: %s",configPath.c_str());
+
+  configLoaded=true;
+  return loadConf();
+}
+
+bool DivEngine::preInit(bool noSafeMode) {
+  bool wantSafe=false;
+  if (!configLoaded) prePreInit();
+
+  logI("Furnace version " DIV_VERSION ".");
+
+  // register systems
+  if (!systemsRegistered) registerSystems();
 
   // TODO: re-enable with a better approach
   // see issue #1581
@@ -3978,10 +3987,6 @@ bool DivEngine::preInit(bool noSafeMode) {
 
   String logPath=configPath+DIR_SEPARATOR_STR+"furnace.log";
   startLogFile(logPath.c_str());
-
-  logI("Furnace version " DIV_VERSION ".");
-  
-  loadConf();
 
   if (!conf.has("opn1Core")) {
     if (conf.has("opnCore")) {
