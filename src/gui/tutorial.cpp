@@ -391,6 +391,8 @@ struct FurnaceCV {
   int hiScore;
   short lastPlayerX, lastPlayerY;
   short fxChanBase, fxInsBase;
+
+  FixedQueue<unsigned char,16> weaponStack;
   
   // graphics
   unsigned short tile0[56][80];
@@ -1630,7 +1632,12 @@ void FurnaceCVPlayer::collision(FurnaceCVObject* other) {
     if (!invincible) {
       dead=true;
       cv->respawnTime=48;
-      cv->shotType=0;
+      if (cv->weaponStack.empty()) {
+        cv->shotType=0;
+      } else {
+        cv->shotType=cv->weaponStack.front();
+        cv->weaponStack.pop_front();
+      }
       cv->soundEffect(SE_DEATH_C1);
       cv->soundEffect(SE_DEATH_C2);
       cv->createObject<FurnaceCVExplMedium>(x-8,y);
@@ -2093,7 +2100,7 @@ void FurnaceCVEnemy1::collision(FurnaceCVObject* other) {
   if (other->type==CV_BULLET || other->type==CV_PLAYER) {
     if (--health<=0) {
       dead=true;
-      if ((rand()%7)==0) {
+      if ((rand()%7)==0 || (enemyType>1 && (rand()%7)==3)) {
         switch (rand()%10) {
           case 0:
             cv->createObject<FurnaceCVExtraLife>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
@@ -2782,6 +2789,9 @@ void FurnaceCVMine::collision(FurnaceCVObject* other) {
 void FurnaceCVPowerupP::collision(FurnaceCVObject* other) {
   if (other->type==CV_PLAYER) {
     dead=true;
+    if (cv->shotType) {
+      cv->weaponStack.push_front(cv->shotType);
+    }
     cv->shotType=1;
     cv->soundEffect(SE_PICKUP2);
     cv->addScore(200);
@@ -2809,6 +2819,9 @@ void FurnaceCVPowerupP::tick() {
 void FurnaceCVPowerupS::collision(FurnaceCVObject* other) {
   if (other->type==CV_PLAYER) {
     dead=true;
+    if (cv->shotType) {
+      cv->weaponStack.push_front(cv->shotType);
+    }
     cv->shotType=2;
     cv->soundEffect(SE_PICKUP2);
     cv->addScore(200);
