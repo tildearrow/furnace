@@ -44,6 +44,7 @@ struct LocaleDomain {
   const char** stringPtr;
   const char** transPtr;
   size_t stringCount;
+  size_t firstString[256];
 };
 
 struct MOHeader {
@@ -321,9 +322,19 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
     unsigned int* strTable=(unsigned int*)(&newDomain->mo[header->stringPtr]);
     unsigned int* transTable=(unsigned int*)(&newDomain->mo[header->transPtr]);
 
+    unsigned short curChar=0;
     for (size_t i=0; i<newDomain->stringCount; i++) {
       newDomain->stringPtr[i]=(const char*)(&newDomain->mo[strTable[1+(i<<1)]]);
       newDomain->transPtr[i]=(const char*)(&newDomain->mo[transTable[1+(i<<1)]]);
+
+      while (curChar<=(unsigned char)newDomain->stringPtr[i][0]) {
+        newDomain->firstString[curChar]=i;
+        curChar++;
+      }
+    }
+    while (curChar<256) {
+      newDomain->firstString[curChar]=newDomain->stringCount;
+      curChar++;
     }
   }
 
@@ -364,9 +375,12 @@ const char* momo_gettext(const char* str) {
   if (curDomain==NULL) {
     return str;
   }
+  if (str==NULL) return NULL;
   // TODO: optimize
-  for (size_t i=0; i<curDomain->stringCount; i++) {
-    if (strcmp(curDomain->stringPtr[i],str)==0) return curDomain->transPtr[i];
+  for (size_t i=curDomain->firstString[(unsigned char)(str[0])]; i<curDomain->stringCount; i++) {
+    if (strcmp(curDomain->stringPtr[i],str)==0) {
+      return curDomain->transPtr[i];
+    }
   }
   return str;
 }
