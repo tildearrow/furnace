@@ -83,7 +83,7 @@ msgstr "2Dxx: FÅR EJ ANSTÄLLAS AV KOMPOSITÖREN"
 
 #: src/engine/sysDef.cpp:460
 msgid "30xx: Toggle hard envelope reset on new notes"
-msgstr "30xx: Växla hård ADSR-återställning på nya toner"
+msgstr "30xx: Växla hård ADSR-återställning på nya noter"
 
 #: src/engine/sysDef.cpp:465
 msgid "18xx: Toggle extended channel 3 mode"
@@ -545,11 +545,11 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:610
 msgid "1Bxy: Reset cutoff (x: on new note; y: now)"
-msgstr "1Bxy: Återställ brytfrekvensen (x: på ny ton; y: nu)"
+msgstr "1Bxy: Återställ brytfrekvensen (x: på ny not; y: nu)"
 
 #: src/engine/sysDef.cpp:611
 msgid "1Cxy: Reset pulse width (x: on new note; y: now)"
-msgstr "1Cxy: Återställ pulsbredd (x: på ny ton; y: nu)"
+msgstr "1Cxy: Återställ pulsbredd (x: på ny not; y: nu)"
 
 #: src/engine/sysDef.cpp:612
 msgid "1Exy: Change other parameters (LEGACY)"
@@ -719,11 +719,11 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:684
 msgid "14xy: Reset cutoff (x: on new note; y: now)"
-msgstr "14xy: Återställ brytfrekvens (x: på ny ton; y: nu)"
+msgstr "14xy: Återställ brytfrekvens (x: på ny not; y: nu)"
 
 #: src/engine/sysDef.cpp:685
 msgid "15xy: Reset pulse width (x: on new note; y: now)"
-msgstr "15xy: Återställ pulsbredd (x: på ny ton; y: nu)"
+msgstr "15xy: Återställ pulsbredd (x: på ny not; y: nu)"
 
 #: src/engine/sysDef.cpp:686
 msgid "16xy: Change other parameters"
@@ -2280,7 +2280,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1285
 msgid "2Fxx: Toggle hard envelope reset on new notes"
-msgstr "2Fxx: Växla till hård ADSR-återställning på nya toner"
+msgstr "2Fxx: Växla till hård ADSR-återställning på nya noter"
 
 #: src/engine/sysDef.cpp:1291 src/gui/settings.cpp:4016
 msgid "Pokémon Mini"
@@ -3336,7 +3336,7 @@ msgstr "FM 11"
 
 #: src/engine/sysDef.cpp:2012
 msgid "2Exx: Toggle hard envelope reset on new notes"
-msgstr "2Exx: Växla till hård ADSR-återställning på nya toner"
+msgstr "2Exx: Växla till hård ADSR-återställning på nya noter"
 
 #: src/engine/sysDef.cpp:2018
 msgid "PowerNoise"
@@ -3639,11 +3639,11 @@ msgstr "E0xx: Ställ in arp-hastighet"
 
 #: src/engine/engine.cpp:100
 msgid "E1xy: Note slide up (x: speed; y: semitones)"
-msgstr "E1xy: Ton glida upp (x: hastighet; y: halvtoner)"
+msgstr "E1xy: Not glida upp (x: hastighet; y: halvtoner)"
 
 #: src/engine/engine.cpp:102
 msgid "E2xy: Note slide down (x: speed; y: semitones)"
-msgstr "E2xy: Ton glida ner (x: hastighet; y: halvtoner)"
+msgstr "E2xy: Not glida ner (x: hastighet; y: halvtoner)"
 
 #: src/engine/engine.cpp:104
 msgid "E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)"
@@ -3683,11 +3683,11 @@ msgstr "EBxx: Ange FÖRÅLDRAD samplelägesbank"
 
 #: src/engine/engine.cpp:122
 msgid "ECxx: Note cut"
-msgstr "ECxx: Tonbrytning"
+msgstr "ECxx: Notbrytning"
 
 #: src/engine/engine.cpp:124
 msgid "EDxx: Note delay"
-msgstr "EDxx: Tondelay"
+msgstr "EDxx: Notdelay"
 
 #: src/engine/engine.cpp:126
 msgid "EExx: Send external command"
@@ -3699,11 +3699,11 @@ msgstr "F0xx: Ange tickhastighet (bpm)"
 
 #: src/engine/engine.cpp:130
 msgid "F1xx: Single tick note slide up"
-msgstr "F1xx: Enkel tickton glida upp"
+msgstr "F1xx: Enkel ticknot glida upp"
 
 #: src/engine/engine.cpp:132
 msgid "F2xx: Single tick note slide down"
-msgstr "F2xx: Enkel tickton glida ner"
+msgstr "F2xx: Enkel ticknot glida ner"
 
 #: src/engine/engine.cpp:134
 msgid "F3xx: Fine volume slide up"
@@ -3739,7 +3739,7 @@ msgstr "FAxx: Snabb volymskjutning (0y: ner; x0: upp)"
 
 #: src/engine/engine.cpp:150
 msgid "FCxx: Note release"
-msgstr "FCxx: Ton-release"
+msgstr "FCxx: Notrelease"
 
 #: src/engine/engine.cpp:152
 msgid "FDxx: Set virtual tempo numerator"
@@ -4026,7 +4026,7 @@ msgstr "ogiltig urklippsdata! misslyckades på rad %d kar. %d"
 
 #: src/gui/editing.cpp:1565 src/gui/editing.cpp:1669
 msgid "can't collapse any further!"
-msgstr "kan inte kollapsa längre!"
+msgstr "kan inte förminska längre!"
 
 #: src/gui/editing.cpp:1749
 msgid "can't expand any further!"
@@ -4813,7 +4813,7 @@ msgstr "Alternativ:"
 
 #: src/gui/pattern.cpp:506
 msgid "Effect columns/collapse"
-msgstr "Effektkolumner/kollaps"
+msgstr "Effektkolumner/dold"
 
 #: src/gui/pattern.cpp:507
 msgid "Pattern names"
@@ -4912,7 +4912,7 @@ msgstr "Ljusstyrka"
 
 #: src/gui/chanOsc.cpp:41
 msgid "Note Trigger"
-msgstr "Tontrigger"
+msgstr "Nottrigger"
 
 #: src/gui/chanOsc.cpp:45
 msgid "Off"
@@ -4952,7 +4952,7 @@ msgstr "Centrera vågformen"
 
 #: src/gui/chanOsc.cpp:183
 msgid "Randomize phase on note"
-msgstr "Randomisera fasen på tonen"
+msgstr "Randomisera fasen på noten"
 
 #: src/gui/chanOsc.cpp:189
 msgid "Amplitude"
@@ -5033,7 +5033,7 @@ msgstr ""
 "- %C: kanalkortnamn\n"
 "- %d: kanalnummer (från 0)\n"
 "- %D: kanalnummer (från 1)\n"
-"- %n: kanalton\n"
+"- %n: kanalnot\n"
 "- %i: instrumentnamn\n"
 "- %I: instrumentnummer (decimal)\n"
 "- %x: instrumentnummer (hex)\n"
@@ -5198,7 +5198,7 @@ msgstr ""
 
 #: src/gui/editControls.cpp:69 src/gui/gui.cpp:3063
 msgid "collapse"
-msgstr "kollaps"
+msgstr "dölj"
 
 #: src/gui/editControls.cpp:70 src/gui/gui.cpp:3064
 msgid "expand"
@@ -5995,7 +5995,7 @@ msgid ""
 msgstr ""
 "- 0 inaktiverar ADSR-återställning. rekommenderas ej!\n"
 "- 1 kan utlösa SID ADSR-buggar.\n"
-"- värden som är för höga kan leda till att toner hoppas över."
+"- värden som är för höga kan leda till att noter hoppas över."
 
 #: src/gui/sysConf.cpp:749
 msgid "Disable 1Exy env update (compatibility)"
@@ -6760,7 +6760,7 @@ msgstr "Två oktaver (0 är C-4, F är D#5)"
 
 #: src/gui/settings.cpp:202
 msgid "Raw (note number is value)"
-msgstr "Rå (tonnummer är värdet)"
+msgstr "Rå (notnummer är värdet)"
 
 #: src/gui/settings.cpp:203
 msgid "Two octaves alternate (lower keys are 0-9, upper keys are A-F)"
@@ -6791,11 +6791,11 @@ msgstr "???"
 
 #: src/gui/settings.cpp:225
 msgid "Note Off"
-msgstr "Ton av"
+msgstr "Not av"
 
 #: src/gui/settings.cpp:226
 msgid "Note On"
-msgstr "Ton på"
+msgstr "Not på"
 
 #: src/gui/settings.cpp:227
 msgid "Aftertouch"
@@ -7057,7 +7057,7 @@ msgid ""
 "however, crashes have been reported when threaded input is on. enable this "
 "option if that is the case."
 msgstr ""
-"trådad ingång bearbetar tangenttryckningar för förhandsvisning av toner i en "
+"trådad ingång bearbetar tangenttryckningar för förhandsvisning av noter i en "
 "separat tråd (på plattformar som stöds), vilket minskar latensen.\n"
 "krascher har rapporterats när trådad inmatning är på. aktivera detta "
 "alternativ om så är fallet."
@@ -7070,7 +7070,7 @@ msgstr "Aktivera händelsefördröjning"
 msgid "may cause issues with high-polling-rate mice when previewing notes."
 msgstr ""
 "kan orsaka problem med möss som har hög pollingfrekvens vid "
-"förhandsgranskning av toner."
+"förhandsgranskning av noter."
 
 #: src/gui/settings.cpp:747
 msgid "Per-channel oscilloscope threads"
@@ -7517,7 +7517,7 @@ msgstr "Skanna om MIDI-enheter"
 
 #: src/gui/settings.cpp:1498 src/gui/settings.cpp:2205
 msgid "Note input"
-msgstr "Toningång"
+msgstr "Notingång"
 
 #: src/gui/settings.cpp:1499
 msgid "Velocity input"
@@ -7588,7 +7588,7 @@ msgstr "Typ"
 
 #: src/gui/settings.cpp:1616
 msgid "Note/Control"
-msgstr "Ton/Kontroll"
+msgstr "Not/Kontroll"
 
 #: src/gui/settings.cpp:1618
 msgid "Velocity/Value"
@@ -7735,17 +7735,17 @@ msgstr "Makrosläpp"
 #: src/gui/settings.cpp:2241
 #, c-format
 msgid "Note release##SNType_%d"
-msgstr "Tonsläpp"
+msgstr "Notrelease"
 
 #: src/gui/settings.cpp:2246
 #, c-format
 msgid "Note off##SNType_%d"
-msgstr "Ton av"
+msgstr "Not av"
 
 #: src/gui/settings.cpp:2251
 #, c-format
 msgid "Note##SNType_%d"
-msgstr "Ton"
+msgstr "Not"
 
 #: src/gui/settings.cpp:2275
 msgid "Add..."
@@ -7862,7 +7862,7 @@ msgstr "Fokusera på mönsterredigeraren när du väljer instrument"
 
 #: src/gui/settings.cpp:2601
 msgid "Note preview behavior:"
-msgstr "Tonförhandsgranskningsbeteende:"
+msgstr "Notförhandsgranskningsbeteende:"
 
 #: src/gui/settings.cpp:2603
 msgid "Never##npb0"
@@ -7870,11 +7870,11 @@ msgstr "Aldrig"
 
 #: src/gui/settings.cpp:2607
 msgid "When cursor is in Note column##npb1"
-msgstr "När markören är i tonkolumnen"
+msgstr "När markören är i notkolumnen"
 
 #: src/gui/settings.cpp:2611
 msgid "When cursor is in Note column or not in edit mode##npb2"
-msgstr "När markören är i tonkolumnen eller inte i redigeringsläge"
+msgstr "När markören är i notkolumnen eller inte i redigeringsläge"
 
 #: src/gui/settings.cpp:2615
 msgid "Always##npb3"
@@ -7935,7 +7935,7 @@ msgstr "Tryck på värde när du skriver över i stället för att rensa det"
 #: src/gui/settings.cpp:2680
 msgid "Keyboard note/value input repeat (hold key to input continuously)"
 msgstr ""
-"Upprepning av tangentbordstoner/värdeingång (håll ned tangenten för att mata "
+"Upprepning av tangentbordsnoter/värdeingång (håll ned tangenten för att mata "
 "in kontinuerligt)"
 
 #: src/gui/settings.cpp:2685
@@ -7964,11 +7964,11 @@ msgstr "Byt aktuellt instrument när du byter instrumentkolumn (absorbera)"
 
 #: src/gui/settings.cpp:2714
 msgid "Remove instrument value when inserting note off/release"
-msgstr "Ta bort instrumentvärdet när du sätter ton av/släpp"
+msgstr "Ta bort instrumentvärdet när du sätter not av/release"
 
 #: src/gui/settings.cpp:2720
 msgid "Remove volume value when inserting note off/release"
-msgstr "Ta bort volymvärdet när du sätter in ton av/släpp"
+msgstr "Ta bort volymvärdet när du sätter in not av/release"
 
 #: src/gui/settings.cpp:2726
 msgid "Cursor movement"
@@ -8452,11 +8452,11 @@ msgstr "Etiketter för mönstervy:"
 
 #: src/gui/settings.cpp:3280
 msgid "Note off (3-char)"
-msgstr "Ton av (3 tecken)"
+msgstr "Not av (3 tecken)"
 
 #: src/gui/settings.cpp:3285
 msgid "Note release (3-char)"
-msgstr "Tonsläpp (3 tecken)"
+msgstr "Notsläpp (3 tecken)"
 
 #: src/gui/settings.cpp:3290
 msgid "Macro release (3-char)"
@@ -8478,7 +8478,7 @@ msgstr "Mönstervyavstånd efter:"
 #: src/gui/findReplace.cpp:601 src/gui/findReplace.cpp:864
 #: src/gui/sampleEdit.cpp:590
 msgid "Note"
-msgstr "Ton"
+msgstr "Not"
 
 #: src/gui/settings.cpp:3322 src/gui/findReplace.cpp:707
 #: src/gui/findReplace.cpp:974
@@ -8563,7 +8563,7 @@ msgstr "Av"
 
 #: src/gui/settings.cpp:3413
 msgid "Note##CHF1"
-msgstr "Ton"
+msgstr "Not"
 
 #: src/gui/settings.cpp:3417
 msgid "Volume##CHF2"
@@ -9231,7 +9231,7 @@ msgstr "Vågform (16)"
 
 #: src/gui/settings.cpp:3919
 msgid "Clip"
-msgstr "Klippa"
+msgstr "Klipp"
 
 #: src/gui/settings.cpp:3923
 msgid "Order number"
@@ -9626,11 +9626,11 @@ msgstr "Radnummer (markering 2)"
 
 #: src/gui/settings.cpp:4063
 msgid "Note (highlight 1)"
-msgstr "Ton (markering 1)"
+msgstr "Not (markering 1)"
 
 #: src/gui/settings.cpp:4064
 msgid "Note (highlight 2)"
-msgstr "Ton (markering 2)"
+msgstr "Not (markering 2)"
 
 #: src/gui/settings.cpp:4065
 msgid "Blank"
@@ -9746,7 +9746,7 @@ msgstr "Status: DSP-effekt"
 
 #: src/gui/settings.cpp:4096
 msgid "Status: note altering"
-msgstr "Status: tonändring"
+msgstr "Status: notändring"
 
 #: src/gui/settings.cpp:4097
 msgid "Status: misc color 1"
@@ -10831,7 +10831,7 @@ msgid ""
 "combination with a note."
 msgstr ""
 ”när den är aktiverad kommer en portamentoeffekt att återställa kanalens makro om den används i ”
-”kombination med en ton.”
+”kombination med en not.”
 
 #: src/gui/compatFlags.cpp:52
 msgid "Legacy volume slides"
@@ -10851,7 +10851,7 @@ msgstr "Kompatibel arpeggio"
 
 #: src/gui/compatFlags.cpp:58
 msgid "delay arpeggio by one tick on every new note."
-msgstr "fördröjar arpeggio med en tick vid varje ny ton."
+msgstr "fördröjar arpeggio med en tick vid varje ny not."
 
 #: src/gui/compatFlags.cpp:60
 msgid "Disable DAC when sample ends"
@@ -10923,7 +10923,7 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:84
 msgid "Don't apply Game Boy envelope on note-less instrument change"
-msgstr "Använd ej Game Boy-ADSR vid byte av instrument utan toner"
+msgstr "Använd ej Game Boy-ADSR vid byte av instrument utan noter"
 
 #: src/gui/compatFlags.cpp:86
 msgid "if this is on, an instrument change will not affect the envelope."
@@ -10947,7 +10947,7 @@ msgstr "verkar detta vara vettigt nu?"
 
 #: src/gui/compatFlags.cpp:96
 msgid "E1xy/E2xy stop when repeating the same note"
-msgstr "E1xy/E2xy stoppar vid upprepning av samma ton"
+msgstr "E1xy/E2xy stoppar vid upprepning av samma not"
 
 #: src/gui/compatFlags.cpp:98
 msgid "ugh, if only this wasn't a thing..."
@@ -11085,7 +11085,7 @@ msgstr "ändrat beteende i 0,5,7"
 
 #: src/gui/compatFlags.cpp:139
 msgid "Stop portamento on note off"
-msgstr "Stoppa portamento vid tonavbrott"
+msgstr "Stoppa portamento vid notavbrott"
 
 #: src/gui/compatFlags.cpp:141 src/gui/compatFlags.cpp:145
 #: src/gui/compatFlags.cpp:149 src/gui/compatFlags.cpp:153
@@ -11100,7 +11100,7 @@ msgstr "Tillåt inte byte av instrument under glider"
 
 #: src/gui/compatFlags.cpp:147
 msgid "Don't reset note to base on arpeggio stop"
-msgstr "Återställ ej tonen till basen vid arpeggio-stopp"
+msgstr "Återställ ej noten till basen vid arpeggio-stopp"
 
 #: src/gui/compatFlags.cpp:151
 msgid "ExtCh channel status is not shared among operators"
@@ -11148,7 +11148,7 @@ msgstr "ändrat beteende i 0,6pre4"
 
 #: src/gui/compatFlags.cpp:183
 msgid "Broken macros in some FM chips after note off"
-msgstr "Trasiga makron i vissa FM-chip efter tonavbrott"
+msgstr "Trasiga makron i vissa FM-chip efter notavbrott"
 
 #: src/gui/compatFlags.cpp:185
 msgid "behavior changed in 0.6pre5"
@@ -11156,7 +11156,7 @@ msgstr "ändrat beteende i 0,6pre5"
 
 #: src/gui/compatFlags.cpp:187
 msgid "Pre-note does not take effects into consideration"
-msgstr "Förtonen tar inte hänsyn till effekter"
+msgstr "Förnoten tar inte hänsyn till effekter"
 
 #: src/gui/compatFlags.cpp:189
 msgid "behavior changed in 0.6pre9"
@@ -11336,7 +11336,7 @@ msgstr "acceptera endast 0Dxx"
 
 #: src/gui/compatFlags.cpp:320
 msgid "Auto-insert one tick gap between notes"
-msgstr "Infoga automatiskt en tick mellanrum mellan toner"
+msgstr "Infoga automatiskt en tick mellanrum mellan noter"
 
 #: src/gui/compatFlags.cpp:322
 msgid ""
@@ -11346,19 +11346,19 @@ msgid ""
 "\n"
 "ineffective on C64."
 msgstr ""
-”när den är aktiverad, kommer en en-tick tonklippning att infogas mellan icke-legato/icke-”
-”portamento-toner.\n”
+”när den är aktiverad, kommer en en-tick notklippning att infogas mellan icke-legato/icke-”
+”portamento-noter.\n”
 ”detta simulerar beteendet hos vissa Amiga/SNES musikmotorer.\n”
 ”\n”
 ”ineffektivt på C64.”
 
 #: src/gui/compatFlags.cpp:327
 msgid "Don't reset slides after note off"
-msgstr "Återställ inte glider efter tonavbrott"
+msgstr "Återställ inte glider efter notavbrott"
 
 #: src/gui/compatFlags.cpp:329
 msgid "when enabled, note off will not reset the channel's slide effect."
-msgstr "när den är aktiverad kommer tonavbrottseffekten inte att återställa kanalens glideffekt."
+msgstr "när den är aktiverad kommer notavbrottseffekten inte att återställa kanalens glideffekt."
 
 #: src/gui/compatFlags.cpp:331
 msgid "Don't reset portamento after reaching target"
@@ -11378,7 +11378,7 @@ msgstr "Kontinuerligt vibrato"
 
 #: src/gui/compatFlags.cpp:337
 msgid "when enabled, vibrato phase/position will not be reset on a new note."
-msgstr "när den är aktiverad kommer vibratots fas/position inte att återställas vid en ny ton."
+msgstr "när den är aktiverad kommer vibratots fas/position inte att återställas vid en ny not."
 
 #: src/gui/compatFlags.cpp:339
 msgid "Pitch macro is not linear"
@@ -11392,11 +11392,11 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:343
 msgid "Reset arpeggio effect position on new note"
-msgstr "Återställ arpeggioeffektens position på ny ton"
+msgstr "Återställ arpeggioeffektens position på ny not"
 
 #: src/gui/compatFlags.cpp:345
 msgid "when enabled, arpeggio effect (00xy) position is reset on a new note."
-msgstr "när den är aktiverad återställs arpeggioeffektens (00xy) position vid en ny ton."
+msgstr "när den är aktiverad återställs arpeggioeffektens (00xy) position vid en ny not."
 
 #: src/gui/compatFlags.cpp:347
 msgid "Volume scaling rounds up"
@@ -11787,47 +11787,47 @@ msgstr "Expandera urvalet åt höger"
 
 #: src/gui/guiConst.cpp:656
 msgid "Expand selection upwards by one (override Edit Step)"
-msgstr ""
+msgstr "Utöka urvalet uppåt med en (åsidosätter redigeringssteg)"
 
 #: src/gui/guiConst.cpp:657
 msgid "Expand selection downwards by one (override Edit Step)"
-msgstr ""
+msgstr "Utöka urvalet nedåt med en (åsidosätter redigeringssteg)"
 
 #: src/gui/guiConst.cpp:658
 msgid "Expand selection to beginning of pattern"
-msgstr ""
+msgstr "Utöka urvalet till början av mönstret"
 
 #: src/gui/guiConst.cpp:659
 msgid "Expand selection to end of pattern"
-msgstr ""
+msgstr "Utöka markeringen till slutet av mönstret"
 
 #: src/gui/guiConst.cpp:660
 msgid "Expand selection upwards (coarse)"
-msgstr ""
+msgstr "Utöka urvalet uppåt (i delar)"
 
 #: src/gui/guiConst.cpp:661
 msgid "Expand selection downwards (coarse)"
-msgstr ""
+msgstr "Utöka urvalet nedåt (i delar)"
 
 #: src/gui/guiConst.cpp:662
 msgid "Move selection up"
-msgstr ""
+msgstr "Flytta urvalet uppåt"
 
 #: src/gui/guiConst.cpp:663
 msgid "Move selection down"
-msgstr ""
+msgstr "Flytta urvalet nedåt"
 
 #: src/gui/guiConst.cpp:664
 msgid "Move selection to previous channel"
-msgstr ""
+msgstr "Flytta val till föregående kanal"
 
 #: src/gui/guiConst.cpp:665
 msgid "Move selection to next channel"
-msgstr ""
+msgstr "Flytta val till nästa kanal"
 
 #: src/gui/guiConst.cpp:667
 msgid "Pull delete"
-msgstr ""
+msgstr "Dra radera"
 
 #: src/gui/guiConst.cpp:668
 msgid "Insert"
@@ -11835,467 +11835,467 @@ msgstr "Infoga"
 
 #: src/gui/guiConst.cpp:669
 msgid "Mute channel at cursor"
-msgstr ""
+msgstr "Stäng av kanal vid markören"
 
 #: src/gui/guiConst.cpp:670
 msgid "Solo channel at cursor"
-msgstr ""
+msgstr "Isolera kanalen vid markören"
 
 #: src/gui/guiConst.cpp:671
 msgid "Unmute all channels"
-msgstr ""
+msgstr "Slå på ljudet för alla kanaler"
 
 #: src/gui/guiConst.cpp:672
 msgid "Go to next order"
-msgstr ""
+msgstr "Gå till nästa order"
 
 #: src/gui/guiConst.cpp:673
 msgid "Go to previous order"
-msgstr ""
+msgstr "Gå till föregående order"
 
 #: src/gui/guiConst.cpp:674
 msgid "Collapse channel at cursor"
-msgstr ""
+msgstr "Dölj kanalen vid markören"
 
 #: src/gui/guiConst.cpp:675
 msgid "Increase effect columns"
-msgstr ""
+msgstr "Öka effektkolumnerna"
 
 #: src/gui/guiConst.cpp:676
 msgid "Decrease effect columns"
-msgstr ""
+msgstr "Minska effektkolumnerna"
 
 #: src/gui/guiConst.cpp:677
 msgid "Interpolate"
-msgstr ""
+msgstr "Interpolera"
 
 #: src/gui/guiConst.cpp:678 src/gui/insEdit.cpp:530
 msgid "Fade"
-msgstr ""
+msgstr "Tona ut"
 
 #: src/gui/guiConst.cpp:679
 msgid "Invert values"
-msgstr ""
+msgstr "Invertera värden"
 
 #: src/gui/guiConst.cpp:680
 msgid "Flip selection"
-msgstr ""
+msgstr "Vänd på urvalet"
 
 #: src/gui/guiConst.cpp:681
 msgid "Collapse rows"
-msgstr ""
+msgstr "Förminska rader"
 
 #: src/gui/guiConst.cpp:682
 msgid "Expand rows"
-msgstr ""
+msgstr "Expandera rader"
 
 #: src/gui/guiConst.cpp:683
 msgid "Collapse pattern"
-msgstr ""
+msgstr "Förminska mönstret"
 
 #: src/gui/guiConst.cpp:684
 msgid "Expand pattern"
-msgstr ""
+msgstr "Expandera mönstret"
 
 #: src/gui/guiConst.cpp:685
 msgid "Collapse song"
-msgstr ""
+msgstr "Förminska låt"
 
 #: src/gui/guiConst.cpp:686
 msgid "Expand song"
-msgstr ""
+msgstr "Expandera låt"
 
 #: src/gui/guiConst.cpp:687
 msgid "Set note input latch"
-msgstr ""
+msgstr "Ställ in notingångsspärr"
 
 #: src/gui/guiConst.cpp:688
 msgid "Change mobile scroll mode"
-msgstr ""
+msgstr "Ändra rullningsläge för mobil"
 
 #: src/gui/guiConst.cpp:689
 msgid "Clear note input latch"
-msgstr ""
+msgstr "Rensa notingångsspärr"
 
 #: src/gui/guiConst.cpp:692
 msgid "---Instrument list"
-msgstr ""
+msgstr "---Instrumentlista"
 
 #: src/gui/guiConst.cpp:693
 msgid "Add instrument"
-msgstr ""
+msgstr "Lägg till instrument"
 
 #: src/gui/guiConst.cpp:694
 msgid "Duplicate instrument"
-msgstr ""
+msgstr "Duplicera instrument"
 
 #: src/gui/guiConst.cpp:695
 msgid "Open instrument"
-msgstr ""
+msgstr "Öppna instrument"
 
 #: src/gui/guiConst.cpp:696
 msgid "Open instrument (replace current)"
-msgstr ""
+msgstr "Öppna instrument (ersätta nuvarande)"
 
 #: src/gui/guiConst.cpp:697
 msgid "Save instrument"
-msgstr ""
+msgstr "Spara instrument"
 
 #: src/gui/guiConst.cpp:698
 msgid "Save instrument (.dmp)"
-msgstr ""
+msgstr "Spara instrument (.dmp)"
 
 #: src/gui/guiConst.cpp:699
 msgid "Move instrument up in list"
-msgstr ""
+msgstr "Flytta instrumentet uppåt i listan"
 
 #: src/gui/guiConst.cpp:700
 msgid "Move instrument down in list"
-msgstr ""
+msgstr "Flytta instrumentet nedåt i listan"
 
 #: src/gui/guiConst.cpp:701
 msgid "Delete instrument"
-msgstr ""
+msgstr "Ta bort instrument"
 
 #: src/gui/guiConst.cpp:702
 msgid "Edit instrument"
-msgstr ""
+msgstr "Redigera instrument"
 
 #: src/gui/guiConst.cpp:703
 msgid "Instrument cursor up"
-msgstr ""
+msgstr "Instrumentmarkören uppåt"
 
 #: src/gui/guiConst.cpp:704
 msgid "Instrument cursor down"
-msgstr ""
+msgstr "Instrumentmarkören nedåt"
 
 #: src/gui/guiConst.cpp:705
 msgid "Instruments: toggle folders/standard view"
-msgstr ""
+msgstr "Instrument: växla mappar/standardvy"
 
 #: src/gui/guiConst.cpp:708
 msgid "---Wavetable list"
-msgstr ""
+msgstr "---Wavetable-lista"
 
 #: src/gui/guiConst.cpp:709
 msgid "Add wavetable"
-msgstr ""
+msgstr "Lägg till wavetable"
 
 #: src/gui/guiConst.cpp:710
 msgid "Duplicate wavetable"
-msgstr ""
+msgstr "Duplicera wavetable"
 
 #: src/gui/guiConst.cpp:711
 msgid "Open wavetable"
-msgstr ""
+msgstr "Öppna wavetable"
 
 #: src/gui/guiConst.cpp:712
 msgid "Open wavetable (replace current)"
-msgstr ""
+msgstr "Öppna wavetable (ersätta nuvarande)"
 
 #: src/gui/guiConst.cpp:713
 msgid "Save wavetable"
-msgstr ""
+msgstr "Spara wavetable"
 
 #: src/gui/guiConst.cpp:714
 msgid "Save wavetable (.dmw)"
-msgstr ""
+msgstr "Spara wavetable (.dmw)"
 
 #: src/gui/guiConst.cpp:715
 msgid "Save wavetable (raw)"
-msgstr ""
+msgstr "Spara wavetable (rå)"
 
 #: src/gui/guiConst.cpp:716
 msgid "Move wavetable up in list"
-msgstr ""
+msgstr "Flytta wavetable uppåt i listan"
 
 #: src/gui/guiConst.cpp:717
 msgid "Move wavetable down in list"
-msgstr ""
+msgstr "Flytta wavetable nedåt i listan"
 
 #: src/gui/guiConst.cpp:718
 msgid "Delete wavetable"
-msgstr ""
+msgstr "Ta bort wavetable"
 
 #: src/gui/guiConst.cpp:719
 msgid "Edit wavetable"
-msgstr ""
+msgstr "Redigera wavetable"
 
 #: src/gui/guiConst.cpp:720
 msgid "Wavetable cursor up"
-msgstr ""
+msgstr "Wavetable-markören uppåt"
 
 #: src/gui/guiConst.cpp:721
 msgid "Wavetable cursor down"
-msgstr ""
+msgstr "Wavetable-markören nedåt"
 
 #: src/gui/guiConst.cpp:722
 msgid "Wavetables: toggle folders/standard view"
-msgstr ""
+msgstr "Wavetable: växla mappar/standardvy"
 
 #: src/gui/guiConst.cpp:725
 msgid "---Sample list"
-msgstr ""
+msgstr "---Samplelista"
 
 #: src/gui/guiConst.cpp:726
 msgid "Add sample"
-msgstr ""
+msgstr "Lägg till sample"
 
 #: src/gui/guiConst.cpp:727
 msgid "Duplicate sample"
-msgstr ""
+msgstr "Duplicera sample"
 
 #: src/gui/guiConst.cpp:728
 msgid "Open sample"
-msgstr ""
+msgstr "Öppna sample"
 
 #: src/gui/guiConst.cpp:729
 msgid "Open sample (replace current)"
-msgstr ""
+msgstr "Öppna sample (ersätta nuvarande)"
 
 #: src/gui/guiConst.cpp:730
 msgid "Import raw sample data"
-msgstr ""
+msgstr "Importera rå sampledata"
 
 #: src/gui/guiConst.cpp:731
 msgid "Import raw sample data (replace current)"
-msgstr ""
+msgstr "Importera rå sampledata (ersätta nuvarande)"
 
 #: src/gui/guiConst.cpp:732
 msgid "Save sample"
-msgstr ""
+msgstr "Spara sample"
 
 #: src/gui/guiConst.cpp:733
 msgid "Save sample (raw)"
-msgstr ""
+msgstr "Spara sample (rå)"
 
 #: src/gui/guiConst.cpp:734
 msgid "Move sample up in list"
-msgstr ""
+msgstr "Flytta sample uppåt i listan"
 
 #: src/gui/guiConst.cpp:735
 msgid "Move sample down in list"
-msgstr ""
+msgstr "Flytta sample nedåt i listan"
 
 #: src/gui/guiConst.cpp:736
 msgid "Delete sample"
-msgstr ""
+msgstr "Ta bort sample"
 
 #: src/gui/guiConst.cpp:737
 msgid "Edit sample"
-msgstr ""
+msgstr "Redigera sample"
 
 #: src/gui/guiConst.cpp:738
 msgid "Sample cursor up"
-msgstr ""
+msgstr "Samplemarkören uppåt"
 
 #: src/gui/guiConst.cpp:739
 msgid "Sample cursor down"
-msgstr ""
+msgstr "Samplemarkören nedåt"
 
 #: src/gui/guiConst.cpp:741 src/gui/sampleEdit.cpp:1339
 msgid "Stop sample preview"
-msgstr ""
+msgstr "Stoppa sampleförhandsgranskning"
 
 #: src/gui/guiConst.cpp:742
 msgid "Samples: Toggle folders/standard view"
-msgstr ""
+msgstr "Samples: växla mappar/standardvy"
 
 #: src/gui/guiConst.cpp:743
 msgid "Samples: Make me a drum kit"
-msgstr ""
+msgstr "Samples: gör mig ett trumset"
 
 #: src/gui/guiConst.cpp:746
 msgid "---Sample editor"
-msgstr ""
+msgstr "---Sampleredigerare"
 
 #: src/gui/guiConst.cpp:747
 msgid "Sample editor mode: Select"
-msgstr ""
+msgstr "Sampleredigerare: Välj"
 
 #: src/gui/guiConst.cpp:748
 msgid "Sample editor mode: Draw"
-msgstr ""
+msgstr "Sampleredigerare: Rita"
 
 #: src/gui/guiConst.cpp:749
 msgid "Sample editor: Cut"
-msgstr ""
+msgstr "Sampleredigerare: Klippa"
 
 #: src/gui/guiConst.cpp:750
 msgid "Sample editor: Copy"
-msgstr ""
+msgstr "Sampleredigerare: Kopiera"
 
 #: src/gui/guiConst.cpp:751
 msgid "Sample editor: Paste"
-msgstr ""
+msgstr "Sampleredigerare: Klistra in"
 
 #: src/gui/guiConst.cpp:752
 msgid "Sample editor: Paste replace"
-msgstr ""
+msgstr "Sampleredigerare: Klistra in och ersätta"
 
 #: src/gui/guiConst.cpp:753
 msgid "Sample editor: Paste mix"
-msgstr ""
+msgstr "Sampleredigerare: Klistra in mix"
 
 #: src/gui/guiConst.cpp:754
 msgid "Sample editor: Select all"
-msgstr ""
+msgstr "Sampleredigerare: Välj alla"
 
 #: src/gui/guiConst.cpp:755
 msgid "Sample editor: Resize"
-msgstr ""
+msgstr "Sampleredigerare: Ändra storlek"
 
 #: src/gui/guiConst.cpp:756
 msgid "Sample editor: Resample"
-msgstr ""
+msgstr "Sampleredigerare: Sampla om"
 
 #: src/gui/guiConst.cpp:757
 msgid "Sample editor: Amplify"
-msgstr ""
+msgstr "Sampleredigerare: Förstärka"
 
 #: src/gui/guiConst.cpp:758
 msgid "Sample editor: Normalize"
-msgstr ""
+msgstr "Sampleredigerare: Normalisera"
 
 #: src/gui/guiConst.cpp:759
 msgid "Sample editor: Fade in"
-msgstr ""
+msgstr "Sampleredigerare: Tona in"
 
 #: src/gui/guiConst.cpp:760
 msgid "Sample editor: Fade out"
-msgstr ""
+msgstr "Sampleredigerare: Tona ut"
 
 #: src/gui/guiConst.cpp:761
 msgid "Sample editor: Apply silence"
-msgstr ""
+msgstr "Sampleredigerare: Tillämpa tystnad"
 
 #: src/gui/guiConst.cpp:762
 msgid "Sample editor: Insert silence"
-msgstr ""
+msgstr "Sampleredigerare: Infoga tystnad"
 
 #: src/gui/guiConst.cpp:763
 msgid "Sample editor: Delete"
-msgstr ""
+msgstr "Sampleredigerare: Ta bort"
 
 #: src/gui/guiConst.cpp:764
 msgid "Sample editor: Trim"
-msgstr ""
+msgstr "Sampleredigerare: Trimma"
 
 #: src/gui/guiConst.cpp:765
 msgid "Sample editor: Reverse"
-msgstr ""
+msgstr "Sampleredigerare: Omvända"
 
 #: src/gui/guiConst.cpp:766
 msgid "Sample editor: Invert"
-msgstr ""
+msgstr "Sampleredigerare: Invertera"
 
 #: src/gui/guiConst.cpp:767
 msgid "Sample editor: Signed/unsigned exchange"
-msgstr ""
+msgstr "Sampleredigerare: Signerat/osignerat utbyte"
 
 #: src/gui/guiConst.cpp:768
 msgid "Sample editor: Apply filter"
-msgstr ""
+msgstr "Sampleredigerare: Använd filter"
 
 #: src/gui/guiConst.cpp:769
 msgid "Sample editor: Crossfade loop points"
-msgstr ""
+msgstr "Sampleredigerare: Crossfade looppunkter"
 
 #: src/gui/guiConst.cpp:770
 msgid "Sample editor: Preview sample"
-msgstr ""
+msgstr "Sampleredigerare: Förhandsgranska sample"
 
 #: src/gui/guiConst.cpp:771
 msgid "Sample editor: Stop sample preview"
-msgstr ""
+msgstr "Sampleredigerare: Stoppa förhandsgranskningen på sample"
 
 #: src/gui/guiConst.cpp:772
 msgid "Sample editor: Zoom in"
-msgstr ""
+msgstr "Sampleredigerare: Zooma in"
 
 #: src/gui/guiConst.cpp:773
 msgid "Sample editor: Zoom out"
-msgstr ""
+msgstr "Sampleredigerare: Zooma ut"
 
 #: src/gui/guiConst.cpp:774
 msgid "Sample editor: Toggle auto-zoom"
-msgstr ""
+msgstr "Sampleredigerare: Växla auto-zoom"
 
 #: src/gui/guiConst.cpp:775
 msgid "Sample editor: Create instrument from sample"
-msgstr ""
+msgstr "Sampleredigerare: Skapa instrument från sample"
 
 #: src/gui/guiConst.cpp:776
 msgid "Sample editor: Set loop to selection"
-msgstr ""
+msgstr "Sampleredigerare: Ställ in loop till urval"
 
 #: src/gui/guiConst.cpp:777
 msgid "Sample editor: Create wavetable from selection"
-msgstr ""
+msgstr "Sampleredigerare: Skapa wavetable från urval"
 
 #: src/gui/guiConst.cpp:780
 msgid "---Orders"
-msgstr ""
+msgstr "---Orders"
 
 #: src/gui/guiConst.cpp:781
 msgid "Previous order"
-msgstr ""
+msgstr "Föregående order"
 
 #: src/gui/guiConst.cpp:782
 msgid "Next order"
-msgstr ""
+msgstr "Nästa order"
 
 #: src/gui/guiConst.cpp:783
 msgid "Order cursor left"
-msgstr ""
+msgstr "Ordermarkören till vänster"
 
 #: src/gui/guiConst.cpp:784
 msgid "Order cursor right"
-msgstr ""
+msgstr "Ordermarkören till höger"
 
 #: src/gui/guiConst.cpp:785
 msgid "Increase order value"
-msgstr ""
+msgstr "Öka ordervärdee"
 
 #: src/gui/guiConst.cpp:786
 msgid "Decrease order value"
-msgstr ""
+msgstr "Förminska ordervärde"
 
 #: src/gui/guiConst.cpp:787
 msgid "Switch order edit mode"
-msgstr ""
+msgstr "Byt orderredigeringsläge"
 
 #: src/gui/guiConst.cpp:788
 msgid "Order: toggle alter entire row"
-msgstr ""
+msgstr "Order: växla att ändra hela raden"
 
 #: src/gui/guiConst.cpp:789
 msgid "Add order"
-msgstr ""
+msgstr "Lägg till order"
 
 #: src/gui/guiConst.cpp:790
 msgid "Duplicate order"
-msgstr ""
+msgstr "Duplicera order"
 
 #: src/gui/guiConst.cpp:791
 msgid "Deep clone order"
-msgstr ""
+msgstr "Djupklona order"
 
 #: src/gui/guiConst.cpp:792
 msgid "Copy current order to end of song"
-msgstr ""
+msgstr "Kopiera aktuell order till slutet av låten"
 
 #: src/gui/guiConst.cpp:793
 msgid "Deep clone current order to end of song"
-msgstr ""
+msgstr "Djup kloning av nuvarande order till slutet av låten"
 
 #: src/gui/guiConst.cpp:797
 msgid "Replay order"
-msgstr ""
+msgstr "Spela om order"
 
 #: src/gui/guiConst.cpp:1392
 msgid "All chips"
-msgstr "Alla chips"
+msgstr "Alla chip"
 
 #: src/gui/guiConst.cpp:1396 src/gui/insEdit.cpp:6954 src/gui/insEdit.cpp:7204
 #: src/gui/insEdit.cpp:7458 src/gui/insEdit.cpp:7480
@@ -12308,31 +12308,31 @@ msgstr "Alternativ"
 
 #: src/gui/piano.cpp:106
 msgid "Key layout:"
-msgstr ""
+msgstr "Tangentlayout:"
 
 #: src/gui/piano.cpp:111
 msgid "Standard"
-msgstr ""
+msgstr "Standard"
 
 #: src/gui/piano.cpp:114
 msgid "Continuous"
-msgstr ""
+msgstr "Kontinuerlig"
 
 #: src/gui/piano.cpp:118
 msgid "Value input pad:"
-msgstr ""
+msgstr "Inmatningsplatta för värde:"
 
 #: src/gui/piano.cpp:120
 msgid "Disabled"
-msgstr ""
+msgstr "Inaktiverad"
 
 #: src/gui/piano.cpp:123
 msgid "Replace piano"
-msgstr ""
+msgstr "Ersätta piano"
 
 #: src/gui/piano.cpp:126
 msgid "Split (automatic)"
-msgstr ""
+msgstr "Delad (automatisk)"
 
 #: src/gui/piano.cpp:129
 msgid "Split (always visible)"
@@ -12340,166 +12340,166 @@ msgstr ""
 
 #: src/gui/piano.cpp:133
 msgid "Share play/edit offset/range"
-msgstr ""
+msgstr "Dela spela/redigera offset/räckvidd"
 
 #: src/gui/piano.cpp:134
 msgid "Read-only (can't input notes)"
-msgstr ""
+msgstr "Skrivskyddad (kan ej mata in anteckningar)"
 
 #: src/gui/waveEdit.cpp:30 src/gui/waveEdit.cpp:192 src/gui/insEdit.cpp:177
 #: src/gui/insEdit.cpp:188 src/gui/insEdit.cpp:199
 msgid "Sine"
-msgstr ""
+msgstr "Sinus"
 
 #: src/gui/waveEdit.cpp:32 src/gui/waveEdit.cpp:202 src/gui/insEdit.cpp:325
 #: src/gui/insEdit.cpp:654
 msgid "Saw"
-msgstr ""
+msgstr "Såg"
 
 #: src/gui/waveEdit.cpp:39
 msgid "Cosine"
-msgstr ""
+msgstr "Kosinus"
 
 #: src/gui/waveEdit.cpp:193
 msgid "Rect. Sine"
-msgstr ""
+msgstr "Rekt. sinus"
 
 #: src/gui/waveEdit.cpp:194
 msgid "Abs. Sine"
-msgstr ""
+msgstr "Abs. sinus"
 
 #: src/gui/waveEdit.cpp:195
 msgid "Quart. Sine"
-msgstr ""
+msgstr "Kvar. sinus"
 
 #: src/gui/waveEdit.cpp:196
 msgid "Squish. Sine"
-msgstr ""
+msgstr "Pressad sinus"
 
 #: src/gui/waveEdit.cpp:197
 msgid "Abs. Squish. Sine"
-msgstr ""
+msgstr "Abs. pressad sinus"
 
 #: src/gui/waveEdit.cpp:200
 msgid "rectSquare"
-msgstr ""
+msgstr "rektKvadrat"
 
 #: src/gui/waveEdit.cpp:203
 msgid "Rect. Saw"
-msgstr ""
+msgstr "Rekt. såg"
 
 #: src/gui/waveEdit.cpp:204
 msgid "Abs. Saw"
-msgstr ""
+msgstr "Abs. såg"
 
 #: src/gui/waveEdit.cpp:206
 msgid "Cubed Saw"
-msgstr ""
+msgstr "Kuberad såg"
 
 #: src/gui/waveEdit.cpp:207
 msgid "Rect. Cubed Saw"
-msgstr ""
+msgstr "Rekt. kuberad såg"
 
 #: src/gui/waveEdit.cpp:208
 msgid "Abs. Cubed Saw"
-msgstr ""
+msgstr "Abs. kuberad såg"
 
 #: src/gui/waveEdit.cpp:210
 msgid "Cubed Sine"
-msgstr ""
+msgstr "Kuberad sinus"
 
 #: src/gui/waveEdit.cpp:211
 msgid "Rect. Cubed Sine"
-msgstr ""
+msgstr "Rekt. kuberad sinus"
 
 #: src/gui/waveEdit.cpp:212
 msgid "Abs. Cubed Sine"
-msgstr ""
+msgstr "Abs. kuberad sinus"
 
 #: src/gui/waveEdit.cpp:213
 msgid "Quart. Cubed Sine"
-msgstr ""
+msgstr "Kvart. kuberad sinus"
 
 #: src/gui/waveEdit.cpp:214
 msgid "Squish. Cubed Sine"
-msgstr ""
+msgstr "Pressad kuberad sinus"
 
 #: src/gui/waveEdit.cpp:215
 msgid "Squish. Abs. Cub. Sine"
-msgstr ""
+msgstr "Pressad. abs. kub. sinus"
 
 #: src/gui/waveEdit.cpp:218
 msgid "Rect. Triangle"
-msgstr ""
+msgstr "Rekt. triangel"
 
 #: src/gui/waveEdit.cpp:219
 msgid "Abs. Triangle"
-msgstr ""
+msgstr "Abs. triangel"
 
 #: src/gui/waveEdit.cpp:220
 msgid "Quart. Triangle"
-msgstr ""
+msgstr "Kvart. triangel"
 
 #: src/gui/waveEdit.cpp:221
 msgid "Squish. Triangle"
-msgstr ""
+msgstr "Pressad triangel"
 
 #: src/gui/waveEdit.cpp:222
 msgid "Abs. Squish. Triangle"
-msgstr ""
+msgstr "Abs. pressad triangel"
 
 #: src/gui/waveEdit.cpp:224
 msgid "Cubed Triangle"
-msgstr ""
+msgstr "Kuberad triangel"
 
 #: src/gui/waveEdit.cpp:225
 msgid "Rect. Cubed Triangle"
-msgstr ""
+msgstr "Rekt. kuberad triangel"
 
 #: src/gui/waveEdit.cpp:226
 msgid "Abs. Cubed Triangle"
-msgstr ""
+msgstr "Abs. kuberad triangel"
 
 #: src/gui/waveEdit.cpp:227
 msgid "Quart. Cubed Triangle"
-msgstr ""
+msgstr "Kvart. kuberad triangel"
 
 #: src/gui/waveEdit.cpp:228
 msgid "Squish. Cubed Triangle"
-msgstr ""
+msgstr "Pressad kuberad triangel"
 
 #: src/gui/waveEdit.cpp:229
 msgid "Squish. Abs. Cub. Triangle"
-msgstr ""
+msgstr "Pressad. abs. kub. triangel"
 
 #: src/gui/waveEdit.cpp:412 src/gui/waveEdit.cpp:413
 msgid "no wavetable selected"
-msgstr ""
+msgstr "inget wavetable valt"
 
 #: src/gui/waveEdit.cpp:424 src/gui/sampleEdit.cpp:111 src/gui/insEdit.cpp:5223
 msgid "select one..."
-msgstr ""
+msgstr "välj en..."
 
 #: src/gui/waveEdit.cpp:432 src/gui/waveEdit.cpp:439 src/gui/sampleEdit.cpp:119
 #: src/gui/sampleEdit.cpp:126 src/gui/insEdit.cpp:5236 src/gui/insEdit.cpp:5243
 msgid "or"
-msgstr ""
+msgstr "eller"
 
 #: src/gui/waveEdit.cpp:441 src/gui/sampleEdit.cpp:128 src/gui/insEdit.cpp:5245
 msgid "Create New"
-msgstr ""
+msgstr "Skapa ny"
 
 #: src/gui/waveEdit.cpp:487
 msgid "Steps"
-msgstr ""
+msgstr "Steg"
 
 #: src/gui/waveEdit.cpp:491
 msgid "Lines"
-msgstr ""
+msgstr "Linjer"
 
 #: src/gui/waveEdit.cpp:496 src/gui/insEdit.cpp:2687
 msgid "Width"
-msgstr ""
+msgstr "Bredd"
 
 #: src/gui/waveEdit.cpp:498
 msgid ""
@@ -12511,10 +12511,17 @@ msgid ""
 "- 128 on X1-010\n"
 "any other widths will be scaled during playback."
 msgstr ""
+”använd en bredd på:\n”
+”- alla på Amiga/N163\n”
+”- 32 på Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual ”
+”Boy och WonderSwan\n”
+”- 64 på FDS\n”
+”- 128 på X1-010\n”
+”alla andra bredder kommer att skalas under uppspelning.”
 
 #: src/gui/waveEdit.cpp:510
 msgid "Height"
-msgstr ""
+msgstr "Höjd"
 
 #: src/gui/waveEdit.cpp:512
 msgid ""
@@ -12526,6 +12533,13 @@ msgid ""
 "- 256 for X1-010 and SCC\n"
 "any other heights will be scaled during playback."
 msgstr ""
+”använd en höjd på:\n”
+”- 16 för Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 ”
+”kuvertform och N163\n”
+”- 32 för PC Engine\n”
+”- 64 för FDS och Virtual Boy\n”
+”- 256 för X1-010 och SCC\n”
+”alla andra höjder kommer att skalas under uppspelning.”
 
 #: src/gui/waveEdit.cpp:578
 msgid "Shapes"
@@ -12535,274 +12549,276 @@ msgstr "Former"
 #: src/gui/insEdit.cpp:6948 src/gui/insEdit.cpp:7008 src/gui/insEdit.cpp:7048
 #: src/gui/insEdit.cpp:7150 src/gui/insEdit.cpp:7436 src/gui/insEdit.cpp:7472
 msgid "Duty"
-msgstr ""
+msgstr "Arbetscykel"
 
 #: src/gui/waveEdit.cpp:607
 msgid "Exponent"
-msgstr ""
+msgstr "Exponent"
 
 #: src/gui/waveEdit.cpp:617
 msgid "XOR Point"
-msgstr ""
+msgstr "XOR-punkt"
 
 #: src/gui/waveEdit.cpp:627
 msgid "Amplitude/Phase"
-msgstr ""
+msgstr "Amplitud/Fas"
 
 #: src/gui/waveEdit.cpp:679 src/gui/waveEdit.cpp:723 src/gui/waveEdit.cpp:728
 msgid "Op"
-msgstr ""
+msgstr "Op."
 
 #: src/gui/waveEdit.cpp:683
 msgid "Mult"
-msgstr ""
+msgstr "Mult."
 
 #: src/gui/waveEdit.cpp:685
 msgid "FB"
-msgstr ""
+msgstr "FB"
 
 #: src/gui/waveEdit.cpp:749 src/gui/waveEdit.cpp:750
 msgid "Connection Diagram"
-msgstr ""
+msgstr "Anslutningsdiagram"
 
 #: src/gui/waveEdit.cpp:765
 msgid "Out"
-msgstr ""
+msgstr "Ut"
 
 #: src/gui/waveEdit.cpp:872
 msgid "WaveTools"
-msgstr ""
+msgstr "Våg-verktyg"
 
 #: src/gui/waveEdit.cpp:890
 msgid "Scale X"
-msgstr ""
+msgstr "Skala X"
 
 #: src/gui/waveEdit.cpp:896
 msgid "wavetable longer than 256 samples!"
-msgstr ""
+msgstr "wavetable längre än 256 samples!"
 
 #: src/gui/waveEdit.cpp:960
 msgid "Scale Y"
-msgstr ""
+msgstr "Skala Y"
 
 #: src/gui/waveEdit.cpp:978
 msgid "Offset X"
-msgstr ""
+msgstr "Offset X"
 
 #: src/gui/waveEdit.cpp:1000
 msgid "Offset Y"
-msgstr ""
+msgstr "Offset Y"
 
 #: src/gui/waveEdit.cpp:1017
 msgid "Smooth"
-msgstr ""
+msgstr "Jämn"
 
 #: src/gui/waveEdit.cpp:1045 src/gui/sampleEdit.cpp:996
 msgid "Amplify"
-msgstr ""
+msgstr "Förstärka"
 
 #: src/gui/waveEdit.cpp:1063 src/gui/sampleEdit.cpp:1046
 msgid "Normalize"
-msgstr ""
+msgstr "Normalisera"
 
 #: src/gui/waveEdit.cpp:1105 src/gui/sampleEdit.cpp:1121
 msgid "Reverse"
-msgstr ""
+msgstr "Omvända"
 
 #: src/gui/waveEdit.cpp:1117
 msgid "Half"
-msgstr ""
+msgstr "Halv"
 
 #: src/gui/waveEdit.cpp:1127
 msgid "Double"
-msgstr ""
+msgstr "Dubbel"
 
 #: src/gui/waveEdit.cpp:1137
 msgid "Convert Signed/Unsigned"
-msgstr ""
+msgstr "Konvertera signerad/osignerad"
 
 #: src/gui/waveEdit.cpp:1167
 msgid "Dec"
-msgstr ""
+msgstr "Dec."
 
 #: src/gui/waveEdit.cpp:1171 src/gui/csPlayer.cpp:247
 msgid "Hex"
-msgstr ""
+msgstr "Hex."
 
 #: src/gui/waveEdit.cpp:1179
 msgid "Signed/Unsigned"
-msgstr ""
+msgstr "Signerad/Onsignerad"
 
 #: src/gui/sampleEdit.cpp:65
 #, c-format
 msgid "%s: maximum sample rate is %d"
-msgstr ""
+msgstr "%s: maximal samplingsfrekvens är %d"
 
 #: src/gui/sampleEdit.cpp:72
 #, c-format
 msgid "%s: minimum sample rate is %d"
-msgstr ""
+msgstr "%s: minsta samplingsfrekvens är %d"
 
 #: src/gui/sampleEdit.cpp:79
 #, c-format
 msgid "%s: sample rate must be %d"
-msgstr ""
+msgstr "%s: samplingsfrekvensen måste vara %d"
 
 #: src/gui/sampleEdit.cpp:99 src/gui/sampleEdit.cpp:100
 msgid "no sample selected"
-msgstr ""
+msgstr "ingen sample vald"
 
 #: src/gui/sampleEdit.cpp:229
 #, c-format
 msgid "SNES: loop start must be a multiple of 16 (try with %d)"
-msgstr ""
+msgstr "SNES: loopstart måste vara en multipel av 16 (försök med %d)"
 
 #: src/gui/sampleEdit.cpp:235
 #, c-format
 msgid "SNES: loop end must be a multiple of 16 (try with %d)"
-msgstr ""
+msgstr "SNES: Loopens slut måste vara en multipel av 16 (försök med %d)"
 
 #: src/gui/sampleEdit.cpp:240
 msgid "SNES: sample length will be padded to multiple of 16"
-msgstr ""
+msgstr "SNES: samplingslängden kommer att fyllas på till en multipel av 16"
 
 #: src/gui/sampleEdit.cpp:249
 msgid "QSound: loop cannot be longer than 32767 samples"
-msgstr ""
+msgstr "QSound: loopen kan inte vara längre än 32767 samples"
 
 #: src/gui/sampleEdit.cpp:259
 msgid "NES: loop point ignored on DPCM (may only loop entire sample)"
-msgstr ""
+msgstr "NES: looppunkten ignoreras på DPCM (kan bara loopa hela sample)"
 
 #: src/gui/sampleEdit.cpp:263
 msgid "NES: maximum DPCM sample length is 32648"
-msgstr ""
+msgstr "NES: maximal DPCM-samplingslängd är 32648"
 
 #: src/gui/sampleEdit.cpp:268
 msgid "X1-010: samples can't loop"
-msgstr ""
+msgstr "X1-010: samples kan inte loopas"
 
 #: src/gui/sampleEdit.cpp:271
 msgid "X1-010: maximum sample length is 131072"
-msgstr ""
+msgstr "X1-010: maximal samplelängd är 131072"
 
 #: src/gui/sampleEdit.cpp:276
 msgid "GA20: samples can't loop"
-msgstr ""
+msgstr "GA20: samples kan inte loopas"
 
 #: src/gui/sampleEdit.cpp:287
 msgid "YM2608: loop point ignored on ADPCM (may only loop entire sample)"
-msgstr ""
+msgstr "YM2608: looppunkten ignoreras på ADPCM (kan bara loopa hela sample)"
 
 #: src/gui/sampleEdit.cpp:290
 msgid "YM2608: sample length will be padded to multiple of 512"
-msgstr ""
+msgstr "YM2608: samplingslängden kommer att fyllas på till en multipel av 512"
 
 #: src/gui/sampleEdit.cpp:300
 msgid "YM2610: ADPCM-A samples can't loop"
-msgstr ""
+msgstr "YM2610: ADPCM-A samples kan inte loopas"
 
 #: src/gui/sampleEdit.cpp:302
 msgid "YM2610: loop point ignored on ADPCM-B (may only loop entire sample)"
-msgstr ""
+msgstr "YM2610: looppunkten ignoreras på ADPCM-B (kan bara loopa hela sample)"
 
 #: src/gui/sampleEdit.cpp:305
 msgid "YM2610: sample length will be padded to multiple of 512"
-msgstr ""
+msgstr "YM2610: samplingslängden kommer att fyllas på till en multipel av 512"
 
 #: src/gui/sampleEdit.cpp:309
 msgid "YM2610: maximum ADPCM-A sample length is 2097152"
-msgstr ""
+msgstr "YM2610: maximal ADPCM-A samplingslängd är 2097152"
 
 #: src/gui/sampleEdit.cpp:318
 msgid "Y8950: loop point ignored on ADPCM (may only loop entire sample)"
-msgstr ""
+msgstr "Y8950: looppunkten ignoreras på ADPCM (kan bara loopa hela sample)"
 
 #: src/gui/sampleEdit.cpp:321
 msgid "Y8950: sample length will be padded to multiple of 512"
-msgstr ""
+msgstr "Y8950: samplingslängden kommer att fyllas på till en multipel av 512"
 
 #: src/gui/sampleEdit.cpp:328
 msgid "Amiga: loop start must be a multiple of 2"
-msgstr ""
+msgstr "Amiga: loopstart måste vara en multipel av 2"
 
 #: src/gui/sampleEdit.cpp:331
 msgid "Amiga: loop end must be a multiple of 2"
-msgstr ""
+msgstr "Amiga: Loopänden måste vara en multipel av 2"
 
 #: src/gui/sampleEdit.cpp:335
 msgid "Amiga: maximum sample length is 131070"
-msgstr ""
+msgstr "Amiga: maximal samplingslängd är 131070"
 
 #: src/gui/sampleEdit.cpp:344
 msgid "SegaPCM: maximum sample length is 65280"
-msgstr ""
+msgstr "SegaPCM: maximal samplingslängd är 65280"
 
 #: src/gui/sampleEdit.cpp:353
 msgid "K053260: loop point ignored (may only loop entire sample)"
-msgstr ""
+msgstr "K053260: looppunkten ignoreras (får bara loopa hela sample)"
 
 #: src/gui/sampleEdit.cpp:357
 msgid "K053260: maximum sample length is 65535"
-msgstr ""
+msgstr "K053260: maximal samplingslängd är 65535"
 
 #: src/gui/sampleEdit.cpp:362
 msgid "C140: maximum sample length is 65535"
-msgstr ""
+msgstr "C140: maximal samplingslängd är 65535"
 
 #: src/gui/sampleEdit.cpp:371
 msgid "C219: loop start must be a multiple of 2"
-msgstr ""
+msgstr "C219: loopstart måste vara en multipel av 2"
 
 #: src/gui/sampleEdit.cpp:374
 msgid "C219: loop end must be a multiple of 2"
-msgstr ""
+msgstr "C219: loopänden måste vara en multipel av 2"
 
 #: src/gui/sampleEdit.cpp:378
 msgid "C219: maximum sample length is 131072"
-msgstr ""
+msgstr "C219: maximal samplingslängd är 131072"
 
 #: src/gui/sampleEdit.cpp:386
 msgid "MSM6295: samples can't loop"
-msgstr ""
+msgstr "MSM6295: samples kan inte loopas"
 
 #: src/gui/sampleEdit.cpp:389
 msgid "MSM6295: maximum bankswitched sample length is 129024"
-msgstr ""
+msgstr "MSM6295: maximal samplingslängd för bankväxling är 129024"
 
 #: src/gui/sampleEdit.cpp:395
 msgid "GBA DMA: loop start must be a multiple of 4"
-msgstr ""
+msgstr "GBA DMA: loopstart måste vara en multipel av 4"
 
 #: src/gui/sampleEdit.cpp:398
 msgid "GBA DMA: loop length must be a multiple of 16"
-msgstr ""
+msgstr "GBA DMA: looplängden måste vara en multipel av 16"
 
 #: src/gui/sampleEdit.cpp:402
 msgid "GBA DMA: sample length will be padded to multiple of 16"
-msgstr ""
+msgstr "GBA DMA: samplingslängden kommer att fyllas på till en multipel av 16"
 
 #: src/gui/sampleEdit.cpp:411
 msgid "ES5506: backward loop mode isn't supported"
-msgstr ""
+msgstr "ES5506: bakåtloopläge stöds inte"
 
 #: src/gui/sampleEdit.cpp:414
 msgid ""
 "backward/ping-pong only supported in Generic PCM DAC\n"
 "ping-pong also on ES5506"
 msgstr ""
+”bakåt/ping-pong stöds endast i Generic PCM DAC\n”
+”ping-pong även på ES5506”
 
 #: src/gui/sampleEdit.cpp:444
 msgid "Info"
-msgstr ""
+msgstr "Info"
 
 #: src/gui/sampleEdit.cpp:447 src/gui/sampleEdit.cpp:933
 msgid "Rate"
-msgstr ""
+msgstr "Hastighet"
 
 #: src/gui/sampleEdit.cpp:453
 msgid "Compat Rate"
-msgstr ""
+msgstr "Kompat. hastighet"
 
 #: src/gui/sampleEdit.cpp:457
 msgid ""
@@ -12815,49 +12831,53 @@ msgstr ""
 #: src/gui/sampleEdit.cpp:463
 #, c-format
 msgid "Loop (length: %d)##Loop"
-msgstr ""
+msgstr "Loop (längd: %d)"
 
 #: src/gui/sampleEdit.cpp:463 src/gui/insEdit.cpp:544 src/gui/insEdit.cpp:554
 #: src/gui/insEdit.cpp:605 src/gui/insEdit.cpp:6017
 msgid "Loop"
-msgstr ""
+msgstr "Loop"
 
 #: src/gui/sampleEdit.cpp:487 src/gui/sampleEdit.cpp:716
 #: src/gui/sampleEdit.cpp:752
 msgid "changing the loop in a BRR sample may result in glitches!"
-msgstr ""
+msgstr "Om du ändrar loopen i en BRR-sample kan det leda till problem!"
 
 #: src/gui/sampleEdit.cpp:529
 msgid "BRR emphasis"
-msgstr ""
+msgstr "BRR-betoning"
 
 #: src/gui/sampleEdit.cpp:538
 msgid ""
 "this is a BRR sample.\n"
 "enabling this option will muffle it (only affects non-SNES chips)."
 msgstr ""
+”Detta är ett BRR-prov.”
+”Om du aktiverar detta alternativ kommer det att dämpas (påverkar endast icke-SNES-chips).”
 
 #: src/gui/sampleEdit.cpp:540
 msgid ""
 "enable this option to slightly boost high frequencies\n"
 "to compensate for the SNES' Gaussian filter's muffle."
 msgstr ""
+”aktivera detta alternativ för att öka höga frekvenser\n"
+”för att kompensera för SNES Gaussian-filtrets dämpning.”
 
 #: src/gui/sampleEdit.cpp:546
 msgid "8-bit dither"
-msgstr ""
+msgstr "8-bit dither"
 
 #: src/gui/sampleEdit.cpp:554
 msgid "dither the sample when used on a chip that only supports 8-bit samples."
-msgstr ""
+msgstr "dither sample när den används på ett chip som bara stöder 8-bitars sampel."
 
 #: src/gui/sampleEdit.cpp:695 src/gui/gui.cpp:2975
 msgid "Start"
-msgstr ""
+msgstr "Start"
 
 #: src/gui/sampleEdit.cpp:731 src/gui/gui.cpp:2983
 msgid "End"
-msgstr ""
+msgstr "Slut"
 
 #: src/gui/sampleEdit.cpp:841
 #, c-format
@@ -12865,6 +12885,8 @@ msgid ""
 "%s\n"
 "%d bytes free"
 msgstr ""
+"%s\n"
+"%d bytes lediga"
 
 #: src/gui/sampleEdit.cpp:843
 #, c-format
@@ -12872,6 +12894,8 @@ msgid ""
 "%s (%s)\n"
 "%d bytes free"
 msgstr ""
+"%s (%s)\n"
+"%d bytes lediga"
 
 #: src/gui/sampleEdit.cpp:847
 msgid ""
@@ -12879,208 +12903,211 @@ msgid ""
 "\n"
 "not enough memory for this sample!"
 msgstr ""
+”\n”
+”\n”
+”inte tillräckligt med minne för denna sample!”
 
 #: src/gui/sampleEdit.cpp:871
 msgid "Edit mode: Select"
-msgstr ""
+msgstr "Redigeringsläge: Välj"
 
 #: src/gui/sampleEdit.cpp:880
 msgid "Edit mode: Draw"
-msgstr ""
+msgstr "Redigeringsläge: Rita"
 
 #: src/gui/sampleEdit.cpp:891 src/gui/sampleEdit.cpp:902
 msgid "Resize"
-msgstr ""
+msgstr "Ändra storlek"
 
 #: src/gui/sampleEdit.cpp:906
 msgid "couldn't resize! make sure your sample is 8 or 16-bit."
-msgstr ""
+msgstr "kunde ej ändra storlek! se till att din sample är 8 eller 16-bit."
 
 #: src/gui/sampleEdit.cpp:926 src/gui/sampleEdit.cpp:957
 msgid "Resample"
-msgstr ""
+msgstr "Sampla om"
 
 #: src/gui/sampleEdit.cpp:951
 msgid "Factor"
-msgstr ""
+msgstr "Faktor"
 
 #: src/gui/sampleEdit.cpp:956
 msgid "Filter"
-msgstr ""
+msgstr "Filter"
 
 #: src/gui/sampleEdit.cpp:961
 msgid "couldn't resample! make sure your sample is 8 or 16-bit."
-msgstr ""
+msgstr "kunde ej sampla om! se till att din sample är 8 eller 16-bit."
 
 #: src/gui/sampleEdit.cpp:1010 src/gui/sampleEdit.cpp:1197
 #: src/gui/sampleEdit.cpp:1281
 msgid "Apply"
-msgstr ""
+msgstr "Tillämpa"
 
 #: src/gui/sampleEdit.cpp:1053
 msgid "Fade in"
-msgstr ""
+msgstr "Tona in"
 
 #: src/gui/sampleEdit.cpp:1060
 msgid "Fade out"
-msgstr ""
+msgstr "Tona ut"
 
 #: src/gui/sampleEdit.cpp:1065
 msgid "Insert silence"
-msgstr ""
+msgstr "Infoga tystnad"
 
 #: src/gui/sampleEdit.cpp:1076
 msgid "Go"
-msgstr ""
+msgstr "Gå"
 
 #: src/gui/sampleEdit.cpp:1081
 msgid "couldn't insert! make sure your sample is 8 or 16-bit."
-msgstr ""
+msgstr "kunde ej infoga! se till att din sample är 8 eller 16-bit."
 
 #: src/gui/sampleEdit.cpp:1098
 msgid "Apply silence"
-msgstr ""
+msgstr "Tillämpa tystnad"
 
 #: src/gui/sampleEdit.cpp:1112
 msgid "Trim"
-msgstr ""
+msgstr "Trimma"
 
 #: src/gui/sampleEdit.cpp:1135
 msgid "Signed/unsigned exchange"
-msgstr ""
+msgstr "Signerad/osignerad växling"
 
 #: src/gui/sampleEdit.cpp:1140
 msgid "Apply filter"
-msgstr ""
+msgstr "Tillämpa filter"
 
 #: src/gui/sampleEdit.cpp:1151
 msgid "Cutoff:"
-msgstr ""
+msgstr "Brytfrekvens:"
 
 #: src/gui/sampleEdit.cpp:1161 src/gui/insEdit.cpp:5895
 #: src/gui/insEdit.cpp:5898 src/gui/insEdit.cpp:6953 src/gui/insEdit.cpp:7216
 #: src/gui/insEdit.cpp:7478
 msgid "Resonance"
-msgstr ""
+msgstr "Resonans"
 
 #: src/gui/sampleEdit.cpp:1167 src/gui/insEdit.cpp:6897
 msgid "Power"
-msgstr ""
+msgstr "Kraft"
 
 #: src/gui/sampleEdit.cpp:1181
 msgid "Low-pass"
-msgstr ""
+msgstr "Lågpass"
 
 #: src/gui/sampleEdit.cpp:1186
 msgid "Band-pass"
-msgstr ""
+msgstr "Bandpass"
 
 #: src/gui/sampleEdit.cpp:1191
 msgid "High-pass"
-msgstr ""
+msgstr "Högpass"
 
 #: src/gui/sampleEdit.cpp:1262
 msgid "Crossfade loop points"
-msgstr ""
+msgstr "Crossfade looppunkter"
 
 #: src/gui/sampleEdit.cpp:1271
 msgid "Number of samples"
-msgstr ""
+msgstr "Antal samples"
 
 #: src/gui/sampleEdit.cpp:1277
 msgid "Linear <-> Equal power"
-msgstr ""
+msgstr "Linjär <-> Lika kraft"
 
 #: src/gui/sampleEdit.cpp:1283
 msgid "Crossfade: length would go out of bounds. Aborted..."
-msgstr ""
+msgstr "Crossfade: längden skulle gå utanför gränserna. Avbröts..."
 
 #: src/gui/sampleEdit.cpp:1286
 msgid "Crossfade: length would overflow loopStart. Try a smaller random value."
-msgstr ""
+msgstr "Crossfade: längd skulle överskridas loopStart. Försök med ett mindre slumpmässigt värde."
 
 #: src/gui/sampleEdit.cpp:1332
 msgid "Preview sample"
-msgstr ""
+msgstr "Förhandsgranska sample"
 
 #: src/gui/sampleEdit.cpp:1346
 msgid "Create instrument from sample"
-msgstr ""
+msgstr "Skapa instrument från sample"
 
 #: src/gui/sampleEdit.cpp:1747
 msgid "paste (replace)"
-msgstr ""
+msgstr "klistra in (ersätta)"
 
 #: src/gui/sampleEdit.cpp:1750
 msgid "paste (mix)"
-msgstr ""
+msgstr "klistra in (mix)"
 
 #: src/gui/sampleEdit.cpp:1754 src/gui/gui.cpp:2769
 msgid "select all"
-msgstr ""
+msgstr "välj alla"
 
 #: src/gui/sampleEdit.cpp:1758
 msgid "set loop to selection"
-msgstr ""
+msgstr "Ställ in loop till urval"
 
 #: src/gui/sampleEdit.cpp:1761
 msgid "create wavetable from selection"
-msgstr ""
+msgstr "skapa wavetable från urval"
 
 #: src/gui/sampleEdit.cpp:1767
 msgid "Draw"
-msgstr ""
+msgstr "Rita"
 
 #: src/gui/sampleEdit.cpp:1767
 msgid "Select"
-msgstr ""
+msgstr "Välj"
 
 #: src/gui/sampleEdit.cpp:1769
 #, c-format
 msgid "%d samples, %d bytes"
-msgstr ""
+msgstr "%d samples, %d byte"
 
 #: src/gui/sampleEdit.cpp:1784
 #, c-format
 msgid " (%d-%d: %d samples)"
-msgstr ""
+msgstr " (%d-%d: %d samples)"
 
 #: src/gui/sampleEdit.cpp:1976
 msgid "Non-8/16-bit samples cannot be edited without prior conversion."
-msgstr ""
+msgstr "Samples som inte är 8/16-bit kan inte redigeras utan föregående konvertering."
 
 #: src/gui/newSong.cpp:122 src/gui/newSong.cpp:123
 msgid "Choose a System!"
-msgstr ""
+msgstr "Välj ett system!"
 
 #: src/gui/newSong.cpp:179
 msgid "Categories"
-msgstr ""
+msgstr "Kategorier"
 
 #: src/gui/newSong.cpp:210
 msgid "no systems here yet!"
-msgstr ""
+msgstr "inga system här ännu!"
 
 #: src/gui/newSong.cpp:212
 msgid "no results"
-msgstr ""
+msgstr "inga resultat"
 
 #: src/gui/newSong.cpp:228
 msgid "I'm feeling lucky"
-msgstr ""
+msgstr "Jag har tur"
 
 #: src/gui/newSong.cpp:230
 msgid "no categories available! what in the world."
-msgstr ""
+msgstr "inga kategorier tillgängliga! vad i hela världen."
 
 #: src/gui/newSong.cpp:265
 msgid "it appears you're extremely lucky today!"
-msgstr ""
+msgstr "det verkar som om du har extrem tur i dag!"
 
 #: src/gui/cursor.cpp:205
 #, c-format
 msgid "finish selection: %d.%d,%d - %d.%d,%d"
-msgstr ""
+msgstr "avsluta val: %d.%d,%d - %d.%d,%d"
 
 #: src/gui/tutorial.cpp:487
 msgid ""
@@ -13088,6 +13115,9 @@ msgid ""
 "- Down: Play current song\n"
 "- Up: Play demo songs"
 msgstr ""
+”Spela demolåtar?\n”
+”- Ner: Spela nuvarande låt\n”
+”- Upp: Spela upp demolåtar”
 
 #: src/gui/tutorial.cpp:491
 msgid ""
@@ -13097,14 +13127,19 @@ msgid ""
 "X - Shoot      Arrow Key - Move\n"
 "Z - Special    Esc - Quit"
 msgstr ""
+”Välkommen till stridsfordonet! \n”
+”\n”
+”Kontroller:\n”
+”X - Skjut      Piltangent - Flytta\n"
+”Z - Special    Esc - Avsluta”
 
 #: src/gui/tutorial.cpp:496
 msgid "GAME OVER"
-msgstr ""
+msgstr "SPELET ÄR SLUT"
 
 #: src/gui/tutorial.cpp:498
 msgid "High Score!"
-msgstr ""
+msgstr "Rekord!"
 
 #: src/gui/tutorial.cpp:658
 msgid "Welcome!"
@@ -13113,7 +13148,7 @@ msgstr "Välkommen!"
 #: src/gui/tutorial.cpp:661
 msgid "welcome to Furnace, the biggest open-source chiptune tracker!"
 msgstr ""
-"välkommen till Furnace, den största chiptune-spåraren med öppen källkod!"
+"välkommen till Furnace, den största chiptune-tracker med öppen källkod!"
 
 #: src/gui/tutorial.cpp:665
 msgid "here are some tips to get you started:"
@@ -13171,7 +13206,7 @@ msgstr ""
 #: src/gui/tutorial.cpp:1428
 #, c-format
 msgid "STAGE %d"
-msgstr ""
+msgstr "STEG %d"
 
 #: src/gui/songInfo.cpp:32
 msgid "Song Info##Song Information"
@@ -13212,7 +13247,7 @@ msgstr "Osparade ändringar! Spara ändringar innan du öppnar en annan fil?"
 #: src/gui/doAction.cpp:52
 msgid "Unsaved changes! Save changes before opening backup?"
 msgstr ""
-"Osparade ändringar! Spara ändringar innan du öppnar säkerhetskopiering?"
+"Osparade ändringar! Spara ändringar innan du öppnar upp säkerhetskopieringen?"
 
 #: src/gui/doAction.cpp:62 src/gui/gui.cpp:4237 src/gui/gui.cpp:5025
 #: src/gui/gui.cpp:5063 src/gui/gui.cpp:5069 src/gui/gui.cpp:5657
@@ -13241,27 +13276,27 @@ msgstr "kunde inte klistra! se till att ditt sample är 8 eller 16-bit."
 
 #: src/gui/doAction.cpp:1628
 msgid "select at least one sample!"
-msgstr ""
+msgstr "välj minst en sample!"
 
 #: src/gui/doAction.cpp:1630
 msgid "maximum size is 256 samples!"
-msgstr ""
+msgstr "maximal storlek är 256 samples!"
 
 #: src/gui/csPlayer.cpp:113
 msgid "Load"
-msgstr ""
+msgstr "Ladda"
 
 #: src/gui/csPlayer.cpp:117
 msgid "Kill"
-msgstr ""
+msgstr "Döda"
 
 #: src/gui/csPlayer.cpp:119
 msgid "Kikai wa mou shindeiru!"
-msgstr ""
+msgstr "Kikai wa mou shindeiru!"
 
 #: src/gui/csPlayer.cpp:123
 msgid "Burn Current Song"
-msgstr ""
+msgstr "Bränn nuvarande låt"
 
 #: src/gui/csPlayer.cpp:141
 msgid "Status"
@@ -13269,7 +13304,7 @@ msgstr "Status"
 
 #: src/gui/csPlayer.cpp:148
 msgid "start"
-msgstr ""
+msgstr "starta"
 
 #: src/gui/csPlayer.cpp:150
 msgid "PC"
@@ -13281,23 +13316,23 @@ msgstr "vänta"
 
 #: src/gui/csPlayer.cpp:154
 msgid "SP"
-msgstr ""
+msgstr "SP"
 
 #: src/gui/csPlayer.cpp:156 src/gui/insEdit.cpp:2733
 msgid "note"
-msgstr ""
+msgstr "not"
 
 #: src/gui/csPlayer.cpp:158 src/gui/insEdit.cpp:2728
 msgid "pitch"
-msgstr ""
+msgstr "tonhöjd"
 
 #: src/gui/csPlayer.cpp:160
 msgid "vol"
-msgstr ""
+msgstr "vol"
 
 #: src/gui/csPlayer.cpp:162
 msgid "vols"
-msgstr ""
+msgstr "vols"
 
 #: src/gui/csPlayer.cpp:164
 msgid "vib"
@@ -13313,11 +13348,11 @@ msgstr "arp"
 
 #: src/gui/csPlayer.cpp:203
 msgid "Trace"
-msgstr ""
+msgstr "Spåra"
 
 #: src/gui/csPlayer.cpp:244
 msgid "Disassemble"
-msgstr ""
+msgstr "Demontera"
 
 #: src/gui/gui.cpp:1136 src/gui/gui.cpp:1140
 msgid "the song is over!"
@@ -13331,7 +13366,7 @@ msgstr "Öppna fil"
 #: src/gui/gui.cpp:1953 src/gui/gui.cpp:1962 src/gui/gui.cpp:1971
 #: src/gui/gui.cpp:2073 src/gui/gui.cpp:2093 src/gui/gui.cpp:2111
 msgid "compatible files"
-msgstr ""
+msgstr "kompatibla filer"
 
 #: src/gui/gui.cpp:1669 src/gui/gui.cpp:1743 src/gui/gui.cpp:1799
 #: src/gui/gui.cpp:1839 src/gui/gui.cpp:1851 src/gui/gui.cpp:1870
@@ -13342,11 +13377,11 @@ msgstr "alla filer"
 
 #: src/gui/gui.cpp:1676
 msgid "no backups made yet!"
-msgstr ""
+msgstr "inga säkerhetskopior gjorda ännu!"
 
 #: src/gui/gui.cpp:1681 src/gui/gui.cpp:1690 src/gui/gui.cpp:2130
 msgid "Furnace song"
-msgstr ""
+msgstr "Furnace-låt"
 
 #: src/gui/gui.cpp:1689
 msgid "Save File"
@@ -13358,19 +13393,19 @@ msgstr "Exportera DMF"
 
 #: src/gui/gui.cpp:1699
 msgid "DefleMask 1.1.3 module"
-msgstr ""
+msgstr "DefleMask 1.1.3 modul"
 
 #: src/gui/gui.cpp:1709
 msgid "DefleMask 1.0/legacy module"
-msgstr ""
+msgstr "DefleMask 1.0/föråldrad modul"
 
 #: src/gui/gui.cpp:1726
 msgid "Load Instrument"
-msgstr ""
+msgstr "Ladda instrument"
 
 #: src/gui/gui.cpp:1727
 msgid "all compatible files"
-msgstr ""
+msgstr "alla kompatibla filer"
 
 #: src/gui/gui.cpp:1728 src/gui/gui.cpp:1777
 msgid "Furnace instrument"
@@ -13378,190 +13413,190 @@ msgstr "Furnace-instrument"
 
 #: src/gui/gui.cpp:1729 src/gui/gui.cpp:1787
 msgid "DefleMask preset"
-msgstr ""
+msgstr "DefleMask-förinställning"
 
 #: src/gui/gui.cpp:1730
 msgid "TFM Music Maker instrument"
-msgstr ""
+msgstr "TFM Music Maker-instrument"
 
 #: src/gui/gui.cpp:1731
 msgid "VGM Music Maker instrument"
-msgstr ""
+msgstr "VGM Music Maker-instrument"
 
 #: src/gui/gui.cpp:1732
 msgid "Scream Tracker 3 instrument"
-msgstr ""
+msgstr "Scream Tracker 3-instrument"
 
 #: src/gui/gui.cpp:1733
 msgid "SoundBlaster instrument"
-msgstr ""
+msgstr "SoundBlaster-instrument"
 
 #: src/gui/gui.cpp:1734
 msgid "Wohlstand OPL instrument"
-msgstr ""
+msgstr "Wohlstand OPL-instrument"
 
 #: src/gui/gui.cpp:1735
 msgid "Wohlstand OPN instrument"
-msgstr ""
+msgstr "Wohlstand OPN-instrument"
 
 #: src/gui/gui.cpp:1736
 msgid "Gens KMod patch dump"
-msgstr ""
+msgstr "Gens KMod patchdumpning"
 
 #: src/gui/gui.cpp:1737
 msgid "BNK file (AdLib)"
-msgstr ""
+msgstr "BNK fil (AdLib)"
 
 #: src/gui/gui.cpp:1738
 msgid "FF preset bank"
-msgstr ""
+msgstr "FF förinställningsbank"
 
 #: src/gui/gui.cpp:1739
 msgid "2612edit GYB preset bank"
-msgstr ""
+msgstr "2612edit GYB förinställningsbank"
 
 #: src/gui/gui.cpp:1740
 msgid "VOPM preset bank"
-msgstr ""
+msgstr "VOPM förinställningsbank"
 
 #: src/gui/gui.cpp:1741
 msgid "Wohlstand WOPL bank"
-msgstr ""
+msgstr "Wohlstand WOPL-bank"
 
 #: src/gui/gui.cpp:1742
 msgid "Wohlstand WOPN bank"
-msgstr ""
+msgstr "Wohlstand WOPN-bank"
 
 #: src/gui/gui.cpp:1776 src/gui/gui.cpp:1786
 msgid "Save Instrument"
-msgstr ""
+msgstr "Spara instrument"
 
 #: src/gui/gui.cpp:1797
 msgid "Load Wavetable"
-msgstr ""
+msgstr "Ladda wavetable"
 
 #: src/gui/gui.cpp:1809 src/gui/gui.cpp:1818 src/gui/gui.cpp:1827
 msgid "Save Wavetable"
-msgstr ""
+msgstr "Spara wavetable"
 
 #: src/gui/gui.cpp:1810
 msgid "Furnace wavetable"
-msgstr ""
+msgstr "Furnace-wavetable"
 
 #: src/gui/gui.cpp:1819
 msgid "DefleMask wavetable"
-msgstr ""
+msgstr "DefleMask-wavetable"
 
 #: src/gui/gui.cpp:1828
 msgid "raw data"
-msgstr ""
+msgstr "rådata"
 
 #: src/gui/gui.cpp:1837
 msgid "Load Sample"
-msgstr ""
+msgstr "Ladda sample"
 
 #: src/gui/gui.cpp:1850
 msgid "Load Raw Sample"
-msgstr ""
+msgstr "Ladda råsample"
 
 #: src/gui/gui.cpp:1859
 msgid "Save Sample"
-msgstr ""
+msgstr "Spara sample"
 
 #: src/gui/gui.cpp:1860 src/gui/gui.cpp:1880 src/gui/gui.cpp:1890
 #: src/gui/gui.cpp:1900
 msgid "Wave file"
-msgstr ""
+msgstr "Vågfil"
 
 #: src/gui/gui.cpp:1869
 msgid "Save Raw Sample"
-msgstr ""
+msgstr "Spara råsample"
 
 #: src/gui/gui.cpp:1879 src/gui/gui.cpp:1889 src/gui/gui.cpp:1899
 msgid "Export Audio"
-msgstr ""
+msgstr "Exportera ljud"
 
 #: src/gui/gui.cpp:1909
 msgid "Export VGM"
-msgstr ""
+msgstr "Exportera VGM"
 
 #: src/gui/gui.cpp:1910
 msgid "VGM file"
-msgstr ""
+msgstr "VGM-fil"
 
 #: src/gui/gui.cpp:1919
 msgid "Export ZSM"
-msgstr ""
+msgstr "Exportera ZSM"
 
 #: src/gui/gui.cpp:1920
 msgid "ZSM file"
-msgstr ""
+msgstr "ZSM-fil"
 
 #: src/gui/gui.cpp:1929 src/gui/gui.cpp:1939
 msgid "Export Command Stream"
-msgstr ""
+msgstr "Exportera kommandoström"
 
 #: src/gui/gui.cpp:1930
 msgid "text file"
-msgstr ""
+msgstr "textfil"
 
 #: src/gui/gui.cpp:1940
 msgid "binary file"
-msgstr ""
+msgstr "binärfil"
 
 #: src/gui/gui.cpp:1947 src/gui/gui.cpp:5376
 msgid "Coming soon!"
-msgstr ""
+msgstr "Kommer snart!"
 
 #: src/gui/gui.cpp:1952 src/gui/gui.cpp:1961 src/gui/gui.cpp:1970
 msgid "Select Font"
-msgstr ""
+msgstr "Välj teckensnitt"
 
 #: src/gui/gui.cpp:1979
 msgid "Select Color File"
-msgstr ""
+msgstr "Välj färgfil"
 
 #: src/gui/gui.cpp:1980 src/gui/gui.cpp:1989 src/gui/gui.cpp:2008
 #: src/gui/gui.cpp:2017 src/gui/gui.cpp:2026 src/gui/gui.cpp:2035
 #: src/gui/gui.cpp:2053 src/gui/gui.cpp:2062
 msgid "configuration files"
-msgstr ""
+msgstr "konfigurationsfiler"
 
 #: src/gui/gui.cpp:1988
 msgid "Select Keybind File"
-msgstr ""
+msgstr "Välj tangentbindningsfil"
 
 #: src/gui/gui.cpp:1997
 msgid "Select Layout File"
-msgstr ""
+msgstr "Välj layoutfil"
 
 #: src/gui/gui.cpp:1998 src/gui/gui.cpp:2044
 msgid ".ini files"
-msgstr ""
+msgstr ".ini filer"
 
 #: src/gui/gui.cpp:2007
 msgid "Select User Presets File"
-msgstr ""
+msgstr Välj fil för användarförinställningar"
 
 #: src/gui/gui.cpp:2016
 msgid "Select Settings File"
-msgstr ""
+msgstr "Välj inställningsfil"
 
 #: src/gui/gui.cpp:2025
 msgid "Export Colors"
-msgstr ""
+msgstr "Exportera färger"
 
 #: src/gui/gui.cpp:2034
 msgid "Export Keybinds"
-msgstr ""
+msgstr "Exportera tangentbindningar"
 
 #: src/gui/gui.cpp:2043
 msgid "Export Layout"
-msgstr ""
+msgstr "Exportera layout"
 
 #: src/gui/gui.cpp:2052
 msgid "Export User Presets"
-msgstr ""
+msgstr "Exportera användarförinställningar"
 
 #: src/gui/gui.cpp:2061
 msgid "Export Settings"
@@ -13569,31 +13604,31 @@ msgstr "Exportera inställningar"
 
 #: src/gui/gui.cpp:2072
 msgid "Load ROM"
-msgstr ""
+msgstr "Ladda ROM"
 
 #: src/gui/gui.cpp:2082
 msgid "Play Command Stream"
-msgstr ""
+msgstr "Spela upp kommandoström"
 
 #: src/gui/gui.cpp:2083
 msgid "command stream"
-msgstr ""
+msgstr "kommandoström"
 
 #: src/gui/gui.cpp:2092
 msgid "Open Test"
-msgstr ""
+msgstr "Öppna test"
 
 #: src/gui/gui.cpp:2094 src/gui/gui.cpp:2112
 msgid "another option"
-msgstr ""
+msgstr "annat alternativ"
 
 #: src/gui/gui.cpp:2110
 msgid "Open Test (Multi)"
-msgstr ""
+msgstr "Öppna text (multi)"
 
 #: src/gui/gui.cpp:2129
 msgid "Save Test"
-msgstr ""
+msgstr "Spara test"
 
 #: src/gui/gui.cpp:2131
 msgid "DefleMask module"
@@ -13601,15 +13636,15 @@ msgstr "DefleMask-modul"
 
 #: src/gui/gui.cpp:2171
 msgid "compression error"
-msgstr ""
+msgstr "kompressionsfel"
 
 #: src/gui/gui.cpp:2183
 msgid "zlib stream error"
-msgstr ""
+msgstr "fel i zlib-ström"
 
 #: src/gui/gui.cpp:2205
 msgid "zlib finish stream error"
-msgstr ""
+msgstr "fel i zlib-ströms avslutning"
 
 #: src/gui/gui.cpp:2316
 msgid "everything OK"
@@ -13623,6 +13658,11 @@ msgid ""
 "DO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\n"
 "Furnace will not save backups of backups."
 msgstr ""
+”Du har laddat en säkerhetskopia!”
+”Om du behöver, spara den någonstans.\n”
+”\n”
+”FÖRLITA DIG EJ PÅ BACKUP-SYSTEMET FÖR AUTO-SPARANDE!\n”
+”Furnace sparar inte säkerhetskopior av säkerhetskopior.”
 
 #: src/gui/gui.cpp:2342 src/gui/gui.cpp:3743 src/gui/gui.cpp:4213
 msgid "Unsaved changes! Save changes before opening file?"
@@ -13630,19 +13670,19 @@ msgstr "Osparade ändringar! Spara ändringar innan du öppnar filen?"
 
 #: src/gui/gui.cpp:2736
 msgid "paste special..."
-msgstr ""
+msgstr "klistra in special..."
 
 #: src/gui/gui.cpp:2737
 msgid "paste mix"
-msgstr ""
+msgstr "klistra in mix"
 
 #: src/gui/gui.cpp:2738
 msgid "paste mix (background)"
-msgstr ""
+msgstr "klistra in (bakgrund)"
 
 #: src/gui/gui.cpp:2739
 msgid "paste with ins (foreground)"
-msgstr ""
+msgstr "klistra in med ins. (förgrund)"
 
 #: src/gui/gui.cpp:2741 src/gui/gui.cpp:2753 src/gui/gui.cpp:2963
 msgid "no instruments available"
@@ -13650,65 +13690,67 @@ msgstr "inga instrument tillgängliga"
 
 #: src/gui/gui.cpp:2751
 msgid "paste with ins (background)"
-msgstr ""
+msgstr "klistra in med ins. (bakgrund)"
 
 #: src/gui/gui.cpp:2763
 msgid "paste flood"
-msgstr ""
+msgstr "klistra in flöd"
 
 #: src/gui/gui.cpp:2764
 msgid "paste overflow"
-msgstr ""
+msgstr "klistra in överflöd"
 
 #: src/gui/gui.cpp:2773
 msgid "operation mask..."
-msgstr ""
+msgstr "operationsmask..."
 
 #: src/gui/gui.cpp:2780
 msgid "pull delete"
-msgstr ""
+msgstr "dra radera"
 
 #: src/gui/gui.cpp:2784
 msgid "insert"
-msgstr ""
+msgstr "infoga"
 
 #: src/gui/gui.cpp:2792
 msgid "transpose (note)"
-msgstr ""
+msgstr "transponering (not)"
 
 #: src/gui/gui.cpp:2796
 msgid "transpose (value)"
-msgstr ""
+msgstr "transponering (värde)"
 
 #: src/gui/gui.cpp:2808 src/gui/gui.cpp:3052
 msgid "invert values"
-msgstr ""
+msgstr "invertera värden"
 
 #: src/gui/gui.cpp:2824
 msgid "collapse/expand"
-msgstr ""
+msgstr "förminska/expandera"
 
 #: src/gui/gui.cpp:2829
 msgid "input latch"
-msgstr ""
+msgstr "ingångsspärr"
 
 #: src/gui/gui.cpp:2856
 msgid ""
 "&&: selected instrument\n"
 "..: no instrument"
 msgstr ""
+”&&: valt instrument\n”
+”...: inget instrument”
 
 #: src/gui/gui.cpp:2910
 msgid "Set"
-msgstr ""
+msgstr "Ställ in"
 
 #: src/gui/gui.cpp:2930
 msgid "note up"
-msgstr ""
+msgstr "not upp"
 
 #: src/gui/gui.cpp:2931
 msgid "note down"
-msgstr ""
+msgstr "not ner"
 
 #: src/gui/gui.cpp:2932
 msgid "octave up"
@@ -13736,11 +13778,11 @@ msgstr "värden ner (-16)"
 
 #: src/gui/gui.cpp:2941
 msgid "transpose"
-msgstr ""
+msgstr "transponera"
 
 #: src/gui/gui.cpp:2949
 msgid "Notes"
-msgstr ""
+msgstr "Anteckningar"
 
 #: src/gui/gui.cpp:2954
 msgid "Values"
@@ -13752,15 +13794,15 @@ msgstr "byt instrument..."
 
 #: src/gui/gui.cpp:2974
 msgid "gradient/fade..."
-msgstr ""
+msgstr "gradient/toning..."
 
 #: src/gui/gui.cpp:2991 src/gui/gui.cpp:3036
 msgid "Nibble mode"
-msgstr ""
+msgstr "Nibble-läge"
 
 #: src/gui/gui.cpp:3000
 msgid "Go ahead"
-msgstr ""
+msgstr "Fortsätt"
 
 #: src/gui/gui.cpp:3006 src/gui/insEdit.cpp:7604
 msgid "scale..."
@@ -13784,27 +13826,27 @@ msgstr "Minimum"
 
 #: src/gui/gui.cpp:3056
 msgid "flip selection"
-msgstr ""
+msgstr "vända val"
 
 #: src/gui/gui.cpp:3059
 msgid "collapse/expand amount##CollapseAmount"
-msgstr ""
+msgstr "förminska/expandera belopp"
 
 #: src/gui/gui.cpp:3068
 msgid "collapse pattern"
-msgstr ""
+msgstr "förminska mönstret"
 
 #: src/gui/gui.cpp:3069
 msgid "expand pattern"
-msgstr ""
+msgstr "expandera mönstret"
 
 #: src/gui/gui.cpp:3074
 msgid "collapse song"
-msgstr ""
+msgstr "förminska låten"
 
 #: src/gui/gui.cpp:3075
 msgid "expand song"
-msgstr ""
+msgstr "expandera låten"
 
 #: src/gui/gui.cpp:3080
 msgid "find/replace"
@@ -13813,12 +13855,12 @@ msgstr "hitta/ersätta"
 #: src/gui/gui.cpp:3094 src/gui/gui.cpp:5807 src/gui/gui.cpp:7362
 #, c-format
 msgid "could NOT save layout! %s"
-msgstr ""
+msgstr "kunde EJ spara layouten! %s"
 
 #: src/gui/gui.cpp:3106
 #, c-format
 msgid "could NOT load layout! %s"
-msgstr ""
+msgstr "kunde EJ ladda layouten!"
 
 #: src/gui/gui.cpp:3568
 msgid ""
@@ -13832,87 +13874,96 @@ msgid ""
 "check any settings which may have made Furnace start up in this mode.\n"
 "font loading is one of these."
 msgstr ""
+”Furnace har startats i felsäkert läge.\n”
+”Det betyder att:\n”
+”\n”
+”- rendering av programvara används\n”
+”- ljudutgång kanske inte fungerar\n”
+”- inläsning av teckensnitt är inaktiverad\n”
+”\n”
+”kontrollera eventuella inställningar som kan ha gjort att Furnace startade i detta läge.”
+”inläsning av teckensnitt är en av dessa.”
 
 #: src/gui/gui.cpp:4053
 msgid "can't keep going without graphics! Furnace will quit now."
-msgstr ""
+msgstr "kan ej fortsätta utan grafik! Furnace kommer att sluta nu."
 
 #: src/gui/gui.cpp:4191
 msgid "file"
-msgstr ""
+msgstr "arkiv"
 
 #: src/gui/gui.cpp:4192
 msgid "new..."
-msgstr ""
+msgstr "ny..."
 
 #: src/gui/gui.cpp:4199
 msgid "open..."
-msgstr ""
+msgstr "öppna..."
 
 #: src/gui/gui.cpp:4206
 msgid "open recent"
-msgstr ""
+msgstr "öppna senaste"
 
 #: src/gui/gui.cpp:4222
 msgid "nothing here yet"
-msgstr ""
+msgstr "ingenting här ännu"
 
 #: src/gui/gui.cpp:4225
 msgid "clear history"
-msgstr ""
+msgstr "rensa historik"
 
 #: src/gui/gui.cpp:4226
 msgid "Are you sure you want to clear the recent file list?"
-msgstr ""
+msgstr "Är du säker på att du vill rensa listan över senaste filer?"
 
 #: src/gui/gui.cpp:4241
 msgid "save as..."
-msgstr ""
+msgstr "spara som..."
 
 #: src/gui/gui.cpp:4246 src/gui/gui.cpp:4287
 msgid "export audio..."
-msgstr ""
+msgstr "exportera ljud..."
 
 #: src/gui/gui.cpp:4250 src/gui/gui.cpp:4291
 msgid "export VGM..."
-msgstr ""
+msgstr "exportera VGM..."
 
 #: src/gui/gui.cpp:4259 src/gui/gui.cpp:4300
 msgid "export ZSM..."
-msgstr ""
+msgstr "exportera ZSM..."
 
 #: src/gui/gui.cpp:4269 src/gui/gui.cpp:4310
 msgid "export Amiga validation data..."
-msgstr ""
+msgstr "exportera valideringsdata för Amiga..."
 
 #: src/gui/gui.cpp:4274 src/gui/gui.cpp:4315
 msgid "export text..."
-msgstr ""
+msgstr "exportera text..."
 
 #: src/gui/gui.cpp:4278 src/gui/gui.cpp:4319
 msgid "export command stream..."
-msgstr ""
+msgstr "exportera kommandoström..."
 
 #: src/gui/gui.cpp:4282 src/gui/gui.cpp:4323
 msgid "export .dmf..."
-msgstr ""
+msgstr "exportera .dmf..."
 
 #: src/gui/gui.cpp:4328
 msgid "export..."
-msgstr ""
+msgstr "exportera..."
 
 #: src/gui/gui.cpp:4334
 msgid "manage chips"
-msgstr ""
+msgstr "hantera chips"
 
 #: src/gui/gui.cpp:4338
 msgid "add chip..."
-msgstr ""
+msgstr "hantera chip..."
 
 #: src/gui/gui.cpp:4343 src/gui/sysManager.cpp:138
 #, c-format
 msgid "cannot add chip! (%s)"
-msgstr ""
+msgstr "kan ej lägga till chip! (%s)"
 
 #: src/gui/gui.cpp:4355
 msgid "configure chip..."
@@ -13929,7 +13980,7 @@ msgstr "Bevara kanalpositioner"
 #: src/gui/gui.cpp:4379 src/gui/sysManager.cpp:109
 #, c-format
 msgid "cannot change chip! (%s)"
-msgstr "kan inte byta chip! (%s)"
+msgstr "kan ej byta chip! (%s)"
 
 #: src/gui/gui.cpp:4388
 msgid "remove chip..."
@@ -13938,7 +13989,7 @@ msgstr "ta bort chip..."
 #: src/gui/gui.cpp:4394
 #, c-format
 msgid "cannot remove chip! (%s)"
-msgstr "kan inte ta bort chip! (%s)"
+msgstr "kan ej ta bort chip! (%s)"
 
 #: src/gui/gui.cpp:4408
 msgid "open built-in assets directory"
@@ -13950,7 +14001,7 @@ msgstr "återställa säkerhetskopia"
 
 #: src/gui/gui.cpp:4418
 msgid "exit..."
-msgstr ""
+msgstr "avsluta..."
 
 #: src/gui/gui.cpp:4426
 msgid "edit"
@@ -13966,27 +14017,27 @@ msgstr "inställningar"
 
 #: src/gui/gui.cpp:4441
 msgid "full screen"
-msgstr ""
+msgstr "helskärm"
 
 #: src/gui/gui.cpp:4445
 msgid "lock layout"
-msgstr ""
+msgstr "låsa layouten"
 
 #: src/gui/gui.cpp:4448
 msgid "pattern visualizer"
-msgstr ""
+msgstr "mönstervisualiserare"
 
 #: src/gui/gui.cpp:4454
 msgid "reset layout"
-msgstr ""
+msgstr "återställ layout"
 
 #: src/gui/gui.cpp:4458
 msgid "switch to mobile view"
-msgstr ""
+msgstr "växla till mobilvy"
 
 #: src/gui/gui.cpp:4462
 msgid "user systems..."
-msgstr ""
+msgstr "användarsystem..."
 
 #: src/gui/gui.cpp:4465
 msgid "settings..."
@@ -14010,35 +14061,35 @@ msgstr "låtkommentar"
 
 #: src/gui/gui.cpp:4474
 msgid "song information"
-msgstr ""
+msgstr "låtinformation"
 
 #: src/gui/gui.cpp:4475
 msgid "subsongs"
-msgstr ""
+msgstr "underlåtar"
 
 #: src/gui/gui.cpp:4477
 msgid "channels"
-msgstr ""
+msgstr "kanaler"
 
 #: src/gui/gui.cpp:4478
 msgid "chip manager"
-msgstr ""
+msgstr "chiphanteraren"
 
 #: src/gui/gui.cpp:4479
 msgid "orders"
-msgstr ""
+msgstr "orders"
 
 #: src/gui/gui.cpp:4481
 msgid "pattern manager"
-msgstr ""
+msgstr "mönsterhenteraren"
 
 #: src/gui/gui.cpp:4482
 msgid "mixer"
-msgstr ""
+msgstr "mixer"
 
 #: src/gui/gui.cpp:4483
 msgid "compatibility flags"
-msgstr ""
+msgstr "kompatibilitetsflaggor"
 
 #: src/gui/gui.cpp:4486 src/gui/gui.cpp:4488
 msgid "assets"
@@ -14046,55 +14097,55 @@ msgstr "tillgångar"
 
 #: src/gui/gui.cpp:4490
 msgid "instruments"
-msgstr ""
+msgstr "instrument"
 
 #: src/gui/gui.cpp:4491
 msgid "samples"
-msgstr ""
+msgstr "samples"
 
 #: src/gui/gui.cpp:4492
 msgid "wavetables"
-msgstr ""
+msgstr "wavetables"
 
 #: src/gui/gui.cpp:4495
 msgid "instrument editor"
-msgstr ""
+msgstr "instrumentredigeraren"
 
 #: src/gui/gui.cpp:4496
 msgid "sample editor"
-msgstr ""
+msgstr "sampleredigeraren"
 
 #: src/gui/gui.cpp:4497
 msgid "wavetable editor"
-msgstr ""
+msgstr "wavetable-redigeraren"
 
 #: src/gui/gui.cpp:4500
 msgid "visualizers"
-msgstr ""
+msgstr "visualiseringar"
 
 #: src/gui/gui.cpp:4501
 msgid "oscilloscope (master)"
-msgstr ""
+msgstr "oscilloskop (master)"
 
 #: src/gui/gui.cpp:4502
 msgid "oscilloscope (per-channel)"
-msgstr ""
+msgstr "oscilloskop (per-kanal)"
 
 #: src/gui/gui.cpp:4503
 msgid "oscilloscope (X-Y)"
-msgstr ""
+msgstr "oscilloskop (X-Y)"
 
 #: src/gui/gui.cpp:4504
 msgid "volume meter"
-msgstr ""
+msgstr "volymmätare"
 
 #: src/gui/gui.cpp:4507
 msgid "tempo"
-msgstr ""
+msgstr "tempo"
 
 #: src/gui/gui.cpp:4508
 msgid "clock"
-msgstr ""
+msgstr "klocka"
 
 #: src/gui/gui.cpp:4509
 msgid "grooves"
@@ -14106,172 +14157,172 @@ msgstr "hastighet"
 
 #: src/gui/gui.cpp:4514
 msgid "log viewer"
-msgstr ""
+msgstr "loggvisare"
 
 #: src/gui/gui.cpp:4515
 msgid "register view"
-msgstr ""
+msgstr "registervy"
 
 #: src/gui/gui.cpp:4516
 msgid "statistics"
-msgstr ""
+msgstr "statistik"
 
 #: src/gui/gui.cpp:4517
 msgid "memory composition"
-msgstr ""
+msgstr "minneskomposition"
 
 #: src/gui/gui.cpp:4521 src/gui/gui.cpp:4529
 msgid "effect list"
-msgstr ""
+msgstr "effektlista"
 
 #: src/gui/gui.cpp:4522
 msgid "play/edit controls"
-msgstr ""
+msgstr "kontroller för uppspelning/redigering"
 
 #: src/gui/gui.cpp:4523
 msgid "piano/input pad"
-msgstr ""
+msgstr "piano/inmatningsplatta"
 
 #: src/gui/gui.cpp:4524
 msgid "spoiler"
-msgstr ""
+msgstr "spoiler"
 
 #: src/gui/gui.cpp:4528
 msgid "Help"
-msgstr ""
+msgstr "Hjälp"
 
 #: src/gui/gui.cpp:4528
 msgid "help"
-msgstr ""
+msgstr "hjälp"
 
 #: src/gui/gui.cpp:4530
 msgid "debug menu"
-msgstr ""
+msgstr "felsökningsmeny"
 
 #: src/gui/gui.cpp:4531
 msgid "inspector"
-msgstr ""
+msgstr "inspektör"
 
 #: src/gui/gui.cpp:4532
 msgid "panic"
-msgstr ""
+msgstr "panik..."
 
 #: src/gui/gui.cpp:4533
 msgid "about..."
-msgstr ""
+msgstr "om..."
 
 #: src/gui/gui.cpp:4548
 #, c-format
 msgid "| Speed %d:%d"
-msgstr ""
+msgstr "| Hastighet %d:%d"
 
 #: src/gui/gui.cpp:4550
 #, c-format
 msgid "| Speed %d"
-msgstr ""
+msgstr "| Hastighet %d"
 
 #: src/gui/gui.cpp:4552
 msgid "| Groove"
-msgstr ""
+msgstr "| Groove"
 
 #: src/gui/gui.cpp:4555
 #, c-format
 msgid " @ %gHz (%g BPM) "
-msgstr ""
+msgstr " @ %gHz (%g BPM) "
 
 #: src/gui/gui.cpp:4558
 #, c-format
 msgid "| Order %.2X/%.2X "
-msgstr ""
+msgstr "| Order %.2X/%.2X "
 
 #: src/gui/gui.cpp:4560
 #, c-format
 msgid "| Order %d/%d "
-msgstr ""
+msgstr "| Order %d/%d "
 
 #: src/gui/gui.cpp:4564
 #, c-format
 msgid "| Row %.2X/%.2X "
-msgstr ""
+msgstr "| Rad %.2X/%.2X "
 
 #: src/gui/gui.cpp:4566
 #, c-format
 msgid "| Row %d/%d "
-msgstr ""
+msgstr "| Rad %d/%d "
 
 #: src/gui/gui.cpp:4569
 msgid "| "
-msgstr ""
+msgstr "| "
 
 #: src/gui/gui.cpp:4572
 msgid "Don't you have anything better to do?"
-msgstr ""
+msgstr "Har du ingenting bättre att göra?"
 
 #: src/gui/gui.cpp:4582
 #, c-format
 msgid "%d year "
 msgid_plural "%d years "
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d år "
+msgstr[1] "%d år "
 
 #: src/gui/gui.cpp:4583
 #, c-format
 msgid "%d month "
 msgid_plural "%d months "
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d månad "
+msgstr[1] "%d månader "
 
 #: src/gui/gui.cpp:4584
 #, c-format
 msgid "%d day "
 msgid_plural "%d days "
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d dag "
+msgstr[1] "%d dagar "
 
 #: src/gui/gui.cpp:4609
 msgid "Note off (cut)"
-msgstr ""
+msgstr "Not av (klipp)"
 
 #: src/gui/gui.cpp:4611
 msgid "Note off (release)"
-msgstr ""
+msgstr "Not av (release)"
 
 #: src/gui/gui.cpp:4613
 msgid "Macro release only"
-msgstr ""
+msgstr "Endast makrorelease"
 
 #: src/gui/gui.cpp:4615
 #, c-format
 msgid "Note on: %s"
-msgstr ""
+msgstr "Not på: %s"
 
 #: src/gui/gui.cpp:4623
 #, c-format
 msgid "Ins %d: <invalid>"
-msgstr ""
+msgstr "Ins %d: <ogiltigt>"
 
 #: src/gui/gui.cpp:4626
 #, c-format
 msgid "Ins %d: %s"
-msgstr ""
+msgstr "Ins %d: %s"
 
 #: src/gui/gui.cpp:4635
 #, c-format
 msgid "Set volume: %d (%.2X, INVALID!)"
-msgstr ""
+msgstr "Ställ in volym: %d (%.2X, OGILTIG!)"
 
 #: src/gui/gui.cpp:4638
 #, c-format
 msgid "Set volume: %d (%.2X, %d%%)"
-msgstr ""
+msgstr "Set volume: %d (%.2X, %d%%)"
 
 #: src/gui/gui.cpp:4660
 msgid "| modified"
-msgstr ""
+msgstr "| modifierad"
 
 #: src/gui/gui.cpp:4825 src/gui/gui.cpp:4828
 msgid "System File Dialog Pending"
-msgstr ""
+msgstr "Dialogrutan för systemfiler väntar"
 
 #: src/gui/gui.cpp:4941
 msgid ""
@@ -14282,10 +14333,16 @@ msgid ""
 "\n"
 "for now please disable the system file picker in Settings > General."
 msgstr ""
+”det uppstod ett fel i fildialogen! du kanske vill rapportera detta problem ”
+”till:\n”
+”https://github.com/tildearrow/furnace/issues\n”
+”kolla loggvisaren (fönster > loggvisare) för mer information.\n”
+”\n”
+”för tillfället vänligen inaktivera systemfilväljaren i Inställningar > Allmänt.”
 
 #: src/gui/gui.cpp:4944
 msgid "can't do anything without Storage permissions!"
-msgstr ""
+msgstr "kan ej göra något utan lagringsbehörighet!"
 
 #: src/gui/gui.cpp:4946
 msgid ""
@@ -14293,6 +14350,9 @@ msgid ""
 "please install one of these, or disable the system file picker in Settings > "
 "General."
 msgstr ""
+”Zenity/KDialog ej tillgänglig!\n”
+”installera en av dessa, eller inaktivera systemfilväljaren i Inställningar > ”
+”Allmänt.”
 
 #: src/gui/gui.cpp:5082
 msgid ""
@@ -14307,6 +14367,16 @@ msgid ""
 "- FM (OPLL)\n"
 "- FDS"
 msgstr ""
+”fel när du sparar instrument! endast följande instrumenttyper ”
+”stöds:\n”
+”- FM (OPN)\n”
+”- SN76489/Sega PSG\n”
+”- Game Boy\n”
+”- PC Engine\n”
+”- NES\n”
+”- C64\n”
+”- FM (OPLL)\n”
+”- FDS”
 
 #: src/gui/gui.cpp:5110
 msgid "there were some errors while loading samples:\n"
@@ -14362,36 +14432,36 @@ msgstr "...men du har inte valt ett wavetable!"
 #: src/gui/gui.cpp:5342 src/gui/gui.cpp:5363 src/gui/gui.cpp:5387
 #: src/gui/gui.cpp:5408
 msgid "could not open file!"
-msgstr ""
+msgstr "kunde ej öppna filen!"
 
 #: src/gui/gui.cpp:5350
 #, c-format
 msgid "could not write VGM! (%s)"
-msgstr ""
+msgstr "kunde ej skriva VGM! (%s)"
 
 #: src/gui/gui.cpp:5371
 #, c-format
 msgid "Could not write ZSM! (%s)"
-msgstr ""
+msgstr "kunde ej skriva ZSM! (%s)"
 
 #: src/gui/gui.cpp:5395
 #, c-format
 msgid "could not write text! (%s)"
-msgstr ""
+msgstr "kunde ej skriva text! (%s)"
 
 #: src/gui/gui.cpp:5416
 #, c-format
 msgid "could not write command stream! (%s)"
-msgstr ""
+msgstr "kunde ej skriva kommandoström! (%s)"
 
 #: src/gui/gui.cpp:5440
 msgid "could not import user presets!"
-msgstr ""
+msgstr "kunde inte importera användarinställningar!"
 
 #: src/gui/gui.cpp:5445 src/gui/gui.cpp:5462
 #, c-format
 msgid "could not import user presets! (%s)"
-msgstr ""
+msgstr "kunde inte importera användarinställningar! (%s)"
 
 #: src/gui/gui.cpp:5483
 #, c-format
@@ -14422,24 +14492,24 @@ msgstr "Välj instrument"
 
 #: src/gui/gui.cpp:5525 src/gui/gui.cpp:6256 src/gui/gui.cpp:6257
 msgid "Import Raw Sample"
-msgstr ""
+msgstr "Importera råsample"
 
 #: src/gui/gui.cpp:5540 src/gui/gui.cpp:5593 src/gui/gui.cpp:5594
 msgid "Rendering..."
-msgstr ""
+msgstr "Renderar..."
 
 #: src/gui/gui.cpp:5595
 msgid "Please wait..."
-msgstr ""
+msgstr "Vänligen vänta..."
 
 #: src/gui/gui.cpp:5596
 msgid "Abort"
-msgstr ""
+msgstr "Avbryta"
 
 #: src/gui/gui.cpp:5638
 #, c-format
 msgid "%s"
-msgstr ""
+msgstr "%s"
 
 #: src/gui/gui.cpp:5650 src/gui/gui.cpp:5674 src/gui/gui.cpp:5698
 #: src/gui/gui.cpp:5722 src/gui/gui.cpp:5746 src/gui/gui.cpp:5770
@@ -14447,51 +14517,51 @@ msgstr ""
 #: src/gui/gui.cpp:5841 src/gui/gui.cpp:5995 src/gui/gui.cpp:6017
 #: src/gui/gui.cpp:6032 src/gui/gui.cpp:6043
 msgid "Yes"
-msgstr ""
+msgstr "Ja"
 
 #: src/gui/gui.cpp:5868
 msgid "Erasing"
-msgstr ""
+msgstr "Tar bort"
 
 #: src/gui/gui.cpp:5871
 msgid "All subsongs"
-msgstr ""
+msgstr "Alla underlåtar"
 
 #: src/gui/gui.cpp:5878
 msgid "Current subsong"
-msgstr ""
+msgstr "Nuvarande underlåt"
 
 #: src/gui/gui.cpp:5945
 msgid "Optimization"
-msgstr ""
+msgstr "Optimering"
 
 #: src/gui/gui.cpp:5948 src/gui/patManager.cpp:36
 msgid "De-duplicate patterns"
-msgstr ""
+msgstr "Avduplicera mönster"
 
 #: src/gui/gui.cpp:5957
 msgid "Remove unused instruments"
-msgstr ""
+msgstr "Ta bort oanvända instrument"
 
 #: src/gui/gui.cpp:5970
 msgid "Remove unused samples"
-msgstr ""
+msgstr "Ta bort oanvända samples"
 
 #: src/gui/gui.cpp:5987
 msgid "Never mind! Cancel"
-msgstr ""
+msgstr "Strunt samma! Avbryta"
 
 #: src/gui/gui.cpp:6066
 msgid "Drum kit mode:"
-msgstr ""
+msgstr "Trumsetläge:"
 
 #: src/gui/gui.cpp:6070
 msgid "12 samples per octave"
-msgstr ""
+msgstr "12 samples per oktav"
 
 #: src/gui/gui.cpp:6075
 msgid "Starting octave"
-msgstr ""
+msgstr "Startar oktav"
 
 #: src/gui/gui.cpp:6095
 msgid "Drum Kit"
@@ -14571,86 +14641,88 @@ msgstr "kunde inte starta renderaren!"
 #: src/gui/gui.cpp:6881
 #, c-format
 msgid "could not open window! %s"
-msgstr "kunde inte öppna fönstret! %s"
+msgstr "kunde ej öppna fönstret! %s"
 
 #: src/gui/gui.cpp:6886
 msgid ""
 "\n"
 "falling back to software renderer. please restart Furnace."
 msgstr ""
+”\n”
+”faller tillbaka till mjukvarurendering. vänligen starta om Furnace.”
 
 #: src/gui/gui.cpp:7034
 msgid "Size column to fit###SizeOne"
-msgstr ""
+msgstr "Storlek på kolumn för att passa"
 
 #: src/gui/gui.cpp:7036
 msgid "Size all columns to fit###SizeAll"
-msgstr ""
+msgstr "Anpassa storleken på alla kolumner"
 
 #: src/gui/gui.cpp:7038
 msgid "Size all columns to default###SizeAll"
-msgstr ""
+msgstr "Storlek på alla kolumner till standard"
 
 #: src/gui/gui.cpp:7040
 msgid "Reset order###ResetOrder"
-msgstr ""
+msgstr "Återställa order"
 
 #: src/gui/gui.cpp:7042
 msgid "(Main menu bar)"
-msgstr ""
+msgstr "(Huvudmenyfältet)"
 
 #: src/gui/gui.cpp:7044
 msgid "(Popup)"
-msgstr ""
+msgstr "(Popup)"
 
 #: src/gui/gui.cpp:7046
 msgid "(Untitled)"
-msgstr ""
+msgstr "(Utan titel)"
 
 #: src/gui/gui.cpp:7048
 msgid "Hide tab bar###HideTabBar"
-msgstr ""
+msgstr "Dölj flikfältet"
 
 #: src/gui/gui.cpp:7052
 msgid "LocaleSettings: ccjk"
-msgstr ""
+msgstr "Lokalinställningar: ccjk"
 
 #: src/gui/gui.cpp:7564
 msgid "Unsaved changes! Save changes before quitting?"
-msgstr ""
+msgstr "Osparade ändringar! Spara ändringar innan du avslutar?"
 
 #: src/gui/sysManager.cpp:42
 msgid "Preserve channel order"
-msgstr ""
+msgstr "Bevara kanalordningen"
 
 #: src/gui/sysManager.cpp:44
 msgid "Clone channel data"
-msgstr ""
+msgstr "Klona kanaldata"
 
 #: src/gui/sysManager.cpp:46
 msgid "Clone at end"
-msgstr ""
+msgstr "Klona på slutet"
 
 #: src/gui/sysManager.cpp:56
 msgid "Actions"
-msgstr ""
+msgstr "Åtgärder"
 
 #: src/gui/sysManager.cpp:69
 msgid "(drag to swap chips)"
-msgstr ""
+msgstr "(dra för att byta chips)"
 
 #: src/gui/sysManager.cpp:90
 msgid "Clone##SysDup"
-msgstr ""
+msgstr "Klona"
 
 #: src/gui/sysManager.cpp:92
 #, c-format
 msgid "cannot clone chip! (%s)"
-msgstr ""
+msgstr "kan ej klona chip! (%s)"
 
 #: src/gui/sysManager.cpp:98
 msgid "Change##SysChange"
-msgstr ""
+msgstr "Byt"
 
 #: src/gui/sysManager.cpp:120
 msgid "Are you sure you want to remove this chip?"
@@ -14658,15 +14730,15 @@ msgstr "Är du säker på att du vill ta bort detta chip?"
 
 #: src/gui/patManager.cpp:43
 msgid "Re-arrange patterns"
-msgstr ""
+msgstr "Arrangera om mönster"
 
 #: src/gui/patManager.cpp:50
 msgid "Sort orders"
-msgstr ""
+msgstr "Sortera orders"
 
 #: src/gui/patManager.cpp:57
 msgid "Make patterns unique"
-msgstr ""
+msgstr "Gör mönstren unika"
 
 #: src/gui/patManager.cpp:103
 #, c-format
@@ -14674,6 +14746,8 @@ msgid ""
 "Pattern %.2X\n"
 "- not allocated"
 msgstr ""
+”Mönster %.2X\n”
+”- inte tilldelat”
 
 #: src/gui/patManager.cpp:105
 #, c-format
@@ -14683,6 +14757,10 @@ msgid ""
 "\n"
 "right-click to erase"
 msgstr ""
+”Mönster %.2X\n”
+”- antal användningar: %d (%.0f%%)\n”
+”\n”
+”högerklicka för att radera”
 
 #: src/gui/insEdit.cpp:39
 msgid "Down Down Down"
@@ -14830,11 +14908,11 @@ msgstr "Höger utgång"
 
 #: src/gui/insEdit.cpp:62
 msgid "Coarse Tune (semitones)"
-msgstr ""
+msgstr "Modulatortonsstämning (semitoner)"
 
 #: src/gui/insEdit.cpp:64
 msgid "Fixed Frequency Mode"
-msgstr ""
+msgstr "Fast frekvensläge"
 
 #: src/gui/insEdit.cpp:69
 msgid "Env. Delay"
@@ -15150,15 +15228,15 @@ msgstr "Bitwise XOR"
 
 #: src/gui/insEdit.cpp:239 src/gui/insEdit.cpp:390
 msgid "gate"
-msgstr ""
+msgstr "gate"
 
 #: src/gui/insEdit.cpp:240 src/gui/insEdit.cpp:391
 msgid "sync"
-msgstr ""
+msgstr "synk"
 
 #: src/gui/insEdit.cpp:241 src/gui/insEdit.cpp:392
 msgid "ring"
-msgstr ""
+msgstr "ring"
 
 #: src/gui/insEdit.cpp:327
 msgid "How did you even"
@@ -15166,40 +15244,40 @@ msgstr "Hur kunde du ens"
 
 #: src/gui/insEdit.cpp:335
 msgid "triangle"
-msgstr ""
+msgstr "triangel"
 
 #: src/gui/insEdit.cpp:336 src/gui/insEdit.cpp:5821
 msgid "saw"
-msgstr ""
+msgstr "såg"
 
 #: src/gui/insEdit.cpp:337 src/gui/insEdit.cpp:5827
 msgid "pulse"
-msgstr ""
+msgstr "puls"
 
 #: src/gui/insEdit.cpp:338 src/gui/insEdit.cpp:344 src/gui/insEdit.cpp:373
 #: src/gui/insEdit.cpp:424 src/gui/insEdit.cpp:429 src/gui/insEdit.cpp:5833
 msgid "noise"
-msgstr ""
+msgstr "brus"
 
 #: src/gui/insEdit.cpp:343
 msgid "tone"
-msgstr ""
+msgstr "ton"
 
 #: src/gui/insEdit.cpp:345
 msgid "envelope"
-msgstr ""
+msgstr "ADSR"
 
 #: src/gui/insEdit.cpp:350
 msgid "hold"
-msgstr ""
+msgstr "håll"
 
 #: src/gui/insEdit.cpp:351
 msgid "alternate"
-msgstr ""
+msgstr "alternativ"
 
 #: src/gui/insEdit.cpp:352 src/gui/insEdit.cpp:364
 msgid "direction"
-msgstr ""
+msgstr "riktning"
 
 #: src/gui/insEdit.cpp:353 src/gui/insEdit.cpp:436
 msgid "enable"
@@ -15211,11 +15289,11 @@ msgstr "aktiverad"
 
 #: src/gui/insEdit.cpp:361
 msgid "mirror"
-msgstr ""
+msgstr "spegla"
 
 #: src/gui/insEdit.cpp:365
 msgid "resolution"
-msgstr ""
+msgstr "upplösning"
 
 #: src/gui/insEdit.cpp:366
 msgid "fixed"
@@ -15235,11 +15313,11 @@ msgstr "tonhöjdsmod."
 
 #: src/gui/insEdit.cpp:376 src/gui/insEdit.cpp:508
 msgid "invert right"
-msgstr ""
+msgstr "invertera höger"
 
 #: src/gui/insEdit.cpp:377 src/gui/insEdit.cpp:509
 msgid "invert left"
-msgstr ""
+msgstr "invertera vänster"
 
 #: src/gui/insEdit.cpp:382 src/gui/insEdit.cpp:5905
 msgid "low"
@@ -15331,19 +15409,19 @@ msgstr "dela L/R"
 
 #: src/gui/insEdit.cpp:439
 msgid "HinvR"
-msgstr ""
+msgstr "HinvR"
 
 #: src/gui/insEdit.cpp:440
 msgid "VinvR"
-msgstr ""
+msgstr "VinvR"
 
 #: src/gui/insEdit.cpp:441
 msgid "HinvL"
-msgstr ""
+msgstr "HinvL"
 
 #: src/gui/insEdit.cpp:442
 msgid "VinvL"
-msgstr ""
+msgstr "VinvL"
 
 #: src/gui/insEdit.cpp:447 src/gui/insEdit.cpp:476
 msgid "ring mod"
@@ -15367,59 +15445,59 @@ msgstr "aktivera tap-B"
 
 #: src/gui/insEdit.cpp:460
 msgid "AM with slope"
-msgstr ""
+msgstr "AM med lutning"
 
 #: src/gui/insEdit.cpp:465
 msgid "invert B"
-msgstr ""
+msgstr "invertera B"
 
 #: src/gui/insEdit.cpp:466
 msgid "invert A"
-msgstr ""
+msgstr "invertera A"
 
 #: src/gui/insEdit.cpp:467
 msgid "reset B"
-msgstr ""
+msgstr "återställa B"
 
 #: src/gui/insEdit.cpp:468
 msgid "reset A"
-msgstr ""
+msgstr "återställa A"
 
 #: src/gui/insEdit.cpp:469
 msgid "clip B"
-msgstr ""
+msgstr "klipp B"
 
 #: src/gui/insEdit.cpp:470
 msgid "clip A"
-msgstr ""
+msgstr "klipp A"
 
 #: src/gui/insEdit.cpp:477
 msgid "swap counters (noise)"
-msgstr ""
+msgstr "byt räknare (brus)"
 
 #: src/gui/insEdit.cpp:478
 msgid "low pass (noise)"
-msgstr ""
+msgstr "lågpass (brus)"
 
 #: src/gui/insEdit.cpp:485
 msgid "rear right"
-msgstr ""
+msgstr "bakre höger"
 
 #: src/gui/insEdit.cpp:486
 msgid "rear left"
-msgstr ""
+msgstr "bakre vänster"
 
 #: src/gui/insEdit.cpp:491
 msgid "on"
-msgstr ""
+msgstr "på"
 
 #: src/gui/insEdit.cpp:496
 msgid "k1 slowdown"
-msgstr ""
+msgstr "k1 nedgång"
 
 #: src/gui/insEdit.cpp:497
 msgid "k2 slowdown"
-msgstr ""
+msgstr "k2 nedgång"
 
 #: src/gui/insEdit.cpp:502
 msgid "pause"
@@ -15447,116 +15525,116 @@ msgstr "Kör"
 
 #: src/gui/insEdit.cpp:528
 msgid "None (dual)"
-msgstr ""
+msgstr "Ingen (dubbel)"
 
 #: src/gui/insEdit.cpp:529
 msgid "Wipe"
-msgstr ""
+msgstr "Wipe"
 
 #: src/gui/insEdit.cpp:531
 msgid "Fade (ping-pong)"
-msgstr ""
+msgstr "Tona (pingpong)"
 
 #: src/gui/insEdit.cpp:532
 msgid "Overlay"
-msgstr ""
+msgstr "Överlag"
 
 #: src/gui/insEdit.cpp:533
 msgid "Negative Overlay"
-msgstr ""
+msgstr "Negativ överlag"
 
 #: src/gui/insEdit.cpp:534
 msgid "Slide"
-msgstr ""
+msgstr "Glida"
 
 #: src/gui/insEdit.cpp:535
 msgid "Mix Chorus"
-msgstr ""
+msgstr "Mixkör"
 
 #: src/gui/insEdit.cpp:536
 msgid "Phase Modulation"
-msgstr ""
+msgstr "Fasmodulering"
 
 #: src/gui/insEdit.cpp:541
 msgid "Sweep"
-msgstr ""
+msgstr "Svep"
 
 #: src/gui/insEdit.cpp:542 src/gui/insEdit.cpp:552
 msgid "Wait"
-msgstr ""
+msgstr "Vänta"
 
 #: src/gui/insEdit.cpp:543 src/gui/insEdit.cpp:553
 msgid "Wait for Release"
-msgstr ""
+msgstr "Vänta på release"
 
 #: src/gui/insEdit.cpp:545 src/gui/insEdit.cpp:555
 msgid "Loop until Release"
-msgstr ""
+msgstr "Loopa tills release"
 
 #: src/gui/insEdit.cpp:549
 msgid "Volume Sweep"
-msgstr ""
+msgstr "Volymsvep"
 
 #: src/gui/insEdit.cpp:550
 msgid "Frequency Sweep"
-msgstr ""
+msgstr "Frekvenssvep"
 
 #: src/gui/insEdit.cpp:551
 msgid "Cutoff Sweep"
-msgstr ""
+msgstr "Brytfrekvenssvep"
 
 #: src/gui/insEdit.cpp:559 src/gui/insEdit.cpp:6604
 msgid "Direct"
-msgstr ""
+msgstr "Direkt"
 
 #: src/gui/insEdit.cpp:560 src/gui/insEdit.cpp:6608
 msgid "Decrease (linear)"
-msgstr ""
+msgstr "Förminska (linjär)"
 
 #: src/gui/insEdit.cpp:561 src/gui/insEdit.cpp:6612
 msgid "Decrease (logarithmic)"
-msgstr ""
+msgstr "Förminska (logaritmisk)"
 
 #: src/gui/insEdit.cpp:562 src/gui/insEdit.cpp:6616
 msgid "Increase (linear)"
-msgstr ""
+msgstr "Öka (linjär)"
 
 #: src/gui/insEdit.cpp:563 src/gui/insEdit.cpp:6620
 msgid "Increase (bent line)"
-msgstr ""
+msgstr "Öka (böjd linje)"
 
 #: src/gui/insEdit.cpp:611
 msgid "Relative"
-msgstr ""
+msgstr "Relativ"
 
 #: src/gui/insEdit.cpp:616
 #, c-format
 msgid "%d: +%d (exponential)"
-msgstr ""
+msgstr "%d: +%d (exponentiell)"
 
 #: src/gui/insEdit.cpp:619
 #, c-format
 msgid "%d: +%d (linear)"
-msgstr ""
+msgstr "%d: +%d (linjär)"
 
 #: src/gui/insEdit.cpp:622
 #, c-format
 msgid "%d: -%d (exponential)"
-msgstr ""
+msgstr "%d: -%d (exponentiell)"
 
 #: src/gui/insEdit.cpp:625
 #, c-format
 msgid "%d: -%d (linear)"
-msgstr ""
+msgstr "%d: -%d (linjär)"
 
 #: src/gui/insEdit.cpp:627
 #, c-format
 msgid "%d: %d (direct)"
-msgstr ""
+msgstr "%d: %d (direkt)"
 
 #: src/gui/insEdit.cpp:660
 msgid "Random"
-msgstr ""
+msgstr "Slumpmässigt"
 
 #: src/gui/insEdit.cpp:1610
 msgid ""
@@ -15564,259 +15642,268 @@ msgid ""
 "middle click to pause\n"
 "right click to see algorithm"
 msgstr ""
+”vänsterklicka för att starta om\n”
+”mittenklick för att pausa\n”
+”högerklicka för att se algoritm”
 
 #: src/gui/insEdit.cpp:1620
 msgid ""
 "left click to configure TL scaling\n"
 "right click to see FM preview"
 msgstr ""
+”vänsterklicka för att konfigurera TL-skalning\n”
+”högerklicka för att se FM-förhandsgranskning”
 
 #: src/gui/insEdit.cpp:1624
 msgid "right click to see FM preview"
-msgstr ""
+msgstr "högerklicka för att se FM-förhandsgranskning"
 
 #: src/gui/insEdit.cpp:1639
 msgid "operator level changes with volume?"
-msgstr ""
+msgstr "operatorsnivån ändras med volymen?"
 
 #: src/gui/insEdit.cpp:1648
 msgid "AUTO##OPKVS"
-msgstr ""
+msgstr "AUTO"
 
 #: src/gui/insEdit.cpp:1650
 msgid "NO##OPKVS"
-msgstr ""
+msgstr "NEJ"
 
 #: src/gui/insEdit.cpp:1652
 msgid "YES##OPKVS"
-msgstr ""
+msgstr "JA"
 
 #: src/gui/insEdit.cpp:1900 src/gui/insEdit.cpp:2005
 msgid "Bottom"
-msgstr ""
+msgstr "Knapp"
 
 #: src/gui/insEdit.cpp:1940
 msgid "Hold"
-msgstr ""
+msgstr "Håll"
 
 #: src/gui/insEdit.cpp:1949
 msgid "SusTime"
-msgstr ""
+msgstr "SusTid"
 
 #: src/gui/insEdit.cpp:1969
 msgid "SusDecay"
-msgstr ""
+msgstr "SusDecay"
 
 #: src/gui/insEdit.cpp:2047
 msgid "Shape"
-msgstr ""
+msgstr "Form"
 
 #: src/gui/insEdit.cpp:2100
 msgid "Macro type: Sequence"
-msgstr ""
+msgstr "Makrotyp: Sekvens"
 
 #: src/gui/insEdit.cpp:2103
 msgid "Macro type: ADSR"
-msgstr ""
+msgstr "Makrotyp: ADSR"
 
 #: src/gui/insEdit.cpp:2106
 msgid "Macro type: LFO"
-msgstr ""
+msgstr "Makrotyp: LFO"
 
 #: src/gui/insEdit.cpp:2109
 msgid "Macro type: What's going on here?"
-msgstr ""
+msgstr "Makrotyp: Vad händer här?"
 
 #: src/gui/insEdit.cpp:2122
 msgid "Delay/Step Length"
-msgstr ""
+msgstr "Delay-/Steglängd"
 
 #: src/gui/insEdit.cpp:2125
 msgid "Step Length (ticks)##IMacroSpeed"
-msgstr ""
+msgstr "Steglängd (ticks)"
 
 #: src/gui/insEdit.cpp:2129
 msgid "Delay##IMacroDelay"
-msgstr ""
+msgstr "Delay"
 
 #: src/gui/insEdit.cpp:2142
 msgid "Release mode: Active (jump to release pos)"
-msgstr ""
+msgstr "Releaseläge: Aktiv (hoppa till releasepos.)"
 
 #: src/gui/insEdit.cpp:2144
 msgid "Release mode: Passive (delayed release)"
-msgstr ""
+msgstr "Releaseläge: Passiv (fördröjd release)"
 
 #: src/gui/insEdit.cpp:2393
 msgid "StepLen"
-msgstr ""
+msgstr "Steglängd"
 
 #: src/gui/insEdit.cpp:2401
 msgid "Delay"
-msgstr ""
+msgstr "Delay"
 
 #: src/gui/insEdit.cpp:2425
 msgid "The heck? No, this isn't even working correctly..."
-msgstr ""
+msgstr "Vad i helvete? Nej, detta fungerar inte ens korrekt..."
 
 #: src/gui/insEdit.cpp:2428
 msgid "The only problem with that selectedMacro is that it's a bug..."
-msgstr ""
+msgstr "Det enda problemet med det valda makro är att det är en bugg..."
 
 #: src/gui/insEdit.cpp:2589
 msgid "(copying)"
-msgstr ""
+msgstr "(kopierar)"
 
 #: src/gui/insEdit.cpp:2591
 msgid "(swapping)"
-msgstr ""
+msgstr "(byter)"
 
 #: src/gui/insEdit.cpp:2595
 msgid ""
 "- drag to swap operator\n"
 "- shift-drag to copy operator"
 msgstr ""
+”- dra för att byta operator\n”
+”- skift-dra för att kopiera operator”
 
 #: src/gui/insEdit.cpp:2632
 msgid "new DPCM features disabled (compatibility)!"
-msgstr ""
+msgstr "nya DPCM-funktioner inaktiverade (kompatibilitet)!"
 
 #: src/gui/insEdit.cpp:2633
 msgid "click here to enable them."
-msgstr ""
+msgstr "klicka här om du vill aktivera dem."
 
 #: src/gui/insEdit.cpp:2644
 msgid "none selected"
-msgstr ""
+msgstr "inga vald"
 
 #: src/gui/insEdit.cpp:2657
 msgid "Use sample"
-msgstr ""
+msgstr "Använd sample"
 
 #: src/gui/insEdit.cpp:2659
 msgid "Sample bank slot##BANKSLOT"
-msgstr ""
+msgstr "Samplebankplats"
 
 #: src/gui/insEdit.cpp:2681
 msgid "Use wavetable (Amiga/Generic DAC only)"
-msgstr ""
+msgstr "Använd wavetable (endast Amiga/Generisk DAC)"
 
 #: src/gui/insEdit.cpp:2681
 msgid "Use wavetable"
-msgstr ""
+msgstr "Använd wavetable"
 
 #: src/gui/insEdit.cpp:2708
 msgid "Use sample map"
-msgstr ""
+msgstr "Använd samplekarta"
 
 #: src/gui/insEdit.cpp:2730
 msgid "delta"
-msgstr ""
+msgstr "delta"
 
 #: src/gui/insEdit.cpp:2736
 msgid "sample name"
-msgstr ""
+msgstr "samplenamn"
 
 #: src/gui/insEdit.cpp:3001
 msgid "set entire map to this pitch"
-msgstr ""
+msgstr "ställa in hela kartan till denna tonhöjd"
 
 #: src/gui/insEdit.cpp:3009
 msgid "set entire map to this delta counter value"
-msgstr ""
+msgstr "ställa in hela kartan till detta delta räknarvärde"
 
 #: src/gui/insEdit.cpp:3018
 msgid "set entire map to this note"
-msgstr ""
+msgstr "ställa in hela kartan till denna not"
 
 #: src/gui/insEdit.cpp:3027
 msgid "set entire map to this sample"
-msgstr ""
+msgstr "ställ in hela kartan till denna sample"
 
 #: src/gui/insEdit.cpp:3037
 msgid "reset pitches"
-msgstr ""
+msgstr "återställa tonhöjder"
 
 #: src/gui/insEdit.cpp:3042
 msgid "clear delta counter values"
-msgstr ""
+msgstr "rensa deltaräknarens värden"
 
 #: src/gui/insEdit.cpp:3048
 msgid "reset notes"
-msgstr ""
+msgstr "återställa noter"
 
 #: src/gui/insEdit.cpp:3054
 msgid "clear map samples"
-msgstr ""
+msgstr "rensa mapsamples"
 
 #: src/gui/insEdit.cpp:3148
 msgid "Request from TX81Z"
-msgstr ""
+msgstr "Begäran från TX81Z"
 
 #: src/gui/insEdit.cpp:3234
 #, c-format
 msgid "%s name"
-msgstr ""
+msgstr "%s namn"
 
 #: src/gui/insEdit.cpp:3286
 msgid "Fixed frequency mode"
-msgstr ""
+msgstr "Fast frekvensläge"
 
 #: src/gui/insEdit.cpp:3288
 msgid ""
 "when enabled, drums will be set to the specified frequencies, ignoring the "
 "note."
 msgstr ""
+”om detta blir aktiverad kommer trummorna att ställas in på de angivna frekvenserna, "
+"utan hänsyn till noten.”
 
 #: src/gui/insEdit.cpp:3296
 msgid "Drum"
-msgstr ""
+msgstr "Trumma"
 
 #: src/gui/insEdit.cpp:3298 src/gui/insEdit.cpp:3798 src/gui/insEdit.cpp:3904
 #: src/gui/insEdit.cpp:4404 src/gui/insEdit.cpp:4468 src/gui/insEdit.cpp:5068
 #: src/gui/insEdit.cpp:5518
 msgid "Block"
-msgstr ""
+msgstr "Block"
 
 #: src/gui/insEdit.cpp:3300 src/gui/insEdit.cpp:3803 src/gui/insEdit.cpp:3909
 #: src/gui/insEdit.cpp:4993 src/gui/insEdit.cpp:5079 src/gui/insEdit.cpp:5519
 msgid "FreqNum"
-msgstr ""
+msgstr "FrekvNum"
 
 #: src/gui/insEdit.cpp:3303
 msgid "Snare/Hi-hat"
-msgstr ""
+msgstr "Virveltrumma/Hihat"
 
 #: src/gui/insEdit.cpp:3304
 msgid "Tom/Top"
-msgstr ""
+msgstr "Tom/Rid"
 
 #: src/gui/insEdit.cpp:3314
 msgid "Volume##TL"
-msgstr ""
+msgstr "Volym"
 
 #: src/gui/insEdit.cpp:3316
 msgid "this volume slider only works in compatibility (non-drums) system."
-msgstr ""
+msgstr "detta volymreglage fungerar endast på ett kompatibelt system (utan trummor)."
 
 #: src/gui/insEdit.cpp:3626
 msgid "Env"
-msgstr ""
+msgstr "ADSR"
 
 #: src/gui/insEdit.cpp:3980 src/gui/insEdit.cpp:4346 src/gui/insEdit.cpp:4396
 #: src/gui/insEdit.cpp:5104
 msgid "OPL2/3 only (last 4 waveforms are OPL3 only)"
-msgstr ""
+msgstr "Endast OPL2/3 (de sista 4 vågformerna är endast OPL3)"
 
 #: src/gui/insEdit.cpp:4079 src/gui/insEdit.cpp:4788
 #, c-format
 msgid "Envelope 2 (kick only)"
-msgstr ""
+msgstr "ADSR 2 (endast bastrumma)"
 
 #: src/gui/insEdit.cpp:4084
 #, c-format
 msgid "Operator %d"
-msgstr ""
+msgstr "Operator %d"
 
 #: src/gui/insEdit.cpp:4414
 msgid "Freq"
@@ -15857,69 +15944,69 @@ msgstr "inga av de nuvarande chips kan spela denna typ av instrument!"
 
 #: src/gui/insEdit.cpp:5413
 msgid "FM Macros"
-msgstr ""
+msgstr "FM-makron"
 
 #: src/gui/insEdit.cpp:5435 src/gui/insEdit.cpp:5440
 msgid "LFO Speed"
-msgstr ""
+msgstr "LFO-hastighet"
 
 #: src/gui/insEdit.cpp:5439 src/gui/insEdit.cpp:6514
 msgid "PM Depth"
-msgstr ""
+msgstr "PM-djup"
 
 #: src/gui/insEdit.cpp:5441
 msgid "LFO Shape"
-msgstr ""
+msgstr "LFO-form"
 
 #: src/gui/insEdit.cpp:5444
 msgid "OpMask"
-msgstr ""
+msgstr "OpMask"
 
 #: src/gui/insEdit.cpp:5446
 msgid "AM Depth 2"
-msgstr ""
+msgstr "AM-djup 2"
 
 #: src/gui/insEdit.cpp:5447
 msgid "PM Depth 2"
-msgstr ""
+msgstr "PM-djup 2"
 
 #: src/gui/insEdit.cpp:5448
 msgid "LFO2 Speed"
-msgstr ""
+msgstr "LFO2-hastighet"
 
 #: src/gui/insEdit.cpp:5449
 msgid "LFO2 Shape"
-msgstr ""
+msgstr "LFO2-form"
 
 #: src/gui/insEdit.cpp:5458
 #, c-format
 msgid "Operator Macros"
-msgstr ""
+msgstr "Operatormakron"
 
 #: src/gui/insEdit.cpp:5460
 #, c-format
 msgid "OP%d Macros"
-msgstr ""
+msgstr "OP%d makron"
 
 #: src/gui/insEdit.cpp:5521
 msgid "Op. Arpeggio"
-msgstr ""
+msgstr "Op. arpeggio"
 
 #: src/gui/insEdit.cpp:5522
 msgid "Op. Pitch"
-msgstr ""
+msgstr "Op. tonhöjd"
 
 #: src/gui/insEdit.cpp:5531
 msgid "Op. Panning"
-msgstr ""
+msgstr "Op. panorering"
 
 #: src/gui/insEdit.cpp:5558
 msgid "Use software envelope"
-msgstr ""
+msgstr "Använd mjukvaru-ADSR"
 
 #: src/gui/insEdit.cpp:5559
 msgid "Initialize envelope on every note"
-msgstr ""
+msgstr "Initialisera ADSR på varje not"
 
 #: src/gui/insEdit.cpp:5560
 msgid "Double wave length (GBA only)"
@@ -15961,93 +16048,93 @@ msgstr "Kommando"
 
 #: src/gui/insEdit.cpp:5634 src/gui/insEdit.cpp:5967
 msgid "Move/Remove"
-msgstr ""
+msgstr "Flytta/Ta bort"
 
 #: src/gui/insEdit.cpp:5663
 msgid "Env Length"
-msgstr ""
+msgstr "ADSR-längd"
 
 #: src/gui/insEdit.cpp:5690
 msgid "Shift"
-msgstr ""
+msgstr "Skift"
 
 #: src/gui/insEdit.cpp:5717 src/gui/insEdit.cpp:6073
 msgid "Ticks"
-msgstr ""
+msgstr "Ticks"
 
 #: src/gui/insEdit.cpp:5736 src/gui/insEdit.cpp:6092 src/gui/insEdit.cpp:6239
 msgid "Position"
-msgstr ""
+msgstr "Position"
 
 #: src/gui/insEdit.cpp:5815
 msgid "tri"
-msgstr ""
+msgstr "tri"
 
 #: src/gui/insEdit.cpp:5882
 msgid "Ring Modulation"
-msgstr ""
+msgstr "Ringmodulering"
 
 #: src/gui/insEdit.cpp:5886
 msgid "Oscillator Sync"
-msgstr ""
+msgstr "Oscillatorsynk"
 
 #: src/gui/insEdit.cpp:5890
 msgid "Enable filter"
-msgstr ""
+msgstr "Aktivera filter"
 
 #: src/gui/insEdit.cpp:5891
 msgid "Initialize filter"
-msgstr ""
+msgstr "Initiera filter"
 
 #: src/gui/insEdit.cpp:5894 src/gui/insEdit.cpp:5897 src/gui/insEdit.cpp:6951
 #: src/gui/insEdit.cpp:7215 src/gui/insEdit.cpp:7476
 msgid "Cutoff"
-msgstr ""
+msgstr "Brytfrekvens"
 
 #: src/gui/insEdit.cpp:5902 src/gui/insEdit.cpp:6408 src/gui/insEdit.cpp:6952
 #: src/gui/insEdit.cpp:7179 src/gui/insEdit.cpp:7477
 msgid "Filter Mode"
-msgstr ""
+msgstr "Filterläge"
 
 #: src/gui/insEdit.cpp:5931 src/gui/insEdit.cpp:7485
 msgid "Noise Mode"
-msgstr ""
+msgstr "Brusläge"
 
 #: src/gui/insEdit.cpp:5932
 msgid "Wave Mix Mode"
-msgstr ""
+msgstr "Vågmixläge"
 
 #: src/gui/insEdit.cpp:5935
 msgid "Absolute Cutoff Macro"
-msgstr ""
+msgstr "Absolut brytfrekvensmakro"
 
 #: src/gui/insEdit.cpp:5939
 msgid "Absolute Duty Macro"
-msgstr ""
+msgstr "Absolut arbetscykelmakro"
 
 #: src/gui/insEdit.cpp:5945
 msgid "Don't test before new note"
-msgstr ""
+msgstr "Testa inte före den nya noten"
 
 #: src/gui/insEdit.cpp:5950
 msgid "Switch roles of frequency and phase reset timer"
-msgstr ""
+msgstr "Byt roller för timer på frekvens- och fasåterställning"
 
 #: src/gui/insEdit.cpp:5997 src/gui/insEdit.cpp:6040
 msgid "Period"
-msgstr ""
+msgstr "Period"
 
 #: src/gui/insEdit.cpp:6002 src/gui/insEdit.cpp:6045 src/gui/insEdit.cpp:6892
 msgid "Amount"
-msgstr ""
+msgstr "Belopp"
 
 #: src/gui/insEdit.cpp:6005 src/gui/insEdit.cpp:6048
 msgid "Bound"
-msgstr ""
+msgstr "Bunden"
 
 #: src/gui/insEdit.cpp:6021
 msgid "Flip"
-msgstr ""
+msgstr "Vändning"
 
 #: src/gui/insEdit.cpp:6210
 msgid "Load waveform"
