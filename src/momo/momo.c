@@ -376,6 +376,7 @@ const char* momo_gettext(const char* str) {
     return str;
   }
   if (str==NULL) return NULL;
+  if ((*str)==0) return str;
   // TODO: optimize
   for (size_t i=curDomain->firstString[(unsigned char)(str[0])]; i<curDomain->stringCount; i++) {
     if (strcmp(curDomain->stringPtr[i],str)==0) {
@@ -391,5 +392,7 @@ const char* momo_ngettext(const char* str1, const char* str2, unsigned long amou
     return str2;
   }
   // TODO: implement
+  // gettext("") and take plural form metadata...
+  // then I don't know how are plural strings stored
   return str1;
 }
