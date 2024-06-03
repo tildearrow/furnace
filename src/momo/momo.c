@@ -36,6 +36,32 @@
 static char curLocale[64];
 static char tempPath[4096];
 
+enum StackInstruction {
+  MOMO_STACK_EXIT=0,
+  MOMO_STACK_PUSH,
+  MOMO_STACK_PUSH_N,
+  MOMO_STACK_ADD,
+  MOMO_STACK_SUB,
+  MOMO_STACK_MUL,
+  MOMO_STACK_DIV,
+  MOMO_STACK_MOD,
+  MOMO_STACK_CMP_EQ,
+  MOMO_STACK_CMP_NE,
+  MOMO_STACK_CMP_GT,
+  MOMO_STACK_CMP_LT,
+  MOMO_STACK_CMP_GE,
+  MOMO_STACK_CMP_LE,
+  MOMO_STACK_CMP_AND,
+  MOMO_STACK_CMP_OR,
+  MOMO_STACK_TRUE,
+  MOMO_STACK_FALSE
+};
+
+struct StackData {
+  unsigned char ins;
+  unsigned char param;
+};
+
 struct LocaleDomain {
   char path[4096];
   char name[64];
@@ -45,6 +71,7 @@ struct LocaleDomain {
   const char** transPtr;
   size_t stringCount;
   size_t firstString[256];
+  struct StackData pluralProgram[256];
 };
 
 struct MOHeader {
@@ -62,6 +89,124 @@ static struct LocaleDomain** domains=NULL;
 static size_t domainsLen=0;
 
 // utility
+
+unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int n) {
+  size_t pc=0;
+  unsigned int stack[256];
+  unsigned char sp=0xff;
+
+  memset(stack,0,256*sizeof(unsigned int));
+
+  while (pc<count) {
+    unsigned int param=data[pc].param;
+    unsigned int op1, op2;
+
+    switch (data[pc].ins) {
+      case MOMO_STACK_EXIT:
+        return stack[sp];
+        break;
+      case MOMO_STACK_PUSH:
+        stack[++sp]=param;
+        break;
+      case MOMO_STACK_PUSH_N:
+        stack[++sp]=n;
+        break;
+      case MOMO_STACK_ADD:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=op1+op2;
+        break;
+      case MOMO_STACK_SUB:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=op1-op2;
+        break;
+      case MOMO_STACK_MUL:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=op1*op2;
+        break;
+      case MOMO_STACK_DIV:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        if (op2==0) return 0;
+        stack[++sp]=op1/op2;
+        break;
+      case MOMO_STACK_MOD:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        if (op2==0) return 0;
+        stack[++sp]=op1%op2;
+        break;
+      case MOMO_STACK_CMP_EQ:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=(op1==op2)?1:0;
+        break;
+      case MOMO_STACK_CMP_NE:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=(op1!=op2)?1:0;
+        break;
+      case MOMO_STACK_CMP_GT:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=(op1>op2)?1:0;
+        break;
+      case MOMO_STACK_CMP_LT:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=(op1<op2)?1:0;
+        break;
+      case MOMO_STACK_CMP_GE:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=(op1>=op2)?1:0;
+        break;
+      case MOMO_STACK_CMP_LE:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=(op1<=op2)?1:0;
+        break;
+      case MOMO_STACK_CMP_AND:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=(op1 && op2)?1:0;
+        break;
+      case MOMO_STACK_CMP_OR:
+        op2=stack[sp--];
+        op1=stack[sp--];
+        stack[++sp]=(op1 || op2)?1:0;
+        break;
+      case MOMO_STACK_TRUE:
+        op1=stack[sp--];
+        if (op1) return param;
+        break;
+      case MOMO_STACK_FALSE:
+        op1=stack[sp--];
+        if (!op1) return param;
+        break;
+      default:
+        return 0;
+    }
+    pc++;
+  }
+
+  return stack[sp];
+}
+
+unsigned char compileExprSub(const char** ptr, struct StackData* data, size_t* pc, size_t count) {
+  
+}
+
+unsigned char compileExpr(const char* expr, struct StackData* data, size_t count) {
+  plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);
+
+  const char* ptr=expr;
+  size_t pc=0;
+
+  return compileExprSub(&ptr,data,&pc,count);
+}
 
 unsigned char domainsInsert(struct LocaleDomain* item) {
   struct LocaleDomain** newDomains=malloc(sizeof(struct LocaleDomain*)*(domainsLen+1));
@@ -376,7 +521,6 @@ const char* momo_gettext(const char* str) {
     return str;
   }
   if (str==NULL) return NULL;
-  if ((*str)==0) return str;
   // TODO: optimize
   for (size_t i=curDomain->firstString[(unsigned char)(str[0])]; i<curDomain->stringCount; i++) {
     if (strcmp(curDomain->stringPtr[i],str)==0) {

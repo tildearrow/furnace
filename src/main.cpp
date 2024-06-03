@@ -522,8 +522,12 @@ int main(int argc, char** argv) {
   } else {
     logV("locale: %s",localeRet);
   }
-  if ((localeRet=TA_BINDTEXTDOMAIN("furnace","../po/locale"))==NULL) {
-    logE("could not bind text domain!");
+  if ((localeRet=TA_BINDTEXTDOMAIN("furnace","locale"))==NULL) {
+    if ((localeRet=TA_BINDTEXTDOMAIN("furnace","../po/locale"))==NULL) {
+      logE("could not bind text domain!");
+    } else {
+      logV("text domain 1: %s",localeRet);
+    }
   } else {
     logV("text domain 1: %s",localeRet);
   }
