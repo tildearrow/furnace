@@ -10776,10 +10776,10 @@ msgid ""
 "it is recommended to disable most of these unless you rely on specific "
 "quirks."
 msgstr ""
-”dessa flaggor är utformade för att ge bättre DefleMask/äldre Furnace ”
-”kompatibilitet.\n”
-”det rekommenderas att inaktivera de flesta av dessa om du inte förlitar dig på specifika ”
-”egenheter.”
+"dessa flaggor är utformade för att ge bättre DefleMask/äldre Furnace "
+"kompatibilitet.\n"
+"det rekommenderas att inaktivera de flesta av dessa om du inte förlitar dig på specifika "
+"egenheter."
 
 #: src/gui/compatFlags.cpp:34 src/gui/compatFlags.cpp:310
 msgid "DefleMask"
@@ -10794,8 +10794,8 @@ msgid ""
 "when enabled, slides are limited to a compatible range.\n"
 "may cause problems with slides in negative octaves."
 msgstr ""
-”när den är aktiverad begränsas tonhöjdsgliderna till ett kompatibelt intervall.\n"
-”kan orsaka problem med glider i negativa oktaver.”
+"när den är aktiverad begränsas tonhöjdsgliderna till ett kompatibelt intervall.\n"
+"kan orsaka problem med glider i negativa oktaver."
 
 #: src/gui/compatFlags.cpp:39
 msgid "Compatible noise layout on NES and PC Engine"
@@ -10806,8 +10806,8 @@ msgid ""
 "use a rather unusual compatible noise frequency layout.\n"
 "removes some noise frequencies on PC Engine."
 msgstr ""
-”använder en ganska ovanlig kompatibel ljudfrekvenslayout.\n”
-”tar bort vissa brusfrekvenser på PC Engine.”
+"använder en ganska ovanlig kompatibel ljudfrekvenslayout.\n"
+"tar bort vissa brusfrekvenser på PC Engine."
 
 #: src/gui/compatFlags.cpp:43
 msgid "Game Boy instrument duty is wave volume"
@@ -10818,8 +10818,8 @@ msgid ""
 "if enabled, an instrument with duty macro in the wave channel will be mapped "
 "to wavetable volume."
 msgstr ""
-”om aktiverat, kommer ett instrument med arbetsmakro i vågkanalen att mappas ”
-”till wavetable-volym.”
+"om aktiverat, kommer ett instrument med arbetsmakro i vågkanalen att mappas "
+"till wavetable-volym."
 
 #: src/gui/compatFlags.cpp:48
 msgid "Restart macro on portamento"
@@ -10830,8 +10830,8 @@ msgid ""
 "when enabled, a portamento effect will reset the channel's macro if used in "
 "combination with a note."
 msgstr ""
-”när den är aktiverad kommer en portamentoeffekt att återställa kanalens makro om den används i ”
-”kombination med en not.”
+"när den är aktiverad kommer en portamentoeffekt att återställa kanalens makro om den används i "
+"kombination med en not."
 
 #: src/gui/compatFlags.cpp:52
 msgid "Legacy volume slides"
@@ -10842,8 +10842,8 @@ msgid ""
 "simulate glitchy volume slide behavior by silently overflowing the volume "
 "when the slide goes below 0."
 msgstr ""
-”simulerar glitchigt beteende hos volymglider genom att tyst överfylla volymen ”
-”när gliderna går under 0.”
+"simulerar glitchigt beteende hos volymglider genom att tyst överfylla volymen "
+"när gliderna går under 0."
 
 #: src/gui/compatFlags.cpp:56
 msgid "Compatible arpeggio"
@@ -10862,8 +10862,8 @@ msgid ""
 "when enabled, the DAC in YM2612 will be disabled if there isn't any sample "
 "playing."
 msgstr ""
-”när den är aktiverad kommer DAC:en i YM2612 att inaktiveras om det inte finns någon sample ”
-”spelas.”
+"när den är aktiverad kommer DAC:en i YM2612 att inaktiveras om det inte finns någon sample "
+"spelas."
 
 #: src/gui/compatFlags.cpp:64
 msgid "Broken speed alternation"
@@ -10874,8 +10874,8 @@ msgid ""
 "determines next speed based on whether the row is odd/even instead of "
 "alternating between speeds."
 msgstr ""
-”bestämmer nästa hastighet baserat på om raden är udda/jämn i stället för att ”
-”växla mellan hastigheterna.”
+"bestämmer nästa hastighet baserat på om raden är udda/jämn i stället för att "
+"växla mellan hastigheterna."
 
 #: src/gui/compatFlags.cpp:68
 msgid "Ignore duplicate slide effects"
@@ -10885,7 +10885,7 @@ msgstr "Ignorera duplicerade glideffekter"
 msgid ""
 "if this is on, only the first slide of a row in a channel will be considered."
 msgstr ""
-”Om detta är påslaget, kommer endast den första bilden i en rad i en kanal att beaktas.”
+"Om detta är påslaget, kommer endast den första bilden i en rad i en kanal att beaktas."
 
 #: src/gui/compatFlags.cpp:72
 msgid "Ignore 0Dxx on the last order"
@@ -10896,8 +10896,8 @@ msgid ""
 "if this is on, a jump to next row effect will not take place when it is on "
 "the last order of a song."
 msgstr ""
-”om detta är på, kommer en hopp till nästa radeffekt inte att ske när den är på ”
-”den sista ordern i en låt.”
+"om detta är på, kommer en hopp till nästa radeffekt inte att ske när den är på "
+"den sista ordern i en låt."
 
 #: src/gui/compatFlags.cpp:76
 msgid "Buggy portamento after pitch slide"
@@ -10917,9 +10917,9 @@ msgid ""
 "one tick and then continue from the nearest octave boundary.\n"
 "for .dmf compatibility."
 msgstr ""
-”om detta är påslaget kommer en tonhöjdsglidning som korsar oktavgränsen att stanna i ”
-”ett tick och fortsätta sedan från närmaste oktavgräns.\n”
-”för .dmf-kompatibilitet.”
+"om detta är påslaget kommer en tonhöjdsglidning som korsar oktavgränsen att stanna i "
+"ett tick och fortsätta sedan från närmaste oktavgräns.\n"
+"för .dmf-kompatibilitet."
 
 #: src/gui/compatFlags.cpp:84
 msgid "Don't apply Game Boy envelope on note-less instrument change"
@@ -10962,8 +10962,8 @@ msgid ""
 "when enabled, duty macro will always reset phase, even if its value hasn't "
 "changed."
 msgstr ""
-”när den är aktiverad kommer arbetsmakrot alltid att återställa fasen, även om dess värde inte har ”
-”ändrats.”
+"när den är aktiverad kommer arbetsmakrot alltid att återställa fasen, även om dess värde inte har "
+"ändrats."
 
 #: src/gui/compatFlags.cpp:104
 msgid "Broken volume scaling strategy"
@@ -10978,12 +10978,12 @@ msgid ""
 "- log scaling: subtract\n"
 "- linear scaling: multiply"
 msgstr ""
-”när aktiverad:\n”
-”- logaritmisk skalning: multiplicera\n”
-”- linjär skalning: subtrahera\n”
-”när inaktiverad:\n”
-”- logaritmisk skalning: subtrahera\n”
-”- linjär skalning: multiplicera”
+"när aktiverad:\n"
+"- logaritmisk skalning: multiplicera\n"
+"- linjär skalning: subtrahera\n"
+"när inaktiverad:\n"
+"- logaritmisk skalning: subtrahera\n"
+"- linjär skalning: multiplicera"
 
 #: src/gui/compatFlags.cpp:108
 msgid "Don't persist volume macro after it finishes"
@@ -10994,8 +10994,8 @@ msgid ""
 "when enabled, a value in the volume column that happens after the volume "
 "macro is done will disregard the macro."
 msgstr ""
-”när den är aktiverad, ett värde i volymkolumnen som händer efter att volymens ”
-”makro är gjort kommer att bortse från makrot.”
+"när den är aktiverad, ett värde i volymkolumnen som händer efter att volymens "
+"makro är gjort kommer att bortse från makrot."
 
 #: src/gui/compatFlags.cpp:112
 msgid "Broken output volume on instrument change"
@@ -11007,9 +11007,9 @@ msgid ""
 "this will cause the last macro value to linger unless a value in the volume "
 "column is present."
 msgstr ""
-”om den är aktiverad görs ingen kontroll av om det finns ett volymmakro.”
-”detta gör att det sista makrovärdet dröjer sig kvar om inte ett värde i ”
-”volymkolumnen är närvarande.”
+"om den är aktiverad görs ingen kontroll av om det finns ett volymmakro."
+"detta gör att det sista makrovärdet dröjer sig kvar om inte ett värde i "
+"volymkolumnen är närvarande."
 
 #: src/gui/compatFlags.cpp:116
 msgid "Broken output volume - Episode 2 (PLEASE KEEP ME DISABLED)"
@@ -11032,20 +11032,20 @@ msgid ""
 "\n"
 "end of rant"
 msgstr ""
-”dessa kompatibilitetsflaggor börjar bli SÅ jävla löjliga och ur ”
-”kontroll.\n”
-”som du kanske har gissat, denna flagga finns på grund av ännu ett DefleMask-”
-”specifikt beteende.\n”
-”snälla håll denna borta till varje pris, för jag kommer inte att stödja den när ”
-”ROM-export kommer.\n”
-”och starta inte ett argument av det. Furnace är inte en ”
-”DefleMask-ersättning, och nej,\n”
-”jag försöker inte få det att se ut som en med alla dessa flaggor.\n”
-”\n”
-”och hur är det med de andra flaggorna som inte har med DefleMask att göra?”
-”de är för .mod import, framtida FamiTracker-import och personlig smak!\n”
-”\n”
-”slut på tjatet”
+"dessa kompatibilitetsflaggor börjar bli SÅ jävla löjliga och ur "
+"kontroll.\n"
+"som du kanske har gissat, denna flagga finns på grund av ännu ett DefleMask-"
+"specifikt beteende.\n"
+"snälla håll denna borta till varje pris, för jag kommer inte att stödja den när "
+"ROM-export kommer.\n"
+"och starta inte ett argument av det. Furnace är inte en "
+"DefleMask-ersättning, och nej,\n"
+"jag försöker inte få det att se ut som en med alla dessa flaggor.\n"
+"\n"
+"och hur är det med de andra flaggorna som inte har med DefleMask att göra?"
+"de är för .mod import, framtida FamiTracker-import och personlig smak!\n"
+"\n"
+"slut på tjatet"
 
 #: src/gui/compatFlags.cpp:120
 msgid "Treat SN76489 periods under 8 as 1"
@@ -11056,8 +11056,8 @@ msgid ""
 "when enabled, any SN period under 8 will be written as 1 instead.\n"
 "this replicates DefleMask behavior, but reduces available period range."
 msgstr ""
-”om aktiverat, kommer alla SN-perioder under 8 att skrivas som 1 i stället.\n"
-”detta replikerar DefleMask-beteendet, men minskar det tillgängliga periodintervallet.”
+"om aktiverat, kommer alla SN-perioder under 8 att skrivas som 1 i stället.\n"
+"detta replikerar DefleMask-beteendet, men minskar det tillgängliga periodintervallet."
 
 #: src/gui/compatFlags.cpp:126 src/gui/compatFlags.cpp:304
 msgid "Old Furnace"
@@ -11180,9 +11180,9 @@ msgid ""
 "this flag will be removed if I find out that none of the songs break after "
 "disabling it."
 msgstr ""
-”ändrat beteende i 0,6,1\n”
-”denna flagga kommer att tas bort om jag upptäcker att ingen av låtarna går sönder efter ”
-”att jag inaktiverat den.”
+"ändrat beteende i 0,6,1\n"
+"denna flagga kommer att tas bort om jag upptäcker att ingen av låtarna går sönder efter "
+"att jag inaktiverat den."
 
 #: src/gui/compatFlags.cpp:199
 msgid "Old sample offset effect"
@@ -11205,8 +11205,8 @@ msgid ""
 "simulates ProTracker's behavior of not applying volume/pitch slides on the "
 "first tick of a row."
 msgstr ""
-”simulerar ProTrackers beteende att inte applicera volym/tonhöjdsglider på den ”
-”första ticken i en rad.”
+"simulerar ProTrackers beteende att inte applicera volym/tonhöjdsglider på den "
+"första ticken i en rad."
 
 #: src/gui/compatFlags.cpp:210
 msgid "Reset arpeggio position on row change"
@@ -11217,8 +11217,8 @@ msgid ""
 "simulates ProTracker's behavior of arpeggio being bound to the current tick "
 "of a row."
 msgstr ""
-”simulerar ProTrackers beteende att arpeggio är bundet till den aktuella ticken ”
-”av en rad.”
+"simulerar ProTrackers beteende att arpeggio är bundet till den aktuella ticken "
+"av en rad."
 
 #: src/gui/compatFlags.cpp:216
 msgid "Pitch/Playback"
@@ -11247,14 +11247,14 @@ msgid ""
 "it is recommended to change it now because I will remove this option in the "
 "future!"
 msgstr ""
-”som DefleMask\n”
-”\n”
-”detta tonhöjdslinjäritetsläge är föråldrat på grund av:\n”
-”- överdriven komplexitet\n”
-”- brist på möjlig optimering\n”
-”\n”
-”det rekommenderas att ändra detta nu eftersom jag kommer att ta bort detta alternativ i ”
-”framtiden!”
+"som DefleMask\n"
+"\n"
+"detta tonhöjdslinjäritetsläge är föråldrat på grund av:\n"
+"- överdriven komplexitet\n"
+"- brist på möjlig optimering\n"
+"\n"
+"det rekommenderas att ändra detta nu eftersom jag kommer att ta bort detta alternativ i "
+"framtiden!"
 
 #: src/gui/compatFlags.cpp:235
 msgid "Full"
@@ -11280,7 +11280,7 @@ msgstr "Återställa kanaler"
 msgid ""
 "select to reset channels on loop. may trigger a voltage click on every loop!"
 msgstr ""
-”välj för att återställa kanaler på loop. kan utlösa ett spänningsklick på varje loop!”
+"välj för att återställa kanaler på loop. kan utlösa ett spänningsklick på varje loop!"
 
 #: src/gui/compatFlags.cpp:260
 msgid "Soft reset channels"
@@ -11346,11 +11346,11 @@ msgid ""
 "\n"
 "ineffective on C64."
 msgstr ""
-”när den är aktiverad, kommer en en-tick notklippning att infogas mellan icke-legato/icke-”
-”portamento-noter.\n”
-”detta simulerar beteendet hos vissa Amiga/SNES musikmotorer.\n”
-”\n”
-”ineffektivt på C64.”
+"när den är aktiverad, kommer en en-tick notklippning att infogas mellan icke-legato/icke-"
+"portamento-noter.\n"
+"detta simulerar beteendet hos vissa Amiga/SNES musikmotorer.\n"
+"\n"
+"ineffektivt på C64."
 
 #: src/gui/compatFlags.cpp:327
 msgid "Don't reset slides after note off"
@@ -11369,8 +11369,8 @@ msgid ""
 "when enabled, the slide effect will not be disabled after it reaches its "
 "target."
 msgstr ""
-”när den är aktiverad, kommer glideffekten inte att avaktiveras efter att den har nått sitt ”
-”mål.”
+"när den är aktiverad, kommer glideffekten inte att avaktiveras efter att den har nått sitt "
+"mål."
 
 #: src/gui/compatFlags.cpp:335
 msgid "Continuous vibrato"
@@ -11388,7 +11388,7 @@ msgstr "Pitchmakron är inte linjär"
 msgid ""
 "when enabled, the pitch macro of an instrument is in frequency/period space."
 msgstr ""
-”när den är aktiverad är ett instruments tonhöjdsmakro i frekvens/periodrymd.”
+"när den är aktiverad är ett instruments tonhöjdsmakro i frekvens/periodrymd."
 
 #: src/gui/compatFlags.cpp:343
 msgid "Reset arpeggio effect position on new note"
@@ -11410,11 +11410,11 @@ msgid ""
 "\n"
 "ineffective on logarithmic channels"
 msgstr ""
-”när den är aktiverad avrundas volymmakron uppåt när de används\n"
-”detta förhindrar volymskalning från att orsaka vol=0, vilket är tyst på vissa ”
-”chips\n”
-”\n”
-”ineffektivt på logaritmiska kanaler”
+"när den är aktiverad avrundas volymmakron uppåt när de används\n"
+"detta förhindrar volymskalning från att orsaka vol=0, vilket är tyst på vissa "
+"chips\n"
+"\n"
+"ineffektivt på logaritmiska kanaler"
 
 #: src/gui/guiConst.cpp:127
 msgid "Generic Sample"
@@ -12511,13 +12511,13 @@ msgid ""
 "- 128 on X1-010\n"
 "any other widths will be scaled during playback."
 msgstr ""
-”använd en bredd på:\n”
-”- alla på Amiga/N163\n”
-”- 32 på Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual ”
-”Boy och WonderSwan\n”
-”- 64 på FDS\n”
-”- 128 på X1-010\n”
-”alla andra bredder kommer att skalas under uppspelning.”
+"använd en bredd på:\n"
+"- alla på Amiga/N163\n"
+"- 32 på Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual "
+"Boy och WonderSwan\n"
+"- 64 på FDS\n"
+"- 128 på X1-010\n"
+"alla andra bredder kommer att skalas under uppspelning."
 
 #: src/gui/waveEdit.cpp:510
 msgid "Height"
@@ -12533,13 +12533,13 @@ msgid ""
 "- 256 for X1-010 and SCC\n"
 "any other heights will be scaled during playback."
 msgstr ""
-”använd en höjd på:\n”
-”- 16 för Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 ”
-”kuvertform och N163\n”
-”- 32 för PC Engine\n”
-”- 64 för FDS och Virtual Boy\n”
-”- 256 för X1-010 och SCC\n”
-”alla andra höjder kommer att skalas under uppspelning.”
+"använd en höjd på:\n"
+"- 16 för Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 "
+"kuvertform och N163\n"
+"- 32 för PC Engine\n"
+"- 64 för FDS och Virtual Boy\n"
+"- 256 för X1-010 och SCC\n"
+"alla andra höjder kommer att skalas under uppspelning."
 
 #: src/gui/waveEdit.cpp:578
 msgid "Shapes"
@@ -12805,8 +12805,8 @@ msgid ""
 "backward/ping-pong only supported in Generic PCM DAC\n"
 "ping-pong also on ES5506"
 msgstr ""
-”bakåt/ping-pong stöds endast i Generic PCM DAC\n”
-”ping-pong även på ES5506”
+"bakåt/ping-pong stöds endast i Generic PCM DAC\n"
+"ping-pong även på ES5506"
 
 #: src/gui/sampleEdit.cpp:444
 msgid "Info"
@@ -12852,16 +12852,16 @@ msgid ""
 "this is a BRR sample.\n"
 "enabling this option will muffle it (only affects non-SNES chips)."
 msgstr ""
-”Detta är ett BRR-prov.”
-”Om du aktiverar detta alternativ kommer det att dämpas (påverkar endast icke-SNES-chips).”
+"Detta är ett BRR-prov."
+"Om du aktiverar detta alternativ kommer det att dämpas (påverkar endast icke-SNES-chips)."
 
 #: src/gui/sampleEdit.cpp:540
 msgid ""
 "enable this option to slightly boost high frequencies\n"
 "to compensate for the SNES' Gaussian filter's muffle."
 msgstr ""
-”aktivera detta alternativ för att öka höga frekvenser\n"
-”för att kompensera för SNES Gaussian-filtrets dämpning.”
+"aktivera detta alternativ för att öka höga frekvenser\n"
+"för att kompensera för SNES Gaussian-filtrets dämpning."
 
 #: src/gui/sampleEdit.cpp:546
 msgid "8-bit dither"
@@ -12903,9 +12903,9 @@ msgid ""
 "\n"
 "not enough memory for this sample!"
 msgstr ""
-”\n”
-”\n”
-”inte tillräckligt med minne för denna sample!”
+"\n"
+"\n"
+"inte tillräckligt med minne för denna sample!"
 
 #: src/gui/sampleEdit.cpp:871
 msgid "Edit mode: Select"
@@ -13115,9 +13115,9 @@ msgid ""
 "- Down: Play current song\n"
 "- Up: Play demo songs"
 msgstr ""
-”Spela demolåtar?\n”
-”- Ner: Spela nuvarande låt\n”
-”- Upp: Spela upp demolåtar”
+"Spela demolåtar?\n"
+"- Ner: Spela nuvarande låt\n"
+"- Upp: Spela upp demolåtar"
 
 #: src/gui/tutorial.cpp:491
 msgid ""
@@ -13127,11 +13127,11 @@ msgid ""
 "X - Shoot      Arrow Key - Move\n"
 "Z - Special    Esc - Quit"
 msgstr ""
-”Välkommen till stridsfordonet! \n”
-”\n”
-”Kontroller:\n”
-”X - Skjut      Piltangent - Flytta\n"
-”Z - Special    Esc - Avsluta”
+"Välkommen till stridsfordonet! \n"
+"\n"
+"Kontroller:\n"
+"X - Skjut      Piltangent - Flytta\n"
+"Z - Special    Esc - Avsluta"
 
 #: src/gui/tutorial.cpp:496
 msgid "GAME OVER"
@@ -13576,7 +13576,7 @@ msgstr ".ini filer"
 
 #: src/gui/gui.cpp:2007
 msgid "Select User Presets File"
-msgstr Välj fil för användarförinställningar"
+msgstr "Välj fil för användarförinställningar"
 
 #: src/gui/gui.cpp:2016
 msgid "Select Settings File"
@@ -13658,11 +13658,11 @@ msgid ""
 "DO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\n"
 "Furnace will not save backups of backups."
 msgstr ""
-”Du har laddat en säkerhetskopia!”
-”Om du behöver, spara den någonstans.\n”
-”\n”
-”FÖRLITA DIG EJ PÅ BACKUP-SYSTEMET FÖR AUTO-SPARANDE!\n”
-”Furnace sparar inte säkerhetskopior av säkerhetskopior.”
+"Du har laddat en säkerhetskopia!"
+"Om du behöver, spara den någonstans.\n"
+"\n"
+"FÖRLITA DIG EJ PÅ BACKUP-SYSTEMET FÖR AUTO-SPARANDE!\n"
+"Furnace sparar inte säkerhetskopior av säkerhetskopior."
 
 #: src/gui/gui.cpp:2342 src/gui/gui.cpp:3743 src/gui/gui.cpp:4213
 msgid "Unsaved changes! Save changes before opening file?"
@@ -13737,8 +13737,8 @@ msgid ""
 "&&: selected instrument\n"
 "..: no instrument"
 msgstr ""
-”&&: valt instrument\n”
-”...: inget instrument”
+"&&: valt instrument\n"
+"...: inget instrument"
 
 #: src/gui/gui.cpp:2910
 msgid "Set"
@@ -13874,15 +13874,15 @@ msgid ""
 "check any settings which may have made Furnace start up in this mode.\n"
 "font loading is one of these."
 msgstr ""
-”Furnace har startats i felsäkert läge.\n”
-”Det betyder att:\n”
-”\n”
-”- rendering av programvara används\n”
-”- ljudutgång kanske inte fungerar\n”
-”- inläsning av teckensnitt är inaktiverad\n”
-”\n”
-”kontrollera eventuella inställningar som kan ha gjort att Furnace startade i detta läge.”
-”inläsning av teckensnitt är en av dessa.”
+"Furnace har startats i felsäkert läge.\n"
+"Det betyder att:\n"
+"\n"
+"- rendering av programvara används\n"
+"- ljudutgång kanske inte fungerar\n"
+"- inläsning av teckensnitt är inaktiverad\n"
+"\n"
+"kontrollera eventuella inställningar som kan ha gjort att Furnace startade i detta läge."
+"inläsning av teckensnitt är en av dessa."
 
 #: src/gui/gui.cpp:4053
 msgid "can't keep going without graphics! Furnace will quit now."
@@ -14333,12 +14333,12 @@ msgid ""
 "\n"
 "for now please disable the system file picker in Settings > General."
 msgstr ""
-”det uppstod ett fel i fildialogen! du kanske vill rapportera detta problem ”
-”till:\n”
-”https://github.com/tildearrow/furnace/issues\n”
-”kolla loggvisaren (fönster > loggvisare) för mer information.\n”
-”\n”
-”för tillfället vänligen inaktivera systemfilväljaren i Inställningar > Allmänt.”
+"det uppstod ett fel i fildialogen! du kanske vill rapportera detta problem "
+"till:\n"
+"https://github.com/tildearrow/furnace/issues\n"
+"kolla loggvisaren (fönster > loggvisare) för mer information.\n"
+"\n"
+"för tillfället vänligen inaktivera systemfilväljaren i Inställningar > Allmänt."
 
 #: src/gui/gui.cpp:4944
 msgid "can't do anything without Storage permissions!"
@@ -14350,9 +14350,9 @@ msgid ""
 "please install one of these, or disable the system file picker in Settings > "
 "General."
 msgstr ""
-”Zenity/KDialog ej tillgänglig!\n”
-”installera en av dessa, eller inaktivera systemfilväljaren i Inställningar > ”
-”Allmänt.”
+"Zenity/KDialog ej tillgänglig!\n"
+"installera en av dessa, eller inaktivera systemfilväljaren i Inställningar > "
+"Allmänt."
 
 #: src/gui/gui.cpp:5082
 msgid ""
@@ -14367,16 +14367,16 @@ msgid ""
 "- FM (OPLL)\n"
 "- FDS"
 msgstr ""
-”fel när du sparar instrument! endast följande instrumenttyper ”
-”stöds:\n”
-”- FM (OPN)\n”
-”- SN76489/Sega PSG\n”
-”- Game Boy\n”
-”- PC Engine\n”
-”- NES\n”
-”- C64\n”
-”- FM (OPLL)\n”
-”- FDS”
+"fel när du sparar instrument! endast följande instrumenttyper "
+"stöds:\n"
+"- FM (OPN)\n"
+"- SN76489/Sega PSG\n"
+"- Game Boy\n"
+"- PC Engine\n"
+"- NES\n"
+"- C64\n"
+"- FM (OPLL)\n"
+"- FDS"
 
 #: src/gui/gui.cpp:5110
 msgid "there were some errors while loading samples:\n"
@@ -14622,8 +14622,8 @@ msgid ""
 "could not init renderer!\n"
 "falling back to software renderer. please restart Furnace."
 msgstr ""
-”kunde inte starta renderaren\n"
-”faller tillbaka till mjukvarurendering. vänligen starta om Furnace.”
+"kunde inte starta renderaren\n"
+"faller tillbaka till mjukvarurendering. vänligen starta om Furnace."
 
 #: src/gui/gui.cpp:6865 src/gui/gui.cpp:6973
 #, c-format
@@ -14631,8 +14631,8 @@ msgid ""
 "could not init renderer! %s\n"
 "falling back to software renderer. please restart Furnace."
 msgstr ""
-”kunde inte starta renderaren! %s\n”
-”faller tillbaka till mjukvarurendering. starta om Furnace.”
+"kunde inte starta renderaren! %s\n"
+"faller tillbaka till mjukvarurendering. starta om Furnace."
 
 #: src/gui/gui.cpp:6870 src/gui/gui.cpp:6978
 msgid "could not init renderer!"
@@ -14648,8 +14648,8 @@ msgid ""
 "\n"
 "falling back to software renderer. please restart Furnace."
 msgstr ""
-”\n”
-”faller tillbaka till mjukvarurendering. vänligen starta om Furnace.”
+"\n"
+"faller tillbaka till mjukvarurendering. vänligen starta om Furnace."
 
 #: src/gui/gui.cpp:7034
 msgid "Size column to fit###SizeOne"
@@ -14746,8 +14746,8 @@ msgid ""
 "Pattern %.2X\n"
 "- not allocated"
 msgstr ""
-”Mönster %.2X\n”
-”- inte tilldelat”
+"Mönster %.2X\n"
+"- inte tilldelat"
 
 #: src/gui/patManager.cpp:105
 #, c-format
@@ -14757,10 +14757,10 @@ msgid ""
 "\n"
 "right-click to erase"
 msgstr ""
-”Mönster %.2X\n”
-”- antal användningar: %d (%.0f%%)\n”
-”\n”
-”högerklicka för att radera”
+"Mönster %.2X\n"
+"- antal användningar: %d (%.0f%%)\n"
+"\n"
+"högerklicka för att radera"
 
 #: src/gui/insEdit.cpp:39
 msgid "Down Down Down"
@@ -15211,8 +15211,8 @@ msgid ""
 "Ringmod from OP3 + double pitch ModInput\n"
 "WARNING - has emulation issues; subject to change"
 msgstr ""
-”Ringmod från OP3 + dubbel tonhöjd ModIngång\n”
-”VARNING - har emuleringsproblem; kan komma att ändras”
+"Ringmod från OP3 + dubbel tonhöjd ModIngång\n"
+"VARNING - har emuleringsproblem; kan komma att ändras"
 
 #: src/gui/insEdit.cpp:232
 msgid "Bitwise AND"
@@ -15642,17 +15642,17 @@ msgid ""
 "middle click to pause\n"
 "right click to see algorithm"
 msgstr ""
-”vänsterklicka för att starta om\n”
-”mittenklick för att pausa\n”
-”högerklicka för att se algoritm”
+"vänsterklicka för att starta om\n"
+"mittenklick för att pausa\n"
+"högerklicka för att se algoritm"
 
 #: src/gui/insEdit.cpp:1620
 msgid ""
 "left click to configure TL scaling\n"
 "right click to see FM preview"
 msgstr ""
-”vänsterklicka för att konfigurera TL-skalning\n”
-”högerklicka för att se FM-förhandsgranskning”
+"vänsterklicka för att konfigurera TL-skalning\n"
+"högerklicka för att se FM-förhandsgranskning"
 
 #: src/gui/insEdit.cpp:1624
 msgid "right click to see FM preview"
@@ -15759,8 +15759,8 @@ msgid ""
 "- drag to swap operator\n"
 "- shift-drag to copy operator"
 msgstr ""
-”- dra för att byta operator\n”
-”- skift-dra för att kopiera operator”
+"- dra för att byta operator\n"
+"- skift-dra för att kopiera operator"
 
 #: src/gui/insEdit.cpp:2632
 msgid "new DPCM features disabled (compatibility)!"
@@ -15852,8 +15852,8 @@ msgid ""
 "when enabled, drums will be set to the specified frequencies, ignoring the "
 "note."
 msgstr ""
-”om detta blir aktiverad kommer trummorna att ställas in på de angivna frekvenserna, "
-"utan hänsyn till noten.”
+"om detta blir aktiverad kommer trummorna att ställas in på de angivna frekvenserna, "
+"utan hänsyn till noten."
 
 #: src/gui/insEdit.cpp:3296
 msgid "Drum"
