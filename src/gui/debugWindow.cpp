@@ -35,6 +35,7 @@ static float oscDebugMin=-1.0;
 static float oscDebugMax=1.0;
 static float oscDebugPower=1.0;
 static int oscDebugRepeat=1;
+static int numApples=1;
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -713,6 +714,13 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+#ifdef HAVE_LOCALE
+    if (ImGui::TreeNode("Plural Form Test")) {
+      ImGui::InputInt("Number",&numApples);
+      ImGui::Text(ngettext("%d apple","%d apples",numApples),numApples);
+      ImGui::TreePop();
+    }
+#endif
     if (ImGui::TreeNode("User Interface")) {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;

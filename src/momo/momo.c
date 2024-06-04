@@ -851,5 +851,18 @@ const char* momo_ngettext(const char* str1, const char* str2, unsigned long amou
   // TODO: implement
   // gettext("") and take plural form metadata...
   // then I don't know how are plural strings stored
-  return str1;
+  unsigned int plural=runStackMachine(curDomain->pluralProgram,256,amount);
+  // TODO: optimize
+  for (size_t i=curDomain->firstString[(unsigned char)(str[0])]; i<curDomain->stringCount; i++) {
+    if (strcmp(curDomain->stringPtr[i],str1)==0) {
+      const char* ret=curDomain->transPtr[i];
+      for (unsigned int j=0; j<plural; j++) {
+        ret+=strlen(ret)+1;
+      }
+      return ret;
+    }
+  }
+
+  if (amount==1) return str1;
+  return str2;
 }
