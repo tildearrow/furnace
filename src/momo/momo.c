@@ -62,6 +62,9 @@ static const char* stackInsNames[]={
   "end", "push", "push n", "add", "sub", "mul", "div", "mod", "cmp eq", "cmp ne",
   "cmp gt", "cmp lt", "cmp ge", "cmp le", "cmp and", "cmp or", "beq", "bne", "exit"
 };
+static unsigned char stackTakesArg[]={
+  0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0
+};
 
 struct StackData {
   unsigned char ins;
@@ -222,6 +225,7 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
  \
   /* push operation if pending */ \
   if (state[curState].curOp[0]) { \
+    unsigned char isCompare=0; \
     printf("PENDING OP: %s\n",state[curState].curOp); \
     if (strcmp(state[curState].curOp,"+")==0) { \
       data[*pc].ins=MOMO_STACK_ADD; \
@@ -244,41 +248,59 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
       data[*pc].param=0; \
       (*pc)++; \
     } else if (strcmp(state[curState].curOp,"&&")==0) { \
-      data[*pc].ins=MOMO_STACK_CMP_AND; \
-      data[*pc].param=0; \
-      (*pc)++; \
+      /* handled later */ \
     } else if (strcmp(state[curState].curOp,"||")==0) { \
-      data[*pc].ins=MOMO_STACK_CMP_OR; \
-      data[*pc].param=0; \
-      (*pc)++; \
+      /* handled later */ \
     } else if (strcmp(state[curState].curOp,">")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_GT; \
       data[*pc].param=0; \
       (*pc)++; \
+      isCompare=1; \
     } else if (strcmp(state[curState].curOp,"<")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_LT; \
       data[*pc].param=0; \
       (*pc)++; \
+      isCompare=1; \
     } else if (strcmp(state[curState].curOp,">=")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_GE; \
       data[*pc].param=0; \
       (*pc)++; \
+      isCompare=1; \
     } else if (strcmp(state[curState].curOp,"<=")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_LE; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(state[curState].curOp,"<=")==0) { \
+      isCompare=1; \
     } else if (strcmp(state[curState].curOp,"==")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_EQ; \
       data[*pc].param=0; \
       (*pc)++; \
+      isCompare=1; \
     } else if (strcmp(state[curState].curOp,"!=")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_NE; \
       data[*pc].param=0; \
       (*pc)++; \
+      isCompare=1; \
     } else { \
       printf("ERROR: invalid operation\n"); \
       return 4; \
+    } \
+    if (state[curState].curBigOp[0] && isCompare) { \
+      printf("PENDING BIG OP...\n"); \
+      if (strcmp(state[curState].curBigOp,"&&")==0) { \
+        data[*pc].ins=MOMO_STACK_CMP_AND; \
+        data[*pc].param=0; \
+        (*pc)++; \
+      } else if (strcmp(state[curState].curBigOp,"||")==0) { \
+        data[*pc].ins=MOMO_STACK_CMP_OR; \
+        data[*pc].param=0; \
+        (*pc)++; \
+      } \
+      memset(state[curState].curBigOp,0,8); \
+    } \
+    if (strcmp(state[curState].curOp,"&&")==0 || strcmp(state[curState].curOp,"||")==0) { \
+      printf("PREPARING BIG OP...\n"); \
+      strncpy(state[curState].curBigOp,state[curState].curOp,8); \
     } \
   } \
  \
@@ -298,6 +320,7 @@ unsigned char compileExprSub(const char** ptr, struct StackData* data, size_t* p
     unsigned char oldIsOp;
     char curIdent[32];
     char curOp[8];
+    char curBigOp[8];
     unsigned char curIdentLen;
     unsigned char curOpLen;
     unsigned char startBranch;
@@ -368,7 +391,21 @@ unsigned char compileExprSub(const char** ptr, struct StackData* data, size_t* p
         break;
       case ')':
         // pop last state
+        FINISH_OP;
         curState--;
+        if (state[curState].curBigOp[0]) {
+          printf("PENDING BIG OP...\n");
+          if (strcmp(state[curState].curBigOp,"&&")==0) {
+            data[*pc].ins=MOMO_STACK_CMP_AND;
+            data[*pc].param=0;
+            (*pc)++;
+          } else if (strcmp(state[curState].curBigOp,"||")==0) {
+            data[*pc].ins=MOMO_STACK_CMP_OR;
+            data[*pc].param=0;
+            (*pc)++;
+          }
+          memset(state[curState].curBigOp,0,8);
+        }
         continue;
         break;
       case ' ':
@@ -407,7 +444,7 @@ unsigned char compileExprSub(const char** ptr, struct StackData* data, size_t* p
         state[curState].pendingBranch=0;
       } else {
         state[curState].pendingBranch=*pc;
-        data[*pc].ins=MOMO_STACK_BEQ;
+        data[*pc].ins=MOMO_STACK_BNE;
         data[*pc].param=0;
       }
       state[curState].startBranch=0;
@@ -725,7 +762,11 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
           // dump program
           printf("compiled program:\n");
           for (int i=0; i<256; i++) {
-            printf("%s %u\n",stackInsNames[newDomain->pluralProgram[i].ins],newDomain->pluralProgram[i].param);
+            if (stackTakesArg[newDomain->pluralProgram[i].ins]) {
+              printf("%s %u\n",stackInsNames[newDomain->pluralProgram[i].ins],newDomain->pluralProgram[i].param);
+            } else {
+              printf("%s\n",stackInsNames[newDomain->pluralProgram[i].ins]);
+            }
             if (newDomain->pluralProgram[i].ins==0) break;
           }
         } else {
