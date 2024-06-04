@@ -204,16 +204,16 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
 
 #define FINISH_OP \
   /* push identifier */ \
-  if (curIdent[0]) { \
-    if (strcmp(curIdent,"n")==0) { \
+  if (state[curState].curIdent[0]) { \
+    if (strcmp(state[curState].curIdent,"n")==0) { \
       data[*pc].ins=MOMO_STACK_PUSH_N; \
       data[*pc].param=0; \
-      printf("PENDING IDENT: %s\n",curIdent); \
+      printf("PENDING IDENT: %s\n",state[curState].curIdent); \
     } else { \
       data[*pc].ins=MOMO_STACK_PUSH; \
-      printf("PENDING IDENT: %s\n",curIdent); \
-      if (sscanf(curIdent,"%u",&data[*pc].param)!=1) { \
-        printf("ERROR: invalid identifier %s\n",curIdent); \
+      printf("PENDING IDENT: %s\n",state[curState].curIdent); \
+      if (sscanf(state[curState].curIdent,"%u",&data[*pc].param)!=1) { \
+        printf("ERROR: invalid identifier %s\n",state[curState].curIdent); \
         return 3; \
       } \
     } \
@@ -221,58 +221,58 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
   } \
  \
   /* push operation if pending */ \
-  if (curOp[0]) { \
-    printf("PENDING OP: %s\n",curOp); \
-    if (strcmp(curOp,"+")==0) { \
+  if (state[curState].curOp[0]) { \
+    printf("PENDING OP: %s\n",state[curState].curOp); \
+    if (strcmp(state[curState].curOp,"+")==0) { \
       data[*pc].ins=MOMO_STACK_ADD; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,"-")==0) { \
+    } else if (strcmp(state[curState].curOp,"-")==0) { \
       data[*pc].ins=MOMO_STACK_SUB; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,"*")==0) { \
+    } else if (strcmp(state[curState].curOp,"*")==0) { \
       data[*pc].ins=MOMO_STACK_MUL; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,"/")==0) { \
+    } else if (strcmp(state[curState].curOp,"/")==0) { \
       data[*pc].ins=MOMO_STACK_DIV; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,"%")==0) { \
+    } else if (strcmp(state[curState].curOp,"%")==0) { \
       data[*pc].ins=MOMO_STACK_MOD; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,"&&")==0) { \
+    } else if (strcmp(state[curState].curOp,"&&")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_AND; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,"||")==0) { \
+    } else if (strcmp(state[curState].curOp,"||")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_OR; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,">")==0) { \
+    } else if (strcmp(state[curState].curOp,">")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_GT; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,"<")==0) { \
+    } else if (strcmp(state[curState].curOp,"<")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_LT; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,">=")==0) { \
+    } else if (strcmp(state[curState].curOp,">=")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_GE; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,"<=")==0) { \
+    } else if (strcmp(state[curState].curOp,"<=")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_LE; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,"<=")==0) { \
-    } else if (strcmp(curOp,"==")==0) { \
+    } else if (strcmp(state[curState].curOp,"<=")==0) { \
+    } else if (strcmp(state[curState].curOp,"==")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_EQ; \
       data[*pc].param=0; \
       (*pc)++; \
-    } else if (strcmp(curOp,"!=")==0) { \
+    } else if (strcmp(state[curState].curOp,"!=")==0) { \
       data[*pc].ins=MOMO_STACK_CMP_NE; \
       data[*pc].param=0; \
       (*pc)++; \
@@ -282,8 +282,8 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
     } \
   } \
  \
-  memset(curOp,0,8); \
-  curOpLen=0;
+  memset(state[curState].curOp,0,8); \
+  state[curState].curOpLen=0;
 
 // errors:
 // 0: success
@@ -293,121 +293,129 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
 // 4: unknown operation
 // 5: program too long
 unsigned char compileExprSub(const char** ptr, struct StackData* data, size_t* pc, size_t count) {
-  unsigned char isOp=0;
-  unsigned char oldIsOp=0;
-  char curIdent[32];
-  char curOp[8];
-  unsigned char curIdentLen=0;
-  unsigned char curOpLen=0;
-  unsigned char startBranch=0;
+  struct ExprState {
+    unsigned char isOp;
+    unsigned char oldIsOp;
+    char curIdent[32];
+    char curOp[8];
+    unsigned char curIdentLen;
+    unsigned char curOpLen;
+    unsigned char startBranch;
+    size_t pendingBranch;
+  } state[8];
+  unsigned char curState=0;
 
-  memset(curIdent,0,32);
-  memset(curOp,0,8);
+  memset(state,0,sizeof(struct ExprState)*8);
 
   for (; *(*ptr); (*ptr)++) {
     char next=**ptr;
     unsigned char doNotPush=0;
     printf("%c\n",next);
-    if (curIdentLen>30) return 1;
-    if (curOpLen>6) return 2;
+    if (state[curState].curIdentLen>30) return 1;
+    if (state[curState].curOpLen>6) return 2;
     if (*pc>=count) return 5;
     switch (next) {
       case '+':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '-':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '*':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '/':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '%':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '!':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '=':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '|':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '&':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '>':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '<':
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case '?':
         // special case
-        startBranch=1;
+        state[curState].startBranch=1;
         doNotPush=1;
-        isOp=1;
+        state[curState].isOp=1;
         break;
       case ':':
         // special case
         doNotPush=1;
-        startBranch=2;
-        isOp=1;
+        state[curState].startBranch=2;
+        state[curState].isOp=1;
         break;
       case '(':
-        // special case
-        doNotPush=1;
+        // start a new state
+        curState++;
+        memset(&state[curState],0,sizeof(struct ExprState));
+        continue;
         break;
       case ')':
-        // special case
-        doNotPush=1;
+        // pop last state
+        curState--;
+        continue;
         break;
       case ' ':
         // ignore
         doNotPush=1;
         break;
       default:
-        isOp=0;
+        state[curState].isOp=0;
         break;
     }
-    if (isOp!=oldIsOp) {
-      oldIsOp=isOp;
-      if (isOp) {
+    if (state[curState].isOp!=state[curState].oldIsOp) {
+      state[curState].oldIsOp=state[curState].isOp;
+      if (state[curState].isOp) {
         printf("OP MODE\n");
         FINISH_OP;
       } else {
         printf("IDENT MODE\n");
         // prepare
-        memset(curIdent,0,32);
-        curIdentLen=0;
+        memset(state[curState].curIdent,0,32);
+        state[curState].curIdentLen=0;
       }
     }
     if (!doNotPush) {
-      if (isOp) {
-        curOp[curOpLen++]=next;
+      if (state[curState].isOp) {
+        state[curState].curOp[state[curState].curOpLen++]=next;
       } else {
-        curIdent[curIdentLen++]=next;
+        state[curState].curIdent[state[curState].curIdentLen++]=next;
       }
     }
-    if (startBranch) {
-      printf("START BRANCH: %d\n",startBranch);
-      if (startBranch==2) {
+    if (state[curState].startBranch) {
+      printf("START BRANCH: %d\n",state[curState].startBranch);
+      if (state[curState].startBranch==2) {
         data[*pc].ins=MOMO_STACK_EXIT;
         data[*pc].param=0;
+        data[state[curState].pendingBranch].param=*pc-state[curState].pendingBranch;
+        state[curState].pendingBranch=0;
       } else {
+        state[curState].pendingBranch=*pc;
         data[*pc].ins=MOMO_STACK_BEQ;
-        // TODO offset
         data[*pc].param=0;
       }
-      startBranch=0;
+      state[curState].startBranch=0;
       (*pc)++;
     }
   }
 
-  if (!isOp) {
+  if (!state[curState].isOp) {
     FINISH_OP;
   }
 
