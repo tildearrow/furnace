@@ -5,7 +5,7 @@ the following document describes the stack machine used to get the correct plura
 ```
 op | description
 ---|--------------------
-00 | exit
+00 | end
 01 | push imm
 02 | push N
 03 | add
@@ -21,6 +21,7 @@ op | description
 0d | cmp le
 0e | cmp and
 0f | cmp or
-10 | true imm
-11 | false imm
+10 | beq off
+11 | bne off
+12 | exit
 ```

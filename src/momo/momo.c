@@ -37,7 +37,7 @@ static char curLocale[64];
 static char tempPath[4096];
 
 enum StackInstruction {
-  MOMO_STACK_EXIT=0,
+  MOMO_STACK_END=0,
   MOMO_STACK_PUSH,
   MOMO_STACK_PUSH_N,
   MOMO_STACK_ADD,
@@ -53,13 +53,19 @@ enum StackInstruction {
   MOMO_STACK_CMP_LE,
   MOMO_STACK_CMP_AND,
   MOMO_STACK_CMP_OR,
-  MOMO_STACK_TRUE,
-  MOMO_STACK_FALSE
+  MOMO_STACK_BEQ,
+  MOMO_STACK_BNE,
+  MOMO_STACK_EXIT,
+};
+
+static const char* stackInsNames[]={
+  "end", "push", "push n", "add", "sub", "mul", "div", "mod", "cmp eq", "cmp ne",
+  "cmp gt", "cmp lt", "cmp ge", "cmp le", "cmp and", "cmp or", "beq", "bne", "exit"
 };
 
 struct StackData {
   unsigned char ins;
-  unsigned char param;
+  unsigned int param;
 };
 
 struct LocaleDomain {
@@ -102,6 +108,7 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
     unsigned int op1, op2;
 
     switch (data[pc].ins) {
+      case MOMO_STACK_END:
       case MOMO_STACK_EXIT:
         return stack[sp];
         break;
@@ -178,13 +185,13 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
         op1=stack[sp--];
         stack[++sp]=(op1 || op2)?1:0;
         break;
-      case MOMO_STACK_TRUE:
+      case MOMO_STACK_BEQ:
         op1=stack[sp--];
-        if (op1) return param;
+        if (op1) pc+=(int)param;
         break;
-      case MOMO_STACK_FALSE:
+      case MOMO_STACK_BNE:
         op1=stack[sp--];
-        if (!op1) return param;
+        if (!op1) pc+=(int)param;
         break;
       default:
         return 0;
@@ -195,15 +202,225 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
   return stack[sp];
 }
 
+#define FINISH_OP \
+  /* push identifier */ \
+  if (curIdent[0]) { \
+    if (strcmp(curIdent,"n")==0) { \
+      data[*pc].ins=MOMO_STACK_PUSH_N; \
+      data[*pc].param=0; \
+      printf("PENDING IDENT: %s\n",curIdent); \
+    } else { \
+      data[*pc].ins=MOMO_STACK_PUSH; \
+      printf("PENDING IDENT: %s\n",curIdent); \
+      if (sscanf(curIdent,"%u",&data[*pc].param)!=1) { \
+        printf("ERROR: invalid identifier %s\n",curIdent); \
+        return 3; \
+      } \
+    } \
+    (*pc)++; \
+  } \
+ \
+  /* push operation if pending */ \
+  if (curOp[0]) { \
+    printf("PENDING OP: %s\n",curOp); \
+    if (strcmp(curOp,"+")==0) { \
+      data[*pc].ins=MOMO_STACK_ADD; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,"-")==0) { \
+      data[*pc].ins=MOMO_STACK_SUB; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,"*")==0) { \
+      data[*pc].ins=MOMO_STACK_MUL; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,"/")==0) { \
+      data[*pc].ins=MOMO_STACK_DIV; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,"%")==0) { \
+      data[*pc].ins=MOMO_STACK_MOD; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,"&&")==0) { \
+      data[*pc].ins=MOMO_STACK_CMP_AND; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,"||")==0) { \
+      data[*pc].ins=MOMO_STACK_CMP_OR; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,">")==0) { \
+      data[*pc].ins=MOMO_STACK_CMP_GT; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,"<")==0) { \
+      data[*pc].ins=MOMO_STACK_CMP_LT; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,">=")==0) { \
+      data[*pc].ins=MOMO_STACK_CMP_GE; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,"<=")==0) { \
+      data[*pc].ins=MOMO_STACK_CMP_LE; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,"<=")==0) { \
+    } else if (strcmp(curOp,"==")==0) { \
+      data[*pc].ins=MOMO_STACK_CMP_EQ; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else if (strcmp(curOp,"!=")==0) { \
+      data[*pc].ins=MOMO_STACK_CMP_NE; \
+      data[*pc].param=0; \
+      (*pc)++; \
+    } else { \
+      printf("ERROR: invalid operation\n"); \
+      return 4; \
+    } \
+  } \
+ \
+  memset(curOp,0,8); \
+  curOpLen=0;
+
+// errors:
+// 0: success
+// 1: identifier too long
+// 2: operator too long
+// 3: unknown identifier
+// 4: unknown operation
+// 5: program too long
 unsigned char compileExprSub(const char** ptr, struct StackData* data, size_t* pc, size_t count) {
-  
+  unsigned char isOp=0;
+  unsigned char oldIsOp=0;
+  char curIdent[32];
+  char curOp[8];
+  unsigned char curIdentLen=0;
+  unsigned char curOpLen=0;
+  unsigned char startBranch=0;
+
+  memset(curIdent,0,32);
+  memset(curOp,0,8);
+
+  for (; *(*ptr); (*ptr)++) {
+    char next=**ptr;
+    unsigned char doNotPush=0;
+    printf("%c\n",next);
+    if (curIdentLen>30) return 1;
+    if (curOpLen>6) return 2;
+    if (*pc>=count) return 5;
+    switch (next) {
+      case '+':
+        isOp=1;
+        break;
+      case '-':
+        isOp=1;
+        break;
+      case '*':
+        isOp=1;
+        break;
+      case '/':
+        isOp=1;
+        break;
+      case '%':
+        isOp=1;
+        break;
+      case '!':
+        isOp=1;
+        break;
+      case '=':
+        isOp=1;
+        break;
+      case '|':
+        isOp=1;
+        break;
+      case '&':
+        isOp=1;
+        break;
+      case '>':
+        isOp=1;
+        break;
+      case '<':
+        isOp=1;
+        break;
+      case '?':
+        // special case
+        startBranch=1;
+        doNotPush=1;
+        isOp=1;
+        break;
+      case ':':
+        // special case
+        doNotPush=1;
+        startBranch=2;
+        isOp=1;
+        break;
+      case '(':
+        // special case
+        doNotPush=1;
+        break;
+      case ')':
+        // special case
+        doNotPush=1;
+        break;
+      case ' ':
+        // ignore
+        doNotPush=1;
+        break;
+      default:
+        isOp=0;
+        break;
+    }
+    if (isOp!=oldIsOp) {
+      oldIsOp=isOp;
+      if (isOp) {
+        printf("OP MODE\n");
+        FINISH_OP;
+      } else {
+        printf("IDENT MODE\n");
+        // prepare
+        memset(curIdent,0,32);
+        curIdentLen=0;
+      }
+    }
+    if (!doNotPush) {
+      if (isOp) {
+        curOp[curOpLen++]=next;
+      } else {
+        curIdent[curIdentLen++]=next;
+      }
+    }
+    if (startBranch) {
+      printf("START BRANCH: %d\n",startBranch);
+      if (startBranch==2) {
+        data[*pc].ins=MOMO_STACK_EXIT;
+        data[*pc].param=0;
+      } else {
+        data[*pc].ins=MOMO_STACK_BEQ;
+        // TODO offset
+        data[*pc].param=0;
+      }
+      startBranch=0;
+      (*pc)++;
+    }
+  }
+
+  if (!isOp) {
+    FINISH_OP;
+  }
+
+  return 0;
 }
 
 unsigned char compileExpr(const char* expr, struct StackData* data, size_t count) {
-  plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);
+  //plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);
 
   const char* ptr=expr;
   size_t pc=0;
+
+  printf("compiling expression... %s\n",expr);
 
   return compileExprSub(&ptr,data,&pc,count);
 }
@@ -480,6 +697,33 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
     while (curChar<256) {
       newDomain->firstString[curChar]=newDomain->stringCount;
       curChar++;
+    }
+
+    // compile plural program
+    char pluralProgram[4096];
+    const char* pluralProgramLoc=strstr(newDomain->transPtr[0],"plural=");
+    if (pluralProgramLoc!=NULL) {
+      pluralProgramLoc+=7;
+      const char* pluralProgramLocEnd=strstr(pluralProgramLoc,";");
+
+      if (pluralProgramLocEnd!=NULL) {
+        memset(pluralProgram,0,4096);
+        for (size_t i=0; i<4096 && pluralProgramLoc<pluralProgramLocEnd; pluralProgramLoc++) {
+          pluralProgram[i++]=*pluralProgramLoc;
+        }
+
+        unsigned char exprRet=compileExpr(pluralProgram,newDomain->pluralProgram,256);
+        if (exprRet==0) {
+          // dump program
+          printf("compiled program:\n");
+          for (int i=0; i<256; i++) {
+            printf("%s %u\n",stackInsNames[newDomain->pluralProgram[i].ins],newDomain->pluralProgram[i].param);
+            if (newDomain->pluralProgram[i].ins==0) break;
+          }
+        } else {
+          printf("error %d\n",exprRet);
+        }
+      }
     }
   }
 
