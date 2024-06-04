@@ -36,6 +36,8 @@
 
 #include "fileDialog.h"
 
+#define FURNACE_APP_ID "org.tildearrow.furnace"
+
 #define rightClickable if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::SetKeyboardFocusHere(-1);
 #define ctrlWheeling ((ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) && wheelY!=0)
 

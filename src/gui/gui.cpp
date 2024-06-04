@@ -6744,6 +6744,9 @@ bool FurnaceGUI::init() {
   SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE,"_NET_WM_WINDOW_TYPE_NORMAL");
 #endif
 
+  // This sets the icon in wayland
+  SDL_setenv("SDL_VIDEO_WAYLAND_WMCLASS", FURNACE_APP_ID, 0);
+
   // initialize SDL
   logD("initializing video...");
   if (SDL_Init(SDL_INIT_VIDEO)!=0) {
