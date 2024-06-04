@@ -94,7 +94,7 @@ else()
 endif()
 
 # until ready
-set(WITH_LOCALE_DEFAULT OFF)
+set(WITH_LOCALE_DEFAULT ON)
 
 if (MSVC OR ANDROID)
   set(USE_MOMO_DEFAULT ON)
