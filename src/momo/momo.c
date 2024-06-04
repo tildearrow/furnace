@@ -285,8 +285,8 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
       printf("ERROR: invalid operation\n"); \
       return 4; \
     } \
-    if (state[curState].curBigOp[0] && isCompare) { \
-      printf("PENDING BIG OP...\n"); \
+    if ((state[curState].curBigOp[0] && isCompare) || state[curState].endExpr) { \
+      printf("PENDING BIG OP... %s\n",state[curState].curBigOp); \
       if (strcmp(state[curState].curBigOp,"&&")==0) { \
         data[*pc].ins=MOMO_STACK_CMP_AND; \
         data[*pc].param=0; \
@@ -305,7 +305,9 @@ unsigned int runStackMachine(struct StackData* data, size_t count, unsigned int 
   } \
  \
   memset(state[curState].curOp,0,8); \
-  state[curState].curOpLen=0;
+  memset(state[curState].curIdent,0,32); \
+  state[curState].curOpLen=0; \
+  state[curState].curIdentLen=0;
 
 // errors:
 // 0: success
@@ -324,6 +326,7 @@ unsigned char compileExprSub(const char** ptr, struct StackData* data, size_t* p
     unsigned char curIdentLen;
     unsigned char curOpLen;
     unsigned char startBranch;
+    unsigned char endExpr;
     size_t pendingBranch;
   } state[8];
   unsigned char curState=0;
@@ -376,6 +379,20 @@ unsigned char compileExprSub(const char** ptr, struct StackData* data, size_t* p
         state[curState].startBranch=1;
         doNotPush=1;
         state[curState].isOp=1;
+        FINISH_OP;
+        if (state[curState].curBigOp[0]) {
+          printf("PENDING BIG OP... %s\n",state[curState].curBigOp);
+          if (strcmp(state[curState].curBigOp,"&&")==0) {
+            data[*pc].ins=MOMO_STACK_CMP_AND;
+            data[*pc].param=0;
+            (*pc)++;
+          } else if (strcmp(state[curState].curBigOp,"||")==0) {
+            data[*pc].ins=MOMO_STACK_CMP_OR;
+            data[*pc].param=0;
+            (*pc)++;
+          }
+          memset(state[curState].curBigOp,0,8);
+        }
         break;
       case ':':
         // special case
@@ -385,16 +402,19 @@ unsigned char compileExprSub(const char** ptr, struct StackData* data, size_t* p
         break;
       case '(':
         // start a new state
+        printf("PUSH STATE.\n");
+        state[curState].isOp=0;
         curState++;
         memset(&state[curState],0,sizeof(struct ExprState));
         continue;
         break;
       case ')':
         // pop last state
+        printf("POP STATE.\n");
         FINISH_OP;
         curState--;
         if (state[curState].curBigOp[0]) {
-          printf("PENDING BIG OP...\n");
+          printf("PENDING BIG OP... %s\n",state[curState].curBigOp);
           if (strcmp(state[curState].curBigOp,"&&")==0) {
             data[*pc].ins=MOMO_STACK_CMP_AND;
             data[*pc].param=0;
