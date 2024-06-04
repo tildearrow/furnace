@@ -853,7 +853,7 @@ const char* momo_ngettext(const char* str1, const char* str2, unsigned long amou
   // then I don't know how are plural strings stored
   unsigned int plural=runStackMachine(curDomain->pluralProgram,256,amount);
   // TODO: optimize
-  for (size_t i=curDomain->firstString[(unsigned char)(str[0])]; i<curDomain->stringCount; i++) {
+  for (size_t i=curDomain->firstString[(unsigned char)(str1[0])]; i<curDomain->stringCount; i++) {
     if (strcmp(curDomain->stringPtr[i],str1)==0) {
       const char* ret=curDomain->transPtr[i];
       for (unsigned int j=0; j<plural; j++) {

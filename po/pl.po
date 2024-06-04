@@ -4924,9 +4924,9 @@ msgstr "To jest kolejny test systemu tłumaczeń."
 #, c-format
 msgid "%d apple"
 msgid_plural "%d apples"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d jabłko"
+msgstr[1] "%d jabłka"
+msgstr[2] "%d jabłek"
 
 #: src/gui/chanOsc.cpp:32
 msgid "None (0%)"
