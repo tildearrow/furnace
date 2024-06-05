@@ -24,7 +24,11 @@
 extern "C" {
 #endif
 
+#ifdef _MSC_VER
+#define MOMO_FORMATARG
+#else
 #define MOMO_FORMATARG __attribute__((format_arg(1)))
+#endif
 
 const char* momo_setlocale(int type, const char* locale);
 const char* momo_bindtextdomain(const char* domainName, const char* dirName);

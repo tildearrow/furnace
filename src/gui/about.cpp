@@ -69,7 +69,7 @@ const char* aboutLine[]={
   _N("-- localization/translation team --"),
   "Español: ThaCuber, tildearrow",
   "Հայերեն: Eknous",
-  "한국어: Heemin",
+  "한국어: Heemin, leejh20",
   "Nederlands: Lunathir",
   "Polski: freq-mod, PoznańskiSzybkowiec",
   "Português (Brasil): Kagamiin~",
