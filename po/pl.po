@@ -13272,7 +13272,7 @@ msgstr "Zniszcz"
 
 #: src/gui/csPlayer.cpp:119
 msgid "Kikai wa mou shindeiru!"
-msgstr ""
+msgstr "Die Maschine ist bereits tot!"
 
 #: src/gui/csPlayer.cpp:123
 msgid "Burn Current Song"

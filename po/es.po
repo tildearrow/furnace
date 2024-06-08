@@ -4602,7 +4602,7 @@ msgstr "ERROR"
 
 #: src/gui/log.cpp:26
 msgid "warning"
-msgstr "cuidado"
+msgstr "atención"
 
 #: src/gui/log.cpp:27
 msgid "info"
@@ -5086,6 +5086,8 @@ msgid ""
 "scroll\n"
 "mode"
 msgstr ""
+"modo\n"
+"desplaz"
 
 #: src/gui/editControls.cpp:81
 msgid ""
@@ -5185,15 +5187,15 @@ msgstr "Qué demonios"
 
 #: src/gui/editControls.cpp:554
 msgid "ChanOsc"
-msgstr ""
+msgstr "OscCanal"
 
 #: src/gui/editControls.cpp:558
 msgid "RegView"
-msgstr ""
+msgstr "VistaReg"
 
 #: src/gui/editControls.cpp:562
 msgid "Stats"
-msgstr ""
+msgstr "Estadísticas"
 
 #: src/gui/editControls.cpp:566 src/gui/guiConst.cpp:611 src/gui/grooves.cpp:35
 msgid "Grooves"
@@ -5209,11 +5211,11 @@ msgstr ""
 
 #: src/gui/editControls.cpp:577
 msgid "Meter"
-msgstr ""
+msgstr "Metro"
 
 #: src/gui/editControls.cpp:581
 msgid "Memory"
-msgstr ""
+msgstr "Memoria"
 
 #: src/gui/editControls.cpp:585
 msgid "CV"
@@ -5229,7 +5231,7 @@ msgstr ""
 
 #: src/gui/editControls.cpp:599 src/gui/guiConst.cpp:564
 msgid "Panic"
-msgstr ""
+msgstr "Pánico"
 
 #: src/gui/editControls.cpp:601 src/gui/settings.cpp:560
 #: src/gui/guiConst.cpp:589 src/gui/guiConst.cpp:591 src/gui/gui.cpp:4439
@@ -5462,25 +5464,25 @@ msgstr "Tipo de chip:"
 
 #: src/gui/sysConf.cpp:75
 msgid "YM3438 (9-bit DAC)"
-msgstr ""
+msgstr "YM3438 (DAC 9-bit)"
 
 #: src/gui/sysConf.cpp:79
 msgid "YM2612 (9-bit DAC with distortion)"
-msgstr ""
+msgstr "YM2612 (DAC 9-bit con distorsión)"
 
 #: src/gui/sysConf.cpp:83
 msgid "YMF276 (external DAC)"
-msgstr ""
+msgstr "YMF276 (DAC externo)"
 
 #: src/gui/sysConf.cpp:90 src/gui/sysConf.cpp:804 src/gui/sysConf.cpp:1350
 #: src/gui/sysConf.cpp:1420
 msgid "Disable ExtCh FM macros (compatibility)"
-msgstr ""
+msgstr "Desactivar macros FM en canal extendido (compatibilidad)"
 
 #: src/gui/sysConf.cpp:93 src/gui/sysConf.cpp:807 src/gui/sysConf.cpp:1353
 #: src/gui/sysConf.cpp:1423
 msgid "Ins change in ExtCh operator 2-4 affects FB (compatibility)"
-msgstr ""
+msgstr "Cambio de instrumento en operador 2-4 de canal extendido afecta retroalimentación (compatibilidad)"
 
 #: src/gui/sysConf.cpp:99
 msgid "Modified sine wave (joke)"
@@ -5501,7 +5503,7 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:135
 msgid "1.79MHz (Half NTSC)"
-msgstr "1.79MHz (Medio NTSC)"
+msgstr "1.79MHz (Mitad NTSC)"
 
 #: src/gui/sysConf.cpp:139
 msgid "3MHz (Exed Exes)"
@@ -5553,11 +5555,11 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:196
 msgid "Disable noise period change phase reset"
-msgstr ""
+msgstr "Desactivar reinicio de fase al cambiar periodo de ruido"
 
 #: src/gui/sysConf.cpp:200 src/gui/sysConf.cpp:2190
 msgid "Disable easy period to note mapping on upper octaves"
-msgstr ""
+msgstr "Desactivar mapeo de periodos a notas en octavas superiores"
 
 #: src/gui/sysConf.cpp:219 src/gui/sysConf.cpp:583
 msgid "Pseudo-PAL"
@@ -5680,13 +5682,11 @@ msgstr "Salida exacta (normal)"
 msgid ""
 "Pretty please one more compat flag when I use arpeggio and my sound length"
 msgstr ""
-"Una opción de compatibilidad más\n"
-"para cuando use arpegio y mi longitud\n"
-"de sonido porfiiiiiiiis"
+"Una opción de compatibilidad más para cuando use arpegio y mi longitud de sonido porfiiiiiiiis"
 
 #: src/gui/sysConf.cpp:405 src/gui/sysConf.cpp:438
 msgid "DAC bit depth (reduces output rate):"
-msgstr ""
+msgstr "Profundidad de bits del DAC:"
 
 #: src/gui/sysConf.cpp:426 src/gui/sysConf.cpp:1268 src/gui/sysConf.cpp:1919
 msgid "Volume scale:"
@@ -5694,7 +5694,7 @@ msgstr "Escala de volumen:"
 
 #: src/gui/sysConf.cpp:432
 msgid "Mix buffers (allows longer echo delay):"
-msgstr ""
+msgstr "Mezclar búferes (permite un eco más largo):"
 
 #: src/gui/sysConf.cpp:444
 msgid "Channel limit:"
@@ -5712,7 +5712,7 @@ msgstr "Frecuencia de muestreo actual: %d Hz"
 #: src/gui/sysConf.cpp:462
 #, c-format
 msgid "Max mixer CPU usage: %.0f%%"
-msgstr ""
+msgstr "Uso de CPU máximo del mezclador: %.0f%%"
 
 #: src/gui/sysConf.cpp:488
 msgid "NTSC (3.58MHz)"
@@ -5728,19 +5728,19 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:500
 msgid "Half NTSC (1.79MHz)"
-msgstr ""
+msgstr "Mitad NTSC (1.79MHz)"
 
 #: src/gui/sysConf.cpp:506
 msgid "Patch set:"
-msgstr ""
+msgstr "Set de sonidos:"
 
 #: src/gui/sysConf.cpp:528
 msgid "Ignore top/hi-hat frequency changes"
-msgstr ""
+msgstr "Ignorar cambio de frecuencia en top/hi-hat"
 
 #: src/gui/sysConf.cpp:531
 msgid "Apply fixed frequency to all drums at once"
-msgstr ""
+msgstr "Aplicar frecuencia fija a todos los canales inmediatamente"
 
 #: src/gui/sysConf.cpp:553
 msgid "NTSC/X16 (3.58MHz)"
@@ -5752,7 +5752,7 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:567 src/gui/sysConf.cpp:587
 msgid "Broken pitch macro/slides (compatibility)"
-msgstr ""
+msgstr "Macro de tono y deslizamientos quebrados (compatibilidad)"
 
 #: src/gui/sysConf.cpp:607 src/gui/sysConf.cpp:650 src/gui/sysConf.cpp:1222
 #: src/gui/sysConf.cpp:2310
@@ -5769,15 +5769,15 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:621
 msgid "DPCM channel mode:"
-msgstr ""
+msgstr "Modo del canal DPCM:"
 
 #: src/gui/sysConf.cpp:624
 msgid "DPCM (muffled samples; low CPU usage)"
-msgstr ""
+msgstr "DPCM (samples mufleados; bajo uso de CPU)"
 
 #: src/gui/sysConf.cpp:628
 msgid "PCM (crisp samples; high CPU usage)"
-msgstr ""
+msgstr "PCM (samples crocantes; alto uso de CPU)"
 
 #: src/gui/sysConf.cpp:687
 msgid "NTSC (1.02MHz)"
@@ -5793,44 +5793,44 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:701 src/gui/sysConf.cpp:2320
 msgid "Global parameter priority:"
-msgstr ""
+msgstr "Prioridad de parámetros globales:"
 
 #: src/gui/sysConf.cpp:704 src/gui/sysConf.cpp:2323
 msgid "Left to right"
-msgstr ""
+msgstr "Izquierda a derecha"
 
 #: src/gui/sysConf.cpp:708 src/gui/sysConf.cpp:2327
 msgid "Last used channel"
-msgstr ""
+msgstr "Último canal usado"
 
 #: src/gui/sysConf.cpp:714
 msgid "Hard reset envelope:"
-msgstr ""
+msgstr "Envelope del reinicio duro:"
 
 #: src/gui/sysConf.cpp:716 src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:1920
 #: src/gui/insEdit.cpp:6955 src/gui/insEdit.cpp:7481
 msgid "Attack"
-msgstr ""
+msgstr "Ataque"
 
 #: src/gui/sysConf.cpp:721 src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:1960
 #: src/gui/insEdit.cpp:6956 src/gui/insEdit.cpp:7482
 msgid "Decay"
-msgstr ""
+msgstr "Caída"
 
 #: src/gui/sysConf.cpp:726 src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:1929
 #: src/gui/insEdit.cpp:6957 src/gui/insEdit.cpp:7483
 msgid "Sustain"
-msgstr ""
+msgstr "Sostenido"
 
 #: src/gui/sysConf.cpp:731 src/gui/settings.cpp:3987 src/gui/insEdit.cpp:50
 #: src/gui/insEdit.cpp:604 src/gui/insEdit.cpp:1983 src/gui/insEdit.cpp:6958
 #: src/gui/insEdit.cpp:7484
 msgid "Release"
-msgstr ""
+msgstr "Lanzamiento"
 
 #: src/gui/sysConf.cpp:737
 msgid "Envelope reset time:"
-msgstr ""
+msgstr "Tiempo de reinicio del envelope;"
 
 #: src/gui/sysConf.cpp:747
 msgid ""
@@ -5838,18 +5838,21 @@ msgid ""
 "- 1 may trigger SID envelope bugs.\n"
 "- values that are too high may result in notes being skipped."
 msgstr ""
+"- 0 desactiva el reinicio. ¡no recomendado!\n"
+"- 1 podría resultar en problemas con el envelope del SID.\n"
+"- valores muy altos podrían hacer que las notas se vayan."
 
 #: src/gui/sysConf.cpp:749
 msgid "Disable 1Exy env update (compatibility)"
-msgstr ""
+msgstr "Desactivar cambio de env con 1Exy (compatibilidad)"
 
 #: src/gui/sysConf.cpp:753
 msgid "Relative duty and cutoff macros are coarse (compatibility)"
-msgstr ""
+msgstr "Macros de ancho de pulso y límite relativas gruesas (compatibilidad)"
 
 #: src/gui/sysConf.cpp:757
 msgid "Cutoff macro race conditions (compatibility)"
-msgstr ""
+msgstr "Condiciones de carrera en macro de límite (compatibilidad)"
 
 #: src/gui/sysConf.cpp:793
 msgid "8MHz (Neo Geo MVS)"
@@ -5861,11 +5864,11 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:812 src/gui/sysConf.cpp:1337 src/gui/sysConf.cpp:1407
 msgid "SSG Volume"
-msgstr ""
+msgstr "Volumen SSG"
 
 #: src/gui/sysConf.cpp:818 src/gui/sysConf.cpp:1413
 msgid "FM/ADPCM Volume"
-msgstr ""
+msgstr "Volumen FM/ADPCM"
 
 #: src/gui/sysConf.cpp:845
 msgid "1.79MHz (ZX Spectrum NTSC/MSX)"
@@ -5877,11 +5880,11 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:853
 msgid "0.83MHz (Pre-divided Sunsoft 5B on PAL)"
-msgstr ""
+msgstr "0.83MHz (Sunsoft 5B pre-dividido en PAL)"
 
 #: src/gui/sysConf.cpp:857
 msgid "0.89MHz (Pre-divided Sunsoft 5B)"
-msgstr ""
+msgstr "0.89MHz (Sunsoft 5B pre-dividido)"
 
 #: src/gui/sysConf.cpp:861
 msgid "1MHz (Amstrad CPC)"
@@ -5945,19 +5948,19 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:931
 msgid "note: AY-3-8914 is not supported by the VGM format!"
-msgstr ""
+msgstr "nota: el formato VGM no soporta AY-3-8914."
 
 #: src/gui/sysConf.cpp:935
 msgid "Stereo##_AY_STEREO"
-msgstr ""
+msgstr "Estéreo##_AY_STEREO"
 
 #: src/gui/sysConf.cpp:940
 msgid "Separation"
-msgstr ""
+msgstr "Separación"
 
 #: src/gui/sysConf.cpp:949
 msgid "Half Clock divider##_AY_CLKSEL"
-msgstr ""
+msgstr "Divisor del reloj en mitad##_AY_CLKSEL"
 
 #: src/gui/sysConf.cpp:971
 msgid "SAM Coupé (8MHz)"
@@ -5973,11 +5976,11 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:999
 msgid "Stereo separation:"
-msgstr ""
+msgstr "Separación estéreo:"
 
 #: src/gui/sysConf.cpp:1006 src/gui/sysConf.cpp:2412
 msgid "Model:"
-msgstr ""
+msgstr "Modelo:"
 
 #: src/gui/sysConf.cpp:1008
 msgid "Amiga 500 (OCS)"
@@ -5989,15 +5992,15 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1018
 msgid "Chip memory:"
-msgstr ""
+msgstr "Memoria del chip:"
 
 #: src/gui/sysConf.cpp:1020
 msgid "2MB (ECS/AGA max)"
-msgstr ""
+msgstr "2MB (máximo en ECS/AGA)"
 
 #: src/gui/sysConf.cpp:1030
 msgid "512KB (OCS max)"
-msgstr ""
+msgstr "512KB (máximo en OCS)"
 
 #: src/gui/sysConf.cpp:1043 src/gui/sysConf.cpp:1081 src/gui/sysConf.cpp:2395
 #: src/gui/sysConf.cpp:2449
@@ -6006,11 +6009,11 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1046
 msgid "Bypass frequency limits"
-msgstr ""
+msgstr "Desactivar límites de frecuencia"
 
 #: src/gui/sysConf.cpp:1065
 msgid "Mixing mode:"
-msgstr ""
+msgstr "Modo de mezcla:"
 
 #: src/gui/sysConf.cpp:1067 src/gui/settings.cpp:3724
 msgid "Mono"
@@ -6018,12 +6021,12 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1071
 msgid "Mono (no distortion)"
-msgstr ""
+msgstr "Mono (sin distorsión)"
 
 #: src/gui/sysConf.cpp:1075 src/gui/sysConf.cpp:1197 src/gui/sysConf.cpp:1864
 #: src/gui/sysConf.cpp:2204
 msgid "Stereo"
-msgstr ""
+msgstr "Estéreo"
 
 #: src/gui/sysConf.cpp:1100
 msgid "1.19MHz (PC)"
@@ -6039,15 +6042,15 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1114
 msgid "Speaker type:"
-msgstr ""
+msgstr "Tipo de parlante:"
 
 #: src/gui/sysConf.cpp:1116
 msgid "Unfiltered"
-msgstr ""
+msgstr "Sin filtro"
 
 #: src/gui/sysConf.cpp:1120
 msgid "Cone"
-msgstr ""
+msgstr "Cono"
 
 #: src/gui/sysConf.cpp:1124
 msgid "Piezo"
@@ -6055,11 +6058,11 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1128
 msgid "Use system beeper (Linux only!)"
-msgstr ""
+msgstr "Usar parlante del sistema (sólo para Linux)"
 
 #: src/gui/sysConf.cpp:1134
 msgid "Reset phase on frequency change"
-msgstr ""
+msgstr "Reiniciar fase al cambiar la frecuencia"
 
 #: src/gui/sysConf.cpp:1183
 msgid "16MHz (Seta 1)"
@@ -6075,19 +6078,19 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1201
 msgid "Bankswitched (Seta 2)"
-msgstr ""
+msgstr "Intercambio de bancos (Seta 2)"
 
 #: src/gui/sysConf.cpp:1235 src/gui/sysConf.cpp:1261
 msgid "Initial channel limit:"
-msgstr ""
+msgstr "Límite de canales inicial:"
 
 #: src/gui/sysConf.cpp:1241 src/gui/sysConf.cpp:2398
 msgid "Disable hissing"
-msgstr ""
+msgstr "Desactivar ruido molesto"
 
 #: src/gui/sysConf.cpp:1244
 msgid "Scale frequency to wave length"
-msgstr ""
+msgstr "Escalar frecuencia a longitud de onda"
 
 #: src/gui/sysConf.cpp:1300 src/gui/sysConf.cpp:1722
 msgid "3.54MHz (PAL)"
@@ -6112,23 +6115,23 @@ msgstr ""
 #: src/gui/sysConf.cpp:1321 src/gui/sysConf.cpp:1391 src/gui/sysConf.cpp:1639
 #: src/gui/sysConf.cpp:1852
 msgid "Output rate:"
-msgstr ""
+msgstr "Tasa de salida:"
 
 #: src/gui/sysConf.cpp:1323 src/gui/sysConf.cpp:1397
 msgid "FM: clock / 72, SSG: clock / 16"
-msgstr ""
+msgstr "FM: reloj / 72, SSG: reloj / 16"
 
 #: src/gui/sysConf.cpp:1327
 msgid "FM: clock / 36, SSG: clock / 8"
-msgstr ""
+msgstr "FM: reloj / 36, SSG: reloj / 8"
 
 #: src/gui/sysConf.cpp:1331
 msgid "FM: clock / 24, SSG: clock / 4"
-msgstr ""
+msgstr "FM: reloj / 24, SSG: reloj / 4"
 
 #: src/gui/sysConf.cpp:1343
 msgid "FM Volume"
-msgstr ""
+msgstr "Volumen FM"
 
 #: src/gui/sysConf.cpp:1382
 msgid "8MHz (Arcade)"
@@ -6140,11 +6143,11 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1393
 msgid "FM: clock / 144, SSG: clock / 32"
-msgstr ""
+msgstr "FM: reloj / 144, SSG: reloj / 32"
 
 #: src/gui/sysConf.cpp:1401
 msgid "FM: clock / 48, SSG: clock / 8"
-msgstr ""
+msgstr "FM: reloj / 48, SSG: reloj / 8"
 
 #: src/gui/sysConf.cpp:1446
 msgid "8MHz (FM Towns)"
@@ -6160,39 +6163,39 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1461
 msgid "RF5C68 (10-bit output)"
-msgstr ""
+msgstr "RF5C68 (salida 10-bit)"
 
 #: src/gui/sysConf.cpp:1465
 msgid "RF5C164 (16-bit output)"
-msgstr ""
+msgstr "RF5C164 (salida 16-bit)"
 
 #: src/gui/sysConf.cpp:1520
 msgid "Sample rate table:"
-msgstr ""
+msgstr "Tabla de velocidad de samples:"
 
 #: src/gui/sysConf.cpp:1524
 msgid "divider \\ clock"
-msgstr ""
+msgstr "divisor \\ reloj"
 
 #: src/gui/sysConf.cpp:1526
 msgid "full"
-msgstr ""
+msgstr "completo"
 
 #: src/gui/sysConf.cpp:1528
 msgid "half"
-msgstr ""
+msgstr "mitad"
 
 #: src/gui/sysConf.cpp:1641
 msgid "clock / 132"
-msgstr ""
+msgstr "reloj / 132"
 
 #: src/gui/sysConf.cpp:1645
 msgid "clock / 165"
-msgstr ""
+msgstr "reloj / 165"
 
 #: src/gui/sysConf.cpp:1651
 msgid "Bankswitched (NMK112)"
-msgstr ""
+msgstr "Cambio de bancos (NMK112)"
 
 #: src/gui/sysConf.cpp:1670
 msgid "1.79MHz (NTSC/MSX)"
@@ -6212,11 +6215,11 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1697
 msgid "Consistent frequency across all duties"
-msgstr ""
+msgstr "Frecuencia consistente"
 
 #: src/gui/sysConf.cpp:1704
 msgid "note: only works for an initial LFSR value of 0!"
-msgstr ""
+msgstr "nota: ¡sólo funciona si el valor inicial del LFSR es 0!"
 
 #: src/gui/sysConf.cpp:1738
 msgid "3.5MHz"
@@ -6252,23 +6255,23 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1794
 msgid "Compatible panning (0800)"
-msgstr ""
+msgstr "Balance compatible (0800)"
 
 #: src/gui/sysConf.cpp:1858
 msgid "Output bit depth:"
-msgstr ""
+msgstr "Profundidad de bits de salida:"
 
 #: src/gui/sysConf.cpp:1868
 msgid "Interpolation:"
-msgstr ""
+msgstr "Interpolación:"
 
 #: src/gui/sysConf.cpp:1874 src/gui/waveEdit.cpp:38
 msgid "Linear"
-msgstr ""
+msgstr "Lineal"
 
 #: src/gui/sysConf.cpp:1878 src/gui/waveEdit.cpp:40
 msgid "Cubic"
-msgstr ""
+msgstr "Cúbica"
 
 #: src/gui/sysConf.cpp:1882
 msgid "Sinc"
@@ -6276,35 +6279,35 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1920
 msgid "Left##VolScaleL"
-msgstr ""
+msgstr "Izquierda##VolScaleL"
 
 #: src/gui/sysConf.cpp:1925
 msgid "Right##VolScaleL"
-msgstr ""
+msgstr "Derecha##VolScaleL"
 
 #: src/gui/sysConf.cpp:1935
 msgid "Initial echo state:"
-msgstr ""
+msgstr "Estado del eco inicial:"
 
 #: src/gui/sysConf.cpp:1955
 msgid "Delay##EchoDelay"
-msgstr ""
+msgstr "Longitud##EchoDelay"
 
 #: src/gui/sysConf.cpp:1961
 msgid "Feedback##EchoFeedback"
-msgstr ""
+msgstr "Retroalimentación##EchoFeedback"
 
 #: src/gui/sysConf.cpp:1968
 msgid "Left##EchoVolL"
-msgstr ""
+msgstr "Izquierda##EchoVolL"
 
 #: src/gui/sysConf.cpp:1973
 msgid "Right##EchoVolL"
-msgstr ""
+msgstr "Derecha##EchoVolL"
 
 #: src/gui/sysConf.cpp:1979
 msgid "Echo filter:"
-msgstr ""
+msgstr "Filtro del eco:"
 
 #: src/gui/sysConf.cpp:1989
 msgid "Hex##SNESFHex"
@@ -6317,7 +6320,7 @@ msgstr ""
 #: src/gui/sysConf.cpp:2031
 #, c-format
 msgid "sum: %d"
-msgstr ""
+msgstr "suma: %d"
 
 #: src/gui/sysConf.cpp:2086 src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:63
 #: src/gui/insEdit.cpp:75
@@ -6326,51 +6329,51 @@ msgstr "Desafinación"
 
 #: src/gui/sysConf.cpp:2092
 msgid "Capacitor values (nF):"
-msgstr ""
+msgstr "Valores de los condensadores (nF):"
 
 #: src/gui/sysConf.cpp:2102
 msgid "Initial part volume (channel 1-4):"
-msgstr ""
+msgstr "Volumen inicial de parte (canales 1-4):"
 
 #: src/gui/sysConf.cpp:2112
 msgid "Initial part volume (channel 5-8):"
-msgstr ""
+msgstr "Volumen inicial de parte (canales 5-8):"
 
 #: src/gui/sysConf.cpp:2122
 msgid "Envelope mode (channel 1-4):"
-msgstr ""
+msgstr "Modo de envelope (canales 1-4):"
 
 #: src/gui/sysConf.cpp:2124
 msgid "Capacitor (attack/decay)##EM00"
-msgstr ""
+msgstr "Condensador (ataque/caída)##EM00"
 
 #: src/gui/sysConf.cpp:2128
 msgid "External (volume macro)##EM01"
-msgstr ""
+msgstr "Externo (macro de volumen)##EM01"
 
 #: src/gui/sysConf.cpp:2134
 msgid "Envelope mode (channel 5-8):"
-msgstr ""
+msgstr "Modo de envelope (canales 5-8):"
 
 #: src/gui/sysConf.cpp:2136
 msgid "Capacitor (attack/decay)##EM10"
-msgstr ""
+msgstr "Condensador (ataque/caída)##EM10"
 
 #: src/gui/sysConf.cpp:2140
 msgid "External (volume macro)##EM11"
-msgstr ""
+msgstr "Externo (macro de volumen)##EM11"
 
 #: src/gui/sysConf.cpp:2146
 msgid "Global vibrato:"
-msgstr ""
+msgstr "Vibrato global:"
 
 #: src/gui/sysConf.cpp:2153
 msgid "Depth"
-msgstr ""
+msgstr "Profundidad"
 
 #: src/gui/sysConf.cpp:2219 src/gui/sysConf.cpp:2373
 msgid "Waveform storage mode:"
-msgstr ""
+msgstr "Modo de almacenamiento de ondas:"
 
 #: src/gui/sysConf.cpp:2221
 msgid "RAM"
@@ -6378,15 +6381,15 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:2225
 msgid "ROM (up to 8 waves)"
-msgstr ""
+msgstr "ROM (hasta 8 ondas)"
 
 #: src/gui/sysConf.cpp:2241
 msgid "Compatible noise frequencies"
-msgstr ""
+msgstr "Frecuencias de ruido compatibles"
 
 #: src/gui/sysConf.cpp:2256
 msgid "Legacy slides and pitch (compatibility)"
-msgstr ""
+msgstr "Deslizamientos y tono antiguos (compatibilidad)"
 
 #: src/gui/sysConf.cpp:2314
 msgid "PAL (1.77MHz)"
@@ -6394,7 +6397,7 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:2344
 msgid "Banking style:"
-msgstr ""
+msgstr "Estilo de banco:"
 
 #: src/gui/sysConf.cpp:2346
 msgid "Namco System 2 (2MB)"
@@ -6406,15 +6409,15 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:2356
 msgid "Raw (16MB; no VGM export!)"
-msgstr ""
+msgstr "Bruto (16MB; ¡sin exporte VGM!)"
 
 #: src/gui/sysConf.cpp:2375
 msgid "Dynamic (unconfirmed)"
-msgstr ""
+msgstr "Dinámico (sin confirmar)"
 
 #: src/gui/sysConf.cpp:2379
 msgid "Static (up to 5 waves)"
-msgstr ""
+msgstr "Estático (hasta 5 ondas)"
 
 #: src/gui/sysConf.cpp:2414
 msgid "DS (4MB RAM)"
@@ -6426,48 +6429,48 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:2444 src/gui/settings.cpp:727
 msgid "nothing to configure"
-msgstr ""
+msgstr "no hay nada para configurar"
 
 #: src/gui/sysConf.cpp:2467
 msgid "Custom clock rate"
-msgstr ""
+msgstr "Tasa del reloj personalizada"
 
 #: src/gui/volMeter.cpp:36 src/gui/settings.cpp:3969 src/gui/guiConst.cpp:596
 msgid "Volume Meter"
-msgstr ""
+msgstr "Medidor de Volumen"
 
 #: src/gui/userPresets.cpp:325
 #, fuzzy
 msgid "User Systems"
-msgstr "Sistema"
+msgstr "Sistemas del Usuario"
 
 #: src/gui/userPresets.cpp:337
 msgid "Error! User category does not exist!"
-msgstr ""
+msgstr "¡Error! La categoría de usuario no existe."
 
 #: src/gui/userPresets.cpp:346 src/gui/newSong.cpp:181
 msgid "Systems"
-msgstr ""
+msgstr "Sistemas"
 
 #: src/gui/userPresets.cpp:349
 msgid "New Preset"
-msgstr ""
+msgstr "Nueva Configuración"
 
 #: src/gui/userPresets.cpp:361
 msgid "select a preset"
-msgstr ""
+msgstr "selecciona una configuración"
 
 #: src/gui/userPresets.cpp:374
 msgid "Remove##UPresetRemove"
-msgstr ""
+msgstr "Quitar##UPresetRemove"
 
 #: src/gui/userPresets.cpp:439 src/gui/settings.cpp:1135
 msgid "Configure"
-msgstr ""
+msgstr "Configurar"
 
 #: src/gui/userPresets.cpp:470
 msgid "Advanced"
-msgstr ""
+msgstr "Avanzado"
 
 #: src/gui/userPresets.cpp:476
 msgid ""
@@ -6475,10 +6478,13 @@ msgid ""
 "available options:\n"
 "- tickRate"
 msgstr ""
+"inserta opciones adicionales en formato `opción=valor`.\n"
+"opciones disponibles:\n"
+"- tickRate"
 
 #: src/gui/userPresets.cpp:509
 msgid "Save and Close"
-msgstr ""
+msgstr "Guardar y Cerrar"
 
 #: src/gui/userPresets.cpp:515 src/gui/settings.cpp:1238
 #: src/gui/settings.cpp:2161 src/gui/settings.cpp:2553
@@ -6518,20 +6524,19 @@ msgstr "%d. <sin nombre>"
 
 #: src/gui/subSongs.cpp:73 src/gui/subSongs.cpp:93
 msgid "too many subsongs!"
-msgstr "demasiadas subcanciones!"
+msgstr "¡demasiadas subcanciones!"
 
 #: src/gui/subSongs.cpp:114
 msgid "this is the only subsong!"
-msgstr "esta es la única subcanción!"
+msgstr "¡esta es la única subcanción!"
 
 #: src/gui/subSongs.cpp:116
 msgid "are you sure you want to remove this subsong?"
-msgstr "seguro que quieres remover esta subcanción?"
+msgstr "¿seguro que quieres remover esta subcanción?"
 
 #: src/gui/spoiler.cpp:30
-#, fuzzy
 msgid "Spoiler"
-msgstr "spoiler"
+msgstr "Spoiler"
 
 #: src/gui/spoiler.cpp:32
 msgid "SPOILER"
@@ -6551,15 +6556,15 @@ msgstr ""
 
 #: src/gui/settings.cpp:191
 msgid "ESFMu (fast)"
-msgstr ""
+msgstr "ESFMu (rápido)"
 
 #: src/gui/settings.cpp:205
 msgid "Lower"
-msgstr ""
+msgstr "Más bajo"
 
 #: src/gui/settings.cpp:207
 msgid "Medium"
-msgstr ""
+msgstr "Medio"
 
 #: src/gui/settings.cpp:209
 msgid "Ultra"
@@ -6567,7 +6572,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:210
 msgid "Ultimate"
-msgstr ""
+msgstr "Máxima"
 
 #: src/gui/settings.cpp:214
 msgid "evdev SND_TONE"
@@ -6575,7 +6580,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:215
 msgid "KIOCSOUND on /dev/tty1"
-msgstr ""
+msgstr "KIOCSOUND en /dev/tty1"
 
 #: src/gui/settings.cpp:216
 msgid "/dev/port"
@@ -6583,7 +6588,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:217
 msgid "KIOCSOUND on standard output"
-msgstr ""
+msgstr "KIOCSOUND en salida estándar"
 
 #: src/gui/settings.cpp:218
 msgid "outb()"
@@ -6591,35 +6596,35 @@ msgstr ""
 
 #: src/gui/settings.cpp:222 src/gui/settings.cpp:232
 msgid "Disabled/custom"
-msgstr ""
+msgstr "Desactivado/personalizado"
 
 #: src/gui/settings.cpp:223
 msgid "Two octaves (0 is C-4, F is D#5)"
-msgstr ""
+msgstr "Dos octavas (0 es C-4, F es D#5)"
 
 #: src/gui/settings.cpp:224
 msgid "Raw (note number is value)"
-msgstr ""
+msgstr "Bruto (número de nota es el valor)"
 
 #: src/gui/settings.cpp:225
 msgid "Two octaves alternate (lower keys are 0-9, upper keys are A-F)"
-msgstr ""
+msgstr "Dos octavas alterno (teclas bajas son 0-9, teclas altas son A-F)"
 
 #: src/gui/settings.cpp:226 src/gui/settings.cpp:233
 msgid "Use dual control change (one for each nibble)"
-msgstr ""
+msgstr "Usar cambio de control dual (uno para cada nibble)"
 
 #: src/gui/settings.cpp:227 src/gui/settings.cpp:234
 msgid "Use 14-bit control change"
-msgstr ""
+msgstr "Usar cambio de control 14-bit"
 
 #: src/gui/settings.cpp:228 src/gui/settings.cpp:235
 msgid "Use single control change (imprecise)"
-msgstr ""
+msgstr "Usar un solo cambio de control (impreciso)"
 
 #: src/gui/settings.cpp:239
 msgid "--select--"
-msgstr ""
+msgstr "--seleccionar--"
 
 #: src/gui/settings.cpp:240 src/gui/settings.cpp:241 src/gui/settings.cpp:242
 #: src/gui/settings.cpp:243 src/gui/settings.cpp:244 src/gui/settings.cpp:245
@@ -6629,29 +6634,29 @@ msgstr ""
 
 #: src/gui/settings.cpp:247
 msgid "Note Off"
-msgstr ""
+msgstr "Apagar Nota"
 
 #: src/gui/settings.cpp:248
 msgid "Note On"
-msgstr ""
+msgstr "Encender Nota"
 
 #: src/gui/settings.cpp:249
 msgid "Aftertouch"
-msgstr ""
+msgstr "Después del toque"
 
 #: src/gui/settings.cpp:250 src/gui/insEdit.cpp:7187 src/gui/insEdit.cpp:7217
 #: src/gui/insEdit.cpp:7382 src/gui/insEdit.cpp:7403 src/gui/insEdit.cpp:7415
 #: src/gui/insEdit.cpp:7430
 msgid "Control"
-msgstr ""
+msgstr "Control"
 
 #: src/gui/settings.cpp:251 src/gui/settings.cpp:573 src/gui/settings.cpp:3177
 msgid "Program"
-msgstr ""
+msgstr "Programa"
 
 #: src/gui/settings.cpp:252
 msgid "ChanPressure"
-msgstr ""
+msgstr "Presión del canal"
 
 #: src/gui/settings.cpp:253
 msgid "Pitch Bend"
@@ -6665,76 +6670,76 @@ msgstr ""
 #: src/gui/settings.cpp:1743 src/gui/settings.cpp:1749
 #, c-format
 msgid "Any"
-msgstr ""
+msgstr "Cualquier"
 
 #: src/gui/settings.cpp:262 src/gui/settings.cpp:3363 src/gui/settings.cpp:3928
 #: src/gui/settings.cpp:4121
 msgid "Instrument"
-msgstr ""
+msgstr "Instrumento"
 
 #: src/gui/settings.cpp:264
 msgid "Effect 1 type"
-msgstr ""
+msgstr "Tipo del efecto 1"
 
 #: src/gui/settings.cpp:265
 msgid "Effect 1 value"
-msgstr ""
+msgstr "Valor del efecto 1"
 
 #: src/gui/settings.cpp:266
 msgid "Effect 2 type"
-msgstr ""
+msgstr "Tipo del efecto 2"
 
 #: src/gui/settings.cpp:267
 msgid "Effect 2 value"
-msgstr ""
+msgstr "Valor del efecto 2"
 
 #: src/gui/settings.cpp:268
 msgid "Effect 3 type"
-msgstr ""
+msgstr "Tipo del efecto 3"
 
 #: src/gui/settings.cpp:269
 msgid "Effect 3 value"
-msgstr ""
+msgstr "Valor del efecto 3"
 
 #: src/gui/settings.cpp:270
 msgid "Effect 4 type"
-msgstr ""
+msgstr "Tipo del efecto 4"
 
 #: src/gui/settings.cpp:271
 msgid "Effect 4 value"
-msgstr ""
+msgstr "Valor del efecto 4"
 
 #: src/gui/settings.cpp:272
 msgid "Effect 5 type"
-msgstr ""
+msgstr "Tipo del efecto 5"
 
 #: src/gui/settings.cpp:273
 msgid "Effect 5 value"
-msgstr ""
+msgstr "Valor del efecto 5"
 
 #: src/gui/settings.cpp:274
 msgid "Effect 6 type"
-msgstr ""
+msgstr "Tipo del efecto 6"
 
 #: src/gui/settings.cpp:275
 msgid "Effect 6 value"
-msgstr ""
+msgstr "Valor del efecto 6"
 
 #: src/gui/settings.cpp:276
 msgid "Effect 7 type"
-msgstr ""
+msgstr "Tipo del efecto 7"
 
 #: src/gui/settings.cpp:277
 msgid "Effect 7 value"
-msgstr ""
+msgstr "Valor del efecto 7"
 
 #: src/gui/settings.cpp:278
 msgid "Effect 8 type"
-msgstr ""
+msgstr "Tipo del efecto 8"
 
 #: src/gui/settings.cpp:279
 msgid "Effect 8 value"
-msgstr ""
+msgstr "Valor del efecto 8"
 
 #: src/gui/settings.cpp:315
 msgid "Press key..."
@@ -6742,7 +6747,7 @@ msgstr "Presiona una tecla..."
 
 #: src/gui/settings.cpp:564
 msgid "Do you want to save your settings?"
-msgstr "Quieres guardar tus ajustes?"
+msgstr "¿Deseas guardar tus ajustes?"
 
 #: src/gui/settings.cpp:571
 msgid "General"
@@ -6750,7 +6755,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:588
 msgid "Language"
-msgstr ""
+msgstr "Idioma"
 
 #: src/gui/settings.cpp:606
 msgid "Render backend"
@@ -6771,7 +6776,7 @@ msgstr "Driver de renderizado"
 #: src/gui/settings.cpp:666 src/gui/settings.cpp:667 src/gui/settings.cpp:1298
 #: src/gui/settings.cpp:1299 src/gui/piano.cpp:108
 msgid "Automatic"
-msgstr "Automatico"
+msgstr "Automático"
 
 #: src/gui/settings.cpp:683
 msgid ""
@@ -6779,7 +6784,7 @@ msgid ""
 "own risk.\n"
 "start Furnace with -safemode if you mess something up."
 msgstr ""
-"cuidado: cambiar estos ajustes puede hacer a Furnace inutilizable! hazlo a "
+"cuidado: ¡cambiar estos ajustes puede hacer a Furnace inutilizable! hazlo a "
 "tu propio riesgo\n"
 "abre Furnace con -safemode si haces un lío."
 
@@ -6845,7 +6850,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:735
 msgid "VSync"
-msgstr ""
+msgstr "Sincronización vertical"
 
 #: src/gui/settings.cpp:743
 msgid "Frame rate limit"
@@ -6857,7 +6862,7 @@ msgstr "Ilimitado"
 
 #: src/gui/settings.cpp:749
 msgid "only applies when VSync is disabled."
-msgstr "solo aplica cuando VSync está desactivado."
+msgstr "solo aplica cuando la sincronización vertical está desactivada."
 
 #: src/gui/settings.cpp:753
 msgid "Display render time"
@@ -6873,7 +6878,7 @@ msgid ""
 "frame in some drivers."
 msgstr ""
 "llama a rend->clear() luego de rend->present(). puede que reduzca la "
-"latencia de la IU en algunos drivers."
+"latencia de la interfaz en algunos drivers."
 
 #: src/gui/settings.cpp:770
 msgid "Power-saving mode"
@@ -6889,7 +6894,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:780
 msgid "Disable threaded input (restart after changing!)"
-msgstr "Desactivar entrada basada en hilos (reiniciar programa al cambiar!)"
+msgstr "Desactivar entrada basada en hilos (reiniciar programa al cambiar)"
 
 #: src/gui/settings.cpp:785
 msgid ""
@@ -6920,18 +6925,18 @@ msgstr "Hilos para cada canal en el osciloscopio"
 
 #: src/gui/settings.cpp:808
 msgid "you're being silly, aren't you? that's enough."
-msgstr "estás siendo tonto, no? ya es suficiente."
+msgstr "¿estás siendo tonto, no? ya es suficiente."
 
 #: src/gui/settings.cpp:812
 msgid "what are you doing? stop!"
-msgstr "qué estás haciendo? para!"
+msgstr "¿qué estás haciendo? ¡para!"
 
 #: src/gui/settings.cpp:816
 #, c-format
 msgid ""
 "it is a bad idea to set this number higher than your CPU core count (%d)!"
 msgstr ""
-"es mala idea asignar un valor más alto que la cantidad de cores en tu CPU! "
+"¡es mala idea asignar un valor más alto que la cantidad de cores en tu CPU! "
 "(%d)"
 
 #: src/gui/settings.cpp:821
@@ -6957,16 +6962,15 @@ msgid ""
 "only available in OpenGL ES 2.0 render backend."
 msgstr ""
 "renderizar usando shaders que corren en la tarjeta gráfica.\n"
-"solo disponible en el backend de renderizado OpenGL ES 2.0"
+"solo disponible en el backend de renderizado OpenGL ES 2.0."
 
 #: src/gui/settings.cpp:836
-#, fuzzy
 msgid ""
 "render using shaders that run on the graphics card.\n"
 "only available in OpenGL 3.0 render backend."
 msgstr ""
 "renderizar usando shaders que corren en la tarjeta gráfica.\n"
-"solo disponible en el backend de renderizado OpenGL ES 2.0"
+"solo disponible en el backend de renderizado OpenGL 3.0."
 
 #: src/gui/settings.cpp:843
 msgid "Vibration"
@@ -6999,7 +7003,7 @@ msgstr "Comprimir al guardar"
 
 #: src/gui/settings.cpp:879
 msgid "use zlib to compress saved songs."
-msgstr "usa zlib para comprimir canciones guardadas."
+msgstr "usar zlib para comprimir canciones guardadas."
 
 #: src/gui/settings.cpp:883
 msgid "Save unused patterns"
@@ -7007,7 +7011,7 @@ msgstr "Guardar patrones sin usar"
 
 #: src/gui/settings.cpp:889
 msgid "Use new pattern format when saving"
-msgstr "Usa el nuevo formato de patrón al guardar"
+msgstr "Usar el nuevo formato de patrón al guardar"
 
 #: src/gui/settings.cpp:894
 msgid ""
@@ -7016,17 +7020,16 @@ msgid ""
 "which do not support this format."
 msgstr ""
 "usa un formato empaquetado que ahorra espacio al guardar canciones.\n"
-"desactívalo si necesitas compatibilidad con versiones antiguas y/"
-"oherramientas\n"
+"desactívalo si necesitas compatibilidad con versiones antiguas y/o herramientas\n"
 "que no soporten este formato."
 
 #: src/gui/settings.cpp:898
 msgid "Don't apply compatibility flags when loading .dmf"
-msgstr "No aplicar opciones de compatibilidad al abrir .dmfs"
+msgstr "No aplicar opciones de compatibilidad al abrir .dmf"
 
 #: src/gui/settings.cpp:903
 msgid "do not report any issues arising from the use of this option!"
-msgstr "no reportes ningún problema que ocurra del uso de esta opción!"
+msgstr "¡no reportes ningún problema que ocurra del uso de esta opción!"
 
 #: src/gui/settings.cpp:906
 msgid "Play after opening song:"
@@ -7050,113 +7053,118 @@ msgstr "Tiempo de exportado de bucle/fundido en audio:"
 
 #: src/gui/settings.cpp:924
 msgid "Set to these values on start-up:##fot0"
-msgstr ""
+msgstr "Establecer estos valores en el arranque:##fot0"
 
 #: src/gui/settings.cpp:942
 msgid "Remember last values##fot1"
-msgstr ""
+msgstr "Recordar los últimos valores##fot1"
 
 #: src/gui/settings.cpp:949
 msgid "Store instrument name in .fui"
-msgstr ""
+msgstr "Guardar nombre del instrumento en .fui"
 
 #: src/gui/settings.cpp:954
 msgid ""
 "when enabled, saving an instrument will store its name.\n"
 "this may increase file size."
 msgstr ""
+"cuando está activado, guardar un instrumento guarda su nombre.\n"
+"podría aumentar el tamaño del archivo."
 
 #: src/gui/settings.cpp:958
 msgid "Load instrument name from .fui"
-msgstr ""
+msgstr "Cargar nombre del instrumento del .fui"
 
 #: src/gui/settings.cpp:963
 msgid ""
 "when enabled, loading an instrument will use the stored name (if present).\n"
 "otherwise, it will use the file name."
 msgstr ""
+"cuando está activado, cargar un instrumento usará el nombre guardado (si está presente).\n"
+"si no es el caso, usará el nombre del archivo."
 
 #: src/gui/settings.cpp:967
 msgid "Auto-fill file name when saving"
-msgstr ""
+msgstr "Auto-rellenar nombre de archivo al guardar"
 
 #: src/gui/settings.cpp:972
 msgid ""
 "fill the file name field with an appropriate file name when saving or "
 "exporting."
 msgstr ""
+"rellena el campo del nombre de archivo con un nombre apropiado al guardar o exportar."
 
 #: src/gui/settings.cpp:976 src/gui/gui.cpp:5563 src/gui/gui.cpp:5613
 msgid "New Song"
-msgstr ""
+msgstr "Nueva Canción"
 
 #: src/gui/settings.cpp:978
 msgid "Initial system:"
-msgstr ""
+msgstr "Sistema inicial:"
 
 #: src/gui/settings.cpp:980
 msgid "Current system"
-msgstr ""
+msgstr "Sistema actual"
 
 #: src/gui/settings.cpp:993 src/gui/waveEdit.cpp:1149 src/gui/gui.cpp:3046
 msgid "Randomize"
-msgstr ""
+msgstr "Aleatorio"
 
 #: src/gui/settings.cpp:1043
 msgid "Reset to defaults"
-msgstr ""
+msgstr "Reiniciar a predeterminado"
 
 #: src/gui/settings.cpp:1178
 msgid "When creating new song:"
-msgstr ""
+msgstr "Al crear nueva canción"
 
 #: src/gui/settings.cpp:1180
 msgid "Display system preset selector##NSB0"
-msgstr ""
+msgstr "Mostrar selector de sistema##NSB0"
 
 #: src/gui/settings.cpp:1184
 msgid "Start with initial system##NSB1"
-msgstr ""
+msgstr "Empezar con sistema inicial##NSB1"
 
 #: src/gui/settings.cpp:1188
 msgid "Default author name"
-msgstr ""
+msgstr "Nombre de autor predeterminado"
 
 #: src/gui/settings.cpp:1192
 msgid "Start-up"
-msgstr ""
+msgstr "Arranque"
 
 #: src/gui/settings.cpp:1193
 msgid "Play intro on start-up:"
-msgstr ""
+msgstr "Reproducir intro en el arranque:"
 
 #: src/gui/settings.cpp:1195
 msgid "No##pis0"
-msgstr ""
+msgstr "No##pis0"
 
 #: src/gui/settings.cpp:1199
 msgid "Short##pis1"
-msgstr ""
+msgstr "Corto##pis1"
 
 #: src/gui/settings.cpp:1203
 msgid "Full (short when loading song)##pis2"
-msgstr ""
+msgstr "Completo (corto al cargar canción)##pis2"
 
 #: src/gui/settings.cpp:1207
 msgid "Full (always)##pis3"
-msgstr ""
+msgstr "Completo (siempre)##pis3"
 
 #: src/gui/settings.cpp:1214
 msgid "Disable fade-in during start-up"
-msgstr ""
+msgstr "Desactivar desvanecimiento al arrancar"
 
 #: src/gui/settings.cpp:1220
 msgid "About screen party time"
-msgstr ""
+msgstr "Hora de fiesta en la pantalla Acerca de"
 
 #: src/gui/settings.cpp:1225
 msgid "Warning: may cause epileptic seizures."
-msgstr ""
+msgstr "Alerta: podría causar ataques epilépticos."
 
 #: src/gui/settings.cpp:1229
 msgid "Behavior"
@@ -7179,7 +7187,7 @@ msgid ""
 "Are you sure you want to reset all Furnace settings?\n"
 "You must restart Furnace after doing so."
 msgstr ""
-"Seguro que quieres reiniciar todos los ajustes de Furnace?\n"
+"¿Seguro que quieres reiniciar todos los ajustes de Furnace?\n"
 "Debes de reiniciar la aplicación una vez hecho esto."
 
 #: src/gui/settings.cpp:1255
@@ -7192,7 +7200,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1296
 msgid "Driver"
-msgstr ""
+msgstr "Controlador"
 
 #: src/gui/settings.cpp:1319
 msgid "Device"
@@ -7214,7 +7222,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1333 src/gui/settings.cpp:1335
 msgid "<System default>"
-msgstr "<Predeterminado del sistema"
+msgstr "<Predeterminado del sistema>"
 
 #: src/gui/settings.cpp:1371 src/gui/insEdit.cpp:7186
 msgid "Outputs"
@@ -7233,8 +7241,8 @@ msgstr ""
 "- 1 para mono\n"
 "- 2 para estéreo\n"
 "- 4 para cuadrafónico\n"
-"- 6 para surround 5.1\n"
-"- 8 para surround 7.1"
+"- 6 para envolvente 5.1\n"
+"- 8 para envolvente 7.1"
 
 #: src/gui/settings.cpp:1387
 #, c-format
@@ -7243,7 +7251,7 @@ msgstr "%d (latencia: ~%.1fms)"
 
 #: src/gui/settings.cpp:1402
 msgid "Multi-threaded (EXPERIMENTAL)"
-msgstr "Múltiples threads (EXPERIMENTAL)"
+msgstr "Múltiples hilos (EXPERIMENTAL)"
 
 #: src/gui/settings.cpp:1411
 msgid ""
@@ -7253,7 +7261,13 @@ msgid ""
 "warnings:\n"
 "- experimental!\n"
 "- only useful on multi-chip songs."
-msgstr "emula los chips en "
+msgstr ""
+"emula los chips en hilos separados.\n"
+"podría mejorar la potencia al usar núcleos de emulación pesados.\n"
+"\n"
+"advertencias:\n"
+"- ¡experimental!\n"
+"- solamente sirve en canciones multi-chip."
 
 #: src/gui/settings.cpp:1416
 msgid "Number of threads"
@@ -7261,7 +7275,7 @@ msgstr "Número de hilos"
 
 #: src/gui/settings.cpp:1423
 msgid "that's the limit!"
-msgstr ""
+msgstr "¡ese es el límite!"
 
 #: src/gui/settings.cpp:1427
 #, c-format
@@ -7269,12 +7283,12 @@ msgid ""
 "it is a VERY bad idea to set this number higher than your CPU core count "
 "(%d)!"
 msgstr ""
-"es MUY mala idea asignar un valor más alto que la cantidad de cores en tu "
+"¡es MUY mala idea asignar un valor más alto que la cantidad de cores en tu "
 "CPU! (%d)"
 
 #: src/gui/settings.cpp:1435
 msgid "Low-latency mode"
-msgstr ""
+msgstr "Modo de baja latencia"
 
 #: src/gui/settings.cpp:1440
 msgid ""
@@ -7283,93 +7297,97 @@ msgid ""
 "\n"
 "warning: only enable if your buffer size is small (10ms or less)."
 msgstr ""
+"reduce latencia al correr el motor más rápido que la tasa de ticks.\n"
+"puede mejorar la experiencia al tocar en vivo.\n"
+"\n"
+"advertencia: no activar si el tamaño del búfer es largo (más de 10ms)."
 
 #: src/gui/settings.cpp:1444
 msgid "Force mono audio"
-msgstr ""
+msgstr "Forzar audio mono"
 
 #: src/gui/settings.cpp:1452
 msgid "Exclusive mode"
-msgstr ""
+msgstr "Modo exclusivo"
 
 #: src/gui/settings.cpp:1463
 #, c-format
 msgid "want: %d samples @ %.0fHz (%d channel)"
 msgid_plural "want: %d samples @ %.0fHz (%d channels)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "querer: %d samples @ %.0fHz (%d canal)"
+msgstr[1] "querer: %d samples @ %.0fHz (%d canales)"
 
 #: src/gui/settings.cpp:1464
 #, c-format
 msgid "got: %d samples @ %.0fHz (%d channel)"
 msgid_plural "got: %d samples @ %.0fHz (%d channels)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "obtuvo: %d samples @ %.0fHz (%d canal)"
+msgstr[1] "obtuvo: %d samples @ %.0fHz (%d canales)"
 
 #: src/gui/settings.cpp:1471
 msgid "Mixing"
-msgstr ""
+msgstr "Mezcla"
 
 #: src/gui/settings.cpp:1473 src/gui/settings.cpp:2082
 msgid "Quality"
-msgstr ""
+msgstr "Calidad"
 
 #: src/gui/settings.cpp:1478
 msgid "Software clipping"
-msgstr ""
+msgstr "Límite de picos en software"
 
 #: src/gui/settings.cpp:1484
 msgid "DC offset correction"
-msgstr ""
+msgstr "Corrección de descentro DC"
 
 #: src/gui/settings.cpp:1502 src/gui/guiConst.cpp:740
 msgid "Sample preview"
-msgstr ""
+msgstr "Vista previa de samples"
 
 #: src/gui/settings.cpp:1515
 msgid "MIDI"
-msgstr ""
+msgstr "MIDI"
 
 #: src/gui/settings.cpp:1517 src/gui/settings.cpp:1519
 msgid "MIDI input"
-msgstr ""
+msgstr "Entrada MIDI"
 
 #: src/gui/settings.cpp:1521 src/gui/settings.cpp:1524
 #: src/gui/settings.cpp:1815 src/gui/settings.cpp:1817
 msgid "<disabled>"
-msgstr ""
+msgstr "<desactivado>"
 
 #: src/gui/settings.cpp:1540
 msgid "Re-scan MIDI devices"
-msgstr ""
+msgstr "Re-escanear dispositivos MIDI"
 
 #: src/gui/settings.cpp:1551 src/gui/settings.cpp:2258
 msgid "Note input"
-msgstr ""
+msgstr "Entrada de nota"
 
 #: src/gui/settings.cpp:1552
 msgid "Velocity input"
-msgstr ""
+msgstr "Entrada de velocidad"
 
 #: src/gui/settings.cpp:1556
 msgid "Map MIDI channels to direct channels"
-msgstr ""
+msgstr "Mapear canales MIDI a canales directos"
 
 #: src/gui/settings.cpp:1562
 msgid "Program change pass-through"
-msgstr ""
+msgstr "Pasar los cambios de programa"
 
 #: src/gui/settings.cpp:1567
 msgid "Map Yamaha FM voice data to instruments"
-msgstr ""
+msgstr "Mapear datos de voz Yamaha FM a instrumentos"
 
 #: src/gui/settings.cpp:1569
 msgid "Program change is instrument selection"
-msgstr ""
+msgstr "Cambio de programa selecciona instrumento"
 
 #: src/gui/settings.cpp:1573
 msgid "Value input style"
-msgstr ""
+msgstr "Estilo de entrada de valor"
 
 #: src/gui/settings.cpp:1576 src/gui/settings.cpp:1601
 msgid "Control##valueCCS"
@@ -7377,7 +7395,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1582 src/gui/settings.cpp:1607
 msgid "CC of upper nibble##valueCC1"
-msgstr ""
+msgstr "CC del nibble superior##valueCC1"
 
 #: src/gui/settings.cpp:1582 src/gui/settings.cpp:1607
 msgid "MSB CC##valueCC1"
@@ -7385,7 +7403,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1587 src/gui/settings.cpp:1612
 msgid "CC of lower nibble##valueCC2"
-msgstr ""
+msgstr "CC del nibble inferior##valueCC2"
 
 #: src/gui/settings.cpp:1587 src/gui/settings.cpp:1612
 msgid "LSB CC##valueCC2"
@@ -7393,20 +7411,21 @@ msgstr ""
 
 #: src/gui/settings.cpp:1594
 msgid "Per-column control change"
-msgstr ""
+msgstr "Cambio de control por cada columna"
 
 #: src/gui/settings.cpp:1624 src/gui/settings.cpp:1634
 msgid "Volume curve"
-msgstr ""
+msgstr "Curva de volumen"
 
 #: src/gui/settings.cpp:1637
 msgid "Actions:"
-msgstr ""
+msgstr "Acciones:"
 
 #: src/gui/settings.cpp:1651
 msgid ""
 "(learning! press a button or move a slider/knob/something on your device.)"
 msgstr ""
+"(¡aprendiendo! presiona un botón o mueve un control en tu dispositivo.)"
 
 #: src/gui/settings.cpp:1665 src/gui/settings.cpp:2277
 #: src/gui/sampleEdit.cpp:501 src/gui/insEdit.cpp:5321
@@ -7415,67 +7434,67 @@ msgstr "Tipo"
 
 #: src/gui/settings.cpp:1669
 msgid "Note/Control"
-msgstr ""
+msgstr "Nota/Control"
 
 #: src/gui/settings.cpp:1671
 msgid "Velocity/Value"
-msgstr ""
+msgstr "Velocidad/Valor"
 
 #: src/gui/settings.cpp:1673
 msgid "Action"
-msgstr ""
+msgstr "Acción"
 
 #: src/gui/settings.cpp:1765 src/gui/settings.cpp:1766
 msgid "--none--"
-msgstr ""
+msgstr "--ninguna--"
 
 #: src/gui/settings.cpp:1787
 msgid "waiting...##BLearn"
-msgstr ""
+msgstr "esperando...##BLearn"
 
 #: src/gui/settings.cpp:1787
 msgid "Learn##BLearn"
-msgstr ""
+msgstr "Aprender##BLearn"
 
 #: src/gui/settings.cpp:1811 src/gui/settings.cpp:1813
 msgid "MIDI output"
-msgstr ""
+msgstr "Salida MIDI"
 
 #: src/gui/settings.cpp:1830
 msgid "Output mode:"
-msgstr ""
+msgstr "Modo de salida:"
 
 #: src/gui/settings.cpp:1832
 msgid "Off (use for TX81Z)"
-msgstr ""
+msgstr "Apagado (usar para TX81Z)"
 
 #: src/gui/settings.cpp:1836
 msgid "Melodic"
-msgstr ""
+msgstr "Melódico"
 
 #: src/gui/settings.cpp:1847
 msgid "Send Program Change"
-msgstr ""
+msgstr "Enviar Cambio de Programa"
 
 #: src/gui/settings.cpp:1853
 msgid "Send MIDI clock"
-msgstr ""
+msgstr "Enviar Reloj MIDI"
 
 #: src/gui/settings.cpp:1859
 msgid "Send MIDI timecode"
-msgstr ""
+msgstr "Enviar código de tiempo MIDI"
 
 #: src/gui/settings.cpp:1865
 msgid "Timecode frame rate:"
-msgstr ""
+msgstr "Velocidad de fotogramas del código de tiempo:"
 
 #: src/gui/settings.cpp:1867
 msgid "Closest to Tick Rate"
-msgstr ""
+msgstr "Cercana a la tasa de ticks"
 
 #: src/gui/settings.cpp:1871
 msgid "Film (24fps)"
-msgstr ""
+msgstr "Película (24fps)"
 
 #: src/gui/settings.cpp:1875
 msgid "PAL (25fps)"
@@ -7483,11 +7502,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:1879
 msgid "NTSC drop (29.97fps)"
-msgstr ""
+msgstr "NTSC caída (29.97fps)"
 
 #: src/gui/settings.cpp:1883
 msgid "NTSC non-drop (30fps)"
-msgstr ""
+msgstr "NTSC sin caída (30fps)"
 
 #: src/gui/settings.cpp:1892
 msgid "Emulation"
@@ -7535,7 +7554,7 @@ msgstr "Reiniciar a la conf. por defecto"
 
 #: src/gui/settings.cpp:2170
 msgid "Are you sure you want to reset the keyboard settings?"
-msgstr "Seguro que quieres reiniciar tus atajos de teclado?"
+msgstr "¿Seguro que quieres reiniciar tus atajos de teclado?"
 
 #: src/gui/settings.cpp:2172
 msgid "Global hotkeys"
@@ -7557,22 +7576,22 @@ msgstr "Valor"
 #: src/gui/settings.cpp:2289
 #, c-format
 msgid "Macro release##SNType_%d"
-msgstr ""
+msgstr "Lanzar macro##SNType_%d"
 
 #: src/gui/settings.cpp:2294
 #, c-format
 msgid "Note release##SNType_%d"
-msgstr ""
+msgstr "Lanzar nota##SNType_%d"
 
 #: src/gui/settings.cpp:2299
 #, c-format
 msgid "Note off##SNType_%d"
-msgstr ""
+msgstr "Apagar nota##SNType_%d"
 
 #: src/gui/settings.cpp:2304
 #, c-format
 msgid "Note##SNType_%d"
-msgstr ""
+msgstr "Nota##SNType_%d"
 
 #: src/gui/settings.cpp:2328
 msgid "Add..."
@@ -7592,7 +7611,7 @@ msgstr "Lista de samples"
 
 #: src/gui/settings.cpp:2509
 msgid "Sample editor"
-msgstr "Editor de sampels"
+msgstr "Editor de samples"
 
 #: src/gui/settings.cpp:2547 src/gui/settings.cpp:3814
 #: src/gui/settings.cpp:3844
@@ -7613,7 +7632,7 @@ msgstr "Reiniciar"
 
 #: src/gui/settings.cpp:2562 src/gui/gui.cpp:4455
 msgid "Are you sure you want to reset the workspace layout?"
-msgstr "Seguro que quieres reiniciar el diseño del area de trabajo?"
+msgstr "¿Seguro que quieres reiniciar el diseño del area de trabajo?"
 
 #: src/gui/settings.cpp:2566
 msgid "Allow docking editors"
@@ -7625,7 +7644,7 @@ msgstr "Recordar la posición de todas las ventanas"
 
 #: src/gui/settings.cpp:2578
 msgid "remembers the window's last position on start-up."
-msgstr "recuerda la úlitma posición de todas las ventanas al abrir."
+msgstr "recuerda la última posición de todas las ventanas al abrir."
 
 #: src/gui/settings.cpp:2583
 msgid "Only allow window movement when clicking on title bar"
@@ -7666,7 +7685,7 @@ msgstr "Encima##obp0"
 
 #: src/gui/settings.cpp:2621
 msgid "Left##obp1"
-msgstr "Debajo##obp1"
+msgstr "A la izquierda##obp1"
 
 #: src/gui/settings.cpp:2625
 msgid "Right##obp2"
@@ -7720,11 +7739,11 @@ msgstr "No##dms0"
 
 #: src/gui/settings.cpp:2680
 msgid "Yes##dms1"
-msgstr "Si##dms1"
+msgstr "Sí##dms1"
 
 #: src/gui/settings.cpp:2684
 msgid "Yes (while holding Ctrl only)##dms2"
-msgstr "Si (solo si mantienes presionado Ctrl)##dms2"
+msgstr "Sí (solo si mantienes presionado Ctrl)##dms2"
 
 #: src/gui/settings.cpp:2690
 msgid "Toggle channel solo on:"
@@ -7816,11 +7835,11 @@ msgstr "No##wrapH0"
 
 #: src/gui/settings.cpp:2787
 msgid "Yes##wrapH1"
-msgstr "Si##wrapH1"
+msgstr "Sí##wrapH1"
 
 #: src/gui/settings.cpp:2791
 msgid "Yes, and move to next/prev row##wrapH2"
-msgstr "Si, y mueve el cursor a la fila posterior/anterior##wrapH2"
+msgstr "Sí, y mueve el cursor a la fila posterior/anterior##wrapH2"
 
 #: src/gui/settings.cpp:2797
 msgid "Wrap vertically:"
@@ -7832,16 +7851,16 @@ msgstr "No##wrapV0"
 
 #: src/gui/settings.cpp:2803
 msgid "Yes##wrapV1"
-msgstr "Si##wrapV1"
+msgstr "Sí##wrapV1"
 
 #: src/gui/settings.cpp:2807
 msgid "Yes, and move to next/prev pattern##wrapV2"
-msgstr "Si, y mueve el cursor al patrón posterior/anterior##wrapV2"
+msgstr "Sí, y mueve el cursor al patrón posterior/anterior##wrapV2"
 
 #: src/gui/settings.cpp:2811
 msgid "Yes, and move to next/prev pattern (wrap around)##wrapV2"
 msgstr ""
-"Si, y mueve el cursor al patrón posterior/anterior (con envoltura)##wrapV2"
+"Sí, y mueve el cursor al patrón posterior/anterior (con envoltura)##wrapV2"
 
 #: src/gui/settings.cpp:2817
 msgid "Cursor movement keys behavior:"
@@ -7873,25 +7892,23 @@ msgstr "Mover cursor al final del contenido del portapapeles al pegar"
 
 #: src/gui/settings.cpp:2854
 msgid "Scrolling"
-msgstr ""
+msgstr "Desplazamiento"
 
-# TODO:
 #: src/gui/settings.cpp:2856
 msgid "Change order when scrolling outside of pattern bounds:"
 msgstr "Cambiar orden al moverse fuera de los límites del patrón:"
 
 #: src/gui/settings.cpp:2858
 msgid "No##pscroll0"
-msgstr ""
+msgstr "No##pscroll0"
 
-# doesn't need translation
 #: src/gui/settings.cpp:2862
 msgid "Yes##pscroll1"
-msgstr "Si##pscroll1"
+msgstr "Sí##pscroll1"
 
 #: src/gui/settings.cpp:2866
 msgid "Yes, and wrap around song##pscroll2"
-msgstr "Si, y envuelve alrededor de la canción##pscroll2"
+msgstr "Sí, y envuelve alrededor de la canción##pscroll2"
 
 #: src/gui/settings.cpp:2873
 msgid "Cursor follows current order when moving it"
@@ -7903,7 +7920,7 @@ msgstr "aplica cuando la canción está detenida."
 
 #: src/gui/settings.cpp:2882
 msgid "Don't scroll when moving cursor"
-msgstr "No "
+msgstr "No desplazar al mover el cursor"
 
 #: src/gui/settings.cpp:2887
 msgid "Move cursor with scroll wheel:"
@@ -7915,15 +7932,15 @@ msgstr "No##csw0"
 
 #: src/gui/settings.cpp:2893
 msgid "Yes##csw1"
-msgstr "Si##csw1"
+msgstr "Sí##csw1"
 
 #: src/gui/settings.cpp:2897
 msgid "Inverted##csw2"
-msgstr "Si, pero invertido##csw2"
+msgstr "Sí, pero invertido##csw2"
 
 #: src/gui/settings.cpp:2904
 msgid "How many steps to move with each scroll wheel step?"
-msgstr "Cuántos pasos se moverá el cursor con cada giro de la rueda?"
+msgstr "¿Cuántos pasos se moverá el cursor con cada giro de la rueda?"
 
 #: src/gui/settings.cpp:2905
 msgid "One##cws0"
@@ -7935,7 +7952,7 @@ msgstr "La cantidad de pasos de edición##cws1"
 
 #: src/gui/settings.cpp:2916 src/gui/settings.cpp:3531
 msgid "Assets"
-msgstr ""
+msgstr "Bienes"
 
 #: src/gui/settings.cpp:2919
 msgid "Display instrument type menu when adding instrument"
@@ -7943,7 +7960,7 @@ msgstr "Mostrar menú del tipo de instrumento al añadir instrumento"
 
 #: src/gui/settings.cpp:2925
 msgid "Select asset after opening one"
-msgstr "Seleccionar asset al abrirlo"
+msgstr "Seleccionar bien al abrirlo"
 
 #: src/gui/settings.cpp:2932
 msgid "Appearance"
@@ -7951,7 +7968,7 @@ msgstr "Apariencia"
 
 #: src/gui/settings.cpp:2934
 msgid "Scaling"
-msgstr "Escalado"
+msgstr "Escala"
 
 #: src/gui/settings.cpp:2936
 msgid "Automatic UI scaling factor"
@@ -7959,7 +7976,7 @@ msgstr "Escalar interfaz automáticamente"
 
 #: src/gui/settings.cpp:2945
 msgid "UI scaling factor"
-msgstr "Factor de escalado de la interfaz"
+msgstr "Escala de la interfaz"
 
 #: src/gui/settings.cpp:2952
 msgid "Icon size"
@@ -7987,7 +8004,7 @@ msgstr "Tamaño##HeadFontSize"
 
 #: src/gui/settings.cpp:3015
 msgid "Pattern font"
-msgstr "Fuente de patrón"
+msgstr "Fuente del patrón"
 
 #: src/gui/settings.cpp:3026
 msgid "Size##PatFontSize"
@@ -7995,7 +8012,7 @@ msgstr "Tamaño##PatFontSize"
 
 #: src/gui/settings.cpp:3036
 msgid "Anti-aliased fonts"
-msgstr "Mostrar fuentes con anti-aliasing"
+msgstr "Suavizar fuentes"
 
 #: src/gui/settings.cpp:3042
 msgid "Support bitmap fonts"
@@ -8003,7 +8020,7 @@ msgstr "Permitir fuentes de mapa de bits"
 
 #: src/gui/settings.cpp:3047
 msgid "Hinting:"
-msgstr ""
+msgstr "Pistado:"
 
 #: src/gui/settings.cpp:3049
 msgid "Off (soft)##fh0"
@@ -8019,11 +8036,11 @@ msgstr "Normal##fh2"
 
 #: src/gui/settings.cpp:3061
 msgid "Full (hard)##fh3"
-msgstr "Completo (fuerte)##fh3"
+msgstr "Completo (duro)##fh3"
 
 #: src/gui/settings.cpp:3067
 msgid "Auto-hinter:"
-msgstr ""
+msgstr "Auto-pistado:"
 
 #: src/gui/settings.cpp:3069
 msgid "Disable##fah0"
@@ -8097,7 +8114,7 @@ msgid ""
 "決策です。"
 msgstr ""
 "Solo activa esta opción si tienes suficiente memoria gráfica.\n"
-"Esta es una solución temporal hasta que Dear Imgui implemente atlas de "
+"Esta es una solución temporal hasta que Dear ImGui implemente atlas de "
 "fuente dinámicas.\n"
 "\n"
 "このオプションは、十分なグラフィックメモリがある場合にのみ切り替えてくださ"
@@ -8119,7 +8136,7 @@ msgid ""
 "这是一个在ImGui实现动态字体加载之前的临时解决方案"
 msgstr ""
 "Solo activa esta opción si tienes suficiente memoria gráfica.\n"
-"Esta es una solución temporal hasta que Dear Imgui implemente atlas de "
+"Esta es una solución temporal hasta que Dear ImGui implemente atlas de "
 "fuente dinámicas.\n"
 "\n"
 "请在确保你有足够的显存后再启动此设定\n"
@@ -8139,7 +8156,7 @@ msgid ""
 "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
 msgstr ""
 "Solo activa esta opción si tienes suficiente memoria gráfica.\n"
-"Esta es una solución temporal hasta que Dear Imgui implemente atlas de "
+"Esta es una solución temporal hasta que Dear ImGui implemente atlas de "
 "fuente dinámicas.\n"
 "\n"
 "請在確保你有足夠的顯存后再啟動此設定\n"
@@ -8159,7 +8176,7 @@ msgid ""
 "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
 msgstr ""
 "Solo activa esta opción si tienes suficiente memoria gráfica.\n"
-"Esta es una solución temporal hasta que Dear Imgui implemente atlas de "
+"Esta es una solución temporal hasta que Dear ImGui implemente atlas de "
 "fuente dinámicas.\n"
 "\n"
 "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
@@ -8167,7 +8184,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3178
 msgid "Title bar:"
-msgstr ""
+msgstr "Barra de título"
 
 #: src/gui/settings.cpp:3180
 msgid "Furnace##tbar0"
@@ -8175,79 +8192,79 @@ msgstr ""
 
 #: src/gui/settings.cpp:3185
 msgid "Song Name - Furnace##tbar1"
-msgstr ""
+msgstr "Nombre de Canción - Furnace##tbar1"
 
 #: src/gui/settings.cpp:3190
 msgid "file_name.fur - Furnace##tbar2"
-msgstr ""
+msgstr "nombre_archivo.fur - Furnace##tbar2"
 
 #: src/gui/settings.cpp:3195
 msgid "/path/to/file.fur - Furnace##tbar3"
-msgstr ""
+msgstr "/ruta/al/archivo.fur - Furnace##tbar3"
 
 #: src/gui/settings.cpp:3203
 msgid "Display system name on title bar"
-msgstr ""
+msgstr "Mostrar nombre de sistema en la barra de título"
 
 #: src/gui/settings.cpp:3210
 msgid "Display chip names instead of \"multi-system\" in title bar"
-msgstr ""
+msgstr "Mostrar nombre de chips en vez de \"multi-system\" en la barra de título"
 
 #: src/gui/settings.cpp:3216
 msgid "Status bar:"
-msgstr ""
+msgstr "Barra de estado:"
 
 #: src/gui/settings.cpp:3218
 msgid "Cursor details##sbar0"
-msgstr ""
+msgstr "Detalle del cursor##sbar0"
 
 #: src/gui/settings.cpp:3222
 msgid "File path##sbar1"
-msgstr ""
+msgstr "Ruta del archivo##sbar1"
 
 #: src/gui/settings.cpp:3226
 msgid "Cursor details or file path##sbar2"
-msgstr ""
+msgstr "Detalle del cursor o ruta del archivo##sbar2"
 
 #: src/gui/settings.cpp:3230
 msgid "Nothing##sbar3"
-msgstr ""
+msgstr "Nada##sbar3"
 
 #: src/gui/settings.cpp:3237
 msgid "Display playback status when playing"
-msgstr ""
+msgstr "Mostrar estado de reproducción al reproducir"
 
 #: src/gui/settings.cpp:3242
 msgid "Export options layout:"
-msgstr ""
+msgstr "Diseño de opciones de exportación:"
 
 #: src/gui/settings.cpp:3244
 msgid "Sub-menus in File menu##eol0"
-msgstr ""
+msgstr "Sub-menús en el menú Archivo##eol0"
 
 #: src/gui/settings.cpp:3248
 msgid "Modal window with tabs##eol1"
-msgstr ""
+msgstr "Ventanas modales con tabulaciones##eol1"
 
 #: src/gui/settings.cpp:3252
 msgid "Modal windows with options in File menu##eol2"
-msgstr ""
+msgstr "Ventanas modales con opciones en el menú Archivo##eol2"
 
 #: src/gui/settings.cpp:3259
 msgid "Capitalize menu bar"
-msgstr ""
+msgstr "Barra de menú con mayúsculas"
 
 #: src/gui/settings.cpp:3265
 msgid "Display add/configure/change/remove chip menus in File menu"
-msgstr ""
+msgstr "Mostrar opciones para manipular chips en el menú de Archivo"
 
 #: src/gui/settings.cpp:3279
 msgid "Highlight channel at cursor in Orders"
-msgstr ""
+msgstr "Resaltar canal del cursor en Órdenes"
 
 #: src/gui/settings.cpp:3284
 msgid "Orders row number format:"
-msgstr ""
+msgstr "Formato de número en la fila de órdenes:"
 
 #: src/gui/settings.cpp:3286
 msgid "Decimal##orbD"
@@ -8259,19 +8276,19 @@ msgstr ""
 
 #: src/gui/settings.cpp:3299
 msgid "Center pattern view"
-msgstr ""
+msgstr "Centrar vista del patrón"
 
 #: src/gui/settings.cpp:3305
 msgid "Overflow pattern highlights"
-msgstr ""
+msgstr "Resaltados de patrón se salen"
 
 #: src/gui/settings.cpp:3311
 msgid "Display previous/next pattern"
-msgstr ""
+msgstr "Mostrar patrones adyacentes"
 
 #: src/gui/settings.cpp:3316
 msgid "Pattern row number format:"
-msgstr ""
+msgstr "Formato de número en la fila de patrones:"
 
 #: src/gui/settings.cpp:3318
 msgid "Decimal##prbD"
@@ -8283,31 +8300,31 @@ msgstr ""
 
 #: src/gui/settings.cpp:3328
 msgid "Pattern view labels:"
-msgstr ""
+msgstr "Etiquetas de la vista del patrón:"
 
 #: src/gui/settings.cpp:3333
 msgid "Note off (3-char)"
-msgstr ""
+msgstr "Apagar nota (3 caracteres)"
 
 #: src/gui/settings.cpp:3338
 msgid "Note release (3-char)"
-msgstr ""
+msgstr "Lanzar nota (3 caracteres)"
 
 #: src/gui/settings.cpp:3343
 msgid "Macro release (3-char)"
-msgstr ""
+msgstr "Lanzar macro (3 caracteres)"
 
 #: src/gui/settings.cpp:3348
 msgid "Empty field (3-char)"
-msgstr ""
+msgstr "Campo vacío (3 caracteres)"
 
 #: src/gui/settings.cpp:3353
 msgid "Empty field (2-char)"
-msgstr ""
+msgstr "Campo vacío (2 caracteres)"
 
 #: src/gui/settings.cpp:3355
 msgid "Pattern view spacing after:"
-msgstr ""
+msgstr "Espacio en la vista de patrón:"
 
 #: src/gui/settings.cpp:3357 src/gui/settings.cpp:4115
 #: src/gui/findReplace.cpp:601 src/gui/findReplace.cpp:864
@@ -8322,55 +8339,55 @@ msgstr "Efecto"
 
 #: src/gui/settings.cpp:3381
 msgid "Effect value"
-msgstr ""
+msgstr "Valor de efecto"
 
 #: src/gui/settings.cpp:3388
 msgid "Single-digit effects for 00-0F"
-msgstr ""
+msgstr "Un solo dígito para los efectos 00-0F"
 
 #: src/gui/settings.cpp:3394
 msgid "Use flats instead of sharps"
-msgstr ""
+msgstr "Usar bemol en vez de sostenido"
 
 #: src/gui/settings.cpp:3400
 msgid "Use German notation"
-msgstr ""
+msgstr "Usar notación alemana"
 
 #: src/gui/settings.cpp:3408
 msgid "Channel style:"
-msgstr ""
+msgstr "Estilo de canal:"
 
 #: src/gui/settings.cpp:3410
 msgid "Classic##CHS0"
-msgstr ""
+msgstr "Clásico##CHS0"
 
 #: src/gui/settings.cpp:3414
 msgid "Line##CHS1"
-msgstr ""
+msgstr "Línea##CHS1"
 
 #: src/gui/settings.cpp:3418
 msgid "Round##CHS2"
-msgstr ""
+msgstr "Redondo##CHS2"
 
 #: src/gui/settings.cpp:3422
 msgid "Split button##CHS3"
-msgstr ""
+msgstr "Botón separado##CHS3"
 
 #: src/gui/settings.cpp:3426
 msgid "Square border##CH42"
-msgstr ""
+msgstr "Borde cuadrado##CH42"
 
 #: src/gui/settings.cpp:3430
 msgid "Round border##CHS5"
-msgstr ""
+msgstr "Borde redondo##CHS5"
 
 #: src/gui/settings.cpp:3436
 msgid "Channel volume bar:"
-msgstr ""
+msgstr "Barra de volumen de los canales:"
 
 #: src/gui/settings.cpp:3438
 msgid "None##CHV0"
-msgstr ""
+msgstr "Ninguna##CHV0"
 
 #: src/gui/settings.cpp:3442
 msgid "Simple##CHV1"
@@ -8378,7 +8395,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3446
 msgid "Stereo##CHV2"
-msgstr ""
+msgstr "Estéreo##CHV2"
 
 #: src/gui/settings.cpp:3450
 msgid "Real##CHV3"
@@ -8386,31 +8403,31 @@ msgstr ""
 
 #: src/gui/settings.cpp:3454
 msgid "Real (stereo)##CHV4"
-msgstr ""
+msgstr "Real (estéreo)##CHV4"
 
 #: src/gui/settings.cpp:3460
 msgid "Channel feedback style:"
-msgstr ""
+msgstr "Estilo de alumbrado del canal;"
 
 #: src/gui/settings.cpp:3462
 msgid "Off##CHF0"
-msgstr ""
+msgstr "Apagado##CHF0"
 
 #: src/gui/settings.cpp:3466
 msgid "Note##CHF1"
-msgstr ""
+msgstr "Nota##CHF1"
 
 #: src/gui/settings.cpp:3470
 msgid "Volume##CHF2"
-msgstr ""
+msgstr "Volumen##CHF2"
 
 #: src/gui/settings.cpp:3474
 msgid "Active##CHF3"
-msgstr ""
+msgstr "Activo##CHF3"
 
 #: src/gui/settings.cpp:3480
 msgid "Channel font:"
-msgstr ""
+msgstr "Fuente del canal:"
 
 #: src/gui/settings.cpp:3482
 msgid "Regular##CHFont0"
@@ -8418,111 +8435,111 @@ msgstr ""
 
 #: src/gui/settings.cpp:3486
 msgid "Monospace##CHFont1"
-msgstr ""
+msgstr "Mono-espacio##CHFont1"
 
 #: src/gui/settings.cpp:3493
 msgid "Center channel name"
-msgstr ""
+msgstr "Centrar nombre del canal"
 
 #: src/gui/settings.cpp:3498
 msgid "Channel colors:"
-msgstr ""
+msgstr "Colores de los canales:"
 
 #: src/gui/settings.cpp:3500
 msgid "Single##CHC0"
-msgstr ""
+msgstr "Un solo color##CHC0"
 
 #: src/gui/settings.cpp:3504
 msgid "Channel type##CHC1"
-msgstr ""
+msgstr "Tipo de canal##CHC1"
 
 #: src/gui/settings.cpp:3508
 msgid "Instrument type##CHC2"
-msgstr ""
+msgstr "Tipo de instrumento##CHC2"
 
 #: src/gui/settings.cpp:3514
 msgid "Channel name colors:"
-msgstr ""
+msgstr "Colores del nombre de los canales:"
 
 #: src/gui/settings.cpp:3516
 msgid "Single##CTC0"
-msgstr ""
+msgstr "Un solo color##CTC0"
 
 #: src/gui/settings.cpp:3520
 msgid "Channel type##CTC1"
-msgstr ""
+msgstr "Tipo de canal##CTC1"
 
 #: src/gui/settings.cpp:3524
 msgid "Instrument type##CTC2"
-msgstr ""
+msgstr "Tipo de instrumento##CTC2"
 
 #: src/gui/settings.cpp:3533
 msgid "Unified instrument/wavetable/sample list"
-msgstr ""
+msgstr "Lista unificada de instrumentos, ondas y samples"
 
 #: src/gui/settings.cpp:3543
 msgid "Horizontal instrument list"
-msgstr ""
+msgstr "Lista de instrumentos horizontal"
 
 #: src/gui/settings.cpp:3549
 msgid "Instrument list icon style:"
-msgstr ""
+msgstr "Estilo de íconos en la lista de instrumentos:"
 
 #: src/gui/settings.cpp:3551
 msgid "None##iis0"
-msgstr ""
+msgstr "Ninguno##iis0"
 
 #: src/gui/settings.cpp:3555
 msgid "Graphical icons##iis1"
-msgstr ""
+msgstr "Gráficos##iis1"
 
 #: src/gui/settings.cpp:3559
 msgid "Letter icons##iis2"
-msgstr ""
+msgstr "Letras##iis2"
 
 #: src/gui/settings.cpp:3566
 msgid "Colorize instrument editor using instrument type"
-msgstr ""
+msgstr "Colorear editor de instrumento usando tipo de instrumento"
 
 #: src/gui/settings.cpp:3572 src/gui/settings.cpp:4014
 msgid "Macro Editor"
-msgstr ""
+msgstr "Editor de Macro"
 
 #: src/gui/settings.cpp:3573
 msgid "Macro editor layout:"
-msgstr ""
+msgstr "Diseño de editor de macro:"
 
 #: src/gui/settings.cpp:3575
 msgid "Unified##mel0"
-msgstr ""
+msgstr "Unificado##mel0"
 
 #: src/gui/settings.cpp:3585
 msgid "Grid##mel2"
-msgstr ""
+msgstr "Parrilla##mel2"
 
 #: src/gui/settings.cpp:3589
 msgid "Single (with list)##mel3"
-msgstr ""
+msgstr "Único (con lista)##mel3"
 
 #: src/gui/settings.cpp:3602
 msgid "Use classic macro editor vertical slider"
-msgstr ""
+msgstr "Usar deslizador vertical clásico"
 
 #: src/gui/settings.cpp:3608
 msgid "Wave Editor"
-msgstr ""
+msgstr "Editor de Onda"
 
 #: src/gui/settings.cpp:3610
 msgid "Use compact wave editor"
-msgstr ""
+msgstr "Usar editor de onda compacto"
 
 #: src/gui/settings.cpp:3616 src/gui/settings.cpp:3991
 msgid "FM Editor"
-msgstr ""
+msgstr "Editor FM"
 
 #: src/gui/settings.cpp:3617
 msgid "FM parameter names:"
-msgstr ""
+msgstr "Nombres de parámetros FM:"
 
 #: src/gui/settings.cpp:3619
 msgid "Friendly##fmn0"
@@ -13082,23 +13099,23 @@ msgstr ""
 
 #: src/gui/csPlayer.cpp:113
 msgid "Load"
-msgstr ""
+msgstr "Cargar"
 
 #: src/gui/csPlayer.cpp:117
 msgid "Kill"
-msgstr ""
+msgstr "Matar"
 
 #: src/gui/csPlayer.cpp:119
 msgid "Kikai wa mou shindeiru!"
-msgstr ""
+msgstr "Machina iam mortuus est!"
 
 #: src/gui/csPlayer.cpp:123
 msgid "Burn Current Song"
-msgstr ""
+msgstr "Quemar Canción Actual"
 
 #: src/gui/csPlayer.cpp:141
 msgid "Status"
-msgstr ""
+msgstr "Estado"
 
 #: src/gui/csPlayer.cpp:148
 msgid "start"
