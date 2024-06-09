@@ -8543,75 +8543,75 @@ msgstr "Nombres de parámetros FM:"
 
 #: src/gui/settings.cpp:3619
 msgid "Friendly##fmn0"
-msgstr ""
+msgstr "Familiares##fmn0"
 
 #: src/gui/settings.cpp:3623
 msgid "Technical##fmn1"
-msgstr ""
+msgstr "Técnicos##fmn1"
 
 #: src/gui/settings.cpp:3627
 msgid "Technical (alternate)##fmn2"
-msgstr ""
+msgstr "Técnicos (alterno)##fmn2"
 
 #: src/gui/settings.cpp:3634
 msgid "Use standard OPL waveform names"
-msgstr ""
+msgstr "Usar nombres de ondas OPL estándar"
 
 #: src/gui/settings.cpp:3639
 msgid "FM parameter editor layout:"
-msgstr ""
+msgstr "Diseño de editor de parámetros FM:"
 
 #: src/gui/settings.cpp:3641
 msgid "Modern##fml0"
-msgstr ""
+msgstr "Moderno##fml0"
 
 #: src/gui/settings.cpp:3645
 msgid "Compact (2x2, classic)##fml1"
-msgstr ""
+msgstr "Compacto (2x2, clásico)##fml1"
 
 #: src/gui/settings.cpp:3649
 msgid "Compact (1x4)##fml2"
-msgstr ""
+msgstr "Compacto (1x4)##fml2"
 
 #: src/gui/settings.cpp:3653
 msgid "Compact (4x1)##fml3"
-msgstr ""
+msgstr "Compacto (4x1)##fml3"
 
 #: src/gui/settings.cpp:3657
 msgid "Alternate (2x2)##fml4"
-msgstr ""
+msgstr "Alterno (2x2)##fml4"
 
 #: src/gui/settings.cpp:3661
 msgid "Alternate (1x4)##fml5"
-msgstr ""
+msgstr "Alterno (1x4)##fml5"
 
 #: src/gui/settings.cpp:3665
 msgid "Alternate (4x1)##fml5"
-msgstr ""
+msgstr "Alterno (4x1)##fml5"
 
 #: src/gui/settings.cpp:3671
 msgid "Position of Sustain in FM editor:"
-msgstr ""
+msgstr "Posición de Sostenido en el editor FM:"
 
 #: src/gui/settings.cpp:3673
 msgid "Between Decay and Sustain Rate##susp0"
-msgstr ""
+msgstr "Entre Caída y Velocidad de Sostenido##susp0"
 
 #: src/gui/settings.cpp:3677
 msgid "After Release Rate##susp1"
-msgstr ""
+msgstr "Después de Velocidad de Lanzamiento##susp1"
 
 #: src/gui/settings.cpp:3684
 msgid "Use separate colors for carriers/modulators in FM editor"
-msgstr ""
+msgstr "Usar colores separados para los moduladores y carriers en editor FM"
 
 #: src/gui/settings.cpp:3690
 msgid "Unsigned FM detune values"
-msgstr ""
+msgstr "Valores de afinación FM sin signo"
 
 #: src/gui/settings.cpp:3697
 msgid "Chip memory usage unit:"
-msgstr ""
+msgstr "Unidad de uso de memoria de chips;"
 
 #: src/gui/settings.cpp:3699
 msgid "Bytes##MUU0"
@@ -8623,96 +8623,96 @@ msgstr ""
 
 #: src/gui/settings.cpp:3712
 msgid "Rounded corners"
-msgstr ""
+msgstr "Esquinas redondas"
 
 #: src/gui/settings.cpp:3718 src/gui/settings.cpp:3896
 #: src/gui/settings.cpp:3938
 msgid "Border"
-msgstr ""
+msgstr "Borde"
 
 #: src/gui/settings.cpp:3730
 msgid "Anti-aliased"
-msgstr ""
+msgstr "Suavizar onda"
 
 #: src/gui/settings.cpp:3736
 msgid "Fill entire window"
-msgstr ""
+msgstr "Llenar la ventana"
 
 #: src/gui/settings.cpp:3742
 msgid "Waveform goes out of bounds"
-msgstr ""
+msgstr "La onda se sale del margen"
 
 #: src/gui/settings.cpp:3754
 msgid "Windows"
-msgstr ""
+msgstr "Ventanas"
 
 #: src/gui/settings.cpp:3756
 msgid "Rounded window corners"
-msgstr ""
+msgstr "Esquinas de la ventana redondas"
 
 #: src/gui/settings.cpp:3762
 msgid "Rounded buttons"
-msgstr ""
+msgstr "Botones redondos"
 
 #: src/gui/settings.cpp:3768
 msgid "Rounded menu corners"
-msgstr ""
+msgstr "Esquinas del menú redondas"
 
 #: src/gui/settings.cpp:3774
 msgid "Rounded tabs"
-msgstr ""
+msgstr "Tabulaciones redondas"
 
 #: src/gui/settings.cpp:3780
 msgid "Rounded scrollbars"
-msgstr ""
+msgstr "Barras de desplazamiento redondas"
 
 #: src/gui/settings.cpp:3786
 msgid "Borders around widgets"
-msgstr ""
+msgstr "Bordes en los elementos"
 
 #: src/gui/settings.cpp:3795
 msgid "Color scheme"
-msgstr ""
+msgstr "Esquema de color"
 
 #: src/gui/settings.cpp:3805
 msgid "Are you sure you want to reset the color scheme?"
-msgstr ""
+msgstr "¿Estás seguro de reiniciar el esquema de color?"
 
 #: src/gui/settings.cpp:3808
 msgid "Guru mode"
-msgstr ""
+msgstr "Modo guru"
 
 #: src/gui/settings.cpp:3815 src/gui/settings.cpp:3845
 msgid "Frame shading"
-msgstr ""
+msgstr "Sombra del marco"
 
 #: src/gui/settings.cpp:3821
 msgid "Color scheme type:"
-msgstr ""
+msgstr "Tipo de esquema de color:"
 
 #: src/gui/settings.cpp:3823
 msgid "Dark##gcb0"
-msgstr ""
+msgstr "Oscuro##gcb0"
 
 #: src/gui/settings.cpp:3828
 msgid "Light##gcb1"
-msgstr ""
+msgstr "Claro##gcb1"
 
 #: src/gui/settings.cpp:3835
 msgid "Accent colors:"
-msgstr ""
+msgstr "Colores de acento:"
 
 #: src/gui/settings.cpp:3837
 msgid "Primary"
-msgstr ""
+msgstr "Primario"
 
 #: src/gui/settings.cpp:3838
 msgid "Secondary"
-msgstr ""
+msgstr "Secundario"
 
 #: src/gui/settings.cpp:3852
 msgid "Button"
-msgstr ""
+msgstr "Botón"
 
 #: src/gui/settings.cpp:3853
 msgid "Button (hovered)"
