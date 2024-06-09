@@ -26,6 +26,8 @@
 #include <errno.h>
 #include "momo.h"
 
+#include "halfsiphash.c"
+
 #ifdef ANDROID
 #include <SDL_rwops.h>
 #define MO_FREE SDL_free
@@ -78,8 +80,10 @@ struct LocaleDomain {
   size_t moLen;
   const char** stringPtr;
   const char** transPtr;
+  unsigned int* hashes;
   size_t stringCount;
   size_t firstString[256];
+  size_t lastString[256];
   struct StackData pluralProgram[256];
 };
 
@@ -744,6 +748,7 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
     if (newDomain->stringCount) {
       newDomain->stringPtr=malloc(newDomain->stringCount*sizeof(const char*));
       newDomain->transPtr=malloc(newDomain->stringCount*sizeof(const char*));
+      newDomain->hashes=malloc(newDomain->stringCount*sizeof(unsigned int));
     }
 
     unsigned int* strTable=(unsigned int*)(&newDomain->mo[header->stringPtr]);
@@ -753,6 +758,8 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
     for (size_t i=0; i<newDomain->stringCount; i++) {
       newDomain->stringPtr[i]=(const char*)(&newDomain->mo[strTable[1+(i<<1)]]);
       newDomain->transPtr[i]=(const char*)(&newDomain->mo[transTable[1+(i<<1)]]);
+
+      newDomain->hashes[i]=halfsiphash(newDomain->stringPtr[i],strlen(newDomain->stringPtr[i]),0);
 
       while (curChar<=(unsigned char)newDomain->stringPtr[i][0]) {
         newDomain->firstString[curChar]=i;
@@ -835,8 +842,9 @@ const char* momo_gettext(const char* str) {
   }
   if (str==NULL) return NULL;
   // TODO: optimize
+  unsigned int hash=halfsiphash(str,strlen(str),0);
   for (size_t i=curDomain->firstString[(unsigned char)(str[0])]; i<curDomain->stringCount; i++) {
-    if (strcmp(curDomain->stringPtr[i],str)==0) {
+    if (hash==curDomain->hashes[i]) {
       return curDomain->transPtr[i];
     }
   }

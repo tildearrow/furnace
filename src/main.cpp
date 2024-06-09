@@ -49,11 +49,9 @@ struct sigaction termsa;
 #endif
 
 #ifdef HAVE_MOMO
-#define TA_SETLOCALE momo_setlocale
 #define TA_BINDTEXTDOMAIN momo_bindtextdomain
 #define TA_TEXTDOMAIN momo_textdomain
 #else
-#define TA_SETLOCALE setlocale
 #define TA_BINDTEXTDOMAIN bindtextdomain
 #define TA_TEXTDOMAIN textdomain
 #endif
@@ -512,16 +510,27 @@ int main(int argc, char** argv) {
 #ifdef HAVE_LOCALE
   String reqLocale=e.getConfString("locale","");
   const char* localeRet=NULL;
-  if ((localeRet=TA_SETLOCALE(LC_CTYPE,reqLocale.c_str()))==NULL) {
+  if ((localeRet=setlocale(LC_CTYPE,reqLocale.c_str()))==NULL) {
     logE("could not set locale (CTYPE)!");
   } else {
     logV("locale: %s",localeRet);
   }
-  if ((localeRet=TA_SETLOCALE(LC_MESSAGES,reqLocale.c_str()))==NULL) {
+  if ((localeRet=setlocale(LC_MESSAGES,reqLocale.c_str()))==NULL) {
     logE("could not set locale (MESSAGES)!");
+#ifdef HAVE_MOMO
+    if (momo_setlocale(LC_MESSAGES,reqLocale.c_str())==NULL) {
+      logV("Momo: could not set locale!");
+    }
+#endif
   } else {
     logV("locale: %s",localeRet);
+#ifdef HAVE_MOMO
+    if (momo_setlocale(LC_MESSAGES,localeRet)==NULL) {
+      logV("Momo: could not set locale!");
+    }
+#endif
   }
+
   if ((localeRet=TA_BINDTEXTDOMAIN("furnace","locale"))==NULL) {
     if ((localeRet=TA_BINDTEXTDOMAIN("furnace","../po/locale"))==NULL) {
       logE("could not bind text domain!");
