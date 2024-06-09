@@ -510,6 +510,7 @@ int main(int argc, char** argv) {
 #ifdef HAVE_LOCALE
   String reqLocale=e.getConfString("locale","");
   const char* localeRet=NULL;
+#ifdef HAVE_SETLOCALE
   if ((localeRet=setlocale(LC_CTYPE,reqLocale.c_str()))==NULL) {
     logE("could not set locale (CTYPE)!");
   } else {
@@ -530,6 +531,13 @@ int main(int argc, char** argv) {
     }
 #endif
   }
+#else
+  if ((localeRet=momo_setlocale(LC_MESSAGES,reqLocale.c_str()))==NULL) {
+    logV("Momo: could not set locale!");
+  } else {
+    logV("locale: %s",localeRet);
+  }
+#endif
 
   if ((localeRet=TA_BINDTEXTDOMAIN("furnace","locale"))==NULL) {
     if ((localeRet=TA_BINDTEXTDOMAIN("furnace","../po/locale"))==NULL) {
