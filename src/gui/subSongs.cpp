@@ -29,7 +29,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
         for (size_t i=0; i<e->song.subsong.size(); i++) {
           if (e->song.subsong[i]->name.empty()) {
-            snprintf(id,1023,"%d. <no name>",(int)i+1);
+            snprintf(id,1023,_("%d. <no name>"),(int)i+1);
           } else {
             snprintf(id,1023,"%d. %s",(int)i+1,e->song.subsong[i]->name.c_str());
           }
