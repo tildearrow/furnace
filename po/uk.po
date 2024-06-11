@@ -12693,7 +12693,7 @@ msgstr ""
 
 #: src/gui/csPlayer.cpp:119
 msgid "Kikai wa mou shindeiru!"
-msgstr ""
+msgstr "The machine is already dead!"
 
 #: src/gui/csPlayer.cpp:123
 msgid "Burn Current Song"
