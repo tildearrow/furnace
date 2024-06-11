@@ -6440,7 +6440,6 @@ msgid "Volume Meter"
 msgstr "Medidor de Volumen"
 
 #: src/gui/userPresets.cpp:325
-#, fuzzy
 msgid "User Systems"
 msgstr "Sistemas del Usuario"
 
@@ -10277,7 +10276,6 @@ msgid "is proud to present"
 msgstr "tiene el orgullo de presentar"
 
 #: src/gui/about.cpp:30
-#, fuzzy
 msgid "the biggest multi-system chiptune tracker!"
 msgstr ""
 "¡bienvenido a Furnace, el tracker de chiptune de codigo abierto más grande de "
@@ -13027,7 +13025,6 @@ msgid "STAGE %d"
 msgstr ""
 
 #: src/gui/songInfo.cpp:32
-#, fuzzy
 msgid "Song Info##Song Information"
 msgstr "Info. de canción##Song Information"
 
