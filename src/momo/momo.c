@@ -36,6 +36,7 @@
 #endif
 
 static char curLocale[64];
+static char curLocaleNoCountry[64];
 static char tempPath[4096];
 
 enum StackInstruction {
@@ -565,6 +566,16 @@ const char* momo_setlocale(int type, const char* locale) {
   if (dotPos) {
     *dotPos=0;
   }
+  // make no country version of locale
+  strncpy(curLocaleNoCountry,curLocale,64);
+  char* cPos=strchr(curLocaleNoCountry,'_');
+  if (cPos) {
+    *cPos=0;
+  }
+  char* cPos1=strchr(curLocaleNoCountry,'-');
+  if (cPos1) {
+    *cPos1=0;
+  }
   return curLocale;
 }
 
@@ -614,11 +625,7 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
    newDomain->mo=SDL_LoadFile(tempPath,&newDomain->moLen);
    if (newDomain->mo==NULL) {
       // try without country
-      char* cPos=strchr(curLocale,'_');
-      if (cPos) {
-        *cPos=0;
-      } 
-      snprintf(tempPath,4096,"%s/%s/LC_MESSAGES/%s.mo",newDomain->path,curLocale,newDomain->name);
+      snprintf(tempPath,4096,"%s/%s/LC_MESSAGES/%s.mo",newDomain->path,curLocaleNoCountry,newDomain->name);
       newDomain->mo=SDL_LoadFile(tempPath,&newDomain->moLen);
       if (newDomain->mo==NULL) {
         // give up
@@ -635,11 +642,7 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
     FILE* f=fopen(tempPath,"rb");
     if (f==NULL) {
       // try without country
-      char* cPos=strchr(curLocale,'_');
-      if (cPos) {
-        *cPos=0;
-      } 
-      snprintf(tempPath,4096,"%s/%s/LC_MESSAGES/%s.mo",newDomain->path,curLocale,newDomain->name);
+      snprintf(tempPath,4096,"%s/%s/LC_MESSAGES/%s.mo",newDomain->path,curLocaleNoCountry,newDomain->name);
       f=fopen(tempPath,"rb");
       if (f==NULL) {
         // give up
@@ -861,8 +864,9 @@ const char* momo_ngettext(const char* str1, const char* str2, unsigned long amou
   // then I don't know how are plural strings stored
   unsigned int plural=runStackMachine(curDomain->pluralProgram,256,amount);
   // TODO: optimize
+  unsigned int hash=halfsiphash(str1,strlen(str1),0);
   for (size_t i=curDomain->firstString[(unsigned char)(str1[0])]; i<curDomain->stringCount; i++) {
-    if (strcmp(curDomain->stringPtr[i],str1)==0) {
+    if (hash==curDomain->hashes[i]) {
       const char* ret=curDomain->transPtr[i];
       for (unsigned int j=0; j<plural; j++) {
         ret+=strlen(ret)+1;
