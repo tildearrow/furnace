@@ -4004,7 +4004,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_MOD,_("Mod. border"));
           UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_SHADOW_MOD,_("Mod. border shadow"));
 
-          UI_COLOR_CONFIG(GUI_COLOR_FM_PRIMARY_CAR,_("Car. accent (primary"));
+          UI_COLOR_CONFIG(GUI_COLOR_FM_PRIMARY_CAR,_("Car. accent (primary)"));
           UI_COLOR_CONFIG(GUI_COLOR_FM_SECONDARY_CAR,_("Car. accent (secondary)"));
           UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_CAR,_("Car. border"));
           UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_SHADOW_CAR,_("Car. border shadow"));
