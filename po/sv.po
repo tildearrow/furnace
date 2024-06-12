@@ -13320,7 +13320,7 @@ msgstr "Döda"
 
 #: src/gui/csPlayer.cpp:119
 msgid "Kikai wa mou shindeiru!"
-msgstr "Kone on jo kuollut!"
+msgstr "Maskinen är redan död!"
 
 #: src/gui/csPlayer.cpp:123
 msgid "Burn Current Song"
