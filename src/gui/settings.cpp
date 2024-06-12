@@ -6660,6 +6660,31 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     mainFont->EllipsisCharCount=3;
   }
 
+
+    ImGuiFileDialog::Instance()->okButtonString=_("OK");
+    ImGuiFileDialog::Instance()->cancelButtonString=_("Cancel");
+    ImGuiFileDialog::Instance()->searchString=_("Search");
+    ImGuiFileDialog::Instance()->dirEntryString=_("[Dir]");
+    ImGuiFileDialog::Instance()->linkEntryString=_("[Link]");
+    ImGuiFileDialog::Instance()->fileEntryString=_("[File]");
+    ImGuiFileDialog::Instance()->fileNameString=_("Name:");
+    ImGuiFileDialog::Instance()->dirNameString=_("Path:");
+    ImGuiFileDialog::Instance()->buttonResetSearchString=_("Reset search");
+    ImGuiFileDialog::Instance()->buttonDriveString=_("Drives");
+    ImGuiFileDialog::Instance()->buttonEditPathString=_("Edit path\nYou can also right click on path buttons");
+    ImGuiFileDialog::Instance()->buttonResetPathString=_("Go to home directory");
+    ImGuiFileDialog::Instance()->buttonParentDirString=_("Go to parent directory");
+    ImGuiFileDialog::Instance()->buttonCreateDirString=_("Create Directory");
+    ImGuiFileDialog::Instance()->tableHeaderFileNameString=_("File name");
+    ImGuiFileDialog::Instance()->tableHeaderFileTypeString=_("Type");
+    ImGuiFileDialog::Instance()->tableHeaderFileSizeString=_("Size");
+    ImGuiFileDialog::Instance()->tableHeaderFileDateString=_("Date");
+    ImGuiFileDialog::Instance()->OverWriteDialogTitleString=_("Warning");
+    ImGuiFileDialog::Instance()->OverWriteDialogMessageString=_("The file you selected already exists! Would you like to overwrite it?");
+    ImGuiFileDialog::Instance()->OverWriteDialogConfirmButtonString=_("Yes");
+    ImGuiFileDialog::Instance()->OverWriteDialogCancelButtonString=_("No");
+    ImGuiFileDialog::Instance()->DateTimeFormat=_("%Y/%m/%d %H:%M");
+
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",uiColors[GUI_COLOR_FILE_SONG_NATIVE],ICON_FA_FILE);
