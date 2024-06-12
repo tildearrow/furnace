@@ -766,13 +766,20 @@ const char* momo_bindtextdomain(const char* domainName, const char* dirName) {
 
       while (curChar<=(unsigned char)newDomain->stringPtr[i][0]) {
         newDomain->firstString[curChar]=i;
+        if (curChar>0) {
+          newDomain->lastString[curChar-1]=i;
+        }
         curChar++;
       }
     }
     while (curChar<256) {
       newDomain->firstString[curChar]=newDomain->stringCount;
+      if (curChar>0) {
+        newDomain->lastString[curChar-1]=newDomain->stringCount;
+      }
       curChar++;
     }
+    newDomain->lastString[255]=newDomain->stringCount;
 
     // compile plural program
     char pluralProgram[4096];
@@ -846,7 +853,7 @@ const char* momo_gettext(const char* str) {
   if (str==NULL) return NULL;
   // TODO: optimize
   unsigned int hash=halfsiphash(str,strlen(str),0);
-  for (size_t i=curDomain->firstString[(unsigned char)(str[0])]; i<curDomain->stringCount; i++) {
+  for (size_t i=curDomain->firstString[(unsigned char)(str[0])]; i<curDomain->lastString[(unsigned char)(str[0])]; i++) {
     if (hash==curDomain->hashes[i]) {
       return curDomain->transPtr[i];
     }
@@ -865,7 +872,7 @@ const char* momo_ngettext(const char* str1, const char* str2, unsigned long amou
   unsigned int plural=runStackMachine(curDomain->pluralProgram,256,amount);
   // TODO: optimize
   unsigned int hash=halfsiphash(str1,strlen(str1),0);
-  for (size_t i=curDomain->firstString[(unsigned char)(str1[0])]; i<curDomain->stringCount; i++) {
+  for (size_t i=curDomain->firstString[(unsigned char)(str1[0])]; i<curDomain->lastString[(unsigned char)(str1[0])]; i++) {
     if (hash==curDomain->hashes[i]) {
       const char* ret=curDomain->transPtr[i];
       for (unsigned int j=0; j<plural; j++) {
