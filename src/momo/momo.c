@@ -29,6 +29,7 @@
 #include "halfsiphash.c"
 
 #ifdef ANDROID
+#include <SDL_locale.h>
 #include <SDL_rwops.h>
 #define MO_FREE SDL_free
 #else
@@ -548,6 +549,21 @@ const char* momo_setlocale(int type, const char* locale) {
   }
 
   if (locale[0]==0) {
+#ifdef ANDROID
+    SDL_Locale* locales=SDL_GetPreferredLocales();
+    if (locales==NULL) {
+      strncpy(curLocale,"C",64);
+    } else {
+      if (locales[0].language==NULL) {
+        strncpy(curLocale,"C",64);
+      } else if (locales[0].country==NULL) {
+        snprintf(curLocale,64,"%s",locales[0].language);
+      } else {
+        snprintf(curLocale,64,"%s_%s",locales[0].language,locales[0].country);
+      }
+      SDL_free(locales);
+    }
+#else
     // get the locale from environment
     locale=getenv("LC_ALL");
     if (locale==NULL) {
@@ -559,8 +575,11 @@ const char* momo_setlocale(int type, const char* locale) {
         }
       }
     }
+    strncpy(curLocale,locale,64);
+#endif
+  } else {
+    strncpy(curLocale,locale,64);
   }
-  strncpy(curLocale,locale,64);
   // cut anything after the dot (we only support UTF-8)
   char* dotPos=strchr(curLocale,'.');
   if (dotPos) {
