@@ -6550,7 +6550,14 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     if (settings.loadFallback) {
       mainFont=addFontZlib(font_liberationSans_compressed_data,font_liberationSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
     }
-    if (settings.loadJapanese || settings.loadChinese || settings.loadChineseTraditional || settings.loadKorean) {
+    if (settings.loadJapanese ||
+        settings.loadChinese ||
+        settings.loadChineseTraditional ||
+        settings.loadKorean ||
+        localeRequiresJapanese ||
+        localeRequiresChinese ||
+        localeRequiresChineseTrad ||
+        localeRequiresKorean) {
       mainFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
     }
 
