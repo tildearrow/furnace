@@ -4,8 +4,10 @@
 fonts=(
 "Exo-Medium.ttf" "font_exo" "papers/exo-license.txt" "font_exo.cpp"
 "FontAwesome.otf" "iconFont" "Font Awesome by Dave Gandy - http://fontawesome.io" "font_icon.cpp"
-"IBMPlexMono-Regular.ttf" "font_plexMono" "papers/ibm-plex-license.txt" "font_plexMono.cpp"
-"IBMPlexSans-Regular.ttf" "font_plexSans" "papers/ibm-plex-license.txt" "font_plexSans.cpp"
+"IBMPlexMono-Regular.otf" "font_plexMono" "papers/ibm-plex-license.txt" "font_plexMono.cpp"
+"IBMPlexSans-Regular.otf" "font_plexSans" "papers/ibm-plex-license.txt" "font_plexSans.cpp"
+"IBMPlexSansJP-Regular.otf" "font_plexSansJP" "papers/ibm-plex-license.txt" "font_plexSansJP.cpp"
+"IBMPlexSansKR-Regular.otf" "font_plexSansKR" "papers/ibm-plex-license.txt" "font_plexSansKR.cpp"
 "LiberationSans-Regular.ttf" "font_liberationSans" "papers/liberation-license.txt" "font_liberationSans.cpp"
 "mononoki-Regular.ttf" "font_mononoki" "papers/mononoki-license.txt" "font_mononoki.cpp"
 "ProggyClean.ttf" "font_proggyClean" "papers/proggy-license.txt" "font_proggyClean.cpp"

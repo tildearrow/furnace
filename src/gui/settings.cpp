@@ -6546,10 +6546,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       }
     }
 
-    // two fallback fonts
-    if (settings.loadFallback) {
-      mainFont=addFontZlib(font_liberationSans_compressed_data,font_liberationSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
-    }
+    // four fallback fonts
     if (settings.loadJapanese ||
         settings.loadChinese ||
         settings.loadChineseTraditional ||
@@ -6557,7 +6554,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
         localeRequiresJapanese ||
         localeRequiresChinese ||
         localeRequiresChineseTrad ||
-        localeRequiresKorean) {
+        localeRequiresKorean ||
+        settings.loadFallback) {
+      mainFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
+      mainFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
+      mainFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
       mainFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
     }
 
