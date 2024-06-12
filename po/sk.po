@@ -4049,10 +4049,11 @@ msgstr ""
 #: src/gui/exportOptions.cpp:225 src/gui/exportOptions.cpp:243
 #: src/gui/exportOptions.cpp:266 src/gui/exportOptions.cpp:297
 #: src/gui/exportOptions.cpp:318 src/gui/exportOptions.cpp:341
-#: src/gui/commandPalette.cpp:199 src/gui/newSong.cpp:273 src/gui/gui.cpp:5669
-#: src/gui/gui.cpp:5693 src/gui/gui.cpp:5717 src/gui/gui.cpp:5741
-#: src/gui/gui.cpp:5765 src/gui/gui.cpp:5796 src/gui/gui.cpp:5855
-#: src/gui/gui.cpp:6229 src/gui/gui.cpp:6353
+#: src/gui/commandPalette.cpp:199 src/gui/settings.cpp:6673
+#: src/gui/newSong.cpp:273 src/gui/gui.cpp:5669 src/gui/gui.cpp:5693
+#: src/gui/gui.cpp:5717 src/gui/gui.cpp:5741 src/gui/gui.cpp:5765
+#: src/gui/gui.cpp:5796 src/gui/gui.cpp:5855 src/gui/gui.cpp:6229
+#: src/gui/gui.cpp:6353
 msgid "Cancel"
 msgstr ""
 
@@ -4731,9 +4732,9 @@ msgstr ""
 msgid "Text color"
 msgstr ""
 
-#: src/gui/chanOsc.cpp:382 src/gui/xyOsc.cpp:80 src/gui/tutorial.cpp:689
-#: src/gui/gui.cpp:5639 src/gui/gui.cpp:6055 src/gui/gui.cpp:6223
-#: src/gui/gui.cpp:6322 src/gui/gui.cpp:6371
+#: src/gui/chanOsc.cpp:382 src/gui/xyOsc.cpp:80 src/gui/settings.cpp:6672
+#: src/gui/tutorial.cpp:689 src/gui/gui.cpp:5639 src/gui/gui.cpp:6055
+#: src/gui/gui.cpp:6223 src/gui/gui.cpp:6322 src/gui/gui.cpp:6371
 msgid "OK"
 msgstr ""
 
@@ -6300,7 +6301,7 @@ msgstr ""
 msgid "Chip at cursor: %s"
 msgstr ""
 
-#: src/gui/effectList.cpp:21
+#: src/gui/effectList.cpp:21 src/gui/settings.cpp:6674
 msgid "Search"
 msgstr ""
 
@@ -6312,7 +6313,7 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: src/gui/subSongs.cpp:22
+#: src/gui/subSongs.cpp:22 src/gui/subSongs.cpp:32
 #, c-format
 msgid "%d. <no name>"
 msgstr ""
@@ -7163,7 +7164,8 @@ msgid ""
 msgstr ""
 
 #: src/gui/settings.cpp:1665 src/gui/settings.cpp:2277
-#: src/gui/sampleEdit.cpp:501 src/gui/insEdit.cpp:5321
+#: src/gui/settings.cpp:6687 src/gui/sampleEdit.cpp:501
+#: src/gui/insEdit.cpp:5321
 msgid "Type"
 msgstr ""
 
@@ -8867,7 +8869,7 @@ msgid "Mod. border shadow"
 msgstr ""
 
 #: src/gui/settings.cpp:4007
-msgid "Car. accent (primary"
+msgid "Car. accent (primary)"
 msgstr ""
 
 #: src/gui/settings.cpp:4008
@@ -9645,7 +9647,7 @@ msgstr ""
 msgid "Delete all"
 msgstr ""
 
-#: src/gui/settings.cpp:4384
+#: src/gui/settings.cpp:4384 src/gui/settings.cpp:6688
 msgid "Size"
 msgstr ""
 
@@ -9747,6 +9749,90 @@ msgstr ""
 #: src/gui/settings.cpp:5862
 #, c-format
 msgid "error while loading config! (%s)"
+msgstr ""
+
+#: src/gui/settings.cpp:6675
+msgid "[Dir]"
+msgstr ""
+
+#: src/gui/settings.cpp:6676
+msgid "[Link]"
+msgstr ""
+
+#: src/gui/settings.cpp:6677
+msgid "[File]"
+msgstr ""
+
+#: src/gui/settings.cpp:6678
+msgid "Name:"
+msgstr ""
+
+#: src/gui/settings.cpp:6679
+msgid "Path:"
+msgstr ""
+
+#: src/gui/settings.cpp:6680
+msgid "Reset search"
+msgstr ""
+
+#: src/gui/settings.cpp:6681
+msgid "Drives"
+msgstr ""
+
+#: src/gui/settings.cpp:6682
+msgid ""
+"Edit path\n"
+"You can also right click on path buttons"
+msgstr ""
+
+#: src/gui/settings.cpp:6683
+msgid "Go to home directory"
+msgstr ""
+
+#: src/gui/settings.cpp:6684
+msgid "Go to parent directory"
+msgstr ""
+
+#: src/gui/settings.cpp:6685
+msgid "Create Directory"
+msgstr ""
+
+#: src/gui/settings.cpp:6686
+msgid "File name"
+msgstr ""
+
+#: src/gui/settings.cpp:6689
+msgid "Date"
+msgstr ""
+
+#: src/gui/settings.cpp:6690 src/gui/gui.cpp:5510 src/gui/gui.cpp:5645
+#: src/gui/gui.cpp:5646
+msgid "Warning"
+msgstr ""
+
+#: src/gui/settings.cpp:6691
+msgid "The file you selected already exists! Would you like to overwrite it?"
+msgstr ""
+
+#: src/gui/settings.cpp:6692 src/gui/gui.cpp:5650 src/gui/gui.cpp:5674
+#: src/gui/gui.cpp:5698 src/gui/gui.cpp:5722 src/gui/gui.cpp:5746
+#: src/gui/gui.cpp:5770 src/gui/gui.cpp:5802 src/gui/gui.cpp:5818
+#: src/gui/gui.cpp:5829 src/gui/gui.cpp:5841 src/gui/gui.cpp:5995
+#: src/gui/gui.cpp:6017 src/gui/gui.cpp:6032 src/gui/gui.cpp:6043
+msgid "Yes"
+msgstr ""
+
+#: src/gui/settings.cpp:6693 src/gui/findReplace.cpp:828 src/gui/gui.cpp:5664
+#: src/gui/gui.cpp:5688 src/gui/gui.cpp:5712 src/gui/gui.cpp:5736
+#: src/gui/gui.cpp:5760 src/gui/gui.cpp:5788 src/gui/gui.cpp:5813
+#: src/gui/gui.cpp:5824 src/gui/gui.cpp:5836 src/gui/gui.cpp:5848
+#: src/gui/gui.cpp:6012 src/gui/gui.cpp:6027 src/gui/gui.cpp:6037
+#: src/gui/gui.cpp:6050
+msgid "No"
+msgstr ""
+
+#: src/gui/settings.cpp:6694
+msgid "%Y/%m/%d %H:%M"
 msgstr ""
 
 #: src/gui/orders.cpp:114
@@ -9905,14 +9991,6 @@ msgstr ""
 msgid "Match effect position:"
 msgstr ""
 
-#: src/gui/findReplace.cpp:828 src/gui/gui.cpp:5664 src/gui/gui.cpp:5688
-#: src/gui/gui.cpp:5712 src/gui/gui.cpp:5736 src/gui/gui.cpp:5760
-#: src/gui/gui.cpp:5788 src/gui/gui.cpp:5813 src/gui/gui.cpp:5824
-#: src/gui/gui.cpp:5836 src/gui/gui.cpp:5848 src/gui/gui.cpp:6012
-#: src/gui/gui.cpp:6027 src/gui/gui.cpp:6037 src/gui/gui.cpp:6050
-msgid "No"
-msgstr ""
-
 #: src/gui/findReplace.cpp:832
 msgid "match effects regardless of position."
 msgstr ""
@@ -9998,314 +10076,318 @@ msgid "-- documentation --"
 msgstr ""
 
 #: src/gui/about.cpp:69
+msgid "-- localization/translation team --"
+msgstr ""
+
+#: src/gui/about.cpp:81
 msgid "-- demo songs --"
 msgstr ""
 
-#: src/gui/about.cpp:195
+#: src/gui/about.cpp:207
 msgid "-- additional feedback/fixes --"
 msgstr ""
 
-#: src/gui/about.cpp:206
+#: src/gui/about.cpp:218
 msgid "-- Metal backend test team --"
 msgstr ""
 
-#: src/gui/about.cpp:212
+#: src/gui/about.cpp:224
 msgid "-- DirectX 9 backend test team --"
 msgstr ""
 
-#: src/gui/about.cpp:219
+#: src/gui/about.cpp:231
 msgid "powered by:"
 msgstr ""
 
-#: src/gui/about.cpp:220
+#: src/gui/about.cpp:232
 msgid "Dear ImGui by Omar Cornut"
 msgstr ""
 
-#: src/gui/about.cpp:221
+#: src/gui/about.cpp:233
 msgid "SDL2 by Sam Lantinga"
 msgstr ""
 
-#: src/gui/about.cpp:225
+#: src/gui/about.cpp:237
 msgid "zlib by Jean-loup Gailly"
 msgstr ""
 
-#: src/gui/about.cpp:226
+#: src/gui/about.cpp:238
 msgid "and Mark Adler"
 msgstr ""
 
-#: src/gui/about.cpp:227
+#: src/gui/about.cpp:239
 msgid "libsndfile by Erik de Castro Lopo"
 msgstr ""
 
-#: src/gui/about.cpp:228
+#: src/gui/about.cpp:240
 msgid "Portable File Dialogs by Sam Hocevar"
 msgstr ""
 
-#: src/gui/about.cpp:229
+#: src/gui/about.cpp:241
 msgid "Native File Dialog by Frogtoss Games"
 msgstr ""
 
-#: src/gui/about.cpp:231
+#: src/gui/about.cpp:243
 msgid "Weak-JACK by x42"
 msgstr ""
 
-#: src/gui/about.cpp:232
+#: src/gui/about.cpp:244
 msgid "RtMidi by Gary P. Scavone"
 msgstr ""
 
-#: src/gui/about.cpp:233
+#: src/gui/about.cpp:245
 msgid "FFTW by Matteo Frigo and Steven G. Johnson"
 msgstr ""
 
-#: src/gui/about.cpp:234
+#: src/gui/about.cpp:246
 msgid "backward-cpp by Google"
 msgstr ""
 
-#: src/gui/about.cpp:235
+#: src/gui/about.cpp:247
 msgid "adpcm by superctr"
 msgstr ""
 
-#: src/gui/about.cpp:236
+#: src/gui/about.cpp:248
 msgid "adpcm-xq by David Bryant"
 msgstr ""
 
-#: src/gui/about.cpp:237
+#: src/gui/about.cpp:249
 msgid "Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"
 msgstr ""
 
-#: src/gui/about.cpp:238
+#: src/gui/about.cpp:250
 msgid "YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"
 msgstr ""
 
-#: src/gui/about.cpp:239
+#: src/gui/about.cpp:251
 msgid "ESFMu (modified version) by Kagamiin~"
 msgstr ""
 
-#: src/gui/about.cpp:240
+#: src/gui/about.cpp:252
 msgid "ymfm by Aaron Giles"
 msgstr ""
 
-#: src/gui/about.cpp:241
+#: src/gui/about.cpp:253
 msgid "emu2413 by Digital Sound Antiques"
 msgstr ""
 
-#: src/gui/about.cpp:242
+#: src/gui/about.cpp:254
 msgid "MAME SN76496 by Nicola Salmoria"
 msgstr ""
 
-#: src/gui/about.cpp:243
+#: src/gui/about.cpp:255
 msgid "MAME AY-3-8910 by Couriersud"
 msgstr ""
 
-#: src/gui/about.cpp:244
+#: src/gui/about.cpp:256
 msgid "with AY8930 fixes by Eulous, cam900 and Grauw"
 msgstr ""
 
-#: src/gui/about.cpp:245
+#: src/gui/about.cpp:257
 msgid "MAME SAA1099 by Juergen Buchmueller and Manuel Abadia"
 msgstr ""
 
-#: src/gui/about.cpp:246
+#: src/gui/about.cpp:258
 msgid "MAME Namco WSG by Nicola Salmoria and Aaron Giles"
 msgstr ""
 
-#: src/gui/about.cpp:247
+#: src/gui/about.cpp:259
 msgid "MAME RF5C68 core by Olivier Galibert and Aaron Giles"
 msgstr ""
 
-#: src/gui/about.cpp:248
+#: src/gui/about.cpp:260
 msgid "MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya"
 msgstr ""
 
-#: src/gui/about.cpp:249
+#: src/gui/about.cpp:261
 msgid "MAME MSM6258 core by Barry Rodewald"
 msgstr ""
 
-#: src/gui/about.cpp:250
+#: src/gui/about.cpp:262
 msgid "MAME YMZ280B core by Aaron Giles"
 msgstr ""
 
-#: src/gui/about.cpp:251
+#: src/gui/about.cpp:263
 msgid "MAME GA20 core by Acho A. Tang and R. Belmont"
 msgstr ""
 
-#: src/gui/about.cpp:252
+#: src/gui/about.cpp:264
 msgid "MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert"
 msgstr ""
 
-#: src/gui/about.cpp:253
+#: src/gui/about.cpp:265
 msgid "SAASound by Dave Hooper and Simon Owen"
 msgstr ""
 
-#: src/gui/about.cpp:254
+#: src/gui/about.cpp:266
 msgid "SameBoy by Lior Halphon"
 msgstr ""
 
-#: src/gui/about.cpp:255
+#: src/gui/about.cpp:267
 msgid "Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"
 msgstr ""
 
-#: src/gui/about.cpp:256
+#: src/gui/about.cpp:268
 msgid "SNES DSP core by Blargg"
 msgstr ""
 
-#: src/gui/about.cpp:257
+#: src/gui/about.cpp:269
 msgid "puNES (NES, MMC5 and FDS) by FHorse"
 msgstr ""
 
-#: src/gui/about.cpp:258
+#: src/gui/about.cpp:270
 msgid "NSFPlay (NES and FDS) by Brad Smith and Brezza"
 msgstr ""
 
-#: src/gui/about.cpp:259
+#: src/gui/about.cpp:271
 msgid "reSID by Dag Lem"
 msgstr ""
 
-#: src/gui/about.cpp:260
+#: src/gui/about.cpp:272
 msgid "reSIDfp by Dag Lem, Antti Lankila"
 msgstr ""
 
-#: src/gui/about.cpp:261
+#: src/gui/about.cpp:273
 msgid "and Leandro Nini"
 msgstr ""
 
-#: src/gui/about.cpp:262
+#: src/gui/about.cpp:274
 msgid "dSID by DefleMask Team based on jsSID"
 msgstr ""
 
-#: src/gui/about.cpp:263
+#: src/gui/about.cpp:275
 msgid "Stella by Stella Team"
 msgstr ""
 
-#: src/gui/about.cpp:264
+#: src/gui/about.cpp:276
 msgid "QSound emulator by superctr and Valley Bell"
 msgstr ""
 
-#: src/gui/about.cpp:265
+#: src/gui/about.cpp:277
 msgid "VICE VIC-20 sound core by Rami Rasanen and viznut"
 msgstr ""
 
-#: src/gui/about.cpp:266
+#: src/gui/about.cpp:278
 msgid "VICE TED sound core by Andreas Boose, Tibor Biczo"
 msgstr ""
 
-#: src/gui/about.cpp:267
+#: src/gui/about.cpp:279
 msgid "and Marco van den Heuvel"
 msgstr ""
 
-#: src/gui/about.cpp:268
+#: src/gui/about.cpp:280
 msgid "VERA sound core by Frank van den Hoef"
 msgstr ""
 
-#: src/gui/about.cpp:269
+#: src/gui/about.cpp:281
 msgid "mzpokeysnd POKEY emulator by Michael Borisov"
 msgstr ""
 
-#: src/gui/about.cpp:270
+#: src/gui/about.cpp:282
 msgid "ASAP POKEY emulator by Piotr Fusik"
 msgstr ""
 
-#: src/gui/about.cpp:271
+#: src/gui/about.cpp:283
 msgid "ported by laoo to C++"
 msgstr ""
 
-#: src/gui/about.cpp:272
+#: src/gui/about.cpp:284
 msgid "vgsound_emu (second version, modified version) by cam900"
 msgstr ""
 
-#: src/gui/about.cpp:273
+#: src/gui/about.cpp:285
 msgid "SM8521 emulator (modified version) by cam900"
 msgstr ""
 
-#: src/gui/about.cpp:274
+#: src/gui/about.cpp:286
 msgid "D65010G031 emulator (modified version) by cam900"
 msgstr ""
 
-#: src/gui/about.cpp:275
+#: src/gui/about.cpp:287
 msgid "Namco C140/C219 emulator (modified version) by cam900"
 msgstr ""
 
-#: src/gui/about.cpp:276
+#: src/gui/about.cpp:288
 msgid "PowerNoise emulator by scratchminer"
 msgstr ""
 
-#: src/gui/about.cpp:277
+#: src/gui/about.cpp:289
 msgid "ep128emu by Istvan Varga"
 msgstr ""
 
-#: src/gui/about.cpp:278
+#: src/gui/about.cpp:290
 msgid "NDS sound emulator by cam900"
 msgstr ""
 
-#: src/gui/about.cpp:280
+#: src/gui/about.cpp:292
 msgid "greetings to:"
 msgstr ""
 
-#: src/gui/about.cpp:283
+#: src/gui/about.cpp:295
 msgid "all members of Deflers of Noice!"
 msgstr ""
 
-#: src/gui/about.cpp:285
+#: src/gui/about.cpp:301
 msgid "copyright © 2021-2024 tildearrow"
 msgstr ""
 
-#: src/gui/about.cpp:286
+#: src/gui/about.cpp:302
 msgid "(and contributors)."
 msgstr ""
 
-#: src/gui/about.cpp:287
+#: src/gui/about.cpp:303
 msgid "licensed under GPLv2+! see"
 msgstr ""
 
-#: src/gui/about.cpp:288
+#: src/gui/about.cpp:304
 msgid "LICENSE for more information."
 msgstr ""
 
-#: src/gui/about.cpp:290
+#: src/gui/about.cpp:306
 msgid "help Furnace grow:"
 msgstr ""
 
-#: src/gui/about.cpp:293
+#: src/gui/about.cpp:309
 msgid "contact tildearrow at:"
 msgstr ""
 
-#: src/gui/about.cpp:296
+#: src/gui/about.cpp:312
 msgid "disclaimer:"
 msgstr ""
 
-#: src/gui/about.cpp:297
+#: src/gui/about.cpp:313
 msgid "despite the fact this program works"
 msgstr ""
 
-#: src/gui/about.cpp:298
+#: src/gui/about.cpp:314
 msgid "with the .dmf file format, it is NOT"
 msgstr ""
 
-#: src/gui/about.cpp:299
+#: src/gui/about.cpp:315
 msgid "affiliated with Delek or DefleMask in"
 msgstr ""
 
-#: src/gui/about.cpp:300
+#: src/gui/about.cpp:316
 msgid "any way, nor it is a replacement for"
 msgstr ""
 
-#: src/gui/about.cpp:301
+#: src/gui/about.cpp:317
 msgid "the original program."
 msgstr ""
 
-#: src/gui/about.cpp:303
+#: src/gui/about.cpp:319
 msgid "it also comes with ABSOLUTELY NO WARRANTY."
 msgstr ""
 
-#: src/gui/about.cpp:305
+#: src/gui/about.cpp:321
 msgid "thanks to all contributors/bug reporters!"
 msgstr ""
 
-#: src/gui/about.cpp:312
+#: src/gui/about.cpp:328
 msgid "About Furnace"
 msgstr ""
 
-#: src/gui/about.cpp:402
+#: src/gui/about.cpp:418
 msgid "Unsaved changes! Save changes before playing?"
 msgstr ""
 
@@ -13861,10 +13943,6 @@ msgstr ""
 msgid "You saved: %s"
 msgstr ""
 
-#: src/gui/gui.cpp:5510 src/gui/gui.cpp:5645 src/gui/gui.cpp:5646
-msgid "Warning"
-msgstr ""
-
 #: src/gui/gui.cpp:5515 src/gui/gui.cpp:5636 src/gui/gui.cpp:5637
 #: src/gui/insEdit.cpp:7520
 msgid "Error"
@@ -13893,14 +13971,6 @@ msgstr ""
 #: src/gui/gui.cpp:5638
 #, c-format
 msgid "%s"
-msgstr ""
-
-#: src/gui/gui.cpp:5650 src/gui/gui.cpp:5674 src/gui/gui.cpp:5698
-#: src/gui/gui.cpp:5722 src/gui/gui.cpp:5746 src/gui/gui.cpp:5770
-#: src/gui/gui.cpp:5802 src/gui/gui.cpp:5818 src/gui/gui.cpp:5829
-#: src/gui/gui.cpp:5841 src/gui/gui.cpp:5995 src/gui/gui.cpp:6017
-#: src/gui/gui.cpp:6032 src/gui/gui.cpp:6043
-msgid "Yes"
 msgstr ""
 
 #: src/gui/gui.cpp:5868

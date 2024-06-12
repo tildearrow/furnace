@@ -77,6 +77,7 @@ const char* locales[][3]={
   {"Suomi", "fi_FI", "käynnistä Furnace uudelleen, jotta tämä asetus tulee voimaan."},
   {"Français", "fr_FR", "redémarrer Furnace pour que ce réglage soit effectif."},
   {"Հայերեն", "hy_AM", "???"},
+  {"日本語", "ja_JP", "???"},
   {"한국어", "ko_KR", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
   {"Nederlands", "nl_NL", "start Furnace opnieuw op om deze instelling effectief te maken."},
   {"Polski", "pl_PL", "aby to ustawienie było skuteczne, należy ponownie uruchomić program."},
