@@ -12,71 +12,76 @@ msgstr ""
 #: src/engine/sysDef.cpp:428 src/engine/sysDef.cpp:441
 msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
 msgstr ""
+"20xx: Սահմանել ձայնի ռեժիմը (բիթ 0: քառակուսի; բիթ 1: աղմուկ; բիթ 2: ծրար)"
 
+# ik this sounds very google translate-y but ITS NOT MY FAULT THIS LANGUAGE HAS NO PROPER TECHNICAL WORDS. YEARS OF TRANSLATED RUSSIAN LITERATURE LEADS TO THIS PIZDEC
 #: src/engine/sysDef.cpp:429
 msgid "21xx: Set noise frequency (0 to 1F)"
-msgstr ""
+msgstr "21xx: Սահմանել աղմկի հաճախությունը (0-ից 1F)"
 
 #: src/engine/sysDef.cpp:430 src/engine/sysDef.cpp:443
 msgid "22xy: Set envelope mode (x: shape, y: enable for this channel)"
-msgstr ""
+msgstr "22xy: Սահմանել ծրարի ռեժիմը (x: ձև, y: միացնել այս ձայնի համար)"
 
 #: src/engine/sysDef.cpp:431 src/engine/sysDef.cpp:444
 msgid "23xx: Set envelope period low byte"
-msgstr ""
+msgstr "23xx: Սահմանել ծրարի պարբերության ցածր բայթը"
 
 #: src/engine/sysDef.cpp:432 src/engine/sysDef.cpp:445
 msgid "24xx: Set envelope period high byte"
-msgstr ""
+msgstr "24xx: Սահմանել ծրարի պարբերության բարձր բայթը"
 
 #: src/engine/sysDef.cpp:433 src/engine/sysDef.cpp:446
 #: src/engine/sysDef.cpp:1599
 msgid "25xx: Envelope slide up"
-msgstr ""
+msgstr "25xx: Ծրարը սահեցնել վերև"
 
 #: src/engine/sysDef.cpp:434 src/engine/sysDef.cpp:447
 #: src/engine/sysDef.cpp:1600
 msgid "26xx: Envelope slide down"
-msgstr ""
+msgstr "26xx: Ծրարը սահեցնելներքև"
 
 #: src/engine/sysDef.cpp:435 src/engine/sysDef.cpp:448
 #: src/engine/sysDef.cpp:1601
 msgid "29xy: Set auto-envelope (x: numerator; y: denominator)"
-msgstr ""
+msgstr "29xy: Սահմանել ավտոմատ ծրարը (x: համարիչ y: հայտարար)"
 
 #: src/engine/sysDef.cpp:436 src/engine/sysDef.cpp:449
 msgid "2Exx: Write to I/O port A"
-msgstr ""
+msgstr "2Exx: Արժեք տալ մուտք֊ելքի A պորտին"
 
 #: src/engine/sysDef.cpp:437 src/engine/sysDef.cpp:450
 msgid "2Fxx: Write to I/O port B"
-msgstr ""
+msgstr "2Fxx: Արժեք տալ մուտք֊ելքի B պորտին"
 
 #: src/engine/sysDef.cpp:442
 msgid "21xx: Set noise frequency (0 to FF)"
-msgstr ""
+msgstr "21xx: Սահմանել աղմկի հաճախությունը (0-ից FF)"
 
 #: src/engine/sysDef.cpp:451
 msgid "12xx: Set duty cycle (0 to 8)"
-msgstr ""
+msgstr "12xx: Սահմանել իմպուլսի լայությունը (0-ից 8)"
 
 #: src/engine/sysDef.cpp:453
 msgid "27xx: Set noise AND mask"
-msgstr ""
+msgstr "27xx: Սահմանել աղմկի հետ տրամաբանական ԵՎ կատարելու արժեքը"
 
 #: src/engine/sysDef.cpp:454
 msgid "28xx: Set noise OR mask"
-msgstr ""
+msgstr "27xx: Սահմանել աղմկի հետ տրամաբանական ԿԱՄ կատարելու արժեքը"
 
 #: src/engine/sysDef.cpp:455
+#, fuzzy
 msgid ""
 "2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR "
 "mask); y: offset)"
 msgstr ""
+"2Cxy: ավտոմատ աղմկի հաճախություն (x: (0: անջատել, 1: հաճախություն, 2: "
+"հաճախություն + տրամաբանական ԿԱՄ ); y: օֆսեթ"
 
 #: src/engine/sysDef.cpp:456
 msgid "2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER"
-msgstr ""
+msgstr "2Dxx: ԵՐԳԱՆԱՆԸ ՉՊԻՏԻ ՕԳՏԱԳՈՐԾԻ"
 
 #: src/engine/sysDef.cpp:460
 msgid "30xx: Toggle hard envelope reset on new notes"
