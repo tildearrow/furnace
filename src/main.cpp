@@ -56,6 +56,10 @@ struct sigaction termsa;
 #define TA_TEXTDOMAIN textdomain
 #endif
 
+#ifdef HAVE_SETLOCALE
+#include <locale.h>
+#endif
+
 #ifndef LC_CTYPE
 #define LC_CTYPE 0
 #endif
