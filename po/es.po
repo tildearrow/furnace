@@ -10172,66 +10172,59 @@ msgstr "¡error al cargar la configuración! (%s)"
 
 #: src/gui/settings.cpp:6675
 msgid "[Dir]"
-msgstr ""
+msgstr "[Dir?"
 
 #: src/gui/settings.cpp:6676
 msgid "[Link]"
-msgstr ""
+msgstr "[Vínculo]"
 
 #: src/gui/settings.cpp:6677
-#, fuzzy
 msgid "[File]"
-msgstr "Archivo"
+msgstr "]Archivo]"
 
 #: src/gui/settings.cpp:6678
-#, fuzzy
 msgid "Name:"
-msgstr "Nombre"
+msgstr "Nombre:"
 
 #: src/gui/settings.cpp:6679
 msgid "Path:"
-msgstr ""
+msgstr "Ruta:"
 
 #: src/gui/settings.cpp:6680
-#, fuzzy
 msgid "Reset search"
-msgstr "Reiniciar a la conf. por defecto"
+msgstr "Reiniciar búsqueda"
 
 #: src/gui/settings.cpp:6681
-#, fuzzy
 msgid "Drives"
-msgstr "Controlador"
+msgstr "Discos"
 
 #: src/gui/settings.cpp:6682
 msgid ""
 "Edit path\n"
 "You can also right click on path buttons"
 msgstr ""
+"Editar ruta\n"
+"También puedes hacer clic derecho en botones de ruta"
 
 #: src/gui/settings.cpp:6683
-#, fuzzy
 msgid "Go to home directory"
-msgstr "Ir al orden siguiente"
+msgstr "Ir al directorio de casa"
 
 #: src/gui/settings.cpp:6684
-#, fuzzy
 msgid "Go to parent directory"
-msgstr "abrir archivos integrados"
+msgstr "Ir al directorio superior"
 
 #: src/gui/settings.cpp:6685
-#, fuzzy
 msgid "Create Directory"
-msgstr "Directorio"
+msgstr "Crear Directorio"
 
 #: src/gui/settings.cpp:6686
-#, fuzzy
 msgid "File name"
-msgstr "nombre del sample"
+msgstr "Nombre del archivo"
 
 #: src/gui/settings.cpp:6689
-#, fuzzy
 msgid "Date"
-msgstr "Ejecutar##PDate"
+msgstr "Fecha"
 
 #: src/gui/settings.cpp:6690 src/gui/gui.cpp:5510 src/gui/gui.cpp:5645
 #: src/gui/gui.cpp:5646
@@ -10240,7 +10233,7 @@ msgstr "Advertencia"
 
 #: src/gui/settings.cpp:6691
 msgid "The file you selected already exists! Would you like to overwrite it?"
-msgstr ""
+msgstr "El archivo que has seleccionado ya existe. ¿Deseas reemplazarlo?"
 
 #: src/gui/settings.cpp:6692 src/gui/gui.cpp:5650 src/gui/gui.cpp:5674
 #: src/gui/gui.cpp:5698 src/gui/gui.cpp:5722 src/gui/gui.cpp:5746
@@ -10261,7 +10254,7 @@ msgstr "No"
 
 #: src/gui/settings.cpp:6694
 msgid "%Y/%m/%d %H:%M"
-msgstr ""
+msgstr "%d/%m/%Y %H:%M"
 
 #: src/gui/orders.cpp:114
 msgid "Add new order"
