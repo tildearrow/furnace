@@ -30,6 +30,7 @@ cp -r ../../papers papers || exit 1
 cp -r ../../demos demos || exit 1
 cp -r ../../instruments instruments || exit 1
 cp -r ../../wavetables wavetables || exit 1
+cp -r ../../po/locale locale || exit 1
 
 cp ../../res/docpdf/manual.pdf . || exit 1
 

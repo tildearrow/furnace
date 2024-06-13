@@ -221,6 +221,7 @@ jobs:
 
         cp -v ../LICENSE LICENSE.txt
         cp -v ../res/releaseReadme/unstable-win.txt README.txt
+        cp -v ../po/locale locale
         cp -vr ../papers ../${binPath}/furnace.exe ./
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
           cp -v ../${binPath}/furnace.pdb ./
@@ -264,6 +265,7 @@ jobs:
         echo "copying extra stuff"
         cp -v ../LICENSE new/LICENSE.txt
         cp -v ../res/releaseReadme/stable-mac.txt new/README
+        cp -v ../po/locale new/locale
         cp -v -r ../demos new/demos
         cp -v -r ../instruments new/instruments
         cp -v -r ../wavetables new/wavetables
@@ -311,6 +313,7 @@ jobs:
         rm -r share/licenses
         rm -r share/metainfo
         rm -r share/mime
+        mv share/locale ..
 
         rmdir share
 

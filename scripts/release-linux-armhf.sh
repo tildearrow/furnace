@@ -43,6 +43,7 @@ rm -r share/metainfo
 mv share/furnace/demos ..
 mv share/furnace/instruments ..
 mv share/furnace/wavetables ..
+mv share/locale ..
 rm -r share/furnace || exit 1
 rm -r share || exit 1
 

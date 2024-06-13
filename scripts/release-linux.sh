@@ -40,6 +40,7 @@ rm -r share/doc
 mv share/icons ..
 rm -r share/licenses
 rm -r share/metainfo
+mv share/locale ..
 
 mv share/furnace/demos ..
 mv share/furnace/instruments ..
