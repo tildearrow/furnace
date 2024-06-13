@@ -2100,12 +2100,12 @@ namespace IGFD
 #ifdef WIN32
     ImGui::SameLine();
 
-    if (IMGUI_BUTTON(drivesButtonString))
+    if (IMGUI_BUTTON(FileDialog::Instance()->drivesButtonString))
     {
       puDrivesClicked = true;
     }
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(buttonDriveString);
+      ImGui::SetTooltip("%s",FileDialog::Instance()->buttonDriveString);
 #endif // WIN32
 
     ImGui::SameLine();
