@@ -96,7 +96,7 @@ endif()
 # until ready
 set(WITH_LOCALE_DEFAULT ON)
 
-if (MSVC OR ANDROID)
+if (APPLE OR MSVC OR ANDROID)
   set(USE_MOMO_DEFAULT ON)
 else()
   set(USE_MOMO_DEFAULT OFF)
