@@ -2100,7 +2100,7 @@ namespace IGFD
 #ifdef WIN32
     ImGui::SameLine();
 
-    if (IMGUI_BUTTON(FileDialog::Instance()->drivesButtonString))
+    if (IMGUI_BUTTON(drivesButtonString))
     {
       puDrivesClicked = true;
     }
