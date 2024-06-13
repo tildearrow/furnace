@@ -28,7 +28,7 @@ void FurnaceGUI::drawClock() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!clockOpen) return;
-  if (ImGui::Begin("Clock",&clockOpen,globalWinFlags)) {
+  if (ImGui::Begin("Clock",&clockOpen,globalWinFlags,_("Clock"))) {
     int row=oldRow;
     int elapsedBars=e->getElapsedBars();
     int elapsedBeats=e->getElapsedBeats();

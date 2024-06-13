@@ -27,9 +27,9 @@ void FurnaceGUI::drawSpoiler() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!spoilerOpen) return;
-  if (ImGui::Begin("Spoiler",&spoilerOpen,globalWinFlags|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::Begin("Spoiler",&spoilerOpen,globalWinFlags|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_AlwaysAutoResize,_("Spoiler"))) {
     ImGui::PushFont(bigFont);
-    ImGui::Text("SPOILER");
+    ImGui::Text(_("SPOILER"));
     ImGui::PopFont();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SPOILER;

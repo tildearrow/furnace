@@ -42,6 +42,21 @@ typedef std::string String;
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define CLAMP(x,xMin,xMax) (MIN(MAX((x),(xMin)),(xMax)))
 
+#ifdef HAVE_LOCALE
+#ifdef HAVE_MOMO
+#include <momo.h>
+#define _(_str) momo_gettext(_str)
+#else
+#include <libintl.h>
+#define _(_str) gettext(_str)
+#endif
+#else
+#define _(_str) _str
+#endif
+
+#define _GN(_strS,_strP,_cond) (((_cond)==1)?(_strS):(_strP))
+#define _N(_str) _str
+
 typedef std::wstring WString;
 
 enum TAParamResult {

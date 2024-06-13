@@ -35,6 +35,7 @@ static float oscDebugMin=-1.0;
 static float oscDebugMax=1.0;
 static float oscDebugPower=1.0;
 static int oscDebugRepeat=1;
+static int numApples=1;
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -62,7 +63,7 @@ void FurnaceGUI::drawDebug() {
   }
   if (!debugOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(100.0f*dpiScale,100.0f*dpiScale),ImVec2(canvasW,canvasH));
-  if (ImGui::Begin("Debug",&debugOpen,globalWinFlags|ImGuiWindowFlags_NoDocking)) {
+  if (ImGui::Begin("Debug",&debugOpen,globalWinFlags|ImGuiWindowFlags_NoDocking,_("Debug"))) {
     ImGui::Text("NOTE: use with caution.");
     if (ImGui::TreeNode("Debug Controls")) {
       if (e->isHalted()) {
@@ -658,6 +659,11 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Locale Test")) {
+      ImGui::TextUnformatted(_("This is a language test."));
+      ImGui::TextUnformatted(_("This is another language test."));
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Osc Render Test")) {
       ImGui::InputInt("Length",&oscDebugLen);
       ImGui::InputInt("Height",&oscDebugHeight);
@@ -708,6 +714,13 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+#ifdef HAVE_LOCALE
+    if (ImGui::TreeNode("Plural Form Test")) {
+      ImGui::InputInt("Number",&numApples);
+      ImGui::Text(ngettext("%d apple","%d apples",numApples),numApples);
+      ImGui::TreePop();
+    }
+#endif
     if (ImGui::TreeNode("User Interface")) {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;

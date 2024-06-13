@@ -133,6 +133,10 @@ enum FurnaceGUIRenderBackend {
 #define GUI_DECORATIONS_DEFAULT 1
 #endif
 
+#ifdef HAVE_MOMO
+#define ngettext momo_ngettext
+#endif
+
 // TODO:
 // - add colors for FM envelope and waveform
 // - maybe add "alternate" color for FM modulators/carriers (a bit difficult)
@@ -1954,6 +1958,7 @@ class FurnaceGUI {
     String emptyLabel2;
     String sdlAudioDriver;
     String defaultAuthorName;
+    String locale;
     DivConfig initialSys;
 
     Settings():
@@ -2208,7 +2213,8 @@ class FurnaceGUI {
       emptyLabel("..."),
       emptyLabel2(".."),
       sdlAudioDriver(""),
-      defaultAuthorName("") {}
+      defaultAuthorName(""),
+      locale("") {}
   } settings;
 
   struct Tutorial {
@@ -2225,6 +2231,12 @@ class FurnaceGUI {
   } tutorial;
 
   char finalLayoutPath[4096];
+
+  bool localeRequiresJapanese;
+  bool localeRequiresChinese;
+  bool localeRequiresChineseTrad;
+  bool localeRequiresKorean;
+  std::vector<ImWchar> localeExtraRanges;
 
   DivInstrument* prevInsData;
 
@@ -2675,6 +2687,9 @@ class FurnaceGUI {
   void renderFMPreviewOPL(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewOPZ(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewESFM(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, int pos=0);
+
+  // combo with locale
+  static bool LocalizedComboGetter(void* data, int idx, const char** out_text);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);

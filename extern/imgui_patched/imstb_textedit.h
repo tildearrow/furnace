@@ -889,7 +889,7 @@ retry:
 
             // [DEAR IMGUI]
             // going down while being on the last line shouldn't bring us to that line end
-            if (STB_TEXTEDIT_GETCHAR(str, find.first_char + find.length - 1) != STB_TEXTEDIT_NEWLINE)
+            if (!str->HasWordWrap() && STB_TEXTEDIT_GETCHAR(str, find.first_char + find.length - 1) != STB_TEXTEDIT_NEWLINE)
                break;
 
             // now find character position down a row

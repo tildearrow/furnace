@@ -430,6 +430,7 @@ class DivEngine {
   String exportPath;
   std::thread* exportThread;
   int chans;
+  bool configLoaded;
   bool active;
   bool lowQuality;
   bool dcHiPass;
@@ -1295,6 +1296,9 @@ class DivEngine {
     // quit dispatch
     void quitDispatch();
 
+    // pre-pre-initialize the engine.
+    bool prePreInit();
+
     // pre-initialize the engine. returns whether Furnace should run in safe mode.
     bool preInit(bool noSafeMode=true);
 
@@ -1315,6 +1319,7 @@ class DivEngine {
       output(NULL),
       exportThread(NULL),
       chans(0),
+      configLoaded(false),
       active(false),
       lowQuality(false),
       dcHiPass(true),

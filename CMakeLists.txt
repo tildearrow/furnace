@@ -93,11 +93,22 @@ else()
   endif()
 endif()
 
+# until ready
+set(WITH_LOCALE_DEFAULT ON)
+
+if (APPLE OR MSVC OR ANDROID)
+  set(USE_MOMO_DEFAULT ON)
+else()
+  set(USE_MOMO_DEFAULT OFF)
+endif()
+
 option(BUILD_GUI "Build the tracker (disable to build only a headless player)" ${BUILD_GUI_DEFAULT})
+option(WITH_LOCALE "Use libintl for language support" ${WITH_LOCALE_DEFAULT})
 option(USE_RTMIDI "Build with MIDI support using RtMidi." ${USE_RTMIDI_DEFAULT})
 option(USE_SDL2 "Build with SDL2. Required to build with GUI." ${USE_SDL2_DEFAULT})
 option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio files." ${USE_SNDFILE_DEFAULT})
 option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
+option(USE_MOMO "Build a libintl implementation instead of using the system one." ${USE_MOMO_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
 option(WITH_PORTAUDIO "Whether to build with PortAudio for audio output." ${WITH_PORTAUDIO_DEFAULT})
 option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." ${WITH_RENDER_SDL_DEFAULT})
@@ -815,6 +826,8 @@ src/gui/font_liberationSans.cpp
 src/gui/font_mononoki.cpp
 src/gui/font_plexMono.cpp
 src/gui/font_plexSans.cpp
+src/gui/font_plexSansJP.cpp
+src/gui/font_plexSansKR.cpp
 src/gui/font_proggyClean.cpp
 src/gui/font_ptMono.cpp
 src/gui/font_unifont.cpp
@@ -1024,6 +1037,40 @@ if (NOT WIN32)
   try_compile(HAVE_DIRENT_TYPE ${CMAKE_BINARY_DIR}/check SOURCES ${CMAKE_SOURCE_DIR}/src/check/check_dirent_type.c)
   if (HAVE_DIRENT_TYPE)
     list(APPEND DEPENDENCIES_DEFINES HAVE_DIRENT_TYPE)
+  endif()
+endif()
+
+if (WITH_LOCALE)
+  try_compile(HAVE_SETLOCALE ${CMAKE_BINARY_DIR}/check SOURCES ${CMAKE_SOURCE_DIR}/src/check/check_setlocale.c)
+  if (HAVE_SETLOCALE)
+    list(APPEND DEPENDENCIES_DEFINES HAVE_SETLOCALE)
+    message(STATUS "setlocale() found")
+  else()
+    if (NOT USE_MOMO)
+      message(FATAL_ERROR "setlocale() is not defined! This means the C library in your system does not support locale at all. Try enabling USE_MOMO.")
+    else()
+      message(STATUS "setlocale() is not defined")
+    endif()
+  endif()
+  if (USE_MOMO)
+    list(APPEND ENGINE_SOURCES src/momo/momo.c)
+    list(APPEND DEPENDENCIES_DEFINES HAVE_LOCALE)
+    list(APPEND DEPENDENCIES_DEFINES HAVE_MOMO)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS src/momo)
+    message(STATUS "Using libintl (Momo)")
+  else()
+    if ("${CMAKE_VERSION}" VERSION_LESS "3.2")
+      message(FATAL_ERROR "CMake 3.2 or later required for locale support.")
+    else()
+      include(FindIntl)
+      if (NOT Intl_FOUND)
+        message(FATAL_ERROR "Could not find libintl! Try enabling USE_MOMO.")
+      endif()
+      list(APPEND DEPENDENCIES_DEFINES HAVE_LOCALE)
+      list(APPEND DEPENDENCIES_INCLUDE_DIRS ${Intl_INCLUDE_DIRS})
+      list(APPEND DEPENDENCIES_LIBRARIES ${Intl_LIBRARIES})
+      message(STATUS "Using libintl (system)")
+    endif()
   endif()
 endif()
 

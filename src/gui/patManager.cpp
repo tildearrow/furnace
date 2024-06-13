@@ -32,29 +32,29 @@ void FurnaceGUI::drawPatManager() {
   char id[1024];
   unsigned char isUsed[DIV_MAX_PATTERNS];
   bool isNull[DIV_MAX_PATTERNS];
-  if (ImGui::Begin("Pattern Manager",&patManagerOpen,globalWinFlags)) {
-    if (ImGui::Button("De-duplicate patterns")) {
+  if (ImGui::Begin("Pattern Manager",&patManagerOpen,globalWinFlags,_("Pattern Manager"))) {
+    if (ImGui::Button(_("De-duplicate patterns"))) {
       e->lockEngine([this]() {
         e->curSubSong->optimizePatterns();
       });
       MARK_MODIFIED;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Re-arrange patterns")) {
+    if (ImGui::Button(_("Re-arrange patterns"))) {
       e->lockEngine([this]() {
         e->curSubSong->rearrangePatterns();
       });
       MARK_MODIFIED;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Sort orders")) {
+    if (ImGui::Button(_("Sort orders"))) {
       e->lockEngine([this]() {
         e->curSubSong->sortOrders();
       });
       MARK_MODIFIED;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Make patterns unique")) {
+    if (ImGui::Button(_("Make patterns unique"))) {
       e->lockEngine([this]() {
         e->curSubSong->makePatUnique();
       });
@@ -100,9 +100,9 @@ void FurnaceGUI::drawPatManager() {
             ImGui::PushFont(mainFont);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
             if (isNull[k]) {
-              ImGui::SetTooltip("Pattern %.2X\n- not allocated",k);
+              ImGui::SetTooltip(_("Pattern %.2X\n- not allocated"),k);
             } else {
-              ImGui::SetTooltip("Pattern %.2X\n- use count: %d (%.0f%%)\n\nright-click to erase",k,isUsed[k],100.0*(double)isUsed[k]/(double)e->curSubSong->ordersLen);
+              ImGui::SetTooltip(_("Pattern %.2X\n- use count: %d (%.0f%%)\n\nright-click to erase"),k,isUsed[k],100.0*(double)isUsed[k]/(double)e->curSubSong->ordersLen);
             }
             ImGui::PopStyleColor();
             ImGui::PopFont();

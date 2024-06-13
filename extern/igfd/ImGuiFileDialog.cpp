@@ -113,12 +113,6 @@ namespace IGFD
 #ifndef createDirButtonString
 #define createDirButtonString ICON_FA_PLUS
 #endif // createDirButtonString
-#ifndef okButtonString
-#define okButtonString "OK"
-#endif // okButtonString
-#ifndef cancelButtonString
-#define cancelButtonString "Cancel"
-#endif // cancelButtonString
 #ifndef resetButtonString
 #define resetButtonString ICON_FA_REPEAT
 #endif // resetButtonString
@@ -134,76 +128,6 @@ namespace IGFD
 #ifndef editPathButtonString
 #define editPathButtonString ICON_FA_PENCIL
 #endif // editPathButtonString
-#ifndef searchString
-#define searchString "Search"
-#endif // searchString
-#ifndef dirEntryString
-#define dirEntryString "[Dir]"
-#endif // dirEntryString
-#ifndef linkEntryString
-#define linkEntryString "[Link]"
-#endif // linkEntryString
-#ifndef fileEntryString
-#define fileEntryString "[File]"
-#endif // fileEntryString
-#ifndef fileNameString
-#define fileNameString "Name:"
-#endif // fileNameString
-#ifndef dirNameString
-#define dirNameString "Path:"
-#endif // dirNameString
-#ifndef buttonResetSearchString
-#define buttonResetSearchString "Reset search"
-#endif // buttonResetSearchString
-#ifndef buttonDriveString
-#define buttonDriveString "Drives"
-#endif // buttonDriveString
-#ifndef buttonEditPathString
-#define buttonEditPathString "Edit path\nYou can also right click on path buttons"
-#endif // buttonEditPathString
-#ifndef buttonResetPathString
-#define buttonResetPathString "Go to home directory"
-#endif // buttonResetPathString
-#ifndef buttonParentDirString
-#define buttonParentDirString "Go to parent directory"
-#endif
-#ifndef buttonCreateDirString
-#define buttonCreateDirString "Create Directory"
-#endif // buttonCreateDirString
-#ifndef tableHeaderAscendingIcon
-#define tableHeaderAscendingIcon "A|"
-#endif // tableHeaderAscendingIcon
-#ifndef tableHeaderDescendingIcon
-#define tableHeaderDescendingIcon "D|"
-#endif // tableHeaderDescendingIcon
-#ifndef tableHeaderFileNameString
-#define tableHeaderFileNameString "File name"
-#endif // tableHeaderFileNameString
-#ifndef tableHeaderFileTypeString
-#define tableHeaderFileTypeString "Type"
-#endif // tableHeaderFileTypeString
-#ifndef tableHeaderFileSizeString
-#define tableHeaderFileSizeString "Size"
-#endif // tableHeaderFileSizeString
-#ifndef tableHeaderFileDateString
-#define tableHeaderFileDateString "Date"
-#endif // tableHeaderFileDateString
-#ifndef OverWriteDialogTitleString
-#define OverWriteDialogTitleString "Warning"
-#endif // OverWriteDialogTitleString
-#ifndef OverWriteDialogMessageString
-#define OverWriteDialogMessageString "The file you selected already exists! Would you like to overwrite it?"
-#endif // OverWriteDialogMessageString
-#ifndef OverWriteDialogConfirmButtonString
-#define OverWriteDialogConfirmButtonString "Yes"
-#endif // OverWriteDialogConfirmButtonString
-#ifndef OverWriteDialogCancelButtonString
-#define OverWriteDialogCancelButtonString "No"
-#endif // OverWriteDialogCancelButtonString
-// see strftime functionin <ctime> for customize
-#ifndef DateTimeFormat
-#define DateTimeFormat "%Y/%m/%d %H:%M"
-#endif // DateTimeFormat
 #ifdef USE_THUMBNAILS
 #ifndef tableHeaderFileThumbnailsString
 #define tableHeaderFileThumbnailsString "Thumbnails"
@@ -649,10 +573,10 @@ namespace IGFD
       vFileDialogInternal.puFileManager.ApplyFilteringOnFileList(vFileDialogInternal);
     }
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(buttonResetSearchString);
+      ImGui::SetTooltip("%s",FileDialog::Instance()->buttonResetSearchString);
     ImGui::SameLine();
     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-    bool edited = ImGui::InputTextWithHint("##InputImGuiFileDialogSearchField", searchString, puSearchBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
+    bool edited = ImGui::InputTextWithHint("##InputImGuiFileDialogSearchField", FileDialog::Instance()->searchString, puSearchBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
     if (ImGui::GetItemID() == ImGui::GetActiveID())
       puSearchInputIsActive = true;
     ImGui::PopItemWidth();
@@ -1164,10 +1088,10 @@ namespace IGFD
     logV("IGFD: SortFields()");
     if (vSortingField != SortingFieldEnum::FIELD_NONE)
     {
-      puHeaderFileName = tableHeaderFileNameString;
-      puHeaderFileType = tableHeaderFileTypeString;
-      puHeaderFileSize = tableHeaderFileSizeString;
-      puHeaderFileDate = tableHeaderFileDateString;
+      puHeaderFileName = FileDialog::Instance()->tableHeaderFileNameString;
+      puHeaderFileType = FileDialog::Instance()->tableHeaderFileTypeString;
+      puHeaderFileSize = FileDialog::Instance()->tableHeaderFileSizeString;
+      puHeaderFileDate = FileDialog::Instance()->tableHeaderFileDateString;
 #ifdef USE_THUMBNAILS
       puHeaderFileThumbnails = tableHeaderFileThumbnailsString;
 #endif // #ifdef USE_THUMBNAILS
@@ -1756,10 +1680,10 @@ namespace IGFD
 #ifdef MSVC
         struct tm _tm;
         errno_t err = localtime_s(&_tm, &statInfos.st_mtime);
-        if (!err) len = strftime(timebuf, 99, DateTimeFormat, &_tm);
+        if (!err) len = strftime(timebuf, 99, FileDialog::Instance()->DateTimeFormat, &_tm);
 #else // MSVC
         struct tm* _tm = localtime(&statInfos.st_mtime);
-        if (_tm) len = strftime(timebuf, 99, DateTimeFormat, _tm);
+        if (_tm) len = strftime(timebuf, 99, FileDialog::Instance()->DateTimeFormat, _tm);
 #endif // MSVC
         if (len)
         {
@@ -2120,7 +2044,7 @@ namespace IGFD
       }
     }
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(buttonCreateDirString);
+      ImGui::SetTooltip("%s",FileDialog::Instance()->buttonCreateDirString);
 
     if (prCreateDirectoryMode)
     {
@@ -2132,7 +2056,7 @@ namespace IGFD
 
       ImGui::SameLine();
 
-      if (IMGUI_BUTTON(okButtonString))
+      if (IMGUI_BUTTON(FileDialog::Instance()->okButtonString))
       {
         std::string newDir = std::string(puDirectoryNameBuffer);
         if (CreateDir(newDir))
@@ -2146,7 +2070,7 @@ namespace IGFD
 
       ImGui::SameLine();
 
-      if (IMGUI_BUTTON(cancelButtonString))
+      if (IMGUI_BUTTON(FileDialog::Instance()->cancelButtonString))
       {
         prCreateDirectoryMode = false;
       }
@@ -2161,7 +2085,7 @@ namespace IGFD
       OpenCurrentPath(vFileDialogInternal);
     }
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(buttonResetPathString);
+      ImGui::SetTooltip("%s",FileDialog::Instance()->buttonResetPathString);
 
     ImGui::SameLine();
     if (IMGUI_BUTTON(parentDirString))
@@ -2171,7 +2095,7 @@ namespace IGFD
       }
     }
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(buttonParentDirString);
+      ImGui::SetTooltip("%s",FileDialog::Instance()->buttonParentDirString);
 
 #ifdef WIN32
     ImGui::SameLine();
@@ -2181,7 +2105,7 @@ namespace IGFD
       puDrivesClicked = true;
     }
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(buttonDriveString);
+      ImGui::SetTooltip("%s",FileDialog::Instance()->buttonDriveString);
 #endif // WIN32
 
     ImGui::SameLine();
@@ -2191,7 +2115,7 @@ namespace IGFD
       puInputPathActivated = true;
     }
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip(buttonEditPathString);
+      ImGui::SetTooltip("%s",FileDialog::Instance()->buttonEditPathString);
 
     ImGui::SameLine();
 
@@ -3892,9 +3816,9 @@ namespace IGFD
 
     ImGui::AlignTextToFramePadding();
     if (!fdFile.puDLGDirectoryMode)
-      ImGui::Text(fileNameString);
+      ImGui::Text("%s",FileDialog::Instance()->fileNameString);
     else // directory chooser
-      ImGui::Text(dirNameString);
+      ImGui::Text("%s",FileDialog::Instance()->dirNameString);
 
     ImGui::SameLine();
 
@@ -3919,7 +3843,8 @@ namespace IGFD
     int fileValid=isFileNameValid(fdFile.puFileNameBuffer);
     if (!(prFileDialogInternal.puDLGflags&ImGuiFileDialogFlags_ConfirmOverwrite)) fileValid=0;
     ImGui::BeginDisabled(!(prFileDialogInternal.puCanWeContinue && notEmpty && fileValid==0));
-    if (IMGUI_BUTTON(okButtonString "##validationdialog"))
+    std::string okbs=std::string(FileDialog::Instance()->okButtonString)+"##validationdialog";
+    if (IMGUI_BUTTON(okbs.c_str()))
     {
       prFileDialogInternal.puIsOk = true;
       res = true;
@@ -3959,7 +3884,8 @@ namespace IGFD
     ImGui::SameLine();
 
     // Cancel Button
-    if (IMGUI_BUTTON(cancelButtonString "##validationdialog") || 
+    std::string cbs=std::string(cancelButtonString)+"##validationdialog";
+    if (IMGUI_BUTTON(cbs.c_str()) || 
       prFileDialogInternal.puNeedToExitDialog) // dialog exit asked
     {
       prFileDialogInternal.puIsOk = false;
@@ -4585,7 +4511,7 @@ namespace IGFD
         }
       }
 
-      std::string name = OverWriteDialogTitleString "##" + prFileDialogInternal.puDLGtitle + prFileDialogInternal.puDLGkey + "OverWriteDialog";
+      std::string name = std::string(OverWriteDialogTitleString) + "##" + prFileDialogInternal.puDLGtitle + prFileDialogInternal.puDLGkey + "OverWriteDialog";
 
       bool res = false;
 

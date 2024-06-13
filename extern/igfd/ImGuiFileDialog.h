@@ -1140,6 +1140,29 @@ namespace IGFD
     bool singleClickSel;
     bool mobileMode;
     std::string homePath;
+    const char* okButtonString="OK";
+    const char* cancelButtonString="Cancel";
+    const char* searchString="Search";
+    const char* dirEntryString="[Dir]";
+    const char* linkEntryString="[Link]";
+    const char* fileEntryString="[File]";
+    const char* fileNameString="Name:";
+    const char* dirNameString="Path:";
+    const char* buttonResetSearchString="Reset search";
+    const char* buttonDriveString="Drives";
+    const char* buttonEditPathString="Edit path\nYou can also right click on path buttons";
+    const char* buttonResetPathString="Go to home directory";
+    const char* buttonParentDirString="Go to parent directory";
+    const char* buttonCreateDirString="Create Directory";
+    const char* tableHeaderFileNameString="File name";
+    const char* tableHeaderFileTypeString="Type";
+    const char* tableHeaderFileSizeString="Size";
+    const char* tableHeaderFileDateString="Date";
+    const char* OverWriteDialogTitleString="Warning";
+    const char* OverWriteDialogMessageString="The file you selected already exists! Would you like to overwrite it?";
+    const char* OverWriteDialogConfirmButtonString="Yes";
+    const char* OverWriteDialogCancelButtonString="No";
+    const char* DateTimeFormat="%Y/%m/%d %H:%M";
 
   public:
     static FileDialog* Instance()                // Singleton for easier accces form anywhere but only one dialog at a time

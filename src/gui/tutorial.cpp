@@ -391,6 +391,8 @@ struct FurnaceCV {
   int hiScore;
   short lastPlayerX, lastPlayerY;
   short fxChanBase, fxInsBase;
+
+  FixedQueue<unsigned char,16> weaponStack;
   
   // graphics
   unsigned short tile0[56][80];
@@ -482,18 +484,18 @@ struct FurnaceCV {
 
 static const char* cvText[]={
   // intro
-  "Play demo songs?\n"
+  _N("Play demo songs?\n"
   "- Down: Play current song\n"
-  "- Up: Play demo songs",
+  "- Up: Play demo songs"),
 
-  "Welcome to Combat Vehicle!\n\n"
+  _N("Welcome to Combat Vehicle!\n\n"
   "Controls:\n"
   "X - Shoot      Arrow Key - Move\n"
-  "Z - Special    Esc - Quit",
+  "Z - Special    Esc - Quit"),
 
-  "GAME OVER",
+  _N("GAME OVER"),
 
-  "High Score!"
+  _N("High Score!")
 };
 
 void FurnaceGUI::syncTutorial() {
@@ -653,16 +655,16 @@ void FurnaceGUI::drawTutorial() {
   if (ImGui::BeginPopupModal("Welcome",NULL,ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoTitleBar)) {
     ImGui::PushFont(bigFont);
     ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Welcome!").x)*0.5);
-    ImGui::Text("Welcome!");
+    ImGui::Text(_("Welcome!"));
     ImGui::PopFont();
 
-    ImGui::Text("welcome to Furnace, the biggest open-source chiptune tracker!");
+    ImGui::Text(_("welcome to Furnace, the biggest open-source chiptune tracker!"));
 
     ImGui::Separator();
 
-    ImGui::TextWrapped("here are some tips to get you started:");
+    ImGui::TextWrapped(_("here are some tips to get you started:"));
     
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(_(
       "- add an instrument by clicking on + in Instruments\n"
       "- click on the pattern view to focus it\n"
       "- channel columns have the following, in this order: note, instrument, volume and effects\n"
@@ -672,19 +674,19 @@ void FurnaceGUI::drawTutorial() {
       "- hit enter to play/stop the song\n"
       "- extend the song by adding more orders in the Orders window\n"
       "- click on the Orders matrix to change the patterns of a channel (left click increases; right click decreases)"
-    );
+    ));
 
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(_(
       "if you need help, you may:\n"
       "- read the manual (a file called manual.pdf)\n"
       "- ask for help in Discussions (https://github.com/tildearrow/furnace/discussions), the Furnace Discord (https://discord.gg/EfrwT2wq7z) or Furnace in Revolt (official: https://rvlt.gg/GRPS6tmc)"
-    );
+    ));
 
     ImGui::Separator();
 
-    ImGui::TextWrapped("if you find any issues, be sure to report them! the issue tracker is here: https://github.com/tildearrow/furnace/issues");
+    ImGui::TextWrapped(_("if you find any issues, be sure to report them! the issue tracker is here: https://github.com/tildearrow/furnace/issues"));
 
-    if (ImGui::Button("OK")) {
+    if (ImGui::Button(_("OK"))) {
       tutorial.protoWelcome=true;
       commitTutorial();
       ImGui::CloseCurrentPopup();
@@ -1388,13 +1390,13 @@ void FurnaceCV::render(unsigned char joyIn) {
             }
             memset(tile0,0,80*56*sizeof(short));
             memset(tile1,0,80*56*sizeof(short));
-            startTyping(cvText[3],2,3);
+            startTyping(_(cvText[3]),2,3);
             e->setConf("cvHiScore",hiScore);
             e->saveConf();
             curText=4;
             textWait=90;
           } else {
-            startTyping(cvText[2],15,13);
+            startTyping(_(cvText[2]),15,13);
           }
         }
       }
@@ -1423,7 +1425,7 @@ void FurnaceCV::render(unsigned char joyIn) {
         inGame=true;
       }
       if (transWait==40) {
-        putText(CV_FONTBASE_8x16,true,fmt::sprintf("STAGE %d",stage+2),16,13);
+        putText(CV_FONTBASE_8x16,true,fmt::sprintf(_("STAGE %d"),stage+2),16,13);
       } else if (transWait>40) {
         for (int i=1; i<28; i++) {
           for (int j=0; j<40; j++) {
@@ -1459,7 +1461,7 @@ void FurnaceCV::render(unsigned char joyIn) {
             inGame=true;
           } else {
             memset(tile1,0,80*56*sizeof(short));
-            startTyping(cvText[curText++],2,3);
+            startTyping(_(cvText[curText++]),2,3);
             textWait=90;
           }
         }
@@ -1630,7 +1632,12 @@ void FurnaceCVPlayer::collision(FurnaceCVObject* other) {
     if (!invincible) {
       dead=true;
       cv->respawnTime=48;
-      cv->shotType=0;
+      if (cv->weaponStack.empty()) {
+        cv->shotType=0;
+      } else {
+        cv->shotType=cv->weaponStack.front();
+        cv->weaponStack.pop_front();
+      }
       cv->soundEffect(SE_DEATH_C1);
       cv->soundEffect(SE_DEATH_C2);
       cv->createObject<FurnaceCVExplMedium>(x-8,y);
@@ -2093,7 +2100,7 @@ void FurnaceCVEnemy1::collision(FurnaceCVObject* other) {
   if (other->type==CV_BULLET || other->type==CV_PLAYER) {
     if (--health<=0) {
       dead=true;
-      if ((rand()%7)==0) {
+      if ((rand()%7)==0 || (enemyType>1 && (rand()%7)==3)) {
         switch (rand()%10) {
           case 0:
             cv->createObject<FurnaceCVExtraLife>(x+(enemyType>=2?8:0),y+(enemyType>=2?8:0));
@@ -2782,6 +2789,9 @@ void FurnaceCVMine::collision(FurnaceCVObject* other) {
 void FurnaceCVPowerupP::collision(FurnaceCVObject* other) {
   if (other->type==CV_PLAYER) {
     dead=true;
+    if (cv->shotType) {
+      cv->weaponStack.push_front(cv->shotType);
+    }
     cv->shotType=1;
     cv->soundEffect(SE_PICKUP2);
     cv->addScore(200);
@@ -2809,6 +2819,9 @@ void FurnaceCVPowerupP::tick() {
 void FurnaceCVPowerupS::collision(FurnaceCVObject* other) {
   if (other->type==CV_PLAYER) {
     dead=true;
+    if (cv->shotType) {
+      cv->weaponStack.push_front(cv->shotType);
+    }
     cv->shotType=2;
     cv->soundEffect(SE_PICKUP2);
     cv->addScore(200);
