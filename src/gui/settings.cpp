@@ -72,6 +72,7 @@
 const char* locales[][3]={
   {"<System>", "", ""},
   {"English", "en_US", "restart Furnace for this setting to take effect."},
+  {"Bahasa Indonesia", "id_ID", "???"},
   {"Deutsch (0%)", "de_DE", "Starten Sie Furnace neu, damit diese Einstellung wirksam wird."},
   {"Español", "es_ES", "reinicia Furnace para que esta opción tenga efecto."},
   {"Suomi (0%)", "fi_FI", "käynnistä Furnace uudelleen, jotta tämä asetus tulee voimaan."},

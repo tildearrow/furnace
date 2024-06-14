@@ -99,6 +99,7 @@ bool consoleNoStatus=false;
 bool consoleNoControls=false;
 
 bool displayEngineFailError=false;
+bool displayLocaleFailError=false;
 bool vgmOutDirect=false;
 
 bool safeMode=false;
@@ -517,11 +518,13 @@ int main(int argc, char** argv) {
 #ifdef HAVE_SETLOCALE
   if ((localeRet=setlocale(LC_CTYPE,reqLocale.c_str()))==NULL) {
     logE("could not set locale (CTYPE)!");
+    displayLocaleFailError=true;
   } else {
     logV("locale: %s",localeRet);
   }
   if ((localeRet=setlocale(LC_MESSAGES,reqLocale.c_str()))==NULL) {
     logE("could not set locale (MESSAGES)!");
+    displayLocaleFailError=true;
 #ifdef HAVE_MOMO
     if (momo_setlocale(LC_MESSAGES,reqLocale.c_str())==NULL) {
       logV("Momo: could not set locale!");
@@ -857,6 +860,14 @@ int main(int argc, char** argv) {
   if (displayEngineFailError) {
     logE("displaying engine fail error.");
     g.showError("error while initializing audio!");
+  }
+
+  if (displayLocaleFailError) {
+#ifdef __unix__
+    g.showError("could not load language!\napparently your system does not support this language correctly.\nmake sure you've generated language data by editing /etc/locale.gen\nand then running locale-gen as root.");
+#else
+    g.showError("could not load language!\nthis is a bug!");
+#endif
   }
 
   if (!fileName.empty()) {
