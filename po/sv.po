@@ -7151,7 +7151,7 @@ msgstr "Längd"
 
 #: src/gui/settings.cpp:859 src/gui/gui.cpp:4191
 msgid "File"
-msgstr "Filen"
+msgstr "Arkiv"
 
 #: src/gui/settings.cpp:862
 msgid "Use system file picker"
@@ -8413,7 +8413,7 @@ msgstr "Modala fönster med alternativ i Arkiv-menyn"
 
 #: src/gui/settings.cpp:3259
 msgid "Capitalize menu bar"
-msgstr "Använd versaler i menyfältet"
+msgstr "Använd menyfältet med stora bokstäver"
 
 #: src/gui/settings.cpp:3265
 msgid "Display add/configure/change/remove chip menus in File menu"
@@ -9333,7 +9333,6 @@ msgid "Mod. border shadow"
 msgstr "Mod. gränsskugga"
 
 #: src/gui/settings.cpp:4007
-#, fuzzy
 msgid "Car. accent (primary)"
 msgstr "Bär. accent (primär)"
 
@@ -10219,66 +10218,59 @@ msgstr "fel vid laddning av konfig! (%s)"
 
 #: src/gui/settings.cpp:6675
 msgid "[Dir]"
-msgstr ""
+msgstr "[Dir]"
 
 #: src/gui/settings.cpp:6676
 msgid "[Link]"
-msgstr ""
+msgstr "[Länk]"
 
 #: src/gui/settings.cpp:6677
-#, fuzzy
 msgid "[File]"
-msgstr "Filen"
+msgstr "[Arkiv]"
 
 #: src/gui/settings.cpp:6678
-#, fuzzy
 msgid "Name:"
-msgstr "Namn"
+msgstr "Namn:"
 
 #: src/gui/settings.cpp:6679
 msgid "Path:"
-msgstr ""
+msgstr "Sökväg:"
 
 #: src/gui/settings.cpp:6680
-#, fuzzy
 msgid "Reset search"
-msgstr "Återställ standardinställningar"
+msgstr "Återställ sökning"
 
 #: src/gui/settings.cpp:6681
-#, fuzzy
 msgid "Drives"
-msgstr "Drivrutin"
+msgstr "Driver"
 
 #: src/gui/settings.cpp:6682
 msgid ""
 "Edit path\n"
 "You can also right click on path buttons"
 msgstr ""
+"Redigera sökväg\n"
+"Du kan också högerklicka på sökvägsknappar"
 
 #: src/gui/settings.cpp:6683
-#, fuzzy
 msgid "Go to home directory"
-msgstr "Gå till nästa order"
+msgstr "Gå till hemkatalogen"
 
 #: src/gui/settings.cpp:6684
-#, fuzzy
 msgid "Go to parent directory"
-msgstr "öppna den inbyggda tillgångskatalogen"
+msgstr "Gå till överordnad katalog"
 
 #: src/gui/settings.cpp:6685
-#, fuzzy
 msgid "Create Directory"
-msgstr "Katalog"
+msgstr "Skapa Katalog"
 
 #: src/gui/settings.cpp:6686
-#, fuzzy
 msgid "File name"
-msgstr "samplenamn"
+msgstr "Filnamn"
 
 #: src/gui/settings.cpp:6689
-#, fuzzy
 msgid "Date"
-msgstr "Gå"
+msgstr "Datum"
 
 #: src/gui/settings.cpp:6690 src/gui/gui.cpp:5510 src/gui/gui.cpp:5645
 #: src/gui/gui.cpp:5646
@@ -10287,7 +10279,7 @@ msgstr "Varning"
 
 #: src/gui/settings.cpp:6691
 msgid "The file you selected already exists! Would you like to overwrite it?"
-msgstr ""
+msgstr "Filen du valde finns redan! Vill du skriva över det?"
 
 #: src/gui/settings.cpp:6692 src/gui/gui.cpp:5650 src/gui/gui.cpp:5674
 #: src/gui/gui.cpp:5698 src/gui/gui.cpp:5722 src/gui/gui.cpp:5746
@@ -10308,7 +10300,7 @@ msgstr "Nej"
 
 #: src/gui/settings.cpp:6694
 msgid "%Y/%m/%d %H:%M"
-msgstr ""
+msgstr "%Y/%m/%d %H:%M"
 
 #: src/gui/orders.cpp:114
 msgid "Add new order"
