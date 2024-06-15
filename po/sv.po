@@ -10546,7 +10546,7 @@ msgstr "-- dokumentation --"
 
 #: src/gui/about.cpp:69
 msgid "-- localization/translation team --"
-msgstr ""
+msgstr "-- lokaliserings-/översättningsteam --"
 
 #: src/gui/about.cpp:81
 msgid "-- demo songs --"
@@ -10626,7 +10626,7 @@ msgstr "Nuked-OPL3/OPLL/OPM/OPN2/PSG av nukeykt"
 
 #: src/gui/about.cpp:250
 msgid "YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"
-msgstr "YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE av nukeykt"
+msgstr "YM3812-LLE, YMF262-LLE, YMF276-LLE och YM2608-LLE av nukeykt"
 
 #: src/gui/about.cpp:251
 msgid "ESFMu (modified version) by Kagamiin~"
@@ -11139,7 +11139,7 @@ msgstr ""
 "ersättning, och nej,\n"
 "jag försöker inte få det att se ut som en med alla dessa flaggor.\n"
 "\n"
-"och hur är det med de andra flaggorna som inte har med DefleMask att göra?de "
+"och hur är det med de andra flaggorna som inte har med DefleMask att göra? de "
 "är för .mod import, framtida FamiTracker-import och personlig smak!\n"
 "\n"
 "slut på tjatet"
@@ -13286,7 +13286,7 @@ msgstr ""
 "- tryck på mellanslagstangenten när du är på mönstret för att växla till "
 "redigeringsläge\n"
 "- klicka på mönstret eller använd piltangenterna för att flytta markören\n"
-"- värden (instrument, volym, effekter och effektvärden) är i hexadecimala\n"
+"- värden (instrument, volym, effekter och effektvärden) är i hexadecimal\n"
 "- tryck på enter för att spela/stoppa låten\n"
 "- utöka låten genom att lägga till fler beställningar i orderfönstret\n"
 "- klicka på ordermatrisen för att ändra mönstren för en kanal (vänsterklicka "
