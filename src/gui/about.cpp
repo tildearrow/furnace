@@ -293,6 +293,7 @@ const char* aboutLine[]={
   _N("greetings to:"),
   "NEOART Costa Rica",
   "Xenium Demoparty",
+  "@party",
   _N("all members of Deflers of Noice!"),
   "",
   "fuckings to:",
