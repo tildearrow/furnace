@@ -13158,7 +13158,7 @@ msgstr "välj alla"
 
 #: src/gui/sampleEdit.cpp:1758
 msgid "set loop to selection"
-msgstr "Ställ in loop till urval"
+msgstr "ställ in loop till urval"
 
 #: src/gui/sampleEdit.cpp:1761
 msgid "create wavetable from selection"
