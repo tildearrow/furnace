@@ -261,6 +261,8 @@ int DivPlatformNDS::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_NDS);
       if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample || (c.chan<8)) {
         chan[c.chan].pcm=true;
+      } else {
+        chan[c.chan].pcm=false;
       }
       if (chan[c.chan].pcm || (c.chan<8)) {
         chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
