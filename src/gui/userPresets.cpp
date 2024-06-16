@@ -306,7 +306,7 @@ void FurnaceGUI::printPresets(std::vector<FurnaceGUISysDef>& items, size_t depth
 FurnaceGUISysDef* FurnaceGUI::selectPreset(std::vector<FurnaceGUISysDef>& items) {
   FurnaceGUISysDef* ret=NULL;
   for (size_t i=0; i<selectedUserPreset.size(); i++) {
-    if (selectedUserPreset[i]<0 || selectedUserPreset[i]>(int)items.size()) return NULL;
+    if (selectedUserPreset[i]<0 || selectedUserPreset[i]>=(int)items.size()) return NULL;
     ret=&items[selectedUserPreset[i]];
     if (i<selectedUserPreset.size()-1) {
       items=ret->subDefs;
