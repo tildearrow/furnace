@@ -181,6 +181,8 @@ otherwise, you may also need the following:
 
 some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev` versions of these.
 
+having libintl is recommended for locale support, but if it isn't present, Furnace will use its own implementation.
+
 ## getting the source
 
 type the following on a terminal/console: (make sure Git is installed)
