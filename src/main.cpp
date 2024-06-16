@@ -48,6 +48,7 @@ struct sigaction termsa;
 #define TUT_INTRO_PLAYED false
 #endif
 
+#ifdef HAVE_LOCALE
 #ifdef HAVE_MOMO
 #define TA_BINDTEXTDOMAIN momo_bindtextdomain
 #define TA_TEXTDOMAIN momo_textdomain
@@ -65,6 +66,7 @@ struct sigaction termsa;
 #endif
 #ifndef LC_MESSAGES
 #define LC_MESSAGES 1
+#endif
 #endif
 
 #include "cli/cli.h"
@@ -108,6 +110,19 @@ bool safeModeWithAudio=false;
 bool infoMode=false;
 
 std::vector<TAParam> params;
+
+#ifdef HAVE_LOCALE
+char localeDir[4096];
+
+const char* localeDirs[]={
+  "locale",
+  "../po/locale",
+#ifdef LOCALE_DIR
+  LOCALE_DIR,
+#endif
+  NULL
+};
+#endif
 
 TAParamResult pHelp(String) {
   printf("usage: furnace [params] [filename]\n"
@@ -546,27 +561,27 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  if ((localeRet=TA_BINDTEXTDOMAIN("furnace","locale"))==NULL) {
-    if ((localeRet=TA_BINDTEXTDOMAIN("furnace","../po/locale"))==NULL) {
-#ifdef LOCALE_DIR
-      if ((localeRet=TA_BINDTEXTDOMAIN("furnace",LOCALE_DIR))==NULL) {
-        logE("could not bind text domain!");
-      } else {
-        logV("text domain 1: %s",localeRet);
-      }
-#else
-      logE("could not bind text domain!");
-#endif
+  bool textDomainBound=false;
+  for (int i=0; localeDirs[i]; i++) {
+    strncpy(localeDir,localeDirs[i],4095);
+    logV("bind text domain: %s",localeDir);
+    if (!dirExists(localeDir)) continue;
+    if ((localeRet=TA_BINDTEXTDOMAIN("furnace",localeDir))==NULL) {
+      continue;
     } else {
+      textDomainBound=true;
       logV("text domain 1: %s",localeRet);
+      break;
     }
-  } else {
-    logV("text domain 1: %s",localeRet);
   }
-  if ((localeRet=TA_TEXTDOMAIN("furnace"))==NULL) {
-    logE("could not text domain!");
+  if (!textDomainBound) {
+    logE("could not bind text domain!");
   } else {
-    logV("text domain 2: %s",localeRet);
+    if ((localeRet=TA_TEXTDOMAIN("furnace"))==NULL) {
+      logE("could not text domain!");
+    } else {
+      logV("text domain 2: %s",localeRet);
+    }
   }
 #endif
 
