@@ -197,10 +197,10 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      if (isMuted[c.chan]) {
+      if (isMuted[c.chan] || !chan[c.chan].active) {
         rWrite(0x19+c.chan,0);
       } else {
-        rWrite(0x19+c.chan,chan[c.chan].vol&15);
+        rWrite(0x19+c.chan,chan[c.chan].outVol&15);
       }
       break;
     }
