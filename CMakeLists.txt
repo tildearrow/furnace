@@ -99,7 +99,7 @@ set(WITH_LOCALE_DEFAULT ON)
 try_compile(HAVE_SETLOCALE ${CMAKE_BINARY_DIR}/check SOURCES ${CMAKE_SOURCE_DIR}/src/check/check_setlocale.c)
 include(FindIntl)
 
-if (HAVE_SETLOCALE AND Intl_FOUND)
+if (HAVE_SETLOCALE AND Intl_FOUND AND NOT APPLE)
   set(USE_MOMO_DEFAULT OFF)
 else()
   set(USE_MOMO_DEFAULT ON)

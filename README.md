@@ -289,7 +289,7 @@ Available options:
 
 (\*\*) but consider enabling this & reporting any errors that arise from it!
 
-(\*\*\*) enabled by default if building with MSVC, or macOS, or Android
+(\*\*\*) enabled by default if both libintl and setlocale aren't present (MSVC and Android), or on macOS
 
 ## CMake Error
 
