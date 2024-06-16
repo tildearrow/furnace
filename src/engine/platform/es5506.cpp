@@ -451,7 +451,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             DivSample* s=parent->getSample(chan[i].pcm.index);
             const unsigned int start=sampleOffES5506[chan[i].pcm.index]<<10;
             const unsigned int nextLoopStart=(start+(s->loopStart<<11))&0xfffff800;
-            const unsigned int nextLoopEnd=(start+((s->loopEnd-1)<<11))&0xffffff80;
+            const unsigned int nextLoopEnd=(start+((s->loopEnd)<<11))&0xffffff80;
             if ((chan[i].pcm.loopStart!=nextLoopStart) || (chan[i].pcm.loopEnd!=nextLoopEnd)) {
               chan[i].pcm.loopStart=nextLoopStart;
               chan[i].pcm.loopEnd=nextLoopEnd;
@@ -596,7 +596,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             off=(double)center/8363.0;
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
-          chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd-1)<<11))&0xffffff80;
+          chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd)<<11))&0xffffff80;
           chan[i].pcm.freqOffs=PITCH_OFFSET*off;
           unsigned int startPos=chan[i].pcm.direction?chan[i].pcm.end:chan[i].pcm.start;
           if (chan[i].pcm.nextPos) {
@@ -1216,7 +1216,7 @@ void DivPlatformES5506::renderSamples(int sysID) {
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
 
-  size_t memPos=128; // add silent at begin and end of each bank for reverse playback
+  size_t memPos=129; // add silent at begin and end of each bank for reverse playback and add 1 for loop
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
@@ -1242,7 +1242,7 @@ void DivPlatformES5506::renderSamples(int sysID) {
     } else {
       memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
     }
-    sampleOffES5506[i]=memPos;
+    sampleOffES5506[i]=memPos-1;
     sampleLoaded[i]=true;
     memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+length));
     memPos+=length;
