@@ -299,6 +299,7 @@ const char* aboutLine[]={
   "fuckings to:",
   "cream",
   "Monsia",
+  "SynthetikGiblets",
   "",
   _N("copyright © 2021-2024 tildearrow"),
   _N("(and contributors)."),
