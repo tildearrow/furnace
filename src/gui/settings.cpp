@@ -591,6 +591,7 @@ void FurnaceGUI::drawSettings() {
           for (int i=0; locales[i][0]; i++) {
             if (ImGui::Selectable(locales[i][0],strcmp(settings.locale.c_str(),locales[i][1])==0)) {
               settings.locale=locales[i][1];
+              settingsChanged=true;
             }
             if (ImGui::IsItemHovered()) {
               ImGui::SetTooltip("%s",locales[i][2]);
@@ -824,12 +825,14 @@ void FurnaceGUI::drawSettings() {
         ImGui::Indent();
         if (ImGui::RadioButton(_("ImGui line plot"),settings.shaderOsc==0)) {
           settings.shaderOsc=0;
+          settingsChanged=true;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("render using Dear ImGui's built-in line drawing functions."));
         }
         if (ImGui::RadioButton(_("GLSL (if available)"),settings.shaderOsc==1)) {
           settings.shaderOsc=1;
+          settingsChanged=true;
         }
         if (ImGui::IsItemHovered()) {
 #ifdef USE_GLES
