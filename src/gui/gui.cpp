@@ -6585,6 +6585,8 @@ bool FurnaceGUI::loop() {
         if (initialScreenWipe>0.0f) {
           rend->wipe(pow(initialScreenWipe,2.0f));
         }
+      } else if (settings.disableFadeIn) {
+        initialScreenWipe=0.0f;
       }
     }
     drawTimeEnd=SDL_GetPerformanceCounter();
