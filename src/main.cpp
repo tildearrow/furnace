@@ -883,10 +883,12 @@ int main(int argc, char** argv) {
   }
 
   if (displayLocaleFailError) {
+#ifndef HAVE_MOMO
 #ifdef __unix__
     g.showError("could not load language!\napparently your system does not support this language correctly.\nmake sure you've generated language data by editing /etc/locale.gen\nand then running locale-gen as root.");
 #else
     g.showError("could not load language!\nthis is a bug!");
+#endif
 #endif
   }
 
