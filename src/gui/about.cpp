@@ -115,6 +115,7 @@ const char* aboutLine[]={
   "Electric Keet",
   "EntropyAuthor",
   "EpicTyphlosion",
+  "Ether Egg",
   "FΛDE",
   "Forte",
   "Fragmare",
