@@ -1260,6 +1260,10 @@ if (NOT ANDROID OR TERMUX)
     if (NOT APPLE OR FORCE_APPLE_BIN)
       install(TARGETS furnace RUNTIME DESTINATION bin)
     endif()
+
+    if (APPLE AND NOT FORCE_APPLE_BIN)
+      install(DIRECTORY po/locale RESOURCE DESTINATION Resources/locale)
+    endif()
   endif()
 
   set(CPACK_PACKAGE_NAME "Furnace")
