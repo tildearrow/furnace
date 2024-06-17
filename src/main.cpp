@@ -529,6 +529,11 @@ int main(int argc, char** argv) {
 
 #ifdef HAVE_LOCALE
   String reqLocale=e.getConfString("locale","");
+  if (!reqLocale.empty()) {
+    if (reqLocale.find(".")==String::npos) {
+      reqLocale+=".UTF-8";
+    }
+  }
   const char* localeRet=NULL;
 #ifdef HAVE_SETLOCALE
   if ((localeRet=setlocale(LC_CTYPE,reqLocale.c_str()))==NULL) {
