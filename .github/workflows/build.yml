@@ -240,23 +240,20 @@ jobs:
         cp -v -r ../po/locale Furnace.app/Contents/Resources/locale
         cp -v ../res/icon.icns Furnace.app/Contents/Resources
 
-        echo "this is the bundle:"
-        find Furnace.app
-
-        codesign -vvv --deep -f -s - Furnace.app
+        codesign --deep -f -s - Furnace.app
 
         echo "making dirs"
         mkdir new
 
         echo "copying"
         cp -v -r Furnace.app new/Furnace.app
+        ln -s /Applications new/Applications
         echo "synchronizing"
         sync
 
         echo "copying extra stuff"
         cp -v ../LICENSE new/LICENSE.txt
         cp -v ../res/releaseReadme/stable-mac.txt new/README
-        cp -v -r ../po/locale new/locale
         cp -v -r ../demos new/demos
         cp -v -r ../instruments new/instruments
         cp -v -r ../wavetables new/wavetables
