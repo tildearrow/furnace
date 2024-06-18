@@ -1197,7 +1197,7 @@ else()
 endif()
 
 if (MAKE_BUNDLE AND NOT FORCE_APPLE_BIN)
-  set_target_properties(furnace PROPERTIES MACOSX_BUNDLE True MACOSX_BUNDLE_INFO_PLIST res/Info.plist RESOURCE "${LOCALE_FILES}")
+  set_target_properties(furnace PROPERTIES MACOSX_BUNDLE True MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist RESOURCE "${LOCALE_FILES}")
 endif()
 
 target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
