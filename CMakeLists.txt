@@ -93,7 +93,6 @@ else()
   endif()
 endif()
 
-# until ready
 set(WITH_LOCALE_DEFAULT ON)
 
 try_compile(HAVE_SETLOCALE ${CMAKE_BINARY_DIR}/check SOURCES ${CMAKE_SOURCE_DIR}/src/check/check_setlocale.c)
@@ -1183,11 +1182,6 @@ if (WIN32 AND CONSOLE_SUBSYSTEM)
   list(APPEND DEPENDENCIES_DEFINES "TA_SUBSYSTEM_CONSOLE")
 endif()
 
-if (MAKE_BUNDLE AND NOT FORCE_APPLE_BIN)
-  file(GLOB_RECURSE LOCALE_FILES po/locale)
-  list(APPEND USED_SOURCES ${LOCALE_FILES})
-endif()
-
 if (MAKE_BUNDLE)
   set(FURNACE Furnace)
 else()
@@ -1205,9 +1199,7 @@ endif()
 if (MAKE_BUNDLE AND NOT FORCE_APPLE_BIN)
   set_target_properties(${FURNACE} PROPERTIES
     MACOSX_BUNDLE True
-    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist
-    RESOURCE "${LOCALE_FILES}")
-  set_source_files_properties("${LOCALE_FILES}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist)
 endif()
 
 target_include_directories(${FURNACE} SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})

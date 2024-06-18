@@ -235,19 +235,18 @@ jobs:
       run: |
         pushd build
 
+        echo "preparing bundle"
+        mkdir -p Furnace.app/Resources
+        cp -v -r po/locale Furnace.app/Resources/locale
+        cp -v ../res/icon.icns Furnace.app/Resources
+
+        codesign -s - Furnace.app
+
         echo "making dirs"
         mkdir new
 
-        make DESTDIR=final install
-
-        find Furnace.app
-
-        ls final/usr
-
-        echo "TODO: code sign..."
-
         echo "copying"
-        cp -v -r final/usr/Applications/furnace.app new/furnace.app
+        cp -v -r Furnace.app new/Furnace.app
         echo "synchronizing"
         sync
 
