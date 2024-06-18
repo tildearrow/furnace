@@ -240,7 +240,7 @@ jobs:
         cp -v -r po/locale Furnace.app/Resources/locale
         cp -v ../res/icon.icns Furnace.app/Resources
 
-        codesign -s - Furnace.app
+        codesign --deep -f -s - Furnace.app
 
         echo "making dirs"
         mkdir new
