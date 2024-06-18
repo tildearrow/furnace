@@ -1285,8 +1285,8 @@ if (NOT ANDROID OR TERMUX)
     endif()
 
     # ?!?!
-    if (APPLE AND NOT FORCE_APPLE_BIN AND NOT MAKE_BUNDLE)
-      install(TARGETS ${FURNACE} RESOURCE DESTINATION locale)
+    if (APPLE AND NOT FORCE_APPLE_BIN)
+      install(TARGETS ${FURNACE} RESOURCE DESTINATION Resources)
     endif()
   endif()
 endif()
