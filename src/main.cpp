@@ -31,7 +31,7 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
-
+#include "utfutils.h"
 #include "gui/shellScalingStub.h"
 
 typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
