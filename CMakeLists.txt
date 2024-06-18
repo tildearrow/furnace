@@ -1195,7 +1195,7 @@ else()
 endif()
 
 if (APPLE AND NOT FORCE_APPLE_BIN)
-  set_target_properties(furnace PROPERTIES RESOURCE ${LOCALE_FILES})
+  set_target_properties(furnace PROPERTIES RESOURCE "${LOCALE_FILES}")
 endif()
 
 target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
