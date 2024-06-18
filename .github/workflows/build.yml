@@ -243,7 +243,7 @@ jobs:
         echo "this is the bundle:"
         find Furnace.app
 
-        codesign --deep -f -s - Furnace.app/Contents
+        codesign -vvv --deep -f -s - Furnace.app
 
         echo "making dirs"
         mkdir new
