@@ -139,6 +139,7 @@ option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets director
 option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
+  option(MAKE_BUNDLE "Make a bundle" OFF)
 else()
   # not Apple - not needed
   set(FORCE_APPLE_BIN OFF)

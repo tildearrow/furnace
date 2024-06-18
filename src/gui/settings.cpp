@@ -6838,17 +6838,35 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     // ไทย
     static const ImWchar bigFontRange[]={0x20,0xFF,0x39b,0x39b,0x10d,0x10d,0x420,0x420,0x423,0x423,0x430,0x430,0x438,0x438,0x439,0x439,0x43a,0x43a,0x43d,0x43d,0x440,0x440,0x441,0x441,0x443,0x443,0x44c,0x44c,0x457,0x457,0x540,0x540,0x561,0x561,0x565,0x565,0x575,0x575,0x576,0x576,0x580,0x580,0xe17,0xe17,0xe22,0xe22,0xe44,0xe44,0x65e5,0x65e5,0x672c,0x672c,0x8a9e,0x8a9e,0xad6d,0xad6d,0xc5b4,0xc5b4,0xd55c,0xd55c,0};
 
-    if ((bigFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,40*dpiScale),&fontConfB,bigFontRange))==NULL) {
+    ImFontGlyphRangesBuilder bigFontRangeB;
+    ImVector<ImWchar> outRangeB;
+
+    bigFontRangeB.AddRanges(bigFontRange);
+    if (!localeExtraRanges.empty()) {
+      bigFontRangeB.AddRanges(localeExtraRanges.data());
+    }
+    // I'm terribly sorry
+    bigFontRangeB.UsedChars[0x80>>5]=0;
+
+    bigFontRangeB.BuildRanges(&outRangeB);
+    if (fontRangeB!=NULL) delete[] fontRangeB;
+    fontRangeB=new ImWchar[outRangeB.size()];
+    index=0;
+    for (ImWchar& i: outRangeB) {
+      fontRangeB[index++]=i;
+    }
+
+    if ((bigFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
       logE("could not load big UI font!");
     }
     fontConfB.MergeMode=true;
-    if ((bigFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,40*dpiScale),&fontConfB,bigFontRange))==NULL) {
+    if ((bigFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
       logE("could not load big UI font (japanese)!");
     }
-    if ((bigFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,40*dpiScale),&fontConfB,bigFontRange))==NULL) {
+    if ((bigFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
       logE("could not load big UI font (korean)!");
     }
-    if ((bigFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,40*dpiScale),&fontConfB,bigFontRange))==NULL) {
+    if ((bigFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,40*dpiScale),&fontConfB,fontRangeB))==NULL) {
       logE("could not load big UI font (fallback)!");
     }
 

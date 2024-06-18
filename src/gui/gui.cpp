@@ -7081,8 +7081,17 @@ bool FurnaceGUI::init() {
             next=0;
           }
         }
+        if (next!=0) {
+          localeExtraRanges.push_back(next);
+        }
         localeExtraRanges.push_back(0);
       }
+    }
+  }
+  if (!localeExtraRanges.empty()) {
+    logV("locale extra ranges:");
+    for (ImWchar i: localeExtraRanges) {
+      logV("%x",i);
     }
   }
 

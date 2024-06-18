@@ -14702,7 +14702,7 @@ msgstr "Скрыть полосу с вкладками###HideTabBar"
 
 #: src/gui/gui.cpp:7058
 msgid "LocaleSettings: ccjk"
-msgstr ""
+msgstr "LocaleSettings: ccjk 0400-04FF"
 
 #: src/gui/gui.cpp:7240
 msgid "NES DPCM data"

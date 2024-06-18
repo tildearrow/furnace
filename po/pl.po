@@ -14750,7 +14750,7 @@ msgstr "Ukryj pasek zakładek###HideTabBar"
 
 #: src/gui/gui.cpp:7058
 msgid "LocaleSettings: ccjk"
-msgstr ""
+msgstr "LocaleSettings: ccjk 0100-01FF"
 
 #: src/gui/gui.cpp:7240
 msgid "NES DPCM data"
