@@ -234,33 +234,16 @@ jobs:
       if: ${{ runner.os == 'macOS' }}
       run: |
         pushd build
-        retries=0
-        while ! cpack; do
-          echo "TRYING AGAIN..."
-          retries=$((retries+1))
-          if [ $retries -gt 5 ]; then
-            echo "OH NO, WE'VE FAILED..."
-            exit 1
-            break
-          fi
-        done
 
         echo "making dirs"
-        mkdir orig
         mkdir new
-        echo "attaching"
-        echo "y" | hdiutil attach Furnace-*-Darwin.dmg -readonly -mount required -mountpoint orig
+
+        echo "TODO: code sign..."
 
         echo "copying"
-        cp -v -r orig/Furnace.app new/Furnace.app
+        cp -v -r orig/furnace.app new/furnace.app
         echo "synchronizing"
         sync
-        echo "detaching"
-        hdiutil detach orig
-
-        echo "removing orig"
-        rmdir orig
-        rm Furnace-*-Darwin.dmg
 
         echo "copying extra stuff"
         cp -v ../LICENSE new/LICENSE.txt
