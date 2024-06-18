@@ -131,7 +131,7 @@ bool getExePath(char* argv0, char* exePath, size_t maxSize) {
   wchar_t exePathW[4096];
   WString argv0W=utf8To16(argv0);
   if (GetFullPathNameW(argv0W.c_str(),4095,exePathW,NULL)==0) return false;
-  String exePathS=utf16To8(exePathW.c_str());
+  String exePathS=utf16To8(exePathW);
   strncpy(exePath,exePathS.c_str(),maxSize);
 #else
   if (realpath(argv0,exePath)==NULL) return false;
