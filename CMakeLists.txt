@@ -1181,12 +1181,21 @@ if (WIN32 AND CONSOLE_SUBSYSTEM)
   list(APPEND DEPENDENCIES_DEFINES "TA_SUBSYSTEM_CONSOLE")
 endif()
 
+if (APPLE AND NOT FORCE_APPLE_BIN)
+  file(GLOB_RECURSE LOCALE_FILES po/locale)
+  list(APPEND USED_SOURCES ${LOCALE_FILES})
+endif()
+
 if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
 elseif(WIN32 AND NOT CONSOLE_SUBSYSTEM)
   add_executable(furnace WIN32 ${USED_SOURCES})
 else()
   add_executable(furnace ${USED_SOURCES})
+endif()
+
+if (APPLE AND NOT FORCE_APPLE_BIN)
+  set_target_properties(furnace PROPERTIES RESOURCE ${LOCALE_FILES})
 endif()
 
 target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
@@ -1262,7 +1271,7 @@ if (NOT ANDROID OR TERMUX)
     endif()
 
     if (APPLE AND NOT FORCE_APPLE_BIN)
-      install(DIRECTORY po/locale RESOURCE DESTINATION Resources/locale)
+      install(TARGETS furnace RESOURCE DESTINATION locale)
     endif()
   endif()
 
