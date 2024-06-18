@@ -240,12 +240,12 @@ jobs:
 
         make DESTDIR=final install
 
-        ls final
+        ls final/usr
 
         echo "TODO: code sign..."
 
         echo "copying"
-        cp -v -r final/Applications/furnace.app new/furnace.app
+        cp -v -r final/usr/Applications/furnace.app new/furnace.app
         echo "synchronizing"
         sync
 
