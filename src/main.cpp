@@ -127,7 +127,15 @@ const char* localeDirs[]={
 
 bool getExePath(char* argv0, char* exePath, size_t maxSize) {
   if (argv0==NULL) return false;
+#ifdef _WIN32
+  wchar_t exePathW[4096];
+  WString argv0W=utf8To16(argv0);
+  if (GetFullPathNameW(argv0W.c_str(),4095,exePathW,NULL)==0) return false;
+  String exePathS=utf16To8(exePathW.c_str());
+  strncpy(exePath,exePathS.c_str(),maxSize);
+#else
   if (realpath(argv0,exePath)==NULL) return false;
+#endif
   char* lastChar=strrchr(exePath,DIR_SEPARATOR);
   if (lastChar==NULL) return false;
   *lastChar=0;
