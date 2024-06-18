@@ -240,6 +240,8 @@ jobs:
 
         make DESTDIR=final install
 
+        find Furnace.app
+
         ls final/usr
 
         echo "TODO: code sign..."
