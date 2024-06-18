@@ -237,8 +237,8 @@ jobs:
 
         echo "preparing bundle"
         mkdir -p Furnace.app/Resources
-        cp -v -r ../po/locale Furnace.app/Resources/locale
-        cp -v ../res/icon.icns Furnace.app/Resources
+        cp -v -r ../po/locale Furnace.app/Contents/Resources/locale
+        cp -v ../res/icon.icns Furnace.app/Contents.Resources
 
         echo "this is the bundle:"
         find Furnace.app
