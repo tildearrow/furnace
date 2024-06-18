@@ -236,7 +236,7 @@ jobs:
         pushd build
 
         echo "preparing bundle"
-        mkdir -p Furnace.app/Resources
+        mkdir -p Furnace.app/Contents/Resources
         cp -v -r ../po/locale Furnace.app/Contents/Resources/locale
         cp -v ../res/icon.icns Furnace.app/Contents.Resources
 
