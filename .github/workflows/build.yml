@@ -241,7 +241,7 @@ jobs:
         echo "TODO: code sign..."
 
         echo "copying"
-        cp -v -r orig/furnace.app new/furnace.app
+        cp -v -r furnace.app new/furnace.app
         echo "synchronizing"
         sync
 
