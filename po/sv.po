@@ -13970,7 +13970,7 @@ msgstr "kunde EJ spara layouten! %s"
 #: src/gui/gui.cpp:3109
 #, c-format
 msgid "could NOT load layout! %s"
-msgstr "kunde EJ ladda layouten!"
+msgstr "kunde EJ ladda layouten! %s"
 
 #: src/gui/gui.cpp:3571
 msgid ""
@@ -13992,7 +13992,7 @@ msgstr ""
 "- inläsning av teckensnitt är inaktiverad\n"
 "\n"
 "kontrollera eventuella inställningar som kan ha gjort att Furnace startade i "
-"detta läge.inläsning av teckensnitt är en av dessa."
+"detta läge. inläsning av teckensnitt är en av dessa."
 
 #: src/gui/gui.cpp:4056
 msgid "can't keep going without graphics! Furnace will quit now."
@@ -15052,7 +15052,7 @@ msgstr "Användare"
 
 #: src/gui/insEdit.cpp:99
 msgid "1. Violin"
-msgstr "1. Violin"
+msgstr "1. Fiol"
 
 #: src/gui/insEdit.cpp:100 src/gui/insEdit.cpp:138 src/gui/insEdit.cpp:158
 msgid "2. Guitar"
