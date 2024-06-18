@@ -238,10 +238,14 @@ jobs:
         echo "making dirs"
         mkdir new
 
+        make DESTDIR=final install
+
+        ls final
+
         echo "TODO: code sign..."
 
         echo "copying"
-        cp -v -r furnace.app new/furnace.app
+        cp -v -r final/Applications/furnace.app new/furnace.app
         echo "synchronizing"
         sync
 
