@@ -79,7 +79,7 @@ const char* locales[][3]={
   //{"Français (0%)", "fr_FR", "redémarrer Furnace pour que ce réglage soit effectif."},
   //{"Հայերեն (1%)", "hy_AM", "???"},
   //{"日本語 (0%)", "ja_JP", "???"},
-  //{"한국어 (10%)", "ko_KR", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
+  {"한국어 (10%)", "ko_KR", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
   //{"Nederlands (4%)", "nl_NL", "start Furnace opnieuw op om deze instelling effectief te maken."},
   {"Polski (90%)", "pl_PL", "aby to ustawienie było skuteczne, należy ponownie uruchomić program."},
   {"Português (Brasil) (90%)", "pt_BR", "reinicie o Furnace para que essa configuração entre em vigor."},

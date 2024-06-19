@@ -555,74 +555,76 @@ int main(int argc, char** argv) {
       reqLocale+=".UTF-8";
     }
   }
-  const char* localeRet=NULL;
+  if (reqLocale!="en_US.UTF-8") {
+    const char* localeRet=NULL;
 #ifdef HAVE_SETLOCALE
-  if ((localeRet=setlocale(LC_CTYPE,reqLocale.c_str()))==NULL) {
-    logE("could not set locale (CTYPE)!");
-    displayLocaleFailError=true;
-  } else {
-    logV("locale: %s",localeRet);
-  }
-  if ((localeRet=setlocale(LC_MESSAGES,reqLocale.c_str()))==NULL) {
-    logE("could not set locale (MESSAGES)!");
-    displayLocaleFailError=true;
-#ifdef HAVE_MOMO
-    if (momo_setlocale(LC_MESSAGES,reqLocale.c_str())==NULL) {
-      logV("Momo: could not set locale!");
+    if ((localeRet=setlocale(LC_CTYPE,reqLocale.c_str()))==NULL) {
+      logE("could not set locale (CTYPE)!");
+      displayLocaleFailError=true;
+    } else {
+      logV("locale: %s",localeRet);
     }
-#endif
-  } else {
-    logV("locale: %s",localeRet);
+    if ((localeRet=setlocale(LC_MESSAGES,reqLocale.c_str()))==NULL) {
+      logE("could not set locale (MESSAGES)!");
+      displayLocaleFailError=true;
 #ifdef HAVE_MOMO
-    if (momo_setlocale(LC_MESSAGES,localeRet)==NULL) {
-      logV("Momo: could not set locale!");
-    }
+      if (momo_setlocale(LC_MESSAGES,reqLocale.c_str())==NULL) {
+        logV("Momo: could not set locale!");
+      }
 #endif
-  }
+    } else {
+      logV("locale: %s",localeRet);
+#ifdef HAVE_MOMO
+      if (momo_setlocale(LC_MESSAGES,localeRet)==NULL) {
+        logV("Momo: could not set locale!");
+      }
+#endif
+    }
 #else
-  if ((localeRet=momo_setlocale(LC_MESSAGES,reqLocale.c_str()))==NULL) {
-    logV("Momo: could not set locale!");
-  } else {
-    logV("locale: %s",localeRet);
-  }
+    if ((localeRet=momo_setlocale(LC_MESSAGES,reqLocale.c_str()))==NULL) {
+      logV("Momo: could not set locale!");
+    } else {
+      logV("locale: %s",localeRet);
+    }
 #endif
 
-  char exePath[4096];
+    char exePath[4096];
 #ifdef ANDROID
-  memset(exePath,0,4096);
+    memset(exePath,0,4096);
 #else
-  if (!getExePath(argv[0],exePath,4096)) memset(exePath,0,4096);
+    if (!getExePath(argv[0],exePath,4096)) memset(exePath,0,4096);
 #endif
 
-  bool textDomainBound=false;
-  for (int i=0; localeDirs[i]; i++) {
-    if (exePath[0]!=0 && localeDirs[i][0]!=DIR_SEPARATOR) {
-      strncpy(localeDir,exePath,4095);
-      strncat(localeDir,DIR_SEPARATOR_STR,4095);
-      strncat(localeDir,localeDirs[i],4095);
-    } else {
-      strncpy(localeDir,localeDirs[i],4095);
+    bool textDomainBound=false;
+    for (int i=0; localeDirs[i]; i++) {
+      if (exePath[0]!=0 && localeDirs[i][0]!=DIR_SEPARATOR) {
+        strncpy(localeDir,exePath,4095);
+        strncat(localeDir,DIR_SEPARATOR_STR,4095);
+        strncat(localeDir,localeDirs[i],4095);
+      } else {
+        strncpy(localeDir,localeDirs[i],4095);
+      }
+      logV("bind text domain: %s",localeDir);
+      if (!dirExists(localeDir)) continue;
+      if ((localeRet=TA_BINDTEXTDOMAIN("furnace",localeDir))==NULL) {
+        continue;
+      } else {
+        textDomainBound=true;
+        logV("text domain 1: %s",localeRet);
+        break;
+      }
     }
-    logV("bind text domain: %s",localeDir);
-    if (!dirExists(localeDir)) continue;
-    if ((localeRet=TA_BINDTEXTDOMAIN("furnace",localeDir))==NULL) {
-      continue;
+    if (!textDomainBound) {
+      logE("could not bind text domain!");
     } else {
-      textDomainBound=true;
-      logV("text domain 1: %s",localeRet);
-      break;
+      if ((localeRet=TA_TEXTDOMAIN("furnace"))==NULL) {
+        logE("could not text domain!");
+      } else {
+        logV("text domain 2: %s",localeRet);
+      }
     }
-  }
-  if (!textDomainBound) {
-    logE("could not bind text domain!");
-  } else {
-    if ((localeRet=TA_TEXTDOMAIN("furnace"))==NULL) {
-      logE("could not text domain!");
-    } else {
-      logV("text domain 2: %s",localeRet);
-    }
-  }
 #endif
+  }
 
   initParams();
 
