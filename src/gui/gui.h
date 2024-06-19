@@ -1689,6 +1689,7 @@ class FurnaceGUI {
   ImFont* bigFont;
   ImFont* headFont;
   ImWchar* fontRange;
+  ImWchar* fontRangeB;
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
   ImU32 pitchGrad[256];

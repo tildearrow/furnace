@@ -16,7 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
-set(CMAKE_PROJECT_VERSION_PATCH 3)
+set(CMAKE_PROJECT_VERSION_PATCH 4)
 
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
@@ -93,7 +93,6 @@ else()
   endif()
 endif()
 
-# until ready
 set(WITH_LOCALE_DEFAULT ON)
 
 try_compile(HAVE_SETLOCALE ${CMAKE_BINARY_DIR}/check SOURCES ${CMAKE_SOURCE_DIR}/src/check/check_setlocale.c)
@@ -139,9 +138,11 @@ option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets director
 option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
+  option(MAKE_BUNDLE "Make a bundle" OFF)
 else()
   # not Apple - not needed
   set(FORCE_APPLE_BIN OFF)
+  set(MAKE_BUNDLE OFF)
 endif()
 
 set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
@@ -1181,40 +1182,52 @@ if (WIN32 AND CONSOLE_SUBSYSTEM)
   list(APPEND DEPENDENCIES_DEFINES "TA_SUBSYSTEM_CONSOLE")
 endif()
 
-if(ANDROID AND NOT TERMUX)
-  add_library(furnace SHARED ${USED_SOURCES})
-elseif(WIN32 AND NOT CONSOLE_SUBSYSTEM)
-  add_executable(furnace WIN32 ${USED_SOURCES})
+if (MAKE_BUNDLE)
+  set(FURNACE Furnace)
 else()
-  add_executable(furnace ${USED_SOURCES})
+  set(FURNACE furnace)
 endif()
 
-target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
-target_compile_options(furnace PRIVATE ${DEPENDENCIES_COMPILE_OPTIONS})
-target_link_libraries(furnace PRIVATE ${DEPENDENCIES_LIBRARIES})
+if(ANDROID AND NOT TERMUX)
+  add_library(${FURNACE} SHARED ${USED_SOURCES})
+elseif(WIN32 AND NOT CONSOLE_SUBSYSTEM)
+  add_executable(${FURNACE} WIN32 ${USED_SOURCES})
+else()
+  add_executable(${FURNACE} ${USED_SOURCES})
+endif()
+
+if (MAKE_BUNDLE AND NOT FORCE_APPLE_BIN)
+  set_target_properties(${FURNACE} PROPERTIES
+    MACOSX_BUNDLE True
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist)
+endif()
+
+target_include_directories(${FURNACE} SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
+target_compile_options(${FURNACE} PRIVATE ${DEPENDENCIES_COMPILE_OPTIONS})
+target_link_libraries(${FURNACE} PRIVATE ${DEPENDENCIES_LIBRARIES})
 if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYSTEM_SDL2 OR SYSTEM_RTMIDI OR WITH_JACK))
   if ("${CMAKE_VERSION}" VERSION_LESS "3.13")
     message(WARNING
       "CMake version is <3.13, using old pkg-config LDFLAGS. "
       "You may encounter linking problems with these!"
     )
-    target_link_libraries(furnace PRIVATE ${DEPENDENCIES_LEGACY_LDFLAGS})
+    target_link_libraries(${FURNACE} PRIVATE ${DEPENDENCIES_LEGACY_LDFLAGS})
   else()
-    target_link_directories(furnace PRIVATE ${DEPENDENCIES_LIBRARY_DIRS})
-    target_link_options(furnace PRIVATE ${DEPENDENCIES_LINK_OPTIONS})
+    target_link_directories(${FURNACE} PRIVATE ${DEPENDENCIES_LIBRARY_DIRS})
+    target_link_options(${FURNACE} PRIVATE ${DEPENDENCIES_LINK_OPTIONS})
   endif()
 endif()
 
 # why 3.16..... why not 3.0?
 if (NOT "${CMAKE_VERSION}" VERSION_LESS "3.16")
   if (BUILD_GUI)
-  target_precompile_headers(furnace PUBLIC
+  target_precompile_headers(${FURNACE} PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
     $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui.h>
     $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui_patched/imgui_internal.h>
   )
   else()
-    target_precompile_headers(furnace PUBLIC
+    target_precompile_headers(${FURNACE} PUBLIC
       $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
     )
   endif()
@@ -1223,7 +1236,7 @@ endif()
 if (NOT ANDROID OR TERMUX)
   if (NOT WIN32 AND NOT APPLE)
     include(GNUInstallDirs)
-    install(TARGETS furnace RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(TARGETS ${FURNACE} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
     install(FILES res/mime.xml RENAME furnace.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/mime/packages)
     if (NOT DONT_HAVE_GIT)
@@ -1257,32 +1270,12 @@ if (NOT ANDROID OR TERMUX)
     endforeach()
     install(FILES res/logo.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps)
   else()
-    if (NOT APPLE OR FORCE_APPLE_BIN)
-      install(TARGETS furnace RUNTIME DESTINATION bin)
-    endif()
-
-    if (APPLE AND NOT FORCE_APPLE_BIN)
-      install(DIRECTORY po/locale RESOURCE DESTINATION Resources/locale)
+    if (MAKE_BUNDLE)
+      install(TARGETS ${FURNACE} BUNDLE DESTINATION Applications RESOURCE DESTINATION Resources)
+    else()
+      install(TARGETS ${FURNACE} RUNTIME DESTINATION bin)
     endif()
   endif()
-
-  set(CPACK_PACKAGE_NAME "Furnace")
-  set(CPACK_PACKAGE_VENDOR "tildearrow")
-  set(CPACK_PACKAGE_DESCRIPTION "free and open-source chiptune tracker")
-  
-  if (APPLE)
-    set(CPACK_GENERATOR Bundle)
-    set(CPACK_DMG_SLA_DIR ${CMAKE_SOURCE_DIR}/res/macLicense)
-    set(CPACK_DMG_SLA_LANGUAGES en)
-    set(CPACK_BUNDLE_NAME "Furnace")
-    set(CPACK_DMG_VOLUME_NAME "Furnace")
-    set(CPACK_BUNDLE_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist)
-    set(CPACK_BUNDLE_ICON ${CMAKE_SOURCE_DIR}/res/icon.icns)
-    set(CPACK_BUNDLE_STARTUP_COMMAND "furnace")
-    set(CPACK_BUNDLE_APPLE_CERT_APP "-")
-  endif()
-  
-  include(CPack)
 endif()
 
-target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES})
+target_compile_definitions(${FURNACE} PRIVATE ${DEPENDENCIES_DEFINES})

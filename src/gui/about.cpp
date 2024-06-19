@@ -181,6 +181,7 @@ const char* aboutLine[]={
   "SuperJet Spade",
   "Supper_E1",
   "SwapXFO",
+  "Swirly",
   "System64",
   "TakuikaNinja",
   "tapekeep",

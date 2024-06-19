@@ -173,9 +173,9 @@ jobs:
           fi
         elif [ '${{ runner.os }}' == 'macOS' ]; then
           if [ '${{ matrix.config.arch }}' == 'arm64' ]; then
-            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"' '-DCMAKE_OSX_ARCHITECTURES=arm64')
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"' '-DCMAKE_OSX_ARCHITECTURES=arm64' '-DMAKE_BUNDLE=ON')
           else
-            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"' '-DCMAKE_OSX_ARCHITECTURES=x86_64')
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"' '-DCMAKE_OSX_ARCHITECTURES=x86_64' '-DMAKE_BUNDLE=ON' '-DCMAKE_C_FLAGS=-march=core2' '-DCMAKE_CXX_FLAGS=-march=core2')
           fi
         elif [ '${{ runner.os }}' == 'Linux' ] && [ '${{ matrix.config.arch }}' == 'armhf' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-Linux-armhf.cmake')
@@ -234,38 +234,26 @@ jobs:
       if: ${{ runner.os == 'macOS' }}
       run: |
         pushd build
-        retries=0
-        while ! cpack; do
-          echo "TRYING AGAIN..."
-          retries=$((retries+1))
-          if [ $retries -gt 5 ]; then
-            echo "OH NO, WE'VE FAILED..."
-            exit 1
-            break
-          fi
-        done
+
+        echo "preparing bundle"
+        mkdir -p Furnace.app/Contents/Resources
+        cp -v -r ../po/locale Furnace.app/Contents/Resources/locale
+        cp -v ../res/icon.icns Furnace.app/Contents/Resources/Furnace.icns
+
+        codesign --deep -f -s - Furnace.app
 
         echo "making dirs"
-        mkdir orig
         mkdir new
-        echo "attaching"
-        echo "y" | hdiutil attach Furnace-*-Darwin.dmg -readonly -mount required -mountpoint orig
 
         echo "copying"
-        cp -v -r orig/Furnace.app new/Furnace.app
+        cp -v -r Furnace.app new/Furnace.app
+        ln -s /Applications new/Applications
         echo "synchronizing"
         sync
-        echo "detaching"
-        hdiutil detach orig
-
-        echo "removing orig"
-        rmdir orig
-        rm Furnace-*-Darwin.dmg
 
         echo "copying extra stuff"
         cp -v ../LICENSE new/LICENSE.txt
         cp -v ../res/releaseReadme/stable-mac.txt new/README
-        cp -v -r ../po/locale new/locale
         cp -v -r ../demos new/demos
         cp -v -r ../instruments new/instruments
         cp -v -r ../wavetables new/wavetables

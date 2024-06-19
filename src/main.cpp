@@ -31,7 +31,7 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
-
+#include "utfutils.h"
 #include "gui/shellScalingStub.h"
 
 typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
@@ -115,14 +115,35 @@ std::vector<TAParam> params;
 char localeDir[4096];
 
 const char* localeDirs[]={
+#ifdef __APPLE__
+  "../Resources/locale",
+#endif
   "locale",
-  "../po/locale",
+  ".." DIR_SEPARATOR_STR "share" DIR_SEPARATOR_STR "locale",
+  ".." DIR_SEPARATOR_STR "po" DIR_SEPARATOR_STR "locale",
 #ifdef LOCALE_DIR
   LOCALE_DIR,
 #endif
   NULL
 };
 #endif
+
+bool getExePath(char* argv0, char* exePath, size_t maxSize) {
+  if (argv0==NULL) return false;
+#ifdef _WIN32
+  wchar_t exePathW[4096];
+  WString argv0W=utf8To16(argv0);
+  if (GetFullPathNameW(argv0W.c_str(),4095,exePathW,NULL)==0) return false;
+  String exePathS=utf16To8(exePathW);
+  strncpy(exePath,exePathS.c_str(),maxSize);
+#else
+  if (realpath(argv0,exePath)==NULL) return false;
+#endif
+  char* lastChar=strrchr(exePath,DIR_SEPARATOR);
+  if (lastChar==NULL) return false;
+  *lastChar=0;
+  return true;
+}
 
 TAParamResult pHelp(String) {
   printf("usage: furnace [params] [filename]\n"
@@ -566,9 +587,22 @@ int main(int argc, char** argv) {
   }
 #endif
 
+  char exePath[4096];
+#ifdef ANDROID
+  memset(exePath,0,4096);
+#else
+  if (!getExePath(argv[0],exePath,4096)) memset(exePath,0,4096);
+#endif
+
   bool textDomainBound=false;
   for (int i=0; localeDirs[i]; i++) {
-    strncpy(localeDir,localeDirs[i],4095);
+    if (exePath[0]!=0 && localeDirs[i][0]!=DIR_SEPARATOR) {
+      strncpy(localeDir,exePath,4095);
+      strncat(localeDir,DIR_SEPARATOR_STR,4095);
+      strncat(localeDir,localeDirs[i],4095);
+    } else {
+      strncpy(localeDir,localeDirs[i],4095);
+    }
     logV("bind text domain: %s",localeDir);
     if (!dirExists(localeDir)) continue;
     if ((localeRet=TA_BINDTEXTDOMAIN("furnace",localeDir))==NULL) {
