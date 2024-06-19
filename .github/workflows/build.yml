@@ -175,7 +175,7 @@ jobs:
           if [ '${{ matrix.config.arch }}' == 'arm64' ]; then
             CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"' '-DCMAKE_OSX_ARCHITECTURES=arm64' '-DMAKE_BUNDLE=ON')
           else
-            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"' '-DCMAKE_OSX_ARCHITECTURES=x86_64' '-DMAKE_BUNDLE=ON')
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"' '-DCMAKE_OSX_ARCHITECTURES=x86_64' '-DMAKE_BUNDLE=ON' '-DCMAKE_C_FLAGS="-march=core2 -O2"' '-DCMAKE_CXX_FLAGS="-march=core2 -O2"')
           fi
         elif [ '${{ runner.os }}' == 'Linux' ] && [ '${{ matrix.config.arch }}' == 'armhf' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-Linux-armhf.cmake')
