@@ -597,6 +597,9 @@ int main(int argc, char** argv) {
 
     bool textDomainBound=false;
     for (int i=0; localeDirs[i]; i++) {
+#ifdef ANDROID
+      strncpy(localeDir,localeDirs[i],4095);
+#else
       if (exePath[0]!=0 && localeDirs[i][0]!=DIR_SEPARATOR) {
         strncpy(localeDir,exePath,4095);
         strncat(localeDir,DIR_SEPARATOR_STR,4095);
@@ -604,8 +607,11 @@ int main(int argc, char** argv) {
       } else {
         strncpy(localeDir,localeDirs[i],4095);
       }
+#endif
       logV("bind text domain: %s",localeDir);
+#ifndef ANDROID
       if (!dirExists(localeDir)) continue;
+#endif
       if ((localeRet=TA_BINDTEXTDOMAIN("furnace",localeDir))==NULL) {
         continue;
       } else {
