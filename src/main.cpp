@@ -115,6 +115,9 @@ std::vector<TAParam> params;
 char localeDir[4096];
 
 const char* localeDirs[]={
+#ifdef __APPLE__
+  "../Resources/locale",
+#endif
   "locale",
   ".." DIR_SEPARATOR_STR "share" DIR_SEPARATOR_STR "locale",
   ".." DIR_SEPARATOR_STR "po" DIR_SEPARATOR_STR "locale",

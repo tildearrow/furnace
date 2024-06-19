@@ -18,7 +18,7 @@ if you find issues (e.g. bugs or annoyances), report them. links below.
   - discussion: https://github.com/tildearrow/furnace/discussions
 - Furnace on Discord: https://discord.gg/EfrwT2wq7z
 - Furnace on Revolt: https://rvlt.gg/GRPS6tmc
-- online manual: https://tildearrow.org/furnace/doc/v0.6.3/
+- online manual: https://tildearrow.org/furnace/doc/v0.6.4/
 
 # notes
 
