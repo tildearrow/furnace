@@ -587,6 +587,8 @@ class DivEngine {
   bool loadFur(unsigned char* file, size_t len, int variantID=0);
   bool loadMod(unsigned char* file, size_t len);
   bool loadS3M(unsigned char* file, size_t len);
+  bool loadXM(unsigned char* file, size_t len);
+  bool loadIT(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len, bool dnft, bool dnftSig, bool eft);
   bool loadFC(unsigned char* file, size_t len);
   bool loadTFMv1(unsigned char* file, size_t len);

@@ -53,6 +53,8 @@ struct NotZlibException {
 #define DIV_FC13_MAGIC "SMOD"
 #define DIV_FC14_MAGIC "FC14"
 #define DIV_S3M_MAGIC "SCRM"
+#define DIV_XM_MAGIC "Extended Module:"
+#define DIV_IT_MAGIC "IMPM"
 #define DIV_TFM_MAGIC "TFMfmtV2"
 
 #define DIV_FUR_MAGIC_DS0 "Furnace-B module"
