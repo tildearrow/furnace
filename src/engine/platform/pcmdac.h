@@ -62,6 +62,7 @@ class DivPlatformPCMDAC: public DivDispatch {
   // - 2: cubic spline
   // - 3: sinc
   int interp;
+  int volMax;
   bool outStereo;
 
   friend void putDispatchChip(void*,int);

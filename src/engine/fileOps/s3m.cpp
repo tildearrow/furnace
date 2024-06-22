@@ -167,6 +167,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     reader.readC(); // UC
     unsigned char defaultPan=(unsigned char)reader.readC();
 
+    mustCommitPanning=masterVol&128;
+
     logV("defaultPan: %d",defaultPan);
 
     reader.readS(); // reserved
@@ -226,7 +228,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       reader.read(chanPan,16);
     } else {
       logV("default channel pan");
-      memset(chanPan,0,16);
+      memset(chanPan,16,16);
     }
 
     // determine chips to use
@@ -234,6 +236,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
     bool hasPCM=false;
     bool hasFM=false;
+    int numChans=0;
 
     for (int i=0; i<32; i++) {
       if (chanSettings[i]==255) continue;
@@ -242,6 +245,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         hasFM=true;
       } else {
         hasPCM=true;
+        numChans++;
       }
 
       if (hasFM && hasPCM) break;
@@ -250,10 +254,13 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     ds.systemName="PC";
     // would use ES5506 but it has log volume
     if (hasPCM) {
-      ds.system[ds.systemLen]=DIV_SYSTEM_NDS;
-      ds.systemVol[ds.systemLen]=1.0f;
-      ds.systemPan[ds.systemLen]=0;
-      ds.systemLen++;
+      for (int i=0; i<numChans; i++) {
+        ds.system[ds.systemLen]=DIV_SYSTEM_PCM_DAC;
+        ds.systemVol[ds.systemLen]=(float)globalVol/256.0;
+        ds.systemPan[ds.systemLen]=0;
+        ds.systemFlags[ds.systemLen].set("volMax",64);
+        ds.systemLen++;
+      }
     }
     if (hasFM) {
       ds.system[ds.systemLen]=DIV_SYSTEM_OPL2;
