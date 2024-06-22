@@ -61,6 +61,9 @@ class DivWorkPool;
 #define DIV_VERSION_FC 0xff02
 #define DIV_VERSION_S3M 0xff03
 #define DIV_VERSION_FTM 0xff04
+#define DIV_VERSION_TFE 0xff05
+#define DIV_VERSION_XM 0xff06
+#define DIV_VERSION_IT 0xff07
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,

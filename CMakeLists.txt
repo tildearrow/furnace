@@ -672,10 +672,12 @@ src/engine/fileOps/dmf.cpp
 src/engine/fileOps/fc.cpp
 src/engine/fileOps/ftm.cpp
 src/engine/fileOps/fur.cpp
+src/engine/fileOps/it.cpp
 src/engine/fileOps/mod.cpp
 src/engine/fileOps/s3m.cpp
 src/engine/fileOps/text.cpp
 src/engine/fileOps/tfm.cpp
+src/engine/fileOps/xm.cpp
 
 src/engine/blip_buf.c
 src/engine/brrUtils.c
