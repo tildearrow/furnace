@@ -622,12 +622,15 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           memcpy(vibingOld,vibing,32*sizeof(bool));
           memcpy(volSlidingOld,volSliding,32*sizeof(bool));
           memcpy(portingOld,porting,32*sizeof(bool));
+          memcpy(arpingOld,arping,32*sizeof(bool));
           memset(vibStatusChanged,0,32*sizeof(bool));
           memset(volSlideStatusChanged,0,32*sizeof(bool));
           memset(portaStatusChanged,0,32*sizeof(bool));
+          memset(arpStatusChanged,0,32*sizeof(bool));
           memset(vibing,0,32*sizeof(bool));
           memset(volSliding,0,32*sizeof(bool));
           memset(porting,0,32*sizeof(bool));
+          memset(arping,0,32*sizeof(bool));
           memset(did,0,32);
           if (curRow>=64) break;
           continue;
@@ -695,6 +698,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               p->data[curRow][effectCol[chan]++]=effectVal;
               break;
             case 'B': // go to order
+              // TODO: handle subsongs and spacing
               p->data[curRow][effectCol[chan]++]=0x0b;
               p->data[curRow][effectCol[chan]++]=effectVal;
               break;
@@ -803,9 +807,16 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           }
         }
       }
-    }
 
-    // copy patterns to the rest of subsongs
+      // copy patterns to the rest of subsongs
+      for (size_t i=1; i<ds.subsong.size(); i++) {
+        for (int j=0; j<DIV_MAX_CHANS; j++) {
+          for (int k=0; k<patCount; k++) {
+            if (ds.subsong[0]->pat[j].data[k]) ds.subsong[0]->pat[j].data[k]->copyOn(ds.subsong[i]->pat[j].getPattern(k,true));
+          }
+        }
+      }
+    }
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
