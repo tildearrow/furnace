@@ -119,7 +119,7 @@ void DivPlatformVERA::acquire(short** buf, size_t len) {
       pos++;
 
       for (int i=0; i<16; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=psg->channels[i].lastOut<<3;
+        oscBuf[i]->data[oscBuf[i]->needle++]=psg->channels[i].lastOut;
       }
       int pcmOut=(whyCallItBuf[2][i]+whyCallItBuf[3][i])>>1;
       if (pcmOut<-32768) pcmOut=-32768;
@@ -532,6 +532,7 @@ void DivPlatformVERA::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformVERA::setFlags(const DivConfig& flags) {
+  psg->chipType=flags.getInt("chipType",1);
   chipClock=25000000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/512;

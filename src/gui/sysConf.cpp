@@ -2428,12 +2428,33 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_VERA: {
+      int chipType=flags.getInt("chipType",1);
+
+      ImGui::Text(_("Chip revision:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("V 0.3.1"),chipType==0)) {
+        chipType=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("V 47.0.0 (9-bit volume)"),chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("chipType",chipType);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_GA20:
     case DIV_SYSTEM_PV1000:
-    case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_C219:
     case DIV_SYSTEM_BIFURCATOR:
     case DIV_SYSTEM_POWERNOISE:

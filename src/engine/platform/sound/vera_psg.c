@@ -2,6 +2,10 @@
 // Copyright (c) 2020 Frank van den Hoef
 // All rights reserved. License: 2-clause BSD
 
+// Chip revisions
+// 0: V  0.3.0
+// 1: V 47.0.0 (9-bit volume, phase reset on mute)
+
 #include "vera_psg.h"
 
 #include <stdlib.h>
@@ -14,7 +18,15 @@ enum waveform {
 	WF_NOISE,
 };
 
-static uint8_t volume_lut[64] = {0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 8, 9, 9, 10, 11, 11, 12, 13, 14, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 28, 29, 31, 33, 35, 37, 39, 42, 44, 47, 50, 52, 56, 59, 63};
+static uint16_t volume_lut[64] = {0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 8, 9, 9, 10, 11, 11, 12, 13, 14, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 28, 29, 31, 33, 35, 37, 39, 42, 44, 47, 50, 52, 56, 59, 63};
+static uint16_t volume_lut_47[64] = {
+	  0,                                           4,   8,  12,
+	 16,  17,  18,  20,  21,  22,  23,  25,  26,  28,  30,  31,
+	 33,  35,  37,  40,  42,  45,  47,  50,  53,  56,  60,  63,
+	 67,  71,  75,  80,  85,  90,  95, 101, 107, 113, 120, 127,
+	135, 143, 151, 160, 170, 180, 191, 202, 214, 227, 241, 255,
+	270, 286, 303, 321, 341, 361, 382, 405, 429, 455, 482, 511
+};
 
 void
 psg_reset(struct VERA_PSG* psg)
@@ -38,7 +50,7 @@ psg_writereg(struct VERA_PSG* psg, uint8_t reg, uint8_t val)
 		case 2: {
 			psg->channels[ch].right  = (val & 0x80) != 0;
 			psg->channels[ch].left   = (val & 0x40) != 0;
-			psg->channels[ch].volume = volume_lut[val & 0x3F];
+			psg->channels[ch].volume = ((psg->chipType < 1) ? volume_lut : volume_lut_47)[val & 0x3F];
 			break;
 		}
 		case 3: {
@@ -65,8 +77,11 @@ render(struct VERA_PSG* psg, int16_t *left, int16_t *right)
 		struct VERAChannel *ch = &psg->channels[i];
 
 		unsigned new_phase = (ch->phase + ch->freq) & 0x1FFFF;
+		if ((psg->chipType >= 1) && (!ch->left && !ch->right)) {
+			new_phase = 0;
+		}
 		if ((ch->phase & 0x10000) != (new_phase & 0x10000)) {
-			ch->noiseval = psg->noiseOut;
+			ch->noiseval = (psg->chipType < 1) ? psg->noiseOut : (psg->noiseState >> 1) & 0x3f;
 		}
 		ch->phase = new_phase;
 
@@ -85,14 +100,14 @@ render(struct VERA_PSG* psg, int16_t *left, int16_t *right)
 		int val = (int)sv * (int)ch->volume;
 
 		if (ch->left) {
-			l += val;
+			l += (psg->chipType < 1) ? val : val >> 3;
 		}
 		if (ch->right) {
-			r += val;
+			r += (psg->chipType < 1) ? val : val >> 3;
 		}
 
 		if (ch->left || ch->right) {
-			ch->lastOut = val;
+			ch->lastOut = (psg->chipType < 1) ? val << 3 : val;
 		} else {
 			ch->lastOut = 0;
 		}
