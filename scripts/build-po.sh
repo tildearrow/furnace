@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 EXPORT_LANGS=("de" "es" "fr" "fi" "hy" "id" "ko" "nl" "pl" "pt_BR" "ru" "sk" "sv" "th" "tr" "uk")
 
 for i in ${EXPORT_LANGS[@]}; do
