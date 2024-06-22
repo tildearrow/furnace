@@ -76,8 +76,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   try {
     DivSong ds;
     ds.version=DIV_VERSION_S3M;
-    //ds.linearPitch=0;
-    //ds.pitchMacroIsLinear=false;
+    ds.linearPitch=0;
+    ds.pitchMacroIsLinear=false;
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
@@ -248,7 +248,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     ds.systemName="PC";
     // would use ES5506 but it has log volume
     if (hasPCM) {
-      ds.system[ds.systemLen]=DIV_SYSTEM_C140;
+      ds.system[ds.systemLen]=DIV_SYSTEM_NDS;
       ds.systemVol[ds.systemLen]=1.0f;
       ds.systemPan[ds.systemLen]=0;
       ds.systemLen++;
@@ -276,12 +276,12 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       reader.read(magic,4);
 
       if (memcmp(magic,"SCRS",4)==0) {
-        ins->type=DIV_INS_C140;
+        ins->type=DIV_INS_AMIGA;
       } else if (memcmp(magic,"SCRI",4)==0) {
         ins->type=DIV_INS_OPL;
       } else {
         logW("odd magic!");
-        ins->type=DIV_INS_C140;
+        ins->type=DIV_INS_AMIGA;
         ds.ins.push_back(ins);
         continue;
       }
@@ -296,7 +296,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
       unsigned char type=reader.readC();
 
-      if (ins->type==DIV_INS_C140) {
+      if (ins->type==DIV_INS_AMIGA) {
         if (type>1) {
           logE("invalid instrument type! %d",type);
           lastError="invalid instrument!";
@@ -316,7 +316,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
       String dosName=reader.readString(12);
 
-      if (ins->type==DIV_INS_C140) {
+      if (ins->type==DIV_INS_AMIGA) {
         unsigned int memSeg=0;
         memSeg=(unsigned char)reader.readC();
         memSeg|=((unsigned short)reader.readS())<<8;
@@ -450,6 +450,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         opC.rr=(s3i.Ceg_SR&15);
         opC.sl=((s3i.Ceg_SR>>4)&15);
         opC.ws=s3i.Cwave;
+
+        // unused
+        reader.readC();
 
         defVol[i]=reader.readC();
         // what?
@@ -625,12 +628,23 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           if (vol==255) {
             p->data[curRow][3]=-1;
           } else {
-            if (vol>64) vol=64;
+            // check for OPL channel
+            if ((chanSettings[chan]&31)>=16) {
+              if (vol>63) vol=63;
+            } else {
+              if (vol>64) vol=64;
+            }
             p->data[curRow][3]=vol;
           }
         } else if (p->data[curRow][2]!=-1) {
           // populate with instrument volume
-          p->data[curRow][3]=defVol[p->data[curRow][2]&255];
+          unsigned char vol=defVol[p->data[curRow][2]&255];
+          if ((chanSettings[chan]&31)>=16) {
+            if (vol>63) vol=63;
+          } else {
+            if (vol>64) vol=64;
+          }
+          p->data[curRow][3]=vol;
         }
         if (hasEffect) {
           unsigned char effect=reader.readC();
@@ -661,7 +675,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
                 portaStatus[chan]=effectVal;
                 portaStatusChanged[chan]=true;
               }
-              portaType[chan]=1;
+              portaType[chan]=2;
               porting[chan]=true;
               break;
             case 'F': // pitch up
@@ -669,7 +683,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
                 portaStatus[chan]=effectVal;
                 portaStatusChanged[chan]=true;
               }
-              portaType[chan]=2;
+              portaType[chan]=1;
               porting[chan]=true;
               break;
             case 'G': // porta
@@ -700,6 +714,13 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               vibing[chan]=true;
               break;
             case 'L': // vol slide + porta
+              if (effectVal!=0) {
+                volSlideStatus[chan]=effectVal;
+                volSlideStatusChanged[chan]=true;
+              }
+              volSliding[chan]=true;
+              porting[chan]=true;
+              portaType[chan]=3;
               break;
             case 'M': // channel vol (!)
               break;
@@ -710,6 +731,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             case 'P': // pan slide (!)
               break;
             case 'Q': // retrigger
+              p->data[curRow][effectCol[chan]++]=0x0c;
+              p->data[curRow][effectCol[chan]++]=effectVal&15;
               break;
             case 'R': // tremolo
               break;
@@ -726,6 +749,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             case 'W': // global volume slide (!)
               break;
             case 'X': // panning
+              p->data[curRow][effectCol[chan]++]=0x80;
+              p->data[curRow][effectCol[chan]++]=effectVal;
               break;
             case 'Y': // panbrello (!)
               break;
