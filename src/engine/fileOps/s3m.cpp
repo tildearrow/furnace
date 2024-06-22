@@ -65,6 +65,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   bool doesVibrato[32];
   bool doesPanning[32];
   bool doesVolSlide[32];
+  bool doesArp[32];
 
   bool mustCommitPanning=true;
 
@@ -72,12 +73,13 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   memset(doesVibrato,0,32*sizeof(bool));
   memset(doesPanning,0,32*sizeof(bool));
   memset(doesVolSlide,0,32*sizeof(bool));
+  memset(doesArp,0,32*sizeof(bool));
 
   try {
     DivSong ds;
     ds.version=DIV_VERSION_S3M;
-    ds.linearPitch=0;
-    ds.pitchMacroIsLinear=false;
+    //ds.linearPitch=0;
+    //ds.pitchMacroIsLinear=false;
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
@@ -498,6 +500,10 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       bool porting[32];
       bool portingOld[32];
       unsigned char portaType[32];
+      unsigned char arpStatus[32];
+      bool arpStatusChanged[32];
+      bool arping[32];
+      bool arpingOld[32];
       bool did[32];
 
       logV("reading pattern %d...",i);
@@ -530,6 +536,10 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       memset(porting,0,32*sizeof(bool));
       memset(portingOld,0,32*sizeof(bool));
       memset(portaType,0,32);
+      memset(arpStatus,0,32);
+      memset(arpStatusChanged,0,32*sizeof(bool));
+      memset(arping,0,32*sizeof(bool));
+      memset(arpingOld,0,32*sizeof(bool));
       memset(did,0,32*sizeof(bool));
 
       while (reader.tell()<dataEnd) {
@@ -546,15 +556,37 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             }
 
             if (volSliding[j]!=volSlidingOld[j] || volSlideStatusChanged[j]) {
-              p->data[curRow][effectCol[j]++]=0x0a;
-              p->data[curRow][effectCol[j]++]=volSliding[j]?volSlideStatus[j]:0;
+              if (volSlideStatus[j]>=0xf1 && volSliding[j]) {
+                p->data[curRow][effectCol[j]++]=0xf9;
+                p->data[curRow][effectCol[j]++]=volSlideStatus[j]&15;
+                volSliding[j]=false;
+              } else if ((volSlideStatus[j]&15)==15 && volSlideStatus[j]>=0x10 && volSliding[j]) {
+                p->data[curRow][effectCol[j]++]=0xf8;
+                p->data[curRow][effectCol[j]++]=volSlideStatus[j]>>4;
+                volSliding[j]=false;
+              } else {
+                p->data[curRow][effectCol[j]++]=0x0a;
+                p->data[curRow][effectCol[j]++]=volSliding[j]?volSlideStatus[j]:0;
+              }
               doesVolSlide[j]=true;
             }
 
             if (porting[j]!=portingOld[j] || portaStatusChanged[j]) {
-              p->data[curRow][effectCol[j]++]=portaType[j];
-              p->data[curRow][effectCol[j]++]=porting[j]?portaStatus[j]:0;
-              doesVolSlide[j]=true;
+              if (portaStatus[j]>=0xe0 && portaType[j]!=3 && porting[j]) {
+                p->data[curRow][effectCol[j]++]=portaType[j]|0xf0;
+                p->data[curRow][effectCol[j]++]=(portaStatus[j]&15)*((portaStatus[j]>=0xf0)?4:1);
+                porting[j]=false;
+              } else {
+                p->data[curRow][effectCol[j]++]=portaType[j];
+                p->data[curRow][effectCol[j]++]=porting[j]?portaStatus[j]:0;
+              }
+              doesPitchSlide[j]=true;
+            }
+
+            if (arping[j]!=arpingOld[j] || arpStatusChanged[j]) {
+              p->data[curRow][effectCol[j]++]=0x00;
+              p->data[curRow][effectCol[j]++]=arping[j]?arpStatus[j]:0;
+              doesArp[j]=true;
             }
 
             // TEMPORARY: shall be moved to the end after subsong copying.
@@ -704,6 +736,11 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             case 'I': // tremor (!)
               break;
             case 'J': // arp
+              if (effectVal!=0) {
+                arpStatus[chan]=effectVal;
+                arpStatusChanged[chan]=true;
+              }
+              arping[chan]=true;
               break;
             case 'K': // vol slide + vibrato
               if (effectVal!=0) {
@@ -722,13 +759,13 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               porting[chan]=true;
               portaType[chan]=3;
               break;
-            case 'M': // channel vol (!)
+            case 'M': // channel vol (extension)
               break;
-            case 'N': // channel vol slide (!)
+            case 'N': // channel vol slide (extension)
               break;
             case 'O': // offset
               break;
-            case 'P': // pan slide (!)
+            case 'P': // pan slide (extension)
               break;
             case 'Q': // retrigger
               p->data[curRow][effectCol[chan]++]=0x0c;
@@ -748,13 +785,13 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               break;
             case 'W': // global volume slide (!)
               break;
-            case 'X': // panning
+            case 'X': // panning (extension)
               p->data[curRow][effectCol[chan]++]=0x80;
               p->data[curRow][effectCol[chan]++]=effectVal;
               break;
-            case 'Y': // panbrello (!)
+            case 'Y': // panbrello (extension)
               break;
-            case 'Z': // MIDI macro (!)
+            case 'Z': // MIDI macro (extension)
               break;
           }
         }
