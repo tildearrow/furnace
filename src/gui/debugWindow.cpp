@@ -82,8 +82,8 @@ void FurnaceGUI::drawDebug() {
 
       if (ImGui::Button("Panic")) e->syncReset();
       ImGui::SameLine();
-      if (ImGui::Button("Abort (halts program)")) {
-        e->youre_a_stinky_butt();
+      if (ImGui::Button("Abort")) {
+        abort();
       }
       ImGui::TreePop();
     }
