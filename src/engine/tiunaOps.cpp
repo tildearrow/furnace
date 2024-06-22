@@ -133,7 +133,7 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   setOrder(0);
   BUSY_BEGIN_SOFT;
   // determine loop point
-  bool stopped=false;
+  // bool stopped=false;
   int loopOrder=0;
   int loopOrderRow=0;
   int loopEnd=0;
@@ -159,13 +159,12 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   }
 
   // write patterns
-  bool writeLoop=false;
+  // bool writeLoop=false;
   bool done=false;
   playSub(false);
   
   int tick=0;
   // int loopTick=-1;
-  int lastEngineTicks=-1;
   TiunaLast last[2];
   TiunaNew news[2];
   std::map<int,TiunaCmd> allCmds[2];
@@ -185,7 +184,7 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
     //   }
     // }
     if (nextTick(false,true) || !playing) {
-      stopped=!playing;
+      // stopped=!playing;
       done=true;
       break;
     }
@@ -202,6 +201,7 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
           break;
         case 0xfffe0002:
           news[0].sync=i.val;
+          break;
         case 0x15:
         case 0x16:
           news[i.addr-0x15].ins=i.val;
@@ -245,7 +245,6 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
       }
       if (hasCmd) allCmds[i][tick]=cmds;
     }
-    lastEngineTicks=ticks;
     cmdStream.clear();
     tick++;
   }
@@ -274,7 +273,7 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
     TiunaCmd lastCmd;
     int lastTick=0;
     int lastWait=0;
-    bool looped=false;
+    // bool looped=false;
     for (auto& kv: allCmds[i]) {
       // if (!looped && !stopped && loopTick>=0 && kv.first>=loopTick) {
       //   writeCmd(w,&lastCmd,&lastWait,loopTick-lastTick);
@@ -296,7 +295,6 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   int cmdSize=renderedCmds.size();
   std::vector<bool> processed=std::vector<bool>(cmdSize,false);
   while (firstBankSize>768 && cmId<(MAX(firstBankSize/1024,1))*256) {
-    bool hasMatch=false;
     std::map<int,TiunaMatches> potentialMatches;
     for (int i=0; i<cmdSize-1;) {
       // continue and skip if it's part of previous confirmed matches
@@ -394,7 +392,7 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   // as they tends to increase the final size due to page alignment
   int cmIdLen=cmId>256?(cmId&~255):cmId;
   // overlap check
-  for (int i=1; i<confirmedMatches.size(); i++) {
+  for (int i=1; i<(int)confirmedMatches.size(); i++) {
     if (confirmedMatches[i-1].endPos<=confirmedMatches[i].pos) continue;
     lastError="impossible overlap found in matches list, please report";
     return NULL;
@@ -456,10 +454,9 @@ SafeWriter* DivEngine::saveTiuna(const bool* sysToExport, const char* baseLabel,
   int curCh=-1;
   std::vector<bool> callVisited=std::vector<bool>(cmIdLen,false);
   auto cmIter=confirmedMatches.begin();
-  for (int i=0; i<renderedCmds.size(); i++) {
+  for (int i=0; i<(int)renderedCmds.size(); i++) {
     int writeCall=-1;
     TiunaBytes cmd=renderedCmds[i];
-    if (cmIter!=confirmedMatches.end()) dbg.writeText(fmt::format("i={},cmIter={}\n",i,cmIter->pos));
     if (cmIter!=confirmedMatches.end() && i==cmIter->pos) {
       if (cmIter->id<cmIdLen) {
         if (callVisited[cmIter->id]) {
