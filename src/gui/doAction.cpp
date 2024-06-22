@@ -931,6 +931,7 @@ void FurnaceGUI::doAction(int what) {
               sample->loop=prevSample->loop;
               sample->loopMode=prevSample->loopMode;
               sample->brrEmphasis=prevSample->brrEmphasis;
+              sample->brrNoFilter=prevSample->brrNoFilter;
               sample->dither=prevSample->dither;
               sample->depth=prevSample->depth;
               if (sample->init(prevSample->samples)) {

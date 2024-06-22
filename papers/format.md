@@ -586,6 +586,7 @@ size | description
      | - 0: BRR emphasis
   1  | flags 2 (>=159) or reserved
      | - 0: dither
+     | - 1: no BRR filters (>=213)
   4  | loop start
      | - -1 means no loop
   4  | loop end

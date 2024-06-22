@@ -261,6 +261,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       w->writeText(fmt::sprintf("  - mode: %s\n",sampleLoopModes[sample->loopMode&3]));
     }
     w->writeText(fmt::sprintf("- BRR emphasis: %s\n",trueFalse[sample->brrEmphasis?1:0]));
+    w->writeText(fmt::sprintf("- no BRR filters: %s\n",trueFalse[sample->brrNoFilter?1:0]));
     w->writeText(fmt::sprintf("- dither: %s\n",trueFalse[sample->dither?1:0]));
 
     // TODO' render matrix
