@@ -28,8 +28,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
   unsigned char chanSettings[32];
   unsigned char ord[256];
-  unsigned short insPtr[256];
-  unsigned short patPtr[256];
+  unsigned int insPtr[256];
+  unsigned int patPtr[256];
   unsigned char chanPan[16];
   unsigned char defVol[256];
 
@@ -41,6 +41,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
+
+    logV("Scream Tracker 3 module");
 
     // load here
     if (!reader.seek(0x2c,SEEK_SET)) {
@@ -74,6 +76,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     unsigned short ordersLen=reader.readS();
     ds.insLen=reader.readS();
 
+    logV("orders: %d",ordersLen);
+    logV("instruments: %d",ds.insLen);
+
     if (ds.insLen<0 || ds.insLen>256) {
       logE("invalid instrument count!");
       lastError="invalid instrument count!";
@@ -83,9 +88,19 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
     unsigned short patCount=reader.readS();
 
+    logV("patterns: %d",patCount);
+
     unsigned short flags=reader.readS();
     unsigned short version=reader.readS();
     bool signedSamples=(reader.readS()==1);
+
+    logV("flags: %x",flags);
+    logV("version: %x",flags);
+    if (signedSamples) {
+      logV("signed samples: yes");
+    } else {
+      logV("signed samples: no");
+    }
 
     if ((flags&64) || version==0x1300) {
       ds.noSlidesOnFirstTick=false;
@@ -96,6 +111,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     unsigned char globalVol=reader.readC();
 
     ds.subsong[0]->speeds.val[0]=(unsigned char)reader.readC();
+    ds.subsong[0]->speeds.len=1;
     ds.subsong[0]->hz=((double)reader.readC())/2.5;
 
     unsigned char masterVol=reader.readC();
@@ -105,13 +121,20 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     logV("globalVol: %d",globalVol);
 
     reader.readC(); // UC
-    bool defaultPan=(((unsigned char)reader.readC())==252);
+    unsigned char defaultPan=(unsigned char)reader.readC();
+
+    logV("defaultPan: %d",defaultPan);
 
     reader.readS(); // reserved
     reader.readI();
     reader.readI(); // the last 2 bytes is Special. we don't read that.
 
     reader.read(chanSettings,32);
+
+    logD("channel settings:");
+    for (int i=0; i<32; i++) {
+      logV("%d. %x",i,chanSettings[i]);
+    }
 
     logD("reading orders...");
     for (int i=0; i<ordersLen; i++) {
@@ -123,19 +146,21 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
     logD("reading ins pointers...");
     for (int i=0; i<ds.insLen; i++) {
-      insPtr[i]=reader.readS();
+      insPtr[i]=reader.readS()*16;
       logV("- %.2x",insPtr[i]);
     }
 
     logD("reading pat pointers...");
     for (int i=0; i<patCount; i++) {
-      patPtr[i]=reader.readS();
+      patPtr[i]=reader.readS()*16;
       logV("- %.2x",patPtr[i]);
     }
 
-    if (defaultPan) {
+    if (defaultPan==252) {
+      logV("reading channel panning settings");
       reader.read(chanPan,16);
     } else {
+      logV("default channel pan");
       memset(chanPan,0,16);
     }
 
@@ -146,7 +171,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     bool hasFM=false;
 
     for (int i=0; i<32; i++) {
-      if (!(chanSettings[i]&128)) continue;
+      if (chanSettings[i]==255) continue;
       if ((chanSettings[i]&127)>=32) continue;
       if ((chanSettings[i]&127)>=16) {
         hasFM=true;
@@ -174,8 +199,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     // load instruments/samples
     ds.ins.reserve(ds.insLen);
     for (int i=0; i<ds.insLen; i++) {
+      logV("reading instrument %d...",i);
       DivInstrument* ins=new DivInstrument;
-      if (!reader.seek(0x4c+insPtr[i]*16,SEEK_SET)) {
+      if (!reader.seek(insPtr[i]+0x4c,SEEK_SET)) {
         logE("premature end of file!");
         lastError="incomplete file";
         delete ins;
@@ -195,7 +221,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         continue;
       }
 
-      if (!reader.seek(insPtr[i]*16,SEEK_SET)) {
+      if (!reader.seek(insPtr[i],SEEK_SET)) {
         logE("premature end of file!");
         lastError="incomplete file";
         delete ins;
@@ -210,9 +236,13 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         memSeg=(unsigned char)reader.readC();
         memSeg|=((unsigned short)reader.readS())<<8;
 
-        logV("memSeg: %d",memSeg);
+        memSeg>>=4; // ???
+
+        logV("memSeg: %x",memSeg);
 
         unsigned int length=reader.readI();
+
+        logV("length: %x",length);
 
         DivSample* s=new DivSample;
         s->depth=DIV_SAMPLE_DEPTH_8BIT;
@@ -225,12 +255,80 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         logV("defVol: %d",defVol[i]);
 
         reader.readC(); // x
+
+        bool isPacked=reader.readC();
+        unsigned char flags=reader.readC();
+
+        s->centerRate=reader.readI();
+
+        // reserved
+        reader.readI(); // x
+        reader.readI();
+        reader.readI();
+
+        String name=reader.readString(28);
+        s->name=name;
+        ins->name=name;
+
+        // "SCRS"
+        reader.readI();
+
+        // read sample data
+        if (!reader.seek(memSeg,SEEK_SET)) {
+          logE("premature end of file!");
+          lastError="incomplete file";
+          delete ins;
+          delete s;
+          delete[] file;
+          return false;
+        }
+
+        s->loop=flags&1;
+        s->depth=(flags&4)?DIV_SAMPLE_DEPTH_16BIT:DIV_SAMPLE_DEPTH_8BIT;
+        s->init(length>>(s->depth==DIV_SAMPLE_DEPTH_16BIT?1:0));
+
+        if (flags&2) {
+          logE("stereo sample!");
+          lastError="stereo sample";
+          delete ins;
+          delete s;
+          delete[] file;
+          return false;
+        }
+
+        if (isPacked) {
+          logE("ADPCM not supported!");
+          lastError="ADPCM sample";
+          delete ins;
+          delete s;
+          delete[] file;
+          return false;
+        }
+
+        reader.read(s->getCurBuf(),length);
+
+        if (!signedSamples) {
+          if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+            for (unsigned int i=0; i<s->samples; i++) {
+              s->data16[i]^=0x8000;
+            }
+          } else {
+            for (unsigned int i=0; i<s->samples; i++) {
+              s->data8[i]^=0x80;
+            }
+          }
+        }
+
+        ins->amiga.initSample=ds.sample.size();
+        ds.sample.push_back(s);
       } else {
-        
+        // TODO: OPL
       }
 
       ds.ins.push_back(ins);
     }
+
+    ds.sampleLen=ds.sample.size();
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
