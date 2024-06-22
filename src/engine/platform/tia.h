@@ -27,21 +27,31 @@ class DivPlatformTIA: public DivDispatch {
   protected:
     struct Channel: public SharedChannel<int> {
       unsigned char shape;
+      unsigned char curFreq, tuneCtr, tuneFreq;
+      int tuneAcc;
       Channel():
         SharedChannel<int>(15),
-        shape(4) {}
+        shape(4),
+        curFreq(0),
+        tuneCtr(0),
+        tuneFreq(0),
+        tuneAcc(0) {}
     };
     Channel chan[2];
     DivDispatchOscBuffer* oscBuf[2];
     bool isMuted[2];
+    bool softwarePitch;
+    bool oldPitch;
     unsigned char mixingType;
     unsigned char chanOscCounter;
     TIA::Audio tia;
     unsigned char regPool[16];
+    int tuneCounter;
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
     unsigned char dealWithFreq(unsigned char shape, int base, int pitch);
+    int dealWithFreqNew(int shape, int bp);
   
   public:
     void acquire(short** buf, size_t len);

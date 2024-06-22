@@ -249,6 +249,56 @@ void FurnaceGUI::drawExportZSM(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportTiuna(bool onWindow) {
+  exitDisabledTimer=1;
+
+  ImGui::Text("this is NOT ROM export! (for now)\nfor use with TIunA driver, outputs asm source.");
+  ImGui::InputText("base song label name", &asmBaseLabel); //TODO validate label
+  if (ImGui::InputInt("max size in first bank",&tiunaFirstBankSize,1,100)) {
+    if (tiunaFirstBankSize<0) tiunaFirstBankSize=0;
+    if (tiunaFirstBankSize>4096) tiunaFirstBankSize=4096;
+  }
+  if (ImGui::InputInt("max size in other banks",&tiunaOtherBankSize,1,100)) {
+    if (tiunaOtherBankSize<16) tiunaOtherBankSize=16;
+    if (tiunaOtherBankSize>4096) tiunaOtherBankSize=4096;
+  }
+  
+  ImGui::Text("chips to export:");
+  int selected=0;
+  for (int i=0; i<e->song.systemLen; i++) {
+    DivSystem sys=e->song.system[i];
+    bool isTIA=sys==DIV_SYSTEM_TIA;
+    ImGui::BeginDisabled((!isTIA) || (selected>=1));
+    ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      if (!isTIA) {
+        ImGui::SetTooltip("this chip is not supported by the file format!");
+      } else if (selected>=1) {
+        ImGui::SetTooltip("only one Atari TIA is supported!");
+      }
+    }
+    if (isTIA && willExport[i]) selected++;
+  }
+  if (selected>0) {
+    if (onWindow) {
+      ImGui::Separator();
+      if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+      ImGui::SameLine();
+    }
+    if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
+      openFileDialog(GUI_FILE_EXPORT_TIUNA);
+      ImGui::CloseCurrentPopup();
+    }
+  } else {
+    ImGui::Text("nothing to export");
+    if (onWindow) {
+      ImGui::Separator();
+      if (ImGui::Button("Cancel",ImVec2(400.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    }
+  }
+}
+
 void FurnaceGUI::drawExportAmigaVal(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -372,6 +422,19 @@ void FurnaceGUI::drawExport() {
           ImGui::EndTabItem();
         }
       }
+      bool hasTiunaCompat=false;
+      for (int i=0; i<e->song.systemLen; i++) {
+        if (e->song.system[i]==DIV_SYSTEM_TIA) {
+          hasTiunaCompat=true;
+          break;
+        }
+      }
+      if (hasTiunaCompat) {
+        if (ImGui::BeginTabItem("TIunA")) {
+          drawExportTiuna(true);
+          ImGui::EndTabItem();
+        }
+      }
       int numAmiga=0;
       for (int i=0; i<e->song.systemLen; i++) {
         if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
@@ -405,6 +468,9 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_ZSM:
       drawExportZSM(true);
+      break;
+    case GUI_EXPORT_TIUNA:
+      drawExportTiuna(true);
       break;
     case GUI_EXPORT_AMIGA_VAL:
       drawExportAmigaVal(true);

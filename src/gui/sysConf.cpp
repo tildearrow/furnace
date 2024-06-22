@@ -1061,6 +1061,18 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_TIA: {
       bool clockSel=flags.getInt("clockSel",0);
       int mixingType=flags.getInt("mixingType",0);
+      bool softwarePitch=flags.getBool("softwarePitch",false);
+      bool oldPitch=flags.getBool("oldPitch",false);
+
+      ImGui::BeginDisabled(oldPitch);
+      if (ImGui::Checkbox(_("Software pitch driver"),&softwarePitch)) {
+        altered=true;
+      }
+      ImGui::EndDisabled();
+      if (ImGui::Checkbox(_("Old pitch table (compatibility)"),&oldPitch)) {
+        if (oldPitch) softwarePitch=false;
+        altered=true;
+      }
 
       ImGui::Text(_("Mixing mode:"));
       ImGui::Indent();
@@ -1086,6 +1098,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         e->lockSave([&]() {
           flags.set("clockSel",(int)clockSel);
           flags.set("mixingType",mixingType);
+          flags.set("softwarePitch",softwarePitch);
+          flags.set("oldPitch",oldPitch);
         });
       }
       break;
