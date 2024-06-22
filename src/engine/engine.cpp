@@ -4141,3 +4141,7 @@ bool DivEngine::quit(bool saveConfig) {
   song.unload();
   return true;
 }
+
+void DivEngine::youre_a_stinky_butt() {
+  abort();
+}

@@ -582,6 +582,7 @@ class DivEngine {
   bool shallSwitchCores();
 
   void testFunction();
+  void youre_a_stinky_butt();
 
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len, int variantID=0);
