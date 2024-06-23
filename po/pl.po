@@ -1571,7 +1571,7 @@ msgstr "Niskie"
 
 #: src/engine/sysDef.cpp:955
 msgid "Mid"
-msgstr ""
+msgstr "Srednie"
 
 #: src/engine/sysDef.cpp:955 src/gui/settings.cpp:137 src/gui/settings.cpp:210
 #: src/gui/settings.cpp:3973
@@ -2326,7 +2326,7 @@ msgid ""
 "used in some Sega arcade boards (like OutRun), and usually paired with a "
 "YM2151."
 msgstr ""
-"był używany w niektórych automatach do gier Segi (np. OutRun) i był zwykle "
+"używany był w niektórych automatach do gier Segi (np. OutRun) i był zwykle "
 "używany w połączeniu z YM2151."
 
 #: src/engine/sysDef.cpp:1312 src/gui/settings.cpp:4042
@@ -3436,7 +3436,7 @@ msgstr ""
 msgid ""
 "this chip was featured in the Enterprise 128 computer. it is similar to "
 "POKEY, but with stereo output."
-msgstr ""
+msgstr "Układ ten znajdował się w komputerze Enterprise 128. Jest podobny do POKEY, ale ma dźwięk stereo, więcej funkcji i dokładniejsze dostrajanie częstotliwości"
 
 #: src/engine/sysDef.cpp:2037
 msgid "DAC Left"
@@ -3476,7 +3476,7 @@ msgstr "16xx: Ustaw dzielnik zegara (0: /2; 1: /3)"
 
 #: src/engine/sysDef.cpp:2054
 msgid "Game Boy Advance DMA Sound"
-msgstr ""
+msgstr "Dżwięk DMA Game Boya Advance"
 
 #: src/engine/sysDef.cpp:2055
 msgid ""
@@ -3494,7 +3494,7 @@ msgstr ""
 msgid ""
 "additional PCM FIFO channels in Game Boy Advance driven by software mixing "
 "to provide up to sixteen sample channels"
-msgstr ""
+msgstr "dodatkowe kanały PCM typu FIFO znajdujące się w Game Boy'u Advance sterowane programowo, zapewniające dodatkowe 16 kanałów PCM "
 
 #: src/engine/sysDef.cpp:2078
 msgid "11xy: Set echo channel (x: left/right source; y: delay (0 disables))"
@@ -3591,11 +3591,11 @@ msgstr "02xx: Portamento w dół"
 
 #: src/engine/engine.cpp:57
 msgid "03xx: Portamento"
-msgstr "Auto-portamento (do wskazanej nuty)"
+msgstr "03xx: Auto-portamento (do wskazanej nuty)"
 
 #: src/engine/engine.cpp:59
 msgid "04xy: Vibrato (x: speed; y: depth)"
-msgstr "Vibrato (x: szybkość; y: głebokość)"
+msgstr "04xy: Vibrato (x: szybkość; y: głebokość)"
 
 #: src/engine/engine.cpp:61
 msgid "05xy: Volume slide + vibrato (compatibility only!)"
@@ -4203,11 +4203,11 @@ msgstr "importuj surowy sampel (zamień)..."
 
 #: src/gui/dataList.cpp:392
 msgid "load from TX81Z"
-msgstr "zaladuj z TX81Z"
+msgstr "załaduj z TX81Z"
 
 #: src/gui/dataList.cpp:399
 msgid "Open (insert; right-click to replace)"
-msgstr "Otwórz (wstaw; PPM by zastapic)"
+msgstr "Otwórz (wstaw; PPM by zastapić)"
 
 #: src/gui/dataList.cpp:420 src/gui/dataList.cpp:741 src/gui/dataList.cpp:884
 #: src/gui/editControls.cpp:502 src/gui/waveEdit.cpp:474
@@ -5711,7 +5711,7 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:182
 msgid "Tandy PSSJ 3-voice sound"
-msgstr "Tandy PSSJ trzykanałowy syntezator dzwieku"
+msgstr "Trzykanałowy syntezator dzwięku Tandy PSSJ "
 
 #: src/gui/sysConf.cpp:186
 msgid "TI SN94624"
@@ -6752,7 +6752,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:217
 msgid "KIOCSOUND on /dev/tty1"
-msgstr ""
+msgstr "KIOCSOUND na /dev/tty1"
 
 #: src/gui/settings.cpp:218
 msgid "/dev/port"
@@ -8127,11 +8127,11 @@ msgstr "O ile kroków ma się przesuwać przy każdym ruchu kółkiem myszy?"
 
 #: src/gui/settings.cpp:2907
 msgid "One##cws0"
-msgstr ""
+msgstr "O jeden"
 
 #: src/gui/settings.cpp:2911
 msgid "Edit Step##cws1"
-msgstr ""
+msgstr "O krok edycji"
 
 #: src/gui/settings.cpp:2918 src/gui/settings.cpp:3533
 msgid "Assets"
@@ -8203,7 +8203,7 @@ msgstr "Wspieraj bitmapowe czcionki"
 
 #: src/gui/settings.cpp:3049
 msgid "Hinting:"
-msgstr "hINTOWANIE"
+msgstr "Hintowanie:"
 
 #: src/gui/settings.cpp:3051
 msgid "Off (soft)##fh0"
@@ -8227,15 +8227,15 @@ msgstr "Autohintowanie"
 
 #: src/gui/settings.cpp:3071
 msgid "Disable##fah0"
-msgstr ""
+msgstr "Wyłącz"
 
 #: src/gui/settings.cpp:3075
 msgid "Enable##fah1"
-msgstr ""
+msgstr "Włącz"
 
 #: src/gui/settings.cpp:3079
 msgid "Force##fah2"
-msgstr ""
+msgstr "Wymuś"
 
 #: src/gui/settings.cpp:3086
 msgid "Oversample"
@@ -8652,11 +8652,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:3522
 msgid "Channel type##CTC1"
-msgstr ""
+msgstr "Typ kanału"
 
 #: src/gui/settings.cpp:3526
 msgid "Instrument type##CTC2"
-msgstr ""
+msgstr "Typ instrumentu"
 
 #: src/gui/settings.cpp:3535
 msgid "Unified instrument/wavetable/sample list"
@@ -8672,7 +8672,7 @@ msgstr "Styl ikon listy instrumentów:"
 
 #: src/gui/settings.cpp:3553
 msgid "None##iis0"
-msgstr ""
+msgstr "Żaden"
 
 #: src/gui/settings.cpp:3557
 msgid "Graphical icons##iis1"
@@ -8728,15 +8728,15 @@ msgstr "Nazwy parametrów FM:"
 
 #: src/gui/settings.cpp:3621
 msgid "Friendly##fmn0"
-msgstr ""
+msgstr "Przyjazne"
 
 #: src/gui/settings.cpp:3625
 msgid "Technical##fmn1"
-msgstr ""
+msgstr "Techniczne"
 
 #: src/gui/settings.cpp:3629
 msgid "Technical (alternate)##fmn2"
-msgstr ""
+msgstr "Techniczne (alternatywne)"
 
 #: src/gui/settings.cpp:3636
 msgid "Use standard OPL waveform names"
@@ -8748,31 +8748,31 @@ msgstr "Układ edytora parametrów FM"
 
 #: src/gui/settings.cpp:3643
 msgid "Modern##fml0"
-msgstr ""
+msgstr "Nowoczesny##fml0"
 
 #: src/gui/settings.cpp:3647
 msgid "Compact (2x2, classic)##fml1"
-msgstr ""
+msgstr "Kompaktowy (2x2, klasyczny)##fml1"
 
 #: src/gui/settings.cpp:3651
 msgid "Compact (1x4)##fml2"
-msgstr ""
+msgstr "Kompaktowy (1x4)##fml2"
 
 #: src/gui/settings.cpp:3655
 msgid "Compact (4x1)##fml3"
-msgstr ""
+msgstr "Kompaktowy (4x1)##fml3"
 
 #: src/gui/settings.cpp:3659
 msgid "Alternate (2x2)##fml4"
-msgstr ""
+msgstr "Alternatywny (2x2)##fml4"
 
 #: src/gui/settings.cpp:3663
 msgid "Alternate (1x4)##fml5"
-msgstr ""
+msgstr "Alternatywny (1x4)##fml5"
 
 #: src/gui/settings.cpp:3667
 msgid "Alternate (4x1)##fml5"
-msgstr ""
+msgstr "Alternatyuwny (4x1)##fml5"
 
 #: src/gui/settings.cpp:3673
 msgid "Position of Sustain in FM editor:"
@@ -8780,11 +8780,11 @@ msgstr "Pozycja parametru \"Podtrzymanie\" w edytorze:"
 
 #: src/gui/settings.cpp:3675
 msgid "Between Decay and Sustain Rate##susp0"
-msgstr ""
+msgstr "Pomiędzy parametrami opadania a podtrzymania"
 
 #: src/gui/settings.cpp:3679
 msgid "After Release Rate##susp1"
-msgstr ""
+msgstr "Po parametrze zwolnienia"
 
 #: src/gui/settings.cpp:3686
 msgid "Use separate colors for carriers/modulators in FM editor"
@@ -8800,11 +8800,11 @@ msgstr "Jednostki wyświatlania obciążenia pamięci układu:"
 
 #: src/gui/settings.cpp:3701
 msgid "Bytes##MUU0"
-msgstr ""
+msgstr "Bajty"
 
 #: src/gui/settings.cpp:3705
 msgid "Kilobytes##MUU1"
-msgstr ""
+msgstr "Kilobajty"
 
 #: src/gui/settings.cpp:3714
 msgid "Rounded corners"
@@ -10257,7 +10257,7 @@ msgstr "Nazwa"
 
 #: src/gui/settings.cpp:6930
 msgid "Path:"
-msgstr ""
+msgstr "Ścieżka:"
 
 #: src/gui/settings.cpp:6931
 #, fuzzy
@@ -10303,11 +10303,11 @@ msgstr "Start##PDate"
 #: src/gui/settings.cpp:6941 src/gui/gui.cpp:5513 src/gui/gui.cpp:5648
 #: src/gui/gui.cpp:5649
 msgid "Warning"
-msgstr ""
+msgstr "Ostrzeżenie"
 
 #: src/gui/settings.cpp:6942
 msgid "The file you selected already exists! Would you like to overwrite it?"
-msgstr ""
+msgstr "Wybrany plik już istnieje! Czy chesz go nadpisać?"
 
 #: src/gui/settings.cpp:6943 src/gui/gui.cpp:5653 src/gui/gui.cpp:5677
 #: src/gui/gui.cpp:5701 src/gui/gui.cpp:5725 src/gui/gui.cpp:5749
@@ -10540,7 +10540,7 @@ msgstr "Zamień##QueryReplace"
 
 #: src/gui/about.cpp:26
 msgid "is proud to present"
-msgstr ""
+msgstr "z dumą prezentują"
 
 #: src/gui/about.cpp:30
 msgid "the biggest multi-system chiptune tracker!"
@@ -10572,7 +10572,7 @@ msgstr "-- dokumentacja --"
 
 #: src/gui/about.cpp:69
 msgid "-- localization/translation team --"
-msgstr ""
+msgstr "-- zespół odpowiedzialny za tłumaczenia --"
 
 #: src/gui/about.cpp:82
 msgid "-- demo songs --"
@@ -10588,7 +10588,7 @@ msgstr "-- Zespół testujący bibliotekę renderowania Metal --"
 
 #: src/gui/about.cpp:227
 msgid "-- DirectX 9 backend test team --"
-msgstr ""
+msgstr "Zespół testujący bibliotekę renderowania DirectX 9"
 
 #: src/gui/about.cpp:234
 msgid "powered by:"
@@ -10624,7 +10624,7 @@ msgstr "Native File Dialog autorstwa Frogtoss Games"
 
 #: src/gui/about.cpp:246
 msgid "Weak-JACK by x42"
-msgstr ""
+msgstr "Waek-JACK autorstwa x42"
 
 #: src/gui/about.cpp:247
 msgid "RtMidi by Gary P. Scavone"
@@ -10652,11 +10652,11 @@ msgstr "Nuked-OPL3/OPLL/OPM/OPN2/PSG autorstwa nukeykt"
 
 #: src/gui/about.cpp:253
 msgid "YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"
-msgstr ""
+msgstr "YM3812-LLE, YMF262-LLE, YMF276-LLE i YM2608-LLE autorstwa nukeykt"
 
 #: src/gui/about.cpp:254
 msgid "ESFMu (modified version) by Kagamiin~"
-msgstr ""
+msgstr "ESFMU (wersja zmodyfikowana) autorstwa Kagamiin~"
 
 #: src/gui/about.cpp:255
 msgid "ymfm by Aaron Giles"
@@ -10792,15 +10792,15 @@ msgstr "vgsound_emu (wersja druga, zmodyfikowana) autorstwa cam900"
 
 #: src/gui/about.cpp:288
 msgid "SM8521 emulator (modified version) by cam900"
-msgstr ""
+msgstr "Emulator SM851 (wersja zmodyfikowana) autorstwa cam900"
 
 #: src/gui/about.cpp:289
 msgid "D65010G031 emulator (modified version) by cam900"
-msgstr ""
+msgstr "Emulator D65010G031 (wersja zmodyfikowana) autorstwa cam900"
 
 #: src/gui/about.cpp:290
 msgid "Namco C140/C219 emulator (modified version) by cam900"
-msgstr ""
+msgstr "Emulator Namco C140/C219 (wersja zmodyfikowana) autorstwa cam900"
 
 #: src/gui/about.cpp:291
 msgid "PowerNoise emulator by scratchminer"
@@ -10812,7 +10812,7 @@ msgstr "ep128emu autorstwa Istvana Vargi"
 
 #: src/gui/about.cpp:293
 msgid "NDS sound emulator by cam900"
-msgstr ""
+msgstr "Emulator dźwięku NDS autorstwa cam900"
 
 #: src/gui/about.cpp:295
 msgid "greetings to:"
@@ -10844,7 +10844,7 @@ msgstr "wesprzyj rozwój Furnace:"
 
 #: src/gui/about.cpp:314
 msgid "contact tildearrow at:"
-msgstr "skontaktuj się z tildearrow poprzez:"
+msgstr "skontaktuj się z tildearrowem poprzez:"
 
 #: src/gui/about.cpp:317
 msgid "disclaimer:"
@@ -10884,7 +10884,7 @@ msgstr "O Furnace"
 
 #: src/gui/about.cpp:423
 msgid "Unsaved changes! Save changes before playing?"
-msgstr ""
+msgstr "Niezapisane zmiany! Zapisać zmiany przed odtworzeniem?"
 
 #: src/gui/compatFlags.cpp:31 src/gui/guiConst.cpp:598
 msgid "Compatibility Flags"
@@ -10908,23 +10908,25 @@ msgstr "DefleMask"
 
 #: src/gui/compatFlags.cpp:35
 msgid "Limit slide range"
-msgstr ""
+msgstr "Ogranicz zakres portamento"
 
 #: src/gui/compatFlags.cpp:37
 msgid ""
 "when enabled, slides are limited to a compatible range.\n"
 "may cause problems with slides in negative octaves."
-msgstr ""
+msgstr "po włączeniu, zjazdy wysokości bedą ograniczone do bezpiecznych dla Deflemaska wartości.\n"
+"może wywoływać problemy z portamento na minusowych oktawach."
 
 #: src/gui/compatFlags.cpp:39
 msgid "Compatible noise layout on NES and PC Engine"
-msgstr ""
+msgstr "Kompatybilny tryb szumu na NESie i PC Engine"
 
 #: src/gui/compatFlags.cpp:41
 msgid ""
 "use a rather unusual compatible noise frequency layout.\n"
 "removes some noise frequencies on PC Engine."
-msgstr ""
+msgstr "używa dość nietypowego rozmieszczenia częstotliwości szumu na klawiaturze.\n"
+"usuwa niektóre częstotliwości szumu na PC Engine."
 
 #: src/gui/compatFlags.cpp:43
 msgid "Game Boy instrument duty is wave volume"
@@ -10936,7 +10938,7 @@ msgstr ""
 msgid ""
 "if enabled, an instrument with duty macro in the wave channel will be mapped "
 "to wavetable volume."
-msgstr " "
+msgstr "po włączeniu, makro szerokości fali prostokątnej instrumentu odtwarzanego na kanale syntezy tablicowej będzie traktowane jako glośność tego kanału."
 
 #: src/gui/compatFlags.cpp:48
 msgid "Restart macro on portamento"
@@ -10952,7 +10954,7 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:52
 msgid "Legacy volume slides"
-msgstr ""
+msgstr "Przestarzałe zjazdy głośności"
 
 #: src/gui/compatFlags.cpp:54
 msgid ""
@@ -10962,7 +10964,7 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:56
 msgid "Compatible arpeggio"
-msgstr ""
+msgstr "Kompatybilne arpeggio"
 
 #: src/gui/compatFlags.cpp:58
 msgid "delay arpeggio by one tick on every new note."
@@ -10970,13 +10972,13 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:60
 msgid "Disable DAC when sample ends"
-msgstr ""
+msgstr "Wyłącz przetwornik C/A po zakończeniu odtwarzania sampla"
 
 #: src/gui/compatFlags.cpp:62
 msgid ""
 "when enabled, the DAC in YM2612 will be disabled if there isn't any sample "
 "playing."
-msgstr ""
+msgstr "Po włączeniu, C/A YM2612 zostanie wyłączony jeśli nie zostaną znalezione żadne dane PCM."
 
 #: src/gui/compatFlags.cpp:64
 msgid "Broken speed alternation"
@@ -11141,7 +11143,7 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:120
 msgid "Treat SN76489 periods under 8 as 1"
-msgstr ""
+msgstr "Traktuj okresy SN76489 poniżej 8 jako 1"
 
 #: src/gui/compatFlags.cpp:122
 msgid ""
@@ -11151,7 +11153,7 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:126 src/gui/compatFlags.cpp:304
 msgid "Old Furnace"
-msgstr ""
+msgstr "Stare wersje Furnace"
 
 #: src/gui/compatFlags.cpp:127
 msgid "Arpeggio inhibits non-porta slides"
@@ -11159,125 +11161,127 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:129 src/gui/compatFlags.cpp:133
 msgid "behavior changed in 0.5.5"
-msgstr ""
+msgstr zachowanie zmienione w wersji 0.5.5""
 
 #: src/gui/compatFlags.cpp:131
 msgid "Wack FM algorithm macro"
-msgstr ""
+msgstr "Nietypowe makro algorytmu FM"
 
 #: src/gui/compatFlags.cpp:135
 msgid "Broken shortcut slides (E1xy/E2xy)"
-msgstr ""
+msgstr "Niedziałające efekty E1xy/E2xy"
 
 #: src/gui/compatFlags.cpp:137
 msgid "behavior changed in 0.5.7"
-msgstr ""
+msgstr "zachowanie zmienione w wersji 0.5.7"
 
 #: src/gui/compatFlags.cpp:139
 msgid "Stop portamento on note off"
-msgstr ""
+msgstr "Wyłącz portamentu po zwolnieniu nuty"
 
 #: src/gui/compatFlags.cpp:141 src/gui/compatFlags.cpp:145
 #: src/gui/compatFlags.cpp:149 src/gui/compatFlags.cpp:153
 #: src/gui/compatFlags.cpp:157 src/gui/compatFlags.cpp:161
 #: src/gui/compatFlags.cpp:165
 msgid "behavior changed in 0.6pre1"
-msgstr ""
+msgstr "zachowanie zmienione w wersji 0.6pre1"
 
 #: src/gui/compatFlags.cpp:143
 msgid "Don't allow instrument change during slides"
-msgstr ""
+msgstr "Nie pozwalaj na zmianę instrumentu podczas portamento"
 
 #: src/gui/compatFlags.cpp:147
 msgid "Don't reset note to base on arpeggio stop"
-msgstr ""
+msgstr "Nie resetuj nuty po zatrzymaniu arpeggio"
 
 #: src/gui/compatFlags.cpp:151
 msgid "ExtCh channel status is not shared among operators"
-msgstr ""
+msgstr "Status operatorów rozszerzonego kanału 3 nie jest współdzielony pomiędzy nimi"
 
 #: src/gui/compatFlags.cpp:155
 msgid "Disable new SegaPCM features (macros and better panning)"
-msgstr ""
+msgstr "Wyłącz nowe funkcje SegaPCM (makra i lepszy panning)"
 
 #: src/gui/compatFlags.cpp:159
 msgid "Old FM octave boundary behavior"
-msgstr ""
+msgstr "Stare zachowanie granic oktawy na układach FM"
 
 #: src/gui/compatFlags.cpp:163
 msgid "Disable OPN2 DAC volume control"
-msgstr ""
+msgstr "Wyłacz sterowanie głośnościa sampli na OPN2"
 
 #: src/gui/compatFlags.cpp:167
 msgid "Broken initial position of portamento after arpeggio"
-msgstr ""
+msgstr "Niepoprawna pozycja punktu początkowego portamento po arpeggio"
 
 #: src/gui/compatFlags.cpp:169
 msgid "behavior changed in 0.6pre1.5"
-msgstr ""
+msgstr "zachowanie zmienione w wersji 0.6pre1.5"
 
 #: src/gui/compatFlags.cpp:171
 msgid "Disable new sample features"
-msgstr ""
+msgstr "Wyłącz nowe funkcje samplowania"
 
 #: src/gui/compatFlags.cpp:173 src/gui/compatFlags.cpp:177
 msgid "behavior changed in 0.6pre2"
-msgstr ""
+msgstr "zachowanie zmienione w wersji 0.6pre2"
 
 #: src/gui/compatFlags.cpp:175
 msgid "Old arpeggio macro + pitch slide strategy"
-msgstr ""
+msgstr "Stara strategia makra arpeggio + zjazdu nuty"
 
 #: src/gui/compatFlags.cpp:179
 msgid "Broken portamento during legato"
-msgstr ""
+msgstr "Niedziałające portamento podczas legato"
 
 #: src/gui/compatFlags.cpp:181
 msgid "behavior changed in 0.6pre4"
-msgstr ""
+msgstr "zachowanie zmienione w wersji 0.6pre4"
 
 #: src/gui/compatFlags.cpp:183
 msgid "Broken macros in some FM chips after note off"
-msgstr ""
+msgstr "Niedziałające makra na niektórych układach FM po puiszczeniu klawisza"
 
 #: src/gui/compatFlags.cpp:185
 msgid "behavior changed in 0.6pre5"
-msgstr ""
+msgstr "zachowanie zmienione w wersji 0.6pre5"
 
 #: src/gui/compatFlags.cpp:187
 msgid "Pre-note does not take effects into consideration"
-msgstr ""
+msgstr "Komenda pre-note ignoruje efekty"
 
 #: src/gui/compatFlags.cpp:189
 msgid "behavior changed in 0.6pre9"
-msgstr ""
+msgstr "zachowanie zmienione w wersji 0.6pre9"
 
 #: src/gui/compatFlags.cpp:191
 msgid "Disable new NES DPCM features"
-msgstr ""
+msgstr "Wyłącz nowe funkcje NES DPCM"
 
 #: src/gui/compatFlags.cpp:193
 msgid "behavior changed in 0.6.1"
-msgstr ""
+msgstr "zachowanie zmienione w wersji 0.6.1"
 
 #: src/gui/compatFlags.cpp:195
 msgid "Legacy technical ALWAYS_SET_VOLUME behavior"
-msgstr ""
+msgstr "Przestarzałe zachownaie ALWAYS_SET_VOLUME"
 
 #: src/gui/compatFlags.cpp:197
 msgid ""
 "behavior changed in 0.6.1\n"
 "this flag will be removed if I find out that none of the songs break after "
 "disabling it."
-msgstr ""
+msgstr "zachowanie zmienione w wersji 0.6.1\n"
+"ta flaga zostanie usunięta gdy będę miał pewność że każdy moduł odtwarza się prawidłowo po jej wyłączeniu "
+"disabling it."
 
 #: src/gui/compatFlags.cpp:199
 msgid "Old sample offset effect"
-msgstr "Stary efekt  przesunięcia sampla"
+msgstr "Stary efekt przesunięcia sampla"
 
 #: src/gui/compatFlags.cpp:201
 msgid "behavior changed in 0.6.3"
-msgstr ""
+msgstr "zachowanie zmienione w wersji 0.6.3"
 
 #: src/gui/compatFlags.cpp:205
 msgid ".mod import"
@@ -11323,7 +11327,7 @@ msgstr "tak jak ProTracker/FamiTracker"
 
 #: src/gui/compatFlags.cpp:227
 msgid "Partial (only 04xy/E5xx)"
-msgstr ""
+msgstr "Częsćiowa (tylko 04xy/E5xx)"
 
 #: src/gui/compatFlags.cpp:231
 msgid ""
@@ -11393,11 +11397,11 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:282
 msgid "Strict (old)"
-msgstr ""
+msgstr "Ścisły (stary)"
 
 #: src/gui/compatFlags.cpp:286
 msgid "only when time is less than or equal to speed (original buggy behavior)"
-msgstr ""
+msgstr "tylko wtedy, gdy parametr jest mniejszy  bądź równy prędkośći (oryginalne, zabugowane zachowanie) "
 
 #: src/gui/compatFlags.cpp:292
 msgid "no checks"
@@ -11415,11 +11419,11 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:308
 msgid "only accept the first jump effect"
-msgstr ""
+msgstr "akceptuj tylko pierszy efekt przeskoku"
 
 #: src/gui/compatFlags.cpp:314
 msgid "only accept 0Dxx"
-msgstr ""
+msgstr "akceptuj tylko 0Dxx"
 
 #: src/gui/compatFlags.cpp:320
 msgid "Auto-insert one tick gap between notes"
@@ -11434,7 +11438,7 @@ msgid ""
 "\n"
 "ineffective on C64."
 msgstr ""
-"dy ta flaga jest włączona, pomiędzy nutami zostanie wstawiona nuta "
+"gdy ta flaga jest włączona, pomiędzy nutami zostanie wstawiona nuta "
 "wyciszenia o długości jednego kroku bez efektu legato i portamento. Jest to "
 "symulacja zachowania niektórych sterowników muzycznych Amigi/SNES.\n"
 "\n"
@@ -11447,7 +11451,7 @@ msgstr "Nie inicjuj ponownie portamento po puszczeniu nuty"
 #: src/gui/compatFlags.cpp:329
 msgid "when enabled, note off will not reset the channel's slide effect."
 msgstr ""
-"dy ta flaga jest włączona, puszczenie nuty nie zatrzyma portamento na tym "
+"gdy ta flaga jest włączona, puszczenie nuty nie zatrzyma portamento na tym "
 "kanale."
 
 #: src/gui/compatFlags.cpp:331
@@ -11561,11 +11565,11 @@ msgstr "Czas"
 
 #: src/gui/guiConst.cpp:233
 msgid "System (Primary)"
-msgstr ""
+msgstr "System (Główny)"
 
 #: src/gui/guiConst.cpp:234
 msgid "System (Secondary)"
-msgstr ""
+msgstr "System (Podrzędny)"
 
 #: src/gui/guiConst.cpp:530
 msgid "---Global"
@@ -12029,7 +12033,7 @@ msgstr "Otwórz"
 
 #: src/gui/guiConst.cpp:696
 msgid "Open instrument (replace current)"
-msgstr ""
+msgstr "Otwórz (zastąp obecny)"
 
 #: src/gui/guiConst.cpp:697
 msgid "Save instrument"
@@ -12037,7 +12041,7 @@ msgstr "Zapisz"
 
 #: src/gui/guiConst.cpp:698
 msgid "Save instrument (.dmp)"
-msgstr ""
+msgstr "Zapisz instrument (.dmp)"
 
 #: src/gui/guiConst.cpp:699
 msgid "Move instrument up in list"
@@ -12065,7 +12069,7 @@ msgstr "Kursor w dół"
 
 #: src/gui/guiConst.cpp:705
 msgid "Instruments: toggle folders/standard view"
-msgstr ""
+msgstr "Instrumenty: przełączaj pomiędzy widokiem standardowym/folderami"
 
 #: src/gui/guiConst.cpp:708
 msgid "---Wavetable list"
@@ -12121,11 +12125,11 @@ msgstr "Kursor do góry"
 
 #: src/gui/guiConst.cpp:721
 msgid "Wavetable cursor down"
-msgstr "Kursur w dół"
+msgstr "Kursor w dół"
 
 #: src/gui/guiConst.cpp:722
 msgid "Wavetables: toggle folders/standard view"
-msgstr ""
+msgstr "Tablice fal: przełączaj pomiędzy widokiem standardowym/folderami"
 
 #: src/gui/guiConst.cpp:725
 msgid "---Sample list"
@@ -12141,7 +12145,7 @@ msgstr "Klonuj sampel"
 
 #: src/gui/guiConst.cpp:728
 msgid "Open sample"
-msgstr "Klonuj sampel"
+msgstr "Otwórz sampel"
 
 #: src/gui/guiConst.cpp:729
 msgid "Open sample (replace current)"
@@ -12349,7 +12353,7 @@ msgstr "Kursor w prawo"
 
 #: src/gui/guiConst.cpp:785
 msgid "Increase order value"
-msgstr "Zwieksz wartość"
+msgstr "Zwiększ wartość"
 
 #: src/gui/guiConst.cpp:786
 msgid "Decrease order value"
@@ -12373,15 +12377,15 @@ msgstr "Sklonuj"
 
 #: src/gui/guiConst.cpp:791
 msgid "Deep clone order"
-msgstr "Sklonuj gleboko"
+msgstr "Sklonuj glęboko"
 
 #: src/gui/guiConst.cpp:792
 msgid "Copy current order to end of song"
-msgstr ""
+msgstr "Skupiuj i wstaw na koniec utworu"
 
 #: src/gui/guiConst.cpp:793
 msgid "Deep clone current order to end of song"
-msgstr ""
+msgstr "Głęboko sklonuj i wstaw na koniec utworu"
 
 #: src/gui/guiConst.cpp:797
 msgid "Replay order"
@@ -12453,7 +12457,7 @@ msgstr "Fala piłokształtna"
 
 #: src/gui/waveEdit.cpp:39
 msgid "Cosine"
-msgstr "Kosinusoidalny"
+msgstr "Kosinusoida"
 
 #: src/gui/waveEdit.cpp:193
 msgid "Rect. Sine"
@@ -12605,7 +12609,7 @@ msgid ""
 "- 64 on FDS\n"
 "- 128 on X1-010\n"
 "any other widths will be scaled during playback."
-msgstr ""
+msgstr "stosuj długości fal:\n- dowolna dla Amigi/N163\n- 32 dla Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual Boy i WonderSwan\n- 64 dla FDS\n- 128 dla X1-010\n- 256 dla ES5503\nwszystkie inne długości będą przeskalowane do właściwych podczas odtwarzania."
 
 #: src/gui/waveEdit.cpp:510
 msgid "Height"
@@ -12620,7 +12624,7 @@ msgid ""
 "- 64 for FDS and Virtual Boy\n"
 "- 256 for X1-010 and SCC\n"
 "any other heights will be scaled during playback."
-msgstr ""
+msgstr "stosuj wysokości fal:\n- 16 dla Game Boy, WonderSwan, Namco WSG, Konami Bubble System, kształtu obwiedni X1-010 i N163\n- 32 dla PC Engine\n- 64 dla FDS и Virtual Boy\n- 256 dla X1-010, SCC и ES5503\nszystkie inne wyskokości będą przeskalowane do właściwych podczas odtwarzania."
 
 #: src/gui/waveEdit.cpp:578
 msgid "Shapes"
@@ -12979,7 +12983,7 @@ msgid ""
 "%d bytes free"
 msgstr ""
 "%s\n"
-"wolny %d bajt"
+"wolne %d bajty"
 
 #: src/gui/sampleEdit.cpp:843
 #, c-format
@@ -12988,7 +12992,7 @@ msgid ""
 "%d bytes free"
 msgstr ""
 "%s (%s)\n"
-"wolny %d bajy"
+"wolnych %d bajów"
 
 #: src/gui/sampleEdit.cpp:847
 msgid ""
@@ -13163,7 +13167,7 @@ msgstr "Wybierz"
 #: src/gui/sampleEdit.cpp:1769
 #, c-format
 msgid "%d samples, %d bytes"
-msgstr ""
+msgstr "%d sampli, %d bajtów"
 
 #: src/gui/sampleEdit.cpp:1784
 #, c-format
@@ -13202,12 +13206,12 @@ msgstr "żadna z kategorii nie jest dostępna! co do kurwy"
 
 #: src/gui/newSong.cpp:265
 msgid "it appears you're extremely lucky today!"
-msgstr ""
+msgstr "wygląda na to że masz dziś olbrzymie szczęście!"
 
 #: src/gui/cursor.cpp:205
 #, c-format
 msgid "finish selection: %d.%d,%d - %d.%d,%d"
-msgstr ""
+msgstr "zakończ zanaczanie: %d.%d,%d - %d.%d,%d"
 
 #: src/gui/tutorial.cpp:487
 msgid ""
@@ -13282,7 +13286,7 @@ msgstr ""
 
 #: src/gui/songInfo.cpp:32
 msgid "Song Info##Song Information"
-msgstr ""
+msgstr "Info o utworze##Song Information"
 
 #: src/gui/songInfo.cpp:50
 msgid "Author"
@@ -13363,7 +13367,7 @@ msgstr "Zniszcz"
 
 #: src/gui/csPlayer.cpp:119
 msgid "Kikai wa mou shindeiru!"
-msgstr "Mašina jau negyva!"
+msgstr "Kikai wa mou shindeiru!"
 
 #: src/gui/csPlayer.cpp:123
 msgid "Burn Current Song"
@@ -13375,19 +13379,19 @@ msgstr "Status"
 
 #: src/gui/csPlayer.cpp:148
 msgid "start"
-msgstr ""
+msgstr "start"
 
 #: src/gui/csPlayer.cpp:150
 msgid "PC"
-msgstr ""
+msgstr "PC"
 
 #: src/gui/csPlayer.cpp:152
 msgid "wait"
-msgstr ""
+msgstr "czekaj"
 
 #: src/gui/csPlayer.cpp:154
 msgid "SP"
-msgstr ""
+msgstr "SP"
 
 #: src/gui/csPlayer.cpp:156 src/gui/insEdit.cpp:2733
 msgid "note"
@@ -13395,35 +13399,35 @@ msgstr "nuta"
 
 #: src/gui/csPlayer.cpp:158 src/gui/insEdit.cpp:2728
 msgid "pitch"
-msgstr "wysokość dźwięku"
+msgstr "wysokość"
 
 #: src/gui/csPlayer.cpp:160
 msgid "vol"
-msgstr ""
+msgstr "głośność"
 
 #: src/gui/csPlayer.cpp:162
 msgid "vols"
-msgstr ""
+msgstr "głośności"
 
 #: src/gui/csPlayer.cpp:164
 msgid "vib"
-msgstr ""
+msgstr "vib"
 
 #: src/gui/csPlayer.cpp:166
 msgid "porta"
-msgstr ""
+msgstr "porta"
 
 #: src/gui/csPlayer.cpp:168
 msgid "arp"
-msgstr ""
+msgstr "arp"
 
 #: src/gui/csPlayer.cpp:203
 msgid "Trace"
-msgstr ""
+msgstr "Prześledź"
 
 #: src/gui/csPlayer.cpp:244
 msgid "Disassemble"
-msgstr ""
+msgstr "Dezasembluj"
 
 #: src/gui/gui.cpp:1140 src/gui/gui.cpp:1144
 msgid "the song is over!"
@@ -13460,7 +13464,7 @@ msgstr "Zapisz plik"
 
 #: src/gui/gui.cpp:1702 src/gui/gui.cpp:1712
 msgid "Export DMF"
-msgstr ""
+msgstr "Eksportuj plik DMF"
 
 #: src/gui/gui.cpp:1703
 msgid "DefleMask 1.1.3 module"
@@ -13707,15 +13711,15 @@ msgstr "modul DefleMask"
 
 #: src/gui/gui.cpp:2174
 msgid "compression error"
-msgstr ""
+msgstr "bład kompresji"
 
 #: src/gui/gui.cpp:2186
 msgid "zlib stream error"
-msgstr ""
+msgstr "bład strumienia zlib"
 
 #: src/gui/gui.cpp:2208
 msgid "zlib finish stream error"
-msgstr ""
+msgstr "błąd końca strumienia zlib"
 
 #: src/gui/gui.cpp:2319
 msgid "everything OK"
@@ -14455,7 +14459,7 @@ msgstr ""
 
 #: src/gui/gui.cpp:5113
 msgid "there were some errors while loading samples:\n"
-msgstr ""
+msgstr "podczas ładowania sampli wystąpiły następujące błędy:\n"
 
 #: src/gui/gui.cpp:5158 src/gui/gui.cpp:6342
 msgid "...but you haven't selected a sample!"
@@ -14469,17 +14473,17 @@ msgstr ""
 
 #: src/gui/gui.cpp:5201
 msgid "there were some warnings/errors while loading instruments:\n"
-msgstr ""
+msgstr "podczas wczytywania instrumentów wystąpiły następujące błędy i ostrzeżenia:\n"
 
 #: src/gui/gui.cpp:5207
 #, c-format
 msgid "> %s: cannot load instrument! (%s)\n"
-msgstr ""
+msgstr "> %s: nie można wczytać instrumentu! (%s)\n"
 
 #: src/gui/gui.cpp:5225 src/gui/gui.cpp:5279
 #, c-format
 msgid "cannot load instrument! (%s)"
-msgstr ""
+msgstr "nie można wczytać instrumentu! (%s)"
 
 #: src/gui/gui.cpp:5231
 msgid ""
@@ -14500,7 +14504,7 @@ msgstr "wystapily problemy podczas wczytywania tablic fal:\n"
 #: src/gui/gui.cpp:5293 src/gui/gui.cpp:5303 src/gui/gui.cpp:5322
 #, c-format
 msgid "cannot load wavetable! (%s)"
-msgstr ""
+msgstr "nie udało się wczytać tablicy fal! (%s)"
 
 #: src/gui/gui.cpp:5330
 msgid "...but you haven't selected a wavetable!"
@@ -14514,7 +14518,7 @@ msgstr "nie udało się otworzyć pliku!"
 #: src/gui/gui.cpp:5353
 #, c-format
 msgid "could not write VGM! (%s)"
-msgstr ""
+msgstr "Nie udało się zapisać pliku VGM! (%s)"
 
 #: src/gui/gui.cpp:5374
 #, c-format
@@ -14561,15 +14565,15 @@ msgstr "Błąd"
 
 #: src/gui/gui.cpp:5523 src/gui/gui.cpp:6180 src/gui/gui.cpp:6181
 msgid "Select Instrument"
-msgstr ""
+msgstr "Wybierz instrument"
 
 #: src/gui/gui.cpp:5528 src/gui/gui.cpp:6259 src/gui/gui.cpp:6260
 msgid "Import Raw Sample"
-msgstr ""
+msgstr "Importuj Surowe Dane"
 
 #: src/gui/gui.cpp:5543 src/gui/gui.cpp:5596 src/gui/gui.cpp:5597
 msgid "Rendering..."
-msgstr ""
+msgstr "Renderowanie..."
 
 #: src/gui/gui.cpp:5598
 msgid "Please wait..."
@@ -14630,7 +14634,7 @@ msgstr "Oktawa początkowa"
 
 #: src/gui/gui.cpp:6098
 msgid "Drum Kit"
-msgstr ""
+msgstr Mapa perkusji"
 
 #: src/gui/gui.cpp:6184
 msgid "this is an instrument bank! select which one to use:"
@@ -14701,12 +14705,12 @@ msgstr ""
 
 #: src/gui/gui.cpp:6878 src/gui/gui.cpp:6986
 msgid "could not init renderer!"
-msgstr ""
+msgstr "nie udało się uruchomić silnika renderowania!"
 
 #: src/gui/gui.cpp:6889
 #, c-format
 msgid "could not open window! %s"
-msgstr ""
+msgstr "nie udało się otworzyć okna! %s"
 
 #: src/gui/gui.cpp:6894
 msgid ""
@@ -14754,11 +14758,11 @@ msgstr "LocaleSettings: ccjk 0100-01FF"
 
 #: src/gui/gui.cpp:7251
 msgid "NES DPCM data"
-msgstr ""
+msgstr "Dane DPCM NESa"
 
 #: src/gui/gui.cpp:7254
 msgid "SNES Bit Rate Reduction"
-msgstr ""
+msgstr "Dane Bit Rate Reduction SNESa"
 
 #: src/gui/gui.cpp:7621
 msgid "Unsaved changes! Save changes before quitting?"
@@ -15832,8 +15836,8 @@ msgid ""
 "- drag to swap operator\n"
 "- shift-drag to copy operator"
 msgstr ""
-"- przeciągnij i upuść, aby zamienić parametry operatora miesjcami\n"
-"- przeciągnij i upuść z wciśniętym SHIFT, aby skopiować parametry operatora"
+"- przeciągnij i upuść, aby zamienić parametry operatora miejscami\n"
+"- przeciągnij i upuść z wciśniętym SHIFTem, aby skopiować parametry operatora"
 
 #: src/gui/insEdit.cpp:2632
 msgid "new DPCM features disabled (compatibility)!"
@@ -16483,7 +16487,7 @@ msgstr "Szerokość fali prostokątnej/tryb szumu"
 
 #: src/gui/insEdit.cpp:6966 src/gui/insEdit.cpp:7288
 msgid "Surround"
-msgstr "Dzwiek przestrzenny"
+msgstr "Dzwięk przestrzenny"
 
 #: src/gui/insEdit.cpp:6968 src/gui/insEdit.cpp:6981 src/gui/insEdit.cpp:7026
 #: src/gui/insEdit.cpp:7085 src/gui/insEdit.cpp:7141 src/gui/insEdit.cpp:7159
