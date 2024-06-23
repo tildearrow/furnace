@@ -23,8 +23,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
   char magic[32];
+  unsigned char sampleVol[256][256];
   SafeReader reader=SafeReader(file,len);
   warnings="";
+
+  memset(sampleVol,0,256*256);
 
   try {
     DivSong ds;
@@ -204,10 +207,155 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     }
 
     // read instruments
+    logV("damn: %x",reader.tell());
     for (int i=0; i<ds.insLen; i++) {
+      unsigned char volEnv[48];
+      unsigned char panEnv[48];
+
       DivInstrument* ins=new DivInstrument;
+      logV("instrument %d",i);
+      headerSeek=reader.tell();
+      headerSeek+=reader.readI();
+
+      ins->name=reader.readString(22);
+      ins->type=DIV_INS_AMIGA;
+      ins->amiga.useNoteMap=true;
+
+      unsigned char insType=reader.readC();
+
+      /*
+      if (insType!=0) {
+        logE("unknown instrument type!");
+        lastError="unknown instrument type";
+        delete ins;
+        song.unload();
+        delete[] file;
+        return false;
+      }*/
+
+      logV("type: %d",insType);
+
+      unsigned short sampleCount=reader.readS();
+      logV("%d samples",sampleCount);
+
+      if (sampleCount>0) {
+        unsigned int sampleHeaderSize=reader.readI();
+        logV("sample header size: %d",sampleHeaderSize);
+        for (int j=0; j<96; j++) {
+          unsigned char nextMap=reader.readC();
+          if (nextMap==0) {
+            ins->amiga.noteMap[j].map=-1;
+          } else {
+            ins->amiga.noteMap[j].map=ds.sample.size()+nextMap-1;
+          }
+        }
+
+        reader.read(volEnv,48);
+        reader.read(panEnv,48);
+
+        unsigned char volEnvLen=reader.readC();
+        unsigned char panEnvLen=reader.readC();
+        unsigned char volSusPoint=reader.readC();
+        unsigned char volLoopStart=reader.readC();
+        unsigned char volLoopEnd=reader.readC();
+        unsigned char panSusPoint=reader.readC();
+        unsigned char panLoopStart=reader.readC();
+        unsigned char panLoopEnd=reader.readC();
+        unsigned char volType=reader.readC();
+        unsigned char panType=reader.readC();
+
+        unsigned char vibType=reader.readC();
+        unsigned char vibSweep=reader.readC();
+        unsigned char vibDepth=reader.readC();
+        unsigned char vibRate=reader.readC();
+
+        unsigned short volFade=reader.readS();
+        reader.readS(); // reserved
+
+        logV("%d",volEnvLen);
+        logV("%d",panEnvLen);
+        logV("%d",volSusPoint);
+        logV("%d",volLoopStart);
+        logV("%d",volLoopEnd);
+        logV("%d",panSusPoint);
+        logV("%d",panLoopStart);
+        logV("%d",panLoopEnd);
+        logV("%d",volType);
+        logV("%d",panType);
+        logV("%d",vibType);
+        logV("%d",vibSweep);
+        logV("%d",vibDepth);
+        logV("%d",vibRate);
+        logV("%d",volFade);
+
+        if (!reader.seek(headerSeek,SEEK_SET)) {
+          logE("premature end of file!");
+          lastError="incomplete file";
+          delete[] file;
+          return false;
+        }
+
+        // read samples for this instrument
+        for (int j=0; j<sampleCount; j++) {
+          DivSample* s=new DivSample;
+
+          unsigned int numSamples=reader.readI();
+          s->loopStart=reader.readI();
+          s->loopEnd=reader.readI()+s->loopStart;
+
+          sampleVol[i][j]=reader.readC();
+
+          signed char fine=reader.readC();
+          unsigned char flags=reader.readC();
+          unsigned char pan=reader.readC();
+          unsigned char note=reader.readC();
+
+          logV("%d %d %d",fine,pan,note);
+
+          switch (flags&3) {
+            case 0:
+              s->loop=false;
+              break;
+            case 1:
+              s->loop=true;
+              s->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+              break;
+            case 2:
+              s->loop=true;
+              s->loopMode=DIV_SAMPLE_LOOP_PINGPONG;
+              break;
+          }
+
+          reader.readC(); // reserved
+
+          s->name=reader.readString(22);
+
+          // load sample data
+          s->depth=(flags&4)?DIV_SAMPLE_DEPTH_16BIT:DIV_SAMPLE_DEPTH_8BIT;
+          s->init(numSamples);
+
+          if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+            short next=0;
+            for (unsigned int i=0; i<numSamples; i++) {
+              next+=reader.readS();
+              s->data16[i]=next;
+            }
+          } else {
+            signed char next=0;
+            for (unsigned int i=0; i<numSamples; i++) {
+              next+=reader.readC();
+              s->data8[i]=next;
+            }
+          }
+
+          ds.sample.push_back(s);
+        }
+      }
+      
       ds.ins.push_back(ins);
     }
+
+    ds.sampleLen=ds.sample.size();
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
