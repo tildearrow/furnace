@@ -128,7 +128,8 @@ jobs:
           librtmidi-dev \
           libsndfile1-dev \
           zlib1g-dev \
-          libjack-jackd2-dev
+          libjack-jackd2-dev \
+          gettext
 
     - name: Install Dependencies [Linux armhf]
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'armhf' }}
@@ -140,7 +141,8 @@ jobs:
         sudo apt update
         sudo apt install \
           crossbuild-essential-armhf \
-          appstream
+          appstream \
+          gettext
         sudo apt install \
           libsdl2-dev:armhf \
           libfmt-dev:armhf \
