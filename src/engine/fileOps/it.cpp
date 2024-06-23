@@ -44,17 +44,10 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
-    ds.pitchSlideSpeed=12;
+    ds.pitchSlideSpeed=4;
 
-    ds.system[0]=DIV_SYSTEM_DUMMY;
-    ds.system[1]=DIV_SYSTEM_DUMMY;
-    ds.system[2]=DIV_SYSTEM_DUMMY;
-    ds.system[3]=DIV_SYSTEM_DUMMY;
-    ds.system[4]=DIV_SYSTEM_DUMMY;
-    ds.system[5]=DIV_SYSTEM_DUMMY;
-    ds.system[6]=DIV_SYSTEM_DUMMY;
-    ds.system[7]=DIV_SYSTEM_DUMMY;
-    ds.systemLen=8;
+    ds.system[0]=DIV_SYSTEM_ES5506;
+    ds.systemLen=1;
 
     logV("Impulse Tracker module");
 
@@ -143,12 +136,263 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
 
+      logV("reading instrument %d...",i);
+      if (!reader.seek(insPtr[i],SEEK_SET)) {
+        logE("premature end of file!");
+        lastError="incomplete file";
+        delete ins;
+        delete[] file;
+        return false;
+      }
+
+      reader.read(magic,4);
+
+      if (memcmp(magic,"IMPI",4)!=0) {
+        logE("invalid instrument header!");
+        lastError="invalid instrument header";
+        delete ins;
+        delete[] file;
+        return false;
+      }
+
+      String dosName=reader.readString(12);
+
+      reader.readC(); // 0
+
+      unsigned char initCut=255;
+      unsigned char initRes=255;
+
+      if (compatTracker<0x200) { // old format
+        unsigned char flags=reader.readC();
+        unsigned char volLoopStart=reader.readC();
+        unsigned char volLoopEnd=reader.readC();
+        unsigned char susLoopStart=reader.readC();
+        unsigned char susLoopEnd=reader.readC();
+
+        logV("flags: %x",flags);
+        logV("volLoopStart: %d",volLoopStart);
+        logV("volLoopEnd: %d",volLoopEnd);
+        logV("susLoopStart: %d",susLoopStart);
+        logV("susLoopEnd: %d",susLoopEnd);
+
+        reader.readS(); // x
+
+        unsigned short fadeOut=reader.readS();
+
+        logV("fadeOut: %d",fadeOut);
+
+        // NNA/duplicate check - not supported by Furnace...
+        reader.readC();
+        reader.readC();
+
+        // version/sample count/x
+        reader.readI();
+      } else { // new format
+        // NNA/duplicate check - not supported by Furnace...
+        reader.readC();
+        reader.readC();
+        reader.readC();
+
+        unsigned short fadeOut=reader.readS();
+
+        logV("fadeOut: %d",fadeOut);
+
+        reader.readC();
+        reader.readC();
+
+        unsigned char globalVol=reader.readC();
+        unsigned char defPan=reader.readC();
+
+        logV("globalVol: %d",globalVol);
+        logV("defPan: %d",defPan);
+
+        // vol/pan randomization
+        reader.readC();
+        reader.readC();
+
+        // version/sample count/x
+        reader.readI();
+      }
+
+      ins->name=reader.readString(26);
+
+      if (compatTracker<0x200) { // old format
+        // x
+        reader.readC();
+        reader.readC();
+        reader.readC();
+        reader.readC();
+        reader.readC();
+        reader.readC();
+      } else { // new format
+        // filter params
+        initCut=reader.readC();
+        initRes=reader.readC();
+
+        // MIDI stuff - ignored
+        reader.readI();
+      }
+
+      logV("filter: %d/%d",initCut,initRes);
+
+      // note map
+      ins->amiga.useNoteMap=true;
+      for (int j=0; j<120; j++) {
+        ins->amiga.noteMap[j].freq=(unsigned char)reader.readC();
+        ins->amiga.noteMap[j].map=reader.readC()-1;
+      }
+
+      // TODO: envelopes...
+
       ds.ins.push_back(ins);
     }
 
     // read samples
     for (int i=0; i<ds.sampleLen; i++) {
       DivSample* s=new DivSample;
+
+      logV("reading sample %d...",i);
+      if (!reader.seek(samplePtr[i],SEEK_SET)) {
+        logE("premature end of file!");
+        lastError="incomplete file";
+        delete s;
+        delete[] file;
+        return false;
+      }
+
+      reader.read(magic,4);
+
+      if (memcmp(magic,"IMPS",4)!=0) {
+        logE("invalid sample header!");
+        lastError="invalid sample header";
+        delete s;
+        delete[] file;
+        return false;
+      }
+
+      String dosName=reader.readString(12);
+
+      reader.readC(); // 0
+
+      unsigned char globalVol=reader.readC();
+      unsigned char flags=reader.readC();
+      unsigned char sampleVol=reader.readC();
+
+      logV("volumes: %d %d",globalVol,sampleVol);
+
+      s->name=reader.readString(26);
+
+      unsigned char convert=reader.readC();
+      unsigned char defPan=reader.readC();
+
+      logV("defPan: %d",defPan);
+
+      if (flags&2) {
+        s->depth=DIV_SAMPLE_DEPTH_16BIT;
+      } else {
+        s->depth=DIV_SAMPLE_DEPTH_8BIT;
+      }
+
+      if (flags&8) {
+        logE("sample decompression not implemented!");
+        lastError="sample decompression not implemented";
+        delete s;
+        delete[] file;
+        return false;
+      }
+
+      s->init((unsigned int)reader.readI());
+      s->loopStart=reader.readI();
+      s->loopEnd=reader.readI();
+      s->centerRate=reader.readI()/2;
+      if (flags&16) {
+        s->loop=true;
+        if (flags&64) {
+          s->loopMode=DIV_SAMPLE_LOOP_PINGPONG;
+        } else {
+          s->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+        }
+      }
+      if (flags&32) {
+        s->loop=true;
+        if (flags&128) {
+          s->loopMode=DIV_SAMPLE_LOOP_PINGPONG;
+        } else {
+          s->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+        }
+        s->loopStart=reader.readI();
+        s->loopEnd=reader.readI();
+      } else {
+        reader.readI();
+        reader.readI();
+      }
+
+      unsigned int dataPtr=reader.readI();
+
+      unsigned char vibSpeed=reader.readC();
+      unsigned char vibDepth=reader.readC();
+      unsigned char vibRate=reader.readC();
+      unsigned char vibShape=reader.readC();
+
+      logV("vibrato: %d %d %d %d",vibSpeed,vibDepth,vibRate,vibShape);
+
+      if (s->samples>0) {
+        logD("seek to %x...",dataPtr);
+        if (!reader.seek(dataPtr,SEEK_SET)) {
+          logE("premature end of file!");
+          lastError="incomplete file";
+          delete s;
+          delete[] file;
+          return false;
+        }
+      } else {
+        logD("seek not needed...");
+      }
+
+      if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+        if (flags&4) { // downmix stereo
+          for (unsigned int i=0; i<s->samples; i++) {
+            short l;
+            short r;
+            if (convert&2) {
+              l=reader.readS_BE();
+              r=reader.readS_BE();
+            } else {
+              l=reader.readS();
+              r=reader.readS();
+            }
+            if (!(convert&1)) {
+              l^=0x8000;
+              r^=0x8000;
+            }
+            s->data16[i]=(l+r)>>1;
+          }
+        } else {
+          for (unsigned int i=0; i<s->samples; i++) {
+            if (convert&2) {
+              s->data16[i]=reader.readS_BE()^((convert&1)?0:0x8000);
+            } else {
+              s->data16[i]=reader.readS()^((convert&1)?0:0x8000);
+            }
+          }
+        }
+      } else {
+        if (flags&4) { // downmix stereo
+          for (unsigned int i=0; i<s->samples; i++) {
+            signed char l=reader.readC();
+            signed char r=reader.readC();
+            if (!(convert&1)) {
+              l^=0x80;
+              r^=0x80;
+            }
+            s->data8[i]=(l+r)>>1;
+          }
+        } else {
+          for (unsigned int i=0; i<s->samples; i++) {
+            s->data8[i]=reader.readC()^((convert&1)?0:0x80);
+          }
+        }
+      }
 
       ds.sample.push_back(s);
     }
