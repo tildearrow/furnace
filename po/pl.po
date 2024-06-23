@@ -3515,7 +3515,7 @@ msgstr "przenośna konsola do gier z dwoma ekranami. w zestawie był rysik"
 
 #: src/engine/sysDef.cpp:2093
 msgid "1Fxx: Set global volume (0 to 7F)"
-msgstr ""
+msgstr "1Fxx: SUstaw globalną głośność (0 to 7F)"
 
 #: src/engine/sysDef.cpp:2098
 msgid "5E01"
@@ -3526,12 +3526,12 @@ msgid ""
 "a fantasy sound chip created by Euly. it is based on Ricoh 2A03, adding a "
 "couple features such as 32 noise pitches, an extra duty cycle, and three "
 "waveforms (besides triangle)."
-msgstr ""
+msgstr "fikcyjny układ dźwięku stworzonyu przez Euly. opiera się na Ricoh 2A03, dodajać kilka funkcji takich jak 32 częstotliwości szumu, dodatkową szerokość fali prostokątnej i trzy kształty fal (oprócz trójkątnej)"
 
 #: src/engine/sysDef.cpp:2107
 msgid ""
 "12xx: Set duty cycle/noise mode/waveform (pulse/wave: 0 to 3; noise: 0 or 1)"
-msgstr ""
+msgstr "12xx: Ustaw szerokość fali prostokątnej/trybu szumu/ kształt fali (wypełnienie/fala: 0 to 3; szum: 0 or 1)"
 
 #: src/engine/sysDef.cpp:2120 src/gui/settings.cpp:4085
 msgid "Bifurcator"
@@ -3541,7 +3541,7 @@ msgstr ""
 msgid "a fantasy sound chip using logistic map iterations to generate sound."
 msgstr ""
 "fikcyjny układ audio wykorzystujący ciąg iteracji odwzorowania logistycznego "
-"do synteszy dźwięku "
+"do syntezy dźwięku "
 
 #: src/engine/sysDef.cpp:2128
 msgid "10xx: Load low byte of channel sample state"
@@ -3567,7 +3567,7 @@ msgstr ""
 msgid ""
 "a fantasy sound chip created by LTVA. it is similar to the SID chip, but "
 "with many of its problems fixed."
-msgstr ""
+msgstr "fikcyjny układ dźwięku stworzonyu autorstwa LTVA. jest podobny do SID-a ale znaczna część problemów trapiących pierwowzór została wyeliminowana."
 
 #: src/engine/sysDef.cpp:2148
 msgid "Dummy System"
@@ -3595,7 +3595,7 @@ msgstr "03xx: Auto-portamento (do wskazanej nuty)"
 
 #: src/engine/engine.cpp:59
 msgid "04xy: Vibrato (x: speed; y: depth)"
-msgstr "04xy: Vibrato (x: szybkość; y: głebokość)"
+msgstr "04xy: Vibrato (x: szybkość; y: głębokość)"
 
 #: src/engine/engine.cpp:61
 msgid "05xy: Volume slide + vibrato (compatibility only!)"
@@ -6675,7 +6675,7 @@ msgstr "Lista efektów"
 #: src/gui/effectList.cpp:18
 #, c-format
 msgid "Chip at cursor: %s"
-msgstr "Zazanaczony uklad: %s"
+msgstr "Zaznaczony uklad: %s"
 
 #: src/gui/effectList.cpp:21 src/gui/settings.cpp:6925
 msgid "Search"
@@ -8696,11 +8696,11 @@ msgstr "Układ edytora makr:"
 
 #: src/gui/settings.cpp:3577
 msgid "Unified##mel0"
-msgstr ""
+msgstr "Połączony"
 
 #: src/gui/settings.cpp:3587
 msgid "Grid##mel2"
-msgstr ""
+msgstr "Siatka"
 
 #: src/gui/settings.cpp:3591
 msgid "Single (with list)##mel3"
@@ -10624,7 +10624,7 @@ msgstr "Native File Dialog autorstwa Frogtoss Games"
 
 #: src/gui/about.cpp:246
 msgid "Weak-JACK by x42"
-msgstr "Waek-JACK autorstwa x42"
+msgstr "Weak-JACK autorstwa x42"
 
 #: src/gui/about.cpp:247
 msgid "RtMidi by Gary P. Scavone"
