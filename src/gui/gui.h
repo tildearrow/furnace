@@ -1583,7 +1583,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
-  String workingDirVGMExport, workingDirZSMExport, workingDirTiunaExport, workingDirROMExport;
+  String workingDirVGMExport, workingDirZSMExport, workingDirROMExport;
   String workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
   String workingDirConfig;

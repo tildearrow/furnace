@@ -1927,11 +1927,11 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       );
       break;
     case GUI_FILE_EXPORT_TIUNA:
-      if (!dirExists(workingDirTiunaExport)) workingDirTiunaExport=getHomeDir();
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
         "Export TIunA",
         {"assembly files", "*.asm"},
-        workingDirTiunaExport,
+        workingDirROMExport,
         dpiScale
       );
       break;
@@ -4903,10 +4903,8 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_ZSM:
           workingDirZSMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
-        case GUI_FILE_EXPORT_TIUNA:
-          workingDirTiunaExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
-          break;
         case GUI_FILE_EXPORT_ROM:
+        case GUI_FILE_EXPORT_TIUNA:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
@@ -7304,7 +7302,6 @@ void FurnaceGUI::syncState() {
   workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
   workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
   workingDirZSMExport=e->getConfString("lastDirZSMExport",workingDir);
-  workingDirTiunaExport=e->getConfString("lastDirTiunaExport",workingDir);
   workingDirROMExport=e->getConfString("lastDirROMExport",workingDir);
   workingDirFont=e->getConfString("lastDirFont",workingDir);
   workingDirColors=e->getConfString("lastDirColors",workingDir);
@@ -7464,7 +7461,6 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("lastDirAudioExport",workingDirAudioExport);
   conf.set("lastDirVGMExport",workingDirVGMExport);
   conf.set("lastDirZSMExport",workingDirZSMExport);
-  conf.set("lastDirTiunaExport",workingDirTiunaExport);
   conf.set("lastDirROMExport",workingDirROMExport);
   conf.set("lastDirFont",workingDirFont);
   conf.set("lastDirColors",workingDirColors);

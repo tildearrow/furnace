@@ -252,18 +252,18 @@ void FurnaceGUI::drawExportZSM(bool onWindow) {
 void FurnaceGUI::drawExportTiuna(bool onWindow) {
   exitDisabledTimer=1;
 
-  ImGui::Text("this is NOT ROM export! (for now)\nfor use with TIunA driver, outputs asm source.");
-  ImGui::InputText("base song label name", &asmBaseLabel); //TODO validate label
-  if (ImGui::InputInt("max size in first bank",&tiunaFirstBankSize,1,100)) {
+  ImGui::Text(_("for use with TIunA driver. outputs asm source."));
+  ImGui::InputText(_("base song label name"),&asmBaseLabel); // TODO: validate label
+  if (ImGui::InputInt(_("max size in first bank"),&tiunaFirstBankSize,1,100)) {
     if (tiunaFirstBankSize<0) tiunaFirstBankSize=0;
     if (tiunaFirstBankSize>4096) tiunaFirstBankSize=4096;
   }
-  if (ImGui::InputInt("max size in other banks",&tiunaOtherBankSize,1,100)) {
+  if (ImGui::InputInt(_("max size in other banks"),&tiunaOtherBankSize,1,100)) {
     if (tiunaOtherBankSize<16) tiunaOtherBankSize=16;
     if (tiunaOtherBankSize>4096) tiunaOtherBankSize=4096;
   }
   
-  ImGui::Text("chips to export:");
+  ImGui::Text(_("chips to export:"));
   int selected=0;
   for (int i=0; i<e->song.systemLen; i++) {
     DivSystem sys=e->song.system[i];
@@ -273,9 +273,9 @@ void FurnaceGUI::drawExportTiuna(bool onWindow) {
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
       if (!isTIA) {
-        ImGui::SetTooltip("this chip is not supported by the file format!");
+        ImGui::SetTooltip(_("this chip is not supported by the file format!"));
       } else if (selected>=1) {
-        ImGui::SetTooltip("only one Atari TIA is supported!");
+        ImGui::SetTooltip(_("only one Atari TIA is supported!"));
       }
     }
     if (isTIA && willExport[i]) selected++;
@@ -283,18 +283,18 @@ void FurnaceGUI::drawExportTiuna(bool onWindow) {
   if (selected>0) {
     if (onWindow) {
       ImGui::Separator();
-      if (ImGui::Button("Cancel",ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+      if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
       ImGui::SameLine();
     }
-    if (ImGui::Button("Export",ImVec2(200.0f*dpiScale,0))) {
+    if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
       openFileDialog(GUI_FILE_EXPORT_TIUNA);
       ImGui::CloseCurrentPopup();
     }
   } else {
-    ImGui::Text("nothing to export");
+    ImGui::Text(_("nothing to export"));
     if (onWindow) {
       ImGui::Separator();
-      if (ImGui::Button("Cancel",ImVec2(400.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+      if (ImGui::Button(_("Cancel"),ImVec2(400.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
     }
   }
 }
