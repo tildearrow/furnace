@@ -153,7 +153,7 @@ jobs:
     - name: Build Language Files
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
-      ./scripts/build-po.sh
+        ./scripts/build-po.sh
 
     - name: Configure
       run: |
