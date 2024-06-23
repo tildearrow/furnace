@@ -528,6 +528,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       logV("length: %d",dataLen);
 
       int curRow=0;
+      bool mustCommitInitial=true;
 
       memset(effectCol,4,32);
       memset(vibStatus,0,32);
@@ -560,6 +561,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               p->data[curRow][effectCol[j]++]=0x04;
               p->data[curRow][effectCol[j]++]=vibing[j]?vibStatus[j]:0;
               doesVibrato[j]=true;
+            } else if (doesVibrato[j] && mustCommitInitial) {
+              p->data[curRow][effectCol[j]++]=0x04;
+              p->data[curRow][effectCol[j]++]=0;
             }
 
             if (volSliding[j]!=volSlidingOld[j] || volSlideStatusChanged[j]) {
@@ -572,10 +576,13 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
                 p->data[curRow][effectCol[j]++]=volSlideStatus[j]>>4;
                 volSliding[j]=false;
               } else {
-                p->data[curRow][effectCol[j]++]=0x0a;
+                p->data[curRow][effectCol[j]++]=0xfa;
                 p->data[curRow][effectCol[j]++]=volSliding[j]?volSlideStatus[j]:0;
               }
               doesVolSlide[j]=true;
+            } else if (doesVolSlide[j] && mustCommitInitial) {
+              p->data[curRow][effectCol[j]++]=0xfa;
+              p->data[curRow][effectCol[j]++]=0;
             }
 
             if (porting[j]!=portingOld[j] || portaStatusChanged[j]) {
@@ -588,12 +595,18 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
                 p->data[curRow][effectCol[j]++]=porting[j]?portaStatus[j]:0;
               }
               doesPitchSlide[j]=true;
+            } else if (doesPitchSlide[j] && mustCommitInitial) {
+              p->data[curRow][effectCol[j]++]=0x01;
+              p->data[curRow][effectCol[j]++]=0;
             }
 
             if (arping[j]!=arpingOld[j] || arpStatusChanged[j]) {
               p->data[curRow][effectCol[j]++]=0x00;
               p->data[curRow][effectCol[j]++]=arping[j]?arpStatus[j]:0;
               doesArp[j]=true;
+            } else if (doesArp[j] && mustCommitInitial) {
+              p->data[curRow][effectCol[j]++]=0x00;
+              p->data[curRow][effectCol[j]++]=0;
             }
 
             // TEMPORARY: shall be moved to the end after subsong copying.
@@ -632,6 +645,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           memset(porting,0,32*sizeof(bool));
           memset(arping,0,32*sizeof(bool));
           memset(did,0,32);
+          mustCommitInitial=false;
           if (curRow>=64) break;
           continue;
         }
@@ -814,7 +828,10 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           for (int k=0; k<patCount; k++) {
             if (ds.subsong[0]->pat[j].data[k]) ds.subsong[0]->pat[j].data[k]->copyOn(ds.subsong[i]->pat[j].getPattern(k,true));
           }
+          ds.subsong[i]->pat[j].effectCols=ds.subsong[0]->pat[j].effectCols;
         }
+        ds.subsong[i]->speeds=ds.subsong[0]->speeds;
+        ds.subsong[i]->hz=ds.subsong[0]->hz;
       }
     }
 
