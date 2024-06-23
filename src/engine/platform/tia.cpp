@@ -40,6 +40,30 @@ const char** DivPlatformTIA::getRegisterSheet() {
 
 void DivPlatformTIA::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
+    if (softwarePitch) {
+      int i=-1;
+      tuneCounter++;
+      if (tuneCounter==228) {
+        i=0;
+      }
+      if (tuneCounter>=456) {
+        i=1;
+        tuneCounter=0;
+      }
+      if (i>=0) {
+        if (chan[i].tuneCtr++>=chan[i].curFreq) {
+          int freq=chan[i].freq;
+          chan[i].tuneAcc+=chan[i].tuneFreq;
+          if (chan[i].tuneAcc>=256) {
+            freq++;
+            chan[i].tuneAcc-=256;
+          }
+          chan[i].curFreq=freq;
+          chan[i].tuneCtr=0;
+          rWrite(0x17+i,freq);
+        }
+      }
+    }
     tia.tick();
     if (mixingType==2) {
       buf[0][h]=tia.myCurrentSample[0];
@@ -92,6 +116,44 @@ unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pi
   return ret;
 }
 
+int DivPlatformTIA::dealWithFreqNew(int shape, int bp) {
+  double mult=(parent->song.tuning*0.0625)*pow(2.0,double(768+bp)/(256.0*12.0));
+  double clock=chipClock/28.5;
+  switch (shape) {
+    case 1: // buzzy
+      mult*=30;
+      break;
+    case 2: // low buzzy
+      mult*=465;
+      break;
+    case 3: // flangy
+      mult*=58.125;
+      break;
+    case 4: case 5: // square
+      mult*=4;
+      break;
+    case 6: case 7: case 9: case 10: // pure buzzy/reedy
+      mult*=62;
+      break;
+    case 8: // noise
+      mult*=63.875;
+      break;
+    case 12: case 13: // low square
+      mult*=12;
+      break;
+    case 14: case 15: // low pure buzzy/reedy
+      mult*=186;
+      break;
+  }
+  if (mult<1) mult=1;
+  if (clock<mult) {
+    return 0;
+  }
+  double ret=floor(clock/mult);
+  int fract=((clock/mult)-ret)*256;
+  return ret*256+fract-256;
+}
+
 void DivPlatformTIA::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
@@ -120,13 +182,17 @@ void DivPlatformTIA::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      int bf=chan[i].baseFreq;
-      if (!chan[i].fixedArp) {
-        bf+=chan[i].arpOff<<8;
-      }
       if (chan[i].fixedArp) {
         chan[i].freq=chan[i].baseNoteOverride&31;
-      } else {
+        chan[i].tuneFreq=0;
+        if (!skipRegisterWrites && dumpWrites) {
+          addWrite(0xfffe0000+i,chan[i].freq*256);
+        }
+      } else if (oldPitch) {
+        int bf=chan[i].baseFreq;
+        if (!chan[i].fixedArp) {
+          bf+=chan[i].arpOff<<8;
+        }
         chan[i].freq=dealWithFreq(chan[i].shape,bf,chan[i].pitch+chan[i].pitch2);
         if (chan[i].shape==4 || chan[i].shape==5) {
           if (bf<39*256) {
@@ -140,12 +206,41 @@ void DivPlatformTIA::tick(bool sysTick) {
           }
         }
         if (chan[i].freq>31) chan[i].freq=31;
+        chan[i].tuneFreq=0;
+      } else {
+        int bf=chan[i].baseFreq+(chan[i].arpOff<<8);
+        int shape=chan[i].shape;
+        if (shape==4 || shape==5) {
+          if (bf<40*256) {
+            shape=6;
+            rWrite(0x15+i,6);
+          } else if (bf<59*256) {
+            shape=12;
+            rWrite(0x15+i,12);
+          } else {
+            rWrite(0x15+i,4);
+          }
+        }
+        bf+=chan[i].pitch+chan[i].pitch2;
+        int freq=dealWithFreqNew(shape,bf);
+        if (freq>=31*256) freq=31*256;
+        if (softwarePitch && !skipRegisterWrites && dumpWrites) {
+          addWrite(0xfffe0000+i,freq);
+        }
+        chan[i].freq=freq>>8;
+        chan[i].tuneFreq=freq&255;
       }
 
       if (chan[i].keyOff) {
         rWrite(0x19+i,0);
       }
-      rWrite(0x17+i,chan[i].freq);
+      if (!softwarePitch) {
+        if (chan[i].tuneFreq>=128) chan[i].freq++;
+        rWrite(0x17+i,chan[i].freq);
+        if (!skipRegisterWrites && dumpWrites) {
+          addWrite(0xfffe0000+i,chan[i].freq<<8);
+        }
+      }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -272,6 +367,11 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_NOTE:
       break;
+    case DIV_CMD_EXTERNAL:
+      if (!skipRegisterWrites && dumpWrites) {
+        addWrite(0xfffe0002,c.value);
+      }
+      break;
     default:
       //printf("WARNING: unimplemented command %d\n",c.cmd);
       break;
@@ -319,6 +419,7 @@ int DivPlatformTIA::getRegisterPoolSize() {
 }
 
 void DivPlatformTIA::reset() {
+  tuneCounter=0;
   tia.reset(mixingType);
   memset(regPool,0,16);
   for (int i=0; i<2; i++) {
@@ -367,6 +468,8 @@ void DivPlatformTIA::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   mixingType=flags.getInt("mixingType",0)&3;
+  softwarePitch=flags.getBool("softwarePitch",false);
+  oldPitch=flags.getBool("oldPitch",false);
   for (int i=0; i<2; i++) {
     oscBuf[i]->rate=rate/114;
   }

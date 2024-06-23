@@ -54,8 +54,8 @@ class DivWorkPool;
 
 //#define DIV_UNSTABLE
 
-#define DIV_VERSION "0.6.4"
-#define DIV_ENGINE_VERSION 212
+#define DIV_VERSION "dev213"
+#define DIV_ENGINE_VERSION 213
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -703,6 +703,8 @@ class DivEngine {
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1);
     // dump to ZSM.
     SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true, bool optimize=true);
+    // dump to TIunA.
+    SafeWriter* saveTiuna(const bool* sysToExport, const char* baseLabel, int firstBankSize, int otherBankSize);
     // dump command stream.
     SafeWriter* saveCommand();
     // export to text

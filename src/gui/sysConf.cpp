@@ -1061,6 +1061,18 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_TIA: {
       bool clockSel=flags.getInt("clockSel",0);
       int mixingType=flags.getInt("mixingType",0);
+      bool softwarePitch=flags.getBool("softwarePitch",false);
+      bool oldPitch=flags.getBool("oldPitch",false);
+
+      ImGui::BeginDisabled(oldPitch);
+      if (ImGui::Checkbox(_("Software pitch driver"),&softwarePitch)) {
+        altered=true;
+      }
+      ImGui::EndDisabled();
+      if (ImGui::Checkbox(_("Old pitch table (compatibility)"),&oldPitch)) {
+        if (oldPitch) softwarePitch=false;
+        altered=true;
+      }
 
       ImGui::Text(_("Mixing mode:"));
       ImGui::Indent();
@@ -1086,6 +1098,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         e->lockSave([&]() {
           flags.set("clockSel",(int)clockSel);
           flags.set("mixingType",mixingType);
+          flags.set("softwarePitch",softwarePitch);
+          flags.set("oldPitch",oldPitch);
         });
       }
       break;
@@ -2436,12 +2450,33 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_VERA: {
+      int chipType=flags.getInt("chipType",1);
+
+      ImGui::Text(_("Chip revision:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("V 0.3.1"),chipType==0)) {
+        chipType=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("V 47.0.0 (9-bit volume)"),chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("chipType",chipType);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_GA20:
     case DIV_SYSTEM_PV1000:
-    case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_C219:
     case DIV_SYSTEM_BIFURCATOR:
     case DIV_SYSTEM_POWERNOISE:

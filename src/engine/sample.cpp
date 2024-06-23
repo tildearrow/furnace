@@ -56,7 +56,7 @@ void DivSample::putSampleData(SafeWriter* w) {
   w->writeC(depth);
   w->writeC(loopMode);
   w->writeC(brrEmphasis);
-  w->writeC(dither);
+  w->writeC((dither?1:0)|(brrNoFilter?2:0));
   w->writeI(loop?loopStart:-1);
   w->writeI(loop?loopEnd:-1);
 
@@ -134,7 +134,9 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
       reader.readC();
     }
     if (version>=159) {
-      dither=reader.readC()&1;
+      signed char c=reader.readC();
+      dither=c&1;
+      if (version>=213) brrNoFilter=c&2;
     } else {
       reader.readC();
     }
@@ -1423,7 +1425,7 @@ void DivSample::render(unsigned int formatMask) {
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
     int sampleCount=loop?loopEnd:samples;
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,sampleCount)) return;
-    brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis);
+    brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis,brrNoFilter);
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_VOX)) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
@@ -1564,9 +1566,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,dither,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,dither,loopMode);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -1600,6 +1602,7 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
   loopEnd=h->loopEnd; \
   loop=h->loop; \
   brrEmphasis=h->brrEmphasis; \
+  brrNoFilter=h->brrNoFilter; \
   dither=h->dither; \
   loopMode=h->loopMode;
 

@@ -541,6 +541,19 @@ void FurnaceGUI::drawSampleEdit() {
               }
             }
           }
+          if (sample->depth!=DIV_SAMPLE_DEPTH_BRR && isThereSNES) {
+            bool bf=sample->brrNoFilter;
+            if (ImGui::Checkbox(_("no BRR filters"),&bf)) {
+              sample->prepareUndo(true);
+              sample->brrNoFilter=bf;
+              e->renderSamplesP(curSample);
+              updateSampleTex=true;
+              MARK_MODIFIED;
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(_("enable this option to not use BRR blocks with filters\nand allow sample offset commands to be used safely."));
+            }
+          }
           if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && e->getSampleFormatMask()&(1L<<DIV_SAMPLE_DEPTH_8BIT)) {
             bool di=sample->dither;
             if (ImGui::Checkbox(_("8-bit dither"),&di)) {
