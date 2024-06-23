@@ -1,6 +1,6 @@
 # po
 
-these are language translation files for Furnace.
+these are GNU gettext Portable Objext language translation files for Furnace.
 
 if you want to help translating Furnace to your language, read below.
 
@@ -41,9 +41,7 @@ cd path/to/Furnace/repo
 ./scripts/update-po.sh
 ```
 
-if successful, a new file will be created in the `po` directory that you can edit using a text editor.
-
-be sure to edit CMakeLists.txt as well, to make sure the translation file is compiled. add the language code to `FURNACE_LANGUAGES`.
+if successful, a new file (yourlangcode.po) will be created in the `po` directory that you can edit using a text editor.
 
 ## editing an existing translation
 
@@ -64,13 +62,27 @@ sometimes you will see a string marked as "fuzzy" after running the setup script
 
 a `\n` means a line break.
 
+# compiling
+
+To compile your .po file(s), run
+
+```
+cd path/to/Furnace/repo
+./scripts/build-po.sh
+```
+
+to compile your .po file(s) into mo (Machine Object) file needed in actual furnace building process.
+
+If you've encounter a error furing compiling, go to the line number retuned, modify, then try again.
+
+if you did this correctly, you will see a directory called `locale` in the po/ directory, containing compiled translation files (with `.mo` extension).
+
 # testing
 
 you may skip this step if you don't feel like building Furnace, or are unable to.
 
 compile Furnace (see the project's README.md file (the developer info section) for information), but in the CMake stage, be sure to pass the CMake flag `-DWITH_LOCALE=ON` before the two dots (`..`) to enable language support in Furnace and therefore compile translation files.
 
-if you did this correctly, you will see a directory called `locale` in the build directory, containing compiled translation files (with `.mo` extension).
 
 run Furnace from the build directory like so:
 
@@ -79,6 +91,8 @@ LANG=language-code ./furnace
 ```
 
 replace `language-code` with the language code to use.
+
+on linux (tested on ubuntu), you'll need to add .utf8 to language-code. (e.g. en_US.utf8)
 
 you should see Furnace start up in the language you specified. if it doesn't, check out the logs.
 
@@ -114,3 +128,14 @@ thanks LTVA and everyone else for pioneering language support in Furnace!
 
 I also speak Spanish, which means I will be working on the Spanish translation.
 however, you can work on it too in order to get it done faster. let me know though.
+
+## note 3
+
+If you're translating ja ko zh_ , you need to make sure the 'LocaleSettings:' string in .po file set properly to enable the character set.
+
+default LocaleSettings: ccjk
+
+zh_CN: Ccjk
+zh_HK: cCjk
+ja_JP: ccJk
+ko_KR: ccjK
