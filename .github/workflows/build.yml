@@ -26,7 +26,7 @@ jobs:
           - { name: 'macOS ARM', os: macos-latest, arch: arm64 }
           - { name: 'Linux x86_64', os: ubuntu-20.04, arch: x86_64 }
           #- { name: 'Linux ARM', os: ubuntu-18.04, arch: armhf }
-      fail-fast: false
+      fail-fast: true
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -149,6 +149,11 @@ jobs:
           zlib1g-dev:armhf \
           libjack-jackd2-dev:armhf
         ls /usr/arm-linux-gnueabihf/lib
+
+    - name: Build Language Files
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+      run: |
+      ./scripts/build-po.sh
 
     - name: Configure
       run: |
