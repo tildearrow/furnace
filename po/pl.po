@@ -11161,7 +11161,7 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:129 src/gui/compatFlags.cpp:133
 msgid "behavior changed in 0.5.5"
-msgstr zachowanie zmienione w wersji 0.5.5""
+msgstr "zachowanie zmienione w wersji 0.5.5"
 
 #: src/gui/compatFlags.cpp:131
 msgid "Wack FM algorithm macro"
@@ -14634,7 +14634,7 @@ msgstr "Oktawa początkowa"
 
 #: src/gui/gui.cpp:6098
 msgid "Drum Kit"
-msgstr Mapa perkusji"
+msgstr "Mapa perkusji"
 
 #: src/gui/gui.cpp:6184
 msgid "this is an instrument bank! select which one to use:"
