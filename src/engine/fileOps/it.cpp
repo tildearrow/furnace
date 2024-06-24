@@ -47,6 +47,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     ds.pitchSlideSpeed=4;
 
     ds.system[0]=DIV_SYSTEM_ES5506;
+    ds.systemFlags[0].set("amigaVol",true);
     ds.systemLen=1;
 
     logV("Impulse Tracker module");
