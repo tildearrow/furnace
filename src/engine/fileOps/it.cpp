@@ -32,13 +32,20 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
   unsigned int insPtr[256];
   unsigned int samplePtr[256];
   unsigned int patPtr[256];
+
+  unsigned short patLen[256];
   
   SafeReader reader=SafeReader(file,len);
   warnings="";
 
+  memset(chanPan,0,64);
+  memset(chanVol,0,64);
+  memset(orders,0,256);
+  memset(patLen,0,256*sizeof(unsigned short));
+
   try {
     DivSong ds;
-    ds.version=DIV_VERSION_XM;
+    ds.version=DIV_VERSION_IT;
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
@@ -88,8 +95,10 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     unsigned char panSep=reader.readC();
     reader.readC(); // PWD - unused
 
-    logV("orders len: %d",ordersLen);
-    logV("pattern count: %d",patCount);
+    ds.subsong[0]->hz=(double)initTempo/2.5;
+    ds.subsong[0]->speeds.val[0]=initSpeed;
+    ds.subsong[0]->speeds.len=1;
+
     logV("used tracker: %x",usedTracker);
     logV("compatible with: %x",compatTracker);
     logV("flags: %x",flags);
@@ -97,8 +106,6 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
     logV("global vol: %d",globalVol);
     logV("master vol: %d",masterVol);
-    logV("speed: %d",initSpeed);
-    logV("tempo: %d",initTempo);
     logV("pan sep: %d",panSep);
 
     unsigned short commentLen=reader.readS();
@@ -112,14 +119,42 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     reader.read(chanPan,64);
     reader.read(chanVol,64);
 
-    reader.read(orders,ordersLen);
-
+    logD("reading orders...");
+    size_t curSubSong=0;
+    ds.subsong[curSubSong]->ordersLen=0;
+    bool subSongIncreased=false;
     for (int i=0; i<ordersLen; i++) {
-      for (int j=0; j<DIV_MAX_CHANS; j++) {
-        ds.subsong[0]->orders.ord[j][i]=orders[i];
+      unsigned char nextOrder=reader.readC();
+      orders[i]=curOrder;
+      
+      // skip +++ order
+      if (nextOrder==254) {
+        logV("- +++");
+        continue;
       }
+      // next subsong
+      if (nextOrder==255) {
+        logV("- end of song");
+        if (!subSongIncreased) {
+          curSubSong++;
+          subSongIncreased=true;
+        }
+        curOrder=0;
+        continue;
+      }
+      subSongIncreased=false;
+      if (ds.subsong.size()<=curSubSong) {
+        ds.subsong.push_back(new DivSubSong);
+        ds.subsong[curSubSong]->ordersLen=0;
+        ds.subsong[curSubSong]->name=fmt::sprintf("Order %.2X",i);
+      }
+      logV("- %.2x",nextOrder);
+      for (int j=0; j<DIV_MAX_CHANS; j++) {
+        ds.subsong[curSubSong]->orders.ord[j][ds.subsong[curSubSong]->ordersLen]=nextOrder;
+      }
+      ds.subsong[curSubSong]->ordersLen++;
+      curOrder++;
     }
-    ds.subsong[0]->ordersLen=ordersLen;
 
     for (int i=0; i<ds.insLen; i++) {
       insPtr[i]=reader.readI();
@@ -440,6 +475,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       unsigned int dataLen=(unsigned short)reader.readS();
       unsigned short patRows=reader.readS();
 
+      patLen[i]=patRows;
+
       if (patRows>DIV_MAX_ROWS) {
         logE("too many rows! %d",patRows);
         lastError="too many rows";
@@ -533,6 +570,37 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       }
     }
 
+    // set channel visibility
+    for (int i=maxChan+1; i<((maxChan+32)&(~31)); i++) {
+      ds.subsong[0]->chanShow[i]=false;
+      ds.subsong[0]->chanShowChanOsc[i]=false;
+    }
+
+    // copy patterns to the rest of subsongs
+    for (size_t i=1; i<ds.subsong.size(); i++) {
+      for (int j=0; j<DIV_MAX_CHANS; j++) {
+        for (int k=0; k<patCount; k++) {
+          if (ds.subsong[0]->pat[j].data[k]) ds.subsong[0]->pat[j].data[k]->copyOn(ds.subsong[i]->pat[j].getPattern(k,true));
+        }
+        ds.subsong[i]->pat[j].effectCols=ds.subsong[0]->pat[j].effectCols;
+      }
+      ds.subsong[i]->speeds=ds.subsong[0]->speeds;
+      ds.subsong[i]->hz=ds.subsong[0]->hz;
+      memcpy(ds.subsong[i]->chanShow,ds.subsong[0]->chanShow,DIV_MAX_CHANS*sizeof(bool));
+      memcpy(ds.subsong[i]->chanShowChanOsc,ds.subsong[0]->chanShowChanOsc,DIV_MAX_CHANS*sizeof(bool));
+    }
+
+    // set pattern lengths and place end of pattern markers
+    for (size_t i=0; i<ds.subsong.size(); i++) {
+      int patLenMax=0;
+      for (int j=0; j<ds.subsong[i]->ordersLen; j++) {
+        int nextLen=patLen[ds.subsong[i]->orders.ord[0][j]];
+        if (patLenMax<nextLen) patLenMax=nextLen;
+      }
+      ds.subsong[i]->patLen=patLenMax;
+    }
+
+    // set systems
     for (int i=0; i<(maxChan+32)>>5; i++) {
       ds.system[i]=DIV_SYSTEM_ES5506;
       ds.systemFlags[i].set("amigaVol",true);
