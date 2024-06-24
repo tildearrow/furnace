@@ -1,6 +1,6 @@
 # po
 
-these are GNU gettext Portable Objext language translation files for Furnace.
+these are GNU gettext Portable Object language translation files for Furnace.
 
 if you want to help translating Furnace to your language, read below.
 
@@ -41,7 +41,7 @@ cd path/to/Furnace/repo
 ./scripts/update-po.sh
 ```
 
-if successful, a new file (yourlangcode.po) will be created in the `po` directory that you can edit using a text editor.
+if successful, a new file (.po) will be created in the `po` directory that you can edit using a text editor.
 
 ## editing an existing translation
 
@@ -64,16 +64,15 @@ a `\n` means a line break.
 
 # compiling
 
-To compile your .po file(s), run
+to compile your .po file(s) into mo (Machine Object) files which contains translation data that can be consumed by Furnace, run:
 
 ```
 cd path/to/Furnace/repo
 ./scripts/build-po.sh
 ```
 
-to compile your .po file(s) into mo (Machine Object) file needed in actual furnace building process.
 
-If you've encounter a error furing compiling, go to the line number retuned, modify, then try again.
+if you've encounter a error during compiling, fix it.
 
 if you did this correctly, you will see a directory called `locale` in the po/ directory, containing compiled translation files (with `.mo` extension).
 
@@ -92,7 +91,7 @@ LANG=language-code ./furnace
 
 replace `language-code` with the language code to use.
 
-on linux (tested on ubuntu), you'll need to add .utf8 to language-code. (e.g. en_US.utf8)
+on Linux, you'll need to add .UTF-8 to language-code.
 
 you should see Furnace start up in the language you specified. if it doesn't, check out the logs.
 
@@ -112,30 +111,26 @@ that's all for now. thank you for helping translate Furnace, and good luck!
 
 ## note 1
 
-three languages are "special":
+the "LocaleSettings: ccjk" string is special. it allows you to define which character sets to load.
 
-- Polish (`pl`)
-- Portuguese (Brazil) (`pt_BR`)
-- Russian (`ru`)
+this is needed by a couple languages, such as Chinese, Japanese and Korean.
 
-LTVA and some other people have done translation work on a fork of Furnace to these three languages, but instead of using gettext, they have deployed a custom gettext-like solution.
+the letters after LocaleSettings mean, in the following order: Chinese (simplified), Chinese (traditional), Japanese and Korean. if any of these is in caps, the corresponding character set will be loaded.
 
-I will be porting these translations from the fork to upstream Furnace, but if you want to help, here are the translation files for these languages: `https://github.com/LTVA1/furnace/tree/master/src/locale`
+some values include:
 
-thanks LTVA and everyone else for pioneering language support in Furnace!
-
-## note 2
-
-I also speak Spanish, which means I will be working on the Spanish translation.
-however, you can work on it too in order to get it done faster. let me know though.
-
-## note 3
-
-If you're translating ja ko zh_ , you need to make sure the 'LocaleSettings:' string in .po file set properly to enable the character set.
-
-default LocaleSettings: ccjk
-
+```
 zh_CN: Ccjk
 zh_HK: cCjk
 ja_JP: ccJk
 ko_KR: ccjK
+```
+
+you can load other character ranges by defining them next to the "ccjk" part. for example:
+
+```
+LocaleSettings: ccjk 1000-107F 1100-107F
+```
+
+each range is in the format FROM-TO, where FROM and TO are hexadecimal values.
+if you just want to load one particular character, you still have to specify both FROM and TO. for example 1000-1000.
