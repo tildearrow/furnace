@@ -39,16 +39,10 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
   try {
     DivSong ds;
     ds.version=DIV_VERSION_XM;
-    //ds.linearPitch=0;
-    //ds.pitchMacroIsLinear=false;
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
     ds.pitchSlideSpeed=4;
-
-    ds.system[0]=DIV_SYSTEM_ES5506;
-    ds.systemFlags[0].set("amigaVol",true);
-    ds.systemLen=1;
 
     logV("Impulse Tracker module");
 
@@ -80,6 +74,12 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     unsigned short compatTracker=reader.readS();
     unsigned short flags=reader.readS();
     unsigned short special=reader.readS();
+
+    if (flags&8) {
+      ds.linearPitch=2;
+    } else {
+      ds.linearPitch=0;
+    }
 
     unsigned char globalVol=reader.readC();
     unsigned char masterVol=reader.readC();
@@ -399,6 +399,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     }
 
     // read patterns
+    int maxChan=0;
     for (int i=0; i<patCount; i++) {
       unsigned char mask[64];
       unsigned char note[64];
@@ -448,6 +449,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
           mask[chan&63]=reader.readC();
         }
         chan&=63;
+
+        if (chan>maxChan) maxChan=chan;
 
         if (mask[chan]&1) {
           note[chan]=reader.readC();
@@ -510,8 +513,14 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       }
     }
 
-    logV("DAMN IT: %x",insPtr[0]);
-    logV("DAMN IT: %x",samplePtr[0]);
+    for (int i=0; i<(maxChan+32)>>5; i++) {
+      ds.system[i]=DIV_SYSTEM_ES5506;
+      ds.systemFlags[i].set("amigaVol",true);
+      if (ds.linearPitch!=2) {
+        ds.systemFlags[i].set("amigaPitch",true);
+      }
+    }
+    ds.systemLen=(maxChan+32)>>5;
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;

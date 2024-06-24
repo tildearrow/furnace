@@ -103,6 +103,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     for (int i=0; i<(totalChans+31)>>5; i++) {
       ds.system[i]=DIV_SYSTEM_ES5506;
       ds.systemFlags[i].set("amigaVol",true);
+      ds.systemFlags[i].set("amigaPitch",(ds.linearPitch==0));
     }
     ds.systemLen=(totalChans+31)>>5;
 

@@ -1273,6 +1273,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int channels=flags.getInt("channels",0x1f)+1;
       int volScale=flags.getInt("volScale",4095);
       bool amigaVol=flags.getBool("amigaVol",false);
+      bool amigaPitch=flags.getBool("amigaPitch",false);
       ImGui::Text(_("Initial channel limit:"));
       if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,5,32)) {
         if (channels<5) channels=5;
@@ -1291,12 +1292,21 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::Checkbox(_("Amiga channel volumes (64)"),&amigaVol)) {
         altered=true;
       }
+      pushWarningColor(amigaPitch && e->song.linearPitch==2);
+      if (ImGui::Checkbox(_("Amiga-like pitch (non-linear pitch only)"),&amigaPitch)) {
+        altered=true;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("pitch linearity is set to linear. this won't do anything!");
+      }
+      popWarningColor();
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("channels",channels-1);
           flags.set("volScale",volScale);
           flags.set("amigaVol",amigaVol);
+          flags.set("amigaPitch",amigaPitch);
         });
       }
       break;

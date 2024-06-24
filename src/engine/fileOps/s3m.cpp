@@ -67,8 +67,6 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   bool doesVolSlide[32];
   bool doesArp[32];
 
-  bool mustCommitPanning=true;
-
   memset(doesPitchSlide,0,32*sizeof(bool));
   memset(doesVibrato,0,32*sizeof(bool));
   memset(doesPanning,0,32*sizeof(bool));
@@ -78,8 +76,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   try {
     DivSong ds;
     ds.version=DIV_VERSION_S3M;
-    //ds.linearPitch=0;
-    //ds.pitchMacroIsLinear=false;
+    ds.linearPitch=0;
+    ds.pitchMacroIsLinear=false;
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
@@ -167,8 +165,6 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     reader.readC(); // UC
     unsigned char defaultPan=(unsigned char)reader.readC();
 
-    mustCommitPanning=masterVol&128;
-
     logV("defaultPan: %d",defaultPan);
 
     reader.readS(); // reserved
@@ -251,16 +247,16 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       if (hasFM && hasPCM) break;
     }
 
+    logV("numChans: %d",numChans);
+
     ds.systemName="PC";
-    // would use ES5506 but it has log volume
     if (hasPCM) {
-      for (int i=0; i<numChans; i++) {
-        ds.system[ds.systemLen]=DIV_SYSTEM_PCM_DAC;
-        ds.systemVol[ds.systemLen]=(float)globalVol/256.0;
-        ds.systemPan[ds.systemLen]=0;
-        ds.systemFlags[ds.systemLen].set("volMax",64);
-        ds.systemLen++;
-      }
+      ds.system[ds.systemLen]=DIV_SYSTEM_ES5506;
+      ds.systemVol[ds.systemLen]=(float)globalVol/256.0;
+      ds.systemPan[ds.systemLen]=0;
+      ds.systemFlags[ds.systemLen].set("amigaVol",true);
+      ds.systemFlags[ds.systemLen].set("amigaPitch",true);
+      ds.systemLen++;
     }
     if (hasFM) {
       ds.system[ds.systemLen]=DIV_SYSTEM_OPL2;
@@ -285,7 +281,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       reader.read(magic,4);
 
       if (memcmp(magic,"SCRS",4)==0) {
-        ins->type=DIV_INS_AMIGA;
+        ins->type=DIV_INS_ES5506;
       } else if (memcmp(magic,"SCRI",4)==0) {
         ins->type=DIV_INS_OPL;
       } else {
@@ -305,7 +301,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
       unsigned char type=reader.readC();
 
-      if (ins->type==DIV_INS_AMIGA) {
+      if (ins->type==DIV_INS_ES5506) {
         if (type>1) {
           logE("invalid instrument type! %d",type);
           lastError="invalid instrument!";
@@ -325,7 +321,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
       String dosName=reader.readString(12);
 
-      if (ins->type==DIV_INS_AMIGA) {
+      if (ins->type==DIV_INS_ES5506) {
         unsigned int memSeg=0;
         memSeg=(unsigned char)reader.readC();
         memSeg|=((unsigned short)reader.readS())<<8;
@@ -491,6 +487,77 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     }
     ds.sampleLen=ds.sample.size();
 
+    // scan pattern data for effect use
+    for (int i=0; i<patCount; i++) {
+      logV("scanning pattern %d...",i);
+      if (!reader.seek(patPtr[i],SEEK_SET)) {
+        logE("premature end of file!");
+        lastError="incomplete file";
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+
+      unsigned short dataLen=reader.readS();
+      unsigned int dataEnd=reader.tell()+dataLen;
+
+      while (reader.tell()<dataEnd) {
+        unsigned char what=reader.readC();
+
+        if (what==0) {
+          curRow++;
+          if (curRow>=64) break;
+          continue;
+        }
+
+        unsigned char chan=what&31;
+        bool hasNoteIns=what&32;
+        bool hasVol=what&64;
+        bool hasEffect=what&128;
+
+        if (hasNoteIns) {
+          reader.readC();
+          reader.readC();
+        }
+        if (hasVol) {
+          reader.readC();
+        }
+        if (hasEffect) {
+          unsigned char effect=reader.readC();
+          reader.readC(); // effect val
+
+          switch (effect+'A'-1) {
+            case 'D': // vol slide
+              doesVolSlide[chan]=true;
+              break;
+            case 'E': // pitch down
+              doesPitchSlide[chan]=true;
+              break;
+            case 'F': // pitch up
+              doesPitchSlide[chan]=true;
+              break;
+            case 'G': // porta
+              doesPitchSlide[chan]=true;
+              break;
+            case 'H': // vibrato
+              doesVibrato[chan]=true;
+              break;
+            case 'J': // arp
+              doesArp[chan]=true;
+              break;
+            case 'K': // vol slide + vibrato
+              doesVolSlide[chan]=true;
+              doesVibrato[chan]=true;
+              break;
+            case 'L': // vol slide + porta
+              doesVolSlide[chan]=true;
+              doesPitchSlide[chan]=true;
+              break;
+          }
+        }
+      }
+    }
+
     // load pattern data
     for (int i=0; i<patCount; i++) {
       unsigned char effectCol[32];
@@ -609,25 +676,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               p->data[curRow][effectCol[j]++]=0;
             }
 
-            // TEMPORARY: shall be moved to the end after subsong copying.
-            if (j<16) {
-              if (mustCommitPanning && i==ds.subsong[0]->orders.ord[j][0]) {
-                p->data[curRow][effectCol[j]++]=0x80;
-                if (chanPan[j]&16) {
-                  p->data[curRow][effectCol[j]++]=(j&1)?0xcc:0x33;
-                } else {
-                  p->data[curRow][effectCol[j]++]=(chanPan[j]&15)|((chanPan[j]&15)<<4);
-                }
-              }
-            }
-
             if ((effectCol[j]>>1)-2>ds.subsong[0]->pat[j].effectCols) {
               ds.subsong[0]->pat[j].effectCols=(effectCol[j]>>1)-1;
             }
-          }
-
-          if (i==ds.subsong[0]->orders.ord[0][0]) {
-            mustCommitPanning=false;
           }
 
           curRow++;
@@ -821,17 +872,38 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           }
         }
       }
+    }
 
-      // copy patterns to the rest of subsongs
-      for (size_t i=1; i<ds.subsong.size(); i++) {
-        for (int j=0; j<DIV_MAX_CHANS; j++) {
-          for (int k=0; k<patCount; k++) {
-            if (ds.subsong[0]->pat[j].data[k]) ds.subsong[0]->pat[j].data[k]->copyOn(ds.subsong[i]->pat[j].getPattern(k,true));
-          }
-          ds.subsong[i]->pat[j].effectCols=ds.subsong[0]->pat[j].effectCols;
+    // copy patterns to the rest of subsongs
+    for (size_t i=1; i<ds.subsong.size(); i++) {
+      for (int j=0; j<DIV_MAX_CHANS; j++) {
+        for (int k=0; k<patCount; k++) {
+          if (ds.subsong[0]->pat[j].data[k]) ds.subsong[0]->pat[j].data[k]->copyOn(ds.subsong[i]->pat[j].getPattern(k,true));
         }
-        ds.subsong[i]->speeds=ds.subsong[0]->speeds;
-        ds.subsong[i]->hz=ds.subsong[0]->hz;
+        ds.subsong[i]->pat[j].effectCols=ds.subsong[0]->pat[j].effectCols;
+      }
+      ds.subsong[i]->speeds=ds.subsong[0]->speeds;
+      ds.subsong[i]->hz=ds.subsong[0]->hz;
+    }
+
+    // populate subsongs with default panning values
+    if (masterVol&128) { // only in stereo mode
+      for (size_t i=0; i<ds.subsong.size(); i++) {
+        for (int j=0; j<16; j++) {
+          DivPattern* p=ds.subsong[i]->pat[j].getPattern(ds.subsong[i]->orders.ord[j][0],true);
+          for (int k=0; k<DIV_MAX_EFFECTS; k++) {
+            if (p->data[0][4+(k<<1)]==-1) {
+              p->data[0][4+(k<<1)]=0x80;
+              if (chanPan[j]&16) {
+                p->data[0][5+(k<<1)]=(j&1)?0xcc:0x33;
+              } else {
+                p->data[0][5+(k<<1)]=(chanPan[j]&15)|((chanPan[j]&15)<<4);
+              }
+              if (ds.subsong[i]->pat[j].effectCols<=k) ds.subsong[i]->pat[j].effectCols=k+1;
+              break;
+            }
+          }
+        }
       }
     }
 
