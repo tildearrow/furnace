@@ -1272,6 +1272,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_ES5506: {
       int channels=flags.getInt("channels",0x1f)+1;
       int volScale=flags.getInt("volScale",4095);
+      bool amigaVol=flags.getBool("amigaVol",false);
       ImGui::Text(_("Initial channel limit:"));
       if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,5,32)) {
         if (channels<5) channels=5;
@@ -1287,10 +1288,15 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       } rightClickable
 
+      if (ImGui::Checkbox(_("Amiga channel volumes (64)"),&amigaVol)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("channels",channels-1);
           flags.set("volScale",volScale);
+          flags.set("amigaVol",amigaVol);
         });
       }
       break;

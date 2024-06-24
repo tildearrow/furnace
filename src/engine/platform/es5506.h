@@ -272,7 +272,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   unsigned char maskedVal;
   unsigned int irqv;
   bool isMasked, isReaded;
-  bool irqTrigger;
+  bool irqTrigger, amigaVol;
   unsigned int curCR;
 
   unsigned char initChanMax, chanMax;
