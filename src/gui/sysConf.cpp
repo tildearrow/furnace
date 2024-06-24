@@ -1296,8 +1296,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::Checkbox(_("Amiga-like pitch (non-linear pitch only)"),&amigaPitch)) {
         altered=true;
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("pitch linearity is set to linear. this won't do anything!");
+      if (amigaPitch && e->song.linearPitch==2) {
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("pitch linearity is set to linear. this won't do anything!");
+        }
       }
       popWarningColor();
 
