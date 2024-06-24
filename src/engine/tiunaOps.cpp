@@ -85,7 +85,7 @@ static void writeCmd(std::vector<TiunaBytes>& cmds, TiunaCmd& cmd, unsigned char
     nbuf.ch=ch;
     nbuf.ticks=val;
     if (cmd.sync>=0) {
-      nbuf.buf[nlen++]=0b00111100;
+      nbuf.buf[nlen++]=0b00111110;
       nbuf.buf[nlen++]=cmd.sync;
     }
     if (cmd.wait>=17) {
