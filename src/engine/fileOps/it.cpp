@@ -136,6 +136,12 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     // read instruments
     for (int i=0; i<ds.insLen; i++) {
       DivInstrument* ins=new DivInstrument;
+      ins->type=DIV_INS_ES5506;
+
+      if (insPtr[i]==0) {
+        ds.ins.push_back(ins);
+        continue;
+      }
 
       logV("reading instrument %d...",i);
       if (!reader.seek(insPtr[i],SEEK_SET)) {
@@ -251,6 +257,11 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     // read samples
     for (int i=0; i<ds.sampleLen; i++) {
       DivSample* s=new DivSample;
+
+      if (samplePtr[i]==0) {
+        ds.sample.push_back(s);
+        continue;
+      }
 
       logV("reading sample %d...",i);
       if (!reader.seek(samplePtr[i],SEEK_SET)) {
@@ -401,6 +412,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     // read patterns
     int maxChan=0;
     for (int i=0; i<patCount; i++) {
+      if (patPtr[i]==0) continue;
+
       unsigned char mask[64];
       unsigned char note[64];
       unsigned char ins[64];
@@ -426,6 +439,13 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
       unsigned int dataLen=(unsigned short)reader.readS();
       unsigned short patRows=reader.readS();
+
+      if (patRows>DIV_MAX_ROWS) {
+        logE("too many rows! %d",patRows);
+        lastError="too many rows";
+        delete[] file;
+        return false;
+      }
 
       reader.readI(); // x
 
