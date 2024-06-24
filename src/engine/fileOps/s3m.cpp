@@ -776,6 +776,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
                 volSlideStatus[chan]=effectVal;
                 volSlideStatusChanged[chan]=true;
               }
+              if (hasNoteIns) {
+                volSlideStatusChanged[chan]=true;
+              }
               volSliding[chan]=true;
               break;
             case 'E': // pitch down
