@@ -83,6 +83,19 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
     logV("channels: %d",totalChans);
 
+    if (totalChans<0) {
+      logE("invalid channel count!");
+      lastError="invalid channel count";
+      delete[] file;
+      return false;
+    }
+    if (totalChans>127) {
+      logE("invalid channel count!");
+      lastError="invalid channel count";
+      delete[] file;
+      return false;
+    }
+
     logV("repeat pos: %d",loopPos);
 
     logV("reading orders...");
@@ -92,6 +105,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         ds.subsong[0]->orders.ord[j][i]=val;
       }
     }
+
+    for (int i=0; i<(totalChans+31)>>5; i++) {
+      ds.system[i]=DIV_SYSTEM_ES5506;
+    }
+    ds.systemLen=(totalChans+31)>>5;
 
     logV("seeking to %x...",headerSeek);
 
@@ -207,7 +225,6 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     }
 
     // read instruments
-    logV("damn: %x",reader.tell());
     for (int i=0; i<ds.insLen; i++) {
       unsigned char volEnv[48];
       unsigned char panEnv[48];
