@@ -304,7 +304,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         ins->type=DIV_INS_OPL;
       } else {
         logW("odd magic!");
-        ins->type=DIV_INS_AMIGA;
+        ins->type=DIV_INS_ES5506;
         ds.ins.push_back(ins);
         continue;
       }
@@ -860,6 +860,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             case 'N': // channel vol slide (extension)
               break;
             case 'O': // offset
+              p->data[curRow][effectCol[chan]++]=0x91;
+              p->data[curRow][effectCol[chan]++]=effectVal;
               break;
             case 'P': // pan slide (extension)
               break;
