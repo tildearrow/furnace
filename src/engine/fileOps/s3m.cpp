@@ -353,8 +353,6 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         logV("length: %x",length);
 
         DivSample* s=new DivSample;
-        s->depth=DIV_SAMPLE_DEPTH_8BIT;
-        s->init(length);
 
         s->loopStart=reader.readI();
         s->loopEnd=reader.readI();
@@ -393,16 +391,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
         s->loop=flags&1;
         s->depth=(flags&4)?DIV_SAMPLE_DEPTH_16BIT:DIV_SAMPLE_DEPTH_8BIT;
-        s->init(length>>(s->depth==DIV_SAMPLE_DEPTH_16BIT?1:0));
-
-        if (flags&2) {
-          logE("stereo sample!");
-          lastError="stereo sample";
-          delete ins;
-          delete s;
-          delete[] file;
-          return false;
-        }
+        s->init(length);
 
         if (isPacked) {
           logE("ADPCM not supported!");
@@ -413,16 +402,51 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           return false;
         }
 
-        reader.read(s->getCurBuf(),length);
-
-        if (!signedSamples) {
+        if (flags&2) {
+          // downmix stereo
           if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
             for (unsigned int i=0; i<s->samples; i++) {
-              s->data16[i]^=0x8000;
+              short l=reader.readS();
+              if (!signedSamples) {
+                l^=0x8000;
+              }
+              s->data16[i]=l;
+            }
+            for (unsigned int i=0; i<s->samples; i++) {
+              short r=reader.readS();
+              if (!signedSamples) {
+                r^=0x8000;
+              }
+              s->data16[i]=(s->data16[i]+r)>>1;
             }
           } else {
             for (unsigned int i=0; i<s->samples; i++) {
-              s->data8[i]^=0x80;
+              signed char l=reader.readC();
+              if (!signedSamples) {
+                l^=0x80;
+              }
+              s->data8[i]=l;
+            }
+            for (unsigned int i=0; i<s->samples; i++) {
+              signed char r=reader.readC();
+              if (!signedSamples) {
+                r^=0x80;
+              }
+              s->data8[i]=(s->data8[i]+r)>>1;
+            }
+          }
+        } else {
+          reader.read(s->getCurBuf(),s->samples);
+
+          if (!signedSamples) {
+            if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+              for (unsigned int i=0; i<s->samples; i++) {
+                s->data16[i]^=0x8000;
+              }
+            } else {
+              for (unsigned int i=0; i<s->samples; i++) {
+                s->data8[i]^=0x80;
+              }
             }
           }
         }
@@ -673,7 +697,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             if (porting[j]!=portingOld[j] || portaStatusChanged[j]) {
               if (portaStatus[j]>=0xe0 && portaType[j]!=3 && porting[j]) {
                 p->data[curRow][effectCol[j]++]=portaType[j]|0xf0;
-                p->data[curRow][effectCol[j]++]=(portaStatus[j]&15)*((portaStatus[j]>=0xf0)?4:1);
+                p->data[curRow][effectCol[j]++]=(portaStatus[j]&15)*((portaStatus[j]>=0xf0)?1:1);
                 porting[j]=false;
               } else {
                 p->data[curRow][effectCol[j]++]=portaType[j];
@@ -872,12 +896,27 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             case 'R': // tremolo
               break;
             case 'S': // special...
+              switch (effectVal>>4) {
+                case 0xc:
+                  p->data[curRow][effectCol[chan]++]=0xec;
+                  p->data[curRow][effectCol[chan]++]=effectVal&15;
+                  break;
+                case 0xd:
+                  p->data[curRow][effectCol[chan]++]=0xed;
+                  p->data[curRow][effectCol[chan]++]=effectVal&15;
+                  break;
+              }
               break;
             case 'T': // tempo
               p->data[curRow][effectCol[chan]++]=0xf0;
               p->data[curRow][effectCol[chan]++]=effectVal;
               break;
             case 'U': // fine vibrato
+              if (effectVal!=0) {
+                vibStatus[chan]=effectVal;
+                vibStatusChanged[chan]=true;
+              }
+              vibing[chan]=true;
               break;
             case 'V': // global volume (!)
               break;
