@@ -400,19 +400,27 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         if (flags&4) { // downmix stereo
           for (unsigned int i=0; i<s->samples; i++) {
             short l;
-            short r;
             if (convert&2) {
               l=reader.readS_BE();
-              r=reader.readS_BE();
             } else {
               l=reader.readS();
-              r=reader.readS();
             }
             if (!(convert&1)) {
               l^=0x8000;
+            }
+            s->data16[i]=l;
+          }
+          for (unsigned int i=0; i<s->samples; i++) {
+            short r;
+            if (convert&2) {
+              r=reader.readS_BE();
+            } else {
+              r=reader.readS();
+            }
+            if (!(convert&1)) {
               r^=0x8000;
             }
-            s->data16[i]=(l+r)>>1;
+            s->data16[i]=(s->data16[i]+r)>>1;
           }
         } else {
           for (unsigned int i=0; i<s->samples; i++) {
@@ -427,12 +435,17 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         if (flags&4) { // downmix stereo
           for (unsigned int i=0; i<s->samples; i++) {
             signed char l=reader.readC();
-            signed char r=reader.readC();
             if (!(convert&1)) {
               l^=0x80;
+            }
+            s->data8[i]=l;
+          }
+          for (unsigned int i=0; i<s->samples; i++) {
+            signed char r=reader.readC();
+            if (!(convert&1)) {
               r^=0x80;
             }
-            s->data8[i]=(l+r)>>1;
+            s->data8[i]=(s->data8[i]+r)>>1;
           }
         } else {
           for (unsigned int i=0; i<s->samples; i++) {
