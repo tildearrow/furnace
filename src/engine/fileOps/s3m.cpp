@@ -59,6 +59,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   unsigned int insPtr[256];
   unsigned int patPtr[256];
   unsigned char chanPan[16];
+  unsigned char chanMap[32];
   unsigned char defVol[256];
 
   unsigned char orders[256];
@@ -73,6 +74,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   memset(insPtr,0,256*sizeof(unsigned int));
   memset(patPtr,0,256*sizeof(unsigned int));
   memset(chanPan,0,16);
+  memset(chanMap,0,32);
   memset(defVol,0,256);
   memset(orders,0,256);
 
@@ -262,6 +264,33 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       }
 
       if (hasFM && hasPCM) break;
+    }
+
+    int pcmChan=hasFM?9:0;
+    int fmChan=hasPCM?32:0;
+    int invalidChan=40;
+
+    for (int i=0; i<32; i++) {
+      if (chanSettings[i]==255) {
+        chanMap[i]=invalidChan++;
+        continue;
+      }
+      if ((chanSettings[i]&127)>=32) {
+        chanMap[i]=invalidChan++;
+        continue;
+      }
+      if ((chanSettings[i]&127)>=16) {
+        chanMap[i]=fmChan++;
+      } else {
+        chanMap[i]=pcmChan++;
+      }
+    }
+
+    if (hasPCM) {
+      for (int i=pcmChan; i<32; i++) {
+        ds.subsong[0]->chanShow[i]=false;
+        ds.subsong[0]->chanShowChanOsc[i]=false;
+      }
     }
 
     logV("numChans: %d",numChans);
@@ -665,7 +694,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         if (what==0) {
           // commit effects
           for (int j=0; j<32; j++) {
-            DivPattern* p=ds.subsong[0]->pat[j].getPattern(i,true);
+            DivPattern* p=ds.subsong[0]->pat[chanMap[j]].getPattern(i,true);
             if (vibing[j]!=vibingOld[j] || vibStatusChanged[j]) {
               p->data[curRow][effectCol[j]++]=0x04;
               p->data[curRow][effectCol[j]++]=vibing[j]?vibStatus[j]:0;
@@ -719,7 +748,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             }
 
             if ((effectCol[j]>>1)-2>ds.subsong[0]->pat[j].effectCols) {
-              ds.subsong[0]->pat[j].effectCols=(effectCol[j]>>1)-1;
+              ds.subsong[0]->pat[chanMap[j]].effectCols=(effectCol[j]>>1)-1;
             }
           }
 
@@ -754,7 +783,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           did[chan]=true;
         }
 
-        DivPattern* p=ds.subsong[0]->pat[chan].getPattern(i,true);
+        DivPattern* p=ds.subsong[0]->pat[chanMap[chan]].getPattern(i,true);
         if (hasNoteIns) {
           unsigned char note=reader.readC();
           unsigned char ins=reader.readC();
@@ -945,13 +974,15 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       }
       ds.subsong[i]->speeds=ds.subsong[0]->speeds;
       ds.subsong[i]->hz=ds.subsong[0]->hz;
+      memcpy(ds.subsong[i]->chanShow,ds.subsong[0]->chanShow,DIV_MAX_CHANS*sizeof(bool));
+      memcpy(ds.subsong[i]->chanShowChanOsc,ds.subsong[0]->chanShowChanOsc,DIV_MAX_CHANS*sizeof(bool));
     }
 
     // populate subsongs with default panning values
     if (masterVol&128) { // only in stereo mode
       for (size_t i=0; i<ds.subsong.size(); i++) {
         for (int j=0; j<16; j++) {
-          DivPattern* p=ds.subsong[i]->pat[j].getPattern(ds.subsong[i]->orders.ord[j][0],true);
+          DivPattern* p=ds.subsong[i]->pat[chanMap[j]].getPattern(ds.subsong[i]->orders.ord[j][0],true);
           for (int k=0; k<DIV_MAX_EFFECTS; k++) {
             if (p->data[0][4+(k<<1)]==-1) {
               p->data[0][4+(k<<1)]=0x80;
@@ -960,7 +991,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               } else {
                 p->data[0][5+(k<<1)]=(chanPan[j]&15)|((chanPan[j]&15)<<4);
               }
-              if (ds.subsong[i]->pat[j].effectCols<=k) ds.subsong[i]->pat[j].effectCols=k+1;
+              if (ds.subsong[i]->pat[chanMap[j]].effectCols<=k) ds.subsong[i]->pat[chanMap[j]].effectCols=k+1;
               break;
             }
           }
