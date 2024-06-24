@@ -2152,7 +2152,12 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
   switch (settings.macroLayout) {
     case 0: {
       if (ImGui::BeginTable("MacroSpace",2)) {
-        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
+        float precalcWidth=0.0f;
+        for (FurnaceGUIMacroDesc& i: macros) {
+          float next=ImGui::CalcTextSize(i.displayName).x+ImGui::GetStyle().ItemInnerSpacing.x*2.0f+ImGui::CalcTextSize(ICON_FA_CHEVRON_UP).x+ImGui::GetStyle().ItemSpacing.x*2.0f;
+          if (next>precalcWidth) precalcWidth=next;
+        }
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,MAX(120.0f*dpiScale,precalcWidth));
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
