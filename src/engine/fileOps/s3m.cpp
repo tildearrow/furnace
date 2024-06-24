@@ -999,6 +999,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       }
     }
 
+    // find subsongs
+    ds.findSubSongs();    
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();

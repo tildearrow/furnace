@@ -623,6 +623,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     }
     ds.systemLen=(maxChan+32)>>5;
 
+    // find subsongs
+    ds.findSubSongs();    
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();

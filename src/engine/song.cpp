@@ -128,6 +128,10 @@ void DivSubSong::makePatUnique() {
   }
 }
 
+void DivSong::findSubSongs() {
+
+}
+
 void DivSong::clearSongData() {
   for (DivSubSong* i: subsong) {
     i->clearData();

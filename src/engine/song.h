@@ -354,6 +354,11 @@ struct DivSong {
   DivSample nullSample;
 
   /**
+   * find data past 0Bxx effects and place that into new sub-songs.
+   */
+  void findSubSongs();
+
+  /**
    * clear orders and patterns.
    */
   void clearSongData();
