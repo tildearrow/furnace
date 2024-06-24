@@ -61,11 +61,20 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   unsigned char chanPan[16];
   unsigned char defVol[256];
 
+  unsigned char orders[256];
+
   bool doesPitchSlide[32];
   bool doesVibrato[32];
   bool doesPanning[32];
   bool doesVolSlide[32];
   bool doesArp[32];
+
+  memset(chanSettings,0,32);
+  memset(insPtr,0,256*sizeof(unsigned int));
+  memset(patPtr,0,256*sizeof(unsigned int));
+  memset(chanPan,0,16);
+  memset(defVol,0,256);
+  memset(orders,0,256);
 
   memset(doesPitchSlide,0,32*sizeof(bool));
   memset(doesVibrato,0,32*sizeof(bool));
@@ -183,6 +192,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     ds.subsong[curSubSong]->ordersLen=0;
     for (int i=0; i<ordersLen; i++) {
       unsigned char nextOrder=reader.readC();
+      orders[i]=curOrder;
+      
       // skip +++ order
       if (nextOrder==254) {
         logV("- +++");
@@ -205,6 +216,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         ds.subsong[curSubSong]->orders.ord[j][ds.subsong[curSubSong]->ordersLen]=nextOrder;
       }
       ds.subsong[curSubSong]->ordersLen++;
+      curOrder++;
     }
 
     logD("reading ins pointers...");
@@ -763,9 +775,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               p->data[curRow][effectCol[chan]++]=effectVal;
               break;
             case 'B': // go to order
-              // TODO: handle subsongs and spacing
               p->data[curRow][effectCol[chan]++]=0x0b;
-              p->data[curRow][effectCol[chan]++]=effectVal;
+              p->data[curRow][effectCol[chan]++]=orders[effectVal];
               break;
             case 'C': // next order
               p->data[curRow][effectCol[chan]++]=0x0d;
