@@ -83,12 +83,6 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
     logV("channels: %d",totalChans);
 
-    if (totalChans<0) {
-      logE("invalid channel count!");
-      lastError="invalid channel count";
-      delete[] file;
-      return false;
-    }
     if (totalChans>127) {
       logE("invalid channel count!");
       lastError="invalid channel count";
