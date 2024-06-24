@@ -190,6 +190,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     logD("reading orders...");
     size_t curSubSong=0;
     ds.subsong[curSubSong]->ordersLen=0;
+    bool subSongIncreased=false;
     for (int i=0; i<ordersLen; i++) {
       unsigned char nextOrder=reader.readC();
       orders[i]=curOrder;
@@ -202,10 +203,14 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       // next subsong
       if (nextOrder==255) {
         logV("- end of song");
-        curSubSong++;
+        if (!subSongIncreased) {
+          curSubSong++;
+          subSongIncreased=true;
+        }
         curOrder=0;
         continue;
       }
+      subSongIncreased=false;
       if (ds.subsong.size()<=curSubSong) {
         ds.subsong.push_back(new DivSubSong);
         ds.subsong[curSubSong]->ordersLen=0;
@@ -264,8 +269,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     ds.systemName="PC";
     if (hasPCM) {
       ds.system[ds.systemLen]=DIV_SYSTEM_ES5506;
-      ds.systemVol[ds.systemLen]=(float)globalVol/256.0;
+      ds.systemVol[ds.systemLen]=(float)globalVol/64.0;
       ds.systemPan[ds.systemLen]=0;
+      ds.systemFlags[ds.systemLen].set("volScale",3900);
       ds.systemFlags[ds.systemLen].set("amigaVol",true);
       ds.systemFlags[ds.systemLen].set("amigaPitch",true);
       ds.systemLen++;
