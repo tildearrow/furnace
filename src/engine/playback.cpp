@@ -951,9 +951,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         }
         break;
-      case 0xe3: // vibrato direction
-        chan[i].vibratoDir=effectVal;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO_SHAPE,i,chan[i].vibratoDir));
+      case 0xe3: // vibrato shape
+        chan[i].vibratoShape=effectVal;
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO_SHAPE,i,chan[i].vibratoShape));
         break;
       case 0xe4: // vibrato fine
         chan[i].vibratoFine=effectVal;
@@ -1579,19 +1579,55 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           while (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
 
           chan[i].vibratoPosGiant+=chan[i].vibratoRate;
-          while (chan[i].vibratoPos>=512) chan[i].vibratoPos-=512;
+          while (chan[i].vibratoPosGiant>=512) chan[i].vibratoPosGiant-=512;
 
-          switch (chan[i].vibratoDir) {
-            case 1: // up
-              dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+          int vibratoOut=0;
+          switch (chan[i].vibratoShape) {
+            case 1: // sine, up only
+              vibratoOut=MAX(0,vibTable[chan[i].vibratoPos]);
               break;
-            case 2: // down
-              dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MIN(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+            case 2: // sine, down only
+              vibratoOut=MIN(0,vibTable[chan[i].vibratoPos]);
               break;
-            default: // both
-              dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+            case 3: // triangle
+              vibratoOut=(chan[i].vibratoPos&31);
+              if (chan[i].vibratoPos&16) {
+                vibratoOut=32-(chan[i].vibratoPos&31);
+              }
+              if (chan[i].vibratoPos&32) {
+                vibratoOut=-vibratoOut;
+              }
+              vibratoOut<<=3;
+              break;
+            case 4: // ramp up
+              vibratoOut=chan[i].vibratoPos<<1;
+              break;
+            case 5: // ramp down
+              vibratoOut=-chan[i].vibratoPos<<1;
+              break;
+            case 6: // square
+              vibratoOut=(chan[i].vibratoPos>=32)?-127:127;
+              break;
+            case 7: // random (TODO: use LFSR)
+              vibratoOut=(rand()&255)-128;
+              break;
+            case 8: // square up
+              vibratoOut=(chan[i].vibratoPos>=32)?0:127;
+              break;
+            case 9: // square down
+              vibratoOut=(chan[i].vibratoPos>=32)?0:-127;
+              break;
+            case 10: // half sine up
+              vibratoOut=vibTable[chan[i].vibratoPos>>1];
+              break;
+            case 11: // half sine down
+              vibratoOut=vibTable[32|(chan[i].vibratoPos>>1)];
+              break;
+            default: // sine
+              vibratoOut=vibTable[chan[i].vibratoPos];
               break;
           }
+          dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibratoOut*chan[i].vibratoFine)>>4)/15)));
         }
         if (chan[i].legatoDelay>0) {
           if (--chan[i].legatoDelay<1) {

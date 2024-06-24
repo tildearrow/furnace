@@ -101,7 +101,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xe2:
       return _("E2xy: Note slide down (x: speed; y: semitones)");
     case 0xe3:
-      return _("E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)");
+      return _("E3xx: Set vibrato shape");
     case 0xe4:
       return _("E4xx: Set vibrato range");
     case 0xe5:

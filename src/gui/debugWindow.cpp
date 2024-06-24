@@ -155,7 +155,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("- depth = %d",ch->vibratoDepth);
           ImGui::Text("- rate = %d",ch->vibratoRate);
           ImGui::Text("- pos = %d",ch->vibratoPos);
-          ImGui::Text("- dir = %d",ch->vibratoDir);
+          ImGui::Text("- shape = %d",ch->vibratoShape);
           ImGui::Text("- fine = %d",ch->vibratoFine);
           ImGui::PopStyleColor();
           ImGui::PushStyleColor(ImGuiCol_Text,(ch->tremoloDepth>0)?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_TEXT]);

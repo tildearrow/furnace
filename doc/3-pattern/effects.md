@@ -42,12 +42,21 @@ however, effects are continuous (unless specified), which means you only need to
 - `00xy`: **Arpeggio.** this effect produces a rapid cycle between the current note, the note plus `x` semitones and the note plus `y` semitones.
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
   - ---
-- `04xy`: **Vibrato.** changes pitch to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.
+- `04xy`: **Vibrato.** makes the pitch oscillate. `x` is the speed, while `y` is the depth.
   - maximum vibrato depth is ±1 semitone.
-- `E3xx`: **Set vibrato direction.** `xx` may be one of the following:
-  - `00`: up and down. default.
-  - `01`: up only.
-  - `02`: down only.
+- `E3xx`: **Set vibrato shape.** `xx` may be one of the following:
+  - `00`: sine (default)
+  - `01`: sine (upper portion only)
+  - `02`: sine (lower portion only)
+  - `03`: triangle
+  - `04`: ramp up
+  - `05`: ramp down
+  - `06`: square
+  - `07`: random
+  - `08`: square (up)
+  - `09`: square (down)
+  - `0a`: half sine (up)
+  - `0b`: half sine (down)
 - `E4xx`: **Set vibrato range** in 1/16th of a semitone. 
 
 ## panning
