@@ -35,6 +35,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
   unsigned short patLen[256];
 
+  unsigned char defVol[256];
+  unsigned char noteMap[256][128];
+
   bool doesPitchSlide[64];
   bool doesVibrato[64];
   bool doesPanning[64];
@@ -54,6 +57,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
   memset(chanVol,0,64);
   memset(orders,0,256);
   memset(patLen,0,256*sizeof(unsigned short));
+
+  memset(defVol,0,256);
+  memset(noteMap,0,256*128);
 
   try {
     DivSong ds;
@@ -315,6 +321,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       for (int j=0; j<120; j++) {
         ins->amiga.noteMap[j].freq=(unsigned char)reader.readC();
         ins->amiga.noteMap[j].map=reader.readC()-1;
+        noteMap[i][j]=ins->amiga.noteMap[j].map;
       }
 
       // TODO: envelopes...
@@ -356,9 +363,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
       unsigned char globalVol=reader.readC();
       unsigned char flags=reader.readC();
-      unsigned char sampleVol=reader.readC();
+      defVol[i]=reader.readC();
 
-      logV("volumes: %d %d",globalVol,sampleVol);
+      logV("volumes: %d",globalVol);
 
       s->name=reader.readString(26);
 
@@ -739,6 +746,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         }
         if (hasVol) {
           p->data[curRow][3]=vol[chan];
+        } else if (hasNote && hasIns && note[chan]<120) {
+          p->data[curRow][3]=defVol[noteMap[ins[chan]][note[chan]]];
         }
         if (hasEffect) {
           switch (effect[chan]+'A'-1) {
