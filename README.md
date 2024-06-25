@@ -80,6 +80,7 @@ for other operating systems, you may [build the source](#developer-info).
   - TED used in Commodore Plus/4
   - Casio PV-1000
   - TIA used in Atari 2600
+    - including software tuning engine (TIunA)
   - POKEY used in Atari 8-bit computers
   - **Game Boy**
     - including SOFTWARE ENVELOPES (zombie mode)
