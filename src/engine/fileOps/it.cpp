@@ -34,6 +34,18 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
   unsigned int patPtr[256];
 
   unsigned short patLen[256];
+
+  bool doesPitchSlide[32];
+  bool doesVibrato[32];
+  bool doesPanning[32];
+  bool doesVolSlide[32];
+  bool doesArp[32];
+
+  memset(doesPitchSlide,0,32*sizeof(bool));
+  memset(doesVibrato,0,32*sizeof(bool));
+  memset(doesPanning,0,32*sizeof(bool));
+  memset(doesVolSlide,0,32*sizeof(bool));
+  memset(doesArp,0,32*sizeof(bool));
   
   SafeReader reader=SafeReader(file,len);
   warnings="";
@@ -460,6 +472,26 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     // read patterns
     int maxChan=0;
     for (int i=0; i<patCount; i++) {
+      unsigned char effectCol[32];
+      unsigned char vibStatus[32];
+      bool vibStatusChanged[32];
+      bool vibing[32];
+      bool vibingOld[32];
+      unsigned char volSlideStatus[32];
+      bool volSlideStatusChanged[32];
+      bool volSliding[32];
+      bool volSlidingOld[32];
+      unsigned char portaStatus[32];
+      bool portaStatusChanged[32];
+      bool porting[32];
+      bool portingOld[32];
+      unsigned char portaType[32];
+      unsigned char arpStatus[32];
+      bool arpStatusChanged[32];
+      bool arping[32];
+      bool arpingOld[32];
+      bool did[32];
+
       if (patPtr[i]==0) continue;
 
       unsigned char mask[64];
@@ -469,6 +501,27 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       unsigned char effect[64];
       unsigned char effectVal[64];
       int curRow=0;
+      bool mustCommitInitial=true;
+
+      memset(effectCol,4,32);
+      memset(vibStatus,0,32);
+      memset(vibStatusChanged,0,32*sizeof(bool));
+      memset(vibing,0,32*sizeof(bool));
+      memset(vibingOld,0,32*sizeof(bool));
+      memset(volSlideStatus,0,32);
+      memset(volSlideStatusChanged,0,32*sizeof(bool));
+      memset(volSliding,0,32*sizeof(bool));
+      memset(volSlidingOld,0,32*sizeof(bool));
+      memset(portaStatus,0,32);
+      memset(portaStatusChanged,0,32*sizeof(bool));
+      memset(porting,0,32*sizeof(bool));
+      memset(portingOld,0,32*sizeof(bool));
+      memset(portaType,0,32);
+      memset(arpStatus,0,32);
+      memset(arpStatusChanged,0,32*sizeof(bool));
+      memset(arping,0,32*sizeof(bool));
+      memset(arpingOld,0,32*sizeof(bool));
+      memset(did,0,32*sizeof(bool));
 
       memset(mask,0,64);
       memset(note,0,64);
@@ -510,7 +563,82 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         bool hasEffect=false;
 
         if (chan==0) {
+          // commit effects
+          for (int j=0; j<64; j++) {
+            DivPattern* p=ds.subsong[0]->pat[j].getPattern(i,true);
+            if (vibing[j]!=vibingOld[j] || vibStatusChanged[j]) {
+              p->data[curRow][effectCol[j]++]=0x04;
+              p->data[curRow][effectCol[j]++]=vibing[j]?vibStatus[j]:0;
+              doesVibrato[j]=true;
+            } else if (doesVibrato[j] && mustCommitInitial) {
+              p->data[curRow][effectCol[j]++]=0x04;
+              p->data[curRow][effectCol[j]++]=0;
+            }
+
+            if (volSliding[j]!=volSlidingOld[j] || volSlideStatusChanged[j]) {
+              if (volSlideStatus[j]>=0xf1 && volSliding[j]) {
+                p->data[curRow][effectCol[j]++]=0xf9;
+                p->data[curRow][effectCol[j]++]=volSlideStatus[j]&15;
+                volSliding[j]=false;
+              } else if ((volSlideStatus[j]&15)==15 && volSlideStatus[j]>=0x10 && volSliding[j]) {
+                p->data[curRow][effectCol[j]++]=0xf8;
+                p->data[curRow][effectCol[j]++]=volSlideStatus[j]>>4;
+                volSliding[j]=false;
+              } else {
+                p->data[curRow][effectCol[j]++]=0xfa;
+                p->data[curRow][effectCol[j]++]=volSliding[j]?volSlideStatus[j]:0;
+              }
+              doesVolSlide[j]=true;
+            } else if (doesVolSlide[j] && mustCommitInitial) {
+              p->data[curRow][effectCol[j]++]=0xfa;
+              p->data[curRow][effectCol[j]++]=0;
+            }
+
+            if (porting[j]!=portingOld[j] || portaStatusChanged[j]) {
+              if (portaStatus[j]>=0xe0 && portaType[j]!=3 && porting[j]) {
+                p->data[curRow][effectCol[j]++]=portaType[j]|0xf0;
+                p->data[curRow][effectCol[j]++]=(portaStatus[j]&15)*((portaStatus[j]>=0xf0)?1:1);
+                porting[j]=false;
+              } else {
+                p->data[curRow][effectCol[j]++]=portaType[j];
+                p->data[curRow][effectCol[j]++]=porting[j]?portaStatus[j]:0;
+              }
+              doesPitchSlide[j]=true;
+            } else if (doesPitchSlide[j] && mustCommitInitial) {
+              p->data[curRow][effectCol[j]++]=0x01;
+              p->data[curRow][effectCol[j]++]=0;
+            }
+
+            if (arping[j]!=arpingOld[j] || arpStatusChanged[j]) {
+              p->data[curRow][effectCol[j]++]=0x00;
+              p->data[curRow][effectCol[j]++]=arping[j]?arpStatus[j]:0;
+              doesArp[j]=true;
+            } else if (doesArp[j] && mustCommitInitial) {
+              p->data[curRow][effectCol[j]++]=0x00;
+              p->data[curRow][effectCol[j]++]=0;
+            }
+
+            if ((effectCol[j]>>1)-2>ds.subsong[0]->pat[j].effectCols) {
+              ds.subsong[0]->pat[j].effectCols=(effectCol[j]>>1)-1;
+            }
+          }
+
           curRow++;
+          memset(effectCol,4,32);
+          memcpy(vibingOld,vibing,32*sizeof(bool));
+          memcpy(volSlidingOld,volSliding,32*sizeof(bool));
+          memcpy(portingOld,porting,32*sizeof(bool));
+          memcpy(arpingOld,arping,32*sizeof(bool));
+          memset(vibStatusChanged,0,32*sizeof(bool));
+          memset(volSlideStatusChanged,0,32*sizeof(bool));
+          memset(portaStatusChanged,0,32*sizeof(bool));
+          memset(arpStatusChanged,0,32*sizeof(bool));
+          memset(vibing,0,32*sizeof(bool));
+          memset(volSliding,0,32*sizeof(bool));
+          memset(porting,0,32*sizeof(bool));
+          memset(arping,0,32*sizeof(bool));
+          memset(did,0,32);
+          mustCommitInitial=false;
           if (curRow>=patRows) break;
           continue;
         }
@@ -577,8 +705,138 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
           p->data[curRow][3]=vol[chan];
         }
         if (hasEffect) {
-          //p->data[curRow][4]=effect[chan];
-          //p->data[curRow][5]=effectVal[chan];
+          switch (effect[chan]+'A'-1) {
+            case 'A': // speed
+              p->data[curRow][effectCol[chan]++]=0x0f;
+              p->data[curRow][effectCol[chan]++]=effectVal[chan];
+              break;
+            case 'B': // go to order
+              p->data[curRow][effectCol[chan]++]=0x0b;
+              p->data[curRow][effectCol[chan]++]=orders[effectVal[chan]];
+              break;
+            case 'C': // next order
+              p->data[curRow][effectCol[chan]++]=0x0d;
+              p->data[curRow][effectCol[chan]++]=effectVal[chan];
+              break;
+            case 'D': // vol slide
+              if (effectVal[chan]!=0) {
+                volSlideStatus[chan]=effectVal[chan];
+                volSlideStatusChanged[chan]=true;
+              }
+              if (hasIns) {
+                volSlideStatusChanged[chan]=true;
+              }
+              volSliding[chan]=true;
+              break;
+            case 'E': // pitch down
+              if (effectVal[chan]!=0) {
+                portaStatus[chan]=effectVal[chan];
+                portaStatusChanged[chan]=true;
+              }
+              portaType[chan]=2;
+              porting[chan]=true;
+              break;
+            case 'F': // pitch up
+              if (effectVal[chan]!=0) {
+                portaStatus[chan]=effectVal[chan];
+                portaStatusChanged[chan]=true;
+              }
+              portaType[chan]=1;
+              porting[chan]=true;
+              break;
+            case 'G': // porta
+              if (effectVal[chan]!=0) {
+                portaStatus[chan]=effectVal[chan];
+                portaStatusChanged[chan]=true;
+              }
+              portaType[chan]=3;
+              porting[chan]=true;
+              break;
+            case 'H': // vibrato
+              if (effectVal[chan]!=0) {
+                vibStatus[chan]=effectVal[chan];
+                vibStatusChanged[chan]=true;
+              }
+              vibing[chan]=true;
+              break;
+            case 'I': // tremor (!)
+              break;
+            case 'J': // arp
+              if (effectVal[chan]!=0) {
+                arpStatus[chan]=effectVal[chan];
+                arpStatusChanged[chan]=true;
+              }
+              arping[chan]=true;
+              break;
+            case 'K': // vol slide + vibrato
+              if (effectVal[chan]!=0) {
+                volSlideStatus[chan]=effectVal[chan];
+                volSlideStatusChanged[chan]=true;
+              }
+              volSliding[chan]=true;
+              vibing[chan]=true;
+              break;
+            case 'L': // vol slide + porta
+              if (effectVal[chan]!=0) {
+                volSlideStatus[chan]=effectVal[chan];
+                volSlideStatusChanged[chan]=true;
+              }
+              volSliding[chan]=true;
+              porting[chan]=true;
+              portaType[chan]=3;
+              break;
+            case 'M': // channel vol (extension)
+              break;
+            case 'N': // channel vol slide (extension)
+              break;
+            case 'O': // offset
+              p->data[curRow][effectCol[chan]++]=0x91;
+              p->data[curRow][effectCol[chan]++]=effectVal[chan];
+              break;
+            case 'P': // pan slide (extension)
+              break;
+            case 'Q': // retrigger
+              p->data[curRow][effectCol[chan]++]=0x0c;
+              p->data[curRow][effectCol[chan]++]=effectVal[chan]&15;
+              break;
+            case 'R': // tremolo
+              break;
+            case 'S': // special...
+              switch (effectVal[chan]>>4) {
+                case 0xc:
+                  p->data[curRow][effectCol[chan]++]=0xec;
+                  p->data[curRow][effectCol[chan]++]=effectVal[chan]&15;
+                  break;
+                case 0xd:
+                  p->data[curRow][effectCol[chan]++]=0xed;
+                  p->data[curRow][effectCol[chan]++]=effectVal[chan]&15;
+                  break;
+              }
+              break;
+            case 'T': // tempo
+              p->data[curRow][effectCol[chan]++]=0xf0;
+              p->data[curRow][effectCol[chan]++]=effectVal[chan];
+              break;
+            case 'U': // fine vibrato
+              if (effectVal[chan]!=0) {
+                vibStatus[chan]=effectVal[chan];
+                vibStatusChanged[chan]=true;
+              }
+              vibing[chan]=true;
+              break;
+            case 'V': // global volume (!)
+              break;
+            case 'W': // global volume slide (!)
+              break;
+            case 'X': // panning (extension)
+              p->data[curRow][effectCol[chan]++]=0x80;
+              p->data[curRow][effectCol[chan]++]=effectVal[chan];
+              break;
+            case 'Y': // panbrello (extension)
+              break;
+            case 'Z': // MIDI macro (extension)
+              break;
+          }
         }
       }
     }
@@ -590,10 +848,15 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     }
 
     // copy patterns to the rest of subsongs
+    // TODO: why does this use so much memory?
+    int copiesMade=0;
     for (size_t i=1; i<ds.subsong.size(); i++) {
-      for (int j=0; j<DIV_MAX_CHANS; j++) {
+      for (int j=0; j<maxChan; j++) {
         for (int k=0; k<patCount; k++) {
-          if (ds.subsong[0]->pat[j].data[k]) ds.subsong[0]->pat[j].data[k]->copyOn(ds.subsong[i]->pat[j].getPattern(k,true));
+          if (ds.subsong[0]->pat[j].data[k]) {
+            ds.subsong[0]->pat[j].data[k]->copyOn(ds.subsong[i]->pat[j].getPattern(k,true));
+            copiesMade++;
+          }
         }
         ds.subsong[i]->pat[j].effectCols=ds.subsong[0]->pat[j].effectCols;
       }
@@ -602,6 +865,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       memcpy(ds.subsong[i]->chanShow,ds.subsong[0]->chanShow,DIV_MAX_CHANS*sizeof(bool));
       memcpy(ds.subsong[i]->chanShowChanOsc,ds.subsong[0]->chanShowChanOsc,DIV_MAX_CHANS*sizeof(bool));
     }
+
+    logV("copies made %d",copiesMade);
 
     // set pattern lengths and place end of pattern markers
     for (size_t i=0; i<ds.subsong.size(); i++) {
