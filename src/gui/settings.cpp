@@ -72,16 +72,16 @@
 const char* locales[][3]={
   {"<System>", "", ""},
   {"English", "en_US", "restart Furnace for this setting to take effect."},
-  {"Bahasa Indonesia", "id_ID", "???"},
+  {"Bahasa Indonesia (50%?)", "id_ID", "???"},
   //{"Deutsch (0%)", "de_DE", "Starten Sie Furnace neu, damit diese Einstellung wirksam wird."},
   {"Español", "es_ES", "reinicia Furnace para que esta opción tenga efecto."},
   //{"Suomi (0%)", "fi_FI", "käynnistä Furnace uudelleen, jotta tämä asetus tulee voimaan."},
   //{"Français (0%)", "fr_FR", "redémarrer Furnace pour que ce réglage soit effectif."},
   //{"Հայերեն (1%)", "hy_AM", "???"},
   //{"日本語 (0%)", "ja_JP", "???"},
-  {"한국어 (10%)", "ko_KR", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
+  {"한국어 (25%)", "ko_KR", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
   //{"Nederlands (4%)", "nl_NL", "start Furnace opnieuw op om deze instelling effectief te maken."},
-  {"Polski (90%)", "pl_PL", "aby to ustawienie było skuteczne, należy ponownie uruchomić program."},
+  {"Polski (95%)", "pl_PL", "aby to ustawienie było skuteczne, należy ponownie uruchomić program."},
   {"Português (Brasil) (90%)", "pt_BR", "reinicie o Furnace para que essa configuração entre em vigor."},
   {"Русский (90%)", "ru_RU", "перезапустите программу, чтобы эта настройка вступила в силу."},
   {"Slovenčina (15%)", "sk_SK", "???"},
@@ -89,6 +89,7 @@ const char* locales[][3]={
   //{"ไทย (0%)", "th_TH", "???"},
   //{"Türkçe (0%)", "tr_TR", "bu ayarı etkin hale getirmek için programı yeniden başlatın."},
   //{"Українська (0%)", "uk_UA", "перезапустіть програму, щоб це налаштування набуло чинності."},
+  {"中文 (15%)", "zh_CN", "???"},
   {NULL, NULL, NULL}
 };
 

@@ -1,14 +1,28 @@
+# Furnace Tracker GNU gettext Portable Object File.
+# zh.po for zh-CN
+# 简体中文本地化 
+# Chinese (Simplified)
+# Revison 0.4.2024 Beta
+#
+# 如有问题, 尽请联系.
+# contact if you have any questions.
+# GTR3QQ <https://github.com/gtr3qq>
+# 鸣谢参加内测的各位!
+# Thanks to everyone who paticipated in Alpha.
+# You names would be here in next rev.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: furnace 0.6.4\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
-"Language: zh_HK\n"
+"Project-Id-Version: furnace 0.6.5\n"
+"Last-Translator: GTR3QQ\n"
+"Language-Team: null\n"
+"Language: zh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+# end of tecnical insturment things.
+# below are the effects...... hesitate to translate.
 #: src/engine/sysDef.cpp:428 src/engine/sysDef.cpp:441
 msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
 msgstr ""
@@ -649,6 +663,7 @@ msgstr ""
 msgid "4xxx: Set cutoff (0 to FFF)"
 msgstr ""
 
+# end of no translate.
 #: src/engine/sysDef.cpp:697
 msgid "Yamaha YMU759 (MA-2)"
 msgstr ""
@@ -682,7 +697,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2122
 #: src/engine/sysDef.cpp:2138 src/engine/sysDef.cpp:2150
 msgid "Channel 1"
-msgstr ""
+msgstr "通道 1"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:807 src/engine/sysDef.cpp:819
@@ -706,7 +721,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2122
 #: src/engine/sysDef.cpp:2138 src/engine/sysDef.cpp:2150
 msgid "Channel 2"
-msgstr ""
+msgstr "通道 2"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:807 src/engine/sysDef.cpp:819
@@ -728,7 +743,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:2122 src/engine/sysDef.cpp:2138
 #: src/engine/sysDef.cpp:2150
 msgid "Channel 3"
-msgstr ""
+msgstr "通道 3"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:874 src/engine/sysDef.cpp:977
@@ -747,7 +762,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 #: src/engine/sysDef.cpp:2122 src/engine/sysDef.cpp:2150
 msgid "Channel 4"
-msgstr ""
+msgstr "通道 4"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:977 src/engine/sysDef.cpp:1075
@@ -762,7 +777,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
 msgid "Channel 5"
-msgstr ""
+msgstr "通道 5"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:756
 #: src/engine/sysDef.cpp:977 src/engine/sysDef.cpp:1075
@@ -775,7 +790,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
 msgid "Channel 6"
-msgstr ""
+msgstr "通道 6"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:977
 #: src/engine/sysDef.cpp:1075 src/engine/sysDef.cpp:1210
@@ -787,7 +802,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
 msgid "Channel 7"
-msgstr ""
+msgstr "通道 7"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:977
 #: src/engine/sysDef.cpp:1075 src/engine/sysDef.cpp:1210
@@ -799,7 +814,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1991 src/engine/sysDef.cpp:2070
 #: src/engine/sysDef.cpp:2086 src/engine/sysDef.cpp:2150
 msgid "Channel 8"
-msgstr ""
+msgstr "通道 8"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -807,7 +822,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 9"
-msgstr ""
+msgstr "通道 9"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -815,7 +830,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 10"
-msgstr ""
+msgstr "通道 10"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -823,7 +838,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 11"
-msgstr ""
+msgstr "通道 11"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -831,7 +846,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 12"
-msgstr ""
+msgstr "通道 12"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -839,7 +854,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 13"
-msgstr ""
+msgstr "通道 13"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -847,7 +862,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 14"
-msgstr ""
+msgstr "通道 14"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -855,7 +870,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 15"
-msgstr ""
+msgstr "通道 15"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:1210
 #: src/engine/sysDef.cpp:1302 src/engine/sysDef.cpp:1532
@@ -863,7 +878,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1980 src/engine/sysDef.cpp:1991
 #: src/engine/sysDef.cpp:2070 src/engine/sysDef.cpp:2086
 msgid "Channel 16"
-msgstr ""
+msgstr "通道 16"
 
 #: src/engine/sysDef.cpp:699 src/engine/sysDef.cpp:700
 #: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:1532
@@ -917,7 +932,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:6983 src/gui/insEdit.cpp:7134 src/gui/insEdit.cpp:7238
 #: src/gui/insEdit.cpp:7330
 msgid "Noise"
-msgstr ""
+msgstr "噪声"
 
 #: src/engine/sysDef.cpp:726
 msgid "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"
@@ -938,17 +953,17 @@ msgstr ""
 #: src/engine/sysDef.cpp:739 src/engine/sysDef.cpp:773
 #: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:2100
 msgid "Pulse 1"
-msgstr ""
+msgstr "脉冲 1"
 
 #: src/engine/sysDef.cpp:739 src/engine/sysDef.cpp:773
 #: src/engine/sysDef.cpp:1062 src/engine/sysDef.cpp:2100
 msgid "Pulse 2"
-msgstr ""
+msgstr "脉冲 2"
 
 #: src/engine/sysDef.cpp:739 src/gui/settings.cpp:3935
 #: src/gui/guiConst.cpp:1395 src/gui/insEdit.cpp:6657
 msgid "Wavetable"
-msgstr ""
+msgstr "波表"
 
 #: src/engine/sysDef.cpp:746
 msgid "11xx: Set noise length (0: long; 1: short)"
@@ -1000,7 +1015,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:773 src/gui/waveEdit.cpp:31 src/gui/waveEdit.cpp:217
 #: src/gui/insEdit.cpp:200 src/gui/insEdit.cpp:324 src/gui/insEdit.cpp:658
 msgid "Triangle"
-msgstr ""
+msgstr "三角波"
 
 #: src/engine/sysDef.cpp:773 src/engine/sysDef.cpp:2100
 #: src/gui/insEdit.cpp:2634
@@ -1437,7 +1452,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:955 src/gui/settings.cpp:138 src/gui/settings.cpp:208
 #: src/gui/settings.cpp:3975
 msgid "Low"
-msgstr ""
+msgstr "低"
 
 #: src/engine/sysDef.cpp:955
 msgid "Mid"
@@ -1446,7 +1461,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:955 src/gui/settings.cpp:137 src/gui/settings.cpp:210
 #: src/gui/settings.cpp:3976
 msgid "High"
-msgstr ""
+msgstr "高"
 
 #: src/engine/sysDef.cpp:964
 msgid "Commodore PET"
@@ -1458,11 +1473,12 @@ msgid ""
 "Speaker."
 msgstr ""
 
+# warring! above!
 #: src/engine/sysDef.cpp:966 src/engine/sysDef.cpp:1262
 #: src/engine/sysDef.cpp:2100 src/gui/editControls.cpp:433
 #: src/gui/settings.cpp:4022 src/gui/settings.cpp:4100
 msgid "Wave"
-msgstr ""
+msgstr "波形"
 
 #: src/engine/sysDef.cpp:975 src/gui/settings.cpp:4057
 msgid "SNES"
@@ -2033,7 +2049,7 @@ msgstr ""
 #: src/gui/guiConst.cpp:1394 src/gui/waveEdit.cpp:199 src/gui/insEdit.cpp:183
 #: src/gui/insEdit.cpp:194 src/gui/insEdit.cpp:326 src/gui/insEdit.cpp:656
 msgid "Square"
-msgstr ""
+msgstr "方波"
 
 #: src/engine/sysDef.cpp:1226
 msgid "Pong"
@@ -2132,7 +2148,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1293 src/gui/settings.cpp:4097 src/gui/waveEdit.cpp:33
 msgid "Pulse"
-msgstr ""
+msgstr "脉冲"
 
 #: src/engine/sysDef.cpp:1300
 msgid "SegaPCM"
@@ -2697,19 +2713,19 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1669
 msgid "Channel 29"
-msgstr ""
+msgstr "通道 29"
 
 #: src/engine/sysDef.cpp:1669
 msgid "Channel 30"
-msgstr ""
+msgstr "通道 30"
 
 #: src/engine/sysDef.cpp:1669
 msgid "Channel 31"
-msgstr ""
+msgstr "通道 31"
 
 #: src/engine/sysDef.cpp:1669
 msgid "Channel 32"
-msgstr ""
+msgstr "通道 32"
 
 #: src/engine/sysDef.cpp:1679
 msgid "Yamaha Y8950"
@@ -2843,7 +2859,7 @@ msgstr ""
 #: src/gui/editControls.cpp:437 src/gui/settings.cpp:4228
 #: src/gui/guiConst.cpp:1397 src/gui/insEdit.cpp:2633 src/gui/insEdit.cpp:2671
 msgid "Sample"
-msgstr ""
+msgstr "采样"
 
 #: src/engine/sysDef.cpp:1772
 msgid "20xx: Set frequency divider (0-2)"
@@ -3502,7 +3518,7 @@ msgstr ""
 #: src/engine/engine.cpp:368 src/engine/engine.cpp:2768
 #: src/gui/settings.cpp:5816 src/gui/gui.cpp:2285 src/gui/gui.cpp:2448
 msgid "file is empty"
-msgstr ""
+msgstr "文件是空的"
 
 #: src/engine/engine.cpp:371 src/gui/gui.cpp:2288 src/gui/gui.cpp:2451
 #, c-format
@@ -3567,7 +3583,7 @@ msgstr ""
 #: src/gui/doAction.cpp:825 src/gui/doAction.cpp:843 src/gui/doAction.cpp:1635
 #: src/gui/gui.cpp:6193 src/gui/insEdit.cpp:6865
 msgid "too many wavetables!"
-msgstr ""
+msgstr "太多波表!"
 
 #: src/engine/engine.cpp:2752
 #, c-format
@@ -3604,7 +3620,7 @@ msgstr ""
 #: src/engine/engine.cpp:2904 src/engine/engine.cpp:2926
 #: src/gui/doAction.cpp:909 src/gui/doAction.cpp:921
 msgid "too many samples!"
-msgstr ""
+msgstr "太多采样!"
 
 #: src/engine/engine.cpp:2911
 #, c-format
@@ -3618,28 +3634,28 @@ msgstr ""
 
 #: src/gui/mixer.cpp:28 src/gui/insEdit.cpp:484
 msgid "left"
-msgstr ""
+msgstr "左"
 
 #: src/gui/mixer.cpp:29 src/gui/insEdit.cpp:483
 msgid "right"
-msgstr ""
+msgstr "右"
 
 #: src/gui/mixer.cpp:128
 msgid "input"
-msgstr ""
+msgstr "输入"
 
 #: src/gui/mixer.cpp:168
 msgid "output"
-msgstr ""
+msgstr "输出"
 
 #: src/gui/mixer.cpp:226 src/gui/mixer.cpp:228 src/gui/editControls.cpp:454
 #: src/gui/guiConst.cpp:593
 msgid "Mixer"
-msgstr ""
+msgstr "混音器"
 
 #: src/gui/mixer.cpp:229
 msgid "Master Volume"
-msgstr ""
+msgstr "主音量"
 
 #: src/gui/mixer.cpp:250 src/gui/exportOptions.cpp:90
 #: src/gui/userPresets.cpp:393 src/gui/userPresets.cpp:405
@@ -3647,7 +3663,7 @@ msgstr ""
 #: src/gui/waveEdit.cpp:1096 src/gui/sampleEdit.cpp:1141
 #: src/gui/insEdit.cpp:519
 msgid "Invert"
-msgstr ""
+msgstr "反相"
 
 #: src/gui/mixer.cpp:268 src/gui/chanOsc.cpp:37 src/gui/userPresets.cpp:417
 #: src/gui/settings.cpp:265 src/gui/settings.cpp:1114 src/gui/settings.cpp:1497
@@ -3677,7 +3693,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7437 src/gui/insEdit.cpp:7448 src/gui/insEdit.cpp:7458
 #: src/gui/insEdit.cpp:7466 src/gui/insEdit.cpp:7476 src/gui/insEdit.cpp:7485
 msgid "Volume"
-msgstr ""
+msgstr "音量"
 
 #: src/gui/mixer.cpp:279 src/gui/userPresets.cpp:427 src/gui/settings.cpp:1125
 #: src/gui/guiConst.cpp:229 src/gui/insEdit.cpp:6928 src/gui/insEdit.cpp:6935
@@ -3688,92 +3704,95 @@ msgstr ""
 #: src/gui/insEdit.cpp:7302 src/gui/insEdit.cpp:7312 src/gui/insEdit.cpp:7375
 #: src/gui/insEdit.cpp:7407 src/gui/insEdit.cpp:7453 src/gui/insEdit.cpp:7461
 msgid "Panning"
-msgstr ""
+msgstr "方位"
 
+# warning! above!
 #: src/gui/mixer.cpp:290 src/gui/userPresets.cpp:433 src/gui/settings.cpp:1132
 msgid "Front/Rear"
-msgstr ""
+msgstr "前/后"
 
 #: src/gui/mixer.cpp:299 src/gui/settings.cpp:4213
 msgid "Patchbay"
-msgstr ""
+msgstr "接线盘"
 
 #: src/gui/mixer.cpp:305
 msgid "Automatic patchbay"
-msgstr ""
+msgstr "自动接线"
 
 #: src/gui/mixer.cpp:310
 msgid "Display hidden ports"
-msgstr ""
+msgstr "显示隐藏端口"
 
 #: src/gui/mixer.cpp:312
 msgid "Display internal"
-msgstr ""
+msgstr "显示内部接线"
 
 #: src/gui/mixer.cpp:322 src/gui/mixer.cpp:383 src/gui/settings.cpp:1906
 #: src/gui/settings.cpp:2094 src/gui/songInfo.cpp:69
 msgid "System"
-msgstr ""
+msgstr "系统"
 
 #: src/gui/mixer.cpp:354
 msgid "Sample Preview"
-msgstr ""
+msgstr "采样预览"
 
 #: src/gui/mixer.cpp:367 src/gui/editControls.cpp:745
 #: src/gui/editControls.cpp:837 src/gui/editControls.cpp:953
 #: src/gui/editControls.cpp:1093 src/gui/settings.cpp:1495
 #: src/gui/guiConst.cpp:558
 msgid "Metronome"
-msgstr ""
+msgstr "节拍器"
 
 #: src/gui/mixer.cpp:446
 msgid "disconnect all"
-msgstr ""
+msgstr "全部断开"
 
 #: src/gui/editing.cpp:200
 #, c-format
 msgid "no data in oldPatMap for channel %d!"
-msgstr ""
+msgstr "在oldPatMap 中无channel %d 的数据!"
 
 #: src/gui/editing.cpp:664 src/gui/editing.cpp:1203
 #, c-format
 msgid "invalid clipboard data! failed at line %d char %d"
-msgstr ""
+msgstr "无效剪切板数据! failed at line %d char %d"
 
 #: src/gui/editing.cpp:1565 src/gui/editing.cpp:1669
 msgid "can't collapse any further!"
-msgstr ""
+msgstr "不能再缩进了!"
 
 #: src/gui/editing.cpp:1749
 msgid "can't expand any further!"
-msgstr ""
+msgstr "不能再扩张了!"
 
 #: src/gui/editing.cpp:1836 src/gui/editing.cpp:1851
 #, c-format
 msgid "copy: %s"
 msgstr ""
 
+# I see nothing. EoO
 #: src/gui/memory.cpp:35 src/gui/settings.cpp:3701 src/gui/settings.cpp:4222
 #: src/gui/guiConst.cpp:613
 msgid "Memory Composition"
-msgstr ""
+msgstr "内存组成"
 
 #: src/gui/memory.cpp:146
 #, c-format
 msgid "bank %d"
-msgstr ""
+msgstr "分页 %d"
 
 #: src/gui/memory.cpp:175 src/gui/memory.cpp:176
 msgid "no chips with memory"
-msgstr ""
+msgstr "无带内存的芯片"
 
 #: src/gui/intro.cpp:89 src/gui/gui.cpp:2357 src/gui/gui.cpp:3758
 #: src/gui/gui.cpp:5032 src/gui/gui.cpp:5054 src/gui/gui.cpp:5513
 #: src/gui/gui.cpp:5815 src/gui/gui.cpp:5825
 #, c-format
 msgid "Error while loading file! (%s)"
-msgstr ""
+msgstr "加载文件时出错! (%s)"
 
+# begin no translate, 单词简单且使用人群大概率精通English，且保持log的统一可读性。
 #: src/gui/intro.cpp:122
 msgid "IntroMon X"
 msgstr ""
@@ -3801,38 +3820,39 @@ msgstr ""
 #: src/gui/dataList.cpp:79 src/gui/util.cpp:107 src/gui/util.cpp:109
 #: src/gui/settings.cpp:4225 src/gui/insEdit.cpp:5339
 msgid "Unknown"
-msgstr ""
+msgstr "未知"
 
 #: src/gui/dataList.cpp:136 src/gui/dataList.cpp:260
 msgid "duplicate"
-msgstr ""
+msgstr "克隆"
 
 #: src/gui/dataList.cpp:139 src/gui/dataList.cpp:263 src/gui/dataList.cpp:388
 #: src/gui/dataList.cpp:731 src/gui/dataList.cpp:867
 msgid "replace..."
-msgstr ""
+msgstr "替换..."
 
 #: src/gui/dataList.cpp:142 src/gui/dataList.cpp:266 src/gui/gui.cpp:4244
 msgid "save"
-msgstr ""
+msgstr "保存"
 
 #: src/gui/dataList.cpp:145
 msgid "save (.dmp)"
-msgstr ""
+msgstr "保存 (.dmp)"
 
+# end of no translate
 #: src/gui/dataList.cpp:148 src/gui/dataList.cpp:269 src/gui/dataList.cpp:617
 #: src/gui/dataList.cpp:994 src/gui/dataList.cpp:1040
 #: src/gui/editControls.cpp:50 src/gui/gui.cpp:2779 src/gui/gui.cpp:2788
 msgid "delete"
-msgstr ""
+msgstr "删除"
 
 #: src/gui/dataList.cpp:243
 msgid "out of memory for this sample!"
-msgstr ""
+msgstr "此采样大于内存剩余空间!"
 
 #: src/gui/dataList.cpp:254
 msgid "make instrument"
-msgstr ""
+msgstr "制作乐器"
 
 #: src/gui/dataList.cpp:257
 msgid "make me a drum kit"
@@ -3840,28 +3860,28 @@ msgstr ""
 
 #: src/gui/dataList.cpp:290 src/gui/dataList.cpp:593 src/gui/gui.cpp:5948
 msgid "Instruments"
-msgstr ""
+msgstr "乐器"
 
 #: src/gui/dataList.cpp:312 src/gui/dataList.cpp:714 src/gui/dataList.cpp:846
 #: src/gui/subSongs.cpp:88 src/gui/insEdit.cpp:520
 msgid "Add"
-msgstr ""
+msgstr "添加"
 
 #: src/gui/dataList.cpp:338 src/gui/dataList.cpp:721 src/gui/dataList.cpp:853
 #: src/gui/subSongs.cpp:108
 msgid "Duplicate"
-msgstr ""
+msgstr "克隆"
 
 #: src/gui/dataList.cpp:359 src/gui/dataList.cpp:728 src/gui/dataList.cpp:860
 #: src/gui/editControls.cpp:497 src/gui/waveEdit.cpp:435
 #: src/gui/waveEdit.cpp:467 src/gui/sampleEdit.cpp:122
 #: src/gui/sampleEdit.cpp:171 src/gui/insEdit.cpp:5244 src/gui/insEdit.cpp:5309
 msgid "Open"
-msgstr ""
+msgstr "打开"
 
 #: src/gui/dataList.cpp:363
 msgid "replace instrument..."
-msgstr ""
+msgstr "替换乐器..."
 
 #: src/gui/dataList.cpp:366
 msgid "load instrument from TX81Z"
@@ -3869,19 +3889,19 @@ msgstr ""
 
 #: src/gui/dataList.cpp:372
 msgid "replace wavetable..."
-msgstr ""
+msgstr "替换波表..."
 
 #: src/gui/dataList.cpp:378
 msgid "replace sample..."
-msgstr ""
+msgstr "替换采样..."
 
 #: src/gui/dataList.cpp:381
 msgid "import raw sample..."
-msgstr ""
+msgstr "导入raw采样"
 
 #: src/gui/dataList.cpp:384
 msgid "import raw sample (replace)..."
-msgstr ""
+msgstr "导入raw采样(替换)"
 
 #: src/gui/dataList.cpp:392
 msgid "load from TX81Z"
@@ -3889,150 +3909,150 @@ msgstr ""
 
 #: src/gui/dataList.cpp:399
 msgid "Open (insert; right-click to replace)"
-msgstr ""
+msgstr "打开(插入; 右键替换)"
 
 #: src/gui/dataList.cpp:420 src/gui/dataList.cpp:741 src/gui/dataList.cpp:884
 #: src/gui/editControls.cpp:502 src/gui/waveEdit.cpp:474
 #: src/gui/sampleEdit.cpp:184 src/gui/insEdit.cpp:5316
 msgid "Save"
-msgstr ""
+msgstr "保存"
 
 #: src/gui/dataList.cpp:424
 msgid "save instrument as .dmp..."
-msgstr ""
+msgstr "保存乐器为.dmp..."
 
 #: src/gui/dataList.cpp:430
 msgid "save wavetable as .dmw..."
-msgstr ""
+msgstr "保存波表为.dmw..."
 
 #: src/gui/dataList.cpp:433
 msgid "save raw wavetable..."
-msgstr ""
+msgstr "保存波表为 raw..."
 
 #: src/gui/dataList.cpp:439
 msgid "save raw sample..."
-msgstr ""
+msgstr "保存采样为 raw..."
 
 #: src/gui/dataList.cpp:443 src/gui/insEdit.cpp:5319
 msgid "save as .dmp..."
-msgstr ""
+msgstr "保存为 .dmp..."
 
 #: src/gui/dataList.cpp:456 src/gui/dataList.cpp:761 src/gui/dataList.cpp:903
 msgid "Toggle folders/standard view"
-msgstr ""
+msgstr "切换 文件夹/标准 列表方式"
 
 #: src/gui/dataList.cpp:478 src/gui/dataList.cpp:769 src/gui/dataList.cpp:911
 #: src/gui/subSongs.cpp:55
 msgid "Move up"
-msgstr ""
+msgstr "上移"
 
 #: src/gui/dataList.cpp:499 src/gui/dataList.cpp:776 src/gui/dataList.cpp:918
 #: src/gui/subSongs.cpp:62
 msgid "Move down"
-msgstr ""
+msgstr "下移"
 
 #: src/gui/dataList.cpp:510 src/gui/dataList.cpp:787 src/gui/dataList.cpp:929
 msgid "Create"
-msgstr ""
+msgstr "创建"
 
 #: src/gui/dataList.cpp:540 src/gui/dataList.cpp:797 src/gui/dataList.cpp:939
 msgid "New folder"
-msgstr ""
+msgstr "新文件夹"
 
 #: src/gui/dataList.cpp:549 src/gui/dataList.cpp:947
 msgid "Preview (right click to stop)"
-msgstr ""
+msgstr "预览(右键停止)"
 
 #: src/gui/dataList.cpp:576 src/gui/dataList.cpp:807 src/gui/dataList.cpp:959
 #: src/gui/guiConst.cpp:666 src/gui/sampleEdit.cpp:1118
 msgid "Delete"
-msgstr ""
+msgstr "删除"
 
 #: src/gui/dataList.cpp:608 src/gui/dataList.cpp:985 src/gui/dataList.cpp:1031
 msgid "<uncategorized>"
-msgstr ""
+msgstr "<未分类>"
 
 #: src/gui/dataList.cpp:614 src/gui/dataList.cpp:991 src/gui/dataList.cpp:1037
 msgid "rename..."
-msgstr ""
+msgstr "重命名..."
 
 #: src/gui/dataList.cpp:663 src/gui/dataList.cpp:707 src/gui/gui.cpp:5957
 msgid "Wavetables"
-msgstr ""
+msgstr "波表"
 
 #: src/gui/dataList.cpp:674 src/gui/dataList.cpp:839 src/gui/xyOsc.cpp:68
 #: src/gui/sampleEdit.cpp:911 src/gui/sampleEdit.cpp:1085 src/gui/gui.cpp:5966
 msgid "Samples"
-msgstr ""
+msgstr "采样"
 
 #: src/gui/dataList.cpp:745 src/gui/waveEdit.cpp:477
 msgid "save as .dmw..."
-msgstr ""
+msgstr "另存为 .dmw..."
 
 #: src/gui/dataList.cpp:748 src/gui/dataList.cpp:891 src/gui/waveEdit.cpp:480
 #: src/gui/sampleEdit.cpp:187
 msgid "save raw..."
-msgstr ""
+msgstr "保存raw数据"
 
 #: src/gui/dataList.cpp:871 src/gui/sampleEdit.cpp:174
 msgid "import raw..."
-msgstr ""
+msgstr "导入 raw 数据..."
 
 #: src/gui/dataList.cpp:874
 msgid "import raw (replace)..."
-msgstr ""
+msgstr "导入 raw(替换)..."
 
 #: src/gui/exportOptions.cpp:29
 msgid "Export type:"
-msgstr ""
+msgstr "导出类型:"
 
 #: src/gui/exportOptions.cpp:32
 msgid "one file"
-msgstr ""
+msgstr "单一文件"
 
 #: src/gui/exportOptions.cpp:35
 msgid "multiple files (one per chip)"
-msgstr ""
+msgstr "多个文件 (每通道一个)"
 
 #: src/gui/exportOptions.cpp:38
 msgid "multiple files (one per channel)"
-msgstr ""
+msgstr "多个文件 (每芯片一个)"
 
 #: src/gui/exportOptions.cpp:44
 msgid "Bit depth:"
-msgstr ""
+msgstr "位深"
 
 #: src/gui/exportOptions.cpp:46
 msgid "16-bit integer"
-msgstr ""
+msgstr "16位整数型"
 
 #: src/gui/exportOptions.cpp:49
 msgid "32-bit float"
-msgstr ""
+msgstr "32位浮点型"
 
 #: src/gui/exportOptions.cpp:55 src/gui/settings.cpp:1357 src/gui/gui.cpp:6304
 msgid "Sample rate"
-msgstr ""
+msgstr "采样率"
 
 #: src/gui/exportOptions.cpp:61
 msgid "Channels in file"
-msgstr ""
+msgstr "输出通道数"
 
 #: src/gui/exportOptions.cpp:67 src/gui/settings.cpp:935
 msgid "Loops"
-msgstr ""
+msgstr "循环次数"
 
 #: src/gui/exportOptions.cpp:70 src/gui/settings.cpp:940
 msgid "Fade out (seconds)"
-msgstr ""
+msgstr "淡出 (秒)"
 
 #: src/gui/exportOptions.cpp:76
 msgid "Channels to export:"
-msgstr ""
+msgstr "输出通道:"
 
 #: src/gui/exportOptions.cpp:78 src/gui/effectList.cpp:32 src/gui/gui.cpp:6220
 msgid "All"
-msgstr ""
+msgstr "所有"
 
 #: src/gui/exportOptions.cpp:84 src/gui/sysConf.cpp:1909
 #: src/gui/effectList.cpp:34 src/gui/compatFlags.cpp:219
@@ -4051,7 +4071,7 @@ msgstr ""
 #: src/gui/gui.cpp:5830 src/gui/gui.cpp:5889 src/gui/gui.cpp:6263
 #: src/gui/gui.cpp:6387
 msgid "Cancel"
-msgstr ""
+msgstr "取消"
 
 #: src/gui/exportOptions.cpp:115 src/gui/exportOptions.cpp:217
 #: src/gui/exportOptions.cpp:246 src/gui/exportOptions.cpp:289
@@ -4062,45 +4082,47 @@ msgstr ""
 #: src/gui/settings.cpp:3805 src/gui/guiConst.cpp:536 src/gui/gui.cpp:5612
 #: src/gui/gui.cpp:5664
 msgid "Export"
-msgstr ""
+msgstr "输出"
 
 #: src/gui/exportOptions.cpp:130
 msgid "select at least one channel"
-msgstr ""
+msgstr "至少选择一个通道"
 
 #: src/gui/exportOptions.cpp:137
 msgid "settings:"
-msgstr ""
+msgstr "选项"
 
 #: src/gui/exportOptions.cpp:138
 msgid "format version"
-msgstr ""
+msgstr "格式版本"
 
 #: src/gui/exportOptions.cpp:146 src/gui/exportOptions.cpp:238
 #: src/gui/insEdit.cpp:362
 msgid "loop"
-msgstr ""
+msgstr "循环"
 
 #: src/gui/exportOptions.cpp:148
 msgid "loop trail:"
-msgstr ""
+msgstr "循环结尾:"
 
 #: src/gui/exportOptions.cpp:150
 msgid "auto-detect"
-msgstr ""
+msgstr "自动检测"
 
 #: src/gui/exportOptions.cpp:153
 msgid "add one loop"
-msgstr ""
+msgstr "加一循环"
 
 #: src/gui/exportOptions.cpp:156
 msgid "custom"
-msgstr ""
+msgstr "手动"
 
+# 此块考虑后决定不作翻译,要用此功能的人大概率精通英语。
 #: src/gui/exportOptions.cpp:167
 msgid "add pattern change hints"
 msgstr ""
 
+# msgstr "添加pattern改变指示标签"
 #: src/gui/exportOptions.cpp:170
 msgid ""
 "inserts data blocks on pattern changes.\n"
@@ -4116,9 +4138,10 @@ msgid ""
 "pattern indexes are ordered as they appear in the song."
 msgstr ""
 
+# end of ommition 
 #: src/gui/exportOptions.cpp:183
 msgid "direct stream mode"
-msgstr ""
+msgstr "直接串流模式"
 
 #: src/gui/exportOptions.cpp:186
 msgid ""
@@ -4127,28 +4150,31 @@ msgid ""
 "allows for volume/direction changes when playing samples,\n"
 "at the cost of a massive increase in file size."
 msgstr ""
+"DualPCM 和 MSM6258导出时必须启用。\n"
+"\n"
+"以文件大小剧增换取采样的音量/播放方向的可变更性。"
 
 #: src/gui/exportOptions.cpp:191 src/gui/exportOptions.cpp:266
 msgid "chips to export:"
-msgstr ""
+msgstr "导出芯片:"
 
 #: src/gui/exportOptions.cpp:200
 #, c-format
 msgid "this chip is only available in VGM %d.%.2x and higher!"
-msgstr ""
+msgstr "此芯片仅在或高于 VGM %d.%.2x 版本中存在!"
 
 #: src/gui/exportOptions.cpp:204
 msgid "this chip is not supported by the VGM format!"
-msgstr ""
+msgstr "此芯片不被VGM格式所支持!"
 
 #: src/gui/exportOptions.cpp:210
 #, c-format
 msgid "select the chip you wish to export, but only up to %d of each type."
-msgstr ""
+msgstr "选择你想导出的芯片, 但每种不能超过 %d。"
 
 #: src/gui/exportOptions.cpp:222 src/gui/exportOptions.cpp:294
 msgid "nothing to export"
-msgstr ""
+msgstr "无可导出"
 
 #: src/gui/exportOptions.cpp:233
 msgid "Commander X16 Zsound Music File"
@@ -4156,11 +4182,11 @@ msgstr ""
 
 #: src/gui/exportOptions.cpp:234
 msgid "Tick Rate (Hz)"
-msgstr ""
+msgstr "导出刻率(Hz)"
 
 #: src/gui/exportOptions.cpp:240
 msgid "optimize size"
-msgstr ""
+msgstr "优化导出文件大小"
 
 #: src/gui/exportOptions.cpp:255
 msgid "for use with TIunA driver. outputs asm source."
@@ -4179,13 +4205,15 @@ msgid "max size in other banks"
 msgstr ""
 
 #: src/gui/exportOptions.cpp:276
+#, fuzzy
 msgid "this chip is not supported by the file format!"
-msgstr ""
+msgstr "此芯片不被VGM格式所支持!"
 
 #: src/gui/exportOptions.cpp:278
 msgid "only one Atari TIA is supported!"
 msgstr ""
 
+# 极可能会变更的功能，不作翻译。
 #: src/gui/exportOptions.cpp:306 src/gui/editControls.cpp:630
 msgid ""
 "this is NOT ROM export! only use for making sure the\n"
@@ -4193,23 +4221,27 @@ msgid ""
 "comparing it with real Amiga output."
 msgstr ""
 
+# end of no translate
 #: src/gui/exportOptions.cpp:311 src/gui/editControls.cpp:635
 #: src/gui/settings.cpp:3930
 msgid "Directory"
-msgstr ""
+msgstr "目录"
 
 #: src/gui/exportOptions.cpp:319 src/gui/editControls.cpp:638
 msgid "Bake Data"
-msgstr ""
+msgstr "开始烘培数据"
 
+# 得。这真难倒我了。如何保留英语愿意，信，而又易与理解，达。天天烤面食一看就懂。 
+# 但这里就北方最多可能会天天蒸馒头.....
+# 彳亍口吧，索性牺牲些雅，并bank on网络的外国饮食习惯介绍。硬塞一个面包改善易解性。
 #: src/gui/exportOptions.cpp:334 src/gui/editControls.cpp:653
 #, c-format
 msgid "Done! Baked %d files."
-msgstr ""
+msgstr "叮! 烤好了 %d 个文件( 面包 ;)。"
 
 #: src/gui/exportOptions.cpp:343
 msgid "this option exports the song to a text file.\n"
-msgstr ""
+msgstr "此选项导出曲目为文本文件.\n"
 
 #: src/gui/exportOptions.cpp:360
 msgid ""
@@ -4219,6 +4251,10 @@ msgid ""
 "\n"
 "technical/development use only!"
 msgstr ""
+"此项导出一个包含在播放时运用的内部指令流\n"
+"的文本或二进制文件\n"
+"\n"
+"仅用于高级/开发运用!"
 
 #: src/gui/exportOptions.cpp:381
 msgid ""
@@ -4226,15 +4262,18 @@ msgid ""
 "only do it if you really, really need to, or are downgrading an existing ."
 "dmf."
 msgstr ""
+"导出为DefleMask module 格式。\n"
+"除非你真的真的需要，或你要降级一个现存的 .dmf "
 
 #: src/gui/exportOptions.cpp:385
 msgid "format version:"
-msgstr ""
+msgstr "格式版本:"
 
 #: src/gui/exportOptions.cpp:386
 msgid "1.1.3 and higher"
-msgstr ""
+msgstr "1.1.3 或更高"
 
+# unclear what he means above, skip for now.
 #: src/gui/exportOptions.cpp:387
 msgid "1.0/legacy (0.12)"
 msgstr ""
@@ -4242,7 +4281,7 @@ msgstr ""
 #: src/gui/exportOptions.cpp:407 src/gui/settings.cpp:1258
 #: src/gui/settings.cpp:3934
 msgid "Audio"
-msgstr ""
+msgstr "音频"
 
 #: src/gui/exportOptions.cpp:411 src/gui/settings.cpp:3936
 msgid "VGM"
@@ -4259,16 +4298,17 @@ msgstr ""
 #: src/gui/exportOptions.cpp:448 src/gui/settings.cpp:2964
 #: src/gui/settings.cpp:3896
 msgid "Text"
-msgstr ""
+msgstr "文本文件"
 
 #: src/gui/exportOptions.cpp:452
 msgid "Command Stream"
-msgstr ""
+msgstr "命令串流"
 
 #: src/gui/exportOptions.cpp:456
 msgid "DMF"
 msgstr ""
 
+# 不翻译，性质特殊且极可能随时更改。
 #: src/gui/exportOptions.cpp:488
 msgid "congratulations! you've unlocked a secret panel."
 msgstr ""
@@ -4307,11 +4347,12 @@ msgid ""
 "you get here."
 msgstr ""
 
+# end of no translate zone.
 #: src/gui/speed.cpp:32 src/gui/speed.cpp:102 src/gui/editControls.cpp:532
 #: src/gui/sysConf.cpp:2188 src/gui/guiConst.cpp:232 src/gui/guiConst.cpp:581
 #: src/gui/insEdit.cpp:2028 src/gui/insEdit.cpp:5698 src/gui/insEdit.cpp:6890
 msgid "Speed"
-msgstr ""
+msgstr "速度"
 
 #: src/gui/speed.cpp:41
 msgid "Base Tempo##TempoOrHz"
@@ -4323,11 +4364,11 @@ msgstr ""
 
 #: src/gui/speed.cpp:46
 msgid "click to display tick rate"
-msgstr ""
+msgstr "单击以显示tick rate"
 
 #: src/gui/speed.cpp:48
 msgid "click to display base tempo"
-msgstr ""
+msgstr "单价以显示base tempo"
 
 #: src/gui/speed.cpp:80
 msgid "Groove"
@@ -4335,19 +4376,19 @@ msgstr ""
 
 #: src/gui/speed.cpp:87
 msgid "click for one speed"
-msgstr ""
+msgstr "单击以设置为单一速度"
 
 #: src/gui/speed.cpp:90
 msgid "Speeds"
-msgstr ""
+msgstr "双速度"
 
 #: src/gui/speed.cpp:99
 msgid "click for groove pattern"
-msgstr ""
+msgstr "单击以设置为groove pattern"
 
 #: src/gui/speed.cpp:110
 msgid "click for two (alternating) speeds"
-msgstr ""
+msgstr "单价以设置为两个（交变）速度"
 
 #: src/gui/speed.cpp:168
 msgid "Virtual Tempo"
@@ -4367,20 +4408,20 @@ msgstr ""
 
 #: src/gui/speed.cpp:208
 msgid "Highlight"
-msgstr ""
+msgstr "高亮"
 
 #: src/gui/speed.cpp:231
 msgid "Pattern Length"
-msgstr ""
+msgstr "Pattern 长度"
 
 #: src/gui/speed.cpp:245
 msgid "Song Length"
-msgstr ""
+msgstr "曲目长度"
 
 #: src/gui/channels.cpp:40 src/gui/editControls.cpp:446
 #: src/gui/guiConst.cpp:601 src/gui/gui.cpp:6314
 msgid "Channels"
-msgstr ""
+msgstr "通道"
 
 #: src/gui/channels.cpp:49
 msgid "Pat"
@@ -4399,15 +4440,15 @@ msgstr ""
 #: src/gui/settings.cpp:4388 src/gui/sampleEdit.cpp:195 src/gui/songInfo.cpp:40
 #: src/gui/sysManager.cpp:54 src/gui/insEdit.cpp:5293
 msgid "Name"
-msgstr ""
+msgstr "名称"
 
 #: src/gui/channels.cpp:64
 msgid "Show in pattern"
-msgstr ""
+msgstr "在pattern 中显示"
 
 #: src/gui/channels.cpp:71
 msgid "Show in per-channel oscilloscope"
-msgstr ""
+msgstr "在全通道示波器中显示"
 
 #: src/gui/channels.cpp:82
 #, c-format
@@ -4415,48 +4456,50 @@ msgid ""
 "%s #%d\n"
 "(drag to swap channels)"
 msgstr ""
+"%s #%d\n"
+"(拖动以交换通道)"
 
 #: src/gui/commandPalette.cpp:51 src/gui/sysPicker.cpp:35
 #: src/gui/newSong.cpp:133
 msgid "Search..."
-msgstr ""
+msgstr "搜索..."
 
 #: src/gui/commandPalette.cpp:54
 msgid "Search recent files..."
-msgstr ""
+msgstr "搜索最近打开文件..."
 
 #: src/gui/commandPalette.cpp:57
 msgid "Search instruments..."
-msgstr ""
+msgstr "搜索乐器..."
 
 #: src/gui/commandPalette.cpp:60
 msgid "Search samples..."
-msgstr ""
+msgstr "搜索采样..."
 
 #: src/gui/commandPalette.cpp:63
 msgid "Search instruments (to change to)..."
-msgstr ""
+msgstr "搜索乐器(以替换为...)"
 
 #: src/gui/commandPalette.cpp:66
 msgid "Search chip (to add)..."
-msgstr ""
+msgstr "搜索芯片(以添加...)"
 
 #: src/gui/commandPalette.cpp:93 src/gui/commandPalette.cpp:167
 msgid "- None -"
-msgstr ""
+msgstr "- 空 -"
 
 #: src/gui/commandPalette.cpp:123 src/gui/commandPalette.cpp:179
 #: src/gui/commandPalette.cpp:241
 msgid "invalid command palette type"
-msgstr ""
+msgstr "无效命令模板类型"
 
 #: src/gui/regView.cpp:30 src/gui/guiConst.cpp:604
 msgid "Register View"
-msgstr ""
+msgstr "寄存器"
 
 #: src/gui/regView.cpp:38
 msgid "- no register pool available"
-msgstr ""
+msgstr "- 无寄存器池可显示"
 
 #: src/gui/log.cpp:25 src/gui/effectList.cpp:84
 msgid "ERROR"
@@ -4511,37 +4554,38 @@ msgstr ""
 msgid "Pattern"
 msgstr ""
 
+# end of don't know what it does.
 #: src/gui/pattern.cpp:468
 msgid "there aren't any channels to show."
-msgstr ""
+msgstr "无可展示通道"
 
 #: src/gui/pattern.cpp:492
 msgid "click for pattern options (effect columns/pattern names/visualizer)"
-msgstr ""
+msgstr "单击显示pattern选项 (效果列/pattern 名称/可视化)"
 
 #: src/gui/pattern.cpp:504
 msgid "Options:"
-msgstr ""
+msgstr "选项"
 
 #: src/gui/pattern.cpp:506
 msgid "Effect columns/collapse"
-msgstr ""
+msgstr "显示效果列与通道隐藏控制"
 
 #: src/gui/pattern.cpp:507
 msgid "Pattern names"
-msgstr ""
+msgstr "显示Pattern 名称"
 
 #: src/gui/pattern.cpp:508
 msgid "Channel group hints"
-msgstr ""
+msgstr "显示通道相关性"
 
 #: src/gui/pattern.cpp:509
 msgid "Visualizer"
-msgstr ""
+msgstr "可视化"
 
 #: src/gui/pattern.cpp:517
 msgid "Channel status:"
-msgstr ""
+msgstr "通道状态显示:"
 
 #: src/gui/pattern.cpp:519
 msgid "No##_PCS0"
@@ -4553,23 +4597,23 @@ msgstr ""
 
 #: src/gui/pattern.cpp:1420 src/gui/pattern.cpp:1452
 msgid "WARNING!!"
-msgstr ""
+msgstr "警告!!"
 
 #: src/gui/pattern.cpp:1422 src/gui/pattern.cpp:1459
 msgid "this instrument cannot be previewed because"
-msgstr ""
+msgstr "此乐器无法预览"
 
 #: src/gui/pattern.cpp:1423 src/gui/pattern.cpp:1466
 msgid "none of the chips can play it"
-msgstr ""
+msgstr "所有选中芯片均无法应用此乐器"
 
 #: src/gui/pattern.cpp:1424 src/gui/pattern.cpp:1473
 msgid "your instrument is in peril!! be careful..."
-msgstr ""
+msgstr "乐器身陷险境中!! 小心..."
 
 #: src/gui/osc.cpp:169 src/gui/settings.cpp:3715 src/gui/settings.cpp:3942
 msgid "Oscilloscope"
-msgstr ""
+msgstr "示波器"
 
 #: src/gui/osc.cpp:176
 #, c-format
@@ -4583,7 +4627,7 @@ msgstr ""
 
 #: src/gui/osc.cpp:385
 msgid "(-Infinity)dB"
-msgstr ""
+msgstr "(-Inf)dB"
 
 #: src/gui/debugWindow.cpp:66 src/gui/editControls.cpp:610
 msgid "Debug"
@@ -4618,16 +4662,16 @@ msgstr ""
 
 #: src/gui/chanOsc.cpp:36
 msgid "Frequency"
-msgstr ""
+msgstr "频率"
 
 #: src/gui/chanOsc.cpp:38 src/gui/settings.cpp:1672 src/gui/settings.cpp:3411
 #: src/gui/settings.cpp:4093
 msgid "Channel"
-msgstr ""
+msgstr "通道"
 
 #: src/gui/chanOsc.cpp:39
 msgid "Brightness"
-msgstr ""
+msgstr "亮度"
 
 #: src/gui/chanOsc.cpp:41
 msgid "Note Trigger"
@@ -4635,7 +4679,7 @@ msgstr ""
 
 #: src/gui/chanOsc.cpp:45
 msgid "Off"
-msgstr ""
+msgstr "关闭"
 
 #: src/gui/chanOsc.cpp:46
 msgid "Mode 1"
@@ -4651,11 +4695,11 @@ msgstr ""
 
 #: src/gui/chanOsc.cpp:135 src/gui/guiConst.cpp:607
 msgid "Oscilloscope (per-channel)"
-msgstr ""
+msgstr "全通道示波器"
 
 #: src/gui/chanOsc.cpp:143
 msgid "Columns"
-msgstr ""
+msgstr "列"
 
 #: src/gui/chanOsc.cpp:152
 msgid "Size (ms)"
@@ -4663,69 +4707,69 @@ msgstr ""
 
 #: src/gui/chanOsc.cpp:163
 msgid "Automatic columns"
-msgstr ""
+msgstr "自动设置列"
 
 #: src/gui/chanOsc.cpp:177
 msgid "Center waveform"
-msgstr ""
+msgstr "波形居中"
 
 #: src/gui/chanOsc.cpp:183
 msgid "Randomize phase on note"
-msgstr ""
+msgstr "每个键都随机化相位"
 
 #: src/gui/chanOsc.cpp:189
 msgid "Amplitude"
-msgstr ""
+msgstr "振幅"
 
 #: src/gui/chanOsc.cpp:199 src/gui/settings.cpp:3752
 msgid "Line size"
-msgstr ""
+msgstr "线宽"
 
 #: src/gui/chanOsc.cpp:211
 msgid "Gradient"
-msgstr ""
+msgstr "渐变"
 
 #: src/gui/chanOsc.cpp:218
 msgid "error while creating gradient texture!"
-msgstr ""
+msgstr "创建渐变材质时出错！"
 
 #: src/gui/chanOsc.cpp:236
 msgid "error while updating gradient texture!"
-msgstr ""
+msgstr "更新渐变材质时出错！"
 
 #: src/gui/chanOsc.cpp:292 src/gui/chanOsc.cpp:348 src/gui/settings.cpp:3798
 msgid "Color"
-msgstr ""
+msgstr "颜色"
 
 #: src/gui/chanOsc.cpp:296
 msgid "Distance"
-msgstr ""
+msgstr "距离"
 
 #: src/gui/chanOsc.cpp:305
 msgid "Spread"
-msgstr ""
+msgstr "扩散 "
 
 #: src/gui/chanOsc.cpp:314 src/gui/userPresets.cpp:370 src/gui/subSongs.cpp:121
 #: src/gui/settings.cpp:2286 src/gui/sysManager.cpp:124
 msgid "Remove"
-msgstr ""
+msgstr "移除"
 
 #: src/gui/chanOsc.cpp:338 src/gui/settings.cpp:3890 src/gui/settings.cpp:4170
 #: src/gui/settings.cpp:4197 src/gui/settings.cpp:4223
 msgid "Background"
-msgstr ""
+msgstr "背景"
 
 #: src/gui/chanOsc.cpp:341
 msgid "X Axis##AxisX"
-msgstr ""
+msgstr "X 轴##AxisX"
 
 #: src/gui/chanOsc.cpp:342
 msgid "Y Axis##AxisY"
-msgstr ""
+msgstr "Y 轴##AxisY"
 
 #: src/gui/chanOsc.cpp:352
 msgid "Text format:"
-msgstr ""
+msgstr "文字格式:"
 
 #: src/gui/chanOsc.cpp:358
 msgid ""
@@ -4750,13 +4794,13 @@ msgstr ""
 
 #: src/gui/chanOsc.cpp:380
 msgid "Text color"
-msgstr ""
+msgstr "文字颜色"
 
 #: src/gui/chanOsc.cpp:382 src/gui/xyOsc.cpp:80 src/gui/settings.cpp:6926
 #: src/gui/tutorial.cpp:689 src/gui/gui.cpp:5673 src/gui/gui.cpp:6089
 #: src/gui/gui.cpp:6257 src/gui/gui.cpp:6356 src/gui/gui.cpp:6405
 msgid "OK"
-msgstr ""
+msgstr "确认"
 
 #: src/gui/chanOsc.cpp:400
 msgid "creating chan osc work pool"
@@ -4779,175 +4823,217 @@ msgstr ""
 msgid "failed to create FFT buffers"
 msgstr ""
 
+# warring! above!
 #: src/gui/chanOsc.cpp:585
 msgid "Error!"
-msgstr ""
+msgstr "错误!"
 
 #: src/gui/editControls.cpp:47 src/gui/sampleEdit.cpp:1749 src/gui/gui.cpp:2745
 #: src/gui/insEdit.cpp:363
 msgid "cut"
-msgstr ""
+msgstr "剪切"
 
 #: src/gui/editControls.cpp:48 src/gui/sampleEdit.cpp:1753 src/gui/gui.cpp:2746
 #: src/gui/insEdit.cpp:7553
 msgid "copy"
-msgstr ""
+msgstr "复制"
 
 #: src/gui/editControls.cpp:49 src/gui/sampleEdit.cpp:1757 src/gui/gui.cpp:2747
 #: src/gui/gui.cpp:2800 src/gui/insEdit.cpp:7558
 msgid "paste"
-msgstr ""
+msgstr "粘贴"
 
+# this does not look right. it's not the select all in GUI
+# update note,
+# this is for the moblie view.
+# to init it,
+# open bruno_time.fur
+# settings cheatcode
+# enter "Debug", hit submit.
 #: src/gui/editControls.cpp:51
 msgid ""
 "select\n"
 "all"
 msgstr ""
+"全\n"
+"选"
 
+# yeah.......there's notihing I can do about this.
 #: src/gui/editControls.cpp:52
 msgid "piano"
-msgstr ""
+msgstr "钢琴键"
 
+# warring! above!
 #: src/gui/editControls.cpp:53 src/gui/gui.cpp:4441
 msgid "undo"
-msgstr ""
+msgstr "撤销"
 
 #: src/gui/editControls.cpp:54 src/gui/gui.cpp:4442
 msgid "redo"
-msgstr ""
+msgstr "重做"
 
 #: src/gui/editControls.cpp:57
 msgid ""
 "paste\n"
 "mix"
 msgstr ""
+"粘贴\n"
+"混合"
 
 #: src/gui/editControls.cpp:58
 msgid ""
 "paste\n"
 "mix bg"
 msgstr ""
+"粘贴\n"
+"混合(后置)"
 
 #: src/gui/editControls.cpp:59
 msgid ""
 "paste\n"
 "ins"
 msgstr ""
+"粘贴混合\n"
+"带乐器(前)"
 
 #: src/gui/editControls.cpp:60
 msgid ""
 "paste\n"
 "ins bg"
 msgstr ""
+"粘贴混合\n"
+"带乐器(后)"
 
 #: src/gui/editControls.cpp:61
 msgid ""
 "paste\n"
 "flood"
 msgstr ""
+"重复\n"
+"粘贴"
 
 #: src/gui/editControls.cpp:62
 msgid ""
 "paste\n"
 "overflow"
 msgstr ""
+"溢出重复\n"
+"粘贴"
 
 #: src/gui/editControls.cpp:63
 msgid ""
 "transpose\n"
 "notes"
 msgstr ""
+"notes\n"
+"变调"
 
 #: src/gui/editControls.cpp:64
 msgid ""
 "transpose\n"
 "values"
 msgstr ""
+"变更\n"
+"数值"
 
 #: src/gui/editControls.cpp:67
 msgid ""
 "change\n"
 "ins"
 msgstr ""
+"修改\n"
+"乐器"
 
 #: src/gui/editControls.cpp:68
 msgid ""
 "find/\n"
 "replace"
 msgstr ""
+"查找/\n"
+"替换"
 
 #: src/gui/editControls.cpp:69 src/gui/gui.cpp:3075
 msgid "collapse"
-msgstr ""
+msgstr "缩进"
 
 #: src/gui/editControls.cpp:70 src/gui/gui.cpp:3076
 msgid "expand"
-msgstr ""
+msgstr "扩张"
 
+# what is a flip???? skipping now.
 #: src/gui/editControls.cpp:71 src/gui/gui.cpp:2832
 msgid "flip"
 msgstr ""
 
+# end of no translate.
 #: src/gui/editControls.cpp:72 src/gui/insEdit.cpp:430
 msgid "invert"
-msgstr ""
+msgstr "反相"
 
 #: src/gui/editControls.cpp:73 src/gui/gui.cpp:2812 src/gui/gui.cpp:2972
 msgid "interpolate"
-msgstr ""
+msgstr "插值"
 
 #: src/gui/editControls.cpp:74 src/gui/gui.cpp:2824 src/gui/insEdit.cpp:7625
 msgid "scale"
-msgstr ""
+msgstr "缩放"
 
 #: src/gui/editControls.cpp:77 src/gui/gui.cpp:2816
 msgid "fade"
-msgstr ""
+msgstr "淡出/入"
 
 #: src/gui/editControls.cpp:78 src/gui/gui.cpp:2828 src/gui/insEdit.cpp:7654
 msgid "randomize"
-msgstr ""
+msgstr "随机化"
 
 #: src/gui/editControls.cpp:79
 msgid "opmask"
-msgstr ""
+msgstr "操作掩码"
 
 #: src/gui/editControls.cpp:80
 msgid ""
 "scroll\n"
 "mode"
 msgstr ""
+"翻页\n"
+"模式"
 
 #: src/gui/editControls.cpp:81
 msgid ""
 "input\n"
 "latch"
 msgstr ""
+"输入\n"
+"锁存器"
 
 #: src/gui/editControls.cpp:82
 msgid ""
 "set\n"
 "latch"
 msgstr ""
+"设置\n"
+"锁存器"
 
 #: src/gui/editControls.cpp:83
 msgid ""
 "clear\n"
 "latch"
 msgstr ""
+"清除\n"
+"锁存器"
 
 #: src/gui/editControls.cpp:84 src/gui/findReplace.cpp:43
 #: src/gui/insEdit.cpp:7572
 msgid "clear"
-msgstr ""
+msgstr "清除"
 
 #: src/gui/editControls.cpp:333
 msgid "Mobile Controls"
-msgstr ""
+msgstr "移动端控制"
 
 #: src/gui/editControls.cpp:408
 msgid "Mobile Menu"
-msgstr ""
+msgstr "移动端菜单"
 
 #: src/gui/editControls.cpp:425 src/gui/editControls.cpp:752
 #: src/gui/editControls.cpp:885 src/gui/editControls.cpp:1007
@@ -4960,16 +5046,16 @@ msgstr ""
 #: src/gui/editControls.cpp:429 src/gui/findReplace.cpp:669
 #: src/gui/findReplace.cpp:914
 msgid "Ins"
-msgstr ""
+msgstr "乐器"
 
 #: src/gui/editControls.cpp:442 src/gui/findReplace.cpp:788
 #: src/gui/guiConst.cpp:230
 msgid "Song"
-msgstr ""
+msgstr "曲目"
 
 #: src/gui/editControls.cpp:450 src/gui/sampleEdit.cpp:494
 msgid "Chips"
-msgstr ""
+msgstr "芯片"
 
 #: src/gui/editControls.cpp:458 src/gui/settings.cpp:2122
 #: src/gui/settings.cpp:3939 src/gui/settings.cpp:4023
@@ -4979,36 +5065,38 @@ msgstr ""
 
 #: src/gui/editControls.cpp:487 src/gui/guiConst.cpp:531
 msgid "New"
-msgstr ""
+msgstr "新建"
 
 #: src/gui/editControls.cpp:491 src/gui/doAction.cpp:38 src/gui/gui.cpp:4206
 msgid "Unsaved changes! Save changes before creating a new song?"
-msgstr ""
+msgstr "未保存! 要保存当前进度吗？"
 
 #: src/gui/editControls.cpp:507
 msgid "Save as..."
-msgstr ""
+msgstr "另存为..."
 
 #: src/gui/editControls.cpp:516 src/gui/gui.cpp:1684
 msgid "Restore Backup"
-msgstr ""
+msgstr "恢复备份"
 
 #: src/gui/editControls.cpp:524
 msgid "Song Info"
-msgstr ""
+msgstr "曲目信息"
 
 #: src/gui/editControls.cpp:528 src/gui/subSongs.cpp:17
 #: src/gui/guiConst.cpp:608
 msgid "Subsongs"
-msgstr ""
+msgstr "子曲目"
 
+# no tranlsate for I have no idea what's what....
+# update, it's the moblie view related.
 #: src/gui/editControls.cpp:541
 msgid "Channels here..."
-msgstr ""
+msgstr "通道所在..."
 
 #: src/gui/editControls.cpp:544
 msgid "Chips here..."
-msgstr ""
+msgstr "芯片所在..."
 
 #: src/gui/editControls.cpp:547
 msgid "What the hell..."
@@ -5016,15 +5104,15 @@ msgstr ""
 
 #: src/gui/editControls.cpp:554
 msgid "ChanOsc"
-msgstr ""
+msgstr "通道示波"
 
 #: src/gui/editControls.cpp:558
 msgid "RegView"
-msgstr ""
+msgstr "寄存显示"
 
 #: src/gui/editControls.cpp:562
 msgid "Stats"
-msgstr ""
+msgstr "数据"
 
 #: src/gui/editControls.cpp:566 src/gui/guiConst.cpp:611 src/gui/grooves.cpp:35
 msgid "Grooves"
@@ -5032,19 +5120,19 @@ msgstr ""
 
 #: src/gui/editControls.cpp:569
 msgid "Compat Flags"
-msgstr ""
+msgstr "兼容标识"
 
 #: src/gui/editControls.cpp:573
 msgid "XYOsc"
-msgstr ""
+msgstr "矢量示波"
 
 #: src/gui/editControls.cpp:577
 msgid "Meter"
-msgstr ""
+msgstr "响度表"
 
 #: src/gui/editControls.cpp:581
 msgid "Memory"
-msgstr ""
+msgstr "内存"
 
 #: src/gui/editControls.cpp:585
 msgid "CV"
@@ -5052,11 +5140,11 @@ msgstr ""
 
 #: src/gui/editControls.cpp:589
 msgid "Presets"
-msgstr ""
+msgstr "用户预设"
 
 #: src/gui/editControls.cpp:593
 msgid "PatManager"
-msgstr ""
+msgstr "Pat.管理"
 
 #: src/gui/editControls.cpp:599 src/gui/guiConst.cpp:564
 msgid "Panic"
@@ -5065,7 +5153,7 @@ msgstr ""
 #: src/gui/editControls.cpp:601 src/gui/settings.cpp:562
 #: src/gui/guiConst.cpp:589 src/gui/guiConst.cpp:591 src/gui/gui.cpp:4451
 msgid "Settings"
-msgstr ""
+msgstr "设置"
 
 #: src/gui/editControls.cpp:606
 msgid "Log"
@@ -5073,16 +5161,17 @@ msgstr ""
 
 #: src/gui/editControls.cpp:614 src/gui/guiConst.cpp:587
 msgid "About"
-msgstr ""
+msgstr "关于"
 
+# warring! above!
 #: src/gui/editControls.cpp:619
 msgid "Switch to Desktop Mode"
-msgstr ""
+msgstr "切换到桌面模式"
 
 #: src/gui/editControls.cpp:673 src/gui/editControls.cpp:784
 #: src/gui/editControls.cpp:904
 msgid "Play/Edit Controls"
-msgstr ""
+msgstr "播放/编辑 控制"
 
 #: src/gui/editControls.cpp:681 src/gui/editControls.cpp:842
 #: src/gui/editControls.cpp:959 src/gui/editControls.cpp:1125
@@ -5095,35 +5184,35 @@ msgstr ""
 
 #: src/gui/editControls.cpp:698 src/gui/editControls.cpp:857
 msgid "Edit Step"
-msgstr ""
+msgstr "编辑步进"
 
 #: src/gui/editControls.cpp:731 src/gui/editControls.cpp:797
 #: src/gui/editControls.cpp:911 src/gui/editControls.cpp:1048
 #: src/gui/guiConst.cpp:545
 msgid "Play"
-msgstr ""
+msgstr "播放"
 
 #: src/gui/editControls.cpp:739 src/gui/editControls.cpp:789
 #: src/gui/editControls.cpp:918 src/gui/editControls.cpp:1040
 #: src/gui/guiConst.cpp:546
 msgid "Stop"
-msgstr ""
+msgstr "停止"
 
 #: src/gui/editControls.cpp:742 src/gui/editControls.cpp:826
 #: src/gui/editControls.cpp:943 src/gui/editControls.cpp:1082
 #: src/gui/gui.cpp:4438
 msgid "Edit"
-msgstr ""
+msgstr "编辑"
 
 #: src/gui/editControls.cpp:757 src/gui/editControls.cpp:816
 #: src/gui/editControls.cpp:934 src/gui/editControls.cpp:1104
 msgid "Repeat pattern"
-msgstr ""
+msgstr "重复当前Pattern"
 
 #: src/gui/editControls.cpp:766 src/gui/editControls.cpp:806
 #: src/gui/editControls.cpp:925 src/gui/editControls.cpp:1073
 msgid "Step one row"
-msgstr ""
+msgstr "步进一行"
 
 #: src/gui/editControls.cpp:771 src/gui/editControls.cpp:891
 #: src/gui/editControls.cpp:1020 src/gui/editControls.cpp:1110
@@ -5138,7 +5227,7 @@ msgstr ""
 #: src/gui/editControls.cpp:776 src/gui/editControls.cpp:896
 #: src/gui/editControls.cpp:1025 src/gui/editControls.cpp:1115
 msgid "Polyphony"
-msgstr ""
+msgstr "多、单复音预览"
 
 #: src/gui/editControls.cpp:957
 msgid "Oct."
@@ -5166,35 +5255,35 @@ msgstr ""
 
 #: src/gui/editControls.cpp:1033
 msgid "Play Controls"
-msgstr ""
+msgstr "播放控制"
 
 #: src/gui/editControls.cpp:1057
 msgid "Play from the beginning of this pattern"
-msgstr ""
+msgstr "从此Pattern起始处播放"
 
 #: src/gui/editControls.cpp:1065
 msgid "Repeat from the beginning of this pattern"
-msgstr ""
+msgstr "从此Pattern起始处重复"
 
 #: src/gui/editControls.cpp:1122 src/gui/guiConst.cpp:576
 msgid "Edit Controls"
-msgstr ""
+msgstr "编辑控制"
 
 #: src/gui/editControls.cpp:1169 src/gui/guiConst.cpp:560
 msgid "Follow orders"
-msgstr ""
+msgstr "跟随Orders"
 
 #: src/gui/editControls.cpp:1170 src/gui/guiConst.cpp:561
 msgid "Follow pattern"
-msgstr ""
+msgstr "跟随Pattren"
 
 #: src/gui/songNotes.cpp:32 src/gui/guiConst.cpp:600
 msgid "Song Comments"
-msgstr ""
+msgstr "留言"
 
 #: src/gui/util.cpp:93
 msgid "<nothing>"
-msgstr ""
+msgstr "<空>"
 
 #: src/gui/util.cpp:97
 msgid "Ctrl-"
@@ -5210,67 +5299,68 @@ msgstr ""
 
 #: src/gui/stats.cpp:31 src/gui/guiConst.cpp:597
 msgid "Statistics"
-msgstr ""
+msgstr "统计数据"
 
 #: src/gui/stats.cpp:36
 msgid "Audio load"
-msgstr ""
+msgstr "音频负载"
 
 #: src/gui/xyOsc.cpp:40 src/gui/guiConst.cpp:612
 msgid "Oscilloscope (X-Y)"
-msgstr ""
+msgstr "矢量示波器(X-Y)"
 
 #: src/gui/xyOsc.cpp:45
 msgid "X Channel"
-msgstr ""
+msgstr "X 通道"
 
 #: src/gui/xyOsc.cpp:51
 msgid "Invert##X"
-msgstr ""
+msgstr "反相##X"
 
 #: src/gui/xyOsc.cpp:52
 msgid "Y Channel"
-msgstr ""
+msgstr "Y 通道"
 
 #: src/gui/xyOsc.cpp:58
 msgid "Invert##Y"
-msgstr ""
+msgstr "反相##Y"
 
 #: src/gui/xyOsc.cpp:59 src/gui/sampleEdit.cpp:1366
 msgid "Zoom"
-msgstr ""
+msgstr "放大"
 
 #: src/gui/xyOsc.cpp:71
 msgid "Decay Time (ms)"
-msgstr ""
+msgstr "衰减时长(ms)"
 
 #: src/gui/xyOsc.cpp:74
 msgid "Intensity"
-msgstr ""
+msgstr "亮度"
 
 #: src/gui/xyOsc.cpp:77
 msgid "Line Thickness"
-msgstr ""
+msgstr "线宽"
 
 #: src/gui/xyOsc.cpp:213
 msgid "(-Infinity)dB,(-Infinity)dB"
-msgstr ""
+msgstr "(-Inf)dB,(-Inf)dB"
 
 #: src/gui/xyOsc.cpp:215
 #, c-format
 msgid "(-Infinity)dB,%.1fdB"
-msgstr ""
+msgstr "(-Inf)dB,%.1fdB"
 
 #: src/gui/xyOsc.cpp:217
 #, c-format
 msgid "%.1fdB,(-Infinity)dB"
-msgstr ""
+msgstr "%.1fdB,(-Inf)dB"
 
 #: src/gui/xyOsc.cpp:219
 #, c-format
 msgid "%.1fdB,%.1fdB"
-msgstr ""
+msgstr "%.1fdB,%.1fdB"
 
+# no translate, for these are technical data. skipping.
 #: src/gui/sysConf.cpp:49 src/gui/sysConf.cpp:121 src/gui/sysConf.cpp:486
 #: src/gui/sysConf.cpp:604 src/gui/sysConf.cpp:647 src/gui/sysConf.cpp:684
 #: src/gui/sysConf.cpp:843 src/gui/sysConf.cpp:1112 src/gui/sysConf.cpp:1195
@@ -5649,7 +5739,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:604 src/gui/insEdit.cpp:1983 src/gui/insEdit.cpp:6963
 #: src/gui/insEdit.cpp:7499
 msgid "Release"
-msgstr ""
+msgstr "释放位点"
 
 #: src/gui/sysConf.cpp:737
 msgid "Envelope reset time:"
@@ -5845,7 +5935,7 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1079 src/gui/settings.cpp:3729
 msgid "Mono"
-msgstr ""
+msgstr "单声道"
 
 #: src/gui/sysConf.cpp:1083
 msgid "Mono (no distortion)"
@@ -5921,8 +6011,9 @@ msgid "Scale frequency to wave length"
 msgstr ""
 
 #: src/gui/sysConf.cpp:1292
+#, fuzzy
 msgid "Amiga channel volumes (64)"
-msgstr ""
+msgstr "通道音量条:"
 
 #: src/gui/sysConf.cpp:1296
 msgid "Amiga-like pitch (non-linear pitch only)"
@@ -6098,8 +6189,9 @@ msgid "Output bit depth:"
 msgstr ""
 
 #: src/gui/sysConf.cpp:1897
+#, fuzzy
 msgid "Maximum volume:"
-msgstr ""
+msgstr "最大值"
 
 #: src/gui/sysConf.cpp:1907
 msgid "Interpolation:"
@@ -6107,11 +6199,11 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1913 src/gui/waveEdit.cpp:38
 msgid "Linear"
-msgstr ""
+msgstr "线性"
 
 #: src/gui/sysConf.cpp:1917 src/gui/waveEdit.cpp:40
 msgid "Cubic"
-msgstr ""
+msgstr "立方"
 
 #: src/gui/sysConf.cpp:1921
 msgid "Sinc"
@@ -6277,7 +6369,7 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:2505 src/gui/settings.cpp:730
 msgid "nothing to configure"
-msgstr ""
+msgstr "无可配置"
 
 #: src/gui/sysConf.cpp:2528
 msgid "Custom clock rate"
@@ -6285,7 +6377,7 @@ msgstr ""
 
 #: src/gui/volMeter.cpp:36 src/gui/settings.cpp:3974 src/gui/guiConst.cpp:596
 msgid "Volume Meter"
-msgstr ""
+msgstr "响度表"
 
 #: src/gui/userPresets.cpp:325
 msgid "User Systems"
@@ -6297,27 +6389,27 @@ msgstr ""
 
 #: src/gui/userPresets.cpp:346 src/gui/newSong.cpp:181
 msgid "Systems"
-msgstr ""
+msgstr "系统"
 
 #: src/gui/userPresets.cpp:349
 msgid "New Preset"
-msgstr ""
+msgstr "新预设"
 
 #: src/gui/userPresets.cpp:361
 msgid "select a preset"
-msgstr ""
+msgstr "选择一个预设"
 
 #: src/gui/userPresets.cpp:374
 msgid "Remove##UPresetRemove"
-msgstr ""
+msgstr "移除##UPresetRemove"
 
 #: src/gui/userPresets.cpp:439 src/gui/settings.cpp:1140
 msgid "Configure"
-msgstr ""
+msgstr "配置"
 
 #: src/gui/userPresets.cpp:470
 msgid "Advanced"
-msgstr ""
+msgstr "高级"
 
 #: src/gui/userPresets.cpp:476
 msgid ""
@@ -6328,30 +6420,31 @@ msgstr ""
 
 #: src/gui/userPresets.cpp:509
 msgid "Save and Close"
-msgstr ""
+msgstr "保存并退出"
 
 #: src/gui/userPresets.cpp:515 src/gui/settings.cpp:1243
 #: src/gui/settings.cpp:2166 src/gui/settings.cpp:2558
 #: src/gui/settings.cpp:3801
 msgid "Import"
-msgstr ""
+msgstr "导入"
 
 #: src/gui/userPresets.cpp:519
 msgid "Import (replace)"
-msgstr ""
+msgstr "导入(替换)"
 
 #: src/gui/effectList.cpp:14 src/gui/guiConst.cpp:606
 msgid "Effect List"
-msgstr ""
+msgstr "效果列表"
 
 #: src/gui/effectList.cpp:18
 #, c-format
 msgid "Chip at cursor: %s"
-msgstr ""
+msgstr "光标所在芯片: %s"
 
+# this is for interanl file Xporler? skipping.
 #: src/gui/effectList.cpp:21 src/gui/settings.cpp:6928
 msgid "Search"
-msgstr ""
+msgstr "搜索"
 
 #: src/gui/effectList.cpp:25
 msgid "Effect types to show:"
@@ -6359,24 +6452,24 @@ msgstr ""
 
 #: src/gui/effectList.cpp:47
 msgid "Description"
-msgstr ""
+msgstr "描述"
 
 #: src/gui/subSongs.cpp:22 src/gui/subSongs.cpp:32
 #, c-format
 msgid "%d. <no name>"
-msgstr ""
+msgstr "%d. <未命名>"
 
 #: src/gui/subSongs.cpp:73 src/gui/subSongs.cpp:93
 msgid "too many subsongs!"
-msgstr ""
+msgstr "太多子曲!"
 
 #: src/gui/subSongs.cpp:114
 msgid "this is the only subsong!"
-msgstr ""
+msgstr "只有这一个子曲!"
 
 #: src/gui/subSongs.cpp:116
 msgid "are you sure you want to remove this subsong?"
-msgstr ""
+msgstr "你确定要删除吗？"
 
 #: src/gui/spoiler.cpp:30
 msgid "Spoiler"
@@ -6388,11 +6481,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:106 src/gui/settings.cpp:116 src/gui/settings.cpp:126
 msgid "<Use system font>"
-msgstr ""
+msgstr "<使用系统字体>"
 
 #: src/gui/settings.cpp:107 src/gui/settings.cpp:117 src/gui/settings.cpp:127
 msgid "<Custom...>"
-msgstr ""
+msgstr "<自定义...>"
 
 #: src/gui/settings.cpp:170
 msgid "ASAP (C++ port)"
@@ -6404,19 +6497,19 @@ msgstr ""
 
 #: src/gui/settings.cpp:207
 msgid "Lower"
-msgstr ""
+msgstr "更低"
 
 #: src/gui/settings.cpp:209
 msgid "Medium"
-msgstr ""
+msgstr "中"
 
 #: src/gui/settings.cpp:211
 msgid "Ultra"
-msgstr ""
+msgstr "超高"
 
 #: src/gui/settings.cpp:212
 msgid "Ultimate"
-msgstr ""
+msgstr "终极"
 
 #: src/gui/settings.cpp:216
 msgid "evdev SND_TONE"
@@ -6440,7 +6533,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:224 src/gui/settings.cpp:234
 msgid "Disabled/custom"
-msgstr ""
+msgstr "关闭/自定义"
 
 #: src/gui/settings.cpp:225
 msgid "Two octaves (0 is C-4, F is D#5)"
@@ -6492,11 +6585,11 @@ msgstr ""
 #: src/gui/insEdit.cpp:7397 src/gui/insEdit.cpp:7418 src/gui/insEdit.cpp:7430
 #: src/gui/insEdit.cpp:7445
 msgid "Control"
-msgstr ""
+msgstr "控制"
 
 #: src/gui/settings.cpp:253 src/gui/settings.cpp:575 src/gui/settings.cpp:3182
 msgid "Program"
-msgstr ""
+msgstr "程序"
 
 #: src/gui/settings.cpp:254
 msgid "ChanPressure"
@@ -6514,113 +6607,113 @@ msgstr ""
 #: src/gui/settings.cpp:1748 src/gui/settings.cpp:1754
 #, c-format
 msgid "Any"
-msgstr ""
+msgstr "任意"
 
 #: src/gui/settings.cpp:264 src/gui/settings.cpp:3368 src/gui/settings.cpp:3933
 #: src/gui/settings.cpp:4126
 msgid "Instrument"
-msgstr ""
+msgstr "乐器"
 
 #: src/gui/settings.cpp:266
 msgid "Effect 1 type"
-msgstr ""
+msgstr "效果1 类型"
 
 #: src/gui/settings.cpp:267
 msgid "Effect 1 value"
-msgstr ""
+msgstr "效果1 值"
 
 #: src/gui/settings.cpp:268
 msgid "Effect 2 type"
-msgstr ""
+msgstr "效果2 类型"
 
 #: src/gui/settings.cpp:269
 msgid "Effect 2 value"
-msgstr ""
+msgstr "效果2 值"
 
 #: src/gui/settings.cpp:270
 msgid "Effect 3 type"
-msgstr ""
+msgstr "效果3 类型"
 
 #: src/gui/settings.cpp:271
 msgid "Effect 3 value"
-msgstr ""
+msgstr "效果3 值"
 
 #: src/gui/settings.cpp:272
 msgid "Effect 4 type"
-msgstr ""
+msgstr "效果4 类型"
 
 #: src/gui/settings.cpp:273
 msgid "Effect 4 value"
-msgstr ""
+msgstr "效果4 值"
 
 #: src/gui/settings.cpp:274
 msgid "Effect 5 type"
-msgstr ""
+msgstr "效果5 类型"
 
 #: src/gui/settings.cpp:275
 msgid "Effect 5 value"
-msgstr ""
+msgstr "效果5 值"
 
 #: src/gui/settings.cpp:276
 msgid "Effect 6 type"
-msgstr ""
+msgstr "效果6 类型 "
 
 #: src/gui/settings.cpp:277
 msgid "Effect 6 value"
-msgstr ""
+msgstr "效果6 值"
 
 #: src/gui/settings.cpp:278
 msgid "Effect 7 type"
-msgstr ""
+msgstr "效果7 类型"
 
 #: src/gui/settings.cpp:279
 msgid "Effect 7 value"
-msgstr ""
+msgstr "效果7 值"
 
 #: src/gui/settings.cpp:280
 msgid "Effect 8 type"
-msgstr ""
+msgstr "效果8 类型"
 
 #: src/gui/settings.cpp:281
 msgid "Effect 8 value"
-msgstr ""
+msgstr "效果8 值 "
 
 #: src/gui/settings.cpp:317
 msgid "Press key..."
-msgstr ""
+msgstr "按任意键..."
 
 #: src/gui/settings.cpp:566
 msgid "Do you want to save your settings?"
-msgstr ""
+msgstr "保存设置?"
 
 #: src/gui/settings.cpp:573
 msgid "General"
-msgstr ""
+msgstr "通用"
 
 #: src/gui/settings.cpp:590
 msgid "Language"
-msgstr ""
+msgstr "语言"
 
 #: src/gui/settings.cpp:609
 msgid "Render backend"
-msgstr ""
+msgstr "渲染后端"
 
 #: src/gui/settings.cpp:664 src/gui/settings.cpp:683 src/gui/settings.cpp:1317
 msgid "you may need to restart Furnace for this setting to take effect."
-msgstr ""
+msgstr "可能需要手动重启Furnace 来生效设置."
 
 #: src/gui/settings.cpp:667
 msgid "Advanced render backend settings"
-msgstr ""
+msgstr "高级渲染后端设置"
 
 #: src/gui/settings.cpp:669
 msgid "Render driver"
-msgstr ""
+msgstr "渲染驱动"
 
 #: src/gui/settings.cpp:669 src/gui/settings.cpp:670 src/gui/settings.cpp:1303
 #: src/gui/settings.cpp:1304 src/gui/piano.cpp:108
 msgid "Automatic"
-msgstr ""
+msgstr "自动"
 
 #: src/gui/settings.cpp:686
 msgid ""
@@ -6628,38 +6721,40 @@ msgid ""
 "own risk.\n"
 "start Furnace with -safemode if you mess something up."
 msgstr ""
+"小心: 修改这些设置可能会使Furnace 不稳定! 后果自负.\n"
+"如果玩坏了话用 -safemode 命令行开关来启动Furnace. "
 
 #: src/gui/settings.cpp:687
 msgid "Red bits"
-msgstr ""
+msgstr "红位"
 
 #: src/gui/settings.cpp:692
 msgid "Green bits"
-msgstr ""
+msgstr "绿位"
 
 #: src/gui/settings.cpp:697
 msgid "Blue bits"
-msgstr ""
+msgstr "蓝位"
 
 #: src/gui/settings.cpp:702
 msgid "Alpha bits"
-msgstr ""
+msgstr "透明度位"
 
 #: src/gui/settings.cpp:707
 msgid "Color depth"
-msgstr ""
+msgstr "色深"
 
 #: src/gui/settings.cpp:712
 msgid "Stencil buffer size"
-msgstr ""
+msgstr "网格缓存大小"
 
 #: src/gui/settings.cpp:717 src/gui/settings.cpp:1390
 msgid "Buffer size"
-msgstr ""
+msgstr "缓存大小"
 
 #: src/gui/settings.cpp:723
 msgid "Double buffer"
-msgstr ""
+msgstr "双重缓存"
 
 #: src/gui/settings.cpp:728
 msgid ""
@@ -6669,6 +6764,11 @@ msgid ""
 "- 32 bits (with alpha): 8, 8, 8, 8\n"
 "- 30 bits (deep): 10, 10, 10, 0"
 msgstr ""
+"以下为常用数值 (红,绿,蓝,透明度):\n"
+"- 24 bits: 8, 8, 8, 0\n"
+"- 16 bits: 5, 6, 5, 0\n"
+"- 32 bits (with alpha): 8, 8, 8, 8\n"
+"- 30 bits (deep): 10, 10, 10, 0"
 
 #: src/gui/settings.cpp:735
 #, c-format
@@ -6678,50 +6778,57 @@ msgid ""
 "%s\n"
 "%s"
 msgstr ""
+"当前渲染后端: %s\n"
+"%s\n"
+"%s\n"
+"%s"
 
 #: src/gui/settings.cpp:738
 msgid "VSync"
-msgstr ""
+msgstr "垂直同步"
 
 #: src/gui/settings.cpp:746
 msgid "Frame rate limit"
-msgstr ""
+msgstr "限制帧率"
 
 #: src/gui/settings.cpp:746
 msgid "Unlimited"
-msgstr ""
+msgstr "无限"
 
 #: src/gui/settings.cpp:752
 msgid "only applies when VSync is disabled."
-msgstr ""
+msgstr "仅在垂直同步关闭时生效."
 
 #: src/gui/settings.cpp:756
 msgid "Display render time"
-msgstr ""
+msgstr "显示渲染时间"
 
 #: src/gui/settings.cpp:763
 msgid "Late render clear"
-msgstr ""
+msgstr "推迟 render clear"
 
 #: src/gui/settings.cpp:768
 msgid ""
 "calls rend->clear() after rend->present(). might reduce UI latency by one "
 "frame in some drivers."
 msgstr ""
+"在 rend->present() 之后调用 rend->clear(). 可能在某些渲染驱动降低一帧延迟.  "
 
 #: src/gui/settings.cpp:773
 msgid "Power-saving mode"
-msgstr ""
+msgstr "节能模式"
 
 #: src/gui/settings.cpp:778
 msgid ""
 "saves power by lowering the frame rate to 2fps when idle.\n"
 "may cause issues under Mesa drivers!"
 msgstr ""
+"空闲时降低帧率到 2fps.\n"
+"可能在 Mesa 驱动中产生问题!"
 
 #: src/gui/settings.cpp:783
 msgid "Disable threaded input (restart after changing!)"
-msgstr ""
+msgstr "关闭 threaded input (修改后请重启!)"
 
 #: src/gui/settings.cpp:788
 msgid ""
@@ -6730,36 +6837,38 @@ msgid ""
 "however, crashes have been reported when threaded input is on. enable this "
 "option if that is the case."
 msgstr ""
+"threaded input 在另外一线程上处理 note 预览(在支持的平台上), 以减少延迟. \n"
+"但有报告当threaded input打开时会导致崩溃. 如遇到,请启用此项. "
 
 #: src/gui/settings.cpp:793
 msgid "Enable event delay"
-msgstr ""
+msgstr "启用 event delay"
 
 #: src/gui/settings.cpp:799
 msgid "may cause issues with high-polling-rate mice when previewing notes."
-msgstr ""
+msgstr "如使用高刷新率的鼠标并启用此项,可能导致预览时出现问题"
 
 #: src/gui/settings.cpp:803
 msgid "Per-channel oscilloscope threads"
-msgstr ""
+msgstr "每个通道的示波器使用一个线程"
 
 #: src/gui/settings.cpp:811
 msgid "you're being silly, aren't you? that's enough."
-msgstr ""
+msgstr "这很愚蠢,不是吗? 泥垢了."
 
 #: src/gui/settings.cpp:815
 msgid "what are you doing? stop!"
-msgstr ""
+msgstr "侬在干甚么? 停下!"
 
 #: src/gui/settings.cpp:819
 #, c-format
 msgid ""
 "it is a bad idea to set this number higher than your CPU core count (%d)!"
-msgstr ""
+msgstr "设置此项高于CPU 核心数并不明智."
 
 #: src/gui/settings.cpp:824
 msgid "Oscilloscope rendering engine:"
-msgstr ""
+msgstr "示波器渲染引擎:"
 
 #: src/gui/settings.cpp:826
 msgid "ImGui line plot"
@@ -6767,64 +6876,68 @@ msgstr ""
 
 #: src/gui/settings.cpp:831
 msgid "render using Dear ImGui's built-in line drawing functions."
-msgstr ""
+msgstr "使用Dear ImGui的内置 line drawing 函数渲染."
 
 #: src/gui/settings.cpp:833
 msgid "GLSL (if available)"
-msgstr ""
+msgstr "GLSL (如果可用)"
 
 #: src/gui/settings.cpp:839
 msgid ""
 "render using shaders that run on the graphics card.\n"
 "only available in OpenGL ES 2.0 render backend."
 msgstr ""
+"使用显卡的着色器渲染.\n"
+"仅在OpenGL ES 2.0 渲染后端可用."
 
 #: src/gui/settings.cpp:841
 msgid ""
 "render using shaders that run on the graphics card.\n"
 "only available in OpenGL 3.0 render backend."
 msgstr ""
+"使用显卡的着色器渲染.\n"
+"仅在OpenGL 3.0 渲染后端可用."
 
 #: src/gui/settings.cpp:848
 msgid "Vibration"
-msgstr ""
+msgstr "振动"
 
 #: src/gui/settings.cpp:850
 msgid "Strength"
-msgstr ""
+msgstr "强度"
 
 #: src/gui/settings.cpp:856 src/gui/insEdit.cpp:2289 src/gui/insEdit.cpp:2387
 #: src/gui/insEdit.cpp:5587 src/gui/insEdit.cpp:6246
 msgid "Length"
-msgstr ""
+msgstr "长度"
 
 #: src/gui/settings.cpp:864 src/gui/gui.cpp:4203
 msgid "File"
-msgstr ""
+msgstr "文件"
 
 #: src/gui/settings.cpp:867
 msgid "Use system file picker"
-msgstr ""
+msgstr "使用系统文件选择器"
 
 #: src/gui/settings.cpp:872
 msgid "Number of recent files"
-msgstr ""
+msgstr "显示最近文件的数量"
 
 #: src/gui/settings.cpp:879
 msgid "Compress when saving"
-msgstr ""
+msgstr "保存时压缩"
 
 #: src/gui/settings.cpp:884
 msgid "use zlib to compress saved songs."
-msgstr ""
+msgstr "使用zlib来压缩保存的曲目."
 
 #: src/gui/settings.cpp:888
 msgid "Save unused patterns"
-msgstr ""
+msgstr "保存未使用的Patterns"
 
 #: src/gui/settings.cpp:894
 msgid "Use new pattern format when saving"
-msgstr ""
+msgstr "使用新的Pattern 格式来保存"
 
 #: src/gui/settings.cpp:899
 msgid ""
@@ -6832,18 +6945,21 @@ msgid ""
 "disable if you need compatibility with older Furnace and/or tools\n"
 "which do not support this format."
 msgstr ""
+"打包以节省空间.\n"
+"关闭如果你需要用旧版不支持此格式的 Furnace 和/或 工具\n"
+" "
 
 #: src/gui/settings.cpp:903
 msgid "Don't apply compatibility flags when loading .dmf"
-msgstr ""
+msgstr "加载 .dmf时不应用兼容性标志"
 
 #: src/gui/settings.cpp:908
 msgid "do not report any issues arising from the use of this option!"
-msgstr ""
+msgstr "无需回报使用此选项时遇到的问题!"
 
 #: src/gui/settings.cpp:911
 msgid "Play after opening song:"
-msgstr ""
+msgstr "打开曲目后播放:"
 
 #: src/gui/settings.cpp:913
 msgid "No##pol0"
@@ -6851,7 +6967,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:917
 msgid "Only if already playing##pol1"
-msgstr ""
+msgstr "仅在当前曲目播放时##pol1"
 
 #: src/gui/settings.cpp:921
 msgid "Yes##pol0"
@@ -6859,89 +6975,93 @@ msgstr ""
 
 #: src/gui/settings.cpp:927
 msgid "Audio export loop/fade out time:"
-msgstr ""
+msgstr "导出音频的 循环/淡出 时间:"
 
 #: src/gui/settings.cpp:929
 msgid "Set to these values on start-up:##fot0"
-msgstr ""
+msgstr "打开Furnace时设置为这些值:##fot0"
 
 #: src/gui/settings.cpp:947
 msgid "Remember last values##fot1"
-msgstr ""
+msgstr "使用上次所用值##fot1"
 
 #: src/gui/settings.cpp:954
 msgid "Store instrument name in .fui"
-msgstr ""
+msgstr "在 .fui 中保存乐器名"
 
 #: src/gui/settings.cpp:959
 msgid ""
 "when enabled, saving an instrument will store its name.\n"
 "this may increase file size."
 msgstr ""
+"启用时,会在.fui文件中保存乐器名称.\n"
+"会增加文件大小."
 
 #: src/gui/settings.cpp:963
 msgid "Load instrument name from .fui"
-msgstr ""
+msgstr "从 .fui 中加载乐器名称"
 
 #: src/gui/settings.cpp:968
 msgid ""
 "when enabled, loading an instrument will use the stored name (if present).\n"
 "otherwise, it will use the file name."
 msgstr ""
+"启用时,加载乐器时会尝试从.fui中加载其名称.\n"
+"如失败则使用文件名."
 
 #: src/gui/settings.cpp:972
 msgid "Auto-fill file name when saving"
-msgstr ""
+msgstr "保存时自动填写文件名"
 
 #: src/gui/settings.cpp:977
 msgid ""
 "fill the file name field with an appropriate file name when saving or "
 "exporting."
-msgstr ""
+msgstr "保存/导出时会自动填写文件名 "
 
 #: src/gui/settings.cpp:981 src/gui/gui.cpp:5597 src/gui/gui.cpp:5647
 msgid "New Song"
-msgstr ""
+msgstr "新建曲目"
 
 #: src/gui/settings.cpp:983
 msgid "Initial system:"
-msgstr ""
+msgstr "启动后选中系统:"
 
 #: src/gui/settings.cpp:985
 msgid "Current system"
-msgstr ""
+msgstr "当前系统"
 
 #: src/gui/settings.cpp:998 src/gui/waveEdit.cpp:1149 src/gui/gui.cpp:3058
 msgid "Randomize"
-msgstr ""
+msgstr "随机化"
 
 #: src/gui/settings.cpp:1048
 msgid "Reset to defaults"
-msgstr ""
+msgstr "重置设置"
 
 #: src/gui/settings.cpp:1183
 msgid "When creating new song:"
-msgstr ""
+msgstr "新建曲目时:"
 
 #: src/gui/settings.cpp:1185
 msgid "Display system preset selector##NSB0"
-msgstr ""
+msgstr "显示系统预设设置菜单##NSB0"
 
 #: src/gui/settings.cpp:1189
 msgid "Start with initial system##NSB1"
-msgstr ""
+msgstr "使用'启动后选中系统'##NSB1"
 
 #: src/gui/settings.cpp:1193
 msgid "Default author name"
-msgstr ""
+msgstr "默认作者名"
 
 #: src/gui/settings.cpp:1197
 msgid "Start-up"
-msgstr ""
+msgstr "启动"
 
 #: src/gui/settings.cpp:1198
 msgid "Play intro on start-up:"
-msgstr ""
+msgstr "启动时播放Intro"
 
 #: src/gui/settings.cpp:1200
 msgid "No##pis0"
@@ -6953,65 +7073,67 @@ msgstr ""
 
 #: src/gui/settings.cpp:1208
 msgid "Full (short when loading song)##pis2"
-msgstr ""
+msgstr "Full (加载曲目时播放Short版本)##pis2"
 
 #: src/gui/settings.cpp:1212
 msgid "Full (always)##pis3"
-msgstr ""
+msgstr "Full (总是)##pis3"
 
 #: src/gui/settings.cpp:1219
 msgid "Disable fade-in during start-up"
-msgstr ""
+msgstr "关闭启动时的淡入"
 
 #: src/gui/settings.cpp:1225
 msgid "About screen party time"
-msgstr ""
+msgstr "关于屏幕派对模式"
 
 #: src/gui/settings.cpp:1230
 msgid "Warning: may cause epileptic seizures."
-msgstr ""
+msgstr "警告: 可能导致光敏性癫痫."
 
 #: src/gui/settings.cpp:1234
 msgid "Behavior"
-msgstr ""
+msgstr "行为"
 
 #: src/gui/settings.cpp:1236
 msgid "New instruments are blank"
-msgstr ""
+msgstr "新建乐器为空"
 
 #: src/gui/settings.cpp:1242 src/gui/settings.cpp:4260
 msgid "Configuration"
-msgstr ""
+msgstr "配置"
 
 #: src/gui/settings.cpp:1251
 msgid "Factory Reset"
-msgstr ""
+msgstr "恢复默认设定"
 
 #: src/gui/settings.cpp:1252
 msgid ""
 "Are you sure you want to reset all Furnace settings?\n"
 "You must restart Furnace after doing so."
 msgstr ""
+"确定要重置所有Furnace的设置?\n"
+"请务在重置后必重启Furnace."
 
 #: src/gui/settings.cpp:1260
 msgid "Output"
-msgstr ""
+msgstr "输出"
 
 #: src/gui/settings.cpp:1268
 msgid "Backend"
-msgstr ""
+msgstr "后端"
 
 #: src/gui/settings.cpp:1301
 msgid "Driver"
-msgstr ""
+msgstr "驱动"
 
 #: src/gui/settings.cpp:1324
 msgid "Device"
-msgstr ""
+msgstr "设备"
 
 #: src/gui/settings.cpp:1328
 msgid "<click on OK or Apply first>"
-msgstr ""
+msgstr "<先点击 OK 或 应用>"
 
 #: src/gui/settings.cpp:1329
 msgid "ALERT - TRESPASSER DETECTED"
@@ -7023,11 +7145,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:1338 src/gui/settings.cpp:1340
 msgid "<System default>"
-msgstr ""
+msgstr "<系统默认>"
 
 #: src/gui/settings.cpp:1376 src/gui/insEdit.cpp:7200
 msgid "Outputs"
-msgstr ""
+msgstr "输出"
 
 #: src/gui/settings.cpp:1384
 msgid ""
@@ -7038,6 +7160,12 @@ msgid ""
 "- 6 for 5.1 surround\n"
 "- 8 for 7.1 surround"
 msgstr ""
+"常用值:\n"
+"- 1 for mono\n"
+"- 2 for stereo\n"
+"- 4 for quadraphonic\n"
+"- 6 for 5.1 surround\n"
+"- 8 for 7.1 surround"
 
 #: src/gui/settings.cpp:1392
 #, c-format
@@ -7046,7 +7174,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1407
 msgid "Multi-threaded (EXPERIMENTAL)"
-msgstr ""
+msgstr "多线程 (实验性)"
 
 #: src/gui/settings.cpp:1416
 msgid ""
@@ -7057,25 +7185,31 @@ msgid ""
 "- experimental!\n"
 "- only useful on multi-chip songs."
 msgstr ""
+"在另外线程上运行芯片模拟器.\n"
+"在使用复杂的芯片模拟器时可提高性能.\n"
+"\n"
+"警告:\n"
+"- 实验性!\n"
+"- 仅在多芯片歌曲中好用."
 
 #: src/gui/settings.cpp:1421
 msgid "Number of threads"
-msgstr ""
+msgstr "线程数"
 
 #: src/gui/settings.cpp:1428
 msgid "that's the limit!"
-msgstr ""
+msgstr "到限了!"
 
 #: src/gui/settings.cpp:1432
 #, c-format
 msgid ""
 "it is a VERY bad idea to set this number higher than your CPU core count "
 "(%d)!"
-msgstr ""
+msgstr "设置此值高于CPU核心数十分不明智 (%d)!"
 
 #: src/gui/settings.cpp:1440
 msgid "Low-latency mode"
-msgstr ""
+msgstr "低延迟模式"
 
 #: src/gui/settings.cpp:1445
 msgid ""
@@ -7084,14 +7218,18 @@ msgid ""
 "\n"
 "warning: only enable if your buffer size is small (10ms or less)."
 msgstr ""
+"通过运行引擎高于tick rate 设定以减少延迟.\n"
+"在 实时演奏/听着玩 时十分有用.\n"
+"\n"
+"警告: 只当你的 音频缓存大小 小于 10ms时启用."
 
 #: src/gui/settings.cpp:1449
 msgid "Force mono audio"
-msgstr ""
+msgstr "强制单声道"
 
 #: src/gui/settings.cpp:1457
 msgid "Exclusive mode"
-msgstr ""
+msgstr "独占模式"
 
 #: src/gui/settings.cpp:1468
 #, c-format
@@ -7109,23 +7247,23 @@ msgstr[1] ""
 
 #: src/gui/settings.cpp:1476
 msgid "Mixing"
-msgstr ""
+msgstr "混音"
 
 #: src/gui/settings.cpp:1478 src/gui/settings.cpp:2087
 msgid "Quality"
-msgstr ""
+msgstr "质量"
 
 #: src/gui/settings.cpp:1483
 msgid "Software clipping"
-msgstr ""
+msgstr "软件削波"
 
 #: src/gui/settings.cpp:1489
 msgid "DC offset correction"
-msgstr ""
+msgstr "DC偏移修正"
 
 #: src/gui/settings.cpp:1507 src/gui/guiConst.cpp:740
 msgid "Sample preview"
-msgstr ""
+msgstr "预览采样"
 
 #: src/gui/settings.cpp:1520
 msgid "MIDI"
@@ -7138,12 +7276,13 @@ msgstr ""
 #: src/gui/settings.cpp:1526 src/gui/settings.cpp:1529
 #: src/gui/settings.cpp:1820 src/gui/settings.cpp:1822
 msgid "<disabled>"
-msgstr ""
+msgstr "<关闭>"
 
 #: src/gui/settings.cpp:1545
 msgid "Re-scan MIDI devices"
-msgstr ""
+msgstr "重扫描MIDI设备"
 
+# 需要用此功能的人会英语....
 #: src/gui/settings.cpp:1556 src/gui/settings.cpp:2263
 msgid "Note input"
 msgstr ""
@@ -7200,6 +7339,7 @@ msgstr ""
 msgid "Volume curve"
 msgstr ""
 
+# end of no translate.
 #: src/gui/settings.cpp:1642
 msgid "Actions:"
 msgstr ""
@@ -7209,11 +7349,12 @@ msgid ""
 "(learning! press a button or move a slider/knob/something on your device.)"
 msgstr ""
 
+# warring! above
 #: src/gui/settings.cpp:1670 src/gui/settings.cpp:2282
 #: src/gui/settings.cpp:6941 src/gui/sampleEdit.cpp:501
 #: src/gui/insEdit.cpp:5326
 msgid "Type"
-msgstr ""
+msgstr "类型"
 
 #: src/gui/settings.cpp:1674
 msgid "Note/Control"
@@ -7293,225 +7434,225 @@ msgstr ""
 
 #: src/gui/settings.cpp:1897
 msgid "Emulation"
-msgstr ""
+msgstr "模拟器"
 
 #: src/gui/settings.cpp:1899
 msgid "Cores"
-msgstr ""
+msgstr "核心"
 
 #: src/gui/settings.cpp:1908
 msgid "Playback Core(s)"
-msgstr ""
+msgstr "播放核"
 
 #: src/gui/settings.cpp:1910 src/gui/settings.cpp:2098
 msgid "used for playback"
-msgstr ""
+msgstr "在播放时使用的芯片模拟器核心"
 
 #: src/gui/settings.cpp:1913
 msgid "Render Core(s)"
-msgstr ""
+msgstr "渲染核"
 
 #: src/gui/settings.cpp:1915 src/gui/settings.cpp:2103
 msgid "used in audio export"
-msgstr ""
+msgstr "在渲染输出音频文件时使用的芯片模拟器核心"
 
 #: src/gui/settings.cpp:2096
 msgid "Playback"
-msgstr ""
+msgstr "播放"
 
 #: src/gui/settings.cpp:2101
 msgid "Render"
-msgstr ""
+msgstr "渲染"
 
 #: src/gui/settings.cpp:2125
 msgid "PC Speaker strategy"
-msgstr ""
+msgstr "PC Speaker 策略"
 
 #: src/gui/settings.cpp:2163 src/gui/settings.cpp:2165
 msgid "Keyboard"
-msgstr ""
+msgstr "键盘"
 
 #: src/gui/settings.cpp:2174 src/gui/settings.cpp:3809
 msgid "Reset defaults"
-msgstr ""
+msgstr "恢复默认"
 
 #: src/gui/settings.cpp:2175
 msgid "Are you sure you want to reset the keyboard settings?"
-msgstr ""
+msgstr "你确定要重置键盘绑定?"
 
 #: src/gui/settings.cpp:2177
 msgid "Global hotkeys"
-msgstr ""
+msgstr "全局用键"
 
 #: src/gui/settings.cpp:2214
 msgid "Window activation"
-msgstr ""
+msgstr "窗口选中"
 
 #: src/gui/settings.cpp:2280
 msgid "Key"
-msgstr ""
+msgstr "键"
 
 #: src/gui/settings.cpp:2284 src/gui/findReplace.cpp:725
 #: src/gui/findReplace.cpp:1003
 msgid "Value"
-msgstr ""
+msgstr "值"
 
 #: src/gui/settings.cpp:2294
 #, c-format
 msgid "Macro release##SNType_%d"
-msgstr ""
+msgstr "释放宏##SNType_%d"
 
 #: src/gui/settings.cpp:2299
 #, c-format
 msgid "Note release##SNType_%d"
-msgstr ""
+msgstr "释放键##SNType_%d"
 
 #: src/gui/settings.cpp:2304
 #, c-format
 msgid "Note off##SNType_%d"
-msgstr ""
+msgstr "休止键##SNType_%d"
 
 #: src/gui/settings.cpp:2309
 #, c-format
 msgid "Note##SNType_%d"
-msgstr ""
+msgstr "键"
 
 #: src/gui/settings.cpp:2333
 msgid "Add..."
-msgstr ""
+msgstr "添加..."
 
 #: src/gui/settings.cpp:2423
 msgid "Instrument list"
-msgstr ""
+msgstr "乐器列表"
 
 #: src/gui/settings.cpp:2443
 msgid "Wavetable list"
-msgstr ""
+msgstr "波表列表"
 
 #: src/gui/settings.cpp:2464
 msgid "Sample list"
-msgstr ""
+msgstr "采样列表"
 
 #: src/gui/settings.cpp:2514
 msgid "Sample editor"
-msgstr ""
+msgstr "采样编辑器"
 
 #: src/gui/settings.cpp:2552 src/gui/settings.cpp:3819
 #: src/gui/settings.cpp:3849
 msgid "Interface"
-msgstr ""
+msgstr "界面"
 
 #: src/gui/settings.cpp:2554
 msgid "Layout"
-msgstr ""
+msgstr "排列"
 
 #: src/gui/settings.cpp:2556
 msgid "Workspace layout:"
-msgstr ""
+msgstr "工作区排列:"
 
 #: src/gui/settings.cpp:2566 src/gui/gui.cpp:2932
 msgid "Reset"
-msgstr ""
+msgstr "重置"
 
 #: src/gui/settings.cpp:2567 src/gui/gui.cpp:4467
 msgid "Are you sure you want to reset the workspace layout?"
-msgstr ""
+msgstr "你确定要重置工作区排列?"
 
 #: src/gui/settings.cpp:2571
 msgid "Allow docking editors"
-msgstr ""
+msgstr "允许编辑器靠近边缘后分屏"
 
 #: src/gui/settings.cpp:2578
 msgid "Remember window position"
-msgstr ""
+msgstr "保存窗口位置"
 
 #: src/gui/settings.cpp:2583
 msgid "remembers the window's last position on start-up."
-msgstr ""
+msgstr "打开时恢复上次窗口位置."
 
 #: src/gui/settings.cpp:2588
 msgid "Only allow window movement when clicking on title bar"
-msgstr ""
+msgstr "仅允许通过窗口标题栏移动窗口"
 
 #: src/gui/settings.cpp:2595
 msgid "Center pop-up windows"
-msgstr ""
+msgstr "居中弹出窗口"
 
 #: src/gui/settings.cpp:2600
 msgid "Play/edit controls layout:"
-msgstr ""
+msgstr "播放/编辑 控制排列方式:"
 
 #: src/gui/settings.cpp:2602
 msgid "Classic##ecl0"
-msgstr ""
+msgstr "经典##ecl0"
 
 #: src/gui/settings.cpp:2606
 msgid "Compact##ecl1"
-msgstr ""
+msgstr "紧凑##ecl1"
 
 #: src/gui/settings.cpp:2610
 msgid "Compact (vertical)##ecl2"
-msgstr ""
+msgstr "紧凑(竖直)##ecl2"
 
 #: src/gui/settings.cpp:2614
 msgid "Split##ecl3"
-msgstr ""
+msgstr "分立##ecl3"
 
 #: src/gui/settings.cpp:2620
 msgid "Position of buttons in Orders:"
-msgstr ""
+msgstr "Order窗口的按钮位置:"
 
 #: src/gui/settings.cpp:2622
 msgid "Top##obp0"
-msgstr ""
+msgstr "顶部##obp0"
 
 #: src/gui/settings.cpp:2626
 msgid "Left##obp1"
-msgstr ""
+msgstr "左##obp1"
 
 #: src/gui/settings.cpp:2630
 msgid "Right##obp2"
-msgstr ""
+msgstr "右##obp2"
 
 #: src/gui/settings.cpp:2637
 msgid "Mouse"
-msgstr ""
+msgstr "鼠标"
 
 #: src/gui/settings.cpp:2639
 msgid "Double-click time (seconds)"
-msgstr ""
+msgstr "双击时间(s)"
 
 #: src/gui/settings.cpp:2648
 msgid "Don't raise pattern editor on click"
-msgstr ""
+msgstr "单击Pattern编辑器时不要前置其窗口"
 
 #: src/gui/settings.cpp:2654
 msgid "Focus pattern editor when selecting instrument"
-msgstr ""
+msgstr "选乐器后聚焦Pattern编辑器窗口"
 
 #: src/gui/settings.cpp:2659
 msgid "Note preview behavior:"
-msgstr ""
+msgstr "Note 预览行为:"
 
 #: src/gui/settings.cpp:2661
 msgid "Never##npb0"
-msgstr ""
+msgstr "永不##npb0"
 
 #: src/gui/settings.cpp:2665
 msgid "When cursor is in Note column##npb1"
-msgstr ""
+msgstr "当光标在Note列##npb1"
 
 #: src/gui/settings.cpp:2669
 msgid "When cursor is in Note column or not in edit mode##npb2"
-msgstr ""
+msgstr "当光标在Note列或不在编辑模式##npb2"
 
 #: src/gui/settings.cpp:2673
 msgid "Always##npb3"
-msgstr ""
+msgstr "总是##npb3"
 
 #: src/gui/settings.cpp:2679
 msgid "Allow dragging selection:"
-msgstr ""
+msgstr "允许拖动:"
 
 #: src/gui/settings.cpp:2681
 msgid "No##dms0"
@@ -7523,32 +7664,33 @@ msgstr ""
 
 #: src/gui/settings.cpp:2689
 msgid "Yes (while holding Ctrl only)##dms2"
-msgstr ""
+msgstr "Yes (仅当按下Ctrl时)##dms2"
 
 #: src/gui/settings.cpp:2695
 msgid "Toggle channel solo on:"
-msgstr ""
+msgstr "切换通道独唱:"
 
 #: src/gui/settings.cpp:2697
 msgid "Right-click or double-click##soloA"
-msgstr ""
+msgstr "右键或双击##soloA"
 
 #: src/gui/settings.cpp:2701
 msgid "Right-click##soloR"
-msgstr ""
+msgstr "右键##soloR"
 
 #: src/gui/settings.cpp:2705
 msgid "Double-click##soloD"
-msgstr ""
+msgstr "双击##soloD"
 
 #: src/gui/settings.cpp:2712
 msgid "Double click selects entire column"
-msgstr ""
+msgstr "双击选中整个列"
 
 #: src/gui/settings.cpp:2718
 msgid "Cursor behavior"
-msgstr ""
+msgstr "光标行为"
 
+# no translate untill know what's what
 #: src/gui/settings.cpp:2720
 msgid "Insert pushes entire channel row"
 msgstr ""
@@ -7725,77 +7867,78 @@ msgstr ""
 msgid "Edit Step##cws1"
 msgstr ""
 
+# end of no translate
 #: src/gui/settings.cpp:2921 src/gui/settings.cpp:3536
 msgid "Assets"
-msgstr ""
+msgstr "素材"
 
 #: src/gui/settings.cpp:2924
 msgid "Display instrument type menu when adding instrument"
-msgstr ""
+msgstr "添加乐器时显示乐器类型下拉菜单"
 
 #: src/gui/settings.cpp:2930
 msgid "Select asset after opening one"
-msgstr ""
+msgstr "打开素材后选中其"
 
 #: src/gui/settings.cpp:2937
 msgid "Appearance"
-msgstr ""
+msgstr "外观"
 
 #: src/gui/settings.cpp:2939
 msgid "Scaling"
-msgstr ""
+msgstr "缩放"
 
 #: src/gui/settings.cpp:2941
 msgid "Automatic UI scaling factor"
-msgstr ""
+msgstr "自动UI缩放倍数"
 
 #: src/gui/settings.cpp:2950
 msgid "UI scaling factor"
-msgstr ""
+msgstr "UI缩放倍数"
 
 #: src/gui/settings.cpp:2957
 msgid "Icon size"
-msgstr ""
+msgstr "图标尺寸"
 
 #: src/gui/settings.cpp:2972
 msgid "Font renderer"
-msgstr ""
+msgstr "字体渲染器"
 
 #: src/gui/settings.cpp:2982
 msgid "Main font"
-msgstr ""
+msgstr "主字体"
 
 #: src/gui/settings.cpp:2993
 msgid "Size##MainFontSize"
-msgstr ""
+msgstr "尺寸##MainFontSize"
 
 #: src/gui/settings.cpp:3001
 msgid "Header font"
-msgstr ""
+msgstr "从标题字体"
 
 #: src/gui/settings.cpp:3012
 msgid "Size##HeadFontSize"
-msgstr ""
+msgstr "尺寸##HeadFontSize"
 
 #: src/gui/settings.cpp:3020
 msgid "Pattern font"
-msgstr ""
+msgstr "Pattern 字体"
 
 #: src/gui/settings.cpp:3031
 msgid "Size##PatFontSize"
-msgstr ""
+msgstr "尺寸##PatFontSize"
 
 #: src/gui/settings.cpp:3041
 msgid "Anti-aliased fonts"
-msgstr ""
+msgstr "字体抗锯齿"
 
 #: src/gui/settings.cpp:3047
 msgid "Support bitmap fonts"
-msgstr ""
+msgstr "支持位图字体"
 
 #: src/gui/settings.cpp:3052
 msgid "Hinting:"
-msgstr ""
+msgstr "微调:"
 
 #: src/gui/settings.cpp:3054
 msgid "Off (soft)##fh0"
@@ -7815,23 +7958,23 @@ msgstr ""
 
 #: src/gui/settings.cpp:3072
 msgid "Auto-hinter:"
-msgstr ""
+msgstr "自动微调:"
 
 #: src/gui/settings.cpp:3074
 msgid "Disable##fah0"
-msgstr ""
+msgstr "关闭##fah0"
 
 #: src/gui/settings.cpp:3078
 msgid "Enable##fah1"
-msgstr ""
+msgstr "开启##fah1"
 
 #: src/gui/settings.cpp:3082
 msgid "Force##fah2"
-msgstr ""
+msgstr "强制开启##fah2"
 
 #: src/gui/settings.cpp:3089
 msgid "Oversample"
-msgstr ""
+msgstr "字体过采样"
 
 #: src/gui/settings.cpp:3092
 msgid "1×##fos1"
@@ -7842,6 +7985,8 @@ msgid ""
 "saves video memory. reduces font rendering quality.\n"
 "use for pixel/bitmap fonts."
 msgstr ""
+"节省显存. 降低字体渲染质量.\n"
+"与 pixel/bitmap 字体连用."
 
 #: src/gui/settings.cpp:3100
 msgid "2×##fos2"
@@ -7849,7 +7994,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3105
 msgid "default."
-msgstr ""
+msgstr "默认."
 
 #: src/gui/settings.cpp:3108
 msgid "3×##fos3"
@@ -7860,18 +8005,20 @@ msgid ""
 "slightly better font rendering quality.\n"
 "uses more video memory."
 msgstr ""
+"稍好的字体渲染质量.\n"
+"使用较多显存."
 
 #: src/gui/settings.cpp:3117
 msgid "Load fallback font"
-msgstr ""
+msgstr "加载备用字体"
 
 #: src/gui/settings.cpp:3122
 msgid "disable to save video memory."
-msgstr ""
+msgstr "关闭以节育现存."
 
 #: src/gui/settings.cpp:3126
 msgid "Display Japanese characters"
-msgstr ""
+msgstr "显示日文字符"
 
 #: src/gui/settings.cpp:3132
 msgid ""
@@ -7887,7 +8034,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3140
 msgid "Display Chinese (Simplified) characters"
-msgstr ""
+msgstr "显示简中字符"
 
 #: src/gui/settings.cpp:3146
 msgid ""
@@ -7898,10 +8045,16 @@ msgid ""
 "请在确保你有足够的显存后再启动此设定\n"
 "这是一个在ImGui实现动态字体加载之前的临时解决方案"
 msgstr ""
+"Only toggle this option if you have enough graphics memory.\n"
+"This is a temporary solution until dynamic font atlas is implemented in Dear "
+"ImGui.\n"
+"\n"
+"请确保有足够显存再启动此设定.\n"
+"此为ImGui实现动态字体加载之前的临时解决方案."
 
 #: src/gui/settings.cpp:3154
 msgid "Display Chinese (Traditional) characters"
-msgstr ""
+msgstr "显示繁中字符"
 
 #: src/gui/settings.cpp:3160
 msgid ""
@@ -7912,10 +8065,16 @@ msgid ""
 "請在確保你有足夠的顯存后再啟動此設定\n"
 "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
 msgstr ""
+"Only toggle this option if you have enough graphics memory.\n"
+"This is a temporary solution until dynamic font atlas is implemented in Dear "
+"ImGui.\n"
+"\n"
+"請确保有足够顯存再啓動此設定.\n"
+"此為ImGui實現動態字體加載之前的臨時解決方案"
 
 #: src/gui/settings.cpp:3168
 msgid "Display Korean characters"
-msgstr ""
+msgstr "显示韩文字符"
 
 #: src/gui/settings.cpp:3174
 msgid ""
@@ -7929,7 +8088,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3183
 msgid "Title bar:"
-msgstr ""
+msgstr "标题栏"
 
 #: src/gui/settings.cpp:3185
 msgid "Furnace##tbar0"
@@ -7937,139 +8096,139 @@ msgstr ""
 
 #: src/gui/settings.cpp:3190
 msgid "Song Name - Furnace##tbar1"
-msgstr ""
+msgstr "曲目名称 - Furnace##tbar1"
 
 #: src/gui/settings.cpp:3195
 msgid "file_name.fur - Furnace##tbar2"
-msgstr ""
+msgstr "文件名.fur - Furnace##tbar2"
 
 #: src/gui/settings.cpp:3200
 msgid "/path/to/file.fur - Furnace##tbar3"
-msgstr ""
+msgstr "/路径/到/文件.fur - Furnace##tbar3"
 
 #: src/gui/settings.cpp:3208
 msgid "Display system name on title bar"
-msgstr ""
+msgstr "标题栏显示系统名称"
 
 #: src/gui/settings.cpp:3215
 msgid "Display chip names instead of \"multi-system\" in title bar"
-msgstr ""
+msgstr "标题栏显示芯片名称而不是 \"多系统\" "
 
 #: src/gui/settings.cpp:3221
 msgid "Status bar:"
-msgstr ""
+msgstr "状态栏"
 
 #: src/gui/settings.cpp:3223
 msgid "Cursor details##sbar0"
-msgstr ""
+msgstr "光标详情##sbar0"
 
 #: src/gui/settings.cpp:3227
 msgid "File path##sbar1"
-msgstr ""
+msgstr "文件路径##sbar1"
 
 #: src/gui/settings.cpp:3231
 msgid "Cursor details or file path##sbar2"
-msgstr ""
+msgstr "光标详情或文件路径##sbar2"
 
 #: src/gui/settings.cpp:3235
 msgid "Nothing##sbar3"
-msgstr ""
+msgstr "空##sbar3"
 
 #: src/gui/settings.cpp:3242
 msgid "Display playback status when playing"
-msgstr ""
+msgstr "播放时显示播放详情"
 
 #: src/gui/settings.cpp:3247
 msgid "Export options layout:"
-msgstr ""
+msgstr "导出选项排列方式:"
 
 #: src/gui/settings.cpp:3249
 msgid "Sub-menus in File menu##eol0"
-msgstr ""
+msgstr "在文件菜单中的子菜单##eol0"
 
 #: src/gui/settings.cpp:3253
 msgid "Modal window with tabs##eol1"
-msgstr ""
+msgstr "弹出窗口##eol1"
 
 #: src/gui/settings.cpp:3257
 msgid "Modal windows with options in File menu##eol2"
-msgstr ""
+msgstr "弹出窗口,在文件菜单中显示选项##eol2"
 
 #: src/gui/settings.cpp:3264
 msgid "Capitalize menu bar"
-msgstr ""
+msgstr "菜单栏首字母大写"
 
 #: src/gui/settings.cpp:3270
 msgid "Display add/configure/change/remove chip menus in File menu"
-msgstr ""
+msgstr "在文件下拉菜单中显示 新建/配置/修改/移除 芯片菜单"
 
 #: src/gui/settings.cpp:3284
 msgid "Highlight channel at cursor in Orders"
-msgstr ""
+msgstr "高亮Orders中通道所在光标"
 
 #: src/gui/settings.cpp:3289
 msgid "Orders row number format:"
-msgstr ""
+msgstr "Orders 行数值格式"
 
 #: src/gui/settings.cpp:3291
 msgid "Decimal##orbD"
-msgstr ""
+msgstr "十进制##orbD"
 
 #: src/gui/settings.cpp:3295
 msgid "Hexadecimal##orbH"
-msgstr ""
+msgstr "十六进制##orbH"
 
 #: src/gui/settings.cpp:3304
 msgid "Center pattern view"
-msgstr ""
+msgstr "居中Pattern显示"
 
 #: src/gui/settings.cpp:3310
 msgid "Overflow pattern highlights"
-msgstr ""
+msgstr "溢出Pattern高亮行"
 
 #: src/gui/settings.cpp:3316
 msgid "Display previous/next pattern"
-msgstr ""
+msgstr "显示 上一个/下一个 Pattern"
 
 #: src/gui/settings.cpp:3321
 msgid "Pattern row number format:"
-msgstr ""
+msgstr "Pattern行标识数值格式"
 
 #: src/gui/settings.cpp:3323
 msgid "Decimal##prbD"
-msgstr ""
+msgstr "十进制##prbD"
 
 #: src/gui/settings.cpp:3327
 msgid "Hexadecimal##prbH"
-msgstr ""
+msgstr "十六进制##prbH"
 
 #: src/gui/settings.cpp:3333
 msgid "Pattern view labels:"
-msgstr ""
+msgstr "Pattern 显示 标记"
 
 #: src/gui/settings.cpp:3338
 msgid "Note off (3-char)"
-msgstr ""
+msgstr "Note off (键关闭) (3-字符)"
 
 #: src/gui/settings.cpp:3343
 msgid "Note release (3-char)"
-msgstr ""
+msgstr "Note release (键释放) (3-字符)"
 
 #: src/gui/settings.cpp:3348
 msgid "Macro release (3-char)"
-msgstr ""
+msgstr "Macro release (宏释放) (3-字符)"
 
 #: src/gui/settings.cpp:3353
 msgid "Empty field (3-char)"
-msgstr ""
+msgstr "Empty field (空白区) (3-字符)"
 
 #: src/gui/settings.cpp:3358
 msgid "Empty field (2-char)"
-msgstr ""
+msgstr "Empty field (空白区) (2-字符)"
 
 #: src/gui/settings.cpp:3360
 msgid "Pattern view spacing after:"
-msgstr ""
+msgstr "Pattern 显示间隔大小:"
 
 #: src/gui/settings.cpp:3362 src/gui/settings.cpp:4120
 #: src/gui/findReplace.cpp:601 src/gui/findReplace.cpp:864
@@ -8080,196 +8239,197 @@ msgstr ""
 #: src/gui/settings.cpp:3380 src/gui/findReplace.cpp:707
 #: src/gui/findReplace.cpp:974
 msgid "Effect"
-msgstr ""
+msgstr "效果"
 
 #: src/gui/settings.cpp:3386
 msgid "Effect value"
-msgstr ""
+msgstr "效果值"
 
 #: src/gui/settings.cpp:3393
 msgid "Single-digit effects for 00-0F"
-msgstr ""
+msgstr "00-0F 不显示 0"
 
 #: src/gui/settings.cpp:3399
 msgid "Use flats instead of sharps"
-msgstr ""
+msgstr "使用 降(b) 而不是 升(#)"
 
 #: src/gui/settings.cpp:3405
 msgid "Use German notation"
-msgstr ""
+msgstr "使用德式注音 H 而非 B"
 
 #: src/gui/settings.cpp:3413
 msgid "Channel style:"
-msgstr ""
+msgstr "通道风格:"
 
 #: src/gui/settings.cpp:3415
 msgid "Classic##CHS0"
-msgstr ""
+msgstr "经典##CHS0"
 
 #: src/gui/settings.cpp:3419
 msgid "Line##CHS1"
-msgstr ""
+msgstr "线条##CHS1"
 
 #: src/gui/settings.cpp:3423
 msgid "Round##CHS2"
-msgstr ""
+msgstr "圆润##CHS2"
 
 #: src/gui/settings.cpp:3427
 msgid "Split button##CHS3"
-msgstr ""
+msgstr "分立按钮##CHS3"
 
 #: src/gui/settings.cpp:3431
 msgid "Square border##CH42"
-msgstr ""
+msgstr "矩形边缘##CH42"
 
 #: src/gui/settings.cpp:3435
 msgid "Round border##CHS5"
-msgstr ""
+msgstr "圆形边缘##CHS5"
 
 #: src/gui/settings.cpp:3441
 msgid "Channel volume bar:"
-msgstr ""
+msgstr "通道音量条:"
 
 #: src/gui/settings.cpp:3443
 msgid "None##CHV0"
-msgstr ""
+msgstr "无##CHV0"
 
 #: src/gui/settings.cpp:3447
 msgid "Simple##CHV1"
-msgstr ""
+msgstr "简单##CHV1"
 
 #: src/gui/settings.cpp:3451
 msgid "Stereo##CHV2"
-msgstr ""
+msgstr "立体声##CHV2"
 
 #: src/gui/settings.cpp:3455
 msgid "Real##CHV3"
-msgstr ""
+msgstr "真实响度##CHV3"
 
 #: src/gui/settings.cpp:3459
 msgid "Real (stereo)##CHV4"
-msgstr ""
+msgstr "立体声真实响度##CHV4"
 
 #: src/gui/settings.cpp:3465
 msgid "Channel feedback style:"
-msgstr ""
+msgstr "通道反馈风格:"
 
 #: src/gui/settings.cpp:3467
 msgid "Off##CHF0"
-msgstr ""
+msgstr "关闭##CHF0"
 
 #: src/gui/settings.cpp:3471
 msgid "Note##CHF1"
-msgstr ""
+msgstr "键激活反馈##CHF1"
 
 #: src/gui/settings.cpp:3475
 msgid "Volume##CHF2"
-msgstr ""
+msgstr "音量反馈##CHF2"
 
 #: src/gui/settings.cpp:3479
 msgid "Active##CHF3"
-msgstr ""
+msgstr "通道活跃度##CHF3"
 
 #: src/gui/settings.cpp:3485
 msgid "Channel font:"
-msgstr ""
+msgstr "通道字体:"
 
 #: src/gui/settings.cpp:3487
 msgid "Regular##CHFont0"
-msgstr ""
+msgstr "正常##CHFont0"
 
 #: src/gui/settings.cpp:3491
 msgid "Monospace##CHFont1"
-msgstr ""
+msgstr "分割##CHFont1"
 
 #: src/gui/settings.cpp:3498
 msgid "Center channel name"
-msgstr ""
+msgstr "居中通道名称"
 
 #: src/gui/settings.cpp:3503
 msgid "Channel colors:"
-msgstr ""
+msgstr "通道色彩:"
 
 #: src/gui/settings.cpp:3505
 msgid "Single##CHC0"
-msgstr ""
+msgstr "单一##CHC0"
 
 #: src/gui/settings.cpp:3509
 msgid "Channel type##CHC1"
-msgstr ""
+msgstr "以通道类型决定##CHC1"
 
 #: src/gui/settings.cpp:3513
 msgid "Instrument type##CHC2"
-msgstr ""
+msgstr "以乐器类型决定##CHC2"
 
 #: src/gui/settings.cpp:3519
 msgid "Channel name colors:"
-msgstr ""
+msgstr "通道名称颜色:"
 
 #: src/gui/settings.cpp:3521
 msgid "Single##CTC0"
-msgstr ""
+msgstr "单一##CTC0"
 
 #: src/gui/settings.cpp:3525
 msgid "Channel type##CTC1"
-msgstr ""
+msgstr "通道类型决定##CTC1"
 
 #: src/gui/settings.cpp:3529
 msgid "Instrument type##CTC2"
-msgstr ""
+msgstr "乐器类型决定##CTC2"
 
 #: src/gui/settings.cpp:3538
 msgid "Unified instrument/wavetable/sample list"
-msgstr ""
+msgstr "统一 乐器/波表/采样 列表"
 
 #: src/gui/settings.cpp:3548
 msgid "Horizontal instrument list"
-msgstr ""
+msgstr "水平乐器列表"
 
 #: src/gui/settings.cpp:3554
 msgid "Instrument list icon style:"
-msgstr ""
+msgstr "乐器列表 图标风格:"
 
 #: src/gui/settings.cpp:3556
 msgid "None##iis0"
-msgstr ""
+msgstr "无图标##iis0"
 
 #: src/gui/settings.cpp:3560
 msgid "Graphical icons##iis1"
-msgstr ""
+msgstr "图形图标##iis1"
 
 #: src/gui/settings.cpp:3564
 msgid "Letter icons##iis2"
-msgstr ""
+msgstr "文字图标##iis2"
 
 #: src/gui/settings.cpp:3571
 msgid "Colorize instrument editor using instrument type"
-msgstr ""
+msgstr "以乐器类型给乐器编辑器上色"
 
 #: src/gui/settings.cpp:3577 src/gui/settings.cpp:4019
 msgid "Macro Editor"
-msgstr ""
+msgstr "宏编辑器"
 
 #: src/gui/settings.cpp:3578
 msgid "Macro editor layout:"
-msgstr ""
+msgstr "宏编辑器排列方式:"
 
 #: src/gui/settings.cpp:3580
 msgid "Unified##mel0"
-msgstr ""
+msgstr "统一##mel0"
 
 #: src/gui/settings.cpp:3590
 msgid "Grid##mel2"
-msgstr ""
+msgstr "分格##mel2"
 
 #: src/gui/settings.cpp:3594
 msgid "Single (with list)##mel3"
-msgstr ""
+msgstr "单一 (以列表区分)##mel3"
 
 #: src/gui/settings.cpp:3607
 msgid "Use classic macro editor vertical slider"
-msgstr ""
+msgstr "使用经典宏编辑器的垂直滑块"
 
+# idk what's this, skip.
 #: src/gui/settings.cpp:3613
 msgid "Wave Editor"
 msgstr ""
@@ -8278,154 +8438,156 @@ msgstr ""
 msgid "Use compact wave editor"
 msgstr ""
 
+# end of no translate.
 #: src/gui/settings.cpp:3621 src/gui/settings.cpp:3996
 msgid "FM Editor"
-msgstr ""
+msgstr "FM 编辑器"
 
 #: src/gui/settings.cpp:3622
 msgid "FM parameter names:"
-msgstr ""
+msgstr "FM 参数名词:"
 
 #: src/gui/settings.cpp:3624
 msgid "Friendly##fmn0"
-msgstr ""
+msgstr "友好##fmn0"
 
 #: src/gui/settings.cpp:3628
 msgid "Technical##fmn1"
-msgstr ""
+msgstr "专业##fmn1"
 
 #: src/gui/settings.cpp:3632
 msgid "Technical (alternate)##fmn2"
-msgstr ""
+msgstr "专业(候补)##fmn2"
 
 #: src/gui/settings.cpp:3639
 msgid "Use standard OPL waveform names"
-msgstr ""
+msgstr "使用标准 OPL 波形命名"
 
 #: src/gui/settings.cpp:3644
 msgid "FM parameter editor layout:"
-msgstr ""
+msgstr "FM 参数编辑器排列方式:"
 
 #: src/gui/settings.cpp:3646
 msgid "Modern##fml0"
-msgstr ""
+msgstr "现代##fml0"
 
 #: src/gui/settings.cpp:3650
 msgid "Compact (2x2, classic)##fml1"
-msgstr ""
+msgstr "紧凑 (2x2, 经典)##fml1"
 
 #: src/gui/settings.cpp:3654
 msgid "Compact (1x4)##fml2"
-msgstr ""
+msgstr "紧凑 (1x4)##fml2"
 
 #: src/gui/settings.cpp:3658
 msgid "Compact (4x1)##fml3"
-msgstr ""
+msgstr "紧凑 (4x1)##fml3"
 
 #: src/gui/settings.cpp:3662
 msgid "Alternate (2x2)##fml4"
-msgstr ""
+msgstr "代替 (2x2)##fml4"
 
 #: src/gui/settings.cpp:3666
 msgid "Alternate (1x4)##fml5"
-msgstr ""
+msgstr "代替 (1x4)##fml5"
 
 #: src/gui/settings.cpp:3670
 msgid "Alternate (4x1)##fml5"
-msgstr ""
+msgstr "代替 (4x1)##fml5"
 
 #: src/gui/settings.cpp:3676
 msgid "Position of Sustain in FM editor:"
-msgstr ""
+msgstr "FM 编辑器中 Sustain 参数位置:"
 
 #: src/gui/settings.cpp:3678
 msgid "Between Decay and Sustain Rate##susp0"
-msgstr ""
+msgstr "在 Decay 和 Sustain Rate 间##susp0"
 
 #: src/gui/settings.cpp:3682
 msgid "After Release Rate##susp1"
-msgstr ""
+msgstr "在 Release Rate 之后##susp1"
 
 #: src/gui/settings.cpp:3689
 msgid "Use separate colors for carriers/modulators in FM editor"
-msgstr ""
+msgstr "在FM 编辑器中使用另外的颜色以区分 carriers/modulators"
 
 #: src/gui/settings.cpp:3695
 msgid "Unsigned FM detune values"
-msgstr ""
+msgstr "Unsigned FM Detune 数值"
 
 #: src/gui/settings.cpp:3702
 msgid "Chip memory usage unit:"
-msgstr ""
+msgstr "芯片内存使用率单位"
 
 #: src/gui/settings.cpp:3704
 msgid "Bytes##MUU0"
-msgstr ""
+msgstr "字节##MUU0"
 
 #: src/gui/settings.cpp:3708
 msgid "Kilobytes##MUU1"
-msgstr ""
+msgstr "千字节##MUU1"
 
 #: src/gui/settings.cpp:3717
 msgid "Rounded corners"
-msgstr ""
+msgstr "边缘圆角"
 
 #: src/gui/settings.cpp:3723 src/gui/settings.cpp:3901
 #: src/gui/settings.cpp:3943
 msgid "Border"
-msgstr ""
+msgstr "边缘"
 
 #: src/gui/settings.cpp:3735
 msgid "Anti-aliased"
-msgstr ""
+msgstr "抗锯齿"
 
 #: src/gui/settings.cpp:3741
 msgid "Fill entire window"
-msgstr ""
+msgstr "填充整个窗口"
 
 #: src/gui/settings.cpp:3747
 msgid "Waveform goes out of bounds"
-msgstr ""
+msgstr "波形可超出窗口限制"
 
 #: src/gui/settings.cpp:3759
 msgid "Windows"
-msgstr ""
+msgstr "窗口"
 
 #: src/gui/settings.cpp:3761
 msgid "Rounded window corners"
-msgstr ""
+msgstr "窗口边缘圆角"
 
 #: src/gui/settings.cpp:3767
 msgid "Rounded buttons"
-msgstr ""
+msgstr "圆角按钮"
 
 #: src/gui/settings.cpp:3773
 msgid "Rounded menu corners"
-msgstr ""
+msgstr "菜单圆角"
 
 #: src/gui/settings.cpp:3779
 msgid "Rounded tabs"
-msgstr ""
+msgstr "圆角标签"
 
 #: src/gui/settings.cpp:3785
 msgid "Rounded scrollbars"
-msgstr ""
+msgstr "圆角滑块"
 
 #: src/gui/settings.cpp:3791
 msgid "Borders around widgets"
-msgstr ""
+msgstr "边缘加重"
 
 #: src/gui/settings.cpp:3800
 msgid "Color scheme"
-msgstr ""
+msgstr "色彩配置"
 
 #: src/gui/settings.cpp:3810
 msgid "Are you sure you want to reset the color scheme?"
-msgstr ""
+msgstr "你确定要重置色彩配置?"
 
+# 跳过色彩配置
 #: src/gui/settings.cpp:3813
 msgid "Guru mode"
-msgstr ""
+msgstr "显示所有色彩配置选项"
 
 #: src/gui/settings.cpp:3820 src/gui/settings.cpp:3850
 msgid "Frame shading"
@@ -8569,7 +8731,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3889
 msgid "Interface (other)"
-msgstr ""
+msgstr "界面(其他设置)"
 
 #: src/gui/settings.cpp:3891
 msgid "Window background"
@@ -8673,7 +8835,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3920 src/gui/settings.cpp:4141 src/gui/guiConst.cpp:235
 msgid "Miscellaneous"
-msgstr ""
+msgstr "杂项"
 
 #: src/gui/settings.cpp:3921
 msgid "Toggle on"
@@ -8701,7 +8863,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3929
 msgid "File Picker (built-in)"
-msgstr ""
+msgstr "内置文件选择器"
 
 #: src/gui/settings.cpp:3931
 msgid "Song (native)"
@@ -8744,7 +8906,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7364 src/gui/insEdit.cpp:7440 src/gui/insEdit.cpp:7460
 #: src/gui/insEdit.cpp:7468 src/gui/insEdit.cpp:7488
 msgid "Waveform"
-msgstr ""
+msgstr "波形"
 
 #: src/gui/settings.cpp:3949
 msgid "Waveform (clip)"
@@ -8856,7 +9018,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3989
 msgid "Envelope View"
-msgstr ""
+msgstr "包络示图"
 
 #: src/gui/settings.cpp:3990 src/gui/insEdit.cpp:540 src/gui/insEdit.cpp:3552
 #: src/gui/insEdit.cpp:3553 src/gui/insEdit.cpp:4086 src/gui/insEdit.cpp:4156
@@ -8866,11 +9028,11 @@ msgstr ""
 #: src/gui/insEdit.cpp:7034 src/gui/insEdit.cpp:7171
 #, c-format
 msgid "Envelope"
-msgstr ""
+msgstr "包络"
 
 #: src/gui/settings.cpp:3991
 msgid "Sustain guide"
-msgstr ""
+msgstr "延音释放示意"
 
 #: src/gui/settings.cpp:3997
 msgid "Algorithm background"
@@ -8952,11 +9114,11 @@ msgstr ""
 #: src/gui/insEdit.cpp:7462 src/gui/insEdit.cpp:7471 src/gui/insEdit.cpp:7481
 #: src/gui/insEdit.cpp:7489
 msgid "Pitch"
-msgstr ""
+msgstr "音调"
 
 #: src/gui/settings.cpp:4026
 msgid "Instrument Types"
-msgstr ""
+msgstr "乐器类型"
 
 #: src/gui/settings.cpp:4027
 msgid "FM (OPN)"
@@ -9144,11 +9306,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:4094
 msgid "Single color (background)"
-msgstr ""
+msgstr "单一通道色彩(背景)"
 
 #: src/gui/settings.cpp:4095
 msgid "Single color (text)"
-msgstr ""
+msgstr "单一通道色彩(文字)"
 
 #: src/gui/settings.cpp:4096 src/gui/guiConst.cpp:1393 src/gui/waveEdit.cpp:668
 msgid "FM"
@@ -9160,7 +9322,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:4102
 msgid "Muted"
-msgstr ""
+msgstr "静音通道"
 
 #: src/gui/settings.cpp:4106
 msgid "Playhead"
@@ -9189,7 +9351,7 @@ msgstr ""
 #: src/gui/settings.cpp:4112 src/gui/settings.cpp:4177
 #: src/gui/findReplace.cpp:791
 msgid "Selection"
-msgstr ""
+msgstr "选区"
 
 #: src/gui/settings.cpp:4113
 msgid "Selection (hovered)"
@@ -9393,7 +9555,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:4169 src/gui/guiConst.cpp:586 src/gui/sampleEdit.cpp:96
 msgid "Sample Editor"
-msgstr ""
+msgstr "采样编辑器"
 
 #: src/gui/settings.cpp:4172
 msgid "Time background"
@@ -9445,7 +9607,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:4187 src/gui/guiConst.cpp:602 src/gui/patManager.cpp:35
 msgid "Pattern Manager"
-msgstr ""
+msgstr "Pattern管理器"
 
 #: src/gui/settings.cpp:4188
 msgid "Unallocated"
@@ -9473,7 +9635,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:4196 src/gui/guiConst.cpp:599 src/gui/piano.cpp:63
 msgid "Piano"
-msgstr ""
+msgstr "钢琴键"
 
 #: src/gui/settings.cpp:4198
 msgid "Upper key"
@@ -9627,79 +9789,80 @@ msgstr ""
 msgid "Log level: Trace/Verbose"
 msgstr ""
 
+# end of no translate.
 #: src/gui/settings.cpp:4258
 msgid "Backup"
-msgstr ""
+msgstr "备份"
 
 #: src/gui/settings.cpp:4263
 msgid "Enable backup system"
-msgstr ""
+msgstr "启用备份系统"
 
 #: src/gui/settings.cpp:4268
 msgid "Interval (in seconds)"
-msgstr ""
+msgstr "备份间隔(秒)"
 
 #: src/gui/settings.cpp:4273
 msgid "Backups per file"
-msgstr ""
+msgstr "单个文件生成备份数"
 
 #: src/gui/settings.cpp:4279
 msgid "Backup Management"
-msgstr ""
+msgstr "备份管理"
 
 #: src/gui/settings.cpp:4283
 msgid "Purge before:"
-msgstr ""
+msgstr "清除此前的备份:"
 
 #: src/gui/settings.cpp:4357
 msgid "Go##PDate"
-msgstr ""
+msgstr "开始##PDate"
 
 #: src/gui/settings.cpp:4364
 #, c-format
 msgid "%<PRIu64>PB used"
-msgstr ""
+msgstr "使用了 %<PRIu64>PB"
 
 #: src/gui/settings.cpp:4366
 #, c-format
 msgid "%<PRIu64>TB used"
-msgstr ""
+msgstr "使用了 %<PRIu64>TB"
 
 #: src/gui/settings.cpp:4368
 #, c-format
 msgid "%<PRIu64>GB used"
-msgstr ""
+msgstr "使用了 %<PRIu64>GB"
 
 #: src/gui/settings.cpp:4370
 #, c-format
 msgid "%<PRIu64>MB used"
-msgstr ""
+msgstr "使用了 %<PRIu64>MB"
 
 #: src/gui/settings.cpp:4372
 #, c-format
 msgid "%<PRIu64>KB used"
-msgstr ""
+msgstr "使用了 %<PRIu64>KB"
 
 #: src/gui/settings.cpp:4374
 #, c-format
 msgid "%<PRIu64> bytes used"
-msgstr ""
+msgstr "使用了 %<PRIu64> bytes"
 
 #: src/gui/settings.cpp:4379
 msgid "Refresh"
-msgstr ""
+msgstr "刷新"
 
 #: src/gui/settings.cpp:4383
 msgid "Delete all"
-msgstr ""
+msgstr "删除全部"
 
 #: src/gui/settings.cpp:4389 src/gui/settings.cpp:6942
 msgid "Size"
-msgstr ""
+msgstr "大小"
 
 #: src/gui/settings.cpp:4390
 msgid "Latest"
-msgstr ""
+msgstr "最新备份"
 
 #: src/gui/settings.cpp:4400
 #, c-format
@@ -9731,6 +9894,7 @@ msgstr ""
 msgid "%<PRIu64>"
 msgstr ""
 
+# due to the tech.support nature of Cheat Codes, no translate for ease of commnicate.
 #: src/gui/settings.cpp:4534
 msgid "Cheat Codes"
 msgstr ""
@@ -9771,31 +9935,32 @@ msgstr ""
 msgid "enabled \"comfortable\" mode"
 msgstr ""
 
+# end of no translate.
 #: src/gui/settings.cpp:4590
 msgid "OK##SettingsOK"
 msgstr ""
 
 #: src/gui/settings.cpp:4596
 msgid "Cancel##SettingsCancel"
-msgstr ""
+msgstr "取消##SettingsCancel"
 
 #: src/gui/settings.cpp:4604
 msgid "Apply##SettingsApply"
-msgstr ""
+msgstr "应用##SettingsApply"
 
 #: src/gui/settings.cpp:5678
 msgid "could not initialize audio!"
-msgstr ""
+msgstr "无法初始化音频!"
 
 #: src/gui/settings.cpp:5688 src/gui/gui.cpp:4079 src/gui/gui.cpp:6698
 #: src/gui/gui.cpp:7136
 msgid "error while loading fonts! please check your settings."
-msgstr ""
+msgstr "加载字体时出错! 请检查你的设置."
 
 #: src/gui/settings.cpp:5867
 #, c-format
 msgid "error while loading config! (%s)"
-msgstr ""
+msgstr "加载配置文件时出错! (%s)"
 
 #: src/gui/settings.cpp:6929
 msgid "[Dir]"
@@ -9811,54 +9976,57 @@ msgstr ""
 
 #: src/gui/settings.cpp:6932
 msgid "Name:"
-msgstr ""
+msgstr "名称:"
 
 #: src/gui/settings.cpp:6933
 msgid "Path:"
-msgstr ""
+msgstr "路径:"
 
 #: src/gui/settings.cpp:6934
 msgid "Reset search"
-msgstr ""
+msgstr "重置搜索"
 
 #: src/gui/settings.cpp:6935
 msgid "Drives"
-msgstr ""
+msgstr "磁盘"
 
 #: src/gui/settings.cpp:6936
 msgid ""
 "Edit path\n"
 "You can also right click on path buttons"
 msgstr ""
+"编辑目录\n"
+"你也可右键路径按钮"
 
 #: src/gui/settings.cpp:6937
 msgid "Go to home directory"
-msgstr ""
+msgstr "转到用户文件夹"
 
 #: src/gui/settings.cpp:6938
 msgid "Go to parent directory"
-msgstr ""
+msgstr "转到上一级目录"
 
 #: src/gui/settings.cpp:6939
 msgid "Create Directory"
-msgstr ""
+msgstr "新建文件夹"
 
 #: src/gui/settings.cpp:6940
 msgid "File name"
-msgstr ""
+msgstr "文件名"
 
 #: src/gui/settings.cpp:6943
 msgid "Date"
-msgstr ""
+msgstr "日期"
 
+# end of no translate.
 #: src/gui/settings.cpp:6944 src/gui/gui.cpp:5544 src/gui/gui.cpp:5679
 #: src/gui/gui.cpp:5680
 msgid "Warning"
-msgstr ""
+msgstr "警告"
 
 #: src/gui/settings.cpp:6945
 msgid "The file you selected already exists! Would you like to overwrite it?"
-msgstr ""
+msgstr "选取的文件已经存在! 是否要覆盖其?"
 
 #: src/gui/settings.cpp:6946 src/gui/gui.cpp:5684 src/gui/gui.cpp:5708
 #: src/gui/gui.cpp:5732 src/gui/gui.cpp:5756 src/gui/gui.cpp:5780
@@ -9883,103 +10051,103 @@ msgstr ""
 
 #: src/gui/orders.cpp:114
 msgid "Add new order"
-msgstr ""
+msgstr "新增order"
 
 #: src/gui/orders.cpp:125 src/gui/guiConst.cpp:794
 msgid "Remove order"
-msgstr ""
+msgstr "移除order"
 
 #: src/gui/orders.cpp:137
 msgid "Duplicate order (right-click to deep clone)"
-msgstr ""
+msgstr "克隆order(右键以深度克隆)"
 
 #: src/gui/orders.cpp:146 src/gui/guiConst.cpp:795
 msgid "Move order up"
-msgstr ""
+msgstr "上移order"
 
 #: src/gui/orders.cpp:155 src/gui/guiConst.cpp:796
 msgid "Move order down"
-msgstr ""
+msgstr "下移order"
 
 #: src/gui/orders.cpp:167
 msgid "Place copy of current order at end of song (right-click to deep clone)"
-msgstr ""
+msgstr "在曲目结尾克隆当前order"
 
 #: src/gui/orders.cpp:177
 msgid "Order change mode: entire row"
-msgstr ""
+msgstr "Order编辑模式: 全行"
 
 #: src/gui/orders.cpp:179
 msgid "Order change mode: one"
-msgstr ""
+msgstr "Order编辑模式: 单格"
 
 #: src/gui/orders.cpp:205
 msgid "Order edit mode: Select and type (scroll vertically)"
-msgstr ""
+msgstr "Order编辑模式: 手动编辑(写入后竖直滚动)"
 
 #: src/gui/orders.cpp:207
 msgid "Order edit mode: Select and type (scroll horizontally)"
-msgstr ""
+msgstr "Order编辑模式: 手动编辑(写入后水平滚动)"
 
 #: src/gui/orders.cpp:209
 msgid "Order edit mode: Select and type (don't scroll)"
-msgstr ""
+msgstr "Order编辑模式: 手动编辑(不滚动)"
 
 #: src/gui/orders.cpp:211
 msgid "Order edit mode: Click to change"
-msgstr ""
+msgstr "Order编辑模式: 单击增减"
 
 #: src/gui/findReplace.cpp:29
 msgid "ignore"
-msgstr ""
+msgstr "忽略"
 
 #: src/gui/findReplace.cpp:30
 msgid "equals"
-msgstr ""
+msgstr "等于"
 
 #: src/gui/findReplace.cpp:31
 msgid "not equal"
-msgstr ""
+msgstr "不等于"
 
 #: src/gui/findReplace.cpp:32
 msgid "between"
-msgstr ""
+msgstr "介于"
 
 #: src/gui/findReplace.cpp:33
 msgid "not between"
-msgstr ""
+msgstr "不介于"
 
 #: src/gui/findReplace.cpp:34
 msgid "any"
-msgstr ""
+msgstr "任意"
 
 #: src/gui/findReplace.cpp:35 src/gui/guiConst.cpp:217
 msgid "none"
-msgstr ""
+msgstr "空"
 
 #: src/gui/findReplace.cpp:39
 msgid "set"
-msgstr ""
+msgstr "设为"
 
 #: src/gui/findReplace.cpp:40
 msgid "add"
-msgstr ""
+msgstr "加"
 
 #: src/gui/findReplace.cpp:41
 msgid "add (overflow)"
-msgstr ""
+msgstr "加(允许溢出)"
 
 #: src/gui/findReplace.cpp:42
 msgid "scale %"
-msgstr ""
+msgstr "缩放 %"
 
 #: src/gui/findReplace.cpp:512 src/gui/guiConst.cpp:609
 msgid "Find/Replace"
-msgstr ""
+msgstr "查找/替换"
 
 #: src/gui/findReplace.cpp:520 src/gui/findReplace.cpp:850
 msgid "Find"
-msgstr ""
+msgstr "查找"
 
 #: src/gui/findReplace.cpp:526 src/gui/findReplace.cpp:535
 msgid "order"
@@ -9987,59 +10155,60 @@ msgstr ""
 
 #: src/gui/findReplace.cpp:527 src/gui/findReplace.cpp:537
 msgid "row"
-msgstr ""
+msgstr "行"
 
 #: src/gui/findReplace.cpp:539 src/gui/csPlayer.cpp:146
 msgid "channel"
-msgstr ""
+msgstr "通道"
 
 #: src/gui/findReplace.cpp:541
 msgid "go"
-msgstr ""
+msgstr "转到"
 
 #: src/gui/findReplace.cpp:585
 msgid "no matches found!"
-msgstr ""
+msgstr "找不到相关项目!"
 
 #: src/gui/findReplace.cpp:587
 msgid "Back"
-msgstr ""
+msgstr "返回"
 
 #: src/gui/findReplace.cpp:750
 msgid "Delete query"
-msgstr ""
+msgstr "移除条件"
 
+# warring! above!
 #: src/gui/findReplace.cpp:754 src/gui/findReplace.cpp:1037
 msgid "Add effect"
-msgstr ""
+msgstr "添加效果"
 
 #: src/gui/findReplace.cpp:761 src/gui/findReplace.cpp:1044
 msgid "Remove effect"
-msgstr ""
+msgstr "移除效果"
 
 #: src/gui/findReplace.cpp:786
 msgid "Search range:"
-msgstr ""
+msgstr "搜索范围:"
 
 #: src/gui/findReplace.cpp:799
 msgid "Confine to channels"
-msgstr ""
+msgstr "仅在以下通道"
 
 #: src/gui/findReplace.cpp:803 src/gui/sampleEdit.cpp:1165
 msgid "From"
-msgstr ""
+msgstr "从"
 
 #: src/gui/findReplace.cpp:814 src/gui/sampleEdit.cpp:1169
 msgid "To"
-msgstr ""
+msgstr "到"
 
 #: src/gui/findReplace.cpp:826
 msgid "Match effect position:"
-msgstr ""
+msgstr "核对效果顺序:"
 
 #: src/gui/findReplace.cpp:832
 msgid "match effects regardless of position."
-msgstr ""
+msgstr "不核对效果顺序"
 
 #: src/gui/findReplace.cpp:834 src/gui/compatFlags.cpp:288
 msgid "Lax"
@@ -10047,7 +10216,7 @@ msgstr ""
 
 #: src/gui/findReplace.cpp:838
 msgid "match effects only if they appear in-order."
-msgstr ""
+msgstr "仅按指定顺序排列"
 
 #: src/gui/findReplace.cpp:840 src/gui/compatFlags.cpp:276
 msgid "Strict"
@@ -10055,59 +10224,60 @@ msgstr ""
 
 #: src/gui/findReplace.cpp:844
 msgid "match effects only if they appear exactly as specified."
-msgstr ""
+msgstr "与指定顺序、值完全一致"
 
 #: src/gui/findReplace.cpp:856
 msgid "Replace"
-msgstr ""
+msgstr "替换"
 
 #: src/gui/findReplace.cpp:908
 msgid "INVALID"
-msgstr ""
+msgstr "无效！"
 
 #: src/gui/findReplace.cpp:1052
 msgid "Effect replace mode:"
-msgstr ""
+msgstr "替换效果方式:"
 
 #: src/gui/findReplace.cpp:1053
 msgid "Replace matches only"
-msgstr ""
+msgstr "仅替换效果"
 
 #: src/gui/findReplace.cpp:1056
 msgid "Replace matches, then free spaces"
-msgstr ""
+msgstr "替换效果并插入空位"
 
 #: src/gui/findReplace.cpp:1059
 msgid "Clear effects"
-msgstr ""
+msgstr "覆盖所有效果"
 
 #: src/gui/findReplace.cpp:1062
 msgid "Insert in free spaces"
-msgstr ""
+msgstr "仅插入空位"
 
+# 以下不知作什么用。
 #: src/gui/findReplace.cpp:1065
 msgid "Replace##QueryReplace"
-msgstr ""
+msgstr "替换##QueryReplace"
 
 #: src/gui/about.cpp:26
 msgid "is proud to present"
-msgstr ""
+msgstr "荣誉出品"
 
 #: src/gui/about.cpp:30
 msgid "the biggest multi-system chiptune tracker!"
-msgstr ""
+msgstr "全球最大的多系统 Chiptune Tracker!"
 
 #: src/gui/about.cpp:31
 msgid "featuring DefleMask song compatibility."
-msgstr ""
+msgstr "兼容DefleMask 文件."
 
 #: src/gui/about.cpp:33
 msgid "> CREDITS <"
-msgstr ""
+msgstr "> 鸣谢 <"
 
 #: src/gui/about.cpp:35
 msgid "-- program --"
-msgstr ""
+msgstr "-- 程序 --"
 
 #: src/gui/about.cpp:37
 msgid "A M 4 N (intro tune)"
@@ -10115,15 +10285,15 @@ msgstr ""
 
 #: src/gui/about.cpp:52
 msgid "-- graphics/UI design --"
-msgstr ""
+msgstr "-- 图形/UI 设计 --"
 
 #: src/gui/about.cpp:59
 msgid "-- documentation --"
-msgstr ""
+msgstr "-- 文档/说明编写 --"
 
 #: src/gui/about.cpp:69
 msgid "-- localization/translation team --"
-msgstr ""
+msgstr "-- 本地化/翻译 组 --"
 
 #: src/gui/about.cpp:82
 msgid "-- demo songs --"
@@ -10131,20 +10301,22 @@ msgstr ""
 
 #: src/gui/about.cpp:210
 msgid "-- additional feedback/fixes --"
-msgstr ""
+msgstr "-- 额外反馈/补丁 --"
 
 #: src/gui/about.cpp:221
 msgid "-- Metal backend test team --"
-msgstr ""
+msgstr "-- Metal 渲染后端测试组 --"
 
 #: src/gui/about.cpp:227
 msgid "-- DirectX 9 backend test team --"
-msgstr ""
+msgstr "-- DirectX 9 渲染后端测试组 --"
 
+# 不翻译，其含有几层意思，与...合作，由...提供支持，“基于”太过简化。
 #: src/gui/about.cpp:234
 msgid "powered by:"
 msgstr ""
 
+# end of no translate.
 #: src/gui/about.cpp:235
 msgid "Dear ImGui by Omar Cornut"
 msgstr ""
@@ -10395,56 +10567,57 @@ msgstr ""
 
 #: src/gui/about.cpp:312
 msgid "help Furnace grow:"
-msgstr ""
+msgstr "帮助Furnace成长:"
 
 #: src/gui/about.cpp:315
 msgid "contact tildearrow at:"
-msgstr ""
+msgstr "联系 tildearrow :"
 
 #: src/gui/about.cpp:318
 msgid "disclaimer:"
-msgstr ""
+msgstr "免责声明:"
 
 #: src/gui/about.cpp:319
 msgid "despite the fact this program works"
-msgstr ""
+msgstr "尽管此程序兼容 .dmf 文件，"
 
 #: src/gui/about.cpp:320
 msgid "with the .dmf file format, it is NOT"
-msgstr ""
+msgstr "本程序与Delek或DefleMask"
 
 #: src/gui/about.cpp:321
 msgid "affiliated with Delek or DefleMask in"
-msgstr ""
+msgstr "毫无相关，且非其替代。"
 
 #: src/gui/about.cpp:322
 msgid "any way, nor it is a replacement for"
-msgstr ""
+msgstr "本程序开源免费使用，“完全不担保”使用"
 
 #: src/gui/about.cpp:323
 msgid "the original program."
-msgstr ""
+msgstr "后产生的任何后果！"
 
 #: src/gui/about.cpp:325
 msgid "it also comes with ABSOLUTELY NO WARRANTY."
-msgstr ""
+msgstr " "
 
 #: src/gui/about.cpp:327
 msgid "thanks to all contributors/bug reporters!"
-msgstr ""
+msgstr "感谢所有代码贡献者/Bug反馈者"
 
 #: src/gui/about.cpp:334
 msgid "About Furnace"
-msgstr ""
+msgstr "关于 Furnace"
 
 #: src/gui/about.cpp:424
 msgid "Unsaved changes! Save changes before playing?"
-msgstr ""
+msgstr "未保存！保存进度再播放？"
 
 #: src/gui/compatFlags.cpp:31 src/gui/guiConst.cpp:598
 msgid "Compatibility Flags"
-msgstr ""
+msgstr "兼容性选项"
 
+# warning! no more translate compatFlags.cpp until further notice.
 #: src/gui/compatFlags.cpp:32
 msgid ""
 "these flags are designed to provide better DefleMask/older Furnace "
@@ -10452,10 +10625,12 @@ msgid ""
 "it is recommended to disable most of these unless you rely on specific "
 "quirks."
 msgstr ""
+"这些选项用于更好的兼容DefleMask 和历史版本Furnace \n"
+"除非您依赖其中某个特性，建议您不要修改，保持大部分关闭。"
 
 #: src/gui/compatFlags.cpp:34 src/gui/compatFlags.cpp:310
 msgid "DefleMask"
-msgstr ""
+msgstr "DefleMask"
 
 #: src/gui/compatFlags.cpp:35
 msgid "Limit slide range"
@@ -11020,15 +11195,15 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:191
 msgid "Forward"
-msgstr ""
+msgstr "向前"
 
 #: src/gui/guiConst.cpp:192
 msgid "Backward"
-msgstr ""
+msgstr "向后"
 
 #: src/gui/guiConst.cpp:193
 msgid "Ping pong"
-msgstr ""
+msgstr "乒乓"
 
 #: src/gui/guiConst.cpp:218
 msgid "linear"
@@ -11053,108 +11228,108 @@ msgstr ""
 #: src/gui/guiConst.cpp:226 src/gui/sampleEdit.cpp:137
 #: src/gui/sampleEdit.cpp:143
 msgid "Invalid"
-msgstr ""
+msgstr "无效"
 
 #: src/gui/guiConst.cpp:231
 msgid "Time"
-msgstr ""
+msgstr "时间"
 
 #: src/gui/guiConst.cpp:233
 msgid "System (Primary)"
-msgstr ""
+msgstr "系统 (主)"
 
 #: src/gui/guiConst.cpp:234
 msgid "System (Secondary)"
-msgstr ""
+msgstr "系统 (从)"
 
 #: src/gui/guiConst.cpp:530
 msgid "---Global"
-msgstr ""
+msgstr "---全局"
 
 #: src/gui/guiConst.cpp:532
 msgid "Open file"
-msgstr ""
+msgstr "打开文件"
 
 #: src/gui/guiConst.cpp:533
 msgid "Restore backup"
-msgstr ""
+msgstr "恢复备份"
 
 #: src/gui/guiConst.cpp:534
 msgid "Save file"
-msgstr ""
+msgstr "保存文件"
 
 #: src/gui/guiConst.cpp:535
 msgid "Save as"
-msgstr ""
+msgstr "另存为"
 
 #: src/gui/guiConst.cpp:537 src/gui/sampleEdit.cpp:995
 msgid "Undo"
-msgstr ""
+msgstr "撤销"
 
 #: src/gui/guiConst.cpp:539 src/gui/guiConst.cpp:541
 #: src/gui/sampleEdit.cpp:1002
 msgid "Redo"
-msgstr ""
+msgstr "重做"
 
 #: src/gui/guiConst.cpp:543
 msgid "Exit"
-msgstr ""
+msgstr "退出"
 
 #: src/gui/guiConst.cpp:544
 msgid "Play/Stop (toggle)"
-msgstr ""
+msgstr "播放/停止"
 
 #: src/gui/guiConst.cpp:547
 msgid "Play (from beginning)"
-msgstr ""
+msgstr "播放 (从头开始)"
 
 #: src/gui/guiConst.cpp:548
 msgid "Play (repeat pattern)"
-msgstr ""
+msgstr "播放 (重复当前Pattern)"
 
 #: src/gui/guiConst.cpp:549
 msgid "Play from cursor"
-msgstr ""
+msgstr "从光标处开始播放"
 
 #: src/gui/guiConst.cpp:550
 msgid "Step row"
-msgstr ""
+msgstr "步进一行"
 
 #: src/gui/guiConst.cpp:551
 msgid "Octave up"
-msgstr ""
+msgstr "升高 八度"
 
 #: src/gui/guiConst.cpp:552
 msgid "Octave down"
-msgstr ""
+msgstr "降低 八度"
 
 #: src/gui/guiConst.cpp:553
 msgid "Previous instrument"
-msgstr ""
+msgstr "此前的乐器"
 
 #: src/gui/guiConst.cpp:554
 msgid "Next instrument"
-msgstr ""
+msgstr "此后的乐器"
 
 #: src/gui/guiConst.cpp:555
 msgid "Increase edit step"
-msgstr ""
+msgstr "增加编辑步进"
 
 #: src/gui/guiConst.cpp:556
 msgid "Decrease edit step"
-msgstr ""
+msgstr "减少编辑步进"
 
 #: src/gui/guiConst.cpp:557
 msgid "Toggle edit mode"
-msgstr ""
+msgstr "开启/关闭 编辑模式"
 
 #: src/gui/guiConst.cpp:559
 msgid "Toggle repeat pattern"
-msgstr ""
+msgstr "开启/关闭 重复当前Pattern"
 
 #: src/gui/guiConst.cpp:562
 msgid "Toggle full-screen"
-msgstr ""
+msgstr "全屏"
 
 #: src/gui/guiConst.cpp:563
 msgid "Request voice from TX81Z"
@@ -11162,8 +11337,9 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:565
 msgid "Clear song data"
-msgstr ""
+msgstr "清除曲目数据"
 
+# what's a command palette????? skip.
 #: src/gui/guiConst.cpp:567 src/gui/gui.cpp:5607 src/gui/gui.cpp:5659
 msgid "Command Palette"
 msgstr ""
@@ -11188,57 +11364,59 @@ msgstr ""
 msgid "Add chip (Palette)"
 msgstr ""
 
+# end of no translate.
 #: src/gui/guiConst.cpp:578
 msgid "Instrument List"
-msgstr ""
+msgstr "乐器列表"
 
 #: src/gui/guiConst.cpp:579 src/gui/insEdit.cpp:5208
 msgid "Instrument Editor"
-msgstr ""
+msgstr "乐器编辑器"
 
 #: src/gui/guiConst.cpp:580
 msgid "Song Information"
-msgstr ""
+msgstr "曲目信息"
 
 #: src/gui/guiConst.cpp:583
 msgid "Wavetable List"
-msgstr ""
+msgstr "波表列表"
 
 #: src/gui/guiConst.cpp:584 src/gui/waveEdit.cpp:409
 msgid "Wavetable Editor"
-msgstr ""
+msgstr "波表编辑器"
 
 #: src/gui/guiConst.cpp:585
 msgid "Sample List"
-msgstr ""
+msgstr "采样列表"
 
 #: src/gui/guiConst.cpp:594
 msgid "Debug Menu"
-msgstr ""
+msgstr "Debug菜单"
 
 #: src/gui/guiConst.cpp:595
 msgid "Oscilloscope (master)"
-msgstr ""
+msgstr "主示波器"
 
 #: src/gui/guiConst.cpp:603 src/gui/sysManager.cpp:41
 msgid "Chip Manager"
-msgstr ""
+msgstr "芯片管理器"
 
+# 找不到commandstreamplayer，跳过csPlayer.cpp汉化。... 找到了...但还是leaveitbe得了。
 #: src/gui/guiConst.cpp:614 src/gui/csPlayer.cpp:112
 msgid "Command Stream Player"
 msgstr ""
 
 #: src/gui/guiConst.cpp:615
 msgid "User Presets"
-msgstr ""
+msgstr "用户预设"
 
 #: src/gui/guiConst.cpp:617
 msgid "Collapse/expand current window"
-msgstr ""
+msgstr "缩小/展开 当前窗口"
 
 #: src/gui/guiConst.cpp:618
 msgid "Close current window"
-msgstr ""
+msgstr "关闭当前窗口"
 
 #: src/gui/guiConst.cpp:621
 msgid "---Pattern"
@@ -11246,656 +11424,669 @@ msgstr ""
 
 #: src/gui/guiConst.cpp:622
 msgid "Transpose (+1)"
-msgstr ""
+msgstr "变调 (+1)"
 
 #: src/gui/guiConst.cpp:623
 msgid "Transpose (-1)"
-msgstr ""
+msgstr "变调 (-1)"
 
 #: src/gui/guiConst.cpp:624
 msgid "Transpose (+1 octave)"
-msgstr ""
+msgstr "变调 (+1 octave)"
 
 #: src/gui/guiConst.cpp:625
 msgid "Transpose (-1 octave)"
-msgstr ""
+msgstr "变调 (-1 octave)"
 
 #: src/gui/guiConst.cpp:626
 msgid "Increase values (+1)"
-msgstr ""
+msgstr "变值 (+1)"
 
 #: src/gui/guiConst.cpp:627
 msgid "Increase values (-1)"
-msgstr ""
+msgstr "变值 (-1)"
 
 #: src/gui/guiConst.cpp:628
 msgid "Increase values (+16)"
-msgstr ""
+msgstr "变值 (+16)"
 
 #: src/gui/guiConst.cpp:629
 msgid "Increase values (-16)"
-msgstr ""
+msgstr "变值 (-16)"
 
 #: src/gui/guiConst.cpp:630
 msgid "Select all"
-msgstr ""
+msgstr "全选"
 
 #: src/gui/guiConst.cpp:631
 msgid "Cut"
-msgstr ""
+msgstr "剪切"
 
 #: src/gui/guiConst.cpp:632
 msgid "Copy"
-msgstr ""
+msgstr "复制"
 
 #: src/gui/guiConst.cpp:633
 msgid "Paste"
-msgstr ""
+msgstr "粘贴"
 
 #: src/gui/guiConst.cpp:634
 msgid "Paste Mix (foreground)"
-msgstr ""
+msgstr "粘贴混合 (前置)"
 
 #: src/gui/guiConst.cpp:635
 msgid "Paste Mix (background)"
-msgstr ""
+msgstr "粘贴混合 (后置)"
 
 #: src/gui/guiConst.cpp:636
 msgid "Paste Flood"
-msgstr ""
+msgstr "重复粘贴"
 
 #: src/gui/guiConst.cpp:637
 msgid "Paste Overflow"
-msgstr ""
+msgstr "溢出重复粘贴"
 
 #: src/gui/guiConst.cpp:638
 msgid "Move cursor up"
-msgstr ""
+msgstr "上移光标"
 
 #: src/gui/guiConst.cpp:639
 msgid "Move cursor down"
-msgstr ""
+msgstr "下移光标"
 
 #: src/gui/guiConst.cpp:640
 msgid "Move cursor left"
-msgstr ""
+msgstr "左移光标"
 
 #: src/gui/guiConst.cpp:641
 msgid "Move cursor right"
-msgstr ""
+msgstr "右移光标"
 
 #: src/gui/guiConst.cpp:642
 msgid "Move cursor up by one (override Edit Step)"
-msgstr ""
+msgstr "上移一行光标 (忽略编辑步进)"
 
 #: src/gui/guiConst.cpp:643
 msgid "Move cursor down by one (override Edit Step)"
-msgstr ""
+msgstr "下移一行光标 (忽略编辑步进)"
 
 #: src/gui/guiConst.cpp:644
 msgid "Move cursor to previous channel"
-msgstr ""
+msgstr "移动光标到上一个通道"
 
 #: src/gui/guiConst.cpp:645
 msgid "Move cursor to next channel"
-msgstr ""
+msgstr "移动光标到下一个通道"
 
 #: src/gui/guiConst.cpp:646
 msgid "Move cursor to next channel (overflow)"
-msgstr ""
+msgstr "移动光标到下一个通道 (溢出)"
 
 #: src/gui/guiConst.cpp:647
 msgid "Move cursor to previous channel (overflow)"
-msgstr ""
+msgstr "移动光标到上一个通道 (溢出)"
 
 #: src/gui/guiConst.cpp:648
 msgid "Move cursor to beginning of pattern"
-msgstr ""
+msgstr "移动光标到Pattern起始"
 
 #: src/gui/guiConst.cpp:649
 msgid "Move cursor to end of pattern"
-msgstr ""
+msgstr "移动光标到Pattern末尾"
 
+# 需要检查粗操作的翻译!!
 #: src/gui/guiConst.cpp:650
 msgid "Move cursor up (coarse)"
-msgstr ""
+msgstr "上移光标 (coarse)"
 
 #: src/gui/guiConst.cpp:651
 msgid "Move cursor down (coarse)"
-msgstr ""
+msgstr "下移光标 (coarse)"
 
+# warring! above!
 #: src/gui/guiConst.cpp:652
 msgid "Expand selection upwards"
-msgstr ""
+msgstr "向上扩展选区"
 
 #: src/gui/guiConst.cpp:653
 msgid "Expand selection downwards"
-msgstr ""
+msgstr "向下扩展选区"
 
 #: src/gui/guiConst.cpp:654
 msgid "Expand selection to the left"
-msgstr ""
+msgstr "向左扩展选区"
 
 #: src/gui/guiConst.cpp:655
 msgid "Expand selection to the right"
-msgstr ""
+msgstr "向右扩展选区"
 
 #: src/gui/guiConst.cpp:656
 msgid "Expand selection upwards by one (override Edit Step)"
-msgstr ""
+msgstr "向上扩展一行选区 (忽略编辑步进)"
 
 #: src/gui/guiConst.cpp:657
 msgid "Expand selection downwards by one (override Edit Step)"
-msgstr ""
+msgstr "向下扩展一行选区 (忽略编辑步进)"
 
 #: src/gui/guiConst.cpp:658
 msgid "Expand selection to beginning of pattern"
-msgstr ""
+msgstr "扩展选区到Pattern起始"
 
 #: src/gui/guiConst.cpp:659
 msgid "Expand selection to end of pattern"
-msgstr ""
+msgstr "扩展选区到Pattern结尾"
 
 #: src/gui/guiConst.cpp:660
 msgid "Expand selection upwards (coarse)"
-msgstr ""
+msgstr "向上扩展选区 (coarse)"
 
 #: src/gui/guiConst.cpp:661
 msgid "Expand selection downwards (coarse)"
-msgstr ""
+msgstr "向下扩展选区 (coarse)"
 
 #: src/gui/guiConst.cpp:662
 msgid "Move selection up"
-msgstr ""
+msgstr "上移选区"
 
+# warring! 检查是否为'选区上移'.....  fork....
 #: src/gui/guiConst.cpp:663
 msgid "Move selection down"
-msgstr ""
+msgstr "下移选区"
 
 #: src/gui/guiConst.cpp:664
 msgid "Move selection to previous channel"
-msgstr ""
+msgstr "移动选区到上一个通道"
 
 #: src/gui/guiConst.cpp:665
 msgid "Move selection to next channel"
-msgstr ""
+msgstr "移动选区到下一个通道"
 
 #: src/gui/guiConst.cpp:667
 msgid "Pull delete"
-msgstr ""
+msgstr "删除并上拉"
 
 #: src/gui/guiConst.cpp:668
 msgid "Insert"
-msgstr ""
+msgstr "插入"
 
 #: src/gui/guiConst.cpp:669
 msgid "Mute channel at cursor"
-msgstr ""
+msgstr "静音光标所在通道"
 
 #: src/gui/guiConst.cpp:670
 msgid "Solo channel at cursor"
-msgstr ""
+msgstr "独唱光标所在通道"
 
 #: src/gui/guiConst.cpp:671
 msgid "Unmute all channels"
-msgstr ""
+msgstr "解除所有通道静音"
 
 #: src/gui/guiConst.cpp:672
 msgid "Go to next order"
-msgstr ""
+msgstr "转到下一个Order"
 
 #: src/gui/guiConst.cpp:673
 msgid "Go to previous order"
-msgstr ""
+msgstr "转到上一个Order"
 
 #: src/gui/guiConst.cpp:674
 msgid "Collapse channel at cursor"
-msgstr ""
+msgstr "最小化光标所在通道"
 
 #: src/gui/guiConst.cpp:675
 msgid "Increase effect columns"
-msgstr ""
+msgstr "增加效果列"
 
 #: src/gui/guiConst.cpp:676
 msgid "Decrease effect columns"
-msgstr ""
+msgstr "减少效果列"
 
 #: src/gui/guiConst.cpp:677
 msgid "Interpolate"
-msgstr ""
+msgstr "插值"
 
+# 需要检查这个 淡 是否自动与其他介词组词.
 #: src/gui/guiConst.cpp:678 src/gui/insEdit.cpp:530
 msgid "Fade"
-msgstr ""
+msgstr "淡"
 
+# warring! above!
 #: src/gui/guiConst.cpp:679
 msgid "Invert values"
-msgstr ""
+msgstr "反相数值"
 
 #: src/gui/guiConst.cpp:680
 msgid "Flip selection"
-msgstr ""
+msgstr "反选"
 
 #: src/gui/guiConst.cpp:681
 msgid "Collapse rows"
-msgstr ""
+msgstr "缩进 行"
 
 #: src/gui/guiConst.cpp:682
 msgid "Expand rows"
-msgstr ""
+msgstr "扩张 行"
 
 #: src/gui/guiConst.cpp:683
 msgid "Collapse pattern"
-msgstr ""
+msgstr "缩进 Pattern"
 
 #: src/gui/guiConst.cpp:684
 msgid "Expand pattern"
-msgstr ""
+msgstr "扩张 Pattern"
 
 #: src/gui/guiConst.cpp:685
 msgid "Collapse song"
-msgstr ""
+msgstr "缩进 曲目"
 
 #: src/gui/guiConst.cpp:686
 msgid "Expand song"
-msgstr ""
+msgstr "扩张 曲目"
 
 #: src/gui/guiConst.cpp:687
 msgid "Set note input latch"
-msgstr ""
+msgstr "设置 note 输入锁存"
 
 #: src/gui/guiConst.cpp:688
 msgid "Change mobile scroll mode"
-msgstr ""
+msgstr "设置移动端滚动模式"
 
 #: src/gui/guiConst.cpp:689
 msgid "Clear note input latch"
-msgstr ""
+msgstr "清除 note 输入锁存"
 
 #: src/gui/guiConst.cpp:692
 msgid "---Instrument list"
-msgstr ""
+msgstr "---乐器列表"
 
 #: src/gui/guiConst.cpp:693
 msgid "Add instrument"
-msgstr ""
+msgstr "添加乐器"
 
 #: src/gui/guiConst.cpp:694
 msgid "Duplicate instrument"
-msgstr ""
+msgstr "克隆乐器"
 
 #: src/gui/guiConst.cpp:695
 msgid "Open instrument"
-msgstr ""
+msgstr "打开乐器"
 
 #: src/gui/guiConst.cpp:696
 msgid "Open instrument (replace current)"
-msgstr ""
+msgstr "打开乐器 (替换当前)"
 
 #: src/gui/guiConst.cpp:697
 msgid "Save instrument"
-msgstr ""
+msgstr "保存乐器"
 
 #: src/gui/guiConst.cpp:698
 msgid "Save instrument (.dmp)"
-msgstr ""
+msgstr "保存乐器 (.dmp)"
 
 #: src/gui/guiConst.cpp:699
 msgid "Move instrument up in list"
-msgstr ""
+msgstr "上移乐器"
 
 #: src/gui/guiConst.cpp:700
 msgid "Move instrument down in list"
-msgstr ""
+msgstr "下移乐器"
 
 #: src/gui/guiConst.cpp:701
 msgid "Delete instrument"
-msgstr ""
+msgstr "删除乐器"
 
 #: src/gui/guiConst.cpp:702
 msgid "Edit instrument"
-msgstr ""
+msgstr "编辑乐器"
 
 #: src/gui/guiConst.cpp:703
 msgid "Instrument cursor up"
-msgstr ""
+msgstr "选中上一个乐器"
 
 #: src/gui/guiConst.cpp:704
 msgid "Instrument cursor down"
-msgstr ""
+msgstr "选中下一个乐器"
 
 #: src/gui/guiConst.cpp:705
 msgid "Instruments: toggle folders/standard view"
-msgstr ""
+msgstr "乐器: 切换 文件夹/标准 列表方式"
 
 #: src/gui/guiConst.cpp:708
 msgid "---Wavetable list"
-msgstr ""
+msgstr "---波表列表"
 
 #: src/gui/guiConst.cpp:709
 msgid "Add wavetable"
-msgstr ""
+msgstr "添加波表"
 
 #: src/gui/guiConst.cpp:710
 msgid "Duplicate wavetable"
-msgstr ""
+msgstr "克隆波表"
 
 #: src/gui/guiConst.cpp:711
 msgid "Open wavetable"
-msgstr ""
+msgstr "打开波表"
 
 #: src/gui/guiConst.cpp:712
 msgid "Open wavetable (replace current)"
-msgstr ""
+msgstr "打开波表 (替换当前)"
 
 #: src/gui/guiConst.cpp:713
 msgid "Save wavetable"
-msgstr ""
+msgstr "保存波表"
 
 #: src/gui/guiConst.cpp:714
 msgid "Save wavetable (.dmw)"
-msgstr ""
+msgstr "保存波表 (.dmw)"
 
 #: src/gui/guiConst.cpp:715
 msgid "Save wavetable (raw)"
-msgstr ""
+msgstr "保存波表 (raw)"
 
 #: src/gui/guiConst.cpp:716
 msgid "Move wavetable up in list"
-msgstr ""
+msgstr "上移波表"
 
 #: src/gui/guiConst.cpp:717
 msgid "Move wavetable down in list"
-msgstr ""
+msgstr "下移波表"
 
 #: src/gui/guiConst.cpp:718
 msgid "Delete wavetable"
-msgstr ""
+msgstr "删除波表"
 
 #: src/gui/guiConst.cpp:719
 msgid "Edit wavetable"
-msgstr ""
+msgstr "编辑波表"
 
 #: src/gui/guiConst.cpp:720
 msgid "Wavetable cursor up"
-msgstr ""
+msgstr "选中上一个波表"
 
 #: src/gui/guiConst.cpp:721
 msgid "Wavetable cursor down"
-msgstr ""
+msgstr "选中下一个波表"
 
 #: src/gui/guiConst.cpp:722
 msgid "Wavetables: toggle folders/standard view"
-msgstr ""
+msgstr "波表: 切换 文件夹/标准 列表方式"
 
 #: src/gui/guiConst.cpp:725
 msgid "---Sample list"
-msgstr ""
+msgstr "---采样列表"
 
 #: src/gui/guiConst.cpp:726
 msgid "Add sample"
-msgstr ""
+msgstr "添加采样"
 
 #: src/gui/guiConst.cpp:727
 msgid "Duplicate sample"
-msgstr ""
+msgstr "克隆采样"
 
 #: src/gui/guiConst.cpp:728
 msgid "Open sample"
-msgstr ""
+msgstr "打开采样"
 
 #: src/gui/guiConst.cpp:729
 msgid "Open sample (replace current)"
-msgstr ""
+msgstr "打开采样 (替换当前)"
 
 #: src/gui/guiConst.cpp:730
 msgid "Import raw sample data"
-msgstr ""
+msgstr "导入 raw 采样数据"
 
 #: src/gui/guiConst.cpp:731
 msgid "Import raw sample data (replace current)"
-msgstr ""
+msgstr "导入 raw 采样数据 (替换当前)"
 
 #: src/gui/guiConst.cpp:732
 msgid "Save sample"
-msgstr ""
+msgstr "保存采样"
 
 #: src/gui/guiConst.cpp:733
 msgid "Save sample (raw)"
-msgstr ""
+msgstr "保存采样(raw)"
 
 #: src/gui/guiConst.cpp:734
 msgid "Move sample up in list"
-msgstr ""
+msgstr "上移采样"
 
 #: src/gui/guiConst.cpp:735
 msgid "Move sample down in list"
-msgstr ""
+msgstr "下移采样"
 
 #: src/gui/guiConst.cpp:736
 msgid "Delete sample"
-msgstr ""
+msgstr "克隆采样"
 
 #: src/gui/guiConst.cpp:737
 msgid "Edit sample"
-msgstr ""
+msgstr "编辑采样"
 
 #: src/gui/guiConst.cpp:738
 msgid "Sample cursor up"
-msgstr ""
+msgstr "选中上一个采样"
 
 #: src/gui/guiConst.cpp:739
 msgid "Sample cursor down"
-msgstr ""
+msgstr "选中下一个采样"
 
 #: src/gui/guiConst.cpp:741 src/gui/sampleEdit.cpp:1352
 msgid "Stop sample preview"
-msgstr ""
+msgstr "停止预览"
 
 #: src/gui/guiConst.cpp:742
 msgid "Samples: Toggle folders/standard view"
-msgstr ""
+msgstr "采样: 切换 文件夹/标准 列表方式"
 
+# make me a drum kit 连续性问题
 #: src/gui/guiConst.cpp:743
 msgid "Samples: Make me a drum kit"
 msgstr ""
 
+# warring! above!
 #: src/gui/guiConst.cpp:746
 msgid "---Sample editor"
-msgstr ""
+msgstr "---采样编辑器"
 
+# 可能有连续性问题
 #: src/gui/guiConst.cpp:747
 msgid "Sample editor mode: Select"
-msgstr ""
+msgstr "采样编辑模式: 选取"
 
+# warring! above!
 #: src/gui/guiConst.cpp:748
 msgid "Sample editor mode: Draw"
-msgstr ""
+msgstr "采样编辑模式: 画"
 
 #: src/gui/guiConst.cpp:749
 msgid "Sample editor: Cut"
-msgstr ""
+msgstr "采样编辑器: 剪切"
 
 #: src/gui/guiConst.cpp:750
 msgid "Sample editor: Copy"
-msgstr ""
+msgstr "采样编辑器: 复制"
 
 #: src/gui/guiConst.cpp:751
 msgid "Sample editor: Paste"
-msgstr ""
+msgstr "采样编辑器: 粘贴"
 
 #: src/gui/guiConst.cpp:752
 msgid "Sample editor: Paste replace"
-msgstr ""
+msgstr "采样编辑器: 粘贴替换"
 
 #: src/gui/guiConst.cpp:753
 msgid "Sample editor: Paste mix"
-msgstr ""
+msgstr "采样编辑器 粘贴混音"
 
 #: src/gui/guiConst.cpp:754
 msgid "Sample editor: Select all"
-msgstr ""
+msgstr "采样编辑器: 全选"
 
+# 连续性问题可能
 #: src/gui/guiConst.cpp:755
 msgid "Sample editor: Resize"
-msgstr ""
+msgstr "采样编辑器: 设置大小"
 
+# warring! above!
 #: src/gui/guiConst.cpp:756
 msgid "Sample editor: Resample"
-msgstr ""
+msgstr "采样编辑器: 重采样"
 
+# 连续性问题可能有
 #: src/gui/guiConst.cpp:757
 msgid "Sample editor: Amplify"
-msgstr ""
+msgstr "采样编辑器: 增益"
 
 #: src/gui/guiConst.cpp:758
 msgid "Sample editor: Normalize"
-msgstr ""
+msgstr "采样编辑器: 响度归一化"
 
+# warring! above!
 #: src/gui/guiConst.cpp:759
 msgid "Sample editor: Fade in"
-msgstr ""
+msgstr "采样编辑器: 淡入"
 
 #: src/gui/guiConst.cpp:760
 msgid "Sample editor: Fade out"
-msgstr ""
+msgstr "采样编辑器: 淡出"
 
 #: src/gui/guiConst.cpp:761
 msgid "Sample editor: Apply silence"
-msgstr ""
+msgstr "采样编辑器: 应用空白"
 
 #: src/gui/guiConst.cpp:762
 msgid "Sample editor: Insert silence"
-msgstr ""
+msgstr "采样编辑器: 插入空白"
 
 #: src/gui/guiConst.cpp:763
 msgid "Sample editor: Delete"
-msgstr ""
+msgstr "采样编辑器: 删除"
 
 #: src/gui/guiConst.cpp:764
 msgid "Sample editor: Trim"
-msgstr ""
+msgstr "采样编辑器: 裁切"
 
 #: src/gui/guiConst.cpp:765
 msgid "Sample editor: Reverse"
-msgstr ""
+msgstr "采用编辑器: 反向"
 
 #: src/gui/guiConst.cpp:766
 msgid "Sample editor: Invert"
-msgstr ""
+msgstr "采样编辑器: 反相"
 
 #: src/gui/guiConst.cpp:767
 msgid "Sample editor: Signed/unsigned exchange"
-msgstr ""
+msgstr "采样编辑器: Sined/unsigned 类型交换"
 
 #: src/gui/guiConst.cpp:768
 msgid "Sample editor: Apply filter"
-msgstr ""
+msgstr "采样编辑器: 应用滤波"
 
 #: src/gui/guiConst.cpp:769
 msgid "Sample editor: Crossfade loop points"
-msgstr ""
+msgstr "采样编辑器: 交叉渐变循环点"
 
 #: src/gui/guiConst.cpp:770
 msgid "Sample editor: Preview sample"
-msgstr ""
+msgstr "采样编辑器: 预览采样"
 
 #: src/gui/guiConst.cpp:771
 msgid "Sample editor: Stop sample preview"
-msgstr ""
+msgstr "采样编辑器: 停止采样预览"
 
 #: src/gui/guiConst.cpp:772
 msgid "Sample editor: Zoom in"
-msgstr ""
+msgstr "采样编辑器: 放大"
 
 #: src/gui/guiConst.cpp:773
 msgid "Sample editor: Zoom out"
-msgstr ""
+msgstr "采样编辑器: 缩小"
 
 #: src/gui/guiConst.cpp:774
 msgid "Sample editor: Toggle auto-zoom"
-msgstr ""
+msgstr "采样编辑器: 切换 自动缩放"
 
 #: src/gui/guiConst.cpp:775
 msgid "Sample editor: Create instrument from sample"
-msgstr ""
+msgstr "采样编辑器: 从采样创建乐器"
 
 #: src/gui/guiConst.cpp:776
 msgid "Sample editor: Set loop to selection"
-msgstr ""
+msgstr "采样编辑器: 设置循环到选区"
 
 #: src/gui/guiConst.cpp:777
 msgid "Sample editor: Create wavetable from selection"
-msgstr ""
+msgstr "采样编辑器: 从采样创建波表"
 
 #: src/gui/guiConst.cpp:780
 msgid "---Orders"
-msgstr ""
+msgstr "---Orders"
 
 #: src/gui/guiConst.cpp:781
 msgid "Previous order"
-msgstr ""
+msgstr "上一个Order"
 
 #: src/gui/guiConst.cpp:782
 msgid "Next order"
-msgstr ""
+msgstr "下一个Order"
 
 #: src/gui/guiConst.cpp:783
 msgid "Order cursor left"
-msgstr ""
+msgstr "左移Order光标"
 
 #: src/gui/guiConst.cpp:784
 msgid "Order cursor right"
-msgstr ""
+msgstr "右移Order光标"
 
 #: src/gui/guiConst.cpp:785
 msgid "Increase order value"
-msgstr ""
+msgstr "增加光标所在Order的值"
 
 #: src/gui/guiConst.cpp:786
 msgid "Decrease order value"
-msgstr ""
+msgstr "减少光标所在Order的值"
 
 #: src/gui/guiConst.cpp:787
 msgid "Switch order edit mode"
-msgstr ""
+msgstr "切换Order编辑模式"
 
 #: src/gui/guiConst.cpp:788
 msgid "Order: toggle alter entire row"
-msgstr ""
+msgstr "Order: 切换 修改整行"
 
 #: src/gui/guiConst.cpp:789
 msgid "Add order"
-msgstr ""
+msgstr "添加Order"
 
 #: src/gui/guiConst.cpp:790
 msgid "Duplicate order"
-msgstr ""
+msgstr "克隆Order"
 
 #: src/gui/guiConst.cpp:791
 msgid "Deep clone order"
-msgstr ""
+msgstr "深度克隆Order"
 
 #: src/gui/guiConst.cpp:792
 msgid "Copy current order to end of song"
-msgstr ""
+msgstr "克隆Order到曲目结尾"
 
 #: src/gui/guiConst.cpp:793
 msgid "Deep clone current order to end of song"
-msgstr ""
+msgstr "深度克隆Order到曲目结尾"
 
 #: src/gui/guiConst.cpp:797
 msgid "Replay order"
-msgstr ""
+msgstr "重复播放Order"
 
 #: src/gui/guiConst.cpp:1392
 msgid "All chips"
-msgstr ""
+msgstr "所有芯片"
 
 #: src/gui/guiConst.cpp:1396 src/gui/insEdit.cpp:6959 src/gui/insEdit.cpp:7219
 #: src/gui/insEdit.cpp:7473 src/gui/insEdit.cpp:7495
 msgid "Special"
-msgstr ""
+msgstr "特殊"
 
 #: src/gui/piano.cpp:103
 msgid "Options"
@@ -11903,198 +12094,198 @@ msgstr ""
 
 #: src/gui/piano.cpp:106
 msgid "Key layout:"
-msgstr ""
+msgstr "键盘排列:"
 
 #: src/gui/piano.cpp:111
 msgid "Standard"
-msgstr ""
+msgstr "标准"
 
 #: src/gui/piano.cpp:114
 msgid "Continuous"
-msgstr ""
+msgstr "全长"
 
 #: src/gui/piano.cpp:118
 msgid "Value input pad:"
-msgstr ""
+msgstr "数值输入板"
 
 #: src/gui/piano.cpp:120
 msgid "Disabled"
-msgstr ""
+msgstr "关闭"
 
 #: src/gui/piano.cpp:123
 msgid "Replace piano"
-msgstr ""
+msgstr "替换钢琴键"
 
 #: src/gui/piano.cpp:126
 msgid "Split (automatic)"
-msgstr ""
+msgstr "分立(自动隐藏)"
 
 #: src/gui/piano.cpp:129
 msgid "Split (always visible)"
-msgstr ""
+msgstr "分立(总是显示)"
 
 #: src/gui/piano.cpp:133
 msgid "Share play/edit offset/range"
-msgstr ""
+msgstr "使用 play/edit的offset/range"
 
 #: src/gui/piano.cpp:134
 msgid "Read-only (can't input notes)"
-msgstr ""
+msgstr "只读(不能输入)"
 
 #: src/gui/waveEdit.cpp:30 src/gui/waveEdit.cpp:192 src/gui/insEdit.cpp:177
 #: src/gui/insEdit.cpp:188 src/gui/insEdit.cpp:199
 msgid "Sine"
-msgstr ""
+msgstr "正弦波"
 
 #: src/gui/waveEdit.cpp:32 src/gui/waveEdit.cpp:202 src/gui/insEdit.cpp:325
 #: src/gui/insEdit.cpp:654
 msgid "Saw"
-msgstr ""
+msgstr "锯齿波"
 
 #: src/gui/waveEdit.cpp:39
 msgid "Cosine"
-msgstr ""
+msgstr "余弦"
 
 #: src/gui/waveEdit.cpp:193
 msgid "Rect. Sine"
-msgstr ""
+msgstr "正区间正弦波"
 
 #: src/gui/waveEdit.cpp:194
 msgid "Abs. Sine"
-msgstr ""
+msgstr "绝对值正弦波"
 
 #: src/gui/waveEdit.cpp:195
 msgid "Quart. Sine"
-msgstr ""
+msgstr "1/4正弦波"
 
 #: src/gui/waveEdit.cpp:196
 msgid "Squish. Sine"
-msgstr ""
+msgstr "奇周期正弦波"
 
 #: src/gui/waveEdit.cpp:197
 msgid "Abs. Squish. Sine"
-msgstr ""
+msgstr "绝对值奇周期正弦波"
 
 #: src/gui/waveEdit.cpp:200
 msgid "rectSquare"
-msgstr ""
+msgstr "正区间方波"
 
 #: src/gui/waveEdit.cpp:203
 msgid "Rect. Saw"
-msgstr ""
+msgstr "正区间锯齿波"
 
 #: src/gui/waveEdit.cpp:204
 msgid "Abs. Saw"
-msgstr ""
+msgstr "绝对值锯齿波"
 
 #: src/gui/waveEdit.cpp:206
 msgid "Cubed Saw"
-msgstr ""
+msgstr "立方锯齿波"
 
 #: src/gui/waveEdit.cpp:207
 msgid "Rect. Cubed Saw"
-msgstr ""
+msgstr "正周期立方锯齿波"
 
 #: src/gui/waveEdit.cpp:208
 msgid "Abs. Cubed Saw"
-msgstr ""
+msgstr "绝对值立方锯齿波"
 
 #: src/gui/waveEdit.cpp:210
 msgid "Cubed Sine"
-msgstr ""
+msgstr "立方正弦波"
 
 #: src/gui/waveEdit.cpp:211
 msgid "Rect. Cubed Sine"
-msgstr ""
+msgstr "正周期立方正弦波"
 
 #: src/gui/waveEdit.cpp:212
 msgid "Abs. Cubed Sine"
-msgstr ""
+msgstr "绝对值立方正弦波"
 
 #: src/gui/waveEdit.cpp:213
 msgid "Quart. Cubed Sine"
-msgstr ""
+msgstr "1/4立方正弦波"
 
 #: src/gui/waveEdit.cpp:214
 msgid "Squish. Cubed Sine"
-msgstr ""
+msgstr "奇周期立方正弦波"
 
 #: src/gui/waveEdit.cpp:215
 msgid "Squish. Abs. Cub. Sine"
-msgstr ""
+msgstr "奇周期绝对值立方正弦波"
 
 #: src/gui/waveEdit.cpp:218
 msgid "Rect. Triangle"
-msgstr ""
+msgstr "正周期三角波"
 
 #: src/gui/waveEdit.cpp:219
 msgid "Abs. Triangle"
-msgstr ""
+msgstr "绝对值三角波"
 
 #: src/gui/waveEdit.cpp:220
 msgid "Quart. Triangle"
-msgstr ""
+msgstr "1/4三角波"
 
 #: src/gui/waveEdit.cpp:221
 msgid "Squish. Triangle"
-msgstr ""
+msgstr "奇周期三角波"
 
 #: src/gui/waveEdit.cpp:222
 msgid "Abs. Squish. Triangle"
-msgstr ""
+msgstr "绝对值奇周期三角波"
 
 #: src/gui/waveEdit.cpp:224
 msgid "Cubed Triangle"
-msgstr ""
+msgstr "立方三角波"
 
 #: src/gui/waveEdit.cpp:225
 msgid "Rect. Cubed Triangle"
-msgstr ""
+msgstr "正周期立方三角波"
 
 #: src/gui/waveEdit.cpp:226
 msgid "Abs. Cubed Triangle"
-msgstr ""
+msgstr "绝对值立方三角波"
 
 #: src/gui/waveEdit.cpp:227
 msgid "Quart. Cubed Triangle"
-msgstr ""
+msgstr "1/4立方三角波"
 
 #: src/gui/waveEdit.cpp:228
 msgid "Squish. Cubed Triangle"
-msgstr ""
+msgstr "奇周期立方三角波"
 
 #: src/gui/waveEdit.cpp:229
 msgid "Squish. Abs. Cub. Triangle"
-msgstr ""
+msgstr "奇周期绝对值立方三角波"
 
 #: src/gui/waveEdit.cpp:412 src/gui/waveEdit.cpp:413
 msgid "no wavetable selected"
-msgstr ""
+msgstr "未选定波表"
 
 #: src/gui/waveEdit.cpp:424 src/gui/sampleEdit.cpp:111 src/gui/insEdit.cpp:5228
 msgid "select one..."
-msgstr ""
+msgstr "选一个..."
 
 #: src/gui/waveEdit.cpp:432 src/gui/waveEdit.cpp:439 src/gui/sampleEdit.cpp:119
 #: src/gui/sampleEdit.cpp:126 src/gui/insEdit.cpp:5241 src/gui/insEdit.cpp:5248
 msgid "or"
-msgstr ""
+msgstr "或"
 
 #: src/gui/waveEdit.cpp:441 src/gui/sampleEdit.cpp:128 src/gui/insEdit.cpp:5250
 msgid "Create New"
-msgstr ""
+msgstr "新建"
 
 #: src/gui/waveEdit.cpp:487
 msgid "Steps"
-msgstr ""
+msgstr "采样点"
 
 #: src/gui/waveEdit.cpp:491
 msgid "Lines"
-msgstr ""
+msgstr "折线"
 
 #: src/gui/waveEdit.cpp:496 src/gui/insEdit.cpp:2692
 msgid "Width"
-msgstr ""
+msgstr "波表宽"
 
 #: src/gui/waveEdit.cpp:498
 msgid ""
@@ -12106,10 +12297,17 @@ msgid ""
 "- 128 on X1-010\n"
 "any other widths will be scaled during playback."
 msgstr ""
+"波表宽区间:\n"
+"- 任意值可用于 Amiga/N163 系统\n"
+"- 32 在 Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual "
+"Boy 和 WonderSwan 系统\n"
+"- 64 在 FDS\n"
+"- 128 在 X1-010 系统\n"
+"不在此区间的波表宽会在播放时重采样。"
 
 #: src/gui/waveEdit.cpp:510
 msgid "Height"
-msgstr ""
+msgstr "波表长"
 
 #: src/gui/waveEdit.cpp:512
 msgid ""
@@ -12121,28 +12319,35 @@ msgid ""
 "- 256 for X1-010 and SCC\n"
 "any other heights will be scaled during playback."
 msgstr ""
+"波表长区间:\n"
+"- 16 用在 Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 "
+"Envelope shape 和 N163 上\n"
+"- 32 于 PC Engine\n"
+"- 64 于 FDS and Virtual Boy\n"
+"- 256 于 X1-010 and SCC\n"
+"不在此区间的波表长会在播放时重采样。"
 
 #: src/gui/waveEdit.cpp:578
 msgid "Shapes"
-msgstr ""
+msgstr "波形"
 
 #: src/gui/waveEdit.cpp:597 src/gui/insEdit.cpp:5884 src/gui/insEdit.cpp:6927
 #: src/gui/insEdit.cpp:6953 src/gui/insEdit.cpp:7013 src/gui/insEdit.cpp:7053
 #: src/gui/insEdit.cpp:7155 src/gui/insEdit.cpp:7451 src/gui/insEdit.cpp:7487
 msgid "Duty"
-msgstr ""
+msgstr "占空比"
 
 #: src/gui/waveEdit.cpp:607
 msgid "Exponent"
-msgstr ""
+msgstr "指数"
 
 #: src/gui/waveEdit.cpp:617
 msgid "XOR Point"
-msgstr ""
+msgstr "异或位"
 
 #: src/gui/waveEdit.cpp:627
 msgid "Amplitude/Phase"
-msgstr ""
+msgstr "调和级 振幅/相位"
 
 #: src/gui/waveEdit.cpp:679 src/gui/waveEdit.cpp:723 src/gui/waveEdit.cpp:728
 msgid "Op"
@@ -12158,63 +12363,63 @@ msgstr ""
 
 #: src/gui/waveEdit.cpp:749 src/gui/waveEdit.cpp:750
 msgid "Connection Diagram"
-msgstr ""
+msgstr "接线板"
 
 #: src/gui/waveEdit.cpp:765
 msgid "Out"
-msgstr ""
+msgstr "Out"
 
 #: src/gui/waveEdit.cpp:872
 msgid "WaveTools"
-msgstr ""
+msgstr "波工具"
 
 #: src/gui/waveEdit.cpp:890
 msgid "Scale X"
-msgstr ""
+msgstr "缩放X"
 
 #: src/gui/waveEdit.cpp:896
 msgid "wavetable longer than 256 samples!"
-msgstr ""
+msgstr "波表超过256采样点!"
 
 #: src/gui/waveEdit.cpp:960
 msgid "Scale Y"
-msgstr ""
+msgstr "缩放Y"
 
 #: src/gui/waveEdit.cpp:978
 msgid "Offset X"
-msgstr ""
+msgstr "偏移 X"
 
 #: src/gui/waveEdit.cpp:1000
 msgid "Offset Y"
-msgstr ""
+msgstr "偏移 Y"
 
 #: src/gui/waveEdit.cpp:1017
 msgid "Smooth"
-msgstr ""
+msgstr "平滑化"
 
 #: src/gui/waveEdit.cpp:1045 src/gui/sampleEdit.cpp:1009
 msgid "Amplify"
-msgstr ""
+msgstr "放大"
 
 #: src/gui/waveEdit.cpp:1063 src/gui/sampleEdit.cpp:1059
 msgid "Normalize"
-msgstr ""
+msgstr "响度归一化"
 
 #: src/gui/waveEdit.cpp:1105 src/gui/sampleEdit.cpp:1134
 msgid "Reverse"
-msgstr ""
+msgstr "倒放"
 
 #: src/gui/waveEdit.cpp:1117
 msgid "Half"
-msgstr ""
+msgstr "半频"
 
 #: src/gui/waveEdit.cpp:1127
 msgid "Double"
-msgstr ""
+msgstr "倍频"
 
 #: src/gui/waveEdit.cpp:1137
 msgid "Convert Signed/Unsigned"
-msgstr ""
+msgstr "Sined/Unsigned 符号类型转换"
 
 #: src/gui/waveEdit.cpp:1167
 msgid "Dec"
@@ -12226,199 +12431,201 @@ msgstr ""
 
 #: src/gui/waveEdit.cpp:1179
 msgid "Signed/Unsigned"
-msgstr ""
+msgstr "Signed/Unsigned"
 
 #: src/gui/sampleEdit.cpp:65
 #, c-format
 msgid "%s: maximum sample rate is %d"
-msgstr ""
+msgstr "%s: 最高采样率为 %d"
 
 #: src/gui/sampleEdit.cpp:72
 #, c-format
 msgid "%s: minimum sample rate is %d"
-msgstr ""
+msgstr "%s: 最低采样率为 %d"
 
 #: src/gui/sampleEdit.cpp:79
 #, c-format
 msgid "%s: sample rate must be %d"
-msgstr ""
+msgstr "%s: 采样率必须为 %d"
 
 #: src/gui/sampleEdit.cpp:99 src/gui/sampleEdit.cpp:100
 msgid "no sample selected"
-msgstr ""
+msgstr "未选中采样"
 
 #: src/gui/sampleEdit.cpp:229
 #, c-format
 msgid "SNES: loop start must be a multiple of 16 (try with %d)"
-msgstr ""
+msgstr "SNES: 循环起始点必须为16的倍数 (试试 %d)"
 
 #: src/gui/sampleEdit.cpp:235
 #, c-format
 msgid "SNES: loop end must be a multiple of 16 (try with %d)"
-msgstr ""
+msgstr "SNES: 循环结束点必须为16的倍数 (试试 %d)"
 
 #: src/gui/sampleEdit.cpp:240
 msgid "SNES: sample length will be padded to multiple of 16"
-msgstr ""
+msgstr "SNES: 采样长会被垫到16的倍数"
 
 #: src/gui/sampleEdit.cpp:249
 msgid "QSound: loop cannot be longer than 32767 samples"
-msgstr ""
+msgstr "QSound: 循环不能超过32767个采样点"
 
 #: src/gui/sampleEdit.cpp:259
 msgid "NES: loop point ignored on DPCM (may only loop entire sample)"
-msgstr ""
+msgstr "NES: DPCM下循环点已被忽略 (可能会循环整个采样)"
 
 #: src/gui/sampleEdit.cpp:263
 msgid "NES: maximum DPCM sample length is 32648"
-msgstr ""
+msgstr "NES: 最大DPCM采样长为32648个采样点"
 
 #: src/gui/sampleEdit.cpp:268
 msgid "X1-010: samples can't loop"
-msgstr ""
+msgstr "X1-010: 无法循环采样"
 
 #: src/gui/sampleEdit.cpp:271
 msgid "X1-010: maximum sample length is 131072"
-msgstr ""
+msgstr "X1-010: 最大采样长为131072个采样点"
 
 #: src/gui/sampleEdit.cpp:276
 msgid "GA20: samples can't loop"
-msgstr ""
+msgstr "GA20: 无法循环采样"
 
 #: src/gui/sampleEdit.cpp:287
 msgid "YM2608: loop point ignored on ADPCM (may only loop entire sample)"
-msgstr ""
+msgstr "YM2608：ADPCM下循环点已被忽略 (可能会循环整个采样)"
 
 #: src/gui/sampleEdit.cpp:290
 msgid "YM2608: sample length will be padded to multiple of 512"
-msgstr ""
+msgstr "YM2608: 采样长会被垫到512的倍数"
 
 #: src/gui/sampleEdit.cpp:300
 msgid "YM2610: ADPCM-A samples can't loop"
-msgstr ""
+msgstr "YM2610: 无法循环 ADPCM-A 采样"
 
 #: src/gui/sampleEdit.cpp:302
 msgid "YM2610: loop point ignored on ADPCM-B (may only loop entire sample)"
-msgstr ""
+msgstr "YM2610: ADPCM-B下循环点已被忽略 (可能会循环整个采样)"
 
 #: src/gui/sampleEdit.cpp:305
 msgid "YM2610: sample length will be padded to multiple of 512"
-msgstr ""
+msgstr "YM2610: 采样长会被垫到512的倍数"
 
 #: src/gui/sampleEdit.cpp:309
 msgid "YM2610: maximum ADPCM-A sample length is 2097152"
-msgstr ""
+msgstr "YM2610: ADPCM-A 最大采样长为2097152个采样点"
 
 #: src/gui/sampleEdit.cpp:318
 msgid "Y8950: loop point ignored on ADPCM (may only loop entire sample)"
-msgstr ""
+msgstr "Y8950: ADPCM下也忽略循环点 (可能会循环整个采样)"
 
 #: src/gui/sampleEdit.cpp:321
 msgid "Y8950: sample length will be padded to multiple of 512"
-msgstr ""
+msgstr "Y8950: 采样长会被垫到512的倍数"
 
 #: src/gui/sampleEdit.cpp:328
 msgid "Amiga: loop start must be a multiple of 2"
-msgstr ""
+msgstr "Amiga: 循环起始点必须为2的倍数"
 
 #: src/gui/sampleEdit.cpp:331
 msgid "Amiga: loop end must be a multiple of 2"
-msgstr ""
+msgstr "Amiga: 循环结束点必须为2的倍数"
 
 #: src/gui/sampleEdit.cpp:335
 msgid "Amiga: maximum sample length is 131070"
-msgstr ""
+msgstr "Amiga: 最大采样长为131070个采样点"
 
 #: src/gui/sampleEdit.cpp:344
 msgid "SegaPCM: maximum sample length is 65280"
-msgstr ""
+msgstr "SegaPCM: 最大采样长为65280个采样点"
 
 #: src/gui/sampleEdit.cpp:353
 msgid "K053260: loop point ignored (may only loop entire sample)"
-msgstr ""
+msgstr "K053260: 循环点已被忽略 (可能会循环整个采样)"
 
 #: src/gui/sampleEdit.cpp:357
 msgid "K053260: maximum sample length is 65535"
-msgstr ""
+msgstr "K053260: 最大采样长为65535个采样点"
 
 #: src/gui/sampleEdit.cpp:362
 msgid "C140: maximum sample length is 65535"
-msgstr ""
+msgstr "C140: 最大采样长为65535个采样点"
 
 #: src/gui/sampleEdit.cpp:371
 msgid "C219: loop start must be a multiple of 2"
-msgstr ""
+msgstr "C219: 循环起始点必须为2的倍数"
 
 #: src/gui/sampleEdit.cpp:374
 msgid "C219: loop end must be a multiple of 2"
-msgstr ""
+msgstr "C219: 循环结束点必须为2的倍数"
 
 #: src/gui/sampleEdit.cpp:378
 msgid "C219: maximum sample length is 131072"
-msgstr ""
+msgstr "C219: 最大采样长为131072个采样点"
 
 #: src/gui/sampleEdit.cpp:386
 msgid "MSM6295: samples can't loop"
-msgstr ""
+msgstr "MSM6295: 无法循环采样"
 
 #: src/gui/sampleEdit.cpp:389
 msgid "MSM6295: maximum bankswitched sample length is 129024"
-msgstr ""
+msgstr "MSM6295: 最大分页采样长129024个采样点"
 
 #: src/gui/sampleEdit.cpp:395
 msgid "GBA DMA: loop start must be a multiple of 4"
-msgstr ""
+msgstr "GBA DMA: 循环起始点必须为4的倍数"
 
 #: src/gui/sampleEdit.cpp:398
 msgid "GBA DMA: loop length must be a multiple of 16"
-msgstr ""
+msgstr "GBA DMA: 循环结束点必须为16的倍数"
 
 #: src/gui/sampleEdit.cpp:402
 msgid "GBA DMA: sample length will be padded to multiple of 16"
-msgstr ""
+msgstr "GBA DMA: 采样长将被垫到16的倍数"
 
 #: src/gui/sampleEdit.cpp:411
 msgid "ES5506: backward loop mode isn't supported"
-msgstr ""
+msgstr "ES5506: 不支持往复循环模式"
 
 #: src/gui/sampleEdit.cpp:414
 msgid ""
 "backward/ping-pong only supported in Generic PCM DAC\n"
 "ping-pong also on ES5506"
 msgstr ""
+"往复/乒乓式循环仅在 Generic PCM DAC 支持\n"
+"ES5506也支持乒乓式循环"
 
 #: src/gui/sampleEdit.cpp:444
 msgid "Info"
-msgstr ""
+msgstr "信息"
 
 #: src/gui/sampleEdit.cpp:447 src/gui/sampleEdit.cpp:946
 msgid "Rate"
-msgstr ""
+msgstr "采样率"
 
 #: src/gui/sampleEdit.cpp:453
 msgid "Compat Rate"
-msgstr ""
+msgstr "兼容采样率"
 
 #: src/gui/sampleEdit.cpp:457
 msgid ""
 "used in DefleMask-compatible sample mode (17xx), in where samples are mapped "
 "to an octave."
-msgstr ""
+msgstr "在DefleMask兼容采样模式(17xx)中使用, 所有采样均被映射到一个八度内"
 
 #: src/gui/sampleEdit.cpp:463
 #, c-format
 msgid "Loop (length: %d)##Loop"
-msgstr ""
+msgstr "循环 (长度: %d)##Loop"
 
 #: src/gui/sampleEdit.cpp:463 src/gui/insEdit.cpp:544 src/gui/insEdit.cpp:554
 #: src/gui/insEdit.cpp:605 src/gui/insEdit.cpp:6022
 msgid "Loop"
-msgstr ""
+msgstr "循环"
 
 #: src/gui/sampleEdit.cpp:487 src/gui/sampleEdit.cpp:729
 #: src/gui/sampleEdit.cpp:765
 msgid "changing the loop in a BRR sample may result in glitches!"
-msgstr ""
+msgstr "改变BBR采样的循环可能导致爆音!"
 
 #: src/gui/sampleEdit.cpp:529
 msgid "BRR emphasis"
@@ -12429,12 +12636,14 @@ msgid ""
 "this is a BRR sample.\n"
 "enabling this option will muffle it (only affects non-SNES chips)."
 msgstr ""
+"这是一个BBR采样\n"
+"此选项启用时会低通此采样 (仅在非SNES芯片上起效)"
 
 #: src/gui/sampleEdit.cpp:540
 msgid ""
 "enable this option to slightly boost high frequencies\n"
 "to compensate for the SNES' Gaussian filter's muffle."
-msgstr ""
+msgstr "启用此选项来轻微增益高频来补偿SNES的高斯滤波的低通。"
 
 #: src/gui/sampleEdit.cpp:546
 msgid "no BRR filters"
@@ -12448,19 +12657,19 @@ msgstr ""
 
 #: src/gui/sampleEdit.cpp:559
 msgid "8-bit dither"
-msgstr ""
+msgstr "8位抖动"
 
 #: src/gui/sampleEdit.cpp:567
 msgid "dither the sample when used on a chip that only supports 8-bit samples."
-msgstr ""
+msgstr "抖动采样以用于仅支持8位采样的芯片。"
 
 #: src/gui/sampleEdit.cpp:708 src/gui/gui.cpp:2987
 msgid "Start"
-msgstr ""
+msgstr "循环起始"
 
 #: src/gui/sampleEdit.cpp:744 src/gui/gui.cpp:2995
 msgid "End"
-msgstr ""
+msgstr "循环结束"
 
 #: src/gui/sampleEdit.cpp:854
 #, c-format
@@ -12468,6 +12677,8 @@ msgid ""
 "%s\n"
 "%d bytes free"
 msgstr ""
+"%s\n"
+"%d 字节可用"
 
 #: src/gui/sampleEdit.cpp:856
 #, c-format
@@ -12475,6 +12686,8 @@ msgid ""
 "%s (%s)\n"
 "%d bytes free"
 msgstr ""
+"%s (%s)\n"
+"%d 字节可用"
 
 #: src/gui/sampleEdit.cpp:860
 msgid ""
@@ -12482,203 +12695,208 @@ msgid ""
 "\n"
 "not enough memory for this sample!"
 msgstr ""
+"\n"
+"\n"
+"采样大于内存剩余空间！"
 
 #: src/gui/sampleEdit.cpp:884
 msgid "Edit mode: Select"
-msgstr ""
+msgstr "编辑模式: 选择"
 
 #: src/gui/sampleEdit.cpp:893
 msgid "Edit mode: Draw"
-msgstr ""
+msgstr "编辑模式: 画"
 
 #: src/gui/sampleEdit.cpp:904 src/gui/sampleEdit.cpp:915
 msgid "Resize"
-msgstr ""
+msgstr "改变采样长度"
 
 #: src/gui/sampleEdit.cpp:919
 msgid "couldn't resize! make sure your sample is 8 or 16-bit."
-msgstr ""
+msgstr "无法改变采样长度！检查采样是否为8或16位。"
 
 #: src/gui/sampleEdit.cpp:939 src/gui/sampleEdit.cpp:970
 msgid "Resample"
-msgstr ""
+msgstr "重采样"
 
 #: src/gui/sampleEdit.cpp:964
 msgid "Factor"
-msgstr ""
+msgstr "因数"
 
 #: src/gui/sampleEdit.cpp:969
 msgid "Filter"
-msgstr ""
+msgstr "采样滤波"
 
 #: src/gui/sampleEdit.cpp:974
 msgid "couldn't resample! make sure your sample is 8 or 16-bit."
-msgstr ""
+msgstr "无法重采样！检查采样是否为8或16位"
 
 #: src/gui/sampleEdit.cpp:1023 src/gui/sampleEdit.cpp:1210
 #: src/gui/sampleEdit.cpp:1294
 msgid "Apply"
-msgstr ""
+msgstr "应用"
 
 #: src/gui/sampleEdit.cpp:1066
 msgid "Fade in"
-msgstr ""
+msgstr "淡入"
 
 #: src/gui/sampleEdit.cpp:1073
 msgid "Fade out"
-msgstr ""
+msgstr "淡出"
 
 #: src/gui/sampleEdit.cpp:1078
 msgid "Insert silence"
-msgstr ""
+msgstr "插入空白"
 
 #: src/gui/sampleEdit.cpp:1089
 msgid "Go"
-msgstr ""
+msgstr "插入"
 
 #: src/gui/sampleEdit.cpp:1094
 msgid "couldn't insert! make sure your sample is 8 or 16-bit."
-msgstr ""
+msgstr "无法插入！检查采样是否为8或16位。"
 
 #: src/gui/sampleEdit.cpp:1111
 msgid "Apply silence"
-msgstr ""
+msgstr "插入空白到选区"
 
 #: src/gui/sampleEdit.cpp:1125
 msgid "Trim"
-msgstr ""
+msgstr "修剪"
 
 #: src/gui/sampleEdit.cpp:1148
 msgid "Signed/unsigned exchange"
-msgstr ""
+msgstr "Singed/unsigned 交换"
 
 #: src/gui/sampleEdit.cpp:1153
 msgid "Apply filter"
-msgstr ""
+msgstr "应用滤波到选区"
 
 #: src/gui/sampleEdit.cpp:1164
 msgid "Cutoff:"
-msgstr ""
+msgstr "截止频率"
 
 #: src/gui/sampleEdit.cpp:1174 src/gui/insEdit.cpp:5900
 #: src/gui/insEdit.cpp:5903 src/gui/insEdit.cpp:6958 src/gui/insEdit.cpp:7231
 #: src/gui/insEdit.cpp:7493
 msgid "Resonance"
-msgstr ""
+msgstr "谐振"
 
 #: src/gui/sampleEdit.cpp:1180 src/gui/insEdit.cpp:6902
 msgid "Power"
-msgstr ""
+msgstr "谐振响度"
 
 #: src/gui/sampleEdit.cpp:1194
 msgid "Low-pass"
-msgstr ""
+msgstr "低通"
 
 #: src/gui/sampleEdit.cpp:1199
 msgid "Band-pass"
-msgstr ""
+msgstr "带通"
 
 #: src/gui/sampleEdit.cpp:1204
 msgid "High-pass"
-msgstr ""
+msgstr "高通"
 
 #: src/gui/sampleEdit.cpp:1275
 msgid "Crossfade loop points"
-msgstr ""
+msgstr "交叉渐变循环点"
 
 #: src/gui/sampleEdit.cpp:1284
 msgid "Number of samples"
-msgstr ""
+msgstr "渐变长度"
 
 #: src/gui/sampleEdit.cpp:1290
 msgid "Linear <-> Equal power"
-msgstr ""
+msgstr "线性渐变 <-> 等能渐变"
 
+# warring! above
 #: src/gui/sampleEdit.cpp:1296
 msgid "Crossfade: length would go out of bounds. Aborted..."
-msgstr ""
+msgstr "Crossfade: 长度超界。终止..."
 
 #: src/gui/sampleEdit.cpp:1299
 msgid "Crossfade: length would overflow loopStart. Try a smaller random value."
-msgstr ""
+msgstr "Crossfade: 长度溢出循环起点，尝试任意小一些的值。"
 
 #: src/gui/sampleEdit.cpp:1345
 msgid "Preview sample"
-msgstr ""
+msgstr "预览采样"
 
 #: src/gui/sampleEdit.cpp:1359
 msgid "Create instrument from sample"
-msgstr ""
+msgstr "从采样创建乐器"
 
 #: src/gui/sampleEdit.cpp:1760
 msgid "paste (replace)"
-msgstr ""
+msgstr "粘贴(替换)"
 
 #: src/gui/sampleEdit.cpp:1763
 msgid "paste (mix)"
-msgstr ""
+msgstr "粘贴(混合)"
 
 #: src/gui/sampleEdit.cpp:1767 src/gui/gui.cpp:2781
 msgid "select all"
-msgstr ""
+msgstr "全选"
 
 #: src/gui/sampleEdit.cpp:1771
 msgid "set loop to selection"
-msgstr ""
+msgstr "以选区设置循环"
 
 #: src/gui/sampleEdit.cpp:1774
 msgid "create wavetable from selection"
-msgstr ""
+msgstr "从选区创建波表"
 
 #: src/gui/sampleEdit.cpp:1780
 msgid "Draw"
-msgstr ""
+msgstr "画"
 
 #: src/gui/sampleEdit.cpp:1780
 msgid "Select"
-msgstr ""
+msgstr "选择"
 
 #: src/gui/sampleEdit.cpp:1782
 #, c-format
 msgid "%d samples, %d bytes"
-msgstr ""
+msgstr "%d 个采样, %d 字节"
 
 #: src/gui/sampleEdit.cpp:1797
 #, c-format
 msgid " (%d-%d: %d samples)"
-msgstr ""
+msgstr " (%d-%d: %d 个采样点)"
 
 #: src/gui/sampleEdit.cpp:1989
 msgid "Non-8/16-bit samples cannot be edited without prior conversion."
-msgstr ""
+msgstr "非8/16位采样在转换前无法编辑。"
 
+# end of csPlayer.cpp
 #: src/gui/newSong.cpp:122 src/gui/newSong.cpp:123
 msgid "Choose a System!"
-msgstr ""
+msgstr "选择系统!"
 
 #: src/gui/newSong.cpp:179
 msgid "Categories"
-msgstr ""
+msgstr "类型"
 
 #: src/gui/newSong.cpp:210
 msgid "no systems here yet!"
-msgstr ""
+msgstr "此处暂无可用系统!"
 
 #: src/gui/newSong.cpp:212
 msgid "no results"
-msgstr ""
+msgstr "无"
 
 #: src/gui/newSong.cpp:228
 msgid "I'm feeling lucky"
-msgstr ""
+msgstr "手气不错"
 
 #: src/gui/newSong.cpp:230
 msgid "no categories available! what in the world."
-msgstr ""
+msgstr "怎么回事？无可用类型！"
 
 #: src/gui/newSong.cpp:265
 msgid "it appears you're extremely lucky today!"
-msgstr ""
+msgstr "看来你今天手气特好!"
 
 #: src/gui/cursor.cpp:205
 #, c-format
@@ -12691,6 +12909,9 @@ msgid ""
 "- Down: Play current song\n"
 "- Up: Play demo songs"
 msgstr ""
+"播放 Demo曲目 吗?\n"
+"- 下键: 播放现已打开的曲目\n"
+"- 上键: 播放 Demo曲目"
 
 #: src/gui/tutorial.cpp:491
 msgid ""
@@ -12700,26 +12921,31 @@ msgid ""
 "X - Shoot      Arrow Key - Move\n"
 "Z - Special    Esc - Quit"
 msgstr ""
+"欢迎来到Combat Vehicle!\n"
+"\n"
+"控制:\n"
+"X - 射击      方向键 - 移动\n"
+"Z - 特技    Esc - 退出"
 
 #: src/gui/tutorial.cpp:496
 msgid "GAME OVER"
-msgstr ""
+msgstr "游戏结束"
 
 #: src/gui/tutorial.cpp:498
 msgid "High Score!"
-msgstr ""
+msgstr "高分!"
 
 #: src/gui/tutorial.cpp:658
 msgid "Welcome!"
-msgstr ""
+msgstr "欢迎!"
 
 #: src/gui/tutorial.cpp:661
 msgid "welcome to Furnace, the biggest open-source chiptune tracker!"
-msgstr ""
+msgstr "欢迎来到 Furnace, 全世界最大的开源chiptune tracker!"
 
 #: src/gui/tutorial.cpp:665
 msgid "here are some tips to get you started:"
-msgstr ""
+msgstr "一些小贴示:"
 
 #: src/gui/tutorial.cpp:668
 msgid ""
@@ -12735,6 +12961,15 @@ msgid ""
 "- click on the Orders matrix to change the patterns of a channel (left click "
 "increases; right click decreases)"
 msgstr ""
+"- 点击 + 在乐器栏以新建乐器\n"
+"- 点击Pattern窗口以选中其来编辑\n"
+"- 通道中的列分别为 note,乐器列,音量列,效果列\n"
+"- 单击 空格键 以切换至编辑模式\n"
+"- 点击一个Pattern 或使用方向键来移动光标\n"
+"- 值 (乐器, 音量, 效果 和 效果值) 均为十六进制\n"
+"- 使用 回车键 来播放/暂停\n"
+"- 在 Order标签 中增加更多 Order 以扩张曲目长度\n"
+"- 点击 Order标签中的矩阵 来修改一个通道的Pattern (左键增加,右键减少)"
 
 #: src/gui/tutorial.cpp:680
 msgid ""
@@ -12744,41 +12979,50 @@ msgid ""
 "discussions), the Furnace Discord (https://discord.gg/EfrwT2wq7z) or Furnace "
 "in Revolt (official: https://rvlt.gg/GRPS6tmc)"
 msgstr ""
+"如何您需要帮助,请:\n"
+"- 阅读说明书 (文件名 manual.pdf)\n"
+"- 在Discussions 中询问 (https://github.com/tildearrow/furnace/discussions), "
+"或 Furnace Discord 中询问 (https://discord.gg/EfrwT2wq7z) 或 Furnace  Revolt "
+"(official: https://rvlt.gg/GRPS6tmc)"
 
 #: src/gui/tutorial.cpp:687
 msgid ""
 "if you find any issues, be sure to report them! the issue tracker is here: "
 "https://github.com/tildearrow/furnace/issues"
 msgstr ""
+"如果您发现任何问题, 敬请务必回报! issue tracker: https://github.com/"
+"tildearrow/furnace/issues"
 
 #: src/gui/tutorial.cpp:1428
 #, c-format
 msgid "STAGE %d"
 msgstr ""
 
+# end of no translate
 #: src/gui/songInfo.cpp:32
 msgid "Song Info##Song Information"
-msgstr ""
+msgstr "曲目信息##Song Information"
 
 #: src/gui/songInfo.cpp:50
 msgid "Author"
-msgstr ""
+msgstr "作者"
 
 #: src/gui/songInfo.cpp:60
 msgid "Album"
-msgstr ""
+msgstr "专辑"
 
 #: src/gui/songInfo.cpp:79
 msgid "Auto"
 msgstr ""
 
+# 不作翻译，歧义过多。最接近为 调音。
 #: src/gui/songInfo.cpp:100
 msgid "Tuning (A-4)"
 msgstr ""
 
 #: src/gui/grooves.cpp:38
 msgid "use effect 09xx to select a groove pattern."
-msgstr ""
+msgstr "用09xx效果选中一个groove pattern"
 
 #: src/gui/grooves.cpp:48 src/gui/gui.cpp:4492
 msgid "pattern"
@@ -12786,15 +13030,15 @@ msgstr ""
 
 #: src/gui/grooves.cpp:132
 msgid "remove"
-msgstr ""
+msgstr "移除"
 
 #: src/gui/doAction.cpp:45 src/gui/gui.cpp:4213
 msgid "Unsaved changes! Save changes before opening another file?"
-msgstr ""
+msgstr "未保存! 保存修改？"
 
 #: src/gui/doAction.cpp:52
 msgid "Unsaved changes! Save changes before opening backup?"
-msgstr ""
+msgstr "未保存！保存修改后再打开备份？"
 
 #: src/gui/doAction.cpp:62 src/gui/gui.cpp:4249 src/gui/gui.cpp:5038
 #: src/gui/gui.cpp:5076 src/gui/gui.cpp:5082 src/gui/gui.cpp:5691
@@ -12802,32 +13046,32 @@ msgstr ""
 #: src/gui/gui.cpp:5787 src/gui/gui.cpp:5811
 #, c-format
 msgid "Error while saving file! (%s)"
-msgstr ""
+msgstr "保存文件时出错! (%s)"
 
 #: src/gui/doAction.cpp:189
 msgid "Error while sending request (MIDI output not configured?)"
-msgstr ""
+msgstr "发送请求时出错 (MIDI 输出未配置？)"
 
 #: src/gui/doAction.cpp:197
 msgid "Select an option: (cannot be undone!)"
-msgstr ""
+msgstr "选择操作: (无法撤销!)"
 
 #: src/gui/doAction.cpp:691 src/gui/doAction.cpp:720 src/gui/doAction.cpp:1594
 #: src/gui/gui.cpp:6125
 msgid "too many instruments!"
-msgstr ""
+msgstr "太多乐器!"
 
 #: src/gui/doAction.cpp:1125
 msgid "couldn't paste! make sure your sample is 8 or 16-bit."
-msgstr ""
+msgstr "无法粘贴! 检查你的采样是否为8/16位采样。"
 
 #: src/gui/doAction.cpp:1629
 msgid "select at least one sample!"
-msgstr ""
+msgstr "至少选一个采样!"
 
 #: src/gui/doAction.cpp:1631
 msgid "maximum size is 256 samples!"
-msgstr ""
+msgstr "最大尺寸为256采样点!"
 
 #: src/gui/csPlayer.cpp:113
 msgid "Load"
@@ -12903,28 +13147,28 @@ msgstr ""
 
 #: src/gui/gui.cpp:1140 src/gui/gui.cpp:1144
 msgid "the song is over!"
-msgstr ""
+msgstr "此曲结束了!"
 
 #: src/gui/gui.cpp:1671
 msgid "Open File"
-msgstr ""
+msgstr "打开文件"
 
 #: src/gui/gui.cpp:1672 src/gui/gui.cpp:1802 src/gui/gui.cpp:1965
 #: src/gui/gui.cpp:1974 src/gui/gui.cpp:1983 src/gui/gui.cpp:2085
 #: src/gui/gui.cpp:2105 src/gui/gui.cpp:2123 src/gui/gui.cpp:7253
 msgid "compatible files"
-msgstr ""
+msgstr "兼容的文件"
 
 #: src/gui/gui.cpp:1673 src/gui/gui.cpp:1747 src/gui/gui.cpp:1803
 #: src/gui/gui.cpp:1854 src/gui/gui.cpp:1873 src/gui/gui.cpp:2086
 #: src/gui/gui.cpp:2096 src/gui/gui.cpp:2107 src/gui/gui.cpp:2125
 #: src/gui/gui.cpp:7288
 msgid "all files"
-msgstr ""
+msgstr "所有文件"
 
 #: src/gui/gui.cpp:1680
 msgid "no backups made yet!"
-msgstr ""
+msgstr "未备份!"
 
 #: src/gui/gui.cpp:1685 src/gui/gui.cpp:1694 src/gui/gui.cpp:2142
 msgid "Furnace song"
@@ -12932,59 +13176,60 @@ msgstr ""
 
 #: src/gui/gui.cpp:1693
 msgid "Save File"
-msgstr ""
+msgstr "保存文件"
 
 #: src/gui/gui.cpp:1702 src/gui/gui.cpp:1712
 msgid "Export DMF"
-msgstr ""
+msgstr "导出 DMF"
 
 #: src/gui/gui.cpp:1703
 msgid "DefleMask 1.1.3 module"
-msgstr ""
+msgstr "DefleMask 1.1.3 模块"
 
 #: src/gui/gui.cpp:1713
 msgid "DefleMask 1.0/legacy module"
-msgstr ""
+msgstr "DefleMask 1.0/legacy 模块"
 
 #: src/gui/gui.cpp:1730
 msgid "Load Instrument"
-msgstr ""
+msgstr "加载乐器"
 
 #: src/gui/gui.cpp:1731
 msgid "all compatible files"
-msgstr ""
+msgstr "所有兼容文件"
 
+# 无可所翻,全是xxx软件乐器格式.
 #: src/gui/gui.cpp:1732 src/gui/gui.cpp:1781
 msgid "Furnace instrument"
-msgstr ""
+msgstr "Furnace 乐器"
 
 #: src/gui/gui.cpp:1733 src/gui/gui.cpp:1791
 msgid "DefleMask preset"
-msgstr ""
+msgstr "DefleMask 预设"
 
 #: src/gui/gui.cpp:1734
 msgid "TFM Music Maker instrument"
-msgstr ""
+msgstr "TFM Music Maker 乐器"
 
 #: src/gui/gui.cpp:1735
 msgid "VGM Music Maker instrument"
-msgstr ""
+msgstr "VGM Music Maker 乐器"
 
 #: src/gui/gui.cpp:1736
 msgid "Scream Tracker 3 instrument"
-msgstr ""
+msgstr "Scream Tracker 3 乐器"
 
 #: src/gui/gui.cpp:1737
 msgid "SoundBlaster instrument"
-msgstr ""
+msgstr "SoundBlaster 乐器"
 
 #: src/gui/gui.cpp:1738
 msgid "Wohlstand OPL instrument"
-msgstr ""
+msgstr "Wohlstand OPL 乐器"
 
 #: src/gui/gui.cpp:1739
 msgid "Wohlstand OPN instrument"
-msgstr ""
+msgstr "Wohlstand OPN 乐器"
 
 #: src/gui/gui.cpp:1740
 msgid "Gens KMod patch dump"
@@ -12992,7 +13237,7 @@ msgstr ""
 
 #: src/gui/gui.cpp:1741
 msgid "BNK file (AdLib)"
-msgstr ""
+msgstr "BNK 文件 (AdLib)"
 
 #: src/gui/gui.cpp:1742
 msgid "FF preset bank"
@@ -13014,74 +13259,75 @@ msgstr ""
 msgid "Wohlstand WOPN bank"
 msgstr ""
 
+# end of no tranlsate.
 #: src/gui/gui.cpp:1780 src/gui/gui.cpp:1790
 msgid "Save Instrument"
-msgstr ""
+msgstr "保存乐器"
 
 #: src/gui/gui.cpp:1801
 msgid "Load Wavetable"
-msgstr ""
+msgstr "加载乐器"
 
 #: src/gui/gui.cpp:1813 src/gui/gui.cpp:1822 src/gui/gui.cpp:1831
 msgid "Save Wavetable"
-msgstr ""
+msgstr "保存波表"
 
 #: src/gui/gui.cpp:1814
 msgid "Furnace wavetable"
-msgstr ""
+msgstr "Furance 波表"
 
 #: src/gui/gui.cpp:1823
 msgid "DefleMask wavetable"
-msgstr ""
+msgstr "DefleMask 波表"
 
 #: src/gui/gui.cpp:1832
 msgid "raw data"
-msgstr ""
+msgstr "raw 数据"
 
 #: src/gui/gui.cpp:1841
 msgid "Load Sample"
-msgstr ""
+msgstr "加载采样"
 
 #: src/gui/gui.cpp:1853
 msgid "Load Raw Sample"
-msgstr ""
+msgstr "加载Raw 采样"
 
 #: src/gui/gui.cpp:1862
 msgid "Save Sample"
-msgstr ""
+msgstr "保存采样"
 
 #: src/gui/gui.cpp:1863 src/gui/gui.cpp:1883 src/gui/gui.cpp:1893
 #: src/gui/gui.cpp:1903
 msgid "Wave file"
-msgstr ""
+msgstr "Wave 文件"
 
 #: src/gui/gui.cpp:1872
 msgid "Save Raw Sample"
-msgstr ""
+msgstr "保存 Raw 采样"
 
 #: src/gui/gui.cpp:1882 src/gui/gui.cpp:1892 src/gui/gui.cpp:1902
 msgid "Export Audio"
-msgstr ""
+msgstr "导出音频"
 
 #: src/gui/gui.cpp:1912
 msgid "Export VGM"
-msgstr ""
+msgstr "导出VGM"
 
 #: src/gui/gui.cpp:1913
 msgid "VGM file"
-msgstr ""
+msgstr "VGM 文件"
 
 #: src/gui/gui.cpp:1922
 msgid "Export ZSM"
-msgstr ""
+msgstr "导出 ZSM"
 
 #: src/gui/gui.cpp:1923
 msgid "ZSM file"
-msgstr ""
+msgstr "ZSM 文件"
 
 #: src/gui/gui.cpp:1941 src/gui/gui.cpp:1951
 msgid "Export Command Stream"
-msgstr ""
+msgstr "导出 Command Stream"
 
 #: src/gui/gui.cpp:1942
 msgid "text file"
@@ -13097,70 +13343,72 @@ msgstr ""
 
 #: src/gui/gui.cpp:1964 src/gui/gui.cpp:1973 src/gui/gui.cpp:1982
 msgid "Select Font"
-msgstr ""
+msgstr "选择字体"
 
 #: src/gui/gui.cpp:1991
 msgid "Select Color File"
-msgstr ""
+msgstr "选择色彩文件"
 
 #: src/gui/gui.cpp:1992 src/gui/gui.cpp:2001 src/gui/gui.cpp:2020
 #: src/gui/gui.cpp:2029 src/gui/gui.cpp:2038 src/gui/gui.cpp:2047
 #: src/gui/gui.cpp:2065 src/gui/gui.cpp:2074
 msgid "configuration files"
-msgstr ""
+msgstr "配置文件"
 
 #: src/gui/gui.cpp:2000
 msgid "Select Keybind File"
-msgstr ""
+msgstr "选择键位绑定文件"
 
 #: src/gui/gui.cpp:2009
 msgid "Select Layout File"
-msgstr ""
+msgstr "选择界面排列文件"
 
 #: src/gui/gui.cpp:2010 src/gui/gui.cpp:2056
 msgid ".ini files"
-msgstr ""
+msgstr ".ini 文件"
 
 #: src/gui/gui.cpp:2019
 msgid "Select User Presets File"
-msgstr ""
+msgstr "选择用户预设文件"
 
 #: src/gui/gui.cpp:2028
 msgid "Select Settings File"
-msgstr ""
+msgstr "选择设置文件"
 
 #: src/gui/gui.cpp:2037
 msgid "Export Colors"
-msgstr ""
+msgstr "导出颜色文件"
 
 #: src/gui/gui.cpp:2046
 msgid "Export Keybinds"
-msgstr ""
+msgstr "导出键位绑定文件"
 
 #: src/gui/gui.cpp:2055
 msgid "Export Layout"
-msgstr ""
+msgstr "导出界面排列文件"
 
 #: src/gui/gui.cpp:2064
 msgid "Export User Presets"
-msgstr ""
+msgstr "导出用户预设文件"
 
 #: src/gui/gui.cpp:2073
 msgid "Export Settings"
-msgstr ""
+msgstr "导出设置文件"
 
 #: src/gui/gui.cpp:2084
 msgid "Load ROM"
-msgstr ""
+msgstr "加载ROM"
 
+# continuity checking. command stream no trans!
 #: src/gui/gui.cpp:2094
 msgid "Play Command Stream"
-msgstr ""
+msgstr "播放Command Stream"
 
 #: src/gui/gui.cpp:2095
 msgid "command stream"
 msgstr ""
 
+# end of no translate
 #: src/gui/gui.cpp:2104
 msgid "Open Test"
 msgstr ""
@@ -13205,202 +13453,209 @@ msgid ""
 "DO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\n"
 "Furnace will not save backups of backups."
 msgstr ""
+"您正在加载一个备份!\n"
+"如有需求,请另存为此工程.\n"
+"\n"
+"请勿依赖备份系统来自动保存!\n"
+"Furnace不会保存备份的备份."
 
 #: src/gui/gui.cpp:2354 src/gui/gui.cpp:3755 src/gui/gui.cpp:4225
 msgid "Unsaved changes! Save changes before opening file?"
-msgstr ""
+msgstr "未保存! 保存后再打开文件?"
 
 #: src/gui/gui.cpp:2748
 msgid "paste special..."
-msgstr ""
+msgstr "特殊粘贴..."
 
 #: src/gui/gui.cpp:2749
 msgid "paste mix"
-msgstr ""
+msgstr "粘贴混合"
 
 #: src/gui/gui.cpp:2750
 msgid "paste mix (background)"
-msgstr ""
+msgstr "粘贴混合 (后置)"
 
 #: src/gui/gui.cpp:2751
 msgid "paste with ins (foreground)"
-msgstr ""
+msgstr "替换为选中乐器并粘贴混合 (前置)"
 
 #: src/gui/gui.cpp:2753 src/gui/gui.cpp:2765 src/gui/gui.cpp:2975
 msgid "no instruments available"
-msgstr ""
+msgstr "没有乐器可用"
 
 #: src/gui/gui.cpp:2763
 msgid "paste with ins (background)"
-msgstr ""
+msgstr "替换为选中乐器并粘贴混合 (后置)"
 
 #: src/gui/gui.cpp:2775
 msgid "paste flood"
-msgstr ""
+msgstr "重复粘贴"
 
 #: src/gui/gui.cpp:2776
 msgid "paste overflow"
-msgstr ""
+msgstr "溢出重复粘贴"
 
 #: src/gui/gui.cpp:2785
 msgid "operation mask..."
-msgstr ""
+msgstr "操作掩码..."
 
 #: src/gui/gui.cpp:2792
 msgid "pull delete"
-msgstr ""
+msgstr "删除并上拉"
 
 #: src/gui/gui.cpp:2796
 msgid "insert"
-msgstr ""
+msgstr "插入"
 
 #: src/gui/gui.cpp:2804
 msgid "transpose (note)"
-msgstr ""
+msgstr "变调 (note)"
 
 #: src/gui/gui.cpp:2808
 msgid "transpose (value)"
-msgstr ""
+msgstr "变调 (数值)"
 
 #: src/gui/gui.cpp:2820 src/gui/gui.cpp:3064
 msgid "invert values"
-msgstr ""
+msgstr "反相数值"
 
 #: src/gui/gui.cpp:2836
 msgid "collapse/expand"
-msgstr ""
+msgstr "缩进/扩张"
 
 #: src/gui/gui.cpp:2841
 msgid "input latch"
-msgstr ""
+msgstr "输入锁存器"
 
 #: src/gui/gui.cpp:2868
 msgid ""
 "&&: selected instrument\n"
 "..: no instrument"
 msgstr ""
+"&&: 插入选中乐器\n"
+"..: 留空乐器列"
 
 #: src/gui/gui.cpp:2922
 msgid "Set"
-msgstr ""
+msgstr "设定"
 
 #: src/gui/gui.cpp:2942
 msgid "note up"
-msgstr ""
+msgstr "升高 键"
 
 #: src/gui/gui.cpp:2943
 msgid "note down"
-msgstr ""
+msgstr "降低 键"
 
 #: src/gui/gui.cpp:2944
 msgid "octave up"
-msgstr ""
+msgstr "升高 八度"
 
 #: src/gui/gui.cpp:2945
 msgid "octave down"
-msgstr ""
+msgstr "降低 八度"
 
 #: src/gui/gui.cpp:2947
 msgid "values up"
-msgstr ""
+msgstr "增加 数值"
 
 #: src/gui/gui.cpp:2948
 msgid "values down"
-msgstr ""
+msgstr "减少 数值"
 
 #: src/gui/gui.cpp:2949
 msgid "values up (+16)"
-msgstr ""
+msgstr "增加 数值 (+16)"
 
 #: src/gui/gui.cpp:2950
 msgid "values down (-16)"
-msgstr ""
+msgstr "减少 数值 (-16)"
 
 #: src/gui/gui.cpp:2953
 msgid "transpose"
-msgstr ""
+msgstr "变调"
 
 #: src/gui/gui.cpp:2961
 msgid "Notes"
-msgstr ""
+msgstr "键"
 
 #: src/gui/gui.cpp:2966
 msgid "Values"
-msgstr ""
+msgstr "数值"
 
 #: src/gui/gui.cpp:2973
 msgid "change instrument..."
-msgstr ""
+msgstr "修改乐器..."
 
 #: src/gui/gui.cpp:2986
 msgid "gradient/fade..."
-msgstr ""
+msgstr "渐变/淡出入..."
 
 #: src/gui/gui.cpp:3003 src/gui/gui.cpp:3048
 msgid "Nibble mode"
-msgstr ""
+msgstr "小字节模式"
 
 #: src/gui/gui.cpp:3012
 msgid "Go ahead"
-msgstr ""
+msgstr "开始"
 
 #: src/gui/gui.cpp:3018 src/gui/insEdit.cpp:7619
 msgid "scale..."
-msgstr ""
+msgstr "缩放..."
 
 #: src/gui/gui.cpp:3023
 msgid "Scale"
-msgstr ""
+msgstr "缩放"
 
 #: src/gui/gui.cpp:3029 src/gui/insEdit.cpp:7647
 msgid "randomize..."
-msgstr ""
+msgstr "随机化..."
 
 #: src/gui/gui.cpp:3030
 msgid "Minimum"
-msgstr ""
+msgstr "最小值"
 
 #: src/gui/gui.cpp:3039
 msgid "Maximum"
-msgstr ""
+msgstr "最大值"
 
 #: src/gui/gui.cpp:3068
 msgid "flip selection"
-msgstr ""
+msgstr "反选"
 
 #: src/gui/gui.cpp:3071
 msgid "collapse/expand amount##CollapseAmount"
-msgstr ""
+msgstr "缩进/扩张 数量##CollapseAmount"
 
 #: src/gui/gui.cpp:3080
 msgid "collapse pattern"
-msgstr ""
+msgstr "缩进 Pattern"
 
 #: src/gui/gui.cpp:3081
 msgid "expand pattern"
-msgstr ""
+msgstr "扩张 Pattern"
 
 #: src/gui/gui.cpp:3086
 msgid "collapse song"
-msgstr ""
+msgstr "缩进 全曲"
 
 #: src/gui/gui.cpp:3087
 msgid "expand song"
-msgstr ""
+msgstr "扩张 全曲"
 
 #: src/gui/gui.cpp:3092
 msgid "find/replace"
-msgstr ""
+msgstr "查找/替换"
 
 #: src/gui/gui.cpp:3106 src/gui/gui.cpp:5841 src/gui/gui.cpp:7450
 #, c-format
 msgid "could NOT save layout! %s"
-msgstr ""
+msgstr "无法保存界面排序! %s"
 
 #: src/gui/gui.cpp:3118
 #, c-format
 msgid "could NOT load layout! %s"
-msgstr ""
+msgstr "无法加载界面排序! %s"
 
 #: src/gui/gui.cpp:3580
 msgid ""
@@ -13414,6 +13669,15 @@ msgid ""
 "check any settings which may have made Furnace start up in this mode.\n"
 "font loading is one of these."
 msgstr ""
+"Furnace已在安全模式中启动.\n"
+"意味着:\n"
+"\n"
+"- 已启用软件渲染\n"
+"- 音频输出可能失效\n"
+"- 已关闭字体加载\n"
+"\n"
+"检查任何可能导致Furnace在安全模式中启动的设置.\n"
+"比如字体加载."
 
 #: src/gui/gui.cpp:4065
 msgid "can't keep going without graphics! Furnace will quit now."
@@ -13421,190 +13685,192 @@ msgstr ""
 
 #: src/gui/gui.cpp:4203
 msgid "file"
-msgstr ""
+msgstr "文件"
 
 #: src/gui/gui.cpp:4204
 msgid "new..."
-msgstr ""
+msgstr "新建..."
 
 #: src/gui/gui.cpp:4211
 msgid "open..."
-msgstr ""
+msgstr "打开..."
 
 #: src/gui/gui.cpp:4218
 msgid "open recent"
-msgstr ""
+msgstr "打开最近文件"
 
 #: src/gui/gui.cpp:4234
 msgid "nothing here yet"
-msgstr ""
+msgstr "空无一物"
 
 #: src/gui/gui.cpp:4237
 msgid "clear history"
-msgstr ""
+msgstr "清除文件历史"
 
 #: src/gui/gui.cpp:4238
 msgid "Are you sure you want to clear the recent file list?"
-msgstr ""
+msgstr "你确定要清除最近文件历史吗?"
 
 #: src/gui/gui.cpp:4253
 msgid "save as..."
-msgstr ""
+msgstr "另存为..."
 
 #: src/gui/gui.cpp:4258 src/gui/gui.cpp:4299
 msgid "export audio..."
-msgstr ""
+msgstr "导出音频..."
 
 #: src/gui/gui.cpp:4262 src/gui/gui.cpp:4303
 msgid "export VGM..."
-msgstr ""
+msgstr "导出VGM..."
 
 #: src/gui/gui.cpp:4271 src/gui/gui.cpp:4312
 msgid "export ZSM..."
-msgstr ""
+msgstr "导出ZSM..."
 
 #: src/gui/gui.cpp:4281 src/gui/gui.cpp:4322
 msgid "export Amiga validation data..."
-msgstr ""
+msgstr "导出Amiga validation data..."
 
+# contiuntiy.... above!
 #: src/gui/gui.cpp:4286 src/gui/gui.cpp:4327
 msgid "export text..."
-msgstr ""
+msgstr "导出文本文件..."
 
 #: src/gui/gui.cpp:4290 src/gui/gui.cpp:4331
 msgid "export command stream..."
-msgstr ""
+msgstr "导出 command stream..."
 
+# contiunty!!! above!
 #: src/gui/gui.cpp:4294 src/gui/gui.cpp:4335
 msgid "export .dmf..."
-msgstr ""
+msgstr "导出 .dmf..."
 
 #: src/gui/gui.cpp:4340
 msgid "export..."
-msgstr ""
+msgstr "导出..."
 
 #: src/gui/gui.cpp:4346
 msgid "manage chips"
-msgstr ""
+msgstr "管理芯片"
 
 #: src/gui/gui.cpp:4350
 msgid "add chip..."
-msgstr ""
+msgstr "添加芯片..."
 
 #: src/gui/gui.cpp:4355 src/gui/sysManager.cpp:138
 #, c-format
 msgid "cannot add chip! (%s)"
-msgstr ""
+msgstr "无法添加芯片! (%s)"
 
 #: src/gui/gui.cpp:4367
 msgid "configure chip..."
-msgstr ""
+msgstr "配置芯片..."
 
 #: src/gui/gui.cpp:4377
 msgid "change chip..."
-msgstr ""
+msgstr "修改芯片..."
 
 #: src/gui/gui.cpp:4379 src/gui/gui.cpp:4402
 msgid "Preserve channel positions"
-msgstr ""
+msgstr "保留通道位置"
 
 #: src/gui/gui.cpp:4391 src/gui/sysManager.cpp:109
 #, c-format
 msgid "cannot change chip! (%s)"
-msgstr ""
+msgstr "无法替换芯片! (%s)"
 
 #: src/gui/gui.cpp:4400
 msgid "remove chip..."
-msgstr ""
+msgstr "移除芯片..."
 
 #: src/gui/gui.cpp:4406
 #, c-format
 msgid "cannot remove chip! (%s)"
-msgstr ""
+msgstr "无法移除芯片! (%s)"
 
 #: src/gui/gui.cpp:4420
 msgid "open built-in assets directory"
-msgstr ""
+msgstr "打开内建素材目录"
 
 #: src/gui/gui.cpp:4426
 msgid "restore backup"
-msgstr ""
+msgstr "恢复备份"
 
 #: src/gui/gui.cpp:4430
 msgid "exit..."
-msgstr ""
+msgstr "退出..."
 
 #: src/gui/gui.cpp:4438
 msgid "edit"
-msgstr ""
+msgstr "编辑"
 
 #: src/gui/gui.cpp:4446
 msgid "clear..."
-msgstr ""
+msgstr "清除..."
 
 #: src/gui/gui.cpp:4451
 msgid "settings"
-msgstr ""
+msgstr "设置"
 
 #: src/gui/gui.cpp:4453
 msgid "full screen"
-msgstr ""
+msgstr "全屏"
 
 #: src/gui/gui.cpp:4457
 msgid "lock layout"
-msgstr ""
+msgstr "锁定界面排列"
 
 #: src/gui/gui.cpp:4460
 msgid "pattern visualizer"
-msgstr ""
+msgstr "Pattern 可视化"
 
 #: src/gui/gui.cpp:4466
 msgid "reset layout"
-msgstr ""
+msgstr "重置界面排列"
 
 #: src/gui/gui.cpp:4470
 msgid "switch to mobile view"
-msgstr ""
+msgstr "切换到移动端界面"
 
 #: src/gui/gui.cpp:4474
 msgid "user systems..."
-msgstr ""
+msgstr "用户系统..."
 
 #: src/gui/gui.cpp:4477
 msgid "settings..."
-msgstr ""
+msgstr "设置..."
 
 #: src/gui/gui.cpp:4483
 msgid "Window"
-msgstr ""
+msgstr "窗口"
 
 #: src/gui/gui.cpp:4483
 msgid "window"
-msgstr ""
+msgstr "窗口"
 
 #: src/gui/gui.cpp:4484
 msgid "song"
-msgstr ""
+msgstr "曲目"
 
 #: src/gui/gui.cpp:4485
 msgid "song comments"
-msgstr ""
+msgstr "曲目留言"
 
 #: src/gui/gui.cpp:4486
 msgid "song information"
-msgstr ""
+msgstr "曲目信息"
 
 #: src/gui/gui.cpp:4487
 msgid "subsongs"
-msgstr ""
+msgstr "子曲目"
 
 #: src/gui/gui.cpp:4489
 msgid "channels"
-msgstr ""
+msgstr "通道"
 
 #: src/gui/gui.cpp:4490
 msgid "chip manager"
-msgstr ""
+msgstr "芯片管理器"
 
 #: src/gui/gui.cpp:4491
 msgid "orders"
@@ -13612,67 +13878,67 @@ msgstr ""
 
 #: src/gui/gui.cpp:4493
 msgid "pattern manager"
-msgstr ""
+msgstr "Pattern管理器"
 
 #: src/gui/gui.cpp:4494
 msgid "mixer"
-msgstr ""
+msgstr "混音器"
 
 #: src/gui/gui.cpp:4495
 msgid "compatibility flags"
-msgstr ""
+msgstr "兼容性标志"
 
 #: src/gui/gui.cpp:4498 src/gui/gui.cpp:4500
 msgid "assets"
-msgstr ""
+msgstr "素材"
 
 #: src/gui/gui.cpp:4502
 msgid "instruments"
-msgstr ""
+msgstr "乐器"
 
 #: src/gui/gui.cpp:4503
 msgid "samples"
-msgstr ""
+msgstr "采样"
 
 #: src/gui/gui.cpp:4504
 msgid "wavetables"
-msgstr ""
+msgstr "波表"
 
 #: src/gui/gui.cpp:4507
 msgid "instrument editor"
-msgstr ""
+msgstr "乐器编辑器"
 
 #: src/gui/gui.cpp:4508
 msgid "sample editor"
-msgstr ""
+msgstr "采样编辑器"
 
 #: src/gui/gui.cpp:4509
 msgid "wavetable editor"
-msgstr ""
+msgstr "波表编辑器"
 
 #: src/gui/gui.cpp:4512
 msgid "visualizers"
-msgstr ""
+msgstr "可视化"
 
 #: src/gui/gui.cpp:4513
 msgid "oscilloscope (master)"
-msgstr ""
+msgstr "示波器 (主输出)"
 
 #: src/gui/gui.cpp:4514
 msgid "oscilloscope (per-channel)"
-msgstr ""
+msgstr "示波器(全通道)"
 
 #: src/gui/gui.cpp:4515
 msgid "oscilloscope (X-Y)"
-msgstr ""
+msgstr "矢量示波器 (X-Y)"
 
 #: src/gui/gui.cpp:4516
 msgid "volume meter"
-msgstr ""
+msgstr "音量计"
 
 #: src/gui/gui.cpp:4519
 msgid "tempo"
-msgstr ""
+msgstr "拍子"
 
 #: src/gui/gui.cpp:4520
 msgid "clock"
@@ -13696,23 +13962,23 @@ msgstr ""
 
 #: src/gui/gui.cpp:4528
 msgid "statistics"
-msgstr ""
+msgstr "统计数据"
 
 #: src/gui/gui.cpp:4529
 msgid "memory composition"
-msgstr ""
+msgstr "内存组成"
 
 #: src/gui/gui.cpp:4533 src/gui/gui.cpp:4541
 msgid "effect list"
-msgstr ""
+msgstr "效果列表"
 
 #: src/gui/gui.cpp:4534
 msgid "play/edit controls"
-msgstr ""
+msgstr "播放/编辑 控制"
 
 #: src/gui/gui.cpp:4535
 msgid "piano/input pad"
-msgstr ""
+msgstr "钢琴键输入板"
 
 #: src/gui/gui.cpp:4536
 msgid "spoiler"
@@ -13720,19 +13986,19 @@ msgstr ""
 
 #: src/gui/gui.cpp:4540
 msgid "Help"
-msgstr ""
+msgstr "帮助 (简中汉化公测 v0.4.2024B)"
 
 #: src/gui/gui.cpp:4540
 msgid "help"
-msgstr ""
+msgstr "帮助 (简中汉化公测 v0.4.2024B)"
 
 #: src/gui/gui.cpp:4542
 msgid "debug menu"
-msgstr ""
+msgstr "调试菜单"
 
 #: src/gui/gui.cpp:4543
 msgid "inspector"
-msgstr ""
+msgstr "视觉元素检查"
 
 #: src/gui/gui.cpp:4544
 msgid "panic"
@@ -13740,7 +14006,7 @@ msgstr ""
 
 #: src/gui/gui.cpp:4545
 msgid "about..."
-msgstr ""
+msgstr "关于..."
 
 #: src/gui/gui.cpp:4560
 #, c-format
@@ -13849,8 +14115,9 @@ msgstr ""
 
 #: src/gui/gui.cpp:4672
 msgid "| modified"
-msgstr ""
+msgstr "| 未保存"
 
+# debug info no translate.
 #: src/gui/gui.cpp:4837 src/gui/gui.cpp:4840
 msgid "System File Dialog Pending"
 msgstr ""
@@ -13992,25 +14259,26 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
+# end of no translate.
 #: src/gui/gui.cpp:5554 src/gui/gui.cpp:6211 src/gui/gui.cpp:6212
 msgid "Select Instrument"
-msgstr ""
+msgstr "选择乐器"
 
 #: src/gui/gui.cpp:5559 src/gui/gui.cpp:6290 src/gui/gui.cpp:6291
 msgid "Import Raw Sample"
-msgstr ""
+msgstr "导入Raw采样"
 
 #: src/gui/gui.cpp:5574 src/gui/gui.cpp:5627 src/gui/gui.cpp:5628
 msgid "Rendering..."
-msgstr ""
+msgstr "渲染中..."
 
 #: src/gui/gui.cpp:5629
 msgid "Please wait..."
-msgstr ""
+msgstr "请稍后..."
 
 #: src/gui/gui.cpp:5630
 msgid "Abort"
-msgstr ""
+msgstr "终止"
 
 #: src/gui/gui.cpp:5672
 #, c-format
@@ -14019,36 +14287,37 @@ msgstr ""
 
 #: src/gui/gui.cpp:5902
 msgid "Erasing"
-msgstr ""
+msgstr "擦除"
 
 #: src/gui/gui.cpp:5905
 msgid "All subsongs"
-msgstr ""
+msgstr "所有子曲目"
 
 #: src/gui/gui.cpp:5912
 msgid "Current subsong"
-msgstr ""
+msgstr "当前子曲目"
 
 #: src/gui/gui.cpp:5979
 msgid "Optimization"
-msgstr ""
+msgstr "优化"
 
 #: src/gui/gui.cpp:5982 src/gui/patManager.cpp:36
 msgid "De-duplicate patterns"
-msgstr ""
+msgstr "去掉重复Pattern"
 
 #: src/gui/gui.cpp:5991
 msgid "Remove unused instruments"
-msgstr ""
+msgstr "去掉未使用的乐器"
 
 #: src/gui/gui.cpp:6004
 msgid "Remove unused samples"
-msgstr ""
+msgstr "去掉未使用的采样"
 
 #: src/gui/gui.cpp:6021
 msgid "Never mind! Cancel"
-msgstr ""
+msgstr "算了! 取消"
 
+# unkown drum kit mode, need more look into.
 #: src/gui/gui.cpp:6100
 msgid "Drum kit mode:"
 msgstr ""
@@ -14085,26 +14354,28 @@ msgstr ""
 msgid "Unsigned"
 msgstr ""
 
+# end of no translate
 #: src/gui/gui.cpp:6324
 msgid "Big endian"
-msgstr ""
+msgstr "大位数"
 
 #: src/gui/gui.cpp:6332
 msgid "Swap nibbles"
-msgstr ""
+msgstr "交换小字节"
 
 #: src/gui/gui.cpp:6336
 msgid "Swap words"
-msgstr ""
+msgstr "交换 字"
 
 #: src/gui/gui.cpp:6340
 msgid "Encoding:"
-msgstr ""
+msgstr "编码:"
 
 #: src/gui/gui.cpp:6353
 msgid "Reverse bit order"
-msgstr ""
+msgstr "反向位顺序"
 
+# what are theses...............
 #: src/gui/gui.cpp:6395
 msgid "Error! No string provided!"
 msgstr ""
@@ -14173,13 +14444,16 @@ msgstr ""
 msgid "Hide tab bar###HideTabBar"
 msgstr ""
 
+# end of no translate.
 #: src/gui/gui.cpp:7091
 msgid "LocaleSettings: ccjk"
-msgstr ""
+msgstr "LocaleSettings: CCjk"
 
+# something's up, setting it to CCjk now.
+# 重要！上设置必须为Ccjk，zh-HK 中需为cCjk.
 #: src/gui/gui.cpp:7282
 msgid "NES DPCM data"
-msgstr ""
+msgstr "NES DPCM 数据"
 
 #: src/gui/gui.cpp:7285
 msgid "SNES Bit Rate Reduction"
@@ -14187,56 +14461,56 @@ msgstr ""
 
 #: src/gui/gui.cpp:7652
 msgid "Unsaved changes! Save changes before quitting?"
-msgstr ""
+msgstr "未保存! 保存后再退出?"
 
 #: src/gui/sysManager.cpp:42
 msgid "Preserve channel order"
-msgstr ""
+msgstr "保留通道顺序"
 
 #: src/gui/sysManager.cpp:44
 msgid "Clone channel data"
-msgstr ""
+msgstr "克隆通道数据"
 
 #: src/gui/sysManager.cpp:46
 msgid "Clone at end"
-msgstr ""
+msgstr "克隆至末尾"
 
 #: src/gui/sysManager.cpp:56
 msgid "Actions"
-msgstr ""
+msgstr "操作"
 
 #: src/gui/sysManager.cpp:69
 msgid "(drag to swap chips)"
-msgstr ""
+msgstr "(拖动以交换芯片顺序)"
 
 #: src/gui/sysManager.cpp:90
 msgid "Clone##SysDup"
-msgstr ""
+msgstr "克隆##SysDup"
 
 #: src/gui/sysManager.cpp:92
 #, c-format
 msgid "cannot clone chip! (%s)"
-msgstr ""
+msgstr "无法克隆芯片! (%s)"
 
 #: src/gui/sysManager.cpp:98
 msgid "Change##SysChange"
-msgstr ""
+msgstr "替换##SysChange"
 
 #: src/gui/sysManager.cpp:120
 msgid "Are you sure you want to remove this chip?"
-msgstr ""
+msgstr "你确定要移除此芯片?"
 
 #: src/gui/patManager.cpp:43
 msgid "Re-arrange patterns"
-msgstr ""
+msgstr "重排列Pattern"
 
 #: src/gui/patManager.cpp:50
 msgid "Sort orders"
-msgstr ""
+msgstr "整理Orders"
 
 #: src/gui/patManager.cpp:57
 msgid "Make patterns unique"
-msgstr ""
+msgstr "使Patterns 分立"
 
 #: src/gui/patManager.cpp:103
 #, c-format
@@ -14244,6 +14518,8 @@ msgid ""
 "Pattern %.2X\n"
 "- not allocated"
 msgstr ""
+"Pattern %.2X\n"
+"- 未分配"
 
 #: src/gui/patManager.cpp:105
 #, c-format
@@ -14253,7 +14529,12 @@ msgid ""
 "\n"
 "right-click to erase"
 msgstr ""
+"Pattern %.2X\n"
+"- 使用占比: %d (%.0f%%)\n"
+"\n"
+"右键擦除(小心!)"
 
+# FM technical stuff, no translate.
 #: src/gui/insEdit.cpp:39
 msgid "Down Down Down"
 msgstr ""
@@ -15095,7 +15376,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:611
 msgid "Relative"
-msgstr ""
+msgstr "相对音调"
 
 #: src/gui/insEdit.cpp:616
 #, c-format
@@ -15827,7 +16108,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:6917
 msgid "Macros"
-msgstr ""
+msgstr "宏"
 
 #: src/gui/insEdit.cpp:6926 src/gui/insEdit.cpp:6934 src/gui/insEdit.cpp:6943
 #: src/gui/insEdit.cpp:6952 src/gui/insEdit.cpp:6967 src/gui/insEdit.cpp:6981
@@ -15850,7 +16131,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7438 src/gui/insEdit.cpp:7449 src/gui/insEdit.cpp:7459
 #: src/gui/insEdit.cpp:7467 src/gui/insEdit.cpp:7477 src/gui/insEdit.cpp:7486
 msgid "Arpeggio"
-msgstr ""
+msgstr "琵琶音"
 
 #: src/gui/insEdit.cpp:6930 src/gui/insEdit.cpp:6937 src/gui/insEdit.cpp:6948
 #: src/gui/insEdit.cpp:6977 src/gui/insEdit.cpp:6989 src/gui/insEdit.cpp:6999
@@ -15868,12 +16149,12 @@ msgstr ""
 #: src/gui/insEdit.cpp:7444 src/gui/insEdit.cpp:7455 src/gui/insEdit.cpp:7463
 #: src/gui/insEdit.cpp:7472 src/gui/insEdit.cpp:7490
 msgid "Phase Reset"
-msgstr ""
+msgstr "相位重置"
 
 #: src/gui/insEdit.cpp:6944 src/gui/insEdit.cpp:7029 src/gui/insEdit.cpp:7225
 #: src/gui/insEdit.cpp:7262
 msgid "Duty/Noise"
-msgstr ""
+msgstr "占空比/噪声"
 
 #: src/gui/insEdit.cpp:6971 src/gui/insEdit.cpp:7303
 msgid "Surround"
@@ -15902,7 +16183,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:6995 src/gui/insEdit.cpp:7008 src/gui/insEdit.cpp:7112
 #: src/gui/insEdit.cpp:7214 src/gui/insEdit.cpp:7254 src/gui/insEdit.cpp:7439
 msgid "Noise Freq"
-msgstr ""
+msgstr "噪声频率"
 
 #: src/gui/insEdit.cpp:7001 src/gui/insEdit.cpp:7015 src/gui/insEdit.cpp:7172
 msgid "AutoEnv Num"

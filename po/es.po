@@ -1,7 +1,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: furnace 0.6.4\n"
+"Project-Id-Version: furnace 0.6.5\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: es\n"
@@ -3600,9 +3600,8 @@ msgid "E2xy: Note slide down (x: speed; y: semitones)"
 msgstr "E2xy: Deslizamiento de nota hacia abajo (x: velocidad; y: semitonos)"
 
 #: src/engine/engine.cpp:104
-#, fuzzy
 msgid "E3xx: Set vibrato shape"
-msgstr "E4xx: Ajustar rango del vibrato"
+msgstr "E3xx: Ajustar forma del vibrato"
 
 #: src/engine/engine.cpp:106
 msgid "E4xx: Set vibrato range"
@@ -4436,13 +4435,12 @@ msgid "max size in other banks"
 msgstr ""
 
 #: src/gui/exportOptions.cpp:276
-#, fuzzy
 msgid "this chip is not supported by the file format!"
-msgstr "¡este chip no está soportado por el formato VGM!"
+msgstr "¡este chip no está soportado por el formato!"
 
 #: src/gui/exportOptions.cpp:278
 msgid "only one Atari TIA is supported!"
-msgstr ""
+msgstr "¡solamente un Atari TIA está soportado!"
 
 #: src/gui/exportOptions.cpp:306 src/gui/editControls.cpp:630
 msgid ""
@@ -6153,9 +6151,8 @@ msgid "Software pitch driver"
 msgstr ""
 
 #: src/gui/sysConf.cpp:1072
-#, fuzzy
 msgid "Old pitch table (compatibility)"
-msgstr "Macro de tono y deslizamientos quebrados (compatibilidad)"
+msgstr "Tabla de tonos antigua (compatibilidad)"
 
 #: src/gui/sysConf.cpp:1077
 msgid "Mixing mode:"
@@ -6239,13 +6236,12 @@ msgid "Scale frequency to wave length"
 msgstr "Escalar frecuencia a longitud de onda"
 
 #: src/gui/sysConf.cpp:1292
-#, fuzzy
 msgid "Amiga channel volumes (64)"
-msgstr "Barra de volumen de los canales:"
+msgstr "Volúmenes estilo Amiga (64)"
 
 #: src/gui/sysConf.cpp:1296
 msgid "Amiga-like pitch (non-linear pitch only)"
-msgstr ""
+msgstr "Tono estilo Amiga (solo en tono no lineal)"
 
 #: src/gui/sysConf.cpp:1332 src/gui/sysConf.cpp:1754
 msgid "3.54MHz (PAL)"
@@ -6417,9 +6413,8 @@ msgid "Output bit depth:"
 msgstr "Profundidad de bits de salida:"
 
 #: src/gui/sysConf.cpp:1897
-#, fuzzy
 msgid "Maximum volume:"
-msgstr "Máximo"
+msgstr "Volumen máximo:"
 
 #: src/gui/sysConf.cpp:1907
 msgid "Interpolation:"
@@ -13004,15 +12999,16 @@ msgstr ""
 "para compensar los efectos del filtro Gauss de la SNES."
 
 #: src/gui/sampleEdit.cpp:546
-#, fuzzy
 msgid "no BRR filters"
-msgstr "Filtro del eco:"
+msgstr "sin filtros BRR"
 
 #: src/gui/sampleEdit.cpp:554
 msgid ""
 "enable this option to not use BRR blocks with filters\n"
 "and allow sample offset commands to be used safely."
 msgstr ""
+"activa esta opción para deshabilitar el uso de bloques BRR con filtros\n"
+"y permitir el uso de effectos de fueraestablecer para ser usados safamente."
 
 #: src/gui/sampleEdit.cpp:559
 msgid "8-bit dither"

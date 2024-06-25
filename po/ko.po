@@ -1,9 +1,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: furnace 0.6.4\n"
+"Project-Id-Version: furnace 0.6.5\n"
 "Last-Translator: 희민Heemin\n"
-"Language-Team: none\n"
+"Language-Team: G32ASAT\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1832,7 +1832,7 @@ msgstr "FM 3 OP1"
 #: src/engine/sysDef.cpp:1546 src/engine/sysDef.cpp:1559
 #: src/engine/sysDef.cpp:1861
 msgid "FM 3 OP2"
-msgstr ""
+msgstr "FM 3 OP2"
 
 #: src/engine/sysDef.cpp:1109 src/engine/sysDef.cpp:1122
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
@@ -1864,7 +1864,7 @@ msgstr ""
 "OPM의 원가절감된 버전으로 다른 레지스터 레이아웃을 가지고 있고 스테레오가 없"
 "습니다...\n"
 "...그러나 이것은 AY-3-8910을 내장하고 있습니다! (사실 YM2149이지만요.)\n"
-"CSM 어쩌구저쩌구 (영어 원문이 이렇게 되있습니다 하하 - 번역가)"
+"CSM 뭐시기"
 
 #: src/engine/sysDef.cpp:1122 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1383 src/engine/sysDef.cpp:1468
@@ -2510,121 +2510,123 @@ msgid ""
 "used in some of Capcom's arcade boards. surround-like sampled sound with "
 "echo."
 msgstr ""
+"캡콤의 일부 아케이드 보드에 사용되었습니다. 에코가 있는 서라운드처럼 샘플링"
+"된 사운드입니다."
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 #: src/engine/sysDef.cpp:2056
 msgid "PCM 1"
-msgstr ""
+msgstr "PCM 1"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 #: src/engine/sysDef.cpp:1849 src/engine/sysDef.cpp:1861
 #: src/engine/sysDef.cpp:2056
 msgid "PCM 2"
-msgstr ""
+msgstr "PCM 2"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 3"
-msgstr ""
+msgstr "PCM 3"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 4"
-msgstr ""
+msgstr "PCM 4"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 5"
-msgstr ""
+msgstr "PCM 5"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 6"
-msgstr ""
+msgstr "PCM 6"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 7"
-msgstr ""
+msgstr "PCM 7"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
 msgid "PCM 8"
-msgstr ""
+msgstr "PCM 8"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 9"
-msgstr ""
+msgstr "PCM 9"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 10"
-msgstr ""
+msgstr "PCM 10"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 11"
-msgstr ""
+msgstr "PCM 11"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 12"
-msgstr ""
+msgstr "PCM 12"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 13"
-msgstr ""
+msgstr "PCM 13"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 14"
-msgstr ""
+msgstr "PCM 14"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 15"
-msgstr ""
+msgstr "PCM 15"
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631
 msgid "PCM 16"
-msgstr ""
+msgstr "PCM 16"
 
 #: src/engine/sysDef.cpp:1521
 msgid "ADPCM 1"
-msgstr ""
+msgstr "ADPCM 1"
 
 #: src/engine/sysDef.cpp:1521
 msgid "ADPCM 2"
-msgstr ""
+msgstr "ADPCM 2"
 
 #: src/engine/sysDef.cpp:1521
 msgid "ADPCM 3"
-msgstr ""
+msgstr "ADPCM 3"
 
 #: src/engine/sysDef.cpp:1530 src/gui/settings.cpp:4053
 msgid "VERA"
-msgstr ""
+msgstr "VERA"
 
 #: src/engine/sysDef.cpp:1531
 msgid "the chip used in a computer design created by The 8-Bit Guy."
-msgstr ""
+msgstr "이 칩은 유튜버 The 8-Bit Guy가 디자인한 컴퓨터에 사용되었습니다."
 
 #: src/engine/sysDef.cpp:1538
 msgid "20xx: Set waveform"
-msgstr ""
+msgstr "20xx: 파형 설정"
 
 #: src/engine/sysDef.cpp:1539
 msgid "22xx: Set duty cycle (0 to 3F)"
-msgstr ""
+msgstr "22xx: 듀티비 설정 (0 에서 3F)"
 
 #: src/engine/sysDef.cpp:1544
 msgid "Yamaha YM2610B (OPNB2) Extended Channel 3"
-msgstr ""
+msgstr "야마하 YM2610B (OPNB2) 확장 채널 3"
 
 #: src/engine/sysDef.cpp:1545
 msgid ""
@@ -2633,10 +2635,14 @@ msgid ""
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies."
 msgstr ""
+"그래서 타이토는 야마하에게 두개의 잃어버린 FM 채널을 얻을 수 있냐고 물었고, "
+"야마하는 기쁘게 그것을 이 칩에 제공했습니다.\n"
+"이것은 세 번째 FM 채널을 독립적인 음/주파수를 가진 4개의 오퍼레이터로 변환하"
+"는 확장 채널 모드입니다."
 
 #: src/engine/sysDef.cpp:1557
 msgid "Yamaha YM2610B (OPNB2) CSM"
-msgstr ""
+msgstr "야마하  YM2610B (OPNB2) CSM"
 
 #: src/engine/sysDef.cpp:1558
 msgid ""
@@ -2644,20 +2650,25 @@ msgid ""
 "and Yamaha gladly provided them with this chip.\n"
 "CSM blah blah"
 msgstr ""
+"그래서 타이토는 야마하에게 두개의 잃어버린 FM 채널을 얻을 수 있냐고 물었고, "
+"야마하는 기쁘게 그것을 이 칩에 제공했습니다.\n"
+"CSM 어쩌구 저쩌구"
 
 #: src/engine/sysDef.cpp:1570
 msgid "SegaPCM (compatible 5-channel mode)"
-msgstr ""
+msgstr "세가PCM (호환 5채널 모드)"
 
 #: src/engine/sysDef.cpp:1571
 msgid ""
 "this is the same thing as SegaPCM, but only exposes 5 of the channels for "
 "compatibility with DefleMask."
 msgstr ""
+"이것은 SegaPCM과 같은 것이지만 DefleMask와의 호환을 위해 5개의 채널만 사용합"
+"니다."
 
 #: src/engine/sysDef.cpp:1582
 msgid "Seta/Allumer X1-010"
-msgstr ""
+msgstr "세타/알루머 X1-010"
 
 #: src/engine/sysDef.cpp:1583
 msgid ""
@@ -2665,398 +2676,419 @@ msgid ""
 "too many channels of wavetable sound, which also are capable of sampled "
 "sound."
 msgstr ""
+"웨이브테이블 채널이 너무 많은 세타/알루머 제조 아케이드 보드에 사용되는 사운"
+"드 칩으로, 샘플링된 사운드도 가능합니다."
 
 #: src/engine/sysDef.cpp:1591
 msgid "11xx: Set envelope shape"
-msgstr ""
+msgstr "11xx: 엔벨로프 모양 설정"
 
 #: src/engine/sysDef.cpp:1592
 msgid "12xx: Set sample bank slot (0 to 7)"
-msgstr ""
+msgstr "12xx: 샘플 뱅크 슬롯 설정 (0 에서 7)"
 
 #: src/engine/sysDef.cpp:1596
 msgid "20xx: Set PCM frequency (1 to FF)"
-msgstr ""
+msgstr "20xx: PCM 주파수 설정 (1 에서 FF)"
 
 #: src/engine/sysDef.cpp:1597
 msgid ""
 "22xx: Set envelope mode (bit 0: enable; bit 1: one-shot; bit 2: split shape "
 "to L/R; bit 3/5: H.invert right/left; bit 4/6: V.invert right/left)"
 msgstr ""
+"22xx: 엔벨로프 모드 설정 (비트 0: 활성화; 비트 1: ONE-SHOT; 비트 2: 분할 모양"
+"을 좌우로; 비트 3/5: 좌우 반전 좌/우로; 비트 4/6: 상하 반전 좌/우로)"
 
 #: src/engine/sysDef.cpp:1598
 msgid "23xx: Set envelope period"
-msgstr ""
+msgstr "23xx: 엔벨로프 PERIOD 설정"
 
 #: src/engine/sysDef.cpp:1606
 msgid "Konami Bubble System WSG"
-msgstr ""
+msgstr "코나미 버블 시스템 WSG"
 
 #: src/engine/sysDef.cpp:1607
 msgid ""
 "this is the wavetable part of the Bubble System, which also had two "
 "AY-3-8910s."
 msgstr ""
+"이것은 두 개의 AY-3-8910도 가지고 있었던 버블 시스템의 웨이브테이블 부분입니"
+"다."
 
 #: src/engine/sysDef.cpp:1619
 msgid "Yamaha YMF278B (OPL4)"
-msgstr ""
+msgstr "야마하 YMF278B (OPL4)"
 
 #: src/engine/sysDef.cpp:1620
 msgid "like OPL3, but this time it also has a 24-channel version of MultiPCM."
-msgstr ""
+msgstr "OPL3와 마찬가지로 이번에는 24채널 버전의 MultiPCM도 있습니다."
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 17"
-msgstr ""
+msgstr "PCM 17"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 18"
-msgstr ""
+msgstr "PCM 18"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 19"
-msgstr ""
+msgstr "PCM 19"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 20"
-msgstr ""
+msgstr "PCM 20"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 21"
-msgstr ""
+msgstr "PCM 21"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 22"
-msgstr ""
+msgstr "PCM 22"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 23"
-msgstr ""
+msgstr "PCM 23"
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 24"
-msgstr ""
+msgstr "PCM 24"
 
 #: src/engine/sysDef.cpp:1629
 msgid "Yamaha YMF278B (OPL4) with drums"
-msgstr ""
+msgstr "야마하 YMF278B (OPL4) 드럼 모드"
 
 #: src/engine/sysDef.cpp:1630
 msgid "the OPL4 but with drums mode turned on."
-msgstr ""
+msgstr "OPL4이지만 드럼 모드가 활성화되었습니다."
 
 #: src/engine/sysDef.cpp:1638
 msgid "11xx: Set filter mode (00 to 03)"
-msgstr ""
+msgstr "11xx: 필터 모드 설정 (00 에서 03)"
 
 #: src/engine/sysDef.cpp:1639
 msgid "14xx: Set filter coefficient K1 low byte (00 to FF)"
-msgstr ""
+msgstr "필터 계수 K1 하위 바이트 설정 (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1640
 msgid "15xx: Set filter coefficient K1 high byte (00 to FF)"
-msgstr ""
+msgstr "15xx: 필터 계수 K1 상위 바이트 설정 (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1641
 msgid "16xx: Set filter coefficient K2 low byte (00 to FF)"
-msgstr ""
+msgstr "16xx: 필터 계수 K2 하위 바이트 설정 (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1642
 msgid "17xx: Set filter coefficient K2 high byte (00 to FF)"
-msgstr ""
+msgstr "17xx: 필터 계수 K2 상위 바이트 설정 (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1643
 msgid "18xx: Set filter coefficient K1 slide up (00 to FF)"
-msgstr ""
+msgstr "18xx 필터 계수 K1 슬라이드 업 (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1644
 msgid "19xx: Set filter coefficient K1 slide down (00 to FF)"
-msgstr ""
+msgstr "19xx: 필터 계수 K1 슬라이드 다운 (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1645
 msgid "1Axx: Set filter coefficient K2 slide up (00 to FF)"
-msgstr ""
+msgstr "1Axx: 필터 계수 K2 슬라이드 업 (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1646
 msgid "1Bxx: Set filter coefficient K2 slide down (00 to FF)"
-msgstr ""
+msgstr "1Bxx: 필터 계수 K2 슬라이드 다운 (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1647
 msgid "22xx: Set envelope left volume ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "22xx: 엔벨로프 좌측 볼륨 RAMP 설정 (SIGNED) (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1648
 msgid "23xx: Set envelope right volume ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "23xx: 엔벨로프 우측 볼륨 RAMP 설정 (SIGNED) (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1649
 msgid "24xx: Set envelope filter coefficient k1 ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "24xx: 엔벨로프 필터 계수 K1 RAMP 설정 (SIGNED) (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1650
 msgid ""
 "25xx: Set envelope filter coefficient k1 ramp (signed, slower) (00 to FF)"
-msgstr ""
+msgstr "25xx: 엔벨로프 필터 계수 K1 RAMP 설정 (SIGNED, 느림) (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1651
 msgid "26xx: Set envelope filter coefficient k2 ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "26xx: 엔벨로프 필터 계수 K2 RAMP 설정 (SIGNED) (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1652
 msgid ""
 "27xx: Set envelope filter coefficient k2 ramp (signed, slower) (00 to FF)"
-msgstr ""
+msgstr "27xx: 엔벨로프 필터 계수 K2 RAMP 설정 (SIGNED, 느림) (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:1656
 msgid "120x: Set pause (bit 0)"
-msgstr ""
+msgstr "120x: 일시정지 (비트 0)"
 
 #: src/engine/sysDef.cpp:1658
 msgid "2xxx: Set envelope count (000 to 1FF)"
-msgstr ""
+msgstr "2xxx: 엔벨로프 카운트 설정 (000 에서 1FF)"
 
 #: src/engine/sysDef.cpp:1659
 msgid "3xxx: Set filter coefficient K1 (000 to FFF)"
-msgstr ""
+msgstr "3xxx: 필터 계수 K1 설정 (000 에서 FFF)"
 
 #: src/engine/sysDef.cpp:1660
 msgid "4xxx: Set filter coefficient K2 (000 to FFF)"
-msgstr ""
+msgstr "4xxx: 필터 계수 K2 설정 (000 에서 FFF)"
 
 #: src/engine/sysDef.cpp:1667
 msgid "Ensoniq ES5506"
-msgstr ""
+msgstr "엔소닉 ES5506"
 
 #: src/engine/sysDef.cpp:1668
 msgid ""
 "a sample chip made by Ensoniq, which is the basis for the GF1 chip found in "
 "Gravis' Ultrasound cards."
 msgstr ""
+"그라비스의 울트라사운드 카드에서 발견된 GF1 칩의 기반이 되는 엔소닉이 만든 샘"
+"플 칩"
 
 #: src/engine/sysDef.cpp:1669
 msgid "Channel 29"
-msgstr ""
+msgstr "채널 29"
 
 #: src/engine/sysDef.cpp:1669
 msgid "Channel 30"
-msgstr ""
+msgstr "채널 30"
 
 #: src/engine/sysDef.cpp:1669
 msgid "Channel 31"
-msgstr ""
+msgstr "채널 31"
 
 #: src/engine/sysDef.cpp:1669
 msgid "Channel 32"
-msgstr ""
+msgstr "채널 32"
 
 #: src/engine/sysDef.cpp:1679
 msgid "Yamaha Y8950"
-msgstr ""
+msgstr "야마하 Y8950"
 
 #: src/engine/sysDef.cpp:1680
 msgid "like OPL but with an ADPCM channel."
-msgstr ""
+msgstr "OPL과 비슷하지만 ADPCM 채널이 있습니다."
 
 #: src/engine/sysDef.cpp:1691
 msgid "Yamaha Y8950 with drums"
-msgstr ""
+msgstr "야마하 Y8950 드럼 모드"
 
 #: src/engine/sysDef.cpp:1692
 msgid "the Y8950 chip, in drums mode."
-msgstr ""
+msgstr "야마하 Y8950이지만 드럼 모드가 활성화되었습니다."
 
 #: src/engine/sysDef.cpp:1703
 msgid "Konami SCC+"
-msgstr ""
+msgstr "코나미 SCC+"
 
 #: src/engine/sysDef.cpp:1704
 msgid ""
 "this is a variant of Konami's SCC chip with the last channel's wavetable "
 "being independent."
 msgstr ""
+"이것은 코나미 SCC 칩의 변형이며 마지막 웨이브테이블 채널은 독립적입니다."
 
 #: src/engine/sysDef.cpp:1715
 msgid "12xx: Set pulse width (0 to 7F)"
-msgstr ""
+msgstr "12xx: 펄스폭 설정 (0 에서 7F)"
 
 #: src/engine/sysDef.cpp:1716
 msgid "13xx: Set resonance (0 to FF)"
-msgstr ""
+msgstr "13xx: 잔향 설정 (0 에서 FF)"
 
 #: src/engine/sysDef.cpp:1717
 msgid ""
 "14xx: Set filter mode (bit 0: ring mod; bit 1: low pass; bit 2: high pass; "
 "bit 3: band pass)"
 msgstr ""
+"14xx: 필터 모드 설정 (비트 0: RING 모드; 비트 1: 로우 패스; 비트 2: 하이 패"
+"스; 비트 3: 밴드 패스)"
 
 #: src/engine/sysDef.cpp:1718
 msgid "15xx: Set frequency sweep period low byte"
-msgstr ""
+msgstr "15xx: 주파수 SWEEP PERIOD 하위 바이트 설정"
 
 #: src/engine/sysDef.cpp:1719
 msgid "16xx: Set frequency sweep period high byte"
-msgstr ""
+msgstr "16xx: 주파수 SWEEP PERIOD 상위 바이트 설정"
 
 #: src/engine/sysDef.cpp:1720
 msgid "17xx: Set volume sweep period low byte"
-msgstr ""
+msgstr "17xx: 볼륨 SWEEP PERIOD 하위 바이트 설정"
 
 #: src/engine/sysDef.cpp:1721
 msgid "18xx: Set volume sweep period high byte"
-msgstr ""
+msgstr "18xx: 볼륨 SWEEP PERIOD 상위 바이트 설정"
 
 #: src/engine/sysDef.cpp:1722
 msgid "19xx: Set cutoff sweep period low byte"
-msgstr ""
+msgstr "19xx: 컷오프 SWEEP PERIOD 하위 바이트 설정"
 
 #: src/engine/sysDef.cpp:1723
 msgid "1Axx: Set cutoff sweep period high byte"
-msgstr ""
+msgstr "1Axx: 컷오프 SWEEP PERIOD 상위 바이트 설정"
 
 #: src/engine/sysDef.cpp:1724
 msgid "1Bxx: Set frequency sweep boundary"
-msgstr ""
+msgstr "1Bxx: 주파수 SWEEP 경계 설정"
 
 #: src/engine/sysDef.cpp:1725
 msgid "1Cxx: Set volume sweep boundary"
-msgstr ""
+msgstr "1Cxx: 볼륨 SWEEP 경계 설정"
 
 #: src/engine/sysDef.cpp:1726
 msgid "1Dxx: Set cutoff sweep boundary"
-msgstr ""
+msgstr "1Dxx: 컷오프 SWEEP 경계 설정"
 
 #: src/engine/sysDef.cpp:1727
 msgid "1Exx: Set phase reset period low byte"
-msgstr ""
+msgstr "1Exx: 위상 재설정 경계 하위 바이트 설정"
 
 #: src/engine/sysDef.cpp:1728
 msgid "1Fxx: Set phase reset period high byte"
-msgstr ""
+msgstr "1Exx: 위상 재설정 경계 상위 바이트 설정"
 
 #: src/engine/sysDef.cpp:1729
 msgid "20xx: Toggle frequency sweep (bit 0-6: speed; bit 7: direction is up)"
-msgstr ""
+msgstr "20xx: 주파수 SWEEP 토글 (비트 0 에서 6: 속도; 비트 7: 위치는 위"
 
 #: src/engine/sysDef.cpp:1730
 msgid ""
 "21xx: Toggle volume sweep (bit 0-4: speed; bit 5: direction is up; bit 6: "
 "loop; bit 7: alternate)"
 msgstr ""
+"21xx: 볼륨 SWEEP 토글 (비트 0 에서 4; 비트 5: 위치는 위; 비트 6: 반복; 비트 "
+"7: 교대)"
 
 #: src/engine/sysDef.cpp:1731
 msgid "22xx: Toggle cutoff sweep (bit 0-6: speed; bit 7: direction is up)"
-msgstr ""
+msgstr "22xx: 컷오프 SWEEP 토글 (비트 0 에서 6: 속도; 비트 7: 위치는 위)"
 
 #: src/engine/sysDef.cpp:1739
 msgid "tildearrow Sound Unit"
-msgstr ""
+msgstr "tildearrow 사운드 유닛"
 
 #: src/engine/sysDef.cpp:1740
 msgid ""
 "tildearrow's fantasy sound chip. put SID, AY and VERA in a blender, and you "
 "get this!"
 msgstr ""
+"tildearrow의 가상 사운드칩. 믹서기에 SID, AY, VERA를 넣어봐요. 이것을 얻을 "
+"수 있습니다!"
 
 #: src/engine/sysDef.cpp:1751
 msgid "OKI MSM6295"
-msgstr ""
+msgstr "오키 MSM6295"
 
 #: src/engine/sysDef.cpp:1752
 msgid "an ADPCM sound chip manufactured by OKI and used in many arcade boards."
 msgstr ""
+"오키(OKI)가 만든 ADPCM 사운드 칩으로 많은 아케이드 보드에 사용되었습니다."
 
 #: src/engine/sysDef.cpp:1759
 msgid "20xx: Set chip output rate (0: clock/132; 1: clock/165)"
-msgstr ""
+msgstr "20xx 칩 출력 RATE 설정 (0: 클록/132; 1: 클록/165)"
 
 #: src/engine/sysDef.cpp:1764
 msgid "OKI MSM6258"
-msgstr ""
+msgstr "오키 MSM6258"
 
 #: src/engine/sysDef.cpp:1765
 msgid "an ADPCM sound chip manufactured by OKI and used in the Sharp X68000."
-msgstr ""
+msgstr "오키(OKI)가 만든 ADPCM 사운드 칩으로 샤프 X68000에 사용되었습니다."
 
 #: src/engine/sysDef.cpp:1766 src/engine/sysDef.cpp:1887
 #: src/gui/editControls.cpp:437 src/gui/settings.cpp:4228
 #: src/gui/guiConst.cpp:1397 src/gui/insEdit.cpp:2633 src/gui/insEdit.cpp:2671
 msgid "Sample"
-msgstr ""
+msgstr "샘플"
 
 #: src/engine/sysDef.cpp:1772
 msgid "20xx: Set frequency divider (0-2)"
-msgstr ""
+msgstr "20xx: 주파수 분수 설정 (0 에서 2)"
 
 #: src/engine/sysDef.cpp:1773
 msgid "21xx: Select clock rate (0: full; 1: half)"
-msgstr ""
+msgstr "21xx: 클록 RATE 선택 (0: 전체; 1: 절반)"
 
 #: src/engine/sysDef.cpp:1778
 msgid "Yamaha YMZ280B (PCMD8)"
-msgstr ""
+msgstr "야마하 YMZ260B (PCMD8)"
 
 #: src/engine/sysDef.cpp:1779
 msgid ""
 "used in some arcade boards. Can play back either 4-bit ADPCM, 8-bit PCM or "
 "16-bit PCM."
 msgstr ""
+"몇몇 아케이브 보드에 사용되었습니다. 4비트 ADPCM, 8비트 PCM 또는 16비트 PCM "
+"중 하나를 재생할 수 있습니다."
 
 #: src/engine/sysDef.cpp:1797 src/gui/settings.cpp:4059
 msgid "Namco WSG"
-msgstr ""
+msgstr "남코 WSG"
 
 #: src/engine/sysDef.cpp:1798
 msgid ""
 "a wavetable sound chip used in Pac-Man, among other early Namco arcade games."
 msgstr ""
+"초기 남코 아케이드 게임을 비롯한 팩맨에 사용된 웨이브테이블 사운드 칩입니다."
 
 #: src/engine/sysDef.cpp:1808
 msgid "Namco C15 WSG"
-msgstr ""
+msgstr "남코 C15 WSG"
 
 #: src/engine/sysDef.cpp:1809
 msgid ""
 "successor of the original Namco WSG chip, used in later Namco arcade games."
-msgstr ""
+msgstr "이후 남코 아케이드 게임에 사용된 오리지널 남코 WSG 칩의 후속 칩입니다."
 
 #: src/engine/sysDef.cpp:1819
 msgid "Namco C30 WSG"
-msgstr ""
+msgstr "남코 C30 WSG"
 
 #: src/engine/sysDef.cpp:1820
 msgid "like Namco C15 but with stereo sound."
-msgstr ""
+msgstr "남코 C15와 비슷하지만 스테레오 사운드가 있습니다."
 
 #: src/engine/sysDef.cpp:1830
 msgid "OKI MSM5232"
-msgstr ""
+msgstr "오키 MSM5232"
 
 #: src/engine/sysDef.cpp:1831
 msgid ""
 "a square wave additive synthesis chip made by OKI. used in some arcade "
 "machines and instruments."
 msgstr ""
+"오키(OKI)가 만든 사각파 신디사이져 칩으로, 일부 아케이드 기계와 악기에 사용됩"
+"니다."
 
 #: src/engine/sysDef.cpp:1839
 msgid "10xy: Set group control (x: sustain; y: part toggle bitmask)"
-msgstr ""
+msgstr "10xy: 그룹 컨트롤 설정 (x: SUSTAIN; y: 파트 토글 비트마스크)"
 
 #: src/engine/sysDef.cpp:1840 src/engine/sysDef.cpp:1998
 msgid "11xx: Set noise mode"
-msgstr ""
+msgstr "11xx: 노이즈 모드 설정"
 
 #: src/engine/sysDef.cpp:1841
 msgid "12xx: Set group attack (0 to 5)"
-msgstr ""
+msgstr "12xx: 그룹 ATTACK 설정 (0 에서 5)"
 
 #: src/engine/sysDef.cpp:1842
 msgid "13xx: Set group decay (0 to 11)"
-msgstr ""
+msgstr "13xx: 그룹 DECAY 설정 (0 에서 11)"
 
 #: src/engine/sysDef.cpp:1847
 msgid "Yamaha YM2612 (OPN2) with DualPCM"
-msgstr ""
+msgstr "야마하 YM2612 (OPN2) DualPCM 모드"
 
 #: src/engine/sysDef.cpp:1848
 msgid ""
@@ -3064,14 +3096,17 @@ msgid ""
 "the FM Towns computer).\n"
 "this system uses software mixing to provide two sample channels."
 msgstr ""
+"이것은 세가 메가드라이브에  있었기 때문에 잘 알려졌습니다. (또한 FM TOWNS 컴"
+"퓨터에도 있었습니다.)\n"
+"이 시스템은 소프트웨어 믹싱을 통해 두개의 샘플 채널을 제공합니다."
 
 #: src/engine/sysDef.cpp:1849 src/engine/sysDef.cpp:1861
 msgid "FM 6/PCM 1"
-msgstr ""
+msgstr "FM 6/PCM 1"
 
 #: src/engine/sysDef.cpp:1859
 msgid "Yamaha YM2612 (OPN2) Extended Channel 3 with DualPCM and CSM"
-msgstr ""
+msgstr "야마하 YM2612 (OPN2) 확장 채널 3 + 듀얼 PCM 모드 + CSM"
 
 #: src/engine/sysDef.cpp:1860
 msgid ""
@@ -3081,6 +3116,11 @@ msgid ""
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies."
 msgstr ""
+"이것은 세가 메가드라이브에  있었기 때문에 잘 알려졌습니다. (또한 FM TOWNS 컴"
+"퓨터에도 있었습니다.)\n"
+"이 시스템은 소프트웨어 믹싱을 통해 두개의 샘플 채널을 제공합니다.\n"
+"이것은 세 번째 FM 채널을 독립적인 음/주파수를 가진 4개의 오퍼레이터로 변환하"
+"는 확장 채널 모드입니다."
 
 #: src/engine/sysDef.cpp:1872 src/gui/settings.cpp:4029
 msgid "T6W28"
@@ -3091,260 +3131,284 @@ msgid ""
 "an SN76489 derivative used in Neo Geo Pocket, has independent stereo volume "
 "and noise channel frequency."
 msgstr ""
+"네오 지오 포켓에 사용되는 SN76489 파생형으로, 독립적인 스테레오 볼륨과 노이"
+"즈 채널 주파수를 가지고 있습니다."
 
 #: src/engine/sysDef.cpp:1880
 msgid "20xx: Set noise length (0: short, 1: long)"
-msgstr ""
+msgstr "20xx: 노이즈 길이 설정 (0: 짧은, 1: 긴)"
 
 #: src/engine/sysDef.cpp:1885
 msgid "Generic PCM DAC"
-msgstr ""
+msgstr "일반 PCM DAC"
 
 #: src/engine/sysDef.cpp:1886
 msgid "as generic sample playback as it gets."
-msgstr ""
+msgstr "일반적인 샘플 재생입니다."
 
 #: src/engine/sysDef.cpp:1898
 msgid "Konami K007232"
-msgstr ""
+msgstr "코나미 K007232"
 
 #: src/engine/sysDef.cpp:1899
 msgid "this PCM chip was widely used at Konami arcade boards in 1986-1990."
-msgstr ""
+msgstr "이 PCM 칩은 1986-1990년 코나미 아케이드 보드에서 널리 사용되었습니다."
 
 #: src/engine/sysDef.cpp:1908
 msgid "Irem GA20"
-msgstr ""
+msgstr "아이렘 GA20"
 
 #: src/engine/sysDef.cpp:1909
 msgid ""
 "yet another PCM chip from Irem. like Amiga, but less pitch resolution and no "
 "sample loop."
 msgstr ""
+"아미가와 비슷한 아이렘의 또 다른 PCM 칩입니다. 하지만 피치 해상도가 낮고 샘"
+"플 루프가 없습니다."
 
 #: src/engine/sysDef.cpp:1918
 msgid "Sharp SM8521"
-msgstr ""
+msgstr "샤프 SM8521"
 
 #: src/engine/sysDef.cpp:1919
 msgid "a SoC with wavetable sound hardware."
-msgstr ""
+msgstr "웨이브테이블 사운드 하드웨어를 가진 하나의 SoC입니다."
 
 #: src/engine/sysDef.cpp:1929
 msgid "Casio PV-1000"
-msgstr ""
+msgstr "카시오 PV-1000"
 
 #: src/engine/sysDef.cpp:1930
 msgid ""
 "a game console with 3 channels of square wave. it's what happens after "
 "fusing TIA and VIC together."
 msgstr ""
+"세 개의 사각파 채널을 가진 게임기입니다. TIA와 VIC를 결합한 후에 일어나는 일"
+"입니다."
 
 #: src/engine/sysDef.cpp:1937
 msgid "10xx: Set ring modulation (0: disable, 1: enable)"
-msgstr ""
+msgstr "10xx: 링 모듈레이션 설정 (0: 비활성화, 1: 활성화)"
 
 #: src/engine/sysDef.cpp:1942
 msgid "ZX Spectrum Beeper (QuadTone Engine)"
-msgstr ""
+msgstr "ZX 스펙트럼 비퍼 (QuadTone 엔진)"
 
 #: src/engine/sysDef.cpp:1943
 msgid ""
 "another ZX Spectrum beeper system with full PWM pulses and 3-level volume "
 "per channel. it also has a pitchable overlay sample channel."
 msgstr ""
+"전체 폭 PWM 펄스와 채널당 3레벨의 볼륨을 갖춘 또 다른 ZX Spectrum 비퍼 시스템"
+"입니다. 또한 피치가 가능한 오버레이 샘플 채널도 갖추고 있습니다."
 
 #: src/engine/sysDef.cpp:1955
 msgid "Konami K053260"
-msgstr ""
+msgstr "코나미 K053260"
 
 #: src/engine/sysDef.cpp:1956
 msgid "this PCM chip was widely used at Konami arcade boards in 1990-1992."
-msgstr ""
+msgstr "이 PCM 칩은 1990-1992년 코나미 아케이드 보드에서 널리 사용되었습니다."
 
 #: src/engine/sysDef.cpp:1968
 msgid "MOS Technology TED"
-msgstr ""
+msgstr "MOS 테크놀로지 TED"
 
 #: src/engine/sysDef.cpp:1969
 msgid ""
 "two square waves (one may be turned into noise). used in the Commodore "
 "Plus/4, 16 and 116."
 msgstr ""
+"두개의 사각파 채널입니다. (하나는 노이즈로 변할 수 있습니다.) 코모도어 "
+"Plus/4, 16, 116에 사용되었습니다."
 
 #: src/engine/sysDef.cpp:1978
 msgid "Namco C140"
-msgstr ""
+msgstr "남코 C140"
 
 #: src/engine/sysDef.cpp:1979
 msgid "Namco's first PCM chip from 1987. it's pretty good for being so."
-msgstr ""
+msgstr "1987년에 나온 남코의 첫 PCM 칩입니다. 그렇게 하기에는 꽤 좋습니다"
 
 #: src/engine/sysDef.cpp:1989
 msgid "Namco C219"
-msgstr ""
+msgstr "남코 C219"
 
 #: src/engine/sysDef.cpp:1990
 msgid ""
 "Namco's PCM chip used in their NA-1/2 hardware.\n"
 "very similar to C140, but has noise generator."
 msgstr ""
+"NA-1/2 하드웨어에 사용된 남코의 PCM 칩입니다.\n"
+"C140과 매우 비슷하지만 노이즈 생성기를 가지고 있습니다."
 
 #: src/engine/sysDef.cpp:1999
 msgid "12xy: Set invert mode (x: surround; y: invert)"
-msgstr ""
+msgstr "12xy: 반전 모드 (x: 서라운드; y: 반전)"
 
 #: src/engine/sysDef.cpp:2004
 msgid "ESS ES1xxx series (ESFM)"
-msgstr ""
+msgstr "ESS ES1xxx 시리즈 (ESFM)"
 
 #: src/engine/sysDef.cpp:2005
 msgid ""
 "a unique FM synth featured in PC sound cards.\n"
 "based on the OPL3 design, but with lots of its features extended."
 msgstr ""
+"PC 사운드 카드에 등장하는 독특한 FM 신디사이져입니다.\n"
+"OPL3의 디자인에 기반을 두었지만 확장된 많은 기능이 있습니다."
 
 #: src/engine/sysDef.cpp:2006
 msgid "FM 11"
-msgstr ""
+msgstr "FM 11"
 
 #: src/engine/sysDef.cpp:2012
 msgid "2Exx: Toggle hard envelope reset on new notes"
-msgstr ""
+msgstr "2Exx: 새 노트에서 하드 엔벨로프 재설정 토글"
 
 #: src/engine/sysDef.cpp:2018
 msgid "PowerNoise"
-msgstr ""
+msgstr "PowerNoise"
 
 #: src/engine/sysDef.cpp:2019
 msgid ""
 "a fantasy sound chip designed by jvsTSX and The Beesh-Spweesh!\n"
 "used in the Hexheld fantasy console."
 msgstr ""
+"jvx와 The Beesh-Spweesh!가 디자인한 가상의 사운드칩입니다.\n"
+"가상의 Hexheld 콘솔에 사용되었습니다."
 
 #: src/engine/sysDef.cpp:2020
 msgid "Noise 1"
-msgstr ""
+msgstr "노이즈 1"
 
 #: src/engine/sysDef.cpp:2020
 msgid "Noise 2"
-msgstr ""
+msgstr "노이즈 2"
 
 #: src/engine/sysDef.cpp:2020
 msgid "Noise 3"
-msgstr ""
+msgstr "노이즈 3"
 
 #: src/engine/sysDef.cpp:2020
 msgid "Slope"
-msgstr ""
+msgstr "슬로프"
 
 #: src/engine/sysDef.cpp:2026
 msgid ""
 "20xx: Load low byte of noise channel LFSR (00 to FF) or slope channel "
 "accumulator (00 to 7F)"
 msgstr ""
+"20xx: 노이즈 채널 LFSR의 하위 바이트 (00 에서 FF) 또는 슬로프 채널 어큐멸레이"
+"터 로드"
 
 #: src/engine/sysDef.cpp:2027
 msgid "21xx: Load high byte of noise channel LFSR (00 to FF)"
-msgstr ""
+msgstr "21xx: 노이즈 채널 LFSR의 상위 바이트 불렁기 (00 에서 FF)"
 
 #: src/engine/sysDef.cpp:2028
 msgid "22xx: Write to I/O port A"
-msgstr ""
+msgstr "22xx: I/O포트 A에 기록"
 
 #: src/engine/sysDef.cpp:2029
 msgid "23xx: Write to I/O port B"
-msgstr ""
+msgstr "23xx: I/O포트 B에 기록"
 
 #: src/engine/sysDef.cpp:2035 src/gui/settings.cpp:4084
 msgid "Dave"
-msgstr ""
+msgstr "Dave"
 
 #: src/engine/sysDef.cpp:2036
 msgid ""
 "this chip was featured in the Enterprise 128 computer. it is similar to "
 "POKEY, but with stereo output."
 msgstr ""
+"이 칩은 엔터프라이즈 128 컴퓨터에 탑재되었습니다. POKEY와 비슷하지만 스테레"
+"오 출력이 가능합니다."
 
 #: src/engine/sysDef.cpp:2037
 msgid "DAC Left"
-msgstr ""
+msgstr "DAC 좌"
 
 #: src/engine/sysDef.cpp:2037
 msgid "DAC Right"
-msgstr ""
+msgstr "DAC 우"
 
 #: src/engine/sysDef.cpp:2043
 msgid "10xx: Set waveform (0 to 4; 0 to 3 on noise)"
-msgstr ""
+msgstr "10xx: 파형 설정 (0 에서 4; 노이즈에서 0 에서 3)"
 
 #: src/engine/sysDef.cpp:2044
 msgid "11xx: Set noise frequency source (0: fixed; 1-3: channels 1 to 3)"
-msgstr ""
+msgstr "11xx: 노이즈 주파수 소스 설정 (0: 고정; 1-3: 채널 1 에서 3)"
 
 #: src/engine/sysDef.cpp:2045
 msgid "12xx: Toggle high-pass with next channel"
-msgstr ""
+msgstr "12xx: 다음 채널로 하이패스 토글"
 
 #: src/engine/sysDef.cpp:2046
 msgid "13xx: Toggle ring modulation with channel+2"
-msgstr ""
+msgstr "13xx: 채널 1+2로 링 모듈레이션 토글"
 
 #: src/engine/sysDef.cpp:2047
 msgid "14xx: Toggle swap counters (noise only)"
-msgstr ""
+msgstr "14xx: 카운터 스왑 토글 (노이즈만)"
 
 #: src/engine/sysDef.cpp:2048
 msgid "15xx: Toggle low pass (noise only)"
-msgstr ""
+msgstr "15xx: 로우 패스 토글 (노이즈만)"
 
 #: src/engine/sysDef.cpp:2049
 msgid "16xx: Set clock divider (0: /2; 1: /3)"
-msgstr ""
+msgstr "16xx: 클록 분수 설정 (0: /2; 1: /3)"
 
 #: src/engine/sysDef.cpp:2054
 msgid "Game Boy Advance DMA Sound"
-msgstr ""
+msgstr "게임보이 어드밴스 DMA 사운드"
 
 #: src/engine/sysDef.cpp:2055
 msgid ""
 "additional PCM FIFO channels in Game Boy Advance driven directly by its DMA "
 "hardware."
 msgstr ""
+"DMA 하드웨어에 의해 직접 구동되는 게임보이 어드밴스의 추가 PCM FIFO 채널입니"
+"다."
 
 #: src/engine/sysDef.cpp:2068
 msgid "Game Boy Advance MinMod"
-msgstr ""
+msgstr "게임보이 어드밴스"
 
 #: src/engine/sysDef.cpp:2069
 msgid ""
 "additional PCM FIFO channels in Game Boy Advance driven by software mixing "
 "to provide up to sixteen sample channels"
 msgstr ""
+"최대 16개의 샘플 채널을 제공하기 위해 소프트웨어 혼합에 의해 작동되는 게임보"
+"이 어드밴스의 추가 PCM FIFO 채널입니다."
 
 #: src/engine/sysDef.cpp:2078
 msgid "11xy: Set echo channel (x: left/right source; y: delay (0 disables))"
-msgstr ""
+msgstr "11xy: 에코 채널 설정 (x: 좌/우 소스; y: 딜레이 (0으로 비활성화))"
 
 #: src/engine/sysDef.cpp:2079
 msgid "12xy: Toggle invert (x: left; y: right)"
-msgstr ""
+msgstr "12xy: 반전 토글 (x: 좌; y: 우)"
 
 #: src/engine/sysDef.cpp:2084 src/gui/settings.cpp:4085
 msgid "Nintendo DS"
-msgstr ""
+msgstr "닌텐도 DS"
 
 #: src/engine/sysDef.cpp:2085
 msgid "a handheld video game console with two screens. it uses a stylus."
-msgstr ""
+msgstr "두개의 화면을 가진 휴대용 비디오 게임 콘솔입니다. 펜을 사용하죠."
 
 #: src/engine/sysDef.cpp:2093
 msgid "1Fxx: Set global volume (0 to 7F)"
-msgstr ""
+msgstr "1Fxx: 글로벌 볼륨 설정 (0 에서 7F)"
 
 #: src/engine/sysDef.cpp:2098
 msgid "5E01"
-msgstr ""
+msgstr "5E01"
 
 #: src/engine/sysDef.cpp:2099
 msgid ""
@@ -3352,287 +3416,292 @@ msgid ""
 "couple features such as 32 noise pitches, an extra duty cycle, and three "
 "waveforms (besides triangle)."
 msgstr ""
+"Euly가 만든 가상의 사운드 칩입니다. 리코 2A03에 기반을 두었으며 32개의 노이"
+"즈 피치, 추가 듀티 사이클, 3개의 파형(besides 삼각파)과 같은 몇 가지 기능을 "
+"추가합니다."
 
 #: src/engine/sysDef.cpp:2107
 msgid ""
 "12xx: Set duty cycle/noise mode/waveform (pulse/wave: 0 to 3; noise: 0 or 1)"
 msgstr ""
+"12xx: 듀티비/노이즈 모드/파형 설정 (펄스/웨이브: 0 에서 3; 노이즈: 0 또는 1)"
 
 #: src/engine/sysDef.cpp:2120 src/gui/settings.cpp:4088
 msgid "Bifurcator"
-msgstr ""
+msgstr "Bifurcator"
 
 #: src/engine/sysDef.cpp:2121
 msgid "a fantasy sound chip using logistic map iterations to generate sound."
-msgstr ""
+msgstr "로짓 맵 반복을 사용하여 사운드를 생성하는 가상의 사운드 칩입니다."
 
 #: src/engine/sysDef.cpp:2128
 msgid "10xx: Load low byte of channel sample state"
-msgstr ""
+msgstr "10xx: 샘플 상태의 하위 바이트 로드"
 
 #: src/engine/sysDef.cpp:2129
 msgid "11xx: Load high byte of channel sample state"
-msgstr ""
+msgstr "11xx: 샘플 상태의 상위 바이트 로드"
 
 #: src/engine/sysDef.cpp:2130
 msgid "12xx: Set low byte of channel parameter"
-msgstr ""
+msgstr "12xx: 채널 매개변수의 하위 바이트 설정"
 
 #: src/engine/sysDef.cpp:2131
 msgid "13xx: Set high byte of channel parameter"
-msgstr ""
+msgstr "13xx: 채널 매개변수의 상위 바이트 설정"
 
 #: src/engine/sysDef.cpp:2136 src/gui/settings.cpp:4089
 msgid "SID2"
-msgstr ""
+msgstr "SID2"
 
 #: src/engine/sysDef.cpp:2137
 msgid ""
 "a fantasy sound chip created by LTVA. it is similar to the SID chip, but "
 "with many of its problems fixed."
 msgstr ""
+"LTVA가 만든 가상의 사운드칩입니다. SID 칩과 매우 흡사하지만 그것의 많은 문제"
+"들이 고쳐졌습니다."
 
 #: src/engine/sysDef.cpp:2148
 msgid "Dummy System"
-msgstr ""
+msgstr "더미 시스템"
 
 #: src/engine/sysDef.cpp:2149
 msgid "this is a system designed for testing purposes."
-msgstr ""
+msgstr "이것은 테스트 목적으로 설계된 시스템입니다."
 
 #: src/engine/engine.cpp:51
 msgid "00xy: Arpeggio"
-msgstr ""
+msgstr "00xy: 아르페지오"
 
 #: src/engine/engine.cpp:53
 msgid "01xx: Pitch slide up"
-msgstr ""
+msgstr "01xx: 피치 슬라이드 업"
 
 #: src/engine/engine.cpp:55
 msgid "02xx: Pitch slide down"
-msgstr ""
+msgstr "02xx: 피치 슬라이드 다운"
 
 #: src/engine/engine.cpp:57
 msgid "03xx: Portamento"
-msgstr ""
+msgstr "03xx: 포르타멘토"
 
 #: src/engine/engine.cpp:59
 msgid "04xy: Vibrato (x: speed; y: depth)"
-msgstr ""
+msgstr "04xy: 비브라토 (x: 속도; y: 깊이)"
 
 #: src/engine/engine.cpp:61
 msgid "05xy: Volume slide + vibrato (compatibility only!)"
-msgstr ""
+msgstr "05xy: 볼륨 슬라이드 + 비브라토 (호환성만!)"
 
 #: src/engine/engine.cpp:63
 msgid "06xy: Volume slide + portamento (compatibility only!)"
-msgstr ""
+msgstr "06xy: 볼륨 슬라이드 + 포르타멘토 (호환성만!)"
 
 #: src/engine/engine.cpp:65
 msgid "07xy: Tremolo (x: speed; y: depth)"
-msgstr ""
+msgstr "07xy: 트레몰로 (x: 속도; y: 깊이)"
 
 #: src/engine/engine.cpp:67
 msgid "08xy: Set panning (x: left; y: right)"
-msgstr ""
+msgstr "08xy: 패닝 설정 (x: 좌; y: 우)"
 
 #: src/engine/engine.cpp:69
 msgid "09xx: Set groove pattern (speed 1 if no grooves exist)"
-msgstr ""
+msgstr "09xx: 그루브 패턴 설정 (그루브가 없다면 속도 1)"
 
 #: src/engine/engine.cpp:71
 msgid "0Axy: Volume slide (0y: down; x0: up)"
-msgstr ""
+msgstr "0Axy: 볼륨 슬라이드 (0y: 다운; x0: 업)"
 
 #: src/engine/engine.cpp:73
 msgid "0Bxx: Jump to pattern"
-msgstr ""
+msgstr "0Bxx: 패턴으로 점프"
 
 #: src/engine/engine.cpp:75
 msgid "0Cxx: Retrigger"
-msgstr ""
+msgstr "0Cxx: 리트리거"
 
 #: src/engine/engine.cpp:77
 msgid "0Dxx: Jump to next pattern"
-msgstr ""
+msgstr "0Dxx: 다음 패턴으로 점프"
 
 #: src/engine/engine.cpp:79
 msgid "0Fxx: Set speed (speed 2 if no grooves exist)"
-msgstr ""
+msgstr "0Fxx: 속도 설정 (그루브가 없다면 스피드 2)"
 
 #: src/engine/engine.cpp:81
 msgid "80xx: Set panning (00: left; 80: center; FF: right)"
-msgstr ""
+msgstr "80xx: 패닝 설정 (00: 좌; 80: 중앙; FF: 우)"
 
 #: src/engine/engine.cpp:83
 msgid "81xx: Set panning (left channel)"
-msgstr ""
+msgstr "81xx: 패닝 설정 (좌측 채널)"
 
 #: src/engine/engine.cpp:85
 msgid "82xx: Set panning (right channel)"
-msgstr ""
+msgstr "82xx: 패닝 설정 (우측 채널)"
 
 #: src/engine/engine.cpp:87
 msgid "88xy: Set panning (rear channels; x: left; y: right)"
-msgstr ""
+msgstr "88xy: 패닝 설정 (리어 채널; x: 좌; y: 우)"
 
 #: src/engine/engine.cpp:90
 msgid "89xx: Set panning (rear left channel)"
-msgstr ""
+msgstr "89xx: 패닝 설정 (리어 좌측 채널)"
 
 #: src/engine/engine.cpp:93
 msgid "8Axx: Set panning (rear right channel)"
-msgstr ""
+msgstr "8Axx: 패닝 설정 (리어 우측 채널)"
 
 #: src/engine/engine.cpp:96
 msgid "Cxxx: Set tick rate (hz)"
-msgstr ""
+msgstr "Cxxx: 틱 레이트 설정 (hz)"
 
 #: src/engine/engine.cpp:98
 msgid "E0xx: Set arp speed"
-msgstr ""
+msgstr "E0xx: 아르페지오 속도 설정"
 
 #: src/engine/engine.cpp:100
 msgid "E1xy: Note slide up (x: speed; y: semitones)"
-msgstr ""
+msgstr "E1xy: 노트 슬라이드 업 (x: 속도; y: 반음)"
 
 #: src/engine/engine.cpp:102
 msgid "E2xy: Note slide down (x: speed; y: semitones)"
-msgstr ""
+msgstr "E2xy: 노트 슬라이드 다운 (x: 속도; y: 반음)"
 
 #: src/engine/engine.cpp:104
-#, fuzzy
 msgid "E3xx: Set vibrato shape"
-msgstr "13xx: LFO 속도 설정"
+msgstr "E3xx: 비브라토 모양 설정"
 
 #: src/engine/engine.cpp:106
 msgid "E4xx: Set vibrato range"
-msgstr ""
+msgstr "E4xx: 비브라토 범위 설정"
 
 #: src/engine/engine.cpp:108
 msgid "E5xx: Set pitch (80: center)"
-msgstr ""
+msgstr "E5xx: 피치 설정 (80: 중앙)"
 
 #: src/engine/engine.cpp:110
 msgid "E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)"
-msgstr ""
+msgstr "E6xy: 퀵 레가토 (x: 시간 (0 에서 7 업; 8-F 다운); y: 반음)"
 
 #: src/engine/engine.cpp:112
 msgid "E7xx: Macro release"
-msgstr ""
+msgstr "E7xx: 매크로 RELEASE"
 
 #: src/engine/engine.cpp:114
 msgid "E8xy: Quick legato up (x: time; y: semitones)"
-msgstr ""
+msgstr "E8xy: 퀵 레가토 업 (x: 시간; y: 반음)"
 
 #: src/engine/engine.cpp:116
 msgid "E9xy: Quick legato down (x: time; y: semitones)"
-msgstr ""
+msgstr "E9xy: 퀵 레가토 다운 (x: 시간; y: 반음)"
 
 #: src/engine/engine.cpp:118
 msgid "EAxx: Legato"
-msgstr ""
+msgstr "EAxx: 레가토"
 
 #: src/engine/engine.cpp:120
 msgid "EBxx: Set LEGACY sample mode bank"
-msgstr ""
+msgstr "EBxx: 레거시 샘플 모드 뱅크 설정"
 
 #: src/engine/engine.cpp:122
 msgid "ECxx: Note cut"
-msgstr ""
+msgstr "ECxx: 노트 컷"
 
 #: src/engine/engine.cpp:124
 msgid "EDxx: Note delay"
-msgstr ""
+msgstr "EDxx: 노트 딜레이"
 
 #: src/engine/engine.cpp:126
 msgid "EExx: Send external command"
-msgstr ""
+msgstr "EExx: 외부 커맨드 보내기"
 
 #: src/engine/engine.cpp:128
 msgid "F0xx: Set tick rate (bpm)"
-msgstr ""
+msgstr "F0xx: 틱 레이트 설정 (BPM)"
 
 #: src/engine/engine.cpp:130
 msgid "F1xx: Single tick note slide up"
-msgstr ""
+msgstr "F1xx: 싱글 틱 노트 슬라이드 업"
 
 #: src/engine/engine.cpp:132
 msgid "F2xx: Single tick note slide down"
-msgstr ""
+msgstr "F2xx: 싱글 틱 노트 슬라이드 다운"
 
 #: src/engine/engine.cpp:134
 msgid "F3xx: Fine volume slide up"
-msgstr ""
+msgstr "F3xx: FINE 볼륨 슬라이드 업"
 
 #: src/engine/engine.cpp:136
 msgid "F4xx: Fine volume slide down"
-msgstr ""
+msgstr "F4xx: FINE 볼륨 슬라이드 다운"
 
 #: src/engine/engine.cpp:138
 msgid "F5xx: Disable macro (see manual)"
-msgstr ""
+msgstr "F5xx: 매크로 비활성화 (매뉴얼을 확인하세요)"
 
 #: src/engine/engine.cpp:140
 msgid "F6xx: Enable macro (see manual)"
-msgstr ""
+msgstr "F6xx: 매크로 활성화 (매뉴얼을 확인하세요)"
 
 #: src/engine/engine.cpp:142
 msgid "F7xx: Restart macro (see manual)"
-msgstr ""
+msgstr "F7xx: 매크로 재시작 (매뉴얼을 확인하세요)"
 
 #: src/engine/engine.cpp:144
 msgid "F8xx: Single tick volume slide up"
-msgstr ""
+msgstr "F8xx: 싱글 틱 볼륨 슬라이드 업"
 
 #: src/engine/engine.cpp:146
 msgid "F9xx: Single tick volume slide down"
-msgstr ""
+msgstr "F9xx: 싱글 틱 볼륨 슬라이드 다운"
 
 #: src/engine/engine.cpp:148
 msgid "FAxx: Fast volume slide (0y: down; x0: up)"
-msgstr ""
+msgstr "FAxx: 빠른 볼륨 슬라이드 (0y: 다운; x0: 업)"
 
 #: src/engine/engine.cpp:150
 msgid "FCxx: Note release"
-msgstr ""
+msgstr "FCxx: 노트 RELEASE"
 
 #: src/engine/engine.cpp:152
 msgid "FDxx: Set virtual tempo numerator"
-msgstr ""
+msgstr "FDxx: 가상 템포 분자 설정"
 
 #: src/engine/engine.cpp:154
 msgid "FExx: Set virtual tempo denominator"
-msgstr ""
+msgstr "FExx: 가상 템포 분모 설정"
 
 #: src/engine/engine.cpp:156
 msgid "FFxx: Stop song"
-msgstr ""
+msgstr "FFxx: 곡 정지"
 
 #: src/engine/engine.cpp:160
 msgid "9xxx: Set sample offset*256"
-msgstr ""
+msgstr "9xxx: 샘플 오프셋 설정*256"
 
 #: src/engine/engine.cpp:164
 msgid "90xx: Set sample offset (first byte)"
-msgstr ""
+msgstr "90xx: 샘플 오프셋 설정 (첫번째 바이트)"
 
 #: src/engine/engine.cpp:166
 msgid "91xx: Set sample offset (second byte, ×256)"
-msgstr ""
+msgstr "91xx: 샘플 오프셋 설정 (두번째 바이트, ×256)"
 
 #: src/engine/engine.cpp:168
 msgid "92xx: Set sample offset (third byte, ×65536)"
-msgstr ""
+msgstr "92xx: 샘플 오프셋 설정 (세번째 바이트 ×65536)"
 
 #: src/engine/engine.cpp:187 src/gui/settings.cpp:4132
 msgid "Invalid effect"
-msgstr ""
+msgstr "유효하지 않은 효과입니다"
 
 #: src/engine/engine.cpp:354 src/gui/gui.cpp:2271 src/gui/gui.cpp:2434
 #, c-format
 msgid "on seek: %s"
-msgstr ""
+msgstr "파일의 위치로 이동: %s"
 
 #: src/engine/engine.cpp:361 src/gui/gui.cpp:2278 src/gui/gui.cpp:2441
 #, c-format
@@ -3642,17 +3711,17 @@ msgstr ""
 #: src/engine/engine.cpp:368 src/engine/engine.cpp:2768
 #: src/gui/settings.cpp:5816 src/gui/gui.cpp:2285 src/gui/gui.cpp:2448
 msgid "file is empty"
-msgstr ""
+msgstr "파일이 비어있습니다"
 
 #: src/engine/engine.cpp:371 src/gui/gui.cpp:2288 src/gui/gui.cpp:2451
 #, c-format
 msgid "on tell: %s"
-msgstr ""
+msgstr "현재 위치 파악: %s"
 
 #: src/engine/engine.cpp:378
 #, c-format
 msgid "ROM size mismatch, expected: %d bytes, was: %d"
-msgstr ""
+msgstr "ROM 크기가 불일치합니다, 예상됨: %d 바이트, 값: %d"
 
 #: src/engine/engine.cpp:383 src/gui/settings.cpp:5825 src/gui/gui.cpp:2295
 #: src/gui/gui.cpp:2458
@@ -3669,92 +3738,92 @@ msgstr ""
 #: src/engine/engine.cpp:1076 src/engine/engine.cpp:1181
 #: src/engine/engine.cpp:1290
 msgid "invalid index"
-msgstr ""
+msgstr "유효하지 않은 인덱스입니다"
 
 #: src/engine/engine.cpp:1080 src/engine/engine.cpp:1135
 #: src/engine/engine.cpp:1189
 #, c-format
 msgid "max number of total channels is %d"
-msgstr ""
+msgstr "최대 총 채널의 수는 %d입니다"
 
 #: src/engine/engine.cpp:1131 src/engine/engine.cpp:1185
 #, c-format
 msgid "max number of systems is %d"
-msgstr ""
+msgstr "최대 시스템 수는 %d입니다"
 
 #: src/engine/engine.cpp:1286
 msgid "cannot remove the last one"
-msgstr ""
+msgstr "마지막 작업을 제거할 수 없습니다"
 
 #: src/engine/engine.cpp:1460
 msgid "source and destination are equal"
-msgstr ""
+msgstr "소스과 대상이 동일"
 
 #: src/engine/engine.cpp:1464
 msgid "invalid source index"
-msgstr ""
+msgstr "유효하지 않은 소스 인덱스입니다"
 
 #: src/engine/engine.cpp:1468
 msgid "invalid destination index"
-msgstr ""
+msgstr "유효하지 않은 대상 인덱스입니다"
 
 #: src/engine/engine.cpp:2636
 #, c-format
 msgid "Instrument %d"
-msgstr ""
+msgstr "악기 %d"
 
 #: src/engine/engine.cpp:2710 src/engine/engine.cpp:2727
 #: src/gui/doAction.cpp:825 src/gui/doAction.cpp:843 src/gui/doAction.cpp:1635
 #: src/gui/gui.cpp:6193 src/gui/insEdit.cpp:6865
 msgid "too many wavetables!"
-msgstr ""
+msgstr "웨이브테이블이 너무 많습니다!"
 
 #: src/engine/engine.cpp:2752
 #, c-format
 msgid "could not seek to end: %s"
-msgstr ""
+msgstr "끝까지 찾지 못했습니다: %s"
 
 #: src/engine/engine.cpp:2758
 #, c-format
 msgid "could not determine file size: %s"
-msgstr ""
+msgstr "파일 크기를 확인할 수 없습니다"
 
 #: src/engine/engine.cpp:2763
 msgid "file size is invalid!"
-msgstr ""
+msgstr "파일 크기가 유효하지 않습니다!"
 
 #: src/engine/engine.cpp:2773
 #, c-format
 msgid "could not seek to beginning: %s"
-msgstr ""
+msgstr "시작까지 찾지 못했습니다: %s"
 
 #: src/engine/engine.cpp:2780
 #, c-format
 msgid "could not read entire file: %s"
-msgstr ""
+msgstr "전체 파일을 읽어들이지 못했습니다: %s"
 
 #: src/engine/engine.cpp:2806
 msgid "invalid wavetable header/data!"
-msgstr ""
+msgstr "유효하지 않은 웨이브테이블 헤더/데이터입니다!"
 
 #: src/engine/engine.cpp:2877
 msgid "premature end of file"
-msgstr ""
+msgstr "파일의 조기 종료"
 
 #: src/engine/engine.cpp:2904 src/engine/engine.cpp:2926
 #: src/gui/doAction.cpp:909 src/gui/doAction.cpp:921
 msgid "too many samples!"
-msgstr ""
+msgstr "샘플이 너무 많습니다!"
 
 #: src/engine/engine.cpp:2911
 #, c-format
 msgid "Sample %d"
-msgstr ""
+msgstr "Sample %d"
 
 #: src/engine/engine.cpp:3056
 #, c-format
 msgid "no free patterns in channel %d!"
-msgstr ""
+msgstr "채널 %d에 빈 패턴이 없습니다!"
 
 #: src/gui/mixer.cpp:28 src/gui/insEdit.cpp:484
 msgid "left"
@@ -3817,7 +3886,7 @@ msgstr ""
 #: src/gui/insEdit.cpp:7437 src/gui/insEdit.cpp:7448 src/gui/insEdit.cpp:7458
 #: src/gui/insEdit.cpp:7466 src/gui/insEdit.cpp:7476 src/gui/insEdit.cpp:7485
 msgid "Volume"
-msgstr ""
+msgstr "볼륨"
 
 #: src/gui/mixer.cpp:279 src/gui/userPresets.cpp:427 src/gui/settings.cpp:1125
 #: src/gui/guiConst.cpp:229 src/gui/insEdit.cpp:6928 src/gui/insEdit.cpp:6935
@@ -4191,7 +4260,7 @@ msgstr ""
 #: src/gui/gui.cpp:5830 src/gui/gui.cpp:5889 src/gui/gui.cpp:6263
 #: src/gui/gui.cpp:6387
 msgid "Cancel"
-msgstr ""
+msgstr "취소"
 
 #: src/gui/exportOptions.cpp:115 src/gui/exportOptions.cpp:217
 #: src/gui/exportOptions.cpp:246 src/gui/exportOptions.cpp:289
@@ -4520,34 +4589,34 @@ msgstr ""
 #: src/gui/channels.cpp:40 src/gui/editControls.cpp:446
 #: src/gui/guiConst.cpp:601 src/gui/gui.cpp:6314
 msgid "Channels"
-msgstr ""
+msgstr "채널"
 
 #: src/gui/channels.cpp:49
 msgid "Pat"
-msgstr ""
+msgstr "패턴"
 
 #: src/gui/channels.cpp:51 src/gui/editControls.cpp:550
 msgid "Osc"
-msgstr ""
+msgstr "스코프"
 
 #: src/gui/channels.cpp:53
 msgid "Swap"
-msgstr ""
+msgstr "바꾸기"
 
 #: src/gui/channels.cpp:55 src/gui/userPresets.cpp:368
 #: src/gui/effectList.cpp:45 src/gui/subSongs.cpp:125 src/gui/settings.cpp:1065
 #: src/gui/settings.cpp:4388 src/gui/sampleEdit.cpp:195 src/gui/songInfo.cpp:40
 #: src/gui/sysManager.cpp:54 src/gui/insEdit.cpp:5293
 msgid "Name"
-msgstr ""
+msgstr "이름"
 
 #: src/gui/channels.cpp:64
 msgid "Show in pattern"
-msgstr ""
+msgstr "패턴에 표시"
 
 #: src/gui/channels.cpp:71
 msgid "Show in per-channel oscilloscope"
-msgstr ""
+msgstr "채널별 오실로스코프에 표시"
 
 #: src/gui/channels.cpp:82
 #, c-format
@@ -4555,40 +4624,42 @@ msgid ""
 "%s #%d\n"
 "(drag to swap channels)"
 msgstr ""
+"%s #%d\n"
+"(끌어서 채널 바꾸기)"
 
 #: src/gui/commandPalette.cpp:51 src/gui/sysPicker.cpp:35
 #: src/gui/newSong.cpp:133
 msgid "Search..."
-msgstr ""
+msgstr "검색..."
 
 #: src/gui/commandPalette.cpp:54
 msgid "Search recent files..."
-msgstr ""
+msgstr "최근 파일 검색..."
 
 #: src/gui/commandPalette.cpp:57
 msgid "Search instruments..."
-msgstr ""
+msgstr "악기 검색..."
 
 #: src/gui/commandPalette.cpp:60
 msgid "Search samples..."
-msgstr ""
+msgstr "샘플 검색..."
 
 #: src/gui/commandPalette.cpp:63
 msgid "Search instruments (to change to)..."
-msgstr ""
+msgstr "악기 검색 (바꾸기)..."
 
 #: src/gui/commandPalette.cpp:66
 msgid "Search chip (to add)..."
-msgstr ""
+msgstr "칩 검색 (추가)..."
 
 #: src/gui/commandPalette.cpp:93 src/gui/commandPalette.cpp:167
 msgid "- None -"
-msgstr ""
+msgstr "- None -"
 
 #: src/gui/commandPalette.cpp:123 src/gui/commandPalette.cpp:179
 #: src/gui/commandPalette.cpp:241
 msgid "invalid command palette type"
-msgstr ""
+msgstr "잘못된 커맨드 팔레트 유형입니다"
 
 #: src/gui/regView.cpp:30 src/gui/guiConst.cpp:604
 msgid "Register View"
@@ -4745,126 +4816,126 @@ msgstr[0] ""
 
 #: src/gui/chanOsc.cpp:32
 msgid "None (0%)"
-msgstr ""
+msgstr "None (0%)"
 
 #: src/gui/chanOsc.cpp:33
 msgid "None (50%)"
-msgstr ""
+msgstr "None (50%)"
 
 #: src/gui/chanOsc.cpp:34
 msgid "None (100%)"
-msgstr ""
+msgstr "None (100%)"
 
 #: src/gui/chanOsc.cpp:36
 msgid "Frequency"
-msgstr ""
+msgstr "주파수"
 
 #: src/gui/chanOsc.cpp:38 src/gui/settings.cpp:1672 src/gui/settings.cpp:3411
 #: src/gui/settings.cpp:4093
 msgid "Channel"
-msgstr ""
+msgstr "채널"
 
 #: src/gui/chanOsc.cpp:39
 msgid "Brightness"
-msgstr ""
+msgstr "명도"
 
 #: src/gui/chanOsc.cpp:41
 msgid "Note Trigger"
-msgstr ""
+msgstr "노트 트리거"
 
 #: src/gui/chanOsc.cpp:45
 msgid "Off"
-msgstr ""
+msgstr "꺼짐"
 
 #: src/gui/chanOsc.cpp:46
 msgid "Mode 1"
-msgstr ""
+msgstr "모드 1"
 
 #: src/gui/chanOsc.cpp:47
 msgid "Mode 2"
-msgstr ""
+msgstr "모드 2"
 
 #: src/gui/chanOsc.cpp:48
 msgid "Mode 3"
-msgstr ""
+msgstr "모드 3"
 
 #: src/gui/chanOsc.cpp:135 src/gui/guiConst.cpp:607
 msgid "Oscilloscope (per-channel)"
-msgstr ""
+msgstr "오실로스코프 (채널)"
 
 #: src/gui/chanOsc.cpp:143
 msgid "Columns"
-msgstr ""
+msgstr "열"
 
 #: src/gui/chanOsc.cpp:152
 msgid "Size (ms)"
-msgstr ""
+msgstr "크기 (ms)"
 
 #: src/gui/chanOsc.cpp:163
 msgid "Automatic columns"
-msgstr ""
+msgstr "자동 열 설정"
 
 #: src/gui/chanOsc.cpp:177
 msgid "Center waveform"
-msgstr ""
+msgstr "센터 파형"
 
 #: src/gui/chanOsc.cpp:183
 msgid "Randomize phase on note"
-msgstr ""
+msgstr "노트에 위상 무작위화"
 
 #: src/gui/chanOsc.cpp:189
 msgid "Amplitude"
-msgstr ""
+msgstr "진폭"
 
 #: src/gui/chanOsc.cpp:199 src/gui/settings.cpp:3752
 msgid "Line size"
-msgstr ""
+msgstr "선 크기"
 
 #: src/gui/chanOsc.cpp:211
 msgid "Gradient"
-msgstr ""
+msgstr "기울기"
 
 #: src/gui/chanOsc.cpp:218
 msgid "error while creating gradient texture!"
-msgstr ""
+msgstr "기울기 텍스처 생성 중에 에러가 발생했습니다!"
 
 #: src/gui/chanOsc.cpp:236
 msgid "error while updating gradient texture!"
-msgstr ""
+msgstr "기울기 텍스처 업데이트 중에 에러가 발생했습니다!"
 
 #: src/gui/chanOsc.cpp:292 src/gui/chanOsc.cpp:348 src/gui/settings.cpp:3798
 msgid "Color"
-msgstr ""
+msgstr "색"
 
 #: src/gui/chanOsc.cpp:296
 msgid "Distance"
-msgstr ""
+msgstr "거리"
 
 #: src/gui/chanOsc.cpp:305
 msgid "Spread"
-msgstr ""
+msgstr "퍼짐"
 
 #: src/gui/chanOsc.cpp:314 src/gui/userPresets.cpp:370 src/gui/subSongs.cpp:121
 #: src/gui/settings.cpp:2286 src/gui/sysManager.cpp:124
 msgid "Remove"
-msgstr ""
+msgstr "제거"
 
 #: src/gui/chanOsc.cpp:338 src/gui/settings.cpp:3890 src/gui/settings.cpp:4170
 #: src/gui/settings.cpp:4197 src/gui/settings.cpp:4223
 msgid "Background"
-msgstr ""
+msgstr "배경"
 
 #: src/gui/chanOsc.cpp:341
 msgid "X Axis##AxisX"
-msgstr ""
+msgstr "X 축##AxisX"
 
 #: src/gui/chanOsc.cpp:342
 msgid "Y Axis##AxisY"
-msgstr ""
+msgstr "Y 축##AxisY"
 
 #: src/gui/chanOsc.cpp:352
 msgid "Text format:"
-msgstr ""
+msgstr "텍스트 포맷:"
 
 #: src/gui/chanOsc.cpp:358
 msgid ""
@@ -4886,41 +4957,58 @@ msgid ""
 "- %l: new line\n"
 "- %%: percent sign"
 msgstr ""
+"포맷 가이드:\n"
+"- %c: 채널 이름\n"
+"- %C: 채널 짧은 이름\n"
+"- %d: 채널 번호 (0부터 시작)\n"
+"- %D: 채널 번호 (1부터 시작)\n"
+"- %n: 채널 노트\n"
+"- %i: 악기 이름\n"
+"- %I: 악기 번호 (십진수)\n"
+"- %x: 악기 번호 (십육진수)\n"
+"- %s: 칩 이름\n"
+"- %p: 칩 파트 번호\n"
+"- %S: 칩 ID\n"
+"- %v: 볼륨 (십진수)\n"
+"- %V: 볼륨 (백분율)\n"
+"- %b: 볼륨 (십육진수)\n"
+"- %l: 새 줄\n"
+"- %%: 백분율 부호"
 
 #: src/gui/chanOsc.cpp:380
 msgid "Text color"
-msgstr ""
+msgstr "텍스트 색"
 
 #: src/gui/chanOsc.cpp:382 src/gui/xyOsc.cpp:80 src/gui/settings.cpp:6926
 #: src/gui/tutorial.cpp:689 src/gui/gui.cpp:5673 src/gui/gui.cpp:6089
 #: src/gui/gui.cpp:6257 src/gui/gui.cpp:6356 src/gui/gui.cpp:6405
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: src/gui/chanOsc.cpp:400
 msgid "creating chan osc work pool"
-msgstr ""
+msgstr "채널 오실로스코프 작업 풀 생성"
 
 #: src/gui/chanOsc.cpp:429
 #, c-format
 msgid "creating FFT plan for channel %d"
-msgstr ""
+msgstr "채널 %d에 FFT 플랜 생성"
 
 #: src/gui/chanOsc.cpp:436
 msgid "failed to create plan!"
-msgstr ""
+msgstr "플랜 생성을 실패했습니다!"
 
 #: src/gui/chanOsc.cpp:438
 msgid "failed to create inverse plan!"
-msgstr ""
+msgstr "역플랜 생성을 실패했습니다!"
 
 #: src/gui/chanOsc.cpp:440
 msgid "failed to create FFT buffers"
-msgstr ""
+msgstr "FFT 버퍼 생성을 실패했습니다"
 
 #: src/gui/chanOsc.cpp:585
 msgid "Error!"
-msgstr ""
+msgstr "에러!"
 
 #: src/gui/editControls.cpp:47 src/gui/sampleEdit.cpp:1749 src/gui/gui.cpp:2745
 #: src/gui/insEdit.cpp:363
@@ -9638,7 +9726,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:4206 src/gui/clock.cpp:31 src/gui/guiConst.cpp:610
 msgid "Clock"
-msgstr ""
+msgstr "클록"
 
 #: src/gui/settings.cpp:4207
 msgid "Clock text"
@@ -10580,7 +10668,7 @@ msgstr ""
 
 #: src/gui/compatFlags.cpp:31 src/gui/guiConst.cpp:598
 msgid "Compatibility Flags"
-msgstr ""
+msgstr "호환 플래그"
 
 #: src/gui/compatFlags.cpp:32
 msgid ""
@@ -10589,119 +10677,137 @@ msgid ""
 "it is recommended to disable most of these unless you rely on specific "
 "quirks."
 msgstr ""
+"이 플래그들은 더 나은 DefleMask/오래된 Furnace 호환성을 제공하도록 설계되었습"
+"니다.\n"
+"특정한 특이점에 의존하지 않는 한 대부분을 비활성화하는 것이 좋습니다."
 
 #: src/gui/compatFlags.cpp:34 src/gui/compatFlags.cpp:310
 msgid "DefleMask"
-msgstr ""
+msgstr "DefleMask"
 
 #: src/gui/compatFlags.cpp:35
 msgid "Limit slide range"
-msgstr ""
+msgstr "슬라이드 범위 제한"
 
 #: src/gui/compatFlags.cpp:37
 msgid ""
 "when enabled, slides are limited to a compatible range.\n"
 "may cause problems with slides in negative octaves."
 msgstr ""
+"활성화 시 슬라이드는 호환 가능한 범위로 제한됩니다.\n"
+"음수 옥타브의 슬라이드에 문제가 발생할 수 있습니다."
 
 #: src/gui/compatFlags.cpp:39
 msgid "Compatible noise layout on NES and PC Engine"
-msgstr ""
+msgstr "NES 및 PC 엔진의 호환 노이즈 레이아웃"
 
 #: src/gui/compatFlags.cpp:41
 msgid ""
 "use a rather unusual compatible noise frequency layout.\n"
 "removes some noise frequencies on PC Engine."
 msgstr ""
+"호환되는 노이즈 주파수 레이아웃을 사용합니다.\n"
+"PC 엔진의 일부 노이즈 주파수를 제거합니다."
 
 #: src/gui/compatFlags.cpp:43
 msgid "Game Boy instrument duty is wave volume"
-msgstr ""
+msgstr "게임보이 악기 듀티비를 웨이브 채널 볼륨으로"
 
 #: src/gui/compatFlags.cpp:45
 msgid ""
 "if enabled, an instrument with duty macro in the wave channel will be mapped "
 "to wavetable volume."
 msgstr ""
+"활성화 시 웨이브 채널에 듀티비 매크로를 가진 악기가 웨이브테이블 볼륨에 매핑"
+"됩니다."
 
 #: src/gui/compatFlags.cpp:48
 msgid "Restart macro on portamento"
-msgstr ""
+msgstr "포르타멘토에서 매크로 재시작"
 
 #: src/gui/compatFlags.cpp:50
 msgid ""
 "when enabled, a portamento effect will reset the channel's macro if used in "
 "combination with a note."
 msgstr ""
+"활성화된 시 노트와 함께 사용하면 포르타멘토 효과가 채널의 매크로를 재설정합니"
+"다"
 
 #: src/gui/compatFlags.cpp:52
 msgid "Legacy volume slides"
-msgstr ""
+msgstr "레거시 볼륨 슬라이드"
 
 #: src/gui/compatFlags.cpp:54
 msgid ""
 "simulate glitchy volume slide behavior by silently overflowing the volume "
 "when the slide goes below 0."
 msgstr ""
+"슬라이드가 0 이하로 내려가면 소리 없이 볼륨을 넘김으로써 볼륨의 결함이 있는 "
+"슬라이드 동작을 시뮬레이팅합니다."
 
 #: src/gui/compatFlags.cpp:56
 msgid "Compatible arpeggio"
-msgstr ""
+msgstr "호환 아르페지오"
 
 #: src/gui/compatFlags.cpp:58
 msgid "delay arpeggio by one tick on every new note."
-msgstr ""
+msgstr "새 노트마다 아르페지오를 한 틱씩 지연시킵니다."
 
 #: src/gui/compatFlags.cpp:60
 msgid "Disable DAC when sample ends"
-msgstr ""
+msgstr "샘플 끝나면 DAC 비활성화"
 
 #: src/gui/compatFlags.cpp:62
 msgid ""
 "when enabled, the DAC in YM2612 will be disabled if there isn't any sample "
 "playing."
 msgstr ""
+"활성화 시 아무 샘플도 재생되고 있지 않다면 YM2612의 DAC이 비활성화됩니다."
 
 #: src/gui/compatFlags.cpp:64
 msgid "Broken speed alternation"
-msgstr ""
+msgstr "망가진 속도 대체"
 
 #: src/gui/compatFlags.cpp:66
 msgid ""
 "determines next speed based on whether the row is odd/even instead of "
 "alternating between speeds."
 msgstr ""
+"속도를 번갈아 가며 사용하는 대신 행이 홀수/짝수인지를 기준으로 다음 속도를 결"
+"정합니다."
 
 #: src/gui/compatFlags.cpp:68
 msgid "Ignore duplicate slide effects"
-msgstr ""
+msgstr "중복 슬라이드 이펙트 무시"
 
 #: src/gui/compatFlags.cpp:70
 msgid ""
 "if this is on, only the first slide of a row in a channel will be considered."
-msgstr ""
+msgstr "활성화 시 채널에서 행의 첫 번째 슬라이드만 고려됩니다."
 
 #: src/gui/compatFlags.cpp:72
 msgid "Ignore 0Dxx on the last order"
-msgstr ""
+msgstr "마지막 오더에서 0Dxx 무시"
 
 #: src/gui/compatFlags.cpp:74
 msgid ""
 "if this is on, a jump to next row effect will not take place when it is on "
 "the last order of a song."
 msgstr ""
+"활성화 시 곡의 마지막 순서에 있을 때 다음 행으로의 점프 효과가 발생하지 않습"
+"니다."
 
 #: src/gui/compatFlags.cpp:76
 msgid "Buggy portamento after pitch slide"
-msgstr ""
+msgstr "피치 슬라이드 후 버그가 많은 포르타멘토"
 
 #: src/gui/compatFlags.cpp:78
 msgid "simulates a bug in where portamento does not work after sliding."
-msgstr ""
+msgstr "포르타멘토가 슬라이딩 후 작동하지 않는 버그를 시뮬레이션합니다"
 
 #: src/gui/compatFlags.cpp:80
 msgid "FM pitch slide octave boundary odd behavior"
-msgstr ""
+msgstr "FM 피치 슬라이드 옥타브 경계 홀수 행동"
 
 #: src/gui/compatFlags.cpp:82
 msgid ""
@@ -10709,48 +10815,52 @@ msgid ""
 "one tick and then continue from the nearest octave boundary.\n"
 "for .dmf compatibility."
 msgstr ""
+"활성화 시 옥타브 경계를 넘는 피치 슬라이드가 한 틱 동안 멈춘 다음 가장 가까"
+"운 옥타브 경계에서 계속됩니다.\n"
+".dmf 호환을 위해."
 
 #: src/gui/compatFlags.cpp:84
 msgid "Don't apply Game Boy envelope on note-less instrument change"
-msgstr ""
+msgstr "노트가 없는 악기 교체 시 게임보이 엔벨로프 적용 안함"
 
 #: src/gui/compatFlags.cpp:86
 msgid "if this is on, an instrument change will not affect the envelope."
-msgstr ""
+msgstr "활성화 시 악기 변경은 엔벨로프에 영향을 미치지 않습니다."
 
 #: src/gui/compatFlags.cpp:88
 msgid "Ignore DAC mode change outside of intended channel in ExtCh mode"
-msgstr ""
+msgstr "ExtCh 모드에서 의도된 채널 이외의 DAC 모드 변경 무시"
 
 #: src/gui/compatFlags.cpp:90
 msgid "if this is on, 17xx has no effect on the operator channels in YM2612."
-msgstr ""
+msgstr "활성화 시 17xx는 YM2612의 오퍼레이터 채널에 영향을 미치지 않습니다."
 
 #: src/gui/compatFlags.cpp:92
 msgid "E1xy/E2xy also take priority over slide stops"
-msgstr ""
+msgstr "E1xy/E2xy는 또한 슬라이드 정지보다 우선순위를 부여"
 
 #: src/gui/compatFlags.cpp:94
 msgid "does this make any sense by now?"
-msgstr ""
+msgstr "지금쯤이면 이게 말이 돼?"
 
 #: src/gui/compatFlags.cpp:96
 msgid "E1xy/E2xy stop when repeating the same note"
-msgstr ""
+msgstr "E1xy/E2xy 같은 음을 반복할 때 중지"
 
 #: src/gui/compatFlags.cpp:98
 msgid "ugh, if only this wasn't a thing..."
-msgstr ""
+msgstr "윽, 이게 뭐가 아니었다면..."
 
 #: src/gui/compatFlags.cpp:100
 msgid "SN76489 duty macro always resets phase"
-msgstr ""
+msgstr "SN76489 듀티 매크로가 항상 위상을 재설정"
 
 #: src/gui/compatFlags.cpp:102
 msgid ""
 "when enabled, duty macro will always reset phase, even if its value hasn't "
 "changed."
 msgstr ""
+"활성화 시 듀티 매크로의 값이 변하지 않았더라도 항상 위상이 재설정됩니다."
 
 #: src/gui/compatFlags.cpp:104
 msgid "Broken volume scaling strategy"

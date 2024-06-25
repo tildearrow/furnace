@@ -593,7 +593,7 @@ int main(int argc, char** argv) {
 #ifdef ANDROID
     memset(exePath,0,4096);
 #else
-    if (!getExePath(argv[0],exePath,4096)) memset(exePath,0,4096);
+    if (!getExePath(argv[0],exePath,4095)) memset(exePath,0,4096);
 #endif
 
     bool textDomainBound=false;
