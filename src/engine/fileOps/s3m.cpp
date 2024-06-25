@@ -317,6 +317,14 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     for (int i=0; i<ds.insLen; i++) {
       logV("reading instrument %d...",i);
       DivInstrument* ins=new DivInstrument;
+      if (insPtr[i]==0) {
+        ins->type=DIV_INS_ES5506;
+        ds.ins.push_back(ins);
+        DivSample* emptySample=new DivSample;
+        ds.sample.push_back(emptySample);
+        continue;
+      }
+
       if (!reader.seek(insPtr[i]+0x4c,SEEK_SET)) {
         logE("premature end of file!");
         lastError="incomplete file";
@@ -651,6 +659,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       bool arpingOld[32];
       bool did[32];
 
+      if (patPtr[i]==0) continue;
+
       logV("reading pattern %d...",i);
       if (!reader.seek(patPtr[i],SEEK_SET)) {
         logE("premature end of file!");
@@ -778,7 +788,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         bool hasEffect=what&128;
 
         if (did[chan]) {
-          logW("pat %d chan %d row %d: we already populated this channel!");
+          logW("pat %d chan %d row %d: we already populated this channel!",i,chan,curRow);
         } else {
           did[chan]=true;
         }
