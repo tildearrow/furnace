@@ -128,6 +128,13 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     unsigned short ordersLen=reader.readS();
     ds.insLen=reader.readS();
 
+    if (ordersLen>256) {
+      logE("invalid order count!");
+      lastError="invalid order count!";
+      delete[] file;
+      return false;
+    }
+
     logV("orders: %d",ordersLen);
     logV("instruments: %d",ds.insLen);
 
@@ -141,6 +148,13 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     unsigned short patCount=reader.readS();
 
     logV("patterns: %d",patCount);
+
+    if (patCount>256) {
+      logE("invalid pattern count!");
+      lastError="invalid pattern count!";
+      delete[] file;
+      return false;
+    }
 
     unsigned short flags=reader.readS();
     unsigned short version=reader.readS();
