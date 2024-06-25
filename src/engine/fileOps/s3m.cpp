@@ -487,15 +487,17 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             }
           }
         } else {
-          reader.read(s->getCurBuf(),s->samples);
-
-          if (!signedSamples) {
-            if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
-              for (unsigned int i=0; i<s->samples; i++) {
+          if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+            for (unsigned int i=0; i<s->samples; i++) {
+              s->data16[i]=reader.readS();
+              if (!signedSamples) {
                 s->data16[i]^=0x8000;
               }
-            } else {
-              for (unsigned int i=0; i<s->samples; i++) {
+            }
+          } else {
+            for (unsigned int i=0; i<s->samples; i++) {
+              s->data8[i]=reader.readC();
+              if (!signedSamples) {
                 s->data8[i]^=0x80;
               }
             }
