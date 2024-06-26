@@ -42,15 +42,12 @@ void readEnvelope(SafeReader& reader, DivInstrument* ins, int env) {
     pointTime[i]=reader.readS();
   }
 
+  // x
+  reader.readC();
+
   // don't process if there aren't any points or if the envelope is disabled
   if (numPoints<1) return;
   if (!(flags&1)) return;
-
-  logV("env points for %d: %d",env,numPoints);
-
-  for (int i=0; i<numPoints; i++) {
-    logV("- %d: %d",pointTime[i],pointVal[i]);
-  }
 
   // convert into macro, or try to
   DivInstrumentMacro* target=NULL;
@@ -111,8 +108,8 @@ void readEnvelope(SafeReader& reader, DivInstrument* ins, int env) {
       }
     }
     if ((point+1)>=numPoints) {
-      target->len=i+1;
-      target->val[i]=p0;
+      target->len=i;
+      //target->val[i]=p0;
       break;
     }
     int timeDiff=pointTime[nextPoint]-pointTime[curPoint];
@@ -121,11 +118,39 @@ void readEnvelope(SafeReader& reader, DivInstrument* ins, int env) {
     if (curTime<0) curTime=0;
 
     if (env==2) {
-      p0*=2;
+      if (flags&128) {
+        p0+=32;
+        p1+=32;
+        p0*=512;
+        p1*=512;
+      } else {
+        p0*=64;
+        p1*=64;
+      }
     }
 
     target->len=i+1;
     target->val[i]=p0+(((p1-p0)*curTime)/timeDiff);
+  }
+
+  // split L/R
+  if (env==1) {
+    for (int i=0; i<ins->std.panLMacro.len; i++) {
+      int val=ins->std.panLMacro.val[i];
+      if (val==0) {
+        ins->std.panLMacro.val[i]=4095;
+        ins->std.panRMacro.val[i]=4095;
+      } else if (val>0) { // pan right
+        ins->std.panLMacro.val[i]=4095-val*16;
+        ins->std.panRMacro.val[i]=4095;
+      } else { // pan left
+        ins->std.panLMacro.val[i]=4095;
+        ins->std.panRMacro.val[i]=4095+val*16;
+      }
+    }
+    ins->std.panRMacro.len=ins->std.panLMacro.len;
+    ins->std.panRMacro.loop=ins->std.panLMacro.loop;
+    ins->std.panRMacro.rel=ins->std.panLMacro.rel;
   }
 }
 
@@ -853,7 +878,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               p->data[curRow][0]=12;
               p->data[curRow][1]--;
             }
-          } else { // note fade, but Furnace does not have that
+          } else { // note fade, but Furnace does not support that
             p->data[curRow][0]=102;
             p->data[curRow][1]=0;
           }
