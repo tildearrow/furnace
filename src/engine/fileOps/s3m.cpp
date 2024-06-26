@@ -356,6 +356,19 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       } else {
         logW("odd magic!");
         ins->type=DIV_INS_ES5506;
+
+        // read the instrument name anyway
+        if (!reader.seek(insPtr[i]+48,SEEK_SET)) {
+          logE("premature end of file!");
+          lastError="incomplete file";
+          delete ins;
+          delete[] file;
+          return false;
+        }
+
+        String name=reader.readString(28);
+        ins->name=name;
+
         ds.ins.push_back(ins);
         continue;
       }
