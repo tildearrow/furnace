@@ -419,7 +419,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.insLen=ds.ins.size();
 
     // find subsongs
-    ds.findSubSongs();
+    ds.findSubSongs(chCount);
     
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;

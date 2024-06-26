@@ -1031,7 +1031,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     logV("maxChan: %d",maxChan);
 
     // set channel visibility
-    for (int i=maxChan+1; i<((maxChan+32)&(~31)); i++) {
+    for (int i=maxChan; i<((maxChan+32)&(~31)); i++) {
       ds.subsong[0]->chanShow[i]=false;
       ds.subsong[0]->chanShowChanOsc[i]=false;
     }
@@ -1085,7 +1085,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     ds.systemLen=(maxChan+32)>>5;
 
     // find subsongs
-    ds.findSubSongs();    
+    ds.findSubSongs(maxChan);    
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;

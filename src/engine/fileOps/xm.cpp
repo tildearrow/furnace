@@ -371,7 +371,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     ds.sampleLen=ds.sample.size();
 
     // find subsongs
-    ds.findSubSongs();
+    ds.findSubSongs(totalChans);
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
