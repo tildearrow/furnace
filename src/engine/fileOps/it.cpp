@@ -19,6 +19,116 @@
 
 #include "fileOpsCommon.h"
 
+void readEnvelope(SafeReader& reader, DivInstrument* ins, int env) {
+  unsigned char flags=reader.readC();
+  unsigned char numPoints=reader.readC();
+  unsigned char loopStart=reader.readC();
+  unsigned char loopEnd=reader.readC();
+  unsigned char susStart=reader.readC();
+  unsigned char susEnd=reader.readC();
+
+  if (numPoints>25) numPoints=25;
+
+  if (loopStart>=numPoints) loopStart=numPoints-1;
+  if (loopEnd>=numPoints) loopEnd=numPoints-1;
+  if (susStart>=numPoints) susStart=numPoints-1;
+  if (susEnd>=numPoints) susEnd=numPoints-1;
+
+  unsigned short pointTime[25];
+  signed char pointVal[25];
+
+  for (int i=0; i<25; i++) {
+    pointVal[i]=reader.readC();
+    pointTime[i]=reader.readS();
+  }
+
+  // don't process if there aren't any points or if the envelope is disabled
+  if (numPoints<1) return;
+  if (!(flags&1)) return;
+
+  logV("env points for %d: %d",env,numPoints);
+
+  for (int i=0; i<numPoints; i++) {
+    logV("- %d: %d",pointTime[i],pointVal[i]);
+  }
+
+  // convert into macro, or try to
+  DivInstrumentMacro* target=NULL;
+  switch (env) {
+    case 0: // volume
+      target=&ins->std.volMacro;
+      break;
+    case 1: // panning (split later)
+      target=&ins->std.panLMacro;
+      break;
+    case 2: // pitch or cutoff
+      if (flags&128) {
+        target=&ins->std.ex1Macro; // ES5506 filter
+      } else {
+        target=&ins->std.pitchMacro;
+      }
+      break;
+  }
+  target->len=0;
+  int point=0;
+  bool pointJustBegan=true;
+  // mark loop end as end of envelope
+  if (flags&2) {
+    if (loopEnd<numPoints) numPoints=loopEnd+1;
+  }
+  for (int i=0; i<255; i++) {
+    int curPoint=MIN(point,numPoints-1);
+    int nextPoint=MIN(point+1,numPoints-1);
+    int p0=pointVal[curPoint];
+    int p1=pointVal[nextPoint];
+    while (i>pointTime[nextPoint]) {
+      point++;
+      pointJustBegan=true;
+      curPoint=MIN(point,numPoints-1);
+      nextPoint=MIN(point+1,numPoints-1);
+      p0=pointVal[curPoint];
+      p1=pointVal[nextPoint];
+      if ((point+1)>=numPoints) {
+        break;
+      }
+    }
+    if (pointJustBegan) {
+      pointJustBegan=false;
+      if (flags&2) { // loop
+        if (point==loopStart && (!(flags&4) || susStart==susEnd || loopStart>=susEnd)) {
+          target->loop=i;
+        }
+      }
+      if (flags&4) { // sustain
+        if (susStart!=susEnd) { // sustain loop
+          if (point==susStart) {
+            target->loop=i;
+          }
+        }
+        if (point==susEnd) {
+          target->rel=i;
+        }
+      }
+    }
+    if ((point+1)>=numPoints) {
+      target->len=i+1;
+      target->val[i]=p0;
+      break;
+    }
+    int timeDiff=pointTime[nextPoint]-pointTime[curPoint];
+    int curTime=i-pointTime[curPoint];
+    if (timeDiff<1) timeDiff=1;
+    if (curTime<0) curTime=0;
+
+    if (env==2) {
+      p0*=2;
+    }
+
+    target->len=i+1;
+    target->val[i]=p0+(((p1-p0)*curTime)/timeDiff);
+  }
+}
+
 bool DivEngine::loadIT(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
@@ -324,7 +434,14 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         noteMap[i][j]=ins->amiga.noteMap[j].map;
       }
 
-      // TODO: envelopes...
+      // envelopes...
+      if (compatTracker<0x200) { // old format
+        // TODO
+      } else {
+        readEnvelope(reader,ins,0);
+        readEnvelope(reader,ins,1);
+        readEnvelope(reader,ins,2);
+      }
 
       ds.ins.push_back(ins);
     }
@@ -746,8 +863,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         }
         if (hasVol) {
           p->data[curRow][3]=vol[chan];
-        } else if (hasNote && hasIns && note[chan]<120) {
-          p->data[curRow][3]=defVol[noteMap[ins[chan]][note[chan]]];
+        } else if (hasNote && hasIns && note[chan]<120 && ins[chan]>0) {
+          p->data[curRow][3]=defVol[noteMap[(ins[chan]-1)&255][note[chan]]];
         }
         if (hasEffect) {
           switch (effect[chan]+'A'-1) {
