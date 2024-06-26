@@ -477,6 +477,14 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
       if (samplePtr[i]==0) {
         ds.sample.push_back(s);
+
+        // does the song not use instruments?
+        // create instrument then
+        if (ds.insLen==0) {
+          DivInstrument* ins=new DivInstrument;
+          ins->type=DIV_INS_ES5506;
+          ds.ins.push_back(ins);
+        }
         continue;
       }
 
@@ -636,8 +644,20 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         }
       }
 
+      // does the song not use instruments?
+      // create instrument then
+      if (ds.insLen==0) {
+        DivInstrument* ins=new DivInstrument;
+        ins->name=s->name;
+        ins->type=DIV_INS_ES5506;
+        ins->amiga.initSample=i;
+        ds.ins.push_back(ins);
+      }
+
       ds.sample.push_back(s);
     }
+
+    ds.insLen=ds.ins.size();
 
     // read patterns
     int maxChan=0;
