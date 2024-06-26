@@ -141,11 +141,11 @@ void readEnvelope(SafeReader& reader, DivInstrument* ins, int env) {
         ins->std.panLMacro.val[i]=4095;
         ins->std.panRMacro.val[i]=4095;
       } else if (val>0) { // pan right
-        ins->std.panLMacro.val[i]=4095-val*16;
+        ins->std.panLMacro.val[i]=4095*pow(1.0-((double)val/64.0),0.25);
         ins->std.panRMacro.val[i]=4095;
       } else { // pan left
         ins->std.panLMacro.val[i]=4095;
-        ins->std.panRMacro.val[i]=4095+val*16;
+        ins->std.panRMacro.val[i]=4095*pow(1.0+((double)val/64.0),0.25);
       }
     }
     ins->std.panRMacro.len=ins->std.panLMacro.len;
