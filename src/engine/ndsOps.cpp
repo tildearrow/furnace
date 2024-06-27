@@ -132,6 +132,19 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
         loopPos=-1;
       }
     }
+    if (loopPos==-1) {
+      if (loopOrder==curOrder && loopRow==curRow && loop)
+        loopNow=true;
+      if (loopNow) {
+        // If Virtual Tempo is in use, our exact loop point
+        // might be skipped due to quantization error.
+        // If this happens, the tick immediately following is our loop point.
+        if (ticks==1 || !(loopOrder==curOrder && loopRow==curRow)) {
+          loopPos=offset;
+          loopNow=false;
+        }
+      }
+    }
     // get register dumps
     int i=0;
     if (NDS>=0) {
@@ -160,19 +173,6 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
         }
       }
       writes.clear();
-    }
-    if (loopPos==-1) {
-      if (loopOrder==curOrder && loopRow==curRow && loop)
-        loopNow=true;
-      if (loopNow) {
-        // If Virtual Tempo is in use, our exact loop point
-        // might be skipped due to quantization error.
-        // If this happens, the tick immediately following is our loop point.
-        if (ticks==1 || !(loopOrder==curOrder && loopRow==curRow)) {
-          loopPos=offset;
-          loopNow=false;
-        }
-      }
     }
   }
   // end of song
