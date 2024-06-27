@@ -120,6 +120,9 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
     if (nextTick() || !playing) {
       done=true;
       if (!loop) {
+        writeByte(1);
+        writeByte(wait&0xff);
+        writeByte(wait>>8);
         for (int i=0; i<song.systemLen; i++) {
           disCont[i].dispatch->getRegisterWrites().clear();
         }
