@@ -1017,12 +1017,19 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       memcpy(ds.subsong[i]->chanShowChanOsc,ds.subsong[0]->chanShowChanOsc,DIV_MAX_CHANS*sizeof(bool));
     }
 
+    // find subsongs
+    ds.findSubSongs(DIV_MAX_CHANS);
+
     // populate subsongs with default panning values
     if (masterVol&128) { // only in stereo mode
       for (size_t i=0; i<ds.subsong.size(); i++) {
         for (int j=0; j<16; j++) {
           DivPattern* p=ds.subsong[i]->pat[chanMap[j]].getPattern(ds.subsong[i]->orders.ord[j][0],true);
           for (int k=0; k<DIV_MAX_EFFECTS; k++) {
+            if (p->data[0][4+(k<<1)]==0x80) {
+              // give up if there's a panning effect already
+              break;
+            }
             if (p->data[0][4+(k<<1)]==-1) {
               p->data[0][4+(k<<1)]=0x80;
               if (chanPan[j]&16) {
@@ -1037,9 +1044,6 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         }
       }
     }
-
-    // find subsongs
-    ds.findSubSongs(DIV_MAX_CHANS);    
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;

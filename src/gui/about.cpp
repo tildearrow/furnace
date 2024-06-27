@@ -286,6 +286,7 @@ const char* aboutLine[]={
   _N("ported by laoo to C++"),
   _N("vgsound_emu (second version, modified version) by cam900"),
   _N("Impulse Tracker GUS volume table by Jeffrey Lim"),
+  _N("Schism Tracker IT sample decompression"),
   _N("SM8521 emulator (modified version) by cam900"),
   _N("D65010G031 emulator (modified version) by cam900"),
   _N("Namco C140/C219 emulator (modified version) by cam900"),

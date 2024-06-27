@@ -19,6 +19,10 @@
 
 #include "fileOpsCommon.h"
 
+extern "C" {
+#include "../../../extern/itcompress/compression.h"
+}
+
 static const unsigned char volPortaSlide[10]={
   0, 1, 4, 8, 16, 32, 64, 96, 128, 255
 };
@@ -543,14 +547,6 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         s->depth=DIV_SAMPLE_DEPTH_8BIT;
       }
 
-      if (flags&8) {
-        logE("sample decompression not implemented!");
-        lastError="sample decompression not implemented";
-        delete s;
-        delete[] file;
-        return false;
-      }
-
       s->init((unsigned int)reader.readI());
       s->loopStart=reader.readI();
       s->loopEnd=reader.readI();
@@ -599,78 +595,89 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         logD("seek not needed...");
       }
 
-      if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
-        if (flags&4) { // downmix stereo
-          for (unsigned int i=0; i<s->samples; i++) {
-            short l;
-            if (convert&2) {
-              l=reader.readS_BE();
-            } else {
-              l=reader.readS();
-            }
-            if (!(convert&1)) {
-              l^=0x8000;
-            }
-            s->data16[i]=l;
-          }
-          for (unsigned int i=0; i<s->samples; i++) {
-            short r;
-            if (convert&2) {
-              r=reader.readS_BE();
-            } else {
-              r=reader.readS();
-            }
-            if (!(convert&1)) {
-              r^=0x8000;
-            }
-            s->data16[i]=(s->data16[i]+r)>>1;
-          }
+      if (flags&8) { // compressed sample
+        unsigned int ret=0;
+        logV("decompression begin...");
+        if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+          ret=it_decompress16(s->data16,s->length16,&file[reader.tell()],len-reader.tell(),(convert&4)?1:0,(flags&4)?2:1);
         } else {
-          for (unsigned int i=0; i<s->samples; i++) {
-            if (convert&2) {
-              s->data16[i]=reader.readS_BE()^((convert&1)?0:0x8000);
-            } else {
-              s->data16[i]=reader.readS()^((convert&1)?0:0x8000);
-            }
-          }
+          ret=it_decompress8(s->data8,s->length8,&file[reader.tell()],len-reader.tell(),(convert&4)?1:0,(flags&4)?2:1);
         }
+        logV("got: %d",ret);
       } else {
-        if (flags&4) { // downmix stereo
-          for (unsigned int i=0; i<s->samples; i++) {
-            signed char l=reader.readC();
-            if (!(convert&1)) {
-              l^=0x80;
+        if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+          if (flags&4) { // downmix stereo
+            for (unsigned int i=0; i<s->samples; i++) {
+              short l;
+              if (convert&2) {
+                l=reader.readS_BE();
+              } else {
+                l=reader.readS();
+              }
+              if (!(convert&1)) {
+                l^=0x8000;
+              }
+              s->data16[i]=l;
             }
-            s->data8[i]=l;
-          }
-          for (unsigned int i=0; i<s->samples; i++) {
-            signed char r=reader.readC();
-            if (!(convert&1)) {
-              r^=0x80;
+            for (unsigned int i=0; i<s->samples; i++) {
+              short r;
+              if (convert&2) {
+                r=reader.readS_BE();
+              } else {
+                r=reader.readS();
+              }
+              if (!(convert&1)) {
+                r^=0x8000;
+              }
+              s->data16[i]=(s->data16[i]+r)>>1;
             }
-            s->data8[i]=(s->data8[i]+r)>>1;
+          } else {
+            for (unsigned int i=0; i<s->samples; i++) {
+              if (convert&2) {
+                s->data16[i]=reader.readS_BE()^((convert&1)?0:0x8000);
+              } else {
+                s->data16[i]=reader.readS()^((convert&1)?0:0x8000);
+              }
+            }
           }
         } else {
-          for (unsigned int i=0; i<s->samples; i++) {
-            s->data8[i]=reader.readC()^((convert&1)?0:0x80);
+          if (flags&4) { // downmix stereo
+            for (unsigned int i=0; i<s->samples; i++) {
+              signed char l=reader.readC();
+              if (!(convert&1)) {
+                l^=0x80;
+              }
+              s->data8[i]=l;
+            }
+            for (unsigned int i=0; i<s->samples; i++) {
+              signed char r=reader.readC();
+              if (!(convert&1)) {
+                r^=0x80;
+              }
+              s->data8[i]=(s->data8[i]+r)>>1;
+            }
+          } else {
+            for (unsigned int i=0; i<s->samples; i++) {
+              s->data8[i]=reader.readC()^((convert&1)?0:0x80);
+            }
           }
         }
       }
 
       // scale sample if necessary
-      if (sampleVol>64) sampleVol=64;
-      if (sampleVol<64) {
-        // convert to 16-bit
-        /*
-        if (s->depth==DIV_SAMPLE_DEPTH_8BIT) {
-          s->convert(DIV_SAMPLE_DEPTH_16BIT,0);
-        }
+      if (s->samples>0) {
+        if (sampleVol>64) sampleVol=64;
+        if (sampleVol<64) {
+          // convert to 16-bit
+          if (s->depth==DIV_SAMPLE_DEPTH_8BIT) {
+            s->convert(DIV_SAMPLE_DEPTH_16BIT,0);
+          }
 
-        // then scale
-        for (unsigned int i=0; i<s->samples; i++) {
-          s->data16[i]=(s->data16[i]*sampleVol)>>6;
+          // then scale
+          for (unsigned int i=0; i<s->samples; i++) {
+            s->data16[i]=(s->data16[i]*sampleVol)>>6;
+          }
         }
-        */
       }
 
       // does the song not use instruments?
@@ -1161,6 +1168,31 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
     // find subsongs
     ds.findSubSongs(maxChan);    
+
+    // populate subsongs with default panning values
+    for (size_t i=0; i<ds.subsong.size(); i++) {
+      for (int j=0; j<maxChan; j++) {
+        DivPattern* p=ds.subsong[i]->pat[j].getPattern(ds.subsong[i]->orders.ord[j][0],true);
+        for (int k=0; k<DIV_MAX_EFFECTS; k++) {
+          if (p->data[0][4+(k<<1)]==0x80) {
+            // give up if there's a panning effect already
+            break;
+          }
+          if (p->data[0][4+(k<<1)]==-1) {
+            if ((chanPan[j]&127)==100) {
+              // should be surround...
+              p->data[0][4+(k<<1)]=0x80;
+              p->data[0][5+(k<<1)]=0x80;
+            } else {
+              p->data[0][4+(k<<1)]=0x80;
+              p->data[0][5+(k<<1)]=CLAMP((chanPan[j]&127)<<2,0,255);
+            }
+            if (ds.subsong[i]->pat[j].effectCols<=k) ds.subsong[i]->pat[j].effectCols=k+1;
+            break;
+          }
+        }
+      }
+    }
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;

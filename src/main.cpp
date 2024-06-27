@@ -322,6 +322,7 @@ TAParamResult pVersion(String) {
   printf("- Stella by Stella Team (GPLv2)\n");
   printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
   printf("- Impulse Tracker GUS volume table by Jeffrey Lim (BSD 3-clause)\n");
+  printf("- Schism Tracker IT sample decompression (GPLv2)\n");
   printf("- MAME GA20 core by Acho A. Tang, R. Belmont, Valley Bell (BSD 3-clause)\n");
   printf("- Atari800 mzpokeysnd POKEY emulator by Michael Borisov (GPLv2)\n");
   printf("- ASAP POKEY emulator by Piotr Fusik ported to C++ by laoo (GPLv2)\n");

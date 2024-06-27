@@ -476,6 +476,8 @@ src/baseutils.cpp
 src/fileutils.cpp
 src/utfutils.cpp
 
+extern/itcompress/compression.c
+
 extern/SAASound/src/SAAAmp.cpp
 extern/SAASound/src/SAADevice.cpp
 extern/SAASound/src/SAAEnv.cpp
