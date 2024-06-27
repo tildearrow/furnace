@@ -948,7 +948,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               p->data[curRow][effectCol[chan]++]=0x80;
               p->data[curRow][effectCol[chan]++]=CLAMP((vol[chan]-128)<<2,0,255);
             } else if (vol[chan]>=65 && vol[chan]<=74) { // fine vol up
-            } else if (vol[chan]>=75 && vol[chan]<=74) { // fine vol down
+            } else if (vol[chan]>=75 && vol[chan]<=84) { // fine vol down
             } else if (vol[chan]>=85 && vol[chan]<=94) { // vol slide up
             } else if (vol[chan]>=95 && vol[chan]<=104) { // vol slide down
             } else if (vol[chan]>=105 && vol[chan]<=114) { // pitch down
