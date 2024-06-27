@@ -3646,9 +3646,8 @@ msgid "E2xy: Note slide down (x: speed; y: semitones)"
 msgstr "E2xy: Not glida ner (x: hastighet; y: halvtoner)"
 
 #: src/engine/engine.cpp:104
-#, fuzzy
 msgid "E3xx: Set vibrato shape"
-msgstr "E4xx: Ange vibratogräns"
+msgstr "E3xx: Ange vibratoform"
 
 #: src/engine/engine.cpp:106
 msgid "E4xx: Set vibrato range"
@@ -4479,9 +4478,8 @@ msgid "max size in other banks"
 msgstr "maxstorlek i andra banker"
 
 #: src/gui/exportOptions.cpp:276
-#, fuzzy
 msgid "this chip is not supported by the file format!"
-msgstr "detta chip stöds inte av VGM-formatet!"
+msgstr "detta chip stöds inte av fil formatet!"
 
 #: src/gui/exportOptions.cpp:278
 msgid "only one Atari TIA is supported!"
@@ -6209,9 +6207,8 @@ msgid "Software pitch driver"
 msgstr "Drivrutin för programvara för tonhöjd"
 
 #: src/gui/sysConf.cpp:1072
-#, fuzzy
 msgid "Old pitch table (compatibility)"
-msgstr "Brutna tonhöjdsmakro/glider (kompatibilitet)"
+msgstr "Gammal tonhöjdstabell (kompatibilitet)"
 
 #: src/gui/sysConf.cpp:1077
 msgid "Mixing mode:"
@@ -6295,13 +6292,12 @@ msgid "Scale frequency to wave length"
 msgstr "Skala frekvens till våglängd"
 
 #: src/gui/sysConf.cpp:1292
-#, fuzzy
 msgid "Amiga channel volumes (64)"
-msgstr "Kanalvolymfält:"
+msgstr "Amiga-kanalvolymer (64)"
 
 #: src/gui/sysConf.cpp:1296
 msgid "Amiga-like pitch (non-linear pitch only)"
-msgstr ""
+msgstr "Amiga-liknande tonhöjd (endast icke-linjär tonhöjd)"
 
 #: src/gui/sysConf.cpp:1332 src/gui/sysConf.cpp:1754
 msgid "3.54MHz (PAL)"
@@ -6473,9 +6469,8 @@ msgid "Output bit depth:"
 msgstr "Utgångsbitdjup:"
 
 #: src/gui/sysConf.cpp:1897
-#, fuzzy
 msgid "Maximum volume:"
-msgstr "Minimum"
+msgstr "Max volym:"
 
 #: src/gui/sysConf.cpp:1907
 msgid "Interpolation:"
@@ -13035,15 +13030,16 @@ msgstr ""
 "för att kompensera för SNES Gaussian-filtrets dämpning."
 
 #: src/gui/sampleEdit.cpp:546
-#, fuzzy
 msgid "no BRR filters"
-msgstr "Ekofilter"
+msgstr "inga BRR filter"
 
 #: src/gui/sampleEdit.cpp:554
 msgid ""
 "enable this option to not use BRR blocks with filters\n"
 "and allow sample offset commands to be used safely."
 msgstr ""
+"aktivera detta alternativ för att inte använda BRR-block med filter\n"
+"och tillåt att sampleoffsetkommandon används på ett säkert sätt."
 
 #: src/gui/sampleEdit.cpp:559
 msgid "8-bit dither"
