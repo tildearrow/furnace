@@ -1493,7 +1493,7 @@ msgid ""
 "capabilities..."
 msgstr ""
 "det är en utmaning att göra musik på detta chip som knappt har "
-"musikalaförmågor..."
+"musikala förmågor..."
 
 #: src/engine/sysDef.cpp:925
 msgid "Philips SAA1099"
