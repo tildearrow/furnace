@@ -145,6 +145,7 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
         }
       }
     }
+    if (done) break;
     // get register dumps
     int i=0;
     if (NDS>=0) {
