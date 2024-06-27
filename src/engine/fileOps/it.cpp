@@ -501,6 +501,20 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         }
       }
 
+      // set filter macro to cutoff value if no filter envelope is defined
+      if (ins->std.ex1Macro.len==0 && initCut&0x80) {
+        if ((initCut&0x7f)==0x7f) {
+          ins->std.ex1Macro.len=1;
+          ins->std.ex1Macro.val[0]=65535;
+        } else {
+          ins->std.ex1Macro.len=1;
+          ins->std.ex1Macro.val[0]=1024+(initCut&0x7f)*400;
+        }
+      } else {
+        ins->std.ex1Macro.len=1;
+        ins->std.ex1Macro.val[0]=65535;
+      }
+
       ds.ins.push_back(ins);
     }
 
@@ -766,9 +780,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         }
 
         if (chan&128) {
-          mask[chan&63]=reader.readC();
+          mask[(chan-1)&63]=reader.readC();
         }
-        chan&=63;
+        chan=(chan-1)&63;
 
         if (chan>maxChan) maxChan=chan;
 
@@ -1037,11 +1051,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         }
 
         if (chan&128) {
-          mask[chan&63]=reader.readC();
+          mask[(chan-1)&63]=reader.readC();
         }
-        chan&=63;
-
-        if (chan>maxChan) maxChan=chan;
+        chan=(chan-1)&63;
 
         if (mask[chan]&1) {
           note[chan]=reader.readC();
@@ -1264,6 +1276,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         }
       }
     }
+
+    maxChan++;
 
     ds.insLen=ds.ins.size();
 
