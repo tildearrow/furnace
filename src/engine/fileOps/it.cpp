@@ -19,6 +19,10 @@
 
 #include "fileOpsCommon.h"
 
+static const unsigned char volPortaSlide[10]={
+  0, 1, 4, 8, 16, 32, 64, 96, 128, 255
+};
+
 void readEnvelope(SafeReader& reader, DivInstrument* ins, int env) {
   unsigned char flags=reader.readC();
   unsigned char numPoints=reader.readC();
@@ -377,6 +381,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
       unsigned char initCut=255;
       unsigned char initRes=255;
+      unsigned char insVol=128;
 
       if (compatTracker<0x200) { // old format
         unsigned char flags=reader.readC();
@@ -416,10 +421,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         reader.readC();
         reader.readC();
 
-        unsigned char globalVol=reader.readC();
+        insVol=reader.readC();
         unsigned char defPan=reader.readC();
 
-        logV("globalVol: %d",globalVol);
         logV("defPan: %d",defPan);
 
         // vol/pan randomization
@@ -468,6 +472,17 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         readEnvelope(reader,ins,2);
       }
 
+      // scale envelope to global volume
+      if (insVol>128) insVol=128;
+      if (ins->std.volMacro.len==0) {
+        ins->std.volMacro.len=1;
+        ins->std.volMacro.val[0]=insVol>>1;
+      } else {
+        for (int j=0; j<ins->std.volMacro.len; j++) {
+          ins->std.volMacro.val[i]=(ins->std.volMacro.val[i]*insVol)>>7;
+        }
+      }
+
       ds.ins.push_back(ins);
     }
 
@@ -511,11 +526,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
       reader.readC(); // 0
 
-      unsigned char globalVol=reader.readC();
+      unsigned char sampleVol=reader.readC();
       unsigned char flags=reader.readC();
       defVol[i]=reader.readC();
-
-      logV("volumes: %d",globalVol);
 
       s->name=reader.readString(26);
 
@@ -644,6 +657,22 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         }
       }
 
+      // scale sample if necessary
+      if (sampleVol>64) sampleVol=64;
+      if (sampleVol<64) {
+        // convert to 16-bit
+        /*
+        if (s->depth==DIV_SAMPLE_DEPTH_8BIT) {
+          s->convert(DIV_SAMPLE_DEPTH_16BIT,0);
+        }
+
+        // then scale
+        for (unsigned int i=0; i<s->samples; i++) {
+          s->data16[i]=(s->data16[i]*sampleVol)>>6;
+        }
+        */
+      }
+
       // does the song not use instruments?
       // create instrument then
       if (ds.insLen==0) {
@@ -656,8 +685,6 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
       ds.sample.push_back(s);
     }
-
-    ds.insLen=ds.ins.size();
 
     // read patterns
     int maxChan=0;
@@ -907,9 +934,35 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
           p->data[curRow][2]=ins[chan]-1;
         }
         if (hasVol) {
-          p->data[curRow][3]=vol[chan];
-        } else if (hasNote && hasIns && note[chan]<120 && ins[chan]>0) {
-          p->data[curRow][3]=defVol[noteMap[(ins[chan]-1)&255][note[chan]]];
+          if (vol[chan]<=64) {
+            p->data[curRow][3]=vol[chan];
+          } else { // effects in volume column
+            if (vol[chan]>=128 && vol[chan]<=192) { // panning
+              p->data[curRow][effectCol[chan]++]=0x80;
+              p->data[curRow][effectCol[chan]++]=CLAMP((vol[chan]-128)<<2,0,255);
+            } else if (vol[chan]>=65 && vol[chan]<=74) { // fine vol up
+            } else if (vol[chan]>=75 && vol[chan]<=74) { // fine vol down
+            } else if (vol[chan]>=85 && vol[chan]<=94) { // vol slide up
+            } else if (vol[chan]>=95 && vol[chan]<=104) { // vol slide down
+            } else if (vol[chan]>=105 && vol[chan]<=114) { // pitch down
+            } else if (vol[chan]>=115 && vol[chan]<=124) { // pitch up
+            } else if (vol[chan]>=193 && vol[chan]<=202) { // porta
+              unsigned char portaVal=volPortaSlide[vol[chan]-193];
+              if (portaVal!=0) {
+                portaStatus[chan]=portaVal;
+                portaStatusChanged[chan]=true;
+              }
+              portaType[chan]=3;
+              porting[chan]=true;
+            } else if (vol[chan]>=203 && vol[chan]<=212) { // vibrato
+            }
+          }
+        } else if (hasNote && hasIns && (note[chan]<120 || ds.insLen==0) && ins[chan]>0) {
+          if (ds.insLen==0) {
+            p->data[curRow][3]=defVol[(ins[chan]-1)&255];
+          } else {
+            p->data[curRow][3]=defVol[noteMap[(ins[chan]-1)&255][note[chan]]];
+          }
         }
         if (hasEffect) {
           switch (effect[chan]+'A'-1) {
@@ -992,15 +1045,15 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               porting[chan]=true;
               portaType[chan]=3;
               break;
-            case 'M': // channel vol (extension)
+            case 'M': // channel vol
               break;
-            case 'N': // channel vol slide (extension)
+            case 'N': // channel vol slide
               break;
             case 'O': // offset
               p->data[curRow][effectCol[chan]++]=0x91;
               p->data[curRow][effectCol[chan]++]=effectVal[chan];
               break;
-            case 'P': // pan slide (extension)
+            case 'P': // pan slide
               break;
             case 'Q': // retrigger
               p->data[curRow][effectCol[chan]++]=0x0c;
@@ -1035,18 +1088,20 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               break;
             case 'W': // global volume slide (!)
               break;
-            case 'X': // panning (extension)
+            case 'X': // panning
               p->data[curRow][effectCol[chan]++]=0x80;
               p->data[curRow][effectCol[chan]++]=effectVal[chan];
               break;
-            case 'Y': // panbrello (extension)
+            case 'Y': // panbrello
               break;
-            case 'Z': // MIDI macro (extension)
+            case 'Z': // MIDI macro
               break;
           }
         }
       }
     }
+
+    ds.insLen=ds.ins.size();
 
     logV("maxChan: %d",maxChan);
 
