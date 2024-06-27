@@ -591,6 +591,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_ZSM,
+  GUI_FILE_EXPORT_NDS,
   GUI_FILE_EXPORT_TIUNA,
   GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_TEXT,
@@ -644,6 +645,7 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_AUDIO=0,
   GUI_EXPORT_VGM,
   GUI_EXPORT_ZSM,
+  GUI_EXPORT_NDS,
   GUI_EXPORT_TIUNA,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_AMIGA_VAL,
@@ -1601,7 +1603,7 @@ class FurnaceGUI {
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
 
-  bool quit, warnQuit, willCommit, edit, editClone, isPatUnique, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, zsmExportOptimize, vgmExportPatternHints;
+  bool quit, warnQuit, willCommit, edit, editClone, isPatUnique, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, ndsExportLoop, zsmExportOptimize, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
@@ -1621,6 +1623,7 @@ class FurnaceGUI {
   int cvHiScore;
   int drawHalt;
   int zsmExportTickRate;
+  int ndsExportTickRate;
   String asmBaseLabel;
   int tiunaFirstBankSize;
   int tiunaOtherBankSize;
@@ -2675,6 +2678,7 @@ class FurnaceGUI {
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportZSM(bool onWindow=false);
+  void drawExportNDS(bool onWindow=false);
   void drawExportTiuna(bool onWindow=false);
   void drawExportAmigaVal(bool onWindow=false);
   void drawExportText(bool onWindow=false);

@@ -705,6 +705,8 @@ class DivEngine {
     SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true, bool optimize=true);
     // dump to TIunA.
     SafeWriter* saveTiuna(const bool* sysToExport, const char* baseLabel, int firstBankSize, int otherBankSize);
+    // dump to furDS.
+    SafeWriter* saveNDS(unsigned int refreshrate=60, bool loop=true);
     // dump command stream.
     SafeWriter* saveCommand();
     // export to text

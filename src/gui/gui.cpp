@@ -1926,6 +1926,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
+    case GUI_FILE_EXPORT_NDS:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        _("Export furDS music file"),
+        {_("C file"), "*.c"},
+        workingDirROMExport,
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
+      );
+      break;
     case GUI_FILE_EXPORT_TIUNA:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -4273,6 +4283,16 @@ bool FurnaceGUI::loop() {
               ImGui::EndMenu();
             }
           }
+          int numNDSCompat=0;
+          for (int i=0; i<e->song.systemLen; i++) {
+            if (e->song.system[i]==DIV_SYSTEM_NDS) numNDSCompat++;
+          }
+          if (numNDSCompat>0) {
+            if (ImGui::BeginMenu(_("export furDS music data..."))) {
+              drawExportNDS();
+              ImGui::EndMenu();
+            }
+          }
           int numAmiga=0;
           for (int i=0; i<e->song.systemLen; i++) {
             if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
@@ -4311,6 +4331,16 @@ bool FurnaceGUI::loop() {
           if (numZSMCompat>0) {
             if (ImGui::MenuItem(_("export ZSM..."))) {
               curExportType=GUI_EXPORT_ZSM;
+              displayExport=true;
+            }
+          }
+          int numNDSCompat=0;
+          for (int i=0; i<e->song.systemLen; i++) {
+            if (e->song.system[i]==DIV_SYSTEM_NDS) numNDSCompat++;
+          }
+          if (numNDSCompat>0) {
+            if (ImGui::BeginMenu(_("export furDS music data..."))) {
+              curExportType=GUI_EXPORT_NDS;
               displayExport=true;
             }
           }
@@ -4905,6 +4935,7 @@ bool FurnaceGUI::loop() {
           break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TIUNA:
+        case GUI_FILE_EXPORT_NDS:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
@@ -5403,6 +5434,27 @@ bool FurnaceGUI::loop() {
                 }
               } else {
                 showError(fmt::sprintf("Could not write TIunA! (%s)",e->getLastError()));
+              }
+              break;
+            }
+            case GUI_FILE_EXPORT_NDS: {
+              SafeWriter* w=e->saveNDS(ndsExportTickRate,ndsExportLoop);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf(_("Could not write furDS! (%s)"),e->getLastError()));
               }
               break;
             }
@@ -7679,6 +7731,7 @@ FurnaceGUI::FurnaceGUI():
   displayExporting(false),
   vgmExportLoop(true),
   zsmExportLoop(true),
+  ndsExportLoop(false),
   zsmExportOptimize(true),
   vgmExportPatternHints(false),
   vgmExportDirectStream(false),
@@ -7720,6 +7773,7 @@ FurnaceGUI::FurnaceGUI():
   vgmExportTrailingTicks(-1),
   drawHalt(10),
   zsmExportTickRate(60),
+  ndsExportTickRate(60),
   asmBaseLabel(""),
   tiunaFirstBankSize(3072),
   tiunaOtherBankSize(4096-48),
