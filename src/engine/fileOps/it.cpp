@@ -212,7 +212,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
-    ds.pitchSlideSpeed=4;
+    ds.pitchSlideSpeed=8;
 
     logV("Impulse Tracker module");
 
@@ -627,9 +627,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         unsigned int ret=0;
         logV("decompression begin...");
         if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
-          ret=it_decompress16(s->data16,s->length16,&file[reader.tell()],len-reader.tell(),(convert&4)?1:0,(flags&4)?2:1);
+          ret=it_decompress16(s->data16,s->samples,&file[reader.tell()],len-reader.tell(),(convert&4)?1:0,(flags&4)?2:1);
         } else {
-          ret=it_decompress8(s->data8,s->length8,&file[reader.tell()],len-reader.tell(),(convert&4)?1:0,(flags&4)?2:1);
+          ret=it_decompress8(s->data8,s->samples,&file[reader.tell()],len-reader.tell(),(convert&4)?1:0,(flags&4)?2:1);
         }
         logV("got: %d",ret);
       } else {
