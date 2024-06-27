@@ -98,7 +98,7 @@ msgstr "17xx: Växla till PCM-läge (FÖRÅLDRAD)"
 #: src/engine/sysDef.cpp:471 src/engine/sysDef.cpp:1653
 #: src/engine/sysDef.cpp:1963
 msgid "DFxx: Set sample playback direction (0: normal; 1: reverse)"
-msgstr "DFxx: Ange provuppspelningsriktning (0: normal; 1: omvänd)"
+msgstr "DFxx: Ange sampleuppspelningsriktning (0: normal; 1: omvänd)"
 
 #: src/engine/sysDef.cpp:476
 msgid "18xx: Toggle drums mode (1: enabled; 0: disabled)"
@@ -4464,19 +4464,19 @@ msgstr "optimera storlek"
 
 #: src/gui/exportOptions.cpp:255
 msgid "for use with TIunA driver. outputs asm source."
-msgstr ""
+msgstr "för användning med TIunA-drivrutinen. matar ut asm-källa."
 
 #: src/gui/exportOptions.cpp:256
 msgid "base song label name"
-msgstr ""
+msgstr "baslåtens etikettnamn"
 
 #: src/gui/exportOptions.cpp:257
 msgid "max size in first bank"
-msgstr ""
+msgstr "maxstorlek i första bank"
 
 #: src/gui/exportOptions.cpp:261
 msgid "max size in other banks"
-msgstr ""
+msgstr "maxstorlek i andra banker"
 
 #: src/gui/exportOptions.cpp:276
 #, fuzzy
@@ -4485,7 +4485,7 @@ msgstr "detta chip stöds inte av VGM-formatet!"
 
 #: src/gui/exportOptions.cpp:278
 msgid "only one Atari TIA is supported!"
-msgstr ""
+msgstr "endast ett Atari TIA stöds!"
 
 #: src/gui/exportOptions.cpp:306 src/gui/editControls.cpp:630
 msgid ""
@@ -6206,7 +6206,7 @@ msgstr "Gå förbi frekvensgränserna"
 
 #: src/gui/sysConf.cpp:1068
 msgid "Software pitch driver"
-msgstr ""
+msgstr "Drivrutin för programvara för tonhöjd"
 
 #: src/gui/sysConf.cpp:1072
 #, fuzzy
@@ -6645,11 +6645,11 @@ msgstr "DSi (16MB RAM)"
 
 #: src/gui/sysConf.cpp:2476
 msgid "V 0.3.1"
-msgstr ""
+msgstr "V 0,3,1"
 
 #: src/gui/sysConf.cpp:2480
 msgid "V 47.0.0 (9-bit volume)"
-msgstr ""
+msgstr "V 47,0,0 (9-bit volym)"
 
 #: src/gui/sysConf.cpp:2505 src/gui/settings.cpp:730
 msgid "nothing to configure"
@@ -6701,9 +6701,9 @@ msgid ""
 "available options:\n"
 "- tickRate"
 msgstr ""
-"infoga ytterligare inställningar i formatet `option=värde`.\n"
+"infoga ytterligare inställningar i formatet `val=värde`.\n"
 "tillgängliga alternativ:\n"
-"- tickRate"
+"- tickhastighet"
 
 #: src/gui/userPresets.cpp:509
 msgid "Save and Close"
@@ -6979,7 +6979,7 @@ msgstr "Allmänt"
 
 #: src/gui/settings.cpp:590
 msgid "Language"
-msgstr ""
+msgstr "Språk"
 
 #: src/gui/settings.cpp:609
 msgid "Render backend"
@@ -7317,7 +7317,7 @@ msgid ""
 "fill the file name field with an appropriate file name when saving or "
 "exporting."
 msgstr ""
-"fyll filnamnsfältet med ett lämpligt filnamn när du sparar eller exportera."
+"fyll filnamnsfältet med ett lämpligt filnamn när du sparar eller exporterar."
 
 #: src/gui/settings.cpp:981 src/gui/gui.cpp:5597 src/gui/gui.cpp:5647
 msgid "New Song"
@@ -10825,7 +10825,7 @@ msgstr "vgsound_emu (andra versionen, modifierad version) av cam900"
 
 #: src/gui/about.cpp:288
 msgid "Impulse Tracker GUS volume table by Jeffrey Lim"
-msgstr ""
+msgstr "Impulse Tracker GUS volymtabell av Jeffrey Lim"
 
 #: src/gui/about.cpp:289
 msgid "SM8521 emulator (modified version) by cam900"
@@ -13047,12 +13047,12 @@ msgstr ""
 
 #: src/gui/sampleEdit.cpp:559
 msgid "8-bit dither"
-msgstr "8-bit dither"
+msgstr "8-bit ljuddämpning"
 
 #: src/gui/sampleEdit.cpp:567
 msgid "dither the sample when used on a chip that only supports 8-bit samples."
 msgstr ""
-"dither sample när den används på ett chip som bara stöder 8-bitars sampel."
+"ljuddämpa sample när den används på ett chip som bara stöder 8-bit samples."
 
 #: src/gui/sampleEdit.cpp:708 src/gui/gui.cpp:2987
 msgid "Start"
