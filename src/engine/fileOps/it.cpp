@@ -101,9 +101,7 @@ void readEnvelope(SafeReader& reader, DivInstrument* ins, int env) {
       pointJustBegan=false;
       if (flags&2) { // loop
         if (point==loopStart && (!(flags&4) || susStart==susEnd || loopStart>=susEnd)) {
-          if (loopStart==loopEnd) {
-            target->rel=i;
-          } else {
+          if (loopStart!=loopEnd) {
             target->loop=i;
           }
         }
@@ -493,7 +491,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       }
 
       // add note fade if there isn't a release point in the volume envelope
-      if (ins->std.volMacro.len>0) {
+      if (ins->std.volMacro.len>0 && ins->std.volMacro.rel>=ins->std.volMacro.len) {
         ins->std.volMacro.len--;
         int initial=ins->std.volMacro.val[ins->std.volMacro.len];
         ins->std.volMacro.rel=ins->std.volMacro.len;
