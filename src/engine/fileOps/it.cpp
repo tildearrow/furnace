@@ -101,7 +101,11 @@ void readEnvelope(SafeReader& reader, DivInstrument* ins, int env) {
       pointJustBegan=false;
       if (flags&2) { // loop
         if (point==loopStart && (!(flags&4) || susStart==susEnd || loopStart>=susEnd)) {
-          target->loop=i;
+          if (loopStart==loopEnd) {
+            target->rel=i;
+          } else {
+            target->loop=i;
+          }
         }
       }
       if (flags&4) { // sustain
@@ -386,6 +390,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       unsigned char initCut=255;
       unsigned char initRes=255;
       unsigned char insVol=128;
+      unsigned short fadeOut=256;
 
       if (compatTracker<0x200) { // old format
         unsigned char flags=reader.readC();
@@ -402,7 +407,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
         reader.readS(); // x
 
-        unsigned short fadeOut=reader.readS();
+        fadeOut=reader.readS();
 
         logV("fadeOut: %d",fadeOut);
 
@@ -418,7 +423,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         reader.readC();
         reader.readC();
 
-        unsigned short fadeOut=reader.readS();
+        fadeOut=reader.readS();
 
         logV("fadeOut: %d",fadeOut);
 
@@ -484,6 +489,17 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       } else {
         for (int j=0; j<ins->std.volMacro.len; j++) {
           ins->std.volMacro.val[i]=(ins->std.volMacro.val[i]*insVol)>>7;
+        }
+      }
+
+      // add note fade if there isn't a release point in the volume envelope
+      if (ins->std.volMacro.len>0) {
+        ins->std.volMacro.len--;
+        int initial=ins->std.volMacro.val[ins->std.volMacro.len];
+        ins->std.volMacro.rel=ins->std.volMacro.len;
+        for (int i=1024; ins->std.volMacro.len<255; i-=fadeOut) {
+          ins->std.volMacro.val[ins->std.volMacro.len++]=(initial*i)>>10;
+          if (i<0) break;
         }
       }
 
@@ -693,8 +709,151 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       ds.sample.push_back(s);
     }
 
-    // read patterns
+    // scan pattern data for effect use
     int maxChan=0;
+    for (int i=0; i<patCount; i++) {
+      if (patPtr[i]==0) continue;
+
+      unsigned char mask[64];
+      unsigned char note[64];
+      unsigned char ins[64];
+      unsigned char vol[64];
+      unsigned char effect[64];
+      unsigned char effectVal[64];
+      int curRow=0;
+
+      memset(mask,0,64);
+      memset(note,0,64);
+      memset(ins,0,64);
+      memset(vol,0,64);
+      memset(effect,0,64);
+      memset(effectVal,0,64);
+
+      logV("scanning pattern %d...",i);
+      if (!reader.seek(patPtr[i],SEEK_SET)) {
+        logE("premature end of file!");
+        lastError="incomplete file";
+        delete[] file;
+        return false;
+      }
+
+      unsigned int dataLen=(unsigned short)reader.readS();
+      unsigned short patRows=reader.readS();
+
+      patLen[i]=patRows;
+
+      if (patRows>DIV_MAX_ROWS) {
+        logE("too many rows! %d",patRows);
+        lastError="too many rows";
+        delete[] file;
+        return false;
+      }
+
+      reader.readI(); // x
+
+      dataLen+=reader.tell();
+
+      // read pattern data
+      while (reader.tell()<dataLen) {
+        unsigned char chan=reader.readC();
+        bool hasVol=false;
+        bool hasEffect=false;
+
+        if (chan==0) {
+          curRow++;
+          if (curRow>=patRows) {
+            break;
+          }
+          continue;
+        }
+
+        if (chan&128) {
+          mask[chan&63]=reader.readC();
+        }
+        chan&=63;
+
+        if (chan>maxChan) maxChan=chan;
+
+        if (mask[chan]&1) {
+          note[chan]=reader.readC();
+        }
+        if (mask[chan]&2) {
+          ins[chan]=reader.readC();
+        }
+        if (mask[chan]&4) {
+          vol[chan]=reader.readC();
+          hasVol=true;
+        }
+        if (mask[chan]&8) {
+          effect[chan]=reader.readC();
+          effectVal[chan]=reader.readC();
+          hasEffect=true;
+        }
+        if (mask[chan]&64) {
+          hasVol=true;
+        }
+        if (mask[chan]&128) {
+          hasEffect=true;
+        }
+
+        if (hasVol) {
+          if (vol[chan]>64) {
+            if (vol[chan]>=65 && vol[chan]<=74) { // fine vol up
+              doesVolSlide[chan]=true;
+            } else if (vol[chan]>=75 && vol[chan]<=84) { // fine vol down
+              doesVolSlide[chan]=true;
+            } else if (vol[chan]>=85 && vol[chan]<=94) { // vol slide up
+              doesVolSlide[chan]=true;
+            } else if (vol[chan]>=95 && vol[chan]<=104) { // vol slide down
+              doesVolSlide[chan]=true;
+            } else if (vol[chan]>=105 && vol[chan]<=114) { // pitch down
+              doesPitchSlide[chan]=true;
+            } else if (vol[chan]>=115 && vol[chan]<=124) { // pitch up
+              doesPitchSlide[chan]=true;
+            } else if (vol[chan]>=193 && vol[chan]<=202) { // porta
+              doesPitchSlide[chan]=true;
+            } else if (vol[chan]>=203 && vol[chan]<=212) { // vibrato
+              doesVibrato[chan]=true;
+            }
+          }
+        }
+        if (hasEffect) {
+          switch (effect[chan]+'A'-1) {
+            case 'D': // vol slide
+              doesVolSlide[chan]=true;
+              break;
+            case 'E': // pitch down
+              doesPitchSlide[chan]=true;
+              break;
+            case 'F': // pitch up
+              doesPitchSlide[chan]=true;
+              break;
+            case 'G': // porta
+              doesPitchSlide[chan]=true;
+              break;
+            case 'H': // vibrato
+              doesVibrato[chan]=true;
+              break;
+            case 'J': // arp
+              doesArp[chan]=true;
+              break;
+            case 'K': // vol slide + vibrato
+              doesVolSlide[chan]=true;
+              doesVibrato[chan]=true;
+              break;
+            case 'L': // vol slide + porta
+              doesVolSlide[chan]=true;
+              doesPitchSlide[chan]=true;
+              break;
+            case 'U': // fine vibrato
+              doesVibrato[chan]=true;
+              break;
+          }
+        }
+      }
+    }
+
+    // read patterns
     for (int i=0; i<patCount; i++) {
       unsigned char effectCol[64];
       unsigned char vibStatus[64];
