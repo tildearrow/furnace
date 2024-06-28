@@ -112,6 +112,7 @@ bool infoMode=false;
 std::vector<TAParam> params;
 
 #ifdef HAVE_LOCALE
+char reqLocaleCopy[64];
 char localeDir[4096];
 
 const char* localeDirs[]={
@@ -557,20 +558,21 @@ int main(int argc, char** argv) {
       reqLocale+=".UTF-8";
     }
   }
+  strncpy(reqLocaleCopy,reqLocale.c_str(),63);
   if (reqLocale!="en_US.UTF-8") {
     const char* localeRet=NULL;
 #ifdef HAVE_SETLOCALE
-    if ((localeRet=setlocale(LC_CTYPE,reqLocale.c_str()))==NULL) {
+    if ((localeRet=setlocale(LC_CTYPE,reqLocaleCopy))==NULL) {
       logE("could not set locale (CTYPE)!");
       displayLocaleFailError=true;
     } else {
       logV("locale: %s",localeRet);
     }
-    if ((localeRet=setlocale(LC_MESSAGES,reqLocale.c_str()))==NULL) {
+    if ((localeRet=setlocale(LC_MESSAGES,reqLocaleCopy))==NULL) {
       logE("could not set locale (MESSAGES)!");
       displayLocaleFailError=true;
 #ifdef HAVE_MOMO
-      if (momo_setlocale(LC_MESSAGES,reqLocale.c_str())==NULL) {
+      if (momo_setlocale(LC_MESSAGES,reqLocaleCopy)==NULL) {
         logV("Momo: could not set locale!");
       }
 #endif
@@ -583,7 +585,7 @@ int main(int argc, char** argv) {
 #endif
     }
 #else
-    if ((localeRet=momo_setlocale(LC_MESSAGES,reqLocale.c_str()))==NULL) {
+    if ((localeRet=momo_setlocale(LC_MESSAGES,reqLocaleCopy))==NULL) {
       logV("Momo: could not set locale!");
     } else {
       logV("locale: %s",localeRet);
