@@ -881,7 +881,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               break;
             case 'C': // next order
               p->data[curRow][effectCol[chan]++]=0x0d;
-              p->data[curRow][effectCol[chan]++]=effectVal;
+              p->data[curRow][effectCol[chan]++]=(effectVal>>4)*10+(effectVal&15);
               break;
             case 'D': // vol slide
               if (effectVal!=0) {
