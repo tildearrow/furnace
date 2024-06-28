@@ -903,6 +903,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
                 portaStatus[chan]=effectVal;
                 portaStatusChanged[chan]=true;
               }
+              if (hasNoteIns) {
+                portaStatusChanged[chan]=true;
+              }
               portaType[chan]=2;
               porting[chan]=true;
               break;
@@ -911,12 +914,18 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
                 portaStatus[chan]=effectVal;
                 portaStatusChanged[chan]=true;
               }
+              if (hasNoteIns) {
+                portaStatusChanged[chan]=true;
+              }
               portaType[chan]=1;
               porting[chan]=true;
               break;
             case 'G': // porta
               if (effectVal!=0) {
                 portaStatus[chan]=effectVal;
+                portaStatusChanged[chan]=true;
+              }
+              if (hasNoteIns) {
                 portaStatusChanged[chan]=true;
               }
               portaType[chan]=3;
