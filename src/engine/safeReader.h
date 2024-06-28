@@ -29,6 +29,13 @@ enum Endianness {
   BigEndian
 };
 
+enum DivStringEncoding {
+  DIV_ENCODING_NONE=0,
+  DIV_ENCODING_UTF8,
+  DIV_ENCODING_LATIN1,
+  DIV_ENCODING_SHIFT_JIS
+};
+
 class SafeReader;
 
 struct EndOfFileException {
@@ -64,8 +71,12 @@ class SafeReader {
     float readF_BE();
     double readD();
     double readD_BE();
+    String readStringWithEncoding(DivStringEncoding encoding);
+    String readStringWithEncoding(DivStringEncoding encoding, size_t len);
     String readString();
     String readString(size_t len);
+    String readStringLatin1();
+    String readStringLatin1(size_t len);
     String readStringLine();
     String readStringToken(unsigned char delim, bool stripContiguous);
     String readStringToken();

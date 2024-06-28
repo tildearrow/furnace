@@ -117,7 +117,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       return false;
     }
 
-    ds.name=reader.readString(28);
+    ds.name=reader.readStringLatin1(28);
     
     reader.readC(); // 0x1a
     if (reader.readC()!=16) {
@@ -366,7 +366,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           return false;
         }
 
-        String name=reader.readString(28);
+        String name=reader.readStringLatin1(28);
         ins->name=name;
 
         ds.ins.push_back(ins);
@@ -401,7 +401,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         }
       }
 
-      String dosName=reader.readString(12);
+      String dosName=reader.readStringLatin1(12);
 
       if (ins->type==DIV_INS_ES5506) {
         unsigned int memSeg=0;
@@ -434,7 +434,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         reader.readI();
         reader.readI();
 
-        String name=reader.readString(28);
+        String name=reader.readStringLatin1(28);
         s->name=dosName;
         ins->name=name;
 
@@ -581,7 +581,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         // x
         reader.seek(12,SEEK_CUR);
 
-        String name=reader.readString(28);
+        String name=reader.readStringLatin1(28);
         ins->name=name;
 
         // "SCRI"

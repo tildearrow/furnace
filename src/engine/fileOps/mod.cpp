@@ -96,7 +96,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       logD("couldn't seek to 0");
       throw EndOfFileException(&reader,reader.tell());
     }
-    ds.name=reader.readString(20);
+    ds.name=reader.readStringLatin1(20);
     logI("%s",ds.name);
 
     // samples
@@ -105,7 +105,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     for (int i=0; i<insCount; i++) {
       DivSample* sample=new DivSample;
       sample->depth=DIV_SAMPLE_DEPTH_8BIT;
-      sample->name=reader.readString(22);
+      sample->name=reader.readStringLatin1(22);
       logD("%d: %s",i+1,sample->name);
       int slen=((unsigned short)reader.readS_BE())*2;
       sampLens[i]=slen;

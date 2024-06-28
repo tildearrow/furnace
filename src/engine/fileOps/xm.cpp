@@ -55,12 +55,12 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       throw EndOfFileException(&reader,reader.tell());
     }
 
-    ds.name=reader.readString(20);
+    ds.name=reader.readStringLatin1(20);
 
     // 0x1a
     reader.readC();
 
-    String trackerName=reader.readString(20);
+    String trackerName=reader.readStringLatin1(20);
     unsigned short trackerVer=reader.readS();
 
     if (trackerName!="") logV("made with %s",trackerName);
@@ -230,7 +230,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       headerSeek=reader.tell();
       headerSeek+=reader.readI();
 
-      ins->name=reader.readString(22);
+      ins->name=reader.readStringLatin1(22);
       ins->type=DIV_INS_AMIGA;
       ins->amiga.useNoteMap=true;
 
@@ -341,7 +341,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
           reader.readC(); // reserved
 
-          s->name=reader.readString(22);
+          s->name=reader.readStringLatin1(22);
 
           // load sample data
           s->depth=(flags&4)?DIV_SAMPLE_DEPTH_16BIT:DIV_SAMPLE_DEPTH_8BIT;

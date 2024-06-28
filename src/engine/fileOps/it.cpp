@@ -230,7 +230,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       throw EndOfFileException(&reader,reader.tell());
     }
 
-    ds.name=reader.readString(26);
+    ds.name=reader.readStringLatin1(26);
 
     unsigned char hilight1=reader.readC();
     unsigned char hilight2=reader.readC();
@@ -381,7 +381,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         return false;
       }
 
-      String dosName=reader.readString(12);
+      String dosName=reader.readStringLatin1(12);
 
       reader.readC(); // 0
 
@@ -441,7 +441,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         reader.readI();
       }
 
-      ins->name=reader.readString(26);
+      ins->name=reader.readStringLatin1(26);
 
       if (compatTracker<0x200) { // old format
         // x
@@ -554,7 +554,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         return false;
       }
 
-      String dosName=reader.readString(12);
+      String dosName=reader.readStringLatin1(12);
 
       reader.readC(); // 0
 
@@ -562,7 +562,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       unsigned char flags=reader.readC();
       defVol[i]=reader.readC();
 
-      s->name=reader.readString(26);
+      s->name=reader.readStringLatin1(26);
 
       unsigned char convert=reader.readC();
       unsigned char defPan=reader.readC();
