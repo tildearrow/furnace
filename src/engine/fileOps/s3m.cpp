@@ -574,9 +574,14 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         // x
         reader.readS();
 
-        // oh no, we've got a problem here...
-        // C-2 speed
-        reader.readI();
+        // C-2 speed - convert to macro
+        int centerRate=reader.readI();
+        double centerNote=12.0*log2((double)centerRate/8363.0);
+        if (round(centerNote)!=0) {
+          ins->std.arpMacro.len=1;
+          ins->std.arpMacro.val[0]=round(centerNote);
+        }
+        logV("centerRate: %d (%f)",centerRate,centerNote);
 
         // x
         reader.seek(12,SEEK_CUR);
