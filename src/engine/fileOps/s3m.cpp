@@ -421,8 +421,6 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         s->loopStart=reader.readI();
         s->loopEnd=reader.readI();
         defVol[i]=reader.readC();
-        
-        logV("defVol: %d",defVol[i]);
 
         reader.readC(); // x
 
@@ -455,7 +453,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
         s->loop=flags&1;
         s->depth=(flags&4)?DIV_SAMPLE_DEPTH_16BIT:DIV_SAMPLE_DEPTH_8BIT;
-        s->init(length);
+        if (length>0) {
+          s->init(length);
+        }
 
         if (isPacked) {
           logE("ADPCM not supported!");
@@ -584,10 +584,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         String name=reader.readString(28);
         ins->name=name;
 
-        // "SCRS"
+        // "SCRI"
         reader.readI();
         
-        logV("defVol: %d",defVol[i]);
         logV("dsk: %d",dsk);
       }
 
@@ -784,6 +783,10 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             } else if (doesArp[j] && mustCommitInitial) {
               p->data[curRow][effectCol[j]++]=0x00;
               p->data[curRow][effectCol[j]++]=0;
+            }
+
+            if (effectCol[j]>=4+8*2) {
+              logE("oh crap!");
             }
 
             if ((effectCol[j]>>1)-2>ds.subsong[0]->pat[j].effectCols) {
@@ -1044,6 +1047,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         }
       }
     }
+
+    ds.insLen=ds.ins.size();
+    ds.sampleLen=ds.sample.size();
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
