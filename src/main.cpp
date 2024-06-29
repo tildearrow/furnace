@@ -593,11 +593,12 @@ int main(int argc, char** argv) {
 #endif
 
     char exePath[4096];
-#ifdef ANDROID
     memset(exePath,0,4096);
-#else
+#ifndef ANDROID
     if (!getExePath(argv[0],exePath,4095)) memset(exePath,0,4096);
 #endif
+
+    memset(localeDir,0,4096);
 
     bool textDomainBound=false;
     for (int i=0; localeDirs[i]; i++) {
