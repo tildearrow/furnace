@@ -226,9 +226,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       unsigned char panEnv[48];
 
       DivInstrument* ins=new DivInstrument;
-      logV("instrument %d",i);
+      logD("instrument %d",i);
       headerSeek=reader.tell();
       headerSeek+=reader.readI();
+
+      logV("the freaking thing ends at %x",headerSeek);
 
       ins->name=reader.readStringLatin1(22);
       ins->type=DIV_INS_AMIGA;
