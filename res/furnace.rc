@@ -1,1 +1,41 @@
+1 VERSIONINFO
+    FILEVERSION 0,6,5,0
+    PRODUCTVERSION 0,6,5,0
+{
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation",
+            0x409, 1200
+    }
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904B0"
+        {
+            VALUE "ProductName",
+                "Furnace"
+
+            VALUE "InternalName",
+                "Furnace"
+
+            VALUE "OriginalFilename",
+                "furnace.exe"
+
+            VALUE "FileDescription",
+                "Open-source chiptune tracker"
+
+            VALUE "ProductVersion",
+                "0.6.5"
+
+            VALUE "FileVersion",
+                "0.6.5"
+
+            VALUE "CompanyName",
+                "tildearrow"
+
+            VALUE "LegalCopyright",
+                "2021-2024 tildearrow and contributors."
+        }
+    }
+}
+
 IDI_ICON1 ICON DISCARDABLE "icon.ico"
