@@ -311,10 +311,19 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         }
 
         // read samples for this instrument
+        std::vector<DivSample*> toAdd;
         for (int j=0; j<sampleCount; j++) {
           DivSample* s=new DivSample;
 
           unsigned int numSamples=reader.readI();
+          if (numSamples>16777216) {
+            logE("abnormal sample size! %x",reader.tell());
+            lastError="bad sample size";
+            delete s;
+            delete[] file;
+            return false;
+          }
+
           s->loopStart=reader.readI();
           s->loopEnd=reader.readI()+s->loopStart;
 
@@ -344,26 +353,43 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           reader.readC(); // reserved
 
           s->name=reader.readStringLatin1(22);
-
-          // load sample data
           s->depth=(flags&4)?DIV_SAMPLE_DEPTH_16BIT:DIV_SAMPLE_DEPTH_8BIT;
           s->init(numSamples);
 
+
+          // seek here???
+          toAdd.push_back(s);
+        }
+
+        for (int j=0; j<sampleCount; j++) {
+          DivSample* s=toAdd[j];
+
+          // load sample data
           if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
             short next=0;
-            for (unsigned int i=0; i<numSamples; i++) {
+            for (unsigned int i=0; i<s->samples; i++) {
               next+=reader.readS();
               s->data16[i]=next;
             }
           } else {
             signed char next=0;
-            for (unsigned int i=0; i<numSamples; i++) {
+            for (unsigned int i=0; i<s->samples; i++) {
               next+=reader.readC();
               s->data8[i]=next;
             }
           }
+        }
 
-          ds.sample.push_back(s);
+        for (DivSample* i: toAdd) {
+          ds.sample.push_back(i);
+        }
+        toAdd.clear();
+      } else {
+        if (!reader.seek(headerSeek,SEEK_SET)) {
+          logE("premature end of file!");
+          lastError="incomplete file";
+          delete[] file;
+          return false;
         }
       }
       
