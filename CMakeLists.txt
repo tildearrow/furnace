@@ -1128,6 +1128,10 @@ else()
 endif()
 
 if (WIN32)
+  list(APPEND USED_SOURCES res/furnace.rc)
+endif()
+
+if (WIN32)
   list(APPEND DEPENDENCIES_LIBRARIES shlwapi)
   if (NOT MSVC)
     list(APPEND DEPENDENCIES_LIBRARIES -static)
