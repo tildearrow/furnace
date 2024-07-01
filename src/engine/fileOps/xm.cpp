@@ -511,7 +511,9 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           for (int fadeOut=32767; fadeOut>0 && ins->std.volMacro.len<254; fadeOut-=volFade) {
             ins->std.volMacro.val[ins->std.volMacro.len++]=(cur*fadeOut)>>15;
           }
-          ins->std.volMacro.val[ins->std.volMacro.len++]=0;
+          if (ins->std.volMacro.len<255) {
+            ins->std.volMacro.val[ins->std.volMacro.len++]=0;
+          }
         } else {
           // add a one-tick macro to make note release happy
           ins->std.volMacro.val[0]=64;
@@ -715,6 +717,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           bool hasVol=false;
           bool hasEffect=false;
           bool hasEffectVal=false;
+          bool writePanning=false;
 
           if (note&0x80) { // packed
             hasNote=note&1;
@@ -752,19 +755,26 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           if (hasIns) {
             ins=reader.readC();
             p->data[j][2]=((int)ins)-1;
+            // default volume
+            if (hasNote && note<96 && ins>0) {
+              p->data[j][3]=sampleVol[(ins-1)&255][noteMap[(ins-1)&255][note&127]];
+            }
+            writePanning=true;
           }
           if (hasVol) {
             vol=reader.readC();
             if (vol>=0x10 && vol<=0x50) {
               p->data[j][3]=vol-0x10;
             } else { // effects in volume column
-              // TODO
-            }
-          }
-          if (vol==0) {
-            if (hasNote && hasIns && note<96 && ins>0) {
-              // TODO: default volume
-              p->data[j][3]=sampleVol[(ins-1)&255][noteMap[(ins-1)&255][note&127]];
+              if (vol>=0xc0 && vol<=0xcf) {
+                p->data[j][effectCol[k]++]=0x80;
+                if ((vol&15)==8) {
+                  p->data[j][effectCol[k]++]=0x80;
+                } else {
+                  p->data[j][effectCol[k]++]=(vol&15)|((vol&15)<<4);
+                }
+                writePanning=false;
+              }
             }
           }
           if (hasEffect) {
@@ -836,6 +846,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
               case 8: // panning
                 p->data[j][effectCol[k]++]=0x80;
                 p->data[j][effectCol[k]++]=effectVal;
+                writePanning=false;
                 break;
               case 9: // offset
                 p->data[j][effectCol[k]++]=0x91;
@@ -865,6 +876,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
               case 0xe: // special...
                 // TODO: implement the rest
                 switch (effectVal>>4) {
+                  case 0x5:
+                    p->data[j][effectCol[k]++]=0xe5;
+                    p->data[j][effectCol[k]++]=(effectVal&15)<<4;
+                    break;
                   case 0xc:
                     p->data[j][effectCol[k]++]=0xec;
                     p->data[j][effectCol[k]++]=effectVal&15;
@@ -904,6 +919,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
               case 0x21: // X: extra fine volume
                 break;
             }
+          }
+
+          if (writePanning && hasNote && note<96 && ins>0) {
+            p->data[j][effectCol[k]++]=0x80;
+            p->data[j][effectCol[k]++]=samplePan[(ins-1)&255][noteMap[(ins-1)&255][note&127]];
           }
         }
 
