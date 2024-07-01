@@ -19,11 +19,115 @@
 
 #include "fileOpsCommon.h"
 
+void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned char numPoints, unsigned char loopStart, unsigned char loopEnd, unsigned char susPoint, short* points) {
+  if (numPoints>24) numPoints=24;
+
+  if (loopStart>=numPoints) loopStart=numPoints-1;
+  if (loopEnd>=numPoints) loopEnd=numPoints-1;
+  if (susPoint>=numPoints) susPoint=numPoints-1;
+
+  unsigned short pointTime[12];
+  short pointVal[12];
+
+  for (int i=0; i<12; i++) {
+    pointTime[i]=points[i<<1];
+    pointVal[i]=points[1|(i<<1)];
+  }
+
+  // don't process if there aren't any points or if the envelope is disabled
+  if (numPoints<1) return;
+  if (!(flags&1)) return;
+
+  // convert into macro, or try to
+  DivInstrumentMacro* target=NULL;
+  switch (env) {
+    case 0: // volume
+      target=&ins->std.volMacro;
+      break;
+    case 1: // panning (split later)
+      target=&ins->std.panLMacro;
+      break;
+  }
+  target->len=0;
+  int point=0;
+  bool pointJustBegan=true;
+  // mark loop end as end of envelope
+  if (flags&4) {
+    if (loopEnd<numPoints) numPoints=loopEnd+1;
+  }
+  for (int i=0; i<255; i++) {
+    int curPoint=MIN(point,numPoints-1);
+    int nextPoint=MIN(point+1,numPoints-1);
+    int p0=pointVal[curPoint];
+    int p1=pointVal[nextPoint];
+    while (i>pointTime[nextPoint]) {
+      point++;
+      pointJustBegan=true;
+      curPoint=MIN(point,numPoints-1);
+      nextPoint=MIN(point+1,numPoints-1);
+      p0=pointVal[curPoint];
+      p1=pointVal[nextPoint];
+      if ((point+1)>=numPoints) {
+        break;
+      }
+    }
+    if (pointJustBegan) {
+      pointJustBegan=false;
+      if (flags&4) { // loop
+        if (point==loopStart) {
+          if (loopStart!=loopEnd) {
+            target->loop=i;
+          }
+        }
+      }
+      if (flags&2) { // sustain
+        if (point==susPoint) {
+          target->rel=MAX(i-1,0);
+        }
+      }
+    }
+    if ((point+1)>=numPoints) {
+      target->len=i;
+      //target->val[i]=p0;
+      break;
+    }
+    int timeDiff=pointTime[nextPoint]-pointTime[curPoint];
+    int curTime=i-pointTime[curPoint];
+    if (timeDiff<1) timeDiff=1;
+    if (curTime<0) curTime=0;
+
+    target->len=i+1;
+    target->val[i]=p0+(((p1-p0)*curTime)/timeDiff);
+  }
+
+  // split L/R
+  if (env==1) {
+    for (int i=0; i<ins->std.panLMacro.len; i++) {
+      int val=ins->std.panLMacro.val[i];
+      if (val==0) {
+        ins->std.panLMacro.val[i]=4095;
+        ins->std.panRMacro.val[i]=4095;
+      } else if (val>0) { // pan right
+        ins->std.panLMacro.val[i]=4095*pow(1.0-((double)val/64.0),0.25);
+        ins->std.panRMacro.val[i]=4095;
+      } else { // pan left
+        ins->std.panLMacro.val[i]=4095;
+        ins->std.panRMacro.val[i]=4095*pow(1.0+((double)val/64.0),0.25);
+      }
+    }
+    ins->std.panRMacro.len=ins->std.panLMacro.len;
+    ins->std.panRMacro.loop=ins->std.panLMacro.loop;
+    ins->std.panRMacro.rel=ins->std.panLMacro.rel;
+  }
+}
+
 bool DivEngine::loadXM(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
   char magic[32];
   unsigned char sampleVol[256][256];
+  unsigned char samplePan[256][256];
+  unsigned char noteMap[256][128];
 
   unsigned short patLen[256];
 
@@ -37,6 +141,8 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
   warnings="";
 
   memset(sampleVol,0,256*256);
+  memset(samplePan,0,256*256);
+  memset(noteMap,0,256*128);
 
   memset(patLen,0,256*sizeof(unsigned short));
 
@@ -318,6 +424,197 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       }
     }
 
+    // read instruments
+    for (int i=0; i<ds.insLen; i++) {
+      short volEnv[24];
+      short panEnv[48];
+
+      DivInstrument* ins=new DivInstrument;
+      logD("instrument %d",i);
+      headerSeek=reader.tell();
+      headerSeek+=reader.readI();
+
+      logV("the freaking thing ends at %x",headerSeek);
+
+      ins->name=reader.readStringLatin1(22);
+      ins->type=DIV_INS_ES5506;
+      ins->amiga.useNoteMap=true;
+
+      unsigned char insType=reader.readC();
+
+      /*
+      if (insType!=0) {
+        logE("unknown instrument type!");
+        lastError="unknown instrument type";
+        delete ins;
+        song.unload();
+        delete[] file;
+        return false;
+      }*/
+
+      logV("type: %d",insType);
+
+      unsigned short sampleCount=reader.readS();
+      logV("%d samples",sampleCount);
+
+      if (sampleCount>0) {
+        unsigned int sampleHeaderSize=reader.readI();
+        logV("sample header size: %d",sampleHeaderSize);
+        for (int j=0; j<96; j++) {
+          unsigned char nextMap=reader.readC();
+          ins->amiga.noteMap[j].map=ds.sample.size()+nextMap;
+          noteMap[i][j]=nextMap;
+        }
+
+        for (int j=0; j<24; j++) {
+          volEnv[j]=reader.readS();
+        }
+        for (int j=0; j<24; j++) {
+          panEnv[j]=reader.readS();
+        }
+
+        unsigned char volEnvLen=reader.readC();
+        unsigned char panEnvLen=reader.readC();
+        unsigned char volSusPoint=reader.readC();
+        unsigned char volLoopStart=reader.readC();
+        unsigned char volLoopEnd=reader.readC();
+        unsigned char panSusPoint=reader.readC();
+        unsigned char panLoopStart=reader.readC();
+        unsigned char panLoopEnd=reader.readC();
+        unsigned char volType=reader.readC();
+        unsigned char panType=reader.readC();
+
+        unsigned char vibType=reader.readC();
+        unsigned char vibSweep=reader.readC();
+        unsigned char vibDepth=reader.readC();
+        unsigned char vibRate=reader.readC();
+
+        unsigned short volFade=reader.readS();
+        reader.readS(); // reserved
+
+        logV("%d",vibType);
+        logV("%d",vibSweep);
+        logV("%d",vibDepth);
+        logV("%d",vibRate);
+        logV("volFade: %d",volFade);
+        
+        // convert envelopes
+        readEnvelope(ins,0,volType,volEnvLen,volLoopStart,volLoopEnd,volSusPoint,volEnv);
+        readEnvelope(ins,1,panType,panEnvLen,panLoopStart,panLoopEnd,panSusPoint,panEnv);
+
+        if (volType&1) {
+          // add fade-out
+          int cur=64;
+          if (ins->std.volMacro.len>0) {
+            cur=ins->std.volMacro.val[ins->std.volMacro.len-1];
+          }
+          for (int fadeOut=32767; fadeOut>0 && ins->std.volMacro.len<254; fadeOut-=volFade) {
+            ins->std.volMacro.val[ins->std.volMacro.len++]=(cur*fadeOut)>>15;
+          }
+          ins->std.volMacro.val[ins->std.volMacro.len++]=0;
+        } else {
+          // add a one-tick macro to make note release happy
+          ins->std.volMacro.val[0]=64;
+          ins->std.volMacro.val[1]=0;
+          ins->std.volMacro.rel=0;
+          ins->std.volMacro.len=2;
+        }
+
+        if (!reader.seek(headerSeek,SEEK_SET)) {
+          logE("premature end of file!");
+          lastError="incomplete file";
+          delete[] file;
+          return false;
+        }
+
+        // read samples for this instrument
+        std::vector<DivSample*> toAdd;
+        for (int j=0; j<sampleCount; j++) {
+          DivSample* s=new DivSample;
+
+          unsigned int numSamples=reader.readI();
+          if (numSamples>16777216) {
+            logE("abnormal sample size! %x",reader.tell());
+            lastError="bad sample size";
+            delete s;
+            delete[] file;
+            return false;
+          }
+
+          s->loopStart=reader.readI();
+          s->loopEnd=reader.readI()+s->loopStart;
+
+          sampleVol[i][j]=reader.readC();
+
+          signed char fine=reader.readC();
+          unsigned char flags=reader.readC();
+          samplePan[i][j]=reader.readC();
+          signed char note=reader.readC();
+
+          switch (flags&3) {
+            case 0:
+              s->loop=false;
+              break;
+            case 1:
+              s->loop=true;
+              s->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+              break;
+            case 2:
+              s->loop=true;
+              s->loopMode=DIV_SAMPLE_LOOP_PINGPONG;
+              break;
+          }
+
+          reader.readC(); // reserved
+
+          s->centerRate=8363.0*pow(2.0,((double)note+((double)fine/128.0))/12.0);
+
+          s->name=reader.readStringLatin1(22);
+          s->depth=(flags&16)?DIV_SAMPLE_DEPTH_16BIT:DIV_SAMPLE_DEPTH_8BIT;
+          if (flags&16) {
+            numSamples>>=1;
+          }
+          s->init(numSamples);
+
+          // seek here???
+          toAdd.push_back(s);
+        }
+
+        for (int j=0; j<sampleCount; j++) {
+          DivSample* s=toAdd[j];
+
+          // load sample data
+          if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+            short next=0;
+            for (unsigned int i=0; i<s->samples; i++) {
+              next+=reader.readS();
+              s->data16[i]=next;
+            }
+          } else {
+            signed char next=0;
+            for (unsigned int i=0; i<s->samples; i++) {
+              next+=reader.readC();
+              s->data8[i]=next;
+            }
+          }
+        }
+
+        for (DivSample* i: toAdd) {
+          ds.sample.push_back(i);
+        }
+        toAdd.clear();
+      } else {
+        if (!reader.seek(headerSeek,SEEK_SET)) {
+          logE("premature end of file!");
+          lastError="incomplete file";
+          delete[] file;
+          return false;
+        }
+      }
+      
+      ds.ins.push_back(ins);
+    }
+
     if (!reader.seek(patBegin,SEEK_SET)) {
       logE("premature end of file!");
       lastError="incomplete file";
@@ -437,15 +734,18 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           }
 
           if (hasNote) {
-            if (note>=96) {
-              p->data[j][0]=100;
-              p->data[j][1]=0;
-            } else {
-              p->data[j][0]=note%12;
-              p->data[j][1]=note/12;
-              if (p->data[j][0]==0) {
-                p->data[j][0]=12;
-                p->data[j][1]=(unsigned char)(p->data[j][1]-1);
+            if (note!=0) {
+              if (note>96) {
+                p->data[j][0]=101;
+                p->data[j][1]=0;
+              } else {
+                note--;
+                p->data[j][0]=note%12;
+                p->data[j][1]=note/12;
+                if (p->data[j][0]==0) {
+                  p->data[j][0]=12;
+                  p->data[j][1]=(unsigned char)(p->data[j][1]-1);
+                }
               }
             }
           }
@@ -464,7 +764,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           if (vol==0) {
             if (hasNote && hasIns && note<96 && ins>0) {
               // TODO: default volume
-              p->data[j][3]=0x40;
+              p->data[j][3]=sampleVol[(ins-1)&255][noteMap[(ins-1)&255][note&127]];
             }
           }
           if (hasEffect) {
@@ -474,11 +774,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             effectVal=reader.readC();
           }
 
-          if (hasEffect) {
+          if (hasEffect || (hasEffectVal && effectVal!=0)) {
             switch (effect) {
               case 0: // arp
                 if (effectVal!=0) {
-                  arpStatus[k]=effectVal;
+                  arpStatus[k]=(effectVal>>4)|(effectVal<<4);
                   arpStatusChanged[k]=true;
                 }
                 arping[k]=true;
@@ -700,182 +1000,6 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         delete[] file;
         return false;
       }
-    }
-
-    // read instruments
-    for (int i=0; i<ds.insLen; i++) {
-      unsigned char volEnv[48];
-      unsigned char panEnv[48];
-
-      DivInstrument* ins=new DivInstrument;
-      logD("instrument %d",i);
-      headerSeek=reader.tell();
-      headerSeek+=reader.readI();
-
-      logV("the freaking thing ends at %x",headerSeek);
-
-      ins->name=reader.readStringLatin1(22);
-      ins->type=DIV_INS_ES5506;
-      ins->amiga.useNoteMap=true;
-
-      unsigned char insType=reader.readC();
-
-      /*
-      if (insType!=0) {
-        logE("unknown instrument type!");
-        lastError="unknown instrument type";
-        delete ins;
-        song.unload();
-        delete[] file;
-        return false;
-      }*/
-
-      logV("type: %d",insType);
-
-      unsigned short sampleCount=reader.readS();
-      logV("%d samples",sampleCount);
-
-      if (sampleCount>0) {
-        unsigned int sampleHeaderSize=reader.readI();
-        logV("sample header size: %d",sampleHeaderSize);
-        for (int j=0; j<96; j++) {
-          unsigned char nextMap=reader.readC();
-          if (nextMap==0) {
-            ins->amiga.noteMap[j].map=-1;
-          } else {
-            ins->amiga.noteMap[j].map=ds.sample.size()+nextMap-1;
-          }
-        }
-
-        reader.read(volEnv,48);
-        reader.read(panEnv,48);
-
-        unsigned char volEnvLen=reader.readC();
-        unsigned char panEnvLen=reader.readC();
-        unsigned char volSusPoint=reader.readC();
-        unsigned char volLoopStart=reader.readC();
-        unsigned char volLoopEnd=reader.readC();
-        unsigned char panSusPoint=reader.readC();
-        unsigned char panLoopStart=reader.readC();
-        unsigned char panLoopEnd=reader.readC();
-        unsigned char volType=reader.readC();
-        unsigned char panType=reader.readC();
-
-        unsigned char vibType=reader.readC();
-        unsigned char vibSweep=reader.readC();
-        unsigned char vibDepth=reader.readC();
-        unsigned char vibRate=reader.readC();
-
-        unsigned short volFade=reader.readS();
-        reader.readS(); // reserved
-
-        logV("%d",volEnvLen);
-        logV("%d",panEnvLen);
-        logV("%d",volSusPoint);
-        logV("%d",volLoopStart);
-        logV("%d",volLoopEnd);
-        logV("%d",panSusPoint);
-        logV("%d",panLoopStart);
-        logV("%d",panLoopEnd);
-        logV("%d",volType);
-        logV("%d",panType);
-        logV("%d",vibType);
-        logV("%d",vibSweep);
-        logV("%d",vibDepth);
-        logV("%d",vibRate);
-        logV("%d",volFade);
-
-        if (!reader.seek(headerSeek,SEEK_SET)) {
-          logE("premature end of file!");
-          lastError="incomplete file";
-          delete[] file;
-          return false;
-        }
-
-        // read samples for this instrument
-        std::vector<DivSample*> toAdd;
-        for (int j=0; j<sampleCount; j++) {
-          DivSample* s=new DivSample;
-
-          unsigned int numSamples=reader.readI();
-          if (numSamples>16777216) {
-            logE("abnormal sample size! %x",reader.tell());
-            lastError="bad sample size";
-            delete s;
-            delete[] file;
-            return false;
-          }
-
-          s->loopStart=reader.readI();
-          s->loopEnd=reader.readI()+s->loopStart;
-
-          sampleVol[i][j]=reader.readC();
-
-          signed char fine=reader.readC();
-          unsigned char flags=reader.readC();
-          unsigned char pan=reader.readC();
-          unsigned char note=reader.readC();
-
-          logV("%d %d %d",fine,pan,note);
-
-          switch (flags&3) {
-            case 0:
-              s->loop=false;
-              break;
-            case 1:
-              s->loop=true;
-              s->loopMode=DIV_SAMPLE_LOOP_FORWARD;
-              break;
-            case 2:
-              s->loop=true;
-              s->loopMode=DIV_SAMPLE_LOOP_PINGPONG;
-              break;
-          }
-
-          reader.readC(); // reserved
-
-          s->name=reader.readStringLatin1(22);
-          s->depth=(flags&4)?DIV_SAMPLE_DEPTH_16BIT:DIV_SAMPLE_DEPTH_8BIT;
-          s->init(numSamples);
-
-
-          // seek here???
-          toAdd.push_back(s);
-        }
-
-        for (int j=0; j<sampleCount; j++) {
-          DivSample* s=toAdd[j];
-
-          // load sample data
-          if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
-            short next=0;
-            for (unsigned int i=0; i<s->samples; i++) {
-              next+=reader.readS();
-              s->data16[i]=next;
-            }
-          } else {
-            signed char next=0;
-            for (unsigned int i=0; i<s->samples; i++) {
-              next+=reader.readC();
-              s->data8[i]=next;
-            }
-          }
-        }
-
-        for (DivSample* i: toAdd) {
-          ds.sample.push_back(i);
-        }
-        toAdd.clear();
-      } else {
-        if (!reader.seek(headerSeek,SEEK_SET)) {
-          logE("premature end of file!");
-          lastError="incomplete file";
-          delete[] file;
-          return false;
-        }
-      }
-      
-      ds.ins.push_back(ins);
     }
 
     ds.sampleLen=ds.sample.size();
