@@ -1039,6 +1039,12 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       return false;
     }
 
+    // set channel visibility
+    for (int i=totalChans; i<((totalChans+32)&(~31)); i++) {
+      ds.subsong[0]->chanShow[i]=false;
+      ds.subsong[0]->chanShowChanOsc[i]=false;
+    }
+
     // find subsongs
     ds.findSubSongs(totalChans);
 
