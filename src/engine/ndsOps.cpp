@@ -162,11 +162,18 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
       wait++;
       for (DivRegWrite& write: writes) {
         if (i==NDS) {
+/*
           if (write.addr==0x100&&write.addr<0x108) {
             //writeByte(2);
             //writeByte(write.addr&0xff);
             //writeByte(write.val&0xff);
           } else {
+            writeByte(0);
+            writeByte(write.addr&0xff);
+            writeByte(write.val&0xff);
+          }
+*/
+          if ((write.addr&0xff) == write.addr) {
             writeByte(0);
             writeByte(write.addr&0xff);
             writeByte(write.val&0xff);
