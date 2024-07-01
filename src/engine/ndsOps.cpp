@@ -98,17 +98,17 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
   bool loopNow=false;
   int loopPos=-1;
   int wait=0;
-  int oldWait=0;
+  //int oldWait=0;
 
   if (NDS>=0) disCont[NDS].dispatch->toggleRegisterDump(true);
 
   //disCont[NDS].dispatch->renderSamples(NDS);
   size_t sampleMemLength = disCont[NDS].dispatch->getSampleMemUsage(NDS);
-  const void *samples = disCont[NDS].dispatch->getSampleMem(NDS);
+  uint8_t *samples = (uint8_t *)disCont[NDS].dispatch->getSampleMem(NDS);
   offset = 0;
   w->writeText("unsigned char samples[] = {"); 
   for (size_t i = 0; i < sampleMemLength; i++) {
-    writeByte(*((uint8_t*)(samples+i)));
+    writeByte(samples[i]);
   }
   w->writeText("\n};\n");
 
