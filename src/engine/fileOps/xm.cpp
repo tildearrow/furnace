@@ -234,6 +234,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       ds.system[i]=DIV_SYSTEM_ES5506;
       ds.systemFlags[i].set("amigaVol",true);
       ds.systemFlags[i].set("amigaPitch",(ds.linearPitch==0));
+      ds.systemFlags[i].set("volScale",3900);
     }
     ds.systemLen=(totalChans+31)>>5;
 
@@ -545,6 +546,12 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
           s->loopStart=reader.readI();
           s->loopEnd=reader.readI()+s->loopStart;
+
+          if (s->loopStart>s->loopEnd) {
+            s->loopStart^=s->loopEnd;
+            s->loopEnd^=s->loopStart;
+            s->loopStart^=s->loopEnd;
+          }
 
           sampleVol[i][j]=reader.readC();
 
