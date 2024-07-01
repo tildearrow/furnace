@@ -24,10 +24,27 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
   bool success=false;
   char magic[32];
   unsigned char sampleVol[256][256];
+
+  unsigned short patLen[256];
+
+  bool doesPitchSlide[128];
+  bool doesVibrato[128];
+  bool doesPanning[128];
+  bool doesVolSlide[128];
+  bool doesArp[128];
+
   SafeReader reader=SafeReader(file,len);
   warnings="";
 
   memset(sampleVol,0,256*256);
+
+  memset(patLen,0,256*sizeof(unsigned short));
+
+  memset(doesPitchSlide,0,128*sizeof(bool));
+  memset(doesVibrato,0,128*sizeof(bool));
+  memset(doesPanning,0,128*sizeof(bool));
+  memset(doesVolSlide,0,128*sizeof(bool));
+  memset(doesArp,0,128*sizeof(bool));
 
   try {
     DivSong ds;
@@ -81,6 +98,13 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     double bpm=(unsigned short)reader.readS();
     ds.subsong[0]->hz=(double)bpm/2.5;
 
+    if (ds.insLen<0 || ds.insLen>256) {
+      logE("invalid instrument count!");
+      lastError="invalid instrument count";
+      delete[] file;
+      return false;
+    }
+
     logV("channels: %d",totalChans);
 
     if (totalChans>127) {
@@ -107,17 +131,18 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     }
     ds.systemLen=(totalChans+31)>>5;
 
-    logV("seeking to %x...",headerSeek);
+    size_t patBegin=headerSeek;
+    logV("seeking to %x...",patBegin);
 
-    if (!reader.seek(headerSeek,SEEK_SET)) {
+    if (!reader.seek(patBegin,SEEK_SET)) {
       logE("premature end of file!");
       lastError="incomplete file";
       delete[] file;
       return false;
     }
 
-    // read patterns
-    logD("reading patterns...");
+    // scan pattern data for effect use
+    logD("scanning patterns...");
     for (unsigned short i=0; i<patCount; i++) {
       logV("pattern %d",i);
       headerSeek=reader.tell();
@@ -135,6 +160,238 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       unsigned short totalRows=reader.readS();
       logV("total rows: %d",totalRows);
       if (totalRows>ds.subsong[0]->patLen) ds.subsong[0]->patLen=totalRows;
+      patLen[i]=totalRows;
+
+      if (totalRows>256) {
+        logE("too many rows! %d",totalRows);
+        lastError="too many rows";
+        delete[] file;
+        return false;
+      }
+
+      unsigned int packedSeek=headerSeek+(unsigned short)reader.readS();
+
+      logV("seeking to %x...",headerSeek);
+      if (!reader.seek(headerSeek,SEEK_SET)) {
+        logE("premature end of file!");
+        lastError="incomplete file";
+        delete[] file;
+        return false;
+      }
+
+      // read data
+      for (int j=0; j<totalRows; j++) {
+        for (int k=0; k<totalChans; k++) {
+          unsigned char note=reader.readC();
+          unsigned char vol=0;
+          unsigned char effect=0;
+          unsigned char effectVal=0;
+          bool hasNote=false;
+          bool hasIns=false;
+          bool hasVol=false;
+          bool hasEffect=false;
+          bool hasEffectVal=false;
+
+          if (note&0x80) { // packed
+            hasNote=note&1;
+            hasIns=note&2;
+            hasVol=note&4;
+            hasEffect=note&8;
+            hasEffectVal=note&16;
+            if (hasNote) {
+              note=reader.readC();
+            }
+          } else { // unpacked
+            hasNote=true;
+            hasIns=true;
+            hasVol=true;
+            hasEffect=true;
+            hasEffectVal=true;
+          }
+
+          if (hasIns) {
+            reader.readC();
+          }
+          if (hasVol) {
+            vol=reader.readC();
+            switch (vol>>4) {
+              case 0x6: // vol slide down
+                doesVolSlide[k]=true;
+                break;
+              case 0x7: // vol slide up
+                doesVolSlide[k]=true;
+                break;
+              case 0x8: // vol slide down (fine)
+                doesVolSlide[k]=true;
+                break;
+              case 0x9: // vol slide up (fine)
+                doesVolSlide[k]=true;
+                break;
+              case 0xa: // vibrato speed
+                doesVibrato[k]=true;
+                break;
+              case 0xb: // vibrato depth
+                doesVibrato[k]=true;
+                break;
+              case 0xc: // panning
+                doesPanning[k]=true;
+                break;
+              case 0xd: // pan slide left
+                doesPanning[k]=true;
+                break;
+              case 0xe: // pan slide right
+                doesPanning[k]=true;
+                break;
+              case 0xf: // porta
+                doesPitchSlide[k]=true;
+                break;
+            }
+          }
+          if (hasEffect) {
+            effect=reader.readC();
+            switch (effect) {
+              case 0:
+                doesArp[k]=true;
+                break;
+              case 1:
+                doesPitchSlide[k]=true;
+                break;
+              case 2:
+                doesPitchSlide[k]=true;
+                break;
+              case 3:
+                doesPitchSlide[k]=true;
+                break;
+              case 4:
+                doesVibrato[k]=true;
+                break;
+              case 5:
+                doesPitchSlide[k]=true;
+                doesVolSlide[k]=true;
+                break;
+              case 6:
+                doesVibrato[k]=true;
+                doesVolSlide[k]=true;
+                break;
+              case 8:
+                doesPanning[k]=true;
+                break;
+              case 0xe:
+                doesPanning[k]=true;
+                break;
+              case 0x19: // P
+                doesPanning[k]=true;
+                break;
+              case 0x21: // X
+                doesPitchSlide[k]=true;
+                break;
+            }
+          }
+          if (hasEffectVal) {
+            effectVal=reader.readC();
+            if (effect==0xe) {
+              switch (effectVal>>4) {
+                case 1:
+                  doesPitchSlide[k]=true;
+                  break;
+                case 2:
+                  doesPitchSlide[k]=true;
+                  break;
+                case 0xa:
+                  doesVolSlide[k]=true;
+                  break;
+                case 0xb:
+                  doesVolSlide[k]=true;
+                  break;
+              }
+            }
+          }
+        }
+      }
+
+      logV("seeking to %x...",packedSeek);
+      if (!reader.seek(packedSeek,SEEK_SET)) {
+        logE("premature end of file!");
+        lastError="incomplete file";
+        delete[] file;
+        return false;
+      }
+    }
+
+    if (!reader.seek(patBegin,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+
+    // read patterns
+    logD("reading patterns...");
+    for (unsigned short i=0; i<patCount; i++) {
+      unsigned char effectCol[128];
+      unsigned char vibStatus[128];
+      bool vibStatusChanged[128];
+      bool vibing[128];
+      bool vibingOld[128];
+      unsigned char volSlideStatus[128];
+      bool volSlideStatusChanged[128];
+      bool volSliding[128];
+      bool volSlidingOld[128];
+      unsigned char portaStatus[128];
+      bool portaStatusChanged[128];
+      bool porting[128];
+      bool portingOld[128];
+      unsigned char portaType[128];
+      unsigned char arpStatus[128];
+      bool arpStatusChanged[128];
+      bool arping[128];
+      bool arpingOld[128];
+
+      bool mustCommitInitial=true;
+
+      memset(effectCol,4,128);
+      memset(vibStatus,0,128);
+      memset(vibStatusChanged,0,128*sizeof(bool));
+      memset(vibing,0,128*sizeof(bool));
+      memset(vibingOld,0,128*sizeof(bool));
+      memset(volSlideStatus,0,128);
+      memset(volSlideStatusChanged,0,128*sizeof(bool));
+      memset(volSliding,0,128*sizeof(bool));
+      memset(volSlidingOld,0,128*sizeof(bool));
+      memset(portaStatus,0,128);
+      memset(portaStatusChanged,0,128*sizeof(bool));
+      memset(porting,0,128*sizeof(bool));
+      memset(portingOld,0,128*sizeof(bool));
+      memset(portaType,0,128);
+      memset(arpStatus,0,128);
+      memset(arpStatusChanged,0,128*sizeof(bool));
+      memset(arping,0,128*sizeof(bool));
+      memset(arpingOld,0,128*sizeof(bool));
+
+      logV("pattern %d",i);
+      headerSeek=reader.tell();
+      headerSeek+=reader.readI();
+
+      unsigned char packType=reader.readC();
+      if (packType!=0) {
+        logE("unknown packing type %d!",packType);
+        lastError="unknown packing type";
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+
+      unsigned short totalRows=reader.readS();
+      logV("total rows: %d",totalRows);
+      if (totalRows>ds.subsong[0]->patLen) ds.subsong[0]->patLen=totalRows;
+      patLen[i]=totalRows;
+
+      if (totalRows>256) {
+        logE("too many rows! %d",totalRows);
+        lastError="too many rows";
+        delete[] file;
+        return false;
+      }
 
       unsigned int packedSeek=headerSeek+(unsigned short)reader.readS();
 
@@ -198,15 +455,240 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           }
           if (hasVol) {
             vol=reader.readC();
-            p->data[j][3]=vol;
+            if (vol>=0x10 && vol<=0x50) {
+              p->data[j][3]=vol-0x10;
+            } else { // effects in volume column
+              // TODO
+            }
+          }
+          if (vol==0) {
+            if (hasNote && hasIns && note<96 && ins>0) {
+              // TODO: default volume
+              p->data[j][3]=0x40;
+            }
           }
           if (hasEffect) {
             effect=reader.readC();
-            p->data[j][4]=effect;
           }
           if (hasEffectVal) {
             effectVal=reader.readC();
-            p->data[j][5]=effectVal;
+          }
+
+          if (hasEffect) {
+            switch (effect) {
+              case 0: // arp
+                if (effectVal!=0) {
+                  arpStatus[k]=effectVal;
+                  arpStatusChanged[k]=true;
+                }
+                arping[k]=true;
+                break;
+              case 1: // pitch up
+                if (effectVal!=0) {
+                  portaStatus[k]=effectVal;
+                  portaStatusChanged[k]=true;
+                }
+                portaType[k]=1;
+                porting[k]=true;
+                break;
+              case 2: // pitch down
+                if (effectVal!=0) {
+                  portaStatus[k]=effectVal;
+                  portaStatusChanged[k]=true;
+                }
+                portaType[k]=2;
+                porting[k]=true;
+                break;
+              case 3: // porta
+                if (effectVal!=0) {
+                  portaStatus[k]=effectVal;
+                  portaStatusChanged[k]=true;
+                }
+                portaType[k]=3;
+                porting[k]=true;
+                break;
+              case 4: // vibrato
+                if (effectVal!=0) {
+                  vibStatus[k]=effectVal;
+                  vibStatusChanged[k]=true;
+                }
+                vibing[k]=true;
+                break;
+              case 5: // vol slide + porta
+                if (effectVal!=0) {
+                  volSlideStatus[k]=effectVal;
+                  volSlideStatusChanged[k]=true;
+                }
+                volSliding[k]=true;
+                porting[k]=true;
+                portaType[k]=3;
+                break;
+              case 6: // vol slide + vibrato
+                if (effectVal!=0) {
+                  volSlideStatus[k]=effectVal;
+                  volSlideStatusChanged[k]=true;
+                }
+                volSliding[k]=true;
+                vibing[k]=true;
+                break;
+              case 7: // tremolo
+                break;
+              case 8: // panning
+                p->data[j][effectCol[k]++]=0x80;
+                p->data[j][effectCol[k]++]=effectVal;
+                break;
+              case 9: // offset
+                p->data[j][effectCol[k]++]=0x91;
+                p->data[j][effectCol[k]++]=effectVal;
+                break;
+              case 0xa: // vol slide
+                if (effectVal!=0) {
+                  volSlideStatus[k]=effectVal;
+                  volSlideStatusChanged[k]=true;
+                }
+                if (hasIns) {
+                  volSlideStatusChanged[k]=true;
+                }
+                volSliding[k]=true;
+                break;
+              case 0xb: // go to order
+                p->data[j][effectCol[k]++]=0x0b;
+                p->data[j][effectCol[k]++]=effectVal;
+                break;
+              case 0xc: // set volume
+                p->data[j][3]=effectVal;
+                break;
+              case 0xd: // next order
+                p->data[j][effectCol[k]++]=0x0d;
+                p->data[j][effectCol[k]++]=effectVal;
+                break;
+              case 0xe: // special...
+                // TODO: implement the rest
+                switch (effectVal>>4) {
+                  case 0xc:
+                    p->data[j][effectCol[k]++]=0xec;
+                    p->data[j][effectCol[k]++]=effectVal&15;
+                    break;
+                  case 0xd:
+                    p->data[j][effectCol[k]++]=0xed;
+                    p->data[j][effectCol[k]++]=effectVal&15;
+                    break;
+                }
+                break;
+              case 0x10: // G: global volume (!)
+                break;
+              case 0xf: // speed/tempp
+                if (effectVal>=0x20) {
+                  p->data[j][effectCol[k]++]=0xf0;
+                } else {
+                  p->data[j][effectCol[k]++]=0x0f;
+                }
+                p->data[j][effectCol[k]++]=effectVal;
+                break;
+              case 0x11: // H: global volume slide (!)
+                break;
+              case 0x14: // K: key off
+                p->data[j][effectCol[k]++]=0xe7;
+                p->data[j][effectCol[k]++]=effectVal;
+                break;
+              case 0x15: // L: set envelope position (!)
+                break;
+              case 0x19: // P: pan slide
+                break;
+              case 0x1b: // R: retrigger
+                p->data[j][effectCol[k]++]=0x0c;
+                p->data[j][effectCol[k]++]=effectVal;
+                break;
+              case 0x1d: // T: tremor (!)
+                break;
+              case 0x21: // X: extra fine volume
+                break;
+            }
+          }
+        }
+
+        // commit effects
+        for (int k=0; k<totalChans; k++) {
+          DivPattern* p=ds.subsong[0]->pat[k].getPattern(i,true);
+          if (vibing[k]!=vibingOld[k] || vibStatusChanged[k]) {
+            p->data[j][effectCol[k]++]=0x04;
+            p->data[j][effectCol[k]++]=vibing[k]?vibStatus[k]:0;
+            doesVibrato[k]=true;
+          } else if (doesVibrato[k] && mustCommitInitial) {
+            p->data[j][effectCol[k]++]=0x04;
+            p->data[j][effectCol[k]++]=0;
+          }
+
+          if (volSliding[k]!=volSlidingOld[k] || volSlideStatusChanged[k]) {
+            if (volSlideStatus[k]>=0xf1 && volSliding[k]) {
+              p->data[j][effectCol[k]++]=0xf9;
+              p->data[j][effectCol[k]++]=volSlideStatus[k]&15;
+              volSliding[k]=false;
+            } else if ((volSlideStatus[k]&15)==15 && volSlideStatus[k]>=0x10 && volSliding[k]) {
+              p->data[j][effectCol[k]++]=0xf8;
+              p->data[j][effectCol[k]++]=volSlideStatus[k]>>4;
+              volSliding[k]=false;
+            } else {
+              p->data[j][effectCol[k]++]=0xfa;
+              p->data[j][effectCol[k]++]=volSliding[k]?volSlideStatus[k]:0;
+            }
+            doesVolSlide[k]=true;
+          } else if (doesVolSlide[k] && mustCommitInitial) {
+            p->data[j][effectCol[k]++]=0xfa;
+            p->data[j][effectCol[k]++]=0;
+          }
+
+          if (porting[k]!=portingOld[k] || portaStatusChanged[k]) {
+            if (portaStatus[k]>=0xe0 && portaType[k]!=3 && porting[k]) {
+              p->data[j][effectCol[k]++]=portaType[k]|0xf0;
+              p->data[j][effectCol[k]++]=(portaStatus[k]&15)*((portaStatus[k]>=0xf0)?1:1);
+              porting[k]=false;
+            } else {
+              p->data[j][effectCol[k]++]=portaType[k];
+              p->data[j][effectCol[k]++]=porting[k]?portaStatus[k]:0;
+            }
+            doesPitchSlide[k]=true;
+          } else if (doesPitchSlide[k] && mustCommitInitial) {
+            p->data[j][effectCol[k]++]=0x01;
+            p->data[j][effectCol[k]++]=0;
+          }
+
+          if (arping[k]!=arpingOld[k] || arpStatusChanged[k]) {
+            p->data[j][effectCol[k]++]=0x00;
+            p->data[j][effectCol[k]++]=arping[k]?arpStatus[k]:0;
+            doesArp[k]=true;
+          } else if (doesArp[k] && mustCommitInitial) {
+            p->data[j][effectCol[k]++]=0x00;
+            p->data[j][effectCol[k]++]=0;
+          }
+
+          if ((effectCol[k]>>1)-2>ds.subsong[0]->pat[k].effectCols) {
+            ds.subsong[0]->pat[k].effectCols=(effectCol[k]>>1)-1;
+          }
+        }
+
+        memset(effectCol,4,64);
+        memcpy(vibingOld,vibing,64*sizeof(bool));
+        memcpy(volSlidingOld,volSliding,64*sizeof(bool));
+        memcpy(portingOld,porting,64*sizeof(bool));
+        memcpy(arpingOld,arping,64*sizeof(bool));
+        memset(vibStatusChanged,0,64*sizeof(bool));
+        memset(volSlideStatusChanged,0,64*sizeof(bool));
+        memset(portaStatusChanged,0,64*sizeof(bool));
+        memset(arpStatusChanged,0,64*sizeof(bool));
+        memset(vibing,0,64*sizeof(bool));
+        memset(volSliding,0,64*sizeof(bool));
+        memset(porting,0,64*sizeof(bool));
+        memset(arping,0,64*sizeof(bool));
+        mustCommitInitial=false;
+        if (j==totalRows-1) {
+          // place end of pattern marker
+          DivPattern* p=ds.subsong[0]->pat[0].getPattern(i,true);
+          p->data[j][effectCol[0]++]=0x0d;
+          p->data[j][effectCol[0]++]=0;
+
+          if ((effectCol[0]>>1)-2>ds.subsong[0]->pat[0].effectCols) {
+            ds.subsong[0]->pat[0].effectCols=(effectCol[0]>>1)-1;
           }
         }
       }
@@ -233,7 +715,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       logV("the freaking thing ends at %x",headerSeek);
 
       ins->name=reader.readStringLatin1(22);
-      ins->type=DIV_INS_AMIGA;
+      ins->type=DIV_INS_ES5506;
       ins->amiga.useNoteMap=true;
 
       unsigned char insType=reader.readC();
@@ -397,6 +879,13 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     }
 
     ds.sampleLen=ds.sample.size();
+    if (ds.sampleLen>256) {
+      logE("too many samples!");
+      lastError="too many samples";
+      ds.unload();
+      delete[] file;
+      return false;
+    }
 
     // find subsongs
     ds.findSubSongs(totalChans);
