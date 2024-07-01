@@ -1315,7 +1315,7 @@ void DivPlatformES5506::renderSamples(int sysID) {
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
 
-  size_t memPos=129; // add silent at begin and end of each bank for reverse playback and add 1 for loop
+  size_t memPos=128; // add silent at begin and end of each bank for reverse playback and add 1 for loop
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
@@ -1340,8 +1340,13 @@ void DivPlatformES5506::renderSamples(int sysID) {
       logW("out of ES5506 memory for sample %d!",i);
     } else {
       memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
+      // inject loop sample
+      if (s->loop && s->loopEnd>=0 && s->loopEnd<=(int)s->samples && s->loopStart>=0 && s->loopStart<(int)s->samples) {
+        sampleMem[(memPos/sizeof(short))+s->loopEnd]=s->data16[s->loopStart];
+        if (s->loopEnd>=(int)s->samples) length+=2;
+      }
     }
-    sampleOffES5506[i]=memPos-1;
+    sampleOffES5506[i]=memPos;
     sampleLoaded[i]=true;
     memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+length));
     memPos+=length;
