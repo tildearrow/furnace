@@ -204,7 +204,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     double bpm=(unsigned short)reader.readS();
     ds.subsong[0]->hz=(double)bpm/2.5;
 
-    if (ordersLen>256) {
+    if (ds.subsong[0]->ordersLen>256) {
       logE("invalid order count!");
       lastError="invalid order count";
       delete[] file;
