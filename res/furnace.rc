@@ -5,7 +5,16 @@
     BLOCK "VarFileInfo"
     {
         VALUE "Translation",
-            0x409, 1200
+            0x409, 1200, // English
+            0x421, 1200, // Indonesian
+            0x40A, 1200, // Spanish (Spain)
+            0x412, 1200, // Korean
+            0x415, 1200, // Polish
+            0x416, 1200, // Portuguese (Brazil)
+            0x419, 1200, // Russian
+            0x41B, 1200, // Slovak
+            0x41D, 1200, // Swedish
+            0x804, 1200 // Chinese (Simplified)
     }
     BLOCK "StringFileInfo"
     {
