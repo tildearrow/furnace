@@ -819,7 +819,15 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                 break;
               case 4: // vibrato
                 if (effectVal!=0) {
-                  vibStatus[k]=effectVal;
+                  if ((effectVal&0xf0)==0) { // only change depth
+                    vibStatus[k]&=0xf0;
+                    vibStatus[k]|=effectVal&0x0f;
+                  } else if ((effectVal&0x0f)==0) { // only change speed
+                    vibStatus[k]&=0x0f;
+                    vibStatus[k]|=effectVal&0xf0;
+                  } else {
+                    vibStatus[k]=effectVal;
+                  }
                   vibStatusChanged[k]=true;
                 }
                 vibing[k]=true;
