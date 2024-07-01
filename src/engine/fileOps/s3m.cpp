@@ -414,7 +414,12 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
         unsigned int length=reader.readI();
 
-        logV("length: %x",length);
+        if (length>16777216) {
+          logE("abnormal sample size! %x",reader.tell());
+          lastError="bad sample size";
+          delete[] file;
+          return false;
+        }
 
         DivSample* s=new DivSample;
 

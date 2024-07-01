@@ -204,6 +204,20 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     double bpm=(unsigned short)reader.readS();
     ds.subsong[0]->hz=(double)bpm/2.5;
 
+    if (ordersLen>256) {
+      logE("invalid order count!");
+      lastError="invalid order count";
+      delete[] file;
+      return false;
+    }
+
+    if (patCount>256) {
+      logE("too many patterns!");
+      lastError="too many patterns";
+      delete[] file;
+      return false;
+    }
+
     if (ds.insLen<0 || ds.insLen>256) {
       logE("invalid instrument count!");
       lastError="invalid instrument count";
@@ -435,8 +449,6 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       headerSeek=reader.tell();
       headerSeek+=reader.readI();
 
-      logV("the freaking thing ends at %x",headerSeek);
-
       ins->name=reader.readStringLatin1(22);
       ins->type=DIV_INS_ES5506;
       ins->amiga.useNoteMap=true;
@@ -493,11 +505,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         unsigned short volFade=reader.readS();
         reader.readS(); // reserved
 
-        logV("%d",vibType);
-        logV("%d",vibSweep);
-        logV("%d",vibDepth);
-        logV("%d",vibRate);
-        logV("volFade: %d",volFade);
+        logV("vibrato: %d %d %d %d",vibType,vibSweep,vibDepth,vibRate);
         
         // convert envelopes
         readEnvelope(ins,0,volType,volEnvLen,volLoopStart,volLoopEnd,volSusPoint,volEnv);

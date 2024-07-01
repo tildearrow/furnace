@@ -547,7 +547,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       reader.read(magic,4);
 
       if (memcmp(magic,"IMPS",4)!=0) {
-        logE("invalid sample header!");
+        logW("invalid sample header!");
         lastError="invalid sample header";
         delete s;
         delete[] file;
@@ -575,7 +575,16 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         s->depth=DIV_SAMPLE_DEPTH_8BIT;
       }
 
-      s->init((unsigned int)reader.readI());
+      unsigned int sampleLen=reader.readI();
+
+      if (sampleLen>16777216) {
+        logE("abnormal sample size! %x",reader.tell());
+        lastError="bad sample size";
+        delete[] file;
+        return false;
+      }
+
+      s->init(sampleLen);
       s->loopStart=reader.readI();
       s->loopEnd=reader.readI();
       s->centerRate=reader.readI()/2;
