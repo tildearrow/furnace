@@ -498,10 +498,6 @@ void FurnaceGUI::drawExport() {
         e->song.linearPitch=1;
         ImGui::CloseCurrentPopup();
       }
-      if (ImGui::Button(_("Enable multi-threading settings"))) {
-        settings.showPool=1;
-        ImGui::CloseCurrentPopup();
-      }
       if (ImGui::Button(_("Set fat to max"))) {
         ImGuiStyle& sty=ImGui::GetStyle();
         sty.FramePadding=ImVec2(20.0f*dpiScale,20.0f*dpiScale);

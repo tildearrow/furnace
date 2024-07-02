@@ -1916,7 +1916,6 @@ class FurnaceGUI {
     int wasapiEx;
     int chanOscThreads;
     int renderPoolThreads;
-    int showPool;
     int writeInsNames;
     int readInsNames;
     int fontBackend;
@@ -2172,7 +2171,6 @@ class FurnaceGUI {
       wasapiEx(0),
       chanOscThreads(0),
       renderPoolThreads(0),
-      showPool(0),
       writeInsNames(0),
       readInsNames(1),
       fontBackend(1),
