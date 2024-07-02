@@ -305,11 +305,12 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
 
     logD("reading orders...");
     size_t curSubSong=0;
+    int curOrder1=0;
     ds.subsong[curSubSong]->ordersLen=0;
     bool subSongIncreased=false;
     for (int i=0; i<ordersLen; i++) {
       unsigned char nextOrder=reader.readC();
-      orders[i]=curOrder;
+      orders[i]=curOrder1;
       
       // skip +++ order
       if (nextOrder==254) {
@@ -323,7 +324,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
           curSubSong++;
           subSongIncreased=true;
         }
-        curOrder=0;
+        curOrder1=0;
         continue;
       }
       subSongIncreased=false;
@@ -337,7 +338,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         ds.subsong[curSubSong]->orders.ord[j][ds.subsong[curSubSong]->ordersLen]=nextOrder;
       }
       ds.subsong[curSubSong]->ordersLen++;
-      curOrder++;
+      curOrder1++;
     }
 
     for (int i=0; i<ds.insLen; i++) {
