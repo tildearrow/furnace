@@ -602,13 +602,11 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
       }
       if (chan[i].noteChanged.note) {
-        if (chan[i].currNote!=chan[i].nextNote) {
-          chan[i].currNote=chan[i].nextNote;
-          const int nextFreq=NOTE_ES5506(i,chan[i].nextNote);
-          if (chan[i].nextFreq!=nextFreq) {
-            chan[i].nextFreq=nextFreq;
-            chan[i].noteChanged.freq=1;
-          }
+        chan[i].currNote=chan[i].nextNote;
+        const int nextFreq=NOTE_ES5506(i,chan[i].nextNote);
+        if (chan[i].nextFreq!=nextFreq) {
+          chan[i].nextFreq=nextFreq;
+          chan[i].noteChanged.freq=1;
         }
       }
       if (chan[i].noteChanged.freq) {
