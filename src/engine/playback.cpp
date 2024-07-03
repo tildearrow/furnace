@@ -1039,26 +1039,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
         clockDrift=0;
         subticks=0;
         break;
-      case 0xf1: // single pitch ramp up
-      case 0xf2: // single pitch ramp down
-        if (effect==0xf1) {
-          chan[i].portaNote=song.limitSlides?0x60:255;
-        } else {
-          chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
-        }
-        chan[i].portaSpeed=effectVal;
-        chan[i].portaStop=true;
-        chan[i].nowYouCanStop=false;
-        chan[i].stopOnOff=false;
-        chan[i].scheduledSlideReset=false;
-        chan[i].inPorta=false;
-        if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
-        dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote));
-        chan[i].portaNote=-1;
-        chan[i].portaSpeed=-1;
-        chan[i].inPorta=false;
-        if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
-        break;
       case 0xf3: // fine volume ramp up
         // tremolo and vol slides are incompatible
         chan[i].tremoloDepth=0;
@@ -1198,7 +1178,30 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
     if (effectVal==-1) effectVal=0;
     effectVal&=255;
-    perSystemPostEffect(i,effect,effectVal);
+    if (!perSystemPostEffect(i,effect,effectVal)) {
+      switch (effect) {
+        case 0xf1: // single pitch ramp up
+        case 0xf2: // single pitch ramp down
+          if (effect==0xf1) {
+            chan[i].portaNote=song.limitSlides?0x60:255;
+          } else {
+            chan[i].portaNote=song.limitSlides?disCont[dispatchOfChan[i]].dispatch->getPortaFloor(dispatchChanOfChan[i]):-60;
+          }
+          chan[i].portaSpeed=effectVal;
+          chan[i].portaStop=true;
+          chan[i].nowYouCanStop=false;
+          chan[i].stopOnOff=false;
+          chan[i].scheduledSlideReset=false;
+          chan[i].inPorta=false;
+          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.linearPitch==2?song.pitchSlideSpeed:1),chan[i].portaNote));
+          chan[i].portaNote=-1;
+          chan[i].portaSpeed=-1;
+          chan[i].inPorta=false;
+          if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+          break;
+      }
+    }
   }
 }
 

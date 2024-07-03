@@ -222,6 +222,34 @@ static const short amigaPanTable[128]={
   0xFE0, 0xFE4, 0xFE8, 0xFEC, 0xFF0, 0xFF4, 0xFF8, 0xFFF
 };
 
+void DivPlatformES5506::updateNoteChangesAsNeeded(int ch) {
+  if (chan[ch].noteChanged.changed) { // note value changed or frequency offset is changed
+    if (chan[ch].noteChanged.offs) {
+      if (chan[ch].pcm.freqOffs!=chan[ch].pcm.nextFreqOffs) {
+        chan[ch].pcm.freqOffs=chan[ch].pcm.nextFreqOffs;
+        chan[ch].nextFreq=NOTE_ES5506(ch,chan[ch].currNote);
+        chan[ch].noteChanged.freq=1;
+        chan[ch].freqChanged=true;
+      }
+    }
+    if (chan[ch].noteChanged.note) {
+      chan[ch].currNote=chan[ch].nextNote;
+      const int nextFreq=NOTE_ES5506(ch,chan[ch].nextNote);
+      if (chan[ch].nextFreq!=nextFreq) {
+        chan[ch].nextFreq=nextFreq;
+        chan[ch].noteChanged.freq=1;
+      }
+    }
+    if (chan[ch].noteChanged.freq) {
+      if (chan[ch].baseFreq!=chan[ch].nextFreq) {
+        chan[ch].baseFreq=chan[ch].nextFreq;
+        chan[ch].freqChanged=true;
+      }
+    }
+    chan[ch].noteChanged.changed=0;
+  }
+}
+
 void DivPlatformES5506::tick(bool sysTick) {
   for (int i=0; i<=chanMax; i++) {
     chan[i].std.next();
@@ -592,31 +620,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
       chan[i].envChanged.changed=0;
     }
-    if (chan[i].noteChanged.changed) { // note value changed or frequency offset is changed
-      if (chan[i].noteChanged.offs) {
-        if (chan[i].pcm.freqOffs!=chan[i].pcm.nextFreqOffs) {
-          chan[i].pcm.freqOffs=chan[i].pcm.nextFreqOffs;
-          chan[i].nextFreq=NOTE_ES5506(i,chan[i].currNote);
-          chan[i].noteChanged.freq=1;
-          chan[i].freqChanged=true;
-        }
-      }
-      if (chan[i].noteChanged.note) {
-        chan[i].currNote=chan[i].nextNote;
-        const int nextFreq=NOTE_ES5506(i,chan[i].nextNote);
-        if (chan[i].nextFreq!=nextFreq) {
-          chan[i].nextFreq=nextFreq;
-          chan[i].noteChanged.freq=1;
-        }
-      }
-      if (chan[i].noteChanged.freq) {
-        if (chan[i].baseFreq!=chan[i].nextFreq) {
-          chan[i].baseFreq=chan[i].nextFreq;
-          chan[i].freqChanged=true;
-        }
-      }
-      chan[i].noteChanged.changed=0;
-    }
+    updateNoteChangesAsNeeded(i);
     if (chan[i].pcm.setPos) {
       if (chan[i].active) {
         const unsigned int start=chan[i].pcm.start;
@@ -832,6 +836,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         chan[c.chan].pcmChanged.changed=0xff;
         chan[c.chan].noteChanged.changed=0xff;
         chan[c.chan].volChanged.changed=0xff;
+        updateNoteChangesAsNeeded(c.chan);
       }
       if (!chan[c.chan].std.vol.will) {
         if (amigaVol) {
