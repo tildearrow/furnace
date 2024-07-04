@@ -4019,7 +4019,12 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_VOLUME,_("Volume"));
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_PITCH,_("Pitch"));
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_WAVE,_("Wave"));
+          UI_COLOR_CONFIG(GUI_COLOR_MACRO_NOISE,_("Noise"));
+          UI_COLOR_CONFIG(GUI_COLOR_MACRO_FILTER,_("Filter"));
+          UI_COLOR_CONFIG(GUI_COLOR_MACRO_ENVELOPE,_("Envelope"));
+          UI_COLOR_CONFIG(GUI_COLOR_MACRO_GLOBAL,_("Global Parameter"));
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_OTHER,_("Other"));
+          UI_COLOR_CONFIG(GUI_COLOR_MACRO_HIGHLIGHT,_("Step Highlight"));
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Instrument Types"))) {
