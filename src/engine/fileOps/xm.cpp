@@ -555,12 +555,6 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           s->loopStart=reader.readI();
           s->loopEnd=reader.readI()+s->loopStart;
 
-          if (s->loopStart>s->loopEnd) {
-            s->loopStart^=s->loopEnd;
-            s->loopEnd^=s->loopStart;
-            s->loopStart^=s->loopEnd;
-          }
-
           sampleVol[i][j]=reader.readC();
 
           signed char fine=reader.readC();
@@ -581,6 +575,18 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
               s->loopMode=DIV_SAMPLE_LOOP_PINGPONG;
               break;
           }
+
+          if (s->loopStart>s->loopEnd) {
+            s->loopStart^=s->loopEnd;
+            s->loopEnd^=s->loopStart;
+            s->loopStart^=s->loopEnd;
+          }
+
+          if (flags&16) {
+            s->loopStart>>=1;
+            s->loopEnd>>=1;
+          }
+
 
           reader.readC(); // reserved
 
