@@ -30,7 +30,7 @@
                 "furnace.exe"
 
             VALUE "FileDescription",
-                "Open-source chiptune tracker"
+                "the chiptune tracker."
 
             VALUE "ProductVersion",
                 "0.6.5"
@@ -42,7 +42,7 @@
                 "tildearrow"
 
             VALUE "LegalCopyright",
-                "2021-2024 tildearrow and contributors."
+                "2021-2024 tildearrow and contributors"
         }
     }
 }
