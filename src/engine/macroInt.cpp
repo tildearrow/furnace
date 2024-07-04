@@ -148,7 +148,6 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
       } else {
         val=ADSR_HIGH+(((255-pos)+(ADSR_LOW-ADSR_HIGH)*(255-pos))>>8);
       }
-      logV("val: %d",val);
     }
     if (type==2) { // LFO
       lfoPos+=LFO_SPEED;
@@ -169,7 +168,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
       if (ADSR_HIGH>ADSR_LOW) {
         val=ADSR_LOW+((lfoOut+(ADSR_HIGH-ADSR_LOW)*lfoOut)>>8);
       } else {
-        val=ADSR_LOW+(((ADSR_HIGH-ADSR_LOW)*lfoOut-lfoOut)>>8);
+        val=ADSR_HIGH+(((255-lfoOut)+(ADSR_LOW-ADSR_HIGH)*(255-lfoOut))>>8);
       }
     }
   }
