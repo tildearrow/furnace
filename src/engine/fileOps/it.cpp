@@ -1138,6 +1138,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
                 portaStatus[chan]=portaVal;
                 portaStatusChanged[chan]=true;
               }
+              if (portaType[chan]!=3) {
+                portaStatusChanged[chan]=true;
+              }
               portaType[chan]=3;
               porting[chan]=true;
             } else if (vol[chan]>=203 && vol[chan]<=212) { // vibrato
@@ -1179,6 +1182,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
                 portaStatus[chan]=effectVal[chan];
                 portaStatusChanged[chan]=true;
               }
+              if (portaType[chan]!=2) {
+                portaStatusChanged[chan]=true;
+              }
               portaType[chan]=2;
               porting[chan]=true;
               break;
@@ -1187,12 +1193,18 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
                 portaStatus[chan]=effectVal[chan];
                 portaStatusChanged[chan]=true;
               }
+              if (portaType[chan]!=1) {
+                portaStatusChanged[chan]=true;
+              }
               portaType[chan]=1;
               porting[chan]=true;
               break;
             case 'G': // porta
               if (effectVal[chan]!=0) {
                 portaStatus[chan]=effectVal[chan];
+                portaStatusChanged[chan]=true;
+              }
+              if (portaType[chan]!=3) {
                 portaStatusChanged[chan]=true;
               }
               portaType[chan]=3;

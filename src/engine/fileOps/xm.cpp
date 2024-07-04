@@ -660,6 +660,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       bool arpStatusChanged[128];
       bool arping[128];
       bool arpingOld[128];
+      unsigned char lastNote[128];
 
       bool mustCommitInitial=true;
 
@@ -681,6 +682,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       memset(arpStatusChanged,0,128*sizeof(bool));
       memset(arping,0,128*sizeof(bool));
       memset(arpingOld,0,128*sizeof(bool));
+      memset(lastNote,0,128);
 
       logV("pattern %d",i);
       headerSeek=reader.tell();
@@ -753,6 +755,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
           if (hasNote) {
             if (note!=0) {
+              lastNote[k]=note;
               if (note>96) {
                 p->data[j][0]=101;
                 p->data[j][1]=0;
@@ -771,8 +774,8 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             ins=reader.readC();
             p->data[j][2]=((int)ins)-1;
             // default volume
-            if (hasNote && note<96 && ins>0) {
-              p->data[j][3]=sampleVol[(ins-1)&255][noteMap[(ins-1)&255][note&127]];
+            if (lastNote[k]<96 && ins>0) {
+              p->data[j][3]=sampleVol[(ins-1)&255][noteMap[(ins-1)&255][lastNote[k]&127]];
             }
             writePanning=true;
           }
@@ -813,6 +816,9 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                   portaStatus[k]=effectVal;
                   portaStatusChanged[k]=true;
                 }
+                if (portaType[k]!=1) {
+                  portaStatusChanged[k]=true;
+                }
                 portaType[k]=1;
                 porting[k]=true;
                 break;
@@ -821,12 +827,18 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                   portaStatus[k]=effectVal;
                   portaStatusChanged[k]=true;
                 }
+                if (portaType[k]!=2) {
+                  portaStatusChanged[k]=true;
+                }
                 portaType[k]=2;
                 porting[k]=true;
                 break;
               case 3: // porta
                 if (effectVal!=0) {
                   portaStatus[k]=effectVal;
+                  portaStatusChanged[k]=true;
+                }
+                if (portaType[k]!=3) {
                   portaStatusChanged[k]=true;
                 }
                 portaType[k]=3;
@@ -880,7 +892,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                   volSlideStatus[k]=effectVal;
                   volSlideStatusChanged[k]=true;
                 }
-                if (hasIns) {
+                if (hasNote || hasIns) {
                   volSlideStatusChanged[k]=true;
                 }
                 volSliding[k]=true;

@@ -161,16 +161,16 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     bool signedSamples=(reader.readS()==1);
 
     logV("flags: %x",flags);
-    logV("version: %x",flags);
+    logV("version: %x",version);
     if (signedSamples) {
       logV("signed samples: yes");
     } else {
       logV("signed samples: no");
     }
 
-    if ((flags&64) || version==0x1300) {
+    /*if ((flags&64) || version==0x1300) {
       ds.noSlidesOnFirstTick=false;
-    }
+    }*/
 
     reader.readI(); // "SCRM"
 
@@ -913,6 +913,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               if (hasNoteIns) {
                 portaStatusChanged[chan]=true;
               }
+              if (portaType[chan]!=2) {
+                portaStatusChanged[chan]=true;
+              }
               portaType[chan]=2;
               porting[chan]=true;
               break;
@@ -924,6 +927,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               if (hasNoteIns) {
                 portaStatusChanged[chan]=true;
               }
+              if (portaType[chan]!=1) {
+                portaStatusChanged[chan]=true;
+              }
               portaType[chan]=1;
               porting[chan]=true;
               break;
@@ -933,6 +939,9 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
                 portaStatusChanged[chan]=true;
               }
               if (hasNoteIns) {
+                portaStatusChanged[chan]=true;
+              }
+              if (portaType[chan]!=3) {
                 portaStatusChanged[chan]=true;
               }
               portaType[chan]=3;
