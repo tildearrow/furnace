@@ -161,16 +161,16 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     bool signedSamples=(reader.readS()==1);
 
     logV("flags: %x",flags);
-    logV("version: %x",flags);
+    logV("version: %x",version);
     if (signedSamples) {
       logV("signed samples: yes");
     } else {
       logV("signed samples: no");
     }
 
-    if ((flags&64) || version==0x1300) {
+    /*if ((flags&64) || version==0x1300) {
       ds.noSlidesOnFirstTick=false;
-    }
+    }*/
 
     reader.readI(); // "SCRM"
 
