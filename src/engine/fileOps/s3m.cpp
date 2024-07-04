@@ -1015,8 +1015,10 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
             case 'W': // global volume slide (!)
               break;
             case 'X': // panning (extension)
-              p->data[curRow][effectCol[chan]++]=0x80;
-              p->data[curRow][effectCol[chan]++]=effectVal;
+              if (effectVal<=0x80) {
+                p->data[curRow][effectCol[chan]++]=0x80;
+                p->data[curRow][effectCol[chan]++]=(effectVal&0x80)?0xff:(effectVal<<1);
+              }
               break;
             case 'Y': // panbrello (extension)
               break;
