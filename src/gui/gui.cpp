@@ -3993,7 +3993,7 @@ bool FurnaceGUI::loop() {
       continue;
     }
 
-    if (firstFrame && !safeMode) {
+    if (firstFrame && !safeMode && renderBackend!=GUI_BACKEND_SOFTWARE) {
       if (!tutorial.introPlayed || settings.alwaysPlayIntro==3 || (settings.alwaysPlayIntro==2 && curFileName.empty())) {
         unsigned char* introTemp=new unsigned char[intro_fur_len];
         memcpy(introTemp,intro_fur,intro_fur_len);
@@ -6413,7 +6413,7 @@ bool FurnaceGUI::loop() {
 
     MEASURE_END(popup);
 
-    if (!tutorial.introPlayed || settings.alwaysPlayIntro!=0) {
+    if ((!tutorial.introPlayed || settings.alwaysPlayIntro!=0) && renderBackend!=GUI_BACKEND_SOFTWARE) {
       MEASURE_BEGIN(intro);
       initialScreenWipe=0;
       if (settings.alwaysPlayIntro==1) {
