@@ -323,6 +323,15 @@ void DivPlatformAY8930::tick(bool sysTick) {
       ayNoiseOr=chan[i].std.fms.val;
       immWrite(0x1a,ayNoiseOr);
     }
+    if (chan[i].std.ex4.had) {
+      chan[i].fixedFreq=chan[i].std.ex4.val;
+      chan[i].freqChanged=true;
+    }
+    if (chan[i].std.ex5.had) {
+      chan[i].envelope.period=chan[i].std.ex5.val;
+      immWrite(regPeriodL[i],chan[i].envelope.period);
+      immWrite(regPeriodH[i],chan[i].envelope.period>>8);
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].dac.furnaceDAC) {
@@ -353,8 +362,13 @@ void DivPlatformAY8930::tick(bool sysTick) {
         chan[i].curPSGMode.val=0;
         rWrite(0x08+i,0);
       }
-      rWrite((i)<<1,chan[i].freq&0xff);
-      rWrite(1+((i)<<1),chan[i].freq>>8);
+      if (chan[i].fixedFreq>0) {
+        rWrite((i)<<1,chan[i].fixedFreq&0xff);
+        rWrite(1+((i)<<1),chan[i].fixedFreq>>8);
+      } else {
+        rWrite((i)<<1,chan[i].freq&0xff);
+        rWrite(1+((i)<<1),chan[i].freq>>8);
+      }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       if (chan[i].freqChanged && chan[i].autoEnvNum>0 && chan[i].autoEnvDen>0) {
@@ -504,6 +518,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
+      chan[c.chan].fixedFreq=0;
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
