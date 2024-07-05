@@ -222,6 +222,10 @@ void DivPlatformC64::tick(bool sysTick) {
       filtRes=chan[i].std.ex2.val&15;
       willUpdateFilter=true;
     }
+    if (chan[i].std.ex3.had) {
+      chan[i].filter=(chan[i].std.ex3.val&1);
+      willUpdateFilter=true;
+    }
     if (chan[i].std.ex4.had) {
       chan[i].gate=chan[i].std.ex4.val&1;
       chan[i].sync=chan[i].std.ex4.val&2;
