@@ -4074,6 +4074,9 @@ bool FurnaceGUI::loop() {
       rend->initGUI(sdlWin);
 
       logD("building font...");
+      if (rend->areTexturesSquare()) {
+        ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
+      }
       if (!ImGui::GetIO().Fonts->Build()) {
         logE("error while building font atlas!");
         showError(_("error while loading fonts! please check your settings."));
@@ -4082,7 +4085,12 @@ bool FurnaceGUI::loop() {
         patFont=mainFont;
         bigFont=mainFont;
         headFont=mainFont;
-        if (rend) rend->destroyFontsTexture();
+        if (rend) {
+          rend->destroyFontsTexture();
+          if (rend->areTexturesSquare()) {
+            ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
+          }
+        }
         if (!ImGui::GetIO().Fonts->Build()) {
           logE("error again while building font atlas!");
         }
@@ -6692,7 +6700,12 @@ bool FurnaceGUI::loop() {
 
             applyUISettings();
 
-            if (rend) rend->destroyFontsTexture();
+            if (rend) {
+              rend->destroyFontsTexture();
+              if (rend->areTexturesSquare()) {
+                ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
+              }
+            }
             if (!ImGui::GetIO().Fonts->Build()) {
               logE("error while building font atlas!");
               showError(_("error while loading fonts! please check your settings."));
@@ -6701,7 +6714,12 @@ bool FurnaceGUI::loop() {
               patFont=mainFont;
               bigFont=mainFont;
               headFont=mainFont;
-              if (rend) rend->destroyFontsTexture();
+              if (rend) {
+                rend->destroyFontsTexture();
+                if (rend->areTexturesSquare()) {
+                  ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
+                }
+              }
               if (!ImGui::GetIO().Fonts->Build()) {
                 logE("error again while building font atlas!");
               } else {
@@ -6723,7 +6741,12 @@ bool FurnaceGUI::loop() {
       patFont=mainFont;
       bigFont=mainFont;
       headFont=mainFont;
-      if (rend) rend->destroyFontsTexture();
+      if (rend) {
+        rend->destroyFontsTexture();
+        if (rend->areTexturesSquare()) {
+          ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
+        }
+      }
       if (!ImGui::GetIO().Fonts->Build()) {
         logE("error again while building font atlas!");
       } else {
@@ -7131,6 +7154,9 @@ bool FurnaceGUI::init() {
   applyUISettings();
 
   logD("building font...");
+  if (rend->areTexturesSquare()) {
+    ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
+  }
   if (!ImGui::GetIO().Fonts->Build()) {
     logE("error while building font atlas!");
     showError(_("error while loading fonts! please check your settings."));
@@ -7139,7 +7165,9 @@ bool FurnaceGUI::init() {
     patFont=mainFont;
     bigFont=mainFont;
     headFont=mainFont;
-    if (rend) rend->destroyFontsTexture();
+    if (rend) {
+      rend->destroyFontsTexture();
+    }
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
     }

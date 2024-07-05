@@ -1529,6 +1529,7 @@ class FurnaceGUIRender {
     virtual void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
     virtual void present();
     virtual bool supportsDrawOsc();
+    virtual bool areTexturesSquare();
     virtual bool getOutputSize(int& w, int& h);
     virtual int getWindowFlags();
     virtual int getMaxTextureWidth();

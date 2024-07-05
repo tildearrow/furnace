@@ -469,6 +469,11 @@ void FurnaceGUIRenderDX9::setSwapInterval(int swapInt) {
   swapInterval=swapInt;
 }
 
+// I would use caps but...
+bool FurnaceGUIRenderDX9::areTexturesSquare() {
+  return true;
+}
+
 void FurnaceGUIRenderDX9::preInit(const DivConfig& conf) {
 }
 
