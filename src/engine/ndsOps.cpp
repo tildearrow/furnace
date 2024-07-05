@@ -34,6 +34,9 @@ static void writeByte(unsigned char byte) {
   offset++;
 }
 
+constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
+constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
+
 SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
   int NDS=-1;
   int IGNORED=0;
@@ -98,7 +101,9 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
   bool loopNow=false;
   int loopPos=-1;
   int wait=0;
-  //int oldWait=0;
+  int fracWait=0; // accumulates fractional ticks
+  int oldWait=0;
+  int lastLoopOffset=0;
 
   if (NDS>=0) disCont[NDS].dispatch->toggleRegisterDump(true);
 
@@ -119,10 +124,10 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
   while (!done) {
     if (nextTick() || !playing) {
       done=true;
+      writeByte(1);
+      writeByte((wait-oldWait)&0xff);
+      writeByte((wait-oldWait)>>8);
       if (!loop) {
-        writeByte(1);
-        writeByte(wait&0xff);
-        writeByte(wait>>8);
         for (int i=0; i<song.systemLen; i++) {
           disCont[i].dispatch->getRegisterWrites().clear();
         }
@@ -140,7 +145,7 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
         // might be skipped due to quantization error.
         // If this happens, the tick immediately following is our loop point.
         if (ticks==1 || !(loopOrder==curOrder && loopRow==curRow)) {
-          loopPos=offset;
+          loopPos=lastLoopOffset;
           loopNow=false;
         }
       }
@@ -155,11 +160,10 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
       if (writes.size()>0) {
         logD("ndsOps: Writing %d messages to chip %d",writes.size(),i);
         writeByte(1);
-        writeByte(wait&0xff);
-        writeByte(wait>>8);
-        wait=0;
+        writeByte((wait-oldWait)&0xff);
+        writeByte((wait-oldWait)>>8);
+        oldWait = wait;
       }
-      wait++;
       for (DivRegWrite& write: writes) {
         if (i==NDS) {
 /*
@@ -180,8 +184,14 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
           }
         }
       }
+      lastLoopOffset = offset;
       writes.clear();
     }
+    int totalWait=cycles>>MASTER_CLOCK_PREC;
+    fracWait+=cycles&MASTER_CLOCK_MASK;
+    totalWait+=fracWait>>MASTER_CLOCK_PREC;
+    fracWait&=MASTER_CLOCK_MASK;
+    if (totalWait>0 && !done) wait += totalWait;
   }
   // end of song
 
