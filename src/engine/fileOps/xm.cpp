@@ -587,7 +587,6 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             s->loopEnd>>=1;
           }
 
-
           reader.readC(); // reserved
 
           s->centerRate=8363.0*pow(2.0,((double)note+((double)fine/128.0))/12.0);
@@ -790,14 +789,78 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             if (vol>=0x10 && vol<=0x50) {
               p->data[j][3]=vol-0x10;
             } else { // effects in volume column
-              if (vol>=0xc0 && vol<=0xcf) {
-                p->data[j][effectCol[k]++]=0x80;
-                if ((vol&15)==8) {
+              switch (vol>>4) {
+                case 0x6: // vol slide down
+                  if ((vol&15)!=0) {
+                    volSlideStatus[k]=vol&15;
+                    volSlideStatusChanged[k]=true;
+                  }
+                  if (hasNote || hasIns) {
+                    volSlideStatusChanged[k]=true;
+                  }
+                  volSliding[k]=true;
+                  break;
+                case 0x7: // vol slide up
+                  if ((vol&15)!=0) {
+                    volSlideStatus[k]=(vol&15)<<4;
+                    volSlideStatusChanged[k]=true;
+                  }
+                  if (hasNote || hasIns) {
+                    volSlideStatusChanged[k]=true;
+                  }
+                  volSliding[k]=true;
+                  break;
+                case 0x8: // vol slide down (fine)
+                  if ((vol&15)!=0) {
+                    volSlideStatus[k]=0xf0|(vol&15);
+                    volSlideStatusChanged[k]=true;
+                  }
+                  if (hasNote || hasIns) {
+                    volSlideStatusChanged[k]=true;
+                  }
+                  volSliding[k]=true;
+                  break;
+                case 0x9: // vol slide up (fine)
+                  if ((vol&15)!=0) {
+                    volSlideStatus[k]=((vol&15)<<4)|0xf;
+                    volSlideStatusChanged[k]=true;
+                  }
+                  if (hasNote || hasIns) {
+                    volSlideStatusChanged[k]=true;
+                  }
+                  volSliding[k]=true;
+                  break;
+                case 0xa: // vibrato speed
+                  if ((vol&15)!=0) {
+                    vibStatus[k]&=0x0f;
+                    vibStatus[k]|=(vol&15)<<4;
+                    vibStatusChanged[k]=true;
+                  }
+                  vibing[k]=true;
+                  break;
+                case 0xb: // vibrato depth
+                  if ((vol&15)!=0) {
+                    vibStatus[k]&=0xf0;
+                    vibStatus[k]|=vol&15;
+                    vibStatusChanged[k]=true;
+                  }
+                  vibing[k]=true;
+                  break;
+                case 0xc: // panning
                   p->data[j][effectCol[k]++]=0x80;
-                } else {
-                  p->data[j][effectCol[k]++]=(vol&15)|((vol&15)<<4);
-                }
-                writePanning=false;
+                  if ((vol&15)==8) {
+                    p->data[j][effectCol[k]++]=0x80;
+                  } else {
+                    p->data[j][effectCol[k]++]=(vol&15)|((vol&15)<<4);
+                  }
+                  writePanning=false;
+                  break;
+                case 0xd: // pan slide left
+                  break;
+                case 0xe: // pan slide right
+                  break;
+                case 0xf: // porta
+                  break;
               }
             }
           }
