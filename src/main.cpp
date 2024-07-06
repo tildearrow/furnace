@@ -606,7 +606,13 @@ int main(int argc, char** argv) {
       strncpy(localeDir,localeDirs[i],4095);
 #else
       if (exePath[0]!=0 && localeDirs[i][0]!=DIR_SEPARATOR) {
-        strncpy(localeDir,exePath,4095);
+        // do you NOT understand what memset IS
+        char* i_s=exePath;
+        for (int i_i=0; i_i<4095; i_i++) {
+          localeDir[i_i]=*i_s;
+          if ((*i_s)==0) break;
+          i_s++;
+        }
         strncat(localeDir,DIR_SEPARATOR_STR,4095);
         strncat(localeDir,localeDirs[i],4095);
       } else {
