@@ -1279,7 +1279,7 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
   "Sord M5", {
     CH(DIV_SYSTEM_SMS, 1.0f, 0,
-      "customClock=1770000\n"
+      "customClock=1773447\n"
       "chipType=1\n"
      )
    }
