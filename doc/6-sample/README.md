@@ -102,6 +102,9 @@ in there, you can modify certain data pertaining to your sample, such as the:
   - only appears when applicable.
 - **8-bit dither**: applies dithering to samples meant to play back at 8-bit resolution.
   - only appears when applicable.
+- **no BRR filters**: when encoding to BRR, only use a "4-bit mode" with block filter set to 0.
+  - this allows usage of sample offset effects on SNES.
+  - only appears when applicable.
 
 - **Rate**: switches to normal rate values.
 - **Compat Rate**: switches to DefleMask-compatible rate values for sample mapping.
