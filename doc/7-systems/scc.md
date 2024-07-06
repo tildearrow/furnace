@@ -13,3 +13,9 @@ the SCC+ fixes this issue though (while being compatible with SCC games).
 ## info
 
 this chip uses the [Konami SCC/Bubble System WSG](../4-instrument/scc.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.

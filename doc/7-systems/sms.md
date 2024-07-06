@@ -34,3 +34,12 @@ SN7 was extremely popular due to low cost. therefore, it was cloned and copied t
 ## info
 
 this chip uses the [SN76489/Sega PSG](../4-instrument/psg.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.
+- **Chip type**: changes the chip type. see above for more details.
+- **Disable noise period change phase reset**: when enabled, the noise channel won't be reset every time its frequency changes. very useful.
+- **Disable easy period to note mapping on upper octaves**: Furnace maps the notes in the upper octaves to periods, for easier noise tuning. this option allows you to disable this feature.

@@ -12,3 +12,15 @@ everything starts with Namco WSG, which is a simple 3-channel wavetable with no 
 ## info
 
 this chip uses the [Namco WSG](../4-instrument/wsg.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Waveform storage mode**: selects whether RAM or ROM is connected to the chip.
+  - RAM: connects RAM for unlimited waves.
+  - ROM: connects ROM. authentic to hardware, but only the first 8 waves are loaded.
+
+Namco C30 does not have the aforementioned option as it always uses RAM for waveforms. instead, it has this option:
+
+- **Compatible noise frequencies**: for compatibility with old Furnace.

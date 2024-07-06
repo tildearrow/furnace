@@ -58,3 +58,17 @@ it has the following capabilities:
 ## info
 
 this chip uses the [Sound Unit](../4-instrument/su.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **CPU rate**: sets the rate at which the chip will run.
+- **Sample memory**: sets the amount of memory available for samples.
+- **DAC resolution**: sets output resolution.
+- **Enable echo**: guess.
+- **Swap echo channels**: puts left into right and vice-versa.
+- **Echo delay**: set echo time.
+- **Echo resolution**: set echo resolution. sacrifices quality for time.
+- **Echo feedback**: guess.
+- **Echo volume**: yep, guess again.
