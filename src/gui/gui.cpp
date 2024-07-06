@@ -7082,6 +7082,8 @@ bool FurnaceGUI::init() {
 
   updateWindowTitle();
 
+  logV("max texture size: %dx%d",rend->getMaxTextureWidth(),rend->getMaxTextureHeight());
+
   rend->clear(ImVec4(0.0,0.0,0.0,1.0));
   rend->present();
 
