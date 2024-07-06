@@ -6663,6 +6663,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       0xd569, 0xd569,
       0xd574, 0xd574,
       0xd604, 0xd604,
+      0
     };
     ImFontGlyphRangesBuilder range;
     ImVector<ImWchar> outRange;
