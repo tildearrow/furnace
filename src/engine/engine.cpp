@@ -83,6 +83,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return _("81xx: Set panning (left channel)");
     case 0x82:
       return _("82xx: Set panning (right channel)");
+    case 0x83:
+      return _("83xy: Panning slide (x0: left; 0y: right)");
+    case 0x84:
+      return _("84xy: Panbrello (x: speed; y: depth)");
     case 0x88:
       return _("88xy: Set panning (rear channels; x: left; y: right)");
       break;

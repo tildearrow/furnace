@@ -74,6 +74,13 @@ not all chips support these effects.
   - `00` is left.
   - `80` is center.
   - `FF` is right.
+  - ---
+- `83xy`: **Panning slide.**
+  - if `y` is 0 then this pans to the left by `x` each tick.
+  - if `x` is 0 then this pans to the right by `y` each tick.
+  - be noted that panning macros override this effect.
+- `84xy`: **Panbrello.** makes panning oscillate. `x` is the speed, while `y` is the depth.
+  - be noted that panning macros override this effect.
 
 ## time
 
