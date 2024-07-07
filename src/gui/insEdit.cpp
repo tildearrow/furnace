@@ -4149,7 +4149,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::TableNextColumn();
             if (ins->type==DIV_INS_FM) {
               ImGui::Text(_("SSG-EG"));
-            } else {
+            } else if (ins->type!=DIV_INS_OPM) {
               ImGui::Text(_("Waveform"));
             }
             ImGui::TableNextColumn();
@@ -4275,8 +4275,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 break;
               }
               case DIV_INS_OPM: {
-                drawWaveform(0,true,ImVec2(waveWidth,waveHeight));
-                
                 // params
                 ImGui::Separator();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
