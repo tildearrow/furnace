@@ -112,6 +112,7 @@ const char* aboutLine[]={
   "dmKaltsit",
   "Dolce",
   "dumbut",
+  "Eggo1423",
   "Eknous",
   "Electric Keet",
   "EntropyAuthor",
