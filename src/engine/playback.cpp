@@ -691,7 +691,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if ((effectVal&15)!=0) {
             chan[i].panSpeed=(effectVal&15);
           } else {
-            chan[i].panSpeed=(effectVal>>4);
+            chan[i].panSpeed=-(effectVal>>4);
           }
           // panbrello and slides are incompatible
           chan[i].panDepth=0;
@@ -1609,10 +1609,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         }
 
         // panning slides
-        // TODO: UNTESTED... can't test right now
         if (chan[i].panSpeed!=0) {
           int newPanL=chan[i].panL;
           int newPanR=chan[i].panR;
+          logV("panSpeed: %d",chan[i].panSpeed);
           if (chan[i].panSpeed>0) { // right
             if (newPanR>=0xff) {
               newPanL-=chan[i].panSpeed;
