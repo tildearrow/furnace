@@ -394,8 +394,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         }
         ImGui::Unindent();
       }
-      if (ImGui::Checkbox(_("Pretty please one more compat flag when I use arpeggio and my sound length"),&enoughAlready)) {
-        altered=true;
+      if (enoughAlready) {
+        if (ImGui::Checkbox(_("Pretty please one more compat flag when I use arpeggio and my sound length"),&enoughAlready)) {
+          altered=true;
+        }
       }
 
       if (altered) {
@@ -759,8 +761,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
 
-      if (ImGui::Checkbox(_("Relative duty and cutoff macros are coarse (compatibility)"),&multiplyRel)) {
-        altered=true;
+      if (multiplyRel) {
+        if (ImGui::Checkbox(_("Relative duty and cutoff macros are coarse (compatibility)"),&multiplyRel)) {
+          altered=true;
+        }
       }
 
       if (ImGui::Checkbox(_("Cutoff macro race conditions (compatibility)"),&macroRace)) {
