@@ -68,7 +68,10 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   bool doesVibrato[32];
   bool doesPanning[32];
   bool doesVolSlide[32];
+  bool doesPanSlide[32];
   bool doesArp[32];
+  bool doesTremolo[32];
+  bool doesPanbrello[32];
 
   memset(chanSettings,0,32);
   memset(insPtr,0,256*sizeof(unsigned int));
@@ -82,7 +85,10 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   memset(doesVibrato,0,32*sizeof(bool));
   memset(doesPanning,0,32*sizeof(bool));
   memset(doesVolSlide,0,32*sizeof(bool));
+  memset(doesPanSlide,0,32*sizeof(bool));
   memset(doesArp,0,32*sizeof(bool));
+  memset(doesTremolo,0,32*sizeof(bool));
+  memset(doesPanbrello,0,32*sizeof(bool));
 
   try {
     DivSong ds;
@@ -672,6 +678,15 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               doesVolSlide[chan]=true;
               doesPitchSlide[chan]=true;
               break;
+            case 'P': // pan slide
+              doesPanSlide[chan]=true;
+              break;
+            case 'R': // tremolo
+              doesTremolo[chan]=true;
+              break;
+            case 'Y': // panbrello
+              doesPanbrello[chan]=true;
+              break;
           }
         }
       }
@@ -697,6 +712,18 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       bool arpStatusChanged[32];
       bool arping[32];
       bool arpingOld[32];
+      unsigned char panStatus[32];
+      bool panStatusChanged[32];
+      bool panning[32];
+      bool panningOld[32];
+      unsigned char tremStatus[32];
+      bool tremStatusChanged[32];
+      bool treming[32];
+      bool tremingOld[32];
+      unsigned char panSlideStatus[32];
+      bool panSlideStatusChanged[32];
+      bool panSliding[32];
+      bool panSlidingOld[32];
       bool did[32];
 
       if (patPtr[i]==0) continue;
@@ -736,6 +763,18 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
       memset(arpStatusChanged,0,32*sizeof(bool));
       memset(arping,0,32*sizeof(bool));
       memset(arpingOld,0,32*sizeof(bool));
+      memset(panStatus,0,32);
+      memset(panStatusChanged,0,32*sizeof(bool));
+      memset(panning,0,32*sizeof(bool));
+      memset(panningOld,0,32*sizeof(bool));
+      memset(tremStatus,0,32);
+      memset(tremStatusChanged,0,32*sizeof(bool));
+      memset(treming,0,32*sizeof(bool));
+      memset(tremingOld,0,32*sizeof(bool));
+      memset(panSlideStatus,0,32);
+      memset(panSlideStatusChanged,0,32*sizeof(bool));
+      memset(panSliding,0,32*sizeof(bool));
+      memset(panSlidingOld,0,32*sizeof(bool));
       memset(did,0,32*sizeof(bool));
 
       while (reader.tell()<dataEnd) {
@@ -794,6 +833,33 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               doesArp[j]=true;
             } else if (doesArp[j] && mustCommitInitial) {
               p->data[readRow][effectCol[j]++]=0x00;
+              p->data[readRow][effectCol[j]++]=0;
+            }
+
+            if (treming[j]!=tremingOld[j] || tremStatusChanged[j]) {
+              p->data[readRow][effectCol[j]++]=0x07;
+              p->data[readRow][effectCol[j]++]=treming[j]?tremStatus[j]:0;
+              doesTremolo[j]=true;
+            } else if (doesTremolo[j] && mustCommitInitial) {
+              p->data[readRow][effectCol[j]++]=0x07;
+              p->data[readRow][effectCol[j]++]=0;
+            }
+
+            if (panning[j]!=panningOld[j] || panStatusChanged[j]) {
+              p->data[readRow][effectCol[j]++]=0x84;
+              p->data[readRow][effectCol[j]++]=panning[j]?panStatus[j]:0;
+              doesPanbrello[j]=true;
+            } else if (doesPanbrello[j] && mustCommitInitial) {
+              p->data[readRow][effectCol[j]++]=0x84;
+              p->data[readRow][effectCol[j]++]=0;
+            }
+
+            if (panSliding[j]!=panSlidingOld[j] || panSlideStatusChanged[j]) {
+              p->data[readRow][effectCol[j]++]=0x83;
+              p->data[readRow][effectCol[j]++]=panSliding[j]?panSlideStatus[j]:0;
+              doesPanSlide[j]=true;
+            } else if (doesPanSlide[j] && mustCommitInitial) {
+              p->data[readRow][effectCol[j]++]=0x83;
               p->data[readRow][effectCol[j]++]=0;
             }
 
@@ -990,12 +1056,22 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               p->data[readRow][effectCol[chan]++]=effectVal;
               break;
             case 'P': // pan slide (extension)
+              if (effectVal!=0) {
+                panSlideStatus[chan]=effectVal;
+                panSlideStatusChanged[chan]=true;
+              }
+              panSliding[chan]=true;
               break;
             case 'Q': // retrigger
               p->data[readRow][effectCol[chan]++]=0x0c;
               p->data[readRow][effectCol[chan]++]=effectVal&15;
               break;
             case 'R': // tremolo
+              if (effectVal!=0) {
+                tremStatus[chan]=effectVal;
+                tremStatusChanged[chan]=true;
+              }
+              treming[chan]=true;
               break;
             case 'S': // special...
               switch (effectVal>>4) {
@@ -1031,6 +1107,11 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               }
               break;
             case 'Y': // panbrello (extension)
+              if (effectVal!=0) {
+                panStatus[chan]=effectVal;
+                panStatusChanged[chan]=true;
+              }
+              panning[chan]=true;
               break;
             case 'Z': // MIDI macro (extension)
               break;

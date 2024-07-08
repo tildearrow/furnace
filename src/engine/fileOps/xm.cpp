@@ -135,7 +135,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
   bool doesVibrato[128];
   bool doesPanning[128];
   bool doesVolSlide[128];
+  bool doesPanSlide[128];
   bool doesArp[128];
+  bool doesTremolo[128];
+  bool doesPanbrello[128];
 
   SafeReader reader=SafeReader(file,len);
   warnings="";
@@ -150,7 +153,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
   memset(doesVibrato,0,128*sizeof(bool));
   memset(doesPanning,0,128*sizeof(bool));
   memset(doesVolSlide,0,128*sizeof(bool));
+  memset(doesPanSlide,0,128*sizeof(bool));
   memset(doesArp,0,128*sizeof(bool));
+  memset(doesTremolo,0,128*sizeof(bool));
+  memset(doesPanbrello,0,128*sizeof(bool));
 
   try {
     DivSong ds;
@@ -358,10 +364,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                 doesPanning[k]=true;
                 break;
               case 0xd: // pan slide left
-                doesPanning[k]=true;
+                doesPanSlide[k]=true;
                 break;
               case 0xe: // pan slide right
-                doesPanning[k]=true;
+                doesPanSlide[k]=true;
                 break;
               case 0xf: // porta
                 doesPitchSlide[k]=true;
@@ -394,6 +400,9 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                 doesVibrato[k]=true;
                 doesVolSlide[k]=true;
                 break;
+              case 7:
+                doesTremolo[k]=true;
+                break;
               case 8:
                 doesPanning[k]=true;
                 break;
@@ -401,10 +410,13 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                 doesPanning[k]=true;
                 break;
               case 0x19: // P
-                doesPanning[k]=true;
+                doesPanSlide[k]=true;
                 break;
               case 0x21: // X
                 doesPitchSlide[k]=true;
+                break;
+              case 0x22: // Y
+                doesPanbrello[k]=true;
                 break;
             }
           }
@@ -665,6 +677,18 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       bool arpStatusChanged[128];
       bool arping[128];
       bool arpingOld[128];
+      unsigned char panStatus[128];
+      bool panStatusChanged[128];
+      bool panning[128];
+      bool panningOld[128];
+      unsigned char tremStatus[128];
+      bool tremStatusChanged[128];
+      bool treming[128];
+      bool tremingOld[128];
+      unsigned char panSlideStatus[128];
+      bool panSlideStatusChanged[128];
+      bool panSliding[128];
+      bool panSlidingOld[128];
       unsigned char lastNote[128];
 
       bool mustCommitInitial=true;
@@ -687,6 +711,18 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
       memset(arpStatusChanged,0,128*sizeof(bool));
       memset(arping,0,128*sizeof(bool));
       memset(arpingOld,0,128*sizeof(bool));
+      memset(panStatus,0,128);
+      memset(panStatusChanged,0,128*sizeof(bool));
+      memset(panning,0,128*sizeof(bool));
+      memset(panningOld,0,128*sizeof(bool));
+      memset(tremStatus,0,128);
+      memset(tremStatusChanged,0,128*sizeof(bool));
+      memset(treming,0,128*sizeof(bool));
+      memset(tremingOld,0,128*sizeof(bool));
+      memset(panSlideStatus,0,128);
+      memset(panSlideStatusChanged,0,128*sizeof(bool));
+      memset(panSliding,0,128*sizeof(bool));
+      memset(panSlidingOld,0,128*sizeof(bool));
       memset(lastNote,0,128);
 
       logV("pattern %d",i);
@@ -856,8 +892,20 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                   writePanning=false;
                   break;
                 case 0xd: // pan slide left
+                  if ((vol&15)!=0) {
+                    panSlideStatus[k]&=0x0f;
+                    panSlideStatus[k]|=(vol&15)<<4;
+                    panSlideStatusChanged[k]=true;
+                  }
+                  panSliding[k]=true;
                   break;
                 case 0xe: // pan slide right
+                  if ((vol&15)!=0) {
+                    panSlideStatus[k]&=0xf0;
+                    panSlideStatus[k]|=vol&15;
+                    panSlideStatusChanged[k]=true;
+                  }
+                  panSliding[k]=true;
                   break;
                 case 0xf: // porta
                   break;
@@ -946,6 +994,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                 vibing[k]=true;
                 break;
               case 7: // tremolo
+                if (effectVal!=0) {
+                  tremStatus[k]=effectVal;
+                  tremStatusChanged[k]=true;
+                }
+                treming[k]=true;
                 break;
               case 8: // panning
                 p->data[j][effectCol[k]++]=0x80;
@@ -994,8 +1047,6 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                     break;
                 }
                 break;
-              case 0x10: // G: global volume (!)
-                break;
               case 0xf: // speed/tempp
                 if (effectVal>=0x20) {
                   p->data[j][effectCol[k]++]=0xf0;
@@ -1003,6 +1054,8 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                   p->data[j][effectCol[k]++]=0x0f;
                 }
                 p->data[j][effectCol[k]++]=effectVal;
+                break;
+              case 0x10: // G: global volume (!)
                 break;
               case 0x11: // H: global volume slide (!)
                 break;
@@ -1013,6 +1066,11 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
               case 0x15: // L: set envelope position (!)
                 break;
               case 0x19: // P: pan slide
+                if (effectVal!=0) {
+                  panSlideStatus[k]=effectVal;
+                  panSlideStatusChanged[k]=true;
+                }
+                panSliding[k]=true;
                 break;
               case 0x1b: // R: retrigger
                 p->data[j][effectCol[k]++]=0x0c;
@@ -1021,6 +1079,13 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
               case 0x1d: // T: tremor (!)
                 break;
               case 0x21: // X: extra fine volume
+                break;
+              case 0x22: // Y: panbrello (extension)
+                if (effectVal!=0) {
+                  panStatus[k]=effectVal;
+                  panStatusChanged[k]=true;
+                }
+                panning[k]=true;
                 break;
             }
           }
@@ -1083,6 +1148,33 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             doesArp[k]=true;
           } else if (doesArp[k] && mustCommitInitial) {
             p->data[j][effectCol[k]++]=0x00;
+            p->data[j][effectCol[k]++]=0;
+          }
+
+          if (treming[k]!=tremingOld[k] || tremStatusChanged[k]) {
+            p->data[j][effectCol[k]++]=0x07;
+            p->data[j][effectCol[k]++]=treming[k]?tremStatus[k]:0;
+            doesTremolo[k]=true;
+          } else if (doesTremolo[k] && mustCommitInitial) {
+            p->data[j][effectCol[k]++]=0x07;
+            p->data[j][effectCol[k]++]=0;
+          }
+
+          if (panning[k]!=panningOld[k] || panStatusChanged[k]) {
+            p->data[j][effectCol[k]++]=0x84;
+            p->data[j][effectCol[k]++]=panning[k]?panStatus[k]:0;
+            doesPanbrello[k]=true;
+          } else if (doesPanbrello[k] && mustCommitInitial) {
+            p->data[j][effectCol[k]++]=0x84;
+            p->data[j][effectCol[k]++]=0;
+          }
+
+          if (panSliding[k]!=panSlidingOld[k] || panSlideStatusChanged[k]) {
+            p->data[j][effectCol[k]++]=0x83;
+            p->data[j][effectCol[k]++]=panSliding[k]?panSlideStatus[k]:0;
+            doesPanSlide[k]=true;
+          } else if (doesPanSlide[k] && mustCommitInitial) {
+            p->data[j][effectCol[k]++]=0x83;
             p->data[j][effectCol[k]++]=0;
           }
 
