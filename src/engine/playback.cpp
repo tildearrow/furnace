@@ -1641,22 +1641,22 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           chan[i].panPos&=255;
 
           // calculate...
-          switch (chan[i].panPos&0xe0) {
+          switch (chan[i].panPos&0xc0) {
             case 0: // center -> right
-              chan[i].panL=0xff-(chan[i].panPos<<2);
+              chan[i].panL=0xff-((chan[i].panPos&0x3f)<<2);
               chan[i].panR=0xff;
               break;
             case 0x40: // right -> center
-              chan[i].panL=chan[i].panPos<<2;
+              chan[i].panL=(chan[i].panPos&0x3f)<<2;
               chan[i].panR=0xff;
               break;
             case 0x80: // center -> left
               chan[i].panL=0xff;
-              chan[i].panR=0xff-(chan[i].panPos<<2);
+              chan[i].panR=0xff-((chan[i].panPos&0x3f)<<2);
               break;
             case 0xc0: // left -> center
               chan[i].panL=0xff;
-              chan[i].panR=chan[i].panPos<<2;
+              chan[i].panR=(chan[i].panPos&0x3f)<<2;
               break;
           }
 
