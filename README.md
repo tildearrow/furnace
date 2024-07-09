@@ -338,7 +338,7 @@ it is in [doc/](doc/README.md).
 
 > is there a tutorial?
 
-[a video tutorial (of a previous version) is available on YouTube](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1), made by Spinning Square Waves.
+[a video tutorial of tracker concepts is available on YouTube](https://www.youtube.com/watch?v=Q37XuOLz0jw). thanks Button Masher!
 
 > can I import VGM or NSF?
 
