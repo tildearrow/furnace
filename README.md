@@ -351,6 +351,8 @@ it's all speed 1 though, so don't expect any songs to be nicely laid out with in
 
 nope. it's not implemented.
 
+also, Furnace isn't a MIDI tracker.
+
 > it doesn't open under macOS!
 
 this is due to Apple's application signing policy. a workaround is to right click on the Furnace app icon and select Open.
@@ -379,6 +381,12 @@ Furnace keeps backups of the songs you've worked on before. go to **file > resto
 > ROM export?
 
 **not yet!** coming in 0.7 though, eventually...
+
+> Roland MT-32 support?
+
+MT-32 is used with MIDI in 99.999% of situations. it lacks a direct register interface.
+
+also, Furnace is not a MIDI tracker....
 
 > my .dmf song sounds odd at a certain point
 
