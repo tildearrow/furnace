@@ -4542,7 +4542,7 @@ msgid "this chip is not supported by the VGM format!"
 msgstr "este chip não é suportado pelo formato VGM!"
 
 #: src/gui/exportOptions.cpp:210
-#, fuzzy, c-format
+#, c-format
 msgid "select the chip you wish to export, but only up to %d of each type."
 msgstr ""
 "selecione o chip que você quer exportar, mas no máximo %d de cada tipo."
@@ -4608,7 +4608,7 @@ msgid "Bake Data"
 msgstr "Precalcular dados"
 
 #: src/gui/exportOptions.cpp:334 src/gui/editControls.cpp:653
-#, fuzzy, c-format
+#, c-format
 msgid "Done! Baked %d files."
 msgstr "Concluído! %d arquivo precalculado."
 
@@ -13071,7 +13071,7 @@ msgid "End"
 msgstr "Fim"
 
 #: src/gui/sampleEdit.cpp:854
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s\n"
 "%d bytes free"
@@ -13080,7 +13080,7 @@ msgstr ""
 "%d byte disponível"
 
 #: src/gui/sampleEdit.cpp:856
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s (%s)\n"
 "%d bytes free"
@@ -13258,9 +13258,9 @@ msgid "%d samples, %d bytes"
 msgstr ""
 
 #: src/gui/sampleEdit.cpp:1797
-#, fuzzy, c-format
+#, c-format
 msgid " (%d-%d: %d samples)"
-msgstr " (%d-%d: %d sample)"
+msgstr " (%d-%d: %d samples)"
 
 #: src/gui/sampleEdit.cpp:1989
 msgid "Non-8/16-bit samples cannot be edited without prior conversion."
