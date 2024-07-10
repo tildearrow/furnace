@@ -644,6 +644,23 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         logV("decompression begin... (%d)",s->samples);
         if (flags&4) {
           logW("STEREO!");
+          if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+            logV("16-bit");
+            short* outData=new short[s->samples*2];
+            ret=it_decompress16(outData,s->samples,&file[reader.tell()],len-reader.tell(),(convert&4)?1:0,(flags&4)?2:1);
+            for (unsigned int i=0; i<s->samples; i++) {
+              s->data16[i]=(outData[i]+outData[s->samples+i])>>1;
+            }
+            delete[] outData;
+          } else {
+            logV("8-bit");
+            signed char* outData=new signed char[s->samples*2];
+            ret=it_decompress8(outData,s->samples,&file[reader.tell()],len-reader.tell(),(convert&4)?1:0,(flags&4)?2:1);
+            for (unsigned int i=0; i<s->samples; i++) {
+              s->data8[i]=(outData[i]+outData[s->samples+i])>>1;
+            }
+            delete[] outData;
+          }
         } else {
           if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
             logV("16-bit");
