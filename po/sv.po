@@ -3619,11 +3619,11 @@ msgstr "82xx: Ange panorering (höger kanal)"
 
 #: src/engine/engine.cpp:87
 msgid "83xy: Panning slide (x0: left; 0y: right)"
-msgstr ""
+msgstr "83xy: Panoreringsglidande (x0: vänster; 0y: höger)"
 
 #: src/engine/engine.cpp:89
 msgid "84xy: Panbrello (x: speed; y: depth)"
-msgstr ""
+msgstr "84xy: Panbrello (x: hastighet; y: djup)"
 
 #: src/engine/engine.cpp:91
 msgid "88xy: Set panning (rear channels; x: left; y: right)"
@@ -3911,74 +3911,74 @@ msgstr "inga fria mönster i kanal %d!"
 #: src/main.cpp:667
 #, c-format
 msgid "incomplete param %s."
-msgstr ""
+msgstr "ofullständig param %s."
 
 #: src/main.cpp:749
 #, c-format
 msgid "couldn't open file! (%s)"
-msgstr ""
+msgstr "kunde inte öppna filen! (%s)"
 
 #: src/main.cpp:755
 #, c-format
 msgid "couldn't open file! (couldn't get file size: %s)"
-msgstr ""
+msgstr "kunde inte öppna filen! (kunde inte få filstorlek: %s)"
 
 #: src/main.cpp:763
 #, c-format
 msgid "couldn't open file! (couldn't get file length: %s)"
-msgstr ""
+msgstr "kunde inte öppna filen! (kunde inte få fillängd: %s)"
 
 #: src/main.cpp:771
 msgid "that file is empty!"
-msgstr ""
+msgstr "filen är tom!"
 
 #: src/main.cpp:773
 #, c-format
 msgid "couldn't open file! (tell error: %s)"
-msgstr ""
+msgstr "kunde inte öppna filen! (säg fel: %s)"
 
 #: src/main.cpp:782
 #, c-format
 msgid "couldn't open file! (size error: %s)"
-msgstr ""
+msgstr "kunde inte öppna filen! (storleksfel: %s)"
 
 #: src/main.cpp:790
 #, c-format
 msgid "couldn't open file! (read error: %s)"
-msgstr ""
+msgstr "kunde inte öppna filen! (läsfel: %s)"
 
 #: src/main.cpp:799 src/main.cpp:846 src/main.cpp:862
 #, c-format
 msgid "could not open file! (%s)"
-msgstr ""
+msgstr "kunde inte öppna filen! (%s)"
 
 #: src/main.cpp:813
 msgid "could not initialize engine!"
-msgstr ""
+msgstr "kunde ej initiera motorn!"
 
 #: src/main.cpp:851
 msgid "could not write command stream!"
-msgstr ""
+msgstr "kunde ej skriva kommandoström!"
 
 #: src/main.cpp:867
 msgid "could not write VGM!"
-msgstr ""
+msgstr "kunde ej skriva VGM!"
 
 #: src/main.cpp:889
 msgid "error while starting CLI!"
-msgstr ""
+msgstr "fel vid start av CLI!"
 
 #: src/main.cpp:893
 msgid "playing..."
-msgstr ""
+msgstr "spelar..."
 
 #: src/main.cpp:934
 msgid "displaying engine fail error."
-msgstr ""
+msgstr "visar motorfelet."
 
 #: src/main.cpp:935
 msgid "error while initializing audio!"
-msgstr ""
+msgstr "fel vid initialisering av ljud!"
 
 #: src/gui/mixer.cpp:28 src/gui/insEdit.cpp:484
 msgid "left"
@@ -5754,11 +5754,11 @@ msgstr "Modifierad sinusvåg (skämt)"
 
 #: src/gui/sysConf.cpp:105
 msgid "DAC interrupt simulation:"
-msgstr ""
+msgstr "DAC-avbrottssimulering:"
 
 #: src/gui/sysConf.cpp:106
 msgid "cycles##InterruptSim"
-msgstr ""
+msgstr "cykler"
 
 #: src/gui/sysConf.cpp:132 src/gui/sysConf.cpp:1341 src/gui/sysConf.cpp:1763
 #: src/gui/sysConf.cpp:2339
@@ -7521,7 +7521,7 @@ msgstr "VARNING - INKRÄKTARE UPPTÄCKTS"
 #: src/gui/settings.cpp:1332
 msgid "you have been arrested for trying to engage with a disabled combo box."
 msgstr ""
-"du har blivit gripen för att ha försökt engagera sig med en funktionsnedsatt "
+"du har blivit gripen för att ha försökt engagera sig med en inaktiverad "
 "kombinationsruta."
 
 #: src/gui/settings.cpp:1339 src/gui/settings.cpp:1341
@@ -9516,11 +9516,11 @@ msgstr "Filter"
 
 #: src/gui/settings.cpp:4025
 msgid "Global Parameter"
-msgstr ""
+msgstr "Global parameter"
 
 #: src/gui/settings.cpp:4027
 msgid "Step Highlight"
-msgstr ""
+msgstr "Stegmarkering"
 
 #: src/gui/settings.cpp:4030
 msgid "Instrument Types"
@@ -10916,7 +10916,7 @@ msgstr "Impulse Tracker GUS volymtabell av Jeffrey Lim"
 
 #: src/gui/about.cpp:290
 msgid "Schism Tracker IT sample decompression"
-msgstr ""
+msgstr "Schism Tracker IT-sampledekompression"
 
 #: src/gui/about.cpp:291
 msgid "SM8521 emulator (modified version) by cam900"
@@ -12598,7 +12598,7 @@ msgstr "Delad (automatisk)"
 
 #: src/gui/piano.cpp:129
 msgid "Split (always visible)"
-msgstr ""
+msgstr "Dela (alltid synlig)"
 
 #: src/gui/piano.cpp:133
 msgid "Share play/edit offset/range"
@@ -14950,11 +14950,11 @@ msgstr "Lokalinställningar: ccjk"
 
 #: src/gui/gui.cpp:7312
 msgid "NES DPCM data"
-msgstr ""
+msgstr "NES DPCM-data"
 
 #: src/gui/gui.cpp:7315
 msgid "SNES Bit Rate Reduction"
-msgstr ""
+msgstr "SNES bithastighetsreduktion"
 
 #: src/gui/gui.cpp:7682
 msgid "Unsaved changes! Save changes before quitting?"
@@ -16719,11 +16719,11 @@ msgstr "Auto-ADSR nämnare"
 
 #: src/gui/insEdit.cpp:7002 src/gui/insEdit.cpp:7018
 msgid "Force Period"
-msgstr ""
+msgstr "Tvinga period"
 
 #: src/gui/insEdit.cpp:7003 src/gui/insEdit.cpp:7019
 msgid "Env Period"
-msgstr ""
+msgstr "ADSR-period"
 
 #: src/gui/insEdit.cpp:7020
 msgid "Noise AND Mask"
