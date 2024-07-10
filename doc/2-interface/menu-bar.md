@@ -14,24 +14,6 @@ items in _italic_ don't appear in basic mode and are only available in advanced 
 - **save**: saves the current song.
   - opens the file picker if this is a new song, or a backup.
 - **save as...**: opens the file picker, allowing you to save the song under a different name.
-- **save as .dmf (1.1.3+)...**: opens the file picker, allowing you to save your song as a .dmf which is compatible with DefleMask 1.1.3 onwards.
-  - this will only work with the systems mentioned in the next option, plus:
-    - Sega Master System (with FM expansion)
-    - NES + Konami VRC7
-    - Famicom Disk System
-  - only use this option if you really need it. there are features which DefleMask does not support, like some effects and FM macros, so these will be lost.
-- **save as .dmf (1.0/legacy)...**: opens the file picker, allowing you to save your song as a .dmf which is compatible with DefleMask Legacy (0.12) or 1.0.
-  - this will only work on the following systems:
-    - Sega Genesis/Mega Drive (YM2612 + SN76489)
-    - Sega Genesis/Mega Drive (YM2612 + SN76489, extended channel 3)
-    - Sega Master System
-    - Game Boy
-    - PC Engine
-    - NES
-    - Commodore 64
-    - Arcade (YM2151 + SegaPCM 5-channel compatibility)
-    - Neo Geo CD (DefleMask 1.0+)
-  - only use this option if you really need it. there are features which DefleMask does not support, like some effects and FM macros, so these will be lost.
 
 - **export**: allows you to export your song into other formats, such as audio files, VGM and more. see the [export](export.md) page for more information.
 

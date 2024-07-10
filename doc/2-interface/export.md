@@ -82,3 +82,24 @@ it's not really useful, unless you're a developer and want to use a command stre
 
 - **export**: exports in Furnace's own command stream format (FCS). see `export-tech.md` in `papers/` for details.
 
+## export DMF
+
+this option allows you to save your song as a .dmf which can be opened in DefleMask.
+
+the following systems are supported when saving as 1.0/legacy:
+- Sega Genesis/Mega Drive (YM2612 + SN76489)
+- Sega Genesis/Mega Drive (YM2612 + SN76489, extended channel 3)
+- Sega Master System
+- Game Boy
+- PC Engine
+- NES
+- Commodore 64
+- Arcade (YM2151 + SegaPCM 5-channel compatibility)
+- Neo Geo CD (DefleMask 1.0+)
+
+the following systems are supported when saving as 1.1.3+:
+- Sega Master System (with FM expansion)
+- NES + Konami VRC7
+- Famicom Disk System
+
+only use this option if you really need it. there are many features which DefleMask does not support, such as a variety of effects, FM macros and pitched samples, so these will be lost.
