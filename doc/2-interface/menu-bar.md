@@ -8,6 +8,7 @@ items in _italic_ don't appear in basic mode and are only available in advanced 
 
 - **new...**: creates a new song.
 - **open...**: opens the file picker, allowing you to select a song to open.
+  - see [file formats](formats.md) for a list of formats Furnace is able to open.
 - **open recent**: contains a list of the songs you've opened before.
   - **clear history**: erases the file history.
 
