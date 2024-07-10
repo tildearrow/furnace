@@ -30,7 +30,7 @@
                 "furnace.exe"
 
             VALUE "FileDescription",
-                "the chiptune tracker."
+                "Furnace"
 
             VALUE "ProductVersion",
                 "0.6.5"
