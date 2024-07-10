@@ -649,7 +649,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
             short* outData=new short[s->samples*2];
             ret=it_decompress16(outData,s->samples,&file[reader.tell()],len-reader.tell(),(convert&4)?1:0,(flags&4)?2:1);
             for (unsigned int i=0; i<s->samples; i++) {
-              s->data16[i]=(outData[i]+outData[s->samples+i])>>1;
+              s->data16[i]=(outData[i<<1]+outData[1+(i<<1)])>>1;
             }
             delete[] outData;
           } else {
@@ -657,7 +657,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
             signed char* outData=new signed char[s->samples*2];
             ret=it_decompress8(outData,s->samples,&file[reader.tell()],len-reader.tell(),(convert&4)?1:0,(flags&4)?2:1);
             for (unsigned int i=0; i<s->samples; i++) {
-              s->data8[i]=(outData[i]+outData[s->samples+i])>>1;
+              s->data8[i]=(outData[i<<1]+outData[1+(i<<1)])>>1;
             }
             delete[] outData;
           }
