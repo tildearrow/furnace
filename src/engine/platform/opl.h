@@ -45,10 +45,11 @@ class DivPlatformOPL: public DivDispatch {
   protected:
     struct Channel: public SharedChannel<int> {
       DivInstrumentFM state;
-      unsigned char freqH, freqL;
+      unsigned int freqH, freqL;
       int sample, fixedFreq;
-      bool furnacePCM, fourOp, hardReset;
-      unsigned char pan;
+      bool furnacePCM, fourOp, hardReset, writeCtrl;
+      bool levelDirect, damp, pseudoReverb;
+      int pan;
       int macroVolMul;
       Channel():
         SharedChannel<int>(0),
@@ -59,6 +60,10 @@ class DivPlatformOPL: public DivDispatch {
         furnacePCM(false),
         fourOp(false),
         hardReset(false),
+        writeCtrl(false),
+        levelDirect(true),
+        damp(false),
+        pseudoReverb(false),
         pan(3),
         macroVolMul(64) {
         state.ops=2;
@@ -138,6 +143,7 @@ class DivPlatformOPL: public DivDispatch {
     int octave(int freq);
     int toFreq(int freq);
     double NOTE_ADPCMB(int note);
+    double NOTE_OPL4(int ch, int note);
     void commitState(int ch, DivInstrument* ins);
 
     friend void putDispatchChip(void*,int);

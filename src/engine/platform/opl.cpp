@@ -947,10 +947,95 @@ double DivPlatformOPL::NOTE_ADPCMB(int note) {
   return 0;
 }
 
+double DivPlatformOPL::NOTE_OPL4(int ch, int note) { // TODO
+  if (pcmChanOffs<0) return 0;
+  if (chan[ch].sample>=0 && chan[ch].sample<parent->song.sampleLen) {
+    double off=65535.0*(double)(parent->getSample(chan[ch].sample)->centerRate)/8363.0;
+    return parent->calcBaseFreq((double)chipClock/768,off,note,false);
+  }
+  return 0;
+}
+
 void DivPlatformOPL::tick(bool sysTick) {
   for (int i=0; i<totalChans; i++) {
     if (i>=pcmChanOffs) { // OPL4 PCM
       chan[i].std.next();
+      if (chan[i].std.vol.had) {
+        chan[i].outVol=VOL_SCALE_LOG((chan[i].vol&0x7f),(0x7f*chan[i].std.vol.val)/chan[i].macroVolMul,0x7f);
+        immWrite(PCM_ADDR_TL+(i-pcmChanOffs),((0x7f-chan[i].outVol)<<1)|(chan[i].levelDirect?1:0));
+      }
+
+      if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
+        DivSample* s=parent->getSample(chan[i].sample);
+        unsigned char ctrl=0;
+        double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+        chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,(524288*768)));
+        if (chan[i].freq<0x400) chan[i].freq=0x400;
+        if (chan[i].freq>0x4000000) chan[i].freq=0x4000000;
+        if (chan[i].freq>=0x2000000) {
+          chan[i].freqH=15;
+        } else if (chan[i].freq>=0x1000000) {
+          chan[i].freqH=14;
+        } else if (chan[i].freq>=0x800000) {
+          chan[i].freqH=13;
+        } else if (chan[i].freq>=0x400000) {
+          chan[i].freqH=12;
+        } else if (chan[i].freq>=0x200000) {
+          chan[i].freqH=11;
+        } else if (chan[i].freq>=0x100000) {
+          chan[i].freqH=10;
+        } else if (chan[i].freq>=0x80000) {
+          chan[i].freqH=9;
+        } else if (chan[i].freq>=0x40000) {
+          chan[i].freqH=8;
+        } else if (chan[i].freq>=0x20000) {
+          chan[i].freqH=7;
+        } else if (chan[i].freq>=0x10000) {
+          chan[i].freqH=6;
+        } else if (chan[i].freq>=0x8000) {
+          chan[i].freqH=5;
+        } else if (chan[i].freq>=0x4000) {
+          chan[i].freqH=4;
+        } else if (chan[i].freq>=0x2000) {
+          chan[i].freqH=3;
+        } else if (chan[i].freq>=0x1000) {
+          chan[i].freqH=2;
+        } else if (chan[i].freq>=0x800) {
+          chan[i].freqH=1;
+        } else {
+          chan[i].freqH=0;
+        }
+        chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
+        chan[i].freqH=8^chan[i].freqH;
+        ctrl|=(chan[i].active?0x80:0)|(chan[i].damp?0x40:0)|(isMuted[i]?8:(chan[i].pan&0xf));
+        unsigned int waveNum=chan[i].sample;
+        if (ramSize<=0x200000) {
+          waveNum=MIN(waveNum,0x7f)|0x180;
+        }
+        if (chan[i].keyOn) {
+          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+(i-pcmChanOffs),ctrl&~0x80); // force keyoff first
+          rWrite(PCM_ADDR_WAVE_H_FN_L+(i-pcmChanOffs),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
+          rWrite(PCM_ADDR_WAVE_L+(i-pcmChanOffs),waveNum&0xff);
+          if (!chan[i].std.vol.had) {
+            chan[i].outVol=chan[i].vol;
+          }
+          chan[i].writeCtrl=true;
+          chan[i].keyOn=false;
+        }
+        if (chan[i].keyOff) {
+          chan[i].writeCtrl=true;
+          chan[i].keyOff=false;
+        }
+        if (chan[i].freqChanged) {
+          rWrite(PCM_ADDR_WAVE_H_FN_L+(i-pcmChanOffs),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
+          rWrite(PCM_ADDR_FN_H_PR_OCT+(i-pcmChanOffs),((chan[i].freqH&0xf)<<4)|(chan[i].pseudoReverb?0x08:0x00)|((chan[i].freqL>>7)&0x7));
+          chan[i].freqChanged=false;
+        }
+        if (chan[i].writeCtrl) {
+          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+(i-pcmChanOffs),ctrl);
+          chan[i].writeCtrl=false;
+        }
+      }
     } else {
       int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
       chan[i].std.next();
@@ -1341,6 +1426,11 @@ int DivPlatformOPL::toFreq(int freq) {
 
 void DivPlatformOPL::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  if (ch>=pcmChanOffs) {
+    chan[ch].freqChanged=true;
+    chan[ch].writeCtrl=true;
+    return;
+  }
   if (ch==adpcmChan) {
     immWrite(18,(isMuted[adpcmChan]?0:chan[adpcmChan].outVol));
     return;
@@ -1494,7 +1584,31 @@ int DivPlatformOPL::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan>=pcmChanOffs) { // OPL4 PCM
-
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
+        chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
+          c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        }
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        }
+        if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
+          chan[c.chan].sample=-1;
+        }
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].note=c.value;
+        }
+        chan[c.chan].active=true;
+        chan[c.chan].keyOn=true;
+        chan[c.chan].macroInit(ins);
+        if (!chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+        }
+        break;
       } else if (c.chan==adpcmChan) { // ADPCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
         chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
@@ -1619,6 +1733,10 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
+      if (c.chan>=pcmChanOffs) {
+        chan[c.chan].sample=-1;
+        chan[c.chan].macroInit(NULL);
+      }
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
@@ -1638,6 +1756,10 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       chan[c.chan].vol=c.value;
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
+      }
+      if (c.chan>=pcmChanOffs) { // OPL4 PCM
+        immWrite(PCM_ADDR_TL+(c.chan-pcmChanOffs),((0x7f-chan[c.chan].outVol)<<1)|(chan[c.chan].levelDirect?1:0));
+        break;
       }
       if (c.chan==adpcmChan) { // ADPCM-B
         immWrite(18,(isMuted[adpcmChan]?0:chan[adpcmChan].outVol));
@@ -2275,6 +2397,7 @@ DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
 }
 
 int DivPlatformOPL::mapVelocity(int ch, float vel) {
+  if (ch>=pcmChanOffs) return vel*127.0;
   if (ch==adpcmChan) return vel*255.0;
   // -0.75dB per step
   // -6: 64: 8
@@ -2389,8 +2512,9 @@ void DivPlatformOPL::reset() {
   for (int i=0; i<totalChans; i++) {
     chan[i]=DivPlatformOPL::Channel();
     chan[i].std.setEngine(parent);
-    chan[i].vol=0x3f;
-    chan[i].outVol=0x3f;
+    chan[i].vol=(i>=pcmChanOffs)?0x7f:0x3f;
+    chan[i].outVol=(i>=pcmChanOffs)?0x7f:0x3f;
+    chan[i].pan=(i>=pcmChanOffs)?0:3;
   }
 
   if (adpcmChan>=0) {
@@ -2746,8 +2870,9 @@ void DivPlatformOPL::renderSamples(int sysID) {
 
   if (pcmChanOffs>=0) { // OPL4 PCM
     size_t memPos=((ramSize<=0x200000)?0x200600:0x1800);
+    const int maxSample=(ramSize<=0x200000)?127:511;
     int sampleCount=parent->song.sampleLen;
-    if (sampleCount>511) sampleCount=511;
+    if (sampleCount>maxSample) sampleCount=maxSample;
     for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
       if (!s->renderOn[0][sysID]) {
@@ -2795,8 +2920,8 @@ void DivPlatformOPL::renderSamples(int sysID) {
       DivSample* s=parent->song.sample[i];
       unsigned int insAddr=(i*12)+((ramSize<=0x200000)?0x200000:0);
       unsigned char bitDepth;
-      int loop=CLAMP(s->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT),0,0xffff);
-      int endPos=CLAMP(s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT),1,0x10000);
+      int endPos=CLAMP(s->loopEnd,1,0x10000);
+      int loop=s->isLoopable()?CLAMP(s->loopStart,0,endPos-1):(endPos-1);
       switch (s->depth) {
         default:
         case DIV_SAMPLE_DEPTH_8BIT:
@@ -2811,13 +2936,13 @@ void DivPlatformOPL::renderSamples(int sysID) {
       pcmMem[2+insAddr]=(sampleOffPCM[i])&0xff;
       pcmMem[3+insAddr]=(loop>>8)&0xff;
       pcmMem[4+insAddr]=(loop)&0xff;
-      pcmMem[5+insAddr]=(endPos>>8)&0xff;
-      pcmMem[6+insAddr]=(endPos)&0xff;
+      pcmMem[5+insAddr]=((~(endPos-1))>>8)&0xff;
+      pcmMem[6+insAddr]=(~(endPos-1))&0xff;
       // TODO: how to fill in rest of instrument table?
       pcmMem[7+insAddr]=0; // LFO, VIB
-      pcmMem[8+insAddr]=0; // AR, D1R
+      pcmMem[8+insAddr]=(0xf << 4) | (0xf << 0); // AR, D1R
       pcmMem[9+insAddr]=0; // DL, D2R
-      pcmMem[10+insAddr]=0; // RC, RR
+      pcmMem[10+insAddr]=(0xf << 4) | (0xf << 0); // RC, RR
       pcmMem[11+insAddr]=0; // AM
     }
     if (ramSize<=0x200000) {
@@ -2825,7 +2950,6 @@ void DivPlatformOPL::renderSamples(int sysID) {
     }
 
     memCompo.used=pcmMemLen;
-    memCompo.capacity=getSampleMemCapacity(0);
   } else if (adpcmChan>=0) { // ADPCM
     size_t memPos=0;
     for (int i=0; i<parent->song.sampleLen; i++) {
@@ -2857,8 +2981,8 @@ void DivPlatformOPL::renderSamples(int sysID) {
     adpcmBMemLen=memPos+256;
 
     memCompo.used=adpcmBMemLen;
-    memCompo.capacity=getSampleMemCapacity(0);
   }
+  memCompo.capacity=getSampleMemCapacity(0);
 }
 
 int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
