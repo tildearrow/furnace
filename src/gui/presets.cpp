@@ -520,13 +520,13 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
-      "MSX + Moonsound", {
+      "MSX + MoonSound", {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
         CH(DIV_SYSTEM_OPL4, 1.0f, 0, "")
       }
     );
     SUB_ENTRY(
-      "MSX + Moonsound (drums mode)", {
+      "MSX + MoonSound (drums mode)", {
         CH(DIV_SYSTEM_AY8910, 1.0f, 0, "chipType=1"),
         CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "")
       }
