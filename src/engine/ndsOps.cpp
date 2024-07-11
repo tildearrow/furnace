@@ -27,7 +27,7 @@ SafeWriter* w;
 unsigned int offset = 0;
 
 static void writeByte(unsigned char byte) {
-  if ((offset&31) == 0) {
+  if ((offset&31)==0) {
     w->writeText("\n  "); 
   }
   w->writeText(fmt::format("0x{:02x}, ",byte)); 
@@ -96,7 +96,7 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
 
   // Prepare to write song data
   playSub(false);
-  //size_t tickCount=0;
+  // size_t tickCount=0;
   bool done=false;
   bool loopNow=false;
   int loopPos=-1;
@@ -109,10 +109,10 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
 
   //disCont[NDS].dispatch->renderSamples(NDS);
   size_t sampleMemLength = disCont[NDS].dispatch->getSampleMemUsage(NDS);
-  uint8_t *samples = (uint8_t*)disCont[NDS].dispatch->getSampleMem(NDS);
+  unsigned char* samples = (unsigned char*)disCont[NDS].dispatch->getSampleMem(NDS);
   offset = 0;
   w->writeText("unsigned char samples[] = {"); 
-  for (size_t i = 0; i < sampleMemLength; i++) {
+  for (size_t i=0; i<sampleMemLength; i++) {
     writeByte(samples[i]);
   }
   w->writeText("\n};\n");
@@ -166,18 +166,7 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
       }
       for (DivRegWrite& write: writes) {
         if (i==NDS) {
-/*
-          if (write.addr==0x100&&write.addr<0x108) {
-            //writeByte(2);
-            //writeByte(write.addr&0xff);
-            //writeByte(write.val&0xff);
-          } else {
-            writeByte(0);
-            writeByte(write.addr&0xff);
-            writeByte(write.val&0xff);
-          }
-*/
-          if ((write.addr&0xff) == write.addr) {
+          if ((write.addr&0xff)==write.addr) {
             writeByte(0);
             writeByte(write.addr&0xff);
             writeByte(write.val&0xff);
@@ -191,7 +180,8 @@ SafeWriter* DivEngine::saveNDS(unsigned int refreshrate, bool loop) {
     fracWait+=cycles&MASTER_CLOCK_MASK;
     totalWait+=fracWait>>MASTER_CLOCK_PREC;
     fracWait&=MASTER_CLOCK_MASK;
-    if (totalWait>0 && !done) wait += totalWait;
+    if (totalWait>0 && !done)
+      wait+=totalWait;
   }
   // end of song
 
