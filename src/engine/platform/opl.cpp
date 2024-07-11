@@ -2912,6 +2912,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
         logW("out of OPL4 PCM memory for sample %d!",i);
         break;
       }
+      sampleLoaded[i]=true;
     }
     pcmMemLen=memPos+256;
 
