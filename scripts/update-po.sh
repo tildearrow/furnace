@@ -19,7 +19,7 @@ cd po
 for i in ${EXPORT_LANGS[@]}; do
   if [ -e "$i".po ]; then
     echo "merging $i"".po..."
-    msgmerge --backup=none -U "$i".po furnace.pot || exit 1
+    msgmerge --backup=none -N -U "$i".po furnace.pot || exit 1
   else
     echo "creating $i"".po..."
     msginit -i furnace.pot -l "$i".UTF-8 --no-translator || exit 1
