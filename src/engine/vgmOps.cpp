@@ -987,6 +987,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
       }
       break;
+    case DIV_SYSTEM_OPL4:
+    case DIV_SYSTEM_OPL4_DRUMS:
+      w->writeC(0xd0|baseAddr2);
+      w->writeC(write.addr>>8);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
+      break;
     case DIV_SYSTEM_SCC:
       if (write.addr<0x80) {
         w->writeC(0xd2);
@@ -1254,6 +1261,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   bool writeVOXSamples=false;
   DivDispatch* writeADPCM_OPNA[2]={NULL,NULL};
   DivDispatch* writeADPCM_OPNB[2]={NULL,NULL};
+  DivDispatch* writePCM_OPL4[2]={NULL,NULL};
   DivDispatch* writeADPCM_Y8950[2]={NULL,NULL};
   DivDispatch* writeSegaPCM[2]={NULL,NULL};
   DivDispatch* writeX1010[2]={NULL,NULL};
@@ -1706,6 +1714,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_OPL4:
+      case DIV_SYSTEM_OPL4_DRUMS:
+        if (!hasOPL4) {
+          hasOPL4=disCont[i].dispatch->chipClock;
+          CHIP_VOL(12,1.0);
+          willExport[i]=true;
+        } else if (!(hasOPL4&0x40000000)) {
+          isSecond[i]=true;
+          CHIP_VOL_SECOND(12,1.0);
+          willExport[i]=true;
+          hasOPL4|=0x40000000;
+          howManyChips++;
+        }
+        break;
       case DIV_SYSTEM_SCC:
       case DIV_SYSTEM_SCC_PLUS:
         if (!hasK051649) {
@@ -2149,6 +2171,16 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(writeADPCM_OPNB[i]->getSampleMemCapacity(1));
       w->writeI(0);
       w->write(writeADPCM_OPNB[i]->getSampleMem(1),writeADPCM_OPNB[i]->getSampleMemUsage(1));
+    }
+    // PCM (OPL4)
+    if (writePCM_OPL4[i]!=NULL && writePCM_OPL4[i]->getSampleMemUsage(0)>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x84);
+      w->writeI((writePCM_OPL4[i]->getSampleMemUsage(0)+8)|(i*0x80000000));
+      w->writeI(writePCM_OPL4[i]->getSampleMemCapacity(0));
+      w->writeI(0);
+      w->write(writePCM_OPL4[i]->getSampleMem(0),writePCM_OPL4[i]->getSampleMemUsage(0));
     }
     // ADPCM (Y8950)
     if (writeADPCM_Y8950[i]!=NULL && writeADPCM_Y8950[i]->getSampleMemUsage(0)>0) {

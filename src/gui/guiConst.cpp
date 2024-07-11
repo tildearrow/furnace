@@ -1260,6 +1260,8 @@ const int availableSystems[]={
   DIV_SYSTEM_5E01,
   DIV_SYSTEM_BIFURCATOR,
   DIV_SYSTEM_SID2,
+  DIV_SYSTEM_OPL4,
+  DIV_SYSTEM_OPL4_DRUMS,
   0 // don't remove this last one!
 };
 
@@ -1295,6 +1297,8 @@ const int chipsFM[]={
   DIV_SYSTEM_OPL3_DRUMS,
   DIV_SYSTEM_OPZ,
   DIV_SYSTEM_ESFM,
+  DIV_SYSTEM_OPL4,
+  DIV_SYSTEM_OPL4_DRUMS,
   0 // don't remove this last one!
 };
 
@@ -1380,6 +1384,8 @@ const int chipsSample[]={
   DIV_SYSTEM_NDS,
   DIV_SYSTEM_GBA_DMA,
   DIV_SYSTEM_GBA_MINMOD,
+  DIV_SYSTEM_OPL4,
+  DIV_SYSTEM_OPL4_DRUMS,
   0 // don't remove this last one!
 };
 

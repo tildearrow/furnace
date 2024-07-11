@@ -29,14 +29,16 @@ extern "C" {
 }
 #include "sound/ymfm/ymfm_adpcm.h"
 #include "sound/ymfm/ymfm_opl.h"
+#include "sound/ymfm/ymfm_pcm.h"
 
 class DivOPLAInterface: public ymfm::ymfm_interface {
   public:
     unsigned char* adpcmBMem;
+    unsigned char* pcmMem;
     int sampleBank;
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
-    DivOPLAInterface(): adpcmBMem(NULL), sampleBank(0) {}
+    DivOPLAInterface(): adpcmBMem(NULL), pcmMem(NULL), sampleBank(0) {}
 };
 
 class DivPlatformOPL: public DivDispatch {
@@ -62,9 +64,9 @@ class DivPlatformOPL: public DivDispatch {
         state.ops=2;
       }
     };
-    Channel chan[20];
-    DivDispatchOscBuffer* oscBuf[20];
-    bool isMuted[20];
+    Channel chan[44];
+    DivDispatchOscBuffer* oscBuf[44];
+    bool isMuted[44];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -72,7 +74,7 @@ class DivPlatformOPL: public DivDispatch {
       QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    FixedQueue<QueuedWrite,2048> writes;
+    FixedQueue<QueuedWrite,4096> writes;
 
     unsigned int dacVal;
     unsigned int dacVal2;
@@ -86,8 +88,11 @@ class DivPlatformOPL: public DivDispatch {
     
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
+    unsigned char* pcmMem;
+    size_t pcmMemLen;
     DivOPLAInterface iface;
     unsigned int sampleOffB[256];
+    unsigned int sampleOffPCM[256];
     bool sampleLoaded[256];
   
     ymfm::adpcm_b_engine* adpcmB;
@@ -97,12 +102,12 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
     int chipFreqBase, chipRateBase;
-    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank, totalOutputs;
+    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan=-1, pcmChanOffs=-1, sampleBank, totalOutputs, ramSize;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
 
-    unsigned char regPool[512];
+    unsigned char regPool[768];
   
     bool properDrums, properDrumsSys, dam, dvb;
 
@@ -115,8 +120,8 @@ class DivPlatformOPL: public DivDispatch {
 
     bool update4OpMask, pretendYMU, downsample, compatPan;
   
-    short oldWrites[512];
-    short pendingWrites[512];
+    short oldWrites[768];
+    short pendingWrites[768];
 
     // chips
     opl3_chip fm;
@@ -124,6 +129,7 @@ class DivPlatformOPL: public DivDispatch {
     ymfm::ym3812* fm_ymfm2;
     ymfm::y8950* fm_ymfm8950;
     ymfm::ymf262* fm_ymfm3;
+    ymfm::ymf278b* fm_ymfm4;
     fmopl2_t fm_lle2;
     fmopl3_t fm_lle3;
 
@@ -141,6 +147,7 @@ class DivPlatformOPL: public DivDispatch {
     void acquire_nukedLLE3(short** buf, size_t len);
     void acquire_nuked(short** buf, size_t len);
     void acquire_ymfm3(short** buf, size_t len);
+    void acquire_ymfm4(short** buf, size_t len);
     void acquire_ymfm8950(short** buf, size_t len);
     void acquire_ymfm2(short** buf, size_t len);
     void acquire_ymfm1(short** buf, size_t len);

@@ -760,6 +760,18 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SID2:
       dispatch=new DivPlatformSID2;
       break;
+    case DIV_SYSTEM_OPL4:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(4,false);
+      // YMFM for now
+      ((DivPlatformOPL*)dispatch)->setCore(1);
+      break;
+    case DIV_SYSTEM_OPL4_DRUMS:
+      dispatch=new DivPlatformOPL;
+      ((DivPlatformOPL*)dispatch)->setOPLType(4,true);
+      // YMFM for now
+      ((DivPlatformOPL*)dispatch)->setCore(1);
+      break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;
       break;
