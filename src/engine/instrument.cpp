@@ -178,6 +178,15 @@ bool DivInstrumentMultiPCM::operator==(const DivInstrumentMultiPCM& other) {
   );
 }
 
+bool DivInstrumentOPL4PCM::operator==(const DivInstrumentOPL4PCM& other) {
+  return (
+    _C(damp) &&
+    _C(pseudoReverb) &&
+    _C(lfoReset) &&
+    _C(levelDirect)
+  );
+}
+
 bool DivInstrumentWaveSynth::operator==(const DivInstrumentWaveSynth& other) {
   return (
     _C(wave1) &&
@@ -848,6 +857,17 @@ void DivInstrument::writeFeatureS2(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureO4(SafeWriter* w) {
+  FEATURE_BEGIN("O4");
+
+  w->writeC(opl4pcm.damp);
+  w->writeC(opl4pcm.pseudoReverb);
+  w->writeC(opl4pcm.lfoReset);
+  w->writeC(opl4pcm.levelDirect);
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -894,6 +914,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureEF=false;
   bool featurePN=false;
   bool featureS2=false;
+  bool featureO4=false;
 
   bool checkForWL=false;
 
@@ -1137,6 +1158,12 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         feature64=true;
         featureS2=true;
         break;
+      case DIV_INS_OPL4PCM:
+        featureSM=true;
+        featureSL=true;
+        featureMP=true;
+        featureO4=true;
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1192,6 +1219,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (sid2!=defaultIns.sid2) {
       featureS2=true;
+    }
+    if (opl4pcm!=defaultIns.opl4pcm) {
+      featureO4=true;
     }
   }
 
@@ -1343,6 +1373,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureS2) {
     writeFeatureS2(w);
+  }
+  if (featureO4) {
+    writeFeatureO4(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -2172,6 +2205,17 @@ void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureO4(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  opl4pcm.damp=reader.readC();
+  opl4pcm.pseudoReverb=reader.readC();
+  opl4pcm.lfoReset=reader.readC();
+  opl4pcm.levelDirect=reader.readC();
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -2246,6 +2290,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeaturePN(reader,version);
     } else if (memcmp(featCode,"S2",2)==0) { // SID2
       readFeatureS2(reader,version);
+    } else if (memcmp(featCode,"O4",2)==0) { // OPL4 PCM
+      readFeatureO4(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing

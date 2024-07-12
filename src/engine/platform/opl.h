@@ -61,7 +61,8 @@ class DivPlatformOPL: public DivDispatch {
       unsigned int freqH, freqL;
       int sample, fixedFreq;
       bool furnacePCM, fourOp, hardReset, writeCtrl;
-      bool levelDirect, damp, pseudoReverb;
+      bool levelDirect, damp, pseudoReverb, lfoReset, ch;
+      int lfo, vib, am, ar, d1r, d2r, dl, rc, rr;
       int pan;
       int macroVolMul;
       Channel():
@@ -77,6 +78,17 @@ class DivPlatformOPL: public DivDispatch {
         levelDirect(true),
         damp(false),
         pseudoReverb(false),
+        lfoReset(false),
+        ch(false),
+        lfo(0),
+        vib(0),
+        am(0),
+        ar(15),
+        d1r(15),
+        d2r(0),
+        dl(0),
+        rc(15),
+        rr(15),
         pan(3),
         macroVolMul(64) {
         state.ops=2;
@@ -208,7 +220,6 @@ class DivPlatformOPL: public DivDispatch {
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    YMF278& getChip();
     DivPlatformOPL():
       pcmMemory(0x400000),
       pcm(pcmMemory) {}

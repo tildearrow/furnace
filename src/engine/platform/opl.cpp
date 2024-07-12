@@ -1002,9 +1002,10 @@ void DivPlatformOPL::tick(bool sysTick) {
         chan[i].freqChanged=true;
       }
 
-      if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.had) { // TODO: not working
         if (chan[i].std.phaseReset.val==1 && chan[i].active) {
           chan[i].keyOn=true;
+          chan[i].writeCtrl=true;
         }
       }
 
@@ -1014,78 +1015,51 @@ void DivPlatformOPL::tick(bool sysTick) {
         chan[i].writeCtrl=true;
       }
 
-      if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-        DivSample* s=parent->getSample(chan[i].sample);
-        unsigned char ctrl=0;
-        double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
-        chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,(524288*768)));
-        if (chan[i].freq<0x400) chan[i].freq=0x400;
-        if (chan[i].freq>0x4000000) chan[i].freq=0x4000000;
-        if (chan[i].freq>=0x2000000) {
-          chan[i].freqH=15;
-        } else if (chan[i].freq>=0x1000000) {
-          chan[i].freqH=14;
-        } else if (chan[i].freq>=0x800000) {
-          chan[i].freqH=13;
-        } else if (chan[i].freq>=0x400000) {
-          chan[i].freqH=12;
-        } else if (chan[i].freq>=0x200000) {
-          chan[i].freqH=11;
-        } else if (chan[i].freq>=0x100000) {
-          chan[i].freqH=10;
-        } else if (chan[i].freq>=0x80000) {
-          chan[i].freqH=9;
-        } else if (chan[i].freq>=0x40000) {
-          chan[i].freqH=8;
-        } else if (chan[i].freq>=0x20000) {
-          chan[i].freqH=7;
-        } else if (chan[i].freq>=0x10000) {
-          chan[i].freqH=6;
-        } else if (chan[i].freq>=0x8000) {
-          chan[i].freqH=5;
-        } else if (chan[i].freq>=0x4000) {
-          chan[i].freqH=4;
-        } else if (chan[i].freq>=0x2000) {
-          chan[i].freqH=3;
-        } else if (chan[i].freq>=0x1000) {
-          chan[i].freqH=2;
-        } else if (chan[i].freq>=0x800) {
-          chan[i].freqH=1;
-        } else {
-          chan[i].freqH=0;
-        }
-        chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
-        chan[i].freqH=8^chan[i].freqH;
-        ctrl|=(chan[i].active?0x80:0)|(chan[i].damp?0x40:0)|(isMuted[i]?8:(chan[i].pan&0xf));
-        unsigned int waveNum=chan[i].sample;
-        if (ramSize<=0x200000) {
-          waveNum=MIN(waveNum,0x7f)|0x180;
-        }
-        if (chan[i].keyOn) {
-          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl&~0x80); // force keyoff first
-          rWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
-          rWrite(PCM_ADDR_WAVE_L+PCM_REG(i),waveNum&0xff);
-          if (!chan[i].std.vol.had) {
-            chan[i].outVol=chan[i].vol;
-            immWrite(PCM_ADDR_TL+(PCM_REG(i)),((0x7f-chan[i].outVol)<<1)|(chan[i].levelDirect?1:0));
-          }
-          chan[i].writeCtrl=true;
-          chan[i].keyOn=false;
-        }
-        if (chan[i].keyOff) {
-          chan[i].writeCtrl=true;
-          chan[i].keyOff=false;
-        }
-        if (chan[i].freqChanged) {
-          rWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
-          rWrite(PCM_ADDR_FN_H_PR_OCT+PCM_REG(i),((chan[i].freqH&0xf)<<4)|(chan[i].pseudoReverb?0x08:0x00)|((chan[i].freqL>>7)&0x7));
-          chan[i].freqChanged=false;
-        }
-        if (chan[i].writeCtrl) {
-          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl);
-          chan[i].writeCtrl=false;
-        }
+      if (chan[i].std.ex1.had) {
+        chan[i].lfo=chan[i].std.ex1.val&0x7;
+        rWrite(PCM_ADDR_LFO_VIB+PCM_REG(i),(chan[i].lfo<<3)|(chan[i].vib));
       }
+
+      if (chan[i].std.fms.had) {
+        chan[i].vib=chan[i].std.fms.val&0x7;
+        rWrite(PCM_ADDR_LFO_VIB+PCM_REG(i),(chan[i].lfo<<3)|(chan[i].vib));
+      }
+
+      if (chan[i].std.ams.had) {
+        chan[i].am=chan[i].std.ams.val&0x7;
+        rWrite(PCM_ADDR_AM+PCM_REG(i),chan[i].am);
+      }
+
+      if (chan[i].std.ex2.had) {
+        chan[i].ar=chan[i].std.ex2.val&0xf;
+        rWrite(PCM_ADDR_AR_D1R+PCM_REG(i),(chan[i].ar<<4)|(chan[i].d1r));
+      }
+
+      if (chan[i].std.ex3.had) {
+        chan[i].d1r=chan[i].std.ex3.val&0xf;
+        rWrite(PCM_ADDR_AR_D1R+PCM_REG(i),(chan[i].ar<<4)|(chan[i].d1r));
+      }
+
+      if (chan[i].std.ex4.had) {
+        chan[i].dl=chan[i].std.ex4.val&0xf;
+        rWrite(PCM_ADDR_DL_D2R+PCM_REG(i),(chan[i].dl<<4)|(chan[i].d2r));
+      }
+
+      if (chan[i].std.ex5.had) {
+        chan[i].d2r=chan[i].std.ex5.val&0xf;
+        rWrite(PCM_ADDR_DL_D2R+PCM_REG(i),(chan[i].dl<<4)|(chan[i].d2r));
+      }
+
+      if (chan[i].std.ex6.had) {
+        chan[i].rc=chan[i].std.ex6.val&0xf;
+        rWrite(PCM_ADDR_RC_RR+PCM_REG(i),(chan[i].rc<<4)|(chan[i].rr));
+      }
+
+      if (chan[i].std.ex7.had) {
+        chan[i].rr=chan[i].std.ex7.val&0xf;
+        rWrite(PCM_ADDR_RC_RR+PCM_REG(i),(chan[i].rc<<4)|(chan[i].rr));
+      }
+
     } else {
       int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
       chan[i].std.next();
@@ -1360,7 +1334,83 @@ void DivPlatformOPL::tick(bool sysTick) {
   bool updateDrums=false;
   for (int i=0; i<totalChans; i++) {
     if (PCM_CHECK(i)) { // OPL4 PCM
-
+      if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
+        DivSample* s=parent->getSample(chan[i].sample);
+        unsigned char ctrl=0;
+        double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+        chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,(524288*768)));
+        if (chan[i].freq<0x400) chan[i].freq=0x400;
+        if (chan[i].freq>0x4000000) chan[i].freq=0x4000000;
+        if (chan[i].freq>=0x2000000) {
+          chan[i].freqH=15;
+        } else if (chan[i].freq>=0x1000000) {
+          chan[i].freqH=14;
+        } else if (chan[i].freq>=0x800000) {
+          chan[i].freqH=13;
+        } else if (chan[i].freq>=0x400000) {
+          chan[i].freqH=12;
+        } else if (chan[i].freq>=0x200000) {
+          chan[i].freqH=11;
+        } else if (chan[i].freq>=0x100000) {
+          chan[i].freqH=10;
+        } else if (chan[i].freq>=0x80000) {
+          chan[i].freqH=9;
+        } else if (chan[i].freq>=0x40000) {
+          chan[i].freqH=8;
+        } else if (chan[i].freq>=0x20000) {
+          chan[i].freqH=7;
+        } else if (chan[i].freq>=0x10000) {
+          chan[i].freqH=6;
+        } else if (chan[i].freq>=0x8000) {
+          chan[i].freqH=5;
+        } else if (chan[i].freq>=0x4000) {
+          chan[i].freqH=4;
+        } else if (chan[i].freq>=0x2000) {
+          chan[i].freqH=3;
+        } else if (chan[i].freq>=0x1000) {
+          chan[i].freqH=2;
+        } else if (chan[i].freq>=0x800) {
+          chan[i].freqH=1;
+        } else {
+          chan[i].freqH=0;
+        }
+        chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
+        chan[i].freqH=8^chan[i].freqH;
+        ctrl|=(chan[i].active?0x80:0)|(chan[i].damp?0x40:0)|(chan[i].lfoReset?0x20:0)|(chan[i].ch?0x10:0)|(isMuted[i]?8:(chan[i].pan&0xf));
+        unsigned int waveNum=chan[i].sample;
+        if (ramSize<=0x200000) {
+          waveNum=CLAMP(waveNum,0,0x7f)|0x180;
+        }
+        if (chan[i].keyOn) {
+          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl&~0x80); // force keyoff first
+          rWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
+          rWrite(PCM_ADDR_WAVE_L+PCM_REG(i),waveNum&0xff);
+          rWrite(PCM_ADDR_LFO_VIB+PCM_REG(i),(chan[i].lfo<<3)|(chan[i].vib));
+          rWrite(PCM_ADDR_AR_D1R+PCM_REG(i),(chan[i].ar<<4)|(chan[i].d1r));
+          rWrite(PCM_ADDR_DL_D2R+PCM_REG(i),(chan[i].dl<<4)|(chan[i].d2r));
+          rWrite(PCM_ADDR_RC_RR+PCM_REG(i),(chan[i].rc<<4)|(chan[i].rr));
+          rWrite(PCM_ADDR_AM+PCM_REG(i),chan[i].am);
+          if (!chan[i].std.vol.had) {
+            chan[i].outVol=chan[i].vol;
+            immWrite(PCM_ADDR_TL+(PCM_REG(i)),((0x7f-chan[i].outVol)<<1)|(chan[i].levelDirect?1:0));
+          }
+          chan[i].writeCtrl=true;
+          chan[i].keyOn=false;
+        }
+        if (chan[i].keyOff) {
+          chan[i].writeCtrl=true;
+          chan[i].keyOff=false;
+        }
+        if (chan[i].freqChanged) {
+          rWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
+          rWrite(PCM_ADDR_FN_H_PR_OCT+PCM_REG(i),((chan[i].freqH&0xf)<<4)|(chan[i].pseudoReverb?0x08:0x00)|((chan[i].freqL>>7)&0x7));
+          chan[i].freqChanged=false;
+        }
+        if (chan[i].writeCtrl) {
+          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl);
+          chan[i].writeCtrl=false;
+        }
+      }
     } else {
       if (chan[i].freqChanged) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
@@ -1655,6 +1705,35 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
+        if (ins->type==DIV_INS_OPL4PCM) {
+          chan[c.chan].lfo=ins->multipcm.lfo;
+          chan[c.chan].vib=ins->multipcm.vib;
+          chan[c.chan].am=ins->multipcm.am;
+          chan[c.chan].ar=ins->multipcm.ar;
+          chan[c.chan].d1r=ins->multipcm.d1r;
+          chan[c.chan].dl=ins->multipcm.dl;
+          chan[c.chan].d2r=ins->multipcm.d2r;
+          chan[c.chan].rc=ins->multipcm.rc;
+          chan[c.chan].rr=ins->multipcm.rr;
+          chan[c.chan].damp=ins->opl4pcm.damp;
+          chan[c.chan].pseudoReverb=ins->opl4pcm.pseudoReverb;
+          chan[c.chan].levelDirect=ins->opl4pcm.levelDirect;
+          chan[c.chan].lfoReset=ins->opl4pcm.lfoReset;
+        } else {
+          chan[c.chan].lfo=0;
+          chan[c.chan].vib=0;
+          chan[c.chan].am=0;
+          chan[c.chan].ar=15;
+          chan[c.chan].d1r=15;
+          chan[c.chan].dl=0;
+          chan[c.chan].d2r=0;
+          chan[c.chan].rc=15;
+          chan[c.chan].rr=15;
+          chan[c.chan].damp=false;
+          chan[c.chan].pseudoReverb=false;
+          chan[c.chan].levelDirect=true;
+          chan[c.chan].lfoReset=false;
+        }
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;
         chan[c.chan].macroInit(ins);
@@ -1852,6 +1931,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING: {
       if (PCM_CHECK(c.chan)) {
+        chan[c.chan].ch=false;
         chan[c.chan].pan=8^MIN(parent->convertPanSplitToLinearLR(c.value,c.value2,15)+1,15);
         chan[c.chan].freqChanged=true;
         chan[c.chan].writeCtrl=true;
@@ -1880,6 +1960,12 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_SURROUND_PANNING: {
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].ch=true;
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].writeCtrl=true;
+        break;
+      }
       if (oplType!=3) break;
       if (c.chan==adpcmChan) break;
 
@@ -2331,8 +2417,98 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_HARD_RESET:
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       chan[c.chan].hardReset=c.value;
+      break;
+    case DIV_CMD_OPL4_PCM_MIX_FM:
+      if (chipType==4) {
+        rWrite(PCM_ADDR_MIX_FM,(CLAMP((0x70-(c.value&0x70)),0,0x70)>>1)|(CLAMP((7-(c.value&7)),0,7)));
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_MIX_PCM:
+      if (chipType==4) {
+        rWrite(PCM_ADDR_MIX_PCM,(CLAMP((0x70-(c.value&0x70)),0,0x70)>>1)|(CLAMP((7-(c.value&7)),0,7)));
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_LFO:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].lfo=c.value&7;
+        rWrite(PCM_ADDR_LFO_VIB+PCM_REG(c.chan),(chan[c.chan].lfo<<3)|(chan[c.chan].vib));
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_VIB:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].vib=c.value&7;
+        rWrite(PCM_ADDR_LFO_VIB+PCM_REG(c.chan),(chan[c.chan].lfo<<3)|(chan[c.chan].vib));
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_AM:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].am=c.value&7;
+        rWrite(PCM_ADDR_AM+PCM_REG(c.chan),chan[c.chan].am);
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_AR:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].ar=c.value&0xf;
+        rWrite(PCM_ADDR_AR_D1R+PCM_REG(c.chan),(chan[c.chan].ar<<4)|(chan[c.chan].d1r));
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_D1R:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].d1r=c.value&0xf;
+        rWrite(PCM_ADDR_AR_D1R+PCM_REG(c.chan),(chan[c.chan].ar<<4)|(chan[c.chan].d1r));
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_DL:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].dl=c.value&0xf;
+        rWrite(PCM_ADDR_DL_D2R+PCM_REG(c.chan),(chan[c.chan].dl<<4)|(chan[c.chan].d2r));
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_D2R:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].d2r=c.value&0xf;
+        rWrite(PCM_ADDR_DL_D2R+PCM_REG(c.chan),(chan[c.chan].dl<<4)|(chan[c.chan].d2r));
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_RC:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].rc=c.value&0xf;
+        rWrite(PCM_ADDR_RC_RR+PCM_REG(c.chan),(chan[c.chan].rc<<4)|(chan[c.chan].rr));
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_RR:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].rr=c.value&0xf;
+        rWrite(PCM_ADDR_RC_RR+PCM_REG(c.chan),(chan[c.chan].rc<<4)|(chan[c.chan].rr));
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_DAMP:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].damp=c.value&1;
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].writeCtrl=true;
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_PSEUDO_REVERB:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].pseudoReverb=c.value&1;
+        chan[c.chan].freqChanged=true;
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_LFO_RESET:
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].lfoReset=c.value&1;
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].writeCtrl=true;
+      }
+      break;
+    case DIV_CMD_OPL4_PCM_LEVEL_DIRECT:
+      if (PCM_CHECK(c.chan)) {
+        immWrite(PCM_ADDR_TL+PCM_REG(c.chan),((0x7f-chan[c.chan].outVol)<<1)|(chan[c.chan].levelDirect?1:0));
+      }
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
@@ -3019,6 +3195,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
         case DIV_SAMPLE_DEPTH_8BIT:
           bitDepth=0;
           break;
+        // TODO: 12 bit PCM
         case DIV_SAMPLE_DEPTH_16BIT:
           bitDepth=2;
           break;

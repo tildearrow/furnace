@@ -261,7 +261,23 @@ const char* cmdName[]={
   "MINMOD_ECHO",
 
   "BIFURCATOR_STATE_LOAD",
-  "BIFURCATOR_PARAMETER"
+  "BIFURCATOR_PARAMETER",
+
+  "OPL4_MIX_FM",
+  "OPL4_MIX_PCM",
+  "OPL4_LFO",
+  "OPL4_VIB",
+  "OPL4_AM",
+  "OPL4_AR",
+  "OPL4_D1R",
+  "OPL4_DL",
+  "OPL4_D2R",
+  "OPL4_RR",
+  "OPL4_RC",
+  "OPL4_DAMP",
+  "OPL4_PSEUDO_REVERB",
+  "OPL4_LFO_RESET",
+  "OPL4_LEVEL_DIRECT"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");

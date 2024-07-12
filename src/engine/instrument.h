@@ -94,6 +94,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_GBA_MINMOD=61,
   DIV_INS_BIFURCATOR=62,
   DIV_INS_SID2=63, // coincidence!
+  DIV_INS_OPL4PCM=64,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -620,6 +621,22 @@ struct DivInstrumentMultiPCM {
   }
 };
 
+struct DivInstrumentOPL4PCM {
+  bool damp, pseudoReverb, lfoReset, levelDirect;
+
+  bool operator==(const DivInstrumentOPL4PCM& other);
+  bool operator!=(const DivInstrumentOPL4PCM& other) {
+    return !(*this==other);
+  }
+
+  DivInstrumentOPL4PCM():
+    damp(false),
+    pseudoReverb(false),
+    lfoReset(false),
+    levelDirect(true) {
+  }
+};
+
 enum DivWaveSynthEffects {
   DIV_WS_NONE=0,
   // one waveform effects
@@ -879,6 +896,7 @@ struct DivInstrument {
   DivInstrumentESFM esfm;
   DivInstrumentPowerNoise powernoise;
   DivInstrumentSID2 sid2;
+  DivInstrumentOPL4PCM opl4pcm;
 
   /**
    * these are internal functions.
@@ -906,6 +924,7 @@ struct DivInstrument {
   void writeFeatureEF(SafeWriter* w);
   void writeFeaturePN(SafeWriter* w);
   void writeFeatureS2(SafeWriter* w);
+  void writeFeatureO4(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -929,6 +948,7 @@ struct DivInstrument {
   void readFeatureEF(SafeReader& reader, short version);
   void readFeaturePN(SafeReader& reader, short version);
   void readFeatureS2(SafeReader& reader, short version);
+  void readFeatureO4(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
