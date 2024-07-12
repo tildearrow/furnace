@@ -29,6 +29,12 @@
 #define KVSL(x,y) ((chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==2 && isOutputL[ops==4][chan[x].state.alg][y]) || chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==1)
 
 #define CHIP_FREQBASE chipFreqBase
+#define PCM_FREQBASE (402653184)
+
+#define NOTE_PCM(x) parent->calcBaseFreq(chipClock,PCM_FREQBASE,x,false)
+
+#define PCM_CHECK(ch) ((chipType==4) && (ch>=pcmChanOffs))
+#define PCM_REG(ch) (ch-pcmChanOffs)
 
 // N = invalid
 #define N 255
@@ -176,36 +182,42 @@ const int orderedOpsL[4]={
 #define PCM_ADDR_MIX_PCM 0x2f9
 
 void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
-  thread_local short o[4];
-  thread_local int os[4];
+  thread_local short o[8];
+  thread_local int os[6];
   thread_local ymfm::ymfm_output<2> aOut;
 
   for (size_t h=0; h<len; h++) {
-    os[0]=0; os[1]=0; os[2]=0; os[3]=0;
+    os[0]=0; os[1]=0; os[2]=0; os[3]=0; os[4]=0; os[5]=0;
+    short pcmBuf[24]={0};
     if (!writes.empty() && --delay<0) {
       delay=1;
       QueuedWrite& w=writes.front();
-      switch (w.addr) {
-        case 8:
-          if (adpcmChan>=0) {
-            adpcmB->write(w.addr-7,(w.val&15)|0x80);
-            OPL3_WriteReg(&fm,w.addr,w.val&0xc0);
-          } else {
+      if (w.addr>=0x200) {
+        pcm.writeReg(w.addr&0xff,w.val);
+        regPool[0x200|(w.addr&0xff)]=w.val;
+      } else {
+        switch (w.addr) {
+          case 8:
+            if (adpcmChan>=0) {
+              adpcmB->write(w.addr-7,(w.val&15)|0x80);
+              OPL3_WriteReg(&fm,w.addr,w.val&0xc0);
+            } else {
+              OPL3_WriteReg(&fm,w.addr,w.val);
+            }
+            break;
+          case 7: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 21: case 22: case 23:
+            if (adpcmChan>=0) {
+              adpcmB->write(w.addr-7,w.val);
+            } else {
+              OPL3_WriteReg(&fm,w.addr,w.val);
+            }
+            break;
+          default:
             OPL3_WriteReg(&fm,w.addr,w.val);
-          }
-          break;
-        case 7: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17: case 18: case 21: case 22: case 23:
-          if (adpcmChan>=0) {
-            adpcmB->write(w.addr-7,w.val);
-          } else {
-            OPL3_WriteReg(&fm,w.addr,w.val);
-          }
-          break;
-        default:
-          OPL3_WriteReg(&fm,w.addr,w.val);
-          break;
+            break;
+        }
+        regPool[w.addr&511]=w.val;
       }
-      regPool[w.addr&511]=w.val;
       writes.pop();
     }
 
@@ -214,10 +226,20 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
     } else {
       OPL3_Generate4Ch(&fm,o);
     }
-    os[0]+=o[0];
-    os[1]+=o[1];
-    os[2]+=o[2];
-    os[3]+=o[3];
+    if (chipType==4) {
+      pcm.generateMix(o[0],o[1],o[4],o[5],o[6],o[7],pcmBuf);
+      os[0]+=o[4];
+      os[1]+=o[5];
+      os[2]+=o[2];
+      os[3]+=o[3];
+      os[4]+=o[6];
+      os[5]+=o[7];
+    } else {
+      os[0]+=o[0];
+      os[1]+=o[1];
+      os[2]+=o[2];
+      os[3]+=o[3];
+    }
 
     if (adpcmChan>=0) {
       adpcmB->clock();
@@ -290,6 +312,12 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
     if (os[3]<-32768) os[3]=-32768;
     if (os[3]>32767) os[3]=32767;
   
+    if (os[4]<-32768) os[4]=-32768;
+    if (os[4]>32767) os[4]=32767;
+  
+    if (os[5]<-32768) os[5]=-32768;
+    if (os[5]>32767) os[5]=32767;
+  
     buf[0][h]=os[0];
     if (totalOutputs>1) {
       buf[1][h]=os[1];
@@ -301,9 +329,8 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
       buf[3][h]=os[3];
     }
     if (totalOutputs==6) {
-      // placeholder for OPL4
-      buf[4][h]=0;
-      buf[5][h]=0;
+      buf[4][h]=os[4];
+      buf[5][h]=os[5];
     }
   }
 }
@@ -947,22 +974,44 @@ double DivPlatformOPL::NOTE_ADPCMB(int note) {
   return 0;
 }
 
-double DivPlatformOPL::NOTE_OPL4(int ch, int note) { // TODO
-  if (pcmChanOffs<0) return 0;
-  if (chan[ch].sample>=0 && chan[ch].sample<parent->song.sampleLen) {
-    double off=65535.0*(double)(parent->getSample(chan[ch].sample)->centerRate)/8363.0;
-    return parent->calcBaseFreq((double)chipClock/768,off,note,false);
-  }
-  return 0;
-}
-
 void DivPlatformOPL::tick(bool sysTick) {
   for (int i=0; i<totalChans; i++) {
-    if (i>=pcmChanOffs) { // OPL4 PCM
+    if (PCM_CHECK(i)) { // OPL4 PCM
       chan[i].std.next();
       if (chan[i].std.vol.had) {
         chan[i].outVol=VOL_SCALE_LOG((chan[i].vol&0x7f),(0x7f*chan[i].std.vol.val)/chan[i].macroVolMul,0x7f);
-        immWrite(PCM_ADDR_TL+(i-pcmChanOffs),((0x7f-chan[i].outVol)<<1)|(chan[i].levelDirect?1:0));
+        immWrite(PCM_ADDR_TL+(PCM_REG(i)),((0x7f-chan[i].outVol)<<1)|(chan[i].levelDirect?1:0));
+      }
+
+      if (NEW_ARP_STRAT) {
+        chan[i].handleArp();
+      } else if (chan[i].std.arp.had) {
+        if (!chan[i].inPorta) {
+          chan[i].baseFreq=NOTE_PCM(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        }
+        chan[i].freqChanged=true;
+      }
+
+      if (chan[i].std.pitch.had) {
+        if (chan[i].std.pitch.mode) {
+          chan[i].pitch2+=chan[i].std.pitch.val;
+          CLAMP_VAR(chan[i].pitch2,-131071,131071);
+        } else {
+          chan[i].pitch2=chan[i].std.pitch.val;
+        }
+        chan[i].freqChanged=true;
+      }
+
+      if (chan[i].std.phaseReset.had) {
+        if (chan[i].std.phaseReset.val==1 && chan[i].active) {
+          chan[i].keyOn=true;
+        }
+      }
+
+      if (chan[i].std.panL.had) { // panning
+        chan[i].pan=chan[i].std.panL.val&0xf;
+        chan[i].freqChanged=true;
+        chan[i].writeCtrl=true;
       }
 
       if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
@@ -1013,11 +1062,12 @@ void DivPlatformOPL::tick(bool sysTick) {
           waveNum=MIN(waveNum,0x7f)|0x180;
         }
         if (chan[i].keyOn) {
-          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+(i-pcmChanOffs),ctrl&~0x80); // force keyoff first
-          rWrite(PCM_ADDR_WAVE_H_FN_L+(i-pcmChanOffs),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
-          rWrite(PCM_ADDR_WAVE_L+(i-pcmChanOffs),waveNum&0xff);
+          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl&~0x80); // force keyoff first
+          rWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
+          rWrite(PCM_ADDR_WAVE_L+PCM_REG(i),waveNum&0xff);
           if (!chan[i].std.vol.had) {
             chan[i].outVol=chan[i].vol;
+            immWrite(PCM_ADDR_TL+(PCM_REG(i)),((0x7f-chan[i].outVol)<<1)|(chan[i].levelDirect?1:0));
           }
           chan[i].writeCtrl=true;
           chan[i].keyOn=false;
@@ -1027,12 +1077,12 @@ void DivPlatformOPL::tick(bool sysTick) {
           chan[i].keyOff=false;
         }
         if (chan[i].freqChanged) {
-          rWrite(PCM_ADDR_WAVE_H_FN_L+(i-pcmChanOffs),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
-          rWrite(PCM_ADDR_FN_H_PR_OCT+(i-pcmChanOffs),((chan[i].freqH&0xf)<<4)|(chan[i].pseudoReverb?0x08:0x00)|((chan[i].freqL>>7)&0x7));
+          rWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
+          rWrite(PCM_ADDR_FN_H_PR_OCT+PCM_REG(i),((chan[i].freqH&0xf)<<4)|(chan[i].pseudoReverb?0x08:0x00)|((chan[i].freqL>>7)&0x7));
           chan[i].freqChanged=false;
         }
         if (chan[i].writeCtrl) {
-          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+(i-pcmChanOffs),ctrl);
+          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl);
           chan[i].writeCtrl=false;
         }
       }
@@ -1309,7 +1359,7 @@ void DivPlatformOPL::tick(bool sysTick) {
 
   bool updateDrums=false;
   for (int i=0; i<totalChans; i++) {
-    if (i>=pcmChanOffs) { // OPL4 PCM
+    if (PCM_CHECK(i)) { // OPL4 PCM
 
     } else {
       if (chan[i].freqChanged) {
@@ -1426,7 +1476,7 @@ int DivPlatformOPL::toFreq(int freq) {
 
 void DivPlatformOPL::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (ch>=pcmChanOffs) {
+  if (PCM_CHECK(ch)) {
     chan[ch].freqChanged=true;
     chan[ch].writeCtrl=true;
     return;
@@ -1479,6 +1529,9 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformOPL::commitState(int ch, DivInstrument* ins) {
+  if (PCM_CHECK(ch)) {
+    return;
+  }
   if (chan[ch].insChanged) {
     if (ch>melodicChans && ins->type==DIV_INS_OPL_DRUMS) {
       for (int i=0; i<4; i++) {
@@ -1583,7 +1636,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
   }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      if (c.chan>=pcmChanOffs) { // OPL4 PCM
+      if (PCM_CHECK(c.chan)) { // OPL4 PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
         chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
         if (c.value!=DIV_NOTE_NULL) {
@@ -1593,7 +1646,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
         }
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+          chan[c.chan].baseFreq=NOTE_PCM(c.value);
         }
         if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
           chan[c.chan].sample=-1;
@@ -1733,7 +1786,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      if (c.chan>=pcmChanOffs) {
+      if (PCM_CHECK(c.chan)) {
         chan[c.chan].sample=-1;
         chan[c.chan].macroInit(NULL);
       }
@@ -1757,8 +1810,8 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      if (c.chan>=pcmChanOffs) { // OPL4 PCM
-        immWrite(PCM_ADDR_TL+(c.chan-pcmChanOffs),((0x7f-chan[c.chan].outVol)<<1)|(chan[c.chan].levelDirect?1:0));
+      if (PCM_CHECK(c.chan)) { // OPL4 PCM
+        immWrite(PCM_ADDR_TL+PCM_REG(c.chan),((0x7f-chan[c.chan].outVol)<<1)|(chan[c.chan].levelDirect?1:0));
         break;
       }
       if (c.chan==adpcmChan) { // ADPCM-B
@@ -1798,6 +1851,12 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
+      if (PCM_CHECK(c.chan)) {
+        chan[c.chan].pan=8^MIN(parent->convertPanSplitToLinearLR(c.value,c.value2,15)+1,15);
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].writeCtrl=true;
+        break;
+      }
       if (oplType!=3) break;
       if (c.chan==adpcmChan) break;
       chan[c.chan].pan&=~3;
@@ -1856,6 +1915,29 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
+      if (PCM_CHECK(c.chan)) {
+        int destFreq=NOTE_PCM(c.value2+chan[c.chan].sampleNoteDelta);
+        bool return2=false;
+        if (destFreq>chan[c.chan].baseFreq) {
+          chan[c.chan].baseFreq+=c.value;
+          if (chan[c.chan].baseFreq>=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        } else {
+          chan[c.chan].baseFreq-=c.value;
+          if (chan[c.chan].baseFreq<=destFreq) {
+            chan[c.chan].baseFreq=destFreq;
+            return2=true;
+          }
+        }
+        chan[c.chan].freqChanged=true;
+        if (return2) {
+          chan[c.chan].inPorta=false;
+          return 2;
+        }
+        break;
+      }
       int destFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(c.value2)):(NOTE_FREQUENCY(c.value2));
       int newFreq;
       bool return2=false;
@@ -1901,13 +1983,14 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         commitState(c.chan,ins);
         chan[c.chan].insChanged=false;
       }
-      chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(c.value)):(NOTE_FREQUENCY(c.value));
+      chan[c.chan].baseFreq=(PCM_CHECK(c.chan))?NOTE_PCM(c.value):
+          (c.chan==adpcmChan)?(NOTE_ADPCMB(c.value)):(NOTE_FREQUENCY(c.value));
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
       break;
     }
     case DIV_CMD_FM_LFO: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       if (c.value&2) {
         dvb=c.value&1;
@@ -1918,7 +2001,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_FB: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       chan[c.chan].state.fb=c.value&7;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
@@ -1936,7 +2019,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_MULT: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (c.value>=ops) break;
@@ -1949,7 +2032,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_TL: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (c.value>=ops) break;
@@ -1970,7 +2053,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_AR: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (c.value<0) {
@@ -1994,7 +2077,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_DR: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (c.value<0) {
@@ -2018,7 +2101,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_SL: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (c.value<0) {
@@ -2042,7 +2125,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_RR: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (c.value<0) {
@@ -2066,7 +2149,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_AM: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (c.value<0) {
@@ -2090,7 +2173,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_VIB: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (c.value<0) {
@@ -2114,7 +2197,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_SUS: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (c.value<0) {
@@ -2138,7 +2221,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_KSR: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (c.value<0) {
@@ -2162,7 +2245,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_WS: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       if (oplType<2) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
@@ -2187,7 +2270,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_RS: {
-      if (c.chan>=pcmChanOffs) break;
+      if (PCM_CHECK(c.chan)) break;
       if (c.chan==adpcmChan) break;
       if (oplType<2) break;
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
@@ -2261,7 +2344,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
-      if (c.chan>=pcmChanOffs) return 127;
+      if (PCM_CHECK(c.chan)) return 127;
       if (c.chan==adpcmChan) return 255;
       if (pretendYMU) return 127;
       return 63;
@@ -2397,7 +2480,7 @@ DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
 }
 
 int DivPlatformOPL::mapVelocity(int ch, float vel) {
-  if (ch>=pcmChanOffs) return vel*127.0;
+  if (PCM_CHECK(ch)) return vel*127.0;
   if (ch==adpcmChan) return vel*255.0;
   // -0.75dB per step
   // -6: 64: 8
@@ -2487,6 +2570,7 @@ void DivPlatformOPL::reset() {
       OPL3_Reset(&fm,rate);
     }
   }
+  pcm.reset();
 
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -2512,9 +2596,9 @@ void DivPlatformOPL::reset() {
   for (int i=0; i<totalChans; i++) {
     chan[i]=DivPlatformOPL::Channel();
     chan[i].std.setEngine(parent);
-    chan[i].vol=(i>=pcmChanOffs)?0x7f:0x3f;
-    chan[i].outVol=(i>=pcmChanOffs)?0x7f:0x3f;
-    chan[i].pan=(i>=pcmChanOffs)?0:3;
+    chan[i].vol=(PCM_CHECK(i))?0x7f:0x3f;
+    chan[i].outVol=(PCM_CHECK(i))?0x7f:0x3f;
+    chan[i].pan=(PCM_CHECK(i))?0:3;
   }
 
   if (adpcmChan>=0) {
@@ -2791,16 +2875,22 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
           break;
       }
       switch (flags.getInt("ramSize",0)) {
-        case 0x01:
+        case 0x01: // 2MB (512KB 512KB 512KB 512KB)
           ramSize=0x200000;
           break;
-        case 0x02:
+        case 0x02: // 1MB (512KB 512KB)
           ramSize=0x100000;
           break;
-        case 0x03:
+        case 0x03: // 640KB (512KB 128KB)
+          ramSize=0xa0000;
+          break;
+        case 0x04: // 512KB
           ramSize=0x80000;
           break;
-        case 0x04:
+        case 0x05: // 256KB (128KB 128KB)
+          ramSize=0x40000;
+          break;
+        case 0x06: // 128KB
           ramSize=0x20000;
           break;
         default:
@@ -2808,6 +2898,7 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
           break;
       }
       CHECK_CUSTOM_CLOCK;
+      pcm.setClockFrequency(chipClock);
       rate=chipClock/768;
       chipRateBase=chipClock/684;
       immWrite(0x202,(ramSize<=0x200000)?0x10:0x00);
@@ -3038,6 +3129,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, const DivConfi
     pcmMemLen=0;
     iface.pcmMem=pcmMem;
     iface.sampleBank=0;
+    pcmMemory.memory=pcmMem;
   }
 
   reset();

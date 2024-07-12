@@ -30,6 +30,7 @@ extern "C" {
 #include "sound/ymfm/ymfm_adpcm.h"
 #include "sound/ymfm/ymfm_opl.h"
 #include "sound/ymfm/ymfm_pcm.h"
+#include "sound/ymf278b/ymf278.h"
 
 class DivOPLAInterface: public ymfm::ymfm_interface {
   public:
@@ -39,6 +40,18 @@ class DivOPLAInterface: public ymfm::ymfm_interface {
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
     DivOPLAInterface(): adpcmBMem(NULL), pcmMem(NULL), sampleBank(0) {}
+};
+
+class DivYMF278MemoryInterface: public MemoryInterface {
+  public:
+    unsigned char* memory;
+    DivYMF278MemoryInterface(unsigned size_) : memory(NULL), size(size_) {};
+    byte operator[](unsigned address) const override;
+    unsigned getSize() const override { return size; };
+    void write(unsigned address, byte value) override {};
+    void clear(byte value) override {};
+  private:
+    unsigned size;
 };
 
 class DivPlatformOPL: public DivDispatch {
@@ -96,6 +109,7 @@ class DivPlatformOPL: public DivDispatch {
     unsigned char* pcmMem;
     size_t pcmMemLen;
     DivOPLAInterface iface;
+    DivYMF278MemoryInterface pcmMemory;
     unsigned int sampleOffB[256];
     unsigned int sampleOffPCM[256];
     bool sampleLoaded[256];
@@ -130,6 +144,7 @@ class DivPlatformOPL: public DivDispatch {
 
     // chips
     opl3_chip fm;
+    YMF278 pcm;
     ymfm::ym3526* fm_ymfm1;
     ymfm::ym3812* fm_ymfm2;
     ymfm::y8950* fm_ymfm8950;
@@ -143,7 +158,6 @@ class DivPlatformOPL: public DivDispatch {
     int octave(int freq);
     int toFreq(int freq);
     double NOTE_ADPCMB(int note);
-    double NOTE_OPL4(int ch, int note);
     void commitState(int ch, DivInstrument* ins);
 
     friend void putDispatchChip(void*,int);
@@ -194,6 +208,10 @@ class DivPlatformOPL: public DivDispatch {
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    YMF278& getChip();
+    DivPlatformOPL():
+      pcmMemory(0x400000),
+      pcm(pcmMemory) {}
     ~DivPlatformOPL();
 };
 #endif

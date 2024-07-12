@@ -763,14 +763,20 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_OPL4:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(4,false);
-      // YMFM for now
-      ((DivPlatformOPL*)dispatch)->setCore(1);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4Core",0));
+      }
       break;
     case DIV_SYSTEM_OPL4_DRUMS:
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(4,true);
-      // YMFM for now
-      ((DivPlatformOPL*)dispatch)->setCore(1);
+      if (isRender) {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4CoreRender",0));
+      } else {
+        ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4Core",0));
+      }
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;

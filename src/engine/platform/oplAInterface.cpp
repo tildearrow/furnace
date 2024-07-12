@@ -41,3 +41,10 @@ uint8_t DivOPLAInterface::ymfm_external_read(ymfm::access_class type, uint32_t a
 
 void DivOPLAInterface::ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data) {
 }
+
+byte DivYMF278MemoryInterface::operator[](unsigned address) const {
+  if (memory && address<size) {
+    return memory[address];
+  }
+  return 0;
+}

@@ -2538,12 +2538,20 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         ramSize=2;
         altered=true;
       }
-      if (ImGui::RadioButton(_("512KB"),ramSize==3)) {
+      if (ImGui::RadioButton(_("640KB"),ramSize==3)) {
         ramSize=3;
         altered=true;
       }
-      if (ImGui::RadioButton(_("128KB"),ramSize==4)) {
+      if (ImGui::RadioButton(_("512KB"),ramSize==4)) {
         ramSize=4;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("256KB"),ramSize==5)) {
+        ramSize=5;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("128KB"),ramSize==6)) {
+        ramSize=6;
         altered=true;
       }
       ImGui::Unindent();

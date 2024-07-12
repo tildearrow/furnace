@@ -35,7 +35,7 @@ public:
 	double getSampleRate();
 	virtual void reset();
 
-	void generate(short& left, short& right, short* channelBufs = nullptr);
+	void generate(short& fleft, short& fright, short& rleft, short& rright, short* channelBufs = nullptr);
 
 	class Slot final {
 	public:
@@ -71,6 +71,7 @@ public:
 		uint8_t TLdest;		// destination total level
 		uint8_t TL;		// total level  (goes towards TLdest)
 		uint8_t pan;		// panpot 0..15
+		bool ch;            // channel select
 		bool keyon;		// slot keyed on
 		bool DAMP;
 		uint8_t lfo;            // LFO speed 0..7
@@ -115,10 +116,10 @@ public:
 	byte readReg(byte reg);
 	byte peekReg(byte reg) const;
 
-	void generateMix(short fmL, short fmR, short& bufL, short& bufR, short* channelBufs = nullptr) {
-		generate(bufL, bufR, channelBufs);
-		bufL = std::min(std::max((pcmMixL * bufL + fmMixL * fmL) >> 4, -0x8000), 0x7fff);
-		bufR = std::min(std::max((pcmMixR * bufR + fmMixR * fmR) >> 4, -0x8000), 0x7fff);;
+	void generateMix(short fmL, short fmR, short& bufFL, short& bufFR, short& bufRL, short& bufRR, short* channelBufs = nullptr) {
+		generate(bufFL, bufFR, bufRL, bufRR, channelBufs);
+		bufFL = std::min(std::max((pcmMixL * bufFL + fmMixL * fmL) >> 4, -0x8000), 0x7fff);
+		bufFR = std::min(std::max((pcmMixR * bufFR + fmMixR * fmR) >> 4, -0x8000), 0x7fff);;
 	}
 
 private:

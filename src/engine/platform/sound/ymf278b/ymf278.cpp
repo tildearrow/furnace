@@ -29,6 +29,10 @@
 // interaction with the FM registers (e.g. the NEW2 bit) is currently handled
 // in the MSXMoonSound class.
 
+// MODIFIED:
+// Add YMW258 support by Grauw
+// Add DO1 output support by cam900
+
 #include "ymf278.h"
 #include <algorithm>
 #include <cassert>
@@ -476,10 +480,12 @@ static constexpr int vol_factor(int x, unsigned envVol)
 	return (x * ((0x8000 * vol_mul) >> vol_shift)) >> 15;
 }
 
-void YMF278Base::generate(short& left, short& right, short* channelBufs)
+void YMF278Base::generate(short& fleft, short& fright, short& rleft, short& rright, short* channelBufs)
 {
-	int sampleLeft = 0;
-	int sampleRight = 0;
+	int sampleFLeft = 0;
+	int sampleFRight = 0;
+	int sampleRLeft = 0;
+	int sampleRRight = 0;
 	for (size_t i = 0, count = slots.size(); i < count; i++) {
 		Slot& sl = slots[i];
 		if (sl.state == EG_OFF) {
@@ -512,8 +518,16 @@ void YMF278Base::generate(short& left, short& right, short* channelBufs)
 		volLeft  = (0x20 - (volLeft  & 0x0f)) >> (volLeft  >> 4);
 		volRight = (0x20 - (volRight & 0x0f)) >> (volRight >> 4);
 
-		sampleLeft += (smplOut * volLeft ) >> 5;
-		sampleRight += (smplOut * volRight) >> 5;
+		if (sl.ch)
+		{
+			sampleRLeft += (smplOut * volLeft ) >> 5;
+			sampleRRight += (smplOut * volRight) >> 5;
+		}
+		else
+		{
+			sampleFLeft += (smplOut * volLeft ) >> 5;
+			sampleFRight += (smplOut * volRight) >> 5;
+		}
 
 		unsigned step = (sl.lfo_active && sl.vib)
 									? calcStep(sl.OCT, sl.FN, sl.compute_vib())
@@ -531,8 +545,10 @@ void YMF278Base::generate(short& left, short& right, short* channelBufs)
 	}
 	advance();
 
-	left = sampleLeft >> 4;
-	right = sampleRight >> 4;
+	fleft = sampleFLeft >> 4;
+	fright = sampleFRight >> 4;
+	rleft = sampleRLeft >> 4;
+	rright = sampleRRight >> 4;
 }
 
 void YMF278Base::keyOnHelper(Slot& slot)
@@ -683,14 +699,8 @@ void YMF278::writeReg(byte reg, byte data)
 			break;
 		}
 		case 4:
-			if (data & 0x10) {
-				// output to DO1 pin:
-				// this pin is not used in moonsound
-				// we emulate this by muting the sound
-				slot.pan = 8; // both left/right -inf dB
-			} else {
-				slot.pan = data & 0x0F;
-			}
+			slot.ch = data & 0x10;
+			slot.pan = data & 0x0F;
 
 			if (data & 0x20) {
 				// LFO reset
