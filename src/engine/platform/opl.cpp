@@ -2624,6 +2624,9 @@ DivMacroInt* DivPlatformOPL::getChanMacroInt(int ch) {
 
 unsigned short DivPlatformOPL::getPan(int ch) {
   if (totalOutputs<=1) return 0;
+  if (PCM_CHECK(ch)) {
+    return parent->convertPanLinearToSplit(8^chan[ch].pan,8,15);
+  }
   /*if (chan[ch&(~1)].fourOp) {
     if (ch&1) {
       return ((chan[ch-1].pan&2)<<7)|(chan[ch-1].pan&1);
