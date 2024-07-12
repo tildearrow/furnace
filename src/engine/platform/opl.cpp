@@ -299,6 +299,12 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
         oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<2,-32768,32767);
       }
     }
+
+    if (chipType==4) {
+      for (int i=pcmChanOffs; i<pcmChanOffs+24; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(pcmBuf[i-pcmChanOffs],-32768,32767);
+      }
+    }
     
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
@@ -640,7 +646,7 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
       chOut+=pcmChan[i]->debug_output(1);
       chOut+=pcmChan[i]->debug_output(2);
       chOut+=pcmChan[i]->debug_output(3);
-      oscBuf[oscOffs]->data[oscBuf[oscOffs]->needle++]=CLAMP(chOut>>3,-32768,32767);
+      oscBuf[oscOffs]->data[oscBuf[oscOffs]->needle++]=CLAMP(chOut,-32768,32767);
     }
   }
 }
@@ -1705,7 +1711,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
-        if (ins->type==DIV_INS_OPL4PCM) {
+        if (ins->type==DIV_INS_MULTIPCM) {
           chan[c.chan].lfo=ins->multipcm.lfo;
           chan[c.chan].vib=ins->multipcm.vib;
           chan[c.chan].am=ins->multipcm.am;
@@ -1715,10 +1721,10 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           chan[c.chan].d2r=ins->multipcm.d2r;
           chan[c.chan].rc=ins->multipcm.rc;
           chan[c.chan].rr=ins->multipcm.rr;
-          chan[c.chan].damp=ins->opl4pcm.damp;
-          chan[c.chan].pseudoReverb=ins->opl4pcm.pseudoReverb;
-          chan[c.chan].levelDirect=ins->opl4pcm.levelDirect;
-          chan[c.chan].lfoReset=ins->opl4pcm.lfoReset;
+          chan[c.chan].damp=ins->multipcm.damp;
+          chan[c.chan].pseudoReverb=ins->multipcm.pseudoReverb;
+          chan[c.chan].levelDirect=ins->multipcm.levelDirect;
+          chan[c.chan].lfoReset=ins->multipcm.lfoReset;
         } else {
           chan[c.chan].lfo=0;
           chan[c.chan].vib=0;
