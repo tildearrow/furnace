@@ -1382,14 +1382,14 @@ void DivPlatformOPL::tick(bool sysTick) {
           waveNum=CLAMP(waveNum,0,0x7f)|0x180;
         }
         if (chan[i].keyOn) {
-          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl&~0x80); // force keyoff first
-          rWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
-          rWrite(PCM_ADDR_WAVE_L+PCM_REG(i),waveNum&0xff);
-          rWrite(PCM_ADDR_LFO_VIB+PCM_REG(i),(chan[i].lfo<<3)|(chan[i].vib));
-          rWrite(PCM_ADDR_AR_D1R+PCM_REG(i),(chan[i].ar<<4)|(chan[i].d1r));
-          rWrite(PCM_ADDR_DL_D2R+PCM_REG(i),(chan[i].dl<<4)|(chan[i].d2r));
-          rWrite(PCM_ADDR_RC_RR+PCM_REG(i),(chan[i].rc<<4)|(chan[i].rr));
-          rWrite(PCM_ADDR_AM+PCM_REG(i),chan[i].am);
+          immWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl&~0x80); // force keyoff first
+          immWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
+          immWrite(PCM_ADDR_WAVE_L+PCM_REG(i),waveNum&0xff);
+          immWrite(PCM_ADDR_LFO_VIB+PCM_REG(i),(chan[i].lfo<<3)|(chan[i].vib));
+          immWrite(PCM_ADDR_AR_D1R+PCM_REG(i),(chan[i].ar<<4)|(chan[i].d1r));
+          immWrite(PCM_ADDR_DL_D2R+PCM_REG(i),(chan[i].dl<<4)|(chan[i].d2r));
+          immWrite(PCM_ADDR_RC_RR+PCM_REG(i),(chan[i].rc<<4)|(chan[i].rr));
+          immWrite(PCM_ADDR_AM+PCM_REG(i),chan[i].am);
           if (!chan[i].std.vol.had) {
             chan[i].outVol=chan[i].vol;
             immWrite(PCM_ADDR_TL+(PCM_REG(i)),((0x7f-chan[i].outVol)<<1)|(chan[i].levelDirect?1:0));
@@ -1402,12 +1402,12 @@ void DivPlatformOPL::tick(bool sysTick) {
           chan[i].keyOff=false;
         }
         if (chan[i].freqChanged) {
-          rWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
-          rWrite(PCM_ADDR_FN_H_PR_OCT+PCM_REG(i),((chan[i].freqH&0xf)<<4)|(chan[i].pseudoReverb?0x08:0x00)|((chan[i].freqL>>7)&0x7));
+          immWrite(PCM_ADDR_WAVE_H_FN_L+PCM_REG(i),((chan[i].freqL&0x7f)<<1)|((waveNum>>8)&1));
+          immWrite(PCM_ADDR_FN_H_PR_OCT+PCM_REG(i),((chan[i].freqH&0xf)<<4)|(chan[i].pseudoReverb?0x08:0x00)|((chan[i].freqL>>7)&0x7));
           chan[i].freqChanged=false;
         }
         if (chan[i].writeCtrl) {
-          rWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl);
+          immWrite(PCM_ADDR_KEY_DAMP_LFORST_CH_PAN+PCM_REG(i),ctrl);
           chan[i].writeCtrl=false;
         }
       }
