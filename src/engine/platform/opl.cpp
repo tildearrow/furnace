@@ -3122,10 +3122,10 @@ const DivMemoryComposition* DivPlatformOPL::getMemCompo(int index) {
 
 void DivPlatformOPL::renderSamples(int sysID) {
   if (adpcmChan<0 && pcmChanOffs<0) return;
-  if (adpcmBMem!=NULL) {
+  if (adpcmChan>=0 && adpcmBMem!=NULL) {
     memset(adpcmBMem,0,262144);
   }
-  if (pcmMem!=NULL) {
+  if (pcmChanOffs>=0 && pcmMem!=NULL) {
     memset(pcmMem,0,4194304);
   }
   memset(sampleOffPCM,0,256*sizeof(unsigned int));
