@@ -1008,7 +1008,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         chan[i].freqChanged=true;
       }
 
-      if (chan[i].std.phaseReset.had) { // TODO: not working
+      if (chan[i].std.phaseReset.had) {
         if (chan[i].std.phaseReset.val==1 && chan[i].active) {
           chan[i].keyOn=true;
           chan[i].writeCtrl=true;
