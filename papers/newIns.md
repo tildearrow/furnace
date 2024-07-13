@@ -273,7 +273,7 @@ size | description
   1  | macro delay
   1  | macro speed
  ??? | macro data
-     | - length: macro length × word sizs
+     | - length: macro length × word size
 ```
 
 ## interpreting macro mode values

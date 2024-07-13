@@ -1501,6 +1501,12 @@ void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
 
   unsigned short macroHeaderLen=reader.readS();
 
+  if (macroHeaderLen==0) {
+    logW("invalid macro header length!");
+    READ_FEAT_END;
+    return;
+  }
+
   DivInstrumentMacro* target=&std.volMacro;
 
   while (reader.tell()<endOfFeat) {
@@ -1726,6 +1732,12 @@ void DivInstrument::readFeatureOx(SafeReader& reader, int op, short version) {
   READ_FEAT_BEGIN;
 
   unsigned short macroHeaderLen=reader.readS();
+
+  if (macroHeaderLen==0) {
+    logW("invalid macro header length!");
+    READ_FEAT_END;
+    return;
+  }
 
   DivInstrumentMacro* target=&std.opMacros[op].amMacro;
 
