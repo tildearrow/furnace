@@ -1967,12 +1967,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_OPL4_DRUMS:
         if (!hasOPL4) {
           hasOPL4=disCont[i].dispatch->chipClock;
-          CHIP_VOL(12,1.0);
+          CHIP_VOL(13,1.0);
           willExport[i]=true;
           writePCM_OPL4[0]=disCont[i].dispatch;
         } else if (!(hasOPL4&0x40000000)) {
           isSecond[i]=true;
-          CHIP_VOL_SECOND(12,1.0);
+          CHIP_VOL_SECOND(13,1.0);
           willExport[i]=true;
           writePCM_OPL4[1]=disCont[i].dispatch;
           hasOPL4|=0x40000000;
