@@ -2190,7 +2190,6 @@ void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
-
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
