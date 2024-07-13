@@ -4107,6 +4107,7 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_GBA_MINMOD,_("GBA MinMod"));
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_BIFURCATOR,_("Bifurcator"));
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_SID2,_("SID2"));
+          UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPL4_PCM,_("OPL4 PCM"));
           UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,_("Other/Unknown"));
           ImGui::TreePop();
         }

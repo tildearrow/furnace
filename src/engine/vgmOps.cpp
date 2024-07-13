@@ -615,6 +615,96 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
+      case DIV_SYSTEM_OPL4:
+      case DIV_SYSTEM_OPL4_DRUMS:
+        // disable envelope
+        for (int i=0; i<6; i++) {
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0x80+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0x88+i);
+          w->writeC(0x0f);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0x90+i);
+          w->writeC(0x0f);
+        }
+        for (int i=0; i<24; i++) {
+          w->writeC(0xd0);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x80+i);
+          w->writeC(0x00);
+          w->writeC(0xd0);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x98+i);
+          w->writeC(0x00);
+          w->writeC(0xd0);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0xb0+i);
+          w->writeC(0x00);
+          w->writeC(0xd0);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0xc8+i);
+          w->writeC(0x00);
+          w->writeC(0xd0);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0xe0+i);
+          w->writeC(0x00);
+        }
+        // key off + freq reset
+        for (int i=0; i<9; i++) {
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x00|baseAddr2);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0xa0+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x01|baseAddr2);
+          w->writeC(0xb0+i);
+          w->writeC(0);
+        }
+        for (int i=0; i<24; i++) {
+          w->writeC(0xd0);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x20+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x38+i);
+          w->writeC(0);
+          w->writeC(0xd0);
+          w->writeC(0x02|baseAddr2);
+          w->writeC(0x68+i);
+          w->writeC(8);
+        }
+        // reset 4-op
+        w->writeC(0xd0);
+        w->writeC(0x01|baseAddr2);
+        w->writeC(0x04);
+        w->writeC(0x00);
+        break;
       default:
         break;
     }
@@ -987,13 +1077,6 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
       }
       break;
-    case DIV_SYSTEM_OPL4:
-    case DIV_SYSTEM_OPL4_DRUMS:
-      w->writeC(0xd0|baseAddr2);
-      w->writeC(write.addr>>8);
-      w->writeC(write.addr&0xff);
-      w->writeC(write.val);
-      break;
     case DIV_SYSTEM_SCC:
       if (write.addr<0x80) {
         w->writeC(0xd2);
@@ -1095,6 +1178,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(0xd4);
       w->writeS_BE(baseAddr2S|(write.addr&0x1ff));
       w->writeC(write.val&0xff);
+      break;
+    case DIV_SYSTEM_OPL4:
+    case DIV_SYSTEM_OPL4_DRUMS:
+      w->writeC(0xd0);
+      w->writeC(((write.addr>>8)&0x7f)|baseAddr2);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val);
       break;
     default:
       logW("write not handled!");
