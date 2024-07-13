@@ -190,7 +190,7 @@ const char* opl3Cores[]={
 };
 
 const char* opl4Cores[]={
-  "Nuked-OPL3 + OpenMSX",
+  "Nuked-OPL3 + openMSX",
   "ymfm"
 };
 
