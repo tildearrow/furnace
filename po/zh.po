@@ -1,10 +1,10 @@
 # Furnace Tracker GNU gettext Portable Object File.
-# zh.po for zh-CN
-# 简体中文本地化 
+# zh.po for zh-CN.UTF-8
+# 简体中文本地化文件 
 # Chinese (Simplified)
-# Revison 0.6.2024 Beta
+# Revison 0.7.2024 Beta
 #
-# 如有问题, 尽请联系.
+# 如有问题, 敬请联系.
 # contact if you have any questions.
 # Translator:GTR3QQ <https://github.com/gtr3qq>
 # Translator:DJRen_ 
@@ -20,6 +20,10 @@
 # 3.Debug info, 用户看不见的, compatFlags.cpp,注明不翻译的均不翻译,以确保技术支持方便.
 #
 #
+# 簡中繁化説明
+# 由於簡中在完全優化后占用VRAM 較小,性能最佳,使用人數最多, 優先漢化為簡中.
+# 大部分異躰字已查 <説文解字>, 常用詞已按港澳網絡常用詞替換, 可能有所遺漏, 敬請回報.
+# 簡中繁化幫助: <https://sou-yun.cn/STConvert.aspx>
 #
 msgid ""
 msgstr ""
@@ -3367,11 +3371,12 @@ msgstr "82xx: 设置声像 (右声道)"
 
 #: src/engine/engine.cpp:87
 msgid "83xy: Panning slide (x0: left; 0y: right)"
-msgstr ""
+msgstr "83xy: 声像滑变 (x0: 向左; 0y: 向右)"
 
+# 国内无Panbrello 翻译, 暂译 声像调制.
 #: src/engine/engine.cpp:89
 msgid "84xy: Panbrello (x: speed; y: depth)"
-msgstr ""
+msgstr "84xy: 声像调制 (x: 速率; y: 深度)"
 
 #: src/engine/engine.cpp:91
 msgid "88xy: Set panning (rear channels; x: left; y: right)"
@@ -3403,7 +3408,7 @@ msgstr "E2xy: 音符下滑 (x: 速度; y: 半音)"
 
 #: src/engine/engine.cpp:108
 msgid "E3xx: Set vibrato shape"
-msgstr ""
+msgstr "E3xx: 设置颤音波形"
 
 #: src/engine/engine.cpp:110
 msgid "E4xx: Set vibrato range"
@@ -3679,39 +3684,39 @@ msgstr ""
 
 #: src/main.cpp:771
 msgid "that file is empty!"
-msgstr ""
+msgstr "文件是空的!"
 
 #: src/main.cpp:773
 #, c-format
 msgid "couldn't open file! (tell error: %s)"
-msgstr ""
+msgstr "无法打开文件! (tell error: %s)"
 
 #: src/main.cpp:782
 #, c-format
 msgid "couldn't open file! (size error: %s)"
-msgstr ""
+msgstr "无法打开文件! (size error: %s)"
 
 #: src/main.cpp:790
 #, c-format
 msgid "couldn't open file! (read error: %s)"
-msgstr ""
+msgstr "无法打开文件! (read error: %s)"
 
 #: src/main.cpp:799 src/main.cpp:846 src/main.cpp:862
 #, c-format
 msgid "could not open file! (%s)"
-msgstr ""
+msgstr "无法打开文件! (%s)"
 
 #: src/main.cpp:813
 msgid "could not initialize engine!"
-msgstr ""
+msgstr "无法初始化引擎!"
 
 #: src/main.cpp:851
 msgid "could not write command stream!"
-msgstr ""
+msgstr "无法写入command stream!"
 
 #: src/main.cpp:867
 msgid "could not write VGM!"
-msgstr ""
+msgstr "无法写入VGM!"
 
 #: src/main.cpp:889
 msgid "error while starting CLI!"
@@ -3719,7 +3724,7 @@ msgstr ""
 
 #: src/main.cpp:893
 msgid "playing..."
-msgstr ""
+msgstr "播放中..."
 
 #: src/main.cpp:934
 msgid "displaying engine fail error."
@@ -3727,7 +3732,7 @@ msgstr ""
 
 #: src/main.cpp:935
 msgid "error while initializing audio!"
-msgstr ""
+msgstr "初始化音频时出错!"
 
 #: src/gui/mixer.cpp:28 src/gui/insEdit.cpp:484
 msgid "left"
@@ -4305,7 +4310,7 @@ msgstr ""
 
 #: src/gui/exportOptions.cpp:276
 msgid "this chip is not supported by the file format!"
-msgstr ""
+msgstr "此芯片不被此文件格式所支持!"
 
 #: src/gui/exportOptions.cpp:278
 msgid "only one Atari TIA is supported!"
@@ -4392,10 +4397,11 @@ msgstr ""
 msgid "Amiga Validation"
 msgstr ""
 
+# 由语境决定,此项仅可译为'文本'.
 #: src/gui/exportOptions.cpp:448 src/gui/settings.cpp:2963
 #: src/gui/settings.cpp:3895
 msgid "Text"
-msgstr "文本文件"
+msgstr "文本"
 
 #: src/gui/exportOptions.cpp:452
 msgid "Command Stream"
@@ -6147,7 +6153,7 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1305
 msgid "Amiga channel volumes (64)"
-msgstr ""
+msgstr "Amiga通道音量 (64)"
 
 #: src/gui/sysConf.cpp:1309
 msgid "Amiga-like pitch (non-linear pitch only)"
@@ -6324,7 +6330,7 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:1910
 msgid "Maximum volume:"
-msgstr ""
+msgstr "最大音量:"
 
 #: src/gui/sysConf.cpp:1920
 msgid "Interpolation:"
@@ -8194,7 +8200,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3153
 msgid "Display Chinese (Traditional) characters"
-msgstr "显示繁中字符"
+msgstr "顯示繁中字符"
 
 #: src/gui/settings.cpp:3159
 msgid ""
@@ -9265,11 +9271,11 @@ msgstr "滤波"
 
 #: src/gui/settings.cpp:4025
 msgid "Global Parameter"
-msgstr ""
+msgstr "全局参数"
 
 #: src/gui/settings.cpp:4027
 msgid "Step Highlight"
-msgstr ""
+msgstr "步进高亮"
 
 #: src/gui/settings.cpp:4030
 msgid "Instrument Types"
@@ -12785,7 +12791,7 @@ msgstr "兼容采样率"
 msgid ""
 "used in DefleMask-compatible sample mode (17xx), in where samples are mapped "
 "to an octave."
-msgstr "在DefleMask兼容采样模式(17xx)中使用, 所有采样均被映射到一个八度内"
+msgstr "在DefleMask兼容采样模式(17xx)中使用, 所有采样均被映射到一个八度内."
 
 #: src/gui/sampleEdit.cpp:463
 #, c-format
@@ -14168,11 +14174,11 @@ msgstr ""
 
 #: src/gui/gui.cpp:4548
 msgid "Help"
-msgstr "帮助 (简中汉化公测 v0.6.2024B)"
+msgstr "帮助 (简中汉化公测 v0.7.2024B)"
 
 #: src/gui/gui.cpp:4548
 msgid "help"
-msgstr "帮助 (简中汉化公测 v0.6.2024B)"
+msgstr "帮助 (简中汉化公测 v0.7.2024B)"
 
 #: src/gui/gui.cpp:4550
 msgid "debug menu"
@@ -16577,5 +16583,5 @@ msgstr "最小"
 msgid "Max"
 msgstr "最大"
 
-#~ msgid "E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)"
-#~ msgstr "E3xx: 设置颤音模式 (0: 上/下; 1: 只向上; 2: 只向下)"
+msgid "E3xx: Set vibrato shape (0: up/down; 1: up only; 2: down only)"
+msgstr "E3xx: 设置颤音模式 (0: 上/下; 1: 只向上; 2: 只向下)"
