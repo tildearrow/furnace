@@ -7223,15 +7223,9 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(_("Panning"),&ins->std.panLMacro,-7,7,45,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
               macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-              macroList.push_back(FurnaceGUIMacroDesc(_("LFO speed"),&ins->std.ex1Macro,0,7,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("LFO vibrato depth"),&ins->std.fmsMacro,0,7,160,uiColors[GUI_COLOR_MACRO_PITCH]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("LFO AM depth"),&ins->std.amsMacro,0,7,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("AR"),&ins->std.ex2Macro,0,15,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("D1R"),&ins->std.ex3Macro,0,15,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("DL"),&ins->std.ex4Macro,0,15,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("D2R"),&ins->std.ex5Macro,0,15,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("Rate correction"),&ins->std.ex6Macro,0,15,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("RR"),&ins->std.ex7Macro,0,15,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("LFO Speed"),&ins->std.ex1Macro,0,7,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("LFO Vib Depth"),&ins->std.fmsMacro,0,7,160,uiColors[GUI_COLOR_MACRO_PITCH]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("LFO AM Depth"),&ins->std.amsMacro,0,7,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               break;
             case DIV_INS_SNES:
               macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
