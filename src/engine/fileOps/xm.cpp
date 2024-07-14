@@ -977,7 +977,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                   portaStatus[k]=effectVal;
                   portaStatusChanged[k]=true;
                 }
-                if (portaType[k]!=3) {
+                if (portaType[k]!=3 || (hasNote && note>0)) {
                   portaStatusChanged[k]=true;
                 }
                 portaType[k]=3;

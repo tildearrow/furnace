@@ -1341,7 +1341,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
                 portaStatus[chan]=effectVal[chan];
                 portaStatusChanged[chan]=true;
               }
-              if (portaType[chan]!=3) {
+              if (portaType[chan]!=3 || hasNote) {
                 portaStatusChanged[chan]=true;
               }
               portaType[chan]=3;
