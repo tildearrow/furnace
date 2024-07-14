@@ -686,7 +686,7 @@ void FurnaceGUI::drawPattern() {
               bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
               ImU32 col=(hovered || (mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
               dl->AddRectFilled(rect.Min,rect.Max,col);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           case 1: { // line
@@ -707,7 +707,7 @@ void FurnaceGUI::drawPattern() {
               ));
               dl->AddRectFilledMultiColor(rect.Min,rect.Max,fadeCol0,fadeCol0,fadeCol,fadeCol);
               dl->AddLine(ImVec2(rect.Min.x,rect.Max.y),ImVec2(rect.Max.x,rect.Max.y),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
@@ -734,14 +734,14 @@ void FurnaceGUI::drawPattern() {
               rMax.x-=3.0f*dpiScale;
               rMax.y-=6.0f*dpiScale;
               dl->AddRectFilledMultiColor(rMin,rMax,fadeCol0,fadeCol0,fadeCol,fadeCol,4.0f*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+6.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+6.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
           case 3: // split button
             ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
             //ImGui::SetCursorPosX(minLabelArea.x);
-            ImGui::TextUnformatted(chanID);
+            ImGui::TextNoHashHide("%s",chanID);
             ImGui::SameLine();
             ImGui::PushFont(mainFont);
             ImGui::SmallButton(muted?ICON_FA_VOLUME_OFF:ICON_FA_VOLUME_UP);
@@ -764,7 +764,7 @@ void FurnaceGUI::drawPattern() {
               rMax.x-=3.0f*dpiScale;
               rMax.y-=3.0f*dpiScale;
               dl->AddRect(rMin,rMax,fadeCol,0.0f,2.0*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
@@ -785,7 +785,7 @@ void FurnaceGUI::drawPattern() {
               rMax.x-=3.0f*dpiScale;
               rMax.y-=3.0f*dpiScale;
               dl->AddRect(rMin,rMax,fadeCol,4.0f*dpiScale,ImDrawFlags_RoundCornersAll,2.0*dpiScale);
-              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+              dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
           }
