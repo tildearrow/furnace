@@ -103,7 +103,7 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
   // split L/R
   if (env==1) {
     for (int i=0; i<ins->std.panLMacro.len; i++) {
-      int val=ins->std.panLMacro.val[i];
+      int val=ins->std.panLMacro.val[i]-32;
       if (val==0) {
         ins->std.panLMacro.val[i]=4095;
         ins->std.panRMacro.val[i]=4095;
