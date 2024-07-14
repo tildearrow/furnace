@@ -525,21 +525,27 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
         if (volType&1) {
           // add fade-out
-          int cur=64;
-          if (ins->std.volMacro.len>0) {
-            cur=ins->std.volMacro.val[ins->std.volMacro.len-1];
-          }
-          for (int fadeOut=32767; fadeOut>0 && ins->std.volMacro.len<254; fadeOut-=volFade) {
-            ins->std.volMacro.val[ins->std.volMacro.len++]=(cur*fadeOut)>>15;
-          }
-          if (ins->std.volMacro.len<255) {
-            ins->std.volMacro.val[ins->std.volMacro.len++]=0;
+          if (volFade!=0) {
+            int cur=64;
+            if (ins->std.volMacro.len>0) {
+              cur=ins->std.volMacro.val[ins->std.volMacro.len-1];
+            }
+            for (int fadeOut=32767; fadeOut>0 && ins->std.volMacro.len<254; fadeOut-=volFade) {
+              ins->std.volMacro.val[ins->std.volMacro.len++]=(cur*fadeOut)>>15;
+            }
+            if (ins->std.volMacro.len<255) {
+              ins->std.volMacro.val[ins->std.volMacro.len++]=0;
+            }
+            if (ins->std.volMacro.rel<ins->std.volMacro.len && ins->std.volMacro.rel<ins->std.volMacro.loop) {
+              ins->std.volMacro.loop=255;
+            }
           }
         } else {
           // add a one-tick macro to make note release happy
           ins->std.volMacro.val[0]=64;
           ins->std.volMacro.val[1]=0;
           ins->std.volMacro.rel=0;
+          ins->std.volMacro.loop=255;
           ins->std.volMacro.len=2;
         }
 
