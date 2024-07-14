@@ -1693,8 +1693,8 @@ int DivPlatformOPL::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (PCM_CHECK(c.chan)) { // OPL4 PCM
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
-        chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_MULTIPCM);
+        chan[c.chan].macroVolMul=ins->type==DIV_INS_MULTIPCM?64:127;
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           chan[c.chan].sampleNote=c.value;
@@ -2070,6 +2070,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       iface.sampleBank=sampleBank;
       break;
     case DIV_CMD_LEGATO: {
+      // TODO: OPL4 PCM
       if (chan[c.chan].insChanged) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
         commitState(c.chan,ins);
