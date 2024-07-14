@@ -933,6 +933,15 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                   panSliding[k]=true;
                   break;
                 case 0xf: // porta
+                  if ((vol&15)!=0) {
+                    portaStatus[k]=(vol&15);
+                    portaStatusChanged[k]=true;
+                  }
+                  if (portaType[k]!=3 || (hasNote && note>0)) {
+                    portaStatusChanged[k]=true;
+                  }
+                  portaType[k]=3;
+                  porting[k]=true;
                   break;
               }
             }
