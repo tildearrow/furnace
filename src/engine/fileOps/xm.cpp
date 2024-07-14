@@ -1086,6 +1086,8 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
               case 0xf: // speed/tempo
                 if (effectVal>=0x20) {
                   p->data[j][effectCol[k]++]=0xf0;
+                } else if (effectVal==0) {
+                  p->data[j][effectCol[k]++]=0xff;
                 } else {
                   p->data[j][effectCol[k]++]=0x0f;
                 }
