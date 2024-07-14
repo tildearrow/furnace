@@ -299,6 +299,27 @@ void FurnaceGUI::drawExportTiuna(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportNDS(bool onWindow) {
+  exitDisabledTimer=1;
+
+  ImGui::Text(_("for use with the furDS driver. outputs C source."));
+  if (ImGui::InputInt(_("Tick Rate (Hz)"),&ndsExportTickRate,1,2)) {
+    if (ndsExportTickRate<1) ndsExportTickRate=1;
+    if (ndsExportTickRate>44100) ndsExportTickRate=44100;
+  }
+  ImGui::Checkbox(_("loop"),&ndsExportLoop);
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_EXPORT_NDS);
+    ImGui::CloseCurrentPopup();
+  }
+}
+
+
 void FurnaceGUI::drawExportAmigaVal(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -435,6 +456,17 @@ void FurnaceGUI::drawExport() {
           ImGui::EndTabItem();
         }
       }
+      int numNDSCompat=0;
+      for (int i=0; i<e->song.systemLen; i++) {
+        if (e->song.system[i]==DIV_SYSTEM_NDS) numNDSCompat++;
+      }
+      if (numNDSCompat) {
+        if (ImGui::BeginTabItem(_("furDS"))) {
+          drawExportNDS(true);
+          ImGui::EndTabItem();
+        }
+      }
+
       int numAmiga=0;
       for (int i=0; i<e->song.systemLen; i++) {
         if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
