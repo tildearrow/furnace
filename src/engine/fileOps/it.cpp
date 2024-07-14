@@ -1242,7 +1242,23 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
             } else if (vol[chan]>=65 && vol[chan]<=74) { // fine vol up
             } else if (vol[chan]>=75 && vol[chan]<=84) { // fine vol down
             } else if (vol[chan]>=85 && vol[chan]<=94) { // vol slide up
+              if ((vol[chan]-85)!=0) {
+                volSlideStatus[chan]=(vol[chan]-85)<<4;
+                volSlideStatusChanged[chan]=true;
+              }
+              if (hasNote || hasIns) {
+                volSlideStatusChanged[chan]=true;
+              }
+              volSliding[chan]=true;
             } else if (vol[chan]>=95 && vol[chan]<=104) { // vol slide down
+              if ((vol[chan]-95)!=0) {
+                volSlideStatus[chan]=vol[chan]-95;
+                volSlideStatusChanged[chan]=true;
+              }
+              if (hasNote || hasIns) {
+                volSlideStatusChanged[chan]=true;
+              }
+              volSliding[chan]=true;
             } else if (vol[chan]>=105 && vol[chan]<=114) { // pitch down
             } else if (vol[chan]>=115 && vol[chan]<=124) { // pitch up
             } else if (vol[chan]>=193 && vol[chan]<=202) { // porta
