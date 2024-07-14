@@ -1006,8 +1006,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                 writePanning=false;
                 break;
               case 9: // offset
-                p->data[j][effectCol[k]++]=0x91;
-                p->data[j][effectCol[k]++]=effectVal;
+                if (hasNote) {
+                  p->data[j][effectCol[k]++]=0x91;
+                  p->data[j][effectCol[k]++]=effectVal;
+                }
                 break;
               case 0xa: // vol slide
                 if (effectVal!=0) {
