@@ -1694,7 +1694,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       if (PCM_CHECK(c.chan)) { // OPL4 PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_MULTIPCM);
-        chan[c.chan].macroVolMul=ins->type==DIV_INS_MULTIPCM?64:127;
+        chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           chan[c.chan].sampleNote=c.value;
