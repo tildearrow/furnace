@@ -87,7 +87,10 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
       }
     }
     if ((point+1)>=numPoints) {
-      target->len=i;
+      target->len=i-1;
+      if ((flags&4) && (!(flags&2))) {
+        target->rel=i-2;
+      }
       //target->val[i]=p0;
       break;
     }
@@ -527,11 +530,24 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           // add fade-out
           if (volFade!=0) {
             int cur=64;
+            int macroLen=ins->std.volMacro.len;
+            int curPos=ins->std.volMacro.len-1;
+            if (ins->std.volMacro.loop<macroLen) {
+              curPos=ins->std.volMacro.loop;
+            }
             if (ins->std.volMacro.len>0) {
-              cur=ins->std.volMacro.val[ins->std.volMacro.len-1];
+              cur=ins->std.volMacro.val[curPos];
             }
             for (int fadeOut=32767; fadeOut>0 && ins->std.volMacro.len<254; fadeOut-=volFade) {
+              cur=ins->std.volMacro.val[curPos];
               ins->std.volMacro.val[ins->std.volMacro.len++]=(cur*fadeOut)>>15;
+              if (++curPos>=macroLen) {
+                if (ins->std.volMacro.loop<macroLen) {
+                  curPos=ins->std.volMacro.loop;
+                } else {
+                  curPos=macroLen-1;
+                }
+              }
             }
             if (ins->std.volMacro.len<255) {
               ins->std.volMacro.val[ins->std.volMacro.len++]=0;
