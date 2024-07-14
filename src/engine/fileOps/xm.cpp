@@ -1071,7 +1071,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                     break;
                 }
                 break;
-              case 0xf: // speed/tempp
+              case 0xf: // speed/tempo
                 if (effectVal>=0x20) {
                   p->data[j][effectCol[k]++]=0xf0;
                 } else {
@@ -1201,7 +1201,6 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           }
         }
 
-        memset(effectCol,4,64);
         memcpy(vibingOld,vibing,64*sizeof(bool));
         memcpy(volSlidingOld,volSliding,64*sizeof(bool));
         memcpy(portingOld,porting,64*sizeof(bool));
@@ -1225,6 +1224,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             ds.subsong[0]->pat[0].effectCols=(effectCol[0]>>1)-1;
           }
         }
+        memset(effectCol,4,64);
       }
 
       logV("seeking to %x...",packedSeek);
