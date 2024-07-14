@@ -1428,8 +1428,10 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               }
               break;
             case 'T': // tempo
-              p->data[readRow][effectCol[chan]++]=0xf0;
-              p->data[readRow][effectCol[chan]++]=effectVal[chan];
+              if (effectVal[chan]>=0x20) {
+                p->data[readRow][effectCol[chan]++]=0xf0;
+                p->data[readRow][effectCol[chan]++]=effectVal[chan];
+              }
               break;
             case 'U': // fine vibrato
               if (effectVal[chan]!=0) {
