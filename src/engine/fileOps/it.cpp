@@ -1118,7 +1118,6 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
           }
 
           readRow++;
-          memset(effectCol,4,64);
           memcpy(vibingOld,vibing,64*sizeof(bool));
           memcpy(volSlidingOld,volSliding,64*sizeof(bool));
           memcpy(portingOld,porting,64*sizeof(bool));
@@ -1155,6 +1154,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
             }
             break;
           }
+          memset(effectCol,4,64);
           continue;
         }
 
