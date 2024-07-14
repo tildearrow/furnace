@@ -1152,14 +1152,8 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           }
 
           if (porting[k]!=portingOld[k] || portaStatusChanged[k]) {
-            if (portaStatus[k]>=0xe0 && portaType[k]!=3 && porting[k]) {
-              p->data[j][effectCol[k]++]=portaType[k]|0xf0;
-              p->data[j][effectCol[k]++]=(portaStatus[k]&15)*((portaStatus[k]>=0xf0)?1:1);
-              porting[k]=false;
-            } else {
-              p->data[j][effectCol[k]++]=portaType[k];
-              p->data[j][effectCol[k]++]=porting[k]?portaStatus[k]:0;
-            }
+            p->data[j][effectCol[k]++]=portaType[k];
+            p->data[j][effectCol[k]++]=porting[k]?portaStatus[k]:0;
             doesPitchSlide[k]=true;
           } else if (doesPitchSlide[k] && mustCommitInitial) {
             p->data[j][effectCol[k]++]=0x01;
