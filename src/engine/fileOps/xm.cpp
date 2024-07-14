@@ -424,6 +424,9 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             }
           }
           if (hasEffectVal) {
+            if (!hasEffect) {
+              doesArp[k]=true;
+            }
             effectVal=reader.readC();
             if (effect==0xe) {
               switch (effectVal>>4) {
