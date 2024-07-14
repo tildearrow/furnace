@@ -1073,6 +1073,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                     p->data[j][effectCol[k]++]=0xe5;
                     p->data[j][effectCol[k]++]=(effectVal&15)<<4;
                     break;
+                  case 0x9:
+                    p->data[j][effectCol[k]++]=0x0c;
+                    p->data[j][effectCol[k]++]=(effectVal&15);
+                    break;
                   case 0xc:
                     p->data[j][effectCol[k]++]=0xec;
                     p->data[j][effectCol[k]++]=MAX(1,effectVal&15);
