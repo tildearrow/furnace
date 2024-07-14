@@ -946,6 +946,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       bool panSliding[64];
       bool panSlidingOld[64];
       bool did[64];
+      unsigned char lastRetrig[64];
 
       if (patPtr[i]==0) continue;
 
@@ -989,6 +990,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       memset(panSliding,0,64*sizeof(bool));
       memset(panSlidingOld,0,64*sizeof(bool));
       memset(did,0,64*sizeof(bool));
+      memset(lastRetrig,0,64);
 
       memset(mask,0,64);
       memset(note,0,64);
@@ -1396,8 +1398,11 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               panSliding[chan]=true;
               break;
             case 'Q': // retrigger
+              if (effectVal[chan]!=0) {
+                lastRetrig[chan]=effectVal[chan];
+              }
               p->data[readRow][effectCol[chan]++]=0x0c;
-              p->data[readRow][effectCol[chan]++]=effectVal[chan]&15;
+              p->data[readRow][effectCol[chan]++]=lastRetrig[chan]&15;
               break;
             case 'R': // tremolo
               if (effectVal[chan]!=0) {
