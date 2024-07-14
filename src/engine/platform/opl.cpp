@@ -2427,91 +2427,91 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (c.chan==adpcmChan) break;
       chan[c.chan].hardReset=c.value;
       break;
-    case DIV_CMD_OPL4_PCM_MIX_FM:
+    case DIV_CMD_MULTIPCM_MIX_FM:
       if (chipType==4) {
         rWrite(PCM_ADDR_MIX_FM,(CLAMP((0x70-(c.value&0x70)),0,0x70)>>1)|(CLAMP((7-(c.value&7)),0,7)));
       }
       break;
-    case DIV_CMD_OPL4_PCM_MIX_PCM:
+    case DIV_CMD_MULTIPCM_MIX_PCM:
       if (chipType==4) {
         rWrite(PCM_ADDR_MIX_PCM,(CLAMP((0x70-(c.value&0x70)),0,0x70)>>1)|(CLAMP((7-(c.value&7)),0,7)));
       }
       break;
-    case DIV_CMD_OPL4_PCM_LFO:
+    case DIV_CMD_MULTIPCM_LFO:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].lfo=c.value&7;
         rWrite(PCM_ADDR_LFO_VIB+PCM_REG(c.chan),(chan[c.chan].lfo<<3)|(chan[c.chan].vib));
       }
       break;
-    case DIV_CMD_OPL4_PCM_VIB:
+    case DIV_CMD_MULTIPCM_VIB:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].vib=c.value&7;
         rWrite(PCM_ADDR_LFO_VIB+PCM_REG(c.chan),(chan[c.chan].lfo<<3)|(chan[c.chan].vib));
       }
       break;
-    case DIV_CMD_OPL4_PCM_AM:
+    case DIV_CMD_MULTIPCM_AM:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].am=c.value&7;
         rWrite(PCM_ADDR_AM+PCM_REG(c.chan),chan[c.chan].am);
       }
       break;
-    case DIV_CMD_OPL4_PCM_AR:
+    case DIV_CMD_MULTIPCM_AR:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].ar=c.value&0xf;
         rWrite(PCM_ADDR_AR_D1R+PCM_REG(c.chan),(chan[c.chan].ar<<4)|(chan[c.chan].d1r));
       }
       break;
-    case DIV_CMD_OPL4_PCM_D1R:
+    case DIV_CMD_MULTIPCM_D1R:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].d1r=c.value&0xf;
         rWrite(PCM_ADDR_AR_D1R+PCM_REG(c.chan),(chan[c.chan].ar<<4)|(chan[c.chan].d1r));
       }
       break;
-    case DIV_CMD_OPL4_PCM_DL:
+    case DIV_CMD_MULTIPCM_DL:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].dl=c.value&0xf;
         rWrite(PCM_ADDR_DL_D2R+PCM_REG(c.chan),(chan[c.chan].dl<<4)|(chan[c.chan].d2r));
       }
       break;
-    case DIV_CMD_OPL4_PCM_D2R:
+    case DIV_CMD_MULTIPCM_D2R:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].d2r=c.value&0xf;
         rWrite(PCM_ADDR_DL_D2R+PCM_REG(c.chan),(chan[c.chan].dl<<4)|(chan[c.chan].d2r));
       }
       break;
-    case DIV_CMD_OPL4_PCM_RC:
+    case DIV_CMD_MULTIPCM_RC:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].rc=c.value&0xf;
         rWrite(PCM_ADDR_RC_RR+PCM_REG(c.chan),(chan[c.chan].rc<<4)|(chan[c.chan].rr));
       }
       break;
-    case DIV_CMD_OPL4_PCM_RR:
+    case DIV_CMD_MULTIPCM_RR:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].rr=c.value&0xf;
         rWrite(PCM_ADDR_RC_RR+PCM_REG(c.chan),(chan[c.chan].rc<<4)|(chan[c.chan].rr));
       }
       break;
-    case DIV_CMD_OPL4_PCM_DAMP:
+    case DIV_CMD_MULTIPCM_DAMP:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].damp=c.value&1;
         chan[c.chan].freqChanged=true;
         chan[c.chan].writeCtrl=true;
       }
       break;
-    case DIV_CMD_OPL4_PCM_PSEUDO_REVERB:
+    case DIV_CMD_MULTIPCM_PSEUDO_REVERB:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].pseudoReverb=c.value&1;
         chan[c.chan].freqChanged=true;
       }
       break;
-    case DIV_CMD_OPL4_PCM_LFO_RESET:
+    case DIV_CMD_MULTIPCM_LFO_RESET:
       if (PCM_CHECK(c.chan)) {
         chan[c.chan].lfoReset=c.value&1;
         chan[c.chan].freqChanged=true;
         chan[c.chan].writeCtrl=true;
       }
       break;
-    case DIV_CMD_OPL4_PCM_LEVEL_DIRECT:
+    case DIV_CMD_MULTIPCM_LEVEL_DIRECT:
       if (PCM_CHECK(c.chan)) {
         immWrite(PCM_ADDR_TL+PCM_REG(c.chan),((0x7f-chan[c.chan].outVol)<<1)|(chan[c.chan].levelDirect?1:0));
       }

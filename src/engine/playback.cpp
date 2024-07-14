@@ -263,21 +263,21 @@ const char* cmdName[]={
   "BIFURCATOR_STATE_LOAD",
   "BIFURCATOR_PARAMETER",
 
-  "OPL4_MIX_FM",
-  "OPL4_MIX_PCM",
-  "OPL4_LFO",
-  "OPL4_VIB",
-  "OPL4_AM",
-  "OPL4_AR",
-  "OPL4_D1R",
-  "OPL4_DL",
-  "OPL4_D2R",
-  "OPL4_RR",
-  "OPL4_RC",
-  "OPL4_DAMP",
-  "OPL4_PSEUDO_REVERB",
-  "OPL4_LFO_RESET",
-  "OPL4_LEVEL_DIRECT"
+  "MULTIPCM_MIX_FM",
+  "MULTIPCM_MIX_PCM",
+  "MULTIPCM_LFO",
+  "MULTIPCM_VIB",
+  "MULTIPCM_AM",
+  "MULTIPCM_AR",
+  "MULTIPCM_D1R",
+  "MULTIPCM_DL",
+  "MULTIPCM_D2R",
+  "MULTIPCM_RR",
+  "MULTIPCM_RC",
+  "MULTIPCM_DAMP",
+  "MULTIPCM_PSEUDO_REVERB",
+  "MULTIPCM_LFO_RESET",
+  "MULTIPCM_LEVEL_DIRECT"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");

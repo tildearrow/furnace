@@ -601,21 +601,21 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap fmOPL4PostEffectHandlerMap(fmOPLPostEffectHandlerMap);
   fmOPL4PostEffectHandlerMap.insert({
-    {0x1e, {DIV_CMD_OPL4_PCM_MIX_FM, _("1Exy: FM global level (left, right; 0 to 7)"), effectVal}},
-    {0x1f, {DIV_CMD_OPL4_PCM_MIX_PCM, _("1Fxy: PCM global level (left, right; 0 to 7)"), effectVal}},
-    {0x20, {DIV_CMD_OPL4_PCM_LFO, _("20xx: PCM LFO Rate (0 to 7)"), effectValAnd<7>}},
-    {0x21, {DIV_CMD_OPL4_PCM_VIB, _("21xx: PCM LFO PM Depth (0 to 7)"), effectValAnd<7>}},
-    {0x22, {DIV_CMD_OPL4_PCM_AM, _("22xx: PCM LFO AM Depth (0 to 7)"), effectValAnd<7>}},
-    {0x23, {DIV_CMD_OPL4_PCM_AR, _("23xx: PCM Attack Rate (0 to 15)"), effectValAnd<15>}},
-    {0x24, {DIV_CMD_OPL4_PCM_D1R, _("24xx: PCM Decay 1 Rate (0 to 15)"), effectValAnd<15>}},
-    {0x25, {DIV_CMD_OPL4_PCM_DL, _("25xx: PCM Decay Level (0 to 15)"), effectValAnd<15>}},
-    {0x26, {DIV_CMD_OPL4_PCM_D2R, _("26xx: PCM Decay 2 Rate (0 to 15)"), effectValAnd<15>}},
-    {0x27, {DIV_CMD_OPL4_PCM_RC, _("27xx: PCM Release Rate (0 to 15)"), effectValAnd<15>}},
-    {0x28, {DIV_CMD_OPL4_PCM_RR, _("28xx: PCM Rate Correction (0 to 15)"), effectValAnd<15>}},
-    {0x2c, {DIV_CMD_OPL4_PCM_DAMP, _("2Cxx: PCM Damp"), effectValAnd<1>}},
-    {0x2d, {DIV_CMD_OPL4_PCM_PSEUDO_REVERB, _("2Dxx: PCM Pseudo Reverb"), effectValAnd<1>}},
-    {0x2e, {DIV_CMD_OPL4_PCM_LFO_RESET, _("2Exx: PCM LFO Reset"), effectValAnd<1>}},
-    {0x2f, {DIV_CMD_OPL4_PCM_LEVEL_DIRECT, _("2Fxx: PCM Level Direct"), effectValAnd<1>}},
+    {0x1e, {DIV_CMD_MULTIPCM_MIX_FM, _("1Exy: FM global level (left, right; 0 to 7)"), effectVal}},
+    {0x1f, {DIV_CMD_MULTIPCM_MIX_PCM, _("1Fxy: PCM global level (left, right; 0 to 7)"), effectVal}},
+    {0x20, {DIV_CMD_MULTIPCM_LFO, _("20xx: PCM LFO Rate (0 to 7)"), effectValAnd<7>}},
+    {0x21, {DIV_CMD_MULTIPCM_VIB, _("21xx: PCM LFO PM Depth (0 to 7)"), effectValAnd<7>}},
+    {0x22, {DIV_CMD_MULTIPCM_AM, _("22xx: PCM LFO AM Depth (0 to 7)"), effectValAnd<7>}},
+    {0x23, {DIV_CMD_MULTIPCM_AR, _("23xx: PCM Attack Rate (0 to 15)"), effectValAnd<15>}},
+    {0x24, {DIV_CMD_MULTIPCM_D1R, _("24xx: PCM Decay 1 Rate (0 to 15)"), effectValAnd<15>}},
+    {0x25, {DIV_CMD_MULTIPCM_DL, _("25xx: PCM Decay Level (0 to 15)"), effectValAnd<15>}},
+    {0x26, {DIV_CMD_MULTIPCM_D2R, _("26xx: PCM Decay 2 Rate (0 to 15)"), effectValAnd<15>}},
+    {0x27, {DIV_CMD_MULTIPCM_RC, _("27xx: PCM Release Rate (0 to 15)"), effectValAnd<15>}},
+    {0x28, {DIV_CMD_MULTIPCM_RR, _("28xx: PCM Rate Correction (0 to 15)"), effectValAnd<15>}},
+    {0x2c, {DIV_CMD_MULTIPCM_DAMP, _("2Cxx: PCM Damp"), effectValAnd<1>}},
+    {0x2d, {DIV_CMD_MULTIPCM_PSEUDO_REVERB, _("2Dxx: PCM Pseudo Reverb"), effectValAnd<1>}},
+    {0x2e, {DIV_CMD_MULTIPCM_LFO_RESET, _("2Exx: PCM LFO Reset"), effectValAnd<1>}},
+    {0x2f, {DIV_CMD_MULTIPCM_LEVEL_DIRECT, _("2Fxx: PCM Level Direct"), effectValAnd<1>}},
   });
 
   EffectHandlerMap c64PostEffectHandlerMap={

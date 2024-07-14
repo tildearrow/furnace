@@ -263,21 +263,21 @@ enum DivDispatchCmds {
   DIV_CMD_BIFURCATOR_STATE_LOAD,
   DIV_CMD_BIFURCATOR_PARAMETER,
 
-  DIV_CMD_OPL4_PCM_MIX_FM, // (value)
-  DIV_CMD_OPL4_PCM_MIX_PCM, // (value)
-  DIV_CMD_OPL4_PCM_LFO, // (value)
-  DIV_CMD_OPL4_PCM_VIB, // (value)
-  DIV_CMD_OPL4_PCM_AM, // (value)
-  DIV_CMD_OPL4_PCM_AR, // (value)
-  DIV_CMD_OPL4_PCM_D1R, // (value)
-  DIV_CMD_OPL4_PCM_DL, // (value)
-  DIV_CMD_OPL4_PCM_D2R, // (value)
-  DIV_CMD_OPL4_PCM_RC, // (value)
-  DIV_CMD_OPL4_PCM_RR, // (value)
-  DIV_CMD_OPL4_PCM_DAMP, // (value)
-  DIV_CMD_OPL4_PCM_PSEUDO_REVERB, // (value)
-  DIV_CMD_OPL4_PCM_LFO_RESET, // (value)
-  DIV_CMD_OPL4_PCM_LEVEL_DIRECT, // (value)
+  DIV_CMD_MULTIPCM_MIX_FM, // (value)
+  DIV_CMD_MULTIPCM_MIX_PCM, // (value)
+  DIV_CMD_MULTIPCM_LFO, // (value)
+  DIV_CMD_MULTIPCM_VIB, // (value)
+  DIV_CMD_MULTIPCM_AM, // (value)
+  DIV_CMD_MULTIPCM_AR, // (value)
+  DIV_CMD_MULTIPCM_D1R, // (value)
+  DIV_CMD_MULTIPCM_DL, // (value)
+  DIV_CMD_MULTIPCM_D2R, // (value)
+  DIV_CMD_MULTIPCM_RC, // (value)
+  DIV_CMD_MULTIPCM_RR, // (value)
+  DIV_CMD_MULTIPCM_DAMP, // (value)
+  DIV_CMD_MULTIPCM_PSEUDO_REVERB, // (value)
+  DIV_CMD_MULTIPCM_LFO_RESET, // (value)
+  DIV_CMD_MULTIPCM_LEVEL_DIRECT, // (value)
 
   DIV_CMD_MAX
 };
