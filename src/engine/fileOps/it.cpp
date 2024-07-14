@@ -181,6 +181,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
   unsigned short patLen[256];
 
   unsigned char defVol[256];
+  unsigned char defPan[256];
+  unsigned char defPanIns[256];
   unsigned char noteMap[256][128];
 
   bool doesPitchSlide[64];
@@ -210,6 +212,8 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
   memset(patLen,0,256*sizeof(unsigned short));
 
   memset(defVol,0,256);
+  memset(defPan,0,256);
+  memset(defPanIns,128,256);
   memset(noteMap,0,256*128);
 
   try {
@@ -436,9 +440,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         reader.readC();
 
         insVol=reader.readC();
-        unsigned char defPan=reader.readC();
-
-        logV("defPan: %d",defPan);
+        defPanIns[i]=reader.readC();
 
         // vol/pan randomization
         reader.readC();
@@ -572,9 +574,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       s->name=reader.readStringLatin1(26);
 
       unsigned char convert=reader.readC();
-      unsigned char defPan=reader.readC();
-
-      logV("defPan: %d",defPan);
+      defPan[i]=reader.readC();
 
       if (flags&2) {
         s->depth=DIV_SAMPLE_DEPTH_16BIT;
@@ -1216,6 +1216,21 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
         }
         if (hasIns) {
           p->data[readRow][2]=ins[chan]-1;
+          if ((note[chan]<120 || ds.insLen==0) && ins[chan]>0) {
+            unsigned char targetPan=0;
+            if (ds.insLen==0) {
+              targetPan=defPan[(ins[chan]-1)&255];
+            } else {
+              targetPan=defPan[noteMap[(ins[chan]-1)&255][note[chan]]];
+              if (!(targetPan&128)) {
+                targetPan=defPanIns[(ins[chan]-1)&255]^0x80;
+              }
+            }
+            if (targetPan&128) {
+              p->data[readRow][effectCol[chan]++]=0x80;
+              p->data[readRow][effectCol[chan]++]=CLAMP((targetPan&127)<<2,0,255);
+            }
+          }
         }
         if (hasVol) {
           if (vol[chan]<=64) {
