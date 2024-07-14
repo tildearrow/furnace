@@ -169,7 +169,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
-    ds.pitchSlideSpeed=12;
+    ds.pitchSlideSpeed=8;
 
     logV("Extended Module");
 
