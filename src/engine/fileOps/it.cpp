@@ -1231,6 +1231,14 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               p->data[readRow][effectCol[chan]++]=CLAMP((targetPan&127)<<2,0,255);
             }
           }
+
+          if (hasNote && (note[chan]<120 || ds.insLen==0) && ins[chan]>0) {
+            if (ds.insLen==0) {
+              p->data[readRow][3]=defVol[(ins[chan]-1)&255];
+            } else {
+              p->data[readRow][3]=defVol[noteMap[(ins[chan]-1)&255][note[chan]]];
+            }
+          }
         }
         if (hasVol) {
           if (vol[chan]<=64) {
@@ -1273,13 +1281,13 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
               portaType[chan]=3;
               porting[chan]=true;
             } else if (vol[chan]>=203 && vol[chan]<=212) { // vibrato
+              if ((vol[chan]-203)!=0) {
+                vibStatus[chan]&=0xf0;
+                vibStatus[chan]|=(vol[chan]-203);
+                vibStatusChanged[chan]=true;
+              }
+              vibing[chan]=true;
             }
-          }
-        } else if (hasNote && hasIns && (note[chan]<120 || ds.insLen==0) && ins[chan]>0) {
-          if (ds.insLen==0) {
-            p->data[readRow][3]=defVol[(ins[chan]-1)&255];
-          } else {
-            p->data[readRow][3]=defVol[noteMap[(ins[chan]-1)&255][note[chan]]];
           }
         }
         if (hasEffect) {
