@@ -88,7 +88,7 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
     }
     if ((point+1)>=numPoints) {
       target->len=i-1;
-      if ((flags&4) && (!(flags&2))) {
+      if (((flags&4) && (!(flags&2))) || ((flags&6)==0)) {
         target->rel=i-2;
       }
       //target->val[i]=p0;
