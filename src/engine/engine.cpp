@@ -1727,6 +1727,7 @@ int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period)
 }*/
 
 double DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
+  period=!period;
   if (song.linearPitch==2) { // full linear
     return (note<<7);
   }
@@ -1777,6 +1778,8 @@ int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int
 }
 
 int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits) {
+  period=!period;
+  divider=clock/divider;
   if (song.linearPitch==2) {
     // do frequency calculation here
     int nbase=base+pitch+pitch2;
