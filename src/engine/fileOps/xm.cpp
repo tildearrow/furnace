@@ -934,7 +934,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                   break;
                 case 0xf: // porta
                   if ((vol&15)!=0) {
-                    portaStatus[k]=(vol&15);
+                    portaStatus[k]=(vol&15)<<4;
                     portaStatusChanged[k]=true;
                   }
                   if (portaType[k]!=3 || (hasNote && note>0)) {
