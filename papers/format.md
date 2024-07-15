@@ -247,8 +247,14 @@ size | description
      |   - 0xd7: Game Boy Advance (direct) - 2 channels
      |   - 0xd8: Game Boy Advance (MinMod) - 16 channels
      |   - 0xd9: Bifurcator - 4 channels
+     |   - 0xda: SCSP - 32 channels (UNAVAILABLE)
+     |   - 0xdb: YMF271 (OPX) - 48 channels (UNAVAILABLE)
+     |   - 0xdc: RF5C400 - 32 channels (UNAVAILABLE)
+     |   - 0xdd: YM2612 XGM - 9 channels (UNAVAILABLE)
      |   - 0xde: YM2610B extended - 19 channels
+     |   - 0xdf: YM2612 XGM extended - 13 channels (UNAVAILABLE)
      |   - 0xe0: QSound - 19 channels
+     |   - 0xe1: PS1 - 24 channels (UNAVAILABLE)
      |   - 0xf0: SID2 - 3 channels
      |   - 0xf1: 5E01 - 5 channels
      |   - 0xfc: Pong - 1 channel

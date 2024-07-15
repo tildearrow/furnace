@@ -1075,6 +1075,10 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
               break;
             case 'S': // special...
               switch (effectVal>>4) {
+                case 0x8:
+                  p->data[readRow][effectCol[chan]++]=0x80;
+                  p->data[readRow][effectCol[chan]++]=(effectVal&15)<<4;
+                  break;
                 case 0xc:
                   p->data[readRow][effectCol[chan]++]=0xec;
                   p->data[readRow][effectCol[chan]++]=effectVal&15;

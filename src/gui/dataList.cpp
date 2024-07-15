@@ -156,14 +156,14 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
     if (i<(int)e->song.ins.size()) {
       DivInstrument* ins=e->song.ins[i];
       ImGui::SameLine();
-      ImGui::Text("%.2X: %s",i,ins->name.c_str());
+      ImGui::TextNoHashHide("%.2X: %s",i,ins->name.c_str());
     } else {
       ImGui::SameLine();
-      ImGui::Text("%.2X: <INVALID>",i);
+      ImGui::TextNoHashHide("%.2X: <INVALID>",i);
     }
   } else {
     ImGui::SameLine();
-    ImGui::Text("- None -");
+    ImGui::TextNoHashHide("- None -");
   }
   ImGui::PopID();
   ImGui::PopStyleColor();
@@ -219,7 +219,7 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     if (memWarning) break;
   }
   if (memWarning) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_SAMPLE_CHIP_WARNING]);
-  if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d",i,sample->name,i).c_str(),curSample==i)) {
+  if (ImGui::Selectable(fmt::sprintf("%d:##_SAM%d",i,i).c_str(),curSample==i)) {
     curSample=i;
     samplePos=0;
     updateSampleTex=true;
@@ -235,6 +235,8 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     DRAG_SOURCE(dir,asset,"FUR_SDIR");
     DRAG_TARGET(dir,asset,e->song.sampleDir,"FUR_SDIR");
   }
+  ImGui::SameLine();
+  ImGui::TextNoHashHide("%s",sample->name.c_str());
   if (memWarning) {
     ImGui::SameLine();
     ImGui::Text(ICON_FA_EXCLAMATION_TRIANGLE);

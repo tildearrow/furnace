@@ -87,7 +87,10 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
       }
     }
     if ((point+1)>=numPoints) {
-      target->len=i;
+      target->len=i-1;
+      if (((flags&4) && (!(flags&2))) || ((flags&6)==0)) {
+        target->rel=i-2;
+      }
       //target->val[i]=p0;
       break;
     }
@@ -103,7 +106,7 @@ void readEnvelope(DivInstrument* ins, int env, unsigned char flags, unsigned cha
   // split L/R
   if (env==1) {
     for (int i=0; i<ins->std.panLMacro.len; i++) {
-      int val=ins->std.panLMacro.val[i];
+      int val=ins->std.panLMacro.val[i]-32;
       if (val==0) {
         ins->std.panLMacro.val[i]=4095;
         ins->std.panRMacro.val[i]=4095;
@@ -166,7 +169,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
-    ds.pitchSlideSpeed=12;
+    ds.pitchSlideSpeed=8;
 
     logV("Extended Module");
 
@@ -421,6 +424,9 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             }
           }
           if (hasEffectVal) {
+            if (!hasEffect) {
+              doesArp[k]=true;
+            }
             effectVal=reader.readC();
             if (effect==0xe) {
               switch (effectVal>>4) {
@@ -525,21 +531,40 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
 
         if (volType&1) {
           // add fade-out
-          int cur=64;
-          if (ins->std.volMacro.len>0) {
-            cur=ins->std.volMacro.val[ins->std.volMacro.len-1];
-          }
-          for (int fadeOut=32767; fadeOut>0 && ins->std.volMacro.len<254; fadeOut-=volFade) {
-            ins->std.volMacro.val[ins->std.volMacro.len++]=(cur*fadeOut)>>15;
-          }
-          if (ins->std.volMacro.len<255) {
-            ins->std.volMacro.val[ins->std.volMacro.len++]=0;
+          if (volFade!=0) {
+            int cur=64;
+            int macroLen=ins->std.volMacro.len;
+            int curPos=ins->std.volMacro.len-1;
+            if (ins->std.volMacro.loop<macroLen) {
+              curPos=ins->std.volMacro.loop;
+            }
+            if (ins->std.volMacro.len>0) {
+              cur=ins->std.volMacro.val[curPos];
+            }
+            for (int fadeOut=32767; fadeOut>0 && ins->std.volMacro.len<254; fadeOut-=volFade) {
+              cur=ins->std.volMacro.val[curPos];
+              ins->std.volMacro.val[ins->std.volMacro.len++]=(cur*fadeOut)>>15;
+              if (++curPos>=macroLen) {
+                if (ins->std.volMacro.loop<macroLen) {
+                  curPos=ins->std.volMacro.loop;
+                } else {
+                  curPos=macroLen-1;
+                }
+              }
+            }
+            if (ins->std.volMacro.len<255) {
+              ins->std.volMacro.val[ins->std.volMacro.len++]=0;
+            }
+            if (ins->std.volMacro.rel<ins->std.volMacro.len && ins->std.volMacro.rel<ins->std.volMacro.loop) {
+              ins->std.volMacro.loop=255;
+            }
           }
         } else {
           // add a one-tick macro to make note release happy
           ins->std.volMacro.val[0]=64;
           ins->std.volMacro.val[1]=0;
           ins->std.volMacro.rel=0;
+          ins->std.volMacro.loop=255;
           ins->std.volMacro.len=2;
         }
 
@@ -908,6 +933,15 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                   panSliding[k]=true;
                   break;
                 case 0xf: // porta
+                  if ((vol&15)!=0) {
+                    portaStatus[k]=(vol&15)<<4;
+                    portaStatusChanged[k]=true;
+                  }
+                  if (portaType[k]!=3 || (hasNote && note>0)) {
+                    portaStatusChanged[k]=true;
+                  }
+                  portaType[k]=3;
+                  porting[k]=true;
                   break;
               }
             }
@@ -955,7 +989,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                   portaStatus[k]=effectVal;
                   portaStatusChanged[k]=true;
                 }
-                if (portaType[k]!=3) {
+                if (portaType[k]!=3 || (hasNote && note>0)) {
                   portaStatusChanged[k]=true;
                 }
                 portaType[k]=3;
@@ -1006,8 +1040,10 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                 writePanning=false;
                 break;
               case 9: // offset
-                p->data[j][effectCol[k]++]=0x91;
-                p->data[j][effectCol[k]++]=effectVal;
+                if (hasNote) {
+                  p->data[j][effectCol[k]++]=0x91;
+                  p->data[j][effectCol[k]++]=effectVal;
+                }
                 break;
               case 0xa: // vol slide
                 if (effectVal!=0) {
@@ -1037,19 +1073,25 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                     p->data[j][effectCol[k]++]=0xe5;
                     p->data[j][effectCol[k]++]=(effectVal&15)<<4;
                     break;
+                  case 0x9:
+                    p->data[j][effectCol[k]++]=0x0c;
+                    p->data[j][effectCol[k]++]=(effectVal&15);
+                    break;
                   case 0xc:
                     p->data[j][effectCol[k]++]=0xec;
-                    p->data[j][effectCol[k]++]=effectVal&15;
+                    p->data[j][effectCol[k]++]=MAX(1,effectVal&15);
                     break;
                   case 0xd:
                     p->data[j][effectCol[k]++]=0xed;
-                    p->data[j][effectCol[k]++]=effectVal&15;
+                    p->data[j][effectCol[k]++]=MAX(1,effectVal&15);
                     break;
                 }
                 break;
-              case 0xf: // speed/tempp
+              case 0xf: // speed/tempo
                 if (effectVal>=0x20) {
                   p->data[j][effectCol[k]++]=0xf0;
+                } else if (effectVal==0) {
+                  p->data[j][effectCol[k]++]=0xff;
                 } else {
                   p->data[j][effectCol[k]++]=0x0f;
                 }
@@ -1128,14 +1170,8 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           }
 
           if (porting[k]!=portingOld[k] || portaStatusChanged[k]) {
-            if (portaStatus[k]>=0xe0 && portaType[k]!=3 && porting[k]) {
-              p->data[j][effectCol[k]++]=portaType[k]|0xf0;
-              p->data[j][effectCol[k]++]=(portaStatus[k]&15)*((portaStatus[k]>=0xf0)?1:1);
-              porting[k]=false;
-            } else {
-              p->data[j][effectCol[k]++]=portaType[k];
-              p->data[j][effectCol[k]++]=porting[k]?portaStatus[k]:0;
-            }
+            p->data[j][effectCol[k]++]=portaType[k];
+            p->data[j][effectCol[k]++]=porting[k]?portaStatus[k]:0;
             doesPitchSlide[k]=true;
           } else if (doesPitchSlide[k] && mustCommitInitial) {
             p->data[j][effectCol[k]++]=0x01;
@@ -1183,7 +1219,6 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
           }
         }
 
-        memset(effectCol,4,64);
         memcpy(vibingOld,vibing,64*sizeof(bool));
         memcpy(volSlidingOld,volSliding,64*sizeof(bool));
         memcpy(portingOld,porting,64*sizeof(bool));
@@ -1207,6 +1242,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
             ds.subsong[0]->pat[0].effectCols=(effectCol[0]>>1)-1;
           }
         }
+        memset(effectCol,4,64);
       }
 
       logV("seeking to %x...",packedSeek);
