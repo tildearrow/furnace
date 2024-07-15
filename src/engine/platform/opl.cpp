@@ -2076,7 +2076,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         commitState(c.chan,ins);
         chan[c.chan].insChanged=false;
       }
-      chan[c.chan].baseFreq=(PCM_CHECK(c.chan))?NOTE_PCM(c.value):
+      chan[c.chan].baseFreq=(PCM_CHECK(c.chan))?NOTE_PCM(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0))):
           (c.chan==adpcmChan)?(NOTE_ADPCMB(c.value)):(NOTE_FREQUENCY(c.value));
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
@@ -2667,7 +2667,19 @@ DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
 }
 
 int DivPlatformOPL::mapVelocity(int ch, float vel) {
-  if (PCM_CHECK(ch)) return vel*127.0; // TODO: Covert to log, -0.375dB per step
+  if (PCM_CHECK(ch)) { // TODO: correct?
+  // -0.375dB per step
+  // -6: 64: 16
+  // -12: 32: 32
+  // -18: 16: 48
+  // -24: 8: 64
+  // -30: 4: 80
+  // -36: 2: 96
+  // -42: 1: 112
+    if (vel==0) return 0;
+    if (vel>=1.0) return 127;
+    return CLAMP(round(128.0-(112.0-log2(vel*127.0)*16.0)),0,127);
+  }
   if (ch==adpcmChan) return vel*255.0;
   // -0.75dB per step
   // -6: 64: 8
