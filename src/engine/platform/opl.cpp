@@ -2667,7 +2667,7 @@ DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
 }
 
 int DivPlatformOPL::mapVelocity(int ch, float vel) {
-  if (PCM_CHECK(ch)) return vel*127.0;
+  if (PCM_CHECK(ch)) return vel*127.0; // TODO: Covert to log, -0.375dB per step
   if (ch==adpcmChan) return vel*255.0;
   // -0.75dB per step
   // -6: 64: 8
