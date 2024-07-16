@@ -7,12 +7,12 @@ NOTES TO AUTHOR:
 
 # quick start guide
 
-first things first: thank you for taking the time to understand Furnace, the world's most comprehensive chiptune tracker. it's amazingly versatile, but it can also be intimidating, even for those already familiar with trackers. this quick start guide will get you on the road to making the chiptunes of your dreams! it will probably take about an hour <!-- estimate, test and revise it when done --> from start to finish.
+first things first: thank you for taking the time to understand Furnace, the world's most comprehensive chiptune tracker. it's amazingly versatile, but it can also be intimidating, even for those already familiar with trackers. this quick start guide will get you on the road to making the chiptunes of your dreams! if you're a beginner, it will probably take about an hour <!-- estimate, test and revise it when done --> from start to finish.
 
 this guide makes a few assumptions:
 * you've already installed Furnace.
 * you haven't changed any configuration or layout yet.
-* you're working with a PC keyboard. Mac users should already know the equivalents to the `Ctrl` and `Alt` keys.
+* you're working with a PC keyboard, US English, QWERTY layout. Mac users should already know the equivalents to the `Ctrl` and `Alt` keys.
 * you're comfortable with keyboard shortcuts. if not, a lot of this can also be done using buttons or menus, but please try the keyboard first. it's worth it to smooth out the tracking workflow.
 
 if an unfamiliar term comes up or you need more clarification on a term, refer to the [basic concepts](concepts.md) and [glossary](glossary.md) docs.
@@ -77,7 +77,7 @@ click into the pattern view and add some notes. the number `01` appears next to 
 
 {{ small chunk of pattern view showing filled-in instrument value }}
 
-<!--
+<!-- include this?
 making new sounds for FM synthesis (the type of sound we've been using) is well beyond the scope of this guide, but when you've worked through this and are ready to try, YouTube user "funute" has assembled a fantastic ["crash course"](https://www.youtube.com/watch?v=cDJ1z-4YsYM) that will help. until then, let's move on.
 -->
 
@@ -107,7 +107,7 @@ it's important to know that _most_ effects are continuous, meaning they will con
 
 common effects are explained more thoroughly in the [effects](../3-pattern/effects.md) documentation. each chip may have its own specialized effects, which are covered in the [systems](../7-systems/) docs. however, those are best explored later.
 
-on row 8, add a different note without a volume. play from the start, and you'll hear that the new note plays at the volume the previous one left off at. the result of the volume slide is kept in the "memory" of the channel. enter a value of `7F` and play again; it will start at full volume, then ramp down because the `0A` volume slide is still going.
+on row 8, add a different note without a volume. play from the start, and you'll hear that the new note plays at the volume the previous one left off at. the result of the volume slide is kept in the "memory" of the channel. enter a volume of `7F` and play again; it will start at full volume, then ramp down because the `0A` volume slide is still going.
 
 ## how do I make the song longer?
 
@@ -136,7 +136,7 @@ the important take away here is that patterns exist independently of orders. the
 
 the most basic unit of time is the **tick**. almost always, videogame systems take actions based on each frame of video, and these most often happen at 60 times per second, usually expressed as 60Hz. (this is for NTSC systems; systems that expect PAL will use 50Hz, and arcade games can use all sorts of different values...) because of this timing, everything that happens during playback will happen on a tick, never in between ticks.
 
-if we click on the "Speed" tab at the top-right of the interface, we'll see the "Base Tempo" line at the top has the tick rate shown as "60Hz" to the right. we could change the base tempo to something arbitrary and the tick rate would change accordingly, but this wouldn't be authentic to the system's capabilities, so let's leave the base tempo at 150. we see the calculated tempo two lines down, after the input for "Divider"; it reads 150.00 BPM.
+if we click on the "Speed" tab at the top-right of the interface, we'll see the "Base Tempo" line at the top shows the tick rate as "60Hz" to the right. we could change the base tempo to something arbitrary and the tick rate would change accordingly, but this wouldn't be authentic to the system's capabilities, so let's leave the base tempo at 150. we see the calculated tempo two lines down, after the input for "Divider"; it reads 150.00 BPM.
 
 {{ speed tab with tempo readout circled }}
 
@@ -166,15 +166,19 @@ go back to that second instance of Furnace. just as we saved an instrument last 
 
 {{ samples tab? }}
 
+<!-- make a sample to use in this -->
+
 in order to use the sample, we want to make an instrument that references it. right-click on it in the list and select "make instrument". the "Instrument Editor" window will pop up to show us that we have an instrument 3 named "woodwind", a type of "Generic Sample", and below that, the sample selected is "woodwind". while we're at it, let's change the instrument name to "flute" since that's what it sounds like; just select that first "woodwind" and type over it.
 
-now, let's hear it in action. close the instrument editor, then clear out everything in the patterns of our first order. (either delete what's there, or adjust orders to get it out of the way.) switch to our brass instrument and put a C-4 note in channel "FM 5". now switch back to our new flute instrument and put a C-4 note in channel "FM 6". wait a second – that's not a C-4 note!
+now, let's hear it in action. close the instrument editor, then clear out everything in the patterns of our first order. (either delete what's there, or adjust orders to get it out of the way.) switch to our brass instrument and put a C-3 note in channel "FM 5". now switch back to our new flute instrument and put a C-4 note in channel "FM 6". wait a second – that doesn't sound like a C-4!
 
 it turns out the sample was recorded at F-3, but Furnace has no way to know that. we can fix this. there's a more detailed explanation in the [sample tuning guide](../9-guides/tuning-samples.md) but for now, go back to the sample editor. click the Note dropdown near the center of the top half, select "F-3", and play the track again. much better!
 
+<!-- adjust these notes and description as necessary -->
+
 {{ sample editor }}
 
-an important note: in this case, we can use a Generic Sample instrument type just fine, but there are chips that use samples in specialized ways. always check [the chip's documentation](../7-systems/) to find the best way to use samples with it.
+an important note: in this case, we can use a Generic Sample instrument type just fine, but there are chips that use samples in specialized ways. always check [the chip's documentation](../7-systems/) for the best way to use samples with it.
 
 ## what about wavetables?
 
@@ -184,7 +188,7 @@ in our brand new song, we'll want to add a new wavetable. between the "Instrumen
 
 {{ wavetables list }}
 
-double-click that new entry to open the "Wavetable Editor". you'll see a line of large pixel-like blocks. this is our sawtooth wave; nice as those are, let's get creative. click anywhere in that area and "draw" a new wave, something interesting. note that at the bottom of the window, there's a line of numbers that change as you edit. you can edit the numbers directly to change the values above; keep this in mind for later. once you're happy with this one, make at least two more, just for later demonstration purposes.
+double-click that new entry to open the "Wavetable Editor". you'll see a line of large pixel-like blocks. this is our sawtooth wave. nice as those are, let's get creative. click anywhere in that area and "draw" a new wave, something interesting. note that at the bottom of the window, there's a line of numbers that change as you edit. you can edit the numbers directly to change the values above; keep this in mind for later. once you're happy with this wavetable, make at least two more, just for later demonstration purposes.
 
 {{ wavetable editor }}
 
@@ -200,26 +204,26 @@ close the wavetable editor, move the instrument editor off to the side, and clic
 
 the **macro** is perhaps Furnace's most powerful feature. formally defined, it automates a note's parameters while it plays. a lot of what can be achieved with effects can be done with macros, but on a per-tick basis instead of per-row.
 
-let's start with clearing out the notes we've entered. then move the cursor to the top-left into the "Pulse 1" channel. create a new instrument and go into the instrument editor. we'll want to work with the volume macro, but before we can do that, we have to select the "Game Boy" tab and check the box labelled "Use software envelope". the Game Boy's sound hardware can do its own limited volume envelopes, but those won't help us right now, and if we leave the box unchecked, the volume macro won't work (though the others will).
+let's start by clearing out the notes we've entered. after that, move the cursor to the top-left into the "Pulse 1" channel. create a new instrument and go into the instrument editor. we'll want to work with the volume macro, but before we can do that, we have to select the "Game Boy" tab and check the box labelled "Use software envelope". the Game Boy's sound hardware can do its own limited volume envelopes, but those won't help us right now, and if we leave the box unchecked, the volume macro won't work (though the others will).
 
 {{ instrument editor on Game Boy tab with that box checked? }}
 
-in the macros tab, click the down arrow next to "Volume" to open it up. the number that appears beneath the word "Volume" is the length of the macro; let's set it to 30. in the large box next to it, draw a ramp from near minimum volume (1) to maximum volume (15) at the left, then another down to minimum volume (0) at the right. if it's a little uneven, that's okay; you can always edit the numbers directly beneath the box, just as with the wavetable editor.
+in the "Macros" tab, click the down arrow next to "Volume" to open it up. the number that appears beneath the word "Volume" is the length of the macro; let's set it to 30. in the large box next to it, draw a ramp from near minimum volume (1) to maximum volume (15) at the left, then another down to minimum volume (0) at the right. if it's a little uneven, that's okay; you can always edit the numbers directly beneath the box, just as with the wavetable editor.
 
-you may have a little trouble navigating the whole macro at once. use the scrollbar at the top to move around it. even better, use the `-` button to the left of it to narrow the bars until it's all visible!
+you may have a little trouble navigating the whole macro at once. use the scrollbar at the top of the macros tab to move around it. even better, use the `-` button to the left of it to narrow the bars until it's all visible!
 
 {{ completed macro }}
 
-while in the instrument editor (and as long as you're not in a text box) you can play notes on the keyboard without affecting anything in the pattern view. give it a try, and you'll notice that when held down, each note does its own quick fade in then fade to silence. you could do this with effects, but doing it with the instrument itself would save a lot of typing!
+while in the instrument editor (and as long as you're not in a text box) you can play notes on the keyboard without affecting anything in the pattern view. give it a try, and you'll notice that when held down, each note does its own quick fade in then fade to silence. you could do this with effects, but if you're using it on many notes, doing it with the instrument itself could save a lot of typing!
 
-in the pattern view, add a few notes spaced far enough apart that the whole rise and fall is audible (at speed 6, five rows will do). then look to the thin bar underneath the macro view. it may not look like much, but if you hold the `Shift` key and click directly underneath the peak of the macro, it will light up green. we've just set a **release point**. play with it a little here, and notice that holding the key down holds the note in place at top volume until released. now play the song from the start; each note will rise to max volume then stay there until the next note plays.
+in the pattern view, add a few notes spaced far enough apart that the whole rise and fall is audible (at speed 6, five rows will do). then look to the thin bar underneath the macro view. it may not look like much, but if you hold the `Shift` key and click directly underneath the peak of the macro, it will light up green. we've just set a **release point**. play with the instrument a little here, and notice that holding the key down holds the note in place at top volume – at the release point – until let go. now play the song from the start; each note will rise to max volume then stay there until the next note plays.
 
 {{ macro view }}
 
-finally, somewhere after the last note in our song, move to about ten rows beneath it and place a note off. the final note rises to maximum, then is suddenly cut off! to get the rest of the macro to play, delete the note off and use the `~` key to put in a **macro release** instead, which will appear as `REL`. now when the song played back, the final note will rise and hold steady until it reaches the macro release, then we'll hear the rest of the macro play out.
+somewhere after the last note in our song, move to about ten rows beneath it and place a note off. the final note rises to maximum, then is suddenly cut off! to get the rest of the macro to play, delete the note off and use the `~` key to put in a **macro release** instead, which will appear as `REL`. now when the song is played back, the final note will rise and hold steady until it reaches the macro release, then we'll hear the rest of the macro play out.
 
 macros are absurdly powerful tools. read the [macro documentation](../4-instrument/README.md) to make the most of them!
 
 ## now what?
 
-now you know the basics of how to make music with Furnace. from here, the rest of the documentation should make more sense, and it should be your primary reference. if you have questions that aren't answered there, <!-- point to Discord? -->. most of all, don't be afraid to experiment. go play!
+now you know the basics of how to make music with Furnace. from here, the rest of the documentation should make more sense, and it should be your primary reference. if you have questions that aren't answered there, ask on our Discord in the `#ask` channel, or pose your question in the Discussions forum on Furnace's GitHub repository. <!-- links here -->. most of all, don't be afraid to experiment. go play!
