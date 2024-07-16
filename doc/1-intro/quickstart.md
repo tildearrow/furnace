@@ -170,13 +170,11 @@ go back to that second instance of Furnace. just as we saved an instrument last 
 
 in order to use the sample, we want to make an instrument that references it. right-click on it in the list and select "make instrument". the "Instrument Editor" window will pop up to show us that we have an instrument 3 named "woodwind", a type of "Generic Sample", and below that, the sample selected is "woodwind". while we're at it, let's change the instrument name to "flute" since that's what it sounds like; just select that first "woodwind" and type over it.
 
-now, let's hear it in action. close the instrument editor, then clear out everything in the patterns of our first order. (either delete what's there, or adjust orders to get it out of the way.) switch to our brass instrument and put a C-3 note in channel "FM 5". now switch back to our new flute instrument and put a C-4 note in channel "FM 6". wait a second – that doesn't sound like a C-4!
+{{ instrument list? }}
 
-it turns out the sample was recorded at F-3, but Furnace has no way to know that. we can fix this. there's a more detailed explanation in the [sample tuning guide](../9-guides/tuning-samples.md) but for now, go back to the sample editor. click the Note dropdown near the center of the top half, select "F-3", and play the track again. much better!
+now, let's hear it in action. close the instrument editor, then clear out everything in the patterns of our first order. (either delete what's there, or adjust orders to get it out of the way.) switch to our brass instrument and put a C-4 note in channel "FM 5". now switch back to our new flute instrument and put a C-4 note in channel "FM 6". when we play it back, it sounds perfect!
 
-<!-- adjust these notes and description as necessary -->
-
-{{ sample editor }}
+if ever a sample sounds out of tune, refer to the [sample tuning guide](../9-guides/tuning-samples.md) to fix it up.
 
 an important note: in this case, we can use a Generic Sample instrument type just fine, but there are chips that use samples in specialized ways. always check [the chip's documentation](../7-systems/) for the best way to use samples with it.
 
