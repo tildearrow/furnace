@@ -228,12 +228,12 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
     }
     if (chipType==4) {
       pcm.generateMix(o[0],o[1],o[4],o[5],o[6],o[7],pcmBuf);
-      os[0]+=o[4];
-      os[1]+=o[5];
-      os[2]+=o[2];
-      os[3]+=o[3];
-      os[4]+=o[6];
-      os[5]+=o[7];
+      os[0]+=o[4]; // FM + PCM left
+      os[1]+=o[5]; // FM + PCM right
+      os[2]+=o[2]; // FM left
+      os[3]+=o[3]; // FM right
+      os[4]+=o[6]; // PCM left
+      os[5]+=o[7]; // PCM right
     } else {
       os[0]+=o[0];
       os[1]+=o[1];
