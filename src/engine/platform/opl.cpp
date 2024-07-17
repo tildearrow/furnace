@@ -2430,12 +2430,16 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     case DIV_CMD_MULTIPCM_MIX_FM:
       if (chipType==4) {
-        rWrite(PCM_ADDR_MIX_FM,(CLAMP((0x70-(c.value&0x70)),0,0x70)>>1)|(CLAMP((7-(c.value&7)),0,7)));
+        fmMixL=CLAMP((c.value&0x70)>>4,0,7);
+        fmMixR=CLAMP((c.value&0x7),0,7);
+        immWrite(PCM_ADDR_MIX_FM,((7-fmMixR)<<3)|(7-fmMixL));
       }
       break;
     case DIV_CMD_MULTIPCM_MIX_PCM:
       if (chipType==4) {
-        rWrite(PCM_ADDR_MIX_PCM,(CLAMP((0x70-(c.value&0x70)),0,0x70)>>1)|(CLAMP((7-(c.value&7)),0,7)));
+        pcmMixL=CLAMP((c.value&0x70)>>4,0,7);
+        pcmMixR=CLAMP((c.value&0x7),0,7);
+        immWrite(PCM_ADDR_MIX_PCM,((7-pcmMixR)<<3)|(7-pcmMixL));
       }
       break;
     case DIV_CMD_MULTIPCM_LFO:
@@ -2844,6 +2848,13 @@ void DivPlatformOPL::reset() {
       immWrite(0x105,3);
       // Reset wavetable header
       immWrite(0x202,(ramSize<=0x200000)?0x10:0x00);
+      // initialize mixer volume
+      fmMixL=7;
+      fmMixR=7;
+      pcmMixL=7;
+      pcmMixR=7;
+      immWrite(PCM_ADDR_MIX_FM,((7-fmMixR)<<3)|(7-fmMixL));
+      immWrite(PCM_ADDR_MIX_PCM,((7-pcmMixR)<<3)|(7-pcmMixL));
     } else {
       immWrite(0x105,1);
     }

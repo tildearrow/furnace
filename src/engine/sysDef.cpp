@@ -601,8 +601,8 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap fmOPL4PostEffectHandlerMap(fmOPLPostEffectHandlerMap);
   fmOPL4PostEffectHandlerMap.insert({
-    {0x1e, {DIV_CMD_MULTIPCM_MIX_FM, _("1Exy: FM global level (left, right; 0 to 7)"), effectVal}},
-    {0x1f, {DIV_CMD_MULTIPCM_MIX_PCM, _("1Fxy: PCM global level (left, right; 0 to 7)"), effectVal}},
+    {0x1e, {DIV_CMD_MULTIPCM_MIX_FM, _("1Exy: FM global level (x: left, y: right; 0 to 7)"), effectVal}},
+    {0x1f, {DIV_CMD_MULTIPCM_MIX_PCM, _("1Fxy: PCM global level (x: left, y: right; 0 to 7)"), effectVal}},
     {0x20, {DIV_CMD_MULTIPCM_LFO, _("20xx: PCM LFO Rate (0 to 7)"), effectValAnd<7>}},
     {0x21, {DIV_CMD_MULTIPCM_VIB, _("21xx: PCM LFO PM Depth (0 to 7)"), effectValAnd<7>}},
     {0x22, {DIV_CMD_MULTIPCM_AM, _("22xx: PCM LFO AM Depth (0 to 7)"), effectValAnd<7>}},

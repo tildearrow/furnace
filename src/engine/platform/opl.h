@@ -134,6 +134,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char* outChanMap;
     int chipFreqBase, chipRateBase;
     int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan=-1, pcmChanOffs=-1, sampleBank, totalOutputs, ramSize;
+    int fmMixL=7, fmMixR=7, pcmMixL=7, pcmMixR=7;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
