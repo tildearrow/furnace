@@ -1612,7 +1612,6 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         if (chan[i].panSpeed!=0) {
           int newPanL=chan[i].panL;
           int newPanR=chan[i].panR;
-          logV("panSpeed: %d",chan[i].panSpeed);
           if (chan[i].panSpeed>0) { // right
             if (newPanR>=0xff) {
               newPanL-=chan[i].panSpeed;
