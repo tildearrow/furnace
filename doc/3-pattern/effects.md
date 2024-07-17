@@ -15,6 +15,12 @@ however, effects are continuous (unless specified), which means you only need to
 - `F8xx`: **Single tick volume slide up.** adds `x` to volume on first tick only.
 - `F9xx`: **Single tick volume slide down.** subtracts `x` from volume on first tick only.
   - ---
+- `D8xx`: **Set volume slide bottom boundary.**
+  - the default is 0.
+- `D9xx`: **Set volume slide top boundary.**
+  - the default is the channel's maximum volume.
+- `DCxx`: **Delayed mute.** sets volume to 0 after `xx` ticks.
+  - ---
 - `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed. `y` is the depth.
   - tremolo is downward only.
   - maximum tremolo depth is -60 volume steps.
