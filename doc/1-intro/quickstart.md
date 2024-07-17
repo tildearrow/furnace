@@ -23,9 +23,11 @@ with all that said, start up the program and let's get going!
 
 ## I've opened Furnace – now what?
 
-there's a lot going on, but the most prominent part of Furnace's interface is the **pattern view** – the spreadsheet-like table that takes up most of the screen.
+on starting Furnace for the first time, the interface should look like this. if it's not quite right, drag the borders between sections until it approximately matches.
 
-{{ pattern view }}
+![full-screen interface](qs-interface.png)
+
+there's a lot going on, but the most prominent part of Furnace's interface is the **pattern view** – the spreadsheet-like table that takes up the bottom-left.
 
 click to place the cursor somewhere in this view. it will appear as a medium-blue highlight. try moving around with the up and down arrow keys. also try the `PgUp` and `PgDn` keys to move around faster. the vertical axis represents time. during editing and playback the view scrolls around a highlighted row that stays put in the center; this is called the **playhead**.
 
@@ -47,25 +49,25 @@ to change which octaves are represented on the keyboard, use the `/` and `*` key
 
 now press the space bar to change from play to edit mode. the row the cursor is on will change to dark red – the playhead mentioned earlier. another way to tell what mode we're in is via the play/edit controls; make sure the "record" button is on.
 
-{{ play/edit controls }}
+![play/edit controls](qs-playeditcontrols.png)
 
 now try playing some notes; they should appear in the pattern view, one after another.
 
-{{ notes in one channel }}
+![notes in one channel](qs-notes-channel.png)
 
 each **channel** is a group of columns separated from the others by lines, with a name at the top. each channel can only ever play one note at a time. to hear this in action, move the cursor back to the top and press the `Enter` or `Return` key to start playback. you should hear the notes you entered played back quickly, one after another, each cutting off the previous note. if you let it play long enough, it'll wrap around to the start to go through them again; press `Enter` again to stop playback.
 
 now let's clear out those notes. you could delete them individually with the `Del` key, but let's try something else first. click and drag to select them all. you'll know they're selected when they have a medium grey background. <!-- try moving them around by clicking in the selected area and dragging it to another channel. (this may not work with some input devices.) then --> hit `Del` to delete them all at once.
 
-{{ selection area? }}
+![selection area](qs-selection.png)
 
-you'll usually want more than one note playing at a time. move back to the start of the pattern in the leftmost column of the leftmost channel – this should clear the selection area. put some different notes next to each other in the same row. only enter notes in the first column of each channel; we'll get to those other columns later. (don't do more than six notes at once yet. we want to stay in the channels labelled "FM" for now.) once those are in place, go back to the top row and use the `Enter` key to start playback. they should all sound at the same time as one single chord.
+you'll usually want more than one note playing at a time. move back to the start of the pattern in the leftmost column of the leftmost channel; this should clear the selection area. put some different notes next to each other in the same row. only enter notes in the first column of each channel; we'll get to those other columns later. (don't do more than six notes at once yet. we want to stay in the channels labelled "FM" for now.) once those are in place, go back to the top row and use the `Enter` key to start playback. they should all sound at the same time as one single chord.
 
-{{ notes across three channels }}
+![notes in three channels](qs-notes-channels.png)
 
 that chord will ring out for quite some time, but let's try stopping it early. a few rows after that chord, use the `Tab` or `1` key to enter a **note off** (sometimes called "note cut") in each channel that has a note. it'll appear as `OFF` in the note column. now try the shortcut `F5` to play from the start without having to move there. you should hear the chord as before, then it will stop where the note offs are, as though letting off the keys of a piano.
 
-{{ notes across channels with note offs beneath them }}
+![notes and note offs](qs-noteoffs-channels.png)
 
 of course, errors can happen. let's pretend those note offs were a bad idea and undo them with `Ctrl-Z`. Furnace keeps track of multiple levels of undo. undo will work for the pattern view, most text entry boxes, and a few other places; try it out here and there along the way to get a sense for what it can undo for you! for now, let's change our minds again and put those note offs back with redo, which is `Ctrl-Y`.
 
