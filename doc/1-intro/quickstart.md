@@ -10,8 +10,8 @@ NOTES TO AUTHOR:
 first things first: thank you for taking the time to understand Furnace, the world's most comprehensive chiptune tracker. it's amazingly versatile, but it can also be intimidating, even for those already familiar with trackers. this quick start guide will get you on the road to making the chiptunes of your dreams! if you're a beginner, it will probably take about an hour <!-- estimate, test and revise it when done --> from start to finish.
 
 this guide makes a few assumptions:
-* you've already installed Furnace.
-* you haven't changed any configuration or layout yet.
+* you've already installed Furnace and know where to find the demo files that come with it. look for `quickstart.fur` but don't open it yet.
+* you haven't changed any configuration or layout yet. it should start up with the default Sega Genesis system.
 * you're working with a PC keyboard, US English, QWERTY layout. Mac users should already know the equivalents to the `Ctrl` and `Alt` keys.
 * you're comfortable with keyboard shortcuts. if not, a lot of this can also be done using buttons or menus, but please try the keyboard first. it's worth it to smooth out the tracking workflow.
 
@@ -27,35 +27,47 @@ there's a lot going on, but the most prominent part of Furnace's interface is th
 
 {{ pattern view }}
 
-click to place the cursor somewhere in this view. it will appear as a medium-blue highlight. try moving around with the up and down arrow keys. also try the `PgUp` and `PgDn` keys to move around faster. the vertical axis represents time, and the view scrolls around a highlighted row that stays put in the center; this is called the **playhead**, and it will follow along when the song is playing.
+click to place the cursor somewhere in this view. it will appear as a medium-blue highlight. try moving around with the up and down arrow keys. also try the `PgUp` and `PgDn` keys to move around faster. the vertical axis represents time. during editing and playback the view scrolls around a highlighted row that stays put in the center; this is called the **playhead**.
 
 now try the left and right arrow keys to move between columns. while we're at it, use the `Home` and `End` keys to quickly get to the first and last columns. pressing them twice will also shuttle you to the top or bottom row. when you're done, hit `Home` twice to return to the top-left.
 
-if the playhead is dark red, use the space bar to turn it grey. this puts the keyboard in play mode, which will let us try out notes before committing them to the track.
+<!-- first attempt at explaining this:
+now, let's play a little! try the first seven letters on the bottom row of letters on the keyboard (for QWERTY, these are `ZXCVBNM`). they should sound out the seven notes of a C major scale, like the white keys of a piano. on the row above that, `SD GHJ` are the accidentals – the aforementioned piano's black keys. once you've tried those, move two rows up to find the same arrangement of notes one octave higher. these rows even extend a little further to the right, into the next octave above that. to change which octaves the keyboard spans, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, these keys can be remapped; the [keyboard](../2-interface/keyboard.md) doc explains how.)
 
-now, let's play a little! try the first seven letters on the bottom row of the keyboard (for QWERTY, these are `ZXCVBNM`). they should sound out the seven notes of a C major scale, like the white keys of a piano. similarly, the row above that has the black keys. once you're tried those, move two rows up to find the same arrangement but one octave higher, and it extends a little further into the next octave also. to change octaves, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, the keys can be remapped; the [keyboard](../2-interface/keyboard.md) doc explains how.)
+![keyboard note entry](../3-pattern/keyboard.png)
+-->
+
+let's play a little! notes are arranged on the keyboard rather like a piano. start with the bottom row of letters (`ZXCVBNM`). they should sound out the notes of the C major scale, like the piano's white keys. above that, we have the accidentals where the piano's black keys would be expected (`SD GHJ`). play with these, then move two rows up to find the same arrangement but one octave higher (white keys on `QWERTYU`, black keys on `23 567`). these rows also extend a little further to the right into the next octave.
 
 ![keyboard note entry](../3-pattern/keyboard.png)
 
-press the space bar to change from play to edit mode. now try playing some notes; they should appear in the pattern view, one after another.
+to change which octaves are represented on the keyboard, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, these keys can be remapped; the [keyboard](../2-interface/keyboard.md) doc explains how.)
+
+<!-- which of the above chunks works better? -->
+
+now press the space bar to change from play to edit mode. the row the cursor is on will change to dark red – the playhead mentioned earlier. another way to tell what mode we're in is via the play/edit controls; make sure the "record" button is on.
+
+{{ play/edit controls }}
+
+now try playing some notes; they should appear in the pattern view, one after another.
 
 {{ notes in one channel }}
 
-each **channel** is a group of columns separated from the others by a faint vertical line, and each channel can only ever play one note at a time. to hear this in action, move the cursor back to the top and press the `Return` key to start playback. you should hear the notes you entered played back quickly, one after another, each cutting off the previous note. if you let it play long enough, it'll wrap around to the start to go through them again; press `Return` again to stop playback.
+each **channel** is a group of columns separated from the others by lines, with a name at the top. each channel can only ever play one note at a time. to hear this in action, move the cursor back to the top and press the `Enter` or `Return` key to start playback. you should hear the notes you entered played back quickly, one after another, each cutting off the previous note. if you let it play long enough, it'll wrap around to the start to go through them again; press `Enter` again to stop playback.
 
-now let's clear out those notes. you could delete them individually with the `Del` key, but let's try something else first. click and drag to select them all. you'll know they're selected when they have a medium grey background. try moving them around by clicking in the selected area and dragging it to another channel. (this may not work with some input devices.) then hit `Del` to delete them all at once.
+now let's clear out those notes. you could delete them individually with the `Del` key, but let's try something else first. click and drag to select them all. you'll know they're selected when they have a medium grey background. <!-- try moving them around by clicking in the selected area and dragging it to another channel. (this may not work with some input devices.) then --> hit `Del` to delete them all at once.
 
 {{ selection area? }}
 
-you'll usually want more than one note playing at a time. move back to the start of the pattern in the leftmost column of the leftmost channel – this should clear the selection area. put some different notes next to each other in the same row. only enter notes in the first column of each channel; we'll get to those other columns later. (don't do more than six notes at once yet. we want to stay in the channels labelled "FM" for now.) once those are in place, go back to the top row and use the `Return` key to start playback. they should all sound at the same time as one single chord.
+you'll usually want more than one note playing at a time. move back to the start of the pattern in the leftmost column of the leftmost channel – this should clear the selection area. put some different notes next to each other in the same row. only enter notes in the first column of each channel; we'll get to those other columns later. (don't do more than six notes at once yet. we want to stay in the channels labelled "FM" for now.) once those are in place, go back to the top row and use the `Enter` key to start playback. they should all sound at the same time as one single chord.
 
 {{ notes across three channels }}
 
-that chord will ring out for quite some time, but let's try stopping it early. a few rows after that chord, use the `Tab` or `1` key to enter a **note off** (sometimes called "note cut") in each channel that has a note. it'll appear as `OFF` in the note column. now try the shortcut `F5` to play from the start without having to move there. you should hear the chord as before, then it will abruptly stop where the note offs are, as though letting off the keys of a piano.
+that chord will ring out for quite some time, but let's try stopping it early. a few rows after that chord, use the `Tab` or `1` key to enter a **note off** (sometimes called "note cut") in each channel that has a note. it'll appear as `OFF` in the note column. now try the shortcut `F5` to play from the start without having to move there. you should hear the chord as before, then it will stop where the note offs are, as though letting off the keys of a piano.
 
 {{ notes across channels with note offs beneath them }}
 
-of course, errors can happen. let's pretend those note offs were a bad idea and undo them with `Ctrl-Z`. Furnace keeps track of multiple levels of undo. undo will work for the pattern view, any text entry box, and a few other places; try it out here and there along the way to get a sense for what it can undo for you! for now, let's change our minds again and put those note offs back with redo, which is `Ctrl-Y`.
+of course, errors can happen. let's pretend those note offs were a bad idea and undo them with `Ctrl-Z`. Furnace keeps track of multiple levels of undo. undo will work for the pattern view, most text entry boxes, and a few other places; try it out here and there along the way to get a sense for what it can undo for you! for now, let's change our minds again and put those note offs back with redo, which is `Ctrl-Y`.
 
 before the next part of this guide, save the current **module** – the tracker file that contains everything needed for a song. use `Ctrl-S` and pick a good spot on your computer for the file. Furnace modules always have a filename that ends in a `.fur` extension.
 
@@ -67,7 +79,7 @@ at the top of the interface, just right of center, is the **instrument** list. t
 
 click the `+` button to add a new instrument. a small list of instrument types will pop up, one for each type supported by the chips in use. select "FM (OPN)", and the new instrument will appear in the list as "00: Instrument 0". this will sound the same as the default instrument (listed as "- None -").
 
-we still need something new and different, so let's pull from another module. open up a second instance of Furnace and use `Ctrl-O` to open the `quickstart.fur` <!-- this filename? --> file included with Furnace in its `demos` <!-- this location? --> directory. the instrument list will contain "00: synth brass" <!-- this name? -->; select it, then use the floppy-disk save icon above it to save it wherever you like. Furnace instrument filenames end with the `.fui` extension.
+we still need something new and different, so let's pull from another module. open up a second instance of Furnace and use `Ctrl-O` to open the `quickstart.fur` file included with Furnace in its `demos` <!-- this location? --> directory. the instrument list will contain "00: synth brass" <!-- this name? -->; select it, then use the floppy-disk save icon above it to save it wherever you like. Furnace instrument filenames end with the `.fui` extension.
 
 let's return to the first instance with our slowly-evolving practice track. load up the new instrument; click the folder button left of the "save instrument" button and select the file. it will appear in the list as "01: synth brass" <!-- this name? -->, and it should already be highlighted.
 
@@ -156,7 +168,7 @@ let's start by creating a new instrument, this time choosing "Sega PSG" from the
 
 go ahead and undo that edit, then move to the channel labelled "Square 1", the first of the PSG's channels. try adding notes with the new instrument, and they'll work just fine without complaint. of course, they're plain, no-frills square waves. while we're here, try making them quieter by entering new volumes; since this chip only uses sixteen volume levels, `0F` is the maximum.
 
-let's move to the noise channel now. the same instrument will work here, but playing different notes gets us different "pitches" of noise. this channel is both more and less versatile than it seems, with several notable quirks that we won't get into here, but take a look at [the chip's documentation](../7-systems/sms.md) later on.
+let's move to the noise channel now. the same instrument will work here, but playing different notes gets us different "pitches" of noise. this channel is both more and less versatile than it seems, with several notable quirks that we won't get into here, but take a look at [this chip's documentation](../7-systems/sms.md) later on.
 
 ## what about samples?
 
