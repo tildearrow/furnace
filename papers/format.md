@@ -255,6 +255,7 @@ size | description
      |   - 0xdf: YM2612 XGM extended - 13 channels (UNAVAILABLE)
      |   - 0xe0: QSound - 19 channels
      |   - 0xe1: PS1 - 24 channels (UNAVAILABLE)
+     |   - 0xe2: C64 (6581) with PCM - 4 channels (UNAVAILABLE)
      |   - 0xf0: SID2 - 3 channels
      |   - 0xf1: 5E01 - 5 channels
      |   - 0xfc: Pong - 1 channel
