@@ -1848,6 +1848,30 @@ void FurnaceGUI::initSystemPresets() {
     );
 
   ENTRY(
+    "Psikyo", {}
+  );
+    SUB_ENTRY(
+      "Psikyo 68EC020 hardware with OPL4", {
+        CH(DIV_SYSTEM_OPL4, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Psikyo 68EC020 hardware with OPL4 (drums mode)", {
+        CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      "Psikyo SH-2 hardware", {
+        CH(DIV_SYSTEM_OPL4, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      "Psikyo SH-2 hardware (drums mode)", {
+        CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "clockSel=1")
+      }
+    );
+
+  ENTRY(
     "Sega", {}
   );
     SUB_ENTRY(

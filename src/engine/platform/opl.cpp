@@ -646,7 +646,7 @@ void DivPlatformOPL::acquire_ymfm4(short** buf, size_t len) {
       chOut+=pcmChan[i]->debug_output(1);
       chOut+=pcmChan[i]->debug_output(2);
       chOut+=pcmChan[i]->debug_output(3);
-      oscBuf[oscOffs]->data[oscBuf[oscOffs]->needle++]=CLAMP(chOut,-32768,32767);
+      oscBuf[oscOffs]->data[oscBuf[oscOffs]->needle++]=CLAMP(chOut<<1,-32768,32767);
     }
   }
 }
