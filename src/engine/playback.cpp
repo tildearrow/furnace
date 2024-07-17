@@ -932,6 +932,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
         clockDrift=0;
         subticks=0;
         break;
+      case 0xdc: // delayed mute
+        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+          chan[i].volCut=effectVal+1;
+          chan[i].cutType=0;
+        }
+        break;
       case 0xe0: // arp speed
         if (effectVal>0) {
           curSubSong->arpLen=effectVal;
@@ -1778,6 +1784,15 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               }
               chan[i].releasing=true;
             }
+          }
+        }
+
+        // volume cut/mute
+        if (chan[i].volCut>0) {
+          if (--chan[i].volCut<1) {
+            chan[i].volume=0;
+            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+            dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
           }
         }
 
