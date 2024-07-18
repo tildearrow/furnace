@@ -81,9 +81,9 @@ at the top of the interface, just right of center, is the **instrument** list. t
 
 click the `+` button to add a new instrument. a small list of instrument types will pop up, one for each type supported by the chips in use. select "FM (OPN)", and the new instrument will appear in the list as "00: Instrument 0". this will sound the same as the default instrument (listed as "- None -").
 
-we still need something new and different, so let's pull from another module. open up a second instance of Furnace and use `Ctrl-O` to open the `quickstart.fur` file included with Furnace in its `demos` <!-- this location? --> directory. the instrument list will contain "00: synth brass" <!-- this name? -->; select it, then use the floppy-disk save icon above it to save it wherever you like. Furnace instrument filenames end with the `.fui` extension.
+we still need something new and different, so let's pull from another module. open up a second instance of Furnace and use `Ctrl-O` to open the `quickstart.fur` file included with Furnace in its `demos` <!-- this location? --> directory. the instrument list will contain "00: horn"; select it, then use the floppy-disk save icon above it to save it wherever you like. Furnace instrument filenames end with the `.fui` extension.
 
-let's return to the first instance with our slowly-evolving practice track. load up the new instrument; click the folder button left of the "save instrument" button and select the file. it will appear in the list as "01: synth brass" <!-- this name? -->, and it should already be highlighted.
+let's return to the first instance with our slowly-evolving practice track. load up the new instrument; click the folder button left of the "save instrument" button and select the file. it will appear in the list as "01: horn", and it should already be highlighted.
 
 {{ less empty instrument list }}
 
@@ -176,21 +176,21 @@ let's move to the noise channel now. the same instrument will work here, but pla
 
 the FM side of the Sega Genesis has a special feature; channel 6 can be used to play back digital **samples**. this means that any recording – a snare drum, an orchestra hit, somebody talking, whatever you have – can be part of the music.
 
-go back to that second instance of Furnace. just as we saved an instrument last time, let's switch to the "Samples" tab and select the lone sample there, "0: woodwind" <!-- or whatever we dig up -->, then save it as a `.wav` file. swap back to the instance of Furnace we've been working in, and load it.
+go back to that second instance of Furnace. just as we saved an instrument last time, let's switch to the "Samples" tab and select the lone sample there, "0: bell", then save it as a `.wav` file. swap back to the instance of Furnace we've been working in, and load it there.
 
 {{ samples tab? }}
 
-<!-- make a sample to use in this -->
-
-in order to use the sample, we want to make an instrument that references it. right-click on it in the list and select "make instrument". the "Instrument Editor" window will pop up to show us that we have an instrument 3 named "woodwind", a type of "Generic Sample", and below that, the sample selected is "woodwind". while we're at it, let's change the instrument name to "flute" since that's what it sounds like; just select that first "woodwind" and type over it.
+in order to use the sample, we want to make an instrument that references it. right-click on it in the list and select "make instrument". the "Instrument Editor" window will pop up to show us that we now have an instrument 3 named "example", a type of "Generic Sample", and below that, the sample selected is "example". while we're at it, let's change the instrument name to "bell" since that's what it sounds like; just select the "example" at the top and type over it.
 
 {{ instrument list? }}
 
-now, let's hear it in action. close the instrument editor, then clear out everything in the patterns of our first order. (either delete what's there, or adjust orders to get it out of the way.) switch to our brass instrument and put a C-4 note in channel "FM 5". now switch back to our new flute instrument and put a C-4 note in channel "FM 6". when we play it back, it sounds perfect!
+now, let's hear it in action. close the instrument editor, then clear out everything in the patterns of our first order. (either delete what's there, or adjust orders to get it out of the way.) <!-- switch to our brass instrument and put a C-4 note in channel "FM 5". --> switch to our new bell instrument and put a C-4 note in channel "FM 6". when we play it back, it sounds perfect!
 
 if ever a sample sounds out of tune, refer to the [sample tuning guide](../9-guides/tuning-samples.md) to fix it up.
 
 an important note: in this case, we can use a Generic Sample instrument type just fine, but there are chips that use samples in specialized ways. always check [the chip's documentation](../7-systems/) for the best way to use samples with it.
+
+now that we've gotten everything we need from `quickstart.fur`, close that instance of Furnace.
 
 ## what about wavetables?
 
@@ -236,6 +236,8 @@ somewhere after the last note in our song, move to about ten rows beneath it and
 
 macros are absurdly powerful tools. read the [macro documentation](../4-instrument/README.md) to make the most of them!
 
-## now what?
+## what's next?
 
-now you know the basics of how to make music with Furnace. from here, the rest of the documentation should make more sense, and it should be your primary reference. if you have questions that aren't answered there, ask on our Discord in the `#ask` channel, or pose your question in the Discussions forum on Furnace's GitHub repository. <!-- links here -->. most of all, don't be afraid to experiment. go play!
+now you know the basics of how to make music with Furnace. from here, the rest of the documentation should make more sense, and it should be your primary reference. if you have questions that aren't answered there, ask on our [official Discord server](https://discord.gg/EfrwT2wq7z) in the `#ask` channel, or pose your question in the [Discussions forum](https://github.com/tildearrow/furnace/discussions) on Furnace's GitHub repository.
+
+most of all, don't be afraid to experiment. go play!

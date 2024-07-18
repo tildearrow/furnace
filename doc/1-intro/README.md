@@ -6,6 +6,10 @@ it has a large selection of features and sound chips. from the NES, SNES and Gen
 
 every chip is emulated using many emulation cores, therefore the sound that Furnace produces is authentic to that of real hardware.
 
+## quick start
+
+if you just want to jump right in and get going, it's recommended to go through the [quick start guide](quickstart.md) first. it won't take long, and it'll get you familiar enough with the program to make sense of the rest of the documentation.
+
 ## hexadecimal
 
 Furnace uses hexadecimal (abbreviated as "hex") numbers frequently. see [this guide](hex.md) for a crash course.
@@ -16,11 +20,7 @@ Furnace uses a music tracker interface. think of a table with music notes writte
 for an introduction to a tracker interface, see [tracker concepts and terms](concepts.md) before using Furnace.
 there's also a [glossary of common terms](glossary.md).
 
-due to its nature of being feature-packed, it may be technical and somewhat difficult to get around. therefore we added a [basic mode](../2-interface/basic-mode.md), which hides several advanced features.
-
-it also has a flexible windowing system which you may move around and organize.
-
-see [2-interface](../2-interface/README.md) and [3-pattern](../3-pattern/README.md) for more information.
+Furnace uses a flexible windowing system which you may move around and organize. see [2-interface](../2-interface/README.md) and [3-pattern](../3-pattern/README.md) for more information.
 
 once familiar with the tracker, look to [9-guides](../9-guides/README.md) for useful techniques.
 
