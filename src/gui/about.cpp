@@ -301,8 +301,6 @@ const char* aboutLine[]={
   "@party",
   _N("all members of Deflers of Noice!"),
   "",
-  "fuckings to Cefiar",
-  "",
   _N("copyright © 2021-2024 tildearrow"),
   _N("(and contributors)."),
   _N("licensed under GPLv2+! see"),
