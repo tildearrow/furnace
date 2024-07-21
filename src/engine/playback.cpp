@@ -948,6 +948,20 @@ void DivEngine::processRow(int i, bool afterDelay) {
         clockDrift=0;
         subticks=0;
         break;
+      case 0xd8: // vol slide bottom
+        chan[i].volBottom=(effectVal<<8)|0xff;
+        if (chan[i].volBottom>chan[i].volMax) chan[i].volBottom=chan[i].volMax;
+        break;
+      case 0xd9: // vol slide top
+        chan[i].volTop=(effectVal<<8)|0xff;
+        if (chan[i].volTop>chan[i].volMax) chan[i].volTop=chan[i].volMax;
+        break;
+      case 0xdc: // delayed mute
+        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
+          chan[i].volCut=effectVal+1;
+          chan[i].cutType=0;
+        }
+        break;
       case 0xe0: // arp speed
         if (effectVal>0) {
           curSubSong->arpLen=effectVal;
@@ -1105,13 +1119,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xf8: // single volume ramp up
         chan[i].volSpeed=0; // add compat flag?
-        chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);
+        chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volTop);
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
         break;
       case 0xf9: // single volume ramp down
         chan[i].volSpeed=0; // add compat flag?
-        chan[i].volume=MAX(chan[i].volume-effectVal*256,0);
+        chan[i].volume=MAX(chan[i].volume-effectVal*256,chan[i].volBottom);
         dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
         break;
@@ -1598,19 +1612,19 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           if (chan[i].volSpeed!=0) {
             chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
             chan[i].volume+=chan[i].volSpeed;
-            if (chan[i].volume>chan[i].volMax) {
-              chan[i].volume=chan[i].volMax;
+            if (chan[i].volume>chan[i].volTop) {
+              chan[i].volume=chan[i].volTop;
               chan[i].volSpeed=0;
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
               dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
-            } else if (chan[i].volume<0) {
+            } else if (chan[i].volume<chan[i].volBottom) {
               chan[i].volSpeed=0;
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
               if (song.legacyVolumeSlides) {
-                chan[i].volume=chan[i].volMax+1;
+                chan[i].volume=chan[i].volTop+1;
               } else {
-                chan[i].volume=0;
+                chan[i].volume=chan[i].volBottom;
               }
               dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
@@ -1628,7 +1642,6 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         if (chan[i].panSpeed!=0) {
           int newPanL=chan[i].panL;
           int newPanR=chan[i].panR;
-          logV("panSpeed: %d",chan[i].panSpeed);
           if (chan[i].panSpeed>0) { // right
             if (newPanR>=0xff) {
               newPanL-=chan[i].panSpeed;
@@ -1795,6 +1808,15 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               }
               chan[i].releasing=true;
             }
+          }
+        }
+
+        // volume cut/mute
+        if (chan[i].volCut>0) {
+          if (--chan[i].volCut<1) {
+            chan[i].volume=0;
+            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+            dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
           }
         }
 
