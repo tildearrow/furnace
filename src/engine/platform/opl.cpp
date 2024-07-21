@@ -2537,6 +2537,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       return 63;
       break;
     case DIV_CMD_PRE_PORTA:
+      if (PCM_CHECK(c.chan) && chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_MULTIPCM));
+      }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
         chan[c.chan].baseFreq=(PCM_CHECK(c.chan))?NOTE_PCM(chan[c.chan].note):
           ((c.chan==adpcmChan)?(NOTE_ADPCMB(chan[c.chan].note)):(NOTE_FREQUENCY(chan[c.chan].note)));
