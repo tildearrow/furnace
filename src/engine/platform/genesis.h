@@ -96,6 +96,9 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int llePrevCycle;
     int lleOscData[6];
     int dacShifter, o_lro, o_bco;
+
+    int interruptSim;
+    int interruptSimCycles;
   
     unsigned char dacVolTable[128];
   

@@ -9,3 +9,10 @@ none so far.
 ## info
 
 this chip uses the [RF5C68](../4-instrument/rf5c68.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.
+- **Chip type**: changes the chip model.

@@ -101,11 +101,6 @@ namespace IGFD
 #ifndef FILTER_COMBO_WIDTH
 #define FILTER_COMBO_WIDTH 150.0f
 #endif // FILTER_COMBO_WIDTH
-// for lets you define your button widget
-// if you have like me a special bi-color button
-#ifndef IMGUI_PATH_BUTTON
-#define IMGUI_PATH_BUTTON ImGui::Button
-#endif // IMGUI_PATH_BUTTON
 #ifndef IMGUI_BUTTON
 #define IMGUI_BUTTON ImGui::Button
 #endif // IMGUI_BUTTON
@@ -2141,7 +2136,7 @@ namespace IGFD
           if (itPathDecomp != prCurrentPathDecomposition.begin())
             ImGui::SameLine();
           ImGui::PushID(_id++);
-          bool click = IMGUI_PATH_BUTTON((*itPathDecomp).c_str());
+          bool click = ImGui::ButtonEx((*itPathDecomp).c_str(),ImVec2(0,0),ImGuiButtonFlags_NoHashTextHide);
           ImGui::PopID();
           if (click)
           {
@@ -3903,7 +3898,7 @@ namespace IGFD
     auto& fdi = prFileDialogInternal.puFileManager;
 
     static ImGuiSelectableFlags selectableFlags = ImGuiSelectableFlags_AllowDoubleClick |
-      ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SpanAvailWidth;
+      ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_SpanAvailWidth | ImGuiSelectableFlags_NoHashTextHide;
 
                 // TODO BUG?!
                 // YES BUG: THIS JUST CRASHED FOR SOME REASON

@@ -25,6 +25,21 @@ it has stereo sound, two pulse channels, a wave channel and a noise channel.
 
 this chip uses the [Game Boy](../4-instrument/game-boy.md) instrument editor.
 
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Disable anti-click**: waveform switching requires a phase reset, which may cause clicks. Furnace uses a wave-position predicting algorithm to minimize these clicks. enable this option to disable it.
+- **Chip revision**: sets the chip model to use. most of these lack audible difference, but Game Boy Advance fixed the wave channel's inversion.
+- **Wave channel orientation**: allows you to set how is wave data written.
+  - in Game Boy:
+    - Exact data: wave data is written as-is. it will appear inverted in the output.
+    - Exact output: wave data is inverted so it appears correctly in the output.
+  - in Game Boy Advance:
+    - Normal: wave data is written as-is.
+    - Inverted: guess!
+- **Pretty please**: only for compatibility with Synchronize.dmf. do not use.
+
 ## links
 
 - [Gameboy sound hardware](https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware) - detailed technical information

@@ -33,3 +33,15 @@ ha! effects...
 ## info
 
 this chip uses the [Beeper](../4-instrument/beeper.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.
+- **Speaker type**: select which speaker to use:
+  - **Unfiltered**: raw square wave.
+  - **Cone**: filter it to simulate the sound of a cone speaker.
+  - **Piezo**: simulate the tiny speaker present in most PCs from the 2000s.
+  - **Use system beeper**: use the actual PC speaker in your machine for output. only works on Linux!
+- **Reset phase on frequency change**: reset phase every time the frequency changes. many modern motherboards tend to do this.

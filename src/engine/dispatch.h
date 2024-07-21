@@ -682,6 +682,14 @@ class DivDispatch {
     virtual int mapVelocity(int ch, float vel);
 
     /**
+     * map chip volume to gain.
+     * @param ch the chip channel. -1 means N/A.
+     * @param vol input volume.
+     * @return output gain fron 0.0 to 1.0.
+     */
+    virtual float getGain(int ch, int vol);
+
+    /**
      * get the lowest note in a portamento.
      * @param ch the channel in question.
      * @return the lowest note.

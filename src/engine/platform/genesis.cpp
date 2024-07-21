@@ -54,6 +54,10 @@ void DivYM2612Interface::clock() {
 }
 
 void DivPlatformGenesis::processDAC(int iRate) {
+  if (interruptSim>0) {
+    interruptSim--;
+    return;
+  }
   if (softPCM) {
     softPCMTimer+=chipClock/576;
     if (softPCMTimer>iRate) {
@@ -594,6 +598,10 @@ void DivPlatformGenesis::fillStream(std::vector<DivDelayedWrite>& stream, int sR
 }
 
 void DivPlatformGenesis::tick(bool sysTick) {
+  if (sysTick) {
+    interruptSim=interruptSimCycles*(useYMFM==0?4:1);
+  }
+
   for (int i=0; i<(softPCM?7:6); i++) {
     if (i==2 && extMode) continue;
     chan[i].std.next();
@@ -1683,6 +1691,7 @@ void DivPlatformGenesis::reset() {
   flushFirst=false;
   dacWrite=-1;
   canWriteDAC=true;
+  interruptSim=0;
 
   if (softPCM) {
     chan[5].dacMode=true;
@@ -1768,6 +1777,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
   noExtMacros=flags.getBool("noExtMacros",false);
   fbAllOps=flags.getBool("fbAllOps",false);
   msw=flags.getBool("msw",false);
+  interruptSimCycles=flags.getInt("interruptSimCycles",0);
   switch (chipType) {
     case 1: // YM2612
       OPN2_SetChipType(&fm,ym3438_mode_ym2612);

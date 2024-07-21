@@ -69,7 +69,14 @@ the YM2413 is equipped with the following features:
 
 this chip uses the [FM (OPLL)](../4-instrument/fm-opll.md) instrument editor.
 
-## chip options
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.
+- **Patch set**: changes the chip model, providing different built-in sounds.
+
+the following options are visible in drums mode:
 
 - **Ignore top/hi-hat frequency changes**: in drums mode, makes the top/hi-hat channels not write frequency since they share it with snare and tom.
 - **Apply fixed frequency to all drums at once**: sets the frequency of all drums to that of a fixed frequency OPLL drums instrument when one note with it is reached.

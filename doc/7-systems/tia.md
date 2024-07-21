@@ -35,6 +35,18 @@ this chip uses the [TIA](../4-instrument/tia.md) instrument editor.
 
 the arp macro's fixed mode operates differently, writing the direct pitch to the chip. here's a list of pitches.
 
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Software pitch driver**: use TIunA, a software pitch driver similar to TIATune. it increases pitch precision by rapidly switching between two pitches.
+- **Old pitch table**: use an older method to calculate pitch. only for compatibility.
+- **Mixing mode**: changes mixing mode.
+  - **Mono**: normal output.
+  - **Mono (no distortion)**: process each channel separately to eliminate distortion.
+  - **Stereo**: output two channels on left and right.
+- **PAL**: run slower blah blah blah
+
 ### shape 1
 
 | pitch |    NTSC | note | cent |    PAL  | note | cent

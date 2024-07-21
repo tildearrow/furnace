@@ -12,3 +12,12 @@ none so far.
 ## info
 
 this chip uses the [TED](../4-instrument/ted.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.
+- **Global parameter priority**: change the priority of macros which control global parameters, such as volume.
+  - Left to right: process channels from 1 to 3. the last one to run macros will take effect.
+  - Last used channel: process channels from oldest to newest (since last note). the one which had the latest note on will take a effect.

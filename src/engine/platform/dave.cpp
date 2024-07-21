@@ -74,6 +74,7 @@ void DivPlatformDave::acquire(short** buf, size_t len) {
             chan[i].dacSample=-1;
             writeControl=true;
             chan[0].writeVol=true;
+            chan[i].dacPeriod-=rate;
             continue;
           }
           signed char dacData=(s->data8[chan[i].dacPos]*chan[i].outVol)>>8;

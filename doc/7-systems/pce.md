@@ -32,3 +32,11 @@ the following icons are displayed when channel status is enabled in the pattern 
 - noise mode (channels 5 and 6 only):
   - ![noise mode off](status-PCE-noise-off.png) off
   - ![noise mode on](status-PCE-noise-on.png) on
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Pseudo-PAL**: run the chip on a PAL clock. such a configuration has (probably) never existed, despite a planned official PAL version of the PC Engine.
+- **Disable anti-click**: waveform switching requires a phase reset, which may cause clicks. Furnace uses a wave-position predicting algorithm to minimize these clicks. enable this option to disable it.
+- **Chip revision**: sets the chip revision. HuC6280A has less pops.

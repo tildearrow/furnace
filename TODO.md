@@ -1,8 +1,3 @@
-# to-do for 0.6.6
-
-- fix possible issues when moving selection
-- fix Metal intro crash
-
 # to-do long term
 
 - CSM macros
@@ -10,3 +5,5 @@
 - new pattern renderer - performance improvements
 - new info header
 - unlimited channels and chips
+- fix possible issues when moving selection
+- fix Metal intro crash

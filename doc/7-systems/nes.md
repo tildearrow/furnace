@@ -63,6 +63,15 @@ the console is powered by the Ricoh 2A03, a CPU with sound generator built-in. i
 
 this chip uses the [NES](../4-instrument/nes.md) instrument editor.
 
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.
+- **DPCM channel mode**: allows you to set which mode to use for the DPCM channel.
+  - DPCM: the default mode, playing 1-bit DPCM samples as supported by the hardware.
+  - PCM: this mode provides crispier samples by writing the delta counter directly. uses a lot of CPU time in console.
+
 ## short noise frequencies (NTSC)
 
 note  | arpeggio | fundamental | MIDI note | pitch

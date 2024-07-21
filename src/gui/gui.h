@@ -277,10 +277,15 @@ enum FurnaceGUIColors {
   GUI_COLOR_FM_SSG,
   GUI_COLOR_FM_WAVE,
 
+  GUI_COLOR_MACRO_HIGHLIGHT,
   GUI_COLOR_MACRO_VOLUME,
   GUI_COLOR_MACRO_PITCH,
   GUI_COLOR_MACRO_OTHER,
   GUI_COLOR_MACRO_WAVE,
+  GUI_COLOR_MACRO_NOISE,
+  GUI_COLOR_MACRO_FILTER,
+  GUI_COLOR_MACRO_ENVELOPE,
+  GUI_COLOR_MACRO_GLOBAL,
 
   GUI_COLOR_INSTR_STD,
   GUI_COLOR_INSTR_FM,
@@ -1524,6 +1529,7 @@ class FurnaceGUIRender {
     virtual void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
     virtual void present();
     virtual bool supportsDrawOsc();
+    virtual bool areTexturesSquare();
     virtual bool getOutputSize(int& w, int& h);
     virtual int getWindowFlags();
     virtual int getMaxTextureWidth();

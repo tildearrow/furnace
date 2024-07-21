@@ -22,3 +22,10 @@ there are also 3 ADPCM channels. ADPCM samples are fixed to 8012Hz.
 ## info
 
 this chip uses the [QSound](../4-instrument/qsound.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Echo delay**: sets the length of the echo buffer.
+- **Echo feedback**: sets the amount of feedback on the echo.

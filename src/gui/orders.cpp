@@ -282,7 +282,7 @@ void FurnaceGUI::drawOrders() {
         for (int i=0; i<e->getTotalChannelCount(); i++) {
           if (!e->curSubSong->chanShow[i]) continue;
           ImGui::TableNextColumn();
-          ImGui::Text("%s",e->getChannelShortName(i));
+          ImGui::TextNoHashHide("%s",e->getChannelShortName(i));
         }
         ImGui::PopStyleColor();
         for (int i=0; i<e->curSubSong->ordersLen; i++) {

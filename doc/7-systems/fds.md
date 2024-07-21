@@ -29,3 +29,9 @@ it also offers an additional 6-bit, 64-byte wavetable sound channel with (somewh
 ## info
 
 this chip uses the [FDS](../4-instrument/fds.md) instrument editor.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.

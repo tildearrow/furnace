@@ -83,6 +83,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return _("81xx: Set panning (left channel)");
     case 0x82:
       return _("82xx: Set panning (right channel)");
+    case 0x83:
+      return _("83xy: Panning slide (x0: left; 0y: right)");
+    case 0x84:
+      return _("84xy: Panbrello (x: speed; y: depth)");
     case 0x88:
       return _("88xy: Set panning (rear channels; x: left; y: right)");
       break;
@@ -94,6 +98,12 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       break;
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
       return _("Cxxx: Set tick rate (hz)");
+    case 0xd8:
+      return _("D8xx: Set volume slide bottom boundary");
+    case 0xd9:
+      return _("D9xx: Set volume slide top boundary");
+    case 0xdc:
+      return _("DCxx: Delayed mute");
     case 0xe0:
       return _("E0xx: Set arp speed");
     case 0xe1:
@@ -2104,6 +2114,7 @@ void DivEngine::reset() {
     chan[i]=DivChannelState();
     if (i<chans) chan[i].volMax=(disCont[dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
+    chan[i].volTop=chan[i].volMax;
     if (song.linearPitch==0) chan[i].vibratoFine=4;
   }
   extValue=0;

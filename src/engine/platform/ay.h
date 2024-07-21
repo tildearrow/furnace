@@ -74,6 +74,7 @@ class DivPlatformAY8910: public DivDispatch {
 
       unsigned char autoEnvNum, autoEnvDen;
       signed char konCycles;
+      unsigned short fixedFreq;
       Channel():
         SharedChannel<int>(15),
         curPSGMode(PSGMode(0)),
@@ -81,7 +82,8 @@ class DivPlatformAY8910: public DivDispatch {
         dac(DAC()),
         autoEnvNum(0),
         autoEnvDen(0),
-        konCycles(0) {}
+        konCycles(0),
+        fixedFreq(0) {}
     };
     Channel chan[3];
     bool isMuted[3];

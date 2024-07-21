@@ -79,6 +79,7 @@ class DivPlatformAY8930: public DivDispatch {
 
       unsigned char autoEnvNum, autoEnvDen, duty, autoNoiseMode;
       signed char konCycles, autoNoiseOff;
+      unsigned short fixedFreq;
       Channel():
         SharedChannel<int>(31),
         envelope(Envelope()),
@@ -90,7 +91,8 @@ class DivPlatformAY8930: public DivDispatch {
         duty(4),
         autoNoiseMode(0),
         konCycles(0),
-        autoNoiseOff(0) {}
+        autoNoiseOff(0),
+        fixedFreq(0) {}
     };
     Channel chan[3];
     bool isMuted[3];

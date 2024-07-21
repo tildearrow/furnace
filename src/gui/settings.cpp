@@ -4019,7 +4019,12 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_VOLUME,_("Volume"));
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_PITCH,_("Pitch"));
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_WAVE,_("Wave"));
+          UI_COLOR_CONFIG(GUI_COLOR_MACRO_NOISE,_("Noise"));
+          UI_COLOR_CONFIG(GUI_COLOR_MACRO_FILTER,_("Filter"));
+          UI_COLOR_CONFIG(GUI_COLOR_MACRO_ENVELOPE,_("Envelope"));
+          UI_COLOR_CONFIG(GUI_COLOR_MACRO_GLOBAL,_("Global Parameter"));
           UI_COLOR_CONFIG(GUI_COLOR_MACRO_OTHER,_("Other"));
+          UI_COLOR_CONFIG(GUI_COLOR_MACRO_HIGHLIGHT,_("Step Highlight"));
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Instrument Types"))) {
@@ -5674,7 +5679,12 @@ void FurnaceGUI::commitSettings() {
 
   applyUISettings();
 
-  if (rend) rend->destroyFontsTexture();
+  if (rend) {
+    rend->destroyFontsTexture();
+    if (rend->areTexturesSquare()) {
+      ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
+    }
+  }
   if (!ImGui::GetIO().Fonts->Build()) {
     logE("error while building font atlas!");
     showError(_("error while loading fonts! please check your settings."));
@@ -5683,7 +5693,12 @@ void FurnaceGUI::commitSettings() {
     patFont=mainFont;
     bigFont=mainFont;
     headFont=mainFont;
-    if (rend) rend->destroyFontsTexture();
+    if (rend) {
+      rend->destroyFontsTexture();
+      if (rend->areTexturesSquare()) {
+        ImGui::GetIO().Fonts->Flags|=ImFontAtlasFlags_Square;
+      }
+    }
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
     } else {
@@ -6648,6 +6663,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       0xd569, 0xd569,
       0xd574, 0xd574,
       0xd604, 0xd604,
+      0
     };
     ImFontGlyphRangesBuilder range;
     ImVector<ImWchar> outRange;

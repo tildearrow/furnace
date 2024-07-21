@@ -105,6 +105,10 @@ bool FurnaceGUIRender::supportsDrawOsc() {
   return false;
 }
 
+bool FurnaceGUIRender::areTexturesSquare() {
+  return false;
+}
+
 int FurnaceGUIRender::getWindowFlags() {
   return 0;
 }

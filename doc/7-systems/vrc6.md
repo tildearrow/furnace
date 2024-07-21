@@ -21,3 +21,9 @@ these effects only are effective in the pulse channels.
 ## info
 
 this chip uses the [VRC6](../4-instrument/vrc6.md) and [VRC6 (saw)](../4-instrument/vrc6.md) instrument editors.
+
+## chip config
+
+the following options are available in the Chip Manager window:
+
+- **Clock rate**: sets the rate at which the chip will run.
