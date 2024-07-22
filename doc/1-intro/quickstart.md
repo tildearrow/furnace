@@ -1,6 +1,6 @@
 # quick start guide
 
-first things first: thank you for taking the time to understand Furnace, the world's most comprehensive chiptune tracker. it's amazingly versatile, but it can also be intimidating, even for those already familiar with trackers. this quick start guide will get you on the road to making the chiptunes of your dreams! if you're a beginner, it will probably take about an hour <!-- estimate, test and revise it when done --> from start to finish.
+Furnace is amazingly versatile, but it can also be intimidating, even for those already familiar with trackers. this quick start guide will get you on the road to making the chiptunes of your dreams! if you're a beginner, it will probably take about an hour <!-- estimate, test and revise it when done --> from start to finish.
 
 this guide makes a few assumptions:
 * you've already installed Furnace and know where to find the demo files that come with it. look for `quickstart.fur` but don't open it yet.
@@ -72,7 +72,7 @@ at the top of the interface, just right of center, is the **instrument** list. t
 
 ![empty instrument list](qs-instlist-empty.png)
 
-click the `+` button to add a new instrument. a small list of instrument types will pop up, one for each type supported by the chips in use. select "FM (OPN)", and the new instrument will appear in the list as "00: Instrument 0". this will sound the same as the default instrument (listed as "- None -").
+click the `+` button to add a new instrument. a list of instrument types will pop up, one for each type supported by the chips in use. select "FM (OPN)", and the new instrument will appear in the list as "00: Instrument 0". this will sound the same as the default instrument (listed as "- None -").
 
 we still need something new and different, so let's pull from another module. open up a second instance of Furnace and use `Ctrl-O` to open the `quickstart.fur` file included with Furnace in its `demos` directory. the instrument list will contain "00: horn"; select it, then use the floppy-disk save icon above it to save it wherever you like. Furnace instrument filenames end with the `.fui` extension.
 
@@ -122,7 +122,7 @@ right now, our track is only about six and a half seconds long. this is because 
 
 ![default order view](qs-order-default.png)
 
-at the top left of the interface we find the order view. similar to the pattern view, it's like a spreadsheet, but even simpler. from left to right, the top line shows short names for all the channels. each row of numbers beneath that shows which patterns play in that order. for the moment, only the first order `00` appears. click on the `+` button to the right of the row of channel labels, and another order row appears, not only labeled `01` but filled with that same number. click in the pattern view and move to the top-left (remember the `Home` `Home` shortcut?). you'll see that the new patterns are empty. the pattern view shows the end of the previous pattern but faded out. try moving between these by clicking on their order numbers in the order list.
+at the top left of the interface we find the order view. similar to the pattern view, it's like a spreadsheet, but even simpler. from left to right, the top line shows short names for all the channels. each row of numbers beneath that shows which patterns play in that order. for the moment, only the first order `00` appears. click on the `+` button to the right of the row of channel labels, and another order row appears, not only labeled `01` but filled with that same number. click in the pattern view and move to the top-left by hitting `Home` twice. you'll see that the new patterns are empty. the pattern view shows the end of the previous pattern but faded out. try moving between these by clicking on their order numbers in the order list.
 
 ![order view with added row](qs-order-added.png)
 
@@ -207,7 +207,7 @@ the **macro** is perhaps Furnace's most powerful feature. formally defined, it a
 
 let's start by clearing out the notes we've entered. after that, move the cursor to the top-left into the "Pulse 1" channel. create a new instrument and go into the instrument editor. we'll want to work with the volume macro, but before we can do that, we have to select the "Game Boy" tab and check the box labelled "Use software envelope". the Game Boy's sound hardware can do its own limited volume envelopes, but those won't help us right now, and if we leave the box unchecked, the volume macro won't work (though the others will).
 
-in the "Macros" tab, the number that appears beneath the word "Volume" is the length of the macro; let's set it to 30. in the large box next to it, draw a ramp from near minimum volume (1) to maximum volume (15) at the left, then another down to minimum volume (0) at the right. if it's a little uneven, that's okay; you can always edit the numbers directly beneath the box, just as with the wavetable editor. also try right-clicking in the macro and dragging; now you have perfectly smooth ramps.
+in the "Macros" tab, the number input field that appears beneath the word "Volume" is the length of the volume macro; let's set it to 30. in the large box next to it, draw a ramp from near minimum volume (1) to maximum volume (15) at the left, then another down to minimum volume (0) at the right. if it's a little uneven, that's okay; you can always edit the numbers directly beneath the box, just as with the wavetable editor. also try right-clicking in the macro and dragging; now you have perfectly smooth ramps.
 
 you may have a little trouble navigating the whole macro at once. use the scrollbar at the top of the macros tab to move around it. even better, use the `-` button to the left of it to narrow the bars until it's all visible!
 
@@ -225,6 +225,6 @@ macros are absurdly powerful tools. read the [macro documentation](../4-instrume
 
 ## what's next?
 
-now you know the basics of how to make music with Furnace. from here, the rest of the documentation should make more sense, and it should be your primary reference. if you have questions that aren't answered there, ask on our [official Discord server](https://discord.gg/EfrwT2wq7z) in the `#ask` channel, or pose your question in the [Discussions forum](https://github.com/tildearrow/furnace/discussions) on Furnace's GitHub repository.
+now you know the basics of how to make music with Furnace. from here, the rest of the documentation should make more sense, and it should be your primary reference. if you have questions that aren't answered there, ask on our [official Discord server](https://discord.gg/EfrwT2wq7z) or our [official Revolt server](https://rvlt.gg/GRPS6tmc) in the `#ask` channel, or pose your question in the [Discussions forum](https://github.com/tildearrow/furnace/discussions) on Furnace's GitHub repository.
 
 most of all, don't be afraid to experiment. go play!
