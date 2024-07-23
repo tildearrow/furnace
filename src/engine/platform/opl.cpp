@@ -2703,6 +2703,8 @@ int DivPlatformOPL::mapVelocity(int ch, float vel) {
 
 float DivPlatformOPL::getGain(int ch, int vol) {
   if (vol==0) return 0;
+  if (PCM_CHECK(ch)) return 1.0/pow(10.0,(float)(127-vol)*0.375/20.0);
+  if (ch==adpcmChan) return (float)vol/255.0;
   return 1.0/pow(10.0,(float)(63-vol)*0.75/20.0);
 }
 
