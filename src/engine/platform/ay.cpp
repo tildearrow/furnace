@@ -801,6 +801,11 @@ int DivPlatformAY8910::mapVelocity(int ch, float vel) {
   return round(15.0*pow(vel,0.33));
 }
 
+float DivPlatformAY8910::getGain(int ch, int vol) {
+  if (vol==0) return 0;
+  return 1.0/pow(10.0,(float)(15-vol)*2.0/20.0);
+}
+
 unsigned char* DivPlatformAY8910::getRegisterPool() {
   return regPool;
 }

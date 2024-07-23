@@ -1026,6 +1026,11 @@ int DivPlatformOPLL::mapVelocity(int ch, float vel) {
   return CLAMP(round(16.0-(14.0-log2(vel*127.0)*2.0)),0,15);
 }
 
+float DivPlatformOPLL::getGain(int ch, int vol) {
+  if (vol==0) return 0;
+  return 1.0/pow(10.0,(float)(15-vol)*3.0/20.0);
+}
+
 unsigned char* DivPlatformOPLL::getRegisterPool() {
   return regPool;
 }

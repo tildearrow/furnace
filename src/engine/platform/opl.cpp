@@ -2701,6 +2701,11 @@ int DivPlatformOPL::mapVelocity(int ch, float vel) {
   return CLAMP(round(64.0-(56.0-log2(vel*127.0)*8.0)),0,63);
 }
 
+float DivPlatformOPL::getGain(int ch, int vol) {
+  if (vol==0) return 0;
+  return 1.0/pow(10.0,(float)(63-vol)*0.75/20.0);
+}
+
 unsigned char* DivPlatformOPL::getRegisterPool() {
   return regPool;
 }

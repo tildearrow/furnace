@@ -575,6 +575,11 @@ int DivPlatformPCE::mapVelocity(int ch, float vel) {
   return round(31.0*pow(vel,0.22));
 }
 
+float DivPlatformPCE::getGain(int ch, int vol) {
+  if (vol==0) return 0;
+  return 1.0/pow(10.0,(float)(31-vol)*3.0/20.0);
+}
+
 unsigned char* DivPlatformPCE::getRegisterPool() {
   return regPool;
 }

@@ -2330,6 +2330,13 @@ int DivEngine::mapVelocity(int ch, float vel) {
   return disCont[dispatchOfChan[ch]].dispatch->mapVelocity(dispatchChanOfChan[ch],vel);
 }
 
+float DivEngine::getGain(int ch, int vol) {
+  if (ch<0) return 0;
+  if (ch>=chans) return 0;
+  if (disCont[dispatchOfChan[ch]].dispatch==NULL) return 0;
+  return disCont[dispatchOfChan[ch]].dispatch->getGain(dispatchChanOfChan[ch],vol);
+}
+
 unsigned char DivEngine::getOrder() {
   return prevOrder;
 }
