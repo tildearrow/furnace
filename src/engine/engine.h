@@ -927,6 +927,9 @@ class DivEngine {
     // map MIDI velocity to volume
     int mapVelocity(int ch, float vel);
 
+    // map volume to gain
+    float getGain(int ch, int vol);
+
     // get current order
     unsigned char getOrder();
 
