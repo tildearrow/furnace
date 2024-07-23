@@ -133,7 +133,7 @@ struct DivAudioExportOptions {
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, oldNote, lastIns, pitch, portaSpeed, portaNote;
-  int volume, volSpeed, cut, volCut, legatoDelay, legatoTarget, rowDelay, volMax, volBottom, volTop;
+  int volume, volSpeed, cut, volCut, legatoDelay, legatoTarget, rowDelay, volMax;
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoPosGiant, vibratoShape, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
@@ -163,8 +163,6 @@ struct DivChannelState {
     legatoTarget(0),
     rowDelay(0),
     volMax(0),
-    volBottom(0),
-    volTop(0),
     delayOrder(0),
     delayRow(0),
     retrigSpeed(0),
