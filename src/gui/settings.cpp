@@ -3608,6 +3608,14 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        ImGui::BeginDisabled(settings.macroLayout==2);
+        bool autoMacroStepSizeB=settings.autoMacroStepSize;
+        if (ImGui::Checkbox(_("Automatic macro step size/horizontal zoom"),&autoMacroStepSizeB)) {
+          settings.autoMacroStepSize=autoMacroStepSizeB;
+          settingsChanged=true;
+        }
+        ImGui::EndDisabled();
+
         // SUBSECTION WAVE EDITOR
         CONFIG_SUBSECTION(_("Wave Editor"));
         bool waveLayoutB=settings.waveLayout;
