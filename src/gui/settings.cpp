@@ -4922,6 +4922,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.capitalMenuBar=conf.getInt("capitalMenuBar",0);
     settings.insIconsStyle=conf.getInt("insIconsStyle",1);
     settings.sysSeparators=conf.getInt("sysSeparators",1);
+
+    settings.autoMacroStepSize=conf.getInt("autoMacroStepSize",0);
   }
 
   if (groups&GUI_SETTINGS_LAYOUTS) {
@@ -5232,6 +5234,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.backupInterval,10,86400);
   clampSetting(settings.backupMaxCopies,1,100);
   clampSetting(settings.autoFillSave,0,1);
+  clampSetting(settings.autoMacroStepSize,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -5503,6 +5506,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("capitalMenuBar",settings.capitalMenuBar);
     conf.set("insIconsStyle",settings.insIconsStyle);
     conf.set("sysSeparators",settings.sysSeparators);
+    conf.set("autoMacroStepSize",settings.autoMacroStepSize);
   }
 
   // layout
