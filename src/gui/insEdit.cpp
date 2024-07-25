@@ -1780,7 +1780,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if ((i.macro->vScroll+i.macro->vZoom)>(i.max-i.min)) {
               i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
             }
-          } else {
+          } else if (!settings.autoMacroStepSize) {
             macroPointSize+=wheelY;
             if (macroPointSize<1) macroPointSize=1;
             if (macroPointSize>256) macroPointSize=256;
@@ -2163,17 +2163,23 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         ImGui::TableNextColumn();
         float lenAvail=ImGui::GetContentRegionAvail().x;
         //ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale));
-        ImGui::SetNextItemWidth(120.0f*dpiScale);
-        if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
-          if (macroPointSize<1) macroPointSize=1;
-          if (macroPointSize>256) macroPointSize=256;
+        if (!settings.autoMacroStepSize) {
+          ImGui::SetNextItemWidth(120.0f*dpiScale);
+          if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
+            if (macroPointSize<1) macroPointSize=1;
+            if (macroPointSize>256) macroPointSize=256;
+          }
         }
         ImGui::TableNextColumn();
         float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
         int totalFit=MIN(255,availableWidth/MAX(1,macroPointSize*dpiScale));
         int scrollMax=0;
+        if (settings.autoMacroStepSize) totalFit=1;
         for (FurnaceGUIMacroDesc& i: macros) {
           if (i.macro->len>scrollMax) scrollMax=i.macro->len;
+          if (settings.autoMacroStepSize) {
+            if ((i.macro->open&6)==0 && totalFit<i.macro->len) totalFit=i.macro->len;
+          }
         }
         scrollMax-=totalFit;
         if (scrollMax<0) scrollMax=0;
@@ -2353,6 +2359,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           for (FurnaceGUIMacroDesc& i: macros) {
             if (i.macro->len>scrollMax) scrollMax=i.macro->len;
           }
+          if (settings.autoMacroStepSize) totalFit=MAX(1,m.macro->len);
           scrollMax-=totalFit;
           if (scrollMax<0) scrollMax=0;
           if (macroDragScroll>scrollMax) {
@@ -2366,15 +2373,17 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           }
           ImGui::EndDisabled();
 
-          ImGui::SameLine();
-          ImGui::Button(ICON_FA_SEARCH_PLUS "##MacroZoomB");
-          if (ImGui::BeginPopupContextItem("MacroZoomP",ImGuiPopupFlags_MouseButtonLeft)) {
-            ImGui::SetNextItemWidth(120.0f*dpiScale);
-            if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
-              if (macroPointSize<1) macroPointSize=1;
-              if (macroPointSize>256) macroPointSize=256;
+          if (!settings.autoMacroStepSize) {
+            ImGui::SameLine();
+            ImGui::Button(ICON_FA_SEARCH_PLUS "##MacroZoomB");
+            if (ImGui::BeginPopupContextItem("MacroZoomP",ImGuiPopupFlags_MouseButtonLeft)) {
+              ImGui::SetNextItemWidth(120.0f*dpiScale);
+              if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
+                if (macroPointSize<1) macroPointSize=1;
+                if (macroPointSize>256) macroPointSize=256;
+              }
+              ImGui::EndPopup();
             }
-            ImGui::EndPopup();
           }
 
           m.height=ImGui::GetContentRegionAvail().y-ImGui::GetFontSize()-ImGui::GetFrameHeightWithSpacing()-(m.bit30?28.0f:12.0f)*dpiScale-ImGui::GetStyle().ItemSpacing.y*3.0f;
