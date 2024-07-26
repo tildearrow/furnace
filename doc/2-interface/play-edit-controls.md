@@ -13,6 +13,7 @@ the "Play/Edit Controls" are used to control playback and change parameters of t
 - **Poly**: turns on polyphony for previewing notes. toggles to **Mono** for monophony (one note at a time only).
 - **Octave**: sets current input octave.
 - **Step**: sets edit step. if this is 1, entering a note or effect will move to the next row. if this is a larger number, rows will be skipped. if this is 0, the cursor will stay in place.
+  - if clicked, Step becomes **Coarse**, which sets the number of rows moved with `PgUp`, `PgDn`, and related movement shortcuts. clicking again will revert it to Step.
 - **Follow orders**: if on, the selected order in the orders window will follow the song during playback.
 - **Follow pattern**: if on, the cursor will follow playback and the song will scroll by as it plays.
 

@@ -89,6 +89,7 @@ in there, you can modify certain data pertaining to your sample, such as the:
 - **Open**: replaces current sample.
   - right-clicking brings up a menu:
     - **import raw...**: brings up a file selector, then presents a dialog to choose the format of the selected file.
+    - **import raw (replace)...**: same as above, but instead of adding it to the sample list, it replaces the currently selected sample.
 - **Save**: saves current sample to disk.
   - right-clicking brings up a menu:
     - **save raw...**: brings up a file selector, then saves the sample as raw data.
