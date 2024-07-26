@@ -3654,6 +3654,10 @@ void FurnaceGUI::drawSettings() {
           settings.fmLayout=0;
           settingsChanged=true;
         }
+        if (ImGui::RadioButton(_("Modern with more labels##fml7"),settings.fmLayout==7)) {
+          settings.fmLayout=7;
+          settingsChanged=true;
+        }
         if (ImGui::RadioButton(_("Compact (2x2, classic)##fml1"),settings.fmLayout==1)) {
           settings.fmLayout=1;
           settingsChanged=true;
