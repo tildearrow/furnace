@@ -192,7 +192,7 @@ void writeSubEntries(FILE* f, std::vector<FurnaceGUISysDef>& entries, int depth)
     String safeName;
     safeName.reserve(i.name.size());
     bool beginning=false;
-    for (char j: i.name) {
+    for (unsigned char j: i.name) {
       if (beginning && j==' ') continue;
       if (j=='=') continue;
       if (j<0x20) continue;
