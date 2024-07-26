@@ -2,7 +2,8 @@
 
 the Settings window allows you to change Furnace settings.
 
-settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the window.
+settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the window, and when closing the program. several backups are kept in the Furnace settings directory.
+
 
 ## General
 
@@ -11,8 +12,8 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Language**: select the language used for the interface. some languages are incomplete, and are listed with their approximate completion percentage.
 - **Render backend**: changing this may help with performace or compatibility issues. the available render backends are:
   - SDL Renderer: this was the only available render backend prior to the addition of dedicated OpenGL/DirectX backends in 0.6. default on macOS.
-  - DirectX 11: works with the majority of graphics chips/cards and is optimized specifically for Windows.
     - it is slower than the other backends.
+  - DirectX 11: works with the majority of graphics chips/cards and is optimized specifically for Windows.
   - DirectX 9: use if your hardware is incompatible with DirectX 11.
   - OpenGL 3.0: works with the majority of graphics chips/cards (from 2010 onwards). default on Linux.
   - OpenGL 2.0: use if you have a card without OpenGL 3.0 support.
@@ -54,7 +55,9 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - **Remember last values**
 - **Store instrument name in .fui**: when enabled, saving an instrument will store its name. this may increase file size.
 - **Load instrument name from .fui**: when enabled, loading an instrument will use the stored name (if present). otherwise, it will use the file name.
-- **Auto-fill file name when saving**: pre-fill the file name field with an appropriate name when saving or exporting.
+- **Auto-fill file name when saving**: pre-fill the file name field when saving or exporting.
+  - when saving a module, the existing file name will be auto-filled.
+  - when saving an instrument or sample, its name will be auto-filled.
 
 ### New Song
 
@@ -88,7 +91,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 ### Configuration
 - **Import**: select an exported `.ini` config file to overwrite current settings.
 - **Export**: select an `.ini` file to save current settings.
-- **Factory Reset**: resets all settings to default.
+- **Factory Reset**: resets all settings to default and purges settings backups.
 
 ## Audio
 
@@ -575,12 +578,12 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 
 - **Enable backup system**: turn on automatic backups of the current open file.
 - **Interval (in seconds)**: time between automatic backups.
-- **Backups per file**: maximum number of backups to store for each file.
+- **Backups per file**: maximum number of backups to store for each file. oldest backups are deleted first.
 
 ### Backup Management
 
 - **Purge before**:
-  - **Go**: purge backups whose filenames precede the selected date.
+  - **Go**: purge all backups from before the selected date.
 - total space used by all backups:
   - **Refresh**: recalculate space.
   - **Delete All**: purge all backups.

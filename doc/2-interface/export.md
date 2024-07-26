@@ -53,7 +53,7 @@ the following settings exist:
   - due to VGM format limitations, you can only select up to two of each chip type.
   - some chips will not be available, either because VGM doesn't support these yet, or because you selected an old format version.
 
-## export ZSM
+## ZSM
 
 ZSM (ZSound Music) is a format designed for the Commander X16 to allow hardware playback.
 it may contain data for either YM2151 or VERA chips.
@@ -67,17 +67,17 @@ the following settings are available:
 - **loop**: enables loop. if disabled, the song won't loop.
 - **optimize size**: removes unnecessary commands to reduce size.
 
-## export text
+## Text
 
 this option allows you to export your song as a text file.
 
-## export command stream
+## Command Stream
 
 this option exports a binary file in Furnace's own command stream format (FCS) which contains a dump of the internal command stream produced when playing the song.
 
 it's not really useful, unless you're a developer and want to use a command stream dump for some reason (e.g. writing a hardware sound driver). see `export-tech.md` in `papers/` for details.
 
-## export DMF
+## DMF
 
 this option allows you to save your song as a .dmf which can be opened in DefleMask.
 
