@@ -1,6 +1,6 @@
 # quick start guide
 
-Furnace is amazingly versatile, but it can also be intimidating, even for those already familiar with trackers. this quick start guide will get you on the road to making the chiptunes of your dreams! if you're a beginner, it will probably take about an hour <!-- estimate, test and revise it when done --> from start to finish.
+Furnace is amazingly versatile, but it can also be intimidating, even for those already familiar with trackers. this quick start guide will get you on the road to making the chiptunes of your dreams! if you're a beginner, it will probably take about an hour from start to finish.
 
 this guide makes a few assumptions:
 * you've already installed Furnace and know where to find the demo files that come with it. look for `quickstart.fur` but don't open it yet.
@@ -26,21 +26,13 @@ click to place the cursor somewhere in this view. it will appear as a medium-blu
 
 now try the left and right arrow keys to move between columns. pressing `Home` or `End` twice will shuttle you to the first or last column, respectively. when you're done, hit `Home` twice to return to the top-left.
 
-<!-- first attempt at explaining this:
-now, let's play a little! try the first seven letters on the bottom row of letters on the keyboard (for QWERTY, these are `ZXCVBNM`). they should sound out the seven notes of a C major scale, like the white keys of a piano. on the row above that, `SD GHJ` are the accidentals – the aforementioned piano's black keys. once you've tried those, move two rows up to find the same arrangement of notes one octave higher. these rows even extend a little further to the right, into the next octave above that. to change which octaves the keyboard spans, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, these keys can be remapped; the [keyboard](../2-interface/keyboard.md) doc explains how.)
-
-![keyboard note entry](../3-pattern/keyboard.png)
--->
-
 let's play a little! notes are arranged on the keyboard rather like a piano. start with the bottom row of letters (`ZXCVBNM`). they should sound out the notes of the C major scale, like the piano's white keys. above that, we have the accidentals where the piano's black keys would be expected (`SD GHJ`). play with these, then move two rows up to find the same arrangement but one octave higher (white keys on `QWERTYU`, black keys on `23 567`). these rows also extend a little further to the right into the next octave.
 
 ![keyboard note entry](../3-pattern/keyboard.png)
 
-to change which octaves are represented on the keyboard, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, these keys can be remapped; the [keyboard](../2-interface/keyboard.md) doc explains how.)
+to change which octaves are represented on the keyboard, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, these keys can be remapped; the [keyboard](../2-interface/keyboard.md) doc explains how.) as an alternative, there's an octave selector at the top of the interface, a third of the way in from the left.
 
-<!-- which of the above chunks works better? -->
-
-now press the space bar to change from play to edit mode. the row the cursor is on will change to dark red – the playhead mentioned earlier. another way to tell what mode we're in is via the play/edit controls; make sure the "record" button is on.
+now press the space bar to change from play to edit mode. the row the cursor is on will change to dark red – the playhead mentioned earlier. another way to tell what mode we're in is via the play/edit controls just above the pattern view in the center; make sure the "record" button is on.
 
 ![play/edit controls](qs-playeditcontrols.png)
 
