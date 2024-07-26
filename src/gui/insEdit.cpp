@@ -3474,10 +3474,22 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           TOOLTIP_TEXT(FM_NAME(FM_SL));
         }
         ImGui::TableNextColumn();
+        if (settings.susPosition==2) {
+          ImGui::TableNextColumn();
+          CENTER_TEXT(FM_SHORT_NAME(FM_SL));
+          ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
+          TOOLTIP_TEXT(FM_NAME(FM_SL));
+        }
         ImGui::TableNextColumn();
         CENTER_TEXT(FM_SHORT_NAME(FM_TL));
         ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
         TOOLTIP_TEXT(FM_NAME(FM_TL));
+        if (settings.susPosition==3) {
+          ImGui::TableNextColumn();
+          CENTER_TEXT(FM_SHORT_NAME(FM_SL));
+          ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
+          TOOLTIP_TEXT(FM_NAME(FM_SL));
+        }
         ImGui::TableNextColumn();
         if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
           CENTER_TEXT(FM_SHORT_NAME(FM_RS));
@@ -3716,7 +3728,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           CENTER_VSLIDER;
           P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO)); rightClickable
 
-          if (settings.susPosition==1) {
+          if (settings.susPosition>0) {
             ImGui::TableNextColumn();
             op.sl&=15;
             CENTER_VSLIDER;
@@ -4204,7 +4216,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             float textX_RR=ImGui::GetCursorPosX();
             P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO)); rightClickable
 
-            if (settings.susPosition==1) {
+            if (settings.susPosition>0) {
               ImGui::SameLine();
               op.sl&=15;
               textX_SL=ImGui::GetCursorPosX();
@@ -4920,7 +4932,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::TableNextColumn();
             ImGui::Text("%s",FM_NAME(FM_RR));
 
-            if (settings.susPosition==1) {
+            if (settings.susPosition>0) {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);

@@ -3690,6 +3690,16 @@ void FurnaceGUI::drawSettings() {
           settings.susPosition=1;
           settingsChanged=true;
         }
+        ImGui::BeginDisabled(settings.fmLayout!=0);
+        if (ImGui::RadioButton(_("After Release Rate, after spacing##susp2"),settings.susPosition==2)) {
+          settings.susPosition=2;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("After TL##susp3"),settings.susPosition==3)) {
+          settings.susPosition=3;
+          settingsChanged=true;
+        }
+        ImGui::EndDisabled();
         ImGui::Unindent();
 
         bool separateFMColorsB=settings.separateFMColors;
@@ -5124,7 +5134,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.loadFallback,0,1);
   clampSetting(settings.fmLayout,0,6);
-  clampSetting(settings.susPosition,0,1);
+  clampSetting(settings.susPosition,0,3);
   clampSetting(settings.effectCursorDir,0,2);
   clampSetting(settings.cursorPastePos,0,1);
   clampSetting(settings.titleBarInfo,0,3);
