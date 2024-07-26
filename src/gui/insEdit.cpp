@@ -3739,7 +3739,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           CENTER_VSLIDER;
           P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO)); rightClickable
 
-          if (settings.susPosition>0) {
+          if (settings.susPosition==1) {
             ImGui::TableNextColumn();
             op.sl&=15;
             CENTER_VSLIDER;
@@ -3749,10 +3749,24 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           ImGui::TableNextColumn();
           ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
 
+          if (settings.susPosition==2) {
+            ImGui::TableNextColumn();
+            op.sl&=15;
+            CENTER_VSLIDER;
+            P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
+          }
+
           ImGui::TableNextColumn();
           op.tl&=maxTl;
           CENTER_VSLIDER;
           P(CWVSliderScalar("##TL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
+
+          if (settings.susPosition==3) {
+            ImGui::TableNextColumn();
+            op.sl&=15;
+            CENTER_VSLIDER;
+            P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
+          }
 
           ImGui::TableNextColumn();
           CENTER_VSLIDER;
