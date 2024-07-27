@@ -303,9 +303,9 @@ bool FurnaceGUIFileDialog::openSelectDir(String header, String path, double dpiS
 #ifdef USE_NFD
     dialogOK=false;
 #ifdef NFD_NON_THREADED
-    _nfdThread(NFDState(2,header,filter,path,NULL,false),&dialogOK,&nfdResult,&hasError);
+    _nfdThread(NFDState(2,header,std::vector<String>(),path,NULL,false),&dialogOK,&nfdResult,&hasError);
 #else
-    dialogF=new std::thread(_nfdThread,NFDState(2,header,filter,path,NULL,false),&dialogOK,&nfdResult,&hasError);
+    dialogF=new std::thread(_nfdThread,NFDState(2,header,std::vector<String>(),path,NULL,false),&dialogOK,&nfdResult,&hasError);
 #endif
 #elif defined(ANDROID)
     hasError=true;
