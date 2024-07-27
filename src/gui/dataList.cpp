@@ -441,9 +441,25 @@ void FurnaceGUI::drawInsList(bool asChild) {
         if (ImGui::MenuItem(_("save raw sample..."))) {
           doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
         }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem(_("save all instruments..."))) {
+          doAction(GUI_ACTION_INS_LIST_SAVE_ALL);
+        }
+        if (ImGui::MenuItem(_("save all wavetables..."))) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_ALL);
+        }
+        if (ImGui::MenuItem(_("save all samples..."))) {
+          doAction(GUI_ACTION_SAMPLE_LIST_SAVE_ALL);
+        }
       } else {
         if (ImGui::MenuItem(_("save as .dmp..."))) {
           doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+        }
+
+        if (ImGui::MenuItem(_("save all..."))) {
+          doAction(GUI_ACTION_INS_LIST_SAVE_ALL);
         }
       }
       ImGui::EndPopup();
@@ -750,6 +766,9 @@ void FurnaceGUI::drawWaveList(bool asChild) {
         if (ImGui::MenuItem(_("save raw..."))) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
         }
+        if (ImGui::MenuItem(_("save all..."))) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_ALL);
+        }
         ImGui::EndPopup();
       }
     }
@@ -892,6 +911,9 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     if (ImGui::BeginPopupContextItem("SampleSaveOpt")) {
       if (ImGui::MenuItem(_("save raw..."))) {
         doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+      }
+      if (ImGui::MenuItem(_("save all..."))) {
+        doAction(GUI_ACTION_SAMPLE_LIST_SAVE_ALL);
       }
       ImGui::EndPopup();
     }
