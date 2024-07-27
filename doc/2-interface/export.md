@@ -1,8 +1,8 @@
 # export
 
-Furnace allows you to export your song in several formats. this section deals with describing the available export options within each tab of the export window.
+Furnace allows you to export your song in several formats. this section deals with describing the available export options.
 
-## Audio
+## audio
 
 this option allows you to export your song in .wav format. I know I know, no .mp3 or .ogg export yet, but you can use a converter.
 
@@ -11,10 +11,11 @@ this option allows you to export your song in .wav format. I know I know, no .mp
   - **multiple files (one per chip)**: exports the output of each chip to .wav files.
   - **multiple files (one per channel)**: exports the output of each channel to .wav files.
     - useful for usage with a channel visualizer such as corrscope.
-- **Bit depth**:
-  - **16-bit integer**: the most common type of .wav file, perfect for music playback.
-  - **32-bit float**: used for advanced audio manipulation. don't select this unless you know what you need it for.
-- **Sample rate**: the default is 44100, the most common .wav sample rate.
+- **Bit depth**: default is 16-bit integer.
+- **Sample rate**: affects the quality of the output file.
+  - default is 44100, "CD quality".
+  - lower sample rates lose fidelity as upper frequencies disappear.
+  - higher sample rates gain frequencies that can't be heard at the cost of file size and rendering time.
 - **Channels in file**: default is 2 (stereo). Set to 1 for mono.
 - **Loops**: sets the number of times the song will loop.
   - does not have effect if the song ends with `FFxx` effect.
@@ -67,11 +68,11 @@ the following settings are available:
 - **loop**: enables loop. if disabled, the song won't loop.
 - **optimize size**: removes unnecessary commands to reduce size.
 
-## Text
+## text
 
 this option allows you to export your song as a text file.
 
-## Command Stream
+## command stream
 
 this option exports a binary file in Furnace's own command stream format (FCS) which contains a dump of the internal command stream produced when playing the song.
 
