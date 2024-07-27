@@ -1633,7 +1633,7 @@ void DivEngine::registerSystems() {
   );
 
   // to Grauw: feel free to change this to 24 during development of OPL4's PCM part.
-  // TODO: add 12-bit and 16-bit big-endian sample formats
+  // TODO: add 12-bit sample formats
   sysDefs[DIV_SYSTEM_OPL4]=new DivSysDef(
     _("Yamaha YMF278B (OPL4)"), NULL, 0xae, 0, 42, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT), 0, 0,
     _("like OPL3, but this time it also has a 24-channel version of MultiPCM."),
