@@ -217,6 +217,6 @@ macros are absurdly powerful tools. read the [macro documentation](../4-instrume
 
 ## what's next?
 
-now you know the basics of how to make music with Furnace. from here, the rest of the documentation should make more sense, and it should be your primary reference. if you have questions that aren't answered there, ask on our [official Discord server](https://discord.gg/EfrwT2wq7z) or our [official Revolt server](https://rvlt.gg/GRPS6tmc) in the `#ask` channel, or pose your question in the [Discussions forum](https://github.com/tildearrow/furnace/discussions) on Furnace's GitHub repository.
+now you know the basics of how to make music with Furnace. from here, the rest of the documentation should make more sense, and it should be your primary reference. if you have questions that aren't answered there, feel free to ask in the [Discussions section](https://github.com/tildearrow/furnace/discussions) on Furnace's GitHub repository.
 
 most of all, don't be afraid to experiment. go play!

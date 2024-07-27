@@ -8,7 +8,7 @@ every chip is emulated using many emulation cores, therefore the sound that Furn
 
 ## quick start
 
-if you just want to jump right in and get going, we recommended you go through the [quick start guide](quickstart.md) first. it will only take about an hour, and it'll get you familiar enough with the program to make sense of the rest of the documentation.
+if you just want to jump right in and get going, we recommended you go through the [quick start guide](quickstart.md) first. it should get you familiar enough with the program to comprehend the rest of the documentation.
 
 ## hexadecimal
 
