@@ -8620,7 +8620,7 @@ msgstr "Usar notação alemã"
 
 #: src/gui/settings.cpp:3412
 msgid "Channel style:"
-msgstr "Estilo de vanal:"
+msgstr "Estilo de canal:"
 
 #: src/gui/settings.cpp:3414
 msgid "Classic##CHS0"
