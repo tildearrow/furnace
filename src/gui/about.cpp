@@ -75,7 +75,7 @@ const char* aboutLine[]={
   "Polski: freq-mod, PoznańskiSzybkowiec",
   "Português (Brasil): Kagamiin~",
   "Русский: Background2982, LTVA",
-  "Slovenčina: Mr. Hassium",
+  "Slovenčina: Wegfrei",
   "Svenska: RevvoBolt",
   "ไทย: akumanatt",
   "",
@@ -202,6 +202,7 @@ const char* aboutLine[]={
   "Ultraprogramer",
   "UserSniper",
   "Weeppiko",
+  "Wegfrei"
   "Xan",
   "Yuzu4K",
   "Zabir",
