@@ -37,13 +37,13 @@ typedef struct
 
     uint16_t cutoff;
     uint8_t resonance;
+    uint8_t distortion_level;
 } sid3_filter;
 
 typedef struct
 {
     sid3_filter filt[SID3_NUM_FILTERS];
     uint32_t connection_matrix;
-    uint8_t distortion_level;
 } sid3_filters_block;
 
 typedef struct
