@@ -690,6 +690,20 @@ void DivEngine::registerSystems() {
   for (int i=0; i<16; i++) SID2PostEffectHandlerMap.emplace(0x30+i,SID2FineDutyHandler);
   for (int i=0; i<16; i++) SID2PostEffectHandlerMap.emplace(0x40+i,SID2FineCutoffHandler);
 
+  EffectHandlerMap SID3PostEffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, _("10xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise)")}},
+    {0x11, {DIV_CMD_C64_RESONANCE, _("11xx: Set resonance (0 to FF)")}},
+    {0x12, {DIV_CMD_C64_FILTER_MODE, _("12xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)")}},
+    {0x13, {DIV_CMD_C64_RESET_MASK, _("13xx: Disable envelope reset for this channel (1 disables; 0 enables)")}},
+    {0x14, {DIV_CMD_C64_FILTER_RESET, _("14xy: Reset cutoff (x: on new note; y: now)")}},
+    {0x15, {DIV_CMD_C64_DUTY_RESET, _("15xy: Reset pulse width (x: on new note; y: now)")}},
+    {0x16, {DIV_CMD_C64_EXTENDED, _("16xy: Change other parameters")}},
+  };
+  const EffectHandler SID3FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("3xxx: Set pulse width (0 to FFF)"), effectValLong<12>);
+  const EffectHandler SID3FineCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, _("4xxx: Set cutoff (0 to FFF)"), effectValLong<11>);
+  for (int i=0; i<16; i++) SID3PostEffectHandlerMap.emplace(0x30+i,SID3FineDutyHandler);
+  for (int i=0; i<16; i++) SID2PostEffectHandlerMap.emplace(0x40+i,SID3FineCutoffHandler);
+
   // SysDefs
 
   // this chip uses YMZ ADPCM, but the emulator uses ADPCM-B because I got it wrong back then.
@@ -2142,6 +2156,18 @@ void DivEngine::registerSystems() {
     {},
     {}, 
     SID2PostEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_SID3]=new DivSysDef(   
+    _("SID3"), NULL, 0xf5, 0, 7, false, true, 0, false, 0, 0, 0,
+    _("a fantasy sound chip created by LTVA. it is a big rework of SID chip with probably too much features added on top."),
+    {_("Channel 1"), _("Channel 2"), _("Channel 3"), _("Channel 4"), _("Channel 5"), _("Channel 6"), _("Sample")},
+    {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "PCM"},
+    {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
+    {DIV_INS_SID3, DIV_INS_SID3, DIV_INS_SID3, DIV_INS_SID3, DIV_INS_SID3, DIV_INS_SID3, DIV_INS_SID3},
+    {},
+    {}, 
+    SID3PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

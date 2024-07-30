@@ -141,6 +141,7 @@ enum DivSystem {
   DIV_SYSTEM_5E01,
   DIV_SYSTEM_BIFURCATOR,
   DIV_SYSTEM_SID2,
+  DIV_SYSTEM_SID3,
 };
 
 enum DivEffectType: unsigned short {
