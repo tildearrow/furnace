@@ -18,8 +18,38 @@ extern "C" {
 
 #define SID3_WAVETABLE_LENGTH 256
 
-#define SID3_NUM_SINE_WAVES 8
-#define SID3_SINE_WAVE_LENGTH 4096
+#define SID3_NUM_SPECIAL_WAVES 28
+#define SID3_SPECIAL_WAVE_LENGTH 16384
+
+enum Flags
+{
+    SID3_CHAN_ENABLE_GATE = 1,
+    SID3_CHAN_ENABLE_RING_MOD = 2,
+    SID3_CHAN_ENABLE_HARD_SYNC = 4,
+    SID3_CHAN_ENABLE_PHASE_MOD = 8,
+    SID3_CHAN_PHASE_RESET = 16,
+    SID3_CHAN_ENV_RESET = 32,
+    SID3_CHAN_NOISE_PHASE_RESET = 64,
+};
+
+enum Waveforms
+{
+    SID3_WAVE_TRIANGLE = 1,
+    SID3_WAVE_SAW = 2,
+    SID3_WAVE_PULSE = 4,
+    SID3_WAVE_NOISE = 8,
+    SID3_WAVE_SPECIAL = 16,
+};
+
+enum Mixmodes
+{
+    SID3_MIX_8580 = 0,
+    SID3_MIX_8580_WITH_NOISE = 1,
+    SID3_MIX_AND = 2,
+    SID3_MIX_OR = 3,
+    SID3_MIX_XOR = 4,
+    SID3_MIX_SUM = 5,
+};
 
 typedef struct
 {
@@ -38,6 +68,10 @@ typedef struct
     uint16_t cutoff;
     uint8_t resonance;
     uint8_t distortion_level;
+
+    uint8_t mode;
+
+    bool channel_output; //output to the channel master output
 } sid3_filter;
 
 typedef struct
@@ -48,7 +82,14 @@ typedef struct
 
 typedef struct
 {
-    uint8_t a, d, s, sr, r, vol;
+    uint8_t a, d, s, sr, r, vol, state;
+
+    uint32_t rate_counter;
+    uint32_t rate_period;
+    uint16_t exponential_counter;
+    uint16_t exponential_counter_period;
+    uint8_t envelope_counter;
+    bool hold_zero;
 } sid3_channel_adsr;
 
 typedef struct
@@ -61,21 +102,24 @@ typedef struct
 
     uint32_t lfsr, lfsr_taps;
 
-    uint16_t waveform;
+    uint8_t waveform;
+    uint8_t special_wave;
+
     uint16_t pw;
 
     uint8_t mix_mode;
 
     sid3_channel_adsr adsr;
 
-    uint16_t flags;
+    uint8_t flags;
+
     uint8_t ring_mod_src;
     uint8_t hard_sync_src;
     uint8_t phase_mod_source;
 
     sid3_filters_block filt;
 
-    uint8_t panning;
+    uint8_t panning_left, panning_right;
 } sid3_channel;
 
 typedef struct
@@ -86,16 +130,21 @@ typedef struct
     uint16_t streamed_sample;
     uint8_t wavetable[SID3_WAVETABLE_LENGTH];
 
+    uint8_t wave_address;
+
     sid3_channel_adsr adsr;
+
+    uint8_t flags;
+    uint8_t mode;
 
     sid3_filters_block filt;
 
-    uint8_t panning;
+    uint8_t panning_left, panning_right;
 } sid3_wavetable_chan;
 
 typedef struct
 {
-    uint16_t sine_waves[SID3_NUM_SINE_WAVES][SID3_SINE_WAVE_LENGTH]; //sine wave and OPL3-ish waves?
+    uint16_t special_waves[SID3_NUM_SPECIAL_WAVES][SID3_SPECIAL_WAVE_LENGTH]; //sine wave and OPL3-ish waves + OPZ and YMF825 waves!
 
     sid3_channel chan[SID3_NUM_CHANNELS - 1];
     sid3_wavetable_chan wave_chan;

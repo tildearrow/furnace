@@ -102,14 +102,43 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
 
 void DivPlatformSID3::updateFilter(int channel) 
 {
-  rWrite(0x15 + 3 * channel,(chan[channel].filtCut&15) | ((chan[channel].filtControl & 7) << 4) | (chan[channel].filter << 7));
-  rWrite(0x16 + 3 * channel,(chan[channel].filtCut >> 4));
-  rWrite(0x17 + 3 * channel,chan[channel].filtRes);
+  //rWrite(0x15 + 3 * channel,(chan[channel].filtCut&15) | ((chan[channel].filtControl & 7) << 4) | (chan[channel].filter << 7));
+  //rWrite(0x16 + 3 * channel,(chan[channel].filtCut >> 4));
+  //rWrite(0x17 + 3 * channel,chan[channel].filtRes);
 }
 
-void DivPlatformSID3::tick(bool sysTick) {
-  for (int i=0; i<SID3_NUM_CHANNELS; i++) {
+void DivPlatformSID3::tick(bool sysTick) 
+{
+  for (int i=0; i<SID3_NUM_CHANNELS; i++) 
+  {
     chan[i].std.next();
+
+    if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) 
+    {
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,8,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      //if (chan[i].freq<0) chan[i].freq=0;
+      //if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
+
+      if (chan[i].keyOn) 
+      {
+        rWrite(i*SID3_REGISTERS_PER_CHANNEL,SID3_CHAN_ENABLE_GATE);
+      }
+      if (chan[i].keyOff) 
+      {
+        rWrite(i*SID3_REGISTERS_PER_CHANNEL,0);
+      }
+
+      if (chan[i].freq<0) chan[i].freq=0;
+      if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
+
+      //rWrite(i*7,chan[i].freq&0xff);
+      //rWrite(i*7+1,chan[i].freq>>8);
+      //rWrite(0x1e, (chan[0].noise_mode) | (chan[1].noise_mode << 2) | (chan[2].noise_mode << 4) | ((chan[0].freq >> 16) << 6) | ((chan[1].freq >> 16) << 7));
+      //rWrite(0x1f, (chan[0].mix_mode) | (chan[1].mix_mode << 2) | (chan[2].mix_mode << 4) | ((chan[2].freq >> 16) << 6));
+      if (chan[i].keyOn) chan[i].keyOn=false;
+      if (chan[i].keyOff) chan[i].keyOff=false;
+      chan[i].freqChanged=false;
+    }
   }
 }
 
@@ -129,8 +158,8 @@ int DivPlatformSID3::dispatch(DivCommand c) {
 
       if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacro.len>0) {
         chan[c.chan].duty=ins->c64.duty;
-        rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
-        rWrite(c.chan*7+3,(chan[c.chan].duty>>8) | (chan[c.chan].outVol << 4));
+        //rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
+        //rWrite(c.chan*7+3,(chan[c.chan].duty>>8) | (chan[c.chan].outVol << 4));
       }
       if (chan[c.chan].insChanged) {
         /*chan[c.chan].wave = (ins->c64.noiseOn << 3) | (ins->c64.pulseOn << 2) | (ins->c64.sawOn << 1) | (int)(ins->c64.triOn);
@@ -347,6 +376,11 @@ void DivPlatformSID3::reset() {
 
 int DivPlatformSID3::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformSID3::getDCOffRequired()
+{
+  return false;
 }
 
 void DivPlatformSID3::poke(unsigned int addr, unsigned short val) {

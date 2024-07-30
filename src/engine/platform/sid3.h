@@ -95,6 +95,7 @@ class DivPlatformSID3: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
     float getPostAmp();
+    bool getDCOffRequired();
     DivMacroInt* getChanMacroInt(int ch);
     DivChannelModeHints getModeHints(int chan);
     void notifyInsDeletion(void* ins);
