@@ -15,7 +15,10 @@ extern "C" {
 #define SID3_NUM_REGISTERS 256
 #define SID3_MAX_VOL 255
 
-#define SID3_WAVETABLE_LENGTH 512
+#define SID3_WAVETABLE_LENGTH 256
+
+#define SID3_NUM_SINE_WAVES 8
+#define SID3_SINE_WAVE_LENGTH 4096
 
 typedef struct
 {
@@ -30,18 +33,44 @@ typedef struct
     // Cutoff frequency, resonance.
     float w0, w0_ceil_1;
     float _1024_div_Q;
+
+    uint16_t cutoff;
+    uint8_t resonance;
 } sid3_filter;
 
 typedef struct
 {
     sid3_filter filt[SID3_NUM_FILTERS];
     uint32_t connection_matrix;
+    uint8_t distortion_level;
 } sid3_filters_block;
+
+typedef struct
+{
+    uint8_t a, d, s, sr, r, vol;
+} sid3_channel_adsr;
 
 typedef struct
 {
     uint32_t accumulator;
     uint32_t frequency;
+
+    uint32_t noise_accumulator;
+    uint32_t noise_frequency;
+
+    uint32_t lfsr, lfsr_taps;
+
+    uint16_t waveform;
+    uint16_t pw;
+
+    uint8_t mix_mode;
+
+    sid3_channel_adsr adsr;
+
+    uint16_t flags;
+    uint8_t ring_mod_src;
+    uint8_t hard_sync_src;
+    uint8_t phase_mod_source;
 
     sid3_filters_block filt;
 
@@ -56,6 +85,8 @@ typedef struct
     uint16_t streamed_sample;
     uint8_t wavetable[SID3_WAVETABLE_LENGTH];
 
+    sid3_channel_adsr adsr;
+
     sid3_filters_block filt;
 
     uint8_t panning;
@@ -63,6 +94,8 @@ typedef struct
 
 typedef struct
 {
+    uint16_t sine_waves[SID3_NUM_SINE_WAVES][SID3_SINE_WAVE_LENGTH];
+
     sid3_channel chan[SID3_NUM_CHANNELS - 1];
     sid3_wavetable_chan wave_chan;
 
