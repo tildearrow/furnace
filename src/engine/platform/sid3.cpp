@@ -107,6 +107,19 @@ void DivPlatformSID3::updateFilter(int channel)
   //rWrite(0x17 + 3 * channel,chan[channel].filtRes);
 }
 
+void DivPlatformSID3::updateFreq(int channel) 
+{
+  rWrite(10 + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].freq >> 16) & 0xff);
+  rWrite(11 + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].freq >> 8) & 0xff);
+  rWrite(12 + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].freq & 0xff);
+}
+
+void DivPlatformSID3::updateDuty(int channel) 
+{
+  rWrite(7 + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].duty >> 8) & 0xff);
+  rWrite(8 + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].duty & 0xff);
+}
+
 void DivPlatformSID3::tick(bool sysTick) 
 {
   for (int i=0; i<SID3_NUM_CHANNELS; i++) 
@@ -115,13 +128,17 @@ void DivPlatformSID3::tick(bool sysTick)
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) 
     {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,8,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE * 64);
       //if (chan[i].freq<0) chan[i].freq=0;
       //if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
 
       if (chan[i].keyOn) 
       {
         rWrite(i*SID3_REGISTERS_PER_CHANNEL,SID3_CHAN_ENABLE_GATE);
+        rWrite(6 + i*SID3_REGISTERS_PER_CHANNEL,SID3_WAVE_PULSE);
+
+        chan[i].duty = 0x1000;
+        updateDuty(i);
       }
       if (chan[i].keyOff) 
       {
@@ -129,7 +146,9 @@ void DivPlatformSID3::tick(bool sysTick)
       }
 
       if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
+      if (chan[i].freq>0xffffff) chan[i].freq=0xffffff;
+
+      updateFreq(i);
 
       //rWrite(i*7,chan[i].freq&0xff);
       //rWrite(i*7+1,chan[i].freq>>8);

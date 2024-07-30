@@ -159,6 +159,8 @@ SID3* sid3_create()
 {
     SID3* sid3 = (SID3*)malloc(sizeof(SID3));
 
+    memset(sid3, 0, sizeof(SID3));
+
     for(int i = 0; i < SID3_NUM_SPECIAL_WAVES; i++)
     {
         for(int j = 0; j < SID3_SPECIAL_WAVE_LENGTH; j++)
@@ -182,7 +184,8 @@ void sid3_reset(SID3* sid3)
         sid3->chan[i].adsr.d = 0x8;
         sid3->chan[i].adsr.s = 0x80;
         sid3->chan[i].adsr.r = 0x07;
-        sid3->chan[i].adsr.vol = 0x20;
+        sid3->chan[i].adsr.vol = 0xf0;
+        sid3->chan[i].adsr.hold_zero = true;
         //....
     }
 
@@ -325,7 +328,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
 
 int sid3_adsr_output(sid3_channel_adsr* adsr, int input)
 {
-  return (int)(input * ((int64_t)adsr->envelope_counter * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL));
+    return (int)((int64_t)input * (int64_t)adsr->envelope_counter * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL);
 }
 
 void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
@@ -462,6 +465,93 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
+        case 10:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].frequency &= 0x00ffff;
+                sid3->chan[channel].frequency |= data << 16;
+            }
+            else
+            {
+                sid3->wave_chan.frequency &= 0x00ffff;
+                sid3->wave_chan.frequency |= data << 16;
+            }
+            break;
+        }
+        case 11:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].frequency &= 0xff00ff;
+                sid3->chan[channel].frequency |= data << 8;
+            }
+            else
+            {
+                sid3->wave_chan.frequency &= 0xff00ff;
+                sid3->wave_chan.frequency |= data << 8;
+            }
+            break;
+        }
+        case 12:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].frequency &= 0xffff00;
+                sid3->chan[channel].frequency |= data;
+            }
+            else
+            {
+                sid3->wave_chan.frequency &= 0xffff00;
+                sid3->wave_chan.frequency |= data;
+            }
+            break;
+        }
+        default: break;
+    }
+}
+
+uint16_t sid3_pulse(uint32_t acc, uint16_t pw) // 0-FFFF pulse width range
+{
+    return (((acc >> ((SID3_ACC_BITS - 16))) >= ((pw == 0xffff ? pw + 1 : pw)) ? (0xffff) : 0));
+}
+
+uint16_t sid3_saw(uint32_t acc) 
+{
+    return (acc >> (SID3_ACC_BITS - 16)) & (0xffff);
+}
+
+uint16_t sid3_triangle(uint32_t acc) 
+{
+    return (((acc < (1 << (SID3_ACC_BITS - 1))) ? ~acc : acc) >> (SID3_ACC_BITS - 17));
+}
+
+uint16_t sid3_get_waveform(sid3_channel* ch)
+{
+    switch(ch->mix_mode)
+    {
+        case SID3_MIX_8580:
+        {
+            switch(ch->waveform)
+            {
+                case SID3_WAVE_TRIANGLE:
+                {
+                    return sid3_triangle(ch->accumulator);
+                    break;
+                }
+                case SID3_WAVE_SAW:
+                {
+                    return sid3_saw(ch->accumulator);
+                    break;
+                }
+                case SID3_WAVE_PULSE:
+                {
+                    return sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+            }
+            break;
+        }
         default: break;
     }
 }
@@ -470,13 +560,37 @@ void sid3_clock(SID3* sid3)
 {
     SAFETY_HEADER
 
+    sid3->output_l = sid3->output_r = 0;
+
     for(int i = 0; i < SID3_NUM_CHANNELS - 1; i++)
     {
-        sid3_adsr_clock(&sid3->chan[i].adsr);
-        sid3->output_l = sid3_adsr_output(&sid3->chan[i].adsr, 0xff);
-        sid3->output_r = sid3_adsr_output(&sid3->chan[i].adsr, 0xff);
+        sid3_channel* ch = &sid3->chan[i];
+        
+        uint32_t prev_acc = ch->accumulator;
 
-        sid3->channel_output[i] = sid3_adsr_output(&sid3->chan[i].adsr, 0xff);
+        ch->accumulator += ch->frequency;
+
+        if(ch->accumulator & (1 << SID3_ACC_BITS))
+        {
+            ch->sync_bit = 1;
+        }
+        else
+        {
+            ch->sync_bit = 0;
+        }
+
+        ch->accumulator &= SID3_ACC_MASK;
+
+        //todo: phase mod
+
+        int waveform = sid3_get_waveform(ch);
+        waveform -= 0x7fff;
+
+        sid3_adsr_clock(&ch->adsr);
+        sid3->output_l += sid3_adsr_output(&ch->adsr, waveform / 1024);
+        sid3->output_r += sid3_adsr_output(&ch->adsr, waveform / 1024);
+
+        sid3->channel_output[i] = sid3_adsr_output(&ch->adsr, waveform / 1024);
     }
 }
 

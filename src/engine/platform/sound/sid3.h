@@ -21,6 +21,9 @@ extern "C" {
 #define SID3_NUM_SPECIAL_WAVES 28
 #define SID3_SPECIAL_WAVE_LENGTH 16384
 
+#define SID3_ACC_BITS 30
+#define SID3_ACC_MASK ((1UL << SID3_ACC_BITS) - 1)
+
 enum Flags
 {
     SID3_CHAN_ENABLE_GATE = 1,
@@ -95,6 +98,7 @@ typedef struct
 typedef struct
 {
     uint32_t accumulator;
+    uint8_t sync_bit;
     uint32_t frequency;
 
     uint32_t noise_accumulator;
@@ -125,6 +129,7 @@ typedef struct
 typedef struct
 {
     uint32_t accumulator;
+    uint8_t sync_bit;
     uint32_t frequency;
 
     uint16_t streamed_sample;

@@ -81,6 +81,8 @@ class DivPlatformSID3: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
 
   void updateFilter(int channel);
+  void updateFreq(int channel);
+  void updateDuty(int channel);
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
