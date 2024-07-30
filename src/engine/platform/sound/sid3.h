@@ -95,7 +95,7 @@ typedef struct
 
 typedef struct
 {
-    uint16_t sine_waves[SID3_NUM_SINE_WAVES][SID3_SINE_WAVE_LENGTH];
+    uint16_t sine_waves[SID3_NUM_SINE_WAVES][SID3_SINE_WAVE_LENGTH]; //sine wave and OPL3-ish waves?
 
     sid3_channel chan[SID3_NUM_CHANNELS - 1];
     sid3_wavetable_chan wave_chan;
