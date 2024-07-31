@@ -2367,7 +2367,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
             if (adsr->envelope_counter >= 0xff0000) 
             {
                 adsr->state = DECAY;
-                adsr->envelope_speed = envspd_adr(adsr->d); //todo: do it properly
+                adsr->envelope_speed = envspd_adr(adsr->d);
             }
 
             return; //do not do exponential approximation of attack
@@ -2377,11 +2377,19 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         {
             adsr->envelope_counter -= adsr->envelope_speed;
 
-            if(adsr->envelope_counter <= ((uint32_t)adsr->s << 16) || adsr->envelope_counter > 0xff0000)
+            if(adsr->envelope_counter > 0xff0f00) adsr->envelope_counter = 0xff0000;
+
+            if(adsr->envelope_counter <= ((uint32_t)adsr->s << 16))
             {
                 adsr->state = SUSTAIN;
                 adsr->envelope_counter = (uint32_t)adsr->s << 16;
-                adsr->envelope_speed = envspd_sr(adsr->sr); //todo: do it properly
+                adsr->envelope_speed = envspd_sr(adsr->sr);
+            }
+
+            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0xfff0000)
+            {
+                adsr->envelope_counter = 0;
+                adsr->hold_zero = true;
             }
         }
         break;
@@ -2390,7 +2398,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         {
             adsr->envelope_counter -= adsr->envelope_speed;
 
-            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0xff0000)
+            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0xfff0000)
             {
                 adsr->envelope_counter = 0;
                 adsr->hold_zero = true;
@@ -2661,6 +2669,8 @@ inline uint16_t sid3_special_wave(SID3* sid3, uint32_t acc, uint8_t wave)
 
 uint16_t sid3_get_waveform(SID3* sid3, sid3_channel* ch)
 {
+    if(ch->waveform == 0) return 0x8000;
+
     switch(ch->mix_mode)
     {
         case SID3_MIX_8580:
@@ -2692,6 +2702,7 @@ uint16_t sid3_get_waveform(SID3* sid3, sid3_channel* ch)
                     return sid3_special_wave(sid3, ch->accumulator, ch->special_wave);
                     break;
                 }
+                default: break;
             }
             break;
         }
