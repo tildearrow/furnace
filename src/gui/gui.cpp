@@ -5160,6 +5160,27 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_INS_SAVE_ALL:
+              for (int i=0; i<e->song.insLen; i++) {
+                String nextPath=copyOfName;
+                nextPath+=DIR_SEPARATOR_STR;
+                nextPath+=fmt::sprintf("%.2X_",i);
+                for (char i: e->song.ins[i]->name) {
+                  switch (i) {
+                    // there chars are reserved
+                    case '/': case '<': case '>': case ':': case '"': case '\\': case '|': case '?': case '*':
+                      nextPath+='_';
+                      break;
+                    default:
+                      nextPath+=i;
+                      break;
+                  }
+                }
+                nextPath+=".fui";
+                if (!e->song.ins[i]->save(nextPath.c_str(),&e->song,settings.writeInsNames)) {
+                  
+                }
+              }
+              break;
             case GUI_FILE_WAVE_SAVE_ALL:
             case GUI_FILE_SAMPLE_SAVE_ALL:
               showError("Placeholder.");
