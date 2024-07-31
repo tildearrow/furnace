@@ -56,8 +56,8 @@ enum Mixmodes
 
 typedef struct
 {
-    int input;
-    int output;
+    int32_t input;
+    int32_t output;
 
     // State of filter.
     float Vhp; // highpass
@@ -124,6 +124,7 @@ typedef struct
     sid3_filters_block filt;
 
     uint8_t panning_left, panning_right;
+    bool invert_left, invert_right; //invert channel signal
 } sid3_channel;
 
 typedef struct
@@ -145,6 +146,7 @@ typedef struct
     sid3_filters_block filt;
 
     uint8_t panning_left, panning_right;
+    bool invert_left, invert_right; //invert channel signal
 } sid3_wavetable_chan;
 
 typedef struct
@@ -154,10 +156,11 @@ typedef struct
     sid3_channel chan[SID3_NUM_CHANNELS - 1];
     sid3_wavetable_chan wave_chan;
 
-    int output_l, output_r;
+    int32_t output_l, output_r;
+
+    int32_t channel_output[SID3_NUM_CHANNELS];
 
     //emulation-only helpers
-    int channel_output[SID3_NUM_CHANNELS];
     bool muted[SID3_NUM_CHANNELS];
 } SID3;
 
