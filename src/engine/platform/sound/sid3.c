@@ -2229,7 +2229,7 @@ SID3* sid3_create()
     {
         for(int32_t j = 0; j < SID3_SPECIAL_WAVE_LENGTH; j++)
         {
-            sid3->special_waves[i][j] = waveFuncs[i]((double)j / (double)SID3_SPECIAL_WAVE_LENGTH);
+            sid3->special_waves[i][j] = (uint16_t)(waveFuncs[i]((double)j * 2.0 * M_PI / (double)SID3_SPECIAL_WAVE_LENGTH) * (double)0x7fff + (double)0x7fff);
         }
     }
 
@@ -2392,7 +2392,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
 
 int32_t sid3_adsr_output(sid3_channel_adsr* adsr, int32_t input)
 {
-    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL);
+    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL / (int64_t)SID3_MAX_VOL);
 }
 
 void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
@@ -2575,22 +2575,37 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
     }
 }
 
-uint16_t sid3_pulse(uint32_t acc, uint16_t pw) // 0-FFFF pulse width range
+inline uint16_t sid3_pulse(uint32_t acc, uint16_t pw) // 0-FFFF pulse width range
 {
     return (((acc >> ((SID3_ACC_BITS - 16))) >= ((pw == 0xffff ? pw + 1 : pw)) ? (0xffff) : 0));
 }
 
-uint16_t sid3_saw(uint32_t acc) 
+inline uint16_t sid3_saw(uint32_t acc) 
 {
     return (acc >> (SID3_ACC_BITS - 16)) & (0xffff);
 }
 
-uint16_t sid3_triangle(uint32_t acc) 
+inline uint16_t sid3_triangle(uint32_t acc) 
 {
     return (((acc < (1 << (SID3_ACC_BITS - 1))) ? ~acc : acc) >> (SID3_ACC_BITS - 17));
 }
 
-uint16_t sid3_get_waveform(sid3_channel* ch)
+void sid3_clock_lfsr(sid3_channel* ch)
+{
+
+}
+
+uint16_t sid3_noise(uint32_t lfsr, bool one_bit) 
+{
+    return 0;
+}
+
+inline uint16_t sid3_special_wave(SID3* sid3, uint32_t acc, uint8_t wave) 
+{
+    return sid3->special_waves[wave][acc >> (SID3_ACC_BITS - 14)];
+}
+
+uint16_t sid3_get_waveform(SID3* sid3, sid3_channel* ch)
 {
     switch(ch->mix_mode)
     {
@@ -2613,6 +2628,16 @@ uint16_t sid3_get_waveform(sid3_channel* ch)
                     return sid3_pulse(ch->accumulator, ch->pw);
                     break;
                 }
+                case SID3_WAVE_NOISE:
+                {
+                    return sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL:
+                {
+                    return sid3_special_wave(sid3, ch->accumulator, ch->special_wave);
+                    break;
+                }
             }
             break;
         }
@@ -2622,7 +2647,7 @@ uint16_t sid3_get_waveform(sid3_channel* ch)
 
 void sid3_clock(SID3* sid3)
 {
-    SAFETY_HEADER
+    //SAFETY_HEADER
 
     sid3->output_l = sid3->output_r = 0;
 
@@ -2634,27 +2659,25 @@ void sid3_clock(SID3* sid3)
 
         ch->accumulator += ch->frequency;
 
+        ch->sync_bit = 0;
+
         if(ch->accumulator & (1 << SID3_ACC_BITS))
         {
             ch->sync_bit = 1;
-        }
-        else
-        {
-            ch->sync_bit = 0;
         }
 
         ch->accumulator &= SID3_ACC_MASK;
 
         //todo: phase mod
 
-        int32_t waveform = sid3_get_waveform(ch);
+        int32_t waveform = sid3_get_waveform(sid3, ch);
         waveform -= 0x7fff;
 
         sid3_adsr_clock(&ch->adsr);
-        sid3->output_l += sid3_adsr_output(&ch->adsr, waveform / 1024);
-        sid3->output_r += sid3_adsr_output(&ch->adsr, waveform / 1024);
+        sid3->output_l += sid3_adsr_output(&ch->adsr, waveform);
+        sid3->output_r += sid3_adsr_output(&ch->adsr, waveform);
 
-        sid3->channel_output[i] = sid3_adsr_output(&ch->adsr, waveform / 1024);
+        sid3->channel_output[i] = sid3_adsr_output(&ch->adsr, waveform);
     }
 }
 

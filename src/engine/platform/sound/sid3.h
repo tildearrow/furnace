@@ -33,6 +33,7 @@ enum Flags
     SID3_CHAN_PHASE_RESET = 16,
     SID3_CHAN_ENV_RESET = 32,
     SID3_CHAN_NOISE_PHASE_RESET = 64,
+    SID3_CHAN_1_BIT_NOISE = 128,
 };
 
 enum Waveforms

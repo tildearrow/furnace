@@ -134,8 +134,9 @@ void DivPlatformSID3::tick(bool sysTick)
 
       if (chan[i].keyOn) 
       {
-        rWrite(i*SID3_REGISTERS_PER_CHANNEL,SID3_CHAN_ENABLE_GATE);
-        rWrite(6 + i*SID3_REGISTERS_PER_CHANNEL,SID3_WAVE_PULSE);
+        rWrite(i*SID3_REGISTERS_PER_CHANNEL,SID3_CHAN_ENABLE_GATE); //gate on
+        rWrite(6 + i*SID3_REGISTERS_PER_CHANNEL,SID3_WAVE_SPECIAL); //waveform
+        rWrite(9 + i*SID3_REGISTERS_PER_CHANNEL,10); //special wave
 
         chan[i].duty = 0x1000;
         updateDuty(i);
