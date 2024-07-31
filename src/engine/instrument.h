@@ -861,6 +861,59 @@ struct DivInstrumentSID2 {
     noiseMode(0) {}
 };
 
+struct DivInstrumentSID3 
+{
+  unsigned char volume;
+  unsigned char sr;
+  unsigned int lfsr_taps;
+  bool phase_mod;
+  unsigned char phase_mod_source, ring_mod_source, sync_source;
+  bool specialWaveOn;
+  unsigned char special_wave;
+
+  unsigned int filter_matrix;
+
+  struct Filter 
+  {
+    unsigned short cutoff;
+    unsigned char resonance;
+    unsigned char output_volume;
+    unsigned char distortion_level;
+    unsigned char mode;
+    bool enabled;
+
+    bool operator==(const Filter& other);
+    bool operator!=(const Filter& other) 
+    {
+      return !(*this==other);
+    }
+    Filter():
+      cutoff(0),
+      resonance(0),
+      output_volume(0),
+      distortion_level(0),
+      mode(0),
+      enabled(false) {}
+  } filt[4];
+  
+  bool operator==(const DivInstrumentSID3& other);
+  bool operator!=(const DivInstrumentSID3& other) 
+  {
+    return !(*this==other);
+  }
+  DivInstrumentSID3():
+    volume(255),
+    sr(0),
+    lfsr_taps(0),
+    phase_mod(false),
+    phase_mod_source(0),
+    ring_mod_source(0),
+    sync_source(0),
+    specialWaveOn(false),
+    special_wave(0),
+    filter_matrix(0) {}
+};
+
 struct DivInstrument {
   String name;
   DivInstrumentType type;
@@ -880,6 +933,7 @@ struct DivInstrument {
   DivInstrumentESFM esfm;
   DivInstrumentPowerNoise powernoise;
   DivInstrumentSID2 sid2;
+  DivInstrumentSID3 sid3;
 
   /**
    * these are internal functions.

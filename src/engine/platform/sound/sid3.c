@@ -4,11 +4,14 @@
 
 #define SAFETY_HEADER if(sid3 == NULL) return;
 
-enum State { ATTACK, DECAY_SUSTAIN, RELEASE }; //for envelope
+enum State { ATTACK, DECAY, SUSTAIN, RELEASE }; //for envelope
 
 #ifndef M_PI
 #  define M_PI    3.14159265358979323846
 #endif
+
+#define envspd_adr(rate) ((uint64_t)0xff0000 / ((rate == 0 ? 1 : (rate * 16)) * (rate == 0 ? 1 : (rate * 16))))
+#define envspd_sr(rate) (rate == 0 ? 0 : ((uint64_t)0xff0000 / ((256 - rate) * (256 - rate) * 256)))
 
 //these 4 ones are util only
 double square(double x) {
@@ -2243,53 +2246,91 @@ void sid3_reset(SID3* sid3)
     for(int32_t i = 0; i < SID3_NUM_CHANNELS - 1; i++)
     {
         memset(&sid3->chan[i], 0, sizeof(sid3_channel));
-        sid3->chan[i].accumulator = 0;
-        sid3->chan[i].adsr.a = 0x8;
-        sid3->chan[i].adsr.d = 0x8;
+        /*sid3->chan[i].accumulator = 0;
+        sid3->chan[i].adsr.a = 0x20;
+        sid3->chan[i].adsr.d = 0x20;
         sid3->chan[i].adsr.s = 0x80;
-        sid3->chan[i].adsr.r = 0x07;
-        sid3->chan[i].adsr.vol = 0xf0;
+        sid3->chan[i].adsr.r = 0x17;
+        sid3->chan[i].adsr.vol = 0xf0;*/
         sid3->chan[i].adsr.hold_zero = true;
+        sid3->chan[i].lfsr = 0x1;
+        sid3->chan[i].lfsr_taps = (1 << 29) | (1 << 5) | (1 << 3) | 1; //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
         //....
     }
 
     //TODO: wavetable chan
 }
 
-void sid3_gate_bit(uint8_t gate_next, uint8_t gate, sid3_channel_adsr* adsr)
+void sid3_do_release_rate_period(sid3_channel_adsr* adsr)
+{
+    uint32_t counter = adsr->envelope_counter >> 16;
+    
+    if(counter >= 0xff)
+    {
+        adsr->rate_period = 1;
+        return;
+    }
+    if(counter >= 0x5d)
+    {
+        adsr->rate_period = 2;
+        return;
+    }
+    if(counter >= 0x36)
+    {
+        adsr->rate_period = 4;
+        return;
+    }
+    if(counter >= 0x1a)
+    {
+        adsr->rate_period = 8;
+        return;
+    }
+    if(counter >= 0x0e)
+    {
+        adsr->rate_period = 16;
+        return;
+    }
+    if(counter >= 0x06)
+    {
+        adsr->rate_period = 32;
+        return;
+    }
+    if(counter >= 0x02)
+    {
+        adsr->rate_period = 64;
+        return;
+    }
+}
+
+void sid3_gate_bit(uint8_t gate, sid3_channel_adsr* adsr)
 {
     // The rate counter is never reset, thus there will be a delay before the
     // envelope counter starts counting up (attack) or down (release).
 
     // Gate bit on: Start attack, decay, sustain.
-    if (!gate && gate_next) 
+    if (gate) 
     {
         adsr->state = ATTACK;
-        adsr->rate_period = adsr->a << 8; //todo: make it properly
+        adsr->envelope_speed = envspd_adr(adsr->a); //todo: make it properly
+        //adsr->envelope_counter = 0;
 
         // Switching to attack state unlocks the zero freeze.
         adsr->hold_zero = false;
 
         adsr->rate_counter = 0;
-        adsr->exponential_counter = 0;
-        //envelope_counter = 0;
-
-        if(adsr->envelope_counter == 0xff)
-        {
-            adsr->envelope_counter--; //idk why it happens, but when envelope has max sustain and I retrigger with new note it just becomes silent so this is the only solution I found so far
-        }
+        adsr->rate_period = 1;
     }
     // Gate bit off: Start release.
-    else if (gate && !gate_next) 
+    else
     {
         adsr->state = RELEASE;
-        adsr->rate_period = adsr->r << 8; //todo: make it properly
+        adsr->envelope_speed = envspd_adr(adsr->r); //todo: make it properly
 
         adsr->rate_counter = 0;
-        adsr->exponential_counter = 0;
-    }
+        //adsr->rate_period = 1;
 
-    //gate = gate_next;
+        sid3_do_release_rate_period(adsr);
+    }
 }
 
 void sid3_adsr_clock(sid3_channel_adsr* adsr)
@@ -2304,95 +2345,90 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         adsr->rate_counter = adsr->rate_period; //so you can do alternating writes (e.g. writing attack 10-11-10-11-... results in the somewhat average envelope speed)
     }
 
-    if (adsr->rate_counter != adsr->rate_period) {
+    if (adsr->rate_counter != adsr->rate_period) 
+    {
         return;
     }
 
     adsr->rate_counter = 0;
 
-    // The first envelope step in the attack state also resets the exponential
-    // counter. This has been verified by sampling ENV3.
-    //
-    if (adsr->state == ATTACK || ++adsr->exponential_counter == adsr->exponential_counter_period)
+    // Check whether the envelope counter is frozen at zero.
+    if (adsr->hold_zero) 
     {
-        adsr->exponential_counter = 0;
+        return;
+    }
 
-        // Check whether the envelope counter is frozen at zero.
-        if (adsr->hold_zero) 
+    switch (adsr->state) 
+    {
+        case ATTACK:
         {
-            return;
-        }
+            adsr->envelope_counter += adsr->envelope_speed;
 
-        switch (adsr->state) 
-        {
-            case ATTACK:
-            // The envelope counter can flip from 0xff to 0x00 by changing state to
-            // release, then to attack. The envelope counter is then frozen at
-            // zero; to unlock this situation the state must be changed to release,
-            // then to attack. This has been verified by sampling ENV3.
-            //
-            adsr->envelope_counter++;
-            adsr->envelope_counter &= 0xff;
-
-            if (adsr->envelope_counter == 0xff) 
+            if (adsr->envelope_counter >= 0xff0000) 
             {
-                adsr->state = DECAY_SUSTAIN;
-                adsr->rate_period = (adsr->d << 8); //todo: do it properly
+                adsr->state = DECAY;
+                adsr->envelope_speed = envspd_adr(adsr->d); //todo: do it properly
             }
-            break;
-            case DECAY_SUSTAIN:
-                if (adsr->envelope_counter != (adsr->s)) 
-                {
-                    --adsr->envelope_counter;
-                }
-            break;
-            case RELEASE:
-                // The envelope counter can flip from 0x00 to 0xff by changing state to
-                // attack, then to release. The envelope counter will then continue
-                // counting down in the release state.
-                // This has been verified by sampling ENV3.
-                // NB! The operation below requires two's complement integer.
-                //
-                //--envelope_counter &= 0xff;
-                adsr->envelope_counter--;
-            break;
-        }
-            
-            // Check for change of exponential counter period.
-        switch (adsr->envelope_counter) 
-        {
-            case 0xff:
-            adsr->exponential_counter_period = 1;
-            break;
-            case 0x5d:
-            adsr->exponential_counter_period = 2;
-            break;
-            case 0x36:
-            adsr->exponential_counter_period = 4;
-            break;
-            case 0x1a:
-            adsr->exponential_counter_period = 8;
-            break;
-            case 0x0e:
-            adsr->exponential_counter_period = 16;
-            break;
-            case 0x06:
-            adsr->exponential_counter_period = 30;
-            break;
-            case 0x00:
-            adsr->exponential_counter_period = 1;
 
-            // When the envelope counter is changed to zero, it is frozen at zero.
-            // This has been verified by sampling ENV3.
-            adsr->hold_zero = true;
-            break;
+            return; //do not do exponential approximation of attack
         }
+        break;
+        case DECAY:
+        {
+            adsr->envelope_counter -= adsr->envelope_speed;
+
+            if(adsr->envelope_counter <= ((uint32_t)adsr->s << 16) || adsr->envelope_counter > 0xff0000)
+            {
+                adsr->state = SUSTAIN;
+                adsr->envelope_counter = (uint32_t)adsr->s << 16;
+                adsr->envelope_speed = envspd_sr(adsr->sr); //todo: do it properly
+            }
+        }
+        break;
+        case SUSTAIN:
+        case RELEASE:
+        {
+            adsr->envelope_counter -= adsr->envelope_speed;
+
+            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0xff0000)
+            {
+                adsr->envelope_counter = 0;
+                adsr->hold_zero = true;
+            }
+        }
+        break;
+    }
+        
+    // Check for change of exponential counter period.
+    switch (adsr->envelope_counter >> 16) 
+    {
+        case 0xff:
+        adsr->rate_period = 1;
+        break;
+        case 0x5d:
+        adsr->rate_period = 2;
+        break;
+        case 0x36:
+        adsr->rate_period = 4;
+        break;
+        case 0x1a:
+        adsr->rate_period = 8;
+        break;
+        case 0x0e:
+        adsr->rate_period = 16;
+        break;
+        case 0x06:
+        adsr->rate_period = 32;
+        break;
+        case 0x02:
+        adsr->rate_period = 64;
+        break;
     }
 }
 
 int32_t sid3_adsr_output(sid3_channel_adsr* adsr, int32_t input)
 {
-    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL / (int64_t)SID3_MAX_VOL);
+    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter / (int64_t)0xff0000 / (int64_t)4 * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL); //"/ (int64_t)4" so that there's enough amplitude for all 7 chans! 
 }
 
 void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
@@ -2411,15 +2447,15 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
-                uint8_t prev_flags = sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE;
+                //uint8_t prev_flags = sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE;
                 sid3->chan[channel].flags = data;
-                sid3_gate_bit(sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE, prev_flags, &sid3->chan[channel].adsr);
+                sid3_gate_bit(sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE, &sid3->chan[channel].adsr);
             }
             else
             {
-                uint8_t prev_flags = sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE;
+                //uint8_t prev_flags = sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE;
                 sid3->wave_chan.flags = data;
-                sid3_gate_bit(sid3->wave_chan.flags & SID3_CHAN_ENABLE_GATE, prev_flags, &sid3->wave_chan.adsr);
+                sid3_gate_bit(sid3->wave_chan.flags & SID3_CHAN_ENABLE_GATE, &sid3->wave_chan.adsr);
             }
             break;
         }
@@ -2571,6 +2607,18 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
+        case 13:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].adsr.vol = data;
+            }
+            else
+            {
+                sid3->wave_chan.adsr.vol = data;
+            }
+            break;
+        }
         default: break;
     }
 }
@@ -2592,12 +2640,18 @@ inline uint16_t sid3_triangle(uint32_t acc)
 
 void sid3_clock_lfsr(sid3_channel* ch)
 {
+    uint32_t feedback = ch->lfsr & 1;
+    ch->lfsr >>= 1;
 
+    if (feedback) 
+    {
+        ch->lfsr ^= ch->lfsr_taps;
+    }
 }
 
 uint16_t sid3_noise(uint32_t lfsr, bool one_bit) 
 {
-    return 0;
+    return one_bit ? ((lfsr & 1) ? 0xffff : 0) : (lfsr & 0xffff);
 }
 
 inline uint16_t sid3_special_wave(SID3* sid3, uint32_t acc, uint8_t wave) 
@@ -2667,6 +2721,11 @@ void sid3_clock(SID3* sid3)
         }
 
         ch->accumulator &= SID3_ACC_MASK;
+
+        if((prev_acc & ((uint32_t)1 << (SID3_ACC_BITS - 6))) != (ch->accumulator & ((uint32_t)1 << (SID3_ACC_BITS - 6))))
+        {
+            sid3_clock_lfsr(ch);
+        }
 
         //todo: phase mod
 

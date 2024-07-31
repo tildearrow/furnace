@@ -94,7 +94,7 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
 
       for(int j = 0; j < SID3_NUM_CHANNELS; j++)
       {
-        oscBuf[j]->data[oscBuf[j]->needle++] = sid3->channel_output[j] / 4;
+        oscBuf[j]->data[oscBuf[j]->needle++] = sid3->channel_output[j];
       }
     }
   }
@@ -120,11 +120,26 @@ void DivPlatformSID3::updateDuty(int channel)
   rWrite(8 + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].duty & 0xff);
 }
 
+void DivPlatformSID3::updateEnvelope(int channel) 
+{
+  rWrite(1 + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].attack); //attack
+  rWrite(2 + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].decay); //decay
+  rWrite(3 + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].sustain); //sustain
+  rWrite(4 + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].sr); //sr
+  rWrite(5 + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].release); //release
+}
+
 void DivPlatformSID3::tick(bool sysTick) 
 {
   for (int i=0; i<SID3_NUM_CHANNELS; i++) 
   {
     chan[i].std.next();
+
+    if (chan[i].std.vol.had) 
+    {
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&255,MIN(255,chan[i].std.vol.val),255);
+      rWrite(13 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].outVol);
+    }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) 
     {
@@ -133,13 +148,18 @@ void DivPlatformSID3::tick(bool sysTick)
       //if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
 
       if (chan[i].keyOn) 
-      {
-        rWrite(i*SID3_REGISTERS_PER_CHANNEL,SID3_CHAN_ENABLE_GATE); //gate on
-        rWrite(6 + i*SID3_REGISTERS_PER_CHANNEL,SID3_WAVE_SPECIAL); //waveform
-        rWrite(9 + i*SID3_REGISTERS_PER_CHANNEL,10); //special wave
+      { 
+        rWrite(6 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].wave); //waveform
+        rWrite(9 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].special_wave); //special wave
+
+        rWrite(13 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].outVol); //set volume
+
+        updateEnvelope(i);
 
         chan[i].duty = 0x1000;
         updateDuty(i);
+
+        rWrite(i * SID3_REGISTERS_PER_CHANNEL, SID3_CHAN_ENABLE_GATE); //gate on
       }
       if (chan[i].keyOff) 
       {
@@ -174,7 +194,6 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
-      chan[c.chan].test=false;
 
       if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacro.len>0) {
         chan[c.chan].duty=ins->c64.duty;
@@ -192,15 +211,25 @@ int DivPlatformSID3::dispatch(DivCommand c) {
 
         chan[c.chan].noise_mode = ins->sid3.noiseMode;
         chan[c.chan].mix_mode = ins->sid3.mixMode;*/
+
+        chan[c.chan].wave = (ins->c64.triOn ? SID3_WAVE_TRIANGLE : 0) | (ins->c64.sawOn ? SID3_WAVE_SAW : 0) |
+            (ins->c64.pulseOn ? SID3_WAVE_PULSE : 0) | (ins->c64.noiseOn ? SID3_WAVE_NOISE : 0) | (ins->sid3.specialWaveOn ? SID3_WAVE_SPECIAL : 0); //waveform
+        chan[c.chan].special_wave = ins->sid3.special_wave; //special wave
+
+        chan[c.chan].attack=ins->c64.a;
+        chan[c.chan].decay=ins->c64.d;
+        chan[c.chan].sustain=ins->c64.s;
+        chan[c.chan].sr=ins->sid3.sr;
+        chan[c.chan].release=ins->c64.r;
       }
       if (chan[c.chan].insChanged || chan[c.chan].resetFilter) {
-        chan[c.chan].filter=ins->c64.toFilter;
+        /*chan[c.chan].filter=ins->c64.toFilter;
         if (ins->c64.initFilter) {
           chan[c.chan].filtCut=ins->c64.cut;
           chan[c.chan].filtRes=ins->c64.res;
           chan[c.chan].filtControl=(int)(ins->c64.lp)|(ins->c64.bp<<1)|(ins->c64.hp<<2);
         }
-        updateFilter(c.chan);
+        updateFilter(c.chan);*/
       }
       if (chan[c.chan].insChanged) {
         chan[c.chan].insChanged=false;
@@ -348,10 +377,7 @@ DivChannelModeHints DivPlatformSID3::getModeHints(int ch) {
   ret.count=1;
   ret.hint[0]=ICON_FA_BELL_SLASH_O;
   ret.type[0]=0;
-  if (ch == 2 && (chan[ch].filtControl & 8)) {
-      ret.type[0] = 7;
-  }
-  else if (!chan[ch].gate) {
+  if (!chan[ch].gate) {
     ret.type[0]=4;
   }
 

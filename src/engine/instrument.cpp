@@ -254,6 +254,36 @@ bool DivInstrumentESFM::Operator::operator==(const DivInstrumentESFM::Operator& 
   );
 }
 
+bool DivInstrumentSID3::operator==(const DivInstrumentSID3& other) {
+  return (
+    _C(volume) &&
+    _C(sr) &&
+    _C(lfsr_taps) &&
+    _C(phase_mod) &&
+    _C(phase_mod_source) &&
+    _C(ring_mod_source) &&
+    _C(sync_source) &&
+    _C(specialWaveOn) &&
+    _C(special_wave) &&
+    _C(filter_matrix) &&
+    _C(filt[0]) &&
+    _C(filt[1]) &&
+    _C(filt[2]) &&
+    _C(filt[3])
+  );
+}
+
+bool DivInstrumentSID3::Filter::operator==(const DivInstrumentSID3::Filter& other) {
+  return (
+    _C(cutoff) &&
+    _C(resonance) &&
+    _C(output_volume) &&
+    _C(distortion_level) &&
+    _C(mode) &&
+    _C(enabled)
+  );
+}
+
 bool DivInstrumentPowerNoise::operator==(const DivInstrumentPowerNoise& other) {
   return _C(octave);
 }

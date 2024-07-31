@@ -27,12 +27,10 @@
 class DivPlatformSID3: public DivDispatch {
   struct Channel: public SharedChannel<signed short> {
     int prevFreq;
-    unsigned char wave, attack, decay, sustain, release;
+    unsigned char wave, special_wave, attack, decay, sustain, sr, release;
     short duty;
-    bool filter;
-    bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
+    bool resetMask, resetFilter, resetDuty, gate, ring, sync, phase;
     unsigned char vol;
-    unsigned char filtControl, filtRes;
     unsigned char noise_mode;
     unsigned char mix_mode;
     int filtCut;
@@ -40,22 +38,21 @@ class DivPlatformSID3: public DivDispatch {
       SharedChannel<signed short>(SID3_MAX_VOL),
       prevFreq(0x1ffff),
       wave(0),
+      special_wave(0),
       attack(0),
       decay(0),
       sustain(0),
+      sr(0),
       release(0),
       duty(0),
-      filter(false),
       resetMask(false),
       resetFilter(false),
       resetDuty(false),
       gate(true),
       ring(false),
       sync(false),
-      test(false),
+      phase(false),
       vol(SID3_MAX_VOL),
-      filtControl(0),
-      filtRes(0),
       noise_mode(0),
       mix_mode(0),
       filtCut(0) {}
@@ -83,6 +80,7 @@ class DivPlatformSID3: public DivDispatch {
   void updateFilter(int channel);
   void updateFreq(int channel);
   void updateDuty(int channel);
+  void updateEnvelope(int channel);
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);

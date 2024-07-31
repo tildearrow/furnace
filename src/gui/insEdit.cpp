@@ -22,6 +22,7 @@
 #include "../ta-log.h"
 #include "imgui_internal.h"
 #include "../engine/macroInt.h"
+#include "../engine/platform/sound/sid3.h"
 #include "IconsFontAwesome4.h"
 #include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -1505,6 +1506,80 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       addAALine(dl,pos1,pos2,color); //A
       addAALine(dl,pos2,posDecayRate0Pt,color); //Line from A to end of graph
     } else if (d2r==0.0 || ((instType==DIV_INS_OPL || instType==DIV_INS_SNES || instType==DIV_INS_ESFM) && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { //envelope stays at the sustain level forever
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      addAALine(dl,pos3,posSLineHEnd,colorR); //draw horiz line through sustain level
+      addAALine(dl,pos3,posSLineVEnd,colorR); //draw vert. line through sustain level
+      addAALine(dl,pos1,pos2,color); //A
+      addAALine(dl,pos2,pos3,color); //D
+      addAALine(dl,pos3,posDecay2Rate0Pt,color); //Line from D to end of graph
+    } else { //draw graph normally
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      addAALine(dl,pos3,posSLineHEnd,colorR); //draw horiz line through sustain level
+      addAALine(dl,pos3,posSLineVEnd,colorR); //draw vert. line through sustain level
+      addAALine(dl,pos1,pos2,color); //A
+      addAALine(dl,pos2,pos3,color); //D
+      addAALine(dl,pos3,pos4,color); //D2
+    }
+    //dl->Flags^=ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex;
+  }
+}
+
+void FurnaceGUI::drawSID3Env(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType) {
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  ImGuiWindow* window=ImGui::GetCurrentWindow();
+
+  ImVec2 minArea=window->DC.CursorPos;
+  ImVec2 maxArea=ImVec2(
+    minArea.x+size.x,
+    minArea.y+size.y
+  );
+  ImRect rect=ImRect(minArea,maxArea);
+  ImGuiStyle& style=ImGui::GetStyle();
+  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_ENVELOPE]);
+  ImU32 colorR=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_ENVELOPE_RELEASE]); // Relsease triangle
+  ImU32 colorS=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_ENVELOPE_SUS_GUIDE]); // Sustain horiz/vert line color
+  ImGui::ItemSize(size,style.FramePadding.y);
+  if (ImGui::ItemAdd(rect,ImGui::GetID("fmEnv"))) {
+    ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
+
+    //Adjust for OPLL global sustain setting
+    if (instType==DIV_INS_OPLL && algOrGlobalSus==1.0){
+      rr = 5.0;
+    }
+    //calculate x positions
+    float arPos=float(maxArDr-(float)ar)/maxArDr; //peak of AR, start of DR
+    float drPos=arPos+(((float)sl/255.0)*(float(maxArDr-(float)dr)/maxArDr)); //end of DR, start of D2R
+    float d2rPos=drPos+(((255.0-(float)sl)/255.0)*(float(255.0-(float)d2r)/255.0)); //End of D2R
+    float rrPos=(float(maxRr-(float)rr)/float(maxRr)); //end of RR
+
+    //shrink all the x positions horizontally
+    arPos/=2.0;
+    drPos/=2.0;
+    d2rPos/=2.0;
+    rrPos/=1.0;
+
+    ImVec2 pos1=ImLerp(rect.Min,rect.Max,ImVec2(0.0,1.0)); //the bottom corner
+    ImVec2 pos2=ImLerp(rect.Min,rect.Max,ImVec2(arPos,((float)tl/maxTl))); //peak of AR, start of DR
+    ImVec2 pos3=ImLerp(rect.Min,rect.Max,ImVec2(drPos,(float)(((float)tl/maxTl)+((float)sl/255.0)-(((float)tl/maxTl)*((float)sl/255.0))))); //end of DR, start of D2R
+    ImVec2 pos4=ImLerp(rect.Min,rect.Max,ImVec2(d2rPos,1.0)); //end of D2R
+    ImVec2 posRStart=ImLerp(rect.Min,rect.Max,ImVec2(0.0,((float)tl/maxTl))); //release start
+    ImVec2 posREnd=ImLerp(rect.Min,rect.Max,ImVec2(rrPos,1.0));//release end
+    ImVec2 posSLineHEnd=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(((float)tl/maxTl)+((float)sl/255.0)-(((float)tl/maxTl)*((float)sl/255.0))))); //sustain horizontal line end
+    ImVec2 posSLineVEnd=ImLerp(rect.Min,rect.Max,ImVec2(drPos,1.0)); //sustain vertical line end
+    ImVec2 posDecayRate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,((float)tl/maxTl))); //Height of the peak of AR, forever
+    ImVec2 posDecay2Rate0Pt=ImLerp(rect.Min,rect.Max,ImVec2(1.0,(float)(((float)tl/maxTl)+((float)sl/255.0)-(((float)tl/maxTl)*((float)sl/255.0))))); //Height of the peak of SR, forever
+
+    //dl->Flags=ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex;
+    if ((float)ar==0.0) { //if AR = 0, the envelope never starts
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      addAALine(dl,pos1,pos4,color); //draw line on ground
+    } else if ((float)dr==0.0 && (float)sl!=0.0) { //if DR = 0 and SL is not 0, then the envelope stays at max volume forever
+      dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
+      //addAALine(dl,pos3,posSLineHEnd,colorS); //draw horiz line through sustain level
+      //addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
+      addAALine(dl,pos1,pos2,color); //A
+      addAALine(dl,pos2,posDecayRate0Pt,color); //Line from A to end of graph
+    } else if ((float)d2r==0.0 || ((instType==DIV_INS_OPL || instType==DIV_INS_SNES || instType == DIV_INS_ESFM) && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { //envelope stays at the sustain level forever
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
       addAALine(dl,pos3,posSLineHEnd,colorR); //draw horiz line through sustain level
       addAALine(dl,pos3,posSLineVEnd,colorR); //draw vert. line through sustain level
@@ -5234,6 +5309,112 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
   }
 }
 
+void FurnaceGUI::drawInsSID3(DivInstrument* ins)
+{
+  if (ImGui::BeginTabItem("SID3")) 
+  {
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text(_("Waveform"));
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.triOn);
+    if (ImGui::Button(_("tri"))) { PARAMETER
+      ins->c64.triOn=!ins->c64.triOn;
+    }
+    popToggleColors();
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.sawOn);
+    if (ImGui::Button(_("saw"))) { PARAMETER
+      ins->c64.sawOn=!ins->c64.sawOn;
+    }
+    popToggleColors();
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.pulseOn);
+    if (ImGui::Button(_("pulse"))) { PARAMETER
+      ins->c64.pulseOn=!ins->c64.pulseOn;
+    }
+    popToggleColors();
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.noiseOn);
+    if (ImGui::Button(_("noise"))) { PARAMETER
+      ins->c64.noiseOn=!ins->c64.noiseOn;
+    }
+    popToggleColors();
+    popToggleColors();
+    ImGui::SameLine();
+    pushToggleColors(ins->sid3.specialWaveOn);
+    if (ImGui::Button(_("special"))) { PARAMETER
+      ins->sid3.specialWaveOn=!ins->sid3.specialWaveOn;
+    }
+    popToggleColors();
+
+    ImVec2 sliderSize=ImVec2(30.0f*dpiScale,256.0*dpiScale);
+
+    if (ImGui::BeginTable("FZTEnvParams",6,ImGuiTableFlags_NoHostExtendX))
+    {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+      ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+      ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthStretch);
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      CENTER_TEXT(_("A"));
+      ImGui::TextUnformatted(_("A"));
+      ImGui::TableNextColumn();
+      CENTER_TEXT(_("D"));
+      ImGui::TextUnformatted(_("D"));
+      ImGui::TableNextColumn();
+      CENTER_TEXT(_("S"));
+      ImGui::TextUnformatted(_("S"));
+      ImGui::TableNextColumn();
+      CENTER_TEXT(_("SR"));
+      ImGui::TextUnformatted(_("SR"));
+      ImGui::TableNextColumn();
+      CENTER_TEXT(_("R"));
+      ImGui::TextUnformatted(_("R"));
+      ImGui::TableNextColumn();
+      CENTER_TEXT(_("Envelope"));
+      ImGui::TextUnformatted(_("Envelope"));
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->c64.a,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+      ImGui::TableNextColumn();
+      P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->c64.d,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+      ImGui::TableNextColumn();
+      P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+      ImGui::TableNextColumn();
+      P(CWVSliderScalar("##SustainRate",sliderSize,ImGuiDataType_U8,&ins->sid3.sr,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+      ImGui::TableNextColumn();
+      P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+      ImGui::TableNextColumn();
+      drawSID3Env(0,(ins->c64.a == 0 ? (255) : (256-ins->c64.a)),(ins->c64.d == 0 ? (255) : (256-ins->c64.d)),ins->sid3.sr,255-(ins->c64.r == 255 ? (ins->c64.r - 1) : ins->c64.r),255-ins->c64.s,0,0,0,255,256,255,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type); //the (ins->c64.r == 15 ? (ins->c64.r - 1) : ins->c64.r) is used so release part never becomes horizontal (which isn't the case with SID3 envelope)
+
+      ImGui::EndTable();
+    }
+
+    ImGui::EndTabItem();
+  }
+
+  std::vector<FurnaceGUIMacroDesc> macroList;
+
+  if (ImGui::BeginTabItem(_("Macros"))) 
+  {
+    macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Panning (left)"),&ins->std.panLMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Panning (right)"),&ins->std.panRMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+
+    drawMacros(macroList,macroEditStateMacros);
+
+    ImGui::EndTabItem();
+  }
+}
+
 void FurnaceGUI::drawInsEdit() {
   if (nextWindow==GUI_WINDOW_INS_EDIT) {
     insEditOpen=true;
@@ -5449,6 +5630,14 @@ void FurnaceGUI::drawInsEdit() {
       
 
       if (ImGui::BeginTabBar("insEditTab")) {
+        
+        if(ins->type == DIV_INS_SID3)
+        {
+          drawInsSID3(ins);
+          ImGui::EndTabBar();
+          return;
+        }
+
         std::vector<FurnaceGUIMacroDesc> macroList;
         if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
           char label[32];

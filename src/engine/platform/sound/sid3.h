@@ -75,6 +75,8 @@ typedef struct
 
     uint8_t mode;
 
+    uint8_t output_volume;
+
     bool channel_output; //output to the channel master output
 } sid3_filter;
 
@@ -90,9 +92,8 @@ typedef struct
 
     uint32_t rate_counter;
     uint32_t rate_period;
-    uint16_t exponential_counter;
-    uint16_t exponential_counter_period;
-    uint8_t envelope_counter;
+    uint32_t envelope_counter;
+    uint32_t envelope_speed;
     bool hold_zero;
 } sid3_channel_adsr;
 
