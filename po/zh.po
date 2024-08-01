@@ -8756,11 +8756,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:3835
 msgid "Dark##gcb0"
-msgstr ""
+msgstr "暗"
 
 #: src/gui/settings.cpp:3840
 msgid "Light##gcb1"
-msgstr ""
+msgstr "亮"
 
 #: src/gui/settings.cpp:3847
 msgid "Accent colors:"
