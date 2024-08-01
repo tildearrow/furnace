@@ -159,6 +159,7 @@ void DivPlatformSID3::tick(bool sysTick)
         chan[i].duty = 0x1000;
         updateDuty(i);
 
+        rWrite(i * SID3_REGISTERS_PER_CHANNEL, 0); //gate off TODO: make it properly?
         rWrite(i * SID3_REGISTERS_PER_CHANNEL, SID3_CHAN_ENABLE_GATE); //gate on
       }
       if (chan[i].keyOff) 

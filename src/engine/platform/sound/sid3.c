@@ -2455,15 +2455,23 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
-                //uint8_t prev_flags = sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE;
+                uint8_t prev_flags = sid3->chan[channel].flags;
                 sid3->chan[channel].flags = data;
-                sid3_gate_bit(sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE, &sid3->chan[channel].adsr);
+
+                if((prev_flags & SID3_CHAN_ENABLE_GATE) != (sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE))
+                {
+                    sid3_gate_bit(sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE, &sid3->chan[channel].adsr);
+                }
             }
             else
             {
-                //uint8_t prev_flags = sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE;
+                uint8_t prev_flags = sid3->chan[channel].flags;
                 sid3->wave_chan.flags = data;
-                sid3_gate_bit(sid3->wave_chan.flags & SID3_CHAN_ENABLE_GATE, &sid3->wave_chan.adsr);
+
+                if((prev_flags & SID3_CHAN_ENABLE_GATE) != (sid3->wave_chan.flags & SID3_CHAN_ENABLE_GATE))
+                {
+                    sid3_gate_bit(sid3->wave_chan.flags & SID3_CHAN_ENABLE_GATE, &sid3->wave_chan.adsr);
+                }
             }
             break;
         }
