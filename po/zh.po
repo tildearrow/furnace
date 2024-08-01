@@ -4324,7 +4324,7 @@ msgstr ""
 #: src/gui/exportOptions.cpp:306 src/gui/editControls.cpp:630
 msgid ""
 "this is NOT ROM export! only use for making sure the\n"
-" Amiga emulator is working properly by\n"
+"Furnace Amiga emulator is working properly by\n"
 "comparing it with real Amiga output."
 msgstr ""
 
