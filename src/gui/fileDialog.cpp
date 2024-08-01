@@ -486,7 +486,7 @@ std::vector<String>& FurnaceGUIFileDialog::getFileName() {
     return fileName;
   } else {
     fileName.clear();
-    if (dialogType==1) {
+    if (dialogType!=0) {
       fileName.push_back(ImGuiFileDialog::Instance()->GetFilePathName());
     } else {
       for (auto& i: ImGuiFileDialog::Instance()->GetSelection()) {
