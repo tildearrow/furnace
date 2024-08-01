@@ -7935,7 +7935,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:2823
 msgid "Move by one##cmk0"
-msgstr "移动一个##cmk0"
+msgstr ""
 
 #: src/gui/settings.cpp:2827
 msgid "Move by Edit Step##cmk1"
