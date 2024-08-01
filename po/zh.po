@@ -4324,7 +4324,7 @@ msgstr ""
 #: src/gui/exportOptions.cpp:306 src/gui/editControls.cpp:630
 msgid ""
 "this is NOT ROM export! only use for making sure the\n"
-"Furnace Amiga emulator is working properly by\n"
+" Amiga emulator is working properly by\n"
 "comparing it with real Amiga output."
 msgstr ""
 
@@ -5868,17 +5868,17 @@ msgstr ""
 #: src/gui/sysConf.cpp:727 src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:1920
 #: src/gui/insEdit.cpp:6968 src/gui/insEdit.cpp:7508
 msgid "Attack"
-msgstr ""
+msgstr "起音"
 
 #: src/gui/sysConf.cpp:732 src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:1960
 #: src/gui/insEdit.cpp:6969 src/gui/insEdit.cpp:7509
 msgid "Decay"
-msgstr ""
+msgstr "衰减"
 
 #: src/gui/sysConf.cpp:737 src/gui/insEdit.cpp:50 src/gui/insEdit.cpp:1929
 #: src/gui/insEdit.cpp:6970 src/gui/insEdit.cpp:7510
 msgid "Sustain"
-msgstr ""
+msgstr "延迟"
 
 #: src/gui/sysConf.cpp:742 src/gui/settings.cpp:3999 src/gui/insEdit.cpp:50
 #: src/gui/insEdit.cpp:604 src/gui/insEdit.cpp:1983 src/gui/insEdit.cpp:6971
@@ -6846,8 +6846,8 @@ msgid "Render backend"
 msgstr "渲染后端"
 
 #: src/gui/settings.cpp:665 src/gui/settings.cpp:684 src/gui/settings.cpp:1318
-msgid "you may need to restart Furnace for this setting to take effect."
-msgstr "可能需要手动重启Furnace 来生效设置."
+msgid "you may need to restart  for this setting to take effect."
+msgstr "可能需要手动重启 来生效设置."
 
 #: src/gui/settings.cpp:668
 msgid "Advanced render backend settings"
