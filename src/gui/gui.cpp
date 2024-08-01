@@ -5164,18 +5164,19 @@ bool FurnaceGUI::loop() {
                 String nextPath=copyOfName;
                 nextPath+=DIR_SEPARATOR_STR;
                 nextPath+=fmt::sprintf("%.2X_",i);
-                for (char i: e->song.ins[i]->name) {
-                  switch (i) {
-                    // there chars are reserved
+                for (char j: e->song.ins[i]->name) {
+                  switch (j) {
+                    // these chars are reserved
                     case '/': case '<': case '>': case ':': case '"': case '\\': case '|': case '?': case '*':
                       nextPath+='_';
                       break;
                     default:
-                      nextPath+=i;
+                      nextPath+=j;
                       break;
                   }
                 }
                 nextPath+=".fui";
+                logV("%s",nextPath);
                 if (!e->song.ins[i]->save(nextPath.c_str(),&e->song,settings.writeInsNames)) {
                   
                 }
