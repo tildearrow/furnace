@@ -532,6 +532,11 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
   ENTRY(
+      "NEC PC-6001", {
+        CH(DIV_SYSTEM_AY8910, 1.0f, 0, "customClock=3993600")
+      }
+    );
+  ENTRY(
     "NEC PC-88", {}
   );
     SUB_ENTRY(
@@ -1228,6 +1233,18 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "FM-7", {
+      CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=12"),
+      CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=5")
+    }
+  );
+   SUB_ENTRY(
+     "FM-7 (extended channel 3)", {
+       CH(DIV_SYSTEM_AY8910, 1.0f, 0, "clockSel=12"),
+       CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=5")
+     }
+  );
+  ENTRY(
     "FM Towns", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=2"), // YM3438
       CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "")
@@ -1271,6 +1288,14 @@ void FurnaceGUI::initSystemPresets() {
       )
     }
   );
+  ENTRY(
+  "Sord M5", {
+    CH(DIV_SYSTEM_SMS, 1.0f, 0,
+      "customClock=1773447\n"
+      "chipType=1\n"
+     )
+   }
+ );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Arcade systems","INSERT COIN");

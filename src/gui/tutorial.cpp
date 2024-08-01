@@ -679,7 +679,7 @@ void FurnaceGUI::drawTutorial() {
     ImGui::TextWrapped(_(
       "if you need help, you may:\n"
       "- read the manual (a file called manual.pdf)\n"
-      "- ask for help in Discussions (https://github.com/tildearrow/furnace/discussions), the Furnace Discord (https://discord.gg/EfrwT2wq7z) or Furnace in Revolt (official: https://rvlt.gg/GRPS6tmc)"
+      "- ask for help in Discussions (https://github.com/tildearrow/furnace/discussions)"
     ));
 
     ImGui::Separator();

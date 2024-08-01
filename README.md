@@ -137,7 +137,7 @@ for other operating systems, you may [build the source](#developer-info).
 ---
 # quick references
 
-- **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, the [official Revolt](https://rvlt.gg/GRPS6tmc) or the [official Discord server](https://discord.gg/EfrwT2wq7z).
+- **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section.
 - **help**: check out the [documentation](doc/README.md).
 
 ## packages

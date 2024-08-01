@@ -98,10 +98,6 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       break;
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
       return _("Cxxx: Set tick rate (hz)");
-    case 0xd8:
-      return _("D8xx: Set volume slide bottom boundary");
-    case 0xd9:
-      return _("D9xx: Set volume slide top boundary");
     case 0xdc:
       return _("DCxx: Delayed mute");
     case 0xe0:
@@ -2114,7 +2110,6 @@ void DivEngine::reset() {
     chan[i]=DivChannelState();
     if (i<chans) chan[i].volMax=(disCont[dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
-    chan[i].volTop=chan[i].volMax;
     if (song.linearPitch==0) chan[i].vibratoFine=4;
   }
   extValue=0;
