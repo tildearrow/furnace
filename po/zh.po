@@ -8892,15 +8892,15 @@ msgstr "界面(其他设置)"
 
 #: src/gui/settings.cpp:3898
 msgid "Window background"
-msgstr ""
+msgstr "窗口背景"
 
 #: src/gui/settings.cpp:3899
 msgid "Sub-window background"
-msgstr ""
+msgstr "子窗口背景"
 
 #: src/gui/settings.cpp:3900
 msgid "Pop-up background"
-msgstr ""
+msgstr "弹出窗口背景"
 
 #: src/gui/settings.cpp:3901
 msgid "Modal backdrop"
@@ -8916,35 +8916,35 @@ msgstr ""
 
 #: src/gui/settings.cpp:3905
 msgid "Title bar (inactive)"
-msgstr ""
+msgstr "标题栏（非活动）"
 
 #: src/gui/settings.cpp:3906
 msgid "Title bar (collapsed)"
-msgstr ""
+msgstr "标题栏（折叠）"
 
 #: src/gui/settings.cpp:3907
 msgid "Menu bar"
-msgstr ""
+msgstr "标题栏"
 
 #: src/gui/settings.cpp:3909
 msgid "Border shadow"
-msgstr ""
+msgstr "边框阴影"
 
 #: src/gui/settings.cpp:3910
 msgid "Scroll bar"
-msgstr ""
+msgstr "滚动条"
 
 #: src/gui/settings.cpp:3911
 msgid "Scroll bar (hovered)"
-msgstr ""
+msgstr "滚动条（悬停）"
 
 #: src/gui/settings.cpp:3912
 msgid "Scroll bar (clicked)"
-msgstr ""
+msgstr "滚动条（点击）"
 
 #: src/gui/settings.cpp:3913
 msgid "Scroll bar background"
-msgstr ""
+msgstr "滚动条背景"
 
 #: src/gui/settings.cpp:3914
 msgid "Separator"
@@ -8984,11 +8984,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:3923
 msgid "Window switcher (highlight)"
-msgstr ""
+msgstr "窗口切换器（高亮）"
 
 #: src/gui/settings.cpp:3924
 msgid "Window switcher backdrop"
-msgstr ""
+msgstr "窗口切换器背景"
 
 #: src/gui/settings.cpp:3927 src/gui/settings.cpp:4153 src/gui/guiConst.cpp:235
 msgid "Miscellaneous"
@@ -9032,23 +9032,23 @@ msgstr ""
 
 #: src/gui/settings.cpp:3945
 msgid "Font"
-msgstr ""
+msgstr "字体"
 
 #: src/gui/settings.cpp:3951
 msgid "Background (top-left)"
-msgstr ""
+msgstr "背景（左上角）"
 
 #: src/gui/settings.cpp:3952
 msgid "Background (top-right)"
-msgstr ""
+msgstr "背景（右上角）"
 
 #: src/gui/settings.cpp:3953
 msgid "Background (bottom-left)"
-msgstr ""
+msgstr "背景（左下角）"
 
 #: src/gui/settings.cpp:3954
 msgid "Background (bottom-right)"
-msgstr ""
+msgstr "背景（右下角）"
 
 #: src/gui/settings.cpp:3955 src/gui/settings.cpp:4010
 #: src/gui/settings.cpp:4183 src/gui/waveEdit.cpp:730 src/gui/insEdit.cpp:50
@@ -9075,7 +9075,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:3958
 msgid "Guide"
-msgstr ""
+msgstr "指南"
 
 #: src/gui/settings.cpp:3960
 msgid "Wave (non-mono)"
@@ -9083,67 +9083,67 @@ msgstr ""
 
 #: src/gui/settings.cpp:3961
 msgid "Waveform (1)"
-msgstr ""
+msgstr "波形 (1)"
 
 #: src/gui/settings.cpp:3962
 msgid "Waveform (2)"
-msgstr ""
+msgstr "波形 (2)"
 
 #: src/gui/settings.cpp:3963
 msgid "Waveform (3)"
-msgstr ""
+msgstr "波形 (3)"
 
 #: src/gui/settings.cpp:3964
 msgid "Waveform (4)"
-msgstr ""
+msgstr "波形 (4)"
 
 #: src/gui/settings.cpp:3965
 msgid "Waveform (5)"
-msgstr ""
+msgstr "波形 (5)"
 
 #: src/gui/settings.cpp:3966
 msgid "Waveform (6)"
-msgstr ""
+msgstr "波形 (6)"
 
 #: src/gui/settings.cpp:3967
 msgid "Waveform (7)"
-msgstr ""
+msgstr "波形 (7)"
 
 #: src/gui/settings.cpp:3968
 msgid "Waveform (8)"
-msgstr ""
+msgstr "波形 (8)"
 
 #: src/gui/settings.cpp:3969
 msgid "Waveform (9)"
-msgstr ""
+msgstr "波形 (9)"
 
 #: src/gui/settings.cpp:3970
 msgid "Waveform (10)"
-msgstr ""
+msgstr "波形 (10)"
 
 #: src/gui/settings.cpp:3971
 msgid "Waveform (11)"
-msgstr ""
+msgstr "波形 (11)"
 
 #: src/gui/settings.cpp:3972
 msgid "Waveform (12)"
-msgstr ""
+msgstr "波形 (12)"
 
 #: src/gui/settings.cpp:3973
 msgid "Waveform (13)"
-msgstr ""
+msgstr "波形 (13)"
 
 #: src/gui/settings.cpp:3974
 msgid "Waveform (14)"
-msgstr ""
+msgstr "波形 (14)"
 
 #: src/gui/settings.cpp:3975
 msgid "Waveform (15)"
-msgstr ""
+msgstr "波形 (15)"
 
 #: src/gui/settings.cpp:3976
 msgid "Waveform (16)"
-msgstr ""
+msgstr "波形 (16)"
 
 #: src/gui/settings.cpp:3984
 msgid "Clip"
