@@ -6846,8 +6846,8 @@ msgid "Render backend"
 msgstr "渲染后端"
 
 #: src/gui/settings.cpp:665 src/gui/settings.cpp:684 src/gui/settings.cpp:1318
-msgid "you may need to restart  for this setting to take effect."
-msgstr "可能需要手动重启 来生效设置."
+msgid "you may need to restart Furnace for this setting to take effect."
+msgstr "可能需要手动重启Furnace 来生效设置."
 
 #: src/gui/settings.cpp:668
 msgid "Advanced render backend settings"
