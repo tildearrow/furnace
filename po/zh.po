@@ -8164,7 +8164,7 @@ msgstr "加载备用字体"
 
 #: src/gui/settings.cpp:3121
 msgid "disable to save video memory."
-msgstr "关闭以节约现存."
+msgstr "关闭以节约显存."
 
 #: src/gui/settings.cpp:3125
 msgid "Display Japanese characters"
