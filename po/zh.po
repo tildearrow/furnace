@@ -7519,7 +7519,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1769 src/gui/settings.cpp:1770
 msgid "--none--"
-msgstr ""
+msgstr "--无--"
 
 #: src/gui/settings.cpp:1791
 msgid "waiting...##BLearn"
@@ -7531,7 +7531,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1815 src/gui/settings.cpp:1817
 msgid "MIDI output"
-msgstr ""
+msgstr "MIDI 输出"
 
 #: src/gui/settings.cpp:1834
 msgid "Output mode:"
@@ -7551,7 +7551,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:1857
 msgid "Send MIDI clock"
-msgstr ""
+msgstr "发送 MIDI 时钟"
 
 #: src/gui/settings.cpp:1863
 msgid "Send MIDI timecode"
@@ -7875,7 +7875,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:2759
 msgid "Delete effect value when deleting effect"
-msgstr ""
+msgstr "删除效果同时删除效果值"
 
 #: src/gui/settings.cpp:2765
 msgid "Change current instrument when changing instrument column (absorb)"
@@ -7907,7 +7907,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:2795
 msgid "Yes, and move to next/prev row##wrapH2"
-msgstr ""
+msgstr "是，并移至下一行/上一行##wrapH2"
 
 #: src/gui/settings.cpp:2801
 msgid "Wrap vertically:"
@@ -7915,15 +7915,15 @@ msgstr ""
 
 #: src/gui/settings.cpp:2803
 msgid "No##wrapV0"
-msgstr ""
+msgstr "否##wrapV0"
 
 #: src/gui/settings.cpp:2807
 msgid "Yes##wrapV1"
-msgstr ""
+msgstr "是##wrapV1"
 
 #: src/gui/settings.cpp:2811
 msgid "Yes, and move to next/prev pattern##wrapV2"
-msgstr ""
+msgstr "是，并移至下一个/上一个pattern##wrapV2"
 
 #: src/gui/settings.cpp:2815
 msgid "Yes, and move to next/prev pattern (wrap around)##wrapV2"
@@ -7935,7 +7935,7 @@ msgstr ""
 
 #: src/gui/settings.cpp:2823
 msgid "Move by one##cmk0"
-msgstr ""
+msgstr "移动一个##cmk0"
 
 #: src/gui/settings.cpp:2827
 msgid "Move by Edit Step##cmk1"
@@ -7955,11 +7955,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:2852
 msgid "Move cursor to end of clipboard content when pasting"
-msgstr ""
+msgstr "粘贴时将光标移动到剪贴板内容的末尾"
 
 #: src/gui/settings.cpp:2858
 msgid "Scrolling"
-msgstr ""
+msgstr "滚动"
 
 #: src/gui/settings.cpp:2860
 msgid "Change order when scrolling outside of pattern bounds:"
@@ -7967,11 +7967,11 @@ msgstr ""
 
 #: src/gui/settings.cpp:2862
 msgid "No##pscroll0"
-msgstr ""
+msgstr "否##pscroll0"
 
 #: src/gui/settings.cpp:2866
 msgid "Yes##pscroll1"
-msgstr ""
+msgstr "是##pscroll1"
 
 #: src/gui/settings.cpp:2870
 msgid "Yes, and wrap around song##pscroll2"
