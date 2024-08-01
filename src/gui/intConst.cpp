@@ -19,6 +19,8 @@
 
 #include "intConst.h"
 
+#include "../engine/platform/sound/sid3.h"
+
 const int _ZERO=0;
 const int _ONE=1;
 const int _THREE=3;
@@ -41,3 +43,5 @@ const int _SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE=65535;
 const int _MINUS_TWENTY_FOUR=-24;
 const int _MINUS_ONE_HUNDRED_TWENTY_SEVEN=-127;
 const int _MINUS_ONE_HUNDRED_TWENTY_EIGHT=-128;
+
+const int _SID3_SPECIAL_WAVES=SID3_NUM_SPECIAL_WAVES - 1;

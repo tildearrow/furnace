@@ -18,7 +18,10 @@ extern "C" {
 
 #define SID3_WAVETABLE_LENGTH 256
 
-#define SID3_NUM_SPECIAL_WAVES 28
+#define SID3_NUM_WAVEFORM_BITS 5
+
+#define SID3_NUM_UNIQUE_SPECIAL_WAVES 28
+#define SID3_NUM_SPECIAL_WAVES (SID3_NUM_UNIQUE_SPECIAL_WAVES * 2 + 2) /* usual and 2x vol clipped + 2x vol clipped tri and saw... */
 #define SID3_SPECIAL_WAVE_LENGTH 16384
 
 #define SID3_ACC_BITS 30
@@ -48,11 +51,10 @@ enum Waveforms
 enum Mixmodes
 {
     SID3_MIX_8580 = 0,
-    SID3_MIX_8580_WITH_NOISE = 1,
-    SID3_MIX_AND = 2,
-    SID3_MIX_OR = 3,
-    SID3_MIX_XOR = 4,
-    SID3_MIX_SUM = 5,
+    SID3_MIX_AND = 1,
+    SID3_MIX_OR = 2,
+    SID3_MIX_XOR = 3,
+    SID3_MIX_SUM = 4,
 };
 
 typedef struct

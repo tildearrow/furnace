@@ -869,6 +869,7 @@ struct DivInstrumentSID3
   bool phase_mod;
   unsigned char phase_mod_source, ring_mod_source, sync_source;
   bool specialWaveOn;
+  bool oneBitNoise;
   unsigned char special_wave;
 
   unsigned int filter_matrix;
@@ -910,6 +911,7 @@ struct DivInstrumentSID3
     ring_mod_source(0),
     sync_source(0),
     specialWaveOn(false),
+    oneBitNoise(false),
     special_wave(0),
     filter_matrix(0) {}
 };

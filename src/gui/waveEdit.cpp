@@ -19,6 +19,7 @@
 
 #define _USE_MATH_DEFINES
 #include "gui.h"
+#include "util.h"
 #include "plot_nolerp.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"

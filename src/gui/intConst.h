@@ -43,3 +43,5 @@ extern const int _SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE;
 extern const int _MINUS_TWENTY_FOUR;
 extern const int _MINUS_ONE_HUNDRED_TWENTY_SEVEN;
 extern const int _MINUS_ONE_HUNDRED_TWENTY_EIGHT;
+
+extern const int _SID3_SPECIAL_WAVES;

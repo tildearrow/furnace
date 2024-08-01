@@ -153,18 +153,19 @@ void DivPlatformSID3::tick(bool sysTick)
         rWrite(9 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].special_wave); //special wave
 
         rWrite(13 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].outVol); //set volume
+        rWrite(14 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].mix_mode); //mixmode
 
         updateEnvelope(i);
 
-        chan[i].duty = 0x1000;
+        //chan[i].duty = 0x1000;
         updateDuty(i);
 
-        rWrite(i * SID3_REGISTERS_PER_CHANNEL, 0); //gate off TODO: make it properly?
-        rWrite(i * SID3_REGISTERS_PER_CHANNEL, SID3_CHAN_ENABLE_GATE); //gate on
+        rWrite(i * SID3_REGISTERS_PER_CHANNEL, 0 | (chan[i].oneBitNoise ? SID3_CHAN_1_BIT_NOISE : 0)); //gate off TODO: make it properly?
+        rWrite(i * SID3_REGISTERS_PER_CHANNEL, SID3_CHAN_ENABLE_GATE | (chan[i].oneBitNoise ? SID3_CHAN_1_BIT_NOISE : 0)); //gate on
       }
       if (chan[i].keyOff) 
       {
-        rWrite(i*SID3_REGISTERS_PER_CHANNEL,0);
+        rWrite(i * SID3_REGISTERS_PER_CHANNEL, 0 | (chan[i].oneBitNoise ? SID3_CHAN_1_BIT_NOISE : 0));
       }
 
       if (chan[i].freq<0) chan[i].freq=0;
@@ -197,7 +198,7 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
 
       if (chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacro.len>0) {
-        chan[c.chan].duty=ins->c64.duty;
+        //chan[c.chan].duty=ins->c64.duty;
         //rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
         //rWrite(c.chan*7+3,(chan[c.chan].duty>>8) | (chan[c.chan].outVol << 4));
       }
@@ -222,6 +223,12 @@ int DivPlatformSID3::dispatch(DivCommand c) {
         chan[c.chan].sustain=ins->c64.s;
         chan[c.chan].sr=ins->sid3.sr;
         chan[c.chan].release=ins->c64.r;
+
+        chan[c.chan].duty=ins->c64.duty;
+
+        chan[c.chan].oneBitNoise = ins->sid3.oneBitNoise;
+
+        chan[c.chan].mix_mode = ins->sid2.mixMode;
       }
       if (chan[c.chan].insChanged || chan[c.chan].resetFilter) {
         /*chan[c.chan].filter=ins->c64.toFilter;

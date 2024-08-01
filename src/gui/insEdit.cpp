@@ -31,6 +31,7 @@
 #include <fmt/printf.h>
 #include <imgui.h>
 #include "plot_nolerp.h"
+#include "util.h"
 
 extern "C" {
 #include "../../extern/Nuked-OPLL/opll.h"
@@ -229,7 +230,7 @@ const char* esfmNoiseModeDescriptions[4]={
 };
 
 const char* sid2WaveMixModes[5]={
-  _N("Normal"),
+  _N("8580 SID"),
   _N("Bitwise AND"),
   _N("Bitwise OR"),
   _N("Bitwise XOR"),
@@ -241,6 +242,92 @@ const char* sid2ControlBits[4]={
   _N("sync"),
   _N("ring"),
   NULL
+};
+
+const char* sid3WaveMixModes[6]={
+  _N("8580 SID"),
+  _N("Bitwise AND"),
+  _N("Bitwise OR"),
+  _N("Bitwise XOR"),
+  _N("Sum of the signals"),
+  NULL
+};
+
+const char* sid3Waveforms[] = {
+  _N("Sine"),
+  _N("Rect. Sine"),
+  _N("Abs. Sine"),
+  _N("Quart. Sine"),
+  _N("Squish. Sine"),
+  _N("Abs. Squish. Sine"),
+
+  _N("Rect. Saw"),
+  _N("Abs. Saw"),
+
+  _N("Cubed Saw"),
+  _N("Rect. Cubed Saw"),
+  _N("Abs. Cubed Saw"),
+
+  _N("Cubed Sine"),
+  _N("Rect. Cubed Sine"),
+  _N("Abs. Cubed Sine"),
+  _N("Quart. Cubed Sine"),
+  _N("Squish. Cubed Sine"),
+  _N("Squish. Abs. Cub. Sine"),
+
+  _N("Rect. Triangle"),
+  _N("Abs. Triangle"),
+  _N("Quart. Triangle"),
+  _N("Squish. Triangle"),
+  _N("Abs. Squish. Triangle"),
+
+  _N("Cubed Triangle"),
+  _N("Rect. Cubed Triangle"),
+  _N("Abs. Cubed Triangle"),
+  _N("Quart. Cubed Triangle"),
+  _N("Squish. Cubed Triangle"),
+  _N("Squish. Abs. Cub. Triangle"),
+
+  // clipped
+
+  _N("Clipped Sine"),
+  _N("Clipped Rect. Sine"),
+  _N("Clipped Abs. Sine"),
+  _N("Clipped Quart. Sine"),
+  _N("Clipped Squish. Sine"),
+  _N("Clipped Abs. Squish. Sine"),
+
+  _N("Clipped Rect. Saw"),
+  _N("Clipped Abs. Saw"),
+
+  _N("Clipped Cubed Saw"),
+  _N("Clipped Rect. Cubed Saw"),
+  _N("Clipped Abs. Cubed Saw"),
+
+  _N("Clipped Cubed Sine"),
+  _N("Clipped Rect. Cubed Sine"),
+  _N("Clipped Abs. Cubed Sine"),
+  _N("Clipped Quart. Cubed Sine"),
+  _N("Clipped Squish. Cubed Sine"),
+  _N("Clipped Squish. Abs. Cub. Sine"),
+
+  _N("Clipped Rect. Triangle"),
+  _N("Clipped Abs. Triangle"),
+  _N("Clipped Quart. Triangle"),
+  _N("Clipped Squish. Triangle"),
+  _N("Clipped Abs. Squish. Triangle"),
+
+  _N("Clipped Cubed Triangle"),
+  _N("Clipped Rect. Cubed Triangle"),
+  _N("Clipped Abs. Cubed Triangle"),
+  _N("Clipped Quart. Cubed Triangle"),
+  _N("Clipped Squish. Cubed Triangle"),
+  _N("Clipped Squish. Abs. Cub. Triangle"),
+
+  // two clipped simple waves
+
+  _N("Clipped Triangle"),
+  _N("Clipped Saw")
 };
 
 const bool opIsOutput[8][4]={
@@ -921,6 +1008,127 @@ void FurnaceGUI::drawWaveform(unsigned char type, bool opz, const ImVec2& size) 
           break;
       }
     }
+    dl->AddPolyline(waveform,waveformLen+1,color,ImDrawFlags_None,dpiScale);
+  }
+}
+
+typedef double (*WaveFunc) (double a);
+
+WaveFunc waveFuncsIns[]={
+  sinus,
+  rectSin,
+  absSin,
+  quartSin,
+  squiSin,
+  squiAbsSin,
+  
+  rectSaw,
+  absSaw,
+  
+  cubSaw,
+  rectCubSaw,
+  absCubSaw,
+  
+  cubSine,
+  rectCubSin,
+  absCubSin,
+  quartCubSin,
+  squishCubSin,
+  squishAbsCubSin,
+
+  rectTri,
+  absTri,
+  quartTri,
+  squiTri,
+  absSquiTri,
+
+  cubTriangle,
+  cubRectTri,
+  cubAbsTri,
+  cubQuartTri,
+  cubSquiTri,
+  absCubSquiTri
+};
+
+void FurnaceGUI::drawWaveformSID3(unsigned char type, const ImVec2& size) 
+{
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  ImGuiWindow* window=ImGui::GetCurrentWindow();
+
+  ImVec2 waveform[65];
+  const size_t waveformLen=64;
+
+  ImVec2 minArea=window->DC.CursorPos;
+  ImVec2 maxArea=ImVec2(
+    minArea.x+size.x,
+    minArea.y+size.y
+  );
+  ImRect rect=ImRect(minArea,maxArea);
+  ImGuiStyle& style=ImGui::GetStyle();
+  ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_FM_WAVE]);
+  ImGui::ItemSize(size,style.FramePadding.y);
+  if (ImGui::ItemAdd(rect,ImGui::GetID("SID3wsDisplay"))) 
+  {
+    ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
+
+    if(type < SID3_NUM_UNIQUE_SPECIAL_WAVES)
+    {
+      for (size_t i=0; i<=waveformLen; i++) 
+      {
+        float x=(float)i/(float)waveformLen;
+        float y= waveFuncsIns[type](x*2.0*M_PI);
+        waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+      }
+    }
+    else if(type >= SID3_NUM_UNIQUE_SPECIAL_WAVES && type < SID3_NUM_UNIQUE_SPECIAL_WAVES * 2)
+    {
+      for (size_t i=0; i<=waveformLen; i++) 
+      {
+        float x=(float)i/(float)waveformLen;
+        float y= waveFuncsIns[type - SID3_NUM_UNIQUE_SPECIAL_WAVES](x*2.0*M_PI);
+
+        y *= 2.0f; //clipping
+
+        if(y > 1.0f) y = 1.0f;
+        if(y < -1.0f) y = -1.0f;
+
+        waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.48));
+      }
+    }
+    else
+    {
+      if(type == SID3_NUM_UNIQUE_SPECIAL_WAVES * 2)
+      {
+        for (size_t i=0; i<=waveformLen; i++) 
+        {
+          float x=(float)i/(float)waveformLen;
+          float y=triangle(x*2.0*M_PI);
+
+          y *= 2.0f; //clipping
+
+          if(y > 1.0f) y = 1.0f;
+          if(y < -1.0f) y = -1.0f;
+
+          waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+        }
+      }
+      if(type == SID3_NUM_UNIQUE_SPECIAL_WAVES * 2 + 1)
+      {
+        for (size_t i=0; i<=waveformLen; i++) 
+        {
+          float x=(float)i/(float)waveformLen;
+          float y=saw(x*2.0*M_PI);
+
+          y *= 2.0f; //clipping
+
+          if(y > 1.0f) y = 1.0f;
+          if(y < -1.0f) y = -1.0f;
+
+          waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+        }
+      }
+    }
+
     dl->AddPolyline(waveform,waveformLen+1,color,ImDrawFlags_None,dpiScale);
   }
 }
@@ -5313,43 +5521,63 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 {
   if (ImGui::BeginTabItem("SID3")) 
   {
-    ImGui::AlignTextToFramePadding();
-    ImGui::Text(_("Waveform"));
-    ImGui::SameLine();
-    pushToggleColors(ins->c64.triOn);
-    if (ImGui::Button(_("tri"))) { PARAMETER
-      ins->c64.triOn=!ins->c64.triOn;
+    if (ImGui::BeginTable("sid3Waves",2,0)) 
+    {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0f);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0f);
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text(_("Waveform"));
+      ImGui::SameLine();
+      pushToggleColors(ins->c64.triOn);
+      if (ImGui::Button(_("tri"))) { PARAMETER
+        ins->c64.triOn=!ins->c64.triOn;
+      }
+      popToggleColors();
+      ImGui::SameLine();
+      pushToggleColors(ins->c64.sawOn);
+      if (ImGui::Button(_("saw"))) { PARAMETER
+        ins->c64.sawOn=!ins->c64.sawOn;
+      }
+      popToggleColors();
+      ImGui::SameLine();
+      pushToggleColors(ins->c64.pulseOn);
+      if (ImGui::Button(_("pulse"))) { PARAMETER
+        ins->c64.pulseOn=!ins->c64.pulseOn;
+      }
+      popToggleColors();
+      ImGui::SameLine();
+      pushToggleColors(ins->c64.noiseOn);
+      if (ImGui::Button(_("noise"))) { PARAMETER
+        ins->c64.noiseOn=!ins->c64.noiseOn;
+      }
+      popToggleColors();
+      ImGui::SameLine();
+
+      P(ImGui::Checkbox(_("1-bit noise"),&ins->sid3.oneBitNoise));
+      ImGui::SameLine();
+
+      pushToggleColors(ins->sid3.specialWaveOn);
+      if (ImGui::Button(_("special"))) { PARAMETER
+        ins->sid3.specialWaveOn=!ins->sid3.specialWaveOn;
+      }
+      popToggleColors();
+
+      P(CWSliderScalar(_("Special wave"),ImGuiDataType_U8,&ins->sid3.special_wave,&_ZERO,&_SID3_SPECIAL_WAVES,sid3Waveforms[ins->sid3.special_wave % SID3_NUM_SPECIAL_WAVES])); rightClickable
+
+      ImGui::TableNextColumn();
+
+      drawWaveformSID3(ins->sid3.special_wave,ImVec2(80.0f * dpiScale, 60.0f * dpiScale));
+
+      ImGui::EndTable();
     }
-    popToggleColors();
-    ImGui::SameLine();
-    pushToggleColors(ins->c64.sawOn);
-    if (ImGui::Button(_("saw"))) { PARAMETER
-      ins->c64.sawOn=!ins->c64.sawOn;
-    }
-    popToggleColors();
-    ImGui::SameLine();
-    pushToggleColors(ins->c64.pulseOn);
-    if (ImGui::Button(_("pulse"))) { PARAMETER
-      ins->c64.pulseOn=!ins->c64.pulseOn;
-    }
-    popToggleColors();
-    ImGui::SameLine();
-    pushToggleColors(ins->c64.noiseOn);
-    if (ImGui::Button(_("noise"))) { PARAMETER
-      ins->c64.noiseOn=!ins->c64.noiseOn;
-    }
-    popToggleColors();
-    popToggleColors();
-    ImGui::SameLine();
-    pushToggleColors(ins->sid3.specialWaveOn);
-    if (ImGui::Button(_("special"))) { PARAMETER
-      ins->sid3.specialWaveOn=!ins->sid3.specialWaveOn;
-    }
-    popToggleColors();
 
     ImVec2 sliderSize=ImVec2(30.0f*dpiScale,256.0*dpiScale);
 
-    if (ImGui::BeginTable("FZTEnvParams",6,ImGuiTableFlags_NoHostExtendX))
+    if (ImGui::BeginTable("SID3EnvParams",6,ImGuiTableFlags_NoHostExtendX))
     {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
@@ -5394,6 +5622,9 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
       ImGui::EndTable();
     }
+
+    P(CWSliderScalar(_("Wave Mix Mode"),ImGuiDataType_U8,&ins->sid2.mixMode,&_ZERO,&_FOUR,sid3WaveMixModes[ins->sid2.mixMode % 5]));
+    P(CWSliderScalar(_("Duty"),ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
 
     ImGui::EndTabItem();
   }

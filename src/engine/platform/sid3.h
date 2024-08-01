@@ -29,7 +29,7 @@ class DivPlatformSID3: public DivDispatch {
     int prevFreq;
     unsigned char wave, special_wave, attack, decay, sustain, sr, release;
     short duty;
-    bool resetMask, resetFilter, resetDuty, gate, ring, sync, phase;
+    bool resetMask, resetFilter, resetDuty, gate, ring, sync, phase, oneBitNoise;
     unsigned char vol;
     unsigned char noise_mode;
     unsigned char mix_mode;
@@ -52,6 +52,7 @@ class DivPlatformSID3: public DivDispatch {
       ring(false),
       sync(false),
       phase(false),
+      oneBitNoise(false),
       vol(SID3_MAX_VOL),
       noise_mode(0),
       mix_mode(0),
