@@ -1333,15 +1333,15 @@ msgstr "10xx: 切换滤波器 (0 禁用; 1 启用)"
 
 #: src/engine/sysDef.cpp:882
 msgid "11xx: Toggle AM with next channel"
-msgstr ""
+msgstr "11xx: 将AM 切换为下一个通道"
 
 #: src/engine/sysDef.cpp:883
 msgid "12xx: Toggle period modulation with next channel"
-msgstr ""
+msgstr "12xx: 切换与下一个通道的周期调制"
 
 #: src/engine/sysDef.cpp:884
 msgid "13xx: Set waveform"
-msgstr ""
+msgstr "13xx: 设置波形"
 
 #: src/engine/sysDef.cpp:889
 msgid "Yamaha YM2151 (OPM)"
@@ -1352,6 +1352,8 @@ msgid ""
 "this was Yamaha's first integrated FM chip.\n"
 "it was used in several synthesizers, computers and arcade boards."
 msgstr ""
+"这是Yamaha 的第一款集成FM 芯片.\n"
+"它被用于几个合成器, 计算机和街机."
 
 #: src/engine/sysDef.cpp:891 src/engine/sysDef.cpp:903
 #: src/engine/sysDef.cpp:1032 src/engine/sysDef.cpp:1135
@@ -1409,6 +1411,7 @@ msgid ""
 "this chip is mostly known for being in the Sega Genesis (but it also was on "
 "the FM Towns computer)."
 msgstr ""
+"该芯片最出名的是出现在Sega Genesis 中 (但它也搭载于FM Towns 计算机上)"
 
 #: src/engine/sysDef.cpp:913
 msgid "Atari TIA"
@@ -1419,6 +1422,7 @@ msgid ""
 "it's a challenge to make music on this chip which barely has musical "
 "capabilities..."
 msgstr ""
+"在这个几乎没有音乐功能的芯片上制作音乐是一个挑战..."
 
 #: src/engine/sysDef.cpp:925
 msgid "Philips SAA1099"
@@ -1429,6 +1433,7 @@ msgid ""
 "supposedly an upgrade from the AY-3-8910, this was present on the Creative "
 "Music System (Game Blaster) and SAM Coupé."
 msgstr ""
+"据说是AY-3-8910 的升级版，它出现在Creative Music System (Game Blaster) 和SAM Coupé上."
 
 #: src/engine/sysDef.cpp:927
 msgid "PSG 4"
@@ -1444,15 +1449,15 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:934
 msgid "10xy: Set channel mode (x: noise; y: tone)"
-msgstr ""
+msgstr "10xy: 设置频道模式 (x: 噪声; y: 音调)"
 
 #: src/engine/sysDef.cpp:935
 msgid "11xx: Set noise frequency"
-msgstr ""
+msgstr "11xx: 设置噪声频率"
 
 #: src/engine/sysDef.cpp:936
 msgid "12xx: Setup envelope (refer to docs for more information)"
-msgstr ""
+msgstr "12xx: 设置包络 (详细信息请参阅文档)"
 
 #: src/engine/sysDef.cpp:941
 msgid "Microchip AY8930"
@@ -1463,6 +1468,7 @@ msgid ""
 "an improved version of the AY-3-8910 with a bigger frequency range, duty "
 "cycles, configurable noise and per-channel envelopes!"
 msgstr ""
+"AY-3-8910 的改进版本, 具有更大的频率范围, 占空比, 可配置的噪声和每通道包络!"
 
 #: src/engine/sysDef.cpp:953
 msgid "Commodore VIC-20"
@@ -1473,6 +1479,8 @@ msgid ""
 "Commodore's successor to the PET.\n"
 "its square wave channels are more than just square..."
 msgstr ""
+"Commodore 的PET 继任者.\n"
+"它的方波通道不仅仅是方形的..."
 
 #: src/engine/sysDef.cpp:955 src/gui/settings.cpp:139 src/gui/settings.cpp:209
 #: src/gui/settings.cpp:3982
@@ -1481,7 +1489,7 @@ msgstr "低"
 
 #: src/engine/sysDef.cpp:955
 msgid "Mid"
-msgstr ""
+msgstr "中"
 
 #: src/engine/sysDef.cpp:955 src/gui/settings.cpp:138 src/gui/settings.cpp:211
 #: src/gui/settings.cpp:3983
@@ -1497,6 +1505,7 @@ msgid ""
 "one channel of 1-bit wavetable which is better (and worse) than the PC "
 "Speaker."
 msgstr ""
+"一个1位波表通道, 比PC扬声器更好 (和最差)。"
 
 # warring! above!
 #: src/engine/sysDef.cpp:966 src/engine/sysDef.cpp:1262
@@ -1511,7 +1520,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:976
 msgid "FM? nah... samples! Nintendo's answer to Sega."
-msgstr ""
+msgstr "FM? 不... samples！任天堂对世嘉的回应."
 
 #: src/engine/sysDef.cpp:983
 msgid "18xx: Enable echo buffer"
@@ -1519,101 +1528,102 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:984
 msgid "19xx: Set echo delay (0 to F)"
-msgstr ""
+msgstr "19xx: 设置回声延迟 (0 to F)"
 
 #: src/engine/sysDef.cpp:985
 msgid "1Axx: Set left echo volume"
-msgstr ""
+msgstr "1Axx: 设置左回声音量"
 
 #: src/engine/sysDef.cpp:986
 msgid "1Bxx: Set right echo volume"
-msgstr ""
+msgstr "1Bxx: 设置右回声音量"
 
 #: src/engine/sysDef.cpp:987
 msgid "1Cxx: Set echo feedback"
-msgstr ""
+msgstr "1Cxx: 设置回声反馈"
 
 #: src/engine/sysDef.cpp:988
 msgid "1Exx: Set dry output volume (left)"
-msgstr ""
+msgstr "1Exx: 设置干输出量 (左)"
 
 #: src/engine/sysDef.cpp:989
 msgid "1Fxx: Set dry output volume (right)"
-msgstr ""
+msgstr "1Fxx: 设置干输出量 (右)"
 
 #: src/engine/sysDef.cpp:990
 msgid "30xx: Set echo filter coefficient 0"
-msgstr ""
+msgstr "30xx: 设置回声滤波系数 0"
 
 #: src/engine/sysDef.cpp:991
 msgid "31xx: Set echo filter coefficient 1"
-msgstr ""
+msgstr "31xx: 设置回声滤波系数 1"
 
 #: src/engine/sysDef.cpp:992
 msgid "32xx: Set echo filter coefficient 2"
-msgstr ""
+msgstr "32xx: 设置回声滤波系数 2"
 
 #: src/engine/sysDef.cpp:993
 msgid "33xx: Set echo filter coefficient 3"
-msgstr ""
+msgstr "33xx: 设置回声滤波系数 3"
 
 #: src/engine/sysDef.cpp:994
 msgid "34xx: Set echo filter coefficient 4"
-msgstr ""
+msgstr "34xx: 设置回声滤波系数 4"
 
 #: src/engine/sysDef.cpp:995
 msgid "35xx: Set echo filter coefficient 5"
-msgstr ""
+msgstr "35xx: 设置回声滤波系数 5"
 
 #: src/engine/sysDef.cpp:996
 msgid "36xx: Set echo filter coefficient 6"
-msgstr ""
+msgstr "36xx: 设置回声滤波系数 6"
 
 #: src/engine/sysDef.cpp:997
 msgid "37xx: Set echo filter coefficient 7"
-msgstr ""
+msgstr "37xx: 设置回声滤波系数 7"
 
 #: src/engine/sysDef.cpp:1002
 msgid "12xx: Toggle echo on this channel"
-msgstr ""
+msgstr "12xx: 切换此通道上的回声"
 
 #: src/engine/sysDef.cpp:1003
 msgid "13xx: Toggle pitch modulation"
-msgstr ""
+msgstr "13xx: 切换音高调制"
 
 #: src/engine/sysDef.cpp:1004
 msgid "14xy: Toggle invert (x: left; y: right)"
-msgstr ""
+msgstr "14xy: 切换反转 (x: 左; y: 右)"
 
 #: src/engine/sysDef.cpp:1005
 msgid ""
 "15xx: Set envelope mode (0: ADSR, 1: gain/direct, 2: dec, 3: exp, 4: inc, 5: "
 "bent)"
 msgstr ""
+"15xx: 设置包络模式 (0: ADSR, 1: gain/direct, 2: dec, 3: exp, 4: inc，5: bent)"
 
 #: src/engine/sysDef.cpp:1006
 msgid "16xx: Set gain (00 to 7F if direct; 00 to 1F otherwise)"
-msgstr ""
+msgstr "16xx: 设置增益 (如果直接，则为 00 to 7F; 否则为 00 to 1F)"
 
 #: src/engine/sysDef.cpp:1007
 msgid "1Dxx: Set noise frequency (00 to 1F)"
-msgstr ""
+msgstr "1Dxx: 设置噪声频率 (00 to 1F)"
 
 #: src/engine/sysDef.cpp:1008
 msgid "20xx: Set attack (0 to F)"
-msgstr ""
+msgstr "20xx: 设置起音 (0 to F)"
 
 #: src/engine/sysDef.cpp:1009
 msgid "21xx: Set decay (0 to 7)"
-msgstr ""
+msgstr "21xx: 设置衰减 (0 to 7)"
 
 #: src/engine/sysDef.cpp:1010
 msgid "22xx: Set sustain (0 to 7)"
-msgstr ""
+msgstr "22xx: 设置延音 (0 to 7)"
 
 #: src/engine/sysDef.cpp:1011
 msgid "23xx: Set release (00 to 1F)"
-msgstr ""
+msgstr "23xx: 设置释音 (00 to 1F)"
 
 #: src/engine/sysDef.cpp:1016
 msgid "Konami VRC6"
@@ -1621,7 +1631,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1017
 msgid "an expansion chip for the Famicom, featuring a quirky sawtooth channel."
-msgstr ""
+msgstr "Famicom的扩展芯片，具有古怪的锯齿通道."
 
 #: src/engine/sysDef.cpp:1018
 msgid "VRC6 1"
@@ -1633,11 +1643,11 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1018
 msgid "VRC6 Saw"
-msgstr ""
+msgstr "VRC6 锯齿波"
 
 #: src/engine/sysDef.cpp:1024 src/engine/sysDef.cpp:2092
 msgid "12xx: Set duty cycle (pulse: 0 to 7)"
-msgstr ""
+msgstr "12xx: 设置占空比 (脉冲: 0 to 7)"
 
 #: src/engine/sysDef.cpp:1030
 msgid "Yamaha YM2413 (OPLL)"
@@ -1661,7 +1671,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1043
 msgid "a disk drive for the Famicom which also contains one wavetable channel."
-msgstr ""
+msgstr "Famicom的磁盘驱动器, 其中还包含一个波表通道."
 
 #: src/engine/sysDef.cpp:1044 src/gui/settings.cpp:4056
 msgid "FDS"
@@ -1669,11 +1679,11 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1051
 msgid "11xx: Set modulation depth"
-msgstr ""
+msgstr "11xx: 设置调制深度"
 
 #: src/engine/sysDef.cpp:1052
 msgid "12xy: Set modulation speed high byte (x: enable; y: value)"
-msgstr ""
+msgstr "12xy: 设置调制速度高字节 (x: 启用; y: 值)"
 
 #: src/engine/sysDef.cpp:1053
 msgid "13xx: Set modulation speed low byte"
