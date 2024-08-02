@@ -1313,6 +1313,8 @@ msgid ""
 "Vectrex...\n"
 "the discovery of envelope bass helped it beat the SN76489 with ease."
 msgstr ""
+"这个芯片无处不在！ZX Spectrum, MSX, Amstrad CPC, Intellivision, Vectrex...\n"
+"Envelope Bass 的发现帮助它轻松击败了SN76489."
 
 #: src/engine/sysDef.cpp:872
 msgid "Amiga"
@@ -1323,10 +1325,11 @@ msgid ""
 "a computer from the '80s with full sampling capabilities, giving it a sound "
 "ahead of its time."
 msgstr ""
+"一台80 年代的计算机，具有完整的采样功能，使其声音领先于时代."
 
 #: src/engine/sysDef.cpp:881
 msgid "10xx: Toggle filter (0 disables; 1 enables)"
-msgstr ""
+msgstr "10xx: 切换滤波器 (0 禁用; 1 启用)"
 
 #: src/engine/sysDef.cpp:882
 msgid "11xx: Toggle AM with next channel"
