@@ -200,6 +200,15 @@ void DivPlatformFDS::tick(bool sysTick) {
       }
       rWrite(0x4082,chan[i].freq&0xff);
       rWrite(0x4083,(chan[i].freq>>8)&15);
+
+      if (chan[i].autoModNum>0 && chan[i].autoModDen>0) {
+        chan[i].modFreq=(chan[i].freq*chan[i].autoModNum)/chan[i].autoModDen;
+        if (chan[i].modFreq>4095) chan[i].modFreq=4095;
+        if (chan[i].modFreq<0) chan[i].modFreq=0;
+        rWrite(0x4086,chan[i].modFreq&0xff);
+        rWrite(0x4087,chan[i].modFreq>>8);
+      }
+
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -346,7 +355,8 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       chan[c.chan].autoModNum=c.value>>4;
       chan[c.chan].autoModDen=c.value&15;
       chan[c.chan].freqChanged=true;
-      chan[c.chan].modOn=(chan[c.chan].autoModNum || chan[c.chan].autoModDen);
+      chan[c.chan].modOn=(chan[c.chan].autoModNum && chan[c.chan].autoModDen);
+      rWrite(0x4084,(chan[c.chan].modOn<<7)|0x40|chan[c.chan].modDepth);
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_FREQUENCY(c.value2);
