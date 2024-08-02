@@ -331,7 +331,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:540
 msgid "10xy: Setup LFO (x: enable; y: speed)"
-msgstr ""
+msgstr "10xy：设置 LFO (x：启用; y：速度)"
 
 #: src/engine/sysDef.cpp:541
 msgid ""
@@ -341,7 +341,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:549
 msgid "1Fxx: Set ADPCM-A global volume (0 to 3F)"
-msgstr ""
+msgstr "1Fxx：设置ADPCM-A 全局音量 (0 to 3F)"
 
 #: src/engine/sysDef.cpp:553
 msgid "10xx: Set patch (0 to F)"
@@ -428,7 +428,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:574
 msgid "10xx: Set global AM depth (0: 1dB, 1: 4.8dB)"
-msgstr ""
+msgstr "10xx: 设置全局AM 深度 (0: 1dB, 1: 4.8dB)"
 
 #: src/engine/sysDef.cpp:578 src/engine/sysDef.cpp:633
 msgid "14xx: Set level of operator 3 (0 highest, 3F lowest)"
@@ -440,7 +440,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:581
 msgid "17xx: Set global vibrato depth (0: normal, 1: double)"
-msgstr ""
+msgstr "17xx: 设置全局颤音深度 (0: 正常, 1: 双倍)"
 
 #: src/engine/sysDef.cpp:585 src/engine/sysDef.cpp:640
 msgid "1Cxx: Set attack of operator 3 (0 to F)"
