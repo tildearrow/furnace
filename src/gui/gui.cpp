@@ -5159,11 +5159,81 @@ bool FurnaceGUI::loop() {
                 }
               }
               break;
-            case GUI_FILE_INS_SAVE_ALL:
-            case GUI_FILE_WAVE_SAVE_ALL:
-            case GUI_FILE_SAMPLE_SAVE_ALL:
-              showError("Placeholder.");
+            case GUI_FILE_INS_SAVE_ALL: {
+              String errors;
+              for (int i=0; i<e->song.insLen; i++) {
+                String nextPath=copyOfName;
+                nextPath+=DIR_SEPARATOR_STR;
+                nextPath+=fmt::sprintf("%.2X_",i);
+                for (char j: e->song.ins[i]->name) {
+                  switch (j) {
+                    // these chars are reserved
+                    case '/': case '<': case '>': case ':': case '"': case '\\': case '|': case '?': case '*':
+                      nextPath+='_';
+                      break;
+                    default:
+                      nextPath+=j;
+                      break;
+                  }
+                }
+                nextPath+=".fui";
+                logV("%s",nextPath);
+                if (!e->song.ins[i]->save(nextPath.c_str(),&e->song,settings.writeInsNames)) {
+                  errors+=fmt::sprintf("%s: could not save!\n",e->song.ins[i]->name);
+                }
+              }
+
+              if (!errors.empty()) {
+                showError(errors);
+              }
               break;
+            }
+            case GUI_FILE_WAVE_SAVE_ALL: {
+              String errors;
+              for (int i=0; i<e->song.waveLen; i++) {
+                String nextPath=copyOfName;
+                nextPath+=DIR_SEPARATOR_STR;
+                nextPath+=fmt::sprintf("%.2X.fuw",i);
+                logV("%s",nextPath);
+                if (!e->song.wave[i]->save(nextPath.c_str())) {
+                  errors+=fmt::sprintf("%d: could not save!\n",i);
+                }
+              }
+
+              if (!errors.empty()) {
+                showError(errors);
+              }
+              break;
+            }
+            case GUI_FILE_SAMPLE_SAVE_ALL: {
+              String errors;
+              for (int i=0; i<e->song.sampleLen; i++) {
+                String nextPath=copyOfName;
+                nextPath+=DIR_SEPARATOR_STR;
+                nextPath+=fmt::sprintf("%.2X_",i);
+                for (char j: e->song.sample[i]->name) {
+                  switch (j) {
+                    // these chars are reserved
+                    case '/': case '<': case '>': case ':': case '"': case '\\': case '|': case '?': case '*':
+                      nextPath+='_';
+                      break;
+                    default:
+                      nextPath+=j;
+                      break;
+                  }
+                }
+                nextPath+=".wav";
+                logV("%s",nextPath);
+                if (!e->song.sample[i]->save(nextPath.c_str())) {
+                  errors+=fmt::sprintf("%s: could not save!\n",e->song.sample[i]->name);
+                }
+              }
+
+              if (!errors.empty()) {
+                showError(errors);
+              }
+              break;
+            }
             case GUI_FILE_WAVE_SAVE:
               if (curWave>=0 && curWave<(int)e->song.wave.size()) {
                 if (e->song.wave[curWave]->save(copyOfName.c_str())) {
