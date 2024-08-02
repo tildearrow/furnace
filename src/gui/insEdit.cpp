@@ -5665,6 +5665,11 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     {
       DivInstrumentSID3::Filter* filt = &ins->sid3.filt[i];
 
+      if(filt->enabled)
+      {
+        ImGui::Separator();
+      }
+
       bool enable=filt->enabled;
       snprintf(buffer, 40, _("Enable filter %d"), i + 1);
       if (ImGui::Checkbox(buffer,&enable)) { PARAMETER
@@ -5730,6 +5735,90 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
           filt->mode ^= SID3_FILTER_OUTPUT;
         }
       }
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::BeginTable("SID3filtmatrix",1)) 
+    {
+      if (waveGenVisible) ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,250.0f*dpiScale);
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+
+      CENTER_TEXT(_("Filters connection matrix"));
+      ImGui::Text(_("Filters connection matrix"));
+
+      if (ImGui::BeginTable("SID3checkboxesmatrix",3 + SID3_NUM_FILTERS)) 
+      {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text(">>");
+        ImGui::TableNextColumn();
+        ImGui::Text(_("In"));
+
+        for(int i = 0; i < SID3_NUM_FILTERS; i++)
+        {
+          ImGui::TableNextColumn();
+          ImGui::Text("%d", i + 1);
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::Text(_("Out"));
+
+        ImGui::TableNextRow();
+
+        for(int i = 0; i < SID3_NUM_FILTERS; i++)
+        {
+          DivInstrumentSID3::Filter* filt = &ins->sid3.filt[i];
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("%d", i + 1);
+
+          ImGui::TableNextColumn();
+
+          snprintf(buffer, 40, "##filtmatrixin%d", i + 1);
+          bool toInput=filt->mode & SID3_FILTER_CHANNEL_INPUT;
+          if (ImGui::Checkbox(buffer,&toInput)) { PARAMETER
+            filt->mode ^= SID3_FILTER_CHANNEL_INPUT;
+          }
+          if (ImGui::IsItemHovered()) 
+          {
+            ImGui::SetTooltip(_("Feed signal from channel to filter %d input"), i + 1);
+          }
+
+          for(int j = 0; j < SID3_NUM_FILTERS; j++)
+          {
+            ImGui::TableNextColumn();
+            snprintf(buffer, 40, "##filtmatrix%d%d", i + 1, j + 1);
+
+            bool enable=filt->filter_matrix & (1 << j);
+            if (ImGui::Checkbox(buffer,&enable)) { PARAMETER
+              filt->filter_matrix ^= (1 << j);
+            }
+            if (ImGui::IsItemHovered()) 
+            {
+              ImGui::SetTooltip(_("Feed signal from filter %d output to filter %d input"), j + 1, i + 1);
+            }
+          }
+
+          ImGui::TableNextColumn();
+
+          snprintf(buffer, 40, "##filtmatrixout%d", i + 1);
+          bool toOutput=filt->mode & SID3_FILTER_OUTPUT;
+          if (ImGui::Checkbox(buffer,&toOutput)) { PARAMETER
+            filt->mode ^= SID3_FILTER_OUTPUT;
+          }
+          if (ImGui::IsItemHovered()) 
+          {
+            ImGui::SetTooltip(_("Feed signal from filter %d output to channel output"), i + 1);
+          }
+        }
+
+        ImGui::EndTable();
+      }
+
+      ImGui::EndTable();
     }
 
     ImGui::EndTabItem();

@@ -168,6 +168,23 @@ void DivPlatformSID3::tick(bool sysTick)
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&255,MIN(255,chan[i].std.vol.val),255);
       rWrite(13 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].outVol);
     }
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
+      if (!chan[i].inPorta) {
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+      }
+      chan[i].freqChanged=true;
+    }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-65535,65535);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) 
     {
