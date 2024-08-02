@@ -498,7 +498,7 @@ void DivPlatformSID3::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformSID3::setFlags(const DivConfig& flags) {
-  chipClock=500000;
+  chipClock=1000000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   for (int i=0; i<SID3_NUM_CHANNELS; i++) {

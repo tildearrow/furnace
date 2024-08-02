@@ -10,10 +10,10 @@ enum State { ATTACK, DECAY, SUSTAIN, RELEASE }; //for envelope
 #  define M_PI    3.14159265358979323846
 #endif
 
-#define envspd_factor 6
+#define envspd_factor 10
 
-#define envspd_adr(rate) ((uint64_t)0x7f0000 / ((rate == 0 ? 1 : (rate * envspd_factor)) * (rate == 0 ? 1 : (rate * envspd_factor))))
-#define envspd_sr(rate) (rate == 0 ? 0 : ((uint64_t)0x7f0000 / ((256 - rate) * (256 - rate) * envspd_factor * envspd_factor)))
+#define envspd_adr(rate) ((uint64_t)0xff0000 / ((rate == 0 ? 1 : (rate * envspd_factor)) * (rate == 0 ? 1 : (rate * envspd_factor))))
+#define envspd_sr(rate) (rate == 0 ? 0 : ((uint64_t)0xff0000 / ((256 - rate) * (256 - rate) * envspd_factor * envspd_factor)))
 
 //these 4 ones are util only
 double square(double x) {
@@ -2422,7 +2422,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         {
             adsr->envelope_counter += adsr->envelope_speed;
 
-            if (adsr->envelope_counter >= 0x7f0000) 
+            if (adsr->envelope_counter >= 0xff0000) 
             {
                 adsr->state = DECAY;
                 adsr->envelope_speed = envspd_adr(adsr->d);
@@ -2435,16 +2435,16 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         {
             adsr->envelope_counter -= adsr->envelope_speed;
 
-            if(adsr->envelope_counter > 0x7f0f00) adsr->envelope_counter = 0x7f0000;
+            if(adsr->envelope_counter > 0xff0f00) adsr->envelope_counter = 0xff0000;
 
-            if(adsr->envelope_counter <= ((uint32_t)adsr->s << 15))
+            if(adsr->envelope_counter <= ((uint32_t)adsr->s << 16))
             {
                 adsr->state = SUSTAIN;
-                adsr->envelope_counter = (uint32_t)adsr->s << 15;
+                adsr->envelope_counter = (uint32_t)adsr->s << 16;
                 adsr->envelope_speed = envspd_sr(adsr->sr);
             }
 
-            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0x7ff0000)
+            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0xfff0000)
             {
                 adsr->envelope_counter = 0;
                 adsr->hold_zero = true;
@@ -2456,7 +2456,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         {
             adsr->envelope_counter -= adsr->envelope_speed;
 
-            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0x7ff0000)
+            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0xfff0000)
             {
                 adsr->envelope_counter = 0;
                 adsr->hold_zero = true;
@@ -2494,7 +2494,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
 
 int32_t sid3_adsr_output(sid3_channel_adsr* adsr, int32_t input)
 {
-    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter / (int64_t)0x7f0000 / (int64_t)8 * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL); //"/ (int64_t)8" so that there's enough amplitude for all 7 chans! 
+    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter / (int64_t)0xff0000 / (int64_t)8 * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL); //"/ (int64_t)8" so that there's enough amplitude for all 7 chans! 
 }
 
 void sid3_set_filter_settings(sid3_filter* filt)
@@ -2503,13 +2503,471 @@ void sid3_set_filter_settings(sid3_filter* filt)
 
     // Multiply with 1.048576 to facilitate division by 1 000 000 by right-
     // shifting 20 times (2 ^ 20 = 1048576).
-    filt->w0 = (2.0*pi*(float)filt->cutoff) / 500000.0 / 6.0; // "/ 12.0" bc we have 16 bit cutoff instead of 12-bit
+    filt->w0 = (2.0*pi*(float)filt->cutoff) / 500000.0 / 5.0; // "/ 12.0" bc we have 16 bit cutoff instead of 12-bit
 
     // Limit f0 to 16kHz to keep 1 cycle filter stable.
-    const float w0_max_1 = (2.0*pi*16000.0) / 500000.0;
+    const float w0_max_1 = (2.0*pi*20000.0) / 500000.0;
     filt->w0_ceil_1 = filt->w0 <= w0_max_1 ? filt->w0 : w0_max_1;
 
-    filt->_1024_div_Q = (1.0/(0.707 + 3.0*(float)filt->resonance/(float)0x0ff));
+    filt->_1024_div_Q = (1.0/(0.707 + 4.0*(float)filt->resonance/(float)0x0ff));
+}
+
+int32_t sid3_get_waveform(SID3* sid3, sid3_channel* ch)
+{
+    if(ch->waveform == 0) return 0;
+
+    int32_t wave = 0;
+
+    switch(ch->mix_mode)
+    {
+        case SID3_MIX_8580:
+        {
+            switch(ch->waveform)
+            {
+                case SID3_WAVE_TRIANGLE:
+                {
+                    wave = sid3_triangle(ch->accumulator);
+                    break;
+                }
+                case SID3_WAVE_SAW:
+                {
+                    wave = sid3_saw(ch->accumulator);
+                    break;
+                }
+                case SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
+                {
+                    wave = wave8580__ST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8;
+                    break;
+                }
+                case SID3_WAVE_PULSE:
+                {
+                    wave = sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+                case SID3_WAVE_PULSE | SID3_WAVE_TRIANGLE:
+                {
+                    wave = (wave8580_P_T[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+                case SID3_WAVE_PULSE | SID3_WAVE_SAW:
+                {
+                    wave = (wave8580_PS_[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+                case SID3_WAVE_PULSE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
+                {
+                    wave = (wave8580_PST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+                case SID3_WAVE_NOISE:
+                {
+                    wave = sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                case SID3_WAVE_NOISE | SID3_WAVE_TRIANGLE:
+                {
+                    wave = sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_triangle(ch->accumulator);
+                    break;
+                }
+                case SID3_WAVE_NOISE | SID3_WAVE_SAW:
+                {
+                    wave = sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_saw(ch->accumulator);
+                    break;
+                }
+                case SID3_WAVE_NOISE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
+                {
+                    wave = (wave8580__ST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                case SID3_WAVE_NOISE | SID3_WAVE_PULSE:
+                {
+                    wave = sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+                case SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_TRIANGLE:
+                {
+                    wave = (wave8580_P_T[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                case SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_SAW:
+                {
+                    wave = (wave8580_PS_[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                case SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
+                {
+                    wave = (wave8580_PST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_TRIANGLE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_triangle(ch->accumulator);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_SAW:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_saw(ch->accumulator);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & wave8580__ST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8;
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_PULSE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_PULSE | SID3_WAVE_TRIANGLE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_P_T[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_PULSE | SID3_WAVE_SAW:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_PS_[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_PULSE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_PST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_TRIANGLE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_triangle(ch->accumulator);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_SAW:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_saw(ch->accumulator);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580__ST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_PULSE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_pulse(ch->accumulator, ch->pw);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_TRIANGLE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_P_T[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_SAW:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_PS_[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
+                {
+                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_PST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+                    break;
+                }
+                default: break;
+            }
+
+            wave -= 0x8000;
+            break;
+        }
+        case SID3_MIX_AND:
+        {
+            wave = 0xffff;
+
+            if(ch->waveform & SID3_WAVE_TRIANGLE)
+            {
+                wave &= sid3_triangle(ch->accumulator);
+            }
+            if(ch->waveform & SID3_WAVE_SAW)
+            {
+                wave &= sid3_saw(ch->accumulator);
+            }
+            if(ch->waveform & SID3_WAVE_PULSE)
+            {
+                wave &= sid3_pulse(ch->accumulator, ch->pw);
+            }
+            if(ch->waveform & SID3_WAVE_NOISE)
+            {
+                wave &= sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+            }
+            if(ch->waveform & SID3_WAVE_SPECIAL)
+            {
+                wave &= sid3_special_wave(sid3, ch->accumulator, ch->special_wave);
+            }
+
+            wave -= 0x8000;
+            break;
+        }
+        case SID3_MIX_OR:
+        {
+            uint16_t wave_16 = 0;
+
+            if(ch->waveform & SID3_WAVE_TRIANGLE)
+            {
+                wave_16 |= sid3_triangle(ch->accumulator);
+            }
+            if(ch->waveform & SID3_WAVE_SAW)
+            {
+                wave_16 |= sid3_saw(ch->accumulator);
+            }
+            if(ch->waveform & SID3_WAVE_PULSE)
+            {
+                wave_16 |= sid3_pulse(ch->accumulator, ch->pw);
+            }
+            if(ch->waveform & SID3_WAVE_NOISE)
+            {
+                wave_16 |= sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+            }
+            if(ch->waveform & SID3_WAVE_SPECIAL)
+            {
+                wave_16 |= sid3_special_wave(sid3, ch->accumulator, ch->special_wave);
+            }
+
+            wave = wave_16 - 0x8000;
+            break;
+        }
+        case SID3_MIX_XOR:
+        {
+            uint16_t wave_16 = 0;
+
+            if(ch->waveform & SID3_WAVE_TRIANGLE)
+            {
+                wave_16 ^= sid3_triangle(ch->accumulator);
+            }
+            if(ch->waveform & SID3_WAVE_SAW)
+            {
+                wave_16 ^= sid3_saw(ch->accumulator);
+            }
+            if(ch->waveform & SID3_WAVE_PULSE)
+            {
+                wave_16 ^= sid3_pulse(ch->accumulator, ch->pw);
+            }
+            if(ch->waveform & SID3_WAVE_NOISE)
+            {
+                wave_16 ^= sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
+            }
+            if(ch->waveform & SID3_WAVE_SPECIAL)
+            {
+                wave_16 ^= sid3_special_wave(sid3, ch->accumulator, ch->special_wave);
+            }
+
+            wave = wave_16 - 0x8000;
+            break;
+        }
+        case SID3_MIX_SUM:
+        {
+            if(ch->waveform & SID3_WAVE_TRIANGLE)
+            {
+                wave += (int32_t)sid3_triangle(ch->accumulator) - 0x8000;
+            }
+            if(ch->waveform & SID3_WAVE_SAW)
+            {
+                wave += (int32_t)sid3_saw(ch->accumulator) - 0x8000;
+            }
+            if(ch->waveform & SID3_WAVE_PULSE)
+            {
+                wave += (int32_t)sid3_pulse(ch->accumulator, ch->pw) - 0x8000;
+            }
+            if(ch->waveform & SID3_WAVE_NOISE)
+            {
+                wave += (int32_t)sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) - 0x8000;
+            }
+            if(ch->waveform & SID3_WAVE_SPECIAL)
+            {
+                wave += (int32_t)sid3_special_wave(sid3, ch->accumulator, ch->special_wave) - 0x8000;
+            }
+            break;
+        }
+        default: break;
+    }
+
+    return wave;
+}
+
+int32_t sid3_process_filters_block(sid3_channel* ch)
+{
+    int32_t output = 0;
+
+    ch->clock_filter++;
+
+    if(ch->clock_filter & 1)
+    {
+        for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+        {
+            if(ch->filt.filt[i].mode & SID3_FILTER_OUTPUT)
+            {
+                output += ch->filt.filt[i].output;
+            }
+        }
+
+        return output;
+    }
+
+    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+    {
+        ch->filt.filt[i].input = 0;
+    }
+
+    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+    {
+        if(ch->filt.filt[i].mode & SID3_FILTER_CHANNEL_INPUT)
+        {
+            ch->filt.filt[i].input += ch->output_before_filter;
+        }
+
+        for(uint8_t j = 0; j < SID3_NUM_FILTERS; j++)
+        {
+            if(ch->filt.connection_matrix[i] & (1 << j))
+            {
+                ch->filt.filt[i].input += ch->filt.filt[j].output;
+            }
+        }
+    }
+
+    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+    {
+        if(ch->filt.filt[i].mode & SID3_FILTER_ENABLE)
+        {
+            float Vi = ch->filt.filt[i].input;
+
+            float dVbp = (ch->filt.filt[i].w0_ceil_1 * ch->filt.filt[i].Vhp);
+            float dVlp = (ch->filt.filt[i].w0_ceil_1 * ch->filt.filt[i].Vbp);
+            ch->filt.filt[i].Vbp -= dVbp;
+            ch->filt.filt[i].Vlp -= dVlp;
+            ch->filt.filt[i].Vhp = (ch->filt.filt[i].Vbp * ch->filt.filt[i]._1024_div_Q) - ch->filt.filt[i].Vlp - Vi;
+
+            float Vo;
+
+            switch(ch->filt.filt[i].mode & SID3_FILTER_MODES_MASK)
+            {
+                case 0x0:
+                default:
+                    Vo = 0;
+                    break;
+                case SID3_FILTER_LP:
+                    Vo = ch->filt.filt[i].Vlp;
+                    break;
+                case SID3_FILTER_HP:
+                    Vo = ch->filt.filt[i].Vhp;
+                    break;
+                case SID3_FILTER_LP | SID3_FILTER_HP:
+                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vhp;
+                    break;
+                case SID3_FILTER_BP:
+                    Vo = ch->filt.filt[i].Vbp;
+                    break;
+                case SID3_FILTER_BP | SID3_FILTER_LP:
+                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vbp;
+                    break;
+                case SID3_FILTER_BP | SID3_FILTER_HP:
+                    Vo = ch->filt.filt[i].Vhp + ch->filt.filt[i].Vbp;
+                    break;
+                case SID3_FILTER_BP | SID3_FILTER_HP | SID3_FILTER_LP:
+                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vbp + ch->filt.filt[i].Vhp;
+                    break;
+            }
+
+            ch->filt.filt[i].output = Vo * ch->filt.filt[i].output_volume / 0xff;
+        }
+        else
+        {
+            ch->filt.filt[i].output = 0;
+        }
+
+        if(ch->filt.filt[i].mode & SID3_FILTER_OUTPUT)
+        {
+            output += ch->filt.filt[i].output;
+        }
+    }
+
+    return output;
+}
+
+void sid3_clock(SID3* sid3)
+{
+    //SAFETY_HEADER
+
+    sid3->output_l = sid3->output_r = 0;
+
+    for(int32_t i = 0; i < SID3_NUM_CHANNELS - 1; i++)
+    {
+        sid3_channel* ch = &sid3->chan[i];
+        
+        uint32_t prev_acc = ch->accumulator;
+
+        ch->accumulator += ch->frequency;
+
+        ch->sync_bit = 0;
+
+        if(ch->accumulator & (1 << SID3_ACC_BITS))
+        {
+            ch->sync_bit = 1;
+        }
+
+        if(ch->flags & SID3_CHAN_ENABLE_HARD_SYNC)
+        {
+            if(sid3->chan[ch->hard_sync_src].sync_bit)
+            {
+                ch->accumulator = 0;
+            }
+        }
+
+        ch->accumulator &= SID3_ACC_MASK;
+
+        if((prev_acc & ((uint32_t)1 << (SID3_ACC_BITS - 6))) != (ch->accumulator & ((uint32_t)1 << (SID3_ACC_BITS - 6))))
+        {
+            sid3_clock_lfsr(ch);
+        }
+
+        //todo: phase mod
+
+        int32_t waveform = sid3_get_waveform(sid3, ch);
+
+        sid3->channel_signals_before_ADSR[i] = waveform;
+
+        if(ch->flags & SID3_CHAN_ENABLE_RING_MOD)
+        {
+            uint8_t ring_mod_src = ch->ring_mod_src == SID3_NUM_CHANNELS ? i : ch->ring_mod_src; //SID3_NUM_CHANNELS = self-mod
+
+            waveform = waveform * sid3->channel_signals_before_ADSR[ring_mod_src] / (int32_t)0xffff; //ring modulation is just multiplication of two signals!
+        }
+
+        sid3_adsr_clock(&ch->adsr);
+
+        ch->output_before_filter = sid3_adsr_output(&ch->adsr, waveform);
+
+        int32_t output = 0;
+        
+        if((ch->filt.filt[0].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[1].mode & SID3_FILTER_ENABLE) ||
+            (ch->filt.filt[2].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[3].mode & SID3_FILTER_ENABLE))
+        {
+            output = sid3_process_filters_block(ch);
+        }
+        else
+        {
+            output = ch->output_before_filter;
+        }
+
+        sid3->output_l += output;
+        sid3->output_r += output;
+
+        sid3->channel_output[i] = output;
+    }
 }
 
 void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
@@ -2872,449 +3330,6 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             break;
         }
         default: break;
-    }
-}
-
-int32_t sid3_get_waveform(SID3* sid3, sid3_channel* ch)
-{
-    if(ch->waveform == 0) return 0;
-
-    int32_t wave = 0;
-
-    switch(ch->mix_mode)
-    {
-        case SID3_MIX_8580:
-        {
-            switch(ch->waveform)
-            {
-                case SID3_WAVE_TRIANGLE:
-                {
-                    wave = sid3_triangle(ch->accumulator);
-                    break;
-                }
-                case SID3_WAVE_SAW:
-                {
-                    wave = sid3_saw(ch->accumulator);
-                    break;
-                }
-                case SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
-                {
-                    wave = wave8580__ST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8;
-                    break;
-                }
-                case SID3_WAVE_PULSE:
-                {
-                    wave = sid3_pulse(ch->accumulator, ch->pw);
-                    break;
-                }
-                case SID3_WAVE_PULSE | SID3_WAVE_TRIANGLE:
-                {
-                    wave = (wave8580_P_T[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
-                    break;
-                }
-                case SID3_WAVE_PULSE | SID3_WAVE_SAW:
-                {
-                    wave = (wave8580_PS_[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
-                    break;
-                }
-                case SID3_WAVE_PULSE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
-                {
-                    wave = (wave8580_PST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
-                    break;
-                }
-                case SID3_WAVE_NOISE:
-                {
-                    wave = sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-                    break;
-                }
-                case SID3_WAVE_NOISE | SID3_WAVE_TRIANGLE:
-                {
-                    wave = sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_triangle(ch->accumulator);
-                    break;
-                }
-                case SID3_WAVE_NOISE | SID3_WAVE_SAW:
-                {
-                    wave = sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_saw(ch->accumulator);
-                    break;
-                }
-                case SID3_WAVE_NOISE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
-                {
-                    wave = (wave8580__ST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-                    break;
-                }
-                case SID3_WAVE_NOISE | SID3_WAVE_PULSE:
-                {
-                    wave = sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_pulse(ch->accumulator, ch->pw);
-                    break;
-                }
-                case SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_TRIANGLE:
-                {
-                    wave = (wave8580_P_T[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-                    break;
-                }
-                case SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_SAW:
-                {
-                    wave = (wave8580_PS_[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-                    break;
-                }
-                case SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
-                {
-                    wave = (wave8580_PST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_TRIANGLE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_triangle(ch->accumulator);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_SAW:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_saw(ch->accumulator);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & wave8580__ST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8;
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_PULSE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_pulse(ch->accumulator, ch->pw);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_PULSE | SID3_WAVE_TRIANGLE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_P_T[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_PULSE | SID3_WAVE_SAW:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_PS_[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_PULSE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_PST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_pulse(ch->accumulator, ch->pw);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_TRIANGLE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_triangle(ch->accumulator);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_SAW:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_saw(ch->accumulator);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580__ST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_PULSE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) & sid3_pulse(ch->accumulator, ch->pw);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_TRIANGLE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_P_T[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_SAW:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_PS_[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-                    break;
-                }
-                case SID3_WAVE_SPECIAL | SID3_WAVE_NOISE | SID3_WAVE_PULSE | SID3_WAVE_SAW | SID3_WAVE_TRIANGLE:
-                {
-                    wave = sid3_special_wave(sid3, ch->accumulator, ch->special_wave) & (wave8580_PST[ch->accumulator >> (SID3_ACC_BITS - 12)] << 8) & sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-                    break;
-                }
-                default: break;
-            }
-
-            wave -= 0x8000;
-            break;
-        }
-        case SID3_MIX_AND:
-        {
-            wave = 0xffff;
-
-            if(ch->waveform & SID3_WAVE_TRIANGLE)
-            {
-                wave &= sid3_triangle(ch->accumulator);
-            }
-            if(ch->waveform & SID3_WAVE_SAW)
-            {
-                wave &= sid3_saw(ch->accumulator);
-            }
-            if(ch->waveform & SID3_WAVE_PULSE)
-            {
-                wave &= sid3_pulse(ch->accumulator, ch->pw);
-            }
-            if(ch->waveform & SID3_WAVE_NOISE)
-            {
-                wave &= sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-            }
-            if(ch->waveform & SID3_WAVE_SPECIAL)
-            {
-                wave &= sid3_special_wave(sid3, ch->accumulator, ch->special_wave);
-            }
-
-            wave -= 0x8000;
-            break;
-        }
-        case SID3_MIX_OR:
-        {
-            uint16_t wave_16 = 0;
-
-            if(ch->waveform & SID3_WAVE_TRIANGLE)
-            {
-                wave_16 |= sid3_triangle(ch->accumulator);
-            }
-            if(ch->waveform & SID3_WAVE_SAW)
-            {
-                wave_16 |= sid3_saw(ch->accumulator);
-            }
-            if(ch->waveform & SID3_WAVE_PULSE)
-            {
-                wave_16 |= sid3_pulse(ch->accumulator, ch->pw);
-            }
-            if(ch->waveform & SID3_WAVE_NOISE)
-            {
-                wave_16 |= sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-            }
-            if(ch->waveform & SID3_WAVE_SPECIAL)
-            {
-                wave_16 |= sid3_special_wave(sid3, ch->accumulator, ch->special_wave);
-            }
-
-            wave = wave_16 - 0x8000;
-            break;
-        }
-        case SID3_MIX_XOR:
-        {
-            uint16_t wave_16 = 0;
-
-            if(ch->waveform & SID3_WAVE_TRIANGLE)
-            {
-                wave_16 ^= sid3_triangle(ch->accumulator);
-            }
-            if(ch->waveform & SID3_WAVE_SAW)
-            {
-                wave_16 ^= sid3_saw(ch->accumulator);
-            }
-            if(ch->waveform & SID3_WAVE_PULSE)
-            {
-                wave_16 ^= sid3_pulse(ch->accumulator, ch->pw);
-            }
-            if(ch->waveform & SID3_WAVE_NOISE)
-            {
-                wave_16 ^= sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE);
-            }
-            if(ch->waveform & SID3_WAVE_SPECIAL)
-            {
-                wave_16 ^= sid3_special_wave(sid3, ch->accumulator, ch->special_wave);
-            }
-
-            wave = wave_16 - 0x8000;
-            break;
-        }
-        case SID3_MIX_SUM:
-        {
-            if(ch->waveform & SID3_WAVE_TRIANGLE)
-            {
-                wave += (int32_t)sid3_triangle(ch->accumulator) - 0x8000;
-            }
-            if(ch->waveform & SID3_WAVE_SAW)
-            {
-                wave += (int32_t)sid3_saw(ch->accumulator) - 0x8000;
-            }
-            if(ch->waveform & SID3_WAVE_PULSE)
-            {
-                wave += (int32_t)sid3_pulse(ch->accumulator, ch->pw) - 0x8000;
-            }
-            if(ch->waveform & SID3_WAVE_NOISE)
-            {
-                wave += (int32_t)sid3_noise(ch->lfsr, ch->flags & SID3_CHAN_1_BIT_NOISE) - 0x8000;
-            }
-            if(ch->waveform & SID3_WAVE_SPECIAL)
-            {
-                wave += (int32_t)sid3_special_wave(sid3, ch->accumulator, ch->special_wave) - 0x8000;
-            }
-            break;
-        }
-        default: break;
-    }
-
-    return wave;
-}
-
-int32_t sid3_process_filters_block(sid3_channel* ch)
-{
-    int32_t output = 0;
-
-    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
-    {
-        ch->filt.filt[i].input = 0;
-    }
-
-    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
-    {
-        if(ch->filt.filt[i].mode & SID3_FILTER_CHANNEL_INPUT)
-        {
-            ch->filt.filt[i].input += ch->output_before_filter;
-        }
-
-        for(uint8_t j = 0; j < SID3_NUM_FILTERS; j++)
-        {
-            if(ch->filt.connection_matrix[i] & (1 << j))
-            {
-                ch->filt.filt[i].input += ch->filt.filt[j].output;
-            }
-        }
-    }
-
-    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
-    {
-        if(ch->filt.filt[i].mode & SID3_FILTER_ENABLE)
-        {
-            float Vi = ch->filt.filt[i].input;
-
-            float dVbp = (ch->filt.filt[i].w0_ceil_1 * ch->filt.filt[i].Vhp);
-            float dVlp = (ch->filt.filt[i].w0_ceil_1 * ch->filt.filt[i].Vbp);
-            ch->filt.filt[i].Vbp -= dVbp;
-            ch->filt.filt[i].Vlp -= dVlp;
-            ch->filt.filt[i].Vhp = (ch->filt.filt[i].Vbp * ch->filt.filt[i]._1024_div_Q) - ch->filt.filt[i].Vlp - Vi;
-
-            float Vo;
-
-            switch(ch->filt.filt[i].mode & SID3_FILTER_MODES_MASK)
-            {
-                case 0x0:
-                default:
-                    Vo = 0;
-                    break;
-                case SID3_FILTER_LP:
-                    Vo = ch->filt.filt[i].Vlp;
-                    break;
-                case SID3_FILTER_HP:
-                    Vo = ch->filt.filt[i].Vhp;
-                    break;
-                case SID3_FILTER_LP | SID3_FILTER_HP:
-                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vhp;
-                    break;
-                case SID3_FILTER_BP:
-                    Vo = ch->filt.filt[i].Vbp;
-                    break;
-                case SID3_FILTER_BP | SID3_FILTER_LP:
-                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vbp;
-                    break;
-                case SID3_FILTER_BP | SID3_FILTER_HP:
-                    Vo = ch->filt.filt[i].Vhp + ch->filt.filt[i].Vbp;
-                    break;
-                case SID3_FILTER_BP | SID3_FILTER_HP | SID3_FILTER_LP:
-                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vbp + ch->filt.filt[i].Vhp;
-                    break;
-            }
-
-            ch->filt.filt[i].output = Vo * ch->filt.filt[i].output_volume / 0xff;
-        }
-        else
-        {
-            ch->filt.filt[i].output = 0;
-        }
-
-        if(ch->filt.filt[i].mode & SID3_FILTER_OUTPUT)
-        {
-            output += ch->filt.filt[i].output;
-        }
-    }
-
-    return output;
-}
-
-void sid3_clock(SID3* sid3)
-{
-    //SAFETY_HEADER
-
-    sid3->output_l = sid3->output_r = 0;
-
-    for(int32_t i = 0; i < SID3_NUM_CHANNELS - 1; i++)
-    {
-        sid3_channel* ch = &sid3->chan[i];
-        
-        uint32_t prev_acc = ch->accumulator;
-
-        ch->accumulator += ch->frequency;
-
-        ch->sync_bit = 0;
-
-        if(ch->accumulator & (1 << SID3_ACC_BITS))
-        {
-            ch->sync_bit = 1;
-        }
-
-        if(ch->flags & SID3_CHAN_ENABLE_HARD_SYNC)
-        {
-            if(sid3->chan[ch->hard_sync_src].sync_bit)
-            {
-                ch->accumulator = 0;
-            }
-        }
-
-        ch->accumulator &= SID3_ACC_MASK;
-
-        if((prev_acc & ((uint32_t)1 << (SID3_ACC_BITS - 6))) != (ch->accumulator & ((uint32_t)1 << (SID3_ACC_BITS - 6))))
-        {
-            sid3_clock_lfsr(ch);
-        }
-
-        //todo: phase mod
-
-        int32_t waveform = sid3_get_waveform(sid3, ch);
-
-        sid3->channel_signals_before_ADSR[i] = waveform;
-
-        if(ch->flags & SID3_CHAN_ENABLE_RING_MOD)
-        {
-            uint8_t ring_mod_src = ch->ring_mod_src == SID3_NUM_CHANNELS ? i : ch->ring_mod_src; //SID3_NUM_CHANNELS = self-mod
-
-            waveform = waveform * sid3->channel_signals_before_ADSR[ring_mod_src] / (int32_t)0xffff; //ring modulation is just multiplication of two signals!
-        }
-
-        sid3_adsr_clock(&ch->adsr);
-
-        ch->output_before_filter = sid3_adsr_output(&ch->adsr, waveform);
-
-        int32_t output = 0;
-        
-        if((ch->filt.filt[0].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[1].mode & SID3_FILTER_ENABLE) ||
-            (ch->filt.filt[2].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[3].mode & SID3_FILTER_ENABLE))
-        {
-            output = sid3_process_filters_block(ch);
-        }
-        else
-        {
-            output = ch->output_before_filter;
-        }
-
-        sid3->output_l += output;
-        sid3->output_r += output;
-
-        sid3->channel_output[i] = output;
     }
 }
 

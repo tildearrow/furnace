@@ -176,6 +176,7 @@ typedef struct
     uint8_t phase_mod_source;
 
     sid3_filters_block filt;
+    uint8_t clock_filter;
 
     uint8_t panning_left, panning_right;
     bool invert_left, invert_right; //invert channel signal
@@ -204,6 +205,7 @@ typedef struct
     uint8_t phase_mod_source;
 
     sid3_filters_block filt;
+    uint8_t clock_filter;
 
     uint8_t panning_left, panning_right;
     bool invert_left, invert_right; //invert channel signal
