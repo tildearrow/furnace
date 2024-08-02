@@ -2224,17 +2224,17 @@ uint8_t wave8580_PST[] =
 /* 0xff8: */  0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 };
 
-inline uint16_t sid3_pulse(uint32_t acc, uint16_t pw) // 0-FFFF pulse width range
+uint16_t sid3_pulse(uint32_t acc, uint16_t pw) // 0-FFFF pulse width range
 {
     return (((acc >> ((SID3_ACC_BITS - 16))) >= ((pw == 0xffff ? pw + 1 : pw)) ? (0xffff) : 0));
 }
 
-inline uint16_t sid3_saw(uint32_t acc) 
+uint16_t sid3_saw(uint32_t acc) 
 {
     return (acc >> (SID3_ACC_BITS - 16)) & (0xffff);
 }
 
-inline uint16_t sid3_triangle(uint32_t acc) 
+uint16_t sid3_triangle(uint32_t acc) 
 {
     return (((acc > (1 << (SID3_ACC_BITS - 1))) ? ~acc : acc) >> (SID3_ACC_BITS - 17));
 }
@@ -2250,12 +2250,12 @@ void sid3_clock_lfsr(sid3_channel* ch)
     }
 }
 
-inline uint16_t sid3_noise(uint32_t lfsr, bool one_bit) 
+uint16_t sid3_noise(uint32_t lfsr, bool one_bit) 
 {
     return one_bit ? ((lfsr & 1) ? 0xffff : 0) : (lfsr & 0xffff);
 }
 
-inline uint16_t sid3_special_wave(SID3* sid3, uint32_t acc, uint8_t wave) 
+uint16_t sid3_special_wave(SID3* sid3, uint32_t acc, uint8_t wave) 
 {
     return sid3->special_waves[wave][acc >> (SID3_ACC_BITS - 14)];
 }
