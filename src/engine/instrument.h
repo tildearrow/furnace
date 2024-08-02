@@ -968,6 +968,7 @@ struct DivInstrument {
   void writeFeatureEF(SafeWriter* w);
   void writeFeaturePN(SafeWriter* w);
   void writeFeatureS2(SafeWriter* w);
+  void writeFeatureS3(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -991,6 +992,7 @@ struct DivInstrument {
   void readFeatureEF(SafeReader& reader, short version);
   void readFeaturePN(SafeReader& reader, short version);
   void readFeatureS2(SafeReader& reader, short version);
+  void readFeatureS3(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);

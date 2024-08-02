@@ -880,6 +880,12 @@ void DivInstrument::writeFeatureS2(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureS3(SafeWriter* w) {
+  FEATURE_BEGIN("S3");
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -926,6 +932,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureEF=false;
   bool featurePN=false;
   bool featureS2=false;
+  bool featureS3=false;
 
   bool checkForWL=false;
 
@@ -1169,6 +1176,11 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         feature64=true;
         featureS2=true;
         break;
+      case DIV_INS_SID3:
+        feature64=true;
+        featureS2=true;
+        featureS3=true;
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1224,6 +1236,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (sid2!=defaultIns.sid2) {
       featureS2=true;
+    }
+    if (sid3!=defaultIns.sid3) {
+      featureS3=true;
     }
   }
 
@@ -1375,6 +1390,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureS2) {
     writeFeatureS2(w);
+  }
+  if (featureS3) {
+    writeFeatureS3(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -2216,6 +2234,14 @@ void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -2290,6 +2316,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeaturePN(reader,version);
     } else if (memcmp(featCode,"S2",2)==0) { // SID2
       readFeatureS2(reader,version);
+    } else if (memcmp(featCode,"S3",2)==0) { // SID3
+      readFeatureS3(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing
