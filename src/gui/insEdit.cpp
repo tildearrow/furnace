@@ -5631,19 +5631,19 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       ins->c64.ringMod=ringMod;
     }
 
-    char buffer[20];
+    char buffer[40];
 
     if(ins->sid3.ring_mod_source == SID3_NUM_CHANNELS)
     {
-      snprintf(buffer, 20, _("Self"));
+      snprintf(buffer, 40, _("Self"));
     }
     else if(ins->sid3.ring_mod_source == SID3_NUM_CHANNELS - 1)
     {
-      snprintf(buffer, 20, _("PCM channel"));
+      snprintf(buffer, 40, _("PCM channel"));
     }
     else
     {
-      snprintf(buffer, 20, "%d", ins->sid3.ring_mod_source + 1);
+      snprintf(buffer, 40, "%d", ins->sid3.ring_mod_source + 1);
     }
 
     P(CWSliderScalar(_("Ring mod source channel"),ImGuiDataType_U8,&ins->sid3.ring_mod_source,&_ZERO,&_SID3_NUM_CHANNELS,buffer));
@@ -5653,12 +5653,83 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       ins->c64.oscSync=oscSync;
     }
 
-    snprintf(buffer, 20, "%d", ins->sid3.sync_source + 1);
+    snprintf(buffer, 40, "%d", ins->sid3.sync_source + 1);
     P(CWSliderScalar(_("Sync source channel"),ImGuiDataType_U8,&ins->sid3.sync_source,&_ZERO,&_SID3_NUM_CHANNELS_MINUS_ONE));
 
     bool phaseMod=ins->sid3.phase_mod;
     if (ImGui::Checkbox(_("Phase modulation"),&phaseMod)) { PARAMETER
       ins->sid3.phase_mod=phaseMod;
+    }
+
+    for(int i = 0; i < SID3_NUM_FILTERS; i++)
+    {
+      DivInstrumentSID3::Filter* filt = &ins->sid3.filt[i];
+
+      bool enable=filt->enabled;
+      snprintf(buffer, 40, _("Enable filter %d"), i + 1);
+      if (ImGui::Checkbox(buffer,&enable)) { PARAMETER
+        filt->enabled=enable;
+      }
+
+      if(filt->enabled)
+      {
+        bool init=filt->init;
+        snprintf(buffer, 40, _("Initialize filter %d"), i + 1);
+        if (ImGui::Checkbox(buffer,&init)) { PARAMETER
+          filt->init=init;
+        }
+        ImGui::SameLine();
+        snprintf(buffer, 40, _("Connect to channel input##contoinput%d"), i + 1);
+        bool toInput=filt->mode & SID3_FILTER_CHANNEL_INPUT;
+        if (ImGui::Checkbox(buffer,&toInput)) { PARAMETER
+          filt->mode ^= SID3_FILTER_CHANNEL_INPUT;
+        }
+
+        snprintf(buffer, 40, _("Cutoff##fcut%d"), i + 1);
+        P(CWSliderScalar(buffer,ImGuiDataType_U16,&filt->cutoff,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+        snprintf(buffer, 40, _("Resonance##fres%d"), i + 1);
+        P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->resonance,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+        snprintf(buffer, 40, _("Output volume##foutvol%d"), i + 1);
+        P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->output_volume,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("Filter Mode"));
+        ImGui::SameLine();
+
+        bool lp=filt->mode & SID3_FILTER_LP;
+        pushToggleColors(lp);
+        snprintf(buffer, 40, _("low##flow%d"), i + 1);
+        if (ImGui::Button(buffer)) { PARAMETER
+          filt->mode ^= SID3_FILTER_LP;
+        }
+        popToggleColors();
+        ImGui::SameLine();
+
+        bool bp=filt->mode & SID3_FILTER_BP;
+        pushToggleColors(bp);
+        snprintf(buffer, 40, _("band##fband%d"), i + 1);
+        if (ImGui::Button(buffer)) { PARAMETER
+          filt->mode ^= SID3_FILTER_BP;
+        }
+        popToggleColors();
+        ImGui::SameLine();
+
+        bool hp=filt->mode & SID3_FILTER_HP;
+        pushToggleColors(hp);
+        snprintf(buffer, 40, _("high##fhigh%d"), i + 1);
+        if (ImGui::Button(buffer)) { PARAMETER
+          filt->mode ^= SID3_FILTER_HP;
+        }
+        popToggleColors();
+
+
+        ImGui::SameLine();
+        snprintf(buffer, 40, _("Connect to channel output##contooutput%d"), i + 1);
+        bool toOutput=filt->mode & SID3_FILTER_OUTPUT;
+        if (ImGui::Checkbox(buffer,&toOutput)) { PARAMETER
+          filt->mode ^= SID3_FILTER_OUTPUT;
+        }
+      }
     }
 
     ImGui::EndTabItem();

@@ -266,7 +266,6 @@ bool DivInstrumentSID3::operator==(const DivInstrumentSID3& other) {
     _C(specialWaveOn) &&
     _C(oneBitNoise) &&
     _C(special_wave) &&
-    _C(filter_matrix) &&
     _C(filt[0]) &&
     _C(filt[1]) &&
     _C(filt[2]) &&
@@ -281,7 +280,9 @@ bool DivInstrumentSID3::Filter::operator==(const DivInstrumentSID3::Filter& othe
     _C(output_volume) &&
     _C(distortion_level) &&
     _C(mode) &&
-    _C(enabled)
+    _C(enabled) &&
+    _C(init) &&
+    _C(filter_matrix)
   );
 }
 

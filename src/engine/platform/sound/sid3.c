@@ -2497,7 +2497,22 @@ int32_t sid3_adsr_output(sid3_channel_adsr* adsr, int32_t input)
     return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter / (int64_t)0x7f0000 / (int64_t)8 * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL); //"/ (int64_t)8" so that there's enough amplitude for all 7 chans! 
 }
 
-void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
+void sid3_set_filter_settings(sid3_filter* filt)
+{
+    const double pi = 3.1415926535897932385;
+
+    // Multiply with 1.048576 to facilitate division by 1 000 000 by right-
+    // shifting 20 times (2 ^ 20 = 1048576).
+    filt->w0 = (2.0*pi*(float)filt->cutoff) / 500000.0 / 6.0; // "/ 12.0" bc we have 16 bit cutoff instead of 12-bit
+
+    // Limit f0 to 16kHz to keep 1 cycle filter stable.
+    const float w0_max_1 = (2.0*pi*16000.0) / 500000.0;
+    filt->w0_ceil_1 = filt->w0 <= w0_max_1 ? filt->w0 : w0_max_1;
+
+    filt->_1024_div_Q = (1.0/(0.707 + 3.0*(float)filt->resonance/(float)0x0ff));
+}
+
+void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
 {
     SAFETY_HEADER
 
@@ -2722,6 +2737,137 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             else
             {
                 sid3->wave_chan.hard_sync_src = data;
+            }
+            break;
+        }
+        case SID3_REGISTER_FILT_MODE:
+        case SID3_REGISTER_FILT_MODE + 1 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_MODE + 2 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_MODE + 3 * SID3_REGISTERS_PER_FILTER:
+        {
+            uint8_t filter = ((address % SID3_REGISTERS_PER_CHANNEL) - SID3_REGISTER_FILT_MODE) / SID3_REGISTERS_PER_FILTER;
+
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].filt.filt[filter].mode = data;
+                //sid3_set_filter_settings(&sid3->chan[channel].filt.filt[filter]);
+            }
+            else
+            {
+                sid3->wave_chan.filt.filt[filter].mode = data;
+                //sid3_set_filter_settings(&sid3->wave_chan.filt.filt[filter]);
+            }
+            break;
+        }
+        case SID3_REGISTER_FILT_CUTOFF_HIGH:
+        case SID3_REGISTER_FILT_CUTOFF_HIGH + 1 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_CUTOFF_HIGH + 2 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_CUTOFF_HIGH + 3 * SID3_REGISTERS_PER_FILTER:
+        {
+            uint8_t filter = ((address % SID3_REGISTERS_PER_CHANNEL) - SID3_REGISTER_FILT_MODE) / SID3_REGISTERS_PER_FILTER;
+
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].filt.filt[filter].cutoff &= 0x00ff;
+                sid3->chan[channel].filt.filt[filter].cutoff |= data << 8;
+                sid3_set_filter_settings(&sid3->chan[channel].filt.filt[filter]);
+            }
+            else
+            {
+                sid3->wave_chan.filt.filt[filter].cutoff &= 0x00ff;
+                sid3->wave_chan.filt.filt[filter].cutoff |= data << 8;
+                sid3_set_filter_settings(&sid3->wave_chan.filt.filt[filter]);
+            }
+            break;
+        }
+        case SID3_REGISTER_FILT_CUTOFF_LOW:
+        case SID3_REGISTER_FILT_CUTOFF_LOW + 1 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_CUTOFF_LOW + 2 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_CUTOFF_LOW + 3 * SID3_REGISTERS_PER_FILTER:
+        {
+            uint8_t filter = ((address % SID3_REGISTERS_PER_CHANNEL) - SID3_REGISTER_FILT_MODE) / SID3_REGISTERS_PER_FILTER;
+
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].filt.filt[filter].cutoff &= 0xff00;
+                sid3->chan[channel].filt.filt[filter].cutoff |= data;
+                sid3_set_filter_settings(&sid3->chan[channel].filt.filt[filter]);
+            }
+            else
+            {
+                sid3->wave_chan.filt.filt[filter].cutoff &= 0xff00;
+                sid3->wave_chan.filt.filt[filter].cutoff |= data;
+                sid3_set_filter_settings(&sid3->wave_chan.filt.filt[filter]);
+            }
+            break;
+        }
+        case SID3_REGISTER_FILT_RESONANCE:
+        case SID3_REGISTER_FILT_RESONANCE + 1 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_RESONANCE + 2 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_RESONANCE + 3 * SID3_REGISTERS_PER_FILTER:
+        {
+            uint8_t filter = ((address % SID3_REGISTERS_PER_CHANNEL) - SID3_REGISTER_FILT_MODE) / SID3_REGISTERS_PER_FILTER;
+
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].filt.filt[filter].resonance = data;
+                sid3_set_filter_settings(&sid3->chan[channel].filt.filt[filter]);
+            }
+            else
+            {
+                sid3->wave_chan.filt.filt[filter].resonance = data;
+                sid3_set_filter_settings(&sid3->wave_chan.filt.filt[filter]);
+            }
+            break;
+        }
+        case SID3_REGISTER_FILT_DISTORTION:
+        case SID3_REGISTER_FILT_DISTORTION + 1 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_DISTORTION + 2 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_DISTORTION + 3 * SID3_REGISTERS_PER_FILTER:
+        {
+            uint8_t filter = ((address % SID3_REGISTERS_PER_CHANNEL) - SID3_REGISTER_FILT_MODE) / SID3_REGISTERS_PER_FILTER;
+
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].filt.filt[filter].distortion_level = data;
+            }
+            else
+            {
+                sid3->wave_chan.filt.filt[filter].distortion_level = data;
+            }
+            break;
+        }
+        case SID3_REGISTER_FILT_CONNECTION:
+        case SID3_REGISTER_FILT_CONNECTION + 1 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_CONNECTION + 2 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_CONNECTION + 3 * SID3_REGISTERS_PER_FILTER:
+        {
+            uint8_t filter = ((address % SID3_REGISTERS_PER_CHANNEL) - SID3_REGISTER_FILT_MODE) / SID3_REGISTERS_PER_FILTER;
+
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].filt.connection_matrix[filter] = data;
+            }
+            else
+            {
+                sid3->wave_chan.filt.connection_matrix[filter] = data;
+            }
+            break;
+        }
+        case SID3_REGISTER_FILT_OUTPUT_VOLUME:
+        case SID3_REGISTER_FILT_OUTPUT_VOLUME + 1 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_OUTPUT_VOLUME + 2 * SID3_REGISTERS_PER_FILTER:
+        case SID3_REGISTER_FILT_OUTPUT_VOLUME + 3 * SID3_REGISTERS_PER_FILTER:
+        {
+            uint8_t filter = ((address % SID3_REGISTERS_PER_CHANNEL) - SID3_REGISTER_FILT_MODE) / SID3_REGISTERS_PER_FILTER;
+
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].filt.filt[filter].output_volume = data;
+            }
+            else
+            {
+                sid3->wave_chan.filt.filt[filter].output_volume = data;
             }
             break;
         }
@@ -3016,6 +3162,90 @@ int32_t sid3_get_waveform(SID3* sid3, sid3_channel* ch)
     return wave;
 }
 
+int32_t sid3_process_filters_block(sid3_channel* ch)
+{
+    int32_t output = 0;
+
+    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+    {
+        ch->filt.filt[i].input = 0;
+    }
+
+    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+    {
+        if(ch->filt.filt[i].mode & SID3_FILTER_CHANNEL_INPUT)
+        {
+            ch->filt.filt[i].input += ch->output_before_filter;
+        }
+
+        for(uint8_t j = 0; j < SID3_NUM_FILTERS; j++)
+        {
+            if(ch->filt.connection_matrix[i] & (1 << j))
+            {
+                ch->filt.filt[i].input += ch->filt.filt[j].output;
+            }
+        }
+    }
+
+    for(uint8_t i = 0; i < SID3_NUM_FILTERS; i++)
+    {
+        if(ch->filt.filt[i].mode & SID3_FILTER_ENABLE)
+        {
+            float Vi = ch->filt.filt[i].input;
+
+            float dVbp = (ch->filt.filt[i].w0_ceil_1 * ch->filt.filt[i].Vhp);
+            float dVlp = (ch->filt.filt[i].w0_ceil_1 * ch->filt.filt[i].Vbp);
+            ch->filt.filt[i].Vbp -= dVbp;
+            ch->filt.filt[i].Vlp -= dVlp;
+            ch->filt.filt[i].Vhp = (ch->filt.filt[i].Vbp * ch->filt.filt[i]._1024_div_Q) - ch->filt.filt[i].Vlp - Vi;
+
+            float Vo;
+
+            switch(ch->filt.filt[i].mode & SID3_FILTER_MODES_MASK)
+            {
+                case 0x0:
+                default:
+                    Vo = 0;
+                    break;
+                case SID3_FILTER_LP:
+                    Vo = ch->filt.filt[i].Vlp;
+                    break;
+                case SID3_FILTER_HP:
+                    Vo = ch->filt.filt[i].Vhp;
+                    break;
+                case SID3_FILTER_LP | SID3_FILTER_HP:
+                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vhp;
+                    break;
+                case SID3_FILTER_BP:
+                    Vo = ch->filt.filt[i].Vbp;
+                    break;
+                case SID3_FILTER_BP | SID3_FILTER_LP:
+                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vbp;
+                    break;
+                case SID3_FILTER_BP | SID3_FILTER_HP:
+                    Vo = ch->filt.filt[i].Vhp + ch->filt.filt[i].Vbp;
+                    break;
+                case SID3_FILTER_BP | SID3_FILTER_HP | SID3_FILTER_LP:
+                    Vo = ch->filt.filt[i].Vlp + ch->filt.filt[i].Vbp + ch->filt.filt[i].Vhp;
+                    break;
+            }
+
+            ch->filt.filt[i].output = Vo * ch->filt.filt[i].output_volume / 0xff;
+        }
+        else
+        {
+            ch->filt.filt[i].output = 0;
+        }
+
+        if(ch->filt.filt[i].mode & SID3_FILTER_OUTPUT)
+        {
+            output += ch->filt.filt[i].output;
+        }
+    }
+
+    return output;
+}
+
 void sid3_clock(SID3* sid3)
 {
     //SAFETY_HEADER
@@ -3066,10 +3296,25 @@ void sid3_clock(SID3* sid3)
         }
 
         sid3_adsr_clock(&ch->adsr);
-        sid3->output_l += sid3_adsr_output(&ch->adsr, waveform);
-        sid3->output_r += sid3_adsr_output(&ch->adsr, waveform);
 
-        sid3->channel_output[i] = sid3_adsr_output(&ch->adsr, waveform);
+        ch->output_before_filter = sid3_adsr_output(&ch->adsr, waveform);
+
+        int32_t output = 0;
+        
+        if((ch->filt.filt[0].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[1].mode & SID3_FILTER_ENABLE) ||
+            (ch->filt.filt[2].mode & SID3_FILTER_ENABLE) || (ch->filt.filt[3].mode & SID3_FILTER_ENABLE))
+        {
+            output = sid3_process_filters_block(ch);
+        }
+        else
+        {
+            output = ch->output_before_filter;
+        }
+
+        sid3->output_l += output;
+        sid3->output_r += output;
+
+        sid3->channel_output[i] = output;
     }
 }
 

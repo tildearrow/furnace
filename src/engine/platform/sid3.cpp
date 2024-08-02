@@ -78,7 +78,7 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
     if (!writes.empty()) 
     {
       QueuedWrite w=writes.front();
-      sid3_write(sid3, w.addr,w.val);
+      sid3_write(sid3, w.addr, w.val);
       regPool[w.addr % SID3_NUM_REGISTERS]=w.val;
       writes.pop();
     }
@@ -112,11 +112,27 @@ void DivPlatformSID3::updateFlags(int channel, bool gate)
   (chan[channel].oneBitNoise ? SID3_CHAN_1_BIT_NOISE : 0));
 }
 
-void DivPlatformSID3::updateFilter(int channel) 
+void DivPlatformSID3::updateFilter(int channel, int filter) 
 {
-  //rWrite(0x15 + 3 * channel,(chan[channel].filtCut&15) | ((chan[channel].filtControl & 7) << 4) | (chan[channel].filter << 7));
-  //rWrite(0x16 + 3 * channel,(chan[channel].filtCut >> 4));
-  //rWrite(0x17 + 3 * channel,chan[channel].filtRes);
+  rWrite(SID3_REGISTER_FILT_MODE + filter * SID3_REGISTERS_PER_FILTER + channel*SID3_REGISTERS_PER_CHANNEL,
+    chan[channel].filt[filter].mode | (chan[channel].filt[filter].enabled ? SID3_FILTER_ENABLE : 0));
+
+  rWrite(SID3_REGISTER_FILT_CUTOFF_HIGH + filter * SID3_REGISTERS_PER_FILTER + channel*SID3_REGISTERS_PER_CHANNEL,
+    chan[channel].filt[filter].cutoff >> 8);
+  rWrite(SID3_REGISTER_FILT_CUTOFF_LOW + filter * SID3_REGISTERS_PER_FILTER + channel*SID3_REGISTERS_PER_CHANNEL,
+    chan[channel].filt[filter].cutoff & 0xff);
+
+  rWrite(SID3_REGISTER_FILT_RESONANCE + filter * SID3_REGISTERS_PER_FILTER + channel*SID3_REGISTERS_PER_CHANNEL,
+    chan[channel].filt[filter].resonance);
+
+  rWrite(SID3_REGISTER_FILT_DISTORTION + filter * SID3_REGISTERS_PER_FILTER + channel*SID3_REGISTERS_PER_CHANNEL,
+    chan[channel].filt[filter].distortion_level);
+
+  rWrite(SID3_REGISTER_FILT_CONNECTION + filter * SID3_REGISTERS_PER_FILTER + channel*SID3_REGISTERS_PER_CHANNEL,
+    chan[channel].filt[filter].filter_matrix);
+
+  rWrite(SID3_REGISTER_FILT_OUTPUT_VOLUME + filter * SID3_REGISTERS_PER_FILTER + channel*SID3_REGISTERS_PER_CHANNEL,
+    chan[channel].filt[filter].output_volume);
 }
 
 void DivPlatformSID3::updateFreq(int channel) 
@@ -252,6 +268,21 @@ int DivPlatformSID3::dispatch(DivCommand c) {
 
         chan[c.chan].ringSrc = ins->sid3.ring_mod_source;
         chan[c.chan].syncSrc = ins->sid3.sync_source;
+
+        for(int j = 0; j < SID3_NUM_FILTERS; j++)
+        {
+          if(ins->sid3.filt[j].init)
+          {
+            chan[c.chan].filt[j].cutoff = ins->sid3.filt[j].cutoff;
+            chan[c.chan].filt[j].resonance = ins->sid3.filt[j].resonance;
+            chan[c.chan].filt[j].distortion_level = ins->sid3.filt[j].distortion_level;
+            chan[c.chan].filt[j].enabled = ins->sid3.filt[j].enabled;
+            chan[c.chan].filt[j].filter_matrix = ins->sid3.filt[j].filter_matrix;
+            chan[c.chan].filt[j].mode = ins->sid3.filt[j].mode;
+            chan[c.chan].filt[j].output_volume = ins->sid3.filt[j].output_volume;
+            updateFilter(c.chan, j);
+          }
+        }
       }
       if (chan[c.chan].insChanged || chan[c.chan].resetFilter) {
         /*chan[c.chan].filter=ins->c64.toFilter;
@@ -377,7 +408,7 @@ void DivPlatformSID3::forceIns() {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
     }
-    updateFilter(i);
+    //updateFilter(i);
   }
 }
 
@@ -438,13 +469,11 @@ void DivPlatformSID3::reset() {
     chan[i].std.setEngine(parent);
     chan[i].vol = SID3_MAX_VOL;
 
-    /*chan[i].filtControl = 7;
-    chan[i].filtRes = 0;
-    chan[i].filtCut = 4095;
-
-    chan[i].noise_mode = 0;*/
-
-    //rWrite(0x3 + 7 * i,0xf0);
+    for(int j = 0; j < SID3_NUM_FILTERS; j++)
+    {
+      chan[i].filt[j].enabled = false;
+      updateFilter(i, j);
+    }
   }
 
   sid3_reset(sid3);

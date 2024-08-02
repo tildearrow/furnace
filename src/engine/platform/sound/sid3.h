@@ -13,6 +13,7 @@ extern "C" {
 #define SID3_NUM_CHANNELS 7
 #define SID3_NUM_FILTERS 4
 #define SID3_REGISTERS_PER_CHANNEL 64
+#define SID3_REGISTERS_PER_FILTER 8
 #define SID3_NUM_REGISTERS (SID3_NUM_CHANNELS * SID3_REGISTERS_PER_CHANNEL)
 #define SID3_MAX_VOL 255
 
@@ -57,6 +58,19 @@ enum Mixmodes
     SID3_MIX_SUM = 4,
 };
 
+enum Filter_modes
+{
+    SID3_FILTER_LP = 1,
+    SID3_FILTER_HP = 2,
+    SID3_FILTER_BP = 4,
+
+    SID3_FILTER_MODES_MASK = 7,
+
+    SID3_FILTER_ENABLE = 8,
+    SID3_FILTER_CHANNEL_INPUT = 16, //add channel input to filter input
+    SID3_FILTER_OUTPUT = 32, //output sound from this filter to channel output
+};
+
 enum Registers
 {
     SID3_REGISTER_FLAGS = 0,
@@ -84,6 +98,15 @@ enum Registers
 
     SID3_REGISTER_RING_MOD_SRC = 15,
     SID3_REGISTER_SYNC_SRC = 16,
+
+    SID3_REGISTER_FILT_BASE = 17,
+    SID3_REGISTER_FILT_MODE = 17,
+    SID3_REGISTER_FILT_CUTOFF_HIGH = 18,
+    SID3_REGISTER_FILT_CUTOFF_LOW = 19,
+    SID3_REGISTER_FILT_RESONANCE = 20,
+    SID3_REGISTER_FILT_DISTORTION = 21,
+    SID3_REGISTER_FILT_CONNECTION = 22,
+    SID3_REGISTER_FILT_OUTPUT_VOLUME = 23,
 };
 
 typedef struct
@@ -107,14 +130,12 @@ typedef struct
     uint8_t mode;
 
     uint8_t output_volume;
-
-    bool channel_output; //output to the channel master output
 } sid3_filter;
 
 typedef struct
 {
     sid3_filter filt[SID3_NUM_FILTERS];
-    uint32_t connection_matrix;
+    uint8_t connection_matrix[SID3_NUM_FILTERS];
 } sid3_filters_block;
 
 typedef struct
@@ -158,6 +179,8 @@ typedef struct
 
     uint8_t panning_left, panning_right;
     bool invert_left, invert_right; //invert channel signal
+
+    int32_t output_before_filter;
 } sid3_channel;
 
 typedef struct
@@ -184,6 +207,8 @@ typedef struct
 
     uint8_t panning_left, panning_right;
     bool invert_left, invert_right; //invert channel signal
+
+    int32_t output_before_filter;
 } sid3_wavetable_chan;
 
 typedef struct
@@ -204,7 +229,7 @@ typedef struct
 
 SID3* sid3_create();
 void sid3_reset(SID3* sid3);
-void sid3_write(SID3* sid3, uint8_t address, uint8_t data);
+void sid3_write(SID3* sid3, uint16_t address, uint8_t data);
 void sid3_clock(SID3* sid3);
 void sid3_set_is_muted(SID3* sid3, uint8_t ch, bool mute);
 void sid3_free(SID3* sid3);

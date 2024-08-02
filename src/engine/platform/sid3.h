@@ -36,6 +36,27 @@ class DivPlatformSID3: public DivDispatch {
     unsigned char mix_mode;
     unsigned char ringSrc, syncSrc, phaseSrc;
     int filtCut;
+
+    struct Filter 
+    {
+      unsigned short cutoff;
+      unsigned char resonance;
+      unsigned char output_volume;
+      unsigned char distortion_level;
+      unsigned char mode;
+      bool enabled;
+      unsigned char filter_matrix;
+
+      Filter():
+        cutoff(0),
+        resonance(0),
+        output_volume(0),
+        distortion_level(0),
+        mode(0),
+        enabled(false),
+        filter_matrix(0) {}
+    } filt[SID3_NUM_FILTERS];
+
     Channel():
       SharedChannel<signed short>(SID3_MAX_VOL),
       prevFreq(0x1ffff),
@@ -69,10 +90,10 @@ class DivPlatformSID3: public DivDispatch {
   Channel chan[SID3_NUM_CHANNELS];
   DivDispatchOscBuffer* oscBuf[SID3_NUM_CHANNELS];
   struct QueuedWrite {
-      unsigned char addr;
+      unsigned short addr;
       unsigned char val;
       QueuedWrite(): addr(0), val(0) {}
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,SID3_NUM_REGISTERS * 4> writes;
 
@@ -87,7 +108,7 @@ class DivPlatformSID3: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
 
   void updateFlags(int channel, bool gate);
-  void updateFilter(int channel);
+  void updateFilter(int channel, int filter);
   void updateFreq(int channel);
   void updateDuty(int channel);
   void updateEnvelope(int channel);

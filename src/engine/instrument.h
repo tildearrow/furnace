@@ -872,8 +872,6 @@ struct DivInstrumentSID3
   bool oneBitNoise;
   unsigned char special_wave;
 
-  unsigned int filter_matrix;
-
   struct Filter 
   {
     unsigned short cutoff;
@@ -882,6 +880,8 @@ struct DivInstrumentSID3
     unsigned char distortion_level;
     unsigned char mode;
     bool enabled;
+    bool init;
+    unsigned char filter_matrix;
 
     bool operator==(const Filter& other);
     bool operator!=(const Filter& other) 
@@ -894,7 +894,9 @@ struct DivInstrumentSID3
       output_volume(0),
       distortion_level(0),
       mode(0),
-      enabled(false) {}
+      enabled(false),
+      init(false),
+      filter_matrix(0) {}
   } filt[4];
   
   bool operator==(const DivInstrumentSID3& other);
@@ -912,8 +914,11 @@ struct DivInstrumentSID3
     sync_source(0),
     specialWaveOn(false),
     oneBitNoise(false),
-    special_wave(0),
-    filter_matrix(0) {}
+    special_wave(0) 
+    {
+      filt[0].mode = 16 | 32; //default settings so filter just works, connect to input and channel output
+      filt[0].output_volume = 0xff;
+    }
 };
 
 struct DivInstrument {
