@@ -39,11 +39,11 @@ msgstr ""
 # below are the effects...... hesitate to translate.
 #: src/engine/sysDef.cpp:428 src/engine/sysDef.cpp:441
 msgid "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"
-msgstr "20xx: 设置通道模式 (位数0: 方波; bit 1: noise; bit 2: envelope)"
+msgstr "20xx: 设置通道模式 (位数0: 方波; bit 1: 噪声; bit 2: 包络)"
 
 #: src/engine/sysDef.cpp:429
 msgid "21xx: Set noise frequency (0 to 1F)"
-msgstr "21xx: 设置噪声频率"
+msgstr "21xx: 设置噪声频率 (0 to 1F)"
 
 #: src/engine/sysDef.cpp:430 src/engine/sysDef.cpp:443
 msgid "22xy: Set envelope mode (x: shape, y: enable for this channel)"
@@ -70,7 +70,7 @@ msgstr "26xx: 包络下滑"
 #: src/engine/sysDef.cpp:435 src/engine/sysDef.cpp:448
 #: src/engine/sysDef.cpp:1601
 msgid "29xy: Set auto-envelope (x: numerator; y: denominator)"
-msgstr "29xy: 设置自动包络（x：分子;y：分母）"
+msgstr "29xy: 设置自动包络 (x: 分子; y: 分母)"
 
 #: src/engine/sysDef.cpp:436 src/engine/sysDef.cpp:449
 msgid "2Exx: Write to I/O port A"
@@ -108,26 +108,26 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:460
 msgid "30xx: Toggle hard envelope reset on new notes"
-msgstr "30xx：在新音符上切换硬包络重置"
+msgstr "30xx: 在新音符上切换硬包络重置"
 
 #: src/engine/sysDef.cpp:465
 msgid "18xx: Toggle extended channel 3 mode"
-msgstr "18xx：切换扩展通道 3 模式"
+msgstr "18xx: 切换扩展通道 3 模式"
 
 #: src/engine/sysDef.cpp:470 src/engine/sysDef.cpp:766
 #: src/engine/sysDef.cpp:1025 src/engine/sysDef.cpp:1272
 #: src/engine/sysDef.cpp:1593
 msgid "17xx: Toggle PCM mode (LEGACY)"
-msgstr "17xx：切换 PCM 模式 （LEGACY）"
+msgstr "17xx: 切换 PCM 模式 (LEGACY)"
 
 #: src/engine/sysDef.cpp:471 src/engine/sysDef.cpp:1653
 #: src/engine/sysDef.cpp:1963
 msgid "DFxx: Set sample playback direction (0: normal; 1: reverse)"
-msgstr "DFxx：设置sample 播放方向（0：正常; 1：反向）"
+msgstr "DFxx: 设置sample 播放方向 (0: 正常; 1: 反向)"
 
 #: src/engine/sysDef.cpp:476
 msgid "18xx: Toggle drums mode (1: enabled; 0: disabled)"
-msgstr "18xx：切换鼓模式（1：启用; 0：禁用）"
+msgstr "18xx: 切换鼓模式 (1: 启用; 0: 禁用)"
 
 #: src/engine/sysDef.cpp:480 src/engine/sysDef.cpp:554
 #: src/engine/sysDef.cpp:575
@@ -246,23 +246,23 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:510
 msgid "10xx: Set noise frequency (xx: value; 0 disables noise)"
-msgstr "10xx：设置噪声频率（xx：值; 0 禁用噪声）"
+msgstr "10xx: 设置噪声频率 (xx: 值; 0 禁用噪声)"
 
 #: src/engine/sysDef.cpp:511
 msgid "17xx: Set LFO speed"
-msgstr "17xx：设置LFO 速度"
+msgstr "17xx: 设置LFO 速度"
 
 #: src/engine/sysDef.cpp:512
 msgid "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)"
-msgstr "18xx：设置LFO 波形 (0 锯齿波, 1 方波, 2 三角波， 3 噪声)"
+msgstr "18xx: 设置LFO 波形 (0 锯齿波, 1 方波, 2 三角波， 3 噪声)"
 
 #: src/engine/sysDef.cpp:513
 msgid "1Exx: Set AM depth (0 to 7F)"
-msgstr "1Exx：设置AM 深度（0 至 7F）"
+msgstr "1Exx: 设置AM 深度 (0 to 7F)"
 
 #: src/engine/sysDef.cpp:514
 msgid "1Fxx: Set PM depth (0 to 7F)"
-msgstr "1Fxx：设置PM 深度（0 到 7F）"
+msgstr "1Fxx: 设置PM 深度 (0 to 7F)"
 
 #: src/engine/sysDef.cpp:515
 msgid ""
@@ -272,19 +272,19 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:520
 msgid "24xx: Set LFO 2 speed"
-msgstr "24xx：设置LFO 2 速度"
+msgstr "24xx: 设置LFO 2 速度"
 
 #: src/engine/sysDef.cpp:521
 msgid "25xx: Set LFO 2 waveform (0 saw, 1 square, 2 triangle, 3 noise)"
-msgstr "25xx：设置LFO 2 波形 (0 锯齿波, 1 方波, 2 三角波， 3 噪声)"
+msgstr "25xx: 设置LFO 2 波形 (0 锯齿波, 1 方波, 2 三角波， 3 噪声)"
 
 #: src/engine/sysDef.cpp:522
 msgid "26xx: Set AM 2 depth (0 to 7F)"
-msgstr "26xx：设置AM 2 深度 (0 to 7F)"
+msgstr "26xx: 设置AM 2 深度 (0 to 7F)"
 
 #: src/engine/sysDef.cpp:523
 msgid "27xx: Set PM 2 depth (0 to 7F)"
-msgstr "27xx：设置PM 2 深度（0 to 7F）"
+msgstr "27xx: 设置PM 2 深度 (0 to 7F)"
 
 #: src/engine/sysDef.cpp:524
 msgid ""
@@ -331,7 +331,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:540
 msgid "10xy: Setup LFO (x: enable; y: speed)"
-msgstr "10xy：设置 LFO (x：启用; y：速度)"
+msgstr "10xy: 设置LFO (x: 启用; y: 速度)"
 
 #: src/engine/sysDef.cpp:541
 msgid ""
@@ -341,7 +341,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:549
 msgid "1Fxx: Set ADPCM-A global volume (0 to 3F)"
-msgstr "1Fxx：设置ADPCM-A 全局音量 (0 to 3F)"
+msgstr "1Fxx: 设置ADPCM-A 全局音量 (0 to 3F)"
 
 #: src/engine/sysDef.cpp:553
 msgid "10xx: Set patch (0 to F)"
