@@ -12,7 +12,7 @@ extern "C" {
 
 #define SID3_NUM_CHANNELS 7
 #define SID3_NUM_FILTERS 4
-#define SID3_REGISTERS_PER_CHANNEL 32
+#define SID3_REGISTERS_PER_CHANNEL 64
 #define SID3_NUM_REGISTERS (SID3_NUM_CHANNELS * SID3_REGISTERS_PER_CHANNEL)
 #define SID3_MAX_VOL 255
 
@@ -55,6 +55,35 @@ enum Mixmodes
     SID3_MIX_OR = 2,
     SID3_MIX_XOR = 3,
     SID3_MIX_SUM = 4,
+};
+
+enum Registers
+{
+    SID3_REGISTER_FLAGS = 0,
+
+    SID3_REGISTER_ADSR_A = 1,
+    SID3_REGISTER_ADSR_D = 2,
+    SID3_REGISTER_ADSR_S = 3,
+    SID3_REGISTER_ADSR_SR = 4,
+    SID3_REGISTER_ADSR_R = 5,
+
+    SID3_REGISTER_WAVEFORM = 6,
+
+    SID3_REGISTER_PW_HIGH = 7,
+    SID3_REGISTER_PW_LOW = 8,
+
+    SID3_REGISTER_SPECIAL_WAVE = 9,
+
+    SID3_REGISTER_FREQ_HIGH = 10,
+    SID3_REGISTER_FREQ_MID = 11,
+    SID3_REGISTER_FREQ_LOW = 12,
+
+    SID3_REGISTER_ADSR_VOL = 13,
+
+    SID3_REGISTER_MIXMODE = 14,
+
+    SID3_REGISTER_RING_MOD_SRC = 15,
+    SID3_REGISTER_SYNC_SRC = 16,
 };
 
 typedef struct
@@ -147,6 +176,10 @@ typedef struct
     uint8_t flags;
     uint8_t mode;
 
+    uint8_t ring_mod_src;
+    uint8_t hard_sync_src;
+    uint8_t phase_mod_source;
+
     sid3_filters_block filt;
 
     uint8_t panning_left, panning_right;
@@ -162,6 +195,7 @@ typedef struct
 
     int32_t output_l, output_r;
 
+    int32_t channel_signals_before_ADSR[SID3_NUM_CHANNELS];
     int32_t channel_output[SID3_NUM_CHANNELS];
 
     //emulation-only helpers

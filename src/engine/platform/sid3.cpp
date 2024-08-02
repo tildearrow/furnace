@@ -88,7 +88,7 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
     buf[0][i]=sid3->output_l;
     buf[1][i]=sid3->output_r;
 
-    if (++writeOscBuf>=16) 
+    if (++writeOscBuf>=8) 
     {
       writeOscBuf=0;
 
@@ -100,6 +100,18 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
   }
 }
 
+void DivPlatformSID3::updateFlags(int channel, bool gate) 
+{
+  rWrite(SID3_REGISTER_FLAGS + channel * SID3_REGISTERS_PER_CHANNEL, (gate ? 1 : 0) |
+  (chan[channel].ring ? SID3_CHAN_ENABLE_RING_MOD : 0) |
+  (chan[channel].sync ? SID3_CHAN_ENABLE_HARD_SYNC : 0) |
+  (chan[channel].phase ? SID3_CHAN_ENABLE_PHASE_MOD : 0) |
+  (chan[channel].phaseReset ? SID3_CHAN_PHASE_RESET : 0) |
+  (chan[channel].envReset ? SID3_CHAN_ENV_RESET : 0) |
+  (chan[channel].phaseResetNoise ? SID3_CHAN_NOISE_PHASE_RESET : 0) |
+  (chan[channel].oneBitNoise ? SID3_CHAN_1_BIT_NOISE : 0));
+}
+
 void DivPlatformSID3::updateFilter(int channel) 
 {
   //rWrite(0x15 + 3 * channel,(chan[channel].filtCut&15) | ((chan[channel].filtControl & 7) << 4) | (chan[channel].filter << 7));
@@ -109,24 +121,24 @@ void DivPlatformSID3::updateFilter(int channel)
 
 void DivPlatformSID3::updateFreq(int channel) 
 {
-  rWrite(10 + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].freq >> 16) & 0xff);
-  rWrite(11 + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].freq >> 8) & 0xff);
-  rWrite(12 + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].freq & 0xff);
+  rWrite(SID3_REGISTER_FREQ_HIGH + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].freq >> 16) & 0xff);
+  rWrite(SID3_REGISTER_FREQ_MID + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].freq >> 8) & 0xff);
+  rWrite(SID3_REGISTER_FREQ_LOW + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].freq & 0xff);
 }
 
 void DivPlatformSID3::updateDuty(int channel) 
 {
-  rWrite(7 + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].duty >> 8) & 0xff);
-  rWrite(8 + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].duty & 0xff);
+  rWrite(SID3_REGISTER_PW_HIGH + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].duty >> 8) & 0xff);
+  rWrite(SID3_REGISTER_PW_LOW + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].duty & 0xff);
 }
 
 void DivPlatformSID3::updateEnvelope(int channel) 
 {
-  rWrite(1 + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].attack); //attack
-  rWrite(2 + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].decay); //decay
-  rWrite(3 + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].sustain); //sustain
-  rWrite(4 + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].sr); //sr
-  rWrite(5 + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].release); //release
+  rWrite(SID3_REGISTER_ADSR_A + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].attack); //attack
+  rWrite(SID3_REGISTER_ADSR_D + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].decay); //decay
+  rWrite(SID3_REGISTER_ADSR_S + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].sustain); //sustain
+  rWrite(SID3_REGISTER_ADSR_SR + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].sr); //sr
+  rWrite(SID3_REGISTER_ADSR_R + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].release); //release
 }
 
 void DivPlatformSID3::tick(bool sysTick) 
@@ -149,23 +161,26 @@ void DivPlatformSID3::tick(bool sysTick)
 
       if (chan[i].keyOn) 
       { 
-        rWrite(6 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].wave); //waveform
-        rWrite(9 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].special_wave); //special wave
+        rWrite(SID3_REGISTER_WAVEFORM + i * SID3_REGISTERS_PER_CHANNEL, chan[i].wave); //waveform
+        rWrite(SID3_REGISTER_SPECIAL_WAVE + i * SID3_REGISTERS_PER_CHANNEL, chan[i].special_wave); //special wave
 
-        rWrite(13 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].outVol); //set volume
-        rWrite(14 + i * SID3_REGISTERS_PER_CHANNEL, chan[i].mix_mode); //mixmode
+        rWrite(SID3_REGISTER_ADSR_VOL + i * SID3_REGISTERS_PER_CHANNEL, chan[i].outVol); //set volume
+        rWrite(SID3_REGISTER_MIXMODE + i * SID3_REGISTERS_PER_CHANNEL, chan[i].mix_mode); //mixmode
+
+        rWrite(SID3_REGISTER_RING_MOD_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].ringSrc); //ring mod source
+        rWrite(SID3_REGISTER_SYNC_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].syncSrc); //hard sync source
 
         updateEnvelope(i);
 
         //chan[i].duty = 0x1000;
         updateDuty(i);
 
-        rWrite(i * SID3_REGISTERS_PER_CHANNEL, 0 | (chan[i].oneBitNoise ? SID3_CHAN_1_BIT_NOISE : 0)); //gate off TODO: make it properly?
-        rWrite(i * SID3_REGISTERS_PER_CHANNEL, SID3_CHAN_ENABLE_GATE | (chan[i].oneBitNoise ? SID3_CHAN_1_BIT_NOISE : 0)); //gate on
+        updateFlags(i, false); //gate off TODO: make it properly?
+        updateFlags(i, true); //gate on
       }
       if (chan[i].keyOff) 
       {
-        rWrite(i * SID3_REGISTERS_PER_CHANNEL, 0 | (chan[i].oneBitNoise ? SID3_CHAN_1_BIT_NOISE : 0));
+        updateFlags(i, false); //gate off
       }
 
       if (chan[i].freq<0) chan[i].freq=0;
@@ -226,9 +241,17 @@ int DivPlatformSID3::dispatch(DivCommand c) {
 
         chan[c.chan].duty=ins->c64.duty;
 
+        chan[c.chan].sync = ins->c64.oscSync;
+        chan[c.chan].ring = ins->c64.ringMod;
+        chan[c.chan].phase = ins->sid3.phase_mod;
+        chan[c.chan].oneBitNoise = ins->sid3.oneBitNoise;
+        chan[c.chan].oneBitNoise = ins->sid3.oneBitNoise;
         chan[c.chan].oneBitNoise = ins->sid3.oneBitNoise;
 
         chan[c.chan].mix_mode = ins->sid2.mixMode;
+
+        chan[c.chan].ringSrc = ins->sid3.ring_mod_source;
+        chan[c.chan].syncSrc = ins->sid3.sync_source;
       }
       if (chan[c.chan].insChanged || chan[c.chan].resetFilter) {
         /*chan[c.chan].filter=ins->c64.toFilter;
@@ -446,22 +469,11 @@ void DivPlatformSID3::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformSID3::setFlags(const DivConfig& flags) {
-  switch (flags.getInt("clockSel",0)) {
-    case 0x0: // NTSC C64
-      chipClock=COLOR_NTSC*2.0/7.0;
-      break;
-    case 0x1: // PAL C64
-      chipClock=COLOR_PAL*2.0/9.0;
-      break;
-    case 0x2: // SSI 2001
-    default:
-      chipClock=14318180.0/16.0;
-      break;
-  }
+  chipClock=500000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   for (int i=0; i<SID3_NUM_CHANNELS; i++) {
-    oscBuf[i]->rate=rate/16;
+    oscBuf[i]->rate=rate/8;
   }
 }
 

@@ -10,8 +10,10 @@ enum State { ATTACK, DECAY, SUSTAIN, RELEASE }; //for envelope
 #  define M_PI    3.14159265358979323846
 #endif
 
-#define envspd_adr(rate) ((uint64_t)0xff0000 / ((rate == 0 ? 1 : (rate * 16)) * (rate == 0 ? 1 : (rate * 16))))
-#define envspd_sr(rate) (rate == 0 ? 0 : ((uint64_t)0xff0000 / ((256 - rate) * (256 - rate) * 256)))
+#define envspd_factor 6
+
+#define envspd_adr(rate) ((uint64_t)0x7f0000 / ((rate == 0 ? 1 : (rate * envspd_factor)) * (rate == 0 ? 1 : (rate * envspd_factor))))
+#define envspd_sr(rate) (rate == 0 ? 0 : ((uint64_t)0x7f0000 / ((256 - rate) * (256 - rate) * envspd_factor * envspd_factor)))
 
 //these 4 ones are util only
 double square(double x) {
@@ -2319,7 +2321,7 @@ void sid3_reset(SID3* sid3)
 
 void sid3_do_release_rate_period(sid3_channel_adsr* adsr)
 {
-    uint32_t counter = adsr->envelope_counter >> 16;
+    uint32_t counter = adsr->envelope_counter >> 15;
     
     if(counter >= 0xff)
     {
@@ -2420,7 +2422,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         {
             adsr->envelope_counter += adsr->envelope_speed;
 
-            if (adsr->envelope_counter >= 0xff0000) 
+            if (adsr->envelope_counter >= 0x7f0000) 
             {
                 adsr->state = DECAY;
                 adsr->envelope_speed = envspd_adr(adsr->d);
@@ -2433,16 +2435,16 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         {
             adsr->envelope_counter -= adsr->envelope_speed;
 
-            if(adsr->envelope_counter > 0xff0f00) adsr->envelope_counter = 0xff0000;
+            if(adsr->envelope_counter > 0x7f0f00) adsr->envelope_counter = 0x7f0000;
 
-            if(adsr->envelope_counter <= ((uint32_t)adsr->s << 16))
+            if(adsr->envelope_counter <= ((uint32_t)adsr->s << 15))
             {
                 adsr->state = SUSTAIN;
-                adsr->envelope_counter = (uint32_t)adsr->s << 16;
+                adsr->envelope_counter = (uint32_t)adsr->s << 15;
                 adsr->envelope_speed = envspd_sr(adsr->sr);
             }
 
-            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0xfff0000)
+            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0x7ff0000)
             {
                 adsr->envelope_counter = 0;
                 adsr->hold_zero = true;
@@ -2454,7 +2456,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         {
             adsr->envelope_counter -= adsr->envelope_speed;
 
-            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0xfff0000)
+            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0x7ff0000)
             {
                 adsr->envelope_counter = 0;
                 adsr->hold_zero = true;
@@ -2492,7 +2494,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
 
 int32_t sid3_adsr_output(sid3_channel_adsr* adsr, int32_t input)
 {
-    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter / (int64_t)0xff0000 / (int64_t)4 * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL); //"/ (int64_t)4" so that there's enough amplitude for all 7 chans! 
+    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter / (int64_t)0x7f0000 / (int64_t)8 * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL); //"/ (int64_t)8" so that there's enough amplitude for all 7 chans! 
 }
 
 void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
@@ -2507,7 +2509,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
     //are x + y*n, where x is address of channel 0 register, y is number of current channel and n is how many registers you have 
     //for each channel
     {
-        case 0:
+        case SID3_REGISTER_FLAGS:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2531,7 +2533,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 1:
+        case SID3_REGISTER_ADSR_A:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2543,7 +2545,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 2:
+        case SID3_REGISTER_ADSR_D:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2555,7 +2557,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 3:
+        case SID3_REGISTER_ADSR_S:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2567,7 +2569,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 4:
+        case SID3_REGISTER_ADSR_SR:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2579,7 +2581,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 5:
+        case SID3_REGISTER_ADSR_R:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2591,7 +2593,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 6:
+        case SID3_REGISTER_WAVEFORM:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2603,7 +2605,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 7:
+        case SID3_REGISTER_PW_HIGH:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2616,7 +2618,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 8:
+        case SID3_REGISTER_PW_LOW:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2629,7 +2631,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 9:
+        case SID3_REGISTER_SPECIAL_WAVE:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2637,7 +2639,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 10:
+        case SID3_REGISTER_FREQ_HIGH:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2651,7 +2653,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 11:
+        case SID3_REGISTER_FREQ_MID:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2665,7 +2667,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 12:
+        case SID3_REGISTER_FREQ_LOW:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2679,7 +2681,7 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 13:
+        case SID3_REGISTER_ADSR_VOL:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
@@ -2691,11 +2693,35 @@ void sid3_write(SID3* sid3, uint8_t address, uint8_t data)
             }
             break;
         }
-        case 14:
+        case SID3_REGISTER_MIXMODE:
         {
             if(channel != SID3_NUM_CHANNELS - 1)
             {
                 sid3->chan[channel].mix_mode = data;
+            }
+            break;
+        }
+        case SID3_REGISTER_RING_MOD_SRC:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].ring_mod_src = data;
+            }
+            else
+            {
+                sid3->wave_chan.ring_mod_src = data;
+            }
+            break;
+        }
+        case SID3_REGISTER_SYNC_SRC:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].hard_sync_src = data;
+            }
+            else
+            {
+                sid3->wave_chan.hard_sync_src = data;
             }
             break;
         }
@@ -3011,6 +3037,14 @@ void sid3_clock(SID3* sid3)
             ch->sync_bit = 1;
         }
 
+        if(ch->flags & SID3_CHAN_ENABLE_HARD_SYNC)
+        {
+            if(sid3->chan[ch->hard_sync_src].sync_bit)
+            {
+                ch->accumulator = 0;
+            }
+        }
+
         ch->accumulator &= SID3_ACC_MASK;
 
         if((prev_acc & ((uint32_t)1 << (SID3_ACC_BITS - 6))) != (ch->accumulator & ((uint32_t)1 << (SID3_ACC_BITS - 6))))
@@ -3021,6 +3055,15 @@ void sid3_clock(SID3* sid3)
         //todo: phase mod
 
         int32_t waveform = sid3_get_waveform(sid3, ch);
+
+        sid3->channel_signals_before_ADSR[i] = waveform;
+
+        if(ch->flags & SID3_CHAN_ENABLE_RING_MOD)
+        {
+            uint8_t ring_mod_src = ch->ring_mod_src == SID3_NUM_CHANNELS ? i : ch->ring_mod_src; //SID3_NUM_CHANNELS = self-mod
+
+            waveform = waveform * sid3->channel_signals_before_ADSR[ring_mod_src] / (int32_t)0xffff; //ring modulation is just multiplication of two signals!
+        }
 
         sid3_adsr_clock(&ch->adsr);
         sid3->output_l += sid3_adsr_output(&ch->adsr, waveform);

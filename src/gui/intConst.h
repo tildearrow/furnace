@@ -45,3 +45,5 @@ extern const int _MINUS_ONE_HUNDRED_TWENTY_SEVEN;
 extern const int _MINUS_ONE_HUNDRED_TWENTY_EIGHT;
 
 extern const int _SID3_SPECIAL_WAVES;
+extern const int _SID3_NUM_CHANNELS;
+extern const int _SID3_NUM_CHANNELS_MINUS_ONE;
