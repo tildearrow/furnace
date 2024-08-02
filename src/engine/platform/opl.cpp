@@ -217,7 +217,7 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
       }
     }
 
-    if (fm.rhy&0x20) {
+    if (properDrums) {
       for (int i=0; i<melodicChans+1; i++) {
         unsigned char ch=outChanMap[i];
         int chOut=0;
