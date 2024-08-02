@@ -483,60 +483,61 @@ msgstr ""
 #: src/engine/sysDef.cpp:603 src/engine/sysDef.cpp:680
 msgid ""
 "10xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise)"
-msgstr ""
+msgstr "10xx: 设置波形 (位0: 三角波; 位1: 锯齿波; 位2: 脉冲波; 位3: 噪声)"
 
 #: src/engine/sysDef.cpp:604
 msgid "11xx: Set coarse cutoff (not recommended; use 4xxx instead)"
-msgstr ""
+msgstr "11xx: 设置粗略截止值 (不推荐; 请改用 4xxx)"
 
 #: src/engine/sysDef.cpp:605
 msgid "12xx: Set coarse pulse width (not recommended; use 3xxx instead)"
-msgstr ""
+msgstr "12xx: 设置粗略脉冲宽度 (不推荐; 请改用 3xxx)"
 
 #: src/engine/sysDef.cpp:606
 msgid "13xx: Set resonance (0 to F)"
-msgstr ""
+msgstr "13xx: 设置谐振频率 (0 to F)"
 
 #: src/engine/sysDef.cpp:607
 msgid ""
 "14xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"
 msgstr ""
+"14xx: 设置滤波器模式 (位0: 低通; 位1: 带通; 位2: 高通)"
 
 #: src/engine/sysDef.cpp:608
 msgid "15xx: Set envelope reset time"
-msgstr ""
+msgstr "15xx: 设置包络重置时间"
 
 #: src/engine/sysDef.cpp:609
 msgid "1Axx: Disable envelope reset for this channel (1 disables; 0 enables)"
-msgstr ""
+msgstr "1Axx: 禁用此通道的包络重置 (1 禁用; 0 启用)"
 
 #: src/engine/sysDef.cpp:610
 msgid "1Bxy: Reset cutoff (x: on new note; y: now)"
-msgstr ""
+msgstr "1Bxy: 重置截止值 (x: 在新音符上; y: 现在)"
 
 #: src/engine/sysDef.cpp:611
 msgid "1Cxy: Reset pulse width (x: on new note; y: now)"
-msgstr ""
+msgstr "1Cxy: 重置脉冲宽度 (x: 在新音符上; y: 现在)"
 
 #: src/engine/sysDef.cpp:612
 msgid "1Exy: Change other parameters (LEGACY)"
-msgstr ""
+msgstr "1Exy: 更改其他参数 (LEGACY)"
 
 #: src/engine/sysDef.cpp:613
 msgid "20xy: Set attack/decay (x: attack; y: decay)"
-msgstr ""
+msgstr "20xy: 设置起音/衰减 (x: 攻击; y: 衰减)"
 
 #: src/engine/sysDef.cpp:614
 msgid "21xy: Set sustain/release (x: sustain; y: release)"
-msgstr ""
+msgstr "21xy: 设置延迟/释音 (x: 维持; y: 释放)"
 
 #: src/engine/sysDef.cpp:616 src/engine/sysDef.cpp:688
 msgid "3xxx: Set pulse width (0 to FFF)"
-msgstr ""
+msgstr "3xxx: 设置脉冲宽度 (0 to FFF)"
 
 #: src/engine/sysDef.cpp:617
 msgid "4xxx: Set cutoff (0 to 7FF)"
-msgstr ""
+msgstr "4xxx: 设置截止值 (0 to 7FF)"
 
 #: src/engine/sysDef.cpp:622 src/engine/sysDef.cpp:745
 #: src/engine/sysDef.cpp:762 src/engine/sysDef.cpp:1000
@@ -546,11 +547,11 @@ msgstr ""
 #: src/engine/sysDef.cpp:1893 src/engine/sysDef.cpp:2063
 #: src/engine/sysDef.cpp:2077
 msgid "10xx: Set waveform"
-msgstr ""
+msgstr "10xx: 设置波形"
 
 #: src/engine/sysDef.cpp:626
 msgid "20xx: Set PCM frequency"
-msgstr ""
+msgstr "20xx: 设置PCM 频率"
 
 #: src/engine/sysDef.cpp:630
 msgid ""
@@ -650,32 +651,32 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:681
 msgid "11xx: Set resonance (0 to FF)"
-msgstr ""
+msgstr "11xx: 设置谐振 (0 to FF)"
 
 #: src/engine/sysDef.cpp:682
 msgid ""
 "12xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"
-msgstr ""
+msgstr "12xx: 设置滤波器模式 (位0: 低通; 位1: 带通; 位2: 高通)"
 
 #: src/engine/sysDef.cpp:683
 msgid "13xx: Disable envelope reset for this channel (1 disables; 0 enables)"
-msgstr ""
+msgstr "13xx: 禁用此通道的包络重置 (1 禁用; 0 启用)"
 
 #: src/engine/sysDef.cpp:684
 msgid "14xy: Reset cutoff (x: on new note; y: now)"
-msgstr ""
+msgstr "14xy: 重置截止值 (x: 在新音符上; y: 现在)"
 
 #: src/engine/sysDef.cpp:685
 msgid "15xy: Reset pulse width (x: on new note; y: now)"
-msgstr ""
+msgstr "15xy: 重置脉冲宽度x: 在新音符上; y: 现在)"
 
 #: src/engine/sysDef.cpp:686
 msgid "16xy: Change other parameters"
-msgstr ""
+msgstr "16xy: 更改其他参数"
 
 #: src/engine/sysDef.cpp:689 src/engine/sysDef.cpp:1733
 msgid "4xxx: Set cutoff (0 to FFF)"
-msgstr ""
+msgstr "4xxx: 设置截止值 (0 to FFF)"
 
 # end of no translate.
 #: src/engine/sysDef.cpp:697
@@ -924,19 +925,19 @@ msgstr ""
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 1"
-msgstr ""
+msgstr "方波 1"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 2"
-msgstr ""
+msgstr "方波 2"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:1135
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1874 src/engine/sysDef.cpp:1931
 msgid "Square 3"
-msgstr ""
+msgstr "方波 3"
 
 #: src/engine/sysDef.cpp:720 src/engine/sysDef.cpp:739
 #: src/engine/sysDef.cpp:773 src/engine/sysDef.cpp:955
@@ -950,7 +951,7 @@ msgstr "噪声"
 
 #: src/engine/sysDef.cpp:726
 msgid "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"
-msgstr ""
+msgstr "20xy: 设置噪声模式 (x: 预设频率/ch3频率; y: 细脉冲/噪声)"
 
 #: src/engine/sysDef.cpp:731
 msgid "Sega Master System + FM Expansion"
@@ -981,19 +982,19 @@ msgstr "波表"
 
 #: src/engine/sysDef.cpp:746
 msgid "11xx: Set noise length (0: long; 1: short)"
-msgstr ""
+msgstr "11xx: 设置噪声长度 (0: 长; 1: 短)"
 
 #: src/engine/sysDef.cpp:747
 msgid "12xx: Set duty cycle (0 to 3)"
-msgstr ""
+msgstr "12xx: 设置占空比 (0 to 3)"
 
 #: src/engine/sysDef.cpp:748
 msgid "13xy: Setup sweep (x: time; y: shift)"
-msgstr ""
+msgstr "13xy: 设置扫描 (x: 时间; y: 移位)"
 
 #: src/engine/sysDef.cpp:749
 msgid "14xx: Set sweep direction (0: up; 1: down)"
-msgstr ""
+msgstr "14xx: 设置扫描方向 (0: 上; 1: 下)"
 
 #: src/engine/sysDef.cpp:754
 msgid "PC Engine/TurboGrafx-16"
@@ -1001,20 +1002,20 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:755
 msgid "an '80s game console with a wavetable sound chip, popular in Japan."
-msgstr ""
+msgstr "80年代的游戏机，带有波表芯片，在日本很受欢迎。"
 
 #: src/engine/sysDef.cpp:763 src/engine/sysDef.cpp:1001
 #: src/engine/sysDef.cpp:1793
 msgid "11xx: Toggle noise mode"
-msgstr ""
+msgstr "11xx: 切换噪声模式"
 
 #: src/engine/sysDef.cpp:764
 msgid "12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)"
-msgstr ""
+msgstr "12xx: 设置LFO (0: 禁用; 1: 1x 深度; 2: 16x 深度; 3: 256x 深度)"
 
 #: src/engine/sysDef.cpp:765
 msgid "13xx: Set LFO speed"
-msgstr ""
+msgstr "13xx: 设置LFO 速度"
 
 #: src/engine/sysDef.cpp:771
 msgid "NES (Ricoh 2A03)"
@@ -1025,6 +1026,7 @@ msgid ""
 "also known as Famicom in Japan, it's the most well-known game console of the "
 "'80s."
 msgstr ""
+"它在日本也被称为Famicom，是80年代最著名的游戏机"
 
 #: src/engine/sysDef.cpp:773 src/gui/waveEdit.cpp:31 src/gui/waveEdit.cpp:217
 #: src/gui/insEdit.cpp:200 src/gui/insEdit.cpp:324 src/gui/insEdit.cpp:658
@@ -1038,36 +1040,37 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:779 src/engine/sysDef.cpp:2106
 msgid "11xx: Write to delta modulation counter (0 to 7F)"
-msgstr ""
+msgstr "11xx: 写入增量调制计数器 (0 to 7F)"
 
 #: src/engine/sysDef.cpp:780 src/engine/sysDef.cpp:1068
 msgid "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"
-msgstr ""
+msgstr "12xx: 设置占空比/噪声模式 (脉冲：0 to 3; 噪声: 0 or 1)"
 
 #: src/engine/sysDef.cpp:781 src/engine/sysDef.cpp:2108
 msgid "13xy: Sweep up (x: time; y: shift)"
-msgstr ""
+msgstr "13xy: 向上扫描 (x: 时间; y: 移位)"
 
 #: src/engine/sysDef.cpp:782 src/engine/sysDef.cpp:2109
 msgid "14xy: Sweep down (x: time; y: shift)"
-msgstr ""
+msgstr "14xy: 向下扫描 (x: 时间; y: 移位)"
 
 #: src/engine/sysDef.cpp:783 src/engine/sysDef.cpp:2110
 msgid ""
 "15xx: Set envelope mode (0: envelope, 1: length, 2: looping, 3: constant)"
 msgstr ""
+"15xx: 设置包络模式 (0: 包络, 1: 长度, 2: 循环, 3: 恒定)"
 
 #: src/engine/sysDef.cpp:784 src/engine/sysDef.cpp:2111
 msgid "16xx: Set length counter (refer to manual for a list of values)"
-msgstr ""
+msgstr "16xx: 设置长度计数器 (参阅手册以获取值列表)"
 
 #: src/engine/sysDef.cpp:785 src/engine/sysDef.cpp:2112
 msgid "17xx: Set frame counter mode (0: 4-step, 1: 5-step)"
-msgstr ""
+msgstr "17xx: 设置帧计数器模式 (0: 4-step, 1: 5-step)"
 
 #: src/engine/sysDef.cpp:786 src/engine/sysDef.cpp:2113
 msgid "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)"
-msgstr ""
+msgstr "18xx: 选择PCM/DPCM 模式 (0: PCM; 1: DPCM)"
 
 #: src/engine/sysDef.cpp:787 src/engine/sysDef.cpp:2114
 msgid "19xx: Set triangle linear counter (0 to 7F; 80 and higher halt)"
@@ -1075,7 +1078,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:788 src/engine/sysDef.cpp:2115
 msgid "20xx: Set DPCM frequency (0 to F)"
-msgstr ""
+msgstr "20xx: 设置DPCM 频率 (0 to F)"
 
 #: src/engine/sysDef.cpp:793
 msgid "NES + Konami VRC7"
@@ -1094,6 +1097,8 @@ msgid ""
 "this computer is powered by the SID chip, which had synthesizer features "
 "like a filter and ADSR."
 msgstr ""
+"这台计算机由SID 芯片提供支持，该芯片具有滤波器和ADSR 等合成器功能."
+
 
 #: src/engine/sysDef.cpp:817
 msgid "Commodore 64 (SID 8580)"
@@ -1105,6 +1110,8 @@ msgid ""
 "like a filter and ADSR.\n"
 "this is the newer revision of the chip."
 msgstr ""
+"这台计算机由SID 芯片提供支持，该芯片具有滤波器和ADSR 等合成器功能.\n"
+"这是芯片的较新版本"
 
 #: src/engine/sysDef.cpp:829
 msgid "DefleCade"
@@ -1119,6 +1126,7 @@ msgid ""
 "like Neo Geo, but lacking the ADPCM-B channel since they couldn't connect "
 "the pins."
 msgstr ""
+"像Neo Geo 一样，但缺少ADPCM-B 通道，因为它们无法连接引脚."
 
 #: src/engine/sysDef.cpp:837 src/engine/sysDef.cpp:849
 #: src/engine/sysDef.cpp:891 src/engine/sysDef.cpp:903
