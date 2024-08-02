@@ -1687,15 +1687,15 @@ msgstr "12xy: 设置调制速度高字节 (x: 启用; y: 值)"
 
 #: src/engine/sysDef.cpp:1053
 msgid "13xx: Set modulation speed low byte"
-msgstr ""
+msgstr "13xx: 设置调制速度低字节"
 
 #: src/engine/sysDef.cpp:1054
 msgid "14xx: Set modulator position"
-msgstr ""
+msgstr "14xx: 设置调制器位置"
 
 #: src/engine/sysDef.cpp:1055
 msgid "15xx: Set modulator table to waveform"
-msgstr ""
+msgstr "15xx: 将调制器表设置为波形"
 
 #: src/engine/sysDef.cpp:1060
 msgid "MMC5"
@@ -1705,6 +1705,7 @@ msgstr ""
 msgid ""
 "an expansion chip for the Famicom, featuring a little-known PCM channel."
 msgstr ""
+"Famicom的扩展芯片, 具有鲜为人知的PCM通道."
 
 #: src/engine/sysDef.cpp:1073 src/gui/settings.cpp:4058
 msgid "Namco 163"
@@ -1712,39 +1713,39 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1074
 msgid "an expansion chip for the Famicom, with full wavetable."
-msgstr ""
+msgstr "Famicom的扩展芯片, 具有全波表."
 
 #: src/engine/sysDef.cpp:1081
 msgid "18xx: Change channel limits (0 to 7, x + 1)"
-msgstr ""
+msgstr "18xx: 更改频道限制 (0 to 7, x + 1)"
 
 #: src/engine/sysDef.cpp:1082
 msgid "20xx: Load a waveform into memory"
-msgstr ""
+msgstr "20xx: 将波形加载到内存中"
 
 #: src/engine/sysDef.cpp:1083
 msgid "21xx: Set position for wave load"
-msgstr ""
+msgstr "21xx: 设置波浪负载的位置"
 
 #: src/engine/sysDef.cpp:1086
 msgid "10xx: Select waveform"
-msgstr ""
+msgstr "10xx: 选择波形"
 
 #: src/engine/sysDef.cpp:1087
 msgid "11xx: Set waveform position in RAM"
-msgstr ""
+msgstr "11xx: 在RAM中设置波形位置"
 
 #: src/engine/sysDef.cpp:1088
 msgid "12xx: Set waveform length in RAM (04 to FC in steps of 4)"
-msgstr ""
+msgstr "12xx: 在RAM中设置波形长度 (04 to FC, 步长为 4)"
 
 #: src/engine/sysDef.cpp:1089
 msgid "15xx: Set waveform load position"
-msgstr ""
+msgstr "15xx: 设置波形负载位置"
 
 #: src/engine/sysDef.cpp:1090
 msgid "16xx: Set waveform load length (04 to FC in steps of 4)"
-msgstr ""
+msgstr "16xx: 设置波形负载长度 (04 to FC, 步长为 4)"
 
 #: src/engine/sysDef.cpp:1095
 msgid "Yamaha YM2203 (OPN)"
@@ -1756,6 +1757,8 @@ msgid ""
 "stereo...\n"
 "...but it has a built-in AY-3-8910! (actually an YM2149)"
 msgstr ""
+"OPM 的低成本版本，具有不同的寄存器布局，并且没有立体声...\n"
+"...但它有一个内置的AY-3-8910!(实际上是 YM2149)"
 
 #: src/engine/sysDef.cpp:1107
 msgid "Yamaha YM2203 (OPN) Extended Channel 3"
@@ -1769,6 +1772,9 @@ msgid ""
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies"
 msgstr ""
+"OPM 的低成本版本，具有不同的寄存器布局，并且没有立体声...\n"
+"...但它有一个内置的AY-3-8910!(实际上是 YM2149)\n"
+"这个版本处于扩展通道模式，它将第三个FM通道变为具有独立音符/频率的四个运算单元"
 
 #: src/engine/sysDef.cpp:1109 src/engine/sysDef.cpp:1122
 #: src/engine/sysDef.cpp:1147 src/engine/sysDef.cpp:1160
@@ -1813,6 +1819,9 @@ msgid ""
 "...but it has a built-in AY-3-8910! (actually an YM2149)\n"
 "CSM blah blah"
 msgstr ""
+"这是OPM的降成本版本, 具有不同的寄存器布局且不支持立体声...\n"
+"...但它内置了AY-3-8910! (实际上是YM2149)\n"
+"CSM之类的内容"
 
 #: src/engine/sysDef.cpp:1122 src/engine/sysDef.cpp:1160
 #: src/engine/sysDef.cpp:1383 src/engine/sysDef.cpp:1468
@@ -1829,6 +1838,7 @@ msgid ""
 "OPN but twice the FM channels, stereo makes a come-back and has rhythm and "
 "ADPCM channels."
 msgstr ""
+"OPN, 但FM通道数量增加了一倍, 立体声回归并增加了节奏和ADPCM通道."
 
 #: src/engine/sysDef.cpp:1135 src/engine/sysDef.cpp:1147
 #: src/engine/sysDef.cpp:1160 src/engine/sysDef.cpp:1481
@@ -1891,6 +1901,8 @@ msgid ""
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies"
 msgstr ""
+"OPN, 但FM通道数量增加了一倍, 立体声回归并增加了节奏和ADPCM通道.\n"
+"这个版本处于扩展通道模式, 它将第三个FM通道变为具有独立音符/频率的四个运算单元."
 
 #: src/engine/sysDef.cpp:1158
 msgid "Yamaha YM2608 (OPNA) CSM"
@@ -1902,6 +1914,8 @@ msgid ""
 "ADPCM channels.\n"
 "CSM blah blah"
 msgstr ""
+"OPN, 但FM通道数量增加了一倍, 立体声回归并增加了节奏和ADPCM通道.\n"
+"CSM之类的内容."
 
 #: src/engine/sysDef.cpp:1171
 msgid "Yamaha YM3526 (OPL)"
@@ -1912,6 +1926,7 @@ msgid ""
 "OPN, but what if you only had two operators, no stereo, no detune and a "
 "lower ADSR parameter range?"
 msgstr ""
+"OPN, 但如果您只有两个运算单元, 不支持立体声, 没有调谐, 并且ADSR参数范围较低，阁下又该如何应对?"
 
 #: src/engine/sysDef.cpp:1183
 msgid "Yamaha YM3812 (OPL2)"
@@ -1920,6 +1935,7 @@ msgstr ""
 #: src/engine/sysDef.cpp:1184
 msgid "OPL, but what if you had more waveforms to choose than the normal sine?"
 msgstr ""
+"OPL, 但如果您可以选择的波形比普通的正弦波更多会怎样?"
 
 #: src/engine/sysDef.cpp:1195
 msgid "Yamaha YMF262 (OPL3)"
