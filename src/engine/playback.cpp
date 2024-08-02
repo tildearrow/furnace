@@ -261,7 +261,9 @@ const char* cmdName[]={
   "MINMOD_ECHO",
 
   "BIFURCATOR_STATE_LOAD",
-  "BIFURCATOR_PARAMETER"
+  "BIFURCATOR_PARAMETER",
+
+  "FDS_MOD_AUTO"
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
