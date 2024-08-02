@@ -185,6 +185,16 @@ void DivPlatformSID3::tick(bool sysTick)
       }
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.duty.had) {
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SID3);
+      if (ins->c64.dutyIsAbs) {
+        chan[i].duty=chan[i].std.duty.val;
+      } else {
+        chan[i].duty-=chan[i].std.duty.val;
+      }
+      chan[i].duty&=65535;
+      updateDuty(i);
+    }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) 
     {
