@@ -342,6 +342,12 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       rWrite(0x4087,chan[c.chan].modFreq>>8);
       break;
     }
+    case DIV_CMD_FDS_MOD_AUTO:
+      chan[c.chan].autoModNum=c.value>>4;
+      chan[c.chan].autoModDen=c.value&15;
+      chan[c.chan].freqChanged=true;
+      chan[c.chan].modOn=(chan[c.chan].autoModNum || chan[c.chan].autoModDen);
+      break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_FREQUENCY(c.value2);
       bool return2=false;
