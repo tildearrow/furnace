@@ -124,7 +124,7 @@ double absCubSquiTri(double x) {
 
 typedef double (*WaveFunc) (double a);
 
-WaveFunc waveFuncs[]={
+WaveFunc waveFuncsSID3[]={
   sinus,
   rectSin,
   absSin,
@@ -2270,7 +2270,7 @@ SID3* sid3_create()
     {
         for(int32_t j = 0; j < SID3_SPECIAL_WAVE_LENGTH; j++)
         {
-            sid3->special_waves[i][j] = (uint16_t)(waveFuncs[i]((double)j * 2.0 * M_PI / (double)SID3_SPECIAL_WAVE_LENGTH) * (double)0x7fff + (double)0x7fff);
+            sid3->special_waves[i][j] = (uint16_t)(waveFuncsSID3[i]((double)j * 2.0 * M_PI / (double)SID3_SPECIAL_WAVE_LENGTH) * (double)0x7fff + (double)0x7fff);
 
             int32_t clipped = ((int32_t)sid3->special_waves[i][j] - 0x7fff) * 2;
             if (clipped < -0x7fff) clipped = -0x7fff;
