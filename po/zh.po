@@ -2761,16 +2761,17 @@ msgstr "23xx: 设置包络右音量斜坡 (有符号) (00 to FF)"
 
 #: src/engine/sysDef.cpp:1649
 msgid "24xx: Set envelope filter coefficient k1 ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "24xx: 设置包络滤波器系数 k1 斜坡 (有符号) (00 to FF)"
 
 #: src/engine/sysDef.cpp:1650
 msgid ""
 "25xx: Set envelope filter coefficient k1 ramp (signed, slower) (00 to FF)"
 msgstr ""
+"25xx: 设置包络滤波器系数 k1 斜坡 (有符号，较慢) (00 to FF)"
 
 #: src/engine/sysDef.cpp:1651
 msgid "26xx: Set envelope filter coefficient k2 ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "26xx: 设置包络滤波器系数 k2 斜坡 (有符号) (00 to FF)"
 
 #: src/engine/sysDef.cpp:1652
 msgid ""
@@ -2825,7 +2826,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1680
 msgid "like OPL but with an ADPCM channel."
-msgstr ""
+msgstr "像OPL 一样, 但具有ADPCM 通道."
 
 #: src/engine/sysDef.cpp:1691
 msgid "Yamaha Y8950 with drums"
@@ -2844,32 +2845,34 @@ msgid ""
 "this is a variant of Konami's SCC chip with the last channel's wavetable "
 "being independent."
 msgstr ""
+"这是科乐美的SCC芯片的一种变体，最后一个通道的波表是独立的."
 
 #: src/engine/sysDef.cpp:1715
 msgid "12xx: Set pulse width (0 to 7F)"
-msgstr ""
+msgstr "12xx: 设置脉冲宽度 (0 to 7F)"
 
 #: src/engine/sysDef.cpp:1716
 msgid "13xx: Set resonance (0 to FF)"
-msgstr ""
+msgstr "13xx: 设置谐振 (0 to FF)"
 
 #: src/engine/sysDef.cpp:1717
 msgid ""
 "14xx: Set filter mode (bit 0: ring mod; bit 1: low pass; bit 2: high pass; "
 "bit 3: band pass)"
 msgstr ""
+"14xx: 设置滤波模式 (位0: 环形调制; 位1: 低通; 位2: 高通; 位3: 带通)"
 
 #: src/engine/sysDef.cpp:1718
 msgid "15xx: Set frequency sweep period low byte"
-msgstr ""
+msgstr "15xx: 设置频率扫描周期低字节"
 
 #: src/engine/sysDef.cpp:1719
 msgid "16xx: Set frequency sweep period high byte"
-msgstr ""
+msgstr "16xx: 设置频率扫描周期高字节"
 
 #: src/engine/sysDef.cpp:1720
 msgid "17xx: Set volume sweep period low byte"
-msgstr ""
+msgstr "17xx: 设置音量扫描周期低字节"
 
 #: src/engine/sysDef.cpp:1721
 msgid "18xx: Set volume sweep period high byte"
