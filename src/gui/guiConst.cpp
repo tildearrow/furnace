@@ -478,8 +478,8 @@ const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // D8
-  GUI_COLOR_PATTERN_EFFECT_VOLUME, // D9
+  GUI_COLOR_PATTERN_EFFECT_INVALID,
+  GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // DC
@@ -703,6 +703,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("INS_LIST_UP", _N("Instrument cursor up"), SDLK_UP),
   D("INS_LIST_DOWN", _N("Instrument cursor down"), SDLK_DOWN),
   D("INS_LIST_DIR_VIEW", _N("Instruments: toggle folders/standard view"), FURKMOD_CMD|SDLK_v),
+  D("INS_LIST_SAVE_ALL", _N("Save all instruments"), 0),
   D("INS_LIST_MAX", "", NOT_AN_ACTION),
 
   D("WAVE_LIST_MIN", _N("---Wavetable list"), NOT_AN_ACTION),
@@ -720,6 +721,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WAVE_LIST_UP", _N("Wavetable cursor up"), SDLK_UP),
   D("WAVE_LIST_DOWN", _N("Wavetable cursor down"), SDLK_DOWN),
   D("WAVE_LIST_DIR_VIEW", _N("Wavetables: toggle folders/standard view"), FURKMOD_CMD|SDLK_v),
+  D("WAVE_LIST_SAVE_ALL", _N("Save all wavetables"), 0),
   D("WAVE_LIST_MAX", "", NOT_AN_ACTION),
 
   D("SAMPLE_LIST_MIN", _N("---Sample list"), NOT_AN_ACTION),
@@ -741,6 +743,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_LIST_STOP_PREVIEW", _N("Stop sample preview"), 0),
   D("SAMPLE_LIST_DIR_VIEW", _N("Samples: Toggle folders/standard view"), FURKMOD_CMD|SDLK_v),
   D("SAMPLE_LIST_MAKE_MAP", _N("Samples: Make me a drum kit"), 0),
+  D("SAMPLE_LIST_SAVE_ALL", _N("Save all samples"), 0),
   D("SAMPLE_LIST_MAX", "", NOT_AN_ACTION),
 
   D("SAMPLE_MIN", _N("---Sample editor"), NOT_AN_ACTION),

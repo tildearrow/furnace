@@ -1780,7 +1780,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if ((i.macro->vScroll+i.macro->vZoom)>(i.max-i.min)) {
               i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
             }
-          } else {
+          } else if (!settings.autoMacroStepSize) {
             macroPointSize+=wheelY;
             if (macroPointSize<1) macroPointSize=1;
             if (macroPointSize>256) macroPointSize=256;
@@ -2163,17 +2163,23 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         ImGui::TableNextColumn();
         float lenAvail=ImGui::GetContentRegionAvail().x;
         //ImGui::Dummy(ImVec2(120.0f*dpiScale,dpiScale));
-        ImGui::SetNextItemWidth(120.0f*dpiScale);
-        if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
-          if (macroPointSize<1) macroPointSize=1;
-          if (macroPointSize>256) macroPointSize=256;
+        if (!settings.autoMacroStepSize) {
+          ImGui::SetNextItemWidth(120.0f*dpiScale);
+          if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
+            if (macroPointSize<1) macroPointSize=1;
+            if (macroPointSize>256) macroPointSize=256;
+          }
         }
         ImGui::TableNextColumn();
         float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
         int totalFit=MIN(255,availableWidth/MAX(1,macroPointSize*dpiScale));
         int scrollMax=0;
+        if (settings.autoMacroStepSize) totalFit=1;
         for (FurnaceGUIMacroDesc& i: macros) {
           if (i.macro->len>scrollMax) scrollMax=i.macro->len;
+          if (settings.autoMacroStepSize) {
+            if ((i.macro->open&6)==0 && totalFit<i.macro->len) totalFit=i.macro->len;
+          }
         }
         scrollMax-=totalFit;
         if (scrollMax<0) scrollMax=0;
@@ -2353,6 +2359,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           for (FurnaceGUIMacroDesc& i: macros) {
             if (i.macro->len>scrollMax) scrollMax=i.macro->len;
           }
+          if (settings.autoMacroStepSize) totalFit=MAX(1,m.macro->len);
           scrollMax-=totalFit;
           if (scrollMax<0) scrollMax=0;
           if (macroDragScroll>scrollMax) {
@@ -2366,15 +2373,17 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           }
           ImGui::EndDisabled();
 
-          ImGui::SameLine();
-          ImGui::Button(ICON_FA_SEARCH_PLUS "##MacroZoomB");
-          if (ImGui::BeginPopupContextItem("MacroZoomP",ImGuiPopupFlags_MouseButtonLeft)) {
-            ImGui::SetNextItemWidth(120.0f*dpiScale);
-            if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
-              if (macroPointSize<1) macroPointSize=1;
-              if (macroPointSize>256) macroPointSize=256;
+          if (!settings.autoMacroStepSize) {
+            ImGui::SameLine();
+            ImGui::Button(ICON_FA_SEARCH_PLUS "##MacroZoomB");
+            if (ImGui::BeginPopupContextItem("MacroZoomP",ImGuiPopupFlags_MouseButtonLeft)) {
+              ImGui::SetNextItemWidth(120.0f*dpiScale);
+              if (ImGui::InputInt("##MacroPointSize",&macroPointSize,1,4)) {
+                if (macroPointSize<1) macroPointSize=1;
+                if (macroPointSize>256) macroPointSize=256;
+              }
+              ImGui::EndPopup();
             }
-            ImGui::EndPopup();
           }
 
           m.height=ImGui::GetContentRegionAvail().y-ImGui::GetFontSize()-ImGui::GetFrameHeightWithSpacing()-(m.bit30?28.0f:12.0f)*dpiScale-ImGui::GetStyle().ItemSpacing.y*3.0f;
@@ -3069,6 +3078,151 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
   }
 }
 
+void FurnaceGUI::insTabFMModernHeader(DivInstrument* ins) {
+  ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+  ImGui::TableNextColumn();
+  if (ins->type==DIV_INS_ESFM) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(ESFM_SHORT_NAME(ESFM_MODIN));
+    ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_MODIN));
+    TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_MODIN));
+    ImGui::TableNextColumn();
+    ImGui::TableNextColumn();
+    CENTER_TEXT(ESFM_SHORT_NAME(ESFM_DELAY));
+    ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_DELAY));
+    TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_DELAY));
+  }
+  ImGui::TableNextColumn();
+  CENTER_TEXT(FM_SHORT_NAME(FM_AR));
+  ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
+  TOOLTIP_TEXT(FM_NAME(FM_AR));
+  ImGui::TableNextColumn();
+  CENTER_TEXT(FM_SHORT_NAME(FM_DR));
+  ImGui::TextUnformatted(FM_SHORT_NAME(FM_DR));
+  TOOLTIP_TEXT(FM_NAME(FM_DR));
+  if (settings.susPosition==0) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_SHORT_NAME(FM_SL));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
+    TOOLTIP_TEXT(FM_NAME(FM_SL));
+  }
+  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_SHORT_NAME(FM_D2R));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_D2R));
+    TOOLTIP_TEXT(FM_NAME(FM_D2R));
+  }
+  ImGui::TableNextColumn();
+  CENTER_TEXT(FM_SHORT_NAME(FM_RR));
+  ImGui::TextUnformatted(FM_SHORT_NAME(FM_RR));
+  TOOLTIP_TEXT(FM_NAME(FM_RR));
+  if (settings.susPosition==1) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_SHORT_NAME(FM_SL));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
+    TOOLTIP_TEXT(FM_NAME(FM_SL));
+  }
+  ImGui::TableNextColumn();
+  if (settings.susPosition==2) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_SHORT_NAME(FM_SL));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
+    TOOLTIP_TEXT(FM_NAME(FM_SL));
+  }
+  ImGui::TableNextColumn();
+  CENTER_TEXT(FM_SHORT_NAME(FM_TL));
+  ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
+  TOOLTIP_TEXT(FM_NAME(FM_TL));
+  if (settings.susPosition==3) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_SHORT_NAME(FM_SL));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
+    TOOLTIP_TEXT(FM_NAME(FM_SL));
+  }
+  ImGui::TableNextColumn();
+  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
+    CENTER_TEXT(FM_SHORT_NAME(FM_RS));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_RS));
+    TOOLTIP_TEXT(FM_NAME(FM_RS));
+  } else {
+    CENTER_TEXT(FM_SHORT_NAME(FM_KSL));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_KSL));
+    TOOLTIP_TEXT(FM_NAME(FM_KSL));
+  }
+  if (ins->type==DIV_INS_OPZ) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_SHORT_NAME(FM_EGSHIFT));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_EGSHIFT));
+    TOOLTIP_TEXT(FM_NAME(FM_EGSHIFT));
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_SHORT_NAME(FM_REV));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_REV));
+    TOOLTIP_TEXT(FM_NAME(FM_REV));
+  }
+  if (ins->type==DIV_INS_ESFM) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(ESFM_SHORT_NAME(ESFM_OUTLVL));
+    ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_OUTLVL));
+    TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_OUTLVL));
+  }
+  ImGui::TableNextColumn();
+  CENTER_TEXT(FM_SHORT_NAME(FM_MULT));
+  ImGui::TextUnformatted(FM_SHORT_NAME(FM_MULT));
+  TOOLTIP_TEXT(FM_NAME(FM_MULT));
+  if (ins->type==DIV_INS_OPZ) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_SHORT_NAME(FM_FINE));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_FINE));
+    TOOLTIP_TEXT(FM_NAME(FM_FINE));
+  }
+  if (ins->type==DIV_INS_ESFM) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(ESFM_SHORT_NAME(ESFM_CT));
+    ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_CT));
+    TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_CT));
+  }
+  ImGui::TableNextColumn();
+  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
+    CENTER_TEXT(FM_SHORT_NAME(FM_DT));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT));
+    TOOLTIP_TEXT(FM_NAME(FM_DT));
+    ImGui::TableNextColumn();
+  }
+  if (ins->type==DIV_INS_ESFM) {
+    CENTER_TEXT(ESFM_SHORT_NAME(ESFM_DT));
+    ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_DT));
+    TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_DT));
+    ImGui::TableNextColumn();
+  }
+  if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
+    CENTER_TEXT(FM_SHORT_NAME(FM_DT2));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT2));
+    TOOLTIP_TEXT(FM_NAME(FM_DT2));
+    ImGui::TableNextColumn();
+  }
+  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
+    CENTER_TEXT(FM_SHORT_NAME(FM_AM));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_AM));
+    TOOLTIP_TEXT(FM_NAME(FM_AM));
+  } else {
+    CENTER_TEXT("Other");
+    ImGui::TextUnformatted("Other");
+  }
+  ImGui::TableNextColumn();
+  if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_ESFM) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_NAME(FM_WS));
+    ImGui::TextUnformatted(FM_NAME(FM_WS));
+  } else if (ins->type!=DIV_INS_OPLL && ins->type!=DIV_INS_OPM) {
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_NAME(FM_SSG));
+    ImGui::TextUnformatted(FM_NAME(FM_SSG));
+  }
+  ImGui::TableNextColumn();
+  CENTER_TEXT(_("Envelope"));
+  ImGui::TextUnformatted(_("Envelope"));
+}
+
 void FurnaceGUI::insTabFM(DivInstrument* ins) {
   int opCount=4;
   if (ins->type==DIV_INS_OPLL) opCount=2;
@@ -3365,7 +3519,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
     }
 
     ImGui::BeginDisabled(!willDisplayOps);
-    if (settings.fmLayout==0) {
+    if (settings.fmLayout==0 || settings.fmLayout==7) {
       int numCols=15;
       if (ins->type==DIV_INS_OPL ||ins->type==DIV_INS_OPL_DRUMS) numCols=13;
       if (ins->type==DIV_INS_OPLL) numCols=12;
@@ -3420,143 +3574,22 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
         }
         ImGui::TableSetupColumn("c14",ImGuiTableColumnFlags_WidthStretch,0.3f); // env
 
+        float sliderHeight=((ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*(settings.fmLayout==7?4.0f:1.0f))/opCount)-ImGui::GetStyle().ItemSpacing.y;
+
         // header
-        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-        ImGui::TableNextColumn();
-        if (ins->type==DIV_INS_ESFM) {
-          ImGui::TableNextColumn();
-          CENTER_TEXT(ESFM_SHORT_NAME(ESFM_MODIN));
-          ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_MODIN));
-          TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_MODIN));
-          ImGui::TableNextColumn();
-          ImGui::TableNextColumn();
-          CENTER_TEXT(ESFM_SHORT_NAME(ESFM_DELAY));
-          ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_DELAY));
-          TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_DELAY));
+        if (settings.fmLayout==0) {
+          insTabFMModernHeader(ins);
         }
-        ImGui::TableNextColumn();
-        CENTER_TEXT(FM_SHORT_NAME(FM_AR));
-        ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
-        TOOLTIP_TEXT(FM_NAME(FM_AR));
-        ImGui::TableNextColumn();
-        CENTER_TEXT(FM_SHORT_NAME(FM_DR));
-        ImGui::TextUnformatted(FM_SHORT_NAME(FM_DR));
-        TOOLTIP_TEXT(FM_NAME(FM_DR));
-        if (settings.susPosition==0) {
-          ImGui::TableNextColumn();
-          CENTER_TEXT(FM_SHORT_NAME(FM_SL));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
-          TOOLTIP_TEXT(FM_NAME(FM_SL));
-        }
-        if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
-          ImGui::TableNextColumn();
-          CENTER_TEXT(FM_SHORT_NAME(FM_D2R));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_D2R));
-          TOOLTIP_TEXT(FM_NAME(FM_D2R));
-        }
-        ImGui::TableNextColumn();
-        CENTER_TEXT(FM_SHORT_NAME(FM_RR));
-        ImGui::TextUnformatted(FM_SHORT_NAME(FM_RR));
-        TOOLTIP_TEXT(FM_NAME(FM_RR));
-        if (settings.susPosition==1) {
-          ImGui::TableNextColumn();
-          CENTER_TEXT(FM_SHORT_NAME(FM_SL));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
-          TOOLTIP_TEXT(FM_NAME(FM_SL));
-        }
-        ImGui::TableNextColumn();
-        ImGui::TableNextColumn();
-        CENTER_TEXT(FM_SHORT_NAME(FM_TL));
-        ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
-        TOOLTIP_TEXT(FM_NAME(FM_TL));
-        ImGui::TableNextColumn();
-        if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
-          CENTER_TEXT(FM_SHORT_NAME(FM_RS));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_RS));
-          TOOLTIP_TEXT(FM_NAME(FM_RS));
-        } else {
-          CENTER_TEXT(FM_SHORT_NAME(FM_KSL));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_KSL));
-          TOOLTIP_TEXT(FM_NAME(FM_KSL));
-        }
-        if (ins->type==DIV_INS_OPZ) {
-          ImGui::TableNextColumn();
-          CENTER_TEXT(FM_SHORT_NAME(FM_EGSHIFT));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_EGSHIFT));
-          TOOLTIP_TEXT(FM_NAME(FM_EGSHIFT));
-          ImGui::TableNextColumn();
-          CENTER_TEXT(FM_SHORT_NAME(FM_REV));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_REV));
-          TOOLTIP_TEXT(FM_NAME(FM_REV));
-        }
-        if (ins->type==DIV_INS_ESFM) {
-          ImGui::TableNextColumn();
-          CENTER_TEXT(ESFM_SHORT_NAME(ESFM_OUTLVL));
-          ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_OUTLVL));
-          TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_OUTLVL));
-        }
-        ImGui::TableNextColumn();
-        CENTER_TEXT(FM_SHORT_NAME(FM_MULT));
-        ImGui::TextUnformatted(FM_SHORT_NAME(FM_MULT));
-        TOOLTIP_TEXT(FM_NAME(FM_MULT));
-        if (ins->type==DIV_INS_OPZ) {
-          ImGui::TableNextColumn();
-          CENTER_TEXT(FM_SHORT_NAME(FM_FINE));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_FINE));
-          TOOLTIP_TEXT(FM_NAME(FM_FINE));
-        }
-        if (ins->type==DIV_INS_ESFM) {
-          ImGui::TableNextColumn();
-          CENTER_TEXT(ESFM_SHORT_NAME(ESFM_CT));
-          ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_CT));
-          TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_CT));
-        }
-        ImGui::TableNextColumn();
-        if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
-          CENTER_TEXT(FM_SHORT_NAME(FM_DT));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT));
-          TOOLTIP_TEXT(FM_NAME(FM_DT));
-          ImGui::TableNextColumn();
-        }
-        if (ins->type==DIV_INS_ESFM) {
-          CENTER_TEXT(ESFM_SHORT_NAME(ESFM_DT));
-          ImGui::TextUnformatted(ESFM_SHORT_NAME(ESFM_DT));
-          TOOLTIP_TEXT(ESFM_LONG_NAME(ESFM_DT));
-          ImGui::TableNextColumn();
-        }
-        if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
-          CENTER_TEXT(FM_SHORT_NAME(FM_DT2));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT2));
-          TOOLTIP_TEXT(FM_NAME(FM_DT2));
-          ImGui::TableNextColumn();
-        }
-        if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
-          CENTER_TEXT(FM_SHORT_NAME(FM_AM));
-          ImGui::TextUnformatted(FM_SHORT_NAME(FM_AM));
-          TOOLTIP_TEXT(FM_NAME(FM_AM));
-        } else {
-          CENTER_TEXT("Other");
-          ImGui::TextUnformatted("Other");
-        }
-        ImGui::TableNextColumn();
-        if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_ESFM) {
-          ImGui::TableNextColumn();
-          CENTER_TEXT(FM_NAME(FM_WS));
-          ImGui::TextUnformatted(FM_NAME(FM_WS));
-        } else if (ins->type!=DIV_INS_OPLL && ins->type!=DIV_INS_OPM) {
-          ImGui::TableNextColumn();
-          CENTER_TEXT(FM_NAME(FM_SSG));
-          ImGui::TextUnformatted(FM_NAME(FM_SSG));
-        }
-        ImGui::TableNextColumn();
-        CENTER_TEXT(_("Envelope"));
-        ImGui::TextUnformatted(_("Envelope"));
 
-        float sliderHeight=32.0f*dpiScale;
-
+        // main view
         for (int i=0; i<opCount; i++) {
           DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i];
           DivInstrumentESFM::Operator& opE=ins->esfm.op[i];
+
+          // modern with more labels
+          if (settings.fmLayout==7) {
+            insTabFMModernHeader(ins);
+          }
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -3609,7 +3642,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           }
 
           if (i==0) {
-            sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
             float sliderMinHeightOPL=ImGui::GetFrameHeight()*4.0+ImGui::GetStyle().ItemSpacing.y*3.0;
             float sliderMinHeightESFM=ImGui::GetFrameHeight()*5.0+ImGui::GetStyle().ItemSpacing.y*4.0;
             if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL) && sliderHeight<sliderMinHeightOPL) {
@@ -3717,10 +3749,24 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           ImGui::TableNextColumn();
           ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
 
+          if (settings.susPosition==2) {
+            ImGui::TableNextColumn();
+            op.sl&=15;
+            CENTER_VSLIDER;
+            P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
+          }
+
           ImGui::TableNextColumn();
           op.tl&=maxTl;
           CENTER_VSLIDER;
           P(CWVSliderScalar("##TL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
+
+          if (settings.susPosition==3) {
+            ImGui::TableNextColumn();
+            op.sl&=15;
+            CENTER_VSLIDER;
+            P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
+          }
 
           ImGui::TableNextColumn();
           CENTER_VSLIDER;
@@ -4195,7 +4241,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             float textX_RR=ImGui::GetCursorPosX();
             P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO)); rightClickable
 
-            if (settings.susPosition==1) {
+            if (settings.susPosition>0) {
               ImGui::SameLine();
               op.sl&=15;
               textX_SL=ImGui::GetCursorPosX();
@@ -4911,7 +4957,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::TableNextColumn();
             ImGui::Text("%s",FM_NAME(FM_RR));
 
-            if (settings.susPosition==1) {
+            if (settings.susPosition>0) {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -7511,6 +7557,22 @@ void FurnaceGUI::drawInsEdit() {
 
           drawMacros(macroList,macroEditStateMacros);
           ImGui::EndTabItem();
+        }
+        if (ins->type==DIV_INS_AY) {
+          if (!ins->amiga.useSample)
+          {
+            if (ImGui::BeginTabItem(_("Timer Macros")))
+            {
+              ImGui::Text(_("warning: timer effects are not supported by VGM export!"));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Timer FX"),&ins->std.ex6Macro,0,3,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("TFX Offset"),&ins->std.ex7Macro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Timer Num"),&ins->std.ex8Macro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Timer Den"),&ins->std.fmsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("PWM Boundary"),&ins->std.amsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+              drawMacros(macroList,macroEditStateMacros);
+              ImGui::EndTabItem();
+            }
+          }
         }
         if (ins->type==DIV_INS_POWERNOISE || ins->type==DIV_INS_POWERNOISE_SLOPE) {
           if (ImGui::BeginTabItem("PowerNoise")) {

@@ -580,17 +580,20 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
   GUI_FILE_INS_SAVE_DMP,
+  GUI_FILE_INS_SAVE_ALL,
   GUI_FILE_WAVE_OPEN,
   GUI_FILE_WAVE_OPEN_REPLACE,
   GUI_FILE_WAVE_SAVE,
   GUI_FILE_WAVE_SAVE_DMW,
   GUI_FILE_WAVE_SAVE_RAW,
+  GUI_FILE_WAVE_SAVE_ALL,
   GUI_FILE_SAMPLE_OPEN,
   GUI_FILE_SAMPLE_OPEN_RAW,
   GUI_FILE_SAMPLE_OPEN_REPLACE,
   GUI_FILE_SAMPLE_OPEN_REPLACE_RAW,
   GUI_FILE_SAMPLE_SAVE,
   GUI_FILE_SAMPLE_SAVE_RAW,
+  GUI_FILE_SAMPLE_SAVE_ALL,
   GUI_FILE_EXPORT_AUDIO_ONE,
   GUI_FILE_EXPORT_AUDIO_PER_SYS,
   GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
@@ -831,6 +834,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_UP,
   GUI_ACTION_INS_LIST_DOWN,
   GUI_ACTION_INS_LIST_DIR_VIEW,
+  GUI_ACTION_INS_LIST_SAVE_ALL,
   GUI_ACTION_INS_LIST_MAX,
 
   GUI_ACTION_WAVE_LIST_MIN,
@@ -848,6 +852,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WAVE_LIST_UP,
   GUI_ACTION_WAVE_LIST_DOWN,
   GUI_ACTION_WAVE_LIST_DIR_VIEW,
+  GUI_ACTION_WAVE_LIST_SAVE_ALL,
   GUI_ACTION_WAVE_LIST_MAX,
 
   GUI_ACTION_SAMPLE_LIST_MIN,
@@ -869,6 +874,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW,
   GUI_ACTION_SAMPLE_LIST_DIR_VIEW,
   GUI_ACTION_SAMPLE_LIST_MAKE_MAP,
+  GUI_ACTION_SAMPLE_LIST_SAVE_ALL,
   GUI_ACTION_SAMPLE_LIST_MAX,
 
   GUI_ACTION_SAMPLE_MIN,
@@ -1951,6 +1957,7 @@ class FurnaceGUI {
     int backupInterval;
     int backupMaxCopies;
     int autoFillSave;
+    int autoMacroStepSize;
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
@@ -2206,6 +2213,7 @@ class FurnaceGUI {
       backupInterval(30),
       backupMaxCopies(5),
       autoFillSave(0),
+      autoMacroStepSize(0),
       maxUndoSteps(100),
       vibrationStrength(0.5f),
       vibrationLength(20),
@@ -2749,6 +2757,7 @@ class FurnaceGUI {
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
   void alterSampleMap(int column, int val);
 
+  void insTabFMModernHeader(DivInstrument* ins);
   void insTabFM(DivInstrument* ins);
   void insTabSample(DivInstrument* ins);
 

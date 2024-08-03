@@ -136,6 +136,11 @@ class DivPlatformFMBase: public DivDispatch {
       return CLAMP(round(128.0-(56.0-log2(vel*127.0)*8.0)),0,127);
     }
 
+    virtual float getGain(int ch, int vol) {
+      if (vol==0) return 0;
+      return 1.0/pow(10.0,(float)(127-vol)*0.75/20.0);
+    }
+
     bool getLegacyAlwaysSetVolume() {
       return true;
     }

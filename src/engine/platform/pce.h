@@ -90,6 +90,7 @@ class DivPlatformPCE: public DivDispatch {
     DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
+    float getGain(int ch, int vol);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

@@ -138,6 +138,7 @@ class DivPlatformAY8930: public DivDispatch {
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
+    float getGain(int ch, int vol);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

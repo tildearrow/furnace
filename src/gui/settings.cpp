@@ -3608,6 +3608,14 @@ void FurnaceGUI::drawSettings() {
           settingsChanged=true;
         }
 
+        ImGui::BeginDisabled(settings.macroLayout==2);
+        bool autoMacroStepSizeB=settings.autoMacroStepSize;
+        if (ImGui::Checkbox(_("Automatic macro step size/horizontal zoom"),&autoMacroStepSizeB)) {
+          settings.autoMacroStepSize=autoMacroStepSizeB;
+          settingsChanged=true;
+        }
+        ImGui::EndDisabled();
+
         // SUBSECTION WAVE EDITOR
         CONFIG_SUBSECTION(_("Wave Editor"));
         bool waveLayoutB=settings.waveLayout;
@@ -3646,6 +3654,10 @@ void FurnaceGUI::drawSettings() {
           settings.fmLayout=0;
           settingsChanged=true;
         }
+        if (ImGui::RadioButton(_("Modern with more labels##fml7"),settings.fmLayout==7)) {
+          settings.fmLayout=7;
+          settingsChanged=true;
+        }
         if (ImGui::RadioButton(_("Compact (2x2, classic)##fml1"),settings.fmLayout==1)) {
           settings.fmLayout=1;
           settingsChanged=true;
@@ -3682,6 +3694,16 @@ void FurnaceGUI::drawSettings() {
           settings.susPosition=1;
           settingsChanged=true;
         }
+        ImGui::BeginDisabled(settings.fmLayout!=0);
+        if (ImGui::RadioButton(_("After Release Rate, after spacing##susp2"),settings.susPosition==2)) {
+          settings.susPosition=2;
+          settingsChanged=true;
+        }
+        if (ImGui::RadioButton(_("After TL##susp3"),settings.susPosition==3)) {
+          settings.susPosition=3;
+          settingsChanged=true;
+        }
+        ImGui::EndDisabled();
         ImGui::Unindent();
 
         bool separateFMColorsB=settings.separateFMColors;
@@ -4922,6 +4944,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.capitalMenuBar=conf.getInt("capitalMenuBar",0);
     settings.insIconsStyle=conf.getInt("insIconsStyle",1);
     settings.sysSeparators=conf.getInt("sysSeparators",1);
+
+    settings.autoMacroStepSize=conf.getInt("autoMacroStepSize",0);
   }
 
   if (groups&GUI_SETTINGS_LAYOUTS) {
@@ -5114,7 +5138,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.loadFallback,0,1);
   clampSetting(settings.fmLayout,0,6);
-  clampSetting(settings.susPosition,0,1);
+  clampSetting(settings.susPosition,0,3);
   clampSetting(settings.effectCursorDir,0,2);
   clampSetting(settings.cursorPastePos,0,1);
   clampSetting(settings.titleBarInfo,0,3);
@@ -5232,6 +5256,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.backupInterval,10,86400);
   clampSetting(settings.backupMaxCopies,1,100);
   clampSetting(settings.autoFillSave,0,1);
+  clampSetting(settings.autoMacroStepSize,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;  
@@ -5503,6 +5528,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("capitalMenuBar",settings.capitalMenuBar);
     conf.set("insIconsStyle",settings.insIconsStyle);
     conf.set("sysSeparators",settings.sysSeparators);
+    conf.set("autoMacroStepSize",settings.autoMacroStepSize);
   }
 
   // layout

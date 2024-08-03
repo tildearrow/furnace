@@ -1794,6 +1794,14 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?e->getIns(curIns)->name:""
       );
       break;
+    case GUI_FILE_INS_SAVE_ALL:
+      if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
+      hasOpened=fileDialog->openSelectDir(
+        _("Save All Instruments"),
+        workingDirIns,
+        dpiScale
+      );
+      break;
     case GUI_FILE_WAVE_OPEN:
     case GUI_FILE_WAVE_OPEN_REPLACE:
       if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
@@ -1830,6 +1838,14 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openSave(
         _("Save Wavetable"),
         {_("raw data"), ".raw"},
+        workingDirWave,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_WAVE_SAVE_ALL:
+      if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
+      hasOpened=fileDialog->openSelectDir(
+        _("Save All Wavetables"),
         workingDirWave,
         dpiScale
       );
@@ -1874,6 +1890,14 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         workingDirSample,
         dpiScale,
         (settings.autoFillSave)?e->getSample(curSample)->name:""
+      );
+      break;
+    case GUI_FILE_SAMPLE_SAVE_ALL:
+      if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
+      hasOpened=fileDialog->openSelectDir(
+        _("Save All Samples"),
+        workingDirSample,
+        dpiScale
       );
       break;
     case GUI_FILE_EXPORT_AUDIO_ONE:
@@ -4680,7 +4704,7 @@ bool FurnaceGUI::loop() {
                 if (maxVol<1 || p->data[cursor.y][3]>maxVol) {
                   info=fmt::sprintf(_("Set volume: %d (%.2X, INVALID!)"),p->data[cursor.y][3],p->data[cursor.y][3]);
                 } else {
-                  float realVol=e->mapVelocity(cursor.xCoarse,(float)p->data[cursor.y][3]/(float)maxVol);
+                  float realVol=e->getGain(cursor.xCoarse,p->data[cursor.y][3]);
                   info=fmt::sprintf(_("Set volume: %d (%.2X, %d%%)"),p->data[cursor.y][3],p->data[cursor.y][3],(int)(realVol*100.0f/(float)maxVol));
                 }
                 hasInfo=true;
@@ -4909,6 +4933,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_INS_OPEN_REPLACE:
         case GUI_FILE_INS_SAVE:
         case GUI_FILE_INS_SAVE_DMP:
+        case GUI_FILE_INS_SAVE_ALL:
           workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_WAVE_OPEN:
@@ -4916,6 +4941,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_WAVE_SAVE:
         case GUI_FILE_WAVE_SAVE_DMW:
         case GUI_FILE_WAVE_SAVE_RAW:
+        case GUI_FILE_WAVE_SAVE_ALL:
           workingDirWave=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_SAMPLE_OPEN:
@@ -4924,6 +4950,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_SAMPLE_OPEN_REPLACE_RAW:
         case GUI_FILE_SAMPLE_SAVE:
         case GUI_FILE_SAMPLE_SAVE_RAW:
+        case GUI_FILE_SAMPLE_SAVE_ALL:
           workingDirSample=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_AUDIO_ONE:
@@ -5132,6 +5159,81 @@ bool FurnaceGUI::loop() {
                 }
               }
               break;
+            case GUI_FILE_INS_SAVE_ALL: {
+              String errors;
+              for (int i=0; i<e->song.insLen; i++) {
+                String nextPath=copyOfName;
+                nextPath+=DIR_SEPARATOR_STR;
+                nextPath+=fmt::sprintf("%.2X_",i);
+                for (char j: e->song.ins[i]->name) {
+                  switch (j) {
+                    // these chars are reserved
+                    case '/': case '<': case '>': case ':': case '"': case '\\': case '|': case '?': case '*':
+                      nextPath+='_';
+                      break;
+                    default:
+                      nextPath+=j;
+                      break;
+                  }
+                }
+                nextPath+=".fui";
+                logV("%s",nextPath);
+                if (!e->song.ins[i]->save(nextPath.c_str(),&e->song,settings.writeInsNames)) {
+                  errors+=fmt::sprintf("%s: could not save!\n",e->song.ins[i]->name);
+                }
+              }
+
+              if (!errors.empty()) {
+                showError(errors);
+              }
+              break;
+            }
+            case GUI_FILE_WAVE_SAVE_ALL: {
+              String errors;
+              for (int i=0; i<e->song.waveLen; i++) {
+                String nextPath=copyOfName;
+                nextPath+=DIR_SEPARATOR_STR;
+                nextPath+=fmt::sprintf("%.2X.fuw",i);
+                logV("%s",nextPath);
+                if (!e->song.wave[i]->save(nextPath.c_str())) {
+                  errors+=fmt::sprintf("%d: could not save!\n",i);
+                }
+              }
+
+              if (!errors.empty()) {
+                showError(errors);
+              }
+              break;
+            }
+            case GUI_FILE_SAMPLE_SAVE_ALL: {
+              String errors;
+              for (int i=0; i<e->song.sampleLen; i++) {
+                String nextPath=copyOfName;
+                nextPath+=DIR_SEPARATOR_STR;
+                nextPath+=fmt::sprintf("%.2X_",i);
+                for (char j: e->song.sample[i]->name) {
+                  switch (j) {
+                    // these chars are reserved
+                    case '/': case '<': case '>': case ':': case '"': case '\\': case '|': case '?': case '*':
+                      nextPath+='_';
+                      break;
+                    default:
+                      nextPath+=j;
+                      break;
+                  }
+                }
+                nextPath+=".wav";
+                logV("%s",nextPath);
+                if (!e->song.sample[i]->save(nextPath.c_str())) {
+                  errors+=fmt::sprintf("%s: could not save!\n",e->song.sample[i]->name);
+                }
+              }
+
+              if (!errors.empty()) {
+                showError(errors);
+              }
+              break;
+            }
             case GUI_FILE_WAVE_SAVE:
               if (curWave>=0 && curWave<(int)e->song.wave.size()) {
                 if (e->song.wave[curWave]->save(copyOfName.c_str())) {
@@ -5162,7 +5264,7 @@ bool FurnaceGUI::loop() {
                   if (fileDialog->getFileName().size()>1) {
                     warn=true;
                     errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
-                  } else {
+                  } else {;
                     showError(e->getLastError());
                   }
                 } else {

@@ -217,7 +217,7 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
       }
     }
 
-    if (fm.rhy&0x20) {
+    if (properDrums) {
       for (int i=0; i<melodicChans+1; i++) {
         unsigned char ch=outChanMap[i];
         int chOut=0;
@@ -2138,6 +2138,11 @@ int DivPlatformOPL::mapVelocity(int ch, float vel) {
   if (vel==0) return 0;
   if (vel>=1.0) return 63;
   return CLAMP(round(64.0-(56.0-log2(vel*127.0)*8.0)),0,63);
+}
+
+float DivPlatformOPL::getGain(int ch, int vol) {
+  if (vol==0) return 0;
+  return 1.0/pow(10.0,(float)(63-vol)*0.75/20.0);
 }
 
 unsigned char* DivPlatformOPL::getRegisterPool() {
