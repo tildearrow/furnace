@@ -15777,7 +15777,7 @@ msgstr "20xx: 设置分频器 (0-2)"
 
 #: src/engine/sysDef.cpp:1773
 msgid "21xx: Select clock rate (0: full; 1: half)"
-msgstr ""
+msgstr "21xx: 选择时钟速率 (0: 全; 1: 半)"
 
 #: src/engine/sysDef.cpp:1778
 msgid "Yamaha YMZ280B (PCMD8)"
@@ -15788,11 +15788,13 @@ msgid ""
 "used in some arcade boards. Can play back either 4-bit ADPCM, 8-bit PCM or "
 "16-bit PCM."
 msgstr ""
+"在一些街机上使用, 可回放 4 位 ADPCM, 8 位 PCM 或 16 位 PCM."
 
 #: src/engine/sysDef.cpp:1798
 msgid ""
 "a wavetable sound chip used in Pac-Man, among other early Namco arcade games."
 msgstr ""
+"Pac-Man 以及其他早期 Namco 街机游戏中使用的波表声音芯片."
 
 #: src/engine/sysDef.cpp:1808
 msgid "Namco C15 WSG"
@@ -15802,6 +15804,7 @@ msgstr ""
 msgid ""
 "successor of the original Namco WSG chip, used in later Namco arcade games."
 msgstr ""
+"原始 Namco WSG 芯片的继任者, 用于后来的 Namco 街机游戏".
 
 #: src/engine/sysDef.cpp:1819
 msgid "Namco C30 WSG"
@@ -15809,7 +15812,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1820
 msgid "like Namco C15 but with stereo sound."
-msgstr ""
+msgstr "像 Namco C15, 但带有立体声."
 
 #: src/engine/sysDef.cpp:1830
 msgid "OKI MSM5232"
@@ -15820,22 +15823,23 @@ msgid ""
 "a square wave additive synthesis chip made by OKI. used in some arcade "
 "machines and instruments."
 msgstr ""
+"OKI制造的方波加法合成芯片, 用于一些街机和乐器."
 
 #: src/engine/sysDef.cpp:1839
 msgid "10xy: Set group control (x: sustain; y: part toggle bitmask)"
-msgstr ""
+msgstr "10xy: 设置组控制 (x: 延音; y: 部分切换位掩码)"
 
 #: src/engine/sysDef.cpp:1840 src/engine/sysDef.cpp:1998
 msgid "11xx: Set noise mode"
-msgstr ""
+msgstr "11xx: 设置噪声模式"
 
 #: src/engine/sysDef.cpp:1841
 msgid "12xx: Set group attack (0 to 5)"
-msgstr ""
+msgstr "12xx:设置组起音 (0 to 5)"
 
 #: src/engine/sysDef.cpp:1842
 msgid "13xx: Set group decay (0 to 11)"
-msgstr ""
+msgstr "13xx: 设置组衰减 (0 to 11)"
 
 #: src/engine/sysDef.cpp:1847
 msgid "Yamaha YM2612 (OPN2) with DualPCM"
@@ -15847,6 +15851,8 @@ msgid ""
 "the FM Towns computer).\n"
 "this system uses software mixing to provide two sample channels."
 msgstr ""
+"这个芯片主要以在Sega Genesis中使用而闻名 (但它也出现在FM Towns计算机上).\n"
+"这个系统使用软件混合来提供两个采样通道."
 
 #: src/engine/sysDef.cpp:1849 src/engine/sysDef.cpp:1861
 msgid "FM 6/PCM 1"
@@ -15864,16 +15870,20 @@ msgid ""
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies."
 msgstr ""
+"这个芯片主要以在Sega Genesis中使用而闻名 (但它也出现在FM Towns计算机上).\n"
+"这个系统使用软件混合来提供两个采样通道."
+"这个芯片处于扩展通道模式, 使得第三个FM通道变成四个operators, 具有独立的音符/频率."
 
 #: src/engine/sysDef.cpp:1873
 msgid ""
 "an SN76489 derivative used in Neo Geo Pocket, has independent stereo volume "
 "and noise channel frequency."
 msgstr ""
+"这是一个SN76489的衍生芯片, 用于Neo Geo Pocket, 具有独立的立体声音量和噪声通道频率."
 
 #: src/engine/sysDef.cpp:1880
 msgid "20xx: Set noise length (0: short, 1: long)"
-msgstr ""
+msgstr "20xx: 设置噪声长度 (0: 短, 1: 长)"
 
 #: src/engine/sysDef.cpp:1885
 msgid "Generic PCM DAC"
@@ -15889,7 +15899,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1899
 msgid "this PCM chip was widely used at Konami arcade boards in 1986-1990."
-msgstr "在1986-1990年间,此PCM芯片在科乐美的街机基板中广泛使用"
+msgstr "在1986-1990年间, 此PCM芯片在科乐美的街机基板中广泛使用."
 
 #: src/engine/sysDef.cpp:1908
 msgid "Irem GA20"
@@ -15900,7 +15910,7 @@ msgid ""
 "yet another PCM chip from Irem. like Amiga, but less pitch resolution and no "
 "sample loop."
 msgstr ""
-"又一个Irem的PCM芯片. 与Amiga一样, 但是更低的音高解析度和没有 "
+"又一个Irem的PCM芯片. 与Amiga一样, 但是更低的音高解析度及没有 "
 "采样循环."
 
 #: src/engine/sysDef.cpp:1918
@@ -15909,7 +15919,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1919
 msgid "a SoC with wavetable sound hardware."
-msgstr ""
+msgstr "具有波表声音硬件的 SoC."
 
 #: src/engine/sysDef.cpp:1929
 msgid "Casio PV-1000"
@@ -15920,10 +15930,11 @@ msgid ""
 "a game console with 3 channels of square wave. it's what happens after "
 "fusing TIA and VIC together."
 msgstr ""
+"具有 3 个方波通道的游戏机, 这是将 TIA 和 VIC 融合在一起后发生的情况."
 
 #: src/engine/sysDef.cpp:1937
 msgid "10xx: Set ring modulation (0: disable, 1: enable)"
-msgstr ""
+msgstr "10xx: 设置振铃调制 (0: 禁用, 1: 启用)"
 
 #: src/engine/sysDef.cpp:1942
 msgid "ZX Spectrum Beeper (QuadTone Engine)"
@@ -15934,6 +15945,7 @@ msgid ""
 "another ZX Spectrum beeper system with full PWM pulses and 3-level volume "
 "per channel. it also has a pitchable overlay sample channel."
 msgstr ""
+"另一个 ZX Spectrum 蜂鸣器系统, 具有完整的 PWM 脉冲和每通道 3 级音量. 它还具有一个可倾斜的叠加采样通道."
 
 #: src/engine/sysDef.cpp:1955
 msgid "Konami K053260"
@@ -15941,7 +15953,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1956
 msgid "this PCM chip was widely used at Konami arcade boards in 1990-1992."
-msgstr "在1990-1992年间,此PCM芯片在科乐美的街机基板中广泛使用"
+msgstr "在1990-1992年间, 此PCM芯片在科乐美的街机基板中广泛使用."
 
 #: src/engine/sysDef.cpp:1968
 msgid "MOS Technology TED"
@@ -15961,7 +15973,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1979
 msgid "Namco's first PCM chip from 1987. it's pretty good for being so."
-msgstr "南梦宫在1987年的第一个PCM芯片,作为初品也挺不错的了"
+msgstr "南梦宫在1987年的第一个PCM芯片, 作为初品也挺不错的了."
 
 #: src/engine/sysDef.cpp:1989
 msgid "Namco C219"
@@ -15973,11 +15985,11 @@ msgid ""
 "very similar to C140, but has noise generator."
 msgstr ""
 "南梦宫用于NA-1/2基板的PCM芯片.\n"
-"与C140非常相似,但是拥有噪声发生器."
+"与C140非常相似, 但是拥有噪声发生器."
 
 #: src/engine/sysDef.cpp:1999
 msgid "12xy: Set invert mode (x: surround; y: invert)"
-msgstr ""
+msgstr "12xy: 设置反转模式 (x: 环绕声; y: 反转)"
 
 #: src/engine/sysDef.cpp:2004
 msgid "ESS ES1xxx series (ESFM)"
@@ -15988,7 +16000,7 @@ msgid ""
 "a unique FM synth featured in PC sound cards.\n"
 "based on the OPL3 design, but with lots of its features extended."
 msgstr ""
-"一个用于PC的独特FM合成声卡\n"
+"一个用于PC的独特FM合成声卡.\n"
 "基于OPL3 设计, 但增添了更多功能."
 
 #: src/engine/sysDef.cpp:2006
@@ -15997,7 +16009,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:2012
 msgid "2Exx: Toggle hard envelope reset on new notes"
-msgstr ""
+msgstr "2Exx: 在新音符上切换硬包络重置"
 
 #: src/engine/sysDef.cpp:2018
 msgid "PowerNoise"
@@ -16008,20 +16020,20 @@ msgid ""
 "a fantasy sound chip designed by jvsTSX and The Beesh-Spweesh!\n"
 "used in the Hexheld fantasy console."
 msgstr ""
-"由jvsTSX和Beesh-Spweesh! 打造的幻想芯片\n"
+"由jvsTSX和Beesh-Spweesh! 打造的幻想芯片!\n"
 "用于Hexheld fantasy console."
 
 #: src/engine/sysDef.cpp:2020
 msgid "Noise 1"
-msgstr ""
+msgstr "噪声 1"
 
 #: src/engine/sysDef.cpp:2020
 msgid "Noise 2"
-msgstr ""
+msgstr "噪声 2"
 
 #: src/engine/sysDef.cpp:2020
 msgid "Noise 3"
-msgstr ""
+msgstr "噪声 3"
 
 #: src/engine/sysDef.cpp:2020
 msgid "Slope"
@@ -16032,24 +16044,25 @@ msgid ""
 "20xx: Load low byte of noise channel LFSR (00 to FF) or slope channel "
 "accumulator (00 to 7F)"
 msgstr ""
+"20xx: 负载噪声通道LFSR (00 to FF) 或斜率通道累加器 (00 to 7F)的低字节"
 
 #: src/engine/sysDef.cpp:2027
 msgid "21xx: Load high byte of noise channel LFSR (00 to FF)"
-msgstr ""
+msgstr "21xx: 加载噪声通道 LFSR 的高字节 (00 to FF)"
 
 #: src/engine/sysDef.cpp:2028
 msgid "22xx: Write to I/O port A"
-msgstr ""
+msgstr "22xx: 写入 I/O 端口 A"
 
 #: src/engine/sysDef.cpp:2029
 msgid "23xx: Write to I/O port B"
-msgstr ""
+msgstr "23xx: 写入 I/O 端口 B"
 
 #: src/engine/sysDef.cpp:2036
 msgid ""
 "this chip was featured in the Enterprise 128 computer. it is similar to "
 "POKEY, but with stereo output."
-msgstr "此芯片用于Enterprise 128电脑. 类似于POKEY,但有立体声输出."
+msgstr "此芯片用于Enterprise 128电脑, 类似于POKEY, 但有立体声输出."
 
 #: src/engine/sysDef.cpp:2037
 msgid "DAC Left"
@@ -16061,31 +16074,31 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:2043
 msgid "10xx: Set waveform (0 to 4; 0 to 3 on noise)"
-msgstr ""
+msgstr "10xx: 设置波形 (0 to 4; 噪声为 0 to 3)"
 
 #: src/engine/sysDef.cpp:2044
 msgid "11xx: Set noise frequency source (0: fixed; 1-3: channels 1 to 3)"
-msgstr ""
+msgstr "11xx: 设置噪声频率源 (0: 固定; 1-3: 通道1 to 3)"
 
 #: src/engine/sysDef.cpp:2045
 msgid "12xx: Toggle high-pass with next channel"
-msgstr ""
+msgstr "12xx: 切换高通与下一个通道"
 
 #: src/engine/sysDef.cpp:2046
 msgid "13xx: Toggle ring modulation with channel+2"
-msgstr ""
+msgstr "13xx: 切换环形调制与通道+2"
 
 #: src/engine/sysDef.cpp:2047
 msgid "14xx: Toggle swap counters (noise only)"
-msgstr ""
+msgstr "14xx: 切换交换计数器 (仅噪声)"
 
 #: src/engine/sysDef.cpp:2048
 msgid "15xx: Toggle low pass (noise only)"
-msgstr ""
+msgstr "15xx: 切换低通 (仅噪声)"
 
 #: src/engine/sysDef.cpp:2049
 msgid "16xx: Set clock divider (0: /2; 1: /3)"
-msgstr ""
+msgstr "16xx: 设置时钟分频器 (0: /2; 1: /3)"
 
 #: src/engine/sysDef.cpp:2054
 msgid "Game Boy Advance DMA Sound"
@@ -16096,6 +16109,7 @@ msgid ""
 "additional PCM FIFO channels in Game Boy Advance driven directly by its DMA "
 "hardware."
 msgstr ""
+"Game Boy Advance 中的额外 PCM FIFO 通道直接由其 DMA 硬件驱动."
 
 #: src/engine/sysDef.cpp:2068
 msgid "Game Boy Advance MinMod"
@@ -16106,22 +16120,23 @@ msgid ""
 "additional PCM FIFO channels in Game Boy Advance driven by software mixing "
 "to provide up to sixteen sample channels"
 msgstr ""
+"Game Boy Advance 中的额外 PCM FIFO 通道由软件混合驱动, 可提供多达 16 个采样通道."
 
 #: src/engine/sysDef.cpp:2078
 msgid "11xy: Set echo channel (x: left/right source; y: delay (0 disables))"
-msgstr ""
+msgstr "11xy: 设置回声通道 (x: 左/右源; y: 延迟 (0 禁用))"
 
 #: src/engine/sysDef.cpp:2079
 msgid "12xy: Toggle invert (x: left; y: right)"
-msgstr ""
+msgstr "12xy: 切换反转 (x: 左; y: 右)"
 
 #: src/engine/sysDef.cpp:2085
 msgid "a handheld video game console with two screens. it uses a stylus."
-msgstr ""
+msgstr "带有两个屏幕的游戏掌机，它使用手写笔."
 
 #: src/engine/sysDef.cpp:2093
 msgid "1Fxx: Set global volume (0 to 7F)"
-msgstr ""
+msgstr "1Fxx: 设置全局音量 (0 to 7F)"
 
 #: src/engine/sysDef.cpp:2098
 msgid "5E01"
@@ -16133,37 +16148,39 @@ msgid ""
 "couple features such as 32 noise pitches, an extra duty cycle, and three "
 "waveforms (besides triangle)."
 msgstr ""
+"由Euly创造的幻想声音芯片. 它基于 Ricoh 2A03, 增加了一些功能, 例如 32 个噪声音调, 一个额外的占空比和三种波形 (三角波除外)."
 
 #: src/engine/sysDef.cpp:2107
 msgid ""
 "12xx: Set duty cycle/noise mode/waveform (pulse/wave: 0 to 3; noise: 0 or 1)"
 msgstr ""
+"12xx：设置占空比/噪声模式/波形 (脉冲/波: 0 to 3; 噪声: 0 or 1)"
 
 #: src/engine/sysDef.cpp:2121
 msgid "a fantasy sound chip using logistic map iterations to generate sound."
-msgstr ""
+msgstr "一种幻想声音芯片, 使用逻辑映射迭代来生成声音."
 
 #: src/engine/sysDef.cpp:2128
 msgid "10xx: Load low byte of channel sample state"
-msgstr ""
+msgstr "10xx: 加载通道采样状态的低字节"
 
 #: src/engine/sysDef.cpp:2129
 msgid "11xx: Load high byte of channel sample state"
-msgstr ""
+msgstr "11xx: 加载通道采样状态的高字节"
 
 #: src/engine/sysDef.cpp:2130
 msgid "12xx: Set low byte of channel parameter"
-msgstr ""
+msgstr "12xx: 设置通道参数的低字节"
 
 #: src/engine/sysDef.cpp:2131
 msgid "13xx: Set high byte of channel parameter"
-msgstr ""
+msgstr "13xx: 设置通道参数的高字节"
 
 #: src/engine/sysDef.cpp:2137
 msgid ""
 "a fantasy sound chip created by LTVA. it is similar to the SID chip, but "
 "with many of its problems fixed."
-msgstr "由LTVA设想的芯片. 很像SID芯片,但其问题更少."
+msgstr "由LTVA设想的芯片. 很像SID芯片, 但其问题更少."
 
 #: src/engine/sysDef.cpp:2148
 msgid "Dummy System"
