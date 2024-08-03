@@ -14781,6 +14781,8 @@ msgid ""
 "ADPCM channels.\n"
 "CSM blah blah"
 msgstr ""
+"OPN, 但拥有两倍的FM通道, 立体声回归, 并且具有节奏和ADPCM通道.\n"
+"CSM之类的"
 
 #: src/engine/sysDef.cpp:1171
 msgid "Yamaha YM3526 (OPL)"
@@ -14791,6 +14793,7 @@ msgid ""
 "OPN, but what if you only had two operators, no stereo, no detune and a "
 "lower ADSR parameter range?"
 msgstr ""
+OPN, 但如果你只有两个运算单元, 没有立体声, 没有音调偏移, 并且ADSR参数范围更小呢?
 
 #: src/engine/sysDef.cpp:1183
 msgid "Yamaha YM3812 (OPL2)"
@@ -14798,7 +14801,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1184
 msgid "OPL, but what if you had more waveforms to choose than the normal sine?"
-msgstr ""
+msgstr "OPL, 但如果您选择的波形比正常正弦波更多, 那会怎样?"
 
 #: src/engine/sysDef.cpp:1195
 msgid "Yamaha YMF262 (OPL3)"
@@ -14809,6 +14812,7 @@ msgid ""
 "OPL2, but what if you had twice the channels, 4-op mode, stereo and even "
 "more waveforms?"
 msgstr ""
+"OPL2, 但如果你有双倍的通道, 4-op模式, 立体声以及更多的波形会怎样?"
 
 #: src/engine/sysDef.cpp:1197 src/engine/sysDef.cpp:1431
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
@@ -14890,62 +14894,64 @@ msgid ""
 "how many channels of PCM do you want?\n"
 "MultiPCM: yes"
 msgstr ""
+"您需要多少个 PCM 通道?\n"
+"MultiPCM: yes"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 17"
-msgstr ""
+msgstr "通道 17"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 18"
-msgstr ""
+msgstr "通道 18"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 19"
-msgstr ""
+msgstr "通道 19"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 20"
-msgstr ""
+msgstr "通道 20"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 21"
-msgstr ""
+msgstr "通道 21"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 22"
-msgstr ""
+msgstr "通道 22"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 23"
-msgstr ""
+msgstr "通道 23"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 #: src/engine/sysDef.cpp:1980
 msgid "Channel 24"
-msgstr ""
+msgstr "通道 24"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 msgid "Channel 25"
-msgstr ""
+msgstr "通道 25"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 msgid "Channel 26"
-msgstr ""
+msgstr "通道 26"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 msgid "Channel 27"
-msgstr ""
+msgstr "通道 27"
 
 #: src/engine/sysDef.cpp:1210 src/engine/sysDef.cpp:1669
 msgid "Channel 28"
-msgstr ""
+msgstr "通道 28"
 
 #: src/engine/sysDef.cpp:1217
 msgid "PC Speaker"
@@ -14953,7 +14959,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1218
 msgid "good luck! you get one square and no volume control."
-msgstr ""
+msgstr "祝你好运! 你得到一个方波, 没有音量控制."
 
 #: src/engine/sysDef.cpp:1226
 msgid "Pong"
@@ -14961,25 +14967,27 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1227
 msgid "please don't use this chip. it was added as a joke."
-msgstr ""
+msgstr "请不要使用此芯片, 它被添加为一个玩笑."
 
 #: src/engine/sysDef.cpp:1236
 msgid ""
 "TIA, but better and more flexible.\n"
 "used in the Atari 8-bit family of computers (400/800/XL/XE)."
 msgstr ""
+"TIA, 但更好且更灵活.\n"
+"用于Atari 8位计算机系列 (400/800/XL/XE)."
 
 #: src/engine/sysDef.cpp:1243 src/engine/sysDef.cpp:1714
 msgid "10xx: Set waveform (0 to 7)"
-msgstr ""
+msgstr "10xx: 设置波形 (0 to 7)"
 
 #: src/engine/sysDef.cpp:1244
 msgid "11xx: Set AUDCTL"
-msgstr ""
+msgstr "11xx: 设置 AUDCTL"
 
 #: src/engine/sysDef.cpp:1245
 msgid "12xx: Toggle two-tone mode"
-msgstr ""
+msgstr "12xx: 切换双音模式"
 
 #: src/engine/sysDef.cpp:1250
 msgid "Ricoh RF5C68"
@@ -14990,10 +14998,11 @@ msgid ""
 "this is like SNES' sound chip but without interpolation and the rest of nice "
 "bits."
 msgstr ""
+"这类似于SNES的声音芯片, 但没有插值和其他一些优点."
 
 #: src/engine/sysDef.cpp:1261
 msgid "developed by the makers of the Game Boy and the Virtual Boy..."
-msgstr ""
+msgstr "由 Game Boy 和 Virtual Boy 的制造商开发..."
 
 #: src/engine/sysDef.cpp:1262
 msgid "Wave/PCM"
@@ -15009,15 +15018,15 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1269
 msgid "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)"
-msgstr ""
+msgstr "11xx: 设置噪音模式 (0: 禁用; 1-8:启用/点击)"
 
 #: src/engine/sysDef.cpp:1270
 msgid "12xx: Setup sweep period (0: disabled; 1-20: enabled/period)"
-msgstr ""
+msgstr "12xx: 设置扫描周期 (0: 禁用; 1-20: 启用/周期)"
 
 #: src/engine/sysDef.cpp:1271
 msgid "13xx: Set sweep amount"
-msgstr ""
+msgstr "13xx: 设置扫描量"
 
 #: src/engine/sysDef.cpp:1277
 msgid "Yamaha YM2414 (OPZ)"
@@ -15032,11 +15041,11 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1285
 msgid "2Fxx: Toggle hard envelope reset on new notes"
-msgstr ""
+msgstr "2Fxx: 在新音符上切换硬包络重置"
 
 #: src/engine/sysDef.cpp:1292
 msgid "this one is like PC Speaker but has duty cycles."
-msgstr ""
+msgstr "这个就像 PC Speaker, 但有占空比."
 
 #: src/engine/sysDef.cpp:1300
 msgid "SegaPCM"
@@ -15047,35 +15056,38 @@ msgid ""
 "used in some Sega arcade boards (like OutRun), and usually paired with a "
 "YM2151."
 msgstr ""
+"用于一些Sega的街机(如OutRun), 通常与YM2151配对使用."
 
 #: src/engine/sysDef.cpp:1313
 msgid ""
 "a console which failed to sell well due to its headache-inducing features."
-msgstr ""
+msgstr "一款由于其令人头痛的功能而未能畅销的游戏机."
 
 #: src/engine/sysDef.cpp:1321
 msgid "11xx: Set noise length (0 to 7)"
-msgstr ""
+msgstr "11xx: 设置噪声长度 (0 to 7)"
 
 #: src/engine/sysDef.cpp:1322
 msgid ""
 "12xy: Setup envelope (x: enabled/loop (1: enable, 3: enable+loop); y: speed/"
 "direction (0-7: down, 8-F: up))"
 msgstr ""
+"12xy: 设置包络 (x: 启用/循环 (1: 启用, 3: 启用+循环); y: 速度/方向 (0-7: 向下, 8-F: 向上))"
 
 #: src/engine/sysDef.cpp:1323
 msgid "13xy: Setup sweep (x: speed; y: shift; channel 5 only)"
-msgstr ""
+msgstr "13xy: 设置扫描 (x: 速度; y: 移位; 仅限通道 5)"
 
 #: src/engine/sysDef.cpp:1324
 msgid ""
 "14xy: Setup modulation (x: enabled/loop (1: enable, 3: enable+loop); y: "
 "speed; channel 5 only)"
 msgstr ""
+"14xy: 设置调制 (x: 启用/循环 (1: 启用, 3: 启用+循环); y: 速度; 仅限通道 5)"
 
 #: src/engine/sysDef.cpp:1325
 msgid "15xx: Set modulation waveform (x: wavetable; channel 5 only)"
-msgstr ""
+msgstr "15xx: 设置调制波形 (x: 波表; 仅限通道 5)"
 
 #: src/engine/sysDef.cpp:1330
 msgid "Konami VRC7"
@@ -15086,6 +15098,7 @@ msgid ""
 "like OPLL, but even more cost reductions applied. three FM channels went "
 "missing, and drums mode did as well..."
 msgstr ""
+"类似 OPLL, 但进行了更多的成本削减. 三个 FM 通道丢失了, 鼓模式也没有了..."
 
 #: src/engine/sysDef.cpp:1342
 msgid "Yamaha YM2610B (OPNB2)"
@@ -15096,6 +15109,7 @@ msgid ""
 "so Taito asked Yamaha if they could get the two missing FM channels back, "
 "and Yamaha gladly provided them with this chip."
 msgstr ""
+"因此, Taito 请求 Yamaha 让他们恢复两个缺失的 FM 通道, Yamaha 欣然提供了这个芯片."
 
 #: src/engine/sysDef.cpp:1354
 msgid "ZX Spectrum Beeper"
@@ -15107,10 +15121,13 @@ msgid ""
 "...a bunch of thin pulses and tons of other interesting stuff!\n"
 "Furnace provides a thin pulse system."
 msgstr ""
+"ZX Spectrum 仅有一个基本的蜂鸣器, 能够...\n"
+"...产生一系列细小的脉冲和许多其他有趣的效果!\n"
+"Furnace 提供了一种细脉冲系统."
 
 #: src/engine/sysDef.cpp:1362 src/engine/sysDef.cpp:1950
 msgid "12xx: Set pulse width"
-msgstr ""
+msgstr "12xx: 设置脉冲宽度"
 
 #: src/engine/sysDef.cpp:1363
 msgid "17xx: Trigger overlay drum"
@@ -15127,6 +15144,8 @@ msgid ""
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies."
 msgstr ""
+"这款芯片主要以出现在 Sega Genesis 而闻名 (但它也出现在 FM Towns 计算机上).\n"
+"这款芯片在扩展通道模式下, 将第三个 FM 通道转变为四个operators, 具有独立的音符/频率."
 
 #: src/engine/sysDef.cpp:1381
 msgid "Yamaha YM2612 (OPN2) CSM"
@@ -15138,12 +15157,16 @@ msgid ""
 "the FM Towns computer).\n"
 "this one includes CSM mode control for special effects on Channel 3."
 msgstr ""
+"这款芯片主要以出现在 Sega Genesis 而闻名 (但它也出现在 FM Towns 计算机上).\n"
+"这款芯片包括 CSM 模式控制, 用于在通道3上实现特殊效果."
 
 #: src/engine/sysDef.cpp:1395
 msgid ""
 "a wavetable chip made by Konami for use with the MSX.\n"
 "the last channel shares its wavetable with the previous one though."
 msgstr ""
+"这是 Konami 为 MSX 制作的一款波表芯片.\n"
+"不过最后一个通道与前一个通道共享其波表."
 
 #: src/engine/sysDef.cpp:1405
 msgid "Yamaha YM3526 (OPL) with drums"
@@ -15151,7 +15174,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1406
 msgid "the OPL chip but with drums mode enabled."
-msgstr ""
+msgstr "OPL 芯片, 但启用了鼓模式."
 
 #: src/engine/sysDef.cpp:1407 src/engine/sysDef.cpp:1419
 #: src/engine/sysDef.cpp:1693
@@ -15164,7 +15187,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1418
 msgid "the OPL2 chip but with drums mode enabled."
-msgstr ""
+msgstr "OPL2 芯片, 但启用了鼓模式."
 
 #: src/engine/sysDef.cpp:1429
 msgid "Yamaha YMF262 (OPL3) with drums"
@@ -15172,7 +15195,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1430
 msgid "the OPL3 chip but with drums mode enabled."
-msgstr ""
+msgstr "OPL3 芯片, 但启用了鼓模式."
 
 #: src/engine/sysDef.cpp:1431 src/engine/sysDef.cpp:1631
 msgid "Kick/FM 16"
@@ -15188,6 +15211,8 @@ msgid ""
 "it's like OPNA but the rhythm channels are ADPCM channels and two FM "
 "channels went missing."
 msgstr ""
+"这款芯片用于 SNK 的 Neo Geo 街机和游戏机.\n"
+"它类似于 OPNA, 但节奏通道是 ADPCM 通道, 而且少了两个 FM 通道."
 
 #: src/engine/sysDef.cpp:1453
 msgid "Yamaha YM2610 (OPNB) Extended Channel 2"
@@ -15201,6 +15226,9 @@ msgid ""
 "this one is in Extended Channel mode, which turns the second FM channel into "
 "four operators with independent notes/frequencies."
 msgstr ""
+"这款芯片用于 SNK 的 Neo Geo 街机和游戏机.\n"
+"它类似于 OPNA, 但节奏通道是 ADPCM 通道, 而且少了两个 FM 通道.\n"
+"这个芯片处于扩展通道模式, 将第二个 FM 通道转换为四个运算单元, 具有独立的音符/频率."
 
 #: src/engine/sysDef.cpp:1466
 msgid "Yamaha YM2610 (OPNB) CSM"
@@ -15213,6 +15241,9 @@ msgid ""
 "channels went missing.\n"
 "this one includes CSM mode control for special effects on Channel 2."
 msgstr ""
+"这款芯片用于 SNK 的 Neo Geo 街机主板和游戏机.\n"
+"它类似于 OPNA, 但节奏通道是 ADPCM 通道, 而且少了两个 FM 通道.\n"
+"这个芯片包括 CSM 模式控制, 用于第 2 通道的特殊效果."
 
 #: src/engine/sysDef.cpp:1479
 msgid "Yamaha YM2413 (OPLL) with drums"
@@ -15220,11 +15251,11 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1480
 msgid "the OPLL chips but with drums mode turned on."
-msgstr ""
+msgstr "OPLL 芯片, 但打开了鼓模式."
 
 #: src/engine/sysDef.cpp:1491
 msgid "3xxx: Load LFSR (0 to FFF)"
-msgstr ""
+msgstr "3xxx: 负载 LFSR (0 to FFF)"
 
 #: src/engine/sysDef.cpp:1497
 msgid "Atari Lynx"
@@ -15233,23 +15264,23 @@ msgstr ""
 #: src/engine/sysDef.cpp:1498
 msgid ""
 "a portable console made by Atari. it has all of Atari's trademark waveforms."
-msgstr ""
+msgstr "雅达利制造的便携式游戏机, 它具有Atari的所有商标波形."
 
 #: src/engine/sysDef.cpp:1509
 msgid "10xx: Set echo feedback level (00 to FF)"
-msgstr ""
+msgstr "10xx: 设置回声反馈电平 (00 to FF)"
 
 #: src/engine/sysDef.cpp:1510
 msgid "11xx: Set channel echo level (00 to FF)"
-msgstr ""
+msgstr "11xx: 设置通道回声电平 (00 to FF)"
 
 #: src/engine/sysDef.cpp:1511
 msgid "12xx: Toggle QSound algorithm (0: disabled; 1: enabled)"
-msgstr ""
+msgstr "12xx: 切换 QSound 算法 (0: 禁用; 1: 启用)"
 
 #: src/engine/sysDef.cpp:1513
 msgid "3xxx: Set echo delay buffer length (000 to AA5)"
-msgstr ""
+msgstr "3xxx: 设置回声延迟缓冲区长度 (000 to AA5)"
 
 #: src/engine/sysDef.cpp:1519
 msgid "Capcom QSound"
@@ -15260,6 +15291,7 @@ msgid ""
 "used in some of Capcom's arcade boards. surround-like sampled sound with "
 "echo."
 msgstr ""
+"用于一些 Capcom 的街机主板, 具有环绕声效果的采样音效和回声."
 
 #: src/engine/sysDef.cpp:1521 src/engine/sysDef.cpp:1621
 #: src/engine/sysDef.cpp:1631 src/engine/sysDef.cpp:1780
@@ -15358,15 +15390,15 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1531
 msgid "the chip used in a computer design created by The 8-Bit Guy."
-msgstr ""
+msgstr "由 The 8-Bit Guy 创建的计算机设计中使用的芯片."
 
 #: src/engine/sysDef.cpp:1538
 msgid "20xx: Set waveform"
-msgstr ""
+msgstr "20xx: 设置波形"
 
 #: src/engine/sysDef.cpp:1539
 msgid "22xx: Set duty cycle (0 to 3F)"
-msgstr ""
+msgstr "22xx: 设置占空比 (0 to 3F)"
 
 #: src/engine/sysDef.cpp:1544
 msgid "Yamaha YM2610B (OPNB2) Extended Channel 3"
@@ -15379,6 +15411,8 @@ msgid ""
 "this one is in Extended Channel mode, which turns the third FM channel into "
 "four operators with independent notes/frequencies."
 msgstr ""
+"因此 Taito 向 Yamaha 请求恢复那两个丢失的 FM 通道, Yamaha 欣然提供了这款芯片.\n"
+"这款芯片处于扩展通道模式, 将第三个 FM 通道转换为四个具有独立音符/频率的operators."
 
 #: src/engine/sysDef.cpp:1557
 msgid "Yamaha YM2610B (OPNB2) CSM"
@@ -15390,6 +15424,8 @@ msgid ""
 "and Yamaha gladly provided them with this chip.\n"
 "CSM blah blah"
 msgstr ""
+"因此 Taito 向 Yamaha 请求恢复那两个丢失的 FM 通道, Yamaha 高兴地提供了这款芯片.\n"
+"CSM 之类的"
 
 #: src/engine/sysDef.cpp:1570
 msgid "SegaPCM (compatible 5-channel mode)"
@@ -15400,6 +15436,7 @@ msgid ""
 "this is the same thing as SegaPCM, but only exposes 5 of the channels for "
 "compatibility with DefleMask."
 msgstr ""
+"这与 SegaPCM 相同, 但仅提供 5 个通道以兼容 DefleMask."
 
 #: src/engine/sysDef.cpp:1582
 msgid "Seta/Allumer X1-010"
@@ -15411,28 +15448,30 @@ msgid ""
 "too many channels of wavetable sound, which also are capable of sampled "
 "sound."
 msgstr ""
+"这是一款用于多个 Seta/Allumer 制造的街机板的声音芯片, 拥有过多的波表声音通道, 并且还支持采样声音."
 
 #: src/engine/sysDef.cpp:1591
 msgid "11xx: Set envelope shape"
-msgstr ""
+msgstr "11xx: 设置包络形状"
 
 #: src/engine/sysDef.cpp:1592
 msgid "12xx: Set sample bank slot (0 to 7)"
-msgstr ""
+msgstr "12xx: 设置样本库插槽 (0 to 7)"
 
 #: src/engine/sysDef.cpp:1596
 msgid "20xx: Set PCM frequency (1 to FF)"
-msgstr ""
+msgstr "20xx: 设置 PCM 频率 (1 to FF)"
 
 #: src/engine/sysDef.cpp:1597
 msgid ""
 "22xx: Set envelope mode (bit 0: enable; bit 1: one-shot; bit 2: split shape "
 "to L/R; bit 3/5: H.invert right/left; bit 4/6: V.invert right/left)"
 msgstr ""
+"22xx: 设置包络模式 (位0: 启用; 位1: 单次触发; 位2: 将形状分割为左/右; 位3/5: H.invert right/left; bit 4/6: V.invert right/left）"
 
 #: src/engine/sysDef.cpp:1598
 msgid "23xx: Set envelope period"
-msgstr ""
+msgstr "23xx: 设置信封周期"
 
 #: src/engine/sysDef.cpp:1606
 msgid "Konami Bubble System WSG"
@@ -15443,6 +15482,7 @@ msgid ""
 "this is the wavetable part of the Bubble System, which also had two "
 "AY-3-8910s."
 msgstr ""
+"这是Bubble System的波表部分, 它还配备了两个AY-3-8910."
 
 #: src/engine/sysDef.cpp:1619
 msgid "Yamaha YMF278B (OPL4)"
@@ -15450,7 +15490,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1620
 msgid "like OPL3, but this time it also has a 24-channel version of MultiPCM."
-msgstr ""
+msgstr "像 OPL3 一样, 但这次它也有 24 通道版本的 MultiPCM."
 
 #: src/engine/sysDef.cpp:1621 src/engine/sysDef.cpp:1631
 msgid "PCM 17"
@@ -15490,85 +15530,87 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1630
 msgid "the OPL4 but with drums mode turned on."
-msgstr ""
+msgstr "OPL4 但打开了鼓模式."
 
 #: src/engine/sysDef.cpp:1638
 msgid "11xx: Set filter mode (00 to 03)"
-msgstr ""
+msgstr "11xx: 设置滤波模式 (00 to 03)"
 
 #: src/engine/sysDef.cpp:1639
 msgid "14xx: Set filter coefficient K1 low byte (00 to FF)"
-msgstr ""
+msgstr "14xx: 设置滤波器系数 K1 低字节 (00 to FF)"
 
 #: src/engine/sysDef.cpp:1640
 msgid "15xx: Set filter coefficient K1 high byte (00 to FF)"
-msgstr ""
+msgstr "15xx: 设置滤波器系数 K1 高字节 (00 to FF)"
 
 #: src/engine/sysDef.cpp:1641
 msgid "16xx: Set filter coefficient K2 low byte (00 to FF)"
-msgstr ""
+msgstr "16xx: 设置滤波器系数 K2 低字节 (00 to FF)"
 
 #: src/engine/sysDef.cpp:1642
 msgid "17xx: Set filter coefficient K2 high byte (00 to FF)"
-msgstr ""
+msgstr "17xx: 设置滤波器系数 K2 高字节 (00 to FF)"
 
 #: src/engine/sysDef.cpp:1643
 msgid "18xx: Set filter coefficient K1 slide up (00 to FF)"
-msgstr ""
+msgstr "18xx: 设置滤波器系数 K1 向上滑动 (00 to FF)"
 
 #: src/engine/sysDef.cpp:1644
 msgid "19xx: Set filter coefficient K1 slide down (00 to FF)"
-msgstr ""
+msgstr "19xx: 设置滤波器系数 K1 下滑 (00 to FF)"
 
 #: src/engine/sysDef.cpp:1645
 msgid "1Axx: Set filter coefficient K2 slide up (00 to FF)"
-msgstr ""
+msgstr "1Axx: 设置滤波器系数 K2 上滑 (00 to FF)"
 
 #: src/engine/sysDef.cpp:1646
 msgid "1Bxx: Set filter coefficient K2 slide down (00 to FF)"
-msgstr ""
+msgstr "1Bxx: 设置滤波系数 K2 下滑 (00 to FF)"
 
 #: src/engine/sysDef.cpp:1647
 msgid "22xx: Set envelope left volume ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "22xx: 设置包络左音量斜坡 (有符号) (00 to FF)"
 
 #: src/engine/sysDef.cpp:1648
 msgid "23xx: Set envelope right volume ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "23xx: 设置包络右音量斜坡 (有符号) (00 to FF)"
 
 #: src/engine/sysDef.cpp:1649
 msgid "24xx: Set envelope filter coefficient k1 ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "24xx: 设置包络滤波器系数 k1 斜坡 (有符号) (00 to FF)"
 
 #: src/engine/sysDef.cpp:1650
 msgid ""
 "25xx: Set envelope filter coefficient k1 ramp (signed, slower) (00 to FF)"
 msgstr ""
+"25xx: 设置包络滤波器系数 k1 斜坡 (有符号, 较慢) (00 to FF)"
 
 #: src/engine/sysDef.cpp:1651
 msgid "26xx: Set envelope filter coefficient k2 ramp (signed) (00 to FF)"
-msgstr ""
+msgstr "26xx: 设置包络滤波器系数 k2 斜坡 (有符号) (00 to FF)"
 
 #: src/engine/sysDef.cpp:1652
 msgid ""
 "27xx: Set envelope filter coefficient k2 ramp (signed, slower) (00 to FF)"
 msgstr ""
+"27xx: 设置包络滤波器系数 k2 斜坡 (有符号, 较慢) (00 to FF)"
 
 #: src/engine/sysDef.cpp:1656
 msgid "120x: Set pause (bit 0)"
-msgstr ""
+msgstr "120x: 设置暂停 (位 0)"
 
 #: src/engine/sysDef.cpp:1658
 msgid "2xxx: Set envelope count (000 to 1FF)"
-msgstr ""
+msgstr "2xxx: 设置包络计数 (000 to 1FF)"
 
 #: src/engine/sysDef.cpp:1659
 msgid "3xxx: Set filter coefficient K1 (000 to FFF)"
-msgstr ""
+msgstr "3xxx: 设置滤波系数 K1 (000 to FFF)"
 
 #: src/engine/sysDef.cpp:1660
 msgid "4xxx: Set filter coefficient K2 (000 to FFF)"
-msgstr ""
+msgstr "4xxx: 设置滤波系数 K2 (000 to FFF)"
 
 #: src/engine/sysDef.cpp:1667
 msgid "Ensoniq ES5506"
@@ -15579,6 +15621,7 @@ msgid ""
 "a sample chip made by Ensoniq, which is the basis for the GF1 chip found in "
 "Gravis' Ultrasound cards."
 msgstr ""
+"由Ensoniq制作的采样芯片, 它是 Gravis Ultrasound 卡中GF1芯片的基础."
 
 #: src/engine/sysDef.cpp:1669
 msgid "Channel 29"
@@ -15602,7 +15645,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1680
 msgid "like OPL but with an ADPCM channel."
-msgstr ""
+msgstr "像 OPL 一样, 但具有 ADPCM 通道."
 
 #: src/engine/sysDef.cpp:1691
 msgid "Yamaha Y8950 with drums"
@@ -15621,78 +15664,81 @@ msgid ""
 "this is a variant of Konami's SCC chip with the last channel's wavetable "
 "being independent."
 msgstr ""
+"这是Konami的SCC芯片的一个变体, 其中最后一个通道的波表是独立的."
 
 #: src/engine/sysDef.cpp:1715
 msgid "12xx: Set pulse width (0 to 7F)"
-msgstr ""
+msgstr "12xx: 设置脉冲宽度 (0 to 7F)"
 
 #: src/engine/sysDef.cpp:1716
 msgid "13xx: Set resonance (0 to FF)"
-msgstr ""
+msgstr "13xx: 设置谐振 (0 to FF)"
 
 #: src/engine/sysDef.cpp:1717
 msgid ""
 "14xx: Set filter mode (bit 0: ring mod; bit 1: low pass; bit 2: high pass; "
 "bit 3: band pass)"
 msgstr ""
+"14xx: 设置滤波模式 (位0: 环形调制; 位1: 低通; 位2: 高通; 位3: 带通)"
 
 #: src/engine/sysDef.cpp:1718
 msgid "15xx: Set frequency sweep period low byte"
-msgstr ""
+msgstr "15xx: 设置频率扫描周期低字节"
 
 #: src/engine/sysDef.cpp:1719
 msgid "16xx: Set frequency sweep period high byte"
-msgstr ""
+msgstr "16xx: 设置频率扫描周期高字节"
 
 #: src/engine/sysDef.cpp:1720
 msgid "17xx: Set volume sweep period low byte"
-msgstr ""
+msgstr "17xx: 设置音量扫描周期低字节"
 
 #: src/engine/sysDef.cpp:1721
 msgid "18xx: Set volume sweep period high byte"
-msgstr ""
+msgstr "18xx: 设置音量扫描周期高字节"
 
 #: src/engine/sysDef.cpp:1722
 msgid "19xx: Set cutoff sweep period low byte"
-msgstr ""
+msgstr "19xx: 设置截止扫描周期低字节"
 
 #: src/engine/sysDef.cpp:1723
 msgid "1Axx: Set cutoff sweep period high byte"
-msgstr ""
+msgstr "1Axx: 设置截止扫描周期高字节"
 
 #: src/engine/sysDef.cpp:1724
 msgid "1Bxx: Set frequency sweep boundary"
-msgstr ""
+msgstr "1Bxx: 设置频率扫描边界"
 
 #: src/engine/sysDef.cpp:1725
 msgid "1Cxx: Set volume sweep boundary"
-msgstr ""
+msgstr "1Cxx: 设置音量扫描边界"
 
 #: src/engine/sysDef.cpp:1726
 msgid "1Dxx: Set cutoff sweep boundary"
-msgstr ""
+msgstr "1Dxx: 设置截止扫描边界"
 
 #: src/engine/sysDef.cpp:1727
 msgid "1Exx: Set phase reset period low byte"
-msgstr ""
+msgstr "1Exx: 设置相位复位周期低字节"
 
 #: src/engine/sysDef.cpp:1728
 msgid "1Fxx: Set phase reset period high byte"
-msgstr ""
+msgstr "1Fxx: 设置相位复位周期高字节"
 
 #: src/engine/sysDef.cpp:1729
 msgid "20xx: Toggle frequency sweep (bit 0-6: speed; bit 7: direction is up)"
-msgstr ""
+msgstr "20xx: 切换频率扫描 (位0-6: 速度; 位7: 方向向上)"
 
 #: src/engine/sysDef.cpp:1730
 msgid ""
 "21xx: Toggle volume sweep (bit 0-4: speed; bit 5: direction is up; bit 6: "
 "loop; bit 7: alternate)"
 msgstr ""
+"21xx: 切换音量扫描 (第0-4位: 速度; 第5位: 方向为上升; 第6位: 循环; 第7位: 交替)"
 
 #: src/engine/sysDef.cpp:1731
 msgid "22xx: Toggle cutoff sweep (bit 0-6: speed; bit 7: direction is up)"
-msgstr ""
+msgstr "22xx: 切换截止扫描 (位0-6: 速度; 位7: 方向向上)"
 
 #: src/engine/sysDef.cpp:1739
 msgid "tildearrow Sound Unit"
@@ -15703,6 +15749,7 @@ msgid ""
 "tildearrow's fantasy sound chip. put SID, AY and VERA in a blender, and you "
 "get this!"
 msgstr ""
+"tildearrow 的幻想声音芯片.把 SID, AY 和 VERA 混合, 你就得到这个!"
 
 #: src/engine/sysDef.cpp:1751
 msgid "OKI MSM6295"
@@ -15710,11 +15757,11 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1752
 msgid "an ADPCM sound chip manufactured by OKI and used in many arcade boards."
-msgstr ""
+msgstr "OKI 制造的 ADPCM 声音芯片, 用于许多街机."
 
 #: src/engine/sysDef.cpp:1759
 msgid "20xx: Set chip output rate (0: clock/132; 1: clock/165)"
-msgstr ""
+msgstr "20xx: 设置芯片输出率 (0: clock/132; 1: clock/165)"
 
 #: src/engine/sysDef.cpp:1764
 msgid "OKI MSM6258"
@@ -15722,11 +15769,11 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1765
 msgid "an ADPCM sound chip manufactured by OKI and used in the Sharp X68000."
-msgstr ""
+msgstr "OKI 制造的 ADPCM 声音芯片, 用于夏普 X68000."
 
 #: src/engine/sysDef.cpp:1772
 msgid "20xx: Set frequency divider (0-2)"
-msgstr ""
+msgstr "20xx: 设置分频器 (0-2)"
 
 #: src/engine/sysDef.cpp:1773
 msgid "21xx: Select clock rate (0: full; 1: half)"
