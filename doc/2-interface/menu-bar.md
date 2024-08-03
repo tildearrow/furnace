@@ -6,7 +6,7 @@ the menu bar allows you to select from five menus: file, edit, settings, window 
 
 - **new...**: opens the new song dialog to choose a system.
   - click a system name to create a new song with it.
-  - some systems have several variants and are grouped, indicated by with a triangle to the left of the name. the first click on a group opens it. clicking again on the group name will create a new song with it.
+  - some systems have several variants, which are inside a group.
 - **open...**: opens the file picker, allowing you to select a song to open.
   - see [file formats](formats.md) for a list of formats Furnace is able to open.
 - **open recent**: contains a list of the songs you've opened before.
