@@ -202,7 +202,7 @@ const char* aboutLine[]={
   "Ultraprogramer",
   "UserSniper",
   "Weeppiko",
-  "Wegfrei"
+  "Wegfrei",
   "Xan",
   "Yuzu4K",
   "Zabir",
