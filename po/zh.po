@@ -2243,7 +2243,7 @@ msgstr ""
 
 #: src/engine/sysDef.cpp:1323
 msgid "13xy: Setup sweep (x: speed; y: shift; channel 5 only)"
-msgstr "13xy: 设置扫描 (x: 速度; y: 移位; 仅限通道 5)"
+msgstr "13xy: 设置扫音 (x: 速度; y: 移位; 仅限通道 5)"
 
 #: src/engine/sysDef.cpp:1324
 msgid ""
