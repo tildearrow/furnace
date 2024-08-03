@@ -87,6 +87,18 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
       }
     }
     ImGui::SameLine();
+    if (ImGui::SmallButton(_("Shown in pattern"))) {
+      for (int i=0; i<DIV_MAX_CHANS; i++) {
+        audioExportOptions.channelMask[i]=e->curSubSong->chanShow[i];
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(_("Shown in oscilloscope"))) {
+      for (int i=0; i<DIV_MAX_CHANS; i++) {
+        audioExportOptions.channelMask[i]=e->curSubSong->chanShowChanOsc[i];
+      }
+    }
+    ImGui::SameLine();
     if (ImGui::SmallButton(_("Invert"))) {
       for (int i=0; i<DIV_MAX_CHANS; i++) {
         audioExportOptions.channelMask[i]=!audioExportOptions.channelMask[i];
