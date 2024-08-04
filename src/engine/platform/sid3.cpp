@@ -211,6 +211,16 @@ void DivPlatformSID3::tick(bool sysTick)
       panChanged = true;
       chan[i].panRight = chan[i].std.panR.val & 0xff;
     }
+    if (chan[i].std.phaseReset.had) {
+      chan[i].phaseReset = chan[i].std.phaseReset.val & 1;
+
+      if(chan[i].phaseReset)
+      {
+        updateFlags(i, chan[i].gate);
+      }
+
+      chan[i].phaseReset = false;
+    }
 
     if(panChanged)
     {
@@ -242,10 +252,12 @@ void DivPlatformSID3::tick(bool sysTick)
 
         updateFlags(i, false); //gate off TODO: make it properly?
         updateFlags(i, true); //gate on
+        chan[i].gate = true;
       }
       if (chan[i].keyOff) 
       {
         updateFlags(i, false); //gate off
+        chan[i].gate = false;
       }
 
       if (chan[i].freq<0) chan[i].freq=0;

@@ -10,10 +10,12 @@ enum State { ATTACK, DECAY, SUSTAIN, RELEASE }; //for envelope
 #  define M_PI    3.14159265358979323846
 #endif
 
-#define envspd_factor 10
+#define envspd_factor_a_sr 10
+#define envspd_factor_dr 15
 
-#define envspd_adr(rate) ((uint64_t)0xff0000 / ((rate == 0 ? 1 : (rate * envspd_factor)) * (rate == 0 ? 1 : (rate * envspd_factor))))
-#define envspd_sr(rate) (rate == 0 ? 0 : ((uint64_t)0xff0000 / ((256 - rate) * (256 - rate) * envspd_factor * envspd_factor)))
+#define envspd_a(rate) ((uint64_t)0xff0000 / ((rate == 0 ? 1 : (rate * envspd_factor_a_sr)) * (rate == 0 ? 1 : (rate * envspd_factor_a_sr))))
+#define envspd_dr(rate) ((uint64_t)0xff0000 / ((rate == 0 ? 1 : (rate * envspd_factor_dr)) * (rate == 0 ? 1 : (rate * envspd_factor_dr))))
+#define envspd_sr(rate) (rate == 0 ? 0 : ((uint64_t)0xff0000 / ((256 - rate) * (256 - rate) * envspd_factor_a_sr * envspd_factor_a_sr)))
 
 //these 4 ones are util only
 double square(double x) {
@@ -2260,6 +2262,16 @@ uint16_t sid3_special_wave(SID3* sid3, uint32_t acc, uint8_t wave)
     return sid3->special_waves[wave][acc >> (SID3_ACC_BITS - 14)];
 }
 
+#define fill_gap(i, how_far) \
+if(i > (how_far - 1)) \
+{ \
+    if(sid3->exponential_output_to_envelope_counter[(i) - (how_far)] != 0) \
+    { \
+        sid3->exponential_output_to_envelope_counter[(i)] = sid3->exponential_output_to_envelope_counter[i - (how_far)]; \
+        goto next; \
+    } \
+}
+
 SID3* sid3_create()
 {
     SID3* sid3 = (SID3*)malloc(sizeof(SID3));
@@ -2294,6 +2306,39 @@ SID3* sid3_create()
         sid3->special_waves[SID3_NUM_UNIQUE_SPECIAL_WAVES * 2 + 1][j] = clipped + 0x7fff;
     }
 
+    double min_val = exp(-2.0);
+    double max_val = exp(2.0);
+
+    double scale_factor = (double)0xffff / (max_val - min_val);
+
+    for(uint32_t i = 0; i < SID3_EXPONENTIAL_LUT_LENGTH; i++)
+    {
+        sid3->env_counter_to_exponential_output[i] = (exp(-2.0 + (double)i * 4.0 / (double)SID3_EXPONENTIAL_LUT_LENGTH) - min_val) * scale_factor;
+    }
+    for(uint32_t i = 0; i < SID3_EXPONENTIAL_LUT_LENGTH; i++)
+    {
+        sid3->exponential_output_to_envelope_counter[(uint64_t)sid3->env_counter_to_exponential_output[i] * (uint64_t)SID3_EXPONENTIAL_LUT_LENGTH / (uint64_t)0xffff] = i << 8;
+    }
+    for(uint32_t i = 0; i < SID3_EXPONENTIAL_LUT_LENGTH; i++) //fill the gaps...
+    {
+        if(sid3->exponential_output_to_envelope_counter[i] > 0xff0000)
+        {
+            sid3->exponential_output_to_envelope_counter[i] = 0xff0000;
+        }
+
+        if(sid3->exponential_output_to_envelope_counter[i] == 0)
+        {
+            fill_gap(i, 1)
+            fill_gap(i, 2)
+            fill_gap(i, 3)
+            fill_gap(i, 4)
+            fill_gap(i, 5)
+            fill_gap(i, 6)
+        }
+
+        next:;
+    }
+
     return sid3;
 }
 
@@ -2319,48 +2364,7 @@ void sid3_reset(SID3* sid3)
     //TODO: wavetable chan
 }
 
-void sid3_do_release_rate_period(sid3_channel_adsr* adsr)
-{
-    uint32_t counter = adsr->envelope_counter >> 15;
-    
-    if(counter >= 0xff)
-    {
-        adsr->rate_period = 1;
-        return;
-    }
-    if(counter >= 0x5d)
-    {
-        adsr->rate_period = 2;
-        return;
-    }
-    if(counter >= 0x36)
-    {
-        adsr->rate_period = 4;
-        return;
-    }
-    if(counter >= 0x1a)
-    {
-        adsr->rate_period = 8;
-        return;
-    }
-    if(counter >= 0x0e)
-    {
-        adsr->rate_period = 16;
-        return;
-    }
-    if(counter >= 0x06)
-    {
-        adsr->rate_period = 32;
-        return;
-    }
-    if(counter >= 0x02)
-    {
-        adsr->rate_period = 64;
-        return;
-    }
-}
-
-void sid3_gate_bit(uint8_t gate, sid3_channel_adsr* adsr)
+void sid3_gate_bit(SID3* sid3, uint8_t gate, sid3_channel_adsr* adsr)
 {
     // The rate counter is never reset, thus there will be a delay before the
     // envelope counter starts counting up (attack) or down (release).
@@ -2368,48 +2372,35 @@ void sid3_gate_bit(uint8_t gate, sid3_channel_adsr* adsr)
     // Gate bit on: Start attack, decay, sustain.
     if (gate) 
     {
+        if(adsr->state != ATTACK)
+        {
+            adsr->envelope_counter = (uint32_t)sid3->env_counter_to_exponential_output[adsr->envelope_counter >> 8] << 8;
+        }
+
         adsr->state = ATTACK;
-        adsr->envelope_speed = envspd_adr(adsr->a); //todo: make it properly
+        adsr->envelope_speed = envspd_a(adsr->a); //todo: make it properly
         //adsr->envelope_counter = 0;
 
         // Switching to attack state unlocks the zero freeze.
         adsr->hold_zero = false;
-
-        adsr->rate_counter = 0;
-        adsr->rate_period = 1;
     }
     // Gate bit off: Start release.
     else
     {
+        if(adsr->state == ATTACK && !adsr->hold_zero)
+        {
+            adsr->envelope_counter = sid3->exponential_output_to_envelope_counter[adsr->envelope_counter >> 8];
+        }
+
         adsr->state = RELEASE;
-        adsr->envelope_speed = envspd_adr(adsr->r); //todo: make it properly
-
-        adsr->rate_counter = 0;
-        //adsr->rate_period = 1;
-
-        sid3_do_release_rate_period(adsr);
+        adsr->envelope_speed = envspd_dr(adsr->r); //todo: make it properly
     }
+
+    if(adsr->envelope_counter > 0xff0000) adsr->envelope_counter = 0xff0000;
 }
 
 void sid3_adsr_clock(sid3_channel_adsr* adsr)
 {
-    if(adsr->rate_counter < adsr->rate_period)
-    {
-        adsr->rate_counter++;
-    }
-
-    if(adsr->rate_counter > adsr->rate_period)
-    {
-        adsr->rate_counter = adsr->rate_period; //so you can do alternating writes (e.g. writing attack 10-11-10-11-... results in the somewhat average envelope speed)
-    }
-
-    if (adsr->rate_counter != adsr->rate_period) 
-    {
-        return;
-    }
-
-    adsr->rate_counter = 0;
-
     // Check whether the envelope counter is frozen at zero.
     if (adsr->hold_zero) 
     {
@@ -2425,7 +2416,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
             if (adsr->envelope_counter >= 0xff0000) 
             {
                 adsr->state = DECAY;
-                adsr->envelope_speed = envspd_adr(adsr->d);
+                adsr->envelope_speed = envspd_dr(adsr->d);
             }
 
             return; //do not do exponential approximation of attack
@@ -2435,7 +2426,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         {
             adsr->envelope_counter -= adsr->envelope_speed;
 
-            if(adsr->envelope_counter > 0xff0f00) adsr->envelope_counter = 0xff0000;
+            if(adsr->envelope_counter > 0xff0000) adsr->envelope_counter = 0xff0000;
 
             if(adsr->envelope_counter <= ((uint32_t)adsr->s << 16))
             {
@@ -2456,7 +2447,9 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         {
             adsr->envelope_counter -= adsr->envelope_speed;
 
-            if(adsr->envelope_counter <= adsr->envelope_speed || adsr->envelope_counter > 0xfff0000)
+            if(adsr->envelope_counter > 0xff0000) adsr->envelope_counter = 0xff0000;
+
+            if(adsr->envelope_counter <= adsr->envelope_speed)
             {
                 adsr->envelope_counter = 0;
                 adsr->hold_zero = true;
@@ -2464,37 +2457,20 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
         }
         break;
     }
-        
-    // Check for change of exponential counter period.
-    switch (adsr->envelope_counter >> 16) 
-    {
-        case 0xff:
-        adsr->rate_period = 1;
-        break;
-        case 0x5d:
-        adsr->rate_period = 2;
-        break;
-        case 0x36:
-        adsr->rate_period = 4;
-        break;
-        case 0x1a:
-        adsr->rate_period = 8;
-        break;
-        case 0x0e:
-        adsr->rate_period = 16;
-        break;
-        case 0x06:
-        adsr->rate_period = 32;
-        break;
-        case 0x02:
-        adsr->rate_period = 64;
-        break;
-    }
 }
 
-int32_t sid3_adsr_output(sid3_channel_adsr* adsr, int32_t input)
+int32_t sid3_adsr_output(SID3* sid3, sid3_channel_adsr* adsr, int32_t input)
 {
-    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter / (int64_t)0xff0000 * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL);
+    if(adsr->hold_zero) return 0;
+
+    if(adsr->state == ATTACK)
+    {
+        return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter / (int64_t)0xff0000 * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL);
+    }
+    else
+    {
+        return (int32_t)((int64_t)input * (int64_t)sid3->env_counter_to_exponential_output[adsr->envelope_counter >> 8] / (int64_t)0xffff * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL);
+    }
 }
 
 void sid3_set_filter_settings(sid3_filter* filt)
@@ -2956,7 +2932,7 @@ void sid3_clock(SID3* sid3)
 
         sid3_adsr_clock(&ch->adsr);
 
-        ch->output_before_filter = sid3_adsr_output(&ch->adsr, waveform);
+        ch->output_before_filter = sid3_adsr_output(sid3, &ch->adsr, waveform);
 
         int32_t output = 0;
         
@@ -3001,8 +2977,28 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
 
                 if((prev_flags & SID3_CHAN_ENABLE_GATE) != (sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE))
                 {
-                    sid3_gate_bit(sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE, &sid3->chan[channel].adsr);
+                    sid3_gate_bit(sid3, sid3->chan[channel].flags & SID3_CHAN_ENABLE_GATE, &sid3->chan[channel].adsr);
                 }
+
+                if(sid3->chan[channel].flags & SID3_CHAN_ENV_RESET)
+                {
+                    sid3->chan[channel].adsr.envelope_counter = 0;
+                    sid3->chan[channel].adsr.state = ATTACK;
+                    sid3->chan[channel].adsr.envelope_speed = envspd_a(sid3->chan[channel].adsr.a);
+                }
+
+                if(sid3->chan[channel].flags & SID3_CHAN_PHASE_RESET)
+                {
+                    sid3->chan[channel].accumulator = 0;
+                }
+
+                if(sid3->chan[channel].flags & SID3_CHAN_NOISE_PHASE_RESET)
+                {
+                    sid3->chan[channel].noise_accumulator = 0;
+                    sid3->chan[channel].lfsr = 0x1;
+                }
+
+                sid3->chan[channel].flags &= ~(SID3_CHAN_ENV_RESET | SID3_CHAN_NOISE_PHASE_RESET | SID3_CHAN_PHASE_RESET);
             }
             else
             {
@@ -3011,8 +3007,10 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
 
                 if((prev_flags & SID3_CHAN_ENABLE_GATE) != (sid3->wave_chan.flags & SID3_CHAN_ENABLE_GATE))
                 {
-                    sid3_gate_bit(sid3->wave_chan.flags & SID3_CHAN_ENABLE_GATE, &sid3->wave_chan.adsr);
+                    sid3_gate_bit(sid3, sid3->wave_chan.flags & SID3_CHAN_ENABLE_GATE, &sid3->wave_chan.adsr);
                 }
+
+                sid3->wave_chan.flags &= ~(SID3_CHAN_ENV_RESET | SID3_CHAN_NOISE_PHASE_RESET | SID3_CHAN_PHASE_RESET);
             }
             break;
         }
@@ -3021,10 +3019,14 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             if(channel != SID3_NUM_CHANNELS - 1)
             {
                 sid3->chan[channel].adsr.a = data;
+
+                if(sid3->chan[channel].adsr.state == ATTACK) sid3->chan[channel].adsr.envelope_speed = envspd_a(sid3->chan[channel].adsr.a);
             }
             else
             {
                 sid3->wave_chan.adsr.a = data;
+
+                if(sid3->wave_chan.adsr.state == ATTACK) sid3->wave_chan.adsr.envelope_speed = envspd_a(sid3->wave_chan.adsr.a);
             }
             break;
         }
@@ -3033,10 +3035,14 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             if(channel != SID3_NUM_CHANNELS - 1)
             {
                 sid3->chan[channel].adsr.d = data;
+
+                if(sid3->chan[channel].adsr.state == DECAY) sid3->chan[channel].adsr.envelope_speed = envspd_dr(sid3->chan[channel].adsr.d);
             }
             else
             {
                 sid3->wave_chan.adsr.d = data;
+
+                if(sid3->wave_chan.adsr.state == DECAY) sid3->wave_chan.adsr.envelope_speed = envspd_dr(sid3->wave_chan.adsr.d);
             }
             break;
         }
@@ -3045,10 +3051,14 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             if(channel != SID3_NUM_CHANNELS - 1)
             {
                 sid3->chan[channel].adsr.s = data;
+
+                if(sid3->chan[channel].adsr.state == SUSTAIN) sid3->chan[channel].adsr.envelope_counter = sid3->chan[channel].adsr.s << 16;
             }
             else
             {
                 sid3->wave_chan.adsr.s = data;
+
+                if(sid3->wave_chan.adsr.state == SUSTAIN) sid3->wave_chan.adsr.envelope_counter = sid3->wave_chan.adsr.s << 16;
             }
             break;
         }
@@ -3057,10 +3067,14 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             if(channel != SID3_NUM_CHANNELS - 1)
             {
                 sid3->chan[channel].adsr.sr = data;
+
+                if(sid3->chan[channel].adsr.state == SUSTAIN) sid3->chan[channel].adsr.envelope_speed = envspd_sr(sid3->chan[channel].adsr.sr);
             }
             else
             {
                 sid3->wave_chan.adsr.sr = data;
+
+                if(sid3->wave_chan.adsr.state == SUSTAIN) sid3->wave_chan.adsr.envelope_speed = envspd_sr(sid3->wave_chan.adsr.sr);
             }
             break;
         }
@@ -3069,10 +3083,14 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             if(channel != SID3_NUM_CHANNELS - 1)
             {
                 sid3->chan[channel].adsr.r = data;
+
+                if(sid3->chan[channel].adsr.state == RELEASE) sid3->chan[channel].adsr.envelope_speed = envspd_dr(sid3->chan[channel].adsr.r);
             }
             else
             {
                 sid3->wave_chan.adsr.r = data;
+
+                if(sid3->wave_chan.adsr.state == RELEASE) sid3->wave_chan.adsr.envelope_speed = envspd_dr(sid3->wave_chan.adsr.r);
             }
             break;
         }

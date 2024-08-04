@@ -25,6 +25,8 @@ extern "C" {
 #define SID3_NUM_SPECIAL_WAVES (SID3_NUM_UNIQUE_SPECIAL_WAVES * 2 + 2) /* usual and 2x vol clipped + 2x vol clipped tri and saw... */
 #define SID3_SPECIAL_WAVE_LENGTH 16384
 
+#define SID3_EXPONENTIAL_LUT_LENGTH ((0xff0000 >> 8) + 1)
+
 #define SID3_ACC_BITS 30
 #define SID3_ACC_MASK ((1UL << SID3_ACC_BITS) - 1)
 
@@ -147,8 +149,6 @@ typedef struct
 {
     uint8_t a, d, s, sr, r, vol, state;
 
-    uint32_t rate_counter;
-    uint32_t rate_period;
     uint32_t envelope_counter;
     uint32_t envelope_speed;
     bool hold_zero;
@@ -221,6 +221,9 @@ typedef struct
 typedef struct
 {
     uint16_t special_waves[SID3_NUM_SPECIAL_WAVES][SID3_SPECIAL_WAVE_LENGTH]; //sine wave and OPL3-ish waves + OPZ and YMF825 waves!
+
+    uint16_t env_counter_to_exponential_output[SID3_EXPONENTIAL_LUT_LENGTH];
+    uint32_t exponential_output_to_envelope_counter[SID3_EXPONENTIAL_LUT_LENGTH];
 
     sid3_channel chan[SID3_NUM_CHANNELS - 1];
     sid3_wavetable_chan wave_chan;
