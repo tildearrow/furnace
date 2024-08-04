@@ -94,7 +94,7 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
 
       for(int j = 0; j < SID3_NUM_CHANNELS; j++)
       {
-        oscBuf[j]->data[oscBuf[j]->needle++] = sid3->muted[j] ? 0 : sid3->channel_output[j];
+        oscBuf[j]->data[oscBuf[j]->needle++] = sid3->muted[j] ? 0 : (sid3->channel_output[j] / 4);
       }
     }
   }
@@ -169,6 +169,8 @@ void DivPlatformSID3::tick(bool sysTick)
   {
     chan[i].std.next();
 
+    bool panChanged = false;
+
     if (chan[i].std.vol.had) 
     {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&255,MIN(255,chan[i].std.vol.val),255);
@@ -202,11 +204,16 @@ void DivPlatformSID3::tick(bool sysTick)
       updateDuty(i);
     }
     if (chan[i].std.panL.had) {
+      panChanged = true;
       chan[i].panLeft = chan[i].std.panL.val & 0xff;
-      updatePanning(i);
     }
     if (chan[i].std.panR.had) {
+      panChanged = true;
       chan[i].panRight = chan[i].std.panR.val & 0xff;
+    }
+
+    if(panChanged)
+    {
       updatePanning(i);
     }
 

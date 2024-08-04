@@ -2494,7 +2494,7 @@ void sid3_adsr_clock(sid3_channel_adsr* adsr)
 
 int32_t sid3_adsr_output(sid3_channel_adsr* adsr, int32_t input)
 {
-    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter / (int64_t)0xff0000 / (int64_t)8 * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL); //"/ (int64_t)8" so that there's enough amplitude for all 7 chans! 
+    return (int32_t)((int64_t)input * (int64_t)adsr->envelope_counter / (int64_t)0xff0000 * (int64_t)adsr->vol / (int64_t)SID3_MAX_VOL);
 }
 
 void sid3_set_filter_settings(sid3_filter* filt)
@@ -2931,7 +2931,7 @@ void sid3_clock(SID3* sid3)
 
         if(ch->flags & SID3_CHAN_ENABLE_PHASE_MOD)
         {
-            ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 19) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 19);
+            ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
         }
 
         ch->accumulator &= SID3_ACC_MASK;
@@ -2972,8 +2972,8 @@ void sid3_clock(SID3* sid3)
 
         if(!sid3->muted[i])
         {
-            sid3->output_l += output * ch->panning_left / 0xff;
-            sid3->output_r += output * ch->panning_right / 0xff;
+            sid3->output_l += output * ch->panning_left / 0x8f0;
+            sid3->output_r += output * ch->panning_right / 0x8f0;
         }
 
         sid3->channel_output[i] = output;
