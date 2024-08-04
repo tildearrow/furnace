@@ -2847,9 +2847,9 @@ int32_t sid3_process_filters_block(sid3_channel* ch)
 
             float dVbp = (ch->filt.filt[i].w0_ceil_1 * ch->filt.filt[i].Vhp);
             float dVlp = (ch->filt.filt[i].w0_ceil_1 * ch->filt.filt[i].Vbp);
-            ch->filt.filt[i].Vbp -= dVbp;
-            ch->filt.filt[i].Vlp -= dVlp;
-            ch->filt.filt[i].Vhp = (ch->filt.filt[i].Vbp * ch->filt.filt[i]._1024_div_Q) - ch->filt.filt[i].Vlp - Vi;
+            ch->filt.filt[i].Vbp += dVbp;
+            ch->filt.filt[i].Vlp += dVlp;
+            ch->filt.filt[i].Vhp = Vi - ch->filt.filt[i].Vlp - (ch->filt.filt[i].Vbp * ch->filt.filt[i]._1024_div_Q);
 
             float Vo;
 
