@@ -5646,20 +5646,29 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
       snprintf(buffer, 40, "%d", ins->sid3.ring_mod_source + 1);
     }
 
-    P(CWSliderScalar(_("Ring mod source channel"),ImGuiDataType_U8,&ins->sid3.ring_mod_source,&_ZERO,&_SID3_NUM_CHANNELS,buffer));
+    ImGui::SameLine();
+
+    P(CWSliderScalar(_("Source channel##rmsrc"),ImGuiDataType_U8,&ins->sid3.ring_mod_source,&_ZERO,&_SID3_NUM_CHANNELS,buffer));
 
     bool oscSync=ins->c64.oscSync;
     if (ImGui::Checkbox(_("Oscillator Sync"),&oscSync)) { PARAMETER
       ins->c64.oscSync=oscSync;
     }
 
+    ImGui::SameLine();
+
     snprintf(buffer, 40, "%d", ins->sid3.sync_source + 1);
-    P(CWSliderScalar(_("Sync source channel"),ImGuiDataType_U8,&ins->sid3.sync_source,&_ZERO,&_SID3_NUM_CHANNELS_MINUS_ONE));
+    P(CWSliderScalar(_("Source channel##hssrc"),ImGuiDataType_U8,&ins->sid3.sync_source,&_ZERO,&_SID3_NUM_CHANNELS_MINUS_ONE));
 
     bool phaseMod=ins->sid3.phase_mod;
     if (ImGui::Checkbox(_("Phase modulation"),&phaseMod)) { PARAMETER
       ins->sid3.phase_mod=phaseMod;
     }
+
+    ImGui::SameLine();
+
+    snprintf(buffer, 40, "%d", ins->sid3.phase_mod_source + 1);
+    P(CWSliderScalar(_("Source channel##pmsrc"),ImGuiDataType_U8,&ins->sid3.phase_mod_source,&_ZERO,&_SID3_NUM_CHANNELS_MINUS_ONE));
 
     for(int i = 0; i < SID3_NUM_FILTERS; i++)
     {

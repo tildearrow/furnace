@@ -35,7 +35,7 @@ class DivPlatformSID3: public DivDispatch {
     unsigned char noise_mode;
     unsigned char mix_mode;
     unsigned char ringSrc, syncSrc, phaseSrc;
-    int filtCut;
+    unsigned char panLeft, panRight;
 
     struct Filter 
     {
@@ -85,7 +85,8 @@ class DivPlatformSID3: public DivDispatch {
       ringSrc(0),
       syncSrc(0),
       phaseSrc(0),
-      filtCut(0) {}
+      panLeft(0xff),
+      panRight(0xff) {}
   };
   Channel chan[SID3_NUM_CHANNELS];
   DivDispatchOscBuffer* oscBuf[SID3_NUM_CHANNELS];
@@ -112,6 +113,7 @@ class DivPlatformSID3: public DivDispatch {
   void updateFreq(int channel);
   void updateDuty(int channel);
   void updateEnvelope(int channel);
+  void updatePanning(int channel);
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);

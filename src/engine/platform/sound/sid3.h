@@ -107,6 +107,11 @@ enum Registers
     SID3_REGISTER_FILT_DISTORTION = 21,
     SID3_REGISTER_FILT_CONNECTION = 22,
     SID3_REGISTER_FILT_OUTPUT_VOLUME = 23,
+
+    SID3_REGISTER_AFTER_FILT_1ST_REG = SID3_REGISTER_FILT_BASE + SID3_REGISTERS_PER_FILTER * SID3_NUM_FILTERS,
+    SID3_REGISTER_PHASE_MOD_SRC = SID3_REGISTER_AFTER_FILT_1ST_REG,
+    SID3_REGISTER_PAN_LEFT = SID3_REGISTER_AFTER_FILT_1ST_REG + 1,
+    SID3_REGISTER_PAN_RIGHT = SID3_REGISTER_AFTER_FILT_1ST_REG + 2,
 };
 
 typedef struct
@@ -224,6 +229,8 @@ typedef struct
 
     int32_t channel_signals_before_ADSR[SID3_NUM_CHANNELS];
     int32_t channel_output[SID3_NUM_CHANNELS];
+    int32_t wave_channel_signal_before_ADSR;
+    int32_t wave_channel_output;
 
     //emulation-only helpers
     bool muted[SID3_NUM_CHANNELS];

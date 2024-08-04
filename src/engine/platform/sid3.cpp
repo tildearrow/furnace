@@ -94,7 +94,7 @@ void DivPlatformSID3::acquire(short** buf, size_t len)
 
       for(int j = 0; j < SID3_NUM_CHANNELS; j++)
       {
-        oscBuf[j]->data[oscBuf[j]->needle++] = sid3->channel_output[j];
+        oscBuf[j]->data[oscBuf[j]->needle++] = sid3->muted[j] ? 0 : sid3->channel_output[j];
       }
     }
   }
@@ -157,6 +157,12 @@ void DivPlatformSID3::updateEnvelope(int channel)
   rWrite(SID3_REGISTER_ADSR_R + channel * SID3_REGISTERS_PER_CHANNEL, chan[channel].release); //release
 }
 
+void DivPlatformSID3::updatePanning(int channel) 
+{
+  rWrite(SID3_REGISTER_PAN_LEFT + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].panLeft);
+  rWrite(SID3_REGISTER_PAN_RIGHT + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].panRight);
+}
+
 void DivPlatformSID3::tick(bool sysTick) 
 {
   for (int i=0; i<SID3_NUM_CHANNELS; i++) 
@@ -195,6 +201,14 @@ void DivPlatformSID3::tick(bool sysTick)
       chan[i].duty&=65535;
       updateDuty(i);
     }
+    if (chan[i].std.panL.had) {
+      chan[i].panLeft = chan[i].std.panL.val & 0xff;
+      updatePanning(i);
+    }
+    if (chan[i].std.panR.had) {
+      chan[i].panRight = chan[i].std.panR.val & 0xff;
+      updatePanning(i);
+    }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) 
     {
@@ -212,6 +226,7 @@ void DivPlatformSID3::tick(bool sysTick)
 
         rWrite(SID3_REGISTER_RING_MOD_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].ringSrc); //ring mod source
         rWrite(SID3_REGISTER_SYNC_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].syncSrc); //hard sync source
+        rWrite(SID3_REGISTER_PHASE_MOD_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].phaseSrc); //phase mod source
 
         updateEnvelope(i);
 
@@ -405,6 +420,24 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
+    case DIV_CMD_PANNING: {
+      bool updPan = false;
+      if (!chan[c.chan].std.panL.has) 
+      {
+        chan[c.chan].panLeft = c.value;
+        updPan = true;
+      }
+      if (!chan[c.chan].std.panR.has) 
+      {
+        chan[c.chan].panRight = c.value2;
+        updPan = true;
+      }
+      if(updPan)
+      {
+        updatePanning(c.chan);
+      }
+      break;
+    }
     case DIV_CMD_GET_VOLMAX:
       return SID3_MAX_VOL;
       break;
@@ -501,6 +534,9 @@ void DivPlatformSID3::reset() {
       chan[i].filt[j].enabled = false;
       updateFilter(i, j);
     }
+
+    chan[i].panLeft = chan[i].panRight = 0xff;
+    updatePanning(i);
   }
 
   sid3_reset(sid3);

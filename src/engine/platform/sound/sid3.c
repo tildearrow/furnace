@@ -2927,6 +2927,13 @@ void sid3_clock(SID3* sid3)
             }
         }
 
+        uint32_t acc_state = ch->accumulator;
+
+        if(ch->flags & SID3_CHAN_ENABLE_PHASE_MOD)
+        {
+            ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 19) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 19);
+        }
+
         ch->accumulator &= SID3_ACC_MASK;
 
         if((prev_acc & ((uint32_t)1 << (SID3_ACC_BITS - 6))) != (ch->accumulator & ((uint32_t)1 << (SID3_ACC_BITS - 6))))
@@ -2934,9 +2941,9 @@ void sid3_clock(SID3* sid3)
             sid3_clock_lfsr(ch);
         }
 
-        //todo: phase mod
-
         int32_t waveform = sid3_get_waveform(sid3, ch);
+
+        ch->accumulator = acc_state & SID3_ACC_MASK;
 
         sid3->channel_signals_before_ADSR[i] = waveform;
 
@@ -2944,7 +2951,7 @@ void sid3_clock(SID3* sid3)
         {
             uint8_t ring_mod_src = ch->ring_mod_src == SID3_NUM_CHANNELS ? i : ch->ring_mod_src; //SID3_NUM_CHANNELS = self-mod
 
-            waveform = waveform * sid3->channel_signals_before_ADSR[ring_mod_src] / (int32_t)0xffff; //ring modulation is just multiplication of two signals!
+            waveform = waveform * (ch->ring_mod_src == (SID3_NUM_CHANNELS - 1) ? sid3->wave_channel_signal_before_ADSR : sid3->channel_signals_before_ADSR[ring_mod_src]) / (int32_t)0xffff; //ring modulation is just multiplication of two signals!
         }
 
         sid3_adsr_clock(&ch->adsr);
@@ -2963,8 +2970,11 @@ void sid3_clock(SID3* sid3)
             output = ch->output_before_filter;
         }
 
-        sid3->output_l += output;
-        sid3->output_r += output;
+        if(!sid3->muted[i])
+        {
+            sid3->output_l += output * ch->panning_left / 0xff;
+            sid3->output_r += output * ch->panning_right / 0xff;
+        }
 
         sid3->channel_output[i] = output;
     }
@@ -3329,6 +3339,30 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             }
             break;
         }
+        case SID3_REGISTER_PAN_LEFT:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].panning_left = data;
+            }
+            else
+            {
+                sid3->wave_chan.panning_left = data;
+            }
+            break;
+        }
+        case SID3_REGISTER_PAN_RIGHT:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].panning_right = data;
+            }
+            else
+            {
+                sid3->wave_chan.panning_right = data;
+            }
+            break;
+        }
         default: break;
     }
 }
@@ -3336,6 +3370,8 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
 void sid3_set_is_muted(SID3* sid3, uint8_t ch, bool mute)
 {
     SAFETY_HEADER
+
+    sid3->muted[ch] = mute;
 }
 
 void sid3_free(SID3* sid3)
