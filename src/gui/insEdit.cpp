@@ -6165,7 +6165,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
   if (ImGui::BeginTabItem(_("Macros"))) 
   {
-    ImGui::Text("Size of DivInstrument is too high... exactly %d bytes, of which SID3 shit takes %d bytes", sizeof(DivInstrument), sizeof(DivInstrumentSID3));
+    //ImGui::Text("Size of DivInstrument is too high... exactly %d bytes, of which SID3 shit takes %d bytes", sizeof(DivInstrument), sizeof(DivInstrumentSID3));
 
     macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
 
