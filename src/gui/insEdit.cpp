@@ -5250,6 +5250,7 @@ void FurnaceGUI::drawInsEdit() {
     ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking),_("Instrument Editor"))) {
+    DivInstrument* ins=nullptr;
     if (curIns==-2) {
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()+ImGui::GetStyle().ItemSpacing.y)*0.5f);
       CENTER_TEXT(_("waiting..."));
@@ -5277,6 +5278,7 @@ void FurnaceGUI::drawInsEdit() {
                 curIns=i;
                 wavePreviewInit=true;
                 updateFMPreview=true;
+                ins = e->song.ins[curIns];
               }
             }
             ImGui::EndCombo();
@@ -5299,7 +5301,7 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::EndTable();
       }
     } else {
-      DivInstrument* ins=e->song.ins[curIns];
+      ins=e->song.ins[curIns];
       if (updateFMPreview) {
         renderFMPreview(ins);
         updateFMPreview=false;
@@ -7718,7 +7720,51 @@ void FurnaceGUI::drawInsEdit() {
       
       ImGui::EndPopup();
     }
+    
+    if (ins) {
+      bool insChanged = ins != cachedCurInsPtr;
+      bool delayDiff = ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseDown(ImGuiMouseButton_Right) || ImGui::GetIO().WantCaptureKeyboard;
+
+      // check against the last cached to see if diff -- note that modifications to instruments happen outside
+      // drawInsEdit (e.g. cursor inputs are processed and can directly modify macro data)
+      if (!insChanged && !delayDiff) {
+        ins->recordUndoStepIfChanged(e->processTime, &cachedCurIns);
+      }
+
+      if (insChanged || !delayDiff) {
+        cachedCurIns = *ins;
+      }
+
+      cachedCurInsPtr = ins;
+    } else {
+      cachedCurInsPtr = nullptr;
+    }
   }
+  
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_INS_EDIT;
   ImGui::End();
+}
+
+void FurnaceGUI::doUndoInstrument() {
+  if (!insEditOpen) return;
+  if (curIns<0 || curIns>=(int)e->song.ins.size()) return;
+  DivInstrument* ins=e->song.ins[curIns];
+  // is locking the engine necessary? copied from doUndoSample
+  e->lockEngine([this,ins]() {
+    ins->undo();
+    cachedCurInsPtr=ins;
+    cachedCurIns=*ins;
+  });
+}
+
+void FurnaceGUI::doRedoInstrument() {
+  if (!insEditOpen) return;
+  if (curIns<0 || curIns>=(int)e->song.ins.size()) return;
+  DivInstrument* ins=e->song.ins[curIns];
+  // is locking the engine necessary? copied from doRedoSample
+  e->lockEngine([this,ins]() {
+    ins->redo();
+    cachedCurInsPtr=ins;
+    cachedCurIns=*ins;
+  });
 }
