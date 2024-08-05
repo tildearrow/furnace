@@ -8310,6 +8310,7 @@ FurnaceGUI::FurnaceGUI():
   localeRequiresChineseTrad(false),
   localeRequiresKorean(false),
   prevInsData(NULL),
+  cachedCurInsPtr(NULL),
   pendingLayoutImport(NULL),
   pendingLayoutImportLen(0),
   pendingLayoutImportStep(0),

@@ -2256,6 +2256,8 @@ class FurnaceGUI {
   std::vector<ImWchar> localeExtraRanges;
 
   DivInstrument* prevInsData;
+  DivInstrument cachedCurIns;
+  DivInstrument* cachedCurInsPtr;
 
   unsigned char* pendingLayoutImport;
   size_t pendingLayoutImportLen;
@@ -2921,6 +2923,9 @@ class FurnaceGUI {
 
   void doUndoSample();
   void doRedoSample();
+
+  void doUndoInstrument();
+  void doRedoInstrument();
 
   void play(int row=0);
   void setOrder(unsigned char order, bool forced=false);
