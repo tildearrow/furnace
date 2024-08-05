@@ -428,7 +428,7 @@ bool DivInstrumentUndoStep::makeUndoPatch(size_t processTime_, const DivInstrume
 
   // create the patch that will make post into pre
   podPatch.calcDiff((const DivInstrumentPOD*)post, (const DivInstrumentPOD*)pre, sizeof(DivInstrumentPOD));
-  if (pre->name!=post->name != 0) {
+  if (pre->name!=post->name) {
     nameValid=true;
     name=pre->name;
   }
