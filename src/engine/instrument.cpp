@@ -460,7 +460,7 @@ void DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrum
     step.clear(); // don't let it delete the data ptr that's been copied!
     undoHist.push_back(stepPtr);
 
-    logI("DivInstrument::undoHist push (%u off, %u size)", stepPtr->podPatch.offset, stepPtr->podPatch.size);
+    // logI("DivInstrument::undoHist push (%u off, %u size)", stepPtr->podPatch.offset, stepPtr->podPatch.size);
   }
 }
 
@@ -469,7 +469,7 @@ int DivInstrument::undo() {
 
   DivInstrumentUndoStep* step=undoHist.back();
   undoHist.pop_back();
-  logI("DivInstrument::undo (%u off, %u size)", step->podPatch.offset, step->podPatch.size);
+  // logI("DivInstrument::undo (%u off, %u size)", step->podPatch.offset, step->podPatch.size);
   step->applyAndReverse(this);
 
   // make room
@@ -488,7 +488,7 @@ int DivInstrument::redo() {
 
   DivInstrumentUndoStep* step = redoHist.back();
   redoHist.pop_back();
-  logI("DivInstrument::redo (%u off, %u size)", step->podPatch.offset, step->podPatch.size);
+  // logI("DivInstrument::redo (%u off, %u size)", step->podPatch.offset, step->podPatch.size);
   step->applyAndReverse(this);
 
   // make room
