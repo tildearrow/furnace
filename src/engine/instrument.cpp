@@ -265,6 +265,7 @@ bool DivInstrumentSID3::operator==(const DivInstrumentSID3& other) {
     _C(sync_source) &&
     _C(specialWaveOn) &&
     _C(oneBitNoise) &&
+    _C(separateNoisePitch) &&
     _C(special_wave) &&
     _C(filt[0]) &&
     _C(filt[1]) &&

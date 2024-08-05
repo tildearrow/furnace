@@ -2762,6 +2762,7 @@ class FurnaceGUI {
 
   void insTabFMModernHeader(DivInstrument* ins);
   void insTabFM(DivInstrument* ins);
+  void insTabWavetable(DivInstrument* ins);
   void insTabSample(DivInstrument* ins);
 
   void drawOrderButtons();

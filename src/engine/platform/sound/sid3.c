@@ -2315,6 +2315,9 @@ SID3* sid3_create()
     {
         sid3->env_counter_to_exponential_output[i] = (exp(-2.0 + (double)i * 4.0 / (double)SID3_EXPONENTIAL_LUT_LENGTH) - min_val) * scale_factor;
     }
+
+    sid3->env_counter_to_exponential_output[0] = 0; //just in case
+
     for(uint32_t i = 0; i < SID3_EXPONENTIAL_LUT_LENGTH; i++)
     {
         sid3->exponential_output_to_envelope_counter[(uint64_t)sid3->env_counter_to_exponential_output[i] * (uint64_t)SID3_EXPONENTIAL_LUT_LENGTH / (uint64_t)0xffff] = i << 8;
@@ -2362,6 +2365,8 @@ void sid3_reset(SID3* sid3)
     }
 
     //TODO: wavetable chan
+    memset(&sid3->wave_chan, 0, sizeof(sid3_wavetable_chan));
+    sid3->wave_chan.adsr.hold_zero = true;
 }
 
 void sid3_gate_bit(SID3* sid3, uint8_t gate, sid3_channel_adsr* adsr)
@@ -2885,8 +2890,10 @@ void sid3_clock(SID3* sid3)
         sid3_channel* ch = &sid3->chan[i];
         
         uint32_t prev_acc = ch->accumulator;
+        uint32_t prev_noise_acc = ch->noise_accumulator;
 
         ch->accumulator += ch->frequency;
+        ch->noise_accumulator += ch->noise_frequency;
 
         ch->sync_bit = 0;
 
@@ -2897,22 +2904,38 @@ void sid3_clock(SID3* sid3)
 
         if(ch->flags & SID3_CHAN_ENABLE_HARD_SYNC)
         {
-            if(sid3->chan[ch->hard_sync_src].sync_bit)
+            if(ch->hard_sync_src == SID3_NUM_CHANNELS - 1) //wave chan
             {
-                ch->accumulator = 0;
+                if(sid3->wave_chan.sync_bit)
+                {
+                    ch->accumulator = 0;
+                    ch->noise_accumulator = 0;
+                    ch->lfsr = 0x1;
+                }
+            }
+            else
+            {
+                if(sid3->chan[ch->hard_sync_src].sync_bit)
+                {
+                    ch->accumulator = 0;
+                    ch->noise_accumulator = 0;
+                    ch->lfsr = 0x1;
+                }
             }
         }
 
         uint32_t acc_state = ch->accumulator;
+        uint32_t noise_acc_state = ch->noise_accumulator;
 
         if(ch->flags & SID3_CHAN_ENABLE_PHASE_MOD)
         {
             ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
+            ch->noise_accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
         }
 
         ch->accumulator &= SID3_ACC_MASK;
 
-        if((prev_acc & ((uint32_t)1 << (SID3_ACC_BITS - 6))) != (ch->accumulator & ((uint32_t)1 << (SID3_ACC_BITS - 6))))
+        if((prev_noise_acc & ((uint32_t)1 << (SID3_ACC_BITS - 6))) != (ch->noise_accumulator & ((uint32_t)1 << (SID3_ACC_BITS - 6))))
         {
             sid3_clock_lfsr(ch);
         }
@@ -2920,6 +2943,7 @@ void sid3_clock(SID3* sid3)
         int32_t waveform = sid3_get_waveform(sid3, ch);
 
         ch->accumulator = acc_state & SID3_ACC_MASK;
+        ch->noise_accumulator = noise_acc_state & SID3_ACC_MASK;
 
         sid3->channel_signals_before_ADSR[i] = waveform;
 
@@ -2985,6 +3009,7 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
                     sid3->chan[channel].adsr.envelope_counter = 0;
                     sid3->chan[channel].adsr.state = ATTACK;
                     sid3->chan[channel].adsr.envelope_speed = envspd_a(sid3->chan[channel].adsr.a);
+                    sid3->chan[channel].adsr.hold_zero = false;
                 }
 
                 if(sid3->chan[channel].flags & SID3_CHAN_PHASE_RESET)
@@ -3378,6 +3403,33 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             else
             {
                 sid3->wave_chan.panning_right = data;
+            }
+            break;
+        }
+        case SID3_REGISTER_NOISE_FREQ_HIGH:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].noise_frequency &= 0x00ffff;
+                sid3->chan[channel].noise_frequency |= data << 16;
+            }
+            break;
+        }
+        case SID3_REGISTER_NOISE_FREQ_MID:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].noise_frequency &= 0xff00ff;
+                sid3->chan[channel].noise_frequency |= data << 8;
+            }
+            break;
+        }
+        case SID3_REGISTER_NOISE_FREQ_LOW:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].noise_frequency &= 0xffff00;
+                sid3->chan[channel].noise_frequency |= data;
             }
             break;
         }

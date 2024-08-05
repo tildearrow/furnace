@@ -31,11 +31,14 @@ class DivPlatformSID3: public DivDispatch {
     unsigned short duty;
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, phase, oneBitNoise;
     bool phaseReset, envReset, phaseResetNoise;
+    bool noiseFreqChanged;
     unsigned char vol;
     unsigned char noise_mode;
     unsigned char mix_mode;
     unsigned char ringSrc, syncSrc, phaseSrc;
     unsigned char panLeft, panRight;
+    unsigned int noiseFreq;
+    bool independentNoiseFreq;
 
     struct Filter 
     {
@@ -56,6 +59,68 @@ class DivPlatformSID3: public DivDispatch {
         enabled(false),
         filter_matrix(0) {}
     } filt[SID3_NUM_FILTERS];
+
+    int noise_baseNoteOverride;
+    bool noise_fixedArp;
+    int noise_arpOff;
+    int noise_pitch2;
+    bool noise_hasArp;
+    bool noise_hasPitch;
+
+    void handleArpNoise(int offset=0) 
+    {
+      DivMacroStruct& m = this->std.op[3].am;
+
+      if (m.had) {
+        noise_hasArp=true;
+
+        if (m.val<0) {
+          if (!(m.val&0x40000000)) {
+            noise_baseNoteOverride=(m.val|0x40000000)+offset;
+            noise_fixedArp=true;
+          } else {
+            noise_arpOff=m.val;
+            noise_fixedArp=false;
+          }
+        } else {
+          if (m.val&0x40000000) {
+            noise_baseNoteOverride=(m.val&(~0x40000000))+offset;
+            noise_fixedArp=true;
+          } else {
+            noise_arpOff=m.val;
+            noise_fixedArp=false;
+          }
+        }
+        noiseFreqChanged=true;
+      }
+
+      else
+      {
+        noise_hasArp=false;
+      }
+    }
+
+    void handlePitchNoise()
+    {
+      DivMacroStruct& m = this->std.op[0].ar;
+
+      if (m.had) {
+        noise_hasPitch=true;
+
+        if (m.mode) {
+          noise_pitch2+=m.val;
+          CLAMP_VAR(noise_pitch2,-131071,131071);
+        } else {
+          noise_pitch2=m.val;
+        }
+        noiseFreqChanged=true;
+      }
+
+      else
+      {
+        noise_hasPitch=false;
+      }
+    }
 
     Channel():
       SharedChannel<signed short>(SID3_MAX_VOL),
@@ -79,6 +144,7 @@ class DivPlatformSID3: public DivDispatch {
       phaseReset(false),
       envReset(false),
       phaseResetNoise(false),
+      noiseFreqChanged(false),
       vol(SID3_MAX_VOL),
       noise_mode(0),
       mix_mode(0),
@@ -86,7 +152,9 @@ class DivPlatformSID3: public DivDispatch {
       syncSrc(0),
       phaseSrc(0),
       panLeft(0xff),
-      panRight(0xff) {}
+      panRight(0xff),
+      noiseFreq(0),
+      independentNoiseFreq(false) {}
   };
   Channel chan[SID3_NUM_CHANNELS];
   DivDispatchOscBuffer* oscBuf[SID3_NUM_CHANNELS];
@@ -111,6 +179,7 @@ class DivPlatformSID3: public DivDispatch {
   void updateFlags(int channel, bool gate);
   void updateFilter(int channel, int filter);
   void updateFreq(int channel);
+  void updateNoiseFreq(int channel);
   void updateDuty(int channel);
   void updateEnvelope(int channel);
   void updatePanning(int channel);

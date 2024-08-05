@@ -142,6 +142,13 @@ void DivPlatformSID3::updateFreq(int channel)
   rWrite(SID3_REGISTER_FREQ_LOW + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].freq & 0xff);
 }
 
+void DivPlatformSID3::updateNoiseFreq(int channel) 
+{
+  rWrite(SID3_REGISTER_NOISE_FREQ_HIGH + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].noiseFreq >> 16) & 0xff);
+  rWrite(SID3_REGISTER_NOISE_FREQ_MID + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].noiseFreq >> 8) & 0xff);
+  rWrite(SID3_REGISTER_NOISE_FREQ_LOW + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].noiseFreq & 0xff);
+}
+
 void DivPlatformSID3::updateDuty(int channel) 
 {
   rWrite(SID3_REGISTER_PW_HIGH + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].duty >> 8) & 0xff);
@@ -170,6 +177,8 @@ void DivPlatformSID3::tick(bool sysTick)
     chan[i].std.next();
 
     bool panChanged = false;
+    bool flagsChanged = false;
+    bool envChanged = false;
 
     if (chan[i].std.vol.had) 
     {
@@ -203,6 +212,22 @@ void DivPlatformSID3::tick(bool sysTick)
       chan[i].duty&=65535;
       updateDuty(i);
     }
+    if (chan[i].std.wave.had) {
+      chan[i].wave = chan[i].std.wave.val & 0xff;
+      rWrite(SID3_REGISTER_WAVEFORM + i * SID3_REGISTERS_PER_CHANNEL, chan[i].wave);
+    }
+    if (chan[i].std.alg.had) { //special wave
+      chan[i].special_wave = chan[i].std.alg.val & 0xff;
+      rWrite(SID3_REGISTER_SPECIAL_WAVE + i * SID3_REGISTERS_PER_CHANNEL, chan[i].special_wave);
+    }
+    if (chan[i].std.op[3].am.had) { //noise arpeggio
+      chan[i].handleArpNoise(0);
+      chan[i].noiseFreqChanged = true;
+    }
+    if (chan[i].std.op[0].ar.had) { //noise pitch
+      chan[i].handlePitchNoise();
+      chan[i].noiseFreqChanged = true;
+    }
     if (chan[i].std.panL.had) {
       panChanged = true;
       chan[i].panLeft = chan[i].std.panL.val & 0xff;
@@ -211,20 +236,88 @@ void DivPlatformSID3::tick(bool sysTick)
       panChanged = true;
       chan[i].panRight = chan[i].std.panR.val & 0xff;
     }
+    if (chan[i].std.op[0].am.had) { //key on/off
+      chan[i].gate = chan[i].std.op[0].am.val & 1;
+      flagsChanged = true;
+    }
+    if (chan[i].std.ex1.had) { //ring mod, hard sync, phase mod
+      chan[i].phase = chan[i].std.ex1.val & 1;
+      chan[i].sync = chan[i].std.ex1.val & 2;
+      chan[i].ring = chan[i].std.ex1.val & 4;
+      flagsChanged = true;
+    }
+    if (chan[i].std.ams.had) { //hard sync source
+      chan[i].syncSrc = chan[i].std.ams.val & 0xff;
+      rWrite(SID3_REGISTER_SYNC_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].syncSrc);
+    }
+    if (chan[i].std.fms.had) { //ring mod source
+      chan[i].ringSrc = chan[i].std.fms.val & 0xff;
+      rWrite(SID3_REGISTER_RING_MOD_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].ringSrc);
+    }
+    if (chan[i].std.fb.had) { //phase mod source
+      chan[i].phaseSrc = chan[i].std.fb.val & 0xff;
+      rWrite(SID3_REGISTER_PHASE_MOD_SRC + i * SID3_REGISTERS_PER_CHANNEL, chan[i].phaseSrc);
+    }
     if (chan[i].std.phaseReset.had) {
       chan[i].phaseReset = chan[i].std.phaseReset.val & 1;
 
       if(chan[i].phaseReset)
       {
-        updateFlags(i, chan[i].gate);
+        flagsChanged = true;
       }
+    }
+    if (chan[i].std.op[1].am.had) { //noise phase reset
+      chan[i].phaseResetNoise = chan[i].std.op[1].am.val & 1;
 
-      chan[i].phaseReset = false;
+      if(chan[i].phaseResetNoise)
+      {
+        flagsChanged = true;
+      }
+    }
+    if (chan[i].std.op[2].am.had) { //envelope reset
+      chan[i].envReset = chan[i].std.op[2].am.val & 1;
+
+      if(chan[i].envReset)
+      {
+        flagsChanged = true;
+      }
+    }
+    if (chan[i].std.ex2.had) { //attack
+      chan[i].attack = chan[i].std.ex2.val & 0xff;
+      envChanged = true;
+    }
+    if (chan[i].std.ex3.had) { //decay
+      chan[i].decay = chan[i].std.ex3.val & 0xff;
+      envChanged = true;
+    }
+    if (chan[i].std.ex4.had) { //sustain
+      chan[i].sustain = chan[i].std.ex4.val & 0xff;
+      envChanged = true;
+    }
+    if (chan[i].std.ex5.had) { //sustain rate
+      chan[i].sr = chan[i].std.ex5.val & 0xff;
+      envChanged = true;
+    }
+    if (chan[i].std.ex6.had) { //release
+      chan[i].release = chan[i].std.ex6.val & 0xff;
+      envChanged = true;
     }
 
     if(panChanged)
     {
       updatePanning(i);
+    }
+    if(flagsChanged)
+    {
+      updateFlags(i, chan[i].gate);
+
+      chan[i].phaseReset = false;
+      chan[i].phaseResetNoise = false;
+      chan[i].envReset = false;
+    }
+    if(envChanged)
+    {
+      updateEnvelope(i);
     }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) 
@@ -265,6 +358,11 @@ void DivPlatformSID3::tick(bool sysTick)
 
       updateFreq(i);
 
+      if(!chan[i].independentNoiseFreq)
+      {
+        chan[i].noiseFreqChanged = true;
+      }
+
       //rWrite(i*7,chan[i].freq&0xff);
       //rWrite(i*7+1,chan[i].freq>>8);
       //rWrite(0x1e, (chan[0].noise_mode) | (chan[1].noise_mode << 2) | (chan[2].noise_mode << 4) | ((chan[0].freq >> 16) << 6) | ((chan[1].freq >> 16) << 7));
@@ -272,6 +370,25 @@ void DivPlatformSID3::tick(bool sysTick)
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
+    }
+
+    if(chan[i].noiseFreqChanged)
+    {
+      if(chan[i].independentNoiseFreq)
+      {
+        chan[i].noiseFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].noise_fixedArp?chan[i].noise_baseNoteOverride:chan[i].noise_arpOff,chan[i].noise_fixedArp,false,2,chan[i].noise_pitch2,chipClock,CHIP_FREQBASE * 64);
+
+        if (chan[i].noiseFreq<0) chan[i].noiseFreq=0;
+        if (chan[i].noiseFreq>0xffffff) chan[i].noiseFreq=0xffffff;
+      }
+      else
+      {
+        chan[i].noiseFreq = chan[i].freq;
+      }
+
+      updateNoiseFreq(i);
+
+      chan[i].noiseFreqChanged = false;
     }
   }
 }
@@ -329,6 +446,8 @@ int DivPlatformSID3::dispatch(DivCommand c) {
 
         chan[c.chan].ringSrc = ins->sid3.ring_mod_source;
         chan[c.chan].syncSrc = ins->sid3.sync_source;
+
+        chan[c.chan].independentNoiseFreq = ins->sid3.separateNoisePitch;
 
         for(int j = 0; j < SID3_NUM_FILTERS; j++)
         {
@@ -555,6 +674,8 @@ void DivPlatformSID3::reset() {
     }
 
     chan[i].panLeft = chan[i].panRight = 0xff;
+
+    chan[i].freq = chan[i].noiseFreq = 0;
     updatePanning(i);
   }
 

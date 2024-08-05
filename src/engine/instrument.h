@@ -870,6 +870,7 @@ struct DivInstrumentSID3
   unsigned char phase_mod_source, ring_mod_source, sync_source;
   bool specialWaveOn;
   bool oneBitNoise;
+  bool separateNoisePitch;
   unsigned char special_wave;
 
   struct Filter 
@@ -914,6 +915,7 @@ struct DivInstrumentSID3
     sync_source(0),
     specialWaveOn(false),
     oneBitNoise(false),
+    separateNoisePitch(false),
     special_wave(0) 
     {
       filt[0].mode = 16 | 32; //default settings so filter just works, connect to input and channel output
