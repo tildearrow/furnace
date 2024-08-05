@@ -3433,6 +3433,50 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             }
             break;
         }
+        case SID3_REGISTER_NOISE_LFSR_HIGHEST:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].lfsr_taps &= 0x00ffffff;
+                sid3->chan[channel].lfsr_taps |= (uint32_t)data << 24;
+
+                sid3->chan[channel].lfsr_taps &= 0x3fffffff; //30 bits limit
+            }
+            break;
+        }
+        case SID3_REGISTER_NOISE_LFSR_HIGH:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].lfsr_taps &= 0xff00ffff;
+                sid3->chan[channel].lfsr_taps |= data << 16;
+
+                sid3->chan[channel].lfsr_taps &= 0x3fffffff;
+            }
+            break;
+        }
+        case SID3_REGISTER_NOISE_LFSR_MID:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].lfsr_taps &= 0xffff00ff;
+                sid3->chan[channel].lfsr_taps |= data << 8;
+
+                sid3->chan[channel].lfsr_taps &= 0x3fffffff;
+            }
+            break;
+        }
+        case SID3_REGISTER_NOISE_LFSR_LOW:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].lfsr_taps &= 0xffffff00;
+                sid3->chan[channel].lfsr_taps |= data;
+
+                sid3->chan[channel].lfsr_taps &= 0x3fffffff;
+            }
+            break;
+        }
         default: break;
     }
 }

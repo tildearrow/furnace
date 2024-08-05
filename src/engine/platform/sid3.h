@@ -37,8 +37,9 @@ class DivPlatformSID3: public DivDispatch {
     unsigned char mix_mode;
     unsigned char ringSrc, syncSrc, phaseSrc;
     unsigned char panLeft, panRight;
-    unsigned int noiseFreq;
+    int noiseFreq;
     bool independentNoiseFreq;
+    unsigned int noiseLFSRMask;
 
     struct Filter 
     {
@@ -154,7 +155,8 @@ class DivPlatformSID3: public DivDispatch {
       panLeft(0xff),
       panRight(0xff),
       noiseFreq(0),
-      independentNoiseFreq(false) {}
+      independentNoiseFreq(false),
+      noiseLFSRMask((1 << 29) | (1 << 5) | (1 << 3) | 1) {} //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
   };
   Channel chan[SID3_NUM_CHANNELS];
   DivDispatchOscBuffer* oscBuf[SID3_NUM_CHANNELS];
@@ -180,9 +182,11 @@ class DivPlatformSID3: public DivDispatch {
   void updateFilter(int channel, int filter);
   void updateFreq(int channel);
   void updateNoiseFreq(int channel);
+  void updateNoiseLFSRMask(int channel);
   void updateDuty(int channel);
   void updateEnvelope(int channel);
   void updatePanning(int channel);
+
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);

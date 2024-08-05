@@ -149,6 +149,14 @@ void DivPlatformSID3::updateNoiseFreq(int channel)
   rWrite(SID3_REGISTER_NOISE_FREQ_LOW + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].noiseFreq & 0xff);
 }
 
+void DivPlatformSID3::updateNoiseLFSRMask(int channel) 
+{
+  rWrite(SID3_REGISTER_NOISE_LFSR_HIGHEST + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].noiseLFSRMask >> 24) & 0xff);
+  rWrite(SID3_REGISTER_NOISE_LFSR_HIGH + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].noiseLFSRMask >> 16) & 0xff);
+  rWrite(SID3_REGISTER_NOISE_LFSR_MID + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].noiseLFSRMask >> 8) & 0xff);
+  rWrite(SID3_REGISTER_NOISE_LFSR_LOW + channel*SID3_REGISTERS_PER_CHANNEL,chan[channel].noiseLFSRMask & 0xff);
+}
+
 void DivPlatformSID3::updateDuty(int channel) 
 {
   rWrite(SID3_REGISTER_PW_HIGH + channel*SID3_REGISTERS_PER_CHANNEL,(chan[channel].duty >> 8) & 0xff);
@@ -301,6 +309,28 @@ void DivPlatformSID3::tick(bool sysTick)
     if (chan[i].std.ex6.had) { //release
       chan[i].release = chan[i].std.ex6.val & 0xff;
       envChanged = true;
+    }
+    if (chan[i].std.ex7.had) { //noise LFSR feedback bits
+      chan[i].noiseLFSRMask = chan[i].std.ex7.val & 0x3fffffff;
+      updateNoiseLFSRMask(i);
+    }
+    if (chan[i].std.op[1].ar.had) { //1-bit noise / PCM mode for wavetable chan
+      if(i == SID3_NUM_CHANNELS - 1) //wave chan
+      {
+        rWrite(SID3_REGISTER_WAVEFORM + i * SID3_REGISTERS_PER_CHANNEL, chan[i].std.op[1].ar.val & 1);
+      }
+      else
+      {
+        if((uint32_t)chan[i].oneBitNoise != (chan[i].std.op[1].ar.val & 1))
+        {
+          chan[i].oneBitNoise = chan[i].std.op[1].ar.val & 1;
+          flagsChanged = true;
+        }
+      }  
+    }
+    if (chan[i].std.ex8.had) { //wave mix mode
+      chan[i].mix_mode = chan[i].std.ex8.val & 0xff;
+      rWrite(SID3_REGISTER_MIXMODE + i * SID3_REGISTERS_PER_CHANNEL, chan[i].mix_mode); //mixmode
     }
 
     if(panChanged)
@@ -677,6 +707,8 @@ void DivPlatformSID3::reset() {
 
     chan[i].freq = chan[i].noiseFreq = 0;
     updatePanning(i);
+
+    chan[i].noiseLFSRMask = (1 << 29) | (1 << 5) | (1 << 3) | 1; //https://docs.amd.com/v/u/en-US/xapp052 for 30 bits: 30, 6, 4, 1
   }
 
   sid3_reset(sid3);

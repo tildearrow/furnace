@@ -884,6 +884,18 @@ struct DivInstrumentSID3
     bool init;
     unsigned char filter_matrix;
 
+    //this is done purely in software
+    bool absoluteCutoff;
+    bool bindCutoffToNote;
+    unsigned char bindCutoffToNoteStrength; //how much cutoff changes over e.g. 1 semitone
+    unsigned char bindCutoffToNoteCenter; //central note of the cutoff change
+    bool bindCutoffToNoteDir; //if we decrease or increase cutoff if e.g. we go upper in note space
+
+    bool bindResonanceToNote;
+    unsigned char bindResonanceToNoteStrength; //how much resonance changes over e.g. 1 semitone
+    unsigned char bindResonanceToNoteCenter; //central note of the resonance change
+    bool bindResonanceToNoteDir; //if we decrease or increase resonance if e.g. we go upper in note space
+
     bool operator==(const Filter& other);
     bool operator!=(const Filter& other) 
     {
@@ -897,7 +909,16 @@ struct DivInstrumentSID3
       mode(0),
       enabled(false),
       init(false),
-      filter_matrix(0) {}
+      filter_matrix(0),
+      absoluteCutoff(false),
+      bindCutoffToNote(false),
+      bindCutoffToNoteStrength(0),
+      bindCutoffToNoteCenter(0),
+      bindCutoffToNoteDir(false),
+      bindResonanceToNote(false),
+      bindResonanceToNoteStrength(0),
+      bindResonanceToNoteCenter(0),
+      bindResonanceToNoteDir(false) {}
   } filt[4];
   
   bool operator==(const DivInstrumentSID3& other);

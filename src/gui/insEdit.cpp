@@ -6057,6 +6057,12 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
         if (ImGui::Checkbox(buffer,&toOutput)) { PARAMETER
           filt->mode ^= SID3_FILTER_OUTPUT;
         }
+
+        snprintf(buffer, 40, _("Absolute cutoff macro##abscutoff%d"), i + 1);
+        bool absCutoff=filt->absoluteCutoff;
+        if (ImGui::Checkbox(buffer,&absCutoff)) { PARAMETER
+          filt->absoluteCutoff = !filt->absoluteCutoff;
+        }
       }
     }
 
@@ -6159,6 +6165,8 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
   if (ImGui::BeginTabItem(_("Macros"))) 
   {
+    ImGui::Text("Size of DivInstrument is too high... exactly %d bytes, of which SID3 shit takes %d bytes", sizeof(DivInstrument), sizeof(DivInstrumentSID3));
+
     macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
 
     macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));

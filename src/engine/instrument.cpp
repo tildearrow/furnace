@@ -283,7 +283,16 @@ bool DivInstrumentSID3::Filter::operator==(const DivInstrumentSID3::Filter& othe
     _C(mode) &&
     _C(enabled) &&
     _C(init) &&
-    _C(filter_matrix)
+    _C(filter_matrix) &&
+    _C(absoluteCutoff) &&
+    _C(bindCutoffToNote) &&
+    _C(bindCutoffToNoteStrength) &&
+    _C(bindCutoffToNoteCenter) &&
+    _C(bindCutoffToNoteDir) &&
+    _C(bindResonanceToNote) &&
+    _C(bindResonanceToNoteStrength) &&
+    _C(bindResonanceToNoteCenter) &&
+    _C(bindResonanceToNoteDir)
   );
 }
 
@@ -883,6 +892,12 @@ void DivInstrument::writeFeatureS2(SafeWriter* w) {
 
 void DivInstrument::writeFeatureS3(SafeWriter* w) {
   FEATURE_BEGIN("S3");
+
+  w->writeC(c64.a);
+  w->writeC(c64.d);
+  w->writeC(c64.s);
+  w->writeC(sid3.sr);
+  w->writeC(c64.r);
 
   FEATURE_END;
 }
@@ -1696,12 +1711,20 @@ void DivInstrument::readFeature64(SafeReader& reader, bool& volIsCutoff, short v
   c64.lp=next&1;
 
   next=reader.readC();
-  c64.a=(next>>4)&15;
-  c64.d=next&15;
+
+  if(type != DIV_INS_SID3)
+  {
+    c64.a=(next>>4)&15;
+    c64.d=next&15;
+  }
 
   next=reader.readC();
-  c64.s=(next>>4)&15;
-  c64.r=next&15;
+
+  if(type != DIV_INS_SID3)
+  {
+    c64.s=(next>>4)&15;
+    c64.r=next&15;
+  }
 
   c64.duty=reader.readS()&4095;
 
@@ -2238,7 +2261,11 @@ void DivInstrument::readFeatureS2(SafeReader& reader, short version) {
 void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
-  
+  c64.a=reader.readC();
+  c64.d=reader.readC();
+  c64.s=reader.readC();
+  sid3.sr=reader.readC();
+  c64.r=reader.readC();
 
   READ_FEAT_END;
 }
