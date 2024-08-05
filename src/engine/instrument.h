@@ -888,7 +888,7 @@ struct DivInstrumentPOD {
 
 struct MemPatch {
   MemPatch() :
-    data(nullptr)
+    data(NULL)
     , offset(0)
     , size(0) {
   }
@@ -902,9 +902,9 @@ struct MemPatch {
   void clear();
   bool calcDiff(const void* pre, const void* post, size_t size);
   void applyAndReverse(void* target, size_t inputSize);
-  bool isValid() const { return size > 0; }
+  bool isValid() const { return size>0; }
 
-  uint8_t* data;
+  unsigned char* data;
   size_t offset;
   size_t size;
 };

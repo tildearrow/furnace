@@ -365,19 +365,19 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
 }
 
 void MemPatch::clear() {
-  data = nullptr;
-  offset = 0;
-  size = 0;
+  data = NULL;
+  offset=0;
+  size=0;
 }
 
 bool MemPatch::calcDiff(const void* pre, const void* post, size_t inputSize) {
-  bool diffValid = false;
-  size_t firstDiff = 0;
-  size_t lastDiff = 0;
-  const uint8_t* preBytes = (const uint8_t*)pre;
-  const uint8_t* postBytes = (const uint8_t*)post;
+  bool diffValid=false;
+  size_t firstDiff=0;
+  size_t lastDiff=0;
+  const unsigned char* preBytes=(const unsigned char*)pre;
+  const unsigned char* postBytes=(const unsigned char*)post;
 
-  for (size_t ii = 0; ii < inputSize; ++ii) {
+  for (size_t ii=0; ii<inputSize; ++ii) {
     if (preBytes[ii] != postBytes[ii]) {
       lastDiff=ii;
       firstDiff=diffValid ? firstDiff : ii;
@@ -386,27 +386,27 @@ bool MemPatch::calcDiff(const void* pre, const void* post, size_t inputSize) {
   }
 
   if (diffValid) {
-    offset = firstDiff;
-    size = lastDiff - firstDiff + 1;
-    data = new uint8_t[size];
+    offset=firstDiff;
+    size=lastDiff - firstDiff + 1;
+    data=new unsigned char[size];
 
     // the diff is to make pre into post (MemPatch is general, not specific to
     // undo), so copy from postBytes
-    memcpy(data, postBytes + offset, size);
+    memcpy(data, postBytes+offset, size);
   }
 
   return diffValid;
 }
 
 void MemPatch::applyAndReverse(void* target, size_t targetSize) {
-  if (size == 0) { return; }
-  assert(offset + size <= targetSize);
-  uint8_t* targetBytes = (uint8_t*)target;
+  if (size==0) return;
+  assert(offset+size<=targetSize);
+  unsigned char* targetBytes=(unsigned char*)target;
 
   // swap this->data and its segment on target
-  for (size_t ii = 0; ii < size; ++ii) {
-    uint8_t tmp = targetBytes[offset + ii];
-    targetBytes[offset + ii] = data[ii];
+  for (size_t ii=0; ii<size; ++ii) {
+    unsigned char tmp=targetBytes[offset+ii];
+    targetBytes[offset+ii] = data[ii];
     data[ii] = tmp;
   }
 }
@@ -424,13 +424,13 @@ void DivInstrumentUndoStep::applyAndReverse(DivInstrument* target) {
 }
 
 bool DivInstrumentUndoStep::makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post) {
-  processTime = processTime_;
+  processTime=processTime_;
 
   // create the patch that will make post into pre
   podPatch.calcDiff((const DivInstrumentPOD*)post, (const DivInstrumentPOD*)pre, sizeof(DivInstrumentPOD));
-  if (pre->name.compare(post->name) != 0) {
-    nameValid = true;
-    name = pre->name;
+  if (pre->name!=post->name != 0) {
+    nameValid=true;
+    name=pre->name;
   }
 
   return nameValid || podPatch.isValid();
@@ -443,7 +443,7 @@ void DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrum
   if (step.makeUndoPatch(processTime, old, this)) {
     
       // make room
-    if (undoHist.size() >= undoHist.capacity()) {
+    if (undoHist.size()>=undoHist.capacity()) {
       DivInstrumentUndoStep* step = undoHist.front();
       delete step;
       undoHist.pop_front();
@@ -455,8 +455,8 @@ void DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrum
       redoHist.pop_back();
     }
 
-    DivInstrumentUndoStep* stepPtr = new DivInstrumentUndoStep;
-    *stepPtr = step;
+    DivInstrumentUndoStep* stepPtr=new DivInstrumentUndoStep;
+    *stepPtr=step;
     step.clear(); // don't let it delete the data ptr that's been copied!
     undoHist.push_back(stepPtr);
 
@@ -465,16 +465,16 @@ void DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrum
 }
 
 int DivInstrument::undo() {
-  if (undoHist.empty()) { return 0; }
+  if (undoHist.empty()) return 0;
 
-  DivInstrumentUndoStep* step = undoHist.back();
+  DivInstrumentUndoStep* step=undoHist.back();
   undoHist.pop_back();
   logI("DivInstrument::undo (%u off, %u size)", step->podPatch.offset, step->podPatch.size);
   step->applyAndReverse(this);
 
   // make room
-  if (redoHist.size() >= redoHist.capacity()) {
-      DivInstrumentUndoStep* step = redoHist.front();
+  if (redoHist.size()>=redoHist.capacity()) {
+      DivInstrumentUndoStep* step=redoHist.front();
       delete step;
       redoHist.pop_front();
   }
@@ -484,7 +484,7 @@ int DivInstrument::undo() {
 }
 
 int DivInstrument::redo() {
-  if (redoHist.empty()) { return 0; }
+  if (redoHist.empty()) return 0;
 
   DivInstrumentUndoStep* step = redoHist.back();
   redoHist.pop_back();
@@ -492,8 +492,8 @@ int DivInstrument::redo() {
   step->applyAndReverse(this);
 
   // make room
-  if (undoHist.size() >= undoHist.capacity()) {
-      DivInstrumentUndoStep* step = undoHist.front();
+  if (undoHist.size()>=undoHist.capacity()) {
+      DivInstrumentUndoStep* step=undoHist.front();
       delete step;
       undoHist.pop_front();
   }
