@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <cassert>
 #include "dataErrors.h"
 #include "engine.h"
 #include "instrument.h"
@@ -361,6 +362,144 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
   }
 
   FEATURE_END;
+}
+
+void MemPatch::clear() {
+  data = nullptr;
+  offset = 0;
+  size = 0;
+}
+
+bool MemPatch::calcDiff(const void* pre, const void* post, size_t inputSize) {
+  bool diffValid = false;
+  size_t firstDiff = 0;
+  size_t lastDiff = 0;
+  const uint8_t* preBytes = (const uint8_t*)pre;
+  const uint8_t* postBytes = (const uint8_t*)post;
+
+  for (size_t ii = 0; ii < inputSize; ++ii) {
+    if (preBytes[ii] != postBytes[ii]) {
+      lastDiff=ii;
+      firstDiff=diffValid ? firstDiff : ii;
+      diffValid=true;
+    }
+  }
+
+  if (diffValid) {
+    offset = firstDiff;
+    size = lastDiff - firstDiff + 1;
+    data = new uint8_t[size];
+
+    // the diff is to make pre into post (MemPatch is general, not specific to
+    // undo), so copy from postBytes
+    memcpy(data, postBytes + offset, size);
+  }
+
+  return diffValid;
+}
+
+void MemPatch::applyAndReverse(void* target, size_t targetSize) {
+  if (size == 0) { return; }
+  assert(offset + size <= targetSize);
+  uint8_t* targetBytes = (uint8_t*)target;
+
+  // swap this->data and its segment on target
+  for (size_t ii = 0; ii < size; ++ii) {
+    uint8_t tmp = targetBytes[offset + ii];
+    targetBytes[offset + ii] = data[ii];
+    data[ii] = tmp;
+  }
+}
+
+void DivInstrumentUndoStep::clear() {
+  podPatch.clear();
+  name.clear();
+}
+
+void DivInstrumentUndoStep::applyAndReverse(DivInstrument* target) {
+  if (nameValid) {
+    name.swap(target->name);
+  }
+  podPatch.applyAndReverse((DivInstrumentPOD*)target, sizeof(DivInstrumentPOD));
+}
+
+bool DivInstrumentUndoStep::makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post) {
+  processTime = processTime_;
+
+  // create the patch that will make post into pre
+  podPatch.calcDiff((const DivInstrumentPOD*)post, (const DivInstrumentPOD*)pre, sizeof(DivInstrumentPOD));
+  if (pre->name.compare(post->name) != 0) {
+    nameValid = true;
+    name = pre->name;
+  }
+
+  return nameValid || podPatch.isValid();
+}
+
+void DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrument* old) {
+  DivInstrumentUndoStep step;
+
+  // generate a patch to go back to old
+  if (step.makeUndoPatch(processTime, old, this)) {
+    
+      // make room
+    if (undoHist.size() >= undoHist.capacity()) {
+      DivInstrumentUndoStep* step = undoHist.front();
+      delete step;
+      undoHist.pop_front();
+    }
+
+    // clear redo
+    while (!redoHist.empty()) {
+      delete redoHist.back();
+      redoHist.pop_back();
+    }
+
+    DivInstrumentUndoStep* stepPtr = new DivInstrumentUndoStep;
+    *stepPtr = step;
+    step.clear(); // don't let it delete the data ptr that's been copied!
+    undoHist.push_back(stepPtr);
+
+    logI("DivInstrument::undoHist push (%u off, %u size)", stepPtr->podPatch.offset, stepPtr->podPatch.size);
+  }
+}
+
+int DivInstrument::undo() {
+  if (undoHist.empty()) { return 0; }
+
+  DivInstrumentUndoStep* step = undoHist.back();
+  undoHist.pop_back();
+  logI("DivInstrument::undo (%u off, %u size)", step->podPatch.offset, step->podPatch.size);
+  step->applyAndReverse(this);
+
+  // make room
+  if (redoHist.size() >= redoHist.capacity()) {
+      DivInstrumentUndoStep* step = redoHist.front();
+      delete step;
+      redoHist.pop_front();
+  }
+  redoHist.push_back(step);
+
+  return 1;
+}
+
+int DivInstrument::redo() {
+  if (redoHist.empty()) { return 0; }
+
+  DivInstrumentUndoStep* step = redoHist.back();
+  redoHist.pop_back();
+  logI("DivInstrument::redo (%u off, %u size)", step->podPatch.offset, step->podPatch.size);
+  step->applyAndReverse(this);
+
+  // make room
+  if (undoHist.size() >= undoHist.capacity()) {
+      DivInstrumentUndoStep* step = undoHist.front();
+      delete step;
+      undoHist.pop_front();
+  }
+  undoHist.push_back(step);
+
+  return 1;
 }
 
 void DivInstrument::writeMacro(SafeWriter* w, const DivInstrumentMacro& m) {
