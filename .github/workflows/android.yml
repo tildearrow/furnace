@@ -99,4 +99,4 @@ jobs:
       uses: actions/upload-artifact@v4.3.0
       with:
         name: ${{ steps.package-identify.outputs.id }}
-        path: ${{ steps.package-identify.outputs.filename }}￼Enter
+        path: ${{ steps.package-identify.outputs.filename }}
