@@ -229,11 +229,13 @@ void DivPlatformSID3::tick(bool sysTick)
       rWrite(SID3_REGISTER_SPECIAL_WAVE + i * SID3_REGISTERS_PER_CHANNEL, chan[i].special_wave);
     }
     if (chan[i].std.op[3].am.had) { //noise arpeggio
-      chan[i].handleArpNoise(0);
+      //chan[i].handleArpNoise(0);
       chan[i].noiseFreqChanged = true;
     }
+    chan[i].handleArpNoise(0);
+    chan[i].handlePitchNoise();
     if (chan[i].std.op[0].ar.had) { //noise pitch
-      chan[i].handlePitchNoise();
+      //chan[i].handlePitchNoise();
       chan[i].noiseFreqChanged = true;
     }
     if (chan[i].std.panL.had) {
@@ -333,6 +335,61 @@ void DivPlatformSID3::tick(bool sysTick)
       rWrite(SID3_REGISTER_MIXMODE + i * SID3_REGISTERS_PER_CHANNEL, chan[i].mix_mode); //mixmode
     }
 
+    for(int j = 0; j < SID3_NUM_FILTERS; j++) //filter macros
+    {
+      DivMacroInt::IntOp* op = &chan[i].std.op[j];
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SID3);
+      DivPlatformSID3::Channel::Filter* ch_filt = &chan[i].filt[j];
+      DivInstrumentSID3::Filter* ins_filt = &ins->sid3.filt[j];
+
+      bool doUpdateFilter = false;
+
+      if (op->d2r.had) { //cutoff
+        if (ins_filt->absoluteCutoff) {
+          ch_filt->cutoff=op->d2r.val;
+        } else {
+          ch_filt->cutoff+=op->d2r.val;
+        }
+        ch_filt->cutoff&=65535;
+        doUpdateFilter = true;
+      }
+      if (op->dam.had) { //resonance
+        ch_filt->resonance=op->dam.val & 0xff;
+        doUpdateFilter = true;
+      }
+      if (op->dr.had) { //filter toggle
+        ch_filt->enabled=op->dr.val & 1;
+        doUpdateFilter = true;
+      }
+      if (op->dt2.had) { //distortion level
+        ch_filt->distortion_level=op->dt2.val & 0xff;
+        doUpdateFilter = true;
+      }
+      if (op->dt.had) { //output volume
+        ch_filt->output_volume=op->dt.val & 0xff;
+        doUpdateFilter = true;
+      }
+      if (op->dvb.had) { //connect to channel input
+        ch_filt->mode &= ~SID3_FILTER_CHANNEL_INPUT;
+        ch_filt->mode |= (op->dvb.val & 1) ? SID3_FILTER_CHANNEL_INPUT : 0;
+        doUpdateFilter = true;
+      }
+      if (op->egt.had) { //connect to channel output
+        ch_filt->mode &= ~SID3_FILTER_OUTPUT;
+        ch_filt->mode |= (op->egt.val & 1) ? SID3_FILTER_OUTPUT : 0;
+        doUpdateFilter = true;
+      }
+      if (op->ksl.had) { //connection matrix row
+        ch_filt->filter_matrix=op->ksl.val & 0xf;
+        doUpdateFilter = true;
+      }
+
+      if(doUpdateFilter)
+      {
+        updateFilter(i, j);
+      }
+    }
+
     if(panChanged)
     {
       updatePanning(i);
@@ -385,9 +442,11 @@ void DivPlatformSID3::tick(bool sysTick)
 
       updateFreq(i);
 
-      if(!chan[i].independentNoiseFreq)
+      chan[i].noiseFreqChanged = true;
+
+      if(chan[i].independentNoiseFreq)
       {
-        chan[i].noiseFreqChanged = true;
+        chan[i].noise_pitch2 = chan[i].pitch2;
       }
 
       //rWrite(i*7,chan[i].freq&0xff);

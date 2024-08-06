@@ -450,6 +450,14 @@ const char* sid3ShapeBits[6]={
   NULL
 };
 
+const char* sid3FilterMatrixBits[5]={
+  _N("To filter 1"),
+  _N("To filter 2"),
+  _N("To filter 3"),
+  _N("To filter 4"),
+  NULL
+};
+
 const char* ayEnvBits[4]={
   _N("hold"),
   _N("alternate"),
@@ -5834,6 +5842,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
 void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 {
+  char buffer[40];
+
   if (ImGui::BeginTabItem("SID3")) 
   {
     if (ImGui::BeginTable("sid3Waves",2,0)) 
@@ -5937,8 +5947,6 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
 
       ImGui::EndTable();
     }
-
-    char buffer[40];
     
     strncpy(buffer,macroSID3WaveMixMode(0,(float)ins->sid2.mixMode,NULL).c_str(),40);
     P(CWSliderScalar(_("Wave Mix Mode"),ImGuiDataType_U8,&ins->sid2.mixMode,&_ZERO,&_FOUR,buffer));
@@ -6067,6 +6075,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
         bool absCutoff=filt->absoluteCutoff;
         if (ImGui::Checkbox(buffer,&absCutoff)) { PARAMETER
           filt->absoluteCutoff = !filt->absoluteCutoff;
+          ins->std.opMacros[i].d2rMacro.vZoom=-1;
         }
       }
     }
@@ -6167,6 +6176,27 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
   insTabSample(ins);
 
   std::vector<FurnaceGUIMacroDesc> macroList;
+
+  for(int i = 0; i < SID3_NUM_FILTERS; i++)
+  {
+    snprintf(buffer, 40, _("Filter %d macros"), i + 1);
+
+    if (ImGui::BeginTabItem(buffer))
+    {
+      macroList.push_back(FurnaceGUIMacroDesc(_("Cutoff"),&ins->std.opMacros[i].d2rMacro,ins->sid3.filt[i].absoluteCutoff?0:-65535,65535,160,uiColors[GUI_COLOR_MACRO_FILTER]));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Resonance"),&ins->std.opMacros[i].damMacro,0,255,160,uiColors[GUI_COLOR_MACRO_FILTER]));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Filter Toggle"),&ins->std.opMacros[i].drMacro,0,1,32,uiColors[GUI_COLOR_MACRO_FILTER],false,NULL,NULL,true));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Distortion Level"),&ins->std.opMacros[i].dt2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_FILTER]));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Output Volume"),&ins->std.opMacros[i].dtMacro,0,255,160,uiColors[GUI_COLOR_MACRO_FILTER]));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Channel Input Connection"),&ins->std.opMacros[i].dvbMacro,0,1,32,uiColors[GUI_COLOR_MACRO_FILTER],false,NULL,NULL,true));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Channel Output Connection"),&ins->std.opMacros[i].egtMacro,0,1,32,uiColors[GUI_COLOR_MACRO_FILTER],false,NULL,NULL,true));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Connection Matrix Row"),&ins->std.opMacros[i].kslMacro,0,4,16 * SID3_NUM_FILTERS,uiColors[GUI_COLOR_MACRO_FILTER],false,NULL,NULL,true,sid3FilterMatrixBits));
+
+      drawMacros(macroList,macroEditStateOP[i]);
+
+      ImGui::EndTabItem();
+    }
+  }
 
   if (ImGui::BeginTabItem(_("Macros"))) 
   {
