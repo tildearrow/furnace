@@ -762,7 +762,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       if (c.value&0xf0 && !(chan[c.chan].nextPSGMode.val&8)) {
         chan[c.chan].nextPSGMode.val|=16;
-        chan[i].tfx.mode=(c.value&3);
+        chan[c.chan].tfx.mode=(c.value&3);
       }
       if (!(chan[c.chan].nextPSGMode.val&8)) {
         if (c.value<16) {
