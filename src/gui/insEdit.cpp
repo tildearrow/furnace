@@ -5943,6 +5943,11 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
     strncpy(buffer,macroSID3WaveMixMode(0,(float)ins->sid2.mixMode,NULL).c_str(),40);
     P(CWSliderScalar(_("Wave Mix Mode"),ImGuiDataType_U8,&ins->sid2.mixMode,&_ZERO,&_FOUR,buffer));
     P(CWSliderScalar(_("Duty"),ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+    bool resetDuty=ins->c64.resetDuty;
+    if (ImGui::Checkbox(_("Reset duty on new note"),&resetDuty)) 
+    { PARAMETER
+      ins->c64.resetDuty=resetDuty;
+    }
 
     bool ringMod=ins->c64.ringMod;
     if (ImGui::Checkbox(_("Ring Modulation"),&ringMod)) { PARAMETER
@@ -6914,6 +6919,11 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           P(CWSliderScalar(_("Duty"),ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE)); rightClickable
+          bool resetDuty=ins->c64.resetDuty;
+          if (ImGui::Checkbox(_("Reset duty on new note"),&resetDuty)) 
+          { PARAMETER
+            ins->c64.resetDuty=resetDuty;
+          }
 
           bool ringMod=ins->c64.ringMod;
           if (ImGui::Checkbox(_("Ring Modulation"),&ringMod)) { PARAMETER

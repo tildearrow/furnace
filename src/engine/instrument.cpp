@@ -106,6 +106,7 @@ bool DivInstrumentC64::operator==(const DivInstrumentC64& other) {
     _C(dutyIsAbs) &&
     _C(filterIsAbs) &&
     _C(noTest) &&
+    _C(resetDuty) &&
     _C(res) &&
     _C(cut) &&
     _C(hp) &&
@@ -525,7 +526,7 @@ void DivInstrument::writeFeature64(SafeWriter* w) {
   w->writeS(c64.duty);
   w->writeS((unsigned short)((c64.cut&4095)|((c64.res&15)<<12)));
 
-  w->writeC((c64.res>>4)&15);
+  w->writeC(((c64.res>>4)&15) | (c64.resetDuty?0x10:0));
 
   FEATURE_END;
 }
@@ -1732,8 +1733,15 @@ void DivInstrument::readFeature64(SafeReader& reader, bool& volIsCutoff, short v
   c64.cut=cr&4095;
   c64.res=cr>>12;
 
-  if (version>=199) {
-    c64.res|=((unsigned char)reader.readC())<<4;
+  if (version>=199) 
+  {
+    next = (unsigned char)reader.readC();
+    c64.res|=(next & 0xf)<<4;
+
+    if(version >= 217)
+    {
+      c64.resetDuty = (next & 0x10) ? true : false;
+    }
   }
 
   READ_FEAT_END;

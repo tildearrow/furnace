@@ -702,7 +702,7 @@ void DivEngine::registerSystems() {
   const EffectHandler SID3FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("3xxx: Set pulse width (0 to FFF)"), effectValLong<12>);
   const EffectHandler SID3FineCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, _("4xxx: Set cutoff (0 to FFF)"), effectValLong<11>);
   for (int i=0; i<16; i++) SID3PostEffectHandlerMap.emplace(0x30+i,SID3FineDutyHandler);
-  for (int i=0; i<16; i++) SID2PostEffectHandlerMap.emplace(0x40+i,SID3FineCutoffHandler);
+  for (int i=0; i<16; i++) SID3PostEffectHandlerMap.emplace(0x40+i,SID3FineCutoffHandler);
 
   // SysDefs
 

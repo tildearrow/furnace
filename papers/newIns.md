@@ -335,6 +335,8 @@ size | description
      | - bit 12-15: resonance
      | - bit 0-10: cutoff (0-11 on SID2)
   1  | upper nibble of resonance (for SID2) (>=199)
+     | - bits 0-3 hold this upper nibble
+     | - bit 4: reset duty on new note (>=217)
 ```
 
 ## C64 compatibility note (>=187)

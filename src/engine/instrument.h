@@ -426,7 +426,7 @@ struct DivInstrumentC64 {
   unsigned char a, d, s, r;
   unsigned short duty;
   unsigned char ringMod, oscSync;
-  bool toFilter, initFilter, dutyIsAbs, filterIsAbs, noTest;
+  bool toFilter, initFilter, dutyIsAbs, filterIsAbs, noTest, resetDuty;
   unsigned char res;
   unsigned short cut;
   bool hp, lp, bp, ch3off;
@@ -453,6 +453,7 @@ struct DivInstrumentC64 {
     dutyIsAbs(false),
     filterIsAbs(false),
     noTest(false),
+    resetDuty(true),
     res(0),
     cut(0),
     hp(false),

@@ -370,9 +370,6 @@ void DivPlatformSID3::tick(bool sysTick)
 
         updateEnvelope(i);
 
-        //chan[i].duty = 0x1000;
-        updateDuty(i);
-
         updateFlags(i, false); //gate off TODO: make it properly?
         updateFlags(i, true); //gate on
         chan[i].gate = true;
@@ -463,7 +460,11 @@ int DivPlatformSID3::dispatch(DivCommand c) {
         chan[c.chan].sr=ins->sid3.sr;
         chan[c.chan].release=ins->c64.r;
 
-        chan[c.chan].duty=ins->c64.duty;
+        if(ins->c64.resetDuty)
+        {
+          chan[c.chan].duty=ins->c64.duty;
+          updateDuty(c.chan);
+        }
 
         chan[c.chan].sync = ins->c64.oscSync;
         chan[c.chan].ring = ins->c64.ringMod;
