@@ -158,13 +158,15 @@ void DivPlatformAY8910::runTFX() {
   int timerPeriod, output;
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&16) && !(chan[i].curPSGMode.val&8) && chan[i].tfx.mode!=-1) {
-      chan[i].tfx.counter += 1;
+      chan[i].tfx.counter += (clockSel || sunsoft)?2:1;
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 0) {
         chan[i].tfx.counter = 0;
         chan[i].tfx.out ^= 1;
-        /*output = ((chan[i].tfx.out) ? chan[i].outVol : (chan[i].tfx.lowBound-(15-chan[i].outVol)));
-        output = (output < 0) ? 0 : output;*/
-        output = chan[i].tfx.out*chan[i].outVol;
+        output = ((chan[i].tfx.out) ? chan[i].outVol : (chan[i].tfx.lowBound-(15-chan[i].outVol)));
+        // please stop crackling
+        output = (output <= 0) ? 0 : output; // underflow
+        output = (output >= 15) ? 15 : output; // overflow
+        output &= 15; // i don't know if i need this but i'm too scared to remove it
         if (!isMuted[i]) {
           immWrite(0x08+i,output|(chan[i].curPSGMode.getEnvelope()<<2));
         }
