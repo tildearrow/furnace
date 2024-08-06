@@ -158,7 +158,16 @@ void DivPlatformAY8910::runTFX() {
   int timerPeriod, output;
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&16) && !(chan[i].curPSGMode.val&8) && chan[i].tfx.mode!=-1) {
-      chan[i].tfx.counter += (clockSel || sunsoft)?2:1;
+      if (chan[i].tfx.mode == -1 && !isMuted[i]) {
+        if (intellivision && chan[i].curPSGMode.getEnvelope()) {
+          immWrite(0x08+i,(chan[i].outVol&0xc)<<2);
+          continue;
+        } else {
+          immWrite(0x08+i,(chan[i].outVol&15)|((chan[i].curPSGMode.getEnvelope())<<2));
+          continue;
+        }
+      }
+      chan[i].tfx.counter += 1;
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 0) {
         chan[i].tfx.counter = 0;
         chan[i].tfx.out ^= 1;
@@ -180,13 +189,6 @@ void DivPlatformAY8910::runTFX() {
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 2) {
         chan[i].tfx.counter = 0;
       }
-      if (chan[i].tfx.mode == -1 && !isMuted[i]) {
-        if (intellivision && chan[i].curPSGMode.getEnvelope()) {
-          immWrite(0x08+i,(chan[i].outVol&0xc)<<2);
-        } else {
-          immWrite(0x08+i,(chan[i].outVol&15)|((chan[i].curPSGMode.getEnvelope())<<2));
-        }
-      }
     }
     if (chan[i].tfx.num > 0) {
       timerPeriod = chan[i].freq*chan[i].tfx.den/chan[i].tfx.num;
@@ -194,6 +196,7 @@ void DivPlatformAY8910::runTFX() {
       timerPeriod = chan[i].freq*chan[i].tfx.den;
     }
     if (chan[i].tfx.num > 0 && chan[i].tfx.den > 0) chan[i].tfx.period=timerPeriod+chan[i].tfx.offset;
+    if (clockSel || sunsoft) chan[i].tfx.period	= chan[i].tfx.period / 2;
   }
 }
 
@@ -260,6 +263,7 @@ void DivPlatformAY8910::acquire_mame(short** buf, size_t len) {
 void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
   for (size_t i=0; i<len; i++) {
     runDAC();
+    runTFX();
 
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -389,6 +393,10 @@ void DivPlatformAY8910::tick(bool sysTick) {
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].tfx.counter = 0;
+        chan[i].tfx.out = 0;
+        immWrite((i<<1),0);
+        immWrite(1+(i<<1),0);
+        chan[i].freqChanged=true;
         if (chan[i].nextPSGMode.val&8) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
           if (chan[i].dac.sample<0 || chan[i].dac.sample>=parent->song.sampleLen) {
