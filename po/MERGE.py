@@ -3,7 +3,7 @@ def merge_po_files_preserve_format(base_file, new_file, output_file):
         base_lines = f1.readlines()
         new_lines = f2.readlines()
 
-    # 遍历new_lines，提取msgid和msgstr
+    # Traverse the new_lines and extract msgid and msgstr
     new_translations = {}
     i = 0
     while i < len(new_lines):
@@ -16,7 +16,7 @@ def merge_po_files_preserve_format(base_file, new_file, output_file):
             new_translations[msgid] = msgstr
         i += 1
 
-    # 打开output_file，写入合并后的内容
+    # Open the output_file and write the merged content
     with open(output_file, 'w', encoding='utf-8') as output:
         i = 0
         while i < len(base_lines):
