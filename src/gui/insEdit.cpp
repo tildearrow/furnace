@@ -7569,6 +7569,10 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(_("Timer Num"),&ins->std.ex8Macro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc(_("Timer Den"),&ins->std.fmsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc(_("PWM Boundary"),&ins->std.amsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
+              // workaround, because the gui will not set
+              // zoom or scroll if we're not in macros tab
+              ins->std.ex7Macro->vZoom=128;
+              ins->std.ex7Macro->vScroll=2048-64;
               drawMacros(macroList,macroEditStateMacros);
               ImGui::EndTabItem();
             }

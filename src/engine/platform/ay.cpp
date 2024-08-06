@@ -155,7 +155,6 @@ void DivPlatformAY8910::runDAC() {
 }
 
 void DivPlatformAY8910::runTFX() {
-  if (selCore) return;
   int timerPeriod, output;
   for (int i=0; i<3; i++) {
     if (chan[i].active && (chan[i].curPSGMode.val&16) && !(chan[i].curPSGMode.val&8) && chan[i].tfx.mode!=-1) {
@@ -163,8 +162,8 @@ void DivPlatformAY8910::runTFX() {
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 0) {
         chan[i].tfx.counter = 0;
         chan[i].tfx.out ^= 1;
-        output = MAX(0, ((chan[i].tfx.out) ? (chan[i].outVol&15) : (chan[i].tfx.lowBound-(15-chan[i].outVol))));
-        output &= 15;
+        output = ((chan[i].tfx.out) ? chan[i].outVol : (chan[i].tfx.lowBound-(15-chan[i].outVol)));
+        output = (output < 0) ? 0 : output;
         if (!isMuted[i]) {
           immWrite(0x08+i,output|(chan[i].curPSGMode.getEnvelope()<<2));
         }
@@ -187,10 +186,10 @@ void DivPlatformAY8910::runTFX() {
       }
     }
     if (chan[i].tfx.num > 0) {
-            timerPeriod = chan[i].freq*chan[i].tfx.den/chan[i].tfx.num;
-          } else {
-            timerPeriod = chan[i].freq*chan[i].tfx.den;
-          }
+      timerPeriod = chan[i].freq*chan[i].tfx.den/chan[i].tfx.num;
+    } else {
+      timerPeriod = chan[i].freq*chan[i].tfx.den;
+    }
     if (chan[i].tfx.num > 0 && chan[i].tfx.den > 0) chan[i].tfx.period=timerPeriod+chan[i].tfx.offset;
   }
 }
@@ -258,7 +257,6 @@ void DivPlatformAY8910::acquire_mame(short** buf, size_t len) {
 void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
   for (size_t i=0; i<len; i++) {
     runDAC();
-    runTFX();
 
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -806,7 +804,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       immWrite(14+(c.value?1:0),(c.value?portBVal:portAVal));
       break;
     case DIV_CMD_AY_AUTO_PWM:
-      chan[c.chan].tfx.offset=c.value;
+      chan[c.chan].tfx.offset=((c.value&0x80)?-(c.value):(c.value));
       break;
     case DIV_CMD_SAMPLE_MODE:
       if (c.value>0) {
