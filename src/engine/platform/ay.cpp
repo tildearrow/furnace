@@ -177,13 +177,22 @@ void DivPlatformAY8910::runTFX() {
         output = (output >= 15) ? 15 : output; // overflow
         output &= 15; // i don't know if i need this but i'm too scared to remove it
         if (!isMuted[i]) {
-          immWrite(0x08+i,output|(chan[i].curPSGMode.getEnvelope()<<2));
+          if (intellivision) {
+            immWrite(0x0b+i,(output&0xc)<<2);
+          } else {
+            immWrite(0x08+i,output|(chan[i].curPSGMode.getEnvelope()<<2));
+          }
         }
       }
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 1) {
         chan[i].tfx.counter = 0;
         if (!isMuted[i]) {
-          immWrite(0xd, ayEnvMode);
+          if (intellivision && selCore) {
+            // it doesn't remap this in AtomicSSG for some reason
+            immWrite(0xa, ayEnvMode);
+          } else {
+            immWrite(0xd, ayEnvMode);
+          }
         }
       }
       if (chan[i].tfx.counter >= chan[i].tfx.period && chan[i].tfx.mode == 2) {
@@ -196,7 +205,8 @@ void DivPlatformAY8910::runTFX() {
       timerPeriod = chan[i].freq*chan[i].tfx.den;
     }
     if (chan[i].tfx.num > 0 && chan[i].tfx.den > 0) chan[i].tfx.period=timerPeriod+chan[i].tfx.offset;
-    if (clockSel || sunsoft) chan[i].tfx.period	= chan[i].tfx.period / 2;
+    if (clockSel || sunsoft) chan[i].tfx.period	= chan[i].tfx.period * 2;
+    if (selCore) chan[i].tfx.period = chan[i].tfx.period * 4;
   }
 }
 
@@ -394,9 +404,6 @@ void DivPlatformAY8910::tick(bool sysTick) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].tfx.counter = 0;
         chan[i].tfx.out = 0;
-        immWrite((i<<1),0);
-        immWrite(1+(i<<1),0);
-        chan[i].freqChanged=true;
         if (chan[i].nextPSGMode.val&8) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
           if (chan[i].dac.sample<0 || chan[i].dac.sample>=parent->song.sampleLen) {
