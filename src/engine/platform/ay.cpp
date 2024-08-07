@@ -760,12 +760,10 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      if (c.value&0xf0 && !(chan[c.chan].nextPSGMode.val&8)) {
-        chan[c.chan].nextPSGMode.val|=16;
-        chan[c.chan].tfx.mode=(c.value&3);
-      }
       if (!(chan[c.chan].nextPSGMode.val&8)) {
-        if (c.value<16) {
+        chan[c.chan].nextPSGMode.val|=16;
+        chan[c.chan].tfx.mode=(((c.value&0xf0)>>4)&3)-1;
+        if ((c.value&15)<16) {
           chan[c.chan].nextPSGMode.val=(c.value+1)&7;
           chan[c.chan].nextPSGMode.val|=chan[c.chan].curPSGMode.val&16;
           if (chan[c.chan].active) {
@@ -839,9 +837,13 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       updateOutSel(true);
       immWrite(14+(c.value?1:0),(c.value?portBVal:portAVal));
       break;
+    case DIV_CMD_AY_NOISE_MASK_AND:
+      chan[c.chan].tfx.num=c.value>>4;
+      chan[c.chan].tfx.den=c.value&15;
+      break;
     case DIV_CMD_AY_AUTO_PWM: {
       // best way i could find to do signed :/
-      signed char signVal = c.value;
+      signed char signVal=c.value;
       chan[c.chan].tfx.offset=signVal;
       break;
     }
