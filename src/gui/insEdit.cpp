@@ -6032,6 +6032,8 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins)
         P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->resonance,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
         snprintf(buffer, 40, _("Output volume##foutvol%d"), i + 1);
         P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->output_volume,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+        snprintf(buffer, 40, _("Distortion level##fdist%d"), i + 1);
+        P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->distortion_level,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
 
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Filter Mode"));
