@@ -840,7 +840,9 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       immWrite(14+(c.value?1:0),(c.value?portBVal:portAVal));
       break;
     case DIV_CMD_AY_AUTO_PWM:
-      chan[c.chan].tfx.offset=((c.value&0x80)?-(c.value):(c.value));
+      // best way i could find to do signed :/
+      signed char signVal = c.value;
+      chan[c.chan].tfx.offset=signVal;
       break;
     case DIV_CMD_SAMPLE_MODE:
       if (c.value>0) {
