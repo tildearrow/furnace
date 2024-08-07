@@ -109,6 +109,8 @@ bool safeModeWithAudio=false;
 
 bool infoMode=false;
 
+bool noReportError=false;
+
 std::vector<TAParam> params;
 
 #ifdef HAVE_LOCALE
@@ -196,6 +198,11 @@ TAParamResult pView(String val) {
 
 TAParamResult pConsole(String val) {
   consoleMode=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pQuiet(String val) {
+  noReportError=true;
   return TA_PARAM_SUCCESS;
 }
 
@@ -456,6 +463,7 @@ void initParams() {
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
   params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
+  params.push_back(TAParam("q","noreport",false,pQuiet,"","do not display message box on error"));
   params.push_back(TAParam("n","nostatus",false,pNoStatus,"","disable playback status in console mode"));
   params.push_back(TAParam("N","nocontrols",false,pNoControls,"","disable standard input controls in console mode"));
 
@@ -474,18 +482,25 @@ void initParams() {
 #ifdef _WIN32
 void reportError(String what) {
   logE("%s",what);
-  MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
+  if (!noReportError) {
+    MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
+  }
 }
 #elif defined(ANDROID) || defined(__APPLE__)
 void reportError(String what) {
   logE("%s",what);
 #ifdef HAVE_SDL2
-  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",what.c_str(),NULL);
+  if (!noReportError) {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",what.c_str(),NULL);
+  }
 #endif
 }
 #else
 void reportError(String what) {
   logE("%s",what);
+  if (!noReportError) {
+    // dummy
+  }
 }
 #endif
 
