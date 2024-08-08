@@ -263,7 +263,15 @@ const char* cmdName[]={
   "BIFURCATOR_STATE_LOAD",
   "BIFURCATOR_PARAMETER",
 
-  "FDS_MOD_AUTO"
+  "FDS_MOD_AUTO",
+
+  "SID3_SPECIAL_WAVE",
+  "SID3_RING_MOD_SRC",
+  "SID3_HARD_SYNC_SRC",
+  "SID3_PHASE_MOD_SRC",
+  "SID3_WAVE_MIX",
+  "SID3_LFSR_FEEDBACK_BITS",
+  "SID3_1_BIT_NOISE",
 };
 
 static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");

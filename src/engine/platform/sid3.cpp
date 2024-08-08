@@ -481,6 +481,9 @@ void DivPlatformSID3::tick(bool sysTick)
 
 int DivPlatformSID3::dispatch(DivCommand c) {
   if (c.chan>SID3_NUM_CHANNELS - 1) return 0;
+
+  bool updEnv = false;
+
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SID3);
@@ -669,6 +672,81 @@ int DivPlatformSID3::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return SID3_MAX_VOL;
       break;
+    case DIV_CMD_WAVE:
+      chan[c.chan].wave = c.value & 0xff;
+      rWrite(SID3_REGISTER_WAVEFORM + c.chan * SID3_REGISTERS_PER_CHANNEL, chan[c.chan].wave);
+      break;
+    case DIV_CMD_SID3_SPECIAL_WAVE:
+      chan[c.chan].special_wave = c.value % SID3_NUM_SPECIAL_WAVES;
+      rWrite(SID3_REGISTER_SPECIAL_WAVE + c.chan * SID3_REGISTERS_PER_CHANNEL, chan[c.chan].special_wave);
+      break;
+    case DIV_CMD_C64_EXTENDED:
+      chan[c.chan].ring = c.value & 1;
+      chan[c.chan].sync = c.value & 2;
+      chan[c.chan].phase = c.value & 4;
+      updateFlags(c.chan, chan[c.chan].gate);
+      break;
+    case DIV_CMD_C64_DUTY_RESET:
+      if (c.value&15) {
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SID3);
+        chan[c.chan].duty=ins->c64.duty;
+        updateDuty(c.chan);
+      }
+      chan[c.chan].resetDuty=c.value>>4;
+      break;
+    case DIV_CMD_SID3_RING_MOD_SRC:
+      chan[c.chan].ringSrc = c.value % (SID3_NUM_CHANNELS + 1);
+      rWrite(SID3_REGISTER_RING_MOD_SRC + c.chan * SID3_REGISTERS_PER_CHANNEL, chan[c.chan].ringSrc);
+      break;
+    case DIV_CMD_SID3_HARD_SYNC_SRC:
+      chan[c.chan].syncSrc = c.value % SID3_NUM_CHANNELS;
+      rWrite(SID3_REGISTER_SYNC_SRC + c.chan * SID3_REGISTERS_PER_CHANNEL, chan[c.chan].syncSrc);
+      break;
+    case DIV_CMD_SID3_PHASE_MOD_SRC:
+      chan[c.chan].phaseSrc = c.value % SID3_NUM_CHANNELS;
+      rWrite(SID3_REGISTER_PHASE_MOD_SRC + c.chan * SID3_REGISTERS_PER_CHANNEL, chan[c.chan].phaseSrc);
+      break;
+    case DIV_CMD_FM_AR:
+      chan[c.chan].attack = c.value & 0xff;
+      updEnv = true;
+      break;
+    case DIV_CMD_FM_DR:
+      chan[c.chan].decay = c.value & 0xff;
+      updEnv = true;
+      break;
+    case DIV_CMD_FM_SL:
+      chan[c.chan].sustain = c.value & 0xff;
+      updEnv = true;
+      break;
+    case DIV_CMD_FM_D2R:
+      chan[c.chan].sr = c.value & 0xff;
+      updEnv = true;
+      break;
+    case DIV_CMD_FM_RR:
+      chan[c.chan].release = c.value & 0xff;
+      updEnv = true;
+      break;
+    case DIV_CMD_SID3_WAVE_MIX:
+      chan[c.chan].mix_mode = c.value % 5;
+      rWrite(SID3_REGISTER_MIXMODE + c.chan * SID3_REGISTERS_PER_CHANNEL, chan[c.chan].mix_mode);
+      break;
+    case DIV_CMD_SID3_LFSR_FEEDBACK_BITS:
+      chan[c.chan].noiseLFSRMask &= ~(0xffU << (8 * c.value2));
+      chan[c.chan].noiseLFSRMask |= ((c.value & (c.value2 == 3 ? 0x3f : 0xff)) << (8 * c.value2));
+      updateNoiseLFSRMask(c.chan);
+      break;
+    case DIV_CMD_SID3_1_BIT_NOISE:
+      chan[c.chan].oneBitNoise = c.value & 1;
+      updateFlags(c.chan, chan[c.chan].gate);
+      break;
+    case DIV_CMD_C64_FINE_DUTY:
+      chan[c.chan].duty = (c.value & 0xfff) << 4;
+      updateDuty(c.chan);
+      break;
+    case DIV_CMD_C64_FINE_CUTOFF:
+      chan[c.chan].filt[c.value2].cutoff = (c.value & 0xfff) << 4;
+      updateFilter(c.chan, c.value2);
+      break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
@@ -680,6 +758,11 @@ int DivPlatformSID3::dispatch(DivCommand c) {
       break;
     default:
       break;
+  }
+
+  if(updEnv)
+  {
+    updateEnvelope(c.chan);
   }
   return 1;
 }

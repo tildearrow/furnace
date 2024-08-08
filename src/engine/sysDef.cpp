@@ -691,18 +691,41 @@ void DivEngine::registerSystems() {
   for (int i=0; i<16; i++) SID2PostEffectHandlerMap.emplace(0x40+i,SID2FineCutoffHandler);
 
   EffectHandlerMap SID3PostEffectHandlerMap={
-    {0x10, {DIV_CMD_WAVE, _("10xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise)")}},
-    {0x11, {DIV_CMD_C64_RESONANCE, _("11xx: Set resonance (0 to FF)")}},
-    {0x12, {DIV_CMD_C64_FILTER_MODE, _("12xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)")}},
-    {0x13, {DIV_CMD_C64_RESET_MASK, _("13xx: Disable envelope reset for this channel (1 disables; 0 enables)")}},
-    {0x14, {DIV_CMD_C64_FILTER_RESET, _("14xy: Reset cutoff (x: on new note; y: now)")}},
-    {0x15, {DIV_CMD_C64_DUTY_RESET, _("15xy: Reset pulse width (x: on new note; y: now)")}},
-    {0x16, {DIV_CMD_C64_EXTENDED, _("16xy: Change other parameters")}},
+    {0x60, {DIV_CMD_WAVE, _("60xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise; bit 4: special wave)")}},
+    {0x61, {DIV_CMD_SID3_SPECIAL_WAVE, _("61xx: Set special wave (00-39)")}},
+    {0x62, {DIV_CMD_C64_EXTENDED, _("62xx: Modulation control (bit 0: ring mod; bit 1: osc. sync; bit 2: phase mod)")}},
+    {0x63, {DIV_CMD_C64_DUTY_RESET, _("63xy: Reset pulse width (x: on new note; y: now)")}},
+
+    {0x64, {DIV_CMD_SID3_RING_MOD_SRC, _("64xx: Set ring modulation source channel (0-7)")}},
+    {0x65, {DIV_CMD_SID3_HARD_SYNC_SRC, _("65xx: Set hard sync source channel (0-6)")}},
+    {0x66, {DIV_CMD_SID3_PHASE_MOD_SRC, _("66xx: Set phase modulation source channel (0-6)")}},
+
+    {0x67, {DIV_CMD_FM_AR, _("67xx: Set attack")}},
+    {0x68, {DIV_CMD_FM_DR, _("68xx: Set decay")}},
+    {0x69, {DIV_CMD_FM_SL, _("69xx: Set sustain level")}},
+    {0x6A, {DIV_CMD_FM_D2R, _("6Axx: Set sustain rate")}},
+    {0x6B, {DIV_CMD_FM_RR, _("6Bxx: Set release")}},
+
+    {0x6C, {DIV_CMD_SID3_WAVE_MIX, _("6Cxx: Set wave mix mode (0-4)")}},
+
+    {0x6D, {DIV_CMD_SID3_LFSR_FEEDBACK_BITS, _("6Dxx: Set noise LFSR feedback bits (low byte)"), effectVal, constVal<0>}},
+    {0x6E, {DIV_CMD_SID3_LFSR_FEEDBACK_BITS, _("6Exx: Set noise LFSR feedback bits (medium byte)"), effectVal, constVal<1>}},
+    {0x6F, {DIV_CMD_SID3_LFSR_FEEDBACK_BITS, _("6Fxx: Set noise LFSR feedback bits (higher byte)"), effectVal, constVal<2>}},
+    {0x70, {DIV_CMD_SID3_LFSR_FEEDBACK_BITS, _("70xx: Set noise LFSR feedback bits (highest bits, 0-3F)"), effectVal, constVal<3>}},
+
+    {0x71, {DIV_CMD_SID3_1_BIT_NOISE, _("71xx: Set noise mode (0: usual noise, 1: 1-bit noise (PCM mode on wave channel))")}},
   };
-  const EffectHandler SID3FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("3xxx: Set pulse width (0 to FFF)"), effectValLong<12>);
-  const EffectHandler SID3FineCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, _("4xxx: Set cutoff (0 to FFF)"), effectValLong<11>);
-  for (int i=0; i<16; i++) SID3PostEffectHandlerMap.emplace(0x30+i,SID3FineDutyHandler);
-  for (int i=0; i<16; i++) SID3PostEffectHandlerMap.emplace(0x40+i,SID3FineCutoffHandler);
+
+  const EffectHandler SID3FineDutyHandler(DIV_CMD_C64_FINE_DUTY, _("5xxx: Set pulse width (0 to FFF)"), effectValLong<12>);
+  const EffectHandler SID3FineCutoffHandler1(DIV_CMD_C64_FINE_CUTOFF, _("1xxx: Set cutoff of filter 1 (0 to FFF)"), effectValLong<12>, constVal<0>);
+  const EffectHandler SID3FineCutoffHandler2(DIV_CMD_C64_FINE_CUTOFF, _("2xxx: Set cutoff of filter 2 (0 to FFF)"), effectValLong<12>, constVal<1>);
+  const EffectHandler SID3FineCutoffHandler3(DIV_CMD_C64_FINE_CUTOFF, _("3xxx: Set cutoff of filter 3 (0 to FFF)"), effectValLong<12>, constVal<2>);
+  const EffectHandler SID3FineCutoffHandler4(DIV_CMD_C64_FINE_CUTOFF, _("4xxx: Set cutoff of filter 4 (0 to FFF)"), effectValLong<12>, constVal<3>);
+  for (int i=0; i<16; i++) SID3PostEffectHandlerMap.emplace(0x50+i,SID3FineDutyHandler);
+  for (int i=0; i<16; i++) SID3PostEffectHandlerMap.emplace(0x10+i,SID3FineCutoffHandler1);
+  for (int i=0; i<16; i++) SID3PostEffectHandlerMap.emplace(0x20+i,SID3FineCutoffHandler2);
+  for (int i=0; i<16; i++) SID3PostEffectHandlerMap.emplace(0x30+i,SID3FineCutoffHandler3);
+  for (int i=0; i<16; i++) SID3PostEffectHandlerMap.emplace(0x40+i,SID3FineCutoffHandler4);
 
   // SysDefs
 
