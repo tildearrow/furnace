@@ -87,6 +87,7 @@ String outName;
 String vgmOutName;
 String zsmOutName;
 String cmdOutName;
+String tiunaOutName;
 int benchMode=0;
 int subsong=-1;
 DivAudioExportOptions exportOptions;
@@ -441,6 +442,12 @@ TAParamResult pCmdOut(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pTiunaOut(String val) {
+  tiunaOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
 bool needsValue(String param) {
   for (size_t i=0; i<params.size(); i++) {
     if (params[i].name==param) {
@@ -459,6 +466,7 @@ void initParams() {
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("Z","zsmout",true,pZSMOut,"<filename>","output .zsm data for Commander X16 Zsound"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
+  params.push_back(TAParam("T","tiunaout",true,pTiunaOut,"<filename>","output .asm data with TIunA sound data (TIA only)"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (nothing by default)"));
   params.push_back(TAParam("i","info",false,pInfo,"","get info about a song"));
@@ -562,6 +570,7 @@ int main(int argc, char** argv) {
   vgmOutName="";
   zsmOutName="";
   cmdOutName="";
+  tiunaOutName="";
 
   // load config for locale
   e.prePreInit();
@@ -729,14 +738,14 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (fileName.empty() && (benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="" || tiunaOutName!="")) {
     logE("provide a file!");
     return 1;
   }
 
 #ifdef HAVE_GUI
-  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
-    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (e.preInit(consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="" || tiunaOutName!="")) {
+    if (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="" || tiunaOutName!="") {
       logW("engine wants safe mode, but Furnace GUI is not going to start.");
     } else {
       safeMode=true;
@@ -748,7 +757,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (safeMode && (consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="" || tiunaOutName!="")) {
     logE("you can't use safe mode and console/export mode together.");
     return 1;
   }
@@ -757,7 +766,7 @@ int main(int argc, char** argv) {
     e.setAudio(DIV_AUDIO_DUMMY);
   }
 
-  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",TUT_INTRO_PLAYED)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || infoMode || outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="" || tiunaOutName!="")) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
@@ -849,7 +858,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  if (outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (outName!="" || vgmOutName!="" || zsmOutName!="" || cmdOutName!="" || tiunaOutName!="") {
     if (cmdOutName!="") {
       SafeWriter* w=e.saveCommand();
       if (w!=NULL) {
